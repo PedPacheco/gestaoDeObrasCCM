@@ -14,7 +14,7 @@ export default async function Home() {
   const cookieStore = cookies();
 
   const { data, token } = await fetchData(
-    "http://localhost:3333/metas",
+    `${process.env.NEXT_PUBLIC_API_URL}http://localhost:3333/metas`,
     undefined,
     cookieStore.get("token")?.value
   );

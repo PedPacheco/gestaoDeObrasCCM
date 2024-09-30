@@ -19,6 +19,10 @@ export class FiltersService {
     grupo,
     municipio,
     status,
+    statusSap,
+    conjunto,
+    ovnota,
+    empreendimento,
   }: FiltersDto) {
     const result = {};
 
@@ -61,6 +65,31 @@ export class FiltersService {
     if (status) {
       result['status'] = await this.getCachedData('status', () =>
         this.getData('status', ['id', 'status']),
+      );
+    }
+
+    if (statusSap) {
+      result['status_sap'] = await this.getCachedData('status_sap', () =>
+        this.getData('status_sap', ['id', 'status_sap']),
+      );
+    }
+
+    if (conjunto) {
+      result['conjunto'] = await this.getCachedData('conjunto', () =>
+        this.getData('conjuntos', ['id', 'conjunto']),
+      );
+    }
+
+    if (ovnota) {
+      result['ovnota'] = await this.getCachedData('ovnota', () =>
+        this.getData('obras', ['id', 'ovnota']),
+      );
+    }
+
+    if (empreendimento) {
+      result['empreendimento'] = await this.getCachedData(
+        'empreendimento',
+        () => this.getData('empreendimento', ['id', 'empreendimento']),
       );
     }
 

@@ -8,8 +8,19 @@ export class FiltersController {
 
   @Get()
   async getFilters(@Query() query: FiltersDto): Promise<any> {
-    const { parceira, regional, tipo, circuito, grupo, municipio, status } =
-      query;
+    const {
+      parceira,
+      regional,
+      tipo,
+      circuito,
+      grupo,
+      municipio,
+      status,
+      conjunto,
+      ovnota,
+      statusSap,
+      empreendimento,
+    } = query;
 
     const filters = await this.filtersService.getFilters({
       regional,
@@ -19,6 +30,10 @@ export class FiltersController {
       grupo,
       municipio,
       status,
+      conjunto,
+      ovnota,
+      statusSap,
+      empreendimento,
     });
 
     return filters;
