@@ -1,0 +1,832 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["views"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+model base_auxiliar {
+  obra               String?   @db.VarChar(255)
+  pep                String?   @db.VarChar(255)
+  dci                String?   @db.VarChar(255)
+  dcd                String?   @db.VarChar(255)
+  dcs                String?   @db.VarChar(255)
+  dcim               String?   @db.VarChar(255)
+  entrada            DateTime? @db.Timestamptz(6)
+  tipo               String?   @db.VarChar(255)
+  referencia         String?   @db.VarChar(255)
+  mo_plan            Float?
+  aux_gpm            Int?
+  aux_empreendimento Int?
+  aux_tipo           Int?
+  aux_turma          Int?
+  aux_circuito       Int?
+  aux_tecnico        Int?
+  capex_mo_plan      Int?
+  capex_mat_plan     Int?
+  id                 BigInt    @id @default(autoincrement())
+  prazo              Int?
+  qtde_plan          Float?
+}
+
+model base_auxiliar_nota {
+  tipo_de_ordem     String?   @db.VarChar(255)
+  nota              String?   @db.VarChar(255)
+  ordem             String?   @db.VarChar(255)
+  campo_ordenacao   String?   @db.VarChar(255)
+  texto_breve       String?   @db.VarChar(255)
+  conjunto          String?   @db.VarChar(255)
+  denom_Conjunto    String?   @db.VarChar(255)
+  pep_cabec_ordem   String?   @db.VarChar(255)
+  grp_plnj_pm       String?   @db.VarChar(255)
+  status_usuario    String?   @db.VarChar(255)
+  status_sistema    String?   @db.VarChar(255)
+  data_entrada      DateTime? @db.Timestamptz(6)
+  custos_tot_plan   Float?
+  custo_tot_reais   Float?
+  centro            String?   @db.VarChar(255)
+  loc_instalacao    String?   @db.VarChar(255)
+  denominacao       String?   @db.VarChar(255)
+  modificado_por    String?   @db.VarChar(255)
+  aux_valor_mo_calc Float?
+  aux_qtde_calc     Float?
+  id                BigInt    @id @default(autoincrement())
+}
+
+model base_auxiliar_nota_cn52n {
+  status         String?   @db.VarChar(10)
+  diagrama_rede  String?   @db.VarChar(15)
+  def_proj       String?   @db.VarChar(10)
+  material       String?   @db.VarChar(10)
+  texto_material String?   @db.VarChar(100)
+  centro         String?   @db.VarChar(10)
+  deposito       String?   @db.VarChar(10)
+  ctg_item       String?   @db.VarChar(3)
+  elemento_pep   String?   @db.VarChar(20)
+  um_registro    String?   @db.VarChar(10)
+  preco_mi       Float?
+  qtd_necess     Float?
+  qtd_retirada   Float?
+  qtd_entrada    Float?
+  qtd_falta      Float?
+  data_nec       DateTime? @db.Date
+  id             BigInt    @id @default(autoincrement())
+}
+
+model base_auxiliar_ov {
+  obra             String?   @db.VarChar(20)
+  pep              String?   @db.VarChar(20)
+  diagrama         String?   @db.VarChar(20)
+  gpm              String?   @db.VarChar(10)
+  tipo             String?   @db.VarChar(50)
+  circuito         String?   @db.VarChar(20)
+  prazo_texto      String?   @db.VarChar(30)
+  status_ov        Int?
+  status_diagrama  String?   @db.VarChar(4)
+  status_pep       String?   @db.VarChar(4)
+  equip_num_pedido String?   @db.VarChar(50)
+  mo_cliente       Float?
+  mo_empresa       Float?
+  entrada          DateTime? @db.Date
+  observacao       String?   @db.VarChar(100)
+  aux_municipio    Int?
+  aux_tipo_obra    Int?
+  aux_prazo        Int?
+  aux_circuito     Int?
+  aux_turma        Int?
+  aux_referencia   String?   @db.VarChar(14)
+  id               BigInt    @id @default(autoincrement())
+  tecnico_resp     String?   @db.VarChar(40)
+}
+
+model capacidade_execucao {
+  id          Int       @id(map: "CAPACIDADE EXECUCAO_pkey") @default(autoincrement())
+  id_regional Int
+  id_turma    Int
+  equipe      String?   @db.VarChar(15)
+  jan         Int?
+  fev         Int?
+  mar         Int?
+  abr         Int?
+  mai         Int?
+  jun         Int?
+  jul         Int?
+  ago         Int?
+  set         Int?
+  out         Int?
+  nov         Int?
+  dez         Int?
+  ano         String?   @db.VarChar(10)
+  turmas      turmas    @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceiras")
+  regionais   regionais @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
+}
+
+model circuitos {
+  id          Int       @id(map: "CIRCUITOS_pkey") @default(autoincrement())
+  circuito    String    @db.VarChar(12)
+  circ_abrev  String    @db.VarChar(12)
+  id_conjunto Int
+  critico     Boolean?
+  conjuntos   conjuntos @relation(fields: [id_conjunto], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_conjuntos")
+  obras       obras[]
+}
+
+model cn52n {
+  status              String?   @db.VarChar(10)
+  diagrama_rede       String?   @db.VarChar(20)
+  def_proj            String?   @db.VarChar(20)
+  material            String?   @db.VarChar(8)
+  texto_breve         String?   @db.VarChar(100)
+  centro              String?   @db.VarChar(4)
+  dep                 String?   @db.VarChar(4)
+  cti                 String?   @db.VarChar(2)
+  elemento_pep        String?   @db.VarChar(20)
+  und                 String?   @db.VarChar(10)
+  preco               Float?
+  qtd_necessaria      Float?
+  qtd_retirada        Float?
+  qtd_entrada         Float?
+  qtd_falta           Float?
+  data_nec            DateTime? @db.Date
+  reserva             String?   @db.VarChar(5)
+  qtd_manut_pend      Float?
+  calc_capex_mat_plan Float?
+  calc_capex_mo_plan  Float?
+  calc_capex_mat_pend Float?
+  calc_capex_mo_pend  Float?
+  id                  BigInt    @id @default(autoincrement())
+}
+
+model conjuntos {
+  id        Int         @id(map: "CONJUNTOS_pkey") @default(autoincrement())
+  conjunto  String      @db.VarChar(100)
+  circuitos circuitos[]
+}
+
+model conversao {
+  pep      String? @db.VarChar(15)
+  material String? @db.VarChar(10)
+  fator    Int?
+  pep_ref  String? @db.VarChar(10)
+  descr    String? @db.VarChar(20)
+  id       Int     @id @default(autoincrement())
+}
+
+model datas {
+  id                   Int       @id @default(autoincrement())
+  data_pend_capex      DateTime? @db.Date
+  data_ordens          DateTime? @db.Date
+  data_ov_status       DateTime? @db.Date
+  data_diagrama_status DateTime? @db.Date
+  data_cns47           DateTime? @db.Date
+}
+
+model empreendimento {
+  id             Int        @id(map: "EMPREENDIMENTO_pkey") @default(autoincrement())
+  empreendimento String?    @db.VarChar(50)
+  id_grupo       Int
+  id_regional    Int?
+  grupos         grupos     @relation(fields: [id_grupo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_grupos")
+  regionais      regionais? @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
+  obras          obras[]
+}
+
+model equipamento {
+  id                    Int     @id @default(autoincrement())
+  equipamento           String? @db.VarChar(30)
+  tipo_dispositivo      String? @db.VarChar(50)
+  codigo_instalacao_pai String? @db.VarChar(30)
+  circuito              String? @db.VarChar(8)
+  conjunto_cod          Int?
+  classe_tensao         Int?
+  municipio             String? @db.VarChar(50)
+  bairro                String? @db.VarChar(50)
+  coordenada_latitude   Float?
+  coordenada_longitude  Float?
+  clientes_mt           Float?
+  clientes_bt           Float?
+  fases                 String? @db.VarChar(3)
+  tensao_operacao_prim  Int?
+  configuracao_banco    String? @db.VarChar(50)
+  conjunto              String? @db.VarChar(50)
+  tensao_operacao_sec   Int?
+}
+
+model equipes {
+  id          Int        @id @default(autoincrement())
+  id_turma    Int
+  equipe      String?    @db.VarChar(20)
+  encarregado String?    @db.VarChar(40)
+  perfil      String?    @db.VarChar(10)
+  turmas      turmas     @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_turmas")
+  servicos    servicos[]
+}
+
+model grupos {
+  id             Int              @id(map: "GRUPOS_pkey") @default(autoincrement())
+  grupo          String           @db.VarChar(20)
+  empreendimento empreendimento[]
+  subgrupo       subgrupo[]
+  tipos          tipos[]
+}
+
+model iw28 {
+  nota        String? @db.VarChar(15)
+  status_nota Int?
+  id          BigInt  @id @default(autoincrement())
+}
+
+model iw38 {
+  tipo_ordem       String?   @db.VarChar(30)
+  ordem            String?   @db.VarChar(30)
+  nota             String?   @db.VarChar(30)
+  campo_ordenacao  String?   @db.VarChar(30)
+  texto_breve      String?   @db.VarChar(100)
+  conjunto         String?   @db.VarChar(5)
+  denom_conjunto   String?   @db.VarChar(100)
+  pep_cabec_ordem  String?   @db.VarChar(20)
+  grp_plnj_pm      String?   @db.VarChar(3)
+  status_usuario   String?   @db.VarChar(100)
+  status_sistema   String?   @db.VarChar(100)
+  data_entrada     DateTime? @db.Date
+  custos_tot_plan  Float?
+  custos_tot_reais Float?
+  centro           String?   @db.VarChar(8)
+  loc_instalacao   String?   @db.VarChar(30)
+  denominacao      String?   @db.VarChar(30)
+  modificado_por   String?   @db.VarChar(30)
+  id               BigInt    @id @default(autoincrement())
+}
+
+model material {
+  id                 Int     @id @default(autoincrement())
+  codigo_material    String? @db.VarChar(8)
+  descricao_material String? @db.VarChar(100)
+}
+
+model metas {
+  id_tipo            Int
+  id_turma           Int
+  id_regional        Int
+  ano_metas          Int?
+  modular_mo_meta    Float?
+  modular_capex_meta Float?
+  jan_meta_fisico    Float?
+  fev_meta_fisico    Float?
+  mar_meta_fisico    Float?
+  abr_meta_fisico    Float?
+  mai_meta_fisico    Float?
+  jun_meta_fisico    Float?
+  jul_meta_fisico    Float?
+  ago_meta_fisico    Float?
+  set_meta_fisico    Float?
+  out_meta_fisico    Float?
+  nov_meta_fisico    Float?
+  dez_meta_fisico    Float?
+  id                 Int       @id @default(autoincrement())
+  turmas             turmas    @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceiras")
+  regionais          regionais @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
+  tipos              tipos     @relation(fields: [id_tipo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tipos")
+}
+
+model mo {
+  mo            Int?
+  diagrama_rede String? @db.VarChar(30)
+  id            BigInt  @id @default(autoincrement())
+}
+
+model multas_dmic {
+  id           Int       @id @default(autoincrement())
+  id_obra      Int
+  sap          String?   @db.VarChar(50)
+  ordem        String?   @db.VarChar(50)
+  de           DateTime? @db.Date
+  ate          DateTime? @db.Date
+  conjunto     String?   @db.VarChar(10)
+  csd          String?   @db.VarChar(10)
+  ci           String?   @db.VarChar(50)
+  duracao      Int?
+  atraso_1min  Int?
+  atraso_1hora Int?
+  atraso_3hora Int?
+  obras        obras     @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
+}
+
+model municipios {
+  id            Int       @id(map: "MUNICIPIOS_pkey") @default(autoincrement())
+  municipio     String    @db.VarChar(22)
+  mun           String    @db.VarChar(3)
+  codigo_sap    String?   @db.VarChar(3)
+  id_regional   Int
+  mun_minusculo String?   @db.VarChar(22)
+  regionais     regionais @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
+  obras         obras[]
+}
+
+model obras {
+  id                      Int             @id(map: "OBRAS_pkey") @default(autoincrement())
+  ovnota                  String          @db.VarChar(12)
+  pep                     String?         @db.VarChar(8)
+  diagrama                String?         @db.VarChar(12)
+  ordem_dci               String?         @db.VarChar(12)
+  ordem_dcd               String?         @db.VarChar(12)
+  ordem_dca               String?         @db.VarChar(12)
+  ordem_dcim              String?         @db.VarChar(12)
+  status_ov_sap           Int?
+  status_pep              String?         @db.VarChar(4)
+  status_diagrama         String?         @db.VarChar(4)
+  status_170              String?         @db.VarChar(4)
+  status_190              String?         @db.VarChar(4)
+  status_150              String?         @db.VarChar(4)
+  status_180              String?         @db.VarChar(4)
+  status_usuario_diagrama String?         @db.VarChar(16)
+  status_usuario_170      String?         @db.VarChar(16)
+  status_usuario_190      String?         @db.VarChar(16)
+  status_usuario_150      String?         @db.VarChar(16)
+  status_usuario_180      String?         @db.VarChar(16)
+  id_gpm                  Int
+  id_tipo                 Int
+  entrada                 DateTime?       @db.Date
+  prazo                   Int?
+  qtde_planejada          Float?
+  id_circuito             Int
+  mo_planejada            Float?
+  mo_final                Float?
+  observ_obra             String?         @db.VarChar(255)
+  id_turma                Int
+  executado               Int?
+  data_conclusao          DateTime?       @db.Date
+  id_status               Int             @default(42)
+  referencia              String?         @db.VarChar(14)
+  capex_mat_plan          Float?
+  capex_mo_plan           Float?
+  capex_mat_pend          Float?
+  capex_mo_pend           Float?
+  qtde_pend               Float?
+  tipo_ads                String?         @db.VarChar(50)
+  data_empreitamento      DateTime?       @db.Date
+  id_empreendimento       Int?
+  diagrama_antigo         String?         @db.VarChar(12)
+  ordem_dci_antigo        String?         @db.VarChar(12)
+  ordem_dcd_antigo        String?         @db.VarChar(12)
+  ordem_dca_antigo        String?         @db.VarChar(12)
+  ordem_dcim_antigo       String?         @db.VarChar(12)
+  multas_dmic             multas_dmic[]
+  circuitos               circuitos       @relation(fields: [id_circuito], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_circuitos")
+  empreendimento          empreendimento? @relation(fields: [id_empreendimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_empreendimento")
+  municipios              municipios      @relation(fields: [id_gpm], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_municipio")
+  turmas                  turmas          @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceiras")
+  status                  status          @relation(fields: [id_status], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_status")
+  status_sap              status_sap?     @relation(fields: [status_ov_sap], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_statussap")
+  tipos                   tipos           @relation(fields: [id_tipo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tipos")
+  programacoes            programacoes[]
+  relatorio               relatorio[]
+  servicos                servicos[]
+}
+
+model programacoes {
+  id                        Int                     @id(map: "PROGRAMACOES_pkey") @default(autoincrement())
+  id_obra                   Int
+  data_prog                 DateTime                @db.Date
+  prog                      Int                     @default(0)
+  exec                      Int?
+  observ_programacao        String?
+  num_dp                    String?
+  hora_ini                  DateTime?               @db.Time(6)
+  hora_ter                  DateTime?               @db.Time(6)
+  equipe_linha_morta        Int?
+  equipe_linha_viva         Int?
+  equipe_regularizacao      Int?
+  chave_provisoria          Boolean?
+  tipo_servico              String?                 @db.VarChar(50)
+  chi                       Int?
+  nome_responsavel_execucao String?                 @db.VarChar(50)
+  id_restricao_execucao     Int?
+  id_restricao_prog1        Int?
+  responsabilidade1         String?                 @db.VarChar(50)
+  nome_responsavel          String?                 @db.VarChar(50)
+  area_responsavel1         String?                 @db.VarChar(50)
+  status_restricao1         String?                 @db.VarChar(50)
+  data_resolucao1           DateTime?               @db.Date
+  id_restricao_prog2        Int?
+  responsabilidade2         String?                 @db.VarChar(50)
+  nome_responsavel2         String?                 @db.VarChar(50)
+  area_responsavel2         String?                 @db.VarChar(50)
+  status_restricao2         String?                 @db.VarChar(50)
+  data_resolucao2           DateTime?               @db.Date
+  observacao_restricao      String?                 @db.VarChar(200)
+  observacao_execucao       String?                 @db.VarChar(200)
+  id_tecnico                Int                     @default(1)
+  obras                     obras                   @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
+  tecnicos                  tecnicos                @relation(fields: [id_tecnico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tecnicos")
+  programacoes_servicos     programacoes_servicos[]
+
+  @@unique([id, id_obra, data_prog], map: "unique_programacoes")
+}
+
+model programacoes_servicos {
+  id             Int          @id(map: "PROGRAMACOES_SERVICOS_pkey") @default(autoincrement())
+  id_servico     Int
+  id_programacao Int
+  plan           Float?
+  prog           Float?
+  real           Float?
+  programacoes   programacoes @relation(fields: [id_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_programacoes")
+  servicos       servicos     @relation(fields: [id_servico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_servicos")
+}
+
+model recomposicao_base {
+  regional                                      String?   @db.VarChar(30)
+  nota                                          String?   @db.VarChar(10)
+  status_obra                                   String?   @db.VarChar(50)
+  conjunto                                      String?   @db.VarChar(100)
+  circuito                                      String?   @db.VarChar(20)
+  local_instalacao                              String?   @db.VarChar(30)
+  planejado_ddpm                                Float?
+  mes_execucao_planejado_ddpm                   DateTime? @db.Date
+  data_envio_projeto_ddpm                       DateTime? @db.Date
+  cen_trab_resp                                 String?   @db.VarChar(50)
+  prioridade_nota                               String?   @db.VarChar(50)
+  status_nota                                   String?   @db.VarChar(20)
+  controle_tecnico                              String?   @db.VarChar(20)
+  odi                                           String?   @db.VarChar(20)
+  data_entrega_projeto                          String?   @db.VarChar(20)
+  status_ordem                                  String?   @db.VarChar(50)
+  status_usuario                                String?   @db.VarChar(50)
+  pep                                           String?   @db.VarChar(20)
+  RECOM_Planejado_R__Ordem                      Float?    @map("RECOM_Planejado R$-Ordem")
+  RECOM_Reallizado_R___Ordem                    Float?    @map("RECOM_Reallizado R$ -Ordem")
+  RECOM_Data_Programada_CSD_Inicio              String?   @map("RECOM_Data Programada CSD Inicio") @db.VarChar(20)
+  RECOM_Data_Programada_CSD_Fim                 String?   @map("RECOM_Data Programada CSD Fim") @db.VarChar(20)
+  RECOM_Centro_Trabalho                         String?   @map("RECOM_Centro Trabalho") @db.VarChar(20)
+  RECOM_Data_Inicio_Real__CONF                  String?   @map("RECOM_Data Inicio Real -CONF") @db.VarChar(20)
+  RECOM_Data_Fim_Real_CONF                      String?   @map("RECOM_Data Fim Real-CONF") @db.VarChar(20)
+  RECOM_Fisico_Realizado_Ordem                  Float?    @map("RECOM_Fisico Realizado Ordem")
+  RECOM_Cidade                                  String?   @db.VarChar(50)
+  RECOM_Projetado_DSEP                          Float?    @map("RECOM_Projetado-DSEP")
+  RECOM_Mes_BI                                  Float?    @map("RECOM_Mes-BI")
+  RECOM_Lead_Time_Projeto                       DateTime? @map("RECOM_Lead Time Projeto") @db.Date
+  RECOM_Data_Maxima_para_Entrega_Projeto        DateTime? @map("RECOM_Data Maxima para Entrega Projeto") @db.Date
+  RECOM_Data_Maxima_para_Entrega_Material       DateTime? @map("RECOM_Data Maxima para Entrega Material") @db.Date
+  RECOM_Data_de_Energizacao                     String?   @map("RECOM_Data de Energizacao") @db.VarChar(20)
+  RECOM_Data_Maxima_para_Iniciar_Programacao    String?   @map("RECOM_Data Maxima para Iniciar Programacao") @db.VarChar(20)
+  RECOM_Dias_de_Atraso_Projeto                  Float?    @map("RECOM_Dias de Atraso Projeto")
+  RECOM_Fisico_Realizado_no_Ano                 Float?    @map("RECOM_Fisico Realizado no Ano")
+  RECOM_Orcamento_Real_no_Ano                   Float?    @map("RECOM_Orcamento Real no Ano")
+  RECOM_Conjunto_Estrategia                     String?   @map("RECOM_Conjunto-Estrategia") @db.VarChar(20)
+  RECOM_Dentro_Fora_Prazo_para_Execucao_Projeto String?   @map("RECOM_Dentro_Fora Prazo para Execucao_Projeto") @db.VarChar(20)
+  RECOM_Dentro_Fora_Prazo__para_Execucao_DDPM   String?   @map("RECOM_Dentro_Fora Prazo  para Execucao_DDPM") @db.VarChar(20)
+  RECOM_Dentro_Fora_Prazo__para_Projeto_DDPM    String?   @map("RECOM_Dentro_Fora Prazo  para Projeto_DDPM") @db.VarChar(20)
+  RECOM_Observacao                              String?   @db.VarChar(50)
+  RECOM_Justificativa_DDPM                      String?   @map("RECOM_Justificativa-DDPM") @db.VarChar(20)
+  RECOM_Justificativa_DSEP                      String?   @map("RECOM_Justificativa-DSEP") @db.VarChar(20)
+  RECOM_Justificativa_CSL                       String?   @map("RECOM_Justificativa-CSL") @db.VarChar(20)
+  RECOM_Justificativa_DSOQ                      String?   @map("RECOM_Justificativa-DSOQ") @db.VarChar(20)
+  RECOM_Justificativa_DSOS                      String?   @map("RECOM_Justificativa-DSOS") @db.VarChar(20)
+  RECOM_Justificativa_CSD                       String?   @map("RECOM_Justificativa-CSD") @db.VarChar(20)
+  RECOM_Descricao_NOTA                          String?   @map("RECOM_Descricao NOTA") @db.VarChar(100)
+  RECOM_Plano_de_Acao                           String?   @map("RECOM_Plano de Acao") @db.VarChar(100)
+  RECOM_CJ_ANEEL                                String?   @map("RECOM_CJ ANEEL") @db.VarChar(50)
+  RECOM_E_ALVO_DE_FISCALIZACAO                  String?   @map("RECOM_E ALVO DE FISCALIZACAO") @db.VarChar(20)
+  RECOM_OrCamento_Projetado_Planejado           Float?    @map("RECOM_OrCamento Projetado_Planejado")
+  RECOM_Retirada                                Boolean?
+  RECOM_Historico                               String?   @db.VarChar(50)
+  id                                            BigInt    @id @default(autoincrement())
+}
+
+model recomposicao_base_atualizacao {
+  RECOMATUAL_Regional                                String?   @db.VarChar(30)
+  RECOMATUAL_NOTA                                    String?   @db.VarChar(10)
+  RECOMATUAL_Status_da_Obra                          String?   @map("RECOMATUAL_Status da Obra") @db.VarChar(50)
+  RECOMATUAL_Conjunto                                String?   @db.VarChar(100)
+  RECOMATUAL_Circuito                                String?   @db.VarChar(20)
+  RECOMATUAL_Local_Instalacao                        String?   @map("RECOMATUAL_Local Instalacao") @db.VarChar(30)
+  RECOMATUAL_Planejado_DDPM                          Float?    @map("RECOMATUAL_Planejado-DDPM")
+  RECOMATUAL_Mes_de_Execucao__Planejado___DDPM       DateTime? @map("RECOMATUAL_Mes de Execucao  Planejado - DDPM") @db.Date
+  RECOMATUAL_Data_Envio_Projeto_DDPM                 DateTime? @map("RECOMATUAL_Data Envio Projeto-DDPM") @db.Date
+  RECOMATUAL_CenTrab_respon                          String?   @map("RECOMATUAL_CenTrab respon") @db.VarChar(50)
+  RECOMATUAL_Prioridade_Nota                         String?   @map("RECOMATUAL_Prioridade Nota") @db.VarChar(50)
+  RECOMATUAL_Status_Nota                             String?   @map("RECOMATUAL_Status Nota") @db.VarChar(20)
+  RECOMATUAL_Controle_Tecnico                        String?   @map("RECOMATUAL_Controle Tecnico") @db.VarChar(20)
+  RECOMATUAL_ODI                                     String?   @db.VarChar(20)
+  RECOMATUAL_Data_Entrega_Projeto                    String?   @map("RECOMATUAL_Data Entrega Projeto") @db.VarChar(20)
+  RECOMATUAL_Status_Ordem                            String?   @map("RECOMATUAL_Status Ordem") @db.VarChar(50)
+  RECOMATUAL_Status_Usuario                          String?   @map("RECOMATUAL_Status Usuario") @db.VarChar(50)
+  RECOMATUAL_PEP                                     String?   @db.VarChar(20)
+  RECOMATUAL_Planejado_R__Ordem                      Float?    @map("RECOMATUAL_Planejado R$-Ordem")
+  RECOMATUAL_Reallizado_R___Ordem                    Float?    @map("RECOMATUAL_Reallizado R$ -Ordem")
+  RECOMATUAL_Data_Programada_CSD_Inicio              String?   @map("RECOMATUAL_Data Programada CSD Inicio") @db.VarChar(20)
+  RECOMATUAL_Data_Programada_CSD_Fim                 String?   @map("RECOMATUAL_Data Programada CSD Fim") @db.VarChar(20)
+  RECOMATUAL_Centro_Trabalho                         String?   @map("RECOMATUAL_Centro Trabalho") @db.VarChar(20)
+  RECOMATUAL_Data_Inicio_Real__CONF                  String?   @map("RECOMATUAL_Data Inicio Real -CONF") @db.VarChar(20)
+  RECOMATUAL_Data_Fim_Real_CONF                      String?   @map("RECOMATUAL_Data Fim Real-CONF") @db.VarChar(20)
+  RECOMATUAL_Fisico_Realizado_Ordem                  Float?    @map("RECOMATUAL_Fisico Realizado Ordem")
+  RECOMATUAL_Cidade                                  String?   @db.VarChar(50)
+  RECOMATUAL_Projetado_DSEP                          Float?    @map("RECOMATUAL_Projetado-DSEP")
+  RECOMATUAL_Mes_BI                                  Float?    @map("RECOMATUAL_Mes-BI")
+  RECOMATUAL_Lead_Time_Projeto                       DateTime? @map("RECOMATUAL_Lead Time Projeto") @db.Date
+  RECOMATUAL_Data_Maxima_para_Entrega_Projeto        DateTime? @map("RECOMATUAL_Data Maxima para Entrega Projeto") @db.Date
+  RECOMATUAL_Data_Maxima_para_Entrega_Material       DateTime? @map("RECOMATUAL_Data Maxima para Entrega Material") @db.Date
+  RECOMATUAL_Data_de_Energizacao                     String?   @map("RECOMATUAL_Data de Energizacao") @db.VarChar(20)
+  RECOMATUAL_Data_Maxima_para_Iniciar_Programacao    String?   @map("RECOMATUAL_Data Maxima para Iniciar Programacao") @db.VarChar(20)
+  RECOMATUAL_Dias_de_Atraso_Projeto                  Float?    @map("RECOMATUAL_Dias de Atraso Projeto")
+  RECOMATUAL_Fisico_Realizado_no_Ano                 Float?    @map("RECOMATUAL_Fisico Realizado no Ano")
+  RECOMATUAL_Orcamento_Real_no_Ano                   Float?    @map("RECOMATUAL_Orcamento Real no Ano")
+  RECOMATUAL_Conjunto_Estrategia                     String?   @map("RECOMATUAL_Conjunto-Estrategia") @db.VarChar(20)
+  RECOMATUAL_Dentro_Fora_Prazo_para_Execucao_Projeto String?   @map("RECOMATUAL_Dentro_Fora Prazo para Execucao_Projeto") @db.VarChar(20)
+  RECOMATUAL_Dentro_Fora_Prazo__para_Execucao_DDPM   String?   @map("RECOMATUAL_Dentro_Fora Prazo  para Execucao_DDPM") @db.VarChar(20)
+  RECOMATUAL_Dentro_Fora_Prazo__para_Projeto_DDPM    String?   @map("RECOMATUAL_Dentro_Fora Prazo  para Projeto_DDPM") @db.VarChar(20)
+  RECOMATUAL_Observacao                              String?   @db.VarChar(50)
+  RECOMATUAL_Justificativa_DDPM                      String?   @map("RECOMATUAL_Justificativa-DDPM") @db.VarChar(20)
+  RECOMATUAL_Justificativa_DSEP                      String?   @map("RECOMATUAL_Justificativa-DSEP") @db.VarChar(20)
+  RECOMATUAL_Justificativa_CSL                       String?   @map("RECOMATUAL_Justificativa-CSL") @db.VarChar(20)
+  RECOMATUAL_Justificativa_DSOQ                      String?   @map("RECOMATUAL_Justificativa-DSOQ") @db.VarChar(20)
+  RECOMATUAL_Justificativa_DSOS                      String?   @map("RECOMATUAL_Justificativa-DSOS") @db.VarChar(20)
+  RECOMATUAL_Justificativa_CSD                       String?   @map("RECOMATUAL_Justificativa-CSD") @db.VarChar(20)
+  RECOMATUAL_Descricao_NOTA                          String?   @map("RECOMATUAL_Descricao NOTA") @db.VarChar(100)
+  RECOMATUAL_Plano_de_Acao                           String?   @map("RECOMATUAL_Plano de Acao") @db.VarChar(100)
+  RECOMATUAL_CJ_ANEEL                                String?   @map("RECOMATUAL_CJ ANEEL") @db.VarChar(50)
+  RECOMATUAL_E_ALVO_DE_FISCALIZACAO                  String?   @map("RECOMATUAL_E ALVO DE FISCALIZACAO") @db.VarChar(20)
+  RECOMATUAL_OrCamento_Projetado_Planejado           Float?    @map("RECOMATUAL_OrCamento Projetado_Planejado")
+  RECOMATUAL_Inserida                                Boolean?
+  RECOM_Historico                                    String?   @db.VarChar(255)
+  id                                                 BigInt    @id @default(autoincrement())
+}
+
+model regionais {
+  id                  Int                   @id(map: "REGIONAIS_pkey") @default(autoincrement())
+  regional            String                @db.VarChar(20)
+  csd                 String?               @db.VarChar(4)
+  gestor              String?               @db.VarChar(20)
+  engenheiro          String?               @db.VarChar(50)
+  total_clientes      Int?
+  centro              Int?
+  abrev_regional      String?               @db.VarChar(3)
+  capacidade_execucao capacidade_execucao[]
+  empreendimento      empreendimento[]
+  metas               metas[]
+  municipios          municipios[]
+  servicos_contratos  servicos_contratos[]
+  tecnicos            tecnicos[]
+  usuario             usuario[]
+}
+
+model relatorio {
+  id         Int      @id(map: "RELATORIO_pkey") @default(autoincrement())
+  id_obra    Int
+  encontrado Boolean? @default(false)
+  obras      obras    @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
+}
+
+model restricoes {
+  id             Int     @id(map: "RESTRICOES_pkey") @default(autoincrement())
+  restricao      String? @db.VarChar(80)
+  tipo_restricao String  @db.VarChar(15)
+}
+
+model servicos {
+  id                    Int                     @id(map: "SERVICOS_pkey") @default(autoincrement())
+  id_obra               Int
+  ponto                 String?                 @db.VarChar(15)
+  operacao              String?                 @db.VarChar(30)
+  data_prog             DateTime?               @db.Date
+  qtde_plan             Float?
+  qtde_prog             Float?
+  qtde_real             Float?
+  id_contrato_servico   Int
+  id_equipe             Int?
+  programacoes_servicos programacoes_servicos[]
+  equipes               equipes?                @relation(fields: [id_equipe], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipes")
+  obras                 obras                   @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
+}
+
+model servicos_adicionais {
+  id                  Int     @id @default(autoincrement())
+  id_obra             Int
+  id_contrato_servico Int
+  ponto               String? @db.VarChar(10)
+  operacao            String? @db.VarChar(30)
+  qtde_plan           Int?
+}
+
+model servicos_contratos {
+  id              Int       @id @default(autoincrement())
+  id_regional     Int
+  id_turma        Int
+  contrato_antigo String?   @db.VarChar(15)
+  contrato        String?   @db.VarChar(15)
+  material_antigo String?   @db.VarChar(15)
+  material        String?   @db.VarChar(15)
+  texto_breve     String?   @db.VarChar(100)
+  medida          String?   @db.VarChar(15)
+  preco           Float?
+  turmas          turmas    @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
+  regionais       regionais @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
+}
+
+model status {
+  id     Int     @id(map: "STATUS_pkey") @default(autoincrement())
+  status String? @db.VarChar(25)
+  onde   String? @db.VarChar(20)
+  obras  obras[]
+}
+
+model status_sap {
+  id         Int     @id(map: "STATUS SAP_pkey") @default(autoincrement())
+  codigo_sap String? @db.VarChar(2)
+  status_sap String? @db.VarChar(50)
+  obras      obras[]
+}
+
+model subgrupo {
+  id       Int     @id(map: "SUBGRUPO_pkey") @default(autoincrement())
+  subgrupo String  @db.VarChar(20)
+  id_grupo Int
+  grupos   grupos  @relation(fields: [id_grupo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_grupos")
+  tipos    tipos[]
+}
+
+model tecnicos {
+  id           Int            @id(map: "TECNICOS_pkey") @default(autoincrement())
+  tecnico      String?        @db.VarChar(40)
+  id_regional  Int
+  programacoes programacoes[]
+  regionais    regionais      @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
+}
+
+model tipos {
+  id            Int      @id(map: "TIPOS_pkey") @default(autoincrement())
+  tipo_obra     String   @db.VarChar(30)
+  tipo_abrev    String   @db.VarChar(15)
+  descricao_sap String?  @db.VarChar(40)
+  id_grupo      Int
+  pep_atual     String?  @db.VarChar(8)
+  pep_antigo    String?  @db.VarChar(8)
+  id_subgrupo   Int
+  tipo_serv_sap String?  @db.VarChar(4)
+  regulado      String?  @db.VarChar(20)
+  metas         metas[]
+  obras         obras[]
+  grupos        grupos   @relation(fields: [id_grupo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_grupos")
+  subgrupo      subgrupo @relation(fields: [id_subgrupo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_subgrupos")
+}
+
+model turmas {
+  id                  Int                   @id(map: "TURMAS_pkey") @default(autoincrement())
+  turma               String                @db.VarChar(15)
+  turma_abrev         String?               @db.VarChar(5)
+  deposito_atual      String?               @db.VarChar(4)
+  turma_sap           String?               @db.VarChar(9)
+  contrato            String?               @db.VarChar(10)
+  email_referencia    String?               @db.VarChar(50)
+  capacidade_execucao capacidade_execucao[]
+  equipes             equipes[]
+  metas               metas[]
+  obras               obras[]
+  servicos_contratos  servicos_contratos[]
+}
+
+model usuario {
+  id                   Int       @id(map: "USUARIO_pkey") @default(autoincrement())
+  username             String    @db.VarChar(8)
+  senha                String    @db.VarChar
+  permissao            String    @db.VarChar(30)
+  id_regional          Int
+  formulario_utilizado String?   @db.VarChar(50)
+  nome_maquina         String?   @db.VarChar(30)
+  nome_usuario         String    @db.VarChar(50)
+  email                String    @db.VarChar(50)
+  regionais            regionais @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
+}
+
+model zpsrl {
+  zpsrl_ov             String?   @db.VarChar(20)
+  zpsrl_def_projeto    String?   @db.VarChar(20)
+  zpsrl_dr             String?   @db.VarChar(20)
+  zpsrl_localizacao    String?   @db.VarChar(10)
+  zpsrl_denominacao    String?   @db.VarChar(50)
+  zpsrl_loc_instalacao String?   @db.VarChar(20)
+  zpsrl_prazo_entrega  String?   @db.VarChar(30)
+  zpsrl_projetista     String?   @db.VarChar(50)
+  zpsrl_status_ov      Int?
+  zpsrl_status_dr      String?   @db.VarChar(4)
+  zpsrl_status_pep     String?   @db.VarChar(4)
+  zpsrl_numero_pedido  String?   @db.VarChar(40)
+  zpsrl_mo_cliente     Float?
+  zpsrl_mo_empresa     Float?
+  zpsrl_dt_lib_real    DateTime? @db.Date
+  id                   BigInt    @id @default(autoincrement())
+}
+
+model ztab_cn52n_aux {
+  diagrama_rede       String? @db.VarChar(30)
+  qtde_manut_pend     Float?
+  calc_capex_mat_plan Float?
+  calc_capex_mo_plan  Float?
+  calc_capex_mat_pend Float?
+  calc_capex_mo_pend  Float?
+  id                  BigInt  @id @default(autoincrement())
+}
+
+model relatorio_viabilidade {
+  id         Int     @id(map: "relatorio_viablidade_pkey") @default(autoincrement())
+  ovnota     String  @db.VarChar(15)
+  encontrado Boolean
+}
+
+/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+view calc_qtde_mo_ordem {
+  diagrama_rede  String? @db.VarChar(15)
+  qtde_calc      Float?
+  mo_calc        Float?
+  capex_mat_calc Float?
+
+  @@ignore
+}
+
+view datas_programacao {
+  id                   Int @unique
+  ovnota               String?   @db.VarChar(12)
+  first_data_prog      DateTime? @db.Date
+  last_data_prog       DateTime? @db.Date
+  hora_ini             DateTime? @db.Time(6)
+  hora_ter             DateTime? @db.Time(6)
+  tipo_servico         String?   @db.VarChar(50)
+  equipe_linha_morta   Int?
+  equipe_linha_viva    Int?
+  equipe_regularizacao Int?
+  id_tecnico           Int?
+  chi                  Int?
+  ordemdiagrama        String?   @db.VarChar(12)
+
+}
+
+view metas_anuais {
+  unique_id   BigInt @unique
+  id_tipo     Int?
+  id_turma    Int?
+  id_regional Int?
+  anocalc     Float?
+  janfismeta  Float?
+  fevfismeta  Float?
+  marfismeta  Float?
+  abrfismeta  Float?
+  maifismeta  Float?
+  junfismeta  Float?
+  julfismeta  Float?
+  agofismeta  Float?
+  setfismeta  Float?
+  outfismeta  Float?
+  novfismeta  Float?
+  dezfismeta  Float?
+  janfisprog  Float?
+  fevfisprog  Float?
+  marfisprog  Float?
+  abrfisprog  Float?
+  maifisprog  Float?
+  junfisprog  Float?
+  julfisprog  Float?
+  agofisprog  Float?
+  setfisprog  Float?
+  outfisprog  Float?
+  novfisprog  Float?
+  dezfisprog  Float?
+  janfisreal  Float?
+  fevfisreal  Float?
+  marfisreal  Float?
+  abrfisreal  Float?
+  maifisreal  Float?
+  junfisreal  Float?
+  julfisreal  Float?
+  agofisreal  Float?
+  setfisreal  Float?
+  outfisreal  Float?
+  novfisreal  Float?
+  dezfisreal  Float?
+  carteira    Float?
+}
+
+/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+view calc_mo {
+  ovnota String? @db.VarChar(12)
+  row_id BigInt?
+  mo     Float?
+
+  @@ignore
+}
+
+/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+view capex_cn52n_aux {
+  row_id               BigInt?
+  diagrama_rede        String? @db.VarChar(20)
+  calc1                Float?
+  calc2                Float?
+  calc3                Float?
+  calc4                Float?
+  soma_qtde_manut_pend Float?
+
+  @@ignore
+}
