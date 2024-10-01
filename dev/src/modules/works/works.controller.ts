@@ -1,5 +1,8 @@
 import { Controller, Get, HttpStatus, Query } from '@nestjs/common';
-import { GetAllWorksDTO } from 'src/config/dto/worksDto';
+import {
+  GetAllWorksDTO,
+  GetWorksInPortfolioDTO,
+} from 'src/config/dto/worksDto';
 import { WorksService } from './works.service';
 
 @Controller('obras')
@@ -18,7 +21,7 @@ export class WorksController {
   }
 
   @Get('obras-carteira')
-  async getWorksInPortfolio(@Query() worksFilters: GetAllWorksDTO) {
+  async getWorksInPortfolio(@Query() worksFilters: GetWorksInPortfolioDTO) {
     const response = await this.worksService.getWorksInPortfolio(worksFilters);
 
     return {

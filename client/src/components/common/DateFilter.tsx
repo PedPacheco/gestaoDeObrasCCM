@@ -11,12 +11,22 @@ interface DateFilterProps {
   setDate: (date: dayjs.Dayjs | null) => void;
   type: string;
   setType: (type: string) => void;
+  marginLeft?: string;
 }
 
-export function DateFilter({ date, setDate, type, setType }: DateFilterProps) {
+export function DateFilter({
+  date,
+  setDate,
+  type,
+  setType,
+  marginLeft,
+}: DateFilterProps) {
   return (
     <>
-      <FormControl className="mb-2 lg:ml-4 lg:first:ml-0 w-full" size="small">
+      <FormControl
+        className={`mb-2 ${marginLeft ? "" : "lg:mx-auto"} w-full lg:w-3/4`}
+        size="small"
+      >
         <InputLabel>Tipo de Filtro</InputLabel>
         <Select
           value={type}
@@ -27,7 +37,11 @@ export function DateFilter({ date, setDate, type, setType }: DateFilterProps) {
           <MenuItem value="month">Por Mês</MenuItem>
         </Select>
       </FormControl>
-      <div className="mb-2 lg:ml-4 lg:first:ml-0 w-full">
+      <div
+        className={`mb-2 ${
+          marginLeft ? marginLeft : "lg:mx-auto"
+        } w-full lg:w-3/4`}
+      >
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-br">
           <DatePicker
             views={type === "day" ? ["day"] : ["month", "year"]}

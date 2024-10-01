@@ -22,7 +22,9 @@ export function SelectComponent<T>({
   valueKey,
   displayKey,
 }: SelectProps<T>) {
-  const handleChange = (event: SelectChangeEvent<string>) => {
+  const handleChange: (event: SelectChangeEvent<string>) => void = (
+    event: SelectChangeEvent<string>
+  ) => {
     const { value } = event.target;
     setSelectedItem(value);
   };
@@ -30,7 +32,7 @@ export function SelectComponent<T>({
   return (
     <>
       <FormControl className="mb-2 lg:ml-4 lg:first:ml-0 w-full" size="small">
-        <InputLabel id={label}>{label}</InputLabel>
+        <InputLabel id={label}>{label.replace("_", " ")}</InputLabel>
         <Select
           labelId={label}
           label={`${label}1`}

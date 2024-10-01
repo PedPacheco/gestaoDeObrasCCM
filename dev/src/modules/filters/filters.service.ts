@@ -19,7 +19,6 @@ export class FiltersService {
     grupo,
     municipio,
     status,
-    statusSap,
     conjunto,
     ovnota,
     empreendimento,
@@ -65,12 +64,6 @@ export class FiltersService {
     if (status) {
       result['status'] = await this.getCachedData('status', () =>
         this.getData('status', ['id', 'status']),
-      );
-    }
-
-    if (statusSap) {
-      result['status_sap'] = await this.getCachedData('status_sap', () =>
-        this.getData('status_sap', ['id', 'status_sap']),
       );
     }
 

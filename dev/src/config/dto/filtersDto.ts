@@ -56,13 +56,6 @@ export class FiltersDto {
   @Transform(({ value }) =>
     value === 'true' ? true : value === 'false' ? false : value,
   )
-  statusSap?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  @Transform(({ value }) =>
-    value === 'true' ? true : value === 'false' ? false : value,
-  )
   conjunto?: boolean;
 
   @IsOptional()

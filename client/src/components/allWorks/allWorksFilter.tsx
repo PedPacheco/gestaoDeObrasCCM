@@ -12,15 +12,15 @@ interface filters {
   status: { id: string; status: string }[];
 }
 
-interface GeneralListOfWorksFiltersProps {
+interface MainAllWorksFiltersProps {
   data: filters;
   onApplyFilters: (params: any) => {};
 }
 
-export default function GeneralListOfWorksFilters({
+export default function MainAllWorksFilters({
   data,
   onApplyFilters,
-}: GeneralListOfWorksFiltersProps) {
+}: MainAllWorksFiltersProps) {
   const [selectedItems, setSelectedItems] = useState<Record<string, string>>(
     {}
   );

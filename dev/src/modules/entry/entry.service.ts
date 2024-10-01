@@ -5,6 +5,7 @@ import {
   GetEntryOfWorksDTO,
 } from 'src/config/dto/entryDto';
 import { PrismaService } from 'src/config/prisma/prisma.service';
+import { calculateTotals } from 'src/utils/calculateTotals';
 
 @Injectable()
 export class EntryService {
@@ -158,31 +159,9 @@ export class EntryService {
       orderBy: { entrada: 'asc' },
     });
 
-    return this.calculateTotals(result);
-  }
-
-  private async calculateTotals(works) {
-    const total_obras = works.length;
-    const total_mo_planejada = works.reduce(
-      (sum, obra) => sum + obra.mo_planejada,
-      0,
-    );
-    const total_qtde_planejada = works.reduce(
-      (sum, obra) => sum + obra.qtde_planejada,
-      0,
-    );
-
-    return works.map((obra) => {
-      const prazo_fim = new Date(obra.entrada);
-      prazo_fim.setDate(prazo_fim.getDate() + obra.prazo);
-
-      return {
-        ...obra,
-        prazo_fim,
-        total_obras,
-        total_mo_planejada,
-        total_qtde_planejada,
-      };
+    return calculateTotals(result, {
+      total_mo_planejada: true,
+      total_qtde_planejada: true,
     });
   }
 }

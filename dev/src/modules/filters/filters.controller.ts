@@ -18,7 +18,6 @@ export class FiltersController {
       status,
       conjunto,
       ovnota,
-      statusSap,
       empreendimento,
     } = query;
 
@@ -32,7 +31,6 @@ export class FiltersController {
       status,
       conjunto,
       ovnota,
-      statusSap,
       empreendimento,
     });
 

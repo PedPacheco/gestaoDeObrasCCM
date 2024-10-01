@@ -1,9 +1,9 @@
-import { SelectComponent } from "@/components/common/Select";
+import { capitalize } from "@/utils/capitalize";
+import { DateFilter } from "../common/DateFilter";
+import { SelectComponent } from "../common/Select";
 import { useState } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import { ButtonComponent } from "../common/Button";
-import { DateFilter } from "../common/DateFilter";
-import { capitalize } from "@/utils/capitalize";
 
 interface filters {
   regional: { id: string; regional: string }[];
@@ -11,21 +11,29 @@ interface filters {
   tipo: { id: string; tipo_obra: string; id_grupo: number }[];
   municipio: { id: string; municipio: string }[];
   grupo: { id: string; grupo: string }[];
+  status: { id: string; status: string }[];
+  statusSap: { id: string; codigo_sap: string }[];
+  circuito: { id: string; circuito: string }[];
+  empreendimento: { id: string; empreendimento: string }[];
+  conjunto: { id: string; conjunto: string }[];
+  ovnota: { id: string; ovnota: string }[];
 }
 
-interface EntryByDateFiltersProps {
+interface PortfolioWorksFiltersProps {
   data: filters;
   onApplyFilters: (params: any) => {};
+  openModal: () => void;
 }
 
-export default function EntryByDateFilters({
+export default function PortfolioWorksFilters({
   data,
   onApplyFilters,
-}: EntryByDateFiltersProps) {
+  openModal,
+}: PortfolioWorksFiltersProps) {
   const [selectedItems, setSelectedItems] = useState<Record<string, string>>(
     {}
   );
-  const [date, setDate] = useState<Dayjs | null>(dayjs());
+  const [date, setDate] = useState<Dayjs | null>();
   const [filterType, setFilterType] = useState<string>("day");
 
   function handleApplyFilters() {
@@ -44,7 +52,7 @@ export default function EntryByDateFilters({
 
   function handleCleanigFilters() {
     setSelectedItems({});
-    setDate(dayjs());
+    setDate(null);
     setFilterType("day");
 
     onApplyFilters({
@@ -55,15 +63,13 @@ export default function EntryByDateFilters({
 
   return (
     <>
-      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center">
+      <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 w-full">
         <DateFilter
-          date={date}
+          date={date || null}
           setDate={setDate}
           type={filterType}
           setType={setFilterType}
-          marginLeft="ml-4"
         />
-
         {Object.entries(data).map(([key, value], index) => {
           const valueKey = Object.keys(value[0])[0];
           const displayKey = Object.keys(value[0])[1];
@@ -73,34 +79,41 @@ export default function EntryByDateFilters({
           }`;
 
           return (
-            <SelectComponent
-              label={capitalize(displayKey)}
-              menuItems={value || []}
-              selectedItem={selectedItems[filterValue]}
-              setSelectedItem={(selectedValue) => {
-                setSelectedItems((prev) => ({
-                  ...prev,
-                  [filterValue]: selectedValue,
-                }));
-              }}
-              valueKey={valueKey}
-              displayKey={displayKey}
-              key={index}
-            />
+            <div key={index} className="w-full lg:w-3/4 mx-auto">
+              <SelectComponent
+                label={capitalize(displayKey)}
+                menuItems={value || []}
+                selectedItem={selectedItems[filterValue]}
+                setSelectedItem={(selectedValue) => {
+                  setSelectedItems((prev) => ({
+                    ...prev,
+                    [filterValue]: selectedValue,
+                  }));
+                }}
+                valueKey={valueKey}
+                displayKey={displayKey}
+              />
+            </div>
           );
         })}
       </div>
 
-      <div className=" flex flex-col md:flex-row justify-between items-center xl:justify-around">
+      <div className="grid grid-cols-1 lg:grid-cols-3 w-full">
         <ButtonComponent
           onClick={handleApplyFilters}
           text="Aplicar filtros"
-          styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
+          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
         />
         <ButtonComponent
           onClick={handleCleanigFilters}
           text="Limpar filtros"
-          styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
+          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
+        />
+
+        <ButtonComponent
+          onClick={openModal}
+          text="Ver valores totais"
+          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
         />
       </div>
     </>
