@@ -13,7 +13,7 @@ import utc from "dayjs/plugin/utc";
 import { forwardRef } from "react";
 import { TableComponents, TableVirtuoso } from "react-virtuoso";
 
-interface GeneralListOfWorksTableProps {
+interface MainAllWorksTableProps {
   works: any;
   columnMapping: any;
 }
@@ -40,10 +40,10 @@ const VirtuosoTableComponents: TableComponents = {
   }),
 };
 
-export default function GeneralListOfWorksTable({
+export default function MainAllWorksTable({
   columnMapping,
   works,
-}: GeneralListOfWorksTableProps) {
+}: MainAllWorksTableProps) {
   function fixedHeaderContent() {
     return (
       <TableRow>
@@ -101,10 +101,7 @@ export default function GeneralListOfWorksTable({
 
           if (multiValueColumns[column]) {
             return (
-              <TableCell
-                className="p-2 border-l border-solid min-w-64"
-                key={column}
-              >
+              <TableCell className="p-2 min-w-64" key={column}>
                 <div className="flex justify-center">
                   {multiValueColumns[column].map((val, idx: number) => {
                     if (val) {
@@ -126,7 +123,7 @@ export default function GeneralListOfWorksTable({
           return (
             <TableCell
               key={column}
-              className="py-1 px-2 text-center text-nowrap text-base text-zinc-700 border-l border-solid"
+              className="py-1 px-2 text-center text-nowrap text-base text-zinc-700"
             >
               {cellValue}
             </TableCell>

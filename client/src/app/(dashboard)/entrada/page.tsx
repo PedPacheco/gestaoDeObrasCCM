@@ -21,29 +21,5 @@ export default async function Entry() {
     cookieStore.get("token")?.value
   );
 
-  const columnMapping = {
-    tipo_obra: "Tipo",
-    jan: "Jan",
-    fev: "Fev",
-    mar: "Mar",
-    abr: "Abr",
-    mai: "Mai",
-    jun: "Jun",
-    jul: "Jul",
-    ago: "Ago",
-    set: "Set",
-    out: "Out",
-    nov: "Nov",
-    dez: "Dez",
-    total: "Total",
-  };
-
-  return (
-    <MainEntry
-      columnMapping={columnMapping}
-      data={data}
-      filters={filters}
-      token={token}
-    />
-  );
+  return <MainEntry data={data} filters={filters} token={token} />;
 }

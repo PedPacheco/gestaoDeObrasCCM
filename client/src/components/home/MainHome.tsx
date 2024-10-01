@@ -25,12 +25,7 @@ export default function MainHome({ filters, goals, token }: MainHomeProps) {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  async function fetchGoals(params: {
-    regional?: string;
-    parceira?: string;
-    tipo?: string;
-    ano?: string;
-  }) {
+  async function fetchGoals(params: Record<string, string>) {
     const response = await fetchData(
       "http://localhost:3333/metas",
       params,

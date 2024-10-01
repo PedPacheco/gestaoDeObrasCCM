@@ -7,6 +7,7 @@ import {
   TableCell,
   TableBody,
   Paper,
+  TableFooter,
 } from "@mui/material";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -16,6 +17,7 @@ import { TableComponents, TableVirtuoso } from "react-virtuoso";
 interface TableComponentProps {
   columnMapping: any;
   data: Record<string, any>[];
+  sliceEndIndex: number;
 }
 
 dayjs.extend(utc);
@@ -40,12 +42,16 @@ const VirtuosoTableComponents: TableComponents = {
   }),
 };
 
-export function TableComponent({ data, columnMapping }: TableComponentProps) {
+export function TableComponent({
+  data,
+  columnMapping,
+  sliceEndIndex,
+}: TableComponentProps) {
   function fixedHeaderContent() {
     return (
       <TableRow>
         {Object.keys(columnMapping)
-          .slice(1, -3)
+          .slice(1, -sliceEndIndex)
           .map((month) => (
             <TableCell
               key={month}
@@ -64,7 +70,7 @@ export function TableComponent({ data, columnMapping }: TableComponentProps) {
     return (
       <>
         {Object.keys(columnMapping)
-          .slice(1, -3)
+          .slice(1, -sliceEndIndex)
           .map((column) => {
             let cellValue = item[column];
 
@@ -73,7 +79,13 @@ export function TableComponent({ data, columnMapping }: TableComponentProps) {
               isValidDateString(cellValue) &&
               dayjs(cellValue).isValid()
             ) {
-              cellValue = dayjs.utc(cellValue).format("DD/MM/YYYY");
+              const date = dayjs(cellValue);
+
+              if (date.year() === 1970) {
+                cellValue = date.format("HH:mm");
+              } else {
+                cellValue = date.utc().format("DD/MM/YYYY");
+              }
             }
 
             const displayValue =
@@ -84,7 +96,7 @@ export function TableComponent({ data, columnMapping }: TableComponentProps) {
             return (
               <TableCell
                 key={column}
-                className="py-1 px-2 text-center text-base text-nowrap border-l border-solid min-w-32"
+                className="py-1 px-2 text-center text-base text-nowrap min-w-32"
               >
                 {displayValue}
               </TableCell>

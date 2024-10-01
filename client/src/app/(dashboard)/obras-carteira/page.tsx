@@ -1,3 +1,4 @@
+import PortfolioWorks from "@/components/portfolioWorks/MainPortfolioWorks";
 import { fetchData } from "@/services/fetchData";
 import { fetchFilters } from "@/services/fetchFilters";
 import { cookies } from "next/headers";
@@ -12,16 +13,18 @@ export default async function WorksInPortfolio() {
     circuito: true,
     conjunto: true,
     status: true,
-    statusSap: true,
     ovnota: true,
     empreendimento: true,
   });
 
   const cookieStore = cookies();
 
-  return (
-    <div>
-      <p>hello world</p>
-    </div>
+  const { token, data } = await fetchData(
+    `${process.env.NEXT_PUBLIC_API_URL}/obras/obras-carteira`,
+    undefined,
+    cookieStore.get("token")?.value,
+    { cache: "no-store" }
   );
+
+  return <PortfolioWorks data={data} token={token} filters={filters} />;
 }

@@ -79,10 +79,7 @@ export default function EntryTable({ entry, columnMapping }: EntryTableProps) {
                   .slice(1)
                   .map((month) => {
                     return (
-                      <TableCell
-                        key={month}
-                        className="p-2 w-36 border-l border-solid"
-                      >
+                      <TableCell key={month} className="p-2 w-36">
                         <div className="flex">
                           <p className="py-1 text-base text-center text-zinc-700 w-12">
                             {item[`${month}_entrada_qtde`]}

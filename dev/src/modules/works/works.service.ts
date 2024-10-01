@@ -1,9 +1,13 @@
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { GetAllWorksDTO } from 'src/config/dto/worksDto';
+import {
+  GetAllWorksDTO,
+  GetWorksInPortfolioDTO,
+} from 'src/config/dto/worksDto';
 import { PrismaService } from 'src/config/prisma/prisma.service';
 import { worksInPortfolioInterface } from 'src/types/worksInterface';
+import { calculateTotals } from 'src/utils/calculateTotals';
 
 @Injectable()
 export class WorksService {
@@ -76,9 +80,24 @@ export class WorksService {
     return works;
   }
 
-  async getWorksInPortfolio(filters: GetAllWorksDTO) {
-    const { idGrupo, idMunicipio, idParceira, idRegional, idStatus, idTipo } =
-      filters;
+  async getWorksInPortfolio(filters: GetWorksInPortfolioDTO) {
+    const {
+      idGrupo,
+      idMunicipio,
+      idParceira,
+      idRegional,
+      idStatus,
+      idTipo,
+      idOvnota,
+      idCircuito,
+      idConjunto,
+      idEmpreendimento,
+      data,
+      tipoFiltro,
+    } = filters;
+
+    const mes = data?.split('/')[0];
+    const ano = data?.split('/')[1];
 
     let query = Prisma.sql`SELECT
         obras.id, obras.ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, 
@@ -96,7 +115,7 @@ export class WorksService {
         INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
         LEFT JOIN construcao_sp.datas_programacao ON datas_programacao.id= obras.id
         LEFT JOIN (SELECT id_obra, COUNT(*)::int as contagem_ocorrencias FROM construcao_sp.programacoes WHERE programacoes.data_prog > current_date GROUP BY id_obra ) AS programacoes ON programacoes.id_obra = obras.id 
-        WHERE 1=1`;
+        WHERE data_conclusao IS NULL`;
 
     if (idRegional) {
       query = Prisma.sql`${query} AND municipios.id_regional = ${idRegional}`;
@@ -122,23 +141,37 @@ export class WorksService {
       query = Prisma.sql`${query} AND status.id = ${idStatus}`;
     }
 
+    if (idCircuito) {
+      query = Prisma.sql`${query} AND id_circuito = ${idCircuito}`;
+    }
+
+    if (idConjunto) {
+      query = Prisma.sql`${query} AND circuitos.id_conjunto = ${idConjunto}`;
+    }
+
+    if (idEmpreendimento) {
+      query = Prisma.sql`${query} AND id_empreendimento = ${idEmpreendimento}`;
+    }
+
+    if (idOvnota) {
+      query = Prisma.sql`${query} AND id = ${idOvnota}`;
+    }
+
+    if (tipoFiltro === 'mes' && data) {
+      query = Prisma.sql`${query} AND EXTRACT(MONTH FROM first_data_prog) = ${parseInt(mes)} AND EXTRACT(YEAR FROM first_data_prog) = ${parseInt(ano)}`;
+    }
+
     query = Prisma.sql`${query} ORDER BY first_data_prog, status DESC, entrada + prazo;`;
 
-    let works: worksInPortfolioInterface[] = await this.prisma.$queryRaw(query);
+    const works: worksInPortfolioInterface[] =
+      await this.prisma.$queryRaw(query);
 
-    works = works.map((work) => {
-      work.mo_exec = (work.mo_planejada * work.executado) / 100;
-
-      work.mo_suspensa = work.id_status === 4 ? work.mo_exec : 0;
-
-      const prazoFim = new Date(work.entrada);
-
-      prazoFim.setDate(prazoFim.getDate() + work.prazo);
-      work.atraso = new Date() > prazoFim ? true : false;
-
-      return work;
+    return calculateTotals(works, {
+      total_mo_executada: true,
+      total_mo_suspensa: true,
+      total_mo_planejada: true,
+      total_qtde_planejada: true,
+      total_qtde_pend: true,
     });
-
-    return works;
   }
 }

@@ -8,27 +8,13 @@ import { useState } from "react";
 interface MainEntryProps {
   filters: any;
   data: any;
-  columnMapping: any;
   token: string;
 }
 
-export default function MainEntry({
-  columnMapping,
-  data,
-  filters,
-  token,
-}: MainEntryProps) {
+export default function MainEntry({ data, filters, token }: MainEntryProps) {
   const [dataFiltered, setDataFiltered] = useState(data);
 
-  async function fetchEntry(params: {
-    idRegional?: string;
-    idParceira?: string;
-    idTipo?: string;
-    idMunicipio?: string;
-    idCircuito?: string;
-    idGrupo?: string;
-    ano?: string;
-  }) {
+  async function fetchEntry(params: Record<string, string>) {
     const response = await fetchData(
       "http://localhost:3333/entrada",
       params,
@@ -36,6 +22,23 @@ export default function MainEntry({
     );
     setDataFiltered(response.data);
   }
+
+  const columnMapping = {
+    tipo_obra: "Tipo",
+    jan: "Jan",
+    fev: "Fev",
+    mar: "Mar",
+    abr: "Abr",
+    mai: "Mai",
+    jun: "Jun",
+    jul: "Jul",
+    ago: "Ago",
+    set: "Set",
+    out: "Out",
+    nov: "Nov",
+    dez: "Dez",
+    total: "Total",
+  };
 
   return (
     <>
