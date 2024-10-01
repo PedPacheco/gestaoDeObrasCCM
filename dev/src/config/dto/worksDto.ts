@@ -33,7 +33,7 @@ export class GetAllWorksDTO {
   idStatus: number;
 }
 
-export class GetWorksInPortfolioDTO {
+export class GetWorksDTO {
   @IsOptional()
   @IsString()
   data: string;
