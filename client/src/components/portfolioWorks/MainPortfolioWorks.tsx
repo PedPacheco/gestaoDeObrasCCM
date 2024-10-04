@@ -24,8 +24,9 @@ export default function PortfolioWorks({
   const handleClose = () => setOpen(false);
 
   async function fetchWorks(params: Record<string, string>) {
+    console.log(params);
     const response = await fetchData(
-      "http://localhost:3333/obras",
+      "http://localhost:3333/obras/obras-carteira",
       params,
       token,
       { cache: "no-store" }

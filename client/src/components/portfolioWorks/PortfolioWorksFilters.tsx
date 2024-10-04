@@ -56,7 +56,7 @@ export default function PortfolioWorksFilters({
     setFilterType("day");
 
     onApplyFilters({
-      data: dayjs().format("DD/MM/YYYY"),
+      data: null,
       tipoFiltro: filterType,
     });
   }
