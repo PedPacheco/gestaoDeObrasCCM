@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from 'src/config/prisma/prisma.service';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from 'src/modules/users/users.service';
 import { hash, genSalt } from 'bcrypt';
 import { RegisterUserDTO } from 'src/config/dto/registerUserDto';
 import { JwtService } from '@nestjs/jwt';

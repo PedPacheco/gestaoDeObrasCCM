@@ -42,7 +42,7 @@ export class WorksController {
 
     return {
       statusCode: HttpStatus.OK,
-      message: 'Obras em carteira retornadas com sucesso',
+      message: 'Obras em executadas retornadas com sucesso',
       data: response,
     };
   }

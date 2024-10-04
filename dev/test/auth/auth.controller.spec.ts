@@ -1,8 +1,8 @@
 import { RegisterUserDTO } from 'src/config/dto/registerUserDto';
 import { Test, TestingModule } from '@nestjs/testing';
 import { LoginUserDTO } from 'src/config/dto/loginUserDto';
-import { AuthController } from 'src/auth/auth.controller';
-import { AuthService } from 'src/auth/auth.service';
+import { AuthController } from 'src/modules/auth/auth.controller';
+import { AuthService } from 'src/modules/auth/auth.service';
 import { ResetPasswordDTO } from 'src/config/dto/resetPasswordDto';
 import { HttpStatus, InternalServerErrorException } from '@nestjs/common';
 import { Response } from 'express';

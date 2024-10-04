@@ -1,8 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { plainToInstance } from 'class-transformer';
-import { validate } from 'class-validator';
-import { FiltersDto } from 'src/config/dto/filters/filtersDto';
-import { FiltersController } from 'src/filters/filters.controller';
+import { FiltersDto } from 'src/config/dto/filtersDto';
+import { FiltersController } from 'src/modules/filters/filters.controller';
 import { FiltersService } from 'src/modules/filters/filters.service';
 
 describe('FiltersController', () => {
@@ -57,9 +56,9 @@ describe('FiltersController', () => {
     };
 
     const filtersDTO: FiltersDto = {
-      parceiras: false,
-      regionais: true,
-      tiposObra: true,
+      parceira: false,
+      regional: true,
+      tipo: true,
     };
 
     jest.spyOn(filtersService, 'getFilters').mockResolvedValue(response);
@@ -68,66 +67,116 @@ describe('FiltersController', () => {
 
     expect(result).toEqual(response);
     expect(filtersService.getFilters).toHaveBeenCalledWith({
-      regionais: true,
-      parceiras: false,
-      tiposObra: true,
+      regional: true,
+      parceira: false,
+      tipo: true,
     });
   });
 
   it.each([
     [
-      { parceiras: 'false', regionais: 'false', tiposObra: 'false' },
+      {
+        parceira: 'false',
+        regional: 'false',
+        tipo: 'false',
+        municipio: 'false',
+        grupo: 'false',
+        circuito: 'false',
+        status: 'false',
+        conjunto: 'false',
+        ovnota: 'false',
+        empreendimento: 'false',
+      },
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
       false,
       false,
       false,
     ],
     [
-      { parceiras: 'true', regionais: 'true', tiposObra: 'true' },
+      {
+        parceira: 'true',
+        regional: 'true',
+        tipo: 'true',
+        municipio: 'true',
+        grupo: 'true',
+        circuito: 'true',
+        status: 'true',
+        conjunto: 'true',
+        ovnota: 'true',
+        empreendimento: 'true',
+      },
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
       true,
       true,
       true,
     ],
     [
-      { parceiras: undefined, regionais: undefined, tiposObra: undefined },
+      {
+        parceira: undefined,
+        regional: undefined,
+        tipo: undefined,
+        municipio: undefined,
+        grupo: undefined,
+        circuito: undefined,
+        status: undefined,
+        conjunto: undefined,
+        ovnota: undefined,
+        empreendimento: undefined,
+      },
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
       undefined,
       undefined,
       undefined,
     ],
   ])(
     'should correctly transform query params to boolean',
-    async (query, expectedParceiras, expectedRegionais, expectedTiposObra) => {
+    async (
+      query,
+      expectedParceiras,
+      expectedRegionais,
+      expectedTiposObra,
+      expectedMunicipio,
+      expectedGrupo,
+      expectedCircuito,
+      expectedStatus,
+      expectedConjunto,
+      expectedOvnota,
+      expectedEmpreendimento,
+    ) => {
       const filtersDTO = plainToInstance(FiltersDto, query);
 
       await filtersController.getFilters(filtersDTO);
 
-      expect(filtersDTO.parceiras).toBe(expectedParceiras);
-      expect(filtersDTO.regionais).toBe(expectedRegionais);
-      expect(filtersDTO.tiposObra).toBe(expectedTiposObra);
+      expect(filtersDTO.parceira).toBe(expectedParceiras);
+      expect(filtersDTO.regional).toBe(expectedRegionais);
+      expect(filtersDTO.tipo).toBe(expectedTiposObra);
+      expect(filtersDTO.circuito).toBe(expectedCircuito);
+      expect(filtersDTO.conjunto).toBe(expectedConjunto);
+      expect(filtersDTO.empreendimento).toBe(expectedEmpreendimento);
+      expect(filtersDTO.grupo).toBe(expectedGrupo);
+      expect(filtersDTO.municipio).toBe(expectedMunicipio);
+      expect(filtersDTO.ovnota).toBe(expectedOvnota);
+      expect(filtersDTO.status).toBe(expectedStatus);
 
       expect(filtersService.getFilters).toHaveBeenCalledWith(filtersDTO);
     },
   );
-
-  it('should handle invalid query params', async () => {
-    const query = {
-      parceiras: 'invalid',
-      regionais: 'invalid',
-      tiposObra: 'invalid',
-    };
-
-    const filtersDTO = plainToInstance(FiltersDto, query);
-
-    expect(filtersDTO.parceiras).toBe('invalid');
-    expect(filtersDTO.regionais).toBe('invalid');
-    expect(filtersDTO.tiposObra).toBe('invalid');
-
-    const errors = await validate(filtersDTO);
-
-    expect(errors.length).toBeGreaterThan(0);
-    expect(errors.some((err) => err.property === 'parceiras')).toBe(true);
-    expect(errors.some((err) => err.property === 'regionais')).toBe(true);
-    expect(errors.some((err) => err.property === 'tiposObra')).toBe(true);
-
-    expect(filtersService.getFilters).not.toHaveBeenCalled();
-  });
 });

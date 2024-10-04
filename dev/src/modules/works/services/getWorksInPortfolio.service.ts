@@ -1,18 +1,14 @@
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { Cache } from 'cache-manager';
 import { GetWorksDTO } from 'src/config/dto/worksDto';
 import { PrismaService } from 'src/config/prisma/prisma.service';
 import { worksInPortfolioInterface } from 'src/types/worksInterface';
 import { calculateTotals } from 'src/utils/calculateTotals';
+import * as moment from 'moment';
 
 @Injectable()
 export class GetWorksInPortfolioService {
-  constructor(
-    private prisma: PrismaService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async getWorksInPortfolio(filters: GetWorksDTO) {
     const {
@@ -30,8 +26,8 @@ export class GetWorksInPortfolioService {
       tipoFiltro,
     } = filters;
 
-    const mes = data?.split('/')[0];
-    const ano = data?.split('/')[1];
+    const month = data?.split('/')[0];
+    const year = data?.split('/')[1];
 
     let query = Prisma.sql`SELECT
         obras.id, obras.ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, 
@@ -91,8 +87,12 @@ export class GetWorksInPortfolioService {
       query = Prisma.sql`${query} AND id = ${idOvnota}`;
     }
 
-    if (tipoFiltro === 'mes' && data) {
-      query = Prisma.sql`${query} AND EXTRACT(MONTH FROM first_data_prog) = ${parseInt(mes)} AND EXTRACT(YEAR FROM first_data_prog) = ${parseInt(ano)}`;
+    if (tipoFiltro === 'month' && data) {
+      query = Prisma.sql`${query} AND EXTRACT(MONTH FROM first_data_prog) = ${parseInt(month)} AND EXTRACT(YEAR FROM first_data_prog) = ${parseInt(year)}`;
+    }
+
+    if (tipoFiltro === 'day' && data) {
+      query = Prisma.sql`${query} AND first_data_prog = ${moment(data, 'DD/MM/YYYY', true).toDate()}`;
     }
 
     query = Prisma.sql`${query} ORDER BY first_data_prog, status DESC, entrada + prazo;`;

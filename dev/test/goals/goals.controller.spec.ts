@@ -1,8 +1,8 @@
 import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { plainToInstance } from 'class-transformer';
-import { GoalsDTO } from 'src/config/dto/goals/goalsDto';
-import { GoalsController } from 'src/goals/goals.controller';
+import { GoalsDTO } from 'src/config/dto/goalsDto';
+import { GoalsController } from 'src/modules/goals/goals.controller';
 import { GoalsService } from 'src/modules/goals/goals.service';
 import { Goals, GoalsIntefaceController } from 'src/types/goalsInterface';
 
@@ -36,8 +36,8 @@ describe('MetasController', () => {
   describe('getGoals', () => {
     it('Should build filters, get goals with filters and return the result with correct format', async () => {
       const goalsFilter: GoalsDTO = {
-        idRegional: [1, 2, 3],
-        idTipo: [15],
+        regional: [1, 2, 3],
+        tipo: [15],
       };
 
       const metasResponse: Goals[] = [
@@ -79,20 +79,20 @@ describe('MetasController', () => {
 
     it('should correctly transform query params to number', async () => {
       const query = {
-        idRegional: '1,2,3',
-        idParceira: '1,6',
-        idTipo: '15',
-        anoCalc: '2024,2025',
+        regional: '1,2,3',
+        parceira: '1,6',
+        tipo: '15',
+        ano: '2024,2025',
       };
 
       const goalsDTO = plainToInstance(GoalsDTO, query);
 
       await metasController.getGoals(goalsDTO);
 
-      expect(goalsDTO.idParceira).toStrictEqual([1, 6]);
-      expect(goalsDTO.idRegional).toStrictEqual([1, 2, 3]);
-      expect(goalsDTO.idTipo).toStrictEqual([15]);
-      expect(goalsDTO.anoCalc).toStrictEqual([2024, 2025]);
+      expect(goalsDTO.parceira).toStrictEqual([1, 6]);
+      expect(goalsDTO.regional).toStrictEqual([1, 2, 3]);
+      expect(goalsDTO.tipo).toStrictEqual([15]);
+      expect(goalsDTO.ano).toStrictEqual([2024, 2025]);
 
       expect(metasService.getGoals).toHaveBeenCalledWith(goalsDTO);
     });

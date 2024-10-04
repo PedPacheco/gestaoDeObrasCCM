@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { GetWorksDTO } from 'src/config/dto/worksDto';
 import { PrismaService } from 'src/config/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import * as moment from 'moment';
 
 @Injectable()
 export class GetCompletedWorksService {
@@ -23,8 +24,8 @@ export class GetCompletedWorksService {
       tipoFiltro,
     } = filters;
 
-    const mes = data?.split('/')[0];
-    const ano = data?.split('/')[1];
+    const month = data?.split('/')[0];
+    const year = data?.split('/')[1];
 
     let query = Prisma.sql`SELECT obras.id, obras.ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, executado, 
                 mun, entrada + prazo AS prazo_fim, CASE WHEN current_date > entrada + prazo THEN 1 ELSE 0 END AS atraso, data_conclusao, tipo_obra, qtde_planejada, qtde_pend, circuito, 
@@ -80,8 +81,12 @@ export class GetCompletedWorksService {
       query = Prisma.sql`${query} AND id = ${idOvnota}`;
     }
 
-    if (tipoFiltro === 'mes' && data) {
-      query = Prisma.sql`${query} AND EXTRACT(MONTH FROM data_conclusao) = ${parseInt(mes)} AND EXTRACT(YEAR FROM data_conclusao) = ${parseInt(ano)}`;
+    if (tipoFiltro === 'month' && data) {
+      query = Prisma.sql`${query} AND EXTRACT(MONTH FROM data_conclusao) = ${parseInt(month)} AND EXTRACT(YEAR FROM data_conclusao) = ${parseInt(year)}`;
+    }
+
+    if (tipoFiltro === 'day' && data) {
+      query = Prisma.sql`${query} AND data_conclusao = ${moment(data, 'DD/MM/YYYY', true).toDate()}`;
     }
 
     query = Prisma.sql`${query} ORDER BY data_conclusao DESC;`;

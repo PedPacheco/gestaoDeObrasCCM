@@ -1,7 +1,7 @@
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 
 describe('AuthGuard', () => {
@@ -53,7 +53,7 @@ describe('AuthGuard', () => {
     jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
 
     await expect(authGuard.canActivate(context)).rejects.toThrow(
-      UnauthorizedException
+      UnauthorizedException,
     );
   });
 
@@ -66,7 +66,7 @@ describe('AuthGuard', () => {
       .mockRejectedValue(new Error('Invalid token'));
 
     await expect(authGuard.canActivate(context)).rejects.toThrow(
-      UnauthorizedException
+      UnauthorizedException,
     );
   });
 

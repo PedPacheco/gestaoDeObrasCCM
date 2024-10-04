@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtModule } from '@nestjs/jwt';
 import { EmailService } from 'src/modules/email/email.service';
-import { AuthModule } from 'src/auth/auth.module';
-import { jwtConstants } from 'src/auth/costants';
-import { AuthService } from 'src/auth/auth.service';
-import { AuthController } from 'src/auth/auth.controller';
+import { AuthModule } from 'src/modules/auth/auth.module';
+import { jwtConstants } from 'src/config/costants';
+import { AuthService } from 'src/modules/auth/auth.service';
+import { AuthController } from 'src/modules/auth/auth.controller';
 
 describe('AuthModule', () => {
   let module: TestingModule;

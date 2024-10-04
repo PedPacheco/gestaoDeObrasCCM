@@ -109,6 +109,7 @@ export class EntryService {
       data,
       tipoFiltro,
     } = filters;
+
     let dateRange: Record<string, Date>;
 
     switch (tipoFiltro) {
