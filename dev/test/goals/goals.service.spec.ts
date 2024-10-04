@@ -28,10 +28,10 @@ describe('MetasService', () => {
   describe('getGoals', () => {
     it('should return goals', async () => {
       const filters = {
-        idRegional: [1, 2, 3],
-        idParceira: [2],
-        idTipo: [15],
-        anoCalc: [2024],
+        regional: [1, 2, 3],
+        parceira: [2],
+        tipo: [15],
+        ano: [2024],
       };
 
       const responsePrisma = [

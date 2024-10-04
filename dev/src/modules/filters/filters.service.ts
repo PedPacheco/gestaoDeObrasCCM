@@ -26,7 +26,7 @@ export class FiltersService {
     const result = {};
 
     if (regional) {
-      result['regional'] = await this.getCachedData('regionias', () =>
+      result['regional'] = await this.getCachedData('regionais', () =>
         this.getData('regionais', ['id', 'regional']),
       );
     }
@@ -91,11 +91,13 @@ export class FiltersService {
 
   async getCachedData<T>(key: string, fetchData: () => Promise<T>): Promise<T> {
     const cachedData = await this.cacheManager.get<T>(key);
+
     if (cachedData) {
       return cachedData;
     }
 
     const data = await fetchData();
+
     await this.cacheManager.set(key, data, 3600000);
 
     return data;

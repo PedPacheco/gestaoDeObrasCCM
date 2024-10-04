@@ -1,171 +1,151 @@
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { Test } from '@nestjs/testing';
 import { FiltersService } from 'src/modules/filters/filters.service';
 import { PrismaService } from 'src/config/prisma/prisma.service';
 
 describe('FiltersService', () => {
-  let mockCacheManager: Cache;
+  let cacheManager: Cache;
   let filtersService: FiltersService;
   let prismaService: PrismaService;
+
+  const mockPrismaFindMany = jest.fn();
+
+  const mockCacheManager = {
+    get: jest.fn(),
+    set: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
         FiltersService,
-        PrismaService,
-        { provide: CACHE_MANAGER, useValue: mockCacheManager },
+        {
+          provide: CACHE_MANAGER,
+          useValue: mockCacheManager,
+        },
+        {
+          provide: PrismaService,
+          useValue: {
+            regionais: { findMany: mockPrismaFindMany },
+            turmas: { findMany: mockPrismaFindMany },
+            tipos: { findMany: mockPrismaFindMany },
+            municipios: { findMany: mockPrismaFindMany },
+            grupos: { findMany: mockPrismaFindMany },
+            circuitos: { findMany: mockPrismaFindMany },
+            status: { findMany: mockPrismaFindMany },
+            conjuntos: { findMany: mockPrismaFindMany },
+            obras: { findMany: mockPrismaFindMany },
+            empreendimento: { findMany: mockPrismaFindMany },
+          },
+        },
       ],
     }).compile();
 
     filtersService = module.get<FiltersService>(FiltersService);
+    cacheManager = module.get<Cache>(CACHE_MANAGER);
     prismaService = module.get<PrismaService>(PrismaService);
   });
 
-  describe('getFilters', () => {
-    it('should call methods to obtain values filters', async () => {
-      const params = { regionais: true, parceiras: true, tiposObra: true };
-
-      const mockRegionais = [{ id: 1, regional: 'São José dos campos' }];
-      const mockParceiras = [{ id: 1, turma: 'Engelmig' }];
-      const mockTipoObra = [{ id: 1, tipo_obra: 'NÃO DEFINIDO' }];
-
-      const response = {
-        regionais: mockRegionais,
-        parceiras: mockParceiras,
-        tiposObra: mockTipoObra,
-      };
-
-      jest
-        .spyOn(filtersService, 'getRegionais')
-        .mockResolvedValue(mockRegionais);
-      jest
-        .spyOn(filtersService, 'getParceiras')
-        .mockResolvedValue(mockParceiras);
-      jest
-        .spyOn(filtersService, 'getTiposObra')
-        .mockResolvedValue(mockTipoObra);
-
-      const result = await filtersService.getFilters(params);
-
-      expect(result).toEqual(response);
-      expect(filtersService.getRegionais).toHaveBeenCalled();
-      expect(filtersService.getParceiras).toHaveBeenCalled();
-      expect(filtersService.getTiposObra).toHaveBeenCalled();
-    });
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
-  describe('getRegionais', () => {
-    it('Should get values of regionais', async () => {
-      const mockRegionais = [
-        {
-          id: 1,
-          regional: 'São José dos Campos',
-          csd: undefined,
-          gestor: undefined,
-          engenheiro: undefined,
-          total_clientes: undefined,
-          centro: undefined,
-          abrev_regional: undefined,
-        },
-      ];
+  const testCases = [
+    {
+      name: 'regional',
+      dto: { regional: true },
+      cacheKey: 'regionais',
+      table: 'regionais',
+      data: [{ id: 1, regional: 'Regional 1' }],
+    },
+    {
+      name: 'parceira',
+      dto: { parceira: true },
+      cacheKey: 'parceiras',
+      table: 'turmas',
+      data: [{ id: 1, turma: 'Turma A' }],
+    },
+    {
+      name: 'tipo',
+      dto: { tipo: true },
+      cacheKey: 'tiposObra',
+      table: 'tipos',
+      data: [{ id: 1, tipo_obra: 'Tipo 1', id_grupo: 2 }],
+    },
+    {
+      name: 'municipio',
+      dto: { municipio: true },
+      cacheKey: 'municipios',
+      table: 'municipios',
+      data: [{ id: 1, municipio: 'Municipio 1' }],
+    },
+    {
+      name: 'grupo',
+      dto: { grupo: true },
+      cacheKey: 'grupos',
+      table: 'grupos',
+      data: [{ id: 1, grupo: 'Grupo 1' }],
+    },
+    {
+      name: 'circuito',
+      dto: { circuito: true },
+      cacheKey: 'circuitos',
+      table: 'circuitos',
+      data: [{ id: 1, circuito: 'Circuito 1' }],
+    },
+    {
+      name: 'status',
+      dto: { status: true },
+      cacheKey: 'status',
+      table: 'status',
+      data: [{ id: 1, status: 'Status 1' }],
+    },
+    {
+      name: 'conjunto',
+      dto: { conjunto: true },
+      cacheKey: 'conjunto',
+      table: 'conjuntos',
+      data: [{ id: 1, conjunto: 'Conjunto 1' }],
+    },
+    {
+      name: 'ovnota',
+      dto: { ovnota: true },
+      cacheKey: 'ovnota',
+      table: 'obras',
+      data: [{ id: 1, ovnota: 'Ovnota 1' }],
+    },
+    {
+      name: 'empreendimento',
+      dto: { empreendimento: true },
+      cacheKey: 'empreendimento',
+      table: 'empreendimento',
+      data: [{ id: 1, empreendimento: 'Empreendimento 1' }],
+    },
+  ];
 
-      jest
-        .spyOn(prismaService.regionais, 'findMany')
-        .mockResolvedValue(mockRegionais);
+  testCases.forEach(({ name, dto, cacheKey, table, data }) => {
+    describe(`getFilters - ${name}`, () => {
+      it(`should return cached ${name} data`, async () => {
+        jest.spyOn(cacheManager, 'get').mockResolvedValue(data);
 
-      const result = await filtersService.getRegionais();
+        const result = await filtersService.getFilters(dto);
 
-      expect(result).toEqual(mockRegionais);
-      expect(prismaService.regionais.findMany).toHaveBeenCalledWith({
-        select: { id: true, regional: true },
+        expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
+        expect(result[name]).toEqual(data);
       });
-    });
 
-    it('should handle errors when getting regionais', async () => {
-      jest
-        .spyOn(prismaService.regionais, 'findMany')
-        .mockRejectedValue(new Error('Database error'));
+      it(`should fetch ${name} data from database if not cached`, async () => {
+        jest.spyOn(cacheManager, 'get').mockResolvedValue(null);
+        jest.spyOn(prismaService[table], 'findMany').mockResolvedValue(data);
+        jest.spyOn(cacheManager, 'set').mockResolvedValue(null);
 
-      await expect(filtersService.getRegionais()).rejects.toThrow(
-        'Database error',
-      );
-    });
-  });
+        const result = await filtersService.getFilters(dto);
 
-  describe('getTiposObra', () => {
-    it('Should get values of tipos', async () => {
-      const mockTiposObra = [
-        {
-          id: 1,
-          tipo_obra: 'NÃO DEFINIDO',
-          tipo_abrev: undefined,
-          descricao_sap: undefined,
-          id_grupo: 1,
-          pep_atual: undefined,
-          pep_antigo: undefined,
-          id_subgrupo: 1,
-          tipo_serv_sap: undefined,
-          regulado: undefined,
-        },
-      ];
-
-      jest
-        .spyOn(prismaService.tipos, 'findMany')
-        .mockResolvedValue(mockTiposObra);
-
-      const result = await filtersService.getTiposObra();
-
-      expect(result).toEqual(mockTiposObra);
-      expect(prismaService.tipos.findMany).toHaveBeenCalledWith({
-        select: { id: true, tipo_obra: true, id_grupo: true },
+        expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
+        expect(prismaService[table].findMany).toHaveBeenCalledTimes(1);
+        expect(result[name]).toEqual(data);
+        expect(cacheManager.set).toHaveBeenCalledWith(cacheKey, data, 3600000);
       });
-    });
-
-    it('should handle errors when getting tipos', async () => {
-      jest
-        .spyOn(prismaService.tipos, 'findMany')
-        .mockRejectedValue(new Error('Database error'));
-
-      await expect(filtersService.getTiposObra()).rejects.toThrow(
-        'Database error',
-      );
-    });
-  });
-
-  describe('getParceiras', () => {
-    it('Should get values of parceiras', async () => {
-      const mockParceiras = [
-        {
-          id: 1,
-          turma: 'ENGELMIG',
-          turma_abrev: undefined,
-          deposito_atual: undefined,
-          turma_sap: undefined,
-          contrato: undefined,
-          email_referencia: undefined,
-        },
-      ];
-
-      jest
-        .spyOn(prismaService.turmas, 'findMany')
-        .mockResolvedValue(mockParceiras);
-
-      const result = await filtersService.getParceiras();
-
-      expect(result).toEqual(mockParceiras);
-      expect(prismaService.turmas.findMany).toHaveBeenCalledWith({
-        select: { id: true, turma: true },
-      });
-    });
-
-    it('should handle errors when getting parceiras', async () => {
-      jest
-        .spyOn(prismaService.turmas, 'findMany')
-        .mockRejectedValue(new Error('Database error'));
-
-      await expect(filtersService.getParceiras()).rejects.toThrow(
-        'Database error',
-      );
     });
   });
 });
