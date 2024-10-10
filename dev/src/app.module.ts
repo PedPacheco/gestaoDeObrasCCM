@@ -8,10 +8,11 @@ import { EmailModule } from './modules/email/email.module';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './config/costants';
 import { GoalsModule } from './modules/goals/goals.module';
-import { InternalServerErrorExceptionFilter } from './utils/internalServerError.filter';
+import { CustomExceptionFilter } from './utils/customExpection.filter';
 import { FiltersModule } from './modules/filters/filters.module';
 import { EntryModule } from './modules/entry/entry.module';
 import { WorksModule } from './modules/works/works.module';
+import { ScheduleModule } from './modules/schedule/shedule.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { WorksModule } from './modules/works/works.module';
     GoalsModule,
     FiltersModule,
     EntryModule,
+    ScheduleModule,
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
@@ -36,7 +38,7 @@ import { WorksModule } from './modules/works/works.module';
     },
     {
       provide: APP_FILTER,
-      useClass: InternalServerErrorExceptionFilter,
+      useClass: CustomExceptionFilter,
     },
     {
       provide: APP_PIPE,

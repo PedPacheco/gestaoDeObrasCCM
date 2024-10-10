@@ -1,16 +1,23 @@
-import { InternalServerErrorException, HttpStatus } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  HttpException,
+  HttpStatus,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ArgumentsHost } from '@nestjs/common/interfaces';
 import { Request, Response } from 'express';
-import { InternalServerErrorExceptionFilter } from 'src/utils/internalServerError.filter';
+import { CustomExceptionFilter } from 'src/utils/customExpection.filter';
 
 describe('InternalServerErrorExceptionFilter', () => {
-  let filter: InternalServerErrorExceptionFilter;
+  let filter: CustomExceptionFilter;
   let mockArgumentsHost: ArgumentsHost;
   let mockResponse: Partial<Response>;
   let mockRequest: Partial<Request>;
 
   beforeEach(() => {
-    filter = new InternalServerErrorExceptionFilter();
+    filter = new CustomExceptionFilter();
 
     mockRequest = {
       url: '/test-url',
@@ -30,7 +37,7 @@ describe('InternalServerErrorExceptionFilter', () => {
   });
 
   it('should handle InternalServerErrorException and return expected response', () => {
-    const exception = new InternalServerErrorException();
+    const exception = new Error('Algum erro desconhecido');
 
     filter.catch(exception, mockArgumentsHost);
 
@@ -39,8 +46,82 @@ describe('InternalServerErrorExceptionFilter', () => {
     );
     expect(mockResponse.json).toHaveBeenCalledWith({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-      path: mockRequest.url,
-      message: 'Erro ao processar a solicitação',
+      path: '/test-url',
+      message: 'Erro interno no servidor. Tente novamente mais tarde',
+      timestamp: expect.any(String),
+    });
+  });
+
+  it('should handle BadRequestExpection and return expected response', () => {
+    const exception = new BadRequestException('Algum erro desconhecido');
+
+    filter.catch(exception, mockArgumentsHost);
+
+    expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+    expect(mockResponse.json).toHaveBeenCalledWith({
+      statusCode: HttpStatus.BAD_REQUEST,
+      path: '/test-url',
+      message: 'Os dados enviados são inválidos. Verifique e tente novamente',
+      timestamp: expect.any(String),
+    });
+  });
+
+  it('should handle Unauthorized and return expected response', () => {
+    const exception = new UnauthorizedException('Algum erro desconhecido');
+
+    filter.catch(exception, mockArgumentsHost);
+
+    expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.UNAUTHORIZED);
+    expect(mockResponse.json).toHaveBeenCalledWith({
+      statusCode: HttpStatus.UNAUTHORIZED,
+      path: '/test-url',
+      message: 'Você não está autorizado a acessar este recurso',
+      timestamp: expect.any(String),
+    });
+  });
+
+  it('should handle Forbidden expection and return expected response', () => {
+    const exception = new ForbiddenException('Algum erro desconhecido');
+
+    filter.catch(exception, mockArgumentsHost);
+
+    expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.FORBIDDEN);
+    expect(mockResponse.json).toHaveBeenCalledWith({
+      statusCode: HttpStatus.FORBIDDEN,
+      path: '/test-url',
+      message: 'Você não tem permissão para realizar esta ação',
+      timestamp: expect.any(String),
+    });
+  });
+
+  it('should handle NotFound expection and return expected response', () => {
+    const exception = new NotFoundException('Algum erro desconhecido');
+
+    filter.catch(exception, mockArgumentsHost);
+
+    expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
+    expect(mockResponse.json).toHaveBeenCalledWith({
+      statusCode: HttpStatus.NOT_FOUND,
+      path: '/test-url',
+      message: 'O recurso solicitado não foi encontrado',
+      timestamp: expect.any(String),
+    });
+  });
+
+  it('should handle HttpException with custom message', () => {
+    const exception = new HttpException(
+      'Custom Error Message',
+      HttpStatus.CONFLICT,
+    );
+
+    filter.catch(exception, mockArgumentsHost);
+
+    expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.CONFLICT);
+    expect(mockResponse.json).toHaveBeenCalledWith({
+      statusCode: HttpStatus.CONFLICT,
+      path: '/test-url',
+      message: 'Custom Error Message',
+      timestamp: expect.any(String),
     });
   });
 });

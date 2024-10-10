@@ -1,0 +1,51 @@
+name: GOCCM CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13.4
+        env:
+          POSTGRES_DB: ${{ secrets.DB_NAME }} # Nome do banco de dados
+          POSTGRES_USER: ${{ secrets.DB_USER }} # Nome do usuário
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }} # Senha
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U construcaosp"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        volumes:
+          - postgres_data:/var/lib/postgresql/data
+
+    name: Run backend tests on Windows
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js for backend
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.12.0"
+
+      - name: Install dependencies (backend)
+        run: npm install
+        working-directory: ./dev
+
+      - name: Generate Prisma client
+        run: npx prisma generate --schema=src/config/prisma/schema.prisma
+        working-directory: ./dev
+
+      - name: Run backend tests
+        run: npm run test
+        working-directory: ./dev
