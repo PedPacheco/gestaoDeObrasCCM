@@ -18,6 +18,9 @@ jobs:
         with:
           node-version: "20.12.0"
 
+      - name: Clear npm cache
+        run: npm cache clean --force
+
       - name: Install dependencies (backend)
         run: npm install
         working-directory: ./dev
