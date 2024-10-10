@@ -1,0 +1,27 @@
+name: GOCCM CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  backend-tests:
+    runs-on: windows-latest
+    name: Run backend tests on Windows
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js for backend
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.12.0"
+
+      - name: Install dependencies (backend)
+        run: npm install
+        working-directory: ./dev
+
+      - name: Run backend tests
+        run: npm run test
+        working-directory: ./dev
