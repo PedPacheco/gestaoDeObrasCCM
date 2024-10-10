@@ -43,7 +43,7 @@ jobs:
         working-directory: ./dev
 
       - name: Generate Prisma client
-        run: npx prisma generate --schema=./dev/src/config/prisma/schema.prisma
+        run: npx prisma generate --schema=src/config/prisma/schema.prisma
         working-directory: ./dev
 
       - name: Run database migrations
