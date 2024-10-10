@@ -67,7 +67,7 @@
       "json",
       "ts"
     ],
-    "rootDir": "C:/projetos/goccm_project/dev",
+    "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"

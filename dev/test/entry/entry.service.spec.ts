@@ -249,8 +249,6 @@ describe('EntryService', () => {
 
       const result = await entryService.getEntryOfWorksByDay(filters);
 
-      console.log(result);
-
       expect(prismaService.obras.findMany).toHaveBeenCalledWith({
         where: expect.anything(),
         select: expect.anything(),
