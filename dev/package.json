@@ -80,5 +80,8 @@
     "moduleNameMapper": {
       "^src/(.*)$": "<rootDir>/src/$1"
     }
+  },
+  "prisma": {
+    "shecma": ".dev/config/prisma/schema.prisma"
   }
 }
