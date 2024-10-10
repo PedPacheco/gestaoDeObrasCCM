@@ -46,10 +46,6 @@ jobs:
         run: npx prisma generate --schema=src/config/prisma/schema.prisma
         working-directory: ./dev
 
-      - name: Run database migrations
-        run: npm run db:push
-        working-directory: ./dev
-
       - name: Run backend tests
         run: npm run test
         working-directory: ./dev
