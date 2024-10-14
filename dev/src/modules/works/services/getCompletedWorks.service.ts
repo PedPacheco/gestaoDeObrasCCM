@@ -3,6 +3,7 @@ import { GetWorksDTO } from 'src/config/dto/worksDto';
 import { PrismaService } from 'src/config/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import * as moment from 'moment';
+import { calculateTotals } from 'src/utils/calculateTotals';
 
 @Injectable()
 export class GetCompletedWorksService {
@@ -28,8 +29,8 @@ export class GetCompletedWorksService {
     const year = data?.split('/')[1];
 
     let query = Prisma.sql`SELECT obras.id, obras.ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, executado, 
-                mun, entrada + prazo AS prazo_fim, CASE WHEN current_date > entrada + prazo THEN 1 ELSE 0 END AS atraso, data_conclusao, tipo_obra, qtde_planejada, qtde_pend, circuito, 
-                mo_planejada, contagem_ocorrencias, turma, status, conjunto, abrev_regional, observ_obra
+                mun, CASE WHEN current_date > entrada + prazo THEN 1 ELSE 0 END AS atraso, data_conclusao, tipo_obra, qtde_planejada, qtde_pend,
+                circuito, mo_planejada, contagem_ocorrencias, turma, status, conjunto, abrev_regional, observ_obra
                 FROM construcao_sp.obras
                 INNER JOIN construcao_sp.municipios ON obras.id_gpm = municipios.id
                 INNER JOIN construcao_sp.circuitos ON obras.id_circuito = circuitos.id
@@ -93,6 +94,9 @@ export class GetCompletedWorksService {
 
     const works: any[] = await this.prisma.$queryRaw(query);
 
-    return works;
+    return calculateTotals(works, {
+      total_mo_planejada: true,
+      total_qtde_planejada: true,
+    });
   }
 }

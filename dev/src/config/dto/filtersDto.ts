@@ -70,5 +70,12 @@ export class FiltersDto {
   @Transform(({ value }) =>
     value === 'true' ? true : value === 'false' ? false : value,
   )
+  ovnotaExec?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) =>
+    value === 'true' ? true : value === 'false' ? false : value,
+  )
   empreendimento?: boolean;
 }

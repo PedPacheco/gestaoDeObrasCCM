@@ -3,7 +3,7 @@ import { fetchData } from "@/services/fetchData";
 import { fetchFilters } from "@/services/fetchFilters";
 import { cookies } from "next/headers";
 
-export default async function WorksInPortfolio() {
+export default async function CompletedWorks() {
   const filters = await fetchFilters({
     regional: true,
     parceira: true,
@@ -13,20 +13,20 @@ export default async function WorksInPortfolio() {
     circuito: true,
     conjunto: true,
     status: true,
-    ovnota: true,
+    ovnotaExec: true,
     empreendimento: true,
   });
 
   const cookieStore = cookies();
 
   const { token, data } = await fetchData(
-    `${process.env.NEXT_PUBLIC_API_URL}/obras/obras-carteira`,
+    `${process.env.NEXT_PUBLIC_API_URL}/obras/obras-executadas`,
     undefined,
     cookieStore.get("token")?.value,
     { cache: "no-store" }
   );
 
-  const columnMapping = {
+  const columns = {
     id: "ID",
     ovnota: "Ovnota",
     ordemdiagrama: "Ordem DCI/Diagrama",
@@ -34,49 +34,37 @@ export default async function WorksInPortfolio() {
     ordem_dci: "Ordem DCI",
     ordem_dca: "Ordem DCA",
     ordem_dcim: "Ordem DCIM",
-    status_ov_sap: "Status SAP",
     pep: "Pep",
-    executado: "Executado",
+    status_ov_sap: "Status SAP",
     mun: "Municipio",
+    abrev_regional: "Regional",
+    tipo_obra: "Tipo",
     turma: "Parceira",
+    executado: "Executado",
+    circuito: "Circuito",
+    conjunto: "Conjunto",
+    status: "Status",
     entrada: "Entrada",
     prazo: "Prazo",
     prazo_fim: "Prazo Fim",
-    abrev_regional: "Regional",
-    tipo_obra: "Tipo",
+    mo_planejada: "MO planejada",
     qtde_planejada: "Qtde planejada",
     qtde_pend: "Qtde pendente",
     contagem_ocorrencias: "!",
-    circuito: "Circuito",
-    mo_planejada: "MO planejada",
-    first_data_prog: "Data programada",
-    status: "Status",
-    hora_ini: "Hora início",
-    hora_ter: "Hora término",
-    tipo_servico: "Tipo serviço",
-    chi: "Chi",
-    conjunto: "Conjunto",
-    equipe_linha_morta: "Equipe linha morta",
-    equipe_linha_viva: "Equipe linha viva",
-    equipe_regularizacao: "Equipe regularização",
-    data_empreitamento: "Data empreitamento",
-    empreendimento: "Empreendimento",
+    observ_obra: "Observação da obra",
     total_obras: "Total de obras",
     total_mo_planejada: "Total MO planejada",
-    total_mo_executada: "Total MO executada",
-    total_mo_suspensa: "Total MO suspensa",
     total_qtde_planejada: "Total QTDE planejada",
-    total_qtde_pend: "Total QTDE pend",
   };
 
   return (
     <PortfolioWorks
+      filters={filters}
       data={data}
       token={token}
-      filters={filters}
-      columns={columnMapping}
-      url="obras-carteira"
-      totalValues={34}
+      columns={columns}
+      url="obras-executadas"
+      totalValues={25}
     />
   );
 }

@@ -13,9 +13,9 @@ jobs:
       postgres:
         image: postgres:13.4
         env:
-          POSTGRES_DB: ${{ secrets.DB_NAME }} # Nome do banco de dados
-          POSTGRES_USER: ${{ secrets.DB_USER }} # Nome do usuário
-          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }} # Senha
+          POSTGRES_DB: ${{ secrets.DB_NAME }}
+          POSTGRES_USER: ${{ secrets.DB_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
         ports:
           - 5432:5432
         options: >-

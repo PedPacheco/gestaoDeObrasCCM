@@ -22,6 +22,7 @@ export class FiltersService {
     conjunto,
     ovnota,
     empreendimento,
+    ovnotaExec,
   }: FiltersDto) {
     const result = {};
 
@@ -75,7 +76,17 @@ export class FiltersService {
 
     if (ovnota) {
       result['ovnota'] = await this.getCachedData('ovnota', () =>
-        this.getData('obras', ['id', 'ovnota']),
+        this.getData('obras', ['id', 'ovnota'], {
+          data_conclusao: null,
+        }),
+      );
+    }
+
+    if (ovnotaExec) {
+      result['ovnotaExec'] = await this.getCachedData('ovnotaExec', () =>
+        this.getData('obras', ['id', 'ovnota'], {
+          data_conclusao: { not: null },
+        }),
       );
     }
 
@@ -103,8 +114,13 @@ export class FiltersService {
     return data;
   }
 
-  async getData(table: string, selectFields: string[]): Promise<any[]> {
+  async getData(
+    table: string,
+    selectFields: string[],
+    conditions?: Record<string, any>,
+  ): Promise<any[]> {
     return await this.prisma[table].findMany({
+      where: conditions,
       select: selectFields.reduce(
         (acc, field) => ({ ...acc, [field]: true }),
         {},

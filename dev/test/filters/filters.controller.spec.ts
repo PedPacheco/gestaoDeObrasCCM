@@ -85,8 +85,10 @@ describe('FiltersController', () => {
         status: 'false',
         conjunto: 'false',
         ovnota: 'false',
+        ovnotaExec: 'false',
         empreendimento: 'false',
       },
+      false,
       false,
       false,
       false,
@@ -109,8 +111,10 @@ describe('FiltersController', () => {
         status: 'true',
         conjunto: 'true',
         ovnota: 'true',
+        ovnotaExec: 'true',
         empreendimento: 'true',
       },
+      true,
       true,
       true,
       true,
@@ -133,8 +137,10 @@ describe('FiltersController', () => {
         status: undefined,
         conjunto: undefined,
         ovnota: undefined,
+        ovnotaExec: undefined,
         empreendimento: undefined,
       },
+      undefined,
       undefined,
       undefined,
       undefined,
@@ -159,6 +165,7 @@ describe('FiltersController', () => {
       expectedStatus,
       expectedConjunto,
       expectedOvnota,
+      expectedOvnotaExec,
       expectedEmpreendimento,
     ) => {
       const filtersDTO = plainToInstance(FiltersDto, query);
@@ -174,6 +181,7 @@ describe('FiltersController', () => {
       expect(filtersDTO.grupo).toBe(expectedGrupo);
       expect(filtersDTO.municipio).toBe(expectedMunicipio);
       expect(filtersDTO.ovnota).toBe(expectedOvnota);
+      expect(filtersDTO.ovnotaExec).toBe(expectedOvnotaExec);
       expect(filtersDTO.status).toBe(expectedStatus);
 
       expect(filtersService.getFilters).toHaveBeenCalledWith(filtersDTO);

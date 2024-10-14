@@ -58,8 +58,9 @@ describe('GetTotalValuesScheduleService', () => {
     },
   ];
 
-  const mockResponse = {
-    COMPEL: {
+  const mockResponse = [
+    {
+      turma: 'COMPEL',
       jan: {
         prog: 1391543.3200890007,
         exec: 888399.434949,
@@ -113,7 +114,7 @@ describe('GetTotalValuesScheduleService', () => {
         exec: 4941029.010438991,
       },
     },
-  };
+  ];
 
   const prismaMock = {
     $queryRaw: jest.fn(),
