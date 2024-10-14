@@ -21,7 +21,7 @@ export class CustomExceptionFilter implements ExceptionFilter {
       status = exception.getStatus();
       message = exception.getResponse() as string | object;
 
-      if (typeof message === 'string') {
+      if (typeof message === 'object' && 'error' in message) {
         message = (message as any).message;
       }
 
