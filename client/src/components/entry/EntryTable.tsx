@@ -60,7 +60,7 @@ export default function EntryTable({ entry, columnMapping }: EntryTableProps) {
             ))}
           </TableRow>
         </TableHead>
-        <TableBody>
+        <TableBody className="h-[880px]">
           {entry.data.map((item: any, index: any) => {
             return (
               <TableRow key={index} className="h-16">
@@ -82,12 +82,14 @@ export default function EntryTable({ entry, columnMapping }: EntryTableProps) {
                       <TableCell key={month} className="p-2 w-36">
                         <div className="flex">
                           <p className="py-1 text-base text-center text-zinc-700 w-12">
-                            {item[`${month}_entrada_qtde`]}
+                            {Number(
+                              item[`${month}_entrada_qtde`]
+                            ).toLocaleString("pt-BR")}
                           </p>
                           <p className="py-1 text-base text-center text-zinc-700 w-24">
-                            {item[`${month}_entrada`]
-                              ?.toFixed(0)
-                              .toLocaleString("pt-br")}
+                            {Number(
+                              item[`${month}_entrada`]?.toFixed(0)
+                            ).toLocaleString("pt-br")}
                           </p>
                         </div>
                       </TableCell>
@@ -112,10 +114,14 @@ export default function EntryTable({ entry, columnMapping }: EntryTableProps) {
                 >
                   <div className="flex">
                     <p className="py-1 text-base text-center text-zinc-700 w-12">
-                      {sumValues[`${month}_qtde`].toFixed(0)}
+                      {Number(
+                        sumValues[`${month}_qtde`]?.toFixed(0)
+                      ).toLocaleString("pt-BR")}
                     </p>
                     <p className="py-1 text-base text-center text-zinc-700 w-24">
-                      {sumValues[month].toFixed(0)}
+                      {Number(sumValues[month]?.toFixed(0)).toLocaleString(
+                        "pt-BR"
+                      )}
                     </p>
                   </div>
                 </TableCell>

@@ -10,12 +10,18 @@ interface MainPortfolioWorksProps {
   data: any;
   filters: any;
   token: string;
+  columns: Record<string, string>;
+  url: string;
+  totalValues: number;
 }
 
 export default function PortfolioWorks({
   data,
   filters,
   token,
+  columns,
+  url,
+  totalValues,
 }: MainPortfolioWorksProps) {
   const [dataFiltered, setDataFiltered] = useState(data);
   const [open, setOpen] = useState(false);
@@ -24,9 +30,8 @@ export default function PortfolioWorks({
   const handleClose = () => setOpen(false);
 
   async function fetchWorks(params: Record<string, string>) {
-    console.log(params);
     const response = await fetchData(
-      "http://localhost:3333/obras/obras-carteira",
+      `http://localhost:3333/obras/${url}`,
       params,
       token,
       { cache: "no-store" }
@@ -34,49 +39,6 @@ export default function PortfolioWorks({
 
     setDataFiltered(response.data);
   }
-
-  const columnMapping = {
-    id: "ID",
-    ovnota: "Ovnota",
-    ordemdiagrama: "Ordem DCI/Diagrama",
-    ordem_dcd: "Ordem DCD",
-    ordem_dci: "Ordem DCI",
-    ordem_dca: "Ordem DCA",
-    ordem_dcim: "Ordem DCIM",
-    status_ov_sap: "Status SAP",
-    pep: "Pep",
-    executado: "Executado",
-    mun: "Municipio",
-    turma: "Parceira",
-    entrada: "Entrada",
-    prazo: "Prazo",
-    prazo_fim: "Prazo Fim",
-    abrev_regional: "Regional",
-    tipo_obra: "Tipo",
-    qtde_planejada: "Qtde planejada",
-    contagem_ocorrencias: "!",
-    qtde_pend: "Qtde pendente",
-    circuito: "Circuito",
-    mo_planejada: "MO planejada",
-    first_data_prog: "Data programada",
-    status: "Status",
-    hora_ini: "Hora início",
-    hora_ter: "Hora término",
-    tipo_servico: "Tipo serviço",
-    chi: "Chi",
-    conjunto: "Conjunto",
-    equipe_linha_morta: "Equipe linha morta",
-    equipe_linha_viva: "Equipe linha viva",
-    equipe_regularizacao: "Equipe regularização",
-    data_empreitamento: "Data empreitamento",
-    empreendimento: "Empreendimento",
-    total_obras: "Total de obras",
-    total_mo_planejada: "Total MO planejada",
-    total_mo_executada: "Total MO executada",
-    total_mo_suspensa: "Total MO suspensa",
-    total_qtde_planejada: "Total QTDE planejada",
-    total_qtde_pend: "Total QTDE pend",
-  };
 
   return (
     <>
@@ -90,23 +52,26 @@ export default function PortfolioWorks({
 
       <TableComponent
         data={dataFiltered.data}
-        columnMapping={columnMapping}
+        columnMapping={columns}
         sliceEndIndex={6}
       />
 
       <ModalComponent open={open} onClose={handleClose} title="Valores totais">
-        <div className="flex flex-row justify-between">
-          {Object.entries(columnMapping)
-            .slice(34)
+        <div className="flex flex-col items-center justify-center xl:flex-row w-full">
+          {Object.entries(columns)
+            .slice(totalValues)
             .map(([column, value]) => {
               const item = dataFiltered.data[1];
 
               return (
-                <div key={column} className="flex flex-row">
-                  <span className="p-2 bg-[#212E3E] text-zinc-200">
+                <div
+                  key={column}
+                  className="flex flex-row py-2 xl:py-0 xl:mx-2"
+                >
+                  <span className="p-1 bg-[#212E3E] text-zinc-200 flex items-center">
                     <p>{value}</p>
                   </span>
-                  <div className="p-2 border border-solid ml-1">
+                  <div className="p-2 border border-solid flex justify-center items-center">
                     <p>{item[column]?.toFixed(0)}</p>
                   </div>
                 </div>

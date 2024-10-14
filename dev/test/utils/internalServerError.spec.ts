@@ -37,7 +37,7 @@ describe('InternalServerErrorExceptionFilter', () => {
   });
 
   it('should handle InternalServerErrorException and return expected response', () => {
-    const exception = new Error('Algum erro desconhecido');
+    const exception = new Error();
 
     filter.catch(exception, mockArgumentsHost);
 
@@ -53,7 +53,7 @@ describe('InternalServerErrorExceptionFilter', () => {
   });
 
   it('should handle BadRequestExpection and return expected response', () => {
-    const exception = new BadRequestException('Algum erro desconhecido');
+    const exception = new BadRequestException();
 
     filter.catch(exception, mockArgumentsHost);
 
@@ -67,7 +67,7 @@ describe('InternalServerErrorExceptionFilter', () => {
   });
 
   it('should handle Unauthorized and return expected response', () => {
-    const exception = new UnauthorizedException('Algum erro desconhecido');
+    const exception = new UnauthorizedException();
 
     filter.catch(exception, mockArgumentsHost);
 
@@ -81,7 +81,7 @@ describe('InternalServerErrorExceptionFilter', () => {
   });
 
   it('should handle Forbidden expection and return expected response', () => {
-    const exception = new ForbiddenException('Algum erro desconhecido');
+    const exception = new ForbiddenException();
 
     filter.catch(exception, mockArgumentsHost);
 
@@ -95,7 +95,7 @@ describe('InternalServerErrorExceptionFilter', () => {
   });
 
   it('should handle NotFound expection and return expected response', () => {
-    const exception = new NotFoundException('Algum erro desconhecido');
+    const exception = new NotFoundException();
 
     filter.catch(exception, mockArgumentsHost);
 

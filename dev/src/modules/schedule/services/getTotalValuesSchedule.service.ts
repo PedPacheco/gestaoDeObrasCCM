@@ -86,24 +86,20 @@ export class GetTotalValuesScheduleService {
     const sum = response.reduce((acc, result) => {
       const turma = result.turma;
 
-      if (!acc[turma]) {
-        acc[turma] = {};
-      }
+      const turmaObj = {
+        turma,
+      };
 
       months.forEach((month) => {
-        if (!acc[turma][month]) {
-          acc[turma][month] = {
-            prog: 0,
-            exec: 0,
-          };
-        }
-
-        acc[turma][month].prog = result[`${month}_prog`] || 0;
-        acc[turma][month].exec = result[`${month}_exec`] || 0;
+        turmaObj[month] = {
+          prog: result[`${month}_prog`] || 0,
+          exec: result[`${month}_exec`] || 0,
+        };
       });
 
+      acc.push(turmaObj);
       return acc;
-    }, {});
+    }, []);
 
     return sum;
   }

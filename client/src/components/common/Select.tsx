@@ -2,6 +2,7 @@
 
 import { FormControl, InputLabel, MenuItem } from "@mui/material";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
+import { useEffect, useState } from "react";
 
 interface SelectProps<T> {
   label: string;
@@ -22,11 +23,31 @@ export function SelectComponent<T>({
   valueKey,
   displayKey,
 }: SelectProps<T>) {
-  const handleChange: (event: SelectChangeEvent<string>) => void = (
-    event: SelectChangeEvent<string>
-  ) => {
+  const itemsPerPage = 20;
+  const [visibleItems, setVisibleItems] = useState<T[]>([]); // Itens visíveis
+
+  useEffect(() => {
+    setVisibleItems(menuItems.slice(0, itemsPerPage));
+  }, [menuItems, itemsPerPage]);
+
+  const handleChange: (event: SelectChangeEvent<string>) => void = (event) => {
     const { value } = event.target;
     setSelectedItem(value);
+  };
+
+  const handleScroll = (event: React.UIEvent<HTMLUListElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
+
+    if (scrollTop + clientHeight >= scrollHeight) {
+      const nextItems = menuItems.slice(
+        visibleItems.length,
+        visibleItems.length + itemsPerPage
+      );
+
+      if (nextItems.length > 0) {
+        setVisibleItems((prev) => [...prev, ...nextItems]);
+      }
+    }
   };
 
   return (
@@ -39,8 +60,22 @@ export function SelectComponent<T>({
           className="w-full"
           value={selectedItem || ""}
           onChange={handleChange}
+          MenuProps={{
+            PaperProps: {
+              style: {
+                maxHeight: 400,
+              },
+            },
+            MenuListProps: {
+              style: {
+                overflowY: "auto",
+                maxHeight: 400,
+              },
+              onScroll: handleScroll,
+            },
+          }}
         >
-          {menuItems.map((item, index) => {
+          {visibleItems.map((item, index) => {
             return (
               <MenuItem
                 key={index}

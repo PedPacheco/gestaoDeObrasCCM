@@ -26,7 +26,7 @@ describe('GetCompletedWorksService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks(); // Limpa todos os mocks após cada teste
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -49,8 +49,23 @@ describe('GetCompletedWorksService', () => {
       idOvnota: 10,
     };
 
-    const mockResult = [{ id: 1, ovnota: '123' }];
-    mockPrismaService.$queryRaw.mockResolvedValue(mockResult);
+    const mockQuery = [
+      { id: 1, ovnota: '123', mo_planejada: 3454.0, qtde_planejada: 4 },
+    ];
+
+    const mockResult = [
+      {
+        id: 1,
+        ovnota: '123',
+        mo_planejada: 3454.0,
+        qtde_planejada: 4,
+        total_mo_planejada: 3454.0,
+        total_obras: 1,
+        total_qtde_planejada: 4,
+      },
+    ];
+
+    mockPrismaService.$queryRaw.mockResolvedValue(mockQuery);
 
     const result = await getCompletedWorksService.getCompletedWorks(filters);
 
@@ -89,8 +104,23 @@ describe('GetCompletedWorksService', () => {
       idOvnota: 10,
     };
 
-    const mockResult = [{ id: 1, ovnota: '123' }];
-    mockPrismaService.$queryRaw.mockResolvedValue(mockResult);
+    const mockQuery = [
+      { id: 1, ovnota: '123', mo_planejada: 3454.0, qtde_planejada: 4 },
+    ];
+
+    const mockResult = [
+      {
+        id: 1,
+        ovnota: '123',
+        mo_planejada: 3454.0,
+        qtde_planejada: 4,
+        total_mo_planejada: 3454.0,
+        total_obras: 1,
+        total_qtde_planejada: 4,
+      },
+    ];
+
+    mockPrismaService.$queryRaw.mockResolvedValue(mockQuery);
 
     const result = await getCompletedWorksService.getCompletedWorks(filters);
 
@@ -108,6 +138,7 @@ describe('GetCompletedWorksService', () => {
     expect(calledQuery.strings[8]).toContain('AND id_empreendimento = ');
     expect(calledQuery.strings[9]).toContain('AND id = ');
     expect(calledQuery.strings[10]).toContain('AND data_conclusao = ');
+
     expect(result).toEqual(mockResult);
   });
 });

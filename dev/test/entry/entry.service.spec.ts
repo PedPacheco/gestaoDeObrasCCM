@@ -181,6 +181,7 @@ describe('EntryService', () => {
           ordem_dcim: '1900886',
           entrada: moment('04/09/2024', 'DD/MM/YYYY', true).toDate(),
           prazo: 90,
+          prazo_fim: moment('3/12/2024', 'DD/MM/YYYY', true).toDate(),
           qtde_planejada: 8,
           mo_planejada: 100,
           tipos: { tipo_obra: 'BTZERO' },

@@ -2,7 +2,7 @@ import { capitalize } from "@/utils/capitalize";
 import { DateFilter } from "../common/DateFilter";
 import { SelectComponent } from "../common/Select";
 import { useState } from "react";
-import dayjs, { Dayjs } from "dayjs";
+import { Dayjs } from "dayjs";
 import { ButtonComponent } from "../common/Button";
 
 interface filters {
@@ -82,7 +82,7 @@ export default function PortfolioWorksFilters({
             <div key={index} className="w-full lg:w-3/4 mx-auto">
               <SelectComponent
                 label={capitalize(displayKey)}
-                menuItems={value || []}
+                menuItems={value}
                 selectedItem={selectedItems[filterValue]}
                 setSelectedItem={(selectedValue) => {
                   setSelectedItems((prev) => ({
