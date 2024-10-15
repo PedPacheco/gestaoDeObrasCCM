@@ -31,7 +31,9 @@ export default function ErrorModal({
         {icon}
         <Typography className="font-semibold text-2xl">Erro</Typography>
         <Typography id="error-modal-description" className="mb-4">
-          <p className="text-red-700 font-semibold text-lg">{message}</p>
+          <p className="text-red-700 font-semibold text-lg text-nowrap">
+            {message}
+          </p>
         </Typography>
 
         <ButtonComponent onClick={onClose} text="Fechar" styled="w-full" />

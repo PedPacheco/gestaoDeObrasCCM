@@ -36,8 +36,6 @@ export default function HomePageFilters({
     (2010 + index).toString()
   );
 
-  console.log(data);
-
   function handleApplyFilters() {
     const filters = {
       regional: selectedRegionais.join(","),
