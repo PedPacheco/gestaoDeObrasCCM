@@ -161,6 +161,7 @@ export class EntryService {
     });
 
     return calculateTotals(result, {
+      prazo_fim: true,
       total_mo_planejada: true,
       total_qtde_planejada: true,
     });

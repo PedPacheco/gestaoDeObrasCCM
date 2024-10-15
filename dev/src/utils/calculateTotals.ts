@@ -4,6 +4,7 @@ interface TotalsOptions {
   total_mo_suspensa?: boolean;
   total_qtde_planejada?: boolean;
   total_qtde_pend?: boolean;
+  prazo_fim?: boolean;
 }
 
 export function calculateTotals(works, options: TotalsOptions) {
@@ -13,6 +14,7 @@ export function calculateTotals(works, options: TotalsOptions) {
   let total_mo_suspensa = 0;
   let total_qtde_planejada = 0;
   let total_qtde_pend = 0;
+  let prazo_fim;
 
   const updatedWorks = works.map((obra) => {
     total_obras++;
@@ -38,7 +40,15 @@ export function calculateTotals(works, options: TotalsOptions) {
       total_qtde_pend += obra.qtde_pend;
     }
 
-    return obra;
+    if (options.prazo_fim) {
+      prazo_fim = new Date(obra.entrada);
+      prazo_fim.setDate(prazo_fim.getDate() + obra.prazo);
+    }
+
+    return {
+      ...obra,
+      ...(options.prazo_fim && { prazo_fim }),
+    };
   });
 
   return updatedWorks.map((obra) => ({
