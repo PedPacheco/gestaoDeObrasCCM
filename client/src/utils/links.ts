@@ -1,5 +1,5 @@
 export const links = [
-  { name: "Home", href: "/" },
+  { name: "Tela inicial", href: "/" },
   {
     name: "Entrada",
     href: "/entrada",
@@ -15,11 +15,10 @@ export const links = [
       { name: "Resumo mensal", href: "/programacao/resumo-mensal" },
       { name: "Programação por data", href: "/programacao/por-data" },
       { name: "Programacao semanal", href: "/programacao/semanal" },
-      { name: "Programacao mensal", href: "/programacao/mensal" },
       { name: "Programacao pendente", href: "/programacao/pendente" },
       { name: "Restrições", href: "/programacao/restricoes" },
     ],
   },
-  { name: "Obras em carteria", href: "/obras-carteira" },
+  { name: "Obras em carteira", href: "/obras-carteira" },
   { name: "Obras executadas", href: "/obras-executadas" },
 ];

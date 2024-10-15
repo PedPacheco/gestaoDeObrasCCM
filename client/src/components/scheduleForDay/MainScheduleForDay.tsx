@@ -1,28 +1,28 @@
 "use client";
 
+import { fetchData } from "@/services/fetchData";
 import { useState } from "react";
 import { TableComponent } from "../common/Table";
-import EntryByDateFilters from "./EntryByDateFilters";
-import { fetchData } from "@/services/fetchData";
+import ScheduleForDayFilters from "./ScheduleForDayFilters";
 
-interface MainEntryByDateProps {
+interface MainSchduleByDateProps {
   filters: any;
   data: any;
   token: string;
   columns: Record<string, string>;
 }
 
-export default function MainEntryByDate({
+export default function MainSchduleForDay({
+  columns,
   data,
   filters,
   token,
-  columns,
-}: MainEntryByDateProps) {
+}: MainSchduleByDateProps) {
   const [dataFiltered, setDataFiltered] = useState(data);
 
-  async function fetchEntry(params: Record<string, string>) {
+  async function fetchEntry(params: Record<string, string | boolean>) {
     const response = await fetchData(
-      "http://localhost:3333/entrada/data",
+      "http://localhost:3333/programacao/mensal",
       params,
       token
     );
@@ -33,13 +33,13 @@ export default function MainEntryByDate({
   return (
     <>
       <div className="my-6 w-4/5 flex flex-col">
-        <EntryByDateFilters data={filters} onApplyFilters={fetchEntry} />
+        <ScheduleForDayFilters data={filters} onApplyFilters={fetchEntry} />
       </div>
 
       <TableComponent
         data={dataFiltered.data}
         columnMapping={columns}
-        sliceEndIndex={3}
+        sliceEndIndex={1}
       />
     </>
   );

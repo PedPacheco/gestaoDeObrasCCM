@@ -2,7 +2,7 @@ import { mountUrl } from "@/utils/mountUrl";
 
 export async function fetchData<T>(
   baseUrl: string,
-  params?: Record<string, string>,
+  params?: Record<string, string | boolean>,
   token?: string,
   cacheStrategy: { revalidate?: number; cache?: "force-cache" | "no-store" } = {
     revalidate: 1440,
@@ -24,7 +24,9 @@ export async function fetchData<T>(
   });
 
   if (!res.ok) {
-    throw new Error("Erro ao buscar os dados");
+    const errorResponse = await res.json();
+    const errorMessage = errorResponse?.message || "Erro ao buscar os dados";
+    throw new Error(errorMessage);
   }
 
   return { token: token, data: await res.json() };

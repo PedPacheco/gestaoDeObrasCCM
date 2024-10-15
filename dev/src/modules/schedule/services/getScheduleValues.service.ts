@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { GetScheduleValuesDTO } from 'src/config/dto/scheduleDTO';
 import { PrismaService } from 'src/config/prisma/prisma.service';
 import * as moment from 'moment';
+import { calculateTotals } from 'src/utils/calculateTotals';
 
 @Injectable()
 export class GetScheduleValuesService {
@@ -23,8 +24,8 @@ export class GetScheduleValuesService {
     const month = data?.split('/')[0];
     const year = data?.split('/')[1];
 
-    let query = Prisma.sql`SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, csd, mun, entrada + prazo AS prazo_fim, tipo_obra,
-                qtde_planejada, mo_planejada, turma, executado, data_prog, prog, exec, observ_programacao, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec,
+    let query = Prisma.sql`SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, entrada, entrada + prazo AS prazo_fim, tipo_obra, qtde_planejada,
+                 mo_planejada, turma, executado, data_prog, prog, exec, observ_programacao, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec, data_prog,
                 num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, id_tecnico
                 FROM construcao_sp.obras
                 INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
@@ -70,6 +71,11 @@ export class GetScheduleValuesService {
 
     query = Prisma.sql`${query} ORDER BY data_prog, ovnota`;
 
-    return await this.prisma.$queryRaw(query);
+    const result = await this.prisma.$queryRaw(query);
+
+    return calculateTotals(result, {
+      total_mo_planejada: true,
+      total_qtde_planejada: true,
+    });
   }
 }

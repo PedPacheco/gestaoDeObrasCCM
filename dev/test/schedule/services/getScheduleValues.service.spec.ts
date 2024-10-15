@@ -12,13 +12,12 @@ describe('GetScheduleValues', () => {
     $queryRaw: jest.fn(),
   };
 
-  const mockResponse = [
+  const mockQueryResponse = [
     {
       id: 9045,
       ovnota: '12398586',
       ordemdiagrama: '170000002955',
       diagrama: null,
-      csd: 'DSSM',
       mun: 'MCR',
       prazo_fim: '2024-03-30T00:00:00.000Z',
       tipo_obra: 'POSTE',
@@ -26,6 +25,7 @@ describe('GetScheduleValues', () => {
       mo_planejada: 3262.21,
       turma: 'LIG',
       executado: 0,
+      entrada: '2024-08-01T00:00:00.000Z',
       data_prog: '2024-10-01T00:00:00.000Z',
       prog: 100,
       exec: null,
@@ -40,6 +40,15 @@ describe('GetScheduleValues', () => {
       equipe_regularizacao: 0,
       id_tecnico: 1,
     } as unknown as obras,
+  ];
+
+  const mockResponse = [
+    {
+      ...mockQueryResponse[0],
+      total_obras: 1,
+      total_mo_planejada: 3262.21,
+      total_qtde_planejada: 1,
+    },
   ];
 
   beforeEach(async () => {
@@ -68,14 +77,14 @@ describe('GetScheduleValues', () => {
       idTipo: undefined,
     };
 
-    jest.spyOn(prisma, '$queryRaw').mockResolvedValue(mockResponse);
+    jest.spyOn(prisma, '$queryRaw').mockResolvedValue(mockQueryResponse);
 
     const result = await service.getValues(filters);
 
     const expectedDate = moment('01/10/2024', 'DD/MM/YYYY', true).toDate();
 
-    const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, csd, mun, entrada + prazo AS prazo_fim, tipo_obra,
-    qtde_planejada, mo_planejada, turma, executado, data_prog, prog, exec, observ_programacao, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec,
+    const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, entrada, entrada + prazo AS prazo_fim, tipo_obra, qtde_planejada,
+    mo_planejada, turma, executado, data_prog, prog, exec, observ_programacao, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec, data_prog,
     num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, id_tecnico
     FROM construcao_sp.obras
     INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
@@ -83,7 +92,7 @@ describe('GetScheduleValues', () => {
     INNER JOIN construcao_sp.regionais ON regionais.id = municipios.id_regional
     INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo
     INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
-    WHERE 1=1 
+    WHERE 1=1
     AND data_prog = 
     AND exec IS NULL
     ORDER BY data_prog, ovnota`;
@@ -114,15 +123,15 @@ describe('GetScheduleValues', () => {
       idTipo: 1,
     };
 
-    jest.spyOn(prisma, '$queryRaw').mockResolvedValue(mockResponse);
+    jest.spyOn(prisma, '$queryRaw').mockResolvedValue(mockQueryResponse);
 
     const result = await service.getValues(filters);
 
     const month = parseInt(filters.data?.split('/')[0]);
     const year = parseInt(filters.data?.split('/')[1]);
 
-    const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, csd, mun, entrada + prazo AS prazo_fim, tipo_obra,
-    qtde_planejada, mo_planejada, turma, executado, data_prog, prog, exec, observ_programacao, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec,
+    const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, entrada, entrada + prazo AS prazo_fim, tipo_obra, qtde_planejada,
+    mo_planejada, turma, executado, data_prog, prog, exec, observ_programacao, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec, data_prog,
     num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, id_tecnico
     FROM construcao_sp.obras
     INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id

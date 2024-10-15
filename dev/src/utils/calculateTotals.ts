@@ -14,7 +14,7 @@ export function calculateTotals(works, options: TotalsOptions) {
   let total_mo_suspensa = 0;
   let total_qtde_planejada = 0;
   let total_qtde_pend = 0;
-  let prazo_fim = null;
+  let prazo_fim;
 
   const updatedWorks = works.map((obra) => {
     total_obras++;
@@ -40,12 +40,15 @@ export function calculateTotals(works, options: TotalsOptions) {
       total_qtde_pend += obra.qtde_pend;
     }
 
-    if (obra.prazo && obra.entrada) {
+    if (options.prazo_fim) {
       prazo_fim = new Date(obra.entrada);
       prazo_fim.setDate(prazo_fim.getDate() + obra.prazo);
     }
 
-    return obra;
+    return {
+      ...obra,
+      ...(options.prazo_fim && { prazo_fim }),
+    };
   });
 
   return updatedWorks.map((obra) => ({
@@ -56,6 +59,5 @@ export function calculateTotals(works, options: TotalsOptions) {
     ...(options.total_mo_suspensa && { total_mo_suspensa }),
     ...(options.total_qtde_planejada && { total_qtde_planejada }),
     ...(options.total_qtde_pend && { total_qtde_pend }),
-    ...(options.prazo_fim && { prazo_fim }),
   }));
 }
