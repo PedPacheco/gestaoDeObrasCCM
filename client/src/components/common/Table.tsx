@@ -7,7 +7,6 @@ import {
   TableCell,
   TableBody,
   Paper,
-  TableFooter,
 } from "@mui/material";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -15,9 +14,9 @@ import { forwardRef } from "react";
 import { TableComponents, TableVirtuoso } from "react-virtuoso";
 
 interface TableComponentProps {
-  columnMapping: any;
+  columns: any;
   data: Record<string, any>[];
-  sliceEndIndex: number;
+  sliceEndIndex?: number;
 }
 
 dayjs.extend(utc);
@@ -44,20 +43,20 @@ const VirtuosoTableComponents: TableComponents = {
 
 export function TableComponent({
   data,
-  columnMapping,
+  columns,
   sliceEndIndex,
 }: TableComponentProps) {
   function fixedHeaderContent() {
     return (
       <TableRow>
-        {Object.keys(columnMapping)
-          .slice(1, -sliceEndIndex)
+        {Object.keys(columns)
+          .slice(1, sliceEndIndex ? -sliceEndIndex : undefined)
           .map((month) => (
             <TableCell
               key={month}
               className="py-1 px-2 text-center text-zinc-700 text-nowrap font-semibold text-xl bg-[#53FF75] min-w-32"
             >
-              {columnMapping[month as keyof typeof columnMapping]}
+              {columns[month as keyof typeof columns]}
             </TableCell>
           ))}
       </TableRow>
@@ -69,10 +68,19 @@ export function TableComponent({
 
     return (
       <>
-        {Object.keys(columnMapping)
-          .slice(1, -sliceEndIndex)
+        {Object.keys(columns)
+          .slice(1, sliceEndIndex ? -sliceEndIndex : undefined)
           .map((column) => {
             let cellValue = item[column];
+            let decimal: string[];
+
+            if (typeof cellValue === "number") {
+              decimal = cellValue.toString().split(".");
+
+              if (decimal[1]?.length > 2) {
+                cellValue = cellValue.toFixed(2);
+              }
+            }
 
             if (
               typeof cellValue === "string" &&
@@ -96,7 +104,7 @@ export function TableComponent({
             return (
               <TableCell
                 key={column}
-                className="py-1 px-2 text-center text-base text-nowrap min-w-32"
+                className="py-1 px-2 text-center text-base text-nowrap min-w-60"
               >
                 {displayValue}
               </TableCell>

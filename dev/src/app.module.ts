@@ -8,7 +8,7 @@ import { EmailModule } from './modules/email/email.module';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './config/costants';
 import { GoalsModule } from './modules/goals/goals.module';
-import { CustomExceptionFilter } from './utils/customExpection.filter';
+import { CustomExceptionFilter } from './common/error/customExpection.filter';
 import { FiltersModule } from './modules/filters/filters.module';
 import { EntryModule } from './modules/entry/entry.module';
 import { WorksModule } from './modules/works/works.module';

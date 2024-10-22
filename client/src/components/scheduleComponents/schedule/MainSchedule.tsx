@@ -1,28 +1,22 @@
 "use client";
 
 import { fetchData } from "@/services/fetchData";
-import EntryFilters from "./EntryFilters";
-import EntryTable from "./EntryTable";
 import { useState } from "react";
+import ScheduleFilters from "./ScheduleFilters";
+import ScheduleTable from "./ScheduleTable";
+import { MainInterface } from "@/interfaces/mainInterface";
 
-interface MainEntryProps {
-  filters: any;
-  data: any;
-  token: string;
-  columns: Record<string, string>;
-}
-
-export default function MainEntry({
+export default function MainSchedule({
+  columns,
   data,
   filters,
   token,
-  columns,
-}: MainEntryProps) {
+}: MainInterface<any>) {
   const [dataFiltered, setDataFiltered] = useState(data);
 
   async function fetchEntry(params: Record<string, string>) {
     const response = await fetchData(
-      "http://localhost:3333/entrada",
+      "http://localhost:3333/programacao",
       params,
       token
     );
@@ -32,10 +26,10 @@ export default function MainEntry({
   return (
     <>
       <div className="my-6 w-4/5 flex flex-col">
-        <EntryFilters data={filters} onApplyFilters={fetchEntry} />
+        <ScheduleFilters data={filters} onApplyFilters={fetchEntry} />
       </div>
 
-      <EntryTable entry={dataFiltered} columnMapping={columns} />
+      <ScheduleTable schedule={dataFiltered} columnMapping={columns} />
     </>
   );
 }

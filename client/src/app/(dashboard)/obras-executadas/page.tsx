@@ -1,4 +1,4 @@
-import PortfolioWorks from "@/components/portfolioWorks/MainPortfolioWorks";
+import PortfolioWorks from "@/components/worksComponents/portfolioWorks/MainPortfolioWorks";
 import { fetchData } from "@/services/fetchData";
 import { fetchFilters } from "@/services/fetchFilters";
 import { cookies } from "next/headers";

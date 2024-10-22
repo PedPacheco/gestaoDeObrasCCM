@@ -1,4 +1,4 @@
-import MainAllWorks from "@/components/allWorks/MainAllWorks";
+import MainAllWorks from "@/components/worksComponents/allWorks/MainAllWorks";
 import { fetchData } from "@/services/fetchData";
 import { fetchFilters } from "@/services/fetchFilters";
 import { cookies } from "next/headers";

@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { ArgumentsHost } from '@nestjs/common/interfaces';
 import { Request, Response } from 'express';
-import { CustomExceptionFilter } from 'src/utils/customExpection.filter';
+import { CustomExceptionFilter } from 'src/common/error/customExpection.filter';
 
 describe('InternalServerErrorExceptionFilter', () => {
   let filter: CustomExceptionFilter;
@@ -110,7 +110,7 @@ describe('InternalServerErrorExceptionFilter', () => {
 
   it('should handle HttpException with custom message', () => {
     const exception = new HttpException(
-      'Custom Error Message',
+      { message: 'Custom Error Message', error: 'Conflict' },
       HttpStatus.CONFLICT,
     );
 

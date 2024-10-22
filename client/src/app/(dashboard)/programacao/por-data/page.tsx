@@ -1,4 +1,4 @@
-import MainSchduleForDay from "@/components/scheduleForDay/MainScheduleForDay";
+import MainSchduleForDay from "@/components/scheduleComponents/scheduleForDay/MainScheduleForDay";
 import { fetchData } from "@/services/fetchData";
 import { fetchFilters } from "@/services/fetchFilters";
 import dayjs from "dayjs";

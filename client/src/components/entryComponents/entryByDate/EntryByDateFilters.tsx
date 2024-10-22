@@ -1,10 +1,9 @@
-import { capitalize } from "@/utils/capitalize";
-import { SelectComponent } from "../common/Select";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import dayjs, { Dayjs } from "dayjs";
+import { SelectComponent } from "@/components/common/Select";
 import { useState } from "react";
-import { ButtonComponent } from "../common/Button";
+import dayjs, { Dayjs } from "dayjs";
+import { capitalize } from "@/utils/capitalize";
+import { ButtonComponent } from "@/components/common/Button";
+import { DateFilter } from "@/components/common/DateFilter";
 
 interface filters {
   regional: { id: string; regional: string }[];
@@ -12,27 +11,32 @@ interface filters {
   tipo: { id: string; tipo_obra: string; id_grupo: number }[];
   municipio: { id: string; municipio: string }[];
   grupo: { id: string; grupo: string }[];
-  circuito: { id: string; circuito: string }[];
 }
 
-interface SheduleFiltersProps {
+interface EntryByDateFiltersProps {
   data: filters;
-  onApplyFilters: (params: any) => void;
+  onApplyFilters: (params: any) => {};
 }
 
-export default function ScheduleFilters({
+export default function EntryByDateFilters({
   data,
   onApplyFilters,
-}: SheduleFiltersProps) {
-  const [selectedYear, setSelectedYear] = useState<Dayjs | null>(dayjs());
+}: EntryByDateFiltersProps) {
   const [selectedItems, setSelectedItems] = useState<Record<string, string>>(
     {}
   );
+  const [date, setDate] = useState<Dayjs | null>(dayjs());
+  const [filterType, setFilterType] = useState<string>("day");
 
   function handleApplyFilters() {
     const newSelectedItems = {
       ...selectedItems,
-      ano: selectedYear ? selectedYear.year().toString() : "",
+      data: date
+        ? filterType === "day"
+          ? date.format("DD/MM/YYYY")
+          : date.format("MM/YYYY")
+        : "",
+      tipoFiltro: filterType,
     };
 
     onApplyFilters(newSelectedItems);
@@ -40,24 +44,26 @@ export default function ScheduleFilters({
 
   function handleCleanigFilters() {
     setSelectedItems({});
-    setSelectedYear(dayjs());
+    setDate(dayjs());
+    setFilterType("day");
 
-    onApplyFilters({ ano: selectedYear?.year().toString() });
+    onApplyFilters({
+      data: dayjs().format("DD/MM/YYYY"),
+      tipoFiltro: filterType,
+    });
   }
 
   return (
     <>
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center">
-        <div className="mb-2 lg:ml-4 lg:first:ml-0 w-full">
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DatePicker
-              views={["year"]}
-              value={selectedYear}
-              onChange={(value) => setSelectedYear(value)}
-              slotProps={{ textField: { size: "small", fullWidth: true } }}
-            />
-          </LocalizationProvider>
-        </div>
+        <DateFilter
+          date={date}
+          setDate={setDate}
+          type={filterType}
+          setType={setFilterType}
+          marginLeft="ml-4"
+        />
+
         {Object.entries(data).map(([key, value], index) => {
           const valueKey = Object.keys(value[0])[0];
           const displayKey = Object.keys(value[0])[1];
@@ -68,7 +74,7 @@ export default function ScheduleFilters({
 
           return (
             <SelectComponent
-              label={capitalize(key)}
+              label={capitalize(displayKey)}
               menuItems={value || []}
               selectedItem={selectedItems[filterValue]}
               setSelectedItem={(selectedValue) => {
@@ -84,6 +90,7 @@ export default function ScheduleFilters({
           );
         })}
       </div>
+
       <div className=" flex flex-col md:flex-row justify-between items-center xl:justify-around">
         <ButtonComponent
           onClick={handleApplyFilters}

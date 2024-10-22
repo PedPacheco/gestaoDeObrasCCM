@@ -1,4 +1,4 @@
-import MainEntry from "@/components/entry/MainEntry";
+import MainEntry from "@/components/entryComponents/entry/MainEntry";
 import { fetchData } from "@/services/fetchData";
 import { fetchFilters } from "@/services/fetchFilters";
 import { cookies } from "next/headers";

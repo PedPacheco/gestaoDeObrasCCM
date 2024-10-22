@@ -19,6 +19,28 @@ export default async function Home() {
     cookieStore.get("token")?.value
   );
 
+  const columnMapping = {
+    regional: "Regional",
+    tipo_obra: "Tipo de obra",
+    turma: "Contratada",
+    anocalc: "Ano",
+    teste: "Teste",
+    jan: "Jan",
+    fev: "Fev",
+    mar: "Mar",
+    abr: "Abr",
+    mai: "Mai",
+    jun: "Jun",
+    jul: "Jul",
+    ago: "Ago",
+    set: "Set",
+    out: "Out",
+    nov: "Nov",
+    dez: "Dez",
+    total: "Total",
+    carteira: "Carteira",
+  };
+
   return (
     <>
       <div className="relative z-0 flex h-full w-full overflow-hidden">
@@ -33,7 +55,12 @@ export default async function Home() {
                 <h2 className="text-2xl font-semibold text-zinc-700">
                   Metas EDP
                 </h2>
-                <MainHome filters={filters} goals={data} token={token} />
+                <MainHome
+                  filters={filters}
+                  data={data}
+                  token={token}
+                  columns={columnMapping}
+                />
               </div>
             </main>
           </div>

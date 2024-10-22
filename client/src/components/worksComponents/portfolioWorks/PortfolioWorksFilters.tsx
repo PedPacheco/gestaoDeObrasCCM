@@ -1,9 +1,9 @@
 import { capitalize } from "@/utils/capitalize";
-import { DateFilter } from "../common/DateFilter";
-import { SelectComponent } from "../common/Select";
 import { useState } from "react";
 import { Dayjs } from "dayjs";
-import { ButtonComponent } from "../common/Button";
+import { DateFilter } from "@/components/common/DateFilter";
+import { SelectComponent } from "@/components/common/Select";
+import { ButtonComponent } from "@/components/common/Button";
 
 interface filters {
   regional: { id: string; regional: string }[];

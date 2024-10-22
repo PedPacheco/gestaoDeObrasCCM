@@ -1,4 +1,4 @@
-import MainSchedule from "@/components/schedule/MainSchedule";
+import MainSchedule from "@/components/scheduleComponents/schedule/MainSchedule";
 import { fetchData } from "@/services/fetchData";
 import { fetchFilters } from "@/services/fetchFilters";
 import { cookies } from "next/headers";

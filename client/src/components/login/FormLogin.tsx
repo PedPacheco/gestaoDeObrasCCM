@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ErrorMessage } from "@hookform/error-message";
 import { Checkbox, TextField } from "@mui/material";
 import { useForm } from "react-hook-form";
-import { number, string, z } from "zod";
+import { z } from "zod";
 import { useState } from "react";
 import { ButtonComponent } from "../common/Button";
 import nookies from "nookies";
@@ -31,12 +31,8 @@ interface LoginResponse {
 
 export function FormLogin() {
   const [showPassword, SetShowPassoword] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [error, setError] = useState<{
-    message: string;
-    error: string;
-    statusCode: number;
-  } | null>(null);
+  const [error, setError] = useState<string | null>();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const router = useRouter();
 
@@ -74,16 +70,12 @@ export function FormLogin() {
 
         router.push("/");
       } else {
-        const errorData = await response.json();
-        setError(errorData);
-        setModalOpen(true);
+        setError("Erro ao fazer login");
+        setIsModalOpen(true);
       }
-    } catch (error) {
-      setError({
-        message: "Ocorreu um erro inesperado",
-        error: "Unknown Error",
-        statusCode: 500,
-      });
+    } catch (error: any) {
+      setError("Ocorreu um erro durante o login.");
+      setIsModalOpen(true);
     }
   }
 
@@ -138,12 +130,13 @@ export function FormLogin() {
           Esqueceu sua senha ?
         </Link>
       </div>
+
       {error && (
         <ErrorModal
-          open={modalOpen}
-          onClose={() => setModalOpen(false)}
-          message={error.message}
-          icon={<ExclamationCircleIcon className="w-16 h-16" />}
+          open={isModalOpen}
+          message={error}
+          onClose={() => setError(null)}
+          icon={<ExclamationCircleIcon width={48} height={48} />}
         />
       )}
     </form>
