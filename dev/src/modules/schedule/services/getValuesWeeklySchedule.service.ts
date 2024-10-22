@@ -18,7 +18,7 @@ export class GetValuesWeeklyScheduleService {
       idTipo,
     } = filters;
 
-    return await this.prisma.obras.findMany({
+    const works = await this.prisma.obras.findMany({
       where: {
         programacoes: {
           some: {
@@ -32,7 +32,7 @@ export class GetValuesWeeklyScheduleService {
         id_turma: idParceira || undefined,
         id_tipo: idTipo || undefined,
         tipos: { id_grupo: idGrupo || undefined },
-        executado: executado ? null : { not: null },
+        executado: executado ? { not: 0 } : null,
       },
       select: {
         id: true,
@@ -54,5 +54,13 @@ export class GetValuesWeeklyScheduleService {
         },
       },
     });
+
+    return works.map((work) => ({
+      id: work.id,
+      ovnota: work.ovnota,
+      tipo_abrev: work.tipos.tipo_abrev,
+      programacoes: work.programacoes,
+      parceira: work.turmas.turma,
+    }));
   }
 }

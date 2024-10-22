@@ -15,7 +15,7 @@ describe('GetValuesWeeklyScheduleService', () => {
     },
   };
 
-  const mockResponse = [
+  const mockQueryResponse = [
     {
       id: 5839,
       ovnota: '14417407',
@@ -33,6 +33,24 @@ describe('GetValuesWeeklyScheduleService', () => {
         turma: 'ENGELMIG',
       },
     } as unknown as obras,
+  ];
+
+  const mockResponse = [
+    {
+      id: 5839,
+      ovnota: '14417407',
+
+      tipo_abrev: 'SPACER',
+      programacoes: [
+        {
+          data_prog: '2024-10-11T00:00:00.000Z',
+          hora_ini: '1970-01-01T08:00:00.000Z',
+          hora_ter: '1970-01-01T17:00:00.000Z',
+        },
+      ],
+
+      parceira: 'ENGELMIG',
+    },
   ];
 
   beforeEach(async () => {
@@ -65,7 +83,7 @@ describe('GetValuesWeeklyScheduleService', () => {
       idTipo: undefined,
     };
 
-    jest.spyOn(prisma.obras, 'findMany').mockResolvedValue(mockResponse);
+    jest.spyOn(prisma.obras, 'findMany').mockResolvedValue(mockQueryResponse);
 
     const result = await service.getValues(filters);
 
@@ -84,7 +102,7 @@ describe('GetValuesWeeklyScheduleService', () => {
         id_turma: undefined,
         id_tipo: undefined,
         tipos: { id_grupo: undefined },
-        executado: { not: null },
+        executado: null,
       },
       select: {
         id: true,
@@ -120,7 +138,7 @@ describe('GetValuesWeeklyScheduleService', () => {
       idTipo: 1,
     };
 
-    jest.spyOn(prisma.obras, 'findMany').mockResolvedValue(mockResponse);
+    jest.spyOn(prisma.obras, 'findMany').mockResolvedValue(mockQueryResponse);
 
     const result = await service.getValues(filters);
 
@@ -139,7 +157,7 @@ describe('GetValuesWeeklyScheduleService', () => {
         id_turma: 1,
         id_tipo: 1,
         tipos: { id_grupo: 1 },
-        executado: null,
+        executado: { not: 0 },
       },
       select: {
         id: true,

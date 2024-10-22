@@ -13,16 +13,16 @@ import {
 import { useEffect, useMemo } from "react";
 
 interface EntryTableProps {
-  entry: any;
-  columnMapping: any;
+  data: any;
+  columns: any;
 }
 
-export default function EntryTable({ entry, columnMapping }: EntryTableProps) {
+export default function EntryTable({ data, columns }: EntryTableProps) {
   const sumValues = useMemo(() => {
     let total = {} as Record<string, number>;
 
-    entry.data.forEach((item: any) => {
-      const months = Object.keys(columnMapping);
+    data.forEach((item: any) => {
+      const months = Object.keys(columns);
 
       months.forEach((month) => {
         if (!(month in total)) {
@@ -38,7 +38,7 @@ export default function EntryTable({ entry, columnMapping }: EntryTableProps) {
     });
 
     return total;
-  }, [columnMapping, entry.data]);
+  }, [columns, data]);
 
   useEffect(() => {}, [sumValues]);
 
@@ -50,18 +50,18 @@ export default function EntryTable({ entry, columnMapping }: EntryTableProps) {
       <Table stickyHeader>
         <TableHead>
           <TableRow>
-            {Object.keys(columnMapping).map((month) => (
+            {Object.keys(columns).map((month) => (
               <TableCell
                 key={month}
                 className="py-1 px-2 text-center text-zinc-700 font-semibold text-xl bg-[#53FF75]"
               >
-                {columnMapping[month as keyof typeof columnMapping]}
+                {columns[month as keyof typeof columns]}
               </TableCell>
             ))}
           </TableRow>
         </TableHead>
         <TableBody className="h-[880px]">
-          {entry.data.map((item: any, index: any) => {
+          {data.map((item: any, index: any) => {
             return (
               <TableRow key={index} className="h-16">
                 <TableCell className="p-0 h-16 text-center min-w-80">
@@ -75,7 +75,7 @@ export default function EntryTable({ entry, columnMapping }: EntryTableProps) {
                   </div>
                 </TableCell>
 
-                {Object.keys(columnMapping)
+                {Object.keys(columns)
                   .slice(1)
                   .map((month) => {
                     return (
@@ -105,7 +105,7 @@ export default function EntryTable({ entry, columnMapping }: EntryTableProps) {
             <TableCell className="py-1 px-2 text-center text-zinc-700 font-semibold text-xl bg-[#53FF75] shadow-md">
               Total
             </TableCell>
-            {Object.keys(columnMapping)
+            {Object.keys(columns)
               .slice(1)
               .map((month) => (
                 <TableCell

@@ -1,4 +1,4 @@
-import MainEntryByDate from "@/components/entryByDate/MainEntryByDate";
+import MainEntryByDate from "@/components/entryComponents/entryByDate/MainEntryByDate";
 import { fetchData } from "@/services/fetchData";
 import { fetchFilters } from "@/services/fetchFilters";
 import dayjs from "dayjs";

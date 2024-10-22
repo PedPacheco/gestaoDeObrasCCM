@@ -1,12 +1,10 @@
-"use client";
-
-import { useState } from "react";
-import { SelectComponent } from "../common/Select";
-import { ButtonComponent } from "../common/Button";
+import { capitalize } from "@/utils/capitalize";
+import { SelectComponent } from "../../common/Select";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs, { Dayjs } from "dayjs";
-import { capitalize } from "@/utils/capitalize";
+import { useState } from "react";
+import { ButtonComponent } from "../../common/Button";
 
 interface filters {
   regional: { id: string; regional: string }[];
@@ -17,15 +15,15 @@ interface filters {
   circuito: { id: string; circuito: string }[];
 }
 
-interface EntryFiltersProps {
+interface SheduleFiltersProps {
   data: filters;
   onApplyFilters: (params: any) => void;
 }
 
-export default function EntryFilters({
+export default function ScheduleFilters({
   data,
   onApplyFilters,
-}: EntryFiltersProps) {
+}: SheduleFiltersProps) {
   const [selectedYear, setSelectedYear] = useState<Dayjs | null>(dayjs());
   const [selectedItems, setSelectedItems] = useState<Record<string, string>>(
     {}

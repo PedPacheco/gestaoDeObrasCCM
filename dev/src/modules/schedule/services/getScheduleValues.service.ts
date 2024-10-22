@@ -64,7 +64,7 @@ export class GetScheduleValuesService {
     }
 
     if (executado) {
-      query = Prisma.sql`${query} AND exec IS NOT NULL`;
+      query = Prisma.sql`${query} AND exec <> 0`;
     } else {
       query = Prisma.sql`${query} AND exec IS NULL`;
     }

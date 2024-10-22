@@ -4,20 +4,14 @@ import { fetchData } from "@/services/fetchData";
 import MainAllWorksFilters from "./allWorksFilter";
 import MainAllWorksTable from "./allWorksTable";
 import { useState } from "react";
-
-interface MainAllWorksProps {
-  data: any;
-  filters: any;
-  token: string;
-  columns: Record<string, string>;
-}
+import { MainInterface } from "@/interfaces/mainInterface";
 
 export default function MainAllWorks({
   data,
   filters,
   token,
   columns,
-}: MainAllWorksProps) {
+}: MainInterface<any>) {
   const [dataFiltered, setDataFiltered] = useState(data);
 
   async function fetchWorks(params: Record<string, string>) {

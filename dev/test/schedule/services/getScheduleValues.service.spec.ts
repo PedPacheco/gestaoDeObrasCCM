@@ -147,7 +147,7 @@ describe('GetScheduleValues', () => {
     AND id_tipo = 
     AND id_turma = 
     AND tipos.id_grupo = 
-    AND exec IS NOT NULL
+    AND exec <> 0
     ORDER BY data_prog, ovnota`;
 
     const normalize = (str: string) => str.replace(/\s+/g, ' ').trim();

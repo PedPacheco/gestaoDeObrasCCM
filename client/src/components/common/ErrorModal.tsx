@@ -15,7 +15,6 @@ export default function ErrorModal({
   icon,
 }: ErrorModalProps) {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   return (
     <Modal
@@ -24,14 +23,12 @@ export default function ErrorModal({
       className="flex items-center justify-center p-4"
     >
       <Box
-        className={`bg-white p-6 rounded-lg shadow-lg ${
-          isMobile ? "w-full max-w-sm" : "w-1/3"
-        } max-w-sm mx-auto flex flex-col items-center`}
+        className={`bg-white p-6 rounded-lg shadow-lg w-full lg:w-1/2 mx-auto flex flex-col items-center`}
       >
         {icon}
         <Typography className="font-semibold text-2xl">Erro</Typography>
         <Typography id="error-modal-description" className="mb-4">
-          <p className="text-red-700 font-semibold text-lg text-nowrap">
+          <p className="text-red-700 font-semibold text-lg text-center">
             {message}
           </p>
         </Typography>

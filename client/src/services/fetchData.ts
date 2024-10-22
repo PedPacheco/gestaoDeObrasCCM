@@ -14,20 +14,27 @@ export async function fetchData<T>(
 
   const url = mountUrl(baseUrl, params);
 
-  const res = await fetch(url, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    next: cacheStrategy,
-  });
+  try {
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      next: cacheStrategy,
+    });
 
-  if (!res.ok) {
-    const errorResponse = await res.json();
-    const errorMessage = errorResponse?.message || "Erro ao buscar os dados";
-    throw new Error(errorMessage);
+    if (!res.ok) {
+      const errorResponse = await res.json();
+      const errorMessage = errorResponse?.message || "Erro ao buscar os dados";
+      throw new Error(errorMessage);
+    }
+
+    const data = await res.json();
+    return { token, data };
+  } catch (error: any) {
+    throw new Error(
+      "Não foi possível se conectar ao servidor. Tente novamente mais tarde."
+    );
   }
-
-  return { token: token, data: await res.json() };
 }

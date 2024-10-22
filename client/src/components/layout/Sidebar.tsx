@@ -10,7 +10,6 @@ import {
 import Link from "next/link";
 import { Input } from "@mui/material";
 import { links } from "@/utils/links";
-// import { classNames } from "@/utils/classNames";
 
 interface SidebarProps {
   open: boolean;

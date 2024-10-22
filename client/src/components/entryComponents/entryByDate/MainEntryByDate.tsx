@@ -1,23 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { TableComponent } from "../common/Table";
 import EntryByDateFilters from "./EntryByDateFilters";
 import { fetchData } from "@/services/fetchData";
-
-interface MainEntryByDateProps {
-  filters: any;
-  data: any;
-  token: string;
-  columns: Record<string, string>;
-}
+import { TableComponent } from "@/components/common/Table";
+import { MainInterface } from "@/interfaces/mainInterface";
 
 export default function MainEntryByDate({
   data,
   filters,
   token,
   columns,
-}: MainEntryByDateProps) {
+}: MainInterface<any>) {
   const [dataFiltered, setDataFiltered] = useState(data);
 
   async function fetchEntry(params: Record<string, string>) {
@@ -38,7 +32,7 @@ export default function MainEntryByDate({
 
       <TableComponent
         data={dataFiltered.data}
-        columnMapping={columns}
+        columns={columns}
         sliceEndIndex={3}
       />
     </>

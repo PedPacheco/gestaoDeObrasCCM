@@ -2,22 +2,16 @@
 
 import { fetchData } from "@/services/fetchData";
 import { useState } from "react";
-import { TableComponent } from "../common/Table";
 import ScheduleForDayFilters from "./ScheduleForDayFilters";
-
-interface MainSchduleByDateProps {
-  filters: any;
-  data: any;
-  token: string;
-  columns: Record<string, string>;
-}
+import { TableComponent } from "@/components/common/Table";
+import { MainInterface } from "@/interfaces/mainInterface";
 
 export default function MainSchduleForDay({
   columns,
   data,
   filters,
   token,
-}: MainSchduleByDateProps) {
+}: MainInterface<any>) {
   const [dataFiltered, setDataFiltered] = useState(data);
 
   async function fetchEntry(params: Record<string, string | boolean>) {
@@ -36,11 +30,7 @@ export default function MainSchduleForDay({
         <ScheduleForDayFilters data={filters} onApplyFilters={fetchEntry} />
       </div>
 
-      <TableComponent
-        data={dataFiltered.data}
-        columnMapping={columns}
-        sliceEndIndex={1}
-      />
+      <TableComponent data={dataFiltered.data} columns={columns} />
     </>
   );
 }

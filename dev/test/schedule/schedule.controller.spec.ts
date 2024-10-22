@@ -149,9 +149,7 @@ describe('ScheduleController', () => {
       {
         id: 5839,
         ovnota: '14417407',
-        tipos: {
-          tipo_abrev: 'SPACER',
-        },
+        tipo_abrev: 'SPACER',
         programacoes: [
           {
             data_prog: new Date('2024-10-11T00:00:00.000Z'),
@@ -159,9 +157,7 @@ describe('ScheduleController', () => {
             hora_ter: new Date('1970-01-01T17:00:00.000Z'),
           },
         ],
-        turmas: {
-          turma: 'ENGELMIG',
-        },
+        parceira: 'ENGELMIG',
       },
     ];
 

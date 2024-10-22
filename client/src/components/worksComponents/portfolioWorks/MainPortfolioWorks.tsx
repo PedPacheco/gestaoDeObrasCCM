@@ -2,9 +2,9 @@
 
 import { fetchData } from "@/services/fetchData";
 import { useState } from "react";
-import { TableComponent } from "../common/Table";
 import PortfolioWorksFilters from "./PortfolioWorksFilters";
-import ModalComponent from "../common/Modal";
+import ModalComponent from "@/components/common/Modal";
+import { TableComponent } from "@/components/common/Table";
 
 interface MainPortfolioWorksProps {
   data: any;
@@ -52,7 +52,7 @@ export default function PortfolioWorks({
 
       <TableComponent
         data={dataFiltered.data}
-        columnMapping={columns}
+        columns={columns}
         sliceEndIndex={6}
       />
 

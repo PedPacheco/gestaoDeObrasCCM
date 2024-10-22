@@ -10,18 +10,24 @@ export async function fetchFilters(params: { [key: string]: boolean } = {}) {
 
   const queryString = new URLSearchParams(params as any).toString();
 
-  const res = await fetch(`http://localhost:3333/filters?${queryString}`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    next: { revalidate: 1440 },
-  });
+  try {
+    const res = await fetch(`http://localhost:3333/filters?${queryString}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      next: { revalidate: 1440 },
+    });
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch data");
+    if (!res.ok) {
+      throw new Error("Erro ao buscar os valores dos filtros");
+    }
+
+    return res.json();
+  } catch (error: any) {
+    throw new Error(
+      "Não foi possível se conectar ao servidor. Tente novamente mais tarde."
+    );
   }
-
-  return res.json();
 }
