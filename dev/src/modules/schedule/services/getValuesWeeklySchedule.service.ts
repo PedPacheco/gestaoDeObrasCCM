@@ -22,6 +22,7 @@ export class GetValuesWeeklyScheduleService {
       where: {
         programacoes: {
           some: {
+            exec: executado ? { not: 0 } : null,
             data_prog: {
               gte: moment(dataInicial, 'DD/MM/YYYY').toDate(),
               lte: moment(dataFinal, 'DD/MM/YYYY').toDate(),
@@ -32,7 +33,6 @@ export class GetValuesWeeklyScheduleService {
         id_turma: idParceira || undefined,
         id_tipo: idTipo || undefined,
         tipos: { id_grupo: idGrupo || undefined },
-        executado: executado ? { not: 0 } : null,
       },
       select: {
         id: true,

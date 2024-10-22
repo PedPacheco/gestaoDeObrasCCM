@@ -92,6 +92,7 @@ describe('GetValuesWeeklyScheduleService', () => {
       where: {
         programacoes: {
           some: {
+            exec: null,
             data_prog: {
               gte: moment('01/09/2024', 'DD/MM/YYYY').toDate(),
               lte: moment('10/09/2024', 'DD/MM/YYYY').toDate(),
@@ -102,7 +103,6 @@ describe('GetValuesWeeklyScheduleService', () => {
         id_turma: undefined,
         id_tipo: undefined,
         tipos: { id_grupo: undefined },
-        executado: null,
       },
       select: {
         id: true,
@@ -147,6 +147,7 @@ describe('GetValuesWeeklyScheduleService', () => {
       where: {
         programacoes: {
           some: {
+            exec: { not: 0 },
             data_prog: {
               gte: moment('01/09/2024', 'DD/MM/YYYY').toDate(),
               lte: moment('10/09/2024', 'DD/MM/YYYY').toDate(),
@@ -157,7 +158,6 @@ describe('GetValuesWeeklyScheduleService', () => {
         id_turma: 1,
         id_tipo: 1,
         tipos: { id_grupo: 1 },
-        executado: { not: 0 },
       },
       select: {
         id: true,
