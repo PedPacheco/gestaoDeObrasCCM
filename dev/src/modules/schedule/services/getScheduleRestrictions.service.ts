@@ -19,8 +19,6 @@ export class GetScheduleRestrictionsService {
       idTipo,
     } = filters;
 
-    console.log(executado ? null : { not: null });
-
     const response = await this.prisma.obras.findMany({
       relationLoadStrategy: 'join',
       where: {

@@ -101,8 +101,6 @@ export function TableComponent({
                 ? Object.values(cellValue).join(", ")
                 : cellValue;
 
-            console.log(displayValue);
-
             return (
               <TableCell
                 key={column}
