@@ -97,7 +97,7 @@ describe('InternalServerErrorExceptionFilter', () => {
   it('should handle NotFound expection and return expected response', () => {
     const exception = new NotFoundException();
 
-    filter.catch(exception, mockArgumentsHost);
+    filter.catch(exception, mockArgumentsHost as ArgumentsHost);
 
     expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
     expect(mockResponse.json).toHaveBeenCalledWith({

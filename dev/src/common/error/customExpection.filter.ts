@@ -37,6 +37,9 @@ export class CustomExceptionFilter implements ExceptionFilter {
           case HttpStatus.FORBIDDEN:
             message = 'Você não tem permissão para realizar esta ação';
             break;
+          case HttpStatus.NOT_FOUND:
+            message = 'O recurso solicitado não foi encontrado';
+            break;
           default:
             message = exception.message;
             break;
@@ -47,7 +50,7 @@ export class CustomExceptionFilter implements ExceptionFilter {
       message = 'Erro interno no servidor. Tente novamente mais tarde';
     }
 
-    if (status === 404) {
+    if (status === HttpStatus.NOT_FOUND && message.includes('Cannot')) {
       message = 'O recurso solicitado não foi encontrado';
     }
 

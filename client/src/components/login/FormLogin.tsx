@@ -70,7 +70,8 @@ export function FormLogin() {
 
         router.push("/");
       } else {
-        setError("Erro ao fazer login");
+        const error = await response.json();
+        setError(error.message);
         setIsModalOpen(true);
       }
     } catch (error: any) {

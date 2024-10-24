@@ -10,8 +10,8 @@ export class GetPendingScheduleValuesService {
   async getValues(filters: GetPendingScheduleValuesDTO) {
     const { idParceira, idRegional } = filters;
 
-    let query = Prisma.sql`SELECT obras.id, ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, diagrama, mun, entrada, tipo_obra, qtde_planejada, mo_planejada, turma,
-                executado, data_prog, prog, exec, observ_programacao, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 0)/100 AS mo_exec
+    let query = Prisma.sql`SELECT obras.id, ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, diagrama, mun, entrada, tipo_obra, qtde_planejada, 
+                mo_planejada, turma, executado, data_prog, prog, observ_programacao, mo_planejada*prog/100 AS mo_prog
                 FROM construcao_sp.obras
                 INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
                 INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm

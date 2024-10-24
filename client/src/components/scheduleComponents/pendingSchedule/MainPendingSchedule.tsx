@@ -1,12 +1,12 @@
 "use client";
 
-import { fetchData } from "@/services/fetchData";
-import { useState } from "react";
-import ScheduleForDayFilters from "./ScheduleForDayFilters";
 import { TableComponent } from "@/components/common/Table";
 import { MainInterface } from "@/interfaces/mainInterface";
+import { fetchData } from "@/services/fetchData";
+import { useState } from "react";
+import PendingScheduleFilters from "./PendingScheduleFilters";
 
-export default function MainSchduleForDay({
+export default function MainPendingSchedule({
   columns,
   data,
   filters,
@@ -14,20 +14,19 @@ export default function MainSchduleForDay({
 }: MainInterface<any>) {
   const [dataFiltered, setDataFiltered] = useState(data);
 
-  async function fetchEntry(params: Record<string, string | boolean>) {
+  async function fetchEntry(params: Record<string, string>) {
     const response = await fetchData(
-      "http://localhost:3333/programacao/mensal",
+      "http://localhost:3333/programacao/pendente",
       params,
       token
     );
-
     setDataFiltered(response.data);
   }
 
   return (
     <>
-      <div className="my-6 w-11/12 flex flex-col">
-        <ScheduleForDayFilters data={filters} onApplyFilters={fetchEntry} />
+      <div className="my-6 w-4/5 flex flex-col">
+        <PendingScheduleFilters data={filters} onApplyFilters={fetchEntry} />
       </div>
 
       <TableComponent data={dataFiltered.data} columns={columns} />

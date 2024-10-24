@@ -15,7 +15,7 @@ describe('GetScheduleRestrictions', () => {
     },
   };
 
-  const mockResponse = [
+  const mockResponseQuery = [
     {
       id: 1695,
       ovnota: '3908435',
@@ -29,13 +29,17 @@ describe('GetScheduleRestrictions', () => {
           prog: 0,
           exec: 0,
           observacao_restricao: null,
-          id_restricao_prog1: 1,
+          programacoes_restricao_prog1: {
+            restricao: 'Aviso',
+          },
           responsabilidade1: null,
           nome_responsavel: null,
           area_responsavel1: null,
           status_restricao1: null,
           data_resolucao1: null,
-          id_restricao_prog2: 1,
+          programacoes_restricao_prog2: {
+            restricao: 'Aviso',
+          },
           responsabilidade2: null,
           nome_responsavel2: null,
           area_responsavel2: null,
@@ -45,9 +49,6 @@ describe('GetScheduleRestrictions', () => {
       ],
       municipios: {
         mun: 'SJC',
-        regionais: {
-          regional: 'São José dos Campos',
-        },
       },
       tipos: {
         tipo_obra: 'REMOÇÃO DE REDE',
@@ -56,6 +57,33 @@ describe('GetScheduleRestrictions', () => {
         turma: 'ENGELMIG',
       },
     } as unknown as obras,
+  ];
+
+  const mockResult = [
+    {
+      id: 1695,
+      ovnota: '3908435',
+      mun: 'SJC',
+      tipo: 'REMOÇÃO DE REDE',
+      parceira: 'ENGELMIG',
+      executado: 98,
+      data_prog: '2024-08-04T00:00:00.000Z',
+      prog: 0,
+      exec: 0,
+      observacao_restricao: null,
+      restricao_prog1: 'Aviso',
+      responsabilidade1: null,
+      nome_responsavel: null,
+      area_responsavel1: null,
+      status_restricao1: null,
+      data_resolucao1: null,
+      restricao_prog2: 'Aviso',
+      responsabilidade2: null,
+      nome_responsavel2: null,
+      area_responsavel2: null,
+      status_restricao2: null,
+      data_resolucao2: null,
+    },
   ];
 
   beforeEach(async () => {
@@ -88,15 +116,17 @@ describe('GetScheduleRestrictions', () => {
       idTipo: undefined,
     };
 
-    jest.spyOn(prisma.obras, 'findMany').mockResolvedValue(mockResponse);
+    jest.spyOn(prisma.obras, 'findMany').mockResolvedValue(mockResponseQuery);
 
     const result = await service.getRestrictions(filters);
 
-    expect(result).toEqual(mockResponse);
+    expect(result).toEqual(mockResult);
     expect(prisma.obras.findMany).toHaveBeenCalledWith({
+      relationLoadStrategy: 'join',
       where: {
         programacoes: {
           some: {
+            exec: null,
             data_prog: {
               gte: moment('01/09/2024', 'DD/MM/YYYY').toDate(),
               lte: moment('10/09/2024', 'DD/MM/YYYY').toDate(),
@@ -108,7 +138,6 @@ describe('GetScheduleRestrictions', () => {
         id_tipo: undefined,
         id_gpm: undefined,
         tipos: { id_grupo: undefined },
-        executado: { not: null },
       },
       select: {
         id: true,
@@ -123,13 +152,17 @@ describe('GetScheduleRestrictions', () => {
             prog: true,
             exec: true,
             observacao_restricao: true,
-            id_restricao_prog1: true,
+            programacoes_restricao_prog1: {
+              select: { restricao: true },
+            },
             responsabilidade1: true,
             nome_responsavel: true,
             area_responsavel1: true,
             status_restricao1: true,
             data_resolucao1: true,
-            id_restricao_prog2: true,
+            programacoes_restricao_prog2: {
+              select: { restricao: true },
+            },
             responsabilidade2: true,
             nome_responsavel2: true,
             area_responsavel2: true,
@@ -144,7 +177,7 @@ describe('GetScheduleRestrictions', () => {
           },
         },
         municipios: {
-          select: { mun: true, regionais: { select: { regional: true } } },
+          select: { mun: true },
         },
         tipos: { select: { tipo_obra: true } },
         turmas: { select: { turma: true } },
@@ -164,15 +197,17 @@ describe('GetScheduleRestrictions', () => {
       idTipo: 1,
     };
 
-    jest.spyOn(prisma.obras, 'findMany').mockResolvedValue(mockResponse);
+    jest.spyOn(prisma.obras, 'findMany').mockResolvedValue(mockResponseQuery);
 
     const result = await service.getRestrictions(filters);
 
-    expect(result).toEqual(mockResponse);
+    expect(result).toEqual(mockResult);
     expect(prisma.obras.findMany).toHaveBeenCalledWith({
+      relationLoadStrategy: 'join',
       where: {
         programacoes: {
           some: {
+            exec: { not: null },
             data_prog: {
               gte: moment('01/09/2024', 'DD/MM/YYYY').toDate(),
               lte: moment('10/09/2024', 'DD/MM/YYYY').toDate(),
@@ -184,7 +219,6 @@ describe('GetScheduleRestrictions', () => {
         id_tipo: 1,
         id_gpm: 1,
         tipos: { id_grupo: 1 },
-        executado: null,
       },
       select: {
         id: true,
@@ -199,13 +233,17 @@ describe('GetScheduleRestrictions', () => {
             prog: true,
             exec: true,
             observacao_restricao: true,
-            id_restricao_prog1: true,
+            programacoes_restricao_prog1: {
+              select: { restricao: true },
+            },
             responsabilidade1: true,
             nome_responsavel: true,
             area_responsavel1: true,
             status_restricao1: true,
             data_resolucao1: true,
-            id_restricao_prog2: true,
+            programacoes_restricao_prog2: {
+              select: { restricao: true },
+            },
             responsabilidade2: true,
             nome_responsavel2: true,
             area_responsavel2: true,
@@ -220,7 +258,7 @@ describe('GetScheduleRestrictions', () => {
           },
         },
         municipios: {
-          select: { mun: true, regionais: { select: { regional: true } } },
+          select: { mun: true },
         },
         tipos: { select: { tipo_obra: true } },
         turmas: { select: { turma: true } },
