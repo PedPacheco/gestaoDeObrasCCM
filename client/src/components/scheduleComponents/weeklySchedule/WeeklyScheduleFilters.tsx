@@ -3,12 +3,13 @@
 import { capitalize } from "@/utils/capitalize";
 import dayjs, { Dayjs } from "dayjs";
 import { useState } from "react";
-import { Checkbox, TextField, Typography } from "@mui/material";
+import { Checkbox } from "@mui/material";
 import { SelectComponent } from "@/components/common/Select";
 import { ButtonComponent } from "@/components/common/Button";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
+import "dayjs/locale/pt-br";
 
 dayjs.extend(isoWeek);
 

@@ -47,7 +47,7 @@ export class CustomExceptionFilter implements ExceptionFilter {
       message = 'Erro interno no servidor. Tente novamente mais tarde';
     }
 
-    if (status === 404) {
+    if (status === HttpStatus.NOT_FOUND && message.includes('Cannot')) {
       message = 'O recurso solicitado não foi encontrado';
     }
 

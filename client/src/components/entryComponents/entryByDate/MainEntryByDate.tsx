@@ -26,7 +26,7 @@ export default function MainEntryByDate({
 
   return (
     <>
-      <div className="my-6 w-4/5 flex flex-col">
+      <div className="my-6 w-11/12 flex flex-col">
         <EntryByDateFilters data={filters} onApplyFilters={fetchEntry} />
       </div>
 
