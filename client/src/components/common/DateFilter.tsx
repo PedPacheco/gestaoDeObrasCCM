@@ -38,7 +38,7 @@ export function DateFilter({
         </Select>
       </FormControl>
       <div
-        className={`mb-2 ${
+        className={`mb-2 lg:${
           marginLeft ? marginLeft : "lg:mx-auto"
         } w-full lg:w-3/4`}
       >
