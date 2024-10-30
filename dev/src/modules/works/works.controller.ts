@@ -44,7 +44,7 @@ export class WorksController {
   }
 
   @Get('obras-carteira')
-  async getWorksInPortfolio(@Query() worksFilters: GetWorksDTO) {
+  async getWorksInPortfolio(@Query() worksFilters: any) {
     const response =
       await this.getWorksInPortfolioService.getWorksInPortfolio(worksFilters);
 
@@ -57,6 +57,7 @@ export class WorksController {
 
   @Get('obras-executadas')
   async GetCompletedWorks(@Query() worksFilters: GetWorksDTO) {
+    console.log('entrou');
     const response =
       await this.getCompletedWorksService.getCompletedWorks(worksFilters);
 
