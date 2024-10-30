@@ -24,17 +24,17 @@ export default async function Details({ params }: { params: { id: string } }) {
       ? ""
       : dayjs(data.data.data_conclusao).format("DD/MM/YYYY");
 
-  console.log(data.data.data_conclusao);
-
   const prazoFinal = entrada.add(prazo, "day");
 
+  console.log(data.data);
+
   return (
-    <div className="flex flex-col items-center w-full h-full overflow-y-auto">
+    <div className="flex flex-col items-center w-full h-full">
       <div className="w-full h-full mt-6 flex flex-col">
         <p className="lg:text-xl xl:text-2xl mb-4 font-semibold ml-2 md:ml-8">
           Informações gerais
         </p>
-        <div className="grid md:grid-cols-2 xl:grid-cols-4 mb-4 md:px-10">
+        <div className="grid md:grid-cols-2 xl:grid-cols-4 mb-4 px-4 md:px-10">
           <div className="flex flex-col items-start col-start-2 col-end-3 md:col-start-auto md:col-end-auto">
             <DataItem label="Ov/Nota" value={data.data.ovnota} />
             <DataItem
@@ -92,7 +92,7 @@ export default async function Details({ params }: { params: { id: string } }) {
           </div>
         </div>
 
-        <TabPanel />
+        <TabPanel props={data.data} />
       </div>
     </div>
   );

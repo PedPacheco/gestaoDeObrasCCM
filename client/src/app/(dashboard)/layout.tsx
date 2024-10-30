@@ -1,7 +1,8 @@
 import BreadcrumpsComponent from "@/components/common/Breadcrumbs";
 import { Header } from "@/components/layout/Header";
+import { Suspense } from "react";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -11,7 +12,8 @@ export default function DashboardLayout({
       <div className="relative flex h-full max-w-full flex-1 flex-col overflow-hidden">
         <div className="h-full">
           <Header />
-          <main className="w-full h-full overflow-y-auto lg:overflow-y-hidden mt-16">
+
+          <main className="w-full h-full overflow-y-auto mt-16">
             <div className="flex flex-col items-center h-full">
               <div className="py-2 w-4/5">
                 <BreadcrumpsComponent />
