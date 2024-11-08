@@ -12,7 +12,7 @@ export default async function Details({ params }: { params: { id: string } }) {
   const cookieStore = cookies();
 
   const { token, data } = await fetchData<DataResponse>(
-    `http://localhost:3333/obras/${params.id}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/obras/${params.id}`,
     undefined,
     cookieStore.get("token")?.value
   );
@@ -25,8 +25,6 @@ export default async function Details({ params }: { params: { id: string } }) {
       : dayjs(data.data.data_conclusao).format("DD/MM/YYYY");
 
   const prazoFinal = entrada.add(prazo, "day");
-
-  console.log(data.data);
 
   return (
     <div className="flex flex-col items-center w-full h-full">

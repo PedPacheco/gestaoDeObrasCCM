@@ -25,7 +25,7 @@ export default function MainEntry({
 
   async function fetchEntry(params: Record<string, string>) {
     const response = await fetchData(
-      "http://localhost:3333/entrada",
+      `${process.env.NEXT_PUBLIC_API_URL}/entrada`,
       params,
       token
     );

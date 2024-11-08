@@ -27,7 +27,7 @@ export default function MainWeeklySchedule({
 
   async function fetchEntry(params: Record<string, string>) {
     const response = await fetchData(
-      "http://localhost:3333/programacao/semanal",
+      `${process.env.NEXT_PUBLIC_API_URL}/programacao/semanal`,
       params,
       token
     );

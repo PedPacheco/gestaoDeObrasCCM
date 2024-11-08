@@ -1,5 +1,9 @@
 // email.service.ts
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { createTransport, Transporter } from 'nodemailer';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
@@ -50,7 +54,18 @@ export class EmailService {
       text,
     };
 
+    try {
+      await this.transporter.verify();
+      console.log('Transporte está funcionando');
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Erro de conexão com o transporte:',
+        error,
+      );
+    }
+
     await this.transporter.sendMail(mailOptions);
+    console.log('aqui');
     await this.incrementEmailCount();
   }
 }

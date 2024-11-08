@@ -1,14 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { GetWorksDTO } from 'src/config/dto/worksDto';
 import { PrismaService } from 'src/config/prisma/prisma.service';
 import { worksInPortfolioInterface } from 'src/types/worksInterface';
 import { calculateTotals } from 'src/utils/calculateTotals';
 import * as moment from 'moment';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @Injectable()
 export class GetWorksInPortfolioService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   async getWorksInPortfolio(filters: GetWorksDTO) {
     const {
@@ -28,6 +32,28 @@ export class GetWorksInPortfolioService {
 
     const month = data?.split('/')[0];
     const year = data?.split('/')[1];
+
+    const cacheKey = `worksInPortfolio-${JSON.stringify({
+      idGrupo,
+      idMunicipio,
+      idParceira,
+      idRegional,
+      idStatus,
+      idTipo,
+      idOvnota,
+      idCircuito,
+      idConjunto,
+      idEmpreendimento,
+      data,
+      tipoFiltro,
+    })}`;
+
+    let works: worksInPortfolioInterface[] =
+      await this.cacheManager.get(cacheKey);
+
+    if (works) {
+      return works;
+    }
 
     let query = Prisma.sql`SELECT
         obras.id, obras.ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, 
@@ -97,8 +123,9 @@ export class GetWorksInPortfolioService {
 
     query = Prisma.sql`${query} ORDER BY first_data_prog, status DESC, entrada + prazo;`;
 
-    const works: worksInPortfolioInterface[] =
-      await this.prisma.$queryRaw(query);
+    works = await this.prisma.$queryRaw(query);
+
+    await this.cacheManager.set(cacheKey, works, 1800000);
 
     return calculateTotals(works, {
       total_mo_executada: true,

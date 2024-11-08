@@ -1,8 +1,10 @@
 "use client";
 
 import { Tab, Tabs } from "@mui/material";
-import { useEffect, useState } from "react";
-import PanelItemLaborCosts from "./panelItems/panelItemLaborCosts";
+import { Suspense, useEffect, useState } from "react";
+import WorkCostPanelItem from "./panelItems/workCostPanelItem";
+import AdditionalInformationPanelItem from "./panelItems/additionalInformationPanelItem";
+import SchedulePanelItem from "./panelItems/schedulePanelItem";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -20,18 +22,11 @@ function CustomTabPanel(props: TabPanelProps) {
       id={`simple-tabpanel-${index}`}
       aria-labelledby={`simple-tab-${index}`}
       {...other}
-      className="overflow-y-auto p-3 h-full"
+      className="overflow-y-auto h-full"
     >
       {value === index && children}
     </div>
   );
-}
-
-function a11yProps(index: number) {
-  return {
-    id: `simple-tab-${index}`,
-    "aria-controls": `simple-tabpanel-${index}`,
-  };
 }
 
 export default function TabPanel({ props }: Record<string, any>) {
@@ -50,28 +45,36 @@ export default function TabPanel({ props }: Record<string, any>) {
 
   return (
     <div className="w-fullflex justify-center items-start ">
-      <div className="w-[95%] mx-auto mb-20 max-h-[530px] lg:max-h-[620px] xl:max-h-[85%] shadow-lg">
+      <div className="w-[95%] mx-auto mb-20 min-h-[530px] lg:min-h-0 lg:max-h-[620px] shadow-lg">
         <div className="border-b border-solid border-zinc-300">
           <Tabs
             value={value}
             onChange={handleChange}
             aria-label="basic tabs example"
+            variant="scrollable"
+            scrollButtons="auto"
           >
-            <Tab label="Informações Adicionais" {...a11yProps(0)} />
-            <Tab label="Programações" {...a11yProps(1)} />
-            <Tab label="Serviços" {...a11yProps(2)} />
+            <Tab label="Custos" />
+            <Tab label="Informações Adicionais" />
+            <Tab label="Programações" />
+            <Tab label="Serviços" />
           </Tabs>
         </div>
 
-        <CustomTabPanel value={value} index={0}>
-          <PanelItemLaborCosts data={data} />
-        </CustomTabPanel>
-        <CustomTabPanel value={value} index={1}>
-          Item Two
-        </CustomTabPanel>
-        <CustomTabPanel value={value} index={2}>
-          Item Three
-        </CustomTabPanel>
+        <Suspense fallback={<p>carregando informações....</p>}>
+          <CustomTabPanel value={value} index={0}>
+            <WorkCostPanelItem data={data} />
+          </CustomTabPanel>
+          <CustomTabPanel value={value} index={1}>
+            <AdditionalInformationPanelItem data={data} />
+          </CustomTabPanel>
+          <CustomTabPanel value={value} index={2}>
+            <SchedulePanelItem data={data} />
+          </CustomTabPanel>
+          <CustomTabPanel value={value} index={3}>
+            Item four
+          </CustomTabPanel>
+        </Suspense>
       </div>
     </div>
   );

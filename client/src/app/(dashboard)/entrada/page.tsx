@@ -16,7 +16,9 @@ export default async function Entry() {
   const cookieStore = cookies();
 
   const { token, data } = await fetchData(
-    `http://localhost:3333/entrada?ano=${new Date().getFullYear()}`,
+    `${
+      process.env.NEXT_PUBLIC_API_URL
+    }/entrada?ano=${new Date().getFullYear()}`,
     undefined,
     cookieStore.get("token")?.value
   );

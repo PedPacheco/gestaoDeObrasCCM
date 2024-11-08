@@ -16,7 +16,9 @@ export default async function ScheduleForDay() {
   const cookieStore = cookies();
 
   const { token, data } = await fetchData(
-    `http://localhost:3333/programacao/mensal?data=${dayjs().format(
+    `${
+      process.env.NEXT_PUBLIC_API_URL
+    }/programacao/mensal?data=${dayjs().format(
       "MM/YYYY"
     )}&tipoFiltro=month&executado=false`,
     undefined,

@@ -17,7 +17,7 @@ export default async function EntryForDate() {
   const cookieStore = cookies();
 
   const { token, data } = await fetchData(
-    `http://localhost:3333/entrada/data?data=${dayjs().format(
+    `${process.env.NEXT_PUBLIC_API_URL}/entrada/data?data=${dayjs().format(
       "DD/MM/YYYY"
     )}&tipoFiltro=day`,
     undefined,

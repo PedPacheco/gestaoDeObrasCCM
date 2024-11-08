@@ -6,9 +6,19 @@ export class GetWorkDetailsService {
   constructor(private prisma: PrismaService) {}
 
   async get(id: number) {
-    const work = await this.prisma.obras.findUnique({
+    const value = id.toString();
+
+    const work = await this.prisma.obras.findFirst({
       where: {
-        id: id,
+        OR: [
+          { id: value.length >= 12 ? undefined : id },
+          { ovnota: value },
+          { ordem_dci: value },
+          { ordem_dcd: value },
+          { ordem_dca: value },
+          { ordem_dcim: value },
+          { diagrama: value },
+        ],
       },
       select: {
         ovnota: true,
@@ -80,7 +90,7 @@ export class GetWorkDetailsService {
     });
 
     if (!work) {
-      throw new NotFoundException('Obra não encontrada ');
+      throw new NotFoundException('Obra não encontrada');
     }
 
     const response = {
@@ -91,7 +101,24 @@ export class GetWorkDetailsService {
       tipos: work.tipos.tipo_obra,
       turmas: work.turmas.turma,
       status: work.status.status,
-      programacoes: work.programacoes,
+      programacoes: work.programacoes.map((programacao) => ({
+        data_prog: programacao.data_prog,
+        hora_ini: programacao.hora_ini,
+        hora_ter: programacao.hora_ter,
+        tipo_servico: programacao.tipo_servico,
+        prog: programacao.prog,
+        exec: programacao.exec,
+        observ_programacao: programacao.observ_programacao,
+        chi: programacao.chi,
+        num_dp: programacao.num_dp,
+        chave_provisoria: programacao.chave_provisoria,
+        equipe_linha_morta: programacao.equipe_linha_morta,
+        equipe_linha_viva: programacao.equipe_linha_viva,
+        equipe_regularizacao: programacao.equipe_regularizacao,
+        tecnico: programacao.tecnicos?.tecnico,
+        restricao: programacao.programacoes_restricao_execucao?.restricao,
+        nome_responsavel_execucao: programacao.nome_responsavel_execucao,
+      })),
     };
 
     return response;

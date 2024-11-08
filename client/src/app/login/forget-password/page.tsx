@@ -18,7 +18,7 @@ export default function ForgetPassword() {
 
     try {
       const response = await fetch(
-        "http://localhost:3333/auth/reset-password",
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password`,
         {
           method: "POST",
           headers: {

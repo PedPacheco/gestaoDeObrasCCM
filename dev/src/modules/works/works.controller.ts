@@ -32,19 +32,8 @@ export class WorksController {
     };
   }
 
-  @Get(':id')
-  async getWorkDetails(@Param('id', ParseIntPipe) id: number) {
-    const response = await this.getWorkDetailsService.get(id);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Retornado os detalhes da obra',
-      data: response,
-    };
-  }
-
   @Get('obras-carteira')
-  async getWorksInPortfolio(@Query() worksFilters: any) {
+  async getWorksInPortfolio(@Query() worksFilters: GetWorksDTO) {
     const response =
       await this.getWorksInPortfolioService.getWorksInPortfolio(worksFilters);
 
@@ -57,13 +46,23 @@ export class WorksController {
 
   @Get('obras-executadas')
   async GetCompletedWorks(@Query() worksFilters: GetWorksDTO) {
-    console.log('entrou');
     const response =
       await this.getCompletedWorksService.getCompletedWorks(worksFilters);
 
     return {
       statusCode: HttpStatus.OK,
       message: 'Obras em executadas retornadas com sucesso',
+      data: response,
+    };
+  }
+
+  @Get(':id')
+  async getWorkDetails(@Param('id', ParseIntPipe) id: number) {
+    const response = await this.getWorkDetailsService.get(id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Retornado os detalhes da obra',
       data: response,
     };
   }

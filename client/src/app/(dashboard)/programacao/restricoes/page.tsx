@@ -23,7 +23,7 @@ export default async function ScheduleRestrictions() {
   const endOfWeek = dayjs().endOf("week").format("DD/MM/YYYY");
 
   const { token, data } = await fetchData(
-    `http://localhost:3333/programacao/restricoes?dataInicial=${startOfWeek}&dataFinal=${endOfWeek}&executado=false`,
+    `${process.env.NEXT_PUBLIC_API_URL}/programacao/restricoes?dataInicial=${startOfWeek}&dataFinal=${endOfWeek}&executado=false`,
     undefined,
     cookieStore.get("token")?.value
   );

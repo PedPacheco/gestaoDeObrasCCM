@@ -16,7 +16,7 @@ export default function MainSchedule({
 
   async function fetchEntry(params: Record<string, string>) {
     const response = await fetchData(
-      "http://localhost:3333/programacao",
+      `${process.env.NEXT_PUBLIC_API_URL}/programacao`,
       params,
       token
     );
