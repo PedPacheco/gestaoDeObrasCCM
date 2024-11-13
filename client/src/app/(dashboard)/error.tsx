@@ -2,16 +2,12 @@
 
 import ErrorModal from "@/components/common/ErrorModal";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
-export default function Error({
-  error,
-  reset,
-}: {
-  error: Error;
-  reset: () => void;
-}) {
+export default function Error({ error }: { error: Error }) {
   const [open, setOpen] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     setOpen(true);
@@ -19,7 +15,7 @@ export default function Error({
 
   const handleClose = () => {
     setOpen(false);
-    reset();
+    router.push("/");
   };
 
   return (

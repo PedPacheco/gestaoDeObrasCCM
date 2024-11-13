@@ -54,6 +54,13 @@ export class CustomExceptionFilter implements ExceptionFilter {
       message = 'O recurso solicitado não foi encontrado';
     }
 
+    if (
+      status === HttpStatus.BAD_REQUEST &&
+      message.includes('Validation failed')
+    ) {
+      message = 'Os dados enviados são inválidos. Verifique e tente novamente';
+    }
+
     response.status(status).json({
       statusCode: status,
       path: request.url,

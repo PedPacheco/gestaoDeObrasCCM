@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   HttpException,
   HttpStatus,
@@ -66,6 +67,20 @@ describe('InternalServerErrorExceptionFilter', () => {
     });
   });
 
+  it('should handle BadRequestExpection and return expected response', () => {
+    const exception = new BadRequestException('Validation failed');
+
+    filter.catch(exception, mockArgumentsHost);
+
+    expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+    expect(mockResponse.json).toHaveBeenCalledWith({
+      statusCode: HttpStatus.BAD_REQUEST,
+      path: '/test-url',
+      message: 'Os dados enviados são inválidos. Verifique e tente novamente',
+      timestamp: expect.any(String),
+    });
+  });
+
   it('should handle Unauthorized and return expected response', () => {
     const exception = new UnauthorizedException();
 
@@ -90,6 +105,20 @@ describe('InternalServerErrorExceptionFilter', () => {
       statusCode: HttpStatus.FORBIDDEN,
       path: '/test-url',
       message: 'Você não tem permissão para realizar esta ação',
+      timestamp: expect.any(String),
+    });
+  });
+
+  it('should handle NotFound expection and return expected response', () => {
+    const exception = new NotFoundException('Cannot');
+
+    filter.catch(exception, mockArgumentsHost as ArgumentsHost);
+
+    expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.NOT_FOUND);
+    expect(mockResponse.json).toHaveBeenCalledWith({
+      statusCode: HttpStatus.NOT_FOUND,
+      path: '/test-url',
+      message: 'O recurso solicitado não foi encontrado',
       timestamp: expect.any(String),
     });
   });
@@ -121,6 +150,20 @@ describe('InternalServerErrorExceptionFilter', () => {
       statusCode: HttpStatus.CONFLICT,
       path: '/test-url',
       message: 'Custom Error Message',
+      timestamp: expect.any(String),
+    });
+  });
+
+  it('should handle anything expection is not set defined', () => {
+    const exception = new ConflictException();
+
+    filter.catch(exception, mockArgumentsHost);
+
+    expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.CONFLICT);
+    expect(mockResponse.json).toHaveBeenCalledWith({
+      statusCode: HttpStatus.CONFLICT,
+      path: '/test-url',
+      message: 'Conflict',
       timestamp: expect.any(String),
     });
   });

@@ -16,7 +16,9 @@ export default async function Schedule() {
   const cookieStore = cookies();
 
   const { token, data } = await fetchData(
-    `http://localhost:3333/programacao?ano=${new Date().getFullYear()}`,
+    `${
+      process.env.NEXT_PUBLIC_API_URL
+    }/programacao?ano=${new Date().getFullYear()}`,
     undefined,
     cookieStore.get("token")?.value
   );

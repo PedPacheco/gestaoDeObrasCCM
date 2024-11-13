@@ -1,3 +1,5 @@
+"use client";
+
 import { isValidDateString } from "@/utils/validDate";
 import {
   TableContainer,
@@ -10,6 +12,7 @@ import {
 } from "@mui/material";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { useRouter } from "next/navigation";
 import { forwardRef } from "react";
 import { TableComponents, TableVirtuoso } from "react-virtuoso";
 
@@ -25,7 +28,7 @@ const VirtuosoTableComponents: TableComponents = {
   Scroller: forwardRef<HTMLDivElement>(function scroller(props, ref) {
     return (
       <TableContainer
-        className="mb-20 w-[95%] max-h-[880px] lg:max-h-[620px] xl:max-h-[75%] overflow-y-auto"
+        className="mb-20 w-[95%] min-h-96 max-h-[880px] lg:max-h-[620px] xl:max-h-[90%] overflow-y-auto"
         component={Paper}
         {...props}
         ref={ref}
@@ -46,6 +49,8 @@ export function TableComponent({
   columns,
   sliceEndIndex,
 }: TableComponentProps) {
+  const router = useRouter();
+
   function fixedHeaderContent() {
     return (
       <TableRow>
@@ -65,6 +70,7 @@ export function TableComponent({
 
   function rowContent(index: number) {
     const item = data[index];
+    const itemId = item.id;
 
     return (
       <>
@@ -104,7 +110,8 @@ export function TableComponent({
             return (
               <TableCell
                 key={column}
-                className="py-1 px-2 text-center text-base text-nowrap min-w-60"
+                onClick={() => router.push(`/detalhes/${itemId}`)}
+                className="py-1 px-2 text-center text-base text-nowrap min-w-60 hover:cursor-pointer"
               >
                 {displayValue}
               </TableCell>

@@ -7,7 +7,7 @@ export async function fetchData<T>(
   cacheStrategy: { revalidate?: number; cache?: "force-cache" | "no-store" } = {
     revalidate: 1440,
   }
-): Promise<{ token: string; data: T }> {
+) {
   if (!token) {
     throw new Error("Token não foi encontrada");
   }
@@ -33,8 +33,6 @@ export async function fetchData<T>(
     const data = await res.json();
     return { token, data };
   } catch (error: any) {
-    throw new Error(
-      "Não foi possível se conectar ao servidor. Tente novamente mais tarde."
-    );
+    throw new Error(error.message);
   }
 }

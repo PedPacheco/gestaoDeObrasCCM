@@ -12,7 +12,7 @@ export default async function PendingSchedule() {
   const cookieStore = cookies();
 
   const { token, data } = await fetchData(
-    "http://localhost:3333/programacao/pendente",
+    `${process.env.NEXT_PUBLIC_API_URL}/programacao/pendente`,
     undefined,
     cookieStore.get("token")?.value
   );

@@ -14,7 +14,7 @@ export default function BreadcrumpsComponent() {
     let breadcrumbs: any = [];
     let accumulatedPath = "";
 
-    pathnames.forEach((segment: any, index: any) => {
+    pathnames.forEach((segment: any) => {
       accumulatedPath += `/${segment}`;
 
       const matchingLink = findLinkByHref(links, accumulatedPath);

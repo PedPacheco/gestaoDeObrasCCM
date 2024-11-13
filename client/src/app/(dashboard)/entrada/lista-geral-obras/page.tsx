@@ -16,7 +16,7 @@ export default async function AllWorks() {
   const cookieStore = cookies();
 
   const { token, data } = await fetchData(
-    "http://localhost:3333/obras",
+    `${process.env.NEXT_PUBLIC_API_URL}/obras`,
     undefined,
     cookieStore.get("token")?.value,
     { cache: "no-store" }

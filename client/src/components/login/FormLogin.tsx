@@ -45,18 +45,22 @@ export function FormLogin() {
   });
 
   async function handleUserLogin({ user, password }: UserLoginSchema) {
+    console.log(process.env.NEXT_PUBLIC_API_URL);
     try {
-      const response = await fetch("http://localhost:3333/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          user,
-          password,
-        }),
-        credentials: "include",
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            user,
+            password,
+          }),
+          credentials: "include",
+        }
+      );
 
       if (response.ok) {
         const res: LoginResponse = await response.json();
@@ -85,7 +89,7 @@ export function FormLogin() {
       onSubmit={handleSubmit(handleUserLogin)}
       className="w-full flex flex-col items-center"
     >
-      <div className="flex flex-col items-center mb-16 w-[90%] sm:w-80">
+      <div className="flex flex-col items-center mb-12 w-[90%] sm:w-80">
         <div className="h-20 w-full">
           <TextField
             className="w-full mb-2"
@@ -120,7 +124,7 @@ export function FormLogin() {
             className="text-zinc-700"
             onChange={() => SetShowPassoword(!showPassword)}
           />
-          <p className="text-zinc-700">Exibir senha</p>
+          <p className="text-zinc-700 text-nowrap">Exibir senha</p>
         </div>
         <ButtonComponent text="ENTRAR" type="submit" />
 

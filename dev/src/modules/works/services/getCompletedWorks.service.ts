@@ -1,13 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { GetWorksDTO } from 'src/config/dto/worksDto';
 import { PrismaService } from 'src/config/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import * as moment from 'moment';
 import { calculateTotals } from 'src/utils/calculateTotals';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @Injectable()
 export class GetCompletedWorksService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   async getCompletedWorks(filters: GetWorksDTO) {
     const {
@@ -24,6 +28,27 @@ export class GetCompletedWorksService {
       idTipo,
       tipoFiltro,
     } = filters;
+
+    const cacheKey = `worksInPortfolio-${JSON.stringify({
+      idGrupo,
+      idMunicipio,
+      idParceira,
+      idRegional,
+      idStatus,
+      idTipo,
+      idOvnota,
+      idCircuito,
+      idConjunto,
+      idEmpreendimento,
+      data,
+      tipoFiltro,
+    })}`;
+
+    let works: any[] = await this.cacheManager.get(cacheKey);
+
+    if (works) {
+      return works;
+    }
 
     const month = data?.split('/')[0];
     const year = data?.split('/')[1];
@@ -92,7 +117,9 @@ export class GetCompletedWorksService {
 
     query = Prisma.sql`${query} ORDER BY data_conclusao DESC;`;
 
-    const works: any[] = await this.prisma.$queryRaw(query);
+    works = await this.prisma.$queryRaw(query);
+
+    await this.cacheManager.set(cacheKey, works, 1800000);
 
     return calculateTotals(works, {
       total_mo_planejada: true,

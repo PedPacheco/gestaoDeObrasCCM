@@ -20,7 +20,7 @@ export default async function WorksInPortfolio() {
   const cookieStore = cookies();
 
   const { token, data } = await fetchData(
-    `${process.env.NEXT_PUBLIC_API_URL}/obras/obras-carteira`,
+    `http://localhost:8080/obras/obras-carteira`,
     undefined,
     cookieStore.get("token")?.value,
     { cache: "no-store" }

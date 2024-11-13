@@ -31,7 +31,7 @@ export default function PortfolioWorks({
 
   async function fetchWorks(params: Record<string, string>) {
     const response = await fetchData(
-      `http://localhost:3333/obras/${url}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/obras/${url}`,
       params,
       token,
       { cache: "no-store" }

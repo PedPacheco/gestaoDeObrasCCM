@@ -16,7 +16,7 @@ export default function MainPendingSchedule({
 
   async function fetchEntry(params: Record<string, string>) {
     const response = await fetchData(
-      "http://localhost:3333/programacao/pendente",
+      `${process.env.NEXT_PUBLIC_API_URL}/programacao/pendente`,
       params,
       token
     );

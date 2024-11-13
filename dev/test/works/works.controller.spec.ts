@@ -4,6 +4,7 @@ import { plainToInstance } from 'class-transformer';
 import { GetAllWorksDTO, GetWorksDTO } from 'src/config/dto/worksDto';
 import { GetAllWorksService } from 'src/modules/works/services/getAllWorks.service';
 import { GetCompletedWorksService } from 'src/modules/works/services/getCompletedWorks.service';
+import { GetWorkDetailsService } from 'src/modules/works/services/getWorkDetails.service';
 import { GetWorksInPortfolioService } from 'src/modules/works/services/getWorksInPortfolio.service';
 import { WorksController } from 'src/modules/works/works.controller';
 
@@ -12,6 +13,7 @@ describe('WorksController', () => {
   let getAllWorksService: GetAllWorksService;
   let getCompletedWorksService: GetCompletedWorksService;
   let getWorksInPortfolio: GetWorksInPortfolioService;
+  let getWorkDetailsService: GetWorkDetailsService;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -21,6 +23,10 @@ describe('WorksController', () => {
         {
           provide: GetCompletedWorksService,
           useValue: { getCompletedWorks: jest.fn() },
+        },
+        {
+          provide: GetWorkDetailsService,
+          useValue: { get: jest.fn() },
         },
         {
           provide: GetWorksInPortfolioService,
@@ -36,6 +42,9 @@ describe('WorksController', () => {
     );
     getWorksInPortfolio = module.get<GetWorksInPortfolioService>(
       GetWorksInPortfolioService,
+    );
+    getWorkDetailsService = module.get<GetWorkDetailsService>(
+      GetWorkDetailsService,
     );
   });
 
@@ -180,7 +189,98 @@ describe('WorksController', () => {
       );
       expect(result).toEqual(expectedResponse);
     });
+  });
 
+  describe('getWorkDetails', () => {
+    it('Should build filters, get details works with filters and return the result with correct format', async () => {
+      const worksDetails = 2;
+
+      const mockResponseDetails = {
+        ovnota: '12791122',
+        pep: 'X/004604',
+        status_pep: null,
+        diagrama: null,
+        diagrama_antigo: null,
+        ordem_dci: '170000004647',
+        ordem_dci_antigo: '162000082852',
+        ordem_dcd: '190000006101',
+        ordem_dcd_antigo: '163000076717',
+        ordem_dca: null,
+        ordem_dca_antigo: null,
+        ordem_dcim: null,
+        ordem_dcim_antigo: null,
+        status_ov_sap: 20,
+        status_diagrama: null,
+        status_usuario_diagrama: null,
+        status_150: null,
+        status_usuario_150: null,
+        status_170: 'LIB ',
+        status_usuario_170: 'PLAR',
+        status_180: null,
+        status_usuario_180: null,
+        status_190: 'LIB ',
+        status_usuario_190: 'EXEC',
+        entrada: new Date('2023-04-18T00:00:00.000Z'),
+        prazo: 90,
+        data_conclusao: null,
+        executado: 45,
+        qtde_planejada: 0.772,
+        qtde_pend: 0.77165,
+        mo_planejada: 89223.8157,
+        mo_final: null,
+        referencia: '190BF006190439',
+        capex_mat_pend: 186326.1654099993,
+        capex_mat_plan: 186326.1654099993,
+        capex_mo_pend: 64982.8126,
+        capex_mo_plan: 74310.44331999999,
+        tipo_ads: 'CONVENCIONAL',
+        data_empreitamento: new Date('2024-08-06T00:00:00.000Z'),
+        circuitos: 'CAC-1302',
+        empreendimento: null,
+        municipios: 'MONTEIRO LOBATO',
+        tipos: 'SPACER CABLE',
+        turmas: 'ENGELMIG',
+        status: 'PROGRAMADO',
+        programacoes: [
+          {
+            data_prog: new Date('2024-09-19T00:00:00.000Z'),
+            hora_ini: new Date('1970-01-01T08:00:00.000Z'),
+            hora_ter: new Date('1970-01-01T17:00:00.000Z'),
+            tipo_servico: 'OBRA LIVRE',
+            prog: 45,
+            exec: null,
+            observ_programacao: 'TRECHO LIVRE',
+            chi: 0,
+            num_dp: null,
+            chave_provisoria: false,
+            equipe_linha_morta: 12,
+            equipe_linha_viva: 3,
+            equipe_regularizacao: 0,
+            tecnico: 'NÃO DEFINIDO',
+            restricao: null,
+            nome_responsavel_execucao: null,
+          },
+        ],
+      };
+
+      jest
+        .spyOn(getWorkDetailsService, 'get')
+        .mockResolvedValue(mockResponseDetails);
+
+      const result = await worksController.getWorkDetails(worksDetails);
+
+      const expectedResponse = {
+        statusCode: HttpStatus.OK,
+        message: 'Retornado os detalhes da obra',
+        data: mockResponseDetails,
+      };
+
+      expect(getWorkDetailsService.get).toHaveBeenCalledWith(worksDetails);
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('Convert DTOs', () => {
     it('Should GetAllWorksDTO transform data of dto filters', () => {
       const filters = {
         idGrupo: '1',

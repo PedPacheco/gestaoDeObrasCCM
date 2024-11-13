@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import {
   ChevronUpIcon,
   ChevronDownIcon,
@@ -10,6 +10,7 @@ import {
 import Link from "next/link";
 import { Input } from "@mui/material";
 import { links } from "@/utils/links";
+import { useRouter } from "next/navigation";
 
 interface SidebarProps {
   open: boolean;
@@ -19,6 +20,8 @@ interface SidebarProps {
 
 export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+  const [work, setWork] = useState<string>("");
+  const router = useRouter();
 
   function handleToogleSubmenu(menu: string, event: React.MouseEvent) {
     event.stopPropagation();
@@ -54,13 +57,20 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
                   <Input
                     type="text"
                     className="grow overflow-hidden text-ellipsis whitespace-nowrap text-sm md:text-base text-zinc-200 px-2 bg-[#404d5e] rounded-xl"
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                      setWork(event.target.value)
+                    }
                   />
-                  <MagnifyingGlassIcon
-                    width={24}
-                    height={24}
-                    color="#53FF75"
+                  <button
                     className="absolute right-0 mr-4"
-                  />
+                    onClick={() => router.push(`/detalhes/${work}`)}
+                  >
+                    <MagnifyingGlassIcon
+                      width={24}
+                      height={24}
+                      color="#53FF75"
+                    />
+                  </button>
                 </div>
               </div>
             </div>

@@ -27,7 +27,7 @@ export default function MainHome({
 
   async function fetchGoals(params: Record<string, string>) {
     const response = await fetchData(
-      "http://localhost:3333/metas",
+      `${process.env.NEXT_PUBLIC_API_URL}/metas`,
       params,
       token
     );
@@ -43,9 +43,8 @@ export default function MainHome({
           openModal={handleOpen}
         />
       </div>
-      <div className="w-full h-full flex justify-center items-start ">
-        <GoalsTable goals={filteredGoals} columnMapping={columns} />
-      </div>
+
+      <GoalsTable goals={filteredGoals} columnMapping={columns} />
 
       <ModalGoals
         columns={columns}

@@ -16,7 +16,7 @@ export default function MainAllWorks({
 
   async function fetchWorks(params: Record<string, string>) {
     const response = await fetchData(
-      "http://localhost:3333/obras",
+      `${process.env.NEXT_PUBLIC_API_URL}/obras`,
       params,
       token,
       { cache: "no-store" }
