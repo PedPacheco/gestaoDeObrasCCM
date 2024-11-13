@@ -1,3 +1,5 @@
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { Test } from '@nestjs/testing';
 import { GetWorksDTO } from 'src/config/dto/worksDto';
 import { PrismaService } from 'src/config/prisma/prisma.service';
@@ -6,6 +8,12 @@ import { GetWorksInPortfolioService } from 'src/modules/works/services/getWorksI
 describe('GetWorksInPortfolioService', () => {
   let prismaService: PrismaService;
   let getWorksInPortfolioService: GetWorksInPortfolioService;
+  let cacheManager: Cache;
+
+  const mockCacheManager = {
+    get: jest.fn(),
+    set: jest.fn(),
+  };
 
   const mockPrismaService = {
     $queryRaw: jest.fn(),
@@ -91,6 +99,7 @@ describe('GetWorksInPortfolioService', () => {
       providers: [
         GetWorksInPortfolioService,
         { provide: PrismaService, useValue: mockPrismaService },
+        { provide: CACHE_MANAGER, useValue: mockCacheManager },
       ],
     }).compile();
 
@@ -98,6 +107,7 @@ describe('GetWorksInPortfolioService', () => {
     getWorksInPortfolioService = module.get<GetWorksInPortfolioService>(
       GetWorksInPortfolioService,
     );
+    cacheManager = module.get<Cache>(CACHE_MANAGER);
   });
 
   afterEach(() => {
@@ -108,22 +118,53 @@ describe('GetWorksInPortfolioService', () => {
     expect(getWorksInPortfolioService).toBeDefined();
   });
 
-  it('should apply multiple filters correctly and month filter', async () => {
+  it('should return works from cache if available', async () => {
     const filters: GetWorksDTO = {
-      data: '09/2024',
-      tipoFiltro: 'month',
-      idRegional: 1,
-      idTipo: 2,
-      idParceira: 3,
       idGrupo: 4,
       idMunicipio: 5,
+      idParceira: 3,
+      idRegional: 1,
       idStatus: 6,
+      idTipo: 2,
+      idOvnota: 10,
       idCircuito: 7,
       idConjunto: 8,
       idEmpreendimento: 9,
-      idOvnota: 10,
+      data: '09/2024',
+      tipoFiltro: 'month',
     };
 
+    const cacheKey = `worksInPortfolio-${JSON.stringify(filters)}`;
+
+    mockCacheManager.get.mockResolvedValue(mockResponse);
+
+    const result =
+      await getWorksInPortfolioService.getWorksInPortfolio(filters);
+
+    expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
+    expect(result).toEqual(mockResponse);
+    expect(prismaService.$queryRaw).not.toHaveBeenCalled();
+  });
+
+  it('should apply multiple filters correctly and month filter', async () => {
+    const filters: GetWorksDTO = {
+      idGrupo: 4,
+      idMunicipio: 5,
+      idParceira: 3,
+      idRegional: 1,
+      idStatus: 6,
+      idTipo: 2,
+      idOvnota: 10,
+      idCircuito: 7,
+      idConjunto: 8,
+      idEmpreendimento: 9,
+      data: '09/2024',
+      tipoFiltro: 'month',
+    };
+
+    const cacheKey = `worksInPortfolio-${JSON.stringify(filters)}`;
+
+    mockCacheManager.get.mockResolvedValue(null);
     mockPrismaService.$queryRaw.mockResolvedValue(mockResponse);
 
     const result =
@@ -154,6 +195,13 @@ describe('GetWorksInPortfolioService', () => {
       total_qtde_planejada: 1.464,
       total_qtde_pend: 1.46322,
     });
+
+    expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
+    expect(cacheManager.set).toHaveBeenCalledWith(
+      cacheKey,
+      mockResponse,
+      1800000,
+    );
   });
 
   it('should apply multiple filters correctly and day filter', async () => {

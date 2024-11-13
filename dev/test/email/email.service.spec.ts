@@ -1,4 +1,5 @@
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
+import { InternalServerErrorException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { createTransport, Transporter } from 'nodemailer';
 import { EmailService } from 'src/modules/email/email.service';
@@ -20,6 +21,7 @@ describe('EmailService', () => {
 
     mockTransporter = {
       sendMail: jest.fn(),
+      verify: jest.fn(),
     } as unknown as Transporter;
 
     (createTransport as jest.Mock).mockReturnValue(mockTransporter);
@@ -56,6 +58,19 @@ describe('EmailService', () => {
         text: 'text',
       });
       expect(mockCacheManager.set).toHaveBeenCalled();
+    });
+
+    it('should throw an InternalServerErrorException if transporter.verify fails', async () => {
+      jest.spyOn(mockCacheManager, 'get').mockResolvedValue(1);
+      jest
+        .spyOn(mockTransporter, 'verify')
+        .mockRejectedValueOnce(new Error('Transport error'));
+
+      await expect(
+        emailService.sendEmail('test@gmail.com', 'Subject', 'text'),
+      ).rejects.toThrow(InternalServerErrorException);
+
+      expect(mockTransporter.verify).toHaveBeenCalled();
     });
   });
 

@@ -65,7 +65,6 @@ export class EmailService {
     }
 
     await this.transporter.sendMail(mailOptions);
-    console.log('aqui');
     await this.incrementEmailCount();
   }
 }
