@@ -63,7 +63,7 @@ export default function ScheduleTable({
             ))}
           </TableRow>
         </TableHead>
-        <TableBody>
+        <TableBody className="h-[880px]">
           {schedule.data.map((item: any, index: any) => {
             return (
               <TableRow key={index}>

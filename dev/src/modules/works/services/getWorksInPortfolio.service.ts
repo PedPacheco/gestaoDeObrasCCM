@@ -52,7 +52,13 @@ export class GetWorksInPortfolioService {
       await this.cacheManager.get(cacheKey);
 
     if (works) {
-      return works;
+      return calculateTotals(works, {
+        total_mo_executada: true,
+        total_mo_suspensa: true,
+        total_mo_planejada: true,
+        total_qtde_planejada: true,
+        total_qtde_pend: true,
+      });
     }
 
     let query = Prisma.sql`SELECT

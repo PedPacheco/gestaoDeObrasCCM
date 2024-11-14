@@ -72,7 +72,7 @@ export default function PortfolioWorks({
                     <p>{value}</p>
                   </span>
                   <div className="p-2 border border-solid flex justify-center items-center">
-                    <p>{item[column]?.toFixed(0)}</p>
+                    <p>{item ? item[column].toFixed(0) : 0}</p>
                   </div>
                 </div>
               );
