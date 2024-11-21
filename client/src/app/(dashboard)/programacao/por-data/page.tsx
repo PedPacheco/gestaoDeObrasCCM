@@ -31,6 +31,8 @@ export default async function ScheduleForDay() {
     ovnota: "Nota/Ov",
     ordemdiagrama: "Ordem",
     mun: "Mun",
+    conjunto: "Conjunto",
+    circuito: "Circuito",
     entrada: "Entrada",
     prazo_fim: "Prazo",
     tipo_obra: "Tipo",

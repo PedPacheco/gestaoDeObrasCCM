@@ -72,7 +72,13 @@ export default function PortfolioWorks({
                     <p>{value}</p>
                   </span>
                   <div className="p-2 border border-solid flex justify-center items-center">
-                    <p>{item ? item[column].toFixed(0) : 0}</p>
+                    <p>
+                      {item
+                        ? Number(item[column].toFixed(0)).toLocaleString(
+                            "pt-br"
+                          )
+                        : 0}
+                    </p>
                   </div>
                 </div>
               );

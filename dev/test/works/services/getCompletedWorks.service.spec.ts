@@ -55,6 +55,9 @@ describe('GetCompletedWorksService', () => {
       status: 'EXECUTADA',
       observ_obra: null,
       referencia: null,
+      total_mo_planejada: 91105.824,
+      total_obras: 1,
+      total_qtde_planejada: 0,
     },
   ];
 

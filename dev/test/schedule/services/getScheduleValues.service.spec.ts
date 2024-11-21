@@ -85,8 +85,10 @@ describe('GetScheduleValues', () => {
 
     const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, entrada, entrada + prazo AS prazo_fim, tipo_obra, qtde_planejada,
     mo_planejada, turma, executado, data_prog, prog, exec, observ_programacao, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec, data_prog,
-    num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, id_tecnico
+    num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, id_tecnico, conjunto, circuito
     FROM construcao_sp.obras
+    INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
+    INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
     INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
     INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm
     INNER JOIN construcao_sp.regionais ON regionais.id = municipios.id_regional
@@ -100,6 +102,7 @@ describe('GetScheduleValues', () => {
     const normalize = (str: string) => str.replace(/\s+/g, ' ').trim();
 
     const queryStrings = prismaMock.$queryRaw.mock.calls[0][0].strings;
+
     const allPartsPresent = queryStrings.every((part) =>
       normalize(expectedQuery).includes(normalize(part)),
     );
@@ -132,8 +135,10 @@ describe('GetScheduleValues', () => {
 
     const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, entrada, entrada + prazo AS prazo_fim, tipo_obra, qtde_planejada,
     mo_planejada, turma, executado, data_prog, prog, exec, observ_programacao, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec, data_prog,
-    num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, id_tecnico
+    num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, id_tecnico, conjunto, circuito
     FROM construcao_sp.obras
+    INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
+    INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
     INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
     INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm
     INNER JOIN construcao_sp.regionais ON regionais.id = municipios.id_regional

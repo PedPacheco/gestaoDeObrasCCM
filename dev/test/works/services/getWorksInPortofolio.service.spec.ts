@@ -55,6 +55,12 @@ describe('GetWorksInPortfolioService', () => {
       data_empreitamento: '2024-08-06T00:00:00.000Z',
       empreendimento: null,
       turma: 'ENGELMIG',
+      total_obras: 2,
+      total_mo_executada: 61505.72568,
+      total_mo_suspensa: 30752.86284,
+      total_mo_planejada: 136679.3904,
+      total_qtde_planejada: 1.464,
+      total_qtde_pend: 1.46322,
     },
     {
       id: 5773,
@@ -91,6 +97,12 @@ describe('GetWorksInPortfolioService', () => {
       data_empreitamento: '2024-08-06T00:00:00.000Z',
       empreendimento: null,
       turma: 'ENGELMIG',
+      total_obras: 2,
+      total_mo_executada: 61505.72568,
+      total_mo_suspensa: 30752.86284,
+      total_mo_planejada: 136679.3904,
+      total_qtde_planejada: 1.464,
+      total_qtde_pend: 1.46322,
     },
   ];
 
@@ -186,15 +198,7 @@ describe('GetWorksInPortfolioService', () => {
     expect(calledQuery.strings[10]).toContain(
       'AND EXTRACT(MONTH FROM first_data_prog) = ',
     );
-    expect(result[0]).toEqual({
-      ...mockResponse[0],
-      total_obras: 2,
-      total_mo_executada: 61505.72568,
-      total_mo_suspensa: 30752.86284,
-      total_mo_planejada: 136679.3904,
-      total_qtde_planejada: 1.464,
-      total_qtde_pend: 1.46322,
-    });
+    expect(result).toEqual(mockResponse);
 
     expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
     expect(cacheManager.set).toHaveBeenCalledWith(

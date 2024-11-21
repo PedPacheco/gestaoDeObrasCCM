@@ -47,7 +47,10 @@ export class GetCompletedWorksService {
     let works: any[] = await this.cacheManager.get(cacheKey);
 
     if (works) {
-      return works;
+      return calculateTotals(works, {
+        total_mo_planejada: true,
+        total_qtde_planejada: true,
+      });
     }
 
     const month = data?.split('/')[0];
