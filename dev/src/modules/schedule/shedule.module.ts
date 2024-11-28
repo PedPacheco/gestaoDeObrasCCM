@@ -6,6 +6,7 @@ import { GetScheduleValuesService } from './services/getScheduleValues.service';
 import { GetValuesWeeklyScheduleService } from './services/getValuesWeeklySchedule.service';
 import { GetPendingScheduleValuesService } from './services/getPendingScheduleValues.service';
 import { GetScheduleRestrictionsService } from './services/getScheduleRestrictions.service';
+import { GetMonthlySummaryService } from './services/getMonthlySummary.service';
 
 @Module({
   imports: [],
@@ -16,6 +17,7 @@ import { GetScheduleRestrictionsService } from './services/getScheduleRestrictio
     GetValuesWeeklyScheduleService,
     GetPendingScheduleValuesService,
     GetScheduleRestrictionsService,
+    GetMonthlySummaryService,
     PrismaService,
   ],
 })

@@ -1,5 +1,6 @@
 import { Controller, Get, HttpStatus, Query } from '@nestjs/common';
 import {
+  GetMonthlySummaryDTO,
   GetPendingScheduleValuesDTO,
   GetScheduleValuesDTO,
   GetTotalValuesScheduleDTO,
@@ -10,6 +11,7 @@ import { GetScheduleValuesService } from './services/getScheduleValues.service';
 import { GetValuesWeeklyScheduleService } from './services/getValuesWeeklySchedule.service';
 import { GetPendingScheduleValuesService } from './services/getPendingScheduleValues.service';
 import { GetScheduleRestrictionsService } from './services/getScheduleRestrictions.service';
+import { GetMonthlySummaryService } from './services/getMonthlySummary.service';
 
 @Controller('programacao')
 export class ScheduleController {
@@ -19,6 +21,7 @@ export class ScheduleController {
     private getValuesWeeklyScheduleService: GetValuesWeeklyScheduleService,
     private getPendingScheduleValuesService: GetPendingScheduleValuesService,
     private getScheduleRestrictionsService: GetScheduleRestrictionsService,
+    private getMonthlySummaryService: GetMonthlySummaryService,
   ) {}
 
   @Get()
@@ -78,6 +81,29 @@ export class ScheduleController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Restrições das programações retornadas com sucesso',
+      data: response,
+    };
+  }
+
+  @Get('resumo-mensal')
+  async getMonthlySummary(@Query() filters: GetMonthlySummaryDTO) {
+    const response = await this.getMonthlySummaryService.getSummary(filters);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Resumo mensal retornado com sucesso',
+      data: response,
+    };
+  }
+
+  @Get('resumo-mensal-2')
+  async getSecondMonthlySummary(@Query() filters: GetMonthlySummaryDTO) {
+    const response =
+      await this.getMonthlySummaryService.getSecondSummary(filters);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Resumo mensal retornado com sucesso',
       data: response,
     };
   }
