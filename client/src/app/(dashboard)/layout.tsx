@@ -8,13 +8,13 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative z-0 flex h-full w-full overflow-hidden">
+    <div className="relative z-0 flex h-screen w-full overflow-hidden">
       <div className="relative flex h-full max-w-full flex-1 flex-col overflow-hidden">
-        <div className="h-full">
+        <div className="h-full flex flex-col">
           <Header />
 
-          <main className="w-full h-full mt-16">
-            <div className="flex flex-col overflow-y-auto items-center h-full">
+          <main className="w-full flex-1 mt-16 overflow-y-auto">
+            <div className="flex flex-col items-center">
               <div className="py-2 w-4/5">
                 <BreadcrumpsComponent />
               </div>

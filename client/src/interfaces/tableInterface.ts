@@ -1,4 +1,4 @@
 export interface TableInterface {
-  data: Record<string, any>[];
+  data: any[];
   columns: any;
 }

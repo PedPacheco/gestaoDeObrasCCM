@@ -27,7 +27,7 @@ export function MonthlySummaryScheduleFilters({
   function handleApplyFilters() {
     const newSelectedItems = {
       ...selectedItems,
-      date,
+      date: date?.format("MM/YYYY"),
     };
 
     onApplyFilters(newSelectedItems);
@@ -37,7 +37,7 @@ export function MonthlySummaryScheduleFilters({
     setSelectedItems({});
     setDate(dayjs());
 
-    onApplyFilters({ data: dayjs().format("MM/YYYY") });
+    onApplyFilters({ date: dayjs().format("MM/YYYY") });
   }
 
   return (

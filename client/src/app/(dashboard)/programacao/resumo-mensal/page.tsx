@@ -34,7 +34,7 @@ export default async function MonthlySummary() {
     totalMoProg: "Programado",
     totalMoExec: "Executado",
     porcentagem: "%",
-    totalMoPrevisto: "Previsto",
+    totalMoPrev: "Previsto",
   };
 
   const columnsSecondSummary = {
@@ -49,8 +49,8 @@ export default async function MonthlySummary() {
     <MainMonthlySummarySchedule
       columnsFirstSummary={columnsFirstSummary}
       columnsSecondSummary={columnsSecondSummary}
-      dataFirstSummary={firstSummary.data}
-      dataSecondSummary={secondSummary.data}
+      dataFirstSummary={firstSummary?.data}
+      dataSecondSummary={secondSummary?.data}
       filters={filters}
       token={firstSummary.token}
     />

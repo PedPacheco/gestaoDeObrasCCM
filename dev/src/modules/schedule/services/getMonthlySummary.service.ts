@@ -111,9 +111,9 @@ export class GetMonthlySummaryService {
       const turma = current.turmas.turma;
       const grupo = current.tipos.grupos.grupo;
 
-      const key = `${grupo}-${turma}`;
-
-      let existingKey = acc.find((item) => item.key === key);
+      let existingKey = acc.find(
+        (item) => item.grupo === grupo && item.turma === turma,
+      );
 
       if (!existingKey) {
         existingKey = {

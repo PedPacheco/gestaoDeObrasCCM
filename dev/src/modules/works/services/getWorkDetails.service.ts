@@ -11,7 +11,6 @@ export class GetWorkDetailsService {
     const work = await this.prisma.obras.findFirst({
       where: {
         OR: [
-          { id: value.length >= 12 ? undefined : id },
           { ovnota: value },
           { ordem_dci: value },
           { ordem_dcd: value },

@@ -39,11 +39,9 @@ export function MainMonthlySummarySchedule({
     endpoint: string,
     params: Record<string, string | boolean>
   ) {
-    const url = `${
-      process.env.NEXT_PUBLIC_API_URL
-    }${endpoint}?date=${dayjs().format("MM/YYYY")}`;
+    const url = `${process.env.NEXT_PUBLIC_API_URL}${endpoint}`;
 
-    return await fetchData(url, undefined, token, {
+    return await fetchData(url, params, token, {
       cache: "no-store",
     });
   }
@@ -54,8 +52,8 @@ export function MainMonthlySummarySchedule({
       fetchMonthlySummary("/programacao/resumo-mensal-2", params),
     ]);
 
-    setDataFirstSummaryFiltered(dataFirstSummary);
-    setDataSecondSummaryFiltered(dataSecondSummary);
+    setDataFirstSummaryFiltered(dataFirstSummary.data);
+    setDataSecondSummaryFiltered(dataSecondSummary.data);
   }
 
   return (
@@ -67,15 +65,15 @@ export function MainMonthlySummarySchedule({
         />
       </div>
 
-      <div className="w-full max-h-[680px] flex flex-col xl:flex-row px-8">
+      <div className="w-full flex flex-col xl:flex-row px-4">
         <MonthlySummaryScheduleTable
           columns={columnsFirstSummary}
-          data={dataFirstSummaryFiltered}
+          data={dataFirstSummaryFiltered.data}
         />
 
         <MonthlySummaryScheduleTable
           columns={columnsSecondSummary}
-          data={dataSecondSummaryFiltered}
+          data={dataSecondSummaryFiltered.data}
         />
       </div>
     </>
