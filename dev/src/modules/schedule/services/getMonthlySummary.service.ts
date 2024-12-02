@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-// import moment from 'moment';
+import * as moment from 'moment';
 import { GetMonthlySummaryDTO } from 'src/config/dto/scheduleDTO';
 import { PrismaService } from 'src/config/prisma/prisma.service';
 
@@ -13,12 +13,22 @@ export class GetMonthlySummaryService {
     const month: number = Number(date?.split('/')[0]);
     const year: number = Number(date?.split('/')[1]);
 
-    const monthInitial = new Date(year, month - 1, 1);
-    const monthFinal = new Date(year, month, 1);
+    const monthInitial = moment
+      .utc([year, month - 1])
+      .startOf('month')
+      .toDate();
+    const monthFinal = moment
+      .utc([year, month - 1])
+      .add(1, 'month')
+      .startOf('month')
+      .toDate();
 
     const data = await this.prisma.programacoes.findMany({
       where: {
-        data_prog: { gte: monthInitial, lt: monthFinal },
+        data_prog: {
+          gte: monthInitial,
+          lt: monthFinal,
+        },
         obras: {
           tipos: { id_grupo: idGrupo || undefined },
           municipios: { id_regional: idRegional || undefined },
@@ -38,7 +48,7 @@ export class GetMonthlySummaryService {
     });
 
     const response = data.reduce((acc, current) => {
-      const dataProg = current.data_prog.toISOString().split('T')[0];
+      const dataProg = moment.utc(current.data_prog).format('DD/MM/YYYY');
 
       let existingDate = acc.find((item) => item.dataProg === dataProg);
 
@@ -76,8 +86,15 @@ export class GetMonthlySummaryService {
     const month: number = Number(date?.split('/')[0]);
     const year: number = Number(date?.split('/')[1]);
 
-    const monthInitial = new Date(year, month - 1, 1);
-    const monthFinal = new Date(year, month, 1);
+    const monthInitial = moment
+      .utc([year, month - 1])
+      .startOf('month')
+      .toDate();
+    const monthFinal = moment
+      .utc([year, month - 1])
+      .add(1, 'month')
+      .startOf('month')
+      .toDate();
 
     const data = await this.prisma.obras.findMany({
       where: {

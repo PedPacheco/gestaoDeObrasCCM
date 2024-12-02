@@ -3,6 +3,7 @@ import { obras, programacoes } from '@prisma/client';
 import { GetMonthlySummaryDTO } from 'src/config/dto/scheduleDTO';
 import { PrismaService } from 'src/config/prisma/prisma.service';
 import { GetMonthlySummaryService } from 'src/modules/schedule/services/getMonthlySummary.service';
+import * as moment from 'moment';
 
 describe('GetMonthlySummaryService', () => {
   let prisma: PrismaService;
@@ -48,7 +49,7 @@ describe('GetMonthlySummaryService', () => {
   describe('getSummary', () => {
     const mockPrismaResponse = [
       {
-        data_prog: new Date('2024-11-01T03:00:00.000Z'),
+        data_prog: moment.utc('2024-11-01').toDate(),
         prog: 100,
         exec: null,
         obras: {
@@ -57,7 +58,7 @@ describe('GetMonthlySummaryService', () => {
         },
       } as unknown as programacoes,
       {
-        data_prog: new Date('2024-11-02T03:00:00.000Z'),
+        data_prog: moment.utc('2024-11-02').toDate(),
         prog: 100,
         exec: 50,
         obras: {
@@ -70,14 +71,14 @@ describe('GetMonthlySummaryService', () => {
     it('should call the method getSummary without filters and format the results correctly', async () => {
       const mockResponse = [
         {
-          dataProg: '2024-11-01',
+          dataProg: '01/11/2024',
           totalQtde: 1,
           totalMoProg: 3058,
           totalMoExec: 0,
           totalMoPrev: 3058,
         },
         {
-          dataProg: '2024-11-02',
+          dataProg: '02/11/2024',
           totalQtde: 1,
           totalMoProg: 21882.1269,
           totalMoExec: 10941.06345,
@@ -95,8 +96,8 @@ describe('GetMonthlySummaryService', () => {
       expect(spyPrisma).toHaveBeenCalledWith({
         where: {
           data_prog: {
-            gte: new Date('2024-11-01T03:00:00.000Z'),
-            lt: new Date('2024-12-01T03:00:00.000Z'),
+            gte: moment.utc('2024-11-01').toDate(),
+            lt: moment.utc('2024-12-01').toDate(),
           },
           obras: {
             tipos: { id_grupo: undefined },
@@ -135,8 +136,8 @@ describe('GetMonthlySummaryService', () => {
       expect(spyPrisma).toHaveBeenCalledWith({
         where: {
           data_prog: {
-            gte: new Date('2024-11-01T03:00:00.000Z'),
-            lt: new Date('2024-12-01T03:00:00.000Z'),
+            gte: moment.utc('2024-11-01').toDate(),
+            lt: moment.utc('2024-12-01').toDate(),
           },
           obras: {
             tipos: { id_grupo: 1 },
@@ -174,7 +175,7 @@ describe('GetMonthlySummaryService', () => {
         },
         programacoes: [
           {
-            data_prog: new Date('2024-11-18T03:00:00.000Z'),
+            data_prog: moment.utc('2024-11-18').toDate(),
             prog: 100,
             exec: 0,
           },
@@ -194,7 +195,7 @@ describe('GetMonthlySummaryService', () => {
         },
         programacoes: [
           {
-            data_prog: new Date('2024-11-29T03:00:00.000Z'),
+            data_prog: moment.utc('2024-11-29').toDate(),
             prog: 100,
             exec: null,
           },
@@ -214,7 +215,7 @@ describe('GetMonthlySummaryService', () => {
         },
         programacoes: [
           {
-            data_prog: new Date('2024-11-29T03:00:00.000Z'),
+            data_prog: moment.utc('2024-11-29').toDate(),
             prog: 100,
             exec: 50,
           },
@@ -264,8 +265,8 @@ describe('GetMonthlySummaryService', () => {
           programacoes: {
             some: {
               data_prog: {
-                gte: new Date('2024-11-01T03:00:00.000Z'),
-                lt: new Date('2024-12-01T03:00:00.000Z'),
+                gte: moment.utc('2024-11-01').toDate(),
+                lt: moment.utc('2024-12-01').toDate(),
               },
             },
           },
@@ -283,8 +284,8 @@ describe('GetMonthlySummaryService', () => {
           programacoes: {
             where: {
               data_prog: {
-                gte: new Date('2024-11-01T03:00:00.000Z'),
-                lt: new Date('2024-12-01T03:00:00.000Z'),
+                gte: moment.utc('2024-11-01').toDate(),
+                lt: moment.utc('2024-12-01').toDate(),
               },
             },
             select: { data_prog: true, prog: true, exec: true },
@@ -313,8 +314,8 @@ describe('GetMonthlySummaryService', () => {
           programacoes: {
             some: {
               data_prog: {
-                gte: new Date('2024-11-01T03:00:00.000Z'),
-                lt: new Date('2024-12-01T03:00:00.000Z'),
+                gte: moment.utc('2024-11-01').toDate(),
+                lt: moment.utc('2024-12-01').toDate(),
               },
             },
           },
@@ -332,8 +333,8 @@ describe('GetMonthlySummaryService', () => {
           programacoes: {
             where: {
               data_prog: {
-                gte: new Date('2024-11-01T03:00:00.000Z'),
-                lt: new Date('2024-12-01T03:00:00.000Z'),
+                gte: moment.utc('2024-11-01').toDate(),
+                lt: moment.utc('2024-12-01').toDate(),
               },
             },
             select: { data_prog: true, prog: true, exec: true },
