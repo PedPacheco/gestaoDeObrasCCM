@@ -116,6 +116,7 @@ export default function ScheduleTable({
               <div className="flex flex-col">
                 <p className="p-2 text-center text-base text-zinc-700">P</p>
                 <p className="p-2 text-center text-base text-zinc-700">E</p>
+                <p className="p-2 text-center text-base text-zinc-700">%</p>
               </div>
             </TableCell>
 

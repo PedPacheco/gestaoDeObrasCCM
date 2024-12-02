@@ -28,7 +28,7 @@ const VirtuosoTableComponents: TableComponents = {
   Scroller: forwardRef<HTMLDivElement>(function scroller(props, ref) {
     return (
       <TableContainer
-        className="mb-20 w-[95%] min-h-96 max-h-[880px] lg:max-h-[620px] xl:max-h-[90%] overflow-y-auto"
+        className="mb-4 w-[95%] min-h-96 max-h-[880px] lg:max-h-[620px] xl:max-h-[90%] overflow-y-auto"
         component={Paper}
         {...props}
         ref={ref}
@@ -111,7 +111,7 @@ export function TableComponent({
               <TableCell
                 key={column}
                 onClick={() => router.push(`/detalhes/${itemId}`)}
-                className="py-1 px-2 text-center text-base text-nowrap min-w-60 hover:cursor-pointer"
+                className="py-1 px-2 text-center text-base text-nowrap min-w-40 hover:cursor-pointer"
               >
                 {displayValue}
               </TableCell>

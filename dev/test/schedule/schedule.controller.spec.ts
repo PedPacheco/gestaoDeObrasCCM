@@ -1,6 +1,7 @@
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { ScheduleController } from 'src/modules/schedule/schedule.controller';
+import { GetMonthlySummaryService } from 'src/modules/schedule/services/getMonthlySummary.service';
 import { GetPendingScheduleValuesService } from 'src/modules/schedule/services/getPendingScheduleValues.service';
 import { GetScheduleRestrictionsService } from 'src/modules/schedule/services/getScheduleRestrictions.service';
 import { GetScheduleValuesService } from 'src/modules/schedule/services/getScheduleValues.service';
@@ -14,6 +15,7 @@ describe('ScheduleController', () => {
   let getScheduleValuesService: GetScheduleValuesService;
   let getScheduleRestrictionsService: GetScheduleRestrictionsService;
   let getPendingScheduleValuesService: GetPendingScheduleValuesService;
+  let getMonthlySummaryService: GetMonthlySummaryService;
 
   const response = {
     ovnota: '232423',
@@ -54,6 +56,13 @@ describe('ScheduleController', () => {
             getValues: jest.fn(),
           },
         },
+        {
+          provide: GetMonthlySummaryService,
+          useValue: {
+            getSummary: jest.fn(),
+            getSecondSummary: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -74,6 +83,9 @@ describe('ScheduleController', () => {
       module.get<GetPendingScheduleValuesService>(
         GetPendingScheduleValuesService,
       );
+    getMonthlySummaryService = module.get<GetMonthlySummaryService>(
+      GetMonthlySummaryService,
+    );
   });
 
   it('Should be defined', () => {
@@ -250,6 +262,88 @@ describe('ScheduleController', () => {
       data: getScheduleRestrictionsResponse,
     });
     expect(getScheduleRestrictionsService.getRestrictions).toHaveBeenCalledWith(
+      filters,
+    );
+  });
+
+  it('Should call getMonthlySummary method and return correct data', async () => {
+    const filters = {
+      date: '11/2024',
+      idRegional: 1,
+      idGrupo: 1,
+      idTipo: 1,
+      idParceira: 1,
+    };
+
+    const getMonthlySummaryResponse = [
+      {
+        dataProg: '2024-11-01',
+        totalQtde: 5,
+        totalMoProg: 103682.18347999999,
+        totalMoExec: 95076.57347999999,
+        totalMoPrev: 95076.57347999999,
+      },
+      {
+        dataProg: '2024-11-02',
+        totalQtde: 1,
+        totalMoProg: 14459.3,
+        totalMoExec: 0,
+        totalMoPrev: 0,
+      },
+    ];
+
+    jest
+      .spyOn(getMonthlySummaryService, 'getSummary')
+      .mockResolvedValue(getMonthlySummaryResponse);
+
+    const result = await scheduleController.getMonthlySummary(filters);
+
+    expect(result).toEqual({
+      statusCode: HttpStatus.OK,
+      message: 'Resumo mensal retornado com sucesso',
+      data: getMonthlySummaryResponse,
+    });
+    expect(getMonthlySummaryService.getSummary).toHaveBeenCalledWith(filters);
+  });
+
+  it('Should call method getSecondMonthlySummary and return data with correct format', async () => {
+    const filters = {
+      date: '11/2024',
+      idRegional: 1,
+      idGrupo: 1,
+      idTipo: 1,
+      idParceira: 1,
+    };
+
+    const getSecondMonthlySummaryResponse = [
+      {
+        grupo: 'RECOMPOSIÇÃO',
+        turma: 'ENGELMIG',
+        totalMoProg: 1075887.9138599995,
+        totalMoExec: 556246.1940299999,
+        totalMoPrev: 948862.9654299996,
+      },
+      {
+        grupo: 'BT ZERO',
+        turma: 'ENGELMIG',
+        totalMoProg: 673067.8821099999,
+        totalMoExec: 541923.11811,
+        totalMoPrev: 623527.0451099998,
+      },
+    ];
+
+    jest
+      .spyOn(getMonthlySummaryService, 'getSecondSummary')
+      .mockResolvedValue(getSecondMonthlySummaryResponse);
+
+    const result = await scheduleController.getSecondMonthlySummary(filters);
+
+    expect(result).toEqual({
+      statusCode: HttpStatus.OK,
+      message: 'Resumo mensal retornado com sucesso',
+      data: getSecondMonthlySummaryResponse,
+    });
+    expect(getMonthlySummaryService.getSecondSummary).toHaveBeenCalledWith(
       filters,
     );
   });
