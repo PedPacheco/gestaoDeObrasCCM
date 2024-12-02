@@ -48,7 +48,7 @@ describe('GetMonthlySummaryService', () => {
   describe('getSummary', () => {
     const mockPrismaResponse = [
       {
-        data_prog: new Date('2024-11-01'),
+        data_prog: new Date('2024-11-01T03:00:00.000Z'),
         prog: 100,
         exec: null,
         obras: {
@@ -57,7 +57,7 @@ describe('GetMonthlySummaryService', () => {
         },
       } as unknown as programacoes,
       {
-        data_prog: new Date('2024-11-02'),
+        data_prog: new Date('2024-11-02T03:00:00.000Z'),
         prog: 100,
         exec: 50,
         obras: {
@@ -174,7 +174,7 @@ describe('GetMonthlySummaryService', () => {
         },
         programacoes: [
           {
-            data_prog: new Date('2024-11-18'),
+            data_prog: new Date('2024-11-18T03:00:00.000Z'),
             prog: 100,
             exec: 0,
           },
@@ -194,7 +194,7 @@ describe('GetMonthlySummaryService', () => {
         },
         programacoes: [
           {
-            data_prog: new Date('2024-11-29'),
+            data_prog: new Date('2024-11-29T03:00:00.000Z'),
             prog: 100,
             exec: null,
           },
@@ -214,7 +214,7 @@ describe('GetMonthlySummaryService', () => {
         },
         programacoes: [
           {
-            data_prog: new Date('2024-11-29'),
+            data_prog: new Date('2024-11-29T03:00:00.000Z'),
             prog: 100,
             exec: 50,
           },
