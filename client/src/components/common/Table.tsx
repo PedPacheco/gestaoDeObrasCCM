@@ -111,7 +111,7 @@ export function TableComponent({
               <TableCell
                 key={column}
                 onClick={() => router.push(`/detalhes/${itemId}`)}
-                className="py-1 px-2 text-center text-base text-nowrap min-w-60 hover:cursor-pointer"
+                className="py-1 px-2 text-center text-base text-nowrap min-w-40 hover:cursor-pointer"
               >
                 {displayValue}
               </TableCell>

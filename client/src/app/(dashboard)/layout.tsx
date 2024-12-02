@@ -14,7 +14,7 @@ export default function DashboardLayout({
           <Header />
 
           <main className="w-full flex-1 mt-16 overflow-y-auto">
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center h-full">
               <div className="py-2 w-4/5">
                 <BreadcrumpsComponent />
               </div>
