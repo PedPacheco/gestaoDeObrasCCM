@@ -7,6 +7,7 @@ import { GetScheduleRestrictionsService } from 'src/modules/schedule/services/ge
 import { GetScheduleValuesService } from 'src/modules/schedule/services/getScheduleValues.service';
 import { GetTotalValuesScheduleService } from 'src/modules/schedule/services/getTotalValuesSchedule.service';
 import { GetValuesWeeklyScheduleService } from 'src/modules/schedule/services/getValuesWeeklySchedule.service';
+import { UsersService } from 'src/modules/users/users.service';
 
 describe('ScheduleController', () => {
   let scheduleController: ScheduleController;
@@ -63,6 +64,7 @@ describe('ScheduleController', () => {
             getSecondSummary: jest.fn(),
           },
         },
+        { provide: UsersService, useValue: { findUser: jest.fn() } },
       ],
     }).compile();
 

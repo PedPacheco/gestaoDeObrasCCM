@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { UsersService } from 'src/modules/users/users.service';
 import { WorksModule } from 'src/modules/works/works.module';
 
 describe('WorksModule', () => {
@@ -6,7 +7,10 @@ describe('WorksModule', () => {
   beforeEach(async () => {
     module = await Test.createTestingModule({
       imports: [WorksModule],
-    }).compile();
+    })
+      .overrideProvider(UsersService)
+      .useValue({})
+      .compile();
   });
 
   it('should be defined', () => {

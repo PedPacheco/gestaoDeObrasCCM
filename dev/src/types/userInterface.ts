@@ -25,6 +25,7 @@ export interface loginInterfaceService {
   id_regional: number;
   nome_usuario: string;
   email: string;
+  permissao_visualizacao: string;
   access_token: string;
 }
 

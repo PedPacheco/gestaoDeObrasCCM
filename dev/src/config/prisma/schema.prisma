@@ -374,6 +374,7 @@ model obras {
   ordem_dcd_antigo        String?         @db.VarChar(12)
   ordem_dca_antigo        String?         @db.VarChar(12)
   ordem_dcim_antigo       String?         @db.VarChar(12)
+  ano_plan                Int?
   multas_dmic             multas_dmic[]
   circuitos               circuitos       @relation(fields: [id_circuito], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_circuitos")
   empreendimento          empreendimento? @relation(fields: [id_empreendimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_empreendimento")
@@ -388,44 +389,44 @@ model obras {
 }
 
 model programacoes {
-  id                                                        Int                     @id(map: "PROGRAMACOES_pkey") @default(autoincrement())
-  id_obra                                                   Int
-  data_prog                                                 DateTime                @db.Date
-  prog                                                      Int                     @default(0)
-  exec                                                      Int?
-  observ_programacao                                        String?
-  num_dp                                                    String?
-  hora_ini                                                  DateTime?               @db.Time(6)
-  hora_ter                                                  DateTime?               @db.Time(6)
-  equipe_linha_morta                                        Int?
-  equipe_linha_viva                                         Int?
-  equipe_regularizacao                                      Int?
-  chave_provisoria                                          Boolean?
-  tipo_servico                                              String?                 @db.VarChar(50)
-  chi                                                       Int?
-  nome_responsavel_execucao                                 String?                 @db.VarChar(50)
-  id_restricao_execucao                                     Int                     @default(1)
-  id_restricao_prog1                                        Int                     @default(1)
-  responsabilidade1                                         String?                 @db.VarChar(50)
-  nome_responsavel                                          String?                 @db.VarChar(50)
-  area_responsavel1                                         String?                 @db.VarChar(50)
-  status_restricao1                                         String?                 @db.VarChar(50)
-  data_resolucao1                                           DateTime?               @db.Date
-  id_restricao_prog2                                        Int                     @default(1)
-  responsabilidade2                                         String?                 @db.VarChar(50)
-  nome_responsavel2                                         String?                 @db.VarChar(50)
-  area_responsavel2                                         String?                 @db.VarChar(50)
-  status_restricao2                                         String?                 @db.VarChar(50)
-  data_resolucao2                                           DateTime?               @db.Date
-  observacao_restricao                                      String?                 @db.VarChar(200)
-  observacao_execucao                                       String?                 @db.VarChar(200)
-  id_tecnico                                                Int                     @default(1)
-  obras                                                     obras                   @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
-  programacoes_restricao_execucao restricoes                @relation("programacoes_restricao_execucao", fields: [id_restricao_execucao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_execucao")
-  programacoes_restricao_prog1    restricoes                @relation("programacoes_restricao_prog1", fields: [id_restricao_prog1], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_prog1")
-  programacoes_restricao_prog2    restricoes                @relation("programacoes_restricao_prog2", fields: [id_restricao_prog2], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_prog2")
-  tecnicos                                                  tecnicos                @relation(fields: [id_tecnico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tecnicos")
-  programacoes_servicos                                     programacoes_servicos[]
+  id                              Int                     @id(map: "PROGRAMACOES_pkey") @default(autoincrement())
+  id_obra                         Int
+  data_prog                       DateTime                @db.Date
+  prog                            Int                     @default(0)
+  exec                            Int?
+  observ_programacao              String?
+  num_dp                          String?
+  hora_ini                        DateTime?               @db.Time(6)
+  hora_ter                        DateTime?               @db.Time(6)
+  equipe_linha_morta              Int?
+  equipe_linha_viva               Int?
+  equipe_regularizacao            Int?
+  chave_provisoria                Boolean?
+  tipo_servico                    String?                 @db.VarChar(50)
+  chi                             Int?
+  nome_responsavel_execucao       String?                 @db.VarChar(50)
+  id_restricao_execucao           Int                     @default(1)
+  id_restricao_prog1              Int                     @default(1)
+  responsabilidade1               String?                 @db.VarChar(50)
+  nome_responsavel                String?                 @db.VarChar(50)
+  area_responsavel1               String?                 @db.VarChar(50)
+  status_restricao1               String?                 @db.VarChar(50)
+  data_resolucao1                 DateTime?               @db.Date
+  id_restricao_prog2              Int                     @default(1)
+  responsabilidade2               String?                 @db.VarChar(50)
+  nome_responsavel2               String?                 @db.VarChar(50)
+  area_responsavel2               String?                 @db.VarChar(50)
+  status_restricao2               String?                 @db.VarChar(50)
+  data_resolucao2                 DateTime?               @db.Date
+  observacao_restricao            String?                 @db.VarChar(255)
+  observacao_execucao             String?                 @db.VarChar(255)
+  id_tecnico                      Int                     @default(1)
+  obras                           obras                   @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
+  programacoes_restricao_execucao restricoes              @relation("programacoes_restricao_execucao", fields: [id_restricao_execucao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_execucao")
+  programacoes_restricao_prog1    restricoes              @relation("programacoes_restricao_prog1", fields: [id_restricao_prog1], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_prog1")
+  programacoes_restricao_prog2    restricoes              @relation("programacoes_restricao_prog2", fields: [id_restricao_prog2], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_prog2")
+  tecnicos                        tecnicos                @relation(fields: [id_tecnico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tecnicos")
+  programacoes_servicos           programacoes_servicos[]
 
   @@unique([id, id_obra, data_prog], map: "unique_programacoes")
 }
@@ -585,9 +586,9 @@ model relatorio {
 }
 
 model restricoes {
-  id                                                          Int            @id(map: "RESTRICOES_pkey") @default(autoincrement())
-  restricao                                                   String?        @db.VarChar(80)
-  tipo_restricao                                              String         @db.VarChar(15)
+  id                              Int            @id(map: "RESTRICOES_pkey") @default(autoincrement())
+  restricao                       String?        @db.VarChar(80)
+  tipo_restricao                  String         @db.VarChar(15)
   programacoes_restricao_execucao programacoes[] @relation("programacoes_restricao_execucao")
   programacoes_restricao_prog1    programacoes[] @relation("programacoes_restricao_prog1")
   programacoes_restricao_prog2    programacoes[] @relation("programacoes_restricao_prog2")
@@ -688,6 +689,7 @@ model turmas {
   turma_sap           String?               @db.VarChar(9)
   contrato            String?               @db.VarChar(10)
   email_referencia    String?               @db.VarChar(50)
+  id_regional         Int
   capacidade_execucao capacidade_execucao[]
   equipes             equipes[]
   metas               metas[]
@@ -696,16 +698,17 @@ model turmas {
 }
 
 model usuario {
-  id                   Int       @id(map: "USUARIO_pkey") @default(autoincrement())
-  username             String    @db.VarChar(8)
-  senha                String    @db.VarChar
-  permissao            String    @db.VarChar(30)
-  id_regional          Int
-  formulario_utilizado String?   @db.VarChar(50)
-  nome_maquina         String?   @db.VarChar(30)
-  nome_usuario         String    @db.VarChar(50)
-  email                String    @db.VarChar(50)
-  regionais            regionais @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
+  id                     Int       @id(map: "USUARIO_pkey") @default(autoincrement())
+  username               String    @db.VarChar(8)
+  senha                  String    @db.VarChar
+  permissao              String    @db.VarChar(30)
+  id_regional            Int
+  formulario_utilizado   String?   @db.VarChar(50)
+  nome_maquina           String?   @db.VarChar(30)
+  nome_usuario           String    @db.VarChar(50)
+  email                  String    @db.VarChar(50)
+  permissao_visualizacao String?   @db.VarChar
+  regionais              regionais @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
 }
 
 model zpsrl {

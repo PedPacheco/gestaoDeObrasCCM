@@ -1,4 +1,4 @@
-import { Controller, Get, HttpStatus, Query } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Query, UseGuards } from '@nestjs/common';
 import {
   GetMonthlySummaryDTO,
   GetPendingScheduleValuesDTO,
@@ -12,6 +12,7 @@ import { GetValuesWeeklyScheduleService } from './services/getValuesWeeklySchedu
 import { GetPendingScheduleValuesService } from './services/getPendingScheduleValues.service';
 import { GetScheduleRestrictionsService } from './services/getScheduleRestrictions.service';
 import { GetMonthlySummaryService } from './services/getMonthlySummary.service';
+import { PermissionGuard } from 'src/common/guards/permission.guard';
 
 @Controller('programacao')
 export class ScheduleController {
@@ -25,6 +26,7 @@ export class ScheduleController {
   ) {}
 
   @Get()
+  @UseGuards(PermissionGuard)
   async getTotalValues(@Query() filters: GetTotalValuesScheduleDTO) {
     const response =
       await this.getTotalValuesScheduleService.getTotalValues(filters);
@@ -37,6 +39,7 @@ export class ScheduleController {
   }
 
   @Get('mensal')
+  @UseGuards(PermissionGuard)
   async getScheduleValues(@Query() filters: GetScheduleValuesDTO) {
     const response = await this.getScheduleValuesService.getValues(filters);
 
@@ -48,6 +51,7 @@ export class ScheduleController {
   }
 
   @Get('semanal')
+  @UseGuards(PermissionGuard)
   async getValuesWeeklySchedule(@Query() filters: GetValueWeeklyScheduleDTO) {
     const response =
       await this.getValuesWeeklyScheduleService.getValues(filters);
@@ -60,6 +64,7 @@ export class ScheduleController {
   }
 
   @Get('pendente')
+  @UseGuards(PermissionGuard)
   async getPendingScheduleValues(
     @Query() filters: GetPendingScheduleValuesDTO,
   ) {
@@ -74,6 +79,7 @@ export class ScheduleController {
   }
 
   @Get('restricoes')
+  @UseGuards(PermissionGuard)
   async getScheduleRestrictions(@Query() filters: GetValueWeeklyScheduleDTO) {
     const response =
       await this.getScheduleRestrictionsService.getRestrictions(filters);
@@ -86,6 +92,7 @@ export class ScheduleController {
   }
 
   @Get('resumo-mensal')
+  @UseGuards(PermissionGuard)
   async getMonthlySummary(@Query() filters: GetMonthlySummaryDTO) {
     const response = await this.getMonthlySummaryService.getSummary(filters);
 
@@ -97,6 +104,7 @@ export class ScheduleController {
   }
 
   @Get('resumo-mensal-2')
+  @UseGuards(PermissionGuard)
   async getSecondMonthlySummary(@Query() filters: GetMonthlySummaryDTO) {
     const response =
       await this.getMonthlySummaryService.getSecondSummary(filters);

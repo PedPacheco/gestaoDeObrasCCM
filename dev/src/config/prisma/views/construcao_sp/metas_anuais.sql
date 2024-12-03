@@ -248,7 +248,10 @@ FROM
     LEFT JOIN maxdataprog ON ((obras.id = maxdataprog.id))
   )
 WHERE
-  (tipos.id_grupo = 2) AND obras.id_status <> 3
+  (
+    (tipos.id_grupo = 2)
+    AND (obras.id_status <> 3)
+  )
 GROUP BY
   obras.id_tipo,
   obras.id_turma,

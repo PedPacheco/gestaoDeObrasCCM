@@ -11,24 +11,27 @@ export class FiltersService {
     private prisma: PrismaService,
   ) {}
 
-  async getFilters({
-    parceira,
-    regional,
-    tipo,
-    circuito,
-    grupo,
-    municipio,
-    status,
-    conjunto,
-    ovnota,
-    empreendimento,
-    ovnotaExec,
-  }: FiltersDto) {
+  async getFilters(
+    {
+      parceira,
+      regional,
+      tipo,
+      circuito,
+      grupo,
+      municipio,
+      status,
+      conjunto,
+      ovnota,
+      empreendimento,
+      ovnotaExec,
+    }: FiltersDto,
+    condition?: any,
+  ) {
     const result = {};
 
     if (regional) {
       result['regional'] = await this.getCachedData('regionais', () =>
-        this.getData('regionais', ['id', 'regional']),
+        this.getData('regionais', ['id', 'regional'], { id: condition }),
       );
     }
 
@@ -46,7 +49,9 @@ export class FiltersService {
 
     if (municipio) {
       result['municipio'] = await this.getCachedData('municipios', () =>
-        this.getData('municipios', ['id', 'municipio']),
+        this.getData('municipios', ['id', 'municipio'], {
+          id_regional: condition,
+        }),
       );
     }
 
@@ -78,6 +83,7 @@ export class FiltersService {
       result['ovnota'] = await this.getCachedData('ovnota', () =>
         this.getData('obras', ['id', 'ovnota'], {
           data_conclusao: null,
+          municipios: { id_regional: condition },
         }),
       );
     }
@@ -86,6 +92,7 @@ export class FiltersService {
       result['ovnotaExec'] = await this.getCachedData('ovnotaExec', () =>
         this.getData('obras', ['id', 'ovnota'], {
           data_conclusao: { not: null },
+          municipios: { id_regional: condition },
         }),
       );
     }
@@ -93,7 +100,10 @@ export class FiltersService {
     if (empreendimento) {
       result['empreendimento'] = await this.getCachedData(
         'empreendimento',
-        () => this.getData('empreendimento', ['id', 'empreendimento']),
+        () =>
+          this.getData('empreendimento', ['id', 'empreendimento'], {
+            id_regional: condition,
+          }),
       );
     }
 
