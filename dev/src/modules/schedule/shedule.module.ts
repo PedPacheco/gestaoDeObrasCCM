@@ -7,6 +7,7 @@ import { GetValuesWeeklyScheduleService } from './services/getValuesWeeklySchedu
 import { GetPendingScheduleValuesService } from './services/getPendingScheduleValues.service';
 import { GetScheduleRestrictionsService } from './services/getScheduleRestrictions.service';
 import { GetMonthlySummaryService } from './services/getMonthlySummary.service';
+import { UsersService } from '../users/users.service';
 
 @Module({
   imports: [],
@@ -19,6 +20,7 @@ import { GetMonthlySummaryService } from './services/getMonthlySummary.service';
     GetScheduleRestrictionsService,
     GetMonthlySummaryService,
     PrismaService,
+    UsersService,
   ],
 })
 export class ScheduleModule {}

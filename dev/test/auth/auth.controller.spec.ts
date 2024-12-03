@@ -53,6 +53,7 @@ describe('AuthController', () => {
         nome_maquina: null,
         nome_usuario: 'teste',
         permissao: 'Total',
+        permissao_visualizacao: 'parcial',
         access_token: 'token',
       };
 

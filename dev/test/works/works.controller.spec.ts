@@ -2,6 +2,7 @@ import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { plainToInstance } from 'class-transformer';
 import { GetAllWorksDTO, GetWorksDTO } from 'src/config/dto/worksDto';
+import { UsersService } from 'src/modules/users/users.service';
 import { GetAllWorksService } from 'src/modules/works/services/getAllWorks.service';
 import { GetCompletedWorksService } from 'src/modules/works/services/getCompletedWorks.service';
 import { GetWorkDetailsService } from 'src/modules/works/services/getWorkDetails.service';
@@ -32,6 +33,7 @@ describe('WorksController', () => {
           provide: GetWorksInPortfolioService,
           useValue: { getWorksInPortfolio: jest.fn() },
         },
+        { provide: UsersService, useValue: { findUser: jest.fn() } },
       ],
     }).compile();
 

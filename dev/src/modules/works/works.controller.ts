@@ -5,12 +5,14 @@ import {
   Param,
   ParseIntPipe,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { GetAllWorksDTO, GetWorksDTO } from 'src/config/dto/worksDto';
 import { GetCompletedWorksService } from './services/getCompletedWorks.service';
 import { GetAllWorksService } from './services/getAllWorks.service';
 import { GetWorksInPortfolioService } from './services/getWorksInPortfolio.service';
 import { GetWorkDetailsService } from './services/getWorkDetails.service';
+import { PermissionGuard } from 'src/common/guards/permission.guard';
 
 @Controller('obras')
 export class WorksController {
@@ -22,6 +24,7 @@ export class WorksController {
   ) {}
 
   @Get()
+  @UseGuards(PermissionGuard)
   async getAllWorks(@Query() worksFilters: GetAllWorksDTO) {
     const response = await this.getAllWorksService.getAllWorks(worksFilters);
 
@@ -33,6 +36,7 @@ export class WorksController {
   }
 
   @Get('obras-carteira')
+  @UseGuards(PermissionGuard)
   async getWorksInPortfolio(@Query() worksFilters: GetWorksDTO) {
     const response =
       await this.getWorksInPortfolioService.getWorksInPortfolio(worksFilters);
@@ -45,6 +49,7 @@ export class WorksController {
   }
 
   @Get('obras-executadas')
+  @UseGuards(PermissionGuard)
   async GetCompletedWorks(@Query() worksFilters: GetWorksDTO) {
     const response =
       await this.getCompletedWorksService.getCompletedWorks(worksFilters);

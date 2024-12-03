@@ -31,6 +31,7 @@ const user: usuario = {
   nome_maquina: null,
   nome_usuario: 'teste',
   permissao: 'Total',
+  permissao_visualizacao: 'parcial',
 };
 
 describe('AuthService', () => {
@@ -109,6 +110,7 @@ describe('AuthService', () => {
         nome_usuario: user.nome_usuario,
         email: user.email,
         access_token: access_token,
+        permissao_visualizacao: user.permissao_visualizacao,
       });
     });
   });

@@ -6,6 +6,7 @@ import { GetAllWorksService } from './services/getAllWorks.service';
 import { GetWorksInPortfolioService } from './services/getWorksInPortfolio.service';
 import { GetCompletedWorksService } from './services/getCompletedWorks.service';
 import { GetWorkDetailsService } from './services/getWorkDetails.service';
+import { UsersService } from '../users/users.service';
 
 @Module({
   imports: [CacheModule],
@@ -16,6 +17,7 @@ import { GetWorkDetailsService } from './services/getWorkDetails.service';
     GetAllWorksService,
     GetCompletedWorksService,
     GetWorkDetailsService,
+    UsersService,
   ],
 })
 export class WorksModule {}

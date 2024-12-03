@@ -22,6 +22,7 @@ describe('UsersService', () => {
     senha: 'hashPassword',
     permissao: 'Total',
     id_regional: 1,
+    permissao_visualizacao: 'parcial',
     formulario_utilizado: null,
     nome_maquina: null,
     nome_usuario: null,
