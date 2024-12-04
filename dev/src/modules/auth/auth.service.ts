@@ -60,12 +60,15 @@ export class AuthService {
     const existingUser = await this.usersService.findUser(
       registerUserDto.username,
     );
+    let password = registerUserDto.senha;
 
     if (existingUser) {
       throw new BadRequestException('Nome de usuário já está em uso.');
     }
 
-    const password = generateRandomPassword();
+    if (!password) {
+      password = generateRandomPassword();
+    }
 
     const salt = await genSalt();
     const hashedPassword = await hash(password, salt);
@@ -76,7 +79,7 @@ export class AuthService {
     );
 
     await this.emailService.sendEmail(
-      registerUserDto.email,
+      '10009591@edp.com.br',
       'Bem vindo ao sistema',
       `Usuáro: ${registerUserDto.username} 
       Senha: ${password}`,
@@ -99,7 +102,7 @@ export class AuthService {
     const resetLink = `http://localhost:3000/reset-password?token=${resetToken}`;
 
     await this.emailService.sendEmail(
-      user.email,
+      '10009591@edp.com.br',
       'Redefinição de senha',
       `Clique no link abaixo para redefinir sua senha: ${resetLink}`,
     );
