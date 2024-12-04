@@ -1,9 +1,10 @@
 import { capitalize } from "@/utils/capitalize";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dayjs } from "dayjs";
 import { DateFilter } from "@/components/common/DateFilter";
 import { SelectComponent } from "@/components/common/Select";
 import { ButtonComponent } from "@/components/common/Button";
+import { useSaveFilters } from "@/hooks/useSaveFilters";
 
 interface filters {
   regional: { id: string; regional: string }[];
@@ -30,11 +31,18 @@ export default function PortfolioWorksFilters({
   onApplyFilters,
   openModal,
 }: PortfolioWorksFiltersProps) {
+  const { clearFilters, filters, saveFilters } = useSaveFilters(
+    "portfolioWorksFilters"
+  );
   const [selectedItems, setSelectedItems] = useState<Record<string, string>>(
     {}
   );
   const [date, setDate] = useState<Dayjs | null>();
   const [filterType, setFilterType] = useState<string>("day");
+
+  useEffect(() => {
+    setSelectedItems(filters);
+  }, [filters]);
 
   function handleApplyFilters() {
     const newSelectedItems = {
@@ -48,6 +56,7 @@ export default function PortfolioWorksFilters({
     };
 
     onApplyFilters(newSelectedItems);
+    saveFilters(newSelectedItems);
   }
 
   function handleCleanigFilters() {
@@ -59,6 +68,7 @@ export default function PortfolioWorksFilters({
       data: null,
       tipoFiltro: filterType,
     });
+    clearFilters();
   }
 
   return (

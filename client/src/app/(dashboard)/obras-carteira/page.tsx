@@ -2,6 +2,7 @@ import PortfolioWorks from "@/components/worksComponents/portfolioWorks/MainPort
 import { fetchData } from "@/services/fetchData";
 import { fetchFilters } from "@/services/fetchFilters";
 import { cookies } from "next/headers";
+import nookies from "nookies";
 
 export default async function WorksInPortfolio() {
   const filters = await fetchFilters({
@@ -18,10 +19,13 @@ export default async function WorksInPortfolio() {
   });
 
   const cookieStore = cookies();
+  const cookieParams = cookieStore.get("portfolioWorksFilters")?.value;
+
+  const params = cookieParams ? JSON.parse(cookieParams) : undefined;
 
   const { token, data } = await fetchData(
     `${process.env.NEXT_PUBLIC_API_URL}/obras/obras-carteira`,
-    undefined,
+    params,
     cookieStore.get("token")?.value,
     { cache: "no-store" }
   );
