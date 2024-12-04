@@ -173,20 +173,20 @@ describe('AuthService', () => {
     it('should return NotFoundExpection if user is not found', async () => {
       jest.spyOn(usersService, 'findUser').mockResolvedValue(null);
 
-      await expect(authService.resetPassword('teste')).rejects.toThrow(
+      await expect(authService.sendEmailResetPassword('teste')).rejects.toThrow(
         new NotFoundException('Usuário não encontrado'),
       );
     });
 
     it('should create a token and send email to change user password', async () => {
       const jwtToken = 'jwt_token';
-      const resetLink = `http://localhost:3000/reset-password?token=${jwtToken}`;
+      const resetLink = `http://localhost:8080/reset-password?token=${jwtToken}`;
 
       jest.spyOn(usersService, 'findUser').mockResolvedValue(user);
       jest.spyOn(jwtService, 'sign').mockReturnValue(jwtToken);
       const spyEmail = jest.spyOn(emailService, 'sendEmail');
 
-      await authService.resetPassword(user.username);
+      await authService.sendEmailResetPassword(user.username);
 
       expect(spyEmail).toHaveBeenCalledTimes(1);
       expect(spyEmail).toHaveBeenCalledWith(
