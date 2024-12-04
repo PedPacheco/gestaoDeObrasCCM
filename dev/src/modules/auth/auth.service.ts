@@ -86,7 +86,7 @@ export class AuthService {
     return user;
   }
 
-  async resetPassword(username: string): Promise<void> {
+  async sendEmailResetPassword(username: string): Promise<void> {
     const user = await this.usersService.findUser(username);
 
     if (!user) {
@@ -97,7 +97,7 @@ export class AuthService {
 
     const resetToken = this.jwtService.sign(payload, { expiresIn: '30m' });
 
-    const resetLink = `http://localhost:3000/reset-password?token=${resetToken}`;
+    const resetLink = `http://localhost:8080/reset-password?token=${resetToken}`;
 
     await this.emailService.sendEmail(
       user.email,

@@ -61,11 +61,11 @@ export class AuthController {
   }
 
   @Public()
-  @Post('reset-password')
+  @Post('send-email-reset-password')
   async resetPassword(
     @Body() { username }: ResetPasswordDTO,
   ): Promise<{ statusCode: number; message: string }> {
-    await this.authService.resetPassword(username);
+    await this.authService.sendEmailResetPassword(username);
 
     return {
       statusCode: HttpStatus.OK,
