@@ -66,15 +66,15 @@ export class GoalsService {
       WHERE anocalc = 2024`;
 
     if (regional) {
-      query = Prisma.sql`${query} AND id_regional IN (${Prisma.join(regional)})`;
+      query = Prisma.sql`${query} AND metas_anuais.id_regional IN (${Prisma.join(regional)})`;
     }
 
     if (tipo) {
-      query = Prisma.sql`${query} AND id_tipo IN (${Prisma.join(tipo)})`;
+      query = Prisma.sql`${query} AND metas_anuais.id_tipo IN (${Prisma.join(tipo)})`;
     }
 
     if (parceira) {
-      query = Prisma.sql`${query} AND id_turma IN (${Prisma.join(parceira)})`;
+      query = Prisma.sql`${query} AND metas_anuais.id_turma IN (${Prisma.join(parceira)})`;
     }
 
     if (ano) {

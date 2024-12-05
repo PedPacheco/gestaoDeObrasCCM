@@ -237,6 +237,7 @@ describe('WorksController', () => {
         capex_mo_plan: 74310.44331999999,
         tipo_ads: 'CONVENCIONAL',
         data_empreitamento: new Date('2024-08-06T00:00:00.000Z'),
+        ano_plan: 2024,
         circuitos: 'CAC-1302',
         empreendimento: null,
         municipios: 'MONTEIRO LOBATO',
