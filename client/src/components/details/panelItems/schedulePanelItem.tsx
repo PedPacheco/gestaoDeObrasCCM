@@ -74,7 +74,6 @@ export default function SchedulePanelItem({ data }: Record<string, any>) {
                       const date = dayjs(cellValue);
 
                       if (date.year() === 1970) {
-                        console.log(cellValue);
                         cellValue = date.utc().format("HH:mm");
                       } else {
                         cellValue = date.utc().format("DD/MM/YYYY");

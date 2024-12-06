@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import nookies from "nookies";
+import { useEffect, useState } from "react";
 
 export function useSaveFilters(pageKey: string) {
   const [filters, setFilters] = useState<Record<string, string>>({});

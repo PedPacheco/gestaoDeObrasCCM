@@ -2,7 +2,6 @@ import PortfolioWorks from "@/components/worksComponents/portfolioWorks/MainPort
 import { fetchData } from "@/services/fetchData";
 import { fetchFilters } from "@/services/fetchFilters";
 import { cookies } from "next/headers";
-import nookies from "nookies";
 
 export default async function WorksInPortfolio() {
   const filters = await fetchFilters({

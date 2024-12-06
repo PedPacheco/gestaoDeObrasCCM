@@ -1,12 +1,14 @@
 "use client";
 
-import { capitalize } from "@/utils/capitalize";
 import dayjs, { Dayjs } from "dayjs";
-import { useState } from "react";
-import { Checkbox } from "@mui/material";
+import { useEffect, useState } from "react";
+
+import { ButtonComponent } from "@/components/common/Button";
 import { DateFilter } from "@/components/common/DateFilter";
 import { SelectComponent } from "@/components/common/Select";
-import { ButtonComponent } from "@/components/common/Button";
+import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { capitalize } from "@/utils/capitalize";
+import { Checkbox } from "@mui/material";
 
 interface filters {
   regional: { id: string; regional: string }[];
@@ -19,18 +21,27 @@ interface filters {
 interface ScheduleByDateFiltersProps {
   data: filters;
   onApplyFilters: (params: any) => {};
+  openModal: () => void;
 }
 
 export default function ScheduleForDayFilters({
   data,
   onApplyFilters,
+  openModal,
 }: ScheduleByDateFiltersProps) {
+  const { clearFilters, filters, saveFilters } = useSaveFilters(
+    "scheduleForDayFilters"
+  );
   const [selectedItems, setSelectedItems] = useState<Record<string, string>>(
     {}
   );
   const [date, setDate] = useState<Dayjs | null>(dayjs());
   const [filterType, setFilterType] = useState<string>("month");
   const [executed, setExecuted] = useState<boolean>(false);
+
+  useEffect(() => {
+    setSelectedItems(filters);
+  }, [filters]);
 
   function handleApplyFilters() {
     const newSelectedItems = {
@@ -41,10 +52,11 @@ export default function ScheduleForDayFilters({
           : date.format("MM/YYYY")
         : "",
       tipoFiltro: filterType,
-      executado: executed,
+      executado: executed.toString(),
     };
 
     onApplyFilters(newSelectedItems);
+    saveFilters(newSelectedItems);
   }
 
   function handleCleanigFilters() {
@@ -58,6 +70,7 @@ export default function ScheduleForDayFilters({
       tipoFiltro: "month",
       executado: false,
     });
+    clearFilters();
   }
 
   return (
@@ -106,16 +119,22 @@ export default function ScheduleForDayFilters({
         </div>
       </div>
 
-      <div className=" flex flex-col md:flex-row justify-between items-center xl:justify-around">
+      <div className="grid grid-cols-1 lg:grid-cols-3 w-full">
         <ButtonComponent
           onClick={handleApplyFilters}
           text="Aplicar filtros"
-          styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
+          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
         />
         <ButtonComponent
           onClick={handleCleanigFilters}
           text="Limpar filtros"
-          styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
+          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
+        />
+
+        <ButtonComponent
+          onClick={openModal}
+          text="Ver valores totais"
+          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
         />
       </div>
     </>

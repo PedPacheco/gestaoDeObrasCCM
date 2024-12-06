@@ -29,6 +29,7 @@ export default async function ScheduleRestrictions() {
   );
 
   const columns = {
+    id: "id",
     ovnota: "Ovnota",
     mun: "Municipio",
     tipo: "Tipo",
@@ -36,7 +37,7 @@ export default async function ScheduleRestrictions() {
     executado: "Total executado",
     data_prog: "Data programada",
     prog: "Programado",
-    exec: "Executado programação",
+    exec: "Executado",
     obersvacao_restricao: "Observação da restrição",
     restricao_prog1: "1° Restrição",
     responsabilidade1: "1° Responsabilidade",

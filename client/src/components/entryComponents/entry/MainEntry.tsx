@@ -3,8 +3,9 @@
 import { fetchData } from "@/services/fetchData";
 import EntryFilters from "./EntryFilters";
 import EntryTable from "./EntryTable";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { MainInterface } from "@/interfaces/mainInterface";
+import nookies from "nookies";
 
 export interface EntryFiltersType {
   regional: { id: string; regional: string }[];
@@ -23,14 +24,26 @@ export default function MainEntry({
 }: MainInterface<EntryFiltersType>) {
   const [dataFiltered, setDataFiltered] = useState(data);
 
-  async function fetchEntry(params: Record<string, string>) {
-    const response = await fetchData(
-      `${process.env.NEXT_PUBLIC_API_URL}/entrada`,
-      params,
-      token
-    );
-    setDataFiltered(response.data);
-  }
+  const fetchEntry = useCallback(
+    async (params: Record<string, string>) => {
+      const response = await fetchData(
+        `${process.env.NEXT_PUBLIC_API_URL}/entrada`,
+        params,
+        token
+      );
+      setDataFiltered(response.data);
+    },
+    [token]
+  );
+
+  useEffect(() => {
+    const cookies = nookies.get();
+    const params = cookies["entryFilters"];
+
+    if (params) {
+      fetchEntry(JSON.parse(params));
+    }
+  }, [fetchEntry]);
 
   return (
     <>

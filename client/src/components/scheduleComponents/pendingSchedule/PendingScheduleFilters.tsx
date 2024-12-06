@@ -1,10 +1,12 @@
 "use client";
 
+import dayjs, { Dayjs } from "dayjs";
+import { useEffect, useState } from "react";
+
 import { ButtonComponent } from "@/components/common/Button";
 import { SelectComponent } from "@/components/common/Select";
 import { capitalize } from "@/utils/capitalize";
-import dayjs, { Dayjs } from "dayjs";
-import { useState } from "react";
+import { useSaveFilters } from "@/hooks/useSaveFilters";
 
 interface filters {
   regional: { id: string; regional: string }[];
@@ -20,10 +22,17 @@ export default function PendingScheduleFilters({
   data,
   onApplyFilters,
 }: PendingScheduleFiltersProps) {
+  const { clearFilters, filters, saveFilters } = useSaveFilters(
+    "pendingScheduleFilters"
+  );
   const [selectedYear, setSelectedYear] = useState<Dayjs | null>(dayjs());
   const [selectedItems, setSelectedItems] = useState<Record<string, string>>(
     {}
   );
+
+  useEffect(() => {
+    setSelectedItems(filters);
+  }, [filters]);
 
   function handleApplyFilters() {
     const newSelectedItems = {
@@ -32,6 +41,7 @@ export default function PendingScheduleFilters({
     };
 
     onApplyFilters(newSelectedItems);
+    saveFilters(newSelectedItems);
   }
 
   function handleCleanigFilters() {
@@ -39,6 +49,7 @@ export default function PendingScheduleFilters({
     setSelectedYear(dayjs());
 
     onApplyFilters({ ano: selectedYear?.year().toString() });
+    clearFilters();
   }
   return (
     <>

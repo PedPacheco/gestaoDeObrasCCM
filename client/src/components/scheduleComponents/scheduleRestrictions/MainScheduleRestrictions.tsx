@@ -1,10 +1,12 @@
 "use client";
 
+import dayjs, { Dayjs } from "dayjs";
+import { useState } from "react";
+
 import { TableComponent } from "@/components/common/Table";
 import { MainInterface } from "@/interfaces/mainInterface";
 import { fetchData } from "@/services/fetchData";
-import dayjs, { Dayjs } from "dayjs";
-import { useState } from "react";
+
 import WeeklyScheduleFilters from "../weeklySchedule/WeeklyScheduleFilters";
 
 export default function MainScheduleRestrictions({
@@ -25,7 +27,7 @@ export default function MainScheduleRestrictions({
 
   async function fetchEntry(params: Record<string, string>) {
     const response = await fetchData(
-      `${process.env.NEXT_PUBLIC_API_URL}/programacao/semanal`,
+      `${process.env.NEXT_PUBLIC_API_URL}/programacao/restricoes`,
       params,
       token
     );
@@ -51,6 +53,7 @@ export default function MainScheduleRestrictions({
         <WeeklyScheduleFilters
           data={filters}
           onApplyFilters={fetchEntry}
+          keyFilters="scheduleRestrictionsFilters"
           dateInitial={selectedDate}
           weekRange={weekRange}
           setWeekRange={setWeekRange}

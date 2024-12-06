@@ -1,10 +1,13 @@
 "use client";
 
+import nookies from "nookies";
+import { useCallback, useEffect, useState } from "react";
+
+import { MainInterface } from "@/interfaces/mainInterface";
 import { fetchData } from "@/services/fetchData";
+
 import MainAllWorksFilters from "./allWorksFilter";
 import MainAllWorksTable from "./allWorksTable";
-import { useState } from "react";
-import { MainInterface } from "@/interfaces/mainInterface";
 
 export default function MainAllWorks({
   data,
@@ -14,16 +17,28 @@ export default function MainAllWorks({
 }: MainInterface<any>) {
   const [dataFiltered, setDataFiltered] = useState(data);
 
-  async function fetchWorks(params: Record<string, string>) {
-    const response = await fetchData(
-      `${process.env.NEXT_PUBLIC_API_URL}/obras`,
-      params,
-      token,
-      { cache: "no-store" }
-    );
+  const fetchWorks = useCallback(
+    async (params: Record<string, string>) => {
+      const response = await fetchData(
+        `${process.env.NEXT_PUBLIC_API_URL}/obras`,
+        params,
+        token,
+        { cache: "no-store" }
+      );
 
-    setDataFiltered(response.data);
-  }
+      setDataFiltered(response.data);
+    },
+    [token]
+  );
+
+  useEffect(() => {
+    const cookies = nookies.get();
+    const params = cookies["allWorksFilters"];
+
+    if (params) {
+      fetchWorks(JSON.parse(params));
+    }
+  }, [fetchWorks]);
 
   return (
     <>
