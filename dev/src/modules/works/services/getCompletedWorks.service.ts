@@ -107,7 +107,7 @@ export class GetCompletedWorksService {
     }
 
     if (idOvnota) {
-      query = Prisma.sql`${query} AND id = ${idOvnota}`;
+      query = Prisma.sql`${query} AND obras.id = ${idOvnota}`;
     }
 
     if (tipoFiltro === 'month' && data) {

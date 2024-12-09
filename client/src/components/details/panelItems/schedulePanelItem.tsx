@@ -37,13 +37,13 @@ export default function SchedulePanelItem({ data }: Record<string, any>) {
   return (
     <>
       <TableContainer className="h-[460px]">
-        <Table stickyHeader>
+        <Table stickyHeader className="table-fixed">
           <TableHead>
             <TableRow>
               {Object.keys(columns).map((month) => (
                 <TableCell
                   key={month}
-                  className="py-1 px-2 text-center text-zinc-700 font-semibold text-xl bg-[#53FF75] text-nowrap"
+                  className="py-1 px-2 w-44 text-center text-zinc-700 font-semibold text-xl bg-[#53FF75]"
                 >
                   {columns[month as keyof typeof columns]}
                 </TableCell>
@@ -74,7 +74,7 @@ export default function SchedulePanelItem({ data }: Record<string, any>) {
                       const date = dayjs(cellValue);
 
                       if (date.year() === 1970) {
-                        cellValue = date.format("HH:mm");
+                        cellValue = date.utc().format("HH:mm");
                       } else {
                         cellValue = date.utc().format("DD/MM/YYYY");
                       }
@@ -87,7 +87,7 @@ export default function SchedulePanelItem({ data }: Record<string, any>) {
 
                     return (
                       <TableCell
-                        className="py-1 px-2 text-center text-base text-nowrap  min-w-60"
+                        className="py-1 px-2 text-center text-xl text-nowrap min-w-60"
                         key={index}
                       >
                         {displayValue}

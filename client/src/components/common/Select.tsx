@@ -24,7 +24,7 @@ export function SelectComponent<T>({
   displayKey,
 }: SelectProps<T>) {
   const itemsPerPage = 20;
-  const [visibleItems, setVisibleItems] = useState<T[]>([]); // Itens visíveis
+  const [visibleItems, setVisibleItems] = useState<T[]>([]);
 
   useEffect(() => {
     setVisibleItems(menuItems.slice(0, itemsPerPage));

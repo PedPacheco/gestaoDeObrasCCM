@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import nookies from "nookies";
+import { useCallback, useEffect, useState } from "react";
+
 import { fetchData } from "@/services/fetchData";
-import dayjs from "dayjs";
+
 import { MonthlySummaryScheduleFilters } from "./monthlySummaryScheduleFilters";
 import { MonthlySummaryScheduleTable } from "./monthlySummaryScheduleTable";
 
@@ -35,26 +37,38 @@ export function MainMonthlySummarySchedule({
   const [dataSecondSummaryFiltered, setDataSecondSummaryFiltered] =
     useState(dataSecondSummary);
 
-  async function fetchMonthlySummary(
-    endpoint: string,
-    params: Record<string, string | boolean>
-  ) {
-    const url = `${process.env.NEXT_PUBLIC_API_URL}${endpoint}`;
+  const fetchMonthlySummary = useCallback(
+    async (endpoint: string, params: Record<string, string | boolean>) => {
+      const url = `${process.env.NEXT_PUBLIC_API_URL}${endpoint}`;
 
-    return await fetchData(url, params, token, {
-      cache: "no-store",
-    });
-  }
+      return await fetchData(url, params, token, {
+        cache: "no-store",
+      });
+    },
+    [token]
+  );
 
-  async function fetchSummary(params: Record<string, string | boolean>) {
-    const [dataFirstSummary, dataSecondSummary] = await Promise.all([
-      fetchMonthlySummary("/programacao/resumo-mensal", params),
-      fetchMonthlySummary("/programacao/resumo-mensal-2", params),
-    ]);
+  const fetchSummary = useCallback(
+    async (params: Record<string, string | boolean>) => {
+      const [dataFirstSummary, dataSecondSummary] = await Promise.all([
+        fetchMonthlySummary("/programacao/resumo-mensal", params),
+        fetchMonthlySummary("/programacao/resumo-mensal-2", params),
+      ]);
 
-    setDataFirstSummaryFiltered(dataFirstSummary.data);
-    setDataSecondSummaryFiltered(dataSecondSummary.data);
-  }
+      setDataFirstSummaryFiltered(dataFirstSummary.data);
+      setDataSecondSummaryFiltered(dataSecondSummary.data);
+    },
+    [fetchMonthlySummary]
+  );
+
+  useEffect(() => {
+    const cookies = nookies.get();
+    const params = cookies["monthlySummaryScheduleFilters"];
+
+    if (params) {
+      fetchSummary(JSON.parse(params));
+    }
+  }, [fetchSummary]);
 
   return (
     <>

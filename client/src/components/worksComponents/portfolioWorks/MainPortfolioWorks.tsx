@@ -1,10 +1,13 @@
 "use client";
 
-import { fetchData } from "@/services/fetchData";
-import { useState } from "react";
-import PortfolioWorksFilters from "./PortfolioWorksFilters";
+import nookies from "nookies";
+import { useCallback, useEffect, useState } from "react";
+
 import ModalComponent from "@/components/common/Modal";
 import { TableComponent } from "@/components/common/Table";
+import { fetchData } from "@/services/fetchData";
+
+import PortfolioWorksFilters from "./PortfolioWorksFilters";
 
 interface MainPortfolioWorksProps {
   data: any;
@@ -29,16 +32,28 @@ export default function PortfolioWorks({
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  async function fetchWorks(params: Record<string, string>) {
-    const response = await fetchData(
-      `${process.env.NEXT_PUBLIC_API_URL}/obras/${url}`,
-      params,
-      token,
-      { cache: "no-store" }
-    );
+  const fetchWorks = useCallback(
+    async (params: Record<string, string>) => {
+      const response = await fetchData(
+        `${process.env.NEXT_PUBLIC_API_URL}/obras/${url}`,
+        params,
+        token,
+        { cache: "no-store" }
+      );
 
-    setDataFiltered(response.data);
-  }
+      setDataFiltered(response.data);
+    },
+    [token, url]
+  );
+
+  useEffect(() => {
+    const cookies = nookies.get();
+    const params = cookies["portfolioWorksFilters"];
+
+    if (params) {
+      fetchWorks(JSON.parse(params));
+    }
+  }, [fetchWorks]);
 
   return (
     <>

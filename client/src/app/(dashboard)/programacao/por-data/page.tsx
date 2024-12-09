@@ -51,6 +51,9 @@ export default async function ScheduleForDay() {
     equipe_regularizacao: "Equipe Regularização",
     id_técnico: "Técnico Responsável",
     observ_programacao: "Observação da programação",
+    total_obras: "Total de obras",
+    total_mo_planejada: "Total MO planejada",
+    total_qtde_planejada: "Total QTDE planejada",
   };
 
   return (

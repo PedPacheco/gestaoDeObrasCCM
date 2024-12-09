@@ -1,10 +1,13 @@
+import dayjs, { Dayjs } from "dayjs";
+import { useEffect, useState } from "react";
+
+import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { capitalize } from "@/utils/capitalize";
-import { SelectComponent } from "../../common/Select";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import dayjs, { Dayjs } from "dayjs";
-import { useState } from "react";
+
 import { ButtonComponent } from "../../common/Button";
+import { SelectComponent } from "../../common/Select";
 
 interface filters {
   regional: { id: string; regional: string }[];
@@ -24,10 +27,16 @@ export default function ScheduleFilters({
   data,
   onApplyFilters,
 }: SheduleFiltersProps) {
+  const { clearFilters, filters, saveFilters } =
+    useSaveFilters("scheduleFilters");
   const [selectedYear, setSelectedYear] = useState<Dayjs | null>(dayjs());
   const [selectedItems, setSelectedItems] = useState<Record<string, string>>(
     {}
   );
+
+  useEffect(() => {
+    setSelectedItems(filters);
+  }, [filters]);
 
   function handleApplyFilters() {
     const newSelectedItems = {
@@ -36,6 +45,7 @@ export default function ScheduleFilters({
     };
 
     onApplyFilters(newSelectedItems);
+    saveFilters(newSelectedItems);
   }
 
   function handleCleanigFilters() {
@@ -43,6 +53,7 @@ export default function ScheduleFilters({
     setSelectedYear(dayjs());
 
     onApplyFilters({ ano: selectedYear?.year().toString() });
+    clearFilters();
   }
 
   return (

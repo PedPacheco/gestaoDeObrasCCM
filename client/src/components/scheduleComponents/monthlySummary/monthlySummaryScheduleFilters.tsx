@@ -1,14 +1,18 @@
 "use client";
 
-import { ButtonComponent } from "@/components/common/Button";
-import { Filters } from "./mainMonthlySummarySchedule";
-import { SelectComponent } from "@/components/common/Select";
-import { capitalize } from "@/utils/capitalize";
-import { useState } from "react";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/pt-br";
+
+import dayjs, { Dayjs } from "dayjs";
+import { useEffect, useState } from "react";
+
+import { ButtonComponent } from "@/components/common/Button";
+import { SelectComponent } from "@/components/common/Select";
+import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { capitalize } from "@/utils/capitalize";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+
+import { Filters } from "./mainMonthlySummarySchedule";
 
 interface MonthlySummaryScheduleFiltersProps {
   data: Filters;
@@ -19,18 +23,26 @@ export function MonthlySummaryScheduleFilters({
   data,
   onApplyFilters,
 }: MonthlySummaryScheduleFiltersProps) {
+  const { clearFilters, filters, saveFilters } = useSaveFilters(
+    "monhtlySummaryScheduleFilters"
+  );
   const [selectedItems, setSelectedItems] = useState<Record<string, string>>(
     {}
   );
-  const [date, setDate] = useState<Dayjs | null>(dayjs());
+  const [date, setDate] = useState<Dayjs>(dayjs());
+
+  useEffect(() => {
+    setSelectedItems(filters);
+  }, [filters]);
 
   function handleApplyFilters() {
     const newSelectedItems = {
       ...selectedItems,
-      date: date?.format("MM/YYYY"),
+      date: date.format("MM/YYYY"),
     };
 
     onApplyFilters(newSelectedItems);
+    saveFilters(newSelectedItems);
   }
 
   function handleCleanigFilters() {
@@ -38,6 +50,7 @@ export function MonthlySummaryScheduleFilters({
     setDate(dayjs());
 
     onApplyFilters({ date: dayjs().format("MM/YYYY") });
+    clearFilters();
   }
 
   return (
@@ -52,7 +65,7 @@ export function MonthlySummaryScheduleFilters({
               views={["month", "year"]}
               format={"MM/YYYY"}
               value={date}
-              onChange={(value) => setDate(value)}
+              onChange={(value) => (value ? setDate(value) : dayjs())}
               slotProps={{ textField: { size: "small", fullWidth: true } }}
             />
           </LocalizationProvider>

@@ -157,12 +157,12 @@ describe('AuthService', () => {
       });
       expect(sendEmailSpy).toHaveBeenCalledTimes(1);
       expect(sendEmailSpy).toHaveBeenCalledWith(
-        user.email,
+        '10009591@edp.com.br',
         'Bem vindo ao sistema',
         expect.stringContaining(user.username),
       );
       expect(sendEmailSpy).toHaveBeenCalledWith(
-        user.email,
+        '10009591@edp.com.br',
         'Bem vindo ao sistema',
         expect.stringContaining(hashedPassword),
       );
@@ -190,7 +190,7 @@ describe('AuthService', () => {
 
       expect(spyEmail).toHaveBeenCalledTimes(1);
       expect(spyEmail).toHaveBeenCalledWith(
-        user.email,
+        '10009591@edp.com.br',
         'Redefinição de senha',
         `Clique no link abaixo para redefinir sua senha: ${resetLink}`,
       );

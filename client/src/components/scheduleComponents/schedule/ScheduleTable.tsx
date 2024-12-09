@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo } from "react";
+
 import {
   Paper,
   Table,
@@ -10,7 +12,6 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import { useEffect, useMemo } from "react";
 
 interface ScheduleTableProps {
   schedule: any;
@@ -43,8 +44,6 @@ export default function ScheduleTable({
     return total;
   }, [columnMapping, schedule.data]);
 
-  useEffect(() => {}, [sumValues]);
-
   return (
     <TableContainer
       className="mb-20 w-[95%] min-h-96 max-h-[880px] lg:max-h-[620px] xl:max-h-[90%] overflow-y-auto"
@@ -63,7 +62,7 @@ export default function ScheduleTable({
             ))}
           </TableRow>
         </TableHead>
-        <TableBody className="h-[880px]">
+        <TableBody>
           {schedule.data.map((item: any, index: any) => {
             return (
               <TableRow key={index}>

@@ -1,8 +1,12 @@
 "use client";
 
 import "dayjs/locale/pt-br";
+
+import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import localeData from "dayjs/plugin/localeData";
+
+import { capitalize } from "@/utils/capitalize";
 import {
   Paper,
   Table,
@@ -12,8 +16,6 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import dayjs from "dayjs";
-import { capitalize } from "@/utils/capitalize";
 
 dayjs.extend(localeData);
 dayjs.extend(customParseFormat);

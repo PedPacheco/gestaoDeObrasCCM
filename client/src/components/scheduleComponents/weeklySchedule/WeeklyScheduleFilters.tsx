@@ -1,15 +1,18 @@
 "use client";
 
-import { capitalize } from "@/utils/capitalize";
+import "dayjs/locale/pt-br";
+
 import dayjs, { Dayjs } from "dayjs";
-import { useState } from "react";
-import { Checkbox } from "@mui/material";
-import { SelectComponent } from "@/components/common/Select";
+import isoWeek from "dayjs/plugin/isoWeek";
+import { useEffect, useState } from "react";
+
 import { ButtonComponent } from "@/components/common/Button";
+import { SelectComponent } from "@/components/common/Select";
+import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { capitalize } from "@/utils/capitalize";
+import { Checkbox } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import isoWeek from "dayjs/plugin/isoWeek";
-import "dayjs/locale/pt-br";
 
 dayjs.extend(isoWeek);
 
@@ -24,6 +27,7 @@ interface filters {
 interface ScheduleByDateFiltersProps {
   data: filters;
   onApplyFilters: (params: any) => {};
+  keyFilters: string;
   weekRange: Record<string, string>;
   handleDateChange: (newDate: Dayjs | null) => void;
   dateInitial: Dayjs;
@@ -34,12 +38,14 @@ interface ScheduleByDateFiltersProps {
 export default function WeeklyScheduleFilters({
   data,
   onApplyFilters,
+  keyFilters,
   dateInitial,
   handleDateChange,
   setWeekRange,
   weekRange,
   setDateInitial,
 }: ScheduleByDateFiltersProps) {
+  const { clearFilters, filters, saveFilters } = useSaveFilters(keyFilters);
   const [selectedItems, setSelectedItems] = useState<Record<string, string>>(
     {}
   );
@@ -51,10 +57,11 @@ export default function WeeklyScheduleFilters({
       ...selectedItems,
       dataInicial: weekRange.start,
       dataFinal: weekRange.end,
-      executado: executed,
+      executado: executed.toString(),
     };
 
     onApplyFilters(newSelectedItems);
+    saveFilters(newSelectedItems);
   }
 
   function handleCleanigFilters() {
@@ -71,7 +78,12 @@ export default function WeeklyScheduleFilters({
       dataFinal: dayjs().endOf("isoWeek").format("DD/MM/YYYY"),
       executado: false,
     });
+    clearFilters();
   }
+
+  useEffect(() => {
+    setSelectedItems(filters);
+  }, [filters]);
 
   return (
     <>

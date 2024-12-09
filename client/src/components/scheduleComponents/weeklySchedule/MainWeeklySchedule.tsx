@@ -1,12 +1,15 @@
 "use client";
 
-import { MainInterface } from "@/interfaces/mainInterface";
-import { fetchData } from "@/services/fetchData";
-import { useState } from "react";
-import WeeklyScheduleFilters from "./WeeklyScheduleFilters";
-import WeeklyScheduleTable from "./WeeklyScheduleTable";
 import dayjs, { Dayjs } from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
+import nookies from "nookies";
+import { useCallback, useEffect, useState } from "react";
+
+import { MainInterface } from "@/interfaces/mainInterface";
+import { fetchData } from "@/services/fetchData";
+
+import WeeklyScheduleFilters from "./WeeklyScheduleFilters";
+import WeeklyScheduleTable from "./WeeklyScheduleTable";
 
 dayjs.extend(isoWeek);
 
@@ -25,15 +28,27 @@ export default function MainWeeklySchedule({
     end: selectedDate.endOf("isoWeek").format("DD/MM/YYYY"),
   });
 
-  async function fetchEntry(params: Record<string, string>) {
-    const response = await fetchData(
-      `${process.env.NEXT_PUBLIC_API_URL}/programacao/semanal`,
-      params,
-      token
-    );
+  const fetchSchedule = useCallback(
+    async (params: Record<string, string>) => {
+      const response = await fetchData(
+        `${process.env.NEXT_PUBLIC_API_URL}/programacao/semanal`,
+        params,
+        token
+      );
 
-    setDataFiltered(response.data);
-  }
+      setDataFiltered(response.data);
+    },
+    [token]
+  );
+
+  useEffect(() => {
+    const cookies = nookies.get();
+    const params = cookies["weeklyScheduleFilters"];
+
+    if (params) {
+      fetchSchedule(JSON.parse(params));
+    }
+  }, [fetchSchedule]);
 
   const mondayDate = selectedDate.startOf("isoWeek");
 
@@ -58,8 +73,9 @@ export default function MainWeeklySchedule({
       <div className="my-6 w-4/5 flex flex-col">
         <WeeklyScheduleFilters
           data={filters}
-          onApplyFilters={fetchEntry}
+          onApplyFilters={fetchSchedule}
           dateInitial={selectedDate}
+          keyFilters="weeklyScheduleFilters"
           weekRange={weekRange}
           setWeekRange={setWeekRange}
           handleDateChange={handleDateChange}
