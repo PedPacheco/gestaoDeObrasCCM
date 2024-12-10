@@ -9,6 +9,7 @@ import { MainInterface } from "@/interfaces/mainInterface";
 import { fetchData } from "@/services/fetchData";
 
 import ScheduleForDayFilters from "./ScheduleForDayFilters";
+import { mountUrl } from "@/utils/mountUrl";
 
 export default function MainSchduleForDay({
   columns,
@@ -35,6 +36,41 @@ export default function MainSchduleForDay({
     [token]
   );
 
+  const generateExcel = useCallback(
+    async (params: Record<string, string | boolean>) => {
+      const url = mountUrl(
+        `${process.env.NEXT_PUBLIC_API_URL}/exportacao/programacao`,
+        params
+      );
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        console.error("Erro ao gerar a planilha:", response.statusText);
+        return;
+      }
+
+      const blob = await response.blob();
+
+      const downloadUrl = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = "Exportação Programação.xlsx";
+      document.body.appendChild(link);
+      link.click();
+
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    },
+    [token]
+  );
+
   useEffect(() => {
     const cookies = nookies.get();
     const params = cookies["scheduleForDayFilters"];
@@ -51,6 +87,7 @@ export default function MainSchduleForDay({
           data={filters}
           onApplyFilters={fetchSchedule}
           openModal={handleOpen}
+          generateExcel={generateExcel}
         />
       </div>
 

@@ -1,13 +1,12 @@
 import { Module } from '@nestjs/common';
-import { PrismaService } from 'src/config/prisma/prisma.service';
 import { FiltersController } from './filters.controller';
 import { FiltersService } from './filters.service';
 import { CacheModule } from 'src/cache/cache.module';
-import { UsersService } from '../users/users.service';
+import { UsersModule } from '../users/users.module';
 
 @Module({
-  imports: [CacheModule],
+  imports: [CacheModule, UsersModule],
   controllers: [FiltersController],
-  providers: [FiltersService, PrismaService, UsersService],
+  providers: [FiltersService],
 })
 export class FiltersModule {}

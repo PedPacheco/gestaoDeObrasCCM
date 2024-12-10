@@ -1,16 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UsersService } from 'src/modules/users/users.service';
+import { PrismaModule } from 'src/config/prisma/prisma.module';
+import { UsersModule } from 'src/modules/users/users.module';
 import { WorksModule } from 'src/modules/works/works.module';
 
 describe('WorksModule', () => {
   let module: TestingModule;
+
   beforeEach(async () => {
     module = await Test.createTestingModule({
-      imports: [WorksModule],
-    })
-      .overrideProvider(UsersService)
-      .useValue({})
-      .compile();
+      imports: [WorksModule, PrismaModule, UsersModule],
+    }).compile();
   });
 
   it('should be defined', () => {
