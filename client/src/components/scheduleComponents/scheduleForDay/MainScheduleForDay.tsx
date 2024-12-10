@@ -10,6 +10,8 @@ import { fetchData } from "@/services/fetchData";
 
 import ScheduleForDayFilters from "./ScheduleForDayFilters";
 import { mountUrl } from "@/utils/mountUrl";
+import ErrorModal from "@/components/common/ErrorModal";
+import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 export default function MainSchduleForDay({
   columns,
@@ -19,19 +21,24 @@ export default function MainSchduleForDay({
 }: MainInterface<any>) {
   const [dataFiltered, setDataFiltered] = useState(data);
   const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>();
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
   const fetchSchedule = useCallback(
     async (params: Record<string, string | boolean>) => {
-      const response = await fetchData(
-        `${process.env.NEXT_PUBLIC_API_URL}/programacao/mensal`,
-        params,
-        token
-      );
+      try {
+        const response = await fetchData(
+          `${process.env.NEXT_PUBLIC_API_URL}/programacao/mensal`,
+          params,
+          token
+        );
 
-      setDataFiltered(response.data);
+        setDataFiltered(response.data);
+      } catch (error: any) {
+        setError(error.message);
+      }
     },
     [token]
   );
@@ -43,30 +50,36 @@ export default function MainSchduleForDay({
         params
       );
 
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      try {
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      if (!response.ok) {
-        console.error("Erro ao gerar a planilha:", response.statusText);
-        return;
+        if (!response.ok) {
+          const errorResponse = await response.json();
+          const errorMessage = errorResponse?.message;
+          setError(`Erro ao gerar a planilha: ${errorMessage}`);
+          return;
+        }
+
+        const blob = await response.blob();
+
+        const downloadUrl = window.URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = "Exportação Programação.xlsx";
+        document.body.appendChild(link);
+        link.click();
+
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+      } catch (error: any) {
+        setError(`Erro ao gerar a planilha: ${error.message}`);
       }
-
-      const blob = await response.blob();
-
-      const downloadUrl = window.URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.download = "Exportação Programação.xlsx";
-      document.body.appendChild(link);
-      link.click();
-
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
     },
     [token]
   );
@@ -122,6 +135,15 @@ export default function MainSchduleForDay({
             })}
         </div>
       </ModalComponent>
+
+      {error && (
+        <ErrorModal
+          open={true}
+          message={error}
+          onClose={() => setError(null)}
+          icon={<ExclamationCircleIcon width={48} height={48} />}
+        />
+      )}
     </>
   );
 }

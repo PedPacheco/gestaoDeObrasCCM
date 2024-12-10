@@ -8,6 +8,10 @@ import { TableComponent } from "@/components/common/Table";
 import { fetchData } from "@/services/fetchData";
 
 import PortfolioWorksFilters from "./PortfolioWorksFilters";
+import { mountUrl } from "@/utils/mountUrl";
+import { usePathname } from "next/navigation";
+import ErrorModal from "@/components/common/ErrorModal";
+import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 interface MainPortfolioWorksProps {
   data: any;
@@ -28,20 +32,66 @@ export default function PortfolioWorks({
 }: MainPortfolioWorksProps) {
   const [dataFiltered, setDataFiltered] = useState(data);
   const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>();
+  const pathname = usePathname();
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  const fetchWorks = useCallback(
+  const generateExcel = useCallback(
     async (params: Record<string, string>) => {
-      const response = await fetchData(
-        `${process.env.NEXT_PUBLIC_API_URL}/obras/${url}`,
-        params,
-        token,
-        { cache: "no-store" }
+      const url = mountUrl(
+        `${process.env.NEXT_PUBLIC_API_URL}/exportacao/${pathname}`,
+        params
       );
 
-      setDataFiltered(response.data);
+      try {
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          const errorResponse = await response.json();
+          const errorMessage = errorResponse?.message;
+          setError(`Erro ao gerar a planilha: ${errorMessage}`);
+          return;
+        }
+
+        const blob = await response.blob();
+
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = "Exportação obras em carteira.xlsx";
+        document.body.append(link);
+        link.click();
+
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+      } catch (error: any) {
+        setError(error.message);
+      }
+    },
+    [pathname, token]
+  );
+
+  const fetchWorks = useCallback(
+    async (params: Record<string, string>) => {
+      try {
+        const response = await fetchData(
+          `${process.env.NEXT_PUBLIC_API_URL}/obras/${url}`,
+          params,
+          token,
+          { cache: "no-store" }
+        );
+
+        setDataFiltered(response.data);
+      } catch (error: any) {
+        setError(error.message);
+      }
     },
     [token, url]
   );
@@ -62,6 +112,7 @@ export default function PortfolioWorks({
           data={filters}
           onApplyFilters={fetchWorks}
           openModal={handleOpen}
+          generateExcel={generateExcel}
         />
       </div>
 
@@ -100,6 +151,15 @@ export default function PortfolioWorks({
             })}
         </div>
       </ModalComponent>
+
+      {error && (
+        <ErrorModal
+          open={true}
+          message={error}
+          onClose={() => setError(null)}
+          icon={<ExclamationCircleIcon width={48} height={48} />}
+        />
+      )}
     </>
   );
 }
