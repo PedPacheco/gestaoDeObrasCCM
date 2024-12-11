@@ -1,14 +1,14 @@
+import * as Exceljs from 'exceljs';
 import { Injectable } from '@nestjs/common';
-import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
 
 @Injectable()
-export class ExportWorksInPortfolioService {
+export class ExportCompletedWorksService {
   constructor() {}
 
   async export(worksData: any[], response: Response) {
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Obras em carteira');
+    const workbook = new Exceljs.Workbook();
+    const worksheet = workbook.addWorksheet('Obras executadas');
 
     worksheet.columns = [
       { header: 'Ovnota', key: 'ovnota', width: 15 },

@@ -1,17 +1,18 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import nookies from "nookies";
 import { useCallback, useEffect, useState } from "react";
 
+import ErrorModal from "@/components/common/ErrorModal";
 import ModalComponent from "@/components/common/Modal";
 import { TableComponent } from "@/components/common/Table";
+import { exportExcel } from "@/services/exportExcel";
 import { fetchData } from "@/services/fetchData";
+import { mountUrl } from "@/utils/mountUrl";
+import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import PortfolioWorksFilters from "./PortfolioWorksFilters";
-import { mountUrl } from "@/utils/mountUrl";
-import { usePathname } from "next/navigation";
-import ErrorModal from "@/components/common/ErrorModal";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 interface MainPortfolioWorksProps {
   data: any;
@@ -41,38 +42,14 @@ export default function PortfolioWorks({
   const generateExcel = useCallback(
     async (params: Record<string, string>) => {
       const url = mountUrl(
-        `${process.env.NEXT_PUBLIC_API_URL}/exportacao/${pathname}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/exportacao${pathname}`,
         params
       );
 
       try {
-        const response = await fetch(url, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          const errorResponse = await response.json();
-          const errorMessage = errorResponse?.message;
-          setError(`Erro ao gerar a planilha: ${errorMessage}`);
-          return;
-        }
-
-        const blob = await response.blob();
-
-        const downloadUrl = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = downloadUrl;
-        link.download = "Exportação obras em carteira.xlsx";
-        document.body.append(link);
-        link.click();
-
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(downloadUrl);
+        await exportExcel(url, token);
       } catch (error: any) {
-        setError(error.message);
+        setError(`Erro ao gerar a planilha: ${error.message}`);
       }
     },
     [pathname, token]

@@ -16,6 +16,6 @@ import { UsersModule } from '../users/users.module';
     GetCompletedWorksService,
     GetWorkDetailsService,
   ],
-  exports: [GetWorksInPortfolioService],
+  exports: [GetWorksInPortfolioService, GetCompletedWorksService],
 })
 export class WorksModule {}

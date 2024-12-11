@@ -1,15 +1,4 @@
-import { mountUrl } from "./mountUrl";
-
-export async function generateExcel(
-  params: Record<string, string>,
-  token: string,
-  pathname: string
-) {
-  const url = mountUrl(
-    `${process.env.NEXT_PUBLIC_API_URL}/exportacao/${pathname}`,
-    params
-  );
-
+export async function exportExcel(url: string, token: string) {
   const response = await fetch(url, {
     method: "GET",
     headers: {
@@ -18,8 +7,9 @@ export async function generateExcel(
   });
 
   if (!response.ok) {
-    console.error("Erro ao gerar a planilha:", response.statusText);
-    return;
+    const errorResponse = await response.json();
+    const errorMessage = errorResponse?.message;
+    throw new Error(errorMessage);
   }
 
   const blob = await response.blob();

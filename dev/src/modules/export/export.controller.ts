@@ -5,7 +5,9 @@ import { Response } from 'express';
 import { ExportScheduleService } from './services/exportSchedule.service';
 import { GetWorksDTO } from 'src/config/dto/worksDto';
 import { GetWorksInPortfolioService } from '../works/services/getWorksInPortfolio.service';
-import { exportWorksInPortfolioService } from './services/exportWorksInPortfolio.service';
+import { ExportWorksInPortfolioService } from './services/exportWorksInPortfolio.service';
+import { GetCompletedWorksService } from '../works/services/getCompletedWorks.service';
+import { ExportCompletedWorksService } from './services/exportCompletedWorks.service';
 
 @Controller('exportacao')
 export class ExportController {
@@ -13,7 +15,9 @@ export class ExportController {
     private getScheduleValuesService: GetScheduleValuesService,
     private exportScheduleService: ExportScheduleService,
     private getWorksInPortfolioService: GetWorksInPortfolioService,
-    private exportWorksInPortfolioService: exportWorksInPortfolioService,
+    private exportWorksInPortfolioService: ExportWorksInPortfolioService,
+    private getCompletedWorksService: GetCompletedWorksService,
+    private exportCompletedWorksService: ExportCompletedWorksService,
   ) {}
 
   @Get('programacao')
@@ -53,5 +57,25 @@ export class ExportController {
     );
 
     return await this.exportWorksInPortfolioService.export(worksData, res);
+  }
+
+  @Get('obras-executadas')
+  async exportCompletedWorks(
+    @Query() filters: GetWorksDTO,
+    @Res() res: Response,
+  ) {
+    const worksData =
+      await this.getCompletedWorksService.getCompletedWorks(filters);
+
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="Exportação obras executadas"',
+    );
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+
+    return await this.exportCompletedWorksService.export(worksData, res);
   }
 }

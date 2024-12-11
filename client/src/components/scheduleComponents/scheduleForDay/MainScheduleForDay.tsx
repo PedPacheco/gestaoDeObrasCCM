@@ -12,6 +12,7 @@ import ScheduleForDayFilters from "./ScheduleForDayFilters";
 import { mountUrl } from "@/utils/mountUrl";
 import ErrorModal from "@/components/common/ErrorModal";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+import { exportExcel } from "@/services/exportExcel";
 
 export default function MainSchduleForDay({
   columns,
@@ -51,32 +52,7 @@ export default function MainSchduleForDay({
       );
 
       try {
-        const response = await fetch(url, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          const errorResponse = await response.json();
-          const errorMessage = errorResponse?.message;
-          setError(`Erro ao gerar a planilha: ${errorMessage}`);
-          return;
-        }
-
-        const blob = await response.blob();
-
-        const downloadUrl = window.URL.createObjectURL(blob);
-
-        const link = document.createElement("a");
-        link.href = downloadUrl;
-        link.download = "Exportação Programação.xlsx";
-        document.body.appendChild(link);
-        link.click();
-
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(downloadUrl);
+        await exportExcel(url, token);
       } catch (error: any) {
         setError(`Erro ao gerar a planilha: ${error.message}`);
       }

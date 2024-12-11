@@ -1,14 +1,18 @@
 import { Module } from '@nestjs/common';
 import { ExportController } from './export.controller';
 import { ExportScheduleService } from './services/exportSchedule.service';
-import { exportWorksInPortfolioService } from './services/exportWorksInPortfolio.service';
-import { CacheModule } from 'src/cache/cache.module';
+import { ExportWorksInPortfolioService } from './services/exportWorksInPortfolio.service';
 import { WorksModule } from '../works/works.module';
 import { ScheduleModule } from '../schedule/shedule.module';
+import { ExportCompletedWorksService } from './services/exportCompletedWorks.service';
 
 @Module({
-  imports: [CacheModule, WorksModule, ScheduleModule],
+  imports: [WorksModule, ScheduleModule],
   controllers: [ExportController],
-  providers: [ExportScheduleService, exportWorksInPortfolioService],
+  providers: [
+    ExportScheduleService,
+    ExportWorksInPortfolioService,
+    ExportCompletedWorksService,
+  ],
 })
 export class ExportModule {}
