@@ -13,6 +13,7 @@ import { FiltersModule } from './modules/filters/filters.module';
 import { EntryModule } from './modules/entry/entry.module';
 import { WorksModule } from './modules/works/works.module';
 import { ScheduleModule } from './modules/schedule/shedule.module';
+import { ExportModule } from './modules/export/export.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ScheduleModule } from './modules/schedule/shedule.module';
     GoalsModule,
     FiltersModule,
     EntryModule,
+    ExportModule,
     ScheduleModule,
     JwtModule.register({
       global: true,

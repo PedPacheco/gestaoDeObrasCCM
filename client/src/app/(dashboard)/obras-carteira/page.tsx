@@ -34,7 +34,6 @@ export default async function WorksInPortfolio() {
     ovnota: "Ovnota",
     ordemdiagrama: "Ordem DCI/Diagrama",
     ordem_dcd: "Ordem DCD",
-    ordem_dci: "Ordem DCI",
     ordem_dca: "Ordem DCA",
     ordem_dcim: "Ordem DCIM",
     status_ov_sap: "Status SAP",

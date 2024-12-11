@@ -8,7 +8,9 @@ import { DateFilter } from "@/components/common/DateFilter";
 import { SelectComponent } from "@/components/common/Select";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { capitalize } from "@/utils/capitalize";
-import { Checkbox } from "@mui/material";
+import { Button, Checkbox } from "@mui/material";
+import { fetchData } from "@/services/fetchData";
+import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
 
 interface filters {
   regional: { id: string; regional: string }[];
@@ -22,12 +24,14 @@ interface ScheduleByDateFiltersProps {
   data: filters;
   onApplyFilters: (params: any) => {};
   openModal: () => void;
+  generateExcel: (params: any) => void;
 }
 
 export default function ScheduleForDayFilters({
   data,
   onApplyFilters,
   openModal,
+  generateExcel,
 }: ScheduleByDateFiltersProps) {
   const { clearFilters, filters, saveFilters } = useSaveFilters(
     "scheduleForDayFilters"
@@ -71,6 +75,21 @@ export default function ScheduleForDayFilters({
       executado: false,
     });
     clearFilters();
+  }
+
+  function handleGenerateExcel() {
+    const newSelectedItems = {
+      ...selectedItems,
+      data: date
+        ? filterType === "day"
+          ? date.format("DD/MM/YYYY")
+          : date.format("MM/YYYY")
+        : "",
+      tipoFiltro: filterType,
+      executado: executed.toString(),
+    };
+
+    generateExcel(newSelectedItems);
   }
 
   return (
@@ -119,7 +138,7 @@ export default function ScheduleForDayFilters({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-4 w-full">
         <ButtonComponent
           onClick={handleApplyFilters}
           text="Aplicar filtros"
@@ -135,6 +154,14 @@ export default function ScheduleForDayFilters({
           onClick={openModal}
           text="Ver valores totais"
           styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
+        />
+        <ButtonComponent
+          onClick={handleGenerateExcel}
+          text="Exportar"
+          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
+          startIcon={
+            <DocumentArrowDownIcon width={25} height={25} className="mr-2" />
+          }
         />
       </div>
     </>

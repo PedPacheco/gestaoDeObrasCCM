@@ -5,6 +5,7 @@ import { AuthModule } from 'src/modules/auth/auth.module';
 import { jwtConstants } from 'src/config/costants';
 import { AuthService } from 'src/modules/auth/auth.service';
 import { AuthController } from 'src/modules/auth/auth.controller';
+import { PrismaModule } from 'src/config/prisma/prisma.module';
 
 describe('AuthModule', () => {
   let module: TestingModule;
@@ -13,6 +14,7 @@ describe('AuthModule', () => {
     module = await Test.createTestingModule({
       imports: [
         AuthModule,
+        PrismaModule,
         JwtModule.register({
           global: true,
           secret: jwtConstants.secret,

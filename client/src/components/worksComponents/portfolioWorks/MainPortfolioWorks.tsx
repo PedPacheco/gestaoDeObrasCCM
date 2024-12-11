@@ -1,11 +1,16 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import nookies from "nookies";
 import { useCallback, useEffect, useState } from "react";
 
+import ErrorModal from "@/components/common/ErrorModal";
 import ModalComponent from "@/components/common/Modal";
 import { TableComponent } from "@/components/common/Table";
+import { exportExcel } from "@/services/exportExcel";
 import { fetchData } from "@/services/fetchData";
+import { mountUrl } from "@/utils/mountUrl";
+import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import PortfolioWorksFilters from "./PortfolioWorksFilters";
 
@@ -28,20 +33,42 @@ export default function PortfolioWorks({
 }: MainPortfolioWorksProps) {
   const [dataFiltered, setDataFiltered] = useState(data);
   const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>();
+  const pathname = usePathname();
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  const fetchWorks = useCallback(
+  const generateExcel = useCallback(
     async (params: Record<string, string>) => {
-      const response = await fetchData(
-        `${process.env.NEXT_PUBLIC_API_URL}/obras/${url}`,
-        params,
-        token,
-        { cache: "no-store" }
+      const url = mountUrl(
+        `${process.env.NEXT_PUBLIC_API_URL}/exportacao${pathname}`,
+        params
       );
 
-      setDataFiltered(response.data);
+      try {
+        await exportExcel(url, token);
+      } catch (error: any) {
+        setError(`Erro ao gerar a planilha: ${error.message}`);
+      }
+    },
+    [pathname, token]
+  );
+
+  const fetchWorks = useCallback(
+    async (params: Record<string, string>) => {
+      try {
+        const response = await fetchData(
+          `${process.env.NEXT_PUBLIC_API_URL}/obras/${url}`,
+          params,
+          token,
+          { cache: "no-store" }
+        );
+
+        setDataFiltered(response.data);
+      } catch (error: any) {
+        setError(error.message);
+      }
     },
     [token, url]
   );
@@ -62,6 +89,7 @@ export default function PortfolioWorks({
           data={filters}
           onApplyFilters={fetchWorks}
           openModal={handleOpen}
+          generateExcel={generateExcel}
         />
       </div>
 
@@ -100,6 +128,15 @@ export default function PortfolioWorks({
             })}
         </div>
       </ModalComponent>
+
+      {error && (
+        <ErrorModal
+          open={true}
+          message={error}
+          onClose={() => setError(null)}
+          icon={<ExclamationCircleIcon width={48} height={48} />}
+        />
+      )}
     </>
   );
 }
