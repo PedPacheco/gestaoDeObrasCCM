@@ -33,8 +33,8 @@ interface LoginResponse {
 
 export function FormLogin() {
   const [showPassword, SetShowPassoword] = useState(false);
-  const [error, setError] = useState<string>("");
-  const [keyError, setKeyError] = useState<string>("");
+  const [error, setError] = useState<string | null>();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const router = useRouter();
 
@@ -77,11 +77,11 @@ export function FormLogin() {
       } else {
         const error = await response.json();
         setError(error.message);
-        setKeyError(`${Date.now()}`);
+        setIsModalOpen(true);
       }
     } catch (error: any) {
       setError("Ocorreu um erro durante o login.");
-      setKeyError(`${Date.now()}`);
+      setIsModalOpen(true);
     }
   }
 
@@ -141,9 +141,10 @@ export function FormLogin() {
 
       {error && (
         <ErrorModal
+          open={isModalOpen}
           message={error}
+          onClose={() => setError(null)}
           icon={<ExclamationCircleIcon width={48} height={48} />}
-          keyError={keyError}
         />
       )}
     </form>

@@ -57,8 +57,6 @@ export class GetValuesWeeklyScheduleService {
       },
     });
 
-    console.log(works);
-
     return works.map((work) => ({
       id: work.id,
       ovnota: work.ovnota,

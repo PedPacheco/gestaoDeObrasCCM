@@ -61,8 +61,8 @@ export default function PortfolioWorksFilters({
       tipoFiltro: filterType,
     };
 
-    saveFilters(newSelectedItems);
     onApplyFilters(newSelectedItems);
+    saveFilters(newSelectedItems);
   }
 
   function handleCleanigFilters() {
@@ -99,8 +99,6 @@ export default function PortfolioWorksFilters({
           setDate={setDate}
           type={filterType}
           setType={setFilterType}
-          nameToSelectDate="data"
-          nameToSelectFilter="tipoFiltro"
         />
         {Object.entries(data).map(([key, value], index) => {
           const valueKey = Object.keys(value[0])[0];
@@ -133,7 +131,6 @@ export default function PortfolioWorksFilters({
       <div className="grid grid-cols-1 lg:grid-cols-4 w-full">
         <ButtonComponent
           onClick={handleApplyFilters}
-          type="submit"
           text="Aplicar filtros"
           styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
         />
@@ -149,6 +146,7 @@ export default function PortfolioWorksFilters({
           styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
         />
         <ButtonComponent
+          onClick={handleGenerateExcel}
           text="Exportar"
           styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
           startIcon={

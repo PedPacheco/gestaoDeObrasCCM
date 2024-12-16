@@ -12,8 +12,6 @@ interface DateFilterProps {
   type: string;
   setType: (type: string) => void;
   marginLeft?: string;
-  nameToSelectFilter: string;
-  nameToSelectDate: string;
 }
 
 export function DateFilter({
@@ -22,8 +20,6 @@ export function DateFilter({
   type,
   setType,
   marginLeft,
-  nameToSelectFilter,
-  nameToSelectDate,
 }: DateFilterProps) {
   return (
     <>
@@ -36,7 +32,6 @@ export function DateFilter({
           value={type}
           onChange={(event) => setType(event.target.value)}
           label="Tipo de Filtro"
-          name={nameToSelectFilter}
         >
           <MenuItem value="day">Por Dia</MenuItem>
           <MenuItem value="month">Por Mês</MenuItem>
@@ -54,7 +49,6 @@ export function DateFilter({
             value={date}
             onChange={(value) => setDate(value)}
             slotProps={{ textField: { size: "small", fullWidth: true } }}
-            name={nameToSelectDate}
           />
         </LocalizationProvider>
       </div>
