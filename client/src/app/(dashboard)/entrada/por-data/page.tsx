@@ -1,28 +1,31 @@
 import MainEntryByDate from "@/components/entryComponents/entryByDate/MainEntryByDate";
-import { fetchData } from "@/services/fetchData";
-import { fetchFilters } from "@/services/fetchFilters";
+import { fetchData } from "@/actions/fetchData.action";
+import { fetchFilters } from "@/actions/fetchFilters.action";
 import dayjs from "dayjs";
 import { cookies } from "next/headers";
 
 export default async function EntryForDate() {
-  const filters = await fetchFilters({
-    regional: true,
-    parceira: true,
-    tipo: true,
-    municipio: true,
-    grupo: true,
-    circuito: true,
-  });
+  const cookieStore = await cookies();
 
-  const cookieStore = cookies();
+  const [filters, entryData] = await Promise.all([
+    fetchFilters({
+      regional: true,
+      parceira: true,
+      tipo: true,
+      municipio: true,
+      grupo: true,
+      circuito: true,
+    }),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/entrada/data?data=${dayjs().format(
+        "DD/MM/YYYY"
+      )}&tipoFiltro=day`,
+      undefined,
+      cookieStore.get("token")?.value
+    ),
+  ]);
 
-  const { token, data } = await fetchData(
-    `${process.env.NEXT_PUBLIC_API_URL}/entrada/data?data=${dayjs().format(
-      "DD/MM/YYYY"
-    )}&tipoFiltro=day`,
-    undefined,
-    cookieStore.get("token")?.value
-  );
+  const { token, data } = entryData;
 
   const columnMapping = {
     id: "ID",

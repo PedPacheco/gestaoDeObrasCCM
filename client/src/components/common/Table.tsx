@@ -13,7 +13,7 @@ import {
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useRouter } from "next/navigation";
-import { forwardRef } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import { TableComponents, TableVirtuoso } from "react-virtuoso";
 
 interface TableComponentProps {
@@ -50,6 +50,19 @@ export function TableComponent({
   sliceEndIndex,
 }: TableComponentProps) {
   const router = useRouter();
+
+  const [isClient, setIsClient] = useState(false);
+
+  // Verifique se o código está no cliente
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsClient(true);
+    }
+  }, []);
+
+  if (!isClient) {
+    return;
+  }
 
   function fixedHeaderContent() {
     return (

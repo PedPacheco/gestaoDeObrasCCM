@@ -4,8 +4,8 @@ import { useState } from "react";
 import GoalsTable from "./GoalsTable";
 import HomePageFilters from "./HomePageFilters";
 import ModalGoals from "./GoalsModal";
-import { fetchData } from "@/services/fetchData";
 import { MainInterface } from "@/interfaces/mainInterface";
+import { fetchData } from "@/actions/fetchData.action";
 
 interface filters {
   regional: { id: string; regional: string }[];

@@ -1,21 +1,24 @@
 import MainPendingSchedule from "@/components/scheduleComponents/pendingSchedule/MainPendingSchedule";
-import { fetchData } from "@/services/fetchData";
-import { fetchFilters } from "@/services/fetchFilters";
+import { fetchData } from "@/actions/fetchData.action";
+import { fetchFilters } from "@/actions/fetchFilters.action";
 import { cookies } from "next/headers";
 
 export default async function PendingSchedule() {
-  const filters = await fetchFilters({
-    parceira: true,
-    regional: true,
-  });
+  const cookieStore = await cookies();
 
-  const cookieStore = cookies();
+  const [filters, scheduleData] = await Promise.all([
+    fetchFilters({
+      parceira: true,
+      regional: true,
+    }),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/programacao/pendente`,
+      undefined,
+      cookieStore.get("token")?.value
+    ),
+  ]);
 
-  const { token, data } = await fetchData(
-    `${process.env.NEXT_PUBLIC_API_URL}/programacao/pendente`,
-    undefined,
-    cookieStore.get("token")?.value
-  );
+  const { token, data } = scheduleData;
 
   const columns = {
     id: "ID",

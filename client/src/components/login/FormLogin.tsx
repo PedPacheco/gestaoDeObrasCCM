@@ -1,18 +1,20 @@
 "use client";
 
-import { userLoginSchema } from "@/validations/validationUserLogin";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ErrorMessage } from "@hookform/error-message";
-import { Checkbox, TextField } from "@mui/material";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { useState } from "react";
-import { ButtonComponent } from "../common/Button";
-import nookies from "nookies";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import ErrorModal from "../common/ErrorModal";
+import nookies from "nookies";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
+import { userLoginSchema } from "@/validations/validationUserLogin";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+import { ErrorMessage } from "@hookform/error-message";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Checkbox, TextField } from "@mui/material";
+
+import ErrorModal from "../common/ErrorModal";
+import { ButtonComponent } from "../common/Button";
 
 type UserLoginSchema = z.infer<typeof userLoginSchema>;
 
@@ -31,8 +33,8 @@ interface LoginResponse {
 
 export function FormLogin() {
   const [showPassword, SetShowPassoword] = useState(false);
-  const [error, setError] = useState<string | null>();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [error, setError] = useState<string>("");
+  const [keyError, setKeyError] = useState<string>("");
 
   const router = useRouter();
 
@@ -75,13 +77,15 @@ export function FormLogin() {
       } else {
         const error = await response.json();
         setError(error.message);
-        setIsModalOpen(true);
+        setKeyError(`${Date.now()}`);
       }
     } catch (error: any) {
       setError("Ocorreu um erro durante o login.");
-      setIsModalOpen(true);
+      setKeyError(`${Date.now()}`);
     }
   }
+
+  console.log(error);
 
   return (
     <form
@@ -137,10 +141,9 @@ export function FormLogin() {
 
       {error && (
         <ErrorModal
-          open={isModalOpen}
           message={error}
-          onClose={() => setError(null)}
           icon={<ExclamationCircleIcon width={48} height={48} />}
+          keyError={keyError}
         />
       )}
     </form>

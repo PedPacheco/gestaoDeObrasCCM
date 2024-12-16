@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import EntryByDateFilters from "./EntryByDateFilters";
-import { fetchData } from "@/services/fetchData";
+import { fetchData } from "@/actions/fetchData.action";
 import { TableComponent } from "@/components/common/Table";
 import { MainInterface } from "@/interfaces/mainInterface";
 

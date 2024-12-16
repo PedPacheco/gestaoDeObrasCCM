@@ -6,13 +6,13 @@ import { useCallback, useEffect, useState } from "react";
 import ModalComponent from "@/components/common/Modal";
 import { TableComponent } from "@/components/common/Table";
 import { MainInterface } from "@/interfaces/mainInterface";
-import { fetchData } from "@/services/fetchData";
+import { fetchData } from "@/actions/fetchData.action";
 
 import ScheduleForDayFilters from "./ScheduleForDayFilters";
 import { mountUrl } from "@/utils/mountUrl";
 import ErrorModal from "@/components/common/ErrorModal";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
-import { exportExcel } from "@/services/exportExcel";
+import { exportExcel } from "@/actions/generateExcel.action";
 
 export default function MainSchduleForDay({
   columns,
@@ -52,7 +52,17 @@ export default function MainSchduleForDay({
       );
 
       try {
-        await exportExcel(url, token);
+        const blob = await exportExcel(url, token);
+
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = "Exportação obras em carteira.xlsx";
+        document.body.append(link);
+        link.click();
+
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
       } catch (error: any) {
         setError(`Erro ao gerar a planilha: ${error.message}`);
       }

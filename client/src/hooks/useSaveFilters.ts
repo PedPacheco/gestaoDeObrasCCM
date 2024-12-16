@@ -14,6 +14,7 @@ export function useSaveFilters(pageKey: string) {
   }, [pageKey]);
 
   function saveFilters(newFilters: Record<string, string>) {
+    console.log(newFilters);
     setFilters(newFilters);
     nookies.set(null, pageKey, JSON.stringify(newFilters));
   }

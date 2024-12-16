@@ -53,6 +53,8 @@ export class ScheduleController {
   @Get('semanal')
   @UseGuards(PermissionGuard)
   async getValuesWeeklySchedule(@Query() filters: GetValueWeeklyScheduleDTO) {
+    console.log(filters.idMunicipio);
+
     const response =
       await this.getValuesWeeklyScheduleService.getValues(filters);
 

@@ -1,32 +1,42 @@
-import MainWeeklySchedule from "@/components/scheduleComponents/weeklySchedule/MainWeeklySchedule";
-import { fetchData } from "@/services/fetchData";
-import { fetchFilters } from "@/services/fetchFilters";
 import dayjs from "dayjs";
+import isoWeek from "dayjs/plugin/isoWeek";
 import { cookies } from "next/headers";
 
+import { fetchData } from "@/actions/fetchData.action";
+import { fetchFilters } from "@/actions/fetchFilters.action";
+import MainWeeklySchedule from "@/components/scheduleComponents/weeklySchedule/MainWeeklySchedule";
+
+dayjs.extend(isoWeek);
+
 export default async function WeeklySchedule() {
-  const filters = await fetchFilters({
-    regional: true,
-    municipio: true,
-    parceira: true,
-    grupo: true,
-    tipo: true,
-  });
+  const cookieStore = await cookies();
 
-  const cookieStore = cookies();
+  const startOfWeek = dayjs().startOf("isoWeek").format("DD/MM/YYYY");
+  const endOfWeek = dayjs().endOf("isoWeek").format("DD/MM/YYYY");
 
-  const startOfWeek = dayjs()
-    .startOf("week")
-    .add(1, "day")
-    .format("DD/MM/YYYY");
+  const [filters, scheduleData] = await Promise.all([
+    fetchFilters({
+      regional: true,
+      municipio: true,
+      parceira: true,
+      grupo: true,
+      tipo: true,
+    }),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/programacao/semanal?dataInicial=${startOfWeek}&dataFinal=${endOfWeek}&executado=false`,
+      undefined,
+      cookieStore.get("token")?.value
+    ),
+  ]);
 
-  const endOfWeek = dayjs().endOf("week").format("DD/MM/YYYY");
+  const { token, data } = scheduleData;
 
-  const { token, data } = await fetchData(
-    `${process.env.NEXT_PUBLIC_API_URL}/programacao/semanal?dataInicial=${startOfWeek}&dataFinal=${endOfWeek}&executado=false`,
-    undefined,
-    cookieStore.get("token")?.value
+  return (
+    <MainWeeklySchedule
+      data={data}
+      filters={filters}
+      token={token}
+      columns={{ column: "strrte" }}
+    />
   );
-
-  return <MainWeeklySchedule data={data} filters={filters} token={token} />;
 }

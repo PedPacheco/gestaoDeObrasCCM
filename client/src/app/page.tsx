@@ -1,24 +1,28 @@
+import { fetchData } from "@/actions/fetchData.action";
+import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainHome from "@/components/home/MainHome";
 import { Header } from "@/components/layout/Header";
-import { fetchData } from "@/services/fetchData";
-import { fetchFilters } from "@/services/fetchFilters";
 import { cookies } from "next/headers";
 import { Suspense } from "react";
 
 export default async function Home() {
-  const filters = await fetchFilters({
-    regional: true,
-    parceira: true,
-    tipo: true,
-  });
+  const cookieStore = await cookies();
 
-  const cookieStore = cookies();
+  const [filters, homeData] = await Promise.all([
+    fetchFilters({
+      regional: true,
+      parceira: true,
+      tipo: true,
+    }),
 
-  const { data, token } = await fetchData(
-    `${process.env.NEXT_PUBLIC_API_URL}/metas`,
-    undefined,
-    cookieStore.get("token")?.value
-  );
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/metas`,
+      undefined,
+      cookieStore.get("token")?.value
+    ),
+  ]);
+
+  const { data, token } = homeData;
 
   const columnMapping = {
     regional: "Regional",
