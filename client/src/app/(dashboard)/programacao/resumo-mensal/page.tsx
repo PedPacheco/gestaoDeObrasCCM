@@ -1,11 +1,11 @@
 import { MainMonthlySummarySchedule } from "@/components/scheduleComponents/monthlySummary/mainMonthlySummarySchedule";
-import { fetchData } from "@/services/fetchData";
-import { fetchFilters } from "@/services/fetchFilters";
+import { fetchData } from "@/actions/fetchData.action";
+import { fetchFilters } from "@/actions/fetchFilters.action";
 import dayjs from "dayjs";
 import { cookies } from "next/headers";
 
 export default async function MonthlySummary() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
 
   async function fetchMonthlySummary(endpoint: string) {
     const url = `${

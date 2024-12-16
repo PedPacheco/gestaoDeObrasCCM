@@ -8,8 +8,7 @@ import { DateFilter } from "@/components/common/DateFilter";
 import { SelectComponent } from "@/components/common/Select";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { capitalize } from "@/utils/capitalize";
-import { Button, Checkbox } from "@mui/material";
-import { fetchData } from "@/services/fetchData";
+import { Checkbox } from "@mui/material";
 import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
 
 interface filters {
@@ -159,9 +158,9 @@ export default function ScheduleForDayFilters({
           onClick={handleGenerateExcel}
           text="Exportar"
           styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
-          startIcon={
-            <DocumentArrowDownIcon width={25} height={25} className="mr-2" />
-          }
+          // startIcon={
+          //   <DocumentArrowDownIcon width={25} height={25} className="mr-2" />
+          // }
         />
       </div>
     </>

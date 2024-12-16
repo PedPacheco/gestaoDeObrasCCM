@@ -4,20 +4,21 @@ import { usePathname } from "next/navigation";
 import nookies from "nookies";
 import { useCallback, useEffect, useState } from "react";
 
-import ErrorModal from "@/components/common/ErrorModal";
+import { fetchData } from "@/actions/fetchData.action";
 import ModalComponent from "@/components/common/Modal";
 import { TableComponent } from "@/components/common/Table";
-import { exportExcel } from "@/services/exportExcel";
-import { fetchData } from "@/services/fetchData";
 import { mountUrl } from "@/utils/mountUrl";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import PortfolioWorksFilters from "./PortfolioWorksFilters";
+import { exportExcel } from "@/actions/generateExcel.action";
+import ErrorModal from "@/components/common/ErrorModal";
+import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 interface MainPortfolioWorksProps {
   data: any;
   filters: any;
   token: string;
+  cookie: string;
   columns: Record<string, string>;
   url: string;
   totalValues: number;
@@ -28,6 +29,7 @@ export default function PortfolioWorks({
   filters,
   token,
   columns,
+  cookie,
   url,
   totalValues,
 }: MainPortfolioWorksProps) {
@@ -47,7 +49,17 @@ export default function PortfolioWorks({
       );
 
       try {
-        await exportExcel(url, token);
+        const blob = await exportExcel(url, token);
+
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = "Exportação obras em carteira.xlsx";
+        document.body.append(link);
+        link.click();
+
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
       } catch (error: any) {
         setError(`Erro ao gerar a planilha: ${error.message}`);
       }
@@ -75,7 +87,7 @@ export default function PortfolioWorks({
 
   useEffect(() => {
     const cookies = nookies.get();
-    const params = cookies["portfolioWorksFilters"];
+    const params = cookies[cookie];
 
     if (params) {
       fetchWorks(JSON.parse(params));
@@ -87,6 +99,7 @@ export default function PortfolioWorks({
       <div className="my-6 w-11/12 flex flex-col items-center">
         <PortfolioWorksFilters
           data={filters}
+          url={cookie}
           onApplyFilters={fetchWorks}
           openModal={handleOpen}
           generateExcel={generateExcel}

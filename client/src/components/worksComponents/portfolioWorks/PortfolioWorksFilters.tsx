@@ -1,3 +1,5 @@
+"use client";
+
 import { Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
 
@@ -24,6 +26,7 @@ interface filters {
 
 interface PortfolioWorksFiltersProps {
   data: filters;
+  url: string;
   onApplyFilters: (params: any) => {};
   openModal: () => void;
   generateExcel: (params: any) => {};
@@ -31,13 +34,12 @@ interface PortfolioWorksFiltersProps {
 
 export default function PortfolioWorksFilters({
   data,
+  url,
+  generateExcel,
   onApplyFilters,
   openModal,
-  generateExcel,
 }: PortfolioWorksFiltersProps) {
-  const { clearFilters, filters, saveFilters } = useSaveFilters(
-    "portfolioWorksFilters"
-  );
+  const { clearFilters, filters, saveFilters } = useSaveFilters(url);
   const [selectedItems, setSelectedItems] = useState<Record<string, string>>(
     {}
   );

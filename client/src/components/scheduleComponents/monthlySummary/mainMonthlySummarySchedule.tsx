@@ -3,7 +3,7 @@
 import nookies from "nookies";
 import { useCallback, useEffect, useState } from "react";
 
-import { fetchData } from "@/services/fetchData";
+import { fetchData } from "@/actions/fetchData.action";
 
 import { MonthlySummaryScheduleFilters } from "./monthlySummaryScheduleFilters";
 import { MonthlySummaryScheduleTable } from "./monthlySummaryScheduleTable";

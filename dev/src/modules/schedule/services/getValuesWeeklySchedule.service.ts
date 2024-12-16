@@ -14,6 +14,7 @@ export class GetValuesWeeklyScheduleService {
       executado,
       idGrupo,
       idParceira,
+      idMunicipio,
       idRegional,
       idTipo,
     } = filters;
@@ -30,6 +31,7 @@ export class GetValuesWeeklyScheduleService {
           },
         },
         municipios: { id_regional: idRegional || undefined },
+        id_gpm: idMunicipio || undefined,
         id_turma: idParceira || undefined,
         id_tipo: idTipo || undefined,
         tipos: { id_grupo: idGrupo || undefined },

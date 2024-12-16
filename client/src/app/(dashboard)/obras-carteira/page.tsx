@@ -1,33 +1,36 @@
 import PortfolioWorks from "@/components/worksComponents/portfolioWorks/MainPortfolioWorks";
-import { fetchData } from "@/services/fetchData";
-import { fetchFilters } from "@/services/fetchFilters";
+import { fetchData } from "@/actions/fetchData.action";
+import { fetchFilters } from "@/actions/fetchFilters.action";
 import { cookies } from "next/headers";
 
 export default async function WorksInPortfolio() {
-  const filters = await fetchFilters({
-    regional: true,
-    parceira: true,
-    tipo: true,
-    municipio: true,
-    grupo: true,
-    circuito: true,
-    conjunto: true,
-    status: true,
-    ovnota: true,
-    empreendimento: true,
-  });
-
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const cookieParams = cookieStore.get("portfolioWorksFilters")?.value;
 
   const params = cookieParams ? JSON.parse(cookieParams) : undefined;
 
-  const { token, data } = await fetchData(
-    `${process.env.NEXT_PUBLIC_API_URL}/obras/obras-carteira`,
-    params,
-    cookieStore.get("token")?.value,
-    { cache: "no-store" }
-  );
+  const [filters, worksData] = await Promise.all([
+    fetchFilters({
+      regional: true,
+      parceira: true,
+      tipo: true,
+      municipio: true,
+      grupo: true,
+      circuito: true,
+      conjunto: true,
+      status: true,
+      ovnota: true,
+      empreendimento: true,
+    }),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/obras/obras-carteira`,
+      params,
+      cookieStore.get("token")?.value,
+      { cache: "no-store" }
+    ),
+  ]);
+
+  const { token, data } = worksData;
 
   const columnMapping = {
     id: "ID",
@@ -76,6 +79,7 @@ export default async function WorksInPortfolio() {
       data={data}
       token={token}
       filters={filters}
+      cookie="portfolioWorksFilters"
       columns={columnMapping}
       url="obras-carteira"
       totalValues={34}

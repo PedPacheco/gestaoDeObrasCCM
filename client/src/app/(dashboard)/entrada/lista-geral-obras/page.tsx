@@ -1,26 +1,29 @@
 import MainAllWorks from "@/components/worksComponents/allWorks/MainAllWorks";
-import { fetchData } from "@/services/fetchData";
-import { fetchFilters } from "@/services/fetchFilters";
+import { fetchData } from "@/actions/fetchData.action";
+import { fetchFilters } from "@/actions/fetchFilters.action";
 import { cookies } from "next/headers";
 
 export default async function AllWorks() {
-  const filters = await fetchFilters({
-    regional: true,
-    parceira: true,
-    tipo: true,
-    municipio: true,
-    grupo: true,
-    status: true,
-  });
+  const cookieStore = await cookies();
 
-  const cookieStore = cookies();
+  const [filters, worksData] = await Promise.all([
+    fetchFilters({
+      regional: true,
+      parceira: true,
+      tipo: true,
+      municipio: true,
+      grupo: true,
+      status: true,
+    }),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/obras`,
+      undefined,
+      cookieStore.get("token")?.value,
+      { cache: "no-store" }
+    ),
+  ]);
 
-  const { token, data } = await fetchData(
-    `${process.env.NEXT_PUBLIC_API_URL}/obras`,
-    undefined,
-    cookieStore.get("token")?.value,
-    { cache: "no-store" }
-  );
+  const { data, token } = worksData;
 
   const columnMapping = {
     ovnota: "Ovnota",

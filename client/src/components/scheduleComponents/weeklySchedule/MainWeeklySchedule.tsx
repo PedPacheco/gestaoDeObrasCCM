@@ -6,7 +6,7 @@ import nookies from "nookies";
 import { useCallback, useEffect, useState } from "react";
 
 import { MainInterface } from "@/interfaces/mainInterface";
-import { fetchData } from "@/services/fetchData";
+import { fetchData } from "@/actions/fetchData.action";
 
 import WeeklyScheduleFilters from "./WeeklyScheduleFilters";
 import WeeklyScheduleTable from "./WeeklyScheduleTable";
@@ -60,6 +60,7 @@ export default function MainWeeklySchedule({
     if (newDate) {
       const startOfWeek = newDate.startOf("isoWeek");
       const endOfWeek = newDate.endOf("isoWeek");
+
       setSelectedDate(newDate);
       setWeekRange({
         start: startOfWeek.format("DD/MM/YYYY"),

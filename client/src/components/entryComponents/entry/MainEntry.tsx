@@ -1,6 +1,6 @@
 "use client";
 
-import { fetchData } from "@/services/fetchData";
+import { fetchData } from "@/actions/fetchData.action";
 import EntryFilters from "./EntryFilters";
 import EntryTable from "./EntryTable";
 import { useCallback, useEffect, useState } from "react";

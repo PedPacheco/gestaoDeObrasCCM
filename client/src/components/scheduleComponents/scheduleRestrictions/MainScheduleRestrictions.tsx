@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { TableComponent } from "@/components/common/Table";
 import { MainInterface } from "@/interfaces/mainInterface";
-import { fetchData } from "@/services/fetchData";
+import { fetchData } from "@/actions/fetchData.action";
 
 import WeeklyScheduleFilters from "../weeklySchedule/WeeklyScheduleFilters";
 

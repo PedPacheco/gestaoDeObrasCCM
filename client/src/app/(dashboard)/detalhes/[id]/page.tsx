@@ -1,6 +1,6 @@
 import DataItem from "@/components/details/dataItem";
 import TabPanel from "@/components/details/TabPanel";
-import { fetchData } from "@/services/fetchData";
+import { fetchData } from "@/actions/fetchData.action";
 import dayjs from "dayjs";
 import { cookies } from "next/headers";
 
@@ -8,13 +8,18 @@ interface DataResponse {
   data: Record<string, any>;
 }
 
-export default async function Details({ params }: { params: { id: string } }) {
+export default async function Details({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
   const cookieStore = cookies();
 
   const { token, data } = await fetchData<DataResponse>(
-    `${process.env.NEXT_PUBLIC_API_URL}/obras/${params.id}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/obras/${id}`,
     undefined,
-    cookieStore.get("token")?.value
+    (await cookieStore).get("token")?.value
   );
 
   const entrada = dayjs(data.data.entrada);

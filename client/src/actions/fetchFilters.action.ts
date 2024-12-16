@@ -1,7 +1,9 @@
+"use server";
+
 import { cookies } from "next/headers";
 
 export async function fetchFilters(params: { [key: string]: boolean } = {}) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
   if (!token) {
@@ -19,7 +21,7 @@ export async function fetchFilters(params: { [key: string]: boolean } = {}) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        next: { revalidate: 1440 },
+        next: { revalidate: 60 * 60 },
       }
     );
 

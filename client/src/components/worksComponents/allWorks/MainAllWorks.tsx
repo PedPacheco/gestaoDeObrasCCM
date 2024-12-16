@@ -4,7 +4,7 @@ import nookies from "nookies";
 import { useCallback, useEffect, useState } from "react";
 
 import { MainInterface } from "@/interfaces/mainInterface";
-import { fetchData } from "@/services/fetchData";
+import { fetchData } from "@/actions/fetchData.action";
 
 import MainAllWorksFilters from "./allWorksFilter";
 import MainAllWorksTable from "./allWorksTable";

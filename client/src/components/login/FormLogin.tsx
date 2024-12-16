@@ -1,18 +1,20 @@
 "use client";
 
-import { userLoginSchema } from "@/validations/validationUserLogin";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ErrorMessage } from "@hookform/error-message";
-import { Checkbox, TextField } from "@mui/material";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { useState } from "react";
-import { ButtonComponent } from "../common/Button";
-import nookies from "nookies";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import ErrorModal from "../common/ErrorModal";
+import nookies from "nookies";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
+import { userLoginSchema } from "@/validations/validationUserLogin";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+import { ErrorMessage } from "@hookform/error-message";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Checkbox, TextField } from "@mui/material";
+
+import ErrorModal from "../common/ErrorModal";
+import { ButtonComponent } from "../common/Button";
 
 type UserLoginSchema = z.infer<typeof userLoginSchema>;
 
@@ -82,6 +84,8 @@ export function FormLogin() {
       setIsModalOpen(true);
     }
   }
+
+  console.log(error);
 
   return (
     <form
