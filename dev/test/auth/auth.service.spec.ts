@@ -31,6 +31,7 @@ const user: usuario = {
   nome_maquina: null,
   nome_usuario: 'teste',
   permissao: 'Total',
+  permissao_visualizacao: 'parcial',
 };
 
 describe('AuthService', () => {
@@ -109,6 +110,7 @@ describe('AuthService', () => {
         nome_usuario: user.nome_usuario,
         email: user.email,
         access_token: access_token,
+        permissao_visualizacao: user.permissao_visualizacao,
       });
     });
   });
@@ -155,12 +157,12 @@ describe('AuthService', () => {
       });
       expect(sendEmailSpy).toHaveBeenCalledTimes(1);
       expect(sendEmailSpy).toHaveBeenCalledWith(
-        user.email,
+        '10009591@edp.com.br',
         'Bem vindo ao sistema',
         expect.stringContaining(user.username),
       );
       expect(sendEmailSpy).toHaveBeenCalledWith(
-        user.email,
+        '10009591@edp.com.br',
         'Bem vindo ao sistema',
         expect.stringContaining(hashedPassword),
       );
@@ -171,24 +173,24 @@ describe('AuthService', () => {
     it('should return NotFoundExpection if user is not found', async () => {
       jest.spyOn(usersService, 'findUser').mockResolvedValue(null);
 
-      await expect(authService.resetPassword('teste')).rejects.toThrow(
+      await expect(authService.sendEmailResetPassword('teste')).rejects.toThrow(
         new NotFoundException('Usuário não encontrado'),
       );
     });
 
     it('should create a token and send email to change user password', async () => {
       const jwtToken = 'jwt_token';
-      const resetLink = `http://localhost:3000/reset-password?token=${jwtToken}`;
+      const resetLink = `http://localhost:8080/reset-password?token=${jwtToken}`;
 
       jest.spyOn(usersService, 'findUser').mockResolvedValue(user);
       jest.spyOn(jwtService, 'sign').mockReturnValue(jwtToken);
       const spyEmail = jest.spyOn(emailService, 'sendEmail');
 
-      await authService.resetPassword(user.username);
+      await authService.sendEmailResetPassword(user.username);
 
       expect(spyEmail).toHaveBeenCalledTimes(1);
       expect(spyEmail).toHaveBeenCalledWith(
-        user.email,
+        '10009591@edp.com.br',
         'Redefinição de senha',
         `Clique no link abaixo para redefinir sua senha: ${resetLink}`,
       );

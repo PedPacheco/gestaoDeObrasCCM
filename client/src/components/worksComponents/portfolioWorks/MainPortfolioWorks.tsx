@@ -1,15 +1,24 @@
 "use client";
 
-import { fetchData } from "@/services/fetchData";
-import { useState } from "react";
-import PortfolioWorksFilters from "./PortfolioWorksFilters";
+import { usePathname } from "next/navigation";
+import nookies from "nookies";
+import { useCallback, useEffect, useState } from "react";
+
+import { fetchData } from "@/actions/fetchData.action";
 import ModalComponent from "@/components/common/Modal";
 import { TableComponent } from "@/components/common/Table";
+import { mountUrl } from "@/utils/mountUrl";
+
+import PortfolioWorksFilters from "./PortfolioWorksFilters";
+import { exportExcel } from "@/actions/generateExcel.action";
+import ErrorModal from "@/components/common/ErrorModal";
+import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 interface MainPortfolioWorksProps {
   data: any;
   filters: any;
   token: string;
+  cookie: string;
   columns: Record<string, string>;
   url: string;
   totalValues: number;
@@ -20,33 +29,80 @@ export default function PortfolioWorks({
   filters,
   token,
   columns,
+  cookie,
   url,
   totalValues,
 }: MainPortfolioWorksProps) {
   const [dataFiltered, setDataFiltered] = useState(data);
   const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>();
+  const pathname = usePathname();
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  async function fetchWorks(params: Record<string, string>) {
-    const response = await fetchData(
-      `${process.env.NEXT_PUBLIC_API_URL}/obras/${url}`,
-      params,
-      token,
-      { cache: "no-store" }
-    );
+  const generateExcel = useCallback(
+    async (params: Record<string, string>) => {
+      const url = mountUrl(
+        `${process.env.NEXT_PUBLIC_API_URL}/exportacao${pathname}`,
+        params
+      );
 
-    setDataFiltered(response.data);
-  }
+      try {
+        const blob = await exportExcel(url, token);
+
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = "Exportação obras em carteira.xlsx";
+        document.body.append(link);
+        link.click();
+
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+      } catch (error: any) {
+        setError(`Erro ao gerar a planilha: ${error.message}`);
+      }
+    },
+    [pathname, token]
+  );
+
+  const fetchWorks = useCallback(
+    async (params: Record<string, string>) => {
+      try {
+        const response = await fetchData(
+          `${process.env.NEXT_PUBLIC_API_URL}/obras/${url}`,
+          params,
+          token,
+          { cache: "no-store" }
+        );
+
+        setDataFiltered(response.data);
+      } catch (error: any) {
+        setError(error.message);
+      }
+    },
+    [token, url]
+  );
+
+  useEffect(() => {
+    const cookies = nookies.get();
+    const params = cookies[cookie];
+
+    if (params) {
+      fetchWorks(JSON.parse(params));
+    }
+  }, [fetchWorks, cookie]);
 
   return (
     <>
       <div className="my-6 w-11/12 flex flex-col items-center">
         <PortfolioWorksFilters
           data={filters}
+          url={cookie}
           onApplyFilters={fetchWorks}
           openModal={handleOpen}
+          generateExcel={generateExcel}
         />
       </div>
 
@@ -85,6 +141,15 @@ export default function PortfolioWorks({
             })}
         </div>
       </ModalComponent>
+
+      {error && (
+        <ErrorModal
+          open={true}
+          message={error}
+          onClose={() => setError(null)}
+          icon={<ExclamationCircleIcon width={48} height={48} />}
+        />
+      )}
     </>
   );
 }

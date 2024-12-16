@@ -1,19 +1,11 @@
 import MainScheduleRestrictions from "@/components/scheduleComponents/scheduleRestrictions/MainScheduleRestrictions";
-import { fetchData } from "@/services/fetchData";
-import { fetchFilters } from "@/services/fetchFilters";
+import { fetchData } from "@/actions/fetchData.action";
+import { fetchFilters } from "@/actions/fetchFilters.action";
 import dayjs from "dayjs";
 import { cookies } from "next/headers";
 
 export default async function ScheduleRestrictions() {
-  const filters = await fetchFilters({
-    parceira: true,
-    regional: true,
-    municipio: true,
-    grupo: true,
-    tipo: true,
-  });
-
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
 
   const startOfWeek = dayjs()
     .startOf("week")
@@ -22,13 +14,25 @@ export default async function ScheduleRestrictions() {
 
   const endOfWeek = dayjs().endOf("week").format("DD/MM/YYYY");
 
-  const { token, data } = await fetchData(
-    `${process.env.NEXT_PUBLIC_API_URL}/programacao/restricoes?dataInicial=${startOfWeek}&dataFinal=${endOfWeek}&executado=false`,
-    undefined,
-    cookieStore.get("token")?.value
-  );
+  const [filters, scheduleData] = await Promise.all([
+    fetchFilters({
+      parceira: true,
+      regional: true,
+      municipio: true,
+      grupo: true,
+      tipo: true,
+    }),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/programacao/restricoes?dataInicial=${startOfWeek}&dataFinal=${endOfWeek}&executado=false`,
+      undefined,
+      cookieStore.get("token")?.value
+    ),
+  ]);
+
+  const { token, data } = scheduleData;
 
   const columns = {
+    id: "id",
     ovnota: "Ovnota",
     mun: "Municipio",
     tipo: "Tipo",
@@ -36,7 +40,7 @@ export default async function ScheduleRestrictions() {
     executado: "Total executado",
     data_prog: "Data programada",
     prog: "Programado",
-    exec: "Executado programação",
+    exec: "Executado",
     obersvacao_restricao: "Observação da restrição",
     restricao_prog1: "1° Restrição",
     responsabilidade1: "1° Responsabilidade",

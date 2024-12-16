@@ -1,9 +1,14 @@
-import { capitalize } from "@/utils/capitalize";
-import { useState } from "react";
+"use client";
+
 import { Dayjs } from "dayjs";
+import { useEffect, useState } from "react";
+
+import { ButtonComponent } from "@/components/common/Button";
 import { DateFilter } from "@/components/common/DateFilter";
 import { SelectComponent } from "@/components/common/Select";
-import { ButtonComponent } from "@/components/common/Button";
+import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { capitalize } from "@/utils/capitalize";
+import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
 
 interface filters {
   regional: { id: string; regional: string }[];
@@ -21,20 +26,29 @@ interface filters {
 
 interface PortfolioWorksFiltersProps {
   data: filters;
+  url: string;
   onApplyFilters: (params: any) => {};
   openModal: () => void;
+  generateExcel: (params: any) => {};
 }
 
 export default function PortfolioWorksFilters({
   data,
+  url,
+  generateExcel,
   onApplyFilters,
   openModal,
 }: PortfolioWorksFiltersProps) {
+  const { clearFilters, filters, saveFilters } = useSaveFilters(url);
   const [selectedItems, setSelectedItems] = useState<Record<string, string>>(
     {}
   );
   const [date, setDate] = useState<Dayjs | null>();
   const [filterType, setFilterType] = useState<string>("day");
+
+  useEffect(() => {
+    setSelectedItems(filters);
+  }, [filters]);
 
   function handleApplyFilters() {
     const newSelectedItems = {
@@ -48,6 +62,7 @@ export default function PortfolioWorksFilters({
     };
 
     onApplyFilters(newSelectedItems);
+    saveFilters(newSelectedItems);
   }
 
   function handleCleanigFilters() {
@@ -59,6 +74,21 @@ export default function PortfolioWorksFilters({
       data: null,
       tipoFiltro: filterType,
     });
+    clearFilters();
+  }
+
+  function handleGenerateExcel() {
+    const newSelectedItems = {
+      ...selectedItems,
+      data: date
+        ? filterType === "day"
+          ? date.format("DD/MM/YYYY")
+          : date.format("MM/YYYY")
+        : "",
+      tipoFiltro: filterType,
+    };
+
+    generateExcel(newSelectedItems);
   }
 
   return (
@@ -98,7 +128,7 @@ export default function PortfolioWorksFilters({
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-4 w-full">
         <ButtonComponent
           onClick={handleApplyFilters}
           text="Aplicar filtros"
@@ -114,6 +144,14 @@ export default function PortfolioWorksFilters({
           onClick={openModal}
           text="Ver valores totais"
           styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
+        />
+        <ButtonComponent
+          onClick={handleGenerateExcel}
+          text="Exportar"
+          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
+          startIcon={
+            <DocumentArrowDownIcon width={25} height={25} className="mr-2" />
+          }
         />
       </div>
     </>

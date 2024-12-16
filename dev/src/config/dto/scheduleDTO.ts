@@ -126,3 +126,28 @@ export class GetPendingScheduleValuesDTO {
   @Type(() => Number)
   idRegional: number;
 }
+
+export class GetMonthlySummaryDTO {
+  @IsString()
+  date: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  idParceira: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  idRegional: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  idGrupo: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  idTipo: number;
+}

@@ -1,7 +1,9 @@
+import { useEffect, useState } from "react";
+
 import { ButtonComponent } from "@/components/common/Button";
 import { SelectComponent } from "@/components/common/Select";
+import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { capitalize } from "@/utils/capitalize";
-import { useState } from "react";
 
 interface filters {
   regional: { id: string; regional: string }[];
@@ -21,14 +23,20 @@ export default function MainAllWorksFilters({
   data,
   onApplyFilters,
 }: MainAllWorksFiltersProps) {
+  const { clearFilters, filters, saveFilters } =
+    useSaveFilters("allWorksFilters");
   const [selectedItems, setSelectedItems] = useState<Record<string, string>>(
     {}
   );
 
+  useEffect(() => {
+    setSelectedItems(filters);
+  }, [filters]);
+
   function handleCleanigFilters() {
     setSelectedItems({});
-
     onApplyFilters({});
+    clearFilters();
   }
 
   return (
@@ -63,7 +71,10 @@ export default function MainAllWorksFilters({
 
       <div className=" flex flex-col md:flex-row justify-between items-center xl:justify-around">
         <ButtonComponent
-          onClick={() => onApplyFilters(selectedItems)}
+          onClick={() => {
+            onApplyFilters(selectedItems);
+            saveFilters(selectedItems);
+          }}
           text="Aplicar filtros"
           styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
         />

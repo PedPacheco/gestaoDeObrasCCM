@@ -44,7 +44,7 @@ export default function EntryTable({ data, columns }: EntryTableProps) {
 
   return (
     <TableContainer
-      className="mb-20 w-[95%] max-h-[880px] lg:max-h-[620px] xl:max-h-[75%] overflow-y-auto"
+      className="mb-4 w-[95%] max-h-[880px] lg:max-h-[620px] xl:max-h-[75%] overflow-y-auto"
       component={Paper}
     >
       <Table stickyHeader>

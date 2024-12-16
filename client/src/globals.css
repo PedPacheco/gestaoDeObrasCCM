@@ -147,3 +147,9 @@ table {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+#root,
+#app {
+  /* Se houver um root principal */
+  height: 100%;
+}

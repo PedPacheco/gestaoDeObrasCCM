@@ -5,6 +5,7 @@ import {
   GetScheduleValuesDTO,
   GetTotalValuesScheduleDTO,
   GetValueWeeklyScheduleDTO,
+  GetMonthlySummaryDTO,
 } from 'src/config/dto/scheduleDTO';
 
 describe('ScheduleDTO', () => {
@@ -33,6 +34,14 @@ describe('ScheduleDTO', () => {
       idRegional: 1,
     };
 
+    const getMonthlySummaryFilters = {
+      date: '11/2024',
+      idRegional: '1',
+      idGrupo: '1',
+      idTipo: '1',
+      idParceira: '1',
+    };
+
     const getValueWeeklyScheduleInstance = plainToInstance(
       GetValueWeeklyScheduleDTO,
       getValueWeeklyScheduleFilters,
@@ -51,6 +60,11 @@ describe('ScheduleDTO', () => {
     const getPendingScheduleValuesInstance = plainToInstance(
       GetPendingScheduleValuesDTO,
       getPendingScheduleValuesFilters,
+    );
+
+    const getMonthlySummaryInstance = plainToInstance(
+      GetMonthlySummaryDTO,
+      getMonthlySummaryFilters,
     );
 
     expect(getValueWeeklyScheduleInstance).toEqual({
@@ -81,6 +95,13 @@ describe('ScheduleDTO', () => {
     expect(getPendingScheduleValuesInstance).toEqual({
       idParceira: 1,
       idRegional: 1,
+    });
+    expect(getMonthlySummaryInstance).toEqual({
+      date: '11/2024',
+      idRegional: 1,
+      idGrupo: 1,
+      idTipo: 1,
+      idParceira: 1,
     });
   });
 

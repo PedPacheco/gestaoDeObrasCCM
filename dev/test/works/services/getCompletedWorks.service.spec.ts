@@ -160,7 +160,7 @@ describe('GetCompletedWorksService', () => {
     expect(calledQuery.strings[6]).toContain('AND id_circuito = ');
     expect(calledQuery.strings[7]).toContain('AND circuitos.id_conjunto = ');
     expect(calledQuery.strings[8]).toContain('AND id_empreendimento = ');
-    expect(calledQuery.strings[9]).toContain('AND id = ');
+    expect(calledQuery.strings[9]).toContain('AND obras.id = ');
     expect(calledQuery.strings[10]).toContain(
       'AND EXTRACT(MONTH FROM data_conclusao) = ',
     );
@@ -217,7 +217,7 @@ describe('GetCompletedWorksService', () => {
     expect(calledQuery.strings[6]).toContain('AND id_circuito = ');
     expect(calledQuery.strings[7]).toContain('AND circuitos.id_conjunto = ');
     expect(calledQuery.strings[8]).toContain('AND id_empreendimento = ');
-    expect(calledQuery.strings[9]).toContain('AND id = ');
+    expect(calledQuery.strings[9]).toContain('AND obras.id = ');
     expect(calledQuery.strings[10]).toContain('AND data_conclusao = ');
 
     expect(result).toEqual(mockResult);

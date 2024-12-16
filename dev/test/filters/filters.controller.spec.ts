@@ -3,6 +3,7 @@ import { plainToInstance } from 'class-transformer';
 import { FiltersDto } from 'src/config/dto/filtersDto';
 import { FiltersController } from 'src/modules/filters/filters.controller';
 import { FiltersService } from 'src/modules/filters/filters.service';
+import { UsersService } from 'src/modules/users/users.service';
 
 describe('FiltersController', () => {
   let filtersController: FiltersController;
@@ -20,6 +21,7 @@ describe('FiltersController', () => {
             getFilters: jest.fn(),
           },
         },
+        { provide: UsersService, useValue: { findUser: jest.fn() } },
       ],
     }).compile();
 
@@ -63,14 +65,19 @@ describe('FiltersController', () => {
 
     jest.spyOn(filtersService, 'getFilters').mockResolvedValue(response);
 
-    const result = await filtersController.getFilters(filtersDTO);
+    const req = { query: { idRegional: 1 } };
+
+    const result = await filtersController.getFilters(filtersDTO, req);
 
     expect(result).toEqual(response);
-    expect(filtersService.getFilters).toHaveBeenCalledWith({
-      regional: true,
-      parceira: false,
-      tipo: true,
-    });
+    expect(filtersService.getFilters).toHaveBeenCalledWith(
+      {
+        regional: true,
+        parceira: false,
+        tipo: true,
+      },
+      req.query.idRegional,
+    );
   });
 
   it.each([
@@ -170,7 +177,9 @@ describe('FiltersController', () => {
     ) => {
       const filtersDTO = plainToInstance(FiltersDto, query);
 
-      await filtersController.getFilters(filtersDTO);
+      const req = { query: { idRegional: 1 } };
+
+      await filtersController.getFilters(filtersDTO, req);
 
       expect(filtersDTO.parceira).toBe(expectedParceiras);
       expect(filtersDTO.regional).toBe(expectedRegionais);
@@ -184,7 +193,10 @@ describe('FiltersController', () => {
       expect(filtersDTO.ovnotaExec).toBe(expectedOvnotaExec);
       expect(filtersDTO.status).toBe(expectedStatus);
 
-      expect(filtersService.getFilters).toHaveBeenCalledWith(filtersDTO);
+      expect(filtersService.getFilters).toHaveBeenCalledWith(
+        filtersDTO,
+        req.query.idRegional,
+      );
     },
   );
 });

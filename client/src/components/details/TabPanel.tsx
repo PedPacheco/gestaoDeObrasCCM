@@ -55,7 +55,7 @@ export default function TabPanel({ props }: Record<string, any>) {
             scrollButtons="auto"
           >
             <Tab label="Custos" />
-            <Tab label="Informações Adicionais" />
+            {/* <Tab label="Informações Adicionais" /> */}
             <Tab label="Programações" />
             <Tab label="Serviços" />
           </Tabs>
@@ -65,13 +65,13 @@ export default function TabPanel({ props }: Record<string, any>) {
           <CustomTabPanel value={value} index={0}>
             <WorkCostPanelItem data={data} />
           </CustomTabPanel>
-          <CustomTabPanel value={value} index={1}>
+          {/* <CustomTabPanel value={value} index={1}>
             <AdditionalInformationPanelItem data={data} />
-          </CustomTabPanel>
-          <CustomTabPanel value={value} index={2}>
+          </CustomTabPanel> */}
+          <CustomTabPanel value={value} index={1}>
             <SchedulePanelItem data={data} />
           </CustomTabPanel>
-          <CustomTabPanel value={value} index={3}>
+          <CustomTabPanel value={value} index={2}>
             Item four
           </CustomTabPanel>
         </Suspense>

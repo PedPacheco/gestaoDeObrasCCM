@@ -1,0 +1,40 @@
+FROM node:20-alpine as build
+WORKDIR /src
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . ./
+
+RUN npm run build
+
+FROM node:20-alpine as development
+WORKDIR /src
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . ./
+
+EXPOSE 3000
+
+ENV NODE_ENV=development
+
+CMD ["npm", "run", "dev"]
+
+FROM node:20-alpine as production
+WORKDIR /src
+
+COPY --from=build /usr/src/.next /src/.next
+COPY --from=build /usr/src/package.json /src/package.json
+COPY --from=build /usr/src/package-lock.json /src/package-lock.json
+
+RUN npm install --production
+
+EXPOSE 3000
+
+ENV NODE_ENV=production
+
+CMD ["npm", "run", "start"]

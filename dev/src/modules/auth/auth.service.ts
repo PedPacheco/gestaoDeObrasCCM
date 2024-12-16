@@ -48,6 +48,7 @@ export class AuthService {
       id_regional: result.id_regional,
       nome_usuario: result.nome_usuario,
       email: result.email,
+      permissao_visualizacao: result.permissao_visualizacao,
       access_token: await this.jwtService.signAsync(payload, {
         expiresIn: '1h',
       }),
@@ -60,12 +61,15 @@ export class AuthService {
     const existingUser = await this.usersService.findUser(
       registerUserDto.username,
     );
+    let password = registerUserDto.senha;
 
     if (existingUser) {
       throw new BadRequestException('Nome de usuário já está em uso.');
     }
 
-    const password = generateRandomPassword();
+    if (!password) {
+      password = generateRandomPassword();
+    }
 
     const salt = await genSalt();
     const hashedPassword = await hash(password, salt);
@@ -76,7 +80,7 @@ export class AuthService {
     );
 
     await this.emailService.sendEmail(
-      registerUserDto.email,
+      '10009591@edp.com.br',
       'Bem vindo ao sistema',
       `Usuáro: ${registerUserDto.username} 
       Senha: ${password}`,
@@ -85,7 +89,7 @@ export class AuthService {
     return user;
   }
 
-  async resetPassword(username: string): Promise<void> {
+  async sendEmailResetPassword(username: string): Promise<void> {
     const user = await this.usersService.findUser(username);
 
     if (!user) {
@@ -96,10 +100,10 @@ export class AuthService {
 
     const resetToken = this.jwtService.sign(payload, { expiresIn: '30m' });
 
-    const resetLink = `http://localhost:3000/reset-password?token=${resetToken}`;
+    const resetLink = `http://localhost:8080/reset-password?token=${resetToken}`;
 
     await this.emailService.sendEmail(
-      user.email,
+      '10009591@edp.com.br',
       'Redefinição de senha',
       `Clique no link abaixo para redefinir sua senha: ${resetLink}`,
     );

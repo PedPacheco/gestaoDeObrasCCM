@@ -1,30 +1,33 @@
 import MainSchduleForDay from "@/components/scheduleComponents/scheduleForDay/MainScheduleForDay";
-import { fetchData } from "@/services/fetchData";
-import { fetchFilters } from "@/services/fetchFilters";
+import { fetchData } from "@/actions/fetchData.action";
+import { fetchFilters } from "@/actions/fetchFilters.action";
 import dayjs from "dayjs";
 import { cookies } from "next/headers";
 
 export default async function ScheduleForDay() {
-  const filters = await fetchFilters({
-    regional: true,
-    municipio: true,
-    parceira: true,
-    grupo: true,
-    tipo: true,
-  });
+  const cookieStore = await cookies();
 
-  const cookieStore = cookies();
+  const [filters, scheduleData] = await Promise.all([
+    fetchFilters({
+      regional: true,
+      municipio: true,
+      parceira: true,
+      grupo: true,
+      tipo: true,
+    }),
+    await fetchData(
+      `${
+        process.env.NEXT_PUBLIC_API_URL
+      }/programacao/mensal?data=${dayjs().format(
+        "MM/YYYY"
+      )}&tipoFiltro=month&executado=false`,
+      undefined,
+      cookieStore.get("token")?.value,
+      { cache: "no-store" }
+    ),
+  ]);
 
-  const { token, data } = await fetchData(
-    `${
-      process.env.NEXT_PUBLIC_API_URL
-    }/programacao/mensal?data=${dayjs().format(
-      "MM/YYYY"
-    )}&tipoFiltro=month&executado=false`,
-    undefined,
-    cookieStore.get("token")?.value,
-    { cache: "no-store" }
-  );
+  const { data, token } = scheduleData;
 
   const columns = {
     id: "ID",
@@ -51,6 +54,9 @@ export default async function ScheduleForDay() {
     equipe_regularizacao: "Equipe Regularização",
     id_técnico: "Técnico Responsável",
     observ_programacao: "Observação da programação",
+    total_obras: "Total de obras",
+    total_mo_planejada: "Total MO planejada",
+    total_qtde_planejada: "Total QTDE planejada",
   };
 
   return (

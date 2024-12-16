@@ -2,6 +2,7 @@ import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { plainToInstance } from 'class-transformer';
 import { GetAllWorksDTO, GetWorksDTO } from 'src/config/dto/worksDto';
+import { UsersService } from 'src/modules/users/users.service';
 import { GetAllWorksService } from 'src/modules/works/services/getAllWorks.service';
 import { GetCompletedWorksService } from 'src/modules/works/services/getCompletedWorks.service';
 import { GetWorkDetailsService } from 'src/modules/works/services/getWorkDetails.service';
@@ -32,6 +33,7 @@ describe('WorksController', () => {
           provide: GetWorksInPortfolioService,
           useValue: { getWorksInPortfolio: jest.fn() },
         },
+        { provide: UsersService, useValue: { findUser: jest.fn() } },
       ],
     }).compile();
 
@@ -235,6 +237,7 @@ describe('WorksController', () => {
         capex_mo_plan: 74310.44331999999,
         tipo_ads: 'CONVENCIONAL',
         data_empreitamento: new Date('2024-08-06T00:00:00.000Z'),
+        ano_plan: 2024,
         circuitos: 'CAC-1302',
         empreendimento: null,
         municipios: 'MONTEIRO LOBATO',

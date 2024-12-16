@@ -52,7 +52,14 @@ export class UsersService {
   }
 
   async registerUser(
-    { username, permissao, id_regional, email, nome_usuario }: RegisterUserDTO,
+    {
+      username,
+      permissao,
+      id_regional,
+      email,
+      nome_usuario,
+      permissao_visualizacao,
+    }: RegisterUserDTO,
     password: string,
   ): Promise<userRegisterInterfaceService> {
     const user = await this.prisma.usuario.create({
@@ -63,6 +70,7 @@ export class UsersService {
         id_regional,
         email,
         nome_usuario,
+        permissao_visualizacao,
       },
       select: {
         id: true,

@@ -22,7 +22,7 @@ describe('AuthController', () => {
           useValue: {
             login: jest.fn(),
             register: jest.fn(),
-            resetPassword: jest.fn(),
+            sendEmailResetPassword: jest.fn(),
           },
         },
       ],
@@ -53,6 +53,7 @@ describe('AuthController', () => {
         nome_maquina: null,
         nome_usuario: 'teste',
         permissao: 'Total',
+        permissao_visualizacao: 'parcial',
         access_token: 'token',
       };
 
@@ -166,7 +167,7 @@ describe('AuthController', () => {
       const user: ResetPasswordDTO = { username: 'teste' };
 
       const spy = jest
-        .spyOn(authService, 'resetPassword')
+        .spyOn(authService, 'sendEmailResetPassword')
         .mockResolvedValue(undefined);
 
       await authController.resetPassword(user);
@@ -179,7 +180,7 @@ describe('AuthController', () => {
       const user: ResetPasswordDTO = { username: 'teste' };
 
       jest
-        .spyOn(authService, 'resetPassword')
+        .spyOn(authService, 'sendEmailResetPassword')
         .mockRejectedValue(new Error('Erro ao processar a solicitação'));
 
       await expect(authController.resetPassword(user)).rejects.toThrow(

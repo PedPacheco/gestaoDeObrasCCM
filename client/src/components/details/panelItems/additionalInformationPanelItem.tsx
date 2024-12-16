@@ -1,8 +1,12 @@
 "use client";
 
+import dayjs from "dayjs";
+
 export default function AdditionalInformationPanelItem({
   data,
 }: Record<string, any>) {
+  const dataEmpreitamento = dayjs(data.data_empreitamento).format("DD/MM/YYYY");
+
   return (
     <div className="flex flex-col py-4">
       <div className="flex flex-col h-full w-full pb-4 justify-around lg:flex-row">
@@ -16,7 +20,7 @@ export default function AdditionalInformationPanelItem({
           <p className="text-lg mb-4 font-semibold text-center w-full">
             Data empreitamento
           </p>
-          <p>{data.data_empreitamento}</p>
+          <p>{dataEmpreitamento}</p>
         </div>
         <div className="flex flex-col items-center h-20">
           <p className="text-lg mb-4 font-semibold text-center w-full">

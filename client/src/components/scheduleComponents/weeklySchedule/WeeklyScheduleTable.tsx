@@ -1,8 +1,12 @@
 "use client";
 
 import "dayjs/locale/pt-br";
+
+import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import localeData from "dayjs/plugin/localeData";
+
+import { capitalize } from "@/utils/capitalize";
 import {
   Paper,
   Table,
@@ -12,8 +16,6 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import dayjs from "dayjs";
-import { capitalize } from "@/utils/capitalize";
 
 dayjs.extend(localeData);
 dayjs.extend(customParseFormat);
@@ -30,7 +32,7 @@ export default function WeeklyScheduleTable({
 }: ScheduleTableProps) {
   return (
     <TableContainer
-      className="mb-20 max-w-64 max-h-[880px] lg:max-h-[620px] xl:max-h-[75%] overflow-y-auto"
+      className="mb-20 max-w-64 max-h-[880px] lg:max-h-[620px] xl:max-h-[90%] overflow-y-auto"
       component={Paper}
     >
       <Table stickyHeader>
