@@ -92,7 +92,7 @@ export default function PortfolioWorks({
     if (params) {
       fetchWorks(JSON.parse(params));
     }
-  }, [fetchWorks]);
+  }, [fetchWorks, cookie]);
 
   return (
     <>
