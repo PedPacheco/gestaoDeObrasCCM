@@ -5,11 +5,11 @@ import { useEffect, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
 import { DateFilter } from "@/components/common/DateFilter";
-import { SelectComponent } from "@/components/common/Select";
+import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { capitalize } from "@/utils/capitalize";
-import { Checkbox } from "@mui/material";
 import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
+import { Checkbox } from "@mui/material";
 
 interface filters {
   regional: { id: string; regional: string }[];
@@ -21,21 +21,19 @@ interface filters {
 
 interface ScheduleByDateFiltersProps {
   data: filters;
-  onApplyFilters: (params: any) => {};
   openModal: () => void;
   generateExcel: (params: any) => void;
 }
 
 export default function ScheduleForDayFilters({
   data,
-  onApplyFilters,
   openModal,
   generateExcel,
 }: ScheduleByDateFiltersProps) {
   const { clearFilters, filters, saveFilters } = useSaveFilters(
     "scheduleForDayFilters"
   );
-  const [selectedItems, setSelectedItems] = useState<Record<string, string>>(
+  const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {}
   );
   const [date, setDate] = useState<Dayjs | null>(dayjs());
@@ -43,24 +41,13 @@ export default function ScheduleForDayFilters({
   const [executed, setExecuted] = useState<boolean>(false);
 
   useEffect(() => {
-    setSelectedItems(filters);
+    if (filters) {
+      setSelectedItems(filters.selectedItems);
+      setDate(dayjs(filters.date));
+      setExecuted(filters.executed);
+      setFilterType(filters.filterType);
+    }
   }, [filters]);
-
-  function handleApplyFilters() {
-    const newSelectedItems = {
-      ...selectedItems,
-      data: date
-        ? filterType === "day"
-          ? date.format("DD/MM/YYYY")
-          : date.format("MM/YYYY")
-        : "",
-      tipoFiltro: filterType,
-      executado: executed.toString(),
-    };
-
-    onApplyFilters(newSelectedItems);
-    saveFilters(newSelectedItems);
-  }
 
   function handleCleanigFilters() {
     setSelectedItems({});
@@ -68,17 +55,19 @@ export default function ScheduleForDayFilters({
     setFilterType("month");
     setExecuted(false);
 
-    onApplyFilters({
-      data: dayjs().format("MM/YYYY"),
-      tipoFiltro: "month",
-      executado: false,
-    });
     clearFilters();
   }
 
   function handleGenerateExcel() {
+    const formattedSelectedItems = Object.fromEntries(
+      Object.entries(selectedItems).map(([key, value]) => [
+        key,
+        Array.isArray(value) ? value.join(",") : value,
+      ])
+    );
+
     const newSelectedItems = {
-      ...selectedItems,
+      ...formattedSelectedItems,
       data: date
         ? filterType === "day"
           ? date.format("DD/MM/YYYY")
@@ -111,7 +100,7 @@ export default function ScheduleForDayFilters({
           }`;
 
           return (
-            <SelectComponent
+            <MultipleSelectComponent
               label={capitalize(displayKey)}
               menuItems={value || []}
               selectedItem={selectedItems[filterValue]}
@@ -139,7 +128,9 @@ export default function ScheduleForDayFilters({
 
       <div className="grid grid-cols-1 lg:grid-cols-4 w-full">
         <ButtonComponent
-          onClick={handleApplyFilters}
+          onClick={() =>
+            saveFilters({ selectedItems, date, filterType, executed })
+          }
           text="Aplicar filtros"
           styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
         />
@@ -158,9 +149,9 @@ export default function ScheduleForDayFilters({
           onClick={handleGenerateExcel}
           text="Exportar"
           styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
-          // startIcon={
-          //   <DocumentArrowDownIcon width={25} height={25} className="mr-2" />
-          // }
+          startIcon={
+            <DocumentArrowDownIcon width={25} height={25} className="mr-2" />
+          }
         />
       </div>
     </>

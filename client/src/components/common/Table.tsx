@@ -96,7 +96,7 @@ export function TableComponent({
               const date = dayjs(cellValue);
 
               if (date.year() === 1970) {
-                cellValue = date.format("HH:mm");
+                cellValue = date.utc().format("HH:mm");
               } else {
                 cellValue = date.utc().format("DD/MM/YYYY");
               }

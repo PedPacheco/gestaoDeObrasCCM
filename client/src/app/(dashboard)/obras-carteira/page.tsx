@@ -2,12 +2,29 @@ import PortfolioWorks from "@/components/worksComponents/portfolioWorks/MainPort
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { cookies } from "next/headers";
+import { Transform } from "@/utils/transform";
+import dayjs from "dayjs";
 
 export default async function WorksInPortfolio() {
   const cookieStore = await cookies();
   const cookieParams = cookieStore.get("portfolioWorksFilters")?.value;
 
-  const params = cookieParams ? JSON.parse(cookieParams) : undefined;
+  let params = cookieParams ? JSON.parse(cookieParams) : undefined;
+  let filtersValues = undefined;
+
+  if (params) {
+    const formattedSelectedItems = Transform(params.selectedItems);
+
+    filtersValues = {
+      ...formattedSelectedItems,
+      data: params.date
+        ? params.filterType === "day"
+          ? dayjs(params.date).format("DD/MM/YYYY")
+          : dayjs(params.date).format("MM/YYYY")
+        : "",
+      tipoFiltro: params.filterType,
+    };
+  }
 
   const [filters, worksData] = await Promise.all([
     fetchFilters({
@@ -24,7 +41,7 @@ export default async function WorksInPortfolio() {
     }),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/obras/obras-carteira`,
-      params,
+      filtersValues,
       cookieStore.get("token")?.value,
       { cache: "no-store" }
     ),
@@ -81,7 +98,6 @@ export default async function WorksInPortfolio() {
       filters={filters}
       cookie="portfolioWorksFilters"
       columns={columnMapping}
-      url="obras-carteira"
       totalValues={34}
     />
   );

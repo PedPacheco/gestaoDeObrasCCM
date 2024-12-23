@@ -30,10 +30,21 @@ export class GetMonthlySummaryService {
           lt: monthFinal,
         },
         obras: {
-          tipos: { id_grupo: idGrupo || undefined },
-          municipios: { id_regional: idRegional || undefined },
-          id_turma: idParceira || undefined,
-          id_tipo: idTipo || undefined,
+          tipos: {
+            id_grupo:
+              idGrupo && idGrupo.length > 0 ? { in: idGrupo } : undefined,
+          },
+          municipios: {
+            id_regional:
+              idRegional && idRegional.length > 0
+                ? { in: idRegional }
+                : undefined,
+          },
+          id_turma:
+            idParceira && idParceira.length > 0
+              ? { in: idParceira }
+              : undefined,
+          id_tipo: idTipo && idTipo.length > 0 ? { in: idTipo } : undefined,
         },
       },
       select: {
@@ -101,10 +112,18 @@ export class GetMonthlySummaryService {
         programacoes: {
           some: { data_prog: { gte: monthInitial, lt: monthFinal } },
         },
-        tipos: { id_grupo: idGrupo || undefined },
-        municipios: { id_regional: idRegional || undefined },
-        id_turma: idParceira || undefined,
-        id_tipo: idTipo || undefined,
+        tipos: {
+          id_grupo: idGrupo && idGrupo.length > 0 ? { in: idGrupo } : undefined,
+        },
+        municipios: {
+          id_regional:
+            idRegional && idRegional.length > 0
+              ? { in: idRegional }
+              : undefined,
+        },
+        id_turma:
+          idParceira && idParceira.length > 0 ? { in: idParceira } : undefined,
+        id_tipo: idTipo && idTipo.length > 0 ? { in: idTipo } : undefined,
       },
       select: {
         ovnota: true,

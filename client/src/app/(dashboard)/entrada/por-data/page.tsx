@@ -1,11 +1,36 @@
-import MainEntryByDate from "@/components/entryComponents/entryByDate/MainEntryByDate";
-import { fetchData } from "@/actions/fetchData.action";
-import { fetchFilters } from "@/actions/fetchFilters.action";
 import dayjs from "dayjs";
 import { cookies } from "next/headers";
 
+import { fetchData } from "@/actions/fetchData.action";
+import { fetchFilters } from "@/actions/fetchFilters.action";
+import MainEntryByDate from "@/components/entryComponents/entryByDate/MainEntryByDate";
+import { Transform } from "@/utils/transform";
+
 export default async function EntryForDate() {
   const cookieStore = await cookies();
+  const cookieParams = cookieStore.get("entryByDateFilters")?.value;
+
+  const params = cookieParams ? JSON.parse(cookieParams) : undefined;
+  let filtersValues = undefined;
+
+  if (params) {
+    const formattedSelectedItems = Transform(params.selectedItems);
+
+    filtersValues = {
+      ...formattedSelectedItems,
+      data: params.date
+        ? params.filterType === "day"
+          ? dayjs(params.date).format("DD/MM/YYYY")
+          : dayjs(params.date).format("MM/YYYY")
+        : "",
+      tipoFiltro: params.filterType,
+    };
+  } else {
+    filtersValues = {
+      tipoFiltro: "day",
+      data: dayjs().format("DD/MM/YYYY"),
+    };
+  }
 
   const [filters, entryData] = await Promise.all([
     fetchFilters({
@@ -17,10 +42,8 @@ export default async function EntryForDate() {
       circuito: true,
     }),
     fetchData(
-      `${process.env.NEXT_PUBLIC_API_URL}/entrada/data?data=${dayjs().format(
-        "DD/MM/YYYY"
-      )}&tipoFiltro=day`,
-      undefined,
+      `${process.env.NEXT_PUBLIC_API_URL}/entrada/data`,
+      filtersValues,
       cookieStore.get("token")?.value
     ),
   ]);
@@ -52,9 +75,9 @@ export default async function EntryForDate() {
 
   return (
     <MainEntryByDate
-      data={data}
+      data={data.data}
       token={token}
-      filters={filters}
+      filtersData={filters}
       columns={columnMapping}
     />
   );

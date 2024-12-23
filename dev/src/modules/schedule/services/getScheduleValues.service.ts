@@ -46,23 +46,23 @@ export class GetScheduleValuesService {
     }
 
     if (idRegional) {
-      query = Prisma.sql`${query} AND municipios.id_regional = ${idRegional}`;
+      query = Prisma.sql`${query} AND municipios.id_regional IN (${Prisma.join(idRegional)})`;
     }
 
     if (idMunicipio) {
-      query = Prisma.sql`${query} AND municipios.id = ${idMunicipio}`;
+      query = Prisma.sql`${query} AND municipios.id IN (${Prisma.join(idMunicipio)})`;
     }
 
     if (idTipo) {
-      query = Prisma.sql`${query} AND id_tipo = ${idTipo}`;
+      query = Prisma.sql`${query} AND id_tipo IN (${Prisma.join(idTipo)})`;
     }
 
     if (idParceira) {
-      query = Prisma.sql`${query} AND id_turma = ${idParceira}`;
+      query = Prisma.sql`${query} AND id_turma IN (${Prisma.join(idParceira)})`;
     }
 
     if (idGrupo) {
-      query = Prisma.sql`${query} AND tipos.id_grupo = ${idGrupo}`;
+      query = Prisma.sql`${query} AND tipos.id_grupo IN (${Prisma.join(idGrupo)})`;
     }
 
     if (executado) {

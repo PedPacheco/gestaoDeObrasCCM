@@ -21,11 +21,11 @@ export class GetPendingScheduleValuesService {
                 WHERE exec IS NULL AND data_prog < CURRENT_DATE`;
 
     if (idParceira) {
-      query = Prisma.sql`${query} AND id_turma = ${idParceira}`;
+      query = Prisma.sql`${query} AND id_turma IN (${Prisma.join(idParceira)})`;
     }
 
     if (idRegional) {
-      query = Prisma.sql`${query} AND municipios.id_regional = ${idRegional}`;
+      query = Prisma.sql`${query} AND municipios.id_regional IN (${Prisma.join(idRegional)})`;
     }
 
     query = Prisma.sql`${query} ORDER BY data_prog`;

@@ -71,43 +71,43 @@ export class GetCompletedWorksService {
                 WHERE data_conclusao IS NOT NULL`;
 
     if (idRegional) {
-      query = Prisma.sql`${query} AND municipios.id_regional = ${idRegional}`;
+      query = Prisma.sql`${query} AND municipios.id_regional IN (${Prisma.join(idRegional)})`;
     }
 
     if (idTipo) {
-      query = Prisma.sql`${query} AND id_tipo = ${idTipo}`;
+      query = Prisma.sql`${query} AND id_tipo IN (${Prisma.join(idTipo)})`;
     }
 
     if (idParceira) {
-      query = Prisma.sql`${query} AND id_turma = ${idParceira}`;
+      query = Prisma.sql`${query} AND id_turma IN (${Prisma.join(idParceira)})`;
     }
 
     if (idGrupo) {
-      query = Prisma.sql`${query} AND tipos.id_grupo = ${idGrupo}`;
+      query = Prisma.sql`${query} AND tipos.id_grupo IN (${Prisma.join(idGrupo)})`;
     }
 
     if (idMunicipio) {
-      query = Prisma.sql`${query} AND municipios.id = ${idMunicipio}`;
+      query = Prisma.sql`${query} AND municipios.id IN (${Prisma.join(idMunicipio)})`;
     }
 
     if (idStatus) {
-      query = Prisma.sql`${query} AND status.id = ${idStatus}`;
+      query = Prisma.sql`${query} AND status.id IN (${Prisma.join(idStatus)})`;
     }
 
     if (idCircuito) {
-      query = Prisma.sql`${query} AND id_circuito = ${idCircuito}`;
+      query = Prisma.sql`${query} AND id_circuito IN (${Prisma.join(idCircuito)})`;
     }
 
     if (idConjunto) {
-      query = Prisma.sql`${query} AND circuitos.id_conjunto = ${idConjunto}`;
+      query = Prisma.sql`${query} AND circuitos.id_conjunto IN (${Prisma.join(idConjunto)})`;
     }
 
     if (idEmpreendimento) {
-      query = Prisma.sql`${query} AND id_empreendimento = ${idEmpreendimento}`;
+      query = Prisma.sql`${query} AND id_empreendimento IN (${Prisma.join(idEmpreendimento)})`;
     }
 
     if (idOvnota) {
-      query = Prisma.sql`${query} AND obras.id = ${idOvnota}`;
+      query = Prisma.sql`${query} AND obras.id IN (${Prisma.join(idOvnota)})`;
     }
 
     if (tipoFiltro === 'month' && data) {

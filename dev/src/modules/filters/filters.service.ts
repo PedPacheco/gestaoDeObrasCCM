@@ -37,7 +37,7 @@ export class FiltersService {
 
     if (parceira) {
       result['parceira'] = await this.getCachedData('parceiras', () =>
-        this.getData('turmas', ['id', 'turma']),
+        this.getData('turmas', ['id', 'turma'], { id_regional: condition }),
       );
     }
 
@@ -119,7 +119,7 @@ export class FiltersService {
 
     const data = await fetchData();
 
-    await this.cacheManager.set(key, data, 3600000);
+    await this.cacheManager.set(key, data, 60 * 2);
 
     return data;
   }

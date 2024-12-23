@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MultipleSelectComponent } from "../common/MultipleSelect";
 import { ButtonComponent } from "../common/Button";
+import dayjs from "dayjs";
+import { useSaveFilters } from "@/hooks/useSaveFilters";
 
 interface filters {
   regional: { id: string; regional: string }[];
@@ -21,6 +23,8 @@ export default function HomePageFilters({
   onApplyFilters,
   openModal,
 }: HomePageFiltersProps) {
+  const { clearFilters, filters, saveFilters } =
+    useSaveFilters("homePageFilters");
   const [selectedYear, setSelectedYear] = useState<string[]>([]);
   const [selectedRegionais, setSelectedRegionais] = useState<
     filters["regional"]
@@ -32,8 +36,14 @@ export default function HomePageFilters({
     []
   );
 
-  const years = Array.from({ length: 2030 - 2010 + 1 }, (_, index) =>
-    (2010 + index).toString()
+  // useEffect(() => {
+  //   set
+  // }, [])
+
+  const year = dayjs().year();
+
+  const years = Array.from({ length: 7 }, (_, index) =>
+    (year - 3 + index).toString()
   );
 
   function handleApplyFilters() {
@@ -45,6 +55,7 @@ export default function HomePageFilters({
     };
 
     onApplyFilters(filters);
+    // saveFilters(filters)
   }
 
   function handleCleaningFilters() {

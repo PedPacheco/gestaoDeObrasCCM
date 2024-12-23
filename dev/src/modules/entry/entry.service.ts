@@ -12,8 +12,15 @@ export class EntryService {
   constructor(private prisma: PrismaService) {}
 
   async getValuesFromEntry(filters: GetEntryOfWorksDTO) {
-    const { idGrupo, idMunicipio, idParceira, idRegional, idTipo, ano } =
-      filters;
+    const {
+      idGrupo,
+      idMunicipio,
+      idParceira,
+      idRegional,
+      idTipo,
+      ano,
+      idCircuito,
+    } = filters;
 
     const monthAbbreviations: { [key: number]: string } = {
       0: 'jan',
@@ -37,12 +44,24 @@ export class EntryService {
           gte: new Date(`${ano}-01-01`),
           lte: new Date(`${ano}-12-31`),
         },
-        id_gpm: idMunicipio || undefined,
-        id_tipo: idTipo || undefined,
-        id_circuito: idGrupo || undefined,
-        id_turma: idParceira || undefined,
-        municipios: { id_regional: idRegional || undefined },
-        tipos: { id_grupo: idGrupo || undefined },
+        id_gpm:
+          idMunicipio && idMunicipio.length > 0
+            ? { in: idMunicipio }
+            : undefined,
+        id_tipo: idTipo && idTipo.length > 0 ? { in: idTipo } : undefined,
+        id_circuito:
+          idCircuito && idCircuito.length > 0 ? { in: idCircuito } : undefined,
+        id_turma:
+          idParceira && idParceira.length > 0 ? { in: idParceira } : undefined,
+        municipios: {
+          id_regional:
+            idRegional && idRegional.length > 0
+              ? { in: idRegional }
+              : undefined,
+        },
+        tipos: {
+          id_grupo: idGrupo && idGrupo.length > 0 ? { in: idGrupo } : undefined,
+        },
       },
       select: {
         ovnota: true,
@@ -127,11 +146,22 @@ export class EntryService {
     const result = await this.prisma.obras.findMany({
       where: {
         entrada: dateRange,
-        municipios: { id_regional: idRegional || undefined },
-        id_gpm: idMunicipio || undefined,
-        tipos: { id_grupo: idGrupo || undefined },
-        id_tipo: idTipo || undefined,
-        id_turma: idParceira || undefined,
+        municipios: {
+          id_regional:
+            idRegional && idRegional.length > 0
+              ? { in: idRegional }
+              : undefined,
+        },
+        id_gpm:
+          idMunicipio && idMunicipio.length > 0
+            ? { in: idMunicipio }
+            : undefined,
+        tipos: {
+          id_grupo: idGrupo && idGrupo.length > 0 ? { in: idGrupo } : undefined,
+        },
+        id_tipo: idTipo && idTipo.length > 0 ? { in: idTipo } : undefined,
+        id_turma:
+          idParceira && idParceira.length > 0 ? { in: idParceira } : undefined,
       },
       select: {
         id: true,

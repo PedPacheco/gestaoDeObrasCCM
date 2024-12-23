@@ -1,5 +1,11 @@
 import { Transform, Type } from 'class-transformer';
-import { IsDate, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsDate,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import * as moment from 'moment';
 
 export class GetEntryOfWorksDTO {
@@ -8,34 +14,34 @@ export class GetEntryOfWorksDTO {
   ano: number;
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idRegional: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idRegional: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idMunicipio: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idMunicipio: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idGrupo: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idGrupo: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idTipo: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idTipo: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idParceira: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idParceira: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idCircuito: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idCircuito: number[];
 }
 
 export class GetEntryOfWorksByDayDTO {
@@ -51,27 +57,27 @@ export class GetEntryOfWorksByDayDTO {
   tipoFiltro: string;
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idRegional: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idRegional: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idMunicipio: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idMunicipio: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idGrupo: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idGrupo: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idTipo: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idTipo: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idParceira: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idParceira: number[];
 }

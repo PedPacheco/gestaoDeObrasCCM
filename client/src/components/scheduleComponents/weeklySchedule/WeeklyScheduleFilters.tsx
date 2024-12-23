@@ -7,9 +7,10 @@ import isoWeek from "dayjs/plugin/isoWeek";
 import { useEffect, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
-import { SelectComponent } from "@/components/common/Select";
+import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { capitalize } from "@/utils/capitalize";
+import { Transform } from "@/utils/transform";
 import { Checkbox } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -26,7 +27,6 @@ interface filters {
 
 interface ScheduleByDateFiltersProps {
   data: filters;
-  onApplyFilters: (params: any) => {};
   keyFilters: string;
   weekRange: Record<string, string>;
   handleDateChange: (newDate: Dayjs | null) => void;
@@ -37,7 +37,6 @@ interface ScheduleByDateFiltersProps {
 
 export default function WeeklyScheduleFilters({
   data,
-  onApplyFilters,
   keyFilters,
   dateInitial,
   handleDateChange,
@@ -46,23 +45,24 @@ export default function WeeklyScheduleFilters({
   setDateInitial,
 }: ScheduleByDateFiltersProps) {
   const { clearFilters, filters, saveFilters } = useSaveFilters(keyFilters);
-  const [selectedItems, setSelectedItems] = useState<Record<string, string>>(
+  const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {}
   );
-
   const [executed, setExecuted] = useState<boolean>(false);
 
-  function handleApplyFilters() {
-    const newSelectedItems = {
-      ...selectedItems,
-      dataInicial: weekRange.start,
-      dataFinal: weekRange.end,
-      executado: executed.toString(),
-    };
+  useEffect(() => {
+    if (filters) {
+      const date = dayjs(filters.dateInitial);
 
-    onApplyFilters(newSelectedItems);
-    saveFilters(newSelectedItems);
-  }
+      setSelectedItems(filters.selectedItems);
+      setExecuted(filters.executed);
+      setDateInitial(date);
+      setWeekRange({
+        start: date.startOf("isoWeek").format("DD/MM/YYYY"),
+        end: date.endOf("isoWeek").format("DD/MM/YYYY"),
+      });
+    }
+  }, [filters, setDateInitial, setWeekRange]);
 
   function handleCleanigFilters() {
     setSelectedItems({});
@@ -73,17 +73,8 @@ export default function WeeklyScheduleFilters({
     setDateInitial(dayjs());
     setExecuted(false);
 
-    onApplyFilters({
-      dataInicial: dayjs().startOf("isoWeek").format("DD/MM/YYYY"),
-      dataFinal: dayjs().endOf("isoWeek").format("DD/MM/YYYY"),
-      executado: false,
-    });
     clearFilters();
   }
-
-  useEffect(() => {
-    setSelectedItems(filters);
-  }, [filters]);
 
   return (
     <>
@@ -107,8 +98,8 @@ export default function WeeklyScheduleFilters({
           }`;
 
           return (
-            <SelectComponent
-              label={capitalize(displayKey)}
+            <MultipleSelectComponent
+              label={capitalize(key)}
               menuItems={value || []}
               selectedItem={selectedItems[filterValue]}
               setSelectedItem={(selectedValue) => {
@@ -135,7 +126,9 @@ export default function WeeklyScheduleFilters({
 
       <div className=" flex flex-col md:flex-row justify-between items-center xl:justify-around">
         <ButtonComponent
-          onClick={handleApplyFilters}
+          onClick={() =>
+            saveFilters({ selectedItems, executed, weekRange, dateInitial })
+          }
           text="Aplicar filtros"
           styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
         />

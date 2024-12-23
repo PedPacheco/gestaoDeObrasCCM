@@ -5,14 +5,33 @@ import { cookies } from "next/headers";
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainWeeklySchedule from "@/components/scheduleComponents/weeklySchedule/MainWeeklySchedule";
+import { Transform } from "@/utils/transform";
 
 dayjs.extend(isoWeek);
 
 export default async function WeeklySchedule() {
   const cookieStore = await cookies();
+  const cookieParams = cookieStore.get("weeklyScheduleFilters")?.value;
 
-  const startOfWeek = dayjs().startOf("isoWeek").format("DD/MM/YYYY");
-  const endOfWeek = dayjs().endOf("isoWeek").format("DD/MM/YYYY");
+  const params = cookieParams ? JSON.parse(cookieParams) : undefined;
+  let filtersValues = undefined;
+
+  if (params) {
+    const formattedSelectedItems = Transform(params.selectedItems);
+
+    filtersValues = {
+      ...formattedSelectedItems,
+      dataInicial: params.weekRange.start,
+      dataFinal: params.weekRange.end,
+      executado: params.executed,
+    };
+  } else {
+    filtersValues = {
+      dataInicial: dayjs().startOf("isoWeek").format("DD/MM/YYYY"),
+      dataFinal: dayjs().endOf("isoWeek").format("DD/MM/YYYY"),
+      executado: "false",
+    };
+  }
 
   const [filters, scheduleData] = await Promise.all([
     fetchFilters({
@@ -23,8 +42,8 @@ export default async function WeeklySchedule() {
       tipo: true,
     }),
     fetchData(
-      `${process.env.NEXT_PUBLIC_API_URL}/programacao/semanal?dataInicial=${startOfWeek}&dataFinal=${endOfWeek}&executado=false`,
-      undefined,
+      `${process.env.NEXT_PUBLIC_API_URL}/programacao/semanal`,
+      filtersValues,
       cookieStore.get("token")?.value
     ),
   ]);
@@ -33,8 +52,8 @@ export default async function WeeklySchedule() {
 
   return (
     <MainWeeklySchedule
-      data={data}
-      filters={filters}
+      data={data.data}
+      filtersData={filters}
       token={token}
       columns={{ column: "strrte" }}
     />

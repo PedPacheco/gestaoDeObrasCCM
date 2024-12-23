@@ -3,8 +3,8 @@
 import "dayjs/locale/pt-br";
 
 import dayjs from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
-import localeData from "dayjs/plugin/localeData";
+import utc from "dayjs/plugin/utc";
+import isoWeek from "dayjs/plugin/isoWeek";
 
 import { capitalize } from "@/utils/capitalize";
 import {
@@ -17,8 +17,8 @@ import {
   TableRow,
 } from "@mui/material";
 
-dayjs.extend(localeData);
-dayjs.extend(customParseFormat);
+dayjs.extend(isoWeek);
+dayjs.extend(utc);
 dayjs.locale("pt-br");
 
 interface ScheduleTableProps {
@@ -49,7 +49,8 @@ export default function WeeklyScheduleTable({
             const filteredPrograms = item.programacoes.filter(
               (program: any) => {
                 return (
-                  dayjs(program.data_prog).format("DD/MM/YYYY") === filterDate
+                  dayjs(program.data_prog).utc().format("DD/MM/YYYY") ===
+                  filterDate
                 );
               }
             );
@@ -68,16 +69,16 @@ export default function WeeklyScheduleTable({
                     {item.tipo_abrev}
                   </TableCell>
                   <TableCell className="py-1 px-2 text-center">
-                    {dayjs(program.data_prog).format("DD/MM/YYYY")}
+                    {dayjs(program.data_prog).utc().format("DD/MM/YYYY")}
                   </TableCell>
                   <TableCell className="p-0">
                     <div className="flex justify-between">
                       <p className="py-1 px-2 text-center w-full">
-                        {dayjs(program.hora_ini).format("HH:mm")}
+                        {dayjs(program.hora_ini).utc().format("HH:mm")}
                       </p>
                       <span className="border border-solid"></span>
                       <p className="py-1 px-2 text-center w-full">
-                        {dayjs(program.hora_ter).format("HH:mm")}
+                        {dayjs(program.hora_ter).utc().format("HH:mm")}
                       </p>
                     </div>
                   </TableCell>

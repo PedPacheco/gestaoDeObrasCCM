@@ -85,8 +85,6 @@ export function FormLogin() {
     }
   }
 
-  console.log(error);
-
   return (
     <form
       onSubmit={handleSubmit(handleUserLogin)}

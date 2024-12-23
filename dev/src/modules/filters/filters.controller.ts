@@ -2,6 +2,7 @@ import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 import { FiltersService } from './filters.service';
 import { FiltersDto } from 'src/config/dto/filtersDto';
 import { PermissionGuard } from 'src/common/guards/permission.guard';
+import { Request } from 'express';
 
 @Controller('filters')
 export class FiltersController {
@@ -9,7 +10,10 @@ export class FiltersController {
 
   @Get()
   @UseGuards(PermissionGuard)
-  async getFilters(@Query() query: FiltersDto, @Req() req): Promise<any> {
+  async getFilters(
+    @Query() query: FiltersDto,
+    @Req() req: Request,
+  ): Promise<any> {
     const filters = await this.filtersService.getFilters(
       query,
       req.query.idRegional,

@@ -2,11 +2,21 @@ import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainHome from "@/components/home/MainHome";
 import { Header } from "@/components/layout/Header";
+import { Transform } from "@/utils/transform";
 import { cookies } from "next/headers";
 import { Suspense } from "react";
 
 export default async function Home() {
   const cookieStore = await cookies();
+  const cookieParams = cookieStore.get("goalsFilters")?.value;
+
+  let params = cookieParams ? JSON.parse(cookieParams) : undefined;
+
+  if (params) {
+    params = Transform(params);
+  }
+
+  console.log(params);
 
   const [filters, homeData] = await Promise.all([
     fetchFilters({
@@ -17,7 +27,7 @@ export default async function Home() {
 
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/metas`,
-      undefined,
+      params,
       cookieStore.get("token")?.value
     ),
   ]);
@@ -62,8 +72,8 @@ export default async function Home() {
                 </h2>
                 <Suspense fallback={<p>Carregando conteúdo...</p>}>
                   <MainHome
-                    filters={filters}
-                    data={data}
+                    filtersData={filters}
+                    data={data.data}
                     token={token}
                     columns={columnMapping}
                   />

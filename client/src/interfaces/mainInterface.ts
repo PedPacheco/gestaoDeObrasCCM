@@ -1,5 +1,5 @@
 export interface MainInterface<FiltersType> {
-  filters: FiltersType;
+  filtersData: FiltersType;
   data: any;
   token: string;
   columns: Record<string, string>;
