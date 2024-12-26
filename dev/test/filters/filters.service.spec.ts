@@ -151,7 +151,7 @@ describe('FiltersService', () => {
         expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
         expect(prismaService[table].findMany).toHaveBeenCalledTimes(1);
         expect(result[name]).toEqual(data);
-        expect(cacheManager.set).toHaveBeenCalledWith(cacheKey, data, 3600000);
+        expect(cacheManager.set).toHaveBeenCalledWith(cacheKey, data, 120);
       });
     });
   });

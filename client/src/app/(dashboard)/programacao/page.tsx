@@ -1,10 +1,30 @@
-import MainSchedule from "@/components/scheduleComponents/schedule/MainSchedule";
+import dayjs from "dayjs";
+import { cookies } from "next/headers";
+
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import { cookies } from "next/headers";
+import MainSchedule from "@/components/scheduleComponents/schedule/MainSchedule";
+import { Transform } from "@/utils/transform";
 
 export default async function Schedule() {
   const cookieStore = await cookies();
+  const cookieParams = cookieStore.get("scheduleFilters")?.value;
+
+  const params = cookieParams ? JSON.parse(cookieParams) : undefined;
+  let filtersValues = undefined;
+
+  if (params) {
+    const formattedSelectedItems = Transform(params.selectedItems);
+
+    filtersValues = {
+      ...formattedSelectedItems,
+      ano: dayjs(params.selectedYear).format("YYYY"),
+    };
+  } else {
+    filtersValues = {
+      ano: dayjs().format("YYYY"),
+    };
+  }
 
   const [filters, scheduleData] = await Promise.all([
     fetchFilters({
@@ -16,10 +36,8 @@ export default async function Schedule() {
       circuito: true,
     }),
     fetchData(
-      `${
-        process.env.NEXT_PUBLIC_API_URL
-      }/programacao?ano=${new Date().getFullYear()}`,
-      undefined,
+      `${process.env.NEXT_PUBLIC_API_URL}/programacao`,
+      filtersValues,
       cookieStore.get("token")?.value
     ),
   ]);
@@ -49,7 +67,7 @@ export default async function Schedule() {
       data={data}
       columns={columns}
       token={token}
-      filters={filters}
+      filtersData={filters}
     />
   );
 }

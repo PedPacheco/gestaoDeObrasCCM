@@ -9,6 +9,7 @@ describe('GetCompletedWorksService', () => {
   let prismaService: PrismaService;
   let getCompletedWorksService: GetCompletedWorksService;
   let cacheManager: Cache;
+  let initialQuery: string;
 
   const mockCacheManager = {
     get: jest.fn(),
@@ -75,6 +76,30 @@ describe('GetCompletedWorksService', () => {
       GetCompletedWorksService,
     );
     cacheManager = module.get<Cache>(CACHE_MANAGER);
+
+    initialQuery = `SELECT obras.id, obras.ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, executado, 
+    mun, CASE WHEN current_date > entrada + prazo THEN 1 ELSE 0 END AS atraso, data_conclusao, tipo_obra, qtde_planejada, qtde_pend,
+    circuito, mo_planejada, contagem_ocorrencias, turma, status, conjunto, abrev_regional, observ_obra
+    FROM construcao_sp.obras
+    INNER JOIN construcao_sp.municipios ON obras.id_gpm = municipios.id
+    INNER JOIN construcao_sp.circuitos ON obras.id_circuito = circuitos.id
+    INNER JOIN construcao_sp.status ON obras.id_status = status.id
+    INNER JOIN construcao_sp.tipos ON obras.id_tipo = tipos.id
+    INNER JOIN construcao_sp.conjuntos ON circuitos.id_conjunto = conjuntos.id
+    INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
+    INNER JOIN construcao_sp.turmas ON obras.id_turma = turmas.id
+    LEFT JOIN (SELECT id_obra, COUNT(*)::int as contagem_ocorrencias FROM construcao_sp.programacoes WHERE programacoes.data_prog > current_date GROUP BY id_obra ) AS programacoes ON programacoes.id_obra = obras.id
+    WHERE data_conclusao IS NOT NULL
+    AND municipios.id_regional IN ()
+    AND id_tipo IN ()
+    AND id_turma IN ()
+    AND tipos.id_grupo IN ()
+    AND municipios.id IN ()
+    AND status.id IN ()
+    AND id_circuito IN ()
+    AND circuitos.id_conjunto IN ()
+    AND id_empreendimento IN ()
+    AND obras.id IN ()`;
   });
 
   afterEach(() => {
@@ -87,16 +112,16 @@ describe('GetCompletedWorksService', () => {
 
   it('should return works from cache if available', async () => {
     const filters: GetWorksDTO = {
-      idGrupo: 4,
-      idMunicipio: 5,
-      idParceira: 3,
-      idRegional: 1,
-      idStatus: 6,
-      idTipo: 2,
-      idOvnota: 10,
-      idCircuito: 7,
-      idConjunto: 8,
-      idEmpreendimento: 9,
+      idGrupo: [4],
+      idMunicipio: [5],
+      idParceira: [3],
+      idRegional: [1],
+      idStatus: [6],
+      idTipo: [2],
+      idOvnota: [10],
+      idCircuito: [7],
+      idConjunto: [8],
+      idEmpreendimento: [9],
       data: '09/2024',
       tipoFiltro: 'month',
     };
@@ -114,16 +139,16 @@ describe('GetCompletedWorksService', () => {
 
   it('should apply multiple filters correctly and month filter', async () => {
     const filters: GetWorksDTO = {
-      idGrupo: 4,
-      idMunicipio: 5,
-      idParceira: 3,
-      idRegional: 1,
-      idStatus: 6,
-      idTipo: 2,
-      idOvnota: 10,
-      idCircuito: 7,
-      idConjunto: 8,
-      idEmpreendimento: 9,
+      idGrupo: [4],
+      idMunicipio: [5],
+      idParceira: [3],
+      idRegional: [1],
+      idStatus: [6],
+      idTipo: [2],
+      idOvnota: [10],
+      idCircuito: [7],
+      idConjunto: [8],
+      idEmpreendimento: [9],
       data: '09/2024',
       tipoFiltro: 'month',
     };
@@ -148,22 +173,17 @@ describe('GetCompletedWorksService', () => {
 
     const result = await getCompletedWorksService.getCompletedWorks(filters);
 
-    const calledQuery = mockPrismaService.$queryRaw.mock.calls[0][0];
+    const calledQuery = mockPrismaService.$queryRaw.mock.calls[0][0].strings;
 
-    expect(mockPrismaService.$queryRaw).toHaveBeenCalled();
-    expect(calledQuery.strings[0]).toContain('AND municipios.id_regional = ');
-    expect(calledQuery.strings[1]).toContain('AND id_tipo = ');
-    expect(calledQuery.strings[2]).toContain('AND id_turma = ');
-    expect(calledQuery.strings[3]).toContain('AND tipos.id_grupo = ');
-    expect(calledQuery.strings[4]).toContain('AND municipios.id = ');
-    expect(calledQuery.strings[5]).toContain('AND status.id = ');
-    expect(calledQuery.strings[6]).toContain('AND id_circuito = ');
-    expect(calledQuery.strings[7]).toContain('AND circuitos.id_conjunto = ');
-    expect(calledQuery.strings[8]).toContain('AND id_empreendimento = ');
-    expect(calledQuery.strings[9]).toContain('AND obras.id = ');
-    expect(calledQuery.strings[10]).toContain(
-      'AND EXTRACT(MONTH FROM data_conclusao) = ',
+    initialQuery = `${initialQuery} AND EXTRACT(MONTH FROM data_conclusao) =  AND EXTRACT(YEAR FROM data_conclusao) = ORDER BY data_conclusao DESC;`;
+
+    const normalize = (str: string) => str.replace(/\s+/g, ' ').trim();
+
+    const allPartsPresent = normalize(initialQuery).includes(
+      normalize(calledQuery.join('')),
     );
+
+    expect(allPartsPresent).toBeTruthy();
     expect(result).toEqual(mockResult);
     expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
     expect(cacheManager.set).toHaveBeenCalledWith(cacheKey, mockQuery, 1800000);
@@ -171,17 +191,17 @@ describe('GetCompletedWorksService', () => {
 
   it('should apply multiple filters correctly and day filter', async () => {
     const filters: GetWorksDTO = {
-      idGrupo: 4,
-      idMunicipio: 5,
-      idParceira: 3,
-      idRegional: 1,
-      idStatus: 6,
-      idTipo: 2,
-      idOvnota: 10,
-      idCircuito: 7,
-      idConjunto: 8,
-      idEmpreendimento: 9,
-      data: '09/2024',
+      idGrupo: [4],
+      idMunicipio: [5],
+      idParceira: [3],
+      idRegional: [1],
+      idStatus: [6],
+      idTipo: [2],
+      idOvnota: [10],
+      idCircuito: [7],
+      idConjunto: [8],
+      idEmpreendimento: [9],
+      data: '17/09/2024',
       tipoFiltro: 'day',
     };
 
@@ -205,20 +225,20 @@ describe('GetCompletedWorksService', () => {
 
     const result = await getCompletedWorksService.getCompletedWorks(filters);
 
-    const calledQuery = mockPrismaService.$queryRaw.mock.calls[0][0];
+    initialQuery = `${initialQuery} AND data_conclusao = ORDER BY data_conclusao DESC;`;
 
-    expect(prismaService.$queryRaw).toHaveBeenCalled();
-    expect(calledQuery.strings[0]).toContain('AND municipios.id_regional = ');
-    expect(calledQuery.strings[1]).toContain('AND id_tipo = ');
-    expect(calledQuery.strings[2]).toContain('AND id_turma = ');
-    expect(calledQuery.strings[3]).toContain('AND tipos.id_grupo = ');
-    expect(calledQuery.strings[4]).toContain('AND municipios.id = ');
-    expect(calledQuery.strings[5]).toContain('AND status.id = ');
-    expect(calledQuery.strings[6]).toContain('AND id_circuito = ');
-    expect(calledQuery.strings[7]).toContain('AND circuitos.id_conjunto = ');
-    expect(calledQuery.strings[8]).toContain('AND id_empreendimento = ');
-    expect(calledQuery.strings[9]).toContain('AND obras.id = ');
-    expect(calledQuery.strings[10]).toContain('AND data_conclusao = ');
+    const calledQuery = mockPrismaService.$queryRaw.mock.calls[0][0].strings;
+
+    const normalize = (str: string) => str.replace(/\s+/g, ' ').trim();
+
+    const allPartsPresent = normalize(initialQuery).includes(
+      normalize(calledQuery.join('')),
+    );
+
+    console.log(normalize(initialQuery));
+    console.log(normalize(calledQuery.join('')));
+
+    expect(allPartsPresent).toBeTruthy();
 
     expect(result).toEqual(mockResult);
     expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);

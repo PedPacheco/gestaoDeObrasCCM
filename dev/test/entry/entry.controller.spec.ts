@@ -72,12 +72,12 @@ describe('EntryController', () => {
     it('Should build filters, get values entry with filters and return the result with correct format', async () => {
       const entryDTO: GetEntryOfWorksDTO = {
         ano: 2024,
-        idRegional: 1,
-        idMunicipio: 0,
-        idGrupo: 0,
-        idTipo: 0,
-        idParceira: 0,
-        idCircuito: 0,
+        idRegional: [1],
+        idMunicipio: [0],
+        idGrupo: [0],
+        idTipo: [0],
+        idParceira: [0],
+        idCircuito: [0],
       };
 
       jest
@@ -102,11 +102,11 @@ describe('EntryController', () => {
       const entryDTO: GetEntryOfWorksByDayDTO = {
         data: new Date('09/10/2024'),
         tipoFiltro: 'mes',
-        idRegional: 0,
-        idMunicipio: 0,
-        idGrupo: 0,
-        idTipo: 0,
-        idParceira: 0,
+        idRegional: [0],
+        idMunicipio: [0],
+        idGrupo: [0],
+        idTipo: [0],
+        idParceira: [0],
       };
 
       jest
@@ -130,23 +130,23 @@ describe('EntryController', () => {
     it('Should GetEntryOfWorksDTO transformer type of params', () => {
       const filters = {
         ano: '2024',
-        idRegional: '2',
+        idRegional: '2,4',
         idMunicipio: '4',
         idGrupo: '5',
         idTipo: '1',
-        idParceira: '5',
+        idParceira: '5, 6',
         idCircuito: '7',
       };
 
       const instance = plainToInstance(GetEntryOfWorksDTO, filters);
 
       expect(instance.ano).toBe(2024);
-      expect(instance.idRegional).toBe(2);
-      expect(instance.idMunicipio).toBe(4);
-      expect(instance.idGrupo).toBe(5);
-      expect(instance.idTipo).toBe(1);
-      expect(instance.idParceira).toBe(5);
-      expect(instance.idCircuito).toBe(7);
+      expect(instance.idRegional).toStrictEqual([2, 4]);
+      expect(instance.idMunicipio).toStrictEqual([4]);
+      expect(instance.idGrupo).toStrictEqual([5]);
+      expect(instance.idTipo).toStrictEqual([1]);
+      expect(instance.idParceira).toStrictEqual([5, 6]);
+      expect(instance.idCircuito).toStrictEqual([7]);
     });
   });
 
@@ -164,11 +164,11 @@ describe('EntryController', () => {
 
       const instance = plainToInstance(GetEntryOfWorksByDayDTO, filters);
 
-      expect(instance.idRegional).toBe(2);
-      expect(instance.idMunicipio).toBe(4);
-      expect(instance.idGrupo).toBe(5);
-      expect(instance.idTipo).toBe(1);
-      expect(instance.idParceira).toBe(5);
+      expect(instance.idRegional).toStrictEqual([2]);
+      expect(instance.idMunicipio).toStrictEqual([4]);
+      expect(instance.idGrupo).toStrictEqual([5]);
+      expect(instance.idTipo).toStrictEqual([1]);
+      expect(instance.idParceira).toStrictEqual([5]);
       expect(instance.data).toEqual(moment('09/2024', 'MM/YYYY').toDate());
     });
 
@@ -176,20 +176,20 @@ describe('EntryController', () => {
       const filters = {
         data: 'fsfs/2024',
         tipoFiltro: 'mes',
-        idRegional: '2',
+        idRegional: '2,4',
         idMunicipio: '4',
-        idGrupo: '5',
+        idGrupo: '5,6',
         idTipo: '1',
         idParceira: '5',
       };
 
       const instance = plainToInstance(GetEntryOfWorksByDayDTO, filters);
 
-      expect(instance.idRegional).toBe(2);
-      expect(instance.idMunicipio).toBe(4);
-      expect(instance.idGrupo).toBe(5);
-      expect(instance.idTipo).toBe(1);
-      expect(instance.idParceira).toBe(5);
+      expect(instance.idRegional).toStrictEqual([2, 4]);
+      expect(instance.idMunicipio).toStrictEqual([4]);
+      expect(instance.idGrupo).toStrictEqual([5, 6]);
+      expect(instance.idTipo).toStrictEqual([1]);
+      expect(instance.idParceira).toStrictEqual([5]);
       expect(instance.data).toEqual(null);
     });
   });

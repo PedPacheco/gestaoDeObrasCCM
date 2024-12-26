@@ -1,36 +1,42 @@
 import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class GetTotalValuesScheduleDTO {
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idRegional: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idRegional: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idMunicipio: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idMunicipio: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idGrupo: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idGrupo: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idTipo: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idTipo: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idParceira: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idParceira: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idCircuito: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idCircuito: number[];
 
   @IsNumber()
   @Type(() => Number)
@@ -45,29 +51,29 @@ export class GetScheduleValuesDTO {
   tipoFiltro: string;
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idRegional: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idRegional: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idMunicipio: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idMunicipio: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idGrupo: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idGrupo: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idTipo: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idTipo: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idParceira: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idParceira: number[];
 
   @IsBoolean()
   @Transform(({ value }) =>
@@ -84,29 +90,29 @@ export class GetValueWeeklyScheduleDTO {
   dataFinal: string;
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idRegional: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idRegional: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idMunicipio: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idMunicipio: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idGrupo: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idGrupo: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idTipo: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idTipo: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idParceira: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idParceira: number[];
 
   @IsBoolean()
   @Transform(({ value }) =>
@@ -117,14 +123,14 @@ export class GetValueWeeklyScheduleDTO {
 
 export class GetPendingScheduleValuesDTO {
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idParceira: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idParceira: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idRegional: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idRegional: number[];
 }
 
 export class GetMonthlySummaryDTO {
@@ -132,22 +138,22 @@ export class GetMonthlySummaryDTO {
   date: string;
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idParceira: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idParceira: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idRegional: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idRegional: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idGrupo: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idGrupo: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  idTipo: number;
+  @IsArray()
+  @Transform(({ value }) => value.toString().split(',').map(Number))
+  idTipo: number[];
 }

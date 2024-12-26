@@ -9,6 +9,7 @@ describe('GetWorksInPortfolioService', () => {
   let prismaService: PrismaService;
   let getWorksInPortfolioService: GetWorksInPortfolioService;
   let cacheManager: Cache;
+  let initialQuery: string;
 
   const mockCacheManager = {
     get: jest.fn(),
@@ -120,6 +121,25 @@ describe('GetWorksInPortfolioService', () => {
       GetWorksInPortfolioService,
     );
     cacheManager = module.get<Cache>(CACHE_MANAGER);
+
+    initialQuery = `SELECT
+      obras.id, obras.ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, 
+      executado, mun, id_status, entrada, prazo, entrada + prazo AS prazo_fim, abrev_regional, tipo_obra, qtde_planejada, contagem_ocorrencias,
+      qtde_pend, circuito, mo_planejada, first_data_prog, status.status, hora_ini, hora_ter, tipo_servico, datas_programacao.chi,
+      conjuntos.conjunto, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, data_empreitamento, empreendimento, turma
+      FROM construcao_sp.obras 
+      INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma 
+      INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm 
+      INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo 
+      INNER JOIN construcao_sp.status ON status.id = obras.id_status 
+      INNER JOIN construcao_sp.circuitos ON obras.id_circuito = circuitos.id
+      INNER JOIN construcao_sp.empreendimento ON obras.id_empreendimento = empreendimento.id
+      INNER JOIN construcao_sp.conjuntos ON circuitos.id_conjunto = conjuntos.id
+      INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
+      LEFT JOIN construcao_sp.datas_programacao ON datas_programacao.id= obras.id
+      LEFT JOIN (SELECT id_obra, COUNT(*)::int as contagem_ocorrencias FROM construcao_sp.programacoes WHERE programacoes.data_prog > current_date GROUP BY id_obra ) AS programacoes ON programacoes.id_obra = obras.id 
+      WHERE data_conclusao IS NULL
+`;
   });
 
   afterEach(() => {
@@ -132,16 +152,16 @@ describe('GetWorksInPortfolioService', () => {
 
   it('should return works from cache if available', async () => {
     const filters: GetWorksDTO = {
-      idGrupo: 4,
-      idMunicipio: 5,
-      idParceira: 3,
-      idRegional: 1,
-      idStatus: 6,
-      idTipo: 2,
-      idOvnota: 10,
-      idCircuito: 7,
-      idConjunto: 8,
-      idEmpreendimento: 9,
+      idGrupo: [4],
+      idMunicipio: [5],
+      idParceira: [3],
+      idRegional: [1],
+      idStatus: [6],
+      idTipo: [2],
+      idOvnota: [10],
+      idCircuito: [7],
+      idConjunto: [8],
+      idEmpreendimento: [9],
       data: '09/2024',
       tipoFiltro: 'month',
     };
@@ -160,16 +180,16 @@ describe('GetWorksInPortfolioService', () => {
 
   it('should apply multiple filters correctly and month filter', async () => {
     const filters: GetWorksDTO = {
-      idGrupo: 4,
-      idMunicipio: 5,
-      idParceira: 3,
-      idRegional: 1,
-      idStatus: 6,
-      idTipo: 2,
-      idOvnota: 10,
-      idCircuito: 7,
-      idConjunto: 8,
-      idEmpreendimento: 9,
+      idGrupo: [4],
+      idMunicipio: [5],
+      idParceira: [3],
+      idRegional: [1],
+      idStatus: [6],
+      idTipo: [2],
+      idOvnota: [10],
+      idCircuito: [7],
+      idConjunto: [8],
+      idEmpreendimento: [9],
       data: '09/2024',
       tipoFiltro: 'month',
     };
@@ -182,22 +202,27 @@ describe('GetWorksInPortfolioService', () => {
     const result =
       await getWorksInPortfolioService.getWorksInPortfolio(filters);
 
-    const calledQuery = mockPrismaService.$queryRaw.mock.calls[0][0];
+    initialQuery = `${initialQuery} AND municipios.id_regional IN ()
+      AND id_tipo IN ()
+      AND id_turma IN ()
+      AND tipos.id_grupo IN ()
+      AND municipios.id IN ()
+      AND status.id IN ()
+      AND id_circuito IN ()
+      AND circuitos.id_conjunto IN ()
+      AND id_empreendimento IN ()
+      AND obras.id IN () AND EXTRACT(MONTH FROM first_data_prog) = AND EXTRACT(YEAR FROM first_data_prog) = ORDER BY first_data_prog, status DESC, entrada + prazo;`;
 
-    expect(mockPrismaService.$queryRaw).toHaveBeenCalled();
-    expect(calledQuery.strings[0]).toContain('AND municipios.id_regional = ');
-    expect(calledQuery.strings[1]).toContain('AND id_tipo = ');
-    expect(calledQuery.strings[2]).toContain('AND id_turma = ');
-    expect(calledQuery.strings[3]).toContain('AND tipos.id_grupo = ');
-    expect(calledQuery.strings[4]).toContain('AND municipios.id = ');
-    expect(calledQuery.strings[5]).toContain('AND status.id = ');
-    expect(calledQuery.strings[6]).toContain('AND id_circuito = ');
-    expect(calledQuery.strings[7]).toContain('AND circuitos.id_conjunto = ');
-    expect(calledQuery.strings[8]).toContain('AND id_empreendimento = ');
-    expect(calledQuery.strings[9]).toContain('AND obras.id = ');
-    expect(calledQuery.strings[10]).toContain(
-      'AND EXTRACT(MONTH FROM first_data_prog) = ',
+    const normalize = (str: string) => str.replace(/\s+/g, ' ').trim();
+
+    const calledQuery = mockPrismaService.$queryRaw.mock.calls[0][0].strings;
+
+    const allPartsPresent = normalize(initialQuery).includes(
+      normalize(calledQuery.join('')),
     );
+
+    expect(allPartsPresent).toBeTruthy();
+    expect(mockPrismaService.$queryRaw).toHaveBeenCalled();
     expect(result).toEqual(mockResponse);
 
     expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
@@ -228,9 +253,17 @@ describe('GetWorksInPortfolioService', () => {
 
     await getWorksInPortfolioService.getWorksInPortfolio(filters);
 
-    const calledQuery = mockPrismaService.$queryRaw.mock.calls[0][0];
+    initialQuery = `${initialQuery} AND first_data_prog = ORDER BY first_data_prog, status DESC, entrada + prazo;`;
+
+    const normalize = (str: string) => str.replace(/\s+/g, ' ').trim();
+
+    const calledQuery = mockPrismaService.$queryRaw.mock.calls[0][0].strings;
+
+    const allPartsPresent = normalize(initialQuery).includes(
+      normalize(calledQuery.join('')),
+    );
 
     expect(prismaService.$queryRaw).toHaveBeenCalled();
-    expect(calledQuery.strings[0]).toContain('AND first_data_prog = ');
+    expect(allPartsPresent).toBeTruthy();
   });
 });

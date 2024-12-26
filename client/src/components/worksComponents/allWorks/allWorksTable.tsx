@@ -1,3 +1,4 @@
+"use client";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { forwardRef } from "react";
@@ -25,7 +26,7 @@ const VirtuosoTableComponents: TableComponents = {
   Scroller: forwardRef<HTMLDivElement>(function scroller(props, ref) {
     return (
       <TableContainer
-        className="mb-20 w-[95%] max-h-[880px] lg:max-h-[620px] xl:max-h-[75%] overflow-y-auto"
+        className="mb-4 w-[95%] min-h-96 max-h-[880px] lg:max-h-[620px] xl:max-h-[90%] overflow-y-auto"
         component={Paper}
         {...props}
         ref={ref}
@@ -61,7 +62,7 @@ export default function MainAllWorksTable({
   }
 
   function rowContent(index: number) {
-    const item = works.data[index];
+    const item = works[index];
     return (
       <>
         {Object.keys(columnMapping).map((column) => {
@@ -136,7 +137,7 @@ export default function MainAllWorksTable({
 
   return (
     <TableVirtuoso
-      data={works.data}
+      data={works}
       components={VirtuosoTableComponents}
       fixedHeaderContent={fixedHeaderContent}
       itemContent={rowContent}

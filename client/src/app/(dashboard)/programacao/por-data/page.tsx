@@ -1,11 +1,38 @@
-import MainSchduleForDay from "@/components/scheduleComponents/scheduleForDay/MainScheduleForDay";
-import { fetchData } from "@/actions/fetchData.action";
-import { fetchFilters } from "@/actions/fetchFilters.action";
 import dayjs from "dayjs";
 import { cookies } from "next/headers";
 
+import { fetchData } from "@/actions/fetchData.action";
+import { fetchFilters } from "@/actions/fetchFilters.action";
+import MainSchduleForDay from "@/components/scheduleComponents/scheduleForDay/MainScheduleForDay";
+import { Transform } from "@/utils/transform";
+
 export default async function ScheduleForDay() {
   const cookieStore = await cookies();
+  const cookieParams = cookieStore.get("scheduleForDayFilters")?.value;
+
+  let params = cookieParams ? JSON.parse(cookieParams) : undefined;
+  let filtersValues = undefined;
+
+  if (params) {
+    const formattedSelectedItems = Transform(params.selectedItems);
+
+    filtersValues = {
+      ...formattedSelectedItems,
+      data: params.date
+        ? params.filterType === "day"
+          ? dayjs(params.date).format("DD/MM/YYYY")
+          : dayjs(params.date).format("MM/YYYY")
+        : "",
+      tipoFiltro: params.filterType,
+      executado: params.executed.toString(),
+    };
+  } else {
+    filtersValues = {
+      data: dayjs().format("MM/YYYY"),
+      tipoFiltro: "month",
+      executado: "false",
+    };
+  }
 
   const [filters, scheduleData] = await Promise.all([
     fetchFilters({
@@ -16,12 +43,8 @@ export default async function ScheduleForDay() {
       tipo: true,
     }),
     await fetchData(
-      `${
-        process.env.NEXT_PUBLIC_API_URL
-      }/programacao/mensal?data=${dayjs().format(
-        "MM/YYYY"
-      )}&tipoFiltro=month&executado=false`,
-      undefined,
+      `${process.env.NEXT_PUBLIC_API_URL}/programacao/mensal`,
+      filtersValues,
       cookieStore.get("token")?.value,
       { cache: "no-store" }
     ),
@@ -62,8 +85,8 @@ export default async function ScheduleForDay() {
   return (
     <MainSchduleForDay
       columns={columns}
-      data={data}
-      filters={filters}
+      data={data.data}
+      filtersData={filters}
       token={token}
     />
   );

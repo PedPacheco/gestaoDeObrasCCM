@@ -13,7 +13,7 @@ import ModalComponent from "../common/Modal";
 import { useCallback, useMemo } from "react";
 
 interface ModalGoalsProps {
-  goals: any;
+  data: any;
   columns: any;
   handleClose: () => void;
   open: boolean;
@@ -27,7 +27,7 @@ interface Totals {
 
 export default function ModalGoals({
   columns,
-  goals,
+  data,
   handleClose,
   open,
 }: ModalGoalsProps) {
@@ -49,7 +49,7 @@ export default function ModalGoals({
         carteira: 0,
       };
 
-      goals.data.forEach((item: any) => {
+      data?.forEach((item: any) => {
         if (item[month]) {
           totals.meta += item[month].meta || 0;
           totals.prog += item[month].prog || 0;
@@ -72,7 +72,7 @@ export default function ModalGoals({
 
       return totals;
     },
-    [columns, goals.data]
+    [columns, data]
   );
 
   const sumValues = useMemo(() => {

@@ -96,12 +96,12 @@ describe('ScheduleController', () => {
 
   it('Should call getTotalValues method and return correct data', async () => {
     const filters = {
-      idRegional: 1,
-      idParceira: 1,
-      idMunicipio: 1,
-      idGrupo: 1,
-      idTipo: 1,
-      idCircuito: 1,
+      idRegional: [1],
+      idParceira: [1],
+      idMunicipio: [1],
+      idGrupo: [1],
+      idTipo: [1],
+      idCircuito: [1],
       ano: 2024,
     };
 
@@ -125,11 +125,11 @@ describe('ScheduleController', () => {
     const filters = {
       data: '17/05/2024',
       tipoFiltro: 'day',
-      idRegional: 1,
-      idMunicipio: 1,
-      idGrupo: 1,
-      idTipo: 1,
-      idParceira: 1,
+      idRegional: [1],
+      idMunicipio: [1],
+      idGrupo: [1],
+      idTipo: [1],
+      idParceira: [1],
       executado: false,
     };
 
@@ -151,11 +151,11 @@ describe('ScheduleController', () => {
     const filters = {
       dataInicial: '17/05/2024',
       dataFinal: '18/05/2024',
-      idRegional: 1,
-      idMunicipio: 1,
-      idGrupo: 1,
-      idTipo: 1,
-      idParceira: 1,
+      idRegional: [1],
+      idMunicipio: [1],
+      idGrupo: [1],
+      idTipo: [1],
+      idParceira: [1],
       executado: false,
     };
 
@@ -193,8 +193,8 @@ describe('ScheduleController', () => {
 
   it('Should call getPendingSchedule method and return correct data', async () => {
     const filters = {
-      idRegional: 1,
-      idParceira: 1,
+      idRegional: [1],
+      idParceira: [1],
     };
 
     jest
@@ -217,11 +217,11 @@ describe('ScheduleController', () => {
     const filters = {
       dataInicial: '17/05/2024',
       dataFinal: '18/05/2024',
-      idRegional: 1,
-      idMunicipio: 1,
-      idGrupo: 1,
-      idTipo: 1,
-      idParceira: 1,
+      idRegional: [1],
+      idMunicipio: [1],
+      idGrupo: [1],
+      idTipo: [1],
+      idParceira: [1],
       executado: false,
     };
 
@@ -271,10 +271,10 @@ describe('ScheduleController', () => {
   it('Should call getMonthlySummary method and return correct data', async () => {
     const filters = {
       date: '11/2024',
-      idRegional: 1,
-      idGrupo: 1,
-      idTipo: 1,
-      idParceira: 1,
+      idRegional: [1],
+      idGrupo: [1],
+      idTipo: [1],
+      idParceira: [1],
     };
 
     const getMonthlySummaryResponse = [
@@ -311,10 +311,10 @@ describe('ScheduleController', () => {
   it('Should call method getSecondMonthlySummary and return data with correct format', async () => {
     const filters = {
       date: '11/2024',
-      idRegional: 1,
-      idGrupo: 1,
-      idTipo: 1,
-      idParceira: 1,
+      idRegional: [1],
+      idGrupo: [1],
+      idTipo: [1],
+      idParceira: [1],
     };
 
     const getSecondMonthlySummaryResponse = [

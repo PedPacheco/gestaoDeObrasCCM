@@ -99,7 +99,7 @@ describe('WorksController', () => {
         idGrupo: undefined,
         idMunicipio: undefined,
         idParceira: undefined,
-        idRegional: 1,
+        idRegional: [1],
         idStatus: undefined,
         idTipo: undefined,
       };
@@ -133,7 +133,7 @@ describe('WorksController', () => {
         idGrupo: undefined,
         idMunicipio: undefined,
         idParceira: undefined,
-        idRegional: 1,
+        idRegional: [1],
         idStatus: undefined,
         idTipo: undefined,
       };
@@ -169,7 +169,7 @@ describe('WorksController', () => {
         idGrupo: undefined,
         idMunicipio: undefined,
         idParceira: undefined,
-        idRegional: 1,
+        idRegional: [1],
         idStatus: undefined,
         idTipo: undefined,
       };
@@ -295,12 +295,12 @@ describe('WorksController', () => {
       };
       const instance = plainToInstance(GetAllWorksDTO, filters);
 
-      expect(instance.idGrupo).toBe(1);
-      expect(instance.idMunicipio).toBe(5);
-      expect(instance.idParceira).toBe(2);
-      expect(instance.idRegional).toBe(4);
-      expect(instance.idStatus).toBe(4);
-      expect(instance.idTipo).toBe(7);
+      expect(instance.idGrupo).toStrictEqual([1]);
+      expect(instance.idMunicipio).toStrictEqual([5]);
+      expect(instance.idParceira).toStrictEqual([2]);
+      expect(instance.idRegional).toStrictEqual([4]);
+      expect(instance.idStatus).toStrictEqual([4]);
+      expect(instance.idTipo).toStrictEqual([7]);
     });
 
     it('Should GetWorksDTO transform data of dto filters', () => {
@@ -318,16 +318,16 @@ describe('WorksController', () => {
       };
       const instance = plainToInstance(GetWorksDTO, filters);
 
-      expect(instance.idGrupo).toBe(1);
-      expect(instance.idMunicipio).toBe(5);
-      expect(instance.idParceira).toBe(2);
-      expect(instance.idRegional).toBe(4);
-      expect(instance.idStatus).toBe(4);
-      expect(instance.idTipo).toBe(7);
-      expect(instance.idConjunto).toBe(4);
-      expect(instance.idEmpreendimento).toBe(23);
-      expect(instance.idCircuito).toBe(9);
-      expect(instance.idOvnota).toBe(3);
+      expect(instance.idGrupo).toStrictEqual([1]);
+      expect(instance.idMunicipio).toStrictEqual([5]);
+      expect(instance.idParceira).toStrictEqual([2]);
+      expect(instance.idRegional).toStrictEqual([4]);
+      expect(instance.idStatus).toStrictEqual([4]);
+      expect(instance.idTipo).toStrictEqual([7]);
+      expect(instance.idConjunto).toStrictEqual([4]);
+      expect(instance.idEmpreendimento).toStrictEqual([23]);
+      expect(instance.idCircuito).toStrictEqual([9]);
+      expect(instance.idOvnota).toStrictEqual([3]);
     });
   });
 });

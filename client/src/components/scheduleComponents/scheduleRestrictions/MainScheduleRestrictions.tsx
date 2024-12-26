@@ -5,17 +5,14 @@ import { useState } from "react";
 
 import { TableComponent } from "@/components/common/Table";
 import { MainInterface } from "@/interfaces/mainInterface";
-import { fetchData } from "@/actions/fetchData.action";
 
 import WeeklyScheduleFilters from "../weeklySchedule/WeeklyScheduleFilters";
 
 export default function MainScheduleRestrictions({
   data,
-  filters,
-  token,
+  filtersData,
   columns,
 }: MainInterface<any>) {
-  const [dataFiltered, setDataFiltered] = useState(data);
   const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
   const [weekRange, setWeekRange] = useState<{
     start: string;
@@ -24,16 +21,6 @@ export default function MainScheduleRestrictions({
     start: selectedDate.startOf("isoWeek").format("DD/MM/YYYY"),
     end: selectedDate.endOf("isoWeek").format("DD/MM/YYYY"),
   });
-
-  async function fetchEntry(params: Record<string, string>) {
-    const response = await fetchData(
-      `${process.env.NEXT_PUBLIC_API_URL}/programacao/restricoes`,
-      params,
-      token
-    );
-
-    setDataFiltered(response.data);
-  }
 
   const handleDateChange = (newDate: Dayjs | null) => {
     if (newDate) {
@@ -51,8 +38,7 @@ export default function MainScheduleRestrictions({
     <>
       <div className="my-6 w-4/5 flex flex-col">
         <WeeklyScheduleFilters
-          data={filters}
-          onApplyFilters={fetchEntry}
+          data={filtersData}
           keyFilters="scheduleRestrictionsFilters"
           dateInitial={selectedDate}
           weekRange={weekRange}
@@ -62,7 +48,7 @@ export default function MainScheduleRestrictions({
         />
       </div>
 
-      <TableComponent columns={columns} data={dataFiltered.data} />
+      <TableComponent columns={columns} data={data} />
     </>
   );
 }

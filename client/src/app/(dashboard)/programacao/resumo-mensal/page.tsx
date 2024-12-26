@@ -1,20 +1,29 @@
-import { MainMonthlySummarySchedule } from "@/components/scheduleComponents/monthlySummary/mainMonthlySummarySchedule";
-import { fetchData } from "@/actions/fetchData.action";
-import { fetchFilters } from "@/actions/fetchFilters.action";
 import dayjs from "dayjs";
 import { cookies } from "next/headers";
 
+import { fetchData } from "@/actions/fetchData.action";
+import { fetchFilters } from "@/actions/fetchFilters.action";
+import { MainMonthlySummarySchedule } from "@/components/scheduleComponents/monthlySummary/mainMonthlySummarySchedule";
+import { Transform } from "@/utils/transform";
+
 export default async function MonthlySummary() {
   const cookieStore = await cookies();
+  const cookieParams = cookieStore.get("monthlySummaryScheduleFilters")?.value;
 
-  async function fetchMonthlySummary(endpoint: string) {
-    const url = `${
-      process.env.NEXT_PUBLIC_API_URL
-    }${endpoint}?date=${dayjs().format("MM/YYYY")}`;
+  const params = cookieParams ? JSON.parse(cookieParams) : undefined;
+  let filtersValues = undefined;
 
-    return await fetchData(url, undefined, cookieStore.get("token")?.value, {
-      cache: "no-store",
-    });
+  if (params) {
+    const formattedSelectedItems = Transform(params.selectedItems);
+
+    filtersValues = {
+      ...formattedSelectedItems,
+      date: dayjs(params.date).format("MM/YYYY"),
+    };
+  } else {
+    filtersValues = {
+      date: dayjs().format("MM/YYYY"),
+    };
   }
 
   const [filters, firstSummary, secondSummary] = await Promise.all([
@@ -24,8 +33,16 @@ export default async function MonthlySummary() {
       grupo: true,
       tipo: true,
     }),
-    fetchMonthlySummary("/programacao/resumo-mensal"),
-    fetchMonthlySummary("/programacao/resumo-mensal-2"),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal`,
+      filtersValues,
+      cookieStore.get("token")?.value
+    ),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal-2`,
+      filtersValues,
+      cookieStore.get("token")?.value
+    ),
   ]);
 
   const columnsFirstSummary = {
@@ -51,7 +68,7 @@ export default async function MonthlySummary() {
       columnsSecondSummary={columnsSecondSummary}
       dataFirstSummary={firstSummary?.data}
       dataSecondSummary={secondSummary?.data}
-      filters={filters}
+      filtersData={filters}
       token={firstSummary.token}
     />
   );

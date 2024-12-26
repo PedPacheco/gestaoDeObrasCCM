@@ -31,11 +31,22 @@ export class GetScheduleRestrictionsService {
             },
           },
         },
-        municipios: { id_regional: idRegional || undefined },
-        id_turma: idParceira || undefined,
-        id_tipo: idTipo || undefined,
-        id_gpm: idMunicipio || undefined,
-        tipos: { id_grupo: idGrupo || undefined },
+        municipios: {
+          id_regional:
+            idRegional && idRegional.length > 0
+              ? { in: idRegional }
+              : undefined,
+        },
+        id_gpm:
+          idMunicipio && idMunicipio.length > 0
+            ? { in: idMunicipio }
+            : undefined,
+        id_turma:
+          idParceira && idParceira.length > 0 ? { in: idParceira } : undefined,
+        id_tipo: idTipo && idTipo.length > 0 ? { in: idTipo } : undefined,
+        tipos: {
+          id_grupo: idGrupo && idGrupo.length > 0 ? { in: idGrupo } : undefined,
+        },
       },
       select: {
         id: true,

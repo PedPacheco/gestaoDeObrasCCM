@@ -170,23 +170,23 @@ describe('GetTotalValuesScheduleService', () => {
 
   it('should return the correct values with filters', async () => {
     const filters = {
-      idRegional: 1,
-      idTipo: 1,
-      idParceira: 1,
-      idMunicipio: 1,
-      idCircuito: 1,
-      idGrupo: 1,
+      idRegional: [1],
+      idTipo: [1],
+      idParceira: [1],
+      idMunicipio: [1],
+      idCircuito: [1],
+      idGrupo: [1],
       ano: 2024,
     };
 
     jest.spyOn(prisma, '$queryRaw').mockResolvedValue(mockResponseQuery);
 
-    expectedQuery = `${expectedQuery} AND municipios.id_regional = 
-    AND id_tipo = 
-    AND id_turma = 
-    AND tipos.id_grupo = 
-    AND municipios.id = 
-    AND id_circuito = 
+    expectedQuery = `${expectedQuery} AND municipios.id_regional IN () 
+    AND id_tipo IN () 
+    AND id_turma IN () 
+    AND tipos.id_grupo IN () 
+    AND municipios.id IN () 
+    AND id_circuito IN () 
     AND EXTRACT(YEAR FROM data_prog) = 
     GROUP BY turma, EXTRACT(YEAR FROM data_prog) ORDER BY turma;`;
 
@@ -195,8 +195,8 @@ describe('GetTotalValuesScheduleService', () => {
     const normalize = (str: string) => str.replace(/\s+/g, ' ').trim();
 
     const queryStrings = prismaMock.$queryRaw.mock.calls[0][0].strings;
-    const allPartsPresent = queryStrings.every((part) =>
-      normalize(expectedQuery).includes(normalize(part)),
+    const allPartsPresent = normalize(expectedQuery).includes(
+      normalize(queryStrings.join('')),
     );
 
     expect(result).toEqual(mockResponse);

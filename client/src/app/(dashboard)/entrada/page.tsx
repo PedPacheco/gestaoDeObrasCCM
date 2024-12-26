@@ -2,9 +2,28 @@ import MainEntry from "@/components/entryComponents/entry/MainEntry";
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { cookies } from "next/headers";
+import { Transform } from "@/utils/transform";
+import dayjs from "dayjs";
 
 export default async function Entry() {
   const cookieStore = await cookies();
+  const cookieParams = cookieStore.get("entryFilters")?.value;
+
+  const params = cookieParams ? JSON.parse(cookieParams) : undefined;
+  let filtersValues = undefined;
+
+  if (params) {
+    const formattedSelectedItems = Transform(params.selectedItems);
+
+    filtersValues = {
+      ...formattedSelectedItems,
+      ano: dayjs(params.selectedYear).format("YYYY"),
+    };
+  } else {
+    filtersValues = {
+      ano: dayjs().format("YYYY"),
+    };
+  }
 
   const [filters, entryData] = await Promise.all([
     fetchFilters({
@@ -16,10 +35,8 @@ export default async function Entry() {
       circuito: true,
     }),
     fetchData(
-      `${
-        process.env.NEXT_PUBLIC_API_URL
-      }/entrada?ano=${new Date().getFullYear()}`,
-      undefined,
+      `${process.env.NEXT_PUBLIC_API_URL}/entrada`,
+      filtersValues,
       cookieStore.get("token")?.value
     ),
   ]);
@@ -45,8 +62,8 @@ export default async function Entry() {
 
   return (
     <MainEntry
-      data={data}
-      filters={filters}
+      data={data.data}
+      filtersData={filters}
       token={token}
       columns={columnMapping}
     />

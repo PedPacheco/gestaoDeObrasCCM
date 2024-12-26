@@ -1,10 +1,19 @@
-import MainAllWorks from "@/components/worksComponents/allWorks/MainAllWorks";
+import { cookies } from "next/headers";
+
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import { cookies } from "next/headers";
+import MainAllWorks from "@/components/worksComponents/allWorks/MainAllWorks";
+import { Transform } from "@/utils/transform";
 
 export default async function AllWorks() {
   const cookieStore = await cookies();
+  const cookieParams = cookieStore.get("allWorksFilters")?.value;
+
+  let params = cookieParams ? JSON.parse(cookieParams) : undefined;
+
+  if (params) {
+    params = Transform(params);
+  }
 
   const [filters, worksData] = await Promise.all([
     fetchFilters({
@@ -17,7 +26,7 @@ export default async function AllWorks() {
     }),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/obras`,
-      undefined,
+      params,
       cookieStore.get("token")?.value,
       { cache: "no-store" }
     ),
@@ -25,7 +34,7 @@ export default async function AllWorks() {
 
   const { data, token } = worksData;
 
-  const columnMapping = {
+  const columns = {
     ovnota: "Ovnota",
     ordemdiagrama: "Ordem",
     status_ov_sap: "OV",
@@ -53,10 +62,10 @@ export default async function AllWorks() {
 
   return (
     <MainAllWorks
-      data={data}
+      data={data.data}
       token={token}
-      filters={filters}
-      columns={columnMapping}
+      filtersData={filters}
+      columns={columns}
     />
   );
 }

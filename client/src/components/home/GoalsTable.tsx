@@ -10,12 +10,12 @@ import {
 import { useCallback, useMemo } from "react";
 
 interface GoalsTableComponentProps {
-  goals: any;
+  data: any;
   columnMapping: any;
 }
 
 export default function GoalsTable({
-  goals,
+  data,
   columnMapping,
 }: GoalsTableComponentProps) {
   const calculateSum = useCallback(
@@ -39,8 +39,10 @@ export default function GoalsTable({
   );
 
   const sumValues = useMemo(() => {
-    return goals.data.map((item: any) => calculateSum(item));
-  }, [goals.data, calculateSum]);
+    if (data) {
+      return data.map((item: any) => calculateSum(item));
+    }
+  }, [data, calculateSum]);
 
   return (
     <TableContainer
@@ -61,7 +63,7 @@ export default function GoalsTable({
           </TableRow>
         </TableHead>
         <TableBody>
-          {goals.data.map((item: any, index: any) => {
+          {data?.map((item: any, index: any) => {
             const sums = sumValues[index];
             return (
               <TableRow key={index} className="h-16">

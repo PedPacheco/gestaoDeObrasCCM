@@ -78,12 +78,12 @@ describe('GetAllWorksService', () => {
 
   it('should return works from cache if available', async () => {
     const filters: GetAllWorksDTO = {
-      idGrupo: 1,
-      idMunicipio: 1,
-      idParceira: 1,
-      idRegional: 1,
-      idStatus: 1,
-      idTipo: 1,
+      idGrupo: [1],
+      idMunicipio: [1],
+      idParceira: [1],
+      idRegional: [1],
+      idStatus: [1],
+      idTipo: [1],
     };
 
     const cacheKey = `works-${JSON.stringify(filters)}`;
@@ -99,12 +99,12 @@ describe('GetAllWorksService', () => {
 
   it('should query database and cache the result if not in cache', async () => {
     const filters: GetAllWorksDTO = {
-      idGrupo: 1,
-      idMunicipio: 1,
-      idParceira: 1,
-      idRegional: 1,
-      idStatus: 1,
-      idTipo: 1,
+      idGrupo: [1],
+      idMunicipio: [1],
+      idParceira: [1],
+      idRegional: [1],
+      idStatus: [1],
+      idTipo: [1],
     };
 
     const cacheKey = `works-${JSON.stringify(filters)}`;
