@@ -80,8 +80,8 @@ describe('GetPendingScheduleValues', () => {
 
   it('should return the correct values with filters', async () => {
     const filters = {
-      idParceira: 1,
-      idRegional: 1,
+      idParceira: [1],
+      idRegional: [1],
     };
 
     jest.spyOn(prisma, '$queryRaw').mockResolvedValue(mockResponse);
@@ -97,15 +97,14 @@ describe('GetPendingScheduleValues', () => {
     INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo
     INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
     WHERE exec IS NULL AND data_prog < CURRENT_DATE
-    AND id_turma = 
-    AND AND municipios.id_regional = 
+    AND id_turma IN () AND municipios.id_regional IN () 
     ORDER BY data_prog`;
 
     const normalize = (str: string) => str.replace(/\s+/g, ' ').trim();
 
     const queryStrings = prismaMock.$queryRaw.mock.calls[0][0].strings;
-    const allPartsPresent = queryStrings.every((part) =>
-      normalize(expectedQuery).includes(normalize(part)),
+    const allPartsPresent = normalize(expectedQuery).includes(
+      normalize(queryStrings.join('')),
     );
 
     expect(result).toEqual(mockResponse);

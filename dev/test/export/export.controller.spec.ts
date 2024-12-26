@@ -77,11 +77,11 @@ describe('ExportController', () => {
     const mockFilters = {
       data: '17/05/2024',
       tipoFiltro: 'day',
-      idRegional: 1,
-      idMunicipio: 1,
-      idGrupo: 1,
-      idTipo: 1,
-      idParceira: 1,
+      idRegional: [1],
+      idMunicipio: [1],
+      idGrupo: [1],
+      idTipo: [1],
+      idParceira: [1],
       executado: false,
     };
     const mockScheduleData = [{ key: 'value' }];
@@ -126,7 +126,7 @@ describe('ExportController', () => {
       idGrupo: undefined,
       idMunicipio: undefined,
       idParceira: undefined,
-      idRegional: 1,
+      idRegional: [1],
       idStatus: undefined,
       idTipo: undefined,
     };
@@ -174,7 +174,7 @@ describe('ExportController', () => {
       idGrupo: undefined,
       idMunicipio: undefined,
       idParceira: undefined,
-      idRegional: 1,
+      idRegional: [1],
       idStatus: undefined,
       idTipo: undefined,
     };

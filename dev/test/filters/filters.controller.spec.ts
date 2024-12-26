@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { plainToInstance } from 'class-transformer';
+import { Request } from 'express';
 import { FiltersDto } from 'src/config/dto/filtersDto';
 import { FiltersController } from 'src/modules/filters/filters.controller';
 import { FiltersService } from 'src/modules/filters/filters.service';
@@ -65,7 +66,9 @@ describe('FiltersController', () => {
 
     jest.spyOn(filtersService, 'getFilters').mockResolvedValue(response);
 
-    const req = { query: { idRegional: 1 } };
+    const req = {
+      query: { idRegional: 1 },
+    } as unknown as Request;
 
     const result = await filtersController.getFilters(filtersDTO, req);
 
@@ -177,7 +180,7 @@ describe('FiltersController', () => {
     ) => {
       const filtersDTO = plainToInstance(FiltersDto, query);
 
-      const req = { query: { idRegional: 1 } };
+      const req = { query: { idRegional: 1 } } as unknown as Request;
 
       await filtersController.getFilters(filtersDTO, req);
 

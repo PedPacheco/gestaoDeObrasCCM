@@ -119,11 +119,11 @@ describe('GetScheduleValues', () => {
       data: '10/2024',
       tipoFiltro: 'month',
       executado: true,
-      idGrupo: 1,
-      idMunicipio: 1,
-      idParceira: 1,
-      idRegional: 1,
-      idTipo: 1,
+      idGrupo: [1],
+      idMunicipio: [1],
+      idParceira: [1],
+      idRegional: [1],
+      idTipo: [1],
     };
 
     jest.spyOn(prisma, '$queryRaw').mockResolvedValue(mockQueryResponse);
@@ -147,19 +147,19 @@ describe('GetScheduleValues', () => {
     WHERE 1=1 
     AND EXTRACT(MONTH FROM data_prog) = 
     AND EXTRACT(YEAR FROM data_prog) = 
-    AND municipios.id_regional = 
-    AND municipios.id = 
-    AND id_tipo = 
-    AND id_turma = 
-    AND tipos.id_grupo = 
+    AND municipios.id_regional IN ()
+    AND municipios.id IN ()
+    AND id_tipo IN ()
+    AND id_turma IN ()
+    AND tipos.id_grupo IN ()
     AND exec <> 0
     ORDER BY data_prog, ovnota`;
 
     const normalize = (str: string) => str.replace(/\s+/g, ' ').trim();
 
     const queryStrings = prismaMock.$queryRaw.mock.calls[0][0].strings;
-    const allPartsPresent = queryStrings.every((part) =>
-      normalize(expectedQuery).includes(normalize(part)),
+    const allPartsPresent = normalize(expectedQuery).includes(
+      normalize(queryStrings.join('')),
     );
 
     expect(result).toEqual(mockResponse);

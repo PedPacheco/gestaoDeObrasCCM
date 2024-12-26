@@ -19,10 +19,10 @@ describe('GetMonthlySummaryService', () => {
 
   const filters = {
     date: '11/2024',
-    idGrupo: 1,
-    idParceira: 2,
-    idRegional: 3,
-    idTipo: 4,
+    idGrupo: [1],
+    idParceira: [2],
+    idRegional: [3],
+    idTipo: [4],
   };
 
   const prismaMock = {
@@ -140,10 +140,10 @@ describe('GetMonthlySummaryService', () => {
             lt: moment.utc('2024-12-01').toDate(),
           },
           obras: {
-            tipos: { id_grupo: 1 },
-            municipios: { id_regional: 3 },
-            id_turma: 2,
-            id_tipo: 4,
+            tipos: { id_grupo: { in: [1] } },
+            municipios: { id_regional: { in: [3] } },
+            id_turma: { in: [2] },
+            id_tipo: { in: [4] },
           },
         },
         select: {
@@ -319,10 +319,10 @@ describe('GetMonthlySummaryService', () => {
               },
             },
           },
-          tipos: { id_grupo: 1 },
-          municipios: { id_regional: 3 },
-          id_turma: 2,
-          id_tipo: 4,
+          tipos: { id_grupo: { in: [1] } },
+          municipios: { id_regional: { in: [3] } },
+          id_turma: { in: [2] },
+          id_tipo: { in: [4] },
         },
         select: {
           ovnota: true,

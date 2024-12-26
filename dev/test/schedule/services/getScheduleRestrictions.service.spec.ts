@@ -255,11 +255,11 @@ describe('GetScheduleRestrictions', () => {
       dataInicial: '01/09/2024',
       dataFinal: '10/09/2024',
       executado: true,
-      idGrupo: 1,
-      idMunicipio: 1,
-      idParceira: 1,
-      idRegional: 1,
-      idTipo: 1,
+      idGrupo: [1],
+      idMunicipio: [1],
+      idParceira: [1],
+      idRegional: [1],
+      idTipo: [1],
     };
 
     jest.spyOn(prisma.obras, 'findMany').mockResolvedValue(mockResponseQuery);
@@ -279,11 +279,11 @@ describe('GetScheduleRestrictions', () => {
             },
           },
         },
-        municipios: { id_regional: 1 },
-        id_turma: 1,
-        id_tipo: 1,
-        id_gpm: 1,
-        tipos: { id_grupo: 1 },
+        municipios: { id_regional: { in: [1] } },
+        id_turma: { in: [1] },
+        id_tipo: { in: [1] },
+        id_gpm: { in: [1] },
+        tipos: { id_grupo: { in: [1] } },
       },
       select: {
         id: true,

@@ -68,40 +68,40 @@ describe('ScheduleDTO', () => {
     );
 
     expect(getValueWeeklyScheduleInstance).toEqual({
-      idRegional: 1,
-      idMunicipio: 1,
-      idGrupo: 1,
-      idTipo: 1,
-      idParceira: 1,
+      idRegional: [1],
+      idMunicipio: [1],
+      idGrupo: [1],
+      idTipo: [1],
+      idParceira: [1],
       executado: false,
     });
     expect(getScheduleValuesInstance).toEqual({
-      idRegional: 1,
-      idMunicipio: 1,
-      idGrupo: 1,
-      idTipo: 1,
-      idParceira: 1,
+      idRegional: [1],
+      idMunicipio: [1],
+      idGrupo: [1],
+      idTipo: [1],
+      idParceira: [1],
       executado: false,
     });
     expect(getTotalValuesScheduleInstance).toEqual({
-      idRegional: 1,
-      idMunicipio: 1,
-      idGrupo: 1,
-      idTipo: 1,
-      idParceira: 1,
-      idCircuito: 1,
+      idRegional: [1],
+      idMunicipio: [1],
+      idGrupo: [1],
+      idTipo: [1],
+      idParceira: [1],
+      idCircuito: [1],
       ano: 2024,
     });
     expect(getPendingScheduleValuesInstance).toEqual({
-      idParceira: 1,
-      idRegional: 1,
+      idParceira: [1],
+      idRegional: [1],
     });
     expect(getMonthlySummaryInstance).toEqual({
       date: '11/2024',
-      idRegional: 1,
-      idGrupo: 1,
-      idTipo: 1,
-      idParceira: 1,
+      idRegional: [1],
+      idGrupo: [1],
+      idTipo: [1],
+      idParceira: [1],
     });
   });
 
