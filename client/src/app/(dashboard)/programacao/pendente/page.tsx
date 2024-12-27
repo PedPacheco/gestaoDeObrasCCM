@@ -1,7 +1,8 @@
-import MainPendingSchedule from "@/components/scheduleComponents/pendingSchedule/MainPendingSchedule";
+import { cookies } from "next/headers";
+
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import { cookies } from "next/headers";
+import MainPendingSchedule from "@/components/scheduleComponents/pendingSchedule/MainPendingSchedule";
 import { Transform } from "@/utils/transform";
 
 export default async function PendingSchedule() {
@@ -32,7 +33,7 @@ export default async function PendingSchedule() {
     ),
   ]);
 
-  const { token, data } = scheduleData;
+  const { data } = scheduleData;
 
   const columns = {
     id: "ID",
@@ -53,11 +54,6 @@ export default async function PendingSchedule() {
   };
 
   return (
-    <MainPendingSchedule
-      data={data}
-      filtersData={filters}
-      token={token}
-      columns={columns}
-    />
+    <MainPendingSchedule data={data} filtersData={filters} columns={columns} />
   );
 }

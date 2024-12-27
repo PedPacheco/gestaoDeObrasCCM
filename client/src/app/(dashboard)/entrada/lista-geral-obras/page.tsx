@@ -32,7 +32,7 @@ export default async function AllWorks() {
     ),
   ]);
 
-  const { data, token } = worksData;
+  const { data } = worksData;
 
   const columns = {
     ovnota: "Ovnota",
@@ -61,11 +61,6 @@ export default async function AllWorks() {
   };
 
   return (
-    <MainAllWorks
-      data={data.data}
-      token={token}
-      filtersData={filters}
-      columns={columns}
-    />
+    <MainAllWorks data={data.data} filtersData={filters} columns={columns} />
   );
 }

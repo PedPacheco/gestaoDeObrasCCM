@@ -59,7 +59,7 @@ export function TableComponent({
           .map((month) => (
             <TableCell
               key={month}
-              className="py-1 px-2 text-center text-zinc-700 text-nowrap font-semibold text-xl bg-[#53FF75] min-w-32"
+              className="py-1 px-2 text-center text-zinc-700 text-nowrap font-semibold text-xl bg-[#53FF75] min-w-28"
             >
               {columns[month as keyof typeof columns]}
             </TableCell>
@@ -111,7 +111,7 @@ export function TableComponent({
               <TableCell
                 key={column}
                 onClick={() => router.push(`/detalhes/${itemId}`)}
-                className="py-1 px-2 text-center text-base text-nowrap min-w-40 hover:cursor-pointer"
+                className="py-1 px-2 text-center text-base text-nowrap min-w-28 hover:cursor-pointer"
               >
                 {displayValue}
               </TableCell>

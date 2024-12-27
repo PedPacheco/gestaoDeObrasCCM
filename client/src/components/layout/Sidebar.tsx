@@ -24,6 +24,7 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
   const router = useRouter();
 
   function handleToogleSubmenu(menu: string, event: React.MouseEvent) {
+    console.log(menu, openSubmenu);
     event.stopPropagation();
     setOpenSubmenu(openSubmenu === menu ? null : menu);
   }

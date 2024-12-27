@@ -74,7 +74,7 @@ export default async function ScheduleForDay() {
     hora_ter: "Horário Término",
     equipe_linha_viva: "Equipe LV",
     equipe_linha_morta: "Equipe LM",
-    equipe_regularizacao: "Equipe Regularização",
+    equipe_regularizacao: "Equipe Reg",
     id_técnico: "Técnico Responsável",
     observ_programacao: "Observação da programação",
     total_obras: "Total de obras",

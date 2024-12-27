@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { Header } from "@/components/layout/Header";
 import BreadcrumpsComponent from "@/components/common/Breadcrumbs";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;

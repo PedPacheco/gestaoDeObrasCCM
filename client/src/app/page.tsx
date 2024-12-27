@@ -16,8 +16,6 @@ export default async function Home() {
     params = Transform(params);
   }
 
-  console.log(params);
-
   const [filters, homeData] = await Promise.all([
     fetchFilters({
       regional: true,
@@ -32,7 +30,7 @@ export default async function Home() {
     ),
   ]);
 
-  const { data, token } = homeData;
+  const { data } = homeData;
 
   const columnMapping = {
     regional: "Regional",
@@ -74,7 +72,6 @@ export default async function Home() {
                   <MainHome
                     filtersData={filters}
                     data={data.data}
-                    token={token}
                     columns={columnMapping}
                   />
                 </Suspense>

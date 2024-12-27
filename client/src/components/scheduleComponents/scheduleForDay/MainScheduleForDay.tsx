@@ -32,17 +32,19 @@ export default function MainSchduleForDay({
       );
 
       try {
-        const blob = await exportExcel(url, token);
+        if (token) {
+          const blob = await exportExcel(url, token);
 
-        const downloadUrl = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = downloadUrl;
-        link.download = "Exportação obras em carteira.xlsx";
-        document.body.append(link);
-        link.click();
+          const downloadUrl = window.URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = downloadUrl;
+          link.download = "Exportação obras em carteira.xlsx";
+          document.body.append(link);
+          link.click();
 
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(downloadUrl);
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(downloadUrl);
+        }
       } catch (error: any) {
         setError(`Erro ao gerar a planilha: ${error.message}`);
       }
@@ -60,7 +62,7 @@ export default function MainSchduleForDay({
         />
       </div>
 
-      <TableComponent data={data} columns={columns} />
+      <TableComponent data={data} columns={columns} sliceEndIndex={3} />
 
       <ModalComponent open={open} onClose={handleClose} title="Valores totais">
         <div className="flex flex-col items-center justify-center xl:flex-row w-full">

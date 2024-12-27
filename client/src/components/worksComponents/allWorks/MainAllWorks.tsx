@@ -11,6 +11,7 @@ import { capitalize } from "@/utils/capitalize";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import MainAllWorksTable from "./allWorksTable";
+import { Pagination, TablePagination } from "@mui/material";
 
 interface allWorksType {
   regional: { id: string; regional: string }[];
@@ -31,12 +32,25 @@ export default function MainAllWorks({
     {}
   );
   const [error, setError] = useState<string | null>();
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(100);
 
   useEffect(() => {
     if (filters) {
       setSelectedItems(filters);
     }
   }, [filters]);
+
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setRowsPerPage(parseInt(event.target.value));
+    setPage(0);
+  };
 
   function handleCleanigFilters() {
     setSelectedItems({});
@@ -90,7 +104,14 @@ export default function MainAllWorks({
         </div>
       </div>
 
-      <MainAllWorksTable works={data} columnMapping={columns} />
+      <MainAllWorksTable
+        works={data}
+        columnMapping={columns}
+        page={page}
+        rowsPerPage={rowsPerPage}
+        handleChangePage={handleChangePage}
+        handleChangeRowsPerPage={handleChangeRowsPerPage}
+      />
 
       {error && (
         <ErrorModal

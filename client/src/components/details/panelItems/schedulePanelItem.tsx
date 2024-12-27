@@ -15,19 +15,19 @@ import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
 
 const columns = {
-  data_prog: "Data Programada",
+  data_prog: "Data",
   hora_ini: "Horário de início",
   hora_ter: "Horário de término",
   tipo_servico: "Tipo de Serviço",
-  prog: "% Programada",
-  exec: "% Executado",
+  prog: "% Prog",
+  exec: "% Exec",
   observ_prog: "Equipamento a ser desligado",
   chi: "CHI",
-  num_dp: "Número do DP",
+  num_dp: "Número DP",
   chave_provisoria: "Chave provisória",
-  equipe_linha_morta: "Equipe linha morta",
-  equipe_linha_viva: "Equipe linha viva",
-  equipe_regularizacao: "Equipe regularização",
+  equipe_linha_morta: "Equipe LM",
+  equipe_linha_viva: "Equipe LV",
+  equipe_regularizacao: "Equipe Reg",
   tecnico: "Técnico responsável",
   restricao: "Motivo da restrição",
   nome_responsavel_execucao: "Responsabilidade",
@@ -37,13 +37,13 @@ export default function SchedulePanelItem({ data }: Record<string, any>) {
   return (
     <>
       <TableContainer className="h-[460px]">
-        <Table stickyHeader className="table-fixed">
+        <Table stickyHeader>
           <TableHead>
             <TableRow>
               {Object.keys(columns).map((month) => (
                 <TableCell
                   key={month}
-                  className="py-1 px-2 w-44 text-center text-zinc-700 font-semibold text-xl bg-[#53FF75]"
+                  className="py-1 px-2 min-w-36 text-center text-zinc-700 font-semibold text-nowrap text-xl bg-[#53FF75]"
                 >
                   {columns[month as keyof typeof columns]}
                 </TableCell>
@@ -87,7 +87,7 @@ export default function SchedulePanelItem({ data }: Record<string, any>) {
 
                     return (
                       <TableCell
-                        className="py-1 px-2 text-center text-xl text-nowrap min-w-60"
+                        className="py-1 px-2 text-center text-nowrap text-xl min-w-36"
                         key={index}
                       >
                         {displayValue}
