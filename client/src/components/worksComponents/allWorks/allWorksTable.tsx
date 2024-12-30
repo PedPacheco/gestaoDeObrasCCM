@@ -16,8 +16,13 @@ import {
   TableRow,
 } from "@mui/material";
 
-interface MainAllWorksTableProps {
+interface dataInterface {
   works: any[];
+  totalRecords: number;
+}
+
+interface MainAllWorksTableProps {
+  data: dataInterface;
   columnMapping: any;
   page: number;
   rowsPerPage: number;
@@ -29,7 +34,7 @@ dayjs.extend(utc);
 
 export default function MainAllWorksTable({
   columnMapping,
-  works,
+  data,
   page,
   rowsPerPage,
   handleChangePage,
@@ -52,89 +57,87 @@ export default function MainAllWorksTable({
             </TableRow>
           </TableHead>
           <TableBody>
-            {works
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((item: any, index: any) => {
-                return (
-                  <TableRow key={index}>
-                    {Object.keys(columnMapping).map((column) => {
-                      let cellValue = item[column];
+            {data.works.map((item: any, index: any) => {
+              return (
+                <TableRow key={index}>
+                  {Object.keys(columnMapping).map((column) => {
+                    let cellValue = item[column];
 
-                      const multiValueColumns: Record<string, any[]> = {
-                        pep: [item.pep, item.status_pep],
-                        diagrama: [item.diagrama, item.status_diagrama],
-                        ordem_dci: [
-                          item.ordem_dci,
-                          item.status_170,
-                          item.status_usuario_170,
-                        ],
-                        ordem_dcd: [
-                          item.ordem_dcd,
-                          item.status_190,
-                          item.status_usuario_190,
-                        ],
-                        ordem_dca: [
-                          item.ordem_dca,
-                          item.status_150,
-                          item.status_usuario_150,
-                        ],
-                        ordem_dcim: [
-                          item.ordem_dcim,
-                          item.status_180,
-                          item.status_usuario_180,
-                        ],
-                      };
+                    const multiValueColumns: Record<string, any[]> = {
+                      pep: [item.pep, item.status_pep],
+                      diagrama: [item.diagrama, item.status_diagrama],
+                      ordem_dci: [
+                        item.ordem_dci,
+                        item.status_170,
+                        item.status_usuario_170,
+                      ],
+                      ordem_dcd: [
+                        item.ordem_dcd,
+                        item.status_190,
+                        item.status_usuario_190,
+                      ],
+                      ordem_dca: [
+                        item.ordem_dca,
+                        item.status_150,
+                        item.status_usuario_150,
+                      ],
+                      ordem_dcim: [
+                        item.ordem_dcim,
+                        item.status_180,
+                        item.status_usuario_180,
+                      ],
+                    };
 
-                      if (
-                        typeof cellValue === "string" &&
-                        isValidDateString(cellValue) &&
-                        dayjs(cellValue).isValid()
-                      ) {
-                        cellValue = dayjs.utc(cellValue).format("DD/MM/YYYY");
-                      }
+                    if (
+                      typeof cellValue === "string" &&
+                      isValidDateString(cellValue) &&
+                      dayjs(cellValue).isValid()
+                    ) {
+                      cellValue = dayjs.utc(cellValue).format("DD/MM/YYYY");
+                    }
 
-                      if (multiValueColumns[column]) {
-                        return (
-                          <TableCell className="p-2 min-w-64" key={column}>
-                            <div className="flex justify-center">
-                              {multiValueColumns[column].map(
-                                (val, idx: number) => {
-                                  if (val) {
-                                    return (
-                                      <p
-                                        key={idx}
-                                        className="p-2 text-base text-center text-nowrap text-zinc-700 "
-                                      >
-                                        {val}
-                                      </p>
-                                    );
-                                  }
-                                }
-                              )}
-                            </div>
-                          </TableCell>
-                        );
-                      }
-
+                    if (multiValueColumns[column]) {
                       return (
-                        <TableCell
-                          key={column}
-                          className="py-1 px-2 text-center text-nowrap text-base text-zinc-700"
-                        >
-                          {cellValue}
+                        <TableCell className="p-2 min-w-64" key={column}>
+                          <div className="flex justify-center">
+                            {multiValueColumns[column].map(
+                              (val, idx: number) => {
+                                if (val) {
+                                  return (
+                                    <p
+                                      key={idx}
+                                      className="p-2 text-base text-center text-nowrap text-zinc-700 "
+                                    >
+                                      {val}
+                                    </p>
+                                  );
+                                }
+                              }
+                            )}
+                          </div>
                         </TableCell>
                       );
-                    })}
-                  </TableRow>
-                );
-              })}
+                    }
+
+                    return (
+                      <TableCell
+                        key={column}
+                        className="py-1 px-2 text-center text-nowrap text-base text-zinc-700"
+                      >
+                        {cellValue}
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>
       <div className="sticky bottom-0 bg-white">
         <TablePagination
           component="div"
-          count={works.length}
+          count={data.totalRecords}
           page={page}
           rowsPerPage={rowsPerPage}
           rowsPerPageOptions={[100, 200]}

@@ -15,7 +15,13 @@ export function useSaveFilters(pageKey: string) {
     }
   }, [pageKey]);
 
-  function saveFilters(newFilters: Record<string, any>) {
+  function saveFilters(filtersValues: Record<string, any>) {
+    const currentFilters = nookies.get(null)[pageKey]
+      ? JSON.parse(nookies.get(null)[pageKey])
+      : {};
+
+    const newFilters = { ...currentFilters, ...filtersValues };
+
     setFilters(newFilters);
     nookies.set(null, pageKey, JSON.stringify(newFilters), {
       maxAge: 1200,

@@ -10,9 +10,23 @@ export default async function AllWorks() {
   const cookieParams = cookieStore.get("allWorksFilters")?.value;
 
   let params = cookieParams ? JSON.parse(cookieParams) : undefined;
+  let filtersValues = undefined;
 
   if (params) {
-    params = Transform(params);
+    const formattedSelectedItems = params.selectedItems
+      ? Transform(params.selectedItems)
+      : {};
+
+    filtersValues = {
+      ...formattedSelectedItems,
+      page: params.page,
+      limit: params.rowsPerPage,
+    };
+  } else {
+    filtersValues = {
+      page: 0,
+      limit: 100,
+    };
   }
 
   const [filters, worksData] = await Promise.all([
@@ -26,7 +40,7 @@ export default async function AllWorks() {
     }),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/obras`,
-      params,
+      filtersValues,
       cookieStore.get("token")?.value,
       { cache: "no-store" }
     ),

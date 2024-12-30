@@ -1,5 +1,5 @@
-import { Transform } from 'class-transformer';
-import { IsArray, IsOptional, IsString } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class GetAllWorksDTO {
   @IsOptional()
@@ -31,6 +31,16 @@ export class GetAllWorksDTO {
   @IsArray()
   @Transform(({ value }) => value.toString().split(',').map(Number))
   idStatus: number[];
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  limit: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  page: number;
 }
 
 export class GetWorksDTO {

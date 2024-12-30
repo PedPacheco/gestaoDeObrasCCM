@@ -42,7 +42,10 @@ export default function MainAllWorks({
   }, [filters]);
 
   const handleChangePage = (event: unknown, newPage: number) => {
+    console.log(newPage);
     setPage(newPage);
+
+    saveFilters({ page: newPage, rowsPerPage });
   };
 
   const handleChangeRowsPerPage = (
@@ -50,6 +53,8 @@ export default function MainAllWorks({
   ) => {
     setRowsPerPage(parseInt(event.target.value));
     setPage(0);
+
+    saveFilters({ page, rowsPerPage });
   };
 
   function handleCleanigFilters() {
@@ -91,7 +96,7 @@ export default function MainAllWorks({
         <div className=" flex flex-col md:flex-row justify-between items-center xl:justify-around">
           <ButtonComponent
             onClick={() => {
-              saveFilters(selectedItems);
+              saveFilters({ selectedItems, page, rowsPerPage });
             }}
             text="Aplicar filtros"
             styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
@@ -105,7 +110,7 @@ export default function MainAllWorks({
       </div>
 
       <MainAllWorksTable
-        works={data}
+        data={data}
         columnMapping={columns}
         page={page}
         rowsPerPage={rowsPerPage}
