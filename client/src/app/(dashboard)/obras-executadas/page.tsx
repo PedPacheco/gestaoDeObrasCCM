@@ -83,11 +83,12 @@ export default async function CompletedWorks() {
   return (
     <PortfolioWorks
       filters={filters}
-      data={data}
+      data={data.data}
       token={token}
       columns={columns}
       cookie="completedWorksFilters"
-      totalValues={25}
+      totalValues={26}
+      url="obras-executadas"
     />
   );
 }

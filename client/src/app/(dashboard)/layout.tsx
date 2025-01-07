@@ -21,9 +21,7 @@ export default function DashboardLayout({
 
               <span className="border-b border-solid border-zinc-300 w-full"></span>
 
-              <Suspense fallback={<p>Carregando conteúdo...</p>}>
-                {children}
-              </Suspense>
+              {children}
             </div>
           </main>
         </div>

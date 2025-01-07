@@ -93,12 +93,13 @@ export default async function WorksInPortfolio() {
 
   return (
     <PortfolioWorks
-      data={data}
+      data={data.data}
       token={token}
       filters={filters}
       cookie="portfolioWorksFilters"
       columns={columnMapping}
       totalValues={34}
+      url="obras-carteira"
     />
   );
 }

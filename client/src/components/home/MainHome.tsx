@@ -1,17 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import GoalsTable from "./GoalsTable";
-import HomePageFilters from "./HomePageFilters";
-import ModalGoals from "./GoalsModal";
-import { MainInterface } from "@/interfaces/mainInterface";
+import dayjs from "dayjs";
+import { useEffect, useState, useTransition } from "react";
+
 import { fetchData } from "@/actions/fetchData.action";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-import dayjs from "dayjs";
-import { MultipleSelectComponent } from "../common/MultipleSelect";
-import { ButtonComponent } from "../common/Button";
+import { MainInterface } from "@/interfaces/mainInterface";
+import { getButtonContent } from "@/utils/getButtonContent";
+import { Transform } from "@/utils/transform";
 
-interface filters {
+import { ButtonComponent } from "../common/Button";
+import { MultipleSelectComponent } from "../common/MultipleSelect";
+import ModalGoals from "./GoalsModal";
+import GoalsTable from "./GoalsTable";
+
+interface Filters {
   regional: { id: string; regional: string }[];
   parceira: { id: string; turma: string }[];
   tipo: { id: string; tipo_obra: string; id_grupo: number }[];
@@ -22,19 +25,15 @@ export default function MainHome({
   data,
   token,
   columns,
-}: MainInterface<filters>) {
+}: MainInterface<Filters>) {
+  const [filteredData, setFilteredData] = useState(data);
   const [open, setOpen] = useState(false);
   const { clearFilters, filters, saveFilters } = useSaveFilters("goalsFilters");
   const [selectedYear, setSelectedYear] = useState<string[]>([]);
-  const [selectedRegionais, setSelectedRegionais] = useState<
-    filters["regional"]
-  >([]);
-  const [selectedParceiras, setSelectedParceiras] = useState<
-    filters["parceira"]
-  >([]);
-  const [selectedTiposObra, setSelectedTiposObra] = useState<filters["tipo"]>(
-    []
-  );
+  const [selectedRegionais, setSelectedRegionais] = useState<string[]>([]);
+  const [selectedParceiras, setSelectedParceiras] = useState<string[]>([]);
+  const [selectedTiposObra, setSelectedTiposObra] = useState<string[]>([]);
+  const [isPending, startTransition] = useTransition();
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -54,6 +53,29 @@ export default function MainHome({
     (year - 3 + index).toString()
   );
 
+  function fetchGoals() {
+    const params = {
+      regional: selectedRegionais,
+      parceira: selectedParceiras,
+      tipo: selectedTiposObra,
+      ano: selectedYear,
+    };
+
+    saveFilters(params);
+
+    const formattedSelectedItens = Transform(params);
+
+    startTransition(async () => {
+      const response = await fetchData(
+        `${process.env.NEXT_PUBLIC_API_URL}/metas`,
+        formattedSelectedItens,
+        token
+      );
+
+      setFilteredData(response.data.data);
+    });
+  }
+
   function handleCleaningFilters() {
     setSelectedParceiras([]);
     setSelectedRegionais([]);
@@ -61,6 +83,16 @@ export default function MainHome({
     setSelectedYear([]);
 
     clearFilters();
+
+    startTransition(async () => {
+      const response = await fetchData(
+        `${process.env.NEXT_PUBLIC_API_URL}/metas`,
+        undefined,
+        token
+      );
+
+      setFilteredData(response.data.data);
+    });
   }
 
   return (
@@ -104,35 +136,28 @@ export default function MainHome({
 
         <div className="mb-2 flex flex-col md:flex-row justify-between items-center xl:justify-around">
           <ButtonComponent
-            onClick={() =>
-              saveFilters({
-                parceiraa: selectedParceiras,
-                regional: selectedRegionais,
-                tipo: selectedTiposObra,
-                ano: selectedYear,
-              })
-            }
-            text="Aplicar filtros"
+            onClick={fetchGoals}
+            text={getButtonContent(isPending, "Aplicar filtros")}
             styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
           />
           <ButtonComponent
             onClick={handleCleaningFilters}
-            text="Limpar filtros"
+            text={getButtonContent(isPending, "Limpar filtros")}
             styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
           />
           <ButtonComponent
             onClick={handleOpen}
-            text="Ver valores totais"
+            text={getButtonContent(isPending, "Ver valores totais")}
             styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
           />
         </div>
       </div>
 
-      <GoalsTable data={data} columnMapping={columns} />
+      <GoalsTable data={filteredData} columnMapping={columns} />
 
       <ModalGoals
         columns={columns}
-        data={data}
+        data={filteredData}
         handleClose={handleClose}
         open={open}
       />

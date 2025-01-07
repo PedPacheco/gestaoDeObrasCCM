@@ -1,17 +1,21 @@
 "use client";
 
 import dayjs, { Dayjs } from "dayjs";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 
+import { fetchData } from "@/actions/fetchData.action";
 import { ButtonComponent } from "@/components/common/Button";
+import { LoadingComponent } from "@/components/common/Loading";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { MainInterface } from "@/interfaces/mainInterface";
 import { capitalize } from "@/utils/capitalize";
+import { Transform } from "@/utils/transform";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 import EntryTable from "./EntryTable";
+import { getButtonContent } from "@/utils/getButtonContent";
 
 export interface EntryFiltersType {
   regional: { id: string; regional: string }[];
@@ -26,25 +30,60 @@ export default function MainEntry({
   data,
   filtersData,
   columns,
+  token,
 }: MainInterface<EntryFiltersType>) {
+  const [filteredData, setFilteredData] = useState(data);
   const { clearFilters, filters, saveFilters } = useSaveFilters("entryFilters");
   const [selectedYear, setSelectedYear] = useState<Dayjs | null>(dayjs());
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {}
   );
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     if (filters) {
-      setSelectedItems(filters.selectedItems);
+      setSelectedItems(filters.selectedItems || {});
       setSelectedYear(dayjs(filters.selectedYear));
     }
   }, [filters]);
+
+  function fetchEntry() {
+    saveFilters({ selectedItems, selectedYear });
+    const formattedSelectedItems = Transform(selectedItems);
+
+    const params = {
+      ...formattedSelectedItems,
+      ano: dayjs(selectedYear).format("YYYY"),
+    };
+
+    startTransition(async () => {
+      const response = await fetchData(
+        `${process.env.NEXT_PUBLIC_API_URL}/entrada`,
+        params,
+        token
+      );
+      setFilteredData(response.data.data);
+    });
+  }
 
   function handleCleanigFilters() {
     setSelectedItems({});
     setSelectedYear(dayjs());
 
     clearFilters();
+
+    const params = {
+      ano: dayjs().format("YYYY"),
+    };
+
+    startTransition(async () => {
+      const response = await fetchData(
+        `${process.env.NEXT_PUBLIC_API_URL}/entrada`,
+        params,
+        token
+      );
+      setFilteredData(response.data.data);
+    });
   }
 
   return (
@@ -89,19 +128,20 @@ export default function MainEntry({
         </div>
         <div className=" flex flex-col md:flex-row justify-between items-center xl:justify-around">
           <ButtonComponent
-            onClick={() => saveFilters({ selectedItems, selectedYear })}
-            text="Aplicar filtros"
+            onClick={fetchEntry}
+            text={getButtonContent(isPending, "Aplicar filtros")}
+            disabled={isPending}
             styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
           />
           <ButtonComponent
             onClick={handleCleanigFilters}
-            text="Limpar filtros"
+            text={getButtonContent(isPending, "Limpar filtros")}
             styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
           />
         </div>
       </div>
 
-      <EntryTable data={data} columns={columns} />
+      <EntryTable data={filteredData} columns={columns} />
     </>
   );
 }

@@ -1,10 +1,8 @@
-import { useRouter } from "next/navigation";
 import nookies from "nookies";
 import { useEffect, useState } from "react";
 
 export function useSaveFilters(pageKey: string) {
   const [filters, setFilters] = useState<Record<string, any>>();
-  const router = useRouter();
 
   useEffect(() => {
     const cookies = nookies.get();
@@ -21,13 +19,11 @@ export function useSaveFilters(pageKey: string) {
       maxAge: 1200,
       path: "/",
     });
-    router.refresh();
   }
 
   function clearFilters() {
     setFilters(undefined);
     nookies.destroy(null, pageKey, { path: "/" });
-    router.refresh();
   }
 
   return { filters, saveFilters, clearFilters };

@@ -14,6 +14,7 @@ import { Transform } from "@/utils/transform";
 import { Checkbox } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { getButtonContent } from "@/utils/getButtonContent";
 
 dayjs.extend(isoWeek);
 
@@ -33,6 +34,8 @@ interface ScheduleByDateFiltersProps {
   dateInitial: Dayjs;
   setDateInitial: (date: Dayjs) => void;
   setWeekRange: (range: { start: string; end: string }) => void;
+  applyFilters: (params: Record<string, string | boolean>) => void;
+  isPending: boolean;
 }
 
 export default function WeeklyScheduleFilters({
@@ -43,6 +46,8 @@ export default function WeeklyScheduleFilters({
   setWeekRange,
   weekRange,
   setDateInitial,
+  applyFilters,
+  isPending,
 }: ScheduleByDateFiltersProps) {
   const { clearFilters, filters, saveFilters } = useSaveFilters(keyFilters);
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
@@ -64,6 +69,21 @@ export default function WeeklyScheduleFilters({
     }
   }, [filters, setDateInitial, setWeekRange]);
 
+  function handleApplyFilters() {
+    saveFilters({ selectedItems, executed, weekRange, dateInitial });
+
+    const formattedSelectedItems = Transform(selectedItems);
+
+    const params = {
+      ...formattedSelectedItems,
+      dataInicial: weekRange.start,
+      dataFinal: weekRange.end,
+      executado: executed,
+    };
+
+    applyFilters(params);
+  }
+
   function handleCleanigFilters() {
     setSelectedItems({});
     setWeekRange({
@@ -74,6 +94,12 @@ export default function WeeklyScheduleFilters({
     setExecuted(false);
 
     clearFilters();
+
+    applyFilters({
+      dataInicial: dayjs().startOf("isoWeek").format("DD/MM/YYYY"),
+      dataFinal: dayjs().endOf("isoWeek").format("DD/MM/YYYY"),
+      executado: "false",
+    });
   }
 
   return (
@@ -126,15 +152,13 @@ export default function WeeklyScheduleFilters({
 
       <div className=" flex flex-col md:flex-row justify-between items-center xl:justify-around">
         <ButtonComponent
-          onClick={() =>
-            saveFilters({ selectedItems, executed, weekRange, dateInitial })
-          }
-          text="Aplicar filtros"
+          onClick={handleApplyFilters}
+          text={getButtonContent(isPending, "Aplicar filtros")}
           styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
         />
         <ButtonComponent
           onClick={handleCleanigFilters}
-          text="Limpar filtros"
+          text={getButtonContent(isPending, "Limpar filtros")}
           styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
         />
       </div>

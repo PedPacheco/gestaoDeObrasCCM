@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useTransition } from "react";
 
 import { exportExcel } from "@/actions/generateExcel.action";
 import ErrorModal from "@/components/common/ErrorModal";
@@ -11,6 +11,7 @@ import { mountUrl } from "@/utils/mountUrl";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import ScheduleForDayFilters from "./ScheduleForDayFilters";
+import { fetchData } from "@/actions/fetchData.action";
 
 export default function MainSchduleForDay({
   columns,
@@ -18,8 +19,10 @@ export default function MainSchduleForDay({
   filtersData,
   token,
 }: MainInterface<any>) {
+  const [filteredData, setFilteredData] = useState(data);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>();
+  const [isPending, startTransition] = useTransition();
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -50,6 +53,24 @@ export default function MainSchduleForDay({
     [token]
   );
 
+  const fetchSchedule = useCallback(
+    (params: Record<string, string | boolean>) => {
+      startTransition(async () => {
+        try {
+          const response = await fetchData(
+            `${process.env.NEXT_PUBLIC_API_URL}/programacao/mensal`,
+            params,
+            token
+          );
+          setFilteredData(response.data);
+        } catch (error: any) {
+          setError(error.message);
+        }
+      });
+    },
+    [token]
+  );
+
   return (
     <>
       <div className="my-6 w-11/12 flex flex-col">
@@ -57,10 +78,12 @@ export default function MainSchduleForDay({
           data={filtersData}
           openModal={handleOpen}
           generateExcel={generateExcel}
+          isPending={isPending}
+          applyFilters={fetchSchedule}
         />
       </div>
 
-      <TableComponent data={data} columns={columns} />
+      <TableComponent data={filteredData} columns={columns} />
 
       <ModalComponent open={open} onClose={handleClose} title="Valores totais">
         <div className="flex flex-col items-center justify-center xl:flex-row w-full">

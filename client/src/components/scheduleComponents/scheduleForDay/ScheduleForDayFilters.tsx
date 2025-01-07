@@ -10,6 +10,7 @@ import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { capitalize } from "@/utils/capitalize";
 import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
 import { Checkbox } from "@mui/material";
+import { getButtonContent } from "@/utils/getButtonContent";
 
 interface filters {
   regional: { id: string; regional: string }[];
@@ -23,12 +24,16 @@ interface ScheduleByDateFiltersProps {
   data: filters;
   openModal: () => void;
   generateExcel: (params: any) => void;
+  isPending: boolean;
+  applyFilters: (params: Record<string, string | boolean>) => void;
 }
 
 export default function ScheduleForDayFilters({
   data,
   openModal,
   generateExcel,
+  isPending,
+  applyFilters,
 }: ScheduleByDateFiltersProps) {
   const { clearFilters, filters, saveFilters } = useSaveFilters(
     "scheduleForDayFilters"
@@ -48,15 +53,6 @@ export default function ScheduleForDayFilters({
       setFilterType(filters.filterType);
     }
   }, [filters]);
-
-  function handleCleanigFilters() {
-    setSelectedItems({});
-    setDate(dayjs());
-    setFilterType("month");
-    setExecuted(false);
-
-    clearFilters();
-  }
 
   function handleGenerateExcel() {
     const formattedSelectedItems = Object.fromEntries(
@@ -78,6 +74,37 @@ export default function ScheduleForDayFilters({
     };
 
     generateExcel(newSelectedItems);
+  }
+
+  function handleApplyFilters() {
+    saveFilters({ selectedItems, date, filterType, executed });
+    const newSelectedItems = {
+      ...selectedItems,
+      data: date
+        ? filterType === "day"
+          ? date.format("DD/MM/YYYY")
+          : date.format("MM/YYYY")
+        : "",
+      tipoFiltro: filterType,
+      executado: executed.toString(),
+    };
+
+    applyFilters(newSelectedItems);
+  }
+
+  function handleCleanigFilters() {
+    setSelectedItems({});
+    setDate(dayjs());
+    setFilterType("month");
+    setExecuted(false);
+
+    applyFilters({
+      data: dayjs().format("MM/YYYY"),
+      tipoFiltro: "month",
+      executado: false,
+    });
+
+    clearFilters();
   }
 
   return (
@@ -128,15 +155,13 @@ export default function ScheduleForDayFilters({
 
       <div className="grid grid-cols-1 lg:grid-cols-4 w-full">
         <ButtonComponent
-          onClick={() =>
-            saveFilters({ selectedItems, date, filterType, executed })
-          }
-          text="Aplicar filtros"
+          onClick={handleApplyFilters}
+          text={getButtonContent(isPending, "Aplicar filtros")}
           styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
         />
         <ButtonComponent
           onClick={handleCleanigFilters}
-          text="Limpar filtros"
+          text={getButtonContent(isPending, "Limpar filtros")}
           styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
         />
 

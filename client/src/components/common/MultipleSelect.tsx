@@ -6,7 +6,7 @@ import { useState } from "react";
 
 interface SelectProps<T> {
   label: string;
-  menuItems: T[];
+  menuItems: any[];
   selectedItem: T[];
   setSelectedItem: (items: T[]) => void;
   valueKey?: string;
