@@ -85,7 +85,7 @@ export default async function ScheduleForDay() {
   return (
     <MainSchduleForDay
       columns={columns}
-      data={data.data}
+      data={data}
       filtersData={filters}
       token={token}
     />

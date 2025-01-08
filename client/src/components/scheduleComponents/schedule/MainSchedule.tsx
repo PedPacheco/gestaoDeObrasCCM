@@ -53,7 +53,7 @@ export default function MainSchedule({
 
     const params = {
       ...formattedSelectedItems,
-      ano: selectedYear ? selectedYear.format("MM/YYYY") : "",
+      ano: selectedYear ? selectedYear.format("YYYY") : "",
     };
 
     startTransition(async () => {
@@ -63,7 +63,7 @@ export default function MainSchedule({
         token
       );
 
-      setFilteredData(response.data.data);
+      setFilteredData(response.data);
     });
   }
 
@@ -74,7 +74,7 @@ export default function MainSchedule({
     clearFilters();
 
     const params = {
-      ano: selectedYear ? selectedYear.format("MM/YYYY") : "",
+      ano: selectedYear ? selectedYear.format("YYYY") : "",
     };
 
     startTransition(async () => {
@@ -84,7 +84,7 @@ export default function MainSchedule({
         token
       );
 
-      setFilteredData(response.data.data);
+      setFilteredData(response.data);
     });
   }
 

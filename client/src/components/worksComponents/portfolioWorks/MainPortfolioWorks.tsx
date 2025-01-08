@@ -78,7 +78,7 @@ export default function PortfolioWorks({
             { cache: "no-store" }
           );
 
-          setFilteredData(response.data.data);
+          setFilteredData(response.data);
         } catch (error: any) {
           setError(error.message);
         }

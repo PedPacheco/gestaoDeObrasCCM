@@ -32,7 +32,7 @@ export async function fetchData<T>(
       throw new Error(errorMessage);
     }
 
-    const data = await res.json();
+    const { data } = await res.json();
     return { token, data };
   } catch (error: any) {
     throw new Error(error.message);

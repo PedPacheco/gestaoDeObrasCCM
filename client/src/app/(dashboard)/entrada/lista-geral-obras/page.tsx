@@ -77,7 +77,12 @@ export default async function AllWorks() {
 
   return (
     <MainAllWorks
+<<<<<<< HEAD
       data={data.data}
+=======
+      data={data}
+      token={token}
+>>>>>>> cdb879a82d96405355854d7c83eaacdaf47202f3
       filtersData={filters}
       token={token}
       columns={columns}

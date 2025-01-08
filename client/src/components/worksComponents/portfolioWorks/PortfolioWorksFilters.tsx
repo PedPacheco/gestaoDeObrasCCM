@@ -81,6 +81,8 @@ export default function PortfolioWorksFilters({
     setFilterType("month");
 
     clearFilters();
+
+    applyFilters({});
   }
 
   function handleGenerateExcel() {

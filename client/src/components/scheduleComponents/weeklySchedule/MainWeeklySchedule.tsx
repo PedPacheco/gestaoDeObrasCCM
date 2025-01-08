@@ -47,7 +47,7 @@ export default function MainWeeklySchedule({
             token
           );
 
-          setFilteredData(response.data.data);
+          setFilteredData(response.data);
         } catch (error: any) {
           setError(error.message);
         }
@@ -87,7 +87,11 @@ export default function MainWeeklySchedule({
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-2 justify-items-center items w-11/12 lg:h-[95%]">
         {weekDates.map((date, index) => (
-          <WeeklyScheduleTable key={index} data={data} filterDate={date} />
+          <WeeklyScheduleTable
+            key={index}
+            data={filteredData}
+            filterDate={date}
+          />
         ))}
       </div>
 

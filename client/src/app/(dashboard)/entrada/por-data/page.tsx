@@ -75,7 +75,7 @@ export default async function EntryForDate() {
 
   return (
     <MainEntryByDate
-      data={data.data}
+      data={data}
       token={token}
       filtersData={filters}
       columns={columnMapping}

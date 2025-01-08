@@ -56,7 +56,7 @@ export default async function PendingSchedule() {
 
   return (
     <MainPendingSchedule
-      data={data.data}
+      data={data}
       filtersData={filters}
       token={token}
       columns={columns}

@@ -83,7 +83,7 @@ export default async function CompletedWorks() {
   return (
     <PortfolioWorks
       filters={filters}
-      data={data.data}
+      data={data}
       token={token}
       columns={columns}
       cookie="completedWorksFilters"

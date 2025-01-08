@@ -22,14 +22,14 @@ export default async function Details({
     (await cookieStore).get("token")?.value
   );
 
-  console.log(data.data.data_conclusao);
+  console.log(data);
 
-  const entrada = dayjs(data.data.entrada);
-  const prazo = data.data.prazo;
+  const entrada = dayjs(data.entrada);
+  const prazo = data.prazo;
   const data_conclusao =
-    data.data.data_conclusao === null
+    data.data_conclusao === null
       ? ""
-      : dayjs(data.data.data_conclusao).format("DD/MM/YYYY");
+      : dayjs(data.data_conclusao).format("DD/MM/YYYY");
 
   const prazoFinal = entrada.add(prazo, "day");
 
@@ -41,43 +41,39 @@ export default async function Details({
         </p>
         <div className="grid md:grid-cols-2 xl:grid-cols-4 px-4 md:px-10">
           <div className="flex flex-col items-start col-start-2 col-end-3 md:col-start-auto md:col-end-auto">
-            <DataItem label="Ov/Nota" value={data.data.ovnota} />
-            <DataItem
-              label="Pep"
-              value={data.data.pep}
-              status={data.data.status_pep}
-            />
+            <DataItem label="Ov/Nota" value={data.ovnota} />
+            <DataItem label="Pep" value={data.pep} status={data.status_pep} />
             <DataItem
               label="Diagrama"
-              value={data.data.diagrama}
-              status={data.data.status_diagrama}
+              value={data.diagrama}
+              status={data.status_diagrama}
             />
-            <DataItem label="Status Sap" value={data.data.status_ov_sap} />
-            <DataItem label="Status" value={data.data.status} />
+            <DataItem label="Status Sap" value={data.status_ov_sap} />
+            <DataItem label="Status" value={data.status} />
             <DataItem label="Tipo ADS" value={data.tipo_ads} />
           </div>
           <div className="flex flex-col items-start col-start-2 col-end-3 md:col-start-auto md:col-end-auto">
             <DataItem
               label="Ordem DCI"
-              value={data.data.ordem_dci}
-              status={data.data.status_170}
+              value={data.ordem_dci}
+              status={data.status_170}
             />
             <DataItem
               label="Ordem DCD"
-              value={data.data.ordem_dcd}
-              status={data.data.status_190}
+              value={data.ordem_dcd}
+              status={data.status_190}
             />
             <DataItem
               label="Ordem DCA"
-              value={data.data.ordem_dca}
-              status={data.data.status_150}
+              value={data.ordem_dca}
+              status={data.status_150}
             />
             <DataItem
               label="Ordem DCIM"
-              value={data.data.ordem_dcim}
-              status={data.data.status_180}
+              value={data.ordem_dcim}
+              status={data.status_180}
             />
-            <DataItem label="Tipo" value={data.data.tipos} />
+            <DataItem label="Tipo" value={data.tipos} />
             <DataItem label="Ano planejamento" value={data.ano_plan} />
           </div>
           <div className="flex flex-col items-start col-start-2 col-end-3 md:col-start-auto md:col-end-auto">
@@ -92,23 +88,23 @@ export default async function Details({
               label="Data empreitamento"
               value={data.data_empreitamento}
             />
-            <DataItem label="Executado" value={data.data.executado} />
+            <DataItem label="Executado" value={data.executado} />
           </div>
           <div className="flex flex-col items-start col-start-2 col-end-3 md:col-start-auto md:col-end-auto">
-            <DataItem label="Parceira" value={data.data.turmas} />
-            <DataItem label="Municipio" value={data.data.municipios} />
-            <DataItem label="referencia" value={data.data.referencia} />
-            <DataItem label="Circuitos" value={data.data.circuitos} />
-            <DataItem label="Conjunto" value={data.data.conjunto} />
+            <DataItem label="Parceira" value={data.turmas} />
+            <DataItem label="Municipio" value={data.municipios} />
+            <DataItem label="referencia" value={data.referencia} />
+            <DataItem label="Circuitos" value={data.circuitos} />
+            <DataItem label="Conjunto" value={data.conjunto} />
             <DataItem label="Empreendimento" value={data.empreendimento} />
           </div>
         </div>
 
         <div className="px-4 md:px-10 w-full">
-          <DataItem label="Observação" value={data.data.observ_obra} />
+          <DataItem label="Observação" value={data.observ_obra} />
         </div>
 
-        <TabPanel props={data.data} />
+        <TabPanel props={data} />
       </div>
     </div>
   );

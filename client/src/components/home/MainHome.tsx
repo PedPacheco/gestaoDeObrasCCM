@@ -72,7 +72,7 @@ export default function MainHome({
         token
       );
 
-      setFilteredData(response.data.data);
+      setFilteredData(response.data);
     });
   }
 
@@ -91,7 +91,7 @@ export default function MainHome({
         token
       );
 
-      setFilteredData(response.data.data);
+      setFilteredData(response.data);
     });
   }
 
