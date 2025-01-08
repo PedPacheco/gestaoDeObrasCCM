@@ -62,5 +62,12 @@ export default async function Schedule() {
     total: "Total",
   };
 
-  return <MainSchedule data={data} columns={columns} filtersData={filters} />;
+  return (
+    <MainSchedule
+      data={data}
+      columns={columns}
+      filtersData={filters}
+      token={token}
+    />
+  );
 }
