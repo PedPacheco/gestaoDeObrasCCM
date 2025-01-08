@@ -62,7 +62,7 @@ export default async function AllWorks() {
 
   return (
     <MainAllWorks
-      data={data.data}
+      data={data}
       token={token}
       filtersData={filters}
       columns={columns}

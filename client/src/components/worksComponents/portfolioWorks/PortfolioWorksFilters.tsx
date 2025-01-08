@@ -81,6 +81,8 @@ export default function PortfolioWorksFilters({
     setFilterType("day");
 
     clearFilters();
+
+    applyFilters({});
   }
 
   function handleGenerateExcel() {

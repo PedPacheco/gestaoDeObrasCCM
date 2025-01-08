@@ -51,7 +51,7 @@ export default function MainScheduleRestrictions({
             token
           );
 
-          setFilteredData(response.data.data);
+          setFilteredData(response.data);
         } catch (error: any) {
           setError(error.message);
         }

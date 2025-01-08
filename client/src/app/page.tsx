@@ -72,7 +72,7 @@ export default async function Home() {
                 <Suspense fallback={<LoadingComponent color="text-black" />}>
                   <MainHome
                     filtersData={filters}
-                    data={data.data}
+                    data={data}
                     token={token}
                     columns={columnMapping}
                   />

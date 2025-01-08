@@ -62,7 +62,7 @@ export default function MainEntry({
         params,
         token
       );
-      setFilteredData(response.data.data);
+      setFilteredData(response.data);
     });
   }
 
@@ -82,7 +82,7 @@ export default function MainEntry({
         params,
         token
       );
-      setFilteredData(response.data.data);
+      setFilteredData(response.data);
     });
   }
 

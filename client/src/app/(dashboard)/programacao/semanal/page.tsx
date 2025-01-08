@@ -52,7 +52,7 @@ export default async function WeeklySchedule() {
 
   return (
     <MainWeeklySchedule
-      data={data.data}
+      data={data}
       filtersData={filters}
       token={token}
       columns={{ column: "strrte" }}

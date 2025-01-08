@@ -63,7 +63,7 @@ export default async function Entry() {
 
   return (
     <MainEntry
-      data={data.data}
+      data={data}
       filtersData={filters}
       token={token}
       columns={columnMapping}

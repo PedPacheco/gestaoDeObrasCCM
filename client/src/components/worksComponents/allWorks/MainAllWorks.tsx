@@ -57,7 +57,7 @@ export default function MainAllWorks({
           { cache: "no-store" }
         );
 
-        setFilteredData(response.data.data);
+        setFilteredData(response.data);
       } catch (error: any) {
         setError(error.message);
       }
@@ -77,7 +77,7 @@ export default function MainAllWorks({
           { cache: "no-store" }
         );
 
-        setFilteredData(response.data.data);
+        setFilteredData(response.data);
       } catch (error: any) {
         setError(error.message);
       }

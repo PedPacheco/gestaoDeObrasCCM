@@ -84,8 +84,8 @@ export function MainMonthlySummarySchedule({
         ),
       ]);
 
-      setFilteredDataFirstSummary(responseFirstSummary.data.data);
-      setFilteredDataSecondSummary(responseSecondSummary.data.data);
+      setFilteredDataFirstSummary(responseFirstSummary.data);
+      setFilteredDataSecondSummary(responseSecondSummary.data);
     });
   }
 
@@ -113,8 +113,8 @@ export function MainMonthlySummarySchedule({
         ),
       ]);
 
-      setFilteredDataFirstSummary(responseFirstSummary.data.data);
-      setFilteredDataSecondSummary(responseSecondSummary.data.data);
+      setFilteredDataFirstSummary(responseFirstSummary.data);
+      setFilteredDataSecondSummary(responseSecondSummary.data);
     });
   }
 

@@ -25,7 +25,7 @@ export default function ScheduleTable({
   const sumValues = useMemo(() => {
     let total = {} as Record<string, number>;
 
-    schedule.data.forEach((item: any) => {
+    schedule.forEach((item: any) => {
       const months = Object.keys(columnMapping).slice(2);
 
       months.forEach((month) => {
@@ -42,7 +42,7 @@ export default function ScheduleTable({
     });
 
     return total;
-  }, [columnMapping, schedule.data]);
+  }, [columnMapping, schedule]);
 
   return (
     <TableContainer
@@ -63,7 +63,7 @@ export default function ScheduleTable({
           </TableRow>
         </TableHead>
         <TableBody>
-          {schedule.data.map((item: any, index: any) => {
+          {schedule.map((item: any, index: any) => {
             return (
               <TableRow key={index}>
                 <TableCell className="p-0 text-center min-w-44">

@@ -9,6 +9,7 @@ import { Transform } from "@/utils/transform";
 export default async function MonthlySummary() {
   const cookieStore = await cookies();
   const cookieParams = cookieStore.get("monthlySummaryScheduleFilters")?.value;
+  const token = cookieStore.get("token")?.value;
 
   const params = cookieParams ? JSON.parse(cookieParams) : undefined;
   let filtersValues = undefined;
@@ -36,12 +37,12 @@ export default async function MonthlySummary() {
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal`,
       filtersValues,
-      cookieStore.get("token")?.value
+      token
     ),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal-2`,
       filtersValues,
-      cookieStore.get("token")?.value
+      token
     ),
   ]);
 

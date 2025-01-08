@@ -16,8 +16,6 @@ export async function fetchData<T>(
 
   const url = mountUrl(baseUrl, params);
 
-  console.log(url);
-
   try {
     const res = await fetch(url, {
       method: "GET",
@@ -34,7 +32,7 @@ export async function fetchData<T>(
       throw new Error(errorMessage);
     }
 
-    const data = await res.json();
+    const { data } = await res.json();
     return { token, data };
   } catch (error: any) {
     throw new Error(error.message);
