@@ -80,8 +80,8 @@ export default async function ScheduleRestrictions() {
     <MainScheduleRestrictions
       data={data}
       filtersData={filters}
-      token={token}
       columns={columns}
+      token={token}
     />
   );
 }

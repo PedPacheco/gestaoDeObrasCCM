@@ -48,12 +48,12 @@ export default function PortfolioWorksFilters({
     {}
   );
   const [date, setDate] = useState<Dayjs | null>();
-  const [filterType, setFilterType] = useState<string>("day");
+  const [filterType, setFilterType] = useState<string>("month");
 
   useEffect(() => {
     if (filters) {
       setSelectedItems(filters.selectedItems);
-      setDate(dayjs(filters.date));
+      filters.date ? setDate(dayjs(filters.date)) : null;
       setFilterType(filters.filterType);
     }
   }, [filters]);
@@ -78,7 +78,7 @@ export default function PortfolioWorksFilters({
   function handleCleanigFilters() {
     setSelectedItems({});
     setDate(null);
-    setFilterType("day");
+    setFilterType("month");
 
     clearFilters();
 

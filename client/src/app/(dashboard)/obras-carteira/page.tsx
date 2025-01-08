@@ -1,9 +1,10 @@
-import PortfolioWorks from "@/components/worksComponents/portfolioWorks/MainPortfolioWorks";
+import dayjs from "dayjs";
+import { cookies } from "next/headers";
+
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import { cookies } from "next/headers";
+import PortfolioWorks from "@/components/worksComponents/portfolioWorks/MainPortfolioWorks";
 import { Transform } from "@/utils/transform";
-import dayjs from "dayjs";
 
 export default async function WorksInPortfolio() {
   const cookieStore = await cookies();
@@ -66,11 +67,11 @@ export default async function WorksInPortfolio() {
     prazo_fim: "Prazo Fim",
     abrev_regional: "Regional",
     tipo_obra: "Tipo",
-    qtde_planejada: "Qtde planejada",
-    qtde_pend: "Qtde pendente",
+    qtde_planejada: "Qtde plan",
+    qtde_pend: "Qtde pend",
     contagem_ocorrencias: "!",
     circuito: "Circuito",
-    mo_planejada: "MO planejada",
+    mo_planejada: "MO Plan",
     first_data_prog: "Data programada",
     status: "Status",
     hora_ini: "Hora início",
@@ -78,9 +79,9 @@ export default async function WorksInPortfolio() {
     tipo_servico: "Tipo serviço",
     chi: "Chi",
     conjunto: "Conjunto",
-    equipe_linha_morta: "Equipe linha morta",
-    equipe_linha_viva: "Equipe linha viva",
-    equipe_regularizacao: "Equipe regularização",
+    equipe_linha_morta: "Equipe LM",
+    equipe_linha_viva: "Equipe LV",
+    equipe_regularizacao: "Equipe Reg",
     data_empreitamento: "Data empreitamento",
     empreendimento: "Empreendimento",
     total_obras: "Total de obras",

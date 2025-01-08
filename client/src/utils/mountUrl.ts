@@ -7,7 +7,7 @@ export function mountUrl(
 
   if (params) {
     for (const [key, value] of Object.entries(params)) {
-      if (value || value === false) {
+      if (value || value !== null) {
         query.push(`${key}=${value}`);
       }
     }

@@ -66,8 +66,8 @@ export default async function Schedule() {
     <MainSchedule
       data={data}
       columns={columns}
-      token={token}
       filtersData={filters}
+      token={token}
     />
   );
 }

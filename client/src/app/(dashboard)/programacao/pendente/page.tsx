@@ -1,11 +1,13 @@
-import MainPendingSchedule from "@/components/scheduleComponents/pendingSchedule/MainPendingSchedule";
+import { cookies } from "next/headers";
+
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import { cookies } from "next/headers";
+import MainPendingSchedule from "@/components/scheduleComponents/pendingSchedule/MainPendingSchedule";
 import { Transform } from "@/utils/transform";
 
 export default async function PendingSchedule() {
   const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
   const cookieParams = cookieStore.get("pendingScheduleFilters")?.value;
 
   const params = cookieParams ? JSON.parse(cookieParams) : undefined;
@@ -28,11 +30,11 @@ export default async function PendingSchedule() {
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/programacao/pendente`,
       filtersValues,
-      cookieStore.get("token")?.value
+      token
     ),
   ]);
 
-  const { token, data } = scheduleData;
+  const { data } = scheduleData;
 
   const columns = {
     id: "ID",

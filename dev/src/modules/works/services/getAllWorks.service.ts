@@ -12,8 +12,16 @@ export class GetAllWorksService {
   ) {}
 
   async getAllWorks(filters: GetAllWorksDTO) {
-    const { idGrupo, idMunicipio, idParceira, idRegional, idStatus, idTipo } =
-      filters;
+    const {
+      idGrupo,
+      idMunicipio,
+      idParceira,
+      idRegional,
+      idStatus,
+      idTipo,
+      limit,
+      page,
+    } = filters;
 
     const cacheKey = `works-${JSON.stringify({
       idGrupo,
@@ -22,6 +30,8 @@ export class GetAllWorksService {
       idRegional,
       idStatus,
       idTipo,
+      limit,
+      page,
     })}`;
 
     let works = await this.cacheManager.get(cacheKey);
@@ -66,12 +76,36 @@ export class GetAllWorksService {
       query = Prisma.sql`${query} AND status.id IN (${Prisma.join(idStatus)})`;
     }
 
-    query = Prisma.sql`${query} ORDER BY entrada DESC;`;
+    query = Prisma.sql`${query} ORDER BY entrada DESC`;
+
+    if (limit && page !== null) {
+      query = Prisma.sql`${query} LIMIT ${limit} OFFSET ${page * limit};`;
+    }
 
     works = await this.prisma.$queryRaw(query);
 
-    await this.cacheManager.set(cacheKey, works, 1800000);
+    const totalRecords = await this.prisma.obras.count({
+      where: {
+        municipios: {
+          id_regional: idRegional ? { in: idRegional } : undefined,
+        },
+        id_tipo: idTipo ? { in: idTipo } : undefined,
+        id_turma: idParceira ? { in: idParceira } : undefined,
+        tipos: {
+          id_grupo: idGrupo ? { in: idGrupo } : undefined,
+        },
+        id_gpm: idMunicipio ? { in: idMunicipio } : undefined,
+        id_status: idStatus ? { in: idStatus } : undefined,
+      },
+    });
 
-    return works;
+    const response = {
+      works,
+      totalRecords,
+    };
+
+    await this.cacheManager.set(cacheKey, response, 1800000);
+
+    return response;
   }
 }
