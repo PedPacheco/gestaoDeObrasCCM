@@ -52,12 +52,12 @@ describe('EntryService', () => {
   describe('getValuesFromEntry', () => {
     it('should return correct values with mo_final', async () => {
       const filters: GetEntryOfWorksDTO = {
-        idGrupo: undefined,
-        idMunicipio: undefined,
-        idParceira: undefined,
+        idGrupo: [1],
+        idMunicipio: [1],
+        idParceira: [1],
         idRegional: [1],
-        idTipo: undefined,
-        idCircuito: undefined,
+        idTipo: [1],
+        idCircuito: [1],
         ano: 2024,
       };
 
@@ -110,7 +110,7 @@ describe('EntryService', () => {
       const filters: GetEntryOfWorksDTO = {
         idGrupo: undefined,
         idMunicipio: undefined,
-        idParceira: [1],
+        idParceira: undefined,
         idRegional: undefined,
         idTipo: undefined,
         idCircuito: undefined,
@@ -160,11 +160,11 @@ describe('EntryService', () => {
   describe('getEntryOfWorksByDay', () => {
     it('should return values for the correct date', async () => {
       const filters: GetEntryOfWorksByDayDTO = {
-        idGrupo: undefined,
-        idMunicipio: undefined,
-        idParceira: undefined,
+        idGrupo: [1],
+        idMunicipio: [1],
+        idParceira: [1],
         idRegional: [1],
-        idTipo: undefined,
+        idTipo: [1],
         data: new Date('04/09/2024'),
         tipoFiltro: 'day',
       };
@@ -217,7 +217,7 @@ describe('EntryService', () => {
       const filters: GetEntryOfWorksByDayDTO = {
         idGrupo: undefined,
         idMunicipio: undefined,
-        idParceira: [1],
+        idParceira: undefined,
         idRegional: undefined,
         idTipo: undefined,
         data: moment('09/2024', 'MM/YYYY', true).toDate(),

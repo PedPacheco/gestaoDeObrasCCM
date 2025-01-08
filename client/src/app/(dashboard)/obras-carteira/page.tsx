@@ -1,9 +1,10 @@
-import PortfolioWorks from "@/components/worksComponents/portfolioWorks/MainPortfolioWorks";
+import dayjs from "dayjs";
+import { cookies } from "next/headers";
+
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import { cookies } from "next/headers";
+import PortfolioWorks from "@/components/worksComponents/portfolioWorks/MainPortfolioWorks";
 import { Transform } from "@/utils/transform";
-import dayjs from "dayjs";
 
 export default async function WorksInPortfolio() {
   const cookieStore = await cookies();
@@ -93,12 +94,13 @@ export default async function WorksInPortfolio() {
 
   return (
     <PortfolioWorks
-      data={data}
+      data={data.data}
       token={token}
       filters={filters}
       cookie="portfolioWorksFilters"
       columns={columnMapping}
-      totalValues={33}
+      totalValues={34}
+      url="obras-carteira"
     />
   );
 }

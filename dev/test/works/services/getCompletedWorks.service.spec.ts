@@ -235,9 +235,6 @@ describe('GetCompletedWorksService', () => {
       normalize(calledQuery.join('')),
     );
 
-    console.log(normalize(initialQuery));
-    console.log(normalize(calledQuery.join('')));
-
     expect(allPartsPresent).toBeTruthy();
 
     expect(result).toEqual(mockResult);

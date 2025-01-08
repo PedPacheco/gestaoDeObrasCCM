@@ -44,20 +44,12 @@ export class EntryService {
           gte: new Date(`${ano}-01-01`),
           lte: new Date(`${ano}-12-31`),
         },
-        id_gpm:
-          idMunicipio && idMunicipio.length > 0
-            ? { in: idMunicipio }
-            : undefined,
-        id_tipo: idTipo && idTipo.length > 0 ? { in: idTipo } : undefined,
-        id_circuito:
-          idCircuito && idCircuito.length > 0 ? { in: idCircuito } : undefined,
-        id_turma:
-          idParceira && idParceira.length > 0 ? { in: idParceira } : undefined,
+        id_gpm: idMunicipio ? { in: idMunicipio } : undefined,
+        id_tipo: idTipo ? { in: idTipo } : undefined,
+        id_circuito: idCircuito ? { in: idCircuito } : undefined,
+        id_turma: idParceira ? { in: idParceira } : undefined,
         municipios: {
-          id_regional:
-            idRegional && idRegional.length > 0
-              ? { in: idRegional }
-              : undefined,
+          id_regional: idRegional ? { in: idRegional } : undefined,
         },
         tipos: {
           id_grupo: idGrupo && idGrupo.length > 0 ? { in: idGrupo } : undefined,
@@ -147,21 +139,14 @@ export class EntryService {
       where: {
         entrada: dateRange,
         municipios: {
-          id_regional:
-            idRegional && idRegional.length > 0
-              ? { in: idRegional }
-              : undefined,
+          id_regional: idRegional ? { in: idRegional } : undefined,
         },
-        id_gpm:
-          idMunicipio && idMunicipio.length > 0
-            ? { in: idMunicipio }
-            : undefined,
+        id_gpm: idMunicipio ? { in: idMunicipio } : undefined,
         tipos: {
-          id_grupo: idGrupo && idGrupo.length > 0 ? { in: idGrupo } : undefined,
+          id_grupo: idGrupo ? { in: idGrupo } : undefined,
         },
-        id_tipo: idTipo && idTipo.length > 0 ? { in: idTipo } : undefined,
-        id_turma:
-          idParceira && idParceira.length > 0 ? { in: idParceira } : undefined,
+        id_tipo: idTipo ? { in: idTipo } : undefined,
+        id_turma: idParceira ? { in: idParceira } : undefined,
       },
       select: {
         id: true,

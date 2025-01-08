@@ -3,7 +3,7 @@
 import "dayjs/locale/pt-br";
 
 import dayjs, { Dayjs } from "dayjs";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
@@ -13,6 +13,9 @@ import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 import { MonthlySummaryScheduleTable } from "./monthlySummaryScheduleTable";
+import { Transform } from "@/utils/transform";
+import { fetchData } from "@/actions/fetchData.action";
+import { getButtonContent } from "@/utils/getButtonContent";
 
 export interface Filters {
   regional: { id: string; regional: string }[];
@@ -36,7 +39,12 @@ export function MainMonthlySummarySchedule({
   dataFirstSummary,
   dataSecondSummary,
   filtersData,
+  token,
 }: MainMonthlySummaryScheduleProps) {
+  const [filteredDataFirstSummary, setFilteredDataFirstSummary] =
+    useState(dataFirstSummary);
+  const [filteredDataSecondSummary, setFilteredDataSecondSummary] =
+    useState(dataSecondSummary);
   const { clearFilters, filters, saveFilters } = useSaveFilters(
     "monthlySummaryScheduleFilters"
   );
@@ -44,6 +52,7 @@ export function MainMonthlySummarySchedule({
     {}
   );
   const [date, setDate] = useState<Dayjs>(dayjs());
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     if (filters) {
@@ -52,11 +61,61 @@ export function MainMonthlySummarySchedule({
     }
   }, [filters]);
 
+  function fetchSummary() {
+    saveFilters({ selectedItems, date });
+    const formattedSelectedItems = Transform(selectedItems);
+
+    const params = {
+      ...formattedSelectedItems,
+      date: date.format("MM/YYYY"),
+    };
+
+    startTransition(async () => {
+      const [responseFirstSummary, responseSecondSummary] = await Promise.all([
+        fetchData(
+          `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal`,
+          params,
+          token
+        ),
+        fetchData(
+          `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal-2`,
+          params,
+          token
+        ),
+      ]);
+
+      setFilteredDataFirstSummary(responseFirstSummary.data.data);
+      setFilteredDataSecondSummary(responseSecondSummary.data.data);
+    });
+  }
+
   function handleCleanigFilters() {
     setSelectedItems({});
     setDate(dayjs());
 
     clearFilters();
+
+    const params = {
+      date: dayjs().format("MM/YYYY"),
+    };
+
+    startTransition(async () => {
+      const [responseFirstSummary, responseSecondSummary] = await Promise.all([
+        fetchData(
+          `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal`,
+          params,
+          token
+        ),
+        fetchData(
+          `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal-2`,
+          params,
+          token
+        ),
+      ]);
+
+      setFilteredDataFirstSummary(responseFirstSummary.data.data);
+      setFilteredDataSecondSummary(responseSecondSummary.data.data);
+    });
   }
 
   return (
@@ -107,13 +166,13 @@ export function MainMonthlySummarySchedule({
 
         <div className=" flex flex-col md:flex-row justify-between items-center xl:justify-around">
           <ButtonComponent
-            onClick={() => saveFilters({ selectedItems, date })}
-            text="Aplicar filtros"
+            onClick={fetchSummary}
+            text={getButtonContent(isPending, "Aplicar filtros")}
             styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
           />
           <ButtonComponent
             onClick={handleCleanigFilters}
-            text="Limpar filtros"
+            text={getButtonContent(isPending, "Limpar filtros")}
             styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
           />
         </div>
@@ -122,12 +181,12 @@ export function MainMonthlySummarySchedule({
       <div className="w-full flex flex-col xl:flex-row px-4">
         <MonthlySummaryScheduleTable
           columns={columnsFirstSummary}
-          data={dataFirstSummary.data}
+          data={filteredDataFirstSummary}
         />
 
         <MonthlySummaryScheduleTable
           columns={columnsSecondSummary}
-          data={dataSecondSummary.data}
+          data={filteredDataSecondSummary}
         />
       </div>
     </>

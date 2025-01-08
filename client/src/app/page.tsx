@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { Transform } from "@/utils/transform";
 import { cookies } from "next/headers";
 import { Suspense } from "react";
+import { LoadingComponent } from "@/components/common/Loading";
 
 export default async function Home() {
   const cookieStore = await cookies();
@@ -68,7 +69,7 @@ export default async function Home() {
                 <h2 className="text-2xl font-semibold text-zinc-700">
                   Metas EDP
                 </h2>
-                <Suspense fallback={<p>Carregando conteúdo...</p>}>
+                <Suspense fallback={<LoadingComponent color="text-black" />}>
                   <MainHome
                     filtersData={filters}
                     data={data.data}

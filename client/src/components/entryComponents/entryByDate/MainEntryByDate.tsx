@@ -1,7 +1,7 @@
 "use client";
 
 import dayjs, { Dayjs } from "dayjs";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
 import { DateFilter } from "@/components/common/DateFilter";
@@ -10,6 +10,10 @@ import { TableComponent } from "@/components/common/Table";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { MainInterface } from "@/interfaces/mainInterface";
 import { capitalize } from "@/utils/capitalize";
+import { Transform } from "@/utils/transform";
+import { fetchData } from "@/actions/fetchData.action";
+import { LoadingComponent } from "@/components/common/Loading";
+import { getButtonContent } from "@/utils/getButtonContent";
 
 interface Filters {
   regional: { id: string; regional: string }[];
@@ -23,7 +27,9 @@ export default function MainEntryByDate({
   data,
   filtersData,
   columns,
+  token,
 }: MainInterface<Filters>) {
+  const [filteredData, setFilteredData] = useState(data);
   const { clearFilters, filters, saveFilters } =
     useSaveFilters("entryByDateFilters");
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
@@ -31,6 +37,7 @@ export default function MainEntryByDate({
   );
   const [date, setDate] = useState<Dayjs | null>(dayjs());
   const [filterType, setFilterType] = useState<string>("day");
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     if (filters) {
@@ -40,12 +47,52 @@ export default function MainEntryByDate({
     }
   }, [filters]);
 
+  function fetchWorks() {
+    saveFilters({ selectedItems, date, filterType });
+    const formattedSelectedItems = Transform(selectedItems);
+
+    const params = {
+      ...formattedSelectedItems,
+      data: date
+        ? filterType === "day"
+          ? dayjs(date).format("DD/MM/YYYY")
+          : dayjs(date).format("MM/YYYY")
+        : "",
+      tipoFiltro: filterType,
+    };
+
+    startTransition(async () => {
+      const response = await fetchData(
+        `${process.env.NEXT_PUBLIC_API_URL}/entrada/data`,
+        params,
+        token
+      );
+
+      setFilteredData(response.data.data);
+    });
+  }
+
   function handleCleanigFilters() {
     setSelectedItems({});
     setDate(dayjs());
     setFilterType("day");
 
     clearFilters();
+
+    const params = {
+      tipoFiltro: "day",
+      data: dayjs().format("DD/MM/YYYY"),
+    };
+
+    startTransition(async () => {
+      const response = await fetchData(
+        `${process.env.NEXT_PUBLIC_API_URL}/entrada/data`,
+        params,
+        token
+      );
+
+      setFilteredData(response.data.data);
+    });
   }
 
   return (
@@ -89,19 +136,21 @@ export default function MainEntryByDate({
 
         <div className=" flex flex-col md:flex-row justify-between items-center xl:justify-around">
           <ButtonComponent
-            onClick={() => saveFilters({ selectedItems, date, filterType })}
-            text="Aplicar filtros"
+            onClick={fetchWorks}
+            text={getButtonContent(isPending, "Aplicar filtros")}
+            disabled={isPending}
             styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
           />
           <ButtonComponent
             onClick={handleCleanigFilters}
-            text="Limpar filtros"
+            text={getButtonContent(isPending, "Limpar filtros")}
+            disabled={isPending}
             styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
           />
         </div>
       </div>
 
-      <TableComponent data={data} columns={columns} sliceEndIndex={3} />
+      <TableComponent data={filteredData} columns={columns} sliceEndIndex={3} />
     </>
   );
 }

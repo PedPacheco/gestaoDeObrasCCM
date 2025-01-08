@@ -1,10 +1,13 @@
 "use client";
 
 import dayjs, { Dayjs } from "dayjs";
-import { useState } from "react";
+import { useCallback, useState, useTransition } from "react";
 
+import { fetchData } from "@/actions/fetchData.action";
+import ErrorModal from "@/components/common/ErrorModal";
 import { TableComponent } from "@/components/common/Table";
 import { MainInterface } from "@/interfaces/mainInterface";
+import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import WeeklyScheduleFilters from "../weeklySchedule/WeeklyScheduleFilters";
 
@@ -12,8 +15,11 @@ export default function MainScheduleRestrictions({
   data,
   filtersData,
   columns,
+  token,
 }: MainInterface<any>) {
+  const [filteredData, setFilteredData] = useState(data);
   const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
+  const [error, setError] = useState<string | null>();
   const [weekRange, setWeekRange] = useState<{
     start: string;
     end: string;
@@ -21,6 +27,7 @@ export default function MainScheduleRestrictions({
     start: selectedDate.startOf("isoWeek").format("DD/MM/YYYY"),
     end: selectedDate.endOf("isoWeek").format("DD/MM/YYYY"),
   });
+  const [isPending, startTransition] = useTransition();
 
   const handleDateChange = (newDate: Dayjs | null) => {
     if (newDate) {
@@ -34,6 +41,25 @@ export default function MainScheduleRestrictions({
     }
   };
 
+  const fetchScheduleRestrictions = useCallback(
+    (params: Record<string, string | boolean>) => {
+      startTransition(async () => {
+        try {
+          const response = await fetchData(
+            `${process.env.NEXT_PUBLIC_API_URL}/programacao/restricoes`,
+            params,
+            token
+          );
+
+          setFilteredData(response.data.data);
+        } catch (error: any) {
+          setError(error.message);
+        }
+      });
+    },
+    [token]
+  );
+
   return (
     <>
       <div className="my-6 w-4/5 flex flex-col">
@@ -45,10 +71,21 @@ export default function MainScheduleRestrictions({
           setWeekRange={setWeekRange}
           handleDateChange={handleDateChange}
           setDateInitial={setSelectedDate}
+          applyFilters={fetchScheduleRestrictions}
+          isPending={isPending}
         />
       </div>
 
-      <TableComponent columns={columns} data={data} />
+      <TableComponent columns={columns} data={filteredData} />
+
+      {error && (
+        <ErrorModal
+          open={true}
+          message={error}
+          onClose={() => setError(null)}
+          icon={<ExclamationCircleIcon width={48} height={48} />}
+        />
+      )}
     </>
   );
 }

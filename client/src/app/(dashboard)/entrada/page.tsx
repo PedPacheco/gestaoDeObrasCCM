@@ -1,9 +1,10 @@
-import MainEntry from "@/components/entryComponents/entry/MainEntry";
+import dayjs from "dayjs";
+import { cookies } from "next/headers";
+
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import { cookies } from "next/headers";
+import MainEntry from "@/components/entryComponents/entry/MainEntry";
 import { Transform } from "@/utils/transform";
-import dayjs from "dayjs";
 
 export default async function Entry() {
   const cookieStore = await cookies();

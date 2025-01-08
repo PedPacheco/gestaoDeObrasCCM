@@ -8,6 +8,7 @@ import { Transform } from "@/utils/transform";
 export default async function AllWorks() {
   const cookieStore = await cookies();
   const cookieParams = cookieStore.get("allWorksFilters")?.value;
+  const token = cookieStore.get("token")?.value;
 
   let params = cookieParams ? JSON.parse(cookieParams) : undefined;
   let filtersValues = undefined;
@@ -41,7 +42,7 @@ export default async function AllWorks() {
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/obras`,
       filtersValues,
-      cookieStore.get("token")?.value,
+      token,
       { cache: "no-store" }
     ),
   ]);
@@ -75,6 +76,11 @@ export default async function AllWorks() {
   };
 
   return (
-    <MainAllWorks data={data.data} filtersData={filters} columns={columns} />
+    <MainAllWorks
+      data={data.data}
+      filtersData={filters}
+      token={token}
+      columns={columns}
+    />
   );
 }

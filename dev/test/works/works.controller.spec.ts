@@ -102,6 +102,8 @@ describe('WorksController', () => {
         idRegional: [1],
         idStatus: undefined,
         idTipo: undefined,
+        limit: 100,
+        page: 0,
       };
 
       jest
@@ -292,6 +294,8 @@ describe('WorksController', () => {
         idTipo: '7',
         idParceira: '2',
         idStatus: '4',
+        limit: '100',
+        page: '0',
       };
       const instance = plainToInstance(GetAllWorksDTO, filters);
 
@@ -301,6 +305,8 @@ describe('WorksController', () => {
       expect(instance.idRegional).toStrictEqual([4]);
       expect(instance.idStatus).toStrictEqual([4]);
       expect(instance.idTipo).toStrictEqual([7]);
+      expect(instance.limit).toStrictEqual(100);
+      expect(instance.page).toStrictEqual(0);
     });
 
     it('Should GetWorksDTO transform data of dto filters', () => {
@@ -315,6 +321,8 @@ describe('WorksController', () => {
         idCircuito: '9',
         idEmpreendimento: '23',
         idOvnota: '3',
+        limit: '100',
+        page: '0',
       };
       const instance = plainToInstance(GetWorksDTO, filters);
 
@@ -327,6 +335,7 @@ describe('WorksController', () => {
       expect(instance.idConjunto).toStrictEqual([4]);
       expect(instance.idEmpreendimento).toStrictEqual([23]);
       expect(instance.idCircuito).toStrictEqual([9]);
+      expect(instance.idOvnota).toStrictEqual([3]);
       expect(instance.idOvnota).toStrictEqual([3]);
     });
   });

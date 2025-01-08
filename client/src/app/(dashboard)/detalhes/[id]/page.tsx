@@ -22,6 +22,8 @@ export default async function Details({
     (await cookieStore).get("token")?.value
   );
 
+  console.log(data.data.data_conclusao);
+
   const entrada = dayjs(data.data.entrada);
   const prazo = data.data.prazo;
   const data_conclusao =

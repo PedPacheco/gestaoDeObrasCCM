@@ -5,11 +5,12 @@ import { useEffect, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
 import { DateFilter } from "@/components/common/DateFilter";
+import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { capitalize } from "@/utils/capitalize";
-import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
-import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { Transform } from "@/utils/transform";
+import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
+import { getButtonContent } from "@/utils/getButtonContent";
 
 interface filters {
   regional: { id: string; regional: string }[];
@@ -30,6 +31,8 @@ interface PortfolioWorksFiltersProps {
   url: string;
   openModal: () => void;
   generateExcel: (params: any) => {};
+  applyFilters: (params: Record<string, string | boolean>) => void;
+  isPending: boolean;
 }
 
 export default function PortfolioWorksFilters({
@@ -37,6 +40,8 @@ export default function PortfolioWorksFilters({
   url,
   generateExcel,
   openModal,
+  applyFilters,
+  isPending,
 }: PortfolioWorksFiltersProps) {
   const { clearFilters, filters, saveFilters } = useSaveFilters(url);
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
@@ -52,6 +57,23 @@ export default function PortfolioWorksFilters({
       setFilterType(filters.filterType);
     }
   }, [filters]);
+
+  function handleApplyFilters() {
+    saveFilters({ selectedItems, date, filterType });
+    const formattedSelectedItems = Transform(selectedItems);
+
+    const params = {
+      ...formattedSelectedItems,
+      data: date
+        ? filterType === "day"
+          ? dayjs(date).format("DD/MM/YYYY")
+          : dayjs(date).format("MM/YYYY")
+        : "",
+      tipoFiltro: filterType,
+    };
+
+    applyFilters(params);
+  }
 
   function handleCleanigFilters() {
     setSelectedItems({});
@@ -116,13 +138,13 @@ export default function PortfolioWorksFilters({
 
       <div className="grid grid-cols-1 lg:grid-cols-4 w-full">
         <ButtonComponent
-          onClick={() => saveFilters({ selectedItems, date, filterType })}
-          text="Aplicar filtros"
+          onClick={handleApplyFilters}
+          text={getButtonContent(isPending, "Aplicar filtros")}
           styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
         />
         <ButtonComponent
           onClick={handleCleanigFilters}
-          text="Limpar filtros"
+          text={getButtonContent(isPending, "Limpar filtros")}
           styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
         />
 
