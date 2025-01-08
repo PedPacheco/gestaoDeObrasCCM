@@ -8,7 +8,6 @@ import { Transform } from "@/utils/transform";
 export default async function AllWorks() {
   const cookieStore = await cookies();
   const cookieParams = cookieStore.get("allWorksFilters")?.value;
-  const token = cookieStore.get("token")?.value;
 
   let params = cookieParams ? JSON.parse(cookieParams) : undefined;
   let filtersValues = undefined;
@@ -47,7 +46,7 @@ export default async function AllWorks() {
     ),
   ]);
 
-  const { data } = worksData;
+  const { token, data } = worksData;
 
   const columns = {
     ovnota: "Ovnota",

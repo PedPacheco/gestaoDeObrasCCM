@@ -81,6 +81,7 @@ export default async function ScheduleRestrictions() {
       data={data}
       filtersData={filters}
       columns={columns}
+      token={token}
     />
   );
 }

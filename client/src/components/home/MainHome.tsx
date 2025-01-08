@@ -54,12 +54,12 @@ export default function MainHome({
   );
 
   function fetchGoals() {
-    const params = {
-      regional: selectedRegionais,
-      parceira: selectedParceiras,
-      tipo: selectedTiposObra,
-      ano: selectedYear,
-    };
+    const params: Record<string, string[]> = {};
+
+    selectedParceiras.length && (params["parceira"] = selectedParceiras);
+    selectedRegionais.length && (params["regional"] = selectedRegionais);
+    selectedTiposObra.length && (params["tipo"] = selectedTiposObra);
+    selectedYear.length && (params["ano"] = selectedYear);
 
     saveFilters(params);
 
