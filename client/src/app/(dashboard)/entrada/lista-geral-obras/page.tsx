@@ -42,7 +42,7 @@ export default async function AllWorks() {
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/obras`,
       filtersValues,
-      token,
+      cookieStore.get("token")?.value,
       { cache: "no-store" }
     ),
   ]);
@@ -77,14 +77,9 @@ export default async function AllWorks() {
 
   return (
     <MainAllWorks
-<<<<<<< HEAD
-      data={data.data}
-=======
       data={data}
       token={token}
->>>>>>> cdb879a82d96405355854d7c83eaacdaf47202f3
       filtersData={filters}
-      token={token}
       columns={columns}
     />
   );

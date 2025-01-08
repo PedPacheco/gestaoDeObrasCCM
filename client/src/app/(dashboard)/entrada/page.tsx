@@ -62,15 +62,11 @@ export default async function Entry() {
   };
 
   return (
-<<<<<<< HEAD
-    <MainEntry data={data.data} filtersData={filters} columns={columnMapping} />
-=======
     <MainEntry
       data={data}
       filtersData={filters}
       token={token}
       columns={columnMapping}
     />
->>>>>>> cdb879a82d96405355854d7c83eaacdaf47202f3
   );
 }

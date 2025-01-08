@@ -10,6 +10,7 @@ import { LoadingComponent } from "@/components/common/Loading";
 export default async function Home() {
   const cookieStore = await cookies();
   const cookieParams = cookieStore.get("goalsFilters")?.value;
+  const token = cookieStore.get("token")?.value;
 
   let params = cookieParams ? JSON.parse(cookieParams) : undefined;
 
@@ -24,11 +25,7 @@ export default async function Home() {
       tipo: true,
     }),
 
-    fetchData(
-      `${process.env.NEXT_PUBLIC_API_URL}/metas`,
-      params,
-      cookieStore.get("token")?.value
-    ),
+    fetchData(`${process.env.NEXT_PUBLIC_API_URL}/metas`, params, token),
   ]);
 
   const { data } = homeData;
@@ -72,12 +69,8 @@ export default async function Home() {
                 <Suspense fallback={<LoadingComponent color="text-black" />}>
                   <MainHome
                     filtersData={filters}
-<<<<<<< HEAD
-                    data={data.data}
-=======
                     data={data}
                     token={token}
->>>>>>> cdb879a82d96405355854d7c83eaacdaf47202f3
                     columns={columnMapping}
                   />
                 </Suspense>
