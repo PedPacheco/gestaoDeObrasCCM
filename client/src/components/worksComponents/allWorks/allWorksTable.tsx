@@ -25,8 +25,6 @@ interface MainAllWorksTableProps {
   data: dataInterface;
   columnMapping: any;
   page: number;
-  rowsPerPage: number;
-  handleChangeRowsPerPage: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handleChangePage: (event: unknown, newPage: number) => void;
 }
 
@@ -36,12 +34,10 @@ export default function MainAllWorksTable({
   columnMapping,
   data,
   page,
-  rowsPerPage,
   handleChangePage,
-  handleChangeRowsPerPage,
 }: MainAllWorksTableProps) {
   return (
-    <Paper className="mb-6 w-[95%] min-h-96 max-h-[880px] lg:max-h-[680px] xl:max-h-[95%]">
+    <Paper className="mb-6 w-[95%] min-h-96 h-[720px] lg:h-[560px] xl:h-[630px] max-h-[880px] lg:max-h-[680px] xl:max-h-[95%]">
       <TableContainer className="overflow-y-auto max-h-[calc(100%-56px)]">
         <Table stickyHeader>
           <TableHead>
@@ -139,10 +135,21 @@ export default function MainAllWorksTable({
           component="div"
           count={data.totalRecords}
           page={page}
-          rowsPerPage={rowsPerPage}
-          rowsPerPageOptions={[100, 200]}
+          rowsPerPage={200}
+          rowsPerPageOptions={[]}
           onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
+          showFirstButton={true}
+          showLastButton={true}
+          labelDisplayedRows={({ from, to, count, page }) => {
+            const totalPages = Math.ceil(count / 200);
+            return `Página ${page + 1} de ${totalPages}`;
+          }}
+          sx={{
+            ".MuiTablePagination-toolbar": {
+              paddingRight: "0px",
+              paddingLeft: "0px",
+            },
+          }}
         />
       </div>
     </Paper>

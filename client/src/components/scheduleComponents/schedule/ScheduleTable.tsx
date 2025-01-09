@@ -46,7 +46,7 @@ export default function ScheduleTable({
 
   return (
     <TableContainer
-      className="mb-20 w-[95%] min-h-96 max-h-[880px] lg:max-h-[620px] xl:max-h-[90%] overflow-y-auto"
+      className="mb-4 w-[95%] min-h-96 h-[720px] max-h-[880px] lg:max-h-[620px] xl:max-h-[90%] overflow-y-auto"
       component={Paper}
     >
       <Table stickyHeader>

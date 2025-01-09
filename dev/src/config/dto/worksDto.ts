@@ -35,11 +35,6 @@ export class GetAllWorksDTO {
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  limit: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
   page: number;
 }
 

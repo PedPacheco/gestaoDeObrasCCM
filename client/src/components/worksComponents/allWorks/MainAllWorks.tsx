@@ -37,19 +37,17 @@ export default function MainAllWorks({
   );
   const [error, setError] = useState<string | null>();
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(100);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     if (filters) {
       setSelectedItems(filters.selectedItems);
       setPage(filters.page);
-      setRowsPerPage(filters.rowsPerPage);
     }
   }, [filters]);
 
-  function fetchWorks(newPage: number, newRowsPerPage: number) {
-    saveFilters({ selectedItems, page: newPage, rowsPerPage: newRowsPerPage });
+  function fetchWorks(newPage: number) {
+    saveFilters({ selectedItems, page: newPage });
     const formattedSelectedItems = selectedItems
       ? Transform(selectedItems)
       : {};
@@ -57,7 +55,6 @@ export default function MainAllWorks({
     const params = {
       ...formattedSelectedItems,
       page: newPage.toString(),
-      limit: newRowsPerPage.toString(),
     };
 
     startTransition(async () => {
@@ -82,7 +79,6 @@ export default function MainAllWorks({
 
     const params = {
       page: page.toString(),
-      limit: rowsPerPage.toString(),
     };
 
     startTransition(async () => {
@@ -104,15 +100,7 @@ export default function MainAllWorks({
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
 
-    fetchWorks(newPage, rowsPerPage);
-  };
-
-  const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setRowsPerPage(parseInt(event.target.value));
-
-    fetchWorks(page, parseInt(event.target.value));
+    fetchWorks(newPage);
   };
 
   return (
@@ -148,7 +136,7 @@ export default function MainAllWorks({
 
         <div className=" flex flex-col md:flex-row justify-between items-center xl:justify-around">
           <ButtonComponent
-            onClick={() => fetchWorks(page, rowsPerPage)}
+            onClick={() => fetchWorks(page)}
             text={getButtonContent(isPending, "Aplicar filtros")}
             styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
           />
@@ -164,9 +152,7 @@ export default function MainAllWorks({
         data={filteredData}
         columnMapping={columns}
         page={page}
-        rowsPerPage={rowsPerPage}
         handleChangePage={handleChangePage}
-        handleChangeRowsPerPage={handleChangeRowsPerPage}
       />
 
       {error && (

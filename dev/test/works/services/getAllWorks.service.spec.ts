@@ -85,7 +85,6 @@ describe('GetAllWorksService', () => {
       idRegional: [1],
       idStatus: [1],
       idTipo: [1],
-      limit: 100,
       page: 0,
     };
 
@@ -112,7 +111,6 @@ describe('GetAllWorksService', () => {
       idRegional: [1],
       idStatus: [1],
       idTipo: [1],
-      limit: 100,
       page: 0,
     };
 
@@ -143,7 +141,6 @@ describe('GetAllWorksService', () => {
       idRegional: undefined,
       idStatus: undefined,
       idTipo: undefined,
-      limit: 100,
       page: 0,
     };
 

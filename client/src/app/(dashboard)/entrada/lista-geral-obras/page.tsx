@@ -20,12 +20,10 @@ export default async function AllWorks() {
     filtersValues = {
       ...formattedSelectedItems,
       page: params.page,
-      limit: params.rowsPerPage,
     };
   } else {
     filtersValues = {
       page: 0,
-      limit: 100,
     };
   }
 

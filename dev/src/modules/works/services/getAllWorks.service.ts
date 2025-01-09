@@ -19,7 +19,6 @@ export class GetAllWorksService {
       idRegional,
       idStatus,
       idTipo,
-      limit,
       page,
     } = filters;
 
@@ -30,7 +29,6 @@ export class GetAllWorksService {
       idRegional,
       idStatus,
       idTipo,
-      limit,
       page,
     })}`;
 
@@ -78,8 +76,8 @@ export class GetAllWorksService {
 
     query = Prisma.sql`${query} ORDER BY entrada DESC`;
 
-    if (limit && page !== null) {
-      query = Prisma.sql`${query} LIMIT ${limit} OFFSET ${page * limit};`;
+    if (page !== null) {
+      query = Prisma.sql`${query} LIMIT 200 OFFSET ${page * 200};`;
     }
 
     works = await this.prisma.$queryRaw(query);
