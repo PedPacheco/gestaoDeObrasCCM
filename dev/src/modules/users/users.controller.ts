@@ -1,4 +1,4 @@
-import { userInterface } from 'src/types/userInterface';
+import { userInterface } from 'src/interfaces/userInterface';
 import { Body, Controller, Put } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { Public } from '../../config/costants';

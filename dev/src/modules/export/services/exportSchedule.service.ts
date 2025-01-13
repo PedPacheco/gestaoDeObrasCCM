@@ -6,7 +6,7 @@ import { Response } from 'express';
 export class ExportScheduleService {
   constructor() {}
 
-  async export(scheduleData: any[], response: Response) {
+  async export(scheduleData: any, response: Response) {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Programação');
 

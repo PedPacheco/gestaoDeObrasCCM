@@ -12,6 +12,9 @@ import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import ScheduleForDayFilters from "./ScheduleForDayFilters";
 import { fetchData } from "@/actions/fetchData.action";
+import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { Transform } from "@/utils/transform";
+import dayjs from "dayjs";
 
 export default function MainSchduleForDay({
   columns,
@@ -22,10 +25,11 @@ export default function MainSchduleForDay({
   const [filteredData, setFilteredData] = useState(data);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>();
+  const [page, setPage] = useState(0);
   const [isPending, startTransition] = useTransition();
+  const { filters, saveFilters } = useSaveFilters("scheduleForDayFilters");
 
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const toggleModal = () => setOpen((prev) => !prev);
 
   const generateExcel = useCallback(
     async (params: Record<string, string | boolean>) => {
@@ -73,21 +77,56 @@ export default function MainSchduleForDay({
     [token]
   );
 
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+
+    const baseFilters = {
+      data: dayjs().format("MM/YYYY"),
+      tipoFiltro: "month",
+      executado: "false",
+      page: newPage.toString(),
+    };
+
+    const filtersValues = filters
+      ? {
+          ...Transform(filters.selectedItems || {}),
+          data: filters.date
+            ? dayjs(filters.date).format(
+                filters.filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY"
+              )
+            : "",
+          tipoFiltro: filters.filterType,
+          executado: filters.executed,
+          page: newPage.toString(),
+        }
+      : baseFilters;
+
+    saveFilters({ ...filters, page: newPage });
+    fetchSchedule(filtersValues);
+  };
+
   return (
     <>
       <div className="my-6 w-11/12 flex flex-col">
         <ScheduleForDayFilters
           data={filtersData}
-          openModal={handleOpen}
+          openModal={toggleModal}
           generateExcel={generateExcel}
           isPending={isPending}
           applyFilters={fetchSchedule}
+          page={page}
         />
       </div>
 
-      <TableComponent data={filteredData} columns={columns} sliceEndIndex={3} />
+      <TableComponent
+        data={filteredData}
+        columns={columns}
+        sliceEndIndex={3}
+        page={page}
+        handleChangePage={handleChangePage}
+      />
 
-      <ModalComponent open={open} onClose={handleClose} title="Valores totais">
+      <ModalComponent open={open} onClose={toggleModal} title="Valores totais">
         <div className="flex flex-col items-center justify-center xl:flex-row w-full">
           {Object.entries(columns)
             .slice(24)

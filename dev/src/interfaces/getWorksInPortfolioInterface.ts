@@ -36,4 +36,14 @@ export interface worksInPortfolioInterface {
   mo_exec?: number;
   mo_suspensa?: number;
   atraso?: boolean;
+  total_mo_executada?: number;
+  total_mo_suspensa?: number;
+  total_mo_planejada?: number;
+  total_qtde_planejada?: number;
+  total_qtde_pend?: number;
+}
+
+export interface worksInPortfolioResponse {
+  works: worksInPortfolioInterface[];
+  totalRecords: number;
 }

@@ -2,7 +2,10 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { GetWorksDTO } from 'src/config/dto/worksDto';
 import { PrismaService } from 'src/config/prisma/prisma.service';
-import { worksInPortfolioInterface } from 'src/types/worksInterface';
+import {
+  worksInPortfolioInterface,
+  worksInPortfolioResponse,
+} from 'src/interfaces/getWorksInPortfolioInterface';
 import { calculateTotals } from 'src/utils/calculateTotals';
 import * as moment from 'moment';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -14,7 +17,9 @@ export class GetWorksInPortfolioService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async getWorksInPortfolio(filters: GetWorksDTO) {
+  async getWorksInPortfolio(
+    filters: GetWorksDTO,
+  ): Promise<worksInPortfolioResponse> {
     const {
       idGrupo,
       idMunicipio,
@@ -28,6 +33,7 @@ export class GetWorksInPortfolioService {
       idEmpreendimento,
       data,
       tipoFiltro,
+      page,
     } = filters;
 
     const month = data?.split('/')[0];
@@ -46,19 +52,14 @@ export class GetWorksInPortfolioService {
       idEmpreendimento,
       data,
       tipoFiltro,
+      page,
     })}`;
 
-    let works: worksInPortfolioInterface[] =
+    const responseData: worksInPortfolioResponse =
       await this.cacheManager.get(cacheKey);
 
-    if (works) {
-      return calculateTotals(works, {
-        total_mo_executada: true,
-        total_mo_suspensa: true,
-        total_mo_planejada: true,
-        total_qtde_planejada: true,
-        total_qtde_pend: true,
-      });
+    if (responseData) {
+      return responseData;
     }
 
     let query = Prisma.sql`SELECT
@@ -127,18 +128,46 @@ export class GetWorksInPortfolioService {
       query = Prisma.sql`${query} AND first_data_prog = ${moment(data, 'DD/MM/YYYY', true).toDate()}`;
     }
 
-    query = Prisma.sql`${query} ORDER BY first_data_prog, status DESC, entrada + prazo;`;
+    query = Prisma.sql`${query} ORDER BY first_data_prog, status DESC, entrada + prazo`;
 
-    works = await this.prisma.$queryRaw(query);
+    if (page !== null) {
+      query = Prisma.sql`${query} LIMIT 200 OFFSET ${page * 200};`;
+    }
 
-    await this.cacheManager.set(cacheKey, works, 1800000);
+    const [result, totalRecords] = await Promise.all([
+      this.prisma.$queryRaw(query),
+      this.prisma.obras.count({
+        where: {
+          data_conclusao: null,
+          municipios: {
+            id_regional: idRegional ? { in: idRegional } : undefined,
+          },
+          id_tipo: idTipo ? { in: idTipo } : undefined,
+          id_turma: idParceira ? { in: idParceira } : undefined,
+          tipos: {
+            id_grupo: idGrupo ? { in: idGrupo } : undefined,
+          },
+          id_gpm: idMunicipio ? { in: idMunicipio } : undefined,
+          id_status: idStatus ? { in: idStatus } : undefined,
+        },
+      }),
+    ]);
 
-    return calculateTotals(works, {
+    const works: worksInPortfolioInterface[] = calculateTotals(result, {
       total_mo_executada: true,
       total_mo_suspensa: true,
       total_mo_planejada: true,
       total_qtde_planejada: true,
       total_qtde_pend: true,
     });
+
+    const response: worksInPortfolioResponse = {
+      works,
+      totalRecords,
+    };
+
+    await this.cacheManager.set(cacheKey, response, 1800000);
+
+    return response;
   }
 }

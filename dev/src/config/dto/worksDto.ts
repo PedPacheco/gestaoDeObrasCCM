@@ -40,6 +40,11 @@ export class GetAllWorksDTO {
 
 export class GetWorksDTO {
   @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  page: number;
+
+  @IsOptional()
   @IsString()
   data: string;
 

@@ -33,6 +33,7 @@ export async function fetchData<T>(
     }
 
     const { data } = await res.json();
+
     return { token, data };
   } catch (error: any) {
     throw new Error(error.message);

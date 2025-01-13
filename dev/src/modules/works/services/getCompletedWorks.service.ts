@@ -5,6 +5,10 @@ import { Prisma } from '@prisma/client';
 import * as moment from 'moment';
 import { calculateTotals } from 'src/utils/calculateTotals';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
+import {
+  worksInPortfolioInterface,
+  worksInPortfolioResponse,
+} from 'src/interfaces/getWorksInPortfolioInterface';
 
 @Injectable()
 export class GetCompletedWorksService {
@@ -27,6 +31,7 @@ export class GetCompletedWorksService {
       idStatus,
       idTipo,
       tipoFiltro,
+      page,
     } = filters;
 
     const cacheKey = `worksInPortfolio-${JSON.stringify({
@@ -42,15 +47,16 @@ export class GetCompletedWorksService {
       idEmpreendimento,
       data,
       tipoFiltro,
+      page,
     })}`;
 
-    let works: any[] = await this.cacheManager.get(cacheKey);
+    const responseData: worksInPortfolioResponse =
+      await this.cacheManager.get(cacheKey);
 
-    if (works) {
-      return calculateTotals(works, {
-        total_mo_planejada: true,
-        total_qtde_planejada: true,
-      });
+    let works: worksInPortfolioInterface[];
+
+    if (responseData) {
+      return responseData;
     }
 
     const month = data?.split('/')[0];
@@ -118,15 +124,42 @@ export class GetCompletedWorksService {
       query = Prisma.sql`${query} AND data_conclusao = ${moment(data, 'DD/MM/YYYY', true).toDate()}`;
     }
 
-    query = Prisma.sql`${query} ORDER BY data_conclusao DESC;`;
+    query = Prisma.sql`${query} ORDER BY data_conclusao DESC`;
+
+    if (page !== null) {
+      query = Prisma.sql`${query} LIMIT 200 OFFSET ${page * 200};`;
+    }
 
     works = await this.prisma.$queryRaw(query);
 
-    await this.cacheManager.set(cacheKey, works, 1800000);
-
-    return calculateTotals(works, {
+    works = calculateTotals(works, {
       total_mo_planejada: true,
       total_qtde_planejada: true,
     });
+
+    const totalRecords = await this.prisma.obras.count({
+      where: {
+        data_conclusao: { not: null },
+        municipios: {
+          id_regional: idRegional ? { in: idRegional } : undefined,
+        },
+        id_tipo: idTipo ? { in: idTipo } : undefined,
+        id_turma: idParceira ? { in: idParceira } : undefined,
+        tipos: {
+          id_grupo: idGrupo ? { in: idGrupo } : undefined,
+        },
+        id_gpm: idMunicipio ? { in: idMunicipio } : undefined,
+        id_status: idStatus ? { in: idStatus } : undefined,
+      },
+    });
+
+    const response: worksInPortfolioResponse = {
+      works,
+      totalRecords,
+    };
+
+    await this.cacheManager.set(cacheKey, response, 1800000);
+
+    return response;
   }
 }

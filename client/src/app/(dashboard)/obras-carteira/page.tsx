@@ -11,19 +11,21 @@ export default async function WorksInPortfolio() {
   const cookieParams = cookieStore.get("portfolioWorksFilters")?.value;
 
   let params = cookieParams ? JSON.parse(cookieParams) : undefined;
-  let filtersValues = undefined;
+
+  let filtersValues = {
+    page: "0",
+  } as Record<string, any>;
 
   if (params) {
-    const formattedSelectedItems = Transform(params.selectedItems);
-
     filtersValues = {
-      ...formattedSelectedItems,
+      ...Transform(params.selectedItems || {}),
       data: params.date
-        ? params.filterType === "day"
-          ? dayjs(params.date).format("DD/MM/YYYY")
-          : dayjs(params.date).format("MM/YYYY")
+        ? dayjs(params.date).format(
+            params.filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY"
+          )
         : "",
       tipoFiltro: params.filterType,
+      page: params.page,
     };
   }
 
@@ -96,7 +98,7 @@ export default async function WorksInPortfolio() {
     <PortfolioWorks
       data={data}
       token={token}
-      filters={filters}
+      filtersData={filters}
       cookie="portfolioWorksFilters"
       columns={columnMapping}
       totalValues={34}

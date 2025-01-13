@@ -12,10 +12,13 @@ import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import PortfolioWorksFilters from "./PortfolioWorksFilters";
 import { fetchData } from "@/actions/fetchData.action";
+import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { Transform } from "@/utils/transform";
+import dayjs from "dayjs";
 
 interface MainPortfolioWorksProps {
   data: any;
-  filters: any;
+  filtersData: any;
   url: string;
   token: string;
   cookie: string;
@@ -25,7 +28,7 @@ interface MainPortfolioWorksProps {
 
 export default function PortfolioWorks({
   data,
-  filters,
+  filtersData,
   token,
   columns,
   cookie,
@@ -35,8 +38,10 @@ export default function PortfolioWorks({
   const [filteredData, setFilteredData] = useState(data);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>();
+  const [page, setPage] = useState(0);
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
+  const { filters, saveFilters } = useSaveFilters(cookie);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -87,20 +92,51 @@ export default function PortfolioWorks({
     [token, url]
   );
 
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+
+    let filtersValues = {
+      page: "0",
+    } as Record<string, any>;
+
+    if (filters) {
+      filtersValues = {
+        ...Transform(filters.selectedItems || {}),
+        data: filters.date
+          ? dayjs(filters.date).format(
+              filters.filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY"
+            )
+          : "",
+        tipoFiltro: filters.filterType,
+        page: newPage.toString(),
+      };
+    }
+
+    saveFilters({ ...filters, page: newPage });
+    fetchWorks(filtersValues);
+  };
+
   return (
     <>
       <div className="my-6 w-11/12 flex flex-col items-center">
         <PortfolioWorksFilters
-          data={filters}
+          data={filtersData}
           url={cookie}
           openModal={handleOpen}
           generateExcel={generateExcel}
           applyFilters={fetchWorks}
           isPending={isPending}
+          page={page}
         />
       </div>
 
-      <TableComponent data={filteredData} columns={columns} sliceEndIndex={6} />
+      <TableComponent
+        data={filteredData}
+        columns={columns}
+        sliceEndIndex={6}
+        handleChangePage={handleChangePage}
+        page={page}
+      />
 
       <ModalComponent open={open} onClose={handleClose} title="Valores totais">
         <div className="flex flex-col items-center justify-center xl:flex-row w-full">

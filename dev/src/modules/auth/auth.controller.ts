@@ -6,7 +6,7 @@ import { RegisterUserDTO } from 'src/config/dto/registerUserDto';
 import {
   loginInterfaceController,
   userRegisterInterfaceController,
-} from 'src/types/userInterface';
+} from 'src/interfaces/userInterface';
 import { ResetPasswordDTO } from 'src/config/dto/resetPasswordDto';
 import { Response } from 'express';
 

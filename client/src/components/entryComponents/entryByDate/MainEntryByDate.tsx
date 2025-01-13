@@ -150,7 +150,7 @@ export default function MainEntryByDate({
         </div>
       </div>
 
-      <TableComponent data={filteredData} columns={columns} sliceEndIndex={3} />
+      {/* <TableComponent data={filteredData} columns={columns} sliceEndIndex={3} /> */}
     </>
   );
 }

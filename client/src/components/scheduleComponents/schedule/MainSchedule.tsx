@@ -90,7 +90,7 @@ export default function MainSchedule({
 
   return (
     <>
-      <div className="my-6 w-4/5 flex flex-col h-full">
+      <div className="my-6 w-4/5 flex flex-col">
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center">
           <div className="mb-2 lg:ml-4 lg:first:ml-0 w-full">
             <LocalizationProvider dateAdapter={AdapterDayjs}>

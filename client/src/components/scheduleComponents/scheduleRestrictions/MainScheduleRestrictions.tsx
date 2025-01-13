@@ -76,7 +76,7 @@ export default function MainScheduleRestrictions({
         />
       </div>
 
-      <TableComponent columns={columns} data={filteredData} />
+      {/* <TableComponent columns={columns} data={filteredData} /> */}
 
       {error && (
         <ErrorModal

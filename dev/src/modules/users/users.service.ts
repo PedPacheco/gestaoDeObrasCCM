@@ -4,7 +4,7 @@ import { PrismaService } from '../../config/prisma/prisma.service';
 import {
   userInterface,
   userRegisterInterfaceService,
-} from 'src/types/userInterface';
+} from 'src/interfaces/userInterface';
 import { RegisterUserDTO } from 'src/config/dto/registerUserDto';
 import { JwtService } from '@nestjs/jwt';
 import { usuario } from '@prisma/client';

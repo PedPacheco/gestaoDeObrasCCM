@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
+import { worksInPortfolioResponse } from 'src/interfaces/getWorksInPortfolioInterface';
 
 @Injectable()
 export class ExportWorksInPortfolioService {
   constructor() {}
 
-  async export(worksData: any[], response: Response) {
+  async export(worksData: worksInPortfolioResponse, response: Response) {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Obras em carteira');
 
@@ -66,8 +67,8 @@ export class ExportWorksInPortfolioService {
 
     const batchSize = 1000;
 
-    for (let i = 0; i < worksData.length; i += batchSize) {
-      const batch = worksData.slice(i, i + batchSize);
+    for (let i = 0; i < worksData.works.length; i += batchSize) {
+      const batch = worksData.works.slice(i, i + batchSize);
       worksheet.addRows(batch);
     }
 

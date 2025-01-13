@@ -127,7 +127,7 @@ export default function MainPendingSchedule({
         </div>
       </div>
 
-      <TableComponent data={filteredData} columns={columns} />
+      {/* <TableComponent data={filteredData} columns={columns} /> */}
     </>
   );
 }

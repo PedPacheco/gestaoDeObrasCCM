@@ -11,26 +11,25 @@ export default async function ScheduleForDay() {
   const cookieParams = cookieStore.get("scheduleForDayFilters")?.value;
 
   let params = cookieParams ? JSON.parse(cookieParams) : undefined;
-  let filtersValues = undefined;
+
+  let filtersValues = {
+    data: dayjs().format("MM/YYYY"),
+    tipoFiltro: "month",
+    executado: "false",
+    page: "0",
+  } as Record<string, any>;
 
   if (params) {
-    const formattedSelectedItems = Transform(params.selectedItems);
-
     filtersValues = {
-      ...formattedSelectedItems,
+      ...Transform(params.selectedItems || {}),
       data: params.date
-        ? params.filterType === "day"
-          ? dayjs(params.date).format("DD/MM/YYYY")
-          : dayjs(params.date).format("MM/YYYY")
+        ? dayjs(params.date).format(
+            params.filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY"
+          )
         : "",
       tipoFiltro: params.filterType,
-      executado: params.executed.toString(),
-    };
-  } else {
-    filtersValues = {
-      data: dayjs().format("MM/YYYY"),
-      tipoFiltro: "month",
-      executado: "false",
+      executado: params.executed,
+      page: params.page.toString(),
     };
   }
 

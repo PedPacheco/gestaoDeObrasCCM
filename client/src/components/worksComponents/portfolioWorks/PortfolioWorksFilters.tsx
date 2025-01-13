@@ -33,6 +33,7 @@ interface PortfolioWorksFiltersProps {
   generateExcel: (params: any) => {};
   applyFilters: (params: Record<string, string | boolean>) => void;
   isPending: boolean;
+  page: number;
 }
 
 export default function PortfolioWorksFilters({
@@ -42,6 +43,7 @@ export default function PortfolioWorksFilters({
   openModal,
   applyFilters,
   isPending,
+  page,
 }: PortfolioWorksFiltersProps) {
   const { clearFilters, filters, saveFilters } = useSaveFilters(url);
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
@@ -52,24 +54,22 @@ export default function PortfolioWorksFilters({
 
   useEffect(() => {
     if (filters) {
-      setSelectedItems(filters.selectedItems);
-      filters.date ? setDate(dayjs(filters.date)) : null;
-      setFilterType(filters.filterType);
+      setSelectedItems(filters.selectedItems || {});
+      setDate(filters.date ? dayjs(filters.date) : null);
+      setFilterType(filters.filterType || "month");
     }
   }, [filters]);
 
   function handleApplyFilters() {
-    saveFilters({ selectedItems, date, filterType });
-    const formattedSelectedItems = Transform(selectedItems);
+    saveFilters({ selectedItems, date, filterType, page });
 
     const params = {
-      ...formattedSelectedItems,
+      ...Transform(selectedItems),
       data: date
-        ? filterType === "day"
-          ? dayjs(date).format("DD/MM/YYYY")
-          : dayjs(date).format("MM/YYYY")
+        ? dayjs(date).format(filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY")
         : "",
       tipoFiltro: filterType,
+      page: page.toString(),
     };
 
     applyFilters(params);
@@ -82,18 +82,14 @@ export default function PortfolioWorksFilters({
 
     clearFilters();
 
-    applyFilters({});
+    applyFilters({ page: page.toString() });
   }
 
   function handleGenerateExcel() {
-    const formattedSelectedItems = Transform(selectedItems);
-
     const newSelectedItems = {
-      ...formattedSelectedItems,
+      ...Transform(selectedItems),
       data: date
-        ? filterType === "day"
-          ? date.format("DD/MM/YYYY")
-          : date.format("MM/YYYY")
+        ? dayjs(date).format(filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY")
         : "",
       tipoFiltro: filterType,
     };
