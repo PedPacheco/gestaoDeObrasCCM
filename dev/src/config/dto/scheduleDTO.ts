@@ -50,6 +50,7 @@ export class GetScheduleValuesDTO {
   @IsString()
   tipoFiltro: string;
 
+  @IsOptional()
   @IsNumber()
   @Type(() => Number)
   page: number;
@@ -126,6 +127,11 @@ export class GetValueWeeklyScheduleDTO {
 }
 
 export class GetPendingScheduleValuesDTO {
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  page: number;
+
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => value.toString().split(',').map(Number))

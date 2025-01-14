@@ -25,14 +25,15 @@ export default function MainPendingSchedule({
   filtersData,
   token,
 }: MainInterface<Filters>) {
-  const [filteredData, setFilteredData] = useState(data);
   const { clearFilters, filters, saveFilters } = useSaveFilters(
     "pendingScheduleFilters"
   );
+  const [filteredData, setFilteredData] = useState(data);
   const [selectedYear, setSelectedYear] = useState<Dayjs | null>(dayjs());
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {}
   );
+  const [page, setPage] = useState(0);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {

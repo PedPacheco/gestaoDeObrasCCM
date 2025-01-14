@@ -33,7 +33,6 @@ interface PortfolioWorksFiltersProps {
   generateExcel: (params: any) => {};
   applyFilters: (params: Record<string, string | boolean>) => void;
   isPending: boolean;
-  page: number;
 }
 
 export default function PortfolioWorksFilters({
@@ -43,7 +42,6 @@ export default function PortfolioWorksFilters({
   openModal,
   applyFilters,
   isPending,
-  page,
 }: PortfolioWorksFiltersProps) {
   const { clearFilters, filters, saveFilters } = useSaveFilters(url);
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
@@ -61,7 +59,7 @@ export default function PortfolioWorksFilters({
   }, [filters]);
 
   function handleApplyFilters() {
-    saveFilters({ selectedItems, date, filterType, page });
+    saveFilters({ selectedItems, date, filterType });
 
     const params = {
       ...Transform(selectedItems),
@@ -69,7 +67,7 @@ export default function PortfolioWorksFilters({
         ? dayjs(date).format(filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY")
         : "",
       tipoFiltro: filterType,
-      page: page.toString(),
+      page: "0",
     };
 
     applyFilters(params);
@@ -82,7 +80,7 @@ export default function PortfolioWorksFilters({
 
     clearFilters();
 
-    applyFilters({ page: page.toString() });
+    applyFilters({ page: "0" });
   }
 
   function handleGenerateExcel() {

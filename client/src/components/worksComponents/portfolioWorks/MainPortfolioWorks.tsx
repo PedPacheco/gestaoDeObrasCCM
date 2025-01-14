@@ -1,20 +1,26 @@
 "use client";
 
+import dayjs from "dayjs";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 
+import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
-import ErrorModal from "@/components/common/ErrorModal";
-import ModalComponent from "@/components/common/Modal";
 import { TableComponent } from "@/components/common/Table";
+import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { mountUrl } from "@/utils/mountUrl";
+import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import PortfolioWorksFilters from "./PortfolioWorksFilters";
-import { fetchData } from "@/actions/fetchData.action";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { Transform } from "@/utils/transform";
-import dayjs from "dayjs";
+
+const ErrorModal = dynamic(() => import("@/components/common/ErrorModal"), {
+  ssr: false,
+});
+const ModalComponent = dynamic(() => import("@/components/common/Modal"), {
+  ssr: false,
+});
 
 interface MainPortfolioWorksProps {
   data: any;
@@ -43,8 +49,15 @@ export default function PortfolioWorks({
   const [isPending, startTransition] = useTransition();
   const { filters, saveFilters } = useSaveFilters(cookie);
 
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const toggleModal = () => setOpen((prev) => !prev);
+
+  useEffect(() => {
+    const totalPages = Math.ceil(filteredData.totalRecords / 200);
+
+    if (page >= totalPages && totalPages > 0) {
+      setPage(0);
+    }
+  }, [filteredData.totalRecords, page]);
 
   const generateExcel = useCallback(
     async (params: Record<string, string>) => {
@@ -95,24 +108,18 @@ export default function PortfolioWorks({
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
 
-    let filtersValues = {
-      page: "0",
-    } as Record<string, any>;
+    const filtersValues = {
+      ...Transform(filters?.selectedItems || {}),
+      data: filters?.date
+        ? dayjs(filters?.date).format(
+            filters?.filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY"
+          )
+        : "",
+      tipoFiltro: filters?.filterType,
+      page: newPage.toString(),
+    };
 
-    if (filters) {
-      filtersValues = {
-        ...Transform(filters.selectedItems || {}),
-        data: filters.date
-          ? dayjs(filters.date).format(
-              filters.filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY"
-            )
-          : "",
-        tipoFiltro: filters.filterType,
-        page: newPage.toString(),
-      };
-    }
-
-    saveFilters({ ...filters, page: newPage });
+    saveFilters({ ...filters });
     fetchWorks(filtersValues);
   };
 
@@ -122,11 +129,10 @@ export default function PortfolioWorks({
         <PortfolioWorksFilters
           data={filtersData}
           url={cookie}
-          openModal={handleOpen}
+          openModal={toggleModal}
           generateExcel={generateExcel}
           applyFilters={fetchWorks}
           isPending={isPending}
-          page={page}
         />
       </div>
 
@@ -138,7 +144,7 @@ export default function PortfolioWorks({
         page={page}
       />
 
-      <ModalComponent open={open} onClose={handleClose} title="Valores totais">
+      <ModalComponent open={open} onClose={toggleModal} title="Valores totais">
         <div className="flex flex-col items-center justify-center xl:flex-row w-full">
           {Object.entries(columns)
             .slice(totalValues)

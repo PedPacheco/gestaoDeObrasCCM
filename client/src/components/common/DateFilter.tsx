@@ -8,7 +8,7 @@ import "dayjs/locale/pt-br";
 
 interface DateFilterProps {
   date: dayjs.Dayjs | null;
-  setDate: (date: dayjs.Dayjs | null) => void;
+  setDate: (date: dayjs.Dayjs) => void;
   type: string;
   setType: (type: string) => void;
   marginLeft?: string;
@@ -47,7 +47,7 @@ export function DateFilter({
             views={type === "day" ? ["day"] : ["month", "year"]}
             format={type === "day" ? "DD/MM/YYYY" : "MM/YYYY"}
             value={date}
-            onChange={(value) => setDate(value)}
+            onChange={(value) => (value ? setDate(value) : dayjs())}
             slotProps={{ textField: { size: "small", fullWidth: true } }}
           />
         </LocalizationProvider>

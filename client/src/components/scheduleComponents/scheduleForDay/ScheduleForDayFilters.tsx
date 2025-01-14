@@ -27,7 +27,6 @@ interface ScheduleByDateFiltersProps {
   generateExcel: (params: any) => void;
   isPending: boolean;
   applyFilters: (params: Record<string, string | boolean>) => void;
-  page: number;
 }
 
 export default function ScheduleForDayFilters({
@@ -36,7 +35,6 @@ export default function ScheduleForDayFilters({
   generateExcel,
   isPending,
   applyFilters,
-  page,
 }: ScheduleByDateFiltersProps) {
   const { clearFilters, filters, saveFilters } = useSaveFilters(
     "scheduleForDayFilters"
@@ -44,14 +42,14 @@ export default function ScheduleForDayFilters({
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {}
   );
-  const [date, setDate] = useState<Dayjs | null>(dayjs());
+  const [date, setDate] = useState<Dayjs>(dayjs());
   const [filterType, setFilterType] = useState<string>("month");
   const [executed, setExecuted] = useState<boolean>(false);
 
   useEffect(() => {
     if (filters) {
       setSelectedItems(filters.selectedItems || {});
-      setDate(filters.date ? dayjs(filters.date) : null);
+      setDate(filters.date ? dayjs(filters.date) : dayjs());
       setExecuted(filters.executed || false);
       setFilterType(filters.filterType || "month");
     }
@@ -65,23 +63,23 @@ export default function ScheduleForDayFilters({
         : "",
       tipoFiltro: filterType,
       executado: executed.toString(),
-      page: page.toString(),
+      page: "0",
     };
 
     generateExcel(newSelectedItems);
   }
 
   function handleApplyFilters() {
-    saveFilters({ selectedItems, date, filterType, executed, page });
+    saveFilters({ selectedItems, date, filterType, executed });
 
     const newSelectedItems = {
-      ...selectedItems,
+      ...Transform(selectedItems),
       data: date
         ? date.format(filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY")
         : "",
       tipoFiltro: filterType,
       executado: executed.toString(),
-      page: page.toString(),
+      page: "0",
     };
 
     applyFilters(newSelectedItems);
@@ -93,14 +91,14 @@ export default function ScheduleForDayFilters({
     setFilterType("month");
     setExecuted(false);
 
+    clearFilters();
+
     applyFilters({
       data: dayjs().format("MM/YYYY"),
       tipoFiltro: "month",
       executado: false,
-      page: page.toString(),
+      page: "0",
     });
-
-    clearFilters();
   }
 
   return (

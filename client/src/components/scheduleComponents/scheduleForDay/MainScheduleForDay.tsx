@@ -1,20 +1,26 @@
 "use client";
 
-import { useCallback, useState, useTransition } from "react";
+import dayjs from "dayjs";
+import dynamic from "next/dynamic";
+import { useCallback, useEffect, useState, useTransition } from "react";
 
+import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
-import ErrorModal from "@/components/common/ErrorModal";
-import ModalComponent from "@/components/common/Modal";
 import { TableComponent } from "@/components/common/Table";
+import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { MainInterface } from "@/interfaces/mainInterface";
 import { mountUrl } from "@/utils/mountUrl";
+import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import ScheduleForDayFilters from "./ScheduleForDayFilters";
-import { fetchData } from "@/actions/fetchData.action";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { Transform } from "@/utils/transform";
-import dayjs from "dayjs";
+
+const ErrorModal = dynamic(() => import("@/components/common/ErrorModal"), {
+  ssr: false,
+});
+const ModalComponent = dynamic(() => import("@/components/common/Modal"), {
+  ssr: false,
+});
 
 export default function MainSchduleForDay({
   columns,
@@ -22,14 +28,22 @@ export default function MainSchduleForDay({
   filtersData,
   token,
 }: MainInterface<any>) {
+  const { filters, saveFilters } = useSaveFilters("scheduleForDayFilters");
   const [filteredData, setFilteredData] = useState(data);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>();
   const [page, setPage] = useState(0);
   const [isPending, startTransition] = useTransition();
-  const { filters, saveFilters } = useSaveFilters("scheduleForDayFilters");
 
   const toggleModal = () => setOpen((prev) => !prev);
+
+  useEffect(() => {
+    const totalPages = Math.ceil(filteredData.totalRecords / 200);
+
+    if (page >= totalPages && totalPages > 0) {
+      setPage(0);
+    }
+  }, [filteredData.totalRecords, page]);
 
   const generateExcel = useCallback(
     async (params: Record<string, string | boolean>) => {
@@ -80,28 +94,19 @@ export default function MainSchduleForDay({
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
 
-    const baseFilters = {
-      data: dayjs().format("MM/YYYY"),
-      tipoFiltro: "month",
-      executado: "false",
+    const filtersValues = {
+      ...Transform(filters?.selectedItems || {}),
+      data: filters?.date
+        ? dayjs(filters?.date).format(
+            filters?.filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY"
+          )
+        : dayjs().format("MM/YYYY"),
+      tipoFiltro: filters?.filterType || "month",
+      executado: filters?.executed || "false",
       page: newPage.toString(),
     };
 
-    const filtersValues = filters
-      ? {
-          ...Transform(filters.selectedItems || {}),
-          data: filters.date
-            ? dayjs(filters.date).format(
-                filters.filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY"
-              )
-            : "",
-          tipoFiltro: filters.filterType,
-          executado: filters.executed,
-          page: newPage.toString(),
-        }
-      : baseFilters;
-
-    saveFilters({ ...filters, page: newPage });
+    saveFilters({ ...filters });
     fetchSchedule(filtersValues);
   };
 
@@ -114,7 +119,6 @@ export default function MainSchduleForDay({
           generateExcel={generateExcel}
           isPending={isPending}
           applyFilters={fetchSchedule}
-          page={page}
         />
       </div>
 

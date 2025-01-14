@@ -12,22 +12,16 @@ export default async function CompletedWorks() {
 
   const params = cookieParams ? JSON.parse(cookieParams) : undefined;
 
-  let filtersValues = {
+  const filtersValues = {
+    ...Transform(params?.selectedItems || {}),
+    data: params?.date
+      ? dayjs(params?.date).format(
+          params?.filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY"
+        )
+      : "",
+    tipoFiltro: params?.filterType || "",
     page: "0",
-  } as Record<string, any>;
-
-  if (params) {
-    filtersValues = {
-      ...Transform(params.selectedItems || {}),
-      data: params.date
-        ? dayjs(params.date).format(
-            params.filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY"
-          )
-        : "",
-      tipoFiltro: params.filterType,
-      page: params.page,
-    };
-  }
+  };
 
   const [filters, worksCompletedData] = await Promise.all([
     fetchFilters({

@@ -78,7 +78,7 @@ export class GetScheduleValuesService {
 
     query = Prisma.sql`${query} ORDER BY data_prog, ovnota`;
 
-    if (page) {
+    if (page !== null) {
       query = Prisma.sql`${query} LIMIT 200 OFFSET ${page * 200}`;
     }
 
@@ -122,7 +122,7 @@ export class GetScheduleValuesService {
       total_qtde_planejada: true,
     });
 
-    const response: any = {
+    const response: GetScheduleValuesResponse = {
       works,
       totalRecords,
     };
