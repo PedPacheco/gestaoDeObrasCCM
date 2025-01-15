@@ -7,13 +7,13 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
-import { TableComponent } from "@/components/common/";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import PortfolioWorksFilters from "./PortfolioWorksFilters";
+import { TableWithPagination } from "@/components/common/TableWithPagination";
 
 const ErrorModal = dynamic(() => import("@/components/common/ErrorModal"), {
   ssr: false,
@@ -136,7 +136,7 @@ export default function PortfolioWorks({
         />
       </div>
 
-      <TableComponent
+      <TableWithPagination
         data={filteredData}
         columns={columns}
         sliceEndIndex={6}
