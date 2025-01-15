@@ -1,4 +1,3 @@
-import * as moment from 'moment';
 import { GetPendingScheduleValuesDTO } from 'src/config/dto/scheduleDTO';
 import { PrismaService } from 'src/config/prisma/prisma.service';
 
@@ -13,7 +12,7 @@ export class GetPendingScheduleValuesService {
   async getValues(
     filters: GetPendingScheduleValuesDTO,
   ): Promise<GetPendingScheduleValuesResponse> {
-    const { idParceira, idRegional, page } = filters;
+    const { idParceira, idRegional } = filters;
 
     let query = Prisma.sql`SELECT obras.id, ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, diagrama, mun, entrada, tipo_obra, qtde_planejada, 
                 mo_planejada, turma, executado, data_prog, prog, observ_programacao, mo_planejada*prog/100 AS mo_prog
@@ -35,29 +34,6 @@ export class GetPendingScheduleValuesService {
 
     query = Prisma.sql`${query} ORDER BY data_prog`;
 
-    if (page !== null) {
-      query = Prisma.sql`${query} LIMIT 200 OFFSET ${page * 200}`;
-    }
-
-    const currentDate = moment.utc().toDate();
-
-    const [works, totalRecords] = await Promise.all([
-      this.prisma.$queryRaw(query),
-      this.prisma.obras.count({
-        where: {
-          programacoes: {
-            some: { exec: null, data_prog: { lt: currentDate } },
-          },
-          municipios: {
-            id_regional: idRegional ? { in: idRegional } : undefined,
-          },
-          id_turma: idParceira ? { in: idParceira } : undefined,
-        },
-      }),
-    ]);
-
-    const response: GetPendingScheduleValuesResponse = { works, totalRecords };
-
-    return response;
+    return await this.prisma.$queryRaw(query);
   }
 }

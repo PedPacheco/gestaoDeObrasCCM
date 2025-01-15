@@ -128,11 +128,6 @@ export class GetValueWeeklyScheduleDTO {
 
 export class GetPendingScheduleValuesDTO {
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  page: number;
-
-  @IsOptional()
   @IsArray()
   @Transform(({ value }) => value.toString().split(',').map(Number))
   idParceira: number[];

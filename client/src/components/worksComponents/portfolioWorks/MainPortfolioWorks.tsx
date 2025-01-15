@@ -7,7 +7,7 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
-import { TableComponent } from "@/components/common/Table";
+import { TableComponent } from "@/components/common/";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";

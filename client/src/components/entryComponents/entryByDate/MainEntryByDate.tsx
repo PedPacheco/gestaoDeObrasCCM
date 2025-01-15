@@ -6,7 +6,7 @@ import { useEffect, useState, useTransition } from "react";
 import { ButtonComponent } from "@/components/common/Button";
 import { DateFilter } from "@/components/common/DateFilter";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
-import { TableComponent } from "@/components/common/Table";
+import { TableComponent } from "@/components/common/";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { MainInterface } from "@/interfaces/mainInterface";
 import { capitalize } from "@/utils/capitalize";

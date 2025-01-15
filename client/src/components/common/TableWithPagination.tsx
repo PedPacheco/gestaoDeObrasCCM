@@ -30,7 +30,7 @@ interface TableComponentProps {
 
 dayjs.extend(utc);
 
-export function TableComponent({
+export function TableWithPagination({
   data,
   columns,
   sliceEndIndex,

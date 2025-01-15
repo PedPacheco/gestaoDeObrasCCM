@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
-import { TableComponent } from "@/components/common/Table";
+import { TableWithPagination } from "@/components/common/TableWithPagination";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { MainInterface } from "@/interfaces/mainInterface";
 import { mountUrl } from "@/utils/mountUrl";
@@ -122,7 +122,7 @@ export default function MainSchduleForDay({
         />
       </div>
 
-      <TableComponent
+      <TableWithPagination
         data={filteredData}
         columns={columns}
         sliceEndIndex={3}

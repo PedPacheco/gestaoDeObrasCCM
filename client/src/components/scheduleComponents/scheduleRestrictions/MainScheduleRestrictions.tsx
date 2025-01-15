@@ -5,7 +5,7 @@ import { useCallback, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
 import ErrorModal from "@/components/common/ErrorModal";
-import { TableComponent } from "@/components/common/Table";
+import { TableWithVirtualization } from "@/components/common/TableWithVirtualization";
 import { MainInterface } from "@/interfaces/mainInterface";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
@@ -76,7 +76,7 @@ export default function MainScheduleRestrictions({
         />
       </div>
 
-      {/* <TableComponent columns={columns} data={filteredData} /> */}
+      <TableWithVirtualization columns={columns} data={filteredData} />
 
       {error && (
         <ErrorModal
