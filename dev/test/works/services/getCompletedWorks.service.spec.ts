@@ -18,6 +18,7 @@ describe('GetCompletedWorksService', () => {
 
   const mockPrismaService = {
     $queryRaw: jest.fn(),
+    obras: { count: jest.fn() },
   };
 
   const mockWorks = [
@@ -124,6 +125,7 @@ describe('GetCompletedWorksService', () => {
       idEmpreendimento: [9],
       data: '09/2024',
       tipoFiltro: 'month',
+      page: 0,
     };
 
     const cacheKey = `worksInPortfolio-${JSON.stringify(filters)}`;
@@ -151,6 +153,7 @@ describe('GetCompletedWorksService', () => {
       idEmpreendimento: [9],
       data: '09/2024',
       tipoFiltro: 'month',
+      page: 0,
     };
 
     const mockQuery = [
@@ -170,12 +173,13 @@ describe('GetCompletedWorksService', () => {
 
     mockCacheManager.get.mockResolvedValue(null);
     mockPrismaService.$queryRaw.mockResolvedValue(mockQuery);
+    mockPrismaService.obras.count.mockResolvedValue(1);
 
     const result = await getCompletedWorksService.getCompletedWorks(filters);
 
     const calledQuery = mockPrismaService.$queryRaw.mock.calls[0][0].strings;
 
-    initialQuery = `${initialQuery} AND EXTRACT(MONTH FROM data_conclusao) =  AND EXTRACT(YEAR FROM data_conclusao) = ORDER BY data_conclusao DESC;`;
+    initialQuery = `${initialQuery} AND EXTRACT(MONTH FROM data_conclusao) =  AND EXTRACT(YEAR FROM data_conclusao) = ORDER BY data_conclusao DESC LIMIT 200 OFFSET ;`;
 
     const normalize = (str: string) => str.replace(/\s+/g, ' ').trim();
 
@@ -184,9 +188,13 @@ describe('GetCompletedWorksService', () => {
     );
 
     expect(allPartsPresent).toBeTruthy();
-    expect(result).toEqual(mockResult);
+    expect(result).toEqual({ works: mockResult, totalRecords: 1 });
     expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
-    expect(cacheManager.set).toHaveBeenCalledWith(cacheKey, mockQuery, 1800000);
+    expect(cacheManager.set).toHaveBeenCalledWith(
+      cacheKey,
+      { works: mockResult, totalRecords: 1 },
+      1800000,
+    );
   });
 
   it('should apply multiple filters correctly and day filter', async () => {
@@ -203,6 +211,7 @@ describe('GetCompletedWorksService', () => {
       idEmpreendimento: [9],
       data: '17/09/2024',
       tipoFiltro: 'day',
+      page: 0,
     };
 
     const mockQuery = [
@@ -225,7 +234,7 @@ describe('GetCompletedWorksService', () => {
 
     const result = await getCompletedWorksService.getCompletedWorks(filters);
 
-    initialQuery = `${initialQuery} AND data_conclusao = ORDER BY data_conclusao DESC;`;
+    initialQuery = `${initialQuery} AND data_conclusao = ORDER BY data_conclusao DESC LIMIT 200 OFFSET ;`;
 
     const calledQuery = mockPrismaService.$queryRaw.mock.calls[0][0].strings;
 
@@ -237,8 +246,12 @@ describe('GetCompletedWorksService', () => {
 
     expect(allPartsPresent).toBeTruthy();
 
-    expect(result).toEqual(mockResult);
+    expect(result).toEqual({ works: mockResult, totalRecords: 1 });
     expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
-    expect(cacheManager.set).toHaveBeenCalledWith(cacheKey, mockQuery, 1800000);
+    expect(cacheManager.set).toHaveBeenCalledWith(
+      cacheKey,
+      { works: mockResult, totalRecords: 1 },
+      1800000,
+    );
   });
 });

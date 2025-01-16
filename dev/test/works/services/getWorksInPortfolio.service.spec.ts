@@ -18,6 +18,7 @@ describe('GetWorksInPortfolioService', () => {
 
   const mockPrismaService = {
     $queryRaw: jest.fn(),
+    obras: { count: jest.fn() },
   };
 
   const mockResponse = [
@@ -164,6 +165,7 @@ describe('GetWorksInPortfolioService', () => {
       idEmpreendimento: [9],
       data: '09/2024',
       tipoFiltro: 'month',
+      page: 1,
     };
 
     const cacheKey = `worksInPortfolio-${JSON.stringify(filters)}`;
@@ -192,12 +194,14 @@ describe('GetWorksInPortfolioService', () => {
       idEmpreendimento: [9],
       data: '09/2024',
       tipoFiltro: 'month',
+      page: 1,
     };
 
     const cacheKey = `worksInPortfolio-${JSON.stringify(filters)}`;
 
     mockCacheManager.get.mockResolvedValue(null);
     mockPrismaService.$queryRaw.mockResolvedValue(mockResponse);
+    mockPrismaService.obras.count.mockResolvedValue(1);
 
     const result =
       await getWorksInPortfolioService.getWorksInPortfolio(filters);
@@ -211,7 +215,7 @@ describe('GetWorksInPortfolioService', () => {
       AND id_circuito IN ()
       AND circuitos.id_conjunto IN ()
       AND id_empreendimento IN ()
-      AND obras.id IN () AND EXTRACT(MONTH FROM first_data_prog) = AND EXTRACT(YEAR FROM first_data_prog) = ORDER BY first_data_prog, status DESC, entrada + prazo;`;
+      AND obras.id IN () AND EXTRACT(MONTH FROM first_data_prog) = AND EXTRACT(YEAR FROM first_data_prog) = ORDER BY first_data_prog, status DESC, entrada + prazo LIMIT 200 OFFSET ;`;
 
     const normalize = (str: string) => str.replace(/\s+/g, ' ').trim();
 
@@ -223,12 +227,12 @@ describe('GetWorksInPortfolioService', () => {
 
     expect(allPartsPresent).toBeTruthy();
     expect(mockPrismaService.$queryRaw).toHaveBeenCalled();
-    expect(result).toEqual(mockResponse);
+    expect(result).toEqual({ works: mockResponse, totalRecords: 1 });
 
     expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
     expect(cacheManager.set).toHaveBeenCalledWith(
       cacheKey,
-      mockResponse,
+      { works: mockResponse, totalRecords: 1 },
       1800000,
     );
   });
@@ -247,13 +251,15 @@ describe('GetWorksInPortfolioService', () => {
       idCircuito: null,
       idEmpreendimento: null,
       idOvnota: null,
+      page: 1,
     };
 
     mockPrismaService.$queryRaw.mockResolvedValue(mockResponse);
+    mockPrismaService.obras.count.mockResolvedValue(1);
 
     await getWorksInPortfolioService.getWorksInPortfolio(filters);
 
-    initialQuery = `${initialQuery} AND first_data_prog = ORDER BY first_data_prog, status DESC, entrada + prazo;`;
+    initialQuery = `${initialQuery} AND first_data_prog = ORDER BY first_data_prog, status DESC, entrada + prazo LIMIT 200 OFFSET ;`;
 
     const normalize = (str: string) => str.replace(/\s+/g, ' ').trim();
 
