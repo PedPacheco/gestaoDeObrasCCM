@@ -4,7 +4,7 @@ import { Prisma } from '@prisma/client';
 import { Cache } from 'cache-manager';
 import { GoalsDTO } from 'src/config/dto/goalsDto';
 import { PrismaService } from 'src/config/prisma/prisma.service';
-import { Goals } from 'src/types/goalsInterface';
+import { Goals } from 'src/interfaces/goalsInterface';
 
 @Injectable()
 export class GoalsService {

@@ -11,21 +11,17 @@ export default async function WorksInPortfolio() {
   const cookieParams = cookieStore.get("portfolioWorksFilters")?.value;
 
   let params = cookieParams ? JSON.parse(cookieParams) : undefined;
-  let filtersValues = undefined;
 
-  if (params) {
-    const formattedSelectedItems = Transform(params.selectedItems);
-
-    filtersValues = {
-      ...formattedSelectedItems,
-      data: params.date
-        ? params.filterType === "day"
-          ? dayjs(params.date).format("DD/MM/YYYY")
-          : dayjs(params.date).format("MM/YYYY")
-        : "",
-      tipoFiltro: params.filterType,
-    };
-  }
+  const filtersValues = {
+    ...Transform(params?.selectedItems || {}),
+    data: params?.date
+      ? dayjs(params?.date).format(
+          params?.filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY"
+        )
+      : "",
+    tipoFiltro: params?.filterType || "",
+    page: "0",
+  };
 
   const [filters, worksData] = await Promise.all([
     fetchFilters({
@@ -96,7 +92,7 @@ export default async function WorksInPortfolio() {
     <PortfolioWorks
       data={data}
       token={token}
-      filters={filters}
+      filtersData={filters}
       cookie="portfolioWorksFilters"
       columns={columnMapping}
       totalValues={34}

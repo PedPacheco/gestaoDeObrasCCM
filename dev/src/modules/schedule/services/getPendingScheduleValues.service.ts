@@ -1,13 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { GetPendingScheduleValuesDTO } from 'src/config/dto/scheduleDTO';
 import { PrismaService } from 'src/config/prisma/prisma.service';
+
+import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { GetPendingScheduleValuesResponse } from 'src/interfaces/getPendingScheduleValuesInterface';
 
 @Injectable()
 export class GetPendingScheduleValuesService {
   constructor(private prisma: PrismaService) {}
 
-  async getValues(filters: GetPendingScheduleValuesDTO) {
+  async getValues(
+    filters: GetPendingScheduleValuesDTO,
+  ): Promise<GetPendingScheduleValuesResponse> {
     const { idParceira, idRegional } = filters;
 
     let query = Prisma.sql`SELECT obras.id, ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, diagrama, mun, entrada, tipo_obra, qtde_planejada, 

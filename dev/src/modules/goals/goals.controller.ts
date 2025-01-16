@@ -1,7 +1,7 @@
 import { GoalsDTO } from 'src/config/dto/goalsDto';
 import { Controller, Get, HttpStatus, Query } from '@nestjs/common';
 import { GoalsService } from './goals.service';
-import { GoalsIntefaceController } from 'src/types/goalsInterface';
+import { GoalsIntefaceController } from 'src/interfaces/goalsInterface';
 
 @Controller('metas')
 export class GoalsController {

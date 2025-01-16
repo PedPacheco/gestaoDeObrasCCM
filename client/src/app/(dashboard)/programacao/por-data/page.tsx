@@ -11,28 +11,14 @@ export default async function ScheduleForDay() {
   const cookieParams = cookieStore.get("scheduleForDayFilters")?.value;
 
   let params = cookieParams ? JSON.parse(cookieParams) : undefined;
-  let filtersValues = undefined;
 
-  if (params) {
-    const formattedSelectedItems = Transform(params.selectedItems);
-
-    filtersValues = {
-      ...formattedSelectedItems,
-      data: params.date
-        ? params.filterType === "day"
-          ? dayjs(params.date).format("DD/MM/YYYY")
-          : dayjs(params.date).format("MM/YYYY")
-        : "",
-      tipoFiltro: params.filterType,
-      executado: params.executed.toString(),
-    };
-  } else {
-    filtersValues = {
-      data: dayjs().format("MM/YYYY"),
-      tipoFiltro: "month",
-      executado: "false",
-    };
-  }
+  const filtersValues = {
+    ...Transform(params?.selectedItems || {}),
+    data: dayjs(params?.date).format("MM/YYYY") || dayjs().format("MM/YYYY"),
+    tipoFiltro: params?.filterType || "month",
+    executado: params?.executed || "false",
+    page: "0",
+  };
 
   const [filters, scheduleData] = await Promise.all([
     fetchFilters({
@@ -42,7 +28,7 @@ export default async function ScheduleForDay() {
       grupo: true,
       tipo: true,
     }),
-    await fetchData(
+    fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/programacao/mensal`,
       filtersValues,
       cookieStore.get("token")?.value,

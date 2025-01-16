@@ -8,9 +8,10 @@ import { DateFilter } from "@/components/common/DateFilter";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { capitalize } from "@/utils/capitalize";
+import { getButtonContent } from "@/utils/getButtonContent";
 import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
 import { Checkbox } from "@mui/material";
-import { getButtonContent } from "@/utils/getButtonContent";
+import { Transform } from "@/utils/transform";
 
 interface filters {
   regional: { id: string; regional: string }[];
@@ -41,36 +42,28 @@ export default function ScheduleForDayFilters({
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {}
   );
-  const [date, setDate] = useState<Dayjs | null>(dayjs());
+  const [date, setDate] = useState<Dayjs>(dayjs());
   const [filterType, setFilterType] = useState<string>("month");
   const [executed, setExecuted] = useState<boolean>(false);
 
   useEffect(() => {
     if (filters) {
-      setSelectedItems(filters.selectedItems);
-      setDate(dayjs(filters.date));
-      setExecuted(filters.executed);
-      setFilterType(filters.filterType);
+      setSelectedItems(filters.selectedItems || {});
+      setDate(filters.date ? dayjs(filters.date) : dayjs());
+      setExecuted(filters.executed || false);
+      setFilterType(filters.filterType || "month");
     }
   }, [filters]);
 
   function handleGenerateExcel() {
-    const formattedSelectedItems = Object.fromEntries(
-      Object.entries(selectedItems).map(([key, value]) => [
-        key,
-        Array.isArray(value) ? value.join(",") : value,
-      ])
-    );
-
     const newSelectedItems = {
-      ...formattedSelectedItems,
+      ...Transform(selectedItems),
       data: date
-        ? filterType === "day"
-          ? date.format("DD/MM/YYYY")
-          : date.format("MM/YYYY")
+        ? date.format(filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY")
         : "",
       tipoFiltro: filterType,
       executado: executed.toString(),
+      page: "0",
     };
 
     generateExcel(newSelectedItems);
@@ -78,15 +71,15 @@ export default function ScheduleForDayFilters({
 
   function handleApplyFilters() {
     saveFilters({ selectedItems, date, filterType, executed });
+
     const newSelectedItems = {
-      ...selectedItems,
+      ...Transform(selectedItems),
       data: date
-        ? filterType === "day"
-          ? date.format("DD/MM/YYYY")
-          : date.format("MM/YYYY")
+        ? date.format(filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY")
         : "",
       tipoFiltro: filterType,
       executado: executed.toString(),
+      page: "0",
     };
 
     applyFilters(newSelectedItems);
@@ -98,13 +91,14 @@ export default function ScheduleForDayFilters({
     setFilterType("month");
     setExecuted(false);
 
+    clearFilters();
+
     applyFilters({
       data: dayjs().format("MM/YYYY"),
       tipoFiltro: "month",
       executado: false,
+      page: "0",
     });
-
-    clearFilters();
   }
 
   return (

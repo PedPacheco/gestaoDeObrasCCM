@@ -10,6 +10,9 @@ describe('GetScheduleValues', () => {
 
   const prismaMock = {
     $queryRaw: jest.fn(),
+    obras: {
+      count: jest.fn(),
+    },
   };
 
   const mockQueryResponse = [
@@ -75,9 +78,11 @@ describe('GetScheduleValues', () => {
       idParceira: undefined,
       idRegional: undefined,
       idTipo: undefined,
+      page: 1,
     };
 
     jest.spyOn(prisma, '$queryRaw').mockResolvedValue(mockQueryResponse);
+    jest.spyOn(prisma.obras, 'count').mockResolvedValue(1);
 
     const result = await service.getValues(filters);
 
@@ -97,7 +102,8 @@ describe('GetScheduleValues', () => {
     WHERE 1=1
     AND data_prog = 
     AND exec IS NULL
-    ORDER BY data_prog, ovnota`;
+    ORDER BY data_prog, ovnota
+    LIMIT 200 OFFSET`;
 
     const normalize = (str: string) => str.replace(/\s+/g, ' ').trim();
 
@@ -107,7 +113,7 @@ describe('GetScheduleValues', () => {
       normalize(expectedQuery).includes(normalize(part)),
     );
 
-    expect(result).toEqual(mockResponse);
+    expect(result).toEqual({ works: mockResponse, totalRecords: 1 });
     expect(prismaMock.$queryRaw.mock.calls[0][0].values[0]).toEqual(
       expectedDate,
     );
@@ -124,6 +130,7 @@ describe('GetScheduleValues', () => {
       idParceira: [1],
       idRegional: [1],
       idTipo: [1],
+      page: 1,
     };
 
     jest.spyOn(prisma, '$queryRaw').mockResolvedValue(mockQueryResponse);
@@ -153,7 +160,8 @@ describe('GetScheduleValues', () => {
     AND id_turma IN ()
     AND tipos.id_grupo IN ()
     AND exec <> 0
-    ORDER BY data_prog, ovnota`;
+    ORDER BY data_prog, ovnota
+    LIMIT 200 OFFSET`;
 
     const normalize = (str: string) => str.replace(/\s+/g, ' ').trim();
 
@@ -162,7 +170,7 @@ describe('GetScheduleValues', () => {
       normalize(queryStrings.join('')),
     );
 
-    expect(result).toEqual(mockResponse);
+    expect(result).toEqual({ works: mockResponse, totalRecords: 1 });
     expect(prismaMock.$queryRaw.mock.calls[0][0].values).toStrictEqual([
       month,
       year,
@@ -171,6 +179,7 @@ describe('GetScheduleValues', () => {
       1,
       1,
       1,
+      200,
     ]);
     expect(allPartsPresent).toBeTruthy();
   });

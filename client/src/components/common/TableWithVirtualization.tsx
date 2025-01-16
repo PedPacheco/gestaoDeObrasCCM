@@ -44,7 +44,7 @@ const VirtuosoTableComponents: TableComponents = {
   }),
 };
 
-export function TableComponent({
+export function TableWithVirtualization({
   data,
   columns,
   sliceEndIndex,

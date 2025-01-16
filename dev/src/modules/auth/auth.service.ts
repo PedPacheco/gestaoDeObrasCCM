@@ -12,7 +12,7 @@ import { EmailService } from 'src/modules/email/email.service';
 import {
   loginInterfaceService,
   userRegisterInterfaceService,
-} from 'src/types/userInterface';
+} from 'src/interfaces/userInterface';
 import { generateRandomPassword } from 'src/utils/generatePassword';
 
 @Injectable()

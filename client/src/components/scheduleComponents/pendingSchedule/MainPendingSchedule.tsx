@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useTransition } from "react";
 
-import { TableComponent } from "@/components/common/Table";
 import { MainInterface } from "@/interfaces/mainInterface";
 
 import { useSaveFilters } from "@/hooks/useSaveFilters";
@@ -13,6 +12,7 @@ import { capitalize } from "@/utils/capitalize";
 import { Transform } from "@/utils/transform";
 import { fetchData } from "@/actions/fetchData.action";
 import { getButtonContent } from "@/utils/getButtonContent";
+import { TableWithVirtualization } from "@/components/common/TableWithVirtualization";
 
 interface Filters {
   regional: { id: string; regional: string }[];
@@ -25,10 +25,10 @@ export default function MainPendingSchedule({
   filtersData,
   token,
 }: MainInterface<Filters>) {
-  const [filteredData, setFilteredData] = useState(data);
   const { clearFilters, filters, saveFilters } = useSaveFilters(
     "pendingScheduleFilters"
   );
+  const [filteredData, setFilteredData] = useState(data);
   const [selectedYear, setSelectedYear] = useState<Dayjs | null>(dayjs());
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {}
@@ -127,7 +127,7 @@ export default function MainPendingSchedule({
         </div>
       </div>
 
-      <TableComponent data={filteredData} columns={columns} />
+      <TableWithVirtualization columns={columns} data={filteredData} />
     </>
   );
 }

@@ -4,7 +4,7 @@ import { plainToInstance } from 'class-transformer';
 import { GoalsDTO } from 'src/config/dto/goalsDto';
 import { GoalsController } from 'src/modules/goals/goals.controller';
 import { GoalsService } from 'src/modules/goals/goals.service';
-import { Goals, GoalsIntefaceController } from 'src/types/goalsInterface';
+import { Goals, GoalsIntefaceController } from 'src/interfaces/goalsInterface';
 
 describe('MetasController', () => {
   let metasController: GoalsController;

@@ -368,7 +368,7 @@ model obras {
   qtde_pend               Float?
   tipo_ads                String?         @db.VarChar(50)
   data_empreitamento      DateTime?       @db.Date
-  id_empreendimento       Int?
+  id_empreendimento       Int
   diagrama_antigo         String?         @db.VarChar(12)
   ordem_dci_antigo        String?         @db.VarChar(12)
   ordem_dcd_antigo        String?         @db.VarChar(12)
@@ -377,7 +377,7 @@ model obras {
   ano_plan                Int?
   multas_dmic             multas_dmic[]
   circuitos               circuitos       @relation(fields: [id_circuito], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_circuitos")
-  empreendimento          empreendimento? @relation(fields: [id_empreendimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_empreendimento")
+  empreendimento          empreendimento @relation(fields: [id_empreendimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_empreendimento")
   municipios              municipios      @relation(fields: [id_gpm], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_municipio")
   turmas                  turmas          @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceiras")
   status                  status          @relation(fields: [id_status], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_status")

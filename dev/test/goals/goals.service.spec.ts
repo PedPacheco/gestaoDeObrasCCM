@@ -3,7 +3,7 @@ import { GoalsService } from 'src/modules/goals/goals.service';
 import { Test } from '@nestjs/testing';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { Goals } from 'src/types/goalsInterface';
+import { Goals } from 'src/interfaces/goalsInterface';
 
 describe('MetasService', () => {
   let mockCacheManager: Cache;

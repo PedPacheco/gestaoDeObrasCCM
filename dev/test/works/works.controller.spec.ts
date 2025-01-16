@@ -2,6 +2,7 @@ import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { plainToInstance } from 'class-transformer';
 import { GetAllWorksDTO, GetWorksDTO } from 'src/config/dto/worksDto';
+import { worksInPortfolioResponse } from 'src/interfaces/getWorksInPortfolioInterface';
 import { UsersService } from 'src/modules/users/users.service';
 import { GetAllWorksService } from 'src/modules/works/services/getAllWorks.service';
 import { GetCompletedWorksService } from 'src/modules/works/services/getCompletedWorks.service';
@@ -54,44 +55,47 @@ describe('WorksController', () => {
     expect(worksController).toBeDefined();
   });
 
-  const dataResponse = [
-    {
-      id: 17617,
-      ovnota: '15373379',
-      ordemdiagrama: '170000015211',
-      status_ov_sap: 99,
-      pep: 'X/005016',
-      status_pep: null,
-      diagrama: null,
-      status_diagrama: null,
-      ordem_dci: '170000015211',
-      status_170: 'LIB ',
-      status_usuario_170: 'INVE',
-      ordem_dcd: '190000016813',
-      status_190: 'ENTE',
-      status_usuario_190: 'ENTE',
-      ordem_dca: '150000001995',
-      status_150: 'ENTE',
-      status_usuario_150: 'ENTE',
-      ordem_dcim: null,
-      status_180: null,
-      status_usuario_180: null,
-      mun: 'SAE',
-      tipo_obra: 'RISCO A SEGURANÇA',
-      entrada: '04/09/2024',
-      prazo_fim: null,
-      qtde_planejada: 0,
-      mo_planejada: 91105.824,
-      mo_final: null,
-      turma: 'ENGELMIG',
-      executado: 100,
-      data_conclusao: '2024-06-14T00:00:00.000Z',
-      last_data_prog: null,
-      status: 'EXECUTADA',
-      observ_obra: null,
-      referencia: null,
-    },
-  ];
+  const dataResponse: worksInPortfolioResponse = {
+    works: [
+      {
+        id: 17617,
+        ovnota: '15373379',
+        ordemdiagrama: '170000015211',
+        status_ov_sap: 99,
+        pep: 'X/005016',
+        ordem_dcd: '190000016813',
+        ordem_dca: '150000001995',
+        ordem_dcim: null,
+        mun: 'SAE',
+        tipo_obra: 'RISCO A SEGURANÇA',
+        entrada: new Date('04/09/2024'),
+        prazo_fim: null,
+        qtde_planejada: 0,
+        mo_planejada: 91105.824,
+        turma: 'ENGELMIG',
+        executado: 100,
+        status: 'EXECUTADA',
+        prazo: 0,
+        contagem_ocorrencias: 0,
+        qtde_pend: 0,
+        circuito: '',
+        first_data_prog: undefined,
+        id_status: 0,
+        hora_ini: '',
+        hora_ter: '',
+        tipo_servico: '',
+        chi: 0,
+        conjunto: '',
+        equipe_linha_morta: 0,
+        equipe_linha_viva: 0,
+        equipe_regularizacao: 0,
+        abrev_regional: '',
+        data_empreitamento: undefined,
+        empreendimento: '',
+      },
+    ],
+    totalRecords: 1,
+  };
 
   describe('getAllWorks', () => {
     it('Should build filters, get works with filters and return the result with correct format', async () => {
@@ -137,6 +141,7 @@ describe('WorksController', () => {
         idRegional: [1],
         idStatus: undefined,
         idTipo: undefined,
+        page: 1,
       };
 
       jest
@@ -173,6 +178,7 @@ describe('WorksController', () => {
         idRegional: [1],
         idStatus: undefined,
         idTipo: undefined,
+        page: 1,
       };
 
       jest
@@ -318,6 +324,7 @@ describe('WorksController', () => {
         idCircuito: '9',
         idEmpreendimento: '23',
         idOvnota: '3',
+        page: '0',
       };
       const instance = plainToInstance(GetWorksDTO, filters);
 
@@ -330,6 +337,7 @@ describe('WorksController', () => {
       expect(instance.idConjunto).toStrictEqual([4]);
       expect(instance.idEmpreendimento).toStrictEqual([23]);
       expect(instance.idCircuito).toStrictEqual([9]);
+      expect(instance.page).toStrictEqual(0);
     });
   });
 });

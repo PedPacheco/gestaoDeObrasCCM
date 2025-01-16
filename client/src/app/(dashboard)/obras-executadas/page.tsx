@@ -1,30 +1,27 @@
-import PortfolioWorks from "@/components/worksComponents/portfolioWorks/MainPortfolioWorks";
+import dayjs from "dayjs";
+import { cookies } from "next/headers";
+
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import { cookies } from "next/headers";
+import PortfolioWorks from "@/components/worksComponents/portfolioWorks/MainPortfolioWorks";
 import { Transform } from "@/utils/transform";
-import dayjs from "dayjs";
 
 export default async function CompletedWorks() {
   const cookieStore = await cookies();
   const cookieParams = cookieStore.get("completedWorksFilters")?.value;
 
   const params = cookieParams ? JSON.parse(cookieParams) : undefined;
-  let filtersValues = undefined;
 
-  if (params) {
-    const formattedSelectedItems = Transform(params.selectedItems);
-
-    filtersValues = {
-      ...formattedSelectedItems,
-      data: params.date
-        ? params.filterType === "day"
-          ? dayjs(params.date).format("DD/MM/YYYY")
-          : dayjs(params.date).format("MM/YYYY")
-        : "",
-      tipoFiltro: params.filterType,
-    };
-  }
+  const filtersValues = {
+    ...Transform(params?.selectedItems || {}),
+    data: params?.date
+      ? dayjs(params?.date).format(
+          params?.filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY"
+        )
+      : "",
+    tipoFiltro: params?.filterType || "",
+    page: "0",
+  };
 
   const [filters, worksCompletedData] = await Promise.all([
     fetchFilters({
@@ -82,7 +79,7 @@ export default async function CompletedWorks() {
 
   return (
     <PortfolioWorks
-      filters={filters}
+      filtersData={filters}
       data={data}
       token={token}
       columns={columns}

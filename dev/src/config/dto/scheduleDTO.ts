@@ -51,6 +51,11 @@ export class GetScheduleValuesDTO {
   tipoFiltro: string;
 
   @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  page: number;
+
+  @IsOptional()
   @IsArray()
   @Transform(({ value }) => value.toString().split(',').map(Number))
   idRegional: number[];

@@ -1,5 +1,6 @@
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { GetScheduleValuesResponse } from 'src/interfaces/getScheduleValuesInterface';
 import { ScheduleController } from 'src/modules/schedule/schedule.controller';
 import { GetMonthlySummaryService } from 'src/modules/schedule/services/getMonthlySummary.service';
 import { GetPendingScheduleValuesService } from 'src/modules/schedule/services/getPendingScheduleValues.service';
@@ -18,9 +19,42 @@ describe('ScheduleController', () => {
   let getPendingScheduleValuesService: GetPendingScheduleValuesService;
   let getMonthlySummaryService: GetMonthlySummaryService;
 
-  const response = {
-    ovnota: '232423',
-    id: 4,
+  const mockScheduleData: GetScheduleValuesResponse = {
+    works: [
+      {
+        id: 9045,
+        ovnota: '12398586',
+        ordemdiagrama: '170000002955',
+        diagrama: null,
+        mun: 'MCR',
+        prazo_fim: '2024-03-30T00:00:00.000Z',
+        tipo_obra: 'POSTE',
+        qtde_planejada: '1',
+        mo_planejada: '3262.21',
+        turma: 'LIG',
+        executado: 0,
+        entrada: '2024-08-01T00:00:00.000Z',
+        data_prog: '2024-10-01T00:00:00.000Z',
+        prog: 100,
+        exec: null,
+        mo_prog: 3262.21,
+        mo_exec: 3262.21,
+        num_dp: '15563352',
+        hora_ini: '1970-01-01T14:30:00.000Z',
+        hora_ter: '1970-01-01T17:30:00.000Z',
+        equipe_linha_morta: 1,
+        equipe_linha_viva: 1,
+        equipe_regularizacao: 0,
+        id_tecnico: 1,
+        observprog: '',
+        conjunto: '',
+        circuito: '',
+        total_obras: 0,
+        total_mo_planejada: 0,
+        total_qtde_planejada: 0,
+      },
+    ],
+    totalRecords: 1,
   };
 
   beforeEach(async () => {
@@ -107,14 +141,14 @@ describe('ScheduleController', () => {
 
     jest
       .spyOn(getTotalValuesScheduleService, 'getTotalValues')
-      .mockResolvedValue(response);
+      .mockResolvedValue(mockScheduleData);
 
     const result = await scheduleController.getTotalValues(filters);
 
     expect(result).toStrictEqual({
       statusCode: HttpStatus.OK,
       message: 'Todas as obras retornadas com sucesso',
-      data: response,
+      data: mockScheduleData,
     });
     expect(getTotalValuesScheduleService.getTotalValues).toHaveBeenCalledWith(
       filters,
@@ -131,18 +165,19 @@ describe('ScheduleController', () => {
       idTipo: [1],
       idParceira: [1],
       executado: false,
+      page: 1,
     };
 
     jest
       .spyOn(getScheduleValuesService, 'getValues')
-      .mockResolvedValue(response);
+      .mockResolvedValue(mockScheduleData);
 
     const result = await scheduleController.getScheduleValues(filters);
 
     expect(result).toStrictEqual({
       statusCode: HttpStatus.OK,
       message: 'Valores das programações retornadas com sucesso',
-      data: response,
+      data: mockScheduleData,
     });
     expect(getScheduleValuesService.getValues).toHaveBeenCalledWith(filters);
   });
@@ -199,14 +234,14 @@ describe('ScheduleController', () => {
 
     jest
       .spyOn(getPendingScheduleValuesService, 'getValues')
-      .mockResolvedValue(response);
+      .mockResolvedValue(mockScheduleData);
 
     const result = await scheduleController.getPendingScheduleValues(filters);
 
     expect(result).toStrictEqual({
       statusCode: HttpStatus.OK,
       message: 'Valores das programações da semana retornadas com sucesso',
-      data: response,
+      data: mockScheduleData,
     });
     expect(getPendingScheduleValuesService.getValues).toHaveBeenCalledWith(
       filters,

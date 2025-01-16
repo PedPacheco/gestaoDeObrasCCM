@@ -9,7 +9,7 @@ export default async function DashboardLayout({
 }) {
   return (
     <div className="relative z-0 flex min-h-screen w-full overflow-hidden">
-      <div className="relative flex h-full max-w-full flex-1 flex-col overflow-hidden">
+      <div className="relative flex min-h-screen max-w-full flex-1 flex-col overflow-hidden">
         <div className="h-full flex flex-col">
           <Header />
 

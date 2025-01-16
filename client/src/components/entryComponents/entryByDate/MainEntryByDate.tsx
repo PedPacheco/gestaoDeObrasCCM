@@ -3,17 +3,16 @@
 import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useState, useTransition } from "react";
 
+import { fetchData } from "@/actions/fetchData.action";
 import { ButtonComponent } from "@/components/common/Button";
 import { DateFilter } from "@/components/common/DateFilter";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
-import { TableComponent } from "@/components/common/Table";
+import { TableWithVirtualization } from "@/components/common/TableWithVirtualization";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { MainInterface } from "@/interfaces/mainInterface";
 import { capitalize } from "@/utils/capitalize";
-import { Transform } from "@/utils/transform";
-import { fetchData } from "@/actions/fetchData.action";
-import { LoadingComponent } from "@/components/common/Loading";
 import { getButtonContent } from "@/utils/getButtonContent";
+import { Transform } from "@/utils/transform";
 
 interface Filters {
   regional: { id: string; regional: string }[];
@@ -150,7 +149,11 @@ export default function MainEntryByDate({
         </div>
       </div>
 
-      <TableComponent data={filteredData} columns={columns} sliceEndIndex={3} />
+      <TableWithVirtualization
+        data={filteredData}
+        columns={columns}
+        sliceEndIndex={3}
+      />
     </>
   );
 }

@@ -19,6 +19,18 @@ describe('ScheduleDTO', () => {
       executado: 'false',
     };
 
+    const getScheduleValuesFilters = {
+      data: '01/2025',
+      tipoFiltro: 'month',
+      page: '0',
+      idRegional: '1',
+      idMunicipio: '1',
+      idGrupo: '1',
+      idTipo: '1',
+      idParceira: '1',
+      executado: 'false',
+    };
+
     const getTotalValuesScheduleFilters = {
       idRegional: '1',
       idMunicipio: '1',
@@ -49,7 +61,7 @@ describe('ScheduleDTO', () => {
 
     const getScheduleValuesInstance = plainToInstance(
       GetScheduleValuesDTO,
-      getValueWeeklyScheduleFilters,
+      getScheduleValuesFilters,
     );
 
     const getTotalValuesScheduleInstance = plainToInstance(
@@ -76,6 +88,9 @@ describe('ScheduleDTO', () => {
       executado: false,
     });
     expect(getScheduleValuesInstance).toEqual({
+      data: '01/2025',
+      tipoFiltro: 'month',
+      page: 0,
       idRegional: [1],
       idMunicipio: [1],
       idGrupo: [1],

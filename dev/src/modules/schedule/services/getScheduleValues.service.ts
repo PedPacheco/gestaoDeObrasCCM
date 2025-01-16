@@ -1,17 +1,22 @@
-import { Prisma } from '@prisma/client';
-import { Injectable } from '@nestjs/common';
+import * as moment from 'moment';
 import { GetScheduleValuesDTO } from 'src/config/dto/scheduleDTO';
 import { PrismaService } from 'src/config/prisma/prisma.service';
-import * as moment from 'moment';
+import { GetScheduleValuesResponse } from 'src/interfaces/getScheduleValuesInterface';
 import { calculateTotals } from 'src/utils/calculateTotals';
+
+import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class GetScheduleValuesService {
   constructor(private prisma: PrismaService) {}
 
-  async getValues(filters: GetScheduleValuesDTO) {
+  async getValues(
+    filters: GetScheduleValuesDTO,
+  ): Promise<GetScheduleValuesResponse> {
     const {
       data,
+      page,
       executado,
       idGrupo,
       idParceira,
@@ -73,11 +78,55 @@ export class GetScheduleValuesService {
 
     query = Prisma.sql`${query} ORDER BY data_prog, ovnota`;
 
-    const result = await this.prisma.$queryRaw(query);
+    if (page !== null) {
+      query = Prisma.sql`${query} LIMIT 200 OFFSET ${page * 200}`;
+    }
 
-    return calculateTotals(result, {
+    const startDate = moment
+      .utc(`${year}-${month}`, 'YYYY-MM')
+      .startOf('month')
+      .toDate();
+    const endDate = moment
+      .utc(`${year}-${month}`, 'YYYY-MM')
+      .endOf('month')
+      .toDate();
+
+    const [result, totalRecords] = await Promise.all([
+      this.prisma.$queryRaw(query),
+      this.prisma.obras.count({
+        where: {
+          programacoes: {
+            some: {
+              exec: executado ? { not: null } : null,
+              data_prog:
+                tipoFiltro === 'month'
+                  ? { gte: startDate, lte: endDate }
+                  : { equals: data },
+            },
+          },
+          municipios: {
+            id_regional: idRegional ? { in: idRegional } : undefined,
+          },
+          id_tipo: idTipo ? { in: idTipo } : undefined,
+          id_turma: idParceira ? { in: idParceira } : undefined,
+          tipos: {
+            id_grupo: idGrupo ? { in: idGrupo } : undefined,
+          },
+          id_gpm: idMunicipio ? { in: idMunicipio } : undefined,
+        },
+      }),
+    ]);
+
+    const works = calculateTotals(result, {
       total_mo_planejada: true,
       total_qtde_planejada: true,
     });
+
+    const response: GetScheduleValuesResponse = {
+      works,
+      totalRecords,
+    };
+
+    return response;
   }
 }

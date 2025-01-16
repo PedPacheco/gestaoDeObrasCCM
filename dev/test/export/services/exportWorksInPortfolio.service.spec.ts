@@ -1,6 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import * as Exceljs from 'exceljs';
 import { Response } from 'express';
+import {
+  worksInPortfolioInterface,
+  worksInPortfolioResponse,
+} from 'src/interfaces/getWorksInPortfolioInterface';
 import { ExportWorksInPortfolioService } from 'src/modules/export/services/exportWorksInPortfolio.service';
 
 jest.mock('exceljs');
@@ -19,43 +23,49 @@ describe('ExportWorksInPortfolio', () => {
   });
 
   it('Should create an Excel File with the provided data', async () => {
-    const mockWorksData = [
+    const mockWorksData: worksInPortfolioInterface[] = [
       {
         ovnota: '123456',
         ordemdiagrama: 'OD-001',
         ordem_dcd: 'DCD-01',
         ordem_dca: 'DCA-01',
         ordem_dcim: 'DCIM-01',
-        status_ov_sap: 'Em Progresso',
+        status_ov_sap: 50,
         pep: 'PEP001',
         mun: 'São Paulo',
         abrev_regional: 'SP',
         conjunto: 'Conjunto 1',
         circuito: 'Circuito A',
-        entrada: 'Entrada 1',
-        prazo_fim: '2024-12-31',
+        entrada: new Date('2024-01-15T00:00:00.000Z'),
+        prazo_fim: 90,
         tipo_obra: 'Manutenção Geral',
         qtde_planejada: 10,
         qtde_pend: 2,
         mo_planejada: 5,
         status: 'Planejado',
         turma: 'Equipe Alpha',
-        executado: 'Sim',
-        first_data_prog: '2024-12-15',
-        prog: '100%',
-        exec: '80%',
-        observ_programacao: 'Nenhuma observação adicional.',
-        chi: 'CHI123',
-        num_dp: 'DP-456',
+        executado: 50,
+        first_data_prog: new Date('2024-03-15T00:00:00.000Z'),
+        chi: 414,
         hora_ini: '08:00',
         hora_ter: '17:00',
-        equipe_linha_morta: 'Equipe LM-1',
-        equipe_linha_viva: 'Equipe LV-1',
-        equipe_regularizacao: 'Equipe Reg-1',
-        data_empreitamento: '2024-11-20',
+        equipe_linha_morta: 1,
+        equipe_linha_viva: 3,
+        equipe_regularizacao: 4,
+        data_empreitamento: new Date('2024-02-20T00:00:00.000Z'),
         empreendimento: 'Empreendimento X',
+        id: 0,
+        prazo: 0,
+        contagem_ocorrencias: 0,
+        id_status: 0,
+        tipo_servico: '',
       },
     ];
+
+    const mockWorksResponse: worksInPortfolioResponse = {
+      works: mockWorksData,
+      totalRecords: 1,
+    };
 
     const mockResponse = {
       setHeader: jest.fn(),
@@ -77,7 +87,7 @@ describe('ExportWorksInPortfolio', () => {
 
     (Exceljs.Workbook as jest.Mock).mockImplementation(() => workBookMock);
 
-    await service.export(mockWorksData, mockResponse);
+    await service.export(mockWorksResponse, mockResponse);
 
     expect(Exceljs.Workbook).toHaveBeenCalledTimes(1);
     expect(workBookMock.addWorksheet).toHaveBeenCalledWith('Obras em carteira');
