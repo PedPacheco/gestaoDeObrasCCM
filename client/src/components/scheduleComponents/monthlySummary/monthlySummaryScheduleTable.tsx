@@ -19,7 +19,7 @@ export function MonthlySummaryScheduleTable({ columns, data }: TableInterface) {
   return (
     <TableContainer
       component={Paper}
-      className="w-full max-h-[660px] flex-1 mb-6 overflow-y-auto xl:mb-0 xl:first:mr-8 xl:w-1/2"
+      className="w-full min-h-96 h-[720px] max-h-[880px] lg:max-h-[620px] xl:max-h-[90%] flex-1 mb-6 overflow-y-auto xl:mb-0 xl:first:mr-8 xl:w-1/2"
     >
       <Table stickyHeader>
         <TableHead>

@@ -8,6 +8,7 @@ import {
 } from 'src/config/dto/entryDto';
 import { EntryController } from 'src/modules/entry/entry.controller';
 import { EntryService } from 'src/modules/entry/entry.service';
+import { UsersService } from 'src/modules/users/users.service';
 
 describe('EntryController', () => {
   let entryController: EntryController;
@@ -24,6 +25,7 @@ describe('EntryController', () => {
             getEntryOfWorksByDay: jest.fn(),
           },
         },
+        { provide: UsersService, useValue: { findUser: jest.fn() } },
       ],
     }).compile();
 

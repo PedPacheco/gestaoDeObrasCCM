@@ -27,6 +27,7 @@ export class AuthController {
       id_regional,
       nome_usuario,
       email,
+      permissao_visualizacao,
       access_token,
     } = await this.authService.login(user, password);
 
@@ -40,7 +41,15 @@ export class AuthController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Login realizado com sucesso',
-      data: { id, username, permissao, id_regional, nome_usuario, email },
+      data: {
+        id,
+        username,
+        permissao,
+        id_regional,
+        nome_usuario,
+        permissao_visualizacao,
+        email,
+      },
     };
   }
 

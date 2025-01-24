@@ -14,8 +14,6 @@ export default function ErrorModal({
   open,
   icon,
 }: ErrorModalProps) {
-  const theme = useTheme();
-
   return (
     <Modal
       open={open}
@@ -28,9 +26,9 @@ export default function ErrorModal({
         {icon}
         <Typography className="font-semibold text-2xl">Erro</Typography>
         <Typography id="error-modal-description" className="mb-4">
-          <p className="text-red-700 font-semibold text-lg text-center">
+          <span className="text-red-700 font-semibold text-lg text-center">
             {message}
-          </p>
+          </span>
         </Typography>
 
         <ButtonComponent onClick={onClose} text="Fechar" styled="w-full" />

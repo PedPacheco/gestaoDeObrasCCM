@@ -38,6 +38,7 @@ export interface loginInterfaceController {
     permissao: string;
     id_regional: number;
     nome_usuario: string;
+    permissao_visualizacao: string;
     email: string;
   };
 }

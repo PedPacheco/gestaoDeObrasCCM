@@ -1,21 +1,21 @@
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
-import { PermissionGuard } from 'src/common/guards/permission.guard';
+import { VisualizationGuard } from 'src/common/guards/visualization.guard';
 import { PrismaService } from 'src/config/prisma/prisma.service';
 import { UsersService } from 'src/modules/users/users.service';
 
 describe('PermissionGuard', () => {
   let usersService: UsersService;
-  let permissionGuard: PermissionGuard;
+  let permissionGuard: VisualizationGuard;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
-      providers: [PermissionGuard, UsersService, PrismaService, JwtService],
+      providers: [VisualizationGuard, UsersService, PrismaService, JwtService],
     }).compile();
 
     usersService = module.get<UsersService>(UsersService);
-    permissionGuard = module.get<PermissionGuard>(PermissionGuard);
+    permissionGuard = module.get<VisualizationGuard>(VisualizationGuard);
   });
 
   it('Should PermissionGuard is defined', () => {

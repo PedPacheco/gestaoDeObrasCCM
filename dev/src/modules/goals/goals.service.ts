@@ -59,11 +59,11 @@ export class GoalsService {
       SUM(novfisreal) AS novfisreal,
       SUM(dezfisreal) AS dezfisreal,
       SUM(carteira) AS carteira
-      FROM metas_anuais
+      FROM construcao_sp.get_view_data(NULL) AS metas_anuais
       INNER JOIN tipos ON tipos.id = metas_anuais.id_tipo
       INNER JOIN turmas ON turmas.id = metas_anuais.id_turma
       INNER JOIN regionais ON regionais.id = metas_anuais.id_regional
-      WHERE anocalc = 2024`;
+      WHERE anocalc IN (${Prisma.join(ano)})`;
 
     if (regional) {
       query = Prisma.sql`${query} AND metas_anuais.id_regional IN (${Prisma.join(regional)})`;
@@ -75,10 +75,6 @@ export class GoalsService {
 
     if (parceira) {
       query = Prisma.sql`${query} AND metas_anuais.id_turma IN (${Prisma.join(parceira)})`;
-    }
-
-    if (ano) {
-      query = Prisma.sql`${query} AND anocalc IN (${Prisma.join(ano)})`;
     }
 
     query = Prisma.sql`${query} GROUP BY tipo_obra, turma, regional, anocalc, id_tipo;`;

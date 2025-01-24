@@ -12,6 +12,7 @@ import { GetValuesWeeklyScheduleService } from './services/getValuesWeeklySchedu
 import { GetPendingScheduleValuesService } from './services/getPendingScheduleValues.service';
 import { GetScheduleRestrictionsService } from './services/getScheduleRestrictions.service';
 import { GetMonthlySummaryService } from './services/getMonthlySummary.service';
+import { VisualizationGuard } from 'src/common/guards/visualization.guard';
 import { PermissionGuard } from 'src/common/guards/permission.guard';
 
 @Controller('programacao')
@@ -26,7 +27,7 @@ export class ScheduleController {
   ) {}
 
   @Get()
-  @UseGuards(PermissionGuard)
+  @UseGuards(VisualizationGuard)
   async getTotalValues(@Query() filters: GetTotalValuesScheduleDTO) {
     const response =
       await this.getTotalValuesScheduleService.getTotalValues(filters);
@@ -39,7 +40,7 @@ export class ScheduleController {
   }
 
   @Get('mensal')
-  @UseGuards(PermissionGuard)
+  @UseGuards(VisualizationGuard)
   async getScheduleValues(@Query() filters: GetScheduleValuesDTO) {
     const response = await this.getScheduleValuesService.getValues(filters);
 
@@ -51,7 +52,7 @@ export class ScheduleController {
   }
 
   @Get('semanal')
-  @UseGuards(PermissionGuard)
+  @UseGuards(VisualizationGuard)
   async getValuesWeeklySchedule(@Query() filters: GetValueWeeklyScheduleDTO) {
     const response =
       await this.getValuesWeeklyScheduleService.getValues(filters);

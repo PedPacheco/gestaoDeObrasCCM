@@ -1,16 +1,18 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import {
-  ChevronUpIcon,
-  ChevronDownIcon,
-  XMarkIcon,
-  MagnifyingGlassIcon,
-} from "@heroicons/react/20/solid";
 import Link from "next/link";
-import { Input } from "@mui/material";
-import { links } from "@/utils/links";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
+import { useUser } from "@/contexts/userContext";
+import { links } from "@/utils/links";
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  MagnifyingGlassIcon,
+  XMarkIcon,
+} from "@heroicons/react/20/solid";
+import { Input } from "@mui/material";
 
 interface SidebarProps {
   open: boolean;
@@ -22,6 +24,13 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
   const [work, setWork] = useState<string>("");
   const router = useRouter();
+  const { user } = useUser();
+
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   function handleToogleSubmenu(menu: string, event: React.MouseEvent) {
     event.stopPropagation();
@@ -77,61 +86,81 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
 
             <nav className="flex flex-col px-3 pb-3.5 mt-4">
               <div className="flex flex-col gap-2">
-                {links.map((link, index) => (
-                  <div key={index} className="w-full">
-                    <div
-                      className={`flex justify-between items-center rounded-md transition-colors ${
-                        pathname === link.href
-                          ? "bg-[#1a2635] text-[#53FF75]"
-                          : "text-zinc-200 hover:bg-[#1a2635] hover:text-[#53FF75]"
-                      }`}
-                    >
-                      <Link
-                        href={`${link.href}`}
-                        className="text-base w-full font-medium leading-8 p-2"
-                      >
-                        {link.name}
-                      </Link>
-                      {link.submenu && (
-                        <button
-                          onClick={(e) => handleToogleSubmenu(link.name, e)}
-                          className="text-zinc-200 hover:text-[#53FF75] ml-auto"
-                        >
-                          {openSubmenu === link.name ? (
-                            <ChevronUpIcon className="h-5 w-5" />
-                          ) : (
-                            <ChevronDownIcon className="h-5 w-5" />
-                          )}
-                        </button>
-                      )}
-                    </div>
+                {links.map((link, index) => {
+                  if (!isClient) return null;
 
-                    {link.submenu && (
-                      <ul
-                        className={`transition-all duration-300 ml-2 ease-in-out overflow-hidden ${
-                          openSubmenu === link.name
-                            ? "max-h-[1000px] opacity-100"
-                            : "max-h-0 opacity-0"
+                  if (
+                    link.needPermission &&
+                    user?.permissao_visualizacao === "parcial"
+                  ) {
+                    return null;
+                  }
+
+                  return (
+                    <div key={index} className="w-full">
+                      <div
+                        className={`flex justify-between items-center rounded-md transition-colors ${
+                          pathname === link.href
+                            ? "bg-[#1a2635] text-[#53FF75]"
+                            : "text-zinc-200 hover:bg-[#1a2635] hover:text-[#53FF75]"
                         }`}
                       >
-                        {link.submenu.map((subItem, subIndex) => (
-                          <li key={subIndex}>
-                            <Link
-                              href={`${subItem.href}`}
-                              className={`block rounded-md text-sm p-2 font-medium leading-8 transition-colors ${
-                                pathname === subItem.href
-                                  ? "bg-[#1a2635] text-[#53FF75]"
-                                  : "text-zinc-200 hover:bg-[#1a2635] hover:text-[#53FF75]"
-                              }`}
-                            >
-                              {subItem.name}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                ))}
+                        <Link
+                          href={`${link.href}`}
+                          className="text-base w-full font-medium leading-8 p-2"
+                        >
+                          {link.name}
+                        </Link>
+                        {link.submenu && (
+                          <button
+                            onClick={(e) => handleToogleSubmenu(link.name, e)}
+                            className="text-zinc-200 hover:text-[#53FF75] ml-auto"
+                          >
+                            {openSubmenu === link.name ? (
+                              <ChevronUpIcon className="h-5 w-5" />
+                            ) : (
+                              <ChevronDownIcon className="h-5 w-5" />
+                            )}
+                          </button>
+                        )}
+                      </div>
+
+                      {link.submenu && (
+                        <ul
+                          className={`transition-all duration-300 ml-2 ease-in-out overflow-hidden ${
+                            openSubmenu === link.name
+                              ? "max-h-[1000px] opacity-100"
+                              : "max-h-0 opacity-0"
+                          }`}
+                        >
+                          {link.submenu.map((subItem, subIndex) => {
+                            if (
+                              subItem.needPermission &&
+                              user?.permissao_visualizacao === "parcial"
+                            ) {
+                              return null;
+                            }
+
+                            return (
+                              <li key={subIndex}>
+                                <Link
+                                  href={`${subItem.href}`}
+                                  className={`block rounded-md text-sm p-2 font-medium leading-8 transition-colors ${
+                                    pathname === subItem.href
+                                      ? "bg-[#1a2635] text-[#53FF75]"
+                                      : "text-zinc-200 hover:bg-[#1a2635] hover:text-[#53FF75]"
+                                  }`}
+                                >
+                                  {subItem.name}
+                                </Link>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </nav>
           </div>
