@@ -73,7 +73,7 @@ describe('AuthController', () => {
         'token',
         mockResponse.access_token,
         {
-          httpOnly: true,
+          httpOnly: false,
           secure: false,
           sameSite: 'strict',
           path: '/',
@@ -85,10 +85,8 @@ describe('AuthController', () => {
         data: {
           id: mockResponse.id,
           username: mockResponse.username,
-          permissao: mockResponse.permissao,
           id_regional: mockResponse.id_regional,
           nome_usuario: mockResponse.nome_usuario,
-          permissao_visualizacao: mockResponse.permissao_visualizacao,
           email: mockResponse.email,
         },
       });

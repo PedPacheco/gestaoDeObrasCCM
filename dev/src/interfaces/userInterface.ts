@@ -21,11 +21,9 @@ export interface userRegisterInterfaceController {
 export interface loginInterfaceService {
   id: number;
   username: string;
-  permissao: string;
   id_regional: number;
   nome_usuario: string;
   email: string;
-  permissao_visualizacao: string;
   access_token: string;
 }
 
@@ -35,10 +33,8 @@ export interface loginInterfaceController {
   data: {
     id: number;
     username: string;
-    permissao: string;
     id_regional: number;
     nome_usuario: string;
-    permissao_visualizacao: string;
     email: string;
   };
 }

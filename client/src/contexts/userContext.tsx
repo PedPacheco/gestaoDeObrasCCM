@@ -1,21 +1,27 @@
 "use client";
 
+import { jwtDecode } from "jwt-decode";
+import nookies from "nookies";
 import {
   createContext,
-  useContext,
-  useState,
   Dispatch,
   SetStateAction,
+  useContext,
+  useState,
 } from "react";
-import nookies from "nookies";
 
 interface UserData {
   id: number;
   username: string;
-  permissao: string;
   id_regional: string;
   nome_usuario: string;
   email: string;
+}
+
+interface JwtPayload {
+  id: number;
+  username: string;
+  permissao: string;
   permissao_visualizacao: string;
 }
 
@@ -26,6 +32,7 @@ interface LoginResponse {
 
 interface UserContextType {
   user: UserData | null;
+  permissions: JwtPayload | null;
   setUser: Dispatch<SetStateAction<UserData | null>>;
   login: (user: string, password: string) => Promise<LoginResponse>;
 }
@@ -37,6 +44,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const storedUser = nookies.get(null).userInfo;
     return storedUser ? JSON.parse(storedUser) : null;
   });
+
+  const [permissions, setPermissions] = useState<JwtPayload | null>(() => {
+    const token = nookies.get(null).token;
+    return token ? jwtDecode<JwtPayload>(token) : null;
+  });
+
+  console.log(permissions);
 
   async function login(user: string, password: string): Promise<LoginResponse> {
     const response = await fetch(
@@ -79,7 +93,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <UserContext.Provider value={{ user, setUser, login }}>
+    <UserContext.Provider value={{ user, permissions, setUser, login }}>
       {children}
     </UserContext.Provider>
   );

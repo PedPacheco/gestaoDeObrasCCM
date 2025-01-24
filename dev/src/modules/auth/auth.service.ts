@@ -39,16 +39,19 @@ export class AuthService {
       throw new UnauthorizedException('Senha incorreta');
     }
 
-    const payload = { sub: result.id, username: result.username };
+    const payload = {
+      sub: result.id,
+      username: result.username,
+      permissao: result.permissao,
+      permissao_visualizacao: result.permissao_visualizacao,
+    };
 
     return {
       id: result.id,
       username: result.username,
-      permissao: result.permissao,
       id_regional: result.id_regional,
       nome_usuario: result.nome_usuario,
       email: result.email,
-      permissao_visualizacao: result.permissao_visualizacao,
       access_token: await this.jwtService.signAsync(payload, {
         expiresIn: '1h',
       }),

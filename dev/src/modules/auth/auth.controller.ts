@@ -20,19 +20,11 @@ export class AuthController {
     @Body() { user, password }: LoginUserDTO,
     @Res({ passthrough: true }) res: Response,
   ): Promise<loginInterfaceController> {
-    const {
-      id,
-      username,
-      permissao,
-      id_regional,
-      nome_usuario,
-      email,
-      permissao_visualizacao,
-      access_token,
-    } = await this.authService.login(user, password);
+    const { id, username, id_regional, nome_usuario, email, access_token } =
+      await this.authService.login(user, password);
 
     res.cookie('token', access_token, {
-      httpOnly: true,
+      httpOnly: false,
       secure: false,
       sameSite: 'strict',
       path: '/',
@@ -44,10 +36,8 @@ export class AuthController {
       data: {
         id,
         username,
-        permissao,
         id_regional,
         nome_usuario,
-        permissao_visualizacao,
         email,
       },
     };

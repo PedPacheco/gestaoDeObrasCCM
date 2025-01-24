@@ -24,7 +24,7 @@ export class VisualizationGuard implements CanActivate {
       throw new UnauthorizedException('Usuário não encontrado');
     }
 
-    if (userRecord.permissao_visualizacao === 'parcial') {
+    if (user.permissao_visualizacao === 'parcial') {
       request.query.idRegional = userRecord.id_regional;
     }
 

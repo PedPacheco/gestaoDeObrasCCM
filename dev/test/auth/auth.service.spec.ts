@@ -105,12 +105,10 @@ describe('AuthService', () => {
       expect(result).toEqual({
         id: user.id,
         username: user.username,
-        permissao: user.permissao,
         id_regional: user.id_regional,
         nome_usuario: user.nome_usuario,
         email: user.email,
         access_token: access_token,
-        permissao_visualizacao: user.permissao_visualizacao,
       });
     });
   });

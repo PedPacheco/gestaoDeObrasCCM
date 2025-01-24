@@ -18,13 +18,7 @@ export class PermissionGuard implements CanActivate {
       throw new UnauthorizedException('Usuário não autenticado');
     }
 
-    const userRecord = await this.userService.findUser(user.username);
-
-    if (!userRecord) {
-      throw new UnauthorizedException('Usuário não encontrado');
-    }
-
-    if (userRecord.permissao_visualizacao === 'parcial') {
+    if (user.permissao_visualizacao === 'parcial') {
       throw new UnauthorizedException(
         'Usuário não tem permissão para acessar está página',
       );

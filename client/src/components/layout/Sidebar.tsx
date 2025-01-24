@@ -24,7 +24,7 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
   const [work, setWork] = useState<string>("");
   const router = useRouter();
-  const { user } = useUser();
+  const { permissions } = useUser();
 
   const [isClient, setIsClient] = useState(false);
 
@@ -91,7 +91,7 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
 
                   if (
                     link.needPermission &&
-                    user?.permissao_visualizacao === "parcial"
+                    permissions?.permissao_visualizacao === "parcial"
                   ) {
                     return null;
                   }
@@ -136,7 +136,7 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
                           {link.submenu.map((subItem, subIndex) => {
                             if (
                               subItem.needPermission &&
-                              user?.permissao_visualizacao === "parcial"
+                              permissions?.permissao_visualizacao === "parcial"
                             ) {
                               return null;
                             }

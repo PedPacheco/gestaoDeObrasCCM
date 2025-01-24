@@ -5,9 +5,9 @@ import { VisualizationGuard } from 'src/common/guards/visualization.guard';
 import { PrismaService } from 'src/config/prisma/prisma.service';
 import { UsersService } from 'src/modules/users/users.service';
 
-describe('PermissionGuard', () => {
+describe('VisualizationGuard', () => {
   let usersService: UsersService;
-  let permissionGuard: VisualizationGuard;
+  let visualizationGuard: VisualizationGuard;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -15,11 +15,11 @@ describe('PermissionGuard', () => {
     }).compile();
 
     usersService = module.get<UsersService>(UsersService);
-    permissionGuard = module.get<VisualizationGuard>(VisualizationGuard);
+    visualizationGuard = module.get<VisualizationGuard>(VisualizationGuard);
   });
 
   it('Should PermissionGuard is defined', () => {
-    expect(permissionGuard).toBeDefined();
+    expect(visualizationGuard).toBeDefined();
   });
 
   it('Should be throw error if user is not found in request', async () => {
@@ -29,7 +29,7 @@ describe('PermissionGuard', () => {
       }),
     } as unknown as ExecutionContext;
 
-    await expect(permissionGuard.canActivate(context)).rejects.toThrow(
+    await expect(visualizationGuard.canActivate(context)).rejects.toThrow(
       new UnauthorizedException('Usuário não autenticado'),
     );
   });
@@ -49,7 +49,7 @@ describe('PermissionGuard', () => {
       .spyOn(usersService, 'findUser')
       .mockResolvedValue(null);
 
-    await expect(permissionGuard.canActivate(context)).rejects.toThrow(
+    await expect(visualizationGuard.canActivate(context)).rejects.toThrow(
       new UnauthorizedException('Usuário não encontrado'),
     );
     expect(spyUsersService).toHaveBeenCalledWith(request.user.username);
@@ -57,7 +57,11 @@ describe('PermissionGuard', () => {
 
   it('Should be add property in object query with value of the user idRegional', async () => {
     const mockRequest = {
-      user: { username: 'teste' },
+      user: {
+        username: 'teste',
+        permissao: 'Total',
+        permissao_visualizacao: 'parcial',
+      },
       query: {},
     };
 
@@ -86,7 +90,7 @@ describe('PermissionGuard', () => {
       .spyOn(usersService, 'findUser')
       .mockResolvedValue(user);
 
-    const result = await permissionGuard.canActivate(context);
+    const result = await visualizationGuard.canActivate(context);
 
     expect(request.query.idRegional).toEqual(user.id_regional);
     expect(spyUsersService).toHaveBeenCalledWith(request.user.username);
