@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import nookies from "nookies";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -15,27 +14,16 @@ import { Checkbox, TextField } from "@mui/material";
 
 import ErrorModal from "../common/ErrorModal";
 import { ButtonComponent } from "../common/Button";
+import { useUser } from "@/contexts/userContext";
 
 type UserLoginSchema = z.infer<typeof userLoginSchema>;
-
-interface LoginResponse {
-  statusCode: number;
-  message: string;
-  data: {
-    id: number;
-    username: string;
-    permissao: string;
-    id_regional: string;
-    nome_usuario: string;
-    email: string;
-  };
-}
 
 export function FormLogin() {
   const [showPassword, SetShowPassoword] = useState(false);
   const [error, setError] = useState<string | null>();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const { login } = useUser();
   const router = useRouter();
 
   const {
@@ -48,35 +36,12 @@ export function FormLogin() {
 
   async function handleUserLogin({ user, password }: UserLoginSchema) {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            user,
-            password,
-          }),
-          credentials: "include",
-        }
-      );
+      const response = await login(user, password);
 
-      if (response.ok) {
-        const res: LoginResponse = await response.json();
-
-        nookies.set(null, "userInfo", JSON.stringify(res.data), {
-          httpOnly: false,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          path: "/",
-        });
-
+      if (response.success) {
         router.push("/");
       } else {
-        const error = await response.json();
-        setError(error.message);
+        setError(response.message);
         setIsModalOpen(true);
       }
     } catch (error: any) {

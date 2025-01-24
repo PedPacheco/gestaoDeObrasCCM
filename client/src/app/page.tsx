@@ -1,11 +1,12 @@
+import { cookies } from "next/headers";
+import { Suspense } from "react";
+
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
+import { LoadingComponent } from "@/components/common/Loading";
 import MainHome from "@/components/home/MainHome";
 import { Header } from "@/components/layout/Header";
 import { Transform } from "@/utils/transform";
-import { cookies } from "next/headers";
-import { Suspense } from "react";
-import { LoadingComponent } from "@/components/common/Loading";
 
 export default async function Home() {
   const cookieStore = await cookies();
@@ -16,6 +17,8 @@ export default async function Home() {
 
   if (params) {
     params = Transform(params);
+  } else {
+    params = { ano: "2025" };
   }
 
   const [filters, homeData] = await Promise.all([

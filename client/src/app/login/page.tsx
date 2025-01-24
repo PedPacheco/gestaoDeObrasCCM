@@ -1,5 +1,5 @@
 import { FormLogin } from "@/components/login/FormLogin";
-import Image from "next/image";
+import { UserProviderWrapper } from "@/components/login/UserProviderWrapper";
 
 export default function Login() {
   return (
@@ -9,7 +9,9 @@ export default function Login() {
           <div className="flex flex-col items-center mt-7">
             <h1 className="text-3xl font-bold py-4 text-zinc-700">Login</h1>
           </div>
-          <FormLogin />
+          <UserProviderWrapper>
+            <FormLogin />
+          </UserProviderWrapper>
         </div>
       </div>
     </div>

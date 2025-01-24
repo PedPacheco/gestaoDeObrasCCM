@@ -7,7 +7,7 @@ import {
 import { UsersService } from 'src/modules/users/users.service';
 
 @Injectable()
-export class PermissionGuard implements CanActivate {
+export class VisualizationGuard implements CanActivate {
   constructor(private userService: UsersService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -25,9 +25,7 @@ export class PermissionGuard implements CanActivate {
     }
 
     if (userRecord.permissao_visualizacao === 'parcial') {
-      throw new UnauthorizedException(
-        'Usuário não tem permissão para acessar está página',
-      );
+      request.query.idRegional = userRecord.id_regional;
     }
 
     return true;

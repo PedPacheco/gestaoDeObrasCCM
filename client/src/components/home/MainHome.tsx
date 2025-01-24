@@ -13,6 +13,8 @@ import { ButtonComponent } from "../common/Button";
 import { MultipleSelectComponent } from "../common/MultipleSelect";
 import ModalGoals from "./GoalsModal";
 import GoalsTable from "./GoalsTable";
+import ErrorModal from "../common/ErrorModal";
+import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 interface Filters {
   regional: { id: string; regional: string }[];
@@ -29,10 +31,12 @@ export default function MainHome({
   const [filteredData, setFilteredData] = useState(data);
   const [open, setOpen] = useState(false);
   const { clearFilters, filters, saveFilters } = useSaveFilters("goalsFilters");
-  const [selectedYear, setSelectedYear] = useState<string[]>([]);
+  const [selectedYear, setSelectedYear] = useState<string[]>(["2025"]);
   const [selectedRegionais, setSelectedRegionais] = useState<string[]>([]);
   const [selectedParceiras, setSelectedParceiras] = useState<string[]>([]);
   const [selectedTiposObra, setSelectedTiposObra] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const handleOpen = () => setOpen(true);
@@ -161,6 +165,15 @@ export default function MainHome({
         handleClose={handleClose}
         open={open}
       />
+
+      {error && (
+        <ErrorModal
+          open={isModalOpen}
+          message={error}
+          onClose={() => setError(null)}
+          icon={<ExclamationCircleIcon width={48} height={48} />}
+        />
+      )}
     </>
   );
 }

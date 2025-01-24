@@ -1,6 +1,5 @@
-import { Suspense } from "react";
-import { Header } from "@/components/layout/Header";
 import BreadcrumpsComponent from "@/components/common/Breadcrumbs";
+import { Header } from "@/components/layout/Header";
 
 export default async function DashboardLayout({
   children,

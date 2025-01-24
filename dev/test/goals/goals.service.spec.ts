@@ -112,6 +112,10 @@ describe('MetasService', () => {
     });
 
     it('should handle missing filters and return default response', async () => {
+      const filters = {
+        ano: [2024],
+      };
+
       const responsePrisma = [
         {
           id_tipo: 15,
@@ -183,7 +187,7 @@ describe('MetasService', () => {
       ];
 
       jest.spyOn(prismaService, '$queryRaw').mockResolvedValue(responsePrisma);
-      const result = await metasService.getGoals({});
+      const result = await metasService.getGoals(filters);
 
       expect(result).toEqual(response);
     });

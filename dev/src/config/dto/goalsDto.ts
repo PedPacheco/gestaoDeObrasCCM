@@ -17,7 +17,6 @@ export class GoalsDTO {
   @Transform(({ value }) => value.toString().split(',').map(Number))
   parceira?: number[];
 
-  @IsOptional()
   @IsArray()
   @Transform(({ value }) => value.toString().split(',').map(Number))
   ano?: number[];

@@ -12,6 +12,7 @@ import { GetCompletedWorksService } from './services/getCompletedWorks.service';
 import { GetAllWorksService } from './services/getAllWorks.service';
 import { GetWorksInPortfolioService } from './services/getWorksInPortfolio.service';
 import { GetWorkDetailsService } from './services/getWorkDetails.service';
+import { VisualizationGuard } from 'src/common/guards/visualization.guard';
 import { PermissionGuard } from 'src/common/guards/permission.guard';
 
 @Controller('obras')
@@ -36,7 +37,7 @@ export class WorksController {
   }
 
   @Get('obras-carteira')
-  @UseGuards(PermissionGuard)
+  @UseGuards(VisualizationGuard)
   async getWorksInPortfolio(@Query() worksFilters: GetWorksDTO) {
     const response =
       await this.getWorksInPortfolioService.getWorksInPortfolio(worksFilters);
@@ -49,7 +50,7 @@ export class WorksController {
   }
 
   @Get('obras-executadas')
-  @UseGuards(PermissionGuard)
+  @UseGuards(VisualizationGuard)
   async GetCompletedWorks(@Query() worksFilters: GetWorksDTO) {
     const response =
       await this.getCompletedWorksService.getCompletedWorks(worksFilters);

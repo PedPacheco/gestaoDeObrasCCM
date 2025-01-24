@@ -88,6 +88,7 @@ describe('AuthController', () => {
           permissao: mockResponse.permissao,
           id_regional: mockResponse.id_regional,
           nome_usuario: mockResponse.nome_usuario,
+          permissao_visualizacao: mockResponse.permissao_visualizacao,
           email: mockResponse.email,
         },
       });

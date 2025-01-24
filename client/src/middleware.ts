@@ -1,29 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
+import { authMiddleware } from "./middleware/authPermission";
 
-const secret = new TextEncoder().encode(
-  process.env.JWT_SECRET || "your_jwt_secret"
-);
+async function runMiddlewares(req: NextRequest, middlewares: Function[]) {
+  for (let middleware of middlewares) {
+    const response = await middleware(req);
+    if (response) return response;
+  }
+
+  return NextResponse.next();
+}
 
 export async function middleware(request: NextRequest) {
-  if (request.nextUrl.pathname.startsWith("/_next")) {
-    return NextResponse.next();
-  }
-
-  const token = request.cookies.get("token")?.value;
-
-  if (!token) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  try {
-    await jwtVerify(token, secret);
-    return NextResponse.next();
-  } catch (error) {
-    const response = NextResponse.redirect(new URL("/login", request.url));
-    response.cookies.delete("token");
-    return response;
-  }
+  const response = await runMiddlewares(request, [authMiddleware]);
+  return response;
 }
 
 export const config = {
