@@ -7,23 +7,21 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="relative z-0 flex min-h-screen w-full overflow-hidden">
-      <div className="relative flex min-h-screen max-w-full flex-1 flex-col overflow-hidden">
-        <div className="h-full flex flex-col">
-          <Header />
+    <div className="relative z-0 flex min-h-screen w-full">
+      <div className="relative flex min-h-screen max-w-full flex-1 flex-col">
+        <Header />
 
-          <main className="w-full flex-1 mt-16 overflow-y-auto h-full">
-            <div className="flex flex-col items-center h-full">
-              <div className="py-2 w-4/5">
-                <BreadcrumpsComponent />
-              </div>
-
-              <span className="border-b border-solid border-zinc-300 w-full"></span>
-
-              {children}
+        <main className="overflow-y-auto h-[calc(100vh-3.5rem)]">
+          <div className="flex h-full flex-col items-center">
+            <div className="py-2 w-4/5">
+              <BreadcrumpsComponent />
             </div>
-          </main>
-        </div>
+
+            <span className="border-b border-solid border-zinc-300 w-full"></span>
+
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );

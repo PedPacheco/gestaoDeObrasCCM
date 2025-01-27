@@ -57,29 +57,27 @@ export default async function Home() {
 
   return (
     <>
-      <div className="relative z-0 flex h-full w-full overflow-hidden">
-        <div className="relative flex max-w-full flex-1 flex-col overflow-hidden">
-          <div className="h-full">
-            <Header />
-            <main className="w-full h-full lg:overflow-y-hidden mt-16">
-              <div className="flex flex-col items-center overflow-y-auto h-full">
-                <h1 className="text-4xl font-bold text-zinc-800 p-2">
-                  EDP São Paulo - Gestão de obras CCM
-                </h1>
-                <h2 className="text-2xl font-semibold text-zinc-700">
-                  Metas EDP
-                </h2>
-                <Suspense fallback={<LoadingComponent color="text-black" />}>
-                  <MainHome
-                    filtersData={filters}
-                    data={data}
-                    token={token}
-                    columns={columnMapping}
-                  />
-                </Suspense>
-              </div>
-            </main>
-          </div>
+      <div className="relative z-0 flex min-h-screen">
+        <div className="relative flex max-w-full min-h-screen flex-1 flex-col">
+          <Header />
+          <main className="flex-1 overflow-y-auto ">
+            <div className="flex flex-col items-center">
+              <h1 className="text-4xl font-bold text-zinc-800 p-2">
+                EDP São Paulo - Gestão de obras CCM
+              </h1>
+              <h2 className="text-2xl font-semibold text-zinc-700">
+                Metas EDP
+              </h2>
+              <Suspense fallback={<LoadingComponent color="text-black" />}>
+                <MainHome
+                  filtersData={filters}
+                  data={data}
+                  token={token}
+                  columns={columnMapping}
+                />
+              </Suspense>
+            </div>
+          </main>
         </div>
       </div>
     </>
