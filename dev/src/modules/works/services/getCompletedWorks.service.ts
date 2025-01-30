@@ -1,14 +1,15 @@
-import { Inject, Injectable } from '@nestjs/common';
+import * as moment from 'moment';
 import { GetWorksDTO } from 'src/config/dto/worksDto';
 import { PrismaService } from 'src/config/prisma/prisma.service';
-import { Prisma } from '@prisma/client';
-import * as moment from 'moment';
-import { calculateTotals } from 'src/utils/calculateTotals';
-import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import {
+  totalsWorksInPortfolio,
   worksInPortfolioInterface,
   worksInPortfolioResponse,
 } from 'src/interfaces/getWorksInPortfolioInterface';
+
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class GetCompletedWorksService {
@@ -17,7 +18,7 @@ export class GetCompletedWorksService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async getCompletedWorks(filters: GetWorksDTO) {
+  private applyFilters(query: Prisma.Sql, filters: GetWorksDTO) {
     const {
       data,
       idCircuito,
@@ -31,50 +32,9 @@ export class GetCompletedWorksService {
       idStatus,
       idTipo,
       tipoFiltro,
-      page,
     } = filters;
 
-    const cacheKey = `worksInPortfolio-${JSON.stringify({
-      idGrupo,
-      idMunicipio,
-      idParceira,
-      idRegional,
-      idStatus,
-      idTipo,
-      idOvnota,
-      idCircuito,
-      idConjunto,
-      idEmpreendimento,
-      data,
-      tipoFiltro,
-      page,
-    })}`;
-
-    const responseData: worksInPortfolioResponse =
-      await this.cacheManager.get(cacheKey);
-
-    let works: worksInPortfolioInterface[];
-
-    if (responseData) {
-      return responseData;
-    }
-
-    const month = data?.split('/')[0];
-    const year = data?.split('/')[1];
-
-    let query = Prisma.sql`SELECT obras.id, obras.ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, executado, 
-                mun, CASE WHEN current_date > entrada + prazo THEN 1 ELSE 0 END AS atraso, data_conclusao, tipo_obra, qtde_planejada, qtde_pend,
-                circuito, mo_planejada, contagem_ocorrencias, turma, status, conjunto, abrev_regional, observ_obra
-                FROM construcao_sp.obras
-                INNER JOIN construcao_sp.municipios ON obras.id_gpm = municipios.id
-                INNER JOIN construcao_sp.circuitos ON obras.id_circuito = circuitos.id
-                INNER JOIN construcao_sp.status ON obras.id_status = status.id
-                INNER JOIN construcao_sp.tipos ON obras.id_tipo = tipos.id
-                INNER JOIN construcao_sp.conjuntos ON circuitos.id_conjunto = conjuntos.id
-                INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
-                INNER JOIN construcao_sp.turmas ON obras.id_turma = turmas.id
-                LEFT JOIN (SELECT id_obra, COUNT(*)::int as contagem_ocorrencias FROM construcao_sp.programacoes WHERE programacoes.data_prog > current_date GROUP BY id_obra ) AS programacoes ON programacoes.id_obra = obras.id
-                WHERE data_conclusao IS NOT NULL`;
+    const [month, year] = data.split('/');
 
     if (idRegional) {
       query = Prisma.sql`${query} AND municipios.id_regional IN (${Prisma.join(idRegional)})`;
@@ -124,38 +84,70 @@ export class GetCompletedWorksService {
       query = Prisma.sql`${query} AND data_conclusao = ${moment(data, 'DD/MM/YYYY', true).toDate()}`;
     }
 
+    return query;
+  }
+
+  async getCompletedWorks(filters: GetWorksDTO) {
+    const { page } = filters;
+
+    const cacheKey = `worksInPortfolio-${JSON.stringify(filters)}`;
+
+    const responseData: worksInPortfolioResponse =
+      await this.cacheManager.get(cacheKey);
+
+    if (responseData) {
+      return responseData;
+    }
+
+    const baseQuery = Prisma.sql`FROM construcao_sp.obras
+                INNER JOIN construcao_sp.municipios ON obras.id_gpm = municipios.id
+                INNER JOIN construcao_sp.circuitos ON obras.id_circuito = circuitos.id
+                INNER JOIN construcao_sp.status ON obras.id_status = status.id
+                INNER JOIN construcao_sp.tipos ON obras.id_tipo = tipos.id
+                INNER JOIN construcao_sp.conjuntos ON circuitos.id_conjunto = conjuntos.id
+                INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
+                INNER JOIN construcao_sp.turmas ON obras.id_turma = turmas.id
+                LEFT JOIN (SELECT id_obra, COUNT(*)::int as contagem_ocorrencias FROM construcao_sp.programacoes WHERE programacoes.data_prog > current_date GROUP BY id_obra ) AS programacoes ON programacoes.id_obra = obras.id
+                WHERE data_conclusao IS NOT NULL`;
+
+    let query = Prisma.sql`SELECT obras.id, obras.ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, executado, 
+      mun, CASE WHEN current_date > entrada + prazo THEN 1 ELSE 0 END AS atraso, data_conclusao, tipo_obra, qtde_planejada, qtde_pend,
+      circuito, mo_planejada, contagem_ocorrencias, turma, status, conjunto, abrev_regional, observ_obra
+      ${baseQuery}`;
+
+    let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras, SUM(mo_planejada) AS total_mo_planejada, SUM(mo_planejada*executado/100) as total_mo_exec, 
+      SUM(CASE WHEN id_status = 4 THEN mo_planejada*executado/100 ELSE 0 END) AS total_mo_suspensa, SUM(qtde_planejada) as total_qtde_planejada, 
+      SUM(qtde_pend) AS total_mo_pend  ${baseQuery}`;
+
+    query = this.applyFilters(query, filters);
+    countQuery = this.applyFilters(countQuery, filters);
+
     query = Prisma.sql`${query} ORDER BY data_conclusao DESC`;
 
     if (page !== null) {
       query = Prisma.sql`${query} LIMIT 200 OFFSET ${page * 200};`;
     }
 
-    works = await this.prisma.$queryRaw(query);
+    const [works, result] = await Promise.all([
+      this.prisma.$queryRaw<worksInPortfolioInterface[]>(query),
+      this.prisma.$queryRaw<totalsWorksInPortfolio[]>(countQuery),
+    ]);
 
-    works = calculateTotals(works, {
-      total_mo_planejada: true,
-      total_qtde_planejada: true,
-    });
-
-    const totalRecords = await this.prisma.obras.count({
-      where: {
-        data_conclusao: { not: null },
-        municipios: {
-          id_regional: idRegional ? { in: idRegional } : undefined,
-        },
-        id_tipo: idTipo ? { in: idTipo } : undefined,
-        id_turma: idParceira ? { in: idParceira } : undefined,
-        tipos: {
-          id_grupo: idGrupo ? { in: idGrupo } : undefined,
-        },
-        id_gpm: idMunicipio ? { in: idMunicipio } : undefined,
-        id_status: idStatus ? { in: idStatus } : undefined,
-      },
-    });
+    const totals =
+      result.length > 0
+        ? {
+            total_obras: Number(result[0].total_obras) || 0,
+            total_mo_planejada: result[0].total_mo_planejada || 0,
+            total_mo_exec: result[0].total_mo_exec || 0,
+            total_mo_suspensa: result[0].total_mo_suspensa || 0,
+            total_qtde_planejada: result[0].total_qtde_planejada || 0,
+            total_qtde_pend: result[0].total_qtde_pend || 0,
+          }
+        : null;
 
     const response: worksInPortfolioResponse = {
       works,
-      totalRecords,
+      totals,
     };
 
     await this.cacheManager.set(cacheKey, response, 1800000);

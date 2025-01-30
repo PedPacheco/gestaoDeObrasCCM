@@ -94,7 +94,14 @@ describe('WorksController', () => {
         empreendimento: '',
       },
     ],
-    totalRecords: 1,
+    totals: {
+      total_obras: 1,
+      total_mo_planejada: 91105.824,
+      total_mo_exec: 91105.824,
+      total_mo_suspensa: 0,
+      total_qtde_planejada: 0,
+      total_qtde_pend: 0,
+    },
   };
 
   describe('getAllWorks', () => {

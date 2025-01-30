@@ -1,4 +1,4 @@
-interface GetScheduleValuesInterface {
+export interface GetScheduleValuesInterface {
   id: number;
   ovnota: string;
   ordemdiagrama: string;
@@ -31,7 +31,14 @@ interface GetScheduleValuesInterface {
   total_qtde_planejada: number;
 }
 
+export interface totalsGetScheduleValues {
+  total_obras: number;
+  total_mo_planejada: number;
+  total_mo_exec: number;
+  total_qtde_planejada: number;
+}
+
 export interface GetScheduleValuesResponse {
   works: GetScheduleValuesInterface[];
-  totalRecords: number;
+  totals: totalsGetScheduleValues;
 }

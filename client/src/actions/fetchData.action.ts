@@ -16,6 +16,8 @@ export async function fetchData<T>(
 
   const url = mountUrl(baseUrl, params);
 
+  console.log(url)
+
   try {
     const res = await fetch(url, {
       method: "GET",

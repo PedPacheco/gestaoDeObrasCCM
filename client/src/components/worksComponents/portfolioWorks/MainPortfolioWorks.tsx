@@ -3,17 +3,17 @@
 import dayjs from "dayjs";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
+import nookies from "nookies";
 import { useCallback, useEffect, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { TableWithPagination } from "@/components/common/TableWithPagination";
 import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import PortfolioWorksFilters from "./PortfolioWorksFilters";
-import { TableWithPagination } from "@/components/common/TableWithPagination";
 
 const ErrorModal = dynamic(() => import("@/components/common/ErrorModal"), {
   ssr: false,
@@ -47,7 +47,6 @@ export default function PortfolioWorks({
   const [page, setPage] = useState(0);
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
-  const { filters, saveFilters } = useSaveFilters(cookie);
 
   const toggleModal = () => setOpen((prev) => !prev);
 
@@ -108,18 +107,21 @@ export default function PortfolioWorks({
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
 
+    const currentFilters = nookies.get(null)[cookie]
+      ? JSON.parse(nookies.get(null)[cookie])
+      : {};
+
     const filtersValues = {
-      ...Transform(filters?.selectedItems || {}),
-      data: filters?.date
-        ? dayjs(filters?.date).format(
-            filters?.filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY"
+      ...Transform(currentFilters?.selectedItems || {}),
+      data: currentFilters?.date
+        ? dayjs(currentFilters?.date).format(
+            currentFilters?.filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY"
           )
         : "",
-      tipoFiltro: filters?.filterType,
+      tipoFiltro: currentFilters?.filterType,
       page: newPage.toString(),
     };
 
-    saveFilters({ ...filters });
     fetchWorks(filtersValues);
   };
 
@@ -133,6 +135,7 @@ export default function PortfolioWorks({
           generateExcel={generateExcel}
           applyFilters={fetchWorks}
           isPending={isPending}
+          setPage={setPage}
         />
       </div>
 
@@ -149,7 +152,7 @@ export default function PortfolioWorks({
           {Object.entries(columns)
             .slice(totalValues)
             .map(([column, value]) => {
-              const item = data[1];
+              const item = data.totals;
 
               return (
                 <div

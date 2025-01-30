@@ -18,7 +18,6 @@ describe('GetCompletedWorksService', () => {
 
   const mockPrismaService = {
     $queryRaw: jest.fn(),
-    obras: { count: jest.fn() },
   };
 
   const mockWorks = [
@@ -57,9 +56,17 @@ describe('GetCompletedWorksService', () => {
       status: 'EXECUTADA',
       observ_obra: null,
       referencia: null,
-      total_mo_planejada: 91105.824,
+    },
+  ];
+
+  const mockCountQuery = [
+    {
       total_obras: 1,
+      total_mo_planejada: 91105.824,
+      total_mo_exec: 91105.824,
+      total_mo_suspensa: 0,
       total_qtde_planejada: 0,
+      total_qtde_pend: 0,
     },
   ];
 
@@ -130,12 +137,18 @@ describe('GetCompletedWorksService', () => {
 
     const cacheKey = `worksInPortfolio-${JSON.stringify(filters)}`;
 
-    mockCacheManager.get.mockResolvedValue(mockWorks);
+    mockCacheManager.get.mockResolvedValue({
+      works: mockWorks,
+      totals: mockCountQuery[0],
+    });
 
     const result = await getCompletedWorksService.getCompletedWorks(filters);
 
     expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
-    expect(result).toEqual(mockWorks);
+    expect(result).toEqual({
+      works: mockWorks,
+      totals: mockCountQuery[0],
+    });
     expect(prismaService.$queryRaw).not.toHaveBeenCalled();
   });
 
@@ -156,24 +169,12 @@ describe('GetCompletedWorksService', () => {
       page: 0,
     };
 
-    const mockQuery = [
-      { id: 1, ovnota: '123', mo_planejada: 3454.0, qtde_planejada: 4 },
-    ];
-
-    const mockResult = [
-      {
-        ...mockQuery[0],
-        total_mo_planejada: 3454.0,
-        total_obras: 1,
-        total_qtde_planejada: 4,
-      },
-    ];
-
     const cacheKey = `worksInPortfolio-${JSON.stringify(filters)}`;
 
     mockCacheManager.get.mockResolvedValue(null);
-    mockPrismaService.$queryRaw.mockResolvedValue(mockQuery);
-    mockPrismaService.obras.count.mockResolvedValue(1);
+    mockPrismaService.$queryRaw
+      .mockResolvedValueOnce(mockWorks)
+      .mockResolvedValueOnce(mockCountQuery);
 
     const result = await getCompletedWorksService.getCompletedWorks(filters);
 
@@ -188,11 +189,11 @@ describe('GetCompletedWorksService', () => {
     );
 
     expect(allPartsPresent).toBeTruthy();
-    expect(result).toEqual({ works: mockResult, totalRecords: 1 });
+    expect(result).toEqual({ works: mockWorks, totals: mockCountQuery[0] });
     expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
     expect(cacheManager.set).toHaveBeenCalledWith(
       cacheKey,
-      { works: mockResult, totalRecords: 1 },
+      { works: mockWorks, totals: mockCountQuery[0] },
       1800000,
     );
   });
@@ -214,23 +215,12 @@ describe('GetCompletedWorksService', () => {
       page: 0,
     };
 
-    const mockQuery = [
-      { id: 1, ovnota: '123', mo_planejada: 3454.0, qtde_planejada: 4 },
-    ];
-
-    const mockResult = [
-      {
-        ...mockQuery[0],
-        total_mo_planejada: 3454.0,
-        total_obras: 1,
-        total_qtde_planejada: 4,
-      },
-    ];
-
     const cacheKey = `worksInPortfolio-${JSON.stringify(filters)}`;
 
     mockCacheManager.get.mockResolvedValue(null);
-    mockPrismaService.$queryRaw.mockResolvedValue(mockQuery);
+    mockPrismaService.$queryRaw
+      .mockResolvedValueOnce(mockWorks)
+      .mockResolvedValueOnce(mockCountQuery);
 
     const result = await getCompletedWorksService.getCompletedWorks(filters);
 
@@ -246,11 +236,11 @@ describe('GetCompletedWorksService', () => {
 
     expect(allPartsPresent).toBeTruthy();
 
-    expect(result).toEqual({ works: mockResult, totalRecords: 1 });
+    expect(result).toEqual({ works: mockWorks, totals: mockCountQuery[0] });
     expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
     expect(cacheManager.set).toHaveBeenCalledWith(
       cacheKey,
-      { works: mockResult, totalRecords: 1 },
+      { works: mockWorks, totals: mockCountQuery[0] },
       1800000,
     );
   });

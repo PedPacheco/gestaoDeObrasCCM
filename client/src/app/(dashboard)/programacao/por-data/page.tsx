@@ -65,6 +65,7 @@ export default async function ScheduleForDay() {
     observ_programacao: "Observação da programação",
     total_obras: "Total de obras",
     total_mo_planejada: "Total MO planejada",
+    total_mo_exec: "Total MO Executado",
     total_qtde_planejada: "Total QTDE planejada",
   };
 

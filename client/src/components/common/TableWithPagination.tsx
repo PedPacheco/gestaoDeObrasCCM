@@ -15,9 +15,18 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useRouter } from "next/navigation";
 
+interface totalsInterface {
+  total_obras: number;
+  total_mo_planejada: number;
+  total_mo_exec: number;
+  total_mo_suspensa: number;
+  total_qtde_planejada: number;
+  total_qtde_pend: number;
+}
+
 interface dataInterface {
   works: any[];
-  totalRecords: number;
+  totals: totalsInterface;
 }
 
 interface TableComponentProps {
@@ -113,7 +122,7 @@ export function TableWithPagination({
       <div className="sticky bottom-0 bg-white">
         <TablePagination
           component="div"
-          count={data.totalRecords}
+          count={data.totals.total_obras}
           page={page}
           rowsPerPage={200}
           rowsPerPageOptions={[]}

@@ -18,10 +18,9 @@ describe('GetWorksInPortfolioService', () => {
 
   const mockPrismaService = {
     $queryRaw: jest.fn(),
-    obras: { count: jest.fn() },
   };
 
-  const mockResponse = [
+  const mockWorks = [
     {
       id: 5773,
       ovnota: '12791121',
@@ -57,54 +56,17 @@ describe('GetWorksInPortfolioService', () => {
       data_empreitamento: '2024-08-06T00:00:00.000Z',
       empreendimento: null,
       turma: 'ENGELMIG',
-      total_obras: 2,
-      total_mo_executada: 61505.72568,
-      total_mo_suspensa: 30752.86284,
-      total_mo_planejada: 136679.3904,
-      total_qtde_planejada: 1.464,
-      total_qtde_pend: 1.46322,
     },
+  ];
+
+  const mockCountQuery = [
     {
-      id: 5773,
-      ovnota: '12791121',
-      ordemdiagrama: '170000004644',
-      ordem_dca: null,
-      ordem_dcd: '190000005626',
-      ordem_dcim: null,
-      status_ov_sap: 20,
-      pep: 'X/004604',
-      executado: 45,
-      mun: 'SJC',
-      id_status: 4,
-      entrada: '2023-04-11T00:00:00.000Z',
-      prazo: 90,
-      prazo_fim: new Date('2023-07-10'),
-      abrev_regional: 'SJC',
-      tipo_obra: 'SPACER CABLE',
-      qtde_planejada: 0.732,
-      contagem_ocorrencias: 1,
-      qtde_pend: 0.73161,
-      circuito: 'CAC-1302',
-      mo_planejada: 68339.6952,
-      first_data_prog: '2024-09-19T00:00:00.000Z',
-      status: 'PROGRAMADO',
-      hora_ini: '1970-01-01T08:00:00.000Z',
-      hora_ter: '1970-01-01T17:00:00.000Z',
-      tipo_servico: 'OBRA LIVRE',
-      chi: 0,
-      conjunto: 'CAÇAPAVA',
-      equipe_linha_morta: 12,
-      equipe_linha_viva: 3,
-      equipe_regularizacao: 0,
-      data_empreitamento: '2024-08-06T00:00:00.000Z',
-      empreendimento: null,
-      turma: 'ENGELMIG',
-      total_obras: 2,
-      total_mo_executada: 61505.72568,
-      total_mo_suspensa: 30752.86284,
-      total_mo_planejada: 136679.3904,
-      total_qtde_planejada: 1.464,
-      total_qtde_pend: 1.46322,
+      total_obras: 1,
+      total_mo_planejada: 91105.824,
+      total_mo_exec: 91105.824,
+      total_mo_suspensa: 0,
+      total_qtde_planejada: 0,
+      total_qtde_pend: 0,
     },
   ];
 
@@ -137,7 +99,7 @@ describe('GetWorksInPortfolioService', () => {
       INNER JOIN construcao_sp.empreendimento ON obras.id_empreendimento = empreendimento.id
       INNER JOIN construcao_sp.conjuntos ON circuitos.id_conjunto = conjuntos.id
       INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
-      LEFT JOIN construcao_sp.datas_programacao ON datas_programacao.id= obras.id
+      LEFT JOIN construcao_sp.datas_programacao ON datas_programacao.id = obras.id
       LEFT JOIN (SELECT id_obra, COUNT(*)::int as contagem_ocorrencias FROM construcao_sp.programacoes WHERE programacoes.data_prog > current_date GROUP BY id_obra ) AS programacoes ON programacoes.id_obra = obras.id 
       WHERE data_conclusao IS NULL
 `;
@@ -170,13 +132,19 @@ describe('GetWorksInPortfolioService', () => {
 
     const cacheKey = `worksInPortfolio-${JSON.stringify(filters)}`;
 
-    mockCacheManager.get.mockResolvedValue(mockResponse);
+    mockCacheManager.get.mockResolvedValue({
+      works: mockWorks,
+      totals: mockCountQuery[0],
+    });
 
     const result =
       await getWorksInPortfolioService.getWorksInPortfolio(filters);
 
     expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
-    expect(result).toEqual(mockResponse);
+    expect(result).toEqual({
+      works: mockWorks,
+      totals: mockCountQuery[0],
+    });
     expect(prismaService.$queryRaw).not.toHaveBeenCalled();
   });
 
@@ -200,8 +168,9 @@ describe('GetWorksInPortfolioService', () => {
     const cacheKey = `worksInPortfolio-${JSON.stringify(filters)}`;
 
     mockCacheManager.get.mockResolvedValue(null);
-    mockPrismaService.$queryRaw.mockResolvedValue(mockResponse);
-    mockPrismaService.obras.count.mockResolvedValue(1);
+    mockPrismaService.$queryRaw
+      .mockResolvedValueOnce(mockWorks)
+      .mockResolvedValueOnce(mockCountQuery);
 
     const result =
       await getWorksInPortfolioService.getWorksInPortfolio(filters);
@@ -225,14 +194,17 @@ describe('GetWorksInPortfolioService', () => {
       normalize(calledQuery.join('')),
     );
 
+    console.log(normalize(initialQuery));
+    console.log(normalize(calledQuery.join('')));
+
     expect(allPartsPresent).toBeTruthy();
     expect(mockPrismaService.$queryRaw).toHaveBeenCalled();
-    expect(result).toEqual({ works: mockResponse, totalRecords: 1 });
+    expect(result).toEqual({ works: mockWorks, totals: mockCountQuery[0] });
 
     expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
     expect(cacheManager.set).toHaveBeenCalledWith(
       cacheKey,
-      { works: mockResponse, totalRecords: 1 },
+      { works: mockWorks, totals: mockCountQuery[0] },
       1800000,
     );
   });
@@ -254,8 +226,9 @@ describe('GetWorksInPortfolioService', () => {
       page: 1,
     };
 
-    mockPrismaService.$queryRaw.mockResolvedValue(mockResponse);
-    mockPrismaService.obras.count.mockResolvedValue(1);
+    mockPrismaService.$queryRaw
+      .mockResolvedValueOnce(mockWorks)
+      .mockResolvedValueOnce(mockCountQuery);
 
     await getWorksInPortfolioService.getWorksInPortfolio(filters);
 

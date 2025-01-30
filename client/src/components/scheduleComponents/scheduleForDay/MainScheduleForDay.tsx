@@ -2,6 +2,7 @@
 
 import dayjs from "dayjs";
 import dynamic from "next/dynamic";
+import nookies from "nookies";
 import { useCallback, useEffect, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
@@ -28,7 +29,6 @@ export default function MainSchduleForDay({
   filtersData,
   token,
 }: MainInterface<any>) {
-  const { filters, saveFilters } = useSaveFilters("scheduleForDayFilters");
   const [filteredData, setFilteredData] = useState(data);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>();
@@ -86,19 +86,22 @@ export default function MainSchduleForDay({
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
 
+    const currentFilters = nookies.get(null)["scheduleForDayFilters"]
+      ? JSON.parse(nookies.get(null)["scheduleForDayFilters"])
+      : {};
+
     const filtersValues = {
-      ...Transform(filters?.selectedItems || {}),
-      data: filters?.date
-        ? dayjs(filters?.date).format(
-            filters?.filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY"
+      ...Transform(currentFilters?.selectedItems || {}),
+      data: currentFilters?.date
+        ? dayjs(currentFilters?.date).format(
+            currentFilters?.filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY"
           )
         : dayjs().format("MM/YYYY"),
-      tipoFiltro: filters?.filterType || "month",
-      executado: filters?.executed || "false",
+      tipoFiltro: currentFilters?.filterType || "month",
+      executado: currentFilters?.executed || "false",
       page: newPage.toString(),
     };
 
-    saveFilters({ ...filters });
     fetchSchedule(filtersValues);
   };
 
@@ -111,6 +114,7 @@ export default function MainSchduleForDay({
           generateExcel={generateExcel}
           isPending={isPending}
           applyFilters={fetchSchedule}
+          setPage={setPage}
         />
       </div>
 
@@ -127,7 +131,7 @@ export default function MainSchduleForDay({
           {Object.entries(columns)
             .slice(24)
             .map(([column, value]) => {
-              const item = data[1];
+              const item = data.totals;
 
               return (
                 <div
