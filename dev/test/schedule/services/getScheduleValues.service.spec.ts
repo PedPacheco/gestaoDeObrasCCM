@@ -10,9 +10,6 @@ describe('GetScheduleValues', () => {
 
   const prismaMock = {
     $queryRaw: jest.fn(),
-    obras: {
-      count: jest.fn(),
-    },
   };
 
   const mockQueryResponse = [
@@ -45,11 +42,11 @@ describe('GetScheduleValues', () => {
     } as unknown as obras,
   ];
 
-  const mockResponse = [
+  const mockCount = [
     {
-      ...mockQueryResponse[0],
       total_obras: 1,
       total_mo_planejada: 3262.21,
+      total_mo_exec: 0,
       total_qtde_planejada: 1,
     },
   ];
@@ -81,8 +78,9 @@ describe('GetScheduleValues', () => {
       page: 1,
     };
 
-    jest.spyOn(prisma, '$queryRaw').mockResolvedValue(mockQueryResponse);
-    jest.spyOn(prisma.obras, 'count').mockResolvedValue(1);
+    prismaMock.$queryRaw
+      .mockResolvedValueOnce(mockQueryResponse)
+      .mockResolvedValueOnce(mockCount);
 
     const result = await service.getValues(filters);
 
@@ -113,11 +111,14 @@ describe('GetScheduleValues', () => {
       normalize(expectedQuery).includes(normalize(part)),
     );
 
-    expect(result).toEqual({ works: mockResponse, totalRecords: 1 });
+    console.log(result);
+
+    expect(result).toEqual({ works: mockQueryResponse, totals: mockCount[0] });
     expect(prismaMock.$queryRaw.mock.calls[0][0].values[0]).toEqual(
       expectedDate,
     );
     expect(allPartsPresent).toBeTruthy();
+    expect(prisma.$queryRaw).toHaveBeenCalledTimes(2);
   });
 
   it('should return the correct values with filters', async () => {
@@ -133,7 +134,9 @@ describe('GetScheduleValues', () => {
       page: 1,
     };
 
-    jest.spyOn(prisma, '$queryRaw').mockResolvedValue(mockQueryResponse);
+    prismaMock.$queryRaw
+      .mockResolvedValueOnce(mockQueryResponse)
+      .mockResolvedValueOnce(mockCount);
 
     const result = await service.getValues(filters);
 
@@ -170,7 +173,7 @@ describe('GetScheduleValues', () => {
       normalize(queryStrings.join('')),
     );
 
-    expect(result).toEqual({ works: mockResponse, totalRecords: 1 });
+    expect(result).toEqual({ works: mockQueryResponse, totals: mockCount[0] });
     expect(prismaMock.$queryRaw.mock.calls[0][0].values).toStrictEqual([
       month,
       year,
@@ -182,5 +185,6 @@ describe('GetScheduleValues', () => {
       200,
     ]);
     expect(allPartsPresent).toBeTruthy();
+    expect(prisma.$queryRaw).toHaveBeenCalledTimes(2);
   });
 });

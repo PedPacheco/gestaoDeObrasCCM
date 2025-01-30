@@ -62,9 +62,18 @@ describe('ExportWorksInPortfolio', () => {
       },
     ];
 
+    const mockTotals = {
+      total_obras: 1,
+      total_mo_planejada: 5,
+      total_mo_exec: 2.5,
+      total_mo_suspensa: 0,
+      total_qtde_planejada: 10,
+      total_qtde_pend: 2,
+    };
+
     const mockWorksResponse: worksInPortfolioResponse = {
       works: mockWorksData,
-      totalRecords: 1,
+      totals: mockTotals,
     };
 
     const mockResponse = {

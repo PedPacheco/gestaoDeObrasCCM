@@ -1,14 +1,15 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import * as moment from 'moment';
 import { GetWorksDTO } from 'src/config/dto/worksDto';
 import { PrismaService } from 'src/config/prisma/prisma.service';
 import {
+  totalsWorksInPortfolio,
   worksInPortfolioInterface,
   worksInPortfolioResponse,
 } from 'src/interfaces/getWorksInPortfolioInterface';
-import { calculateTotals } from 'src/utils/calculateTotals';
-import * as moment from 'moment';
+
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class GetWorksInPortfolioService {
@@ -17,9 +18,7 @@ export class GetWorksInPortfolioService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async getWorksInPortfolio(
-    filters: GetWorksDTO,
-  ): Promise<worksInPortfolioResponse> {
+  private applyFilters(query: Prisma.Sql, filters: GetWorksDTO) {
     const {
       idGrupo,
       idMunicipio,
@@ -33,52 +32,9 @@ export class GetWorksInPortfolioService {
       idEmpreendimento,
       data,
       tipoFiltro,
-      page,
     } = filters;
 
-    const month = data?.split('/')[0];
-    const year = data?.split('/')[1];
-
-    const cacheKey = `worksInPortfolio-${JSON.stringify({
-      idGrupo,
-      idMunicipio,
-      idParceira,
-      idRegional,
-      idStatus,
-      idTipo,
-      idOvnota,
-      idCircuito,
-      idConjunto,
-      idEmpreendimento,
-      data,
-      tipoFiltro,
-      page,
-    })}`;
-
-    const responseData: worksInPortfolioResponse =
-      await this.cacheManager.get(cacheKey);
-
-    if (responseData) {
-      return responseData;
-    }
-
-    let query = Prisma.sql`SELECT
-        obras.id, obras.ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, 
-        executado, mun, id_status, entrada, prazo, entrada + prazo AS prazo_fim, abrev_regional, tipo_obra, qtde_planejada, contagem_ocorrencias,
-        qtde_pend, circuito, mo_planejada, first_data_prog, status.status, hora_ini, hora_ter, tipo_servico, datas_programacao.chi,
-        conjuntos.conjunto, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, data_empreitamento, empreendimento, turma
-        FROM construcao_sp.obras 
-        INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma 
-        INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm 
-        INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo 
-        INNER JOIN construcao_sp.status ON status.id = obras.id_status 
-        INNER JOIN construcao_sp.circuitos ON obras.id_circuito = circuitos.id
-        INNER JOIN construcao_sp.empreendimento ON obras.id_empreendimento = empreendimento.id
-        INNER JOIN construcao_sp.conjuntos ON circuitos.id_conjunto = conjuntos.id
-        INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
-        LEFT JOIN construcao_sp.datas_programacao ON datas_programacao.id= obras.id
-        LEFT JOIN (SELECT id_obra, COUNT(*)::int as contagem_ocorrencias FROM construcao_sp.programacoes WHERE programacoes.data_prog > current_date GROUP BY id_obra ) AS programacoes ON programacoes.id_obra = obras.id 
-        WHERE data_conclusao IS NULL`;
+    const [month, year] = data ? data.split('/') : [null, null];
 
     if (idRegional) {
       query = Prisma.sql`${query} AND municipios.id_regional IN (${Prisma.join(idRegional)})`;
@@ -128,42 +84,76 @@ export class GetWorksInPortfolioService {
       query = Prisma.sql`${query} AND first_data_prog = ${moment(data, 'DD/MM/YYYY', true).toDate()}`;
     }
 
+    return query;
+  }
+
+  async getWorksInPortfolio(
+    filters: GetWorksDTO,
+  ): Promise<worksInPortfolioResponse> {
+    const { page } = filters;
+
+    const cacheKey = `worksInPortfolio-${JSON.stringify(filters)}`;
+
+    const responseData: worksInPortfolioResponse =
+      await this.cacheManager.get(cacheKey);
+
+    if (responseData) {
+      return responseData;
+    }
+
+    const baseQuery = Prisma.sql`FROM construcao_sp.obras 
+        INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma 
+        INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm 
+        INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo 
+        INNER JOIN construcao_sp.status ON status.id = obras.id_status 
+        INNER JOIN construcao_sp.circuitos ON obras.id_circuito = circuitos.id
+        INNER JOIN construcao_sp.empreendimento ON obras.id_empreendimento = empreendimento.id
+        INNER JOIN construcao_sp.conjuntos ON circuitos.id_conjunto = conjuntos.id
+        INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
+        LEFT JOIN construcao_sp.datas_programacao ON datas_programacao.id = obras.id
+        LEFT JOIN (SELECT id_obra, COUNT(*)::int as contagem_ocorrencias FROM construcao_sp.programacoes WHERE programacoes.data_prog > current_date GROUP BY id_obra ) AS programacoes ON programacoes.id_obra = obras.id 
+        WHERE data_conclusao IS NULL`;
+
+    let query = Prisma.sql`SELECT
+        obras.id, obras.ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, 
+        executado, mun, id_status, entrada, prazo, entrada + prazo AS prazo_fim, abrev_regional, tipo_obra, qtde_planejada, contagem_ocorrencias,
+        qtde_pend, circuito, mo_planejada, first_data_prog, status.status, hora_ini, hora_ter, tipo_servico, datas_programacao.chi,
+        conjuntos.conjunto, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, data_empreitamento, empreendimento, turma
+        ${baseQuery}`;
+
+    let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras, SUM(mo_planejada) AS total_mo_planejada, SUM(mo_planejada*executado/100) as total_mo_exec, 
+        SUM(CASE WHEN id_status = 4 THEN mo_planejada*executado/100 ELSE 0 END) AS total_mo_suspensa, SUM(qtde_planejada) as total_qtde_planejada,
+        SUM(qtde_pend) AS total_mo_pend ${baseQuery}`;
+
+    query = this.applyFilters(query, filters);
+    countQuery = this.applyFilters(countQuery, filters);
+
     query = Prisma.sql`${query} ORDER BY first_data_prog, status DESC, entrada + prazo`;
 
     if (page !== null) {
       query = Prisma.sql`${query} LIMIT 200 OFFSET ${page * 200};`;
     }
 
-    const [result, totalRecords] = await Promise.all([
-      this.prisma.$queryRaw(query),
-      this.prisma.obras.count({
-        where: {
-          data_conclusao: null,
-          municipios: {
-            id_regional: idRegional ? { in: idRegional } : undefined,
-          },
-          id_tipo: idTipo ? { in: idTipo } : undefined,
-          id_turma: idParceira ? { in: idParceira } : undefined,
-          tipos: {
-            id_grupo: idGrupo ? { in: idGrupo } : undefined,
-          },
-          id_gpm: idMunicipio ? { in: idMunicipio } : undefined,
-          id_status: idStatus ? { in: idStatus } : undefined,
-        },
-      }),
+    const [works, result] = await Promise.all([
+      this.prisma.$queryRaw<worksInPortfolioInterface[]>(query),
+      this.prisma.$queryRaw<totalsWorksInPortfolio[]>(countQuery),
     ]);
 
-    const works: worksInPortfolioInterface[] = calculateTotals(result, {
-      total_mo_executada: true,
-      total_mo_suspensa: true,
-      total_mo_planejada: true,
-      total_qtde_planejada: true,
-      total_qtde_pend: true,
-    });
+    const totals =
+      result.length > 0
+        ? {
+            total_obras: Number(result[0].total_obras) || 0,
+            total_mo_planejada: result[0].total_mo_planejada || 0,
+            total_mo_exec: result[0].total_mo_exec || 0,
+            total_mo_suspensa: result[0].total_mo_suspensa || 0,
+            total_qtde_planejada: result[0].total_qtde_planejada || 0,
+            total_qtde_pend: result[0].total_qtde_pend || 0,
+          }
+        : null;
 
     const response: worksInPortfolioResponse = {
       works,
-      totalRecords,
+      totals,
     };
 
     await this.cacheManager.set(cacheKey, response, 1800000);

@@ -1,7 +1,7 @@
 "use client";
 
 import dayjs, { Dayjs } from "dayjs";
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
 import { DateFilter } from "@/components/common/DateFilter";
@@ -27,6 +27,7 @@ interface ScheduleByDateFiltersProps {
   generateExcel: (params: any) => void;
   isPending: boolean;
   applyFilters: (params: Record<string, string | boolean>) => void;
+  setPage: (page: number) => void;
 }
 
 export default function ScheduleForDayFilters({
@@ -35,6 +36,7 @@ export default function ScheduleForDayFilters({
   generateExcel,
   isPending,
   applyFilters,
+  setPage,
 }: ScheduleByDateFiltersProps) {
   const { clearFilters, filters, saveFilters } = useSaveFilters(
     "scheduleForDayFilters"
@@ -82,6 +84,7 @@ export default function ScheduleForDayFilters({
       page: "0",
     };
 
+    setPage(0);
     applyFilters(newSelectedItems);
   }
 
@@ -92,6 +95,8 @@ export default function ScheduleForDayFilters({
     setExecuted(false);
 
     clearFilters();
+
+    setPage(0);
 
     applyFilters({
       data: dayjs().format("MM/YYYY"),

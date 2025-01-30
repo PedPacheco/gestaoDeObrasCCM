@@ -2,7 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Response } from 'express';
 import * as Exceljs from 'exceljs';
 import { ExportCompletedWorksService } from 'src/modules/export/services/exportCompletedWorks.service';
-import { worksInPortfolioInterface } from 'src/interfaces/getWorksInPortfolioInterface';
+import {
+  worksInPortfolioInterface,
+  worksInPortfolioResponse,
+} from 'src/interfaces/getWorksInPortfolioInterface';
 
 jest.mock('exceljs');
 
@@ -59,9 +62,18 @@ describe('ExportCompletedWorks', () => {
       },
     ];
 
-    const mockWorksRsponse = {
+    const mockTotals = {
+      total_obras: 1,
+      total_mo_planejada: 5,
+      total_mo_exec: 2.5,
+      total_mo_suspensa: 0,
+      total_qtde_planejada: 10,
+      total_qtde_pend: 2,
+    };
+
+    const mockWorksRsponse: worksInPortfolioResponse = {
       works: mockWorksData,
-      totalRecords: 1,
+      totals: mockTotals,
     };
 
     const mockResponse = {

@@ -1,8 +1,11 @@
 import * as moment from 'moment';
 import { GetScheduleValuesDTO } from 'src/config/dto/scheduleDTO';
 import { PrismaService } from 'src/config/prisma/prisma.service';
-import { GetScheduleValuesResponse } from 'src/interfaces/getScheduleValuesInterface';
-import { calculateTotals } from 'src/utils/calculateTotals';
+import {
+  GetScheduleValuesInterface,
+  GetScheduleValuesResponse,
+  totalsGetScheduleValues,
+} from 'src/interfaces/getScheduleValuesInterface';
 
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
@@ -11,36 +14,19 @@ import { Prisma } from '@prisma/client';
 export class GetScheduleValuesService {
   constructor(private prisma: PrismaService) {}
 
-  async getValues(
-    filters: GetScheduleValuesDTO,
-  ): Promise<GetScheduleValuesResponse> {
+  private applyFilters(query: Prisma.Sql, filters: GetScheduleValuesDTO) {
     const {
       data,
-      page,
       executado,
       idGrupo,
+      idMunicipio,
       idParceira,
       idRegional,
       idTipo,
-      idMunicipio,
       tipoFiltro,
     } = filters;
 
-    const month = data?.split('/')[0];
-    const year = data?.split('/')[1];
-
-    let query = Prisma.sql`SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, entrada, entrada + prazo AS prazo_fim, tipo_obra, qtde_planejada,
-                mo_planejada, turma, executado, data_prog, prog, exec, observ_programacao, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec,
-                num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, id_tecnico, conjunto, circuito
-                FROM construcao_sp.obras
-                INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
-                INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
-                INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
-                INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm
-                INNER JOIN construcao_sp.regionais ON regionais.id = municipios.id_regional
-                INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo
-                INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
-                WHERE 1=1`;
+    const [month, year] = data ? data.split('/') : [null, null];
 
     if (tipoFiltro === 'month' && data) {
       query = Prisma.sql`${query} AND EXTRACT(MONTH FROM data_prog) = ${parseInt(month)} AND EXTRACT(YEAR FROM data_prog) = ${parseInt(year)}`;
@@ -76,55 +62,59 @@ export class GetScheduleValuesService {
       query = Prisma.sql`${query} AND exec IS NULL`;
     }
 
+    return query;
+  }
+
+  async getValues(
+    filters: GetScheduleValuesDTO,
+  ): Promise<GetScheduleValuesResponse> {
+    const { page } = filters;
+
+    const baseQuery = Prisma.sql`FROM construcao_sp.obras
+        INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
+        INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
+        INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
+        INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm
+        INNER JOIN construcao_sp.regionais ON regionais.id = municipios.id_regional
+        INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo
+        INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
+        WHERE 1=1`;
+
+    let query = Prisma.sql`SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, entrada, entrada + prazo AS prazo_fim, tipo_obra, qtde_planejada,
+        mo_planejada, turma, executado, data_prog, prog, exec, observ_programacao, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec,
+        num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, id_tecnico, conjunto, circuito
+        ${baseQuery}`;
+
+    let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras, SUM(mo_planejada) as total_mo_planejada, SUM(mo_planejada*executado/100) as total_mo_exec, 
+        SUM(qtde_planejada) as total_qtde_planejada ${baseQuery}`;
+
+    query = this.applyFilters(query, filters);
+    countQuery = this.applyFilters(countQuery, filters);
+
     query = Prisma.sql`${query} ORDER BY data_prog, ovnota`;
 
     if (page !== null) {
       query = Prisma.sql`${query} LIMIT 200 OFFSET ${page * 200}`;
     }
 
-    const startDate = moment
-      .utc(`${year}-${month}`, 'YYYY-MM')
-      .startOf('month')
-      .toDate();
-    const endDate = moment
-      .utc(`${year}-${month}`, 'YYYY-MM')
-      .endOf('month')
-      .toDate();
-
-    const [result, totalRecords] = await Promise.all([
-      this.prisma.$queryRaw(query),
-      this.prisma.obras.count({
-        where: {
-          programacoes: {
-            some: {
-              exec: executado ? { not: null } : null,
-              data_prog:
-                tipoFiltro === 'month'
-                  ? { gte: startDate, lte: endDate }
-                  : { equals: data },
-            },
-          },
-          municipios: {
-            id_regional: idRegional ? { in: idRegional } : undefined,
-          },
-          id_tipo: idTipo ? { in: idTipo } : undefined,
-          id_turma: idParceira ? { in: idParceira } : undefined,
-          tipos: {
-            id_grupo: idGrupo ? { in: idGrupo } : undefined,
-          },
-          id_gpm: idMunicipio ? { in: idMunicipio } : undefined,
-        },
-      }),
+    const [works, result] = await Promise.all([
+      this.prisma.$queryRaw<GetScheduleValuesInterface[]>(query),
+      this.prisma.$queryRaw<totalsGetScheduleValues[]>(countQuery),
     ]);
 
-    const works = calculateTotals(result, {
-      total_mo_planejada: true,
-      total_qtde_planejada: true,
-    });
+    const totals =
+      result.length > 0
+        ? {
+            total_obras: Number(result[0].total_obras) || 0,
+            total_mo_planejada: result[0].total_mo_planejada || 0,
+            total_mo_exec: result[0].total_mo_exec || 0,
+            total_qtde_planejada: result[0].total_qtde_planejada || 0,
+          }
+        : null;
 
     const response: GetScheduleValuesResponse = {
       works,
-      totalRecords,
+      totals,
     };
 
     return response;

@@ -82,7 +82,7 @@ export default async function WorksInPortfolio() {
     empreendimento: "Empreendimento",
     total_obras: "Total de obras",
     total_mo_planejada: "Total MO planejada",
-    total_mo_executada: "Total MO executada",
+    total_mo_exec: "Total MO executada",
     total_mo_suspensa: "Total MO suspensa",
     total_qtde_planejada: "Total QTDE planejada",
     total_qtde_pend: "Total QTDE pend",
@@ -95,7 +95,7 @@ export default async function WorksInPortfolio() {
       filtersData={filters}
       cookie="portfolioWorksFilters"
       columns={columnMapping}
-      totalValues={34}
+      totalValues={33}
       url="obras-carteira"
     />
   );

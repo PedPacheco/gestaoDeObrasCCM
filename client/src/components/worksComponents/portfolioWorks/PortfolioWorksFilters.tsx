@@ -33,6 +33,7 @@ interface PortfolioWorksFiltersProps {
   generateExcel: (params: any) => {};
   applyFilters: (params: Record<string, string | boolean>) => void;
   isPending: boolean;
+  setPage: (page: number) => void;
 }
 
 export default function PortfolioWorksFilters({
@@ -42,6 +43,7 @@ export default function PortfolioWorksFilters({
   openModal,
   applyFilters,
   isPending,
+  setPage,
 }: PortfolioWorksFiltersProps) {
   const { clearFilters, filters, saveFilters } = useSaveFilters(url);
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
@@ -70,6 +72,7 @@ export default function PortfolioWorksFilters({
       page: "0",
     };
 
+    setPage(0);
     applyFilters(params);
   }
 
@@ -79,6 +82,8 @@ export default function PortfolioWorksFilters({
     setFilterType("month");
 
     clearFilters();
+
+    setPage(0);
 
     applyFilters({ page: "0" });
   }
