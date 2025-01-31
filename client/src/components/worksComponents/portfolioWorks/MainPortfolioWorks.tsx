@@ -50,14 +50,6 @@ export default function PortfolioWorks({
 
   const toggleModal = () => setOpen((prev) => !prev);
 
-  useEffect(() => {
-    const totalPages = Math.ceil(filteredData.totalRecords / 200);
-
-    if (page >= totalPages && totalPages > 0) {
-      setPage(0);
-    }
-  }, [filteredData.totalRecords, page]);
-
   const generateExcel = useCallback(
     async (params: Record<string, string>) => {
       const url = mountUrl(

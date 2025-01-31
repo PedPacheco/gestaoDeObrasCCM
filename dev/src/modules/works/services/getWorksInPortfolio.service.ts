@@ -36,43 +36,43 @@ export class GetWorksInPortfolioService {
 
     const [month, year] = data ? data.split('/') : [null, null];
 
-    if (idRegional) {
+    if (idRegional && idRegional.length > 0) {
       query = Prisma.sql`${query} AND municipios.id_regional IN (${Prisma.join(idRegional)})`;
     }
 
-    if (idTipo) {
+    if (idTipo && idTipo.length > 0) {
       query = Prisma.sql`${query} AND id_tipo IN (${Prisma.join(idTipo)})`;
     }
 
-    if (idParceira) {
+    if (idParceira && idParceira.length > 0) {
       query = Prisma.sql`${query} AND id_turma IN (${Prisma.join(idParceira)})`;
     }
 
-    if (idGrupo) {
+    if (idGrupo && idGrupo.length > 0) {
       query = Prisma.sql`${query} AND tipos.id_grupo IN (${Prisma.join(idGrupo)})`;
     }
 
-    if (idMunicipio) {
+    if (idMunicipio && idMunicipio.length > 0) {
       query = Prisma.sql`${query} AND municipios.id IN (${Prisma.join(idMunicipio)})`;
     }
 
-    if (idStatus) {
+    if (idStatus && idStatus.length > 0) {
       query = Prisma.sql`${query} AND status.id IN (${Prisma.join(idStatus)})`;
     }
 
-    if (idCircuito) {
+    if (idCircuito && idCircuito.length > 0) {
       query = Prisma.sql`${query} AND id_circuito IN (${Prisma.join(idCircuito)})`;
     }
 
-    if (idConjunto) {
+    if (idConjunto && idConjunto.length > 0) {
       query = Prisma.sql`${query} AND circuitos.id_conjunto IN (${Prisma.join(idConjunto)})`;
     }
 
-    if (idEmpreendimento) {
+    if (idEmpreendimento && idEmpreendimento.length > 0) {
       query = Prisma.sql`${query} AND id_empreendimento IN (${Prisma.join(idEmpreendimento)})`;
     }
 
-    if (idOvnota) {
+    if (idOvnota && idOvnota.length > 0) {
       query = Prisma.sql`${query} AND obras.id IN (${Prisma.join(idOvnota)})`;
     }
 

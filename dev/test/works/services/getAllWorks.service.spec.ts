@@ -17,7 +17,6 @@ describe('GetAllWorksService', () => {
 
   const mockPrismaService = {
     $queryRaw: jest.fn(),
-    obras: { count: jest.fn() },
   };
 
   const mockWorks = [
@@ -59,6 +58,12 @@ describe('GetAllWorksService', () => {
     },
   ];
 
+  const mockQuery = [
+    {
+      total_obras: 1,
+    },
+  ];
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
@@ -91,16 +96,15 @@ describe('GetAllWorksService', () => {
     const cacheKey = `works-${JSON.stringify(filters)}`;
 
     mockCacheManager.get.mockResolvedValue({
-      totalRecords: 10000,
+      totalRecords: mockQuery[0].total_obras,
       works: mockWorks,
     });
 
     const result = await getAllWorksService.getAllWorks(filters);
 
     expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
-    expect(result).toEqual({ totalRecords: 10000, works: mockWorks });
+    expect(result).toEqual({ works: mockWorks, totalRecords: 1 });
     expect(prismaService.$queryRaw).not.toHaveBeenCalled();
-    expect(prismaService.obras.count).not.toHaveBeenCalled();
   });
 
   it('should query database and cache the result if not in cache', async () => {
@@ -117,20 +121,19 @@ describe('GetAllWorksService', () => {
     const cacheKey = `works-${JSON.stringify(filters)}`;
 
     mockCacheManager.get.mockResolvedValue(null);
-    mockPrismaService.$queryRaw.mockResolvedValue(mockWorks);
-    mockPrismaService.obras.count.mockResolvedValue(10000);
+    mockPrismaService.$queryRaw.mockResolvedValueOnce(mockWorks);
+    mockPrismaService.$queryRaw.mockResolvedValueOnce(mockQuery);
 
     const result = await getAllWorksService.getAllWorks(filters);
 
     expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
     expect(prismaService.$queryRaw).toHaveBeenCalled();
-    expect(prismaService.obras.count).toHaveBeenCalled();
     expect(cacheManager.set).toHaveBeenCalledWith(
       cacheKey,
-      { totalRecords: 10000, works: mockWorks },
+      { works: mockWorks, totalRecords: 1 },
       1800000,
     );
-    expect(result).toEqual({ totalRecords: 10000, works: mockWorks });
+    expect(result).toEqual({ works: mockWorks, totalRecords: 1 });
   });
 
   it('should be called method count with undefined values', async () => {
@@ -147,29 +150,18 @@ describe('GetAllWorksService', () => {
     const cacheKey = `works-${JSON.stringify(filters)}`;
 
     mockCacheManager.get.mockResolvedValue(null);
-    mockPrismaService.$queryRaw.mockResolvedValue(mockWorks);
-    mockPrismaService.obras.count.mockResolvedValue(5000);
+    mockPrismaService.$queryRaw.mockResolvedValueOnce(mockWorks);
+    mockPrismaService.$queryRaw.mockResolvedValueOnce(mockQuery);
 
     const result = await getAllWorksService.getAllWorks(filters);
 
     expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
     expect(prismaService.$queryRaw).toHaveBeenCalled();
-    expect(prismaService.obras.count).toHaveBeenCalled();
     expect(cacheManager.set).toHaveBeenCalledWith(
       cacheKey,
-      { totalRecords: 5000, works: mockWorks },
+      { works: mockWorks, totalRecords: 1 },
       1800000,
     );
-    expect(prismaService.obras.count).toHaveBeenCalledWith({
-      where: {
-        municipios: { id_regional: undefined },
-        id_tipo: undefined,
-        id_turma: undefined,
-        tipos: { id_grupo: undefined },
-        id_gpm: undefined,
-        id_status: undefined,
-      },
-    });
-    expect(result).toEqual({ totalRecords: 5000, works: mockWorks });
+    expect(result).toEqual({ totalRecords: 1, works: mockWorks });
   });
 });

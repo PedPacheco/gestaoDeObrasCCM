@@ -35,27 +35,27 @@ export class GetTotalValuesScheduleService {
     INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo INNER JOIN construcao_sp.grupos ON grupos.id = tipos.id_grupo
     WHERE 1=1`;
 
-    if (idRegional) {
+    if (idRegional && idRegional.length > 0) {
       query = Prisma.sql`${query} AND municipios.id_regional IN (${Prisma.join(idRegional)})`;
     }
 
-    if (idTipo) {
+    if (idTipo && idTipo.length > 0) {
       query = Prisma.sql`${query} AND id_tipo IN (${Prisma.join(idTipo)})`;
     }
 
-    if (idParceira) {
+    if (idParceira && idParceira.length > 0) {
       query = Prisma.sql`${query} AND id_turma IN (${Prisma.join(idParceira)})`;
     }
 
-    if (idGrupo) {
+    if (idGrupo && idGrupo.length > 0) {
       query = Prisma.sql`${query} AND tipos.id_grupo IN (${Prisma.join(idGrupo)})`;
     }
 
-    if (idMunicipio) {
+    if (idMunicipio && idMunicipio.length > 0) {
       query = Prisma.sql`${query} AND municipios.id IN (${Prisma.join(idMunicipio)})`;
     }
 
-    if (idCircuito) {
+    if (idCircuito && idCircuito.length > 0) {
       query = Prisma.sql`${query} AND id_circuito IN (${Prisma.join(idCircuito)})`;
     }
 

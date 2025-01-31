@@ -194,9 +194,6 @@ describe('GetWorksInPortfolioService', () => {
       normalize(calledQuery.join('')),
     );
 
-    console.log(normalize(initialQuery));
-    console.log(normalize(calledQuery.join('')));
-
     expect(allPartsPresent).toBeTruthy();
     expect(mockPrismaService.$queryRaw).toHaveBeenCalled();
     expect(result).toEqual({ works: mockWorks, totals: mockCountQuery[0] });

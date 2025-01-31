@@ -31,13 +31,20 @@ export class GetMonthlySummaryService {
         },
         obras: {
           tipos: {
-            id_grupo: idGrupo ? { in: idGrupo } : undefined,
+            id_grupo:
+              idGrupo && idGrupo.length > 0 ? { in: idGrupo } : undefined,
           },
           municipios: {
-            id_regional: idRegional ? { in: idRegional } : undefined,
+            id_regional:
+              idRegional && idRegional.length > 0
+                ? { in: idRegional }
+                : undefined,
           },
-          id_turma: idParceira ? { in: idParceira } : undefined,
-          id_tipo: idTipo ? { in: idTipo } : undefined,
+          id_turma:
+            idParceira && idParceira.length > 0
+              ? { in: idParceira }
+              : undefined,
+          id_tipo: idTipo && idTipo.length > 0 ? { in: idTipo } : undefined,
         },
       },
       select: {

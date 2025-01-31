@@ -10,22 +10,11 @@ export default async function AllWorks() {
   const cookieParams = cookieStore.get("allWorksFilters")?.value;
 
   let params = cookieParams ? JSON.parse(cookieParams) : undefined;
-  let filtersValues = undefined;
 
-  if (params) {
-    const formattedSelectedItems = params.selectedItems
-      ? Transform(params.selectedItems)
-      : {};
-
-    filtersValues = {
-      ...formattedSelectedItems,
-      page: params.page,
-    };
-  } else {
-    filtersValues = {
-      page: 0,
-    };
-  }
+  const filtersValues = {
+    ...Transform(params?.selectedItems || {}),
+    page: "0",
+  };
 
   const [filters, worksData] = await Promise.all([
     fetchFilters({

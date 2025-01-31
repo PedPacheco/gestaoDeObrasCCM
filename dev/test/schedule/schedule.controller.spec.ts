@@ -54,7 +54,12 @@ describe('ScheduleController', () => {
         total_qtde_planejada: 0,
       },
     ],
-    totalRecords: 1,
+    totals: {
+      total_obras: 1,
+      total_mo_planejada: 3262.21,
+      total_mo_exec: 3262.21,
+      total_qtde_planejada: 1,
+    },
   };
 
   beforeEach(async () => {

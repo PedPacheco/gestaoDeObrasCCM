@@ -111,8 +111,6 @@ describe('GetScheduleValues', () => {
       normalize(expectedQuery).includes(normalize(part)),
     );
 
-    console.log(result);
-
     expect(result).toEqual({ works: mockQueryResponse, totals: mockCount[0] });
     expect(prismaMock.$queryRaw.mock.calls[0][0].values[0]).toEqual(
       expectedDate,

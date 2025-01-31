@@ -65,15 +65,15 @@ export class GoalsService {
       INNER JOIN regionais ON regionais.id = metas_anuais.id_regional
       WHERE anocalc IN (${Prisma.join(ano)})`;
 
-    if (regional) {
+    if (regional && regional.length > 0) {
       query = Prisma.sql`${query} AND metas_anuais.id_regional IN (${Prisma.join(regional)})`;
     }
 
-    if (tipo) {
+    if (tipo && tipo.length > 0) {
       query = Prisma.sql`${query} AND metas_anuais.id_tipo IN (${Prisma.join(tipo)})`;
     }
 
-    if (parceira) {
+    if (parceira && parceira.length > 0) {
       query = Prisma.sql`${query} AND metas_anuais.id_turma IN (${Prisma.join(parceira)})`;
     }
 

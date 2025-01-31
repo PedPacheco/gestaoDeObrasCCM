@@ -42,12 +42,11 @@ export default function MainAllWorks({
   useEffect(() => {
     if (filters) {
       setSelectedItems(filters.selectedItems);
-      setPage(filters.page);
     }
   }, [filters]);
 
   function fetchWorks(newPage: number) {
-    saveFilters({ selectedItems, page: newPage });
+    saveFilters({ selectedItems });
     const formattedSelectedItems = selectedItems
       ? Transform(selectedItems)
       : {};
@@ -136,7 +135,10 @@ export default function MainAllWorks({
 
         <div className=" flex flex-col md:flex-row justify-between items-center xl:justify-around">
           <ButtonComponent
-            onClick={() => fetchWorks(page)}
+            onClick={() => {
+              setPage(0);
+              fetchWorks(0);
+            }}
             text={getButtonContent(isPending, "Aplicar filtros")}
             styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
           />

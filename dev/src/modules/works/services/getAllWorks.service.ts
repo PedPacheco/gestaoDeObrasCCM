@@ -11,38 +11,49 @@ export class GetAllWorksService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async getAllWorks(filters: GetAllWorksDTO) {
-    const {
-      idGrupo,
-      idMunicipio,
-      idParceira,
-      idRegional,
-      idStatus,
-      idTipo,
-      page,
-    } = filters;
+  private applyFilters(query: Prisma.Sql, filters: GetAllWorksDTO) {
+    const { idGrupo, idMunicipio, idParceira, idRegional, idStatus, idTipo } =
+      filters;
 
-    const cacheKey = `works-${JSON.stringify({
-      idGrupo,
-      idMunicipio,
-      idParceira,
-      idRegional,
-      idStatus,
-      idTipo,
-      page,
-    })}`;
-
-    let works = await this.cacheManager.get(cacheKey);
-
-    if (works) {
-      return works;
+    if (idRegional && idRegional.length > 0) {
+      query = Prisma.sql`${query} AND municipios.id_regional IN (${Prisma.join(idRegional)})`;
     }
 
-    let query = Prisma.sql`SELECT
-        obras.id, obras.ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, status_ov_sap, pep, status_pep, diagrama, status_diagrama, ordem_dci, status_170, 
-        status_usuario_170, ordem_dcd, status_190, status_usuario_190, ordem_dca, status_150, status_usuario_150, ordem_dcim, status_180, status_usuario_180, mun, tipo_obra, entrada, 
-        entrada + prazo AS prazo_fim, qtde_planejada, mo_planejada, mo_final, turma, executado, data_conclusao, last_data_prog, status, observ_obra, referencia 
-        FROM construcao_sp.obras 
+    if (idTipo && idTipo.length > 0) {
+      query = Prisma.sql`${query} AND id_tipo IN (${Prisma.join(idTipo)})`;
+    }
+
+    if (idParceira && idParceira.length > 0) {
+      query = Prisma.sql`${query} AND id_turma IN (${Prisma.join(idParceira)})`;
+    }
+
+    if (idGrupo && idGrupo.length > 0) {
+      query = Prisma.sql`${query} AND tipos.id_grupo IN (${Prisma.join(idGrupo)})`;
+    }
+
+    if (idMunicipio && idMunicipio.length > 0) {
+      query = Prisma.sql`${query} AND municipios.id IN (${Prisma.join(idMunicipio)})`;
+    }
+
+    if (idStatus && idStatus.length > 0) {
+      query = Prisma.sql`${query} AND status.id IN (${Prisma.join(idStatus)})`;
+    }
+
+    return query;
+  }
+
+  async getAllWorks(filters: GetAllWorksDTO) {
+    const { page } = filters;
+
+    const cacheKey = `works-${JSON.stringify(filters)}`;
+
+    const responseData = await this.cacheManager.get(cacheKey);
+
+    if (responseData) {
+      return responseData;
+    }
+
+    const baseQuery = Prisma.sql`FROM construcao_sp.obras 
         INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma 
         INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm 
         INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo 
@@ -50,29 +61,16 @@ export class GetAllWorksService {
         LEFT JOIN construcao_sp.datas_programacao ON datas_programacao.id= obras.id
         WHERE 1=1`;
 
-    if (idRegional) {
-      query = Prisma.sql`${query} AND municipios.id_regional IN (${Prisma.join(idRegional)})`;
-    }
+    let query = Prisma.sql`SELECT
+        obras.id, obras.ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, status_ov_sap, pep, status_pep, diagrama, status_diagrama, ordem_dci, status_170, 
+        status_usuario_170, ordem_dcd, status_190, status_usuario_190, ordem_dca, status_150, status_usuario_150, ordem_dcim, status_180, status_usuario_180, mun, tipo_obra, entrada, 
+        entrada + prazo AS prazo_fim, qtde_planejada, mo_planejada, mo_final, turma, executado, data_conclusao, last_data_prog, status, observ_obra, referencia 
+        ${baseQuery}`;
 
-    if (idTipo) {
-      query = Prisma.sql`${query} AND id_tipo IN (${Prisma.join(idTipo)})`;
-    }
+    let queryCount = Prisma.sql`SELECT COUNT(*) as total_obras ${baseQuery}`;
 
-    if (idParceira) {
-      query = Prisma.sql`${query} AND id_turma IN (${Prisma.join(idParceira)})`;
-    }
-
-    if (idGrupo) {
-      query = Prisma.sql`${query} AND tipos.id_grupo IN (${Prisma.join(idGrupo)})`;
-    }
-
-    if (idMunicipio) {
-      query = Prisma.sql`${query} AND municipios.id IN (${Prisma.join(idMunicipio)})`;
-    }
-
-    if (idStatus) {
-      query = Prisma.sql`${query} AND status.id IN (${Prisma.join(idStatus)})`;
-    }
+    query = this.applyFilters(query, filters);
+    queryCount = this.applyFilters(queryCount, filters);
 
     query = Prisma.sql`${query} ORDER BY entrada DESC`;
 
@@ -80,22 +78,12 @@ export class GetAllWorksService {
       query = Prisma.sql`${query} LIMIT 200 OFFSET ${page * 200};`;
     }
 
-    works = await this.prisma.$queryRaw(query);
+    const [works, total] = await Promise.all([
+      this.prisma.$queryRaw(query),
+      this.prisma.$queryRaw<{ total_obras: number }[]>(queryCount),
+    ]);
 
-    const totalRecords = await this.prisma.obras.count({
-      where: {
-        municipios: {
-          id_regional: idRegional ? { in: idRegional } : undefined,
-        },
-        id_tipo: idTipo ? { in: idTipo } : undefined,
-        id_turma: idParceira ? { in: idParceira } : undefined,
-        tipos: {
-          id_grupo: idGrupo ? { in: idGrupo } : undefined,
-        },
-        id_gpm: idMunicipio ? { in: idMunicipio } : undefined,
-        id_status: idStatus ? { in: idStatus } : undefined,
-      },
-    });
+    const totalRecords = total.length > 0 ? Number(total[0].total_obras) : 0;
 
     const response = {
       works,

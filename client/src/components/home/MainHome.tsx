@@ -84,14 +84,14 @@ export default function MainHome({
     setSelectedParceiras([]);
     setSelectedRegionais([]);
     setSelectedTiposObra([]);
-    setSelectedYear([]);
+    setSelectedYear(["2025"]);
 
     clearFilters();
 
     startTransition(async () => {
       const response = await fetchData(
         `${process.env.NEXT_PUBLIC_API_URL}/metas`,
-        undefined,
+        { ano: "2025" },
         token
       );
 

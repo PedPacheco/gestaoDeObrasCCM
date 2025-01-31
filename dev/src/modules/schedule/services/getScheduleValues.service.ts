@@ -36,23 +36,23 @@ export class GetScheduleValuesService {
       query = Prisma.sql`${query} AND data_prog = ${moment(data, 'DD/MM/YYYY', true).toDate()}`;
     }
 
-    if (idRegional) {
+    if (idRegional && idRegional.length > 0) {
       query = Prisma.sql`${query} AND municipios.id_regional IN (${Prisma.join(idRegional)})`;
     }
 
-    if (idMunicipio) {
+    if (idMunicipio && idMunicipio.length > 0) {
       query = Prisma.sql`${query} AND municipios.id IN (${Prisma.join(idMunicipio)})`;
     }
 
-    if (idTipo) {
+    if (idTipo && idTipo.length > 0) {
       query = Prisma.sql`${query} AND id_tipo IN (${Prisma.join(idTipo)})`;
     }
 
-    if (idParceira) {
+    if (idParceira && idParceira.length > 0) {
       query = Prisma.sql`${query} AND id_turma IN (${Prisma.join(idParceira)})`;
     }
 
-    if (idGrupo) {
+    if (idGrupo && idGrupo.length > 0) {
       query = Prisma.sql`${query} AND tipos.id_grupo IN (${Prisma.join(idGrupo)})`;
     }
 

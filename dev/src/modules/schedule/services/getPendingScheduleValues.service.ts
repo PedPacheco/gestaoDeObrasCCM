@@ -24,11 +24,11 @@ export class GetPendingScheduleValuesService {
                 INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
                 WHERE exec IS NULL AND data_prog < CURRENT_DATE`;
 
-    if (idParceira) {
+    if (idParceira && idParceira.length > 0) {
       query = Prisma.sql`${query} AND id_turma IN (${Prisma.join(idParceira)})`;
     }
 
-    if (idRegional) {
+    if (idRegional && idRegional.length > 0) {
       query = Prisma.sql`${query} AND municipios.id_regional IN (${Prisma.join(idRegional)})`;
     }
 
