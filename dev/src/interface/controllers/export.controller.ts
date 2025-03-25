@@ -2,9 +2,9 @@ import { Response } from 'express';
 import { ExportCompletedWorksService } from 'src/domain/services/export/services/exportCompletedWorks.service';
 import { ExportScheduleService } from 'src/domain/services/export/services/exportSchedule.service';
 import { ExportWorksInPortfolioService } from 'src/domain/services/export/services/exportWorksInPortfolio.service';
-import { GetScheduleValuesService } from 'src/domain/services/schedule/services/getScheduleValues.service';
-import { GetCompletedWorksService } from 'src/domain/services/works/services/getCompletedWorks.service';
-import { GetWorksInPortfolioService } from 'src/domain/services/works/services/getWorksInPortfolio.service';
+import { GetScheduleValuesService } from 'src/domain/services/schedule/getScheduleValues.service';
+import { GetCompletedWorksService } from 'src/domain/services/works/getCompletedWorks.service';
+import { GetWorksInPortfolioService } from 'src/domain/services/works/getWorksInPortfolio.service';
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 

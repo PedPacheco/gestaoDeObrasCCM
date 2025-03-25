@@ -1,5 +1,5 @@
-import { GoalsService } from 'src/domain/services/services/goals.service';
-import { RdaGoalsService } from 'src/domain/services/services/rdaGoals.service';
+import { GoalsService } from 'src/domain/services/goals/goals.service';
+import { RdaGoalsService } from 'src/domain/services/goals/rdaGoals.service';
 import { GoalsDTO, RdaGoalsDTO } from 'src/interface/dtos/goalsDto';
 import { GoalsIntefaceController } from 'src/interface/types/goalsInterface';
 

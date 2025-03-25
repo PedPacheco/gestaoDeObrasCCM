@@ -3,8 +3,8 @@ import { CacheModule } from 'src/infra/cache/cache.module';
 
 import { Module } from '@nestjs/common';
 
-import { GoalsService } from '../../domain/services/services/goals.service';
-import { RdaGoalsService } from '../../domain/services/services/rdaGoals.service';
+import { GoalsService } from '../../domain/services/goals/goals.service';
+import { RdaGoalsService } from '../../domain/services/goals/rdaGoals.service';
 import { GoalsController } from '../controllers/goals.controller';
 
 @Module({

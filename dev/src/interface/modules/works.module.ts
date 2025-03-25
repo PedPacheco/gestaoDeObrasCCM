@@ -1,7 +1,7 @@
-import { GetAllWorksService } from 'src/domain/services/works/services/getAllWorks.service';
-import { GetCompletedWorksService } from 'src/domain/services/works/services/getCompletedWorks.service';
-import { GetWorkDetailsService } from 'src/domain/services/works/services/getWorkDetails.service';
-import { GetWorksInPortfolioService } from 'src/domain/services/works/services/getWorksInPortfolio.service';
+import { GetAllWorksService } from 'src/domain/services/works/getAllWorks.service';
+import { GetCompletedWorksService } from 'src/domain/services/works/getCompletedWorks.service';
+import { GetWorkDetailsService } from 'src/domain/services/works/getWorkDetails.service';
+import { GetWorksInPortfolioService } from 'src/domain/services/works/getWorksInPortfolio.service';
 import { CacheModule } from 'src/infra/cache/cache.module';
 
 import { Module } from '@nestjs/common';

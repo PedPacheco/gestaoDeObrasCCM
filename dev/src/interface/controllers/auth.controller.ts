@@ -22,7 +22,6 @@ export class AuthController {
     @Body() { user, password }: LoginUserDTO,
     @Res({ passthrough: true }) res: Response,
   ): Promise<loginInterfaceController> {
-    console.log(user, password);
     const { id, username, id_regional, nome_usuario, email, access_token } =
       await this.authService.login(user, password);
 

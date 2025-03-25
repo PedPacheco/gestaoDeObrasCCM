@@ -24,7 +24,7 @@ export class GoalsDTO {
   @IsBoolean()
   @IsOptional()
   @Transform(({ value }) =>
-    value === 'true' ? true : value === 'false' ? false : value,
+    value === 'true' ? true : value === 'false' ? false : undefined,
   )
   btzero?: boolean;
 }

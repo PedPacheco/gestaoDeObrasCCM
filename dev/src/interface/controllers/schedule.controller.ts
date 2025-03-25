@@ -1,11 +1,11 @@
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
-import { GetMonthlySummaryService } from 'src/domain/services/schedule/services/getMonthlySummary.service';
-import { GetPendingScheduleValuesService } from 'src/domain/services/schedule/services/getPendingScheduleValues.service';
-import { GetScheduleRestrictionsService } from 'src/domain/services/schedule/services/getScheduleRestrictions.service';
-import { GetScheduleValuesService } from 'src/domain/services/schedule/services/getScheduleValues.service';
-import { GetTotalValuesScheduleService } from 'src/domain/services/schedule/services/getTotalValuesSchedule.service';
-import { GetValuesWeeklyScheduleService } from 'src/domain/services/schedule/services/getValuesWeeklySchedule.service';
+import { GetMonthlySummaryService } from 'src/domain/services/schedule/getMonthlySummary.service';
+import { GetPendingScheduleValuesService } from 'src/domain/services/schedule/getPendingScheduleValues.service';
+import { GetScheduleRestrictionsService } from 'src/domain/services/schedule/getScheduleRestrictions.service';
+import { GetScheduleValuesService } from 'src/domain/services/schedule/getScheduleValues.service';
+import { GetTotalValuesScheduleService } from 'src/domain/services/schedule/getTotalValuesSchedule.service';
+import { GetValuesWeeklyScheduleService } from 'src/domain/services/schedule/getValuesWeeklySchedule.service';
 import {
   GetMonthlySummaryDTO,
   GetPendingScheduleValuesDTO,

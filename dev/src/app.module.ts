@@ -1,19 +1,20 @@
 import { Module, ValidationPipe } from '@nestjs/common';
-import { PrismaModule } from './config/prisma/prisma.module';
-import { AuthModule } from './modules/auth/auth.module';
 import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
-import { AuthGuard } from './common/guards/auth.guard';
-import { UsersModule } from './modules/users/users.module';
-import { EmailModule } from './modules/email/email.module';
 import { JwtModule } from '@nestjs/jwt';
-import { jwtConstants } from './config/costants';
-import { GoalsModule } from './modules/goals/goals.module';
-import { CustomExceptionFilter } from './common/error/customExpection.filter';
-import { FiltersModule } from './modules/filters/filters.module';
-import { EntryModule } from './modules/entry/entry.module';
-import { WorksModule } from './modules/works/works.module';
-import { ScheduleModule } from './modules/schedule/shedule.module';
-import { ExportModule } from './modules/export/export.module';
+
+import { AuthModule } from './interface/modules/auth.module';
+import { EmailModule } from './interface/modules/email.module';
+import { EntryModule } from './interface/modules/entry.module';
+import { ExportModule } from './interface/modules/export.module';
+import { FiltersModule } from './interface/modules/filters.module';
+import { GoalsModule } from './interface/modules/goals.module';
+import { ScheduleModule } from './interface/modules/shedule.module';
+import { UsersModule } from './interface/modules/users.module';
+import { WorksModule } from './interface/modules/works.module';
+import { PrismaModule } from './infra/prisma/prisma.module';
+import { jwtConstants } from './shared/costants';
+import { AuthGuard } from './core/guards/auth.guard';
+import { CustomExceptionFilter } from './core/error/customExpection.filter';
 
 @Module({
   imports: [

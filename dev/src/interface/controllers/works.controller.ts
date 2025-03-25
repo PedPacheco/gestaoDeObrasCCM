@@ -1,9 +1,9 @@
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
-import { GetAllWorksService } from 'src/domain/services/works/services/getAllWorks.service';
-import { GetCompletedWorksService } from 'src/domain/services/works/services/getCompletedWorks.service';
-import { GetWorkDetailsService } from 'src/domain/services/works/services/getWorkDetails.service';
-import { GetWorksInPortfolioService } from 'src/domain/services/works/services/getWorksInPortfolio.service';
+import { GetAllWorksService } from 'src/domain/services/works/getAllWorks.service';
+import { GetCompletedWorksService } from 'src/domain/services/works/getCompletedWorks.service';
+import { GetWorkDetailsService } from 'src/domain/services/works/getWorkDetails.service';
+import { GetWorksInPortfolioService } from 'src/domain/services/works/getWorksInPortfolio.service';
 import { GetAllWorksDTO, GetWorksDTO } from 'src/interface/dtos/worksDto';
 
 import {
