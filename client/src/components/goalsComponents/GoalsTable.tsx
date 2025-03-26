@@ -12,11 +12,13 @@ import { useCallback, useMemo } from "react";
 interface GoalsTableComponentProps {
   data: any;
   columnMapping: any;
+  fixedNumber: number;
 }
 
 export default function GoalsTable({
   data,
   columnMapping,
+  fixedNumber,
 }: GoalsTableComponentProps) {
   const calculateSum = useCallback(
     (item: any) => {
@@ -100,13 +102,13 @@ export default function GoalsTable({
                     <TableCell key={month} className="p-0 h-16 w-4 ">
                       <div className="flex flex-col">
                         <p className="py-1 px-2 text-center text-base text-zinc-700">
-                          {item[month].meta?.toFixed(3)}
+                          {item[month].meta?.toFixed(fixedNumber)}
                         </p>
                         <p className="py-1 px-2 text-center border-b-0 text-base text-zinc-700">
-                          {item[month].prog?.toFixed(3)}
+                          {item[month].prog?.toFixed(fixedNumber)}
                         </p>
                         <p className="py-1 px-2 text-center border-b-0 text-base text-zinc-700">
-                          {item[month].real?.toFixed(3)}
+                          {item[month].real?.toFixed(fixedNumber)}
                         </p>
                       </div>
                     </TableCell>
@@ -115,19 +117,19 @@ export default function GoalsTable({
                 <TableCell className="p-0 h-16 text-center w-4 ">
                   <div className="flex flex-col">
                     <p className="py-1 px-2 text-center font-semibold text-base text-zinc-700">
-                      {sums.meta.toFixed(3)}
+                      {sums.meta.toFixed(fixedNumber)}
                     </p>
                     <p className="py-1 px-2 text-center font-semibold text-base text-zinc-700">
-                      {sums.prog.toFixed(3)}
+                      {sums.prog.toFixed(fixedNumber)}
                     </p>
                     <p className="py-1 px-2 text-center font-semibold text-base text-zinc-700">
-                      {sums.real.toFixed(3)}
+                      {sums.real.toFixed(fixedNumber)}
                     </p>
                   </div>
                 </TableCell>
 
                 <TableCell className="p-0 text-center text-red-600 text-base ">
-                  {item.carteira?.toFixed(3)}
+                  {item.carteira?.toFixed(fixedNumber)}
                 </TableCell>
               </TableRow>
             );

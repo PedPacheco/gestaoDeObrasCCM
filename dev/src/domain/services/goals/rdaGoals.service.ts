@@ -96,7 +96,6 @@ export class RdaGoalsService {
         );
 
         if (key.includes('meta') && typeof item[key] === 'number') {
-          console.log(item[key], item['empreendimento'], item['descricao']);
           totalGoals += item[key];
         }
 

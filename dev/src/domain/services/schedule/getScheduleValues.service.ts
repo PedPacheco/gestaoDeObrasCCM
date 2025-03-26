@@ -45,6 +45,7 @@ export class GetScheduleValuesService {
     }
 
     if (idTipo && idTipo.length > 0) {
+      console.log(idTipo);
       query = Prisma.sql`${query} AND id_tipo IN (${Prisma.join(idTipo)})`;
     }
 
@@ -96,6 +97,8 @@ export class GetScheduleValuesService {
     if (page !== null) {
       query = Prisma.sql`${query} LIMIT 200 OFFSET ${page * 200}`;
     }
+
+    console.log(query);
 
     const [works, result] = await Promise.all([
       this.prisma.$queryRaw<GetScheduleValuesInterface[]>(query),

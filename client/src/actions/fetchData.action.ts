@@ -16,7 +16,7 @@ export async function fetchData<T>(
 
   const url = mountUrl(baseUrl, params);
 
-  console.log(url)
+  console.log(url);
 
   try {
     const res = await fetch(url, {
@@ -25,7 +25,7 @@ export async function fetchData<T>(
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      next: cacheStrategy,
+      // next: cacheStrategy,
     });
 
     if (!res.ok) {

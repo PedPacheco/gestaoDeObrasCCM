@@ -7,6 +7,7 @@ import {
   IsString,
 } from 'class-validator';
 import * as moment from 'moment';
+import { convertParameterValue } from 'src/utils/convertParameterValue';
 
 export class GetEntryOfWorksDTO {
   @IsNumber()
@@ -15,32 +16,32 @@ export class GetEntryOfWorksDTO {
 
   @IsOptional()
   @IsArray()
-  @Transform(({ value }) => value.toString().split(',').map(Number))
+  @Transform(({ value }) => convertParameterValue(value))
   idRegional: number[];
 
   @IsOptional()
   @IsArray()
-  @Transform(({ value }) => value.toString().split(',').map(Number))
+  @Transform(({ value }) => convertParameterValue(value))
   idMunicipio: number[];
 
   @IsOptional()
   @IsArray()
-  @Transform(({ value }) => value.toString().split(',').map(Number))
+  @Transform(({ value }) => convertParameterValue(value))
   idGrupo: number[];
 
   @IsOptional()
   @IsArray()
-  @Transform(({ value }) => value.toString().split(',').map(Number))
+  @Transform(({ value }) => convertParameterValue(value))
   idTipo: number[];
 
   @IsOptional()
   @IsArray()
-  @Transform(({ value }) => value.toString().split(',').map(Number))
+  @Transform(({ value }) => convertParameterValue(value))
   idParceira: number[];
 
   @IsOptional()
   @IsArray()
-  @Transform(({ value }) => value.toString().split(',').map(Number))
+  @Transform(({ value }) => convertParameterValue(value))
   idCircuito: number[];
 }
 
@@ -58,26 +59,26 @@ export class GetEntryOfWorksByDayDTO {
 
   @IsOptional()
   @IsArray()
-  @Transform(({ value }) => value.toString().split(',').map(Number))
+  @Transform(({ value }) => convertParameterValue(value))
   idRegional: number[];
 
   @IsOptional()
   @IsArray()
-  @Transform(({ value }) => value.toString().split(',').map(Number))
+  @Transform(({ value }) => convertParameterValue(value))
   idMunicipio: number[];
 
   @IsOptional()
   @IsArray()
-  @Transform(({ value }) => value.toString().split(',').map(Number))
+  @Transform(({ value }) => convertParameterValue(value))
   idGrupo: number[];
 
   @IsOptional()
   @IsArray()
-  @Transform(({ value }) => value.toString().split(',').map(Number))
+  @Transform(({ value }) => convertParameterValue(value))
   idTipo: number[];
 
   @IsOptional()
   @IsArray()
-  @Transform(({ value }) => value.toString().split(',').map(Number))
+  @Transform(({ value }) => convertParameterValue(value))
   idParceira: number[];
 }

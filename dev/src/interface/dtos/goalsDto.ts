@@ -1,24 +1,25 @@
 import { Transform } from 'class-transformer';
 import { IsArray, IsBoolean, IsOptional } from 'class-validator';
+import { convertParameterValue } from 'src/utils/convertParameterValue';
 
 export class GoalsDTO {
   @IsOptional()
   @IsArray()
-  @Transform(({ value }) => value.toString().split(',').map(Number))
+  @Transform(({ value }) => convertParameterValue(value))
   tipo?: number[];
 
   @IsOptional()
   @IsArray()
-  @Transform(({ value }) => value.toString().split(',').map(Number))
+  @Transform(({ value }) => convertParameterValue(value))
   regional?: number[];
 
   @IsOptional()
   @IsArray()
-  @Transform(({ value }) => value.toString().split(',').map(Number))
+  @Transform(({ value }) => convertParameterValue(value))
   parceira?: number[];
 
   @IsArray()
-  @Transform(({ value }) => value.toString().split(',').map(Number))
+  @Transform(({ value }) => convertParameterValue(value))
   ano?: number[];
 
   @IsBoolean()
@@ -32,20 +33,20 @@ export class GoalsDTO {
 export class RdaGoalsDTO {
   @IsOptional()
   @IsArray()
-  @Transform(({ value }) => value.toString().split(',').map(Number))
+  @Transform(({ value }) => convertParameterValue(value))
   regional?: number[];
 
   @IsOptional()
   @IsArray()
-  @Transform(({ value }) => value.toString().split(',').map(Number))
+  @Transform(({ value }) => convertParameterValue(value))
   parceira?: number[];
 
   @IsOptional()
   @IsArray()
-  @Transform(({ value }) => value.toString().split(',').map(Number))
+  @Transform(({ value }) => convertParameterValue(value))
   empreendimento?: number[];
 
   @IsArray()
-  @Transform(({ value }) => value.toString().split(',').map(Number))
+  @Transform(({ value }) => convertParameterValue(value))
   ano?: number[];
 }

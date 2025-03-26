@@ -105,12 +105,21 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
                             : "text-zinc-200 hover:bg-[#1a2635] hover:text-[#53FF75]"
                         }`}
                       >
-                        <Link
-                          href={`${link.href}`}
-                          className="text-base w-full font-medium leading-8 p-2"
-                        >
-                          {link.name}
-                        </Link>
+                        {link.href ? (
+                          <Link
+                            href={`${link.href}`}
+                            className={` text-base w-full font-medium leading-8 p-2`}
+                          >
+                            {link.name}
+                          </Link>
+                        ) : (
+                          <span
+                            className={` text-base w-full font-medium leading-8 p-2`}
+                          >
+                            {link.name}
+                          </span>
+                        )}
+
                         {link.submenu && (
                           <button
                             onClick={(e) => handleToogleSubmenu(link.name, e)}

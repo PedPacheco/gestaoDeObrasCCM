@@ -5,9 +5,18 @@ on:
     branches:
       - develop
 
+      - name: Debug secrets
+        run: |
+          echo "DB_NAME is set"
+          echo "DB_USER is set"
+          echo "DB_PASSWORD is set"
+        if: always()
+
 jobs:
   backend-tests:
     runs-on: ubuntu-latest
+
+    
 
     services:
       postgres:
@@ -43,7 +52,7 @@ jobs:
         working-directory: ./dev
 
       - name: Generate Prisma client
-        run: npx prisma generate --schema=src/config/prisma/schema.prisma
+        run: npx prisma generate --schema=src/infra/prisma/schema.prisma
         working-directory: ./dev
 
       - name: Run backend tests

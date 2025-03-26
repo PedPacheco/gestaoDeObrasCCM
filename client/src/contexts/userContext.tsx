@@ -50,8 +50,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     return token ? jwtDecode<JwtPayload>(token) : null;
   });
 
-  console.log(permissions);
-
   async function login(user: string, password: string): Promise<LoginResponse> {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
