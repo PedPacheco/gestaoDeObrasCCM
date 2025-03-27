@@ -1,6 +1,28 @@
 export const links = [
   { name: "Tela inicial", href: "/", needPermission: false },
   {
+    name: "Metas",
+    href: null,
+    needPermission: true,
+    submenu: [
+      {
+        name: "Metas Recomposição",
+        href: "/metas/recomposicao",
+        needPermission: true,
+      },
+      {
+        name: "Metas BT0",
+        href: "/metas/btzero",
+        needPermission: true,
+      },
+      {
+        name: "Metas RDA",
+        href: "/metas/rda",
+        needPermission: true,
+      },
+    ],
+  },
+  {
     name: "Entrada",
     href: "/entrada",
     needPermission: true,

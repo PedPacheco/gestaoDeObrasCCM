@@ -4,57 +4,64 @@ import dayjs from "dayjs";
 import { useEffect, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
+import { ButtonComponent } from "@/components/common/Button";
+import ErrorModal from "@/components/common/ErrorModal";
+import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
+import { TableWithVirtualization } from "@/components/common/TableWithVirtualization";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { MainInterface } from "@/interfaces/mainInterface";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
-
-import { ButtonComponent } from "../common/Button";
-import { MultipleSelectComponent } from "../common/MultipleSelect";
-import ModalGoals from "./GoalsModal";
-import GoalsTable from "./GoalsTable";
-import ErrorModal from "../common/ErrorModal";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+
+import ModalGoals from "../GoalsModal";
 
 interface Filters {
   regional: { id: string; regional: string }[];
   parceira: { id: string; turma: string }[];
-  tipo: { id: string; tipo_obra: string; id_grupo: number }[];
+  empreendimento: { id: string; empreendimento: string }[];
 }
 
-export default function MainHome({
+interface MainGoalsProps {
+  filtersData: Filters;
+  data: any;
+  token?: string;
+  columns: Record<string, string>;
+}
+
+export default function MainRdaGoals({
   filtersData,
   data,
   token,
   columns,
-}: MainInterface<Filters>) {
+}: MainGoalsProps) {
   const [filteredData, setFilteredData] = useState(data);
   const [open, setOpen] = useState(false);
-  const { clearFilters, filters, saveFilters } = useSaveFilters("goalsFilters");
+  const { clearFilters, filters, saveFilters } =
+    useSaveFilters("rdaGoalsFilters");
   const [selectedYear, setSelectedYear] = useState<string[]>(["2025"]);
   const [selectedRegionais, setSelectedRegionais] = useState<string[]>([]);
   const [selectedParceiras, setSelectedParceiras] = useState<string[]>([]);
-  const [selectedTiposObra, setSelectedTiposObra] = useState<string[]>([]);
+  const [selectedEnterprises, setSelectedEnterprises] = useState<string[]>([]);
+  const [selectedPlanYear, setSelectedPlanYear] = useState<string[]>([]);
   const [error, setError] = useState<string | null>();
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const toggleModal = () => setOpen((prev) => !prev);
 
   useEffect(() => {
     if (filters) {
       setSelectedYear(filters.ano);
       setSelectedParceiras(filters.parceira);
       setSelectedRegionais(filters.regional);
-      setSelectedTiposObra(filters.tipo);
+      setSelectedEnterprises(filters.tipo);
+      setSelectedPlanYear(filters.anoPlan);
     }
   }, [filters]);
 
   const year = dayjs().year();
 
-  const years = Array.from({ length: 7 }, (_, index) =>
-    (year - 3 + index).toString()
+  const years = Array.from({ length: 3 }, (_, index) =>
+    (year - 1 + index).toString()
   );
 
   function fetchGoals() {
@@ -62,8 +69,10 @@ export default function MainHome({
 
     selectedParceiras.length && (params["parceira"] = selectedParceiras);
     selectedRegionais.length && (params["regional"] = selectedRegionais);
-    selectedTiposObra.length && (params["tipo"] = selectedTiposObra);
+    selectedEnterprises.length &&
+      (params["empreendimento"] = selectedEnterprises);
     selectedYear.length && (params["ano"] = selectedYear);
+    selectedPlanYear.length && (params["anoPlan"] = selectedPlanYear);
 
     saveFilters(params);
 
@@ -71,7 +80,7 @@ export default function MainHome({
 
     startTransition(async () => {
       const response = await fetchData(
-        `${process.env.NEXT_PUBLIC_API_URL}/metas`,
+        `${process.env.NEXT_PUBLIC_API_URL}/metas/rda`,
         formattedSelectedItens,
         token
       );
@@ -83,14 +92,15 @@ export default function MainHome({
   function handleCleaningFilters() {
     setSelectedParceiras([]);
     setSelectedRegionais([]);
-    setSelectedTiposObra([]);
+    setSelectedEnterprises([]);
+    setSelectedPlanYear([]);
     setSelectedYear(["2025"]);
 
     clearFilters();
 
     startTransition(async () => {
       const response = await fetchData(
-        `${process.env.NEXT_PUBLIC_API_URL}/metas`,
+        `${process.env.NEXT_PUBLIC_API_URL}/metas/rda`,
         { ano: "2025" },
         token
       );
@@ -129,12 +139,12 @@ export default function MainHome({
           />
 
           <MultipleSelectComponent
-            label="Tipos de Obra"
-            menuItems={filtersData.tipo.filter((item) => item.id_grupo === 2)}
-            selectedItem={selectedTiposObra}
-            setSelectedItem={setSelectedTiposObra}
+            label="Empreendimento"
+            menuItems={filtersData.empreendimento}
+            selectedItem={selectedEnterprises}
+            setSelectedItem={setSelectedEnterprises}
             valueKey="id"
-            displayKey="tipo_obra"
+            displayKey="empreendimento"
           />
         </div>
 
@@ -150,25 +160,25 @@ export default function MainHome({
             styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
           />
           <ButtonComponent
-            onClick={handleOpen}
+            onClick={toggleModal}
             text={getButtonContent(isPending, "Ver valores totais")}
             styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
           />
         </div>
       </div>
 
-      <GoalsTable data={filteredData} columnMapping={columns} />
-
-      <ModalGoals
+      {/* <ModalGoals
         columns={columns}
         data={filteredData}
         handleClose={handleClose}
         open={open}
-      />
+      /> */}
+
+      <TableWithVirtualization columns={columns} data={filteredData.works} />
 
       {error && (
         <ErrorModal
-          open={isModalOpen}
+          open={true}
           message={error}
           onClose={() => setError(null)}
           icon={<ExclamationCircleIcon width={48} height={48} />}

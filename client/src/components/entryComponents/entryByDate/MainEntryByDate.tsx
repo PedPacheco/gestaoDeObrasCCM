@@ -6,6 +6,7 @@ import { useEffect, useState, useTransition } from "react";
 import { fetchData } from "@/actions/fetchData.action";
 import { ButtonComponent } from "@/components/common/Button";
 import { DateFilter } from "@/components/common/DateFilter";
+import ErrorModal from "@/components/common/ErrorModal";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { TableWithVirtualization } from "@/components/common/TableWithVirtualization";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
@@ -13,6 +14,7 @@ import { MainInterface } from "@/interfaces/mainInterface";
 import { capitalize } from "@/utils/capitalize";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
+import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 interface Filters {
   regional: { id: string; regional: string }[];
@@ -29,6 +31,7 @@ export default function MainEntryByDate({
   token,
 }: MainInterface<Filters>) {
   const [filteredData, setFilteredData] = useState(data);
+  const [error, setError] = useState<string | null>();
   const { clearFilters, filters, saveFilters } =
     useSaveFilters("entryByDateFilters");
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
@@ -61,13 +64,17 @@ export default function MainEntryByDate({
     };
 
     startTransition(async () => {
-      const response = await fetchData(
-        `${process.env.NEXT_PUBLIC_API_URL}/entrada/data`,
-        params,
-        token
-      );
+      try {
+        const response = await fetchData(
+          `${process.env.NEXT_PUBLIC_API_URL}/entrada/data`,
+          params,
+          token
+        );
 
-      setFilteredData(response.data);
+        setFilteredData(response.data);
+      } catch (error: any) {
+        setError(error.message);
+      }
     });
   }
 
@@ -154,6 +161,15 @@ export default function MainEntryByDate({
         columns={columns}
         sliceEndIndex={3}
       />
+
+      {error && (
+        <ErrorModal
+          open={true}
+          message={error}
+          onClose={() => setError(null)}
+          icon={<ExclamationCircleIcon width={48} height={48} />}
+        />
+      )}
     </>
   );
 }
