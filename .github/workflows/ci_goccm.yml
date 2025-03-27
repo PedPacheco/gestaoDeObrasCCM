@@ -23,8 +23,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-        volumes:
-          - postgres_data:/var/lib/postgresql/data
 
     name: Run backend tests on Windows
     env:
