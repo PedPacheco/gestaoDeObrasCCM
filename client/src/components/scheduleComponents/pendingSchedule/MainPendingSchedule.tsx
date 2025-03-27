@@ -1,18 +1,19 @@
 "use client";
 
+import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useState, useTransition } from "react";
 
-import { MainInterface } from "@/interfaces/mainInterface";
-
-import { useSaveFilters } from "@/hooks/useSaveFilters";
-import dayjs, { Dayjs } from "dayjs";
-import { ButtonComponent } from "@/components/common/Button";
-import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
-import { capitalize } from "@/utils/capitalize";
-import { Transform } from "@/utils/transform";
 import { fetchData } from "@/actions/fetchData.action";
-import { getButtonContent } from "@/utils/getButtonContent";
+import { ButtonComponent } from "@/components/common/Button";
+import ErrorModal from "@/components/common/ErrorModal";
+import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { TableWithVirtualization } from "@/components/common/TableWithVirtualization";
+import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { MainInterface } from "@/interfaces/mainInterface";
+import { capitalize } from "@/utils/capitalize";
+import { getButtonContent } from "@/utils/getButtonContent";
+import { Transform } from "@/utils/transform";
+import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 interface Filters {
   regional: { id: string; regional: string }[];
@@ -28,6 +29,7 @@ export default function MainPendingSchedule({
   const { clearFilters, filters, saveFilters } = useSaveFilters(
     "pendingScheduleFilters"
   );
+  const [error, setError] = useState<string | null>();
   const [filteredData, setFilteredData] = useState(data);
   const [selectedYear, setSelectedYear] = useState<Dayjs | null>(dayjs());
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
@@ -52,13 +54,17 @@ export default function MainPendingSchedule({
     };
 
     startTransition(async () => {
-      const response = await fetchData(
-        `${process.env.NEXT_PUBLIC_API_URL}/programacao/pendente`,
-        params,
-        token
-      );
+      try {
+        const response = await fetchData(
+          `${process.env.NEXT_PUBLIC_API_URL}/programacao/pendente`,
+          params,
+          token
+        );
 
-      setFilteredData(response.data);
+        setFilteredData(response.data);
+      } catch (error: any) {
+        setError(error.message);
+      }
     });
   }
 
@@ -73,13 +79,17 @@ export default function MainPendingSchedule({
     };
 
     startTransition(async () => {
-      const response = await fetchData(
-        `${process.env.NEXT_PUBLIC_API_URL}/programacao/pendente`,
-        params,
-        token
-      );
+      try {
+        const response = await fetchData(
+          `${process.env.NEXT_PUBLIC_API_URL}/programacao/pendente`,
+          params,
+          token
+        );
 
-      setFilteredData(response.data);
+        setFilteredData(response.data);
+      } catch (error: any) {
+        setError(error.message);
+      }
     });
   }
 
@@ -128,6 +138,15 @@ export default function MainPendingSchedule({
       </div>
 
       <TableWithVirtualization columns={columns} data={filteredData} />
+
+      {error && (
+        <ErrorModal
+          open={true}
+          message={error}
+          onClose={() => setError(null)}
+          icon={<ExclamationCircleIcon width={48} height={48} />}
+        />
+      )}
     </>
   );
 }

@@ -46,11 +46,9 @@ export default function MainGoals({
   const [selectedParceiras, setSelectedParceiras] = useState<string[]>([]);
   const [selectedTiposObra, setSelectedTiposObra] = useState<string[]>([]);
   const [error, setError] = useState<string | null>();
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const toggleModal = () => setOpen((prev) => !prev);
 
   useEffect(() => {
     if (filters) {
@@ -162,7 +160,7 @@ export default function MainGoals({
             styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
           />
           <ButtonComponent
-            onClick={handleOpen}
+            onClick={toggleModal}
             text={getButtonContent(isPending, "Ver valores totais")}
             styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
           />
@@ -178,13 +176,13 @@ export default function MainGoals({
       <ModalGoals
         columns={columns}
         data={filteredData}
-        handleClose={handleClose}
+        handleClose={toggleModal}
         open={open}
       />
 
       {error && (
         <ErrorModal
-          open={isModalOpen}
+          open={true}
           message={error}
           onClose={() => setError(null)}
           icon={<ExclamationCircleIcon width={48} height={48} />}

@@ -5,17 +5,18 @@ import { useEffect, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { ButtonComponent } from "@/components/common/Button";
-import { LoadingComponent } from "@/components/common/Loading";
+import ErrorModal from "@/components/common/ErrorModal";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { MainInterface } from "@/interfaces/mainInterface";
 import { capitalize } from "@/utils/capitalize";
+import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
+import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 import EntryTable from "./EntryTable";
-import { getButtonContent } from "@/utils/getButtonContent";
 
 export interface EntryFiltersType {
   regional: { id: string; regional: string }[];
@@ -33,6 +34,7 @@ export default function MainEntry({
   token,
 }: MainInterface<EntryFiltersType>) {
   const [filteredData, setFilteredData] = useState(data);
+  const [error, setError] = useState<string | null>();
   const { clearFilters, filters, saveFilters } = useSaveFilters("entryFilters");
   const [selectedYear, setSelectedYear] = useState<Dayjs | null>(dayjs());
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
@@ -57,12 +59,16 @@ export default function MainEntry({
     };
 
     startTransition(async () => {
-      const response = await fetchData(
-        `${process.env.NEXT_PUBLIC_API_URL}/entrada`,
-        params,
-        token
-      );
-      setFilteredData(response.data);
+      try {
+        const response = await fetchData(
+          `${process.env.NEXT_PUBLIC_API_URL}/entrada`,
+          params,
+          token
+        );
+        setFilteredData(response.data);
+      } catch (error: any) {
+        setError(error.message);
+      }
     });
   }
 
@@ -77,12 +83,16 @@ export default function MainEntry({
     };
 
     startTransition(async () => {
-      const response = await fetchData(
-        `${process.env.NEXT_PUBLIC_API_URL}/entrada`,
-        params,
-        token
-      );
-      setFilteredData(response.data);
+      try {
+        const response = await fetchData(
+          `${process.env.NEXT_PUBLIC_API_URL}/entrada`,
+          params,
+          token
+        );
+        setFilteredData(response.data);
+      } catch (error: any) {
+        setError(error.message);
+      }
     });
   }
 
@@ -142,6 +152,15 @@ export default function MainEntry({
       </div>
 
       <EntryTable data={filteredData} columns={columns} />
+
+      {error && (
+        <ErrorModal
+          open={true}
+          message={error}
+          onClose={() => setError(null)}
+          icon={<ExclamationCircleIcon width={48} height={48} />}
+        />
+      )}
     </>
   );
 }

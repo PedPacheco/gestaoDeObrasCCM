@@ -7,13 +7,13 @@ import { fetchData } from "@/actions/fetchData.action";
 import { ButtonComponent } from "@/components/common/Button";
 import ErrorModal from "@/components/common/ErrorModal";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
+import { TableWithVirtualization } from "@/components/common/TableWithVirtualization";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import ModalGoals from "../GoalsModal";
-import { TableWithVirtualization } from "@/components/common/TableWithVirtualization";
 
 interface Filters {
   regional: { id: string; regional: string }[];
@@ -44,11 +44,9 @@ export default function MainRdaGoals({
   const [selectedEnterprises, setSelectedEnterprises] = useState<string[]>([]);
   const [selectedPlanYear, setSelectedPlanYear] = useState<string[]>([]);
   const [error, setError] = useState<string | null>();
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const toggleModal = () => setOpen((prev) => !prev);
 
   useEffect(() => {
     if (filters) {
@@ -162,7 +160,7 @@ export default function MainRdaGoals({
             styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
           />
           <ButtonComponent
-            onClick={handleOpen}
+            onClick={toggleModal}
             text={getButtonContent(isPending, "Ver valores totais")}
             styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
           />
@@ -180,7 +178,7 @@ export default function MainRdaGoals({
 
       {error && (
         <ErrorModal
-          open={isModalOpen}
+          open={true}
           message={error}
           onClose={() => setError(null)}
           icon={<ExclamationCircleIcon width={48} height={48} />}

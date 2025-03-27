@@ -16,6 +16,8 @@ import { MonthlySummaryScheduleTable } from "./monthlySummaryScheduleTable";
 import { Transform } from "@/utils/transform";
 import { fetchData } from "@/actions/fetchData.action";
 import { getButtonContent } from "@/utils/getButtonContent";
+import ErrorModal from "@/components/common/ErrorModal";
+import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 export interface Filters {
   regional: { id: string; regional: string }[];
@@ -48,6 +50,7 @@ export function MainMonthlySummarySchedule({
   const { clearFilters, filters, saveFilters } = useSaveFilters(
     "monthlySummaryScheduleFilters"
   );
+  const [error, setError] = useState<string | null>();
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {}
   );
@@ -71,21 +74,27 @@ export function MainMonthlySummarySchedule({
     };
 
     startTransition(async () => {
-      const [responseFirstSummary, responseSecondSummary] = await Promise.all([
-        fetchData(
-          `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal`,
-          params,
-          token
-        ),
-        fetchData(
-          `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal-2`,
-          params,
-          token
-        ),
-      ]);
+      try {
+        const [responseFirstSummary, responseSecondSummary] = await Promise.all(
+          [
+            fetchData(
+              `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal`,
+              params,
+              token
+            ),
+            fetchData(
+              `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal-2`,
+              params,
+              token
+            ),
+          ]
+        );
 
-      setFilteredDataFirstSummary(responseFirstSummary.data);
-      setFilteredDataSecondSummary(responseSecondSummary.data);
+        setFilteredDataFirstSummary(responseFirstSummary.data);
+        setFilteredDataSecondSummary(responseSecondSummary.data);
+      } catch (error: any) {
+        setError(error.message);
+      }
     });
   }
 
@@ -100,21 +109,27 @@ export function MainMonthlySummarySchedule({
     };
 
     startTransition(async () => {
-      const [responseFirstSummary, responseSecondSummary] = await Promise.all([
-        fetchData(
-          `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal`,
-          params,
-          token
-        ),
-        fetchData(
-          `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal-2`,
-          params,
-          token
-        ),
-      ]);
+      try {
+        const [responseFirstSummary, responseSecondSummary] = await Promise.all(
+          [
+            fetchData(
+              `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal`,
+              params,
+              token
+            ),
+            fetchData(
+              `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal-2`,
+              params,
+              token
+            ),
+          ]
+        );
 
-      setFilteredDataFirstSummary(responseFirstSummary.data);
-      setFilteredDataSecondSummary(responseSecondSummary.data);
+        setFilteredDataFirstSummary(responseFirstSummary.data);
+        setFilteredDataSecondSummary(responseSecondSummary.data);
+      } catch (error: any) {
+        setError(error.message);
+      }
     });
   }
 
@@ -189,6 +204,15 @@ export function MainMonthlySummarySchedule({
           data={filteredDataSecondSummary}
         />
       </div>
+
+      {error && (
+        <ErrorModal
+          open={true}
+          message={error}
+          onClose={() => setError(null)}
+          icon={<ExclamationCircleIcon width={48} height={48} />}
+        />
+      )}
     </>
   );
 }

@@ -84,8 +84,6 @@ export default function ScheduleForDayFilters({
       page: "0",
     };
 
-    console.log(newSelectedItems);
-
     setPage(0);
     applyFilters(newSelectedItems);
   }
