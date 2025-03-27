@@ -5,18 +5,9 @@ on:
     branches:
       - develop
 
-      - name: Debug secrets
-        run: |
-          echo "DB_NAME is set"
-          echo "DB_USER is set"
-          echo "DB_PASSWORD is set"
-        if: always()
-
 jobs:
   backend-tests:
     runs-on: ubuntu-latest
-
-    
 
     services:
       postgres:
