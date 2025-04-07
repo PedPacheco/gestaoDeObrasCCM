@@ -1,12 +1,7 @@
-import { cookies } from "next/headers";
 import { Suspense } from "react";
 
-import { fetchData } from "@/actions/fetchData.action";
-import { fetchFilters } from "@/actions/fetchFilters.action";
 import { LoadingComponent } from "@/components/common/Loading";
-import MainHome from "@/components/goalsComponents/MainGoals";
 import { Header } from "@/components/layout/Header";
-import { Transform } from "@/utils/transform";
 
 export default async function Home() {
   return (

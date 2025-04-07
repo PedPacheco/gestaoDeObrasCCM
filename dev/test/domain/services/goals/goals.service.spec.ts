@@ -34,6 +34,7 @@ describe('MetasService', () => {
         tipo: [15],
         ano: [2024],
         btzero: true,
+        rda: false,
       };
 
       const responsePrisma = [
@@ -116,6 +117,8 @@ describe('MetasService', () => {
     it('should handle missing filters and return default response', async () => {
       const filters = {
         ano: [2024],
+        btzero: false,
+        rda: false,
       };
 
       const responsePrisma = [

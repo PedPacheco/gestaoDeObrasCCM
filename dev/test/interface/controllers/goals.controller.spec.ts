@@ -1,7 +1,7 @@
 import { plainToInstance } from 'class-transformer';
 import { GoalsService } from 'src/domain/services/goals/goals.service';
 import { GoalsController } from 'src/interface/controllers/goals.controller';
-import { GoalsDTO, RdaGoalsDTO } from 'src/interface/dtos/goalsDto';
+import { GoalsDTO } from 'src/interface/dtos/goalsDto';
 import {
   Goals,
   GoalsIntefaceController,
@@ -9,12 +9,10 @@ import {
 
 import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { RdaGoalsService } from 'src/domain/services/goals/rdaGoals.service';
 
 describe('MetasController', () => {
   let metasController: GoalsController;
   let metasService: GoalsService;
-  let metasRdaService: RdaGoalsService;
 
   beforeEach(async () => {
     jest.resetAllMocks();
@@ -28,13 +26,11 @@ describe('MetasController', () => {
             getGoals: jest.fn(),
           },
         },
-        { provide: RdaGoalsService, useValue: { get: jest.fn() } },
       ],
     }).compile();
 
     metasController = module.get<GoalsController>(GoalsController);
     metasService = module.get<GoalsService>(GoalsService);
-    metasRdaService = module.get<RdaGoalsService>(RdaGoalsService);
   });
 
   it('Should be defined', () => {
@@ -46,6 +42,8 @@ describe('MetasController', () => {
       const goalsFilter: GoalsDTO = {
         regional: [1, 2, 3],
         tipo: [15],
+        rda: false,
+        btzero: false,
       };
 
       const metasResponse: Goals[] = [
@@ -125,78 +123,6 @@ describe('MetasController', () => {
       expect(valueFalse.btzero).toBeUndefined();
 
       expect(metasService.getGoals).toHaveBeenCalledWith(valueFalse);
-    });
-  });
-
-  describe('getRdaGoals', () => {
-    it('Should build filters, get rda goals with filters and return the result with correct format', async () => {
-      const filters: RdaGoalsDTO = {
-        ano: [2025],
-        empreendimento: [1],
-        parceira: [5],
-      };
-
-      const rdaGoalsResponse = {
-        works: [
-          {
-            empreendimento: 'PARQUE DOURADO - RDA Parque Dourado 34,5/13,8kV',
-            tipo_obra: 'RDA EXTENSÃO REDE AEREA',
-            turma: 'EDP',
-            regional: 'Mogi das Cruzes',
-            anocalc: 2025,
-            descricao: 'ESD Parque Dourado 34,5/13,8kV - Cabo OPDC',
-            jan_meta_fisico: 0.72,
-            fev_meta_fisico: 0.91,
-            mar_meta_fisico: 0.9,
-            abr_meta_fisico: 0.97,
-            mai_meta_fisico: 0.51,
-            jun_meta_fisico: 0,
-            jul_meta_fisico: 0,
-            ago_meta_fisico: 0,
-            set_meta_fisico: 0,
-            out_meta_fisico: 0,
-            nov_meta_fisico: 0,
-            dez_meta_fisico: 0,
-            carteira: 1.28,
-          },
-        ],
-        totalGoals: 1,
-        totalScheduled: 1,
-        totalAccomplished: 0,
-      };
-
-      const expectedResponse = {
-        statusCode: HttpStatus.OK,
-        message: 'Metas RDA trazidas com sucesso',
-        data: rdaGoalsResponse,
-      };
-
-      jest.spyOn(metasRdaService, 'get').mockResolvedValue(rdaGoalsResponse);
-
-      const result = await metasController.getRdaGoals(filters);
-
-      expect(metasRdaService.get).toHaveBeenCalledWith(filters);
-      expect(result).toEqual(expectedResponse);
-    });
-
-    it('should correctly transform query params', async () => {
-      const query = {
-        regional: '1,2,3',
-        parceira: '1,6',
-        empreendimento: '3,6',
-        ano: '2025',
-      };
-
-      const rdaGoalsDTO = plainToInstance(RdaGoalsDTO, query);
-
-      await metasController.getGoals(rdaGoalsDTO);
-
-      expect(rdaGoalsDTO.parceira).toStrictEqual([1, 6]);
-      expect(rdaGoalsDTO.regional).toStrictEqual([1, 2, 3]);
-      expect(rdaGoalsDTO.empreendimento).toStrictEqual([3, 6]);
-      expect(rdaGoalsDTO.ano).toStrictEqual([2025]);
-
-      expect(metasService.getGoals).toHaveBeenCalledWith(rdaGoalsDTO);
     });
   });
 });

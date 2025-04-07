@@ -15,13 +15,15 @@ export class GoalsService {
   ) {}
 
   async getGoals(filters: GoalsDTO): Promise<Goals[]> {
-    const { parceira, regional, tipo, ano, btzero } = filters;
+    const { parceira, regional, tipo, ano, btzero, empreendimento, rda } =
+      filters;
 
     let query = Prisma.sql`SELECT
       id_tipo,
       tipo_obra,
       turma,
       regional,
+      empreendimento,
       anocalc,
       SUM(janfismeta) AS janfismeta,
       SUM(fevfismeta) AS fevfismeta,
@@ -64,10 +66,15 @@ export class GoalsService {
       INNER JOIN tipos ON tipos.id = metas_anuais.id_tipo
       INNER JOIN turmas ON turmas.id = metas_anuais.id_turma
       INNER JOIN regionais ON regionais.id = metas_anuais.id_regional
+      LEFT JOIN empreendimento ON empreendimento.id = metas_anuais.id_empreendimento
       WHERE anocalc IN (${Prisma.join(ano)})`;
 
     if (btzero) {
       query = Prisma.sql`${query} AND id_tipo = 48`;
+    }
+
+    if (rda) {
+      query = Prisma.sql`${query} AND id_tipo = 49 AND empreendimento IS NOT NULL`;
     }
 
     if (regional && regional.length > 0) {
@@ -82,7 +89,11 @@ export class GoalsService {
       query = Prisma.sql`${query} AND metas_anuais.id_turma IN (${Prisma.join(parceira)})`;
     }
 
-    query = Prisma.sql`${query} GROUP BY tipo_obra, turma, regional, anocalc, id_tipo;`;
+    if (empreendimento && empreendimento.length > 0) {
+      query = Prisma.sql`${query} AND metas_anuais.id_empreendimento IN (${Prisma.join(empreendimento)})`;
+    }
+
+    query = Prisma.sql`${query} GROUP BY tipo_obra, turma, regional, empreendimento, anocalc, id_tipo;`;
 
     const result: Goals[] = await this.prisma.$queryRaw(query);
 
@@ -111,6 +122,7 @@ export class GoalsService {
         tipo_obra: item.tipo_obra,
         turma: item.turma,
         regional: item.regional,
+        empreendimento: item.empreendimento,
         anocalc: item.anocalc,
         carteira: item.carteira,
       };

@@ -13,16 +13,21 @@ interface GoalsTableComponentProps {
   data: any;
   columnMapping: any;
   fixedNumber: number;
+  typeGoals: string;
 }
 
 export default function GoalsTable({
   data,
   columnMapping,
   fixedNumber,
+  typeGoals,
 }: GoalsTableComponentProps) {
   const calculateSum = useCallback(
     (item: any) => {
-      const months = Object.keys(columnMapping).slice(5, -2);
+      const months = Object.keys(columnMapping).slice(
+        typeGoals === "rda" ? 6 : 5,
+        -2
+      );
       const sums = {
         meta: 0,
         prog: 0,
@@ -37,7 +42,7 @@ export default function GoalsTable({
 
       return sums;
     },
-    [columnMapping]
+    [columnMapping, typeGoals]
   );
 
   const sumValues = useMemo(() => {
@@ -69,18 +74,23 @@ export default function GoalsTable({
             const sums = sumValues[index];
             return (
               <TableRow key={index} className="h-16">
-                <TableCell className="p-0 text-center text-nowrap text-base text-zinc-700 ">
+                <TableCell className="p-0 px-2 text-center text-nowrap text-base text-zinc-700 ">
                   {item.regional}
                 </TableCell>
-                <TableCell className="p-0 text-center text-nowrap text-base text-zinc-700 ">
+                <TableCell className="p-0 px-2 text-center text-nowrap text-base text-zinc-700 ">
                   {item.tipo_obra}
                 </TableCell>
-                <TableCell className="p-0 text-center text-nowrap text-base text-zinc-700 ">
+                <TableCell className="p-0  px-2 text-center text-nowrap text-base text-zinc-700 ">
                   {item.turma}
                 </TableCell>
-                <TableCell className="p-0 text-center text-nowrap text-base text-zinc-700 ">
+                <TableCell className="p-0 px-2 text-center text-nowrap text-base text-zinc-700 ">
                   {item.anocalc}
                 </TableCell>
+                {typeGoals === "rda" && (
+                  <TableCell className="p-0 px-3 text-center text-nowrap text-base text-zinc-700 ">
+                    {item.empreendimento}
+                  </TableCell>
+                )}
 
                 <TableCell className="p-0 h-16 text-center ">
                   <div className="flex flex-col">
@@ -97,7 +107,7 @@ export default function GoalsTable({
                 </TableCell>
 
                 {Object.keys(columnMapping)
-                  .slice(5, -2)
+                  .slice(typeGoals === "rda" ? 6 : 5, -2)
                   .map((month) => (
                     <TableCell key={month} className="p-0 h-16 w-4 ">
                       <div className="flex flex-col">
