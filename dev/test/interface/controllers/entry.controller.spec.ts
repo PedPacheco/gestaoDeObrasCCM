@@ -80,6 +80,7 @@ describe('EntryController', () => {
         ordem_dcim: null,
         entrada: null,
         prazo: 0,
+        prazo_fim: moment('1970-01-01', 'DD/MM/YYYY', true).toDate(),
         qtde_planejada: 0,
         mo_planejada: 91105.824,
         observ_obra: null,
@@ -92,7 +93,6 @@ describe('EntryController', () => {
         municipios: {
           mun: 'SBR',
         },
-        prazo_fim: '1970-01-01T00:00:00.000Z',
       },
     ],
     totals: {

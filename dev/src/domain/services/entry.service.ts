@@ -118,6 +118,7 @@ export class EntryService {
   }
 
   async getEntryOfWorksByDay(filters: GetEntryOfWorksByDayDTO) {
+    console.log(filters);
     const {
       idGrupo,
       idMunicipio,
@@ -202,8 +203,23 @@ export class EntryService {
       prazo_fim.setDate(prazo_fim.getDate() + item.prazo);
 
       return {
-        ...item,
-        ...{ prazo_fim },
+        id: item.id,
+        ovnota: item.ovnota,
+        pep: item.pep,
+        diagrama: item.diagrama,
+        ordem_dci: item.ordem_dci,
+        ordem_dcd: item.ordem_dcd,
+        ordem_dca: item.ordem_dca,
+        ordem_dcim: item.ordem_dcim,
+        entrada: item.entrada,
+        prazo: item.prazo,
+        prazo_fim,
+        qtde_planejada: item.qtde_planejada,
+        mo_planejada: item.mo_planejada,
+        observ_obra: item.observ_obra,
+        tipos: item.tipos,
+        turmas: item.turmas,
+        municipios: item.municipios,
       };
     });
 
