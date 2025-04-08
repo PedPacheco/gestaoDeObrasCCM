@@ -4,13 +4,10 @@ import { userInterface } from 'src/interface/types/userInterface';
 
 import { Body, Controller, Put } from '@nestjs/common';
 
-import { Public } from '../../shared/costants';
-
 @Controller('user')
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @Public()
   @Put('/change-password')
   async changePassword(
     @Body() { token, newPassword }: ChangePasswordDTO,

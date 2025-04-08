@@ -186,4 +186,39 @@ describe('GetScheduleValues', () => {
     expect(allPartsPresent).toBeTruthy();
     expect(prisma.$queryRaw).toHaveBeenCalledTimes(2);
   });
+
+  it('should correctly format the data if no data is returned from the database query', async () => {
+    const filters = {
+      data: '01/10/2024',
+      tipoFiltro: 'day',
+      executado: false,
+      idGrupo: undefined,
+      idMunicipio: undefined,
+      idParceira: undefined,
+      idRegional: undefined,
+      idTipo: undefined,
+      page: 1,
+    };
+
+    prismaMock.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([
+      {
+        total_obras: 0,
+        total_mo_planejada: null,
+        total_mo_exec: null,
+        total_qtde_planejada: null,
+      },
+    ]);
+
+    const result = await service.getValues(filters);
+
+    expect(result).toEqual({
+      works: [],
+      totals: {
+        total_obras: 0,
+        total_mo_planejada: 0,
+        total_mo_exec: 0,
+        total_qtde_planejada: 0,
+      },
+    });
+  });
 });

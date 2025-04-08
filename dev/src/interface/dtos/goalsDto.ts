@@ -22,31 +22,16 @@ export class GoalsDTO {
   @Transform(({ value }) => convertParameterValue(value))
   ano?: number[];
 
-  @IsBoolean()
-  @IsOptional()
-  @Transform(({ value }) =>
-    value === 'true' ? true : value === 'false' ? false : undefined,
-  )
-  btzero?: boolean;
-}
-
-export class RdaGoalsDTO {
-  @IsOptional()
-  @IsArray()
-  @Transform(({ value }) => convertParameterValue(value))
-  regional?: number[];
-
-  @IsOptional()
-  @IsArray()
-  @Transform(({ value }) => convertParameterValue(value))
-  parceira?: number[];
-
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
   empreendimento?: number[];
 
-  @IsArray()
-  @Transform(({ value }) => convertParameterValue(value))
-  ano?: number[];
+  @IsBoolean()
+  @Transform(({ value }) => (value === 'true' ? true : false))
+  btzero?: boolean;
+
+  @IsBoolean()
+  @Transform(({ value }) => (value === 'true' ? true : false))
+  rda?: boolean;
 }

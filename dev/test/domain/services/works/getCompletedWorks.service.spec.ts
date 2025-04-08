@@ -245,4 +245,49 @@ describe('GetCompletedWorksService', () => {
       1800000,
     );
   });
+
+  it('should correctly format the data if no data is returned from the database query', async () => {
+    const filters: GetWorksDTO = {
+      idGrupo: [4],
+      idMunicipio: [5],
+      idParceira: [3],
+      idRegional: [1],
+      idStatus: [6],
+      idTipo: [2],
+      idOvnota: [10],
+      idCircuito: [7],
+      idConjunto: [8],
+      idEmpreendimento: [9],
+      data: '09/2024',
+      tipoFiltro: 'month',
+      page: 0,
+    };
+
+    mockPrismaService.$queryRaw
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        {
+          total_obras: 0,
+          total_mo_planejada: null,
+          total_mo_exec: null,
+          total_mo_suspensa: null,
+          total_qtde_planejada: null,
+          total_qtde_pend: null,
+        },
+      ]);
+
+    const result = await getCompletedWorksService.getCompletedWorks(filters);
+
+    expect(result).toEqual({
+      works: [],
+      totals: {
+        total_obras: 0,
+        total_mo_planejada: 0,
+        total_mo_exec: 0,
+        total_mo_suspensa: 0,
+        total_qtde_planejada: 0,
+        total_qtde_pend: 0,
+      },
+    });
+  });
 });

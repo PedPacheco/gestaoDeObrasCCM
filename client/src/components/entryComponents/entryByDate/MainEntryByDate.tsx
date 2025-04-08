@@ -157,7 +157,7 @@ export default function MainEntryByDate({
       </div>
 
       <TableWithVirtualization
-        data={filteredData}
+        data={filteredData.works}
         columns={columns}
         sliceEndIndex={3}
       />

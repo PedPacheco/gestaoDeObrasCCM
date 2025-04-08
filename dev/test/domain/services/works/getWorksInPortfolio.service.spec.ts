@@ -243,4 +243,50 @@ describe('GetWorksInPortfolioService', () => {
     expect(prismaService.$queryRaw).toHaveBeenCalled();
     expect(allPartsPresent).toBeTruthy();
   });
+
+  it('Should correctly format param date and data if no value of date was sent and no data is returned from the database query', async () => {
+    const filters: GetWorksDTO = {
+      page: 1,
+      data: undefined,
+      tipoFiltro: undefined,
+      idRegional: [],
+      idMunicipio: [],
+      idGrupo: [],
+      idTipo: [],
+      idParceira: [],
+      idStatus: [],
+      idConjunto: [],
+      idCircuito: [],
+      idEmpreendimento: [],
+      idOvnota: [],
+    };
+
+    mockPrismaService.$queryRaw
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        {
+          total_obras: 0,
+          total_mo_planejada: null,
+          total_mo_exec: null,
+          total_mo_suspensa: null,
+          total_qtde_planejada: null,
+          total_qtde_pend: null,
+        },
+      ]);
+
+    const result =
+      await getWorksInPortfolioService.getWorksInPortfolio(filters);
+
+    expect(result).toEqual({
+      works: [],
+      totals: {
+        total_obras: 0,
+        total_mo_planejada: 0,
+        total_mo_exec: 0,
+        total_mo_suspensa: 0,
+        total_qtde_planejada: 0,
+        total_qtde_pend: 0,
+      },
+    });
+  });
 });

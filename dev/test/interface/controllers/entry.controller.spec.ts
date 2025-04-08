@@ -34,7 +34,7 @@ describe('EntryController', () => {
     entryService = module.get<EntryService>(EntryService);
   });
 
-  const dataResponse = [
+  const getEntryDataResponse = [
     {
       tipo: 'BT ZERO',
       grupo: 'BT ',
@@ -67,6 +67,41 @@ describe('EntryController', () => {
     },
   ];
 
+  const mockGetEntryByDayResponse = {
+    works: [
+      {
+        id: 17617,
+        ovnota: '15373379',
+        pep: 'X/005016',
+        diagrama: null,
+        ordem_dci: '170000015211',
+        ordem_dcd: '190000016813',
+        ordem_dca: '150000001995',
+        ordem_dcim: null,
+        entrada: null,
+        prazo: 0,
+        prazo_fim: moment('1970-01-01', 'DD/MM/YYYY', true).toDate(),
+        qtde_planejada: 0,
+        mo_planejada: 91105.824,
+        observ_obra: null,
+        tipos: {
+          tipo_obra: 'RISCO A SEGURANÇA',
+        },
+        turmas: {
+          turma: 'ENGELMIG',
+        },
+        municipios: {
+          mun: 'SBR',
+        },
+      },
+    ],
+    totals: {
+      total_obras: 1,
+      total_mo_planejada: 91105.824,
+      total_qtde_planejada: 0,
+    },
+  };
+
   it('Should be defined', () => {
     expect(entryController).toBeDefined();
   });
@@ -85,14 +120,14 @@ describe('EntryController', () => {
 
       jest
         .spyOn(entryService, 'getValuesFromEntry')
-        .mockResolvedValue(dataResponse);
+        .mockResolvedValue(getEntryDataResponse);
 
       const result = await entryController.getEntry(entryDTO);
 
       const expectedResponse = {
         statusCode: HttpStatus.OK,
         message: 'Valores de entrada trazidos com sucesso',
-        data: dataResponse,
+        data: getEntryDataResponse,
       };
 
       expect(entryService.getValuesFromEntry).toHaveBeenCalledWith(entryDTO);
@@ -114,14 +149,14 @@ describe('EntryController', () => {
 
       jest
         .spyOn(entryService, 'getEntryOfWorksByDay')
-        .mockResolvedValue(dataResponse);
+        .mockResolvedValue(mockGetEntryByDayResponse);
 
       const result = await entryController.getEntryByDay(entryDTO);
 
       const expectedResponse = {
         statusCode: HttpStatus.OK,
         message: 'Valores de entrada trazidos com sucesso',
-        data: dataResponse,
+        data: mockGetEntryByDayResponse,
       };
 
       expect(entryService.getEntryOfWorksByDay).toHaveBeenCalledWith(entryDTO);

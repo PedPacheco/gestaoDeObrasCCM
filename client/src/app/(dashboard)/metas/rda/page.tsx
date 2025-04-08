@@ -1,8 +1,9 @@
+import { cookies } from "next/headers";
+
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import MainRdaGoals from "@/components/goalsComponents/rdaGoals/mainRdaGoals";
+import MainGoals from "@/components/goalsComponents/MainGoals";
 import { Transform } from "@/utils/transform";
-import { cookies } from "next/headers";
 
 export default async function RdaGoals() {
   const cookieStore = await cookies();
@@ -14,7 +15,7 @@ export default async function RdaGoals() {
   if (params) {
     params = Transform(params);
   } else {
-    params = { ano: "2025" };
+    params = { ano: "2025", rda: true };
   }
 
   const [filters, rdaGoalsData] = await Promise.all([
@@ -24,7 +25,7 @@ export default async function RdaGoals() {
       empreendimento: true,
     }),
 
-    fetchData(`${process.env.NEXT_PUBLIC_API_URL}/metas/rda`, params, token),
+    fetchData(`${process.env.NEXT_PUBLIC_API_URL}/metas`, params, token),
   ]);
 
   const { data } = rdaGoalsData;
@@ -33,31 +34,32 @@ export default async function RdaGoals() {
     regional: "Regional",
     tipo_obra: "Tipo de obra",
     turma: "Contratada",
-    empreendimento: "Empreendimento",
     anocalc: "Ano",
-    descricao: "Descrição",
-    jan_meta_fisico: "Jan",
-    fev_meta_fisico: "Fev",
-    mar_meta_fisico: "Mar",
-    abr_meta_fisico: "Abr",
-    mai_meta_fisico: "Mai",
-    jun_meta_fisico: "Jun",
-    jul_meta_fisico: "Jul",
-    ago_meta_fisico: "Ago",
-    set_meta_fisico: "Set",
-    out_meta_fisico: "Out",
-    nov_meta_fisico: "Nov",
-    dez_meta_fisico: "Dez",
+    empreendimento: "Empreendimento",
+    teste: "Teste",
+    jan: "Jan",
+    fev: "Fev",
+    mar: "Mar",
+    abr: "Abr",
+    mai: "Mai",
+    jun: "Jun",
+    jul: "Jul",
+    ago: "Ago",
+    set: "Set",
+    out: "Out",
+    nov: "Nov",
+    dez: "Dez",
     total: "Total",
     carteira: "Carteira",
   };
 
   return (
-    <MainRdaGoals
+    <MainGoals
       columns={columns}
       data={data}
       filtersData={filters}
       token={token}
+      typeGoals="rda"
     />
   );
 }

@@ -182,7 +182,6 @@ describe('EntryService', () => {
           ordem_dcim: '1900886',
           entrada: moment('04/09/2024', 'DD/MM/YYYY', true).toDate(),
           prazo: 90,
-          prazo_fim: moment('3/12/2024', 'DD/MM/YYYY', true).toDate(),
           qtde_planejada: 8,
           mo_planejada: 100,
           tipos: { tipo_obra: 'BTZERO' },
@@ -190,6 +189,11 @@ describe('EntryService', () => {
           municipios: { mun: 'SJC' },
         } as unknown as obras,
       ];
+
+      const response = {
+        ...mockObrasByDay[0],
+        prazo_fim: moment('03/12/2024', 'DD/MM/YYYY', true).toDate(),
+      };
 
       jest
         .spyOn(prismaService.obras, 'findMany')
@@ -203,15 +207,14 @@ describe('EntryService', () => {
         orderBy: { entrada: 'asc' },
       });
 
-      expect(result).toEqual([
-        {
-          ...mockObrasByDay[0],
-          prazo_fim: moment('03/12/2024', 'DD/MM/YYYY', true).toDate(),
+      expect(result).toEqual({
+        works: [response],
+        totals: {
           total_obras: 1,
           total_mo_planejada: 100,
           total_qtde_planejada: 8,
         },
-      ]);
+      });
     });
 
     it('Should return values for corretc month', async () => {
@@ -249,6 +252,11 @@ describe('EntryService', () => {
         .spyOn(prismaService.obras, 'findMany')
         .mockResolvedValue(mockObrasByMonth);
 
+      const response = {
+        ...mockObrasByMonth[0],
+        prazo_fim: moment('03/12/2024', 'DD/MM/YYYY', true).toDate(),
+      };
+
       const result = await entryService.getEntryOfWorksByDay(filters);
 
       expect(prismaService.obras.findMany).toHaveBeenCalledWith({
@@ -257,15 +265,14 @@ describe('EntryService', () => {
         orderBy: { entrada: 'asc' },
       });
 
-      expect(result).toEqual([
-        {
-          ...mockObrasByMonth[0],
-          prazo_fim: moment('03/12/2024', 'DD/MM/YYYY', true).toDate(),
+      expect(result).toEqual({
+        works: [response],
+        totals: {
           total_obras: 1,
           total_mo_planejada: 100,
           total_qtde_planejada: 8,
         },
-      ]);
+      });
     });
   });
 });

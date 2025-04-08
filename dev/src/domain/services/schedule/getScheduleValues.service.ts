@@ -26,7 +26,7 @@ export class GetScheduleValuesService {
       tipoFiltro,
     } = filters;
 
-    const [month, year] = data ? data.split('/') : [null, null];
+    const [month, year] = data.split('/');
 
     if (tipoFiltro === 'month' && data) {
       query = Prisma.sql`${query} AND EXTRACT(MONTH FROM data_prog) = ${parseInt(month)} AND EXTRACT(YEAR FROM data_prog) = ${parseInt(year)}`;
@@ -102,15 +102,12 @@ export class GetScheduleValuesService {
       this.prisma.$queryRaw<totalsGetScheduleValues[]>(countQuery),
     ]);
 
-    const totals =
-      result.length > 0
-        ? {
-            total_obras: Number(result[0].total_obras) || 0,
-            total_mo_planejada: result[0].total_mo_planejada || 0,
-            total_mo_exec: result[0].total_mo_exec || 0,
-            total_qtde_planejada: result[0].total_qtde_planejada || 0,
-          }
-        : null;
+    const totals = {
+      total_obras: Number(result[0].total_obras),
+      total_mo_planejada: result[0].total_mo_planejada || 0,
+      total_mo_exec: result[0].total_mo_exec || 0,
+      total_qtde_planejada: result[0].total_qtde_planejada || 0,
+    };
 
     const response: GetScheduleValuesResponse = {
       works,

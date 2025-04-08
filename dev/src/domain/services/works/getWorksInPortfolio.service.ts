@@ -139,17 +139,14 @@ export class GetWorksInPortfolioService {
       this.prisma.$queryRaw<totalsWorksInPortfolio[]>(countQuery),
     ]);
 
-    const totals =
-      result.length > 0
-        ? {
-            total_obras: Number(result[0].total_obras) || 0,
-            total_mo_planejada: result[0].total_mo_planejada || 0,
-            total_mo_exec: result[0].total_mo_exec || 0,
-            total_mo_suspensa: result[0].total_mo_suspensa || 0,
-            total_qtde_planejada: result[0].total_qtde_planejada || 0,
-            total_qtde_pend: result[0].total_qtde_pend || 0,
-          }
-        : null;
+    const totals = {
+      total_obras: Number(result[0].total_obras),
+      total_mo_planejada: result[0].total_mo_planejada || 0,
+      total_mo_exec: result[0].total_mo_exec || 0,
+      total_mo_suspensa: result[0].total_mo_suspensa || 0,
+      total_qtde_planejada: result[0].total_qtde_planejada || 0,
+      total_qtde_pend: result[0].total_qtde_pend || 0,
+    };
 
     const response: worksInPortfolioResponse = {
       works,

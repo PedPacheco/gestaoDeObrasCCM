@@ -14,11 +14,13 @@ import ErrorModal from "../common/ErrorModal";
 import { MultipleSelectComponent } from "../common/MultipleSelect";
 import ModalGoals from "./GoalsModal";
 import GoalsTable from "./GoalsTable";
+import { boolean } from "zod";
 
 interface Filters {
   regional: { id: string; regional: string }[];
   parceira: { id: string; turma: string }[];
   tipo: { id: string; tipo_obra: string; id_grupo: number }[];
+  empreendimento: { id: string; empreendimento: string }[];
 }
 
 interface MainGoalsProps {
@@ -39,23 +41,32 @@ export default function MainGoals({
   const [filteredData, setFilteredData] = useState(data);
   const [open, setOpen] = useState(false);
   const { clearFilters, filters, saveFilters } = useSaveFilters(
-    typeGoals === "bt0" ? "bt0GoalsFilters" : "goalsFilters"
+    typeGoals === "bt0"
+      ? "bt0GoalsFilters"
+      : typeGoals === "rda"
+      ? "rdaGoalsFilters"
+      : "goalsFilters"
   );
   const [selectedYear, setSelectedYear] = useState<string[]>(["2025"]);
   const [selectedRegionais, setSelectedRegionais] = useState<string[]>([]);
   const [selectedParceiras, setSelectedParceiras] = useState<string[]>([]);
   const [selectedTiposObra, setSelectedTiposObra] = useState<string[]>([]);
+  const [selectedEmpreendimento, setSelectedEmpreendimento] = useState<
+    string[]
+  >([]);
   const [error, setError] = useState<string | null>();
   const [isPending, startTransition] = useTransition();
 
   const toggleModal = () => setOpen((prev) => !prev);
 
   useEffect(() => {
+    console.log(filters);
     if (filters) {
       setSelectedYear(filters.ano);
       setSelectedParceiras(filters.parceira);
       setSelectedRegionais(filters.regional);
       setSelectedTiposObra(filters.tipo);
+      setSelectedEmpreendimento(filters.empreendimento);
     }
   }, [filters]);
 
@@ -68,14 +79,19 @@ export default function MainGoals({
   function fetchGoals() {
     const params: Record<string, string[]> = {};
 
-    selectedParceiras.length && (params["parceira"] = selectedParceiras);
-    selectedRegionais.length && (params["regional"] = selectedRegionais);
-    selectedTiposObra.length && (params["tipo"] = selectedTiposObra);
-    selectedYear.length && (params["ano"] = selectedYear);
+    params["parceira"] = selectedParceiras;
+    params["regional"] = selectedRegionais;
+    params["tipo"] = selectedTiposObra;
+    params["ano"] = selectedYear;
+    params["empreendimento"] = selectedEmpreendimento;
 
     saveFilters(params);
 
-    const formattedSelectedItens = Transform(params);
+    const formattedSelectedItens = {
+      ...Transform(params),
+      btzero: typeGoals === "bt0" ? true : false,
+      rda: typeGoals === "rda" ? true : false,
+    };
 
     startTransition(async () => {
       const response = await fetchData(
@@ -92,6 +108,7 @@ export default function MainGoals({
     setSelectedParceiras([]);
     setSelectedRegionais([]);
     setSelectedTiposObra([]);
+    setSelectedEmpreendimento([]);
     setSelectedYear(["2025"]);
 
     clearFilters();
@@ -99,7 +116,11 @@ export default function MainGoals({
     startTransition(async () => {
       const response = await fetchData(
         `${process.env.NEXT_PUBLIC_API_URL}/metas`,
-        { ano: "2025" },
+        {
+          ano: "2025",
+          btzero: typeGoals === "bt0" ? true : false,
+          rda: typeGoals === "rda" ? true : false,
+        },
         token
       );
 
@@ -136,7 +157,16 @@ export default function MainGoals({
             displayKey="turma"
           />
 
-          {typeGoals === "bt0" ? null : (
+          {typeGoals === "bt0" ? null : typeGoals === "rda" ? (
+            <MultipleSelectComponent
+              label="Empreendimento"
+              menuItems={filtersData.empreendimento}
+              selectedItem={selectedEmpreendimento}
+              setSelectedItem={setSelectedEmpreendimento}
+              valueKey="id"
+              displayKey="empreendimento"
+            />
+          ) : (
             <MultipleSelectComponent
               label="Tipos de Obra"
               menuItems={filtersData.tipo.filter((item) => item.id_grupo === 2)}
@@ -171,6 +201,7 @@ export default function MainGoals({
         data={filteredData}
         columnMapping={columns}
         fixedNumber={typeGoals === "bt0" ? 0 : 3}
+        typeGoals={typeGoals}
       />
 
       <ModalGoals

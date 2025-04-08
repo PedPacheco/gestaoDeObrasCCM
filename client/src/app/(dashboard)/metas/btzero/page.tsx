@@ -22,7 +22,6 @@ export default async function Bt0Goals() {
     fetchFilters({
       regional: true,
       parceira: true,
-      tipo: true,
     }),
 
     fetchData(`${process.env.NEXT_PUBLIC_API_URL}/metas`, params, token),
