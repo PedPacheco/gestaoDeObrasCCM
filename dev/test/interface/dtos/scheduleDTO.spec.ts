@@ -146,6 +146,7 @@ describe('ScheduleDTO', () => {
   it('Should transform query params to correct type', () => {
     const filters = {
       executado: undefined,
+      idRegional: undefined,
     };
 
     const getValueWeeklyScheduleInstance = plainToInstance(
@@ -160,9 +161,11 @@ describe('ScheduleDTO', () => {
 
     expect(getValueWeeklyScheduleInstance).toEqual({
       executado: undefined,
+      idRegional: [],
     });
     expect(getScheduleValuesInstance).toEqual({
       executado: undefined,
+      idRegional: [],
     });
   });
 });

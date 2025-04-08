@@ -1,5 +1,5 @@
 import { plainToInstance } from 'class-transformer';
-import { GoalsService } from 'src/domain/services/goals/goals.service';
+import { GoalsService } from 'src/domain/services/goals.service';
 import { GoalsController } from 'src/interface/controllers/goals.controller';
 import { GoalsDTO } from 'src/interface/dtos/goalsDto';
 import {
@@ -89,7 +89,9 @@ describe('MetasController', () => {
         parceira: '1,6',
         tipo: '15',
         ano: '2024,2025',
+        empreendimento: '139',
         btzero: 'true',
+        rda: 'true',
       };
 
       const goalsDTO = plainToInstance(GoalsDTO, query);
@@ -100,27 +102,29 @@ describe('MetasController', () => {
       expect(goalsDTO.regional).toStrictEqual([1, 2, 3]);
       expect(goalsDTO.tipo).toStrictEqual([15]);
       expect(goalsDTO.ano).toStrictEqual([2024, 2025]);
+      expect(goalsDTO.empreendimento).toStrictEqual([139]);
       expect(goalsDTO.btzero).toStrictEqual(true);
+      expect(goalsDTO.rda).toStrictEqual(true);
 
       expect(metasService.getGoals).toHaveBeenCalledWith(goalsDTO);
     });
 
     it('should correctly transform btzero in false', async () => {
-      const valueFalse = plainToInstance(GoalsDTO, { btzero: 'false' });
-
-      await metasController.getGoals(valueFalse);
-
-      expect(valueFalse.btzero).toStrictEqual(false);
-
-      expect(metasService.getGoals).toHaveBeenCalledWith(valueFalse);
-    });
-
-    it('should correctly transform btzero in undefined', async () => {
       const valueFalse = plainToInstance(GoalsDTO, { btzero: 'fafa' });
 
       await metasController.getGoals(valueFalse);
 
-      expect(valueFalse.btzero).toBeUndefined();
+      expect(valueFalse.btzero).toBeFalsy();
+
+      expect(metasService.getGoals).toHaveBeenCalledWith(valueFalse);
+    });
+
+    it('should correctly transform rda in false', async () => {
+      const valueFalse = plainToInstance(GoalsDTO, { rda: 'fafa' });
+
+      await metasController.getGoals(valueFalse);
+
+      expect(valueFalse.rda).toBeFalsy();
 
       expect(metasService.getGoals).toHaveBeenCalledWith(valueFalse);
     });

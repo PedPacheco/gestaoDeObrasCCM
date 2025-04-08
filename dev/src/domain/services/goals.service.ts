@@ -122,10 +122,13 @@ export class GoalsService {
         tipo_obra: item.tipo_obra,
         turma: item.turma,
         regional: item.regional,
-        empreendimento: item.empreendimento,
         anocalc: item.anocalc,
         carteira: item.carteira,
       };
+
+      if (item.empreendimento !== undefined && item.empreendimento !== null) {
+        transformedItem['empreendimento'] = item.empreendimento;
+      }
 
       months.forEach((month) => {
         transformedItem[month] = {

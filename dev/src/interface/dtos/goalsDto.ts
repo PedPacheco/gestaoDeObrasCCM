@@ -28,14 +28,10 @@ export class GoalsDTO {
   empreendimento?: number[];
 
   @IsBoolean()
-  @Transform(({ value }) =>
-    value === 'true' ? true : value === 'false' ? false : undefined,
-  )
-  btzero: boolean;
+  @Transform(({ value }) => (value === 'true' ? true : false))
+  btzero?: boolean;
 
   @IsBoolean()
-  @Transform(({ value }) =>
-    value === 'true' ? true : value === 'false' ? false : undefined,
-  )
-  rda: boolean;
+  @Transform(({ value }) => (value === 'true' ? true : false))
+  rda?: boolean;
 }

@@ -9,6 +9,7 @@ export interface Goals {
   tipo_obra: string;
   turma: string;
   regional: string;
+  empreendimento?: string;
   anocalc: number;
   carteira: number;
   jan: valuesGoals;

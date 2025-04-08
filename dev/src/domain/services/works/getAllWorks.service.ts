@@ -84,7 +84,7 @@ export class GetAllWorksService {
       this.prisma.$queryRaw<{ total_obras: number }[]>(queryCount),
     ]);
 
-    const totalRecords = total.length > 0 ? Number(total[0].total_obras) : 0;
+    const totalRecords = Number(total[0].total_obras);
 
     const response = {
       works,
