@@ -19,9 +19,9 @@ export default async function Goals() {
   let params = cookieParams ? JSON.parse(cookieParams) : undefined;
 
   if (params) {
-    params = Transform(params);
+    params = { ...Transform(params), rda: false, btzero: false };
   } else {
-    params = { ano: "2025" };
+    params = { ano: "2025", btzero: false, rda: false };
   }
 
   const [filters, goalsData] = await Promise.all([
