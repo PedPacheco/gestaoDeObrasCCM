@@ -1,35 +1,34 @@
-import nookies from "nookies";
+import { Cookies } from "react-cookie";
 import { useEffect, useState } from "react";
+
+const cookies = new Cookies();
 
 export function useSaveFilters(pageKey: string) {
   const [filters, setFilters] = useState<Record<string, any>>();
 
   useEffect(() => {
-    const cookies = nookies.get();
-    const saveFilters = cookies[pageKey];
+    const saveFilters = cookies.get(pageKey);
 
     if (saveFilters) {
-      setFilters(JSON.parse(saveFilters));
+      setFilters(saveFilters);
     }
   }, [pageKey]);
 
   function saveFilters(filtersValues: Record<string, any>) {
-    const currentFilters = nookies.get(null)[pageKey]
-      ? JSON.parse(nookies.get(null)[pageKey])
-      : {};
+    const currentFilters = cookies.get(pageKey) ? cookies.get(pageKey) : {};
 
     const newFilters = { ...currentFilters, ...filtersValues };
 
     setFilters(newFilters);
-    nookies.set(null, pageKey, JSON.stringify(newFilters), {
-      maxAge: 1200,
+    cookies.set(pageKey, JSON.stringify(newFilters), {
       path: "/",
+      maxAge: 1200,
     });
   }
 
   function clearFilters() {
     setFilters(undefined);
-    nookies.destroy(null, pageKey, { path: "/" });
+    cookies.remove(pageKey, { path: "/" });
   }
 
   return { filters, saveFilters, clearFilters };

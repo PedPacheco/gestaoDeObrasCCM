@@ -2,13 +2,12 @@
 
 import dayjs from "dayjs";
 import dynamic from "next/dynamic";
-import nookies from "nookies";
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
+import { Cookies } from "react-cookie";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
 import { TableWithPagination } from "@/components/common/TableWithPagination";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { MainInterface } from "@/interfaces/mainInterface";
 import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
@@ -22,6 +21,8 @@ const ErrorModal = dynamic(() => import("@/components/common/ErrorModal"), {
 const ModalComponent = dynamic(() => import("@/components/common/Modal"), {
   ssr: false,
 });
+
+const cookies = new Cookies();
 
 export default function MainSchduleForDay({
   columns,
@@ -86,8 +87,8 @@ export default function MainSchduleForDay({
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
 
-    const currentFilters = nookies.get(null)["scheduleForDayFilters"]
-      ? JSON.parse(nookies.get(null)["scheduleForDayFilters"])
+    const currentFilters = cookies.get("scheduleForDayFilters")
+      ? cookies.get("scheduleForDayFilters")
       : {};
 
     const filtersValues = {

@@ -1,7 +1,7 @@
 "use client";
 
 import { jwtDecode } from "jwt-decode";
-import nookies from "nookies";
+import { Cookies } from "react-cookie";
 import {
   createContext,
   Dispatch,
@@ -38,15 +38,16 @@ interface UserContextType {
 }
 
 const UserContext = createContext<UserContextType | null>(null);
+const cookies = new Cookies();
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserData | null>(() => {
-    const storedUser = nookies.get(null).userInfo;
-    return storedUser ? JSON.parse(storedUser) : null;
+    const storedUser = cookies.get("userInfo");
+    return storedUser ? storedUser : null;
   });
 
   const [permissions, setPermissions] = useState<JwtPayload | null>(() => {
-    const token = nookies.get(null).token;
+    const token = cookies.get("token");
     return token ? jwtDecode<JwtPayload>(token) : null;
   });
 
@@ -71,7 +72,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
       setUser(res.data);
 
-      nookies.set(null, "userInfo", JSON.stringify(res.data), {
+      cookies.set("userInfo", JSON.stringify(res.data), {
         httpOnly: false,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
@@ -87,7 +88,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   function logout() {
     setUser(null);
-    nookies.destroy(null, "userInfo");
+    cookies.remove("userInfo");
   }
 
   return (
