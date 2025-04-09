@@ -3,7 +3,7 @@
 import dayjs from "dayjs";
 import dynamic from "next/dynamic";
 import { useCallback, useState, useTransition } from "react";
-import { Cookies, useCookies } from "react-cookie";
+import { Cookies } from "react-cookie";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
