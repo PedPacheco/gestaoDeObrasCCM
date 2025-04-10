@@ -76,7 +76,7 @@ describe('GetScheduleValues', () => {
       idParceira: undefined,
       idRegional: undefined,
       idTipo: undefined,
-      page: 1,
+      page: undefined,
     };
 
     prismaMock.$queryRaw
@@ -88,8 +88,8 @@ describe('GetScheduleValues', () => {
     const expectedDate = moment('01/10/2024', 'DD/MM/YYYY', true).toDate();
 
     const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, entrada, entrada + prazo AS prazo_fim, tipo_obra, qtde_planejada,
-    mo_planejada, turma, executado, data_prog, prog, exec, observ_programacao, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec,
-    num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, id_tecnico, conjunto, circuito
+    mo_planejada, turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec,
+    num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito
     FROM construcao_sp.obras
     INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
     INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
@@ -98,11 +98,11 @@ describe('GetScheduleValues', () => {
     INNER JOIN construcao_sp.regionais ON regionais.id = municipios.id_regional
     INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo
     INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
+    INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
     WHERE 1=1
     AND data_prog = 
     AND exec IS NULL
-    ORDER BY data_prog, ovnota
-    LIMIT 200 OFFSET`;
+    ORDER BY data_prog, ovnota`;
 
     const normalize = (str: string) => str.replace(/\s+/g, ' ').trim();
 
@@ -111,6 +111,10 @@ describe('GetScheduleValues', () => {
     const allPartsPresent = queryStrings.every((part) =>
       normalize(expectedQuery).includes(normalize(part)),
     );
+
+    console.log(queryStrings);
+
+    console.log(expectedQuery);
 
     expect(result).toEqual({ works: mockQueryResponse, totals: mockCount[0] });
     expect(prismaMock.$queryRaw.mock.calls[0][0].values[0]).toEqual(
@@ -143,8 +147,8 @@ describe('GetScheduleValues', () => {
     const year = parseInt(filters.data?.split('/')[1]);
 
     const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, entrada, entrada + prazo AS prazo_fim, tipo_obra, qtde_planejada,
-    mo_planejada, turma, executado, data_prog, prog, exec, observ_programacao, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec,
-    num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, id_tecnico, conjunto, circuito
+    mo_planejada, turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec,
+    num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito
     FROM construcao_sp.obras
     INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
     INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
@@ -153,6 +157,7 @@ describe('GetScheduleValues', () => {
     INNER JOIN construcao_sp.regionais ON regionais.id = municipios.id_regional
     INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo
     INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
+    INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
     WHERE 1=1 
     AND EXTRACT(MONTH FROM data_prog) = 
     AND EXTRACT(YEAR FROM data_prog) = 
@@ -197,7 +202,7 @@ describe('GetScheduleValues', () => {
       idParceira: undefined,
       idRegional: undefined,
       idTipo: undefined,
-      page: 1,
+      page: undefined,
     };
 
     prismaMock.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([

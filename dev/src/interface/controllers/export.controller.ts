@@ -1,7 +1,7 @@
 import { Response } from 'express';
-import { ExportCompletedWorksService } from 'src/domain/services/export/services/exportCompletedWorks.service';
-import { ExportScheduleService } from 'src/domain/services/export/services/exportSchedule.service';
-import { ExportWorksInPortfolioService } from 'src/domain/services/export/services/exportWorksInPortfolio.service';
+import { ExportCompletedWorksService } from 'src/domain/services/export/exportCompletedWorks.service';
+import { ExportScheduleService } from 'src/domain/services/export/exportSchedule.service';
+import { ExportWorksInPortfolioService } from 'src/domain/services/export/exportWorksInPortfolio.service';
 import { GetScheduleValuesService } from 'src/domain/services/schedule/getScheduleValues.service';
 import { GetCompletedWorksService } from 'src/domain/services/works/getCompletedWorks.service';
 import { GetWorksInPortfolioService } from 'src/domain/services/works/getWorksInPortfolio.service';
@@ -26,7 +26,7 @@ export class ExportController {
     @Query() filters: GetScheduleValuesDTO,
     @Res() res: Response,
   ) {
-    const scheduleData = await this.getScheduleValuesService.getValues(filters);
+    const { works } = await this.getScheduleValuesService.getValues(filters);
 
     res.setHeader(
       'Content-Disposition',
@@ -37,7 +37,7 @@ export class ExportController {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
 
-    return await this.exportScheduleService.export(scheduleData, res);
+    return await this.exportScheduleService.export(works, res);
   }
 
   @Get('obras-carteira')

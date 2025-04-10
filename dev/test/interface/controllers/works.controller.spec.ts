@@ -238,6 +238,7 @@ describe('WorksController', () => {
         status_190: 'LIB ',
         status_usuario_190: 'EXEC',
         entrada: new Date('2023-04-18T00:00:00.000Z'),
+        observ_obra: 'Obra executada',
         prazo: 90,
         data_conclusao: null,
         executado: 45,

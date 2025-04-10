@@ -36,14 +36,14 @@ const columns = {
 export default function SchedulePanelItem({ data }: Record<string, any>) {
   return (
     <>
-      <TableContainer className="h-[460px]">
+      <TableContainer className="h-[320px]">
         <Table stickyHeader>
           <TableHead>
             <TableRow>
               {Object.keys(columns).map((month) => (
                 <TableCell
                   key={month}
-                  className="py-1 px-2 min-w-36 text-center text-zinc-700 font-semibold text-nowrap text-xl bg-[#53FF75]"
+                  className="py-1 px-2 min-w-36 text-center text-zinc-700 font-semibold text-nowrap text-xl bg-[#53FF75] border-r border-solid border-zinc-700"
                 >
                   {columns[month as keyof typeof columns]}
                 </TableCell>
@@ -87,7 +87,7 @@ export default function SchedulePanelItem({ data }: Record<string, any>) {
 
                     return (
                       <TableCell
-                        className="py-1 px-2 text-center text-nowrap text-xl min-w-36"
+                        className="py-1 px-2 text-center text-nowrap text-xl min-w-36 border-r border-zinc-700 border-solid"
                         key={index}
                       >
                         {displayValue}

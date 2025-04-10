@@ -54,9 +54,11 @@ export default function PortfolioWorks({
 
   const generateExcel = useCallback(
     async (params: Record<string, string>) => {
+      const { page, ...formattedParams } = params;
+
       const url = mountUrl(
         `${process.env.NEXT_PUBLIC_API_URL}/exportacao${pathname}`,
-        params
+        formattedParams
       );
 
       try {
