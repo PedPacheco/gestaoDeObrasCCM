@@ -45,6 +45,7 @@ export class GetWorkDetailsService {
         prazo: true,
         data_conclusao: true,
         executado: true,
+        observ_obra: true,
         qtde_planejada: true,
         qtde_pend: true,
         mo_planejada: true,

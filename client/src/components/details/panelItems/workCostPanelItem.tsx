@@ -2,7 +2,7 @@ import DataItem from "../dataItem";
 
 export default function WorkCostPanelItem({ data }: Record<string, any>) {
   return (
-    <div className="flex flex-col h-full w-full py-8 lg:flex-row xl:justify-around">
+    <div className="flex flex-col h-[320px] w-full py-8 lg:flex-row xl:justify-around">
       <div className="flex flex-col items-center h-40">
         <p className="text-lg mb-4 font-semibold text-center w-full">
           Valores mão de obra
@@ -22,7 +22,7 @@ export default function WorkCostPanelItem({ data }: Record<string, any>) {
           Valores Capex
         </p>
         <div className="flex flex-col justify-between items-center w-full lg:flex-row">
-          <div className="flex flex-col">
+          <div className="flex flex-col mr-4">
             <p className="mb-2 text-center">PLAN</p>
             <DataItem
               label="Capex MAT"

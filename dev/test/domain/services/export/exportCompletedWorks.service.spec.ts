@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Response } from 'express';
 import * as Exceljs from 'exceljs';
-import { ExportCompletedWorksService } from 'src/domain/services/export/services/exportCompletedWorks.service';
+import { ExportCompletedWorksService } from 'src/domain/services/export/exportCompletedWorks.service';
 import {
   worksInPortfolioInterface,
   worksInPortfolioResponse,

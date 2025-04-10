@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 
-import { ExportCompletedWorksService } from '../../domain/services/export/services/exportCompletedWorks.service';
-import { ExportScheduleService } from '../../domain/services/export/services/exportSchedule.service';
-import { ExportWorksInPortfolioService } from '../../domain/services/export/services/exportWorksInPortfolio.service';
+import { ExportCompletedWorksService } from '../../domain/services/export/exportCompletedWorks.service';
+import { ExportScheduleService } from '../../domain/services/export/exportSchedule.service';
+import { ExportWorksInPortfolioService } from '../../domain/services/export/exportWorksInPortfolio.service';
 import { ExportController } from '../controllers/export.controller';
 import { ScheduleModule } from './shedule.module';
 import { WorksModule } from './works.module';

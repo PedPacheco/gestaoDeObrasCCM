@@ -36,7 +36,7 @@ const columns = {
 export default function SchedulePanelItem({ data }: Record<string, any>) {
   return (
     <>
-      <TableContainer className="h-[460px]">
+      <TableContainer className="h-[320px]">
         <Table stickyHeader>
           <TableHead>
             <TableRow>

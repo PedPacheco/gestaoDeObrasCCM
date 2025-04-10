@@ -40,9 +40,11 @@ export default function MainSchduleForDay({
 
   const generateExcel = useCallback(
     async (params: Record<string, string | boolean>) => {
+      const { page, ...formattedParams } = params;
+
       const url = mountUrl(
         `${process.env.NEXT_PUBLIC_API_URL}/exportacao/programacao`,
-        params
+        formattedParams
       );
 
       try {
@@ -52,7 +54,7 @@ export default function MainSchduleForDay({
           const downloadUrl = window.URL.createObjectURL(blob);
           const link = document.createElement("a");
           link.href = downloadUrl;
-          link.download = "Exportação obras em carteira.xlsx";
+          link.download = "Exportação Programação.xlsx";
           document.body.append(link);
           link.click();
 
@@ -122,7 +124,7 @@ export default function MainSchduleForDay({
       <TableWithPagination
         data={filteredData}
         columns={columns}
-        sliceEndIndex={3}
+        sliceEndIndex={4}
         page={page}
         handleChangePage={handleChangePage}
       />
