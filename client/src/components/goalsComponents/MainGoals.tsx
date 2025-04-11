@@ -60,7 +60,6 @@ export default function MainGoals({
   const toggleModal = () => setOpen((prev) => !prev);
 
   useEffect(() => {
-    console.log(filters);
     if (filters) {
       setSelectedYear(filters.ano);
       setSelectedParceiras(filters.parceira);
@@ -209,6 +208,7 @@ export default function MainGoals({
         data={filteredData}
         handleClose={toggleModal}
         open={open}
+        typeGoals={typeGoals}
       />
 
       {error && (

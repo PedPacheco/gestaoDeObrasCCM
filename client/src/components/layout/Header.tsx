@@ -20,12 +20,16 @@ export function Header() {
 
   return (
     <UserProvider>
-      <div className="sticky top-0 z-10 flex min-h-14 items-center justify-between px-2 bg-[#212E3E]">
-        <button className="text-white ml-6" onClick={() => changeOpen()}>
+      <div className="sticky top-0 z-10 flex min-h-14 items-center justify-between p-2 bg-[#212E3E]">
+        <button className="text-white lg:pl-6" onClick={() => changeOpen()}>
           <Bars3Icon className="block h-8 w-8" aria-hidden="true" />
         </button>
 
-        <div className="p-2 mr-6">
+        <h1 className="ml-8 font-semibold text-zinc-100 p-2 text-center text-xl lg:text-4xl lg:ml-0">
+          EDP São Paulo - Gestão de obras CCM
+        </h1>
+
+        <div className="p-2 lg:pr-6">
           <Link href="/">
             <Image src="/edpLogo.png" alt="Edp Logo" width={102} height={92} />
           </Link>

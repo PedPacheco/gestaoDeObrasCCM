@@ -17,6 +17,7 @@ interface ModalGoalsProps {
   columns: any;
   handleClose: () => void;
   open: boolean;
+  typeGoals: string;
 }
 
 interface Totals {
@@ -30,6 +31,7 @@ export default function ModalGoals({
   data,
   handleClose,
   open,
+  typeGoals,
 }: ModalGoalsProps) {
   const valuesTypes = {
     meta: "meta",
@@ -61,7 +63,7 @@ export default function ModalGoals({
 
         if (month === "total") {
           Object.keys(columns)
-            .slice(5, -2)
+            .slice(typeGoals === "rda" ? 6 : 5, -2)
             .forEach((value: any) => {
               totals.meta += item[value]?.meta || 0;
               totals.prog += item[value]?.prog || 0;
@@ -72,17 +74,17 @@ export default function ModalGoals({
 
       return totals;
     },
-    [columns, data]
+    [columns, data, typeGoals]
   );
 
   const sumValues = useMemo(() => {
     return Object.keys(columns)
-      .slice(5, -1)
+      .slice(typeGoals === "rda" ? 6 : 5, -1)
       .reduce((acc: any, month: any) => {
         acc[month] = sumValuesByMonth(month);
         return acc;
       }, {});
-  }, [columns, sumValuesByMonth]);
+  }, [columns, sumValuesByMonth, typeGoals]);
 
   const cumulativeTotals = useMemo(() => {
     const months = Object.keys(sumValues);
@@ -119,7 +121,7 @@ export default function ModalGoals({
               <TableRow>
                 <TableCell className="p-2 text-center text-base font-bold"></TableCell>
                 {Object.keys(columns)
-                  .slice(5, -1)
+                  .slice(typeGoals === "rda" ? 6 : 5, -1)
                   .map((month) => (
                     <TableCell
                       key={month}
@@ -139,7 +141,7 @@ export default function ModalGoals({
                       {value.toUpperCase()}
                     </TableCell>
                     {Object.keys(columns)
-                      .slice(5, -1)
+                      .slice(typeGoals === "rda" ? 6 : 5, -1)
                       .map((month) => {
                         return (
                           <TableCell

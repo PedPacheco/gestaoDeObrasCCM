@@ -14,7 +14,10 @@ export default async function ScheduleForDay() {
 
   const filtersValues = {
     ...Transform(params?.selectedItems || {}),
-    data: dayjs(params?.date).format("MM/YYYY") || dayjs().format("MM/YYYY"),
+    data:
+      params?.filterType === "day"
+        ? dayjs(params?.date).format("DD/MM/YYYY")
+        : dayjs(params?.date).format("MM/YYYY"),
     tipoFiltro: params?.filterType || "month",
     executado: params?.executed || "false",
     page: "0",

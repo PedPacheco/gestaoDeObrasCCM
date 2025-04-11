@@ -72,7 +72,9 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
                   />
                   <button
                     className="absolute right-0 mr-4"
-                    onClick={() => router.push(`/detalhes/${work}`)}
+                    onClick={() => {
+                      work && router.push(`/detalhes/${work}`);
+                    }}
                   >
                     <MagnifyingGlassIcon
                       width={24}
