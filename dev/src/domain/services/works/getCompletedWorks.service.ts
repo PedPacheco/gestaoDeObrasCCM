@@ -90,7 +90,7 @@ export class GetCompletedWorksService {
   async getCompletedWorks(filters: GetWorksDTO) {
     const { page } = filters;
 
-    const cacheKey = `worksInPortfolio-${JSON.stringify(filters)}`;
+    const cacheKey = `completedWorks-${JSON.stringify(filters)}`;
 
     const responseData: worksInPortfolioResponse =
       await this.cacheManager.get(cacheKey);
