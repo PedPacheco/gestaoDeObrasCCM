@@ -118,7 +118,6 @@ export class EntryService {
   }
 
   async getEntryOfWorksByDay(filters: GetEntryOfWorksByDayDTO) {
-    console.log(filters);
     const {
       idGrupo,
       idMunicipio,

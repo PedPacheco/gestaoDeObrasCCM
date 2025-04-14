@@ -136,7 +136,7 @@ describe('GetCompletedWorksService', () => {
       page: 0,
     };
 
-    const cacheKey = `worksInPortfolio-${JSON.stringify(filters)}`;
+    const cacheKey = `completedWorks-${JSON.stringify(filters)}`;
 
     mockCacheManager.get.mockResolvedValue({
       works: mockWorks,
@@ -170,7 +170,7 @@ describe('GetCompletedWorksService', () => {
       page: 0,
     };
 
-    const cacheKey = `worksInPortfolio-${JSON.stringify(filters)}`;
+    const cacheKey = `completedWorks-${JSON.stringify(filters)}`;
 
     mockCacheManager.get.mockResolvedValue(null);
     mockPrismaService.$queryRaw
@@ -216,7 +216,7 @@ describe('GetCompletedWorksService', () => {
       page: 0,
     };
 
-    const cacheKey = `worksInPortfolio-${JSON.stringify(filters)}`;
+    const cacheKey = `completedWorks-${JSON.stringify(filters)}`;
 
     mockCacheManager.get.mockResolvedValue(null);
     mockPrismaService.$queryRaw
@@ -258,8 +258,8 @@ describe('GetCompletedWorksService', () => {
       idCircuito: [7],
       idConjunto: [8],
       idEmpreendimento: [9],
-      data: '09/2024',
-      tipoFiltro: 'month',
+      data: undefined,
+      tipoFiltro: undefined,
       page: 0,
     };
 

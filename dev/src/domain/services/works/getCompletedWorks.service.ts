@@ -34,7 +34,7 @@ export class GetCompletedWorksService {
       tipoFiltro,
     } = filters;
 
-    const [month, year] = data.split('/');
+    const [month, year] = data ? data.split('/') : [null, null];
 
     if (idRegional && idRegional.length > 0) {
       query = Prisma.sql`${query} AND municipios.id_regional IN (${Prisma.join(idRegional)})`;
