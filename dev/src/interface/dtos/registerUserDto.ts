@@ -1,3 +1,4 @@
+import { Exclude, Expose } from 'class-transformer';
 import {
   IsLowercase,
   IsNotEmpty,
@@ -44,4 +45,13 @@ export class RegisterUserDTO {
   @IsString()
   @IsOptional()
   permissao_visualizacao?: string;
+}
+
+@Exclude()
+export class RegisterUserResponseDTO {
+  @Expose()
+  id: number;
+
+  @Expose()
+  username: string;
 }

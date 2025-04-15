@@ -1,3 +1,9 @@
+import { compare, genSalt, hash } from 'bcrypt';
+import { EmailService } from 'src/domain/services/email.service';
+import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
+import { loginInterfaceService } from 'src/interface/types/userInterface';
+import { generateRandomPassword } from 'src/utils/generatePassword';
+
 import {
   BadRequestException,
   Injectable,
@@ -5,15 +11,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { compare, genSalt, hash } from 'bcrypt';
-import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
-import { EmailService } from 'src/domain/services/email.service';
-import {
-  loginInterfaceService,
-  userRegisterInterfaceService,
-} from 'src/interface/types/userInterface';
-import { generateRandomPassword } from 'src/utils/generatePassword';
+
+import { IAuthRepository } from '../repositories/IAuthRepository';
 import { UsersService } from './users.service';
+import { User } from '../entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +22,7 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private emailService: EmailService,
+    private authRepository: IAuthRepository,
   ) {}
 
   async login(
@@ -58,13 +60,14 @@ export class AuthService {
     };
   }
 
-  async register(
-    registerUserDto: RegisterUserDTO,
-  ): Promise<userRegisterInterfaceService> {
+  async register(registrationData: RegisterUserDTO): Promise<User> {
+    const { username, senha, ...rest } = registrationData;
+
     const existingUser = await this.usersService.findUser(
-      registerUserDto.username,
+      registrationData.username,
     );
-    let password = registerUserDto.senha;
+
+    let password = registrationData.senha;
 
     if (existingUser) {
       throw new BadRequestException('Nome de usuário já está em uso.');
@@ -77,38 +80,20 @@ export class AuthService {
     const salt = await genSalt();
     const hashedPassword = await hash(password, salt);
 
-    const user = await this.usersService.registerUser(
-      registerUserDto,
-      hashedPassword,
-    );
+    const user = new User({
+      ...registrationData,
+      senha: hashedPassword,
+    });
+
+    const created = await this.authRepository.register(user);
 
     await this.emailService.sendEmail(
       '10009591@edp.com.br',
       'Bem vindo ao sistema',
-      `Usuáro: ${registerUserDto.username} 
+      `Usuáro: ${registrationData.username} 
       Senha: ${password}`,
     );
 
-    return user;
-  }
-
-  async sendEmailResetPassword(username: string): Promise<void> {
-    const user = await this.usersService.findUser(username);
-
-    if (!user) {
-      throw new NotFoundException('Usuário não encontrado');
-    }
-
-    const payload = { id: user.id };
-
-    const resetToken = this.jwtService.sign(payload, { expiresIn: '30m' });
-
-    const resetLink = `http://localhost:8080/reset-password?token=${resetToken}`;
-
-    await this.emailService.sendEmail(
-      '10009591@edp.com.br',
-      'Redefinição de senha',
-      `Clique no link abaixo para redefinir sua senha: ${resetLink}`,
-    );
+    return created;
   }
 }

@@ -1,26 +1,25 @@
+import { IUserRepository } from 'src/domain/repositories/IUserRepository';
 import { genSalt, hash } from 'bcrypt';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
-import {
-  userInterface,
-  userRegisterInterfaceService,
-} from 'src/interface/types/userInterface';
+import { userInterface } from 'src/interface/types/userInterface';
 
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { usuario } from '@prisma/client';
+
+import { User } from '../entities/user.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
-    private prisma: PrismaService,
+    private userRepository: IUserRepository,
     private jwtService: JwtService,
   ) {}
 
-  async findUser(username: string): Promise<usuario | null> {
-    return await this.prisma.usuario.findFirst({
-      where: { username },
-    });
+  async findUser(username: string): Promise<User | null> {
+    const response = await this.userRepository.findUser(username);
+
+    const user = new User(response);
+
+    return user;
   }
 
   async updatePassword(
@@ -35,50 +34,14 @@ export class UsersService {
       const saltRounds = await genSalt();
       const hashedPassword = await hash(newPassword, saltRounds);
 
-      const user = await this.prisma.usuario.update({
-        where: { id: numberId },
-        data: { senha: hashedPassword },
-        select: {
-          id: true,
-          username: true,
-          senha: true,
-        },
-      });
+      const user = await this.userRepository.updatePassword(
+        numberId,
+        hashedPassword,
+      );
 
       return user;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
+    } catch (error: any) {
       throw new UnauthorizedException('Token inválido ou expirado');
     }
-  }
-
-  async registerUser(
-    {
-      username,
-      permissao,
-      id_regional,
-      email,
-      nome_usuario,
-      permissao_visualizacao,
-    }: RegisterUserDTO,
-    password: string,
-  ): Promise<userRegisterInterfaceService> {
-    const user = await this.prisma.usuario.create({
-      data: {
-        username,
-        senha: password,
-        permissao,
-        id_regional,
-        email,
-        nome_usuario,
-        permissao_visualizacao,
-      },
-      select: {
-        id: true,
-        username: true,
-      },
-    });
-
-    return user;
   }
 }

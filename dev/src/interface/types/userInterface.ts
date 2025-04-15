@@ -4,11 +4,6 @@ export interface userInterface {
   senha: string;
 }
 
-export interface userRegisterInterfaceService {
-  id: number;
-  username: string;
-}
-
 export interface userRegisterInterfaceController {
   statusCode: number;
   message: string;
