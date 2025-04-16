@@ -1,4 +1,5 @@
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
+import { USER_REPOSITORY } from 'src/domain/repositories/IUserRepository';
 import { UsersService } from 'src/domain/services/users.service';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
@@ -10,9 +11,20 @@ describe('VisualizationGuard', () => {
   let usersService: UsersService;
   let visualizationGuard: VisualizationGuard;
 
+  const mockUserRepository = {
+    findUser: jest.fn(),
+    updatePassword: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
-      providers: [VisualizationGuard, UsersService, PrismaService, JwtService],
+      providers: [
+        VisualizationGuard,
+        UsersService,
+        PrismaService,
+        JwtService,
+        { provide: USER_REPOSITORY, useValue: mockUserRepository },
+      ],
     }).compile();
 
     usersService = module.get<UsersService>(UsersService);

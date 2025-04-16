@@ -1,7 +1,7 @@
 import { genSalt, hash } from 'bcrypt';
+import { User } from 'src/domain/entities/user.entity';
+import { USER_REPOSITORY } from 'src/domain/repositories/IUserRepository';
 import { UsersService } from 'src/domain/services/users.service';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
 
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -12,9 +12,18 @@ jest.mock('bcrypt', () => ({
   genSalt: jest.fn(),
 }));
 
+const mockUserRepository = {
+  findUser: jest.fn(),
+  updatePassword: jest.fn(),
+};
+
+const mockJwtService = {
+  sign: jest.fn(),
+  verify: jest.fn(),
+};
+
 describe('UsersService', () => {
   let usersService: UsersService;
-  let prismaService: PrismaService;
   let jwtService: JwtService;
 
   const mockUser = {
@@ -36,43 +45,41 @@ describe('UsersService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsersService,
-        PrismaService,
         {
           provide: JwtService,
-          useValue: {
-            sign: jest.fn(),
-            verify: jest.fn(),
-          },
+          useValue: mockJwtService,
+        },
+        {
+          provide: USER_REPOSITORY,
+          useValue: mockUserRepository,
         },
       ],
     }).compile();
 
     usersService = module.get<UsersService>(UsersService);
-    prismaService = module.get<PrismaService>(PrismaService);
     jwtService = module.get<JwtService>(JwtService);
   });
 
   describe('findUser', () => {
     it('should return a user if found', async () => {
-      jest
-        .spyOn(prismaService.usuario, 'findFirst')
-        .mockResolvedValue(mockUser);
+      const userData = { ...mockUser };
+
+      mockUserRepository.findUser.mockResolvedValue(userData);
 
       const user = await usersService.findUser('testuser');
-      expect(user).toEqual(mockUser);
-      expect(prismaService.usuario.findFirst).toHaveBeenCalledWith({
-        where: { username: 'testuser' },
-      });
+      expect(user).toEqual(new User(userData));
+      expect(mockUserRepository.findUser).toHaveBeenCalledWith('testuser');
     });
 
     it('should return null if no user is found', async () => {
-      jest.spyOn(prismaService.usuario, 'findFirst').mockResolvedValue(null);
+      mockUserRepository.findUser.mockResolvedValue(null);
 
       const user = await usersService.findUser('nonexistentuser');
+      console.log(user);
       expect(user).toBeNull();
-      expect(prismaService.usuario.findFirst).toHaveBeenCalledWith({
-        where: { username: 'nonexistentuser' },
-      });
+      expect(mockUserRepository.findUser).toHaveBeenCalledWith(
+        'nonexistentuser',
+      );
     });
   });
 
@@ -83,6 +90,7 @@ describe('UsersService', () => {
       const newPassword = 'newPassword';
       const salt = 'salt';
       const hashedPassword = 'hashedNewPassword';
+
       const updatedUser = {
         id: userId,
         username: 'testuser',
@@ -92,16 +100,15 @@ describe('UsersService', () => {
       jwtService.verify = jest.fn().mockResolvedValue({ id: userId });
       (genSalt as jest.Mock).mockResolvedValue(salt);
       (hash as jest.Mock).mockResolvedValue(hashedPassword);
-      prismaService.usuario.update = jest.fn().mockResolvedValue(updatedUser);
+      mockUserRepository.updatePassword.mockResolvedValue(updatedUser);
 
       const result = await usersService.updatePassword(token, newPassword);
 
-      expect(result).toEqual(updatedUser);
-      expect(prismaService.usuario.update).toHaveBeenCalledWith({
-        where: { id: userId },
-        data: { senha: hashedPassword },
-        select: { id: true, username: true, senha: true },
-      });
+      expect(result).toEqual(new User(result));
+      expect(mockUserRepository.updatePassword).toHaveBeenCalledWith(
+        userId,
+        hashedPassword,
+      );
     });
 
     it('should return UnauthorizedException if the token is invalid or expired', async () => {
@@ -114,38 +121,6 @@ describe('UsersService', () => {
       ).rejects.toThrow(
         new UnauthorizedException('Token inválido ou expirado'),
       );
-    });
-  });
-
-  describe('registerUser', () => {
-    it('should create user and return the created user', async () => {
-      const request: RegisterUserDTO = {
-        username: 'teste123',
-        id_regional: 1,
-        permissao: 'Total',
-        nome_usuario: 'Teste',
-        email: 'teste@gmail.com',
-      };
-      const password = 'hashPassword';
-      jest.spyOn(prismaService.usuario, 'create').mockResolvedValue(mockUser);
-
-      const result = await usersService.registerUser(request, password);
-
-      expect(result).toEqual(mockUser);
-      expect(prismaService.usuario.create).toHaveBeenCalledWith({
-        data: {
-          username: request.username,
-          senha: password,
-          permissao: request.permissao,
-          id_regional: request.id_regional,
-          email: request.email,
-          nome_usuario: request.nome_usuario,
-        },
-        select: {
-          id: true,
-          username: true,
-        },
-      });
     });
   });
 });

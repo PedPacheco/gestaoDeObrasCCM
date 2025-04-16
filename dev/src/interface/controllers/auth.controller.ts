@@ -1,7 +1,10 @@
+import { plainToInstance } from 'class-transformer';
 import { Response } from 'express';
 import { AuthService } from 'src/domain/services/auth.service';
-import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
-import { ResetPasswordDTO } from 'src/interface/dtos/resetPasswordDto';
+import {
+  RegisterUserDTO,
+  RegisterUserResponseDTO,
+} from 'src/interface/dtos/registerUserDto';
 import {
   loginInterfaceController,
   userRegisterInterfaceController,
@@ -10,7 +13,7 @@ import {
 import { Body, Controller, HttpStatus, Post, Res } from '@nestjs/common';
 
 import { Public } from '../../shared/costants';
-import { LoginUserDTO } from '../dtos/loginUserDto';
+import { LoginUserDTO, LoginUserResponseDTO } from '../dtos/loginUserDto';
 
 @Controller('auth')
 export class AuthController {
@@ -22,10 +25,9 @@ export class AuthController {
     @Body() { user, password }: LoginUserDTO,
     @Res({ passthrough: true }) res: Response,
   ): Promise<loginInterfaceController> {
-    const { id, username, id_regional, nome_usuario, email, access_token } =
-      await this.authService.login(user, password);
+    const data = await this.authService.login(user, password);
 
-    res.cookie('token', access_token, {
+    res.cookie('token', data.access_token, {
       httpOnly: false,
       secure: false,
       sameSite: 'strict',
@@ -35,13 +37,7 @@ export class AuthController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Login realizado com sucesso',
-      data: {
-        id,
-        username,
-        id_regional,
-        nome_usuario,
-        email,
-      },
+      data: plainToInstance(LoginUserResponseDTO, data),
     };
   }
 
@@ -49,28 +45,12 @@ export class AuthController {
   async register(
     @Body() registerDto: RegisterUserDTO,
   ): Promise<userRegisterInterfaceController> {
-    const { id, username } = await this.authService.register(registerDto);
+    const user = await this.authService.register(registerDto);
 
     return {
       statusCode: HttpStatus.CREATED,
       message: 'Usuário cadastrado com sucesso',
-      data: {
-        id,
-        username,
-      },
-    };
-  }
-
-  @Public()
-  @Post('send-email-reset-password')
-  async resetPassword(
-    @Body() { username }: ResetPasswordDTO,
-  ): Promise<{ statusCode: number; message: string }> {
-    await this.authService.sendEmailResetPassword(username);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Link de redefinição de senha enviado com sucesso',
+      data: plainToInstance(RegisterUserResponseDTO, user),
     };
   }
 }

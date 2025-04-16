@@ -1,7 +1,13 @@
+import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { plainToInstance } from 'class-transformer';
+import { User } from 'src/domain/entities/user.entity';
 import { UsersService } from 'src/domain/services/users.service';
 import { UsersController } from 'src/interface/controllers/users.controller';
-import { ChangePasswordDTO } from 'src/interface/dtos/changePasswordDto';
+import {
+  ChangePasswordDTO,
+  changePasswordResponseDTO,
+} from 'src/interface/dtos/changePasswordDto';
 
 describe('UsersControllers', () => {
   let usersController: UsersController;
@@ -30,11 +36,20 @@ describe('UsersControllers', () => {
       token: 'token',
       newPassword: 'newPassword',
     };
-    const result = { id: 1, username: 'teste123', senha: 'newPassword' };
+
+    const result = new User({
+      id: 1,
+      username: 'teste123',
+      senha: 'newPassword',
+    });
 
     jest.spyOn(usersService, 'updatePassword').mockResolvedValue(result);
 
-    expect(await usersController.changePassword(params)).toBe(result);
+    expect(await usersController.changePassword(params)).toStrictEqual({
+      statusCode: HttpStatus.OK,
+      message: 'Senha alterada com sucesso',
+      data: plainToInstance(changePasswordResponseDTO, result),
+    });
     expect(usersService.updatePassword).toHaveBeenCalledWith(
       params.token,
       params.newPassword,

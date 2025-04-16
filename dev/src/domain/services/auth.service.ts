@@ -1,19 +1,24 @@
 import {
+  AUTH_REPOSITORY,
+  IAuthRepository,
+} from './../repositories/IAuthRepository';
+import { compare, genSalt, hash } from 'bcrypt';
+import { EmailService } from 'src/domain/services/email.service';
+import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
+import { loginInterfaceService } from 'src/interface/types/userInterface';
+import { generateRandomPassword } from 'src/utils/generatePassword';
+
+import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { compare, genSalt, hash } from 'bcrypt';
-import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
-import { EmailService } from 'src/domain/services/email.service';
-import {
-  loginInterfaceService,
-  userRegisterInterfaceService,
-} from 'src/interface/types/userInterface';
-import { generateRandomPassword } from 'src/utils/generatePassword';
+
 import { UsersService } from './users.service';
+import { User } from '../entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +26,7 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private emailService: EmailService,
+    @Inject(AUTH_REPOSITORY) private authRepository: IAuthRepository,
   ) {}
 
   async login(
@@ -33,38 +39,39 @@ export class AuthService {
       throw new NotFoundException('Usuário não encontrado');
     }
 
-    const isMatch = await compare(password, result.senha);
+    const user = new User(result);
+
+    const isMatch = await compare(password, user.senha);
 
     if (!isMatch) {
       throw new UnauthorizedException('Senha incorreta');
     }
 
     const payload = {
-      sub: result.id,
-      username: result.username,
-      permissao: result.permissao,
-      permissao_visualizacao: result.permissao_visualizacao,
+      sub: user.id,
+      username: user.username,
+      permissao: user.permissao,
+      permissao_visualizacao: user.permissao_visualizacao,
     };
 
     return {
-      id: result.id,
-      username: result.username,
-      id_regional: result.id_regional,
-      nome_usuario: result.nome_usuario,
-      email: result.email,
+      id: user.id,
+      username: user.username,
+      id_regional: user.id_regional,
+      nome_usuario: user.nome_usuario,
+      email: user.email,
       access_token: await this.jwtService.signAsync(payload, {
         expiresIn: '1h',
       }),
     };
   }
 
-  async register(
-    registerUserDto: RegisterUserDTO,
-  ): Promise<userRegisterInterfaceService> {
-    const existingUser = await this.usersService.findUser(
-      registerUserDto.username,
-    );
-    let password = registerUserDto.senha;
+  async register(registrationData: RegisterUserDTO): Promise<User> {
+    const { username, senha } = registrationData;
+
+    const existingUser = await this.usersService.findUser(username);
+
+    let password = senha;
 
     if (existingUser) {
       throw new BadRequestException('Nome de usuário já está em uso.');
@@ -77,38 +84,20 @@ export class AuthService {
     const salt = await genSalt();
     const hashedPassword = await hash(password, salt);
 
-    const user = await this.usersService.registerUser(
-      registerUserDto,
-      hashedPassword,
-    );
+    const user = new User({
+      ...registrationData,
+      senha: hashedPassword,
+    });
+
+    const created = await this.authRepository.register(user);
 
     await this.emailService.sendEmail(
       '10009591@edp.com.br',
       'Bem vindo ao sistema',
-      `Usuáro: ${registerUserDto.username} 
+      `Usuário: ${username} 
       Senha: ${password}`,
     );
 
-    return user;
-  }
-
-  async sendEmailResetPassword(username: string): Promise<void> {
-    const user = await this.usersService.findUser(username);
-
-    if (!user) {
-      throw new NotFoundException('Usuário não encontrado');
-    }
-
-    const payload = { id: user.id };
-
-    const resetToken = this.jwtService.sign(payload, { expiresIn: '30m' });
-
-    const resetLink = `http://localhost:8080/reset-password?token=${resetToken}`;
-
-    await this.emailService.sendEmail(
-      '10009591@edp.com.br',
-      'Redefinição de senha',
-      `Clique no link abaixo para redefinir sua senha: ${resetLink}`,
-    );
+    return created;
   }
 }

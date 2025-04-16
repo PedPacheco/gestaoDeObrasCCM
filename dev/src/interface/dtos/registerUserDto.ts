@@ -1,9 +1,14 @@
+import { Exclude, Expose } from 'class-transformer';
 import {
+  IsLowercase,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
+  IsUppercase,
+  Matches,
   MaxLength,
+  MinLength,
 } from 'class-validator';
 
 export class RegisterUserDTO {
@@ -13,6 +18,8 @@ export class RegisterUserDTO {
   username: string;
 
   @IsString()
+  @MinLength(8)
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
   senha?: string;
 
   @IsNotEmpty()
@@ -36,4 +43,13 @@ export class RegisterUserDTO {
   @IsString()
   @IsOptional()
   permissao_visualizacao?: string;
+}
+
+@Exclude()
+export class RegisterUserResponseDTO {
+  @Expose()
+  id: number;
+
+  @Expose()
+  username: string;
 }

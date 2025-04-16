@@ -9,6 +9,6 @@ import { GoalsController } from '../controllers/goals.controller';
 @Module({
   imports: [CacheModule],
   controllers: [GoalsController],
-  providers: [GoalsService, UsersService],
+  providers: [GoalsService],
 })
 export class GoalsModule {}
