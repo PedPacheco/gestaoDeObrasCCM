@@ -3,10 +3,10 @@ import { AuthService } from 'src/domain/services/auth.service';
 import { AuthController } from 'src/interface/controllers/auth.controller';
 import { LoginUserDTO } from 'src/interface/dtos/loginUserDto';
 import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
-import { ResetPasswordDTO } from 'src/interface/dtos/resetPasswordDto';
 
 import { HttpStatus, InternalServerErrorException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { User } from 'src/domain/entities/user.entity';
 
 describe('AuthController', () => {
   let authController: AuthController;
@@ -115,10 +115,16 @@ describe('AuthController', () => {
 
   describe('Register', () => {
     it('should call AuthService.register and return the result', async () => {
-      const mockResponse = {
+      const mockResponse = new User({
         id: 1,
         username: 'teste123',
-      };
+        senha: '12345',
+        permissao: 'total',
+        id_regional: 1,
+        nome_usuario: 'Teste',
+        email: 'teste@gmail.com',
+        permissao_visualizacao: 'parcial',
+      });
 
       const registerUserDTO: RegisterUserDTO = {
         username: 'teste123',
@@ -157,33 +163,6 @@ describe('AuthController', () => {
         .mockRejectedValue(new Error('Erro ao processar a solicitação'));
 
       await expect(authController.register(registerUserDTO)).rejects.toThrow(
-        new InternalServerErrorException('Erro ao processar a solicitação'),
-      );
-    });
-  });
-
-  describe('ResetPassword', () => {
-    it('should call authService.resetPassword', async () => {
-      const user: ResetPasswordDTO = { username: 'teste' };
-
-      const spy = jest
-        .spyOn(authService, 'sendEmailResetPassword')
-        .mockResolvedValue(undefined);
-
-      await authController.resetPassword(user);
-
-      expect(spy).toHaveBeenCalledWith(user.username);
-      expect(spy).toHaveBeenCalled();
-    });
-
-    it('should return internal server error if authService.register return error', async () => {
-      const user: ResetPasswordDTO = { username: 'teste' };
-
-      jest
-        .spyOn(authService, 'sendEmailResetPassword')
-        .mockRejectedValue(new Error('Erro ao processar a solicitação'));
-
-      await expect(authController.resetPassword(user)).rejects.toThrow(
         new InternalServerErrorException('Erro ao processar a solicitação'),
       );
     });

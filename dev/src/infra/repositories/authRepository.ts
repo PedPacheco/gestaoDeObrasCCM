@@ -6,7 +6,7 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class AuthRepository implements IAuthRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async register({
     username,
@@ -29,10 +29,6 @@ export class AuthRepository implements IAuthRepository {
       },
     });
 
-    return user;
-  }
-
-  sendEmailResetPassword(username: string): Promise<void> {
-    throw new Error('Method not implemented.');
+    return new User(user);
   }
 }

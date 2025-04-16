@@ -1,15 +1,15 @@
-import { User } from 'src/domain/entities/user.entity';
 import { IUserRepository } from 'src/domain/repositories/IUserRepository';
 import { userInterface } from 'src/interface/types/userInterface';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
+import { usuario } from '@prisma/client';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async findUser(username: string): Promise<User | null> {
+  async findUser(username: string): Promise<usuario | null> {
     return await this.prisma.usuario.findFirst({
       where: { username },
     });

@@ -4,6 +4,15 @@ export interface userInterface {
   senha: string;
 }
 
+export interface userChangePasswordController {
+  statusCode: number;
+  message: string;
+  data: {
+    id: number;
+    username: string;
+  };
+}
+
 export interface userRegisterInterfaceController {
   statusCode: number;
   message: string;

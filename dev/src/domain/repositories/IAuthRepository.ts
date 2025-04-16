@@ -1,7 +1,7 @@
 import { User } from '../entities/user.entity';
 
-export interface IAuthRepository {
-  register({
+export abstract class IAuthRepository {
+  abstract register({
     username,
     senha,
     permissao,
@@ -11,3 +11,5 @@ export interface IAuthRepository {
     permissao_visualizacao,
   }: User): Promise<User>;
 }
+
+export const AUTH_REPOSITORY = Symbol('AuthRepository');

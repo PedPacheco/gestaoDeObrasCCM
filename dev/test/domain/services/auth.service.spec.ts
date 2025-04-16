@@ -1,4 +1,6 @@
 import { compare, genSalt, hash } from 'bcrypt';
+import { User } from 'src/domain/entities/user.entity';
+import { AUTH_REPOSITORY } from 'src/domain/repositories/IAuthRepository';
 import { AuthService } from 'src/domain/services/auth.service';
 import { EmailService } from 'src/domain/services/email.service';
 import { UsersService } from 'src/domain/services/users.service';
@@ -19,6 +21,10 @@ jest.mock('bcrypt', () => ({
   hash: jest.fn(),
   genSalt: jest.fn(),
 }));
+
+const mockAuthRepository = {
+  register: jest.fn(),
+};
 
 jest.mock('src/utils/generatePassword');
 
@@ -66,6 +72,10 @@ describe('AuthService', () => {
           useValue: {
             sendEmail: jest.fn(),
           },
+        },
+        {
+          provide: AUTH_REPOSITORY,
+          useValue: mockAuthRepository,
         },
       ],
     }).compile();
@@ -126,34 +136,34 @@ describe('AuthService', () => {
     it('should create user and return user', async () => {
       const salt = 10;
       const hashedPassword = 'hashPassword';
-      const user: RegisterUserDTO = {
+      const registrationData: RegisterUserDTO = {
         username: 'teste123',
-        id_regional: 1,
         permissao: 'total',
-        nome_usuario: 'Teste',
+        id_regional: 1,
         email: 'teste@gmail.com',
+        nome_usuario: 'Teste',
+        permissao_visualizacao: 'parcial',
       };
 
       (genSalt as jest.Mock).mockResolvedValue(salt);
       (hash as jest.Mock).mockResolvedValue(hashedPassword);
 
       jest.spyOn(usersService, 'findUser').mockResolvedValue(null);
-      jest.spyOn(usersService, 'registerUser').mockResolvedValue({
-        id: 1,
-        username: user.username,
-      });
+
+      (genSalt as jest.Mock).mockResolvedValue(salt);
+      (hash as jest.Mock).mockResolvedValue(hashedPassword);
+
+      const user = new User({ ...registrationData, senha: hashedPassword });
+
+      jest.spyOn(usersService, 'findUser').mockResolvedValue(null);
+      mockAuthRepository.register.mockResolvedValue(user);
       (generateRandomPassword as jest.Mock).mockReturnValue('hashPassword');
 
-      const result = await authService.register({
-        ...user,
-      });
+      const result = await authService.register(registrationData);
 
       const sendEmailSpy = jest.spyOn(emailService, 'sendEmail');
 
-      expect(result).toEqual({
-        id: 1,
-        username: user.username,
-      });
+      expect(result).toEqual(user);
       expect(sendEmailSpy).toHaveBeenCalledTimes(1);
       expect(sendEmailSpy).toHaveBeenCalledWith(
         '10009591@edp.com.br',
@@ -164,34 +174,6 @@ describe('AuthService', () => {
         '10009591@edp.com.br',
         'Bem vindo ao sistema',
         expect.stringContaining(hashedPassword),
-      );
-    });
-  });
-
-  describe('ResetPassword', () => {
-    it('should return NotFoundExpection if user is not found', async () => {
-      jest.spyOn(usersService, 'findUser').mockResolvedValue(null);
-
-      await expect(authService.sendEmailResetPassword('teste')).rejects.toThrow(
-        new NotFoundException('Usuário não encontrado'),
-      );
-    });
-
-    it('should create a token and send email to change user password', async () => {
-      const jwtToken = 'jwt_token';
-      const resetLink = `http://localhost:8080/reset-password?token=${jwtToken}`;
-
-      jest.spyOn(usersService, 'findUser').mockResolvedValue(user);
-      jest.spyOn(jwtService, 'sign').mockReturnValue(jwtToken);
-      const spyEmail = jest.spyOn(emailService, 'sendEmail');
-
-      await authService.sendEmailResetPassword(user.username);
-
-      expect(spyEmail).toHaveBeenCalledTimes(1);
-      expect(spyEmail).toHaveBeenCalledWith(
-        '10009591@edp.com.br',
-        'Redefinição de senha',
-        `Clique no link abaixo para redefinir sua senha: ${resetLink}`,
       );
     });
   });

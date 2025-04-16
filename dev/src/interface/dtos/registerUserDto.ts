@@ -19,8 +19,6 @@ export class RegisterUserDTO {
 
   @IsString()
   @MinLength(8)
-  @IsUppercase()
-  @IsLowercase()
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
   senha?: string;
 
