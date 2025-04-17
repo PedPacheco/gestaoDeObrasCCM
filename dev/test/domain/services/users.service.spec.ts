@@ -75,7 +75,6 @@ describe('UsersService', () => {
       mockUserRepository.findUser.mockResolvedValue(null);
 
       const user = await usersService.findUser('nonexistentuser');
-      console.log(user);
       expect(user).toBeNull();
       expect(mockUserRepository.findUser).toHaveBeenCalledWith(
         'nonexistentuser',

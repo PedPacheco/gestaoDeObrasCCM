@@ -1,16 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GoalsDTO } from 'src/interface/dtos/goalsDto';
 import { GoalsService } from 'src/domain/services/goals.service';
+import { GOALS_REPOSITORY } from 'src/domain/repositories/IGoalsRepository';
 
 describe('GoalsService', () => {
   let service: GoalsService;
-  let prismaService: PrismaService;
-
-  const mockPrismaService = {
-    $queryRaw: jest.fn(),
-  };
 
   const mockCacheManager = {
     get: jest.fn(),
@@ -18,17 +13,20 @@ describe('GoalsService', () => {
     del: jest.fn(),
   };
 
+  const mockRepository = {
+    getGoals: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         GoalsService,
-        { provide: PrismaService, useValue: mockPrismaService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
+        { provide: GOALS_REPOSITORY, useValue: mockRepository },
       ],
     }).compile();
 
     service = module.get<GoalsService>(GoalsService);
-    prismaService = module.get<PrismaService>(PrismaService);
 
     jest.clearAllMocks();
   });
@@ -96,12 +94,10 @@ describe('GoalsService', () => {
       rda: false,
     };
 
-    it('should return transformed data from the database', async () => {
-      mockPrismaService.$queryRaw.mockResolvedValue(mockQueryResult);
+    it('Should call goalsRepository and return the formatted data', async () => {
+      mockRepository.getGoals.mockResolvedValue(mockQueryResult);
 
       const result = await service.getGoals(baseFilters);
-
-      expect(prismaService.$queryRaw).toHaveBeenCalled();
 
       expect(result).toEqual([
         {
@@ -126,105 +122,7 @@ describe('GoalsService', () => {
           dez: { meta: 100, prog: 90, real: 80 },
         },
       ]);
-    });
-
-    it('should handle btzero filter correctly', async () => {
-      mockPrismaService.$queryRaw.mockResolvedValue(mockQueryResult);
-
-      const filters = { ...baseFilters, btzero: true };
-      await service.getGoals(filters);
-
-      const call = mockPrismaService.$queryRaw.mock.calls[0][0];
-      const sqlString = call.strings.join('');
-      expect(sqlString).toContain('AND id_tipo = 48');
-    });
-
-    it('should handle rda filter correctly', async () => {
-      mockPrismaService.$queryRaw.mockResolvedValue(mockQueryResult);
-
-      const filters = { ...baseFilters, rda: true };
-      await service.getGoals(filters);
-
-      const call = mockPrismaService.$queryRaw.mock.calls[0][0];
-      const sqlString = call.strings.join('');
-      expect(sqlString).toContain(
-        'AND id_tipo = 49 AND empreendimento IS NOT NULL',
-      );
-    });
-
-    it('should handle regional filter correctly', async () => {
-      mockPrismaService.$queryRaw.mockResolvedValue(mockQueryResult);
-
-      const filters = { ...baseFilters, regional: [1, 2] };
-      await service.getGoals(filters);
-
-      const call = mockPrismaService.$queryRaw.mock.calls[0][0];
-      const sqlString = call.strings.join('');
-      expect(sqlString).toContain('AND metas_anuais.id_regional IN (');
-    });
-
-    it('should handle tipo filter correctly', async () => {
-      mockPrismaService.$queryRaw.mockResolvedValue(mockQueryResult);
-
-      const filters = { ...baseFilters, tipo: [1, 2] };
-      await service.getGoals(filters);
-
-      const call = mockPrismaService.$queryRaw.mock.calls[0][0];
-      const sqlString = call.strings.join('');
-      expect(sqlString).toContain('AND metas_anuais.id_tipo IN (');
-    });
-
-    it('should handle parceira filter correctly', async () => {
-      mockPrismaService.$queryRaw.mockResolvedValue(mockQueryResult);
-
-      const filters = { ...baseFilters, parceira: [1, 2] };
-      await service.getGoals(filters);
-
-      const call = mockPrismaService.$queryRaw.mock.calls[0][0];
-      const sqlString = call.strings.join('');
-      expect(sqlString).toContain('AND metas_anuais.id_turma IN (');
-    });
-
-    it('should handle empreendimento filter correctly', async () => {
-      mockPrismaService.$queryRaw.mockResolvedValue(mockQueryResult);
-
-      const filters = { ...baseFilters, empreendimento: [1, 2] };
-      await service.getGoals(filters);
-
-      const call = mockPrismaService.$queryRaw.mock.calls[0][0];
-      const sqlString = call.strings.join('');
-      expect(sqlString).toContain('AND metas_anuais.id_empreendimento IN (');
-    });
-
-    it('should handle multiple filters simultaneously', async () => {
-      mockPrismaService.$queryRaw.mockResolvedValue(mockQueryResult);
-
-      const filters = {
-        ...baseFilters,
-        regional: [1],
-        tipo: [2],
-        parceira: [3],
-        empreendimento: [4],
-        btzero: true,
-      };
-
-      await service.getGoals(filters);
-
-      const call = mockPrismaService.$queryRaw.mock.calls[0][0];
-      const sqlString = call.strings.join('');
-      expect(sqlString).toContain('AND id_tipo = 48');
-      expect(sqlString).toContain('AND metas_anuais.id_regional IN (');
-      expect(sqlString).toContain('AND metas_anuais.id_tipo IN (');
-      expect(sqlString).toContain('AND metas_anuais.id_turma IN (');
-      expect(sqlString).toContain('AND metas_anuais.id_empreendimento IN (');
-    });
-
-    it('should handle empty result correctly', async () => {
-      mockPrismaService.$queryRaw.mockResolvedValue([]);
-
-      const result = await service.getGoals(baseFilters);
-
-      expect(result).toEqual([]);
+      expect(mockRepository.getGoals).toHaveBeenCalledWith(baseFilters);
     });
   });
 
@@ -461,84 +359,6 @@ describe('GoalsService', () => {
 
       expect(result[0].jan).toEqual({ meta: 100, prog: 90, real: 80 });
       expect(result[1].jan).toEqual({ meta: 200, prog: 180, real: 160 });
-    });
-  });
-
-  describe('SQL query construction', () => {
-    it('should construct correct base SQL query', async () => {
-      mockPrismaService.$queryRaw.mockResolvedValue([]);
-
-      const filters: GoalsDTO = {
-        ano: [2023],
-        parceira: [],
-        regional: [],
-        tipo: [],
-        empreendimento: [],
-        btzero: false,
-        rda: false,
-      };
-
-      await service.getGoals(filters);
-
-      const query = mockPrismaService.$queryRaw.mock.calls[0][0];
-      expect(query).toBeDefined();
-      expect(query.strings.join('')).toContain('SELECT');
-      expect(query.strings.join('')).toContain(
-        'FROM construcao_sp.get_view_data(NULL)',
-      );
-      expect(query.strings.join('')).toContain('WHERE anocalc IN');
-      expect(query.strings.join('')).toContain(
-        'GROUP BY tipo_obra, turma, regional, empreendimento, anocalc, id_tipo',
-      );
-    });
-
-    it('should construct query with multiple anos', async () => {
-      mockPrismaService.$queryRaw.mockResolvedValue([]);
-
-      const filters: GoalsDTO = {
-        ano: [2022, 2023],
-        parceira: [],
-        regional: [],
-        tipo: [],
-        empreendimento: [],
-        btzero: false,
-        rda: false,
-      };
-
-      await service.getGoals(filters);
-
-      const query = mockPrismaService.$queryRaw.mock.calls[0][0];
-      const sqlString = query.values;
-
-      expect(sqlString).toEqual([2022, 2023]);
-    });
-
-    it('should apply all filters simultaneously in the query', async () => {
-      mockPrismaService.$queryRaw.mockResolvedValue([]);
-
-      const filters: GoalsDTO = {
-        ano: [2023],
-        parceira: [1, 2],
-        regional: [3, 4],
-        tipo: [5, 6],
-        empreendimento: [7, 8],
-        btzero: true,
-        rda: true,
-      };
-
-      await service.getGoals(filters);
-
-      const query = mockPrismaService.$queryRaw.mock.calls[0][0];
-      const sqlString = query.strings.join('');
-
-      expect(sqlString).toContain('AND id_tipo = 48');
-      expect(sqlString).toContain(
-        'AND id_tipo = 49 AND empreendimento IS NOT NULL',
-      );
-      expect(sqlString).toContain('AND metas_anuais.id_regional IN');
-      expect(sqlString).toContain('AND metas_anuais.id_tipo IN');
-      expect(sqlString).toContain('AND metas_anuais.id_turma IN');
-      expect(sqlString).toContain('AND metas_anuais.id_empreendimento IN');
     });
   });
 });

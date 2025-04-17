@@ -1,25 +1,27 @@
-import { Injectable } from '@nestjs/common';
 import * as moment from 'moment';
 import {
   GetEntryOfWorksByDayDTO,
   GetEntryOfWorksDTO,
 } from 'src/interface/dtos/entryDto';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
+
+import { Inject, Injectable } from '@nestjs/common';
+
+import {
+  ENTRY_REPOSITORY,
+  IEntryRepository,
+} from '../repositories/IEntryRepository';
+import { ReturnGetValuesFromEntry } from 'src/interface/types/entryInterface';
 
 @Injectable()
 export class EntryService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @Inject(ENTRY_REPOSITORY) private entryRepository: IEntryRepository,
+  ) {}
 
-  async getValuesFromEntry(filters: GetEntryOfWorksDTO) {
-    const {
-      idGrupo,
-      idMunicipio,
-      idParceira,
-      idRegional,
-      idTipo,
-      ano,
-      idCircuito,
-    } = filters;
+  async getValuesFromEntry(
+    filters: GetEntryOfWorksDTO,
+  ): Promise<ReturnGetValuesFromEntry[]> {
+    const obras = await this.entryRepository.getValuesFromEntry(filters);
 
     const monthAbbreviations: { [key: number]: string } = {
       0: 'jan',
@@ -35,51 +37,6 @@ export class EntryService {
       10: 'nov',
       11: 'dez',
     };
-
-    const obras = await this.prisma.obras.findMany({
-      where: {
-        id_status: { not: 3 },
-        entrada: {
-          gte: new Date(`${ano}-01-01`),
-          lte: new Date(`${ano}-12-31`),
-        },
-        id_gpm:
-          idMunicipio && idMunicipio.length > 0
-            ? { in: idMunicipio }
-            : undefined,
-        id_tipo: idTipo && idTipo.length > 0 ? { in: idTipo } : undefined,
-        id_circuito:
-          idCircuito && idCircuito.length > 0 ? { in: idCircuito } : undefined,
-        id_turma:
-          idParceira && idParceira.length > 0 ? { in: idParceira } : undefined,
-        municipios: {
-          id_regional:
-            idRegional && idRegional.length > 0
-              ? { in: idRegional }
-              : undefined,
-        },
-        tipos: {
-          id_grupo: idGrupo && idGrupo.length > 0 ? { in: idGrupo } : undefined,
-        },
-      },
-      select: {
-        ovnota: true,
-        mo_final: true,
-        mo_planejada: true,
-        entrada: true,
-        tipos: {
-          select: {
-            tipo_obra: true,
-            grupos: {
-              select: {
-                grupo: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: { tipos: { grupos: { grupo: 'asc' } } },
-    });
 
     const result = obras.reduce((acc, obra) => {
       const tipo = obra.tipos.tipo_obra;
@@ -118,15 +75,7 @@ export class EntryService {
   }
 
   async getEntryOfWorksByDay(filters: GetEntryOfWorksByDayDTO) {
-    const {
-      idGrupo,
-      idMunicipio,
-      idParceira,
-      idRegional,
-      idTipo,
-      data,
-      tipoFiltro,
-    } = filters;
+    const { data, tipoFiltro } = filters;
 
     let dateRange: Record<string, Date>;
 
@@ -142,52 +91,10 @@ export class EntryService {
         break;
     }
 
-    const result = await this.prisma.obras.findMany({
-      where: {
-        entrada: dateRange,
-        municipios: {
-          id_regional:
-            idRegional && idRegional.length > 0
-              ? { in: idRegional }
-              : undefined,
-        },
-        id_gpm:
-          idMunicipio && idMunicipio.length > 0
-            ? { in: idMunicipio }
-            : undefined,
-        tipos: {
-          id_grupo: idGrupo && idGrupo.length > 0 ? { in: idGrupo } : undefined,
-        },
-        id_tipo: idTipo && idTipo.length > 0 ? { in: idTipo } : undefined,
-        id_turma:
-          idParceira && idParceira.length > 0 ? { in: idParceira } : undefined,
-      },
-      select: {
-        id: true,
-        ovnota: true,
-        pep: true,
-        diagrama: true,
-        ordem_dci: true,
-        ordem_dcd: true,
-        ordem_dca: true,
-        ordem_dcim: true,
-        entrada: true,
-        prazo: true,
-        qtde_planejada: true,
-        mo_planejada: true,
-        observ_obra: true,
-        tipos: {
-          select: { tipo_obra: true },
-        },
-        turmas: {
-          select: { turma: true },
-        },
-        municipios: {
-          select: { mun: true },
-        },
-      },
-      orderBy: { entrada: 'asc' },
-    });
+    const result = await this.entryRepository.getEntryOfWorksByDay(
+      filters,
+      dateRange,
+    );
 
     let total_obras = 0;
     let total_mo_planejada = 0;

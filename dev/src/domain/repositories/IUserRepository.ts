@@ -1,5 +1,5 @@
 import { userInterface } from 'src/interface/types/userInterface';
-import { User } from '../entities/user.entity';
+import { User } from 'src/domain/entities/user.entity';
 
 export interface IUserRepository {
   findUser(username: string): Promise<User | null>;
