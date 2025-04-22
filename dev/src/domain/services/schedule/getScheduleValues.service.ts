@@ -5,7 +5,7 @@ import {
   GetScheduleValuesInterface,
   GetScheduleValuesResponse,
   totalsGetScheduleValues,
-} from 'src/interface/types/getScheduleValuesInterface';
+} from 'src/interface/types/schedule/getScheduleValuesInterface';
 
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';

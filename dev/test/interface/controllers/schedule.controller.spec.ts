@@ -6,7 +6,7 @@ import { GetTotalValuesScheduleService } from 'src/domain/services/schedule/getT
 import { GetValuesWeeklyScheduleService } from 'src/domain/services/schedule/getValuesWeeklySchedule.service';
 import { UsersService } from 'src/domain/services/users.service';
 import { ScheduleController } from 'src/interface/controllers/schedule.controller';
-import { GetScheduleValuesResponse } from 'src/interface/types/getScheduleValuesInterface';
+import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';

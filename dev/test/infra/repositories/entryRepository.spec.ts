@@ -9,14 +9,14 @@ import {
 } from 'src/interface/dtos/entryDto';
 
 describe('EntryRepository', () => {
-  let prisma: PrismaService;
-  let entryRepository: EntryRespository;
-
   const mockPrisma = {
     obras: {
-      findMany: jest.fn(),
+      findMany: jest.fn() as jest.Mock,
     },
   };
+
+  let prisma: typeof mockPrisma;
+  let entryRepository: EntryRespository;
 
   const mockObras = (mo_final: number | null, mo_planejada: number) => [
     {
@@ -61,7 +61,7 @@ describe('EntryRepository', () => {
       ],
     }).compile();
 
-    prisma = module.get<PrismaService>(PrismaService);
+    prisma = module.get(PrismaService);
     entryRepository = module.get<EntryRespository>(EntryRespository);
   });
 
@@ -81,11 +81,11 @@ describe('EntryRepository', () => {
         ano: 2024,
       };
 
-      mockPrisma.obras.findMany.mockResolvedValue(mockObras(100, 80));
+      prisma.obras.findMany.mockResolvedValue(mockObras(100, 80));
 
       const result = await entryRepository.getValuesFromEntry(filter);
 
-      const call = mockPrisma.obras.findMany.mock.calls[0][0];
+      const call = prisma.obras.findMany.mock.calls[0][0];
 
       expect(result).toEqual(mockObras(100, 80));
       expect(call.where).toMatchObject({
@@ -115,7 +115,7 @@ describe('EntryRepository', () => {
 
       await entryRepository.getValuesFromEntry(filters);
 
-      const call = mockPrisma.obras.findMany.mock.calls[0][0];
+      const call = prisma.obras.findMany.mock.calls[0][0];
 
       expect(call.where).toMatchObject({
         entrada: {
@@ -144,7 +144,7 @@ describe('EntryRepository', () => {
         tipoFiltro: 'day',
       };
 
-      mockPrisma.obras.findMany.mockResolvedValue(mockObrasByDay);
+      prisma.obras.findMany.mockResolvedValue(mockObrasByDay);
 
       const dateRange = { equals: filters.data };
 
@@ -153,7 +153,7 @@ describe('EntryRepository', () => {
         dateRange,
       );
 
-      const call = mockPrisma.obras.findMany.mock.calls[0][0];
+      const call = prisma.obras.findMany.mock.calls[0][0];
 
       expect(result).toEqual(mockObrasByDay);
       expect(call.where).toMatchObject({
@@ -184,7 +184,7 @@ describe('EntryRepository', () => {
 
       await entryRepository.getEntryOfWorksByDay(filters, dateRange);
 
-      const call = mockPrisma.obras.findMany.mock.calls[0][0];
+      const call = prisma.obras.findMany.mock.calls[0][0];
 
       expect(call.where).toMatchObject({
         entrada: dateRange,

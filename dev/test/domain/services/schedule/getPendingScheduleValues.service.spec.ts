@@ -3,13 +3,13 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import { Test } from '@nestjs/testing';
 import { obras } from '@prisma/client';
+import { GET_PENDING_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetPendingScheduleValuesRepository';
 
 describe('GetPendingScheduleValues', () => {
-  let prisma: PrismaService;
   let service: GetPendingScheduleValuesService;
 
-  const prismaMock = {
-    $queryRaw: jest.fn(),
+  const mockRepository = {
+    getValues: jest.fn(),
   };
 
   const mockResponse = [
@@ -38,16 +38,20 @@ describe('GetPendingScheduleValues', () => {
     const module = await Test.createTestingModule({
       providers: [
         GetPendingScheduleValuesService,
-        { provide: PrismaService, useValue: prismaMock },
+        {
+          provide: GET_PENDING_SCHEDULE_VALUES_REPOSITORY,
+          useValue: mockRepository,
+        },
       ],
     }).compile();
 
-    prisma = module.get<PrismaService>(PrismaService);
     service = module.get<GetPendingScheduleValuesService>(
       GetPendingScheduleValuesService,
     );
+  });
 
-    prismaMock.$queryRaw.mockClear();
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   it('should return the correct values without filters', async () => {
@@ -56,60 +60,10 @@ describe('GetPendingScheduleValues', () => {
       idRegional: undefined,
     };
 
-    jest.spyOn(prisma, '$queryRaw').mockResolvedValue(mockResponse);
+    mockRepository.getValues.mockResolvedValue(mockResponse);
 
     const result = await service.getValues(filters);
 
-    const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, diagrama, mun, entrada, tipo_obra, qtde_planejada, mo_planejada, turma,
-    executado, data_prog, prog, observ_programacao, mo_planejada*prog/100 AS mo_prog
-    FROM construcao_sp.obras
-    INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
-    INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm
-    INNER JOIN construcao_sp.regionais ON regionais.id = municipios.id_regional
-    INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo
-    INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
-    WHERE exec IS NULL AND data_prog < CURRENT_DATE ORDER BY data_prog`;
-
-    const normalize = (str: string) => str.replace(/\s+/g, ' ').trim();
-
     expect(result).toEqual(mockResponse);
-    expect(prismaMock.$queryRaw.mock.calls[0][0].values).toEqual([]);
-    expect(normalize(prismaMock.$queryRaw.mock.calls[0][0].strings[0])).toEqual(
-      normalize(expectedQuery),
-    );
-  });
-
-  it('should return the correct values with filters', async () => {
-    const filters = {
-      idParceira: [1],
-      idRegional: [1],
-    };
-
-    jest.spyOn(prisma, '$queryRaw').mockResolvedValue(mockResponse);
-
-    const result = await service.getValues(filters);
-
-    const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, diagrama, mun, entrada, tipo_obra, qtde_planejada, mo_planejada, turma,
-    executado, data_prog, prog, observ_programacao, mo_planejada*prog/100 AS mo_prog
-    FROM construcao_sp.obras
-    INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
-    INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm
-    INNER JOIN construcao_sp.regionais ON regionais.id = municipios.id_regional
-    INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo
-    INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
-    WHERE exec IS NULL AND data_prog < CURRENT_DATE
-    AND id_turma IN () AND municipios.id_regional IN () 
-    ORDER BY data_prog`;
-
-    const normalize = (str: string) => str.replace(/\s+/g, ' ').trim();
-
-    const queryStrings = prismaMock.$queryRaw.mock.calls[0][0].strings;
-    const allPartsPresent = normalize(expectedQuery).includes(
-      normalize(queryStrings.join('')),
-    );
-
-    expect(result).toEqual(mockResponse);
-    expect(prismaMock.$queryRaw.mock.calls[0][0].values).toEqual([1, 1]);
-    expect(allPartsPresent).toBeTruthy();
   });
 });

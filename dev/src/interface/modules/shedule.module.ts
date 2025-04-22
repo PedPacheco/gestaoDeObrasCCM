@@ -1,3 +1,8 @@
+import { GET_MONTHLY_SUMMARY_REPOSITORY } from 'src/domain/repositories/schedule/IGetMonthlySummaryRepository';
+import { GET_PENDING_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetPendingScheduleValuesRepository';
+import { GetMonthlySummaryRepository } from 'src/infra/repositories/schedule/getMonthlySummaryRepository';
+import { GetPendingScheduleValuesRepository } from 'src/infra/repositories/schedule/getPendingScheduleValuesRepository';
+
 import { Module } from '@nestjs/common';
 
 import { GetMonthlySummaryService } from '../../domain/services/schedule/getMonthlySummary.service';
@@ -19,6 +24,14 @@ import { UsersModule } from './users.module';
     GetPendingScheduleValuesService,
     GetScheduleRestrictionsService,
     GetMonthlySummaryService,
+    {
+      provide: GET_MONTHLY_SUMMARY_REPOSITORY,
+      useClass: GetMonthlySummaryRepository,
+    },
+    {
+      provide: GET_PENDING_SCHEDULE_VALUES_REPOSITORY,
+      useClass: GetPendingScheduleValuesRepository,
+    },
   ],
   exports: [GetScheduleValuesService],
 })
