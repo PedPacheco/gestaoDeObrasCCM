@@ -21,7 +21,7 @@ const columns = {
   tipo_servico: "Tipo de Serviço",
   prog: "% Prog",
   exec: "% Exec",
-  observ_prog: "Equipamento a ser desligado",
+  observ_programacao: "Equipamento a ser desligado",
   chi: "CHI",
   num_dp: "Número DP",
   chave_provisoria: "Chave provisória",
@@ -36,14 +36,19 @@ const columns = {
 export default function SchedulePanelItem({ data }: Record<string, any>) {
   return (
     <>
-      <TableContainer className="h-[320px]">
+      <TableContainer className="h-full xl:h-[320px]">
         <Table stickyHeader>
           <TableHead>
             <TableRow>
               {Object.keys(columns).map((month) => (
                 <TableCell
                   key={month}
-                  className="py-1 px-2 min-w-36 text-center text-zinc-700 font-semibold text-nowrap text-xl bg-[#53FF75] border-r border-solid border-zinc-700"
+                  className={`py-1 px-2 text-center text-zinc-700 font-semibold text-lg bg-[#53FF75] border-r border-solid border-zinc-700
+                    ${
+                      month === "observ_programacao"
+                        ? "min-w-[520px]"
+                        : "min-w-28"
+                    }`}
                 >
                   {columns[month as keyof typeof columns]}
                 </TableCell>
@@ -87,7 +92,11 @@ export default function SchedulePanelItem({ data }: Record<string, any>) {
 
                     return (
                       <TableCell
-                        className="py-1 px-2 text-center text-nowrap text-xl min-w-36 border-r border-zinc-700 border-solid"
+                        className={`py-1 px-2 text-center border-r font-medium text-base border-zinc-700 border-solid ${
+                          column === "observ_programacao"
+                            ? "text-wrap"
+                            : "text-nowrap"
+                        }`}
                         key={index}
                       >
                         {displayValue}
