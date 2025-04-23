@@ -14,7 +14,7 @@ export default function DataItem({
   background,
 }: DataItemProps) {
   return (
-    <div className="flex items-center justify-between mb-3 max-w-96 w-[354px] h-14 border border-zinc-700 border-solid rounded-md">
+    <div className="flex items-center justify-between mb-3 max-w-96 w-[342px] h-14 border border-zinc-700 border-solid rounded-md">
       {label && (
         <p className="h-full flex items-center justify-start xl:text-lg font-semibold w-40 p-2 text-center border-r border-zinc-700 border-solid">
           {label}

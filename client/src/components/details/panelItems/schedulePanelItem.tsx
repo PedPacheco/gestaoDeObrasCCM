@@ -1,5 +1,6 @@
 "use client";
 
+import { FormatCurrency, formatPercentage } from "@/utils/formatValue";
 import { isValidDateString } from "@/utils/validDate";
 import {
   Table,
@@ -69,6 +70,10 @@ export default function SchedulePanelItem({ data }: Record<string, any>) {
                       if (decimal[1]?.length > 2) {
                         cellValue = cellValue.toFixed(2);
                       }
+                    }
+
+                    if (["prog", "exec"].includes(column)) {
+                      cellValue = formatPercentage(cellValue);
                     }
 
                     if (
