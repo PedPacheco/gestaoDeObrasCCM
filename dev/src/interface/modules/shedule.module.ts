@@ -13,6 +13,8 @@ import { GetTotalValuesScheduleService } from '../../domain/services/schedule/ge
 import { GetValuesWeeklyScheduleService } from '../../domain/services/schedule/getValuesWeeklySchedule.service';
 import { ScheduleController } from '../controllers/schedule.controller';
 import { UsersModule } from './users.module';
+import { GET_SCHEDULE_RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/schedule/IGetScheduleRestrictionsRepository';
+import { GetScheduleRestrictionsRespository } from 'src/infra/repositories/schedule/getScheduleRestrictionsRepository';
 
 @Module({
   imports: [UsersModule],
@@ -31,6 +33,10 @@ import { UsersModule } from './users.module';
     {
       provide: GET_PENDING_SCHEDULE_VALUES_REPOSITORY,
       useClass: GetPendingScheduleValuesRepository,
+    },
+    {
+      provide: GET_SCHEDULE_RESTRICTIONS_REPOSITORY,
+      useClass: GetScheduleRestrictionsRespository,
     },
   ],
   exports: [GetScheduleValuesService],

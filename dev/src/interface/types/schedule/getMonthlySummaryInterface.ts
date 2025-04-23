@@ -1,10 +1,8 @@
+import { Partners } from '../common/commonInterface';
+
 interface Works {
   mo_final: number;
   mo_planejada: number;
-}
-
-interface Partners {
-  turma: string;
 }
 
 interface Groups {
