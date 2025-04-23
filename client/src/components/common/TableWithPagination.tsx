@@ -1,19 +1,21 @@
 "use client";
 
-import { isValidDateString } from "@/utils/validDate";
-import {
-  TableContainer,
-  TableHead,
-  Table,
-  TableRow,
-  TableCell,
-  TableBody,
-  Paper,
-  TablePagination,
-} from "@mui/material";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useRouter } from "next/navigation";
+
+import { FormatCurrency, formatPercentage } from "@/utils/formatValue";
+import { isValidDateString } from "@/utils/validDate";
+import {
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow,
+} from "@mui/material";
 
 interface totalsInterface {
   total_obras: number;
@@ -82,6 +84,14 @@ export function TableWithPagination({
                         if (decimal[1]?.length > 2) {
                           cellValue = cellValue.toFixed(2);
                         }
+                      }
+
+                      if (column === "mo_planejada") {
+                        cellValue = FormatCurrency(cellValue);
+                      }
+
+                      if (["prog", "exec", "executado"].includes(column)) {
+                        cellValue = formatPercentage(cellValue);
                       }
 
                       if (
