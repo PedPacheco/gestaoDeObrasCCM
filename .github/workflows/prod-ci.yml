@@ -1,7 +1,7 @@
 name: Production CI/CD
 
 on:
-  push:
+  pull_request:
     branches:
       - main
 
