@@ -1,0 +1,83 @@
+name: Production CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  backend-tests:
+    name: Backend CI
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13.4
+        env:
+          POSTGRES_DB: ${{ secrets.DB_NAME }}
+          POSTGRES_USER: ${{ secrets.DB_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U construcaosp"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.12.6"
+
+      - name: Install backend dependencies
+        run: npm install
+        working-directory: ./dev
+
+      - name: Generate Prisma Client
+        run: npx prisma generate --schema=src/infra/prisma/schema.prisma
+        working-directory: ./dev
+
+      - name: Run Linter (Backend)
+        run: npm run lint
+        working-directory: ./dev
+
+      - name: Run backedn tests
+        run: npm run test
+        working-directory: ./dev
+
+      - name: Build backend
+        run: npm run build
+        working-directory: ./dev
+
+  frontend-tests:
+    name: Frontend CI/CD (Next.js)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20.12.9"
+
+      - name: Install frontend dependencies
+        run: npm install
+        working-directory: ./client
+
+      - name: Run linter
+        run: npm run lint
+        working-directory: "./client"
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: "./client"
