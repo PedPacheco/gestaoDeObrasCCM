@@ -1,12 +1,10 @@
+import { USER_REPOSITORY } from 'src/domain/repositories/IUserRepository';
 import { UsersService } from 'src/domain/services/users.service';
+import { UserRepository } from 'src/infra/repositories/userRepository';
+
 import { Module } from '@nestjs/common';
 
 import { UsersController } from '../controllers/users.controller';
-import { UserRepository } from 'src/infra/repositories/userRepository';
-import {
-  IUserRepository,
-  USER_REPOSITORY,
-} from 'src/domain/repositories/IUserRepository';
 
 @Module({
   controllers: [UsersController],

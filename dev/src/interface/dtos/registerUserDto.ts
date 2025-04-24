@@ -1,11 +1,9 @@
 import { Exclude, Expose } from 'class-transformer';
 import {
-  IsLowercase,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
-  IsUppercase,
   Matches,
   MaxLength,
   MinLength,
