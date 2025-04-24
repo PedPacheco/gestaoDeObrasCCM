@@ -1,4 +1,3 @@
-import { UsersService } from 'src/domain/services/users.service';
 import { CacheModule } from 'src/infra/cache/cache.module';
 
 import { Module } from '@nestjs/common';
