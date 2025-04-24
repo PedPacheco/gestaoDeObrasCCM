@@ -1,20 +1,22 @@
 "use client";
 
-import { isValidDateString } from "@/utils/validDate";
-import {
-  TableContainer,
-  TableHead,
-  Table,
-  TableRow,
-  TableCell,
-  TableBody,
-  Paper,
-} from "@mui/material";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useRouter } from "next/navigation";
 import { forwardRef } from "react";
 import { TableComponents, TableVirtuoso } from "react-virtuoso";
+
+import { FormatCurrency, formatPercentage } from "@/utils/formatValue";
+import { isValidDateString } from "@/utils/validDate";
+import {
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+} from "@mui/material";
 
 interface TableComponentProps {
   columns: any;
@@ -86,6 +88,14 @@ export function TableWithVirtualization({
               if (decimal[1]?.length > 2) {
                 cellValue = cellValue.toFixed(2);
               }
+            }
+
+            if (column === "mo_planejada") {
+              cellValue = FormatCurrency(cellValue);
+            }
+
+            if (["prog", "exec", "executado"].includes(column)) {
+              cellValue = formatPercentage(cellValue);
             }
 
             if (
