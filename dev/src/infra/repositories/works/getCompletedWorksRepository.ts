@@ -5,7 +5,8 @@ import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 import {
   totalsWorksInPortfolio,
   worksInPortfolioInterface,
-} from 'src/interface/types/getWorksInPortfolioInterface';
+  worksInPortfolioResponseRepository,
+} from 'src/interface/types/works/getWorksInPortfolioInterface';
 
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
@@ -85,7 +86,9 @@ export class GetCompletedWorksRepository
     return query;
   }
 
-  async getCompletedWorks(filters: GetWorksDTO): Promise<any> {
+  async getCompletedWorks(
+    filters: GetWorksDTO,
+  ): Promise<worksInPortfolioResponseRepository> {
     const { page } = filters;
 
     const baseQuery = Prisma.sql`FROM construcao_sp.obras

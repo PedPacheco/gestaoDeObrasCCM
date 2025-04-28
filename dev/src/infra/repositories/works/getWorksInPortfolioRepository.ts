@@ -6,7 +6,7 @@ import {
   totalsWorksInPortfolio,
   worksInPortfolioInterface,
   worksInPortfolioResponseRepository,
-} from 'src/interface/types/getWorksInPortfolioInterface';
+} from 'src/interface/types/works/getWorksInPortfolioInterface';
 
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';

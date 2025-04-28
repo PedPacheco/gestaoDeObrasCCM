@@ -6,7 +6,7 @@ import { GetWorkDetailsService } from 'src/domain/services/works/getWorkDetails.
 import { GetWorksInPortfolioService } from 'src/domain/services/works/getWorksInPortfolio.service';
 import { WorksController } from 'src/interface/controllers/works.controller';
 import { GetAllWorksDTO, GetWorksDTO } from 'src/interface/dtos/worksDto';
-import { worksInPortfolioResponseService } from 'src/interface/types/getWorksInPortfolioInterface';
+import { worksInPortfolioResponseService } from 'src/interface/types/works/getWorksInPortfolioInterface';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';

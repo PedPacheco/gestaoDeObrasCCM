@@ -1,6 +1,6 @@
 import * as Exceljs from 'exceljs';
 import { Response } from 'express';
-import { worksInPortfolioResponseService } from 'src/interface/types/getWorksInPortfolioInterface';
+import { worksInPortfolioResponseService } from 'src/interface/types/works/getWorksInPortfolioInterface';
 
 import { Injectable } from '@nestjs/common';
 

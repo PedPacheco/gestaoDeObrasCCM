@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetCompletedWorksRepository } from 'src/infra/repositories/works/getCompletedWorksRepository';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
-import { totalsWorksInPortfolio } from 'src/interface/types/getWorksInPortfolioInterface';
+import { totalsWorksInPortfolio } from 'src/interface/types/works/getWorksInPortfolioInterface';
 
 describe('GetCompletedWorksRepository', () => {
   let repository: GetCompletedWorksRepository;

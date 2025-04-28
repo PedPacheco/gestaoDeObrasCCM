@@ -5,7 +5,7 @@ import { ExportCompletedWorksService } from 'src/domain/services/export/exportCo
 import {
   worksInPortfolioInterface,
   worksInPortfolioResponseService,
-} from 'src/interface/types/getWorksInPortfolioInterface';
+} from 'src/interface/types/works/getWorksInPortfolioInterface';
 
 jest.mock('exceljs');
 

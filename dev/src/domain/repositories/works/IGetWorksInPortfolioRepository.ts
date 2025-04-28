@@ -1,5 +1,5 @@
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
-import { worksInPortfolioResponseRepository } from 'src/interface/types/getWorksInPortfolioInterface';
+import { worksInPortfolioResponseRepository } from 'src/interface/types/works/getWorksInPortfolioInterface';
 
 export interface IGetWorksInPortfolioRepository {
   getWorksInPortfolio(

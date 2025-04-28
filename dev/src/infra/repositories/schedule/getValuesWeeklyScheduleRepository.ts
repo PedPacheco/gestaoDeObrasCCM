@@ -4,6 +4,7 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetValueWeeklyScheduleDTO } from 'src/interface/dtos/scheduleDTO';
 
 import { Injectable } from '@nestjs/common';
+import { GetValuesWeeklyScheduleResponseRepository } from 'src/interface/types/schedule/getValuesWeeklyScheduleInterface';
 
 @Injectable()
 export class GetValuesWeeklyScheduleRepository
@@ -11,7 +12,9 @@ export class GetValuesWeeklyScheduleRepository
 {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getValues(filters: GetValueWeeklyScheduleDTO): Promise<any> {
+  async getValues(
+    filters: GetValueWeeklyScheduleDTO,
+  ): Promise<GetValuesWeeklyScheduleResponseRepository[]> {
     const {
       dataFinal,
       dataInicial,

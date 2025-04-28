@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { IGetTotalScheduleValuesRepository } from 'src/domain/repositories/schedule/IGetTotalValuesScheduleRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetTotalValuesScheduleDTO } from 'src/interface/dtos/scheduleDTO';
+import { GetTotalValuesScheduleResponse } from 'src/interface/types/schedule/getTotalValuesScheduleInterface';
 
 @Injectable()
 export class GetTotalValueScheduleRepository
@@ -10,7 +11,9 @@ export class GetTotalValueScheduleRepository
 {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getTotalValues(filters: GetTotalValuesScheduleDTO): Promise<any> {
+  async getTotalValues(
+    filters: GetTotalValuesScheduleDTO,
+  ): Promise<GetTotalValuesScheduleResponse[]> {
     const {
       idCircuito,
       idGrupo,

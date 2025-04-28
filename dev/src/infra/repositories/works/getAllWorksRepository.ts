@@ -4,6 +4,10 @@ import { GetAllWorksDTO } from 'src/interface/dtos/worksDto';
 
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import {
+  GetAllWorksInterface,
+  getALlWorksResponseRepository,
+} from 'src/interface/types/works/getAllWorks';
 
 @Injectable()
 export class GetAllWorksRepository implements IGetAllWorksRepository {
@@ -40,7 +44,9 @@ export class GetAllWorksRepository implements IGetAllWorksRepository {
     return query;
   }
 
-  async getAllWorks(filters: GetAllWorksDTO): Promise<any> {
+  async getAllWorks(
+    filters: GetAllWorksDTO,
+  ): Promise<getALlWorksResponseRepository> {
     const { page } = filters;
 
     const baseQuery = Prisma.sql`FROM construcao_sp.obras 
@@ -69,7 +75,7 @@ export class GetAllWorksRepository implements IGetAllWorksRepository {
     }
 
     const [works, total] = await Promise.all([
-      this.prisma.$queryRaw(query),
+      this.prisma.$queryRaw<GetAllWorksInterface[]>(query),
       this.prisma.$queryRaw<{ total_obras: number }[]>(queryCount),
     ]);
 

@@ -3,6 +3,7 @@ import {
   IGetAllWorksRepository,
 } from 'src/domain/repositories/works/IGetAllWorksRepository';
 import { GetAllWorksDTO } from 'src/interface/dtos/worksDto';
+import { getALlWorksResponseService } from 'src/interface/types/works/getAllWorks';
 
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
@@ -15,10 +16,13 @@ export class GetAllWorksService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async getAllWorks(filters: GetAllWorksDTO) {
+  async getAllWorks(
+    filters: GetAllWorksDTO,
+  ): Promise<getALlWorksResponseService> {
     const cacheKey = `works-${JSON.stringify(filters)}`;
 
-    const responseData = await this.cacheManager.get(cacheKey);
+    const responseData: getALlWorksResponseService =
+      await this.cacheManager.get(cacheKey);
 
     if (responseData) {
       return responseData;

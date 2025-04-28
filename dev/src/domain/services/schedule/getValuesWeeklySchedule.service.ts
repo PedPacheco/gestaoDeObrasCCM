@@ -5,6 +5,7 @@ import {
   GET_VALUES_WEEKLY_SCHEDULE_REPOSITORY,
   IGetValuesWeeklyScheduleRepository,
 } from 'src/domain/repositories/schedule/IGetValuesWeeklyScheduleRepository';
+import { GetValuesWeeklyScheduleResponseService } from 'src/interface/types/schedule/getValuesWeeklyScheduleInterface';
 
 @Injectable()
 export class GetValuesWeeklyScheduleService {
@@ -13,7 +14,9 @@ export class GetValuesWeeklyScheduleService {
     private getValuesWeeklyScheduleRepository: IGetValuesWeeklyScheduleRepository,
   ) {}
 
-  async getValues(filters: GetValueWeeklyScheduleDTO) {
+  async getValues(
+    filters: GetValueWeeklyScheduleDTO,
+  ): Promise<GetValuesWeeklyScheduleResponseService[]> {
     const works =
       await this.getValuesWeeklyScheduleRepository.getValues(filters);
 

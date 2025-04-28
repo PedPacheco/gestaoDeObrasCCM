@@ -6,7 +6,7 @@ import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 import {
   totalsWorksInPortfolio,
   worksInPortfolioResponseService,
-} from 'src/interface/types/getWorksInPortfolioInterface';
+} from 'src/interface/types/works/getWorksInPortfolioInterface';
 
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';

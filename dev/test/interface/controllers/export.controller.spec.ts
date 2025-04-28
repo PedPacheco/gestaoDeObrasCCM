@@ -7,7 +7,7 @@ import { GetCompletedWorksService } from 'src/domain/services/works/getCompleted
 import { GetWorksInPortfolioService } from 'src/domain/services/works/getWorksInPortfolio.service';
 import { ExportController } from 'src/interface/controllers/export.controller';
 import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
-import { worksInPortfolioResponseService } from 'src/interface/types/getWorksInPortfolioInterface';
+import { worksInPortfolioResponseService } from 'src/interface/types/works/getWorksInPortfolioInterface';
 
 import { Test } from '@nestjs/testing';
 
