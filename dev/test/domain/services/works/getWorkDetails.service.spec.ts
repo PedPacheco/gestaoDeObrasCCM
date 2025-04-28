@@ -59,6 +59,7 @@ describe('GetWorkDetailsService', () => {
     },
     tipos: {
       tipo_obra: 'SPACER CABLE',
+      id_grupo: 2,
     },
     turmas: {
       turma: 'ENGELMIG',
@@ -131,6 +132,7 @@ describe('GetWorkDetailsService', () => {
     empreendimento: null,
     municipios: 'MONTEIRO LOBATO',
     tipos: 'SPACER CABLE',
+    grupo: 2,
     turmas: 'ENGELMIG',
     status: 'PROGRAMADO',
     programacoes: [

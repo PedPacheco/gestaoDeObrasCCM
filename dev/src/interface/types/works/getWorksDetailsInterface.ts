@@ -59,7 +59,7 @@ export interface GetWorksDetailsResponse {
   circuitos: { circuito: string };
   empreendimento: { empreendimento: string | null };
   municipios: { municipio: string };
-  tipos: { tipo_obra: string };
+  tipos: { tipo_obra: string; id_grupo: number };
   turmas: Partners;
   status: { status: string };
   programacoes: Schedules[];

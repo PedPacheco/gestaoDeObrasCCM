@@ -300,6 +300,7 @@ describe('WorksController', () => {
         empreendimento: null,
         municipios: 'MONTEIRO LOBATO',
         tipos: 'SPACER CABLE',
+        grupo: 2,
         turmas: 'ENGELMIG',
         status: 'PROGRAMADO',
         programacoes: [

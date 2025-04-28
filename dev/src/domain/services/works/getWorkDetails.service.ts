@@ -24,6 +24,7 @@ export class GetWorkDetailsService {
       empreendimento: work.empreendimento.empreendimento,
       municipios: work.municipios.municipio,
       tipos: work.tipos.tipo_obra,
+      grupo: work.tipos.id_grupo,
       turmas: work.turmas.turma,
       status: work.status.status,
       programacoes: work.programacoes.map((programacao) => ({

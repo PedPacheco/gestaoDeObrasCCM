@@ -3,6 +3,7 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetCompletedWorksRepository } from 'src/infra/repositories/works/getCompletedWorksRepository';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 import { totalsWorksInPortfolio } from 'src/interface/types/works/getWorksInPortfolioInterface';
+import * as moment from 'moment';
 
 describe('GetCompletedWorksRepository', () => {
   let repository: GetCompletedWorksRepository;
@@ -114,6 +115,8 @@ describe('GetCompletedWorksRepository', () => {
         page: 0,
       };
 
+      const expectedDate = moment(filters.data, 'DD/MM/YYYY', true).toDate();
+
       mockPrisma.$queryRaw
         .mockResolvedValueOnce(mockWorks)
         .mockResolvedValueOnce(mockCountQuery);
@@ -148,7 +151,7 @@ describe('GetCompletedWorksRepository', () => {
         8,
         9,
         10,
-        new Date('2024-09-17T03:00:00.000Z'),
+        expectedDate,
         0,
       ]);
     });

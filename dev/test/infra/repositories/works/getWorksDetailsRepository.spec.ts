@@ -58,6 +58,7 @@ describe('GetWorksDetailsRepository', () => {
     },
     tipos: {
       tipo_obra: 'SPACER CABLE',
+      id_grupo: 2,
     },
     turmas: {
       turma: 'ENGELMIG',
@@ -169,7 +170,7 @@ describe('GetWorksDetailsRepository', () => {
           circuitos: { select: { circuito: true } },
           empreendimento: { select: { empreendimento: true } },
           municipios: { select: { municipio: true } },
-          tipos: { select: { tipo_obra: true } },
+          tipos: { select: { tipo_obra: true, id_grupo: true } },
           turmas: { select: { turma: true } },
           status: { select: { status: true } },
           programacoes: {
@@ -256,7 +257,7 @@ describe('GetWorksDetailsRepository', () => {
           circuitos: { select: { circuito: true } },
           empreendimento: { select: { empreendimento: true } },
           municipios: { select: { municipio: true } },
-          tipos: { select: { tipo_obra: true } },
+          tipos: { select: { tipo_obra: true, id_grupo: true } },
           turmas: { select: { turma: true } },
           status: { select: { status: true } },
           programacoes: {
