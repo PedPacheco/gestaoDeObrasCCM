@@ -1,20 +1,13 @@
-import * as moment from 'moment';
 import { GetValuesWeeklyScheduleService } from 'src/domain/services/schedule/getValuesWeeklySchedule.service';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
+
 import { GetValueWeeklyScheduleDTO } from 'src/interface/dtos/scheduleDTO';
 
 import { Test } from '@nestjs/testing';
 import { obras } from '@prisma/client';
+import { GET_VALUES_WEEKLY_SCHEDULE_REPOSITORY } from 'src/domain/repositories/schedule/IGetValuesWeeklyScheduleRepository';
 
 describe('GetValuesWeeklyScheduleService', () => {
-  let prisma: PrismaService;
   let service: GetValuesWeeklyScheduleService;
-
-  const prismaMock = {
-    obras: {
-      findMany: jest.fn(),
-    },
-  };
 
   const mockQueryResponse = [
     {
@@ -54,82 +47,35 @@ describe('GetValuesWeeklyScheduleService', () => {
     },
   ];
 
+  const mockRepository = {
+    getValues: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
         GetValuesWeeklyScheduleService,
-        { provide: PrismaService, useValue: prismaMock },
+        {
+          provide: GET_VALUES_WEEKLY_SCHEDULE_REPOSITORY,
+          useValue: mockRepository,
+        },
       ],
     }).compile();
 
     service = module.get<GetValuesWeeklyScheduleService>(
       GetValuesWeeklyScheduleService,
     );
-    prisma = module.get<PrismaService>(PrismaService);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  it('should return the correct values without filters', async () => {
-    const filters: GetValueWeeklyScheduleDTO = {
-      dataInicial: '01/09/2024',
-      dataFinal: '10/09/2024',
-      executado: false,
-      idGrupo: undefined,
-      idMunicipio: undefined,
-      idParceira: undefined,
-      idRegional: undefined,
-      idTipo: undefined,
-    };
-
-    jest.spyOn(prisma.obras, 'findMany').mockResolvedValue(mockQueryResponse);
-
-    const result = await service.getValues(filters);
-
-    expect(result).toEqual(mockResponse);
-    expect(prisma.obras.findMany).toHaveBeenCalledWith({
-      where: {
-        programacoes: {
-          some: {
-            exec: null,
-            data_prog: {
-              gte: moment('01/09/2024', 'DD/MM/YYYY').toDate(),
-              lte: moment('10/09/2024', 'DD/MM/YYYY').toDate(),
-            },
-          },
-        },
-        id_status: { not: 3 },
-        municipios: { id_regional: undefined },
-        id_gpm: undefined,
-        id_turma: undefined,
-        id_tipo: undefined,
-        tipos: { id_grupo: undefined },
-      },
-      select: {
-        id: true,
-        ovnota: true,
-        tipos: {
-          select: { tipo_abrev: true },
-        },
-        programacoes: {
-          where: {
-            data_prog: {
-              gte: moment('01/09/2024', 'DD/MM/YYYY').toDate(),
-              lte: moment('10/09/2024', 'DD/MM/YYYY').toDate(),
-            },
-          },
-          select: { data_prog: true, hora_ini: true, hora_ter: true },
-        },
-        turmas: {
-          select: { turma: true },
-        },
-      },
-    });
-  });
-
-  it('should return the correct values without filters', async () => {
+  it('should return the correct values with filters', async () => {
     const filters: GetValueWeeklyScheduleDTO = {
       dataInicial: '01/09/2024',
       dataFinal: '10/09/2024',
@@ -141,48 +87,10 @@ describe('GetValuesWeeklyScheduleService', () => {
       idTipo: [1],
     };
 
-    jest.spyOn(prisma.obras, 'findMany').mockResolvedValue(mockQueryResponse);
+    mockRepository.getValues.mockResolvedValue(mockQueryResponse);
 
     const result = await service.getValues(filters);
 
     expect(result).toEqual(mockResponse);
-    expect(prisma.obras.findMany).toHaveBeenCalledWith({
-      where: {
-        programacoes: {
-          some: {
-            exec: { not: 0 },
-            data_prog: {
-              gte: moment('01/09/2024', 'DD/MM/YYYY').toDate(),
-              lte: moment('10/09/2024', 'DD/MM/YYYY').toDate(),
-            },
-          },
-        },
-        id_status: { not: 3 },
-        municipios: { id_regional: { in: [1] } },
-        id_gpm: { in: [1] },
-        id_turma: { in: [1] },
-        id_tipo: { in: [1] },
-        tipos: { id_grupo: { in: [1] } },
-      },
-      select: {
-        id: true,
-        ovnota: true,
-        tipos: {
-          select: { tipo_abrev: true },
-        },
-        programacoes: {
-          where: {
-            data_prog: {
-              gte: moment('01/09/2024', 'DD/MM/YYYY').toDate(),
-              lte: moment('10/09/2024', 'DD/MM/YYYY').toDate(),
-            },
-          },
-          select: { data_prog: true, hora_ini: true, hora_ter: true },
-        },
-        turmas: {
-          select: { turma: true },
-        },
-      },
-    });
   });
 });

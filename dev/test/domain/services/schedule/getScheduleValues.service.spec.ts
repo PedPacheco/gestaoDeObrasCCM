@@ -4,14 +4,10 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import { Test } from '@nestjs/testing';
 import { obras } from '@prisma/client';
+import { GET_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetScheduleValuesRepository';
 
 describe('GetScheduleValues', () => {
-  let prisma: PrismaService;
   let service: GetScheduleValuesService;
-
-  const prismaMock = {
-    $queryRaw: jest.fn(),
-  };
 
   const mockQueryResponse = [
     {
@@ -52,72 +48,23 @@ describe('GetScheduleValues', () => {
     },
   ];
 
+  const mockRepository = {
+    getValues: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
         GetScheduleValuesService,
-        { provide: PrismaService, useValue: prismaMock },
+        { provide: GET_SCHEDULE_VALUES_REPOSITORY, useValue: mockRepository },
       ],
     }).compile();
 
-    prisma = module.get<PrismaService>(PrismaService);
     service = module.get<GetScheduleValuesService>(GetScheduleValuesService);
-
-    prismaMock.$queryRaw.mockClear();
   });
 
-  it('should return the correct values without filters', async () => {
-    const filters = {
-      data: '01/10/2024',
-      tipoFiltro: 'day',
-      executado: false,
-      idGrupo: undefined,
-      idMunicipio: undefined,
-      idParceira: undefined,
-      idRegional: undefined,
-      idTipo: undefined,
-      page: undefined,
-    };
-
-    prismaMock.$queryRaw
-      .mockResolvedValueOnce(mockQueryResponse)
-      .mockResolvedValueOnce(mockCount);
-
-    const result = await service.getValues(filters);
-
-    const expectedDate = moment('01/10/2024', 'DD/MM/YYYY', true).toDate();
-
-    const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, entrada, entrada + prazo AS prazo_fim, tipo_obra, qtde_planejada,
-    mo_planejada, turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec,
-    num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito
-    FROM construcao_sp.obras
-    INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
-    INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
-    INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
-    INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm
-    INNER JOIN construcao_sp.regionais ON regionais.id = municipios.id_regional
-    INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo
-    INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
-    INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
-    WHERE 1=1
-    AND data_prog = 
-    AND exec IS NULL
-    ORDER BY data_prog, ovnota`;
-
-    const normalize = (str: string) => str.replace(/\s+/g, ' ').trim();
-
-    const queryStrings = prismaMock.$queryRaw.mock.calls[0][0].strings;
-
-    const allPartsPresent = queryStrings.every((part) =>
-      normalize(expectedQuery).includes(normalize(part)),
-    );
-
-    expect(result).toEqual({ works: mockQueryResponse, totals: mockCount[0] });
-    expect(prismaMock.$queryRaw.mock.calls[0][0].values[0]).toEqual(
-      expectedDate,
-    );
-    expect(allPartsPresent).toBeTruthy();
-    expect(prisma.$queryRaw).toHaveBeenCalledTimes(2);
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   it('should return the correct values with filters', async () => {
@@ -133,59 +80,15 @@ describe('GetScheduleValues', () => {
       page: 1,
     };
 
-    prismaMock.$queryRaw
-      .mockResolvedValueOnce(mockQueryResponse)
-      .mockResolvedValueOnce(mockCount);
+    mockRepository.getValues.mockResolvedValueOnce({
+      works: mockQueryResponse,
+      resultTotals: mockCount,
+    });
 
     const result = await service.getValues(filters);
 
-    const month = parseInt(filters.data?.split('/')[0]);
-    const year = parseInt(filters.data?.split('/')[1]);
-
-    const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, entrada, entrada + prazo AS prazo_fim, tipo_obra, qtde_planejada,
-    mo_planejada, turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec,
-    num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito
-    FROM construcao_sp.obras
-    INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
-    INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
-    INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
-    INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm
-    INNER JOIN construcao_sp.regionais ON regionais.id = municipios.id_regional
-    INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo
-    INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
-    INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
-    WHERE 1=1 
-    AND EXTRACT(MONTH FROM data_prog) = 
-    AND EXTRACT(YEAR FROM data_prog) = 
-    AND municipios.id_regional IN ()
-    AND municipios.id IN ()
-    AND id_tipo IN ()
-    AND id_turma IN ()
-    AND tipos.id_grupo IN ()
-    AND exec <> 0
-    ORDER BY data_prog, ovnota
-    LIMIT 200 OFFSET`;
-
-    const normalize = (str: string) => str.replace(/\s+/g, ' ').trim();
-
-    const queryStrings = prismaMock.$queryRaw.mock.calls[0][0].strings;
-    const allPartsPresent = normalize(expectedQuery).includes(
-      normalize(queryStrings.join('')),
-    );
-
     expect(result).toEqual({ works: mockQueryResponse, totals: mockCount[0] });
-    expect(prismaMock.$queryRaw.mock.calls[0][0].values).toStrictEqual([
-      month,
-      year,
-      1,
-      1,
-      1,
-      1,
-      1,
-      200,
-    ]);
-    expect(allPartsPresent).toBeTruthy();
-    expect(prisma.$queryRaw).toHaveBeenCalledTimes(2);
+    expect(mockRepository.getValues).toHaveBeenCalledTimes(1);
   });
 
   it('should correctly format the data if no data is returned from the database query', async () => {
@@ -201,14 +104,17 @@ describe('GetScheduleValues', () => {
       page: undefined,
     };
 
-    prismaMock.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([
-      {
-        total_obras: 0,
-        total_mo_planejada: null,
-        total_mo_exec: null,
-        total_qtde_planejada: null,
-      },
-    ]);
+    mockRepository.getValues.mockResolvedValueOnce({
+      works: [],
+      resultTotals: [
+        {
+          total_obras: 0,
+          total_mo_planejada: null,
+          total_mo_exec: null,
+          total_qtde_planejada: null,
+        },
+      ],
+    });
 
     const result = await service.getValues(filters);
 

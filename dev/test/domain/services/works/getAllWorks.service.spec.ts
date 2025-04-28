@@ -5,10 +5,10 @@ import { GetAllWorksDTO } from 'src/interface/dtos/worksDto';
 
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Test } from '@nestjs/testing';
+import { GET_ALL_WORKS_REPOSITORY } from 'src/domain/repositories/works/IGetAllWorksRepository';
 
 describe('GetAllWorksService', () => {
   let getAllWorksService: GetAllWorksService;
-  let prismaService: PrismaService;
   let cacheManager: Cache;
 
   const mockCacheManager = {
@@ -16,8 +16,8 @@ describe('GetAllWorksService', () => {
     set: jest.fn(),
   };
 
-  const mockPrismaService = {
-    $queryRaw: jest.fn(),
+  const mockRepository = {
+    getAllWorks: jest.fn(),
   };
 
   const mockWorks = [
@@ -59,7 +59,7 @@ describe('GetAllWorksService', () => {
     },
   ];
 
-  const mockQuery = [
+  const mockTotals = [
     {
       total_obras: 1,
     },
@@ -69,13 +69,12 @@ describe('GetAllWorksService', () => {
     const module = await Test.createTestingModule({
       providers: [
         GetAllWorksService,
-        { provide: PrismaService, useValue: mockPrismaService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
+        { provide: GET_ALL_WORKS_REPOSITORY, useValue: mockRepository },
       ],
     }).compile();
 
     getAllWorksService = module.get<GetAllWorksService>(GetAllWorksService);
-    prismaService = module.get<PrismaService>(PrismaService);
     cacheManager = module.get<Cache>(CACHE_MANAGER);
   });
 
@@ -97,7 +96,7 @@ describe('GetAllWorksService', () => {
     const cacheKey = `works-${JSON.stringify(filters)}`;
 
     mockCacheManager.get.mockResolvedValue({
-      totalRecords: mockQuery[0].total_obras,
+      totalRecords: mockTotals[0].total_obras,
       works: mockWorks,
     });
 
@@ -105,7 +104,7 @@ describe('GetAllWorksService', () => {
 
     expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
     expect(result).toEqual({ works: mockWorks, totalRecords: 1 });
-    expect(prismaService.$queryRaw).not.toHaveBeenCalled();
+    expect(mockRepository.getAllWorks).not.toHaveBeenCalled();
   });
 
   it('should query database and cache the result if not in cache', async () => {
@@ -122,13 +121,15 @@ describe('GetAllWorksService', () => {
     const cacheKey = `works-${JSON.stringify(filters)}`;
 
     mockCacheManager.get.mockResolvedValue(null);
-    mockPrismaService.$queryRaw.mockResolvedValueOnce(mockWorks);
-    mockPrismaService.$queryRaw.mockResolvedValueOnce(mockQuery);
+    mockRepository.getAllWorks.mockResolvedValueOnce({
+      works: mockWorks,
+      total: mockTotals,
+    });
 
     const result = await getAllWorksService.getAllWorks(filters);
 
     expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
-    expect(prismaService.$queryRaw).toHaveBeenCalled();
+    expect(mockRepository.getAllWorks).toHaveBeenCalled();
     expect(cacheManager.set).toHaveBeenCalledWith(
       cacheKey,
       { works: mockWorks, totalRecords: 1 },
@@ -151,13 +152,15 @@ describe('GetAllWorksService', () => {
     const cacheKey = `works-${JSON.stringify(filters)}`;
 
     mockCacheManager.get.mockResolvedValue(null);
-    mockPrismaService.$queryRaw.mockResolvedValueOnce(mockWorks);
-    mockPrismaService.$queryRaw.mockResolvedValueOnce(mockQuery);
+    mockRepository.getAllWorks.mockResolvedValueOnce({
+      works: mockWorks,
+      total: mockTotals,
+    });
 
     const result = await getAllWorksService.getAllWorks(filters);
 
     expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
-    expect(prismaService.$queryRaw).toHaveBeenCalled();
+    expect(mockRepository.getAllWorks).toHaveBeenCalled();
     expect(cacheManager.set).toHaveBeenCalledWith(
       cacheKey,
       { works: mockWorks, totalRecords: 1 },
