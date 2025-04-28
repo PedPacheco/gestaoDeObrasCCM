@@ -14,6 +14,7 @@ import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import ScheduleForDayFilters from "./ScheduleForDayFilters";
+import { FormatCurrency } from "@/utils/formatValue";
 
 const ErrorModal = dynamic(() => import("@/components/common/ErrorModal"), {
   ssr: false,
@@ -135,6 +136,17 @@ export default function MainSchduleForDay({
             .slice(24)
             .map(([column, value]) => {
               const item = data.totals;
+              let valueFormatted = item[column];
+
+              if (
+                [
+                  "total_mo_planejada",
+                  "total_mo_exec",
+                  "total_mo_suspensa",
+                ].includes(column)
+              ) {
+                valueFormatted = FormatCurrency(item[column]);
+              }
 
               return (
                 <div
@@ -146,11 +158,11 @@ export default function MainSchduleForDay({
                   </span>
                   <div className="p-2 border border-solid flex justify-center items-center">
                     <p>
-                      {item
-                        ? Number(item[column].toFixed(0)).toLocaleString(
+                      {typeof valueFormatted === "number"
+                        ? Number(valueFormatted.toFixed(0)).toLocaleString(
                             "pt-br"
                           )
-                        : 0}
+                        : valueFormatted}
                     </p>
                   </div>
                 </div>

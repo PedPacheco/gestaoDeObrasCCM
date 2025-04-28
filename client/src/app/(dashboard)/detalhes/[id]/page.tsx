@@ -3,6 +3,7 @@ import TabPanel from "@/components/details/TabPanel";
 import { fetchData } from "@/actions/fetchData.action";
 import dayjs from "dayjs";
 import { cookies } from "next/headers";
+import { formatPercentage } from "@/utils/formatValue";
 
 interface DataResponse {
   data: Record<string, any>;
@@ -33,26 +34,35 @@ export default async function Details({
     data.data_empreitamento &&
     dayjs(data.data_empreitamento).format("DD/MM/YYYY");
 
+  const backgroundColor =
+    data.grupo !== 2
+      ? ""
+      : data.ano_plan === dayjs().year()
+      ? "bg-green-600"
+      : "bg-red-600 text-zinc-100";
+
   return (
     <div className="flex flex-col items-center w-full h-full">
       <div className="w-full h-full mt-6 flex flex-col">
-        <p className="lg:text-xl xl:text-2xl mb-4 font-semibold ml-2 md:ml-8">
+        <p className="text-2xl mb-4 font-extrabold ml-2 md:ml-8">
           Informações gerais
         </p>
         <div className="grid md:grid-cols-2 xl:grid-cols-4 md:px-4 w-full">
           <div className="flex flex-col items-start md:items-center col-start-2 col-end-3 md:col-start-auto md:col-end-auto">
             <DataItem label="Ov/Nota" value={data.ovnota} />
+            <DataItem label="Tipo" value={data.tipos} />
+            <DataItem label="Municipio" value={data.municipios} />
+            <DataItem label="Referência" value={data.referencia} />
+            <DataItem label="Circuitos" value={data.circuitos} />
+            <DataItem label="Conjunto" value={data.conjunto} />
+          </div>
+          <div className="flex flex-col items-start md:items-center col-start-2 col-end-3 md:col-start-auto md:col-end-auto">
             <DataItem label="Pep" value={data.pep} status={data.status_pep} />
             <DataItem
               label="Diagrama"
               value={data.diagrama}
               status={data.status_diagrama}
             />
-            <DataItem label="Status Sap" value={data.status_ov_sap} />
-            <DataItem label="Status" value={data.status} />
-            <DataItem label="Tipo ADS" value={data.tipo_ads} />
-          </div>
-          <div className="flex flex-col items-start md:items-center col-start-2 col-end-3 md:col-start-auto md:col-end-auto">
             <DataItem
               label="Ordem DCI"
               value={data.ordem_dci}
@@ -73,8 +83,6 @@ export default async function Details({
               value={data.ordem_dcim}
               status={data.status_180}
             />
-            <DataItem label="Tipo" value={data.tipos} />
-            <DataItem label="Ano planejamento" value={data.ano_plan} />
           </div>
           <div className="flex flex-col items-start md:items-center col-start-2 col-end-3 md:col-start-auto md:col-end-auto">
             <DataItem label="Entrada" value={entrada.format("DD/MM/YYYY")} />
@@ -83,22 +91,30 @@ export default async function Details({
               label="Data prazo final"
               value={prazoFinal.format("DD/MM/YYYY")}
             />
-            <DataItem label="Data conclusão" value={data_conclusao} />
             <DataItem label="Data empreitamento" value={dataEmpreitamento} />
-            <DataItem label="Executado" value={data.executado} />
+            <DataItem label="Tipo ADS" value={data.tipo_ads} />
+
+            <DataItem
+              label="Ano planejamento"
+              value={data.ano_plan}
+              background={backgroundColor}
+            />
           </div>
           <div className="flex flex-col items-start md:items-center col-start-2 col-end-3 md:col-start-auto md:col-end-auto">
             <DataItem label="Parceira" value={data.turmas} />
-            <DataItem label="Municipio" value={data.municipios} />
-            <DataItem label="Referência" value={data.referencia} />
-            <DataItem label="Circuitos" value={data.circuitos} />
-            <DataItem label="Conjunto" value={data.conjunto} />
+            <DataItem label="Status Sap" value={data.status_ov_sap} />
+            <DataItem label="Status" value={data.status} />
             <DataItem label="Empreendimento" value={data.empreendimento} />
+            <DataItem
+              label="Executado"
+              value={formatPercentage(data.executado)}
+            />
+            <DataItem label="Data conclusão" value={data_conclusao} />
           </div>
         </div>
 
-        <div className="flex justify-between items-start mb-3 w-[calc(100%-16px)] self-center border border-zinc-700 border-solid px-2 rounded-md">
-          <p className="h-full xl:text-lg font-light min-w-28 text-center border-r border-zinc-700 border-solid flex items-center justify-start">
+        <div className="w-[95%] flex justify-between items-start mb-3 self-center border border-zinc-700 border-solid px-2 rounded-md">
+          <p className="h-full xl:text-lg font-semibold min-w-28 text-center border-r border-zinc-700 border-solid flex items-center justify-start">
             Observação
           </p>
           <p className="w-full xl:text-lg font-medium text-start pl-5 py-2">

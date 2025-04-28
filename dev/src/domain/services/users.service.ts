@@ -3,7 +3,6 @@ import {
   USER_REPOSITORY,
 } from 'src/domain/repositories/IUserRepository';
 import { genSalt, hash } from 'bcrypt';
-import { userInterface } from 'src/interface/types/userInterface';
 
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -47,6 +46,7 @@ export class UsersService {
 
       return user;
     } catch (error: any) {
+      console.log(error);
       throw new UnauthorizedException('Token inválido ou expirado');
     }
   }

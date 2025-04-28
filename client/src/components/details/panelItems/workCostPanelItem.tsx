@@ -1,52 +1,67 @@
+import { FormatCurrency } from "@/utils/formatValue";
 import DataItem from "../dataItem";
 
 export default function WorkCostPanelItem({ data }: Record<string, any>) {
   return (
-    <div className="flex flex-col h-[320px] w-full py-8 lg:flex-row xl:justify-around">
-      <div className="flex flex-col items-center h-40">
+    <div className="flex flex-col h-[320px] w-full py-8 xl:flex-row xl:justify-around">
+      <div className="flex flex-col items-center">
         <p className="text-lg mb-4 font-semibold text-center w-full">
-          Valores mão de obra
+          Valores de CAPEX
         </p>
-        <DataItem label="MO plan" value={data.mo_planejada?.toFixed(2)} />
-        <DataItem label="MO final" value={data.mo_final?.toFixed(2)} />
-      </div>
-      <div className="flex flex-col items-center h-40">
-        <p className="text-lg mb-4 font-semibold text-center w-full">
-          Valores de quantidade
-        </p>
-        <DataItem label="MO plan" value={data.qtde_planejada?.toFixed(2)} />
-        <DataItem label="MO Pend" value={data.qtde_pend?.toFixed(2)} />
-      </div>
-      <div className="flex flex-col items-center h-40">
-        <p className="text-lg mb-4 font-semibold text-center w-full">
-          Valores Capex
-        </p>
-        <div className="flex flex-col justify-between items-center w-full lg:flex-row">
+        <div className="flex flex-col md:flex-row items-center justify-center w-full">
           <div className="flex flex-col mr-4">
-            <p className="mb-2 text-center">PLAN</p>
+            <p className="mb-2 text-end mr-14 font-semibold">Planejado</p>
             <DataItem
-              label="Capex MAT"
-              value={data.capex_mat_plan?.toFixed(2)}
+              label="Material"
+              value={FormatCurrency(data.capex_mat_plan)}
             />
-            <DataItem label="Capex MO" value={data.capex_mo_plan?.toFixed(2)} />
             <DataItem
-              label="Capex Total"
-              value={data.capex_mo_plan?.toFixed(2)}
+              label="Serviço"
+              value={FormatCurrency(data.capex_mo_plan)}
+            />
+            <DataItem
+              label="CAPEX Total"
+              value={FormatCurrency(data.capex_mo_plan)}
             />
           </div>
           <div className="flex flex-col">
-            <p className="mb-2 text-center">PEND</p>
-            <DataItem
-              label="Capex MAT"
-              value={data.capex_mat_pend?.toFixed(2)}
-            />
-            <DataItem label="Capex MO" value={data.capex_mo_pend?.toFixed(2)} />
-            <DataItem
-              label="Capex Total"
-              value={data.capex_mo_pend?.toFixed(2)}
-            />
+            <p className="mb-2 text-center font-semibold">Pendente</p>
+            <div className="flex items-center justify-between mb-3 h-14 border border-zinc-700 border-solid px-2 rounded-md">
+              <p className="flex-1 font-medium min-w-32 px-2 lg:min-w-36 text-center">
+                {FormatCurrency(data.capex_mat_pend)}
+              </p>
+            </div>
+            <div className="flex items-center justify-between mb-3 h-14 border border-zinc-700 border-solid px-2 rounded-md">
+              <p className="flex-1 font-medium min-w-32 px-2 lg:min-w-36 text-center">
+                {FormatCurrency(data.capex_mo_pend)}
+              </p>
+            </div>
+            <div className="flex items-center justify-between mb-3 h-14 border border-zinc-700 border-solid px-2 rounded-md">
+              <p className="flex-1 font-medium min-w-32 px-2 lg:min-w-36 text-center">
+                {FormatCurrency(data.capex_mo_pend)}
+              </p>
+            </div>
           </div>
         </div>
+      </div>
+      <div className="flex flex-col items-center h-40">
+        <p className="text-lg mb-4 font-semibold text-center w-full">
+          Valores de Mão de obra
+        </p>
+        <DataItem label="Planejado" value={FormatCurrency(data.mo_planejada)} />
+        <DataItem
+          label="Final"
+          value={
+            data.mo_final !== undefined ? FormatCurrency(data.mo_final) : ""
+          }
+        />
+      </div>
+      <div className="flex flex-col items-center h-40">
+        <p className="text-lg mb-4 font-semibold text-center w-full">
+          Quantidade física
+        </p>
+        <DataItem label="Planejado" value={data.qtde_planejada} />
+        <DataItem label="Pendente" value={data.qtde_pend} />
       </div>
     </div>
   );

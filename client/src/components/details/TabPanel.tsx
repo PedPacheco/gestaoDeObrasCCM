@@ -22,7 +22,7 @@ function CustomTabPanel(props: TabPanelProps) {
       id={`simple-tabpanel-${index}`}
       aria-labelledby={`simple-tab-${index}`}
       {...other}
-      className="overflow-y-auto h-full"
+      className="overflow-y-auto flex-1"
     >
       {value === index && children}
     </div>
@@ -44,8 +44,8 @@ export default function TabPanel({ props }: Record<string, any>) {
   }, [props]);
 
   return (
-    <div className="w-fullflex justify-center items-start ">
-      <div className="w-[95%] mx-auto mb-20 min-h-[530px] lg:min-h-0 lg:max-h-[620px] shadow-lg">
+    <div className="w-full flex justify-center items-start">
+      <div className="w-[95%] mx-auto mb-20 min-h-[530px] lg:min-h-0 lg:max-h-[620px] shadow-lg flex flex-col">
         <div className="border-b border-solid border-zinc-300">
           <Tabs
             value={value}
@@ -61,20 +61,19 @@ export default function TabPanel({ props }: Record<string, any>) {
           </Tabs>
         </div>
 
-        <Suspense fallback={<p>carregando informações....</p>}>
-          <CustomTabPanel value={value} index={0}>
-            <WorkCostPanelItem data={data} />
-          </CustomTabPanel>
-          {/* <CustomTabPanel value={value} index={1}>
-            <AdditionalInformationPanelItem data={data} />
-          </CustomTabPanel> */}
-          <CustomTabPanel value={value} index={1}>
-            <SchedulePanelItem data={data} />
-          </CustomTabPanel>
-          <CustomTabPanel value={value} index={2}>
-            Item four
-          </CustomTabPanel>
-        </Suspense>
+        <div className="flex flex-1">
+          <Suspense fallback={<p>carregando informações....</p>}>
+            <CustomTabPanel value={value} index={0}>
+              <WorkCostPanelItem data={data} />
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={1}>
+              <SchedulePanelItem data={data} />
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={2}>
+              Item four
+            </CustomTabPanel>
+          </Suspense>
+        </div>
       </div>
     </div>
   );
