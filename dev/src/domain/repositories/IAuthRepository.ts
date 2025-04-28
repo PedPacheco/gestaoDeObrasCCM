@@ -1,7 +1,7 @@
 import { User } from '../entities/user.entity';
 
-export abstract class IAuthRepository {
-  abstract register({
+export interface IAuthRepository {
+  register({
     username,
     senha,
     permissao,

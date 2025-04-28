@@ -38,6 +38,11 @@ export interface totalsGetScheduleValues {
   total_qtde_planejada: number;
 }
 
+export interface GetScheduleValuesResponseRepository {
+  works: GetScheduleValuesInterface[];
+  resultTotals: totalsGetScheduleValues[];
+}
+
 export interface GetScheduleValuesResponse {
   works: GetScheduleValuesInterface[];
   totals: totalsGetScheduleValues;

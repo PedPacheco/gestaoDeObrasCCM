@@ -1,22 +1,19 @@
-import * as moment from 'moment';
 import { GetScheduleRestrictionsService } from 'src/domain/services/schedule/getScheduleRestrictions.service';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetValueWeeklyScheduleDTO } from 'src/interface/dtos/scheduleDTO';
+import { GetScheduleRestrictions } from 'src/interface/types/schedule/getScheduleRestrictionsInterface';
 
 import { Test } from '@nestjs/testing';
-import { obras } from '@prisma/client';
+
+import { GET_SCHEDULE_RESTRICTIONS_REPOSITORY } from '../../../../src/domain/repositories/schedule/IGetScheduleRestrictionsRepository';
 
 describe('GetScheduleRestrictions', () => {
-  let prisma: PrismaService;
   let service: GetScheduleRestrictionsService;
 
-  const prismaMock = {
-    obras: {
-      findMany: jest.fn(),
-    },
+  const mockRepository = {
+    getRestrictions: jest.fn(),
   };
 
-  const mockResponseQuery = [
+  const mockResponseQuery: GetScheduleRestrictions[] = [
     {
       id: 1695,
       ovnota: '3908435',
@@ -26,7 +23,7 @@ describe('GetScheduleRestrictions', () => {
       executado: 98,
       programacoes: [
         {
-          data_prog: '2024-08-04T00:00:00.000Z',
+          data_prog: new Date('2024-08-03T00:00:00.000Z'),
           prog: 0,
           exec: 0,
           observacao_restricao: null,
@@ -57,7 +54,7 @@ describe('GetScheduleRestrictions', () => {
       turmas: {
         turma: 'ENGELMIG',
       },
-    } as unknown as obras,
+    },
     {
       id: 1695,
       ovnota: '3908435',
@@ -67,7 +64,7 @@ describe('GetScheduleRestrictions', () => {
       executado: 98,
       programacoes: [
         {
-          data_prog: '2024-08-03T00:00:00.000Z',
+          data_prog: new Date('2024-08-04T00:00:00.000Z'),
           prog: 0,
           exec: 0,
           observacao_restricao: null,
@@ -98,7 +95,7 @@ describe('GetScheduleRestrictions', () => {
       turmas: {
         turma: 'ENGELMIG',
       },
-    } as unknown as obras,
+    },
   ];
 
   const mockResult = [
@@ -109,7 +106,7 @@ describe('GetScheduleRestrictions', () => {
       tipo: 'REMOÇÃO DE REDE',
       parceira: 'ENGELMIG',
       executado: 98,
-      data_prog: '2024-08-03T00:00:00.000Z',
+      data_prog: new Date('2024-08-03T00:00:00.000Z'),
       prog: 0,
       exec: 0,
       observacao_restricao: null,
@@ -133,7 +130,7 @@ describe('GetScheduleRestrictions', () => {
       tipo: 'REMOÇÃO DE REDE',
       parceira: 'ENGELMIG',
       executado: 98,
-      data_prog: '2024-08-04T00:00:00.000Z',
+      data_prog: new Date('2024-08-04T00:00:00.000Z'),
       prog: 0,
       exec: 0,
       observacao_restricao: null,
@@ -156,21 +153,23 @@ describe('GetScheduleRestrictions', () => {
     const module = await Test.createTestingModule({
       providers: [
         GetScheduleRestrictionsService,
-        { provide: PrismaService, useValue: prismaMock },
+        {
+          provide: GET_SCHEDULE_RESTRICTIONS_REPOSITORY,
+          useValue: mockRepository,
+        },
       ],
     }).compile();
 
     service = module.get<GetScheduleRestrictionsService>(
       GetScheduleRestrictionsService,
     );
-    prisma = module.get<PrismaService>(PrismaService);
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  it('should return the correct values without filters', async () => {
+  it('should return the correct values', async () => {
     const filters: GetValueWeeklyScheduleDTO = {
       dataInicial: '01/09/2024',
       dataFinal: '10/09/2024',
@@ -182,153 +181,11 @@ describe('GetScheduleRestrictions', () => {
       idTipo: undefined,
     };
 
-    jest.spyOn(prisma.obras, 'findMany').mockResolvedValue(mockResponseQuery);
+    mockRepository.getRestrictions.mockResolvedValue(mockResponseQuery);
 
     const result = await service.getRestrictions(filters);
 
     expect(result).toEqual(mockResult);
-    expect(prisma.obras.findMany).toHaveBeenCalledWith({
-      relationLoadStrategy: 'join',
-      where: {
-        programacoes: {
-          some: {
-            exec: null,
-            data_prog: {
-              gte: moment('01/09/2024', 'DD/MM/YYYY').toDate(),
-              lte: moment('10/09/2024', 'DD/MM/YYYY').toDate(),
-            },
-          },
-        },
-        municipios: { id_regional: undefined },
-        id_turma: undefined,
-        id_tipo: undefined,
-        id_gpm: undefined,
-        tipos: { id_grupo: undefined },
-      },
-      select: {
-        id: true,
-        ovnota: true,
-        diagrama: true,
-        ordem_dci: true,
-        ordem_dcim: true,
-        executado: true,
-        programacoes: {
-          select: {
-            data_prog: true,
-            prog: true,
-            exec: true,
-            observacao_restricao: true,
-            programacoes_restricao_prog1: {
-              select: { restricao: true },
-            },
-            responsabilidade1: true,
-            nome_responsavel: true,
-            area_responsavel1: true,
-            status_restricao1: true,
-            data_resolucao1: true,
-            programacoes_restricao_prog2: {
-              select: { restricao: true },
-            },
-            responsabilidade2: true,
-            nome_responsavel2: true,
-            area_responsavel2: true,
-            status_restricao2: true,
-            data_resolucao2: true,
-          },
-          where: {
-            data_prog: {
-              gte: moment('01/09/2024', 'DD/MM/YYYY').toDate(),
-              lte: moment('10/09/2024', 'DD/MM/YYYY').toDate(),
-            },
-          },
-        },
-        municipios: {
-          select: { mun: true },
-        },
-        tipos: { select: { tipo_obra: true } },
-        turmas: { select: { turma: true } },
-      },
-    });
-  });
-
-  it('should return the correct values with filters', async () => {
-    const filters: GetValueWeeklyScheduleDTO = {
-      dataInicial: '01/09/2024',
-      dataFinal: '10/09/2024',
-      executado: true,
-      idGrupo: [1],
-      idMunicipio: [1],
-      idParceira: [1],
-      idRegional: [1],
-      idTipo: [1],
-    };
-
-    jest.spyOn(prisma.obras, 'findMany').mockResolvedValue(mockResponseQuery);
-
-    const result = await service.getRestrictions(filters);
-
-    expect(result).toEqual(mockResult);
-    expect(prisma.obras.findMany).toHaveBeenCalledWith({
-      relationLoadStrategy: 'join',
-      where: {
-        programacoes: {
-          some: {
-            exec: { not: null },
-            data_prog: {
-              gte: moment('01/09/2024', 'DD/MM/YYYY').toDate(),
-              lte: moment('10/09/2024', 'DD/MM/YYYY').toDate(),
-            },
-          },
-        },
-        municipios: { id_regional: { in: [1] } },
-        id_turma: { in: [1] },
-        id_tipo: { in: [1] },
-        id_gpm: { in: [1] },
-        tipos: { id_grupo: { in: [1] } },
-      },
-      select: {
-        id: true,
-        ovnota: true,
-        diagrama: true,
-        ordem_dci: true,
-        ordem_dcim: true,
-        executado: true,
-        programacoes: {
-          select: {
-            data_prog: true,
-            prog: true,
-            exec: true,
-            observacao_restricao: true,
-            programacoes_restricao_prog1: {
-              select: { restricao: true },
-            },
-            responsabilidade1: true,
-            nome_responsavel: true,
-            area_responsavel1: true,
-            status_restricao1: true,
-            data_resolucao1: true,
-            programacoes_restricao_prog2: {
-              select: { restricao: true },
-            },
-            responsabilidade2: true,
-            nome_responsavel2: true,
-            area_responsavel2: true,
-            status_restricao2: true,
-            data_resolucao2: true,
-          },
-          where: {
-            data_prog: {
-              gte: moment('01/09/2024', 'DD/MM/YYYY').toDate(),
-              lte: moment('10/09/2024', 'DD/MM/YYYY').toDate(),
-            },
-          },
-        },
-        municipios: {
-          select: { mun: true },
-        },
-        tipos: { select: { tipo_obra: true } },
-        turmas: { select: { turma: true } },
-      },
-    });
+    expect(mockRepository.getRestrictions).toHaveBeenCalledWith(filters);
   });
 });

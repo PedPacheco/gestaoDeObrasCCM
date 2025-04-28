@@ -1,19 +1,20 @@
 import { FiltersService } from 'src/domain/services/filters.service';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Test } from '@nestjs/testing';
+import { FILTERS_REPOSITORY } from 'src/domain/repositories/IFiltersRepository';
 
 describe('FiltersService', () => {
   let cacheManager: Cache;
   let filtersService: FiltersService;
-  let prismaService: PrismaService;
-
-  const mockPrismaFindMany = jest.fn();
 
   const mockCacheManager = {
     get: jest.fn(),
     set: jest.fn(),
+  };
+
+  const mockRepository = {
+    getData: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -24,27 +25,12 @@ describe('FiltersService', () => {
           provide: CACHE_MANAGER,
           useValue: mockCacheManager,
         },
-        {
-          provide: PrismaService,
-          useValue: {
-            regionais: { findMany: mockPrismaFindMany },
-            turmas: { findMany: mockPrismaFindMany },
-            tipos: { findMany: mockPrismaFindMany },
-            municipios: { findMany: mockPrismaFindMany },
-            grupos: { findMany: mockPrismaFindMany },
-            circuitos: { findMany: mockPrismaFindMany },
-            status: { findMany: mockPrismaFindMany },
-            conjuntos: { findMany: mockPrismaFindMany },
-            obras: { findMany: mockPrismaFindMany },
-            empreendimento: { findMany: mockPrismaFindMany },
-          },
-        },
+        { provide: FILTERS_REPOSITORY, useValue: mockRepository },
       ],
     }).compile();
 
     filtersService = module.get<FiltersService>(FiltersService);
     cacheManager = module.get<Cache>(CACHE_MANAGER);
-    prismaService = module.get<PrismaService>(PrismaService);
   });
 
   afterEach(() => {
@@ -144,13 +130,13 @@ describe('FiltersService', () => {
 
       it(`should fetch ${name} data from database if not cached`, async () => {
         jest.spyOn(cacheManager, 'get').mockResolvedValue(null);
-        jest.spyOn(prismaService[table], 'findMany').mockResolvedValue(data);
+        jest.spyOn(mockRepository, 'getData').mockResolvedValue(data);
         jest.spyOn(cacheManager, 'set').mockResolvedValue(null);
 
         const result = await filtersService.getFilters(dto);
 
         expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
-        expect(prismaService[table].findMany).toHaveBeenCalledTimes(1);
+        expect(mockRepository.getData).toHaveBeenCalledTimes(1);
         expect(result[name]).toEqual(data);
         expect(cacheManager.set).toHaveBeenCalledWith(cacheKey, data, 120);
       });

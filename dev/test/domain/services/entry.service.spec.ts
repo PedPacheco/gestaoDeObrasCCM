@@ -1,22 +1,20 @@
 import * as moment from 'moment';
+import { ENTRY_REPOSITORY } from 'src/domain/repositories/IEntryRepository';
 import { EntryService } from 'src/domain/services/entry.service';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {
   GetEntryOfWorksByDayDTO,
   GetEntryOfWorksDTO,
 } from 'src/interface/dtos/entryDto';
 
-import { Test } from '@nestjs/testing';
+import { Test, TestingModule } from '@nestjs/testing';
 import { obras } from '@prisma/client';
 
 describe('EntryService', () => {
   let entryService: EntryService;
-  let prismaService: PrismaService;
 
-  const mockPrismaService = {
-    obras: {
-      findMany: jest.fn(),
-    },
+  const mockRepository = {
+    getValuesFromEntry: jest.fn(),
+    getEntryOfWorksByDay: jest.fn(),
   };
 
   const mockObras = (mo_final: number | null, mo_planejada: number) => [
@@ -35,15 +33,14 @@ describe('EntryService', () => {
   ];
 
   beforeEach(async () => {
-    const moduleRef = await Test.createTestingModule({
+    const module: TestingModule = await Test.createTestingModule({
       providers: [
         EntryService,
-        { provide: PrismaService, useValue: mockPrismaService },
+        { provide: ENTRY_REPOSITORY, useValue: mockRepository },
       ],
     }).compile();
 
-    entryService = moduleRef.get<EntryService>(EntryService);
-    prismaService = moduleRef.get<PrismaService>(PrismaService);
+    entryService = module.get<EntryService>(EntryService);
   });
 
   it('should be defined', () => {
@@ -62,16 +59,11 @@ describe('EntryService', () => {
         ano: 2024,
       };
 
-      jest
-        .spyOn(prismaService.obras, 'findMany')
-        .mockResolvedValue(mockObras(100, 80));
+      mockRepository.getValuesFromEntry.mockResolvedValue(mockObras(100, 80));
+
       const result = await entryService.getValuesFromEntry(filters);
 
-      expect(prismaService.obras.findMany).toHaveBeenCalledWith({
-        where: expect.anything(),
-        select: expect.anything(),
-        orderBy: { tipos: { grupos: { grupo: 'asc' } } },
-      });
+      expect(mockRepository.getValuesFromEntry).toHaveBeenCalledWith(filters);
 
       expect(result).toEqual([
         {
@@ -118,9 +110,8 @@ describe('EntryService', () => {
         ano: 2024,
       };
 
-      jest
-        .spyOn(prismaService.obras, 'findMany')
-        .mockResolvedValue(mockObras(null, 100));
+      mockRepository.getValuesFromEntry.mockResolvedValue(mockObras(null, 100));
+
       const result = await entryService.getValuesFromEntry(filters);
 
       expect(result).toEqual([
@@ -195,17 +186,16 @@ describe('EntryService', () => {
         prazo_fim: moment('03/12/2024', 'DD/MM/YYYY', true).toDate(),
       };
 
-      jest
-        .spyOn(prismaService.obras, 'findMany')
-        .mockResolvedValue(mockObrasByDay);
+      const dateRange = { equals: filters.data };
+
+      mockRepository.getEntryOfWorksByDay.mockResolvedValue(mockObrasByDay);
 
       const result = await entryService.getEntryOfWorksByDay(filters);
 
-      expect(prismaService.obras.findMany).toHaveBeenCalledWith({
-        where: expect.anything(),
-        select: expect.anything(),
-        orderBy: { entrada: 'asc' },
-      });
+      expect(mockRepository.getEntryOfWorksByDay).toHaveBeenCalledWith(
+        filters,
+        dateRange,
+      );
 
       expect(result).toEqual({
         works: [response],
@@ -248,22 +238,24 @@ describe('EntryService', () => {
         } as unknown as obras,
       ];
 
-      jest
-        .spyOn(prismaService.obras, 'findMany')
-        .mockResolvedValue(mockObrasByMonth);
-
       const response = {
         ...mockObrasByMonth[0],
         prazo_fim: moment('03/12/2024', 'DD/MM/YYYY', true).toDate(),
       };
 
+      const dateRange = {
+        gte: moment(filters.data).startOf('month').toDate(),
+        lte: moment(filters.data).endOf('month').startOf('day').toDate(),
+      };
+
+      mockRepository.getEntryOfWorksByDay.mockResolvedValue(mockObrasByMonth);
+
       const result = await entryService.getEntryOfWorksByDay(filters);
 
-      expect(prismaService.obras.findMany).toHaveBeenCalledWith({
-        where: expect.anything(),
-        select: expect.anything(),
-        orderBy: { entrada: 'asc' },
-      });
+      expect(mockRepository.getEntryOfWorksByDay).toHaveBeenCalledWith(
+        filters,
+        dateRange,
+      );
 
       expect(result).toEqual({
         works: [response],

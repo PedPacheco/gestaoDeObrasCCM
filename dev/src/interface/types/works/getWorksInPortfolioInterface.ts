@@ -47,7 +47,12 @@ export interface totalsWorksInPortfolio {
   total_qtde_pend: number;
 }
 
-export interface worksInPortfolioResponse {
+export interface worksInPortfolioResponseRepository {
+  works: worksInPortfolioInterface[];
+  totals: totalsWorksInPortfolio[];
+}
+
+export interface worksInPortfolioResponseService {
   works: worksInPortfolioInterface[];
   totals: totalsWorksInPortfolio;
 }

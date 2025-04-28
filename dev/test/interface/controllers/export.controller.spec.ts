@@ -6,8 +6,8 @@ import { GetScheduleValuesService } from 'src/domain/services/schedule/getSchedu
 import { GetCompletedWorksService } from 'src/domain/services/works/getCompletedWorks.service';
 import { GetWorksInPortfolioService } from 'src/domain/services/works/getWorksInPortfolio.service';
 import { ExportController } from 'src/interface/controllers/export.controller';
-import { GetScheduleValuesResponse } from 'src/interface/types/getScheduleValuesInterface';
-import { worksInPortfolioResponse } from 'src/interface/types/getWorksInPortfolioInterface';
+import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
+import { worksInPortfolioResponseService } from 'src/interface/types/works/getWorksInPortfolioInterface';
 
 import { Test } from '@nestjs/testing';
 
@@ -20,7 +20,7 @@ describe('ExportController', () => {
   let getCompletedWorksService: GetCompletedWorksService;
   let exportCompletedWorksService: ExportCompletedWorksService;
 
-  const mockWorksData: worksInPortfolioResponse = {
+  const mockWorksData: worksInPortfolioResponseService = {
     works: [
       {
         ovnota: '123456',

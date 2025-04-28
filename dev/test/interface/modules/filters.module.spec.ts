@@ -10,7 +10,6 @@ describe('FiltersModule', () => {
     module = await Test.createTestingModule({
       imports: [FiltersModule, PrismaModule],
     })
-
       .overrideProvider(UsersService)
       .useValue({})
       .compile();

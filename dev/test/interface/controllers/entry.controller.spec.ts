@@ -34,8 +34,8 @@ describe('EntryController', () => {
     entryService = module.get<EntryService>(EntryService);
   });
 
-  const getEntryDataResponse = [
-    {
+  const mockGetValuesFromEntryResponse = {
+    'BT ZERO': {
       tipo: 'BT ZERO',
       grupo: 'BT ',
       total_entrada: 3141086.667899998,
@@ -65,7 +65,7 @@ describe('EntryController', () => {
       dez_entrada: 0,
       dez_entrada_qtde: 0,
     },
-  ];
+  };
 
   const mockGetEntryByDayResponse = {
     works: [
@@ -120,14 +120,14 @@ describe('EntryController', () => {
 
       jest
         .spyOn(entryService, 'getValuesFromEntry')
-        .mockResolvedValue(getEntryDataResponse);
+        .mockResolvedValue(Object.values(mockGetValuesFromEntryResponse));
 
       const result = await entryController.getEntry(entryDTO);
 
       const expectedResponse = {
         statusCode: HttpStatus.OK,
         message: 'Valores de entrada trazidos com sucesso',
-        data: getEntryDataResponse,
+        data: Object.values(mockGetValuesFromEntryResponse),
       };
 
       expect(entryService.getValuesFromEntry).toHaveBeenCalledWith(entryDTO);

@@ -1,8 +1,8 @@
 import { GoalsDTO } from 'src/interface/dtos/goalsDto';
-import { Goals } from 'src/interface/types/goalsInterface';
+import { goalsInterfaceRepository } from 'src/interface/types/goalsInterface';
 
 export interface IGoalsRepository {
-  getGoals(filters: GoalsDTO): Promise<Goals[]>;
+  getGoals(filters: GoalsDTO): Promise<goalsInterfaceRepository[]>;
 }
 
 export const GOALS_REPOSITORY = Symbol('GoalsRepository');

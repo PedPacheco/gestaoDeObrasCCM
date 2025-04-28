@@ -2,23 +2,14 @@ import { Test } from '@nestjs/testing';
 import { obras, programacoes } from '@prisma/client';
 
 import * as moment from 'moment';
+import { GET_MONTHLY_SUMMARY_REPOSITORY } from 'src/domain/repositories/schedule/IGetMonthlySummaryRepository';
 import { GetMonthlySummaryService } from 'src/domain/services/schedule/getMonthlySummary.service';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
 
 describe('GetMonthlySummaryService', () => {
-  let prisma: PrismaService;
   let service: GetMonthlySummaryService;
 
-  const filtersNotDefined: GetMonthlySummaryDTO = {
-    date: '11/2024',
-    idGrupo: undefined,
-    idParceira: undefined,
-    idRegional: undefined,
-    idTipo: undefined,
-  };
-
-  const filters = {
+  const filters: GetMonthlySummaryDTO = {
     date: '11/2024',
     idGrupo: [1],
     idParceira: [2],
@@ -26,24 +17,19 @@ describe('GetMonthlySummaryService', () => {
     idTipo: [4],
   };
 
-  const prismaMock = {
-    programacoes: {
-      findMany: jest.fn(),
-    },
-    obras: {
-      findMany: jest.fn(),
-    },
+  const mockRepository = {
+    getSummary: jest.fn(),
+    getSecondSummary: jest.fn(),
   };
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
         GetMonthlySummaryService,
-        { provide: PrismaService, useValue: prismaMock },
+        { provide: GET_MONTHLY_SUMMARY_REPOSITORY, useValue: mockRepository },
       ],
     }).compile();
 
-    prisma = module.get<PrismaService>(PrismaService);
     service = module.get<GetMonthlySummaryService>(GetMonthlySummaryService);
   });
 
@@ -69,7 +55,7 @@ describe('GetMonthlySummaryService', () => {
       } as unknown as programacoes,
     ];
 
-    it('should call the method getSummary without filters and format the results correctly', async () => {
+    it('should call the method getSummary and format the results correctly', async () => {
       const mockResponse = [
         {
           dataProg: '01/11/2024',
@@ -87,76 +73,20 @@ describe('GetMonthlySummaryService', () => {
         },
       ];
 
-      const spyPrisma = jest
-        .spyOn(prisma.programacoes, 'findMany')
-        .mockResolvedValue(mockPrismaResponse);
+      mockRepository.getSummary.mockResolvedValue(mockPrismaResponse);
 
-      const result = await service.getSummary(filtersNotDefined);
+      const result = await service.getSummary(filters);
 
       expect(result).toEqual(mockResponse);
-      expect(spyPrisma).toHaveBeenCalledWith({
-        where: {
-          data_prog: {
-            gte: moment.utc('2024-11-01').toDate(),
-            lt: moment.utc('2024-12-01').toDate(),
-          },
-          obras: {
-            tipos: { id_grupo: undefined },
-            municipios: { id_regional: undefined },
-            id_turma: undefined,
-            id_tipo: undefined,
-          },
-        },
-        select: {
-          data_prog: true,
-          prog: true,
-          exec: true,
-          obras: {
-            select: { mo_final: true, mo_planejada: true },
-          },
-        },
-        orderBy: { data_prog: 'asc' },
-      });
+      expect(mockRepository.getSummary).toHaveBeenCalledWith(filters);
     });
 
     it('should return empty array if no data is found', async () => {
-      jest.spyOn(prisma.programacoes, 'findMany').mockResolvedValue([]);
+      mockRepository.getSummary.mockResolvedValue([]);
 
       const result = await service.getSummary(filters);
 
       expect(result).toEqual([]);
-    });
-
-    it('should apply all filters correctly in the Prisma query', async () => {
-      const spyPrisma = jest
-        .spyOn(prisma.programacoes, 'findMany')
-        .mockResolvedValue(mockPrismaResponse);
-
-      await service.getSummary(filters);
-
-      expect(spyPrisma).toHaveBeenCalledWith({
-        where: {
-          data_prog: {
-            gte: moment.utc('2024-11-01').toDate(),
-            lt: moment.utc('2024-12-01').toDate(),
-          },
-          obras: {
-            tipos: { id_grupo: { in: [1] } },
-            municipios: { id_regional: { in: [3] } },
-            id_turma: { in: [2] },
-            id_tipo: { in: [4] },
-          },
-        },
-        select: {
-          data_prog: true,
-          prog: true,
-          exec: true,
-          obras: {
-            select: { mo_final: true, mo_planejada: true },
-          },
-        },
-        orderBy: { data_prog: 'asc' },
-      });
     });
   });
 
@@ -224,7 +154,7 @@ describe('GetMonthlySummaryService', () => {
       } as unknown as obras,
     ];
 
-    it('should call the method getSummary without filters and format the results correctly', async () => {
+    it('should call the method getSecondSummary and format the results correctly', async () => {
       const mockResponse = [
         {
           grupo: 'BT ZERO',
@@ -249,11 +179,9 @@ describe('GetMonthlySummaryService', () => {
         },
       ];
 
-      const spyPrisma = jest
-        .spyOn(prisma.obras, 'findMany')
-        .mockResolvedValue(mockPrismaResponse);
+      mockRepository.getSecondSummary.mockResolvedValue(mockPrismaResponse);
 
-      const result = await service.getSecondSummary(filtersNotDefined);
+      const result = await service.getSecondSummary(filters);
 
       const firstItem = result[0];
       const secondItem = result[1];
@@ -261,87 +189,15 @@ describe('GetMonthlySummaryService', () => {
       expect(result).toEqual(mockResponse);
       expect(firstItem.turma).toBe('START-TAU');
       expect(secondItem.turma).toBe('ENGELMIG');
-      expect(spyPrisma).toHaveBeenCalledWith({
-        where: {
-          programacoes: {
-            some: {
-              data_prog: {
-                gte: moment.utc('2024-11-01').toDate(),
-                lt: moment.utc('2024-12-01').toDate(),
-              },
-            },
-          },
-          tipos: { id_grupo: undefined },
-          municipios: { id_regional: undefined },
-          id_turma: undefined,
-          id_tipo: undefined,
-        },
-        select: {
-          ovnota: true,
-          mo_final: true,
-          mo_planejada: true,
-          turmas: { select: { turma: true } },
-          tipos: { select: { grupos: { select: { grupo: true } } } },
-          programacoes: {
-            where: {
-              data_prog: {
-                gte: moment.utc('2024-11-01').toDate(),
-                lt: moment.utc('2024-12-01').toDate(),
-              },
-            },
-            select: { data_prog: true, prog: true, exec: true },
-          },
-        },
-      });
+      expect(mockRepository.getSecondSummary).toHaveBeenCalledWith(filters);
     });
 
     it('should return empty array if no data is found', async () => {
-      jest.spyOn(prisma.obras, 'findMany').mockResolvedValue([]);
+      mockRepository.getSecondSummary.mockResolvedValue([]);
 
       const result = await service.getSecondSummary(filters);
 
       expect(result).toEqual([]);
-    });
-
-    it('should apply all filters correctly in the Prisma query', async () => {
-      const spyPrisma = jest
-        .spyOn(prisma.obras, 'findMany')
-        .mockResolvedValue(mockPrismaResponse);
-
-      await service.getSecondSummary(filters);
-
-      expect(spyPrisma).toHaveBeenCalledWith({
-        where: {
-          programacoes: {
-            some: {
-              data_prog: {
-                gte: moment.utc('2024-11-01').toDate(),
-                lt: moment.utc('2024-12-01').toDate(),
-              },
-            },
-          },
-          tipos: { id_grupo: { in: [1] } },
-          municipios: { id_regional: { in: [3] } },
-          id_turma: { in: [2] },
-          id_tipo: { in: [4] },
-        },
-        select: {
-          ovnota: true,
-          mo_final: true,
-          mo_planejada: true,
-          turmas: { select: { turma: true } },
-          tipos: { select: { grupos: { select: { grupo: true } } } },
-          programacoes: {
-            where: {
-              data_prog: {
-                gte: moment.utc('2024-11-01').toDate(),
-                lt: moment.utc('2024-12-01').toDate(),
-              },
-            },
-            select: { data_prog: true, prog: true, exec: true },
-          },
-        },
-      });
     });
   });
 });

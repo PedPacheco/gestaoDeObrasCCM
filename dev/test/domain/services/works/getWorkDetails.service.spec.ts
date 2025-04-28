@@ -4,15 +4,13 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { obras } from '@prisma/client';
+import { GET_WORKS_DETAILS_REPOSITORY } from 'src/domain/repositories/works/IGetWorksDetailsRepository';
 
 describe('GetWorkDetailsService', () => {
-  let prisma: PrismaService;
   let getWorkDetailsService: GetWorkDetailsService;
 
-  const prismaMock = {
-    obras: {
-      findFirst: jest.fn(),
-    },
+  const mockRepository = {
+    get: jest.fn(),
   };
 
   const mockQueryResponse = {
@@ -61,6 +59,7 @@ describe('GetWorkDetailsService', () => {
     },
     tipos: {
       tipo_obra: 'SPACER CABLE',
+      id_grupo: 2,
     },
     turmas: {
       turma: 'ENGELMIG',
@@ -133,6 +132,7 @@ describe('GetWorkDetailsService', () => {
     empreendimento: null,
     municipios: 'MONTEIRO LOBATO',
     tipos: 'SPACER CABLE',
+    grupo: 2,
     turmas: 'ENGELMIG',
     status: 'PROGRAMADO',
     programacoes: [
@@ -161,11 +161,10 @@ describe('GetWorkDetailsService', () => {
     const module = await Test.createTestingModule({
       providers: [
         GetWorkDetailsService,
-        { provide: PrismaService, useValue: prismaMock },
+        { provide: GET_WORKS_DETAILS_REPOSITORY, useValue: mockRepository },
       ],
     }).compile();
 
-    prisma = module.get<PrismaService>(PrismaService);
     getWorkDetailsService = module.get<GetWorkDetailsService>(
       GetWorkDetailsService,
     );
@@ -178,7 +177,7 @@ describe('GetWorkDetailsService', () => {
   it('should be return undefined when searching for id if the id value is greater than or equal to 12', async () => {
     const id = 4552432432432;
 
-    jest.spyOn(prisma.obras, 'findFirst').mockResolvedValue(null);
+    mockRepository.get.mockResolvedValue(null);
 
     await expect(getWorkDetailsService.get(id)).rejects.toThrow(
       new NotFoundException('Obra não encontrada'),
@@ -188,7 +187,7 @@ describe('GetWorkDetailsService', () => {
   it('should be return the work details with format correct', async () => {
     const id = 244;
 
-    jest.spyOn(prisma.obras, 'findFirst').mockResolvedValue(mockQueryResponse);
+    mockRepository.get.mockResolvedValue(mockQueryResponse);
 
     const result = await getWorkDetailsService.get(id);
 

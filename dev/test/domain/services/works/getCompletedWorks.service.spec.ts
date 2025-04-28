@@ -1,24 +1,22 @@
 import { Cache } from 'cache-manager';
 import { GetCompletedWorksService } from 'src/domain/services/works/getCompletedWorks.service';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Test } from '@nestjs/testing';
+import { GET_COMPLETED_WORKS_REPOSITORY } from 'src/domain/repositories/works/IGetCompletedWorksRepository';
 
 describe('GetCompletedWorksService', () => {
-  let prismaService: PrismaService;
   let getCompletedWorksService: GetCompletedWorksService;
   let cacheManager: Cache;
-  let initialQuery: string;
 
   const mockCacheManager = {
     get: jest.fn(),
     set: jest.fn(),
   };
 
-  const mockPrismaService = {
-    $queryRaw: jest.fn(),
+  const mockRepository = {
+    getCompletedWorks: jest.fn(),
   };
 
   const mockWorks = [
@@ -75,40 +73,15 @@ describe('GetCompletedWorksService', () => {
     const module = await Test.createTestingModule({
       providers: [
         GetCompletedWorksService,
-        { provide: PrismaService, useValue: mockPrismaService },
+        { provide: GET_COMPLETED_WORKS_REPOSITORY, useValue: mockRepository },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
       ],
     }).compile();
 
-    prismaService = module.get<PrismaService>(PrismaService);
     getCompletedWorksService = module.get<GetCompletedWorksService>(
       GetCompletedWorksService,
     );
     cacheManager = module.get<Cache>(CACHE_MANAGER);
-
-    initialQuery = `SELECT obras.id, obras.ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, executado, 
-    mun, CASE WHEN current_date > entrada + prazo THEN 1 ELSE 0 END AS atraso, data_conclusao, tipo_obra, qtde_planejada, qtde_pend,
-    circuito, mo_planejada, contagem_ocorrencias, turma, status, conjunto, abrev_regional, observ_obra
-    FROM construcao_sp.obras
-    INNER JOIN construcao_sp.municipios ON obras.id_gpm = municipios.id
-    INNER JOIN construcao_sp.circuitos ON obras.id_circuito = circuitos.id
-    INNER JOIN construcao_sp.status ON obras.id_status = status.id
-    INNER JOIN construcao_sp.tipos ON obras.id_tipo = tipos.id
-    INNER JOIN construcao_sp.conjuntos ON circuitos.id_conjunto = conjuntos.id
-    INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
-    INNER JOIN construcao_sp.turmas ON obras.id_turma = turmas.id
-    LEFT JOIN (SELECT id_obra, COUNT(*)::int as contagem_ocorrencias FROM construcao_sp.programacoes WHERE programacoes.data_prog > current_date GROUP BY id_obra ) AS programacoes ON programacoes.id_obra = obras.id
-    WHERE data_conclusao IS NOT NULL
-    AND municipios.id_regional IN ()
-    AND id_tipo IN ()
-    AND id_turma IN ()
-    AND tipos.id_grupo IN ()
-    AND municipios.id IN ()
-    AND status.id IN ()
-    AND id_circuito IN ()
-    AND circuitos.id_conjunto IN ()
-    AND id_empreendimento IN ()
-    AND obras.id IN ()`;
   });
 
   afterEach(() => {
@@ -150,7 +123,7 @@ describe('GetCompletedWorksService', () => {
       works: mockWorks,
       totals: mockCountQuery[0],
     });
-    expect(prismaService.$queryRaw).not.toHaveBeenCalled();
+    expect(mockRepository.getCompletedWorks).not.toHaveBeenCalled();
   });
 
   it('should apply multiple filters correctly and month filter', async () => {
@@ -173,23 +146,13 @@ describe('GetCompletedWorksService', () => {
     const cacheKey = `completedWorks-${JSON.stringify(filters)}`;
 
     mockCacheManager.get.mockResolvedValue(null);
-    mockPrismaService.$queryRaw
-      .mockResolvedValueOnce(mockWorks)
-      .mockResolvedValueOnce(mockCountQuery);
+    mockRepository.getCompletedWorks.mockResolvedValue({
+      works: mockWorks,
+      totals: mockCountQuery,
+    });
 
     const result = await getCompletedWorksService.getCompletedWorks(filters);
 
-    const calledQuery = mockPrismaService.$queryRaw.mock.calls[0][0].strings;
-
-    initialQuery = `${initialQuery} AND EXTRACT(MONTH FROM data_conclusao) =  AND EXTRACT(YEAR FROM data_conclusao) = ORDER BY data_conclusao DESC LIMIT 200 OFFSET ;`;
-
-    const normalize = (str: string) => str.replace(/\s+/g, ' ').trim();
-
-    const allPartsPresent = normalize(initialQuery).includes(
-      normalize(calledQuery.join('')),
-    );
-
-    expect(allPartsPresent).toBeTruthy();
     expect(result).toEqual({ works: mockWorks, totals: mockCountQuery[0] });
     expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
     expect(cacheManager.set).toHaveBeenCalledWith(
@@ -219,23 +182,12 @@ describe('GetCompletedWorksService', () => {
     const cacheKey = `completedWorks-${JSON.stringify(filters)}`;
 
     mockCacheManager.get.mockResolvedValue(null);
-    mockPrismaService.$queryRaw
-      .mockResolvedValueOnce(mockWorks)
-      .mockResolvedValueOnce(mockCountQuery);
+    mockRepository.getCompletedWorks.mockResolvedValue({
+      works: mockWorks,
+      totals: mockCountQuery,
+    });
 
     const result = await getCompletedWorksService.getCompletedWorks(filters);
-
-    initialQuery = `${initialQuery} AND data_conclusao = ORDER BY data_conclusao DESC LIMIT 200 OFFSET ;`;
-
-    const calledQuery = mockPrismaService.$queryRaw.mock.calls[0][0].strings;
-
-    const normalize = (str: string) => str.replace(/\s+/g, ' ').trim();
-
-    const allPartsPresent = normalize(initialQuery).includes(
-      normalize(calledQuery.join('')),
-    );
-
-    expect(allPartsPresent).toBeTruthy();
 
     expect(result).toEqual({ works: mockWorks, totals: mockCountQuery[0] });
     expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
@@ -263,9 +215,9 @@ describe('GetCompletedWorksService', () => {
       page: 0,
     };
 
-    mockPrismaService.$queryRaw
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([
+    mockRepository.getCompletedWorks.mockResolvedValue({
+      works: [],
+      totals: [
         {
           total_obras: 0,
           total_mo_planejada: null,
@@ -274,7 +226,8 @@ describe('GetCompletedWorksService', () => {
           total_qtde_planejada: null,
           total_qtde_pend: null,
         },
-      ]);
+      ],
+    });
 
     const result = await getCompletedWorksService.getCompletedWorks(filters);
 
