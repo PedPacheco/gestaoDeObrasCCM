@@ -145,16 +145,74 @@ describe('ScheduleController', () => {
       ano: 2024,
     };
 
+    const mockTotalValues = [
+      {
+        turma: 'COMPEL',
+        jan: {
+          prog: 0,
+          exec: 0,
+        },
+        fev: {
+          prog: 0,
+          exec: 0,
+        },
+        mar: {
+          prog: 0,
+          exec: 0,
+        },
+        abr: {
+          prog: 0,
+          exec: 0,
+        },
+        mai: {
+          prog: 0,
+          exec: 0,
+        },
+        jun: {
+          prog: 0,
+          exec: 0,
+        },
+        jul: {
+          prog: 0,
+          exec: 0,
+        },
+        ago: {
+          prog: 0,
+          exec: 0,
+        },
+        set: {
+          prog: 0,
+          exec: 0,
+        },
+        out: {
+          prog: 0,
+          exec: 0,
+        },
+        nov: {
+          prog: 0,
+          exec: 0,
+        },
+        dez: {
+          prog: 0,
+          exec: 0,
+        },
+        total: {
+          prog: 0,
+          exec: 0,
+        },
+      },
+    ];
+
     jest
       .spyOn(getTotalValuesScheduleService, 'getTotalValues')
-      .mockResolvedValue(mockScheduleData);
+      .mockResolvedValue(mockTotalValues);
 
     const result = await scheduleController.getTotalValues(filters);
 
     expect(result).toStrictEqual({
       statusCode: HttpStatus.OK,
       message: 'Todas as obras retornadas com sucesso',
-      data: mockScheduleData,
+      data: mockTotalValues,
     });
     expect(getTotalValuesScheduleService.getTotalValues).toHaveBeenCalledWith(
       filters,

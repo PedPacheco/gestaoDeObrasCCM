@@ -117,16 +117,58 @@ describe('WorksController', () => {
         page: 0,
       };
 
+      const mockAllWorks = {
+        works: [
+          {
+            id: 21068,
+            ovnota: '15509718',
+            ordemdiagrama: '180000002321',
+            status_ov_sap: 99,
+            pep: null,
+            status_pep: null,
+            diagrama: null,
+            status_diagrama: null,
+            ordem_dci: null,
+            status_170: null,
+            status_usuario_170: null,
+            ordem_dcd: null,
+            status_190: null,
+            status_usuario_190: null,
+            ordem_dca: null,
+            status_150: null,
+            status_usuario_150: null,
+            ordem_dcim: '180000002321',
+            status_180: 'ENTE',
+            status_usuario_180: 'ENTE',
+            mun: 'GUL',
+            tipo_obra: 'BT ZERO',
+            entrada: null,
+            prazo_fim: null,
+            qtde_planejada: 1,
+            mo_planejada: 6055.68,
+            mo_final: null,
+            turma: 'MANSERV',
+            executado: 100,
+            data_conclusao: new Date('2024-10-17T00:00:00.000Z'),
+            last_data_prog: null,
+            status: 'EXECUTADA',
+            observ_obra: null,
+            referencia: '045BF005304969',
+          },
+        ],
+        totalRecords: 1,
+      };
+
       jest
         .spyOn(getAllWorksService, 'getAllWorks')
-        .mockResolvedValue(dataResponse);
+        .mockResolvedValue(mockAllWorks);
 
       const result = await worksController.getAllWorks(worksDTO);
 
       const expectedResponse = {
         statusCode: HttpStatus.OK,
         message: 'Todas as obras retornadas com sucesso',
-        data: dataResponse,
+        data: mockAllWorks,
       };
 
       expect(getAllWorksService.getAllWorks).toHaveBeenCalledWith(worksDTO);
