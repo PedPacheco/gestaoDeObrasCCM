@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetCompletedWorksRepository } from 'src/infra/repositories/works/getCompletedWorksRepository';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
+import { totalsWorksInPortfolio } from 'src/interface/types/getWorksInPortfolioInterface';
 
 describe('GetCompletedWorksRepository', () => {
   let repository: GetCompletedWorksRepository;
@@ -53,7 +54,7 @@ describe('GetCompletedWorksRepository', () => {
     },
   ];
 
-  const mockCountQuery = [
+  const mockCountQuery: totalsWorksInPortfolio[] = [
     {
       total_obras: 1,
       total_mo_planejada: 91105.824,
@@ -132,7 +133,7 @@ describe('GetCompletedWorksRepository', () => {
 
       const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
 
-      expect(result).toEqual({ works: mockWorks, result: mockCountQuery });
+      expect(result).toEqual({ works: mockWorks, totals: mockCountQuery });
       expect(normalizeSQL(querySent.strings.join(''))).toContain(
         normalizeSQL(expectedQuery),
       );
@@ -154,16 +155,16 @@ describe('GetCompletedWorksRepository', () => {
 
     it('should apply multiple filters correctly and month filter', async () => {
       const filters: GetWorksDTO = {
-        idGrupo: undefined,
-        idMunicipio: undefined,
-        idParceira: undefined,
-        idRegional: undefined,
-        idStatus: undefined,
-        idTipo: undefined,
-        idOvnota: undefined,
-        idCircuito: undefined,
-        idConjunto: undefined,
-        idEmpreendimento: undefined,
+        idGrupo: [4],
+        idMunicipio: [5],
+        idParceira: [3],
+        idRegional: [1],
+        idStatus: [6],
+        idTipo: [2],
+        idOvnota: [10],
+        idCircuito: [7],
+        idConjunto: [8],
+        idEmpreendimento: [9],
         data: '09/2024',
         tipoFiltro: 'month',
         page: 0,
@@ -175,17 +176,62 @@ describe('GetCompletedWorksRepository', () => {
 
       const result = await repository.getCompletedWorks(filters);
 
-      const expectedQuery = `${baseQuery} AND EXTRACT(MONTH FROM data_conclusao) =  AND EXTRACT(YEAR FROM data_conclusao) = ORDER BY data_conclusao DESC LIMIT 200 OFFSET ;`;
+      const expectedQuery = `${baseQuery} AND municipios.id_regional IN ()
+        AND id_tipo IN ()
+        AND id_turma IN ()
+        AND tipos.id_grupo IN ()
+        AND municipios.id IN ()
+        AND status.id IN ()
+        AND id_circuito IN ()
+        AND circuitos.id_conjunto IN ()
+        AND id_empreendimento IN ()
+        AND obras.id IN () 
+        AND EXTRACT(MONTH FROM data_conclusao) =  AND EXTRACT(YEAR FROM data_conclusao) = 
+        ORDER BY data_conclusao DESC LIMIT 200 OFFSET ;`;
 
       const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
 
-      console.log(querySent.values);
-
-      expect(result).toEqual({ works: mockWorks, result: mockCountQuery });
+      expect(result).toEqual({ works: mockWorks, totals: mockCountQuery });
       expect(normalizeSQL(querySent.strings.join(''))).toContain(
         normalizeSQL(expectedQuery),
       );
-      expect(querySent.values).toEqual([9, 2024, 0]);
+      expect(querySent.values).toEqual([
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 9, 2024, 0,
+      ]);
+    });
+
+    it('should not apply filters when values filters are not sent', async () => {
+      const filters: GetWorksDTO = {
+        idGrupo: undefined,
+        idMunicipio: undefined,
+        idParceira: undefined,
+        idRegional: undefined,
+        idStatus: undefined,
+        idTipo: undefined,
+        idOvnota: undefined,
+        idCircuito: undefined,
+        idConjunto: undefined,
+        idEmpreendimento: undefined,
+        data: undefined,
+        tipoFiltro: undefined,
+        page: 0,
+      };
+
+      mockPrisma.$queryRaw
+        .mockResolvedValueOnce(mockWorks)
+        .mockResolvedValueOnce(mockCountQuery);
+
+      const result = await repository.getCompletedWorks(filters);
+
+      const expectedQuery = `${baseQuery} ORDER BY data_conclusao DESC LIMIT 200 OFFSET ;`;
+
+      const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
+
+      expect(result).toEqual({ works: mockWorks, totals: mockCountQuery });
+      expect(normalizeSQL(querySent.strings.join(''))).toContain(
+        normalizeSQL(expectedQuery),
+      );
+      expect(querySent.values).toEqual([0]);
     });
   });
 });

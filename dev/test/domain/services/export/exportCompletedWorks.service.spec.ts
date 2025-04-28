@@ -4,7 +4,7 @@ import * as Exceljs from 'exceljs';
 import { ExportCompletedWorksService } from 'src/domain/services/export/exportCompletedWorks.service';
 import {
   worksInPortfolioInterface,
-  worksInPortfolioResponse,
+  worksInPortfolioResponseService,
 } from 'src/interface/types/getWorksInPortfolioInterface';
 
 jest.mock('exceljs');
@@ -71,7 +71,7 @@ describe('ExportCompletedWorks', () => {
       total_qtde_pend: 2,
     };
 
-    const mockWorksRsponse: worksInPortfolioResponse = {
+    const mockWorksRsponse: worksInPortfolioResponseService = {
       works: mockWorksData,
       totals: mockTotals,
     };

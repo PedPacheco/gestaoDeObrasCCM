@@ -1,6 +1,6 @@
 import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
-import { worksInPortfolioResponse } from 'src/interface/types/getWorksInPortfolioInterface';
+import { worksInPortfolioResponseService } from 'src/interface/types/getWorksInPortfolioInterface';
 
 import { Injectable } from '@nestjs/common';
 
@@ -8,7 +8,7 @@ import { Injectable } from '@nestjs/common';
 export class ExportWorksInPortfolioService {
   constructor() {}
 
-  async export(worksData: worksInPortfolioResponse, response: Response) {
+  async export(worksData: worksInPortfolioResponseService, response: Response) {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Obras em carteira');
 

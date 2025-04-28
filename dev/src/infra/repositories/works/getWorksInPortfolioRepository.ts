@@ -1,34 +1,35 @@
 import * as moment from 'moment';
-import { IGetCompletedWorksRepository } from 'src/domain/repositories/works/IGetCompletedWorksRepository';
+import { IGetWorksInPortfolioRepository } from 'src/domain/repositories/works/IGetWorksInPortfolioRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 import {
   totalsWorksInPortfolio,
   worksInPortfolioInterface,
+  worksInPortfolioResponseRepository,
 } from 'src/interface/types/getWorksInPortfolioInterface';
 
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
-export class GetCompletedWorksRepository
-  implements IGetCompletedWorksRepository
+export class GetWorksInPortfolioRepository
+  implements IGetWorksInPortfolioRepository
 {
   constructor(private readonly prisma: PrismaService) {}
 
   private applyFilters(query: Prisma.Sql, filters: GetWorksDTO) {
     const {
-      data,
-      idCircuito,
-      idConjunto,
-      idEmpreendimento,
       idGrupo,
       idMunicipio,
-      idOvnota,
       idParceira,
       idRegional,
       idStatus,
       idTipo,
+      idOvnota,
+      idCircuito,
+      idConjunto,
+      idEmpreendimento,
+      data,
       tipoFiltro,
     } = filters;
 
@@ -75,43 +76,49 @@ export class GetCompletedWorksRepository
     }
 
     if (tipoFiltro === 'month' && data) {
-      query = Prisma.sql`${query} AND EXTRACT(MONTH FROM data_conclusao) = ${parseInt(month)} AND EXTRACT(YEAR FROM data_conclusao) = ${parseInt(year)}`;
+      query = Prisma.sql`${query} AND EXTRACT(MONTH FROM first_data_prog) = ${parseInt(month)} AND EXTRACT(YEAR FROM first_data_prog) = ${parseInt(year)}`;
     }
 
     if (tipoFiltro === 'day' && data) {
-      query = Prisma.sql`${query} AND data_conclusao = ${moment(data, 'DD/MM/YYYY', true).toDate()}`;
+      query = Prisma.sql`${query} AND first_data_prog = ${moment(data, 'DD/MM/YYYY', true).toDate()}`;
     }
 
     return query;
   }
 
-  async getCompletedWorks(filters: GetWorksDTO): Promise<any> {
+  async getWorksInPortfolio(
+    filters: GetWorksDTO,
+  ): Promise<worksInPortfolioResponseRepository> {
     const { page } = filters;
 
-    const baseQuery = Prisma.sql`FROM construcao_sp.obras
-        INNER JOIN construcao_sp.municipios ON obras.id_gpm = municipios.id
+    const baseQuery = Prisma.sql`FROM construcao_sp.obras 
+        INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma 
+        INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm 
+        INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo 
+        INNER JOIN construcao_sp.status ON status.id = obras.id_status 
         INNER JOIN construcao_sp.circuitos ON obras.id_circuito = circuitos.id
-        INNER JOIN construcao_sp.status ON obras.id_status = status.id
-        INNER JOIN construcao_sp.tipos ON obras.id_tipo = tipos.id
+        INNER JOIN construcao_sp.empreendimento ON obras.id_empreendimento = empreendimento.id
         INNER JOIN construcao_sp.conjuntos ON circuitos.id_conjunto = conjuntos.id
         INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
-        INNER JOIN construcao_sp.turmas ON obras.id_turma = turmas.id
-        LEFT JOIN (SELECT id_obra, COUNT(*)::int as contagem_ocorrencias FROM construcao_sp.programacoes WHERE programacoes.data_prog > current_date GROUP BY id_obra ) AS programacoes ON programacoes.id_obra = obras.id
-        WHERE data_conclusao IS NOT NULL`;
+        LEFT JOIN construcao_sp.datas_programacao ON datas_programacao.id = obras.id
+        LEFT JOIN (SELECT id_obra, COUNT(*)::int as contagem_ocorrencias FROM construcao_sp.programacoes WHERE programacoes.data_prog > current_date GROUP BY id_obra ) AS programacoes ON programacoes.id_obra = obras.id 
+        WHERE data_conclusao IS NULL`;
 
-    let query = Prisma.sql`SELECT obras.id, obras.ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, executado, 
-    mun, CASE WHEN current_date > entrada + prazo THEN 1 ELSE 0 END AS atraso, data_conclusao, tipo_obra, qtde_planejada, qtde_pend,
-    circuito, mo_planejada, contagem_ocorrencias, turma, status, conjunto, abrev_regional, observ_obra
-    ${baseQuery}`;
+    let query = Prisma.sql`SELECT
+        obras.id, obras.ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, 
+        executado, mun, id_status, entrada, prazo, entrada + prazo AS prazo_fim, abrev_regional, tipo_obra, qtde_planejada, contagem_ocorrencias,
+        qtde_pend, circuito, mo_planejada, first_data_prog, status.status, hora_ini, hora_ter, tipo_servico, datas_programacao.chi,
+        conjuntos.conjunto, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, data_empreitamento, empreendimento, turma
+        ${baseQuery}`;
 
     let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras, SUM(mo_planejada) AS total_mo_planejada, SUM(mo_planejada*executado/100) as total_mo_exec, 
-    SUM(CASE WHEN id_status = 4 THEN mo_planejada*executado/100 ELSE 0 END) AS total_mo_suspensa, SUM(qtde_planejada) as total_qtde_planejada, 
-    SUM(qtde_pend) AS total_mo_pend  ${baseQuery}`;
+        SUM(CASE WHEN id_status = 4 THEN mo_planejada*executado/100 ELSE 0 END) AS total_mo_suspensa, SUM(qtde_planejada) as total_qtde_planejada,
+        SUM(qtde_pend) AS total_mo_pend ${baseQuery}`;
 
     query = this.applyFilters(query, filters);
     countQuery = this.applyFilters(countQuery, filters);
 
-    query = Prisma.sql`${query} ORDER BY data_conclusao DESC`;
+    query = Prisma.sql`${query} ORDER BY first_data_prog, status DESC, entrada + prazo`;
 
     if (page !== null) {
       query = Prisma.sql`${query} LIMIT 200 OFFSET ${page * 200};`;

@@ -148,7 +148,7 @@ describe('GetCompletedWorksService', () => {
     mockCacheManager.get.mockResolvedValue(null);
     mockRepository.getCompletedWorks.mockResolvedValue({
       works: mockWorks,
-      result: mockCountQuery,
+      totals: mockCountQuery,
     });
 
     const result = await getCompletedWorksService.getCompletedWorks(filters);
@@ -184,7 +184,7 @@ describe('GetCompletedWorksService', () => {
     mockCacheManager.get.mockResolvedValue(null);
     mockRepository.getCompletedWorks.mockResolvedValue({
       works: mockWorks,
-      result: mockCountQuery,
+      totals: mockCountQuery,
     });
 
     const result = await getCompletedWorksService.getCompletedWorks(filters);
@@ -217,7 +217,7 @@ describe('GetCompletedWorksService', () => {
 
     mockRepository.getCompletedWorks.mockResolvedValue({
       works: [],
-      result: [
+      totals: [
         {
           total_obras: 0,
           total_mo_planejada: null,
