@@ -60,7 +60,7 @@ export default function EntryTable({ data, columns }: EntryTableProps) {
             ))}
           </TableRow>
         </TableHead>
-        <TableBody className="h-[880px]">
+        <TableBody>
           {data.map((item: any, index: any) => {
             return (
               <TableRow key={index} className="h-16">

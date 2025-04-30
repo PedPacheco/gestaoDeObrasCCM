@@ -31,6 +31,8 @@ export async function fetchFilters(params: { [key: string]: boolean } = {}) {
 
     return res.json();
   } catch (error: any) {
+    if (error instanceof Error) throw error;
+
     throw new Error(
       "Não foi possível se conectar ao servidor. Tente novamente mais tarde."
     );
