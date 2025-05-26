@@ -7,7 +7,7 @@ import { Transform } from "@/utils/transform";
 
 export default async function RdaGoals() {
   const cookieStore = await cookies();
-  const cookieParams = cookieStore.get("bt0GoalsFilters")?.value;
+  const cookieParams = cookieStore.get("rdaGoalsFilters")?.value;
   const token = cookieStore.get("token")?.value;
 
   let params = cookieParams ? JSON.parse(cookieParams) : undefined;
