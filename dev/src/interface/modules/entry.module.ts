@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { EntryService } from '../../domain/services/entry.service';
+import { EntryService } from '../../domain/services/entry/entry.service';
 import { EntryController } from '../controllers/entry.controller';
 import { UsersModule } from './users.module';
 import { ENTRY_REPOSITORY } from 'src/domain/repositories/IEntryRepository';

@@ -1,6 +1,6 @@
 import * as moment from 'moment';
 import { ENTRY_REPOSITORY } from 'src/domain/repositories/IEntryRepository';
-import { EntryService } from 'src/domain/services/entry.service';
+import { EntryService } from 'src/domain/services/entry/entry.service';
 import {
   GetEntryOfWorksByDayDTO,
   GetEntryOfWorksDTO,

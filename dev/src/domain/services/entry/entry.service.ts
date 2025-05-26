@@ -9,7 +9,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   ENTRY_REPOSITORY,
   IEntryRepository,
-} from '../repositories/IEntryRepository';
+} from '../../repositories/IEntryRepository';
 import { ReturnGetValuesFromEntry } from 'src/interface/types/entryInterface';
 
 @Injectable()
