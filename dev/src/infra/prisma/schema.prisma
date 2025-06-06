@@ -9,16 +9,19 @@ datasource db {
 }
 
 model base_auxiliar {
-  obra               String?   @db.VarChar(255)
-  pep                String?   @db.VarChar(255)
-  dci                String?   @db.VarChar(255)
-  dcd                String?   @db.VarChar(255)
-  dcs                String?   @db.VarChar(255)
-  dcim               String?   @db.VarChar(255)
-  entrada            DateTime? @db.Timestamptz(6)
-  tipo               String?   @db.VarChar(255)
-  referencia         String?   @db.VarChar(255)
+  id                 Int         @id @default(autoincrement())
+  obra               String?     @db.VarChar(30)
+  pep                String?     @db.VarChar(30)
+  dci                String?     @db.VarChar(30)
+  dcd                String?     @db.VarChar(30)
+  dca                String?     @db.VarChar(30)
+  dcim               String?     @db.VarChar(30)
+  entrada            DateTime?   @db.Date
+  prazo              String?     @db.VarChar(5)
+  tipo               String?     @db.VarChar(30)
+  referencia         String?     @db.VarChar(30)
   mo_plan            Float?
+  qtde_plan          Float?
   aux_gpm            Int?
   aux_empreendimento Int?
   aux_tipo           Int?
@@ -27,9 +30,8 @@ model base_auxiliar {
   aux_tecnico        Int?
   capex_mo_plan      Int?
   capex_mat_plan     Int?
-  id                 BigInt    @id @default(autoincrement())
-  prazo              Int?
-  qtde_plan          Float?
+  anoplan            Int?
+  municipios         municipios? @relation(fields: [aux_gpm], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_municipios")
 }
 
 model base_auxiliar_nota {
@@ -77,51 +79,55 @@ model base_auxiliar_nota_cn52n {
 }
 
 model base_auxiliar_ov {
-  obra             String?   @db.VarChar(20)
-  pep              String?   @db.VarChar(20)
-  diagrama         String?   @db.VarChar(20)
-  gpm              String?   @db.VarChar(10)
-  tipo             String?   @db.VarChar(50)
-  circuito         String?   @db.VarChar(20)
-  prazo_texto      String?   @db.VarChar(30)
+  obra             String?     @db.VarChar(20)
+  pep              String?     @db.VarChar(20)
+  diagrama         String?     @db.VarChar(20)
+  gpm              String?     @db.VarChar(10)
+  tipo             String?     @db.VarChar(50)
+  circuito         String?     @db.VarChar(20)
+  prazo_texto      String?     @db.VarChar(30)
   status_ov        Int?
-  status_diagrama  String?   @db.VarChar(4)
-  status_pep       String?   @db.VarChar(4)
-  equip_num_pedido String?   @db.VarChar(50)
+  status_diagrama  String?     @db.VarChar(4)
+  status_pep       String?     @db.VarChar(4)
+  equip_num_pedido String?     @db.VarChar(50)
   mo_cliente       Float?
   mo_empresa       Float?
-  entrada          DateTime? @db.Date
-  observacao       String?   @db.VarChar(100)
+  entrada          DateTime?   @db.Date
+  observacao       String?     @db.VarChar(100)
   aux_municipio    Int?
   aux_tipo_obra    Int?
   aux_prazo        Int?
   aux_circuito     Int?
   aux_turma        Int?
-  aux_referencia   String?   @db.VarChar(14)
-  id               BigInt    @id @default(autoincrement())
-  tecnico_resp     String?   @db.VarChar(40)
+  aux_referencia   String?     @db.VarChar(14)
+  id               BigInt      @id @default(autoincrement())
+  tecnico_resp     String?     @db.VarChar(40)
+  municipios       municipios? @relation(fields: [gpm], references: [mun], onDelete: NoAction, onUpdate: NoAction, map: "fk_municipios")
 }
 
 model capacidade_execucao {
-  id          Int       @id(map: "CAPACIDADE EXECUCAO_pkey") @default(autoincrement())
-  id_regional Int
-  id_turma    Int
-  equipe      String?   @db.VarChar(15)
-  jan         Int?
-  fev         Int?
-  mar         Int?
-  abr         Int?
-  mai         Int?
-  jun         Int?
-  jul         Int?
-  ago         Int?
-  set         Int?
-  out         Int?
-  nov         Int?
-  dez         Int?
-  ano         String?   @db.VarChar(10)
-  turmas      turmas    @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceiras")
-  regionais   regionais @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
+  id              Int       @id(map: "capacidade_execucao_nova_pkey") @default(autoincrement())
+  id_regional     Int
+  id_turma        Int
+  should_cost     Float?
+  qtd_equipes_rfp Int?
+  ano             String?   @db.VarChar(10)
+  equipe          String?   @db.VarChar(15)
+  tipo            String?   @db.VarChar(10)
+  jan             Int?      @db.SmallInt
+  fev             Int?      @db.SmallInt
+  mar             Int?      @db.SmallInt
+  abr             Int?      @db.SmallInt
+  mai             Int?      @db.SmallInt
+  jun             Int?      @db.SmallInt
+  jul             Int?      @db.SmallInt
+  ago             Int?      @db.SmallInt
+  set             Int?      @db.SmallInt
+  out             Int?      @db.SmallInt
+  nov             Int?      @db.SmallInt
+  dez             Int?      @db.SmallInt
+  turmas          turmas    @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceiras")
+  regionais       regionais @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
 }
 
 model circuitos {
@@ -191,6 +197,7 @@ model empreendimento {
   id_regional    Int?
   grupos         grupos     @relation(fields: [id_grupo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_grupos")
   regionais      regionais? @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
+  metas          metas[]
   obras          obras[]
 }
 
@@ -268,28 +275,28 @@ model material {
 }
 
 model metas {
-  id_tipo            Int
-  id_turma           Int
-  id_regional        Int
-  ano_metas          Int?
-  modular_mo_meta    Float?
-  modular_capex_meta Float?
-  jan_meta_fisico    Float?
-  fev_meta_fisico    Float?
-  mar_meta_fisico    Float?
-  abr_meta_fisico    Float?
-  mai_meta_fisico    Float?
-  jun_meta_fisico    Float?
-  jul_meta_fisico    Float?
-  ago_meta_fisico    Float?
-  set_meta_fisico    Float?
-  out_meta_fisico    Float?
-  nov_meta_fisico    Float?
-  dez_meta_fisico    Float?
-  id                 Int       @id @default(autoincrement())
-  turmas             turmas    @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceiras")
-  regionais          regionais @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
-  tipos              tipos     @relation(fields: [id_tipo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tipos")
+  id                Int             @id @default(autoincrement())
+  id_tipo           Int
+  id_parceira       Int
+  id_regional       Int
+  id_empreendimento Int?
+  ano_meta          Int?
+  jan_meta_fisico   Float?
+  fev_meta_fisico   Float?
+  mar_meta_fisico   Float?
+  abr_meta_fisico   Float?
+  mai_meta_fisico   Float?
+  jun_meta_fisico   Float?
+  jul_meta_fisico   Float?
+  ago_meta_fisico   Float?
+  set_meta_fisico   Float?
+  out_meta_fisico   Float?
+  nov_meta_fisico   Float?
+  dez_meta_fisico   Float?
+  empreendimento    empreendimento? @relation(fields: [id_empreendimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_empreendimento")
+  turmas            turmas          @relation(fields: [id_parceira], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
+  regionais         regionais       @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
+  tipos             tipos           @relation(fields: [id_tipo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tipos")
 }
 
 model mo {
@@ -316,76 +323,83 @@ model multas_dmic {
 }
 
 model municipios {
-  id            Int       @id(map: "MUNICIPIOS_pkey") @default(autoincrement())
-  municipio     String    @db.VarChar(22)
-  mun           String    @db.VarChar(3)
-  codigo_sap    String?   @db.VarChar(3)
-  id_regional   Int
-  mun_minusculo String?   @db.VarChar(22)
-  regionais     regionais @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
-  obras         obras[]
+  id               Int                @id(map: "MUNICIPIOS_pkey") @default(autoincrement())
+  municipio        String             @db.VarChar(22)
+  mun              String             @unique(map: "unique_mun") @db.VarChar(3)
+  codigo_sap       String?            @db.VarChar(3)
+  id_regional      Int
+  mun_minusculo    String?            @db.VarChar(22)
+  base_auxiliar    base_auxiliar[]
+  base_auxiliar_ov base_auxiliar_ov[]
+  regionais        regionais          @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
+  notas_d5         notas_d5[]
+  obras            obras[]
 }
 
 model obras {
-  id                      Int             @id(map: "OBRAS_pkey") @default(autoincrement())
-  ovnota                  String          @db.VarChar(12)
-  pep                     String?         @db.VarChar(8)
-  diagrama                String?         @db.VarChar(12)
-  ordem_dci               String?         @db.VarChar(12)
-  ordem_dcd               String?         @db.VarChar(12)
-  ordem_dca               String?         @db.VarChar(12)
-  ordem_dcim              String?         @db.VarChar(12)
+  id                      Int            @id(map: "OBRAS_pkey") @default(autoincrement())
+  ovnota                  String         @db.VarChar(12)
+  pep                     String?        @db.VarChar(8)
+  diagrama                String?        @db.VarChar(12)
+  ordem_dci               String?        @db.VarChar(12)
+  ordem_dcd               String?        @db.VarChar(12)
+  ordem_dca               String?        @db.VarChar(12)
+  ordem_dcim              String?        @db.VarChar(12)
   status_ov_sap           Int?
-  status_pep              String?         @db.VarChar(4)
-  status_diagrama         String?         @db.VarChar(4)
-  status_170              String?         @db.VarChar(4)
-  status_190              String?         @db.VarChar(4)
-  status_150              String?         @db.VarChar(4)
-  status_180              String?         @db.VarChar(4)
-  status_usuario_diagrama String?         @db.VarChar(16)
-  status_usuario_170      String?         @db.VarChar(16)
-  status_usuario_190      String?         @db.VarChar(16)
-  status_usuario_150      String?         @db.VarChar(16)
-  status_usuario_180      String?         @db.VarChar(16)
+  status_pep              String?        @db.VarChar(4)
+  status_diagrama         String?        @db.VarChar(4)
+  status_170              String?        @db.VarChar(4)
+  status_190              String?        @db.VarChar(4)
+  status_150              String?        @db.VarChar(4)
+  status_180              String?        @db.VarChar(4)
+  status_usuario_diagrama String?        @db.VarChar(16)
+  status_usuario_170      String?        @db.VarChar(16)
+  status_usuario_190      String?        @db.VarChar(16)
+  status_usuario_150      String?        @db.VarChar(16)
+  status_usuario_180      String?        @db.VarChar(16)
   id_gpm                  Int
   id_tipo                 Int
-  entrada                 DateTime?       @db.Date
+  entrada                 DateTime?      @db.Date
   prazo                   Int?
   qtde_planejada          Float?
   id_circuito             Int
   mo_planejada            Float?
   mo_final                Float?
-  observ_obra             String?         @db.VarChar(255)
+  observ_obra             String?        @db.VarChar(255)
   id_turma                Int
   executado               Int?
-  data_conclusao          DateTime?       @db.Date
-  id_status               Int             @default(42)
-  referencia              String?         @db.VarChar(14)
+  data_conclusao          DateTime?      @db.Date
+  id_status               Int            @default(42)
+  referencia              String?        @db.VarChar(14)
   capex_mat_plan          Float?
   capex_mo_plan           Float?
   capex_mat_pend          Float?
   capex_mo_pend           Float?
   qtde_pend               Float?
-  tipo_ads                String?         @db.VarChar(50)
-  data_empreitamento      DateTime?       @db.Date
+  tipo_ads                String?        @db.VarChar(50)
+  data_empreitamento      DateTime?      @db.Date
   id_empreendimento       Int
-  diagrama_antigo         String?         @db.VarChar(12)
-  ordem_dci_antigo        String?         @db.VarChar(12)
-  ordem_dcd_antigo        String?         @db.VarChar(12)
-  ordem_dca_antigo        String?         @db.VarChar(12)
-  ordem_dcim_antigo       String?         @db.VarChar(12)
+  diagrama_antigo         String?        @db.VarChar(12)
+  ordem_dci_antigo        String?        @db.VarChar(12)
+  ordem_dcd_antigo        String?        @db.VarChar(12)
+  ordem_dca_antigo        String?        @db.VarChar(12)
+  ordem_dcim_antigo       String?        @db.VarChar(12)
   ano_plan                Int?
+  data_viabilidade        DateTime?      @db.Date
+  prazo_viabilidade       String?        @default("FALTA VIABILIDADE") @db.VarChar(40)
   multas_dmic             multas_dmic[]
-  circuitos               circuitos       @relation(fields: [id_circuito], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_circuitos")
+  notas_d5                notas_d5[]
+  circuitos               circuitos      @relation(fields: [id_circuito], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_circuitos")
   empreendimento          empreendimento @relation(fields: [id_empreendimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_empreendimento")
-  municipios              municipios      @relation(fields: [id_gpm], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_municipio")
-  turmas                  turmas          @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceiras")
-  status                  status          @relation(fields: [id_status], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_status")
-  status_sap              status_sap?     @relation(fields: [status_ov_sap], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_statussap")
-  tipos                   tipos           @relation(fields: [id_tipo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tipos")
+  municipios              municipios     @relation(fields: [id_gpm], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_municipio")
+  turmas                  turmas         @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceiras")
+  status                  status         @relation(fields: [id_status], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_status")
+  status_sap              status_sap?    @relation(fields: [status_ov_sap], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_statussap")
+  tipos                   tipos          @relation(fields: [id_tipo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tipos")
   programacoes            programacoes[]
   relatorio               relatorio[]
   servicos                servicos[]
+  suspensoes              suspensoes[]
 }
 
 model programacoes {
@@ -635,10 +649,11 @@ model servicos_contratos {
 }
 
 model status {
-  id     Int     @id(map: "STATUS_pkey") @default(autoincrement())
-  status String? @db.VarChar(25)
-  onde   String? @db.VarChar(20)
-  obras  obras[]
+  id       Int        @id(map: "STATUS_pkey") @default(autoincrement())
+  status   String?    @db.VarChar(25)
+  onde     String?    @db.VarChar(20)
+  notas_d5 notas_d5[]
+  obras    obras[]
 }
 
 model status_sap {
@@ -657,28 +672,30 @@ model subgrupo {
 }
 
 model tecnicos {
-  id           Int            @id(map: "TECNICOS_pkey") @default(autoincrement())
-  tecnico      String?        @db.VarChar(40)
-  id_regional  Int
-  programacoes programacoes[]
-  regionais    regionais      @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
+  id                    Int                     @id(map: "TECNICOS_pkey") @default(autoincrement())
+  tecnico               String?                 @db.VarChar(40)
+  id_regional           Int
+  programacoes          programacoes[]
+  programacoes_notas_d5 programacoes_notas_d5[]
+  regionais             regionais               @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
 }
 
 model tipos {
-  id            Int      @id(map: "TIPOS_pkey") @default(autoincrement())
-  tipo_obra     String   @db.VarChar(30)
-  tipo_abrev    String   @db.VarChar(15)
-  descricao_sap String?  @db.VarChar(40)
+  id            Int        @id(map: "TIPOS_pkey") @default(autoincrement())
+  tipo_obra     String     @db.VarChar(30)
+  tipo_abrev    String     @db.VarChar(15)
+  descricao_sap String?    @db.VarChar(40)
   id_grupo      Int
-  pep_atual     String?  @db.VarChar(8)
-  pep_antigo    String?  @db.VarChar(8)
+  pep_atual     String?    @db.VarChar(8)
+  pep_antigo    String?    @db.VarChar(8)
   id_subgrupo   Int
-  tipo_serv_sap String?  @db.VarChar(4)
-  regulado      String?  @db.VarChar(20)
+  tipo_serv_sap String?    @db.VarChar(4)
+  regulado      String?    @db.VarChar(20)
   metas         metas[]
+  notas_d5      notas_d5[]
   obras         obras[]
-  grupos        grupos   @relation(fields: [id_grupo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_grupos")
-  subgrupo      subgrupo @relation(fields: [id_subgrupo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_subgrupos")
+  grupos        grupos     @relation(fields: [id_grupo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_grupos")
+  subgrupo      subgrupo   @relation(fields: [id_subgrupo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_subgrupos")
 }
 
 model turmas {
@@ -693,6 +710,7 @@ model turmas {
   capacidade_execucao capacidade_execucao[]
   equipes             equipes[]
   metas               metas[]
+  notas_d5            notas_d5[]
   obras               obras[]
   servicos_contratos  servicos_contratos[]
 }
@@ -707,7 +725,7 @@ model usuario {
   nome_maquina           String?   @db.VarChar(30)
   nome_usuario           String    @db.VarChar(50)
   email                  String    @db.VarChar(50)
-  permissao_visualizacao String?   @db.VarChar
+  permissao_visualizacao String    @default("total") @db.VarChar(25)
   regionais              regionais @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
 }
 
@@ -746,6 +764,200 @@ model relatorio_viabilidade {
   encontrado Boolean
 }
 
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model NOTAD5 {
+  ID              Int?
+  NOTAD5          String?   @db.VarChar(255)
+  DATACRIACAO     DateTime? @db.Timestamptz(6)
+  VALORRETIDO     Int?
+  MEDICAOLIBERADA Boolean?
+  STATUSDANOTA    String?   @db.VarChar(255)
+  DATACONCLUSAO   DateTime? @db.Timestamptz(6)
+  IDSTATUSPROG    Int?
+  IDMUNICIPIO     Int?
+  IDPARCEIRA      Int?
+  IDTIPO          Int?
+  IDOBRA          Int?
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model OBRAS {
+  CODIGOOBRA            Int?
+  OVNOTA                String?   @db.VarChar(12)
+  PEP                   String?   @db.VarChar(8)
+  DIAGRAMA              String?   @db.VarChar(12)
+  ORDEMDCI              String?   @db.VarChar(12)
+  ORDEMDCD              String?   @db.VarChar(12)
+  ORDEMDCA              String?   @db.VarChar(12)
+  ORDEMDCIM             String?   @db.VarChar(12)
+  STATUSOVSAP           Int?
+  STATUSPEP             String?   @db.VarChar(4)
+  STATUSDIAGRAMA        String?   @db.VarChar(4)
+  STATUS162             String?   @db.VarChar(255)
+  STATUS163             String?   @db.VarChar(4)
+  STATUS165             String?   @db.VarChar(4)
+  STATUS43              String?   @db.VarChar(4)
+  STATUSUSUARIODIAGRAMA String?   @db.VarChar(16)
+  STATUSUSUARIO162      String?   @db.VarChar(16)
+  STATUSUSUARIO163      String?   @db.VarChar(16)
+  STATUSUSUARIO165      String?   @db.VarChar(16)
+  STATUSUSUARIO43       String?   @db.VarChar(16)
+  CODGPM                Int?
+  CODTIPO               Int?
+  ENTRADA               DateTime? @db.Timestamptz(6)
+  PRAZO                 Int?
+  QTDEPLANEJADA         Float?
+  CODCIRCUITO           Int?
+  MOPLANEJADA           Float?
+  MOCALCULADA           Float?
+  OBSERVOBRA            String?   @db.VarChar(255)
+  CODTURMA              Int?
+  EXECUTADO             Int?      @map("%EXECUTADO")
+  DATACONCLUSAO         DateTime? @db.Timestamptz(6)
+  CODSTATUS             Int?
+  REFERENCIA            String?   @db.VarChar(14)
+  CAPEXMATPLAN          Float?
+  CAPEXMOPLAN           Float?
+  CAPEXMATPEND          Float?
+  CAPEXMOPEND           Float?
+  QTDEPEND              Float?
+  TIPOADS               String?   @db.VarChar(255)
+  DATAEMPREITAMENTO     DateTime? @db.Timestamptz(6)
+  CODEMPREENDIMENTO     Int?
+  DIAGRAMAANTIGO        String?   @db.VarChar(12)
+  ORDEMDCIANTIGO        String?   @db.VarChar(12)
+  ORDEMDCDANTIGO        String?   @db.VarChar(12)
+  ORDEMDCSANTIGO        String?   @db.VarChar(12)
+  ORDEMDCIMANTIGO       String?   @db.VarChar(12)
+  ANOPLAN               Int?
+  DATAVIABILIDADE       DateTime? @db.Timestamptz(6)
+  PRAZOVIABILIDADE      String?   @db.VarChar(40)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model PROGRAMACOES {
+  CODPROGRAMACAO            Int?
+  CODOBRA                   Int?
+  DATAPROG                  DateTime? @db.Timestamptz(6)
+  PROG                      Int?      @map("%PROG")
+  EXEC                      Int?      @map("%EXEC")
+  OBSERVPROGRAMACAO         String?
+  NUMDP                     String?
+  HORAINI                   DateTime? @db.Timestamptz(6)
+  HORATER                   DateTime? @db.Timestamptz(6)
+  EQUIPELINHAMORTO          Int?
+  EQUIPELINHAVIVA           Int?
+  EQUIPEREGULARIZACAO       Int?
+  CHAVEPROVISORIA           Boolean?
+  TIPOSERVICO               String?   @db.VarChar(255)
+  CHI                       Int?
+  NOMEDORESPONSAVELEXECUCAO String?   @db.VarChar(255)
+  CODRESTRICAO              Int?
+  CODRESTRICAOPROG1         Int?
+  RESPONSABILIDADE1         String?   @db.VarChar(255)
+  NOMEDORESPONSAVEL1        String?   @db.VarChar(255)
+  AREARESPONSAVEL1          String?   @db.VarChar(255)
+  STATUSRESTRICAO1          String?   @db.VarChar(255)
+  DATARESOLUCAO1            DateTime? @db.Timestamptz(6)
+  CODRESTRICAOPROG2         Int?
+  RESPONSABILIDADE2         String?   @db.VarChar(255)
+  NOMEDORESPONSAVEL2        String?   @db.VarChar(255)
+  AREARESPONSAVEL2          String?   @db.VarChar(255)
+  STATUSRESTRICAO2          String?   @db.VarChar(255)
+  DATARESOLUCAO2            DateTime? @db.Timestamptz(6)
+  OBSERVACAORESTRICAO       String?   @db.VarChar(255)
+  OBSERVACAOEXECUCAO        String?   @db.VarChar(255)
+  CODTECNICO                Int?
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model PROGRAMACOES_NOTASD5 {
+  CODPROGRAMACAO      Int?
+  IDNOTAD5            Int?
+  DATAPROG            DateTime? @db.Timestamptz(6)
+  PROG                Int?      @map("%PROG")
+  EXEC                Int?      @map("%EXEC")
+  OBSERVPROGRAMACAO   String?
+  NUMDP               String?
+  HORAINI             DateTime? @db.Timestamptz(6)
+  HORATER             DateTime? @db.Timestamptz(6)
+  EQUIPELINHAMORTO    Int?
+  EQUIPELINHAVIVA     Int?
+  EQUIPEREGULARIZACAO Int?
+  CHAVEPROVISORIA     Boolean?
+  TIPOSERVICO         String?   @db.VarChar(255)
+  CHI                 Int?
+  CODTECNICO          Int?
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model SUSPENSOES {
+  ID     Int?
+  IDOBRA Int?
+  DATA   DateTime? @db.Timestamptz(6)
+  MOTIVO String?   @db.VarChar(100)
+
+  @@ignore
+}
+
+model notas_d5 {
+  id                    Int                     @id @default(autoincrement())
+  nota_d5               String?                 @db.VarChar(25)
+  data_criacao          DateTime?               @db.Date
+  valor_retido          Float?
+  medicao_liberada      Boolean?
+  status_nota           String?                 @db.VarChar(20)
+  data_conclusao        DateTime?               @db.Date
+  id_status             Int
+  id_municipio          Int
+  id_parceira           Int
+  id_tipo               Int
+  id_obra               Int?
+  municipios            municipios              @relation(fields: [id_municipio], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_municipio")
+  obras                 obras?                  @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obra")
+  turmas                turmas                  @relation(fields: [id_parceira], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
+  status                status                  @relation(fields: [id_status], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_status")
+  tipos                 tipos                   @relation(fields: [id_tipo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tipo")
+  programacoes_notas_d5 programacoes_notas_d5[]
+}
+
+model programacoes_notas_d5 {
+  id                   Int       @id @default(autoincrement())
+  id_nota_d5           Int
+  data_prog            DateTime? @db.Date
+  prog                 Int?
+  exec                 Int?
+  observ_programacao   String?
+  num_dp               String?   @db.VarChar(25)
+  hora_ini             DateTime? @db.Timestamp(6)
+  hora_ter             DateTime? @db.Timestamp(6)
+  equipe_linha_morta   Int?
+  equipe_linha_viva    Int?
+  equipe_regularizacao Int?
+  chave_provisoria     Boolean?
+  tipo_servico         String?   @db.VarChar(30)
+  chi                  Int?
+  id_tecnico           Int       @default(1)
+  notas_d5             notas_d5  @relation(fields: [id_nota_d5], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_nota_d5")
+  tecnicos             tecnicos  @relation(fields: [id_tecnico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tecnico")
+}
+
+model suspensoes {
+  id      Int       @id @default(autoincrement())
+  id_obra Int
+  data    DateTime? @db.Date
+  motivo  String?   @db.VarChar(100)
+  obras   obras     @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obra")
+}
+
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 view calc_qtde_mo_ordem {
   diagrama_rede  String? @db.VarChar(15)
@@ -770,51 +982,7 @@ view datas_programacao {
   id_tecnico           Int?
   chi                  Int?
   ordemdiagrama        String?   @db.VarChar(12)
-}
-
-view metas_anuais {
-  unique_id   BigInt @unique
-  id_tipo     Int?
-  id_turma    Int?
-  id_regional Int?
-  anocalc     Float?
-  janfismeta  Float?
-  fevfismeta  Float?
-  marfismeta  Float?
-  abrfismeta  Float?
-  maifismeta  Float?
-  junfismeta  Float?
-  julfismeta  Float?
-  agofismeta  Float?
-  setfismeta  Float?
-  outfismeta  Float?
-  novfismeta  Float?
-  dezfismeta  Float?
-  janfisprog  Float?
-  fevfisprog  Float?
-  marfisprog  Float?
-  abrfisprog  Float?
-  maifisprog  Float?
-  junfisprog  Float?
-  julfisprog  Float?
-  agofisprog  Float?
-  setfisprog  Float?
-  outfisprog  Float?
-  novfisprog  Float?
-  dezfisprog  Float?
-  janfisreal  Float?
-  fevfisreal  Float?
-  marfisreal  Float?
-  abrfisreal  Float?
-  maifisreal  Float?
-  junfisreal  Float?
-  julfisreal  Float?
-  agofisreal  Float?
-  setfisreal  Float?
-  outfisreal  Float?
-  novfisreal  Float?
-  dezfisreal  Float?
-  carteira    Float?
+  observ_programacao   String?
 }
 
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.

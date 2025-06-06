@@ -1,6 +1,6 @@
 import { plainToInstance } from 'class-transformer';
 import * as moment from 'moment';
-import { EntryService } from 'src/domain/services/entry/entry.service';
+import { EntryService } from 'src/domain/services/entry.service';
 import { UsersService } from 'src/domain/services/users.service';
 import { EntryController } from 'src/interface/controllers/entry.controller';
 import {

@@ -2,7 +2,6 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
 import { Cache } from 'cache-manager';
 import { FiltersDto } from 'src/interface/dtos/filtersDto';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {
   FILTERS_REPOSITORY,
   IFiltersRepository,

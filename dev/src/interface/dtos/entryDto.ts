@@ -2,7 +2,6 @@ import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
   IsDate,
-  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
@@ -82,59 +81,4 @@ export class GetEntryOfWorksByDayDTO {
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
   idParceira: number[];
-}
-
-export class InsertMarketWorksDTO {
-  @IsString()
-  @IsNotEmpty()
-  obra: string;
-
-  @IsString()
-  pep: string;
-
-  @IsString()
-  diagrama: string;
-
-  @IsDate()
-  @Type(() => Date)
-  entrada: Date;
-
-  @IsString()
-  gpm: string;
-
-  @IsString()
-  tipo: string;
-
-  @IsString()
-  circuito: string;
-
-  @IsString()
-  prazoTexto: string;
-
-  @IsString()
-  tecnicoResp: string;
-
-  @IsNumber()
-  statusOv: number;
-
-  @IsString()
-  statusDiagrama: number;
-
-  @IsString()
-  statusPep: string;
-
-  @IsString()
-  equipeNumPedido: string;
-
-  @IsNumber()
-  moCliente: number;
-
-  @IsNumber()
-  moEmpresa: number;
-
-  @IsString()
-  observacao: string;
-
-  @IsString()
-  turma: string;
 }

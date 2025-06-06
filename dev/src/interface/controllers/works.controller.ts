@@ -4,7 +4,7 @@ import { GetAllWorksService } from 'src/domain/services/works/getAllWorks.servic
 import { GetCompletedWorksService } from 'src/domain/services/works/getCompletedWorks.service';
 import { GetWorkDetailsService } from 'src/domain/services/works/getWorkDetails.service';
 import { GetWorksInPortfolioService } from 'src/domain/services/works/getWorksInPortfolio.service';
-import { InsertMarketWorksService } from 'src/domain/services/works/InsertMarketWorks.service';
+import { InsertWorksService } from 'src/domain/services/works/InsertWorks.service';
 import { GetAllWorksDTO, GetWorksDTO } from 'src/interface/dtos/worksDto';
 
 import {
@@ -19,7 +19,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
-import { InsertMarketWorksDTO } from '../dtos/entryDto';
+import { InsertMarketWorksDTO, InsertNotesDTO } from '../dtos/auxiliaryBaseDTO';
 
 @Controller('obras')
 export class WorksController {
@@ -28,7 +28,7 @@ export class WorksController {
     private getAllWorksService: GetAllWorksService,
     private getCompletedWorksService: GetCompletedWorksService,
     private getWorkDetailsService: GetWorkDetailsService,
-    private insertMarketWorksService: InsertMarketWorksService,
+    private insertWorksService: InsertWorksService,
   ) {}
 
   @Get()
@@ -85,14 +85,26 @@ export class WorksController {
   async InsertMarketWorks(
     @Body() marketWorksParameters: InsertMarketWorksDTO[],
   ) {
-    const response = await this.insertMarketWorksService.insertMany(
-      marketWorksParameters,
-    );
+    console.log(marketWorksParameters);
+    const { insertedCount, message, skipped } =
+      await this.insertWorksService.insertMarketWorks(marketWorksParameters);
 
     return {
       statusCode: HttpStatus.OK,
-      message: 'Obra de mercado inserida com sucesso',
-      data: response,
+      message,
+      insertedCount,
+      skipped,
+    };
+  }
+
+  @Post('inserir-notas')
+  @UseGuards(PermissionGuard)
+  async InsertNotes(@Body() data: InsertNotesDTO[]) {
+    await this.insertWorksService.insertNotes(data);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Notas inseridas com sucesso',
     };
   }
 }

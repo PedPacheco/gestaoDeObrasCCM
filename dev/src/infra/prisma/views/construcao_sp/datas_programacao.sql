@@ -10,6 +10,7 @@ WITH rankedprogramacoes AS (
     programacoes.equipe_linha_viva,
     programacoes.equipe_regularizacao,
     programacoes.chi,
+    programacoes.observ_programacao,
     programacoes.id_tecnico,
     COALESCE(
       obras.diagrama,
@@ -68,7 +69,8 @@ SELECT
   rp.equipe_regularizacao,
   rp.id_tecnico,
   rp.chi,
-  rp.ordemdiagrama
+  rp.ordemdiagrama,
+  rp.observ_programacao
 FROM
   (
     rankedprogramacoes rp

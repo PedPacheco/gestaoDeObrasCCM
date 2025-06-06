@@ -1,9 +1,8 @@
-import { Cache } from 'cache-manager';
 import { GoalsDTO } from 'src/interface/dtos/goalsDto';
 import { Goals } from 'src/interface/types/goalsInterface';
 
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
+
 import {
   GOALS_REPOSITORY,
   IGoalsRepository,
