@@ -28,6 +28,16 @@ export const links = [
     needPermission: true,
     submenu: [
       {
+        name: "Importação mercado",
+        href: "/entrada/mercado",
+        needPermission: true,
+      },
+      {
+        name: "Importação notas",
+        href: "/entrada/notas",
+        needPermission: true,
+      },
+      {
         name: "Entrada por data",
         href: "/entrada/por-data",
         needPermission: true,

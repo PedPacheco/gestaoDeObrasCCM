@@ -42,12 +42,12 @@ export default function ModalComponent({
             id="custom-modal-title"
             variant="h6"
             component="h2"
-            className="text-center mb-4 font-bold text-2xl"
+            className="text-center mb-4 font-bold text-3xl"
           >
             {title}
           </Typography>
         )}
-        <div id="custom-modal-description" className="mt-4 h-full">
+        <div id="custom-modal-description" className="mt-4 h-full text-center">
           {children}
         </div>
         <ButtonComponent

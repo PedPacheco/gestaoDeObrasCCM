@@ -1,3 +1,5 @@
+"use server";
+
 import { mountUrl } from "@/utils/mountUrl";
 
 export async function fetchData<T>(
