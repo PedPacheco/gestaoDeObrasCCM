@@ -164,6 +164,12 @@ export class InsertAuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     }
   }
 
+  private formatValue(value: string | number | null | undefined): string {
+    if (value === null || value === undefined) return 'NULL';
+    if (typeof value === 'number') return value.toString();
+    return `'${value}'`;
+  }
+
   async insertNotes(data: DataAuxiliaryNotes): Promise<any> {
     try {
       const formattedPayload = data.notesData.map((d) => {
@@ -172,19 +178,19 @@ export class InsertAuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
         );
 
         return `(
-          '${d.campo_ordenacao}',
-          '${d.pep}',
-          '${d.ordem_dci}',
-          '${d.ordem_dcd}',
-          '${d.ordem_dca}',
-          '${d.ordem_dcim}',
-          '${d.conjunto}',
-          '${d.grp_plnj_pm}',
-          '${d.texto_breve}',
-          '${d.denominacao}',
-          ${valores?.mo_calc ?? 0},
-          ${valores?.qtde_calc ?? 0},
-          ${valores?.capex_mat_calc ?? 0}
+          ${this.formatValue(d.campo_ordenacao)},
+          ${this.formatValue(d.pep)},
+          ${this.formatValue(d.ordem_dci)},
+          ${this.formatValue(d.ordem_dcd)},
+          ${this.formatValue(d.ordem_dca)},
+          ${this.formatValue(d.ordem_dcim)},
+          ${this.formatValue(d.conjunto)},
+          ${this.formatValue(d.grp_plnj_pm)},
+          ${this.formatValue(d.texto_breve)},
+          ${this.formatValue(d.denominacao)},
+          ${this.formatValue(valores?.mo_calc ?? 0)},
+          ${this.formatValue(valores?.qtde_calc ?? 0)},
+          ${this.formatValue(valores?.capex_mat_calc ?? 0)}
         )`;
       });
 

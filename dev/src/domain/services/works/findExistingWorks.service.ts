@@ -18,11 +18,11 @@ export class FindExistingWorksService {
     );
   }
 
-  async findExistingNotes(notes: string) {
+  async findExistingNotes(notes: string[]) {
     return await this.findExistingWorksRepository.findExistingNotes(notes);
   }
 
-  async findExistingOrders(orders: filtersOrders) {
+  async findExistingOrders(orders: filtersOrders[]) {
     return await this.findExistingWorksRepository.findExistingOrders(orders);
   }
 }

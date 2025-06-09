@@ -101,39 +101,40 @@ export class AuxiliaryBaseService {
     }
   }
 
-  // Promise<{
-  //   insertedCount: number;
-  //   skippedNotes: string[];
-  //   skippedOrders: string[];
-  // }>
-
-  async insertAuxiliaryBaseNotes(
-    data: InsertBaseAuxiliaryNotesDTO[],
-  ): Promise<any> {
-    const validatedData: NotesDTO[] = [];
+  async insertAuxiliaryBaseNotes(data: InsertBaseAuxiliaryNotesDTO[]): Promise<{
+    insertedCount: number;
+    skippedNotes: string[];
+    skippedOrders: string[];
+  }> {
+    const validatedData: InsertBaseAuxiliaryNotesDTO[] = [];
     const skippedNotes: string[] = [];
     const skippedOrders: string[] = [];
 
-    const calculatedMap = new Map<string, calculatedValuesType>();
+    if (!data.length)
+      return { insertedCount: 0, skippedNotes: [], skippedOrders: [] };
+
+    const allOrderingFields = data.map(
+      (item) => item.notesData.campo_ordenacao,
+    );
+
+    const [existingNotes, existingOrders] = await Promise.all([
+      this.findExistingWorksService.findExistingNotes(allOrderingFields),
+      this.findExistingWorksService.findExistingOrders(
+        data.map((item) => ({
+          ordem_dci: item.notesData.ordem_dci,
+          ordem_dcd: item.notesData.ordem_dcd,
+          ordem_dca: item.notesData.ordem_dca,
+          ordem_dcim: item.notesData.ordem_dcim,
+        })),
+      ),
+    ]);
+
+    const existingNotesSet = new Set(existingNotes);
+    const existingOrdersSet = new Set(existingOrders);
 
     for (let item of data) {
-      const { notesData, materialData } = item;
-      const [existingNotesList, existingOrdersList] = await Promise.all([
-        this.findExistingWorksService.findExistingNotes(
-          notesData.campo_ordenacao,
-        ),
-        this.findExistingWorksService.findExistingOrders({
-          ordem_dci: notesData.ordem_dci,
-          ordem_dcd: notesData.ordem_dcd,
-          ordem_dca: notesData.ordem_dca,
-          ordem_dcim: notesData.ordem_dcim,
-        }),
-      ]);
-
-      const existingNotes = new Set(existingNotesList);
-      const existingOrders = new Set(existingOrdersList);
-
-      const noteExists = existingNotes.has(notesData.campo_ordenacao);
+      const { notesData } = item;
+      const noteExists = existingNotesSet.has(notesData.campo_ordenacao);
       const orderExists = [
         notesData.ordem_dci,
         notesData.ordem_dcd,
@@ -141,7 +142,7 @@ export class AuxiliaryBaseService {
         notesData.ordem_dcim,
       ]
         .filter(Boolean)
-        .some((order) => existingOrders.has(order));
+        .some((order) => existingOrdersSet.has(order));
 
       if (noteExists || orderExists) {
         if (noteExists) skippedNotes.push(notesData.campo_ordenacao);
@@ -149,71 +150,58 @@ export class AuxiliaryBaseService {
         continue;
       }
 
-      validatedData.push(notesData);
-
-      const uniqueFatorKeys = Array.from(
-        new Set(materialData.map((m) => `${m.material}|${m.def_proj}`)),
-      );
-
-      const fatorInput = uniqueFatorKeys.map((key) => {
-        const [material, pep_ref] = key.split('|');
-        return { material, pep_ref };
-      });
-
-      const fatorMap = await this.auxiliaryBaseRepository.getFator(fatorInput);
-
-      const mapKey = notesData.campo_ordenacao;
-
-      let qtde_calc = 0;
-      let mo_calc = 0;
-      let capex_mat_calc = 0;
-
-      for (const material of materialData) {
-        const fator =
-          fatorMap.get(`${material.material}|${material.def_proj}`) ?? 0;
-
-        if (fator !== 0) {
-          qtde_calc += material.qtd_necess / fator;
-        }
-
-        if (
-          material.ctg_item === 'N' &&
-          material.um_registro === 'SRV' &&
-          !material.texto_material.toUpperCase().includes('ENTREGA')
-        ) {
-          mo_calc += material.preco_mi * material.qtd_necess;
-        }
-
-        if (material.ctg_item === 'L') {
-          capex_mat_calc += material.qtd_necess * material.preco_mi;
-        }
-      }
-
-      const current = calculatedMap.get(mapKey);
-
-      if (!current) {
-        calculatedMap.set(mapKey, {
-          diagrama_rede: notesData.campo_ordenacao,
-          qtde_calc,
-          mo_calc,
-          capex_mat_calc,
-        });
-      } else {
-        current.qtde_calc += qtde_calc;
-        current.mo_calc += mo_calc;
-        current.capex_mat_calc += capex_mat_calc;
-      }
+      validatedData.push(item);
     }
 
+    const allMaterials = validatedData.flatMap((item) =>
+      item.materialData.map((material) => ({
+        material: material.material,
+        pep_ref: material.def_proj,
+      })),
+    );
+
+    const fatorMap = await this.auxiliaryBaseRepository.getFator(allMaterials);
+
+    const notesData = validatedData.map((item) => item.notesData);
+    const calculatedValues = validatedData.map((item) => {
+      const { materialData, notesData } = item;
+
+      return materialData.reduce(
+        (acc, material) => {
+          const fator =
+            fatorMap.get(`${material.material}|${material.def_proj}`) ?? 0;
+
+          acc.diagrama_rede = notesData.campo_ordenacao;
+
+          if (fator !== 0) {
+            acc.qtde_calc += material.qtd_necess / fator;
+          }
+
+          if (
+            material.ctg_item === 'N' &&
+            material.um_registro === 'SRV' &&
+            !material.texto_material.toUpperCase().includes('ENTREGA')
+          ) {
+            acc.mo_calc += material.preco_mi * material.qtd_necess;
+          }
+
+          if (material.ctg_item === 'L') {
+            acc.capex_mat_calc += material.qtd_necess * material.preco_mi;
+          }
+
+          return acc;
+        },
+        { diagrama_rede: '', qtde_calc: 0, mo_calc: 0, capex_mat_calc: 0 },
+      );
+    });
+
     if (validatedData.length === 0) {
-      return {
-        skippedNotes,
-      };
+      return { insertedCount: 0, skippedNotes: [], skippedOrders: [] };
     }
 
     await this.auxiliaryBaseRepository.insertNotes({
-      notesData: validatedData,
-      calculatedValues: Array.from(calculatedMap.values()),
+      notesData,
+      calculatedValues,
     });
 
     return {

@@ -7,8 +7,8 @@ export interface filtersOrders {
 
 export interface IFindExistingWorksRepository {
   findExistingMarketWorks(marketEntry: string[]): Promise<string[]>;
-  findExistingNotes(note: string): Promise<string[]>;
-  findExistingOrders(orders: filtersOrders): Promise<string[]>;
+  findExistingNotes(note: string[]): Promise<string[]>;
+  findExistingOrders(orders: filtersOrders[]): Promise<string[]>;
 }
 
 export const FIND_EXISITING_WORKS_REPOSITORY = Symbol(

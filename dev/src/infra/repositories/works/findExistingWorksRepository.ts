@@ -22,27 +22,41 @@ export class FindExistingWorksRepository
     return existing.map((work) => work.ovnota);
   }
 
-  async findExistingNotes(note: string): Promise<string[]> {
+  async findExistingNotes(note: string[]): Promise<string[]> {
     const existing = await this.prisma.obras.findMany({
-      where: { ovnota: note },
+      where: { ovnota: { in: note } },
       select: { ovnota: true },
     });
 
     return existing.map((n) => n.ovnota);
   }
 
-  async findExistingOrders(orders: filtersOrders): Promise<string[]> {
-    const { ordem_dca, ordem_dcd, ordem_dcim, ordem_dci } = orders;
+  async findExistingOrders(orders: filtersOrders[]): Promise<string[]> {
+    if (!orders.length) return [];
+
+    const orderFields = [
+      'ordem_dci',
+      'ordem_dcd',
+      'ordem_dca',
+      'ordem_dcim',
+    ] as const;
+
+    const uniqueValues = orderFields.reduce(
+      (acc, field) => {
+        acc[field] = [...new Set(orders.map((o) => o[field]).filter(Boolean))];
+        return acc;
+      },
+      {} as Record<string, string[]>,
+    );
+
+    const orFilters = Object.entries(uniqueValues)
+      .filter(([, values]) => values.length > 0)
+      .map(([field, values]) => ({ [field]: { in: values } }));
+
+    if (!orFilters.length) return [];
 
     const existing = await this.prisma.obras.findMany({
-      where: {
-        OR: [
-          ordem_dci ? { ordem_dci } : undefined,
-          ordem_dcd ? { ordem_dcd } : undefined,
-          ordem_dca ? { ordem_dca } : undefined,
-          ordem_dcim ? { ordem_dcim } : undefined,
-        ].filter(Boolean),
-      },
+      where: { OR: orFilters },
       select: {
         ordem_dci: true,
         ordem_dcd: true,
