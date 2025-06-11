@@ -8,7 +8,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
-export class InsertAuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
+export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async getAuxiliaryBaseNotes(idRegional?: number): Promise<any[]> {

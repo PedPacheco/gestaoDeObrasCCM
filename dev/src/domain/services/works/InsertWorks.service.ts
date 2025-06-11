@@ -54,7 +54,7 @@ export class InsertWorksService {
     const marketEntry = [...new Set(works.map((item) => item.obra))];
 
     const existingOvs =
-      await this.findExistingWorksService.findExistingMarketWorks(marketEntry);
+      await this.findExistingWorksService.findExistingWorks(marketEntry);
 
     const existingOvsSet = new Set(existingOvs);
 
@@ -103,7 +103,7 @@ export class InsertWorksService {
         dataEntries.aux_turma,
         dataEntries.aux_empreendimento,
         dataEntries.aux_circuito,
-        group.id_group,
+        group.id_grupo,
         work.capex_mat_plan,
         work.capex_mo_plan,
         dataEntries.anoplan,

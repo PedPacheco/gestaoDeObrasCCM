@@ -11,24 +11,15 @@ export class FindExistingWorksRepository
 {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findExistingMarketWorks(ovs: string[]): Promise<string[]> {
-    if (ovs.length === 0) return [];
+  async findExistingWorks(works: string[]): Promise<string[]> {
+    if (works.length === 0) return [];
 
     const existing = await this.prisma.obras.findMany({
-      where: { ovnota: { in: ovs } },
+      where: { ovnota: { in: works } },
       select: { ovnota: true },
     });
 
     return existing.map((work) => work.ovnota);
-  }
-
-  async findExistingNotes(note: string[]): Promise<string[]> {
-    const existing = await this.prisma.obras.findMany({
-      where: { ovnota: { in: note } },
-      select: { ovnota: true },
-    });
-
-    return existing.map((n) => n.ovnota);
   }
 
   async findExistingOrders(orders: filtersOrders[]): Promise<string[]> {

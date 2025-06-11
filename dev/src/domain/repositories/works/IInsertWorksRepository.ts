@@ -2,7 +2,7 @@ import { NoteWorks, Work } from 'src/domain/entities/works.entity';
 
 export interface Groups {
   id: number;
-  id_group: number;
+  id_grupo: number;
 }
 
 export interface IInsertWorksRepository {

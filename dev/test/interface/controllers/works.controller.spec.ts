@@ -6,10 +6,18 @@ import { GetWorkDetailsService } from 'src/domain/services/works/getWorkDetails.
 import { GetWorksInPortfolioService } from 'src/domain/services/works/getWorksInPortfolio.service';
 import { WorksController } from 'src/interface/controllers/works.controller';
 import { GetAllWorksDTO, GetWorksDTO } from 'src/interface/dtos/worksDto';
-import { worksInPortfolioResponseService } from 'src/interface/types/works/getWorksInPortfolioInterface';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+
+import { InsertWorksService } from '../../../src/domain/services/works/InsertWorks.service';
+import {
+  mockAllWorks,
+  mockInsertNotesController,
+  mockMarketWorks,
+  mockResponseDetails,
+  mockWorksInPortfolio,
+} from '../../mocks/mockWorksController';
 
 describe('WorksController', () => {
   let worksController: WorksController;
@@ -17,6 +25,7 @@ describe('WorksController', () => {
   let getCompletedWorksService: GetCompletedWorksService;
   let getWorksInPortfolio: GetWorksInPortfolioService;
   let getWorkDetailsService: GetWorkDetailsService;
+  let insertWorksService: InsertWorksService;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -36,6 +45,10 @@ describe('WorksController', () => {
           useValue: { getWorksInPortfolio: jest.fn() },
         },
         { provide: UsersService, useValue: { findUser: jest.fn() } },
+        {
+          provide: InsertWorksService,
+          useValue: { insertMarketWorks: jest.fn(), insertNotes: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -50,60 +63,12 @@ describe('WorksController', () => {
     getWorkDetailsService = module.get<GetWorkDetailsService>(
       GetWorkDetailsService,
     );
+    insertWorksService = module.get<InsertWorksService>(InsertWorksService);
   });
 
   it('Should be defined', () => {
     expect(worksController).toBeDefined();
   });
-
-  const dataResponse: worksInPortfolioResponseService = {
-    works: [
-      {
-        id: 17617,
-        ovnota: '15373379',
-        ordemdiagrama: '170000015211',
-        status_ov_sap: 99,
-        pep: 'X/005016',
-        ordem_dcd: '190000016813',
-        ordem_dca: '150000001995',
-        ordem_dcim: null,
-        mun: 'SAE',
-        tipo_obra: 'RISCO A SEGURANÇA',
-        entrada: new Date('04/09/2024'),
-        prazo_fim: null,
-        qtde_planejada: 0,
-        mo_planejada: 91105.824,
-        turma: 'ENGELMIG',
-        executado: 100,
-        status: 'EXECUTADA',
-        prazo: 0,
-        contagem_ocorrencias: 0,
-        qtde_pend: 0,
-        circuito: '',
-        first_data_prog: undefined,
-        id_status: 0,
-        hora_ini: '',
-        hora_ter: '',
-        tipo_servico: '',
-        chi: 0,
-        conjunto: '',
-        equipe_linha_morta: 0,
-        equipe_linha_viva: 0,
-        equipe_regularizacao: 0,
-        abrev_regional: '',
-        data_empreitamento: undefined,
-        empreendimento: '',
-      },
-    ],
-    totals: {
-      total_obras: 1,
-      total_mo_planejada: 91105.824,
-      total_mo_exec: 91105.824,
-      total_mo_suspensa: 0,
-      total_qtde_planejada: 0,
-      total_qtde_pend: 0,
-    },
-  };
 
   describe('getAllWorks', () => {
     it('Should build filters, get works with filters and return the result with correct format', async () => {
@@ -115,48 +80,6 @@ describe('WorksController', () => {
         idStatus: undefined,
         idTipo: undefined,
         page: 0,
-      };
-
-      const mockAllWorks = {
-        works: [
-          {
-            id: 21068,
-            ovnota: '15509718',
-            ordemdiagrama: '180000002321',
-            status_ov_sap: 99,
-            pep: null,
-            status_pep: null,
-            diagrama: null,
-            status_diagrama: null,
-            ordem_dci: null,
-            status_170: null,
-            status_usuario_170: null,
-            ordem_dcd: null,
-            status_190: null,
-            status_usuario_190: null,
-            ordem_dca: null,
-            status_150: null,
-            status_usuario_150: null,
-            ordem_dcim: '180000002321',
-            status_180: 'ENTE',
-            status_usuario_180: 'ENTE',
-            mun: 'GUL',
-            tipo_obra: 'BT ZERO',
-            entrada: null,
-            prazo_fim: null,
-            qtde_planejada: 1,
-            mo_planejada: 6055.68,
-            mo_final: null,
-            turma: 'MANSERV',
-            executado: 100,
-            data_conclusao: new Date('2024-10-17T00:00:00.000Z'),
-            last_data_prog: null,
-            status: 'EXECUTADA',
-            observ_obra: null,
-            referencia: '045BF005304969',
-          },
-        ],
-        totalRecords: 1,
       };
 
       jest
@@ -196,14 +119,14 @@ describe('WorksController', () => {
 
       jest
         .spyOn(getCompletedWorksService, 'getCompletedWorks')
-        .mockResolvedValue(dataResponse);
+        .mockResolvedValue(mockWorksInPortfolio);
 
       const result = await worksController.GetCompletedWorks(worksDTO);
 
       const expectedResponse = {
         statusCode: HttpStatus.OK,
         message: 'Obras em executadas retornadas com sucesso',
-        data: dataResponse,
+        data: mockWorksInPortfolio,
       };
 
       expect(getCompletedWorksService.getCompletedWorks).toHaveBeenCalledWith(
@@ -233,14 +156,14 @@ describe('WorksController', () => {
 
       jest
         .spyOn(getWorksInPortfolio, 'getWorksInPortfolio')
-        .mockResolvedValue(dataResponse);
+        .mockResolvedValue(mockWorksInPortfolio);
 
       const result = await worksController.getWorksInPortfolio(worksDTO);
 
       const expectedResponse = {
         statusCode: HttpStatus.OK,
         message: 'Obras em carteira retornadas com sucesso',
-        data: dataResponse,
+        data: mockWorksInPortfolio,
       };
 
       expect(getWorksInPortfolio.getWorksInPortfolio).toHaveBeenCalledWith(
@@ -253,77 +176,6 @@ describe('WorksController', () => {
   describe('getWorkDetails', () => {
     it('Should build filters, get details works with filters and return the result with correct format', async () => {
       const worksDetails = 2;
-
-      const mockResponseDetails = {
-        ovnota: '12791122',
-        pep: 'X/004604',
-        status_pep: null,
-        diagrama: null,
-        diagrama_antigo: null,
-        ordem_dci: '170000004647',
-        ordem_dci_antigo: '162000082852',
-        ordem_dcd: '190000006101',
-        ordem_dcd_antigo: '163000076717',
-        ordem_dca: null,
-        ordem_dca_antigo: null,
-        ordem_dcim: null,
-        ordem_dcim_antigo: null,
-        status_ov_sap: 20,
-        status_diagrama: null,
-        status_usuario_diagrama: null,
-        status_150: null,
-        status_usuario_150: null,
-        status_170: 'LIB ',
-        status_usuario_170: 'PLAR',
-        status_180: null,
-        status_usuario_180: null,
-        status_190: 'LIB ',
-        status_usuario_190: 'EXEC',
-        entrada: new Date('2023-04-18T00:00:00.000Z'),
-        observ_obra: 'Obra executada',
-        prazo: 90,
-        data_conclusao: null,
-        executado: 45,
-        qtde_planejada: 0.772,
-        qtde_pend: 0.77165,
-        mo_planejada: 89223.8157,
-        mo_final: null,
-        referencia: '190BF006190439',
-        capex_mat_pend: 186326.1654099993,
-        capex_mat_plan: 186326.1654099993,
-        capex_mo_pend: 64982.8126,
-        capex_mo_plan: 74310.44331999999,
-        tipo_ads: 'CONVENCIONAL',
-        data_empreitamento: new Date('2024-08-06T00:00:00.000Z'),
-        ano_plan: 2024,
-        circuitos: 'CAC-1302',
-        empreendimento: null,
-        municipios: 'MONTEIRO LOBATO',
-        tipos: 'SPACER CABLE',
-        grupo: 2,
-        turmas: 'ENGELMIG',
-        status: 'PROGRAMADO',
-        programacoes: [
-          {
-            data_prog: new Date('2024-09-19T00:00:00.000Z'),
-            hora_ini: new Date('1970-01-01T08:00:00.000Z'),
-            hora_ter: new Date('1970-01-01T17:00:00.000Z'),
-            tipo_servico: 'OBRA LIVRE',
-            prog: 45,
-            exec: null,
-            observ_programacao: 'TRECHO LIVRE',
-            chi: 0,
-            num_dp: null,
-            chave_provisoria: false,
-            equipe_linha_morta: 12,
-            equipe_linha_viva: 3,
-            equipe_regularizacao: 0,
-            tecnico: 'NÃO DEFINIDO',
-            restricao: null,
-            nome_responsavel_execucao: null,
-          },
-        ],
-      };
 
       jest
         .spyOn(getWorkDetailsService, 'get')
@@ -338,6 +190,50 @@ describe('WorksController', () => {
       };
 
       expect(getWorkDetailsService.get).toHaveBeenCalledWith(worksDetails);
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('InsertMarketWorks', () => {
+    it('Should be call the method insertMarketWorks and return the correctly data', async () => {
+      jest.spyOn(insertWorksService, 'insertMarketWorks').mockResolvedValue({
+        insertedCount: 1,
+        message: 'Inserção concluída com sucesso.',
+        skipped: ['14895757'],
+      });
+
+      const result = await worksController.InsertMarketWorks(mockMarketWorks);
+
+      const expectedResponse = {
+        statusCode: HttpStatus.OK,
+        message: 'Inserção concluída com sucesso.',
+        insertedCount: 1,
+        skipped: ['14895757'],
+      };
+
+      expect(insertWorksService.insertMarketWorks).toHaveBeenCalledWith(
+        mockMarketWorks,
+      );
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('InsertNotes', () => {
+    it('Should be call the method insertNotes and return the correctly data', async () => {
+      jest.spyOn(insertWorksService, 'insertNotes').mockResolvedValue();
+
+      const result = await worksController.InsertNotes(
+        mockInsertNotesController,
+      );
+
+      const expectedResponse = {
+        statusCode: HttpStatus.OK,
+        message: 'Notas inseridas com sucesso',
+      };
+
+      expect(insertWorksService.insertNotes).toHaveBeenCalledWith(
+        mockInsertNotesController,
+      );
       expect(result).toEqual(expectedResponse);
     });
   });

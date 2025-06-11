@@ -85,7 +85,6 @@ export class WorksController {
   async InsertMarketWorks(
     @Body() marketWorksParameters: InsertMarketWorksDTO[],
   ) {
-    console.log(marketWorksParameters);
     const { insertedCount, message, skipped } =
       await this.insertWorksService.insertMarketWorks(marketWorksParameters);
 

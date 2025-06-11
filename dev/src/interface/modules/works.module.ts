@@ -34,7 +34,6 @@ import { UsersModule } from './users.module';
     GetCompletedWorksService,
     GetWorkDetailsService,
     InsertWorksService,
-
     { provide: GET_ALL_WORKS_REPOSITORY, useClass: GetAllWorksRepository },
     {
       provide: GET_COMPLETED_WORKS_REPOSITORY,

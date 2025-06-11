@@ -118,7 +118,7 @@ export class AuxiliaryBaseService {
     );
 
     const [existingNotes, existingOrders] = await Promise.all([
-      this.findExistingWorksService.findExistingNotes(allOrderingFields),
+      this.findExistingWorksService.findExistingWorks(allOrderingFields),
       this.findExistingWorksService.findExistingOrders(
         data.map((item) => ({
           ordem_dci: item.notesData.ordem_dci,
@@ -217,7 +217,7 @@ export class AuxiliaryBaseService {
     const marketEntry = [...new Set(data.map((item) => item.obra))];
 
     const existingOvs =
-      await this.findExistingWorksService.findExistingMarketWorks(marketEntry);
+      await this.findExistingWorksService.findExistingWorks(marketEntry);
 
     const existingOvsSet = new Set(existingOvs);
 

@@ -1,6 +1,6 @@
 import { AUXILIARY_BASE_REPOSITORY } from 'src/domain/repositories/IAuxiliaryBaseRepository';
 import { AuxiliaryBaseService } from 'src/domain/services/auxiliaryBase.service';
-import { InsertAuxiliaryBaseRepository } from 'src/infra/repositories/auxiliaryBaseRepository';
+import { AuxiliaryBaseRepository } from 'src/infra/repositories/auxiliaryBaseRepository';
 
 import { forwardRef, Module } from '@nestjs/common';
 import { UsersModule } from './users.module';
@@ -14,7 +14,7 @@ import { WorksModule } from './works.module';
     AuxiliaryBaseService,
     {
       provide: AUXILIARY_BASE_REPOSITORY,
-      useClass: InsertAuxiliaryBaseRepository,
+      useClass: AuxiliaryBaseRepository,
     },
   ],
   exports: [AuxiliaryBaseService],
