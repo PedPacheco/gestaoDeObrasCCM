@@ -40,6 +40,8 @@ export class CustomExceptionFilter implements ExceptionFilter {
           case HttpStatus.NOT_FOUND:
             message = 'O recurso solicitado não foi encontrado';
             break;
+          case HttpStatus.CONFLICT:
+            message = 'Dados já existentes';
           default:
             message = exception.message;
             break;

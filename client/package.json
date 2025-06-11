@@ -17,6 +17,7 @@
     "@mui/material": "^5.15.15",
     "@mui/x-date-pickers": "^7.18.0",
     "dayjs": "^1.11.13",
+    "exceljs": "^4.4.0",
     "jose": "^5.8.0",
     "jwt-decode": "^4.0.0",
     "next": "^15.2.4",

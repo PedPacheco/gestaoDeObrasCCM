@@ -4,17 +4,22 @@ import { GetAllWorksService } from 'src/domain/services/works/getAllWorks.servic
 import { GetCompletedWorksService } from 'src/domain/services/works/getCompletedWorks.service';
 import { GetWorkDetailsService } from 'src/domain/services/works/getWorkDetails.service';
 import { GetWorksInPortfolioService } from 'src/domain/services/works/getWorksInPortfolio.service';
+import { InsertWorksService } from 'src/domain/services/works/InsertWorks.service';
 import { GetAllWorksDTO, GetWorksDTO } from 'src/interface/dtos/worksDto';
 
 import {
+  Body,
   Controller,
   Get,
   HttpStatus,
   Param,
   ParseIntPipe,
+  Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
+
+import { InsertMarketWorksDTO, InsertNotesDTO } from '../dtos/auxiliaryBaseDTO';
 
 @Controller('obras')
 export class WorksController {
@@ -23,6 +28,7 @@ export class WorksController {
     private getAllWorksService: GetAllWorksService,
     private getCompletedWorksService: GetCompletedWorksService,
     private getWorkDetailsService: GetWorkDetailsService,
+    private insertWorksService: InsertWorksService,
   ) {}
 
   @Get()
@@ -71,6 +77,33 @@ export class WorksController {
       statusCode: HttpStatus.OK,
       message: 'Retornado os detalhes da obra',
       data: response,
+    };
+  }
+
+  @Post('inserir-ov')
+  @UseGuards(PermissionGuard)
+  async InsertMarketWorks(
+    @Body() marketWorksParameters: InsertMarketWorksDTO[],
+  ) {
+    const { insertedCount, message, skipped } =
+      await this.insertWorksService.insertMarketWorks(marketWorksParameters);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message,
+      insertedCount,
+      skipped,
+    };
+  }
+
+  @Post('inserir-notas')
+  @UseGuards(PermissionGuard)
+  async InsertNotes(@Body() data: InsertNotesDTO[]) {
+    await this.insertWorksService.insertNotes(data);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Notas inseridas com sucesso',
     };
   }
 }

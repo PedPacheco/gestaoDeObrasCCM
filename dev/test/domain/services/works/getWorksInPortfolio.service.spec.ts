@@ -1,16 +1,14 @@
 import { Cache } from 'cache-manager';
+import { GET_WORKS_IN_PORTFOLIO_REPOSITORY } from 'src/domain/repositories/works/IGetWorksInPortfolioRepository';
 import { GetWorksInPortfolioService } from 'src/domain/services/works/getWorksInPortfolio.service';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Test } from '@nestjs/testing';
-import { GET_WORKS_IN_PORTFOLIO_REPOSITORY } from 'src/domain/repositories/works/IGetWorksInPortfolioRepository';
 
 describe('GetWorksInPortfolioService', () => {
   let getWorksInPortfolioService: GetWorksInPortfolioService;
   let cacheManager: Cache;
-  let initialQuery: string;
 
   const mockRepository = {
     getWorksInPortfolio: jest.fn(),
@@ -19,10 +17,6 @@ describe('GetWorksInPortfolioService', () => {
   const mockCacheManager = {
     get: jest.fn(),
     set: jest.fn(),
-  };
-
-  const mockPrismaService = {
-    $queryRaw: jest.fn(),
   };
 
   const mockWorks = [

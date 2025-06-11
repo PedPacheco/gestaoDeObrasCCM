@@ -1,10 +1,11 @@
-import { Get, Controller, Query, UseGuards, HttpStatus } from '@nestjs/common';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { EntryService } from 'src/domain/services/entry.service';
 import {
   GetEntryOfWorksByDayDTO,
   GetEntryOfWorksDTO,
 } from 'src/interface/dtos/entryDto';
+
+import { Controller, Get, HttpStatus, Query, UseGuards } from '@nestjs/common';
 
 @Controller('entrada')
 export class EntryController {
