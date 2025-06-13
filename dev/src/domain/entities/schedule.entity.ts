@@ -1,3 +1,5 @@
+import { BadRequestException } from '@nestjs/common';
+
 export class Schedule {
   constructor(
     public readonly idWork: number,
@@ -31,15 +33,17 @@ export class Schedule {
 
   private validate(): void {
     if (!this.idWork || this.idWork <= 0) {
-      throw new Error('ID da obra é obrigatório');
+      throw new BadRequestException('ID da obra é obrigatório');
     }
 
     if (this.prog < 0 || this.prog > 100) {
-      throw new Error('Programado deve estar entre 0 e 100');
+      throw new BadRequestException('Programado deve estar entre 0 e 100');
     }
 
     if (this.startTime >= this.finishTime) {
-      throw new Error('Horário de fim deve ser posterior ao início');
+      throw new BadRequestException(
+        'Horário de fim deve ser posterior ao início',
+      );
     }
   }
 
