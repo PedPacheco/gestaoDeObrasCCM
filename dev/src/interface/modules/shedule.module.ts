@@ -21,17 +21,22 @@ import { GET_TOTAL_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/sc
 import { GetTotalValueScheduleRepository } from 'src/infra/repositories/schedule/getTotalValuesScheduleRepository';
 import { GET_VALUES_WEEKLY_SCHEDULE_REPOSITORY } from 'src/domain/repositories/schedule/IGetValuesWeeklyScheduleRepository';
 import { GetValuesWeeklyScheduleRepository } from 'src/infra/repositories/schedule/getValuesWeeklyScheduleRepository';
+import { AddSchedulesService } from 'src/domain/services/schedule/addSchedules.service';
+import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IAddSchedulesRepository';
+import { AddSchedulesRepository } from 'src/infra/repositories/schedule/addSchedulesRepository';
 
 @Module({
   imports: [UsersModule],
   controllers: [ScheduleController],
   providers: [
+    AddSchedulesService,
     GetTotalValuesScheduleService,
     GetScheduleValuesService,
     GetValuesWeeklyScheduleService,
     GetPendingScheduleValuesService,
     GetScheduleRestrictionsService,
     GetMonthlySummaryService,
+    { provide: ADD_SCHEDULES_REPOSITORY, useClass: AddSchedulesRepository },
     {
       provide: GET_MONTHLY_SUMMARY_REPOSITORY,
       useClass: GetMonthlySummaryRepository,

@@ -20,7 +20,8 @@ export default async function Details({
   const { token, data } = await fetchData<DataResponse>(
     `${process.env.NEXT_PUBLIC_API_URL}/obras/${id}`,
     undefined,
-    (await cookieStore).get("token")?.value
+    (await cookieStore).get("token")?.value,
+    { cache: "no-store" }
   );
 
   const entrada = data.entrada && dayjs(data.entrada);
@@ -43,7 +44,7 @@ export default async function Details({
 
   return (
     <div className="flex flex-col items-center w-full h-full">
-      <div className="w-full h-full mt-6 flex flex-col">
+      <div className="w-full mt-6 flex flex-col">
         <p className="text-2xl mb-4 font-extrabold ml-2 md:ml-8">
           Informações gerais
         </p>
@@ -107,7 +108,7 @@ export default async function Details({
             <DataItem label="Empreendimento" value={data.empreendimento} />
             <DataItem
               label="Executado"
-              value={formatPercentage(data.executado)}
+              value={formatPercentage(data.executado) || ""}
             />
             <DataItem label="Data conclusão" value={data_conclusao} />
           </div>

@@ -10,6 +10,7 @@ import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getSched
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { AddSchedulesService } from 'src/domain/services/schedule/addSchedules.service';
 
 describe('ScheduleController', () => {
   let scheduleController: ScheduleController;
@@ -19,6 +20,7 @@ describe('ScheduleController', () => {
   let getScheduleRestrictionsService: GetScheduleRestrictionsService;
   let getPendingScheduleValuesService: GetPendingScheduleValuesService;
   let getMonthlySummaryService: GetMonthlySummaryService;
+  let addSchedulesService: AddSchedulesService;
 
   const mockScheduleData: GetScheduleValuesResponse = {
     works: [
@@ -104,6 +106,7 @@ describe('ScheduleController', () => {
             getSecondSummary: jest.fn(),
           },
         },
+        { provide: AddSchedulesService, useValue: { add: jest.fn() } },
         { provide: UsersService, useValue: { findUser: jest.fn() } },
       ],
     }).compile();
@@ -128,6 +131,7 @@ describe('ScheduleController', () => {
     getMonthlySummaryService = module.get<GetMonthlySummaryService>(
       GetMonthlySummaryService,
     );
+    addSchedulesService = module.get<AddSchedulesService>(AddSchedulesService);
   });
 
   it('Should be defined', () => {
@@ -447,5 +451,33 @@ describe('ScheduleController', () => {
     expect(getMonthlySummaryService.getSecondSummary).toHaveBeenCalledWith(
       filters,
     );
+  });
+
+  it('Should call addSchedules and return message', async () => {
+    jest.spyOn(addSchedulesService, 'add').mockResolvedValue();
+
+    const date = new Date('2025-06-10T00:00:00.000Z');
+
+    const result = await scheduleController.addSchedules({
+      idWork: 3146044,
+      dataProg: date,
+      startTime: '08:00',
+      finishTime: '07:00',
+      serviceType: 'Inspeção Elétrica',
+      prog: 100,
+    });
+
+    expect(result).toEqual({
+      statusCode: HttpStatus.CREATED,
+      message: 'Programação inserida com sucesso',
+    });
+    expect(addSchedulesService.add).toHaveBeenCalledWith({
+      idWork: 3146044,
+      dataProg: date,
+      startTime: '08:00',
+      finishTime: '07:00',
+      serviceType: 'Inspeção Elétrica',
+      prog: 100,
+    });
   });
 });

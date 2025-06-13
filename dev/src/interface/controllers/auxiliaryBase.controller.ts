@@ -41,7 +41,7 @@ export class AuxiliaryBaseController {
 
     return {
       statusCode: HttpStatus.OK,
-      message: 'Notas inseridas na base auxiliar com sucesso',
+      message: 'Valores das notas na base auxiliar retornadas com sucesso',
       data: response,
     };
   }
@@ -55,7 +55,7 @@ export class AuxiliaryBaseController {
       await this.auxiliaryBaseService.insertAuxiliaryBaseNotes(notesParameters);
 
     return {
-      statusCode: HttpStatus.OK,
+      statusCode: HttpStatus.CREATED,
       message: 'Notas inseridas na base auxiliar com sucesso',
       res,
     };
@@ -69,7 +69,7 @@ export class AuxiliaryBaseController {
     await this.auxiliaryBaseService.insertAuxiliaryBaseMarket(marketParameters);
 
     return {
-      statusCode: HttpStatus.OK,
+      statusCode: HttpStatus.CREATED,
       message: 'Obras de mercado inseridas na base auxiliar com sucesso',
     };
   }

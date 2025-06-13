@@ -42,6 +42,7 @@ export const mockInsertNotesController: InsertNotesDTO[] = [
 ];
 
 export const mockResponseDetails = {
+  id: 1,
   ovnota: '12791122',
   pep: 'X/004604',
   status_pep: null,
@@ -92,6 +93,7 @@ export const mockResponseDetails = {
   status: 'PROGRAMADO',
   programacoes: [
     {
+      id: 1,
       data_prog: new Date('2024-09-19T00:00:00.000Z'),
       hora_ini: new Date('1970-01-01T08:00:00.000Z'),
       hora_ter: new Date('1970-01-01T17:00:00.000Z'),

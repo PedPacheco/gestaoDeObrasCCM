@@ -1,6 +1,7 @@
 import { Partners } from '../common/commonInterface';
 
 export interface Schedules {
+  id: number;
   data_prog: Date;
   hora_ini: Date;
   hora_ter: Date;
@@ -20,6 +21,7 @@ export interface Schedules {
 }
 
 export interface GetWorksDetailsResponse {
+  id: number;
   ovnota: string;
   pep: string | null;
   status_pep: string | null;
