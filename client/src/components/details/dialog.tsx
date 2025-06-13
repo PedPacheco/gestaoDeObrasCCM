@@ -29,6 +29,9 @@ interface ScheduleFormDialogProps {
   onClose: () => void;
   idWork: number;
   IsInsert: boolean;
+  setError: (error: string) => void;
+  setSuccess: (success: string) => void;
+  setOpenModal: (open: boolean) => void;
 }
 
 type FormData = z.infer<typeof validationSchedulesSchema>;
@@ -67,7 +70,10 @@ export default function ScheduleFormDialog({
   open,
   onClose,
   idWork,
+  setError,
   IsInsert,
+  setOpenModal,
+  setSuccess,
 }: ScheduleFormDialogProps) {
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -117,30 +123,39 @@ export default function ScheduleFormDialog({
 
   function handleClick() {
     startTransition(async () => {
-      const result = validationSchedulesSchema.safeParse(formData);
+      try {
+        const result = validationSchedulesSchema.safeParse(formData);
 
-      if (!result.success) {
-        const fieldErrors: Record<string, string> = {};
-        result.error.errors.forEach((err: any) => {
-          const field = err.path[0] as string;
-          fieldErrors[field] = err.message;
-        });
-        setFormErrors(fieldErrors);
-        return;
+        if (!result.success) {
+          const fieldErrors: Record<string, string> = {};
+          result.error.errors.forEach((err: any) => {
+            const field = err.path[0] as string;
+            fieldErrors[field] = err.message;
+          });
+          setFormErrors(fieldErrors);
+          return;
+        }
+
+        const validatedData = { idWork, ...result.data };
+
+        if (IsInsert) {
+          const res = await saveSchedule(validatedData);
+
+          if (!res.success) {
+            setError(res.error);
+            return;
+          }
+
+          setSuccess(res.message);
+
+          handleClose();
+          setOpenModal(true);
+        } else {
+          console.log("Atualizando programação", validatedData);
+        }
+      } catch (error: any) {
+        setError(error.message);
       }
-
-      const validatedData = { idWork, ...result.data };
-
-      if (IsInsert) {
-        console.log(validatedData.exec);
-        const res = await saveSchedule(validatedData);
-
-        console.log(res);
-      } else {
-        console.log("Atualizando programação", validatedData);
-      }
-
-      handleClose();
     });
   }
 

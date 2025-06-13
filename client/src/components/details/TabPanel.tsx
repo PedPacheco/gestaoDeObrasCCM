@@ -6,6 +6,9 @@ import WorkCostPanelItem from "./panelItems/workCostPanelItem";
 import SchedulePanelItem from "./panelItems/schedulePanelItem";
 import { ButtonComponent } from "../common/Button";
 import ScheduleFormDialog from "./dialog";
+import ErrorModal from "../common/ErrorModal";
+import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+import ModalComponent from "../common/Modal";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -33,13 +36,17 @@ function CustomTabPanel(props: TabPanelProps) {
 export default function TabPanel({ props }: Record<string, any>) {
   const [value, setValue] = useState(0);
   const [data, setData] = useState<Record<string, any>>(props);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [openModal, setOpenModal] = useState<boolean>(false);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
 
-  const toggleModal = () => setIsModalOpen((prev) => !prev);
+  const toggleDialog = () => setIsDialogOpen((prev) => !prev);
+  const toggleModal = () => setOpenModal((prev) => !prev);
 
   useEffect(() => {
     if (props) {
@@ -68,7 +75,7 @@ export default function TabPanel({ props }: Record<string, any>) {
             {value === 1 && (
               <div className="px-4">
                 <ButtonComponent
-                  onClick={toggleModal}
+                  onClick={toggleDialog}
                   text="Nova programação"
                 />
               </div>
@@ -91,12 +98,28 @@ export default function TabPanel({ props }: Record<string, any>) {
         </div>
       </div>
 
+      <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
+        <span className="font-semibold text-xl">{success}</span>
+      </ModalComponent>
+
       <ScheduleFormDialog
-        open={isModalOpen}
-        onClose={toggleModal}
+        open={isDialogOpen}
+        onClose={toggleDialog}
         idWork={data?.id}
         IsInsert={true}
+        setError={setError}
+        setSuccess={setSuccess}
+        setOpenModal={setOpenModal}
       />
+
+      {error && (
+        <ErrorModal
+          open={true}
+          message={error}
+          onClose={() => setError(null)}
+          icon={<ExclamationCircleIcon width={48} height={48} />}
+        />
+      )}
     </div>
   );
 }

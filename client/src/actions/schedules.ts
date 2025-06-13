@@ -32,8 +32,8 @@ export async function saveSchedule(data: any) {
     revalidatePath(`/detalhes/${data.id}`);
 
     return { success: true, message: res.message };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao salvar programação:", error);
-    return { success: false, message: "Erro ao salvar programação" };
+    return { success: false, message: error.message };
   }
 }
