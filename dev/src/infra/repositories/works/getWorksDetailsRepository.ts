@@ -23,6 +23,7 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
         ],
       },
       select: {
+        id: true,
         ovnota: true,
         pep: true,
         status_pep: true,
@@ -67,6 +68,7 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
         status: { select: { status: true } },
         programacoes: {
           select: {
+            id: true,
             data_prog: true,
             hora_ini: true,
             hora_ter: true,

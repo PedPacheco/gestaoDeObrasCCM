@@ -70,7 +70,7 @@ describe('AuxiliaryBaseController', () => {
       const result = await auxiliaryBaseController.GetAuxiliaryBaseNotes(1);
       const expectedResponse = {
         statusCode: HttpStatus.OK,
-        message: 'Notas inseridas na base auxiliar com sucesso',
+        message: 'Valores das notas na base auxiliar retornadas com sucesso',
         data: mockMappedNotes,
       };
 
@@ -93,7 +93,7 @@ describe('AuxiliaryBaseController', () => {
         mockInsertAuxiliaryBaseNotes,
       );
       const expectedResponse = {
-        statusCode: HttpStatus.OK,
+        statusCode: HttpStatus.CREATED,
         message: 'Notas inseridas na base auxiliar com sucesso',
         res: {
           insertedCount: 1,
@@ -119,7 +119,7 @@ describe('AuxiliaryBaseController', () => {
         mockInsertAuxiliaryBaseMarket,
       );
       const expectedResponse = {
-        statusCode: HttpStatus.OK,
+        statusCode: HttpStatus.CREATED,
         message: 'Obras de mercado inseridas na base auxiliar com sucesso',
       };
 

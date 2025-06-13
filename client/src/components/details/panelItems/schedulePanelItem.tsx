@@ -37,7 +37,7 @@ const columns = {
 export default function SchedulePanelItem({ data }: Record<string, any>) {
   return (
     <>
-      <TableContainer className="h-full xl:h-[320px]">
+      <TableContainer className="h-[320px] overflow-y-auto">
         <Table stickyHeader>
           <TableHead>
             <TableRow>
@@ -57,7 +57,7 @@ export default function SchedulePanelItem({ data }: Record<string, any>) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {data?.programacoes.map((item: any, index: number) => {
+            {data.map((item: any, index: number) => {
               return (
                 <TableRow key={index}>
                   {Object.keys(columns).map((column, index) => {

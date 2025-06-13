@@ -12,9 +12,19 @@ import {
   GetScheduleValuesDTO,
   GetTotalValuesScheduleDTO,
   GetValueWeeklyScheduleDTO,
+  SchedulesDataDTO,
 } from 'src/interface/dtos/scheduleDTO';
 
-import { Controller, Get, HttpStatus, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { AddSchedulesService } from 'src/domain/services/schedule/addSchedules.service';
 
 @Controller('programacao')
 export class ScheduleController {
@@ -25,6 +35,7 @@ export class ScheduleController {
     private getPendingScheduleValuesService: GetPendingScheduleValuesService,
     private getScheduleRestrictionsService: GetScheduleRestrictionsService,
     private getMonthlySummaryService: GetMonthlySummaryService,
+    private addSchedulesService: AddSchedulesService,
   ) {}
 
   @Get()
@@ -115,6 +126,17 @@ export class ScheduleController {
       statusCode: HttpStatus.OK,
       message: 'Resumo mensal retornado com sucesso',
       data: response,
+    };
+  }
+
+  @Post()
+  @UseGuards(PermissionGuard)
+  async addSchedules(@Body() schedulesData: SchedulesDataDTO) {
+    await this.addSchedulesService.add(schedulesData);
+
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'Programação inserida com sucesso',
     };
   }
 }

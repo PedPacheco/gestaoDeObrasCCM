@@ -23,7 +23,7 @@ export async function InsertMarketWorks(data: any[], storageKey: string) {
 
     const res = await result.json();
 
-    if (res.statusCode !== 200) {
+    if (res.statusCode !== 201) {
       return {
         success: false,
         error: res.message || "Erro ao inserir obras",

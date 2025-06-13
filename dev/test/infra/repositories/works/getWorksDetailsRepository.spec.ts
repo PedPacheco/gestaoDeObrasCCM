@@ -131,6 +131,7 @@ describe('GetWorksDetailsRepository', () => {
           ],
         },
         select: {
+          id: true,
           ovnota: true,
           pep: true,
           status_pep: true,
@@ -175,6 +176,7 @@ describe('GetWorksDetailsRepository', () => {
           status: { select: { status: true } },
           programacoes: {
             select: {
+              id: true,
               data_prog: true,
               hora_ini: true,
               hora_ter: true,
@@ -218,6 +220,7 @@ describe('GetWorksDetailsRepository', () => {
           ],
         },
         select: {
+          id: true,
           ovnota: true,
           pep: true,
           status_pep: true,
@@ -262,6 +265,7 @@ describe('GetWorksDetailsRepository', () => {
           status: { select: { status: true } },
           programacoes: {
             select: {
+              id: true,
               data_prog: true,
               hora_ini: true,
               hora_ter: true,

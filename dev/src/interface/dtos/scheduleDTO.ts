@@ -2,9 +2,11 @@ import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
+  IsDate,
   IsNumber,
   IsOptional,
   IsString,
+  Matches,
 } from 'class-validator';
 import { convertParameterValue } from 'src/utils/convertParameterValue';
 
@@ -162,4 +164,80 @@ export class GetMonthlySummaryDTO {
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
   idTipo: number[];
+}
+
+export class SchedulesDataDTO {
+  @IsNumber()
+  idWork: number;
+
+  @IsDate()
+  @Type(() => Date)
+  dataProg: Date;
+
+  @IsString()
+  @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+    message: 'horario deve estar no formato HH:mm (ex: 14:30)',
+  })
+  startTime: string;
+
+  @IsString()
+  @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+    message: 'horario deve estar no formato HH:mm (ex: 14:30)',
+  })
+  finishTime: string;
+
+  @IsOptional()
+  @IsString()
+  serviceType?: string;
+
+  @IsNumber()
+  prog: number;
+
+  @IsOptional()
+  @IsNumber()
+  exec?: number;
+
+  @IsOptional()
+  @IsString()
+  equipment?: string;
+
+  @IsOptional()
+  @IsNumber()
+  chi?: number;
+
+  @IsOptional()
+  @IsString()
+  numDp?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  temporaryKey?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  lmTeam?: number;
+
+  @IsOptional()
+  @IsNumber()
+  regulTeam?: number;
+
+  @IsOptional()
+  @IsNumber()
+  lvTeam?: number;
+
+  @IsOptional()
+  @IsNumber()
+  idTechnical?: number;
+
+  @IsOptional()
+  @IsNumber()
+  idExecutionRestriction?: number;
+
+  @IsOptional()
+  @IsString()
+  responsibility?: string;
+
+  @IsOptional()
+  @IsString()
+  observation?: string;
 }

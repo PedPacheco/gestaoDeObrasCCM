@@ -38,7 +38,7 @@ export async function InsertAuxiliaryBaseMarket(
 
     const res = await result.json();
 
-    if (res.statusCode !== 200) {
+    if (res.statusCode !== 201) {
       return {
         success: false,
         message: res.message || "Erro ao inserir obras",

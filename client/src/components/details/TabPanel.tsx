@@ -3,8 +3,9 @@
 import { Tab, Tabs } from "@mui/material";
 import { Suspense, useEffect, useState } from "react";
 import WorkCostPanelItem from "./panelItems/workCostPanelItem";
-import AdditionalInformationPanelItem from "./panelItems/additionalInformationPanelItem";
 import SchedulePanelItem from "./panelItems/schedulePanelItem";
+import { ButtonComponent } from "../common/Button";
+import ScheduleFormDialog from "./dialog";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -32,10 +33,13 @@ function CustomTabPanel(props: TabPanelProps) {
 export default function TabPanel({ props }: Record<string, any>) {
   const [value, setValue] = useState(0);
   const [data, setData] = useState<Record<string, any>>(props);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
   };
+
+  const toggleModal = () => setIsModalOpen((prev) => !prev);
 
   useEffect(() => {
     if (props) {
@@ -45,20 +49,31 @@ export default function TabPanel({ props }: Record<string, any>) {
 
   return (
     <div className="w-full flex justify-center items-start">
-      <div className="w-[95%] mx-auto mb-20 min-h-[530px] lg:min-h-0 lg:max-h-[620px] shadow-lg flex flex-col">
+      <div className="w-[95%] mx-auto max-h-[620px] shadow-lg flex flex-col overflow-hidden">
         <div className="border-b border-solid border-zinc-300">
-          <Tabs
-            value={value}
-            onChange={handleChange}
-            aria-label="basic tabs example"
-            variant="scrollable"
-            scrollButtons="auto"
-          >
-            <Tab label="Custos" />
-            {/* <Tab label="Informações Adicionais" /> */}
-            <Tab label="Programações" />
-            <Tab label="Serviços" />
-          </Tabs>
+          <div className="flex items-center justify-between">
+            <Tabs
+              value={value}
+              onChange={handleChange}
+              aria-label="basic tabs example"
+              variant="scrollable"
+              scrollButtons="auto"
+              className="flex-1"
+            >
+              <Tab label="Custos" />
+              <Tab label="Programações" />
+              <Tab label="Serviços" />
+            </Tabs>
+
+            {value === 1 && (
+              <div className="px-4">
+                <ButtonComponent
+                  onClick={toggleModal}
+                  text="Nova programação"
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-1">
@@ -67,7 +82,7 @@ export default function TabPanel({ props }: Record<string, any>) {
               <WorkCostPanelItem data={data} />
             </CustomTabPanel>
             <CustomTabPanel value={value} index={1}>
-              <SchedulePanelItem data={data} />
+              <SchedulePanelItem data={data.programacoes} />
             </CustomTabPanel>
             <CustomTabPanel value={value} index={2}>
               Item four
@@ -75,6 +90,13 @@ export default function TabPanel({ props }: Record<string, any>) {
           </Suspense>
         </div>
       </div>
+
+      <ScheduleFormDialog
+        open={isModalOpen}
+        onClose={toggleModal}
+        idWork={data?.id}
+        IsInsert={true}
+      />
     </div>
   );
 }
