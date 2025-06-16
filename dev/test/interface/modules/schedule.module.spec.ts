@@ -1,6 +1,6 @@
 import { UsersService } from 'src/domain/services/users.service';
 import { PrismaModule } from 'src/infra/prisma/prisma.module';
-import { ScheduleModule } from 'src/interface/modules/shedule.module';
+import { ScheduleModule } from 'src/interface/modules/schedule.module';
 
 import { Test, TestingModule } from '@nestjs/testing';
 

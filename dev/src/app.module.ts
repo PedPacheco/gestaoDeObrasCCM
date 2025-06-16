@@ -12,7 +12,7 @@ import { EntryModule } from './interface/modules/entry.module';
 import { ExportModule } from './interface/modules/export.module';
 import { FiltersModule } from './interface/modules/filters.module';
 import { GoalsModule } from './interface/modules/goals.module';
-import { ScheduleModule } from './interface/modules/shedule.module';
+import { ScheduleModule } from './interface/modules/schedule.module';
 import { UsersModule } from './interface/modules/users.module';
 import { WorksModule } from './interface/modules/works.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';

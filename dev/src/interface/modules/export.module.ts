@@ -4,7 +4,7 @@ import { ExportCompletedWorksService } from '../../domain/services/export/export
 import { ExportScheduleService } from '../../domain/services/export/exportSchedule.service';
 import { ExportWorksInPortfolioService } from '../../domain/services/export/exportWorksInPortfolio.service';
 import { ExportController } from '../controllers/export.controller';
-import { ScheduleModule } from './shedule.module';
+import { ScheduleModule } from './schedule.module';
 import { WorksModule } from './works.module';
 
 @Module({

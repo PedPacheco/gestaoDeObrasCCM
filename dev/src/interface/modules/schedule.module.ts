@@ -24,12 +24,16 @@ import { GetValuesWeeklyScheduleRepository } from 'src/infra/repositories/schedu
 import { AddSchedulesService } from 'src/domain/services/schedule/addSchedules.service';
 import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IAddSchedulesRepository';
 import { AddSchedulesRepository } from 'src/infra/repositories/schedule/addSchedulesRepository';
+import { UpdateSchedulesService } from 'src/domain/services/schedule/updateSchedules.service';
+import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
+import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updateSchedulesRepository';
 
 @Module({
   imports: [UsersModule],
   controllers: [ScheduleController],
   providers: [
     AddSchedulesService,
+    UpdateSchedulesService,
     GetTotalValuesScheduleService,
     GetScheduleValuesService,
     GetValuesWeeklyScheduleService,
@@ -37,6 +41,10 @@ import { AddSchedulesRepository } from 'src/infra/repositories/schedule/addSched
     GetScheduleRestrictionsService,
     GetMonthlySummaryService,
     { provide: ADD_SCHEDULES_REPOSITORY, useClass: AddSchedulesRepository },
+    {
+      provide: UPDATE_SCHEDULES_REPOSITORY,
+      useClass: UpdateSchedulesRepository,
+    },
     {
       provide: GET_MONTHLY_SUMMARY_REPOSITORY,
       useClass: GetMonthlySummaryRepository,

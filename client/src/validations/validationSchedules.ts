@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const validationSchedulesSchema = z.object({
+  id: z.number(),
   dataProg: z.string().min(1, "Data obrigatória"),
   startTime: z.string().min(1, "Horário de início obrigatório"),
   finishTime: z.string().min(1, "Horário de fim obrigatório"),
@@ -59,6 +60,5 @@ export const validationSchedulesSchema = z.object({
     z.number({ invalid_type_error: "Restrição deve ser um número" })
   ),
 
-  responsibilityExecution: z.string().optional(),
-  observationExecution: z.string().optional(),
+  responsibility: z.string().optional(),
 });

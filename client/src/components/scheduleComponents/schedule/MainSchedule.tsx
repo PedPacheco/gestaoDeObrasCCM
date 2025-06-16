@@ -9,7 +9,6 @@ import ErrorModal from "@/components/common/ErrorModal";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { MainInterface } from "@/interfaces/mainInterface";
-import { capitalize } from "@/utils/capitalize";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
@@ -17,6 +16,7 @@ import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 import ScheduleTable from "./ScheduleTable";
+import { capitalize } from "@/utils/formatValue";
 
 interface Filters {
   regional: { id: string; regional: string }[];

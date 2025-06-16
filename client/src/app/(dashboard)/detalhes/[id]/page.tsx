@@ -4,6 +4,7 @@ import { fetchData } from "@/actions/fetchData.action";
 import dayjs from "dayjs";
 import { cookies } from "next/headers";
 import { formatPercentage } from "@/utils/formatValue";
+import { fetchFilters } from "@/actions/fetchFilters.action";
 
 interface DataResponse {
   data: Record<string, any>;
@@ -17,12 +18,20 @@ export default async function Details({
   const { id } = await params;
   const cookieStore = cookies();
 
-  const { token, data } = await fetchData<DataResponse>(
-    `${process.env.NEXT_PUBLIC_API_URL}/obras/${id}`,
-    undefined,
-    (await cookieStore).get("token")?.value,
-    { cache: "no-store" }
-  );
+  const [options, workData] = await Promise.all([
+    fetchFilters({
+      restricao: true,
+      tecnico: true,
+    }),
+    fetchData<DataResponse>(
+      `${process.env.NEXT_PUBLIC_API_URL}/obras/${id}`,
+      undefined,
+      (await cookieStore).get("token")?.value,
+      { cache: "no-store" }
+    ),
+  ]);
+
+  const { token, data } = workData;
 
   const entrada = data.entrada && dayjs(data.entrada);
   const prazo = data.prazo;
@@ -123,7 +132,7 @@ export default async function Details({
           </p>
         </div>
 
-        <TabPanel props={data} />
+        <TabPanel workData={data} options={options} />
       </div>
     </div>
   );

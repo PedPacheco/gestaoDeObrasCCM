@@ -7,10 +7,11 @@ import { ButtonComponent } from "@/components/common/Button";
 import { DateFilter } from "@/components/common/DateFilter";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { capitalize } from "@/utils/capitalize";
+
 import { Transform } from "@/utils/transform";
 import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
 import { getButtonContent } from "@/utils/getButtonContent";
+import { capitalize } from "@/utils/formatValue";
 
 interface filters {
   regional: { id: string; regional: string }[];
