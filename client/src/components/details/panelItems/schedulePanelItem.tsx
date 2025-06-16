@@ -2,16 +2,21 @@
 
 import { FormatCurrency, formatPercentage } from "@/utils/formatValue";
 import { isValidDateString } from "@/utils/validDate";
+import { PencilIcon, TrashIcon } from "@heroicons/react/20/solid";
 import {
+  Box,
+  IconButton,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
 } from "@mui/material";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { useState } from "react";
 
 dayjs.extend(utc);
 
@@ -34,32 +39,105 @@ const columns = {
   nome_responsavel_execucao: "Responsabilidade",
 };
 
-export default function SchedulePanelItem({ data }: Record<string, any>) {
+interface SchedulePanelItemProps {
+  data: any[];
+  onEdit?: (data: any) => void;
+  onDelete?: (item: any, index: number) => void;
+}
+
+export default function SchedulePanelItem({
+  data,
+  onDelete,
+  onEdit,
+}: SchedulePanelItemProps) {
+  const [hoveredRow, setHoveredRow] = useState<number | null>(null);
+
+  const handleEdit = (item: any) => {
+    if (onEdit) {
+      onEdit(item);
+    }
+  };
+
+  const handleDelete = (item: any, index: number) => {
+    if (onDelete) {
+      onDelete(item, index);
+    }
+  };
+
   return (
     <>
       <TableContainer className="h-[320px] overflow-y-auto">
         <Table stickyHeader>
           <TableHead>
             <TableRow>
-              {Object.keys(columns).map((month) => (
+              <TableCell className="py-1 px-2 text-center text-zinc-700 font-semibold text-lg bg-[#53FF75] border-r border-solid border-zinc-700 min-w-[100px] sticky left-0 z-10"></TableCell>
+              {Object.keys(columns).map((column) => (
                 <TableCell
-                  key={month}
+                  key={column}
                   className={`py-1 px-2 text-center text-zinc-700 font-semibold text-lg bg-[#53FF75] border-r border-solid border-zinc-700
                     ${
-                      month === "observ_programacao"
+                      column === "observ_programacao"
                         ? "min-w-[520px]"
                         : "min-w-28"
                     }`}
                 >
-                  {columns[month as keyof typeof columns]}
+                  {columns[column as keyof typeof columns]}
                 </TableCell>
               ))}
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.map((item: any, index: number) => {
+            {data.map((item: any, rowIndex: number) => {
               return (
-                <TableRow key={index}>
+                <TableRow
+                  key={rowIndex}
+                  onMouseEnter={() => setHoveredRow(rowIndex)}
+                  onMouseLeave={() => setHoveredRow(null)}
+                  className="hover:bg-gray-50 transition-colors duration-200"
+                >
+                  <TableCell className="py-1 px-2 text-center border-r font-medium text-base border-zinc-700 border-solid sticky left-0 bg-white z-10">
+                    <Box
+                      display="flex"
+                      justifyContent="center"
+                      gap={0.5}
+                      sx={{
+                        opacity: hoveredRow === rowIndex ? 1 : 0,
+                        transition: "opacity 0.2s ease-in-out",
+                      }}
+                    >
+                      <Tooltip title="Editar programação" placement="top">
+                        <IconButton
+                          size="small"
+                          color="primary"
+                          onClick={() => handleEdit(item)}
+                          sx={{
+                            padding: "4px",
+                            "&:hover": {
+                              backgroundColor: "rgba(25, 118, 210, 0.08)",
+                            },
+                          }}
+                        >
+                          <PencilIcon width={24} height={24} />
+                        </IconButton>
+                      </Tooltip>
+
+                      <Tooltip title="Excluir programação" placement="top">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          // onClick={() => handleDelete(item, rowIndex)}
+                          sx={{
+                            padding: "4px",
+                            "&:hover": {
+                              backgroundColor: "rgba(211, 47, 47, 0.08)",
+                            },
+                          }}
+                        >
+                          <TrashIcon width={24} height={24} />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </TableCell>
                   {Object.keys(columns).map((column, index) => {
                     let cellValue = item[column];
                     let decimal: string[];

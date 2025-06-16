@@ -1,20 +1,20 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Schedule } from 'src/domain/entities/schedule.entity';
 import {
-  ADD_SCHEDULES_REPOSITORY,
-  IAddSchedulesRepository,
-} from 'src/domain/repositories/schedule/IAddSchedulesRepository';
-import { SchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
+  IUpdateSchedulesRepository,
+  UPDATE_SCHEDULES_REPOSITORY,
+} from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
+import { UpdateSchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
 import { parseTimeToDate } from 'src/utils/parseTimeToDate';
 
 @Injectable()
-export class AddSchedulesService {
+export class UpdateSchedulesService {
   constructor(
-    @Inject(ADD_SCHEDULES_REPOSITORY)
-    private readonly addSchedulesRepository: IAddSchedulesRepository,
+    @Inject(UPDATE_SCHEDULES_REPOSITORY)
+    private readonly updateSchedulesRepository: IUpdateSchedulesRepository,
   ) {}
 
-  async add(data: SchedulesDataDTO) {
+  async update(data: UpdateSchedulesDataDTO) {
     if (!data) {
       throw new BadRequestException(
         'Nenhuma programação fornecida para inserção.',
@@ -37,6 +37,7 @@ export class AddSchedulesService {
     }
 
     const formattedData = {
+      id: schedule.id,
       id_obra: schedule.idWork,
       data_prog: schedule.dataProg,
       prog: schedule.prog,
@@ -57,6 +58,6 @@ export class AddSchedulesService {
       id_tecnico: schedule.idTechnical,
     };
 
-    await this.addSchedulesRepository.addSchedules(formattedData);
+    await this.updateSchedulesRepository.update(formattedData);
   }
 }

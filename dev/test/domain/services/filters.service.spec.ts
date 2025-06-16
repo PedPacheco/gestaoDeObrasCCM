@@ -115,6 +115,20 @@ describe('FiltersService', () => {
       table: 'empreendimento',
       data: [{ id: 1, empreendimento: 'Empreendimento 1' }],
     },
+    {
+      name: 'restricao',
+      dto: { restricao: true },
+      cacheKey: 'restricao',
+      table: 'restricoes',
+      data: [{ id: 1, restricao: 'restricao 1' }],
+    },
+    {
+      name: 'tecnico',
+      dto: { tecnico: true },
+      cacheKey: 'tecnicos',
+      table: 'tecnicos',
+      data: [{ id: 1, tecnico: 'Tecnico 1' }],
+    },
   ];
 
   testCases.forEach(({ name, dto, cacheKey, table, data }) => {

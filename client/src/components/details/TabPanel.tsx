@@ -10,13 +10,18 @@ import ErrorModal from "../common/ErrorModal";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import ModalComponent from "../common/Modal";
 
-interface TabPanelProps {
+interface CustomTabPanelProps {
   children?: React.ReactNode;
   index: number;
   value: number;
 }
 
-function CustomTabPanel(props: TabPanelProps) {
+interface TabPanelProps {
+  workData: Record<string, any>;
+  options: any;
+}
+
+function CustomTabPanel(props: CustomTabPanelProps) {
   const { children, value, index, ...other } = props;
 
   return (
@@ -33,13 +38,21 @@ function CustomTabPanel(props: TabPanelProps) {
   );
 }
 
-export default function TabPanel({ props }: Record<string, any>) {
+export default function TabPanel({ workData, options }: TabPanelProps) {
   const [value, setValue] = useState(0);
-  const [data, setData] = useState<Record<string, any>>(props);
+  const [data, setData] = useState<Record<string, any>>(workData);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [openModal, setOpenModal] = useState<boolean>(false);
+  const [editingSchedule, setEditingSchedule] = useState<any>();
+  const [IsInsert, setIsInsert] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (workData) {
+      setData(workData);
+    }
+  }, [workData]);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
@@ -48,11 +61,17 @@ export default function TabPanel({ props }: Record<string, any>) {
   const toggleDialog = () => setIsDialogOpen((prev) => !prev);
   const toggleModal = () => setOpenModal((prev) => !prev);
 
-  useEffect(() => {
-    if (props) {
-      setData(props);
-    }
-  }, [props]);
+  const handleEditSchedule = (scheduleData: any) => {
+    setIsInsert(false);
+    toggleDialog();
+    setEditingSchedule(scheduleData);
+  };
+
+  const handleCloseDialog = () => {
+    setIsInsert(true);
+    setEditingSchedule(undefined);
+    toggleDialog();
+  };
 
   return (
     <div className="w-full flex justify-center items-start">
@@ -89,7 +108,10 @@ export default function TabPanel({ props }: Record<string, any>) {
               <WorkCostPanelItem data={data} />
             </CustomTabPanel>
             <CustomTabPanel value={value} index={1}>
-              <SchedulePanelItem data={data.programacoes} />
+              <SchedulePanelItem
+                data={data.programacoes}
+                onEdit={handleEditSchedule}
+              />
             </CustomTabPanel>
             <CustomTabPanel value={value} index={2}>
               Item four
@@ -104,12 +126,14 @@ export default function TabPanel({ props }: Record<string, any>) {
 
       <ScheduleFormDialog
         open={isDialogOpen}
-        onClose={toggleDialog}
+        onClose={handleCloseDialog}
         idWork={data?.id}
-        IsInsert={true}
-        setError={setError}
-        setSuccess={setSuccess}
-        setOpenModal={setOpenModal}
+        isInsert={IsInsert}
+        onError={setError}
+        onSuccess={setSuccess}
+        onModalOpen={setOpenModal}
+        scheduleData={editingSchedule}
+        options={options}
       />
 
       {error && (

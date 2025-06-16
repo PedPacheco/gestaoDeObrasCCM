@@ -78,4 +78,18 @@ export class FiltersDto {
     value === 'true' ? true : value === 'false' ? false : value,
   )
   empreendimento?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) =>
+    value === 'true' ? true : value === 'false' ? false : value,
+  )
+  restricao?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) =>
+    value === 'true' ? true : value === 'false' ? false : value,
+  )
+  tecnico?: boolean;
 }

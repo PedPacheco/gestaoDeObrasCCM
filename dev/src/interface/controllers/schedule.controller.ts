@@ -1,3 +1,4 @@
+import { UpdateSchedulesService } from './../../domain/services/schedule/updateSchedules.service';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import { GetMonthlySummaryService } from 'src/domain/services/schedule/getMonthlySummary.service';
@@ -13,6 +14,7 @@ import {
   GetTotalValuesScheduleDTO,
   GetValueWeeklyScheduleDTO,
   SchedulesDataDTO,
+  UpdateSchedulesDataDTO,
 } from 'src/interface/dtos/scheduleDTO';
 
 import {
@@ -20,6 +22,7 @@ import {
   Controller,
   Get,
   HttpStatus,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -36,6 +39,7 @@ export class ScheduleController {
     private getScheduleRestrictionsService: GetScheduleRestrictionsService,
     private getMonthlySummaryService: GetMonthlySummaryService,
     private addSchedulesService: AddSchedulesService,
+    private updateSchedulesService: UpdateSchedulesService,
   ) {}
 
   @Get()
@@ -137,6 +141,17 @@ export class ScheduleController {
     return {
       statusCode: HttpStatus.CREATED,
       message: 'Programação inserida com sucesso',
+    };
+  }
+
+  @Patch()
+  @UseGuards(PermissionGuard)
+  async updateSchedules(@Body() schedulesData: UpdateSchedulesDataDTO) {
+    await this.updateSchedulesService.update(schedulesData);
+
+    return {
+      statusCode: HttpStatus.NO_CONTENT,
+      message: 'Atualização da programação feita com sucesso',
     };
   }
 }

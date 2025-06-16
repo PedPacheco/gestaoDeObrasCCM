@@ -11,6 +11,12 @@ import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getSched
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { AddSchedulesService } from 'src/domain/services/schedule/addSchedules.service';
+import { UpdateSchedulesService } from 'src/domain/services/schedule/updateSchedules.service';
+import { plainToInstance } from 'class-transformer';
+import {
+  SchedulesDataDTO,
+  UpdateSchedulesDataDTO,
+} from 'src/interface/dtos/scheduleDTO';
 
 describe('ScheduleController', () => {
   let scheduleController: ScheduleController;
@@ -21,6 +27,7 @@ describe('ScheduleController', () => {
   let getPendingScheduleValuesService: GetPendingScheduleValuesService;
   let getMonthlySummaryService: GetMonthlySummaryService;
   let addSchedulesService: AddSchedulesService;
+  let updateSchedulesService: UpdateSchedulesService;
 
   const mockScheduleData: GetScheduleValuesResponse = {
     works: [
@@ -107,6 +114,7 @@ describe('ScheduleController', () => {
           },
         },
         { provide: AddSchedulesService, useValue: { add: jest.fn() } },
+        { provide: UpdateSchedulesService, useValue: { update: jest.fn() } },
         { provide: UsersService, useValue: { findUser: jest.fn() } },
       ],
     }).compile();
@@ -132,6 +140,9 @@ describe('ScheduleController', () => {
       GetMonthlySummaryService,
     );
     addSchedulesService = module.get<AddSchedulesService>(AddSchedulesService);
+    updateSchedulesService = module.get<UpdateSchedulesService>(
+      UpdateSchedulesService,
+    );
   });
 
   it('Should be defined', () => {
@@ -479,5 +490,56 @@ describe('ScheduleController', () => {
       serviceType: 'Inspeção Elétrica',
       prog: 100,
     });
+  });
+
+  it('Should call updateSchedules and return message', async () => {
+    jest.spyOn(addSchedulesService, 'add').mockResolvedValue();
+
+    const date = new Date('2025-06-10T00:00:00.000Z');
+
+    const result = await scheduleController.updateSchedules({
+      id: 1,
+      idWork: 3146044,
+      dataProg: date,
+      startTime: '08:00',
+      finishTime: '07:00',
+      serviceType: 'Inspeção Elétrica',
+      prog: 100,
+    });
+
+    expect(result).toEqual({
+      statusCode: HttpStatus.NO_CONTENT,
+      message: 'Atualização da programação feita com sucesso',
+    });
+    expect(updateSchedulesService.update).toHaveBeenCalledWith({
+      id: 1,
+      idWork: 3146044,
+      dataProg: date,
+      startTime: '08:00',
+      finishTime: '07:00',
+      serviceType: 'Inspeção Elétrica',
+      prog: 100,
+    });
+  });
+
+  it('Should convert string to Date using class-transformer in SchedulesDataDTO', () => {
+    const input = {
+      idWork: 1,
+      dataProg: '2025-06-10',
+      startTime: '08:00',
+      finishTime: '09:00',
+      serviceType: 'Inspeção',
+      prog: 1,
+    };
+
+    const dtoAdd = plainToInstance(SchedulesDataDTO, input);
+    const dtoUpdate = plainToInstance(UpdateSchedulesDataDTO, input);
+
+    expect(dtoAdd.dataProg).toBeInstanceOf(Date);
+    expect(dtoAdd.dataProg.toISOString().startsWith('2025-06-10')).toBe(true);
+    expect(dtoUpdate.dataProg).toBeInstanceOf(Date);
+    expect(dtoUpdate.dataProg.toISOString().startsWith('2025-06-10')).toBe(
+      true,
+    );
   });
 });

@@ -117,7 +117,6 @@ describe('FiltersRepository', () => {
           condition,
         );
 
-        expect(findManyMock).toHaveBeenCalledTimes;
         expect(findManyMock).toHaveBeenCalledWith({
           where: condition,
           select: fields.reduce(
