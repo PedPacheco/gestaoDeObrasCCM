@@ -1,6 +1,10 @@
 "use client";
 
-import { FormatCurrency, formatPercentage } from "@/utils/formatValue";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import { useState } from "react";
+
+import { formatPercentage } from "@/utils/formatValue";
 import { isValidDateString } from "@/utils/validDate";
 import { PencilIcon, TrashIcon } from "@heroicons/react/20/solid";
 import {
@@ -14,9 +18,6 @@ import {
   TableRow,
   Tooltip,
 } from "@mui/material";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import { useState } from "react";
 
 dayjs.extend(utc);
 
@@ -58,9 +59,9 @@ export default function SchedulePanelItem({
     }
   };
 
-  const handleDelete = (item: any, index: number) => {
+  const handleDelete = (item: any) => {
     if (onDelete) {
-      onDelete(item, index);
+      onDelete(item);
     }
   };
 
@@ -125,7 +126,7 @@ export default function SchedulePanelItem({
                         <IconButton
                           size="small"
                           color="error"
-                          // onClick={() => handleDelete(item, rowIndex)}
+                          onClick={() => handleDelete(item)}
                           sx={{
                             padding: "4px",
                             "&:hover": {

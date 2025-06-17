@@ -1,11 +1,24 @@
+import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IAddSchedulesRepository';
+import { DELETE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IDeleteSchedulesRepository';
 import { GET_MONTHLY_SUMMARY_REPOSITORY } from 'src/domain/repositories/schedule/IGetMonthlySummaryRepository';
 import { GET_PENDING_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetPendingScheduleValuesRepository';
 import { GET_SCHEDULE_RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/schedule/IGetScheduleRestrictionsRepository';
 import { GET_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetScheduleValuesRepository';
+import { GET_TOTAL_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetTotalValuesScheduleRepository';
+import { GET_VALUES_WEEKLY_SCHEDULE_REPOSITORY } from 'src/domain/repositories/schedule/IGetValuesWeeklyScheduleRepository';
+import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
+import { AddSchedulesService } from 'src/domain/services/schedule/addSchedules.service';
+import { DeleteSchedulesService } from 'src/domain/services/schedule/deleteSchedules.service';
+import { UpdateSchedulesService } from 'src/domain/services/schedule/updateSchedules.service';
+import { AddSchedulesRepository } from 'src/infra/repositories/schedule/addSchedulesRepository';
+import { DeleteSchedulesRepository } from 'src/infra/repositories/schedule/deleteSchedulesRepository';
 import { GetMonthlySummaryRepository } from 'src/infra/repositories/schedule/getMonthlySummaryRepository';
 import { GetPendingScheduleValuesRepository } from 'src/infra/repositories/schedule/getPendingScheduleValuesRepository';
 import { GetScheduleRestrictionsRespository } from 'src/infra/repositories/schedule/getScheduleRestrictionsRepository';
 import { GetScheduleValuesRepository } from 'src/infra/repositories/schedule/getScheduleValuesRepository';
+import { GetTotalValueScheduleRepository } from 'src/infra/repositories/schedule/getTotalValuesScheduleRepository';
+import { GetValuesWeeklyScheduleRepository } from 'src/infra/repositories/schedule/getValuesWeeklyScheduleRepository';
+import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updateSchedulesRepository';
 
 import { Module } from '@nestjs/common';
 
@@ -17,16 +30,6 @@ import { GetTotalValuesScheduleService } from '../../domain/services/schedule/ge
 import { GetValuesWeeklyScheduleService } from '../../domain/services/schedule/getValuesWeeklySchedule.service';
 import { ScheduleController } from '../controllers/schedule.controller';
 import { UsersModule } from './users.module';
-import { GET_TOTAL_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetTotalValuesScheduleRepository';
-import { GetTotalValueScheduleRepository } from 'src/infra/repositories/schedule/getTotalValuesScheduleRepository';
-import { GET_VALUES_WEEKLY_SCHEDULE_REPOSITORY } from 'src/domain/repositories/schedule/IGetValuesWeeklyScheduleRepository';
-import { GetValuesWeeklyScheduleRepository } from 'src/infra/repositories/schedule/getValuesWeeklyScheduleRepository';
-import { AddSchedulesService } from 'src/domain/services/schedule/addSchedules.service';
-import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IAddSchedulesRepository';
-import { AddSchedulesRepository } from 'src/infra/repositories/schedule/addSchedulesRepository';
-import { UpdateSchedulesService } from 'src/domain/services/schedule/updateSchedules.service';
-import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
-import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updateSchedulesRepository';
 
 @Module({
   imports: [UsersModule],
@@ -34,6 +37,7 @@ import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updat
   providers: [
     AddSchedulesService,
     UpdateSchedulesService,
+    DeleteSchedulesService,
     GetTotalValuesScheduleService,
     GetScheduleValuesService,
     GetValuesWeeklyScheduleService,
@@ -44,6 +48,10 @@ import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updat
     {
       provide: UPDATE_SCHEDULES_REPOSITORY,
       useClass: UpdateSchedulesRepository,
+    },
+    {
+      provide: DELETE_SCHEDULES_REPOSITORY,
+      useClass: DeleteSchedulesRepository,
     },
     {
       provide: GET_MONTHLY_SUMMARY_REPOSITORY,
