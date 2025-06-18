@@ -1,6 +1,10 @@
 "use client";
 
-import { FormatCurrency, formatPercentage } from "@/utils/formatValue";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import { useState } from "react";
+
+import { formatPercentage } from "@/utils/formatValue";
 import { isValidDateString } from "@/utils/validDate";
 import { PencilIcon, TrashIcon } from "@heroicons/react/20/solid";
 import {
@@ -14,9 +18,6 @@ import {
   TableRow,
   Tooltip,
 } from "@mui/material";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import { useState } from "react";
 
 dayjs.extend(utc);
 
@@ -42,13 +43,13 @@ const columns = {
 interface SchedulePanelItemProps {
   data: any[];
   onEdit?: (data: any) => void;
-  onDelete?: (item: any, index: number) => void;
+  onDelete: (confirm: number) => void;
 }
 
 export default function SchedulePanelItem({
   data,
-  onDelete,
   onEdit,
+  onDelete,
 }: SchedulePanelItemProps) {
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
 
@@ -58,9 +59,9 @@ export default function SchedulePanelItem({
     }
   };
 
-  const handleDelete = (item: any, index: number) => {
+  const handleDelete = (id: number) => {
     if (onDelete) {
-      onDelete(item, index);
+      onDelete(id);
     }
   };
 
@@ -125,7 +126,7 @@ export default function SchedulePanelItem({
                         <IconButton
                           size="small"
                           color="error"
-                          // onClick={() => handleDelete(item, rowIndex)}
+                          onClick={() => handleDelete(item.id)}
                           sx={{
                             padding: "4px",
                             "&:hover": {

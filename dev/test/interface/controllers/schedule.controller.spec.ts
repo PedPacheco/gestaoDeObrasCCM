@@ -17,6 +17,7 @@ import {
   SchedulesDataDTO,
   UpdateSchedulesDataDTO,
 } from 'src/interface/dtos/scheduleDTO';
+import { DeleteSchedulesService } from 'src/domain/services/schedule/deleteSchedules.service';
 
 describe('ScheduleController', () => {
   let scheduleController: ScheduleController;
@@ -28,6 +29,7 @@ describe('ScheduleController', () => {
   let getMonthlySummaryService: GetMonthlySummaryService;
   let addSchedulesService: AddSchedulesService;
   let updateSchedulesService: UpdateSchedulesService;
+  let deleteSchedulesService: DeleteSchedulesService;
 
   const mockScheduleData: GetScheduleValuesResponse = {
     works: [
@@ -115,6 +117,7 @@ describe('ScheduleController', () => {
         },
         { provide: AddSchedulesService, useValue: { add: jest.fn() } },
         { provide: UpdateSchedulesService, useValue: { update: jest.fn() } },
+        { provide: DeleteSchedulesService, useValue: { delete: jest.fn() } },
         { provide: UsersService, useValue: { findUser: jest.fn() } },
       ],
     }).compile();
@@ -142,6 +145,9 @@ describe('ScheduleController', () => {
     addSchedulesService = module.get<AddSchedulesService>(AddSchedulesService);
     updateSchedulesService = module.get<UpdateSchedulesService>(
       UpdateSchedulesService,
+    );
+    deleteSchedulesService = module.get<DeleteSchedulesService>(
+      DeleteSchedulesService,
     );
   });
 
@@ -520,6 +526,18 @@ describe('ScheduleController', () => {
       serviceType: 'Inspeção Elétrica',
       prog: 100,
     });
+  });
+
+  it('Should call deleteSchedules and return message', async () => {
+    jest.spyOn(deleteSchedulesService, 'delete').mockResolvedValue();
+
+    const result = await scheduleController.deleteSchedules(1);
+
+    expect(result).toEqual({
+      statusCode: HttpStatus.OK,
+      message: 'Programação excluída com sucesso',
+    });
+    expect(deleteSchedulesService.delete).toHaveBeenCalledWith(1);
   });
 
   it('Should convert string to Date using class-transformer in SchedulesDataDTO', () => {

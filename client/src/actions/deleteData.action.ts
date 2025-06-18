@@ -6,12 +6,6 @@ export async function DeleteData(storageKey: string) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
-  console.log(
-    `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/${
-      storageKey === "marketEntryData" ? "mercado" : "notas"
-    }`
-  );
-
   try {
     const result = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/${

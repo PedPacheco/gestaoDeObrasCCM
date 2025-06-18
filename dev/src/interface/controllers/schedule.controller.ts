@@ -20,14 +20,18 @@ import {
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpStatus,
+  Param,
+  ParseIntPipe,
   Patch,
   Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
 import { AddSchedulesService } from 'src/domain/services/schedule/addSchedules.service';
+import { DeleteSchedulesService } from 'src/domain/services/schedule/deleteSchedules.service';
 
 @Controller('programacao')
 export class ScheduleController {
@@ -40,6 +44,7 @@ export class ScheduleController {
     private getMonthlySummaryService: GetMonthlySummaryService,
     private addSchedulesService: AddSchedulesService,
     private updateSchedulesService: UpdateSchedulesService,
+    private deleteSchedulesService: DeleteSchedulesService,
   ) {}
 
   @Get()
@@ -152,6 +157,17 @@ export class ScheduleController {
     return {
       statusCode: HttpStatus.NO_CONTENT,
       message: 'Atualização da programação feita com sucesso',
+    };
+  }
+
+  @Delete(':id')
+  @UseGuards(PermissionGuard)
+  async deleteSchedules(@Param('id', ParseIntPipe) id: number) {
+    await this.deleteSchedulesService.delete(id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Programação excluída com sucesso',
     };
   }
 }
