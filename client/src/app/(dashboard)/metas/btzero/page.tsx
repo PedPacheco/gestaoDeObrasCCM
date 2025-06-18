@@ -5,6 +5,8 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import { Transform } from "@/utils/transform";
 import MainGoals from "@/components/goalsComponents/MainGoals";
 
+export const dynamic = "force-dynamic";
+
 export default async function Bt0Goals() {
   const cookieStore = await cookies();
   const cookieParams = cookieStore.get("bt0GoalsFilters")?.value;

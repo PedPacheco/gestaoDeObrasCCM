@@ -8,6 +8,8 @@ import { InsertMarketWorksButton } from "@/components/entryComponents/importMark
 import { TableMarketWorks } from "@/components/entryComponents/importMarketWorks/tableWorksMarket";
 import { Box, Paper } from "@mui/material";
 
+export const dynamic = "force-dynamic";
+
 export default async function NotesEntry() {
   const cookieStore = await cookies();
 

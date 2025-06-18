@@ -9,12 +9,12 @@ import { useEffect, useState } from "react";
 import { ButtonComponent } from "@/components/common/Button";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { capitalize } from "@/utils/capitalize";
 import { Transform } from "@/utils/transform";
 import { Checkbox } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { getButtonContent } from "@/utils/getButtonContent";
+import { capitalize } from "@/utils/formatValue";
 
 dayjs.extend(isoWeek);
 

@@ -6,6 +6,8 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import { MainMonthlySummarySchedule } from "@/components/scheduleComponents/monthlySummary/mainMonthlySummarySchedule";
 import { Transform } from "@/utils/transform";
 
+export const dynamic = "force-dynamic";
+
 export default async function MonthlySummary() {
   const cookieStore = await cookies();
   const cookieParams = cookieStore.get("monthlySummaryScheduleFilters")?.value;
