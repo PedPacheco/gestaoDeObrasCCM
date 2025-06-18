@@ -166,7 +166,7 @@ export class ScheduleController {
     await this.deleteSchedulesService.delete(id);
 
     return {
-      statusCode: HttpStatus.NO_CONTENT,
+      statusCode: HttpStatus.OK,
       message: 'Programação excluída com sucesso',
     };
   }

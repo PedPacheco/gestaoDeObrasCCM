@@ -24,6 +24,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { ButtonComponent } from "../common/Button";
 
 export interface ScheduleFormDialogProps {
   open: boolean;
@@ -466,17 +467,13 @@ export default function ScheduleFormDialog({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={handleClose} color="secondary">
-          Cancelar
-        </Button>
-        <Button
-          color="primary"
-          variant="contained"
+        <ButtonComponent text="Cancelar" onClick={handleClose} />
+        <ButtonComponent
+          styled="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
           onClick={handleSubmit}
           disabled={isPending}
-        >
-          {submitButtonText}
-        </Button>
+          text={submitButtonText}
+        />
       </DialogActions>
     </Dialog>
   );

@@ -72,3 +72,37 @@ export async function editSchedule(data: any) {
     return { success: false, message: error.message };
   }
 }
+
+export async function deleteSchedule(id: number, idWork: number) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  try {
+    const result = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/programacao/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const res = await result.json();
+
+    if (res.statusCode !== 200) {
+      return {
+        success: false,
+        error: res.message || "Erro ao deletar programação",
+      };
+    }
+
+    revalidatePath(`/detalhes/${idWork}`);
+
+    return { success: true, message: res.message };
+  } catch (error: any) {
+    console.error("Erro ao salvar programação:", error);
+    return { success: false, message: error.message };
+  }
+}

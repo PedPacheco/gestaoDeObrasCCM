@@ -1,14 +1,24 @@
 "use client";
 
-import { Tab, Tabs } from "@mui/material";
-import { Suspense, useEffect, useState } from "react";
-import WorkCostPanelItem from "./panelItems/workCostPanelItem";
-import SchedulePanelItem from "./panelItems/schedulePanelItem";
-import { ButtonComponent } from "../common/Button";
-import ScheduleFormDialog from "./dialog";
-import ErrorModal from "../common/ErrorModal";
+import {
+  startTransition,
+  Suspense,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+import { Tab, Tabs } from "@mui/material";
+
+import { ButtonComponent } from "../common/Button";
+import ErrorModal from "../common/ErrorModal";
 import ModalComponent from "../common/Modal";
+import ScheduleFormDialog from "./dialog";
+import SchedulePanelItem from "./panelItems/schedulePanelItem";
+import WorkCostPanelItem from "./panelItems/workCostPanelItem";
+import { deleteSchedule } from "@/actions/schedules";
+import ConfirmationModalComponent from "../common/confirmationModal";
 
 interface CustomTabPanelProps {
   children?: React.ReactNode;
@@ -41,12 +51,15 @@ function CustomTabPanel(props: CustomTabPanelProps) {
 export default function TabPanel({ workData, options }: TabPanelProps) {
   const [value, setValue] = useState(0);
   const [data, setData] = useState<Record<string, any>>(workData);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [idSchedule, setIdSchedule] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [openModal, setOpenModal] = useState<boolean>(false);
   const [editingSchedule, setEditingSchedule] = useState<any>();
   const [IsInsert, setIsInsert] = useState<boolean>(true);
+  const [openConfirmationModal, setOpenConfimartionModal] =
+    useState<boolean>(false);
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [openModal, setOpenModal] = useState<boolean>(false);
 
   useEffect(() => {
     if (workData) {
@@ -72,6 +85,33 @@ export default function TabPanel({ workData, options }: TabPanelProps) {
     setEditingSchedule(undefined);
     toggleDialog();
   };
+
+  const handleDelete = useCallback(
+    (id: number) => {
+      try {
+        startTransition(async () => {
+          const response = await deleteSchedule(id, data?.id);
+
+          if (!response.success) {
+            setError(response.error);
+            return;
+          }
+
+          setSuccess(response.message);
+          setOpenModal(true);
+          setOpenConfimartionModal(false);
+        });
+      } catch (error: any) {
+        setError(error.message);
+      }
+    },
+    [data?.id]
+  );
+
+  const toggleConfimartionModal = useCallback((id: number) => {
+    setIdSchedule(id);
+    setOpenConfimartionModal(true);
+  }, []);
 
   return (
     <div className="w-full flex justify-center items-start">
@@ -111,6 +151,7 @@ export default function TabPanel({ workData, options }: TabPanelProps) {
               <SchedulePanelItem
                 data={data.programacoes}
                 onEdit={handleEditSchedule}
+                onDelete={toggleConfimartionModal}
               />
             </CustomTabPanel>
             <CustomTabPanel value={value} index={2}>
@@ -121,8 +162,19 @@ export default function TabPanel({ workData, options }: TabPanelProps) {
       </div>
 
       <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
-        <span className="font-semibold text-xl">{success}</span>
+        <span className="text-center text-lg text-gray-700 dark:text-gray-200 mb-6">
+          {success}
+        </span>
       </ModalComponent>
+
+      <ConfirmationModalComponent
+        idSchedule={idSchedule}
+        message="Você deseja realmente excluir essa programação ?"
+        onClose={() => setOpenConfimartionModal(false)}
+        onConfirm={handleDelete}
+        open={openConfirmationModal}
+        title="Exclusão de programação"
+      />
 
       <ScheduleFormDialog
         open={isDialogOpen}

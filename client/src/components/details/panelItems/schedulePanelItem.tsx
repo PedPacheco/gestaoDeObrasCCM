@@ -43,13 +43,13 @@ const columns = {
 interface SchedulePanelItemProps {
   data: any[];
   onEdit?: (data: any) => void;
-  onDelete?: (item: any, index: number) => void;
+  onDelete: (confirm: number) => void;
 }
 
 export default function SchedulePanelItem({
   data,
-  onDelete,
   onEdit,
+  onDelete,
 }: SchedulePanelItemProps) {
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
 
@@ -59,9 +59,9 @@ export default function SchedulePanelItem({
     }
   };
 
-  const handleDelete = (item: any) => {
+  const handleDelete = (id: number) => {
     if (onDelete) {
-      onDelete(item);
+      onDelete(id);
     }
   };
 
@@ -126,7 +126,7 @@ export default function SchedulePanelItem({
                         <IconButton
                           size="small"
                           color="error"
-                          onClick={() => handleDelete(item)}
+                          onClick={() => handleDelete(item.id)}
                           sx={{
                             padding: "4px",
                             "&:hover": {
