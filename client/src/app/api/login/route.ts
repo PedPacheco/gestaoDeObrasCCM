@@ -35,7 +35,7 @@ export async function POST(req: Request) {
       if (tokenValue) {
         cookiesStore.set("token", tokenValue, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
+          secure: false,
           sameSite: "lax",
           path: "/",
         });
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
 
     cookiesStore.set("userInfo", JSON.stringify(res.data), {
       httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
+      secure: false,
       sameSite: "lax",
       path: "/",
     });

@@ -61,8 +61,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       credentials: "include",
     });
 
-    console.log(response);
-
     if (response.ok) {
       const res = await response.json();
 
