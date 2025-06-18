@@ -6,6 +6,8 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainEntryByDate from "@/components/entryComponents/entryByDate/MainEntryByDate";
 import { Transform } from "@/utils/transform";
 
+export const dynamic = "force-dynamic";
+
 export default async function EntryForDate() {
   const cookieStore = await cookies();
   const cookieParams = cookieStore.get("entryByDateFilters")?.value;

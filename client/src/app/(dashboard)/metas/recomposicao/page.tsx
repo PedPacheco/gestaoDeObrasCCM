@@ -6,6 +6,8 @@ import { Transform } from "@/utils/transform";
 import MainGoals from "@/components/goalsComponents/MainGoals";
 import { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Metas Recomposição",
   description: "Visão geral das metas de recomposição EDP",

@@ -5,6 +5,8 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainPendingSchedule from "@/components/scheduleComponents/pendingSchedule/MainPendingSchedule";
 import { Transform } from "@/utils/transform";
 
+export const dynamic = "force-dynamic";
+
 export default async function PendingSchedule() {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;

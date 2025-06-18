@@ -5,6 +5,8 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainAllWorks from "@/components/worksComponents/allWorks/MainAllWorks";
 import { Transform } from "@/utils/transform";
 
+export const dynamic = "force-dynamic";
+
 export default async function AllWorks() {
   const cookieStore = await cookies();
   const cookieParams = cookieStore.get("allWorksFilters")?.value;

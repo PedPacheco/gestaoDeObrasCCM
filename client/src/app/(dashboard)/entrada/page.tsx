@@ -6,6 +6,8 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainEntry from "@/components/entryComponents/entry/MainEntry";
 import { Transform } from "@/utils/transform";
 
+export const dynamic = "force-dynamic";
+
 export default async function Entry() {
   const cookieStore = await cookies();
   const cookieParams = cookieStore.get("entryFilters")?.value;
