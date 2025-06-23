@@ -7,9 +7,16 @@ import {
   mockUpdateSchedulesServiceFormattedData,
   mockUpdateSchedulesServiceWithoutIdWork,
 } from '../../../../test/mocks/mockAddScheduleService';
+import { Prisma } from '@prisma/client';
 
 describe('UpdateSchedulesService', () => {
   let updateSchedulesService: UpdateSchedulesService;
+
+  const mockTransaction = {
+    programacoes: {
+      update: jest.fn(),
+    },
+  } as unknown as Prisma.TransactionClient;
 
   const mockRepository = {
     update: jest.fn(),
@@ -32,28 +39,38 @@ describe('UpdateSchedulesService', () => {
 
   describe('update', () => {
     it('should call method update and throw BadRequestExpection', async () => {
-      await expect(updateSchedulesService.update(null as any)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        updateSchedulesService.update(null as any, mockTransaction),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('Should call method update and pass the formatted parameters to the repository, if repository return 0 throw error', async () => {
       mockRepository.update.mockResolvedValue(undefined);
 
-      await updateSchedulesService.update(mockUpdateSchedulesService);
+      await updateSchedulesService.update(
+        mockUpdateSchedulesService,
+        mockTransaction,
+      );
 
       expect(mockRepository.update).toHaveBeenCalledWith(
         mockUpdateSchedulesServiceFormattedData,
+        mockTransaction,
       );
     });
 
     it('Should call method update and throw error with this text: ID da obra é obrigatório', async () => {
       await expect(
-        updateSchedulesService.update(mockUpdateSchedulesServiceWithoutIdWork),
+        updateSchedulesService.update(
+          mockUpdateSchedulesServiceWithoutIdWork,
+          mockTransaction,
+        ),
       ).rejects.toThrow(BadRequestException);
 
       await expect(
-        updateSchedulesService.update(mockUpdateSchedulesServiceWithoutIdWork),
+        updateSchedulesService.update(
+          mockUpdateSchedulesServiceWithoutIdWork,
+          mockTransaction,
+        ),
       ).rejects.toThrow('Erro ao criar programação: ID da obra é obrigatório');
     });
   });

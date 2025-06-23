@@ -57,6 +57,7 @@ export const mockAddSchedulesServiceFormattedData = {
 
 export const mockUpdateSchedulesService = {
   id: 1,
+  idUser: 1,
   idWork: 3146044,
   dataProg: new Date('2025-06-10T00:00:00.000Z'),
   prog: 100,
@@ -79,6 +80,7 @@ export const mockUpdateSchedulesService = {
 
 export const mockUpdateSchedulesServiceWithoutIdWork = {
   id: 1,
+  idUser: 1,
   idWork: undefined,
   dataProg: new Date('2025-06-10T00:00:00.000Z'),
   prog: 100,

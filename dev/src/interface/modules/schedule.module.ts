@@ -30,9 +30,11 @@ import { GetTotalValuesScheduleService } from '../../domain/services/schedule/ge
 import { GetValuesWeeklyScheduleService } from '../../domain/services/schedule/getValuesWeeklySchedule.service';
 import { ScheduleController } from '../controllers/schedule.controller';
 import { UsersModule } from './users.module';
+import { UpdateSchedulesApplicationService } from 'src/application/updateSchedulesApplication.service';
+import { ExecutionReportModule } from './executionReport.module';
 
 @Module({
-  imports: [UsersModule],
+  imports: [UsersModule, ExecutionReportModule],
   controllers: [ScheduleController],
   providers: [
     AddSchedulesService,
@@ -44,6 +46,7 @@ import { UsersModule } from './users.module';
     GetPendingScheduleValuesService,
     GetScheduleRestrictionsService,
     GetMonthlySummaryService,
+    UpdateSchedulesApplicationService,
     { provide: ADD_SCHEDULES_REPOSITORY, useClass: AddSchedulesRepository },
     {
       provide: UPDATE_SCHEDULES_REPOSITORY,

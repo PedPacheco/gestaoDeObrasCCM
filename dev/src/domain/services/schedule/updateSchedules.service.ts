@@ -1,4 +1,3 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Schedule } from 'src/domain/entities/schedule.entity';
 import {
   IUpdateSchedulesRepository,
@@ -7,6 +6,9 @@ import {
 import { UpdateSchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
 import { parseTimeToDate } from 'src/utils/parseTimeToDate';
 
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+
 @Injectable()
 export class UpdateSchedulesService {
   constructor(
@@ -14,7 +16,7 @@ export class UpdateSchedulesService {
     private readonly updateSchedulesRepository: IUpdateSchedulesRepository,
   ) {}
 
-  async update(data: UpdateSchedulesDataDTO) {
+  async update(data: UpdateSchedulesDataDTO, tx: Prisma.TransactionClient) {
     if (!data) {
       throw new BadRequestException(
         'Nenhuma programação fornecida para inserção.',
@@ -58,6 +60,17 @@ export class UpdateSchedulesService {
       id_tecnico: schedule.idTechnical,
     };
 
-    await this.updateSchedulesRepository.update(formattedData);
+    try {
+      await this.updateSchedulesRepository.update(formattedData, tx);
+
+      return {
+        success: true,
+        scheduleId: schedule.id,
+        executionReportRequired: !!formattedData.exec,
+        idWork: schedule.idWork,
+      };
+    } catch (err) {
+      console.error(err, 'erro');
+    }
   }
 }

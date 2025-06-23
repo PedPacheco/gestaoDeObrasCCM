@@ -18,6 +18,8 @@ import {
   UpdateSchedulesDataDTO,
 } from 'src/interface/dtos/scheduleDTO';
 import { DeleteSchedulesService } from 'src/domain/services/schedule/deleteSchedules.service';
+import { ExecutionReportService } from 'src/domain/services/executionReport.service';
+import { UpdateSchedulesApplicationService } from 'src/application/updateSchedulesApplication.service';
 
 describe('ScheduleController', () => {
   let scheduleController: ScheduleController;
@@ -28,7 +30,7 @@ describe('ScheduleController', () => {
   let getPendingScheduleValuesService: GetPendingScheduleValuesService;
   let getMonthlySummaryService: GetMonthlySummaryService;
   let addSchedulesService: AddSchedulesService;
-  let updateSchedulesService: UpdateSchedulesService;
+  let updateSchedulesService: UpdateSchedulesApplicationService;
   let deleteSchedulesService: DeleteSchedulesService;
 
   const mockScheduleData: GetScheduleValuesResponse = {
@@ -119,6 +121,11 @@ describe('ScheduleController', () => {
         { provide: UpdateSchedulesService, useValue: { update: jest.fn() } },
         { provide: DeleteSchedulesService, useValue: { delete: jest.fn() } },
         { provide: UsersService, useValue: { findUser: jest.fn() } },
+        { provide: ExecutionReportService, useValue: { create: jest.fn() } },
+        {
+          provide: UpdateSchedulesApplicationService,
+          useValue: { update: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -143,8 +150,8 @@ describe('ScheduleController', () => {
       GetMonthlySummaryService,
     );
     addSchedulesService = module.get<AddSchedulesService>(AddSchedulesService);
-    updateSchedulesService = module.get<UpdateSchedulesService>(
-      UpdateSchedulesService,
+    updateSchedulesService = module.get<UpdateSchedulesApplicationService>(
+      UpdateSchedulesApplicationService,
     );
     deleteSchedulesService = module.get<DeleteSchedulesService>(
       DeleteSchedulesService,
@@ -503,8 +510,8 @@ describe('ScheduleController', () => {
 
     const date = new Date('2025-06-10T00:00:00.000Z');
 
-    const result = await scheduleController.updateSchedules({
-      id: 1,
+    const result = await scheduleController.updateSchedules(1, {
+      idUser: 32,
       idWork: 3146044,
       dataProg: date,
       startTime: '08:00',
@@ -519,6 +526,7 @@ describe('ScheduleController', () => {
     });
     expect(updateSchedulesService.update).toHaveBeenCalledWith({
       id: 1,
+      idUser: 32,
       idWork: 3146044,
       dataProg: date,
       startTime: '08:00',

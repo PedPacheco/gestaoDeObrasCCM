@@ -244,10 +244,10 @@ export class SchedulesDataDTO {
 
 export class UpdateSchedulesDataDTO {
   @IsNumber()
-  id: number;
+  idWork: number;
 
   @IsNumber()
-  idWork: number;
+  idUser: number;
 
   @IsDate()
   @Type(() => Date)
