@@ -1,11 +1,11 @@
-import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/UpdateSchedulesRepository';
 import { NotFoundException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from '@prisma/client';
+import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updateSchedulesRepository';
 
 describe('UpdateSchedulesRepository', () => {
   let repository: UpdateSchedulesRepository;
 
-  // Crie manualmente o mock com jest.fn()
   const updateMock = jest.fn();
 
   const mockTx = {
@@ -14,9 +14,14 @@ describe('UpdateSchedulesRepository', () => {
     },
   } as any as Prisma.TransactionClient; // 👈 agora o Jest reconhece o mock
 
-  beforeEach(() => {
-    repository = new UpdateSchedulesRepository();
-    jest.clearAllMocks();
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [UpdateSchedulesRepository],
+    }).compile();
+
+    repository = module.get<UpdateSchedulesRepository>(
+      UpdateSchedulesRepository,
+    );
   });
 
   it('should throw NotFoundException if P2025 error occurs', async () => {
