@@ -1,7 +1,6 @@
 import { ExecutionReportService } from 'src/domain/services/executionReport.service';
 import { UpdateSchedulesService } from 'src/domain/services/schedule/updateSchedules.service';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { UpdateSchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
 
 import { Injectable } from '@nestjs/common';
 
@@ -13,23 +12,25 @@ export class UpdateSchedulesApplicationService {
     private readonly executionReportService: ExecutionReportService,
   ) {}
 
-  async update(data: UpdateSchedulesDataDTO) {
+  async update(data: any) {
     return await this.prisma.$transaction(async (tx) => {
       try {
-        const result = await this.updateSchedulesService.update(data, tx);
+        const result = await this.updateSchedulesService.update(
+          data.updateData,
+          tx,
+        );
 
         if (result.executionReportRequired) {
           await this.executionReportService.create(
             {
               idSchedule: result.scheduleId,
-              idUser: data.idUser,
               idWork: result.idWork,
+              ...data.executionReportData,
             },
+            result.scheduledFinishTime,
             tx,
           );
         }
-
-        return result;
       } catch (error) {
         console.error('Erro na transação:', error);
         throw error;

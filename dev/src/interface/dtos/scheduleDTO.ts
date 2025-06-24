@@ -7,6 +7,7 @@ import {
   IsOptional,
   IsString,
   Matches,
+  ValidateNested,
 } from 'class-validator';
 import { convertParameterValue } from 'src/utils/convertParameterValue';
 
@@ -242,16 +243,26 @@ export class SchedulesDataDTO {
   observation?: string;
 }
 
-export class UpdateSchedulesDataDTO {
-  @IsNumber()
-  idWork: number;
+export class EquipmentItem {
+  @IsString()
+  equipment: string;
 
+  @IsString()
+  power: string;
+
+  @IsString()
+  patrimony: string;
+}
+
+export class ExecutionReportDataDTO {
   @IsNumber()
   idUser: number;
 
-  @IsDate()
-  @Type(() => Date)
-  dataProg: Date;
+  @IsString()
+  supervisor: string;
+
+  @IsBoolean()
+  partialConnectionReleased: boolean;
 
   @IsString()
   @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
@@ -265,58 +276,58 @@ export class UpdateSchedulesDataDTO {
   })
   finishTime: string;
 
-  @IsOptional()
   @IsString()
-  serviceType?: string;
+  startContact: string;
 
-  @IsNumber()
-  prog: number;
-
-  @IsOptional()
-  @IsNumber()
-  exec?: number;
-
-  @IsOptional()
   @IsString()
-  equipment?: string;
+  endContact: string;
 
-  @IsOptional()
-  @IsNumber()
-  chi?: number;
-
-  @IsOptional()
   @IsString()
-  numDp?: string;
+  delayJustification: string;
 
-  @IsOptional()
   @IsBoolean()
-  temporaryKey?: boolean;
+  hasEquipmentInstalled: boolean;
 
-  @IsOptional()
-  @IsNumber()
-  lmTeam?: number;
+  @IsArray()
+  @IsString({ each: true })
+  @Type(() => EquipmentItem)
+  appliedEquipment: EquipmentItem[];
 
-  @IsOptional()
-  @IsNumber()
-  regulTeam?: number;
+  @IsBoolean()
+  hasEquipmentRemoved: boolean;
 
-  @IsOptional()
-  @IsNumber()
-  lvTeam?: number;
+  @IsArray()
+  @IsString({ each: true })
+  @Type(() => EquipmentItem)
+  equipmentRemoved: EquipmentItem[];
 
-  @IsOptional()
-  @IsNumber()
-  idTechnical?: number;
+  @IsBoolean()
+  changesExecution: boolean;
 
-  @IsOptional()
-  @IsNumber()
-  idExecutionRestriction?: number;
-
-  @IsOptional()
   @IsString()
-  responsibility?: string;
+  generalObservation: string;
+
+  @IsString()
+  workSituation: string;
+
+  @IsString()
+  reason: string;
+
+  @IsBoolean()
+  provisionalKeyInstalled: boolean;
+
+  @IsString()
+  provisionalKeyReference: string;
+
+  @IsBoolean()
+  provisionalKeyWithdrawn: boolean;
+}
+
+export class UpdateSchedulesDataDTO {
+  @ValidateNested({ each: true })
+  @Type(() => SchedulesDataDTO)
+  updateData: SchedulesDataDTO;
 
   @IsOptional()
-  @IsString()
-  observation?: string;
+  executionReportData?: ExecutionReportDataDTO;
 }

@@ -155,7 +155,10 @@ export class ScheduleController {
     @Param('id', ParseIntPipe) id: number,
     @Body() schedulesData: UpdateSchedulesDataDTO,
   ) {
-    const data = { id, ...schedulesData };
+    const data = {
+      updateData: { id, ...schedulesData.updateData },
+      executionReportData: { ...schedulesData.executionReportData },
+    };
     await this.updateSchedulesService.update(data);
 
     return {

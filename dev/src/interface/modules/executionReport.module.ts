@@ -2,8 +2,10 @@ import { Module } from '@nestjs/common';
 import { EXECUTION_REPORT_REPOSITORY } from 'src/domain/repositories/IExecutionReportRepository';
 import { ExecutionReportService } from 'src/domain/services/executionReport.service';
 import { ExecutionReportRepository } from 'src/infra/repositories/executionReportRepository';
+import { ExecutionReportController } from '../controllers/executionReport.controller';
 
 @Module({
+  controllers: [ExecutionReportController],
   providers: [
     ExecutionReportService,
     {

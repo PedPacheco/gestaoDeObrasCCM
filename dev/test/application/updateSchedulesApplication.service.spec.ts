@@ -43,13 +43,16 @@ describe('UpdateScheduleApplicationService', () => {
   afterEach(jest.clearAllMocks);
 
   const mockDTO = {
-    id: 1,
-    idWork: 123,
-    idUser: 99,
-    dataProg: new Date('2025-06-10'),
-    startTime: '08:00',
-    finishTime: '17:00',
-    prog: 80,
+    updateData: {
+      id: 1,
+      idWork: 123,
+      idUser: 99,
+      dataProg: new Date('2025-06-10'),
+      startTime: '08:00',
+      finishTime: '17:00',
+      prog: 80,
+    },
+    executionReportData: {},
   };
 
   it('should call update and not call executionReportService if executionReportRequired is false', async () => {
@@ -57,6 +60,7 @@ describe('UpdateScheduleApplicationService', () => {
       success: true,
       scheduleId: 1,
       executionReportRequired: false,
+      scheduledFinishTime: '17-05-2025',
       idWork: 123,
     };
 
@@ -66,11 +70,11 @@ describe('UpdateScheduleApplicationService', () => {
     const result = await service.update(mockDTO);
 
     expect(mockUpdateSchedulesService.update).toHaveBeenCalledWith(
-      mockDTO,
+      mockDTO.updateData,
       expect.any(Object),
     );
     expect(mockExecutionReportService.create).not.toHaveBeenCalled();
-    expect(result).toEqual(mockResult);
+    expect(result).toBeUndefined();
   });
 
   it('should call executionReportService.create if executionReportRequired is true', async () => {
@@ -78,6 +82,7 @@ describe('UpdateScheduleApplicationService', () => {
       success: true,
       scheduleId: 1,
       executionReportRequired: true,
+      scheduledFinishTime: '17-05-2025',
       idWork: 123,
     };
 
@@ -89,9 +94,9 @@ describe('UpdateScheduleApplicationService', () => {
     expect(mockExecutionReportService.create).toHaveBeenCalledWith(
       {
         idSchedule: 1,
-        idUser: 99,
         idWork: 123,
       },
+      '17-05-2025',
       expect.any(Object),
     );
   });

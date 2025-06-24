@@ -3,10 +3,16 @@ import { ExecutionReportRepository } from 'src/infra/repositories/executionRepor
 
 import { Test, TestingModule } from '@nestjs/testing';
 
+import { mockExecutionReportRepository } from '../../../test/mocks/mocksExecutionReport';
+
 describe('ExecutionReportRepository', () => {
   let repository: ExecutionReportRepository;
 
-  const mockPrisma = {};
+  const mockPrisma = {
+    relatorio_execucao: {
+      findMany: jest.fn(),
+    },
+  };
 
   const mockTransaction = {
     relatorio_execucao: {
@@ -32,21 +38,10 @@ describe('ExecutionReportRepository', () => {
 
   describe('create', () => {
     it('call method create and create a new register in table', async () => {
-      await repository.create(
-        {
-          idSchedule: 1,
-          idUser: 1,
-          idWork: 1,
-        },
-        mockTransaction,
-      );
+      await repository.create(mockExecutionReportRepository, mockTransaction);
 
       expect(mockTransaction.relatorio_execucao.create).toHaveBeenCalledWith({
-        data: {
-          id_obra: 1,
-          id_programacao: 1,
-          id_usuario: 1,
-        },
+        data: mockExecutionReportRepository,
       });
     });
   });
@@ -63,6 +58,52 @@ describe('ExecutionReportRepository', () => {
           where: { id_programacao: 1 },
         },
       );
+
+      expect(result).toEqual(expected);
+    });
+  });
+
+  describe('findByWorkId', () => {
+    it('should return the report found by work id', async () => {
+      const expected = { id: 123, ovnota: 1 };
+      mockPrisma.relatorio_execucao.findMany.mockResolvedValue(expected);
+
+      const result = await repository.findByWorkId(1);
+
+      expect(mockPrisma.relatorio_execucao.findMany).toHaveBeenCalledWith({
+        where: { id_obra: 1 },
+        select: {
+          supervisor: true,
+          liberado_ligacao_parcial: true,
+          hora_inicio: true,
+          hora_conclusao: true,
+          contato_inicio: true,
+          contato_termino: true,
+          atraso: true,
+          justificativa_atraso: true,
+          possui_equipamentos_instalados: true,
+          equipamentos_aplicados: true,
+          potencia_equipamento_aplicado: true,
+          patrimonio_equipamento_aplicado: true,
+          equipamentos_retirados: true,
+          potencia_equipamento_retirado: true,
+          patrimonio_equipamento_retirado: true,
+          alteracoes_execucao: true,
+          observacoes_gerais: true,
+          chave_provisoria_instalada: true,
+          referencia_chave_provisoria: true,
+          chave_provisoria_retirada: true,
+          motivo: true,
+          usuario: { select: { nome_usuario: true } },
+          obras: {
+            select: {
+              ovnota: true,
+              ordem_dci: true,
+              tipos: { select: { tipo_obra: true } },
+            },
+          },
+        },
+      });
 
       expect(result).toEqual(expected);
     });

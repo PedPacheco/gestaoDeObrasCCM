@@ -1,25 +1,23 @@
+import { plainToInstance } from 'class-transformer';
+import { UpdateSchedulesApplicationService } from 'src/application/updateSchedulesApplication.service';
+import { ExecutionReportService } from 'src/domain/services/executionReport.service';
+import { AddSchedulesService } from 'src/domain/services/schedule/addSchedules.service';
+import { DeleteSchedulesService } from 'src/domain/services/schedule/deleteSchedules.service';
 import { GetMonthlySummaryService } from 'src/domain/services/schedule/getMonthlySummary.service';
 import { GetPendingScheduleValuesService } from 'src/domain/services/schedule/getPendingScheduleValues.service';
 import { GetScheduleRestrictionsService } from 'src/domain/services/schedule/getScheduleRestrictions.service';
 import { GetScheduleValuesService } from 'src/domain/services/schedule/getScheduleValues.service';
 import { GetTotalValuesScheduleService } from 'src/domain/services/schedule/getTotalValuesSchedule.service';
 import { GetValuesWeeklyScheduleService } from 'src/domain/services/schedule/getValuesWeeklySchedule.service';
+import { UpdateSchedulesService } from 'src/domain/services/schedule/updateSchedules.service';
 import { UsersService } from 'src/domain/services/users.service';
 import { ScheduleController } from 'src/interface/controllers/schedule.controller';
+import { SchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
 import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
+import { mockUpdateSchedulesController } from '../../../test/mocks/mockAddScheduleService';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { AddSchedulesService } from 'src/domain/services/schedule/addSchedules.service';
-import { UpdateSchedulesService } from 'src/domain/services/schedule/updateSchedules.service';
-import { plainToInstance } from 'class-transformer';
-import {
-  SchedulesDataDTO,
-  UpdateSchedulesDataDTO,
-} from 'src/interface/dtos/scheduleDTO';
-import { DeleteSchedulesService } from 'src/domain/services/schedule/deleteSchedules.service';
-import { ExecutionReportService } from 'src/domain/services/executionReport.service';
-import { UpdateSchedulesApplicationService } from 'src/application/updateSchedulesApplication.service';
 
 describe('ScheduleController', () => {
   let scheduleController: ScheduleController;
@@ -506,34 +504,20 @@ describe('ScheduleController', () => {
   });
 
   it('Should call updateSchedules and return message', async () => {
-    jest.spyOn(addSchedulesService, 'add').mockResolvedValue();
+    jest.spyOn(updateSchedulesService, 'update').mockResolvedValue();
 
-    const date = new Date('2025-06-10T00:00:00.000Z');
-
-    const result = await scheduleController.updateSchedules(1, {
-      idUser: 32,
-      idWork: 3146044,
-      dataProg: date,
-      startTime: '08:00',
-      finishTime: '07:00',
-      serviceType: 'Inspeção Elétrica',
-      prog: 100,
-    });
+    const result = await scheduleController.updateSchedules(
+      1,
+      mockUpdateSchedulesController,
+    );
 
     expect(result).toEqual({
       statusCode: HttpStatus.NO_CONTENT,
       message: 'Atualização da programação feita com sucesso',
     });
-    expect(updateSchedulesService.update).toHaveBeenCalledWith({
-      id: 1,
-      idUser: 32,
-      idWork: 3146044,
-      dataProg: date,
-      startTime: '08:00',
-      finishTime: '07:00',
-      serviceType: 'Inspeção Elétrica',
-      prog: 100,
-    });
+    expect(updateSchedulesService.update).toHaveBeenCalledWith(
+      mockUpdateSchedulesController,
+    );
   });
 
   it('Should call deleteSchedules and return message', async () => {
@@ -559,13 +543,8 @@ describe('ScheduleController', () => {
     };
 
     const dtoAdd = plainToInstance(SchedulesDataDTO, input);
-    const dtoUpdate = plainToInstance(UpdateSchedulesDataDTO, input);
 
     expect(dtoAdd.dataProg).toBeInstanceOf(Date);
     expect(dtoAdd.dataProg.toISOString().startsWith('2025-06-10')).toBe(true);
-    expect(dtoUpdate.dataProg).toBeInstanceOf(Date);
-    expect(dtoUpdate.dataProg.toISOString().startsWith('2025-06-10')).toBe(
-      true,
-    );
   });
 });

@@ -2,6 +2,15 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from '@prisma/client';
 import { EXECUTION_REPORT_REPOSITORY } from 'src/domain/repositories/IExecutionReportRepository';
 import { ExecutionReportService } from 'src/domain/services/executionReport.service';
+import {
+  mockExecutionReportRepository,
+  mockExecutionReportService,
+  mockExecutionReportServiceWithErrorEquipmentInstalled,
+  mockExecutionReportServiceWithErrorEquipmentRemoved,
+  mockExecutionReportServiceWithErrorProvisionalKeyReference,
+  mockFindByWorkIdResponse,
+} from '../../../test/mocks/mocksExecutionReport';
+import { BadRequestException } from '@nestjs/common';
 
 describe('ExecutionReportService', () => {
   let service: ExecutionReportService;
@@ -9,6 +18,7 @@ describe('ExecutionReportService', () => {
   const mockRepository = {
     create: jest.fn(),
     findByScheduleId: jest.fn(),
+    findByWorkId: jest.fn(),
   };
 
   const mockTransaction = {
@@ -33,11 +43,8 @@ describe('ExecutionReportService', () => {
       mockRepository.findByScheduleId.mockResolvedValue(true);
 
       const result = await service.create(
-        {
-          idSchedule: 1,
-          idUser: 1,
-          idWork: 1,
-        },
+        mockExecutionReportService,
+        new Date('17-05-2025'),
         mockTransaction,
       );
 
@@ -49,22 +56,91 @@ describe('ExecutionReportService', () => {
       mockRepository.findByScheduleId.mockResolvedValue(false);
 
       const result = await service.create(
-        {
-          idSchedule: 1,
-          idUser: 1,
-          idWork: 1,
-        },
+        mockExecutionReportService,
+        new Date('17-05-2025'),
         mockTransaction,
       );
 
       expect(result).toBeUndefined();
       expect(mockRepository.create).toHaveBeenCalledWith(
-        {
-          idSchedule: 1,
-          idUser: 1,
-          idWork: 1,
-        },
+        mockExecutionReportRepository,
         mockTransaction,
+      );
+    });
+
+    it('Should call method create and throw BadRequestExpection if equipmet installed no sent', async () => {
+      await expect(
+        service.create(
+          mockExecutionReportServiceWithErrorEquipmentInstalled,
+          new Date('17-05-2025'),
+          mockTransaction,
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('Should call method create and throw BadRequestExpection if equipmet removed no sent', async () => {
+      await expect(
+        service.create(
+          mockExecutionReportServiceWithErrorEquipmentRemoved,
+          new Date('17-05-2025'),
+          mockTransaction,
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('Should call method create and throw BadRequestExpection if provisional Key Reference no sent', async () => {
+      await expect(
+        service.create(
+          mockExecutionReportServiceWithErrorProvisionalKeyReference,
+          new Date('17-05-2025'),
+          mockTransaction,
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('findByWorkId', () => {
+    it('Should call method findByWorkId and return formatted data', async () => {
+      mockRepository.findByWorkId.mockResolvedValue(mockFindByWorkIdResponse);
+
+      const result = await service.findByWorkId(1);
+
+      expect(mockRepository.findByWorkId).toHaveBeenCalledWith(1);
+      expect(result).toEqual([
+        {
+          nome_usuario: 'Carlos Oliveira',
+          ovnota: '16004316',
+          ordem_dci: '170000023493',
+          tipo_obra: 'Manutenção',
+          supervisor: 'João Silva',
+          liberado_ligacao_parcial: true,
+          hora_inicio: new Date('2025-06-24T08:30:00.000Z'),
+          hora_conclusao: new Date('2025-06-24T12:45:00.000Z'),
+          contato_inicio: 'Contato iniciado com responsável local.',
+          contato_termino: 'Contato encerrado com responsável local.',
+          atraso: true,
+          justificativa_atraso: 'Trânsito intenso na região.',
+          possui_equipamentos_instalados: true,
+          equipamentos_aplicados: 'Transformador, Relé de proteção',
+          potencia_equipamento_aplicado: '50, 30',
+          patrimonio_equipamento_aplicado: '123456789, 987654321',
+          equipamentos_retirados: '',
+          potencia_equipamento_retirado: '',
+          patrimonio_equipamento_retirado: '',
+          alteracoes_execucao: false,
+          observacoes_gerais:
+            'Execução dentro do esperado, sem intercorrências.',
+          chave_provisoria_instalada: true,
+          referencia_chave_provisoria: 'CHV123456',
+          chave_provisoria_retirada: false,
+          motivo: 'Instalação programada',
+        },
+      ]);
+    });
+
+    it('Should call method findByWorkId and throw BadRequestExpection if id no sent', async () => {
+      await expect(service.findByWorkId(null)).rejects.toThrow(
+        BadRequestException,
       );
     });
   });

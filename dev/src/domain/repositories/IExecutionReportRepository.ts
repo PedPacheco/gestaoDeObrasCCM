@@ -1,15 +1,15 @@
 import { Prisma } from '@prisma/client';
-import { CreateExecutionReport } from 'src/interface/types/executionInterface';
 
 export interface IExecutionReportRepository {
   create(
-    data: CreateExecutionReport,
+    data: Prisma.relatorio_execucaoUncheckedCreateInput,
     tx: Prisma.TransactionClient,
   ): Promise<void>;
   findByScheduleId(
     idSchedule: number,
     tx: Prisma.TransactionClient,
   ): Promise<any>;
+  findByWorkId(idWork: number): Promise<any>;
 }
 
 export const EXECUTION_REPORT_REPOSITORY = Symbol('ExecutionReportRepository');
