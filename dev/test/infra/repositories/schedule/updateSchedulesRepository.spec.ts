@@ -1,22 +1,22 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { mockUpdateSchedulesServiceFormattedData } from '../../../../test/mocks/mockAddScheduleService';
-import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updateSchedulesRepository';
 import { NotFoundException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { Prisma } from '@prisma/client';
+import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updateSchedulesRepository';
 
 describe('UpdateSchedulesRepository', () => {
   let repository: UpdateSchedulesRepository;
 
-  const mockPrisma = {
-    programacoes: { update: jest.fn() },
-  };
+  const updateMock = jest.fn();
+
+  const mockTx = {
+    programacoes: {
+      update: updateMock,
+    },
+  } as any as Prisma.TransactionClient; // 👈 agora o Jest reconhece o mock
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        UpdateSchedulesRepository,
-        { provide: PrismaService, useValue: mockPrisma },
-      ],
+      providers: [UpdateSchedulesRepository],
     }).compile();
 
     repository = module.get<UpdateSchedulesRepository>(
@@ -24,34 +24,37 @@ describe('UpdateSchedulesRepository', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  it('should throw NotFoundException if P2025 error occurs', async () => {
+    updateMock.mockRejectedValueOnce({ code: 'P2025' });
 
-  describe('UpdateSchedules', () => {
-    it('Should call method update and throw NotFoundExpection if id not found', async () => {
-      mockPrisma.programacoes.update.mockRejectedValueOnce({ code: 'P2025' });
+    const input = {
+      id: 9999,
+      startTime: '08:00',
+      finishTime: '17:00',
+    };
 
-      const input = {
-        id: 9999,
-        startTime: '08:00',
-        finishTime: '17:00',
-      };
+    await expect(repository.update(input, mockTx)).rejects.toThrow(
+      new NotFoundException(`Agendamento com ID ${input.id} não encontrado`),
+    );
+  });
 
-      await expect(repository.update(input)).rejects.toThrow(
-        new NotFoundException(`Agendamento com ID ${input.id} não encontrado`),
-      );
-    });
+  it('should call update with correct params', async () => {
+    updateMock.mockResolvedValueOnce({});
 
-    it('Should call method update and return count of data created', async () => {
-      mockPrisma.programacoes.update.mockResolvedValue({ count: 2 });
+    const input = {
+      id: 123,
+      startTime: '09:00',
+      finishTime: '18:00',
+    };
 
-      const { id, ...withoutId } = mockUpdateSchedulesServiceFormattedData;
+    await repository.update(input, mockTx);
 
-      await repository.update(mockUpdateSchedulesServiceFormattedData);
-
-      expect(mockPrisma.programacoes.update).toHaveBeenCalledWith({
-        where: { id },
-        data: withoutId,
-      });
+    expect(updateMock).toHaveBeenCalledWith({
+      where: { id: 123 },
+      data: {
+        startTime: '09:00',
+        finishTime: '18:00',
+      },
     });
   });
 });

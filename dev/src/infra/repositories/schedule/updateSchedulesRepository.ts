@@ -1,15 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { IUpdateSchedulesRepository } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 @Injectable()
 export class UpdateSchedulesRepository implements IUpdateSchedulesRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor() {}
 
-  async update(data: any): Promise<void> {
+  async update(data: any, tx: Prisma.TransactionClient): Promise<void> {
     const { id, ...updateData } = data;
+
     try {
-      await this.prisma.programacoes.update({
+      await tx.programacoes.update({
         where: { id },
         data: updateData,
       });

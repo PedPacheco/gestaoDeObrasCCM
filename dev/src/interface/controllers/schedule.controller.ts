@@ -1,6 +1,8 @@
-import { UpdateSchedulesService } from './../../domain/services/schedule/updateSchedules.service';
+import { UpdateSchedulesApplicationService } from 'src/application/updateSchedulesApplication.service';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
+import { AddSchedulesService } from 'src/domain/services/schedule/addSchedules.service';
+import { DeleteSchedulesService } from 'src/domain/services/schedule/deleteSchedules.service';
 import { GetMonthlySummaryService } from 'src/domain/services/schedule/getMonthlySummary.service';
 import { GetPendingScheduleValuesService } from 'src/domain/services/schedule/getPendingScheduleValues.service';
 import { GetScheduleRestrictionsService } from 'src/domain/services/schedule/getScheduleRestrictions.service';
@@ -30,8 +32,6 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { AddSchedulesService } from 'src/domain/services/schedule/addSchedules.service';
-import { DeleteSchedulesService } from 'src/domain/services/schedule/deleteSchedules.service';
 
 @Controller('programacao')
 export class ScheduleController {
@@ -43,7 +43,7 @@ export class ScheduleController {
     private getScheduleRestrictionsService: GetScheduleRestrictionsService,
     private getMonthlySummaryService: GetMonthlySummaryService,
     private addSchedulesService: AddSchedulesService,
-    private updateSchedulesService: UpdateSchedulesService,
+    private updateSchedulesService: UpdateSchedulesApplicationService,
     private deleteSchedulesService: DeleteSchedulesService,
   ) {}
 
@@ -149,10 +149,18 @@ export class ScheduleController {
     };
   }
 
-  @Patch()
+  @Patch(':id')
   @UseGuards(PermissionGuard)
-  async updateSchedules(@Body() schedulesData: UpdateSchedulesDataDTO) {
-    await this.updateSchedulesService.update(schedulesData);
+  async updateSchedules(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() schedulesData: UpdateSchedulesDataDTO,
+  ) {
+    const data = {
+      updateData: { id, ...schedulesData.updateData },
+      executionReportData: { ...schedulesData.executionReportData },
+    };
+    console.log(data);
+    await this.updateSchedulesService.update(data);
 
     return {
       statusCode: HttpStatus.NO_CONTENT,

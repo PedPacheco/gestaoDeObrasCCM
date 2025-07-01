@@ -16,6 +16,7 @@ import { ScheduleModule } from './interface/modules/schedule.module';
 import { UsersModule } from './interface/modules/users.module';
 import { WorksModule } from './interface/modules/works.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ExecutionReportModule } from './interface/modules/executionReport.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     EntryModule,
     ExportModule,
     ScheduleModule,
+    ExecutionReportModule,
     AuxiliaryBaseModule,
     JwtModule.registerAsync({
       global: true,

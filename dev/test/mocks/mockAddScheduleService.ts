@@ -57,6 +57,7 @@ export const mockAddSchedulesServiceFormattedData = {
 
 export const mockUpdateSchedulesService = {
   id: 1,
+  idUser: 1,
   idWork: 3146044,
   dataProg: new Date('2025-06-10T00:00:00.000Z'),
   prog: 100,
@@ -79,6 +80,7 @@ export const mockUpdateSchedulesService = {
 
 export const mockUpdateSchedulesServiceWithoutIdWork = {
   id: 1,
+  idUser: 1,
   idWork: undefined,
   dataProg: new Date('2025-06-10T00:00:00.000Z'),
   prog: 100,
@@ -108,4 +110,61 @@ export const mockUpdateSchedulesServiceFormattedData = {
   id_restricao_execucao: 1,
   observacao_execucao: undefined,
   id_tecnico: 1,
+};
+
+export const mockUpdateSchedulesController = {
+  updateData: {
+    id: 1,
+    idUser: 46,
+    idWork: 20283,
+    chi: 32324,
+    dataProg: new Date('2025-06-13'),
+    equipment: 'gdsgsfgsd',
+    exec: 59,
+    finishTime: '17:00',
+    idExecutionRestriction: 1,
+    idTechnical: 1,
+    lmTeam: 5,
+    lvTeam: 2,
+    numDp: '43432432',
+    observationExecution: null,
+    prog: 100,
+    regulTeam: 3,
+    responsibilityExecution: null,
+    serviceType: 'Obra livre',
+    startTime: '08:00',
+    temporaryKey: false,
+  },
+  executionReportData: {
+    idUser: 1,
+    supervisor: 'João Silva',
+    partialConnectionReleased: true,
+    startTime: '08:30',
+    finishTime: '12:45',
+    startContact: 'Contato iniciado com responsável local.',
+    endContact: 'Contato encerrado com responsável local.',
+    delayJustification: 'Trânsito intenso na região.',
+    hasEquipmentInstalled: true,
+    appliedEquipment: [
+      {
+        equipment: 'Transformador',
+        power: '50',
+        patrimony: '123456789',
+      },
+      {
+        equipment: 'Relé de proteção',
+        power: '30',
+        patrimony: '987654321',
+      },
+    ],
+    hasEquipmentRemoved: false,
+    equipmentRemoved: [],
+    changesExecution: false,
+    generalObservation: 'Execução dentro do esperado, sem intercorrências.',
+    workSituation: 'Executado com sucesso',
+    reason: 'Instalação programada',
+    provisionalKeyInstalled: true,
+    provisionalKeyReference: 'CHV123456',
+    provisionalKeyWithdrawn: false,
+  },
 };
