@@ -8,6 +8,7 @@ export class UpdateSchedulesRepository implements IUpdateSchedulesRepository {
 
   async update(data: any, tx: Prisma.TransactionClient): Promise<void> {
     const { id, ...updateData } = data;
+
     try {
       await tx.programacoes.update({
         where: { id },

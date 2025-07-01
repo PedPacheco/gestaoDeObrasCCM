@@ -14,11 +14,14 @@ import { Tab, Tabs } from "@mui/material";
 import { ButtonComponent } from "../common/Button";
 import ErrorModal from "../common/ErrorModal";
 import ModalComponent from "../common/Modal";
-import ScheduleFormDialog from "./dialog";
+import ScheduleFormDialog from "./scheduleDialog/dialog";
 import SchedulePanelItem from "./panelItems/schedulePanelItem";
 import WorkCostPanelItem from "./panelItems/workCostPanelItem";
 import { deleteSchedule } from "@/actions/schedules";
 import ConfirmationModalComponent from "../common/confirmationModal";
+import ExecutionReportPanelItem from "./panelItems/executionReportPanelItem";
+import { useScheduleForm } from "@/hooks/useSchedule";
+import { ExecutionReportDialog } from "./executionReportDialog/executionReportDialog";
 
 interface CustomTabPanelProps {
   children?: React.ReactNode;
@@ -28,6 +31,7 @@ interface CustomTabPanelProps {
 
 interface TabPanelProps {
   workData: Record<string, any>;
+  executionReportData: Record<string, any>[];
   options: any;
 }
 
@@ -48,7 +52,11 @@ function CustomTabPanel(props: CustomTabPanelProps) {
   );
 }
 
-export default function TabPanel({ workData, options }: TabPanelProps) {
+export default function TabPanel({
+  workData,
+  options,
+  executionReportData,
+}: TabPanelProps) {
   const [value, setValue] = useState(0);
   const [data, setData] = useState<Record<string, any>>(workData);
   const [idSchedule, setIdSchedule] = useState<number>(0);
@@ -60,6 +68,12 @@ export default function TabPanel({ workData, options }: TabPanelProps) {
     useState<boolean>(false);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [openModal, setOpenModal] = useState<boolean>(false);
+  const [isExecutionDialogOpen, setIsExecutionDialogOpen] =
+    useState<boolean>(false);
+  const scheduleForm = useScheduleForm({
+    data: editingSchedule,
+    options,
+  });
 
   useEffect(() => {
     if (workData) {
@@ -71,19 +85,21 @@ export default function TabPanel({ workData, options }: TabPanelProps) {
     setValue(newValue);
   };
 
-  const toggleDialog = () => setIsDialogOpen((prev) => !prev);
   const toggleModal = () => setOpenModal((prev) => !prev);
 
   const handleEditSchedule = (scheduleData: any) => {
     setIsInsert(false);
-    toggleDialog();
+    setIsDialogOpen(true);
     setEditingSchedule(scheduleData);
   };
 
   const handleCloseDialog = () => {
+    scheduleForm.resetForm();
     setIsInsert(true);
     setEditingSchedule(undefined);
-    toggleDialog();
+    scheduleForm.setOpenExecChangeDialog(false);
+    setIsExecutionDialogOpen(false);
+    setIsDialogOpen(false);
   };
 
   const handleDelete = useCallback(
@@ -129,12 +145,13 @@ export default function TabPanel({ workData, options }: TabPanelProps) {
               <Tab label="Custos" />
               <Tab label="Programações" />
               <Tab label="Serviços" />
+              <Tab label="Relatórios execuções" />
             </Tabs>
 
             {value === 1 && (
               <div className="px-4">
                 <ButtonComponent
-                  onClick={toggleDialog}
+                  onClick={() => setIsDialogOpen(true)}
                   text="Nova programação"
                 />
               </div>
@@ -155,18 +172,19 @@ export default function TabPanel({ workData, options }: TabPanelProps) {
               />
             </CustomTabPanel>
             <CustomTabPanel value={value} index={2}>
-              Item four
+              Em breve
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={3}>
+              <ExecutionReportPanelItem data={executionReportData} />
             </CustomTabPanel>
           </Suspense>
         </div>
       </div>
-
       <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
         <span className="text-center text-lg text-gray-700 dark:text-gray-200 mb-6">
           {success}
         </span>
       </ModalComponent>
-
       <ConfirmationModalComponent
         idSchedule={idSchedule}
         message="Você deseja realmente excluir essa programação ?"
@@ -178,16 +196,28 @@ export default function TabPanel({ workData, options }: TabPanelProps) {
 
       <ScheduleFormDialog
         open={isDialogOpen}
+        onExecutionDialogOpen={setIsExecutionDialogOpen}
         onClose={handleCloseDialog}
         idWork={data?.id}
         isInsert={IsInsert}
         onError={setError}
         onSuccess={setSuccess}
         onModalOpen={setOpenModal}
-        scheduleData={editingSchedule}
         options={options}
+        scheduleForm={scheduleForm}
       />
 
+      <ExecutionReportDialog
+        open={isExecutionDialogOpen}
+        onClose={handleCloseDialog}
+        idWork={data?.id}
+        isInsert={IsInsert}
+        onError={setError}
+        onSuccess={setSuccess}
+        onModalOpen={setOpenModal}
+        options={options}
+        scheduleForm={scheduleForm}
+      />
       {error && (
         <ErrorModal
           open={true}

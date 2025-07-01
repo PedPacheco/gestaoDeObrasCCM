@@ -1,0 +1,151 @@
+import { Cookies } from "react-cookie";
+import { z } from "zod";
+
+import { useScheduleSubmit } from "@/hooks/useSchedule";
+import { executionReportSchema } from "@/validations/validationSchedules";
+import {
+  Box,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Typography,
+} from "@mui/material";
+
+import { ButtonComponent } from "../../common/Button";
+import { ScheduleFormHookReturn } from "../scheduleDialog/dialog";
+import { AdditionalExecutionInfoPanel } from "./additionalExecutionInfoPanel";
+import { ExecutionEquipmentPanel } from "./EquipmentPanel";
+import { ExecutionBasicPanel } from "./executionBasicPanel";
+import { AccordionPanel } from "../accordionPanel";
+
+export type ExecutionReportData = z.infer<typeof executionReportSchema>;
+
+export interface ExecutionReportDialogProps {
+  open: boolean;
+  onClose: () => void;
+  idWork: number;
+  isInsert: boolean;
+  onError: (error: string) => void;
+  onSuccess: (success: string) => void;
+  onModalOpen: (open: boolean) => void;
+  options: {
+    tecnico: Array<{ id: number; tecnico: string }>;
+    restricao: Array<{ id: number; restricao: string }>;
+  };
+  scheduleForm: ScheduleFormHookReturn;
+}
+
+export function ExecutionReportDialog({
+  idWork,
+  isInsert,
+  onClose,
+  onError,
+  onModalOpen,
+  onSuccess,
+  open,
+  options,
+  scheduleForm,
+}: ExecutionReportDialogProps) {
+  const {
+    formData,
+    formErrors,
+    expanded,
+    handleAccordionChange,
+    handleInputChange,
+    onAddEquipment,
+    onEquipmentChange,
+    onRemoveEquipment,
+    setFormErrors,
+  } = scheduleForm;
+
+  const { handleSubmit, isPending } = useScheduleSubmit({
+    formData,
+    idWork,
+    isInsert,
+    onError,
+    onSuccess,
+    onModalOpen,
+    onClose,
+    setFormErrors,
+  });
+
+  const submitButtonText = isPending ? "Salvando..." : "Salvar Execução";
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="lg"
+      fullWidth
+      PaperProps={{
+        style: {
+          minHeight: "600px",
+          maxHeight: "90vh",
+        },
+      }}
+    >
+      <DialogTitle>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Typography variant="h6">Confirmar Alteração da Execução</Typography>
+          <IconButton onClick={onClose} />
+        </Box>
+      </DialogTitle>
+
+      <DialogContent dividers>
+        <AccordionPanel
+          id="panel1"
+          title="Informações Básicas"
+          expanded={expanded}
+          onChange={handleAccordionChange}
+        >
+          <ExecutionBasicPanel
+            formData={formData}
+            formErrors={formErrors}
+            onInputChange={handleInputChange}
+          />
+        </AccordionPanel>
+
+        <AccordionPanel
+          id="panel2"
+          title="Equipamentos"
+          expanded={expanded}
+          onChange={handleAccordionChange}
+        >
+          <ExecutionEquipmentPanel
+            formData={formData}
+            formErrors={formErrors}
+            onInputChange={handleInputChange}
+            onAddEquipment={onAddEquipment}
+            onEquipmentChange={onEquipmentChange}
+            onRemoveEquipment={onRemoveEquipment}
+          />
+        </AccordionPanel>
+
+        <AccordionPanel
+          id="panel3"
+          title="Informações Adicionais"
+          expanded={expanded}
+          onChange={handleAccordionChange}
+        >
+          <AdditionalExecutionInfoPanel
+            formData={formData}
+            formErrors={formErrors}
+            onInputChange={handleInputChange}
+          />
+        </AccordionPanel>
+      </DialogContent>
+
+      <DialogActions>
+        <ButtonComponent text="Cancelar" onClick={onClose} />
+        <ButtonComponent
+          styled="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
+          onClick={() => handleSubmit()}
+          disabled={isPending}
+          text={submitButtonText}
+        />
+      </DialogActions>
+    </Dialog>
+  );
+}

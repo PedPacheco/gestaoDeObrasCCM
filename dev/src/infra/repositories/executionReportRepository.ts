@@ -24,8 +24,22 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
   }
 
   async findByWorkId(idWork: number): Promise<any> {
+    const value = idWork.toString();
+
     return await this.prisma.relatorio_execucao.findMany({
-      where: { id_obra: idWork },
+      where: {
+        obras: {
+          OR: [
+            { id: value.length >= 10 ? undefined : idWork },
+            { ovnota: value },
+            { ordem_dci: value },
+            { ordem_dcd: value },
+            { ordem_dca: value },
+            { ordem_dcim: value },
+            { diagrama: value },
+          ],
+        },
+      },
       select: {
         supervisor: true,
         liberado_ligacao_parcial: true,
@@ -39,12 +53,13 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
         equipamentos_aplicados: true,
         potencia_equipamento_aplicado: true,
         patrimonio_equipamento_aplicado: true,
+        possui_equipamentos_retirados: true,
         equipamentos_retirados: true,
         potencia_equipamento_retirado: true,
         patrimonio_equipamento_retirado: true,
         alteracoes_execucao: true,
+        situacao_obra: true,
         observacoes_gerais: true,
-        chave_provisoria_instalada: true,
         referencia_chave_provisoria: true,
         chave_provisoria_retirada: true,
         motivo: true,
@@ -54,6 +69,18 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
             ovnota: true,
             ordem_dci: true,
             tipos: { select: { tipo_obra: true } },
+            status: { select: { status: true } },
+          },
+        },
+        programacoes: {
+          select: {
+            data_prog: true,
+            prog: true,
+            exec: true,
+            num_dp: true,
+            hora_ini: true,
+            hora_ter: true,
+            chave_provisoria: true,
           },
         },
       },

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const validationSchedulesSchema = z.object({
+export const schedulesSchema = z.object({
   id: z.number(),
   dataProg: z.string().min(1, "Data obrigatória"),
   startTime: z.string().min(1, "Horário de início obrigatório"),
@@ -15,15 +15,7 @@ export const validationSchedulesSchema = z.object({
       .max(100, "Máximo 100%")
   ),
 
-  exec: z
-    .preprocess(
-      (val) => (val === "" ? undefined : Number(val)),
-      z
-        .number({ invalid_type_error: "Execução deve ser um número" })
-        .min(0, "Mínimo 0%")
-        .max(100, "Máximo 100%")
-    )
-    .optional(),
+  exec: z.string().max(100).optional().nullable(),
 
   serviceType: z.string().optional(),
   equipment: z.string().optional(),
@@ -62,3 +54,62 @@ export const validationSchedulesSchema = z.object({
 
   responsibility: z.string().optional(),
 });
+
+export const equipmentItemSchema = z.object({
+  equipment: z.string().min(1, "Equipamento é obrigatório"),
+  power: z.string().min(1, "Potência é obrigatória"),
+  patrimony: z.string().min(1, "Patrimônio é obrigatório"),
+});
+
+export const executionReportSchema = z.object({
+  idUser: z.number(),
+  supervisor: z.string().min(1, "Supervisor obrigatório"),
+  partialConnectionReleased: z.boolean(),
+  startTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Formato HH:mm"),
+  finishTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Formato HH:mm"),
+  startContact: z.string().min(1, "Contato de início obrigatório"),
+  endContact: z.string().min(1, "Contato de término obrigatório"),
+  delayJustification: z.string().optional(),
+  hasEquipmentInstalled: z.boolean(),
+  appliedEquipment: z.array(equipmentItemSchema),
+  hasEquipmentRemoved: z.boolean(),
+  equipmentRemoved: z.array(equipmentItemSchema),
+  changesExecution: z.boolean(),
+  generalObservation: z.string().optional(),
+  workSituation: z.string().min(1, "Situação da obra obrigatório"),
+  reason: z.string().optional(),
+  provisionalKeyInstalled: z.boolean(),
+  provisionalKeyReference: z.string().optional(),
+  provisionalKeyWithdrawn: z.boolean(),
+});
+
+export const validationSchedulesSchema = schedulesSchema
+  .extend({
+    executionReport: z.union([executionReportSchema, z.null(), z.undefined()]),
+  })
+  .superRefine((data, ctx) => {
+    const execAlterado =
+      data.exec !== undefined && data.exec !== null && data.exec !== "";
+
+    if (execAlterado && !data.executionReport) {
+      ctx.addIssue({
+        path: ["executionReport"],
+        code: z.ZodIssueCode.custom,
+        message: "É necessário preencher o relatório de execução",
+      });
+      return;
+    }
+
+    if (execAlterado && data.executionReport) {
+      const result = executionReportSchema.safeParse(data.executionReport);
+      if (!result.success) {
+        result.error.errors.forEach((error) => {
+          ctx.addIssue({
+            path: [...error.path],
+            code: z.ZodIssueCode.custom,
+            message: error.message,
+          });
+        });
+      }
+    }
+  });

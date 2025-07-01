@@ -20,7 +20,7 @@ export class UpdateSchedulesApplicationService {
           tx,
         );
 
-        if (result.executionReportRequired) {
+        if (Object.keys(data.executionReportData).length !== 0) {
           await this.executionReportService.create(
             {
               idSchedule: result.scheduleId,

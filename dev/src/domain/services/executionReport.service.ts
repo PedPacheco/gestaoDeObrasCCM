@@ -48,11 +48,20 @@ export class ExecutionReportService {
       ovnota: item.obras?.ovnota,
       ordem_dci: item.obras?.ordem_dci,
       tipo_obra: item.obras?.tipos?.tipo_obra,
+      data_exec: item.programacoes.data_prog,
+      prog: item.programacoes.prog,
+      exec: item.programacoes.exec,
+      status: item.obras.status.status,
+      num_dp: item.programacoes.num_dp,
+      hora_ini: item.programacoes.hora_ini,
+      hora_ter: item.programacoes.hora_ter,
+      chave_provisoria: item.programacoes.chave_provisoria,
       ...item,
 
       // Remove os objetos aninhados
       usuario: undefined,
       obras: undefined,
+      programacoes: undefined,
     }));
 
     return formatted;

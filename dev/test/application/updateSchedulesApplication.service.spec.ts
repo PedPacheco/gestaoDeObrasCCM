@@ -52,6 +52,19 @@ describe('UpdateScheduleApplicationService', () => {
       finishTime: '17:00',
       prog: 80,
     },
+    executionReportData: { supervisor: 'Erick' },
+  };
+
+  const mockDTOWithoutExecutionReport = {
+    updateData: {
+      id: 1,
+      idWork: 123,
+      idUser: 99,
+      dataProg: new Date('2025-06-10'),
+      startTime: '08:00',
+      finishTime: '17:00',
+      prog: 80,
+    },
     executionReportData: {},
   };
 
@@ -59,7 +72,6 @@ describe('UpdateScheduleApplicationService', () => {
     const mockResult = {
       success: true,
       scheduleId: 1,
-      executionReportRequired: false,
       scheduledFinishTime: '17-05-2025',
       idWork: 123,
     };
@@ -67,10 +79,10 @@ describe('UpdateScheduleApplicationService', () => {
     mockPrisma.$transaction.mockImplementation(async (cb) => cb({}));
     mockUpdateSchedulesService.update.mockResolvedValue(mockResult);
 
-    const result = await service.update(mockDTO);
+    const result = await service.update(mockDTOWithoutExecutionReport);
 
     expect(mockUpdateSchedulesService.update).toHaveBeenCalledWith(
-      mockDTO.updateData,
+      mockDTOWithoutExecutionReport.updateData,
       expect.any(Object),
     );
     expect(mockExecutionReportService.create).not.toHaveBeenCalled();
@@ -81,7 +93,6 @@ describe('UpdateScheduleApplicationService', () => {
     const mockResult = {
       success: true,
       scheduleId: 1,
-      executionReportRequired: true,
       scheduledFinishTime: '17-05-2025',
       idWork: 123,
     };
@@ -95,6 +106,7 @@ describe('UpdateScheduleApplicationService', () => {
       {
         idSchedule: 1,
         idWork: 123,
+        supervisor: 'Erick',
       },
       '17-05-2025',
       expect.any(Object),

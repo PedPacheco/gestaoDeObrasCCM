@@ -101,6 +101,16 @@ export const mockFindByWorkIdResponse = [
       tipos: {
         tipo_obra: 'Manutenção',
       },
+      status: { status: 'EM EMPREITAMENTO' },
+    },
+    programacoes: {
+      data_prog: new Date('2025-06-24T08:30:00.000Z'),
+      prog: 100,
+      exec: 50,
+      num_dp: 2135,
+      hora_ini: new Date('2025-06-24T08:30:00.000Z'),
+      hora_ter: new Date('2025-06-24T12:30:00.000Z'),
+      chave_provisoria: true,
     },
   },
 ];

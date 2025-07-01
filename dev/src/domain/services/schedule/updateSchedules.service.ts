@@ -66,7 +66,6 @@ export class UpdateSchedulesService {
       return {
         success: true,
         scheduleId: schedule.id,
-        executionReportRequired: !!formattedData.exec,
         scheduledFinishTime: schedule.finishTime,
         idWork: schedule.idWork,
       };

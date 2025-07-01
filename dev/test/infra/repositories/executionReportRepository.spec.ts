@@ -71,7 +71,19 @@ describe('ExecutionReportRepository', () => {
       const result = await repository.findByWorkId(1);
 
       expect(mockPrisma.relatorio_execucao.findMany).toHaveBeenCalledWith({
-        where: { id_obra: 1 },
+        where: {
+          obras: {
+            OR: [
+              { id: 1 },
+              { ovnota: '1' },
+              { ordem_dci: '1' },
+              { ordem_dcd: '1' },
+              { ordem_dca: '1' },
+              { ordem_dcim: '1' },
+              { diagrama: '1' },
+            ],
+          },
+        },
         select: {
           supervisor: true,
           liberado_ligacao_parcial: true,
@@ -85,12 +97,13 @@ describe('ExecutionReportRepository', () => {
           equipamentos_aplicados: true,
           potencia_equipamento_aplicado: true,
           patrimonio_equipamento_aplicado: true,
+          possui_equipamentos_retirados: true,
           equipamentos_retirados: true,
           potencia_equipamento_retirado: true,
           patrimonio_equipamento_retirado: true,
           alteracoes_execucao: true,
+          situacao_obra: true,
           observacoes_gerais: true,
-          chave_provisoria_instalada: true,
           referencia_chave_provisoria: true,
           chave_provisoria_retirada: true,
           motivo: true,
@@ -100,6 +113,18 @@ describe('ExecutionReportRepository', () => {
               ovnota: true,
               ordem_dci: true,
               tipos: { select: { tipo_obra: true } },
+              status: { select: { status: true } },
+            },
+          },
+          programacoes: {
+            select: {
+              data_prog: true,
+              prog: true,
+              exec: true,
+              num_dp: true,
+              hora_ini: true,
+              hora_ter: true,
+              chave_provisoria: true,
             },
           },
         },

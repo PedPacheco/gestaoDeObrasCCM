@@ -192,10 +192,18 @@ export class SchedulesDataDTO {
   serviceType?: string;
 
   @IsNumber()
+  @Type()
   prog: number;
 
   @IsOptional()
   @IsNumber()
+  @Transform(({ value }) => {
+    if (value === '' || value === null || value === undefined) {
+      return;
+    }
+    const parsed = Number(value);
+    return isNaN(parsed) ? null : parsed;
+  })
   exec?: number;
 
   @IsOptional()

@@ -16,9 +16,9 @@ export default async function Details({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
 
-  const [options, workData] = await Promise.all([
+  const [options, workData, executionReportData] = await Promise.all([
     fetchFilters({
       restricao: true,
       tecnico: true,
@@ -26,12 +26,20 @@ export default async function Details({
     fetchData<DataResponse>(
       `${process.env.NEXT_PUBLIC_API_URL}/obras/${id}`,
       undefined,
-      (await cookieStore).get("token")?.value,
+      cookieStore.get("token")?.value,
+      { cache: "no-store" }
+    ),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/relatorio-execucao/${id}`,
+      undefined,
+      cookieStore.get("token")?.value,
       { cache: "no-store" }
     ),
   ]);
 
   const { token, data } = workData;
+
+  const userInfo = cookieStore.get("userInfo")?.value;
 
   const entrada = data.entrada && dayjs(data.entrada);
   const prazo = data.prazo;
@@ -132,7 +140,11 @@ export default async function Details({
           </p>
         </div>
 
-        <TabPanel workData={data} options={options} />
+        <TabPanel
+          workData={data}
+          options={options}
+          executionReportData={executionReportData.data}
+        />
       </div>
     </div>
   );
