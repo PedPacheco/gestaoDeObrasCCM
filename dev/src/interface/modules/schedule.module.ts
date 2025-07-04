@@ -20,7 +20,7 @@ import { GetTotalValueScheduleRepository } from 'src/infra/repositories/schedule
 import { GetValuesWeeklyScheduleRepository } from 'src/infra/repositories/schedule/getValuesWeeklyScheduleRepository';
 import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updateSchedulesRepository';
 
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 
 import { GetMonthlySummaryService } from '../../domain/services/schedule/getMonthlySummary.service';
 import { GetPendingScheduleValuesService } from '../../domain/services/schedule/getPendingScheduleValues.service';
@@ -32,9 +32,11 @@ import { ScheduleController } from '../controllers/schedule.controller';
 import { UsersModule } from './users.module';
 import { UpdateSchedulesApplicationService } from 'src/application/updateSchedulesApplication.service';
 import { ExecutionReportModule } from './executionReport.module';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
+import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
 
 @Module({
-  imports: [UsersModule, ExecutionReportModule],
+  imports: [UsersModule, forwardRef(() => ExecutionReportModule)],
   controllers: [ScheduleController],
   providers: [
     AddSchedulesService,
@@ -55,6 +57,10 @@ import { ExecutionReportModule } from './executionReport.module';
     {
       provide: DELETE_SCHEDULES_REPOSITORY,
       useClass: DeleteSchedulesRepository,
+    },
+    {
+      provide: FIND_SCHEDULE_BY_ID_REPOSITORY,
+      useClass: FindScheduleByIdRepository,
     },
     {
       provide: GET_MONTHLY_SUMMARY_REPOSITORY,
@@ -81,6 +87,6 @@ import { ExecutionReportModule } from './executionReport.module';
       useClass: GetValuesWeeklyScheduleRepository,
     },
   ],
-  exports: [GetScheduleValuesService],
+  exports: [GetScheduleValuesService, FIND_SCHEDULE_BY_ID_REPOSITORY],
 })
 export class ScheduleModule {}

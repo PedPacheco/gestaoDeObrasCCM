@@ -1,4 +1,9 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   EXECUTION_REPORT_REPOSITORY,
   IExecutionReportRepository,
@@ -6,12 +11,19 @@ import {
 import { Prisma } from '@prisma/client';
 import { ExecutionReport } from '../entities/executionReport.entity';
 import { ExecutionReportServiceInterface } from 'src/interface/types/executionReportInterface';
+import { UpdateExecutionReportDTO } from 'src/interface/dtos/executionReportDTO';
+import {
+  FIND_SCHEDULE_BY_ID_REPOSITORY,
+  IFindScheduleByIdRepository,
+} from '../repositories/schedule/IFindScheduleByIdRepository';
 
 @Injectable()
 export class ExecutionReportService {
   constructor(
     @Inject(EXECUTION_REPORT_REPOSITORY)
     private readonly executionReportRepository: IExecutionReportRepository,
+    @Inject(FIND_SCHEDULE_BY_ID_REPOSITORY)
+    private readonly findScheduleByIdRepository: IFindScheduleByIdRepository,
   ) {}
 
   async create(
@@ -65,5 +77,48 @@ export class ExecutionReportService {
     }));
 
     return formatted;
+  }
+
+  async update(idExecutionReport: number, data: UpdateExecutionReportDTO) {
+    if (!data) {
+      throw new BadRequestException('Nenhum relatório fornecida para edição.');
+    }
+
+    const existing =
+      await this.executionReportRepository.findById(idExecutionReport);
+
+    if (!existing) {
+      throw new NotFoundException('Relatório de execução não encontrado.');
+    }
+
+    const scheduledFinishTime = await this.findScheduleByIdRepository.findById(
+      existing.idSchedule,
+    );
+
+    if (!scheduledFinishTime) {
+      throw new NotFoundException('Programação não encontrada.');
+    }
+
+    const updatedData = {
+      idWork: existing.idWork,
+      idSchedule: existing.idSchedule,
+      ...data,
+    };
+
+    try {
+      const executionReport = ExecutionReport.create(
+        updatedData,
+        scheduledFinishTime.hora_ter,
+      );
+
+      await this.executionReportRepository.update(
+        idExecutionReport,
+        executionReport.toPersistenceObject(),
+      );
+    } catch (error) {
+      throw new BadRequestException(
+        `Erro ao criar relatório: ${error.message}`,
+      );
+    }
   }
 }

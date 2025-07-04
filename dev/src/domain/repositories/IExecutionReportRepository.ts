@@ -10,6 +10,11 @@ export interface IExecutionReportRepository {
     tx: Prisma.TransactionClient,
   ): Promise<any>;
   findByWorkId(idWork: number): Promise<any>;
+  findById(idExecutionReport: number): Promise<any>;
+  update(
+    idExecutionReport: number,
+    data: Prisma.relatorio_execucaoUpdateInput,
+  ): Promise<void>;
 }
 
 export const EXECUTION_REPORT_REPOSITORY = Symbol('ExecutionReportRepository');

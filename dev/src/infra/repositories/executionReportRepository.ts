@@ -7,6 +7,16 @@ import { Prisma } from '@prisma/client';
 export class ExecutionReportRepository implements IExecutionReportRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  async update(
+    idExecutionReport: number,
+    data: Prisma.relatorio_execucaoUpdateInput,
+  ): Promise<void> {
+    await this.prisma.relatorio_execucao.update({
+      where: { id: idExecutionReport },
+      data,
+    });
+  }
+
   async create(
     data: Prisma.relatorio_execucaoUncheckedCreateInput,
     tx: Prisma.TransactionClient,
@@ -41,6 +51,8 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
         },
       },
       select: {
+        id: true,
+        id_usuario: true,
         supervisor: true,
         liberado_ligacao_parcial: true,
         hora_inicio: true,
@@ -84,6 +96,12 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
           },
         },
       },
+    });
+  }
+
+  async findById(idExecutionReport: number): Promise<any> {
+    return await this.prisma.relatorio_execucao.findFirst({
+      where: { id: idExecutionReport },
     });
   }
 }

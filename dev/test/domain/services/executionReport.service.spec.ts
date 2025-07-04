@@ -11,6 +11,7 @@ import {
   mockFindByWorkIdResponse,
 } from '../../../test/mocks/mocksExecutionReport';
 import { BadRequestException } from '@nestjs/common';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
 
 describe('ExecutionReportService', () => {
   let service: ExecutionReportService;
@@ -19,6 +20,7 @@ describe('ExecutionReportService', () => {
     create: jest.fn(),
     findByScheduleId: jest.fn(),
     findByWorkId: jest.fn(),
+    findById: jest.fn(),
   };
 
   const mockTransaction = {
@@ -32,6 +34,12 @@ describe('ExecutionReportService', () => {
       providers: [
         ExecutionReportService,
         { provide: EXECUTION_REPORT_REPOSITORY, useValue: mockRepository },
+        {
+          provide: FIND_SCHEDULE_BY_ID_REPOSITORY,
+          useValue: {
+            findById: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
