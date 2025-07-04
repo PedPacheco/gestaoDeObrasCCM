@@ -39,8 +39,6 @@ export default async function Details({
 
   const { token, data } = workData;
 
-  const userInfo = cookieStore.get("userInfo")?.value;
-
   const entrada = data.entrada && dayjs(data.entrada);
   const prazo = data.prazo;
   const prazoFinal = entrada.add(prazo, "day");

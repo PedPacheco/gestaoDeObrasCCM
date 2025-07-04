@@ -1,7 +1,10 @@
 import { Cookies } from "react-cookie";
 import { z } from "zod";
 
-import { useScheduleSubmit } from "@/hooks/useSchedule";
+import {
+  INITIAL_EXECUTION_REPORT,
+  useScheduleSubmit,
+} from "@/hooks/useSchedule";
 import { executionReportSchema } from "@/validations/validationSchedules";
 import {
   Box,
@@ -19,6 +22,7 @@ import { AdditionalExecutionInfoPanel } from "./additionalExecutionInfoPanel";
 import { ExecutionEquipmentPanel } from "./EquipmentPanel";
 import { ExecutionBasicPanel } from "./executionBasicPanel";
 import { AccordionPanel } from "../accordionPanel";
+import { useEffect } from "react";
 
 export type ExecutionReportData = z.infer<typeof executionReportSchema>;
 
@@ -27,6 +31,7 @@ export interface ExecutionReportDialogProps {
   onClose: () => void;
   idWork: number;
   isInsert: boolean;
+  executionReportIsInsert: boolean;
   onError: (error: string) => void;
   onSuccess: (success: string) => void;
   onModalOpen: (open: boolean) => void;
@@ -40,6 +45,7 @@ export interface ExecutionReportDialogProps {
 export function ExecutionReportDialog({
   idWork,
   isInsert,
+  executionReportIsInsert,
   onClose,
   onError,
   onModalOpen,
@@ -50,6 +56,8 @@ export function ExecutionReportDialog({
 }: ExecutionReportDialogProps) {
   const {
     formData,
+    setFormData,
+    executionReportData,
     formErrors,
     expanded,
     handleAccordionChange,
@@ -62,6 +70,7 @@ export function ExecutionReportDialog({
 
   const { handleSubmit, isPending } = useScheduleSubmit({
     formData,
+    executionReportData,
     idWork,
     isInsert,
     onError,
@@ -101,7 +110,7 @@ export function ExecutionReportDialog({
           onChange={handleAccordionChange}
         >
           <ExecutionBasicPanel
-            formData={formData}
+            formData={!executionReportIsInsert ? executionReportData : formData}
             formErrors={formErrors}
             onInputChange={handleInputChange}
           />
@@ -114,7 +123,7 @@ export function ExecutionReportDialog({
           onChange={handleAccordionChange}
         >
           <ExecutionEquipmentPanel
-            formData={formData}
+            formData={!executionReportIsInsert ? executionReportData : formData}
             formErrors={formErrors}
             onInputChange={handleInputChange}
             onAddEquipment={onAddEquipment}
@@ -130,7 +139,7 @@ export function ExecutionReportDialog({
           onChange={handleAccordionChange}
         >
           <AdditionalExecutionInfoPanel
-            formData={formData}
+            formData={!executionReportIsInsert ? executionReportData : formData}
             formErrors={formErrors}
             onInputChange={handleInputChange}
           />
@@ -141,7 +150,11 @@ export function ExecutionReportDialog({
         <ButtonComponent text="Cancelar" onClick={onClose} />
         <ButtonComponent
           styled="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
-          onClick={() => handleSubmit()}
+          onClick={() => {
+            !executionReportIsInsert
+              ? handleSubmit(null, "executionReport")
+              : handleSubmit(null, "schedule");
+          }}
           disabled={isPending}
           text={submitButtonText}
         />

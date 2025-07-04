@@ -61,15 +61,18 @@ export default function ScheduleFormDialog({
   const {
     expanded,
     formData,
+    executionReportData,
     formErrors,
     handleAccordionChange,
     handleInputChange,
     openExecChangeDialog,
     setFormErrors,
+    initialExecValue,
   } = scheduleForm;
 
   const { handleSubmit, isPending } = useScheduleSubmit({
     formData,
+    executionReportData,
     idWork,
     isInsert,
     onError,
@@ -167,7 +170,7 @@ export default function ScheduleFormDialog({
             if (openExecChangeDialog) {
               onExecutionDialogOpen(true);
             } else {
-              handleSubmit();
+              handleSubmit(initialExecValue, "schedule");
             }
           }}
           disabled={isPending}

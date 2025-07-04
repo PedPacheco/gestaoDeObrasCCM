@@ -12,25 +12,34 @@ import { ExecutionReportData } from "./executionReportDialog";
 import { equipmentItemSchema } from "@/validations/validationSchedules";
 import { z } from "zod";
 import { ButtonComponent } from "@/components/common/Button";
+import { resolveExecutionReportContext } from "@/utils/formatValue";
 
 export type EquipmentData = z.infer<typeof equipmentItemSchema>;
 
 interface ExecutionEquipmentPanelProps {
-  formData: FormData;
+  formData: FormData | ExecutionReportData;
   formErrors: Record<string, string>;
   onInputChange: (
-    field: keyof FormData | `executionReport.${keyof ExecutionReportData}`
+    field:
+      | keyof FormData
+      | `executionReport.${keyof ExecutionReportData}`
+      | keyof ExecutionReportData
   ) => (event: any) => void;
   onEquipmentChange: (
     field: "appliedEquipment" | "equipmentRemoved",
     index: number,
     subField: keyof EquipmentData,
-    value: string
+    value: string,
+    prefix: string
   ) => void;
-  onAddEquipment: (field: "appliedEquipment" | "equipmentRemoved") => void;
+  onAddEquipment: (
+    field: "appliedEquipment" | "equipmentRemoved",
+    prefix: string
+  ) => void;
   onRemoveEquipment: (
     field: "appliedEquipment" | "equipmentRemoved",
-    index: number
+    index: number,
+    prefix: string
   ) => void;
 }
 
@@ -44,26 +53,28 @@ export const ExecutionEquipmentPanel: React.FC<
   onEquipmentChange,
   onRemoveEquipment,
 }) => {
+  const { data, prefix } = resolveExecutionReportContext(formData);
+
   return (
     <Grid container spacing={3}>
       <Grid item xs={12}>
         <FormControlLabel
           control={
             <Checkbox
-              checked={formData.executionReport?.hasEquipmentInstalled ?? false}
-              onChange={onInputChange("executionReport.hasEquipmentInstalled")}
+              checked={data.hasEquipmentInstalled ?? false}
+              onChange={onInputChange(`${prefix}hasEquipmentInstalled`)}
             />
           }
           label="Possui equipamentos aplicados"
         />
       </Grid>
 
-      {formData.executionReport?.hasEquipmentInstalled && (
+      {data.hasEquipmentInstalled && (
         <>
           <Grid item xs={12}>
             <Typography variant="subtitle1">Equipamentos Aplicados</Typography>
           </Grid>
-          {formData.executionReport.appliedEquipment.map((eq, index) => (
+          {data.appliedEquipment.map((eq, index) => (
             <Grid
               container
               spacing={2}
@@ -81,7 +92,8 @@ export const ExecutionEquipmentPanel: React.FC<
                       "appliedEquipment",
                       index,
                       "equipment",
-                      e.target.value
+                      e.target.value,
+                      prefix
                     )
                   }
                 />
@@ -96,7 +108,8 @@ export const ExecutionEquipmentPanel: React.FC<
                       "appliedEquipment",
                       index,
                       "power",
-                      e.target.value
+                      e.target.value,
+                      prefix
                     )
                   }
                 />
@@ -111,14 +124,17 @@ export const ExecutionEquipmentPanel: React.FC<
                       "appliedEquipment",
                       index,
                       "patrimony",
-                      e.target.value
+                      e.target.value,
+                      prefix
                     )
                   }
                 />
               </Grid>
               <Grid item xs={3}>
                 <ButtonComponent
-                  onClick={() => onRemoveEquipment("appliedEquipment", index)}
+                  onClick={() =>
+                    onRemoveEquipment("appliedEquipment", index, prefix)
+                  }
                   text="Retirar equipamento aplicado"
                   styled="mt-2"
                 />
@@ -127,7 +143,7 @@ export const ExecutionEquipmentPanel: React.FC<
           ))}
           <Grid item xs={12}>
             <ButtonComponent
-              onClick={() => onAddEquipment("appliedEquipment")}
+              onClick={() => onAddEquipment("appliedEquipment", prefix)}
               text="Adicionar equipamento aplicado"
             />
           </Grid>
@@ -138,20 +154,20 @@ export const ExecutionEquipmentPanel: React.FC<
         <FormControlLabel
           control={
             <Checkbox
-              checked={formData.executionReport?.hasEquipmentRemoved ?? false}
-              onChange={onInputChange("executionReport.hasEquipmentRemoved")}
+              checked={data.hasEquipmentRemoved ?? false}
+              onChange={onInputChange(`${prefix}hasEquipmentRemoved`)}
             />
           }
           label="Possui equipamentos retirados"
         />
       </Grid>
 
-      {formData.executionReport?.hasEquipmentRemoved && (
+      {data.hasEquipmentRemoved && (
         <>
           <Grid item xs={12}>
             <Typography variant="subtitle1">Equipamentos Retirados</Typography>
           </Grid>
-          {formData.executionReport.equipmentRemoved.map((eq, index) => (
+          {data.equipmentRemoved.map((eq, index) => (
             <Grid
               container
               spacing={2}
@@ -168,7 +184,8 @@ export const ExecutionEquipmentPanel: React.FC<
                       "equipmentRemoved",
                       index,
                       "equipment",
-                      e.target.value
+                      e.target.value,
+                      prefix
                     )
                   }
                 />
@@ -183,7 +200,8 @@ export const ExecutionEquipmentPanel: React.FC<
                       "equipmentRemoved",
                       index,
                       "power",
-                      e.target.value
+                      e.target.value,
+                      prefix
                     )
                   }
                 />
@@ -198,14 +216,17 @@ export const ExecutionEquipmentPanel: React.FC<
                       "equipmentRemoved",
                       index,
                       "patrimony",
-                      e.target.value
+                      e.target.value,
+                      prefix
                     )
                   }
                 />
               </Grid>
               <Grid item xs={3}>
                 <ButtonComponent
-                  onClick={() => onRemoveEquipment("equipmentRemoved", index)}
+                  onClick={() =>
+                    onRemoveEquipment("equipmentRemoved", index, prefix)
+                  }
                   text="Retirar equipamento removido"
                   styled="mt-2"
                 />
@@ -214,7 +235,7 @@ export const ExecutionEquipmentPanel: React.FC<
           ))}
           <Grid item xs={12}>
             <ButtonComponent
-              onClick={() => onAddEquipment("equipmentRemoved")}
+              onClick={() => onAddEquipment("equipmentRemoved", prefix)}
               text="Adicionar Equipamento Retirado"
             />
           </Grid>

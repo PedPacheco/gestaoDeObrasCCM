@@ -76,7 +76,7 @@ export const BasicInfoPanel: React.FC<BasicInfoPanelProps> = ({
           fullWidth
           label="Progresso Executado:"
           type="string"
-          value={formData.exec || ""}
+          value={formData.exec !== "null" ? String(formData.exec) : ""}
           onChange={onInputChange("exec")}
           error={!!formErrors.exec}
           helperText={formErrors.exec}
