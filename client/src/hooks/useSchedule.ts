@@ -172,14 +172,15 @@ export const useScheduleSubmit = ({
       });
     },
     [
-      formData,
-      idWork,
-      user?.id,
       isInsert,
       onSuccess,
       onClose,
       onModalOpen,
+      executionReportData,
       setFormErrors,
+      formData,
+      idWork,
+      user?.id,
       onError,
     ]
   );

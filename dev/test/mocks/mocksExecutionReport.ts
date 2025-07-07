@@ -1,3 +1,5 @@
+import { UpdateExecutionReportDTO } from 'src/interface/dtos/executionReportDTO';
+
 export const mockExecutionReportService = {
   idSchedule: 1,
   idUser: 1,
@@ -22,6 +24,68 @@ export const mockExecutionReportService = {
   provisionalKeyInstalled: false,
   provisionalKeyReference: '',
   provisionalKeyWithdrawn: false,
+};
+
+export const mockUpdateExecutionReportDTO: UpdateExecutionReportDTO = {
+  idUser: 1,
+  supervisor: 'João Silva',
+  partialConnectionReleased: true,
+  startTime: '08:30',
+  finishTime: '12:45',
+  startContact: 'Contato iniciado com responsável local.',
+  endContact: 'Contato encerrado com responsável local.',
+  delayJustification: 'Trânsito intenso na região.',
+  hasEquipmentInstalled: true,
+  appliedEquipment: [
+    {
+      equipment: 'Transformador',
+      power: '50',
+      patrimony: '123456789',
+    },
+    {
+      equipment: 'Relé de proteção',
+      power: '30',
+      patrimony: '987654321',
+    },
+  ],
+  hasEquipmentRemoved: false,
+  equipmentRemoved: [],
+  changesExecution: false,
+  generalObservation: 'Execução dentro do esperado, sem intercorrências.',
+  workSituation: 'Executado com sucesso',
+  reason: 'Instalação programada',
+  provisionalKeyInstalled: true,
+  provisionalKeyReference: 'CHV123456',
+  provisionalKeyWithdrawn: false,
+};
+
+export const mockExecutionReportPersistenceObject = {
+  id_usuario: 1,
+  id_obra: 2,
+  id_programacao: 1,
+  supervisor: 'João Silva',
+  liberado_ligacao_parcial: true,
+  hora_inicio: new Date('1970-01-01T08:30:00Z'),
+  hora_conclusao: new Date('1970-01-01T12:45:00Z'),
+  contato_inicio: 'Contato iniciado com responsável local.',
+  contato_termino: 'Contato encerrado com responsável local.',
+  atraso: false,
+  justificativa_atraso: 'Trânsito intenso na região.',
+  possui_equipamentos_instalados: true,
+  equipamentos_aplicados: 'Transformador;Relé de proteção',
+  potencia_equipamento_aplicado: '50;30',
+  patrimonio_equipamento_aplicado: '123456789;987654321',
+  possui_equipamentos_retirados: false,
+  equipamentos_retirados: '',
+  potencia_equipamento_retirado: '',
+  patrimonio_equipamento_retirado: '',
+  alteracoes_execucao: false,
+  observacoes_gerais: 'Execução dentro do esperado, sem intercorrências.',
+  situacao_obra: 'Executado com sucesso',
+  referencia_chave_provisoria: 'CHV123456',
+  chave_provisoria_retirada: false,
+  motivo: 'Instalação programada',
+  chave_provisoria_instalada: true,
 };
 
 export const mockExecutionReportServiceWithErrorEquipmentInstalled = {

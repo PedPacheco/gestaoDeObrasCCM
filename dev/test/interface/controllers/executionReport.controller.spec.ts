@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ExecutionReportService } from 'src/domain/services/executionReport.service';
 import { ExecutionReportController } from 'src/interface/controllers/executionReport.controller';
+import { mockUpdateExecutionReportDTO } from '../../../test/mocks/mocksExecutionReport';
 
 describe('ExecutionReportController', () => {
   let controller: ExecutionReportController;
@@ -12,7 +13,7 @@ describe('ExecutionReportController', () => {
       providers: [
         {
           provide: ExecutionReportService,
-          useValue: { findByWorkId: jest.fn() },
+          useValue: { findByWorkId: jest.fn(), update: jest.fn() },
         },
       ],
     }).compile();
@@ -34,6 +35,23 @@ describe('ExecutionReportController', () => {
         data: [],
         message: 'Relatórios de execução retornados com sucesso',
         statusCode: 200,
+      });
+    });
+  });
+
+  describe('update', () => {
+    it('Should call update service method with id and data received and return a successful reponse with the expected structure', async () => {
+      jest.spyOn(service, 'update').mockResolvedValue(null);
+
+      const result = await controller.update(1, mockUpdateExecutionReportDTO);
+
+      expect(service.update).toHaveBeenCalledWith(
+        1,
+        mockUpdateExecutionReportDTO,
+      );
+      expect(result).toEqual({
+        message: 'Atualização do relatório feita com sucesso',
+        statusCode: 204,
       });
     });
   });
