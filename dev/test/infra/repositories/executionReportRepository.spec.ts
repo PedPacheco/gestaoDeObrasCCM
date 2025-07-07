@@ -247,19 +247,19 @@ describe('ExecutionReportRepository', () => {
 
   describe('delete', () => {
     it('Should call delete method and delete item', async () => {
-      mockPrisma.$transaction.mockResolvedValue(undefined);
-      mockPrisma.relatorio_execucao.delete.mockResolvedValue(null);
+      mockPrisma.programacoes.update = jest
+        .fn()
+        .mockReturnValue('update_result');
+      mockPrisma.relatorio_execucao.delete = jest
+        .fn()
+        .mockReturnValue('delete_result');
+      mockPrisma.$transaction = jest.fn().mockResolvedValue(undefined);
 
       await repository.delete(1, 3);
 
       expect(mockPrisma.$transaction).toHaveBeenCalledWith([
-        mockPrisma.programacoes.update({
-          where: { id: 3 },
-          data: { exec: null },
-        }),
-        mockPrisma.relatorio_execucao.delete({
-          where: { id: 1 },
-        }),
+        'update_result',
+        'delete_result',
       ]);
     });
   });

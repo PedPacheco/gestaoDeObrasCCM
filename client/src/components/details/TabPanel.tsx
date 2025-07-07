@@ -8,23 +8,21 @@ import {
   useState,
 } from "react";
 
+import { deleteExecutionReport } from "@/actions/executionReport.action";
+import { deleteSchedule } from "@/actions/schedules";
+import { useScheduleForm } from "@/hooks/useSchedule";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { Tab, Tabs } from "@mui/material";
 
 import { ButtonComponent } from "../common/Button";
+import ConfirmationModalComponent from "../common/confirmationModal";
 import ErrorModal from "../common/ErrorModal";
 import ModalComponent from "../common/Modal";
-import ScheduleFormDialog from "./scheduleDialog/dialog";
+import { ExecutionReportDialog } from "./executionReportDialog/executionReportDialog";
+import ExecutionReportPanelItem from "./panelItems/executionReportPanelItem";
 import SchedulePanelItem from "./panelItems/schedulePanelItem";
 import WorkCostPanelItem from "./panelItems/workCostPanelItem";
-import { deleteSchedule } from "@/actions/schedules";
-import ConfirmationModalComponent from "../common/confirmationModal";
-import ExecutionReportPanelItem from "./panelItems/executionReportPanelItem";
-import { useScheduleForm } from "@/hooks/useSchedule";
-import { ExecutionReportDialog } from "./executionReportDialog/executionReportDialog";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import { deleteExecutionReport } from "@/actions/executionReport.action";
+import ScheduleFormDialog from "./scheduleDialog/dialog";
 
 interface CustomTabPanelProps {
   children?: React.ReactNode;

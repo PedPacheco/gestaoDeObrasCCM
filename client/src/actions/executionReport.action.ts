@@ -25,7 +25,7 @@ export async function editExecutionReport(data: any, id: number) {
     if (res.statusCode !== 204) {
       return {
         success: false,
-        error: res.message || "Erro ao editar programação",
+        error: res.message || "Erro ao editar relatóro",
       };
     }
 
@@ -59,7 +59,7 @@ export async function deleteExecutionReport(id: number, idWork: number) {
     if (res.statusCode !== 204) {
       return {
         success: false,
-        error: res.message || "Erro ao editar programação",
+        error: res.message || "Erro ao deletar relatório",
       };
     }
 
