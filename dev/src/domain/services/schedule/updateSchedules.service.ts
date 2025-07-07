@@ -70,7 +70,7 @@ export class UpdateSchedulesService {
         idWork: schedule.idWork,
       };
     } catch (err) {
-      console.error(err, 'erro');
+      throw new BadRequestException(`Erro ao criar relatório: ${err.message}`);
     }
   }
 }

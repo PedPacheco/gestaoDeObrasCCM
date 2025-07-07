@@ -25,6 +25,7 @@ describe('ExecutionReportService', () => {
     findByScheduleId: jest.fn(),
     findByWorkId: jest.fn(),
     findById: jest.fn(),
+    delete: jest.fn(),
   };
 
   const mockFindScheduleRepository = {
@@ -225,6 +226,26 @@ describe('ExecutionReportService', () => {
       await expect(result).rejects.toThrow(
         'Erro ao criar relatório: Erro forçado no create',
       );
+    });
+  });
+
+  describe('delete', () => {
+    it('should call delete method and throw error if id not sent', async () => {
+      await expect(service.delete(null)).rejects.toThrow(BadRequestException);
+    });
+
+    it('should call delete method and throw error if not find schedule', async () => {
+      mockRepository.findById.mockResolvedValue(null);
+
+      await expect(service.delete(1)).rejects.toThrow(NotFoundException);
+    });
+
+    it('Should call delete method and call repository', async () => {
+      mockRepository.findById.mockResolvedValue({ id_programacao: 3 });
+
+      await service.delete(1);
+
+      expect(mockRepository.delete).toHaveBeenCalledWith(1, 3);
     });
   });
 });

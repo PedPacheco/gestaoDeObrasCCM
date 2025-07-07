@@ -8,22 +8,21 @@ import {
   useState,
 } from "react";
 
+import { deleteExecutionReport } from "@/actions/executionReport.action";
+import { deleteSchedule } from "@/actions/schedules";
+import { useScheduleForm } from "@/hooks/useSchedule";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { Tab, Tabs } from "@mui/material";
 
 import { ButtonComponent } from "../common/Button";
+import ConfirmationModalComponent from "../common/confirmationModal";
 import ErrorModal from "../common/ErrorModal";
 import ModalComponent from "../common/Modal";
-import ScheduleFormDialog from "./scheduleDialog/dialog";
+import { ExecutionReportDialog } from "./executionReportDialog/executionReportDialog";
+import ExecutionReportPanelItem from "./panelItems/executionReportPanelItem";
 import SchedulePanelItem from "./panelItems/schedulePanelItem";
 import WorkCostPanelItem from "./panelItems/workCostPanelItem";
-import { deleteSchedule } from "@/actions/schedules";
-import ConfirmationModalComponent from "../common/confirmationModal";
-import ExecutionReportPanelItem from "./panelItems/executionReportPanelItem";
-import { useScheduleForm } from "@/hooks/useSchedule";
-import { ExecutionReportDialog } from "./executionReportDialog/executionReportDialog";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
+import ScheduleFormDialog from "./scheduleDialog/dialog";
 
 interface CustomTabPanelProps {
   children?: React.ReactNode;
@@ -70,6 +69,8 @@ export default function TabPanel({
   const [executionReportIsInsert, setExecutionReportIsInsert] =
     useState<boolean>(true);
   const [openConfirmationModal, setOpenConfimartionModal] =
+    useState<boolean>(false);
+  const [openConfirmationModalExecution, setOpenConfimartionModalExecution] =
     useState<boolean>(false);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [isExecutionDialogOpen, setIsExecutionDialogOpen] =
@@ -121,7 +122,26 @@ export default function TabPanel({
     setIsDialogOpen(false);
   };
 
-  const handleExecutionReportDelete = useCallback(() => {}, []);
+  const handleExecutionReportDelete = useCallback(
+    (id: number) => {
+      try {
+        startTransition(async () => {
+          const response = await deleteExecutionReport(id, data?.id);
+
+          if (!response.success) {
+            setError(response.error);
+            return;
+          }
+
+          setSuccess(response.message);
+          setOpenModal(true);
+          setOpenConfimartionModalExecution(false);
+          setIdSchedule(0);
+        });
+      } catch (error: any) {}
+    },
+    [data?.id]
+  );
 
   const handleDelete = useCallback(
     (id: number) => {
@@ -137,6 +157,7 @@ export default function TabPanel({
           setSuccess(response.message);
           setOpenModal(true);
           setOpenConfimartionModal(false);
+          setIdSchedule(0);
         });
       } catch (error: any) {
         setError(error.message);
@@ -148,6 +169,11 @@ export default function TabPanel({
   const toggleConfimartionModal = useCallback((id: number) => {
     setIdSchedule(id);
     setOpenConfimartionModal(true);
+  }, []);
+
+  const toggleConfirmationModalExecution = useCallback((id: number) => {
+    setIdSchedule(id);
+    setOpenConfimartionModalExecution(true);
   }, []);
 
   return (
@@ -198,18 +224,20 @@ export default function TabPanel({
             <CustomTabPanel value={value} index={3}>
               <ExecutionReportPanelItem
                 data={executionReportData}
-                onDelete={handleExecutionReportDelete}
+                onDelete={toggleConfirmationModalExecution}
                 onEdit={handleEditExecutionReport}
               />
             </CustomTabPanel>
           </Suspense>
         </div>
       </div>
+
       <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
         <span className="text-center text-lg text-gray-700 dark:text-gray-200 mb-6">
           {success}
         </span>
       </ModalComponent>
+
       <ConfirmationModalComponent
         idSchedule={idSchedule}
         message="Você deseja realmente excluir essa programação ?"
@@ -217,6 +245,15 @@ export default function TabPanel({
         onConfirm={handleDelete}
         open={openConfirmationModal}
         title="Exclusão de programação"
+      />
+
+      <ConfirmationModalComponent
+        idSchedule={idSchedule}
+        message="Você deseja realmente excluir esse relatório ?"
+        onClose={() => setOpenConfimartionModalExecution(false)}
+        onConfirm={handleExecutionReportDelete}
+        open={openConfirmationModalExecution}
+        title="Exclusão de relatório"
       />
 
       <ScheduleFormDialog

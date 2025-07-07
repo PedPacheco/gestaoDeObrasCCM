@@ -73,5 +73,21 @@ describe('UpdateSchedulesService', () => {
         ),
       ).rejects.toThrow('Erro ao criar programação: ID da obra é obrigatório');
     });
+
+    it('should throw BadRequestException if repository.update fails', async () => {
+      mockRepository.update.mockImplementationOnce(() => {
+        throw new Error('Erro forçado no repositório');
+      });
+
+      const result = updateSchedulesService.update(
+        mockUpdateSchedulesService,
+        mockTransaction as any,
+      );
+
+      await expect(result).rejects.toThrow(BadRequestException);
+      await expect(result).rejects.toThrow(
+        'Erro ao criar relatório: Erro forçado no repositório',
+      );
+    });
   });
 });

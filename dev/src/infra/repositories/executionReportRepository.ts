@@ -24,6 +24,20 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
     await tx.relatorio_execucao.create({ data });
   }
 
+  async delete(id: number, idSchedule: number) {
+    await this.prisma.$transaction([
+      this.prisma.programacoes.update({
+        where: { id: idSchedule },
+        data: {
+          exec: null,
+        },
+      }),
+      this.prisma.relatorio_execucao.delete({
+        where: { id },
+      }),
+    ]);
+  }
+
   async findByScheduleId(
     idSchedule: number,
     tx: Prisma.TransactionClient,

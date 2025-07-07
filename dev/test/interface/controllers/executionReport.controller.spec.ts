@@ -13,7 +13,11 @@ describe('ExecutionReportController', () => {
       providers: [
         {
           provide: ExecutionReportService,
-          useValue: { findByWorkId: jest.fn(), update: jest.fn() },
+          useValue: {
+            findByWorkId: jest.fn(),
+            update: jest.fn(),
+            delete: jest.fn(),
+          },
         },
       ],
     }).compile();
@@ -51,6 +55,20 @@ describe('ExecutionReportController', () => {
       );
       expect(result).toEqual({
         message: 'Atualização do relatório feita com sucesso',
+        statusCode: 204,
+      });
+    });
+  });
+
+  describe('delete', () => {
+    it('Should call delete service method with id and return a successful reponse with the expected structure', async () => {
+      jest.spyOn(service, 'delete').mockResolvedValue(null);
+
+      const result = await controller.delete(1);
+
+      expect(service.delete).toHaveBeenCalledWith(1);
+      expect(result).toEqual({
+        message: 'Relatório excluído com sucesso',
         statusCode: 204,
       });
     });

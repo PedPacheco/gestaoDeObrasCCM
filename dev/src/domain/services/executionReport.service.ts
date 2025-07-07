@@ -121,4 +121,18 @@ export class ExecutionReportService {
       );
     }
   }
+
+  async delete(id: number): Promise<void> {
+    if (!id) {
+      throw new BadRequestException('Relátorio não enviado para exclusão');
+    }
+
+    const report = await this.executionReportRepository.findById(id);
+
+    if (!report) {
+      throw new NotFoundException('Relatório de execução não encontrado.');
+    }
+
+    await this.executionReportRepository.delete(id, report.id_programacao);
+  }
 }
