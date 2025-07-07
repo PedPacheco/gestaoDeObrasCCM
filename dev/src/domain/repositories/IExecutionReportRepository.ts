@@ -15,6 +15,7 @@ export interface IExecutionReportRepository {
     idExecutionReport: number,
     data: Prisma.relatorio_execucaoUpdateInput,
   ): Promise<void>;
+  delete(id: number, idSchedule: number): Promise<void>;
 }
 
 export const EXECUTION_REPORT_REPOSITORY = Symbol('ExecutionReportRepository');

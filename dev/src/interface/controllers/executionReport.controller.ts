@@ -3,6 +3,7 @@ import { ExecutionReportService } from 'src/domain/services/executionReport.serv
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpStatus,
   Param,
@@ -36,6 +37,16 @@ export class ExecutionReportController {
     return {
       statusCode: HttpStatus.NO_CONTENT,
       message: 'Atualização do relatório feita com sucesso',
+    };
+  }
+
+  @Delete(':id')
+  async delete(@Param('id', ParseIntPipe) id: number): Promise<any> {
+    await this.executionReportService.delete(id);
+
+    return {
+      statusCode: HttpStatus.NO_CONTENT,
+      message: 'Relatório excluído com sucesso',
     };
   }
 }

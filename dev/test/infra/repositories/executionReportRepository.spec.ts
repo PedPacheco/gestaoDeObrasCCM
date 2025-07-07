@@ -12,9 +12,14 @@ describe('ExecutionReportRepository', () => {
   let repository: ExecutionReportRepository;
 
   const mockPrisma = {
+    $transaction: jest.fn(),
     relatorio_execucao: {
       findMany: jest.fn(),
       findFirst: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    },
+    programacoes: {
       update: jest.fn(),
     },
   };
@@ -237,6 +242,25 @@ describe('ExecutionReportRepository', () => {
         where: { id: 1 },
         data: mockExecutionReportPersistenceObject,
       });
+    });
+  });
+
+  describe('delete', () => {
+    it('Should call delete method and delete item', async () => {
+      mockPrisma.$transaction.mockResolvedValue(undefined);
+      mockPrisma.relatorio_execucao.delete.mockResolvedValue(null);
+
+      await repository.delete(1, 3);
+
+      expect(mockPrisma.$transaction).toHaveBeenCalledWith([
+        mockPrisma.programacoes.update({
+          where: { id: 3 },
+          data: { exec: null },
+        }),
+        mockPrisma.relatorio_execucao.delete({
+          where: { id: 1 },
+        }),
+      ]);
     });
   });
 });
