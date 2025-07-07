@@ -56,12 +56,13 @@ export const schedulesSchema = z.object({
 });
 
 export const equipmentItemSchema = z.object({
-  equipment: z.string().min(1, "Equipamento é obrigatório"),
-  power: z.string().min(1, "Potência é obrigatória"),
-  patrimony: z.string().min(1, "Patrimônio é obrigatório"),
+  equipment: z.string(),
+  power: z.string(),
+  patrimony: z.string(),
 });
 
 export const executionReportSchema = z.object({
+  id: z.number(),
   idUser: z.number(),
   supervisor: z.string().min(1, "Supervisor obrigatório"),
   partialConnectionReleased: z.boolean(),
@@ -83,33 +84,30 @@ export const executionReportSchema = z.object({
   provisionalKeyWithdrawn: z.boolean(),
 });
 
-export const validationSchedulesSchema = schedulesSchema
-  .extend({
-    executionReport: z.union([executionReportSchema, z.null(), z.undefined()]),
-  })
-  .superRefine((data, ctx) => {
-    const execAlterado =
-      data.exec !== undefined && data.exec !== null && data.exec !== "";
+export const validationSchedulesSchema = (
+  initialExecValue: string | null | undefined
+) =>
+  schedulesSchema
+    .extend({
+      executionReport: z.union([
+        executionReportSchema,
+        z.null(),
+        z.undefined(),
+      ]),
+    })
+    .superRefine((data, ctx) => {
+      const execAlterado = data.exec !== initialExecValue;
 
-    if (execAlterado && !data.executionReport) {
-      ctx.addIssue({
-        path: ["executionReport"],
-        code: z.ZodIssueCode.custom,
-        message: "É necessário preencher o relatório de execução",
-      });
-      return;
-    }
-
-    if (execAlterado && data.executionReport) {
-      const result = executionReportSchema.safeParse(data.executionReport);
-      if (!result.success) {
-        result.error.errors.forEach((error) => {
-          ctx.addIssue({
-            path: [...error.path],
-            code: z.ZodIssueCode.custom,
-            message: error.message,
+      if (execAlterado && data.executionReport && initialExecValue !== "null") {
+        const result = executionReportSchema.safeParse(data.executionReport);
+        if (!result.success) {
+          result.error.errors.forEach((error) => {
+            ctx.addIssue({
+              path: [...error.path],
+              code: z.ZodIssueCode.custom,
+              message: error.message,
+            });
           });
-        });
+        }
       }
-    }
-  });
+    });

@@ -1,10 +1,12 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { EXECUTION_REPORT_REPOSITORY } from 'src/domain/repositories/IExecutionReportRepository';
 import { ExecutionReportService } from 'src/domain/services/executionReport.service';
 import { ExecutionReportRepository } from 'src/infra/repositories/executionReportRepository';
 import { ExecutionReportController } from '../controllers/executionReport.controller';
+import { ScheduleModule } from './schedule.module';
 
 @Module({
+  imports: [forwardRef(() => ScheduleModule)],
   controllers: [ExecutionReportController],
   providers: [
     ExecutionReportService,

@@ -1,3 +1,6 @@
+import { ExecutionReportData } from "@/components/details/executionReportDialog/executionReportDialog";
+import { FormData } from "@/hooks/useSchedule";
+
 export function FormatCurrency(value: number) {
   return new Intl.NumberFormat("pt-br", {
     style: "currency",
@@ -46,4 +49,24 @@ export function formatDateToInput(value: string | Date | undefined): string {
   const day = date.getUTCDate().toString().padStart(2, "0");
 
   return `${year}-${month}-${day}`;
+}
+
+export function resolveExecutionReportContext(
+  data: FormData | ExecutionReportData
+): { data: ExecutionReportData; prefix: "" | "executionReport." } {
+  const isExecutionReportData = (
+    d: FormData | ExecutionReportData
+  ): d is ExecutionReportData => !("executionReport" in d);
+
+  if (isExecutionReportData(data)) {
+    return {
+      data,
+      prefix: "",
+    };
+  }
+
+  return {
+    data: data.executionReport!,
+    prefix: "executionReport.",
+  };
 }

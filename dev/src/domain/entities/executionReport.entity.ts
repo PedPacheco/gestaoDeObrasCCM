@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import { EquipmentItem } from 'src/interface/dtos/scheduleDTO';
+import { EquipmentItem } from 'src/interface/dtos/executionReportDTO';
 import { ExecutionReportServiceInterface } from 'src/interface/types/executionReportInterface';
 import { parseTimeToDate } from 'src/utils/parseTimeToDate';
 

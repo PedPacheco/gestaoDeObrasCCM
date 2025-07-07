@@ -14,7 +14,10 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
 } from "@mui/material";
+import { PencilIcon, TrashIcon } from "@heroicons/react/20/solid";
+import { useState } from "react";
 
 dayjs.extend(utc);
 
@@ -59,17 +62,36 @@ const columns = {
 
 interface ExecutionReportItemProps {
   data: any[];
+  onEdit?: (data: any) => void;
+  onDelete: (confirm: number) => void;
 }
 
 export default function ExecutionReportPanelItem({
   data,
+  onDelete,
+  onEdit,
 }: ExecutionReportItemProps) {
+  const [hoveredRow, setHoveredRow] = useState<number | null>(null);
+
+  const handleEdit = (item: any) => {
+    if (onEdit) {
+      onEdit(item);
+    }
+  };
+
+  const handleDelete = (id: number) => {
+    if (onDelete) {
+      onDelete(id);
+    }
+  };
+
   return (
     <>
       <TableContainer className="h-[320px] overflow-y-auto">
         <Table stickyHeader>
           <TableHead>
             <TableRow>
+              <TableCell className="py-1 px-2 text-center text-zinc-700 font-semibold text-lg bg-[#53FF75] border-r border-solid border-zinc-700 min-w-[100px] sticky left-0 z-10"></TableCell>
               {Object.keys(columns).map((column) => (
                 <TableCell
                   key={column}
@@ -85,8 +107,53 @@ export default function ExecutionReportPanelItem({
               return (
                 <TableRow
                   key={rowIndex}
+                  onMouseEnter={() => setHoveredRow(rowIndex)}
+                  onMouseLeave={() => setHoveredRow(null)}
                   className="hover:bg-gray-50 transition-colors duration-200"
                 >
+                  <TableCell className="py-1 px-2 text-center border-r font-medium text-base border-zinc-700 border-solid sticky left-0 bg-white z-10">
+                    <Box
+                      display="flex"
+                      justifyContent="center"
+                      gap={0.5}
+                      sx={{
+                        opacity: hoveredRow === rowIndex ? 1 : 0,
+                        transition: "opacity 0.2s ease-in-out",
+                      }}
+                    >
+                      <Tooltip title="Editar programação" placement="top">
+                        <IconButton
+                          size="small"
+                          color="primary"
+                          onClick={() => handleEdit(item)}
+                          sx={{
+                            padding: "4px",
+                            "&:hover": {
+                              backgroundColor: "rgba(25, 118, 210, 0.08)",
+                            },
+                          }}
+                        >
+                          <PencilIcon width={24} height={24} />
+                        </IconButton>
+                      </Tooltip>
+
+                      <Tooltip title="Excluir programação" placement="top">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleDelete(item.id)}
+                          sx={{
+                            padding: "4px",
+                            "&:hover": {
+                              backgroundColor: "rgba(211, 47, 47, 0.08)",
+                            },
+                          }}
+                        >
+                          <TrashIcon width={24} height={24} />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </TableCell>
                   {Object.keys(columns).map((column, index) => {
                     let cellValue = item[column];
                     let decimal: string[];

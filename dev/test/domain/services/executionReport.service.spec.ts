@@ -3,22 +3,32 @@ import { Prisma } from '@prisma/client';
 import { EXECUTION_REPORT_REPOSITORY } from 'src/domain/repositories/IExecutionReportRepository';
 import { ExecutionReportService } from 'src/domain/services/executionReport.service';
 import {
+  mockExecutionReportPersistenceObject,
   mockExecutionReportRepository,
   mockExecutionReportService,
   mockExecutionReportServiceWithErrorEquipmentInstalled,
   mockExecutionReportServiceWithErrorEquipmentRemoved,
   mockExecutionReportServiceWithErrorProvisionalKeyReference,
   mockFindByWorkIdResponse,
+  mockUpdateExecutionReportDTO,
 } from '../../../test/mocks/mocksExecutionReport';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
+import * as ExecutionReportEntity from 'src/domain/entities/executionReport.entity';
 
 describe('ExecutionReportService', () => {
   let service: ExecutionReportService;
 
   const mockRepository = {
     create: jest.fn(),
+    update: jest.fn(),
     findByScheduleId: jest.fn(),
     findByWorkId: jest.fn(),
+    findById: jest.fn(),
+  };
+
+  const mockFindScheduleRepository = {
+    findById: jest.fn(),
   };
 
   const mockTransaction = {
@@ -32,11 +42,17 @@ describe('ExecutionReportService', () => {
       providers: [
         ExecutionReportService,
         { provide: EXECUTION_REPORT_REPOSITORY, useValue: mockRepository },
+        {
+          provide: FIND_SCHEDULE_BY_ID_REPOSITORY,
+          useValue: mockFindScheduleRepository,
+        },
       ],
     }).compile();
 
     service = module.get<ExecutionReportService>(ExecutionReportService);
   });
+
+  afterEach(jest.clearAllMocks);
 
   describe('create', () => {
     it('Should call method create and return void if schedule exists', async () => {
@@ -149,6 +165,65 @@ describe('ExecutionReportService', () => {
     it('Should call method findByWorkId and throw BadRequestExpection if id no sent', async () => {
       await expect(service.findByWorkId(null)).rejects.toThrow(
         BadRequestException,
+      );
+    });
+  });
+
+  describe('update', () => {
+    it('should call method update with no data content and throw a NotFoundException', async () => {
+      await expect(service.update(1, null)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should call method update and if execution report not exist, throw a NotFoundException', async () => {
+      mockRepository.findById.mockResolvedValue(null);
+
+      await expect(
+        service.update(1, mockUpdateExecutionReportDTO),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should call method update and if schedule not exist, throw a NotFoundException', async () => {
+      mockRepository.findById.mockResolvedValue({ idSchedule: 1, idWork: 2 });
+      mockFindScheduleRepository.findById.mockResolvedValue(null);
+
+      await expect(
+        service.update(1, mockUpdateExecutionReportDTO),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should call method update and should create a execution report entity and sent to update method repository', async () => {
+      mockRepository.findById.mockResolvedValue({ idSchedule: 1, idWork: 2 });
+      mockFindScheduleRepository.findById.mockResolvedValue({
+        hora_ter: new Date('17-05-2025'),
+      });
+
+      await service.update(1, mockUpdateExecutionReportDTO);
+
+      expect(mockRepository.update).toHaveBeenCalledWith(
+        1,
+        mockExecutionReportPersistenceObject,
+      );
+    });
+
+    it('should throw BadRequestException with correct message if ExecutionReport.create fails', async () => {
+      mockRepository.findById.mockResolvedValue({ idSchedule: 1, idWork: 2 });
+      mockFindScheduleRepository.findById.mockResolvedValue({
+        hora_ter: new Date('2025-05-17'), // data corrigida para formato válido
+      });
+
+      jest
+        .spyOn(ExecutionReportEntity.ExecutionReport, 'create')
+        .mockImplementationOnce(() => {
+          throw new Error('Erro forçado no create');
+        });
+
+      const result = service.update(1, mockUpdateExecutionReportDTO);
+
+      await expect(result).rejects.toThrow(BadRequestException);
+      await expect(result).rejects.toThrow(
+        'Erro ao criar relatório: Erro forçado no create',
       );
     });
   });

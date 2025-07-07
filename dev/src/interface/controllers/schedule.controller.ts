@@ -159,7 +159,7 @@ export class ScheduleController {
       updateData: { id, ...schedulesData.updateData },
       executionReportData: { ...schedulesData.executionReportData },
     };
-    console.log(data);
+
     await this.updateSchedulesService.update(data);
 
     return {

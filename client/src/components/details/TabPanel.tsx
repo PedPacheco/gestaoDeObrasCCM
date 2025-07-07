@@ -22,6 +22,8 @@ import ConfirmationModalComponent from "../common/confirmationModal";
 import ExecutionReportPanelItem from "./panelItems/executionReportPanelItem";
 import { useScheduleForm } from "@/hooks/useSchedule";
 import { ExecutionReportDialog } from "./executionReportDialog/executionReportDialog";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 
 interface CustomTabPanelProps {
   children?: React.ReactNode;
@@ -63,15 +65,19 @@ export default function TabPanel({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [editingSchedule, setEditingSchedule] = useState<any>();
+  const [editingExecutionReport, setEditingExecutionReport] = useState<any>();
   const [IsInsert, setIsInsert] = useState<boolean>(true);
+  const [executionReportIsInsert, setExecutionReportIsInsert] =
+    useState<boolean>(true);
   const [openConfirmationModal, setOpenConfimartionModal] =
     useState<boolean>(false);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
-  const [openModal, setOpenModal] = useState<boolean>(false);
   const [isExecutionDialogOpen, setIsExecutionDialogOpen] =
     useState<boolean>(false);
+  const [openModal, setOpenModal] = useState<boolean>(false);
   const scheduleForm = useScheduleForm({
     data: editingSchedule,
+    executionData: editingExecutionReport,
     options,
   });
 
@@ -90,7 +96,20 @@ export default function TabPanel({
   const handleEditSchedule = (scheduleData: any) => {
     setIsInsert(false);
     setIsDialogOpen(true);
-    setEditingSchedule(scheduleData);
+
+    const updatedSchedule = {
+      ...scheduleData,
+      exec: scheduleData.exec !== undefined ? String(scheduleData.exec) : "",
+    };
+
+    setEditingSchedule(updatedSchedule);
+  };
+
+  const handleEditExecutionReport = (executionReportData: any) => {
+    setIsExecutionDialogOpen(true);
+    setExecutionReportIsInsert(false);
+    setIsInsert(false);
+    setEditingExecutionReport(executionReportData);
   };
 
   const handleCloseDialog = () => {
@@ -101,6 +120,8 @@ export default function TabPanel({
     setIsExecutionDialogOpen(false);
     setIsDialogOpen(false);
   };
+
+  const handleExecutionReportDelete = useCallback(() => {}, []);
 
   const handleDelete = useCallback(
     (id: number) => {
@@ -175,7 +196,11 @@ export default function TabPanel({
               Em breve
             </CustomTabPanel>
             <CustomTabPanel value={value} index={3}>
-              <ExecutionReportPanelItem data={executionReportData} />
+              <ExecutionReportPanelItem
+                data={executionReportData}
+                onDelete={handleExecutionReportDelete}
+                onEdit={handleEditExecutionReport}
+              />
             </CustomTabPanel>
           </Suspense>
         </div>
@@ -212,12 +237,14 @@ export default function TabPanel({
         onClose={handleCloseDialog}
         idWork={data?.id}
         isInsert={IsInsert}
+        executionReportIsInsert={executionReportIsInsert}
         onError={setError}
         onSuccess={setSuccess}
         onModalOpen={setOpenModal}
         options={options}
         scheduleForm={scheduleForm}
       />
+
       {error && (
         <ErrorModal
           open={true}
