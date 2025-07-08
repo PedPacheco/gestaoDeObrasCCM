@@ -97,6 +97,7 @@ export default function TabPanel({
   const handleEditSchedule = (scheduleData: any) => {
     setIsInsert(false);
     setIsDialogOpen(true);
+    setExecutionReportIsInsert(true);
 
     const updatedSchedule = {
       ...scheduleData,

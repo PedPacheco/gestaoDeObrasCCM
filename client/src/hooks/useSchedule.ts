@@ -1,18 +1,19 @@
 "use client";
 
+import { useCallback, useEffect, useState, useTransition } from "react";
+import { Cookies } from "react-cookie";
+import { z } from "zod";
+
+import { editExecutionReport } from "@/actions/executionReport.action";
 import { editSchedule, saveSchedule } from "@/actions/schedules";
-import { ScheduleFormDialogProps } from "@/components/details/scheduleDialog/dialog";
 import { EquipmentData } from "@/components/details/executionReportDialog/EquipmentPanel";
 import { ExecutionReportData } from "@/components/details/executionReportDialog/executionReportDialog";
+import { ScheduleFormDialogProps } from "@/components/details/scheduleDialog/dialog";
 import { mapScheduleToForm, transformExecutionReport } from "@/utils/transform";
 import {
   executionReportSchema,
   validationSchedulesSchema,
 } from "@/validations/validationSchedules";
-import { useCallback, useEffect, useState, useTransition } from "react";
-import { Cookies } from "react-cookie";
-import { z } from "zod";
-import { editExecutionReport } from "@/actions/executionReport.action";
 
 const cookies = new Cookies();
 
