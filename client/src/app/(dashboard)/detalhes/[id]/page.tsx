@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import { cookies } from "next/headers";
 import { formatPercentage } from "@/utils/formatValue";
 import { fetchFilters } from "@/actions/fetchFilters.action";
+import { SelectComponent } from "@/components/common/Select";
 
 interface DataResponse {
   data: Record<string, any>;
@@ -22,6 +23,12 @@ export default async function Details({
     fetchFilters({
       restricao: true,
       tecnico: true,
+      municipio: true,
+      parceira: true,
+      circuito: true,
+      status: true,
+      empreendimento: true,
+      tipo: true,
     }),
     fetchData<DataResponse>(
       `${process.env.NEXT_PUBLIC_API_URL}/obras/${id}`,
@@ -107,8 +114,11 @@ export default async function Details({
               label="Data prazo final"
               value={prazoFinal.format("DD/MM/YYYY")}
             />
-            <DataItem label="Data empreitamento" value={dataEmpreitamento} />
-            <DataItem label="Tipo ADS" value={data.tipo_ads} />
+            <DataItem
+              label="Executado"
+              value={formatPercentage(data.executado) || ""}
+            />
+            <DataItem label="Data conclusão" value={data_conclusao} />
 
             <DataItem
               label="Ano planejamento"
@@ -117,15 +127,34 @@ export default async function Details({
             />
           </div>
           <div className="flex flex-col items-start md:items-center col-start-2 col-end-3 md:col-start-auto md:col-end-auto">
-            <DataItem label="Parceira" value={data.turmas} />
             <DataItem label="Status Sap" value={data.status_ov_sap} />
-            <DataItem label="Status" value={data.status} />
-            <DataItem label="Empreendimento" value={data.empreendimento} />
-            <DataItem
-              label="Executado"
-              value={formatPercentage(data.executado) || ""}
+            <SelectComponent
+              label="Parceira"
+              menuItems={options.parceira}
+              selectedItem={data.id_turma}
+              valueKey="id"
+              displayKey="turma"
             />
-            <DataItem label="Data conclusão" value={data_conclusao} />
+            <SelectComponent
+              label="Status"
+              menuItems={options.status}
+              selectedItem={data.id_status}
+              valueKey="id"
+              displayKey="status"
+            />
+            <DataItem
+              label="Data empreitamento"
+              value={dataEmpreitamento}
+              isEdit={true}
+            />
+            <SelectComponent
+              label="Tipo ADS"
+              menuItems={[{ tipo: "CONVENCIONAL" }, { tipo: "PONTO A PONTO" }]}
+              selectedItem={data.tipo_ads || ""}
+              valueKey="tipo"
+              displayKey="tipo"
+            />
+            <DataItem label="Empreendimento" value={data.empreendimento} />
           </div>
         </div>
 

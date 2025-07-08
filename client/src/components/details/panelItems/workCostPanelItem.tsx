@@ -26,17 +26,17 @@ export default function WorkCostPanelItem({ data }: Record<string, any>) {
           </div>
           <div className="flex flex-col">
             <p className="mb-2 text-center font-semibold">Pendente</p>
-            <div className="flex items-center justify-between mb-3 h-14 border border-zinc-700 border-solid px-2 rounded-md">
+            <div className="flex items-center justify-between mb-3 h-14 border border-zinc-700 border-solid px-2 rounded-md bg-zinc-200">
               <p className="flex-1 font-medium min-w-32 px-2 lg:min-w-36 text-center">
                 {FormatCurrency(data.capex_mat_pend)}
               </p>
             </div>
-            <div className="flex items-center justify-between mb-3 h-14 border border-zinc-700 border-solid px-2 rounded-md">
+            <div className="flex items-center justify-between mb-3 h-14 border border-zinc-700 border-solid px-2 rounded-md bg-zinc-200">
               <p className="flex-1 font-medium min-w-32 px-2 lg:min-w-36 text-center">
                 {FormatCurrency(data.capex_mo_pend)}
               </p>
             </div>
-            <div className="flex items-center justify-between mb-3 h-14 border border-zinc-700 border-solid px-2 rounded-md">
+            <div className="flex items-center justify-between mb-3 h-14 border border-zinc-700 border-solid px-2 rounded-md bg-zinc-200">
               <p className="flex-1 font-medium min-w-32 px-2 lg:min-w-36 text-center">
                 {FormatCurrency(data.capex_mo_pend)}
               </p>
