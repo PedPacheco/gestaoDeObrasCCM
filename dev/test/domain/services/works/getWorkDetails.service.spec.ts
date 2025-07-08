@@ -1,6 +1,4 @@
 import { GetWorkDetailsService } from 'src/domain/services/works/getWorkDetails.service';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-
 import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { obras } from '@prisma/client';

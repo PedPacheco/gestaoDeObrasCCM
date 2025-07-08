@@ -1,11 +1,10 @@
 import { Cache } from 'cache-manager';
+import { GET_ALL_WORKS_REPOSITORY } from 'src/domain/repositories/works/IGetAllWorksRepository';
 import { GetAllWorksService } from 'src/domain/services/works/getAllWorks.service';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetAllWorksDTO } from 'src/interface/dtos/worksDto';
 
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Test } from '@nestjs/testing';
-import { GET_ALL_WORKS_REPOSITORY } from 'src/domain/repositories/works/IGetAllWorksRepository';
 
 describe('GetAllWorksService', () => {
   let getAllWorksService: GetAllWorksService;
