@@ -1,12 +1,11 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-
 import { GoalsRepository } from 'src/infra/repositories/goalsRepository';
 import { GoalsDTO } from 'src/interface/dtos/goalsDto';
 
+import { Test, TestingModule } from '@nestjs/testing';
+
 describe('GoalsRepository', () => {
   let goalsRepository: GoalsRepository;
-  let prisma: PrismaService;
 
   const mockPrisma = {
     $queryRaw: jest.fn(),
@@ -21,7 +20,6 @@ describe('GoalsRepository', () => {
     }).compile();
 
     goalsRepository = module.get<GoalsRepository>(GoalsRepository);
-    prisma = module.get<PrismaService>(PrismaService);
   });
 
   afterEach(() => {

@@ -1,9 +1,8 @@
+import { GET_PENDING_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetPendingScheduleValuesRepository';
 import { GetPendingScheduleValuesService } from 'src/domain/services/schedule/getPendingScheduleValues.service';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import { Test } from '@nestjs/testing';
 import { obras } from '@prisma/client';
-import { GET_PENDING_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetPendingScheduleValuesRepository';
 
 describe('GetPendingScheduleValues', () => {
   let service: GetPendingScheduleValuesService;
