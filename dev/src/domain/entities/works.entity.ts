@@ -7,6 +7,10 @@ export class Work {
     public readonly entrada: Date,
     public readonly prazoTexto: string,
     public readonly equipeNumPedido: string,
+    public readonly idMunicipio: number,
+    public readonly idTipo: number,
+    public readonly idParceira: number,
+    public readonly idCircuito: number,
   ) {}
 }
 
@@ -17,19 +21,29 @@ export class MarketWork extends Work {
     entrada: Date,
     prazoTexto: string,
     equipeNumPedido: string,
+    idMunicipio: number,
+    idTipo: number,
+    idParceira: number,
+    idCircuito: number,
     public readonly diagrama: string,
     public readonly observacao: string,
     public readonly statusOv: number,
     public readonly statusDiagrama: string,
     public readonly statusPep: string,
-    public readonly idMunicipio: number,
-    public readonly idTipo: number,
-    public readonly idParceira: number,
-    public readonly idCircuito: number,
     public readonly moCliente: number,
     public readonly moEmpresa: number,
   ) {
-    super(obra, pep, entrada, prazoTexto, equipeNumPedido);
+    super(
+      obra,
+      pep,
+      entrada,
+      prazoTexto,
+      equipeNumPedido,
+      idMunicipio,
+      idTipo,
+      idParceira,
+      idCircuito,
+    );
   }
 
   get referencia(): string {
@@ -58,6 +72,10 @@ export class NoteWorks extends Work {
     entrada: Date,
     prazoTexto: string,
     equipeNumPedido: string,
+    idMunicipio: number,
+    idTipo: number,
+    idParceira: number,
+    idCircuito: number,
     public readonly dci: string,
     public readonly dcd: string,
     public readonly dca: string,
@@ -65,17 +83,23 @@ export class NoteWorks extends Work {
     public readonly referencia: string,
     public readonly qtdePlanejada: number,
     public readonly moPlanejada: number,
-    public readonly idMunicipio: number,
-    public readonly idTipo: number,
-    public readonly idParceira: number,
     public readonly idEmpreendimento: number,
-    public readonly idCircuito: number,
     public readonly idGrupo: number,
     public readonly capexMoPlan: number,
     public readonly capexMatPlan: number,
     public readonly anoPlan: number,
   ) {
-    super(obra, pep, entrada, prazoTexto, equipeNumPedido);
+    super(
+      obra,
+      pep,
+      entrada,
+      prazoTexto,
+      equipeNumPedido,
+      idMunicipio,
+      idTipo,
+      idParceira,
+      idCircuito,
+    );
   }
 
   get isPepGenericoNote(): boolean {

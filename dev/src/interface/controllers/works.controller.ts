@@ -5,7 +5,12 @@ import { GetCompletedWorksService } from 'src/domain/services/works/getCompleted
 import { GetWorkDetailsService } from 'src/domain/services/works/getWorkDetails.service';
 import { GetWorksInPortfolioService } from 'src/domain/services/works/getWorksInPortfolio.service';
 import { InsertWorksService } from 'src/domain/services/works/InsertWorks.service';
-import { GetAllWorksDTO, GetWorksDTO } from 'src/interface/dtos/worksDto';
+import { UpdateWorkService } from 'src/domain/services/works/updateWork.service';
+import {
+  GetAllWorksDTO,
+  GetWorksDTO,
+  UpdateWorkDTO,
+} from 'src/interface/dtos/worksDto';
 
 import {
   Body,
@@ -14,6 +19,7 @@ import {
   HttpStatus,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -29,6 +35,7 @@ export class WorksController {
     private getCompletedWorksService: GetCompletedWorksService,
     private getWorkDetailsService: GetWorkDetailsService,
     private insertWorksService: InsertWorksService,
+    private updateWorkService: UpdateWorkService,
   ) {}
 
   @Get()
@@ -104,6 +111,20 @@ export class WorksController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Notas inseridas com sucesso',
+    };
+  }
+
+  @Patch(':id')
+  @UseGuards(PermissionGuard)
+  async Update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: UpdateWorkDTO,
+  ) {
+    await this.updateWorkService.update(data, id);
+
+    return {
+      statusCode: HttpStatus.NO_CONTENT,
+      message: 'Obras atualizada com sucesso',
     };
   }
 }

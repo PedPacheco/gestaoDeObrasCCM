@@ -1,8 +1,9 @@
 "use client";
 
-import { FormControl, InputLabel, MenuItem } from "@mui/material";
-import Select, { SelectChangeEvent } from "@mui/material/Select";
 import { ReactNode } from "react";
+
+import { FormControl, MenuItem } from "@mui/material";
+import Select from "@mui/material/Select";
 
 interface SelectProps<T> {
   label: string;
@@ -23,11 +24,6 @@ export function SelectComponent<T>({
   valueKey,
   displayKey,
 }: SelectProps<T>) {
-  const handleChange: (event: SelectChangeEvent<string>) => void = (event) => {
-    const { value } = event.target;
-    console.log(value);
-  };
-
   return (
     <div className="flex items-center justify-between mb-3 max-w-96 w-[342px] h-10 border border-zinc-700 border-solid rounded-md">
       {label && (
@@ -42,11 +38,14 @@ export function SelectComponent<T>({
       >
         <Select
           value={selectedItem}
-          onChange={handleChange}
           displayEmpty
           className="text-center w-full h-full px-2"
+          onChange={(e: { target: { value: string } }) =>
+            setSelectedItem?.(e.target.value)
+          }
+          IconComponent={() => null}
           inputProps={{
-            className: "text-center",
+            className: "text-center text-sm p-2 pr-0",
           }}
           MenuProps={{
             PaperProps: {

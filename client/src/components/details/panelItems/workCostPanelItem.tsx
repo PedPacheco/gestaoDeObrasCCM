@@ -1,5 +1,5 @@
 import { FormatCurrency } from "@/utils/formatValue";
-import DataItem from "../dataItem";
+import DataItem from "../workDetails/dataItem";
 
 export default function WorkCostPanelItem({ data }: Record<string, any>) {
   return (

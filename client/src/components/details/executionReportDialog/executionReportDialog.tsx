@@ -35,10 +35,6 @@ export interface ExecutionReportDialogProps {
   onError: (error: string) => void;
   onSuccess: (success: string) => void;
   onModalOpen: (open: boolean) => void;
-  options: {
-    tecnico: Array<{ id: number; tecnico: string }>;
-    restricao: Array<{ id: number; restricao: string }>;
-  };
   scheduleForm: ScheduleFormHookReturn;
 }
 
@@ -51,12 +47,10 @@ export function ExecutionReportDialog({
   onModalOpen,
   onSuccess,
   open,
-  options,
   scheduleForm,
 }: ExecutionReportDialogProps) {
   const {
     formData,
-    setFormData,
     executionReportData,
     formErrors,
     expanded,
