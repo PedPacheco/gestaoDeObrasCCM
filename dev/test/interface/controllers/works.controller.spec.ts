@@ -18,6 +18,7 @@ import {
   mockResponseDetails,
   mockWorksInPortfolio,
 } from '../../mocks/mockWorksController';
+import { UpdateWorkService } from 'src/domain/services/works/updateWork.service';
 
 describe('WorksController', () => {
   let worksController: WorksController;
@@ -26,6 +27,7 @@ describe('WorksController', () => {
   let getWorksInPortfolio: GetWorksInPortfolioService;
   let getWorkDetailsService: GetWorkDetailsService;
   let insertWorksService: InsertWorksService;
+  let updateWorkService: UpdateWorkService;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -49,6 +51,7 @@ describe('WorksController', () => {
           provide: InsertWorksService,
           useValue: { insertMarketWorks: jest.fn(), insertNotes: jest.fn() },
         },
+        { provide: UpdateWorkService, useValue: { update: jest.fn() } },
       ],
     }).compile();
 
@@ -64,6 +67,7 @@ describe('WorksController', () => {
       GetWorkDetailsService,
     );
     insertWorksService = module.get<InsertWorksService>(InsertWorksService);
+    updateWorkService = module.get<UpdateWorkService>(UpdateWorkService);
   });
 
   it('Should be defined', () => {
@@ -233,6 +237,35 @@ describe('WorksController', () => {
 
       expect(insertWorksService.insertNotes).toHaveBeenCalledWith(
         mockInsertNotesController,
+      );
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('Update', () => {
+    it('Should be call the method Update and return the correctly data', async () => {
+      jest.spyOn(updateWorkService, 'update').mockResolvedValue();
+
+      const result = await worksController.Update(1, {
+        id_turma: 1,
+        id_status: 4,
+        tipo_ads: 'Convencional',
+        data_empreitamento: new Date('05-17-2025'),
+      });
+
+      const expectedResponse = {
+        statusCode: HttpStatus.NO_CONTENT,
+        message: 'Obras atualizada com sucesso',
+      };
+
+      expect(updateWorkService.update).toHaveBeenCalledWith(
+        {
+          id_turma: 1,
+          id_status: 4,
+          tipo_ads: 'Convencional',
+          data_empreitamento: new Date('05-17-2025'),
+        },
+        1,
       );
       expect(result).toEqual(expectedResponse);
     });

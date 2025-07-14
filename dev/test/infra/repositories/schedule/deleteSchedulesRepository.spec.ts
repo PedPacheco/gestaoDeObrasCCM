@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { DeleteSchedulesRepository } from 'src/infra/repositories/schedule/deleteSchedulesRepository';
@@ -31,6 +31,16 @@ describe('DeleteSchedulesRepository', () => {
 
       await expect(repository.delete(1)).rejects.toThrow(
         new NotFoundException(`Programação com ID ${1} não encontrada`),
+      );
+    });
+
+    it('Should call method delete and throw NotFoundExpection if id not found', async () => {
+      mockPrisma.programacoes.delete.mockRejectedValueOnce({ code: 'P2003' });
+
+      await expect(repository.delete(1)).rejects.toThrow(
+        new BadRequestException(
+          'Programação não excluída: Relatório vinculado a essa programação',
+        ),
       );
     });
 
