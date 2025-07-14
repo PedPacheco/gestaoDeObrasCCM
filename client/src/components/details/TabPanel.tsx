@@ -279,7 +279,6 @@ export default function TabPanel({
         onError={setError}
         onSuccess={setSuccess}
         onModalOpen={setOpenModal}
-        options={options}
         scheduleForm={scheduleForm}
       />
 

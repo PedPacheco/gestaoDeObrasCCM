@@ -4,12 +4,14 @@ import { GET_COMPLETED_WORKS_REPOSITORY } from 'src/domain/repositories/works/IG
 import { GET_WORKS_DETAILS_REPOSITORY } from 'src/domain/repositories/works/IGetWorksDetailsRepository';
 import { GET_WORKS_IN_PORTFOLIO_REPOSITORY } from 'src/domain/repositories/works/IGetWorksInPortfolioRepository';
 import { INSERT_WORKS_REPOSITORY } from 'src/domain/repositories/works/IInsertWorksRepository';
+import { UPDATE_WORK_REPOSITORY } from 'src/domain/repositories/works/IUpdateWorkRepository';
 import { FindExistingWorksService } from 'src/domain/services/works/findExistingWorks.service';
 import { GetAllWorksService } from 'src/domain/services/works/getAllWorks.service';
 import { GetCompletedWorksService } from 'src/domain/services/works/getCompletedWorks.service';
 import { GetWorkDetailsService } from 'src/domain/services/works/getWorkDetails.service';
 import { GetWorksInPortfolioService } from 'src/domain/services/works/getWorksInPortfolio.service';
 import { InsertWorksService } from 'src/domain/services/works/InsertWorks.service';
+import { UpdateWorkService } from 'src/domain/services/works/updateWork.service';
 import { CacheModule } from 'src/infra/cache/cache.module';
 import { FindExistingWorksRepository } from 'src/infra/repositories/works/findExistingWorksRepository';
 import { GetAllWorksRepository } from 'src/infra/repositories/works/getAllWorksRepository';
@@ -17,6 +19,7 @@ import { GetCompletedWorksRepository } from 'src/infra/repositories/works/getCom
 import { GetWorksDetailsRepository } from 'src/infra/repositories/works/getWorksDetailsRepository';
 import { GetWorksInPortfolioRepository } from 'src/infra/repositories/works/getWorksInPortfolioRepository';
 import { InsertWorksRepository } from 'src/infra/repositories/works/InsertWorksRepository';
+import { UpdateWorkRepository } from 'src/infra/repositories/works/updateWorkRepository';
 
 import { forwardRef, Module } from '@nestjs/common';
 
@@ -34,6 +37,7 @@ import { UsersModule } from './users.module';
     GetCompletedWorksService,
     GetWorkDetailsService,
     InsertWorksService,
+    UpdateWorkService,
     { provide: GET_ALL_WORKS_REPOSITORY, useClass: GetAllWorksRepository },
     {
       provide: GET_COMPLETED_WORKS_REPOSITORY,
@@ -51,6 +55,7 @@ import { UsersModule } from './users.module';
       provide: INSERT_WORKS_REPOSITORY,
       useClass: InsertWorksRepository,
     },
+    { provide: UPDATE_WORK_REPOSITORY, useClass: UpdateWorkRepository },
     {
       provide: FIND_EXISITING_WORKS_REPOSITORY,
       useClass: FindExistingWorksRepository,

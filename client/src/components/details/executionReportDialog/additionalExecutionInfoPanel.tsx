@@ -73,7 +73,7 @@ export const AdditionalExecutionInfoPanel: React.FC<
       <Grid item xs={12} sm={6}>
         <TextField
           fullWidth
-          label="Referência da Chave Provisória"
+          label="Referência da Chave Provisória - Exemplo: 175ET00554845"
           value={data.provisionalKeyReference || ""}
           onChange={onInputChange(`${prefix}provisionalKeyReference`)}
         />

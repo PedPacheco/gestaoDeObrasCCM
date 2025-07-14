@@ -71,7 +71,6 @@ export const mockResponseDetails = {
   observ_obra: 'Obra executada',
   prazo: 90,
   data_conclusao: null,
-  executado: 45,
   qtde_planejada: 0.772,
   qtde_pend: 0.77165,
   mo_planejada: 89223.8157,
@@ -84,13 +83,16 @@ export const mockResponseDetails = {
   tipo_ads: 'CONVENCIONAL',
   data_empreitamento: new Date('2024-08-06T00:00:00.000Z'),
   ano_plan: 2024,
+  id_turma: 1,
+  id_status: 4,
+  executado: 45,
   circuitos: 'CAC-1302',
+  conjunto: 'São josé',
   empreendimento: null,
   municipios: 'MONTEIRO LOBATO',
   tipos: 'SPACER CABLE',
   grupo: 2,
-  turmas: 'ENGELMIG',
-  status: 'PROGRAMADO',
+
   programacoes: [
     {
       id: 1,

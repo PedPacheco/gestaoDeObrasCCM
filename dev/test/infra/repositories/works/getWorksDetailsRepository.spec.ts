@@ -35,7 +35,6 @@ describe('GetWorksDetailsRepository', () => {
     entrada: '2023-04-18T00:00:00.000Z',
     prazo: 90,
     data_conclusao: null,
-    executado: 45,
     qtde_planejada: 0.772,
     qtde_pend: 0.77165,
     mo_planejada: 89223.8157,
@@ -49,6 +48,7 @@ describe('GetWorksDetailsRepository', () => {
     data_empreitamento: '2024-08-06T00:00:00.000Z',
     circuitos: {
       circuito: 'CAC-1302',
+      conjuntos: { conjunto: 'São josé' },
     },
     empreendimento: {
       empreendimento: null,
@@ -60,12 +60,8 @@ describe('GetWorksDetailsRepository', () => {
       tipo_obra: 'SPACER CABLE',
       id_grupo: 2,
     },
-    turmas: {
-      turma: 'ENGELMIG',
-    },
-    status: {
-      status: 'PROGRAMADO',
-    },
+    id_turma: 1,
+    id_status: 5,
     programacoes: [
       {
         data_prog: '2024-09-19T00:00:00.000Z',
@@ -154,7 +150,6 @@ describe('GetWorksDetailsRepository', () => {
           entrada: true,
           prazo: true,
           data_conclusao: true,
-          executado: true,
           observ_obra: true,
           qtde_planejada: true,
           qtde_pend: true,
@@ -168,12 +163,17 @@ describe('GetWorksDetailsRepository', () => {
           tipo_ads: true,
           data_empreitamento: true,
           ano_plan: true,
-          circuitos: { select: { circuito: true } },
+          circuitos: {
+            select: {
+              circuito: true,
+              conjuntos: { select: { conjunto: true } },
+            },
+          },
           empreendimento: { select: { empreendimento: true } },
           municipios: { select: { municipio: true } },
           tipos: { select: { tipo_obra: true, id_grupo: true } },
-          turmas: { select: { turma: true } },
-          status: { select: { status: true } },
+          id_turma: true,
+          id_status: true,
           programacoes: {
             select: {
               id: true,
@@ -243,7 +243,6 @@ describe('GetWorksDetailsRepository', () => {
           entrada: true,
           prazo: true,
           data_conclusao: true,
-          executado: true,
           observ_obra: true,
           qtde_planejada: true,
           qtde_pend: true,
@@ -257,12 +256,17 @@ describe('GetWorksDetailsRepository', () => {
           tipo_ads: true,
           data_empreitamento: true,
           ano_plan: true,
-          circuitos: { select: { circuito: true } },
+          circuitos: {
+            select: {
+              circuito: true,
+              conjuntos: { select: { conjunto: true } },
+            },
+          },
           empreendimento: { select: { empreendimento: true } },
           municipios: { select: { municipio: true } },
           tipos: { select: { tipo_obra: true, id_grupo: true } },
-          turmas: { select: { turma: true } },
-          status: { select: { status: true } },
+          id_turma: true,
+          id_status: true,
           programacoes: {
             select: {
               id: true,

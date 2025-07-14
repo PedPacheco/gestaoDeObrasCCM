@@ -46,7 +46,6 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
         entrada: true,
         prazo: true,
         data_conclusao: true,
-        executado: true,
         observ_obra: true,
         qtde_planejada: true,
         qtde_pend: true,
@@ -60,12 +59,14 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
         tipo_ads: true,
         data_empreitamento: true,
         ano_plan: true,
-        circuitos: { select: { circuito: true } },
+        circuitos: {
+          select: { circuito: true, conjuntos: { select: { conjunto: true } } },
+        },
         empreendimento: { select: { empreendimento: true } },
         municipios: { select: { municipio: true } },
         tipos: { select: { tipo_obra: true, id_grupo: true } },
-        turmas: { select: { turma: true } },
-        status: { select: { status: true } },
+        id_turma: true,
+        id_status: true,
         programacoes: {
           select: {
             id: true,

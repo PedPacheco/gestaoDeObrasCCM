@@ -82,7 +82,9 @@ export class FiltersService {
 
     if (status) {
       result['status'] = await this.getCachedData('status', () =>
-        this.filtersRepository.getData('status', ['id', 'status']),
+        this.filtersRepository.getData('status', ['id', 'status'], {
+          onde: 'EXECUÇÃO',
+        }),
       );
     }
 
