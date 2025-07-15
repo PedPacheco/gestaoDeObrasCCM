@@ -1,44 +1,24 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
-import { Cookies } from "react-cookie";
+import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
 
-import { editExecutionReport } from "@/actions/executionReport.action";
-import { editSchedule, saveSchedule } from "@/actions/schedules";
 import { EquipmentData } from "@/components/details/executionReportDialog/EquipmentPanel";
 import { ExecutionReportData } from "@/components/details/executionReportDialog/executionReportDialog";
 import { ScheduleFormDialogProps } from "@/components/details/scheduleDialog/dialog";
 import { mapScheduleToForm, transformExecutionReport } from "@/utils/transform";
-import {
-  executionReportSchema,
-  validationSchedulesSchema,
-} from "@/validations/validationSchedules";
-
-const cookies = new Cookies();
+import { validationSchedulesSchema } from "@/validations/validationSchedules";
 
 export const staticValidationSchema = validationSchedulesSchema(null);
 export type FormData = z.infer<typeof staticValidationSchema>;
-
-interface UseScheduleSubmitProps {
-  formData: FormData;
-  executionReportData: ExecutionReportData;
-  idWork: number;
-  isInsert: boolean;
-  onError: (error: string) => void;
-  onSuccess: (success: string) => void;
-  onModalOpen: (open: boolean) => void;
-  onClose: () => void;
-  setFormErrors: (errors: Record<string, string>) => void;
-}
 
 export const INITIAL_EXECUTION_REPORT: ExecutionReportData = {
   id: 0,
   idUser: 0,
   supervisor: "",
   partialConnectionReleased: false,
-  startTime: "08:00",
-  finishTime: "17:00",
+  startTime: "00:00",
+  finishTime: "00:00",
   startContact: "",
   endContact: "",
   delayJustification: "",
@@ -73,120 +53,6 @@ export const INITIAL_FORM_DATA: FormData = {
   idTechnical: 1,
   idExecutionRestriction: 1,
   responsibility: "",
-};
-
-export const useScheduleSubmit = ({
-  formData,
-  executionReportData,
-  idWork,
-  isInsert,
-  onError,
-  onSuccess,
-  onModalOpen,
-  onClose,
-  setFormErrors,
-}: UseScheduleSubmitProps) => {
-  const [isPending, startTransition] = useTransition();
-  const rawUser = cookies.get("userInfo");
-  const user = rawUser ?? null;
-
-  const handleSubmit = useCallback(
-    (initialExecValue: string | null, type: string) => {
-      startTransition(async () => {
-        let response;
-
-        try {
-          if (!isInsert && type === "executionReport") {
-            const result = executionReportSchema.safeParse(executionReportData);
-
-            if (!result.success) {
-              const fieldErrors: Record<string, string> = {};
-              result.error.errors.forEach((err: any) => {
-                const field = err.path[0] as string;
-                fieldErrors[field] = err.message;
-              });
-              setFormErrors(fieldErrors);
-              return;
-            }
-
-            const updatedData = {
-              ...(() => {
-                const { id, ...rest } = result.data;
-                return rest;
-              })(),
-            };
-
-            response = await editExecutionReport(updatedData, result.data.id);
-          } else {
-            const validationSchema =
-              validationSchedulesSchema(initialExecValue);
-
-            const result = validationSchema.safeParse(formData);
-
-            if (!result.success) {
-              const fieldErrors: Record<string, string> = {};
-              result.error.errors.forEach((err: any) => {
-                const field = err.path[0] as string;
-                fieldErrors[field] = err.message;
-              });
-              setFormErrors(fieldErrors);
-              return;
-            }
-
-            const { executionReport, ...scheduleFields } = result.data;
-
-            const payload = {
-              updateData: {
-                idWork,
-                ...(() => {
-                  const { id, ...rest } = scheduleFields;
-                  return rest;
-                })(),
-              },
-              ...(executionReport && {
-                executionReportData: {
-                  idUser: user?.id,
-                  ...(() => {
-                    const { idUser, id, ...rest } = executionReport;
-                    return rest;
-                  })(),
-                },
-              }),
-            };
-
-            const apiCall = isInsert ? saveSchedule : editSchedule;
-
-            response = await apiCall(payload, scheduleFields.id);
-          }
-
-          if (!response.success) {
-            onError(response.error);
-            return;
-          }
-
-          onSuccess(response.message);
-          onClose();
-          onModalOpen(true);
-        } catch (error: any) {
-          onError(error.message);
-        }
-      });
-    },
-    [
-      isInsert,
-      onSuccess,
-      onClose,
-      onModalOpen,
-      executionReportData,
-      setFormErrors,
-      formData,
-      idWork,
-      user?.id,
-      onError,
-    ]
-  );
-
-  return { handleSubmit, isPending };
 };
 
 interface UseScheduleFormProps {

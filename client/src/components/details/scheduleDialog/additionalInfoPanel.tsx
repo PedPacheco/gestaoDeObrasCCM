@@ -1,4 +1,4 @@
-import { FormData } from "@/hooks/useSchedule";
+import { FormData } from "@/hooks/useScheduleForm";
 import { FormControl, Grid, InputLabel, MenuItem, Select } from "@mui/material";
 
 import { ScheduleFormDialogProps } from "./dialog";

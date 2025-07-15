@@ -1,11 +1,5 @@
-import { FormData } from "@/hooks/useSchedule";
-import {
-  Grid,
-  TextField,
-  FormControlLabel,
-  Checkbox,
-  FormControl,
-} from "@mui/material";
+import { FormData } from "@/hooks/useScheduleForm";
+import { Grid, TextField, FormControlLabel, Checkbox } from "@mui/material";
 import { ExecutionReportData } from "./executionReportDialog";
 import { resolveExecutionReportContext } from "@/utils/formatValue";
 
@@ -46,6 +40,7 @@ export const AdditionalExecutionInfoPanel: React.FC<
           onChange={onInputChange(`${prefix}workSituation`)}
           error={!!formErrors.workSituation}
           helperText={formErrors.workSituation}
+          autoComplete="off"
         />
       </Grid>
 
@@ -55,6 +50,7 @@ export const AdditionalExecutionInfoPanel: React.FC<
           label="Motivo"
           value={data.reason || ""}
           onChange={onInputChange(`${prefix}reason`)}
+          autoComplete="off"
         />
       </Grid>
 
@@ -76,6 +72,7 @@ export const AdditionalExecutionInfoPanel: React.FC<
           label="Referência da Chave Provisória - Exemplo: 175ET00554845"
           value={data.provisionalKeyReference || ""}
           onChange={onInputChange(`${prefix}provisionalKeyReference`)}
+          autoComplete="off"
         />
       </Grid>
 

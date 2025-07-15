@@ -1,4 +1,4 @@
-import { FormData } from "@/hooks/useSchedule";
+import { FormData } from "@/hooks/useScheduleForm";
 import { Grid, TextField } from "@mui/material";
 
 interface BasicInfoPanelProps {
@@ -54,6 +54,7 @@ export const BasicInfoPanel: React.FC<BasicInfoPanelProps> = ({
         helperText={formErrors.finishTime}
         InputLabelProps={{ shrink: true }}
         required
+        autoComplete="off"
       />
     </Grid>
 

@@ -1,18 +1,39 @@
-import { FormData } from "@/hooks/useSchedule";
+import { z } from "zod";
 import {
   Checkbox,
+  FormControl,
   FormControlLabel,
+  FormGroup,
+  FormHelperText,
   Grid,
+  InputLabel,
+  MenuItem,
+  Select,
   TextField,
   Typography,
 } from "@mui/material";
-import { ExecutionReportData } from "./executionReportDialog";
-import { equipmentItemSchema } from "@/validations/validationSchedules";
-import { z } from "zod";
+
 import { ButtonComponent } from "@/components/common/Button";
+import { FormData } from "@/hooks/useScheduleForm";
 import { resolveExecutionReportContext } from "@/utils/formatValue";
+import { equipmentItemSchema } from "@/validations/validationSchedules";
+import { ExecutionReportData } from "./executionReportDialog";
 
 export type EquipmentData = z.infer<typeof equipmentItemSchema>;
+
+const EQUIPMENTS = [
+  "Banco capacitor",
+  "Transformador",
+  "Religador",
+  "Regulador de tensão",
+] as const;
+
+const POWER_OPTIONS: Record<string, number[]> = {
+  "Banco capacitor": [50, 100, 200, 500, 700, 1000],
+  Transformador: [100, 500, 1000],
+  Religador: [0],
+  "Regulador de tensão": [10, 50, 100],
+};
 
 interface ExecutionEquipmentPanelProps {
   formData: FormData | ExecutionReportData;
@@ -41,6 +62,116 @@ interface ExecutionEquipmentPanelProps {
   ) => void;
 }
 
+const EquipmentList = ({
+  items,
+  fieldKey,
+  prefix,
+  onEquipmentChange,
+  onRemoveEquipment,
+  formErrors,
+}: {
+  items: EquipmentData[];
+  fieldKey: "appliedEquipment" | "equipmentRemoved";
+  prefix: string;
+  onEquipmentChange: ExecutionEquipmentPanelProps["onEquipmentChange"];
+  onRemoveEquipment: ExecutionEquipmentPanelProps["onRemoveEquipment"];
+  formErrors: Record<string, string>;
+}) => {
+  return (
+    <>
+      {items.map((eq, index) => {
+        const equipmentError = formErrors[`${fieldKey}.${index}.equipment`];
+        const powerError = formErrors[`${fieldKey}.${index}.power`];
+        const patrimonyError = formErrors[`${fieldKey}.${index}.patrimony`];
+
+        return (
+          <Grid container spacing={2} key={index} sx={{ margin: 1 }}>
+            <Grid item xs={3}>
+              <FormControl fullWidth error={!!equipmentError}>
+                <InputLabel>Equipamento</InputLabel>
+                <Select
+                  value={eq.equipment}
+                  label="Equipamento"
+                  onChange={(e) =>
+                    onEquipmentChange(
+                      fieldKey,
+                      index,
+                      "equipment",
+                      e.target.value,
+                      prefix
+                    )
+                  }
+                >
+                  {EQUIPMENTS.map((type) => (
+                    <MenuItem key={type} value={type}>
+                      {type}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {equipmentError && (
+                  <FormHelperText>{equipmentError}</FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+            <Grid item xs={3}>
+              <FormControl fullWidth error={!!powerError}>
+                <InputLabel>Potência</InputLabel>
+                <Select
+                  value={eq.power}
+                  label="Potência"
+                  onChange={(e) =>
+                    onEquipmentChange(
+                      fieldKey,
+                      index,
+                      "power",
+                      e.target.value,
+                      prefix
+                    )
+                  }
+                >
+                  {(POWER_OPTIONS[eq.equipment] || []).map((power) => (
+                    <MenuItem key={power} value={power}>
+                      {power}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {powerError && <FormHelperText>{powerError}</FormHelperText>}
+              </FormControl>
+            </Grid>
+            <Grid item xs={3}>
+              <TextField
+                fullWidth
+                label="Patrimônio"
+                value={eq.patrimony}
+                onChange={(e) =>
+                  onEquipmentChange(
+                    fieldKey,
+                    index,
+                    "patrimony",
+                    e.target.value,
+                    prefix
+                  )
+                }
+                error={!!patrimonyError}
+                helperText={patrimonyError}
+              />
+            </Grid>
+            <Grid item xs={3}>
+              <ButtonComponent
+                onClick={() => onRemoveEquipment(fieldKey, index, prefix)}
+                text={`Remover equipamento ${
+                  fieldKey === "appliedEquipment" ? "aplicado" : "removido"
+                }`}
+                styled="mt-2"
+              />
+            </Grid>
+          </Grid>
+        );
+      })}
+    </>
+  );
+};
+
 export const ExecutionEquipmentPanel: React.FC<
   ExecutionEquipmentPanelProps
 > = ({
@@ -53,92 +184,68 @@ export const ExecutionEquipmentPanel: React.FC<
 }) => {
   const { data, prefix } = resolveExecutionReportContext(formData);
 
+  const renderCheckboxGroup = (
+    label: string,
+    stateKey: keyof ExecutionReportData,
+    errorKey: string
+  ) => {
+    const errorMessage = formErrors[errorKey];
+    return (
+      <Grid item xs={12}>
+        <FormControl fullWidth error={!!errorMessage}>
+          <Typography className="text-lg">{label}</Typography>
+          <FormGroup row>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={data[stateKey] === true}
+                  onChange={() =>
+                    onInputChange(`${prefix}${stateKey}`)({
+                      target: { value: true },
+                    })
+                  }
+                />
+              }
+              label="Sim"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={data[stateKey] === false}
+                  onChange={() =>
+                    onInputChange(`${prefix}${stateKey}`)({
+                      target: { value: false },
+                    })
+                  }
+                />
+              }
+              label="Não"
+            />
+          </FormGroup>
+          {errorMessage && <FormHelperText>{errorMessage}</FormHelperText>}
+        </FormControl>
+      </Grid>
+    );
+  };
+
   return (
     <Grid container spacing={3}>
-      <Grid item xs={12}>
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={data.hasEquipmentInstalled ?? false}
-              onChange={onInputChange(`${prefix}hasEquipmentInstalled`)}
-            />
-          }
-          label="Possui equipamentos aplicados"
-        />
-      </Grid>
+      {renderCheckboxGroup(
+        "Possui equipamentos aplicados?",
+        "hasEquipmentInstalled",
+        "appliedEquipment"
+      )}
 
       {data.hasEquipmentInstalled && (
         <>
-          <Grid item xs={12}>
-            <Typography variant="subtitle1">Equipamentos Aplicados</Typography>
-          </Grid>
-          {data.appliedEquipment.map((eq, index) => (
-            <Grid
-              container
-              spacing={2}
-              key={index}
-              sx={{ marginBottom: 1, marginLeft: 1 }}
-            >
-              <Grid item xs={3}>
-                <TextField
-                  fullWidth
-                  label="Equipamento"
-                  value={eq.equipment}
-                  error={!!formErrors.equipment}
-                  onChange={(e) =>
-                    onEquipmentChange(
-                      "appliedEquipment",
-                      index,
-                      "equipment",
-                      e.target.value,
-                      prefix
-                    )
-                  }
-                />
-              </Grid>
-              <Grid item xs={3}>
-                <TextField
-                  fullWidth
-                  label="Potência"
-                  value={eq.power}
-                  onChange={(e) =>
-                    onEquipmentChange(
-                      "appliedEquipment",
-                      index,
-                      "power",
-                      e.target.value,
-                      prefix
-                    )
-                  }
-                />
-              </Grid>
-              <Grid item xs={3}>
-                <TextField
-                  fullWidth
-                  label="Patrimônio"
-                  value={eq.patrimony}
-                  onChange={(e) =>
-                    onEquipmentChange(
-                      "appliedEquipment",
-                      index,
-                      "patrimony",
-                      e.target.value,
-                      prefix
-                    )
-                  }
-                />
-              </Grid>
-              <Grid item xs={3}>
-                <ButtonComponent
-                  onClick={() =>
-                    onRemoveEquipment("appliedEquipment", index, prefix)
-                  }
-                  text="Retirar equipamento aplicado"
-                  styled="mt-2"
-                />
-              </Grid>
-            </Grid>
-          ))}
+          <EquipmentList
+            items={data.appliedEquipment}
+            fieldKey="appliedEquipment"
+            prefix={prefix}
+            onEquipmentChange={onEquipmentChange}
+            onRemoveEquipment={onRemoveEquipment}
+            formErrors={formErrors}
+          />
           <Grid item xs={12}>
             <ButtonComponent
               onClick={() => onAddEquipment("appliedEquipment", prefix)}
@@ -148,93 +255,26 @@ export const ExecutionEquipmentPanel: React.FC<
         </>
       )}
 
-      <Grid item xs={12}>
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={data.hasEquipmentRemoved ?? false}
-              onChange={onInputChange(`${prefix}hasEquipmentRemoved`)}
-            />
-          }
-          label="Possui equipamentos retirados"
-        />
-      </Grid>
+      {renderCheckboxGroup(
+        "Possui equipamentos removidos?",
+        "hasEquipmentRemoved",
+        "equipmentRemoved"
+      )}
 
       {data.hasEquipmentRemoved && (
         <>
-          <Grid item xs={12}>
-            <Typography variant="subtitle1">Equipamentos Retirados</Typography>
-          </Grid>
-          {data.equipmentRemoved.map((eq, index) => (
-            <Grid
-              container
-              spacing={2}
-              key={index}
-              sx={{ marginBottom: 1, marginLeft: 1 }}
-            >
-              <Grid item xs={3}>
-                <TextField
-                  fullWidth
-                  label="Equipamento"
-                  value={eq.equipment}
-                  onChange={(e) =>
-                    onEquipmentChange(
-                      "equipmentRemoved",
-                      index,
-                      "equipment",
-                      e.target.value,
-                      prefix
-                    )
-                  }
-                />
-              </Grid>
-              <Grid item xs={3}>
-                <TextField
-                  fullWidth
-                  label="Potência"
-                  value={eq.power}
-                  onChange={(e) =>
-                    onEquipmentChange(
-                      "equipmentRemoved",
-                      index,
-                      "power",
-                      e.target.value,
-                      prefix
-                    )
-                  }
-                />
-              </Grid>
-              <Grid item xs={3}>
-                <TextField
-                  fullWidth
-                  label="Patrimônio"
-                  value={eq.patrimony}
-                  onChange={(e) =>
-                    onEquipmentChange(
-                      "equipmentRemoved",
-                      index,
-                      "patrimony",
-                      e.target.value,
-                      prefix
-                    )
-                  }
-                />
-              </Grid>
-              <Grid item xs={3}>
-                <ButtonComponent
-                  onClick={() =>
-                    onRemoveEquipment("equipmentRemoved", index, prefix)
-                  }
-                  text="Retirar equipamento removido"
-                  styled="mt-2"
-                />
-              </Grid>
-            </Grid>
-          ))}
+          <EquipmentList
+            items={data.equipmentRemoved}
+            fieldKey="equipmentRemoved"
+            prefix={prefix}
+            onEquipmentChange={onEquipmentChange}
+            onRemoveEquipment={onRemoveEquipment}
+            formErrors={formErrors}
+          />
           <Grid item xs={12}>
             <ButtonComponent
               onClick={() => onAddEquipment("equipmentRemoved", prefix)}
-              text="Adicionar Equipamento Retirado"
+              text="Adicionar equipamento removido"
             />
           </Grid>
         </>

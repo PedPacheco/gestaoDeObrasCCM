@@ -10,7 +10,7 @@ import {
 
 import { deleteExecutionReport } from "@/actions/executionReport.action";
 import { deleteSchedule } from "@/actions/schedules";
-import { useScheduleForm } from "@/hooks/useSchedule";
+import { useScheduleForm } from "@/hooks/useScheduleForm";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { Tab, Tabs } from "@mui/material";
 
@@ -61,21 +61,28 @@ export default function TabPanel({
   const [value, setValue] = useState(0);
   const [data, setData] = useState<Record<string, any>>(workData);
   const [idSchedule, setIdSchedule] = useState<number>(0);
+
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
   const [editingSchedule, setEditingSchedule] = useState<any>();
   const [editingExecutionReport, setEditingExecutionReport] = useState<any>();
+
   const [IsInsert, setIsInsert] = useState<boolean>(true);
   const [executionReportIsInsert, setExecutionReportIsInsert] =
     useState<boolean>(true);
+
   const [openConfirmationModal, setOpenConfimartionModal] =
     useState<boolean>(false);
   const [openConfirmationModalExecution, setOpenConfimartionModalExecution] =
     useState<boolean>(false);
+
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [isExecutionDialogOpen, setIsExecutionDialogOpen] =
     useState<boolean>(false);
+
   const [openModal, setOpenModal] = useState<boolean>(false);
+
   const scheduleForm = useScheduleForm({
     data: editingSchedule,
     executionData: editingExecutionReport,
