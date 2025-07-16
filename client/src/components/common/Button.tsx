@@ -4,7 +4,7 @@ import { Button, ButtonProps } from "@mui/material";
 import { ReactNode } from "react";
 
 interface ButtonComponentProps extends ButtonProps {
-  text: string;
+  text: string | ReactNode;
   styled?: string;
 }
 

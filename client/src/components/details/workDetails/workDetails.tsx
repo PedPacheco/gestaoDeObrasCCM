@@ -105,12 +105,10 @@ export function WorkDetails({
         return;
       }
 
-      // Sucesso
       setChangedFields(undefined);
       setSuccess(result.message);
       setOpenModal(true);
 
-      // Revalidar a página (opcional)
       router.refresh();
     } catch (error: any) {
       console.error("Erro na requisição:", error);
@@ -140,7 +138,6 @@ export function WorkDetails({
       [field]: formattedValue,
     }));
   };
-
   return (
     <>
       <div className="w-full flex justify-between items-center mb-4 px-2 md:px-8">
