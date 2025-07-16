@@ -1,17 +1,17 @@
 "use client";
 
 import dayjs, { Dayjs } from "dayjs";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
 import { DateFilter } from "@/components/common/DateFilter";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { capitalize } from "@/utils/capitalize";
+import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
+import { Transform } from "@/utils/transform";
 import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
 import { Checkbox } from "@mui/material";
-import { Transform } from "@/utils/transform";
 
 interface filters {
   regional: { id: string; regional: string }[];
@@ -83,8 +83,6 @@ export default function ScheduleForDayFilters({
       executado: executed.toString(),
       page: "0",
     };
-
-    console.log(newSelectedItems);
 
     setPage(0);
     applyFilters(newSelectedItems);

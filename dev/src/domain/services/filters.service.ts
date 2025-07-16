@@ -27,6 +27,8 @@ export class FiltersService {
       ovnota,
       empreendimento,
       ovnotaExec,
+      restricao,
+      tecnico,
     }: FiltersDto,
     condition?: any,
   ) {
@@ -80,7 +82,9 @@ export class FiltersService {
 
     if (status) {
       result['status'] = await this.getCachedData('status', () =>
-        this.filtersRepository.getData('status', ['id', 'status']),
+        this.filtersRepository.getData('status', ['id', 'status'], {
+          onde: 'EXECUÇÃO',
+        }),
       );
     }
 
@@ -119,6 +123,20 @@ export class FiltersService {
               id_regional: condition,
             },
           ),
+      );
+    }
+
+    if (restricao) {
+      result['restricao'] = await this.getCachedData('restricao', () =>
+        this.filtersRepository.getData('restricoes', ['id', 'restricao']),
+      );
+    }
+
+    if (tecnico) {
+      result['tecnico'] = await this.getCachedData('tecnicos', () =>
+        this.filtersRepository.getData('tecnicos', ['id', 'tecnico'], {
+          id_regional: condition,
+        }),
       );
     }
 

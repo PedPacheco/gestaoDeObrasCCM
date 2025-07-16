@@ -1,12 +1,12 @@
 import { Response } from 'express';
+import { User } from 'src/domain/entities/user.entity';
 import { AuthService } from 'src/domain/services/auth.service';
 import { AuthController } from 'src/interface/controllers/auth.controller';
 import { LoginUserDTO } from 'src/interface/dtos/loginUserDto';
 import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
 
-import { HttpStatus, InternalServerErrorException } from '@nestjs/common';
+import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { User } from 'src/domain/entities/user.entity';
 
 describe('AuthController', () => {
   let authController: AuthController;
@@ -108,7 +108,7 @@ describe('AuthController', () => {
         .mockRejectedValue(new Error('Erro ao processar a solicitação'));
 
       await expect(authController.login(loginDto, res)).rejects.toThrow(
-        new InternalServerErrorException('Erro ao processar a solicitação'),
+        'Erro ao processar a solicitação',
       );
     });
   });
@@ -163,7 +163,7 @@ describe('AuthController', () => {
         .mockRejectedValue(new Error('Erro ao processar a solicitação'));
 
       await expect(authController.register(registerUserDTO)).rejects.toThrow(
-        new InternalServerErrorException('Erro ao processar a solicitação'),
+        'Erro ao processar a solicitação',
       );
     });
   });

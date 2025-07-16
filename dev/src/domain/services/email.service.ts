@@ -1,12 +1,12 @@
-// email.service.ts
+import { Cache } from 'cache-manager';
+import { createTransport, Transporter } from 'nodemailer';
+
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import {
   Inject,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { createTransport, Transporter } from 'nodemailer';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
 
 @Injectable()
 export class EmailService {

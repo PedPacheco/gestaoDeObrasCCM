@@ -60,9 +60,7 @@ export class AuthService {
       id_regional: user.id_regional,
       nome_usuario: user.nome_usuario,
       email: user.email,
-      access_token: await this.jwtService.signAsync(payload, {
-        expiresIn: '1h',
-      }),
+      access_token: await this.jwtService.signAsync(payload),
     };
   }
 

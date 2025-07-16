@@ -1,14 +1,15 @@
 "use client";
 
-import { FormControl, InputLabel, MenuItem } from "@mui/material";
-import Select, { SelectChangeEvent } from "@mui/material/Select";
-import { useEffect, useState } from "react";
+import { ReactNode } from "react";
+
+import { FormControl, MenuItem } from "@mui/material";
+import Select from "@mui/material/Select";
 
 interface SelectProps<T> {
   label: string;
   menuItems: T[];
-  selectedItem: string;
-  setSelectedItem: (item: string) => void;
+  selectedItem?: string;
+  setSelectedItem?: (item: string) => void;
   valueKey?: keyof T;
   displayKey?: keyof T;
 }
@@ -23,74 +24,52 @@ export function SelectComponent<T>({
   valueKey,
   displayKey,
 }: SelectProps<T>) {
-  const itemsPerPage = 20;
-  const [visibleItems, setVisibleItems] = useState<T[]>([]);
-
-  useEffect(() => {
-    setVisibleItems(menuItems.slice(0, itemsPerPage));
-  }, [menuItems, itemsPerPage]);
-
-  const handleChange: (event: SelectChangeEvent<string>) => void = (event) => {
-    const { value } = event.target;
-    setSelectedItem(value);
-  };
-
-  const handleScroll = (event: React.UIEvent<HTMLUListElement>) => {
-    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
-
-    if (scrollTop + clientHeight >= scrollHeight) {
-      const nextItems = menuItems.slice(
-        visibleItems.length,
-        visibleItems.length + itemsPerPage
-      );
-
-      if (nextItems.length > 0) {
-        setVisibleItems((prev) => [...prev, ...nextItems]);
-      }
-    }
-  };
-
   return (
-    <>
-      <FormControl className="mb-2 lg:ml-4 lg:first:ml-0 w-full" size="small">
-        <InputLabel id={label}>{label.replace("_", " ")}</InputLabel>
+    <div className="flex items-center justify-between mb-3 max-w-96 w-[342px] h-10 border border-zinc-700 border-solid rounded-md">
+      {label && (
+        <p className="h-full flex items-center justify-start font-semibold w-40 p-2 text-center border-r border-zinc-700 border-solid">
+          {label}
+        </p>
+      )}
+
+      <FormControl
+        className={`flex-1 h-full min-w-32 lg:min-w-36 justify-center`}
+        size="small"
+      >
         <Select
-          labelId={label}
-          label={`${label}1`}
-          className="w-full"
-          value={selectedItem || ""}
-          onChange={handleChange}
+          value={selectedItem}
+          displayEmpty
+          className="text-center w-full h-full px-2"
+          onChange={(e: { target: { value: string } }) =>
+            setSelectedItem?.(e.target.value)
+          }
+          IconComponent={() => null}
+          inputProps={{
+            className: "text-center text-sm p-2 pr-0",
+          }}
           MenuProps={{
             PaperProps: {
-              style: {
-                maxHeight: 400,
-              },
+              style: { maxHeight: 400 },
             },
             MenuListProps: {
               style: {
                 overflowY: "auto",
                 maxHeight: 400,
               },
-              onScroll: handleScroll,
             },
           }}
         >
-          {visibleItems.map((item, index) => {
+          {menuItems.map((item, index) => {
+            const value = (valueKey ? item[valueKey] : item) as SelectItem;
+            const label = (displayKey ? item[displayKey] : item) as ReactNode;
             return (
-              <MenuItem
-                key={index}
-                value={(valueKey ? item[valueKey] : item) as SelectItem}
-              >
-                {
-                  (displayKey
-                    ? item[displayKey]
-                    : item) as unknown as SelectItem
-                }
+              <MenuItem key={index} value={value}>
+                {label}
               </MenuItem>
             );
           })}
         </Select>
       </FormControl>
-    </>
+    </div>
   );
 }

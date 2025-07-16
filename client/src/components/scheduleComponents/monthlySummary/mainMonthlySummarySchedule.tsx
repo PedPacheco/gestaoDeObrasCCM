@@ -8,7 +8,6 @@ import { useEffect, useState, useTransition } from "react";
 import { ButtonComponent } from "@/components/common/Button";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { capitalize } from "@/utils/capitalize";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
@@ -18,6 +17,7 @@ import { fetchData } from "@/actions/fetchData.action";
 import { getButtonContent } from "@/utils/getButtonContent";
 import ErrorModal from "@/components/common/ErrorModal";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+import { capitalize } from "@/utils/formatValue";
 
 export interface Filters {
   regional: { id: string; regional: string }[];

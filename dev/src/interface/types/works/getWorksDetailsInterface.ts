@@ -1,6 +1,5 @@
-import { Partners } from '../common/commonInterface';
-
 export interface Schedules {
+  id: number;
   data_prog: Date;
   hora_ini: Date;
   hora_ter: Date;
@@ -20,6 +19,7 @@ export interface Schedules {
 }
 
 export interface GetWorksDetailsResponse {
+  id: number;
   ovnota: string;
   pep: string | null;
   status_pep: string | null;
@@ -42,7 +42,6 @@ export interface GetWorksDetailsResponse {
   entrada: Date | null;
   prazo: number | null;
   data_conclusao: Date | null;
-  executado: number | null;
   observ_obra: string | null;
   qtde_planejada: number | null;
   qtde_pend: number | null;
@@ -56,11 +55,11 @@ export interface GetWorksDetailsResponse {
   tipo_ads: string | null;
   data_empreitamento: Date | null;
   ano_plan: number | null;
-  circuitos: { circuito: string };
+  circuitos: { circuito: string; conjuntos: { conjunto: string | null } };
   empreendimento: { empreendimento: string | null };
   municipios: { municipio: string };
   tipos: { tipo_obra: string; id_grupo: number };
-  turmas: Partners;
-  status: { status: string };
+  id_turma: number;
+  id_status: number;
   programacoes: Schedules[];
 }

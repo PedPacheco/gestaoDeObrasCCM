@@ -1,6 +1,4 @@
 import { GetWorkDetailsService } from 'src/domain/services/works/getWorkDetails.service';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-
 import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { obras } from '@prisma/client';
@@ -36,7 +34,6 @@ describe('GetWorkDetailsService', () => {
     entrada: '2023-04-18T00:00:00.000Z',
     prazo: 90,
     data_conclusao: null,
-    executado: 45,
     qtde_planejada: 0.772,
     qtde_pend: 0.77165,
     mo_planejada: 89223.8157,
@@ -50,6 +47,7 @@ describe('GetWorkDetailsService', () => {
     data_empreitamento: '2024-08-06T00:00:00.000Z',
     circuitos: {
       circuito: 'CAC-1302',
+      conjuntos: { conjunto: 'São josé' },
     },
     empreendimento: {
       empreendimento: null,
@@ -61,12 +59,8 @@ describe('GetWorkDetailsService', () => {
       tipo_obra: 'SPACER CABLE',
       id_grupo: 2,
     },
-    turmas: {
-      turma: 'ENGELMIG',
-    },
-    status: {
-      status: 'PROGRAMADO',
-    },
+    id_turma: 1,
+    id_status: 4,
     programacoes: [
       {
         data_prog: '2024-09-19T00:00:00.000Z',
@@ -74,7 +68,7 @@ describe('GetWorkDetailsService', () => {
         hora_ter: '1970-01-01T17:00:00.000Z',
         tipo_servico: 'OBRA LIVRE',
         prog: 45,
-        exec: null,
+        exec: 45,
         observ_programacao: 'TRECHO LIVRE',
         chi: 0,
         num_dp: null,
@@ -116,7 +110,6 @@ describe('GetWorkDetailsService', () => {
     entrada: '2023-04-18T00:00:00.000Z',
     prazo: 90,
     data_conclusao: null,
-    executado: 45,
     qtde_planejada: 0.772,
     qtde_pend: 0.77165,
     mo_planejada: 89223.8157,
@@ -128,13 +121,15 @@ describe('GetWorkDetailsService', () => {
     capex_mo_plan: 74310.44331999999,
     tipo_ads: 'CONVENCIONAL',
     data_empreitamento: '2024-08-06T00:00:00.000Z',
+    id_turma: 1,
+    id_status: 4,
+    executado: 45,
     circuitos: 'CAC-1302',
+    conjunto: 'São josé',
     empreendimento: null,
     municipios: 'MONTEIRO LOBATO',
     tipos: 'SPACER CABLE',
     grupo: 2,
-    turmas: 'ENGELMIG',
-    status: 'PROGRAMADO',
     programacoes: [
       {
         data_prog: '2024-09-19T00:00:00.000Z',
@@ -142,7 +137,7 @@ describe('GetWorkDetailsService', () => {
         hora_ter: '1970-01-01T17:00:00.000Z',
         tipo_servico: 'OBRA LIVRE',
         prog: 45,
-        exec: null,
+        exec: 45,
         observ_programacao: 'TRECHO LIVRE',
         chi: 0,
         num_dp: null,

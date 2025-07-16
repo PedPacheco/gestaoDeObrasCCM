@@ -6,6 +6,8 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainSchedule from "@/components/scheduleComponents/schedule/MainSchedule";
 import { Transform } from "@/utils/transform";
 
+export const dynamic = "force-dynamic";
+
 export default async function Schedule() {
   const cookieStore = await cookies();
   const cookieParams = cookieStore.get("scheduleFilters")?.value;

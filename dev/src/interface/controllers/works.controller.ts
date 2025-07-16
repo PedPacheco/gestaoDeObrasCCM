@@ -4,17 +4,28 @@ import { GetAllWorksService } from 'src/domain/services/works/getAllWorks.servic
 import { GetCompletedWorksService } from 'src/domain/services/works/getCompletedWorks.service';
 import { GetWorkDetailsService } from 'src/domain/services/works/getWorkDetails.service';
 import { GetWorksInPortfolioService } from 'src/domain/services/works/getWorksInPortfolio.service';
-import { GetAllWorksDTO, GetWorksDTO } from 'src/interface/dtos/worksDto';
+import { InsertWorksService } from 'src/domain/services/works/InsertWorks.service';
+import { UpdateWorkService } from 'src/domain/services/works/updateWork.service';
+import {
+  GetAllWorksDTO,
+  GetWorksDTO,
+  UpdateWorkDTO,
+} from 'src/interface/dtos/worksDto';
 
 import {
+  Body,
   Controller,
   Get,
   HttpStatus,
   Param,
   ParseIntPipe,
+  Patch,
+  Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
+
+import { InsertMarketWorksDTO, InsertNotesDTO } from '../dtos/auxiliaryBaseDTO';
 
 @Controller('obras')
 export class WorksController {
@@ -23,6 +34,8 @@ export class WorksController {
     private getAllWorksService: GetAllWorksService,
     private getCompletedWorksService: GetCompletedWorksService,
     private getWorkDetailsService: GetWorkDetailsService,
+    private insertWorksService: InsertWorksService,
+    private updateWorkService: UpdateWorkService,
   ) {}
 
   @Get()
@@ -71,6 +84,47 @@ export class WorksController {
       statusCode: HttpStatus.OK,
       message: 'Retornado os detalhes da obra',
       data: response,
+    };
+  }
+
+  @Post('inserir-ov')
+  @UseGuards(PermissionGuard)
+  async InsertMarketWorks(
+    @Body() marketWorksParameters: InsertMarketWorksDTO[],
+  ) {
+    const { insertedCount, message, skipped } =
+      await this.insertWorksService.insertMarketWorks(marketWorksParameters);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message,
+      insertedCount,
+      skipped,
+    };
+  }
+
+  @Post('inserir-notas')
+  @UseGuards(PermissionGuard)
+  async InsertNotes(@Body() data: InsertNotesDTO[]) {
+    await this.insertWorksService.insertNotes(data);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Notas inseridas com sucesso',
+    };
+  }
+
+  @Patch(':id')
+  @UseGuards(PermissionGuard)
+  async Update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: UpdateWorkDTO,
+  ) {
+    await this.updateWorkService.update(data, id);
+
+    return {
+      statusCode: HttpStatus.NO_CONTENT,
+      message: 'Obras atualizada com sucesso',
     };
   }
 }

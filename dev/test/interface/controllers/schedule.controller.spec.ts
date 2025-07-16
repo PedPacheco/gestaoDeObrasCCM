@@ -1,12 +1,20 @@
+import { plainToInstance } from 'class-transformer';
+import { UpdateSchedulesApplicationService } from 'src/application/updateSchedulesApplication.service';
+import { ExecutionReportService } from 'src/domain/services/executionReport.service';
+import { AddSchedulesService } from 'src/domain/services/schedule/addSchedules.service';
+import { DeleteSchedulesService } from 'src/domain/services/schedule/deleteSchedules.service';
 import { GetMonthlySummaryService } from 'src/domain/services/schedule/getMonthlySummary.service';
 import { GetPendingScheduleValuesService } from 'src/domain/services/schedule/getPendingScheduleValues.service';
 import { GetScheduleRestrictionsService } from 'src/domain/services/schedule/getScheduleRestrictions.service';
 import { GetScheduleValuesService } from 'src/domain/services/schedule/getScheduleValues.service';
 import { GetTotalValuesScheduleService } from 'src/domain/services/schedule/getTotalValuesSchedule.service';
 import { GetValuesWeeklyScheduleService } from 'src/domain/services/schedule/getValuesWeeklySchedule.service';
+import { UpdateSchedulesService } from 'src/domain/services/schedule/updateSchedules.service';
 import { UsersService } from 'src/domain/services/users.service';
 import { ScheduleController } from 'src/interface/controllers/schedule.controller';
+import { SchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
 import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
+import { mockUpdateSchedulesController } from '../../../test/mocks/mockAddScheduleService';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
@@ -19,6 +27,9 @@ describe('ScheduleController', () => {
   let getScheduleRestrictionsService: GetScheduleRestrictionsService;
   let getPendingScheduleValuesService: GetPendingScheduleValuesService;
   let getMonthlySummaryService: GetMonthlySummaryService;
+  let addSchedulesService: AddSchedulesService;
+  let updateSchedulesService: UpdateSchedulesApplicationService;
+  let deleteSchedulesService: DeleteSchedulesService;
 
   const mockScheduleData: GetScheduleValuesResponse = {
     works: [
@@ -104,7 +115,15 @@ describe('ScheduleController', () => {
             getSecondSummary: jest.fn(),
           },
         },
+        { provide: AddSchedulesService, useValue: { add: jest.fn() } },
+        { provide: UpdateSchedulesService, useValue: { update: jest.fn() } },
+        { provide: DeleteSchedulesService, useValue: { delete: jest.fn() } },
         { provide: UsersService, useValue: { findUser: jest.fn() } },
+        { provide: ExecutionReportService, useValue: { create: jest.fn() } },
+        {
+          provide: UpdateSchedulesApplicationService,
+          useValue: { update: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -127,6 +146,13 @@ describe('ScheduleController', () => {
       );
     getMonthlySummaryService = module.get<GetMonthlySummaryService>(
       GetMonthlySummaryService,
+    );
+    addSchedulesService = module.get<AddSchedulesService>(AddSchedulesService);
+    updateSchedulesService = module.get<UpdateSchedulesApplicationService>(
+      UpdateSchedulesApplicationService,
+    );
+    deleteSchedulesService = module.get<DeleteSchedulesService>(
+      DeleteSchedulesService,
     );
   });
 
@@ -447,5 +473,78 @@ describe('ScheduleController', () => {
     expect(getMonthlySummaryService.getSecondSummary).toHaveBeenCalledWith(
       filters,
     );
+  });
+
+  it('Should call addSchedules and return message', async () => {
+    jest.spyOn(addSchedulesService, 'add').mockResolvedValue();
+
+    const date = new Date('2025-06-10T00:00:00.000Z');
+
+    const result = await scheduleController.addSchedules({
+      idWork: 3146044,
+      dataProg: date,
+      startTime: '08:00',
+      finishTime: '07:00',
+      serviceType: 'Inspeção Elétrica',
+      prog: 100,
+    });
+
+    expect(result).toEqual({
+      statusCode: HttpStatus.CREATED,
+      message: 'Programação inserida com sucesso',
+    });
+    expect(addSchedulesService.add).toHaveBeenCalledWith({
+      idWork: 3146044,
+      dataProg: date,
+      startTime: '08:00',
+      finishTime: '07:00',
+      serviceType: 'Inspeção Elétrica',
+      prog: 100,
+    });
+  });
+
+  it('Should call updateSchedules and return message', async () => {
+    jest.spyOn(updateSchedulesService, 'update').mockResolvedValue();
+
+    const result = await scheduleController.updateSchedules(
+      1,
+      mockUpdateSchedulesController,
+    );
+
+    expect(result).toEqual({
+      statusCode: HttpStatus.NO_CONTENT,
+      message: 'Atualização da programação feita com sucesso',
+    });
+    expect(updateSchedulesService.update).toHaveBeenCalledWith(
+      mockUpdateSchedulesController,
+    );
+  });
+
+  it('Should call deleteSchedules and return message', async () => {
+    jest.spyOn(deleteSchedulesService, 'delete').mockResolvedValue();
+
+    const result = await scheduleController.deleteSchedules(1);
+
+    expect(result).toEqual({
+      statusCode: HttpStatus.OK,
+      message: 'Programação excluída com sucesso',
+    });
+    expect(deleteSchedulesService.delete).toHaveBeenCalledWith(1);
+  });
+
+  it('Should convert string to Date using class-transformer in SchedulesDataDTO', () => {
+    const input = {
+      idWork: 1,
+      dataProg: '2025-06-10',
+      startTime: '08:00',
+      finishTime: '09:00',
+      serviceType: 'Inspeção',
+      prog: 1,
+    };
+
+    const dtoAdd = plainToInstance(SchedulesDataDTO, input);
+
+    expect(dtoAdd.dataProg).toBeInstanceOf(Date);
+    expect(dtoAdd.dataProg.toISOString().startsWith('2025-06-10')).toBe(true);
   });
 });

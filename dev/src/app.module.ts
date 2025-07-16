@@ -2,22 +2,28 @@ import { Module, ValidationPipe } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 
+import { CustomExceptionFilter } from './core/error/customExpection.filter';
+import { AuthGuard } from './core/guards/auth.guard';
+import { PrismaModule } from './infra/prisma/prisma.module';
 import { AuthModule } from './interface/modules/auth.module';
+import { AuxiliaryBaseModule } from './interface/modules/auxiliaryBase.module';
 import { EmailModule } from './interface/modules/email.module';
 import { EntryModule } from './interface/modules/entry.module';
 import { ExportModule } from './interface/modules/export.module';
 import { FiltersModule } from './interface/modules/filters.module';
 import { GoalsModule } from './interface/modules/goals.module';
-import { ScheduleModule } from './interface/modules/shedule.module';
+import { ScheduleModule } from './interface/modules/schedule.module';
 import { UsersModule } from './interface/modules/users.module';
 import { WorksModule } from './interface/modules/works.module';
-import { PrismaModule } from './infra/prisma/prisma.module';
-import { jwtConstants } from './shared/costants';
-import { AuthGuard } from './core/guards/auth.guard';
-import { CustomExceptionFilter } from './core/error/customExpection.filter';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ExecutionReportModule } from './interface/modules/executionReport.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '../.env',
+    }),
     WorksModule,
     PrismaModule,
     AuthModule,
@@ -28,10 +34,18 @@ import { CustomExceptionFilter } from './core/error/customExpection.filter';
     EntryModule,
     ExportModule,
     ScheduleModule,
-    JwtModule.register({
+    ExecutionReportModule,
+    AuxiliaryBaseModule,
+    JwtModule.registerAsync({
       global: true,
-      secret: jwtConstants.secret,
-      signOptions: { expiresIn: '1h' },
+      inject: [ConfigService],
+      useFactory: async (config: ConfigService) => {
+        const secret = config.get<string>('JWT_SECRECT');
+        return {
+          secret,
+          signOptions: { expiresIn: '1h' },
+        };
+      },
     }),
   ],
   providers: [

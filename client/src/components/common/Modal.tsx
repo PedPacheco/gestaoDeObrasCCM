@@ -27,7 +27,7 @@ export default function ModalComponent({
       closeAfterTransition
     >
       <Box
-        className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 shadow-lg p-6 rounded-lg w-96 xl:w-10/12`}
+        className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 shadow-lg p-6 rounded-lg w-96 xl:w-8/12`}
       >
         {closeButton && (
           <IconButton
@@ -47,7 +47,7 @@ export default function ModalComponent({
             {title}
           </Typography>
         )}
-        <div id="custom-modal-description" className="mt-4 h-full">
+        <div id="custom-modal-description" className="mt-4 h-full text-center">
           {children}
         </div>
         <ButtonComponent

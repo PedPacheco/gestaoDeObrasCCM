@@ -6,7 +6,6 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import isoWeek from "dayjs/plugin/isoWeek";
 
-import { capitalize } from "@/utils/capitalize";
 import {
   Paper,
   Table,
@@ -16,6 +15,7 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
+import { capitalize } from "@/utils/formatValue";
 
 dayjs.extend(isoWeek);
 dayjs.extend(utc);

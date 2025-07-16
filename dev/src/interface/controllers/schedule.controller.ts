@@ -1,5 +1,8 @@
+import { UpdateSchedulesApplicationService } from 'src/application/updateSchedulesApplication.service';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
+import { AddSchedulesService } from 'src/domain/services/schedule/addSchedules.service';
+import { DeleteSchedulesService } from 'src/domain/services/schedule/deleteSchedules.service';
 import { GetMonthlySummaryService } from 'src/domain/services/schedule/getMonthlySummary.service';
 import { GetPendingScheduleValuesService } from 'src/domain/services/schedule/getPendingScheduleValues.service';
 import { GetScheduleRestrictionsService } from 'src/domain/services/schedule/getScheduleRestrictions.service';
@@ -12,9 +15,23 @@ import {
   GetScheduleValuesDTO,
   GetTotalValuesScheduleDTO,
   GetValueWeeklyScheduleDTO,
+  SchedulesDataDTO,
+  UpdateSchedulesDataDTO,
 } from 'src/interface/dtos/scheduleDTO';
 
-import { Controller, Get, HttpStatus, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 
 @Controller('programacao')
 export class ScheduleController {
@@ -25,6 +42,9 @@ export class ScheduleController {
     private getPendingScheduleValuesService: GetPendingScheduleValuesService,
     private getScheduleRestrictionsService: GetScheduleRestrictionsService,
     private getMonthlySummaryService: GetMonthlySummaryService,
+    private addSchedulesService: AddSchedulesService,
+    private updateSchedulesService: UpdateSchedulesApplicationService,
+    private deleteSchedulesService: DeleteSchedulesService,
   ) {}
 
   @Get()
@@ -115,6 +135,47 @@ export class ScheduleController {
       statusCode: HttpStatus.OK,
       message: 'Resumo mensal retornado com sucesso',
       data: response,
+    };
+  }
+
+  @Post()
+  @UseGuards(PermissionGuard)
+  async addSchedules(@Body() schedulesData: SchedulesDataDTO) {
+    await this.addSchedulesService.add(schedulesData);
+
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'Programação inserida com sucesso',
+    };
+  }
+
+  @Patch(':id')
+  @UseGuards(PermissionGuard)
+  async updateSchedules(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() schedulesData: UpdateSchedulesDataDTO,
+  ) {
+    const data = {
+      updateData: { id, ...schedulesData.updateData },
+      executionReportData: { ...schedulesData.executionReportData },
+    };
+
+    await this.updateSchedulesService.update(data);
+
+    return {
+      statusCode: HttpStatus.NO_CONTENT,
+      message: 'Atualização da programação feita com sucesso',
+    };
+  }
+
+  @Delete(':id')
+  @UseGuards(PermissionGuard)
+  async deleteSchedules(@Param('id', ParseIntPipe) id: number) {
+    await this.deleteSchedulesService.delete(id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Programação excluída com sucesso',
     };
   }
 }

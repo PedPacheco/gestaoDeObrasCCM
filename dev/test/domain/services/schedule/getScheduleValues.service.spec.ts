@@ -1,6 +1,4 @@
-import * as moment from 'moment';
 import { GetScheduleValuesService } from 'src/domain/services/schedule/getScheduleValues.service';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import { Test } from '@nestjs/testing';
 import { obras } from '@prisma/client';

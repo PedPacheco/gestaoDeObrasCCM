@@ -11,10 +11,10 @@ import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { TableWithVirtualization } from "@/components/common/TableWithVirtualization";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { MainInterface } from "@/interfaces/mainInterface";
-import { capitalize } from "@/utils/capitalize";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+import { capitalize } from "@/utils/formatValue";
 
 interface Filters {
   regional: { id: string; regional: string }[];

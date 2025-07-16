@@ -18,16 +18,21 @@ export class GetWorkDetailsService {
       throw new NotFoundException('Obra não encontrada');
     }
 
+    const executed = work.programacoes.reduce((total, item) => {
+      return total + (item.exec || 0);
+    }, 0);
+
     const response = {
       ...work,
+      executado: executed,
       circuitos: work.circuitos.circuito,
+      conjunto: work.circuitos.conjuntos.conjunto,
       empreendimento: work.empreendimento.empreendimento,
       municipios: work.municipios.municipio,
       tipos: work.tipos.tipo_obra,
       grupo: work.tipos.id_grupo,
-      turmas: work.turmas.turma,
-      status: work.status.status,
       programacoes: work.programacoes.map((programacao) => ({
+        id: programacao.id,
         data_prog: programacao.data_prog,
         hora_ini: programacao.hora_ini,
         hora_ter: programacao.hora_ter,

@@ -9,6 +9,8 @@ import { Transform } from "@/utils/transform";
 
 dayjs.extend(isoWeek);
 
+export const dynamic = "force-dynamic";
+
 export default async function ScheduleRestrictions() {
   const cookieStore = await cookies();
   const cookieParams = cookieStore.get("scheduleRestrictionsFilters")?.value;

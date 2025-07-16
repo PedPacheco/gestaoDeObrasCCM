@@ -52,32 +52,17 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   });
 
   async function login(user: string, password: string): Promise<LoginResponse> {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          user,
-          password,
-        }),
-        credentials: "include",
-      }
-    );
+    const response = await fetch("/api/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ user, password }),
+      credentials: "include",
+    });
 
     if (response.ok) {
       const res = await response.json();
-
-      setUser(res.data);
-
-      cookies.set("userInfo", JSON.stringify(res.data), {
-        httpOnly: false,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-      });
 
       return { message: res.message, success: true };
     } else {

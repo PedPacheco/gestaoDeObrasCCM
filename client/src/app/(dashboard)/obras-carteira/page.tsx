@@ -6,6 +6,8 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import PortfolioWorks from "@/components/worksComponents/portfolioWorks/MainPortfolioWorks";
 import { Transform } from "@/utils/transform";
 
+export const dynamic = "force-dynamic";
+
 export default async function WorksInPortfolio() {
   const cookieStore = await cookies();
   const cookieParams = cookieStore.get("portfolioWorksFilters")?.value;
