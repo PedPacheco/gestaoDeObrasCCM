@@ -2,7 +2,7 @@
 
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
 import ErrorModal from "@/components/common/ErrorModal";
@@ -12,6 +12,7 @@ import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import DataItem from "./dataItem";
 import { EditableColumn } from "./editableColumn";
 import { useRouter } from "next/navigation";
+import { updateWork } from "@/actions/updateWork.action";
 
 dayjs.extend(customParseFormat);
 
@@ -65,7 +66,7 @@ export function WorkDetails({
   options,
 }: WorkDetailsProps) {
   const router = useRouter();
-  const [isPending, setIsPending] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [openModal, setOpenModal] = useState<boolean>(false);
@@ -80,42 +81,31 @@ export function WorkDetails({
 
   const toggleModal = () => setOpenModal((prev) => !prev);
 
-  const handleSubmit = async () => {
-    if (!changedFields || Object.keys(changedFields).length === 0) {
-      setError("Nenhuma alteração foi feita");
-      return;
-    }
-
-    setIsPending(true);
-    setError(null);
-
-    try {
-      const response = await fetch(`/api/works/${idWork}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(changedFields),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        setError(result.error || "Erro ao salvar alterações");
+  const handleSubmit = () => {
+    startTransition(async () => {
+      if (!changedFields || Object.keys(changedFields).length === 0) {
+        setError("Nenhuma alteração foi feita");
         return;
       }
+      setError(null);
 
-      setChangedFields(undefined);
-      setSuccess(result.message);
-      setOpenModal(true);
+      try {
+        const response = await updateWork(changedFields, idWork);
 
-      router.refresh();
-    } catch (error: any) {
-      console.error("Erro na requisição:", error);
-      setError("Erro de conexão. Tente novamente.");
-    } finally {
-      setIsPending(false);
-    }
+        if (!response.success) {
+          setError(response.error || "Erro ao salvar alterações");
+          return;
+        }
+
+        setChangedFields(undefined);
+        setSuccess(response.message);
+        setOpenModal(true);
+
+        router.refresh();
+      } catch (error: any) {
+        setError("Erro de conexão. Tente novamente.");
+      }
+    });
   };
 
   const handleDataChange = (field: string, value: string) => {

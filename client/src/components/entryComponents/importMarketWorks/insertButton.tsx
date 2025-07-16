@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Cookies } from "react-cookie";
 
 import { InsertMarketWorks } from "@/actions/insertMarketWorks";
