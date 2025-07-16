@@ -1,5 +1,5 @@
 import { ExecutionReportData } from "@/components/details/executionReportDialog/executionReportDialog";
-import { FormData } from "@/hooks/useSchedule";
+import { FormData } from "@/hooks/useScheduleForm";
 
 export function FormatCurrency(value: number) {
   return new Intl.NumberFormat("pt-br", {

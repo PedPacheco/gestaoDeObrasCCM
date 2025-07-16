@@ -1,3 +1,5 @@
+import { FormData } from "@/hooks/useScheduleForm";
+import { resolveExecutionReportContext } from "@/utils/formatValue";
 import {
   Checkbox,
   FormControl,
@@ -5,9 +7,8 @@ import {
   Grid,
   TextField,
 } from "@mui/material";
+
 import { ExecutionReportData } from "./executionReportDialog";
-import { FormData } from "@/hooks/useSchedule";
-import { resolveExecutionReportContext } from "@/utils/formatValue";
 
 interface ExecutionBasicPanelProps {
   formData: FormData | ExecutionReportData;
@@ -37,6 +38,7 @@ export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
           onChange={onInputChange(`${prefix}supervisor`)}
           error={!!formErrors.supervisor}
           helperText={formErrors.supervisor}
+          autoComplete="off"
         />
       </Grid>
 
@@ -44,11 +46,12 @@ export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
         <TextField
           fullWidth
           type="time"
-          label="Horário de Início"
+          label="Horário de Início (Real campo)"
           value={data.startTime}
           onChange={onInputChange(`${prefix}startTime`)}
           error={!!formErrors.startTime}
           helperText={formErrors.startTime}
+          autoComplete="off"
         />
       </Grid>
 
@@ -56,11 +59,12 @@ export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
         <TextField
           fullWidth
           type="time"
-          label="Horário de Término"
+          label="Horário de Término (Real campo)"
           value={data.finishTime}
           onChange={onInputChange(`${prefix}finishTime`)}
           error={!!formErrors.finishTime}
           helperText={formErrors.finishTime}
+          autoComplete="off"
         />
       </Grid>
 
@@ -72,6 +76,7 @@ export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
           error={!!formErrors.startContact}
           helperText={formErrors.startContact}
           onChange={onInputChange(`${prefix}startContact`)}
+          autoComplete="off"
         />
       </Grid>
 
@@ -83,6 +88,7 @@ export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
           error={!!formErrors.endContact}
           helperText={formErrors.endContact}
           onChange={onInputChange(`${prefix}endContact`)}
+          autoComplete="off"
         />
       </Grid>
 
@@ -94,6 +100,9 @@ export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
           minRows={2}
           value={data.delayJustification || ""}
           onChange={onInputChange(`${prefix}delayJustification`)}
+          error={!!formErrors.delayJustification}
+          helperText={formErrors.delayJustification}
+          autoComplete="off"
         />
       </Grid>
 

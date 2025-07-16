@@ -65,13 +65,13 @@ export default async function Details({
     data.grupo !== 2
       ? ""
       : data.ano_plan === dayjs().year()
-      ? "bg-green-600"
+      ? "bg-green-600 text-zinc-100"
       : "bg-red-600 text-zinc-100";
 
   const formattedData = {
-    entrada: entrada.format("DD/MM/YYYY"),
+    entrada: entrada.utc().format("DD/MM/YYYY"),
     prazo,
-    prazoFinal: prazoFinal.format("DD/MM/YYYY"),
+    prazoFinal: prazoFinal.utc().format("DD/MM/YYYY"),
     data_conclusao,
     dataEmpreitamento,
     backgroundColor,

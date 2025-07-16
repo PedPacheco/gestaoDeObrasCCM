@@ -1,10 +1,5 @@
-import { Cookies } from "react-cookie";
 import { z } from "zod";
 
-import {
-  INITIAL_EXECUTION_REPORT,
-  useScheduleSubmit,
-} from "@/hooks/useSchedule";
 import { executionReportSchema } from "@/validations/validationSchedules";
 import {
   Box,
@@ -17,12 +12,12 @@ import {
 } from "@mui/material";
 
 import { ButtonComponent } from "../../common/Button";
+import { AccordionPanel } from "../accordionPanel";
 import { ScheduleFormHookReturn } from "../scheduleDialog/dialog";
 import { AdditionalExecutionInfoPanel } from "./additionalExecutionInfoPanel";
 import { ExecutionEquipmentPanel } from "./EquipmentPanel";
 import { ExecutionBasicPanel } from "./executionBasicPanel";
-import { AccordionPanel } from "../accordionPanel";
-import { useEffect } from "react";
+import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
 
 export type ExecutionReportData = z.infer<typeof executionReportSchema>;
 

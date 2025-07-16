@@ -1,32 +1,21 @@
+import { useScheduleForm } from "@/hooks/useScheduleForm";
 import {
-  FormData,
-  useScheduleForm,
-  useScheduleSubmit,
-} from "@/hooks/useSchedule";
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
   Box,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControl,
-  Grid,
   IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
   Typography,
 } from "@mui/material";
+
 import { ButtonComponent } from "../../common/Button";
-import { BasicInfoPanel } from "./basicInfoPanel";
 import { AccordionPanel } from "../accordionPanel";
+import { AdditionalInfoPanel } from "./additionalInfoPanel";
+import { BasicInfoPanel } from "./basicInfoPanel";
 import { ServiceEquipmentPanel } from "./serviceEquipmentPanel";
 import { TeamsPanel } from "./teamsPanel";
-import { AdditionalInfoPanel } from "./additionalInfoPanel";
+import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
 
 export type ScheduleFormHookReturn = ReturnType<typeof useScheduleForm>;
 

@@ -1,4 +1,4 @@
-import { FormData } from "@/hooks/useSchedule";
+import { FormData } from "@/hooks/useScheduleForm";
 import { Grid, TextField } from "@mui/material";
 
 interface TeamsPanelProps {

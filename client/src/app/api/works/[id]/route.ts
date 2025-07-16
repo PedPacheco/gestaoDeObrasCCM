@@ -5,13 +5,12 @@ import { cookies } from "next/headers";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await context.params;
     const data = await request.json();
 
-    // Obter token dos cookies
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
@@ -22,9 +21,6 @@ export async function PATCH(
       );
     }
 
-    console.log(data);
-
-    // Fazer requisição para sua API externa
     const result = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/obras/${id}`,
       {
@@ -49,7 +45,6 @@ export async function PATCH(
       );
     }
 
-    // Revalidar cache
     revalidatePath(`/detalhes/${id}`);
 
     return NextResponse.json({

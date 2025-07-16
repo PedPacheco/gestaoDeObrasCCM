@@ -28,7 +28,7 @@ export default function DataItem({
   return (
     <div
       className={`flex items-center justify-between mb-3 max-w-96 w-[342px] h-10 border border-zinc-700 border-solid rounded-md ${
-        isEdit ? "bg-white" : "bg-zinc-100"
+        isEdit ? "bg-white" : "bg-zinc-200"
       }`}
     >
       {label && (
