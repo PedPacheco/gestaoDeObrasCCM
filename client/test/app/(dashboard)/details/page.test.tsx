@@ -1,8 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
-import Details from "@/app/(dashboard)/detalhes/[id]/page";
-import { fetchData } from "@/actions/fetchData.action";
 import * as cookiesModule from "next/headers";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { fetchData } from "@/actions/fetchData.action";
+import { fetchFilters } from "@/actions/fetchFilters.action";
+import Details from "@/app/(dashboard)/detalhes/[id]/page";
+import { render, screen } from "@testing-library/react";
 import dayjs from "dayjs";
 import { formatPercentage } from "@/utils/formatValue";
 
@@ -11,22 +13,21 @@ vi.mock("@/actions/fetchData.action", () => ({
   fetchData: vi.fn(),
 }));
 
+vi.mock("@/actions/fetchFilters.action", () => ({
+  fetchFilters: vi.fn(),
+}));
+
 vi.mock("next/headers", () => ({
   cookies: vi.fn(),
 }));
 
-vi.mock("@/components/details/dataItem", () => ({
-  __esModule: true,
-  default: vi.fn(({ label, value, status, background }) => (
+vi.mock("@/components/details/workDetails/workDetails", () => ({
+  WorkDetails: vi.fn(({ formattedData }) => (
     <div
-      data-testid="data-item"
-      data-label={label}
-      data-value={value}
-      data-status={status}
-      data-background={background}
-    >
-      {label}: {value}
-    </div>
+      data-testid="work-details"
+      data-background={formattedData.backgroundColor}
+      data-executado={formattedData.executadoFormatted}
+    />
   )),
 }));
 
@@ -86,13 +87,18 @@ describe("Details Page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Mock de cookies
     vi.mocked(cookiesModule.cookies).mockReturnValue(mockCookieStore as any);
 
-    // Mock de fetchData
     vi.mocked(fetchData).mockResolvedValue({
       token: "mock-token",
       data: mockData,
+    });
+
+    vi.mocked(fetchFilters).mockResolvedValue({
+      restricao: [{ id: 1, restricao: "chuva" }],
+      tecnico: [{ id: 1, tecnico: "Elias" }],
+      parceira: [{ id: 1, turma: "Engelmig" }],
+      status: [{ id: 1, status: "Programado" }],
     });
 
     // Mock do env
@@ -105,55 +111,22 @@ describe("Details Page", () => {
     expect(fetchData).toHaveBeenCalledWith(
       "https://api.example.com/obras/123",
       undefined,
-      "mock-token"
+      "mock-token",
+      { cache: "no-store" }
     );
+    expect(fetchData).toBeCalledTimes(2);
+    expect(fetchFilters).toHaveBeenCalledWith({
+      restricao: true,
+      tecnico: true,
+      parceira: true,
+      status: true,
+    });
   });
 
-  it("deve renderizar todos os DataItems com valores corretos", async () => {
-    render(await Details({ params: Promise.resolve({ id: mockId }) }));
-
-    const dataItems = screen.getAllByTestId("data-item");
-    expect(dataItems.length).toBe(24); // Verificar o número total de DataItems
-
-    // Verificar alguns DataItems específicos
-    const ovNotaItem = dataItems.find(
-      (item) => item.getAttribute("data-label") === "Ov/Nota"
-    );
-    expect(ovNotaItem).toHaveAttribute("data-value", "OV12345");
-
-    const pepItem = dataItems.find(
-      (item) => item.getAttribute("data-label") === "Pep"
-    );
-    expect(pepItem).toHaveAttribute("data-value", "PEP123");
-    expect(pepItem).toHaveAttribute("data-status", "concluido");
-
-    // Verificar formatação de datas
-    const entradaFormatada = dayjs(mockData.entrada).format("DD/MM/YYYY");
-    const entradaItem = dataItems.find(
-      (item) => item.getAttribute("data-label") === "Entrada"
-    );
-    expect(entradaItem).toHaveAttribute("data-value", entradaFormatada);
-
-    // Verificar prazo final calculado
-    const prazoFinalFormatado = dayjs(mockData.entrada)
-      .add(mockData.prazo, "day")
-      .format("DD/MM/YYYY");
-    const prazoFinalItem = dataItems.find(
-      (item) => item.getAttribute("data-label") === "Data prazo final"
-    );
-    expect(prazoFinalItem).toHaveAttribute("data-value", prazoFinalFormatado);
-
-    // Verificar valor formatado com percentual
-    expect(formatPercentage).toHaveBeenCalledWith(75);
-    const executadoItem = dataItems.find(
-      (item) => item.getAttribute("data-label") === "Executado"
-    );
-    expect(executadoItem).toHaveAttribute("data-value", "75%");
-  });
-
-  it("deve aplicar o background correto para Ano Planejamento quando grupo=2 e ano_plan é o ano atual", async () => {
+  it("deve aplicar background verde quando grupo for 2 e ano_plan for o ano atual", async () => {
     const currentYear = dayjs().year();
     const modifiedData = { ...mockData, grupo: 2, ano_plan: currentYear };
+
     vi.mocked(fetchData).mockResolvedValueOnce({
       token: "mock-token",
       data: modifiedData,
@@ -161,19 +134,19 @@ describe("Details Page", () => {
 
     render(await Details({ params: Promise.resolve({ id: mockId }) }));
 
-    const dataItems = screen.getAllByTestId("data-item");
-    const anoPlanItem = dataItems.find(
-      (item) => item.getAttribute("data-label") === "Ano planejamento"
+    const details = screen.getByTestId("work-details");
+    expect(details.getAttribute("data-background")).toBe(
+      "bg-green-600 text-zinc-100"
     );
-    expect(anoPlanItem).toHaveAttribute("data-background", "bg-green-600");
   });
 
-  it("deve aplicar o background vermelho para Ano Planejamento quando grupo=2 e ano_plan não é o ano atual", async () => {
+  it("deve aplicar background vermelho quando grupo for 2 e ano_plan for diferente do ano atual", async () => {
     const modifiedData = {
       ...mockData,
       grupo: 2,
       ano_plan: dayjs().year() - 1,
     };
+
     vi.mocked(fetchData).mockResolvedValueOnce({
       token: "mock-token",
       data: modifiedData,
@@ -181,18 +154,15 @@ describe("Details Page", () => {
 
     render(await Details({ params: Promise.resolve({ id: mockId }) }));
 
-    const dataItems = screen.getAllByTestId("data-item");
-    const anoPlanItem = dataItems.find(
-      (item) => item.getAttribute("data-label") === "Ano planejamento"
-    );
-    expect(anoPlanItem).toHaveAttribute(
-      "data-background",
+    const details = screen.getByTestId("work-details");
+    expect(details.getAttribute("data-background")).toBe(
       "bg-red-600 text-zinc-100"
     );
   });
 
-  it("não deve aplicar background para Ano Planejamento quando grupo !== 2", async () => {
-    const modifiedData = { ...mockData, grupo: 1, ano_plan: dayjs().year() };
+  it("não deve aplicar background quando grupo for diferente de 2", async () => {
+    const modifiedData = { ...mockData, grupo: 1 };
+
     vi.mocked(fetchData).mockResolvedValueOnce({
       token: "mock-token",
       data: modifiedData,
@@ -200,52 +170,25 @@ describe("Details Page", () => {
 
     render(await Details({ params: Promise.resolve({ id: mockId }) }));
 
-    const dataItems = screen.getAllByTestId("data-item");
-    const anoPlanItem = dataItems.find(
-      (item) => item.getAttribute("data-label") === "Ano planejamento"
-    );
-    expect(anoPlanItem).toHaveAttribute("data-background", "");
+    const details = screen.getByTestId("work-details");
+    expect(details.getAttribute("data-background")).toBe("");
   });
 
-  it("deve renderizar a observação corretamente", async () => {
-    render(await Details({ params: Promise.resolve({ id: mockId }) }));
-
-    expect(screen.getByText("Observação")).toBeInTheDocument();
-    expect(screen.getByText(mockData.observ_obra)).toBeInTheDocument();
-  });
-
-  it("deve passar os dados corretos para o componente TabPanel", async () => {
-    render(await Details({ params: Promise.resolve({ id: mockId }) }));
-
-    const tabPanel = screen.getByTestId("tab-panel");
-    expect(tabPanel).toBeInTheDocument();
-    expect(JSON.parse(tabPanel.getAttribute("data-props") || "{}")).toEqual(
-      mockData
-    );
-  });
-
-  it("deve lidar com valores nulos para data_conclusao e data_empreitamento", async () => {
-    const modifiedData = {
-      ...mockData,
-      data_conclusao: null,
-      data_empreitamento: null,
-    };
-    vi.mocked(fetchData).mockResolvedValueOnce({
-      token: "mock-token",
-      data: modifiedData,
-    });
+  it("deve formatar o valor executado corretamente com formatPercentage", async () => {
+    vi.mocked(formatPercentage).mockReturnValue("75%");
 
     render(await Details({ params: Promise.resolve({ id: mockId }) }));
 
-    const dataItems = screen.getAllByTestId("data-item");
-    const dataConclItem = dataItems.find(
-      (item) => item.getAttribute("data-label") === "Data conclusão"
-    );
-    const dataEmpreitItem = dataItems.find(
-      (item) => item.getAttribute("data-label") === "Data empreitamento"
-    );
+    const details = screen.getByTestId("work-details");
+    expect(details.getAttribute("data-executado")).toBe("75%");
+  });
 
-    expect(dataConclItem?.getAttribute("data-value")).toBeNull();
-    expect(dataEmpreitItem?.getAttribute("data-value")).toBeNull();
+  it("deve retornar uma string vazia caso formatPercentage retorne null", async () => {
+    vi.mocked(formatPercentage).mockReturnValue(null);
+
+    render(await Details({ params: Promise.resolve({ id: mockId }) }));
+
+    const details = screen.getByTestId("work-details");
+    expect(details.getAttribute("data-executado")).toBe("");
   });
 });

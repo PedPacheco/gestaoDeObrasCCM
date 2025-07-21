@@ -45,17 +45,6 @@ vi.mock("@/components/entryComponents/entryByDate/MainEntryByDate", () => ({
   )),
 }));
 
-vi.mock("@/utils/transform", () => ({
-  Transform: vi.fn((filters: Record<string, string[]>) => {
-    return Object.fromEntries(
-      Object.entries(filters).map(([key, value]) => [
-        key,
-        Array.isArray(value) && value.length > 0 ? value.join(",") : "",
-      ])
-    );
-  }),
-}));
-
 describe("EntryForDate", () => {
   const mockToken = "mock-token";
   const mockData = {
@@ -99,7 +88,7 @@ describe("EntryForDate", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
-    vi.setSystemTime(dayjs("28/04/2025").format("DD/MM/YYYY"));
+    vi.setSystemTime(new Date("2025-05-17"));
 
     vi.mocked(moduleCookies.cookies).mockResolvedValue(mockCookieStore as any);
 

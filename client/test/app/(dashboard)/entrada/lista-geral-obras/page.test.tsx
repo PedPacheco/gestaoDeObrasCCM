@@ -1,6 +1,5 @@
 import * as cookiesModule from "next/headers";
-import { describe } from "node:test";
-import { beforeEach, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
@@ -87,7 +86,7 @@ describe("All works page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(cookiesModule.cookies).mockResolvedValue(mockCookieStore as any);
+    vi.mocked(cookiesModule.cookies).mockReturnValue(mockCookieStore as any);
 
     vi.mocked(fetchData).mockResolvedValue({
       token: mockToken,

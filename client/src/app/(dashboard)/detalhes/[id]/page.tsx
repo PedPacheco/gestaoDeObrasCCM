@@ -26,12 +26,8 @@ export default async function Details({
     fetchFilters({
       restricao: true,
       tecnico: true,
-      municipio: true,
       parceira: true,
-      circuito: true,
       status: true,
-      empreendimento: true,
-      tipo: true,
     }),
     fetchData<DataResponse>(
       `${process.env.NEXT_PUBLIC_API_URL}/obras/${id}`,

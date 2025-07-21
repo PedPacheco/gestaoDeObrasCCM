@@ -1,12 +1,12 @@
+import dayjs from "dayjs";
 import * as cookiesModule from "next/headers";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import WorksInPortfolio from "@/app/(dashboard)/obras-carteira/page";
+import ScheduleForDay from "@/app/(dashboard)/programacao/por-data/page";
 import { Transform } from "@/utils/transform";
-import { render } from "@testing-library/react";
-import dayjs from "dayjs";
+import { render, screen } from "@testing-library/react";
 
 vi.mock("@/actions/fetchData.action", () => ({
   fetchData: vi.fn(),
@@ -20,29 +20,6 @@ vi.mock("next/headers", () => ({
   cookies: vi.fn(),
 }));
 
-vi.mock(
-  "@/components/worksComponents/portfolioWorks/MainPortfolioWorks",
-  () => ({
-    __esModule: true,
-    default: vi.fn(
-      ({ data, token, filtersData, columns, totalValues, url, cookie }) => (
-        <div
-          data-testid="main-portfolio-works"
-          data-data={JSON.stringify(data.works)}
-          data-filters={JSON.stringify(filtersData)}
-          data-token={token}
-          data-columns={JSON.stringify(columns)}
-          data-totalValues={totalValues}
-          data-url={url}
-          data-cookie={cookie}
-        >
-          Main Portofolio works
-        </div>
-      )
-    ),
-  })
-);
-
 vi.mock("@/utils/transform", () => ({
   Transform: vi.fn((filters: Record<string, string[]>) => {
     return Object.fromEntries(
@@ -54,19 +31,34 @@ vi.mock("@/utils/transform", () => ({
   }),
 }));
 
-describe("Works in portfolio page", () => {
+vi.mock(
+  "@/components/scheduleComponents/scheduleForDay/MainScheduleForDay",
+  () => ({
+    __esModule: true,
+    default: vi.fn(({ data, token, filtersData, column }) => (
+      <div
+        data-testid="main-schedule-for-day"
+        data-data={JSON.stringify(data)}
+        data-filtersData={JSON.stringify(filtersData)}
+        data-token={token}
+        data-columns={JSON.stringify(column)}
+      >
+        Main Schedule For Day
+      </div>
+    )),
+  })
+);
+
+describe("Schedule For Day Page", () => {
   const mockToken = "mock-token";
-  const mockData = {
-    works: [
-      {
-        id: 1,
-        ovnota: "123",
-        ordemdiagrama: "12353545",
-        ordem_dcd: "32344",
-        ordem_dca: "2324543",
-      },
-    ],
-  };
+  const mockData = [
+    {
+      id: 1232,
+      ovnota: "2324",
+      ordemDiagrama: "43423",
+      mun: "SJC",
+    },
+  ];
 
   const mockFilters = {
     regional: ["Regional A", "Regional B"],
@@ -74,36 +66,31 @@ describe("Works in portfolio page", () => {
     tipo: ["Tipo 1", "Tipo 2"],
     municipio: ["Cidade A", "Cidade B"],
     grupo: ["Grupo 1", "Grupo 2"],
-    circuito: ["Circuito 1", "Circuito 2"],
-    conjunto: ["Conjunto 1", "Conjunto 2"],
-    status: ["Status 1", "Status 2"],
-    ovnota: ["OV1", "OV2"],
-    empreendimento: ["Empreendimento 1", "Empreendimento 2"],
   };
 
-  const mockParamsFilters = JSON.stringify({
+  const mockParamsFiltes = JSON.stringify({
     selectedItems: {
       parceira: ["Parceira 1"],
       regional: ["Regional A"],
     },
     date: "17/05/2025",
     filterType: "day",
+    executed: "true",
   });
 
   const mockCookieStore = {
     get: vi.fn((name) => {
       if (name === "token") return { value: mockToken };
-      if (name === "portfolioWorksFilters") return { value: mockParamsFilters };
-      return null;
+      if (name === "scheduleForDayFilters") return { value: mockParamsFiltes };
     }),
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
-    vi.setSystemTime(dayjs("17/05/2025").format("DD/MM/YYYY"));
+    vi.setSystemTime(new Date("2025-05-17"));
 
-    vi.mocked(cookiesModule.cookies).mockReturnValue(mockCookieStore as any);
+    vi.mocked(cookiesModule.cookies).mockResolvedValue(mockCookieStore as any);
 
     vi.mocked(fetchData).mockResolvedValue({
       token: mockToken,
@@ -120,20 +107,21 @@ describe("Works in portfolio page", () => {
   });
 
   it("deve buscar dados com os filtros corretos quando cookie de filtros existe", async () => {
-    render(await WorksInPortfolio());
+    render(await ScheduleForDay());
 
     expect(Transform).toHaveBeenCalledWith({
-      regional: ["Regional A"],
       parceira: ["Parceira 1"],
+      regional: ["Regional A"],
     });
 
     expect(fetchData).toHaveBeenCalledWith(
-      "https://api.example.com/obras/obras-carteira",
+      "https://api.example.com/programacao/mensal",
       {
-        regional: "Regional A",
         parceira: "Parceira 1",
+        regional: "Regional A",
         data: dayjs("17/05/2025").format("DD/MM/YYYY"),
         tipoFiltro: "day",
+        executado: "true",
         page: "0",
       },
       mockToken,
@@ -141,28 +129,30 @@ describe("Works in portfolio page", () => {
     );
   });
 
-  it("deve buscar dados com o campo tipoFiltro definido para mês e a data com formato MM/YYYY", async () => {
+  it("deve buscar dados com os valores alterados caso os campos de filtro não tenham valor", async () => {
     const modifiedData = JSON.stringify({
-      ...JSON.parse(mockParamsFilters),
+      ...JSON.parse(mockParamsFiltes),
       date: "05/2025",
-      filterType: "month",
+      filterType: undefined,
+      executed: undefined,
     });
 
     vi.mocked(mockCookieStore.get).mockImplementation((name) => {
       if (name === "token") return { value: mockToken };
-      if (name === "portfolioWorksFilters") return { value: modifiedData };
-      return null;
+      if (name === "scheduleForDayFilters") return { value: modifiedData };
+      return undefined;
     });
 
-    render(await WorksInPortfolio());
+    render(await ScheduleForDay());
 
     expect(fetchData).toHaveBeenCalledWith(
-      "https://api.example.com/obras/obras-carteira",
+      "https://api.example.com/programacao/mensal",
       {
-        regional: "Regional A",
         parceira: "Parceira 1",
+        regional: "Regional A",
         data: dayjs("05/2025").format("MM/YYYY"),
         tipoFiltro: "month",
+        executado: "false",
         page: "0",
       },
       mockToken,
@@ -170,23 +160,40 @@ describe("Works in portfolio page", () => {
     );
   });
 
-  it("deve buscar dados apenas com a data atual quando não há cookie de filtros", async () => {
+  it("Deve lidar com ausência de filtro de ano no cookieParams", async () => {
     vi.mocked(mockCookieStore.get).mockImplementation((name) => {
       if (name === "token") return { value: mockToken };
-      return null;
+      return undefined;
     });
 
-    render(await WorksInPortfolio());
+    render(await ScheduleForDay());
 
     expect(fetchData).toHaveBeenCalledWith(
-      "https://api.example.com/obras/obras-carteira",
+      "https://api.example.com/programacao/mensal",
       {
-        data: "",
-        tipoFiltro: "",
+        data: "05/2025",
+        tipoFiltro: "month",
+        executado: "false",
         page: "0",
       },
       mockToken,
       { cache: "no-store" }
     );
+  });
+
+  it("Deve passar os dados corretamente para o componente ScheduleForDay", async () => {
+    render(await ScheduleForDay());
+
+    const scheduleForDay = screen.getByTestId("main-schedule-for-day");
+
+    expect(scheduleForDay).toBeInTheDocument();
+
+    expect(
+      JSON.parse(scheduleForDay.getAttribute("data-data") || "[]")
+    ).toEqual(mockData);
+    expect(
+      JSON.parse(scheduleForDay.getAttribute("data-filtersData") || "[]")
+    ).toEqual(mockFilters);
+    expect(scheduleForDay.getAttribute("data-token")).toBe(mockToken);
   });
 });

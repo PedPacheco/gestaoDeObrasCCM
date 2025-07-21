@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import { MainMonthlySummarySchedule } from "@/components/scheduleComponents/monthlySummary/mainMonthlySummarySchedule";
+import MainMonthlySummarySchedule from "@/components/scheduleComponents/monthlySummary/mainMonthlySummarySchedule";
 import { Transform } from "@/utils/transform";
 
 export const dynamic = "force-dynamic";

@@ -40,7 +40,6 @@ describe("fetchFilters", () => {
           "Content-Type": "application/json",
           Authorization: "Bearer mock-token",
         },
-        next: { revalidate: 60 * 60 },
       }
     );
 

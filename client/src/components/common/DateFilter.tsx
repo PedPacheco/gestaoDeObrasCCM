@@ -27,11 +27,11 @@ export function DateFilter({
         className={`mb-2 ${marginLeft ? "" : "lg:mx-auto"} w-full lg:w-3/4`}
         size="small"
       >
-        <InputLabel>Tipo de Filtro</InputLabel>
+        <InputLabel htmlFor="tipo-filtro">Tipo de Filtro</InputLabel>
         <Select
+          id="tipo-filtro"
           value={type}
           onChange={(event) => setType(event.target.value)}
-          label="Tipo de Filtro"
         >
           <MenuItem value="day">Por Dia</MenuItem>
           <MenuItem value="month">Por Mês</MenuItem>

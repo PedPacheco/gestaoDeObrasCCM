@@ -3,10 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import WorksInPortfolio from "@/app/(dashboard)/obras-carteira/page";
 import { Transform } from "@/utils/transform";
 import { render } from "@testing-library/react";
 import dayjs from "dayjs";
+import CompletedWorks from "@/app/(dashboard)/obras-executadas/page";
 
 vi.mock("@/actions/fetchData.action", () => ({
   fetchData: vi.fn(),
@@ -27,7 +27,7 @@ vi.mock(
     default: vi.fn(
       ({ data, token, filtersData, columns, totalValues, url, cookie }) => (
         <div
-          data-testid="main-portfolio-works"
+          data-testid="main-completed-works"
           data-data={JSON.stringify(data.works)}
           data-filters={JSON.stringify(filtersData)}
           data-token={token}
@@ -54,7 +54,7 @@ vi.mock("@/utils/transform", () => ({
   }),
 }));
 
-describe("Works in portfolio page", () => {
+describe("Completed Works page", () => {
   const mockToken = "mock-token";
   const mockData = {
     works: [
@@ -93,7 +93,7 @@ describe("Works in portfolio page", () => {
   const mockCookieStore = {
     get: vi.fn((name) => {
       if (name === "token") return { value: mockToken };
-      if (name === "portfolioWorksFilters") return { value: mockParamsFilters };
+      if (name === "completedWorksFilters") return { value: mockParamsFilters };
       return null;
     }),
   };
@@ -120,7 +120,7 @@ describe("Works in portfolio page", () => {
   });
 
   it("deve buscar dados com os filtros corretos quando cookie de filtros existe", async () => {
-    render(await WorksInPortfolio());
+    render(await CompletedWorks());
 
     expect(Transform).toHaveBeenCalledWith({
       regional: ["Regional A"],
@@ -128,7 +128,7 @@ describe("Works in portfolio page", () => {
     });
 
     expect(fetchData).toHaveBeenCalledWith(
-      "https://api.example.com/obras/obras-carteira",
+      "https://api.example.com/obras/obras-executadas",
       {
         regional: "Regional A",
         parceira: "Parceira 1",
@@ -150,14 +150,14 @@ describe("Works in portfolio page", () => {
 
     vi.mocked(mockCookieStore.get).mockImplementation((name) => {
       if (name === "token") return { value: mockToken };
-      if (name === "portfolioWorksFilters") return { value: modifiedData };
+      if (name === "completedWorksFilters") return { value: modifiedData };
       return null;
     });
 
-    render(await WorksInPortfolio());
+    render(await CompletedWorks());
 
     expect(fetchData).toHaveBeenCalledWith(
-      "https://api.example.com/obras/obras-carteira",
+      "https://api.example.com/obras/obras-executadas",
       {
         regional: "Regional A",
         parceira: "Parceira 1",
@@ -176,10 +176,10 @@ describe("Works in portfolio page", () => {
       return null;
     });
 
-    render(await WorksInPortfolio());
+    render(await CompletedWorks());
 
     expect(fetchData).toHaveBeenCalledWith(
-      "https://api.example.com/obras/obras-carteira",
+      "https://api.example.com/obras/obras-executadas",
       {
         data: "",
         tipoFiltro: "",
