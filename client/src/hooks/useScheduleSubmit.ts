@@ -82,6 +82,8 @@ export const useScheduleSubmit = ({
 
             const result = validationSchema.safeParse(formData);
 
+            console.log(result);
+
             if (!result.success) {
               const fieldErrors: Record<string, string> = {};
 

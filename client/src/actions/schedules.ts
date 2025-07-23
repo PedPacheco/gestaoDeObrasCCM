@@ -42,6 +42,8 @@ export async function editSchedule(data: any, id: number) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
+  console.log(data);
+
   try {
     const result = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/programacao/${id}`,

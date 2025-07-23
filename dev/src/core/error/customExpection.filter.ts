@@ -19,13 +19,39 @@ export class CustomExceptionFilter implements ExceptionFilter {
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
-      message = exception.getResponse() as string | object;
+      const exceptionResponse = exception.getResponse();
 
-      if (typeof message === 'object' && 'error' in message) {
-        message = (message as any).message;
+      if (
+        typeof exceptionResponse === 'object' &&
+        exceptionResponse !== null &&
+        'message' in exceptionResponse
+      ) {
+        const rawMessage = (exceptionResponse as any).message;
+
+        if (Array.isArray(rawMessage)) {
+          message = rawMessage.map((msg: string) => {
+            const match = msg.match(/(?:\w+\.)?(\w+)\s(.+)/);
+            if (match) {
+              const [, field, errorMsg] = match;
+              return `O campo ${field} ${errorMsg}`;
+            }
+            return msg;
+          });
+        } else {
+          message = rawMessage;
+        }
+      } else {
+        message = exception.message;
       }
 
-      if (!message || typeof message === 'object') {
+      const isMessageEmpty =
+        message === undefined ||
+        message === null ||
+        (typeof message === 'object' &&
+          !Array.isArray(message) &&
+          Object.keys(message).length === 0);
+
+      if (isMessageEmpty) {
         switch (status) {
           case HttpStatus.BAD_REQUEST:
             message =
@@ -52,12 +78,17 @@ export class CustomExceptionFilter implements ExceptionFilter {
       message = 'Erro interno no servidor. Tente novamente mais tarde';
     }
 
-    if (status === HttpStatus.NOT_FOUND && message.includes('Cannot')) {
+    if (
+      status === HttpStatus.NOT_FOUND &&
+      typeof message === 'string' &&
+      message.includes('Cannot')
+    ) {
       message = 'O recurso solicitado não foi encontrado';
     }
 
     if (
       status === HttpStatus.BAD_REQUEST &&
+      typeof message === 'string' &&
       message.includes('Validation failed')
     ) {
       message = 'Os dados enviados são inválidos. Verifique e tente novamente';
