@@ -3,7 +3,6 @@ import {
   IUpdateSchedulesRepository,
   UPDATE_SCHEDULES_REPOSITORY,
 } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { UpdateSchedulesInterface } from 'src/interface/types/schedule/updateSchedulesInterface';
 import { parseTimeToDate } from 'src/utils/parseTimeToDate';
 
@@ -15,7 +14,6 @@ export class UpdateSchedulesService {
   constructor(
     @Inject(UPDATE_SCHEDULES_REPOSITORY)
     private readonly updateSchedulesRepository: IUpdateSchedulesRepository,
-    private readonly prisma: PrismaService,
   ) {}
 
   async update(data: UpdateSchedulesInterface, tx: Prisma.TransactionClient) {

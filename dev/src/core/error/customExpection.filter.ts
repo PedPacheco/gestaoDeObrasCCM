@@ -17,6 +17,14 @@ export class CustomExceptionFilter implements ExceptionFilter {
     let status: number;
     let message: string | object;
 
+    const defaultNestMessages = [
+      'Bad Request',
+      'Unauthorized',
+      'Forbidden',
+      'Not Found',
+      'Conflict',
+    ];
+
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
@@ -31,11 +39,11 @@ export class CustomExceptionFilter implements ExceptionFilter {
         if (Array.isArray(rawMessage)) {
           message = rawMessage.map((msg: string) => {
             const match = msg.match(/(?:\w+\.)?(\w+)\s(.+)/);
+
             if (match) {
               const [, field, errorMsg] = match;
               return `O campo ${field} ${errorMsg}`;
             }
-            return msg;
           });
         } else {
           message = rawMessage;
@@ -44,14 +52,16 @@ export class CustomExceptionFilter implements ExceptionFilter {
         message = exception.message;
       }
 
-      const isMessageEmpty =
+      const isMessageEmptyOrDefault =
         message === undefined ||
         message === null ||
+        (typeof message === 'string' &&
+          defaultNestMessages.includes(message)) ||
         (typeof message === 'object' &&
           !Array.isArray(message) &&
           Object.keys(message).length === 0);
 
-      if (isMessageEmpty) {
+      if (isMessageEmptyOrDefault) {
         switch (status) {
           case HttpStatus.BAD_REQUEST:
             message =
@@ -68,6 +78,7 @@ export class CustomExceptionFilter implements ExceptionFilter {
             break;
           case HttpStatus.CONFLICT:
             message = 'Dados já existentes';
+            break;
           default:
             message = exception.message;
             break;

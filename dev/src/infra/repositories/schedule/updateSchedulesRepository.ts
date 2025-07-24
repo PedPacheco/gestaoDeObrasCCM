@@ -27,16 +27,22 @@ export class UpdateSchedulesRepository implements IUpdateSchedulesRepository {
     id: number,
     idWork: number,
   ): Promise<number[]> {
-    const executed = await this.prisma.programacoes.findMany({
-      where: {
-        id_obra: idWork,
-        id: {
-          not: id,
+    try {
+      const executed = await this.prisma.programacoes.findMany({
+        where: {
+          id_obra: idWork,
+          id: {
+            not: id,
+          },
         },
-      },
-      select: { exec: true },
-    });
+        select: { exec: true },
+      });
 
-    return executed.map((p) => p.exec);
+      return executed.map((p) => p.exec);
+    } catch (error) {
+      if (error.code === 'P2025') {
+        throw new NotFoundException(`Agendamento com ID ${id} não encontrado`);
+      }
+    }
   }
 }

@@ -1,3 +1,4 @@
+import { InternalServerErrorException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UpdateSchedulesApplicationService } from 'src/application/updateSchedulesApplication.service';
 import { ExecutionReportService } from 'src/domain/services/executionReport.service';
@@ -113,19 +114,19 @@ describe('UpdateScheduleApplicationService', () => {
     );
   });
 
-  it('should throw error and log if something fails inside transaction', async () => {
+  it('should throw InternalServerErrorException if something fails inside transaction', async () => {
     const error = new Error('Erro interno');
-
-    jest.spyOn(console, 'error').mockImplementation();
 
     mockUpdateSchedulesService.update.mockImplementation(() => {
       throw error;
     });
 
-    mockPrisma.$transaction.mockImplementation(async (cb) => cb({}));
+    mockPrisma.$transaction.mockImplementation(async (callback) => {
+      return await callback({});
+    });
 
-    await expect(service.update(mockDTO)).rejects.toThrow('Erro interno');
-
-    expect(console.error).toHaveBeenCalledWith('Erro na transação:', error);
+    await expect(service.update(mockDTO)).rejects.toThrow(
+      InternalServerErrorException,
+    );
   });
 });

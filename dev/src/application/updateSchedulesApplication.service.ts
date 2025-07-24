@@ -2,7 +2,7 @@ import { ExecutionReportService } from 'src/domain/services/executionReport.serv
 import { UpdateSchedulesService } from 'src/domain/services/schedule/updateSchedules.service';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 
 @Injectable()
 export class UpdateSchedulesApplicationService {
@@ -32,8 +32,7 @@ export class UpdateSchedulesApplicationService {
           );
         }
       } catch (error) {
-        console.error('Erro na transação:', error);
-        throw error;
+        throw new InternalServerErrorException(error);
       }
     });
   }
