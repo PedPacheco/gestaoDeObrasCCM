@@ -20,6 +20,7 @@ describe('UpdateSchedulesService', () => {
 
   const mockRepository = {
     update: jest.fn(),
+    findExecutionOfSchedules: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -46,6 +47,7 @@ describe('UpdateSchedulesService', () => {
 
     it('Should call method update and pass the formatted parameters to the repository, if repository return 0 throw error', async () => {
       mockRepository.update.mockResolvedValue(undefined);
+      mockRepository.findExecutionOfSchedules.mockResolvedValue([80, null]);
 
       await updateSchedulesService.update(
         mockUpdateSchedulesService,
@@ -87,6 +89,21 @@ describe('UpdateSchedulesService', () => {
       await expect(result).rejects.toThrow(BadRequestException);
       await expect(result).rejects.toThrow(
         'Erro ao criar relatório: Erro forçado no repositório',
+      );
+    });
+
+    it('should throw BadRequest if the sum of executions is greater than 100', async () => {
+      mockRepository.update.mockResolvedValue(undefined);
+      mockRepository.findExecutionOfSchedules.mockResolvedValue([80, 30]);
+
+      const result = updateSchedulesService.update(
+        { ...mockUpdateSchedulesService, exec: 30 },
+        mockTransaction as any,
+      );
+
+      await expect(result).rejects.toThrow(BadRequestException);
+      await expect(result).rejects.toThrow(
+        'O valor da execução da obra não pode ser superior a 100',
       );
     });
   });

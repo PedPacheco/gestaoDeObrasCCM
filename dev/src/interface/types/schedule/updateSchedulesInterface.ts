@@ -1,0 +1,21 @@
+export interface UpdateSchedulesInterface {
+  id: number;
+  idWork: number;
+  dataProg: Date;
+  startTime: string;
+  finishTime: string;
+  serviceType?: string;
+  prog: number;
+  exec?: number;
+  equipment?: string;
+  chi?: number;
+  numDp?: string;
+  temporaryKey?: boolean;
+  lmTeam?: number;
+  regulTeam?: number;
+  lvTeam?: number;
+  idTechnical?: number;
+  idExecutionRestriction?: number;
+  responsibility?: string;
+  observation?: string;
+}
