@@ -5,25 +5,25 @@ import { ReactNode } from "react";
 import { FormControl, MenuItem } from "@mui/material";
 import Select from "@mui/material/Select";
 
-interface SelectProps<T> {
+export interface SelectProps {
   label: string;
-  menuItems: T[];
+  menuItems: any[];
   selectedItem?: string;
   setSelectedItem?: (item: string) => void;
-  valueKey?: keyof T;
-  displayKey?: keyof T;
+  valueKey?: string | number;
+  displayKey?: string | number;
 }
 
 type SelectItem = string | number;
 
-export function SelectComponent<T>({
+export function SelectComponent({
   label,
   menuItems,
   selectedItem,
   setSelectedItem,
   valueKey,
   displayKey,
-}: SelectProps<T>) {
+}: SelectProps) {
   return (
     <div className="flex items-center justify-between mb-3 max-w-96 w-[342px] h-10 border border-zinc-700 border-solid rounded-md">
       {label && (
@@ -33,7 +33,7 @@ export function SelectComponent<T>({
       )}
 
       <FormControl
-        className={`flex-1 h-full min-w-32 lg:min-w-36 justify-center`}
+        className="flex-1 h-full min-w-32 lg:min-w-36 justify-center"
         size="small"
       >
         <Select

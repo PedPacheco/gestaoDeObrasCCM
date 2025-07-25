@@ -1,5 +1,14 @@
-import { SelectComponent } from "../../common/Select";
+"use client";
+
+import dynamic from "next/dynamic";
+
 import DataItem from "./dataItem";
+import { SelectComponent } from "@/components/common/Select";
+
+// const SelectComponent = dynamic(
+//   () => import("../../common/Select").then((mod) => mod.SelectComponent),
+//   { ssr: false }
+// );
 
 interface typeData {
   id_turma: string;
