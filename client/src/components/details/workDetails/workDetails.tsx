@@ -15,11 +15,6 @@ import DataItem from "./dataItem";
 import { EditableColumn } from "./editableColumn";
 import { ButtonComponent } from "@/components/common/Button";
 
-// const ButtonComponent = dynamic(
-//   () => import("@/components/common/Button").then((mod) => mod.ButtonComponent),
-//   { ssr: false }
-// );
-
 dayjs.extend(customParseFormat);
 
 interface WorkDetailsProps {
@@ -134,12 +129,13 @@ export function WorkDetails({
       [field]: formattedValue,
     }));
   };
+
   return (
     <>
       <div className="w-full flex justify-between items-center mb-4 px-2 md:px-8">
         <p className="text-2xl font-extrabold">Informações gerais</p>
         <ButtonComponent
-          text={"Salvar alterações"}
+          text={isPending ? "Salvando..." : "Salvar alterações"}
           styled="px-6"
           onClick={handleSubmit}
           disabled={
