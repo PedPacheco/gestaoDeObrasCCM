@@ -2,17 +2,18 @@
 
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
-import { ButtonComponent } from "@/components/common/Button";
+import { updateWork } from "@/actions/updateWork.action";
 import ErrorModal from "@/components/common/ErrorModal";
 import ModalComponent from "@/components/common/Modal";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import DataItem from "./dataItem";
 import { EditableColumn } from "./editableColumn";
-import { useRouter } from "next/navigation";
-import { updateWork } from "@/actions/updateWork.action";
+import { ButtonComponent } from "@/components/common/Button";
 
 dayjs.extend(customParseFormat);
 
@@ -128,6 +129,7 @@ export function WorkDetails({
       [field]: formattedValue,
     }));
   };
+
   return (
     <>
       <div className="w-full flex justify-between items-center mb-4 px-2 md:px-8">

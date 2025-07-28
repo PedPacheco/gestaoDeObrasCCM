@@ -1,5 +1,7 @@
-import { SelectComponent } from "../../common/Select";
+"use client";
+
 import DataItem from "./dataItem";
+import { SelectComponent } from "@/components/common/Select";
 
 interface typeData {
   id_turma: string;

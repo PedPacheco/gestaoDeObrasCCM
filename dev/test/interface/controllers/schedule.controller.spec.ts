@@ -1,4 +1,5 @@
 import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 import { UpdateSchedulesApplicationService } from 'src/application/updateSchedulesApplication.service';
 import { ExecutionReportService } from 'src/domain/services/executionReport.service';
 import { AddSchedulesService } from 'src/domain/services/schedule/addSchedules.service';
@@ -12,12 +13,16 @@ import { GetValuesWeeklyScheduleService } from 'src/domain/services/schedule/get
 import { UpdateSchedulesService } from 'src/domain/services/schedule/updateSchedules.service';
 import { UsersService } from 'src/domain/services/users.service';
 import { ScheduleController } from 'src/interface/controllers/schedule.controller';
-import { SchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
+import {
+  SchedulesDataDTO,
+  UpdateSchedulesDataDTO,
+} from 'src/interface/dtos/scheduleDTO';
 import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
-import { mockUpdateSchedulesController } from '../../../test/mocks/mockAddScheduleService';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+
+import { mockUpdateSchedulesController } from '../../../test/mocks/mockAddScheduleService';
 
 describe('ScheduleController', () => {
   let scheduleController: ScheduleController;
@@ -532,19 +537,70 @@ describe('ScheduleController', () => {
     expect(deleteSchedulesService.delete).toHaveBeenCalledWith(1);
   });
 
-  it('Should convert string to Date using class-transformer in SchedulesDataDTO', () => {
-    const input = {
-      idWork: 1,
-      dataProg: '2025-06-10',
-      startTime: '08:00',
-      finishTime: '09:00',
-      serviceType: 'Inspeção',
-      prog: 1,
-    };
+  describe('DTO Validation', () => {
+    it('should fail validation if exec is not a number', async () => {
+      const payload = {
+        idWork: 1,
+        dataProg: new Date(),
+        startTime: '08:00',
+        finishTime: '10:00',
+        prog: 50,
+        exec: null,
+      };
 
-    const dtoAdd = plainToInstance(SchedulesDataDTO, input);
+      const dto = plainToInstance(SchedulesDataDTO, payload);
+      await validate(dto);
 
-    expect(dtoAdd.dataProg).toBeInstanceOf(Date);
-    expect(dtoAdd.dataProg.toISOString().startsWith('2025-06-10')).toBe(true);
+      expect(dto.exec).toBeNull();
+    });
+
+    it('should pass validation with correct values', async () => {
+      const payload = {
+        idWork: 1,
+        dataProg: new Date(),
+        startTime: '08:00',
+        finishTime: '10:00',
+        prog: 50,
+        exec: 20,
+      };
+
+      const dto = plainToInstance(SchedulesDataDTO, payload);
+      const errors = await validate(dto);
+
+      expect(errors.length).toBe(0);
+    });
+
+    it('should validate UpdateSchedulesDataDTO with nested SchedulesDataDTO', async () => {
+      const payload = {
+        updateData: {
+          idWork: 1,
+          dataProg: new Date(),
+          startTime: '08:00',
+          finishTime: '10:00',
+          prog: 50,
+        },
+      };
+
+      const dto = plainToInstance(UpdateSchedulesDataDTO, payload);
+      const errors = await validate(dto);
+
+      expect(errors.length).toBe(0);
+    });
+
+    it('Should convert string to Date using class-transformer in SchedulesDataDTO', () => {
+      const input = {
+        idWork: 1,
+        dataProg: '2025-06-10',
+        startTime: '08:00',
+        finishTime: '09:00',
+        serviceType: 'Inspeção',
+        prog: 1,
+      };
+
+      const dtoAdd = plainToInstance(SchedulesDataDTO, input);
+
+      expect(dtoAdd.dataProg).toBeInstanceOf(Date);
+      expect(dtoAdd.dataProg.toISOString().startsWith('2025-06-10')).toBe(true);
+    });
   });
 });

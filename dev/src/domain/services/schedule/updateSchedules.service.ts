@@ -3,7 +3,7 @@ import {
   IUpdateSchedulesRepository,
   UPDATE_SCHEDULES_REPOSITORY,
 } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
-import { SchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
+import { UpdateSchedulesInterface } from 'src/interface/types/schedule/updateSchedulesInterface';
 import { parseTimeToDate } from 'src/utils/parseTimeToDate';
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
@@ -16,10 +16,26 @@ export class UpdateSchedulesService {
     private readonly updateSchedulesRepository: IUpdateSchedulesRepository,
   ) {}
 
-  async update(data: SchedulesDataDTO, tx: Prisma.TransactionClient) {
+  async update(data: UpdateSchedulesInterface, tx: Prisma.TransactionClient) {
     if (!data) {
       throw new BadRequestException(
         'Nenhuma programação fornecida para inserção.',
+      );
+    }
+
+    const executionValues =
+      await this.updateSchedulesRepository.findExecutionOfSchedules(
+        data.id,
+        data.idWork,
+      );
+
+    const executed = executionValues.reduce((total, item) => {
+      return total + (item || 0);
+    }, 0);
+
+    if (executed + data.exec > 100) {
+      throw new BadRequestException(
+        'O valor da execução da obra não pode ser superior a 100',
       );
     }
 

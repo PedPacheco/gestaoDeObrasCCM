@@ -17,15 +17,51 @@ export class CustomExceptionFilter implements ExceptionFilter {
     let status: number;
     let message: string | object;
 
+    const defaultNestMessages = [
+      'Bad Request',
+      'Unauthorized',
+      'Forbidden',
+      'Not Found',
+      'Conflict',
+    ];
+
     if (exception instanceof HttpException) {
       status = exception.getStatus();
-      message = exception.getResponse() as string | object;
+      const exceptionResponse = exception.getResponse();
 
-      if (typeof message === 'object' && 'error' in message) {
-        message = (message as any).message;
+      if (
+        typeof exceptionResponse === 'object' &&
+        exceptionResponse !== null &&
+        'message' in exceptionResponse
+      ) {
+        const rawMessage = (exceptionResponse as any).message;
+
+        if (Array.isArray(rawMessage)) {
+          message = rawMessage.map((msg: string) => {
+            const match = msg.match(/(?:\w+\.)?(\w+)\s(.+)/);
+
+            if (match) {
+              const [, field, errorMsg] = match;
+              return `O campo ${field} ${errorMsg}`;
+            }
+          });
+        } else {
+          message = rawMessage;
+        }
+      } else {
+        message = exception.message;
       }
 
-      if (!message || typeof message === 'object') {
+      const isMessageEmptyOrDefault =
+        message === undefined ||
+        message === null ||
+        (typeof message === 'string' &&
+          defaultNestMessages.includes(message)) ||
+        (typeof message === 'object' &&
+          !Array.isArray(message) &&
+          Object.keys(message).length === 0);
+
+      if (isMessageEmptyOrDefault) {
         switch (status) {
           case HttpStatus.BAD_REQUEST:
             message =
@@ -42,6 +78,7 @@ export class CustomExceptionFilter implements ExceptionFilter {
             break;
           case HttpStatus.CONFLICT:
             message = 'Dados já existentes';
+            break;
           default:
             message = exception.message;
             break;
@@ -52,12 +89,17 @@ export class CustomExceptionFilter implements ExceptionFilter {
       message = 'Erro interno no servidor. Tente novamente mais tarde';
     }
 
-    if (status === HttpStatus.NOT_FOUND && message.includes('Cannot')) {
+    if (
+      status === HttpStatus.NOT_FOUND &&
+      typeof message === 'string' &&
+      message.includes('Cannot')
+    ) {
       message = 'O recurso solicitado não foi encontrado';
     }
 
     if (
       status === HttpStatus.BAD_REQUEST &&
+      typeof message === 'string' &&
       message.includes('Validation failed')
     ) {
       message = 'Os dados enviados são inválidos. Verifique e tente novamente';

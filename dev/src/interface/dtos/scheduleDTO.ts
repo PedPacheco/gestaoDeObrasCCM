@@ -197,13 +197,13 @@ export class SchedulesDataDTO {
   prog: number;
 
   @IsOptional()
-  @IsNumber()
+  @IsNumber({}, { message: 'Progresso executado deve ser um número válido' })
   @Transform(({ value }) => {
     if (value === '' || value === null || value === undefined) {
-      return;
+      return null;
     }
     const parsed = Number(value);
-    return isNaN(parsed) ? null : parsed;
+    return parsed;
   })
   exec?: number;
 
