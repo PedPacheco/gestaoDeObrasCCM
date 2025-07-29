@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { LoadingComponent } from "@/components/common/Loading";
 import { Header } from "@/components/layout/Header";
 
-export default async function Home() {
+export default function Home() {
   return (
     <>
       <div className="relative z-0 flex min-h-screen  bg-center bg-no-repeat bg-cover bg-[url(/edp-background.png)]">

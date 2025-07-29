@@ -1,7 +1,7 @@
-import BreadcrumpsComponent from "@/components/common/Breadcrumbs";
+import { BreadcrumpsComponent } from "@/components/common/Breadcrumbs";
 import { Header } from "@/components/layout/Header";
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
