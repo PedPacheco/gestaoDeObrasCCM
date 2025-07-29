@@ -39,6 +39,10 @@ interface TabPanelProps {
 function CustomTabPanel(props: CustomTabPanelProps) {
   const { children, value, index, ...other } = props;
 
+  const shouldRender = value === index;
+
+  if (!shouldRender) return null;
+
   return (
     <div
       role="tabpanel"
@@ -132,8 +136,8 @@ export default function TabPanel({
 
   const handleExecutionReportDelete = useCallback(
     (id: number) => {
-      try {
-        startTransition(async () => {
+      startTransition(async () => {
+        try {
           const response = await deleteExecutionReport(id, data?.id);
 
           if (!response.success) {
@@ -145,16 +149,17 @@ export default function TabPanel({
           setOpenModal(true);
           setOpenConfimartionModalExecution(false);
           setIdSchedule(0);
-        });
-      } catch (error: any) {}
+        } catch (error: any) {
+          setError(error.message);
+        }
+      });
     },
     [data?.id]
   );
-
   const handleDelete = useCallback(
     (id: number) => {
-      try {
-        startTransition(async () => {
+      startTransition(async () => {
+        try {
           const response = await deleteSchedule(id, data?.id);
 
           if (!response.success) {
@@ -166,10 +171,10 @@ export default function TabPanel({
           setOpenModal(true);
           setOpenConfimartionModal(false);
           setIdSchedule(0);
-        });
-      } catch (error: any) {
-        setError(error.message);
-      }
+        } catch (error: any) {
+          setError(error.message);
+        }
+      });
     },
     [data?.id]
   );
