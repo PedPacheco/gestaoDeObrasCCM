@@ -35,7 +35,7 @@ interface MainMonthlySummaryScheduleProps {
   token: string;
 }
 
-export default function MainMonthlySummarySchedule({
+export function MainMonthlySummarySchedule({
   columnsFirstSummary,
   columnsSecondSummary,
   dataFirstSummary,

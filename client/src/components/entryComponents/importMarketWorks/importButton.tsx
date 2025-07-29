@@ -17,7 +17,7 @@ interface ImportButtonProps {
   storageKey: string;
 }
 
-export function ImportButton({ storageKey }: ImportButtonProps) {
+export default function ImportButton({ storageKey }: ImportButtonProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const iw38InputRef = useRef<HTMLInputElement>(null);

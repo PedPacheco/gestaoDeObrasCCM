@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { DeleteButton } from "@/components/entryComponents/importMarketWorks/deleteButton";
-import { ImportButton } from "@/components/entryComponents/importMarketWorks/importButton";
+import ImportButton from "@/components/entryComponents/importMarketWorks/importButton";
 import { InsertMarketWorksButton } from "@/components/entryComponents/importMarketWorks/insertButton";
 import { TableMarketWorks } from "@/components/entryComponents/importMarketWorks/tableWorksMarket";
 import { Box, Paper } from "@mui/material";
