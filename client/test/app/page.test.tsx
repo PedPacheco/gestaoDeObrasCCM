@@ -4,6 +4,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/components/layout/Header", () => ({
+  __esModule: true,
   Header: vi.fn(() => <div data-testid="mock-header">Header Mockado</div>),
 }));
 

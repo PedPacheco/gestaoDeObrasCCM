@@ -62,7 +62,7 @@ describe("RdaGoals Page", () => {
   const mockRdaCookieValue = JSON.stringify({
     regional: ["Regional 1"],
     parceira: ["Parceira X"],
-    ano: ["2024"],
+    ano: ["2025"],
   });
 
   const mockCookieStore = {
@@ -104,7 +104,7 @@ describe("RdaGoals Page", () => {
       {
         regional: "Regional 1",
         parceira: "Parceira X",
-        ano: "2024",
+        ano: "2025",
         btzero: false,
         rda: true,
       },

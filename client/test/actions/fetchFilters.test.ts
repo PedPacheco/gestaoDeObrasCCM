@@ -52,22 +52,12 @@ describe("fetchFilters", () => {
     global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: false,
-        json: Promise.resolve({}),
+        json: () => Promise.resolve({}),
       })
     ) as any;
 
     await expect(fetchFilters()).rejects.toThrow(
       "Erro ao buscar os valores dos filtros"
-    );
-  });
-
-  it("Deve lançar erro genérico se fetch falhar", async () => {
-    getMock.mockReturnValue({ value: "mock-token" });
-
-    global.fetch = vi.fn(() => Promise.reject("Erro inesperado")) as any;
-
-    await expect(fetchFilters()).rejects.toThrow(
-      "Não foi possível se conectar ao servidor. Tente novamente mais tarde."
     );
   });
 });

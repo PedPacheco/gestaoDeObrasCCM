@@ -4,7 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import RdaGoals from "@/app/(dashboard)/metas/rda/page";
 import { Transform } from "@/utils/transform";
 import { render, screen } from "@testing-library/react";
 import Bt0Goals from "@/app/(dashboard)/metas/btzero/page";

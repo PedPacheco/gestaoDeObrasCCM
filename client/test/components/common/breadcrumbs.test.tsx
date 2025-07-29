@@ -1,7 +1,7 @@
 import * as nextNavigation from "next/navigation";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import BreadcrumpsComponent from "@/components/common/Breadcrumbs";
+import { BreadcrumpsComponent } from "@/components/common/Breadcrumbs";
 import { render, screen } from "@testing-library/react";
 
 vi.mock("next/navigation", () => ({

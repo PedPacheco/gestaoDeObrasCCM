@@ -116,6 +116,10 @@ describe("Details Page", () => {
     );
     expect(fetchData).toBeCalledTimes(2);
     expect(fetchFilters).toHaveBeenCalledWith({
+      circuito: true,
+      empreendimento: true,
+      municipio: true,
+      tipo: true,
       restricao: true,
       tecnico: true,
       parceira: true,

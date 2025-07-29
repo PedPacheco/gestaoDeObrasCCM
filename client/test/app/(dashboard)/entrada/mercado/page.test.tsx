@@ -18,14 +18,17 @@ vi.mock("next/headers", () => ({
 }));
 
 vi.mock("@/components/entryComponents/importMarketWorks/deleteButton", () => ({
+  __esModule: true,
   DeleteButton: vi.fn(() => <div data-testid="delete-button" />),
 }));
 
 vi.mock("@/components/entryComponents/importMarketWorks/importButton", () => ({
+  __esModule: true,
   ImportButton: vi.fn(() => <div data-testid="import-button" />),
 }));
 
 vi.mock("@/components/entryComponents/importMarketWorks/insertButton", () => ({
+  __esModule: true,
   InsertMarketWorksButton: vi.fn(() => <div data-testid="insert-button" />),
 }));
 

@@ -34,7 +34,7 @@ vi.mock(
   "@/components/scheduleComponents/monthlySummary/mainMonthlySummarySchedule",
   () => ({
     __esModule: true,
-    default: vi.fn(
+    MainMonthlySummarySchedule: vi.fn(
       ({
         dataFirstSummary,
         dataSecondSummary,
@@ -193,12 +193,16 @@ describe("Monthly Summary Schedule page", () => {
   it("Deve passar os dados corretamente para o componente MonthlySummarySchedule", async () => {
     render(await MonthlySummary());
 
-    const monthlySummarySchedule = screen.getByTestId("main-monthly-summary-schedule");
+    const monthlySummarySchedule = screen.getByTestId(
+      "main-monthly-summary-schedule"
+    );
 
     expect(monthlySummarySchedule).toBeInTheDocument();
 
     expect(
-      JSON.parse(monthlySummarySchedule.getAttribute("data-data-first-summary") || "[]")
+      JSON.parse(
+        monthlySummarySchedule.getAttribute("data-data-first-summary") || "[]"
+      )
     ).toEqual(mockDataFirstSummary);
     expect(
       JSON.parse(
@@ -206,7 +210,9 @@ describe("Monthly Summary Schedule page", () => {
       )
     ).toEqual(mockDataSecondSummary);
     expect(
-      JSON.parse(monthlySummarySchedule.getAttribute("data-filtersData") || "[]")
+      JSON.parse(
+        monthlySummarySchedule.getAttribute("data-filtersData") || "[]"
+      )
     ).toEqual(mockFilters);
     expect(monthlySummarySchedule.getAttribute("data-token")).toBe(mockToken);
   });
