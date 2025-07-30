@@ -1,53 +1,14 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  within,
+  waitFor,
+} from "@testing-library/react";
 import { describe, it, vi, beforeEach, expect } from "vitest";
-import { FormData } from "@/hooks/useScheduleForm";
 import { ExecutionEquipmentPanel } from "@/components/details/executionReportDialog/EquipmentPanel";
-
-const mockFormData: FormData = {
-  id: 1,
-  dataProg: "2025-07-23",
-  startTime: "08:00",
-  finishTime: "12:00",
-  prog: 50,
-  exec: "Exec Test",
-  serviceType: "Tipo A",
-  equipment: "Banco capacitor",
-  chi: 123,
-  numDp: "456",
-  temporaryKey: false,
-  lmTeam: 1,
-  regulTeam: 2,
-  lvTeam: 3,
-  idTechnical: 10,
-  idExecutionRestriction: 5,
-  responsibility: "Supervisor",
-  executionReport: {
-    id: 101,
-    idUser: 5,
-    supervisor: "Supervisor 1",
-    partialConnectionReleased: true,
-    startTime: "08:00",
-    finishTime: "12:30",
-    startContact: "Contato início",
-    endContact: "Contato fim",
-    delayJustification: "",
-    hasEquipmentInstalled: true,
-    appliedEquipment: [
-      { equipment: "Transformador", power: "500", patrimony: "12345" },
-    ],
-    hasEquipmentRemoved: true,
-    equipmentRemoved: [
-      { equipment: "Banco capacitor", power: "200", patrimony: "54321" },
-    ],
-    changesExecution: false,
-    generalObservation: "Obs",
-    workSituation: "Concluído",
-    reason: "",
-    provisionalKeyInstalled: false,
-    provisionalKeyReference: "ABC",
-    provisionalKeyWithdrawn: true,
-  },
-};
+import userEvent from "@testing-library/user-event";
+import { mockFormData } from "../../../mocks/mockFormData";
 
 const renderComponent = (formErrors: Record<string, string> = {}) => {
   const onInputChange = vi.fn(() => vi.fn());
@@ -98,11 +59,13 @@ describe("ExecutionEquipmentPanel", () => {
       "appliedEquipment.0.equipment": "Equipamento obrigatório",
       "appliedEquipment.0.power": "Potência obrigatória",
       "appliedEquipment.0.patrimony": "Patrimônio obrigatório",
+      appliedEquipment: "Este campo é obrigatório",
     });
 
     expect(screen.getByText("Equipamento obrigatório")).toBeInTheDocument();
     expect(screen.getByText("Potência obrigatória")).toBeInTheDocument();
     expect(screen.getByText("Patrimônio obrigatório")).toBeInTheDocument();
+    expect(screen.getByText("Este campo é obrigatório")).toBeInTheDocument();
   });
 
   it("deve renderizar erros nos campos de equipamento removido", () => {
@@ -139,8 +102,137 @@ describe("ExecutionEquipmentPanel", () => {
 
   it("deve chamar onInputChange ao clicar nas checkboxes", () => {
     const { onInputChange } = renderComponent();
+
     const checkboxes = screen.getAllByRole("checkbox");
     fireEvent.click(checkboxes[0]);
     expect(onInputChange).toHaveBeenCalled();
+  });
+
+  it("deve chamar onInputChange ao clicar nas checkboxes", () => {
+    const { onInputChange } = renderComponent();
+
+    const checkboxes = screen.getAllByRole("checkbox");
+    fireEvent.click(checkboxes[1]);
+    expect(onInputChange).toHaveBeenCalled();
+  });
+
+  it("deve chamar onEquipmentChange ao selecionar valor de equipamento", async () => {
+    const user = userEvent.setup();
+
+    const { onEquipmentChange } = renderComponent();
+
+    const allEquipamentoElements = screen.getAllByText(/equipamento/i);
+
+    const labelEquipamento = allEquipamentoElements.find(
+      (el) => el.tagName.toLowerCase() === "label"
+    );
+
+    if (!labelEquipamento) {
+      throw new Error("Label 'Equipamento' não encontrada");
+    }
+
+    const select = within(labelEquipamento.parentElement!).getByRole(
+      "combobox"
+    );
+    await user.click(select);
+
+    await waitFor(() => {
+      expect(screen.getByRole("listbox")).toBeInTheDocument();
+    });
+
+    const option = screen.getByRole("option", { name: "Banco capacitor" });
+    await user.click(option);
+
+    await waitFor(() => {
+      expect(onEquipmentChange).toHaveBeenCalled();
+    });
+
+    expect(onEquipmentChange).toHaveBeenCalledWith(
+      "appliedEquipment",
+      0,
+      "equipment",
+      "Banco capacitor",
+      "executionReport."
+    );
+  });
+
+  it("deve chamar onEquipmentChange ao selecionar valor de potência", async () => {
+    const user = userEvent.setup();
+
+    const { onEquipmentChange } = renderComponent();
+
+    const allPowerElements = screen.getAllByText(/Potência/i);
+
+    const labelPower = allPowerElements.find(
+      (el) => el.tagName.toLowerCase() === "label"
+    );
+
+    if (!labelPower) {
+      throw new Error("Label 'Equipamento' não encontrada");
+    }
+
+    const select = within(labelPower.parentElement!).getByRole("combobox");
+    await user.click(select);
+
+    await waitFor(() => {
+      expect(screen.getByRole("listbox")).toBeInTheDocument();
+    });
+
+    const option = screen.getByRole("option", { name: "500" });
+    await user.click(option);
+
+    await waitFor(() => {
+      expect(onEquipmentChange).toHaveBeenCalled();
+    });
+
+    expect(onEquipmentChange).toHaveBeenCalledWith(
+      "appliedEquipment",
+      0,
+      "power",
+      500,
+      "executionReport."
+    );
+  });
+
+  it("deve chamar onEquipmentChange ao inserir valor do patrimônio", async () => {
+    const { onEquipmentChange } = renderComponent();
+
+    const field = screen.getAllByLabelText("Patrimônio");
+
+    fireEvent.change(field[0], { target: { value: "34345" } });
+
+    await waitFor(() => {
+      expect(onEquipmentChange).toHaveBeenCalled();
+    });
+
+    expect(onEquipmentChange).toHaveBeenLastCalledWith(
+      "appliedEquipment",
+      0,
+      "patrimony",
+      "34345",
+      "executionReport."
+    );
+  });
+
+  it("Deve chamar o método onRemoveEquipment ao clicar no botão", async () => {
+    const user = userEvent.setup();
+
+    const { onRemoveEquipment } = renderComponent();
+
+    const button = screen.getByRole("button", {
+      name: "Remover equipamento aplicado",
+    });
+
+    await user.click(button);
+
+    await waitFor(() => {
+      expect(onRemoveEquipment).toHaveBeenCalled();
+    });
+
+    expect(onRemoveEquipment).toHaveBeenCalledWith(
+      "appliedEquipment",
+      0,
+      "executionReport."
+    );
   });
 });
