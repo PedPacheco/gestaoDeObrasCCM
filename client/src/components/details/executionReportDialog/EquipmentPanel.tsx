@@ -129,7 +129,7 @@ const EquipmentList = ({
                     )
                   }
                 >
-                  {POWER_OPTIONS[eq.equipment].map((power) => (
+                  {(POWER_OPTIONS[eq.equipment] || []).map((power) => (
                     <MenuItem key={power} value={power}>
                       {power}
                     </MenuItem>

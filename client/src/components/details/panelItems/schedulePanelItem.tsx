@@ -141,15 +141,6 @@ export default function SchedulePanelItem({
                   </TableCell>
                   {Object.keys(columns).map((column, index) => {
                     let cellValue = item[column];
-                    let decimal: string[];
-
-                    if (typeof cellValue === "number") {
-                      decimal = cellValue.toString().split(".");
-
-                      if (decimal[1]?.length > 2) {
-                        cellValue = cellValue.toFixed(2);
-                      }
-                    }
 
                     if (["prog", "exec"].includes(column)) {
                       cellValue = formatPercentage(cellValue);
@@ -169,11 +160,6 @@ export default function SchedulePanelItem({
                       }
                     }
 
-                    const displayValue =
-                      typeof cellValue === "object" && cellValue !== null
-                        ? Object.values(cellValue).join(", ")
-                        : cellValue;
-
                     return (
                       <TableCell
                         className={`py-1 px-2 text-center border-r font-medium text-base border-zinc-700 border-solid ${
@@ -183,7 +169,7 @@ export default function SchedulePanelItem({
                         }`}
                         key={index}
                       >
-                        {displayValue}
+                        {cellValue}
                       </TableCell>
                     );
                   })}

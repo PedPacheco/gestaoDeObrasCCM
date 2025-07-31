@@ -156,18 +156,9 @@ export default function ExecutionReportPanelItem({
                   </TableCell>
                   {Object.keys(columns).map((column, index) => {
                     let cellValue = item[column];
-                    let decimal: string[];
 
                     if (typeof cellValue === "boolean") {
                       cellValue = cellValue ? "Sim" : "Não";
-                    }
-
-                    if (typeof cellValue === "number") {
-                      decimal = cellValue.toString().split(".");
-
-                      if (decimal[1]?.length > 2) {
-                        cellValue = cellValue.toFixed(2);
-                      }
                     }
 
                     if (["prog", "exec"].includes(column)) {
@@ -199,9 +190,7 @@ export default function ExecutionReportPanelItem({
                     ];
 
                     const displayValue =
-                      typeof cellValue === "object" && cellValue !== null
-                        ? Object.values(cellValue).join(", ")
-                        : columnsToSplit.includes(column)
+                      cellValue !== null && columnsToSplit.includes(column)
                         ? String(cellValue)
                             .split(";")
                             .map((line, i) => <div key={i}>{line.trim()}</div>)
@@ -209,11 +198,7 @@ export default function ExecutionReportPanelItem({
 
                     return (
                       <TableCell
-                        className={`py-1 px-2 text-center border-r font-medium text-base border-zinc-700 border-solid ${
-                          column === "observ_programacao"
-                            ? "text-wrap whitespace-normal"
-                            : "text-nowrap"
-                        }`}
+                        className="py-1 px-2 text-center border-r font-medium text-base border-zinc-700 border-solid text-nowrap"
                         key={index}
                       >
                         {displayValue}
