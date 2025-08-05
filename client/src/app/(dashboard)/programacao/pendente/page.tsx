@@ -4,6 +4,7 @@ import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainPendingSchedule from "@/components/scheduleComponents/pendingSchedule/MainPendingSchedule";
 import { Transform } from "@/utils/transform";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
 
 export const dynamic = "force-dynamic";
 
@@ -57,11 +58,13 @@ export default async function PendingSchedule() {
   };
 
   return (
-    <MainPendingSchedule
-      data={data}
-      filtersData={filters}
-      token={token}
-      columns={columns}
-    />
+    <EmotionCacheProvider>
+      <MainPendingSchedule
+        data={data}
+        filtersData={filters}
+        token={token}
+        columns={columns}
+      />
+    </EmotionCacheProvider>
   );
 }

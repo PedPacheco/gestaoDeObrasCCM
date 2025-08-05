@@ -5,6 +5,7 @@ import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainEntry from "@/components/entryComponents/entry/MainEntry";
 import { Transform } from "@/utils/transform";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
 
 export const dynamic = "force-dynamic";
 
@@ -64,11 +65,13 @@ export default async function Entry() {
   };
 
   return (
-    <MainEntry
-      data={data}
-      filtersData={filters}
-      token={token}
-      columns={columnMapping}
-    />
+    <EmotionCacheProvider>
+      <MainEntry
+        data={data}
+        filtersData={filters}
+        token={token}
+        columns={columnMapping}
+      />
+    </EmotionCacheProvider>
   );
 }

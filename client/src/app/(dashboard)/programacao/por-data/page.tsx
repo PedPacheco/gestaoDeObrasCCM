@@ -5,6 +5,7 @@ import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainSchduleForDay from "@/components/scheduleComponents/scheduleForDay/MainScheduleForDay";
 import { Transform } from "@/utils/transform";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
 
 export const dynamic = "force-dynamic";
 
@@ -74,11 +75,13 @@ export default async function ScheduleForDay() {
   };
 
   return (
-    <MainSchduleForDay
-      columns={columns}
-      data={data}
-      filtersData={filters}
-      token={token}
-    />
+    <EmotionCacheProvider>
+      <MainSchduleForDay
+        columns={columns}
+        data={data}
+        filtersData={filters}
+        token={token}
+      />
+    </EmotionCacheProvider>
   );
 }

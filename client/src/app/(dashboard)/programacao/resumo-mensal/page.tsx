@@ -5,6 +5,7 @@ import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { MainMonthlySummarySchedule } from "@/components/scheduleComponents/monthlySummary/mainMonthlySummarySchedule";
 import { Transform } from "@/utils/transform";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
 
 export const dynamic = "force-dynamic";
 
@@ -66,13 +67,15 @@ export default async function MonthlySummary() {
   };
 
   return (
-    <MainMonthlySummarySchedule
-      columnsFirstSummary={columnsFirstSummary}
-      columnsSecondSummary={columnsSecondSummary}
-      dataFirstSummary={firstSummary?.data}
-      dataSecondSummary={secondSummary?.data}
-      filtersData={filters}
-      token={firstSummary.token}
-    />
+    <EmotionCacheProvider>
+      <MainMonthlySummarySchedule
+        columnsFirstSummary={columnsFirstSummary}
+        columnsSecondSummary={columnsSecondSummary}
+        dataFirstSummary={firstSummary?.data}
+        dataSecondSummary={secondSummary?.data}
+        filtersData={filters}
+        token={firstSummary.token}
+      />
+    </EmotionCacheProvider>
   );
 }

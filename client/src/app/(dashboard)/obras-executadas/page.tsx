@@ -5,6 +5,7 @@ import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import PortfolioWorks from "@/components/worksComponents/portfolioWorks/MainPortfolioWorks";
 import { Transform } from "@/utils/transform";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
 
 export const dynamic = "force-dynamic";
 
@@ -80,14 +81,16 @@ export default async function CompletedWorks() {
   };
 
   return (
-    <PortfolioWorks
-      filtersData={filters}
-      data={data}
-      token={token}
-      columns={columns}
-      cookie="completedWorksFilters"
-      totalValues={26}
-      url="obras-executadas"
-    />
+    <EmotionCacheProvider>
+      <PortfolioWorks
+        filtersData={filters}
+        data={data}
+        token={token}
+        columns={columns}
+        cookie="completedWorksFilters"
+        totalValues={26}
+        url="obras-executadas"
+      />
+    </EmotionCacheProvider>
   );
 }
