@@ -7,6 +7,7 @@ import { ImportButton } from "@/components/entryComponents/importMarketWorks/imp
 import { InsertMarketWorksButton } from "@/components/entryComponents/importMarketWorks/insertButton";
 import { TableMarketWorks } from "@/components/entryComponents/importMarketWorks/tableWorksMarket";
 import { Box, Paper } from "@mui/material";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
 
 export const dynamic = "force-dynamic";
 
@@ -58,24 +59,26 @@ export default async function MarketEntry() {
   };
 
   return (
-    <div className="my-6 w-full flex flex-col">
-      <div className="flex flex-col lg:justify-between lg:items-center">
-        <Paper className="p-6 mb-8 justify-start">
-          <Box className="flex gap-4 flex-wrap">
-            <ImportButton storageKey="marketEntryData" />
-            <DeleteButton storageKey="marketEntryData" />
-            <InsertMarketWorksButton storageKey="marketEntryData" />
-          </Box>
-        </Paper>
+    <EmotionCacheProvider>
+      <div className="my-6 w-full flex flex-col">
+        <div className="flex flex-col lg:justify-between lg:items-center">
+          <Paper className="p-6 mb-8 justify-start">
+            <Box className="flex gap-4 flex-wrap">
+              <ImportButton storageKey="marketEntryData" />
+              <DeleteButton storageKey="marketEntryData" />
+              <InsertMarketWorksButton storageKey="marketEntryData" />
+            </Box>
+          </Paper>
 
-        <TableMarketWorks
-          data={data.data}
-          columns={columnMapping}
-          selectOptionsByColumn={filters}
-          displayValues={displayValue}
-          storageKey="marketEntryData"
-        />
+          <TableMarketWorks
+            data={data.data}
+            columns={columnMapping}
+            selectOptionsByColumn={filters}
+            displayValues={displayValue}
+            storageKey="marketEntryData"
+          />
+        </div>
       </div>
-    </div>
+    </EmotionCacheProvider>
   );
 }

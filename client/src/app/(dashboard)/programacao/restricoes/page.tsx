@@ -6,6 +6,7 @@ import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainScheduleRestrictions from "@/components/scheduleComponents/scheduleRestrictions/MainScheduleRestrictions";
 import { Transform } from "@/utils/transform";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
 
 dayjs.extend(isoWeek);
 
@@ -79,11 +80,13 @@ export default async function ScheduleRestrictions() {
   };
 
   return (
-    <MainScheduleRestrictions
-      data={data}
-      filtersData={filters}
-      columns={columns}
-      token={token}
-    />
+    <EmotionCacheProvider>
+      <MainScheduleRestrictions
+        data={data}
+        filtersData={filters}
+        columns={columns}
+        token={token}
+      />
+    </EmotionCacheProvider>
   );
 }

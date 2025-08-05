@@ -5,6 +5,7 @@ import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainEntryByDate from "@/components/entryComponents/entryByDate/MainEntryByDate";
 import { Transform } from "@/utils/transform";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
 
 export const dynamic = "force-dynamic";
 
@@ -76,11 +77,13 @@ export default async function EntryForDate() {
   };
 
   return (
-    <MainEntryByDate
-      data={data}
-      token={token}
-      filtersData={filters}
-      columns={columnMapping}
-    />
+    <EmotionCacheProvider>
+      <MainEntryByDate
+        data={data}
+        token={token}
+        filtersData={filters}
+        columns={columnMapping}
+      />
+    </EmotionCacheProvider>
   );
 }

@@ -6,6 +6,7 @@ import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainWeeklySchedule from "@/components/scheduleComponents/weeklySchedule/MainWeeklySchedule";
 import { Transform } from "@/utils/transform";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
 
 dayjs.extend(isoWeek);
 
@@ -53,11 +54,13 @@ export default async function WeeklySchedule() {
   const { token, data } = scheduleData;
 
   return (
-    <MainWeeklySchedule
-      data={data}
-      filtersData={filters}
-      columns={{ column: "strrte" }}
-      token={token}
-    />
+    <EmotionCacheProvider>
+      <MainWeeklySchedule
+        data={data}
+        filtersData={filters}
+        columns={{ column: "strrte" }}
+        token={token}
+      />
+    </EmotionCacheProvider>
   );
 }

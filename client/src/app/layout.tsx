@@ -16,9 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <body className="h-full">
-        <EmotionCacheProvider>
-          <UserProviderWrapper>{children}</UserProviderWrapper>
-        </EmotionCacheProvider>
+        <UserProviderWrapper>{children}</UserProviderWrapper>
       </body>
     </html>
   );
