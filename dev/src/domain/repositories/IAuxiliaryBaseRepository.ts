@@ -1,5 +1,6 @@
+import { DataAuxiliaryNotes } from 'src/application/auxiliaryBase.service';
+
 import { Prisma } from '@prisma/client';
-import { DataAuxiliaryNotes } from 'src/domain/services/auxiliaryBase.service';
 
 export interface IAuxiliaryBaseRepository {
   insertNotes(data: DataAuxiliaryNotes): Promise<any>;

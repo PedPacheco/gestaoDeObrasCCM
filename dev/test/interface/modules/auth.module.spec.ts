@@ -3,9 +3,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from 'src/interface/modules/auth.module';
 import { PrismaModule } from 'src/infra/prisma/prisma.module';
 import { jwtConstants } from 'src/shared/costants';
-import { AuthService } from 'src/domain/services/auth.service';
 import { AuthController } from 'src/interface/controllers/auth.controller';
-import { EmailService } from 'src/domain/services/email.service';
+import { AuthService } from 'src/application/auth.service';
+import { EmailService } from 'src/application/email.service';
 
 describe('AuthModule', () => {
   let module: TestingModule;

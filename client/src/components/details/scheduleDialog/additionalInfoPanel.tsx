@@ -7,6 +7,7 @@ interface AdditionalInfoPanelProps {
   formData: FormData;
   options: ScheduleFormDialogProps["options"];
   onInputChange: (field: keyof FormData) => (event: any) => void;
+  disabledFields: boolean;
 }
 
 const EXECUTION_RESPONSIBILITIES = ["Edp", "Parceira", "Terceiro"];
@@ -15,6 +16,7 @@ export const AdditionalInfoPanel: React.FC<AdditionalInfoPanelProps> = ({
   formData,
   options,
   onInputChange,
+  disabledFields,
 }) => (
   <Grid container spacing={2}>
     <Grid item xs={12} sm={6}>
@@ -24,6 +26,7 @@ export const AdditionalInfoPanel: React.FC<AdditionalInfoPanelProps> = ({
           value={formData.idTechnical}
           onChange={onInputChange("idTechnical")}
           label="Técnico Responsável"
+          disabled={disabledFields}
         >
           {options.tecnico.map((tec) => (
             <MenuItem key={tec.id} value={tec.id}>

@@ -16,6 +16,7 @@ import { BasicInfoPanel } from "./basicInfoPanel";
 import { ServiceEquipmentPanel } from "./serviceEquipmentPanel";
 import { TeamsPanel } from "./teamsPanel";
 import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
+import { useUser } from "@/contexts/userContext";
 
 export type ScheduleFormHookReturn = ReturnType<typeof useScheduleForm>;
 
@@ -33,6 +34,7 @@ export interface ScheduleFormDialogProps {
     restricao: Array<{ id: number; restricao: string }>;
   };
   scheduleForm: ScheduleFormHookReturn;
+  statusWork: number;
 }
 
 export default function ScheduleFormDialog({
@@ -46,6 +48,7 @@ export default function ScheduleFormDialog({
   onModalOpen,
   options,
   scheduleForm,
+  statusWork,
 }: ScheduleFormDialogProps) {
   const {
     expanded,
@@ -71,8 +74,13 @@ export default function ScheduleFormDialog({
     setFormErrors,
   });
 
+  const { permissions } = useUser();
+
   const dialogTitle = isInsert ? "Nova Programação" : "Editar Programação";
   const submitButtonText = isPending ? "Salvando..." : "Salvar Programação";
+
+  const disabledFields =
+    permissions?.permissao_visualizacao === "parcial" && statusWork === 35;
 
   return (
     <Dialog
@@ -105,35 +113,40 @@ export default function ScheduleFormDialog({
             formData={formData}
             formErrors={formErrors}
             isInsert={isInsert}
+            disabledFields={disabledFields}
             onInputChange={handleInputChange}
           />
         </AccordionPanel>
 
-        <AccordionPanel
-          id="panel2"
-          title="Serviço e Equipamentos"
-          expanded={expanded}
-          onChange={handleAccordionChange}
-        >
-          <ServiceEquipmentPanel
-            formData={formData}
-            formErrors={formErrors}
-            onInputChange={handleInputChange}
-          />
-        </AccordionPanel>
+        <>
+          <AccordionPanel
+            id="panel2"
+            title="Serviço e Equipamentos"
+            expanded={expanded}
+            onChange={handleAccordionChange}
+          >
+            <ServiceEquipmentPanel
+              formData={formData}
+              formErrors={formErrors}
+              onInputChange={handleInputChange}
+              disabledFields={disabledFields}
+            />
+          </AccordionPanel>
 
-        <AccordionPanel
-          id="panel3"
-          title="Equipes"
-          expanded={expanded}
-          onChange={handleAccordionChange}
-        >
-          <TeamsPanel
-            formData={formData}
-            formErrors={formErrors}
-            onInputChange={handleInputChange}
-          />
-        </AccordionPanel>
+          <AccordionPanel
+            id="panel3"
+            title="Equipes"
+            expanded={expanded}
+            onChange={handleAccordionChange}
+          >
+            <TeamsPanel
+              formData={formData}
+              formErrors={formErrors}
+              onInputChange={handleInputChange}
+              disabledFields={disabledFields}
+            />
+          </AccordionPanel>
+        </>
 
         {!isInsert && (
           <AccordionPanel
@@ -146,6 +159,7 @@ export default function ScheduleFormDialog({
               formData={formData}
               options={options}
               onInputChange={handleInputChange}
+              disabledFields={disabledFields}
             />
           </AccordionPanel>
         )}

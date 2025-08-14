@@ -1,13 +1,13 @@
-import { AuthService } from 'src/domain/services/auth.service';
+import { AuthService } from 'src/application/auth.service';
+import { AUTH_REPOSITORY } from 'src/domain/repositories/IAuthRepository';
 import { CacheModule } from 'src/infra/cache/cache.module';
+import { AuthRepository } from 'src/infra/repositories/authRepository';
 
 import { Module } from '@nestjs/common';
 
 import { AuthController } from '../controllers/auth.controller';
 import { EmailModule } from './email.module';
 import { UsersModule } from './users.module';
-import { AuthRepository } from 'src/infra/repositories/authRepository';
-import { AUTH_REPOSITORY } from 'src/domain/repositories/IAuthRepository';
 
 @Module({
   imports: [UsersModule, EmailModule, CacheModule],

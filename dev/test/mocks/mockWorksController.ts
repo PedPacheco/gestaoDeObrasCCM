@@ -92,7 +92,6 @@ export const mockResponseDetails = {
   municipios: 'MONTEIRO LOBATO',
   tipos: 'SPACER CABLE',
   grupo: 2,
-
   programacoes: [
     {
       id: 1,
@@ -112,6 +111,9 @@ export const mockResponseDetails = {
       tecnico: 'NÃO DEFINIDO',
       restricao: null,
       nome_responsavel_execucao: null,
+      status_programacao: '3',
+      validada: true,
+      confirmada: true,
     },
   ],
 };

@@ -1,17 +1,25 @@
 import { IUpdateWorkRepository } from 'src/domain/repositories/works/IUpdateWorkRepository';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { UpdateWorkDTO } from 'src/interface/dtos/worksDto';
 
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UpdateWorkRepository implements IUpdateWorkRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor() {}
 
-  async update(data: UpdateWorkDTO, id: number): Promise<void> {
-    await this.prisma.obras.update({
-      where: { id },
-      data,
-    });
+  async update(
+    data: UpdateWorkDTO,
+    id: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    try {
+      await tx.obras.update({
+        where: { id },
+        data,
+      });
+    } catch (error) {
+      console.log(error);
+    }
   }
 }

@@ -1,6 +1,6 @@
 import { Request } from 'express';
+import { FiltersService } from 'src/application/filters.service';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
-import { FiltersService } from 'src/domain/services/filters.service';
 import { FiltersDto } from 'src/interface/dtos/filtersDto';
 
 import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';

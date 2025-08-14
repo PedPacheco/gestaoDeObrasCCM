@@ -1,6 +1,6 @@
 import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuxiliaryBaseService } from 'src/domain/services/auxiliaryBase.service';
+
 import { AuxiliaryBaseController } from 'src/interface/controllers/auxiliaryBase.controller';
 import {
   mockInsertAuxiliaryBaseMarket,
@@ -8,7 +8,8 @@ import {
   mockMappedMarketWorks,
   mockMappedNotes,
 } from '../../mocks/mocksAuxiliaryBaseController';
-import { UsersService } from 'src/domain/services/users.service';
+import { AuxiliaryBaseService } from 'src/application/auxiliaryBase.service';
+import { UsersService } from 'src/application/users.service';
 
 describe('AuxiliaryBaseController', () => {
   let auxiliaryBaseController: AuxiliaryBaseController;

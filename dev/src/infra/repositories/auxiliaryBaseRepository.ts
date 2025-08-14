@@ -1,6 +1,6 @@
+import { DataAuxiliaryNotes } from 'src/application/auxiliaryBase.service';
 import { MarketWork } from 'src/domain/entities/works.entity';
 import { IAuxiliaryBaseRepository } from 'src/domain/repositories/IAuxiliaryBaseRepository';
-import { DataAuxiliaryNotes } from 'src/domain/services/auxiliaryBase.service';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { InsertBaseAuxiliaryMarketDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
 

@@ -1,4 +1,4 @@
-import { ExecutionReportService } from 'src/domain/services/executionReport.service';
+import { ExecutionReportService } from 'src/application/executionReport.service';
 
 import {
   Body,
@@ -10,6 +10,7 @@ import {
   ParseIntPipe,
   Patch,
 } from '@nestjs/common';
+
 import { UpdateExecutionReportDTO } from '../dtos/executionReportDTO';
 
 @Controller('relatorio-execucao')

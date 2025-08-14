@@ -34,7 +34,7 @@ export async function POST(req: Request) {
 
       if (tokenValue) {
         cookiesStore.set("token", tokenValue, {
-          httpOnly: true,
+          httpOnly: false,
           secure: false,
           sameSite: "lax",
           path: "/",

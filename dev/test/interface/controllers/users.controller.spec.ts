@@ -1,8 +1,8 @@
 import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { plainToInstance } from 'class-transformer';
+import { UsersService } from 'src/application/users.service';
 import { User } from 'src/domain/entities/user.entity';
-import { UsersService } from 'src/domain/services/users.service';
 import { UsersController } from 'src/interface/controllers/users.controller';
 import {
   ChangePasswordDTO,

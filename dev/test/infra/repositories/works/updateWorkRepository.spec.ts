@@ -1,22 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 import { UpdateWorkRepository } from 'src/infra/repositories/works/updateWorkRepository';
 
 describe('UpdateWorkRepository', () => {
   let repository: UpdateWorkRepository;
 
-  const mockPrisma = {
+  const mockTx = {
     obras: {
-      update: jest.fn(),
+      update: jest.fn(), // ou o método que você espera
     },
-  };
+  } as unknown as Prisma.TransactionClient;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        UpdateWorkRepository,
-        { provide: PrismaService, useValue: mockPrisma },
-      ],
+      providers: [UpdateWorkRepository],
     }).compile();
 
     repository = module.get<UpdateWorkRepository>(UpdateWorkRepository);
@@ -24,8 +21,8 @@ describe('UpdateWorkRepository', () => {
 
   afterEach(jest.clearAllMocks);
 
-  describe('insertMarketWorks', () => {
-    it('should call prisma.obras.createMany with mapped market works', async () => {
+  describe('update', () => {
+    it('should call transaction prisma transaction to update works', async () => {
       await repository.update(
         {
           id_status: 1,
@@ -34,9 +31,10 @@ describe('UpdateWorkRepository', () => {
           data_empreitamento: new Date('05-17-2025'),
         },
         3,
+        mockTx,
       );
 
-      expect(mockPrisma.obras.update).toHaveBeenCalledWith({
+      expect(mockTx.obras.update).toHaveBeenCalledWith({
         where: { id: 3 },
         data: {
           id_status: 1,

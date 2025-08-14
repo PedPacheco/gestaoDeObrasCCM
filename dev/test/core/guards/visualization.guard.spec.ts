@@ -1,11 +1,11 @@
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import { USER_REPOSITORY } from 'src/domain/repositories/IUserRepository';
-import { UsersService } from 'src/domain/services/users.service';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
+import { UsersService } from 'src/application/users.service';
 
 describe('VisualizationGuard', () => {
   let usersService: UsersService;
@@ -105,7 +105,8 @@ describe('VisualizationGuard', () => {
 
     const result = await visualizationGuard.canActivate(context);
 
-    expect(request.query.idRegional).toEqual(user.id_regional);
+    expect(request.idRegional).toEqual([user.id_regional]);
+    expect(request.insufficientPermission).toEqual(true);
     expect(spyUsersService).toHaveBeenCalledWith(request.user.username);
     expect(result).toBe(true);
   });

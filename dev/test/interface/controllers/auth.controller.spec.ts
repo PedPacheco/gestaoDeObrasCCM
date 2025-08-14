@@ -1,12 +1,12 @@
 import { Response } from 'express';
 import { User } from 'src/domain/entities/user.entity';
-import { AuthService } from 'src/domain/services/auth.service';
 import { AuthController } from 'src/interface/controllers/auth.controller';
 import { LoginUserDTO } from 'src/interface/dtos/loginUserDto';
 import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { AuthService } from 'src/application/auth.service';
 
 describe('AuthController', () => {
   let authController: AuthController;

@@ -1,10 +1,11 @@
-import { Module } from '@nestjs/common';
-
-import { EntryService } from '../../domain/services/entry.service';
-import { EntryController } from '../controllers/entry.controller';
-import { UsersModule } from './users.module';
+import { EntryService } from 'src/application/entry.service';
 import { ENTRY_REPOSITORY } from 'src/domain/repositories/IEntryRepository';
 import { EntryRespository } from 'src/infra/repositories/entryRepository';
+
+import { Module } from '@nestjs/common';
+
+import { EntryController } from '../controllers/entry.controller';
+import { UsersModule } from './users.module';
 
 @Module({
   imports: [UsersModule],

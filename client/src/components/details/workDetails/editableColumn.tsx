@@ -53,11 +53,16 @@ export const EditableColumn = ({
 
       <SelectComponent
         label="Tipo ADS"
-        menuItems={[{ tipo: "CONVENCIONAL" }, { tipo: "PONTO A PONTO" }]}
+        menuItems={[
+          { tipo: "" },
+          { tipo: "CONVENCIONAL" },
+          { tipo: "PONTO A PONTO" },
+        ]}
         selectedItem={data.tipo_ads || ""}
         setSelectedItem={(value) => onHandleChange("tipo_ads", value)}
         valueKey="tipo"
         displayKey="tipo"
+        // disabled={!!data.tipo_ads}
       />
     </>
   );

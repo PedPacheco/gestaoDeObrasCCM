@@ -83,7 +83,6 @@ export const useScheduleSubmit = ({
             const result = validationSchema.safeParse(formData);
 
             if (!result.success) {
-              console.log("entrou");
               const fieldErrors: Record<string, string> = {};
 
               result.error.issues.forEach((item: any) => {
@@ -107,8 +106,6 @@ export const useScheduleSubmit = ({
                 const field = item.path[1];
                 fieldErrors[field] = item.message;
               });
-
-              console.log(fieldErrors);
 
               setFormErrors(fieldErrors);
               return;

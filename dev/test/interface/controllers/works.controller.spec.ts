@@ -1,16 +1,10 @@
 import { plainToInstance } from 'class-transformer';
-import { UsersService } from 'src/domain/services/users.service';
-import { GetAllWorksService } from 'src/domain/services/works/getAllWorks.service';
-import { GetCompletedWorksService } from 'src/domain/services/works/getCompletedWorks.service';
-import { GetWorkDetailsService } from 'src/domain/services/works/getWorkDetails.service';
-import { GetWorksInPortfolioService } from 'src/domain/services/works/getWorksInPortfolio.service';
 import { WorksController } from 'src/interface/controllers/works.controller';
 import { GetAllWorksDTO, GetWorksDTO } from 'src/interface/dtos/worksDto';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
-import { InsertWorksService } from '../../../src/domain/services/works/InsertWorks.service';
 import {
   mockAllWorks,
   mockInsertNotesController,
@@ -18,7 +12,13 @@ import {
   mockResponseDetails,
   mockWorksInPortfolio,
 } from '../../mocks/mockWorksController';
-import { UpdateWorkService } from 'src/domain/services/works/updateWork.service';
+import { InsertWorksService } from 'src/application/works/InsertWorks.service';
+import { GetWorkDetailsService } from 'src/application/works/getWorkDetails.service';
+import { GetWorksInPortfolioService } from 'src/application/works/getWorksInPortfolio.service';
+import { GetCompletedWorksService } from 'src/application/works/getCompletedWorks.service';
+import { GetAllWorksService } from 'src/application/works/getAllWorks.service';
+import { UsersService } from 'src/application/users.service';
+import { HandleWorkUpdateService } from 'src/application/orchestrators/handleWorkUpdate.service';
 
 describe('WorksController', () => {
   let worksController: WorksController;
@@ -27,7 +27,12 @@ describe('WorksController', () => {
   let getWorksInPortfolio: GetWorksInPortfolioService;
   let getWorkDetailsService: GetWorkDetailsService;
   let insertWorksService: InsertWorksService;
-  let updateWorkService: UpdateWorkService;
+  let handleWorkUpdateService: HandleWorkUpdateService;
+
+  const mockReq = {
+    insufficientPermission: true,
+    idRegional: 1,
+  };
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -51,7 +56,7 @@ describe('WorksController', () => {
           provide: InsertWorksService,
           useValue: { insertMarketWorks: jest.fn(), insertNotes: jest.fn() },
         },
-        { provide: UpdateWorkService, useValue: { update: jest.fn() } },
+        { provide: HandleWorkUpdateService, useValue: { update: jest.fn() } },
       ],
     }).compile();
 
@@ -67,7 +72,9 @@ describe('WorksController', () => {
       GetWorkDetailsService,
     );
     insertWorksService = module.get<InsertWorksService>(InsertWorksService);
-    updateWorkService = module.get<UpdateWorkService>(UpdateWorkService);
+    handleWorkUpdateService = module.get<HandleWorkUpdateService>(
+      HandleWorkUpdateService,
+    );
   });
 
   it('Should be defined', () => {
@@ -84,13 +91,14 @@ describe('WorksController', () => {
         idStatus: undefined,
         idTipo: undefined,
         page: 0,
+        insufficientPermission: true,
       };
 
       jest
         .spyOn(getAllWorksService, 'getAllWorks')
         .mockResolvedValue(mockAllWorks);
 
-      const result = await worksController.getAllWorks(worksDTO);
+      const result = await worksController.getAllWorks(worksDTO, mockReq);
 
       const expectedResponse = {
         statusCode: HttpStatus.OK,
@@ -119,13 +127,14 @@ describe('WorksController', () => {
         idStatus: undefined,
         idTipo: undefined,
         page: 1,
+        insufficientPermission: true,
       };
 
       jest
         .spyOn(getCompletedWorksService, 'getCompletedWorks')
         .mockResolvedValue(mockWorksInPortfolio);
 
-      const result = await worksController.GetCompletedWorks(worksDTO);
+      const result = await worksController.GetCompletedWorks(worksDTO, mockReq);
 
       const expectedResponse = {
         statusCode: HttpStatus.OK,
@@ -156,13 +165,17 @@ describe('WorksController', () => {
         idStatus: undefined,
         idTipo: undefined,
         page: 1,
+        insufficientPermission: true,
       };
 
       jest
         .spyOn(getWorksInPortfolio, 'getWorksInPortfolio')
         .mockResolvedValue(mockWorksInPortfolio);
 
-      const result = await worksController.getWorksInPortfolio(worksDTO);
+      const result = await worksController.getWorksInPortfolio(
+        worksDTO,
+        mockReq,
+      );
 
       const expectedResponse = {
         statusCode: HttpStatus.OK,
@@ -244,21 +257,25 @@ describe('WorksController', () => {
 
   describe('Update', () => {
     it('Should be call the method Update and return the correctly data', async () => {
-      jest.spyOn(updateWorkService, 'update').mockResolvedValue();
+      jest.spyOn(handleWorkUpdateService, 'update').mockResolvedValue();
 
-      const result = await worksController.Update(1, {
-        id_turma: 1,
-        id_status: 4,
-        tipo_ads: 'Convencional',
-        data_empreitamento: new Date('05-17-2025'),
-      });
+      const result = await worksController.Update(
+        1,
+        {
+          id_turma: 1,
+          id_status: 4,
+          tipo_ads: 'Convencional',
+          data_empreitamento: new Date('05-17-2025'),
+        },
+        mockReq,
+      );
 
       const expectedResponse = {
         statusCode: HttpStatus.NO_CONTENT,
         message: 'Obras atualizada com sucesso',
       };
 
-      expect(updateWorkService.update).toHaveBeenCalledWith(
+      expect(handleWorkUpdateService.update).toHaveBeenCalledWith(
         {
           id_turma: 1,
           id_status: 4,
@@ -266,6 +283,7 @@ describe('WorksController', () => {
           data_empreitamento: new Date('05-17-2025'),
         },
         1,
+        true,
       );
       expect(result).toEqual(expectedResponse);
     });

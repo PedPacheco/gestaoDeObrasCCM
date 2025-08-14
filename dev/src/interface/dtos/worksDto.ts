@@ -1,6 +1,7 @@
 import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
+  IsBoolean,
   IsDate,
   IsIn,
   IsNumber,
@@ -45,9 +46,17 @@ export class GetAllWorksDTO {
   @IsNumber()
   @Type(() => Number)
   page: number;
+
+  @IsOptional()
+  @IsBoolean()
+  insufficientPermission: boolean;
 }
 
 export class GetWorksDTO {
+  @IsOptional()
+  @IsBoolean()
+  insufficientPermission: boolean;
+
   @IsOptional()
   @IsNumber()
   @Type(() => Number)

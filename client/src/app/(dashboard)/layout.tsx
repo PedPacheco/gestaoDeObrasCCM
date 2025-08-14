@@ -1,5 +1,6 @@
 import { BreadcrumpsComponent } from "@/components/common/Breadcrumbs";
 import { Header } from "@/components/layout/Header";
+import { UserProvider } from "@/contexts/userContext";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 
 export default function DashboardLayout({
