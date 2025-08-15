@@ -252,8 +252,6 @@ export default function TabPanel({
     setOpenConfimartionModalExecution(true);
   }, []);
 
-  console.log(validatedSchedule);
-
   return (
     <div className="w-full flex justify-center items-start">
       <div className="w-[95%] mx-auto max-h-[620px] shadow-lg flex flex-col overflow-hidden">
