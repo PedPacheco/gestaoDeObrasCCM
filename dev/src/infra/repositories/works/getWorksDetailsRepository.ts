@@ -86,6 +86,11 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
             tecnicos: { select: { tecnico: true } },
             programacoes_restricao_execucao: { select: { restricao: true } },
             nome_responsavel_execucao: true,
+            confirmada: true,
+            validada: true,
+            status_programacao: {
+              select: { status_programacao: true },
+            },
           },
         },
       },

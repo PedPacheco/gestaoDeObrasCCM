@@ -19,7 +19,7 @@ export class PermissionGuard implements CanActivate {
 
     if (user.permissao_visualizacao === 'parcial') {
       throw new UnauthorizedException(
-        'Usuário não tem permissão para acessar está página',
+        'Usuário não tem permissão para acessar este recurso.',
       );
     }
 

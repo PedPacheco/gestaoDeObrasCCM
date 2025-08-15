@@ -1,3 +1,7 @@
+interface ScheduleStatus {
+  status_programacao: string;
+}
+
 export interface Schedules {
   id: number;
   data_prog: Date;
@@ -16,6 +20,9 @@ export interface Schedules {
   tecnicos: { tecnico: string | null };
   programacoes_restricao_execucao: { restricao: string | null };
   nome_responsavel_execucao: string | null;
+  confirmada: boolean;
+  validada: boolean;
+  status_programacao: ScheduleStatus;
 }
 
 export interface GetWorksDetailsResponse {

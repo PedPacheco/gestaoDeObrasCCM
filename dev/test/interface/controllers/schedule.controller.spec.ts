@@ -1,17 +1,15 @@
+import { HandleSchedulesUpdateService } from 'src/application/orchestrators/handleSchedulesUpdate.service';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { UpdateSchedulesApplicationService } from 'src/application/updateSchedulesApplication.service';
-import { ExecutionReportService } from 'src/domain/services/executionReport.service';
-import { AddSchedulesService } from 'src/domain/services/schedule/addSchedules.service';
-import { DeleteSchedulesService } from 'src/domain/services/schedule/deleteSchedules.service';
-import { GetMonthlySummaryService } from 'src/domain/services/schedule/getMonthlySummary.service';
-import { GetPendingScheduleValuesService } from 'src/domain/services/schedule/getPendingScheduleValues.service';
-import { GetScheduleRestrictionsService } from 'src/domain/services/schedule/getScheduleRestrictions.service';
-import { GetScheduleValuesService } from 'src/domain/services/schedule/getScheduleValues.service';
-import { GetTotalValuesScheduleService } from 'src/domain/services/schedule/getTotalValuesSchedule.service';
-import { GetValuesWeeklyScheduleService } from 'src/domain/services/schedule/getValuesWeeklySchedule.service';
-import { UpdateSchedulesService } from 'src/domain/services/schedule/updateSchedules.service';
-import { UsersService } from 'src/domain/services/users.service';
+
+import { DeleteSchedulesService } from 'src/application/schedule/deleteSchedules.service';
+import { GetMonthlySummaryService } from 'src/application/schedule/getMonthlySummary.service';
+import { GetPendingScheduleValuesService } from 'src/application/schedule/getPendingScheduleValues.service';
+import { GetScheduleRestrictionsService } from 'src/application/schedule/getScheduleRestrictions.service';
+import { GetScheduleValuesService } from 'src/application/schedule/getScheduleValues.service';
+import { GetTotalValuesScheduleService } from 'src/application/schedule/getTotalValuesSchedule.service';
+import { GetValuesWeeklyScheduleService } from 'src/application/schedule/getValuesWeeklySchedule.service';
+import { UpdateSchedulesService } from 'src/application/schedule/updateSchedules.service';
 import { ScheduleController } from 'src/interface/controllers/schedule.controller';
 import {
   SchedulesDataDTO,
@@ -23,6 +21,10 @@ import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { mockUpdateSchedulesController } from '../../../test/mocks/mockAddScheduleService';
+import { UsersService } from 'src/application/users.service';
+import { ExecutionReportService } from 'src/application/executionReport.service';
+import { HandleAddScheduleService } from 'src/application/orchestrators/handleAddSchedule.service';
+import { ValidateAndConfirmSchedulesService } from 'src/application/schedule/validateAndConfirmSchedules.service';
 
 describe('ScheduleController', () => {
   let scheduleController: ScheduleController;
@@ -32,9 +34,10 @@ describe('ScheduleController', () => {
   let getScheduleRestrictionsService: GetScheduleRestrictionsService;
   let getPendingScheduleValuesService: GetPendingScheduleValuesService;
   let getMonthlySummaryService: GetMonthlySummaryService;
-  let addSchedulesService: AddSchedulesService;
-  let updateSchedulesService: UpdateSchedulesApplicationService;
+  let handleSchedulesUpdateService: HandleSchedulesUpdateService;
   let deleteSchedulesService: DeleteSchedulesService;
+  let handleAddScheduleService: HandleAddScheduleService;
+  let validateAndConfirmSchedulesService: ValidateAndConfirmSchedulesService;
 
   const mockScheduleData: GetScheduleValuesResponse = {
     works: [
@@ -79,6 +82,13 @@ describe('ScheduleController', () => {
     },
   };
 
+  const mockReq = {
+    insufficientPermission: true,
+    headers: {
+      authorization: 'Bearer fake-token',
+    },
+  };
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       controllers: [ScheduleController],
@@ -120,13 +130,18 @@ describe('ScheduleController', () => {
             getSecondSummary: jest.fn(),
           },
         },
-        { provide: AddSchedulesService, useValue: { add: jest.fn() } },
+        { provide: HandleAddScheduleService, useValue: { add: jest.fn() } },
         { provide: UpdateSchedulesService, useValue: { update: jest.fn() } },
         { provide: DeleteSchedulesService, useValue: { delete: jest.fn() } },
         { provide: UsersService, useValue: { findUser: jest.fn() } },
         { provide: ExecutionReportService, useValue: { create: jest.fn() } },
+        { provide: HandleAddScheduleService, useValue: { add: jest.fn() } },
         {
-          provide: UpdateSchedulesApplicationService,
+          provide: ValidateAndConfirmSchedulesService,
+          useValue: { validate: jest.fn(), confirm: jest.fn() },
+        },
+        {
+          provide: HandleSchedulesUpdateService,
           useValue: { update: jest.fn() },
         },
       ],
@@ -152,13 +167,19 @@ describe('ScheduleController', () => {
     getMonthlySummaryService = module.get<GetMonthlySummaryService>(
       GetMonthlySummaryService,
     );
-    addSchedulesService = module.get<AddSchedulesService>(AddSchedulesService);
-    updateSchedulesService = module.get<UpdateSchedulesApplicationService>(
-      UpdateSchedulesApplicationService,
+    handleAddScheduleService = module.get<HandleAddScheduleService>(
+      HandleAddScheduleService,
+    );
+    handleSchedulesUpdateService = module.get<HandleSchedulesUpdateService>(
+      HandleSchedulesUpdateService,
     );
     deleteSchedulesService = module.get<DeleteSchedulesService>(
       DeleteSchedulesService,
     );
+    validateAndConfirmSchedulesService =
+      module.get<ValidateAndConfirmSchedulesService>(
+        ValidateAndConfirmSchedulesService,
+      );
   });
 
   it('Should be defined', () => {
@@ -481,7 +502,7 @@ describe('ScheduleController', () => {
   });
 
   it('Should call addSchedules and return message', async () => {
-    jest.spyOn(addSchedulesService, 'add').mockResolvedValue();
+    jest.spyOn(handleAddScheduleService, 'add').mockResolvedValue();
 
     const date = new Date('2025-06-10T00:00:00.000Z');
 
@@ -498,7 +519,7 @@ describe('ScheduleController', () => {
       statusCode: HttpStatus.CREATED,
       message: 'Programação inserida com sucesso',
     });
-    expect(addSchedulesService.add).toHaveBeenCalledWith({
+    expect(handleAddScheduleService.add).toHaveBeenCalledWith({
       idWork: 3146044,
       dataProg: date,
       startTime: '08:00',
@@ -509,19 +530,21 @@ describe('ScheduleController', () => {
   });
 
   it('Should call updateSchedules and return message', async () => {
-    jest.spyOn(updateSchedulesService, 'update').mockResolvedValue();
+    jest.spyOn(handleSchedulesUpdateService, 'update').mockResolvedValue();
 
     const result = await scheduleController.updateSchedules(
       1,
       mockUpdateSchedulesController,
+      mockReq,
     );
 
     expect(result).toEqual({
       statusCode: HttpStatus.NO_CONTENT,
       message: 'Atualização da programação feita com sucesso',
     });
-    expect(updateSchedulesService.update).toHaveBeenCalledWith(
+    expect(handleSchedulesUpdateService.update).toHaveBeenCalledWith(
       mockUpdateSchedulesController,
+      true,
     );
   });
 
@@ -535,6 +558,40 @@ describe('ScheduleController', () => {
       message: 'Programação excluída com sucesso',
     });
     expect(deleteSchedulesService.delete).toHaveBeenCalledWith(1);
+  });
+
+  it('should call validate and return message', async () => {
+    jest
+      .spyOn(validateAndConfirmSchedulesService, 'validate')
+      .mockResolvedValue();
+
+    const result = await scheduleController.validateSchedules([
+      { id: 2, validate: true },
+    ]);
+
+    expect(result).toEqual({
+      statusCode: HttpStatus.NO_CONTENT,
+      message: 'Programações validadas com sucesso',
+    });
+    expect(validateAndConfirmSchedulesService.validate).toHaveBeenCalledTimes(
+      1,
+    );
+  });
+
+  it('should call confirm and return message', async () => {
+    jest
+      .spyOn(validateAndConfirmSchedulesService, 'confirm')
+      .mockResolvedValue();
+
+    const result = await scheduleController.confirmSchedules([
+      { id: 2, confirm: true },
+    ]);
+
+    expect(result).toEqual({
+      statusCode: HttpStatus.NO_CONTENT,
+      message: 'Programações confirmadas com sucesso',
+    });
+    expect(validateAndConfirmSchedulesService.confirm).toHaveBeenCalledTimes(1);
   });
 
   describe('DTO Validation', () => {

@@ -442,10 +442,14 @@ model programacoes {
   observacao_restricao            String?                 @db.VarChar(255)
   observacao_execucao             String?                 @db.VarChar(255)
   id_tecnico                      Int                     @default(1)
+  id_status_programacao           Int                     @default(1)
+  validada                        Boolean                 @default(false)
+  confirmada                      Boolean                 @default(false)
   obras                           obras                   @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
   programacoes_restricao_execucao restricoes              @relation("programacoes_restricao_execucao", fields: [id_restricao_execucao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_execucao")
   programacoes_restricao_prog1    restricoes              @relation("programacoes_restricao_prog1", fields: [id_restricao_prog1], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_prog1")
   programacoes_restricao_prog2    restricoes?             @relation("programacoes_restricao_prog2", fields: [id_restricao_prog2], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_prog2")
+  status_programacao              status_programacao      @relation(fields: [id_status_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_status_programacao")
   tecnicos                        tecnicos                @relation(fields: [id_tecnico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tecnicos")
   programacoes_servicos           programacoes_servicos[]
   relatorio_execucao              relatorio_execucao[]
@@ -856,6 +860,12 @@ model relatorio_execucao {
   obras                           obras        @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obra")
   programacoes                    programacoes @relation(fields: [id_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_programacao")
   usuario                         usuario      @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario")
+}
+
+model status_programacao {
+  id                 Int            @id @default(autoincrement())
+  status_programacao String         @db.VarChar(30)
+  programacoes       programacoes[]
 }
 
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.

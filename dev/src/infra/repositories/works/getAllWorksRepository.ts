@@ -14,8 +14,19 @@ export class GetAllWorksRepository implements IGetAllWorksRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   private applyFilters(query: Prisma.Sql, filters: GetAllWorksDTO) {
-    const { idGrupo, idMunicipio, idParceira, idRegional, idStatus, idTipo } =
-      filters;
+    const {
+      idGrupo,
+      idMunicipio,
+      idParceira,
+      idRegional,
+      idStatus,
+      idTipo,
+      insufficientPermission,
+    } = filters;
+
+    if (insufficientPermission) {
+      query = Prisma.sql`${query} AND status.id != 42`;
+    }
 
     if (idRegional && idRegional.length > 0) {
       query = Prisma.sql`${query} AND municipios.id_regional IN (${Prisma.join(idRegional)})`;

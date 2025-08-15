@@ -1,15 +1,15 @@
 import { Response } from 'express';
-import { ExportCompletedWorksService } from 'src/domain/services/export/exportCompletedWorks.service';
-import { ExportScheduleService } from 'src/domain/services/export/exportSchedule.service';
-import { ExportWorksInPortfolioService } from 'src/domain/services/export/exportWorksInPortfolio.service';
-import { GetScheduleValuesService } from 'src/domain/services/schedule/getScheduleValues.service';
-import { GetCompletedWorksService } from 'src/domain/services/works/getCompletedWorks.service';
-import { GetWorksInPortfolioService } from 'src/domain/services/works/getWorksInPortfolio.service';
+import { ExportCompletedWorksService } from 'src/application/export/exportCompletedWorks.service';
+import { ExportScheduleService } from 'src/application/export/exportSchedule.service';
+import { ExportWorksInPortfolioService } from 'src/application/export/exportWorksInPortfolio.service';
+import { GetScheduleValuesService } from 'src/application/schedule/getScheduleValues.service';
 import { ExportController } from 'src/interface/controllers/export.controller';
 import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
 import { worksInPortfolioResponseService } from 'src/interface/types/works/getWorksInPortfolioInterface';
 
 import { Test } from '@nestjs/testing';
+import { GetWorksInPortfolioService } from 'src/application/works/getWorksInPortfolio.service';
+import { GetCompletedWorksService } from 'src/application/works/getCompletedWorks.service';
 
 describe('ExportController', () => {
   let controller: ExportController;
@@ -212,6 +212,7 @@ describe('ExportController', () => {
 
   it('Should call exportWorksInPortfolio and return the excel file', async () => {
     const mockFilters = {
+      insufficientPermission: true,
       data: '09/04/2024',
       tipoFiltro: 'dia',
       idCircuito: undefined,
@@ -261,6 +262,7 @@ describe('ExportController', () => {
 
   it('Should call exportCompletedWorks and return the excel file', async () => {
     const mockFilters = {
+      insufficientPermission: true,
       data: '09/04/2024',
       tipoFiltro: 'dia',
       idCircuito: undefined,

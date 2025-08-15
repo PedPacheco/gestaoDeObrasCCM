@@ -179,9 +179,14 @@ export const validationSchedulesSchema = (
     })
     .check((ctx) => {
       const { exec, executionReport, finishTime } = ctx.value;
+
       const execAlterado = exec !== initialExecValue;
 
-      if (execAlterado && executionReport && initialExecValue !== "null") {
+      if (
+        execAlterado &&
+        executionReport &&
+        (initialExecValue !== "null" || initialExecValue !== null)
+      ) {
         const result = executionReportSchema.safeParse(executionReport);
 
         if (!result.success) {

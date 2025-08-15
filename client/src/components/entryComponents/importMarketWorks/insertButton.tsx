@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Cookies } from "react-cookie";
 
-import { InsertMarketWorks } from "@/actions/insertMarketWorks";
+import { InsertWorks } from "@/actions/works";
 import { ButtonComponent } from "@/components/common/Button";
 import ErrorModal from "@/components/common/ErrorModal";
 import ModalComponent from "@/components/common/Modal";
@@ -70,7 +70,7 @@ export function InsertMarketWorksButton({
           }));
         }
 
-        const res = await InsertMarketWorks(data, storageKey);
+        const res = await InsertWorks(data, storageKey);
 
         if (!res.success) {
           setError(res.error);

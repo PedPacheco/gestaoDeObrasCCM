@@ -1,11 +1,6 @@
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
-import { GetAllWorksService } from 'src/domain/services/works/getAllWorks.service';
-import { GetCompletedWorksService } from 'src/domain/services/works/getCompletedWorks.service';
-import { GetWorkDetailsService } from 'src/domain/services/works/getWorkDetails.service';
-import { GetWorksInPortfolioService } from 'src/domain/services/works/getWorksInPortfolio.service';
-import { InsertWorksService } from 'src/domain/services/works/InsertWorks.service';
-import { UpdateWorkService } from 'src/domain/services/works/updateWork.service';
+
 import {
   GetAllWorksDTO,
   GetWorksDTO,
@@ -22,10 +17,17 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 
 import { InsertMarketWorksDTO, InsertNotesDTO } from '../dtos/auxiliaryBaseDTO';
+import { GetWorksInPortfolioService } from 'src/application/works/getWorksInPortfolio.service';
+import { GetAllWorksService } from 'src/application/works/getAllWorks.service';
+import { GetCompletedWorksService } from 'src/application/works/getCompletedWorks.service';
+import { GetWorkDetailsService } from 'src/application/works/getWorkDetails.service';
+import { InsertWorksService } from 'src/application/works/InsertWorks.service';
+import { HandleWorkUpdateService } from 'src/application/orchestrators/handleWorkUpdate.service';
 
 @Controller('obras')
 export class WorksController {
@@ -35,12 +37,20 @@ export class WorksController {
     private getCompletedWorksService: GetCompletedWorksService,
     private getWorkDetailsService: GetWorkDetailsService,
     private insertWorksService: InsertWorksService,
-    private updateWorkService: UpdateWorkService,
+    private handleWorkUpdateService: HandleWorkUpdateService,
   ) {}
 
   @Get()
   @UseGuards(PermissionGuard)
-  async getAllWorks(@Query() worksFilters: GetAllWorksDTO) {
+  async getAllWorks(@Query() worksFilters: GetAllWorksDTO, @Req() req: any) {
+    if (req.idRegional) {
+      worksFilters.idRegional = req.idRegional;
+    }
+
+    if (req.insufficientPermission !== undefined) {
+      worksFilters.insufficientPermission = req.insufficientPermission;
+    }
+
     const response = await this.getAllWorksService.getAllWorks(worksFilters);
 
     return {
@@ -52,7 +62,18 @@ export class WorksController {
 
   @Get('obras-carteira')
   @UseGuards(VisualizationGuard)
-  async getWorksInPortfolio(@Query() worksFilters: GetWorksDTO) {
+  async getWorksInPortfolio(
+    @Query() worksFilters: GetWorksDTO,
+    @Req() req: any,
+  ) {
+    if (req.idRegional) {
+      worksFilters.idRegional = req.idRegional;
+    }
+
+    if (req.insufficientPermission !== undefined) {
+      worksFilters.insufficientPermission = req.insufficientPermission;
+    }
+
     const response =
       await this.getWorksInPortfolioService.getWorksInPortfolio(worksFilters);
 
@@ -65,7 +86,15 @@ export class WorksController {
 
   @Get('obras-executadas')
   @UseGuards(VisualizationGuard)
-  async GetCompletedWorks(@Query() worksFilters: GetWorksDTO) {
+  async GetCompletedWorks(@Query() worksFilters: GetWorksDTO, @Req() req: any) {
+    if (req.idRegional) {
+      worksFilters.idRegional = req.idRegional;
+    }
+
+    if (req.insufficientPermission !== undefined) {
+      worksFilters.insufficientPermission = req.insufficientPermission;
+    }
+
     const response =
       await this.getCompletedWorksService.getCompletedWorks(worksFilters);
 
@@ -115,12 +144,15 @@ export class WorksController {
   }
 
   @Patch(':id')
-  @UseGuards(PermissionGuard)
+  @UseGuards(VisualizationGuard)
   async Update(
     @Param('id', ParseIntPipe) id: number,
     @Body() data: UpdateWorkDTO,
+    @Req() req: any,
   ) {
-    await this.updateWorkService.update(data, id);
+    const insufficientPermission = req.insufficientPermission;
+
+    await this.handleWorkUpdateService.update(data, id, insufficientPermission);
 
     return {
       statusCode: HttpStatus.NO_CONTENT,
