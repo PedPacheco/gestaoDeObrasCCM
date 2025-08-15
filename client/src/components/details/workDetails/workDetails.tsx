@@ -2,18 +2,16 @@
 
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
-import { updateWork } from "@/actions/updateWork.action";
+import { ButtonComponent } from "@/components/common/Button";
 import ErrorModal from "@/components/common/ErrorModal";
 import ModalComponent from "@/components/common/Modal";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import DataItem from "./dataItem";
 import { EditableColumn } from "./editableColumn";
-import { ButtonComponent } from "@/components/common/Button";
+import { updateWork } from "@/actions/works";
 
 dayjs.extend(customParseFormat);
 
@@ -66,7 +64,6 @@ export function WorkDetails({
   formattedData,
   options,
 }: WorkDetailsProps) {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -101,8 +98,6 @@ export function WorkDetails({
         setChangedFields(undefined);
         setSuccess(response.message);
         setOpenModal(true);
-
-        router.refresh();
       } catch (error: any) {
         setError("Erro de conexão. Tente novamente.");
       }

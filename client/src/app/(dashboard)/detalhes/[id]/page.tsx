@@ -92,6 +92,7 @@ export default async function Details({
           <TabPanel
             workData={data}
             options={options}
+            id={id}
             executionReportData={executionReportData.data}
           />
         </div>

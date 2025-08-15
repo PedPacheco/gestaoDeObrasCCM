@@ -109,7 +109,7 @@ export async function deleteSchedule(id: number, idWork: number) {
 
 export async function ValidatedSchedule(
   data: { id: number; validate: boolean }[],
-  idWork: number
+  idWork: string
 ) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
@@ -129,7 +129,7 @@ export async function ValidatedSchedule(
 
     const res = await result.json();
 
-    if (res.statusCode !== 200) {
+    if (res.statusCode !== 204) {
       return {
         success: false,
         error: res.message || "Erro ao validar programações",
@@ -147,7 +147,7 @@ export async function ValidatedSchedule(
 
 export async function ConfirmedSchedule(
   data: { id: number; confirm: boolean }[],
-  idWork: number
+  idWork: string
 ) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
@@ -167,7 +167,7 @@ export async function ConfirmedSchedule(
 
     const res = await result.json();
 
-    if (res.statusCode !== 200) {
+    if (res.statusCode !== 204) {
       return {
         success: false,
         error: res.message || "Erro ao confirmar programações",

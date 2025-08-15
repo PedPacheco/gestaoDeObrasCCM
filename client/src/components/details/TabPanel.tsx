@@ -39,6 +39,7 @@ interface TabPanelProps {
   workData: Record<string, any>;
   executionReportData: Record<string, any>[];
   options: any;
+  id: string;
 }
 
 function CustomTabPanel(props: CustomTabPanelProps) {
@@ -62,6 +63,7 @@ export default function TabPanel({
   workData,
   options,
   executionReportData,
+  id,
 }: TabPanelProps) {
   const { permissions } = useUser();
   const [value, setValue] = useState(0);
@@ -203,7 +205,7 @@ export default function TabPanel({
   const handleValidated = useCallback(() => {
     startTransition(async () => {
       try {
-        const response = await ValidatedSchedule(validatedSchedule, data.id);
+        const response = await ValidatedSchedule(validatedSchedule, id);
 
         if (!response.success) {
           setError(response.error);
@@ -218,12 +220,12 @@ export default function TabPanel({
         setError(error.message);
       }
     });
-  }, [data.id, validatedSchedule]);
+  }, [id, validatedSchedule]);
 
   const handleConfirm = useCallback(() => {
     startTransition(async () => {
       try {
-        const response = await ConfirmedSchedule(confirmedSchedule, data?.id);
+        const response = await ConfirmedSchedule(confirmedSchedule, id);
 
         if (!response.success) {
           setError(response.error);
@@ -238,7 +240,7 @@ export default function TabPanel({
         setError(error.message);
       }
     });
-  }, [confirmedSchedule, data?.id]);
+  }, [confirmedSchedule, id]);
 
   const toggleConfimartionModal = useCallback((id: number) => {
     setIdSchedule(id);
