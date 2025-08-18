@@ -3,6 +3,7 @@
 import { useUser } from "@/contexts/userContext";
 import DataItem from "./dataItem";
 import { SelectComponent } from "@/components/common/Select";
+import { useEffect } from "react";
 
 interface typeData {
   id_turma: string;
@@ -20,12 +21,28 @@ interface EditableColumnProps {
   onHandleChange: (field: string, value: string) => void;
 }
 
+const statusOrder = [
+  "EM EMPREITAMENTO",
+  "AGUARDANDO PROGRAMAÇÃO",
+  "AGUARDANDO VALIDAÇÃO EDP",
+  "EM PROGRAMAÇÃO",
+  "PROGRAMADO",
+  "EXECUTADA",
+  "CANCELADA",
+  "SUSPENSA",
+  "REPROGRAMAR",
+];
+
 export const EditableColumn = ({
   data,
   options,
   onHandleChange,
 }: EditableColumnProps) => {
   const { permissions = { permissao_visualizacao: "total" } } = useUser();
+
+  const sortedStatus = options.status.sort(
+    (a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status)
+  );
 
   return (
     <>
@@ -41,7 +58,7 @@ export const EditableColumn = ({
 
       <SelectComponent
         label="Status"
-        menuItems={options.status}
+        menuItems={sortedStatus}
         selectedItem={data.id_status || "1"}
         setSelectedItem={(value) => onHandleChange("id_status", value)}
         valueKey="id"

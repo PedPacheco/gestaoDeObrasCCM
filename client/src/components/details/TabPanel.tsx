@@ -284,7 +284,7 @@ export default function TabPanel({
                   <ButtonComponent
                     onClick={handleValidated}
                     disabled={
-                      data.id_status !== 43 &&
+                      data.id_status !== 43 ||
                       permissions?.permissao_visualizacao !== "parcial"
                     }
                     text="Validar programação"
@@ -295,7 +295,7 @@ export default function TabPanel({
                   <ButtonComponent
                     onClick={handleConfirm}
                     disabled={
-                      data.id_status !== 37 &&
+                      data.id_status !== 37 ||
                       permissions?.permissao_visualizacao !== "parcial"
                     }
                     text="Confirmar programação"
