@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 interface DataItemProps {
   label?: string;
   value: string;
@@ -7,6 +9,7 @@ interface DataItemProps {
   background?: string;
   isEdit?: boolean;
   onEdit?: (item: string) => void;
+  disabled?: boolean;
 }
 
 function formatDateMask(value: string): string {
@@ -24,11 +27,18 @@ export default function DataItem({
   background,
   isEdit,
   onEdit,
+  disabled,
 }: DataItemProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <div
       className={`flex items-center justify-between mb-3 max-w-96 w-[342px] h-10 border border-zinc-700 border-solid rounded-md ${
-        isEdit ? "bg-white" : "bg-zinc-200"
+        isEdit && !disabled && mounted ? "bg-white" : "bg-zinc-200"
       }`}
     >
       {label && (
@@ -37,7 +47,7 @@ export default function DataItem({
         </p>
       )}
 
-      {isEdit ? (
+      {isEdit && !disabled && mounted ? (
         <input
           type="text"
           value={value || ""}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useUser } from "@/contexts/userContext";
 import DataItem from "./dataItem";
 import { SelectComponent } from "@/components/common/Select";
 
@@ -24,6 +25,8 @@ export const EditableColumn = ({
   options,
   onHandleChange,
 }: EditableColumnProps) => {
+  const { permissions = { permissao_visualizacao: "total" } } = useUser();
+
   return (
     <>
       <SelectComponent
@@ -33,6 +36,7 @@ export const EditableColumn = ({
         setSelectedItem={(value) => onHandleChange("id_turma", value)}
         valueKey="id"
         displayKey="turma"
+        disabled={permissions?.permissao_visualizacao === "parcial"}
       />
 
       <SelectComponent
@@ -42,6 +46,7 @@ export const EditableColumn = ({
         setSelectedItem={(value) => onHandleChange("id_status", value)}
         valueKey="id"
         displayKey="status"
+        disabled={permissions?.permissao_visualizacao === "parcial"}
       />
 
       <DataItem
@@ -49,6 +54,7 @@ export const EditableColumn = ({
         value={data.data_empreitamento || ""}
         isEdit={true}
         onEdit={(value) => onHandleChange("data_empreitamento", value)}
+        disabled={permissions?.permissao_visualizacao === "parcial"}
       />
 
       <SelectComponent
@@ -62,7 +68,7 @@ export const EditableColumn = ({
         setSelectedItem={(value) => onHandleChange("tipo_ads", value)}
         valueKey="tipo"
         displayKey="tipo"
-        // disabled={!!data.tipo_ads}
+        disabled={permissions?.permissao_visualizacao === "parcial"}
       />
     </>
   );
