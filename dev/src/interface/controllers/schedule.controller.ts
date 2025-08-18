@@ -204,8 +204,6 @@ export class ScheduleController {
       executionReportData: { ...schedulesData.executionReportData },
     };
 
-    console.log(id);
-
     await this.handleSchedulesUpdateService.update(data, permission);
 
     return {
