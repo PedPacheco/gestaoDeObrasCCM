@@ -1,7 +1,9 @@
 "use client";
 
+import { useUser } from "@/contexts/userContext";
 import DataItem from "./dataItem";
 import { SelectComponent } from "@/components/common/Select";
+import { useEffect } from "react";
 
 interface typeData {
   id_turma: string;
@@ -19,11 +21,29 @@ interface EditableColumnProps {
   onHandleChange: (field: string, value: string) => void;
 }
 
+const statusOrder = [
+  "EM EMPREITAMENTO",
+  "AGUARDANDO PROGRAMAÇÃO",
+  "AGUARDANDO VALIDAÇÃO EDP",
+  "EM PROGRAMAÇÃO",
+  "PROGRAMADO",
+  "EXECUTADA",
+  "CANCELADA",
+  "SUSPENSA",
+  "REPROGRAMAR",
+];
+
 export const EditableColumn = ({
   data,
   options,
   onHandleChange,
 }: EditableColumnProps) => {
+  const { permissions = { permissao_visualizacao: "total" } } = useUser();
+
+  const sortedStatus = options.status.sort(
+    (a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status)
+  );
+
   return (
     <>
       <SelectComponent
@@ -33,15 +53,17 @@ export const EditableColumn = ({
         setSelectedItem={(value) => onHandleChange("id_turma", value)}
         valueKey="id"
         displayKey="turma"
+        disabled={permissions?.permissao_visualizacao === "parcial"}
       />
 
       <SelectComponent
         label="Status"
-        menuItems={options.status}
+        menuItems={sortedStatus}
         selectedItem={data.id_status || "1"}
         setSelectedItem={(value) => onHandleChange("id_status", value)}
         valueKey="id"
         displayKey="status"
+        disabled={permissions?.permissao_visualizacao === "parcial"}
       />
 
       <DataItem
@@ -49,6 +71,7 @@ export const EditableColumn = ({
         value={data.data_empreitamento || ""}
         isEdit={true}
         onEdit={(value) => onHandleChange("data_empreitamento", value)}
+        disabled={permissions?.permissao_visualizacao === "parcial"}
       />
 
       <SelectComponent
@@ -62,7 +85,7 @@ export const EditableColumn = ({
         setSelectedItem={(value) => onHandleChange("tipo_ads", value)}
         valueKey="tipo"
         displayKey="tipo"
-        // disabled={!!data.tipo_ads}
+        disabled={permissions?.permissao_visualizacao === "parcial"}
       />
     </>
   );

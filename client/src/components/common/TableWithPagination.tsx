@@ -51,7 +51,7 @@ export function TableWithPagination({
   const router = useRouter();
 
   return (
-    <Paper className="mb-6 w-[95%] min-h-96 h-[720px] lg:h-[560px] xl:h-[630px] max-h-[880px] lg:max-h-[680px] xl:max-h-[90%]">
+    <Paper className="mb-6 w-[95%] min-h-96 h-[720px] lg:h-[560px] xl:h-[90%] max-h-[880px] lg:max-h-[680px] xl:max-h-[90%]">
       <TableContainer className="overflow-y-auto max-h-[calc(100%-56px)]">
         <Table stickyHeader>
           <TableHead>
