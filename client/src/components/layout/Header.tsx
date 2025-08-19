@@ -10,11 +10,11 @@ import { Bars3Icon } from "@heroicons/react/20/solid";
 import { Sidebar } from "./Sidebar";
 
 export function Header() {
-  const [open, SetOpen] = useState<boolean>(false);
+  const [open, setOpen] = useState<boolean>(false);
   const pathname = usePathname();
 
   function changeOpen() {
-    SetOpen(!open);
+    setOpen(!open);
   }
 
   return (

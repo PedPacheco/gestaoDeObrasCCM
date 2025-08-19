@@ -135,7 +135,7 @@ describe('ExportController', () => {
       idTipo: [1],
       idParceira: [1],
       executado: false,
-      page: 1,
+      ovnota: '13243',
     };
 
     const mockScheduleData: GetScheduleValuesResponse = {

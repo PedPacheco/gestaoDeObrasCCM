@@ -75,7 +75,7 @@ describe('GetScheduleValues', () => {
       idParceira: [1],
       idRegional: [1],
       idTipo: [1],
-      page: 1,
+      ovnota: '1343',
     };
 
     mockRepository.getValues.mockResolvedValueOnce({
@@ -99,7 +99,7 @@ describe('GetScheduleValues', () => {
       idParceira: undefined,
       idRegional: undefined,
       idTipo: undefined,
-      page: undefined,
+      ovnota: undefined,
     };
 
     mockRepository.getValues.mockResolvedValueOnce({
