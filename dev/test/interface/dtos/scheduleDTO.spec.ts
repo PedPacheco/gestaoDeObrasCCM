@@ -22,12 +22,12 @@ describe('ScheduleDTO', () => {
     const getScheduleValuesFilters = {
       data: '01/2025',
       tipoFiltro: 'month',
-      page: '0',
       idRegional: '1',
       idMunicipio: '1',
       idGrupo: '1',
       idTipo: '1',
       idParceira: '1',
+      ovnota: '123543',
       executado: 'false',
     };
 
@@ -90,7 +90,7 @@ describe('ScheduleDTO', () => {
     expect(getScheduleValuesInstance).toEqual({
       data: '01/2025',
       tipoFiltro: 'month',
-      page: 0,
+      ovnota: '123543',
       idRegional: [1],
       idMunicipio: [1],
       idGrupo: [1],

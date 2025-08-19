@@ -281,7 +281,7 @@ describe('ScheduleController', () => {
       idTipo: [1],
       idParceira: [1],
       executado: false,
-      page: 1,
+      ovnota: '3434',
     };
 
     jest

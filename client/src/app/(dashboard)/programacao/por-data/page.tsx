@@ -20,10 +20,11 @@ export default async function ScheduleForDay() {
     data:
       params?.filterType === "day"
         ? dayjs(params?.date).format("DD/MM/YYYY")
-        : dayjs(params?.date).format("MM/YYYY"),
-    tipoFiltro: params?.filterType || "month",
+        : params?.filterType === "month"
+        ? dayjs(params?.date).format("MM/YYYY")
+        : "",
+    tipoFiltro: params?.filterType || "",
     executado: params?.executed || "false",
-    page: "0",
   };
 
   const [filters, scheduleData] = await Promise.all([
@@ -58,6 +59,7 @@ export default async function ScheduleForDay() {
     mo_planejada: "MO planejada",
     turma: "Parceira",
     executado: "Executado",
+    status_programacao: "Status da programação",
     data_prog: "Data programada",
     prog: "% Programado",
     exec: "% Executado",

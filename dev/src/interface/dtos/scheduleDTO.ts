@@ -50,15 +50,12 @@ export class GetTotalValuesScheduleDTO {
 
 export class GetScheduleValuesDTO {
   @IsString()
-  data: string;
+  @IsOptional()
+  data?: string;
 
   @IsString()
-  tipoFiltro: string;
-
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  page: number;
+  tipoFiltro?: string;
 
   @IsOptional()
   @IsArray()
@@ -84,6 +81,10 @@ export class GetScheduleValuesDTO {
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
   idParceira: number[];
+
+  @IsOptional()
+  @IsString()
+  ovnota: string;
 
   @IsBoolean()
   @Transform(({ value }) =>

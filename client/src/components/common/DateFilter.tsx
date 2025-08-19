@@ -33,6 +33,7 @@ export function DateFilter({
           onChange={(event) => setType(event.target.value)}
           id="tipo-filtro"
         >
+          <MenuItem value="" className="p-4"></MenuItem>
           <MenuItem value="day">Por Dia</MenuItem>
           <MenuItem value="month">Por Mês</MenuItem>
         </Select>
