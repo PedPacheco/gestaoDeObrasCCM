@@ -88,15 +88,16 @@ export default function ScheduleForDayFilters({
 
   function handleCleanigFilters() {
     setSelectedItems({});
-    setDate(dayjs());
-    setFilterType("month");
+    setDate(null);
+    setFilterType("");
     setExecuted(false);
+    setOvnota("");
 
     clearFilters();
 
     applyFilters({
-      data: dayjs().format("MM/YYYY"),
-      tipoFiltro: "month",
+      data: "",
+      tipoFiltro: "",
       executado: false,
     });
   }
@@ -144,6 +145,7 @@ export default function ScheduleForDayFilters({
           className="mb-2 lg:ml-4 lg:first:ml-0 w-full"
           size="small"
           label="Ov/nota"
+          value={ovnota}
           onChange={(event) => setOvnota(event.target.value)}
         />
 
