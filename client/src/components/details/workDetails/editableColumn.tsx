@@ -3,7 +3,6 @@
 import { useUser } from "@/contexts/userContext";
 import DataItem from "./dataItem";
 import { SelectComponent } from "@/components/common/Select";
-import { useEffect } from "react";
 
 interface typeData {
   id_turma: string;
