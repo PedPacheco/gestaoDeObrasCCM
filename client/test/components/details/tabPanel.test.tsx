@@ -1,9 +1,14 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
-import TabPanel from "@/components/details/TabPanel"; // Ajuste o caminho conforme sua estrutura
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { deleteExecutionReport } from "@/actions/executionReport.action";
-import { deleteSchedule } from "@/actions/schedules";
-import { useScheduleForm } from "@/hooks/useScheduleForm";
+import {
+  ConfirmedSchedule,
+  deleteSchedule,
+  ValidatedSchedule,
+} from "@/actions/schedules";
+import TabPanel from "@/components/details/TabPanel"; // Ajuste o caminho conforme sua estrutura
+import * as UserContextModule from "@/contexts/userContext";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 // Mock dos módulos externos
 vi.mock("@/actions/executionReport.action", () => ({
@@ -12,6 +17,8 @@ vi.mock("@/actions/executionReport.action", () => ({
 
 vi.mock("@/actions/schedules", () => ({
   deleteSchedule: vi.fn(),
+  ValidatedSchedule: vi.fn(),
+  ConfirmedSchedule: vi.fn(),
 }));
 
 // Mock do hook useScheduleForm
@@ -22,13 +29,29 @@ vi.mock("@/hooks/useScheduleForm", () => ({
   })),
 }));
 
-// Mock dos componentes filhos
 vi.mock("@/components/common/Button", () => ({
-  ButtonComponent: ({ onClick, text }: any) => (
-    <button onClick={onClick} data-testid="button-component">
-      {text}
-    </button>
-  ),
+  ButtonComponent: ({ onClick, text, disabled }: any) => {
+    if (
+      (text === "Validar programação" || text === "Confirmar programação") &&
+      disabled !== undefined
+    ) {
+      return (
+        <button
+          onClick={onClick}
+          data-testid="button-component"
+          disabled={disabled}
+        >
+          {text}
+        </button>
+      );
+    }
+
+    return (
+      <button onClick={onClick} data-testid="button-component">
+        {text}
+      </button>
+    );
+  },
 }));
 
 vi.mock("@/components/common/confirmationModal", () => ({
@@ -159,6 +182,26 @@ vi.mock("@/components/details/scheduleDialog/dialog", () => ({
     ) : null,
 }));
 
+vi.mock("@/contexts/userContext", () => {
+  return {
+    useUser: () => ({
+      user: {
+        id: 1,
+        username: "test-user",
+        id_regional: "001",
+        nome_usuario: "Test User",
+        email: "test@example.com",
+      },
+      permissions: {
+        id: 1,
+        username: "test-user",
+        permissao: "total",
+        permissao_visualizacao: "total",
+      },
+    }),
+  };
+});
+
 // Mock do React.startTransition
 vi.mock("react", async () => {
   const actual = await vi.importActual("react");
@@ -173,8 +216,27 @@ describe("TabPanel", () => {
     id: 1,
     name: "Test Work",
     programacoes: [
-      { id: 1, name: "Schedule 1", exec: "1" },
-      { id: 2, name: "Schedule 2", exec: "0" },
+      {
+        id: 1,
+        name: "Schedule 1",
+        exec: "1",
+        validate: false,
+        confirm: false,
+      },
+      {
+        id: 2,
+        name: "Schedule 2",
+        exec: "0",
+        validate: false,
+        confirm: false,
+      },
+      {
+        id: 2,
+        name: "Schedule 2",
+        exec: null,
+        validate: false,
+        confirm: true,
+      },
     ],
   };
 
@@ -192,6 +254,7 @@ describe("TabPanel", () => {
     workData: mockWorkData,
     executionReportData: mockExecutionReportData,
     options: mockOptions,
+    id: "342",
   };
 
   beforeEach(() => {
@@ -218,6 +281,60 @@ describe("TabPanel", () => {
       expect(screen.getByTestId("work-cost-panel")).toBeInTheDocument();
       expect(screen.getByText("Custos: Test Work")).toBeInTheDocument();
     });
+
+    it("Deve renderizar o botão de validação desabilitado", () => {
+      vi.spyOn(UserContextModule, "useUser").mockReturnValue({
+        user: {
+          id: 2,
+          username: "partial-user",
+          nome_usuario: "Partial User",
+          id_regional: "002",
+          email: "partial@example.com",
+        },
+        permissions: {
+          id: 2,
+          username: "partial-user",
+          permissao: "total",
+          permissao_visualizacao: "parcial",
+        },
+        login: vi.fn(),
+        setUser: vi.fn(),
+      });
+
+      const workDataProps = { ...mockWorkData, id_status: 45 };
+      render(<TabPanel {...defaultProps} workData={workDataProps} />);
+
+      fireEvent.click(screen.getByText("Programações"));
+
+      expect(screen.getByText("Validar programação")).toBeDisabled();
+    });
+
+    it("Deve renderizar o botão de confirmação desabilitado", () => {
+      vi.spyOn(UserContextModule, "useUser").mockReturnValue({
+        user: {
+          id: 2,
+          username: "partial-user",
+          nome_usuario: "Partial User",
+          id_regional: "002",
+          email: "partial@example.com",
+        },
+        permissions: {
+          id: 2,
+          username: "partial-user",
+          permissao: "total",
+          permissao_visualizacao: "parcial",
+        },
+        login: vi.fn(),
+        setUser: vi.fn(),
+      });
+
+      const workDataProps = { ...mockWorkData, id_status: 45 };
+      render(<TabPanel {...defaultProps} workData={workDataProps} />);
+
+      fireEvent.click(screen.getByText("Programações"));
+
+      expect(screen.getByText("Confirmar programação")).toBeDisabled();
+    });
   });
 
   describe("Navegação entre abas", () => {
@@ -227,7 +344,9 @@ describe("TabPanel", () => {
       fireEvent.click(screen.getByText("Programações"));
 
       expect(screen.getByTestId("schedule-panel")).toBeInTheDocument();
-      expect(screen.getByTestId("button-component")).toBeInTheDocument();
+      expect(screen.getByText("Nova programação")).toBeInTheDocument();
+      expect(screen.getByText("Validar programação")).toBeInTheDocument();
+      expect(screen.getByText("Confirmar programação")).toBeInTheDocument();
     });
 
     it("deve trocar para aba de serviços", () => {
@@ -252,7 +371,7 @@ describe("TabPanel", () => {
       render(<TabPanel {...defaultProps} />);
 
       fireEvent.click(screen.getByText("Programações"));
-      fireEvent.click(screen.getByTestId("button-component"));
+      fireEvent.click(screen.getByText("Nova programação"));
 
       expect(screen.getByTestId("schedule-dialog")).toBeInTheDocument();
     });
@@ -270,7 +389,7 @@ describe("TabPanel", () => {
       render(<TabPanel {...defaultProps} />);
 
       fireEvent.click(screen.getByText("Programações"));
-      fireEvent.click(screen.getByTestId("button-component"));
+      fireEvent.click(screen.getByText("Nova programação"));
       fireEvent.click(screen.getByTestId("schedule-dialog-close"));
 
       // O mock já está configurado para retornar as funções
@@ -320,6 +439,83 @@ describe("TabPanel", () => {
         expect(screen.getByTestId("error-modal")).toBeInTheDocument();
         expect(
           screen.getByText("Erro ao deletar schedule")
+        ).toBeInTheDocument();
+      });
+    });
+
+    it("deve chamar setSuccess e abrir modal ao validar com sucesso", async () => {
+      vi.mocked(ValidatedSchedule).mockResolvedValue({
+        success: true,
+        message: "Programações validadas com sucesso",
+      });
+
+      const workDataProps = { ...mockWorkData, id_status: 43 };
+      render(<TabPanel {...defaultProps} workData={workDataProps} />);
+
+      fireEvent.click(screen.getByText("Programações"));
+      fireEvent.click(screen.getByText("Validar programação"));
+
+      await waitFor(() => {
+        expect(ValidatedSchedule).toHaveBeenCalledWith(
+          [{ id: 2, validate: false }],
+          "342"
+        );
+      });
+    });
+
+    it("deve mostrar erro ao falhar na validação das programações", async () => {
+      vi.mocked(ValidatedSchedule).mockResolvedValue({
+        success: false,
+        error: "Não foi possível validar as programações",
+      });
+
+      const workDataProps = { ...mockWorkData, id_status: 43 };
+      render(<TabPanel {...defaultProps} workData={workDataProps} />);
+
+      fireEvent.click(screen.getByText("Programações"));
+      fireEvent.click(screen.getByText("Validar programação"));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("error-modal")).toBeInTheDocument();
+        expect(
+          screen.getByText("Não foi possível validar as programações")
+        ).toBeInTheDocument();
+      });
+    });
+
+    it("deve chamar setSuccess e abrir modal ao confimar as programações com sucesso", async () => {
+      vi.mocked(ConfirmedSchedule).mockResolvedValue({
+        success: true,
+        message: "Programações confirmadas com sucesso",
+      });
+
+      const workDataProps = { ...mockWorkData, id_status: 37 };
+      render(<TabPanel {...defaultProps} workData={workDataProps} />);
+
+      fireEvent.click(screen.getByText("Programações"));
+      fireEvent.click(screen.getByText("Confirmar programação"));
+
+      await waitFor(() => {
+        expect(ConfirmedSchedule).toHaveBeenCalledWith([], "342");
+      });
+    });
+
+    it("deve mostrar erro ao falhar na confirmação das programações", async () => {
+      vi.mocked(ConfirmedSchedule).mockResolvedValue({
+        success: false,
+        error: "Não foi possível confirmar as programações",
+      });
+
+      const workDataProps = { ...mockWorkData, id_status: 37 };
+      render(<TabPanel {...defaultProps} workData={workDataProps} />);
+
+      fireEvent.click(screen.getByText("Programações"));
+      fireEvent.click(screen.getByText("Confirmar programação"));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("error-modal")).toBeInTheDocument();
+        expect(
+          screen.getByText("Não foi possível confirmar as programações")
         ).toBeInTheDocument();
       });
     });
@@ -522,6 +718,40 @@ describe("TabPanel", () => {
       });
     });
 
+    it("deve tratar erro de exception na validação das programações", async () => {
+      vi.mocked(ValidatedSchedule).mockRejectedValue(
+        new Error("Network error")
+      );
+
+      const workDataProps = { ...mockWorkData, id_status: 43 };
+      render(<TabPanel {...defaultProps} workData={workDataProps} />);
+
+      fireEvent.click(screen.getByText("Programações"));
+      fireEvent.click(screen.getByText("Validar programação"));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("error-modal")).toBeInTheDocument();
+        expect(screen.getByText("Network error")).toBeInTheDocument();
+      });
+    });
+
+    it("deve tratar erro de exception na confirmação das programações", async () => {
+      vi.mocked(ConfirmedSchedule).mockRejectedValue(
+        new Error("Network error")
+      );
+
+      const workDataProps = { ...mockWorkData, id_status: 37 };
+      render(<TabPanel {...defaultProps} workData={workDataProps} />);
+
+      fireEvent.click(screen.getByText("Programações"));
+      fireEvent.click(screen.getByText("Confirmar programação"));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("error-modal")).toBeInTheDocument();
+        expect(screen.getByText("Network error")).toBeInTheDocument();
+      });
+    });
+
     it("deve tratar erro silencioso na deleção de execution report", async () => {
       vi.mocked(deleteExecutionReport).mockRejectedValue(
         new Error("Network error")
@@ -542,8 +772,9 @@ describe("TabPanel", () => {
   describe("Interação com dialog de execução", () => {
     it("deve abrir dialog de execução através do schedule dialog", () => {
       render(<TabPanel {...defaultProps} />);
+
       fireEvent.click(screen.getByText("Programações"));
-      fireEvent.click(screen.getByTestId("button-component"));
+      fireEvent.click(screen.getByTestId("edit-schedule-0"));
       fireEvent.click(screen.getByTestId("open-execution-dialog"));
       expect(screen.getByTestId("execution-report-dialog")).toBeInTheDocument();
     });

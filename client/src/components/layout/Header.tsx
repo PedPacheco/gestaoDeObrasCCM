@@ -5,21 +5,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-import { UserProvider } from "@/contexts/userContext";
 import { Bars3Icon } from "@heroicons/react/20/solid";
 
 import { Sidebar } from "./Sidebar";
 
 export function Header() {
-  const [open, SetOpen] = useState<boolean>(false);
+  const [open, setOpen] = useState<boolean>(false);
   const pathname = usePathname();
 
   function changeOpen() {
-    SetOpen(!open);
+    setOpen(!open);
   }
 
   return (
-    <UserProvider>
+    <>
       <div className="sticky top-0 z-10 flex min-h-14 items-center justify-between p-2 bg-[#212E3E]">
         <button className="text-white lg:pl-6" onClick={() => changeOpen()}>
           <Bars3Icon className="block h-8 w-8" aria-hidden="true" />
@@ -41,6 +40,6 @@ export function Header() {
         changeOpen={() => changeOpen()}
         pathname={pathname}
       />
-    </UserProvider>
+    </>
   );
 }

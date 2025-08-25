@@ -98,9 +98,10 @@ describe('GetAllWorksRepository', () => {
         idStatus: [1],
         idTipo: [1],
         page: 0,
+        insufficientPermission: true,
       };
 
-      const expectedQuery = `${query} AND municipios.id_regional IN () AND id_tipo IN () AND id_turma IN () AND tipos.id_grupo IN () AND municipios.id IN ()
+      const expectedQuery = `${query} AND status.id != 42 AND municipios.id_regional IN () AND id_tipo IN () AND id_turma IN () AND tipos.id_grupo IN () AND municipios.id IN ()
       AND status.id IN () ORDER BY entrada DESC LIMIT 200 OFFSET`;
 
       mockPrisma.$queryRaw.mockResolvedValueOnce(mockWorks);
@@ -128,6 +129,7 @@ describe('GetAllWorksRepository', () => {
       idStatus: undefined,
       idTipo: undefined,
       page: 0,
+      insufficientPermission: false,
     };
 
     const expectedQuery = `${query} ORDER BY entrada DESC LIMIT 200 OFFSET`;

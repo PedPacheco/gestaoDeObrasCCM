@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import "@/globals.css";
-import { UserProviderWrapper } from "@/components/login/UserProviderWrapper";
-import { EmotionCacheProvider } from "@/theme/emotionCache";
+import '@/globals.css';
+
+import { UserProvider } from '@/contexts/userContext';
 
 export const metadata: Metadata = {
   title: "Gestão de obras CCM - São Paulo",
@@ -16,9 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <body className="h-full">
-        <EmotionCacheProvider>
-          <UserProviderWrapper>{children}</UserProviderWrapper>
-        </EmotionCacheProvider>
+        <UserProvider>{children}</UserProvider>
       </body>
     </html>
   );

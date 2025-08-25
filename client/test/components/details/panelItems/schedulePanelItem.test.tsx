@@ -1,7 +1,29 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import SchedulePanelItem from "@/components/details/panelItems/schedulePanelItem";
+import * as UserContextModule from "@/contexts/userContext";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { it, describe, expect, vi } from "vitest";
+
+vi.mock("@/contexts/userContext", () => {
+  return {
+    useUser: () => ({
+      user: {
+        id: 1,
+        username: "test-user",
+        id_regional: "001",
+        nome_usuario: "Test User",
+        email: "test@example.com",
+      },
+      permissions: {
+        id: 1,
+        username: "test-user",
+        permissao: "total",
+        permissao_visualizacao: "total",
+      },
+    }),
+  };
+});
 
 const mockData = [
   {
@@ -11,7 +33,7 @@ const mockData = [
     hora_ter: "1970-01-01T12:00:00.000Z",
     tipo_servico: "DP",
     prog: 100,
-    exec: 50,
+    exec: null,
     observ_programacao: "ET4243",
     chi: "234",
     num_dp: "432435",
@@ -22,18 +44,40 @@ const mockData = [
     tecnico: "Não definido",
     restricao: null,
     nome_responsavel_execucao: null,
+    validada: false,
+    confirmada: false,
   },
 ];
 
+const setConfirmedScheduleMock = vi.fn();
+const setValidadedScheduleMock = vi.fn();
+const setDataMock = vi.fn();
+
 describe("SchedulePanelItem component", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.clearAllTimers();
+  });
+
   it("deve renderizar corretamente os dados na tabela", () => {
-    render(<SchedulePanelItem data={mockData} onDelete={() => {}} />);
+    render(
+      <SchedulePanelItem
+        data={mockData}
+        onDelete={() => {}}
+        setConfirmedSchedule={setConfirmedScheduleMock}
+        setValidatedSchedule={setValidadedScheduleMock}
+        setData={setDataMock}
+        statusWork={1}
+      />
+    );
 
     expect(screen.getByText("16/07/2025")).toBeInTheDocument();
     expect(screen.getByText("08:00")).toBeInTheDocument();
     expect(screen.getByText("12:00")).toBeInTheDocument();
     expect(screen.getByText("100%")).toBeInTheDocument();
-    expect(screen.getByText("50%")).toBeInTheDocument();
     expect(screen.getByText("3243ET435")).toBeInTheDocument();
     expect(screen.getByText("Não definido")).toBeInTheDocument();
   });
@@ -45,6 +89,10 @@ describe("SchedulePanelItem component", () => {
         data={mockData}
         onEdit={onEditMock}
         onDelete={() => {}}
+        setConfirmedSchedule={setConfirmedScheduleMock}
+        setValidatedSchedule={setValidadedScheduleMock}
+        setData={setDataMock}
+        statusWork={1}
       />
     );
 
@@ -70,6 +118,10 @@ describe("SchedulePanelItem component", () => {
         data={mockData}
         onDelete={onDeleteMock}
         onEdit={() => {}}
+        setConfirmedSchedule={setConfirmedScheduleMock}
+        setValidatedSchedule={setValidadedScheduleMock}
+        setData={setDataMock}
+        statusWork={1}
       />
     );
 
@@ -86,5 +138,191 @@ describe("SchedulePanelItem component", () => {
     await user.click(deleteButton);
 
     expect(onDeleteMock).toHaveBeenCalledWith(mockData[0].id);
+  });
+
+  it("deve desabilitar botões de edição e deleção", async () => {
+    vi.spyOn(UserContextModule, "useUser").mockReturnValue({
+      user: {
+        id: 2,
+        username: "partial-user",
+        nome_usuario: "Partial User",
+        id_regional: "002",
+        email: "partial@example.com",
+      },
+      permissions: {
+        id: 2,
+        username: "partial-user",
+        permissao: "total",
+        permissao_visualizacao: "parcial",
+      },
+      login: vi.fn(),
+      setUser: vi.fn(),
+    });
+
+    const mockDataWithExec = [
+      {
+        ...mockData[0],
+        exec: "50%",
+      },
+    ];
+
+    render(
+      <SchedulePanelItem
+        data={mockDataWithExec}
+        onEdit={() => {}}
+        onDelete={() => {}}
+        setConfirmedSchedule={setConfirmedScheduleMock}
+        setValidatedSchedule={setValidadedScheduleMock}
+        setData={setDataMock}
+        statusWork={1}
+      />
+    );
+
+    const deleteButton = screen.queryByRole("button", {
+      name: /excluir programação/i,
+    });
+    const editButton = screen.queryByRole("button", {
+      name: /editar programação/i,
+    });
+
+    expect(deleteButton).not.toBeInTheDocument();
+    expect(editButton).not.toBeInTheDocument();
+  });
+
+  it("deve desabilitar os checkbox quando item.exec estiver definido", () => {
+    const mockDataWithExec = [
+      {
+        ...mockData[0],
+        exec: "50%", // força a condição de disable pelo exec
+      },
+    ];
+
+    render(
+      <SchedulePanelItem
+        data={mockDataWithExec}
+        onEdit={() => {}}
+        onDelete={() => {}}
+        setConfirmedSchedule={setConfirmedScheduleMock}
+        setValidatedSchedule={setValidadedScheduleMock}
+        setData={setDataMock}
+        statusWork={43} // status que normalmente permitiria validar
+      />
+    );
+
+    screen.getAllByRole("checkbox").forEach((checkbox) => {
+      expect(checkbox).toBeDisabled();
+    });
+  });
+
+  it("deve chamar a função handleCheckbox quando o usuário validar uma programação e adicionar um novo item no array de programações validadas", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <SchedulePanelItem
+        data={mockData}
+        onDelete={() => {}}
+        onEdit={() => {}}
+        setConfirmedSchedule={setConfirmedScheduleMock}
+        setValidatedSchedule={setValidadedScheduleMock}
+        setData={setDataMock}
+        statusWork={43}
+      />
+    );
+
+    const validarCheckbox = screen.getAllByRole("checkbox")[0];
+
+    await user.click(validarCheckbox);
+
+    const updaterFn = setValidadedScheduleMock.mock.calls[0][0];
+    const result = updaterFn([]);
+    const dataUpdate = setDataMock.mock.calls[0][0];
+    const resultData = dataUpdate({
+      programacoes: [{ ...mockData[0], id: 2 }],
+    });
+
+    expect(result).toEqual([{ id: mockData[0].id, validate: true }]);
+    expect(resultData).toEqual({
+      programacoes: [{ ...mockData[0], id: 2 }],
+    });
+  });
+
+  it("deve chamar a função handleCheckbox quando o usuário confirmar uma programação e adicionar um novo item no array de programações confirmadas", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <SchedulePanelItem
+        data={mockData}
+        onDelete={() => {}}
+        onEdit={() => {}}
+        setConfirmedSchedule={setConfirmedScheduleMock}
+        setValidatedSchedule={setValidadedScheduleMock}
+        setData={setDataMock}
+        statusWork={37}
+      />
+    );
+
+    const confirmarCheckbox = screen.getAllByRole("checkbox")[1];
+
+    await user.click(confirmarCheckbox);
+
+    const updaterFn = setConfirmedScheduleMock.mock.calls[0][0];
+    const result = updaterFn([]);
+    const dataUpdate = setDataMock.mock.calls[0][0];
+    const resultData = dataUpdate({ programacoes: mockData });
+
+    expect(result).toEqual([{ id: mockData[0].id, confirm: true }]);
+    expect(resultData).toEqual({
+      programacoes: [{ ...mockData[0], confirmada: true }],
+    });
+  });
+
+  it("deve chamar a função handleCheckbox quando o usuário validar uma programação e alterar o item já existente", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <SchedulePanelItem
+        data={mockData}
+        onDelete={() => {}}
+        onEdit={() => {}}
+        setConfirmedSchedule={setConfirmedScheduleMock}
+        setValidatedSchedule={setValidadedScheduleMock}
+        setData={setDataMock}
+        statusWork={43}
+      />
+    );
+
+    const validarCheckbox = screen.getAllByRole("checkbox")[0];
+
+    await user.click(validarCheckbox);
+
+    const updaterFn = setValidadedScheduleMock.mock.calls[0][0];
+    const result = updaterFn([{ id: mockData[0].id, validate: true }]);
+
+    expect(result).toEqual([{ id: mockData[0].id, validate: true }]);
+  });
+
+  it("deve chamar a função handleCheckbox quando o usuário validar uma programação e alterar o item já existente", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <SchedulePanelItem
+        data={mockData}
+        onDelete={() => {}}
+        onEdit={() => {}}
+        setConfirmedSchedule={setConfirmedScheduleMock}
+        setValidatedSchedule={setValidadedScheduleMock}
+        setData={setDataMock}
+        statusWork={37}
+      />
+    );
+
+    const confirmarCheckbox = screen.getAllByRole("checkbox")[1];
+
+    await user.click(confirmarCheckbox);
+
+    const updaterFn = setConfirmedScheduleMock.mock.calls[0][0];
+    const result = updaterFn([{ id: mockData[0].id, confirm: true }]);
+
+    expect(result).toEqual([{ id: mockData[0].id, confirm: true }]);
   });
 });

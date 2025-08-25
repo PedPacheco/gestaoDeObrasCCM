@@ -19,6 +19,7 @@ describe("AdditionalInfoPanel component", () => {
         formData={mockFormData}
         options={mockOptions}
         onInputChange={onInputChange}
+        disabledFields={false}
       />
     );
 

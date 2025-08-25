@@ -1,5 +1,5 @@
+import { UsersService } from 'src/application/users.service';
 import { USER_REPOSITORY } from 'src/domain/repositories/IUserRepository';
-import { UsersService } from 'src/domain/services/users.service';
 import { UserRepository } from 'src/infra/repositories/userRepository';
 
 import { Module } from '@nestjs/common';

@@ -7,6 +7,7 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import TabPanel from "@/components/details/TabPanel";
 import { WorkDetails } from "@/components/details/workDetails/workDetails";
 import { formatPercentage } from "@/utils/formatValue";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
 
 dayjs.extend(utc);
 
@@ -79,20 +80,23 @@ export default async function Details({
   };
 
   return (
-    <div className="flex flex-col items-center w-full h-full">
-      <div className="w-full mt-6 flex flex-col">
-        <WorkDetails
-          data={data}
-          idWork={Number(id)}
-          formattedData={formattedData}
-          options={options}
-        />
-        <TabPanel
-          workData={data}
-          options={options}
-          executionReportData={executionReportData.data}
-        />
+    <EmotionCacheProvider>
+      <div className="flex flex-col items-center w-full h-full">
+        <div className="w-full mt-6 flex flex-col">
+          <WorkDetails
+            data={data}
+            idWork={Number(id)}
+            formattedData={formattedData}
+            options={options}
+          />
+          <TabPanel
+            workData={data}
+            options={options}
+            id={id}
+            executionReportData={executionReportData.data}
+          />
+        </div>
       </div>
-    </div>
+    </EmotionCacheProvider>
   );
 }

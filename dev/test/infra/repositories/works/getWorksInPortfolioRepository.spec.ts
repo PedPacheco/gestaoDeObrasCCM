@@ -115,6 +115,7 @@ describe('GetWorksInPortfolioRepository', () => {
         data: '09/2024',
         tipoFiltro: 'month',
         page: 1,
+        insufficientPermission: false,
       };
 
       mockPrisma.$queryRaw
@@ -154,6 +155,7 @@ describe('GetWorksInPortfolioRepository', () => {
         data: '17/09/2024',
         tipoFiltro: 'day',
         page: 1,
+        insufficientPermission: true,
       };
 
       const expectedDate = moment(filters.data, 'DD/MM/YYYY', true).toDate();
@@ -164,7 +166,7 @@ describe('GetWorksInPortfolioRepository', () => {
 
       const result = await repository.getWorksInPortfolio(filters);
 
-      const expectedQuery = `${baseQuery} AND municipios.id_regional IN () AND id_tipo IN () AND id_turma IN () AND tipos.id_grupo IN () AND municipios.id IN ()
+      const expectedQuery = `${baseQuery} AND status.id != 42 AND municipios.id_regional IN () AND id_tipo IN () AND id_turma IN () AND tipos.id_grupo IN () AND municipios.id IN ()
         AND status.id IN () AND id_circuito IN () AND circuitos.id_conjunto IN () AND id_empreendimento IN () AND obras.id IN () 
         AND first_data_prog = 
         ORDER BY first_data_prog, status DESC, entrada + prazo LIMIT 200 OFFSET`;
@@ -206,6 +208,7 @@ describe('GetWorksInPortfolioRepository', () => {
         idEmpreendimento: null,
         idOvnota: null,
         page: 1,
+        insufficientPermission: false,
       };
 
       mockPrisma.$queryRaw

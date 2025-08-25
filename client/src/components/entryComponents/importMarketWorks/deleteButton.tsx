@@ -4,12 +4,12 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Cookies } from "react-cookie";
 
-import { DeleteData } from "@/actions/deleteData.action";
 import { ButtonComponent } from "@/components/common/Button";
 import ErrorModal from "@/components/common/ErrorModal";
 import ModalComponent from "@/components/common/Modal";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+import { DeleteWork } from "@/actions/works";
 
 const cookies = new Cookies();
 
@@ -29,7 +29,7 @@ export function DeleteButton({ storageKey }: DeleteButtonProps) {
   const handleClick = () => {
     startTransition(async () => {
       try {
-        const res = await DeleteData(storageKey);
+        const res = await DeleteWork(storageKey);
 
         if (!res.success) {
           setError(res.error);

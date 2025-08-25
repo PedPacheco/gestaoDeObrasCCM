@@ -102,11 +102,13 @@ export const useScheduleForm = ({
         const isCheckbox = event.target.type === "checkbox";
         let value = isCheckbox ? event.target.checked : event.target.value;
 
-        if (
+        const execAlterado =
           field === "exec" &&
           value !== initialExecValue &&
-          initialExecValue === "null"
-        ) {
+          initialExecValue === "null" &&
+          value !== "";
+
+        if (execAlterado) {
           setOpenExecChangeDialog(true);
         } else {
           setOpenExecChangeDialog(false);
@@ -134,7 +136,7 @@ export const useScheduleForm = ({
             };
           }
 
-          if (value !== initialExecValue && initialExecValue === "null") {
+          if (execAlterado && typeof value === "string") {
             return {
               ...prev,
               [field]: value,
@@ -145,6 +147,7 @@ export const useScheduleForm = ({
           return {
             ...prev,
             [field]: value,
+            executionReport: undefined,
           };
         });
       },

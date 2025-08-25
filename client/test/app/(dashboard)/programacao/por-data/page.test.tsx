@@ -76,6 +76,7 @@ describe("Schedule For Day Page", () => {
     date: "17/05/2025",
     filterType: "day",
     executed: "true",
+    ovnota: "1253",
   });
 
   const mockCookieStore = {
@@ -122,7 +123,7 @@ describe("Schedule For Day Page", () => {
         data: dayjs("17/05/2025").format("DD/MM/YYYY"),
         tipoFiltro: "day",
         executado: "true",
-        page: "0",
+        ovnota: "1253",
       },
       mockToken,
       { cache: "no-store" }
@@ -132,9 +133,10 @@ describe("Schedule For Day Page", () => {
   it("deve buscar dados com os valores alterados caso os campos de filtro não tenham valor", async () => {
     const modifiedData = JSON.stringify({
       ...JSON.parse(mockParamsFiltes),
-      date: "05/2025",
-      filterType: undefined,
+      date: "",
+      filterType: "",
       executed: undefined,
+      ovnota: "1234",
     });
 
     vi.mocked(mockCookieStore.get).mockImplementation((name) => {
@@ -150,10 +152,10 @@ describe("Schedule For Day Page", () => {
       {
         parceira: "Parceira 1",
         regional: "Regional A",
-        data: dayjs("05/2025").format("MM/YYYY"),
-        tipoFiltro: "month",
+        data: "",
+        tipoFiltro: "",
         executado: "false",
-        page: "0",
+        ovnota: "1234",
       },
       mockToken,
       { cache: "no-store" }
@@ -171,10 +173,10 @@ describe("Schedule For Day Page", () => {
     expect(fetchData).toHaveBeenCalledWith(
       "https://api.example.com/programacao/mensal",
       {
-        data: "05/2025",
-        tipoFiltro: "month",
+        data: "",
+        tipoFiltro: "",
+        ovnota: "",
         executado: "false",
-        page: "0",
       },
       mockToken,
       { cache: "no-store" }

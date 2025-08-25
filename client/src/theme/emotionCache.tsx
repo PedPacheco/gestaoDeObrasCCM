@@ -1,17 +1,17 @@
 "use client";
 
 import { CacheProvider } from "@emotion/react";
-import { ReactNode } from "react";
-import createEmotionCache from "./createEmotionCache";
+import { useState } from "react";
+import createCache from "@emotion/cache";
 
-const clientSideEmotionCache = createEmotionCache();
+const createEmotionCache = () => createCache({ key: "css", prepend: true });
 
-interface EmotionCacheProviderProps {
-  children: ReactNode;
-}
+export function EmotionCacheProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [cache] = useState(() => createEmotionCache());
 
-export function EmotionCacheProvider({ children }: EmotionCacheProviderProps) {
-  return (
-    <CacheProvider value={clientSideEmotionCache}>{children}</CacheProvider>
-  );
+  return <CacheProvider value={cache}>{children}</CacheProvider>;
 }

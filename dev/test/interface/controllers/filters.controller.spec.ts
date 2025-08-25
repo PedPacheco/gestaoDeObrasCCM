@@ -1,11 +1,11 @@
 import { plainToInstance } from 'class-transformer';
 import { Request } from 'express';
-import { FiltersService } from 'src/domain/services/filters.service';
-import { UsersService } from 'src/domain/services/users.service';
 import { FiltersController } from 'src/interface/controllers/filters.controller';
 import { FiltersDto } from 'src/interface/dtos/filtersDto';
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { FiltersService } from 'src/application/filters.service';
+import { UsersService } from 'src/application/users.service';
 
 describe('FiltersController', () => {
   let filtersController: FiltersController;

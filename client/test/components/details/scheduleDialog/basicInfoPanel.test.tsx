@@ -1,7 +1,7 @@
-import { BasicInfoPanel } from "@/components/details/scheduleDialog/basicInfoPanel";
 import { describe, expect, it, vi } from "vitest";
 import { mockFormData } from "../../../mocks/mockFormData";
 import { render, screen } from "@testing-library/react";
+import { BasicInfoPanel } from "@/components/details/scheduleDialog/basicInfoPanel";
 
 describe("BasicInfoPanel Component", () => {
   it("Deve renderizar os campos corretamente", () => {
@@ -13,6 +13,7 @@ describe("BasicInfoPanel Component", () => {
         isInsert={false}
         formErrors={{}}
         onInputChange={onInputChange}
+        disabledFields={false}
       />
     );
 
@@ -32,6 +33,7 @@ describe("BasicInfoPanel Component", () => {
         isInsert={false}
         formErrors={{}}
         onInputChange={onInputChange}
+        disabledFields={false}
       />
     );
 
@@ -47,6 +49,7 @@ describe("BasicInfoPanel Component", () => {
         isInsert={false}
         formErrors={{}}
         onInputChange={onInputChange}
+        disabledFields={false}
       />
     );
 

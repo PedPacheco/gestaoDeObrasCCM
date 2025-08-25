@@ -4,11 +4,13 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useState } from "react";
 
+import { useUser } from "@/contexts/userContext";
 import { formatPercentage } from "@/utils/formatValue";
 import { isValidDateString } from "@/utils/validDate";
 import { PencilIcon, TrashIcon } from "@heroicons/react/20/solid";
 import {
   Box,
+  Checkbox,
   IconButton,
   Table,
   TableBody,
@@ -21,37 +23,80 @@ import {
 
 dayjs.extend(utc);
 
-const columns = {
-  data_prog: "Data",
-  hora_ini: "Horário de início",
-  hora_ter: "Horário de término",
-  tipo_servico: "Tipo de Serviço",
-  prog: "% Prog",
-  exec: "% Exec",
-  observ_programacao: "Equipamento a ser desligado",
-  chi: "CHI",
-  num_dp: "Número DP",
-  chave_provisoria: "Chave provisória",
-  equipe_linha_morta: "Equipe LM",
-  equipe_linha_viva: "Equipe LV",
-  equipe_regularizacao: "Equipe Reg",
-  tecnico: "Técnico responsável",
-  restricao: "Motivo da restrição",
-  nome_responsavel_execucao: "Responsabilidade",
-};
+const columnConfig = [
+  { key: "validada", label: "Validar", type: "checkbox" },
+  { key: "confirmada", label: "Confirmar", type: "checkbox" },
+  { key: "status_programacao", label: "Status", type: "text" },
+  { key: "data_prog", label: "Data", type: "text" },
+  { key: "hora_ini", label: "Horário de início", type: "text" },
+  { key: "hora_ter", label: "Horário de término", type: "text" },
+  { key: "tipo_servico", label: "Tipo de Serviço", type: "text" },
+  { key: "prog", label: "% Prog", type: "text" },
+  { key: "exec", label: "% Exec", type: "text" },
+  {
+    key: "observ_programacao",
+    label: "Equipamento a ser desligado",
+    type: "text",
+    wide: true,
+  },
+  { key: "chi", label: "CHI", type: "text" },
+  { key: "num_dp", label: "Número DP", type: "text" },
+  { key: "chave_provisoria", label: "Chave provisória", type: "text" },
+  { key: "equipe_linha_morta", label: "Equipe LM", type: "text" },
+  { key: "equipe_linha_viva", label: "Equipe LV", type: "text" },
+  { key: "equipe_regularizacao", label: "Equipe Reg", type: "text" },
+  { key: "tecnico", label: "Técnico responsável", type: "text" },
+  { key: "restricao", label: "Motivo da restrição", type: "text" },
+  { key: "nome_responsavel_execucao", label: "Responsabilidade", type: "text" },
+];
 
 interface SchedulePanelItemProps {
   data: any[];
   onEdit?: (data: any) => void;
   onDelete: (confirm: number) => void;
+  statusWork: number;
+  setValidatedSchedule: React.Dispatch<
+    React.SetStateAction<{ id: number; validate: boolean }[]>
+  >;
+  setConfirmedSchedule: React.Dispatch<
+    React.SetStateAction<{ id: number; confirm: boolean }[]>
+  >;
+  setData: React.Dispatch<React.SetStateAction<any>>;
+}
+
+function formatCellValue(value: any, key: string) {
+  if (["prog", "exec"].includes(key)) {
+    value = formatPercentage(value);
+  }
+
+  if (
+    typeof value === "string" &&
+    isValidDateString(value) &&
+    dayjs(value).isValid()
+  ) {
+    const date = dayjs(value);
+    value =
+      date.year() === 1970
+        ? date.utc().format("HH:mm")
+        : date.utc().format("DD/MM/YYYY");
+  }
+
+  return value;
 }
 
 export default function SchedulePanelItem({
   data,
   onEdit,
   onDelete,
+  statusWork,
+  setConfirmedSchedule,
+  setValidatedSchedule,
+  setData,
 }: SchedulePanelItemProps) {
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
+
+  const statusToDisable = [42, 43, 37, 3, 4, 6];
+  const { permissions } = useUser();
 
   const handleEdit = (item: any) => {
     if (onEdit) {
@@ -65,38 +110,81 @@ export default function SchedulePanelItem({
     }
   };
 
+  const handleCheckboxChange = (key: string, value: boolean, id: number) => {
+    if (key === "validada") {
+      setValidatedSchedule((prev) => {
+        const exists = prev.some((item) => item.id === id);
+
+        if (exists) {
+          return prev.map((item) =>
+            item.id === id ? { ...item, validate: value } : item
+          );
+        } else {
+          return [...prev, { id, validate: value }];
+        }
+      });
+    } else if (key === "confirmada") {
+      setConfirmedSchedule((prev: any[]) => {
+        const exists = prev.some((item) => item.id === id);
+
+        if (exists) {
+          return prev.map((item) =>
+            item.id === id ? { ...item, confirm: value } : item
+          );
+        } else {
+          return [...prev, { id, confirm: value }];
+        }
+      });
+    }
+
+    setData((prev: any) => ({
+      ...prev,
+      programacoes: prev.programacoes.map((item: any) => {
+        return item.id === id ? { ...item, [key]: value } : item;
+      }),
+    }));
+  };
+
+  const enableButtons = (exec: string | null) => {
+    return (
+      permissions?.permissao_visualizacao === "parcial" &&
+      (statusToDisable.includes(statusWork) || exec)
+    );
+  };
+
+  const disabledCheckBox = (key: string): boolean =>
+    (key === "validada" && statusWork !== 43) ||
+    (key === "confirmada" && statusWork !== 37) ||
+    permissions?.permissao_visualizacao === "parcial";
+
   return (
     <>
       <TableContainer className="h-[320px] overflow-y-auto">
         <Table stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell className="py-1 px-2 text-center text-zinc-700 font-semibold text-lg bg-[#53FF75] border-r border-solid border-zinc-700 min-w-[100px] sticky left-0 z-10"></TableCell>
-              {Object.keys(columns).map((column) => (
+              <TableCell className="bg-[#53FF75] border-r border-solid border-zinc-700 min-w-[100px] sticky left-0 z-20"></TableCell>
+              {columnConfig.map((col) => (
                 <TableCell
-                  key={column}
-                  className={`py-1 px-2 text-center text-zinc-700 font-semibold text-lg bg-[#53FF75] border-r border-solid border-zinc-700
-                    ${
-                      column === "observ_programacao"
-                        ? "min-w-[520px]"
-                        : "min-w-28"
-                    }`}
+                  key={col.key}
+                  className={`py-1 px-2 text-center text-zinc-700 font-semibold text-lg bg-[#53FF75] border-r border-solid border-zinc-700 sticky left-0 z-10 ${
+                    col.wide ? "min-w-[520px]" : "min-w-28"
+                  }`}
                 >
-                  {columns[column as keyof typeof columns]}
+                  {col.label}
                 </TableCell>
               ))}
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.map((item: any, rowIndex: number) => {
-              return (
-                <TableRow
-                  key={rowIndex}
-                  onMouseEnter={() => setHoveredRow(rowIndex)}
-                  onMouseLeave={() => setHoveredRow(null)}
-                  className="hover:bg-gray-50 transition-colors duration-200"
-                >
-                  <TableCell className="py-1 px-2 text-center border-r font-medium text-base border-zinc-700 border-solid sticky left-0 bg-white z-10">
+            {data.map((item, rowIndex) => (
+              <TableRow
+                key={rowIndex}
+                onMouseEnter={() => setHoveredRow(rowIndex)}
+                onMouseLeave={() => setHoveredRow(null)}
+              >
+                <TableCell className="py-1 px-2 text-center border-r font-medium text-base border-zinc-700 border-solid sticky left-0 bg-white z-10">
+                  {!enableButtons(item.exec) && (
                     <Box
                       display="flex"
                       justifyContent="center"
@@ -138,44 +226,40 @@ export default function SchedulePanelItem({
                         </IconButton>
                       </Tooltip>
                     </Box>
+                  )}
+                </TableCell>
+                {columnConfig.map((col) => (
+                  <TableCell
+                    key={col.key}
+                    className={`py-1 px-2 text-center border-r font-medium text-base border-zinc-700 border-solid ${
+                      col.key === "observ_programacao"
+                        ? "text-wrap"
+                        : "text-nowrap"
+                    }`}
+                  >
+                    {col.type === "checkbox" ? (
+                      <Checkbox
+                        checked={
+                          col.key === "validada"
+                            ? item.validada
+                            : item.confirmada
+                        }
+                        onChange={(e) =>
+                          handleCheckboxChange(
+                            col.key === "validada" ? "validada" : "confirmada",
+                            e.target.checked,
+                            item.id
+                          )
+                        }
+                        disabled={disabledCheckBox(col.key) || item.exec}
+                      />
+                    ) : (
+                      formatCellValue(item[col.key], col.key)
+                    )}
                   </TableCell>
-                  {Object.keys(columns).map((column, index) => {
-                    let cellValue = item[column];
-
-                    if (["prog", "exec"].includes(column)) {
-                      cellValue = formatPercentage(cellValue);
-                    }
-
-                    if (
-                      typeof cellValue === "string" &&
-                      isValidDateString(cellValue) &&
-                      dayjs(cellValue).isValid()
-                    ) {
-                      const date = dayjs(cellValue);
-
-                      if (date.year() === 1970) {
-                        cellValue = date.utc().format("HH:mm");
-                      } else {
-                        cellValue = date.utc().format("DD/MM/YYYY");
-                      }
-                    }
-
-                    return (
-                      <TableCell
-                        className={`py-1 px-2 text-center border-r font-medium text-base border-zinc-700 border-solid ${
-                          column === "observ_programacao"
-                            ? "text-wrap"
-                            : "text-nowrap"
-                        }`}
-                        key={index}
-                      >
-                        {cellValue}
-                      </TableCell>
-                    );
-                  })}
-                </TableRow>
-              );
-            })}
+                ))}
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </TableContainer>

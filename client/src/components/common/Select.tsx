@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 
 import { FormControl, MenuItem } from "@mui/material";
 import Select from "@mui/material/Select";
@@ -12,6 +12,7 @@ export interface SelectProps {
   setSelectedItem?: (item: string) => void;
   valueKey?: string | number;
   displayKey?: string | number;
+  disabled?: boolean;
 }
 
 type SelectItem = string | number;
@@ -23,9 +24,20 @@ export function SelectComponent({
   setSelectedItem,
   valueKey,
   displayKey,
+  disabled,
 }: SelectProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
-    <div className="flex items-center justify-between mb-3 max-w-96 w-[342px] h-10 border border-zinc-700 border-solid rounded-md">
+    <div
+      className={`flex items-center justify-between mb-3 max-w-96 w-[342px] h-10 border border-zinc-700 border-solid rounded-md ${
+        !disabled && mounted ? "" : "bg-zinc-200"
+      }`}
+    >
       {label && (
         <p className="h-full flex items-center justify-start font-semibold w-40 p-2 text-center border-r border-zinc-700 border-solid">
           {label}
@@ -44,8 +56,17 @@ export function SelectComponent({
             setSelectedItem?.(e.target.value)
           }
           IconComponent={() => null}
+          sx={{
+            ".css-jedpe8-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input.Mui-disabled":
+              {
+                opacity: 1,
+                WebkitTextFillColor: "inherit",
+              },
+          }}
           inputProps={{
-            className: "text-center text-sm p-2 pr-0",
+            className: `text-center text-sm p-2 pr-0 ${
+              !disabled && mounted ? "" : "text-black"
+            }`,
           }}
           MenuProps={{
             PaperProps: {
@@ -58,6 +79,7 @@ export function SelectComponent({
               },
             },
           }}
+          disabled={mounted ? disabled : false}
         >
           {menuItems.map((item, index) => {
             const value = (valueKey ? item[valueKey] : item) as SelectItem;

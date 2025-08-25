@@ -11,7 +11,7 @@ import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
 import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
-import { Checkbox } from "@mui/material";
+import { Checkbox, FormControl, Input, TextField } from "@mui/material";
 
 interface filters {
   regional: { id: string; regional: string }[];
@@ -27,7 +27,6 @@ interface ScheduleByDateFiltersProps {
   generateExcel: (params: any) => void;
   isPending: boolean;
   applyFilters: (params: Record<string, string | boolean>) => void;
-  setPage: (page: number) => void;
 }
 
 export default function ScheduleForDayFilters({
@@ -36,7 +35,6 @@ export default function ScheduleForDayFilters({
   generateExcel,
   isPending,
   applyFilters,
-  setPage,
 }: ScheduleByDateFiltersProps) {
   const { clearFilters, filters, saveFilters } = useSaveFilters(
     "scheduleForDayFilters"
@@ -44,16 +42,18 @@ export default function ScheduleForDayFilters({
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {}
   );
-  const [date, setDate] = useState<Dayjs>(dayjs());
-  const [filterType, setFilterType] = useState<string>("month");
+  const [date, setDate] = useState<Dayjs | null>(null);
+  const [filterType, setFilterType] = useState<string>("");
+  const [ovnota, setOvnota] = useState<string>("");
   const [executed, setExecuted] = useState<boolean>(false);
 
   useEffect(() => {
     if (filters) {
       setSelectedItems(filters.selectedItems || {});
-      setDate(filters.date ? dayjs(filters.date) : dayjs());
+      setDate(filters.date ? dayjs(filters.date) : null);
       setExecuted(filters.executed || false);
-      setFilterType(filters.filterType || "month");
+      setFilterType(filters.filterType || "");
+      setOvnota(filters.ovnota || "");
     }
   }, [filters]);
 
@@ -65,14 +65,13 @@ export default function ScheduleForDayFilters({
         : "",
       tipoFiltro: filterType,
       executado: executed.toString(),
-      page: "0",
     };
 
     generateExcel(newSelectedItems);
   }
 
   function handleApplyFilters() {
-    saveFilters({ selectedItems, date, filterType, executed });
+    saveFilters({ selectedItems, date, filterType, executed, ovnota });
 
     const newSelectedItems = {
       ...Transform(selectedItems),
@@ -81,28 +80,25 @@ export default function ScheduleForDayFilters({
         : "",
       tipoFiltro: filterType,
       executado: executed.toString(),
-      page: "0",
+      ovnota: ovnota,
     };
 
-    setPage(0);
     applyFilters(newSelectedItems);
   }
 
   function handleCleanigFilters() {
     setSelectedItems({});
-    setDate(dayjs());
-    setFilterType("month");
+    setDate(null);
+    setFilterType("");
     setExecuted(false);
+    setOvnota("");
 
     clearFilters();
 
-    setPage(0);
-
     applyFilters({
-      data: dayjs().format("MM/YYYY"),
-      tipoFiltro: "month",
+      data: "",
+      tipoFiltro: "",
       executado: false,
-      page: "0",
     });
   }
 
@@ -117,31 +113,41 @@ export default function ScheduleForDayFilters({
           marginLeft="ml-4"
         />
 
-        {Object.entries(data).map(([key, value], index) => {
-          const valueKey = Object.keys(value[0])[0];
-          const displayKey = Object.keys(value[0])[1];
+        {Object.entries(data)
+          .slice(0, 5)
+          .map(([key, value], index) => {
+            const valueKey = Object.keys(value[0])[0];
+            const displayKey = Object.keys(value[0])[1];
 
-          const filterValue = `${valueKey}${
-            key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()
-          }`;
+            const filterValue = `${valueKey}${
+              key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()
+            }`;
 
-          return (
-            <MultipleSelectComponent
-              label={capitalize(displayKey)}
-              menuItems={value || []}
-              selectedItem={selectedItems[filterValue]}
-              setSelectedItem={(selectedValue) => {
-                setSelectedItems((prev: any) => ({
-                  ...prev,
-                  [filterValue]: selectedValue,
-                }));
-              }}
-              valueKey={valueKey}
-              displayKey={displayKey}
-              key={index}
-            />
-          );
-        })}
+            return (
+              <MultipleSelectComponent
+                label={capitalize(displayKey)}
+                menuItems={value || []}
+                selectedItem={selectedItems[filterValue]}
+                setSelectedItem={(selectedValue) => {
+                  setSelectedItems((prev: any) => ({
+                    ...prev,
+                    [filterValue]: selectedValue,
+                  }));
+                }}
+                valueKey={valueKey}
+                displayKey={displayKey}
+                key={index}
+              />
+            );
+          })}
+
+        <TextField
+          className="mb-2 lg:ml-4 lg:first:ml-0 w-full"
+          size="small"
+          label="Ov/nota"
+          value={ovnota}
+          onChange={(event) => setOvnota(event.target.value)}
+        />
 
         <div className="flex flex-row items-center justify-center mb-2">
           <Checkbox

@@ -64,6 +64,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     if (response.ok) {
       const res = await response.json();
 
+      const token = cookies.get("token");
+      if (token) {
+        setPermissions(jwtDecode<JwtPayload>(token));
+      }
+
       return { message: res.message, success: true };
     } else {
       const error = await response.json();

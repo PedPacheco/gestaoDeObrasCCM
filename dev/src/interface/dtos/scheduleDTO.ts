@@ -50,15 +50,12 @@ export class GetTotalValuesScheduleDTO {
 
 export class GetScheduleValuesDTO {
   @IsString()
-  data: string;
+  @IsOptional()
+  data?: string;
 
   @IsString()
-  tipoFiltro: string;
-
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  page: number;
+  tipoFiltro?: string;
 
   @IsOptional()
   @IsArray()
@@ -84,6 +81,10 @@ export class GetScheduleValuesDTO {
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
   idParceira: number[];
+
+  @IsOptional()
+  @IsString()
+  ovnota: string;
 
   @IsBoolean()
   @Transform(({ value }) =>
@@ -199,9 +200,15 @@ export class SchedulesDataDTO {
   @IsOptional()
   @IsNumber({}, { message: 'Progresso executado deve ser um número válido' })
   @Transform(({ value }) => {
-    if (value === '' || value === null || value === undefined) {
+    if (
+      value === '' ||
+      value === null ||
+      value === undefined ||
+      value === 'null'
+    ) {
       return null;
     }
+
     const parsed = Number(value);
     return parsed;
   })
@@ -259,4 +266,20 @@ export class UpdateSchedulesDataDTO {
 
   @IsOptional()
   executionReportData?: ExecutionReportDataDTO;
+}
+
+export class ValidateSchedulesDTO {
+  @IsNumber()
+  id: number;
+
+  @IsBoolean()
+  validate: boolean;
+}
+
+export class ConfirmSchedulesDTO {
+  @IsNumber()
+  id: number;
+
+  @IsBoolean()
+  confirm: boolean;
 }

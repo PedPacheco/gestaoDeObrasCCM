@@ -1,7 +1,5 @@
 import { plainToInstance } from 'class-transformer';
 import * as moment from 'moment';
-import { EntryService } from 'src/domain/services/entry.service';
-import { UsersService } from 'src/domain/services/users.service';
 import { EntryController } from 'src/interface/controllers/entry.controller';
 import {
   GetEntryOfWorksByDayDTO,
@@ -10,6 +8,8 @@ import {
 
 import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { EntryService } from 'src/application/entry.service';
+import { UsersService } from 'src/application/users.service';
 
 describe('EntryController', () => {
   let entryController: EntryController;

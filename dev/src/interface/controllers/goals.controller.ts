@@ -1,4 +1,4 @@
-import { GoalsService } from 'src/domain/services/goals.service';
+import { GoalsService } from 'src/application/goals.service';
 import { GoalsDTO } from 'src/interface/dtos/goalsDto';
 import { GoalsIntefaceController } from 'src/interface/types/goalsInterface';
 

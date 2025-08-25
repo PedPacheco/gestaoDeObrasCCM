@@ -172,7 +172,7 @@ export default function ExecutionReportPanelItem({
                     ) {
                       const date = dayjs(cellValue);
 
-                      if (date.year() === 1970) {
+                      if (date.utc().year() === 1970) {
                         cellValue = date.utc().format("HH:mm");
                       } else {
                         cellValue = date.utc().format("DD/MM/YYYY");

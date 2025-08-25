@@ -1,4 +1,4 @@
-import { EmailService } from 'src/domain/services/email.service';
+import { EmailService } from 'src/application/email.service';
 import { CacheModule } from 'src/infra/cache/cache.module';
 
 import { Module } from '@nestjs/common';

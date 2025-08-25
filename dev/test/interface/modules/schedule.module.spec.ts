@@ -1,8 +1,8 @@
-import { UsersService } from 'src/domain/services/users.service';
 import { PrismaModule } from 'src/infra/prisma/prisma.module';
 import { ScheduleModule } from 'src/interface/modules/schedule.module';
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { UsersService } from 'src/application/users.service';
 
 describe('ScheduleModule', () => {
   let module: TestingModule;

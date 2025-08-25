@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainSchduleForDay from "@/components/scheduleComponents/scheduleForDay/MainScheduleForDay";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { Transform } from "@/utils/transform";
 
 export const dynamic = "force-dynamic";
@@ -19,10 +20,12 @@ export default async function ScheduleForDay() {
     data:
       params?.filterType === "day"
         ? dayjs(params?.date).format("DD/MM/YYYY")
-        : dayjs(params?.date).format("MM/YYYY"),
-    tipoFiltro: params?.filterType || "month",
+        : params?.filterType === "month"
+        ? dayjs(params?.date).format("MM/YYYY")
+        : "",
+    tipoFiltro: params?.filterType || "",
     executado: params?.executed || "false",
-    page: "0",
+    ovnota: params?.ovnota || "",
   };
 
   const [filters, scheduleData] = await Promise.all([
@@ -57,6 +60,7 @@ export default async function ScheduleForDay() {
     mo_planejada: "MO planejada",
     turma: "Parceira",
     executado: "Executado",
+    status_programacao: "Status da programação",
     data_prog: "Data programada",
     prog: "% Programado",
     exec: "% Executado",
@@ -74,11 +78,13 @@ export default async function ScheduleForDay() {
   };
 
   return (
-    <MainSchduleForDay
-      columns={columns}
-      data={data}
-      filtersData={filters}
-      token={token}
-    />
+    <EmotionCacheProvider>
+      <MainSchduleForDay
+        columns={columns}
+        data={data}
+        filtersData={filters}
+        token={token}
+      />
+    </EmotionCacheProvider>
   );
 }

@@ -83,12 +83,12 @@ export default function EntryTable({ data, columns }: EntryTableProps) {
                         <div className="flex">
                           <p className="py-1 text-base text-center text-zinc-700 w-12">
                             {Number(
-                              item[`${month}_entrada_qtde`]
+                              item[`${month}_entrada_qtde`] ?? 0
                             ).toLocaleString("pt-BR")}
                           </p>
                           <p className="py-1 text-base text-center text-zinc-700 w-24">
                             {Number(
-                              item[`${month}_entrada`]?.toFixed(0)
+                              item[`${month}_entrada`]?.toFixed(0) ?? 0
                             ).toLocaleString("pt-br")}
                           </p>
                         </div>
@@ -115,11 +115,11 @@ export default function EntryTable({ data, columns }: EntryTableProps) {
                   <div className="flex">
                     <p className="py-1 text-base text-center text-zinc-700 w-12">
                       {Number(
-                        sumValues[`${month}_qtde`]?.toFixed(0)
+                        sumValues[`${month}_qtde`]?.toFixed(0) ?? 0
                       ).toLocaleString("pt-BR")}
                     </p>
                     <p className="py-1 text-base text-center text-zinc-700 w-24">
-                      {Number(sumValues[month]?.toFixed(0)).toLocaleString(
+                      {Number(sumValues[month]?.toFixed(0) ?? 0).toLocaleString(
                         "pt-BR"
                       )}
                     </p>

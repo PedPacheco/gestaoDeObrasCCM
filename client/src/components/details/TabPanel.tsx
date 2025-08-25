@@ -9,7 +9,11 @@ import {
 } from "react";
 
 import { deleteExecutionReport } from "@/actions/executionReport.action";
-import { deleteSchedule } from "@/actions/schedules";
+import {
+  ConfirmedSchedule,
+  deleteSchedule,
+  ValidatedSchedule,
+} from "@/actions/schedules";
 import { useScheduleForm } from "@/hooks/useScheduleForm";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { Tab, Tabs } from "@mui/material";
@@ -23,6 +27,7 @@ import ExecutionReportPanelItem from "./panelItems/executionReportPanelItem";
 import SchedulePanelItem from "./panelItems/schedulePanelItem";
 import WorkCostPanelItem from "./panelItems/workCostPanelItem";
 import ScheduleFormDialog from "./scheduleDialog/dialog";
+import { useUser } from "@/contexts/userContext";
 
 interface CustomTabPanelProps {
   children?: React.ReactNode;
@@ -34,6 +39,7 @@ interface TabPanelProps {
   workData: Record<string, any>;
   executionReportData: Record<string, any>[];
   options: any;
+  id: string;
 }
 
 function CustomTabPanel(props: CustomTabPanelProps) {
@@ -57,7 +63,9 @@ export default function TabPanel({
   workData,
   options,
   executionReportData,
+  id,
 }: TabPanelProps) {
+  const { permissions } = useUser();
   const [value, setValue] = useState(0);
   const [data, setData] = useState<Record<string, any>>(workData);
   const [idSchedule, setIdSchedule] = useState<number>(0);
@@ -67,6 +75,14 @@ export default function TabPanel({
 
   const [editingSchedule, setEditingSchedule] = useState<any>();
   const [editingExecutionReport, setEditingExecutionReport] = useState<any>();
+
+  const [validatedSchedule, setValidatedSchedule] = useState<
+    { id: number; validate: boolean }[]
+  >([]);
+
+  const [confirmedSchedule, setConfirmedSchedule] = useState<
+    { id: number; confirm: boolean }[]
+  >([]);
 
   const [IsInsert, setIsInsert] = useState<boolean>(true);
   const [executionReportIsInsert, setExecutionReportIsInsert] =
@@ -93,6 +109,15 @@ export default function TabPanel({
     if (workData) {
       setData(workData);
     }
+
+    setValidatedSchedule(
+      workData.programacoes
+        .filter((item: any) => item.exec === null)
+        .map((item: any) => ({
+          id: item.id,
+          validate: false,
+        }))
+    );
   }, [workData]);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -177,6 +202,46 @@ export default function TabPanel({
     [data?.id]
   );
 
+  const handleValidated = useCallback(() => {
+    startTransition(async () => {
+      try {
+        const response = await ValidatedSchedule(validatedSchedule, id);
+
+        if (!response.success) {
+          setError(response.error);
+          return;
+        }
+
+        setSuccess(response.message);
+        setOpenModal(true);
+        setOpenConfimartionModal(false);
+        setIdSchedule(0);
+      } catch (error: any) {
+        setError(error.message);
+      }
+    });
+  }, [id, validatedSchedule]);
+
+  const handleConfirm = useCallback(() => {
+    startTransition(async () => {
+      try {
+        const response = await ConfirmedSchedule(confirmedSchedule, id);
+
+        if (!response.success) {
+          setError(response.error);
+          return;
+        }
+
+        setSuccess(response.message);
+        setOpenModal(true);
+        setOpenConfimartionModal(false);
+        setIdSchedule(0);
+      } catch (error: any) {
+        setError(error.message);
+      }
+    });
+  }, [confirmedSchedule, id]);
+
   const toggleConfimartionModal = useCallback((id: number) => {
     setIdSchedule(id);
     setOpenConfimartionModal(true);
@@ -202,16 +267,40 @@ export default function TabPanel({
             >
               <Tab label="Custos" />
               <Tab label="Programações" />
-              <Tab label="Serviços" />
               <Tab label="Relatórios execuções" />
+              <Tab label="Serviços" />
             </Tabs>
 
             {value === 1 && (
-              <div className="px-4">
-                <ButtonComponent
-                  onClick={() => setIsDialogOpen(true)}
-                  text="Nova programação"
-                />
+              <div className="flex justify-center items-center flex-row">
+                <div className="px-4">
+                  <ButtonComponent
+                    onClick={() => setIsDialogOpen(true)}
+                    disabled={data.id_status === 42}
+                    text="Nova programação"
+                  />
+                </div>
+                <div className="px-4">
+                  <ButtonComponent
+                    onClick={handleValidated}
+                    disabled={
+                      data.id_status !== 43 ||
+                      permissions?.permissao_visualizacao === "parcial"
+                    }
+                    text="Validar programação"
+                  />
+                </div>
+
+                <div className="px-4">
+                  <ButtonComponent
+                    onClick={handleConfirm}
+                    disabled={
+                      data.id_status !== 37 ||
+                      permissions?.permissao_visualizacao === "parcial"
+                    }
+                    text="Confirmar programação"
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -227,17 +316,21 @@ export default function TabPanel({
                 data={data.programacoes}
                 onEdit={handleEditSchedule}
                 onDelete={toggleConfimartionModal}
+                statusWork={data.id_status}
+                setConfirmedSchedule={setConfirmedSchedule}
+                setValidatedSchedule={setValidatedSchedule}
+                setData={setData}
               />
             </CustomTabPanel>
             <CustomTabPanel value={value} index={2}>
-              Em breve
-            </CustomTabPanel>
-            <CustomTabPanel value={value} index={3}>
               <ExecutionReportPanelItem
                 data={executionReportData}
                 onDelete={toggleConfirmationModalExecution}
                 onEdit={handleEditExecutionReport}
               />
+            </CustomTabPanel>
+            <CustomTabPanel value={value} index={3}>
+              Em breve
             </CustomTabPanel>
           </Suspense>
         </div>
@@ -278,6 +371,7 @@ export default function TabPanel({
         onModalOpen={setOpenModal}
         options={options}
         scheduleForm={scheduleForm}
+        statusWork={data.id_status}
       />
 
       <ExecutionReportDialog

@@ -4,6 +4,7 @@ import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainAllWorks from "@/components/worksComponents/allWorks/MainAllWorks";
 import { Transform } from "@/utils/transform";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
 
 export const dynamic = "force-dynamic";
 
@@ -64,11 +65,13 @@ export default async function AllWorks() {
   };
 
   return (
-    <MainAllWorks
-      data={data}
-      token={token}
-      filtersData={filters}
-      columns={columns}
-    />
+    <EmotionCacheProvider>
+      <MainAllWorks
+        data={data}
+        token={token}
+        filtersData={filters}
+        columns={columns}
+      />
+    </EmotionCacheProvider>
   );
 }

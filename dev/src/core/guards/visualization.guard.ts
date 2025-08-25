@@ -1,10 +1,12 @@
+import { UsersService } from 'src/application/users.service';
+import { convertParameterValue } from 'src/utils/convertParameterValue';
+
 import {
   CanActivate,
   ExecutionContext,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { UsersService } from 'src/domain/services/users.service';
 
 @Injectable()
 export class VisualizationGuard implements CanActivate {
@@ -25,7 +27,8 @@ export class VisualizationGuard implements CanActivate {
     }
 
     if (user.permissao_visualizacao === 'parcial') {
-      request.query.idRegional = userRecord.id_regional;
+      request.idRegional = convertParameterValue(`${userRecord.id_regional}`);
+      request.insufficientPermission = true;
     }
 
     return true;

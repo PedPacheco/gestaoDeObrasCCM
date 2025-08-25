@@ -113,6 +113,7 @@ describe('GetCompletedWorksRepository', () => {
         data: '17/09/2024',
         tipoFiltro: 'day',
         page: 0,
+        insufficientPermission: true,
       };
 
       const expectedDate = moment(filters.data, 'DD/MM/YYYY', true).toDate();
@@ -123,7 +124,7 @@ describe('GetCompletedWorksRepository', () => {
 
       const result = await repository.getCompletedWorks(filters);
 
-      const expectedQuery = `${baseQuery} AND municipios.id_regional IN ()
+      const expectedQuery = `${baseQuery} AND status.id != 42 AND municipios.id_regional IN ()
         AND id_tipo IN ()
         AND id_turma IN ()
         AND tipos.id_grupo IN ()
@@ -171,6 +172,7 @@ describe('GetCompletedWorksRepository', () => {
         data: '09/2024',
         tipoFiltro: 'month',
         page: 0,
+        insufficientPermission: true,
       };
 
       mockPrisma.$queryRaw
@@ -179,7 +181,7 @@ describe('GetCompletedWorksRepository', () => {
 
       const result = await repository.getCompletedWorks(filters);
 
-      const expectedQuery = `${baseQuery} AND municipios.id_regional IN ()
+      const expectedQuery = `${baseQuery} AND status.id != 42 AND municipios.id_regional IN ()
         AND id_tipo IN ()
         AND id_turma IN ()
         AND tipos.id_grupo IN ()
@@ -218,6 +220,7 @@ describe('GetCompletedWorksRepository', () => {
         data: undefined,
         tipoFiltro: undefined,
         page: 0,
+        insufficientPermission: false,
       };
 
       mockPrisma.$queryRaw

@@ -80,7 +80,7 @@ describe('GetScheduleValuesRepository', () => {
       idParceira: undefined,
       idRegional: undefined,
       idTipo: undefined,
-      page: undefined,
+      ovnota: undefined,
     };
 
     mockPrisma.$queryRaw
@@ -89,7 +89,7 @@ describe('GetScheduleValuesRepository', () => {
 
     const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, entrada, entrada + prazo AS prazo_fim, tipo_obra, qtde_planejada,
     mo_planejada, turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec,
-    num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito
+    num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao
     FROM construcao_sp.obras
     INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
     INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
@@ -99,6 +99,7 @@ describe('GetScheduleValuesRepository', () => {
     INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo
     INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
     INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
+    INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
     WHERE 1=1 AND data_prog =  AND exec IS NULL ORDER BY data_prog, ovnota`;
 
     const result = await repository.getValues(filters);
@@ -127,7 +128,7 @@ describe('GetScheduleValuesRepository', () => {
       idParceira: [1],
       idRegional: [1],
       idTipo: [1],
-      page: 1,
+      ovnota: '1324',
     };
 
     mockPrisma.$queryRaw
@@ -136,7 +137,7 @@ describe('GetScheduleValuesRepository', () => {
 
     const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, entrada, entrada + prazo AS prazo_fim, tipo_obra, qtde_planejada,
       mo_planejada, turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec,
-      num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito
+      num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao
       FROM construcao_sp.obras
       INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
       INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
@@ -146,6 +147,7 @@ describe('GetScheduleValuesRepository', () => {
       INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo
       INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
       INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
+      INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
       WHERE 1=1 
       AND EXTRACT(MONTH FROM data_prog) = 
       AND EXTRACT(YEAR FROM data_prog) = 
@@ -154,9 +156,10 @@ describe('GetScheduleValuesRepository', () => {
       AND id_tipo IN ()
       AND id_turma IN ()
       AND tipos.id_grupo IN ()
+      AND obras.ovnota = 
       AND exec <> 0
       ORDER BY data_prog, ovnota
-      LIMIT 200 OFFSET`;
+      `;
 
     const result = await repository.getValues(filters);
 
@@ -172,6 +175,6 @@ describe('GetScheduleValuesRepository', () => {
     expect(normalizeSQL(querySent.strings.join(''))).toContain(
       normalizeSQL(expectedQuery),
     );
-    expect(querySent.values).toEqual([month, year, 1, 1, 1, 1, 1, 200]);
+    expect(querySent.values).toEqual([month, year, 1, 1, 1, 1, 1, '1324']);
   });
 });

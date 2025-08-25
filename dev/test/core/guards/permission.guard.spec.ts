@@ -49,7 +49,7 @@ describe('PermissionGuard', () => {
 
     await expect(permissionGuard.canActivate(context)).rejects.toThrow(
       new UnauthorizedException(
-        'Usuário não tem permissão para acessar está página',
+        'Usuário não tem permissão para acessar este recurso.',
       ),
     );
   });

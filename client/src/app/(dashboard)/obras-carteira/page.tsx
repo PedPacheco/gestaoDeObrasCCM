@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import PortfolioWorks from "@/components/worksComponents/portfolioWorks/MainPortfolioWorks";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { Transform } from "@/utils/transform";
 
 export const dynamic = "force-dynamic";
@@ -91,14 +92,16 @@ export default async function WorksInPortfolio() {
   };
 
   return (
-    <PortfolioWorks
-      data={data}
-      token={token}
-      filtersData={filters}
-      cookie="portfolioWorksFilters"
-      columns={columnMapping}
-      totalValues={33}
-      url="obras-carteira"
-    />
+    <EmotionCacheProvider>
+      <PortfolioWorks
+        data={data}
+        token={token}
+        filtersData={filters}
+        cookie="portfolioWorksFilters"
+        columns={columnMapping}
+        totalValues={33}
+        url="obras-carteira"
+      />
+    </EmotionCacheProvider>
   );
 }
