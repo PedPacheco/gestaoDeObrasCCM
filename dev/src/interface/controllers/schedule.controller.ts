@@ -1,16 +1,17 @@
-import { PermissionGuard } from 'src/core/guards/permission.guard';
-import { VisualizationGuard } from 'src/core/guards/visualization.guard';
+import { HandleAddScheduleService } from 'src/application/orchestrators/handleAddSchedule.service';
+import { HandleSchedulesUpdateService } from 'src/application/orchestrators/handleSchedulesUpdate.service';
 import { DeleteSchedulesService } from 'src/application/schedule/deleteSchedules.service';
 import { GetMonthlySummaryService } from 'src/application/schedule/getMonthlySummary.service';
-import { GetPendingScheduleValuesService } from 'src/application/schedule/getPendingScheduleValues.service';
 import { GetScheduleRestrictionsService } from 'src/application/schedule/getScheduleRestrictions.service';
 import { GetScheduleValuesService } from 'src/application/schedule/getScheduleValues.service';
 import { GetTotalValuesScheduleService } from 'src/application/schedule/getTotalValuesSchedule.service';
 import { GetValuesWeeklyScheduleService } from 'src/application/schedule/getValuesWeeklySchedule.service';
+import { ValidateAndConfirmSchedulesService } from 'src/application/schedule/validateAndConfirmSchedules.service';
+import { PermissionGuard } from 'src/core/guards/permission.guard';
+import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import {
   ConfirmSchedulesDTO,
   GetMonthlySummaryDTO,
-  GetPendingScheduleValuesDTO,
   GetScheduleValuesDTO,
   GetTotalValuesScheduleDTO,
   GetValueWeeklyScheduleDTO,
@@ -33,9 +34,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { HandleSchedulesUpdateService } from 'src/application/orchestrators/handleSchedulesUpdate.service';
-import { HandleAddScheduleService } from 'src/application/orchestrators/handleAddSchedule.service';
-import { ValidateAndConfirmSchedulesService } from 'src/application/schedule/validateAndConfirmSchedules.service';
 
 @Controller('programacao')
 export class ScheduleController {
@@ -43,7 +41,6 @@ export class ScheduleController {
     private getTotalValuesScheduleService: GetTotalValuesScheduleService,
     private getScheduleValuesService: GetScheduleValuesService,
     private getValuesWeeklyScheduleService: GetValuesWeeklyScheduleService,
-    private getPendingScheduleValuesService: GetPendingScheduleValuesService,
     private getScheduleRestrictionsService: GetScheduleRestrictionsService,
     private getMonthlySummaryService: GetMonthlySummaryService,
     private handleAddScheduleService: HandleAddScheduleService,
@@ -82,21 +79,6 @@ export class ScheduleController {
   async getValuesWeeklySchedule(@Query() filters: GetValueWeeklyScheduleDTO) {
     const response =
       await this.getValuesWeeklyScheduleService.getValues(filters);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Valores das programações da semana retornadas com sucesso',
-      data: response,
-    };
-  }
-
-  @Get('pendente')
-  @UseGuards(PermissionGuard)
-  async getPendingScheduleValues(
-    @Query() filters: GetPendingScheduleValuesDTO,
-  ) {
-    const response =
-      await this.getPendingScheduleValuesService.getValues(filters);
 
     return {
       statusCode: HttpStatus.OK,

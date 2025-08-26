@@ -2,7 +2,6 @@ import 'reflect-metadata';
 import { plainToInstance } from 'class-transformer';
 import {
   GetMonthlySummaryDTO,
-  GetPendingScheduleValuesDTO,
   GetScheduleValuesDTO,
   GetTotalValuesScheduleDTO,
   GetValueWeeklyScheduleDTO,
@@ -29,6 +28,8 @@ describe('ScheduleDTO', () => {
       idParceira: '1',
       ovnota: '123543',
       executado: 'false',
+      pendente: 'false',
+      page: '0',
     };
 
     const getTotalValuesScheduleFilters = {
@@ -39,11 +40,6 @@ describe('ScheduleDTO', () => {
       idParceira: '1',
       idCircuito: '1',
       ano: '2024',
-    };
-
-    const getPendingScheduleValuesFilters = {
-      idParceira: 1,
-      idRegional: 1,
     };
 
     const getMonthlySummaryFilters = {
@@ -69,11 +65,6 @@ describe('ScheduleDTO', () => {
       getTotalValuesScheduleFilters,
     );
 
-    const getPendingScheduleValuesInstance = plainToInstance(
-      GetPendingScheduleValuesDTO,
-      getPendingScheduleValuesFilters,
-    );
-
     const getMonthlySummaryInstance = plainToInstance(
       GetMonthlySummaryDTO,
       getMonthlySummaryFilters,
@@ -97,6 +88,8 @@ describe('ScheduleDTO', () => {
       idTipo: [1],
       idParceira: [1],
       executado: false,
+      pendente: false,
+      page: 0,
     });
     expect(getTotalValuesScheduleInstance).toEqual({
       idRegional: [1],
@@ -106,10 +99,6 @@ describe('ScheduleDTO', () => {
       idParceira: [1],
       idCircuito: [1],
       ano: 2024,
-    });
-    expect(getPendingScheduleValuesInstance).toEqual({
-      idParceira: [1],
-      idRegional: [1],
     });
     expect(getMonthlySummaryInstance).toEqual({
       date: '11/2024',
@@ -125,6 +114,11 @@ describe('ScheduleDTO', () => {
       executado: 'true',
     };
 
+    const getScheduleFilters = {
+      executado: 'true',
+      pendente: 'true',
+    };
+
     const getValueWeeklyScheduleInstance = plainToInstance(
       GetValueWeeklyScheduleDTO,
       filters,
@@ -132,7 +126,7 @@ describe('ScheduleDTO', () => {
 
     const getScheduleValuesInstance = plainToInstance(
       GetScheduleValuesDTO,
-      filters,
+      getScheduleFilters,
     );
 
     expect(getValueWeeklyScheduleInstance).toEqual({
@@ -140,12 +134,19 @@ describe('ScheduleDTO', () => {
     });
     expect(getScheduleValuesInstance).toEqual({
       executado: true,
+      pendente: true,
     });
   });
 
   it('Should transform query params to correct type', () => {
     const filters = {
       executado: undefined,
+      idRegional: undefined,
+    };
+
+    const getScheduleFilters = {
+      executado: undefined,
+      pendente: undefined,
       idRegional: undefined,
     };
 
@@ -156,7 +157,7 @@ describe('ScheduleDTO', () => {
 
     const getScheduleValuesInstance = plainToInstance(
       GetScheduleValuesDTO,
-      filters,
+      getScheduleFilters,
     );
 
     expect(getValueWeeklyScheduleInstance).toEqual({
@@ -165,6 +166,7 @@ describe('ScheduleDTO', () => {
     });
     expect(getScheduleValuesInstance).toEqual({
       executado: undefined,
+      pendente: undefined,
       idRegional: [],
     });
   });

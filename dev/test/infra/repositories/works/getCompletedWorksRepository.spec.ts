@@ -106,7 +106,7 @@ describe('GetCompletedWorksRepository', () => {
         idRegional: [1],
         idStatus: [6],
         idTipo: [2],
-        idOvnota: [10],
+        ovnota: '10',
         idCircuito: [7],
         idConjunto: [8],
         idEmpreendimento: [9],
@@ -133,7 +133,7 @@ describe('GetCompletedWorksRepository', () => {
         AND id_circuito IN ()
         AND circuitos.id_conjunto IN ()
         AND id_empreendimento IN ()
-        AND obras.id IN () AND data_conclusao = ORDER BY data_conclusao DESC LIMIT 200 OFFSET ;`;
+        AND obras.ovnota = AND data_conclusao = ORDER BY data_conclusao DESC LIMIT 200 OFFSET ;`;
 
       const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
 
@@ -151,7 +151,7 @@ describe('GetCompletedWorksRepository', () => {
         7,
         8,
         9,
-        10,
+        '10',
         expectedDate,
         0,
       ]);
@@ -165,7 +165,7 @@ describe('GetCompletedWorksRepository', () => {
         idRegional: [1],
         idStatus: [6],
         idTipo: [2],
-        idOvnota: [10],
+        ovnota: '10',
         idCircuito: [7],
         idConjunto: [8],
         idEmpreendimento: [9],
@@ -190,7 +190,7 @@ describe('GetCompletedWorksRepository', () => {
         AND id_circuito IN ()
         AND circuitos.id_conjunto IN ()
         AND id_empreendimento IN ()
-        AND obras.id IN () 
+        AND obras.ovnota =  
         AND EXTRACT(MONTH FROM data_conclusao) =  AND EXTRACT(YEAR FROM data_conclusao) = 
         ORDER BY data_conclusao DESC LIMIT 200 OFFSET ;`;
 
@@ -201,7 +201,19 @@ describe('GetCompletedWorksRepository', () => {
         normalizeSQL(expectedQuery),
       );
       expect(querySent.values).toEqual([
-        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 9, 2024, 0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        '10',
+        9,
+        2024,
+        0,
       ]);
     });
 
@@ -213,7 +225,7 @@ describe('GetCompletedWorksRepository', () => {
         idRegional: undefined,
         idStatus: undefined,
         idTipo: undefined,
-        idOvnota: undefined,
+        ovnota: undefined,
         idCircuito: undefined,
         idConjunto: undefined,
         idEmpreendimento: undefined,

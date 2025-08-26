@@ -4,7 +4,6 @@ import { validate } from 'class-validator';
 
 import { DeleteSchedulesService } from 'src/application/schedule/deleteSchedules.service';
 import { GetMonthlySummaryService } from 'src/application/schedule/getMonthlySummary.service';
-import { GetPendingScheduleValuesService } from 'src/application/schedule/getPendingScheduleValues.service';
 import { GetScheduleRestrictionsService } from 'src/application/schedule/getScheduleRestrictions.service';
 import { GetScheduleValuesService } from 'src/application/schedule/getScheduleValues.service';
 import { GetTotalValuesScheduleService } from 'src/application/schedule/getTotalValuesSchedule.service';
@@ -32,7 +31,6 @@ describe('ScheduleController', () => {
   let getValuesWeeklyScheduleService: GetValuesWeeklyScheduleService;
   let getScheduleValuesService: GetScheduleValuesService;
   let getScheduleRestrictionsService: GetScheduleRestrictionsService;
-  let getPendingScheduleValuesService: GetPendingScheduleValuesService;
   let getMonthlySummaryService: GetMonthlySummaryService;
   let handleSchedulesUpdateService: HandleSchedulesUpdateService;
   let deleteSchedulesService: DeleteSchedulesService;
@@ -118,12 +116,6 @@ describe('ScheduleController', () => {
           },
         },
         {
-          provide: GetPendingScheduleValuesService,
-          useValue: {
-            getValues: jest.fn(),
-          },
-        },
-        {
           provide: GetMonthlySummaryService,
           useValue: {
             getSummary: jest.fn(),
@@ -160,10 +152,6 @@ describe('ScheduleController', () => {
     getScheduleRestrictionsService = module.get<GetScheduleRestrictionsService>(
       GetScheduleRestrictionsService,
     );
-    getPendingScheduleValuesService =
-      module.get<GetPendingScheduleValuesService>(
-        GetPendingScheduleValuesService,
-      );
     getMonthlySummaryService = module.get<GetMonthlySummaryService>(
       GetMonthlySummaryService,
     );
@@ -281,6 +269,8 @@ describe('ScheduleController', () => {
       idTipo: [1],
       idParceira: [1],
       executado: false,
+      pendente: false,
+      page: 0,
       ovnota: '3434',
     };
 
@@ -338,28 +328,6 @@ describe('ScheduleController', () => {
       data: getValuesWeeklyScheduleServiceResponse,
     });
     expect(getValuesWeeklyScheduleService.getValues).toHaveBeenCalledWith(
-      filters,
-    );
-  });
-
-  it('Should call getPendingSchedule method and return correct data', async () => {
-    const filters = {
-      idRegional: [1],
-      idParceira: [1],
-    };
-
-    jest
-      .spyOn(getPendingScheduleValuesService, 'getValues')
-      .mockResolvedValue(mockScheduleData);
-
-    const result = await scheduleController.getPendingScheduleValues(filters);
-
-    expect(result).toStrictEqual({
-      statusCode: HttpStatus.OK,
-      message: 'Valores das programações da semana retornadas com sucesso',
-      data: mockScheduleData,
-    });
-    expect(getPendingScheduleValuesService.getValues).toHaveBeenCalledWith(
       filters,
     );
   });

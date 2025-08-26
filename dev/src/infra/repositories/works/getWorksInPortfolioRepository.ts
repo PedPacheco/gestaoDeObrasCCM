@@ -25,7 +25,7 @@ export class GetWorksInPortfolioRepository
       idRegional,
       idStatus,
       idTipo,
-      idOvnota,
+      ovnota,
       idCircuito,
       idConjunto,
       idEmpreendimento,
@@ -76,8 +76,8 @@ export class GetWorksInPortfolioRepository
       query = Prisma.sql`${query} AND id_empreendimento IN (${Prisma.join(idEmpreendimento)})`;
     }
 
-    if (idOvnota && idOvnota.length > 0) {
-      query = Prisma.sql`${query} AND obras.id IN (${Prisma.join(idOvnota)})`;
+    if (ovnota) {
+      query = Prisma.sql`${query} AND obras.ovnota = ${ovnota}`;
     }
 
     if (tipoFiltro === 'month' && data) {

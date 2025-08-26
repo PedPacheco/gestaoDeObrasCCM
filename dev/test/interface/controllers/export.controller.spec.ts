@@ -135,6 +135,8 @@ describe('ExportController', () => {
       idTipo: [1],
       idParceira: [1],
       executado: false,
+      pendente: false,
+      page: 0,
       ovnota: '13243',
     };
 
@@ -218,7 +220,7 @@ describe('ExportController', () => {
       idCircuito: undefined,
       idConjunto: undefined,
       idEmpreendimento: undefined,
-      idOvnota: undefined,
+      ovnota: undefined,
       idGrupo: undefined,
       idMunicipio: undefined,
       idParceira: undefined,
@@ -268,7 +270,7 @@ describe('ExportController', () => {
       idCircuito: undefined,
       idConjunto: undefined,
       idEmpreendimento: undefined,
-      idOvnota: undefined,
+      ovnota: undefined,
       idGrupo: undefined,
       idMunicipio: undefined,
       idParceira: undefined,

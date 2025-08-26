@@ -104,7 +104,7 @@ describe('GetWorksInPortfolioService', () => {
       idRegional: [1],
       idStatus: [6],
       idTipo: [2],
-      idOvnota: [10],
+      ovnota: '10',
       idCircuito: [7],
       idConjunto: [8],
       idEmpreendimento: [9],
@@ -140,7 +140,7 @@ describe('GetWorksInPortfolioService', () => {
       idRegional: [1],
       idStatus: [6],
       idTipo: [2],
-      idOvnota: [10],
+      ovnota: '10',
       idCircuito: [7],
       idConjunto: [8],
       idEmpreendimento: [9],
@@ -186,7 +186,7 @@ describe('GetWorksInPortfolioService', () => {
       idConjunto: [],
       idCircuito: [],
       idEmpreendimento: [],
-      idOvnota: [],
+      ovnota: undefined,
       insufficientPermission: false,
     };
 

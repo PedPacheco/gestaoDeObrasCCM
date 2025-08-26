@@ -91,6 +91,17 @@ export class GetScheduleValuesDTO {
     value === 'true' ? true : value === 'false' ? false : value,
   )
   executado: boolean;
+
+  @IsBoolean()
+  @Transform(({ value }) =>
+    value === 'true' ? true : value === 'false' ? false : value,
+  )
+  pendente: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  page: number;
 }
 
 export class GetValueWeeklyScheduleDTO {
@@ -130,18 +141,6 @@ export class GetValueWeeklyScheduleDTO {
     value === 'true' ? true : value === 'false' ? false : value,
   )
   executado: boolean;
-}
-
-export class GetPendingScheduleValuesDTO {
-  @IsOptional()
-  @IsArray()
-  @Transform(({ value }) => convertParameterValue(value))
-  idParceira: number[];
-
-  @IsOptional()
-  @IsArray()
-  @Transform(({ value }) => convertParameterValue(value))
-  idRegional: number[];
 }
 
 export class GetMonthlySummaryDTO {

@@ -108,7 +108,7 @@ describe('GetWorksInPortfolioRepository', () => {
         idRegional: [1],
         idStatus: [6],
         idTipo: [2],
-        idOvnota: [10],
+        ovnota: '10',
         idCircuito: [7],
         idConjunto: [8],
         idEmpreendimento: [9],
@@ -125,7 +125,7 @@ describe('GetWorksInPortfolioRepository', () => {
       const result = await repository.getWorksInPortfolio(filters);
 
       const expectedQuery = `${baseQuery} AND municipios.id_regional IN () AND id_tipo IN () AND id_turma IN () AND tipos.id_grupo IN () AND municipios.id IN ()
-      AND status.id IN () AND id_circuito IN () AND circuitos.id_conjunto IN () AND id_empreendimento IN () AND obras.id IN () 
+      AND status.id IN () AND id_circuito IN () AND circuitos.id_conjunto IN () AND id_empreendimento IN () AND obras.ovnota = 
       AND EXTRACT(MONTH FROM first_data_prog) = AND EXTRACT(YEAR FROM first_data_prog) = 
       ORDER BY first_data_prog, status DESC, entrada + prazo LIMIT 200 OFFSET`;
 
@@ -136,7 +136,19 @@ describe('GetWorksInPortfolioRepository', () => {
         normalizeSQL(expectedQuery),
       );
       expect(querySent.values).toEqual([
-        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 9, 2024, 200,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        '10',
+        9,
+        2024,
+        200,
       ]);
     });
 
@@ -148,7 +160,7 @@ describe('GetWorksInPortfolioRepository', () => {
         idRegional: [1],
         idStatus: [6],
         idTipo: [2],
-        idOvnota: [10],
+        ovnota: '10',
         idCircuito: [7],
         idConjunto: [8],
         idEmpreendimento: [9],
@@ -167,7 +179,7 @@ describe('GetWorksInPortfolioRepository', () => {
       const result = await repository.getWorksInPortfolio(filters);
 
       const expectedQuery = `${baseQuery} AND status.id != 42 AND municipios.id_regional IN () AND id_tipo IN () AND id_turma IN () AND tipos.id_grupo IN () AND municipios.id IN ()
-        AND status.id IN () AND id_circuito IN () AND circuitos.id_conjunto IN () AND id_empreendimento IN () AND obras.id IN () 
+        AND status.id IN () AND id_circuito IN () AND circuitos.id_conjunto IN () AND id_empreendimento IN () AND obras.ovnota =
         AND first_data_prog = 
         ORDER BY first_data_prog, status DESC, entrada + prazo LIMIT 200 OFFSET`;
 
@@ -187,7 +199,7 @@ describe('GetWorksInPortfolioRepository', () => {
         7,
         8,
         9,
-        10,
+        '10',
         expectedDate,
         200,
       ]);
@@ -206,7 +218,7 @@ describe('GetWorksInPortfolioRepository', () => {
         idConjunto: null,
         idCircuito: null,
         idEmpreendimento: null,
-        idOvnota: null,
+        ovnota: null,
         page: 1,
         insufficientPermission: false,
       };

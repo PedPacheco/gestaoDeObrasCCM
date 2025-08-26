@@ -28,6 +28,7 @@ export class GetScheduleValuesRepository
       idTipo,
       tipoFiltro,
       ovnota,
+      pendente,
     } = filters;
 
     const [month, year] = data.split('/');
@@ -64,10 +65,14 @@ export class GetScheduleValuesRepository
       query = Prisma.sql`${query} AND obras.ovnota = ${ovnota}`;
     }
 
-    if (executado) {
+    if (executado && !pendente) {
       query = Prisma.sql`${query} AND exec <> 0`;
     } else {
       query = Prisma.sql`${query} AND exec IS NULL`;
+    }
+
+    if (pendente) {
+      query = Prisma.sql`${query} AND data_prog < CURRENT_DATE`;
     }
 
     return query;
@@ -76,6 +81,7 @@ export class GetScheduleValuesRepository
   async getValues(
     filters: GetScheduleValuesDTO,
   ): Promise<GetScheduleValuesResponseRepository> {
+    const { page } = filters;
     const baseQuery = Prisma.sql`FROM construcao_sp.obras
         INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
         INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
@@ -100,6 +106,10 @@ export class GetScheduleValuesRepository
     countQuery = this.applyFilters(countQuery, filters);
 
     query = Prisma.sql`${query} ORDER BY data_prog, ovnota`;
+
+    if (page !== undefined) {
+      query = Prisma.sql`${query} LIMIT 200 OFFSET ${page * 200}`;
+    }
 
     const [works, resultTotals] = await Promise.all([
       this.prisma.$queryRaw<GetScheduleValuesInterface[]>(query),
