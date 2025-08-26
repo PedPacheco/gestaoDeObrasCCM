@@ -1,14 +1,17 @@
 "use client";
 
+import dayjs from "dayjs";
 import dynamic from "next/dynamic";
 import { useCallback, useState, useTransition } from "react";
+import { Cookies } from "react-cookie";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
-import { TableWithVirtualization } from "@/components/common/TableWithVirtualization";
+import { TableWithPagination } from "@/components/common/TableWithPagination";
 import { MainInterface } from "@/interfaces/mainInterface";
 import { FormatCurrency } from "@/utils/formatValue";
 import { mountUrl } from "@/utils/mountUrl";
+import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import ScheduleForDayFilters from "./ScheduleForDayFilters";
@@ -20,6 +23,8 @@ const ModalComponent = dynamic(() => import("@/components/common/Modal"), {
   ssr: false,
 });
 
+const cookies = new Cookies();
+
 export default function MainSchduleForDay({
   columns,
   data,
@@ -29,6 +34,7 @@ export default function MainSchduleForDay({
   const [filteredData, setFilteredData] = useState(data);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>();
+  const [page, setPage] = useState(0);
   const [isPending, startTransition] = useTransition();
 
   const toggleModal = () => setOpen((prev) => !prev);
@@ -67,12 +73,12 @@ export default function MainSchduleForDay({
     (params: Record<string, string | boolean>) => {
       startTransition(async () => {
         try {
-          console.log(params);
           const response = await fetchData(
             `${process.env.NEXT_PUBLIC_API_URL}/programacao/mensal`,
             params,
             token
           );
+          console.log(response.data);
           setFilteredData(response.data);
         } catch (error: any) {
           setError(error.message);
@@ -82,6 +88,29 @@ export default function MainSchduleForDay({
     [token]
   );
 
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+
+    const currentFilters = cookies.get("scheduleForDayFilters")
+      ? cookies.get("scheduleForDayFilters")
+      : {};
+
+    const filtersValues = {
+      ...Transform(currentFilters?.selectedItems || {}),
+      data: currentFilters?.date
+        ? dayjs(currentFilters?.date).format(
+            currentFilters?.filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY"
+          )
+        : "",
+      tipoFiltro: currentFilters?.filterType || "",
+      executado: currentFilters?.executed || "false",
+      pendente: currentFilters?.pending || "false",
+      page: newPage.toString(),
+    };
+
+    fetchSchedule(filtersValues);
+  };
+
   return (
     <>
       <div className="my-6 w-11/12 flex flex-col">
@@ -90,14 +119,17 @@ export default function MainSchduleForDay({
           openModal={toggleModal}
           generateExcel={generateExcel}
           isPending={isPending}
+          setPage={setPage}
           applyFilters={fetchSchedule}
         />
       </div>
 
-      <TableWithVirtualization
+      <TableWithPagination
         columns={columns}
-        data={filteredData.works}
+        data={filteredData}
         sliceEndIndex={4}
+        page={page}
+        handleChangePage={handleChangePage}
       />
 
       <ModalComponent open={open} onClose={toggleModal} title="Valores totais">

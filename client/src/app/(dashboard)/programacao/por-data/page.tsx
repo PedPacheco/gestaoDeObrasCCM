@@ -25,7 +25,9 @@ export default async function ScheduleForDay() {
         : "",
     tipoFiltro: params?.filterType || "",
     executado: params?.executed || "false",
+    pendente: params?.pending || "false",
     ovnota: params?.ovnota || "",
+    page: "0",
   };
 
   const [filters, scheduleData] = await Promise.all([

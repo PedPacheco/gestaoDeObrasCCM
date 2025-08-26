@@ -12,6 +12,7 @@ import { Transform } from "@/utils/transform";
 import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { capitalize } from "@/utils/formatValue";
+import { TextField } from "@mui/material";
 
 interface filters {
   regional: { id: string; regional: string }[];
@@ -24,7 +25,6 @@ interface filters {
   circuito: { id: string; circuito: string }[];
   empreendimento: { id: string; empreendimento: string }[];
   conjunto: { id: string; conjunto: string }[];
-  ovnota: { id: string; ovnota: string }[];
 }
 
 interface PortfolioWorksFiltersProps {
@@ -51,6 +51,7 @@ export default function PortfolioWorksFilters({
     {}
   );
   const [date, setDate] = useState<Dayjs | null>();
+  const [ovnota, setOvnota] = useState<string>("");
   const [filterType, setFilterType] = useState<string>("month");
 
   useEffect(() => {
@@ -58,11 +59,12 @@ export default function PortfolioWorksFilters({
       setSelectedItems(filters.selectedItems || {});
       setDate(filters.date ? dayjs(filters.date) : null);
       setFilterType(filters.filterType || "month");
+      setOvnota(filters.ovnota || "");
     }
   }, [filters]);
 
   function handleApplyFilters() {
-    saveFilters({ selectedItems, date, filterType });
+    saveFilters({ selectedItems, date, filterType, ovnota });
 
     const params = {
       ...Transform(selectedItems),
@@ -70,6 +72,7 @@ export default function PortfolioWorksFilters({
         ? dayjs(date).format(filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY")
         : "",
       tipoFiltro: filterType,
+      ovnota: ovnota,
       page: "0",
     };
 
@@ -81,6 +84,7 @@ export default function PortfolioWorksFilters({
     setSelectedItems({});
     setDate(null);
     setFilterType("month");
+    setOvnota("");
 
     clearFilters();
 
@@ -136,6 +140,15 @@ export default function PortfolioWorksFilters({
             </div>
           );
         })}
+        <div className="w-full lg:w-3/4 mx-auto">
+          <TextField
+            className="mb-2 lg:ml-4 lg:first:ml-0 w-full"
+            size="small"
+            label="Ov/nota"
+            value={ovnota}
+            onChange={(event) => setOvnota(event.target.value)}
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 w-full">

@@ -26,6 +26,7 @@ interface ScheduleByDateFiltersProps {
   openModal: () => void;
   generateExcel: (params: any) => void;
   isPending: boolean;
+  setPage: (page: number) => void;
   applyFilters: (params: Record<string, string | boolean>) => void;
 }
 
@@ -34,6 +35,7 @@ export default function ScheduleForDayFilters({
   openModal,
   generateExcel,
   isPending,
+  setPage,
   applyFilters,
 }: ScheduleByDateFiltersProps) {
   const { clearFilters, filters, saveFilters } = useSaveFilters(
@@ -46,12 +48,14 @@ export default function ScheduleForDayFilters({
   const [filterType, setFilterType] = useState<string>("");
   const [ovnota, setOvnota] = useState<string>("");
   const [executed, setExecuted] = useState<boolean>(false);
+  const [pending, setPending] = useState<boolean>(false);
 
   useEffect(() => {
     if (filters) {
       setSelectedItems(filters.selectedItems || {});
       setDate(filters.date ? dayjs(filters.date) : null);
       setExecuted(filters.executed || false);
+      setPending(filters.pending || false);
       setFilterType(filters.filterType || "");
       setOvnota(filters.ovnota || "");
     }
@@ -65,13 +69,14 @@ export default function ScheduleForDayFilters({
         : "",
       tipoFiltro: filterType,
       executado: executed.toString(),
+      pendente: pending.toString(),
     };
 
     generateExcel(newSelectedItems);
   }
 
   function handleApplyFilters() {
-    saveFilters({ selectedItems, date, filterType, executed, ovnota });
+    saveFilters({ selectedItems, date, filterType, executed, ovnota, pending });
 
     const newSelectedItems = {
       ...Transform(selectedItems),
@@ -80,6 +85,8 @@ export default function ScheduleForDayFilters({
         : "",
       tipoFiltro: filterType,
       executado: executed.toString(),
+      pendente: pending.toString(),
+      page: "0",
       ovnota: ovnota,
     };
 
@@ -91,14 +98,19 @@ export default function ScheduleForDayFilters({
     setDate(null);
     setFilterType("");
     setExecuted(false);
+    setPending(false);
     setOvnota("");
 
     clearFilters();
+
+    setPage(0);
 
     applyFilters({
       data: "",
       tipoFiltro: "",
       executado: false,
+      pendente: false,
+      page: "0",
     });
   }
 
@@ -149,12 +161,19 @@ export default function ScheduleForDayFilters({
           onChange={(event) => setOvnota(event.target.value)}
         />
 
-        <div className="flex flex-row items-center justify-center mb-2">
-          <Checkbox
-            onChange={() => setExecuted(!executed)}
-            checked={executed}
-          />
-          <p className="text-nowrap">Programações executadas</p>
+        <div className="flex flex-col">
+          <div className="flex flex-row items-center ">
+            <Checkbox
+              onChange={() => setExecuted(!executed)}
+              checked={executed}
+            />
+            <p className="text-nowrap font-medium text-lg">Executadas</p>
+          </div>
+
+          <div className="flex flex-row items-center mb-2">
+            <Checkbox onChange={() => setPending(!pending)} checked={pending} />
+            <p className="text-nowrap font-medium text-lg">Pendentes</p>
+          </div>
         </div>
       </div>
 
@@ -163,25 +182,29 @@ export default function ScheduleForDayFilters({
           onClick={handleApplyFilters}
           text={getButtonContent(isPending, "Aplicar filtros")}
           styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
+          disabled={isPending}
         />
         <ButtonComponent
           onClick={handleCleanigFilters}
           text={getButtonContent(isPending, "Limpar filtros")}
           styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
+          disabled={isPending}
         />
 
         <ButtonComponent
           onClick={openModal}
-          text="Ver valores totais"
+          text={getButtonContent(isPending, "Ver valores totais")}
           styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
+          disabled={isPending}
         />
         <ButtonComponent
           onClick={handleGenerateExcel}
-          text="Exportar"
+          text={getButtonContent(isPending, "Exportar")}
           styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
           startIcon={
             <DocumentArrowDownIcon width={25} height={25} className="mr-2" />
           }
+          disabled={isPending}
         />
       </div>
     </>
