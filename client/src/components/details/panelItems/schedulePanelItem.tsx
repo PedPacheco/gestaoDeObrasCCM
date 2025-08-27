@@ -65,11 +65,6 @@ interface SchedulePanelItemProps {
 }
 
 function formatCellValue(value: any, key: string) {
-  if (typeof value === "number") {
-    const decimal = value.toString().split(".");
-    if (decimal[1]?.length > 2) value = value.toFixed(2);
-  }
-
   if (["prog", "exec"].includes(key)) {
     value = formatPercentage(value);
   }
@@ -84,10 +79,6 @@ function formatCellValue(value: any, key: string) {
       date.year() === 1970
         ? date.utc().format("HH:mm")
         : date.utc().format("DD/MM/YYYY");
-  }
-
-  if (typeof value === "object" && value !== null) {
-    value = Object.values(value).join(", ");
   }
 
   return value;

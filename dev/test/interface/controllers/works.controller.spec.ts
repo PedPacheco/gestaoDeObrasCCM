@@ -1,6 +1,10 @@
 import { plainToInstance } from 'class-transformer';
 import { WorksController } from 'src/interface/controllers/works.controller';
-import { GetAllWorksDTO, GetWorksDTO } from 'src/interface/dtos/worksDto';
+import {
+  GetAllWorksDTO,
+  GetWorksDTO,
+  UpdateWorkDTO,
+} from 'src/interface/dtos/worksDto';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
@@ -19,6 +23,7 @@ import { GetCompletedWorksService } from 'src/application/works/getCompletedWork
 import { GetAllWorksService } from 'src/application/works/getAllWorks.service';
 import { UsersService } from 'src/application/users.service';
 import { HandleWorkUpdateService } from 'src/application/orchestrators/handleWorkUpdate.service';
+import { validate } from 'class-validator';
 
 describe('WorksController', () => {
   let worksController: WorksController;
@@ -119,7 +124,7 @@ describe('WorksController', () => {
         idCircuito: undefined,
         idConjunto: undefined,
         idEmpreendimento: undefined,
-        idOvnota: undefined,
+        ovnota: undefined,
         idGrupo: undefined,
         idMunicipio: undefined,
         idParceira: undefined,
@@ -157,7 +162,7 @@ describe('WorksController', () => {
         idCircuito: undefined,
         idConjunto: undefined,
         idEmpreendimento: undefined,
-        idOvnota: undefined,
+        ovnota: undefined,
         idGrupo: undefined,
         idMunicipio: undefined,
         idParceira: undefined,
@@ -337,6 +342,18 @@ describe('WorksController', () => {
       expect(instance.idEmpreendimento).toStrictEqual([23]);
       expect(instance.idCircuito).toStrictEqual([9]);
       expect(instance.page).toStrictEqual(0);
+    });
+
+    it('should convert field data_empreitamento of UpdateWorkDTO to the correct date format', async () => {
+      const dto = plainToInstance(UpdateWorkDTO, {
+        id_turma: 1,
+        id_status: 2,
+        data_empreitamento: new Date('2024-01-01'),
+        tipo_ads: 'CONVENCIONAL',
+      });
+
+      const errors = await validate(dto);
+      expect(errors.length).toBe(0);
     });
   });
 });

@@ -11,7 +11,7 @@ import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
 import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
-import { Checkbox } from "@mui/material";
+import { Checkbox, FormControl, Input, TextField } from "@mui/material";
 
 interface filters {
   regional: { id: string; regional: string }[];
@@ -26,8 +26,8 @@ interface ScheduleByDateFiltersProps {
   openModal: () => void;
   generateExcel: (params: any) => void;
   isPending: boolean;
-  applyFilters: (params: Record<string, string | boolean>) => void;
   setPage: (page: number) => void;
+  applyFilters: (params: Record<string, string | boolean>) => void;
 }
 
 export default function ScheduleForDayFilters({
@@ -35,8 +35,8 @@ export default function ScheduleForDayFilters({
   openModal,
   generateExcel,
   isPending,
-  applyFilters,
   setPage,
+  applyFilters,
 }: ScheduleByDateFiltersProps) {
   const { clearFilters, filters, saveFilters } = useSaveFilters(
     "scheduleForDayFilters"
@@ -44,16 +44,20 @@ export default function ScheduleForDayFilters({
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {}
   );
-  const [date, setDate] = useState<Dayjs>(dayjs());
-  const [filterType, setFilterType] = useState<string>("month");
+  const [date, setDate] = useState<Dayjs | null>(null);
+  const [filterType, setFilterType] = useState<string>("");
+  const [ovnota, setOvnota] = useState<string>("");
   const [executed, setExecuted] = useState<boolean>(false);
+  const [pending, setPending] = useState<boolean>(false);
 
   useEffect(() => {
     if (filters) {
       setSelectedItems(filters.selectedItems || {});
-      setDate(filters.date ? dayjs(filters.date) : dayjs());
+      setDate(filters.date ? dayjs(filters.date) : null);
       setExecuted(filters.executed || false);
-      setFilterType(filters.filterType || "month");
+      setPending(filters.pending || false);
+      setFilterType(filters.filterType || "");
+      setOvnota(filters.ovnota || "");
     }
   }, [filters]);
 
@@ -65,14 +69,14 @@ export default function ScheduleForDayFilters({
         : "",
       tipoFiltro: filterType,
       executado: executed.toString(),
-      page: "0",
+      pendente: pending.toString(),
     };
 
     generateExcel(newSelectedItems);
   }
 
   function handleApplyFilters() {
-    saveFilters({ selectedItems, date, filterType, executed });
+    saveFilters({ selectedItems, date, filterType, executed, ovnota, pending });
 
     const newSelectedItems = {
       ...Transform(selectedItems),
@@ -81,27 +85,31 @@ export default function ScheduleForDayFilters({
         : "",
       tipoFiltro: filterType,
       executado: executed.toString(),
+      pendente: pending.toString(),
       page: "0",
+      ovnota: ovnota,
     };
 
-    setPage(0);
     applyFilters(newSelectedItems);
   }
 
   function handleCleanigFilters() {
     setSelectedItems({});
-    setDate(dayjs());
-    setFilterType("month");
+    setDate(null);
+    setFilterType("");
     setExecuted(false);
+    setPending(false);
+    setOvnota("");
 
     clearFilters();
 
     setPage(0);
 
     applyFilters({
-      data: dayjs().format("MM/YYYY"),
-      tipoFiltro: "month",
+      data: "",
+      tipoFiltro: "",
       executado: false,
+      pendente: false,
       page: "0",
     });
   }
@@ -117,38 +125,55 @@ export default function ScheduleForDayFilters({
           marginLeft="ml-4"
         />
 
-        {Object.entries(data).map(([key, value], index) => {
-          const valueKey = Object.keys(value[0])[0];
-          const displayKey = Object.keys(value[0])[1];
+        {Object.entries(data)
+          .slice(0, 5)
+          .map(([key, value], index) => {
+            const valueKey = Object.keys(value[0])[0];
+            const displayKey = Object.keys(value[0])[1];
 
-          const filterValue = `${valueKey}${
-            key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()
-          }`;
+            const filterValue = `${valueKey}${
+              key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()
+            }`;
 
-          return (
-            <MultipleSelectComponent
-              label={capitalize(displayKey)}
-              menuItems={value || []}
-              selectedItem={selectedItems[filterValue]}
-              setSelectedItem={(selectedValue) => {
-                setSelectedItems((prev: any) => ({
-                  ...prev,
-                  [filterValue]: selectedValue,
-                }));
-              }}
-              valueKey={valueKey}
-              displayKey={displayKey}
-              key={index}
+            return (
+              <MultipleSelectComponent
+                label={capitalize(displayKey)}
+                menuItems={value || []}
+                selectedItem={selectedItems[filterValue]}
+                setSelectedItem={(selectedValue) => {
+                  setSelectedItems((prev: any) => ({
+                    ...prev,
+                    [filterValue]: selectedValue,
+                  }));
+                }}
+                valueKey={valueKey}
+                displayKey={displayKey}
+                key={index}
+              />
+            );
+          })}
+
+        <TextField
+          className="mb-2 lg:ml-4 lg:first:ml-0 w-full"
+          size="small"
+          label="Ov/nota"
+          value={ovnota}
+          onChange={(event) => setOvnota(event.target.value)}
+        />
+
+        <div className="flex flex-col">
+          <div className="flex flex-row items-center ">
+            <Checkbox
+              onChange={() => setExecuted(!executed)}
+              checked={executed}
             />
-          );
-        })}
+            <p className="text-nowrap font-medium text-lg">Executadas</p>
+          </div>
 
-        <div className="flex flex-row items-center justify-center mb-2">
-          <Checkbox
-            onChange={() => setExecuted(!executed)}
-            checked={executed}
-          />
-          <p className="text-nowrap">Programações executadas</p>
+          <div className="flex flex-row items-center mb-2">
+            <Checkbox onChange={() => setPending(!pending)} checked={pending} />
+            <p className="text-nowrap font-medium text-lg">Pendentes</p>
+          </div>
         </div>
       </div>
 
@@ -157,25 +182,29 @@ export default function ScheduleForDayFilters({
           onClick={handleApplyFilters}
           text={getButtonContent(isPending, "Aplicar filtros")}
           styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
+          disabled={isPending}
         />
         <ButtonComponent
           onClick={handleCleanigFilters}
           text={getButtonContent(isPending, "Limpar filtros")}
           styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
+          disabled={isPending}
         />
 
         <ButtonComponent
           onClick={openModal}
-          text="Ver valores totais"
+          text={getButtonContent(isPending, "Ver valores totais")}
           styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
+          disabled={isPending}
         />
         <ButtonComponent
           onClick={handleGenerateExcel}
-          text="Exportar"
+          text={getButtonContent(isPending, "Exportar")}
           styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
           startIcon={
             <DocumentArrowDownIcon width={25} height={25} className="mr-2" />
           }
+          disabled={isPending}
         />
       </div>
     </>

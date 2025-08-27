@@ -9,12 +9,12 @@ import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
 import { TableWithPagination } from "@/components/common/TableWithPagination";
 import { MainInterface } from "@/interfaces/mainInterface";
+import { FormatCurrency } from "@/utils/formatValue";
 import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import ScheduleForDayFilters from "./ScheduleForDayFilters";
-import { FormatCurrency } from "@/utils/formatValue";
 
 const ErrorModal = dynamic(() => import("@/components/common/ErrorModal"), {
   ssr: false,
@@ -78,6 +78,7 @@ export default function MainSchduleForDay({
             params,
             token
           );
+          console.log(response.data);
           setFilteredData(response.data);
         } catch (error: any) {
           setError(error.message);
@@ -100,9 +101,10 @@ export default function MainSchduleForDay({
         ? dayjs(currentFilters?.date).format(
             currentFilters?.filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY"
           )
-        : dayjs().format("MM/YYYY"),
-      tipoFiltro: currentFilters?.filterType || "month",
+        : "",
+      tipoFiltro: currentFilters?.filterType || "",
       executado: currentFilters?.executed || "false",
+      pendente: currentFilters?.pending || "false",
       page: newPage.toString(),
     };
 
@@ -117,14 +119,14 @@ export default function MainSchduleForDay({
           openModal={toggleModal}
           generateExcel={generateExcel}
           isPending={isPending}
-          applyFilters={fetchSchedule}
           setPage={setPage}
+          applyFilters={fetchSchedule}
         />
       </div>
 
       <TableWithPagination
-        data={filteredData}
         columns={columns}
+        data={filteredData}
         sliceEndIndex={4}
         page={page}
         handleChangePage={handleChangePage}
@@ -135,7 +137,7 @@ export default function MainSchduleForDay({
           {Object.entries(columns)
             .slice(24)
             .map(([column, value]) => {
-              const item = data.totals;
+              const item = filteredData.totals;
               let valueFormatted = item[column];
 
               if (

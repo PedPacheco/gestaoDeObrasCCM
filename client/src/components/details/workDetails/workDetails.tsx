@@ -81,12 +81,6 @@ export function WorkDetails({
 
   const handleSubmit = () => {
     startTransition(async () => {
-      if (!changedFields || Object.keys(changedFields).length === 0) {
-        setError("Nenhuma alteração foi feita");
-        return;
-      }
-      setError(null);
-
       try {
         const response = await updateWork(changedFields, idWork);
 

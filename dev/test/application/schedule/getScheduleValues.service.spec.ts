@@ -70,12 +70,14 @@ describe('GetScheduleValues', () => {
       data: '10/2024',
       tipoFiltro: 'month',
       executado: true,
+      pendente: false,
+      page: 0,
       idGrupo: [1],
       idMunicipio: [1],
       idParceira: [1],
       idRegional: [1],
       idTipo: [1],
-      page: 1,
+      ovnota: '1343',
     };
 
     mockRepository.getValues.mockResolvedValueOnce({
@@ -94,12 +96,14 @@ describe('GetScheduleValues', () => {
       data: '01/10/2024',
       tipoFiltro: 'day',
       executado: false,
+      pendente: false,
+      page: 0,
       idGrupo: undefined,
       idMunicipio: undefined,
       idParceira: undefined,
       idRegional: undefined,
       idTipo: undefined,
-      page: undefined,
+      ovnota: undefined,
     };
 
     mockRepository.getValues.mockResolvedValueOnce({

@@ -285,7 +285,7 @@ export default function TabPanel({
                     onClick={handleValidated}
                     disabled={
                       data.id_status !== 43 ||
-                      permissions?.permissao_visualizacao !== "parcial"
+                      permissions?.permissao_visualizacao === "parcial"
                     }
                     text="Validar programação"
                   />
@@ -296,7 +296,7 @@ export default function TabPanel({
                     onClick={handleConfirm}
                     disabled={
                       data.id_status !== 37 ||
-                      permissions?.permissao_visualizacao !== "parcial"
+                      permissions?.permissao_visualizacao === "parcial"
                     }
                     text="Confirmar programação"
                   />

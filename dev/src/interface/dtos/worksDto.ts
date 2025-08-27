@@ -116,9 +116,8 @@ export class GetWorksDTO {
   idEmpreendimento: number[];
 
   @IsOptional()
-  @IsArray()
-  @Transform(({ value }) => convertParameterValue(value))
-  idOvnota: number[];
+  @IsString()
+  ovnota: string;
 }
 
 export class UpdateWorkDTO {

@@ -16,7 +16,7 @@ import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { capitalize } from "@/utils/formatValue";
 
-interface Filters {
+export interface MainEntryByDateFilters {
   regional: { id: string; regional: string }[];
   parceira: { id: string; turma: string }[];
   tipo: { id: string; tipo_obra: string; id_grupo: number }[];
@@ -29,7 +29,7 @@ export default function MainEntryByDate({
   filtersData,
   columns,
   token,
-}: MainInterface<Filters>) {
+}: MainInterface<MainEntryByDateFilters>) {
   const [filteredData, setFilteredData] = useState(data);
   const [error, setError] = useState<string | null>();
   const { clearFilters, filters, saveFilters } =
@@ -43,7 +43,7 @@ export default function MainEntryByDate({
 
   useEffect(() => {
     if (filters) {
-      setSelectedItems(filters.selectedItems);
+      setSelectedItems(filters.selectedItems || {});
       setDate(dayjs(filters.date));
       setFilterType(filters.filterType);
     }
@@ -55,11 +55,10 @@ export default function MainEntryByDate({
 
     const params = {
       ...formattedSelectedItems,
-      data: date
-        ? filterType === "day"
+      data:
+        filterType === "day"
           ? dayjs(date).format("DD/MM/YYYY")
-          : dayjs(date).format("MM/YYYY")
-        : "",
+          : dayjs(date).format("MM/YYYY"),
       tipoFiltro: filterType,
     };
 

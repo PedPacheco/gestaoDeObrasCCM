@@ -70,11 +70,6 @@ export const links = [
         needPermission: false,
       },
       {
-        name: "Programacao pendente",
-        href: "/programacao/pendente",
-        needPermission: true,
-      },
-      {
         name: "Restrições",
         href: "/programacao/restricoes",
         needPermission: true,

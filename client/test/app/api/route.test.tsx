@@ -49,7 +49,9 @@ describe("POST /api/login", () => {
       "token",
       fakeToken,
       expect.objectContaining({
-        httpOnly: true,
+        httpOnly: false,
+        secure: false,
+        sameSite: "lax",
         path: "/",
       })
     );
@@ -58,6 +60,8 @@ describe("POST /api/login", () => {
       JSON.stringify(fakeUser),
       expect.objectContaining({
         httpOnly: false,
+        secure: false,
+        sameSite: "lax",
         path: "/",
       })
     );

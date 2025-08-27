@@ -36,7 +36,6 @@ export default async function CompletedWorks() {
       circuito: true,
       conjunto: true,
       status: true,
-      ovnotaExec: true,
       empreendimento: true,
     }),
     fetchData(

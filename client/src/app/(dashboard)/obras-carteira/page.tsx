@@ -36,7 +36,6 @@ export default async function WorksInPortfolio() {
       circuito: true,
       conjunto: true,
       status: true,
-      ovnota: true,
       empreendimento: true,
     }),
     fetchData(
