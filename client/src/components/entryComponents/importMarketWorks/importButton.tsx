@@ -189,6 +189,7 @@ export function ImportButton({ storageKey }: ImportButtonProps) {
       {storageKey === "marketEntryData" ? (
         <form
           ref={formRef}
+          name="form-mercado"
           encType="multipart/form-data"
           className="flex flex-col items-center gap-4"
         >
