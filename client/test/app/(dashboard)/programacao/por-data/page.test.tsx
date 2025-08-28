@@ -76,6 +76,8 @@ describe("Schedule For Day Page", () => {
     date: "17/05/2025",
     filterType: "day",
     executed: "true",
+    pending: "false",
+    page: "0",
     ovnota: "1253",
   });
 
@@ -123,7 +125,43 @@ describe("Schedule For Day Page", () => {
         data: dayjs("17/05/2025").format("DD/MM/YYYY"),
         tipoFiltro: "day",
         executado: "true",
+        pendente: "false",
+        page: "0",
         ovnota: "1253",
+      },
+      mockToken,
+      { cache: "no-store" }
+    );
+  });
+
+  it("deve buscar os dados com o filtro de data referente a mês", async () => {
+    const modifiedData = JSON.stringify({
+      ...JSON.parse(mockParamsFiltes),
+      date: "08/2025",
+      filterType: "month",
+      executed: undefined,
+      ovnota: "1234",
+    });
+
+    vi.mocked(mockCookieStore.get).mockImplementation((name) => {
+      if (name === "token") return { value: mockToken };
+      if (name === "scheduleForDayFilters") return { value: modifiedData };
+      return undefined;
+    });
+
+    render(await ScheduleForDay());
+
+    expect(fetchData).toHaveBeenCalledWith(
+      "https://api.example.com/programacao/mensal",
+      {
+        parceira: "Parceira 1",
+        regional: "Regional A",
+        data: dayjs("08/2025").format("MM/YYYY"),
+        tipoFiltro: "month",
+        executado: "false",
+        pendente: "false",
+        page: "0",
+        ovnota: "1234",
       },
       mockToken,
       { cache: "no-store" }
@@ -155,6 +193,8 @@ describe("Schedule For Day Page", () => {
         data: "",
         tipoFiltro: "",
         executado: "false",
+        pendente: "false",
+        page: "0",
         ovnota: "1234",
       },
       mockToken,
@@ -177,6 +217,8 @@ describe("Schedule For Day Page", () => {
         tipoFiltro: "",
         ovnota: "",
         executado: "false",
+        pendente: "false",
+        page: "0",
       },
       mockToken,
       { cache: "no-store" }

@@ -76,9 +76,9 @@ export default function MainSchduleForDay({
           const response = await fetchData(
             `${process.env.NEXT_PUBLIC_API_URL}/programacao/mensal`,
             params,
-            token
+            token,
+            { cache: "no-store" }
           );
-          console.log(response.data);
           setFilteredData(response.data);
         } catch (error: any) {
           setError(error.message);
