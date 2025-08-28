@@ -285,7 +285,7 @@ export default function TabPanel({
                 <div className="px-4">
                   <ButtonComponent
                     onClick={() => setIsDialogOpen(true)}
-                    disabled={data.id_status === 42}
+                    disabled={data.id_status === 2 || data.id_status === 3}
                     text="Nova programação"
                   />
                 </div>
