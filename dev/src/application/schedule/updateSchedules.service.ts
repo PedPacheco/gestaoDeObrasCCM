@@ -41,12 +41,6 @@ export class UpdateSchedulesService {
         executed,
         tx,
       );
-
-      if (executed + data.exec > 100) {
-        throw new BadRequestException(
-          'O valor da execução da obra não pode ser superior a 100',
-        );
-      }
     }
 
     let schedule: Schedule;

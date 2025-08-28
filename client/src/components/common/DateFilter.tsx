@@ -24,7 +24,9 @@ export function DateFilter({
   return (
     <>
       <FormControl
-        className={`mb-2 ${marginLeft ? "" : "lg:mx-auto"} w-full lg:w-3/4`}
+        className={`mb-2 ${
+          marginLeft ? marginLeft : "lg:mx-auto"
+        } w-full lg:w-3/4`}
         size="small"
       >
         <InputLabel htmlFor="tipo-filtro">Tipo de Filtro</InputLabel>

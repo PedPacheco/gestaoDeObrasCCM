@@ -72,7 +72,7 @@ export default async function WorksInPortfolio() {
     circuito: "Circuito",
     mo_planejada: "MO Plan",
     first_data_prog: "Data programada",
-    status: "Status",
+    status: "Status da Obra",
     hora_ini: "Hora início",
     hora_ter: "Hora término",
     tipo_servico: "Tipo serviço",

@@ -38,6 +38,8 @@ export default async function ScheduleForDay() {
       parceira: true,
       grupo: true,
       tipo: true,
+      status: true,
+      status_programacao: true,
     }),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/programacao/mensal`,

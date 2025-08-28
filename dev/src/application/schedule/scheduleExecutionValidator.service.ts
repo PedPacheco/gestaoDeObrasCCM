@@ -8,6 +8,7 @@ import {
 interface ScheduleExecutionValidatorInterface {
   id: number;
   idWork: number;
+  dataProg: Date;
   prog: number;
   exec?: number;
 }
@@ -34,6 +35,15 @@ export class ScheduleExecutionValidatorService {
       await this.statusFlowRepository.updateScheduleStatus(4, data.id, tx);
       if (totalExecuted + data.exec < 100) {
         await this.statusFlowRepository.updateStatusWorks(37, data.idWork, tx);
+      }
+
+      if (totalExecuted + data.exec === 100) {
+        await this.statusFlowRepository.updateStatusWorks(
+          2,
+          data.idWork,
+          tx,
+          data.dataProg,
+        );
       }
     }
 
