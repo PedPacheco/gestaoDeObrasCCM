@@ -80,7 +80,8 @@ export default function ScheduleFormDialog({
   const submitButtonText = isPending ? "Salvando..." : "Salvar Programação";
 
   const disabledFields =
-    permissions?.permissao_visualizacao === "parcial" && statusWork === 35;
+    permissions?.permissao_visualizacao === "parcial" &&
+    (statusWork === 3 || statusWork === 2);
 
   return (
     <Dialog
