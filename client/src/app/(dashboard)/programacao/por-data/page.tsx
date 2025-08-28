@@ -8,6 +8,7 @@ import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { Transform } from "@/utils/transform";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function ScheduleForDay() {
   const cookieStore = await cookies();
