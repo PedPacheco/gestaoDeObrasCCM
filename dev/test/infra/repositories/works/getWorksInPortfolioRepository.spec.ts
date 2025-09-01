@@ -114,7 +114,7 @@ describe('GetWorksInPortfolioRepository', () => {
         idConjunto: [8],
         idEmpreendimento: [9],
         page: 1,
-        insufficientPermission: false,
+        insufficientPermission: true,
       };
 
       mockPrisma.$queryRaw
@@ -123,7 +123,7 @@ describe('GetWorksInPortfolioRepository', () => {
 
       const result = await repository.getWorksInPortfolio(filters);
 
-      const expectedQuery = `${baseQuery} AND municipios.id_regional IN () AND id_tipo IN () AND id_turma IN () AND tipos.id_grupo IN () AND municipios.id IN ()
+      const expectedQuery = `${baseQuery} AND status.id != 42 AND municipios.id_regional IN () AND id_tipo IN () AND id_turma IN () AND tipos.id_grupo IN () AND municipios.id IN ()
         AND status.id IN () AND id_circuito IN () AND circuitos.id_conjunto IN () AND id_empreendimento IN () AND obras.ovnota =  
         GROUP BY obras.id, ovnota, diagrama, ordem_dci, ordem_dcim, ordem_dca, ordem_dcd, status_ov_sap, pep, executado, 
         mun, id_status, entrada, prazo, abrev_regional, tipo_obra, qtde_planejada, qtde_pend, circuito, mo_planejada, status, conjunto, 

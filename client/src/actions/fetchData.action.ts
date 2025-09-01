@@ -1,7 +1,6 @@
 "use server";
 
 import { mountUrl } from "@/utils/mountUrl";
-import { C } from "vitest/dist/chunks/reporters.d.BFLkQcL6.js";
 
 export async function fetchData<T>(
   baseUrl: string,
@@ -16,8 +15,6 @@ export async function fetchData<T>(
   }
 
   const url = mountUrl(baseUrl, params);
-
-  console.log(url);
 
   try {
     const res = await fetch(url, {
@@ -38,7 +35,6 @@ export async function fetchData<T>(
 
     return { token, data: json.data ?? json };
   } catch (error: any) {
-    console.log(error.message);
     throw new Error(error.message);
   }
 }

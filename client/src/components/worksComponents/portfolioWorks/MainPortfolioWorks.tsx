@@ -114,8 +114,6 @@ export default function PortfolioWorks({
     fetchWorks(filtersValues);
   };
 
-  console.log(filteredData);
-
   return (
     <>
       <div className="my-6 w-11/12 flex flex-col items-center">

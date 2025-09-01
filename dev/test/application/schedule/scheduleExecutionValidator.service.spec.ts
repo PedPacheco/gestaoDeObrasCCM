@@ -73,7 +73,7 @@ describe('ScheduleExecutionValidatorService', () => {
       );
     });
 
-    it('Should call statusFlowRepository when  exec value is 0', async () => {
+    it('Should call statusFlowRepository when exec value is 0', async () => {
       const data = {
         id: 1,
         idWork: 1,
@@ -91,6 +91,25 @@ describe('ScheduleExecutionValidatorService', () => {
         36,
         1,
         mockTransaction,
+      );
+    });
+
+    it('Should call statusFlowRepository when sum of total exec and exec is equal 100', async () => {
+      const data = {
+        id: 1,
+        idWork: 1,
+        dataProg: new Date('2025-05-17'),
+        exec: 80,
+        prog: 80,
+      };
+
+      await service.validateExecutionAndUpdateStatus(data, 20, mockTransaction);
+
+      expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
+        2,
+        1,
+        mockTransaction,
+        new Date('2025-05-17'),
       );
     });
 
