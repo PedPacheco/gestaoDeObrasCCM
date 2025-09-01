@@ -119,8 +119,6 @@ describe('WorksController', () => {
   describe('getCompletedWorks', () => {
     it('Should build filters, get works with filters and return the result with correct format', async () => {
       const worksDTO: GetWorksDTO = {
-        data: '09/04/2024',
-        tipoFiltro: 'dia',
         idCircuito: undefined,
         idConjunto: undefined,
         idEmpreendimento: undefined,
@@ -157,8 +155,6 @@ describe('WorksController', () => {
   describe('getWorksInPortfolio', () => {
     it('Should build filters, get works with filters and return the result with correct format', async () => {
       const worksDTO: GetWorksDTO = {
-        data: '09/04/2024',
-        tipoFiltro: 'dia',
         idCircuito: undefined,
         idConjunto: undefined,
         idEmpreendimento: undefined,

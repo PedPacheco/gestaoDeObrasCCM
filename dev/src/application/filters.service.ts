@@ -30,7 +30,7 @@ export class FiltersService {
       ovnotaExec,
       restricao,
       tecnico,
-      status_programacao,
+      statusProgramacao,
     }: FiltersDto,
     condition?: any,
   ) {
@@ -90,8 +90,8 @@ export class FiltersService {
       );
     }
 
-    if (status_programacao) {
-      result['status_programacao'] = await this.getCachedData(
+    if (statusProgramacao) {
+      result['statusProgramacao'] = await this.getCachedData(
         'status_programacao',
         () =>
           this.filtersRepository.getData('status_programacao', [

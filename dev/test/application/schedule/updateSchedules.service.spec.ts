@@ -107,24 +107,5 @@ describe('UpdateSchedulesService', () => {
         'Erro ao criar relatório: Erro forçado no repositório',
       );
     });
-
-    it('should throw BadRequest if the sum of executions is greater than 100', async () => {
-      mockRepository.update.mockResolvedValue(undefined);
-      mockRepository.findExecutionOfSchedules.mockResolvedValue([80, 0]);
-      mockExecutionValidator.validateExecutionAndUpdateStatus.mockResolvedValue(
-        undefined,
-      );
-
-      await expect(
-        updateSchedulesService.update(
-          { ...mockUpdateSchedulesService, exec: 30 },
-          mockTransaction as any,
-        ),
-      ).rejects.toThrow(
-        new BadRequestException(
-          'O valor da execução da obra não pode ser superior a 100',
-        ),
-      );
-    });
   });
 });

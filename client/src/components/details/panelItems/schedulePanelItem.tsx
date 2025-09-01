@@ -95,7 +95,7 @@ export default function SchedulePanelItem({
 }: SchedulePanelItemProps) {
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
 
-  const statusToDisable = [42, 43, 37, 3, 4, 6];
+  const statusToDisable = [42, 37, 3, 4, 6];
   const { permissions } = useUser();
 
   const handleEdit = (item: any) => {
@@ -148,7 +148,7 @@ export default function SchedulePanelItem({
   const enableButtons = (exec: string | null) => {
     return (
       permissions?.permissao_visualizacao === "parcial" &&
-      (statusToDisable.includes(statusWork) || exec)
+      (statusToDisable.includes(statusWork) || exec !== null)
     );
   };
 

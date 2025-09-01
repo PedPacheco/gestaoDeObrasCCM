@@ -1,4 +1,3 @@
-import * as moment from 'moment';
 import { IGetWorksInPortfolioRepository } from 'src/domain/repositories/works/IGetWorksInPortfolioRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
@@ -29,12 +28,8 @@ export class GetWorksInPortfolioRepository
       idCircuito,
       idConjunto,
       idEmpreendimento,
-      data,
-      tipoFiltro,
       insufficientPermission,
     } = filters;
-
-    const [month, year] = data ? data.split('/') : [null, null];
 
     if (insufficientPermission) {
       query = Prisma.sql`${query} AND status.id != 42`;
@@ -80,14 +75,6 @@ export class GetWorksInPortfolioRepository
       query = Prisma.sql`${query} AND obras.ovnota = ${ovnota}`;
     }
 
-    if (tipoFiltro === 'month' && data) {
-      query = Prisma.sql`${query} AND EXTRACT(MONTH FROM first_data_prog) = ${parseInt(month)} AND EXTRACT(YEAR FROM first_data_prog) = ${parseInt(year)}`;
-    }
-
-    if (tipoFiltro === 'day' && data) {
-      query = Prisma.sql`${query} AND first_data_prog = ${moment(data, 'DD/MM/YYYY', true).toDate()}`;
-    }
-
     return query;
   }
 
@@ -105,15 +92,17 @@ export class GetWorksInPortfolioRepository
         INNER JOIN construcao_sp.empreendimento ON obras.id_empreendimento = empreendimento.id
         INNER JOIN construcao_sp.conjuntos ON circuitos.id_conjunto = conjuntos.id
         INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
-        LEFT JOIN construcao_sp.datas_programacao ON datas_programacao.id = obras.id
-        LEFT JOIN (SELECT id_obra, COUNT(*)::int as contagem_ocorrencias FROM construcao_sp.programacoes WHERE programacoes.data_prog > current_date GROUP BY id_obra ) AS programacoes ON programacoes.id_obra = obras.id 
+        INNER JOIN construcao_sp.programacoes ON programacoes.id = obras.id
+        LEFT JOIN (SELECT id_obra, COUNT(*)::int AS contagem_ocorrencias FROM construcao_sp.programacoes WHERE data_prog > current_date GROUP BY id_obra) AS prog_count ON prog_count.id_obra = obras.id 
         WHERE data_conclusao IS NULL`;
 
     let query = Prisma.sql`SELECT
         obras.id, obras.ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, 
         executado, mun, id_status, entrada, prazo, entrada + prazo AS prazo_fim, abrev_regional, tipo_obra, qtde_planejada, contagem_ocorrencias,
-        qtde_pend, circuito, mo_planejada, first_data_prog, status.status, hora_ini, hora_ter, tipo_servico, datas_programacao.chi,
-        conjuntos.conjunto, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, data_empreitamento, empreendimento, turma
+        qtde_pend, circuito, mo_planejada,  status, conjunto, data_empreitamento, empreendimento, turma,
+        COALESCE(SUM(prog) FILTER (WHERE exec IS NULL), 0)::int AS total_prog,
+        SUM(exec)::int AS total_exec, (100 - (SUM(exec) + COALESCE(SUM(prog) FILTER (WHERE exec IS NULL), 0)))::int AS total_pend,
+        SUM(equipe_linha_morta)::int as total_equipe_lm, SUM(equipe_linha_viva)::int as total_equipe_lv, SUM(equipe_regularizacao)::int as total_equipe_reg
         ${baseQuery}`;
 
     let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras, SUM(mo_planejada) AS total_mo_planejada, SUM(mo_planejada*executado/100) as total_mo_exec, 
@@ -123,7 +112,10 @@ export class GetWorksInPortfolioRepository
     query = this.applyFilters(query, filters);
     countQuery = this.applyFilters(countQuery, filters);
 
-    query = Prisma.sql`${query} ORDER BY first_data_prog, status DESC, entrada + prazo`;
+    query = Prisma.sql`${query} GROUP BY obras.id, ovnota, diagrama, ordem_dci, ordem_dcim, ordem_dca, ordem_dcd, status_ov_sap, pep, executado,
+        mun, id_status, entrada, prazo, abrev_regional, tipo_obra, qtde_planejada, qtde_pend, 
+        circuito, mo_planejada, status, conjunto, empreendimento, turma, prog_count.contagem_ocorrencias
+        ORDER BY status DESC, entrada + prazo`;
 
     if (page !== null) {
       query = Prisma.sql`${query} LIMIT 200 OFFSET ${page * 200};`;

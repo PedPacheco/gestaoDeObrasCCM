@@ -108,8 +108,6 @@ describe('GetWorksInPortfolioService', () => {
       idCircuito: [7],
       idConjunto: [8],
       idEmpreendimento: [9],
-      data: '09/2024',
-      tipoFiltro: 'month',
       page: 1,
       insufficientPermission: true,
     };
@@ -144,8 +142,6 @@ describe('GetWorksInPortfolioService', () => {
       idCircuito: [7],
       idConjunto: [8],
       idEmpreendimento: [9],
-      data: '09/2024',
-      tipoFiltro: 'month',
       page: 1,
       insufficientPermission: true,
     };
@@ -175,8 +171,6 @@ describe('GetWorksInPortfolioService', () => {
   it('Should correctly format the totals property if totals values are not returned', async () => {
     const filters: GetWorksDTO = {
       page: 1,
-      data: undefined,
-      tipoFiltro: undefined,
       idRegional: [],
       idMunicipio: [],
       idGrupo: [],

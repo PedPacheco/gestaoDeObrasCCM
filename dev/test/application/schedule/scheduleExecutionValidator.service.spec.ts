@@ -40,6 +40,7 @@ describe('ScheduleExecutionValidatorService', () => {
         idWork: 1,
         exec: 80,
         prog: 80,
+        dataProg: new Date('17/05/2025'),
       };
 
       await expect(
@@ -57,6 +58,7 @@ describe('ScheduleExecutionValidatorService', () => {
         idWork: 1,
         exec: 80,
         prog: 80,
+        dataProg: new Date('17/05/2025'),
       };
 
       await service.validateExecutionAndUpdateStatus(data, 10, mockTransaction);
@@ -77,6 +79,7 @@ describe('ScheduleExecutionValidatorService', () => {
         idWork: 1,
         exec: 0,
         prog: 80,
+        dataProg: new Date('17/05/2025'),
       };
 
       await service.validateExecutionAndUpdateStatus(data, 10, mockTransaction);
@@ -97,6 +100,7 @@ describe('ScheduleExecutionValidatorService', () => {
         idWork: 1,
         exec: 20,
         prog: 80,
+        dataProg: new Date('17/05/2025'),
       };
 
       await service.validateExecutionAndUpdateStatus(data, 10, mockTransaction);

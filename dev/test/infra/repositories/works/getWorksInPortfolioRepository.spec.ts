@@ -1,5 +1,4 @@
 import { Test } from '@nestjs/testing';
-import * as moment from 'moment';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetWorksInPortfolioRepository } from 'src/infra/repositories/works/getWorksInPortfolioRepository';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
@@ -67,8 +66,10 @@ describe('GetWorksInPortfolioRepository', () => {
 
   const baseQuery = `SELECT obras.id, obras.ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, 
         executado, mun, id_status, entrada, prazo, entrada + prazo AS prazo_fim, abrev_regional, tipo_obra, qtde_planejada, contagem_ocorrencias,
-        qtde_pend, circuito, mo_planejada, first_data_prog, status.status, hora_ini, hora_ter, tipo_servico, datas_programacao.chi,
-        conjuntos.conjunto, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, data_empreitamento, empreendimento, turma
+        qtde_pend, circuito, mo_planejada,  status, conjunto, data_empreitamento, empreendimento, turma,
+        COALESCE(SUM(prog) FILTER (WHERE exec IS NULL), 0)::int AS total_prog,
+        SUM(exec)::int AS total_exec, (100 - (SUM(exec) + COALESCE(SUM(prog) FILTER (WHERE exec IS NULL), 0)))::int AS total_pend,
+        SUM(equipe_linha_morta)::int as total_equipe_lm, SUM(equipe_linha_viva)::int as total_equipe_lv, SUM(equipe_regularizacao)::int as total_equipe_reg
         FROM construcao_sp.obras 
         INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma 
         INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm 
@@ -78,8 +79,8 @@ describe('GetWorksInPortfolioRepository', () => {
         INNER JOIN construcao_sp.empreendimento ON obras.id_empreendimento = empreendimento.id
         INNER JOIN construcao_sp.conjuntos ON circuitos.id_conjunto = conjuntos.id
         INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
-        LEFT JOIN construcao_sp.datas_programacao ON datas_programacao.id = obras.id
-        LEFT JOIN (SELECT id_obra, COUNT(*)::int as contagem_ocorrencias FROM construcao_sp.programacoes WHERE programacoes.data_prog > current_date GROUP BY id_obra ) AS programacoes ON programacoes.id_obra = obras.id 
+        INNER JOIN construcao_sp.programacoes ON programacoes.id = obras.id
+        LEFT JOIN (SELECT id_obra, COUNT(*)::int AS contagem_ocorrencias FROM construcao_sp.programacoes WHERE data_prog > current_date GROUP BY id_obra) AS prog_count ON prog_count.id_obra = obras.id 
         WHERE data_conclusao IS NULL`;
 
   beforeEach(async () => {
@@ -100,7 +101,7 @@ describe('GetWorksInPortfolioRepository', () => {
   });
 
   describe('GetWorksInPortfolio', () => {
-    it('should apply multiple filters correctly and month filter', async () => {
+    it('should apply multiple filters correctly', async () => {
       const filters: GetWorksDTO = {
         idGrupo: [4],
         idMunicipio: [5],
@@ -112,8 +113,6 @@ describe('GetWorksInPortfolioRepository', () => {
         idCircuito: [7],
         idConjunto: [8],
         idEmpreendimento: [9],
-        data: '09/2024',
-        tipoFiltro: 'month',
         page: 1,
         insufficientPermission: false,
       };
@@ -125,9 +124,10 @@ describe('GetWorksInPortfolioRepository', () => {
       const result = await repository.getWorksInPortfolio(filters);
 
       const expectedQuery = `${baseQuery} AND municipios.id_regional IN () AND id_tipo IN () AND id_turma IN () AND tipos.id_grupo IN () AND municipios.id IN ()
-      AND status.id IN () AND id_circuito IN () AND circuitos.id_conjunto IN () AND id_empreendimento IN () AND obras.ovnota = 
-      AND EXTRACT(MONTH FROM first_data_prog) = AND EXTRACT(YEAR FROM first_data_prog) = 
-      ORDER BY first_data_prog, status DESC, entrada + prazo LIMIT 200 OFFSET`;
+        AND status.id IN () AND id_circuito IN () AND circuitos.id_conjunto IN () AND id_empreendimento IN () AND obras.ovnota =  
+        GROUP BY obras.id, ovnota, diagrama, ordem_dci, ordem_dcim, ordem_dca, ordem_dcd, status_ov_sap, pep, executado, 
+        mun, id_status, entrada, prazo, abrev_regional, tipo_obra, qtde_planejada, qtde_pend, circuito, mo_planejada, status, conjunto, 
+        empreendimento, turma, prog_count.contagem_ocorrencias ORDER BY status DESC, entrada + prazo LIMIT 200 OFFSET ;`;
 
       const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
 
@@ -135,80 +135,11 @@ describe('GetWorksInPortfolioRepository', () => {
       expect(normalizeSQL(querySent.strings.join(''))).toContain(
         normalizeSQL(expectedQuery),
       );
-      expect(querySent.values).toEqual([
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        '10',
-        9,
-        2024,
-        200,
-      ]);
-    });
-
-    it('should apply multiple filters correctly and day filter', async () => {
-      const filters: GetWorksDTO = {
-        idGrupo: [4],
-        idMunicipio: [5],
-        idParceira: [3],
-        idRegional: [1],
-        idStatus: [6],
-        idTipo: [2],
-        ovnota: '10',
-        idCircuito: [7],
-        idConjunto: [8],
-        idEmpreendimento: [9],
-        data: '17/09/2024',
-        tipoFiltro: 'day',
-        page: 1,
-        insufficientPermission: true,
-      };
-
-      const expectedDate = moment(filters.data, 'DD/MM/YYYY', true).toDate();
-
-      mockPrisma.$queryRaw
-        .mockResolvedValueOnce(mockWorks)
-        .mockResolvedValueOnce(mockCountQuery);
-
-      const result = await repository.getWorksInPortfolio(filters);
-
-      const expectedQuery = `${baseQuery} AND status.id != 42 AND municipios.id_regional IN () AND id_tipo IN () AND id_turma IN () AND tipos.id_grupo IN () AND municipios.id IN ()
-        AND status.id IN () AND id_circuito IN () AND circuitos.id_conjunto IN () AND id_empreendimento IN () AND obras.ovnota =
-        AND first_data_prog = 
-        ORDER BY first_data_prog, status DESC, entrada + prazo LIMIT 200 OFFSET`;
-
-      const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
-
-      expect(result).toEqual({ works: mockWorks, totals: mockCountQuery });
-      expect(normalizeSQL(querySent.strings.join(''))).toContain(
-        normalizeSQL(expectedQuery),
-      );
-      expect(querySent.values).toEqual([
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        '10',
-        expectedDate,
-        200,
-      ]);
+      expect(querySent.values).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, '10', 200]);
     });
 
     it('should not apply filters when values filters are not sent', async () => {
       const filters: GetWorksDTO = {
-        data: null,
-        tipoFiltro: null,
         idRegional: null,
         idMunicipio: null,
         idGrupo: null,
@@ -229,7 +160,9 @@ describe('GetWorksInPortfolioRepository', () => {
 
       const result = await repository.getWorksInPortfolio(filters);
 
-      const expectedQuery = `${baseQuery} ORDER BY first_data_prog, status DESC, entrada + prazo LIMIT 200 OFFSET`;
+      const expectedQuery = `${baseQuery} GROUP BY obras.id, ovnota, diagrama, ordem_dci, ordem_dcim, ordem_dca, ordem_dcd, status_ov_sap, pep, executado, 
+        mun, id_status, entrada, prazo, abrev_regional, tipo_obra, qtde_planejada, qtde_pend, circuito, mo_planejada, status, conjunto, 
+        empreendimento, turma, prog_count.contagem_ocorrencias ORDER BY status DESC, entrada + prazo LIMIT 200 OFFSET ;`;
 
       const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
 

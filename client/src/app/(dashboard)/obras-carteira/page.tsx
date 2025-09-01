@@ -18,12 +18,6 @@ export default async function WorksInPortfolio() {
 
   const filtersValues = {
     ...Transform(params?.selectedItems || {}),
-    data: params?.date
-      ? dayjs(params?.date).format(
-          params?.filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY"
-        )
-      : "",
-    tipoFiltro: params?.filterType || "",
     page: "0",
   };
 
@@ -69,18 +63,16 @@ export default async function WorksInPortfolio() {
     qtde_planejada: "Qtde plan",
     qtde_pend: "Qtde pend",
     contagem_ocorrencias: "!",
+    total_prog: "Total Programado",
+    total_exec: "Total Executado",
+    total_pend: "Total Pendente",
+    total_equipe_lm: "Total Equipe LM",
+    total_equipe_lv: "Total Equipe LV",
+    total_equipe_reg: "Total Equipe Reg",
     circuito: "Circuito",
     mo_planejada: "MO Plan",
-    first_data_prog: "Data programada",
     status: "Status da Obra",
-    hora_ini: "Hora início",
-    hora_ter: "Hora término",
-    tipo_servico: "Tipo serviço",
-    chi: "Chi",
     conjunto: "Conjunto",
-    equipe_linha_morta: "Equipe LM",
-    equipe_linha_viva: "Equipe LV",
-    equipe_regularizacao: "Equipe Reg",
     data_empreitamento: "Data empreitamento",
     empreendimento: "Empreendimento",
     total_obras: "Total de obras",
@@ -99,7 +91,7 @@ export default async function WorksInPortfolio() {
         filtersData={filters}
         cookie="portfolioWorksFilters"
         columns={columnMapping}
-        totalValues={33}
+        totalValues={21}
         url="obras-carteira"
       />
     </EmotionCacheProvider>

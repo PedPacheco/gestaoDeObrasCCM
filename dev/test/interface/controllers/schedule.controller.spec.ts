@@ -11,6 +11,7 @@ import { GetValuesWeeklyScheduleService } from 'src/application/schedule/getValu
 import { UpdateSchedulesService } from 'src/application/schedule/updateSchedules.service';
 import { ScheduleController } from 'src/interface/controllers/schedule.controller';
 import {
+  GetScheduleValuesDTO,
   SchedulesDataDTO,
   UpdateSchedulesDataDTO,
 } from 'src/interface/dtos/scheduleDTO';
@@ -82,9 +83,7 @@ describe('ScheduleController', () => {
 
   const mockReq = {
     insufficientPermission: true,
-    headers: {
-      authorization: 'Bearer fake-token',
-    },
+    idRegional: 1,
   };
 
   beforeEach(async () => {
@@ -260,7 +259,7 @@ describe('ScheduleController', () => {
   });
 
   it('Should call getScheduleValues method and return correct data', async () => {
-    const filters = {
+    const filters: GetScheduleValuesDTO = {
       data: '17/05/2024',
       tipoFiltro: 'day',
       idRegional: [1],
@@ -268,6 +267,8 @@ describe('ScheduleController', () => {
       idGrupo: [1],
       idTipo: [1],
       idParceira: [1],
+      idStatus: [1],
+      idStatusProgramacao: [1],
       executado: false,
       pendente: false,
       page: 0,
@@ -278,7 +279,7 @@ describe('ScheduleController', () => {
       .spyOn(getScheduleValuesService, 'getValues')
       .mockResolvedValue(mockScheduleData);
 
-    const result = await scheduleController.getScheduleValues(filters);
+    const result = await scheduleController.getScheduleValues(filters, mockReq);
 
     expect(result).toStrictEqual({
       statusCode: HttpStatus.OK,

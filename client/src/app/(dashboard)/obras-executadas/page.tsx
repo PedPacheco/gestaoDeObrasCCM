@@ -17,12 +17,6 @@ export default async function CompletedWorks() {
 
   const filtersValues = {
     ...Transform(params?.selectedItems || {}),
-    data: params?.date
-      ? dayjs(params?.date).format(
-          params?.filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY"
-        )
-      : "",
-    tipoFiltro: params?.filterType || "",
     page: "0",
   };
 
@@ -66,9 +60,6 @@ export default async function CompletedWorks() {
     circuito: "Circuito",
     conjunto: "Conjunto",
     status: "Status",
-    entrada: "Entrada",
-    prazo: "Prazo",
-    prazo_fim: "Prazo Fim",
     mo_planejada: "MO planejada",
     qtde_planejada: "Qtde planejada",
     qtde_pend: "Qtde pendente",

@@ -64,7 +64,15 @@ export class ScheduleController {
 
   @Get('mensal')
   @UseGuards(VisualizationGuard)
-  async getScheduleValues(@Query() filters: GetScheduleValuesDTO) {
+  async getScheduleValues(
+    @Query() filters: GetScheduleValuesDTO,
+    @Req() req: any,
+  ) {
+    if (req.idRegional) {
+      filters.idRegional = req.idRegional;
+    }
+
+    console.log(filters);
     const response = await this.getScheduleValuesService.getValues(filters);
 
     return {

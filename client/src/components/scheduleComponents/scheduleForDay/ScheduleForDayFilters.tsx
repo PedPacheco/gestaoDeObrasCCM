@@ -118,7 +118,7 @@ export default function ScheduleForDayFilters({
 
   return (
     <>
-      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:flex xl:flex-row xl:justify-between xl:items-center">
         <DateFilter
           date={date}
           setDate={setDate}
@@ -134,7 +134,7 @@ export default function ScheduleForDayFilters({
             const displayKey = Object.keys(value[0])[1];
 
             const filterValue = `${valueKey}${
-              key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()
+              key.charAt(0).toUpperCase() + key.slice(1)
             }`;
 
             return (
@@ -163,7 +163,7 @@ export default function ScheduleForDayFilters({
           onChange={(event) => setOvnota(event.target.value)}
         />
 
-        <div className="flex flex-row justify-between items-center px-10 lg:px-0 lg:justify-normal lg:items-start lg:flex-col ">
+        <div className="col-span-full flex flex-row justify-between items-center px-10 xl:px-0 xl:justify-normal xl:items-start xl:flex-col ">
           <div className="flex flex-row items-center">
             <Checkbox
               onChange={() => setExecuted(!executed)}

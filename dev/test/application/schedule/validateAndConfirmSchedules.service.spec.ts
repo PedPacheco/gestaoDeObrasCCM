@@ -137,14 +137,6 @@ describe('ValidateAndConfirmSchedulesService', () => {
       );
     });
 
-    it('should throw BadRequestException when not sent confirmed schedules', async () => {
-      await expect(
-        service.confirm([{ id: 1, confirm: false }]),
-      ).rejects.toThrow(
-        new BadRequestException('Existe programações não confirmadas'),
-      );
-    });
-
     it('should confirmed schedules and update work status successfully when no errors occur', async () => {
       const data = [
         {

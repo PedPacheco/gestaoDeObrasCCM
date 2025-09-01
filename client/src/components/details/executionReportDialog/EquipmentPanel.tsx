@@ -29,10 +29,12 @@ const EQUIPMENTS = [
 ] as const;
 
 const POWER_OPTIONS: Record<string, number[]> = {
-  "Banco capacitor": [50, 100, 200, 500, 700, 1000],
-  Transformador: [100, 500, 1000],
+  "Banco capacitor": [300, 600, 1200],
+  Transformador: [
+    5, 10, 15, 25, 30, 45, 50, 75, 100, 112.5, 150, 225, 300, 500,
+  ],
   Religador: [0],
-  "Regulador de tensão": [10, 50, 100],
+  "Regulador de tensão": [167, 333],
 };
 
 interface ExecutionEquipmentPanelProps {

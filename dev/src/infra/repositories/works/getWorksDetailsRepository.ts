@@ -51,6 +51,7 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
         qtde_pend: true,
         mo_planejada: true,
         mo_final: true,
+        executado: true,
         referencia: true,
         capex_mat_pend: true,
         capex_mat_plan: true,

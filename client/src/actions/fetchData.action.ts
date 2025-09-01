@@ -1,6 +1,7 @@
 "use server";
 
 import { mountUrl } from "@/utils/mountUrl";
+import { C } from "vitest/dist/chunks/reporters.d.BFLkQcL6.js";
 
 export async function fetchData<T>(
   baseUrl: string,
@@ -16,6 +17,8 @@ export async function fetchData<T>(
 
   const url = mountUrl(baseUrl, params);
 
+  console.log(url);
+
   try {
     const res = await fetch(url, {
       method: "GET",
@@ -26,16 +29,16 @@ export async function fetchData<T>(
       next: cacheStrategy,
     });
 
+    const json = await res.json();
+
     if (!res.ok) {
-      const errorResponse = await res.json();
-      const errorMessage = errorResponse?.message || "Erro ao buscar os dados";
+      const errorMessage = json?.message || "Erro ao buscar os dados";
       throw new Error(errorMessage);
     }
 
-    const { data } = await res.json();
-
-    return { token, data };
+    return { token, data: json.data ?? json };
   } catch (error: any) {
+    console.log(error.message);
     throw new Error(error.message);
   }
 }
