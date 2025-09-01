@@ -76,6 +76,27 @@ describe('UpdateSchedulesService', () => {
       );
     });
 
+    it('Should call method findExecutionOfSchedules and validateExecutionAndUpdateStatus', async () => {
+      mockRepository.findExecutionOfSchedules.mockResolvedValue([80, 0]);
+
+      await updateSchedulesService.update(
+        { ...mockUpdateSchedulesService, exec: 20 },
+        mockTransaction,
+      );
+
+      expect(mockRepository.findExecutionOfSchedules).toHaveBeenCalledWith(
+        1,
+        3146044,
+      );
+      expect(
+        mockExecutionValidator.validateExecutionAndUpdateStatus,
+      ).toHaveBeenCalledWith(
+        { ...mockUpdateSchedulesService, exec: 20 },
+        80,
+        mockTransaction,
+      );
+    });
+
     it('Should call method update and throw error with this text: ID da obra é obrigatório', async () => {
       await expect(
         updateSchedulesService.update(
@@ -105,25 +126,6 @@ describe('UpdateSchedulesService', () => {
       await expect(result).rejects.toThrow(BadRequestException);
       await expect(result).rejects.toThrow(
         'Erro ao criar relatório: Erro forçado no repositório',
-      );
-    });
-
-    it('should throw BadRequest if the sum of executions is greater than 100', async () => {
-      mockRepository.update.mockResolvedValue(undefined);
-      mockRepository.findExecutionOfSchedules.mockResolvedValue([80, 0]);
-      mockExecutionValidator.validateExecutionAndUpdateStatus.mockResolvedValue(
-        undefined,
-      );
-
-      await expect(
-        updateSchedulesService.update(
-          { ...mockUpdateSchedulesService, exec: 30 },
-          mockTransaction as any,
-        ),
-      ).rejects.toThrow(
-        new BadRequestException(
-          'O valor da execução da obra não pode ser superior a 100',
-        ),
       );
     });
   });

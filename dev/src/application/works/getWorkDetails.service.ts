@@ -18,13 +18,8 @@ export class GetWorkDetailsService {
       throw new NotFoundException('Obra não encontrada');
     }
 
-    const executed = work.programacoes.reduce((total, item) => {
-      return total + (item.exec || 0);
-    }, 0);
-
     const response = {
       ...work,
-      executado: executed,
       circuitos: work.circuitos.circuito,
       conjunto: work.circuitos.conjuntos.conjunto,
       empreendimento: work.empreendimento.empreendimento,

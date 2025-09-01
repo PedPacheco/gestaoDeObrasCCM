@@ -10,6 +10,7 @@ import { worksInPortfolioResponseService } from 'src/interface/types/works/getWo
 import { Test } from '@nestjs/testing';
 import { GetWorksInPortfolioService } from 'src/application/works/getWorksInPortfolio.service';
 import { GetCompletedWorksService } from 'src/application/works/getCompletedWorks.service';
+import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 
 describe('ExportController', () => {
   let controller: ExportController;
@@ -43,20 +44,18 @@ describe('ExportController', () => {
         status: 'Planejado',
         turma: 'Equipe Alpha',
         executado: 50,
-        first_data_prog: new Date('2024-03-15T00:00:00.000Z'),
-        chi: 414,
-        hora_ini: '08:00',
-        hora_ter: '17:00',
-        equipe_linha_morta: 1,
-        equipe_linha_viva: 3,
-        equipe_regularizacao: 4,
         data_empreitamento: new Date('2024-02-20T00:00:00.000Z'),
         empreendimento: 'Empreendimento X',
         id: 0,
         prazo: 0,
         contagem_ocorrencias: 0,
         id_status: 0,
-        tipo_servico: '',
+        total_equipe_lm: 1,
+        total_equipe_lv: 0,
+        total_equipe_reg: 0,
+        total_exec: 80,
+        total_pend: 20,
+        total_prog: 0,
       },
     ],
     totals: {
@@ -126,7 +125,7 @@ describe('ExportController', () => {
   });
 
   it('Should call exportSchedule and return the excel file', async () => {
-    const mockFilters = {
+    const mockFilters: GetScheduleValuesDTO = {
       data: '17/05/2024',
       tipoFiltro: 'day',
       idRegional: [1],
@@ -134,6 +133,8 @@ describe('ExportController', () => {
       idGrupo: [1],
       idTipo: [1],
       idParceira: [1],
+      idStatus: [1],
+      idStatusProgramacao: [1],
       executado: false,
       pendente: false,
       page: 0,

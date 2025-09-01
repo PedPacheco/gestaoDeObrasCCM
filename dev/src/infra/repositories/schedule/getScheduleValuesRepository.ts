@@ -26,6 +26,8 @@ export class GetScheduleValuesRepository
       idParceira,
       idRegional,
       idTipo,
+      idStatus,
+      idStatusProgramacao,
       tipoFiltro,
       ovnota,
       pendente,
@@ -61,6 +63,14 @@ export class GetScheduleValuesRepository
       query = Prisma.sql`${query} AND tipos.id_grupo IN (${Prisma.join(idGrupo)})`;
     }
 
+    if (idStatus && idStatus.length > 0) {
+      query = Prisma.sql`${query} AND status.id IN (${Prisma.join(idStatus)})`;
+    }
+
+    if (idStatusProgramacao && idStatusProgramacao.length > 0) {
+      query = Prisma.sql`${query} AND status_programacao.id IN (${Prisma.join(idStatusProgramacao)})`;
+    }
+
     if (ovnota) {
       query = Prisma.sql`${query} AND obras.ovnota = ${ovnota}`;
     }
@@ -86,6 +96,7 @@ export class GetScheduleValuesRepository
         INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
         INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
         INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
+        INNER JOIN construcao_sp.status ON status.id = obras.id_status
         INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm
         INNER JOIN construcao_sp.regionais ON regionais.id = municipios.id_regional
         INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo
@@ -94,9 +105,9 @@ export class GetScheduleValuesRepository
         INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
         WHERE 1=1`;
 
-    let query = Prisma.sql`SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, entrada, entrada + prazo AS prazo_fim, tipo_obra, qtde_planejada,
-        mo_planejada, turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec,
-        num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao
+    let query = Prisma.sql`SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, regional, entrada, entrada + prazo AS prazo_fim, 
+        mo_planejada, turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec, tipo_obra, qtde_planejada, qtde_pend,
+        num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status
         ${baseQuery}`;
 
     let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras, SUM(mo_planejada) as total_mo_planejada, SUM(mo_planejada*executado/100) as total_mo_exec, 

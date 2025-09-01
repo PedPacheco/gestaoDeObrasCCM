@@ -5,6 +5,7 @@ export interface IStatusFlowRepository {
     idStatus: number,
     id: number,
     tx: Prisma.TransactionClient,
+    data_conclusao?: Date,
   ): Promise<void>;
 
   updateScheduleStatus(

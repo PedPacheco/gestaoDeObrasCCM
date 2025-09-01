@@ -104,8 +104,6 @@ describe('GetCompletedWorksService', () => {
       idCircuito: [7],
       idConjunto: [8],
       idEmpreendimento: [9],
-      data: '09/2024',
-      tipoFiltro: 'month',
       page: 0,
       insufficientPermission: true,
     };
@@ -127,7 +125,7 @@ describe('GetCompletedWorksService', () => {
     expect(mockRepository.getCompletedWorks).not.toHaveBeenCalled();
   });
 
-  it('should apply multiple filters correctly and month filter', async () => {
+  it('should apply multiple filters correctly', async () => {
     const filters: GetWorksDTO = {
       idGrupo: [4],
       idMunicipio: [5],
@@ -139,47 +137,8 @@ describe('GetCompletedWorksService', () => {
       idCircuito: [7],
       idConjunto: [8],
       idEmpreendimento: [9],
-      data: '09/2024',
-      tipoFiltro: 'month',
       page: 0,
       insufficientPermission: false,
-    };
-
-    const cacheKey = `completedWorks-${JSON.stringify(filters)}`;
-
-    mockCacheManager.get.mockResolvedValue(null);
-    mockRepository.getCompletedWorks.mockResolvedValue({
-      works: mockWorks,
-      totals: mockCountQuery,
-    });
-
-    const result = await getCompletedWorksService.getCompletedWorks(filters);
-
-    expect(result).toEqual({ works: mockWorks, totals: mockCountQuery[0] });
-    expect(cacheManager.get).toHaveBeenCalledWith(cacheKey);
-    expect(cacheManager.set).toHaveBeenCalledWith(
-      cacheKey,
-      { works: mockWorks, totals: mockCountQuery[0] },
-      1800000,
-    );
-  });
-
-  it('should apply multiple filters correctly and day filter', async () => {
-    const filters: GetWorksDTO = {
-      idGrupo: [4],
-      idMunicipio: [5],
-      idParceira: [3],
-      idRegional: [1],
-      idStatus: [6],
-      idTipo: [2],
-      ovnota: '10',
-      idCircuito: [7],
-      idConjunto: [8],
-      idEmpreendimento: [9],
-      data: '17/09/2024',
-      tipoFiltro: 'day',
-      page: 0,
-      insufficientPermission: true,
     };
 
     const cacheKey = `completedWorks-${JSON.stringify(filters)}`;
@@ -213,8 +172,6 @@ describe('GetCompletedWorksService', () => {
       idCircuito: [7],
       idConjunto: [8],
       idEmpreendimento: [9],
-      data: undefined,
-      tipoFiltro: undefined,
       page: 0,
       insufficientPermission: true,
     };

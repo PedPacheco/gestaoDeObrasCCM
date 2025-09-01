@@ -79,9 +79,17 @@ export default function ScheduleFormDialog({
   const dialogTitle = isInsert ? "Nova Programação" : "Editar Programação";
   const submitButtonText = isPending ? "Salvando..." : "Salvar Programação";
 
-  const disabledFields =
-    permissions?.permissao_visualizacao === "parcial" &&
-    (statusWork === 3 || statusWork === 2);
+  const disabledFields = () => {
+    if (isInsert) {
+      return (
+        permissions?.permissao_visualizacao === "parcial" &&
+        (statusWork === 3 || statusWork === 2)
+      );
+    }
+    return (
+      permissions?.permissao_visualizacao === "parcial" && statusWork === 35
+    );
+  };
 
   return (
     <Dialog

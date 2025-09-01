@@ -3,6 +3,7 @@ import { GetScheduleValuesService } from 'src/application/schedule/getScheduleVa
 import { Test } from '@nestjs/testing';
 import { obras } from '@prisma/client';
 import { GET_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetScheduleValuesRepository';
+import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 
 describe('GetScheduleValues', () => {
   let service: GetScheduleValuesService;
@@ -66,13 +67,15 @@ describe('GetScheduleValues', () => {
   });
 
   it('should return the correct values with filters', async () => {
-    const filters = {
+    const filters: GetScheduleValuesDTO = {
       data: '10/2024',
       tipoFiltro: 'month',
       executado: true,
       pendente: false,
       page: 0,
       idGrupo: [1],
+      idStatus: [1],
+      idStatusProgramacao: [1],
       idMunicipio: [1],
       idParceira: [1],
       idRegional: [1],
@@ -92,13 +95,15 @@ describe('GetScheduleValues', () => {
   });
 
   it('should correctly format the data if no data is returned from the database query', async () => {
-    const filters = {
+    const filters: GetScheduleValuesDTO = {
       data: '01/10/2024',
       tipoFiltro: 'day',
       executado: false,
       pendente: false,
       page: 0,
       idGrupo: undefined,
+      idStatus: undefined,
+      idStatusProgramacao: undefined,
       idMunicipio: undefined,
       idParceira: undefined,
       idRegional: undefined,

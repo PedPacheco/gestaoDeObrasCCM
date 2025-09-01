@@ -2,10 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Response } from 'express';
 import * as Exceljs from 'exceljs';
 import { ExportCompletedWorksService } from 'src/application/export/exportCompletedWorks.service';
-import {
-  worksInPortfolioInterface,
-  worksInPortfolioResponseService,
-} from 'src/interface/types/works/getWorksInPortfolioInterface';
+import { worksInPortfolioResponseService } from 'src/interface/types/works/getWorksInPortfolioInterface';
 
 jest.mock('exceljs');
 
@@ -23,7 +20,7 @@ describe('ExportCompletedWorks', () => {
   });
 
   it('Should create an Excel file with the provided data', async () => {
-    const mockWorksData: worksInPortfolioInterface[] = [
+    const mockWorksData: any[] = [
       {
         ovnota: '123456',
         ordemdiagrama: 'OD-001',
@@ -45,20 +42,12 @@ describe('ExportCompletedWorks', () => {
         status: 'Planejado',
         turma: 'Equipe Alpha',
         executado: 50,
-        first_data_prog: new Date('2024-03-15T00:00:00.000Z'),
-        chi: 414,
-        hora_ini: '08:00',
-        hora_ter: '17:00',
-        equipe_linha_morta: 1,
-        equipe_linha_viva: 3,
-        equipe_regularizacao: 4,
         data_empreitamento: new Date('2024-02-20T00:00:00.000Z'),
         empreendimento: 'Empreendimento X',
         id: 0,
         prazo: 0,
         contagem_ocorrencias: 0,
         id_status: 0,
-        tipo_servico: '',
       },
     ];
 

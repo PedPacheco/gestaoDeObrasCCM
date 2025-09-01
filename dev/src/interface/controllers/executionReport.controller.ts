@@ -9,9 +9,11 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  UseGuards,
 } from '@nestjs/common';
 
 import { UpdateExecutionReportDTO } from '../dtos/executionReportDTO';
+import { PermissionGuard } from 'src/core/guards/permission.guard';
 
 @Controller('relatorio-execucao')
 export class ExecutionReportController {
@@ -42,6 +44,7 @@ export class ExecutionReportController {
   }
 
   @Delete(':id')
+  @UseGuards(PermissionGuard)
   async delete(@Param('id', ParseIntPipe) id: number): Promise<any> {
     await this.executionReportService.delete(id);
 

@@ -118,6 +118,15 @@ export default function TabPanel({
           validate: false,
         }))
     );
+
+    setConfirmedSchedule(
+      workData.programacoes
+        .filter((item: any) => item.exec === null)
+        .map((item: any) => ({
+          id: item.id,
+          confirm: false,
+        }))
+    );
   }, [workData]);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {

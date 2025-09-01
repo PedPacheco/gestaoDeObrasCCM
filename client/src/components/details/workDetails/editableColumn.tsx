@@ -56,7 +56,7 @@ export const EditableColumn = ({
       />
 
       <SelectComponent
-        label="Status"
+        label="Status da Obra"
         menuItems={sortedStatus}
         selectedItem={data.id_status || "1"}
         setSelectedItem={(value) => onHandleChange("id_status", value)}

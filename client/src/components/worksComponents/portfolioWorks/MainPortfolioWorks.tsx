@@ -108,12 +108,6 @@ export default function PortfolioWorks({
 
     const filtersValues = {
       ...Transform(currentFilters?.selectedItems || {}),
-      data: currentFilters?.date
-        ? dayjs(currentFilters?.date).format(
-            currentFilters?.filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY"
-          )
-        : "",
-      tipoFiltro: currentFilters?.filterType,
       page: newPage.toString(),
     };
 

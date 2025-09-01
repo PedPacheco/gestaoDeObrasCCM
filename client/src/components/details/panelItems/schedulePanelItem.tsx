@@ -26,7 +26,7 @@ dayjs.extend(utc);
 const columnConfig = [
   { key: "validada", label: "Validar", type: "checkbox" },
   { key: "confirmada", label: "Confirmar", type: "checkbox" },
-  { key: "status_programacao", label: "Status", type: "text" },
+  { key: "status_programacao", label: "Status da Programação", type: "text" },
   { key: "data_prog", label: "Data", type: "text" },
   { key: "hora_ini", label: "Horário de início", type: "text" },
   { key: "hora_ter", label: "Horário de término", type: "text" },
@@ -95,7 +95,7 @@ export default function SchedulePanelItem({
 }: SchedulePanelItemProps) {
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
 
-  const statusToDisable = [42, 43, 37, 3, 4, 6];
+  const statusToDisable = [42, 37, 3, 4, 6];
   const { permissions } = useUser();
 
   const handleEdit = (item: any) => {
@@ -148,13 +148,13 @@ export default function SchedulePanelItem({
   const enableButtons = (exec: string | null) => {
     return (
       permissions?.permissao_visualizacao === "parcial" &&
-      (statusToDisable.includes(statusWork) || exec)
+      (statusToDisable.includes(statusWork) || exec !== null)
     );
   };
 
-  const disabledCheckBox = (key: string): boolean =>
+  const disabledCheckBox = (key: string, status_prog?: string): boolean =>
     (key === "validada" && statusWork !== 43) ||
-    (key === "confirmada" && statusWork !== 37) ||
+    (key === "confirmada" && status_prog === "Programado") ||
     permissions?.permissao_visualizacao === "parcial";
 
   return (
@@ -251,7 +251,10 @@ export default function SchedulePanelItem({
                             item.id
                           )
                         }
-                        disabled={disabledCheckBox(col.key) || item.exec}
+                        disabled={
+                          disabledCheckBox(col.key, item.status_programacao) ||
+                          item.exec
+                        }
                       />
                     ) : (
                       formatCellValue(item[col.key], col.key)

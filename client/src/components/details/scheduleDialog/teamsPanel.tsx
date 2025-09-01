@@ -5,7 +5,7 @@ interface TeamsPanelProps {
   formData: FormData;
   formErrors: Record<string, string>;
   onInputChange: (field: keyof FormData) => (event: any) => void;
-  disabledFields: boolean;
+  disabledFields: () => boolean | undefined;
 }
 
 export const TeamsPanel: React.FC<TeamsPanelProps> = ({
@@ -30,7 +30,7 @@ export const TeamsPanel: React.FC<TeamsPanelProps> = ({
           helperText={formErrors[field]}
           onChange={onInputChange(field)}
           inputProps={{ min: 0 }}
-          disabled={disabledFields}
+          disabled={disabledFields()}
         />
       </Grid>
     ))}

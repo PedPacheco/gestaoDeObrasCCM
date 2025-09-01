@@ -61,7 +61,7 @@ export function TableWithPagination({
                 .map((month) => (
                   <TableCell
                     key={month}
-                    className="py-1 px-2 text-center text-nowrap text-zinc-700 font-semibold text-xl bg-[#53FF75]"
+                    className="py-1 px-2 text-center text-zinc-700 font-semibold text-xl bg-[#53FF75] sticky left-0 z-10 min-w-28"
                   >
                     {columns[month as keyof typeof columns]}
                   </TableCell>

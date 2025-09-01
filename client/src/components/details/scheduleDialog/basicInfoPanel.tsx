@@ -6,7 +6,7 @@ interface BasicInfoPanelProps {
   formErrors: Record<string, string>;
   isInsert: boolean;
   onInputChange: (field: keyof FormData) => (event: any) => void;
-  disabledFields: boolean;
+  disabledFields: () => boolean | undefined;
 }
 
 export const BasicInfoPanel: React.FC<BasicInfoPanelProps> = ({
@@ -28,7 +28,7 @@ export const BasicInfoPanel: React.FC<BasicInfoPanelProps> = ({
         helperText={formErrors.dataProg}
         InputLabelProps={{ shrink: true }}
         required
-        disabled={disabledFields}
+        disabled={disabledFields()}
       />
     </Grid>
 
@@ -43,7 +43,7 @@ export const BasicInfoPanel: React.FC<BasicInfoPanelProps> = ({
         helperText={formErrors.startTime}
         InputLabelProps={{ shrink: true }}
         required
-        disabled={disabledFields}
+        disabled={disabledFields()}
       />
     </Grid>
 
@@ -59,7 +59,7 @@ export const BasicInfoPanel: React.FC<BasicInfoPanelProps> = ({
         InputLabelProps={{ shrink: true }}
         required
         autoComplete="off"
-        disabled={disabledFields}
+        disabled={disabledFields()}
       />
     </Grid>
 
@@ -73,7 +73,7 @@ export const BasicInfoPanel: React.FC<BasicInfoPanelProps> = ({
         error={!!formErrors.prog}
         helperText={formErrors.prog}
         InputLabelProps={{ shrink: true }}
-        disabled={disabledFields}
+        disabled={disabledFields()}
       />
     </Grid>
 
