@@ -72,7 +72,6 @@ export class ScheduleController {
       filters.idRegional = req.idRegional;
     }
 
-    console.log(filters);
     const response = await this.getScheduleValuesService.getValues(filters);
 
     return {

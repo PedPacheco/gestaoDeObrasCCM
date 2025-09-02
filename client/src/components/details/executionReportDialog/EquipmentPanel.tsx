@@ -37,6 +37,8 @@ const POWER_OPTIONS: Record<string, number[]> = {
   "Regulador de tensão": [167, 333],
 };
 
+const typesCS = ["CS 4", "CS 5", "CS 6"];
+
 interface ExecutionEquipmentPanelProps {
   formData: FormData | ExecutionReportData;
   formErrors: Record<string, string>;

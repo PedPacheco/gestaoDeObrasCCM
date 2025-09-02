@@ -74,7 +74,7 @@ export class UpdateSchedulesService {
       chave_provisoria: schedule.temporaryKey,
       tipo_servico: schedule.serviceType,
       chi: schedule.chi,
-      nome_responsavel_execucao: schedule.responsibilityExecution,
+      nome_responsavel_execucao: schedule.responsibility,
       id_restricao_execucao: schedule.idExecutionRestriction,
       observacao_execucao: schedule.observationExecution,
       id_tecnico: schedule.idTechnical,

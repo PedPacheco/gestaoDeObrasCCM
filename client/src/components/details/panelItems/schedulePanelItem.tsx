@@ -95,7 +95,7 @@ export default function SchedulePanelItem({
 }: SchedulePanelItemProps) {
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
 
-  const statusToDisable = [42, 37, 3, 4, 6];
+  const statusToDisable = [42, 37, 3, 4, 2];
   const { permissions } = useUser();
 
   const handleEdit = (item: any) => {

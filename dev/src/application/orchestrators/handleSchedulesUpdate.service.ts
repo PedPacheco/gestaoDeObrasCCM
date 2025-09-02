@@ -24,7 +24,7 @@ export class HandleSchedulesUpdateService {
 
     const work = await this.getDetailsWorkService.get(updateData.idWork);
 
-    if ([43, 37, 3, 4, 42].includes(work.id_status) && permission) {
+    if ([2, 3, 4, 37, 42].includes(work.id_status) && permission) {
       throw new BadRequestException(
         'Usuário não tem permissão para atualizar essa obra',
       );
