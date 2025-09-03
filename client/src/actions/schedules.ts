@@ -102,7 +102,6 @@ export async function deleteSchedule(id: number, idWork: number) {
 
     return { success: true, message: res.message };
   } catch (error: any) {
-    console.error("Erro ao salvar programação:", error);
     return { success: false, message: error.message };
   }
 }

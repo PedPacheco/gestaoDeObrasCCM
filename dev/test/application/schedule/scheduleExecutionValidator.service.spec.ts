@@ -70,6 +70,7 @@ describe('ScheduleExecutionValidatorService', () => {
         37,
         1,
         mockTransaction,
+        { totalExecuted: 90 },
       );
     });
 
@@ -109,7 +110,7 @@ describe('ScheduleExecutionValidatorService', () => {
         2,
         1,
         mockTransaction,
-        new Date('2025-05-17'),
+        { data_conclusao: new Date('2025-05-17'), totalExecuted: 100 },
       );
     });
 
@@ -131,6 +132,7 @@ describe('ScheduleExecutionValidatorService', () => {
         36,
         1,
         mockTransaction,
+        { totalExecuted: 30 },
       );
     });
   });

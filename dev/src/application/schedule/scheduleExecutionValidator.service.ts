@@ -35,16 +35,16 @@ export class ScheduleExecutionValidatorService {
       await this.statusFlowRepository.updateScheduleStatus(4, data.id, tx);
 
       if (totalExecuted + data.exec < 100) {
-        await this.statusFlowRepository.updateStatusWorks(37, data.idWork, tx);
+        await this.statusFlowRepository.updateStatusWorks(37, data.idWork, tx, {
+          totalExecuted: totalExecuted + data.exec,
+        });
       }
 
       if (totalExecuted + data.exec === 100) {
-        await this.statusFlowRepository.updateStatusWorks(
-          2,
-          data.idWork,
-          tx,
-          data.dataProg,
-        );
+        await this.statusFlowRepository.updateStatusWorks(2, data.idWork, tx, {
+          data_conclusao: data.dataProg,
+          totalExecuted: totalExecuted + data.exec,
+        });
       }
     }
 
@@ -55,7 +55,9 @@ export class ScheduleExecutionValidatorService {
 
     if (data.exec > 0 && data.prog > data.exec) {
       await this.statusFlowRepository.updateScheduleStatus(6, data.id, tx);
-      await this.statusFlowRepository.updateStatusWorks(36, data.idWork, tx);
+      await this.statusFlowRepository.updateStatusWorks(36, data.idWork, tx, {
+        totalExecuted: totalExecuted + data.exec,
+      });
     }
   }
 }

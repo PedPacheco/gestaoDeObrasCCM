@@ -258,7 +258,7 @@ describe('ScheduleController', () => {
     );
   });
 
-  it('Should call getScheduleValues method and return correct data', async () => {
+  describe('GetSchedulesValues', () => {
     const filters: GetScheduleValuesDTO = {
       data: '17/05/2024',
       tipoFiltro: 'day',
@@ -275,18 +275,41 @@ describe('ScheduleController', () => {
       ovnota: '3434',
     };
 
-    jest
-      .spyOn(getScheduleValuesService, 'getValues')
-      .mockResolvedValue(mockScheduleData);
+    it('Should call getScheduleValues method and return correct data', async () => {
+      jest
+        .spyOn(getScheduleValuesService, 'getValues')
+        .mockResolvedValue(mockScheduleData);
 
-    const result = await scheduleController.getScheduleValues(filters, mockReq);
+      const result = await scheduleController.getScheduleValues(
+        filters,
+        mockReq,
+      );
 
-    expect(result).toStrictEqual({
-      statusCode: HttpStatus.OK,
-      message: 'Valores das programações retornadas com sucesso',
-      data: mockScheduleData,
+      expect(result).toStrictEqual({
+        statusCode: HttpStatus.OK,
+        message: 'Valores das programações retornadas com sucesso',
+        data: mockScheduleData,
+      });
+      expect(getScheduleValuesService.getValues).toHaveBeenCalledWith(filters);
     });
-    expect(getScheduleValuesService.getValues).toHaveBeenCalledWith(filters);
+
+    it('Should not overwrite filters when req does not have idRegional or insufficientPermission', async () => {
+      jest
+        .spyOn(getScheduleValuesService, 'getValues')
+        .mockResolvedValue(mockScheduleData);
+
+      const result = await scheduleController.getScheduleValues(filters, {
+        ...mockReq,
+        idRegional: undefined,
+      });
+
+      expect(result).toStrictEqual({
+        statusCode: HttpStatus.OK,
+        message: 'Valores das programações retornadas com sucesso',
+        data: mockScheduleData,
+      });
+      expect(getScheduleValuesService.getValues).toHaveBeenCalledWith(filters);
+    });
   });
 
   it('Should call getValuesWeeklyScheduleService method and return correct data', async () => {
@@ -498,23 +521,44 @@ describe('ScheduleController', () => {
     });
   });
 
-  it('Should call updateSchedules and return message', async () => {
-    jest.spyOn(handleSchedulesUpdateService, 'update').mockResolvedValue();
+  describe('UpdateSchedules', () => {
+    it('Should call updateSchedules and return message', async () => {
+      jest.spyOn(handleSchedulesUpdateService, 'update').mockResolvedValue();
 
-    const result = await scheduleController.updateSchedules(
-      1,
-      mockUpdateSchedulesController,
-      mockReq,
-    );
+      const result = await scheduleController.updateSchedules(
+        1,
+        mockUpdateSchedulesController,
+        mockReq,
+      );
 
-    expect(result).toEqual({
-      statusCode: HttpStatus.NO_CONTENT,
-      message: 'Atualização da programação feita com sucesso',
+      expect(result).toEqual({
+        statusCode: HttpStatus.NO_CONTENT,
+        message: 'Atualização da programação feita com sucesso',
+      });
+      expect(handleSchedulesUpdateService.update).toHaveBeenCalledWith(
+        mockUpdateSchedulesController,
+        true,
+      );
     });
-    expect(handleSchedulesUpdateService.update).toHaveBeenCalledWith(
-      mockUpdateSchedulesController,
-      true,
-    );
+
+    it('Should call getScheduleValues method and return correct data', async () => {
+      jest.spyOn(handleSchedulesUpdateService, 'update').mockResolvedValue();
+
+      const result = await scheduleController.updateSchedules(
+        1,
+        mockUpdateSchedulesController,
+        { ...mockReq, insufficientPermission: undefined },
+      );
+
+      expect(result).toEqual({
+        statusCode: HttpStatus.NO_CONTENT,
+        message: 'Atualização da programação feita com sucesso',
+      });
+      expect(handleSchedulesUpdateService.update).toHaveBeenCalledWith(
+        mockUpdateSchedulesController,
+        undefined,
+      );
+    });
   });
 
   it('Should call deleteSchedules and return message', async () => {
