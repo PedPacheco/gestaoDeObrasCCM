@@ -6,10 +6,6 @@ import {
   FormGroup,
   FormHelperText,
   Grid,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
   Typography,
 } from "@mui/material";
 
@@ -18,26 +14,9 @@ import { FormData } from "@/hooks/useScheduleForm";
 import { resolveExecutionReportContext } from "@/utils/formatValue";
 import { equipmentItemSchema } from "@/validations/validationSchedules";
 import { ExecutionReportData } from "./executionReportDialog";
+import { EquipmentList } from "./equipmentList";
 
 export type EquipmentData = z.infer<typeof equipmentItemSchema>;
-
-const EQUIPMENTS = [
-  "Banco capacitor",
-  "Transformador",
-  "Religador",
-  "Regulador de tensão",
-] as const;
-
-const POWER_OPTIONS: Record<string, number[]> = {
-  "Banco capacitor": [300, 600, 1200],
-  Transformador: [
-    5, 10, 15, 25, 30, 45, 50, 75, 100, 112.5, 150, 225, 300, 500,
-  ],
-  Religador: [0],
-  "Regulador de tensão": [167, 333],
-};
-
-const typesCS = ["CS 4", "CS 5", "CS 6"];
 
 interface ExecutionEquipmentPanelProps {
   formData: FormData | ExecutionReportData;
@@ -65,116 +44,6 @@ interface ExecutionEquipmentPanelProps {
     prefix: string
   ) => void;
 }
-
-const EquipmentList = ({
-  items,
-  fieldKey,
-  prefix,
-  onEquipmentChange,
-  onRemoveEquipment,
-  formErrors,
-}: {
-  items: EquipmentData[];
-  fieldKey: "appliedEquipment" | "equipmentRemoved";
-  prefix: string;
-  onEquipmentChange: ExecutionEquipmentPanelProps["onEquipmentChange"];
-  onRemoveEquipment: ExecutionEquipmentPanelProps["onRemoveEquipment"];
-  formErrors: Record<string, string>;
-}) => {
-  return (
-    <>
-      {items.map((eq, index) => {
-        const equipmentError = formErrors[`${fieldKey}.${index}.equipment`];
-        const powerError = formErrors[`${fieldKey}.${index}.power`];
-        const patrimonyError = formErrors[`${fieldKey}.${index}.patrimony`];
-
-        return (
-          <Grid container spacing={2} key={index} sx={{ margin: 1 }}>
-            <Grid item xs={3}>
-              <FormControl fullWidth error={!!equipmentError}>
-                <InputLabel>Equipamento</InputLabel>
-                <Select
-                  value={eq.equipment}
-                  label="Equipamento"
-                  onChange={(e) =>
-                    onEquipmentChange(
-                      fieldKey,
-                      index,
-                      "equipment",
-                      e.target.value,
-                      prefix
-                    )
-                  }
-                >
-                  {EQUIPMENTS.map((type) => (
-                    <MenuItem key={type} value={type}>
-                      {type}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {equipmentError && (
-                  <FormHelperText>{equipmentError}</FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-            <Grid item xs={3}>
-              <FormControl fullWidth error={!!powerError}>
-                <InputLabel>Potência</InputLabel>
-                <Select
-                  value={eq.power}
-                  label="Potência"
-                  onChange={(e) =>
-                    onEquipmentChange(
-                      fieldKey,
-                      index,
-                      "power",
-                      e.target.value,
-                      prefix
-                    )
-                  }
-                >
-                  {(POWER_OPTIONS[eq.equipment] || []).map((power) => (
-                    <MenuItem key={power} value={power}>
-                      {power}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {powerError && <FormHelperText>{powerError}</FormHelperText>}
-              </FormControl>
-            </Grid>
-            <Grid item xs={3}>
-              <TextField
-                fullWidth
-                label="Patrimônio"
-                value={eq.patrimony}
-                onChange={(e) =>
-                  onEquipmentChange(
-                    fieldKey,
-                    index,
-                    "patrimony",
-                    e.target.value,
-                    prefix
-                  )
-                }
-                error={!!patrimonyError}
-                helperText={patrimonyError}
-              />
-            </Grid>
-            <Grid item xs={3}>
-              <ButtonComponent
-                onClick={() => onRemoveEquipment(fieldKey, index, prefix)}
-                text={`Remover equipamento ${
-                  fieldKey === "appliedEquipment" ? "aplicado" : "removido"
-                }`}
-                styled="mt-2"
-              />
-            </Grid>
-          </Grid>
-        );
-      })}
-    </>
-  );
-};
 
 export const ExecutionEquipmentPanel: React.FC<
   ExecutionEquipmentPanelProps
@@ -246,6 +115,7 @@ export const ExecutionEquipmentPanel: React.FC<
             items={data.appliedEquipment}
             fieldKey="appliedEquipment"
             prefix={prefix}
+            onAddEquipment={onAddEquipment}
             onEquipmentChange={onEquipmentChange}
             onRemoveEquipment={onRemoveEquipment}
             formErrors={formErrors}
@@ -271,6 +141,7 @@ export const ExecutionEquipmentPanel: React.FC<
             items={data.equipmentRemoved}
             fieldKey="equipmentRemoved"
             prefix={prefix}
+            onAddEquipment={onAddEquipment}
             onEquipmentChange={onEquipmentChange}
             onRemoveEquipment={onRemoveEquipment}
             formErrors={formErrors}

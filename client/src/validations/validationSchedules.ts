@@ -162,6 +162,7 @@ export const equipmentItemSchema = z.object({
   equipment: z.string(),
   power: z.preprocess((val) => String(val), z.string()),
   patrimony: z.string(),
+  type: z.enum(["DEFAULT", "CS"]).default("DEFAULT"),
 });
 
 export const executionReportSchema = z

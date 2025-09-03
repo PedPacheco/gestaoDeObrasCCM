@@ -156,6 +156,7 @@ export default function TabPanel({
   };
 
   const handleEditExecutionReport = (executionReportData: any) => {
+    console.log(executionReportData);
     setIsExecutionDialogOpen(true);
     setExecutionReportIsInsert(false);
     setIsInsert(false);
@@ -165,6 +166,7 @@ export default function TabPanel({
   const handleCloseDialog = () => {
     scheduleForm.resetForm();
     setIsInsert(true);
+    setEditingExecutionReport(undefined);
     setEditingSchedule(undefined);
     setIsExecutionDialogOpen(false);
     setIsDialogOpen(false);

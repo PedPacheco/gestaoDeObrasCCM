@@ -43,7 +43,18 @@ export const useScheduleSubmit = ({
         try {
           if (!isInsert && type === "executionReport") {
             const { id, ...rest } = executionReportData;
-            response = await editExecutionReport(rest, id);
+
+            const cleanedExecutionReport = {
+              ...rest,
+              appliedEquipment: rest.appliedEquipment?.map(
+                ({ type, ...e }) => e
+              ),
+              equipmentRemoved: rest.equipmentRemoved?.map(
+                ({ type, ...e }) => e
+              ),
+            };
+
+            response = await editExecutionReport(cleanedExecutionReport, id);
           } else {
             const { executionReport, ...scheduleFields } = formData;
 
@@ -60,11 +71,21 @@ export const useScheduleSubmit = ({
                   idUser: user?.id,
                   ...(() => {
                     const { idUser, id, ...rest } = executionReport;
-                    return rest;
+                    return {
+                      ...rest,
+                      appliedEquipment: rest.appliedEquipment?.map(
+                        ({ type, ...e }) => e
+                      ),
+                      equipmentRemoved: rest.equipmentRemoved?.map(
+                        ({ type, ...e }) => e
+                      ),
+                    };
                   })(),
                 },
               }),
             };
+
+            console.log(payload);
 
             const apiCall = isInsert ? saveSchedule : editSchedule;
             response = await apiCall(payload, scheduleFields.id);
