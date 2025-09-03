@@ -114,6 +114,36 @@ describe('WorksController', () => {
       expect(getAllWorksService.getAllWorks).toHaveBeenCalledWith(worksDTO);
       expect(result).toEqual(expectedResponse);
     });
+
+    it('Should not overwrite filters when req does not have idRegional or insufficientPermission', async () => {
+      const worksDTO: GetWorksDTO = {
+        idCircuito: undefined,
+        idConjunto: undefined,
+        idEmpreendimento: undefined,
+        ovnota: undefined,
+        idGrupo: undefined,
+        idMunicipio: undefined,
+        idParceira: undefined,
+        idRegional: undefined,
+        idStatus: undefined,
+        idTipo: undefined,
+        page: 1,
+        insufficientPermission: undefined,
+      };
+
+      jest
+        .spyOn(getAllWorksService, 'getAllWorks')
+        .mockResolvedValue(mockAllWorks);
+
+      const result = await worksController.getAllWorks(worksDTO, {});
+
+      expect(getAllWorksService.getAllWorks).toHaveBeenCalledWith(worksDTO);
+      expect(result).toEqual({
+        statusCode: HttpStatus.OK,
+        message: 'Todas as obras retornadas com sucesso',
+        data: mockAllWorks,
+      });
+    });
   });
 
   describe('getCompletedWorks', () => {
@@ -149,6 +179,38 @@ describe('WorksController', () => {
         worksDTO,
       );
       expect(result).toEqual(expectedResponse);
+    });
+
+    it('Should not overwrite filters when req does not have idRegional or insufficientPermission', async () => {
+      const worksDTO: GetWorksDTO = {
+        idCircuito: undefined,
+        idConjunto: undefined,
+        idEmpreendimento: undefined,
+        ovnota: undefined,
+        idGrupo: undefined,
+        idMunicipio: undefined,
+        idParceira: undefined,
+        idRegional: undefined,
+        idStatus: undefined,
+        idTipo: undefined,
+        page: 1,
+        insufficientPermission: undefined,
+      };
+
+      jest
+        .spyOn(getCompletedWorksService, 'getCompletedWorks')
+        .mockResolvedValue(mockWorksInPortfolio);
+
+      const result = await worksController.GetCompletedWorks(worksDTO, {}); // req vazio → cai no else
+
+      expect(getCompletedWorksService.getCompletedWorks).toHaveBeenCalledWith(
+        worksDTO,
+      );
+      expect(result).toEqual({
+        statusCode: HttpStatus.OK,
+        message: 'Obras em executadas retornadas com sucesso',
+        data: mockWorksInPortfolio,
+      });
     });
   });
 
@@ -188,6 +250,38 @@ describe('WorksController', () => {
         worksDTO,
       );
       expect(result).toEqual(expectedResponse);
+    });
+
+    it('Should not overwrite filters when req does not have idRegional or insufficientPermission', async () => {
+      const worksDTO: GetWorksDTO = {
+        idCircuito: undefined,
+        idConjunto: undefined,
+        idEmpreendimento: undefined,
+        ovnota: undefined,
+        idGrupo: undefined,
+        idMunicipio: undefined,
+        idParceira: undefined,
+        idRegional: undefined,
+        idStatus: undefined,
+        idTipo: undefined,
+        page: 1,
+        insufficientPermission: undefined,
+      };
+
+      jest
+        .spyOn(getWorksInPortfolio, 'getWorksInPortfolio')
+        .mockResolvedValue(mockWorksInPortfolio);
+
+      const result = await worksController.getWorksInPortfolio(worksDTO, {});
+
+      expect(getWorksInPortfolio.getWorksInPortfolio).toHaveBeenCalledWith(
+        worksDTO,
+      );
+      expect(result).toEqual({
+        statusCode: HttpStatus.OK,
+        message: 'Obras em carteira retornadas com sucesso',
+        data: mockWorksInPortfolio,
+      });
     });
   });
 
