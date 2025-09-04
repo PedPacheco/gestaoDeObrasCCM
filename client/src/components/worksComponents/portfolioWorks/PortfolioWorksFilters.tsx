@@ -50,28 +50,20 @@ export default function PortfolioWorksFilters({
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {}
   );
-  const [date, setDate] = useState<Dayjs | null>();
   const [ovnota, setOvnota] = useState<string>("");
-  const [filterType, setFilterType] = useState<string>("month");
 
   useEffect(() => {
     if (filters) {
       setSelectedItems(filters.selectedItems || {});
-      setDate(filters.date ? dayjs(filters.date) : null);
-      setFilterType(filters.filterType || "month");
       setOvnota(filters.ovnota || "");
     }
   }, [filters]);
 
   function handleApplyFilters() {
-    saveFilters({ selectedItems, date, filterType, ovnota });
+    saveFilters({ selectedItems, ovnota });
 
     const params = {
       ...Transform(selectedItems),
-      data: date
-        ? dayjs(date).format(filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY")
-        : "",
-      tipoFiltro: filterType,
       ovnota: ovnota,
       page: "0",
     };
@@ -82,8 +74,6 @@ export default function PortfolioWorksFilters({
 
   function handleCleanigFilters() {
     setSelectedItems({});
-    setDate(null);
-    setFilterType("month");
     setOvnota("");
 
     clearFilters();
@@ -96,10 +86,6 @@ export default function PortfolioWorksFilters({
   function handleGenerateExcel() {
     const newSelectedItems = {
       ...Transform(selectedItems),
-      data: date
-        ? dayjs(date).format(filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY")
-        : "",
-      tipoFiltro: filterType,
     };
 
     generateExcel(newSelectedItems);
@@ -108,12 +94,6 @@ export default function PortfolioWorksFilters({
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 w-full">
-        <DateFilter
-          date={date || null}
-          setDate={setDate}
-          type={filterType}
-          setType={setFilterType}
-        />
         {Object.entries(data).map(([key, value], index) => {
           const valueKey = Object.keys(value[0])[0];
           const displayKey = Object.keys(value[0])[1];

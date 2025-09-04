@@ -26,15 +26,14 @@ export async function fetchData<T>(
       next: cacheStrategy,
     });
 
+    const json = await res.json();
+
     if (!res.ok) {
-      const errorResponse = await res.json();
-      const errorMessage = errorResponse?.message || "Erro ao buscar os dados";
+      const errorMessage = json?.message || "Erro ao buscar os dados";
       throw new Error(errorMessage);
     }
 
-    const { data } = await res.json();
-
-    return { token, data };
+    return { token, data: json.data ?? json };
   } catch (error: any) {
     throw new Error(error.message);
   }

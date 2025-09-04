@@ -21,10 +21,19 @@ export class StatusFlowRepository implements IStatusFlowRepository {
     idStatus: number,
     id: number,
     tx: Prisma.TransactionClient,
+    options?: { data_conclusao?: Date; totalExecuted?: number },
   ): Promise<void> {
     await tx.obras.update({
       where: { id },
-      data: { id_status: idStatus },
+      data: {
+        id_status: idStatus,
+        ...(options?.data_conclusao !== undefined && {
+          data_conclusao: options.data_conclusao,
+        }),
+        ...(options?.totalExecuted !== undefined && {
+          executado: options.totalExecuted,
+        }),
+      },
     });
   }
 }

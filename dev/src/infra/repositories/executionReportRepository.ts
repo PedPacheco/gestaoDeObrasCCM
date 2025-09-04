@@ -30,6 +30,7 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
         where: { id: idSchedule },
         data: {
           exec: null,
+          id_status_programacao: 3,
         },
       }),
       this.prisma.relatorio_execucao.delete({

@@ -63,14 +63,6 @@ export class GetWorksDTO {
   page: number;
 
   @IsOptional()
-  @IsString()
-  data: string;
-
-  @IsOptional()
-  @IsString()
-  tipoFiltro: string;
-
-  @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
   idRegional: number[];

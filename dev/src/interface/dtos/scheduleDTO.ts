@@ -83,6 +83,16 @@ export class GetScheduleValuesDTO {
   idParceira: number[];
 
   @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idStatus: number[];
+
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idStatusProgramacao: number[];
+
+  @IsOptional()
   @IsString()
   ovnota: string;
 

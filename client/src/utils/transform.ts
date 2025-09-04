@@ -37,7 +37,7 @@ export function mapScheduleToForm(schedule: any, options: Record<string, any>) {
     lvTeam: schedule.equipe_linha_viva ?? 0,
     idTechnical: technicianFound.id ?? 0,
     idExecutionRestriction: restrictionFound.id ?? 0,
-    responsibility: schedule.nome_responsaval_execucao ?? "",
+    responsibility: schedule.nome_responsavel_execucao ?? "",
     executionReport: schedule.executionReport,
   };
 }
@@ -54,6 +54,7 @@ export function transformExecutionReport(data: any): ExecutionReportData {
       equipment: equipment || "",
       power: potencias[i] || "",
       patrimony: patrimonios[i] || "",
+      type: "DEFAULT" as const,
     }));
   };
 

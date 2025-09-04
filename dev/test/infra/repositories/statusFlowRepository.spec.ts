@@ -37,11 +37,18 @@ describe('StatusFlowRepository', () => {
 
   describe('updateStatusWorks', () => {
     it('should change the status work to the value that was sent', async () => {
-      await repository.updateStatusWorks(3, 1, mockTransaction);
+      await repository.updateStatusWorks(3, 1, mockTransaction, {
+        data_conclusao: new Date('2025-08-17'),
+        totalExecuted: 80,
+      });
 
       expect(mockTransaction.obras.update).toHaveBeenCalledWith({
         where: { id: 1 },
-        data: { id_status: 3 },
+        data: {
+          id_status: 3,
+          data_conclusao: new Date('2025-08-17'),
+          executado: 80,
+        },
       });
     });
   });

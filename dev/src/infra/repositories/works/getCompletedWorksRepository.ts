@@ -1,4 +1,3 @@
-import * as moment from 'moment';
 import { IGetCompletedWorksRepository } from 'src/domain/repositories/works/IGetCompletedWorksRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
@@ -19,7 +18,6 @@ export class GetCompletedWorksRepository
 
   private applyFilters(query: Prisma.Sql, filters: GetWorksDTO) {
     const {
-      data,
       idCircuito,
       idConjunto,
       idEmpreendimento,
@@ -30,11 +28,8 @@ export class GetCompletedWorksRepository
       idRegional,
       idStatus,
       idTipo,
-      tipoFiltro,
       insufficientPermission,
     } = filters;
-
-    const [month, year] = data ? data.split('/') : [null, null];
 
     if (insufficientPermission) {
       query = Prisma.sql`${query} AND status.id != 42`;
@@ -80,14 +75,6 @@ export class GetCompletedWorksRepository
       query = Prisma.sql`${query} AND obras.ovnota = ${ovnota}`;
     }
 
-    if (tipoFiltro === 'month' && data) {
-      query = Prisma.sql`${query} AND EXTRACT(MONTH FROM data_conclusao) = ${parseInt(month)} AND EXTRACT(YEAR FROM data_conclusao) = ${parseInt(year)}`;
-    }
-
-    if (tipoFiltro === 'day' && data) {
-      query = Prisma.sql`${query} AND data_conclusao = ${moment(data, 'DD/MM/YYYY', true).toDate()}`;
-    }
-
     return query;
   }
 
@@ -104,12 +91,11 @@ export class GetCompletedWorksRepository
         INNER JOIN construcao_sp.conjuntos ON circuitos.id_conjunto = conjuntos.id
         INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
         INNER JOIN construcao_sp.turmas ON obras.id_turma = turmas.id
-        LEFT JOIN (SELECT id_obra, COUNT(*)::int as contagem_ocorrencias FROM construcao_sp.programacoes WHERE programacoes.data_prog > current_date GROUP BY id_obra ) AS programacoes ON programacoes.id_obra = obras.id
         WHERE data_conclusao IS NOT NULL`;
 
     let query = Prisma.sql`SELECT obras.id, obras.ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, executado, 
     mun, CASE WHEN current_date > entrada + prazo THEN 1 ELSE 0 END AS atraso, data_conclusao, tipo_obra, qtde_planejada, qtde_pend,
-    circuito, mo_planejada, contagem_ocorrencias, turma, status, conjunto, abrev_regional, observ_obra
+    circuito, mo_planejada, turma, status, conjunto, abrev_regional, observ_obra
     ${baseQuery}`;
 
     let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras, SUM(mo_planejada) AS total_mo_planejada, SUM(mo_planejada*executado/100) as total_mo_exec, 

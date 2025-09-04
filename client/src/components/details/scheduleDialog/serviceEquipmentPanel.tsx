@@ -12,7 +12,7 @@ interface ServiceEquipmentPanelProps {
   formData: FormData;
   formErrors: Record<string, string>;
   onInputChange: (field: keyof FormData) => (event: any) => void;
-  disabledFields: boolean;
+  disabledFields: () => boolean | undefined;
 }
 
 const SERVICE_TYPES = [
@@ -39,7 +39,7 @@ export const ServiceEquipmentPanel: React.FC<ServiceEquipmentPanelProps> = ({
           value={formData.serviceType}
           onChange={onInputChange("serviceType")}
           label="Tipo de Serviço"
-          disabled={disabledFields}
+          disabled={disabledFields()}
         >
           {SERVICE_TYPES.map((type) => (
             <MenuItem key={type} value={type}>
@@ -56,7 +56,7 @@ export const ServiceEquipmentPanel: React.FC<ServiceEquipmentPanelProps> = ({
         label="Equipamento a ser desligado"
         value={formData.equipment}
         onChange={onInputChange("equipment")}
-        disabled={disabledFields}
+        disabled={disabledFields()}
       />
     </Grid>
 
@@ -70,7 +70,7 @@ export const ServiceEquipmentPanel: React.FC<ServiceEquipmentPanelProps> = ({
         error={!!formErrors.chi}
         helperText={formErrors.chi}
         inputProps={{ min: 0 }}
-        disabled={disabledFields}
+        disabled={disabledFields()}
       />
     </Grid>
 
@@ -80,7 +80,7 @@ export const ServiceEquipmentPanel: React.FC<ServiceEquipmentPanelProps> = ({
         label="Número DP"
         value={formData.numDp}
         onChange={onInputChange("numDp")}
-        disabled={disabledFields}
+        disabled={disabledFields()}
       />
     </Grid>
   </Grid>

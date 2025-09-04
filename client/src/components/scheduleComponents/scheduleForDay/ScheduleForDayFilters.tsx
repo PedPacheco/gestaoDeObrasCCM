@@ -11,7 +11,7 @@ import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
 import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
-import { Checkbox, FormControl, Input, TextField } from "@mui/material";
+import { Checkbox, TextField } from "@mui/material";
 
 interface filters {
   regional: { id: string; regional: string }[];
@@ -19,6 +19,8 @@ interface filters {
   tipo: { id: string; tipo_obra: string; id_grupo: number }[];
   municipio: { id: string; municipio: string }[];
   grupo: { id: string; grupo: string }[];
+  status: { id: string; status: string }[];
+  status_programacao: { id: string; status_programacao: string }[];
 }
 
 interface ScheduleByDateFiltersProps {
@@ -116,23 +118,23 @@ export default function ScheduleForDayFilters({
 
   return (
     <>
-      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:flex xl:flex-row xl:justify-between xl:items-center">
         <DateFilter
           date={date}
           setDate={setDate}
           type={filterType}
           setType={setFilterType}
-          marginLeft="ml-4"
+          marginLeft="lg:ml-4"
         />
 
         {Object.entries(data)
-          .slice(0, 5)
+          .slice(0, 7)
           .map(([key, value], index) => {
             const valueKey = Object.keys(value[0])[0];
             const displayKey = Object.keys(value[0])[1];
 
             const filterValue = `${valueKey}${
-              key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()
+              key.charAt(0).toUpperCase() + key.slice(1)
             }`;
 
             return (
@@ -161,8 +163,8 @@ export default function ScheduleForDayFilters({
           onChange={(event) => setOvnota(event.target.value)}
         />
 
-        <div className="flex flex-col">
-          <div className="flex flex-row items-center ">
+        <div className="col-span-full flex flex-row justify-between items-center px-10 xl:px-0 xl:justify-normal xl:items-start xl:flex-col ">
+          <div className="flex flex-row items-center">
             <Checkbox
               onChange={() => setExecuted(!executed)}
               checked={executed}
@@ -170,7 +172,7 @@ export default function ScheduleForDayFilters({
             <p className="text-nowrap font-medium text-lg">Executadas</p>
           </div>
 
-          <div className="flex flex-row items-center mb-2">
+          <div className="flex flex-row items-center lg:mb-2">
             <Checkbox onChange={() => setPending(!pending)} checked={pending} />
             <p className="text-nowrap font-medium text-lg">Pendentes</p>
           </div>

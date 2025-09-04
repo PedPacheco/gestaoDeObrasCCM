@@ -17,6 +17,10 @@ import { ServiceEquipmentPanel } from "./serviceEquipmentPanel";
 import { TeamsPanel } from "./teamsPanel";
 import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
 import { useUser } from "@/contexts/userContext";
+import { schedulesSchema } from "@/validations/validationSchedules";
+import { useState } from "react";
+import ErrorModal from "@/components/common/ErrorModal";
+import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 export type ScheduleFormHookReturn = ReturnType<typeof useScheduleForm>;
 
@@ -50,6 +54,8 @@ export default function ScheduleFormDialog({
   scheduleForm,
   statusWork,
 }: ScheduleFormDialogProps) {
+  const [error, setError] = useState<string | null>();
+
   const {
     expanded,
     formData,
@@ -57,7 +63,6 @@ export default function ScheduleFormDialog({
     formErrors,
     handleAccordionChange,
     handleInputChange,
-    openExecChangeDialog,
     setFormErrors,
     initialExecValue,
   } = scheduleForm;
@@ -79,9 +84,17 @@ export default function ScheduleFormDialog({
   const dialogTitle = isInsert ? "Nova Programação" : "Editar Programação";
   const submitButtonText = isPending ? "Salvando..." : "Salvar Programação";
 
-  const disabledFields =
-    permissions?.permissao_visualizacao === "parcial" &&
-    (statusWork === 3 || statusWork === 2);
+  const disabledFields = () => {
+    if (isInsert) {
+      return (
+        permissions?.permissao_visualizacao === "parcial" &&
+        (statusWork === 3 || statusWork === 2)
+      );
+    }
+    return (
+      permissions?.permissao_visualizacao === "parcial" && statusWork === 35
+    );
+  };
 
   return (
     <Dialog
@@ -158,6 +171,7 @@ export default function ScheduleFormDialog({
           >
             <AdditionalInfoPanel
               formData={formData}
+              formErrors={formErrors}
               options={options}
               onInputChange={handleInputChange}
               disabledFields={disabledFields}
@@ -171,16 +185,45 @@ export default function ScheduleFormDialog({
         <ButtonComponent
           styled="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
           onClick={() => {
-            if (openExecChangeDialog) {
+            const validationResult = schedulesSchema.safeParse(formData);
+
+            if (!validationResult.success) {
+              const fieldErrors: Record<string, string> = {};
+              validationResult.error.issues.forEach((err) => {
+                const path = err.path.join(".");
+                fieldErrors[path] = err.message;
+              });
+              setFormErrors(fieldErrors);
+              setError("Erro ao salvar programação");
+
+              return;
+            }
+            setFormErrors({});
+
+            const execAlterado =
+              formData.exec !== initialExecValue &&
+              initialExecValue === "null" &&
+              formData.exec !== "";
+
+            if (execAlterado) {
               onExecutionDialogOpen(true);
             } else {
-              handleSubmit(initialExecValue, "schedule");
+              handleSubmit("schedule");
             }
           }}
           disabled={isPending}
           text={submitButtonText}
         />
       </DialogActions>
+
+      {error && (
+        <ErrorModal
+          open={true}
+          message={error}
+          onClose={() => setError(null)}
+          icon={<ExclamationCircleIcon width={48} height={48} />}
+        />
+      )}
     </Dialog>
   );
 }

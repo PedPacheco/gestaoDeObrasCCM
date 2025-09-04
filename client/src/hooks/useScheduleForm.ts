@@ -72,7 +72,6 @@ export const useScheduleForm = ({
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [expanded, setExpanded] = useState<string | false>("panel1");
   const [initialExecValue, setInitialExecValue] = useState<string | null>(null);
-  const [openExecChangeDialog, setOpenExecChangeDialog] = useState(false);
 
   useEffect(() => {
     if (data) {
@@ -102,18 +101,6 @@ export const useScheduleForm = ({
         const isCheckbox = event.target.type === "checkbox";
         let value = isCheckbox ? event.target.checked : event.target.value;
 
-        const execAlterado =
-          field === "exec" &&
-          value !== initialExecValue &&
-          initialExecValue === "null" &&
-          value !== "";
-
-        if (execAlterado) {
-          setOpenExecChangeDialog(true);
-        } else {
-          setOpenExecChangeDialog(false);
-        }
-
         if (field in INITIAL_EXECUTION_REPORT) {
           setExecutionReportData((prev) => {
             return {
@@ -136,22 +123,14 @@ export const useScheduleForm = ({
             };
           }
 
-          if (execAlterado && typeof value === "string") {
-            return {
-              ...prev,
-              [field]: value,
-              executionReport: INITIAL_EXECUTION_REPORT,
-            };
-          }
-
           return {
             ...prev,
             [field]: value,
-            executionReport: undefined,
+            executionReport: INITIAL_EXECUTION_REPORT,
           };
         });
       },
-    [initialExecValue]
+    []
   );
 
   const handleAccordionChange = useCallback(
@@ -173,6 +152,7 @@ export const useScheduleForm = ({
         if (!prev.executionReport) return prev;
 
         const updatedEquipments = [...prev.executionReport[field]];
+
         updatedEquipments[index] = {
           ...updatedEquipments[index],
           [subField]: value,
@@ -204,8 +184,14 @@ export const useScheduleForm = ({
 
   const onAddEquipment = (
     field: "appliedEquipment" | "equipmentRemoved",
-    prefix: string
+    prefix: string,
+    type: "DEFAULT" | "CS" = "DEFAULT"
   ) => {
+    const newEquipment =
+      type === "CS"
+        ? { equipment: "CS", power: "", patrimony: "", type: "CS" }
+        : { equipment: "", power: "", patrimony: "", type: "DEFAULT" };
+
     if (prefix === "executionReport.") {
       setFormData((prev) => {
         const execReport = prev.executionReport ?? INITIAL_EXECUTION_REPORT;
@@ -214,10 +200,7 @@ export const useScheduleForm = ({
           ...prev,
           executionReport: {
             ...execReport,
-            [field]: [
-              ...execReport[field],
-              { equipment: "", power: "", patrimony: "" },
-            ],
+            [field]: [...execReport[field], newEquipment],
           },
         };
       });
@@ -225,10 +208,7 @@ export const useScheduleForm = ({
       setExecutionReportData((prev) => {
         return {
           ...prev,
-          [field]: [
-            ...prev[field],
-            { equipment: "", power: "", patrimony: "" },
-          ],
+          [field]: [...prev[field], newEquipment],
         };
       });
     }
@@ -283,9 +263,7 @@ export const useScheduleForm = ({
     setFormErrors,
     handleInputChange,
     handleAccordionChange,
-    openExecChangeDialog,
     resetForm,
-    setOpenExecChangeDialog,
     onAddEquipment,
     onRemoveEquipment,
     onEquipmentChange,

@@ -106,6 +106,12 @@ export default function TabPanel({
   });
 
   useEffect(() => {
+    const tab = localStorage.getItem("tab");
+
+    if (tab) {
+      setValue(Number(tab));
+    }
+
     if (workData) {
       setData(workData);
     }
@@ -118,10 +124,20 @@ export default function TabPanel({
           validate: false,
         }))
     );
+
+    setConfirmedSchedule(
+      workData.programacoes
+        .filter((item: any) => item.exec === null)
+        .map((item: any) => ({
+          id: item.id,
+          confirm: false,
+        }))
+    );
   }, [workData]);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
+    localStorage.setItem("tab", newValue.toString());
   };
 
   const toggleModal = () => setOpenModal((prev) => !prev);
@@ -140,6 +156,7 @@ export default function TabPanel({
   };
 
   const handleEditExecutionReport = (executionReportData: any) => {
+    console.log(executionReportData);
     setIsExecutionDialogOpen(true);
     setExecutionReportIsInsert(false);
     setIsInsert(false);
@@ -149,8 +166,8 @@ export default function TabPanel({
   const handleCloseDialog = () => {
     scheduleForm.resetForm();
     setIsInsert(true);
+    setEditingExecutionReport(undefined);
     setEditingSchedule(undefined);
-    scheduleForm.setOpenExecChangeDialog(false);
     setIsExecutionDialogOpen(false);
     setIsDialogOpen(false);
   };

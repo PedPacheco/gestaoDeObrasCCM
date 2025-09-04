@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-import { executionReportSchema } from "@/validations/validationSchedules";
+import {
+  executionReportSchema,
+  validationSchedulesSchema,
+} from "@/validations/validationSchedules";
 import {
   Box,
   Dialog,
@@ -18,6 +21,9 @@ import { AdditionalExecutionInfoPanel } from "./additionalExecutionInfoPanel";
 import { ExecutionEquipmentPanel } from "./EquipmentPanel";
 import { ExecutionBasicPanel } from "./executionBasicPanel";
 import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
+import { useState } from "react";
+import ErrorModal from "@/components/common/ErrorModal";
+import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 export type ExecutionReportData = z.infer<typeof executionReportSchema>;
 
@@ -44,6 +50,8 @@ export function ExecutionReportDialog({
   open,
   scheduleForm,
 }: ExecutionReportDialogProps) {
+  const [error, setError] = useState<string | null>();
+
   const {
     formData,
     executionReportData,
@@ -140,14 +148,76 @@ export function ExecutionReportDialog({
         <ButtonComponent
           styled="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
           onClick={() => {
-            !executionReportIsInsert
-              ? handleSubmit(null, "executionReport")
-              : handleSubmit(null, "schedule");
+            if (!executionReportIsInsert) {
+              console.log(executionReportData);
+              const result =
+                executionReportSchema.safeParse(executionReportData);
+
+              console.log(result);
+
+              if (!result.success) {
+                const fieldErrors: Record<string, string> = {};
+                result.error.issues.forEach((err: any) => {
+                  const field = err.path.join(".");
+                  fieldErrors[field] = err.message;
+                });
+
+                setFormErrors(fieldErrors);
+                setError("Erro ao salvar relatório de execução");
+                return;
+              }
+
+              handleSubmit("executionReport");
+            } else {
+              const validationSchema = validationSchedulesSchema(null);
+              const result = validationSchema.safeParse(formData);
+
+              if (!result.success) {
+                const fieldErrors: Record<string, string> = {};
+
+                result.error.issues.forEach((item: any) => {
+                  if (item.errors) {
+                    item.errors[0].map((err: any) => {
+                      if (err.code === "invalid_type") return;
+
+                      if (err.code === "custom") {
+                        const field = err.path.join(".");
+                        fieldErrors[field] = err.message;
+                        return;
+                      }
+
+                      const field = err.path[0];
+                      fieldErrors[field] = err.message;
+                    });
+
+                    return;
+                  }
+
+                  const field = item.path[1];
+                  fieldErrors[field] = item.message;
+                });
+
+                setFormErrors(fieldErrors);
+                setError("Erro ao salvar relatório de execução");
+                return;
+              }
+
+              handleSubmit("schedule");
+            }
           }}
           disabled={isPending}
           text={submitButtonText}
         />
       </DialogActions>
+
+      {error && (
+        <ErrorModal
+          open={true}
+          message={error}
+          onClose={() => setError(null)}
+          icon={<ExclamationCircleIcon width={48} height={48} />}
+        />
+      )}
     </Dialog>
   );
 }

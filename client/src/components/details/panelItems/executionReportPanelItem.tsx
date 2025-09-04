@@ -43,11 +43,13 @@ const columns = {
   justificativa_atraso: "Justificativa atraso",
   possui_equipamentos_aplicados: "Possui equipamentos instalados ?",
   equipamentos_aplicados: "Equipamentos que foram instalados",
-  potencia_equipamento_aplicado: "Pôtencia dos equipamentos aplicados",
+  potencia_equipamento_aplicado:
+    "Pôtencia dos equipamentos aplicados (Marca CS)",
   patrimonio_equipamento_aplicado: "Patrimônio dos equipamentos aplicados",
   possui_equipamentos_retirados: "Possui equipamentos retirados ?",
   equipamentos_retirados: "Equipamentos que foram retirados",
-  potencia_equipamento_retirado: "Pôtencia dos equipamentos retirados",
+  potencia_equipamento_retirado:
+    "Pôtencia dos equipamentos retirados (Marca CS)",
   patrimonio_equipamento_retirado: "Patrimônio dos equipamentos retirados",
   alteracoes_execucao:
     "Houveram alterações na execução conforme era o projeto?",
@@ -95,7 +97,7 @@ export default function ExecutionReportPanelItem({
               {Object.keys(columns).map((column) => (
                 <TableCell
                   key={column}
-                  className={`py-1 px-2 text-center text-zinc-700 font-semibold text-lg bg-[#53FF75] border-r border-solid border-zinc-700 min-w-48`}
+                  className={`py-1 px-2 text-center text-zinc-700 font-semibold text-lg bg-[#53FF75] border-r border-solid border-zinc-700 min-w-52`}
                 >
                   {columns[column as keyof typeof columns]}
                 </TableCell>

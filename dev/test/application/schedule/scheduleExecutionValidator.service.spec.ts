@@ -40,6 +40,7 @@ describe('ScheduleExecutionValidatorService', () => {
         idWork: 1,
         exec: 80,
         prog: 80,
+        dataProg: new Date('17/05/2025'),
       };
 
       await expect(
@@ -57,6 +58,7 @@ describe('ScheduleExecutionValidatorService', () => {
         idWork: 1,
         exec: 80,
         prog: 80,
+        dataProg: new Date('17/05/2025'),
       };
 
       await service.validateExecutionAndUpdateStatus(data, 10, mockTransaction);
@@ -68,15 +70,17 @@ describe('ScheduleExecutionValidatorService', () => {
         37,
         1,
         mockTransaction,
+        { totalExecuted: 90 },
       );
     });
 
-    it('Should call statusFlowRepository when  exec value is 0', async () => {
+    it('Should call statusFlowRepository when exec value is 0', async () => {
       const data = {
         id: 1,
         idWork: 1,
         exec: 0,
         prog: 80,
+        dataProg: new Date('17/05/2025'),
       };
 
       await service.validateExecutionAndUpdateStatus(data, 10, mockTransaction);
@@ -91,12 +95,32 @@ describe('ScheduleExecutionValidatorService', () => {
       );
     });
 
+    it('Should call statusFlowRepository when sum of total exec and exec is equal 100', async () => {
+      const data = {
+        id: 1,
+        idWork: 1,
+        dataProg: new Date('2025-05-17'),
+        exec: 80,
+        prog: 80,
+      };
+
+      await service.validateExecutionAndUpdateStatus(data, 20, mockTransaction);
+
+      expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
+        2,
+        1,
+        mockTransaction,
+        { data_conclusao: new Date('2025-05-17'), totalExecuted: 100 },
+      );
+    });
+
     it('Should call statusFlowRepository when exec value is greater than 0 and prog is greater then exec', async () => {
       const data = {
         id: 1,
         idWork: 1,
         exec: 20,
         prog: 80,
+        dataProg: new Date('17/05/2025'),
       };
 
       await service.validateExecutionAndUpdateStatus(data, 10, mockTransaction);
@@ -108,6 +132,7 @@ describe('ScheduleExecutionValidatorService', () => {
         36,
         1,
         mockTransaction,
+        { totalExecuted: 30 },
       );
     });
   });
