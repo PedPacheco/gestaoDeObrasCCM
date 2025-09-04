@@ -74,7 +74,6 @@ export const useScheduleForm = ({
   const [initialExecValue, setInitialExecValue] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log(data);
     if (data) {
       const mapped = mapScheduleToForm(data, options);
       setFormData(mapped);

@@ -30,11 +30,21 @@ export const mockFormData: FormData = {
     delayJustification: "",
     hasEquipmentInstalled: true,
     appliedEquipment: [
-      { equipment: "Transformador", power: "500", patrimony: "12345" },
+      {
+        equipment: "Transformador",
+        power: "500",
+        patrimony: "12345",
+        type: "DEFAULT",
+      },
     ],
     hasEquipmentRemoved: true,
     equipmentRemoved: [
-      { equipment: "Banco capacitor", power: "200", patrimony: "54321" },
+      {
+        equipment: "Banco capacitor",
+        power: "200",
+        patrimony: "54321",
+        type: "DEFAULT",
+      },
     ],
     changesExecution: false,
     generalObservation: "Obs",

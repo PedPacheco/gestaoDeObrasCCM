@@ -54,6 +54,7 @@ export function transformExecutionReport(data: any): ExecutionReportData {
       equipment: equipment || "",
       power: potencias[i] || "",
       patrimony: patrimonios[i] || "",
+      type: "DEFAULT" as const,
     }));
   };
 

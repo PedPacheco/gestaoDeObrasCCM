@@ -17,13 +17,26 @@ const EQUIPMENTS = [
   "Regulador de tensão",
 ] as const;
 
-const POWER_OPTIONS: Record<string, number[]> = {
-  "Banco capacitor": [300, 600, 1200],
+const POWER_OPTIONS: Record<string, string[]> = {
+  "Banco capacitor": ["300", "600", "1200"],
   Transformador: [
-    5, 10, 15, 25, 30, 45, 50, 75, 100, 112.5, 150, 225, 300, 500,
+    "5",
+    "10",
+    "15",
+    "25",
+    "30",
+    "45",
+    "50",
+    "75",
+    "100",
+    "112.5",
+    "150",
+    "225",
+    "300",
+    "500",
   ],
-  Religador: [0],
-  "Regulador de tensão": [167, 333],
+  Religador: ["0"],
+  "Regulador de tensão": ["167", "333"],
 };
 
 const csBrand = ["Landis Gyr", "Eletra", "Nansen"];
@@ -61,7 +74,6 @@ export const EquipmentList = ({
   onRemoveEquipment,
   formErrors,
 }: EquipmentListProps) => {
-  console.log(items);
   return (
     <>
       {items.map((eq, index) => {
