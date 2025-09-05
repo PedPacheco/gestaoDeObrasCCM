@@ -93,6 +93,7 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
               select: { status_programacao: true },
             },
           },
+          orderBy: { data_prog: 'asc' },
         },
       },
     });

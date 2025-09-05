@@ -3,6 +3,7 @@ import {
   CONTRACT_UPDATE_REPOSITORY,
   IContractUpdateRepository,
 } from 'src/domain/repositories/works/IContractUpdateService';
+import { ContractUpdateDTO } from 'src/interface/dtos/worksDto';
 
 @Injectable()
 export class ContractUpdateService {
@@ -11,25 +12,25 @@ export class ContractUpdateService {
     private readonly contractUpdateRepository: IContractUpdateRepository,
   ) {}
 
-  async update(data: any[]) {
+  async update(data: ContractUpdateDTO[]) {
     const workWithOrderType = data.map((work) => {
-      const { ordem } = work;
+      const { ordemDiagrama } = work;
 
-      if (ordem.substring(0, 3) === '170') {
-        work = { ...work, tipoOrdem: 'DCI' };
+      let ordemField: string = null;
+      if (ordemDiagrama.startsWith('170')) ordemField = 'ordem_dci';
+      if (ordemDiagrama.startsWith('190')) ordemField = 'ordem_dcd';
+      if (ordemDiagrama.startsWith('150')) ordemField = 'ordem_dca';
+      if (ordemDiagrama.startsWith('180')) ordemField = 'ordem_dcim';
+      if (ordemDiagrama.startsWith('200')) ordemField = 'diagrama';
+
+      if (!ordemField) {
+        throw new Error(`Ordem inválida: ${ordemDiagrama}`);
       }
 
-      if (ordem.substring(0, 3) === '190') {
-        work = { ...work, tipoOrdem: 'DCD' };
-      }
-
-      if (ordem.substring(0, 3) === '150') {
-        work = { ...work, tipoOrdem: 'DCA' };
-      }
-
-      if (ordem.substring(0, 3) === '180') {
-        work = { ...work, tipoOrdem: 'DCIM' };
-      }
+      return {
+        ...work,
+        ordemField,
+      };
     });
 
     return await this.contractUpdateRepository.update(workWithOrderType);

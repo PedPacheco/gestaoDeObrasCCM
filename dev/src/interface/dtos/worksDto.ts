@@ -135,3 +135,19 @@ export class UpdateWorkDTO {
   @IsIn(['CONVENCIONAL', 'PONTO A PONTO'])
   tipo_ads: string;
 }
+
+export class ContractUpdateDTO {
+  @IsString()
+  ovnota: string;
+
+  @IsString()
+  ordemDiagrama: string;
+
+  @IsDate()
+  @Type(() => Date)
+  dataEmpreitamento: Date;
+
+  @IsString()
+  @IsIn(['CONVENCIONAL', 'PONTO A PONTO'])
+  tipoAds: string;
+}

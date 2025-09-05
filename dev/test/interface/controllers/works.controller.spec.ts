@@ -24,6 +24,7 @@ import { GetAllWorksService } from 'src/application/works/getAllWorks.service';
 import { UsersService } from 'src/application/users.service';
 import { HandleWorkUpdateService } from 'src/application/orchestrators/handleWorkUpdate.service';
 import { validate } from 'class-validator';
+import { ContractUpdateService } from 'src/application/works/contractUpdate.service';
 
 describe('WorksController', () => {
   let worksController: WorksController;
@@ -33,6 +34,7 @@ describe('WorksController', () => {
   let getWorkDetailsService: GetWorkDetailsService;
   let insertWorksService: InsertWorksService;
   let handleWorkUpdateService: HandleWorkUpdateService;
+  let contractUpdateService: ContractUpdateService;
 
   const mockReq = {
     insufficientPermission: true,
@@ -62,6 +64,7 @@ describe('WorksController', () => {
           useValue: { insertMarketWorks: jest.fn(), insertNotes: jest.fn() },
         },
         { provide: HandleWorkUpdateService, useValue: { update: jest.fn() } },
+        { provide: ContractUpdateService, useValue: { update: jest.fn() } },
       ],
     }).compile();
 
@@ -79,6 +82,9 @@ describe('WorksController', () => {
     insertWorksService = module.get<InsertWorksService>(InsertWorksService);
     handleWorkUpdateService = module.get<HandleWorkUpdateService>(
       HandleWorkUpdateService,
+    );
+    contractUpdateService = module.get<ContractUpdateService>(
+      ContractUpdateService,
     );
   });
 
@@ -380,6 +386,36 @@ describe('WorksController', () => {
         1,
         true,
       );
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('ContractUpdate', () => {
+    it('Should be call the method ContractUpdate and return the correctly data', async () => {
+      jest.spyOn(contractUpdateService, 'update').mockResolvedValue();
+
+      const result = await worksController.ContractUpdate([
+        {
+          ovnota: '3435',
+          ordemDiagrama: '43435',
+          tipoAds: 'Convencional',
+          dataEmpreitamento: new Date('05-17-2025'),
+        },
+      ]);
+
+      const expectedResponse = {
+        statusCode: HttpStatus.NO_CONTENT,
+        message: 'Empreitamento das obras atualizado com sucesso',
+      };
+
+      expect(contractUpdateService.update).toHaveBeenCalledWith([
+        {
+          ovnota: '3435',
+          ordemDiagrama: '43435',
+          tipoAds: 'Convencional',
+          dataEmpreitamento: new Date('05-17-2025'),
+        },
+      ]);
       expect(result).toEqual(expectedResponse);
     });
   });

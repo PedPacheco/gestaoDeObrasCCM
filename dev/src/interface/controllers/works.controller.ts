@@ -2,6 +2,7 @@ import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 
 import {
+  ContractUpdateDTO,
   GetAllWorksDTO,
   GetWorksDTO,
   UpdateWorkDTO,
@@ -162,9 +163,9 @@ export class WorksController {
     };
   }
 
-  @Patch('atualizar-empreitamento')
+  @Post('atualizar-empreitamento')
   @UseGuards(PermissionGuard)
-  async ContractUpdate(@Body() data: any[]) {
+  async ContractUpdate(@Body() data: ContractUpdateDTO[]) {
     await this.contractUpdateService.update(data);
 
     return {
