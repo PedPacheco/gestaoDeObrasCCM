@@ -29,6 +29,9 @@ import { WorksController } from '../controllers/works.controller';
 import { AuxiliaryBaseModule } from './auxiliaryBase.module';
 import { UsersModule } from './users.module';
 import { HandleWorkUpdateService } from 'src/application/orchestrators/handleWorkUpdate.service';
+import { ContractUpdateService } from 'src/application/works/contractUpdate.service';
+import { CONTRACT_UPDATE_REPOSITORY } from 'src/domain/repositories/works/IContractUpdateService';
+import { ContractUpdateRepository } from 'src/infra/repositories/works/contractUpdateRepository';
 
 @Module({
   imports: [CacheModule, UsersModule, forwardRef(() => AuxiliaryBaseModule)],
@@ -42,6 +45,8 @@ import { HandleWorkUpdateService } from 'src/application/orchestrators/handleWor
     InsertWorksService,
     UpdateWorkService,
     HandleWorkUpdateService,
+    ContractUpdateService,
+    { provide: CONTRACT_UPDATE_REPOSITORY, useClass: ContractUpdateRepository },
     { provide: GET_ALL_WORKS_REPOSITORY, useClass: GetAllWorksRepository },
     {
       provide: GET_COMPLETED_WORKS_REPOSITORY,

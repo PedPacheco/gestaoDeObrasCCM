@@ -79,7 +79,7 @@ describe('GetWorksInPortfolioRepository', () => {
         INNER JOIN construcao_sp.empreendimento ON obras.id_empreendimento = empreendimento.id
         INNER JOIN construcao_sp.conjuntos ON circuitos.id_conjunto = conjuntos.id
         INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
-        INNER JOIN construcao_sp.programacoes ON programacoes.id = obras.id
+        INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
         LEFT JOIN (SELECT id_obra, COUNT(*)::int AS contagem_ocorrencias FROM construcao_sp.programacoes WHERE data_prog > current_date GROUP BY id_obra) AS prog_count ON prog_count.id_obra = obras.id 
         WHERE data_conclusao IS NULL`;
 
@@ -150,7 +150,7 @@ describe('GetWorksInPortfolioRepository', () => {
         idCircuito: null,
         idEmpreendimento: null,
         ovnota: null,
-        page: 1,
+        page: null,
         insufficientPermission: false,
       };
 
@@ -162,7 +162,7 @@ describe('GetWorksInPortfolioRepository', () => {
 
       const expectedQuery = `${baseQuery} GROUP BY obras.id, ovnota, diagrama, ordem_dci, ordem_dcim, ordem_dca, ordem_dcd, status_ov_sap, pep, executado, 
         mun, id_status, entrada, prazo, abrev_regional, tipo_obra, qtde_planejada, qtde_pend, circuito, mo_planejada, status, conjunto, 
-        empreendimento, turma, prog_count.contagem_ocorrencias ORDER BY status DESC, entrada + prazo LIMIT 200 OFFSET ;`;
+        empreendimento, turma, prog_count.contagem_ocorrencias ORDER BY status DESC, entrada + prazo`;
 
       const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
 
@@ -170,7 +170,7 @@ describe('GetWorksInPortfolioRepository', () => {
       expect(normalizeSQL(querySent.strings.join(''))).toContain(
         normalizeSQL(expectedQuery),
       );
-      expect(querySent.values).toEqual([200]);
+      expect(querySent.values).toEqual([]);
     });
   });
 });

@@ -22,8 +22,6 @@ interface UseScheduleSubmitProps {
 }
 
 export const useScheduleSubmit = ({
-  formData,
-  executionReportData,
   idWork,
   isInsert,
   onError,
@@ -36,27 +34,27 @@ export const useScheduleSubmit = ({
   const user = rawUser ?? null;
 
   const handleSubmit = useCallback(
-    (type: "executionReport" | "schedule") => {
+    (data: any, type: "executionReport" | "schedule") => {
       startTransition(async () => {
         let response;
 
         try {
           if (!isInsert && type === "executionReport") {
-            const { id, ...rest } = executionReportData;
+            const { id, ...rest } = data;
 
             const cleanedExecutionReport = {
               ...rest,
               appliedEquipment: rest.appliedEquipment?.map(
-                ({ type, ...e }) => e
+                ({ type, ...e }: { type: string; [key: string]: any }) => e
               ),
               equipmentRemoved: rest.equipmentRemoved?.map(
-                ({ type, ...e }) => e
+                ({ type, ...e }: { type: string; [key: string]: any }) => e
               ),
             };
 
             response = await editExecutionReport(cleanedExecutionReport, id);
           } else {
-            const { executionReport, ...scheduleFields } = formData;
+            const { executionReport, ...scheduleFields } = data;
 
             const payload = {
               updateData: {
@@ -74,18 +72,28 @@ export const useScheduleSubmit = ({
                     return {
                       ...rest,
                       appliedEquipment: rest.appliedEquipment?.map(
-                        ({ type, ...e }) => e
+                        ({
+                          type,
+                          ...e
+                        }: {
+                          type: string;
+                          [key: string]: any;
+                        }) => e
                       ),
                       equipmentRemoved: rest.equipmentRemoved?.map(
-                        ({ type, ...e }) => e
+                        ({
+                          type,
+                          ...e
+                        }: {
+                          type: string;
+                          [key: string]: any;
+                        }) => e
                       ),
                     };
                   })(),
                 },
               }),
             };
-
-            console.log(payload);
 
             const apiCall = isInsert ? saveSchedule : editSchedule;
             response = await apiCall(payload, scheduleFields.id);
@@ -104,17 +112,7 @@ export const useScheduleSubmit = ({
         }
       });
     },
-    [
-      isInsert,
-      onSuccess,
-      onClose,
-      onModalOpen,
-      executionReportData,
-      formData,
-      idWork,
-      user?.id,
-      onError,
-    ]
+    [isInsert, onSuccess, onClose, onModalOpen, idWork, user?.id, onError]
   );
 
   return { handleSubmit, isPending };

@@ -249,17 +249,18 @@ describe('AuxiliaryBaseRepository', () => {
     });
 
     it('should log error if createMany fails', async () => {
-      const spy = jest.spyOn(console, 'error').mockImplementation();
-      mockPrisma.base_auxiliar_ov.createMany.mockRejectedValueOnce(
-        new Error('DB error'),
-      );
+      const error = new Error('Erro ao inserir dados da base auxiliar OV:');
+
+      mockPrisma.base_auxiliar_ov.createMany.mockRejectedValue(error);
+      const loggerSpy = jest.spyOn(repository['logger'], 'error');
+
       await expect(repository.insertMarket([])).rejects.toThrow(
         'Falha ao inserir dados da base auxiliar OV',
       );
 
-      expect(spy).toHaveBeenCalledWith(
+      expect(loggerSpy).toHaveBeenCalledWith(
         'Erro ao inserir dados da base auxiliar OV:',
-        expect.any(Error),
+        error.stack,
       );
     });
   });

@@ -1,0 +1,38 @@
+import { Injectable, Logger } from '@nestjs/common';
+import {
+  ContractUpdateRepositoryInterface,
+  IContractUpdateRepository,
+} from 'src/domain/repositories/works/IContractUpdateService';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+
+@Injectable()
+export class ContractUpdateRepository implements IContractUpdateRepository {
+  private readonly logger = new Logger(ContractUpdateRepository.name);
+  constructor(private readonly prisma: PrismaService) {}
+
+  async update(data: ContractUpdateRepositoryInterface[]): Promise<void> {
+    try {
+      await this.prisma.$transaction(
+        data.map((work) => {
+          return this.prisma.obras.updateMany({
+            where: {
+              ovnota: work.ovnota,
+              [work.ordemField]: work.ordemDiagrama,
+            },
+            data: {
+              data_empreitamento: work.dataEmpreitamento,
+              tipo_ads: work.tipoAds,
+              id_status: 1,
+            },
+          });
+        }),
+      );
+    } catch (error) {
+      this.logger.error(
+        `Erro ao atualizar contratos. Payload: ${JSON.stringify(data)}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+}

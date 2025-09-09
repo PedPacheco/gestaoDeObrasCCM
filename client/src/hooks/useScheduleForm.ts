@@ -9,7 +9,7 @@ import { ScheduleFormDialogProps } from "@/components/details/scheduleDialog/dia
 import { mapScheduleToForm, transformExecutionReport } from "@/utils/transform";
 import { validationSchedulesSchema } from "@/validations/validationSchedules";
 
-export const staticValidationSchema = validationSchedulesSchema(null);
+export const staticValidationSchema = validationSchedulesSchema(null, true);
 export type FormData = z.infer<typeof staticValidationSchema>;
 
 export const INITIAL_EXECUTION_REPORT: ExecutionReportData = {

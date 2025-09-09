@@ -58,7 +58,7 @@ describe('InsertWorksService', () => {
     it('should call method insertMarketWorks and throw error if no data is valid', async () => {
       jest
         .spyOn(findExistingWorksService, 'findExistingWorks')
-        .mockResolvedValue(['1424535']);
+        .mockResolvedValue(['1424535', '1424537']);
 
       await expect(
         insertWorksService.insertMarketWorks(mockMarketWorks),
@@ -66,7 +66,9 @@ describe('InsertWorksService', () => {
 
       await expect(
         insertWorksService.insertMarketWorks(mockMarketWorks),
-      ).rejects.toThrow(`Todas as obras já existem no banco de dados: 1424535`);
+      ).rejects.toThrow(
+        `Todas as obras já existem no banco de dados: 1424535, 1424537`,
+      );
     });
 
     it('should call method insertMarketWorks and return the default format of data', async () => {

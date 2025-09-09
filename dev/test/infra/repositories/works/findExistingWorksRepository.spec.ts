@@ -42,6 +42,23 @@ describe('FindExistingWorksRepository', () => {
       expect(mockPrisma.obras.findMany).toHaveBeenCalledTimes(0);
       expect(result).toEqual([]);
     });
+
+    it('should throw an error and log it if prisma fails', async () => {
+      const error = new Error('Prisma failure');
+
+      mockPrisma.obras.findMany.mockRejectedValue(error);
+
+      const loggerSpy = jest.spyOn(repository['logger'], 'error');
+
+      await expect(repository.findExistingWorks(['4343'])).rejects.toThrow(
+        error,
+      );
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        'Erro ao buscar obra de mercado:',
+        error.stack,
+      );
+    });
   });
 
   describe('findExistingOrders', () => {

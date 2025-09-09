@@ -77,7 +77,7 @@ describe('GetScheduleValuesRepository', () => {
       tipoFiltro: 'day',
       executado: false,
       pendente: false,
-      page: 0,
+      page: undefined,
       idGrupo: undefined,
       idStatus: undefined,
       idStatusProgramacao: undefined,
@@ -106,7 +106,7 @@ describe('GetScheduleValuesRepository', () => {
     INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
     INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
     INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
-    WHERE 1=1 AND data_prog =  AND exec IS NULL ORDER BY data_prog, ovnota LIMIT 200 OFFSET`;
+    WHERE 1=1 AND data_prog =  AND exec IS NULL ORDER BY data_prog, ovnota`;
 
     const result = await repository.getValues(filters);
 
@@ -121,7 +121,7 @@ describe('GetScheduleValuesRepository', () => {
     expect(normalizeSQL(querySent.strings.join(''))).toContain(
       normalizeSQL(expectedQuery),
     );
-    expect(querySent.values).toEqual([expectedDate, 0]);
+    expect(querySent.values).toEqual([expectedDate]);
   });
 
   it('should return the correct values with filters', async () => {

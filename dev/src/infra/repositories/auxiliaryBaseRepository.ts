@@ -4,11 +4,12 @@ import { IAuxiliaryBaseRepository } from 'src/domain/repositories/IAuxiliaryBase
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { InsertBaseAuxiliaryMarketDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
+  private readonly logger = new Logger(AuxiliaryBaseRepository.name);
   constructor(private readonly prisma: PrismaService) {}
 
   async getAuxiliaryBaseNotes(idRegional?: number): Promise<any[]> {
@@ -159,7 +160,10 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
         skipDuplicates: true,
       });
     } catch (error) {
-      console.error('Erro ao inserir dados da base auxiliar OV:', error);
+      this.logger.error(
+        'Erro ao inserir dados da base auxiliar OV:',
+        error.stack,
+      );
       throw new Error('Falha ao inserir dados da base auxiliar OV');
     }
   }

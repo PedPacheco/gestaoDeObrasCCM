@@ -110,4 +110,47 @@ describe('VisualizationGuard', () => {
     expect(spyUsersService).toHaveBeenCalledWith(request.user.username);
     expect(result).toBe(true);
   });
+
+  it('should not add property in object query with value of the user idRegional', async () => {
+    const mockRequest = {
+      user: {
+        username: 'teste',
+        permissao: 'Total',
+        permissao_visualizacao: 'total',
+      },
+      query: {},
+    };
+
+    const context = {
+      switchToHttp: () => ({
+        getRequest: () => mockRequest,
+      }),
+    } as unknown as ExecutionContext;
+
+    const user = {
+      id: 1,
+      username: 'teste',
+      senha: 'hashPassword',
+      permissao: 'Total',
+      id_regional: 1,
+      permissao_visualizacao: 'total',
+      formulario_utilizado: null,
+      nome_maquina: null,
+      nome_usuario: null,
+      email: null,
+    };
+
+    const request = context.switchToHttp().getRequest();
+
+    const spyUsersService = jest
+      .spyOn(usersService, 'findUser')
+      .mockResolvedValue(user);
+
+    const result = await visualizationGuard.canActivate(context);
+
+    expect(request).not.toHaveProperty('idRegional');
+    expect(request).not.toHaveProperty('insufficientPermission');
+    expect(spyUsersService).toHaveBeenCalledWith(request.user.username);
+    expect(result).toBe(true);
+  });
 });

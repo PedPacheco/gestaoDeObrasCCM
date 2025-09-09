@@ -49,6 +49,21 @@ describe('UpdateSchedulesRepository', () => {
       );
     });
 
+    it('should throw error if  error occurs', async () => {
+      const error = new Error('DB connection failed');
+      (mockTx.programacoes.update as jest.Mock).mockRejectedValue(error);
+
+      const input = {
+        id: 9999,
+        startTime: '08:00',
+        finishTime: '17:00',
+      };
+
+      await expect(repository.update(input, mockTx)).rejects.toThrow(
+        'DB connection failed',
+      );
+    });
+
     it('should call update with correct params', async () => {
       updateMock.mockResolvedValueOnce({});
 
@@ -79,6 +94,15 @@ describe('UpdateSchedulesRepository', () => {
       ).rejects.toThrow(
         new NotFoundException(`Agendamento com ID ${23} não encontrado`),
       );
+    });
+
+    it('should throw error if error occurs', async () => {
+      const error = new Error('DB connection failed');
+      (mockPrisma.programacoes.findMany as jest.Mock).mockRejectedValue(error);
+
+      await expect(
+        repository.findExecutionOfSchedules(23, 5424),
+      ).rejects.toThrow('DB connection failed');
     });
 
     it('should return all schedules with an ID different from the passed ID', async () => {

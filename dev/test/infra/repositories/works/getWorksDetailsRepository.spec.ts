@@ -203,6 +203,7 @@ describe('GetWorksDetailsRepository', () => {
               validada: true,
               confirmada: true,
             },
+            orderBy: { data_prog: 'asc' },
           },
         },
       });
@@ -300,6 +301,7 @@ describe('GetWorksDetailsRepository', () => {
               validada: true,
               confirmada: true,
             },
+            orderBy: { data_prog: 'asc' },
           },
         },
       });

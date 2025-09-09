@@ -93,20 +93,19 @@ describe('GetTotalValuesSchedule', () => {
         idMunicipio: undefined,
         idCircuito: undefined,
         idGrupo: undefined,
-        ano: 2024,
+        ano: undefined,
       };
 
       mockPrisma.$queryRaw.mockResolvedValue(mockResponseQuery);
 
-      expectedQuery = `${expectedQuery} AND EXTRACT(YEAR FROM data_prog) = 
-        GROUP BY turma, EXTRACT(YEAR FROM data_prog) ORDER BY turma;`;
+      expectedQuery = `${expectedQuery} GROUP BY turma, EXTRACT(YEAR FROM data_prog) ORDER BY turma;`;
 
       const result = await repository.getTotalValues(filters);
 
       const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
 
       expect(result).toEqual(mockResponseQuery);
-      expect(querySent.values).toStrictEqual([2024]);
+      expect(querySent.values).toStrictEqual([]);
       expect(normalizeSQL(querySent.strings.join(''))).toContain(
         normalizeSQL(expectedQuery),
       );

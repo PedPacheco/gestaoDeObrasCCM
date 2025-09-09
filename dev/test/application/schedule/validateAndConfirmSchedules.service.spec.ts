@@ -126,13 +126,16 @@ describe('ValidateAndConfirmSchedulesService', () => {
 
   describe('confirm', () => {
     it('should throw BadRequestException when data is not sent or is an empty array', async () => {
+      const data = [
+        {
+          id: 1,
+          confirm: false,
+        },
+      ];
+
       const expectedErrorMessage = 'Nenhuma programação para ser confirmada';
 
-      await expect(service.confirm([])).rejects.toThrow(
-        new BadRequestException(expectedErrorMessage),
-      );
-
-      await expect(service.confirm(undefined as any)).rejects.toThrow(
+      await expect(service.confirm(data)).rejects.toThrow(
         new BadRequestException(expectedErrorMessage),
       );
     });

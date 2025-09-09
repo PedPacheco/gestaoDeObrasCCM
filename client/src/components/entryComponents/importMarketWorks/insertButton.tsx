@@ -93,7 +93,12 @@ export function InsertMarketWorksButton({
     <>
       <ButtonComponent
         onClick={handleSubmit}
-        text={getButtonContent(isPending, `Inserir obras de mercado`)}
+        text={getButtonContent(
+          isPending,
+          storageKey === "marketEntryData"
+            ? "Inserir obras de mercado"
+            : "Inserir Notas"
+        )}
         disabled={isPending}
         styled="w-64"
       />

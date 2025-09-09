@@ -23,6 +23,24 @@ export const mockMarketWorks: InsertMarketWorksDTO[] = [
     observacao: 'Obra urgente, prioridade alta.',
     idParceira: 101,
   },
+  {
+    obra: '1424537',
+    pep: 'PEP001',
+    diagrama: 'DIA001',
+    entrada: new Date('2025-06-01'),
+    idMunicipio: 1,
+    idTipo: 2,
+    idCircuito: 3,
+    prazoTexto: 'dias',
+    statusOv: 1,
+    statusDiagrama: 'Aprovado',
+    statusPep: 'Validado',
+    equipeNumPedido: 'EQP-123',
+    moCliente: 5000,
+    moEmpresa: 2500,
+    observacao: 'Obra urgente, prioridade alta.',
+    idParceira: 101,
+  },
 ];
 
 export const mockInsertNotesController: InsertNotesDTO[] = [

@@ -150,7 +150,7 @@ describe('GetCompletedWorksRepository', () => {
         idCircuito: undefined,
         idConjunto: undefined,
         idEmpreendimento: undefined,
-        page: 0,
+        page: null,
         insufficientPermission: false,
       };
 
@@ -160,7 +160,7 @@ describe('GetCompletedWorksRepository', () => {
 
       const result = await repository.getCompletedWorks(filters);
 
-      const expectedQuery = `${baseQuery} ORDER BY data_conclusao DESC LIMIT 200 OFFSET ;`;
+      const expectedQuery = `${baseQuery} ORDER BY data_conclusao DESC`;
 
       const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
 
@@ -168,7 +168,7 @@ describe('GetCompletedWorksRepository', () => {
       expect(normalizeSQL(querySent.strings.join(''))).toContain(
         normalizeSQL(expectedQuery),
       );
-      expect(querySent.values).toEqual([0]);
+      expect(querySent.values).toEqual([]);
     });
   });
 });

@@ -1,66 +1,57 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Cookies } from "react-cookie";
 
 import { ButtonComponent } from "@/components/common/Button";
 import ErrorModal from "@/components/common/ErrorModal";
 import ModalComponent from "@/components/common/Modal";
-import { getButtonContent } from "@/utils/getButtonContent";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
-import { DeleteWork } from "@/actions/works";
+import { InsertContract } from "@/actions/works";
 
-const cookies = new Cookies();
-
-interface DeleteButtonProps {
-  storageKey: string;
-}
-
-export function DeleteButton({ storageKey }: DeleteButtonProps) {
-  const router = useRouter();
-  const [error, setError] = useState<string | null>();
-  const [success, setSuccess] = useState("");
+export function ButtonInsertContract() {
+  const [error, setError] = useState<string | null>(null);
   const [openModal, setOpenModal] = useState<boolean>(false);
+  const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const toggleModal = () => setOpenModal((prev) => !prev);
-
-  const handleClick = () => {
+  const handleInsertContract = () => {
     startTransition(async () => {
       try {
-        const res = await DeleteWork(storageKey);
+        const storedData = localStorage.getItem("contracts");
+        if (!storedData) return;
+
+        const res = await InsertContract(JSON.parse(storedData));
 
         if (!res.success) {
           setError(res.error);
           return;
         }
 
-        setSuccess(res.message);
+        setSuccess("Empreitamento inserido com sucesso!");
         setOpenModal(true);
-
-        setSuccess(res.message);
-        localStorage.removeItem(storageKey);
-        cookies.remove(storageKey);
-
-        router.refresh();
+        localStorage.removeItem("contracts");
       } catch (err: any) {
         setError(err.message);
       }
     });
   };
 
+  const toggleModal = () => {
+    setOpenModal((prev) => !prev);
+    window.location.reload();
+  };
+
   return (
     <>
       <ButtonComponent
+        onClick={handleInsertContract}
+        text="Inserir datas de Empreitamento"
         disabled={isPending}
-        text={getButtonContent(isPending, "Limpar Importações")}
-        onClick={handleClick}
-        styled="w-48"
+        styled="w-72"
       />
 
       <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
-        <span className=" font-semibold text-xl">{success}</span>
+        <span className="font-semibold text-xl">{success}</span>
       </ModalComponent>
 
       {error && (
