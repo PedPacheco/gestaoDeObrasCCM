@@ -1,11 +1,12 @@
 import { IUpdateWorkRepository } from 'src/domain/repositories/works/IUpdateWorkRepository';
 import { UpdateWorkDTO } from 'src/interface/dtos/worksDto';
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UpdateWorkRepository implements IUpdateWorkRepository {
+  private readonly logger = new Logger(UpdateWorkRepository.name);
   constructor() {}
 
   async update(
@@ -19,7 +20,8 @@ export class UpdateWorkRepository implements IUpdateWorkRepository {
         data,
       });
     } catch (error) {
-      console.log(error);
+      this.logger.error('Erro ao editar obra: ', error.stack);
+      throw error;
     }
   }
 }

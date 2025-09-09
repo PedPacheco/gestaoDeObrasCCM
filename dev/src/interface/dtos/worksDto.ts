@@ -138,9 +138,11 @@ export class UpdateWorkDTO {
 
 export class ContractUpdateDTO {
   @IsString()
+  @Transform(({ value }) => String(value))
   ovnota: string;
 
   @IsString()
+  @Transform(({ value }) => String(value))
   ordemDiagrama: string;
 
   @IsDate()

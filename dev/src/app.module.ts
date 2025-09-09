@@ -62,9 +62,7 @@ import { ExecutionReportModule } from './interface/modules/executionReport.modul
       useValue: new ValidationPipe({
         transform: true,
         whitelist: true,
-        transformOptions: {
-          enableImplicitConversion: true,
-        },
+        forbidNonWhitelisted: true,
       }),
     },
   ],

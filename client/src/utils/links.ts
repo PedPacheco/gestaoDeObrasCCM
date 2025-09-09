@@ -38,6 +38,11 @@ export const links = [
         needPermission: true,
       },
       {
+        name: "Importação de empreitamento",
+        href: "/entrada/empreitamento",
+        needPermission: true,
+      },
+      {
         name: "Entrada por data",
         href: "/entrada/por-data",
         needPermission: true,

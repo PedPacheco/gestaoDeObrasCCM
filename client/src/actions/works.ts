@@ -116,3 +116,35 @@ export async function DeleteWork(storageKey: string) {
     return { success: false, error: err.message };
   }
 }
+
+export async function InsertContract(data: any) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  try {
+    const result = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/obras/atualizar-empreitamento`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    const res = await result.json();
+
+    if (res.statusCode !== 204) {
+      return {
+        success: false,
+        error: res.message || "Erro ao inserir datas de empreitamento",
+      };
+    }
+
+    return { success: true, message: res.message };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}

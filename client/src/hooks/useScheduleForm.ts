@@ -9,7 +9,7 @@ import { ScheduleFormDialogProps } from "@/components/details/scheduleDialog/dia
 import { mapScheduleToForm, transformExecutionReport } from "@/utils/transform";
 import { validationSchedulesSchema } from "@/validations/validationSchedules";
 
-export const staticValidationSchema = validationSchedulesSchema(null);
+export const staticValidationSchema = validationSchedulesSchema(null, true);
 export type FormData = z.infer<typeof staticValidationSchema>;
 
 export const INITIAL_EXECUTION_REPORT: ExecutionReportData = {
@@ -74,7 +74,6 @@ export const useScheduleForm = ({
   const [initialExecValue, setInitialExecValue] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log(data);
     if (data) {
       const mapped = mapScheduleToForm(data, options);
       setFormData(mapped);

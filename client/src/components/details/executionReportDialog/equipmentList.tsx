@@ -61,7 +61,6 @@ export const EquipmentList = ({
   onRemoveEquipment,
   formErrors,
 }: EquipmentListProps) => {
-  console.log(items);
   return (
     <>
       {items.map((eq, index) => {

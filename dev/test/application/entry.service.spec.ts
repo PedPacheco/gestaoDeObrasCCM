@@ -31,6 +31,18 @@ describe('EntryService', () => {
         },
       },
     } as unknown as obras,
+    {
+      ovnota: 'ov2',
+      mo_final,
+      mo_planejada,
+      entrada: new Date('2024-01-15'),
+      tipos: {
+        tipo_obra: 'Tipo 1',
+        grupos: {
+          grupo: 'Grupo 1',
+        },
+      },
+    } as unknown as obras,
   ];
 
   beforeEach(async () => {
@@ -70,10 +82,10 @@ describe('EntryService', () => {
         {
           tipo: 'Tipo 1',
           grupo: 'Gru',
-          total_entrada: 80,
-          total_entrada_qtde: 1,
-          jan_entrada: 100,
-          jan_entrada_qtde: 1,
+          total_entrada: 160,
+          total_entrada_qtde: 2,
+          jan_entrada: 200,
+          jan_entrada_qtde: 2,
           ...Array(11)
             .fill({ fev_entrada: 0, fev_entrada_qtde: 0 })
             .reduce((acc, val, idx) => {
@@ -119,10 +131,10 @@ describe('EntryService', () => {
         {
           tipo: 'Tipo 1',
           grupo: 'Gru',
-          total_entrada: 100,
-          total_entrada_qtde: 1,
-          jan_entrada: 100,
-          jan_entrada_qtde: 1,
+          total_entrada: 200,
+          total_entrada_qtde: 2,
+          jan_entrada: 200,
+          jan_entrada_qtde: 2,
           ...Array(11)
             .fill({ fev_entrada: 0, fev_entrada_qtde: 0 })
             .reduce((acc, val, idx) => {

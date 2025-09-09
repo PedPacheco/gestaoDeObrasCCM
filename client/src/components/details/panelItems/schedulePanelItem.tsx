@@ -128,9 +128,15 @@ export default function SchedulePanelItem({
         const exists = prev.some((item) => item.id === id);
 
         if (exists) {
-          return prev.map((item) =>
-            item.id === id ? { ...item, confirm: value } : item
-          );
+          return prev.map((item) => {
+            if (
+              item.id === id &&
+              (item.exec === null || item.exec === undefined)
+            ) {
+              return { ...item, confirm: value };
+            }
+            return item;
+          });
         } else {
           return [...prev, { id, confirm: value }];
         }
@@ -253,7 +259,7 @@ export default function SchedulePanelItem({
                         }
                         disabled={
                           disabledCheckBox(col.key, item.status_programacao) ||
-                          item.exec
+                          item.exec !== null
                         }
                       />
                     ) : (

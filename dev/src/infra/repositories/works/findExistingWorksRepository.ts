@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   filtersOrders,
   IFindExistingWorksRepository,
@@ -9,17 +9,23 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 export class FindExistingWorksRepository
   implements IFindExistingWorksRepository
 {
+  private readonly logger = new Logger(FindExistingWorksRepository.name);
   constructor(private readonly prisma: PrismaService) {}
 
   async findExistingWorks(works: string[]): Promise<string[]> {
-    if (works.length === 0) return [];
+    try {
+      if (works.length === 0) return [];
 
-    const existing = await this.prisma.obras.findMany({
-      where: { ovnota: { in: works } },
-      select: { ovnota: true },
-    });
+      const existing = await this.prisma.obras.findMany({
+        where: { ovnota: { in: works } },
+        select: { ovnota: true },
+      });
 
-    return existing.map((work) => work.ovnota);
+      return existing.map((work) => work.ovnota);
+    } catch (error) {
+      this.logger.error(`Erro ao buscar obra de mercado:`, error.stack);
+      throw error;
+    }
   }
 
   async findExistingOrders(orders: filtersOrders[]): Promise<string[]> {

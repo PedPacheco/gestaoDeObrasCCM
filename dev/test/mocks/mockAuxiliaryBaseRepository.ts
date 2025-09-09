@@ -44,6 +44,25 @@ export const mockGetAuxiliaryBaseMarket = new MarketWork(
   0,
 );
 
+export const mockGetAuxiliaryBaseMarket2 = new MarketWork(
+  'Obra 1',
+  'PEP001',
+  new Date('2024-05-01'),
+  null,
+  '175ET005244969DSRB02',
+  10,
+  2,
+  1,
+  5,
+  'DGM001',
+  'Obra em andamento',
+  1,
+  'Ativo',
+  'Completo',
+  1483,
+  0,
+);
+
 export const mockInsertAuxiliaryBaseNotesService = [
   {
     notesData: {

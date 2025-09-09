@@ -41,7 +41,7 @@ describe('GetMonthlySummaryService', () => {
         exec: null,
         obras: {
           mo_final: null,
-          mo_planejada: 3058,
+          mo_planejada: 3000,
         },
       } as unknown as programacoes,
       {
@@ -50,7 +50,16 @@ describe('GetMonthlySummaryService', () => {
         exec: 50,
         obras: {
           mo_final: null,
-          mo_planejada: 21882.1269,
+          mo_planejada: 3000,
+        },
+      } as unknown as programacoes,
+      {
+        data_prog: moment.utc('2024-11-02').toDate(),
+        prog: 100,
+        exec: 50,
+        obras: {
+          mo_final: null,
+          mo_planejada: 3000,
         },
       } as unknown as programacoes,
     ];
@@ -60,16 +69,16 @@ describe('GetMonthlySummaryService', () => {
         {
           dataProg: '01/11/2024',
           totalQtde: 1,
-          totalMoProg: 3058,
+          totalMoProg: 3000,
           totalMoExec: 0,
-          totalMoPrev: 3058,
+          totalMoPrev: 3000,
         },
         {
           dataProg: '02/11/2024',
-          totalQtde: 1,
-          totalMoProg: 21882.1269,
-          totalMoExec: 10941.06345,
-          totalMoPrev: 10941.06345,
+          totalQtde: 2,
+          totalMoProg: 6000,
+          totalMoExec: 3000,
+          totalMoPrev: 3000,
         },
       ];
 
@@ -115,7 +124,7 @@ describe('GetMonthlySummaryService', () => {
       {
         ovnota: '14032497',
         mo_final: null,
-        mo_planejada: 2942.13,
+        mo_planejada: 3000,
         turmas: {
           turma: 'ENGELMIG',
         },
@@ -135,13 +144,13 @@ describe('GetMonthlySummaryService', () => {
       {
         ovnota: '14490588',
         mo_final: null,
-        mo_planejada: 55343.5343,
+        mo_planejada: 4000,
         turmas: {
           turma: 'ENGELMIG',
         },
         tipos: {
           grupos: {
-            grupo: 'BT ZERO',
+            grupo: 'RECOMPOSIÇÃO',
           },
         },
         programacoes: [
@@ -166,16 +175,9 @@ describe('GetMonthlySummaryService', () => {
         {
           grupo: 'RECOMPOSIÇÃO',
           turma: 'ENGELMIG',
-          totalMoProg: 2942.13,
-          totalMoExec: 0,
-          totalMoPrev: 2942.13,
-        },
-        {
-          grupo: 'BT ZERO',
-          turma: 'ENGELMIG',
-          totalMoProg: 55343.5343,
-          totalMoExec: 27671.76715,
-          totalMoPrev: 27671.76715,
+          totalMoProg: 7000,
+          totalMoExec: 2000,
+          totalMoPrev: 5000,
         },
       ];
 

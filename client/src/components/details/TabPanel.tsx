@@ -156,7 +156,6 @@ export default function TabPanel({
   };
 
   const handleEditExecutionReport = (executionReportData: any) => {
-    console.log(executionReportData);
     setIsExecutionDialogOpen(true);
     setExecutionReportIsInsert(false);
     setIsInsert(false);

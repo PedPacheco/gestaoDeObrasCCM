@@ -61,9 +61,9 @@ export function ImportButton({ storageKey }: ImportButtonProps) {
           .getSheetValues()
           .slice(2)
           .map((row: any) => ({
-            obra: row[1],
+            obra: row[1].toString(),
             pep: row[2],
-            diagrama: row[3],
+            diagrama: row[3].toString(),
             entrada: row[15],
             gpm: row[4],
             tipo: row[5],

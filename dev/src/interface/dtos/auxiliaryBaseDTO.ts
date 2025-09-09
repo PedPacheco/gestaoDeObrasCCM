@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
   IsDate,
@@ -12,12 +12,14 @@ import {
 export class InsertBaseAuxiliaryMarketDTO {
   @IsString()
   @IsNotEmpty()
+  @Transform(({ value }) => String(value))
   obra: string;
 
   @IsString()
   pep: string;
 
   @IsString()
+  @Transform(({ value }) => String(value))
   diagrama: string;
 
   @IsDate()
@@ -53,6 +55,11 @@ export class InsertBaseAuxiliaryMarketDTO {
 
   @IsNumber()
   moEmpresa: number;
+}
+
+export class InsertBaseAuxiliaryMarketArrayDTO {
+  @Type(() => InsertBaseAuxiliaryMarketDTO)
+  data: InsertBaseAuxiliaryMarketDTO[];
 }
 
 export class InsertMarketWorksDTO {
