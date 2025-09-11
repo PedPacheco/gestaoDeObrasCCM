@@ -91,5 +91,18 @@ export const BasicInfoPanel: React.FC<BasicInfoPanelProps> = ({
         />
       </Grid>
     )}
+    <Grid item xs={12} sm={12}>
+      <TextField
+        fullWidth
+        label="Observação da Programação"
+        type="string"
+        value={formData.observation}
+        onChange={onInputChange("observation")}
+        error={!!formErrors.observation}
+        helperText={formErrors.observation}
+        InputLabelProps={{ shrink: true }}
+        disabled={disabledFields()}
+      />
+    </Grid>
   </Grid>
 );

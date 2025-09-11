@@ -88,6 +88,7 @@ export class ExecutionReport {
       equipamentos: equipments.map((e) => e.equipment).join(';'),
       potencias: equipments.map((e) => e.power).join(';'),
       patrimonios: equipments.map((e) => e.patrimony).join(';'),
+      instalacao: equipments.map((e) => e.installation).join(';'),
     };
   }
 
@@ -115,10 +116,12 @@ export class ExecutionReport {
       equipamentos_aplicados: aplicados.equipamentos,
       potencia_equipamento_aplicado: aplicados.potencias,
       patrimonio_equipamento_aplicado: aplicados.patrimonios,
+      instalacao_equipamento_aplicado: aplicados.instalacao,
       possui_equipamentos_retirados: this.hasEquipmentRemoved,
       equipamentos_retirados: removidos.equipamentos,
       potencia_equipamento_retirado: removidos.potencias,
       patrimonio_equipamento_retirado: removidos.patrimonios,
+      instalacao_equipamento_retirado: removidos.instalacao,
       alteracoes_execucao: this.changesExecution,
       observacoes_gerais: this.generalObservation,
       situacao_obra: this.workSituation,

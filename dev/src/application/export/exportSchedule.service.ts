@@ -29,7 +29,7 @@ export class ExportScheduleService {
       { header: 'Executado da programação', key: 'exec', width: 10 },
       {
         header: 'Observação programação',
-        key: 'observ_programacao',
+        key: 'equip_desligado',
         width: 50,
       },
       { header: 'Número DP', key: 'num_dp', width: 15 },

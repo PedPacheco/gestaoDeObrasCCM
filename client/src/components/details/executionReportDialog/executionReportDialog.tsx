@@ -149,11 +149,8 @@ export function ExecutionReportDialog({
           styled="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
           onClick={() => {
             if (!executionReportIsInsert) {
-              console.log(executionReportData);
               const result =
                 executionReportSchema.safeParse(executionReportData);
-
-              console.log(result);
 
               if (!result.success) {
                 const fieldErrors: Record<string, string> = {};

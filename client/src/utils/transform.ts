@@ -28,7 +28,8 @@ export function mapScheduleToForm(schedule: any, options: Record<string, any>) {
     prog: schedule.prog ?? 0,
     exec: schedule.exec,
     serviceType: schedule.tipo_servico ?? "",
-    equipment: schedule.observ_programacao ?? "",
+    observation: schedule.observacao_programacao ?? "",
+    equipment: schedule.equip_desligado ?? "",
     chi: schedule.chi ?? 0,
     numDp: schedule.num_dp ?? "",
     temporaryKey: schedule.chave_provisoria ?? false,
@@ -43,18 +44,25 @@ export function mapScheduleToForm(schedule: any, options: Record<string, any>) {
 }
 
 export function transformExecutionReport(data: any): ExecutionReportData {
-  const splitEquipamentos = (equip: string, pot: string, pat: string) => {
-    if (!equip && !pot && !pat) return [];
+  const splitEquipamentos = (
+    equip: string,
+    pot: string,
+    pat: string,
+    inst: string
+  ) => {
+    if (!equip && !pot && !pat && !inst) return [];
 
     const equipamentos = equip?.split(";") || [];
     const potencias = pot?.split(";") || [];
     const patrimonios = pat?.split(";") || [];
+    const instalacoes = inst?.split(";") || [];
 
     return equipamentos.map((equipment, i) => ({
       equipment: equipment || "",
       power: potencias[i] || "",
       patrimony: patrimonios[i] || "",
-      type: "DEFAULT" as const,
+      installation: instalacoes[i] || "",
+      type: equipment.startsWith("CS") ? ("CS" as const) : ("DEFAULT" as const),
     }));
   };
 
@@ -72,13 +80,15 @@ export function transformExecutionReport(data: any): ExecutionReportData {
     appliedEquipment: splitEquipamentos(
       data.equipamentos_aplicados,
       data.potencia_equipamento_aplicado,
-      data.patrimonio_equipamento_aplicado
+      data.patrimonio_equipamento_aplicado,
+      data.instalacao_equipamento_aplicado
     ),
     hasEquipmentRemoved: data.possui_equipamentos_retirados,
     equipmentRemoved: splitEquipamentos(
       data.equipamentos_retirados,
       data.potencia_equipamento_retirado,
-      data.patrimonio_equipamento_retirado
+      data.patrimonio_equipamento_retirado,
+      data.instalacao_equipamento_retirado
     ),
     changesExecution: data.alteracoes_execucao,
     generalObservation: data.observacoes_gerais || "",

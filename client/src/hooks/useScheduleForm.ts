@@ -43,6 +43,7 @@ export const INITIAL_FORM_DATA: FormData = {
   prog: 0,
   exec: null,
   serviceType: "LV",
+  observation: "",
   equipment: "",
   chi: 0,
   numDp: "",
@@ -189,8 +190,20 @@ export const useScheduleForm = ({
   ) => {
     const newEquipment =
       type === "CS"
-        ? { equipment: "CS", power: "", patrimony: "", type: "CS" }
-        : { equipment: "", power: "", patrimony: "", type: "DEFAULT" };
+        ? {
+            equipment: "",
+            power: "",
+            patrimony: "",
+            installation: "",
+            type: "CS",
+          }
+        : {
+            equipment: "",
+            power: "",
+            patrimony: "",
+            installation: "",
+            type: "DEFAULT",
+          };
 
     if (prefix === "executionReport.") {
       setFormData((prev) => {

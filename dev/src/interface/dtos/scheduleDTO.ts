@@ -225,6 +225,10 @@ export class SchedulesDataDTO {
 
   @IsOptional()
   @IsString()
+  observation?: string;
+
+  @IsOptional()
+  @IsString()
   equipment?: string;
 
   @IsOptional()
@@ -262,10 +266,6 @@ export class SchedulesDataDTO {
   @IsOptional()
   @IsString()
   responsibility?: string;
-
-  @IsOptional()
-  @IsString()
-  observation?: string;
 }
 
 export class UpdateSchedulesDataDTO {

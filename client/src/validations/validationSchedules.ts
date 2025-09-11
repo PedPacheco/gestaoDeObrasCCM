@@ -39,6 +39,14 @@ function checkAppliedEquipment(ctx: any) {
         message: "Patrimônio obrigatório",
       });
     }
+
+    if (!eq.installation?.trim()) {
+      ctx.issues.push({
+        code: "custom",
+        path: ["appliedEquipment", i, "installation"],
+        message: "Instalação obrigatória",
+      });
+    }
   }
 }
 
@@ -65,6 +73,7 @@ function checkRemovedEquipment(ctx: any) {
         message: "Equipamento obrigatório",
       });
     }
+
     if (!eq.power?.trim()) {
       ctx.issues.push({
         code: "custom",
@@ -72,11 +81,20 @@ function checkRemovedEquipment(ctx: any) {
         message: "Potência obrigatória",
       });
     }
+
     if (!eq.patrimony?.trim()) {
       ctx.issues.push({
         code: "custom",
         path: ["equipmentRemoved", i, "patrimony"],
         message: "Patrimônio obrigatório",
+      });
+    }
+
+    if (!eq.instalattion?.trim()) {
+      ctx.issues.push({
+        code: "custom",
+        path: ["equipmentRemoved", i, "installation"],
+        message: "Instalação obrigatória",
       });
     }
   }
@@ -89,7 +107,6 @@ export const schedulesSchema = (isInsert?: boolean) =>
       dataProg: z.string().min(1, "Data obrigatória"),
       startTime: z.string().min(1, "Horário de início obrigatório"),
       finishTime: z.string().min(1, "Horário de fim obrigatório"),
-
       prog: z.preprocess(
         (val) => (val === "" ? undefined : Number(val)),
         z
@@ -97,20 +114,16 @@ export const schedulesSchema = (isInsert?: boolean) =>
           .min(0, "Mínimo 0%")
           .max(100, "Máximo 100%")
       ),
-
       exec: z.string().max(100).optional().nullable(),
-
       serviceType: z.string().optional(),
+      observation: z.string().optional(),
       equipment: z.string().optional(),
-
       chi: z.preprocess(
         (val) => Number(val),
         z.number({ error: "CHI deve ser um número" }).min(0)
       ),
-
       numDp: z.string().optional(),
       temporaryKey: z.boolean().optional(),
-
       lmTeam: z.preprocess(
         (val) => Number(val),
         z.number({ error: "Equipe LM deve ser um número" }).min(0)
@@ -123,7 +136,6 @@ export const schedulesSchema = (isInsert?: boolean) =>
         (val) => Number(val),
         z.number({ error: "Equipe LV deve ser um número" }).min(0)
       ),
-
       idTechnical: z.preprocess(
         (val) => Number(val),
         z.number({ error: "Técnico deve ser um número" })
@@ -132,7 +144,6 @@ export const schedulesSchema = (isInsert?: boolean) =>
         (val) => Number(val),
         z.number({ error: "Restrição deve ser um número" })
       ),
-
       responsibility: z.string().optional(),
     })
     .check((ctx) => {
@@ -165,6 +176,7 @@ export const equipmentItemSchema = z.object({
   equipment: z.string(),
   power: z.preprocess((val) => String(val), z.string()),
   patrimony: z.string(),
+  installation: z.string(),
   type: z.enum(["DEFAULT", "CS"]).default("DEFAULT"),
 });
 
