@@ -10,7 +10,7 @@ WITH rankedprogramacoes AS (
     programacoes.equipe_linha_viva,
     programacoes.equipe_regularizacao,
     programacoes.chi,
-    programacoes.observ_programacao,
+    programacoes.equip_desligado AS observ_programacao,
     programacoes.id_tecnico,
     COALESCE(
       obras.diagrama,
