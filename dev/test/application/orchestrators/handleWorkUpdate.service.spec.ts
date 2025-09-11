@@ -116,5 +116,22 @@ describe('HandleWorkUpdateService', () => {
 
       expect(mockUpdateWorkService.update).not.toHaveBeenCalled();
     });
+
+    it('not should StatusFlowRepository if id_status not 42', async () => {
+      const data: UpdateWorkDTO = {
+        id_status: 2,
+        id_turma: 4,
+        tipo_ads: 'Convencional',
+        data_empreitamento: new Date('2025-06-09T00:00:00.000Z'),
+      };
+
+      mockGetDetailsService.get.mockResolvedValue({ id_status: 40, id: 1 });
+
+      mockPrisma.$transaction.mockImplementation(async (cb) => cb({}));
+
+      await service.update(data, 1, false);
+
+      expect(mockStatusFlowRepository.updateStatusWorks).not.toHaveBeenCalled();
+    });
   });
 });

@@ -184,9 +184,9 @@ describe('AuxiliaryBaseService', () => {
 
   describe('insertAuxiliaryBaseMarket', () => {
     it('should call method insertAuxiliaryBaseMarket and return undefined if no data is sent', async () => {
-      const result = await auxiliaryBaseService.insertAuxiliaryBaseMarket([]);
-
-      expect(result).toBeUndefined();
+      await expect(
+        auxiliaryBaseService.insertAuxiliaryBaseMarket([]),
+      ).rejects.toThrow('Nenhum dado enviado.');
     });
 
     it('should call method insertAuxiliaryBaseMarket and throw error if no data is valid', async () => {

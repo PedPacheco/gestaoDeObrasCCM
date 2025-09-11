@@ -211,23 +211,27 @@ export class AuxiliaryBaseService {
   }
 
   async insertAuxiliaryBaseMarket(data: InsertBaseAuxiliaryMarketDTO[]) {
-    if (data.length === 0) return;
+    try {
+      if (!data || data.length === 0)
+        throw new BadRequestException('Nenhum dado enviado.');
 
-    const marketEntry = [...new Set(data.map((item) => item.obra))];
+      const uniquesWorks = Array.from(new Set(data.map((item) => item.obra)));
 
-    const existingOvs =
-      await this.findExistingWorksService.findExistingWorks(marketEntry);
+      const existingOvs =
+        await this.findExistingWorksService.findExistingWorks(uniquesWorks);
+      const existingOvsSet = new Set(existingOvs);
 
-    const existingOvsSet = new Set(existingOvs);
+      const newData = data.filter((item) => !existingOvsSet.has(item.obra));
 
-    const newData = data.filter((item) => !existingOvsSet.has(item.obra));
+      if (newData.length === 0) {
+        throw new BadRequestException(
+          `Todas as obras já existem no banco de dados: ${existingOvs.join(', ')}`,
+        );
+      }
 
-    if (newData.length === 0) {
-      throw new BadRequestException(
-        `Todas as obras já existem no banco de dados: ${existingOvs.join(', ')}`,
-      );
+      await this.auxiliaryBaseRepository.insertMarket(newData);
+    } catch (error) {
+      throw error;
     }
-
-    await this.auxiliaryBaseRepository.insertMarket(newData);
   }
 }

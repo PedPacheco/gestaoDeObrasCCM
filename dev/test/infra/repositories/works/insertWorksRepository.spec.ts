@@ -1,7 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { InsertWorksRepository } from 'src/infra/repositories/works/InsertWorksRepository';
-import { mockGetAuxiliaryBaseMarket } from '../../../mocks/mockAuxiliaryBaseRepository';
+import {
+  mockGetAuxiliaryBaseMarket,
+  mockGetAuxiliaryBaseMarket2,
+} from '../../../mocks/mockAuxiliaryBaseRepository';
 import { MarketWork } from 'src/domain/entities/works.entity';
 import {
   mockInsertNotesRepository,
@@ -31,7 +34,10 @@ describe('InserWorksRepositor', () => {
 
   describe('insertMarketWorks', () => {
     it('should call prisma.obras.createMany with mapped market works', async () => {
-      await repository.insertMarketWorks([mockGetAuxiliaryBaseMarket]);
+      await repository.insertMarketWorks([
+        mockGetAuxiliaryBaseMarket,
+        mockGetAuxiliaryBaseMarket2,
+      ]);
 
       expect(mockPrisma.obras.createMany).toHaveBeenCalledWith({
         data: [
@@ -45,6 +51,22 @@ describe('InserWorksRepositor', () => {
             id_gpm: 10,
             id_tipo: 2,
             prazo: 120,
+            mo_planejada: 1483,
+            id_turma: 1,
+            id_circuito: 5,
+            status_ov_sap: 1,
+            id_empreendimento: 1,
+          },
+          {
+            ovnota: 'Obra 1',
+            pep: 'PEP001',
+            diagrama: 'DGM001',
+            entrada: new Date('2024-05-01'),
+            referencia: '175ET005244969',
+            observ_obra: 'Obra em andamento',
+            id_gpm: 10,
+            id_tipo: 2,
+            prazo: 0,
             mo_planejada: 1483,
             id_turma: 1,
             id_circuito: 5,

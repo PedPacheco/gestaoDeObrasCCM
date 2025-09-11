@@ -2,6 +2,7 @@ import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 
 import {
+  ContractUpdateDTO,
   GetAllWorksDTO,
   GetWorksDTO,
   UpdateWorkDTO,
@@ -28,6 +29,7 @@ import { GetCompletedWorksService } from 'src/application/works/getCompletedWork
 import { GetWorkDetailsService } from 'src/application/works/getWorkDetails.service';
 import { InsertWorksService } from 'src/application/works/InsertWorks.service';
 import { HandleWorkUpdateService } from 'src/application/orchestrators/handleWorkUpdate.service';
+import { ContractUpdateService } from 'src/application/works/contractUpdate.service';
 
 @Controller('obras')
 export class WorksController {
@@ -38,6 +40,7 @@ export class WorksController {
     private getWorkDetailsService: GetWorkDetailsService,
     private insertWorksService: InsertWorksService,
     private handleWorkUpdateService: HandleWorkUpdateService,
+    private contractUpdateService: ContractUpdateService,
   ) {}
 
   @Get()
@@ -157,6 +160,17 @@ export class WorksController {
     return {
       statusCode: HttpStatus.NO_CONTENT,
       message: 'Obras atualizada com sucesso',
+    };
+  }
+
+  @Post('atualizar-empreitamento')
+  @UseGuards(PermissionGuard)
+  async ContractUpdate(@Body() data: ContractUpdateDTO[]) {
+    await this.contractUpdateService.update(data);
+
+    return {
+      statusCode: HttpStatus.NO_CONTENT,
+      message: 'Empreitamento das obras atualizado com sucesso',
     };
   }
 }

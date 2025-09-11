@@ -92,7 +92,7 @@ export class GetWorksInPortfolioRepository
         INNER JOIN construcao_sp.empreendimento ON obras.id_empreendimento = empreendimento.id
         INNER JOIN construcao_sp.conjuntos ON circuitos.id_conjunto = conjuntos.id
         INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
-        INNER JOIN construcao_sp.programacoes ON programacoes.id = obras.id
+        INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
         LEFT JOIN (SELECT id_obra, COUNT(*)::int AS contagem_ocorrencias FROM construcao_sp.programacoes WHERE data_prog > current_date GROUP BY id_obra) AS prog_count ON prog_count.id_obra = obras.id 
         WHERE data_conclusao IS NULL`;
 

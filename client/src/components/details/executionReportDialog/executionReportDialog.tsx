@@ -167,9 +167,9 @@ export function ExecutionReportDialog({
                 return;
               }
 
-              handleSubmit("executionReport");
+              handleSubmit(result.data, "executionReport");
             } else {
-              const validationSchema = validationSchedulesSchema(null);
+              const validationSchema = validationSchedulesSchema(null, false);
               const result = validationSchema.safeParse(formData);
 
               if (!result.success) {
@@ -202,7 +202,7 @@ export function ExecutionReportDialog({
                 return;
               }
 
-              handleSubmit("schedule");
+              handleSubmit(result.data, "schedule");
             }
           }}
           disabled={isPending}

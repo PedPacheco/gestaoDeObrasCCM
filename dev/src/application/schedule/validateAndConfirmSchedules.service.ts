@@ -59,25 +59,18 @@ export class ValidateAndConfirmSchedulesService {
   }
 
   async confirm(data: ConfirmSchedulesDTO[]) {
-    if (!data || data.length === 0) {
+    const confirmedSchedules = data.filter((item) => item.confirm);
+
+    if (confirmedSchedules.length === 0) {
       throw new BadRequestException('Nenhuma programação para ser confirmada');
     }
-
-    const confirmedSchedules = data.filter((item) => !item.confirm);
 
     const work = await this.findScheduleByIdRepository.findById(data[0].id);
 
     try {
       await this.prisma.$transaction(async (tx) => {
         await this.validateAndConfirmSchedulesRepository.confirm(data, tx);
-
-        if (confirmedSchedules.length === 0) {
-          await this.statusFlowRepository.updateStatusWorks(
-            35,
-            work.id_obra,
-            tx,
-          );
-        }
+        await this.statusFlowRepository.updateStatusWorks(35, work.id_obra, tx);
       });
     } catch (error: any) {
       throw new InternalServerErrorException(error);

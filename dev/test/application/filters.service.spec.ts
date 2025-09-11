@@ -74,6 +74,12 @@ describe('FiltersService', () => {
       data: [{ id: 1, circuito: 'Circuito 1' }],
     },
     {
+      name: 'statusProgramacao',
+      dto: { statusProgramacao: true },
+      cacheKey: 'status_programacao',
+      data: [{ id: 1, status_programacao: 'Status 1' }],
+    },
+    {
       name: 'status',
       dto: { status: true },
       cacheKey: 'status',

@@ -185,7 +185,8 @@ export default function ScheduleFormDialog({
         <ButtonComponent
           styled="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
           onClick={() => {
-            const validationResult = schedulesSchema.safeParse(formData);
+            const validationResult =
+              schedulesSchema(isInsert).safeParse(formData);
 
             if (!validationResult.success) {
               const fieldErrors: Record<string, string> = {};
@@ -208,7 +209,7 @@ export default function ScheduleFormDialog({
             if (execAlterado) {
               onExecutionDialogOpen(true);
             } else {
-              handleSubmit("schedule");
+              handleSubmit(validationResult.data, "schedule");
             }
           }}
           disabled={isPending}

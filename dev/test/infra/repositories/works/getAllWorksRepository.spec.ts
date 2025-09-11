@@ -128,11 +128,11 @@ describe('GetAllWorksRepository', () => {
       idRegional: undefined,
       idStatus: undefined,
       idTipo: undefined,
-      page: 0,
+      page: null,
       insufficientPermission: false,
     };
 
-    const expectedQuery = `${query} ORDER BY entrada DESC LIMIT 200 OFFSET`;
+    const expectedQuery = `${query} ORDER BY entrada DESC`;
 
     mockPrisma.$queryRaw.mockResolvedValueOnce(mockWorks);
     mockPrisma.$queryRaw.mockResolvedValueOnce(mockQuery);
@@ -145,7 +145,7 @@ describe('GetAllWorksRepository', () => {
     expect(normalizeSQL(querySent.strings.join(''))).toContain(
       normalizeSQL(expectedQuery),
     );
-    expect(querySent.values).toEqual([0]);
+    expect(querySent.values).toEqual([]);
     expect(result).toEqual({ works: mockWorks, total: mockQuery });
   });
 });

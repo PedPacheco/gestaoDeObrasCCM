@@ -34,7 +34,7 @@ describe('UpdateWorkRepository', () => {
         mockTx,
       );
 
-      expect(mockTx.obras.update).toHaveBeenCalledWith({
+      expect(mockTx.obras.update as jest.Mock).toHaveBeenCalledWith({
         where: { id: 3 },
         data: {
           id_status: 1,
@@ -43,6 +43,32 @@ describe('UpdateWorkRepository', () => {
           data_empreitamento: new Date('05-17-2025'),
         },
       });
+    });
+
+    it('should throw an error and log it if prisma fails', async () => {
+      const error = new Error('Prisma failure');
+
+      (mockTx.obras.update as jest.Mock).mockRejectedValueOnce(error);
+
+      const loggerSpy = jest.spyOn(repository['logger'], 'error');
+
+      await expect(
+        repository.update(
+          {
+            id_status: 1,
+            id_turma: 2,
+            tipo_ads: 'Convencional',
+            data_empreitamento: new Date('05-17-2025'),
+          },
+          3,
+          mockTx,
+        ),
+      ).rejects.toThrow(error);
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        'Erro ao editar obra: ',
+        error.stack,
+      );
     });
   });
 });
