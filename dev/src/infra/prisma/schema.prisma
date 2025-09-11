@@ -365,8 +365,8 @@ model obras {
   status_usuario_180      String?              @db.VarChar(16)
   id_gpm                  Int
   id_tipo                 Int
-  entrada                 DateTime?            @db.Date
-  prazo                   Int?
+  entrada                 DateTime             @db.Date
+  prazo                   Int
   qtde_planejada          Float?
   id_circuito             Int
   mo_planejada            Float?
@@ -415,7 +415,7 @@ model programacoes {
   data_prog                       DateTime                @db.Date
   prog                            Int                     @default(0)
   exec                            Int?
-  observ_programacao              String?
+  equip_desligado                 String?
   num_dp                          String?
   hora_ini                        DateTime?               @db.Time(6)
   hora_ter                        DateTime?               @db.Time(6)
@@ -445,6 +445,7 @@ model programacoes {
   id_status_programacao           Int                     @default(1)
   validada                        Boolean                 @default(false)
   confirmada                      Boolean                 @default(false)
+  observacao_programacao          String?                 @db.VarChar(250)
   obras                           obras                   @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
   programacoes_restricao_execucao restricoes              @relation("programacoes_restricao_execucao", fields: [id_restricao_execucao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_execucao")
   programacoes_restricao_prog1    restricoes              @relation("programacoes_restricao_prog1", fields: [id_restricao_prog1], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_prog1")
@@ -857,6 +858,8 @@ model relatorio_execucao {
   patrimonio_equipamento_aplicado String?
   potencia_equipamento_retirado   String?
   patrimonio_equipamento_retirado String?
+  instalacao_equipamento_aplicado String?
+  instalacao_equipamento_retirado String?
   obras                           obras        @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obra")
   programacoes                    programacoes @relation(fields: [id_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_programacao")
   usuario                         usuario      @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario")
@@ -866,6 +869,150 @@ model status_programacao {
   id                 Int            @id @default(autoincrement())
   status_programacao String         @db.VarChar(30)
   programacoes       programacoes[]
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model NOTAD5 {
+  ID              Int?
+  NOTAD5          String?   @db.VarChar(255)
+  DATACRIACAO     DateTime? @db.Timestamptz(6)
+  VALORRETIDO     Int?
+  MEDICAOLIBERADA Boolean?
+  STATUSDANOTA    String?   @db.VarChar(255)
+  DATACONCLUSAO   DateTime? @db.Timestamptz(6)
+  IDSTATUSPROG    Int?
+  IDMUNICIPIO     Int?
+  IDPARCEIRA      Int?
+  IDTIPO          Int?
+  IDOBRA          Int?
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model OBRAS {
+  CODIGOOBRA            Int?
+  OVNOTA                String?   @db.VarChar(12)
+  PEP                   String?   @db.VarChar(8)
+  DIAGRAMA              String?   @db.VarChar(12)
+  ORDEMDCI              String?   @db.VarChar(12)
+  ORDEMDCD              String?   @db.VarChar(12)
+  ORDEMDCA              String?   @db.VarChar(12)
+  ORDEMDCIM             String?   @db.VarChar(12)
+  STATUSOVSAP           Int?
+  STATUSPEP             String?   @db.VarChar(4)
+  STATUSDIAGRAMA        String?   @db.VarChar(4)
+  STATUS162             String?   @db.VarChar(255)
+  STATUS163             String?   @db.VarChar(4)
+  STATUS165             String?   @db.VarChar(4)
+  STATUS43              String?   @db.VarChar(4)
+  STATUSUSUARIODIAGRAMA String?   @db.VarChar(16)
+  STATUSUSUARIO162      String?   @db.VarChar(16)
+  STATUSUSUARIO163      String?   @db.VarChar(16)
+  STATUSUSUARIO165      String?   @db.VarChar(16)
+  STATUSUSUARIO43       String?   @db.VarChar(16)
+  CODGPM                Int?
+  CODTIPO               Int?
+  ENTRADA               DateTime? @db.Timestamptz(6)
+  PRAZO                 Int?
+  QTDEPLANEJADA         Float?
+  CODCIRCUITO           Int?
+  MOPLANEJADA           Float?
+  MOCALCULADA           Float?
+  OBSERVOBRA            String?   @db.VarChar(255)
+  CODTURMA              Int?
+  EXECUTADO             Int?      @map("%EXECUTADO")
+  DATACONCLUSAO         DateTime? @db.Timestamptz(6)
+  CODSTATUS             Int?
+  REFERENCIA            String?   @db.VarChar(14)
+  CAPEXMATPLAN          Float?
+  CAPEXMOPLAN           Float?
+  CAPEXMATPEND          Float?
+  CAPEXMOPEND           Float?
+  QTDEPEND              Float?
+  TIPOADS               String?   @db.VarChar(255)
+  DATAEMPREITAMENTO     DateTime? @db.Timestamptz(6)
+  CODEMPREENDIMENTO     Int?
+  DIAGRAMAANTIGO        String?   @db.VarChar(12)
+  ORDEMDCIANTIGO        String?   @db.VarChar(12)
+  ORDEMDCDANTIGO        String?   @db.VarChar(12)
+  ORDEMDCSANTIGO        String?   @db.VarChar(12)
+  ORDEMDCIMANTIGO       String?   @db.VarChar(12)
+  ANOPLAN               Int?
+  DATAVIABILIDADE       DateTime? @db.Timestamptz(6)
+  PRAZOVIABILIDADE      String?   @db.VarChar(40)
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model PROGRAMACOES {
+  CODPROGRAMACAO            Int?
+  CODOBRA                   Int?
+  DATAPROG                  DateTime? @db.Timestamptz(6)
+  PROG                      Int?      @map("%PROG")
+  EXEC                      Int?      @map("%EXEC")
+  OBSERVPROGRAMACAO         String?
+  NUMDP                     String?
+  HORAINI                   DateTime? @db.Timestamptz(6)
+  HORATER                   DateTime? @db.Timestamptz(6)
+  EQUIPELINHAMORTO          Int?
+  EQUIPELINHAVIVA           Int?
+  EQUIPEREGULARIZACAO       Int?
+  CHAVEPROVISORIA           Boolean?
+  TIPOSERVICO               String?   @db.VarChar(255)
+  CHI                       Int?
+  NOMEDORESPONSAVELEXECUCAO String?   @db.VarChar(255)
+  CODRESTRICAO              Int?
+  CODRESTRICAOPROG1         Int?
+  RESPONSABILIDADE1         String?   @db.VarChar(255)
+  NOMEDORESPONSAVEL1        String?   @db.VarChar(255)
+  AREARESPONSAVEL1          String?   @db.VarChar(255)
+  STATUSRESTRICAO1          String?   @db.VarChar(255)
+  DATARESOLUCAO1            DateTime? @db.Timestamptz(6)
+  CODRESTRICAOPROG2         Int?
+  RESPONSABILIDADE2         String?   @db.VarChar(255)
+  NOMEDORESPONSAVEL2        String?   @db.VarChar(255)
+  AREARESPONSAVEL2          String?   @db.VarChar(255)
+  STATUSRESTRICAO2          String?   @db.VarChar(255)
+  DATARESOLUCAO2            DateTime? @db.Timestamptz(6)
+  OBSERVACAORESTRICAO       String?   @db.VarChar(255)
+  OBSERVACAOEXECUCAO        String?   @db.VarChar(255)
+  CODTECNICO                Int?
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model PROGRAMACOES_NOTASD5 {
+  CODPROGRAMACAO      Int?
+  IDNOTAD5            Int?
+  DATAPROG            DateTime? @db.Timestamptz(6)
+  PROG                Int?      @map("%PROG")
+  EXEC                Int?      @map("%EXEC")
+  OBSERVPROGRAMACAO   String?
+  NUMDP               String?
+  HORAINI             DateTime? @db.Timestamptz(6)
+  HORATER             DateTime? @db.Timestamptz(6)
+  EQUIPELINHAMORTO    Int?
+  EQUIPELINHAVIVA     Int?
+  EQUIPEREGULARIZACAO Int?
+  CHAVEPROVISORIA     Boolean?
+  TIPOSERVICO         String?   @db.VarChar(255)
+  CHI                 Int?
+  CODTECNICO          Int?
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model SUSPENSOES {
+  ID     Int?
+  IDOBRA Int?
+  DATA   DateTime? @db.Timestamptz(6)
+  MOTIVO String?   @db.VarChar(100)
+
+  @@ignore
 }
 
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
