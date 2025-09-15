@@ -12,7 +12,7 @@ describe("ServiceEquipmentPanel component", () => {
         formData={mockFormData}
         formErrors={{}}
         onInputChange={onInputChange}
-        disabledFields={false}
+        disabledFields={() => false}
       />
     );
 

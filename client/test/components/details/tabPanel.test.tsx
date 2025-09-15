@@ -496,7 +496,10 @@ describe("TabPanel", () => {
       fireEvent.click(screen.getByText("Confirmar programação"));
 
       await waitFor(() => {
-        expect(ConfirmedSchedule).toHaveBeenCalledWith([], "342");
+        expect(ConfirmedSchedule).toHaveBeenCalledWith(
+          [{ id: 2, confirm: false }],
+          "342"
+        );
       });
     });
 

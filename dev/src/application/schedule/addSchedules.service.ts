@@ -42,7 +42,7 @@ export class AddSchedulesService {
       data_prog: schedule.dataProg,
       prog: schedule.prog,
       exec: schedule.exec,
-      observ_programacao: schedule.equipment,
+      equip_desligado: schedule.equipment,
       num_dp: schedule.numDp,
       hora_ini: schedule.startTime,
       hora_ter: schedule.finishTime,

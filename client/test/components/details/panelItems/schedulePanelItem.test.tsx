@@ -34,7 +34,7 @@ const mockData = [
     tipo_servico: "DP",
     prog: 100,
     exec: null,
-    observ_programacao: "ET4243",
+    equip_desligado: "ET4243",
     chi: "234",
     num_dp: "432435",
     chave_provisoria: "3243ET435",

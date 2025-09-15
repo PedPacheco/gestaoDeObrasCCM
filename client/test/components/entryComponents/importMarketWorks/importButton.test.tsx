@@ -77,6 +77,25 @@ describe("ImportButton - Testes Prioritários", () => {
     worksheets: [{ getSheetValues: vi.fn() }],
   };
 
+  const mockMarketData = [
+    "",
+    "obra1",
+    "pep1",
+    "diag1",
+    "gpm1",
+    "tipo1",
+    "circ1",
+    "prazo1",
+    "",
+    "statusOV1",
+    "statusDiag1",
+    "statusPep1",
+    "equipe1",
+    "moCliente1",
+    "moEmpresa1",
+    "entrada1",
+  ];
+
   beforeEach(() => {
     vi.clearAllMocks();
     (ExcelJS.Workbook as Mock).mockImplementation(() => mockWorkbook);
@@ -92,24 +111,7 @@ describe("ImportButton - Testes Prioritários", () => {
       mockWorkbook.worksheets[0].getSheetValues.mockReturnValue([
         null,
         null,
-        [
-          "",
-          "obra1",
-          "pep1",
-          "diag1",
-          "gpm1",
-          "tipo1",
-          "circ1",
-          "prazo1",
-          "",
-          "statusOV1",
-          "statusDiag1",
-          "statusPep1",
-          "equipe1",
-          "moCliente1",
-          "moEmpresa1",
-          "entrada1",
-        ],
+        mockMarketData,
       ]);
 
       render(<ImportButton storageKey="marketEntryData" />);
@@ -160,7 +162,7 @@ describe("ImportButton - Testes Prioritários", () => {
       mockWorkbook.worksheets[0].getSheetValues.mockReturnValue([
         null,
         null,
-        ["", "obra1"],
+        mockMarketData,
       ]);
 
       render(<ImportButton storageKey="marketEntryData" />);
@@ -471,7 +473,7 @@ describe("ImportButton - Testes Prioritários", () => {
       mockWorkbook.worksheets[0].getSheetValues.mockReturnValue([
         null,
         null,
-        ["", "obra1"],
+        mockMarketData,
       ]);
 
       render(<ImportButton storageKey="marketEntryData" />);

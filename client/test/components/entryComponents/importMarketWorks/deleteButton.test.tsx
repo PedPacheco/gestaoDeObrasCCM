@@ -50,7 +50,7 @@ describe("DeleteButton component", () => {
   it("deve renderizar o botão", () => {
     render(<DeleteButton storageKey="notesEntryData" />);
 
-    expect(screen.getByText("Limpar filtros")).toBeInTheDocument();
+    expect(screen.getByText("Limpar Importações")).toBeInTheDocument();
   });
 
   it("deve renderizar a modal de sucesso no clique do usuário", async () => {
@@ -61,7 +61,7 @@ describe("DeleteButton component", () => {
     });
 
     render(<DeleteButton storageKey="notesEntryData" />);
-    await user.click(screen.getByText("Limpar filtros"));
+    await user.click(screen.getByText("Limpar Importações"));
 
     await waitFor(() => {
       expect(DeleteWork).toHaveBeenCalledWith("notesEntryData");
@@ -77,7 +77,7 @@ describe("DeleteButton component", () => {
     });
 
     render(<DeleteButton storageKey="notesEntryData" />);
-    await user.click(screen.getByText("Limpar filtros"));
+    await user.click(screen.getByText("Limpar Importações"));
 
     await waitFor(() => {
       expect(DeleteWork).toHaveBeenCalledWith("notesEntryData");
@@ -90,7 +90,7 @@ describe("DeleteButton component", () => {
     vi.mocked(DeleteWork).mockRejectedValue(new Error("Network error"));
 
     render(<DeleteButton storageKey="notesEntryData" />);
-    await user.click(screen.getByText("Limpar filtros"));
+    await user.click(screen.getByText("Limpar Importações"));
 
     await waitFor(() => {
       expect(DeleteWork).toHaveBeenCalledWith("notesEntryData");
@@ -102,7 +102,7 @@ describe("DeleteButton component", () => {
     const user = userEvent.setup();
     render(<DeleteButton storageKey="notesEntryData" />);
 
-    await user.click(screen.getByText("Limpar filtros"));
+    await user.click(screen.getByText("Limpar Importações"));
 
     await waitFor(() => {
       expect(screen.getByTestId("error-modal")).toBeInTheDocument();
@@ -123,7 +123,7 @@ describe("DeleteButton component", () => {
 
     render(<DeleteButton storageKey="notesEntryData" />);
 
-    await user.click(screen.getByText("Limpar filtros"));
+    await user.click(screen.getByText("Limpar Importações"));
 
     await waitFor(() => {
       expect(screen.getByTestId("modal")).toBeInTheDocument();

@@ -43,11 +43,13 @@ const columns = {
   justificativa_atraso: "Justificativa atraso",
   possui_equipamentos_aplicados: "Possui equipamentos instalados ?",
   equipamentos_aplicados: "Equipamentos que foram instalados",
+  instalacao_equipamento_aplicado: "Instalações dos equipamento aplicados",
   potencia_equipamento_aplicado:
     "Pôtencia dos equipamentos aplicados (Marca CS)",
   patrimonio_equipamento_aplicado: "Patrimônio dos equipamentos aplicados",
   possui_equipamentos_retirados: "Possui equipamentos retirados ?",
   equipamentos_retirados: "Equipamentos que foram retirados",
+  instalacao_equipamento_retirado: "Instalações dos equipamento retirados",
   potencia_equipamento_retirado:
     "Pôtencia dos equipamentos retirados (Marca CS)",
   patrimonio_equipamento_retirado: "Patrimônio dos equipamentos retirados",
@@ -185,10 +187,12 @@ export default function ExecutionReportPanelItem({
                       "equipamentos_aplicados",
                       "potencia_equipamento_aplicado",
                       "patrimonio_equipamento_aplicado",
+                      "instalacao_equipamento_aplicado",
                       "possui_equipamentos_retirados",
                       "equipamentos_retirados",
                       "potencia_equipamento_retirado",
                       "patrimonio_equipamento_retirado",
+                      "instalacao_equipamento_retirado",
                     ];
 
                     const displayValue =

@@ -61,7 +61,9 @@ export function TableWithVirtualization({
           .map((month) => (
             <TableCell
               key={month}
-              className="py-1 px-2 text-center text-zinc-700 text-nowrap font-semibold text-xl bg-[#53FF75] min-w-28"
+              className={`py-1 px-2 text-center text-zinc-700 text-nowrap font-semibold text-xl bg-[#53FF75] min-w-28 ${
+                month === "ovnota" ? "sticky left-0 bg-white z-10" : ""
+              }`}
             >
               {columns[month as keyof typeof columns]}
             </TableCell>
@@ -121,7 +123,9 @@ export function TableWithVirtualization({
               <TableCell
                 key={column}
                 onClick={() => router.push(`/detalhes/${itemId}`)}
-                className="py-1 px-2 text-center text-base text-nowrap min-w-28 hover:cursor-pointer"
+                className={`py-1 px-2 text-center text-base text-nowrap min-w-28 hover:cursor-pointer ${
+                  column === "ovnota" ? "sticky left-0 bg-white z-10" : ""
+                }`}
               >
                 {displayValue}
               </TableCell>

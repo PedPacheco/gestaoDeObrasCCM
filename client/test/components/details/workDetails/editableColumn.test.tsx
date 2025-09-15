@@ -74,7 +74,7 @@ vi.mock("@/contexts/userContext", () => {
   };
 });
 
-describe("ServiceEquipmentPanel component", () => {
+describe("EditableColumn component", () => {
   const mockFormData = {
     id_turma: "2",
     id_status: "2",
@@ -105,7 +105,7 @@ describe("ServiceEquipmentPanel component", () => {
     );
 
     expect(screen.getByText("Parceira")).toBeInTheDocument();
-    expect(screen.getByText("Status")).toBeInTheDocument();
+    expect(screen.getByText("Status da Obra")).toBeInTheDocument();
     expect(screen.getByText("Data empreitamento")).toBeInTheDocument();
     expect(screen.getByText("Tipo ADS")).toBeInTheDocument();
   });

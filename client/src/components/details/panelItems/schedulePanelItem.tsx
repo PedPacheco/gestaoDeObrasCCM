@@ -34,7 +34,13 @@ const columnConfig = [
   { key: "prog", label: "% Prog", type: "text" },
   { key: "exec", label: "% Exec", type: "text" },
   {
-    key: "observ_programacao",
+    key: "observacao_programacao",
+    label: "Observação da Programação",
+    type: "text",
+    wide: true,
+  },
+  {
+    key: "equip_desligado",
     label: "Equipamento a ser desligado",
     type: "text",
     wide: true,
@@ -238,7 +244,8 @@ export default function SchedulePanelItem({
                   <TableCell
                     key={col.key}
                     className={`py-1 px-2 text-center border-r font-medium text-base border-zinc-700 border-solid ${
-                      col.key === "observ_programacao"
+                      col.key === "equip_desligado" ||
+                      col.key === "observacao_programacao"
                         ? "text-wrap"
                         : "text-nowrap"
                     }`}
