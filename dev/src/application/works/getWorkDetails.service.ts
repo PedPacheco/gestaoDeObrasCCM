@@ -34,7 +34,6 @@ export class GetWorkDetailsService {
         tipo_servico: programacao.tipo_servico,
         prog: programacao.prog,
         exec: programacao.exec,
-        observacao_programacao: programacao.observacao_programacao,
         equip_desligado: programacao.equip_desligado,
         chi: programacao.chi,
         num_dp: programacao.num_dp,

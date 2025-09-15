@@ -119,7 +119,6 @@ export const mockResponseDetails = {
       tipo_servico: 'OBRA LIVRE',
       prog: 45,
       exec: null,
-      observacao_programacao: 'Obra cancelada',
       equip_desligado: 'TRECHO LIVRE',
       chi: 0,
       num_dp: null,

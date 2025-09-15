@@ -61,7 +61,10 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
         data_empreitamento: true,
         ano_plan: true,
         circuitos: {
-          select: { circuito: true, conjuntos: { select: { conjunto: true } } },
+          select: {
+            circuito: true,
+            conjuntos: { select: { conjunto: true } },
+          },
         },
         empreendimento: { select: { empreendimento: true } },
         municipios: { select: { municipio: true } },
@@ -77,7 +80,6 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
             tipo_servico: true,
             prog: true,
             exec: true,
-            observacao_programacao: true,
             equip_desligado: true,
             chi: true,
             num_dp: true,
