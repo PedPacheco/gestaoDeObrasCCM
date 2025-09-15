@@ -186,7 +186,8 @@ export const useScheduleForm = ({
   const onAddEquipment = (
     field: "appliedEquipment" | "equipmentRemoved",
     prefix: string,
-    type: "DEFAULT" | "CS" = "DEFAULT"
+    type: "DEFAULT" | "CS" = "DEFAULT",
+    insertIndex?: number
   ) => {
     const newEquipment =
       type === "CS"
@@ -205,6 +206,18 @@ export const useScheduleForm = ({
             type: "DEFAULT",
           };
 
+    const insertAt = (arr: any[]) => {
+      if (insertIndex !== undefined) {
+        return [
+          ...arr.slice(0, insertIndex + 1),
+          newEquipment,
+          ...arr.slice(insertIndex + 1),
+        ];
+      }
+
+      return [...arr, newEquipment];
+    };
+
     if (prefix === "executionReport.") {
       setFormData((prev) => {
         const execReport = prev.executionReport ?? INITIAL_EXECUTION_REPORT;
@@ -213,7 +226,7 @@ export const useScheduleForm = ({
           ...prev,
           executionReport: {
             ...execReport,
-            [field]: [...execReport[field], newEquipment],
+            [field]: insertAt(execReport[field]),
           },
         };
       });
@@ -221,7 +234,7 @@ export const useScheduleForm = ({
       setExecutionReportData((prev) => {
         return {
           ...prev,
-          [field]: [...prev[field], newEquipment],
+          [field]: insertAt(prev[field]),
         };
       });
     }

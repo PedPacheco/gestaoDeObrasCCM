@@ -159,6 +159,9 @@ describe('ExecutionReportService', () => {
           referencia_chave_provisoria: 'CHV123456',
           chave_provisoria_retirada: false,
           motivo: 'Instalação programada',
+          obras: undefined,
+          usuario: undefined,
+          programacoes: undefined,
         },
       ]);
     });

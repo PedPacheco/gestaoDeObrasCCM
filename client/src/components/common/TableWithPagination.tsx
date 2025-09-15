@@ -61,7 +61,9 @@ export function TableWithPagination({
                 .map((month) => (
                   <TableCell
                     key={month}
-                    className="py-1 px-2 text-center text-zinc-700 font-semibold text-xl bg-[#53FF75] sticky left-0 z-10 min-w-28"
+                    className={`py-1 px-2 text-center text-zinc-700 font-semibold text-xl bg-[#53FF75] sticky left-0 z-10 min-w-28 ${
+                      month === "ovnota" ? "sticky left-0 z-20" : ""
+                    }`}
                   >
                     {columns[month as keyof typeof columns]}
                   </TableCell>
@@ -117,7 +119,12 @@ export function TableWithPagination({
                         <TableCell
                           key={column}
                           onClick={() => router.push(`/detalhes/${item.id}`)}
-                          className="py-1 px-2 text-center text-base text-nowrap min-w-28 hover:cursor-pointer"
+                          className={`py-1 px-2 text-center text-base text-nowrap min-w-28 hover:cursor-pointer 
+                            ${
+                              column === "ovnota"
+                                ? "sticky left-0 bg-white z-10"
+                                : ""
+                            }`}
                         >
                           {displayValue}
                         </TableCell>

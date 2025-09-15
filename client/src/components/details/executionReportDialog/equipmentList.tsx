@@ -2,7 +2,6 @@ import {
   FormControl,
   FormHelperText,
   Grid,
-  InputAdornment,
   InputLabel,
   MenuItem,
   Select,
@@ -56,7 +55,8 @@ interface EquipmentListProps {
   onAddEquipment: (
     field: "appliedEquipment" | "equipmentRemoved",
     prefix: string,
-    type: string
+    type: string,
+    insertIndex?: number
   ) => void;
   onEquipmentChange: (
     field: "appliedEquipment" | "equipmentRemoved",
@@ -232,7 +232,7 @@ export const EquipmentList = ({
             >
               {eq.equipment === "Transformador" && (
                 <ButtonComponent
-                  onClick={() => onAddEquipment(fieldKey, prefix, "CS")}
+                  onClick={() => onAddEquipment(fieldKey, prefix, "CS", index)}
                   text="Adicionar CS"
                   styled="w-[200px]"
                 />

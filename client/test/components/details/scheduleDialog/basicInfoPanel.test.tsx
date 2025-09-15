@@ -13,7 +13,7 @@ describe("BasicInfoPanel Component", () => {
         isInsert={false}
         formErrors={{}}
         onInputChange={onInputChange}
-        disabledFields={false}
+        disabledFields={() => false}
       />
     );
 
@@ -33,7 +33,7 @@ describe("BasicInfoPanel Component", () => {
         isInsert={false}
         formErrors={{}}
         onInputChange={onInputChange}
-        disabledFields={false}
+        disabledFields={() => false}
       />
     );
 
@@ -49,7 +49,7 @@ describe("BasicInfoPanel Component", () => {
         isInsert={false}
         formErrors={{}}
         onInputChange={onInputChange}
-        disabledFields={false}
+        disabledFields={() => false}
       />
     );
 
