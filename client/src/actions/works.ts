@@ -84,7 +84,7 @@ export async function updateWork(data: any, id: number) {
   }
 }
 
-export async function DeleteWork(storageKey: string) {
+export async function DeleteWork(storageKey: string, id: number) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
@@ -92,7 +92,7 @@ export async function DeleteWork(storageKey: string) {
     const result = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/${
         storageKey === "marketEntryData" ? "mercado" : "notas"
-      }`,
+      }/${id}`,
       {
         method: "DELETE",
         headers: {

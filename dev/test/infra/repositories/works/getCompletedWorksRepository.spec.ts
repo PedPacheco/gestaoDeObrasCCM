@@ -150,7 +150,7 @@ describe('GetCompletedWorksRepository', () => {
         idCircuito: undefined,
         idConjunto: undefined,
         idEmpreendimento: undefined,
-        page: null,
+        page: undefined,
         insufficientPermission: false,
       };
 

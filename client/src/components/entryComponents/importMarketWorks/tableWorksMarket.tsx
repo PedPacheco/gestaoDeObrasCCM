@@ -19,6 +19,7 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
+import { DeleteButton } from "./deleteButton";
 
 const cookies = new Cookies();
 
@@ -82,9 +83,7 @@ export function TableMarketWorks({
 
   function onUpdate(itemId: string, column: string, newValue: any) {
     const updated = updatedData.map((item) => {
-      return (item.id || item.obra) === itemId
-        ? { ...item, [column]: newValue }
-        : item;
+      return item.id === itemId ? { ...item, [column]: newValue } : item;
     });
 
     setUpdatedData(updated);
@@ -95,14 +94,17 @@ export function TableMarketWorks({
   function fixedHeaderContent() {
     return (
       <TableRow>
-        {Object.keys(columns).map((month) => (
-          <TableCell
-            key={month}
-            className="py-1 px-2 text-center text-zinc-700 text-nowrap font-semibold text-xl bg-[#53FF75] min-w-28"
-          >
-            {columns[month as keyof typeof columns]}
-          </TableCell>
-        ))}
+        {Object.keys(columns)
+          .slice(1)
+          .map((month) => (
+            <TableCell
+              key={month}
+              className="py-1 px-2 text-center text-zinc-700 text-nowrap font-semibold text-xl bg-[#53FF75] min-w-28"
+            >
+              {columns[month as keyof typeof columns]}
+            </TableCell>
+          ))}
+        <TableCell className="py-1 px-2 text-center text-zinc-700 text-nowrap font-semibold text-xl bg-[#53FF75] min-w-28" />
       </TableRow>
     );
   }
@@ -153,60 +155,64 @@ export function TableMarketWorks({
 
   function rowContent(index: number) {
     const item = updatedData[index];
-    const itemId = item.id || item.obra;
 
     return (
       <>
-        {Object.keys(columns).map((column, index) => {
-          let value = item[column];
-          let decimal: string[];
-          const displayValue = displayValues[column];
+        {Object.keys(columns)
+          .slice(1)
+          .map((column, index) => {
+            let value = item[column];
+            let decimal: string[];
+            const displayValue = displayValues[column];
 
-          if (isEditable(column)) {
-            return renderEditableCell(
-              itemId,
-              column,
-              value,
-              displayValue,
-              index
+            if (isEditable(column)) {
+              return renderEditableCell(
+                item.id,
+                column,
+                value,
+                displayValue,
+                index
+              );
+            }
+
+            if (typeof value === "number") {
+              decimal = value.toString().split(".");
+
+              if (decimal[1]?.length > 2) {
+                value = value.toFixed(2);
+              }
+            }
+
+            if (column === "moPlanejada" || column === "mo_plan") {
+              value = FormatCurrency(value);
+            }
+
+            if (
+              typeof value === "string" &&
+              isValidDateString(value) &&
+              dayjs(value).isValid()
+            ) {
+              const date = dayjs(value);
+
+              if (date.year() === 1970) {
+                value = date.utc().format("HH:mm");
+              } else {
+                value = date.utc().format("DD/MM/YYYY");
+              }
+            }
+
+            return (
+              <TableCell
+                key={column}
+                className="py-1 px-2 text-center text-base text-nowrap min-w-28 hover:cursor-pointer"
+              >
+                {value}
+              </TableCell>
             );
-          }
-
-          if (typeof value === "number") {
-            decimal = value.toString().split(".");
-
-            if (decimal[1]?.length > 2) {
-              value = value.toFixed(2);
-            }
-          }
-
-          if (column === "moPlanejada" || column === "mo_plan") {
-            value = FormatCurrency(value);
-          }
-
-          if (
-            typeof value === "string" &&
-            isValidDateString(value) &&
-            dayjs(value).isValid()
-          ) {
-            const date = dayjs(value);
-
-            if (date.year() === 1970) {
-              value = date.utc().format("HH:mm");
-            } else {
-              value = date.utc().format("DD/MM/YYYY");
-            }
-          }
-
-          return (
-            <TableCell
-              key={column}
-              className="py-1 px-2 text-center text-base text-nowrap min-w-28 hover:cursor-pointer"
-            >
-              {value}
-            </TableCell>
-          );
-        })}
+          })}
+        <TableCell className="py-1 px-2 text-center text-lg">
+          <DeleteButton storageKey={storageKey} id={item.id} />
+        </TableCell>
       </>
     );
   }

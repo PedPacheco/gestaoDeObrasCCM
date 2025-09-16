@@ -10,14 +10,16 @@ import ModalComponent from "@/components/common/Modal";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { DeleteWork } from "@/actions/works";
+import { Button } from "@mui/material";
 
 const cookies = new Cookies();
 
 interface DeleteButtonProps {
   storageKey: string;
+  id: number;
 }
 
-export function DeleteButton({ storageKey }: DeleteButtonProps) {
+export function DeleteButton({ storageKey, id }: DeleteButtonProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>();
   const [success, setSuccess] = useState("");
@@ -29,7 +31,7 @@ export function DeleteButton({ storageKey }: DeleteButtonProps) {
   const handleClick = () => {
     startTransition(async () => {
       try {
-        const res = await DeleteWork(storageKey);
+        const res = await DeleteWork(storageKey, id);
 
         if (!res.success) {
           setError(res.error);
@@ -52,12 +54,13 @@ export function DeleteButton({ storageKey }: DeleteButtonProps) {
 
   return (
     <>
-      <ButtonComponent
+      <Button
         disabled={isPending}
-        text={getButtonContent(isPending, "Limpar Importações")}
         onClick={handleClick}
-        styled="w-48"
-      />
+        className="text-red-500 hover:underline"
+      >
+        Remover
+      </Button>
 
       <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
         <span className=" font-semibold text-xl">{success}</span>

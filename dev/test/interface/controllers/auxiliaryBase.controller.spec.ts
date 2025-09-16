@@ -135,13 +135,13 @@ describe('AuxiliaryBaseController', () => {
     it('should be call the method deleteAuxiliaryBaseNotes and return correctly data', async () => {
       jest.spyOn(auxiliaryBaseService, 'delete').mockResolvedValue();
 
-      const result = await auxiliaryBaseController.DeleteAuxiliaryBaseNotes();
+      const result = await auxiliaryBaseController.DeleteAuxiliaryBaseNotes(56);
       const expectedResponse = {
         statusCode: HttpStatus.OK,
         message: 'Dados removidos com sucessso',
       };
 
-      expect(auxiliaryBaseService.delete).toHaveBeenCalledWith('baseNotes');
+      expect(auxiliaryBaseService.delete).toHaveBeenCalledWith('baseNotes', 56);
       expect(result).toEqual(expectedResponse);
     });
   });
@@ -150,13 +150,14 @@ describe('AuxiliaryBaseController', () => {
     it('should be call the method deleteAuxiliaryBaseNotes and return correctly data', async () => {
       jest.spyOn(auxiliaryBaseService, 'delete').mockResolvedValue();
 
-      const result = await auxiliaryBaseController.DeleteAuxiliaryBaseMarket();
+      const result =
+        await auxiliaryBaseController.DeleteAuxiliaryBaseMarket(56);
       const expectedResponse = {
         statusCode: HttpStatus.OK,
         message: 'Dados removidos com sucessso',
       };
 
-      expect(auxiliaryBaseService.delete).toHaveBeenCalledWith('baseOv');
+      expect(auxiliaryBaseService.delete).toHaveBeenCalledWith('baseOv', 56);
       expect(result).toEqual(expectedResponse);
     });
   });

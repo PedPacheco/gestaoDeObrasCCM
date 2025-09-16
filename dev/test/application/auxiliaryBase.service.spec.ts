@@ -82,19 +82,9 @@ describe('AuxiliaryBaseService', () => {
 
   describe('delete', () => {
     it('should call method getMarket and not return throw', async () => {
-      mockRepository.delete.mockResolvedValue({ count: 5 });
+      await auxiliaryBaseService.delete('baseOv', 56);
 
-      await expect(
-        auxiliaryBaseService.delete('baseOv'),
-      ).resolves.not.toThrow();
-      expect(mockRepository.delete).toHaveBeenCalledWith('baseOv');
-    });
-
-    it('should call method getMarket and return throw', async () => {
-      mockRepository.delete.mockResolvedValue({ count: 0 });
-
-      await expect(auxiliaryBaseService.delete('baseOv')).rejects.toThrow();
-      expect(mockRepository.delete).toHaveBeenCalledWith('baseOv');
+      expect(mockRepository.delete).toHaveBeenCalledWith('baseOv', 56);
     });
   });
 

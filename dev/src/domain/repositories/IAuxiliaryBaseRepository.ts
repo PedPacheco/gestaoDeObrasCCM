@@ -1,7 +1,5 @@
 import { DataAuxiliaryNotes } from 'src/application/auxiliaryBase.service';
 
-import { Prisma } from '@prisma/client';
-
 export interface IAuxiliaryBaseRepository {
   insertNotes(data: DataAuxiliaryNotes): Promise<any>;
   insertMarket(data: any[]): Promise<any>;
@@ -10,7 +8,7 @@ export interface IAuxiliaryBaseRepository {
   ): Promise<Map<string, number>>;
   getAuxiliaryBaseNotes(idRegional?: number): Promise<any[]>;
   getAuxiliaryBaseMarket(idRegional?: number): Promise<any>;
-  delete(tableToDelete: string): Promise<Prisma.BatchPayload>;
+  delete(tableToDelete: string, id: number): Promise<void>;
 }
 
 export const AUXILIARY_BASE_REPOSITORY = Symbol('AuxiliaryBaseRepository');

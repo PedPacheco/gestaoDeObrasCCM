@@ -4,14 +4,6 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, vi, it } from "vitest";
 
-vi.mock("@/components/common/Button", () => ({
-  ButtonComponent: ({ text, onClick, disabled }: any) => (
-    <button onClick={onClick} disabled={disabled}>
-      {text}
-    </button>
-  ),
-}));
-
 vi.mock("@/components/common/ErrorModal", () => ({
   default: ({ open, message, onClose, icon }: any) =>
     open ? (
@@ -48,9 +40,9 @@ describe("DeleteButton component", () => {
   });
 
   it("deve renderizar o botão", () => {
-    render(<DeleteButton storageKey="notesEntryData" />);
+    render(<DeleteButton storageKey="notesEntryData" id={56} />);
 
-    expect(screen.getByText("Limpar Importações")).toBeInTheDocument();
+    expect(screen.getByText("Remover")).toBeInTheDocument();
   });
 
   it("deve renderizar a modal de sucesso no clique do usuário", async () => {
@@ -60,11 +52,11 @@ describe("DeleteButton component", () => {
       message: "Obra deletad com sucesso",
     });
 
-    render(<DeleteButton storageKey="notesEntryData" />);
-    await user.click(screen.getByText("Limpar Importações"));
+    render(<DeleteButton storageKey="notesEntryData" id={56} />);
+    await user.click(screen.getByText("Remover"));
 
     await waitFor(() => {
-      expect(DeleteWork).toHaveBeenCalledWith("notesEntryData");
+      expect(DeleteWork).toHaveBeenCalledWith("notesEntryData", 56);
     });
     expect(screen.getByTestId("modal")).toBeInTheDocument();
   });
@@ -76,11 +68,11 @@ describe("DeleteButton component", () => {
       error: "Erro ao inserir obra",
     });
 
-    render(<DeleteButton storageKey="notesEntryData" />);
-    await user.click(screen.getByText("Limpar Importações"));
+    render(<DeleteButton storageKey="notesEntryData" id={56} />);
+    await user.click(screen.getByText("Remover"));
 
     await waitFor(() => {
-      expect(DeleteWork).toHaveBeenCalledWith("notesEntryData");
+      expect(DeleteWork).toHaveBeenCalledWith("notesEntryData", 56);
     });
     expect(screen.getByTestId("error-modal")).toBeInTheDocument();
   });
@@ -89,20 +81,20 @@ describe("DeleteButton component", () => {
     const user = userEvent.setup();
     vi.mocked(DeleteWork).mockRejectedValue(new Error("Network error"));
 
-    render(<DeleteButton storageKey="notesEntryData" />);
-    await user.click(screen.getByText("Limpar Importações"));
+    render(<DeleteButton storageKey="notesEntryData" id={56} />);
+    await user.click(screen.getByText("Remover"));
 
     await waitFor(() => {
-      expect(DeleteWork).toHaveBeenCalledWith("notesEntryData");
+      expect(DeleteWork).toHaveBeenCalledWith("notesEntryData", 56);
     });
     expect(screen.getByTestId("error-modal")).toBeInTheDocument();
   });
 
   it("deve fechar o modal de erro ao clicar em close", async () => {
     const user = userEvent.setup();
-    render(<DeleteButton storageKey="notesEntryData" />);
+    render(<DeleteButton storageKey="notesEntryData" id={56} />);
 
-    await user.click(screen.getByText("Limpar Importações"));
+    await user.click(screen.getByText("Remover"));
 
     await waitFor(() => {
       expect(screen.getByTestId("error-modal")).toBeInTheDocument();
@@ -121,9 +113,9 @@ describe("DeleteButton component", () => {
       message: "Obra deletad com sucesso",
     });
 
-    render(<DeleteButton storageKey="notesEntryData" />);
+    render(<DeleteButton storageKey="notesEntryData" id={56} />);
 
-    await user.click(screen.getByText("Limpar Importações"));
+    await user.click(screen.getByText("Remover"));
 
     await waitFor(() => {
       expect(screen.getByTestId("modal")).toBeInTheDocument();
