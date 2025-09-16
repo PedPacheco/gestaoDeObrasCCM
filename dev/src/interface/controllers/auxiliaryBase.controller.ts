@@ -6,6 +6,8 @@ import {
   Delete,
   Get,
   HttpStatus,
+  Param,
+  ParseIntPipe,
   Post,
   Query,
   UseGuards,
@@ -74,10 +76,10 @@ export class AuxiliaryBaseController {
     };
   }
 
-  @Delete('mercado')
+  @Delete('mercado/:id')
   @UseGuards(PermissionGuard)
-  async DeleteAuxiliaryBaseMarket() {
-    await this.auxiliaryBaseService.delete('baseOv');
+  async DeleteAuxiliaryBaseMarket(@Param('id', ParseIntPipe) id: number) {
+    await this.auxiliaryBaseService.delete('baseOv', id);
 
     return {
       statusCode: HttpStatus.OK,
@@ -85,10 +87,10 @@ export class AuxiliaryBaseController {
     };
   }
 
-  @Delete('notas')
+  @Delete('notas/:id')
   @UseGuards(PermissionGuard)
-  async DeleteAuxiliaryBaseNotes() {
-    await this.auxiliaryBaseService.delete('baseNotes');
+  async DeleteAuxiliaryBaseNotes(@Param('id', ParseIntPipe) id: number) {
+    await this.auxiliaryBaseService.delete('baseNotes', id);
 
     return {
       statusCode: HttpStatus.OK,

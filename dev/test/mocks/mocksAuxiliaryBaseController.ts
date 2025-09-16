@@ -1,5 +1,6 @@
 export const mockMappedMarketWorks = [
   {
+    id: 56,
     obra: 'Obra 1',
     pep: 'PEP001',
     diagrama: 'DGM001',

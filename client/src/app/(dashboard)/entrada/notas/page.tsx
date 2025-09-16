@@ -2,7 +2,6 @@ import { cookies } from "next/headers";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import { DeleteButton } from "@/components/entryComponents/importMarketWorks/deleteButton";
 import { ImportButton } from "@/components/entryComponents/importMarketWorks/importButton";
 import { InsertMarketWorksButton } from "@/components/entryComponents/importMarketWorks/insertButton";
 import { TableMarketWorks } from "@/components/entryComponents/importMarketWorks/tableWorksMarket";
@@ -38,6 +37,7 @@ export default async function NotesEntry() {
   });
 
   const columnMapping = {
+    id: "ID",
     obra: "Nota",
     pep: "Pep",
     dci: "Dci",
@@ -71,7 +71,6 @@ export default async function NotesEntry() {
           <Paper className="p-6 mb-8 justify-start">
             <Box className="flex gap-4 flex-wrap">
               <ImportButton storageKey="notesEntryData" />
-              <DeleteButton storageKey="notesEntryData" />
               <InsertMarketWorksButton storageKey="notesEntryData" />
             </Box>
           </Paper>

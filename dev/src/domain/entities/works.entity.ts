@@ -11,6 +11,7 @@ export class Work {
     public readonly idTipo: number,
     public readonly idParceira: number,
     public readonly idCircuito: number,
+    public readonly id?: number,
   ) {}
 }
 
@@ -32,6 +33,7 @@ export class MarketWork extends Work {
     public readonly statusPep: string,
     public readonly moCliente: number,
     public readonly moEmpresa: number,
+    id?: number,
   ) {
     super(
       obra,
@@ -43,6 +45,7 @@ export class MarketWork extends Work {
       idTipo,
       idParceira,
       idCircuito,
+      id,
     );
   }
 
@@ -88,6 +91,7 @@ export class NoteWorks extends Work {
     public readonly capexMoPlan: number,
     public readonly capexMatPlan: number,
     public readonly anoPlan: number,
+    id?: number,
   ) {
     super(
       obra,
@@ -99,6 +103,7 @@ export class NoteWorks extends Work {
       idTipo,
       idParceira,
       idCircuito,
+      id,
     );
   }
 

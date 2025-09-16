@@ -42,6 +42,7 @@ export const mockGetAuxiliaryBaseMarket = new MarketWork(
   'Completo',
   1483,
   0,
+  56,
 );
 
 export const mockGetAuxiliaryBaseMarket2 = new MarketWork(
@@ -61,6 +62,7 @@ export const mockGetAuxiliaryBaseMarket2 = new MarketWork(
   'Completo',
   1483,
   0,
+  56,
 );
 
 export const mockInsertAuxiliaryBaseNotesService = [
