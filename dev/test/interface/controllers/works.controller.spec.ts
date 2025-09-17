@@ -38,7 +38,7 @@ describe('WorksController', () => {
 
   const mockReq = {
     insufficientPermission: true,
-    idRegional: 1,
+    idParceira: 1,
   };
 
   beforeEach(async () => {

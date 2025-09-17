@@ -51,6 +51,7 @@ describe('AuthController', () => {
         email: 'teste@gmail.com',
         formulario_utilizado: null,
         id_regional: 1,
+        id_parceira: 2,
         nome_maquina: null,
         nome_usuario: 'teste',
         permissao: 'Total',

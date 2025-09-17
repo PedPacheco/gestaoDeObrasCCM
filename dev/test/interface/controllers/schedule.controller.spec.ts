@@ -83,7 +83,7 @@ describe('ScheduleController', () => {
 
   const mockReq = {
     insufficientPermission: true,
-    idRegional: 1,
+    idParceira: 1,
   };
 
   beforeEach(async () => {
@@ -300,7 +300,7 @@ describe('ScheduleController', () => {
 
       const result = await scheduleController.getScheduleValues(filters, {
         ...mockReq,
-        idRegional: undefined,
+        idParceira: undefined,
       });
 
       expect(result).toStrictEqual({

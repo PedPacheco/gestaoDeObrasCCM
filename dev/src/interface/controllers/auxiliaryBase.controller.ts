@@ -15,7 +15,7 @@ import {
 
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import {
-  InsertBaseAuxiliaryMarketDTO,
+  InsertBaseAuxiliaryMarketArrayDTO,
   InsertBaseAuxiliaryNotesDTO,
 } from '../dtos/auxiliaryBaseDTO';
 import { AuxiliaryBaseService } from 'src/application/auxiliaryBase.service';
@@ -66,9 +66,11 @@ export class AuxiliaryBaseController {
   @Post('mercado')
   @UseGuards(PermissionGuard)
   async InsertAuxiliaryBaseMarket(
-    @Body() marketParameters: InsertBaseAuxiliaryMarketDTO[],
+    @Body() marketParameters: InsertBaseAuxiliaryMarketArrayDTO,
   ) {
-    await this.auxiliaryBaseService.insertAuxiliaryBaseMarket(marketParameters);
+    await this.auxiliaryBaseService.insertAuxiliaryBaseMarket(
+      marketParameters.data,
+    );
 
     return {
       statusCode: HttpStatus.CREATED,
