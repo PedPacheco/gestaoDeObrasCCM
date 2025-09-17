@@ -116,9 +116,9 @@ describe('AuxiliaryBaseController', () => {
         .spyOn(auxiliaryBaseService, 'insertAuxiliaryBaseMarket')
         .mockResolvedValue();
 
-      const result = await auxiliaryBaseController.InsertAuxiliaryBaseMarket(
-        mockInsertAuxiliaryBaseMarket,
-      );
+      const result = await auxiliaryBaseController.InsertAuxiliaryBaseMarket({
+        data: mockInsertAuxiliaryBaseMarket,
+      });
       const expectedResponse = {
         statusCode: HttpStatus.CREATED,
         message: 'Obras de mercado inseridas na base auxiliar com sucesso',

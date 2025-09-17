@@ -90,6 +90,7 @@ describe('VisualizationGuard', () => {
       senha: 'hashPassword',
       permissao: 'Total',
       id_regional: 1,
+      id_turma: 2,
       permissao_visualizacao: 'parcial',
       formulario_utilizado: null,
       nome_maquina: null,
@@ -105,7 +106,7 @@ describe('VisualizationGuard', () => {
 
     const result = await visualizationGuard.canActivate(context);
 
-    expect(request.idRegional).toEqual([user.id_regional]);
+    expect(request.idParceira).toEqual([user.id_turma]);
     expect(request.insufficientPermission).toEqual(true);
     expect(spyUsersService).toHaveBeenCalledWith(request.user.username);
     expect(result).toBe(true);
@@ -133,6 +134,7 @@ describe('VisualizationGuard', () => {
       senha: 'hashPassword',
       permissao: 'Total',
       id_regional: 1,
+      id_turma: 2,
       permissao_visualizacao: 'total',
       formulario_utilizado: null,
       nome_maquina: null,
@@ -148,7 +150,7 @@ describe('VisualizationGuard', () => {
 
     const result = await visualizationGuard.canActivate(context);
 
-    expect(request).not.toHaveProperty('idRegional');
+    expect(request).not.toHaveProperty('idParceira');
     expect(request).not.toHaveProperty('insufficientPermission');
     expect(spyUsersService).toHaveBeenCalledWith(request.user.username);
     expect(result).toBe(true);

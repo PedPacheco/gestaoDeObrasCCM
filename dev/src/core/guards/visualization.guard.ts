@@ -27,7 +27,7 @@ export class VisualizationGuard implements CanActivate {
     }
 
     if (user.permissao_visualizacao === 'parcial') {
-      request.idRegional = convertParameterValue(`${userRecord.id_regional}`);
+      request.idParceira = convertParameterValue(`${userRecord.id_turma}`);
       request.insufficientPermission = true;
     }
 
