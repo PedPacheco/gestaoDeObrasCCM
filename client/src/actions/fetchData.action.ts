@@ -30,11 +30,11 @@ export async function fetchData<T>(
 
     if (!res.ok) {
       const errorMessage = json?.message || "Erro ao buscar os dados";
-      throw new Error(errorMessage);
+      return { success: false, message: errorMessage, token };
     }
 
-    return { token, data: json.data ?? json };
+    return { success: true, data: json.data ?? json, token };
   } catch (error: any) {
-    throw new Error(error.message);
+    return { success: false, message: error.message, token };
   }
 }

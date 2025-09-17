@@ -41,7 +41,7 @@ export default async function WorksInPortfolio() {
     ),
   ]);
 
-  const { token, data } = worksData;
+  const { data, token } = worksData;
 
   const columnMapping = {
     id: "ID",
