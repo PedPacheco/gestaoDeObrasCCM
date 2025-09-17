@@ -150,11 +150,13 @@ export const mockUpdateSchedulesController = {
         equipment: 'Transformador',
         power: '50',
         patrimony: '123456789',
+        installation: '43435',
       },
       {
         equipment: 'Relé de proteção',
         power: '30',
         patrimony: '987654321',
+        installation: '43435',
       },
     ],
     hasEquipmentRemoved: false,

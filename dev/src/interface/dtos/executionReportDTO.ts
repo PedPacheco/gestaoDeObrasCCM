@@ -17,6 +17,9 @@ export class EquipmentItem {
 
   @IsString()
   patrimony: string;
+
+  @IsString()
+  installation: string;
 }
 
 export class ExecutionReportDataDTO {

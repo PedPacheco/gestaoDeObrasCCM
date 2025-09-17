@@ -13,7 +13,12 @@ export const mockExecutionReportService = {
   delayJustification: '',
   hasEquipmentInstalled: true,
   appliedEquipment: [
-    { equipment: 'Banco capacitor', power: '50', patrimony: '432534' },
+    {
+      equipment: 'Banco capacitor',
+      power: '50',
+      patrimony: '432534',
+      installation: '23543',
+    },
   ],
   hasEquipmentRemoved: false,
   equipmentRemoved: [],
@@ -41,11 +46,13 @@ export const mockUpdateExecutionReportDTO: UpdateExecutionReportDTO = {
       equipment: 'Transformador',
       power: '50',
       patrimony: '123456789',
+      installation: '414141',
     },
     {
       equipment: 'Relé de proteção',
       power: '30',
       patrimony: '987654321',
+      installation: '343543',
     },
   ],
   hasEquipmentRemoved: false,
@@ -75,10 +82,12 @@ export const mockExecutionReportPersistenceObject = {
   equipamentos_aplicados: 'Transformador;Relé de proteção',
   potencia_equipamento_aplicado: '50;30',
   patrimonio_equipamento_aplicado: '123456789;987654321',
+  instalacao_equipamento_aplicado: '414141;343543',
   possui_equipamentos_retirados: false,
   equipamentos_retirados: '',
   potencia_equipamento_retirado: '',
   patrimonio_equipamento_retirado: '',
+  instalacao_equipamento_retirado: '',
   alteracoes_execucao: false,
   observacoes_gerais: 'Execução dentro do esperado, sem intercorrências.',
   situacao_obra: 'Executado com sucesso',
@@ -129,8 +138,10 @@ export const mockExecutionReportRepository = {
   chave_provisoria_retirada: false,
   potencia_equipamento_aplicado: '50',
   patrimonio_equipamento_aplicado: '432534',
+  instalacao_equipamento_aplicado: '23543',
   potencia_equipamento_retirado: '',
   patrimonio_equipamento_retirado: '',
+  instalacao_equipamento_retirado: '',
 };
 
 export const mockFindByWorkIdResponse = [

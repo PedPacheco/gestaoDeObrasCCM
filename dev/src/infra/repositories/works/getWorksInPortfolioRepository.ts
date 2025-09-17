@@ -117,7 +117,7 @@ export class GetWorksInPortfolioRepository
         circuito, mo_planejada, status, conjunto, empreendimento, turma, prog_count.contagem_ocorrencias
         ORDER BY status DESC, entrada + prazo`;
 
-    if (page !== null) {
+    if (page !== undefined) {
       query = Prisma.sql`${query} LIMIT 200 OFFSET ${page * 200};`;
     }
 

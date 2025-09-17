@@ -91,6 +91,7 @@ export default function ScheduleFormDialog({
         (statusWork === 3 || statusWork === 2)
       );
     }
+
     return (
       permissions?.permissao_visualizacao === "parcial" && statusWork === 35
     );

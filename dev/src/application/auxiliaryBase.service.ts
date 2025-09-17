@@ -1,5 +1,4 @@
 import { FindExistingWorksService } from 'src/application/works/findExistingWorks.service';
-import { MarketWork } from 'src/domain/entities/works.entity';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
@@ -11,12 +10,8 @@ import {
 } from 'src/interface/dtos/auxiliaryBaseDTO';
 import { InsertNotes } from 'src/interface/types/works/insertNotesInterface';
 
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { MarketWork } from 'src/domain/entities/works.entity';
 
 type calculatedValuesType = {
   diagrama_rede: string;
@@ -43,6 +38,7 @@ export class AuxiliaryBaseService {
       await this.auxiliaryBaseRepository.getAuxiliaryBaseNotes(idRegional);
 
     return notes.map((note) => ({
+      id: note.id,
       obra: note.obra,
       pep: note.pep,
       dci: note.dci,
@@ -71,6 +67,7 @@ export class AuxiliaryBaseService {
       await this.auxiliaryBaseRepository.getAuxiliaryBaseMarket(idRegional);
 
     return works.map((work: MarketWork) => ({
+      id: work.id,
       obra: work.obra,
       pep: work.pep,
       diagrama: work.diagrama,
@@ -92,12 +89,8 @@ export class AuxiliaryBaseService {
     }));
   }
 
-  async delete(tableToDelete: string): Promise<void> {
-    const result = await this.auxiliaryBaseRepository.delete(tableToDelete);
-
-    if (result.count === 0) {
-      throw new NotFoundException('Nenhum dado encontrado para exclusão.');
-    }
+  async delete(tableToDelete: string, id: number): Promise<void> {
+    await this.auxiliaryBaseRepository.delete(tableToDelete, id);
   }
 
   async insertAuxiliaryBaseNotes(data: InsertBaseAuxiliaryNotesDTO[]): Promise<{

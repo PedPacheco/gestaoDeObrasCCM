@@ -5,7 +5,6 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { InsertBaseAuxiliaryMarketDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
 
 import { Injectable, Logger } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
@@ -16,6 +15,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     return await this.prisma.base_auxiliar.findMany({
       where: { municipios: { id_regional: idRegional || undefined } },
       select: {
+        id: true,
         obra: true,
         pep: true,
         dci: true,
@@ -44,6 +44,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     const response = await this.prisma.base_auxiliar_ov.findMany({
       where: { municipios: { id_regional: idRegional || undefined } },
       select: {
+        id: true,
         obra: true,
         pep: true,
         diagrama: true,
@@ -82,6 +83,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
           work.status_pep,
           work.mo_cliente,
           work.mo_empresa,
+          Number(work.id),
         ),
     );
   }
@@ -104,12 +106,17 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     return fatorMap;
   }
 
-  async delete(tableToDelete: string): Promise<Prisma.BatchPayload> {
-    if (tableToDelete === 'baseOv') {
-      return await this.prisma.base_auxiliar_ov.deleteMany();
-    }
+  async delete(tableToDelete: string, id: number): Promise<any> {
+    try {
+      if (tableToDelete === 'baseOv') {
+        return await this.prisma.base_auxiliar_ov.delete({ where: { id } });
+      }
 
-    return await this.prisma.base_auxiliar.deleteMany();
+      return await this.prisma.base_auxiliar.delete({ where: { id } });
+    } catch (error) {
+      this.logger.error('Erro ao excluir obra: ', error.stack);
+      throw error;
+    }
   }
 
   async insertMarket(data: InsertBaseAuxiliaryMarketDTO[]): Promise<void> {

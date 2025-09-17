@@ -68,8 +68,8 @@ export class ScheduleController {
     @Query() filters: GetScheduleValuesDTO,
     @Req() req: any,
   ) {
-    if (req.idRegional) {
-      filters.idRegional = req.idRegional;
+    if (req.idParceira) {
+      filters.idParceira = req.idParceira;
     }
 
     const response = await this.getScheduleValuesService.getValues(filters);

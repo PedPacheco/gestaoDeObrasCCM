@@ -1,12 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+
 import {
   ExecutionReportData,
   ExecutionReportDialog,
 } from "@/components/details/executionReportDialog/executionReportDialog";
-import { mockFormData } from "../../../mocks/mockFormData";
 import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
+import * as schemasModule from "@/validations/validationSchedules";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+
+import { mockFormData } from "../../../mocks/mockFormData";
 
 vi.mock("@/hooks/useScheduleSubmit", () => ({
   useScheduleSubmit: vi.fn(() => ({
@@ -109,7 +112,7 @@ describe("ExecutionReportDialog", () => {
     expect(button).toBeDisabled();
   });
 
-  it("deve chamar handleSubmit com 'executionReport' quando executionReportIsInsert for false", async () => {
+  it("deve chamar handleSubmit com 'schedule' quando executionReportIsInsert for true", async () => {
     const user = userEvent.setup();
 
     const handleSubmit = vi.fn();
@@ -117,6 +120,10 @@ describe("ExecutionReportDialog", () => {
       handleSubmit,
       isPending: false,
     });
+
+    vi.spyOn(schemasModule, "validationSchedulesSchema").mockReturnValue({
+      safeParse: () => ({ success: true, data: null }),
+    } as any);
 
     render(<ExecutionReportDialog {...baseProps} />);
 
@@ -134,6 +141,10 @@ describe("ExecutionReportDialog", () => {
       handleSubmit,
       isPending: false,
     });
+
+    vi.spyOn(schemasModule, "executionReportSchema", "get").mockReturnValue({
+      safeParse: () => ({ success: true, data: null }),
+    } as any);
 
     render(
       <ExecutionReportDialog {...baseProps} executionReportIsInsert={false} />

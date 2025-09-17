@@ -38,7 +38,7 @@ export class ExportCompletedWorksService {
       { header: 'Executado da programação', key: 'exec', width: 20 },
       {
         header: 'Observação programação',
-        key: 'observ_programacao',
+        key: 'equip_desligado',
         width: 70,
       },
       { header: 'CHI', key: 'chi', width: 10 },

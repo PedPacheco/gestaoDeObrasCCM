@@ -48,7 +48,7 @@ vi.mock("next/navigation", () => ({
   })),
 }));
 
-describe("DeleteButton component", () => {
+describe("InsertButton component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -56,7 +56,7 @@ describe("DeleteButton component", () => {
   it("deve renderizar o botão", () => {
     render(<InsertMarketWorksButton storageKey="notesEntryData" />);
 
-    expect(screen.getByText("Inserir obras de mercado")).toBeInTheDocument();
+    expect(screen.getByText("Inserir Notas")).toBeInTheDocument();
   });
 
   it("deve chamar InsertWorks com os dados das notas formatados, e se for retornado sucesso, fechar a modal de sucesso", async () => {
@@ -104,7 +104,7 @@ describe("DeleteButton component", () => {
     });
 
     render(<InsertMarketWorksButton storageKey="notesEntryData" />);
-    await user.click(screen.getByText("Inserir obras de mercado"));
+    await user.click(screen.getByText("Inserir Notas"));
 
     await waitFor(() => {
       expect(InsertWorks).toHaveBeenCalledWith(response, "notesEntryData");
@@ -246,7 +246,7 @@ describe("DeleteButton component", () => {
     });
 
     render(<InsertMarketWorksButton storageKey="notesEntryData" />);
-    await user.click(screen.getByText("Inserir obras de mercado"));
+    await user.click(screen.getByText("Inserir Notas"));
 
     await waitFor(() => {
       expect(InsertWorks).toHaveBeenCalledWith(response, "notesEntryData");
@@ -259,7 +259,7 @@ describe("DeleteButton component", () => {
     vi.mocked(InsertWorks).mockRejectedValue(new Error("Network error"));
 
     render(<InsertMarketWorksButton storageKey="notesEntryData" />);
-    await user.click(screen.getByText("Inserir obras de mercado"));
+    await user.click(screen.getByText("Inserir Notas"));
 
     await waitFor(() => {
       expect(InsertWorks).toHaveBeenCalledWith([], "notesEntryData");
@@ -271,7 +271,7 @@ describe("DeleteButton component", () => {
     const user = userEvent.setup();
     render(<InsertMarketWorksButton storageKey="notesEntryData" />);
 
-    await user.click(screen.getByText("Inserir obras de mercado"));
+    await user.click(screen.getByText("Inserir Notas"));
     await waitFor(() => {
       expect(screen.getByTestId("error-modal")).toBeInTheDocument();
     });

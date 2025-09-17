@@ -17,6 +17,13 @@ const EQUIPMENTS = [
   "Regulador de tensão",
 ] as const;
 
+const PREFIXES: Record<string, string> = {
+  Transformador: "ET",
+  "Banco capacitor": "BC",
+  "Regulador de tensão": "RV",
+  Religador: "RE",
+};
+
 const POWER_OPTIONS: Record<string, string[]> = {
   "Banco capacitor": ["300", "600", "1200"],
   Transformador: [
@@ -48,7 +55,8 @@ interface EquipmentListProps {
   onAddEquipment: (
     field: "appliedEquipment" | "equipmentRemoved",
     prefix: string,
-    type: string
+    type: string,
+    insertIndex?: number
   ) => void;
   onEquipmentChange: (
     field: "appliedEquipment" | "equipmentRemoved",
@@ -80,6 +88,8 @@ export const EquipmentList = ({
         const equipmentError = formErrors[`${fieldKey}.${index}.equipment`];
         const powerError = formErrors[`${fieldKey}.${index}.power`];
         const patrimonyError = formErrors[`${fieldKey}.${index}.patrimony`];
+        const installationError =
+          formErrors[`${fieldKey}.${index}.installation`];
 
         return (
           <Grid container spacing={2} key={index} sx={{ margin: 1 }}>
@@ -112,7 +122,11 @@ export const EquipmentList = ({
                   <TextField
                     fullWidth
                     label="Número CS"
-                    value={eq.equipment}
+                    value={
+                      eq.equipment?.startsWith("CS")
+                        ? eq.equipment
+                        : "CS" + (eq.equipment || "")
+                    }
                     onChange={(e) =>
                       onEquipmentChange(
                         fieldKey,
@@ -129,6 +143,30 @@ export const EquipmentList = ({
                   <FormHelperText>{equipmentError}</FormHelperText>
                 )}
               </FormControl>
+            </Grid>
+            <Grid item xs={2.5}>
+              <TextField
+                fullWidth
+                label="Número de Instalação"
+                value={
+                  PREFIXES[eq.equipment]
+                    ? eq.installation?.startsWith(PREFIXES[eq.equipment])
+                      ? eq.installation
+                      : PREFIXES[eq.equipment] + (eq.installation || "")
+                    : eq.installation
+                }
+                onChange={(e) =>
+                  onEquipmentChange(
+                    fieldKey,
+                    index,
+                    "installation",
+                    e.target.value,
+                    prefix
+                  )
+                }
+                error={!!installationError}
+                helperText={installationError}
+              />
             </Grid>
             <Grid item xs={2.5}>
               <FormControl fullWidth error={!!powerError}>
@@ -194,7 +232,7 @@ export const EquipmentList = ({
             >
               {eq.equipment === "Transformador" && (
                 <ButtonComponent
-                  onClick={() => onAddEquipment(fieldKey, prefix, "CS")}
+                  onClick={() => onAddEquipment(fieldKey, prefix, "CS", index)}
                   text="Adicionar CS"
                   styled="w-[200px]"
                 />

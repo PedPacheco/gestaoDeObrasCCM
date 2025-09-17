@@ -86,8 +86,6 @@ describe("Works in portfolio page", () => {
       parceira: ["Parceira 1"],
       regional: ["Regional A"],
     },
-    date: "17/05/2025",
-    filterType: "day",
   });
 
   const mockCookieStore = {
@@ -100,8 +98,6 @@ describe("Works in portfolio page", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.useFakeTimers();
-    vi.setSystemTime(dayjs("17/05/2025").format("DD/MM/YYYY"));
 
     vi.mocked(cookiesModule.cookies).mockReturnValue(mockCookieStore as any);
 
@@ -132,37 +128,6 @@ describe("Works in portfolio page", () => {
       {
         regional: "Regional A",
         parceira: "Parceira 1",
-        data: dayjs("17/05/2025").format("DD/MM/YYYY"),
-        tipoFiltro: "day",
-        page: "0",
-      },
-      mockToken,
-      { cache: "no-store" }
-    );
-  });
-
-  it("deve buscar dados com o campo tipoFiltro definido para mês e a data com formato MM/YYYY", async () => {
-    const modifiedData = JSON.stringify({
-      ...JSON.parse(mockParamsFilters),
-      date: "05/2025",
-      filterType: "month",
-    });
-
-    vi.mocked(mockCookieStore.get).mockImplementation((name) => {
-      if (name === "token") return { value: mockToken };
-      if (name === "portfolioWorksFilters") return { value: modifiedData };
-      return null;
-    });
-
-    render(await WorksInPortfolio());
-
-    expect(fetchData).toHaveBeenCalledWith(
-      "https://api.example.com/obras/obras-carteira",
-      {
-        regional: "Regional A",
-        parceira: "Parceira 1",
-        data: dayjs("05/2025").format("MM/YYYY"),
-        tipoFiltro: "month",
         page: "0",
       },
       mockToken,
@@ -181,8 +146,6 @@ describe("Works in portfolio page", () => {
     expect(fetchData).toHaveBeenCalledWith(
       "https://api.example.com/obras/obras-carteira",
       {
-        data: "",
-        tipoFiltro: "",
         page: "0",
       },
       mockToken,

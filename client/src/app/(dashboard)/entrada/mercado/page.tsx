@@ -2,7 +2,6 @@ import { cookies } from "next/headers";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import { DeleteButton } from "@/components/entryComponents/importMarketWorks/deleteButton";
 import { ImportButton } from "@/components/entryComponents/importMarketWorks/importButton";
 import { InsertMarketWorksButton } from "@/components/entryComponents/importMarketWorks/insertButton";
 import { TableMarketWorks } from "@/components/entryComponents/importMarketWorks/tableWorksMarket";
@@ -37,6 +36,7 @@ export default async function MarketEntry() {
   });
 
   const columnMapping = {
+    id: "ID",
     obra: "Obra",
     pep: "Pep",
     diagrama: "Diagrama",
@@ -65,7 +65,7 @@ export default async function MarketEntry() {
           <Paper className="p-6 mb-8 justify-start">
             <Box className="flex gap-4 flex-wrap">
               <ImportButton storageKey="marketEntryData" />
-              <DeleteButton storageKey="marketEntryData" />
+
               <InsertMarketWorksButton storageKey="marketEntryData" />
             </Box>
           </Paper>

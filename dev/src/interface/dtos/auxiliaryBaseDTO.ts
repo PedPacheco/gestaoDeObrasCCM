@@ -58,7 +58,9 @@ export class InsertBaseAuxiliaryMarketDTO {
 }
 
 export class InsertBaseAuxiliaryMarketArrayDTO {
+  @ValidateNested({ each: true })
   @Type(() => InsertBaseAuxiliaryMarketDTO)
+  @IsArray()
   data: InsertBaseAuxiliaryMarketDTO[];
 }
 

@@ -150,7 +150,7 @@ describe('GetWorksInPortfolioRepository', () => {
         idCircuito: null,
         idEmpreendimento: null,
         ovnota: null,
-        page: null,
+        page: undefined,
         insufficientPermission: false,
       };
 

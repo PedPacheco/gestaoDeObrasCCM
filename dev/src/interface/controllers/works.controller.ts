@@ -46,8 +46,8 @@ export class WorksController {
   @Get()
   @UseGuards(PermissionGuard)
   async getAllWorks(@Query() worksFilters: GetAllWorksDTO, @Req() req: any) {
-    if (req.idRegional) {
-      worksFilters.idRegional = req.idRegional;
+    if (req.idParceira) {
+      worksFilters.idParceira = req.idParceira;
     }
 
     if (req.insufficientPermission !== undefined) {
@@ -69,8 +69,8 @@ export class WorksController {
     @Query() worksFilters: GetWorksDTO,
     @Req() req: any,
   ) {
-    if (req.idRegional) {
-      worksFilters.idRegional = req.idRegional;
+    if (req.idParceira) {
+      worksFilters.idParceira = req.idParceira;
     }
 
     if (req.insufficientPermission !== undefined) {
@@ -90,8 +90,8 @@ export class WorksController {
   @Get('obras-executadas')
   @UseGuards(VisualizationGuard)
   async GetCompletedWorks(@Query() worksFilters: GetWorksDTO, @Req() req: any) {
-    if (req.idRegional) {
-      worksFilters.idRegional = req.idRegional;
+    if (req.idParceira) {
+      worksFilters.idParceira = req.idParceira;
     }
 
     if (req.insufficientPermission !== undefined) {

@@ -6,6 +6,8 @@ import {
   Delete,
   Get,
   HttpStatus,
+  Param,
+  ParseIntPipe,
   Post,
   Query,
   UseGuards,
@@ -13,7 +15,7 @@ import {
 
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import {
-  InsertBaseAuxiliaryMarketDTO,
+  InsertBaseAuxiliaryMarketArrayDTO,
   InsertBaseAuxiliaryNotesDTO,
 } from '../dtos/auxiliaryBaseDTO';
 import { AuxiliaryBaseService } from 'src/application/auxiliaryBase.service';
@@ -64,9 +66,11 @@ export class AuxiliaryBaseController {
   @Post('mercado')
   @UseGuards(PermissionGuard)
   async InsertAuxiliaryBaseMarket(
-    @Body() marketParameters: InsertBaseAuxiliaryMarketDTO[],
+    @Body() marketParameters: InsertBaseAuxiliaryMarketArrayDTO,
   ) {
-    await this.auxiliaryBaseService.insertAuxiliaryBaseMarket(marketParameters);
+    await this.auxiliaryBaseService.insertAuxiliaryBaseMarket(
+      marketParameters.data,
+    );
 
     return {
       statusCode: HttpStatus.CREATED,
@@ -74,10 +78,10 @@ export class AuxiliaryBaseController {
     };
   }
 
-  @Delete('mercado')
+  @Delete('mercado/:id')
   @UseGuards(PermissionGuard)
-  async DeleteAuxiliaryBaseMarket() {
-    await this.auxiliaryBaseService.delete('baseOv');
+  async DeleteAuxiliaryBaseMarket(@Param('id', ParseIntPipe) id: number) {
+    await this.auxiliaryBaseService.delete('baseOv', id);
 
     return {
       statusCode: HttpStatus.OK,
@@ -85,10 +89,10 @@ export class AuxiliaryBaseController {
     };
   }
 
-  @Delete('notas')
+  @Delete('notas/:id')
   @UseGuards(PermissionGuard)
-  async DeleteAuxiliaryBaseNotes() {
-    await this.auxiliaryBaseService.delete('baseNotes');
+  async DeleteAuxiliaryBaseNotes(@Param('id', ParseIntPipe) id: number) {
+    await this.auxiliaryBaseService.delete('baseNotes', id);
 
     return {
       statusCode: HttpStatus.OK,

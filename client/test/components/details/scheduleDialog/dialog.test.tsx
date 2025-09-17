@@ -4,6 +4,7 @@ import { ExecutionReportData } from "@/components/details/executionReportDialog/
 import ScheduleFormDialog from "@/components/details/scheduleDialog/dialog";
 import * as UserContextModule from "@/contexts/userContext";
 import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
+import * as schemasModule from "@/validations/validationSchedules";
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -31,8 +32,8 @@ vi.mock("@/components/details/accordionPanel", () => ({
 }));
 
 vi.mock("@/components/details/scheduleDialog/basicInfoPanel", () => ({
-  BasicInfoPanel: ({ disabledFields }: { disabledFields?: boolean }) => (
-    <div data-testid="mock-basic-info-panel" data-disabled={disabledFields}>
+  BasicInfoPanel: ({ disabledFields }: { disabledFields?: any }) => (
+    <div data-testid="mock-basic-info-panel" data-disabled={disabledFields()}>
       BasicInfoPanel
     </div>
   ),
@@ -216,6 +217,10 @@ describe("ScheduleFormDialog", () => {
       isPending: false,
     });
 
+    vi.spyOn(schemasModule, "schedulesSchema").mockReturnValue({
+      safeParse: () => ({ success: true, data: null }),
+    } as any);
+
     render(
       <ScheduleFormDialog
         statusWork={0}
@@ -225,6 +230,11 @@ describe("ScheduleFormDialog", () => {
           restricao: [],
         }}
         {...baseProps}
+        scheduleForm={{
+          ...baseProps.scheduleForm,
+          formData: { ...baseProps.scheduleForm.formData, exec: "null" },
+          initialExecValue: "null",
+        }}
       />
     );
 
@@ -283,7 +293,7 @@ describe("ScheduleFormDialog", () => {
         }}
         {...baseProps}
         statusWork={35}
-        scheduleForm={{ ...baseProps.scheduleForm, openExecChangeDialog: true }}
+        scheduleForm={{ ...baseProps.scheduleForm }}
       />
     );
 
@@ -309,7 +319,7 @@ describe("ScheduleFormDialog", () => {
         }}
         {...baseProps}
         statusWork={35}
-        scheduleForm={{ ...baseProps.scheduleForm, openExecChangeDialog: true }}
+        scheduleForm={{ ...baseProps.scheduleForm }}
       />
     );
 

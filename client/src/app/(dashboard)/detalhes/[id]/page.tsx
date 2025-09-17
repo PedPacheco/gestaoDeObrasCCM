@@ -8,6 +8,7 @@ import TabPanel from "@/components/details/TabPanel";
 import { WorkDetails } from "@/components/details/workDetails/workDetails";
 import { formatPercentage } from "@/utils/formatValue";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
+import { ErrorThrower } from "@/components/common/ErrorThrower";
 
 dayjs.extend(utc);
 
@@ -47,6 +48,10 @@ export default async function Details({
       { cache: "no-store" }
     ),
   ]);
+
+  if (!workData.success) {
+    return <ErrorThrower message={workData.message} />;
+  }
 
   const { token, data } = workData;
 

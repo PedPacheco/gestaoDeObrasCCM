@@ -15,10 +15,10 @@ describe('AuxiliaryBaseRepository', () => {
   let repository: AuxiliaryBaseRepository;
 
   const mockPrisma = {
-    base_auxiliar: { findMany: jest.fn(), deleteMany: jest.fn() },
+    base_auxiliar: { findMany: jest.fn(), delete: jest.fn() },
     base_auxiliar_ov: {
       findMany: jest.fn(),
-      deleteMany: jest.fn(),
+      delete: jest.fn(),
       createMany: jest.fn(),
     },
     conversao: { findMany: jest.fn() },
@@ -71,6 +71,7 @@ describe('AuxiliaryBaseRepository', () => {
     it('should call method getAuxiliaryBaseMarket and return formatted data with regional filter', async () => {
       mockPrisma.base_auxiliar_ov.findMany.mockResolvedValue([
         {
+          id: 56,
           obra: 'Obra 1',
           pep: 'PEP001',
           diagrama: 'DGM001',
@@ -103,6 +104,7 @@ describe('AuxiliaryBaseRepository', () => {
     it('should call method getAuxiliaryBaseMarket and return formatted data without regional filter', async () => {
       mockPrisma.base_auxiliar_ov.findMany.mockResolvedValue([
         {
+          id: 56,
           obra: 'Obra 1',
           pep: 'PEP001',
           diagrama: 'DGM001',
@@ -157,17 +159,33 @@ describe('AuxiliaryBaseRepository', () => {
 
   describe('delete', () => {
     it('Should delete data of base_auxiliar_ov', async () => {
-      await repository.delete('baseOv');
+      await repository.delete('baseOv', 56);
 
-      expect(mockPrisma.base_auxiliar_ov.deleteMany).toHaveBeenCalled();
-      expect(mockPrisma.base_auxiliar.deleteMany).not.toHaveBeenCalled();
+      expect(mockPrisma.base_auxiliar_ov.delete).toHaveBeenCalled();
+      expect(mockPrisma.base_auxiliar.delete).not.toHaveBeenCalled();
     });
 
     it('Should delete data of base_auxiliar', async () => {
-      await repository.delete('baseNote');
+      await repository.delete('baseNote', 56);
 
-      expect(mockPrisma.base_auxiliar_ov.deleteMany).not.toHaveBeenCalled();
-      expect(mockPrisma.base_auxiliar.deleteMany).toHaveBeenCalled();
+      expect(mockPrisma.base_auxiliar_ov.delete).not.toHaveBeenCalled();
+      expect(mockPrisma.base_auxiliar.delete).toHaveBeenCalled();
+    });
+
+    it('should log error if createMany fails', async () => {
+      const error = new Error('Erro ao deletar obra');
+
+      mockPrisma.base_auxiliar_ov.delete.mockRejectedValue(error);
+      const loggerSpy = jest.spyOn(repository['logger'], 'error');
+
+      await expect(repository.delete('baseOv', 56)).rejects.toThrow(
+        'Erro ao deletar obra',
+      );
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        'Erro ao excluir obra: ',
+        error.stack,
+      );
     });
   });
 

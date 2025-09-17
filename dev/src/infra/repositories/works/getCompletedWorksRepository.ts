@@ -107,7 +107,7 @@ export class GetCompletedWorksRepository
 
     query = Prisma.sql`${query} ORDER BY data_conclusao DESC`;
 
-    if (page !== null) {
+    if (page !== undefined) {
       query = Prisma.sql`${query} LIMIT 200 OFFSET ${page * 200};`;
     }
 
