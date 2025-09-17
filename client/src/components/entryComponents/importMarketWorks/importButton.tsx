@@ -123,7 +123,7 @@ export function ImportButton({ storageKey }: ImportButtonProps) {
           .getSheetValues()
           .slice(2)
           .map((row: any) => ({
-            campo_ordenacao: row[4],
+            campo_ordenacao: String(row[4]),
             pep: row[8],
             tipo_de_ordem: row[1],
             conjunto: row[6],
