@@ -2,9 +2,9 @@
 
 import { cookies } from "next/headers";
 
-interface notesInterface {
-  notesData: any[];
-  materialData: any[];
+interface NotesInterface {
+  notesData: unknown[];
+  materialData: unknown[];
 }
 
 interface InsertResult {
@@ -14,44 +14,62 @@ interface InsertResult {
   skippedNotes?: string[];
 }
 
+function buildRequestData(
+  data: unknown[] | NotesInterface,
+  storageKey: string
+) {
+  return storageKey === "marketEntryData" ? { data } : data;
+}
+
+function buildEndpoint(storageKey: string): string {
+  return storageKey === "marketEntryData" ? "mercado" : "notas";
+}
+
 export async function InsertAuxiliaryBaseMarket(
-  data: any[] | notesInterface,
+  data: unknown[] | NotesInterface,
   storageKey: string
 ): Promise<InsertResult> {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
+  if (!token) {
+    return { success: false, message: "Token de autenticação não encontrado" };
+  }
+
+  const requestData = buildRequestData(data, storageKey);
+  const endpoint = buildEndpoint(storageKey);
+
   try {
-    const result = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/${
-        storageKey === "marketEntryData" ? "mercado" : "notas"
-      }`,
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/${endpoint}`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(requestData),
       }
     );
 
-    const res = await result.json();
+    const result = await response.json();
 
-    if (res.statusCode !== 201) {
+    if (result.statusCode !== 201) {
       return {
         success: false,
-        message: res.message || "Erro ao inserir obras",
+        message: result.message || "Erro ao inserir obras",
       };
     }
 
     return {
       success: true,
-      message: res.message,
-      insertedCount: res.res?.insertedCount || 0,
-      skippedNotes: res.res?.skippedNotes || [],
+      message: result.message,
+      insertedCount: result.res?.insertedCount ?? 0,
+      skippedNotes: result.res?.skippedNotes ?? [],
     };
-  } catch (err: any) {
-    return { success: false, message: err.message };
+  } catch (err) {
+    const errorMessage =
+      err instanceof Error ? err.message : "Erro desconhecido";
+    return { success: false, message: errorMessage };
   }
 }

@@ -23,7 +23,13 @@ export class InsertBaseAuxiliaryMarketDTO {
   diagrama: string;
 
   @IsDate()
-  @Type(() => Date)
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      const [day, month, year] = value.split('.');
+      return new Date(`${year}-${month}-${day}`);
+    }
+    return value;
+  })
   entrada: Date;
 
   @IsString()

@@ -85,7 +85,7 @@ export class AuxiliaryBaseController {
 
     return {
       statusCode: HttpStatus.OK,
-      message: 'Dados removidos com sucessso',
+      message: 'Obra removida com sucesso',
     };
   }
 
@@ -96,7 +96,7 @@ export class AuxiliaryBaseController {
 
     return {
       statusCode: HttpStatus.OK,
-      message: 'Dados removidos com sucessso',
+      message: 'Nota removida com sucesso',
     };
   }
 }

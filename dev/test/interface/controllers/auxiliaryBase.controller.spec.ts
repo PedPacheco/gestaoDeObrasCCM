@@ -138,7 +138,7 @@ describe('AuxiliaryBaseController', () => {
       const result = await auxiliaryBaseController.DeleteAuxiliaryBaseNotes(56);
       const expectedResponse = {
         statusCode: HttpStatus.OK,
-        message: 'Dados removidos com sucessso',
+        message: 'Nota removida com sucesso',
       };
 
       expect(auxiliaryBaseService.delete).toHaveBeenCalledWith('baseNotes', 56);
@@ -154,7 +154,7 @@ describe('AuxiliaryBaseController', () => {
         await auxiliaryBaseController.DeleteAuxiliaryBaseMarket(56);
       const expectedResponse = {
         statusCode: HttpStatus.OK,
-        message: 'Dados removidos com sucessso',
+        message: 'Obra removida com sucesso',
       };
 
       expect(auxiliaryBaseService.delete).toHaveBeenCalledWith('baseOv', 56);
