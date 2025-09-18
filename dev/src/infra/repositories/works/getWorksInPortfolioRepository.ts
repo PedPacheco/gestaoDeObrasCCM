@@ -32,7 +32,7 @@ export class GetWorksInPortfolioRepository
     } = filters;
 
     if (insufficientPermission) {
-      query = Prisma.sql`${query} AND status.id != 42`;
+      query = Prisma.sql`${query} AND status.id != 42 AND status.id != 4`;
     }
 
     if (idRegional && idRegional.length > 0) {

@@ -92,6 +92,7 @@ describe("Details Page", () => {
     vi.mocked(fetchData).mockResolvedValue({
       token: "mock-token",
       data: mockData,
+      success: true,
     });
 
     vi.mocked(fetchFilters).mockResolvedValue({
@@ -134,6 +135,7 @@ describe("Details Page", () => {
     vi.mocked(fetchData).mockResolvedValueOnce({
       token: "mock-token",
       data: modifiedData,
+      success: true,
     });
 
     render(await Details({ params: Promise.resolve({ id: mockId }) }));
@@ -154,6 +156,7 @@ describe("Details Page", () => {
     vi.mocked(fetchData).mockResolvedValueOnce({
       token: "mock-token",
       data: modifiedData,
+      success: true,
     });
 
     render(await Details({ params: Promise.resolve({ id: mockId }) }));
@@ -170,6 +173,7 @@ describe("Details Page", () => {
     vi.mocked(fetchData).mockResolvedValueOnce({
       token: "mock-token",
       data: modifiedData,
+      success: true,
     });
 
     render(await Details({ params: Promise.resolve({ id: mockId }) }));
