@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Box,
   Button,
@@ -16,8 +14,16 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { cookies } from "next/headers";
 
-export default function ServicosPage() {
+export default async function ServicosPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const cookieStore = await cookies();
+
   return (
     <Box p={3}>
       {/* Cabeçalho */}

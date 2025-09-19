@@ -54,6 +54,8 @@ export class AuthService {
       permissao_visualizacao: user.permissao_visualizacao,
     };
 
+    console.log(payload);
+
     return {
       id: user.id,
       username: user.username,

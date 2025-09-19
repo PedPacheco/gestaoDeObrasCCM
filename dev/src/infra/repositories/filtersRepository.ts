@@ -11,7 +11,6 @@ export class FiltersRepository implements IFiltersRepository {
     selectFields: string[],
     conditions?: Record<string, any>,
   ): Promise<any[]> {
-    console.log(conditions);
     return await this.prisma[table].findMany({
       where: conditions,
       select: selectFields.reduce(
