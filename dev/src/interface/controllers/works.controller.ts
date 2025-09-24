@@ -5,6 +5,7 @@ import {
   ContractUpdateDTO,
   GetAllWorksDTO,
   GetWorksDTO,
+  UpdateNotesDTO,
   UpdateWorkDTO,
 } from 'src/interface/dtos/worksDto';
 
@@ -30,6 +31,13 @@ import { GetWorkDetailsService } from 'src/application/works/getWorkDetails.serv
 import { InsertWorksService } from 'src/application/works/InsertWorks.service';
 import { HandleWorkUpdateService } from 'src/application/orchestrators/handleWorkUpdate.service';
 import { ContractUpdateService } from 'src/application/works/contractUpdate.service';
+import { UpdateOvService } from 'src/application/works/updateOv.service';
+import { UpdateNoteService } from 'src/application/works/updateNote.service';
+
+interface CustomRequest extends Request {
+  idParceira?: number;
+  insufficientPermission?: boolean;
+}
 
 @Controller('obras')
 export class WorksController {
@@ -41,20 +49,33 @@ export class WorksController {
     private insertWorksService: InsertWorksService,
     private handleWorkUpdateService: HandleWorkUpdateService,
     private contractUpdateService: ContractUpdateService,
+    private updateOvService: UpdateOvService,
+    private updateNoteService: UpdateNoteService,
   ) {}
+
+  private applyFilters<
+    T extends {
+      idParceira?: number | number[];
+      insufficientPermission?: boolean;
+    },
+  >(filters: T, req: CustomRequest): T {
+    if (req.idParceira) {
+      filters.idParceira = req.idParceira;
+    }
+    if (req.insufficientPermission !== undefined) {
+      filters.insufficientPermission = req.insufficientPermission;
+    }
+    return filters;
+  }
 
   @Get()
   @UseGuards(PermissionGuard)
-  async getAllWorks(@Query() worksFilters: GetAllWorksDTO, @Req() req: any) {
-    if (req.idParceira) {
-      worksFilters.idParceira = req.idParceira;
-    }
-
-    if (req.insufficientPermission !== undefined) {
-      worksFilters.insufficientPermission = req.insufficientPermission;
-    }
-
-    const response = await this.getAllWorksService.getAllWorks(worksFilters);
+  async getAllWorks(
+    @Query() worksFilters: GetAllWorksDTO,
+    @Req() req: CustomRequest,
+  ) {
+    const filters = this.applyFilters(worksFilters, req);
+    const response = await this.getAllWorksService.getAllWorks(filters);
 
     return {
       statusCode: HttpStatus.OK,
@@ -67,18 +88,11 @@ export class WorksController {
   @UseGuards(VisualizationGuard)
   async getWorksInPortfolio(
     @Query() worksFilters: GetWorksDTO,
-    @Req() req: any,
+    @Req() req: CustomRequest,
   ) {
-    if (req.idParceira) {
-      worksFilters.idParceira = req.idParceira;
-    }
-
-    if (req.insufficientPermission !== undefined) {
-      worksFilters.insufficientPermission = req.insufficientPermission;
-    }
-
+    const filters = this.applyFilters(worksFilters, req);
     const response =
-      await this.getWorksInPortfolioService.getWorksInPortfolio(worksFilters);
+      await this.getWorksInPortfolioService.getWorksInPortfolio(filters);
 
     return {
       statusCode: HttpStatus.OK,
@@ -89,17 +103,13 @@ export class WorksController {
 
   @Get('obras-executadas')
   @UseGuards(VisualizationGuard)
-  async GetCompletedWorks(@Query() worksFilters: GetWorksDTO, @Req() req: any) {
-    if (req.idParceira) {
-      worksFilters.idParceira = req.idParceira;
-    }
-
-    if (req.insufficientPermission !== undefined) {
-      worksFilters.insufficientPermission = req.insufficientPermission;
-    }
-
+  async GetCompletedWorks(
+    @Query() worksFilters: GetWorksDTO,
+    @Req() req: CustomRequest,
+  ) {
+    const filters = this.applyFilters(worksFilters, req);
     const response =
-      await this.getCompletedWorksService.getCompletedWorks(worksFilters);
+      await this.getCompletedWorksService.getCompletedWorks(filters);
 
     return {
       statusCode: HttpStatus.OK,
@@ -146,31 +156,56 @@ export class WorksController {
     };
   }
 
-  @Patch(':id')
-  @UseGuards(VisualizationGuard)
-  async Update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() data: UpdateWorkDTO,
-    @Req() req: any,
-  ) {
-    const insufficientPermission = req.insufficientPermission;
-
-    await this.handleWorkUpdateService.update(data, id, insufficientPermission);
-
-    return {
-      statusCode: HttpStatus.NO_CONTENT,
-      message: 'Obras atualizada com sucesso',
-    };
-  }
-
   @Post('atualizar-empreitamento')
   @UseGuards(PermissionGuard)
   async ContractUpdate(@Body() data: ContractUpdateDTO[]) {
     await this.contractUpdateService.update(data);
 
     return {
-      statusCode: HttpStatus.NO_CONTENT,
+      statusCode: HttpStatus.OK,
       message: 'Empreitamento das obras atualizado com sucesso',
+    };
+  }
+
+  @Patch(':id')
+  @UseGuards(VisualizationGuard)
+  async Update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: UpdateWorkDTO,
+    @Req() req: CustomRequest,
+  ) {
+    const insufficientPermission = req.insufficientPermission;
+
+    await this.handleWorkUpdateService.update(data, id, insufficientPermission);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Obras atualizada com sucesso',
+    };
+  }
+
+  @Post('atualizar-ov')
+  @UseGuards(PermissionGuard)
+  async updateOv(
+    @Body()
+    body: InsertMarketWorksDTO[],
+  ) {
+    await this.updateOvService.update(body);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Obras atualizada com sucesso',
+    };
+  }
+
+  @Post('atualizar-nota')
+  @UseGuards(PermissionGuard)
+  async updateNote(@Body() data: UpdateNotesDTO[]) {
+    await this.updateNoteService.update(data);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Obras atualizada com sucesso',
     };
   }
 }

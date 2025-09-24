@@ -1,4 +1,4 @@
-import { DataAuxiliaryNotes } from 'src/application/auxiliaryBase.service';
+import { DataAuxiliaryNotes } from 'src/application/auxiliaryBase/auxiliaryBase.service';
 import { MarketWork } from 'src/domain/entities/works.entity';
 import { IAuxiliaryBaseRepository } from 'src/domain/repositories/IAuxiliaryBaseRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';

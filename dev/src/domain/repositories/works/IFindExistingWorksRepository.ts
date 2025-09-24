@@ -6,7 +6,17 @@ export interface filtersOrders {
 }
 
 export interface IFindExistingWorksRepository {
-  findExistingWorks(works: string[]): Promise<string[]>;
+  findExistingWorks(works: string[]): Promise<{ id: number; ovnota: string }[]>;
+  findExistingNotes(filters: any[]): Promise<
+    {
+      id: number;
+      ovnota: string;
+      ordemDci: string;
+      ordemDcd: string;
+      ordemDca: string;
+      ordemDcim: string;
+    }[]
+  >;
   findExistingOrders(orders: filtersOrders[]): Promise<string[]>;
 }
 

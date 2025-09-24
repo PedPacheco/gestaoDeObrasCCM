@@ -4,6 +4,7 @@ import {
   IsBoolean,
   IsDate,
   IsIn,
+  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
@@ -152,4 +153,82 @@ export class ContractUpdateDTO {
   @IsString()
   @IsIn(['CONVENCIONAL', 'PONTO A PONTO'])
   tipoAds: string;
+}
+
+export class UpdateNotesDTO {
+  @IsNotEmpty()
+  @IsString()
+  obra: string;
+
+  @IsOptional()
+  @IsDate()
+  @Type(() => Date)
+  entrada?: Date;
+
+  @IsOptional()
+  @IsString()
+  prazo?: string;
+
+  @IsString()
+  referencia: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  idMunicipio: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  idEmpreendimento: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  idTipo: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  idTurma: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  idCircuito: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  anoplan?: number;
+
+  @IsNotEmpty()
+  @IsString()
+  pep: string;
+
+  @IsOptional()
+  @IsString()
+  ordem_dci?: string;
+
+  @IsOptional()
+  @IsString()
+  ordem_dcd?: string;
+
+  @IsOptional()
+  @IsString()
+  ordem_dca?: string;
+
+  @IsOptional()
+  @IsString()
+  ordem_dcim?: string;
+
+  @IsOptional()
+  @IsNumber()
+  moPlan?: number;
+
+  @IsOptional()
+  @IsNumber()
+  qtdePlan?: number;
+
+  @IsOptional()
+  @IsNumber()
+  capexMoPlan?: number;
+
+  @IsOptional()
+  @IsNumber()
+  capexMatPlan?: number;
 }

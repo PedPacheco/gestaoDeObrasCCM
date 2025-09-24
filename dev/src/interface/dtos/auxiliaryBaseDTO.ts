@@ -63,65 +63,6 @@ export class InsertBaseAuxiliaryMarketDTO {
   moEmpresa: number;
 }
 
-export class InsertBaseAuxiliaryMarketArrayDTO {
-  @ValidateNested({ each: true })
-  @Type(() => InsertBaseAuxiliaryMarketDTO)
-  @IsArray()
-  data: InsertBaseAuxiliaryMarketDTO[];
-}
-
-export class InsertMarketWorksDTO {
-  @IsString()
-  @IsNotEmpty()
-  obra: string;
-
-  @IsString()
-  pep: string;
-
-  @IsString()
-  diagrama: string;
-
-  @IsDate()
-  @Type(() => Date)
-  entrada: Date;
-
-  @IsNumber()
-  idMunicipio: number;
-
-  @IsNumber()
-  idTipo: number;
-
-  @IsNumber()
-  idCircuito: number;
-
-  @IsString()
-  prazoTexto: string;
-
-  @IsNumber()
-  statusOv: number;
-
-  @IsString()
-  statusDiagrama: string;
-
-  @IsString()
-  statusPep: string;
-
-  @IsString()
-  equipeNumPedido: string;
-
-  @IsNumber()
-  moCliente: number;
-
-  @IsNumber()
-  moEmpresa: number;
-
-  @IsString()
-  observacao: string;
-
-  @IsNumber()
-  idParceira: number;
-}
-
 export class NotesDTO {
   @IsString()
   campo_ordenacao: string;
@@ -232,4 +173,56 @@ export class InsertNotesDTO {
 
   @IsNumber()
   anoplan: number;
+}
+
+export class InsertMarketWorksDTO {
+  @IsString()
+  @IsNotEmpty()
+  obra: string;
+
+  @IsString()
+  pep: string;
+
+  @IsString()
+  diagrama: string;
+
+  @IsDate()
+  @Type(() => Date)
+  entrada: Date;
+
+  @IsNumber()
+  idMunicipio: number;
+
+  @IsNumber()
+  idTipo: number;
+
+  @IsNumber()
+  idCircuito: number;
+
+  @IsString()
+  prazoTexto: string;
+
+  @IsNumber()
+  statusOv: number;
+
+  @IsString()
+  statusDiagrama: string;
+
+  @IsString()
+  statusPep: string;
+
+  @IsString()
+  equipeNumPedido: string;
+
+  @IsNumber()
+  moCliente: number;
+
+  @IsNumber()
+  moEmpresa: number;
+
+  @IsString()
+  observacao: string;
+
+  @IsNumber()
+  idParceira: number;
 }

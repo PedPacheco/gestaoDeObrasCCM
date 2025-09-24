@@ -4,7 +4,7 @@ import { INSERT_WORKS_REPOSITORY } from 'src/domain/repositories/works/IInsertWo
 
 import { InsertWorksService } from 'src/application/works/InsertWorks.service';
 import { FindExistingWorksService } from 'src/application/works/findExistingWorks.service';
-import { AuxiliaryBaseService } from 'src/application/auxiliaryBase.service';
+import { AuxiliaryBaseService } from 'src/application/auxiliaryBase/auxiliaryBase.service';
 import { mockMarketWorks } from '../../../test/mocks/mockWorksController';
 import { mockGetNotes } from '../../../test/mocks/mockAuxiliaryBaseRepository';
 import { mockMappedNotes } from '../../../test/mocks/mocksAuxiliaryBaseController';

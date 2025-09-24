@@ -8,7 +8,7 @@ import {
   mockMappedMarketWorks,
   mockMappedNotes,
 } from '../../mocks/mocksAuxiliaryBaseController';
-import { AuxiliaryBaseService } from 'src/application/auxiliaryBase.service';
+import { AuxiliaryBaseService } from 'src/application/auxiliaryBase/auxiliaryBase.service';
 import { UsersService } from 'src/application/users.service';
 
 describe('AuxiliaryBaseController', () => {

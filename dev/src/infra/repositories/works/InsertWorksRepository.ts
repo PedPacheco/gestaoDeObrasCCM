@@ -12,7 +12,7 @@ export class InsertWorksRepository implements IInsertWorksRepository {
 
   async insertMarketWorks(works: MarketWork[]): Promise<void> {
     try {
-      const data = works.map((work) => {
+      const data = works.map((work: MarketWork) => {
         return {
           ovnota: work.obra,
           pep: work.pep,

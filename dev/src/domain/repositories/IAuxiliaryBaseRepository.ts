@@ -1,4 +1,4 @@
-import { DataAuxiliaryNotes } from 'src/application/auxiliaryBase.service';
+import { DataAuxiliaryNotes } from 'src/application/auxiliaryBase/auxiliaryBase.service';
 
 export interface IAuxiliaryBaseRepository {
   insertNotes(data: DataAuxiliaryNotes): Promise<any>;

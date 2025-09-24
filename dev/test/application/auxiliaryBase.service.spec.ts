@@ -15,7 +15,7 @@ import {
 } from '../mocks/mocksAuxiliaryBaseController';
 import { BadRequestException } from '@nestjs/common';
 import { FindExistingWorksService } from 'src/application/works/findExistingWorks.service';
-import { AuxiliaryBaseService } from 'src/application/auxiliaryBase.service';
+import { AuxiliaryBaseService } from 'src/application/auxiliaryBase/auxiliaryBase.service';
 
 describe('AuxiliaryBaseService', () => {
   let auxiliaryBaseService: AuxiliaryBaseService;

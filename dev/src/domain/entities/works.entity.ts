@@ -66,6 +66,50 @@ export class MarketWork extends Work {
     data.setDate(data.getDate() + this.prazo);
     return data;
   }
+
+  toPrismaUpdate(): Partial<MarketWork> {
+    const updateData: any = { id: this.id };
+
+    if (this.obra != null) updateData.ovnota = this.obra;
+    if (this.pep != null) updateData.pep = this.pep;
+    if (this.diagrama != null) updateData.diagrama = this.diagrama;
+    if (this.entrada != null) updateData.entrada = this.entrada;
+    if (this.idMunicipio != null) updateData.id_gpm = this.idMunicipio;
+    if (this.idTipo != null) updateData.id_tipo = this.idTipo;
+    if (this.idCircuito != null) updateData.id_circuito = this.idCircuito;
+    if (this.prazoTexto != null) updateData.prazo = this.prazo;
+    if (this.statusOv != null) updateData.status_ov = this.statusOv;
+    if (this.statusDiagrama != null)
+      updateData.status_diagrama = this.statusDiagrama;
+    if (this.statusPep != null) updateData.status_pep = this.statusPep;
+    if (this.equipeNumPedido != null) updateData.referencia = this.referencia;
+    if (this.moCliente !== null && this.moEmpresa !== null)
+      updateData.moPlanejada = this.moPlanejada;
+
+    return updateData;
+  }
+
+  static create(data: Partial<MarketWork>): MarketWork {
+    return new MarketWork(
+      data.obra,
+      data.pep,
+      data.entrada,
+      data.prazoTexto,
+      data.equipeNumPedido,
+      data.idMunicipio,
+      data.idTipo,
+      data.idParceira,
+      data.idCircuito,
+      data.diagrama,
+      data.observacao,
+      data.statusOv,
+      data.statusDiagrama,
+      data.statusPep,
+      data.moCliente,
+      data.moEmpresa,
+      data.id,
+    );
+  }
 }
 
 export class NoteWorks extends Work {
@@ -105,6 +149,92 @@ export class NoteWorks extends Work {
       idCircuito,
       id,
     );
+  }
+
+  toPrismaUpdate(): Partial<any> {
+    const updateData: any = { id: this.id };
+
+    if (this.obra != null) updateData.ovnota = this.obra;
+    if (this.pep != null) updateData.pep = this.pep;
+    if (this.entrada != null) updateData.entrada = this.entrada;
+    if (this.prazoTexto != null) updateData.prazo = this.prazoTexto;
+    if (this.equipeNumPedido != null)
+      updateData.referencia = this.equipeNumPedido;
+    if (this.idMunicipio != null) updateData.id_gpm = this.idMunicipio;
+    if (this.idTipo != null) updateData.id_tipo = this.idTipo;
+    if (this.idCircuito != null) updateData.id_circuito = this.idCircuito;
+
+    if (this.dci != null) updateData.ordem_dci = this.dci;
+    if (this.dcd != null) updateData.ordem_dcd = this.dcd;
+    if (this.dca != null) updateData.ordem_dca = this.dca;
+    if (this.dcim != null) updateData.ordem_dcim = this.dcim;
+
+    if (this.referencia != null) updateData.referencia = this.referencia;
+    if (this.qtdePlanejada != null) updateData.qtde_plan = this.qtdePlanejada;
+    if (this.moPlanejada != null) updateData.mo_plan = this.moPlanejada;
+    if (this.idEmpreendimento != null)
+      updateData.id_empreendimento = this.idEmpreendimento;
+    if (this.idGrupo != null) updateData.id_grupo = this.idGrupo;
+    if (this.capexMoPlan != null) updateData.capex_mo_plan = this.capexMoPlan;
+    if (this.capexMatPlan != null)
+      updateData.capex_mat_plan = this.capexMatPlan;
+    if (this.anoPlan != null) updateData.ano_plan = this.anoPlan;
+
+    return updateData;
+  }
+
+  static create(props: {
+    obra: string;
+    pep: string;
+    entrada: Date;
+    prazoTexto: string;
+    equipeNumPedido: string;
+    idMunicipio: number;
+    idTipo: number;
+    idParceira: number;
+    idCircuito: number;
+    dci: string;
+    dcd: string;
+    dca: string;
+    dcim: string;
+    referencia: string;
+    qtdePlanejada: number;
+    moPlanejada: number;
+    idEmpreendimento: number;
+    idGrupo: number;
+    capexMoPlan: number;
+    capexMatPlan: number;
+    anoPlan: number;
+    id?: number;
+  }): NoteWorks {
+    const instance = new NoteWorks(
+      props.obra,
+      props.pep,
+      props.entrada,
+      props.prazoTexto,
+      props.equipeNumPedido,
+      props.idMunicipio,
+      props.idTipo,
+      props.idParceira,
+      props.idCircuito,
+      props.dci,
+      props.dcd,
+      props.dca,
+      props.dcim,
+      props.referencia,
+      props.qtdePlanejada,
+      props.moPlanejada,
+      props.idEmpreendimento,
+      props.idGrupo,
+      props.capexMoPlan,
+      props.capexMatPlan,
+      props.anoPlan,
+      props.id,
+    );
+
+    instance.validateNota();
+
+    return instance;
   }
 
   get isPepGenericoNote(): boolean {

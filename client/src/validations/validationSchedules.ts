@@ -90,7 +90,7 @@ function checkRemovedEquipment(ctx: any) {
       });
     }
 
-    if (!eq.instalattion?.trim()) {
+    if (!eq.installation?.trim()) {
       ctx.issues.push({
         code: "custom",
         path: ["equipmentRemoved", i, "installation"],
@@ -215,7 +215,7 @@ export const validationSchedulesSchema = (
   isInsert: boolean
 ) =>
   schedulesSchema(isInsert)
-    .extend({
+    .safeExtend({
       executionReport: z.union([executionReportSchema, z.null()]).optional(),
     })
     .check((ctx) => {
