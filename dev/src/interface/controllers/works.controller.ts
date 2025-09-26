@@ -5,6 +5,8 @@ import {
   ContractUpdateDTO,
   GetAllWorksDTO,
   GetWorksDTO,
+  InsertMarketWorksDTO,
+  InsertNotesDTO,
   UpdateNotesDTO,
   UpdateWorkDTO,
 } from 'src/interface/dtos/worksDto';
@@ -23,7 +25,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
-import { InsertMarketWorksDTO, InsertNotesDTO } from '../dtos/auxiliaryBaseDTO';
 import { GetWorksInPortfolioService } from 'src/application/works/getWorksInPortfolio.service';
 import { GetAllWorksService } from 'src/application/works/getAllWorks.service';
 import { GetCompletedWorksService } from 'src/application/works/getCompletedWorks.service';

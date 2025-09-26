@@ -97,14 +97,11 @@ export class UpdateNoteService {
   }
 
   buildFilters(works: WorksInterface[]): any[] {
-    if (!works.length) return [];
-
-    const conditions = works.map((work) => {
+    return works.map((work) => {
       let filter: Record<string, any> = {};
 
-      if (work.ovnota) {
-        filter.ovnota = work.ovnota;
-      }
+      filter.ovnota = work.ovnota;
+
       if (work.ordem_dci) {
         filter.ordem_dci = work.ordem_dci;
       }
@@ -120,7 +117,5 @@ export class UpdateNoteService {
 
       return filter;
     });
-
-    return conditions;
   }
 }

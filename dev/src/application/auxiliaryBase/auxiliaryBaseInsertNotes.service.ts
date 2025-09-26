@@ -10,13 +10,11 @@ import { OperationType } from 'src/interface/types/baseAuxiliaryInterface';
 interface InsertNotesResult {
   insertedCount: number;
   skippedNotes: string[];
-  skippedOrders: string[];
 }
 
 interface ValidationResult {
   validatedData: InsertBaseAuxiliaryNotesDTO[];
   skippedNotes: string[];
-  skippedOrders: string[];
 }
 
 interface CalculatedValue {
@@ -46,7 +44,7 @@ export class AuxiliaryNotesInsertService {
     operation: OperationType,
   ): Promise<InsertNotesResult> {
     if (!data?.length) {
-      return { insertedCount: 0, skippedNotes: [], skippedOrders: [] };
+      return { insertedCount: 0, skippedNotes: [] };
     }
 
     const validationResult = await this.validateAndFilterExistingData(
@@ -58,7 +56,6 @@ export class AuxiliaryNotesInsertService {
       return {
         insertedCount: 0,
         skippedNotes: validationResult.skippedNotes,
-        skippedOrders: validationResult.skippedOrders,
       };
     }
 
@@ -74,7 +71,6 @@ export class AuxiliaryNotesInsertService {
     return {
       insertedCount: validationResult.validatedData.length,
       skippedNotes: validationResult.skippedNotes,
-      skippedOrders: validationResult.skippedOrders,
     };
   }
 
@@ -84,7 +80,6 @@ export class AuxiliaryNotesInsertService {
   ): Promise<ValidationResult> {
     const validatedData: InsertBaseAuxiliaryNotesDTO[] = [];
     const skippedNotes: string[] = [];
-    const skippedOrders: string[] = [];
 
     const orderingFields = this.extractOrderingFields(data);
     const orderData = this.extractOrderData(data);
@@ -106,16 +101,12 @@ export class AuxiliaryNotesInsertService {
       );
 
       if (operation === 'insert') {
-        if (skipResult.noteExists) {
+        if (skipResult.noteExists || skipResult.orderExists) {
           skippedNotes.push(notesData.campo_ordenacao);
           continue;
         }
-        if (skipResult.orderExists) {
-          skippedOrders.push(notesData.campo_ordenacao);
-          continue;
-        }
-      } else if (operation === 'update') {
-        if (!skipResult.noteExists && !skipResult.orderExists) {
+      } else {
+        if (!skipResult.noteExists || !skipResult.orderExists) {
           skippedNotes.push(notesData.campo_ordenacao);
           continue;
         }
@@ -132,7 +123,7 @@ export class AuxiliaryNotesInsertService {
       );
     }
 
-    return { validatedData, skippedNotes, skippedOrders };
+    return { validatedData, skippedNotes };
   }
 
   private extractOrderingFields(data: InsertBaseAuxiliaryNotesDTO[]): string[] {

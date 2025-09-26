@@ -14,6 +14,7 @@ import {
   mockInsertNotesController,
   mockMarketWorks,
   mockResponseDetails,
+  mockUpdateNotes,
   mockWorksInPortfolio,
 } from '../../mocks/mockWorksController';
 import { InsertWorksService } from 'src/application/works/InsertWorks.service';
@@ -25,6 +26,13 @@ import { UsersService } from 'src/application/users.service';
 import { HandleWorkUpdateService } from 'src/application/orchestrators/handleWorkUpdate.service';
 import { validate } from 'class-validator';
 import { ContractUpdateService } from 'src/application/works/contractUpdate.service';
+import { UpdateOvService } from 'src/application/works/updateOv.service';
+import { UpdateNoteService } from 'src/application/works/updateNote.service';
+
+interface CustomRequest extends Request {
+  idParceira?: number;
+  insufficientPermission?: boolean;
+}
 
 describe('WorksController', () => {
   let worksController: WorksController;
@@ -35,11 +43,13 @@ describe('WorksController', () => {
   let insertWorksService: InsertWorksService;
   let handleWorkUpdateService: HandleWorkUpdateService;
   let contractUpdateService: ContractUpdateService;
+  let updateOvService: UpdateOvService;
+  let updateNoteService: UpdateNoteService;
 
-  const mockReq = {
-    insufficientPermission: true,
+  const mockReq: CustomRequest = {
     idParceira: 1,
-  };
+    insufficientPermission: true,
+  } as unknown as CustomRequest;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -65,6 +75,8 @@ describe('WorksController', () => {
         },
         { provide: HandleWorkUpdateService, useValue: { update: jest.fn() } },
         { provide: ContractUpdateService, useValue: { update: jest.fn() } },
+        { provide: UpdateOvService, useValue: { update: jest.fn() } },
+        { provide: UpdateNoteService, useValue: { update: jest.fn() } },
       ],
     }).compile();
 
@@ -86,6 +98,8 @@ describe('WorksController', () => {
     contractUpdateService = module.get<ContractUpdateService>(
       ContractUpdateService,
     );
+    updateOvService = module.get<UpdateOvService>(UpdateOvService);
+    updateNoteService = module.get<UpdateNoteService>(UpdateNoteService);
   });
 
   it('Should be defined', () => {
@@ -141,7 +155,10 @@ describe('WorksController', () => {
         .spyOn(getAllWorksService, 'getAllWorks')
         .mockResolvedValue(mockAllWorks);
 
-      const result = await worksController.getAllWorks(worksDTO, {});
+      const result = await worksController.getAllWorks(
+        worksDTO,
+        {} as CustomRequest,
+      );
 
       expect(getAllWorksService.getAllWorks).toHaveBeenCalledWith(worksDTO);
       expect(result).toEqual({
@@ -207,7 +224,10 @@ describe('WorksController', () => {
         .spyOn(getCompletedWorksService, 'getCompletedWorks')
         .mockResolvedValue(mockWorksInPortfolio);
 
-      const result = await worksController.GetCompletedWorks(worksDTO, {}); // req vazio → cai no else
+      const result = await worksController.GetCompletedWorks(
+        worksDTO,
+        {} as CustomRequest,
+      );
 
       expect(getCompletedWorksService.getCompletedWorks).toHaveBeenCalledWith(
         worksDTO,
@@ -278,7 +298,10 @@ describe('WorksController', () => {
         .spyOn(getWorksInPortfolio, 'getWorksInPortfolio')
         .mockResolvedValue(mockWorksInPortfolio);
 
-      const result = await worksController.getWorksInPortfolio(worksDTO, {});
+      const result = await worksController.getWorksInPortfolio(
+        worksDTO,
+        {} as CustomRequest,
+      );
 
       expect(getWorksInPortfolio.getWorksInPortfolio).toHaveBeenCalledWith(
         worksDTO,
@@ -368,11 +391,11 @@ describe('WorksController', () => {
           tipo_ads: 'Convencional',
           data_empreitamento: new Date('05-17-2025'),
         },
-        mockReq,
+        mockReq as CustomRequest,
       );
 
       const expectedResponse = {
-        statusCode: HttpStatus.NO_CONTENT,
+        statusCode: HttpStatus.OK,
         message: 'Obras atualizada com sucesso',
       };
 
@@ -404,7 +427,7 @@ describe('WorksController', () => {
       ]);
 
       const expectedResponse = {
-        statusCode: HttpStatus.NO_CONTENT,
+        statusCode: HttpStatus.OK,
         message: 'Empreitamento das obras atualizado com sucesso',
       };
 
@@ -416,6 +439,38 @@ describe('WorksController', () => {
           dataEmpreitamento: new Date('05-17-2025'),
         },
       ]);
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('UpdateOV', () => {
+    it('Should call the update method of the UpdateOv service correctly', async () => {
+      jest.spyOn(updateOvService, 'update').mockResolvedValue();
+
+      const result = await worksController.updateOv(mockMarketWorks);
+
+      const expectedResponse = {
+        statusCode: HttpStatus.OK,
+        message: 'Obras atualizada com sucesso',
+      };
+
+      expect(updateOvService.update).toHaveBeenCalledWith(mockMarketWorks);
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('UpdateNote', () => {
+    it('Should call the update method of the UpdateNote service correctly', async () => {
+      jest.spyOn(updateNoteService, 'update').mockResolvedValue();
+
+      const result = await worksController.updateNote(mockUpdateNotes);
+
+      const expectedResponse = {
+        statusCode: HttpStatus.OK,
+        message: 'Obras atualizada com sucesso',
+      };
+
+      expect(updateNoteService.update).toHaveBeenCalledWith(mockUpdateNotes);
       expect(result).toEqual(expectedResponse);
     });
   });

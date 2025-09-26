@@ -87,25 +87,24 @@ describe('AuxiliaryBaseController', () => {
         .mockResolvedValue({
           insertedCount: 1,
           skippedNotes: ['2135534'],
-          skippedOrders: ['423112344'],
         });
 
-      const result = await auxiliaryBaseController.InsertAuxiliaryBaseNotes(
-        mockInsertAuxiliaryBaseNotes,
-      );
+      const result = await auxiliaryBaseController.InsertAuxiliaryBaseNotes({
+        data: mockInsertAuxiliaryBaseNotes,
+        operation: 'insert',
+      });
       const expectedResponse = {
         statusCode: HttpStatus.CREATED,
         message: 'Notas inseridas na base auxiliar com sucesso',
         res: {
           insertedCount: 1,
           skippedNotes: ['2135534'],
-          skippedOrders: ['423112344'],
         },
       };
 
       expect(
         auxiliaryBaseService.insertAuxiliaryBaseNotes,
-      ).toHaveBeenCalledWith(mockInsertAuxiliaryBaseNotes);
+      ).toHaveBeenCalledWith(mockInsertAuxiliaryBaseNotes, 'insert');
       expect(result).toEqual(expectedResponse);
     });
   });
@@ -118,6 +117,7 @@ describe('AuxiliaryBaseController', () => {
 
       const result = await auxiliaryBaseController.InsertAuxiliaryBaseMarket({
         data: mockInsertAuxiliaryBaseMarket,
+        operation: 'insert',
       });
       const expectedResponse = {
         statusCode: HttpStatus.CREATED,
@@ -126,7 +126,7 @@ describe('AuxiliaryBaseController', () => {
 
       expect(
         auxiliaryBaseService.insertAuxiliaryBaseMarket,
-      ).toHaveBeenCalledWith(mockInsertAuxiliaryBaseMarket);
+      ).toHaveBeenCalledWith(mockInsertAuxiliaryBaseMarket, 'insert');
       expect(result).toEqual(expectedResponse);
     });
   });

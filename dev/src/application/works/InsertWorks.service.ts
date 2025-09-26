@@ -3,13 +3,13 @@ import {
   IInsertWorksRepository,
   INSERT_WORKS_REPOSITORY,
 } from 'src/domain/repositories/works/IInsertWorksRepository';
-import { InsertMarketWorksDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
 import { NotesEntriesInterface } from 'src/interface/types/works/insertNotesInterface';
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 
 import { AuxiliaryBaseService } from '../auxiliaryBase/auxiliaryBase.service';
 import { FindExistingWorksService } from './findExistingWorks.service';
+import { InsertMarketWorksDTO } from 'src/interface/dtos/worksDto';
 
 @Injectable()
 export class InsertWorksService {
@@ -25,26 +25,8 @@ export class InsertWorksService {
     insertedCount: any;
     skipped: string[];
   }> {
-    const works = params.map(
-      (work: InsertMarketWorksDTO) =>
-        new MarketWork(
-          work.obra,
-          work.pep,
-          work.entrada,
-          work.prazoTexto,
-          work.equipeNumPedido,
-          work.idMunicipio,
-          work.idTipo,
-          work.idParceira,
-          work.idCircuito,
-          work.diagrama,
-          work.observacao,
-          work.statusOv,
-          work.statusDiagrama,
-          work.statusPep,
-          work.moCliente,
-          work.moEmpresa,
-        ),
+    const works = params.map((work: InsertMarketWorksDTO) =>
+      MarketWork.create(work),
     );
 
     if (works.length === 0) {
@@ -61,8 +43,9 @@ export class InsertWorksService {
     const newData = works.filter((item) => !existingOvsSet.has(item.obra));
 
     if (newData.length === 0) {
+      const existingOvsStr = existingOvs.map((o) => o.ovnota).join(', ');
       throw new BadRequestException(
-        `Todas as obras já existem no banco de dados: ${existingOvs.join(', ')}`,
+        `Todas as obras já existem no banco de dados: ${existingOvsStr}`,
       );
     }
 

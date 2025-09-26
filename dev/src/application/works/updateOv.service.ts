@@ -4,8 +4,8 @@ import {
   IUpdateOvRepository,
   UPDATE_OV_REPOSITORY,
 } from 'src/domain/repositories/works/IUpdateOvRepository';
-import { InsertMarketWorksDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
 import { MarketWork } from 'src/domain/entities/works.entity';
+import { InsertMarketWorksDTO } from 'src/interface/dtos/worksDto';
 
 @Injectable()
 export class UpdateOvService {

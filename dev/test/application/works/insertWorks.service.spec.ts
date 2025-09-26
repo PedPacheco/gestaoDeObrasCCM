@@ -58,7 +58,10 @@ describe('InsertWorksService', () => {
     it('should call method insertMarketWorks and throw error if no data is valid', async () => {
       jest
         .spyOn(findExistingWorksService, 'findExistingWorks')
-        .mockResolvedValue(['1424535', '1424537']);
+        .mockResolvedValue([
+          { id: 1, ovnota: '1424535' },
+          { id: 2, ovnota: '1424537' },
+        ]);
 
       await expect(
         insertWorksService.insertMarketWorks(mockMarketWorks),
@@ -74,7 +77,7 @@ describe('InsertWorksService', () => {
     it('should call method insertMarketWorks and return the default format of data', async () => {
       jest
         .spyOn(findExistingWorksService, 'findExistingWorks')
-        .mockResolvedValue(['14245356']);
+        .mockResolvedValue([{ id: 1, ovnota: '14245356' }]);
 
       const result =
         await insertWorksService.insertMarketWorks(mockMarketWorks);

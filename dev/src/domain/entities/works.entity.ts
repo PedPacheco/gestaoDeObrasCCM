@@ -70,7 +70,7 @@ export class MarketWork extends Work {
   toPrismaUpdate(): Partial<MarketWork> {
     const updateData: any = { id: this.id };
 
-    if (this.obra != null) updateData.ovnota = this.obra;
+    updateData.ovnota = this.obra;
     if (this.pep != null) updateData.pep = this.pep;
     if (this.diagrama != null) updateData.diagrama = this.diagrama;
     if (this.entrada != null) updateData.entrada = this.entrada;
@@ -154,10 +154,10 @@ export class NoteWorks extends Work {
   toPrismaUpdate(): Partial<any> {
     const updateData: any = { id: this.id };
 
-    if (this.obra != null) updateData.ovnota = this.obra;
+    updateData.ovnota = this.obra;
+    updateData.mo_plan = this.moPlanejada;
     if (this.pep != null) updateData.pep = this.pep;
     if (this.entrada != null) updateData.entrada = this.entrada;
-    if (this.prazoTexto != null) updateData.prazo = this.prazoTexto;
     if (this.equipeNumPedido != null)
       updateData.referencia = this.equipeNumPedido;
     if (this.idMunicipio != null) updateData.id_gpm = this.idMunicipio;
@@ -171,10 +171,8 @@ export class NoteWorks extends Work {
 
     if (this.referencia != null) updateData.referencia = this.referencia;
     if (this.qtdePlanejada != null) updateData.qtde_plan = this.qtdePlanejada;
-    if (this.moPlanejada != null) updateData.mo_plan = this.moPlanejada;
     if (this.idEmpreendimento != null)
       updateData.id_empreendimento = this.idEmpreendimento;
-    if (this.idGrupo != null) updateData.id_grupo = this.idGrupo;
     if (this.capexMoPlan != null) updateData.capex_mo_plan = this.capexMoPlan;
     if (this.capexMatPlan != null)
       updateData.capex_mat_plan = this.capexMatPlan;

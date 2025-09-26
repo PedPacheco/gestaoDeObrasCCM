@@ -64,27 +64,26 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
       },
     });
 
-    return response.map(
-      (work) =>
-        new MarketWork(
-          work.obra,
-          work.pep,
-          new Date(work.entrada),
-          work.prazo_texto,
-          work.equip_num_pedido,
-          work.aux_municipio,
-          work.aux_tipo_obra,
-          work.aux_turma,
-          work.aux_circuito,
-          work.diagrama,
-          work.observacao,
-          work.status_ov,
-          work.status_diagrama,
-          work.status_pep,
-          work.mo_cliente,
-          work.mo_empresa,
-          Number(work.id),
-        ),
+    return response.map((work) =>
+      MarketWork.create({
+        obra: work.obra,
+        pep: work.pep,
+        entrada: work.entrada,
+        prazoTexto: work.prazo_texto,
+        equipeNumPedido: work.equip_num_pedido,
+        idMunicipio: work.aux_municipio,
+        idTipo: work.aux_tipo_obra,
+        idParceira: work.aux_turma,
+        idCircuito: work.aux_circuito,
+        diagrama: work.diagrama,
+        observacao: work.observacao,
+        statusOv: work.status_ov,
+        statusDiagrama: work.status_diagrama,
+        statusPep: work.status_pep,
+        moCliente: work.mo_cliente,
+        moEmpresa: work.mo_empresa,
+        id: Number(work.id),
+      }),
     );
   }
 

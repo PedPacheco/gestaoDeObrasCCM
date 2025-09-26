@@ -102,7 +102,6 @@ export class AuxiliaryBaseService {
   ): Promise<{
     insertedCount: number;
     skippedNotes: string[];
-    skippedOrders: string[];
   }> {
     return this.auxiliaryNotesInsertService.execute(data, operation);
   }

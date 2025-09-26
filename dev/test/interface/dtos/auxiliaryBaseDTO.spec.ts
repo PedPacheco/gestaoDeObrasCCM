@@ -5,10 +5,12 @@ import { validate } from 'class-validator';
 import {
   InsertBaseAuxiliaryMarketDTO,
   InsertBaseAuxiliaryNotesDTO,
-  InsertMarketWorksDTO,
-  InsertNotesDTO,
   NotesDTO,
 } from 'src/interface/dtos/auxiliaryBaseDTO';
+import {
+  InsertMarketWorksDTO,
+  InsertNotesDTO,
+} from 'src/interface/dtos/worksDto';
 
 describe('DTO Validations', () => {
   const expectValid = async (dtoInstance: any) => {

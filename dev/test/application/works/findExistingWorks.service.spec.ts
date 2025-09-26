@@ -7,8 +7,20 @@ describe('FindExistingWorksService', () => {
 
   const mockRepository = {
     findExistingWorks: jest.fn(),
+    findExistingNotes: jest.fn(),
     findExistingOrders: jest.fn(),
   };
+
+  const mockExistingNotes = [
+    {
+      id: 1,
+      ovnota: '16005338',
+      ordemDci: '170000023493',
+      ordemDcd: '190000025090',
+      ordemDca: '150000003441',
+      ordemDcim: null,
+    },
+  ];
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -32,6 +44,23 @@ describe('FindExistingWorksService', () => {
       ]);
 
       expect(result).toEqual(['12355366']);
+    });
+  });
+
+  describe('findExistingNotes', () => {
+    it('should call method findExistingNotes and return the existing notes data', async () => {
+      mockRepository.findExistingNotes.mockResolvedValue(mockExistingNotes);
+
+      const result = await findExistingWorksService.findExistingNotes([
+        {
+          ovnota: '12355366',
+          ordem_dci: '170000023493',
+          ordem_dcd: '190000025090',
+          ordem_dca: '150000003441',
+        },
+      ]);
+
+      expect(result).toEqual(mockExistingNotes);
     });
   });
 
