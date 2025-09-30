@@ -64,7 +64,7 @@ export function UpdateButton({ storageKey }: UpdateButtonProps) {
             idMunicipio: item.municipio,
             idEmpreendimento: item.empreendimento,
             idTipo: item.tipo,
-            idTurma: item.idParceira,
+            idTurma: item.parceira,
             idCircuito: item.circuito,
             anoPlan: item.anoplan,
             pep: item.pep,
