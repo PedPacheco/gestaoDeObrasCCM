@@ -1,7 +1,7 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 
 export async function InsertWorks(data: any[], storageKey: string) {
   const cookieStore = await cookies();
@@ -24,7 +24,7 @@ export async function InsertWorks(data: any[], storageKey: string) {
 
     const res = await result.json();
 
-    if (res.statusCode !== 201) {
+    if (res.statusCode !== 200) {
       return {
         success: false,
         error: res.message || "Erro ao inserir obras",
@@ -50,7 +50,7 @@ export async function InsertWorks(data: any[], storageKey: string) {
   }
 }
 
-export async function updateWork(data: any, id: number) {
+export async function UpdateWork(data: any, id: number) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
@@ -69,7 +69,7 @@ export async function updateWork(data: any, id: number) {
 
     const res = await result.json();
 
-    if (res.statusCode !== 204) {
+    if (res.statusCode !== 200) {
       return {
         success: false,
         error: res.message || "Erro ao editar obra",
@@ -84,6 +84,51 @@ export async function updateWork(data: any, id: number) {
   }
 }
 
+export async function UpdateSap(data: any, key: string, storageKey: string) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  try {
+    const result = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/obras/${key}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    const res = await result.json();
+
+    if (res.statusCode !== 200) {
+      return {
+        success: false,
+        error: res.message || "Erro ao editar obra",
+      };
+    }
+
+    await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/${
+        storageKey === "marketUpdatesData" ? "mercado" : "notas"
+      }`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return { success: true, message: res.message };
+  } catch (error: any) {
+    return { success: false, message: error.message };
+  }
+}
+
 export async function DeleteWork(storageKey: string, id: number) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
@@ -91,7 +136,9 @@ export async function DeleteWork(storageKey: string, id: number) {
   try {
     const result = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/${
-        storageKey === "marketEntryData" ? "mercado" : "notas"
+        storageKey === "marketEntryData" || storageKey === "marketUpdatesData"
+          ? "mercado"
+          : "notas"
       }/${id}`,
       {
         method: "DELETE",

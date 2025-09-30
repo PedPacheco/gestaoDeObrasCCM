@@ -83,11 +83,19 @@ describe('InsertWorksService', () => {
         await insertWorksService.insertMarketWorks(mockMarketWorks);
 
       expect(mockRepository.insertMarketWorks).toHaveBeenCalledWith(
-        mockMarketWorks,
+        mockMarketWorks.map((work) => ({
+          ...work,
+          id: undefined,
+          moPlanejada: 7500,
+        })),
       );
       expect(result).toEqual({
         message: 'Inserção concluída com sucesso.',
-        insertedCount: mockMarketWorks,
+        insertedCount: mockMarketWorks.map((work) => ({
+          ...work,
+          id: undefined,
+          moPlanejada: 7500,
+        })),
         skipped: ['14245356'],
       });
     });

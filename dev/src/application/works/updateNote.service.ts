@@ -34,12 +34,21 @@ export class UpdateNoteService {
       throw new BadRequestException('Nenhum dado enviado.');
     }
 
+    const normalizeKey = (work: any) =>
+      [
+        work.ovnota,
+        work.ordem_dci ?? '',
+        work.ordem_dcd ?? '',
+        work.ordem_dca ?? '',
+        work.ordem_dcim ?? '',
+      ].join('|');
+
     const dataToSearch = data.map((work) => ({
       ovnota: work.obra,
-      ordem_dci: work.ordem_dci,
-      ordem_dcd: work.ordem_dcd,
-      ordem_dca: work.ordem_dca,
-      ordem_dcim: work.ordem_dcim,
+      ordem_dci: work.ordem_dci === '' ? null : work.ordem_dci,
+      ordem_dcd: work.ordem_dcd === '' ? null : work.ordem_dcd,
+      ordem_dca: work.ordem_dca === '' ? null : work.ordem_dca,
+      ordem_dcim: work.ordem_dcim === '' ? null : work.ordem_dcim,
     }));
 
     const filters = this.buildFilters(dataToSearch);
@@ -49,49 +58,61 @@ export class UpdateNoteService {
       this.findExistingWorksService.findExistingNotes(filters),
     ]);
 
-    const notes = data.reduce((acc, work) => {
-      const group = groups.find((group) => group.id === work.idTipo);
+    const groupsById = new Map(groups.map((g) => [g.id, g]));
 
-      const matchedWork = existingWorks.find((ov) => {
-        if (work.obra && work.obra !== ov.ovnota) return false;
-        if (work.ordem_dci && work.ordem_dci !== ov.ordemDci) return false;
-        if (work.ordem_dcd && work.ordem_dcd !== ov.ordemDcd) return false;
-        if (work.ordem_dca && work.ordem_dca !== ov.ordemDca) return false;
-        if (work.ordem_dcim && work.ordem_dcim !== ov.ordemDcim) return false;
-        return true;
+    const existingMap = new Map(
+      existingWorks.map((ov) => [
+        normalizeKey({
+          ovnota: ov.ovnota,
+          ordem_dci: ov.ordemDci,
+          ordem_dcd: ov.ordemDcd,
+          ordem_dca: ov.ordemDca,
+          ordem_dcim: ov.ordemDcim,
+        }),
+        ov,
+      ]),
+    );
+
+    const notes = data.map((work) => {
+      const key = normalizeKey({
+        ovnota: work.obra,
+        ordem_dci: work.ordem_dci,
+        ordem_dcd: work.ordem_dcd,
+        ordem_dca: work.ordem_dca,
+        ordem_dcim: work.ordem_dcim,
       });
 
-      if (matchedWork) {
-        const entity = NoteWorks.create({
-          id: matchedWork.id,
-          obra: work.obra,
-          pep: work.pep,
-          entrada: work.entrada,
-          prazoTexto: work.prazo,
-          equipeNumPedido: work.referencia,
-          idMunicipio: work.idMunicipio,
-          idTipo: work.idTipo,
-          idParceira: work.idTurma,
-          idCircuito: work.idCircuito,
-          dci: work.ordem_dci,
-          dcd: work.ordem_dcd,
-          dca: work.ordem_dca,
-          dcim: work.ordem_dcim,
-          referencia: work.referencia,
-          qtdePlanejada: work.qtdePlan,
-          moPlanejada: work.moPlan,
-          idEmpreendimento: work.idEmpreendimento,
-          idGrupo: group.id_grupo,
-          capexMoPlan: work.capexMoPlan,
-          capexMatPlan: work.capexMatPlan,
-          anoPlan: work.anoplan,
-        }).toPrismaUpdate();
+      const matchedWork = existingMap.get(key);
+      if (!matchedWork) return;
 
-        acc.push(entity);
-      }
+      const group = groupsById.get(work.idTipo);
+      if (!group) return;
 
-      return acc;
-    }, []);
+      return NoteWorks.create({
+        id: matchedWork.id,
+        obra: work.obra,
+        pep: work.pep,
+        entrada: work.entrada,
+        prazoTexto: work.prazo,
+        equipeNumPedido: work.referencia,
+        idMunicipio: work.idMunicipio,
+        idTipo: work.idTipo,
+        idParceira: work.idTurma,
+        idCircuito: work.idCircuito,
+        dci: work.ordem_dci,
+        dcd: work.ordem_dcd,
+        dca: work.ordem_dca,
+        dcim: work.ordem_dcim,
+        referencia: work.referencia,
+        qtdePlanejada: work.qtdePlan,
+        moPlanejada: work.moPlan,
+        idEmpreendimento: work.idEmpreendimento,
+        idGrupo: group.id_grupo,
+        capexMoPlan: work.capexMoPlan,
+        capexMatPlan: work.capexMatPlan,
+        anoPlan: work.anoplan,
+      }).toPrismaUpdate();
+    });
 
     await this.updateNoteRepository.update(notes);
   }

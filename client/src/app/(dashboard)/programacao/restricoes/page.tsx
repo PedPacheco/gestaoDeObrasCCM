@@ -7,6 +7,7 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainScheduleRestrictions from "@/components/scheduleComponents/scheduleRestrictions/MainScheduleRestrictions";
 import { Transform } from "@/utils/transform";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
+import UseForceRefreshOnBack from "@/hooks/useForceRefreshOnBack";
 
 dayjs.extend(isoWeek);
 

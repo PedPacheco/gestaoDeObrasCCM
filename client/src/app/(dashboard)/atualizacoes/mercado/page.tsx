@@ -2,18 +2,18 @@ import { cookies } from "next/headers";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import { ImportButton } from "@/components/entryComponents/importMarketWorks/importButton";
-import { InsertMarketWorksButton } from "@/components/entryComponents/importMarketWorks/insertButton";
 import { TableMarketWorks } from "@/components/entryComponents/importMarketWorks/tableWorksMarket";
-import { Box, Paper } from "@mui/material";
+import { ImportButtonUpdates } from "@/components/updatesComponents/importButtonUpdates";
+import { UpdateButton } from "@/components/updatesComponents/updateButton";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
+import { Box, Paper } from "@mui/material";
 
 export const dynamic = "force-dynamic";
 
-export default async function MarketEntry() {
+export default async function MarketUpdates() {
   const cookieStore = await cookies();
 
-  const updatedTableData = cookieStore.get("marketEntryData")?.value;
+  const updatedTableData = cookieStore.get("marketUpdatesData")?.value;
 
   let data;
 
@@ -49,12 +49,10 @@ export default async function MarketEntry() {
     moCliente: "MO Cliente",
     moPlanejada: "MO plan",
     circuito: "Circuito",
-    parceira: "Parceira",
     referencia: "Referência",
   };
 
   const displayValue = {
-    parceira: "turma",
     tipo: "tipo_obra",
     municipio: "municipio",
     circuito: "circuito",
@@ -66,9 +64,9 @@ export default async function MarketEntry() {
         <div className="flex flex-col h-full lg:justify-between lg:items-center">
           <Paper className="p-6 mb-8 justify-start">
             <Box className="flex gap-4 flex-wrap">
-              <ImportButton storageKey="marketEntryData" />
+              <ImportButtonUpdates storageKey="marketUpdatesData" />
 
-              <InsertMarketWorksButton storageKey="marketEntryData" />
+              <UpdateButton storageKey="marketUpdatesData" />
             </Box>
           </Paper>
 
@@ -77,7 +75,7 @@ export default async function MarketEntry() {
             columns={columnMapping}
             selectOptionsByColumn={filters}
             displayValues={displayValue}
-            storageKey="marketEntryData"
+            storageKey="marketUpdatesData"
           />
         </div>
       </div>

@@ -26,6 +26,7 @@ describe("fetchData", () => {
     const result = await fetchData(mockBaseUrl, mockParams, mockToken);
 
     expect(result).toEqual({
+      success: true,
       token: mockToken,
       data: { nome: "João" },
     });
@@ -56,9 +57,13 @@ describe("fetchData", () => {
       })
     ) as any;
 
-    await expect(fetchData(mockBaseUrl, mockParams, mockToken)).rejects.toThrow(
-      "Erro 403"
-    );
+    const result = await fetchData(mockBaseUrl, mockParams, mockToken);
+
+    expect(result).toEqual({
+      success: false,
+      message: "Erro 403",
+      token: "mock-token",
+    });
   });
 
   it("Deve lançar erro genérico se a resposta da API não contiver mensagem", async () => {
@@ -69,8 +74,12 @@ describe("fetchData", () => {
       })
     ) as any;
 
-    await expect(fetchData(mockBaseUrl, mockParams, mockToken)).rejects.toThrow(
-      "Erro ao buscar os dados"
-    );
+    const result = await fetchData(mockBaseUrl, mockParams, mockToken);
+
+    expect(result).toEqual({
+      success: false,
+      message: "Erro ao buscar os dados",
+      token: "mock-token",
+    });
   });
 });

@@ -101,10 +101,32 @@ export class AuxiliaryBaseController {
     };
   }
 
+  @Delete('mercado')
+  @UseGuards(PermissionGuard)
+  async DeleteAuxiliaryBaseMarketWithoutId() {
+    await this.auxiliaryBaseService.delete('baseOv', undefined);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Obra removida com sucesso',
+    };
+  }
+
   @Delete('notas/:id')
   @UseGuards(PermissionGuard)
   async DeleteAuxiliaryBaseNotes(@Param('id', ParseIntPipe) id: number) {
     await this.auxiliaryBaseService.delete('baseNotes', id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Nota removida com sucesso',
+    };
+  }
+
+  @Delete('notas/')
+  @UseGuards(PermissionGuard)
+  async DeleteAuxiliaryBaseNotesWithoutId() {
+    await this.auxiliaryBaseService.delete('baseNotes', undefined);
 
     return {
       statusCode: HttpStatus.OK,

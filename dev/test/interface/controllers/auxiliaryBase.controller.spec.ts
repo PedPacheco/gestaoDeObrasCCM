@@ -146,8 +146,8 @@ describe('AuxiliaryBaseController', () => {
     });
   });
 
-  describe('DeleteAuxiliaryBaseNotes', () => {
-    it('should be call the method deleteAuxiliaryBaseNotes and return correctly data', async () => {
+  describe('DeleteAuxiliaryBaseMarket', () => {
+    it('should be call the method DeleteAuxiliaryBaseMarket and return correctly data', async () => {
       jest.spyOn(auxiliaryBaseService, 'delete').mockResolvedValue();
 
       const result =
@@ -158,6 +158,44 @@ describe('AuxiliaryBaseController', () => {
       };
 
       expect(auxiliaryBaseService.delete).toHaveBeenCalledWith('baseOv', 56);
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('DeleteAuxiliaryBaseMarketWithoutId', () => {
+    it('should be call the method DeleteAuxiliaryBaseMarketWithoutId and return correctly data', async () => {
+      jest.spyOn(auxiliaryBaseService, 'delete').mockResolvedValue();
+
+      const result =
+        await auxiliaryBaseController.DeleteAuxiliaryBaseMarketWithoutId();
+      const expectedResponse = {
+        statusCode: HttpStatus.OK,
+        message: 'Obra removida com sucesso',
+      };
+
+      expect(auxiliaryBaseService.delete).toHaveBeenCalledWith(
+        'baseOv',
+        undefined,
+      );
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('DeleteAuxiliaryBaseNotesWithoutId', () => {
+    it('should be call the method DeleteAuxiliaryBaseNotesWithoutId and return correctly data', async () => {
+      jest.spyOn(auxiliaryBaseService, 'delete').mockResolvedValue();
+
+      const result =
+        await auxiliaryBaseController.DeleteAuxiliaryBaseNotesWithoutId();
+      const expectedResponse = {
+        statusCode: HttpStatus.OK,
+        message: 'Nota removida com sucesso',
+      };
+
+      expect(auxiliaryBaseService.delete).toHaveBeenCalledWith(
+        'baseNotes',
+        undefined,
+      );
       expect(result).toEqual(expectedResponse);
     });
   });

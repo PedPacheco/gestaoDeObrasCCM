@@ -81,12 +81,11 @@ describe('UpdateNoteService', () => {
 
   afterEach(jest.clearAllMocks);
 
-  describe('Update', () => {
+  describe('update', () => {
     it('should throw BadRequestException if no data is provided', async () => {
       await expect(updateNoteService.update([])).rejects.toThrow(
         BadRequestException,
       );
-
       await expect(updateNoteService.update([])).rejects.toThrow(
         'Nenhum dado enviado.',
       );
@@ -101,9 +100,9 @@ describe('UpdateNoteService', () => {
           ovnota: '4001841383',
           entrada: new Date('2023-01-10'),
           referencia: 'REF123',
-          id_gpm: 101,
           id_empreendimento: 201,
           id_tipo: 1,
+          id_gpm: 101,
           id_circuito: 12,
           ano_plan: 2023,
           pep: 'PEP-123456',
@@ -135,7 +134,7 @@ describe('UpdateNoteService', () => {
       ]);
     });
 
-    it('should call updateOvRepository.update with transformed data when valid works exist', async () => {
+    it('should handle partial data correctly', async () => {
       await updateNoteService.update([
         {
           obra: '4001841383',
@@ -149,8 +148,31 @@ describe('UpdateNoteService', () => {
           idCircuito: null,
           anoplan: null,
           pep: null,
-          ordem_dci: null,
-          ordem_dcd: null,
+          ordem_dci: 'DCI001',
+          ordem_dcd: 'DCD001',
+          ordem_dca: '',
+          ordem_dcim: '',
+          moPlan: 1,
+          qtdePlan: null,
+          capexMoPlan: null,
+          capexMatPlan: null,
+        },
+        {
+          obra: '4001854143',
+          entrada: null,
+          prazo: null,
+          referencia: null,
+          idMunicipio: null,
+          idEmpreendimento: null,
+          idTipo: 154,
+          idTurma: null,
+          idCircuito: null,
+          anoplan: null,
+          pep: null,
+          ordem_dci: '',
+          ordem_dcd: '',
+          ordem_dca: 'DCA002',
+          ordem_dcim: 'DCIM002',
           moPlan: 1,
           qtdePlan: null,
           capexMoPlan: null,
@@ -159,11 +181,18 @@ describe('UpdateNoteService', () => {
       ]);
 
       expect(mockRepository.update).toHaveBeenCalledWith([
-        { id: 1, id_tipo: 1, mo_plan: 1, ovnota: '4001841383' },
+        {
+          id: 1,
+          id_tipo: 1,
+          mo_plan: 1,
+          ovnota: '4001841383',
+          ordem_dci: 'DCI001',
+          ordem_dcd: 'DCD001',
+        },
       ]);
     });
 
-    it('should call updateNoteRepository.update with transformed data when valid works not exist', async () => {
+    it('should call updateNoteRepository.update with [] when no matching works exist', async () => {
       mockFindExistingWorksService.findExistingNotes.mockResolvedValue(
         mockNotExistingNotes,
       );

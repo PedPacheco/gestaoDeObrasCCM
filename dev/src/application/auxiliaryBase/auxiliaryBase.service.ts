@@ -82,6 +82,8 @@ export class AuxiliaryBaseService {
       prazo: work.prazo,
       prazoTotal: work.prazoTotal,
       prazoTexto: work.prazoTexto,
+      moEmpresa: work.moEmpresa,
+      moCliente: work.moCliente,
       moPlanejada: work.moPlanejada,
       referencia: work.referencia,
       observacao: work.observacao,
@@ -92,7 +94,7 @@ export class AuxiliaryBaseService {
     }));
   }
 
-  async delete(tableToDelete: string, id: number): Promise<void> {
+  async delete(tableToDelete: string, id?: number): Promise<void> {
     await this.auxiliaryBaseRepository.delete(tableToDelete, id);
   }
 

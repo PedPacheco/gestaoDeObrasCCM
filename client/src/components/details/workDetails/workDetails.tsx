@@ -11,7 +11,7 @@ import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import DataItem from "./dataItem";
 import { EditableColumn } from "./editableColumn";
-import { updateWork } from "@/actions/works";
+import { UpdateWork } from "@/actions/works";
 
 dayjs.extend(customParseFormat);
 
@@ -82,7 +82,7 @@ export function WorkDetails({
   const handleSubmit = () => {
     startTransition(async () => {
       try {
-        const response = await updateWork(changedFields, idWork);
+        const response = await UpdateWork(changedFields, idWork);
 
         if (!response.success) {
           setError(response.error || "Erro ao salvar alterações");

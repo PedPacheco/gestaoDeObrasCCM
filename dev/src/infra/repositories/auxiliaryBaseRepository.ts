@@ -105,13 +105,20 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     return fatorMap;
   }
 
-  async delete(tableToDelete: string, id: number): Promise<any> {
+  async delete(tableToDelete: string, id?: number): Promise<any> {
     try {
       if (tableToDelete === 'baseOv') {
-        return await this.prisma.base_auxiliar_ov.delete({ where: { id } });
+        if (id) {
+          return await this.prisma.base_auxiliar_ov.delete({ where: { id } });
+        }
+        return await this.prisma.base_auxiliar_ov.deleteMany();
       }
 
-      return await this.prisma.base_auxiliar.delete({ where: { id } });
+      if (id) {
+        return await this.prisma.base_auxiliar.delete({ where: { id } });
+      } else {
+        return await this.prisma.base_auxiliar.deleteMany();
+      }
     } catch (error) {
       this.logger.error('Erro ao excluir obra: ', error.stack);
       throw error;

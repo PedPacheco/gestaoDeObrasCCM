@@ -3,7 +3,7 @@
 import dayjs from "dayjs";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { Cookies } from "react-cookie";
 
 import { fetchData } from "@/actions/fetchData.action";

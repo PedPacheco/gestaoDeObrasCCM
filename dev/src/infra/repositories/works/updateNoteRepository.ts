@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { NoteWorks } from 'src/domain/entities/works.entity';
 import { IUpdateNoteRepository } from 'src/domain/repositories/works/IUpdateNoteRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
@@ -7,7 +8,7 @@ export class UpdateNoteRepository implements IUpdateNoteRepository {
   private readonly logger = new Logger(UpdateNoteRepository.name);
   constructor(private readonly prisma: PrismaService) {}
 
-  async update(data: any[]): Promise<void> {
+  async update(data: Partial<NoteWorks>[]): Promise<void> {
     try {
       await this.prisma.$transaction(
         data.map((item: any) => {

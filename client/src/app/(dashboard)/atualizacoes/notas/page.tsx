@@ -7,13 +7,15 @@ import { InsertMarketWorksButton } from "@/components/entryComponents/importMark
 import { TableMarketWorks } from "@/components/entryComponents/importMarketWorks/tableWorksMarket";
 import { Box, Paper } from "@mui/material";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
+import { ImportButtonUpdates } from "@/components/updatesComponents/importButtonUpdates";
+import { UpdateButton } from "@/components/updatesComponents/updateButton";
 
 export const dynamic = "force-dynamic";
 
-export default async function MarketEntry() {
+export default async function NotesUpdates() {
   const cookieStore = await cookies();
 
-  const updatedTableData = cookieStore.get("marketEntryData")?.value;
+  const updatedTableData = cookieStore.get("notesUpdatesData")?.value;
 
   let data;
 
@@ -21,7 +23,7 @@ export default async function MarketEntry() {
     data = { data: [] };
   } else {
     data = await fetchData(
-      `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/mercado`,
+      `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/notas`,
       undefined,
       cookieStore.get("token")?.value,
       { cache: "no-store" }
@@ -33,23 +35,26 @@ export default async function MarketEntry() {
     tipo: true,
     municipio: true,
     circuito: true,
+    empreendimento: true,
   });
 
   const columnMapping = {
     id: "ID",
-    obra: "Obra",
+    obra: "Nota",
     pep: "Pep",
-    diagrama: "Diagrama",
+    dci: "Dci",
+    dcd: "Dcd",
+    dca: "Dca",
+    dcim: "Dcim",
     entrada: "Entrada",
     prazo: "Prazo",
-    prazoTotal: "Data Prazo",
     municipio: "Mun",
     tipo: "Tipo obra",
-    moEmpresa: "MO Empresa",
-    moCliente: "MO Cliente",
-    moPlanejada: "MO plan",
-    circuito: "Circuito",
+    empreendimento: "Empreendimento",
+    mo_plan: "MO plan",
+    qtde_plan: "Qtde Plan",
     parceira: "Parceira",
+    circuito: "Circuito",
     referencia: "Referência",
   };
 
@@ -58,6 +63,7 @@ export default async function MarketEntry() {
     tipo: "tipo_obra",
     municipio: "municipio",
     circuito: "circuito",
+    empreendimento: "empreendimento",
   };
 
   return (
@@ -66,9 +72,8 @@ export default async function MarketEntry() {
         <div className="flex flex-col h-full lg:justify-between lg:items-center">
           <Paper className="p-6 mb-8 justify-start">
             <Box className="flex gap-4 flex-wrap">
-              <ImportButton storageKey="marketEntryData" />
-
-              <InsertMarketWorksButton storageKey="marketEntryData" />
+              <ImportButtonUpdates storageKey="notesUpdatesData" />
+              <UpdateButton storageKey="notesUpdatesData" />
             </Box>
           </Paper>
 
@@ -77,7 +82,7 @@ export default async function MarketEntry() {
             columns={columnMapping}
             selectOptionsByColumn={filters}
             displayValues={displayValue}
-            storageKey="marketEntryData"
+            storageKey="notesUpdatesData"
           />
         </div>
       </div>

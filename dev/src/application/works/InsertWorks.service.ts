@@ -25,9 +25,11 @@ export class InsertWorksService {
     insertedCount: any;
     skipped: string[];
   }> {
-    const works = params.map((work: InsertMarketWorksDTO) =>
-      MarketWork.create(work),
-    );
+    const works = params.map((work: InsertMarketWorksDTO) => {
+      const marketWork = MarketWork.create(work);
+
+      return { ...marketWork, moPlanejada: marketWork.moPlanejada };
+    });
 
     if (works.length === 0) {
       throw new BadRequestException('Nenhuma obra fornecida para inserção.');

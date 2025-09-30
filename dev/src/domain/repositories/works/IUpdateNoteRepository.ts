@@ -1,7 +1,7 @@
 import { NoteWorks } from 'src/domain/entities/works.entity';
 
 export interface IUpdateNoteRepository {
-  update(data: NoteWorks[]): Promise<any>;
+  update(data: Partial<NoteWorks>[]): Promise<any>;
 }
 
 export const UPDATE_NOTE_REPOSITORY = Symbol('UpdateNoteRepository');

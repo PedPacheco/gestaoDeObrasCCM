@@ -5,7 +5,7 @@ import { WorkDetails } from "@/components/details/workDetails/workDetails";
 
 // Mock das dependências
 vi.mock("@/actions/works", () => ({
-  updateWork: vi.fn(),
+  UpdateWork: vi.fn(),
 }));
 
 vi.mock("@/contexts/userContext", () => {
@@ -242,8 +242,8 @@ describe("WorkDetails component", () => {
   });
 
   it("deve chamar updateWork ao salvar com sucesso", async () => {
-    const { updateWork } = await import("@/actions/works");
-    const mockUpdateWork = vi.mocked(updateWork);
+    const { UpdateWork } = await import("@/actions/works");
+    const mockUpdateWork = vi.mocked(UpdateWork);
     mockUpdateWork.mockResolvedValue({
       success: true,
       message: "Alterações salvas com sucesso",
@@ -266,8 +266,8 @@ describe("WorkDetails component", () => {
   });
 
   it("deve mostrar modal de sucesso após salvar", async () => {
-    const { updateWork } = await import("@/actions/works");
-    const mockUpdateWork = vi.mocked(updateWork);
+    const { UpdateWork } = await import("@/actions/works");
+    const mockUpdateWork = vi.mocked(UpdateWork);
     mockUpdateWork.mockResolvedValue({
       success: true,
       message: "Alterações salvas com sucesso",
@@ -293,8 +293,8 @@ describe("WorkDetails component", () => {
   });
 
   it("deve mostrar modal de erro quando updateWork falha", async () => {
-    const { updateWork } = await import("@/actions/works");
-    const mockUpdateWork = vi.mocked(updateWork);
+    const { UpdateWork } = await import("@/actions/works");
+    const mockUpdateWork = vi.mocked(UpdateWork);
     mockUpdateWork.mockResolvedValue({
       success: false,
       error: "Erro qualquer",
@@ -320,8 +320,8 @@ describe("WorkDetails component", () => {
   });
 
   it("deve mostrar modal de erro quando updateWork falha", async () => {
-    const { updateWork } = await import("@/actions/works");
-    const mockUpdateWork = vi.mocked(updateWork);
+    const { UpdateWork } = await import("@/actions/works");
+    const mockUpdateWork = vi.mocked(UpdateWork);
     mockUpdateWork.mockResolvedValue({
       success: false,
       error: undefined,
@@ -347,8 +347,8 @@ describe("WorkDetails component", () => {
   });
 
   it("deve mostrar erro de conexão quando updateWork lança exceção", async () => {
-    const { updateWork } = await import("@/actions/works");
-    const mockUpdateWork = vi.mocked(updateWork);
+    const { UpdateWork } = await import("@/actions/works");
+    const mockUpdateWork = vi.mocked(UpdateWork);
     mockUpdateWork.mockRejectedValue(new Error("Network error"));
 
     const user = userEvent.setup();
@@ -391,8 +391,8 @@ describe("WorkDetails component", () => {
   });
 
   it("deve mostrar 'Salvando...' durante o processo de salvamento", async () => {
-    const { updateWork } = await import("@/actions/works");
-    const mockUpdateWork = vi.mocked(updateWork);
+    const { UpdateWork } = await import("@/actions/works");
+    const mockUpdateWork = vi.mocked(UpdateWork);
 
     // Simular delay na resposta
     mockUpdateWork.mockImplementation(
@@ -424,8 +424,8 @@ describe("WorkDetails component", () => {
   });
 
   it("deve limpar changedFields após salvamento bem-sucedido", async () => {
-    const { updateWork } = await import("@/actions/works");
-    const mockUpdateWork = vi.mocked(updateWork);
+    const { UpdateWork } = await import("@/actions/works");
+    const mockUpdateWork = vi.mocked(UpdateWork);
     mockUpdateWork.mockResolvedValue({
       success: true,
       message: "Alterações salvas com sucesso",

@@ -20,6 +20,7 @@ export async function fetchFilters(params: { [key: string]: boolean } = {}) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
+      next: { revalidate: 3600 },
     }
   );
 

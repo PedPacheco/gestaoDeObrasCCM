@@ -14,12 +14,10 @@ interface InsertResult {
   skippedNotes?: string[];
 }
 
-// function buildRequestData(data: any[] | NotesInterface, storageKey: string) {
-//   return storageKey === "marketEntryData" ? { data } : data;
-// }
-
 function buildEndpoint(storageKey: string): string {
-  return storageKey === "marketEntryData" ? "mercado" : "notas";
+  return storageKey === "marketEntryData" || storageKey === "marketUpdatesData"
+    ? "mercado"
+    : "notas";
 }
 
 export async function InsertAuxiliaryBaseMarket(

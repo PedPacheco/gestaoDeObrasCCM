@@ -183,7 +183,12 @@ export function TableMarketWorks({
               }
             }
 
-            if (column === "moPlanejada" || column === "mo_plan") {
+            if (
+              column === "moPlanejada" ||
+              column === "mo_plan" ||
+              column === "moEmpresa" ||
+              column === "moCliente"
+            ) {
               value = FormatCurrency(value);
             }
 

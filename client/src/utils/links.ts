@@ -55,6 +55,14 @@ export const links = [
     ],
   },
   {
+    name: "Atualizações SAP",
+    needPermission: true,
+    submenu: [
+      { name: "Mercado", href: "/atualizacoes/mercado", needPermission: true },
+      { name: "Notas", href: "/atualizacoes/notas", needPermission: true },
+    ],
+  },
+  {
     name: "Programação",
     href: "/programacao",
     needPermission: false,

@@ -139,15 +139,16 @@ describe("ImportButton - Testes Prioritários", () => {
               tipo: "tipo1",
               circuito: "circ1",
               prazoTexto: "prazo1",
-              statusOV: "statusOV1",
+              statusOv: "statusOV1",
               statusDiagrama: "statusDiag1",
-              stausPep: "statusPep1",
+              statusPep: "statusPep1",
               equipeNumPedido: "equipe1",
               moCliente: "moCliente1",
               moEmpresa: "moEmpresa1",
             },
           ],
-          "marketEntryData"
+          "marketEntryData",
+          "insert"
         );
         expect(screen.getByTestId("modal")).toBeInTheDocument();
       });

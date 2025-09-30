@@ -257,6 +257,9 @@ export class InsertMarketWorksDTO {
   @IsNumber()
   idCircuito: number;
 
+  @IsNumber()
+  idParceira: number;
+
   @IsString()
   prazoTexto: string;
 
@@ -280,9 +283,6 @@ export class InsertMarketWorksDTO {
 
   @IsString()
   observacao: string;
-
-  @IsNumber()
-  idParceira: number;
 }
 
 export class InsertNotesDTO {
