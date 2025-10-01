@@ -29,8 +29,6 @@ export class CustomExceptionFilter implements ExceptionFilter {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
 
-      console.log(exceptionResponse);
-
       if (
         typeof exceptionResponse === 'object' &&
         exceptionResponse !== null &&

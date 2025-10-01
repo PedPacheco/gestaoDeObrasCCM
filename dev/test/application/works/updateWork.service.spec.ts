@@ -46,6 +46,7 @@ describe('UpdateWorkService', () => {
           id_turma: 4,
           tipo_ads: 'Convencional',
           data_empreitamento: new Date('05-17-2025'),
+          observ_obra: 'Observação',
         },
         1,
         mockTx,
@@ -57,6 +58,33 @@ describe('UpdateWorkService', () => {
           id_turma: 4,
           tipo_ads: 'Convencional',
           data_empreitamento: new Date('05-17-2025'),
+          observ_obra: 'Observação',
+        },
+        1,
+        mockTx,
+      );
+    });
+
+    it('should call method insertMarketWorks with observ_obra field null', async () => {
+      await updateWorkService.update(
+        {
+          id_status: 1,
+          id_turma: 4,
+          tipo_ads: 'Convencional',
+          data_empreitamento: new Date('05-17-2025'),
+          observ_obra: '        ',
+        },
+        1,
+        mockTx,
+      );
+
+      expect(mockRepository.update).toHaveBeenCalledWith(
+        {
+          id_status: 1,
+          id_turma: 4,
+          tipo_ads: 'Convencional',
+          data_empreitamento: new Date('05-17-2025'),
+          observ_obra: null,
         },
         1,
         mockTx,

@@ -269,8 +269,8 @@ export default function TabPanel({
   }, []);
 
   return (
-    <div className="w-full flex justify-center items-start">
-      <div className="w-[95%] mx-auto max-h-[620px] shadow-lg flex flex-col overflow-hidden">
+    <div className="w-full xl:h-full flex justify-center items-start">
+      <div className="w-[95%] mx-auto max-h-[620px] xl:max-h-full xl:h-[90%] shadow-lg flex flex-col overflow-hidden">
         <div className="border-b border-solid border-zinc-300">
           <div className="flex items-center justify-between">
             <Tabs
@@ -281,10 +281,10 @@ export default function TabPanel({
               scrollButtons="auto"
               className="flex-1"
             >
-              <Tab label="Custos" />
-              <Tab label="Programações" />
-              <Tab label="Relatórios execuções" />
-              <Tab label="Serviços" />
+              <Tab label="Custos" className="xl:text-lg" />
+              <Tab label="Programações" className="xl:text-lg" />
+              <Tab label="Relatórios execuções" className="xl:text-lg" />
+              <Tab label="Serviços" className="xl:text-lg" />
             </Tabs>
 
             {value === 1 && (

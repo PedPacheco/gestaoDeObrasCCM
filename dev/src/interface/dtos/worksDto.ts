@@ -135,6 +135,10 @@ export class UpdateWorkDTO {
   @IsOptional()
   @IsIn(['CONVENCIONAL', 'PONTO A PONTO'])
   tipo_ads: string;
+
+  @IsString()
+  @IsOptional()
+  observ_obra?: string;
 }
 
 export class ContractUpdateDTO {
