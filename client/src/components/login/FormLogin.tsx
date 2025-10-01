@@ -6,15 +6,14 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useUser } from "@/contexts/userContext";
 import { userLoginSchema } from "@/validations/validationUserLogin";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
-import { ErrorMessage } from "@hookform/error-message";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Checkbox, TextField } from "@mui/material";
 
-import ErrorModal from "../common/ErrorModal";
 import { ButtonComponent } from "../common/Button";
-import { useUser } from "@/contexts/userContext";
+import ErrorModal from "../common/ErrorModal";
 
 type UserLoginSchema = z.infer<typeof userLoginSchema>;
 
@@ -49,7 +48,6 @@ export function FormLogin() {
       setIsModalOpen(true);
     }
   }
-
   return (
     <form
       onSubmit={handleSubmit(handleUserLogin)}
@@ -61,11 +59,8 @@ export function FormLogin() {
             className="w-full mb-2"
             label="Digite seu usuário"
             {...register("user")}
-          />
-          <ErrorMessage
-            errors={errors}
-            name="user"
-            render={({ message }) => <p className="text-red-700">{message}</p>}
+            error={!!errors.user}
+            helperText={errors.user?.message}
           />
         </div>
 
@@ -75,11 +70,8 @@ export function FormLogin() {
             label="Digite sua senha"
             {...register("password")}
             type={showPassword ? "text" : "password"}
-          />
-          <ErrorMessage
-            errors={errors}
-            name="password"
-            render={({ message }) => <p className="text-red-700">{message}</p>}
+            error={!!errors.password}
+            helperText={errors.password?.message}
           />
         </div>
       </div>

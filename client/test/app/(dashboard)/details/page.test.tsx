@@ -90,6 +90,7 @@ describe("Details Page", () => {
     vi.mocked(cookiesModule.cookies).mockReturnValue(mockCookieStore as any);
 
     vi.mocked(fetchData).mockResolvedValue({
+      success: true,
       token: "mock-token",
       data: mockData,
     });
@@ -132,6 +133,7 @@ describe("Details Page", () => {
     const modifiedData = { ...mockData, grupo: 2, ano_plan: currentYear };
 
     vi.mocked(fetchData).mockResolvedValueOnce({
+      success: true,
       token: "mock-token",
       data: modifiedData,
     });
@@ -152,6 +154,7 @@ describe("Details Page", () => {
     };
 
     vi.mocked(fetchData).mockResolvedValueOnce({
+      success: true,
       token: "mock-token",
       data: modifiedData,
     });
@@ -168,6 +171,7 @@ describe("Details Page", () => {
     const modifiedData = { ...mockData, grupo: 1 };
 
     vi.mocked(fetchData).mockResolvedValueOnce({
+      success: true,
       token: "mock-token",
       data: modifiedData,
     });

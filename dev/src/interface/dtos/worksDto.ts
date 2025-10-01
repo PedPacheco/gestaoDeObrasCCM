@@ -4,6 +4,7 @@ import {
   IsBoolean,
   IsDate,
   IsIn,
+  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
@@ -134,6 +135,10 @@ export class UpdateWorkDTO {
   @IsOptional()
   @IsIn(['CONVENCIONAL', 'PONTO A PONTO'])
   tipo_ads: string;
+
+  @IsString()
+  @IsOptional()
+  observ_obra?: string;
 }
 
 export class ContractUpdateDTO {
@@ -152,4 +157,173 @@ export class ContractUpdateDTO {
   @IsString()
   @IsIn(['CONVENCIONAL', 'PONTO A PONTO'])
   tipoAds: string;
+}
+
+export class UpdateNotesDTO {
+  @IsNotEmpty()
+  @IsString()
+  obra: string;
+
+  @IsOptional()
+  @IsDate()
+  @Type(() => Date)
+  entrada?: Date;
+
+  @IsOptional()
+  @IsString()
+  prazo?: string;
+
+  @IsString()
+  referencia: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  idMunicipio: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  idEmpreendimento: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  idTipo: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  idTurma: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  idCircuito: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  anoplan?: number;
+
+  @IsNotEmpty()
+  @IsString()
+  pep: string;
+
+  @IsOptional()
+  @IsString()
+  ordem_dci?: string;
+
+  @IsOptional()
+  @IsString()
+  ordem_dcd?: string;
+
+  @IsOptional()
+  @IsString()
+  ordem_dca?: string;
+
+  @IsOptional()
+  @IsString()
+  ordem_dcim?: string;
+
+  @IsOptional()
+  @IsNumber()
+  moPlan?: number;
+
+  @IsOptional()
+  @IsNumber()
+  qtdePlan?: number;
+
+  @IsOptional()
+  @IsNumber()
+  capexMoPlan?: number;
+
+  @IsOptional()
+  @IsNumber()
+  capexMatPlan?: number;
+}
+
+export class InsertMarketWorksDTO {
+  @IsString()
+  @IsNotEmpty()
+  obra: string;
+
+  @IsString()
+  pep: string;
+
+  @IsString()
+  diagrama: string;
+
+  @IsDate()
+  @Type(() => Date)
+  entrada: Date;
+
+  @IsNumber()
+  idMunicipio: number;
+
+  @IsNumber()
+  idTipo: number;
+
+  @IsNumber()
+  idCircuito: number;
+
+  @IsNumber()
+  idParceira: number;
+
+  @IsString()
+  prazoTexto: string;
+
+  @IsNumber()
+  statusOv: number;
+
+  @IsString()
+  statusDiagrama: string;
+
+  @IsString()
+  statusPep: string;
+
+  @IsString()
+  equipeNumPedido: string;
+
+  @IsNumber()
+  moCliente: number;
+
+  @IsNumber()
+  moEmpresa: number;
+}
+
+export class InsertNotesDTO {
+  @IsNotEmpty()
+  @IsString()
+  obra: string;
+
+  @IsDate()
+  entrada: Date;
+
+  @IsString()
+  prazo: string;
+
+  @IsString()
+  referencia: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  aux_gpm: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  aux_empreendimento: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  aux_tipo: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  aux_turma: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  aux_circuito: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  aux_tecnico: number;
+
+  @IsNumber()
+  anoplan: number;
 }

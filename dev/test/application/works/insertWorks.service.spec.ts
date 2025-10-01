@@ -4,7 +4,7 @@ import { INSERT_WORKS_REPOSITORY } from 'src/domain/repositories/works/IInsertWo
 
 import { InsertWorksService } from 'src/application/works/InsertWorks.service';
 import { FindExistingWorksService } from 'src/application/works/findExistingWorks.service';
-import { AuxiliaryBaseService } from 'src/application/auxiliaryBase.service';
+import { AuxiliaryBaseService } from 'src/application/auxiliaryBase/auxiliaryBase.service';
 import { mockMarketWorks } from '../../../test/mocks/mockWorksController';
 import { mockGetNotes } from '../../../test/mocks/mockAuxiliaryBaseRepository';
 import { mockMappedNotes } from '../../../test/mocks/mocksAuxiliaryBaseController';
@@ -58,7 +58,10 @@ describe('InsertWorksService', () => {
     it('should call method insertMarketWorks and throw error if no data is valid', async () => {
       jest
         .spyOn(findExistingWorksService, 'findExistingWorks')
-        .mockResolvedValue(['1424535', '1424537']);
+        .mockResolvedValue([
+          { id: 1, ovnota: '1424535' },
+          { id: 2, ovnota: '1424537' },
+        ]);
 
       await expect(
         insertWorksService.insertMarketWorks(mockMarketWorks),
@@ -74,17 +77,25 @@ describe('InsertWorksService', () => {
     it('should call method insertMarketWorks and return the default format of data', async () => {
       jest
         .spyOn(findExistingWorksService, 'findExistingWorks')
-        .mockResolvedValue(['14245356']);
+        .mockResolvedValue([{ id: 1, ovnota: '14245356' }]);
 
       const result =
         await insertWorksService.insertMarketWorks(mockMarketWorks);
 
       expect(mockRepository.insertMarketWorks).toHaveBeenCalledWith(
-        mockMarketWorks,
+        mockMarketWorks.map((work) => ({
+          ...work,
+          id: undefined,
+          moPlanejada: 7500,
+        })),
       );
       expect(result).toEqual({
         message: 'Inserção concluída com sucesso.',
-        insertedCount: mockMarketWorks,
+        insertedCount: mockMarketWorks.map((work) => ({
+          ...work,
+          id: undefined,
+          moPlanejada: 7500,
+        })),
         skipped: ['14245356'],
       });
     });

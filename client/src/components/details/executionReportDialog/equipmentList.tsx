@@ -27,6 +27,7 @@ const PREFIXES: Record<string, string> = {
 const POWER_OPTIONS: Record<string, string[]> = {
   "Banco capacitor": ["300", "600", "1200"],
   Transformador: [
+    "1,5",
     "5",
     "10",
     "15",

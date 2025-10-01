@@ -69,15 +69,15 @@ export function ImportButton({ storageKey }: ImportButtonProps) {
             tipo: row[5],
             circuito: row[6],
             prazoTexto: row[7],
-            statusOV: row[9],
+            statusOv: row[9],
             statusDiagrama: row[10],
-            stausPep: row[11],
+            statusPep: row[11],
             equipeNumPedido: row[12],
             moCliente: row[13],
             moEmpresa: row[14],
           }));
 
-        const res = await InsertAuxiliaryBaseMarket(data, storageKey);
+        const res = await InsertAuxiliaryBaseMarket(data, storageKey, "insert");
 
         if (!res.success) {
           resetFileInputs();
@@ -152,7 +152,11 @@ export function ImportButton({ storageKey }: ImportButtonProps) {
         const batches = createBatches(groupData, cn52nData, 500);
 
         for (const batch of batches) {
-          const res = await InsertAuxiliaryBaseMarket(batch, storageKey);
+          const res = await InsertAuxiliaryBaseMarket(
+            batch,
+            storageKey,
+            "insert"
+          );
 
           insertedCounts += res.insertedCount || 0;
 

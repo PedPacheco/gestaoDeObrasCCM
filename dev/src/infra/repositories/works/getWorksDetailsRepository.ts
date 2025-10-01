@@ -80,6 +80,7 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
             tipo_servico: true,
             prog: true,
             exec: true,
+            observacao_programacao: true,
             equip_desligado: true,
             chi: true,
             num_dp: true,

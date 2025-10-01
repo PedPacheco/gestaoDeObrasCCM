@@ -12,8 +12,23 @@ export class FindExistingWorksService {
     private readonly findExistingWorksRepository: IFindExistingWorksRepository,
   ) {}
 
-  async findExistingWorks(works: string[]): Promise<string[]> {
+  async findExistingWorks(
+    works: string[],
+  ): Promise<{ id: number; ovnota: string }[]> {
     return await this.findExistingWorksRepository.findExistingWorks(works);
+  }
+
+  async findExistingNotes(filters: any[]): Promise<
+    {
+      id: number;
+      ovnota: string;
+      ordemDci: string;
+      ordemDcd: string;
+      ordemDca: string;
+      ordemDcim: string;
+    }[]
+  > {
+    return await this.findExistingWorksRepository.findExistingNotes(filters);
   }
 
   async findExistingOrders(orders: filtersOrders[]) {

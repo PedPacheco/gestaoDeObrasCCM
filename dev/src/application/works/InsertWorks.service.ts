@@ -3,13 +3,13 @@ import {
   IInsertWorksRepository,
   INSERT_WORKS_REPOSITORY,
 } from 'src/domain/repositories/works/IInsertWorksRepository';
-import { InsertMarketWorksDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
 import { NotesEntriesInterface } from 'src/interface/types/works/insertNotesInterface';
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 
-import { AuxiliaryBaseService } from '../auxiliaryBase.service';
+import { AuxiliaryBaseService } from '../auxiliaryBase/auxiliaryBase.service';
 import { FindExistingWorksService } from './findExistingWorks.service';
+import { InsertMarketWorksDTO } from 'src/interface/dtos/worksDto';
 
 @Injectable()
 export class InsertWorksService {
@@ -25,27 +25,11 @@ export class InsertWorksService {
     insertedCount: any;
     skipped: string[];
   }> {
-    const works = params.map(
-      (work: InsertMarketWorksDTO) =>
-        new MarketWork(
-          work.obra,
-          work.pep,
-          work.entrada,
-          work.prazoTexto,
-          work.equipeNumPedido,
-          work.idMunicipio,
-          work.idTipo,
-          work.idParceira,
-          work.idCircuito,
-          work.diagrama,
-          work.observacao,
-          work.statusOv,
-          work.statusDiagrama,
-          work.statusPep,
-          work.moCliente,
-          work.moEmpresa,
-        ),
-    );
+    const works = params.map((work: InsertMarketWorksDTO) => {
+      const marketWork = MarketWork.create(work);
+
+      return { ...marketWork, moPlanejada: marketWork.moPlanejada };
+    });
 
     if (works.length === 0) {
       throw new BadRequestException('Nenhuma obra fornecida para inserção.');
@@ -56,13 +40,14 @@ export class InsertWorksService {
     const existingOvs =
       await this.findExistingWorksService.findExistingWorks(marketEntry);
 
-    const existingOvsSet = new Set(existingOvs);
+    const existingOvsSet = new Set(existingOvs.map((o) => o.ovnota));
 
     const newData = works.filter((item) => !existingOvsSet.has(item.obra));
 
     if (newData.length === 0) {
+      const existingOvsStr = existingOvs.map((o) => o.ovnota).join(', ');
       throw new BadRequestException(
-        `Todas as obras já existem no banco de dados: ${existingOvs.join(', ')}`,
+        `Todas as obras já existem no banco de dados: ${existingOvsStr}`,
       );
     }
 
@@ -71,7 +56,7 @@ export class InsertWorksService {
     return {
       message: 'Inserção concluída com sucesso.',
       insertedCount: newData,
-      skipped: existingOvs,
+      skipped: existingOvs.map((o) => o.ovnota),
     };
   }
 
@@ -85,31 +70,29 @@ export class InsertWorksService {
       const group = groups.find((group) => group.id === work.tipo);
       const dataEntries = noteEntries.find((item) => item.obra === work.obra);
 
-      const entity = new NoteWorks(
-        work.obra,
-        work.pep,
-        dataEntries.entrada,
-        dataEntries.prazo,
-        dataEntries.referencia,
-        dataEntries.aux_gpm,
-        dataEntries.aux_tipo,
-        dataEntries.aux_turma,
-        dataEntries.aux_circuito,
-        work.dci,
-        work.dcd,
-        work.dca,
-        work.dcim,
-        dataEntries.referencia,
-        work.qtde_plan,
-        work.mo_plan,
-        dataEntries.aux_empreendimento,
-        group.id_grupo,
-        work.capex_mat_plan,
-        work.capex_mo_plan,
-        dataEntries.anoplan,
-      );
-
-      entity.validateNota();
+      const entity = NoteWorks.create({
+        obra: work.obra,
+        pep: work.pep,
+        entrada: dataEntries.entrada,
+        prazoTexto: dataEntries.prazo,
+        equipeNumPedido: dataEntries.referencia,
+        idMunicipio: dataEntries.aux_gpm,
+        idTipo: dataEntries.aux_tipo,
+        idParceira: dataEntries.aux_turma,
+        idCircuito: dataEntries.aux_circuito,
+        dci: work.dci,
+        dcd: work.dcd,
+        dca: work.dca,
+        dcim: work.dcim,
+        referencia: dataEntries.referencia,
+        qtdePlanejada: work.qtde_plan,
+        moPlanejada: work.mo_plan,
+        idEmpreendimento: dataEntries.aux_empreendimento,
+        idGrupo: group.id_grupo,
+        capexMoPlan: work.capex_mo_plan,
+        capexMatPlan: work.capex_mat_plan,
+        anoPlan: dataEntries.anoplan,
+      });
 
       return entity;
     });

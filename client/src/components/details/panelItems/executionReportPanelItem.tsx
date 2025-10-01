@@ -91,7 +91,7 @@ export default function ExecutionReportPanelItem({
 
   return (
     <>
-      <TableContainer className="h-[320px] overflow-y-auto">
+      <TableContainer className="h-full overflow-y-auto">
         <Table stickyHeader>
           <TableHead>
             <TableRow>
@@ -204,7 +204,7 @@ export default function ExecutionReportPanelItem({
 
                     return (
                       <TableCell
-                        className="py-1 px-2 text-center border-r font-medium text-base border-zinc-700 border-solid text-nowrap"
+                        className="py-1 px-2 text-center border-r font-medium text-lg border-zinc-700 border-solid text-nowrap"
                         key={index}
                       >
                         {displayValue}

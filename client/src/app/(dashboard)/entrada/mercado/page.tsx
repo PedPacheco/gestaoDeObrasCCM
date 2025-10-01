@@ -45,6 +45,8 @@ export default async function MarketEntry() {
     prazoTotal: "Data Prazo",
     municipio: "Mun",
     tipo: "Tipo obra",
+    moEmpresa: "MO Empresa",
+    moCliente: "MO Cliente",
     moPlanejada: "MO plan",
     circuito: "Circuito",
     parceira: "Parceira",
