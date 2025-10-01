@@ -284,9 +284,6 @@ export class InsertMarketWorksDTO {
 
   @IsNumber()
   moEmpresa: number;
-
-  @IsString()
-  observacao: string;
 }
 
 export class InsertNotesDTO {

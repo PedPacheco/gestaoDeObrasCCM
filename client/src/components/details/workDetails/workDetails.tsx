@@ -209,8 +209,7 @@ export function WorkDetails({
         <p className="h-full xl:text-lg font-semibold min-w-28 text-center border-r border-zinc-700 border-solid flex items-center justify-start">
           Observação
         </p>
-        <input
-          type="text"
+        <textarea
           value={editableData.observ_obra || ""}
           onChange={(e: { target: { value: string } }) =>
             handleDataChange("observ_obra", e.target.value)
