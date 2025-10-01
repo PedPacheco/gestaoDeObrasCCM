@@ -1,4 +1,4 @@
-import { NoteWorks, Work } from 'src/domain/entities/works.entity';
+import { MarketWork, NoteWorks } from 'src/domain/entities/works.entity';
 
 export interface Groups {
   id: number;
@@ -6,7 +6,7 @@ export interface Groups {
 }
 
 export interface IInsertWorksRepository {
-  insertMarketWorks(works: Work[]): Promise<void>;
+  insertMarketWorks(works: Partial<MarketWork>[]): Promise<void>;
   insertNotes(data: NoteWorks[]): Promise<void>;
   getGroup(): Promise<Groups[]>;
 }

@@ -1,7 +1,8 @@
 import {
   InsertMarketWorksDTO,
   InsertNotesDTO,
-} from 'src/interface/dtos/auxiliaryBaseDTO';
+  UpdateNotesDTO,
+} from 'src/interface/dtos/worksDto';
 import { worksInPortfolioResponseService } from 'src/interface/types/works/getWorksInPortfolioInterface';
 
 export const mockMarketWorks: InsertMarketWorksDTO[] = [
@@ -21,7 +22,7 @@ export const mockMarketWorks: InsertMarketWorksDTO[] = [
     moCliente: 5000,
     moEmpresa: 2500,
     observacao: 'Obra urgente, prioridade alta.',
-    idParceira: 101,
+    idParceira: 1,
   },
   {
     obra: '1424537',
@@ -39,7 +40,7 @@ export const mockMarketWorks: InsertMarketWorksDTO[] = [
     moCliente: 5000,
     moEmpresa: 2500,
     observacao: 'Obra urgente, prioridade alta.',
-    idParceira: 101,
+    idParceira: 1,
   },
 ];
 
@@ -119,6 +120,7 @@ export const mockResponseDetails = {
       tipo_servico: 'OBRA LIVRE',
       prog: 45,
       exec: null,
+      observacao_programacao: 'Obra em conjunto',
       equip_desligado: 'TRECHO LIVRE',
       chi: 0,
       num_dp: null,
@@ -224,3 +226,44 @@ export const mockAllWorks = {
   ],
   totalRecords: 1,
 };
+
+export const mockUpdateNotes: UpdateNotesDTO[] = [
+  {
+    obra: '4001841383',
+    entrada: new Date('2023-01-10'),
+    prazo: '30',
+    referencia: 'REF123',
+    idMunicipio: 101,
+    idEmpreendimento: 201,
+    idTipo: 1,
+    idTurma: 5,
+    idCircuito: 12,
+    anoplan: 2023,
+    pep: 'PEP-123456',
+    ordem_dci: 'DCI001',
+    ordem_dcd: 'DCD001',
+    moPlan: 100,
+    qtdePlan: 50,
+    capexMoPlan: 20000,
+    capexMatPlan: 15000,
+  },
+  {
+    obra: '4001854143',
+    entrada: new Date('2023-02-15'),
+    prazo: '45 dias',
+    referencia: 'REF456',
+    idMunicipio: 102,
+    idEmpreendimento: 202,
+    idTipo: 2,
+    idTurma: 6,
+    idCircuito: 15,
+    anoplan: 2024,
+    pep: 'PEP-654321',
+    ordem_dca: 'DCA002',
+    ordem_dcim: 'DCIM002',
+    moPlan: 120,
+    qtdePlan: 60,
+    capexMoPlan: 25000,
+    capexMatPlan: 18000,
+  },
+];

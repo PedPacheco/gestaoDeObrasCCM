@@ -19,6 +19,8 @@ export const mockMappedMarketWorks = [
     statusPep: 'Completo',
     statusDiagrama: 'Ativo',
     equipeNumPedido: '175ET005244969DSRB02',
+    moCliente: 1483,
+    moEmpresa: 0,
   },
 ];
 

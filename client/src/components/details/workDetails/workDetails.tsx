@@ -11,7 +11,7 @@ import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import DataItem from "./dataItem";
 import { EditableColumn } from "./editableColumn";
-import { updateWork } from "@/actions/works";
+import { UpdateWork } from "@/actions/works";
 
 dayjs.extend(customParseFormat);
 
@@ -73,6 +73,7 @@ export function WorkDetails({
     id_status: data.id_status,
     id_turma: data.id_turma,
     tipo_ads: data.tipo_ads,
+    observ_obra: data.observ_obra,
   });
   const [changedFields, setChangedFields] =
     useState<Record<string, string | null>>();
@@ -82,7 +83,7 @@ export function WorkDetails({
   const handleSubmit = () => {
     startTransition(async () => {
       try {
-        const response = await updateWork(changedFields, idWork);
+        const response = await UpdateWork(changedFields, idWork);
 
         if (!response.success) {
           setError(response.error || "Erro ao salvar alterações");
@@ -208,9 +209,14 @@ export function WorkDetails({
         <p className="h-full xl:text-lg font-semibold min-w-28 text-center border-r border-zinc-700 border-solid flex items-center justify-start">
           Observação
         </p>
-        <p className="w-full xl:text-lg font-medium text-start pl-5 py-2">
-          {data.observ_obra}
-        </p>
+        <input
+          type="text"
+          value={editableData.observ_obra || ""}
+          onChange={(e: { target: { value: string } }) =>
+            handleDataChange("observ_obra", e.target.value)
+          }
+          className="flex-1 h-full min-w-32 lg:min-w-36 font-medium text-xl text-center p-2 bg-transparent focus:outline-none"
+        />
       </div>
 
       <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>

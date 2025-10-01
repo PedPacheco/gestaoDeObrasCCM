@@ -11,7 +11,7 @@ import {
   mockInsertNotesWithDefaultIdRepository,
 } from '../../../../test/mocks/mockInsertWorksRepository';
 
-describe('InserWorksRepositor', () => {
+describe('InserWorksRepository', () => {
   let repository: InsertWorksRepository;
 
   const mockPrisma = {
@@ -66,7 +66,7 @@ describe('InserWorksRepositor', () => {
             observ_obra: 'Obra em andamento',
             id_gpm: 10,
             id_tipo: 2,
-            prazo: 0,
+            prazo: 120,
             mo_planejada: 1483,
             id_turma: 1,
             id_circuito: 5,

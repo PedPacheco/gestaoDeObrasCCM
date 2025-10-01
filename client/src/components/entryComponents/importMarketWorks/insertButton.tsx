@@ -42,7 +42,7 @@ export function InsertMarketWorksButton({
             diagrama: item.diagrama,
             entrada: item.entrada,
             idMunicipio: item.municipio,
-            idTipo: item.tipo_obra,
+            idTipo: item.tipo,
             idCircuito: item.circuito,
             prazoTexto: item.prazoTexto,
             equipeNumPedido: item.referencia,

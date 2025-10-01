@@ -87,7 +87,7 @@ export default async function Details({
   return (
     <EmotionCacheProvider>
       <div className="flex flex-col items-center w-full h-full">
-        <div className="w-full mt-6 flex flex-col">
+        <div className="w-full h-full mt-6 flex flex-col">
           <WorkDetails
             data={data}
             idWork={Number(id)}

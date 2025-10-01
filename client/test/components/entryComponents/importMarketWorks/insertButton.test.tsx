@@ -132,7 +132,7 @@ describe("InsertButton component", () => {
         diagrama: "DIA-001",
         entrada: "2025-08-26",
         municipio: 42,
-        tipo_obra: 3,
+        tipo: 3,
         circuito: 7,
         prazoTexto: "30 dias",
         referencia: "EQP-2025-01",

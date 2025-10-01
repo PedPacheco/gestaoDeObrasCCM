@@ -15,11 +15,16 @@ describe('AuxiliaryBaseRepository', () => {
   let repository: AuxiliaryBaseRepository;
 
   const mockPrisma = {
-    base_auxiliar: { findMany: jest.fn(), delete: jest.fn() },
+    base_auxiliar: {
+      findMany: jest.fn(),
+      delete: jest.fn(),
+      deleteMany: jest.fn(),
+    },
     base_auxiliar_ov: {
       findMany: jest.fn(),
       delete: jest.fn(),
       createMany: jest.fn(),
+      deleteMany: jest.fn(),
     },
     conversao: { findMany: jest.fn() },
     municipios: { findMany: jest.fn() },
@@ -165,11 +170,25 @@ describe('AuxiliaryBaseRepository', () => {
       expect(mockPrisma.base_auxiliar.delete).not.toHaveBeenCalled();
     });
 
+    it('Should delete data of base_auxiliar_ov without id', async () => {
+      await repository.delete('baseOv', undefined);
+
+      expect(mockPrisma.base_auxiliar_ov.deleteMany).toHaveBeenCalled();
+      expect(mockPrisma.base_auxiliar.deleteMany).not.toHaveBeenCalled();
+    });
+
     it('Should delete data of base_auxiliar', async () => {
       await repository.delete('baseNote', 56);
 
       expect(mockPrisma.base_auxiliar_ov.delete).not.toHaveBeenCalled();
       expect(mockPrisma.base_auxiliar.delete).toHaveBeenCalled();
+    });
+
+    it('Should delete data of base_auxiliar without id', async () => {
+      await repository.delete('baseNote', undefined);
+
+      expect(mockPrisma.base_auxiliar_ov.deleteMany).not.toHaveBeenCalled();
+      expect(mockPrisma.base_auxiliar.deleteMany).toHaveBeenCalled();
     });
 
     it('should log error if createMany fails', async () => {

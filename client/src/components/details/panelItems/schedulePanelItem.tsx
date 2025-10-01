@@ -171,7 +171,7 @@ export default function SchedulePanelItem({
 
   return (
     <>
-      <TableContainer className="h-[320px] overflow-y-auto">
+      <TableContainer className="xl:h-full overflow-y-auto">
         <Table stickyHeader>
           <TableHead>
             <TableRow>
@@ -243,7 +243,7 @@ export default function SchedulePanelItem({
                 {columnConfig.map((col) => (
                   <TableCell
                     key={col.key}
-                    className={`py-1 px-2 text-center border-r font-medium text-base border-zinc-700 border-solid ${
+                    className={`py-1 px-2 text-center border-r font-medium text-lg border-zinc-700 border-solid ${
                       col.key === "equip_desligado" ||
                       col.key === "observacao_programacao"
                         ? "text-wrap"

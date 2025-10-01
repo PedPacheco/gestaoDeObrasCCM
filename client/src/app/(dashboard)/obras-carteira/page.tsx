@@ -1,4 +1,3 @@
-import dayjs from "dayjs";
 import { cookies } from "next/headers";
 
 import { fetchData } from "@/actions/fetchData.action";
@@ -42,6 +41,10 @@ export default async function WorksInPortfolio() {
   ]);
 
   const { data, token } = worksData;
+
+  const filteredStatus = filters.status.filter(
+    (item: { id: number }) => ![1, 2].includes(item.id)
+  );
 
   const columnMapping = {
     id: "ID",
@@ -88,7 +91,7 @@ export default async function WorksInPortfolio() {
       <PortfolioWorks
         data={data}
         token={token}
-        filtersData={filters}
+        filtersData={{ ...filters, status: filteredStatus }}
         cookie="portfolioWorksFilters"
         columns={columnMapping}
         totalValues={21}
