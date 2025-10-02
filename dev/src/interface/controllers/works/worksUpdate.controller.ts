@@ -81,7 +81,7 @@ export class WorksUpdateController {
     };
   }
 
-  @Post('atualizar-capex')
+  @Post('atualizar-nota')
   @UseGuards(PermissionGuard)
   async updateNote(@Body() data: UpdateNotesDTO[]) {
     await this.updateNoteService.update(data);

@@ -92,8 +92,6 @@ export class UpdateNoteService {
         id: matchedWork.id,
         obra: work.obra,
         pep: work.pep,
-        entrada: work.entrada,
-        prazoTexto: work.prazo,
         equipeNumPedido: work.referencia,
         idMunicipio: work.idMunicipio,
         idTipo: work.idTipo,

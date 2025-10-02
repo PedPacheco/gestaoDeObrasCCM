@@ -66,7 +66,7 @@ export function InsertMarketWorksButton({
             aux_turma: item.parceira,
             aux_circuito: item.circuito,
             aux_tecnico: item.tecnico,
-            anoplan: item.anoplan,
+            anoplan: Number(item.anoplan),
           }));
         }
 
