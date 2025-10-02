@@ -109,7 +109,6 @@ export function UpdateButton({ storageKey }: UpdateButtonProps) {
             : "Atualizar Notas"
         )}
         disabled={isPending}
-        styled="w-64"
       />
 
       <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>

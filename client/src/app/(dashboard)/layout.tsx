@@ -13,7 +13,7 @@ export default function DashboardLayout({
         <div className="relative flex min-h-screen max-w-full flex-1 flex-col">
           <Header />
 
-          <main className="overflow-y-auto h-[calc(100vh-3.5rem)]">
+          <main className="h-[calc(100vh-3.5rem)]">
             <div className="flex h-full flex-col items-center">
               <div className="py-2 w-4/5">
                 <BreadcrumpsComponent />

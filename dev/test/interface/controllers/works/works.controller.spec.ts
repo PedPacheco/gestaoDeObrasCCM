@@ -1,5 +1,11 @@
 import { plainToInstance } from 'class-transformer';
-import { WorksController } from 'src/interface/controllers/works.controller';
+import { validate } from 'class-validator';
+import { UsersService } from 'src/application/users.service';
+import { GetAllWorksService } from 'src/application/works/getAllWorks.service';
+import { GetCompletedWorksService } from 'src/application/works/getCompletedWorks.service';
+import { GetWorkDetailsService } from 'src/application/works/getWorkDetails.service';
+import { GetWorksInPortfolioService } from 'src/application/works/getWorksInPortfolio.service';
+import { WorksController } from 'src/interface/controllers/works/works.controller';
 import {
   GetAllWorksDTO,
   GetWorksDTO,
@@ -11,23 +17,9 @@ import { Test } from '@nestjs/testing';
 
 import {
   mockAllWorks,
-  mockInsertNotesController,
-  mockMarketWorks,
   mockResponseDetails,
-  mockUpdateNotes,
   mockWorksInPortfolio,
-} from '../../mocks/mockWorksController';
-import { InsertWorksService } from 'src/application/works/InsertWorks.service';
-import { GetWorkDetailsService } from 'src/application/works/getWorkDetails.service';
-import { GetWorksInPortfolioService } from 'src/application/works/getWorksInPortfolio.service';
-import { GetCompletedWorksService } from 'src/application/works/getCompletedWorks.service';
-import { GetAllWorksService } from 'src/application/works/getAllWorks.service';
-import { UsersService } from 'src/application/users.service';
-import { HandleWorkUpdateService } from 'src/application/orchestrators/handleWorkUpdate.service';
-import { validate } from 'class-validator';
-import { ContractUpdateService } from 'src/application/works/contractUpdate.service';
-import { UpdateOvService } from 'src/application/works/updateOv.service';
-import { UpdateNoteService } from 'src/application/works/updateNote.service';
+} from '../../../mocks/mockWorksController';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -40,11 +32,6 @@ describe('WorksController', () => {
   let getCompletedWorksService: GetCompletedWorksService;
   let getWorksInPortfolio: GetWorksInPortfolioService;
   let getWorkDetailsService: GetWorkDetailsService;
-  let insertWorksService: InsertWorksService;
-  let handleWorkUpdateService: HandleWorkUpdateService;
-  let contractUpdateService: ContractUpdateService;
-  let updateOvService: UpdateOvService;
-  let updateNoteService: UpdateNoteService;
 
   const mockReq: CustomRequest = {
     idParceira: 1,
@@ -69,14 +56,6 @@ describe('WorksController', () => {
           useValue: { getWorksInPortfolio: jest.fn() },
         },
         { provide: UsersService, useValue: { findUser: jest.fn() } },
-        {
-          provide: InsertWorksService,
-          useValue: { insertMarketWorks: jest.fn(), insertNotes: jest.fn() },
-        },
-        { provide: HandleWorkUpdateService, useValue: { update: jest.fn() } },
-        { provide: ContractUpdateService, useValue: { update: jest.fn() } },
-        { provide: UpdateOvService, useValue: { update: jest.fn() } },
-        { provide: UpdateNoteService, useValue: { update: jest.fn() } },
       ],
     }).compile();
 
@@ -91,15 +70,6 @@ describe('WorksController', () => {
     getWorkDetailsService = module.get<GetWorkDetailsService>(
       GetWorkDetailsService,
     );
-    insertWorksService = module.get<InsertWorksService>(InsertWorksService);
-    handleWorkUpdateService = module.get<HandleWorkUpdateService>(
-      HandleWorkUpdateService,
-    );
-    contractUpdateService = module.get<ContractUpdateService>(
-      ContractUpdateService,
-    );
-    updateOvService = module.get<UpdateOvService>(UpdateOvService);
-    updateNoteService = module.get<UpdateNoteService>(UpdateNoteService);
   });
 
   it('Should be defined', () => {
@@ -331,146 +301,6 @@ describe('WorksController', () => {
       };
 
       expect(getWorkDetailsService.get).toHaveBeenCalledWith(worksDetails);
-      expect(result).toEqual(expectedResponse);
-    });
-  });
-
-  describe('InsertMarketWorks', () => {
-    it('Should be call the method insertMarketWorks and return the correctly data', async () => {
-      jest.spyOn(insertWorksService, 'insertMarketWorks').mockResolvedValue({
-        insertedCount: 1,
-        message: 'Inserção concluída com sucesso.',
-        skipped: ['14895757'],
-      });
-
-      const result = await worksController.InsertMarketWorks(mockMarketWorks);
-
-      const expectedResponse = {
-        statusCode: HttpStatus.OK,
-        message: 'Inserção concluída com sucesso.',
-        insertedCount: 1,
-        skipped: ['14895757'],
-      };
-
-      expect(insertWorksService.insertMarketWorks).toHaveBeenCalledWith(
-        mockMarketWorks,
-      );
-      expect(result).toEqual(expectedResponse);
-    });
-  });
-
-  describe('InsertNotes', () => {
-    it('Should be call the method insertNotes and return the correctly data', async () => {
-      jest.spyOn(insertWorksService, 'insertNotes').mockResolvedValue();
-
-      const result = await worksController.InsertNotes(
-        mockInsertNotesController,
-      );
-
-      const expectedResponse = {
-        statusCode: HttpStatus.OK,
-        message: 'Notas inseridas com sucesso',
-      };
-
-      expect(insertWorksService.insertNotes).toHaveBeenCalledWith(
-        mockInsertNotesController,
-      );
-      expect(result).toEqual(expectedResponse);
-    });
-  });
-
-  describe('Update', () => {
-    it('Should be call the method Update and return the correctly data', async () => {
-      jest.spyOn(handleWorkUpdateService, 'update').mockResolvedValue();
-
-      const result = await worksController.Update(
-        1,
-        {
-          id_turma: 1,
-          id_status: 4,
-          tipo_ads: 'Convencional',
-          data_empreitamento: new Date('05-17-2025'),
-        },
-        mockReq as CustomRequest,
-      );
-
-      const expectedResponse = {
-        statusCode: HttpStatus.OK,
-        message: 'Obras atualizada com sucesso',
-      };
-
-      expect(handleWorkUpdateService.update).toHaveBeenCalledWith(
-        {
-          id_turma: 1,
-          id_status: 4,
-          tipo_ads: 'Convencional',
-          data_empreitamento: new Date('05-17-2025'),
-        },
-        1,
-        true,
-      );
-      expect(result).toEqual(expectedResponse);
-    });
-  });
-
-  describe('ContractUpdate', () => {
-    it('Should be call the method ContractUpdate and return the correctly data', async () => {
-      jest.spyOn(contractUpdateService, 'update').mockResolvedValue();
-
-      const result = await worksController.ContractUpdate([
-        {
-          ovnota: '3435',
-          ordemDiagrama: '43435',
-          tipoAds: 'Convencional',
-          dataEmpreitamento: new Date('05-17-2025'),
-        },
-      ]);
-
-      const expectedResponse = {
-        statusCode: HttpStatus.OK,
-        message: 'Empreitamento das obras atualizado com sucesso',
-      };
-
-      expect(contractUpdateService.update).toHaveBeenCalledWith([
-        {
-          ovnota: '3435',
-          ordemDiagrama: '43435',
-          tipoAds: 'Convencional',
-          dataEmpreitamento: new Date('05-17-2025'),
-        },
-      ]);
-      expect(result).toEqual(expectedResponse);
-    });
-  });
-
-  describe('UpdateOV', () => {
-    it('Should call the update method of the UpdateOv service correctly', async () => {
-      jest.spyOn(updateOvService, 'update').mockResolvedValue();
-
-      const result = await worksController.updateOv(mockMarketWorks);
-
-      const expectedResponse = {
-        statusCode: HttpStatus.OK,
-        message: 'Obras atualizada com sucesso',
-      };
-
-      expect(updateOvService.update).toHaveBeenCalledWith(mockMarketWorks);
-      expect(result).toEqual(expectedResponse);
-    });
-  });
-
-  describe('UpdateNote', () => {
-    it('Should call the update method of the UpdateNote service correctly', async () => {
-      jest.spyOn(updateNoteService, 'update').mockResolvedValue();
-
-      const result = await worksController.updateNote(mockUpdateNotes);
-
-      const expectedResponse = {
-        statusCode: HttpStatus.OK,
-        message: 'Obras atualizada com sucesso',
-      };
-
-      expect(updateNoteService.update).toHaveBeenCalledWith(mockUpdateNotes);
       expect(result).toEqual(expectedResponse);
     });
   });

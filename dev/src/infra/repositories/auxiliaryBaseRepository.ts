@@ -154,7 +154,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
           tipo: item.tipo,
           circuito: item.circuito,
           prazo_texto: item.prazoTexto,
-          status_ov: item.statusOv,
+          status_ov: Number(item.statusOv),
           status_diagrama: item.statusDiagrama,
           status_pep: item.statusPep,
           equip_num_pedido: item.equipeNumPedido,

@@ -1,0 +1,109 @@
+import { GetAllWorksService } from 'src/application/works/getAllWorks.service';
+import { GetCompletedWorksService } from 'src/application/works/getCompletedWorks.service';
+import { GetWorkDetailsService } from 'src/application/works/getWorkDetails.service';
+import { GetWorksInPortfolioService } from 'src/application/works/getWorksInPortfolio.service';
+import { PermissionGuard } from 'src/core/guards/permission.guard';
+import { VisualizationGuard } from 'src/core/guards/visualization.guard';
+import { GetAllWorksDTO, GetWorksDTO } from 'src/interface/dtos/worksDto';
+
+import {
+  Controller,
+  Get,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+
+interface CustomRequest extends Request {
+  idParceira?: number;
+  insufficientPermission?: boolean;
+}
+
+@Controller('obras')
+export class WorksController {
+  constructor(
+    private getWorksInPortfolioService: GetWorksInPortfolioService,
+    private getAllWorksService: GetAllWorksService,
+    private getCompletedWorksService: GetCompletedWorksService,
+    private getWorkDetailsService: GetWorkDetailsService,
+  ) {}
+
+  private applyFilters<
+    T extends {
+      idParceira?: number | number[];
+      insufficientPermission?: boolean;
+    },
+  >(filters: T, req: CustomRequest): T {
+    if (req.idParceira) {
+      filters.idParceira = req.idParceira;
+    }
+    if (req.insufficientPermission !== undefined) {
+      filters.insufficientPermission = req.insufficientPermission;
+    }
+    return filters;
+  }
+
+  @Get()
+  @UseGuards(PermissionGuard)
+  async getAllWorks(
+    @Query() worksFilters: GetAllWorksDTO,
+    @Req() req: CustomRequest,
+  ) {
+    const filters = this.applyFilters(worksFilters, req);
+    const response = await this.getAllWorksService.getAllWorks(filters);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Todas as obras retornadas com sucesso',
+      data: response,
+    };
+  }
+
+  @Get('obras-carteira')
+  @UseGuards(VisualizationGuard)
+  async getWorksInPortfolio(
+    @Query() worksFilters: GetWorksDTO,
+    @Req() req: CustomRequest,
+  ) {
+    const filters = this.applyFilters(worksFilters, req);
+    const response =
+      await this.getWorksInPortfolioService.getWorksInPortfolio(filters);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Obras em carteira retornadas com sucesso',
+      data: response,
+    };
+  }
+
+  @Get('obras-executadas')
+  @UseGuards(VisualizationGuard)
+  async GetCompletedWorks(
+    @Query() worksFilters: GetWorksDTO,
+    @Req() req: CustomRequest,
+  ) {
+    const filters = this.applyFilters(worksFilters, req);
+    const response =
+      await this.getCompletedWorksService.getCompletedWorks(filters);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Obras em executadas retornadas com sucesso',
+      data: response,
+    };
+  }
+
+  @Get(':id')
+  async getWorkDetails(@Param('id', ParseIntPipe) id: number) {
+    const response = await this.getWorkDetailsService.get(id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Retornado os detalhes da obra',
+      data: response,
+    };
+  }
+}

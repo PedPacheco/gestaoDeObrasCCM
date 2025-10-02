@@ -103,13 +103,10 @@ export class UpdateNoteService {
         dcd: work.ordem_dcd,
         dca: work.ordem_dca,
         dcim: work.ordem_dcim,
-        referencia: work.referencia,
         qtdePlanejada: work.qtdePlan,
         moPlanejada: work.moPlan,
         idEmpreendimento: work.idEmpreendimento,
         idGrupo: group.id_grupo,
-        capexMoPlan: work.capexMoPlan,
-        capexMatPlan: work.capexMatPlan,
         anoPlan: work.anoplan,
       }).toPrismaUpdate();
     });

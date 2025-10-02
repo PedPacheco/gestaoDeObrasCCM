@@ -21,7 +21,6 @@ export const mockMarketWorks: InsertMarketWorksDTO[] = [
     equipeNumPedido: 'EQP-123',
     moCliente: 5000,
     moEmpresa: 2500,
-    observacao: 'Obra urgente, prioridade alta.',
     idParceira: 1,
   },
   {
@@ -39,7 +38,6 @@ export const mockMarketWorks: InsertMarketWorksDTO[] = [
     equipeNumPedido: 'EQP-123',
     moCliente: 5000,
     moEmpresa: 2500,
-    observacao: 'Obra urgente, prioridade alta.',
     idParceira: 1,
   },
 ];

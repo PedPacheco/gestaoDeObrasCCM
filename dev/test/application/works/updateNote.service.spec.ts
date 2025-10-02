@@ -1,9 +1,11 @@
-import { BadRequestException } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
 import { FindExistingWorksService } from 'src/application/works/findExistingWorks.service';
 import { UpdateNoteService } from 'src/application/works/updateNote.service';
 import { INSERT_WORKS_REPOSITORY } from 'src/domain/repositories/works/IInsertWorksRepository';
 import { UPDATE_NOTE_REPOSITORY } from 'src/domain/repositories/works/IUpdateNoteRepository';
+
+import { BadRequestException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+
 import { mockUpdateNotes } from '../../mocks/mockWorksController';
 
 describe('UpdateNoteService', () => {
@@ -98,7 +100,6 @@ describe('UpdateNoteService', () => {
         {
           id: 1,
           ovnota: '4001841383',
-          entrada: new Date('2023-01-10'),
           referencia: 'REF123',
           id_empreendimento: 201,
           id_tipo: 1,
@@ -110,13 +111,10 @@ describe('UpdateNoteService', () => {
           ordem_dcd: 'DCD001',
           mo_plan: 100,
           qtde_plan: 50,
-          capex_mo_plan: 20000,
-          capex_mat_plan: 15000,
         },
         {
           id: 2,
           ovnota: '4001854143',
-          entrada: new Date('2023-02-15'),
           referencia: 'REF456',
           id_gpm: 102,
           id_empreendimento: 202,
@@ -128,8 +126,6 @@ describe('UpdateNoteService', () => {
           ordem_dcim: 'DCIM002',
           mo_plan: 120,
           qtde_plan: 60,
-          capex_mo_plan: 25000,
-          capex_mat_plan: 18000,
         },
       ]);
     });
@@ -138,8 +134,6 @@ describe('UpdateNoteService', () => {
       await updateNoteService.update([
         {
           obra: '4001841383',
-          entrada: null,
-          prazo: null,
           referencia: null,
           idMunicipio: null,
           idEmpreendimento: null,
@@ -154,13 +148,9 @@ describe('UpdateNoteService', () => {
           ordem_dcim: '',
           moPlan: 1,
           qtdePlan: null,
-          capexMoPlan: null,
-          capexMatPlan: null,
         },
         {
           obra: '4001854143',
-          entrada: null,
-          prazo: null,
           referencia: null,
           idMunicipio: null,
           idEmpreendimento: null,
@@ -175,8 +165,6 @@ describe('UpdateNoteService', () => {
           ordem_dcim: 'DCIM002',
           moPlan: 1,
           qtdePlan: null,
-          capexMoPlan: null,
-          capexMatPlan: null,
         },
       ]);
 
