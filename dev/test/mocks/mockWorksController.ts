@@ -21,7 +21,6 @@ export const mockMarketWorks: InsertMarketWorksDTO[] = [
     equipeNumPedido: 'EQP-123',
     moCliente: 5000,
     moEmpresa: 2500,
-    observacao: 'Obra urgente, prioridade alta.',
     idParceira: 1,
   },
   {
@@ -39,7 +38,6 @@ export const mockMarketWorks: InsertMarketWorksDTO[] = [
     equipeNumPedido: 'EQP-123',
     moCliente: 5000,
     moEmpresa: 2500,
-    observacao: 'Obra urgente, prioridade alta.',
     idParceira: 1,
   },
 ];
@@ -230,8 +228,6 @@ export const mockAllWorks = {
 export const mockUpdateNotes: UpdateNotesDTO[] = [
   {
     obra: '4001841383',
-    entrada: new Date('2023-01-10'),
-    prazo: '30',
     referencia: 'REF123',
     idMunicipio: 101,
     idEmpreendimento: 201,
@@ -244,13 +240,9 @@ export const mockUpdateNotes: UpdateNotesDTO[] = [
     ordem_dcd: 'DCD001',
     moPlan: 100,
     qtdePlan: 50,
-    capexMoPlan: 20000,
-    capexMatPlan: 15000,
   },
   {
     obra: '4001854143',
-    entrada: new Date('2023-02-15'),
-    prazo: '45 dias',
     referencia: 'REF456',
     idMunicipio: 102,
     idEmpreendimento: 202,
@@ -263,7 +255,5 @@ export const mockUpdateNotes: UpdateNotesDTO[] = [
     ordem_dcim: 'DCIM002',
     moPlan: 120,
     qtdePlan: 60,
-    capexMoPlan: 25000,
-    capexMatPlan: 18000,
   },
 ];

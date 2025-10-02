@@ -21,7 +21,7 @@ export class UpdateWorkService {
       );
     }
 
-    if (data.observ_obra.trim() === '') {
+    if (data.observ_obra?.trim() === '') {
       data.observ_obra = null;
     }
 

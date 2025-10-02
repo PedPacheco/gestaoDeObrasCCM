@@ -58,15 +58,12 @@ export function UpdateButton({ storageKey }: UpdateButtonProps) {
         } else {
           data = parsedData.map((item: any) => ({
             obra: item.obra,
-            entrada: item.entrada,
-            prazo: item.prazo,
             referencia: item.referencia,
             idMunicipio: item.municipio,
             idEmpreendimento: item.empreendimento,
             idTipo: item.tipo,
             idTurma: item.parceira,
             idCircuito: item.circuito,
-            anoPlan: item.anoplan,
             pep: item.pep,
             ordem_dci: item.dci,
             ordem_dcd: item.dcd,
@@ -74,8 +71,7 @@ export function UpdateButton({ storageKey }: UpdateButtonProps) {
             ordem_dcim: item.dcim,
             moPlan: item.mo_plan,
             qtdePlan: item.qtde_plan,
-            capexMatPlan: item.capex_mat_plan,
-            capexMoPlan: item.capex_mo_plan,
+            anoplan: Number(item.anoplan),
           }));
         }
 
@@ -109,7 +105,6 @@ export function UpdateButton({ storageKey }: UpdateButtonProps) {
             : "Atualizar Notas"
         )}
         disabled={isPending}
-        styled="w-64"
       />
 
       <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>

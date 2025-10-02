@@ -92,7 +92,6 @@ describe('UpdateOvService', () => {
           equipeNumPedido: null,
           moCliente: null,
           moEmpresa: null,
-          observacao: 'Obra urgente, prioridade alta.',
           idParceira: 1,
         },
       ]);

@@ -30,7 +30,7 @@ describe('UpdateOvRepository', () => {
       prazo: 30,
       status_diagrama: 'PENDING',
       status_pep: 'APPROVED',
-      status_ov: 'OPEN',
+      status_ov: '50',
     },
     {
       id: 2,
@@ -45,7 +45,7 @@ describe('UpdateOvRepository', () => {
       prazo: 45,
       status_diagrama: 'COMPLETED',
       status_pep: 'PENDING',
-      status_ov: 'CLOSED',
+      status_ov: '51',
     },
   ];
 
@@ -88,7 +88,7 @@ describe('UpdateOvRepository', () => {
           id_gpm: item.id_gpm,
           id_tipo: item.id_tipo,
           id_circuito: item.id_circuito,
-          status_ov_sap: item.status_ov,
+          status_ov_sap: Number(item.status_ov),
           prazo: item.prazo,
           status_diagrama: item.status_diagrama,
           status_pep: item.status_pep,

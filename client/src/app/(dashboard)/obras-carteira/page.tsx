@@ -43,7 +43,7 @@ export default async function WorksInPortfolio() {
   const { data, token } = worksData;
 
   const filteredStatus = filters.status.filter(
-    (item: { id: number }) => ![1, 2].includes(item.id)
+    (item: { id: number }) => ![2, 3].includes(item.id)
   );
 
   const columnMapping = {
