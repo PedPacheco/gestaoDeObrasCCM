@@ -31,11 +31,11 @@ export class ScheduleExecutionValidatorService {
       );
     }
 
-    if (data.prog === data.exec) {
+    if (data.prog <= data.exec) {
       await this.statusFlowRepository.updateScheduleStatus(4, data.id, tx);
 
       if (totalExecuted + data.exec < 100) {
-        await this.statusFlowRepository.updateStatusWorks(37, data.idWork, tx, {
+        await this.statusFlowRepository.updateStatusWorks(36, data.idWork, tx, {
           totalExecuted: totalExecuted + data.exec,
         });
       }

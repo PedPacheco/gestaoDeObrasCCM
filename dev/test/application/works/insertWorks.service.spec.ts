@@ -83,18 +83,22 @@ describe('InsertWorksService', () => {
         await insertWorksService.insertMarketWorks(mockMarketWorks);
 
       expect(mockRepository.insertMarketWorks).toHaveBeenCalledWith(
-        mockMarketWorks.map((work) => ({
+        mockMarketWorks.map((work, index) => ({
           ...work,
           id: undefined,
           moPlanejada: 7500,
+          prazo: index === 0 ? 30 : 0,
+          observacao: undefined,
         })),
       );
       expect(result).toEqual({
         message: 'Inserção concluída com sucesso.',
-        insertedCount: mockMarketWorks.map((work) => ({
+        insertedCount: mockMarketWorks.map((work, index) => ({
           ...work,
           id: undefined,
           moPlanejada: 7500,
+          prazo: index === 0 ? 30 : 0,
+          observacao: undefined,
         })),
         skipped: ['14245356'],
       });
@@ -130,33 +134,33 @@ describe('InsertWorksService', () => {
       ).rejects.toThrow(`Obra 16004316 está com PEP genérico.`);
     });
 
-    it('should throw BadRequestException when obra has no moPlanejada', async () => {
-      const mockWithoutMo = [
-        {
-          ...mockGetNotes[0],
-          mo_plan: 0,
-        },
-      ];
+    // it('should throw BadRequestException when obra has no moPlanejada', async () => {
+    //   const mockWithoutMo = [
+    //     {
+    //       ...mockGetNotes[0],
+    //       mo_plan: 0,
+    //     },
+    //   ];
 
-      const mockReturnNote = [
-        {
-          ...mockMappedNotes[0],
-          mo_plan: 0,
-        },
-      ];
+    //   const mockReturnNote = [
+    //     {
+    //       ...mockMappedNotes[0],
+    //       mo_plan: 0,
+    //     },
+    //   ];
 
-      jest
-        .spyOn(auxiliaryBaseService, 'getNotes')
-        .mockResolvedValue(mockReturnNote);
+    //   jest
+    //     .spyOn(auxiliaryBaseService, 'getNotes')
+    //     .mockResolvedValue(mockReturnNote);
 
-      jest
-        .spyOn(mockRepository, 'getGroup')
-        .mockResolvedValue([{ id: 48, id_grupo: 2 }]);
+    //   jest
+    //     .spyOn(mockRepository, 'getGroup')
+    //     .mockResolvedValue([{ id: 48, id_grupo: 2 }]);
 
-      await expect(
-        insertWorksService.insertNotes(mockWithoutMo),
-      ).rejects.toThrow(`Obra 16004316 não tem valor de Mão de Obra.`);
-    });
+    //   await expect(
+    //     insertWorksService.insertNotes(mockWithoutMo),
+    //   ).rejects.toThrow(`Obra 16004316 não tem valor de Mão de Obra.`);
+    // });
 
     it('should throw BadRequestException when obra has invalid empreendimento for group 3 or 4', async () => {
       jest

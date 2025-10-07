@@ -49,8 +49,6 @@ export default async function NotesUpdates() {
     municipio: "Mun",
     tipo: "Tipo obra",
     empreendimento: "Empreendimento",
-    mo_plan: "MO plan",
-    qtde_plan: "Qtde Plan",
     parceira: "Parceira",
     circuito: "Circuito",
     referencia: "Referência",

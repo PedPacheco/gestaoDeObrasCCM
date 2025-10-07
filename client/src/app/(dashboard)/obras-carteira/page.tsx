@@ -61,6 +61,7 @@ export default async function WorksInPortfolio() {
     entrada: "Entrada",
     prazo: "Prazo",
     prazo_fim: "Prazo Fim",
+    ano_plan: "Ano do Plano",
     abrev_regional: "Regional",
     tipo_obra: "Tipo",
     qtde_planejada: "Qtde plan",

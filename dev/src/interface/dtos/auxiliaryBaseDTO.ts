@@ -1,13 +1,5 @@
-import { Transform, Type } from 'class-transformer';
-import {
-  IsArray,
-  IsDate,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsDate, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class InsertBaseAuxiliaryMarketDTO {
   @IsString()
@@ -93,42 +85,4 @@ export class NotesDTO {
 
   @IsString()
   denominacao: string;
-}
-
-class MaterialDTO {
-  @IsString()
-  diagrama_rede: string;
-
-  @IsString()
-  ctg_item: string;
-
-  @IsString()
-  um_registro: string;
-
-  @IsString()
-  texto_material: string;
-
-  @IsNumber()
-  qtd_necess: number;
-
-  @IsNumber()
-  preco_mi: number;
-
-  @IsString()
-  material: string;
-
-  @IsString()
-  def_proj: string;
-}
-
-export class InsertBaseAuxiliaryNotesDTO {
-  @ValidateNested({ each: true })
-  @Type(() => NotesDTO)
-  notesData: NotesDTO;
-
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => MaterialDTO)
-  materialData: MaterialDTO[];
 }

@@ -201,9 +201,8 @@ describe("ImportButton - Testes Prioritários", () => {
     });
   });
 
-  describe("Upload Duplo (IW38 + CN52N)", () => {
+  describe("Upload IW38 ", () => {
     it("deve processar dois arquivos em sequência corretamente", async () => {
-      // Setup mocks para dois workbooks
       const mockWorkbook1 = {
         xlsx: { load: vi.fn() },
         worksheets: [
@@ -237,90 +236,31 @@ describe("ImportButton - Testes Prioritários", () => {
         ],
       };
 
-      const mockWorkbook2 = {
-        xlsx: { load: vi.fn() },
-        worksheets: [
-          {
-            getSheetValues: vi
-              .fn()
-              .mockReturnValue([
-                null,
-                null,
-                [
-                  "",
-                  "",
-                  "diagrama1",
-                  "def1",
-                  "mat1",
-                  "texto_mat1",
-                  "",
-                  "",
-                  "ctg1",
-                  "",
-                  "um1",
-                  "preco1",
-                  "qtd1",
-                ],
-              ]),
-          },
-        ],
-      };
+      (ExcelJS.Workbook as Mock).mockImplementation(() => mockWorkbook1);
 
-      (ExcelJS.Workbook as Mock)
-        .mockImplementationOnce(() => mockWorkbook1)
-        .mockImplementationOnce(() => mockWorkbook2);
-
-      (groupNoteDate as Mock).mockReturnValue({ grouped: "data" });
-      (createBatches as Mock).mockReturnValue([["batch1"], ["batch2"]]);
-
-      (InsertAuxiliaryBaseMarket as Mock)
-        .mockResolvedValueOnce({
-          success: true,
-          insertedCount: 3,
-          skippedNotes: ["note1"],
-        })
-        .mockResolvedValueOnce({
-          success: true,
-          insertedCount: 2,
-          skippedNotes: ["note2"],
-        });
+      (InsertAuxiliaryBaseMarket as Mock).mockResolvedValue({
+        success: true,
+        insertedCount: 3,
+        skippedNotes: ["note2"],
+      });
 
       const { container } = render(<ImportButton storageKey="otherData" />);
 
       const iw38Input = container.querySelector(
         'input[type="file"]:first-of-type'
       ) as HTMLInputElement;
-      const cn52nInput = container.querySelector(
-        'input[type="file"]:last-of-type'
-      ) as HTMLInputElement;
 
       const iw38File = new MockFile(["test"], "iw38.xlsx");
-      const cn52nFile = new MockFile(["test"], "cn52n.xlsx");
 
-      // Selecionar primeiro arquivo
       await act(async () => {
         fireEvent.change(iw38Input, { target: { files: [iw38File] } });
       });
 
-      // Selecionar segundo arquivo após delay
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 150));
-        fireEvent.change(cn52nInput, { target: { files: [cn52nFile] } });
-      });
-
-      // Verificar processamento completo
       await waitFor(() => {
         expect(groupNoteDate).toHaveBeenCalled();
-        expect(createBatches).toHaveBeenCalledWith(
-          { grouped: "data" },
-          expect.any(Array),
-          500
-        );
-        expect(InsertAuxiliaryBaseMarket).toHaveBeenCalledTimes(2);
+        expect(InsertAuxiliaryBaseMarket).toHaveBeenCalledTimes(1);
         expect(screen.getByTestId("modal")).toBeInTheDocument();
-        expect(
-          screen.getByText(/Notas ignoradas: note1, note2/)
-        ).toBeInTheDocument();
+        expect(screen.getByText(/Notas ignoradas: note2/)).toBeInTheDocument();
       });
     });
 
@@ -383,17 +323,9 @@ describe("ImportButton - Testes Prioritários", () => {
       const iw38Input = container.querySelector(
         'input[type="file"]:first-of-type'
       ) as HTMLInputElement;
-      const cn52nInput = container.querySelector(
-        'input[type="file"]:last-of-type'
-      ) as HTMLInputElement;
 
       await act(async () => {
         fireEvent.change(iw38Input, { target: { files: undefined } });
-      });
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 150));
-        fireEvent.change(cn52nInput, { target: { files: undefined } });
       });
 
       await waitFor(() => {

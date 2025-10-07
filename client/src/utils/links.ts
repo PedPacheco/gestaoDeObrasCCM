@@ -60,6 +60,7 @@ export const links = [
     submenu: [
       { name: "Mercado", href: "/atualizacoes/mercado", needPermission: true },
       { name: "Notas", href: "/atualizacoes/notas", needPermission: true },
+      { name: "Capex - MO", href: "/atualizacoes/capex", needPermission: true },
     ],
   },
   {

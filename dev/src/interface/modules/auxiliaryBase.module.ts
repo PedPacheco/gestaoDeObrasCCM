@@ -22,6 +22,12 @@ import { AuxiliaryMarketInsertService } from 'src/application/auxiliaryBase/auxi
       useClass: AuxiliaryBaseRepository,
     },
   ],
-  exports: [AuxiliaryBaseService],
+  exports: [
+    AuxiliaryBaseService,
+    {
+      provide: AUXILIARY_BASE_REPOSITORY,
+      useClass: AuxiliaryBaseRepository,
+    },
+  ],
 })
 export class AuxiliaryBaseModule {}

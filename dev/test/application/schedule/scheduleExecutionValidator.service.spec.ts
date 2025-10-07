@@ -67,7 +67,7 @@ describe('ScheduleExecutionValidatorService', () => {
         mockStatusFlowRepository.updateScheduleStatus,
       ).toHaveBeenCalledWith(4, 1, mockTransaction);
       expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
-        37,
+        36,
         1,
         mockTransaction,
         { totalExecuted: 90 },

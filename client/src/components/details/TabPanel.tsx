@@ -118,7 +118,7 @@ export default function TabPanel({
 
     setValidatedSchedule(
       workData.programacoes
-        .filter((item: any) => item.exec === null)
+        .filter((item: any) => item.exec === null && !item.validada)
         .map((item: any) => ({
           id: item.id,
           validate: false,

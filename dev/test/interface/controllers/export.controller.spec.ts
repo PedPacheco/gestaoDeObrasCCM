@@ -43,6 +43,7 @@ describe('ExportController', () => {
         mo_planejada: 5,
         status: 'Planejado',
         turma: 'Equipe Alpha',
+        ano_plan: 2025,
         executado: 50,
         data_empreitamento: new Date('2024-02-20T00:00:00.000Z'),
         empreendimento: 'Empreendimento X',

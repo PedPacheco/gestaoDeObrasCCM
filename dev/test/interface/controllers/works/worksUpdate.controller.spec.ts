@@ -1,6 +1,7 @@
 import { HandleWorkUpdateService } from 'src/application/orchestrators/handleWorkUpdate.service';
 import { UsersService } from 'src/application/users.service';
 import { ContractUpdateService } from 'src/application/works/contractUpdate.service';
+import { UpdateCapexService } from 'src/application/works/updateCapex.service';
 import { UpdateNoteService } from 'src/application/works/updateNote.service';
 import { UpdateOvService } from 'src/application/works/updateOv.service';
 import { WorksUpdateController } from 'src/interface/controllers/works/worksUpdate.controller';
@@ -10,6 +11,7 @@ import { Test } from '@nestjs/testing';
 
 import {
   mockMarketWorks,
+  mockMaterialCapex,
   mockUpdateNotes,
 } from '../../../mocks/mockWorksController';
 
@@ -24,6 +26,7 @@ describe('WorksUpdateController', () => {
   let contractUpdateService: ContractUpdateService;
   let updateOvService: UpdateOvService;
   let updateNoteService: UpdateNoteService;
+  let updateCapexService: UpdateCapexService;
 
   const mockReq: CustomRequest = {
     idParceira: 1,
@@ -35,7 +38,7 @@ describe('WorksUpdateController', () => {
       controllers: [WorksUpdateController],
       providers: [
         { provide: UsersService, useValue: { findUser: jest.fn() } },
-
+        { provide: UpdateCapexService, useValue: { update: jest.fn() } },
         { provide: HandleWorkUpdateService, useValue: { update: jest.fn() } },
         { provide: ContractUpdateService, useValue: { update: jest.fn() } },
         { provide: UpdateOvService, useValue: { update: jest.fn() } },
@@ -52,6 +55,7 @@ describe('WorksUpdateController', () => {
     );
     updateOvService = module.get<UpdateOvService>(UpdateOvService);
     updateNoteService = module.get<UpdateNoteService>(UpdateNoteService);
+    updateCapexService = module.get<UpdateCapexService>(UpdateCapexService);
   });
 
   it('Should be defined', () => {
@@ -150,6 +154,22 @@ describe('WorksUpdateController', () => {
       };
 
       expect(updateNoteService.update).toHaveBeenCalledWith(mockUpdateNotes);
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('UpdateCapex', () => {
+    it('Should call the update method of the UpdateCapex service correctly', async () => {
+      jest.spyOn(updateCapexService, 'update').mockResolvedValue();
+
+      const result = await worksController.updateCapex(mockMaterialCapex);
+
+      const expectedResponse = {
+        statusCode: HttpStatus.OK,
+        message: 'Capex e M.O atualizado com sucesso',
+      };
+
+      expect(updateCapexService.update).toHaveBeenCalledWith(mockMaterialCapex);
       expect(result).toEqual(expectedResponse);
     });
   });

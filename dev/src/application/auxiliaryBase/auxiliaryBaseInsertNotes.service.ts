@@ -1,11 +1,12 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import { FindExistingWorksService } from 'src/application/works/findExistingWorks.service';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
 } from 'src/domain/repositories/IAuxiliaryBaseRepository';
-import { InsertBaseAuxiliaryNotesDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
+import { NotesDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
 import { OperationType } from 'src/interface/types/baseAuxiliaryInterface';
+
+import { Inject, Injectable } from '@nestjs/common';
 
 interface InsertNotesResult {
   insertedCount: number;
@@ -13,22 +14,8 @@ interface InsertNotesResult {
 }
 
 interface ValidationResult {
-  validatedData: InsertBaseAuxiliaryNotesDTO[];
+  validatedData: NotesDTO[];
   skippedNotes: string[];
-}
-
-interface CalculatedValue {
-  diagrama_rede: string;
-  qtde_calc: number;
-  mo_calc: number;
-  capex_mat_calc: number;
-}
-
-interface OrderData {
-  ordem_dci: string;
-  ordem_dcd: string;
-  ordem_dca: string;
-  ordem_dcim: string;
 }
 
 @Injectable()
@@ -40,7 +27,7 @@ export class AuxiliaryNotesInsertService {
   ) {}
 
   async execute(
-    data: InsertBaseAuxiliaryNotesDTO[],
+    data: NotesDTO[],
     operation: OperationType,
   ): Promise<InsertNotesResult> {
     if (!data?.length) {
@@ -59,14 +46,9 @@ export class AuxiliaryNotesInsertService {
       };
     }
 
-    const { notesData, calculatedValues } = await this.processCalculations(
-      validationResult.validatedData,
-    );
+    const notesData = validationResult.validatedData.map((item) => item);
 
-    await this.auxiliaryBaseRepository.insertNotes({
-      notesData,
-      calculatedValues,
-    });
+    await this.auxiliaryBaseRepository.insertNotes(notesData);
 
     return {
       insertedCount: validationResult.validatedData.length,
@@ -75,14 +57,19 @@ export class AuxiliaryNotesInsertService {
   }
 
   private async validateAndFilterExistingData(
-    data: InsertBaseAuxiliaryNotesDTO[],
+    data: NotesDTO[],
     operation: OperationType,
   ): Promise<ValidationResult> {
-    const validatedData: InsertBaseAuxiliaryNotesDTO[] = [];
+    const validatedData: NotesDTO[] = [];
     const skippedNotes: string[] = [];
 
-    const orderingFields = this.extractOrderingFields(data);
-    const orderData = this.extractOrderData(data);
+    const orderingFields = data.map((item) => item.campo_ordenacao);
+    const orderData = data.map((item) => ({
+      ordem_dci: item.ordem_dci,
+      ordem_dcd: item.ordem_dcd,
+      ordem_dca: item.ordem_dca,
+      ordem_dcim: item.ordem_dcim,
+    }));
 
     const [existingNotes, existingOrders] = await Promise.all([
       this.findExistingWorksService.findExistingWorks(orderingFields),
@@ -93,21 +80,20 @@ export class AuxiliaryNotesInsertService {
     const existingOrdersSet = new Set(existingOrders);
 
     for (const item of data) {
-      const { notesData } = item;
       const skipResult = this.shouldSkipItem(
-        notesData,
+        item,
         existingNotesSet,
         existingOrdersSet,
       );
 
       if (operation === 'insert') {
         if (skipResult.noteExists || skipResult.orderExists) {
-          skippedNotes.push(notesData.campo_ordenacao);
+          skippedNotes.push(item.campo_ordenacao);
           continue;
         }
       } else {
-        if (!skipResult.noteExists || !skipResult.orderExists) {
-          skippedNotes.push(notesData.campo_ordenacao);
+        if (!skipResult.noteExists) {
+          skippedNotes.push(item.campo_ordenacao);
           continue;
         }
       }
@@ -115,28 +101,7 @@ export class AuxiliaryNotesInsertService {
       validatedData.push(item);
     }
 
-    if (operation === 'update' && skippedNotes.length) {
-      throw new BadRequestException(
-        `Não foi possível atualizar. Obras não encontradas: ${skippedNotes.join(
-          ', ',
-        )}`,
-      );
-    }
-
     return { validatedData, skippedNotes };
-  }
-
-  private extractOrderingFields(data: InsertBaseAuxiliaryNotesDTO[]): string[] {
-    return data.map((item) => item.notesData.campo_ordenacao);
-  }
-
-  private extractOrderData(data: InsertBaseAuxiliaryNotesDTO[]): OrderData[] {
-    return data.map((item) => ({
-      ordem_dci: item.notesData.ordem_dci,
-      ordem_dcd: item.notesData.ordem_dcd,
-      ordem_dca: item.notesData.ordem_dca,
-      ordem_dcim: item.notesData.ordem_dcim,
-    }));
   }
 
   private shouldSkipItem(
@@ -159,68 +124,5 @@ export class AuxiliaryNotesInsertService {
       noteExists,
       orderExists,
     };
-  }
-
-  private async processCalculations(
-    validatedData: InsertBaseAuxiliaryNotesDTO[],
-  ) {
-    const allMaterials = this.extractAllMaterials(validatedData);
-
-    const fatorMap = await this.auxiliaryBaseRepository.getFator(allMaterials);
-
-    const notesData = validatedData.map((item) => item.notesData);
-    const calculatedValues = validatedData.map((item) =>
-      this.calculateItemValues(item, fatorMap),
-    );
-
-    return { notesData, calculatedValues };
-  }
-
-  private extractAllMaterials(validatedData: InsertBaseAuxiliaryNotesDTO[]) {
-    return validatedData.flatMap((item) =>
-      item.materialData.map((material) => ({
-        material: material.material,
-        pep_ref: material.def_proj,
-      })),
-    );
-  }
-
-  private calculateItemValues(
-    item: InsertBaseAuxiliaryNotesDTO,
-    fatorMap: Map<string, number>,
-  ): CalculatedValue {
-    const { materialData, notesData } = item;
-
-    return materialData.reduce(
-      (acc, material) => {
-        const fatorKey = `${material.material}|${material.def_proj}`;
-        const fator = fatorMap.get(fatorKey) ?? 0;
-
-        acc.diagrama_rede = notesData.campo_ordenacao;
-
-        if (fator !== 0) {
-          acc.qtde_calc += material.qtd_necess / fator;
-        }
-
-        if (this.isMoCalculationApplicable(material)) {
-          acc.mo_calc += material.preco_mi * material.qtd_necess;
-        }
-
-        if (material.ctg_item === 'L') {
-          acc.capex_mat_calc += material.qtd_necess * material.preco_mi;
-        }
-
-        return acc;
-      },
-      { diagrama_rede: '', qtde_calc: 0, mo_calc: 0, capex_mat_calc: 0 },
-    );
-  }
-
-  private isMoCalculationApplicable(material: any): boolean {
-    return (
-      material.ctg_item === 'N' &&
-      material.um_registro === 'SRV' &&
-      !material.texto_material.toUpperCase().includes('ENTREGA')
-    );
   }
 }

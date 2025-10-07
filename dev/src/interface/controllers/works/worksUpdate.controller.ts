@@ -22,6 +22,8 @@ import { HandleWorkUpdateService } from 'src/application/orchestrators/handleWor
 import { ContractUpdateService } from 'src/application/works/contractUpdate.service';
 import { UpdateOvService } from 'src/application/works/updateOv.service';
 import { UpdateNoteService } from 'src/application/works/updateNote.service';
+import { UpdateCapexService } from 'src/application/works/updateCapex.service';
+import { MaterialCapexDTO } from 'src/interface/dtos/materialDTO';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -35,7 +37,7 @@ export class WorksUpdateController {
     private contractUpdateService: ContractUpdateService,
     private updateOvService: UpdateOvService,
     private updateNoteService: UpdateNoteService,
-    // private updateCapexService: UpdateCapexService,
+    private updateCapexService: UpdateCapexService,
   ) {}
 
   @Post('atualizar-empreitamento')
@@ -72,7 +74,6 @@ export class WorksUpdateController {
     @Body()
     body: InsertMarketWorksDTO[],
   ) {
-    console.log(body);
     await this.updateOvService.update(body);
 
     return {
@@ -89,6 +90,17 @@ export class WorksUpdateController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Obras atualizada com sucesso',
+    };
+  }
+
+  @Post('atualizar-capex')
+  @UseGuards(PermissionGuard)
+  async updateCapex(@Body() data: MaterialCapexDTO[]) {
+    await this.updateCapexService.update(data);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Capex e M.O atualizado com sucesso',
     };
   }
 }
