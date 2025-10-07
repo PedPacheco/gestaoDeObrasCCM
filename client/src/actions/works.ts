@@ -110,18 +110,18 @@ export async function UpdateSap(data: any, key: string, storageKey: string) {
       };
     }
 
-    // await fetch(
-    //   `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/${
-    //     storageKey === "marketUpdatesData" ? "mercado" : "notas"
-    //   }`,
-    //   {
-    //     method: "DELETE",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //       Authorization: `Bearer ${token}`,
-    //     },
-    //   }
-    // );
+    await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/${
+        storageKey === "marketUpdatesData" ? "mercado" : "notas"
+      }`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     return { success: true, message: res.message };
   } catch (error: any) {
