@@ -185,14 +185,13 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
 
   private formatValue(value: string | number | null | undefined): string {
     if (value === null || value === undefined) return 'NULL';
-    if (typeof value === 'number') return value.toString();
     return `'${value}'`;
   }
 
   async insertNotes(data: NotesDTO[]): Promise<any> {
     try {
       const formattedPayload = data.map((d) => {
-        return `ROW(
+        return `(
           ${this.formatValue(d.campo_ordenacao)},
           ${this.formatValue(d.pep)},
           ${this.formatValue(d.ordem_dci)},

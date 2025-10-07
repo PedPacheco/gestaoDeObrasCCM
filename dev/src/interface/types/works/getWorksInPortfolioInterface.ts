@@ -31,6 +31,7 @@ export interface worksInPortfolioInterface {
   data_empreitamento: Date;
   empreendimento: string;
   turma: string;
+  ano_plan: number;
   mo_exec?: number;
   mo_suspensa?: number;
   atraso?: boolean;

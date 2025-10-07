@@ -34,7 +34,14 @@ export class UpdateCapexService {
 
     const fatorMap = await this.auxiliaryBaseRepository.getFator(allMaterials);
 
-    const capexValues = this.calculateCapexValues(data, fatorMap);
+    const deletedMaterials =
+      await this.updateCapexRepository.getDeletedMaterials();
+
+    const capexValues = this.calculateCapexValues(
+      data,
+      fatorMap,
+      deletedMaterials,
+    );
 
     await this.updateCapexRepository.update(capexValues);
   }
@@ -49,10 +56,12 @@ export class UpdateCapexService {
   private calculateCapexValues(
     materialData: MaterialCapexDTO[],
     fatorMap: Map<string, number>,
+    deletedMaterials: any[],
   ): CalculatedValue[] {
     return materialData.reduce((acc, material) => {
       const fatorKey = `${material.material}|${material.def_proj}`;
       const fator = fatorMap.get(fatorKey) ?? 0;
+      const deletedSet = new Set(deletedMaterials);
 
       let current = acc.find(
         (item) => item.diagrama_rede === material.diagrama_rede,
@@ -77,15 +86,15 @@ export class UpdateCapexService {
 
         if (material.relevancia_calculo?.trim()) {
           current.qtde_pend +=
-            material.qtd_necess - material.qtd_faltante / fator;
+            material.qtd_necess - material.qtd_retirada / fator;
         }
       }
 
-      if (this.isMoCalculationApplicable(material)) {
+      if (!deletedSet.has(material.material) && material.ctg_item === 'N') {
         current.mo_calc += material.preco_mi * material.qtd_necess;
         current.capex_mo_plan += material.preco_mi * material.qtd_necess;
 
-        if (material.relevancia_calculo) {
+        if (material.relevancia_calculo?.trim()) {
           current.capex_mo_pend +=
             material.preco_mi * (material.qtd_necess - material.qtd_faltante);
         }
@@ -99,17 +108,5 @@ export class UpdateCapexService {
 
       return acc;
     }, [] as CalculatedValue[]);
-  }
-
-  private async isMoCalculationApplicable(material: any): Promise<boolean> {
-    const materials = await this.updateCapexRepository.getDeletedMaterials();
-
-    const setMaterials = new Set(materials);
-
-    if (setMaterials.has(material)) {
-      return true;
-    } else {
-      return false;
-    }
   }
 }

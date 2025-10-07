@@ -28,7 +28,11 @@ export class InsertWorksService {
     const works = params.map((work: InsertMarketWorksDTO) => {
       const marketWork = MarketWork.create(work);
 
-      return { ...marketWork, moPlanejada: marketWork.moPlanejada };
+      return {
+        ...marketWork,
+        moPlanejada: marketWork.moPlanejada,
+        prazo: marketWork.prazo,
+      };
     });
 
     if (works.length === 0) {

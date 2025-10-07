@@ -44,6 +44,7 @@ const mockData = [
     tecnico: "Não definido",
     restricao: null,
     nome_responsavel_execucao: null,
+    status_programacao: "Em validação",
     validada: false,
     confirmada: false,
   },

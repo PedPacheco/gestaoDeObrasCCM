@@ -10,6 +10,9 @@ describe('UpdateCapexRepository', () => {
     obras: {
       updateMany: jest.fn(),
     },
+    materiais_excluidos: {
+      findMany: jest.fn(),
+    },
   };
 
   const mockLogger = {
@@ -86,5 +89,19 @@ describe('UpdateCapexRepository', () => {
       `Erro ao atualizar contratos. Payload: ${JSON.stringify(mockData)}`,
       error.stack,
     );
+  });
+
+  it('should call getDeletedMaterials and return materials', async () => {
+    mockPrisma.materiais_excluidos.findMany.mockResolvedValue([
+      {
+        codigo_material: '234234',
+      },
+    ]);
+
+    await repository.getDeletedMaterials();
+
+    expect(mockPrisma.materiais_excluidos.findMany).toHaveBeenCalledWith({
+      select: { codigo_material: true },
+    });
   });
 });
