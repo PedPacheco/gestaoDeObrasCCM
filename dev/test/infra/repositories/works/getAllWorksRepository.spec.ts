@@ -64,7 +64,6 @@ describe('GetAllWorksRepository', () => {
         INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm 
         INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo 
         INNER JOIN construcao_sp.status ON status.id = obras.id_status 
-        LEFT JOIN construcao_sp.datas_programacao ON datas_programacao.id= obras.id
         WHERE 1=1`;
 
   let query = `SELECT

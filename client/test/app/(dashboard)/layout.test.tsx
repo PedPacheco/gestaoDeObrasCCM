@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import DashboardLayout from "@/app/(dashboard)/layout";
 import { Header } from "@/components/layout/Header";
 import { BreadcrumpsComponent } from "@/components/common/Breadcrumbs";
@@ -38,28 +38,29 @@ describe("DashboardLayout", () => {
   });
 
   it("deve ter a estrutura correta de classes e elementos", () => {
-    const { container } = render(<DashboardLayout {...childrenMock} />);
+    const { container } = render(
+      <DashboardLayout>{childrenMock.children}</DashboardLayout>
+    );
 
-    expect(
-      container.querySelector(".relative.z-0.flex.min-h-screen.w-full")
-    ).toBeInTheDocument();
+    const outerDiv = container.querySelector(
+      "div.relative.z-0.flex.min-h-screen.w-full"
+    );
+    const innerDiv = container.querySelector(
+      "div.relative.flex.min-h-screen.max-w-full.flex-1.flex-col"
+    );
+    const main = container.querySelector(
+      "main.h-\\[calc\\(100vh-3\\.5rem\\)\\]"
+    );
+    const borderSpan = container.querySelector(
+      "span.border-b.border-solid.border-zinc-300.w-full"
+    );
+    const breadcrumbsWrapper = container.querySelector(".py-2.w-4\\/5");
 
-    expect(
-      container.querySelector(
-        ".relative.flex.min-h-screen.max-w-full.flex-1.flex-col"
-      )
-    ).toBeInTheDocument();
-
-    expect(
-      container.querySelector(
-        "main.overflow-y-auto.h-\\[calc\\(100vh-3\\.5rem\\)\\]"
-      )
-    ).toBeInTheDocument();
-
-    expect(container.querySelector(".py-2.w-4\\/5")).toBeInTheDocument();
-    expect(
-      container.querySelector(".border-b.border-solid.border-zinc-300.w-full")
-    ).toBeInTheDocument();
+    expect(outerDiv).toBeInTheDocument();
+    expect(innerDiv).toBeInTheDocument();
+    expect(main).toBeInTheDocument();
+    expect(breadcrumbsWrapper).toBeInTheDocument();
+    expect(borderSpan).toBeInTheDocument();
   });
 
   it("deve ter o main com a altura correta", () => {

@@ -1,23 +1,17 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { FindExistingWorksService } from './findExistingWorks.service';
+import { NoteWorks } from 'src/domain/entities/works.entity';
 import {
   IInsertWorksRepository,
   INSERT_WORKS_REPOSITORY,
 } from 'src/domain/repositories/works/IInsertWorksRepository';
-import { NoteWorks } from 'src/domain/entities/works.entity';
-import { UpdateNotesDTO } from 'src/interface/dtos/worksDto';
 import {
   IUpdateNoteRepository,
   UPDATE_NOTE_REPOSITORY,
 } from 'src/domain/repositories/works/IUpdateNoteRepository';
+import { UpdateNotesDTO } from 'src/interface/dtos/worksDto';
 
-interface WorksInterface {
-  ovnota: string;
-  ordem_dci?: string;
-  ordem_dcd?: string;
-  ordem_dca?: string;
-  ordem_dcim?: string;
-}
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+
+import { FindExistingWorksService } from './findExistingWorks.service';
 
 @Injectable()
 export class UpdateNoteService {
@@ -43,15 +37,7 @@ export class UpdateNoteService {
         work.ordem_dcim ?? '',
       ].join('|');
 
-    const dataToSearch = data.map((work) => ({
-      ovnota: work.obra,
-      ordem_dci: work.ordem_dci === '' ? null : work.ordem_dci,
-      ordem_dcd: work.ordem_dcd === '' ? null : work.ordem_dcd,
-      ordem_dca: work.ordem_dca === '' ? null : work.ordem_dca,
-      ordem_dcim: work.ordem_dcim === '' ? null : work.ordem_dcim,
-    }));
-
-    const filters = this.buildFilters(dataToSearch);
+    const filters = data.map((work) => ({ ovnota: work.obra }));
 
     const [groups, existingWorks] = await Promise.all([
       this.insertWorksRepository.getGroup(),
@@ -61,20 +47,26 @@ export class UpdateNoteService {
     const groupsById = new Map(groups.map((g) => [g.id, g]));
 
     const existingMap = new Map(
-      existingWorks.map((ov) => [
-        normalizeKey({
+      existingWorks.flatMap((ov) => {
+        const fullKey = normalizeKey({
           ovnota: ov.ovnota,
           ordem_dci: ov.ordemDci,
           ordem_dcd: ov.ordemDcd,
           ordem_dca: ov.ordemDca,
           ordem_dcim: ov.ordemDcim,
-        }),
-        ov,
-      ]),
+        });
+
+        const simpleKey = ov.ovnota;
+
+        return [
+          [fullKey, ov],
+          [simpleKey, ov],
+        ];
+      }),
     );
 
     const notes = data.map((work) => {
-      const key = normalizeKey({
+      const fullKey = normalizeKey({
         ovnota: work.obra,
         ordem_dci: work.ordem_dci,
         ordem_dcd: work.ordem_dcd,
@@ -82,7 +74,20 @@ export class UpdateNoteService {
         ordem_dcim: work.ordem_dcim,
       });
 
-      const matchedWork = existingMap.get(key);
+      const simpleKey = work.obra;
+
+      let matchedWork: any = null;
+
+      if (work.ordem_dcim) {
+        matchedWork = Array.from(existingMap.values()).find(
+          (ov) => ov.ovnota === work.obra && ov.ordemDcim && work.ordem_dcim,
+        );
+      }
+
+      if (!matchedWork) {
+        matchedWork = existingMap.get(fullKey) ?? existingMap.get(simpleKey);
+      }
+
       if (!matchedWork) return;
 
       const group = groupsById.get(work.idTipo);
@@ -110,28 +115,5 @@ export class UpdateNoteService {
     });
 
     await this.updateNoteRepository.update(notes);
-  }
-
-  buildFilters(works: WorksInterface[]): any[] {
-    return works.map((work) => {
-      let filter: Record<string, any> = {};
-
-      filter.ovnota = work.ovnota;
-
-      if (work.ordem_dci) {
-        filter.ordem_dci = work.ordem_dci;
-      }
-      if (work.ordem_dcd) {
-        filter.ordem_dcd = work.ordem_dcd;
-      }
-      if (work.ordem_dca) {
-        filter.ordem_dca = work.ordem_dca;
-      }
-      if (work.ordem_dcim) {
-        filter.ordem_dcim = work.ordem_dcim;
-      }
-
-      return filter;
-    });
   }
 }

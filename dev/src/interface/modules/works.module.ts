@@ -40,6 +40,9 @@ import { UPDATE_NOTE_REPOSITORY } from 'src/domain/repositories/works/IUpdateNot
 import { UpdateNoteRepository } from 'src/infra/repositories/works/updateNoteRepository';
 import { WorksUpdateController } from '../controllers/works/worksUpdate.controller';
 import { WorksInsertController } from '../controllers/works/worksInsert.controller';
+import { UpdateCapexService } from 'src/application/works/updateCapex.service';
+import { UpdateCapexRepository } from 'src/infra/repositories/works/UpdateCapexRepository';
+import { UPDATE_CAPEX_REPOSITORY } from 'src/domain/repositories/works/IUpdateCapexRepository';
 
 @Module({
   imports: [CacheModule, UsersModule, forwardRef(() => AuxiliaryBaseModule)],
@@ -56,9 +59,11 @@ import { WorksInsertController } from '../controllers/works/worksInsert.controll
     ContractUpdateService,
     UpdateOvService,
     UpdateNoteService,
+    UpdateCapexService,
     { provide: CONTRACT_UPDATE_REPOSITORY, useClass: ContractUpdateRepository },
     { provide: UPDATE_OV_REPOSITORY, useClass: UpdateOvRepository },
     { provide: UPDATE_NOTE_REPOSITORY, useClass: UpdateNoteRepository },
+    { provide: UPDATE_CAPEX_REPOSITORY, useClass: UpdateCapexRepository },
     { provide: UPDATE_WORK_REPOSITORY, useClass: UpdateWorkRepository },
     { provide: GET_ALL_WORKS_REPOSITORY, useClass: GetAllWorksRepository },
     {

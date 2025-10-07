@@ -110,18 +110,50 @@ export async function UpdateSap(data: any, key: string, storageKey: string) {
       };
     }
 
-    await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/${
-        storageKey === "marketUpdatesData" ? "mercado" : "notas"
-      }`,
+    // await fetch(
+    //   `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/${
+    //     storageKey === "marketUpdatesData" ? "mercado" : "notas"
+    //   }`,
+    //   {
+    //     method: "DELETE",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //       Authorization: `Bearer ${token}`,
+    //     },
+    //   }
+    // );
+
+    return { success: true, message: res.message };
+  } catch (error: any) {
+    return { success: false, message: error.message };
+  }
+}
+
+export async function UpdateCapex(data: any) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  try {
+    const result = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/obras/atualizar-capex`,
       {
-        method: "DELETE",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify(data),
       }
     );
+
+    const res = await result.json();
+
+    if (res.statusCode !== 200) {
+      return {
+        success: false,
+        error: res.message || "Erro ao atualizar capex",
+      };
+    }
 
     return { success: true, message: res.message };
   } catch (error: any) {

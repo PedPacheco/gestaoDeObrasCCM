@@ -4,7 +4,6 @@ import {
 } from 'src/domain/repositories/IAuxiliaryBaseRepository';
 import {
   InsertBaseAuxiliaryMarketDTO,
-  InsertBaseAuxiliaryNotesDTO,
   NotesDTO,
 } from 'src/interface/dtos/auxiliaryBaseDTO';
 import { InsertNotes } from 'src/interface/types/works/insertNotesInterface';
@@ -15,16 +14,8 @@ import { AuxiliaryNotesInsertService } from './auxiliaryBaseInsertNotes.service'
 import { AuxiliaryMarketInsertService } from './auxiliaryBaseInsertMarket.service';
 import { OperationType } from 'src/interface/types/baseAuxiliaryInterface';
 
-type calculatedValuesType = {
-  diagrama_rede: string;
-  qtde_calc: number;
-  mo_calc: number;
-  capex_mat_calc: number;
-};
-
 export interface DataAuxiliaryNotes {
   notesData: NotesDTO[];
-  calculatedValues: calculatedValuesType[];
 }
 
 @Injectable()
@@ -99,7 +90,7 @@ export class AuxiliaryBaseService {
   }
 
   async insertAuxiliaryBaseNotes(
-    data: InsertBaseAuxiliaryNotesDTO[],
+    data: NotesDTO[],
     operation: OperationType,
   ): Promise<{
     insertedCount: number;

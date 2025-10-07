@@ -91,6 +91,7 @@ describe("All works page", () => {
     vi.mocked(fetchData).mockResolvedValue({
       token: mockToken,
       data: mockData,
+      success: true,
     });
 
     vi.mocked(fetchFilters).mockResolvedValue(mockFilters);
@@ -177,7 +178,6 @@ describe("All works page", () => {
       turma: "Parceira",
       executado: "% Exec",
       data_conclusao: "Data exec",
-      last_data_prog: "Data prog",
       status: "Status",
       observ_obra: "Observação",
       referencia: "Referência",

@@ -219,10 +219,6 @@ export class NoteWorks extends Work {
     return this.pep?.includes('X/003999');
   }
 
-  get hasMoPlanejadaNote(): boolean {
-    return this.moPlanejada != null && this.moPlanejada > 0;
-  }
-
   get isEmpreendimentoInvalido(): boolean {
     return (
       (this.idGrupo === 3 || this.idGrupo === 4) && this.idEmpreendimento === 1
@@ -232,12 +228,6 @@ export class NoteWorks extends Work {
   validateNota(): void {
     if (this.isPepGenericoNote) {
       throw new BadRequestException(`Obra ${this.obra} está com PEP genérico.`);
-    }
-
-    if (!this.hasMoPlanejadaNote) {
-      throw new BadRequestException(
-        `Obra ${this.obra} não tem valor de Mão de Obra.`,
-      );
     }
 
     if (this.isEmpreendimentoInvalido) {

@@ -1,8 +1,10 @@
-import { DataAuxiliaryNotes } from 'src/application/auxiliaryBase/auxiliaryBase.service';
 import { MarketWork } from 'src/domain/entities/works.entity';
 import { IAuxiliaryBaseRepository } from 'src/domain/repositories/IAuxiliaryBaseRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { InsertBaseAuxiliaryMarketDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
+import {
+  InsertBaseAuxiliaryMarketDTO,
+  NotesDTO,
+} from 'src/interface/dtos/auxiliaryBaseDTO';
 
 import { Injectable, Logger } from '@nestjs/common';
 
@@ -187,14 +189,10 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     return `'${value}'`;
   }
 
-  async insertNotes(data: DataAuxiliaryNotes): Promise<any> {
+  async insertNotes(data: NotesDTO[]): Promise<any> {
     try {
-      const formattedPayload = data.notesData.map((d) => {
-        const valores = data.calculatedValues.find(
-          (item) => item.diagrama_rede === d.campo_ordenacao,
-        );
-
-        return `(
+      const formattedPayload = data.map((d) => {
+        return `ROW(
           ${this.formatValue(d.campo_ordenacao)},
           ${this.formatValue(d.pep)},
           ${this.formatValue(d.ordem_dci)},
@@ -204,10 +202,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
           ${this.formatValue(d.conjunto)},
           ${this.formatValue(d.grp_plnj_pm)},
           ${this.formatValue(d.texto_breve)},
-          ${this.formatValue(d.denominacao)},
-          ${this.formatValue(valores?.mo_calc ?? 0)},
-          ${this.formatValue(valores?.qtde_calc ?? 0)},
-          ${this.formatValue(valores?.capex_mat_calc ?? 0)}
+          ${this.formatValue(d.denominacao)}
         )`;
       });
 
