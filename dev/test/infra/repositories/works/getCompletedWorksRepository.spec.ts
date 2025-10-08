@@ -47,10 +47,10 @@ describe('GetCompletedWorksRepository', () => {
       turma: 'ENGELMIG',
       executado: 100,
       data_conclusao: '2024-06-14T00:00:00.000Z',
-      last_data_prog: null,
       status: 'EXECUTADA',
       observ_obra: null,
       referencia: null,
+      ano_plan: 2025,
     },
   ];
 
@@ -67,7 +67,7 @@ describe('GetCompletedWorksRepository', () => {
 
   const baseQuery = `SELECT obras.id, obras.ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, executado, 
         mun, CASE WHEN current_date > entrada + prazo THEN 1 ELSE 0 END AS atraso, data_conclusao, tipo_obra, qtde_planejada, qtde_pend,
-        circuito, mo_planejada, turma, status, conjunto, abrev_regional, observ_obra
+        circuito, mo_planejada, turma, status, conjunto, abrev_regional, observ_obra, ano_plan
         FROM construcao_sp.obras
         INNER JOIN construcao_sp.municipios ON obras.id_gpm = municipios.id
         INNER JOIN construcao_sp.circuitos ON obras.id_circuito = circuitos.id

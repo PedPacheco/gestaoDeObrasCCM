@@ -94,7 +94,7 @@ describe("InsertButton component", () => {
         aux_turma: "Turma X",
         aux_circuito: "Circuito 1",
         aux_tecnico: "João Silva",
-        anoplan: "2025",
+        anoplan: 2025,
       },
     ];
 
@@ -220,7 +220,7 @@ describe("InsertButton component", () => {
         parceira: "Turma X",
         circuito: "Circuito 1",
         tecnico: "João Silva",
-        anoplan: "2025",
+        anoplan: 2025,
       },
     ]);
 
@@ -236,7 +236,7 @@ describe("InsertButton component", () => {
         aux_turma: "Turma X",
         aux_circuito: "Circuito 1",
         aux_tecnico: "João Silva",
-        anoplan: "2025",
+        anoplan: 2025,
       },
     ];
 

@@ -1,7 +1,7 @@
-import { DataAuxiliaryNotes } from 'src/application/auxiliaryBase/auxiliaryBase.service';
+import { NotesDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
 
 export interface IAuxiliaryBaseRepository {
-  insertNotes(data: DataAuxiliaryNotes): Promise<any>;
+  insertNotes(data: NotesDTO[]): Promise<any>;
   insertMarket(data: any[]): Promise<any>;
   getFator(
     materialDefs: { material: string; pep_ref: string }[],

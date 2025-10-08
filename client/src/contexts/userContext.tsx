@@ -13,7 +13,7 @@ import {
 interface UserData {
   id: number;
   username: string;
-  id_regional: string;
+  id_regional: number;
   nome_usuario: string;
   email: string;
 }

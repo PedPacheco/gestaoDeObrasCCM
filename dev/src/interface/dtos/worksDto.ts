@@ -164,15 +164,6 @@ export class UpdateNotesDTO {
   @IsString()
   obra: string;
 
-  @IsOptional()
-  @IsDate()
-  @Type(() => Date)
-  entrada?: Date;
-
-  @IsOptional()
-  @IsString()
-  prazo?: string;
-
   @IsString()
   referencia: string;
 
@@ -227,14 +218,6 @@ export class UpdateNotesDTO {
   @IsOptional()
   @IsNumber()
   qtdePlan?: number;
-
-  @IsOptional()
-  @IsNumber()
-  capexMoPlan?: number;
-
-  @IsOptional()
-  @IsNumber()
-  capexMatPlan?: number;
 }
 
 export class InsertMarketWorksDTO {

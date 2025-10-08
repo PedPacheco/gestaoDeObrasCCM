@@ -243,9 +243,6 @@ export const EquipmentList = ({
                 text={`Remover equipamento ${
                   fieldKey === "appliedEquipment" ? "aplicado" : "removido"
                 }`}
-                styled={`${
-                  eq.equipment === "Transformador" ? "w-[224px]" : "w-[244px]"
-                } `}
               />
             </Grid>
           </Grid>

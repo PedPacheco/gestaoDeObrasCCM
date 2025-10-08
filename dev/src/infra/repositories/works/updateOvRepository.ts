@@ -38,7 +38,7 @@ export class UpdateOvRepository implements IUpdateOvRepository {
               id_gpm,
               id_tipo,
               id_circuito,
-              status_ov_sap: status_ov,
+              status_ov_sap: Number(status_ov),
               prazo,
               status_diagrama,
               status_pep,

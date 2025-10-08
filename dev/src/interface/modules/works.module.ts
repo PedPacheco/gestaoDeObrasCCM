@@ -25,7 +25,7 @@ import { UpdateWorkRepository } from 'src/infra/repositories/works/updateWorkRep
 
 import { forwardRef, Module } from '@nestjs/common';
 
-import { WorksController } from '../controllers/works.controller';
+import { WorksController } from '../controllers/works/works.controller';
 import { AuxiliaryBaseModule } from './auxiliaryBase.module';
 import { UsersModule } from './users.module';
 import { HandleWorkUpdateService } from 'src/application/orchestrators/handleWorkUpdate.service';
@@ -38,10 +38,15 @@ import { UpdateOvRepository } from 'src/infra/repositories/works/updateOvReposit
 import { UpdateNoteService } from 'src/application/works/updateNote.service';
 import { UPDATE_NOTE_REPOSITORY } from 'src/domain/repositories/works/IUpdateNoteRepository';
 import { UpdateNoteRepository } from 'src/infra/repositories/works/updateNoteRepository';
+import { WorksUpdateController } from '../controllers/works/worksUpdate.controller';
+import { WorksInsertController } from '../controllers/works/worksInsert.controller';
+import { UpdateCapexService } from 'src/application/works/updateCapex.service';
+import { UpdateCapexRepository } from 'src/infra/repositories/works/UpdateCapexRepository';
+import { UPDATE_CAPEX_REPOSITORY } from 'src/domain/repositories/works/IUpdateCapexRepository';
 
 @Module({
   imports: [CacheModule, UsersModule, forwardRef(() => AuxiliaryBaseModule)],
-  controllers: [WorksController],
+  controllers: [WorksController, WorksUpdateController, WorksInsertController],
   providers: [
     FindExistingWorksService,
     GetWorksInPortfolioService,
@@ -54,9 +59,11 @@ import { UpdateNoteRepository } from 'src/infra/repositories/works/updateNoteRep
     ContractUpdateService,
     UpdateOvService,
     UpdateNoteService,
+    UpdateCapexService,
     { provide: CONTRACT_UPDATE_REPOSITORY, useClass: ContractUpdateRepository },
     { provide: UPDATE_OV_REPOSITORY, useClass: UpdateOvRepository },
     { provide: UPDATE_NOTE_REPOSITORY, useClass: UpdateNoteRepository },
+    { provide: UPDATE_CAPEX_REPOSITORY, useClass: UpdateCapexRepository },
     { provide: UPDATE_WORK_REPOSITORY, useClass: UpdateWorkRepository },
     { provide: GET_ALL_WORKS_REPOSITORY, useClass: GetAllWorksRepository },
     {

@@ -56,6 +56,7 @@ export default async function CompletedWorks() {
     tipo_obra: "Tipo",
     turma: "Parceira",
     executado: "Executado",
+    ano_plan: "Ano do Plano",
     circuito: "Circuito",
     conjunto: "Conjunto",
     status: "Status",

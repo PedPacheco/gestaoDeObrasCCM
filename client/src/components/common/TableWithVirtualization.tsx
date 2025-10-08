@@ -62,7 +62,7 @@ export function TableWithVirtualization({
             <TableCell
               key={month}
               className={`py-1 px-2 text-center text-zinc-700 text-nowrap font-semibold text-xl bg-[#53FF75] min-w-28 ${
-                month === "ovnota" ? "sticky left-0 bg-white z-10" : ""
+                month === "ovnota" ? "sticky left-0 z-10" : ""
               }`}
             >
               {columns[month as keyof typeof columns]}

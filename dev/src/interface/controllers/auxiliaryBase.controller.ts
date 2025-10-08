@@ -16,7 +16,7 @@ import {
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import {
   InsertBaseAuxiliaryMarketDTO,
-  InsertBaseAuxiliaryNotesDTO,
+  NotesDTO,
 } from '../dtos/auxiliaryBaseDTO';
 import { AuxiliaryBaseService } from 'src/application/auxiliaryBase/auxiliaryBase.service';
 import { OperationType } from '../types/baseAuxiliaryInterface';
@@ -54,7 +54,7 @@ export class AuxiliaryBaseController {
   async InsertAuxiliaryBaseNotes(
     @Body()
     body: {
-      data: InsertBaseAuxiliaryNotesDTO[];
+      data: NotesDTO[];
       operation: OperationType;
     },
   ) {

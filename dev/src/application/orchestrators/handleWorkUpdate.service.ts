@@ -26,6 +26,7 @@ export class HandleWorkUpdateService {
 
   async update(data: UpdateWorkDTO, id: number, permission: boolean) {
     const work = await this.getDetailsWorkService.get(id);
+    const { data_empreitamento, tipo_ads } = data;
 
     if (work.id_status === 42 && permission) {
       throw new BadRequestException(
@@ -40,11 +41,7 @@ export class HandleWorkUpdateService {
     await this.prisma.$transaction(async (tx) => {
       await this.updateWorkService.update(data, work.id, tx);
 
-      if (
-        work.id_status === 42 &&
-        data.data_empreitamento !== null &&
-        data.tipo_ads !== null
-      ) {
+      if (work.id_status === 42 && data_empreitamento && tipo_ads) {
         await this.statusFlowRepository.updateStatusWorks(1, work.id, tx);
       }
     });

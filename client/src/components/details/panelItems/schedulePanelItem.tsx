@@ -164,14 +164,17 @@ export default function SchedulePanelItem({
     );
   };
 
-  const disabledCheckBox = (key: string, status_prog?: string): boolean =>
-    (key === "validada" && statusWork !== 43) ||
-    (key === "confirmada" && status_prog === "Programado") ||
-    permissions?.permissao_visualizacao === "parcial";
+  const disabledCheckBox = (key: string, status_prog?: string): boolean => {
+    return (
+      (key === "validada" && status_prog !== "Em validação") ||
+      (key === "confirmada" && status_prog === "Programado") ||
+      permissions?.permissao_visualizacao === "parcial"
+    );
+  };
 
   return (
     <>
-      <TableContainer className="xl:h-full overflow-y-auto">
+      <TableContainer className="h-full overflow-y-auto">
         <Table stickyHeader>
           <TableHead>
             <TableRow>

@@ -52,7 +52,7 @@ export class InsertWorksRepository implements IInsertWorksRepository {
           ordem_dcim: work.dcim,
           entrada: new Date(work.entrada),
           prazo: Number(work.prazoTexto),
-          referencia: work.referencia,
+          referencia: work.equipeNumPedido,
           mo_planejada: work.moPlanejada,
           qtde_planejada: work.qtdePlanejada,
           id_gpm: work.idMunicipio || 1,
@@ -60,8 +60,6 @@ export class InsertWorksRepository implements IInsertWorksRepository {
           id_tipo: work.idTipo || 1,
           id_turma: work.idParceira || 1,
           id_circuito: work.idCircuito || 1,
-          capex_mo_plan: work.capexMoPlan,
-          capex_mat_plan: work.capexMatPlan,
           ano_plan: work.anoPlan,
         };
       });

@@ -186,15 +186,6 @@ model conversao {
   id       Int     @id @default(autoincrement())
 }
 
-model datas {
-  id                   Int       @id @default(autoincrement())
-  data_pend_capex      DateTime? @db.Date
-  data_ordens          DateTime? @db.Date
-  data_ov_status       DateTime? @db.Date
-  data_diagrama_status DateTime? @db.Date
-  data_cns47           DateTime? @db.Date
-}
-
 model empreendimento {
   id             Int        @id(map: "EMPREENDIMENTO_pkey") @default(autoincrement())
   empreendimento String?    @db.VarChar(50)
@@ -204,27 +195,6 @@ model empreendimento {
   regionais      regionais? @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
   metas          metas[]
   obras          obras[]
-}
-
-model equipamento {
-  id                    Int     @id @default(autoincrement())
-  equipamento           String? @db.VarChar(30)
-  tipo_dispositivo      String? @db.VarChar(50)
-  codigo_instalacao_pai String? @db.VarChar(30)
-  circuito              String? @db.VarChar(8)
-  conjunto_cod          Int?
-  classe_tensao         Int?
-  municipio             String? @db.VarChar(50)
-  bairro                String? @db.VarChar(50)
-  coordenada_latitude   Float?
-  coordenada_longitude  Float?
-  clientes_mt           Float?
-  clientes_bt           Float?
-  fases                 String? @db.VarChar(3)
-  tensao_operacao_prim  Int?
-  configuracao_banco    String? @db.VarChar(50)
-  conjunto              String? @db.VarChar(50)
-  tensao_operacao_sec   Int?
 }
 
 model equipes {
@@ -243,40 +213,6 @@ model grupos {
   empreendimento empreendimento[]
   subgrupo       subgrupo[]
   tipos          tipos[]
-}
-
-model iw28 {
-  nota        String? @db.VarChar(15)
-  status_nota Int?
-  id          BigInt  @id @default(autoincrement())
-}
-
-model iw38 {
-  tipo_ordem       String?   @db.VarChar(30)
-  ordem            String?   @db.VarChar(30)
-  nota             String?   @db.VarChar(30)
-  campo_ordenacao  String?   @db.VarChar(30)
-  texto_breve      String?   @db.VarChar(100)
-  conjunto         String?   @db.VarChar(5)
-  denom_conjunto   String?   @db.VarChar(100)
-  pep_cabec_ordem  String?   @db.VarChar(20)
-  grp_plnj_pm      String?   @db.VarChar(3)
-  status_usuario   String?   @db.VarChar(100)
-  status_sistema   String?   @db.VarChar(100)
-  data_entrada     DateTime? @db.Date
-  custos_tot_plan  Float?
-  custos_tot_reais Float?
-  centro           String?   @db.VarChar(8)
-  loc_instalacao   String?   @db.VarChar(30)
-  denominacao      String?   @db.VarChar(30)
-  modificado_por   String?   @db.VarChar(30)
-  id               BigInt    @id @default(autoincrement())
-}
-
-model material {
-  id                 Int     @id @default(autoincrement())
-  codigo_material    String? @db.VarChar(8)
-  descricao_material String? @db.VarChar(100)
 }
 
 model metas {
@@ -302,29 +238,6 @@ model metas {
   turmas            turmas          @relation(fields: [id_parceira], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
   regionais         regionais       @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
   tipos             tipos           @relation(fields: [id_tipo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tipos")
-}
-
-model mo {
-  mo            Int?
-  diagrama_rede String? @db.VarChar(30)
-  id            BigInt  @id @default(autoincrement())
-}
-
-model multas_dmic {
-  id           Int       @id @default(autoincrement())
-  id_obra      Int
-  sap          String?   @db.VarChar(50)
-  ordem        String?   @db.VarChar(50)
-  de           DateTime? @db.Date
-  ate          DateTime? @db.Date
-  conjunto     String?   @db.VarChar(10)
-  csd          String?   @db.VarChar(10)
-  ci           String?   @db.VarChar(50)
-  duracao      Int?
-  atraso_1min  Int?
-  atraso_1hora Int?
-  atraso_3hora Int?
-  obras        obras     @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
 }
 
 model municipios {
@@ -393,7 +306,6 @@ model obras {
   ano_plan                Int?
   data_viabilidade        DateTime?            @db.Date
   prazo_viabilidade       String?              @default("FALTA VIABILIDADE") @db.VarChar(40)
-  multas_dmic             multas_dmic[]
   notas_d5                notas_d5[]
   circuitos               circuitos            @relation(fields: [id_circuito], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_circuitos")
   empreendimento          empreendimento       @relation(fields: [id_empreendimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_empreendimento")
@@ -467,124 +379,6 @@ model programacoes_servicos {
   real           Float?
   programacoes   programacoes @relation(fields: [id_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_programacoes")
   servicos       servicos     @relation(fields: [id_servico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_servicos")
-}
-
-model recomposicao_base {
-  regional                                      String?   @db.VarChar(30)
-  nota                                          String?   @db.VarChar(10)
-  status_obra                                   String?   @db.VarChar(50)
-  conjunto                                      String?   @db.VarChar(100)
-  circuito                                      String?   @db.VarChar(20)
-  local_instalacao                              String?   @db.VarChar(30)
-  planejado_ddpm                                Float?
-  mes_execucao_planejado_ddpm                   DateTime? @db.Date
-  data_envio_projeto_ddpm                       DateTime? @db.Date
-  cen_trab_resp                                 String?   @db.VarChar(50)
-  prioridade_nota                               String?   @db.VarChar(50)
-  status_nota                                   String?   @db.VarChar(20)
-  controle_tecnico                              String?   @db.VarChar(20)
-  odi                                           String?   @db.VarChar(20)
-  data_entrega_projeto                          String?   @db.VarChar(20)
-  status_ordem                                  String?   @db.VarChar(50)
-  status_usuario                                String?   @db.VarChar(50)
-  pep                                           String?   @db.VarChar(20)
-  RECOM_Planejado_R__Ordem                      Float?    @map("RECOM_Planejado R$-Ordem")
-  RECOM_Reallizado_R___Ordem                    Float?    @map("RECOM_Reallizado R$ -Ordem")
-  RECOM_Data_Programada_CSD_Inicio              String?   @map("RECOM_Data Programada CSD Inicio") @db.VarChar(20)
-  RECOM_Data_Programada_CSD_Fim                 String?   @map("RECOM_Data Programada CSD Fim") @db.VarChar(20)
-  RECOM_Centro_Trabalho                         String?   @map("RECOM_Centro Trabalho") @db.VarChar(20)
-  RECOM_Data_Inicio_Real__CONF                  String?   @map("RECOM_Data Inicio Real -CONF") @db.VarChar(20)
-  RECOM_Data_Fim_Real_CONF                      String?   @map("RECOM_Data Fim Real-CONF") @db.VarChar(20)
-  RECOM_Fisico_Realizado_Ordem                  Float?    @map("RECOM_Fisico Realizado Ordem")
-  RECOM_Cidade                                  String?   @db.VarChar(50)
-  RECOM_Projetado_DSEP                          Float?    @map("RECOM_Projetado-DSEP")
-  RECOM_Mes_BI                                  Float?    @map("RECOM_Mes-BI")
-  RECOM_Lead_Time_Projeto                       DateTime? @map("RECOM_Lead Time Projeto") @db.Date
-  RECOM_Data_Maxima_para_Entrega_Projeto        DateTime? @map("RECOM_Data Maxima para Entrega Projeto") @db.Date
-  RECOM_Data_Maxima_para_Entrega_Material       DateTime? @map("RECOM_Data Maxima para Entrega Material") @db.Date
-  RECOM_Data_de_Energizacao                     String?   @map("RECOM_Data de Energizacao") @db.VarChar(20)
-  RECOM_Data_Maxima_para_Iniciar_Programacao    String?   @map("RECOM_Data Maxima para Iniciar Programacao") @db.VarChar(20)
-  RECOM_Dias_de_Atraso_Projeto                  Float?    @map("RECOM_Dias de Atraso Projeto")
-  RECOM_Fisico_Realizado_no_Ano                 Float?    @map("RECOM_Fisico Realizado no Ano")
-  RECOM_Orcamento_Real_no_Ano                   Float?    @map("RECOM_Orcamento Real no Ano")
-  RECOM_Conjunto_Estrategia                     String?   @map("RECOM_Conjunto-Estrategia") @db.VarChar(20)
-  RECOM_Dentro_Fora_Prazo_para_Execucao_Projeto String?   @map("RECOM_Dentro_Fora Prazo para Execucao_Projeto") @db.VarChar(20)
-  RECOM_Dentro_Fora_Prazo__para_Execucao_DDPM   String?   @map("RECOM_Dentro_Fora Prazo  para Execucao_DDPM") @db.VarChar(20)
-  RECOM_Dentro_Fora_Prazo__para_Projeto_DDPM    String?   @map("RECOM_Dentro_Fora Prazo  para Projeto_DDPM") @db.VarChar(20)
-  RECOM_Observacao                              String?   @db.VarChar(50)
-  RECOM_Justificativa_DDPM                      String?   @map("RECOM_Justificativa-DDPM") @db.VarChar(20)
-  RECOM_Justificativa_DSEP                      String?   @map("RECOM_Justificativa-DSEP") @db.VarChar(20)
-  RECOM_Justificativa_CSL                       String?   @map("RECOM_Justificativa-CSL") @db.VarChar(20)
-  RECOM_Justificativa_DSOQ                      String?   @map("RECOM_Justificativa-DSOQ") @db.VarChar(20)
-  RECOM_Justificativa_DSOS                      String?   @map("RECOM_Justificativa-DSOS") @db.VarChar(20)
-  RECOM_Justificativa_CSD                       String?   @map("RECOM_Justificativa-CSD") @db.VarChar(20)
-  RECOM_Descricao_NOTA                          String?   @map("RECOM_Descricao NOTA") @db.VarChar(100)
-  RECOM_Plano_de_Acao                           String?   @map("RECOM_Plano de Acao") @db.VarChar(100)
-  RECOM_CJ_ANEEL                                String?   @map("RECOM_CJ ANEEL") @db.VarChar(50)
-  RECOM_E_ALVO_DE_FISCALIZACAO                  String?   @map("RECOM_E ALVO DE FISCALIZACAO") @db.VarChar(20)
-  RECOM_OrCamento_Projetado_Planejado           Float?    @map("RECOM_OrCamento Projetado_Planejado")
-  RECOM_Retirada                                Boolean?
-  RECOM_Historico                               String?   @db.VarChar(50)
-  id                                            BigInt    @id @default(autoincrement())
-}
-
-model recomposicao_base_atualizacao {
-  RECOMATUAL_Regional                                String?   @db.VarChar(30)
-  RECOMATUAL_NOTA                                    String?   @db.VarChar(10)
-  RECOMATUAL_Status_da_Obra                          String?   @map("RECOMATUAL_Status da Obra") @db.VarChar(50)
-  RECOMATUAL_Conjunto                                String?   @db.VarChar(100)
-  RECOMATUAL_Circuito                                String?   @db.VarChar(20)
-  RECOMATUAL_Local_Instalacao                        String?   @map("RECOMATUAL_Local Instalacao") @db.VarChar(30)
-  RECOMATUAL_Planejado_DDPM                          Float?    @map("RECOMATUAL_Planejado-DDPM")
-  RECOMATUAL_Mes_de_Execucao__Planejado___DDPM       DateTime? @map("RECOMATUAL_Mes de Execucao  Planejado - DDPM") @db.Date
-  RECOMATUAL_Data_Envio_Projeto_DDPM                 DateTime? @map("RECOMATUAL_Data Envio Projeto-DDPM") @db.Date
-  RECOMATUAL_CenTrab_respon                          String?   @map("RECOMATUAL_CenTrab respon") @db.VarChar(50)
-  RECOMATUAL_Prioridade_Nota                         String?   @map("RECOMATUAL_Prioridade Nota") @db.VarChar(50)
-  RECOMATUAL_Status_Nota                             String?   @map("RECOMATUAL_Status Nota") @db.VarChar(20)
-  RECOMATUAL_Controle_Tecnico                        String?   @map("RECOMATUAL_Controle Tecnico") @db.VarChar(20)
-  RECOMATUAL_ODI                                     String?   @db.VarChar(20)
-  RECOMATUAL_Data_Entrega_Projeto                    String?   @map("RECOMATUAL_Data Entrega Projeto") @db.VarChar(20)
-  RECOMATUAL_Status_Ordem                            String?   @map("RECOMATUAL_Status Ordem") @db.VarChar(50)
-  RECOMATUAL_Status_Usuario                          String?   @map("RECOMATUAL_Status Usuario") @db.VarChar(50)
-  RECOMATUAL_PEP                                     String?   @db.VarChar(20)
-  RECOMATUAL_Planejado_R__Ordem                      Float?    @map("RECOMATUAL_Planejado R$-Ordem")
-  RECOMATUAL_Reallizado_R___Ordem                    Float?    @map("RECOMATUAL_Reallizado R$ -Ordem")
-  RECOMATUAL_Data_Programada_CSD_Inicio              String?   @map("RECOMATUAL_Data Programada CSD Inicio") @db.VarChar(20)
-  RECOMATUAL_Data_Programada_CSD_Fim                 String?   @map("RECOMATUAL_Data Programada CSD Fim") @db.VarChar(20)
-  RECOMATUAL_Centro_Trabalho                         String?   @map("RECOMATUAL_Centro Trabalho") @db.VarChar(20)
-  RECOMATUAL_Data_Inicio_Real__CONF                  String?   @map("RECOMATUAL_Data Inicio Real -CONF") @db.VarChar(20)
-  RECOMATUAL_Data_Fim_Real_CONF                      String?   @map("RECOMATUAL_Data Fim Real-CONF") @db.VarChar(20)
-  RECOMATUAL_Fisico_Realizado_Ordem                  Float?    @map("RECOMATUAL_Fisico Realizado Ordem")
-  RECOMATUAL_Cidade                                  String?   @db.VarChar(50)
-  RECOMATUAL_Projetado_DSEP                          Float?    @map("RECOMATUAL_Projetado-DSEP")
-  RECOMATUAL_Mes_BI                                  Float?    @map("RECOMATUAL_Mes-BI")
-  RECOMATUAL_Lead_Time_Projeto                       DateTime? @map("RECOMATUAL_Lead Time Projeto") @db.Date
-  RECOMATUAL_Data_Maxima_para_Entrega_Projeto        DateTime? @map("RECOMATUAL_Data Maxima para Entrega Projeto") @db.Date
-  RECOMATUAL_Data_Maxima_para_Entrega_Material       DateTime? @map("RECOMATUAL_Data Maxima para Entrega Material") @db.Date
-  RECOMATUAL_Data_de_Energizacao                     String?   @map("RECOMATUAL_Data de Energizacao") @db.VarChar(20)
-  RECOMATUAL_Data_Maxima_para_Iniciar_Programacao    String?   @map("RECOMATUAL_Data Maxima para Iniciar Programacao") @db.VarChar(20)
-  RECOMATUAL_Dias_de_Atraso_Projeto                  Float?    @map("RECOMATUAL_Dias de Atraso Projeto")
-  RECOMATUAL_Fisico_Realizado_no_Ano                 Float?    @map("RECOMATUAL_Fisico Realizado no Ano")
-  RECOMATUAL_Orcamento_Real_no_Ano                   Float?    @map("RECOMATUAL_Orcamento Real no Ano")
-  RECOMATUAL_Conjunto_Estrategia                     String?   @map("RECOMATUAL_Conjunto-Estrategia") @db.VarChar(20)
-  RECOMATUAL_Dentro_Fora_Prazo_para_Execucao_Projeto String?   @map("RECOMATUAL_Dentro_Fora Prazo para Execucao_Projeto") @db.VarChar(20)
-  RECOMATUAL_Dentro_Fora_Prazo__para_Execucao_DDPM   String?   @map("RECOMATUAL_Dentro_Fora Prazo  para Execucao_DDPM") @db.VarChar(20)
-  RECOMATUAL_Dentro_Fora_Prazo__para_Projeto_DDPM    String?   @map("RECOMATUAL_Dentro_Fora Prazo  para Projeto_DDPM") @db.VarChar(20)
-  RECOMATUAL_Observacao                              String?   @db.VarChar(50)
-  RECOMATUAL_Justificativa_DDPM                      String?   @map("RECOMATUAL_Justificativa-DDPM") @db.VarChar(20)
-  RECOMATUAL_Justificativa_DSEP                      String?   @map("RECOMATUAL_Justificativa-DSEP") @db.VarChar(20)
-  RECOMATUAL_Justificativa_CSL                       String?   @map("RECOMATUAL_Justificativa-CSL") @db.VarChar(20)
-  RECOMATUAL_Justificativa_DSOQ                      String?   @map("RECOMATUAL_Justificativa-DSOQ") @db.VarChar(20)
-  RECOMATUAL_Justificativa_DSOS                      String?   @map("RECOMATUAL_Justificativa-DSOS") @db.VarChar(20)
-  RECOMATUAL_Justificativa_CSD                       String?   @map("RECOMATUAL_Justificativa-CSD") @db.VarChar(20)
-  RECOMATUAL_Descricao_NOTA                          String?   @map("RECOMATUAL_Descricao NOTA") @db.VarChar(100)
-  RECOMATUAL_Plano_de_Acao                           String?   @map("RECOMATUAL_Plano de Acao") @db.VarChar(100)
-  RECOMATUAL_CJ_ANEEL                                String?   @map("RECOMATUAL_CJ ANEEL") @db.VarChar(50)
-  RECOMATUAL_E_ALVO_DE_FISCALIZACAO                  String?   @map("RECOMATUAL_E ALVO DE FISCALIZACAO") @db.VarChar(20)
-  RECOMATUAL_OrCamento_Projetado_Planejado           Float?    @map("RECOMATUAL_OrCamento Projetado_Planejado")
-  RECOMATUAL_Inserida                                Boolean?
-  RECOM_Historico                                    String?   @db.VarChar(255)
-  id                                                 BigInt    @id @default(autoincrement())
 }
 
 model regionais {
@@ -748,25 +542,6 @@ model usuario {
   regionais              regionais            @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
 }
 
-model zpsrl {
-  zpsrl_ov             String?   @db.VarChar(20)
-  zpsrl_def_projeto    String?   @db.VarChar(20)
-  zpsrl_dr             String?   @db.VarChar(20)
-  zpsrl_localizacao    String?   @db.VarChar(10)
-  zpsrl_denominacao    String?   @db.VarChar(50)
-  zpsrl_loc_instalacao String?   @db.VarChar(20)
-  zpsrl_prazo_entrega  String?   @db.VarChar(30)
-  zpsrl_projetista     String?   @db.VarChar(50)
-  zpsrl_status_ov      Int?
-  zpsrl_status_dr      String?   @db.VarChar(4)
-  zpsrl_status_pep     String?   @db.VarChar(4)
-  zpsrl_numero_pedido  String?   @db.VarChar(40)
-  zpsrl_mo_cliente     Float?
-  zpsrl_mo_empresa     Float?
-  zpsrl_dt_lib_real    DateTime? @db.Date
-  id                   BigInt    @id @default(autoincrement())
-}
-
 model ztab_cn52n_aux {
   diagrama_rede       String? @db.VarChar(30)
   qtde_manut_pend     Float?
@@ -851,7 +626,7 @@ model relatorio_execucao {
   possui_equipamentos_retirados   Boolean?
   equipamentos_retirados          String?
   alteracoes_execucao             Boolean?
-  observacoes_gerais              String?      @db.VarChar(255)
+  observacoes_gerais              String?
   situacao_obra                   String?      @db.VarChar(150)
   referencia_chave_provisoria     String?      @db.VarChar(25)
   chave_provisoria_retirada       Boolean?
@@ -874,51 +649,10 @@ model status_programacao {
   programacoes       programacoes[]
 }
 
-/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-view calc_qtde_mo_ordem {
-  diagrama_rede  String? @db.VarChar(15)
-  qtde_calc      Float?
-  mo_calc        Float?
-  capex_mat_calc Float?
-
-  @@ignore
-}
-
-view datas_programacao {
-  id                   Int       @unique
-  ovnota               String?   @db.VarChar(12)
-  first_data_prog      DateTime? @db.Date
-  last_data_prog       DateTime? @db.Date
-  hora_ini             DateTime? @db.Time(6)
-  hora_ter             DateTime? @db.Time(6)
-  tipo_servico         String?   @db.VarChar(50)
-  equipe_linha_morta   Int?
-  equipe_linha_viva    Int?
-  equipe_regularizacao Int?
-  id_tecnico           Int?
-  chi                  Int?
-  ordemdiagrama        String?   @db.VarChar(12)
-  observ_programacao   String?
-}
-
-/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-view calc_mo {
-  ovnota String? @db.VarChar(12)
-  row_id BigInt?
-  mo     Float?
-
-  @@ignore
-}
-
-/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-view capex_cn52n_aux {
-  row_id               BigInt?
-  diagrama_rede        String? @db.VarChar(20)
-  calc1                Float?
-  calc2                Float?
-  calc3                Float?
-  calc4                Float?
-  soma_qtde_manut_pend Float?
-
-  @@ignore
+model materiais_excluidos {
+  id                 Int     @id(map: "material_pkey") @default(autoincrement())
+  codigo_material    String? @db.VarChar(8)
+  descricao_material String? @db.VarChar(100)
+  centro             String? @db.VarChar(6)
+  contrato           String? @db.VarChar(25)
 }

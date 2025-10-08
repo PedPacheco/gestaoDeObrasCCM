@@ -28,7 +28,11 @@ export class InsertWorksService {
     const works = params.map((work: InsertMarketWorksDTO) => {
       const marketWork = MarketWork.create(work);
 
-      return { ...marketWork, moPlanejada: marketWork.moPlanejada };
+      return {
+        ...marketWork,
+        moPlanejada: marketWork.moPlanejada,
+        prazo: marketWork.prazo,
+      };
     });
 
     if (works.length === 0) {
@@ -84,13 +88,10 @@ export class InsertWorksService {
         dcd: work.dcd,
         dca: work.dca,
         dcim: work.dcim,
-        referencia: dataEntries.referencia,
         qtdePlanejada: work.qtde_plan,
         moPlanejada: work.mo_plan,
         idEmpreendimento: dataEntries.aux_empreendimento,
         idGrupo: group.id_grupo,
-        capexMoPlan: work.capex_mo_plan,
-        capexMatPlan: work.capex_mat_plan,
         anoPlan: dataEntries.anoplan,
       });
 
