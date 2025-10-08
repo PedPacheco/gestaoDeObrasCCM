@@ -122,7 +122,7 @@ export function WorkDetails({
 
   return (
     <>
-      <div className="w-full flex justify-between items-center mb-4 px-2 md:px-8">
+      <div className="w-full flex justify-between items-center my-4 px-2 md:px-8">
         <p className="text-2xl font-extrabold">Informações gerais</p>
         <ButtonComponent
           text={isPending ? "Salvando..." : "Salvar alterações"}
