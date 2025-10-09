@@ -2,19 +2,41 @@
 
 import { Cookies } from "react-cookie";
 import { useEffect, useState } from "react";
+import { FiltersInterface } from "@/interfaces/filtersInterfaces";
 
 const cookies = new Cookies();
 
-export function useSaveFilters(pageKey: string) {
+interface UseSaveFiltersOptions<> {
+  pageKey: string;
+  data: FiltersInterface;
+  applyFilters?: (
+    data: FiltersInterface,
+    filters: Record<string, any>
+  ) => FiltersInterface;
+}
+
+export function useSaveFilters({
+  pageKey,
+  data,
+  applyFilters,
+}: UseSaveFiltersOptions) {
   const [filters, setFilters] = useState<Record<string, any>>();
+  const [filteredData, setFilteredData] = useState<FiltersInterface>(data);
 
   useEffect(() => {
-    const saveFilters = cookies.get(pageKey);
-
-    if (saveFilters) {
-      setFilters(saveFilters);
-    }
+    const saved = cookies.get(pageKey);
+    if (saved) setFilters(saved);
   }, [pageKey]);
+
+  useEffect(() => {
+    if (data && filters && applyFilters) {
+      const newFiltered = applyFilters(data, filters);
+      console.log(newFiltered);
+      setFilteredData(newFiltered);
+    } else {
+      setFilteredData(data);
+    }
+  }, [data, filters, applyFilters]);
 
   function saveFilters(filtersValues: Record<string, any>) {
     const currentFilters = cookies.get(pageKey) ? cookies.get(pageKey) : {};
@@ -33,5 +55,5 @@ export function useSaveFilters(pageKey: string) {
     cookies.remove(pageKey, { path: "/" });
   }
 
-  return { filters, saveFilters, clearFilters };
+  return { filters, filteredData, saveFilters, clearFilters };
 }

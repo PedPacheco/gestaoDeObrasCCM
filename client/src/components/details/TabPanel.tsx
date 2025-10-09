@@ -322,7 +322,7 @@ export default function TabPanel({
           </div>
         </div>
 
-        <div className="flex flex-1">
+        <div className="flex flex-1 overflow-y-auto">
           <Suspense fallback={<p>carregando informações....</p>}>
             <CustomTabPanel value={value} index={0}>
               <WorkCostPanelItem data={data} />
