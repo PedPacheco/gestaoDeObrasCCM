@@ -99,7 +99,7 @@ export default function ExecutionReportPanelItem({
               {Object.keys(columns).map((column) => (
                 <TableCell
                   key={column}
-                  className={`py-1 px-2 text-center text-zinc-700 font-semibold text-lg bg-[#53FF75] border-r border-solid border-zinc-700 min-w-52`}
+                  className={`py-1 px-2 text-center text-zinc-700 font-semibold text-lg bg-[#53FF75] border-r border-solid border-zinc-700 min-w-52 sticky left-0 z-10`}
                 >
                   {columns[column as keyof typeof columns]}
                 </TableCell>
@@ -115,7 +115,7 @@ export default function ExecutionReportPanelItem({
                   onMouseLeave={() => setHoveredRow(null)}
                   className="hover:bg-gray-50 transition-colors duration-200"
                 >
-                  <TableCell className="py-1 px-2 text-center border-r font-medium text-base border-zinc-700 border-solid sticky left-0 bg-white z-10">
+                  <TableCell className="py-1 px-2 text-center border-r font-medium text-base border-zinc-700 border-solid bg-white">
                     <Box
                       display="flex"
                       justifyContent="center"

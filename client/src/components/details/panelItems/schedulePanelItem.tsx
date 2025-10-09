@@ -170,7 +170,7 @@ export default function SchedulePanelItem({
 
   return (
     <>
-      <TableContainer className="h-full overflow-y-auto">
+      <TableContainer className="h-full ">
         <Table stickyHeader>
           <TableHead>
             <TableRow>

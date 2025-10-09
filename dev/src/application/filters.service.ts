@@ -131,7 +131,7 @@ export class FiltersService {
         () =>
           this.filtersRepository.getData(
             'empreendimento',
-            ['id', 'empreendimento'],
+            ['id', 'empreendimento', 'id_regional', 'id_grupo'],
             {
               id_regional: condition,
             },
