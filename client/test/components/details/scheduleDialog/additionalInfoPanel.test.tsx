@@ -30,4 +30,24 @@ describe("AdditionalInfoPanel component", () => {
       screen.getAllByText("Responsabilidade Execução")[0]
     ).toBeInTheDocument();
   });
+
+  it("Deve renderizar as mensagens de erros", () => {
+    const onInputChange = vi.fn(() => vi.fn());
+
+    render(
+      <AdditionalInfoPanel
+        formData={mockFormData}
+        options={mockOptions}
+        formErrors={{
+          idExecutionRestriction: "Erro no restrição",
+          responsibility: "Erro no responsável",
+        }}
+        onInputChange={onInputChange}
+        disabledFields={() => false}
+      />
+    );
+
+    expect(screen.getAllByText("Erro no restrição")[0]).toBeInTheDocument();
+    expect(screen.getAllByText("Erro no responsável")[0]).toBeInTheDocument();
+  });
 });

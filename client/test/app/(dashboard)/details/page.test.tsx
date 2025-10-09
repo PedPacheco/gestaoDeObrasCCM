@@ -31,6 +31,12 @@ vi.mock("@/components/details/workDetails/workDetails", () => ({
   )),
 }));
 
+vi.mock("@/components/common/ErrorThrower", () => ({
+  ErrorThrower: vi.fn(({ message }) => (
+    <div data-testid="error-component" data-message={message} />
+  )),
+}));
+
 vi.mock("@/components/details/TabPanel", () => ({
   __esModule: true,
   default: vi.fn(({ props }) => (
@@ -198,5 +204,17 @@ describe("Details Page", () => {
 
     const details = screen.getByTestId("work-details");
     expect(details.getAttribute("data-executado")).toBe("");
+  });
+
+  it("Deve renderizar o componente, caso algum erro seja retornado do fetchData", async () => {
+    vi.mocked(fetchData).mockResolvedValueOnce({
+      success: false,
+      token: "mock-token",
+      data: mockData,
+    });
+
+    render(await Details({ params: Promise.resolve({ id: mockId }) }));
+
+    expect(screen.getByTestId("error-component")).toBeInTheDocument();
   });
 });

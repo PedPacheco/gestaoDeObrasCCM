@@ -271,7 +271,7 @@ describe("ScheduleFormDialog", () => {
         id: 2,
         username: "partial-user",
         nome_usuario: "Partial User",
-        id_regional: "002",
+        id_regional: 2,
         email: "partial@example.com",
       },
       permissions: {
@@ -351,5 +351,43 @@ describe("ScheduleFormDialog", () => {
     expect(
       screen.getByRole("button", { name: /Salvando.../i })
     ).toBeInTheDocument();
+  });
+
+  it("exibe ErrorModal quando a validação falha", async () => {
+    const user = userEvent.setup();
+
+    const safeParseMock = vi.fn().mockReturnValue({
+      success: false,
+      error: {
+        issues: [{ path: ["data_prog"], message: "Campo obrigatório" }],
+      },
+    });
+    vi.spyOn(schemasModule, "schedulesSchema").mockReturnValue({
+      safeParse: safeParseMock,
+    } as any);
+
+    const setFormErrorsMock = vi.fn();
+
+    render(
+      <ScheduleFormDialog
+        statusWork={0}
+        onExecutionDialogOpen={() => {}}
+        options={{ tecnico: [], restricao: [] }}
+        {...baseProps}
+        scheduleForm={{
+          ...baseProps.scheduleForm,
+          setFormErrors: setFormErrorsMock,
+        }}
+      />
+    );
+
+    const button = screen.getByRole("button", { name: /Salvar Programação/i });
+    await user.click(button);
+
+    expect(screen.getByText("Erro ao salvar programação")).toBeInTheDocument();
+
+    expect(setFormErrorsMock).toHaveBeenCalledWith({
+      data_prog: "Campo obrigatório",
+    });
   });
 });

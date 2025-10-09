@@ -125,27 +125,23 @@ export default function SchedulePanelItem({
           return prev.map((item) =>
             item.id === id ? { ...item, validate: value } : item
           );
-        } else {
-          return [...prev, { id, validate: value }];
         }
+
+        return [...prev, { id, validate: value }];
       });
     } else if (key === "confirmada") {
       setConfirmedSchedule((prev: any[]) => {
         const exists = prev.some((item) => item.id === id);
 
         if (exists) {
-          return prev.map((item) => {
-            if (
-              item.id === id &&
-              (item.exec === null || item.exec === undefined)
-            ) {
-              return { ...item, confirm: value };
-            }
-            return item;
-          });
-        } else {
-          return [...prev, { id, confirm: value }];
+          return prev.map((item) =>
+            item.id === id && (item.exec === null || item.exec === undefined)
+              ? { ...item, confirm: value }
+              : item
+          );
         }
+
+        return [...prev, { id, confirm: value }];
       });
     }
 
