@@ -262,7 +262,6 @@ export const mockUpdateNotes: UpdateNotesDTO[] = [
 
 export const mockMaterialCapex: MaterialCapexDTO[] = [
   {
-    status: null,
     diagrama_rede: '170000027938',
     def_proj: 'X/005017',
     material: '10057267',
@@ -281,7 +280,6 @@ export const mockMaterialCapex: MaterialCapexDTO[] = [
     relevancia_calculo: 'X',
   },
   {
-    status: null,
     diagrama_rede: '170000027938',
     def_proj: 'X/005017',
     material: '10057267',
@@ -300,7 +298,6 @@ export const mockMaterialCapex: MaterialCapexDTO[] = [
     relevancia_calculo: 'X',
   },
   {
-    status: null,
     diagrama_rede: '170000027938',
     def_proj: 'X/004078',
     material: '10054768',
@@ -319,7 +316,6 @@ export const mockMaterialCapex: MaterialCapexDTO[] = [
     relevancia_calculo: 'X',
   },
   {
-    status: null,
     diagrama_rede: '170000027938',
     def_proj: 'X/004078',
     material: '10054765',

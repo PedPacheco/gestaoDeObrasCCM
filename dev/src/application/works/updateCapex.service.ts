@@ -100,7 +100,7 @@ export class UpdateCapexService {
         }
       }
 
-      if (material.ctg_item === 'L') {
+      if (material.ctg_item === 'L' || material.ctg_item === 'Z') {
         current.capex_mat_plan += material.qtd_necess * material.preco_mi;
         current.capex_mat_pend +=
           material.preco_mi * (material.qtd_necess - material.qtd_retirada);

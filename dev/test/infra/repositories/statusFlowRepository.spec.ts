@@ -51,5 +51,14 @@ describe('StatusFlowRepository', () => {
         },
       });
     });
+
+    it('should throw error if  error occurs', async () => {
+      const error = new Error('DB connection failed');
+      (mockTransaction.obras.update as jest.Mock).mockRejectedValue(error);
+
+      await expect(
+        repository.updateStatusWorks(3, 5, mockTransaction),
+      ).rejects.toThrow('DB connection failed');
+    });
   });
 });

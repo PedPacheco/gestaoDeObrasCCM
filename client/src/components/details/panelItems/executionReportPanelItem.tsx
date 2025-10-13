@@ -56,12 +56,13 @@ const columns = {
   alteracoes_execucao:
     "Houveram alterações na execução conforme era o projeto?",
   observacoes_gerais: "Observações gerais",
-  situacao_obra: "Situação da obra",
   motivo: "Motivo",
-  chave_provisoria: "Houve instalação de chave provisória?",
+  chave_provisoria_instalada: "Houve instalação de chave provisória?",
   referencia_chave_provisoria:
     "Qual a referência de instalação da chave provisória?",
   chave_provisoria_retirada: "Chave provisória foi retirada?",
+  referencia_chave_provisoria_retirada:
+    "Qual a referência da chave provisória retirada ?",
 };
 
 interface ExecutionReportItemProps {

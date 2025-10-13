@@ -35,8 +35,10 @@ export default function MainSchedule({
 }: MainInterface<Filters>) {
   const [filteredData, setFilteredData] = useState(data);
   const [error, setError] = useState<string | null>();
-  const { clearFilters, filters, saveFilters } =
-    useSaveFilters("scheduleFilters");
+  const { clearFilters, filters, saveFilters } = useSaveFilters({
+    pageKey: "scheduleFilters",
+    data: filtersData,
+  });
   const [selectedYear, setSelectedYear] = useState<Dayjs | null>(dayjs());
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {}

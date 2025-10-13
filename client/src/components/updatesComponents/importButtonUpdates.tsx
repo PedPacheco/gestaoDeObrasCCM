@@ -21,7 +21,6 @@ export function ImportButtonUpdates({ storageKey }: ImportButtonUpdatesProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const iw38InputRef = useRef<HTMLInputElement>(null);
-  // const cn52nInputRef = useRef<HTMLInputElement>(null);
 
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -94,6 +93,7 @@ export function ImportButtonUpdates({ storageKey }: ImportButtonUpdatesProps) {
   };
 
   const handleIW38Select = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("entrou");
     const iw38File = e.target.files?.[0];
     if (!iw38File) return;
 
@@ -121,6 +121,8 @@ export function ImportButtonUpdates({ storageKey }: ImportButtonUpdatesProps) {
           }));
 
         const groupData = groupNoteDate(iw38Data);
+
+        console.log(groupData);
 
         const res = await InsertAuxiliaryBaseMarket(
           groupData,
@@ -154,13 +156,13 @@ export function ImportButtonUpdates({ storageKey }: ImportButtonUpdatesProps) {
 
   return (
     <>
-      {storageKey === "marketUpdatesData" ? (
-        <form
-          ref={formRef}
-          name="form-mercado"
-          encType="multipart/form-data"
-          className="flex flex-col items-center gap-4"
-        >
+      <form
+        ref={formRef}
+        name="form-mercado"
+        encType="multipart/form-data"
+        className="flex flex-col items-center gap-4"
+      >
+        {storageKey === "marketUpdatesData" ? (
           <input
             type="file"
             name="file"
@@ -170,9 +172,7 @@ export function ImportButtonUpdates({ storageKey }: ImportButtonUpdatesProps) {
             style={{ display: "none" }}
             required
           />
-        </form>
-      ) : (
-        <>
+        ) : (
           <input
             type="file"
             accept=".xlsx"
@@ -180,8 +180,8 @@ export function ImportButtonUpdates({ storageKey }: ImportButtonUpdatesProps) {
             onChange={handleIW38Select}
             style={{ display: "none" }}
           />
-        </>
-      )}
+        )}
+      </form>
 
       <ButtonComponent
         onClick={handleClick}

@@ -207,5 +207,24 @@ describe('FindExistingWorksRepository', () => {
       expect(mockPrisma.obras.findMany).not.toHaveBeenCalled();
       expect(result).toEqual([]);
     });
+
+    it('should throw an error and log it if prisma fails', async () => {
+      const error = new Error('Prisma failure');
+
+      mockPrisma.obras.findMany.mockRejectedValue(error);
+
+      const loggerSpy = jest.spyOn(repository['logger'], 'error');
+
+      await expect(
+        repository.findExistingOrders([
+          { ordem_dca: '', ordem_dcd: '', ordem_dci: '', ordem_dcim: '321423' },
+        ]),
+      ).rejects.toThrow(error);
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        'Erro ao buscar ordens',
+        error.stack,
+      );
+    });
   });
 });

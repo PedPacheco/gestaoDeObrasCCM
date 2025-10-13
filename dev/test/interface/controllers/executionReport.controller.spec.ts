@@ -2,10 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ExecutionReportController } from 'src/interface/controllers/executionReport.controller';
 import { mockUpdateExecutionReportDTO } from '../../../test/mocks/mocksExecutionReport';
 import { plainToInstance } from 'class-transformer';
-import {
-  ExecutionReportDataDTO,
-  UpdateExecutionReportDTO,
-} from 'src/interface/dtos/executionReportDTO';
+import { ExecutionReportDataDTO } from 'src/interface/dtos/executionReportDTO';
 import { validate } from 'class-validator';
 import { ExecutionReportService } from 'src/application/executionReport.service';
 
@@ -84,16 +81,6 @@ describe('ExecutionReportController', () => {
     it('should fail if equipment item is missing fields', async () => {
       const dto = plainToInstance(
         ExecutionReportDataDTO,
-        mockUpdateExecutionReportDTO,
-      );
-      const errors = await validate(dto);
-
-      expect(errors.length).toBe(0);
-    });
-
-    it('should fail if equipment item is missing fields', async () => {
-      const dto = plainToInstance(
-        UpdateExecutionReportDTO,
         mockUpdateExecutionReportDTO,
       );
       const errors = await validate(dto);

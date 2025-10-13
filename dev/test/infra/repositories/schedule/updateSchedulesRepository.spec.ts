@@ -107,13 +107,16 @@ describe('UpdateSchedulesRepository', () => {
 
     it('should return all schedules with an ID different from the passed ID', async () => {
       mockPrisma.programacoes.findMany.mockResolvedValue([
-        { exec: 80 },
-        { exec: null },
+        { prog: 0, exec: 80 },
+        { prog: 0, exec: null },
       ]);
 
       const result = await repository.findExecutionOfSchedules(332, 32445);
 
-      expect(result).toEqual([80, null]);
+      expect(result).toEqual([
+        { prog: 0, exec: 80 },
+        { prog: 0, exec: null },
+      ]);
     });
   });
 });

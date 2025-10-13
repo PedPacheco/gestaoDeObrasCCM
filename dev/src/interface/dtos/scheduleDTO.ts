@@ -180,6 +180,10 @@ export class GetMonthlySummaryDTO {
 
 export class SchedulesDataDTO {
   @IsNumber()
+  @IsOptional()
+  id?: number;
+
+  @IsNumber()
   idWork: number;
 
   @IsDate()

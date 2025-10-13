@@ -254,7 +254,10 @@ describe("MainEntry component", () => {
     render(<MainEntry {...defaultProps} />);
 
     // Verificar se os filtros foram carregados
-    expect(useSaveFilters).toHaveBeenCalledWith("entryFilters");
+    expect(useSaveFilters).toHaveBeenCalledWith({
+      pageKey: "entryFilters",
+      data: mockFiltersData,
+    });
   });
 
   it("deve chamar fetchData ao clicar em aplicar filtros", async () => {

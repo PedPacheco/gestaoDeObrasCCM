@@ -31,7 +31,6 @@ export function useSaveFilters({
   useEffect(() => {
     if (data && filters && applyFilters) {
       const newFiltered = applyFilters(data, filters);
-      console.log(newFiltered);
       setFilteredData(newFiltered);
     } else {
       setFilteredData(data);

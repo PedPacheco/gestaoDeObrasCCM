@@ -609,38 +609,38 @@ model suspensoes {
 }
 
 model relatorio_execucao {
-  id                              Int          @id @default(autoincrement())
-  id_usuario                      Int
-  id_obra                         Int
-  id_programacao                  Int
-  supervisor                      String?      @db.VarChar(50)
-  liberado_ligacao_parcial        Boolean?
-  hora_inicio                     DateTime?    @db.Time(6)
-  hora_conclusao                  DateTime?    @db.Time(6)
-  contato_inicio                  String?      @db.VarChar(50)
-  contato_termino                 String?      @db.VarChar(50)
-  atraso                          Boolean?
-  justificativa_atraso            String?      @db.VarChar(150)
-  possui_equipamentos_instalados  Boolean?
-  equipamentos_aplicados          String?
-  possui_equipamentos_retirados   Boolean?
-  equipamentos_retirados          String?
-  alteracoes_execucao             Boolean?
-  observacoes_gerais              String?
-  situacao_obra                   String?      @db.VarChar(150)
-  referencia_chave_provisoria     String?      @db.VarChar(25)
-  chave_provisoria_retirada       Boolean?
-  motivo                          String?      @db.VarChar(150)
-  chave_provisoria_instalada      Boolean?
-  potencia_equipamento_aplicado   String?
-  patrimonio_equipamento_aplicado String?
-  potencia_equipamento_retirado   String?
-  patrimonio_equipamento_retirado String?
-  instalacao_equipamento_aplicado String?
-  instalacao_equipamento_retirado String?
-  obras                           obras        @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obra")
-  programacoes                    programacoes @relation(fields: [id_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_programacao")
-  usuario                         usuario      @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario")
+  id                                   Int          @id @default(autoincrement())
+  id_usuario                           Int
+  id_obra                              Int
+  id_programacao                       Int
+  supervisor                           String?      @db.VarChar(50)
+  liberado_ligacao_parcial             Boolean?
+  hora_inicio                          DateTime?    @db.Time(6)
+  hora_conclusao                       DateTime?    @db.Time(6)
+  contato_inicio                       String?      @db.VarChar(50)
+  contato_termino                      String?      @db.VarChar(50)
+  atraso                               Boolean?
+  justificativa_atraso                 String?      @db.VarChar(150)
+  possui_equipamentos_instalados       Boolean?
+  equipamentos_aplicados               String?
+  possui_equipamentos_retirados        Boolean?
+  equipamentos_retirados               String?
+  alteracoes_execucao                  Boolean?
+  observacoes_gerais                   String?
+  referencia_chave_provisoria          String?      @db.VarChar(25)
+  chave_provisoria_retirada            Boolean?
+  motivo                               String?      @db.VarChar(150)
+  chave_provisoria_instalada           Boolean?
+  potencia_equipamento_aplicado        String?
+  patrimonio_equipamento_aplicado      String?
+  potencia_equipamento_retirado        String?
+  patrimonio_equipamento_retirado      String?
+  instalacao_equipamento_aplicado      String?
+  instalacao_equipamento_retirado      String?
+  referencia_chave_provisoria_retirada String?      @db.VarChar(25)
+  obras                                obras        @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obra")
+  programacoes                         programacoes @relation(fields: [id_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_programacao")
+  usuario                              usuario      @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario")
 }
 
 model status_programacao {

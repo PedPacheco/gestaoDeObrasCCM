@@ -92,7 +92,7 @@ describe('UpdateSchedulesService', () => {
         mockExecutionValidator.validateExecutionAndUpdateStatus,
       ).toHaveBeenCalledWith(
         { ...mockUpdateSchedulesService, exec: 20 },
-        80,
+        { prog: 0, exec: 0 },
         mockTransaction,
       );
     });

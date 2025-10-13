@@ -30,8 +30,10 @@ export default function MainAllWorks({
   token,
 }: MainInterface<allWorksType>) {
   const [filteredData, setFilteredData] = useState(data);
-  const { clearFilters, filters, saveFilters } =
-    useSaveFilters("allWorksFilters");
+  const { clearFilters, filters, saveFilters } = useSaveFilters({
+    pageKey: "allWorksFilters",
+    data: filtersData,
+  });
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {}
   );

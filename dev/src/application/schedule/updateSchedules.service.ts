@@ -32,9 +32,13 @@ export class UpdateSchedulesService {
           data.idWork,
         );
 
-      const executed = executionValues.reduce((total, item) => {
-        return total + (item || 0);
-      }, 0);
+      const executed = executionValues.reduce(
+        (total, item) => ({
+          exec: total.exec + (item.exec || 0),
+          prog: total.prog + (item.prog || 0),
+        }),
+        { exec: 0, prog: 0 }, // valor inicial como objeto
+      );
 
       await this.executionValidator.validateExecutionAndUpdateStatus(
         data,

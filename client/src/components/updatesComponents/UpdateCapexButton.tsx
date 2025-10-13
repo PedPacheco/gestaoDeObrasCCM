@@ -66,13 +66,20 @@ export function UpdateCapexButton() {
           .slice(2)
           .map((row: any) => ({
             diagrama_rede: row[2],
-            ctg_item: row[8],
-            um_registro: row[10],
-            texto_material: row[5],
-            qtd_necess: row[12],
-            preco_mi: row[11],
-            material: row[4],
             def_proj: row[3],
+            material: row[4],
+            texto_material: row[5],
+            centro: row[6],
+            deposito: row[7],
+            ctg_item: row[8],
+            elemento_pep: row[9],
+            um_registro: row[10],
+            preco_mi: row[11],
+            qtd_necess: row[12],
+            qtd_retirada: row[13],
+            qtd_faltante: row[15],
+            data_necessidade: row[16],
+            relevancia_calculo: row[17],
           }));
 
         const batches = createMaterialBatches(cn52nData);

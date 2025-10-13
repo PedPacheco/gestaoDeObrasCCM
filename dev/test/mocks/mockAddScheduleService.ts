@@ -1,3 +1,5 @@
+import { UpdateSchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
+
 export const mockAddSchedulesServiceData = {
   idWork: 3146044,
   dataProg: new Date('2025-06-10T00:00:00.000Z'),
@@ -112,10 +114,9 @@ export const mockUpdateSchedulesServiceFormattedData = {
   id_tecnico: 1,
 };
 
-export const mockUpdateSchedulesController = {
+export const mockUpdateSchedulesController: UpdateSchedulesDataDTO = {
   updateData: {
     id: 1,
-    idUser: 46,
     idWork: 20283,
     chi: 32324,
     dataProg: new Date('2025-06-13'),
@@ -127,10 +128,9 @@ export const mockUpdateSchedulesController = {
     lmTeam: 5,
     lvTeam: 2,
     numDp: '43432432',
-    observationExecution: null,
     prog: 100,
     regulTeam: 3,
-    responsibilityExecution: null,
+    responsibility: null,
     serviceType: 'Obra livre',
     startTime: '08:00',
     temporaryKey: false,
@@ -163,10 +163,10 @@ export const mockUpdateSchedulesController = {
     equipmentRemoved: [],
     changesExecution: false,
     generalObservation: 'Execução dentro do esperado, sem intercorrências.',
-    workSituation: 'Executado com sucesso',
     reason: 'Instalação programada',
     provisionalKeyInstalled: true,
     provisionalKeyReference: 'CHV123456',
     provisionalKeyWithdrawn: false,
+    provisionalKeyReferenceWithdrawn: null,
   },
 };

@@ -541,7 +541,7 @@ describe('ScheduleController', () => {
       );
     });
 
-    it('Should call getScheduleValues method and return correct data', async () => {
+    it('Should call update method and return correct data', async () => {
       jest.spyOn(handleSchedulesUpdateService, 'update').mockResolvedValue();
 
       const result = await scheduleController.updateSchedules(

@@ -92,7 +92,6 @@ export function transformExecutionReport(data: any): ExecutionReportData {
     ),
     changesExecution: data.alteracoes_execucao,
     generalObservation: data.observacoes_gerais || "",
-    workSituation: data.situacao_obra,
     reason: data.motivo || "",
     provisionalKeyInstalled: data.chave_provisoria,
     provisionalKeyReference: data.referencia_chave_provisoria || "",
