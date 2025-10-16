@@ -93,6 +93,7 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
             nome_responsavel_execucao: true,
             confirmada: true,
             validada: true,
+            reprovada: true,
             status_programacao: {
               select: { status_programacao: true },
             },

@@ -19,6 +19,7 @@ describe("TableWithPagination", () => {
     id: "ID",
     data_inicio: "Data Início",
     mo_planejada: "M.O Planejada",
+    ovnota: "Ovnota",
     prog: "Prog %",
     exec: "Exec %",
     data_fim: "Data Fim",
@@ -31,6 +32,7 @@ describe("TableWithPagination", () => {
         id: 1,
         data_inicio: "2024-07-20",
         mo_planejada: 10000.1234,
+        ovnota: "23421432",
         prog: 78,
         exec: 92,
         data_fim: "1970-01-01T14:30:00Z",
@@ -101,7 +103,7 @@ describe("TableWithPagination", () => {
       />
     );
 
-    expect(screen.getAllByRole("columnheader")).toHaveLength(5);
+    expect(screen.getAllByRole("columnheader")).toHaveLength(6);
   });
 
   it("chama handleChangePage quando paginação é usada", () => {

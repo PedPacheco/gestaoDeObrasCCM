@@ -7,7 +7,7 @@ import {
   FIND_SCHEDULE_BY_ID_REPOSITORY,
   IFindScheduleByIdRepository,
 } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
-import { UpdateExecutionReportDTO } from 'src/interface/dtos/executionReportDTO';
+import { ExecutionReportDataDTO } from 'src/interface/dtos/executionReportDTO';
 import { ExecutionReportServiceInterface } from 'src/interface/types/executionReportInterface';
 
 import {
@@ -80,7 +80,7 @@ export class ExecutionReportService {
     return formatted;
   }
 
-  async update(idExecutionReport: number, data: UpdateExecutionReportDTO) {
+  async update(idExecutionReport: number, data: ExecutionReportDataDTO) {
     if (!data) {
       throw new BadRequestException('Nenhum relatório fornecida para edição.');
     }

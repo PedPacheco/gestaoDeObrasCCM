@@ -17,11 +17,11 @@ export interface ExecutionReportServiceInterface {
   equipmentRemoved: EquipmentItem[];
   changesExecution: boolean;
   generalObservation: string;
-  workSituation: string;
   reason: string;
   provisionalKeyInstalled: boolean;
   provisionalKeyReference: string;
   provisionalKeyWithdrawn: boolean;
+  provisionalKeyReferenceWithdrawn?: string;
 }
 
 export interface ExecutionReportRepositoryInterface {

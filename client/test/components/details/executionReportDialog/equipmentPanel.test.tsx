@@ -6,7 +6,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { describe, it, vi, beforeEach, expect } from "vitest";
-import { ExecutionEquipmentPanel } from "@/components/details/executionReportDialog/EquipmentPanel";
+import { ExecutionEquipmentPanel } from "@/components/details/modals/executionReportDialog/EquipmentPanel";
 import userEvent from "@testing-library/user-event";
 import { mockFormData } from "../../../mocks/mockFormData";
 

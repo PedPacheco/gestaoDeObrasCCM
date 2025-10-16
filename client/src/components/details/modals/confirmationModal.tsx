@@ -1,7 +1,7 @@
 import React from "react";
 import { Modal, Box, Typography, IconButton } from "@mui/material";
 import { XMarkIcon } from "@heroicons/react/20/solid";
-import { ButtonComponent } from "./Button";
+import { ButtonComponent } from "../../common/Button";
 
 interface ConfirmationModalProps {
   open: boolean;

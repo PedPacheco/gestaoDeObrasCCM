@@ -14,8 +14,8 @@ import {
   Typography,
 } from "@mui/material";
 
-import { ButtonComponent } from "../../common/Button";
-import { AccordionPanel } from "../accordionPanel";
+import { ButtonComponent } from "../../../common/Button";
+import { AccordionPanel } from "../../accordionPanel";
 import { ScheduleFormHookReturn } from "../scheduleDialog/dialog";
 import { AdditionalExecutionInfoPanel } from "./additionalExecutionInfoPanel";
 import { ExecutionEquipmentPanel } from "./EquipmentPanel";

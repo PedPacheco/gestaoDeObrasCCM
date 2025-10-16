@@ -49,7 +49,10 @@ export default function WeeklyScheduleFilters({
   applyFilters,
   isPending,
 }: ScheduleByDateFiltersProps) {
-  const { clearFilters, filters, saveFilters } = useSaveFilters(keyFilters);
+  const { clearFilters, filters, saveFilters } = useSaveFilters({
+    pageKey: keyFilters,
+    data: data,
+  });
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {}
   );

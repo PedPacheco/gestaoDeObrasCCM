@@ -187,9 +187,6 @@ describe("WorkDetails component", () => {
     // Verificar alguns valores específicos
     expect(screen.getByText("OV123")).toBeInTheDocument();
     expect(screen.getByText("São Paulo")).toBeInTheDocument();
-    expect(
-      screen.getByText("Obra em andamento conforme cronograma")
-    ).toBeInTheDocument();
   });
 
   it("deve renderizar o EditableColumn", () => {
@@ -263,6 +260,17 @@ describe("WorkDetails component", () => {
     await waitFor(() => {
       expect(mockUpdateWork).toHaveBeenCalledWith({ id_status: "2" }, 123);
     });
+  });
+
+  it("deve atualizar o valor do campo observ_obra ao digitar no textarea", async () => {
+    render(<WorkDetails {...defaultProps} />);
+
+    const textarea = screen.getByText("Obra em andamento conforme cronograma");
+
+    await userEvent.clear(textarea);
+    await userEvent.type(textarea, "Nova observação adicionada");
+
+    expect(textarea).toHaveValue("Nova observação adicionada");
   });
 
   it("deve mostrar modal de sucesso após salvar", async () => {

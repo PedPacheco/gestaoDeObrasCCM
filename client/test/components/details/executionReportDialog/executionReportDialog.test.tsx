@@ -3,10 +3,10 @@ import { describe, expect, it, vi } from "vitest";
 import {
   ExecutionReportData,
   ExecutionReportDialog,
-} from "@/components/details/executionReportDialog/executionReportDialog";
+} from "@/components/details/modals/executionReportDialog/executionReportDialog";
 import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
 import * as schemasModule from "@/validations/validationSchedules";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { mockFormData } from "../../../mocks/mockFormData";
@@ -23,22 +23,36 @@ vi.mock("@/components/details/accordionPanel", () => ({
 }));
 
 vi.mock(
-  "@/components/details/executionReportDialog/executionBasicPanel",
+  "@/components/details/modals/executionReportDialog/executionBasicPanel",
   () => ({
     ExecutionBasicPanel: () => <div>ExecutionBasicPanel</div>,
   })
 );
 
-vi.mock("@/components/details/executionReportDialog/EquipmentPanel", () => ({
-  ExecutionEquipmentPanel: () => <div>ExecutionEquipmentPanel</div>,
-}));
+vi.mock(
+  "@/components/details/modals/executionReportDialog/EquipmentPanel",
+  () => ({
+    ExecutionEquipmentPanel: () => <div>ExecutionEquipmentPanel</div>,
+  })
+);
 
 vi.mock(
-  "@/components/details/executionReportDialog/additionalExecutionInfoPanel",
+  "@/components/details/modals/executionReportDialog/additionalExecutionInfoPanel",
   () => ({
     AdditionalExecutionInfoPanel: () => <div>AdditionalExecutionInfoPanel</div>,
   })
 );
+
+vi.mock("@/components/common/ErrorModal", () => ({
+  __esModule: true,
+  default: ({ open, message, onClose }: any) =>
+    open ? (
+      <div data-testid="error-modal">
+        <span data-testid="error-message">{message}</span>
+        <button onClick={onClose}>Close</button>
+      </div>
+    ) : null,
+}));
 
 vi.mock("@/components/common/Button", () => ({
   ButtonComponent: ({ text, onClick, disabled }: any) => (
@@ -154,5 +168,102 @@ describe("ExecutionReportDialog", () => {
     await user.click(button);
 
     expect(handleSubmit).toHaveBeenCalledWith(null, "executionReport");
+  });
+
+  it("deve abrir o componente ErrorModal e mostrar a mensagem de erro após uma falha na validação dos dados", async () => {
+    const user = userEvent.setup();
+    const safeParseMock = vi.fn().mockReturnValue({
+      success: false,
+      error: {
+        issues: [
+          {
+            errors: [
+              [
+                {
+                  code: "invalid_type", // ✅ Corrigido
+                  path: ["data_prog"],
+                  message: "Campo obrigatório",
+                },
+              ],
+            ],
+          },
+        ],
+      },
+    });
+
+    vi.spyOn(schemasModule, "validationSchedulesSchema").mockReturnValue({
+      safeParse: safeParseMock,
+    } as any);
+    const setFormErrorsMock = vi.fn();
+    render(
+      <ExecutionReportDialog
+        {...baseProps}
+        scheduleForm={{
+          ...baseProps.scheduleForm,
+          setFormErrors: setFormErrorsMock,
+        }}
+      />
+    );
+    const button = screen.getByRole("button", { name: /Salvar Execução/i });
+    await user.click(button);
+    await waitFor(() => {
+      expect(screen.getByTestId("error-modal")).toBeInTheDocument();
+      expect(screen.getByTestId("error-message")).toHaveTextContent(
+        "Erro ao salvar relatório de execução"
+      );
+    });
+  });
+
+  it("não deve abrir o componente ErrorModal e mostrar a mensagem de erro após uma falha na validação dos dados", async () => {
+    const user = userEvent.setup();
+
+    const safeParseMock = vi.fn().mockReturnValue({
+      success: false,
+      error: {
+        issues: [
+          {
+            errors: [
+              [
+                {
+                  code: "invalid_type",
+                  path: ["data_prog"],
+                  message: "Campo obrigatório",
+                },
+
+                {
+                  code: "custom",
+                  path: ["data_prog"],
+                  message: "Campo obrigatório",
+                },
+              ],
+            ],
+          },
+        ],
+      },
+    });
+
+    vi.spyOn(schemasModule, "validationSchedulesSchema").mockReturnValue({
+      safeParse: safeParseMock,
+    } as any);
+
+    const setFormErrorsMock = vi.fn();
+
+    render(
+      <ExecutionReportDialog
+        {...baseProps}
+        scheduleForm={{
+          ...baseProps.scheduleForm,
+          setFormErrors: setFormErrorsMock,
+        }}
+      />
+    );
+
+    const button = screen.getByRole("button", { name: /Salvar Execução/i });
+    await user.click(button);
+
+    await waitFor(() => {
+      expect(setFormErrorsMock).toHaveBeenCalled();
+      expect(screen.queryByTestId("error-modal")).toBeInTheDocument();
+    });
   });
 });

@@ -1,35 +1,26 @@
 "use client";
 
 import dayjs, { Dayjs } from "dayjs";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
 import { DateFilter } from "@/components/common/DateFilter";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { FiltersInterface } from "@/interfaces/filtersInterfaces";
 import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
 import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
 import { Checkbox, TextField } from "@mui/material";
 
-interface filters {
-  regional: { id: string; regional: string }[];
-  parceira: { id: string; turma: string }[];
-  tipo: { id: string; tipo_obra: string; id_grupo: number }[];
-  municipio: { id: string; municipio: string }[];
-  grupo: { id: string; grupo: string }[];
-  status: { id: string; status: string }[];
-  status_programacao: { id: string; status_programacao: string }[];
-}
-
 interface ScheduleByDateFiltersProps {
-  data: filters;
+  data: FiltersInterface;
   openModal: () => void;
   generateExcel: (params: any) => void;
   isPending: boolean;
   setPage: (page: number) => void;
-  applyFilters: (params: Record<string, string | boolean>) => void;
+  searchFilteredData: (params: Record<string, string | boolean>) => void;
 }
 
 export default function ScheduleForDayFilters({
@@ -38,15 +29,32 @@ export default function ScheduleForDayFilters({
   generateExcel,
   isPending,
   setPage,
-  applyFilters,
+  searchFilteredData,
 }: ScheduleByDateFiltersProps) {
-  const { clearFilters, filters, saveFilters } = useSaveFilters(
-    "scheduleForDayFilters"
-  );
+  const [date, setDate] = useState<Dayjs | null>(null);
+
+  const applyFilters = useCallback((data: FiltersInterface, filters: any) => {
+    let newData = { ...data };
+
+    if (filters?.idGrupo) {
+      const idGrupos = filters.idGrupo.map(Number);
+      newData.tipo = data.tipo?.filter((item) =>
+        idGrupos.includes(item.id_grupo)
+      );
+    }
+
+    return newData;
+  }, []);
+
+  const { clearFilters, filters, saveFilters, filteredData } = useSaveFilters({
+    pageKey: "scheduleForDayFilters",
+    data,
+    applyFilters,
+  });
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {}
   );
-  const [date, setDate] = useState<Dayjs | null>(null);
+
   const [filterType, setFilterType] = useState<string>("");
   const [ovnota, setOvnota] = useState<string>("");
   const [executed, setExecuted] = useState<boolean>(false);
@@ -92,7 +100,7 @@ export default function ScheduleForDayFilters({
       ovnota: ovnota,
     };
 
-    applyFilters(newSelectedItems);
+    searchFilteredData(newSelectedItems);
   }
 
   function handleCleanigFilters() {
@@ -107,7 +115,7 @@ export default function ScheduleForDayFilters({
 
     setPage(0);
 
-    applyFilters({
+    searchFilteredData({
       data: "",
       tipoFiltro: "",
       executado: false,
@@ -127,7 +135,7 @@ export default function ScheduleForDayFilters({
           marginLeft="lg:ml-4"
         />
 
-        {Object.entries(data)
+        {Object.entries(filteredData)
           .slice(0, 7)
           .map(([key, value], index) => {
             const valueKey = Object.keys(value[0])[0];

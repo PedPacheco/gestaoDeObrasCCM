@@ -98,8 +98,11 @@ export const EquipmentList = ({
               <FormControl fullWidth error={!!equipmentError}>
                 {eq.type === "DEFAULT" ? (
                   <>
-                    <InputLabel>Equipamento</InputLabel>
+                    <InputLabel id={`equipment-${index}`}>
+                      Equipamento
+                    </InputLabel>
                     <Select
+                      labelId={`equipment-${index}`}
                       value={eq.equipment}
                       label="Equipamento"
                       onChange={(e) =>
@@ -171,10 +174,11 @@ export const EquipmentList = ({
             </Grid>
             <Grid item xs={2.5}>
               <FormControl fullWidth error={!!powerError}>
-                <InputLabel>
+                <InputLabel id={`power-${index}`}>
                   {eq.type === "DEFAULT" ? "Potência" : "Marca CS"}
                 </InputLabel>
                 <Select
+                  labelId={`power-${index}`}
                   value={eq.power}
                   label="Potência"
                   onChange={(e) =>

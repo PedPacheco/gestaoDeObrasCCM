@@ -6,7 +6,7 @@ import { GetScheduleRestrictionsService } from 'src/application/schedule/getSche
 import { GetScheduleValuesService } from 'src/application/schedule/getScheduleValues.service';
 import { GetTotalValuesScheduleService } from 'src/application/schedule/getTotalValuesSchedule.service';
 import { GetValuesWeeklyScheduleService } from 'src/application/schedule/getValuesWeeklySchedule.service';
-import { ValidateAndConfirmSchedulesService } from 'src/application/schedule/validateAndConfirmSchedules.service';
+import { ValidateConfirmAndRejectSchedulesService } from 'src/application/schedule/validateAndConfirmSchedules.service';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import {
@@ -15,6 +15,7 @@ import {
   GetScheduleValuesDTO,
   GetTotalValuesScheduleDTO,
   GetValueWeeklyScheduleDTO,
+  RejectScheduleDTO,
   SchedulesDataDTO,
   UpdateSchedulesDataDTO,
   ValidateSchedulesDTO,
@@ -46,7 +47,7 @@ export class ScheduleController {
     private handleAddScheduleService: HandleAddScheduleService,
     private handleSchedulesUpdateService: HandleSchedulesUpdateService,
     private deleteSchedulesService: DeleteSchedulesService,
-    private validateAndConfirmSchedulesService: ValidateAndConfirmSchedulesService,
+    private validateConfirmAndRejectSchedulesService: ValidateConfirmAndRejectSchedulesService,
   ) {}
 
   @Get()
@@ -156,7 +157,7 @@ export class ScheduleController {
   @Patch('validar')
   @UseGuards(VisualizationGuard)
   async validateSchedules(@Body() data: ValidateSchedulesDTO[]) {
-    await this.validateAndConfirmSchedulesService.validate(data);
+    await this.validateConfirmAndRejectSchedulesService.validate(data);
 
     return {
       statusCode: HttpStatus.NO_CONTENT,
@@ -167,11 +168,22 @@ export class ScheduleController {
   @Patch('confirmar')
   @UseGuards(VisualizationGuard)
   async confirmSchedules(@Body() id: ConfirmSchedulesDTO[]) {
-    await this.validateAndConfirmSchedulesService.confirm(id);
+    await this.validateConfirmAndRejectSchedulesService.confirm(id);
 
     return {
       statusCode: HttpStatus.NO_CONTENT,
       message: 'Programações confirmadas com sucesso',
+    };
+  }
+
+  @Patch('reprovar')
+  @UseGuards(VisualizationGuard)
+  async rejectSchedules(@Body() data: RejectScheduleDTO) {
+    await this.validateConfirmAndRejectSchedulesService.reject(data);
+
+    return {
+      statusCode: HttpStatus.NO_CONTENT,
+      message: 'Programação reprovada com sucesso',
     };
   }
 

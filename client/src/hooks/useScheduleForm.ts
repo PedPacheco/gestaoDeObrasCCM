@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
 
-import { EquipmentData } from "@/components/details/executionReportDialog/EquipmentPanel";
-import { ExecutionReportData } from "@/components/details/executionReportDialog/executionReportDialog";
-import { ScheduleFormDialogProps } from "@/components/details/scheduleDialog/dialog";
+import { EquipmentData } from "@/components/details/modals/executionReportDialog/EquipmentPanel";
+import { ExecutionReportData } from "@/components/details/modals/executionReportDialog/executionReportDialog";
+import { ScheduleFormDialogProps } from "@/components/details/modals/scheduleDialog/dialog";
 import { mapScheduleToForm, transformExecutionReport } from "@/utils/transform";
 import { validationSchedulesSchema } from "@/validations/validationSchedules";
 
@@ -28,11 +28,10 @@ export const INITIAL_EXECUTION_REPORT: ExecutionReportData = {
   equipmentRemoved: [],
   changesExecution: false,
   generalObservation: "",
-  workSituation: "",
   reason: "",
   provisionalKeyInstalled: false,
   provisionalKeyReference: "",
-  provisionalKeyWithdrawn: false,
+  provisionalKeyWithdrawn: null,
 };
 
 export const INITIAL_FORM_DATA: FormData = {
@@ -100,7 +99,20 @@ export const useScheduleForm = ({
       ) =>
       (event: React.ChangeEvent<HTMLInputElement>) => {
         const isCheckbox = event.target.type === "checkbox";
-        let value = isCheckbox ? event.target.checked : event.target.value;
+        let value: any;
+
+        if (isCheckbox) {
+          value = event.target.checked;
+        } else if (event.target.type === "radio") {
+          value =
+            event.target.value === "true"
+              ? true
+              : event.target.value === "false"
+              ? false
+              : event.target.value;
+        } else {
+          value = event.target.value;
+        }
 
         if (field in INITIAL_EXECUTION_REPORT) {
           setExecutionReportData((prev) => {

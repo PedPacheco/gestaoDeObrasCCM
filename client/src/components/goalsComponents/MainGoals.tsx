@@ -14,17 +14,10 @@ import ErrorModal from "../common/ErrorModal";
 import { MultipleSelectComponent } from "../common/MultipleSelect";
 import ModalGoals from "./GoalsModal";
 import GoalsTable from "./GoalsTable";
-import { boolean } from "zod";
-
-interface Filters {
-  regional: { id: string; regional: string }[];
-  parceira: { id: string; turma: string }[];
-  tipo: { id: string; tipo_obra: string; id_grupo: number }[];
-  empreendimento: { id: string; empreendimento: string }[];
-}
+import { FiltersInterface } from "@/interfaces/filtersInterfaces";
 
 interface MainGoalsProps {
-  filtersData: Filters;
+  filtersData: FiltersInterface;
   data: any;
   token?: string;
   columns: Record<string, string>;
@@ -40,13 +33,15 @@ export default function MainGoals({
 }: MainGoalsProps) {
   const [filteredData, setFilteredData] = useState(data);
   const [open, setOpen] = useState(false);
-  const { clearFilters, filters, saveFilters } = useSaveFilters(
-    typeGoals === "bt0"
-      ? "bt0GoalsFilters"
-      : typeGoals === "rda"
-      ? "rdaGoalsFilters"
-      : "goalsFilters"
-  );
+  const { clearFilters, filters, saveFilters } = useSaveFilters({
+    pageKey:
+      typeGoals === "bt0"
+        ? "bt0GoalsFilters"
+        : typeGoals === "rda"
+        ? "rdaGoalsFilters"
+        : "goalsFilters",
+    data: filtersData,
+  });
   const [selectedYear, setSelectedYear] = useState<string[]>(["2025"]);
   const [selectedRegionais, setSelectedRegionais] = useState<string[]>([]);
   const [selectedParceiras, setSelectedParceiras] = useState<string[]>([]);
@@ -133,7 +128,7 @@ export default function MainGoals({
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center">
           <MultipleSelectComponent
             label="Regionais"
-            menuItems={filtersData.regional}
+            menuItems={filtersData.regional || []}
             selectedItem={selectedRegionais}
             setSelectedItem={setSelectedRegionais}
             valueKey="id"
@@ -149,7 +144,7 @@ export default function MainGoals({
 
           <MultipleSelectComponent
             label="Parceiras"
-            menuItems={filtersData.parceira}
+            menuItems={filtersData.parceira || []}
             selectedItem={selectedParceiras}
             setSelectedItem={setSelectedParceiras}
             valueKey="id"
@@ -159,7 +154,7 @@ export default function MainGoals({
           {typeGoals === "bt0" ? null : typeGoals === "rda" ? (
             <MultipleSelectComponent
               label="Empreendimento"
-              menuItems={filtersData.empreendimento}
+              menuItems={filtersData.empreendimento || []}
               selectedItem={selectedEmpreendimento}
               setSelectedItem={setSelectedEmpreendimento}
               valueKey="id"
@@ -168,7 +163,9 @@ export default function MainGoals({
           ) : (
             <MultipleSelectComponent
               label="Tipos de Obra"
-              menuItems={filtersData.tipo.filter((item) => item.id_grupo === 2)}
+              menuItems={
+                filtersData.tipo?.filter((item) => item.id_grupo === 2) || []
+              }
               selectedItem={selectedTiposObra}
               setSelectedItem={setSelectedTiposObra}
               valueKey="id"

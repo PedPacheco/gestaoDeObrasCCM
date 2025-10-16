@@ -50,7 +50,6 @@ export const mockFormData: FormData = {
     ],
     changesExecution: false,
     generalObservation: "Obs",
-    workSituation: "Concluído",
     reason: "",
     provisionalKeyInstalled: false,
     provisionalKeyReference: "ABC",

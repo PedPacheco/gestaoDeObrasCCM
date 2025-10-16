@@ -32,8 +32,10 @@ export default function MainEntryByDate({
 }: MainInterface<MainEntryByDateFilters>) {
   const [filteredData, setFilteredData] = useState(data);
   const [error, setError] = useState<string | null>();
-  const { clearFilters, filters, saveFilters } =
-    useSaveFilters("entryByDateFilters");
+  const { clearFilters, filters, saveFilters } = useSaveFilters({
+    pageKey: "entryByDateFilters",
+    data: filtersData,
+  });
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {}
   );

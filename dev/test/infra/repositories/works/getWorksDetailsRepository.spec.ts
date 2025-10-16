@@ -86,6 +86,7 @@ describe('GetWorksDetailsRepository', () => {
         nome_responsavel_execucao: null,
         validada: true,
         confirmada: true,
+        reprovada: true,
         status_programacao: {
           status_programacao: 3,
         },
@@ -200,6 +201,7 @@ describe('GetWorksDetailsRepository', () => {
               tecnicos: { select: { tecnico: true } },
               programacoes_restricao_execucao: { select: { restricao: true } },
               nome_responsavel_execucao: true,
+              reprovada: true,
               status_programacao: { select: { status_programacao: true } },
               validada: true,
               confirmada: true,
@@ -299,6 +301,7 @@ describe('GetWorksDetailsRepository', () => {
               tecnicos: { select: { tecnico: true } },
               programacoes_restricao_execucao: { select: { restricao: true } },
               nome_responsavel_execucao: true,
+              reprovada: true,
               status_programacao: { select: { status_programacao: true } },
               validada: true,
               confirmada: true,

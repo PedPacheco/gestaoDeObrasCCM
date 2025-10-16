@@ -35,7 +35,7 @@ export default function MainEntry({
 }: MainInterface<EntryFiltersType>) {
   const [filteredData, setFilteredData] = useState(data);
   const [error, setError] = useState<string | null>();
-  const { clearFilters, filters, saveFilters } = useSaveFilters("entryFilters");
+  const { clearFilters, filters, saveFilters } = useSaveFilters({pageKey: "entryFilters", data: filtersData});
   const [selectedYear, setSelectedYear] = useState<Dayjs | null>(dayjs());
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {}

@@ -1,4 +1,4 @@
-import { UpdateCapexButton } from "@/components/updatesComponents/UpdateCapexButton";
+import { UpdateCapexButton } from "@/components/updatesComponents/updateCapexButton";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { Box, Paper } from "@mui/material";
 
