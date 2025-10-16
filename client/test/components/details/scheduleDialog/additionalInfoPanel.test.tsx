@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { AdditionalInfoPanel } from "@/components/details/scheduleDialog/additionalInfoPanel";
+import { AdditionalInfoPanel } from "@/components/details/modals/scheduleDialog/additionalInfoPanel";
 import { render, screen } from "@testing-library/react";
 
 import { mockFormData } from "../../../mocks/mockFormData";

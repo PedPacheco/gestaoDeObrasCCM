@@ -1,4 +1,4 @@
-import { AdditionalExecutionInfoPanel } from "@/components/details/executionReportDialog/additionalExecutionInfoPanel";
+import { AdditionalExecutionInfoPanel } from "@/components/details/modals/executionReportDialog/additionalExecutionInfoPanel";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mockFormData } from "../../../mocks/mockFormData";

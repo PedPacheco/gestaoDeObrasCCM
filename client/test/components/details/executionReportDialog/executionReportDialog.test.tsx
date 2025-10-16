@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   ExecutionReportData,
   ExecutionReportDialog,
-} from "@/components/details/executionReportDialog/executionReportDialog";
+} from "@/components/details/modals/executionReportDialog/executionReportDialog";
 import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
 import * as schemasModule from "@/validations/validationSchedules";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -23,18 +23,21 @@ vi.mock("@/components/details/accordionPanel", () => ({
 }));
 
 vi.mock(
-  "@/components/details/executionReportDialog/executionBasicPanel",
+  "@/components/details/modals/executionReportDialog/executionBasicPanel",
   () => ({
     ExecutionBasicPanel: () => <div>ExecutionBasicPanel</div>,
   })
 );
 
-vi.mock("@/components/details/executionReportDialog/EquipmentPanel", () => ({
-  ExecutionEquipmentPanel: () => <div>ExecutionEquipmentPanel</div>,
-}));
+vi.mock(
+  "@/components/details/modals/executionReportDialog/EquipmentPanel",
+  () => ({
+    ExecutionEquipmentPanel: () => <div>ExecutionEquipmentPanel</div>,
+  })
+);
 
 vi.mock(
-  "@/components/details/executionReportDialog/additionalExecutionInfoPanel",
+  "@/components/details/modals/executionReportDialog/additionalExecutionInfoPanel",
   () => ({
     AdditionalExecutionInfoPanel: () => <div>AdditionalExecutionInfoPanel</div>,
   })

@@ -24,7 +24,7 @@ import { mockUpdateSchedulesController } from '../../../test/mocks/mockAddSchedu
 import { UsersService } from 'src/application/users.service';
 import { ExecutionReportService } from 'src/application/executionReport.service';
 import { HandleAddScheduleService } from 'src/application/orchestrators/handleAddSchedule.service';
-import { ValidateAndConfirmSchedulesService } from 'src/application/schedule/validateAndConfirmSchedules.service';
+import { ValidateConfirmAndRejectSchedulesService } from 'src/application/schedule/validateAndConfirmSchedules.service';
 
 describe('ScheduleController', () => {
   let scheduleController: ScheduleController;
@@ -36,7 +36,7 @@ describe('ScheduleController', () => {
   let handleSchedulesUpdateService: HandleSchedulesUpdateService;
   let deleteSchedulesService: DeleteSchedulesService;
   let handleAddScheduleService: HandleAddScheduleService;
-  let validateAndConfirmSchedulesService: ValidateAndConfirmSchedulesService;
+  let validateConfirmAndRejectSchedulesService: ValidateConfirmAndRejectSchedulesService;
 
   const mockScheduleData: GetScheduleValuesResponse = {
     works: [
@@ -128,8 +128,12 @@ describe('ScheduleController', () => {
         { provide: ExecutionReportService, useValue: { create: jest.fn() } },
         { provide: HandleAddScheduleService, useValue: { add: jest.fn() } },
         {
-          provide: ValidateAndConfirmSchedulesService,
-          useValue: { validate: jest.fn(), confirm: jest.fn() },
+          provide: ValidateConfirmAndRejectSchedulesService,
+          useValue: {
+            validate: jest.fn(),
+            confirm: jest.fn(),
+            reject: jest.fn(),
+          },
         },
         {
           provide: HandleSchedulesUpdateService,
@@ -163,9 +167,9 @@ describe('ScheduleController', () => {
     deleteSchedulesService = module.get<DeleteSchedulesService>(
       DeleteSchedulesService,
     );
-    validateAndConfirmSchedulesService =
-      module.get<ValidateAndConfirmSchedulesService>(
-        ValidateAndConfirmSchedulesService,
+    validateConfirmAndRejectSchedulesService =
+      module.get<ValidateConfirmAndRejectSchedulesService>(
+        ValidateConfirmAndRejectSchedulesService,
       );
   });
 
@@ -575,7 +579,7 @@ describe('ScheduleController', () => {
 
   it('should call validate and return message', async () => {
     jest
-      .spyOn(validateAndConfirmSchedulesService, 'validate')
+      .spyOn(validateConfirmAndRejectSchedulesService, 'validate')
       .mockResolvedValue();
 
     const result = await scheduleController.validateSchedules([
@@ -586,14 +590,14 @@ describe('ScheduleController', () => {
       statusCode: HttpStatus.NO_CONTENT,
       message: 'Programações validadas com sucesso',
     });
-    expect(validateAndConfirmSchedulesService.validate).toHaveBeenCalledTimes(
-      1,
-    );
+    expect(
+      validateConfirmAndRejectSchedulesService.validate,
+    ).toHaveBeenCalledTimes(1);
   });
 
   it('should call confirm and return message', async () => {
     jest
-      .spyOn(validateAndConfirmSchedulesService, 'confirm')
+      .spyOn(validateConfirmAndRejectSchedulesService, 'confirm')
       .mockResolvedValue();
 
     const result = await scheduleController.confirmSchedules([
@@ -604,7 +608,30 @@ describe('ScheduleController', () => {
       statusCode: HttpStatus.NO_CONTENT,
       message: 'Programações confirmadas com sucesso',
     });
-    expect(validateAndConfirmSchedulesService.confirm).toHaveBeenCalledTimes(1);
+    expect(
+      validateConfirmAndRejectSchedulesService.confirm,
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it('should call reject and return message', async () => {
+    jest
+      .spyOn(validateConfirmAndRejectSchedulesService, 'reject')
+      .mockResolvedValue();
+
+    const result = await scheduleController.rejectSchedules({
+      id: 2,
+      reject: true,
+      reason: '',
+      description: '',
+    });
+
+    expect(result).toEqual({
+      statusCode: HttpStatus.NO_CONTENT,
+      message: 'Programação reprovada com sucesso',
+    });
+    expect(
+      validateConfirmAndRejectSchedulesService.reject,
+    ).toHaveBeenCalledTimes(1);
   });
 
   describe('DTO Validation', () => {

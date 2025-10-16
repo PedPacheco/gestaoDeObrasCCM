@@ -2,11 +2,11 @@ import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import ScheduleFormDialog from "@/components/details/scheduleDialog/dialog";
+import ScheduleFormDialog from "@/components/details/modals/scheduleDialog/dialog";
 import * as UserContextModule from "@/contexts/userContext";
 import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
 import * as schemasModule from "@/validations/validationSchedules";
-import { ExecutionReportData } from "@/components/details/executionReportDialog/executionReportDialog";
+import { ExecutionReportData } from "@/components/details/modals/executionReportDialog/executionReportDialog";
 import { mockFormData } from "../../../mocks/mockFormData";
 
 // ---------- Mocks ----------
@@ -31,7 +31,7 @@ vi.mock("@/components/details/accordionPanel", () => ({
   ),
 }));
 
-vi.mock("@/components/details/scheduleDialog/basicInfoPanel", () => ({
+vi.mock("@/components/details/modals/scheduleDialog/basicInfoPanel", () => ({
   BasicInfoPanel: ({ disabledFields }: { disabledFields?: any }) => (
     <div data-testid="mock-basic-info-panel" data-disabled={disabledFields()}>
       BasicInfoPanel
@@ -39,15 +39,21 @@ vi.mock("@/components/details/scheduleDialog/basicInfoPanel", () => ({
   ),
 }));
 
-vi.mock("@/components/details/scheduleDialog/serviceEquipmentPanel", () => ({
-  ServiceEquipmentPanel: () => <div>ServiceEquipmentPanel</div>,
-}));
+vi.mock(
+  "@/components/details/modals/scheduleDialog/serviceEquipmentPanel",
+  () => ({
+    ServiceEquipmentPanel: () => <div>ServiceEquipmentPanel</div>,
+  })
+);
 
-vi.mock("@/components/details/scheduleDialog/additionalInfoPanel", () => ({
-  AdditionalInfoPanel: () => <div>AdditionalInfoPanel</div>,
-}));
+vi.mock(
+  "@/components/details/modals/scheduleDialog/additionalInfoPanel",
+  () => ({
+    AdditionalInfoPanel: () => <div>AdditionalInfoPanel</div>,
+  })
+);
 
-vi.mock("@/components/details/scheduleDialog/teamsPanel", () => ({
+vi.mock("@/components/details/modals/scheduleDialog/teamsPanel", () => ({
   TeamsPanel: () => <div>TeamsPanel</div>,
 }));
 

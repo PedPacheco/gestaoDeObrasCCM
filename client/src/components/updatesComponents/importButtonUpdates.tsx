@@ -93,7 +93,6 @@ export function ImportButtonUpdates({ storageKey }: ImportButtonUpdatesProps) {
   };
 
   const handleIW38Select = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("entrou");
     const iw38File = e.target.files?.[0];
     if (!iw38File) return;
 
@@ -121,8 +120,6 @@ export function ImportButtonUpdates({ storageKey }: ImportButtonUpdatesProps) {
           }));
 
         const groupData = groupNoteDate(iw38Data);
-
-        console.log(groupData);
 
         const res = await InsertAuxiliaryBaseMarket(
           groupData,

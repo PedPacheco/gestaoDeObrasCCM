@@ -133,6 +133,7 @@ export const mockResponseDetails = {
       status_programacao: '3',
       validada: true,
       confirmada: true,
+      reprovada: false,
     },
   ],
 };

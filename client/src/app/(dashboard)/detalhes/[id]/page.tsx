@@ -4,11 +4,11 @@ import { cookies } from "next/headers";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import TabPanel from "@/components/details/TabPanel";
 import { WorkDetails } from "@/components/details/workDetails/workDetails";
 import { formatPercentage } from "@/utils/formatValue";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
+import TabPanel from "@/components/details/tabPanel/TabPanel";
 
 dayjs.extend(utc);
 

@@ -83,10 +83,8 @@ export class UpdateCapexService {
 
       if (fator !== 0) {
         current.qtde_calc += material.qtd_necess / fator;
-
         if (material.relevancia_calculo?.trim()) {
-          current.qtde_pend +=
-            material.qtd_necess - material.qtd_retirada / fator;
+          current.qtde_pend += material.qtd_faltante / fator;
         }
       }
 
@@ -95,15 +93,13 @@ export class UpdateCapexService {
         current.capex_mo_plan += material.preco_mi * material.qtd_necess;
 
         if (material.relevancia_calculo?.trim()) {
-          current.capex_mo_pend +=
-            material.preco_mi * (material.qtd_necess - material.qtd_faltante);
+          current.capex_mo_pend += material.preco_mi * material.qtd_faltante;
         }
       }
 
       if (material.ctg_item === 'L' || material.ctg_item === 'Z') {
         current.capex_mat_plan += material.qtd_necess * material.preco_mi;
-        current.capex_mat_pend +=
-          material.preco_mi * (material.qtd_necess - material.qtd_retirada);
+        current.capex_mat_pend += material.preco_mi * material.qtd_faltante;
       }
 
       return acc;

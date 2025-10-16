@@ -1,10 +1,13 @@
+import { ScheduleExecutionValidatorService } from 'src/application/schedule/scheduleExecutionValidator.service';
+import { UpdateSchedulesService } from 'src/application/schedule/updateSchedules.service';
+import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
+import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
+
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
-import { UpdateSchedulesService } from 'src/application/schedule/updateSchedules.service';
 import { Prisma } from '@prisma/client';
-import { ScheduleExecutionValidatorService } from 'src/application/schedule/scheduleExecutionValidator.service';
-import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
+
 import {
   mockUpdateSchedulesService,
   mockUpdateSchedulesServiceFormattedData,
@@ -34,6 +37,10 @@ describe('UpdateSchedulesService', () => {
     validateExecutionAndUpdateStatus: jest.fn(),
   };
 
+  const mockFindScheduleByIdRepository = {
+    findById: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -43,6 +50,11 @@ describe('UpdateSchedulesService', () => {
           useValue: mockExecutionValidator,
         },
         { provide: UPDATE_SCHEDULES_REPOSITORY, useValue: mockRepository },
+        { provide: STATUS_FLOW_REPOSITORY, useValue: mockStatusFlowRepository },
+        {
+          provide: FIND_SCHEDULE_BY_ID_REPOSITORY,
+          useValue: mockFindScheduleByIdRepository,
+        },
         { provide: STATUS_FLOW_REPOSITORY, useValue: mockStatusFlowRepository },
       ],
     }).compile();
@@ -64,6 +76,10 @@ describe('UpdateSchedulesService', () => {
     it('Should call method update and pass the formatted parameters to the repository, if repository return 0 throw error', async () => {
       mockRepository.update.mockResolvedValue(undefined);
       mockRepository.findExecutionOfSchedules.mockResolvedValue([80, null]);
+      mockFindScheduleByIdRepository.findById.mockResolvedValue({
+        reprovada: false,
+        id_status_programacao: 5,
+      });
 
       await updateSchedulesService.update(
         mockUpdateSchedulesService,
@@ -72,6 +88,33 @@ describe('UpdateSchedulesService', () => {
 
       expect(mockRepository.update).toHaveBeenCalledWith(
         mockUpdateSchedulesServiceFormattedData,
+        mockTransaction,
+      );
+    });
+
+    it('Should call method update and update status of work and status of schedule, if id_status_programacao equal 7', async () => {
+      mockRepository.update.mockResolvedValue(undefined);
+      mockRepository.findExecutionOfSchedules.mockResolvedValue([80, null]);
+      mockFindScheduleByIdRepository.findById.mockResolvedValue({
+        reprovada: true,
+        id_status_programacao: 7,
+      });
+
+      await updateSchedulesService.update(
+        mockUpdateSchedulesService,
+        mockTransaction,
+      );
+
+      expect(mockRepository.update).toHaveBeenCalledWith(
+        mockUpdateSchedulesServiceFormattedData,
+        mockTransaction,
+      );
+      expect(
+        mockStatusFlowRepository.updateScheduleStatus,
+      ).toHaveBeenCalledWith(1, 1, mockTransaction);
+      expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
+        43,
+        3146044,
         mockTransaction,
       );
     });

@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
 
-import { EquipmentData } from "@/components/details/executionReportDialog/EquipmentPanel";
-import { ExecutionReportData } from "@/components/details/executionReportDialog/executionReportDialog";
-import { ScheduleFormDialogProps } from "@/components/details/scheduleDialog/dialog";
+import { EquipmentData } from "@/components/details/modals/executionReportDialog/EquipmentPanel";
+import { ExecutionReportData } from "@/components/details/modals/executionReportDialog/executionReportDialog";
+import { ScheduleFormDialogProps } from "@/components/details/modals/scheduleDialog/dialog";
 import { mapScheduleToForm, transformExecutionReport } from "@/utils/transform";
 import { validationSchedulesSchema } from "@/validations/validationSchedules";
 

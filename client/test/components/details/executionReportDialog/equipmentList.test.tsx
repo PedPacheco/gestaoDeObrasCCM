@@ -1,4 +1,4 @@
-import { EquipmentList } from "@/components/details/executionReportDialog/equipmentList";
+import { EquipmentList } from "@/components/details/modals/executionReportDialog/equipmentList";
 import { render, screen, fireEvent } from "@testing-library/react";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";

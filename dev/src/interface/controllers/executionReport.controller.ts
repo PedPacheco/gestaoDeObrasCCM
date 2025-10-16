@@ -31,6 +31,7 @@ export class ExecutionReportController {
   }
 
   @Patch(':id')
+  @UseGuards(PermissionGuard)
   async update(
     @Param('id', ParseIntPipe) idExecutionReport: number,
     @Body() data: ExecutionReportDataDTO,

@@ -46,8 +46,16 @@ vi.mock("@/components/details/TabPanel", () => ({
   )),
 }));
 
+vi.mock("@/contexts/UserContext", () => ({
+  useUser: vi.fn(() => ({
+    user: { id: 1, nome: "Usuário Teste", grupo: 2 },
+    setUser: vi.fn(),
+  })),
+}));
+
 vi.mock("@/utils/formatValue", () => ({
   formatPercentage: vi.fn((value) => `${value}%`),
+  FormatCurrency: vi.fn((value) => `R$ ${value}`),
 }));
 
 describe("Details Page", () => {
@@ -108,7 +116,6 @@ describe("Details Page", () => {
       status: [{ id: 1, status: "Programado" }],
     });
 
-    // Mock do env
     process.env.NEXT_PUBLIC_API_URL = "https://api.example.com";
   });
 

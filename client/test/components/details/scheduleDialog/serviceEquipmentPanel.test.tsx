@@ -1,4 +1,4 @@
-import { ServiceEquipmentPanel } from "@/components/details/scheduleDialog/serviceEquipmentPanel";
+import { ServiceEquipmentPanel } from "@/components/details/modals/scheduleDialog/serviceEquipmentPanel";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { mockFormData } from "../../../mocks/mockFormData";

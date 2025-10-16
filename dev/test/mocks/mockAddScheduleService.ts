@@ -98,7 +98,8 @@ export const mockUpdateSchedulesServiceFormattedData = {
   data_prog: new Date('2025-06-10T00:00:00.000Z'),
   prog: 100,
   exec: undefined,
-  observ_programacao: undefined,
+  equip_desligado: undefined,
+  observacao_programacao: undefined,
   num_dp: undefined,
   hora_ini: new Date('1970-01-01T08:00:00.000Z'),
   hora_ter: new Date('1970-01-01T09:00:00.000Z'),
@@ -112,6 +113,7 @@ export const mockUpdateSchedulesServiceFormattedData = {
   id_restricao_execucao: 1,
   observacao_execucao: undefined,
   id_tecnico: 1,
+  reprovada: false,
 };
 
 export const mockUpdateSchedulesController: UpdateSchedulesDataDTO = {

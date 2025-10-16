@@ -296,3 +296,17 @@ export class ConfirmSchedulesDTO {
   @IsBoolean()
   confirm: boolean;
 }
+
+export class RejectScheduleDTO {
+  @IsNumber()
+  id: number;
+
+  @IsBoolean()
+  reject: boolean;
+
+  @IsString()
+  reason: string;
+
+  @IsString()
+  description: string;
+}

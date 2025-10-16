@@ -4,7 +4,7 @@ import { AddSchedulesService } from 'src/application/schedule/addSchedules.servi
 import { DeleteSchedulesService } from 'src/application/schedule/deleteSchedules.service';
 import { ScheduleExecutionValidatorService } from 'src/application/schedule/scheduleExecutionValidator.service';
 import { UpdateSchedulesService } from 'src/application/schedule/updateSchedules.service';
-import { ValidateAndConfirmSchedulesService } from 'src/application/schedule/validateAndConfirmSchedules.service';
+import { ValidateConfirmAndRejectSchedulesService } from 'src/application/schedule/validateAndConfirmSchedules.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
 import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IAddSchedulesRepository';
 import { DELETE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IDeleteSchedulesRepository';
@@ -15,7 +15,7 @@ import { GET_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule
 import { GET_TOTAL_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetTotalValuesScheduleRepository';
 import { GET_VALUES_WEEKLY_SCHEDULE_REPOSITORY } from 'src/domain/repositories/schedule/IGetValuesWeeklyScheduleRepository';
 import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
-import { VALIDATE_AND_CONFIRM_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IValidateSchedulesRepository';
+import { VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IValidateSchedulesRepository';
 import { AddSchedulesRepository } from 'src/infra/repositories/schedule/addSchedulesRepository';
 import { DeleteSchedulesRepository } from 'src/infra/repositories/schedule/deleteSchedulesRepository';
 import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
@@ -54,7 +54,7 @@ import { WorksModule } from './works.module';
     GetMonthlySummaryService,
     HandleSchedulesUpdateService,
     HandleAddScheduleService,
-    ValidateAndConfirmSchedulesService,
+    ValidateConfirmAndRejectSchedulesService,
     ScheduleExecutionValidatorService,
     { provide: ADD_SCHEDULES_REPOSITORY, useClass: AddSchedulesRepository },
     {
@@ -91,7 +91,7 @@ import { WorksModule } from './works.module';
     },
     { provide: STATUS_FLOW_REPOSITORY, useClass: StatusFlowRepository },
     {
-      provide: VALIDATE_AND_CONFIRM_SCHEDULES_REPOSITORY,
+      provide: VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY,
       useClass: ValidateAndConfirmSchedulesRepository,
     },
   ],

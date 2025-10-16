@@ -47,11 +47,13 @@ const mockData = [
     status_programacao: "Em validação",
     validada: false,
     confirmada: false,
+    reprovada: false,
   },
 ];
 
 const setConfirmedScheduleMock = vi.fn();
 const setValidadedScheduleMock = vi.fn();
+const setRejectedScheduleMock = vi.fn();
 const setDataMock = vi.fn();
 
 describe("SchedulePanelItem component", () => {
@@ -71,6 +73,7 @@ describe("SchedulePanelItem component", () => {
         setConfirmedSchedule={setConfirmedScheduleMock}
         setValidatedSchedule={setValidadedScheduleMock}
         setData={setDataMock}
+        setRejectedSchedule={setRejectedScheduleMock}
         statusWork={1}
       />
     );
@@ -93,6 +96,7 @@ describe("SchedulePanelItem component", () => {
         setConfirmedSchedule={setConfirmedScheduleMock}
         setValidatedSchedule={setValidadedScheduleMock}
         setData={setDataMock}
+        setRejectedSchedule={setRejectedScheduleMock}
         statusWork={1}
       />
     );
@@ -121,6 +125,7 @@ describe("SchedulePanelItem component", () => {
         onEdit={() => {}}
         setConfirmedSchedule={setConfirmedScheduleMock}
         setValidatedSchedule={setValidadedScheduleMock}
+        setRejectedSchedule={setRejectedScheduleMock}
         setData={setDataMock}
         statusWork={1}
       />
@@ -174,6 +179,7 @@ describe("SchedulePanelItem component", () => {
         onDelete={() => {}}
         setConfirmedSchedule={setConfirmedScheduleMock}
         setValidatedSchedule={setValidadedScheduleMock}
+        setRejectedSchedule={setRejectedScheduleMock}
         setData={setDataMock}
         statusWork={1}
       />
@@ -205,6 +211,7 @@ describe("SchedulePanelItem component", () => {
         onDelete={() => {}}
         setConfirmedSchedule={setConfirmedScheduleMock}
         setValidatedSchedule={setValidadedScheduleMock}
+        setRejectedSchedule={setRejectedScheduleMock}
         setData={setDataMock}
         statusWork={43} // status que normalmente permitiria validar
       />
@@ -226,11 +233,12 @@ describe("SchedulePanelItem component", () => {
         setConfirmedSchedule={setConfirmedScheduleMock}
         setValidatedSchedule={setValidadedScheduleMock}
         setData={setDataMock}
+        setRejectedSchedule={setRejectedScheduleMock}
         statusWork={43}
       />
     );
 
-    const validarCheckbox = screen.getAllByRole("checkbox")[0];
+    const validarCheckbox = screen.getAllByRole("checkbox")[1];
 
     await user.click(validarCheckbox);
 
@@ -257,12 +265,13 @@ describe("SchedulePanelItem component", () => {
         onEdit={() => {}}
         setConfirmedSchedule={setConfirmedScheduleMock}
         setValidatedSchedule={setValidadedScheduleMock}
+        setRejectedSchedule={setRejectedScheduleMock}
         setData={setDataMock}
         statusWork={37}
       />
     );
 
-    const confirmarCheckbox = screen.getAllByRole("checkbox")[1];
+    const confirmarCheckbox = screen.getAllByRole("checkbox")[2];
 
     await user.click(confirmarCheckbox);
 
@@ -297,12 +306,13 @@ describe("SchedulePanelItem component", () => {
         onEdit={() => {}}
         setConfirmedSchedule={setConfirmedScheduleMock}
         setValidatedSchedule={setValidadedScheduleMock}
+        setRejectedSchedule={setRejectedScheduleMock}
         setData={setDataMock}
         statusWork={43}
       />
     );
 
-    const validarCheckbox = screen.getAllByRole("checkbox")[0];
+    const validarCheckbox = screen.getAllByRole("checkbox")[1];
 
     await user.click(validarCheckbox);
 
@@ -319,7 +329,7 @@ describe("SchedulePanelItem component", () => {
     ]);
   });
 
-  it("deve chamar a função handleCheckbox quando o usuário validar uma programação e alterar o item já existente", async () => {
+  it("deve chamar a função handleCheckbox quando o usuário confirmar uma programação e alterar o item já existente", async () => {
     const user = userEvent.setup();
 
     const mockDataWithExtra = [
@@ -343,12 +353,13 @@ describe("SchedulePanelItem component", () => {
         onEdit={() => {}}
         setConfirmedSchedule={setConfirmedScheduleMock}
         setValidatedSchedule={setValidadedScheduleMock}
+        setRejectedSchedule={setRejectedScheduleMock}
         setData={setDataMock}
         statusWork={43}
       />
     );
 
-    const confirmarCheckbox = screen.getAllByRole("checkbox")[1];
+    const confirmarCheckbox = screen.getAllByRole("checkbox")[2];
 
     await user.click(confirmarCheckbox);
 

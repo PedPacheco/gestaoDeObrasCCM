@@ -24,6 +24,7 @@ import {
 dayjs.extend(utc);
 
 const columnConfig = [
+  { key: "reprovada", label: "Reprovar", type: "checkbox" },
   { key: "validada", label: "Validar", type: "checkbox" },
   { key: "confirmada", label: "Confirmar", type: "checkbox" },
   { key: "status_programacao", label: "Status da Programação", type: "text" },
@@ -67,6 +68,12 @@ interface SchedulePanelItemProps {
   setConfirmedSchedule: React.Dispatch<
     React.SetStateAction<{ id: number; confirm: boolean }[]>
   >;
+  setRejectedSchedule: React.Dispatch<
+    React.SetStateAction<{
+      id: number;
+      reject: boolean;
+    } | null>
+  >;
   setData: React.Dispatch<React.SetStateAction<any>>;
 }
 
@@ -97,6 +104,7 @@ export default function SchedulePanelItem({
   statusWork,
   setConfirmedSchedule,
   setValidatedSchedule,
+  setRejectedSchedule,
   setData,
 }: SchedulePanelItemProps) {
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
@@ -143,6 +151,8 @@ export default function SchedulePanelItem({
 
         return [...prev, { id, confirm: value }];
       });
+    } else if (key === "reprovada") {
+      setRejectedSchedule({ id, reject: value });
     }
 
     setData((prev: any) => ({
@@ -162,7 +172,8 @@ export default function SchedulePanelItem({
 
   const disabledCheckBox = (key: string, status_prog?: string): boolean => {
     return (
-      (key === "validada" && status_prog !== "Em validação") ||
+      ((key === "validada" || key === "reprovada") &&
+        status_prog !== "Em validação") ||
       (key === "confirmada" && status_prog === "Programado") ||
       permissions?.permissao_visualizacao === "parcial"
     );
@@ -254,11 +265,17 @@ export default function SchedulePanelItem({
                         checked={
                           col.key === "validada"
                             ? item.validada
-                            : item.confirmada
+                            : col.key === "confirmada"
+                            ? item.confirmada
+                            : item.reprovada
                         }
                         onChange={(e) =>
                           handleCheckboxChange(
-                            col.key === "validada" ? "validada" : "confirmada",
+                            col.key === "validada"
+                              ? "validada"
+                              : col.key === "confirmada"
+                              ? "confirmada"
+                              : "reprovada",
                             e.target.checked,
                             item.id
                           )
