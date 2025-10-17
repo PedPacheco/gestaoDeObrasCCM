@@ -185,7 +185,8 @@ export default function SchedulePanelItem({
         <Table stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell className="bg-[#53FF75] border-r border-solid border-zinc-700 min-w-[100px] sticky left-0 z-20"></TableCell>
+              <TableCell className="bg-[#53FF75] border-r border-solid border-zinc-700 min-w-[100px] sticky left-0 z-20" />
+              xs
               {columnConfig.map((col) => (
                 <TableCell
                   key={col.key}

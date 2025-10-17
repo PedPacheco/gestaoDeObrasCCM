@@ -72,6 +72,10 @@ export class GoalsRepository implements IGoalsRepository {
       query = Prisma.sql`${query} AND id_tipo = 49 AND empreendimento IS NOT NULL`;
     }
 
+    if (!rda && !btzero) {
+      query = Prisma.sql`${query} AND (metas_anuais.id_tipo != 48 AND metas_anuais.id_tipo != 49)`;
+    }
+
     if (regional && regional.length > 0) {
       query = Prisma.sql`${query} AND metas_anuais.id_regional IN (${Prisma.join(regional)})`;
     }

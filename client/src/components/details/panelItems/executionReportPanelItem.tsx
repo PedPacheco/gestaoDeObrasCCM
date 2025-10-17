@@ -96,7 +96,7 @@ export default function ExecutionReportPanelItem({
         <Table stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell className="py-1 px-2 text-center text-zinc-700 font-semibold text-lg bg-[#53FF75] border-r border-solid border-zinc-700 min-w-[100px] sticky left-0 z-10"></TableCell>
+              <TableCell className="py-1 px-2 text-center text-zinc-700 font-semibold text-lg bg-[#53FF75] border-r border-solid border-zinc-700 min-w-[100px] sticky left-0 z-10" />
               {Object.keys(columns).map((column) => (
                 <TableCell
                   key={column}

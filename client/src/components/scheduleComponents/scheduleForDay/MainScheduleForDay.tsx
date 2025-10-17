@@ -148,7 +148,7 @@ export default function MainSchduleForDay({
       <ModalComponent open={open} onClose={toggleModal} title="Valores totais">
         <div className="flex flex-col items-center justify-center xl:flex-row w-full">
           {Object.entries(columns)
-            .slice(24)
+            .slice(27)
             .map(([column, value]) => {
               const item = filteredData.totals;
               let valueFormatted = item[column];

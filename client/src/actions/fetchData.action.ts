@@ -7,7 +7,7 @@ export async function fetchData<T>(
   params?: Record<string, string | boolean>,
   token?: string,
   cacheStrategy: { revalidate?: number; cache?: "force-cache" | "no-store" } = {
-    revalidate: 1440,
+    revalidate: 10,
   }
 ) {
   if (!token) {
