@@ -78,7 +78,7 @@ export default async function CompletedWorks() {
         token={token}
         columns={columns}
         cookie="completedWorksFilters"
-        totalValues={26}
+        totalValues={23}
         url="obras-executadas"
       />
     </EmotionCacheProvider>

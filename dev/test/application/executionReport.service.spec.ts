@@ -8,6 +8,7 @@ import {
   mockExecutionReportServiceWithErrorEquipmentInstalled,
   mockExecutionReportServiceWithErrorEquipmentRemoved,
   mockExecutionReportServiceWithErrorProvisionalKeyReference,
+  mockExecutionReportServiceWithErrorProvisionalKeyReferenceWithdrawn,
   mockFindByWorkIdResponse,
   mockUpdateExecutionReportDTO,
 } from '../mocks/mocksExecutionReport';
@@ -89,6 +90,16 @@ describe('ExecutionReportService', () => {
       await expect(
         service.create(
           mockExecutionReportServiceWithErrorEquipmentInstalled,
+          new Date('17-05-2025'),
+          mockTransaction,
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('Should call method create and throw BadRequestExpection if provisionalKeyWithdrawn equal true and provisionalKeyReferenceWithdrawn no sent', async () => {
+      await expect(
+        service.create(
+          mockExecutionReportServiceWithErrorProvisionalKeyReferenceWithdrawn,
           new Date('17-05-2025'),
           mockTransaction,
         ),

@@ -16,7 +16,8 @@ export class GoalsService {
 
   async getGoals(filters: GoalsDTO): Promise<Goals[]> {
     const result = await this.goalsRepository.getGoals(filters);
-    return this.transformData(result);
+    const response = this.transformData(result);
+    return response;
   }
 
   private transformData(data: any): any[] {

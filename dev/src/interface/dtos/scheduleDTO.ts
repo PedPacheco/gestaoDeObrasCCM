@@ -180,6 +180,10 @@ export class GetMonthlySummaryDTO {
 
 export class SchedulesDataDTO {
   @IsNumber()
+  @IsOptional()
+  id?: number;
+
+  @IsNumber()
   idWork: number;
 
   @IsDate()
@@ -291,4 +295,18 @@ export class ConfirmSchedulesDTO {
 
   @IsBoolean()
   confirm: boolean;
+}
+
+export class RejectScheduleDTO {
+  @IsNumber()
+  id: number;
+
+  @IsBoolean()
+  reject: boolean;
+
+  @IsString()
+  reason: string;
+
+  @IsString()
+  description: string;
 }

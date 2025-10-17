@@ -63,12 +63,12 @@ export class AuxiliaryNotesInsertService {
     const validatedData: NotesDTO[] = [];
     const skippedNotes: string[] = [];
 
-    const orderingFields = data.map((item) => item.campo_ordenacao);
+    const orderingFields = data.map((item) => item.campo_ordenacao.toString());
     const orderData = data.map((item) => ({
-      ordem_dci: item.ordem_dci,
-      ordem_dcd: item.ordem_dcd,
-      ordem_dca: item.ordem_dca,
-      ordem_dcim: item.ordem_dcim,
+      ordem_dci: item.ordem_dci?.toString(),
+      ordem_dcd: item.ordem_dcd?.toString(),
+      ordem_dca: item.ordem_dca?.toString(),
+      ordem_dcim: item.ordem_dcim?.toString(),
     }));
 
     const [existingNotes, existingOrders] = await Promise.all([

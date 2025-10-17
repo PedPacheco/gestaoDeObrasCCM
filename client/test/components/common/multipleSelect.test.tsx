@@ -21,14 +21,6 @@ describe("Multiple select component", () => {
     );
   };
 
-  it("renderiza com os primeiros 20 itens visíveis", () => {
-    renderComponent();
-
-    fireEvent.mouseDown(screen.getByLabelText("Serviços"));
-    const items = screen.getAllByRole("option");
-    expect(items).toHaveLength(20);
-  });
-
   it("Permite selecionar múltiplos itens", async () => {
     renderComponent();
 

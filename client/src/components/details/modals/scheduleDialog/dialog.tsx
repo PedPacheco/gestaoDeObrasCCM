@@ -9,8 +9,8 @@ import {
   Typography,
 } from "@mui/material";
 
-import { ButtonComponent } from "../../common/Button";
-import { AccordionPanel } from "../accordionPanel";
+import { ButtonComponent } from "../../../common/Button";
+import { AccordionPanel } from "../../accordionPanel";
 import { AdditionalInfoPanel } from "./additionalInfoPanel";
 import { BasicInfoPanel } from "./basicInfoPanel";
 import { ServiceEquipmentPanel } from "./serviceEquipmentPanel";
@@ -205,7 +205,8 @@ export default function ScheduleFormDialog({
             const execAlterado =
               formData.exec !== initialExecValue &&
               initialExecValue === "null" &&
-              formData.exec !== "";
+              formData.exec !== "" &&
+              formData.exec !== "0";
 
             if (execAlterado) {
               onExecutionDialogOpen(true);

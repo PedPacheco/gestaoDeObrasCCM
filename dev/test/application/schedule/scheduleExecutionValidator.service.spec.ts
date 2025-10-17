@@ -44,7 +44,11 @@ describe('ScheduleExecutionValidatorService', () => {
       };
 
       await expect(
-        service.validateExecutionAndUpdateStatus(data, 80, mockTransaction),
+        service.validateExecutionAndUpdateStatus(
+          data,
+          { prog: 0, exec: 80 },
+          mockTransaction,
+        ),
       ).rejects.toThrow(
         new BadRequestException(
           'O valor da execução da obra não pode ser superior a 100',
@@ -61,7 +65,11 @@ describe('ScheduleExecutionValidatorService', () => {
         dataProg: new Date('17/05/2025'),
       };
 
-      await service.validateExecutionAndUpdateStatus(data, 10, mockTransaction);
+      await service.validateExecutionAndUpdateStatus(
+        data,
+        { prog: 0, exec: 10 },
+        mockTransaction,
+      );
 
       expect(
         mockStatusFlowRepository.updateScheduleStatus,
@@ -74,6 +82,32 @@ describe('ScheduleExecutionValidatorService', () => {
       );
     });
 
+    it('should call statusFlowRepository with status 35, when total prog and totalExec are equal 100', async () => {
+      const data = {
+        id: 1,
+        idWork: 1,
+        exec: 80,
+        prog: 80,
+        dataProg: new Date('17/05/2025'),
+      };
+
+      await service.validateExecutionAndUpdateStatus(
+        data,
+        { prog: 20, exec: null },
+        mockTransaction,
+      );
+
+      expect(
+        mockStatusFlowRepository.updateScheduleStatus,
+      ).toHaveBeenCalledWith(4, 1, mockTransaction);
+      expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
+        35,
+        1,
+        mockTransaction,
+        { totalExecuted: 80 },
+      );
+    });
+
     it('Should call statusFlowRepository when exec value is 0', async () => {
       const data = {
         id: 1,
@@ -83,7 +117,11 @@ describe('ScheduleExecutionValidatorService', () => {
         dataProg: new Date('17/05/2025'),
       };
 
-      await service.validateExecutionAndUpdateStatus(data, 10, mockTransaction);
+      await service.validateExecutionAndUpdateStatus(
+        data,
+        { prog: 0, exec: 10 },
+        mockTransaction,
+      );
 
       expect(
         mockStatusFlowRepository.updateScheduleStatus,
@@ -104,7 +142,11 @@ describe('ScheduleExecutionValidatorService', () => {
         prog: 80,
       };
 
-      await service.validateExecutionAndUpdateStatus(data, 20, mockTransaction);
+      await service.validateExecutionAndUpdateStatus(
+        data,
+        { prog: 0, exec: 20 },
+        mockTransaction,
+      );
 
       expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
         2,
@@ -123,7 +165,11 @@ describe('ScheduleExecutionValidatorService', () => {
         dataProg: new Date('17/05/2025'),
       };
 
-      await service.validateExecutionAndUpdateStatus(data, 10, mockTransaction);
+      await service.validateExecutionAndUpdateStatus(
+        data,
+        { prog: 0, exec: 10 },
+        mockTransaction,
+      );
 
       expect(
         mockStatusFlowRepository.updateScheduleStatus,

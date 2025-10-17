@@ -1,9 +1,10 @@
 import {
-  IValidateAndConfirmSchedulesRepository,
-  VALIDATE_AND_CONFIRM_SCHEDULES_REPOSITORY,
+  IValidateConfirmAndRejectSchedulesRepository,
+  VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY,
 } from 'src/domain/repositories/schedule/IValidateSchedulesRepository';
 import {
   ConfirmSchedulesDTO,
+  RejectScheduleDTO,
   ValidateSchedulesDTO,
 } from 'src/interface/dtos/scheduleDTO';
 
@@ -22,10 +23,10 @@ import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule
 import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
 
 @Injectable()
-export class ValidateAndConfirmSchedulesService {
+export class ValidateConfirmAndRejectSchedulesService {
   constructor(
-    @Inject(VALIDATE_AND_CONFIRM_SCHEDULES_REPOSITORY)
-    private readonly validateAndConfirmSchedulesRepository: IValidateAndConfirmSchedulesRepository,
+    @Inject(VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY)
+    private readonly validateAndConfirmSchedulesRepository: IValidateConfirmAndRejectSchedulesRepository,
     @Inject(STATUS_FLOW_REPOSITORY)
     private readonly statusFlowRepository: IStatusFlowRepository,
     @Inject(FIND_SCHEDULE_BY_ID_REPOSITORY)
@@ -74,6 +75,49 @@ export class ValidateAndConfirmSchedulesService {
       });
     } catch (error: any) {
       throw new InternalServerErrorException(error);
+    }
+  }
+
+  async reject(data: RejectScheduleDTO) {
+    const {
+      id_obra,
+      data_prog,
+      prog,
+      equip_desligado,
+      hora_ini,
+      hora_ter,
+      equipe_linha_morta,
+      equipe_linha_viva,
+      equipe_regularizacao,
+      tipo_servico,
+      observacao_programacao,
+    } = await this.findScheduleByIdRepository.findById(data.id);
+
+    try {
+      const rejectedScheduleData = {
+        ...data,
+        id_obra,
+        data_prog,
+        prog,
+        equip_desligado,
+        hora_ini,
+        hora_ter,
+        equipe_linha_viva,
+        equipe_linha_morta,
+        equipe_regularizacao,
+        tipo_servico,
+        observacao_programacao,
+      };
+
+      await this.prisma.$transaction(async (tx) => {
+        await this.validateAndConfirmSchedulesRepository.reject(
+          rejectedScheduleData,
+          tx,
+        );
+        await this.statusFlowRepository.updateStatusWorks(36, id_obra, tx);
+      });
+    } catch (error) {
+      throw error;
     }
   }
 }

@@ -199,11 +199,11 @@ export const executionReportSchema = z
     equipmentRemoved: z.array(equipmentItemSchema),
     changesExecution: z.boolean(),
     generalObservation: z.string().optional(),
-    workSituation: z.string().min(1, "Situação da obra obrigatório"),
     reason: z.string().optional(),
     provisionalKeyInstalled: z.boolean(),
     provisionalKeyReference: z.string().optional(),
-    provisionalKeyWithdrawn: z.boolean(),
+    provisionalKeyWithdrawn: z.boolean().nullable().optional(),
+    provisionalKeyReferenceWithdrawn: z.string().optional(),
   })
   .check((ctx) => {
     checkRemovedEquipment(ctx);
@@ -240,6 +240,19 @@ export const validationSchedulesSchema = (
             });
           });
         }
+      }
+
+      if (
+        executionReport?.provisionalKeyInstalled &&
+        (executionReport.provisionalKeyWithdrawn === undefined ||
+          executionReport.provisionalKeyWithdrawn === null)
+      ) {
+        ctx.issues.push({
+          path: ["executionReport", "provisionalKeyWithdrawn"],
+          code: "custom",
+          message: "A condição da chave provisória deve ser informada",
+          input: ctx.value,
+        });
       }
 
       if (

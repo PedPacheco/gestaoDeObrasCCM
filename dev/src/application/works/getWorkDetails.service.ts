@@ -48,6 +48,7 @@ export class GetWorkDetailsService {
         status_programacao: programacao.status_programacao.status_programacao,
         validada: programacao.validada,
         confirmada: programacao.confirmada,
+        reprovada: programacao.reprovada,
       })),
     };
 

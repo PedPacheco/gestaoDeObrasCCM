@@ -1,4 +1,4 @@
-import { ExecutionBasicPanel } from "@/components/details/executionReportDialog/executionBasicPanel";
+import { ExecutionBasicPanel } from "@/components/details/modals/executionReportDialog/executionBasicPanel";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mockFormData } from "../../../mocks/mockFormData";

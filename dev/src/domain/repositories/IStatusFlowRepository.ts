@@ -12,7 +12,7 @@ export interface IStatusFlowRepository {
     idStatus: number,
     id: number,
     tx: Prisma.TransactionClient,
-  );
+  ): Promise<void>;
 }
 
 export const STATUS_FLOW_REPOSITORY = Symbol('StatusFlowRepository');

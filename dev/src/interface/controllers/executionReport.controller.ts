@@ -12,8 +12,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
-import { UpdateExecutionReportDTO } from '../dtos/executionReportDTO';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
+import { ExecutionReportDataDTO } from '../dtos/executionReportDTO';
 
 @Controller('relatorio-execucao')
 export class ExecutionReportController {
@@ -31,9 +31,10 @@ export class ExecutionReportController {
   }
 
   @Patch(':id')
+  @UseGuards(PermissionGuard)
   async update(
     @Param('id', ParseIntPipe) idExecutionReport: number,
-    @Body() data: UpdateExecutionReportDTO,
+    @Body() data: ExecutionReportDataDTO,
   ): Promise<any> {
     await this.executionReportService.update(idExecutionReport, data);
 

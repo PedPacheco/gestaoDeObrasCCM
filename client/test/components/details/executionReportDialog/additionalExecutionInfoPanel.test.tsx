@@ -1,4 +1,4 @@
-import { AdditionalExecutionInfoPanel } from "@/components/details/executionReportDialog/additionalExecutionInfoPanel";
+import { AdditionalExecutionInfoPanel } from "@/components/details/modals/executionReportDialog/additionalExecutionInfoPanel";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mockFormData } from "../../../mocks/mockFormData";
@@ -29,7 +29,6 @@ describe("AdditionalExecutionInfoPanel Component", () => {
     renderComponent();
 
     expect(screen.getByLabelText("Observação Geral")).toBeInTheDocument();
-    expect(screen.getByLabelText("Situação da Obra")).toBeInTheDocument();
 
     expect(screen.getByLabelText("Motivo")).toBeInTheDocument();
     expect(screen.getByText("Chave Provisória Instalada?")).toBeInTheDocument();
@@ -45,7 +44,6 @@ describe("AdditionalExecutionInfoPanel Component", () => {
           ...mockFormData,
           executionReport: {
             ...mockFormData.executionReport,
-            workSituation: undefined,
             provisionalKeyReference: undefined,
             provisionalKeyWithdrawn: undefined,
           } as unknown as NonNullable<FormData["executionReport"]>,
@@ -53,20 +51,12 @@ describe("AdditionalExecutionInfoPanel Component", () => {
       />
     );
 
-    const provisionalKeyReferenceInput = screen.getByLabelText(
+    const provisionalKeyReferenceInput = screen.getAllByLabelText(
       "Referência da Chave Provisória - Exemplo: 175ET00554845"
-    ) as HTMLInputElement;
+    ) as HTMLInputElement[];
 
-    const workSituationInput = screen.getByLabelText(
-      "Situação da Obra"
-    ) as HTMLInputElement;
-
-    const provisionalKeyWithdrawn = screen.getByLabelText(
-      "Chave Provisória Retirada?"
-    ) as HTMLInputElement;
-
-    expect(provisionalKeyReferenceInput.value).toBe("");
-    expect(workSituationInput.value).toBe("");
-    expect(provisionalKeyWithdrawn.checked).toBe(false);
+    provisionalKeyReferenceInput.map((item) => {
+      expect(item.value).toBe("");
+    });
   });
 });

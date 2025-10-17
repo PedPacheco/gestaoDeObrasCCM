@@ -97,6 +97,7 @@ describe("NotesEntry Page", () => {
     const mockAPIData = {
       token: "mock-token",
       data: [{ obra: "OB123", pep: "PEP229" }],
+      success: true,
     };
 
     mockCookieStore.get.mockImplementation((key) =>

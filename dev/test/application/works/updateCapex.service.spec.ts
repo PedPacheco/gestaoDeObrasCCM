@@ -55,12 +55,12 @@ describe('UpdateCapexService', () => {
       {
         diagrama_rede: '170000027938',
         qtde_calc: 5,
-        qtde_pend: 2,
+        qtde_pend: 1,
         mo_calc: 6.49,
         capex_mat_plan: 8016.270000000001,
         capex_mo_plan: 6.49,
-        capex_mo_pend: 5.192,
-        capex_mat_pend: 8016.270000000001,
+        capex_mo_pend: 1.298,
+        capex_mat_pend: 5371.700000000001,
       },
     ]);
   });
@@ -92,7 +92,7 @@ describe('UpdateCapexService', () => {
         capex_mat_plan: 8016.270000000001,
         capex_mo_plan: 6.49,
         capex_mo_pend: 0,
-        capex_mat_pend: 8016.270000000001,
+        capex_mat_pend: 5371.700000000001,
       },
     ]);
   });
@@ -118,8 +118,8 @@ describe('UpdateCapexService', () => {
         mo_calc: 6.49,
         capex_mat_plan: 8016.270000000001,
         capex_mo_plan: 6.49,
-        capex_mo_pend: 5.192,
-        capex_mat_pend: 8016.270000000001,
+        capex_mo_pend: 1.298,
+        capex_mat_pend: 5371.700000000001,
       },
     ]);
   });

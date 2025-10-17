@@ -1,10 +1,6 @@
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class MaterialCapexDTO {
-  @IsOptional()
-  @IsString()
-  status: string | null;
-
   @IsString()
   diagrama_rede: string;
 

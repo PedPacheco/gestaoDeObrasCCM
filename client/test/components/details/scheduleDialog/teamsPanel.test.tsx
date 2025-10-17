@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { mockFormData } from "../../../mocks/mockFormData";
-import { TeamsPanel } from "@/components/details/scheduleDialog/teamsPanel";
+import { TeamsPanel } from "@/components/details/modals/scheduleDialog/teamsPanel";
 
 describe("TeamsPanel component", () => {
   it("deve renderizar os campos corretamente", () => {

@@ -23,6 +23,7 @@ export interface Schedules {
   nome_responsavel_execucao: string | null;
   confirmada: boolean;
   validada: boolean;
+  reprovada: boolean;
   status_programacao: ScheduleStatus;
 }
 

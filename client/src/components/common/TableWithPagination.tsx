@@ -92,7 +92,16 @@ export function TableWithPagination({
                         cellValue = FormatCurrency(cellValue);
                       }
 
-                      if (["prog", "exec", "executado"].includes(column)) {
+                      if (
+                        [
+                          "prog",
+                          "exec",
+                          "executado",
+                          "total_prog",
+                          "total_exec",
+                          "total_pend",
+                        ].includes(column)
+                      ) {
                         cellValue = formatPercentage(cellValue);
                       }
 

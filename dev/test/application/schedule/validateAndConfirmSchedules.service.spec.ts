@@ -3,18 +3,19 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { ValidateAndConfirmSchedulesService } from 'src/application/schedule/validateAndConfirmSchedules.service';
+import { ValidateConfirmAndRejectSchedulesService } from 'src/application/schedule/validateAndConfirmSchedules.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
 import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
-import { VALIDATE_AND_CONFIRM_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IValidateSchedulesRepository';
+import { VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IValidateSchedulesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 describe('ValidateAndConfirmSchedulesService', () => {
-  let service: ValidateAndConfirmSchedulesService;
+  let service: ValidateConfirmAndRejectSchedulesService;
 
   const mockValidateAndConfirmSchedulesRepository = {
     validate: jest.fn(),
     confirm: jest.fn(),
+    reject: jest.fn(),
   };
 
   const mockStatusFlowRepository = {
@@ -33,9 +34,9 @@ describe('ValidateAndConfirmSchedulesService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        ValidateAndConfirmSchedulesService,
+        ValidateConfirmAndRejectSchedulesService,
         {
-          provide: VALIDATE_AND_CONFIRM_SCHEDULES_REPOSITORY,
+          provide: VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY,
           useValue: mockValidateAndConfirmSchedulesRepository,
         },
         { provide: STATUS_FLOW_REPOSITORY, useValue: mockStatusFlowRepository },
@@ -47,8 +48,8 @@ describe('ValidateAndConfirmSchedulesService', () => {
       ],
     }).compile();
 
-    service = module.get<ValidateAndConfirmSchedulesService>(
-      ValidateAndConfirmSchedulesService,
+    service = module.get<ValidateConfirmAndRejectSchedulesService>(
+      ValidateConfirmAndRejectSchedulesService,
     );
   });
 
@@ -185,6 +186,67 @@ describe('ValidateAndConfirmSchedulesService', () => {
       await expect(service.confirm(data)).rejects.toThrow(
         InternalServerErrorException,
       );
+    });
+  });
+
+  describe('reject', () => {
+    it('should reject schedule and update work status when no erros occur', async () => {
+      const data = {
+        id: 1,
+        reject: true,
+        reason: '',
+        description: '',
+      };
+
+      const mockResponse = {
+        id_obra: 2,
+        data_prog: new Date('17/05/2025'),
+        prog: 100,
+        equip_desligado: '',
+        hora_ini: '15:00',
+        hora_ter: '17:00',
+        equipe_linha_viva: 1,
+        equipe_linha_morta: 2,
+        equipe_regularizacao: 3,
+        tipo_servico: 'DP',
+        observacao_programacao: '',
+      };
+
+      mockFindScheduleByIdRepository.findById.mockResolvedValue(mockResponse);
+      mockPrisma.$transaction.mockImplementation(async (cb) => cb({}));
+
+      await service.reject(data);
+
+      expect(
+        mockValidateAndConfirmSchedulesRepository.reject,
+      ).toHaveBeenCalledWith({ ...data, ...mockResponse }, expect.any(Object));
+      expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
+        36,
+        2,
+        expect.any(Object),
+      );
+    });
+
+    it('should throw error when transaction fails during schedule confirmation and status update', async () => {
+      const error = new Error('Erro interno');
+      const data = {
+        id: 1,
+        reject: true,
+        reason: '',
+        description: '',
+      };
+
+      mockValidateAndConfirmSchedulesRepository.reject.mockImplementation(
+        () => {
+          throw error;
+        },
+      );
+
+      mockPrisma.$transaction.mockImplementation(async (callback) => {
+        return await callback({});
+      });
+
+      await expect(service.reject(data)).rejects.toThrow(error);
     });
   });
 });
