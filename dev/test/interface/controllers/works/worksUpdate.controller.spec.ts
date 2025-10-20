@@ -11,7 +11,6 @@ import { Test } from '@nestjs/testing';
 
 import {
   mockMarketWorks,
-  mockMaterialCapex,
   mockUpdateNotes,
 } from '../../../mocks/mockWorksController';
 
@@ -162,14 +161,14 @@ describe('WorksUpdateController', () => {
     it('Should call the update method of the UpdateCapex service correctly', async () => {
       jest.spyOn(updateCapexService, 'update').mockResolvedValue();
 
-      const result = await worksController.updateCapex(mockMaterialCapex);
+      const result = await worksController.updateCapex();
 
       const expectedResponse = {
         statusCode: HttpStatus.OK,
         message: 'Capex e M.O atualizado com sucesso',
       };
 
-      expect(updateCapexService.update).toHaveBeenCalledWith(mockMaterialCapex);
+      expect(updateCapexService.update).toHaveBeenCalledWith();
       expect(result).toEqual(expectedResponse);
     });
   });

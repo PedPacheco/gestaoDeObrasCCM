@@ -14,7 +14,7 @@ export class MaterialCapexDTO {
   texto_material: string;
 
   @IsNumber()
-  centro: number;
+  centro: string;
 
   @IsNumber()
   deposito: number;

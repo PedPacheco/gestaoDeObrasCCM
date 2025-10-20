@@ -10,6 +10,7 @@ import {
 } from '../../mocks/mocksAuxiliaryBaseController';
 import { AuxiliaryBaseService } from 'src/application/auxiliaryBase/auxiliaryBase.service';
 import { UsersService } from 'src/application/users.service';
+import { mockMaterialCapex } from '../../mocks/mocksMaterialCapex';
 
 describe('AuxiliaryBaseController', () => {
   let auxiliaryBaseController: AuxiliaryBaseController;
@@ -27,6 +28,7 @@ describe('AuxiliaryBaseController', () => {
             delete: jest.fn(),
             insertAuxiliaryBaseNotes: jest.fn(),
             insertAuxiliaryBaseMarket: jest.fn(),
+            insertAuxiliaryBaseCapex: jest.fn(),
           },
         },
         { provide: UsersService, useValue: { findUser: jest.fn() } },
@@ -127,6 +129,29 @@ describe('AuxiliaryBaseController', () => {
       expect(
         auxiliaryBaseService.insertAuxiliaryBaseMarket,
       ).toHaveBeenCalledWith(mockInsertAuxiliaryBaseMarket, 'insert');
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('InsertAuxiliaryBaseCapex', () => {
+    it('should be call the method insertAuxiliaryBaseCapex with correct data', async () => {
+      jest
+        .spyOn(auxiliaryBaseService, 'insertAuxiliaryBaseCapex')
+        .mockResolvedValue();
+
+      const result =
+        await auxiliaryBaseController.InsertAuxiliaryBaseCapex(
+          mockMaterialCapex,
+        );
+
+      const expectedResponse = {
+        statusCode: HttpStatus.CREATED,
+        message: 'Materiais importados com sucesso',
+      };
+
+      expect(
+        auxiliaryBaseService.insertAuxiliaryBaseCapex,
+      ).toHaveBeenCalledWith(mockMaterialCapex);
       expect(result).toEqual(expectedResponse);
     });
   });

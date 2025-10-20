@@ -10,6 +10,10 @@ import {
   mockInsertAuxiliaryBaseMarket,
   mockInsertAuxiliaryBaseMarketWithDefaultId,
 } from '../../../test/mocks/mocksAuxiliaryBaseController';
+import {
+  mockCalculatedValues,
+  mockReturnAuxiliaryBaseCN52N,
+} from '../../mocks/mocksMaterialCapex';
 
 describe('AuxiliaryBaseRepository', () => {
   let repository: AuxiliaryBaseRepository;
@@ -26,11 +30,13 @@ describe('AuxiliaryBaseRepository', () => {
       createMany: jest.fn(),
       deleteMany: jest.fn(),
     },
+    cn52n: { createMany: jest.fn() },
     conversao: { findMany: jest.fn() },
     municipios: { findMany: jest.fn() },
     tipos: { findMany: jest.fn() },
     circuitos: { findMany: jest.fn() },
     $executeRawUnsafe: jest.fn(),
+    $queryRawUnsafe: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -137,6 +143,19 @@ describe('AuxiliaryBaseRepository', () => {
         }),
       );
       expect(result).toEqual([mockGetAuxiliaryBaseMarket]);
+    });
+  });
+
+  describe('getAuxiliaryBaseCN52N', () => {
+    it('should call method getAuxiliaryBaseCN52N and return formatted data', async () => {
+      mockPrisma.$queryRawUnsafe.mockResolvedValue(
+        mockReturnAuxiliaryBaseCN52N,
+      );
+
+      const result = await repository.getAuxiliaryBaseCN52N();
+
+      expect(result).toEqual(mockReturnAuxiliaryBaseCN52N);
+      expect(mockPrisma.$queryRawUnsafe).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -319,6 +338,24 @@ describe('AuxiliaryBaseRepository', () => {
     it('should log error if createMany fails', async () => {
       mockPrisma.$executeRawUnsafe.mockRejectedValueOnce(new Error('DB error'));
       await expect(repository.insertNotes([])).rejects.toThrow();
+    });
+  });
+
+  describe('insertCapex', () => {
+    it('should call the method insertMarket and insert data in the auxiliary base ov', async () => {
+      await repository.insertCapex(mockCalculatedValues);
+
+      expect(mockPrisma.cn52n.createMany).toHaveBeenCalledWith({
+        data: mockCalculatedValues,
+      });
+      expect(mockPrisma.cn52n.createMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('should log error if createMany fails', async () => {
+      mockPrisma.cn52n.createMany.mockRejectedValueOnce(new Error('DB error'));
+      await expect(
+        repository.insertCapex(mockCalculatedValues),
+      ).rejects.toThrow();
     });
   });
 });
