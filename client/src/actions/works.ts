@@ -129,7 +129,7 @@ export async function UpdateSap(data: any, key: string, storageKey: string) {
   }
 }
 
-export async function UpdateCapex(data: any) {
+export async function UpdateCapex() {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
@@ -142,7 +142,6 @@ export async function UpdateCapex(data: any) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(data),
       }
     );
 

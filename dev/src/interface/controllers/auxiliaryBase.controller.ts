@@ -20,6 +20,7 @@ import {
 } from '../dtos/auxiliaryBaseDTO';
 import { AuxiliaryBaseService } from 'src/application/auxiliaryBase/auxiliaryBase.service';
 import { OperationType } from '../types/baseAuxiliaryInterface';
+import { MaterialCapexDTO } from '../dtos/materialDTO';
 
 @Controller('base-auxiliar')
 export class AuxiliaryBaseController {
@@ -66,6 +67,18 @@ export class AuxiliaryBaseController {
     return {
       statusCode: HttpStatus.CREATED,
       message: 'Notas inseridas na base auxiliar com sucesso',
+      res,
+    };
+  }
+
+  @Post('capex')
+  @UseGuards(PermissionGuard)
+  async InsertAuxiliaryBaseCapex(@Body() data: MaterialCapexDTO[]) {
+    const res = await this.auxiliaryBaseService.insertAuxiliaryBaseCapex(data);
+
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'Materiais importados com sucesso',
       res,
     };
   }

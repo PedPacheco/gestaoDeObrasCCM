@@ -7,6 +7,7 @@ import {
 } from 'src/interface/dtos/auxiliaryBaseDTO';
 
 import { Injectable, Logger } from '@nestjs/common';
+import { GetAuxiliaryBaseMaterialsInterface } from 'src/interface/types/works/capexInterface';
 
 @Injectable()
 export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
@@ -87,6 +88,38 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
         id: Number(work.id),
       }),
     );
+  }
+
+  async getAuxiliaryBaseCN52N(): Promise<GetAuxiliaryBaseMaterialsInterface[]> {
+    const result = await this.prisma.$queryRawUnsafe<
+      GetAuxiliaryBaseMaterialsInterface[]
+    >(`
+      SELECT 
+        obras.ovnota,
+        CASE
+          WHEN obras.diagrama IS NOT NULL THEN obras.diagrama
+          WHEN obras.ordem_dci IS NOT NULL THEN obras.ordem_dci
+          ELSE obras.ordem_dcim
+		    END AS ordem_diagrama,
+        cn52n.diagrama_rede,
+        cn52n.def_proj,
+        cn52n.material,
+        cn52n.cti,
+        cn52n.preco,
+        cn52n.qtd_necessaria,
+        cn52n.qtd_retirada,
+        cn52n.qtd_falta,
+        cn52n.reserva AS reserva
+      FROM cn52n
+      LEFT JOIN obras
+        ON cn52n.diagrama_rede = obras.ordem_dci
+        OR cn52n.diagrama_rede = obras.ordem_dcd
+        OR cn52n.diagrama_rede = obras.ordem_dca
+        OR cn52n.diagrama_rede = obras.ordem_dcim
+        OR cn52n.diagrama_rede = CAST(COALESCE(obras.diagrama, '') AS TEXT)
+    `);
+
+    return result;
   }
 
   async getFator(
@@ -213,6 +246,17 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
 
       return { message: 'Dados inseridos com sucesso' };
     } catch (error) {
+      throw error;
+    }
+  }
+
+  async insertCapex(data: any[]): Promise<void> {
+    try {
+      await this.prisma.cn52n.createMany({
+        data: data,
+      });
+    } catch (error) {
+      console.log(error);
       throw error;
     }
   }

@@ -14,6 +14,10 @@ import {
 } from '../../mocks/mocksAuxiliaryBaseController';
 
 import { Test, TestingModule } from '@nestjs/testing';
+import {
+  mockMaterialCapex,
+  mockMaterialCapexRequest,
+} from '../../mocks/mocksMaterialCapex';
 
 describe('AuxiliaryBaseService', () => {
   let auxiliaryBaseService: AuxiliaryBaseService;
@@ -21,6 +25,7 @@ describe('AuxiliaryBaseService', () => {
   const mockRepository = {
     insertNotes: jest.fn(),
     insertMarket: jest.fn(),
+    insertCapex: jest.fn(),
     getFator: jest.fn(),
     getAuxiliaryBaseNotes: jest.fn(),
     getAuxiliaryBaseMarket: jest.fn(),
@@ -126,6 +131,16 @@ describe('AuxiliaryBaseService', () => {
       expect(mockAuxiliaryMarketInsertService.execute).toHaveBeenCalledWith(
         mockInsertAuxiliaryBaseMarket,
         'insert',
+      );
+    });
+  });
+
+  describe('InsertAuxiliaryBaseCapex', () => {
+    it('Should format data and call repository to insert materials', async () => {
+      await auxiliaryBaseService.insertAuxiliaryBaseCapex(mockMaterialCapex);
+
+      expect(mockRepository.insertCapex).toHaveBeenCalledWith(
+        mockMaterialCapexRequest,
       );
     });
   });

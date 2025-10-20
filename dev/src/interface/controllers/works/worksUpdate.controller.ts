@@ -23,7 +23,6 @@ import { ContractUpdateService } from 'src/application/works/contractUpdate.serv
 import { UpdateOvService } from 'src/application/works/updateOv.service';
 import { UpdateNoteService } from 'src/application/works/updateNote.service';
 import { UpdateCapexService } from 'src/application/works/updateCapex.service';
-import { MaterialCapexDTO } from 'src/interface/dtos/materialDTO';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -95,8 +94,8 @@ export class WorksUpdateController {
 
   @Post('atualizar-capex')
   @UseGuards(PermissionGuard)
-  async updateCapex(@Body() data: MaterialCapexDTO[]) {
-    await this.updateCapexService.update(data);
+  async updateCapex() {
+    await this.updateCapexService.update();
 
     return {
       statusCode: HttpStatus.OK,
