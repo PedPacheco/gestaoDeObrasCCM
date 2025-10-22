@@ -8,7 +8,13 @@ import { GetWorksInPortfolioService } from 'src/application/works/getWorksInPort
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 
-import { Controller, Get, Query, Res } from '@nestjs/common';
+import { Controller, Get, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { VisualizationGuard } from 'src/core/guards/visualization.guard';
+
+interface CustomRequest extends Request {
+  idParceira?: number;
+  insufficientPermission?: boolean;
+}
 
 @Controller('exportacao')
 export class ExportController {
@@ -21,11 +27,32 @@ export class ExportController {
     private exportCompletedWorksService: ExportCompletedWorksService,
   ) {}
 
+  private applyFilters<
+    T extends {
+      idParceira?: number | number[];
+      insufficientPermission?: boolean;
+    },
+  >(filters: T, req: CustomRequest): T {
+    if (req.idParceira) {
+      filters.idParceira = req.idParceira;
+    }
+    if (req.insufficientPermission !== undefined) {
+      filters.insufficientPermission = req.insufficientPermission;
+    }
+    return filters;
+  }
+
   @Get('programacao')
+  @UseGuards(VisualizationGuard)
   async exportSchedule(
     @Query() filters: GetScheduleValuesDTO,
     @Res() res: Response,
+    @Req() req: any,
   ) {
+    if (req.idParceira) {
+      filters.idParceira = req.idParceira;
+    }
+
     const { works } = await this.getScheduleValuesService.getValues(filters);
 
     res.setHeader(
@@ -41,10 +68,13 @@ export class ExportController {
   }
 
   @Get('obras-carteira')
+  @UseGuards(VisualizationGuard)
   async exportWorksInPortfolio(
-    @Query() filters: GetWorksDTO,
+    @Query() workFilters: GetWorksDTO,
     @Res() res: Response,
+    @Req() req: CustomRequest,
   ) {
+    const filters = this.applyFilters(workFilters, req);
     const worksData =
       await this.getWorksInPortfolioService.getWorksInPortfolio(filters);
 
@@ -61,10 +91,13 @@ export class ExportController {
   }
 
   @Get('obras-executadas')
+  @UseGuards(VisualizationGuard)
   async exportCompletedWorks(
-    @Query() filters: GetWorksDTO,
+    @Query() workFilters: GetWorksDTO,
     @Res() res: Response,
+    @Req() req: CustomRequest,
   ) {
+    const filters = this.applyFilters(workFilters, req);
     const worksData =
       await this.getCompletedWorksService.getCompletedWorks(filters);
 

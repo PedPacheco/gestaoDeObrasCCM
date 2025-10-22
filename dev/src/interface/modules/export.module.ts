@@ -6,9 +6,10 @@ import { ExportWorksInPortfolioService } from '../../application/export/exportWo
 import { ExportController } from '../controllers/export.controller';
 import { ScheduleModule } from './schedule.module';
 import { WorksModule } from './works.module';
+import { UsersModule } from './users.module';
 
 @Module({
-  imports: [WorksModule, ScheduleModule],
+  imports: [WorksModule, ScheduleModule, UsersModule],
   controllers: [ExportController],
   providers: [
     ExportScheduleService,

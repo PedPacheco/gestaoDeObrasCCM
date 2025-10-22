@@ -3,6 +3,7 @@ import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import {
   ContractUpdateDTO,
   InsertMarketWorksDTO,
+  SuspensionWorksDTO,
   UpdateNotesDTO,
   UpdateWorkDTO,
 } from 'src/interface/dtos/worksDto';
@@ -23,6 +24,7 @@ import { ContractUpdateService } from 'src/application/works/contractUpdate.serv
 import { UpdateOvService } from 'src/application/works/updateOv.service';
 import { UpdateNoteService } from 'src/application/works/updateNote.service';
 import { UpdateCapexService } from 'src/application/works/updateCapex.service';
+import { SuspensionWorkService } from 'src/application/works/suspensionWork.service';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -37,6 +39,7 @@ export class WorksUpdateController {
     private updateOvService: UpdateOvService,
     private updateNoteService: UpdateNoteService,
     private updateCapexService: UpdateCapexService,
+    private suspensionWorksService: SuspensionWorkService,
   ) {}
 
   @Post('atualizar-empreitamento')
@@ -47,6 +50,17 @@ export class WorksUpdateController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Empreitamento das obras atualizado com sucesso',
+    };
+  }
+
+  @Post('suspender-obras')
+  @UseGuards(PermissionGuard)
+  async SuspensionWorks(@Body() data: SuspensionWorksDTO[]) {
+    await this.suspensionWorksService.createMultipleSuspensions(data);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Obras suspensas com sucesso',
     };
   }
 

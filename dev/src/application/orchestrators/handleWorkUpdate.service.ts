@@ -13,6 +13,7 @@ import {
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetWorkDetailsService } from '../works/getWorkDetails.service';
 import { UpdateWorkService } from '../works/updateWork.service';
+import { SuspensionWorkService } from '../works/suspensionWork.service';
 
 @Injectable()
 export class HandleWorkUpdateService {
@@ -21,6 +22,7 @@ export class HandleWorkUpdateService {
     private readonly statusFlowRepository: IStatusFlowRepository,
     private readonly getDetailsWorkService: GetWorkDetailsService,
     private readonly updateWorkService: UpdateWorkService,
+    private readonly suspensionWorkService: SuspensionWorkService,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -39,6 +41,13 @@ export class HandleWorkUpdateService {
     }
 
     await this.prisma.$transaction(async (tx) => {
+      if (data.id_status === 4) {
+        await this.suspensionWorkService.createSuspension(
+          work.id,
+          data.reasonSuspension,
+        );
+      }
+
       await this.updateWorkService.update(data, work.id, tx);
 
       if (work.id_status === 42 && data_empreitamento && tipo_ads) {

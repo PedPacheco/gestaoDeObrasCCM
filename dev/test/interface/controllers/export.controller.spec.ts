@@ -11,6 +11,12 @@ import { Test } from '@nestjs/testing';
 import { GetWorksInPortfolioService } from 'src/application/works/getWorksInPortfolio.service';
 import { GetCompletedWorksService } from 'src/application/works/getCompletedWorks.service';
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
+import { UsersService } from 'src/application/users.service';
+
+const mockReq = {
+  insufficientPermission: true,
+  idParceira: 1,
+} as unknown as Request;
 
 describe('ExportController', () => {
   let controller: ExportController;
@@ -69,6 +75,49 @@ describe('ExportController', () => {
     },
   };
 
+  const mockScheduleData: GetScheduleValuesResponse = {
+    works: [
+      {
+        id: 9045,
+        ovnota: '12398586',
+        ordemdiagrama: '170000002955',
+        diagrama: null,
+        mun: 'MCR',
+        prazo_fim: '2024-03-30T00:00:00.000Z',
+        tipo_obra: 'POSTE',
+        qtde_planejada: '1',
+        mo_planejada: '3262.21',
+        turma: 'LIG',
+        executado: 0,
+        entrada: '2024-08-01T00:00:00.000Z',
+        data_prog: '2024-10-01T00:00:00.000Z',
+        prog: 100,
+        exec: null,
+        mo_prog: 3262.21,
+        mo_exec: 3262.21,
+        num_dp: '15563352',
+        hora_ini: '1970-01-01T14:30:00.000Z',
+        hora_ter: '1970-01-01T17:30:00.000Z',
+        equipe_linha_morta: 1,
+        equipe_linha_viva: 1,
+        equipe_regularizacao: 0,
+        id_tecnico: 1,
+        observprog: '',
+        conjunto: '',
+        circuito: '',
+        total_obras: 0,
+        total_mo_planejada: 0,
+        total_qtde_planejada: 0,
+      },
+    ],
+    totals: {
+      total_obras: 1,
+      total_mo_planejada: 3262.21,
+      total_mo_exec: 0,
+      total_qtde_planejada: 1,
+    },
+  };
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       controllers: [ExportController],
@@ -85,6 +134,7 @@ describe('ExportController', () => {
           provide: GetWorksInPortfolioService,
           useValue: { getWorksInPortfolio: jest.fn() },
         },
+        { provide: UsersService, useValue: { findUser: jest.fn() } },
         {
           provide: ExportWorksInPortfolioService,
           useValue: { export: jest.fn() },
@@ -127,63 +177,11 @@ describe('ExportController', () => {
 
   it('Should call exportSchedule and return the excel file', async () => {
     const mockFilters: GetScheduleValuesDTO = {
-      data: '17/05/2024',
-      tipoFiltro: 'day',
-      idRegional: [1],
-      idMunicipio: [1],
-      idGrupo: [1],
-      idTipo: [1],
       idParceira: [1],
-      idStatus: [1],
-      idStatusProgramacao: [1],
       executado: false,
       pendente: false,
-      page: 0,
-      ovnota: '13243',
     };
 
-    const mockScheduleData: GetScheduleValuesResponse = {
-      works: [
-        {
-          id: 9045,
-          ovnota: '12398586',
-          ordemdiagrama: '170000002955',
-          diagrama: null,
-          mun: 'MCR',
-          prazo_fim: '2024-03-30T00:00:00.000Z',
-          tipo_obra: 'POSTE',
-          qtde_planejada: '1',
-          mo_planejada: '3262.21',
-          turma: 'LIG',
-          executado: 0,
-          entrada: '2024-08-01T00:00:00.000Z',
-          data_prog: '2024-10-01T00:00:00.000Z',
-          prog: 100,
-          exec: null,
-          mo_prog: 3262.21,
-          mo_exec: 3262.21,
-          num_dp: '15563352',
-          hora_ini: '1970-01-01T14:30:00.000Z',
-          hora_ter: '1970-01-01T17:30:00.000Z',
-          equipe_linha_morta: 1,
-          equipe_linha_viva: 1,
-          equipe_regularizacao: 0,
-          id_tecnico: 1,
-          observprog: '',
-          conjunto: '',
-          circuito: '',
-          total_obras: 0,
-          total_mo_planejada: 0,
-          total_qtde_planejada: 0,
-        },
-      ],
-      totals: {
-        total_obras: 1,
-        total_mo_planejada: 3262.21,
-        total_mo_exec: 0,
-        total_qtde_planejada: 1,
-      },
-    };
     const mockResponse = {
       setHeader: jest.fn(),
       send: jest.fn(),
@@ -195,7 +193,51 @@ describe('ExportController', () => {
 
     jest.spyOn(exportScheduleService, 'export').mockResolvedValue(undefined);
 
-    await controller.exportSchedule(mockFilters, mockResponse);
+    await controller.exportSchedule(mockFilters, mockResponse, mockReq);
+
+    expect(getScheduleValuesService.getValues).toHaveBeenCalledWith(
+      mockFilters,
+    );
+    expect(mockResponse.setHeader).toHaveBeenCalledWith(
+      'Content-Disposition',
+      'attachment; filename="Exportação Programação"',
+    );
+    expect(mockResponse.setHeader).toHaveBeenCalledWith(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    expect(exportScheduleService.export).toHaveBeenCalledWith(
+      mockScheduleData.works,
+      mockResponse,
+    );
+  });
+
+  it('should call exportSchedule with not restriction of id_parceira', async () => {
+    const mockFilters: GetScheduleValuesDTO = {
+      executado: false,
+      pendente: false,
+    };
+
+    const mockReqWithoutIdParceira = {
+      id_parceira: undefined,
+    };
+
+    const mockResponse = {
+      setHeader: jest.fn(),
+      send: jest.fn(),
+    } as unknown as Response;
+
+    jest
+      .spyOn(getScheduleValuesService, 'getValues')
+      .mockResolvedValue(mockScheduleData);
+
+    jest.spyOn(exportScheduleService, 'export').mockResolvedValue(undefined);
+
+    await controller.exportSchedule(
+      mockFilters,
+      mockResponse,
+      mockReqWithoutIdParceira,
+    );
 
     expect(getScheduleValuesService.getValues).toHaveBeenCalledWith(
       mockFilters,
@@ -216,21 +258,13 @@ describe('ExportController', () => {
 
   it('Should call exportWorksInPortfolio and return the excel file', async () => {
     const mockFilters = {
-      insufficientPermission: true,
-      data: '09/04/2024',
-      tipoFiltro: 'dia',
-      idCircuito: undefined,
-      idConjunto: undefined,
-      idEmpreendimento: undefined,
-      ovnota: undefined,
-      idGrupo: undefined,
-      idMunicipio: undefined,
-      idParceira: undefined,
-      idRegional: [1],
-      idStatus: undefined,
-      idTipo: undefined,
       page: 1,
     };
+
+    const mockReqWithoutIdParceira = {
+      insufficientPermission: undefined,
+      idParceira: undefined,
+    } as unknown as Request;
 
     const mockResponse = {
       setHeader: jest.fn(),
@@ -245,7 +279,11 @@ describe('ExportController', () => {
       .spyOn(exportWorksInPortofolioService, 'export')
       .mockResolvedValue(undefined);
 
-    await controller.exportWorksInPortfolio(mockFilters, mockResponse);
+    await controller.exportWorksInPortfolio(
+      mockFilters,
+      mockResponse,
+      mockReqWithoutIdParceira,
+    );
 
     expect(getWorksInPortfolioService.getWorksInPortfolio).toHaveBeenCalledWith(
       mockFilters,
@@ -267,19 +305,7 @@ describe('ExportController', () => {
   it('Should call exportCompletedWorks and return the excel file', async () => {
     const mockFilters = {
       insufficientPermission: true,
-      data: '09/04/2024',
-      tipoFiltro: 'dia',
-      idCircuito: undefined,
-      idConjunto: undefined,
-      idEmpreendimento: undefined,
-      ovnota: undefined,
-      idGrupo: undefined,
-      idMunicipio: undefined,
-      idParceira: undefined,
       idRegional: [1],
-      idStatus: undefined,
-      idTipo: undefined,
-      page: 1,
     };
 
     const mockResponse = {
@@ -295,7 +321,7 @@ describe('ExportController', () => {
       .spyOn(exportCompletedWorksService, 'export')
       .mockResolvedValue(undefined);
 
-    await controller.exportCompletedWorks(mockFilters, mockResponse);
+    await controller.exportCompletedWorks(mockFilters, mockResponse, mockReq);
 
     expect(getCompletedWorksService.getCompletedWorks).toHaveBeenCalledWith(
       mockFilters,
