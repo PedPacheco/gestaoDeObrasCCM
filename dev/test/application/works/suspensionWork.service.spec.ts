@@ -79,5 +79,23 @@ describe('SuspensionWorkService', () => {
         { id_obra: 1, motivo: 'Obra suspensa', data: expect.any(Date) },
       ]);
     });
+
+    it('should throw error if reason of suspension not sent', async () => {
+      jest
+        .spyOn(findExistingWorksService, 'findExistingWorks')
+        .mockResolvedValue([{ id: 1, ovnota: '2134' }]);
+
+      const data = [{ ovnota: '2134', motivo: '' }];
+
+      await expect(
+        suspensionWorkService.createMultipleSuspensions(data),
+      ).rejects.toThrow(BadRequestException);
+
+      await expect(
+        suspensionWorkService.createMultipleSuspensions(data),
+      ).rejects.toThrow(
+        'O motivo da suspensão da obra ou o próprio número da obra não foi enviado',
+      );
+    });
   });
 });

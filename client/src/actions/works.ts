@@ -226,3 +226,35 @@ export async function InsertContract(data: any) {
     return { success: false, error: err.message };
   }
 }
+
+export async function SuspensionsWorks(data: any) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  try {
+    const result = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/obras/suspender-obras`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    const res = await result.json();
+
+    if (res.statusCode !== 200) {
+      return {
+        success: false,
+        error: res.message || "Erro ao suspender obras",
+      };
+    }
+
+    return { success: true, message: res.message };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}

@@ -34,6 +34,16 @@ export class SuspensionWorkService {
       throw new BadRequestException('Nenhuma obra enviada para ser suspensa');
     }
 
+    const invalid = data.find(
+      (item) => !item.ovnota?.trim() || !item.motivo?.trim(),
+    );
+
+    if (invalid) {
+      throw new BadRequestException(
+        `O motivo da suspensão da obra ou o próprio número da obra não foi enviado`,
+      );
+    }
+
     const uniquesWorks = Array.from(new Set(data.map((item) => item.ovnota)));
 
     const existingOvs =

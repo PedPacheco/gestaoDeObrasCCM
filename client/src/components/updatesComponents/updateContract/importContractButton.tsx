@@ -18,7 +18,7 @@ type ContractRow = {
   tipoAds: string;
 };
 
-export function ButtonImportContract() {
+export function ImportContractButton() {
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 

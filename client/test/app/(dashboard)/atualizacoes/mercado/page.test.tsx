@@ -17,12 +17,17 @@ vi.mock("next/headers", () => ({
   cookies: vi.fn(),
 }));
 
-vi.mock("@/components/updatesComponents/importButtonUpdates", () => ({
-  __esModule: true,
-  ImportButtonUpdates: vi.fn(() => <div data-testid="import-update-button" />),
-}));
+vi.mock(
+  "@/components/updatesComponents/updateWorkData/importButtonUpdates",
+  () => ({
+    __esModule: true,
+    ImportButtonUpdates: vi.fn(() => (
+      <div data-testid="import-update-button" />
+    )),
+  })
+);
 
-vi.mock("@/components/updatesComponents/updateButton", () => ({
+vi.mock("@/components/updatesComponents/updateWorkData/updateButton", () => ({
   __esModule: true,
   UpdateButton: vi.fn(() => <div data-testid="update-button" />),
 }));

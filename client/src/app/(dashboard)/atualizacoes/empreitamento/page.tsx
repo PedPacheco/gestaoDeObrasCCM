@@ -1,9 +1,9 @@
-import { ButtonInsertContract } from "@/components/entryComponents/importContract/buttonInsertContract";
-import { TableImportedContracts } from "@/components/entryComponents/importContract/tableImportedContracts";
+import { UpdateContractButton } from "@/components/updatesComponents/updateContract/updateContractButton";
+import { ImportTableContracts } from "@/components/updatesComponents/updateContract/importTableContracts";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { Box, Paper } from "@mui/material";
 
-import { ButtonImportContract } from "../../../../components/entryComponents/importContract/buttonImportContract";
+import { ImportContractButton } from "../../../../components/updatesComponents/updateContract/importContractButton";
 
 export const dynamic = "force-dynamic";
 
@@ -14,12 +14,12 @@ export default async function Contract() {
         <div className="flex flex-col h-full items-center">
           <Paper className="p-6 mb-8 justify-start">
             <Box className="flex gap-4 flex-wrap">
-              <ButtonImportContract />
-              <ButtonInsertContract />
+              <ImportContractButton />
+              <UpdateContractButton />
             </Box>
           </Paper>
 
-          <TableImportedContracts />
+          <ImportTableContracts />
         </div>
       </div>
     </EmotionCacheProvider>

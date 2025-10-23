@@ -8,7 +8,7 @@ import ModalComponent from "@/components/common/Modal";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { InsertContract } from "@/actions/works";
 
-export function ButtonInsertContract() {
+export function UpdateContractButton() {
   const [error, setError] = useState<string | null>(null);
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [success, setSuccess] = useState<string | null>(null);

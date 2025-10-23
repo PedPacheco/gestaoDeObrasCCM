@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useState } from "react";
 
-import { FormControl, MenuItem } from "@mui/material";
+import { FormControl, MenuItem, Tooltip } from "@mui/material";
 import Select from "@mui/material/Select";
 
 export interface SelectProps {
@@ -13,6 +13,7 @@ export interface SelectProps {
   valueKey?: string | number;
   displayKey?: string | number;
   disabled?: boolean;
+  editButton?: ReactNode;
 }
 
 type SelectItem = string | number;
@@ -25,6 +26,7 @@ export function SelectComponent({
   valueKey,
   displayKey,
   disabled,
+  editButton,
 }: SelectProps) {
   const [mounted, setMounted] = useState(false);
 
@@ -45,7 +47,7 @@ export function SelectComponent({
       )}
 
       <FormControl
-        className="flex-1 h-full min-w-36 justify-center"
+        className="flex-1  h-full min-w-36 justify-center"
         size="small"
       >
         <Select
@@ -92,6 +94,11 @@ export function SelectComponent({
           })}
         </Select>
       </FormControl>
+      {editButton && (
+        <Tooltip title="Clique para alterar o motivo da suspensão">
+          <span>{editButton}</span>
+        </Tooltip>
+      )}
     </div>
   );
 }
