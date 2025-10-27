@@ -7,9 +7,10 @@ import {
   IUpdateCapexRepository,
   UPDATE_CAPEX_REPOSITORY,
 } from 'src/domain/repositories/works/IUpdateCapexRepository';
-import { MaterialCapexDTO } from 'src/interface/dtos/materialDTO';
+import { GetAuxiliaryBaseMaterialsInterface } from 'src/interface/types/works/capexInterface';
 
 export interface CalculatedValue {
+  ovnota: string;
   diagrama_rede: string;
   qtde_calc: number;
   qtde_pend: number;
@@ -29,8 +30,11 @@ export class UpdateCapexService {
     private readonly updateCapexRepository: IUpdateCapexRepository,
   ) {}
 
-  async update(data: MaterialCapexDTO[]) {
-    const allMaterials = this.extractAllMaterials(data);
+  async update() {
+    const materials =
+      await this.auxiliaryBaseRepository.getAuxiliaryBaseCN52N();
+
+    const allMaterials = this.extractAllMaterials(materials);
 
     const fatorMap = await this.auxiliaryBaseRepository.getFator(allMaterials);
 
@@ -38,7 +42,7 @@ export class UpdateCapexService {
       await this.updateCapexRepository.getDeletedMaterials();
 
     const capexValues = this.calculateCapexValues(
-      data,
+      materials,
       fatorMap,
       deletedMaterials,
     );
@@ -46,7 +50,9 @@ export class UpdateCapexService {
     await this.updateCapexRepository.update(capexValues);
   }
 
-  private extractAllMaterials(validatedData: MaterialCapexDTO[]) {
+  private extractAllMaterials(
+    validatedData: GetAuxiliaryBaseMaterialsInterface[],
+  ) {
     return validatedData.flatMap((item) => ({
       material: item.material,
       pep_ref: item.def_proj,
@@ -54,22 +60,28 @@ export class UpdateCapexService {
   }
 
   private calculateCapexValues(
-    materialData: MaterialCapexDTO[],
+    materialData: GetAuxiliaryBaseMaterialsInterface[],
     fatorMap: Map<string, number>,
     deletedMaterials: any[],
   ): CalculatedValue[] {
+    const deletedSet = new Set(
+      deletedMaterials.map((item) => item.codigo_material?.trim()),
+    );
+
     return materialData.reduce((acc, material) => {
       const fatorKey = `${material.material}|${material.def_proj}`;
       const fator = fatorMap.get(fatorKey) ?? 0;
-      const deletedSet = new Set(deletedMaterials);
 
       let current = acc.find(
-        (item) => item.diagrama_rede === material.diagrama_rede,
+        (item) =>
+          item.ovnota === material.ovnota &&
+          item.diagrama_rede === material.ordem_diagrama,
       );
 
       if (!current) {
         current = {
-          diagrama_rede: material.diagrama_rede,
+          ovnota: material.ovnota,
+          diagrama_rede: material.ordem_diagrama,
           qtde_calc: 0,
           qtde_pend: 0,
           mo_calc: 0,
@@ -81,25 +93,36 @@ export class UpdateCapexService {
         acc.push(current);
       }
 
-      if (fator !== 0) {
-        current.qtde_calc += material.qtd_necess / fator;
-        if (material.relevancia_calculo?.trim()) {
-          current.qtde_pend += material.qtd_faltante / fator;
+      if (fator > 0) {
+        current.qtde_calc += material.qtd_necessaria / fator;
+
+        if (material.reserva?.trim()) {
+          current.qtde_pend += material.qtd_falta / fator;
         }
       }
 
-      if (!deletedSet.has(material.material) && material.ctg_item === 'N') {
-        current.mo_calc += material.preco_mi * material.qtd_necess;
-        current.capex_mo_plan += material.preco_mi * material.qtd_necess;
+      if (!deletedSet.has(material.material.trim()) && material.cti === 'N') {
+        current.mo_calc += material.preco * material.qtd_necessaria;
 
-        if (material.relevancia_calculo?.trim()) {
-          current.capex_mo_pend += material.preco_mi * material.qtd_faltante;
+        if (
+          material.diagrama_rede.startsWith('170') ||
+          material.diagrama_rede.startsWith('180')
+        ) {
+          current.capex_mo_plan += material.preco * material.qtd_necessaria;
+
+          if (material.reserva?.trim()) {
+            current.capex_mo_pend += material.preco * material.qtd_falta;
+          }
         }
       }
 
-      if (material.ctg_item === 'L' || material.ctg_item === 'Z') {
-        current.capex_mat_plan += material.qtd_necess * material.preco_mi;
-        current.capex_mat_pend += material.preco_mi * material.qtd_faltante;
+      if (
+        material.cti === 'L' &&
+        (material.diagrama_rede.startsWith('170') ||
+          material.diagrama_rede.startsWith('180'))
+      ) {
+        current.capex_mat_plan += material.qtd_necessaria * material.preco;
+        current.capex_mat_pend += material.preco * material.qtd_retirada;
       }
 
       return acc;

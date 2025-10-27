@@ -11,9 +11,9 @@ import { Test } from '@nestjs/testing';
 
 import {
   mockMarketWorks,
-  mockMaterialCapex,
   mockUpdateNotes,
 } from '../../../mocks/mockWorksController';
+import { SuspensionWorkService } from 'src/application/works/suspensionWork.service';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -27,6 +27,7 @@ describe('WorksUpdateController', () => {
   let updateOvService: UpdateOvService;
   let updateNoteService: UpdateNoteService;
   let updateCapexService: UpdateCapexService;
+  let suspensionWorksService: SuspensionWorkService;
 
   const mockReq: CustomRequest = {
     idParceira: 1,
@@ -43,6 +44,12 @@ describe('WorksUpdateController', () => {
         { provide: ContractUpdateService, useValue: { update: jest.fn() } },
         { provide: UpdateOvService, useValue: { update: jest.fn() } },
         { provide: UpdateNoteService, useValue: { update: jest.fn() } },
+        {
+          provide: SuspensionWorkService,
+          useValue: {
+            createMultipleSuspensions: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -56,6 +63,9 @@ describe('WorksUpdateController', () => {
     updateOvService = module.get<UpdateOvService>(UpdateOvService);
     updateNoteService = module.get<UpdateNoteService>(UpdateNoteService);
     updateCapexService = module.get<UpdateCapexService>(UpdateCapexService);
+    suspensionWorksService = module.get<SuspensionWorkService>(
+      SuspensionWorkService,
+    );
   });
 
   it('Should be defined', () => {
@@ -162,14 +172,36 @@ describe('WorksUpdateController', () => {
     it('Should call the update method of the UpdateCapex service correctly', async () => {
       jest.spyOn(updateCapexService, 'update').mockResolvedValue();
 
-      const result = await worksController.updateCapex(mockMaterialCapex);
+      const result = await worksController.updateCapex();
 
       const expectedResponse = {
         statusCode: HttpStatus.OK,
         message: 'Capex e M.O atualizado com sucesso',
       };
 
-      expect(updateCapexService.update).toHaveBeenCalledWith(mockMaterialCapex);
+      expect(updateCapexService.update).toHaveBeenCalledWith();
+      expect(result).toEqual(expectedResponse);
+    });
+  });
+
+  describe('SuspensionWorks', () => {
+    it('Should call the update method of the SuspensionWork service correctly', async () => {
+      jest
+        .spyOn(suspensionWorksService, 'createMultipleSuspensions')
+        .mockResolvedValue();
+
+      const result = await worksController.SuspensionWorks([
+        { ovnota: '234', motivo: 'obra suspensa' },
+      ]);
+
+      const expectedResponse = {
+        statusCode: HttpStatus.OK,
+        message: 'Obras suspensas com sucesso',
+      };
+
+      expect(
+        suspensionWorksService.createMultipleSuspensions,
+      ).toHaveBeenCalledWith([{ ovnota: '234', motivo: 'obra suspensa' }]);
       expect(result).toEqual(expectedResponse);
     });
   });

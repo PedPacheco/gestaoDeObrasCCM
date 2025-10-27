@@ -1,51 +1,45 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
+import { UpdateCapex } from "@/actions/works";
 import { ButtonComponent } from "@/components/common/Button";
 import ErrorModal from "@/components/common/ErrorModal";
 import ModalComponent from "@/components/common/Modal";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
-import { InsertContract } from "@/actions/works";
+import { DocumentArrowDownIcon } from "@heroicons/react/24/solid";
 
-export function ButtonInsertContract() {
+export function UpdateCapexButton() {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
   const [error, setError] = useState<string | null>(null);
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [success, setSuccess] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
 
-  const handleInsertContract = () => {
+  const toggleModal = () => setOpenModal((prev) => !prev);
+
+  const handleUpdateCapex = () => {
     startTransition(async () => {
       try {
-        const storedData = localStorage.getItem("contracts");
-        if (!storedData) return;
+        await UpdateCapex();
 
-        const res = await InsertContract(JSON.parse(storedData));
-
-        if (!res.success) {
-          setError(res.error);
-          return;
-        }
-
-        setSuccess("Empreitamento inserido com sucesso!");
+        setSuccess("Capex e M.O atualizados com sucesso");
         setOpenModal(true);
-        localStorage.removeItem("contracts");
+
+        router.refresh();
       } catch (err: any) {
         setError(err.message);
       }
     });
   };
 
-  const toggleModal = () => {
-    setOpenModal((prev) => !prev);
-    window.location.reload();
-  };
-
   return (
     <>
       <ButtonComponent
-        onClick={handleInsertContract}
-        text="Inserir datas de Empreitamento"
+        onClick={handleUpdateCapex}
+        text="Atualizar Capex - MO"
         disabled={isPending}
         styled="w-72"
       />

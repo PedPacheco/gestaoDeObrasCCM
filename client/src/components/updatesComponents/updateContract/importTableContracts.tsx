@@ -52,7 +52,7 @@ const VirtuosoTableComponents: TableComponents = {
   }),
 };
 
-export function TableImportedContracts() {
+export function ImportTableContracts() {
   const [data, setData] = useState<ContractRow[]>([]);
 
   useEffect(() => {

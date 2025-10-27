@@ -4,14 +4,14 @@ import ExcelJS from "exceljs";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 
-import { UpdateCapex } from "@/actions/works";
 import { ButtonComponent } from "@/components/common/Button";
 import ErrorModal from "@/components/common/ErrorModal";
 import ModalComponent from "@/components/common/Modal";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { DocumentArrowDownIcon } from "@heroicons/react/24/solid";
+import { InsertCapex } from "@/actions/insertAuxiliaryBase";
 
-export function UpdateCapexButton() {
+export function ImportCapexButton() {
   const cn52nInputRef = useRef<HTMLInputElement>(null);
 
   const router = useRouter();
@@ -67,7 +67,7 @@ export function UpdateCapexButton() {
           .map((row: any) => ({
             diagrama_rede: row[2],
             def_proj: row[3],
-            material: row[4],
+            material: row[4].toString(),
             texto_material: row[5],
             centro: row[6],
             deposito: row[7],
@@ -85,7 +85,7 @@ export function UpdateCapexButton() {
         const batches = createMaterialBatches(cn52nData);
 
         for (const batch of batches) {
-          await UpdateCapex(batch);
+          await InsertCapex(batch);
         }
 
         resetFileInputs();
@@ -114,7 +114,7 @@ export function UpdateCapexButton() {
       <ButtonComponent
         onClick={handleClick}
         startIcon={<DocumentArrowDownIcon width={25} height={25} />}
-        text="Atualizar Capex - MO"
+        text="Importar Materiais"
         disabled={isPending}
         styled="w-72"
       />

@@ -19,6 +19,7 @@ export class UpdateCapexRepository implements IUpdateCapexRepository {
       await this.prisma.$transaction(
         data.map((item: CalculatedValue) => {
           const {
+            ovnota,
             diagrama_rede,
             capex_mat_pend,
             capex_mat_plan,
@@ -32,6 +33,7 @@ export class UpdateCapexRepository implements IUpdateCapexRepository {
           return this.prisma.obras.updateMany({
             where: {
               OR: [
+                { ovnota: ovnota },
                 { diagrama: diagrama_rede },
                 { ordem_dci: diagrama_rede },
                 { ordem_dcim: diagrama_rede },

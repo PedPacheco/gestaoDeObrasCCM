@@ -16,101 +16,101 @@ export class GetAllWorksDTO {
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idRegional: number[];
+  idRegional?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idMunicipio: number[];
+  idMunicipio?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idGrupo: number[];
+  idGrupo?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idTipo: number[];
+  idTipo?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idParceira: number[];
+  idParceira?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idStatus: number[];
+  idStatus?: number[];
 
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  page: number;
+  page?: number;
 
   @IsOptional()
   @IsBoolean()
-  insufficientPermission: boolean;
+  insufficientPermission?: boolean;
 }
 
 export class GetWorksDTO {
   @IsOptional()
   @IsBoolean()
-  insufficientPermission: boolean;
+  insufficientPermission?: boolean;
 
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  page: number;
+  page?: number;
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idRegional: number[];
+  idRegional?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idMunicipio: number[];
+  idMunicipio?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idGrupo: number[];
+  idGrupo?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idTipo: number[];
+  idTipo?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idParceira: number[];
+  idParceira?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idStatus: number[];
+  idStatus?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idConjunto: number[];
+  idConjunto?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idCircuito: number[];
+  idCircuito?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idEmpreendimento: number[];
+  idEmpreendimento?: number[];
 
   @IsOptional()
   @IsString()
-  ovnota: string;
+  ovnota?: string;
 }
 
 export class UpdateWorkDTO {
@@ -139,6 +139,10 @@ export class UpdateWorkDTO {
   @IsString()
   @IsOptional()
   observ_obra?: string;
+
+  @IsString()
+  @IsOptional()
+  reasonSuspension?: string;
 }
 
 export class ContractUpdateDTO {
@@ -157,6 +161,14 @@ export class ContractUpdateDTO {
   @IsString()
   @IsIn(['CONVENCIONAL', 'PONTO A PONTO'])
   tipoAds: string;
+}
+
+export class SuspensionWorksDTO {
+  @IsString()
+  ovnota: string;
+
+  @IsString()
+  motivo: string;
 }
 
 export class UpdateNotesDTO {

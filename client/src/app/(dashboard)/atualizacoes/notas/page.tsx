@@ -3,8 +3,8 @@ import { cookies } from "next/headers";
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { TableMarketWorks } from "@/components/entryComponents/importMarketWorks/tableWorksMarket";
-import { ImportButtonUpdates } from "@/components/updatesComponents/importButtonUpdates";
-import { UpdateButton } from "@/components/updatesComponents/updateButton";
+import { ImportButtonUpdates } from "@/components/updatesComponents/updateWorkData/importButtonUpdates";
+import { UpdateButton } from "@/components/updatesComponents/updateWorkData/updateButton";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { Box, Paper } from "@mui/material";
 
