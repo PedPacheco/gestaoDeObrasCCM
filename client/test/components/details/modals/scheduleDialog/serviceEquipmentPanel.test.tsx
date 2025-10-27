@@ -1,7 +1,7 @@
 import { ServiceEquipmentPanel } from "@/components/details/modals/scheduleDialog/serviceEquipmentPanel";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { mockFormData } from "../../../mocks/mockFormData";
+import { mockFormData } from "../../../../mocks/mockFormData";
 
 describe("ServiceEquipmentPanel component", () => {
   it("deve renderizar os campos corretamente", () => {

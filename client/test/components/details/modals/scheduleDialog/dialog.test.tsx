@@ -7,7 +7,7 @@ import * as UserContextModule from "@/contexts/userContext";
 import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
 import * as schemasModule from "@/validations/validationSchedules";
 import { ExecutionReportData } from "@/components/details/modals/executionReportDialog/executionReportDialog";
-import { mockFormData } from "../../../mocks/mockFormData";
+import { mockFormData } from "../../../../mocks/mockFormData";
 
 // ---------- Mocks ----------
 vi.mock("@/hooks/useScheduleSubmit", () => ({

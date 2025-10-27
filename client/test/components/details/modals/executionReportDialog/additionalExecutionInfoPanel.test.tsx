@@ -1,7 +1,7 @@
 import { AdditionalExecutionInfoPanel } from "@/components/details/modals/executionReportDialog/additionalExecutionInfoPanel";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { mockFormData } from "../../../mocks/mockFormData";
+import { mockFormData } from "../../../../mocks/mockFormData";
 import { FormData } from "@/hooks/useScheduleForm";
 
 const renderComponent = (formErrors: Record<string, string> = {}) => {
