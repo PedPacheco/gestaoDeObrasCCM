@@ -2,7 +2,7 @@ import CapexUpdates from "@/app/(dashboard)/atualizacoes/capex/page";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/components/updatesComponents/updateCapexButton", () => ({
+vi.mock("@/components/updatesComponents/updateCapex/updateCapexButton", () => ({
   UpdateCapexButton: vi.fn(() => <div data-testid="update-button-id" />),
 }));
 

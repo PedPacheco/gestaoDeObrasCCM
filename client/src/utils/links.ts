@@ -37,11 +37,7 @@ export const links = [
         href: "/entrada/notas",
         needPermission: true,
       },
-      {
-        name: "Importação de empreitamento",
-        href: "/entrada/empreitamento",
-        needPermission: true,
-      },
+
       {
         name: "Entrada por data",
         href: "/entrada/por-data",
@@ -55,12 +51,22 @@ export const links = [
     ],
   },
   {
-    name: "Atualizações SAP",
+    name: "Atualizações",
     needPermission: true,
     submenu: [
       { name: "Mercado", href: "/atualizacoes/mercado", needPermission: true },
       { name: "Notas", href: "/atualizacoes/notas", needPermission: true },
       { name: "Capex - MO", href: "/atualizacoes/capex", needPermission: true },
+      {
+        name: "Empreitamento",
+        href: "/atualizacoes/empreitamento",
+        needPermission: true,
+      },
+      {
+        name: "Suspensões",
+        href: "/atualizacoes/suspensoes",
+        needPermission: true,
+      },
     ],
   },
   {

@@ -8,7 +8,7 @@ import {
 import { describe, it, vi, beforeEach, expect } from "vitest";
 import { ExecutionEquipmentPanel } from "@/components/details/modals/executionReportDialog/EquipmentPanel";
 import userEvent from "@testing-library/user-event";
-import { mockFormData } from "../../../mocks/mockFormData";
+import { mockFormData } from "../../../../mocks/mockFormData";
 
 const renderComponent = (formErrors: Record<string, string> = {}) => {
   const onInputChange = vi.fn(() => vi.fn());

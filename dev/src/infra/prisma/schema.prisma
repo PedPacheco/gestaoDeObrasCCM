@@ -603,11 +603,11 @@ model programacoes_notas_d5 {
 }
 
 model suspensoes {
-  id      Int       @id @default(autoincrement())
+  id      Int      @id @default(autoincrement())
   id_obra Int
-  data    DateTime? @db.Date
-  motivo  String?   @db.VarChar(100)
-  obras   obras     @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obra")
+  data    DateTime @db.Date
+  motivo  String   @db.VarChar(100)
+  obras   obras    @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obra")
 }
 
 model relatorio_execucao {

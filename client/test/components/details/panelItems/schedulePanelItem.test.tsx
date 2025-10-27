@@ -373,4 +373,36 @@ describe("SchedulePanelItem component", () => {
       { id: mockDataWithExtra[1].id, confirm: false },
     ]);
   });
+
+  it("deve chamar a função handleCheckbox quando o usuário reprovar uma programação", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <SchedulePanelItem
+        data={mockData}
+        onDelete={() => {}}
+        onEdit={() => {}}
+        setConfirmedSchedule={setConfirmedScheduleMock}
+        setValidatedSchedule={setValidadedScheduleMock}
+        setData={setDataMock}
+        setRejectedSchedule={setRejectedScheduleMock}
+        statusWork={43}
+      />
+    );
+
+    const reprovarCheckbx = screen.getAllByRole("checkbox")[0];
+
+    await user.click(reprovarCheckbx);
+
+    const result = setRejectedScheduleMock.mock.calls[0][0];
+    const dataUpdate = setDataMock.mock.calls[0][0];
+    const resultData = dataUpdate({
+      programacoes: [{ ...mockData[0], id: 2 }],
+    });
+
+    expect(result).toEqual({ id: 1, reject: true });
+    expect(resultData).toEqual({
+      programacoes: [{ ...mockData[0], id: 2 }],
+    });
+  });
 });

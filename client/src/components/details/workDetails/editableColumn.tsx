@@ -3,6 +3,8 @@
 import { useUser } from "@/contexts/userContext";
 import DataItem from "./dataItem";
 import { SelectComponent } from "@/components/common/Select";
+import { ReactNode } from "react";
+import { Tooltip } from "@mui/material";
 
 interface typeData {
   id_turma: string;
@@ -18,6 +20,7 @@ interface EditableColumnProps {
     status: { id: number; status: string }[];
   };
   onHandleChange: (field: string, value: string) => void;
+  EditSuspension?: ReactNode;
 }
 
 const statusOrder = [
@@ -36,6 +39,7 @@ export const EditableColumn = ({
   data,
   options,
   onHandleChange,
+  EditSuspension,
 }: EditableColumnProps) => {
   const { permissions = { permissao_visualizacao: "total" } } = useUser();
 
@@ -63,6 +67,7 @@ export const EditableColumn = ({
         valueKey="id"
         displayKey="status"
         disabled={permissions?.permissao_visualizacao === "parcial"}
+        editButton={EditSuspension}
       />
 
       <DataItem

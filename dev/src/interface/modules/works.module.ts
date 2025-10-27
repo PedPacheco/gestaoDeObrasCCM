@@ -30,7 +30,6 @@ import { AuxiliaryBaseModule } from './auxiliaryBase.module';
 import { UsersModule } from './users.module';
 import { HandleWorkUpdateService } from 'src/application/orchestrators/handleWorkUpdate.service';
 import { ContractUpdateService } from 'src/application/works/contractUpdate.service';
-import { CONTRACT_UPDATE_REPOSITORY } from 'src/domain/repositories/works/IContractUpdateService';
 import { ContractUpdateRepository } from 'src/infra/repositories/works/contractUpdateRepository';
 import { UpdateOvService } from 'src/application/works/updateOv.service';
 import { UPDATE_OV_REPOSITORY } from 'src/domain/repositories/works/IUpdateOvRepository';
@@ -43,6 +42,10 @@ import { WorksInsertController } from '../controllers/works/worksInsert.controll
 import { UpdateCapexService } from 'src/application/works/updateCapex.service';
 import { UpdateCapexRepository } from 'src/infra/repositories/works/UpdateCapexRepository';
 import { UPDATE_CAPEX_REPOSITORY } from 'src/domain/repositories/works/IUpdateCapexRepository';
+import { CONTRACT_UPDATE_REPOSITORY } from 'src/domain/repositories/works/IContractUpdateRepository';
+import { SuspensionWorkService } from 'src/application/works/suspensionWork.service';
+import { SUSPENSION_WORK_REPOSITORY } from 'src/domain/repositories/works/ISuspensionWorkRepository';
+import { SuspensionWorkRepository } from 'src/infra/repositories/works/suspensionWorkRepository';
 
 @Module({
   imports: [CacheModule, UsersModule, forwardRef(() => AuxiliaryBaseModule)],
@@ -60,6 +63,7 @@ import { UPDATE_CAPEX_REPOSITORY } from 'src/domain/repositories/works/IUpdateCa
     UpdateOvService,
     UpdateNoteService,
     UpdateCapexService,
+    SuspensionWorkService,
     { provide: CONTRACT_UPDATE_REPOSITORY, useClass: ContractUpdateRepository },
     { provide: UPDATE_OV_REPOSITORY, useClass: UpdateOvRepository },
     { provide: UPDATE_NOTE_REPOSITORY, useClass: UpdateNoteRepository },
@@ -87,6 +91,7 @@ import { UPDATE_CAPEX_REPOSITORY } from 'src/domain/repositories/works/IUpdateCa
       useClass: FindExistingWorksRepository,
     },
     { provide: STATUS_FLOW_REPOSITORY, useClass: StatusFlowRepository },
+    { provide: SUSPENSION_WORK_REPOSITORY, useClass: SuspensionWorkRepository },
   ],
   exports: [
     GetWorksInPortfolioService,

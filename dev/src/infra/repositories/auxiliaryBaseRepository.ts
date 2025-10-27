@@ -256,7 +256,6 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
         data: data,
       });
     } catch (error) {
-      console.log(error);
       throw error;
     }
   }

@@ -1,32 +1,49 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { WorkDetails } from "@/components/details/workDetails/workDetails";
 
-// Mock das dependências
 vi.mock("@/actions/works", () => ({
   UpdateWork: vi.fn(),
 }));
 
-vi.mock("@/contexts/userContext", () => {
-  return {
-    useUser: () => ({
-      user: {
-        id: 1,
-        username: "test-user",
-        id_regional: "001",
-        nome_usuario: "Test User",
-        email: "test@example.com",
-      },
-      permissions: {
-        id: 1,
-        username: "test-user",
-        permissao: "total",
-        permissao_visualizacao: "total",
-      },
-    }),
-  };
-});
+vi.mock("@/contexts/userContext", () => ({
+  useUser: () => ({
+    user: {
+      id: 1,
+      username: "test-user",
+      id_regional: "001",
+      nome_usuario: "Test User",
+      email: "test@example.com",
+    },
+    permissions: {
+      id: 1,
+      username: "test-user",
+      permissao: "total",
+      permissao_visualizacao: "total",
+    },
+  }),
+}));
+
+vi.mock("@mui/material/Select", () => ({
+  __esModule: true,
+  default: ({ value, onChange, children }: any) => (
+    <select
+      data-testid="suspension-select"
+      value={value}
+      onChange={(e) => onChange({ target: { value: e.target.value } })}
+    >
+      {children}
+    </select>
+  ),
+}));
+
+vi.mock("@mui/material/MenuItem", () => ({
+  __esModule: true,
+  default: ({ value, children }: any) => (
+    <option value={value}>{children}</option>
+  ),
+}));
 
 vi.mock("@/components/common/Button", () => ({
   ButtonComponent: ({ text, onClick, disabled, styled }: any) => (
@@ -55,14 +72,24 @@ vi.mock("@/components/common/ErrorModal", () => ({
 
 vi.mock("@/components/common/Modal", () => ({
   __esModule: true,
-  default: ({ title, onClose, open, children }: any) =>
-    open ? (
-      <div data-testid="success-modal">
+  default: ({ title, onClose, open, children }: any) => {
+    if (!open) return null;
+
+    const testId =
+      title === "Sucesso"
+        ? "success-modal"
+        : title === "Motivo da Suspensão"
+        ? "suspension-modal"
+        : "modal";
+
+    return (
+      <div data-testid={testId}>
         <h2>{title}</h2>
-        <button onClick={onClose}>Close</button>
         {children}
+        <button onClick={onClose}>Close</button>
       </div>
-    ) : null,
+    );
+  },
 }));
 
 vi.mock("@/components/details/workDetails/dataItem", () => ({
@@ -94,6 +121,7 @@ vi.mock("@/components/details/workDetails/editableColumn", () => ({
       >
         <option value="1">Status 1</option>
         <option value="2">Status 2</option>
+        <option value="4">Status 4</option>
       </select>
       <select
         data-testid="turma-select"
@@ -170,299 +198,265 @@ describe("WorkDetails component", () => {
     vi.clearAllMocks();
   });
 
-  it("deve renderizar o título e botão de salvar", () => {
-    render(<WorkDetails {...defaultProps} />);
+  describe("Renderização", () => {
+    it("deve renderizar elementos principais corretamente", () => {
+      render(<WorkDetails {...defaultProps} />);
 
-    expect(screen.getByText("Informações gerais")).toBeInTheDocument();
-    expect(screen.getByTestId("save-button")).toBeInTheDocument();
-    expect(screen.getByText("Salvar alterações")).toBeInTheDocument();
-  });
-
-  it("deve renderizar todos os DataItems com os valores corretos", () => {
-    render(<WorkDetails {...defaultProps} />);
-
-    const dataItems = screen.getAllByTestId("data-item");
-    expect(dataItems).toHaveLength(20);
-
-    // Verificar alguns valores específicos
-    expect(screen.getByText("OV123")).toBeInTheDocument();
-    expect(screen.getByText("São Paulo")).toBeInTheDocument();
-  });
-
-  it("deve renderizar o EditableColumn", () => {
-    render(<WorkDetails {...defaultProps} />);
-
-    expect(screen.getByTestId("editable-column")).toBeInTheDocument();
-    expect(screen.getByTestId("editable-input")).toBeInTheDocument();
-    expect(screen.getByTestId("status-select")).toBeInTheDocument();
-    expect(screen.getByTestId("turma-select")).toBeInTheDocument();
-  });
-
-  it("deve desabilitar o botão de salvar quando não há alterações", () => {
-    render(<WorkDetails {...defaultProps} />);
-
-    const saveButton = screen.getByTestId("save-button");
-    expect(saveButton).toBeDisabled();
-  });
-
-  it("deve habilitar o botão de salvar quando há alterações", async () => {
-    const user = userEvent.setup();
-    render(<WorkDetails {...defaultProps} />);
-
-    const editableInput = screen.getByTestId("editable-input");
-    await user.type(editableInput, "nova data");
-
-    const saveButton = screen.getByTestId("save-button");
-    expect(saveButton).toBeEnabled();
-  });
-
-  it("deve atualizar os dados editáveis quando há mudanças", async () => {
-    const user = userEvent.setup();
-    render(<WorkDetails {...defaultProps} />);
-
-    const statusSelect = screen.getByTestId("status-select");
-    await user.selectOptions(statusSelect, "2");
-
-    expect(statusSelect).toHaveValue("2");
-  });
-
-  it("deve formatar corretamente a data quando alterada", async () => {
-    const user = userEvent.setup();
-    render(<WorkDetails {...defaultProps} />);
-
-    const editableInput = screen.getByTestId("editable-input");
-    await user.clear(editableInput);
-    await user.type(editableInput, "15/02/2024");
-
-    // A lógica de formatação está no handleDataChange do componente
-    expect(editableInput).toHaveValue("15/02/2024");
-  });
-
-  it("deve chamar updateWork ao salvar com sucesso", async () => {
-    const { UpdateWork } = await import("@/actions/works");
-    const mockUpdateWork = vi.mocked(UpdateWork);
-    mockUpdateWork.mockResolvedValue({
-      success: true,
-      message: "Alterações salvas com sucesso",
-    });
-
-    const user = userEvent.setup();
-    render(<WorkDetails {...defaultProps} />);
-
-    // Fazer uma alteração
-    const statusSelect = screen.getByTestId("status-select");
-    await user.selectOptions(statusSelect, "2");
-
-    // Salvar
-    const saveButton = screen.getByTestId("save-button");
-    await user.click(saveButton);
-
-    await waitFor(() => {
-      expect(mockUpdateWork).toHaveBeenCalledWith({ id_status: "2" }, 123);
+      expect(screen.getByText("Informações gerais")).toBeInTheDocument();
+      expect(screen.getByTestId("save-button")).toBeInTheDocument();
+      expect(screen.getAllByTestId("data-item")).toHaveLength(20);
+      expect(screen.getByText("OV123")).toBeInTheDocument();
+      expect(screen.getByTestId("editable-column")).toBeInTheDocument();
     });
   });
 
-  it("deve atualizar o valor do campo observ_obra ao digitar no textarea", async () => {
-    render(<WorkDetails {...defaultProps} />);
+  describe("Estado do botão de salvar", () => {
+    it("deve desabilitar quando não há alterações e habilitar quando há", async () => {
+      const user = userEvent.setup();
+      render(<WorkDetails {...defaultProps} />);
 
-    const textarea = screen.getByText("Obra em andamento conforme cronograma");
+      const saveButton = screen.getByTestId("save-button");
+      expect(saveButton).toBeDisabled();
 
-    await userEvent.clear(textarea);
-    await userEvent.type(textarea, "Nova observação adicionada");
-
-    expect(textarea).toHaveValue("Nova observação adicionada");
-  });
-
-  it("deve mostrar modal de sucesso após salvar", async () => {
-    const { UpdateWork } = await import("@/actions/works");
-    const mockUpdateWork = vi.mocked(UpdateWork);
-    mockUpdateWork.mockResolvedValue({
-      success: true,
-      message: "Alterações salvas com sucesso",
-    });
-
-    const user = userEvent.setup();
-    render(<WorkDetails {...defaultProps} />);
-
-    // Fazer uma alteração
-    const statusSelect = screen.getByTestId("status-select");
-    await user.selectOptions(statusSelect, "2");
-
-    // Salvar
-    const saveButton = screen.getByTestId("save-button");
-    await user.click(saveButton);
-
-    await waitFor(() => {
-      expect(screen.getByTestId("success-modal")).toBeInTheDocument();
-      expect(
-        screen.getByText("Alterações salvas com sucesso")
-      ).toBeInTheDocument();
+      await user.type(screen.getByTestId("editable-input"), "nova data");
+      expect(saveButton).toBeEnabled();
     });
   });
 
-  it("deve mostrar modal de erro quando updateWork falha", async () => {
-    const { UpdateWork } = await import("@/actions/works");
-    const mockUpdateWork = vi.mocked(UpdateWork);
-    mockUpdateWork.mockResolvedValue({
-      success: false,
-      error: "Erro qualquer",
-    });
+  describe("Edição de campos", () => {
+    it("deve atualizar valores dos campos editáveis", async () => {
+      const user = userEvent.setup();
+      render(<WorkDetails {...defaultProps} />);
 
-    const user = userEvent.setup();
-    render(<WorkDetails {...defaultProps} />);
+      const statusSelect = screen.getByTestId("status-select");
+      await user.selectOptions(statusSelect, "2");
+      expect(statusSelect).toHaveValue("2");
 
-    // Fazer uma alteração
-    const statusSelect = screen.getByTestId("status-select");
-    await user.selectOptions(statusSelect, "2");
-
-    // Salvar
-    const saveButton = screen.getByTestId("save-button");
-    await user.click(saveButton);
-
-    await waitFor(() => {
-      expect(screen.getByTestId("error-modal")).toBeInTheDocument();
-      expect(screen.getByTestId("error-message")).toHaveTextContent(
-        "Erro qualquer"
+      const textarea = screen.getByText(
+        "Obra em andamento conforme cronograma"
       );
+      await userEvent.clear(textarea);
+      await userEvent.type(textarea, "Nova observação");
+      expect(textarea).toHaveValue("Nova observação");
+    });
+
+    it("deve formatar corretamente a data quando alterada", async () => {
+      const user = userEvent.setup();
+      render(<WorkDetails {...defaultProps} />);
+
+      const editableInput = screen.getByTestId("editable-input");
+      await user.clear(editableInput);
+      await user.type(editableInput, "15/02/2024");
+
+      expect(editableInput).toHaveValue("15/02/2024");
     });
   });
 
-  it("deve mostrar modal de erro quando updateWork falha", async () => {
-    const { UpdateWork } = await import("@/actions/works");
-    const mockUpdateWork = vi.mocked(UpdateWork);
-    mockUpdateWork.mockResolvedValue({
-      success: false,
-      error: undefined,
+  describe("Salvamento de alterações", () => {
+    it("deve salvar com sucesso e exibir modal de sucesso", async () => {
+      const { UpdateWork } = await import("@/actions/works");
+      const mockUpdateWork = vi.mocked(UpdateWork);
+      mockUpdateWork.mockResolvedValue({
+        success: true,
+        message: "Alterações salvas com sucesso",
+      });
+
+      const user = userEvent.setup();
+      render(<WorkDetails {...defaultProps} />);
+
+      await user.selectOptions(screen.getByTestId("status-select"), "2");
+      await user.click(screen.getByTestId("save-button"));
+
+      await waitFor(() => {
+        expect(mockUpdateWork).toHaveBeenCalledWith({ id_status: "2" }, 123);
+        expect(screen.getByTestId("success-modal")).toBeInTheDocument();
+      });
     });
 
-    const user = userEvent.setup();
-    render(<WorkDetails {...defaultProps} />);
-
-    // Fazer uma alteração
-    const statusSelect = screen.getByTestId("status-select");
-    await user.selectOptions(statusSelect, "2");
-
-    // Salvar
-    const saveButton = screen.getByTestId("save-button");
-    await user.click(saveButton);
-
-    await waitFor(() => {
-      expect(screen.getByTestId("error-modal")).toBeInTheDocument();
-      expect(screen.getByTestId("error-message")).toHaveTextContent(
-        "Erro ao salvar alterações"
+    it("deve mostrar estado de carregamento durante salvamento", async () => {
+      const { UpdateWork } = await import("@/actions/works");
+      vi.mocked(UpdateWork).mockImplementation(
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () => resolve({ success: true, message: "Sucesso" }),
+              100
+            )
+          )
       );
+
+      const user = userEvent.setup();
+      render(<WorkDetails {...defaultProps} />);
+
+      await user.selectOptions(screen.getByTestId("status-select"), "2");
+      await user.click(screen.getByTestId("save-button"));
+
+      expect(screen.getByText("Salvando...")).toBeInTheDocument();
+      expect(screen.getByTestId("save-button")).toBeDisabled();
+
+      await waitFor(() => {
+        expect(screen.getByText("Salvar alterações")).toBeInTheDocument();
+      });
+    });
+
+    it("deve limpar changedFields após salvamento bem-sucedido", async () => {
+      const { UpdateWork } = await import("@/actions/works");
+      vi.mocked(UpdateWork).mockResolvedValue({
+        success: true,
+        message: "Alterações salvas com sucesso",
+      });
+
+      const user = userEvent.setup();
+      render(<WorkDetails {...defaultProps} />);
+
+      await user.selectOptions(screen.getByTestId("status-select"), "2");
+      await user.click(screen.getByTestId("save-button"));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("success-modal")).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByText("Close"));
+      expect(screen.getByTestId("save-button")).toBeDisabled();
     });
   });
 
-  it("deve mostrar erro de conexão quando updateWork lança exceção", async () => {
-    const { UpdateWork } = await import("@/actions/works");
-    const mockUpdateWork = vi.mocked(UpdateWork);
-    mockUpdateWork.mockRejectedValue(new Error("Network error"));
+  describe("Tratamento de erros", () => {
+    it("deve exibir modal de erro com mensagem específica quando UpdateWork falha", async () => {
+      const { UpdateWork } = await import("@/actions/works");
+      vi.mocked(UpdateWork).mockResolvedValue({
+        success: false,
+        error: "Erro qualquer",
+      });
 
-    const user = userEvent.setup();
-    render(<WorkDetails {...defaultProps} />);
+      const user = userEvent.setup();
+      render(<WorkDetails {...defaultProps} />);
 
-    // Fazer uma alteração
-    const statusSelect = screen.getByTestId("status-select");
-    await user.selectOptions(statusSelect, "2");
+      await user.selectOptions(screen.getByTestId("status-select"), "2");
+      await user.click(screen.getByTestId("save-button"));
 
-    // Salvar
-    const saveButton = screen.getByTestId("save-button");
-    await user.click(saveButton);
+      await waitFor(() => {
+        expect(screen.getByTestId("error-modal")).toBeInTheDocument();
+        expect(screen.getByTestId("error-message")).toHaveTextContent(
+          "Erro qualquer"
+        );
+      });
+    });
 
-    await waitFor(() => {
-      expect(screen.getByTestId("error-modal")).toBeInTheDocument();
-      expect(screen.getByTestId("error-message")).toHaveTextContent(
-        "Erro de conexão. Tente novamente."
+    it("deve exibir mensagem padrão quando erro é undefined", async () => {
+      const { UpdateWork } = await import("@/actions/works");
+      vi.mocked(UpdateWork).mockResolvedValue({
+        success: false,
+        error: undefined,
+      });
+
+      const user = userEvent.setup();
+      render(<WorkDetails {...defaultProps} />);
+
+      await user.selectOptions(screen.getByTestId("status-select"), "2");
+      await user.click(screen.getByTestId("save-button"));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("error-message")).toHaveTextContent(
+          "Erro ao salvar alterações"
+        );
+      });
+    });
+
+    it("deve exibir erro de conexão quando UpdateWork lança exceção", async () => {
+      const { UpdateWork } = await import("@/actions/works");
+      vi.mocked(UpdateWork).mockRejectedValue(new Error("Network error"));
+
+      const user = userEvent.setup();
+      render(<WorkDetails {...defaultProps} />);
+
+      await user.selectOptions(screen.getByTestId("status-select"), "2");
+      await user.click(screen.getByTestId("save-button"));
+
+      await waitFor(() => {
+        expect(screen.getByTestId("error-message")).toHaveTextContent(
+          "Erro de conexão. Tente novamente."
+        );
+      });
+    });
+
+    it("deve fechar modal de erro ao clicar em close", async () => {
+      const { UpdateWork } = await import("@/actions/works");
+      vi.mocked(UpdateWork).mockResolvedValue({
+        success: false,
+        error: "Erro",
+      });
+
+      const user = userEvent.setup();
+      render(<WorkDetails {...defaultProps} />);
+
+      await user.selectOptions(screen.getByTestId("status-select"), "2");
+      await user.click(screen.getByTestId("save-button"));
+
+      await waitFor(() =>
+        expect(screen.getByTestId("error-modal")).toBeInTheDocument()
       );
+
+      await user.click(screen.getByText("Close"));
+      expect(screen.queryByTestId("error-modal")).not.toBeInTheDocument();
     });
   });
 
-  it("deve fechar o modal de erro ao clicar em close", async () => {
-    const user = userEvent.setup();
-    render(<WorkDetails {...defaultProps} />);
+  describe("Funcionalidade de suspensão", () => {
+    it("deve abrir modal de suspensão quando status for 4", async () => {
+      const user = userEvent.setup();
+      render(<WorkDetails {...defaultProps} />);
 
-    const statusSelect = screen.getByTestId("status-select");
-    await user.selectOptions(statusSelect, "2");
+      await user.selectOptions(screen.getByTestId("status-select"), "4");
 
-    const saveButton = screen.getByTestId("save-button");
-    await user.click(saveButton);
-
-    await waitFor(() => {
-      expect(screen.getByTestId("error-modal")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId("suspension-modal")).toBeInTheDocument();
+        expect(screen.getByText("Motivo da Suspensão")).toBeInTheDocument();
+      });
     });
 
-    const closeButton = screen.getByText("Close");
-    await user.click(closeButton);
+    it("deve selecionar motivo de suspensão, confirmar e salvar", async () => {
+      const { UpdateWork } = await import("@/actions/works");
+      vi.mocked(UpdateWork).mockResolvedValue({
+        success: true,
+        message: "Alterações salvas com sucesso",
+      });
 
-    expect(screen.queryByTestId("error-modal")).not.toBeInTheDocument();
-  });
+      const user = userEvent.setup();
+      render(<WorkDetails {...defaultProps} />);
 
-  it("deve mostrar 'Salvando...' durante o processo de salvamento", async () => {
-    const { UpdateWork } = await import("@/actions/works");
-    const mockUpdateWork = vi.mocked(UpdateWork);
+      await user.selectOptions(screen.getByTestId("status-select"), "4");
+      await waitFor(() =>
+        expect(screen.getByTestId("suspension-modal")).toBeInTheDocument()
+      );
 
-    // Simular delay na resposta
-    mockUpdateWork.mockImplementation(
-      () =>
-        new Promise((resolve) =>
-          setTimeout(() => resolve({ success: true, message: "Sucesso" }), 100)
-        )
-    );
+      const selectSuspension = within(
+        screen.getByTestId("suspension-modal")
+      ).getByRole("combobox");
+      await user.click(selectSuspension);
 
-    const user = userEvent.setup();
-    render(<WorkDetails {...defaultProps} />);
+      const option = await screen.findByRole("option", {
+        name: /sem acesso ao local da obra/i,
+      });
+      await user.click(option);
 
-    // Fazer uma alteração
-    const statusSelect = screen.getByTestId("status-select");
-    await user.selectOptions(statusSelect, "2");
+      expect(selectSuspension).toHaveTextContent(
+        /sem acesso ao local da obra/i
+      );
 
-    // Salvar
-    const saveButton = screen.getByTestId("save-button");
-    await user.click(saveButton);
+      await user.click(screen.getByText("Confirmar"));
+      await waitFor(() =>
+        expect(screen.queryByTestId("suspension-modal")).not.toBeInTheDocument()
+      );
 
-    // Verificar se mostra "Salvando..."
-    expect(screen.getByText("Salvando...")).toBeInTheDocument();
-    expect(saveButton).toBeDisabled();
+      await user.click(screen.getByTestId("save-button"));
 
-    // Aguardar conclusão
-    await waitFor(() => {
-      expect(screen.getByText("Salvar alterações")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(vi.mocked(UpdateWork)).toHaveBeenCalledWith(
+          { id_status: "4", reasonSuspension: "Sem acesso ao local da obra" },
+          123
+        );
+      });
     });
-  });
-
-  it("deve limpar changedFields após salvamento bem-sucedido", async () => {
-    const { UpdateWork } = await import("@/actions/works");
-    const mockUpdateWork = vi.mocked(UpdateWork);
-    mockUpdateWork.mockResolvedValue({
-      success: true,
-      message: "Alterações salvas com sucesso",
-    });
-
-    const user = userEvent.setup();
-    render(<WorkDetails {...defaultProps} />);
-
-    // Fazer uma alteração
-    const statusSelect = screen.getByTestId("status-select");
-    await user.selectOptions(statusSelect, "2");
-
-    // Botão deve estar habilitado
-    expect(screen.getByTestId("save-button")).toBeEnabled();
-
-    // Salvar
-    const saveButton = screen.getByTestId("save-button");
-    await user.click(saveButton);
-
-    // Aguardar salvamento e verificar se botão foi desabilitado novamente
-    await waitFor(() => {
-      expect(screen.getByTestId("success-modal")).toBeInTheDocument();
-    });
-
-    // Fechar modal de sucesso
-    const closeButton = screen.getByText("Close");
-    await user.click(closeButton);
-
-    // Botão deve estar desabilitado pois changedFields foi limpo
-    expect(screen.getByTestId("save-button")).toBeDisabled();
   });
 });
