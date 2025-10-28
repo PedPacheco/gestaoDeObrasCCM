@@ -10,6 +10,8 @@ import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 
 import { Controller, Get, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
+import { PermissionGuard } from 'src/core/guards/permission.guard';
+import { ExportWorksInPortfolioBI } from 'src/application/export/exportWorkInPortfolioBI.service';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -25,6 +27,7 @@ export class ExportController {
     private exportWorksInPortfolioService: ExportWorksInPortfolioService,
     private getCompletedWorksService: GetCompletedWorksService,
     private exportCompletedWorksService: ExportCompletedWorksService,
+    private exportWorksInPortfolioBIService: ExportWorksInPortfolioBI,
   ) {}
 
   private applyFilters<
@@ -111,5 +114,20 @@ export class ExportController {
     );
 
     return await this.exportCompletedWorksService.export(worksData, res);
+  }
+
+  @Get('obras-carteira-bi')
+  @UseGuards(PermissionGuard)
+  async exportWorksInPortfolioBI(@Res() res: Response) {
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="Exportação obras em carteira"',
+    );
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+
+    return await this.exportWorksInPortfolioBIService.export(res);
   }
 }

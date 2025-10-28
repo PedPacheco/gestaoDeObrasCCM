@@ -7,6 +7,9 @@ import { ExportController } from '../controllers/export.controller';
 import { ScheduleModule } from './schedule.module';
 import { WorksModule } from './works.module';
 import { UsersModule } from './users.module';
+import { EXPORT_WORKS_IN_PORTFOLIO_REPOSITORY } from 'src/domain/repositories/IExportRepository';
+import { ExportWorksInPortfolioBI } from 'src/application/export/exportWorkInPortfolioBI.service';
+import { ExportWorksInPortfolioRepository } from 'src/infra/repositories/export/exportWorksInPortFolioRepository';
 
 @Module({
   imports: [WorksModule, ScheduleModule, UsersModule],
@@ -15,6 +18,11 @@ import { UsersModule } from './users.module';
     ExportScheduleService,
     ExportWorksInPortfolioService,
     ExportCompletedWorksService,
+    ExportWorksInPortfolioBI,
+    {
+      provide: EXPORT_WORKS_IN_PORTFOLIO_REPOSITORY,
+      useClass: ExportWorksInPortfolioRepository,
+    },
   ],
 })
 export class ExportModule {}
