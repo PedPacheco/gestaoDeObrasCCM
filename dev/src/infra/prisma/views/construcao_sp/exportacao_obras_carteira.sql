@@ -1,5 +1,6 @@
 SELECT
   row_number() OVER () AS id,
+  obras.id AS id_obra,
   obras.ovnota,
   obras.pep,
   CASE
@@ -53,12 +54,9 @@ SELECT
     SELECT
       count(*) AS count
     FROM
-      (
-        programacoes p
-        JOIN obras o ON ((o.id = p.id_obra))
-      )
+      programacoes p
     WHERE
-      (p.id_obra = o.id)
+      (p.id_obra = obras.id)
   ) AS contagem_de_ocorrencias,
   dp.hora_ini,
   dp.hora_ter,
@@ -109,6 +107,7 @@ FROM
 WHERE
   (obras.data_conclusao IS NULL)
 GROUP BY
+  obras.id,
   obras.ovnota,
   obras.pep,
   obras.diagrama,

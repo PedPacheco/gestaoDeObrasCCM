@@ -8,11 +8,14 @@ export default async function ExportPage() {
 
   const exportOptions = [
     { name: "EXPORTAÇÃO DADOS OBRAS", path: "obras-carteira-bi" },
-    { name: "Exportar dados de obras executadas", path: "" },
-    { name: "Exportar dados restrições", path: "" },
-    { name: "Exportar obras a serem multadas", path: "" },
-    { name: "Exportar capacidade de execução", path: "" },
-    { name: "Exportar dados suspensões", path: "" },
+    { name: "EXPORTACAO DADOS OBRAS EXECUTADAS", path: "obras-executadas-bi" },
+    {
+      name: "EXPORTACAO DAS PROGRAMACOES E RESTRICOES",
+      path: "programacoes-bi",
+    },
+    { name: "Exportar obras a serem multadas", path: "obras-multas" },
+    { name: "Exportar capacidade de execução", path: "capacidade-execucao" },
+    { name: "Exportar dados suspensões", path: "suspensoes" },
     { name: "Exportar viabilidade", path: "" },
   ];
 

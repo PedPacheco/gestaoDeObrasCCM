@@ -12,6 +12,12 @@ import { GetWorksInPortfolioService } from 'src/application/works/getWorksInPort
 import { GetCompletedWorksService } from 'src/application/works/getCompletedWorks.service';
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 import { UsersService } from 'src/application/users.service';
+import { ExportWorksInPortfolioBI } from 'src/application/export/BI/exportWorkInPortfolioBI.service';
+import { ExportCompletedWorksBIService } from 'src/application/export/BI/exportCompletedWorksBI.service';
+import { ExportSchedulesBIService } from 'src/application/export/BI/exportSchedulesBI.service';
+import { ExportFinedWorksService } from 'src/application/export/exportFinedWorks.service';
+import { ExportExecutionCapacityService } from 'src/application/export/exportExecutionCapacity.service';
+import { ExportSuspensionsService } from 'src/application/export/exportSuspensions.service';
 
 const mockReq = {
   insufficientPermission: true,
@@ -26,6 +32,12 @@ describe('ExportController', () => {
   let exportWorksInPortofolioService: ExportWorksInPortfolioService;
   let getCompletedWorksService: GetCompletedWorksService;
   let exportCompletedWorksService: ExportCompletedWorksService;
+  let exportWorksInPortfolioBIService: ExportWorksInPortfolioBI;
+  let exportCompletedWorksBIService: ExportCompletedWorksBIService;
+  let exportSchedulesBIService: ExportSchedulesBIService;
+  let exportFinedWorksService: ExportFinedWorksService;
+  let exportExecutionCapacityService: ExportExecutionCapacityService;
+  let exportSuspensionsService: ExportSuspensionsService;
 
   const mockWorksData: worksInPortfolioResponseService = {
     works: [
@@ -147,6 +159,30 @@ describe('ExportController', () => {
           provide: ExportCompletedWorksService,
           useValue: { export: jest.fn() },
         },
+        {
+          provide: ExportWorksInPortfolioBI,
+          useValue: { export: jest.fn() },
+        },
+        {
+          provide: ExportCompletedWorksBIService,
+          useValue: { export: jest.fn() },
+        },
+        {
+          provide: ExportSchedulesBIService,
+          useValue: { export: jest.fn() },
+        },
+        {
+          provide: ExportFinedWorksService,
+          useValue: { export: jest.fn() },
+        },
+        {
+          provide: ExportExecutionCapacityService,
+          useValue: { export: jest.fn() },
+        },
+        {
+          provide: ExportSuspensionsService,
+          useValue: { export: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -168,6 +204,24 @@ describe('ExportController', () => {
     );
     exportCompletedWorksService = module.get<ExportCompletedWorksService>(
       ExportCompletedWorksService,
+    );
+    exportWorksInPortfolioBIService = module.get<ExportWorksInPortfolioBI>(
+      ExportWorksInPortfolioBI,
+    );
+    exportCompletedWorksBIService = module.get<ExportCompletedWorksBIService>(
+      ExportCompletedWorksBIService,
+    );
+    exportSchedulesBIService = module.get<ExportSchedulesBIService>(
+      ExportSchedulesBIService,
+    );
+    exportFinedWorksService = module.get<ExportFinedWorksService>(
+      ExportFinedWorksService,
+    );
+    exportExecutionCapacityService = module.get<ExportExecutionCapacityService>(
+      ExportExecutionCapacityService,
+    );
+    exportSuspensionsService = module.get<ExportSuspensionsService>(
+      ExportSuspensionsService,
     );
   });
 

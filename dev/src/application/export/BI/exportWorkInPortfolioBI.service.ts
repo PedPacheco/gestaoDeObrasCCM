@@ -1,8 +1,8 @@
 import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
 import {
-  EXPORT_WORKS_IN_PORTFOLIO_REPOSITORY,
-  IExportWorksInPortFolioRepository,
+  EXPORT_REPOSITORY,
+  IExportRepository,
 } from 'src/domain/repositories/IExportRepository';
 
 import { Inject, Injectable } from '@nestjs/common';
@@ -10,12 +10,12 @@ import { Inject, Injectable } from '@nestjs/common';
 @Injectable()
 export class ExportWorksInPortfolioBI {
   constructor(
-    @Inject(EXPORT_WORKS_IN_PORTFOLIO_REPOSITORY)
-    private readonly exportWorksInPortfolioRepository: IExportWorksInPortFolioRepository,
+    @Inject(EXPORT_REPOSITORY)
+    private readonly exportRepository: IExportRepository,
   ) {}
 
   async export(response: Response) {
-    const data = await this.exportWorksInPortfolioRepository.export();
+    const data = await this.exportRepository.exportWorksInPortfolio();
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('EXPORTACAO DADOS OBRAS');

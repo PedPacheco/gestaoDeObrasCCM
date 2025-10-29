@@ -61,7 +61,7 @@ export function BreadcrumpsComponent() {
           const last = index === breadcrumbs.length - 1;
           return last ? (
             <Typography
-              className="text-xl font-semibold text-zinc-700 min-w-32 p-2 flex justify-center"
+              className="text-xl lg:text-2xl font-bold text-zinc-700 min-w-32 p-2 flex justify-center"
               key={breadcrumb.href}
             >
               {breadcrumb.name}

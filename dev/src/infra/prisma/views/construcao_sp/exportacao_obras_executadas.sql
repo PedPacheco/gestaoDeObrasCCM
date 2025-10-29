@@ -23,7 +23,7 @@ SELECT
     (
       obras.mo_planejada * (obras.executado) :: double precision
     ) / (100) :: double precision
-  ) AS moexec,
+  ) AS mo_exec,
   CASE
     WHEN (obras.id_status = 4) THEN (
       obras.mo_planejada - (
@@ -33,13 +33,13 @@ SELECT
       )
     )
     ELSE (0) :: double precision
-  END AS mosuspensa,
+  END AS mo_suspensa,
   obras.observ_obra,
   turmas.turma,
   obras.executado,
   STATUS.status,
-  (obras.capex_mat_plan + obras.capex_mo_plan) AS capexplan,
-  (obras.capex_mat_pend + obras.capex_mo_pend) AS capexpend,
+  (obras.capex_mat_plan + obras.capex_mo_plan) AS capex_plan,
+  (obras.capex_mat_pend + obras.capex_mo_pend) AS capex_pend,
   obras.capex_mat_plan,
   obras.capex_mo_plan,
   obras.capex_mat_pend,

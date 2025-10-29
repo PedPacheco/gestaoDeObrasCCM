@@ -320,6 +320,7 @@ model obras {
   relatorio_execucao       relatorio_execucao[]
   servicos                 servicos[]
   suspensoes               suspensoes[]
+  suspensoes_retiradas     suspensoes_retiradas[]
 }
 
 model programacoes {
@@ -458,11 +459,12 @@ model servicos_contratos {
 }
 
 model status {
-  id       Int        @id(map: "STATUS_pkey") @default(autoincrement())
-  status   String?    @db.VarChar(25)
-  onde     String?    @db.VarChar(20)
-  notas_d5 notas_d5[]
-  obras    obras[]
+  id                   Int                    @id(map: "STATUS_pkey") @default(autoincrement())
+  status               String?                @db.VarChar(25)
+  onde                 String?                @db.VarChar(20)
+  notas_d5             notas_d5[]
+  obras                obras[]
+  suspensoes_retiradas suspensoes_retiradas[]
 }
 
 model status_sap {
@@ -677,6 +679,25 @@ model programacoes_reprovacoes {
   obras                  obras     @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
 }
 
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model RETIRADA_SUSPENSOES {
+  ID               Int?
+  IDOBRA           Int?
+  IDSTATUSRETIRADA Int?
+  DATARETIRADA     DateTime? @db.Timestamptz(6)
+
+  @@ignore
+}
+
+model suspensoes_retiradas {
+  id                 Int       @id @default(autoincrement())
+  id_obra            Int
+  id_status_retirada Int?
+  data_retirada      DateTime? @db.Date
+  obras              obras     @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
+  status             status?   @relation(fields: [id_status_retirada], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_status")
+}
+
 view exportacao_obras_executadas {
   id                BigInt    @unique
   ovnota            String?   @db.VarChar(12)
@@ -695,14 +716,14 @@ view exportacao_obras_executadas {
   qtde_pend         Float?
   circuito          String?   @db.VarChar(12)
   mo_planejada      Float?
-  moexec            Float?
-  mosuspensa        Float?
+  mo_exec           Float?
+  mo_suspensa       Float?
   observ_obra       String?   @db.VarChar(255)
   turma             String?   @db.VarChar(15)
   executado         Int?
   status            String?   @db.VarChar(25)
-  capexplan         Float?
-  capexpend         Float?
+  capex_plan        Float?
+  capex_pend        Float?
   capex_mat_plan    Float?
   capex_mo_plan     Float?
   capex_mat_pend    Float?
@@ -769,17 +790,29 @@ view exportacao_capacidade_execucao {
   turma                  String? @db.VarChar(15)
   total_shouldcost       Float?
   total_qtde_equipes_rfp BigInt?
+  jan                    Int?    @db.SmallInt
   financeiro_jan         Float?
+  fev                    Int?    @db.SmallInt
   financeiro_fev         Float?
+  mar                    Int?    @db.SmallInt
   financeiro_mar         Float?
+  abr                    Int?    @db.SmallInt
   financeiro_abr         Float?
+  mai                    Int?    @db.SmallInt
   financeiro_mai         Float?
+  jun                    Int?    @db.SmallInt
   financeiro_jun         Float?
+  jul                    Int?    @db.SmallInt
   financeiro_jul         Float?
+  ago                    Int?    @db.SmallInt
   financeiro_ago         Float?
+  set                    Int?    @db.SmallInt
   financeiro_set         Float?
+  out                    Int?    @db.SmallInt
   financeiro_out         Float?
+  nov                    Int?    @db.SmallInt
   financeiro_nov         Float?
+  dez                    Int?    @db.SmallInt
   financeiro_dez         Float?
 }
 
@@ -804,6 +837,7 @@ view datas_de_programacao {
 
 view exportacao_obras_carteira {
   id                      BigInt    @unique
+  id_obra                 Int?
   ovnota                  String?   @db.VarChar(12)
   pep                     String?   @db.VarChar(8)
   ordemdiagrama           String?   @db.VarChar(12)

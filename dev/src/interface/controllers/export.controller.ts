@@ -11,7 +11,12 @@ import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 import { Controller, Get, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
-import { ExportWorksInPortfolioBI } from 'src/application/export/exportWorkInPortfolioBI.service';
+import { ExportWorksInPortfolioBI } from 'src/application/export/BI/exportWorkInPortfolioBI.service';
+import { ExportCompletedWorksBIService } from 'src/application/export/BI/exportCompletedWorksBI.service';
+import { ExportSchedulesBIService } from 'src/application/export/BI/exportSchedulesBI.service';
+import { ExportFinedWorksService } from 'src/application/export/exportFinedWorks.service';
+import { ExportExecutionCapacityService } from 'src/application/export/exportExecutionCapacity.service';
+import { ExportSuspensionsService } from 'src/application/export/exportSuspensions.service';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -28,6 +33,11 @@ export class ExportController {
     private getCompletedWorksService: GetCompletedWorksService,
     private exportCompletedWorksService: ExportCompletedWorksService,
     private exportWorksInPortfolioBIService: ExportWorksInPortfolioBI,
+    private exportCompletedWorksBIService: ExportCompletedWorksBIService,
+    private exportSchedulesBIService: ExportSchedulesBIService,
+    private exportFinedWorksService: ExportFinedWorksService,
+    private exportExecutionCapacityService: ExportExecutionCapacityService,
+    private exportSuspensionsService: ExportSuspensionsService,
   ) {}
 
   private applyFilters<
@@ -129,5 +139,84 @@ export class ExportController {
     );
 
     return await this.exportWorksInPortfolioBIService.export(res);
+  }
+
+  @Get('obras-executadas-bi')
+  @UseGuards(PermissionGuard)
+  async exportCompletedWorksBI(@Res() res: Response) {
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="Exportação obras executadas"',
+    );
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+
+    return await this.exportCompletedWorksBIService.export(res);
+  }
+
+  @Get('programacoes-bi')
+  @UseGuards(PermissionGuard)
+  async exportSchedulesBI(@Res() res: Response) {
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="Exportação programações"',
+    );
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+
+    return await this.exportSchedulesBIService.export(res);
+  }
+
+  @Get('obras-multas')
+  @UseGuards(PermissionGuard)
+  async exportFinedWorks(
+    @Res() res: Response,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="Exportação a serem multadas"',
+    );
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+
+    return await this.exportFinedWorksService.export(res, startDate, endDate);
+  }
+
+  @Get('capacidade-execucao')
+  @UseGuards(PermissionGuard)
+  async exportExecutionCapacity(@Res() res: Response) {
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="Exportação capacidade de execução"',
+    );
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+
+    return await this.exportExecutionCapacityService.export(res);
+  }
+
+  @Get('suspensoes')
+  @UseGuards(PermissionGuard)
+  async exportSuspensions(@Res() res: Response) {
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="Exportação Suspensões"',
+    );
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+
+    return await this.exportSuspensionsService.export(res);
   }
 }
