@@ -1,35 +1,30 @@
 import { Response } from 'express';
-import { ExportCompletedWorksService } from 'src/application/export/exportCompletedWorks.service';
-import { ExportScheduleService } from 'src/application/export/exportSchedule.service';
-import { ExportWorksInPortfolioService } from 'src/application/export/exportWorksInPortfolio.service';
-import { GetScheduleValuesService } from 'src/application/schedule/getScheduleValues.service';
-import { ExportController } from 'src/interface/controllers/export.controller';
-import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
-import { worksInPortfolioResponseService } from 'src/interface/types/works/getWorksInPortfolioInterface';
-
 import { Test } from '@nestjs/testing';
+import { ExportController } from 'src/interface/controllers/export.controller';
+
+import { GetScheduleValuesService } from 'src/application/schedule/getScheduleValues.service';
+import { ExportScheduleService } from 'src/application/export/exportSchedule.service';
 import { GetWorksInPortfolioService } from 'src/application/works/getWorksInPortfolio.service';
+import { ExportWorksInPortfolioService } from 'src/application/export/exportWorksInPortfolio.service';
 import { GetCompletedWorksService } from 'src/application/works/getCompletedWorks.service';
-import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
-import { UsersService } from 'src/application/users.service';
+import { ExportCompletedWorksService } from 'src/application/export/exportCompletedWorks.service';
 import { ExportWorksInPortfolioBI } from 'src/application/export/BI/exportWorkInPortfolioBI.service';
 import { ExportCompletedWorksBIService } from 'src/application/export/BI/exportCompletedWorksBI.service';
 import { ExportSchedulesBIService } from 'src/application/export/BI/exportSchedulesBI.service';
 import { ExportFinedWorksService } from 'src/application/export/exportFinedWorks.service';
 import { ExportExecutionCapacityService } from 'src/application/export/exportExecutionCapacity.service';
 import { ExportSuspensionsService } from 'src/application/export/exportSuspensions.service';
+import { UsersService } from 'src/application/users.service';
 
-const mockReq = {
-  insufficientPermission: true,
-  idParceira: 1,
-} as unknown as Request;
+import { worksInPortfolioResponseService } from 'src/interface/types/works/getWorksInPortfolioInterface';
+import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
 
 describe('ExportController', () => {
   let controller: ExportController;
   let getScheduleValuesService: GetScheduleValuesService;
   let exportScheduleService: ExportScheduleService;
   let getWorksInPortfolioService: GetWorksInPortfolioService;
-  let exportWorksInPortofolioService: ExportWorksInPortfolioService;
+  let exportWorksInPortfolioService: ExportWorksInPortfolioService;
   let getCompletedWorksService: GetCompletedWorksService;
   let exportCompletedWorksService: ExportCompletedWorksService;
   let exportWorksInPortfolioBIService: ExportWorksInPortfolioBI;
@@ -38,6 +33,11 @@ describe('ExportController', () => {
   let exportFinedWorksService: ExportFinedWorksService;
   let exportExecutionCapacityService: ExportExecutionCapacityService;
   let exportSuspensionsService: ExportSuspensionsService;
+
+  const mockReq = {
+    insufficientPermission: true,
+    idParceira: 1,
+  } as unknown as Request;
 
   const mockWorksData: worksInPortfolioResponseService = {
     works: [
@@ -130,6 +130,43 @@ describe('ExportController', () => {
     },
   };
 
+  async function testGenericExport(
+    controllerMethod: (...args: any[]) => Promise<void>,
+    serviceGetter: jest.Mock,
+    exportGetter: jest.Mock,
+    mockFilters: any,
+    mockData: any,
+    fileName: string,
+    mockReq?: any,
+  ) {
+    const mockResponse = {
+      setHeader: jest.fn(),
+      send: jest.fn(),
+    } as unknown as Response;
+
+    serviceGetter.mockResolvedValue(mockData);
+    exportGetter.mockResolvedValue(undefined);
+
+    await controllerMethod(mockFilters, mockResponse, mockReq);
+
+    const expectedRequestService =
+      fileName === 'Exportação Programação' ? mockData.works : mockData;
+
+    expect(serviceGetter).toHaveBeenCalledWith(mockFilters);
+    expect(mockResponse.setHeader).toHaveBeenCalledWith(
+      'Content-Disposition',
+      `attachment; filename="${fileName}"`,
+    );
+    expect(mockResponse.setHeader).toHaveBeenCalledWith(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    expect(exportGetter).toHaveBeenCalledWith(
+      expectedRequestService,
+      mockResponse,
+    );
+  }
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       controllers: [ExportController],
@@ -138,15 +175,11 @@ describe('ExportController', () => {
           provide: GetScheduleValuesService,
           useValue: { getValues: jest.fn() },
         },
-        {
-          provide: ExportScheduleService,
-          useValue: { export: jest.fn() },
-        },
+        { provide: ExportScheduleService, useValue: { export: jest.fn() } },
         {
           provide: GetWorksInPortfolioService,
           useValue: { getWorksInPortfolio: jest.fn() },
         },
-        { provide: UsersService, useValue: { findUser: jest.fn() } },
         {
           provide: ExportWorksInPortfolioService,
           useValue: { export: jest.fn() },
@@ -159,238 +192,190 @@ describe('ExportController', () => {
           provide: ExportCompletedWorksService,
           useValue: { export: jest.fn() },
         },
-        {
-          provide: ExportWorksInPortfolioBI,
-          useValue: { export: jest.fn() },
-        },
+        { provide: ExportWorksInPortfolioBI, useValue: { export: jest.fn() } },
         {
           provide: ExportCompletedWorksBIService,
           useValue: { export: jest.fn() },
         },
-        {
-          provide: ExportSchedulesBIService,
-          useValue: { export: jest.fn() },
-        },
-        {
-          provide: ExportFinedWorksService,
-          useValue: { export: jest.fn() },
-        },
+        { provide: ExportSchedulesBIService, useValue: { export: jest.fn() } },
+        { provide: ExportFinedWorksService, useValue: { export: jest.fn() } },
         {
           provide: ExportExecutionCapacityService,
           useValue: { export: jest.fn() },
         },
-        {
-          provide: ExportSuspensionsService,
-          useValue: { export: jest.fn() },
-        },
+        { provide: ExportSuspensionsService, useValue: { export: jest.fn() } },
+        { provide: UsersService, useValue: { findUser: jest.fn() } },
       ],
     }).compile();
 
     controller = module.get<ExportController>(ExportController);
-    getScheduleValuesService = module.get<GetScheduleValuesService>(
-      GetScheduleValuesService,
-    );
-    exportScheduleService = module.get<ExportScheduleService>(
-      ExportScheduleService,
-    );
-    getWorksInPortfolioService = module.get<GetWorksInPortfolioService>(
-      GetWorksInPortfolioService,
-    );
-    exportWorksInPortofolioService = module.get<ExportWorksInPortfolioService>(
-      ExportWorksInPortfolioService,
-    );
-    getCompletedWorksService = module.get<GetCompletedWorksService>(
-      GetCompletedWorksService,
-    );
-    exportCompletedWorksService = module.get<ExportCompletedWorksService>(
-      ExportCompletedWorksService,
-    );
-    exportWorksInPortfolioBIService = module.get<ExportWorksInPortfolioBI>(
-      ExportWorksInPortfolioBI,
-    );
-    exportCompletedWorksBIService = module.get<ExportCompletedWorksBIService>(
-      ExportCompletedWorksBIService,
-    );
-    exportSchedulesBIService = module.get<ExportSchedulesBIService>(
-      ExportSchedulesBIService,
-    );
-    exportFinedWorksService = module.get<ExportFinedWorksService>(
-      ExportFinedWorksService,
-    );
-    exportExecutionCapacityService = module.get<ExportExecutionCapacityService>(
-      ExportExecutionCapacityService,
-    );
-    exportSuspensionsService = module.get<ExportSuspensionsService>(
-      ExportSuspensionsService,
-    );
+    getScheduleValuesService = module.get(GetScheduleValuesService);
+    exportScheduleService = module.get(ExportScheduleService);
+    getWorksInPortfolioService = module.get(GetWorksInPortfolioService);
+    exportWorksInPortfolioService = module.get(ExportWorksInPortfolioService);
+    getCompletedWorksService = module.get(GetCompletedWorksService);
+    exportCompletedWorksService = module.get(ExportCompletedWorksService);
+    exportWorksInPortfolioBIService = module.get(ExportWorksInPortfolioBI);
+    exportCompletedWorksBIService = module.get(ExportCompletedWorksBIService);
+    exportSchedulesBIService = module.get(ExportSchedulesBIService);
+    exportFinedWorksService = module.get(ExportFinedWorksService);
+    exportExecutionCapacityService = module.get(ExportExecutionCapacityService);
+    exportSuspensionsService = module.get(ExportSuspensionsService);
   });
 
-  it('Should be defined', () => {
+  afterAll(() => jest.clearAllMocks());
+
+  it('should be defined', () => {
     expect(controller).toBeDefined();
   });
 
-  it('Should call exportSchedule and return the excel file', async () => {
-    const mockFilters: GetScheduleValuesDTO = {
-      idParceira: [1],
-      executado: false,
-      pendente: false,
-    };
-
-    const mockResponse = {
-      setHeader: jest.fn(),
-      send: jest.fn(),
-    } as unknown as Response;
-
-    jest
-      .spyOn(getScheduleValuesService, 'getValues')
-      .mockResolvedValue(mockScheduleData);
-
-    jest.spyOn(exportScheduleService, 'export').mockResolvedValue(undefined);
-
-    await controller.exportSchedule(mockFilters, mockResponse, mockReq);
-
-    expect(getScheduleValuesService.getValues).toHaveBeenCalledWith(
-      mockFilters,
-    );
-    expect(mockResponse.setHeader).toHaveBeenCalledWith(
-      'Content-Disposition',
-      'attachment; filename="Exportação Programação"',
-    );
-    expect(mockResponse.setHeader).toHaveBeenCalledWith(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-    expect(exportScheduleService.export).toHaveBeenCalledWith(
-      mockScheduleData.works,
-      mockResponse,
+  it('should export Schedule', async () => {
+    await testGenericExport(
+      controller.exportSchedule.bind(controller),
+      getScheduleValuesService.getValues as jest.Mock,
+      exportScheduleService.export as jest.Mock,
+      { idParceira: [1] },
+      mockScheduleData,
+      'Exportação Programação',
+      mockReq,
     );
   });
 
-  it('should call exportSchedule with not restriction of id_parceira', async () => {
-    const mockFilters: GetScheduleValuesDTO = {
-      executado: false,
-      pendente: false,
-    };
-
-    const mockReqWithoutIdParceira = {
-      id_parceira: undefined,
-    };
-
-    const mockResponse = {
-      setHeader: jest.fn(),
-      send: jest.fn(),
-    } as unknown as Response;
-
-    jest
-      .spyOn(getScheduleValuesService, 'getValues')
-      .mockResolvedValue(mockScheduleData);
-
-    jest.spyOn(exportScheduleService, 'export').mockResolvedValue(undefined);
-
-    await controller.exportSchedule(
-      mockFilters,
-      mockResponse,
-      mockReqWithoutIdParceira,
-    );
-
-    expect(getScheduleValuesService.getValues).toHaveBeenCalledWith(
-      mockFilters,
-    );
-    expect(mockResponse.setHeader).toHaveBeenCalledWith(
-      'Content-Disposition',
-      'attachment; filename="Exportação Programação"',
-    );
-    expect(mockResponse.setHeader).toHaveBeenCalledWith(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-    expect(exportScheduleService.export).toHaveBeenCalledWith(
-      mockScheduleData.works,
-      mockResponse,
-    );
-  });
-
-  it('Should call exportWorksInPortfolio and return the excel file', async () => {
-    const mockFilters = {
-      page: 1,
-    };
-
+  it('should export Schedule without req.idParceira', async () => {
     const mockReqWithoutIdParceira = {
       insufficientPermission: undefined,
-      idParceira: undefined,
     } as unknown as Request;
 
+    await testGenericExport(
+      controller.exportSchedule.bind(controller),
+      getScheduleValuesService.getValues as jest.Mock,
+      exportScheduleService.export as jest.Mock,
+      undefined,
+      mockScheduleData,
+      'Exportação Programação',
+      mockReqWithoutIdParceira,
+    );
+  });
+
+  it('should export WorksInPortfolio', async () => {
+    await testGenericExport(
+      controller.exportWorksInPortfolio.bind(controller),
+      getWorksInPortfolioService.getWorksInPortfolio as jest.Mock,
+      exportWorksInPortfolioService.export as jest.Mock,
+      { page: 1 },
+      mockWorksData,
+      'Exportação obras em carteira',
+      mockReq,
+    );
+  });
+
+  it('should export CompletedWorks', async () => {
+    const mockReqWithoutIdParceira = {
+      insufficientPermission: undefined,
+    } as unknown as Request;
+
+    await testGenericExport(
+      controller.exportCompletedWorks.bind(controller),
+      getCompletedWorksService.getCompletedWorks as jest.Mock,
+      exportCompletedWorksService.export as jest.Mock,
+      { idRegional: [1] },
+      mockWorksData,
+      'Exportação obras executadas',
+      mockReqWithoutIdParceira,
+    );
+  });
+
+  it('should export WorksInPortfolioBI', async () => {
     const mockResponse = {
       setHeader: jest.fn(),
       send: jest.fn(),
     } as unknown as Response;
-
     jest
-      .spyOn(getWorksInPortfolioService, 'getWorksInPortfolio')
-      .mockResolvedValue(mockWorksData);
-
-    jest
-      .spyOn(exportWorksInPortofolioService, 'export')
+      .spyOn(exportWorksInPortfolioBIService, 'export')
       .mockResolvedValue(undefined);
 
-    await controller.exportWorksInPortfolio(
-      mockFilters,
-      mockResponse,
-      mockReqWithoutIdParceira,
-    );
+    await controller.exportWorksInPortfolioBI(mockResponse);
 
-    expect(getWorksInPortfolioService.getWorksInPortfolio).toHaveBeenCalledWith(
-      mockFilters,
-    );
-    expect(mockResponse.setHeader).toHaveBeenCalledWith(
-      'Content-Disposition',
-      'attachment; filename="Exportação obras em carteira"',
-    );
-    expect(mockResponse.setHeader).toHaveBeenCalledWith(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-    expect(exportWorksInPortofolioService.export).toHaveBeenCalledWith(
-      mockWorksData,
+    expect(mockResponse.setHeader).toHaveBeenCalled();
+    expect(exportWorksInPortfolioBIService.export).toHaveBeenCalledWith(
       mockResponse,
     );
   });
 
-  it('Should call exportCompletedWorks and return the excel file', async () => {
-    const mockFilters = {
-      insufficientPermission: true,
-      idRegional: [1],
-    };
-
+  it('should export CompletedWorksBI', async () => {
     const mockResponse = {
       setHeader: jest.fn(),
       send: jest.fn(),
     } as unknown as Response;
-
     jest
-      .spyOn(getCompletedWorksService, 'getCompletedWorks')
-      .mockResolvedValue(mockWorksData);
-
-    jest
-      .spyOn(exportCompletedWorksService, 'export')
+      .spyOn(exportCompletedWorksBIService, 'export')
       .mockResolvedValue(undefined);
 
-    await controller.exportCompletedWorks(mockFilters, mockResponse, mockReq);
+    await controller.exportCompletedWorksBI(mockResponse);
 
-    expect(getCompletedWorksService.getCompletedWorks).toHaveBeenCalledWith(
-      mockFilters,
-    );
-    expect(mockResponse.setHeader).toHaveBeenCalledWith(
-      'Content-Disposition',
-      'attachment; filename="Exportação obras executadas"',
-    );
-    expect(mockResponse.setHeader).toHaveBeenCalledWith(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-    expect(exportCompletedWorksService.export).toHaveBeenCalledWith(
-      mockWorksData,
+    expect(mockResponse.setHeader).toHaveBeenCalled();
+    expect(exportCompletedWorksBIService.export).toHaveBeenCalledWith(
       mockResponse,
     );
+  });
+
+  it('should export SchedulesBI', async () => {
+    const mockResponse = {
+      setHeader: jest.fn(),
+      send: jest.fn(),
+    } as unknown as Response;
+    jest.spyOn(exportSchedulesBIService, 'export').mockResolvedValue(undefined);
+
+    await controller.exportSchedulesBI(mockResponse);
+
+    expect(mockResponse.setHeader).toHaveBeenCalled();
+    expect(exportSchedulesBIService.export).toHaveBeenCalledWith(mockResponse);
+  });
+
+  it('should export FinedWorks', async () => {
+    const mockResponse = {
+      setHeader: jest.fn(),
+      send: jest.fn(),
+    } as unknown as Response;
+    jest.spyOn(exportFinedWorksService, 'export').mockResolvedValue(undefined);
+
+    await controller.exportFinedWorks(mockResponse, '2025-09-10', '2025-09-15');
+
+    expect(mockResponse.setHeader).toHaveBeenCalled();
+    expect(exportFinedWorksService.export).toHaveBeenCalledWith(
+      mockResponse,
+      '2025-09-10',
+      '2025-09-15',
+    );
+  });
+
+  it('should export ExecutionCapacity', async () => {
+    const mockResponse = {
+      setHeader: jest.fn(),
+      send: jest.fn(),
+    } as unknown as Response;
+    jest
+      .spyOn(exportExecutionCapacityService, 'export')
+      .mockResolvedValue(undefined);
+
+    await controller.exportExecutionCapacity(mockResponse);
+
+    expect(mockResponse.setHeader).toHaveBeenCalled();
+    expect(exportExecutionCapacityService.export).toHaveBeenCalledWith(
+      mockResponse,
+    );
+  });
+
+  it('should export Suspensions', async () => {
+    const mockResponse = {
+      setHeader: jest.fn(),
+      send: jest.fn(),
+    } as unknown as Response;
+    jest.spyOn(exportSuspensionsService, 'export').mockResolvedValue(undefined);
+
+    await controller.exportSuspensions(mockResponse);
+
+    expect(mockResponse.setHeader).toHaveBeenCalled();
+    expect(exportSuspensionsService.export).toHaveBeenCalledWith(mockResponse);
   });
 });
