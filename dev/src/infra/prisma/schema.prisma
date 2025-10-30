@@ -320,6 +320,7 @@ model obras {
   relatorio_execucao       relatorio_execucao[]
   servicos                 servicos[]
   suspensoes               suspensoes[]
+  suspensoes_retiradas     suspensoes_retiradas[]
 }
 
 model programacoes {
@@ -458,11 +459,12 @@ model servicos_contratos {
 }
 
 model status {
-  id       Int        @id(map: "STATUS_pkey") @default(autoincrement())
-  status   String?    @db.VarChar(25)
-  onde     String?    @db.VarChar(20)
-  notas_d5 notas_d5[]
-  obras    obras[]
+  id                   Int                    @id(map: "STATUS_pkey") @default(autoincrement())
+  status               String?                @db.VarChar(25)
+  onde                 String?                @db.VarChar(20)
+  notas_d5             notas_d5[]
+  obras                obras[]
+  suspensoes_retiradas suspensoes_retiradas[]
 }
 
 model status_sap {
@@ -675,4 +677,210 @@ model programacoes_reprovacoes {
   tipo_servico           String?   @db.VarChar(50)
   observacao_programacao String?   @db.VarChar(250)
   obras                  obras     @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model RETIRADA_SUSPENSOES {
+  ID               Int?
+  IDOBRA           Int?
+  IDSTATUSRETIRADA Int?
+  DATARETIRADA     DateTime? @db.Timestamptz(6)
+
+  @@ignore
+}
+
+model suspensoes_retiradas {
+  id                 Int       @id @default(autoincrement())
+  id_obra            Int
+  id_status_retirada Int?
+  data_retirada      DateTime? @db.Date
+  obras              obras     @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
+  status             status?   @relation(fields: [id_status_retirada], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_status")
+}
+
+view exportacao_obras_executadas {
+  id                BigInt    @unique
+  ovnota            String?   @db.VarChar(12)
+  pep               String?   @db.VarChar(8)
+  ordemdiagrama     String?   @db.VarChar(12)
+  ordem_dcd         String?   @db.VarChar(12)
+  ordem_dca         String?   @db.VarChar(12)
+  ordem_dcim        String?   @db.VarChar(12)
+  regional          String?   @db.VarChar(20)
+  mun               String?   @db.VarChar(3)
+  entrada           DateTime? @db.Date
+  data_conclusao    DateTime? @db.Date
+  prazofim          DateTime? @db.Date
+  tipo_obra         String?   @db.VarChar(30)
+  qtde_planejada    Float?
+  qtde_pend         Float?
+  circuito          String?   @db.VarChar(12)
+  mo_planejada      Float?
+  mo_exec           Float?
+  mo_suspensa       Float?
+  observ_obra       String?   @db.VarChar(255)
+  turma             String?   @db.VarChar(15)
+  executado         Int?
+  status            String?   @db.VarChar(25)
+  capex_plan        Float?
+  capex_pend        Float?
+  capex_mat_plan    Float?
+  capex_mo_plan     Float?
+  capex_mat_pend    Float?
+  capex_mo_pend     Float?
+  conjunto          String?   @db.VarChar(100)
+  data_viabilidade  DateTime? @db.Date
+  prazo_viabilidade String?   @db.VarChar(40)
+}
+
+view exportacao_programacoes_obras {
+  id                           BigInt    @unique
+  ovnota                       String?   @db.VarChar(12)
+  pep                          String?   @db.VarChar(8)
+  ordemdiagrama                String?   @db.VarChar(12)
+  ordem_dcd                    String?   @db.VarChar(12)
+  ordem_dca                    String?   @db.VarChar(12)
+  ordem_dcim                   String?   @db.VarChar(12)
+  municipio                    String?   @db.VarChar(22)
+  regional                     String?   @db.VarChar(20)
+  data_conclusao               DateTime? @db.Date
+  parceira                     String?   @db.VarChar(15)
+  mo_planejada                 Float?
+  referencia                   String?   @db.VarChar(14)
+  data_prog                    DateTime? @db.Date
+  hora_ini                     DateTime? @db.Time(6)
+  hora_ter                     DateTime? @db.Time(6)
+  prog                         Int?
+  exec                         Int?
+  tipo_servico                 String?   @db.VarChar(50)
+  num_dp                       String?
+  chi                          Int?
+  chave_provisoria             Boolean?
+  equipe_linha_morta           Int?
+  equipe_linha_viva            Int?
+  equipe_regularizacao         Int?
+  equip_desligado              String?
+  restricao_execucao           String?   @db.VarChar(80)
+  nome_do_responsavel_execucao String?   @db.VarChar(50)
+  restricao_programacao        String?   @db.VarChar(80)
+  responsabilidade             String?   @db.VarChar(50)
+  nome_do_responsavel          String?   @db.VarChar(50)
+  area_responsavel             String?   @db.VarChar(50)
+  status_restricao             String?   @db.VarChar(50)
+  data_resolucao               DateTime? @db.Date
+  status                       String?   @db.VarChar(25)
+  tipo_obra                    String?   @db.VarChar(30)
+  grupo                        String?   @db.VarChar(20)
+  circuito                     String?   @db.VarChar(12)
+  capex_mo_plan                Float?
+  restricao_programacao2       String?   @db.VarChar(80)
+  responsabilidade2            String?   @db.VarChar(50)
+  nome_responsavel2            String?   @db.VarChar(50)
+  area_responsavel2            String?   @db.VarChar(50)
+  status_restricao2            String?   @db.VarChar(50)
+  data_resolucao2              DateTime? @db.Date
+  observacao_restricao         String?   @db.VarChar(255)
+  observacao_execucao          String?   @db.VarChar(255)
+}
+
+view exportacao_capacidade_execucao {
+  id                     BigInt  @unique
+  ano                    String? @db.VarChar(10)
+  regional               String? @db.VarChar(20)
+  turma                  String? @db.VarChar(15)
+  total_shouldcost       Float?
+  total_qtde_equipes_rfp BigInt?
+  jan                    Int?    @db.SmallInt
+  financeiro_jan         Float?
+  fev                    Int?    @db.SmallInt
+  financeiro_fev         Float?
+  mar                    Int?    @db.SmallInt
+  financeiro_mar         Float?
+  abr                    Int?    @db.SmallInt
+  financeiro_abr         Float?
+  mai                    Int?    @db.SmallInt
+  financeiro_mai         Float?
+  jun                    Int?    @db.SmallInt
+  financeiro_jun         Float?
+  jul                    Int?    @db.SmallInt
+  financeiro_jul         Float?
+  ago                    Int?    @db.SmallInt
+  financeiro_ago         Float?
+  set                    Int?    @db.SmallInt
+  financeiro_set         Float?
+  out                    Int?    @db.SmallInt
+  financeiro_out         Float?
+  nov                    Int?    @db.SmallInt
+  financeiro_nov         Float?
+  dez                    Int?    @db.SmallInt
+  financeiro_dez         Float?
+}
+
+view datas_de_programacao {
+  id                   Int       @unique
+  ovnota               String?   @db.VarChar(12)
+  min_data_prog        DateTime? @db.Date
+  max_data_prog        DateTime? @db.Date
+  exec                 Int?
+  ordem_diagrama       String?   @db.VarChar(12)
+  hora_ini             DateTime? @db.Time(6)
+  hora_ter             DateTime? @db.Time(6)
+  equipe_linha_morta   Int?
+  equipe_linha_viva    Int?
+  equipe_regularizacao Int?
+  num_dp               String?
+  tipo_servico         String?   @db.VarChar(50)
+  chi                  Int?
+  tecnico              String?   @db.VarChar(40)
+  equip_desligado      String?
+}
+
+view exportacao_obras_carteira {
+  id                      BigInt    @unique
+  id_obra                 Int?
+  ovnota                  String?   @db.VarChar(12)
+  pep                     String?   @db.VarChar(8)
+  ordemdiagrama           String?   @db.VarChar(12)
+  ordem_dcd               String?   @db.VarChar(12)
+  ordem_dca               String?   @db.VarChar(12)
+  ordem_dcim              String?   @db.VarChar(12)
+  mun                     String?   @db.VarChar(3)
+  regional                String?   @db.VarChar(20)
+  prazofim                DateTime? @db.Date
+  atraso                  Int?
+  tipo_obra               String?   @db.VarChar(30)
+  qtde_planejada          Float?
+  qtde_pend               Float?
+  circuito                String?   @db.VarChar(12)
+  mo_planejada            Float?
+  mo_exec                 Float?
+  mo_suspensa             Float?
+  observ_obra             String?   @db.VarChar(255)
+  turma                   String?   @db.VarChar(15)
+  executado               Int?
+  entrada                 DateTime? @db.Date
+  min_data_prog           DateTime? @db.Date
+  max_data_prog           DateTime? @db.Date
+  status                  String?   @db.VarChar(25)
+  capex_plan              Float?
+  capex_pend              Float?
+  capex_mat_plan          Float?
+  capex_mo_plan           Float?
+  capex_mat_pend          Float?
+  capex_mo_pend           Float?
+  contagem_de_ocorrencias BigInt?
+  hora_ini                DateTime? @db.Time(6)
+  hora_ter                DateTime? @db.Time(6)
+  conjunto                String?   @db.VarChar(100)
+  tipo_servico            String?   @db.VarChar(50)
+  chi                     Int?
+  equipe_linha_morta      Int?
+  equipe_regularizacao    Int?
+  equipe_linha_viva       Int?
+  num_dp                  String?
+  grupo                   String?   @db.VarChar(20)
+  referencia              String?   @db.VarChar(14)
+  empreendimento          String?   @db.VarChar(50)
+  data_viabilidade        DateTime? @db.Date
+  prazo_viabilidade       String?   @db.VarChar(40)
 }

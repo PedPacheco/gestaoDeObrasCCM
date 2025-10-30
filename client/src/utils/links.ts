@@ -69,6 +69,7 @@ export const links = [
       },
     ],
   },
+  { name: "Exportações", href: "/exportacoes", needPermission: true },
   {
     name: "Programação",
     href: "/programacao",

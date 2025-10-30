@@ -1,0 +1,252 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import * as moment from 'moment';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { ExportRepository } from 'src/infra/repositories/exportRepository';
+
+describe('ExportRepository', () => {
+  let repository: ExportRepository;
+
+  const mockPrisma = {
+    exportacao_obras_carteira: { findMany: jest.fn() },
+    exportacao_obras_executadas: { findMany: jest.fn() },
+    exportacao_programacoes_obras: { findMany: jest.fn() },
+    exportacao_capacidade_execucao: { findMany: jest.fn() },
+    suspensoes: { findMany: jest.fn() },
+    suspensoes_retiradas: { findMany: jest.fn() },
+    programacoes: { findMany: jest.fn() },
+  };
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ExportRepository,
+        { provide: PrismaService, useValue: mockPrisma },
+      ],
+    }).compile();
+
+    repository = module.get<ExportRepository>(ExportRepository);
+  });
+
+  afterEach(() => jest.clearAllMocks());
+
+  describe('exportWorksInPortfolio', () => {
+    it('should call method and return all data of exportcao_obras_carteira view', async () => {
+      const mockResponse = [{ ovnota: '2134', ordem_dci: '23124' }];
+
+      mockPrisma.exportacao_obras_carteira.findMany.mockResolvedValue(
+        mockResponse,
+      );
+
+      const response = await repository.exportWorksInPortfolio();
+
+      expect(
+        mockPrisma.exportacao_obras_carteira.findMany,
+      ).toHaveBeenCalledTimes(1);
+      expect(response).toEqual(mockResponse);
+    });
+  });
+
+  describe('exportCompletedWorks', () => {
+    it('should call method and return all data of exportacao_obras_executadas view', async () => {
+      const mockResponse = [{ ovnota: '2134', ordem_dci: '23124' }];
+
+      mockPrisma.exportacao_obras_executadas.findMany.mockResolvedValue(
+        mockResponse,
+      );
+
+      const response = await repository.exportCompletedWorks();
+
+      expect(
+        mockPrisma.exportacao_obras_executadas.findMany,
+      ).toHaveBeenCalledTimes(1);
+      expect(response).toEqual(mockResponse);
+    });
+  });
+
+  describe('exportSchedules', () => {
+    it('should call method and return all data of exportacao_programacoes_obras view', async () => {
+      const mockResponse = [{ ovnota: '2134', ordem_dci: '23124' }];
+
+      mockPrisma.exportacao_programacoes_obras.findMany.mockResolvedValue(
+        mockResponse,
+      );
+
+      const response = await repository.exportSchedules();
+
+      expect(
+        mockPrisma.exportacao_programacoes_obras.findMany,
+      ).toHaveBeenCalledTimes(1);
+      expect(response).toEqual(mockResponse);
+    });
+  });
+
+  describe('exportExecutionCapacity', () => {
+    it('should call method and return all data of exportacao_capacidade_execucao view', async () => {
+      const mockResponse = [{ ovnota: '2134', ordem_dci: '23124' }];
+
+      mockPrisma.exportacao_capacidade_execucao.findMany.mockResolvedValue(
+        mockResponse,
+      );
+
+      const response = await repository.exportExecutionCapacity();
+
+      expect(
+        mockPrisma.exportacao_capacidade_execucao.findMany,
+      ).toHaveBeenCalledTimes(1);
+      expect(response).toEqual(mockResponse);
+    });
+  });
+
+  describe('exportSuspension', () => {
+    it('should call exportSuspensions and return the data', async () => {
+      const mockResponse = [{ ovnota: '2134', ordem_dci: '23124' }];
+
+      mockPrisma.suspensoes.findMany.mockResolvedValue(mockResponse);
+
+      const response = await repository.exportSuspensions();
+
+      expect(mockPrisma.suspensoes.findMany).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.suspensoes.findMany).toHaveBeenCalledWith({
+        select: {
+          obras: {
+            select: {
+              ovnota: true,
+              status: { select: { status: true } },
+              tipos: { select: { tipo_obra: true } },
+              turmas: { select: { turma: true } },
+              municipios: {
+                select: {
+                  municipio: true,
+                  regionais: { select: { regional: true } },
+                },
+              },
+            },
+          },
+          data: true,
+          motivo: true,
+        },
+      });
+      expect(response).toEqual(mockResponse);
+    });
+  });
+
+  describe('exportSuspensionsRemoved', () => {
+    it('should call exportSuspensionsRemoved and return the data', async () => {
+      const mockResponse = [{ ovnota: '2134', ordem_dci: '23124' }];
+
+      mockPrisma.suspensoes_retiradas.findMany.mockResolvedValue(mockResponse);
+
+      const response = await repository.exportSuspensionsRemoved();
+
+      expect(mockPrisma.suspensoes_retiradas.findMany).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.suspensoes_retiradas.findMany).toHaveBeenCalledWith({
+        select: {
+          obras: {
+            select: {
+              ovnota: true,
+              tipos: { select: { tipo_obra: true } },
+              turmas: { select: { turma: true } },
+              municipios: {
+                select: {
+                  municipio: true,
+                  regionais: { select: { regional: true } },
+                },
+              },
+            },
+          },
+          status: { select: { status: true } },
+          data_retirada: true,
+        },
+      });
+      expect(response).toEqual(mockResponse);
+    });
+  });
+
+  describe('exportFinedWorks', () => {
+    it('should call exportFinedWorks and return the data without filters', async () => {
+      const mockResponse = [{ ovnota: '2134', ordem_dci: '23124' }];
+
+      mockPrisma.programacoes.findMany.mockResolvedValue(mockResponse);
+
+      const response = await repository.exportFinedWorks(null, null);
+
+      expect(mockPrisma.programacoes.findMany).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.programacoes.findMany).toHaveBeenCalledWith({
+        where: {
+          nome_responsavel_execucao: 'PARCEIRA',
+          prog: { not: 0 },
+          exec: 0,
+        },
+        select: {
+          obras: {
+            select: {
+              ovnota: true,
+              ordem_dci: true,
+              diagrama: true,
+              municipios: {
+                select: { regionais: { select: { regional: true } } },
+              },
+              tipos: { select: { tipo_obra: true } },
+              turmas: { select: { turma: true } },
+            },
+          },
+          data_prog: true,
+          hora_ini: true,
+          hora_ter: true,
+          prog: true,
+          exec: true,
+          num_dp: true,
+          programacoes_restricao_execucao: { select: { restricao: true } },
+          nome_responsavel_execucao: true,
+        },
+      });
+      expect(response).toEqual(mockResponse);
+    });
+
+    it('should call exportFinedWorks and return the data with filters', async () => {
+      const mockResponse = [{ ovnota: '2134', ordem_dci: '23124' }];
+      const expectedStart = moment('2025-10-15').startOf('day').utc().toDate();
+      const expectedEnd = moment('2025-10-29').startOf('day').utc().toDate();
+
+      mockPrisma.programacoes.findMany.mockResolvedValue(mockResponse);
+
+      const response = await repository.exportFinedWorks(
+        expectedStart,
+        expectedEnd,
+      );
+
+      expect(mockPrisma.programacoes.findMany).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.programacoes.findMany).toHaveBeenCalledWith({
+        where: {
+          nome_responsavel_execucao: 'PARCEIRA',
+          prog: { not: 0 },
+          exec: 0,
+          data_prog: { gte: expectedStart, lte: expectedEnd },
+        },
+        select: {
+          obras: {
+            select: {
+              ovnota: true,
+              ordem_dci: true,
+              diagrama: true,
+              municipios: {
+                select: { regionais: { select: { regional: true } } },
+              },
+              tipos: { select: { tipo_obra: true } },
+              turmas: { select: { turma: true } },
+            },
+          },
+          data_prog: true,
+          hora_ini: true,
+          hora_ter: true,
+          prog: true,
+          exec: true,
+          num_dp: true,
+          programacoes_restricao_execucao: { select: { restricao: true } },
+          nome_responsavel_execucao: true,
+        },
+      });
+      expect(response).toEqual(mockResponse);
+    });
+  });
+});
