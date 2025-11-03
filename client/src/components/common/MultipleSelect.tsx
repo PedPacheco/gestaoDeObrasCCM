@@ -28,21 +28,6 @@ export function MultipleSelectComponent<T>({
     setSelectedItem(value as unknown as T[]);
   };
 
-  // const handleScroll = (event: React.UIEvent<HTMLUListElement>) => {
-  //   const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
-
-  //   if (scrollTop + clientHeight >= scrollHeight) {
-  //     const nextItems = menuItems.slice(
-  //       visibleItems.length,
-  //       visibleItems.length + itemsPerPage
-  //     );
-
-  //     if (nextItems.length > 0) {
-  //       setVisibleItems((prev) => [...prev, ...nextItems]);
-  //     }
-  //   }
-  // };
-
   return (
     <>
       <FormControl className="mb-2 lg:ml-4 lg:first:ml-0 w-full" size="small">
@@ -65,7 +50,6 @@ export function MultipleSelectComponent<T>({
                 overflowY: "auto",
                 maxHeight: 400,
               },
-              // onScroll: handleScroll,
             },
           }}
         >

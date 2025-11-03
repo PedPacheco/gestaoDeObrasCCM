@@ -1,5 +1,6 @@
 export const links = [
   { name: "Tela inicial", href: "/", needPermission: false },
+  { name: "Exportações", href: "/exportacoes", needPermission: true },
   {
     name: "Metas",
     href: null,
@@ -69,7 +70,6 @@ export const links = [
       },
     ],
   },
-  { name: "Exportações", href: "/exportacoes", needPermission: true },
   {
     name: "Programação",
     href: "/programacao",
@@ -101,6 +101,11 @@ export const links = [
   {
     name: "Obras executadas",
     href: "/obras-executadas",
+    needPermission: false,
+  },
+  {
+    name: "Capacidade de execução",
+    href: "/capacidade-execucao",
     needPermission: false,
   },
 ];

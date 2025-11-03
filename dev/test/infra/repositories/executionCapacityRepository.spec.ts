@@ -1,0 +1,111 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { ExecutionCapacityRepository } from 'src/infra/repositories/executionCapacityRepository';
+
+describe('ExecutionCapacityRepository', () => {
+  let repository: ExecutionCapacityRepository;
+
+  const mockPrisma = {
+    capacidade_execucao: { findMany: jest.fn() },
+  };
+
+  const mockResponseData = [
+    {
+      ano: '2025',
+      regionais: { regional: 'Guarulhos' },
+      turmas: { turma: 'MANSERV' },
+      tipo: 'B2',
+      qtd_equipes_rfp: 5,
+      equipe: 'LM',
+      jan: 5,
+      fev: 4,
+      mar: 3,
+      abr: 3,
+      mai: 3,
+      jun: 3,
+      jul: 3,
+      ago: null,
+      set: null,
+      out: null,
+      nov: null,
+      dez: null,
+    },
+    {
+      ano: '2025',
+      regionais: { regional: 'Guarulhos' },
+      turmas: { turma: 'MANSERV' },
+      tipo: 'B3',
+      qtd_equipes_rfp: 14,
+      equipe: 'LM',
+      jan: 5,
+      fev: 4,
+      mar: 3,
+      abr: 3,
+      mai: 3,
+      jun: 3,
+      jul: 3,
+      ago: 8,
+      set: null,
+      out: null,
+      nov: null,
+      dez: null,
+    },
+  ];
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ExecutionCapacityRepository,
+        { provide: PrismaService, useValue: mockPrisma },
+      ],
+    }).compile();
+
+    repository = module.get<ExecutionCapacityRepository>(
+      ExecutionCapacityRepository,
+    );
+  });
+
+  afterEach(jest.clearAllMocks);
+
+  describe('get', () => {
+    it('should call findMany method of the capacidade_execucao table from prisma with filters', async () => {
+      mockPrisma.capacidade_execucao.findMany.mockResolvedValue(
+        mockResponseData,
+      );
+
+      const filters = {
+        ano: '2025',
+        id_turma: 1,
+        id_regional: 1,
+        equipe: 'LM',
+      };
+
+      const response = await repository.get(filters);
+
+      expect(response).toEqual(mockResponseData);
+      expect(mockPrisma.capacidade_execucao.findMany).toHaveBeenCalledWith({
+        select: {
+          ano: true,
+          regionais: { select: { regional: true } },
+          turmas: { select: { turma: true } },
+          tipo: true,
+          qtd_equipes_rfp: true,
+          equipe: true,
+          jan: true,
+          fev: true,
+          mar: true,
+          abr: true,
+          mai: true,
+          jun: true,
+          jul: true,
+          ago: true,
+          set: true,
+          out: true,
+          nov: true,
+          dez: true,
+        },
+        where: filters,
+      });
+    });
+  });
+});
