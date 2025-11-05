@@ -1,3 +1,4 @@
+import { UpdateExecutionCapacityDTO } from './../interface/dtos/executionCapacityDTO';
 import { Inject, Injectable } from '@nestjs/common';
 import {
   EXECUTION_CAPACITY_REPOSITORY,
@@ -31,5 +32,9 @@ export class ExecutionCapacityService {
     }));
 
     return formattedData;
+  }
+
+  async update(data: UpdateExecutionCapacityDTO[]) {
+    await this.executionCapacityRepository.update(data);
   }
 }

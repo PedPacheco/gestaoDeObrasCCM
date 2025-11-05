@@ -7,6 +7,7 @@ describe('ExecutionCapacityService', () => {
 
   const mockRepository = {
     get: jest.fn(),
+    update: jest.fn(),
   };
 
   const mockResponseData = [
@@ -143,6 +144,16 @@ describe('ExecutionCapacityService', () => {
       expect(mockRepository.get).toHaveBeenCalledWith({
         ano: '2025',
       });
+    });
+  });
+
+  describe('update', () => {
+    it('Should call update method and this method call repository', async () => {
+      mockRepository.update.mockResolvedValue(undefined);
+
+      await service.update([{ id: 1, jan: 3 }]);
+
+      expect(mockRepository.update).toHaveBeenCalledWith([{ id: 1, jan: 3 }]);
     });
   });
 });

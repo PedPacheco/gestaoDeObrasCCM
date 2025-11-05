@@ -1,6 +1,17 @@
-import { Controller, Get, HttpStatus, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  Patch,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
-import { ExecutionCapacityDTO } from '../dtos/executionCapacityDTO';
+import {
+  ExecutionCapacityDTO,
+  UpdateExecutionCapacityDTO,
+} from '../dtos/executionCapacityDTO';
 import { ExecutionCapacityService } from 'src/application/executionCapacity.service';
 
 @Controller('capacidade-execucao')
@@ -21,6 +32,17 @@ export class ExecutionCapacityController {
       statusCode: HttpStatus.OK,
       message: 'Capacidade de execução retornada',
       data: response,
+    };
+  }
+
+  @Patch()
+  @UseGuards(PermissionGuard)
+  async updateExecutionCapacity(@Body() data: UpdateExecutionCapacityDTO[]) {
+    await this.executionCapacityService.update(data);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Atualizado valores da capacidade de execução',
     };
   }
 }

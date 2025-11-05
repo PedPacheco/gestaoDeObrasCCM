@@ -27,9 +27,10 @@ export function UpdateContractButton() {
           return;
         }
 
+        localStorage.removeItem("contracts");
+
         setSuccess("Empreitamento inserido com sucesso!");
         setOpenModal(true);
-        localStorage.removeItem("contracts");
       } catch (err: any) {
         setError(err.message);
       }

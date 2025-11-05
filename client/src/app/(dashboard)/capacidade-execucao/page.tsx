@@ -5,6 +5,9 @@ import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { Transform } from "@/utils/transform";
 import { cookies } from "next/headers";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function ExecutionCapacity() {
   const cookieStore = await cookies();
   const cookieParams = cookieStore.get("executionCapacityFilters")?.value;

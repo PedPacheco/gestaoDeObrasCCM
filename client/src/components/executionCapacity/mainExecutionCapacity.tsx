@@ -3,28 +3,37 @@
 import "dayjs/locale/pt-br";
 
 import dayjs from "dayjs";
-import { useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 
 import { FiltersInterface } from "@/interfaces/filtersInterfaces";
-import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
-import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 import { ButtonComponent } from "../common/Button";
 import { ExecutionCapacityTable } from "./executionCapacityTable";
-
-type SelectItem = string | number;
+import { FiltersExecutionCapacity } from "./filtersExecutionCapacity";
+import dynamic from "next/dynamic";
+import { fetchData } from "@/actions/fetchData.action";
+import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+import ErrorModal from "../common/ErrorModal";
+import { UpdateExecutionCapacity } from "@/actions/executionCapacity";
+import ModalComponent from "../common/Modal";
 
 interface MainExecutionCapacityProps {
   columns: Record<string, string>;
   token: string;
-  data: any;
+  data: Record<string, string | number>[];
   filtersData: FiltersInterface;
 }
 
-const existingTeams = ["BTZERO", "LM", "LV"];
+const TableComponent = dynamic(
+  () =>
+    import("@/components/executionCapacity/executionCapacityTable").then(
+      (mod) => mod.ExecutionCapacityTable
+    ),
+  {
+    ssr: false,
+  }
+);
 
 export function MainExecutionCapacity({
   columns,
@@ -37,137 +46,113 @@ export function MainExecutionCapacity({
   const [selectedItems, setSelectedItems] = useState<Record<string, string>>(
     {}
   );
+  const [tableData, setTableData] =
+    useState<Record<string, string | number | null>[]>(data);
   const [isPending, startTransition] = useTransition();
+  const [openModal, setOpenModal] = useState<boolean>(false);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleApplyFilters = () => {
+  useEffect(() => {
+    setTableData(data);
+  }, [data]);
+
+  const changedData = useMemo(() => {
+    return tableData
+      .filter((row, index) =>
+        Object.keys(row).some((key) => row[key] !== data[index][key])
+      )
+      .map((row) => {
+        const originalRow = data.find((d) => d.id === row.id) || {};
+
+        const changes: Record<string, number | null> = { id: row.id as number };
+
+        Object.keys(row).forEach((key) => {
+          if (row[key] !== originalRow[key])
+            changes[key] =
+              row[key] === null || row[key] === "" || row[key] === undefined
+                ? null
+                : Number(row[key]);
+        });
+        return changes;
+      });
+  }, [tableData, data]);
+
+  const handleDataFetch = async (url: string, params: any) => {
     startTransition(async () => {
-      const newSelectedItems = {
-        ...selectedItems,
-        teams,
-        year,
-      };
+      try {
+        const response = await fetchData(url, params, token, {
+          cache: "no-store",
+        });
 
-      console.log(newSelectedItems);
+        if (!response.success) {
+          setError(response.message);
+          return;
+        }
+
+        setTableData(response.data);
+      } catch (error: any) {
+        setError(error.message);
+      }
     });
   };
+
+  const handleApplyFilters = () => {
+    const newSelectedItems = {
+      regionalId: selectedItems.idRegional,
+      partnerId: selectedItems.idParceira,
+      teams: teams || "",
+      year,
+    };
+
+    handleDataFetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/capacidade-execucao`,
+      newSelectedItems
+    );
+  };
+
+  const handleClearFilters = async () => {
+    setSelectedItems({});
+    setTeams(null);
+    setYear("2025");
+
+    handleDataFetch(`${process.env.NEXT_PUBLIC_API_URL}/capacidade-execucao`, {
+      year,
+    });
+  };
+
+  const handleSaveChangedData = () => {
+    startTransition(async () => {
+      try {
+        const response = await UpdateExecutionCapacity(changedData);
+
+        if (!response.success) {
+          setError(response.message);
+          return;
+        }
+
+        setSuccess(response.message);
+        setOpenModal(true);
+      } catch (error: any) {
+        setError(error.message);
+      }
+    });
+  };
+
+  const toggleModal = () => setOpenModal((prev) => !prev);
 
   return (
     <>
       <div className="w-full flex flex-col justify-center items-center lg:flex-row lg:justify-start lg:items-start pt-4 px-4">
-        <div className="w-56 lg:w-32 mb-2 lg:mb-0 lg:mr-4">
-          <LocalizationProvider
-            dateAdapter={AdapterDayjs}
-            adapterLocale="pt-br"
-          >
-            <DatePicker
-              views={["year"]}
-              format={"YYYY"}
-              value={dayjs(year)}
-              onChange={(value) =>
-                value ? setYear(value.toString()) : dayjs()
-              }
-              slotProps={{ textField: { size: "small", fullWidth: true } }}
-            />
-          </LocalizationProvider>
-        </div>
-
-        <div className="w-56 md:w-72 lg:w-1/4 flex flex-col lg:flex-row items-center justify-center">
-          {Object.entries(filtersData).map(([key, value], index) => {
-            const valueKey = Object.keys(value[0])[0];
-            const displayKey = Object.keys(value[0])[1];
-
-            const filterValue = `${valueKey}${
-              key.charAt(0).toUpperCase() + key.slice(1)
-            }`;
-
-            return (
-              <FormControl
-                key={index}
-                className="mb-2 lg:ml-4 lg:first:ml-0 w-full"
-                size="small"
-              >
-                <InputLabel id={capitalize(displayKey)} className="xl:text-lg">
-                  {capitalize(displayKey).replace("_", " ")}
-                </InputLabel>
-                <Select
-                  labelId={capitalize(displayKey)}
-                  label={capitalize(displayKey)}
-                  className="w-full"
-                  value={selectedItems[filterValue] || ""}
-                  onChange={(event) => {
-                    setSelectedItems((prev: any) => ({
-                      ...prev,
-                      [filterValue]: event.target.value,
-                    }));
-                  }}
-                  MenuProps={{
-                    PaperProps: {
-                      style: {
-                        maxHeight: 400,
-                      },
-                    },
-                    MenuListProps: {
-                      style: {
-                        overflowY: "auto",
-                        maxHeight: 400,
-                      },
-                    },
-                  }}
-                >
-                  {value.map((item: any, index: number) => (
-                    <MenuItem
-                      key={index}
-                      value={(valueKey ? item[valueKey] : item) as SelectItem}
-                    >
-                      {
-                        (displayKey
-                          ? item[displayKey]
-                          : item) as unknown as SelectItem
-                      }
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            );
-          })}
-        </div>
-
-        <div className="w-56 md:w-72 lg:w-48 lg:ml-4">
-          <FormControl
-            className="mb-2 lg:ml-4 lg:first:ml-0 w-full "
-            size="small"
-          >
-            <InputLabel id={"equipe"} className="xl:text-lg">
-              {capitalize("equipe").replace("_", " ")}
-            </InputLabel>
-            <Select
-              labelId={capitalize("equipe")}
-              label={capitalize("equipe")}
-              className="w-full"
-              value={teams || ""}
-              onChange={(event) => setTeams(event.target.value)}
-              MenuProps={{
-                PaperProps: {
-                  style: {
-                    maxHeight: 400,
-                  },
-                },
-                MenuListProps: {
-                  style: {
-                    overflowY: "auto",
-                    maxHeight: 400,
-                  },
-                },
-              }}
-            >
-              {existingTeams.map((item: any, index: number) => (
-                <MenuItem key={index} value={item as SelectItem}>
-                  {item}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </div>
+        <FiltersExecutionCapacity
+          filtersData={filtersData}
+          selectedItems={selectedItems}
+          setSelectedItems={setSelectedItems}
+          setTeams={setTeams}
+          teams={teams}
+          setYear={setYear}
+          year={year}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 w-1/2 lg:w-full mb-4">
@@ -178,16 +163,42 @@ export function MainExecutionCapacity({
           disabled={isPending}
         />
         <ButtonComponent
-          onClick={() => {}}
+          onClick={handleClearFilters}
           text={getButtonContent(isPending, "Limpar filtros")}
           styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
           disabled={isPending}
         />
       </div>
 
-      <div className="self-start mx-6">
-        <ExecutionCapacityTable columns={columns} data={data} />
+      <div className="self-start mx-6 2xl:h-full w-[98%] flex flex-col justify-between pb-4">
+        <TableComponent
+          columns={columns}
+          setTableData={setTableData}
+          data={tableData}
+        />
+
+        <div className="self-end w-1/4">
+          <ButtonComponent
+            onClick={handleSaveChangedData}
+            text={getButtonContent(isPending, "Atualizar valores")}
+            styled="mt-2 lg:w-3/4 mx-auto"
+            disabled={isPending || changedData.length === 0}
+          />
+        </div>
       </div>
+
+      <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
+        <span className=" font-semibold text-xl">{success}</span>
+      </ModalComponent>
+
+      {error && (
+        <ErrorModal
+          open={true}
+          message={error}
+          onClose={() => setError(null)}
+          icon={<ExclamationCircleIcon width={48} height={48} />}
+        />
+      )}
     </>
   );
 }

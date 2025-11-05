@@ -6,7 +6,8 @@ describe('ExecutionCapacityRepository', () => {
   let repository: ExecutionCapacityRepository;
 
   const mockPrisma = {
-    capacidade_execucao: { findMany: jest.fn() },
+    capacidade_execucao: { findMany: jest.fn(), updateMany: jest.fn() },
+    $transaction: jest.fn(),
   };
 
   const mockResponseData = [
@@ -85,9 +86,11 @@ describe('ExecutionCapacityRepository', () => {
       expect(response).toEqual(mockResponseData);
       expect(mockPrisma.capacidade_execucao.findMany).toHaveBeenCalledWith({
         select: {
+          id: true,
           ano: true,
           regionais: { select: { regional: true } },
           turmas: { select: { turma: true } },
+          id_regional: true,
           tipo: true,
           qtd_equipes_rfp: true,
           equipe: true,
@@ -105,6 +108,30 @@ describe('ExecutionCapacityRepository', () => {
           dez: true,
         },
         where: filters,
+        orderBy: [{ regionais: { id: 'asc' } }, { equipe: { sort: 'asc' } }],
+      });
+    });
+  });
+
+  describe('update', () => {
+    it('should create a transaction and in of transaction, should call updateMany method of capacidade_execucao with updated data', async () => {
+      mockPrisma.$transaction.mockResolvedValueOnce(undefined);
+
+      await repository.update([
+        { id: 1, jan: 4 },
+        { id: 2, fev: 5 },
+      ]);
+
+      expect(mockPrisma.capacidade_execucao.updateMany).toHaveBeenCalledTimes(
+        2,
+      );
+      expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
+
+      expect(mockPrisma.capacidade_execucao.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: 1,
+        },
+        data: { jan: 4 },
       });
     });
   });

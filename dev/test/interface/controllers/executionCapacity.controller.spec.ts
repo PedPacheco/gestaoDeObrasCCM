@@ -14,6 +14,7 @@ describe('ExecutionReportController', () => {
           provide: ExecutionCapacityService,
           useValue: {
             get: jest.fn(),
+            update: jest.fn(),
           },
         },
       ],
@@ -35,6 +36,22 @@ describe('ExecutionReportController', () => {
       expect(result).toEqual({
         data: [],
         message: 'Capacidade de execução retornada',
+        statusCode: 200,
+      });
+    });
+  });
+
+  describe('updateExecutionCapacity', () => {
+    it('Should call updateExecutionCapacity service method and return a successful response with the expected structure', async () => {
+      jest.spyOn(service, 'update').mockResolvedValue(undefined);
+
+      const result = await controller.updateExecutionCapacity([
+        { id: 1, jan: 3 },
+      ]);
+
+      expect(service.update).toHaveBeenCalledWith([{ id: 1, jan: 3 }]);
+      expect(result).toEqual({
+        message: 'Atualizado valores da capacidade de execução',
         statusCode: 200,
       });
     });

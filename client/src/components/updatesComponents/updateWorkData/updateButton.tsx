@@ -82,10 +82,11 @@ export function UpdateButton({ storageKey }: UpdateButtonProps) {
           return;
         }
 
-        setSuccess(res.message);
-        setOpenModal(true);
         localStorage.removeItem(storageKey);
         cookies.remove(storageKey);
+
+        setSuccess(res.message);
+        setOpenModal(true);
 
         router.refresh();
       } catch (err: any) {
