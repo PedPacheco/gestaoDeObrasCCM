@@ -14,6 +14,7 @@ describe('ExecutionReportController', () => {
           provide: ExecutionCapacityService,
           useValue: {
             get: jest.fn(),
+            getFinancialValue: jest.fn(),
             update: jest.fn(),
           },
         },
@@ -28,13 +29,39 @@ describe('ExecutionReportController', () => {
 
   describe('getExecutionCapacity', () => {
     it('Should call getExecutionCapacity service method and return a successful response with the expected structure', async () => {
+      const mockFinancialValues = [
+        {
+          ano: '2025',
+          regional: 'Sjc',
+          parceira: 'Engelmig',
+          jan: 0,
+          fev: 0,
+          mar: 0,
+          abr: 0,
+          mai: 0,
+          jun: 0,
+          jul: 0,
+          ago: 0,
+          set: 0,
+          out: 0,
+          nov: 0,
+          dez: 0,
+        },
+      ];
+
       jest.spyOn(service, 'get').mockResolvedValue([]);
+      jest
+        .spyOn(service, 'getFinancialValue')
+        .mockResolvedValue(mockFinancialValues);
 
       const result = await controller.getExecutionCapacity({ year: '2025' });
 
       expect(service.get).toHaveBeenCalledWith({ year: '2025' });
       expect(result).toEqual({
-        data: [],
+        data: {
+          financialValues: mockFinancialValues,
+          executionCapacityValues: [],
+        },
         message: 'Capacidade de execução retornada',
         statusCode: 200,
       });

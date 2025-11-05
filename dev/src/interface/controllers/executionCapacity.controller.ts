@@ -26,7 +26,15 @@ export class ExecutionCapacityController {
     @Query()
     filters: ExecutionCapacityDTO,
   ) {
-    const response = await this.executionCapacityService.get(filters);
+    const financialValues =
+      await this.executionCapacityService.getFinancialValue();
+    const executionCapacityValues =
+      await this.executionCapacityService.get(filters);
+
+    const response = {
+      financialValues,
+      executionCapacityValues,
+    };
 
     return {
       statusCode: HttpStatus.OK,

@@ -39,6 +39,30 @@ export class ExecutionCapacityRepository
     });
   }
 
+  async getFinancialValue(): Promise<any[]> {
+    return await this.prisma.capacidade_execucao.findMany({
+      select: {
+        id: true,
+        ano: true,
+        regionais: { select: { regional: true } },
+        turmas: { select: { turma: true } },
+        should_cost: true,
+        jan: true,
+        fev: true,
+        mar: true,
+        abr: true,
+        mai: true,
+        jun: true,
+        jul: true,
+        ago: true,
+        set: true,
+        out: true,
+        nov: true,
+        dez: true,
+      },
+    });
+  }
+
   async update(data: UpdateExecutionCapacityDTO[]): Promise<void> {
     await this.prisma.$transaction(
       data.map((item: UpdateExecutionCapacityDTO) => {

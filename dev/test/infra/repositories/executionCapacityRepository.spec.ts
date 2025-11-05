@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { ExecutionCapacityRepository } from 'src/infra/repositories/executionCapacityRepository';
+import { mockResponseDataExecutionCapacityRepository } from '../../../test/mocks/mockExecutionCapacityService';
 
 describe('ExecutionCapacityRepository', () => {
   let repository: ExecutionCapacityRepository;
@@ -9,49 +10,6 @@ describe('ExecutionCapacityRepository', () => {
     capacidade_execucao: { findMany: jest.fn(), updateMany: jest.fn() },
     $transaction: jest.fn(),
   };
-
-  const mockResponseData = [
-    {
-      ano: '2025',
-      regionais: { regional: 'Guarulhos' },
-      turmas: { turma: 'MANSERV' },
-      tipo: 'B2',
-      qtd_equipes_rfp: 5,
-      equipe: 'LM',
-      jan: 5,
-      fev: 4,
-      mar: 3,
-      abr: 3,
-      mai: 3,
-      jun: 3,
-      jul: 3,
-      ago: null,
-      set: null,
-      out: null,
-      nov: null,
-      dez: null,
-    },
-    {
-      ano: '2025',
-      regionais: { regional: 'Guarulhos' },
-      turmas: { turma: 'MANSERV' },
-      tipo: 'B3',
-      qtd_equipes_rfp: 14,
-      equipe: 'LM',
-      jan: 5,
-      fev: 4,
-      mar: 3,
-      abr: 3,
-      mai: 3,
-      jun: 3,
-      jul: 3,
-      ago: 8,
-      set: null,
-      out: null,
-      nov: null,
-      dez: null,
-    },
-  ];
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -71,7 +29,7 @@ describe('ExecutionCapacityRepository', () => {
   describe('get', () => {
     it('should call findMany method of the capacidade_execucao table from prisma with filters', async () => {
       mockPrisma.capacidade_execucao.findMany.mockResolvedValue(
-        mockResponseData,
+        mockResponseDataExecutionCapacityRepository,
       );
 
       const filters = {
@@ -83,7 +41,7 @@ describe('ExecutionCapacityRepository', () => {
 
       const response = await repository.get(filters);
 
-      expect(response).toEqual(mockResponseData);
+      expect(response).toEqual(mockResponseDataExecutionCapacityRepository);
       expect(mockPrisma.capacidade_execucao.findMany).toHaveBeenCalledWith({
         select: {
           id: true,
@@ -109,6 +67,39 @@ describe('ExecutionCapacityRepository', () => {
         },
         where: filters,
         orderBy: [{ regionais: { id: 'asc' } }, { equipe: { sort: 'asc' } }],
+      });
+    });
+  });
+
+  describe('getFinancialValues', () => {
+    it('should call findMany method of the capacidade_execucao table ', async () => {
+      mockPrisma.capacidade_execucao.findMany.mockResolvedValue(
+        mockResponseDataExecutionCapacityRepository,
+      );
+
+      const response = await repository.getFinancialValue();
+
+      expect(response).toEqual(mockResponseDataExecutionCapacityRepository);
+      expect(mockPrisma.capacidade_execucao.findMany).toHaveBeenCalledWith({
+        select: {
+          id: true,
+          ano: true,
+          regionais: { select: { regional: true } },
+          turmas: { select: { turma: true } },
+          should_cost: true,
+          jan: true,
+          fev: true,
+          mar: true,
+          abr: true,
+          mai: true,
+          jun: true,
+          jul: true,
+          ago: true,
+          set: true,
+          out: true,
+          nov: true,
+          dez: true,
+        },
       });
     });
   });

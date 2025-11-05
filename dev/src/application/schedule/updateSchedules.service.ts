@@ -35,7 +35,7 @@ export class UpdateSchedulesService {
       );
     }
 
-    if (data.exec) {
+    if (data.exec || data.exec === 0) {
       const executionValues =
         await this.updateSchedulesRepository.findExecutionOfSchedules(
           data.id,

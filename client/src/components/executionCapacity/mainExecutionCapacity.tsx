@@ -9,7 +9,6 @@ import { FiltersInterface } from "@/interfaces/filtersInterfaces";
 import { getButtonContent } from "@/utils/getButtonContent";
 
 import { ButtonComponent } from "../common/Button";
-import { ExecutionCapacityTable } from "./executionCapacityTable";
 import { FiltersExecutionCapacity } from "./filtersExecutionCapacity";
 import dynamic from "next/dynamic";
 import { fetchData } from "@/actions/fetchData.action";
@@ -17,11 +16,15 @@ import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import ErrorModal from "../common/ErrorModal";
 import { UpdateExecutionCapacity } from "@/actions/executionCapacity";
 import ModalComponent from "../common/Modal";
+import { FinancialValuesModal } from "./financialValuesModal";
 
 interface MainExecutionCapacityProps {
   columns: Record<string, string>;
   token: string;
-  data: Record<string, string | number>[];
+  data: {
+    financialValues: Record<string, string | number>[];
+    executionCapacityValues: Record<string, string | number>[];
+  };
   filtersData: FiltersInterface;
 }
 
@@ -41,29 +44,38 @@ export function MainExecutionCapacity({
   token,
   filtersData,
 }: MainExecutionCapacityProps) {
+  const [isPending, startTransition] = useTransition();
+
   const [year, setYear] = useState<string>(dayjs().year().toString());
   const [teams, setTeams] = useState<string | null>(null);
   const [selectedItems, setSelectedItems] = useState<Record<string, string>>(
     {}
   );
-  const [tableData, setTableData] =
-    useState<Record<string, string | number | null>[]>(data);
-  const [isPending, startTransition] = useTransition();
+
+  const [tableData, setTableData] = useState<
+    Record<string, string | number | null>[]
+  >(data.executionCapacityValues);
+
   const [openModal, setOpenModal] = useState<boolean>(false);
+  const [openFinancialModal, setOpenFinanciealModal] = useState<boolean>(false);
+
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setTableData(data);
+    setTableData(data.executionCapacityValues);
   }, [data]);
 
   const changedData = useMemo(() => {
     return tableData
       .filter((row, index) =>
-        Object.keys(row).some((key) => row[key] !== data[index][key])
+        Object.keys(row).some(
+          (key) => row[key] !== data.executionCapacityValues[index][key]
+        )
       )
       .map((row) => {
-        const originalRow = data.find((d) => d.id === row.id) || {};
+        const originalRow =
+          data.executionCapacityValues.find((d) => d.id === row.id) || {};
 
         const changes: Record<string, number | null> = { id: row.id as number };
 
@@ -140,34 +152,46 @@ export function MainExecutionCapacity({
   };
 
   const toggleModal = () => setOpenModal((prev) => !prev);
+  const toggleFinancialModal = () => setOpenFinanciealModal((prev) => !prev);
 
   return (
     <>
-      <div className="w-full flex flex-col justify-center items-center lg:flex-row lg:justify-start lg:items-start pt-4 px-4">
-        <FiltersExecutionCapacity
-          filtersData={filtersData}
-          selectedItems={selectedItems}
-          setSelectedItems={setSelectedItems}
-          setTeams={setTeams}
-          teams={teams}
-          setYear={setYear}
-          year={year}
-        />
-      </div>
+      <div className="w-full flex justify-between">
+        <div className="w-full">
+          <div className="flex flex-col justify-center items-center lg:flex-row lg:justify-start lg:items-start pt-4 px-4">
+            <FiltersExecutionCapacity
+              filtersData={filtersData}
+              selectedItems={selectedItems}
+              setSelectedItems={setSelectedItems}
+              setTeams={setTeams}
+              teams={teams}
+              setYear={setYear}
+              year={year}
+            />
+          </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 w-1/2 lg:w-full mb-4">
-        <ButtonComponent
-          onClick={handleApplyFilters}
-          text={getButtonContent(isPending, "Aplicar filtros")}
-          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
-          disabled={isPending}
-        />
-        <ButtonComponent
-          onClick={handleClearFilters}
-          text={getButtonContent(isPending, "Limpar filtros")}
-          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
-          disabled={isPending}
-        />
+          <div className="grid grid-cols-1 lg:grid-cols-4 w-1/2 lg:w-[90%] mb-4">
+            <ButtonComponent
+              onClick={handleApplyFilters}
+              text={getButtonContent(isPending, "Aplicar filtros")}
+              styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
+              disabled={isPending}
+            />
+            <ButtonComponent
+              onClick={handleClearFilters}
+              text={getButtonContent(isPending, "Limpar filtros")}
+              styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
+              disabled={isPending}
+            />
+          </div>
+        </div>
+        <div className="w-[480px] pt-8 pr-16 flex justify-center">
+          <ButtonComponent
+            text="Financeiro"
+            styled="w-full"
+            onClick={toggleFinancialModal}
+          />
+        </div>
       </div>
 
       <div className="self-start mx-6 2xl:h-full w-[98%] flex flex-col justify-between pb-4">
@@ -190,6 +214,12 @@ export function MainExecutionCapacity({
       <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
         <span className=" font-semibold text-xl">{success}</span>
       </ModalComponent>
+
+      <FinancialValuesModal
+        data={data.financialValues}
+        onClose={toggleFinancialModal}
+        open={openFinancialModal}
+      />
 
       {error && (
         <ErrorModal

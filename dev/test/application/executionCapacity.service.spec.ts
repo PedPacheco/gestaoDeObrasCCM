@@ -1,100 +1,21 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ExecutionCapacityService } from 'src/application/executionCapacity.service';
 import { EXECUTION_CAPACITY_REPOSITORY } from 'src/domain/repositories/IExecutionCapacityRepository';
+import {
+  mockDataSumFinancialValues,
+  mockFormattedDataExecutionCapacity,
+  mockResponseDataExecutionCapacityRepository,
+  mockResponseDataFinancialValuesExecutionCapacityRepository,
+} from '../../test/mocks/mockExecutionCapacityService';
 
 describe('ExecutionCapacityService', () => {
   let service: ExecutionCapacityService;
 
   const mockRepository = {
     get: jest.fn(),
+    getFinancialValue: jest.fn(),
     update: jest.fn(),
   };
-
-  const mockResponseData = [
-    {
-      ano: '2025',
-      regionais: { regional: 'Guarulhos' },
-      turmas: { turma: 'MANSERV' },
-      tipo: 'B2',
-      qtd_equipes_rfp: 5,
-      equipe: 'LM',
-      jan: 5,
-      fev: 4,
-      mar: 3,
-      abr: 3,
-      mai: 3,
-      jun: 3,
-      jul: 3,
-      ago: null,
-      set: null,
-      out: null,
-      nov: null,
-      dez: null,
-    },
-    {
-      ano: '2025',
-      regionais: { regional: 'Guarulhos' },
-      turmas: { turma: 'MANSERV' },
-      tipo: 'B3',
-      qtd_equipes_rfp: 14,
-      equipe: 'LM',
-      jan: 5,
-      fev: 4,
-      mar: 3,
-      abr: 3,
-      mai: 3,
-      jun: 3,
-      jul: 3,
-      ago: 8,
-      set: null,
-      out: null,
-      nov: null,
-      dez: null,
-    },
-  ];
-
-  const mockFormattedData = [
-    {
-      regional: 'Guarulhos',
-      parceira: 'MANSERV',
-      ano: '2025',
-      tipo: 'B2',
-      qtd_equipes_rfp: 5,
-      equipe: 'LM',
-      jan: 5,
-      fev: 4,
-      mar: 3,
-      abr: 3,
-      mai: 3,
-      jun: 3,
-      jul: 3,
-      ago: null,
-      set: null,
-      out: null,
-      nov: null,
-      dez: null,
-    },
-    {
-      regional: 'Guarulhos',
-      parceira: 'MANSERV',
-      ano: '2025',
-      tipo: 'B3',
-      qtd_equipes_rfp: 14,
-      equipe: 'LM',
-      jan: 5,
-      fev: 4,
-      mar: 3,
-      abr: 3,
-      mai: 3,
-      jun: 3,
-      jul: 3,
-      ago: 8,
-      set: null,
-      out: null,
-      nov: null,
-      dez: null,
-    },
-  ];
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -111,7 +32,9 @@ describe('ExecutionCapacityService', () => {
 
   describe('get', () => {
     it('should call method get with all filters and return formatted data', async () => {
-      mockRepository.get.mockResolvedValue(mockResponseData);
+      mockRepository.get.mockResolvedValue(
+        mockResponseDataExecutionCapacityRepository,
+      );
 
       const filters = {
         year: '2025',
@@ -122,7 +45,7 @@ describe('ExecutionCapacityService', () => {
 
       const response = await service.get(filters);
 
-      expect(response).toEqual(mockFormattedData);
+      expect(response).toEqual(mockFormattedDataExecutionCapacity);
       expect(mockRepository.get).toHaveBeenCalledWith({
         ano: '2025',
         id_turma: 1,
@@ -132,7 +55,9 @@ describe('ExecutionCapacityService', () => {
     });
 
     it('should call method get without filters and return formatted data', async () => {
-      mockRepository.get.mockResolvedValue(mockResponseData);
+      mockRepository.get.mockResolvedValue(
+        mockResponseDataExecutionCapacityRepository,
+      );
 
       const filters = {
         year: '2025',
@@ -140,10 +65,23 @@ describe('ExecutionCapacityService', () => {
 
       const response = await service.get(filters);
 
-      expect(response).toEqual(mockFormattedData);
+      expect(response).toEqual(mockFormattedDataExecutionCapacity);
       expect(mockRepository.get).toHaveBeenCalledWith({
         ano: '2025',
       });
+    });
+  });
+
+  describe('getFinancialValues', () => {
+    it('should call getFinancialValues and calculate the sum of values of execution capacity', async () => {
+      mockRepository.getFinancialValue.mockResolvedValue(
+        mockResponseDataFinancialValuesExecutionCapacityRepository,
+      );
+
+      const response = await service.getFinancialValue();
+
+      expect(mockRepository.getFinancialValue).toHaveBeenCalled();
+      expect(response).toEqual(mockDataSumFinancialValues);
     });
   });
 
