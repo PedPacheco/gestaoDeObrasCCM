@@ -32,9 +32,12 @@ import {
 
 import { ButtonComponent } from "../common/Button";
 import { UndefinedItemsTable } from "./tabs/undefinedItemsTable";
+import { ScheduleErrorTable } from "./tabs/scheduleErrorTable";
+import { useErrorsReportData } from "@/hooks/useErrorsReportData";
 
 interface ErrorDashboardProps {
   undefinedItemsData: any[];
+  scheduleErrorData: any[];
   regionalValues: Record<string, string | number>[];
   tabs: TabItem[];
   token: string;
@@ -49,6 +52,7 @@ const iconsMap = {
 };
 
 export function ErrorDashboard({
+  scheduleErrorData,
   undefinedItemsData,
   regionalValues,
   tabs,
@@ -56,55 +60,47 @@ export function ErrorDashboard({
 }: ErrorDashboardProps) {
   const [selectedRegional, setSelectedRegional] = useState("");
   const [activeTab, setActiveTab] = useState(0);
-  const [isPending, startTransition] = useTransition();
 
-  const [tableData, setTableData] = useState<any[]>(undefinedItemsData);
+  const endpoints = [
+    {
+      key: "undefinedItems",
+      url: `${process.env.NEXT_PUBLIC_API_URL}/relatorio-erros/itens-nao-definidos`,
+    },
+    {
+      key: "scheduleError",
+      url: `${process.env.NEXT_PUBLIC_API_URL}/relatorio-erros/programacao`,
+    },
+  ];
 
-  const [error, setError] = useState<string | null>(null);
+  const { state, fetchAll, isPending } = useErrorsReportData({
+    token,
+    endpoints,
+    initialData: {
+      undefinedItems: undefinedItemsData,
+      scheduleError: scheduleErrorData,
+    },
+  });
+
+  const handleApplyFilters = () => fetchAll({ idRegional: selectedRegional });
+  const handleClearFilters = () => {
+    setSelectedRegional("");
+    fetchAll();
+  };
 
   const renderTable = () => {
     switch (activeTab) {
       case 0:
-        return <UndefinedItemsTable undefinedItemsData={tableData} />;
+        return (
+          <UndefinedItemsTable undefinedItemsData={state.undefinedItems.data} />
+        );
 
+      case 1:
+        return (
+          <ScheduleErrorTable scheduleErrorData={state.scheduleError.data} />
+        );
       default:
         return null;
     }
-  };
-
-  const handleDataFetch = (url: string, params: any) => {
-    startTransition(async () => {
-      try {
-        const response = await fetchData(url, params, token, {
-          cache: "no-store",
-        });
-
-        if (!response.success) {
-          setError(response.message);
-          return;
-        }
-
-        setTableData(response.data);
-      } catch (error: any) {
-        setError(error.message);
-      }
-    });
-  };
-
-  const handleApplyFilters = () => {
-    handleDataFetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/relatorio-erros/itens-nao-definidos`,
-      { idRegional: selectedRegional }
-    );
-  };
-
-  const handleClearFilters = async () => {
-    setSelectedRegional("");
-
-    handleDataFetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/relatorio-erros/itens-nao-definidos`,
-      undefined
-    );
   };
 
   return (

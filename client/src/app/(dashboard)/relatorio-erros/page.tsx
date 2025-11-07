@@ -26,12 +26,18 @@ export default async function ErrorsReportPage() {
 
   let params = cookieParams ? JSON.parse(cookieParams) : undefined;
 
-  const [filters, undefinedItemsData] = await Promise.all([
+  const [filters, undefinedItemsData, scheduleErrorData] = await Promise.all([
     fetchFilters({
       regional: true,
     }),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/relatorio-erros/itens-nao-definidos`,
+      { ...params?.idRegional },
+      cookieStore.get("token")?.value,
+      { cache: "no-store" }
+    ),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/relatorio-erros/programacao`,
       { ...params?.idRegional },
       cookieStore.get("token")?.value,
       { cache: "no-store" }
@@ -51,7 +57,7 @@ export default async function ErrorsReportPage() {
       id: "programacao",
       label: "Programação <100%",
       icon: "ArrowTrendingUpIcon",
-      count: 5,
+      count: scheduleErrorData.data.length,
     },
     {
       id: "valor-zero",
@@ -77,6 +83,7 @@ export default async function ErrorsReportPage() {
     <EmotionCacheProvider>
       <ErrorDashboard
         undefinedItemsData={data}
+        scheduleErrorData={scheduleErrorData.data}
         regionalValues={filters.regional}
         tabs={tabs}
         token={token}

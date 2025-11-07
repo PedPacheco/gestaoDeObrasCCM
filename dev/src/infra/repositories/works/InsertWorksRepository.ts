@@ -37,12 +37,14 @@ export class InsertWorksRepository implements IInsertWorksRepository {
       });
     } catch (error) {
       console.error('Erro ao inserir obras de mercado:', error);
+      throw error;
     }
   }
 
   async insertNotes(works: NoteWorks[]): Promise<void> {
     try {
       const data = works.map((work) => {
+        console.log(work);
         return {
           ovnota: work.obra,
           pep: work.pep,
@@ -70,6 +72,7 @@ export class InsertWorksRepository implements IInsertWorksRepository {
       });
     } catch (error) {
       console.error('Erro ao inserir notas:', error);
+      throw error;
     }
   }
 

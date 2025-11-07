@@ -28,4 +28,22 @@ export class ErrorsReportController {
       data: response,
     };
   }
+
+  @Get('programacao')
+  @UseGuards(PermissionGuard)
+  async getWorksWithScheduleError(
+    @Query('idRegional', new ParseIntPipe({ optional: true }))
+    idRegional?: number,
+  ) {
+    const response =
+      await this.errorsReportService.findScheduleError(idRegional);
+
+    console.log(response.length);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Retornados obras com erros na programção',
+      data: response,
+    };
+  }
 }

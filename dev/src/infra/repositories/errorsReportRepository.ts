@@ -1,12 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { IErrorsReportRepository } from 'src/domain/repositories/IErrorsReportRepository';
 import { PrismaService } from '../prisma/prisma.service';
+import {
+  ScheduleErrorResponse,
+  UndefinedItemsResponse,
+} from 'src/interface/types/errorsReportInterface';
 
 @Injectable()
 export class ErrorsReportRepository implements IErrorsReportRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findUndefinedItems(idRegional: number): Promise<any> {
+  async findUndefinedItems(
+    idRegional: number,
+  ): Promise<UndefinedItemsResponse[]> {
     return await this.prisma.obras.findMany({
       select: {
         id: true,
@@ -28,6 +34,28 @@ export class ErrorsReportRepository implements IErrorsReportRepository {
           { id_circuito: 1 },
         ],
       },
+    });
+  }
+
+  async findScheduleError(
+    idRegional: number,
+  ): Promise<ScheduleErrorResponse[]> {
+    return await this.prisma.obras.findMany({
+      select: {
+        id: true,
+        ovnota: true,
+        turmas: { select: { turma: true } },
+        executado: true,
+        programacoes: { select: { prog: true }, where: { exec: null } },
+      },
+      where: {
+        data_conclusao: null,
+        programacoes: {
+          some: { exec: null },
+        },
+        ...(idRegional ? { municipios: { id_regional: idRegional } } : {}),
+      },
+      orderBy: { id: 'asc' },
     });
   }
 }
