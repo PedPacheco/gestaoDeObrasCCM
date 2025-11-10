@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import '@/globals.css';
+import "@/globals.css";
 
-import { UserProvider } from '@/contexts/userContext';
+import { UserProvider } from "@/contexts/userContext";
 
 export const metadata: Metadata = {
   title: "Gestão de obras CCM - São Paulo",

@@ -27,9 +27,10 @@ export function UpdateSuspensionsButton() {
           return;
         }
 
+        localStorage.removeItem("suspensions");
+
         setSuccess("Obras foram suspensas com sucesso!");
         setOpenModal(true);
-        localStorage.removeItem("suspensions");
       } catch (err: any) {
         setError(err.message);
       }
