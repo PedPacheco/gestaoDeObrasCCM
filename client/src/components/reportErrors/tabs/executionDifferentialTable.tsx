@@ -10,16 +10,16 @@ import {
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 
-interface UndefinedItemsTableProps {
-  undefinedItemsData: any[];
+interface ExecutionDifferentialProps {
+  executionDifferentialData: any[];
 }
 
-export function UndefinedItemsTable({
-  undefinedItemsData,
-}: UndefinedItemsTableProps) {
+export function ExecutionDifferentialTable({
+  executionDifferentialData,
+}: ExecutionDifferentialProps) {
   const router = useRouter();
 
-  const columns = ["ovnota", "municipio", "tipo", "circuito", "parceira"];
+  const columns = ["ovnota", "executado", "somaExec"];
 
   return (
     <TableContainer component={Paper}>
@@ -37,7 +37,7 @@ export function UndefinedItemsTable({
           </TableRow>
         </TableHead>
         <TableBody>
-          {undefinedItemsData.map((row, i) => (
+          {executionDifferentialData.map((row, i) => (
             <TableRow key={i} hover>
               {columns.map((column, key) => (
                 <TableCell

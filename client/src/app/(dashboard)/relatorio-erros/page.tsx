@@ -26,7 +26,16 @@ export default async function ErrorsReportPage() {
 
   let params = cookieParams ? JSON.parse(cookieParams) : undefined;
 
-  const [filters, undefinedItemsData, scheduleErrorData] = await Promise.all([
+  const [
+    filters,
+    undefinedItemsData,
+    scheduleErrorData,
+    zeroCapexData,
+    executionDifferentialData,
+    divergentConclusionData,
+    worksWithoutYearPlanData,
+    repeatedWorksData,
+  ] = await Promise.all([
     fetchFilters({
       regional: true,
     }),
@@ -38,6 +47,36 @@ export default async function ErrorsReportPage() {
     ),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/relatorio-erros/programacao`,
+      { ...params?.idRegional },
+      cookieStore.get("token")?.value,
+      { cache: "no-store" }
+    ),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/relatorio-erros/valor-zero`,
+      { ...params?.idRegional },
+      cookieStore.get("token")?.value,
+      { cache: "no-store" }
+    ),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/relatorio-erros/diferenca-executado`,
+      { ...params?.idRegional },
+      cookieStore.get("token")?.value,
+      { cache: "no-store" }
+    ),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/relatorio-erros/conclusao-divergente`,
+      { ...params?.idRegional },
+      cookieStore.get("token")?.value,
+      { cache: "no-store" }
+    ),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/relatorio-erros/ano-plano`,
+      { ...params?.idRegional },
+      cookieStore.get("token")?.value,
+      { cache: "no-store" }
+    ),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/relatorio-erros/obras-repetidas`,
       { ...params?.idRegional },
       cookieStore.get("token")?.value,
       { cache: "no-store" }
@@ -63,19 +102,31 @@ export default async function ErrorsReportPage() {
       id: "valor-zero",
       label: "Valor Orçado Zero",
       icon: "ExclamationTriangleIcon",
-      count: 5,
+      count: zeroCapexData.data.length,
     },
     {
-      id: "diferenca",
+      id: "diferenca-executado",
       label: "Diferença Executado",
       icon: "DocumentIcon",
-      count: 5,
+      count: executionDifferentialData.data.length,
     },
     {
-      id: "conclusao",
+      id: "conclusao-divergente",
       label: "Data Conclusão Divergente",
       icon: "CalendarDateRangeIcon",
-      count: 5,
+      count: divergentConclusionData.data.length,
+    },
+    {
+      id: "ano-plan",
+      label: "Obras sem Ano Plano",
+      icon: "ExclamationTriangleIcon",
+      count: worksWithoutYearPlanData.data.length,
+    },
+    {
+      id: "obras-repetidas",
+      label: "Obras Repetidas",
+      icon: "ExclamationTriangleIcon",
+      count: repeatedWorksData.data.length,
     },
   ];
 
@@ -84,6 +135,11 @@ export default async function ErrorsReportPage() {
       <ErrorDashboard
         undefinedItemsData={data}
         scheduleErrorData={scheduleErrorData.data}
+        zeroCapexData={zeroCapexData.data}
+        executionDifferentialData={executionDifferentialData.data}
+        divergentConclusionData={divergentConclusionData.data}
+        worksWithoutYearPlanData={worksWithoutYearPlanData.data}
+        repeatedWorksData={repeatedWorksData.data}
         regionalValues={filters.regional}
         tabs={tabs}
         token={token}

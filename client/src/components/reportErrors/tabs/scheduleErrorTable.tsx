@@ -28,7 +28,7 @@ export function ScheduleErrorTable({
           <TableRow>
             {columns.map((column, index) => (
               <TableCell
-                className="text-zinc-700 font-semibold text-xl bg-[#53FF75] sticky"
+                className="text-zinc-700 font-semibold text-base lg:text-xl bg-[#53FF75] sticky p-2"
                 key={index}
               >
                 {capitalize(column)}
@@ -41,7 +41,7 @@ export function ScheduleErrorTable({
             <TableRow key={i} hover>
               {columns.map((column, key) => (
                 <TableCell
-                  className="text-base hover:cursor-pointer"
+                  className="text-sm lg:text-base text-nowrap hover:cursor-pointer p-2"
                   key={key}
                   onClick={() => router.push(`/detalhes/${row.id}`)}
                 >

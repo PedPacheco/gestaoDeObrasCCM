@@ -102,7 +102,7 @@ export function MainExecutionCapacity({
           return;
         }
 
-        setTableData(response.data);
+        setTableData(response.data.executionCapacityValues);
       } catch (error: any) {
         setError(error.message);
       }

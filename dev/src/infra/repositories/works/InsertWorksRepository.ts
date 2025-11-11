@@ -44,7 +44,6 @@ export class InsertWorksRepository implements IInsertWorksRepository {
   async insertNotes(works: NoteWorks[]): Promise<void> {
     try {
       const data = works.map((work) => {
-        console.log(work);
         return {
           ovnota: work.obra,
           pep: work.pep,

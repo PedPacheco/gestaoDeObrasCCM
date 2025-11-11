@@ -10,16 +10,23 @@ import {
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 
-interface UndefinedItemsTableProps {
-  undefinedItemsData: any[];
+interface RepeatedWorksTableProps {
+  repeatedWorksData: any[];
 }
 
-export function UndefinedItemsTable({
-  undefinedItemsData,
-}: UndefinedItemsTableProps) {
+export function RepeatedWorksTable({
+  repeatedWorksData,
+}: RepeatedWorksTableProps) {
   const router = useRouter();
 
-  const columns = ["ovnota", "municipio", "tipo", "circuito", "parceira"];
+  const columns = [
+    "ovnota",
+    "diagrama",
+    "ordemDci",
+    "ordemDca",
+    "ordemDcd",
+    "ordemDcim",
+  ];
 
   return (
     <TableContainer component={Paper}>
@@ -37,7 +44,7 @@ export function UndefinedItemsTable({
           </TableRow>
         </TableHead>
         <TableBody>
-          {undefinedItemsData.map((row, i) => (
+          {repeatedWorksData.map((row, i) => (
             <TableRow key={i} hover>
               {columns.map((column, key) => (
                 <TableCell
