@@ -4,11 +4,12 @@ import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import {
   InsertBaseAuxiliaryMarketDTO,
-  InsertBaseAuxiliaryNotesDTO,
-  InsertMarketWorksDTO,
-  InsertNotesDTO,
   NotesDTO,
 } from 'src/interface/dtos/auxiliaryBaseDTO';
+import {
+  InsertMarketWorksDTO,
+  InsertNotesDTO,
+} from 'src/interface/dtos/worksDto';
 
 describe('DTO Validations', () => {
   const expectValid = async (dtoInstance: any) => {
@@ -92,39 +93,6 @@ describe('DTO Validations', () => {
         texto_breve: 'texto',
         grp_plnj_pm: 'gpm',
         denominacao: 'denom',
-      });
-
-      await expectValid(dto);
-    });
-  });
-
-  describe('InsertBaseAuxiliaryNotesDTO', () => {
-    it('should be valid', async () => {
-      const dto = plainToInstance(InsertBaseAuxiliaryNotesDTO, {
-        notesData: {
-          campo_ordenacao: 'campo',
-          pep: 'pep01',
-          ordem_dci: 'ord1',
-          ordem_dcd: 'ord2',
-          ordem_dca: 'ord3',
-          ordem_dcim: 'ord4',
-          conjunto: 'conj1',
-          texto_breve: 'texto',
-          grp_plnj_pm: 'gpm',
-          denominacao: 'denom',
-        },
-        materialData: [
-          {
-            diagrama_rede: 'DR1',
-            ctg_item: 'item1',
-            um_registro: 'un',
-            texto_material: 'material',
-            qtd_necess: 10,
-            preco_mi: 200,
-            material: 'MAT01',
-            def_proj: 'def1',
-          },
-        ],
       });
 
       await expectValid(dto);

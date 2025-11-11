@@ -1,4 +1,3 @@
-import dayjs from "dayjs";
 import { cookies } from "next/headers";
 
 import { fetchData } from "@/actions/fetchData.action";
@@ -44,7 +43,7 @@ export default async function WorksInPortfolio() {
   const { data, token } = worksData;
 
   const filteredStatus = filters.status.filter(
-    (item: { id: number }) => ![1, 2].includes(item.id)
+    (item: { id: number }) => ![2, 3].includes(item.id)
   );
 
   const columnMapping = {
@@ -62,6 +61,7 @@ export default async function WorksInPortfolio() {
     entrada: "Entrada",
     prazo: "Prazo",
     prazo_fim: "Prazo Fim",
+    ano_plan: "Ano do Plano",
     abrev_regional: "Regional",
     tipo_obra: "Tipo",
     qtde_planejada: "Qtde plan",
@@ -95,7 +95,7 @@ export default async function WorksInPortfolio() {
         filtersData={{ ...filters, status: filteredStatus }}
         cookie="portfolioWorksFilters"
         columns={columnMapping}
-        totalValues={21}
+        totalValues={32}
         url="obras-carteira"
       />
     </EmotionCacheProvider>

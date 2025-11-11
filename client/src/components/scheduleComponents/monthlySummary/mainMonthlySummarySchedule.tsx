@@ -47,9 +47,10 @@ export function MainMonthlySummarySchedule({
     useState(dataFirstSummary);
   const [filteredDataSecondSummary, setFilteredDataSecondSummary] =
     useState(dataSecondSummary);
-  const { clearFilters, filters, saveFilters } = useSaveFilters(
-    "monthlySummaryScheduleFilters"
-  );
+  const { clearFilters, filters, saveFilters } = useSaveFilters({
+    pageKey: "monthlySummaryScheduleFilters",
+    data: filtersData,
+  });
   const [error, setError] = useState<string | null>();
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {}

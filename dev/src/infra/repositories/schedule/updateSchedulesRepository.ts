@@ -1,4 +1,7 @@
-import { IUpdateSchedulesRepository } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
+import {
+  IUpdateSchedulesRepository,
+  returnExecution,
+} from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import { Injectable, NotFoundException } from '@nestjs/common';
@@ -28,7 +31,7 @@ export class UpdateSchedulesRepository implements IUpdateSchedulesRepository {
   async findExecutionOfSchedules(
     id: number,
     idWork: number,
-  ): Promise<number[]> {
+  ): Promise<returnExecution[]> {
     try {
       const executed = await this.prisma.programacoes.findMany({
         where: {
@@ -37,10 +40,10 @@ export class UpdateSchedulesRepository implements IUpdateSchedulesRepository {
             not: id,
           },
         },
-        select: { exec: true },
+        select: { exec: true, prog: true },
       });
 
-      return executed.map((p) => p.exec);
+      return executed.map((p) => ({ exec: p.exec, prog: p.prog }));
     } catch (error) {
       if (error.code === 'P2025') {
         throw new NotFoundException(`Agendamento com ID ${id} não encontrado`);

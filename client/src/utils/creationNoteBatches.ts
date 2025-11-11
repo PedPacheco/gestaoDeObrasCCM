@@ -56,6 +56,7 @@ export function createBatches(
 
     ordemFields.forEach((field) => {
       const ordemValue = nota[field];
+
       if (ordemValue && materialMap.has(ordemValue)) {
         relatedMaterials.push(...materialMap.get(ordemValue)!);
       }
@@ -93,13 +94,17 @@ export function groupNoteDate(iw38Data: IW38Item[]): Agrupado[] {
   const mapa = new Map<string, Agrupado>();
 
   for (const item of iw38Data) {
-    const chave = [
+    const chaveBase = [
       item.campo_ordenacao,
       item.conjunto,
       item.denominacao,
       item.grp_plnj_pm,
-      item.texto_breve,
-    ].join("|");
+    ];
+
+    const chave =
+      item.tipo_de_ordem === "DCIM"
+        ? [...chaveBase, "DCIM"].join("|")
+        : chaveBase.join("|");
 
     if (!mapa.has(chave)) {
       mapa.set(chave, {

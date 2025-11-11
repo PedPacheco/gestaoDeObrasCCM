@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { formatDateToInput, formatToHHMM } from "./formatValue";
-import { ExecutionReportData } from "@/components/details/executionReportDialog/executionReportDialog";
+import { ExecutionReportData } from "@/components/details/modals/executionReportDialog/executionReportDialog";
 
 export function Transform(filters: Record<string, string[]>) {
   return Object.fromEntries(
@@ -92,7 +92,6 @@ export function transformExecutionReport(data: any): ExecutionReportData {
     ),
     changesExecution: data.alteracoes_execucao,
     generalObservation: data.observacoes_gerais || "",
-    workSituation: data.situacao_obra,
     reason: data.motivo || "",
     provisionalKeyInstalled: data.chave_provisoria,
     provisionalKeyReference: data.referencia_chave_provisoria || "",

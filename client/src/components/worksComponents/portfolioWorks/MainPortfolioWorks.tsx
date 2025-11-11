@@ -1,20 +1,21 @@
 "use client";
 
-import dayjs from "dayjs";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { Cookies } from "react-cookie";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
 import { TableWithPagination } from "@/components/common/TableWithPagination";
+import { useUser } from "@/contexts/userContext";
+import { FiltersInterface } from "@/interfaces/filtersInterfaces";
+import { FormatCurrency } from "@/utils/formatValue";
 import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import PortfolioWorksFilters from "./PortfolioWorksFilters";
-import { FormatCurrency } from "@/utils/formatValue";
 
 const ErrorModal = dynamic(() => import("@/components/common/ErrorModal"), {
   ssr: false,
@@ -45,11 +46,26 @@ export default function PortfolioWorks({
   url,
 }: MainPortfolioWorksProps) {
   const [filteredData, setFilteredData] = useState(data);
+  const { permissions } = useUser();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>();
   const [page, setPage] = useState(0);
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
+  const [filteredFilters, setFilteredFilters] =
+    useState<FiltersInterface>(filtersData);
+
+  useEffect(() => {
+    if (permissions?.permissao_visualizacao === "parcial") {
+      const { parceira, ...rest } = filtersData;
+
+      const suspensionRemoved = rest.status?.filter(
+        (item: { id: number }) => ![4].includes(item.id)
+      );
+
+      setFilteredFilters({ ...rest, status: suspensionRemoved });
+    }
+  }, [filtersData, permissions?.permissao_visualizacao]);
 
   const toggleModal = () => setOpen((prev) => !prev);
 
@@ -118,11 +134,11 @@ export default function PortfolioWorks({
     <>
       <div className="my-6 w-11/12 flex flex-col items-center">
         <PortfolioWorksFilters
-          data={filtersData}
+          data={filteredFilters}
           url={cookie}
           openModal={toggleModal}
           generateExcel={generateExcel}
-          applyFilters={fetchWorks}
+          searchFilteredData={fetchWorks}
           isPending={isPending}
           setPage={setPage}
         />

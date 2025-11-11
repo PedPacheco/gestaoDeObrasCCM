@@ -56,7 +56,6 @@ export class EmailService {
 
     try {
       await this.transporter.verify();
-      console.log('Transporte está funcionando');
     } catch (error) {
       throw new InternalServerErrorException(
         'Erro de conexão com o transporte:',

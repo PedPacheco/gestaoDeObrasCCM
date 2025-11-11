@@ -7,7 +7,7 @@ export async function fetchData<T>(
   params?: Record<string, string | boolean>,
   token?: string,
   cacheStrategy: { revalidate?: number; cache?: "force-cache" | "no-store" } = {
-    revalidate: 1440,
+    revalidate: 1800,
   }
 ) {
   if (!token) {
@@ -29,8 +29,7 @@ export async function fetchData<T>(
     const json = await res.json();
 
     if (!res.ok) {
-      const errorMessage = json?.message || "Erro ao buscar os dados";
-      return { success: false, message: errorMessage, token };
+      return { success: false, message: "Erro ao buscar os dados", token };
     }
 
     return { success: true, data: json.data ?? json, token };

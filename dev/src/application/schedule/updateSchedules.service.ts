@@ -9,12 +9,22 @@ import { parseTimeToDate } from 'src/utils/parseTimeToDate';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { ScheduleExecutionValidatorService } from './scheduleExecutionValidator.service';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
+import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
+import {
+  IStatusFlowRepository,
+  STATUS_FLOW_REPOSITORY,
+} from 'src/domain/repositories/IStatusFlowRepository';
 
 @Injectable()
 export class UpdateSchedulesService {
   constructor(
     @Inject(UPDATE_SCHEDULES_REPOSITORY)
     private readonly updateSchedulesRepository: IUpdateSchedulesRepository,
+    @Inject(FIND_SCHEDULE_BY_ID_REPOSITORY)
+    private readonly findScheduleByIdRepository: FindScheduleByIdRepository,
+    @Inject(STATUS_FLOW_REPOSITORY)
+    private readonly statusFlowRepository: IStatusFlowRepository,
     private readonly executionValidator: ScheduleExecutionValidatorService,
   ) {}
 
@@ -25,16 +35,20 @@ export class UpdateSchedulesService {
       );
     }
 
-    if (data.exec) {
+    if (data.exec || data.exec === 0) {
       const executionValues =
         await this.updateSchedulesRepository.findExecutionOfSchedules(
           data.id,
           data.idWork,
         );
 
-      const executed = executionValues.reduce((total, item) => {
-        return total + (item || 0);
-      }, 0);
+      const executed = executionValues.reduce(
+        (total, item) => ({
+          exec: total.exec + (item.exec || 0),
+          prog: total.prog + (item.prog || 0),
+        }),
+        { exec: 0, prog: 0 },
+      );
 
       await this.executionValidator.validateExecutionAndUpdateStatus(
         data,
@@ -42,6 +56,9 @@ export class UpdateSchedulesService {
         tx,
       );
     }
+
+    const { reprovada, id_status_programacao } =
+      await this.findScheduleByIdRepository.findById(data.id);
 
     let schedule: Schedule;
 
@@ -51,6 +68,7 @@ export class UpdateSchedulesService {
         startTime: parseTimeToDate(data.startTime),
         finishTime: parseTimeToDate(data.finishTime),
         dataProg: new Date(data.dataProg),
+        reject: reprovada,
       });
     } catch (error) {
       throw new BadRequestException(
@@ -64,6 +82,7 @@ export class UpdateSchedulesService {
       data_prog: schedule.dataProg,
       prog: schedule.prog,
       exec: schedule.exec,
+      observacao_programacao: schedule.observation,
       equip_desligado: schedule.equipment,
       num_dp: schedule.numDp,
       hora_ini: schedule.startTime,
@@ -78,10 +97,20 @@ export class UpdateSchedulesService {
       id_restricao_execucao: schedule.idExecutionRestriction,
       observacao_execucao: schedule.observationExecution,
       id_tecnico: schedule.idTechnical,
+      reprovada: false,
     };
+
+    if (reprovada === true) {
+      formattedData.reprovada = false;
+    }
 
     try {
       await this.updateSchedulesRepository.update(formattedData, tx);
+
+      if (id_status_programacao === 7) {
+        await this.statusFlowRepository.updateScheduleStatus(1, data.id, tx);
+        await this.statusFlowRepository.updateStatusWorks(43, data.idWork, tx);
+      }
 
       return {
         success: true,

@@ -14,10 +14,18 @@ export class UpdateWorkRepository implements IUpdateWorkRepository {
     id: number,
     tx: Prisma.TransactionClient,
   ): Promise<void> {
+    const { id_status, id_turma, tipo_ads, data_empreitamento, observ_obra } =
+      data;
     try {
       await tx.obras.update({
         where: { id },
-        data,
+        data: {
+          id_status,
+          id_turma,
+          tipo_ads,
+          data_empreitamento,
+          observ_obra,
+        },
       });
     } catch (error) {
       this.logger.error('Erro ao editar obra: ', error.stack);

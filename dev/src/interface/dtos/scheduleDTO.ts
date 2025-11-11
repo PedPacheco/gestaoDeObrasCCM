@@ -60,41 +60,41 @@ export class GetScheduleValuesDTO {
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idRegional: number[];
+  idRegional?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idMunicipio: number[];
+  idMunicipio?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idGrupo: number[];
+  idGrupo?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idTipo: number[];
+  idTipo?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idParceira: number[];
+  idParceira?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idStatus: number[];
+  idStatus?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idStatusProgramacao: number[];
+  idStatusProgramacao?: number[];
 
   @IsOptional()
   @IsString()
-  ovnota: string;
+  ovnota?: string;
 
   @IsBoolean()
   @Transform(({ value }) =>
@@ -111,7 +111,7 @@ export class GetScheduleValuesDTO {
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  page: number;
+  page?: number;
 }
 
 export class GetValueWeeklyScheduleDTO {
@@ -179,6 +179,10 @@ export class GetMonthlySummaryDTO {
 }
 
 export class SchedulesDataDTO {
+  @IsNumber()
+  @IsOptional()
+  id?: number;
+
   @IsNumber()
   idWork: number;
 
@@ -291,4 +295,18 @@ export class ConfirmSchedulesDTO {
 
   @IsBoolean()
   confirm: boolean;
+}
+
+export class RejectScheduleDTO {
+  @IsNumber()
+  id: number;
+
+  @IsBoolean()
+  reject: boolean;
+
+  @IsString()
+  reason: string;
+
+  @IsString()
+  description: string;
 }

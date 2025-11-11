@@ -42,7 +42,7 @@ export function InsertMarketWorksButton({
             diagrama: item.diagrama,
             entrada: item.entrada,
             idMunicipio: item.municipio,
-            idTipo: item.tipo_obra,
+            idTipo: item.tipo,
             idCircuito: item.circuito,
             prazoTexto: item.prazoTexto,
             equipeNumPedido: item.referencia,
@@ -66,7 +66,7 @@ export function InsertMarketWorksButton({
             aux_turma: item.parceira,
             aux_circuito: item.circuito,
             aux_tecnico: item.tecnico,
-            anoplan: item.anoplan,
+            anoplan: Number(item.anoplan),
           }));
         }
 
@@ -77,10 +77,11 @@ export function InsertMarketWorksButton({
           return;
         }
 
-        setSuccess(res.message);
-        setOpenModal(true);
         localStorage.removeItem(storageKey);
         cookies.remove(storageKey);
+
+        setSuccess(res.message);
+        setOpenModal(true);
 
         router.refresh();
       } catch (err: any) {

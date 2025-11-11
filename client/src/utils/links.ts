@@ -1,5 +1,6 @@
 export const links = [
   { name: "Tela inicial", href: "/", needPermission: false },
+  { name: "Exportações", href: "/exportacoes", needPermission: true },
   {
     name: "Metas",
     href: null,
@@ -37,11 +38,7 @@ export const links = [
         href: "/entrada/notas",
         needPermission: true,
       },
-      {
-        name: "Importação de empreitamento",
-        href: "/entrada/empreitamento",
-        needPermission: true,
-      },
+
       {
         name: "Entrada por data",
         href: "/entrada/por-data",
@@ -50,6 +47,25 @@ export const links = [
       {
         name: "Lista geral de obras",
         href: "/entrada/lista-geral-obras",
+        needPermission: true,
+      },
+    ],
+  },
+  {
+    name: "Atualizações",
+    needPermission: true,
+    submenu: [
+      { name: "Mercado", href: "/atualizacoes/mercado", needPermission: true },
+      { name: "Notas", href: "/atualizacoes/notas", needPermission: true },
+      { name: "Capex - MO", href: "/atualizacoes/capex", needPermission: true },
+      {
+        name: "Empreitamento",
+        href: "/atualizacoes/empreitamento",
+        needPermission: true,
+      },
+      {
+        name: "Suspensões",
+        href: "/atualizacoes/suspensoes",
         needPermission: true,
       },
     ],
@@ -86,5 +102,15 @@ export const links = [
     name: "Obras executadas",
     href: "/obras-executadas",
     needPermission: false,
+  },
+  {
+    name: "Capacidade de execução",
+    href: "/capacidade-execucao",
+    needPermission: true,
+  },
+  {
+    name: "Relatório de erros",
+    href: "/relatorio-erros",
+    needPermission: true,
   },
 ];

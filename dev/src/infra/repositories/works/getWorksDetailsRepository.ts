@@ -81,6 +81,7 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
             tipo_servico: true,
             prog: true,
             exec: true,
+            observacao_programacao: true,
             equip_desligado: true,
             chi: true,
             num_dp: true,
@@ -93,6 +94,7 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
             nome_responsavel_execucao: true,
             confirmada: true,
             validada: true,
+            reprovada: true,
             status_programacao: {
               select: { status_programacao: true },
             },

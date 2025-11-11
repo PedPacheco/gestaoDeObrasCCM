@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useState } from "react";
 
-import { FormControl, MenuItem } from "@mui/material";
+import { FormControl, MenuItem, Tooltip } from "@mui/material";
 import Select from "@mui/material/Select";
 
 export interface SelectProps {
@@ -13,6 +13,7 @@ export interface SelectProps {
   valueKey?: string | number;
   displayKey?: string | number;
   disabled?: boolean;
+  editButton?: ReactNode;
 }
 
 type SelectItem = string | number;
@@ -25,6 +26,7 @@ export function SelectComponent({
   valueKey,
   displayKey,
   disabled,
+  editButton,
 }: SelectProps) {
   const [mounted, setMounted] = useState(false);
 
@@ -34,18 +36,18 @@ export function SelectComponent({
 
   return (
     <div
-      className={`flex items-center justify-between mb-3 max-w-96 w-[342px] h-10 border border-zinc-700 border-solid rounded-md ${
+      className={`flex items-center justify-between mb-3 max-w-96 w-[342px] xl:w-full xl:max-w-[90%] h-12 border border-zinc-700 border-solid rounded-md ${
         !disabled && mounted ? "" : "bg-zinc-200"
       }`}
     >
       {label && (
-        <p className="h-full flex items-center justify-start font-semibold w-40 p-2 text-center border-r border-zinc-700 border-solid">
+        <p className="h-full w-40 flex items-center justify-start font-semibold p-2 text-center xl:text-lg border-r border-zinc-700 border-solid">
           {label}
         </p>
       )}
 
       <FormControl
-        className="flex-1 h-full min-w-32 lg:min-w-36 justify-center"
+        className="flex-1  h-full min-w-36 justify-center"
         size="small"
       >
         <Select
@@ -64,7 +66,7 @@ export function SelectComponent({
               },
           }}
           inputProps={{
-            className: `text-center text-sm p-2 pr-0 ${
+            className: `text-center text-sm xl:text-xl p-2 pr-0 ${
               !disabled && mounted ? "" : "text-black"
             }`,
           }}
@@ -92,6 +94,11 @@ export function SelectComponent({
           })}
         </Select>
       </FormControl>
+      {editButton && (
+        <Tooltip title="Clique para alterar o motivo da suspensão">
+          <span>{editButton}</span>
+        </Tooltip>
+      )}
     </div>
   );
 }

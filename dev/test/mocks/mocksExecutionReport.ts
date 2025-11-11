@@ -1,4 +1,4 @@
-import { UpdateExecutionReportDTO } from 'src/interface/dtos/executionReportDTO';
+import { ExecutionReportDataDTO } from 'src/interface/dtos/executionReportDTO';
 
 export const mockExecutionReportService = {
   idSchedule: 1,
@@ -24,14 +24,14 @@ export const mockExecutionReportService = {
   equipmentRemoved: [],
   changesExecution: false,
   generalObservation: '',
-  workSituation: '',
   reason: '',
   provisionalKeyInstalled: false,
   provisionalKeyReference: '',
   provisionalKeyWithdrawn: false,
+  provisionalKeyReferenceWithdrawn: '',
 };
 
-export const mockUpdateExecutionReportDTO: UpdateExecutionReportDTO = {
+export const mockUpdateExecutionReportDTO: ExecutionReportDataDTO = {
   idUser: 1,
   supervisor: 'João Silva',
   partialConnectionReleased: true,
@@ -59,11 +59,11 @@ export const mockUpdateExecutionReportDTO: UpdateExecutionReportDTO = {
   equipmentRemoved: [],
   changesExecution: false,
   generalObservation: 'Execução dentro do esperado, sem intercorrências.',
-  workSituation: 'Executado com sucesso',
   reason: 'Instalação programada',
   provisionalKeyInstalled: true,
   provisionalKeyReference: 'CHV123456',
   provisionalKeyWithdrawn: false,
+  provisionalKeyReferenceWithdrawn: null,
 };
 
 export const mockExecutionReportPersistenceObject = {
@@ -90,11 +90,11 @@ export const mockExecutionReportPersistenceObject = {
   instalacao_equipamento_retirado: '',
   alteracoes_execucao: false,
   observacoes_gerais: 'Execução dentro do esperado, sem intercorrências.',
-  situacao_obra: 'Executado com sucesso',
   referencia_chave_provisoria: 'CHV123456',
   chave_provisoria_retirada: false,
   motivo: 'Instalação programada',
   chave_provisoria_instalada: true,
+  referencia_chave_provisoria_retirada: null,
 };
 
 export const mockExecutionReportServiceWithErrorEquipmentInstalled = {
@@ -102,6 +102,13 @@ export const mockExecutionReportServiceWithErrorEquipmentInstalled = {
   hasEquipmentInstalled: true,
   appliedEquipment: [],
 };
+
+export const mockExecutionReportServiceWithErrorProvisionalKeyReferenceWithdrawn =
+  {
+    ...mockExecutionReportService,
+    provisionalKeyWithdrawn: true,
+    provisionalKeyReferenceWithdrawn: null,
+  };
 
 export const mockExecutionReportServiceWithErrorEquipmentRemoved = {
   ...mockExecutionReportService,
@@ -131,11 +138,11 @@ export const mockExecutionReportRepository = {
   equipamentos_retirados: '',
   alteracoes_execucao: false,
   observacoes_gerais: '',
-  situacao_obra: '',
   motivo: '',
   chave_provisoria_instalada: false,
   referencia_chave_provisoria: '',
   chave_provisoria_retirada: false,
+  referencia_chave_provisoria_retirada: '',
   potencia_equipamento_aplicado: '50',
   patrimonio_equipamento_aplicado: '432534',
   instalacao_equipamento_aplicado: '23543',

@@ -15,10 +15,12 @@ import {
 
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import {
-  InsertBaseAuxiliaryMarketArrayDTO,
-  InsertBaseAuxiliaryNotesDTO,
+  InsertBaseAuxiliaryMarketDTO,
+  NotesDTO,
 } from '../dtos/auxiliaryBaseDTO';
-import { AuxiliaryBaseService } from 'src/application/auxiliaryBase.service';
+import { AuxiliaryBaseService } from 'src/application/auxiliaryBase/auxiliaryBase.service';
+import { OperationType } from '../types/baseAuxiliaryInterface';
+import { MaterialCapexDTO } from '../dtos/materialDTO';
 
 @Controller('base-auxiliar')
 export class AuxiliaryBaseController {
@@ -51,10 +53,16 @@ export class AuxiliaryBaseController {
   @Post('notas')
   @UseGuards(PermissionGuard)
   async InsertAuxiliaryBaseNotes(
-    @Body() notesParameters: InsertBaseAuxiliaryNotesDTO[],
+    @Body()
+    body: {
+      data: NotesDTO[];
+      operation: OperationType;
+    },
   ) {
-    const res =
-      await this.auxiliaryBaseService.insertAuxiliaryBaseNotes(notesParameters);
+    const res = await this.auxiliaryBaseService.insertAuxiliaryBaseNotes(
+      body.data,
+      body.operation,
+    );
 
     return {
       statusCode: HttpStatus.CREATED,
@@ -63,13 +71,30 @@ export class AuxiliaryBaseController {
     };
   }
 
+  @Post('capex')
+  @UseGuards(PermissionGuard)
+  async InsertAuxiliaryBaseCapex(@Body() data: MaterialCapexDTO[]) {
+    const res = await this.auxiliaryBaseService.insertAuxiliaryBaseCapex(data);
+
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'Materiais importados com sucesso',
+      res,
+    };
+  }
+
   @Post('mercado')
   @UseGuards(PermissionGuard)
   async InsertAuxiliaryBaseMarket(
-    @Body() marketParameters: InsertBaseAuxiliaryMarketArrayDTO,
+    @Body()
+    body: {
+      data: InsertBaseAuxiliaryMarketDTO[];
+      operation: OperationType;
+    },
   ) {
     await this.auxiliaryBaseService.insertAuxiliaryBaseMarket(
-      marketParameters.data,
+      body.data,
+      body.operation,
     );
 
     return {
@@ -89,10 +114,32 @@ export class AuxiliaryBaseController {
     };
   }
 
+  @Delete('mercado')
+  @UseGuards(PermissionGuard)
+  async DeleteAuxiliaryBaseMarketWithoutId() {
+    await this.auxiliaryBaseService.delete('baseOv', undefined);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Obra removida com sucesso',
+    };
+  }
+
   @Delete('notas/:id')
   @UseGuards(PermissionGuard)
   async DeleteAuxiliaryBaseNotes(@Param('id', ParseIntPipe) id: number) {
     await this.auxiliaryBaseService.delete('baseNotes', id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Nota removida com sucesso',
+    };
+  }
+
+  @Delete('notas/')
+  @UseGuards(PermissionGuard)
+  async DeleteAuxiliaryBaseNotesWithoutId() {
+    await this.auxiliaryBaseService.delete('baseNotes', undefined);
 
     return {
       statusCode: HttpStatus.OK,

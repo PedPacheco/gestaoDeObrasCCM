@@ -25,17 +25,31 @@ import { UpdateWorkRepository } from 'src/infra/repositories/works/updateWorkRep
 
 import { forwardRef, Module } from '@nestjs/common';
 
-import { WorksController } from '../controllers/works.controller';
+import { WorksController } from '../controllers/works/works.controller';
 import { AuxiliaryBaseModule } from './auxiliaryBase.module';
 import { UsersModule } from './users.module';
 import { HandleWorkUpdateService } from 'src/application/orchestrators/handleWorkUpdate.service';
 import { ContractUpdateService } from 'src/application/works/contractUpdate.service';
-import { CONTRACT_UPDATE_REPOSITORY } from 'src/domain/repositories/works/IContractUpdateService';
 import { ContractUpdateRepository } from 'src/infra/repositories/works/contractUpdateRepository';
+import { UpdateOvService } from 'src/application/works/updateOv.service';
+import { UPDATE_OV_REPOSITORY } from 'src/domain/repositories/works/IUpdateOvRepository';
+import { UpdateOvRepository } from 'src/infra/repositories/works/updateOvRepository';
+import { UpdateNoteService } from 'src/application/works/updateNote.service';
+import { UPDATE_NOTE_REPOSITORY } from 'src/domain/repositories/works/IUpdateNoteRepository';
+import { UpdateNoteRepository } from 'src/infra/repositories/works/updateNoteRepository';
+import { WorksUpdateController } from '../controllers/works/worksUpdate.controller';
+import { WorksInsertController } from '../controllers/works/worksInsert.controller';
+import { UpdateCapexService } from 'src/application/works/updateCapex.service';
+import { UpdateCapexRepository } from 'src/infra/repositories/works/UpdateCapexRepository';
+import { UPDATE_CAPEX_REPOSITORY } from 'src/domain/repositories/works/IUpdateCapexRepository';
+import { CONTRACT_UPDATE_REPOSITORY } from 'src/domain/repositories/works/IContractUpdateRepository';
+import { SuspensionWorkService } from 'src/application/works/suspensionWork.service';
+import { SUSPENSION_WORK_REPOSITORY } from 'src/domain/repositories/works/ISuspensionWorkRepository';
+import { SuspensionWorkRepository } from 'src/infra/repositories/works/suspensionWorkRepository';
 
 @Module({
   imports: [CacheModule, UsersModule, forwardRef(() => AuxiliaryBaseModule)],
-  controllers: [WorksController],
+  controllers: [WorksController, WorksUpdateController, WorksInsertController],
   providers: [
     FindExistingWorksService,
     GetWorksInPortfolioService,
@@ -46,7 +60,15 @@ import { ContractUpdateRepository } from 'src/infra/repositories/works/contractU
     UpdateWorkService,
     HandleWorkUpdateService,
     ContractUpdateService,
+    UpdateOvService,
+    UpdateNoteService,
+    UpdateCapexService,
+    SuspensionWorkService,
     { provide: CONTRACT_UPDATE_REPOSITORY, useClass: ContractUpdateRepository },
+    { provide: UPDATE_OV_REPOSITORY, useClass: UpdateOvRepository },
+    { provide: UPDATE_NOTE_REPOSITORY, useClass: UpdateNoteRepository },
+    { provide: UPDATE_CAPEX_REPOSITORY, useClass: UpdateCapexRepository },
+    { provide: UPDATE_WORK_REPOSITORY, useClass: UpdateWorkRepository },
     { provide: GET_ALL_WORKS_REPOSITORY, useClass: GetAllWorksRepository },
     {
       provide: GET_COMPLETED_WORKS_REPOSITORY,
@@ -64,12 +86,12 @@ import { ContractUpdateRepository } from 'src/infra/repositories/works/contractU
       provide: INSERT_WORKS_REPOSITORY,
       useClass: InsertWorksRepository,
     },
-    { provide: UPDATE_WORK_REPOSITORY, useClass: UpdateWorkRepository },
     {
       provide: FIND_EXISITING_WORKS_REPOSITORY,
       useClass: FindExistingWorksRepository,
     },
     { provide: STATUS_FLOW_REPOSITORY, useClass: StatusFlowRepository },
+    { provide: SUSPENSION_WORK_REPOSITORY, useClass: SuspensionWorkRepository },
   ],
   exports: [
     GetWorksInPortfolioService,

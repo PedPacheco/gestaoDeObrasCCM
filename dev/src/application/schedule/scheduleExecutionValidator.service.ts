@@ -4,6 +4,7 @@ import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/repositories/IStatusFlowRepository';
+import { returnExecution } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
 
 interface ScheduleExecutionValidatorInterface {
   id: number;
@@ -22,28 +23,40 @@ export class ScheduleExecutionValidatorService {
 
   async validateExecutionAndUpdateStatus(
     data: ScheduleExecutionValidatorInterface,
-    totalExecuted: number,
+    totalExecuted: returnExecution,
     tx: Prisma.TransactionClient,
   ) {
-    if (totalExecuted + data.exec > 100) {
+    if (totalExecuted.exec + data.exec > 100) {
       throw new BadRequestException(
         'O valor da execução da obra não pode ser superior a 100',
       );
     }
 
-    if (data.prog === data.exec) {
+    if (data.prog <= data.exec) {
       await this.statusFlowRepository.updateScheduleStatus(4, data.id, tx);
 
-      if (totalExecuted + data.exec < 100) {
-        await this.statusFlowRepository.updateStatusWorks(37, data.idWork, tx, {
-          totalExecuted: totalExecuted + data.exec,
+      if (totalExecuted.exec + data.exec < 100) {
+        if (totalExecuted.prog + totalExecuted.exec + data.exec === 100) {
+          await this.statusFlowRepository.updateStatusWorks(
+            35,
+            data.idWork,
+            tx,
+            {
+              totalExecuted: totalExecuted.exec + data.exec,
+            },
+          );
+          return;
+        }
+
+        await this.statusFlowRepository.updateStatusWorks(36, data.idWork, tx, {
+          totalExecuted: totalExecuted.exec + data.exec,
         });
       }
 
-      if (totalExecuted + data.exec === 100) {
+      if (totalExecuted.exec + data.exec === 100) {
         await this.statusFlowRepository.updateStatusWorks(2, data.idWork, tx, {
           data_conclusao: data.dataProg,
-          totalExecuted: totalExecuted + data.exec,
+          totalExecuted: totalExecuted.exec + data.exec,
         });
       }
     }
@@ -56,7 +69,7 @@ export class ScheduleExecutionValidatorService {
     if (data.exec > 0 && data.prog > data.exec) {
       await this.statusFlowRepository.updateScheduleStatus(6, data.id, tx);
       await this.statusFlowRepository.updateStatusWorks(36, data.idWork, tx, {
-        totalExecuted: totalExecuted + data.exec,
+        totalExecuted: totalExecuted.exec + data.exec,
       });
     }
   }

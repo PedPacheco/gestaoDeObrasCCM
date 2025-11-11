@@ -1,13 +1,5 @@
-import { Transform, Type } from 'class-transformer';
-import {
-  IsArray,
-  IsDate,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsDate, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class InsertBaseAuxiliaryMarketDTO {
   @IsString()
@@ -63,65 +55,6 @@ export class InsertBaseAuxiliaryMarketDTO {
   moEmpresa: number;
 }
 
-export class InsertBaseAuxiliaryMarketArrayDTO {
-  @ValidateNested({ each: true })
-  @Type(() => InsertBaseAuxiliaryMarketDTO)
-  @IsArray()
-  data: InsertBaseAuxiliaryMarketDTO[];
-}
-
-export class InsertMarketWorksDTO {
-  @IsString()
-  @IsNotEmpty()
-  obra: string;
-
-  @IsString()
-  pep: string;
-
-  @IsString()
-  diagrama: string;
-
-  @IsDate()
-  @Type(() => Date)
-  entrada: Date;
-
-  @IsNumber()
-  idMunicipio: number;
-
-  @IsNumber()
-  idTipo: number;
-
-  @IsNumber()
-  idCircuito: number;
-
-  @IsString()
-  prazoTexto: string;
-
-  @IsNumber()
-  statusOv: number;
-
-  @IsString()
-  statusDiagrama: string;
-
-  @IsString()
-  statusPep: string;
-
-  @IsString()
-  equipeNumPedido: string;
-
-  @IsNumber()
-  moCliente: number;
-
-  @IsNumber()
-  moEmpresa: number;
-
-  @IsString()
-  observacao: string;
-
-  @IsNumber()
-  idParceira: number;
-}
-
 export class NotesDTO {
   @IsString()
   campo_ordenacao: string;
@@ -152,84 +85,4 @@ export class NotesDTO {
 
   @IsString()
   denominacao: string;
-}
-
-class MaterialDTO {
-  @IsString()
-  diagrama_rede: string;
-
-  @IsString()
-  ctg_item: string;
-
-  @IsString()
-  um_registro: string;
-
-  @IsString()
-  texto_material: string;
-
-  @IsNumber()
-  qtd_necess: number;
-
-  @IsNumber()
-  preco_mi: number;
-
-  @IsString()
-  material: string;
-
-  @IsString()
-  def_proj: string;
-}
-
-export class InsertBaseAuxiliaryNotesDTO {
-  @ValidateNested({ each: true })
-  @Type(() => NotesDTO)
-  notesData: NotesDTO;
-
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => MaterialDTO)
-  materialData: MaterialDTO[];
-}
-
-export class InsertNotesDTO {
-  @IsNotEmpty()
-  @IsString()
-  obra: string;
-
-  @IsDate()
-  entrada: Date;
-
-  @IsString()
-  prazo: string;
-
-  @IsString()
-  referencia: string;
-
-  @IsNotEmpty()
-  @IsNumber()
-  aux_gpm: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  aux_empreendimento: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  aux_tipo: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  aux_turma: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  aux_circuito: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  aux_tecnico: number;
-
-  @IsNumber()
-  anoplan: number;
 }

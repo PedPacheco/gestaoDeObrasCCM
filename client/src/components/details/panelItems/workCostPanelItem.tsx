@@ -3,7 +3,7 @@ import DataItem from "../workDetails/dataItem";
 
 export default function WorkCostPanelItem({ data }: Record<string, any>) {
   return (
-    <div className="flex flex-col max-h-[320px] overflow-y-auto w-full py-8 xl:flex-row xl:justify-around">
+    <div className="flex flex-col overflow-y-auto w-full h-full py-8 xl:flex-row xl:justify-around">
       <div className="flex flex-col items-center">
         <p className="text-lg mb-4 font-semibold text-center w-full">
           Valores de CAPEX

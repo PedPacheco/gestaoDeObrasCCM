@@ -104,7 +104,10 @@ export function TableMarketWorks({
               {columns[month as keyof typeof columns]}
             </TableCell>
           ))}
-        <TableCell className="py-1 px-2 text-center text-zinc-700 text-nowrap font-semibold text-xl bg-[#53FF75] min-w-28" />
+        <TableCell className="py-1 px-2 text-center text-zinc-700 text-nowrap font-semibold text-xl bg-[#53FF75] w-16">
+          Ano do Plano
+        </TableCell>
+        <TableCell className="py-1 px-2 text-center text-zinc-700 text-nowrap font-semibold text-xl bg-[#53FF75] w-12" />
       </TableRow>
     );
   }
@@ -183,7 +186,12 @@ export function TableMarketWorks({
               }
             }
 
-            if (column === "moPlanejada" || column === "mo_plan") {
+            if (
+              column === "moPlanejada" ||
+              column === "mo_plan" ||
+              column === "moEmpresa" ||
+              column === "moCliente"
+            ) {
               value = FormatCurrency(value);
             }
 
@@ -204,12 +212,20 @@ export function TableMarketWorks({
             return (
               <TableCell
                 key={column}
-                className="py-1 px-2 text-center text-base text-nowrap min-w-28 hover:cursor-pointer"
+                className="py-1 px-2 text-center text-base text-nowrap min-w-28"
               >
                 {value}
               </TableCell>
             );
           })}
+        <TableCell className="py-1 px-2 text-center text-base text-nowrap">
+          <input
+            type="number"
+            value={item.anoplan || ""}
+            onChange={(e) => onUpdate(item.id, "anoplan", e.target.value)}
+            className="w-full text-center text-base text-nowrap bg-transparent focus:outline-none"
+          />
+        </TableCell>
         <TableCell className="py-1 px-2 text-center text-lg">
           <DeleteButton storageKey={storageKey} id={item.id} />
         </TableCell>

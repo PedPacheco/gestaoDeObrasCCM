@@ -14,20 +14,16 @@ interface InsertResult {
   skippedNotes?: string[];
 }
 
-function buildRequestData(
-  data: unknown[] | NotesInterface,
-  storageKey: string
-) {
-  return storageKey === "marketEntryData" ? { data } : data;
-}
-
 function buildEndpoint(storageKey: string): string {
-  return storageKey === "marketEntryData" ? "mercado" : "notas";
+  return storageKey === "marketEntryData" || storageKey === "marketUpdatesData"
+    ? "mercado"
+    : "notas";
 }
 
 export async function InsertAuxiliaryBaseMarket(
   data: unknown[] | NotesInterface,
-  storageKey: string
+  storageKey: string,
+  operation: string
 ): Promise<InsertResult> {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
@@ -36,7 +32,6 @@ export async function InsertAuxiliaryBaseMarket(
     return { success: false, message: "Token de autenticação não encontrado" };
   }
 
-  const requestData = buildRequestData(data, storageKey);
   const endpoint = buildEndpoint(storageKey);
 
   try {
@@ -48,7 +43,10 @@ export async function InsertAuxiliaryBaseMarket(
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(requestData),
+        body: JSON.stringify({
+          data: data,
+          operation: operation ?? undefined,
+        }),
       }
     );
 
@@ -71,5 +69,37 @@ export async function InsertAuxiliaryBaseMarket(
     const errorMessage =
       err instanceof Error ? err.message : "Erro desconhecido";
     return { success: false, message: errorMessage };
+  }
+}
+
+export async function InsertCapex(data: any) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  try {
+    const result = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/capex`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    const res = await result.json();
+
+    if (res.statusCode !== 200) {
+      return {
+        success: false,
+        error: res.message || "Erro ao atualizar capex",
+      };
+    }
+
+    return { success: true, message: res.message };
+  } catch (error: any) {
+    return { success: false, message: error.message };
   }
 }

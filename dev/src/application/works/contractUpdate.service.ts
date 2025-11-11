@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   CONTRACT_UPDATE_REPOSITORY,
   IContractUpdateRepository,
-} from 'src/domain/repositories/works/IContractUpdateService';
+} from 'src/domain/repositories/works/IContractUpdateRepository';
 import { ContractUpdateDTO } from 'src/interface/dtos/worksDto';
 
 @Injectable()

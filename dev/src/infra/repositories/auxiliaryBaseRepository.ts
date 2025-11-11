@@ -1,10 +1,13 @@
-import { DataAuxiliaryNotes } from 'src/application/auxiliaryBase.service';
 import { MarketWork } from 'src/domain/entities/works.entity';
 import { IAuxiliaryBaseRepository } from 'src/domain/repositories/IAuxiliaryBaseRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { InsertBaseAuxiliaryMarketDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
+import {
+  InsertBaseAuxiliaryMarketDTO,
+  NotesDTO,
+} from 'src/interface/dtos/auxiliaryBaseDTO';
 
 import { Injectable, Logger } from '@nestjs/common';
+import { GetAuxiliaryBaseMaterialsInterface } from 'src/interface/types/works/capexInterface';
 
 @Injectable()
 export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
@@ -64,28 +67,59 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
       },
     });
 
-    return response.map(
-      (work) =>
-        new MarketWork(
-          work.obra,
-          work.pep,
-          new Date(work.entrada),
-          work.prazo_texto,
-          work.equip_num_pedido,
-          work.aux_municipio,
-          work.aux_tipo_obra,
-          work.aux_turma,
-          work.aux_circuito,
-          work.diagrama,
-          work.observacao,
-          work.status_ov,
-          work.status_diagrama,
-          work.status_pep,
-          work.mo_cliente,
-          work.mo_empresa,
-          Number(work.id),
-        ),
+    return response.map((work) =>
+      MarketWork.create({
+        obra: work.obra,
+        pep: work.pep,
+        entrada: work.entrada,
+        prazoTexto: work.prazo_texto,
+        equipeNumPedido: work.equip_num_pedido,
+        idMunicipio: work.aux_municipio,
+        idTipo: work.aux_tipo_obra,
+        idParceira: work.aux_turma,
+        idCircuito: work.aux_circuito,
+        diagrama: work.diagrama,
+        observacao: work.observacao,
+        statusOv: work.status_ov,
+        statusDiagrama: work.status_diagrama,
+        statusPep: work.status_pep,
+        moCliente: work.mo_cliente,
+        moEmpresa: work.mo_empresa,
+        id: Number(work.id),
+      }),
     );
+  }
+
+  async getAuxiliaryBaseCN52N(): Promise<GetAuxiliaryBaseMaterialsInterface[]> {
+    const result = await this.prisma.$queryRawUnsafe<
+      GetAuxiliaryBaseMaterialsInterface[]
+    >(`
+      SELECT 
+        obras.ovnota,
+        CASE
+          WHEN obras.diagrama IS NOT NULL THEN obras.diagrama
+          WHEN obras.ordem_dci IS NOT NULL THEN obras.ordem_dci
+          ELSE obras.ordem_dcim
+		    END AS ordem_diagrama,
+        cn52n.diagrama_rede,
+        cn52n.def_proj,
+        cn52n.material,
+        cn52n.cti,
+        cn52n.preco,
+        cn52n.qtd_necessaria,
+        cn52n.qtd_retirada,
+        cn52n.qtd_falta,
+        cn52n.reserva AS reserva
+      FROM cn52n
+      LEFT JOIN obras
+        ON cn52n.diagrama_rede = obras.ordem_dci
+        OR cn52n.diagrama_rede = obras.ordem_dcd
+        OR cn52n.diagrama_rede = obras.ordem_dca
+        OR cn52n.diagrama_rede = obras.ordem_dcim
+        OR cn52n.diagrama_rede = CAST(COALESCE(obras.diagrama, '') AS TEXT)
+    `);
+
+    return result;
   }
 
   async getFator(
@@ -106,13 +140,20 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     return fatorMap;
   }
 
-  async delete(tableToDelete: string, id: number): Promise<any> {
+  async delete(tableToDelete: string, id?: number): Promise<any> {
     try {
       if (tableToDelete === 'baseOv') {
-        return await this.prisma.base_auxiliar_ov.delete({ where: { id } });
+        if (id) {
+          return await this.prisma.base_auxiliar_ov.delete({ where: { id } });
+        }
+        return await this.prisma.base_auxiliar_ov.deleteMany();
       }
 
-      return await this.prisma.base_auxiliar.delete({ where: { id } });
+      if (id) {
+        return await this.prisma.base_auxiliar.delete({ where: { id } });
+      } else {
+        return await this.prisma.base_auxiliar.deleteMany();
+      }
     } catch (error) {
       this.logger.error('Erro ao excluir obra: ', error.stack);
       throw error;
@@ -148,7 +189,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
           tipo: item.tipo,
           circuito: item.circuito,
           prazo_texto: item.prazoTexto,
-          status_ov: item.statusOv,
+          status_ov: Number(item.statusOv),
           status_diagrama: item.statusDiagrama,
           status_pep: item.statusPep,
           equip_num_pedido: item.equipeNumPedido,
@@ -177,17 +218,12 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
 
   private formatValue(value: string | number | null | undefined): string {
     if (value === null || value === undefined) return 'NULL';
-    if (typeof value === 'number') return value.toString();
     return `'${value}'`;
   }
 
-  async insertNotes(data: DataAuxiliaryNotes): Promise<any> {
+  async insertNotes(data: NotesDTO[]): Promise<any> {
     try {
-      const formattedPayload = data.notesData.map((d) => {
-        const valores = data.calculatedValues.find(
-          (item) => item.diagrama_rede === d.campo_ordenacao,
-        );
-
+      const formattedPayload = data.map((d) => {
         return `(
           ${this.formatValue(d.campo_ordenacao)},
           ${this.formatValue(d.pep)},
@@ -198,10 +234,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
           ${this.formatValue(d.conjunto)},
           ${this.formatValue(d.grp_plnj_pm)},
           ${this.formatValue(d.texto_breve)},
-          ${this.formatValue(d.denominacao)},
-          ${this.formatValue(valores?.mo_calc ?? 0)},
-          ${this.formatValue(valores?.qtde_calc ?? 0)},
-          ${this.formatValue(valores?.capex_mat_calc ?? 0)}
+          ${this.formatValue(d.denominacao)}
         )`;
       });
 
@@ -212,6 +245,16 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
       );
 
       return { message: 'Dados inseridos com sucesso' };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async insertCapex(data: any[]): Promise<void> {
+    try {
+      await this.prisma.cn52n.createMany({
+        data: data,
+      });
     } catch (error) {
       throw error;
     }

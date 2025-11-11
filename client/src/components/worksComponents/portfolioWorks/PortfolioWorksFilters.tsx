@@ -1,38 +1,26 @@
 "use client";
 
-import dayjs, { Dayjs } from "dayjs";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
-import { DateFilter } from "@/components/common/DateFilter";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-
-import { Transform } from "@/utils/transform";
-import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
-import { getButtonContent } from "@/utils/getButtonContent";
+import { FiltersInterface } from "@/interfaces/filtersInterfaces";
 import { capitalize } from "@/utils/formatValue";
-import { TextField } from "@mui/material";
-
-interface filters {
-  regional: { id: string; regional: string }[];
-  parceira: { id: string; turma: string }[];
-  tipo: { id: string; tipo_obra: string; id_grupo: number }[];
-  municipio: { id: string; municipio: string }[];
-  grupo: { id: string; grupo: string }[];
-  status: { id: string; status: string }[];
-  statusSap: { id: string; codigo_sap: string }[];
-  circuito: { id: string; circuito: string }[];
-  empreendimento: { id: string; empreendimento: string }[];
-  conjunto: { id: string; conjunto: string }[];
-}
+import { getButtonContent } from "@/utils/getButtonContent";
+import { Transform } from "@/utils/transform";
+import {
+  DocumentArrowDownIcon,
+  MagnifyingGlassCircleIcon,
+} from "@heroicons/react/20/solid";
+import { InputAdornment, TextField } from "@mui/material";
 
 interface PortfolioWorksFiltersProps {
-  data: filters;
+  data: FiltersInterface;
   url: string;
   openModal: () => void;
   generateExcel: (params: any) => {};
-  applyFilters: (params: Record<string, string | boolean>) => void;
+  searchFilteredData: (params: Record<string, string | boolean>) => void;
   isPending: boolean;
   setPage: (page: number) => void;
 }
@@ -42,11 +30,39 @@ export default function PortfolioWorksFilters({
   url,
   generateExcel,
   openModal,
-  applyFilters,
+  searchFilteredData,
   isPending,
   setPage,
 }: PortfolioWorksFiltersProps) {
-  const { clearFilters, filters, saveFilters } = useSaveFilters(url);
+  const applyFilters = useCallback((data: FiltersInterface, filters: any) => {
+    let newData = { ...data };
+
+    if (filters?.idGrupo) {
+      const idGrupos = filters.idGrupo.map(Number);
+      newData.tipo = data.tipo?.filter((item) =>
+        idGrupos.includes(item.id_grupo)
+      );
+      newData.empreendimento = data.empreendimento?.filter((item) =>
+        idGrupos.includes(item.id_grupo)
+      );
+    }
+
+    if (filters?.idRegional) {
+      const idRegionais = filters.idRegional.map(Number);
+      newData.empreendimento = data.empreendimento?.filter((item) =>
+        idRegionais.includes(item.id_regional)
+      );
+    }
+
+    return newData;
+  }, []);
+
+  const { clearFilters, filters, saveFilters, filteredData } = useSaveFilters({
+    pageKey: url,
+    data,
+    applyFilters,
+  });
+
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {}
   );
@@ -69,7 +85,7 @@ export default function PortfolioWorksFilters({
     };
 
     setPage(0);
-    applyFilters(params);
+    searchFilteredData(params);
   }
 
   function handleCleanigFilters() {
@@ -80,7 +96,7 @@ export default function PortfolioWorksFilters({
 
     setPage(0);
 
-    applyFilters({ page: "0" });
+    searchFilteredData({ page: "0" });
   }
 
   function handleGenerateExcel() {
@@ -94,7 +110,7 @@ export default function PortfolioWorksFilters({
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 w-full">
-        {Object.entries(data).map(([key, value], index) => {
+        {Object.entries(filteredData).map(([key, value], index) => {
           const valueKey = Object.keys(value[0])[0];
           const displayKey = Object.keys(value[0])[1];
 
@@ -127,6 +143,13 @@ export default function PortfolioWorksFilters({
             label="Ov/nota"
             value={ovnota}
             onChange={(event) => setOvnota(event.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <MagnifyingGlassCircleIcon height={16} width={16} />
+                </InputAdornment>
+              ),
+            }}
           />
         </div>
       </div>

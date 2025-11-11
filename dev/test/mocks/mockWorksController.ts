@@ -1,7 +1,8 @@
 import {
   InsertMarketWorksDTO,
   InsertNotesDTO,
-} from 'src/interface/dtos/auxiliaryBaseDTO';
+  UpdateNotesDTO,
+} from 'src/interface/dtos/worksDto';
 import { worksInPortfolioResponseService } from 'src/interface/types/works/getWorksInPortfolioInterface';
 
 export const mockMarketWorks: InsertMarketWorksDTO[] = [
@@ -13,15 +14,14 @@ export const mockMarketWorks: InsertMarketWorksDTO[] = [
     idMunicipio: 1,
     idTipo: 2,
     idCircuito: 3,
-    prazoTexto: '30 dias',
+    prazoTexto: 'Execução em 30 dias',
     statusOv: 1,
     statusDiagrama: 'Aprovado',
     statusPep: 'Validado',
     equipeNumPedido: 'EQP-123',
     moCliente: 5000,
     moEmpresa: 2500,
-    observacao: 'Obra urgente, prioridade alta.',
-    idParceira: 101,
+    idParceira: 1,
   },
   {
     obra: '1424537',
@@ -31,15 +31,14 @@ export const mockMarketWorks: InsertMarketWorksDTO[] = [
     idMunicipio: 1,
     idTipo: 2,
     idCircuito: 3,
-    prazoTexto: 'dias',
+    prazoTexto: 'dada',
     statusOv: 1,
     statusDiagrama: 'Aprovado',
     statusPep: 'Validado',
     equipeNumPedido: 'EQP-123',
     moCliente: 5000,
     moEmpresa: 2500,
-    observacao: 'Obra urgente, prioridade alta.',
-    idParceira: 101,
+    idParceira: 1,
   },
 ];
 
@@ -119,6 +118,7 @@ export const mockResponseDetails = {
       tipo_servico: 'OBRA LIVRE',
       prog: 45,
       exec: null,
+      observacao_programacao: 'Obra em conjunto',
       equip_desligado: 'TRECHO LIVRE',
       chi: 0,
       num_dp: null,
@@ -132,6 +132,7 @@ export const mockResponseDetails = {
       status_programacao: '3',
       validada: true,
       confirmada: true,
+      reprovada: false,
     },
   ],
 };
@@ -171,6 +172,7 @@ export const mockWorksInPortfolio: worksInPortfolioResponseService = {
       abrev_regional: '',
       data_empreitamento: undefined,
       empreendimento: '',
+      ano_plan: 2025,
     },
   ],
   totals: {
@@ -224,3 +226,36 @@ export const mockAllWorks = {
   ],
   totalRecords: 1,
 };
+
+export const mockUpdateNotes: UpdateNotesDTO[] = [
+  {
+    obra: '4001841383',
+    referencia: 'REF123',
+    idMunicipio: 101,
+    idEmpreendimento: 201,
+    idTipo: 1,
+    idTurma: 5,
+    idCircuito: 12,
+    anoplan: 2023,
+    pep: 'PEP-123456',
+    ordem_dci: 'DCI001',
+    ordem_dcd: 'DCD001',
+    moPlan: 100,
+    qtdePlan: 50,
+  },
+  {
+    obra: '4001854143',
+    referencia: 'REF456',
+    idMunicipio: 102,
+    idEmpreendimento: 202,
+    idTipo: 2,
+    idTurma: 6,
+    idCircuito: 15,
+    anoplan: 2024,
+    pep: 'PEP-654321',
+    ordem_dca: 'DCA002',
+    ordem_dcim: 'DCIM002',
+    moPlan: 120,
+    qtdePlan: 60,
+  },
+];

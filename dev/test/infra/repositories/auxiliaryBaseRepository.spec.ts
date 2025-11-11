@@ -10,22 +10,33 @@ import {
   mockInsertAuxiliaryBaseMarket,
   mockInsertAuxiliaryBaseMarketWithDefaultId,
 } from '../../../test/mocks/mocksAuxiliaryBaseController';
+import {
+  mockCalculatedValues,
+  mockReturnAuxiliaryBaseCN52N,
+} from '../../mocks/mocksMaterialCapex';
 
 describe('AuxiliaryBaseRepository', () => {
   let repository: AuxiliaryBaseRepository;
 
   const mockPrisma = {
-    base_auxiliar: { findMany: jest.fn(), delete: jest.fn() },
+    base_auxiliar: {
+      findMany: jest.fn(),
+      delete: jest.fn(),
+      deleteMany: jest.fn(),
+    },
     base_auxiliar_ov: {
       findMany: jest.fn(),
       delete: jest.fn(),
       createMany: jest.fn(),
+      deleteMany: jest.fn(),
     },
+    cn52n: { createMany: jest.fn() },
     conversao: { findMany: jest.fn() },
     municipios: { findMany: jest.fn() },
     tipos: { findMany: jest.fn() },
     circuitos: { findMany: jest.fn() },
     $executeRawUnsafe: jest.fn(),
+    $queryRawUnsafe: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -135,6 +146,19 @@ describe('AuxiliaryBaseRepository', () => {
     });
   });
 
+  describe('getAuxiliaryBaseCN52N', () => {
+    it('should call method getAuxiliaryBaseCN52N and return formatted data', async () => {
+      mockPrisma.$queryRawUnsafe.mockResolvedValue(
+        mockReturnAuxiliaryBaseCN52N,
+      );
+
+      const result = await repository.getAuxiliaryBaseCN52N();
+
+      expect(result).toEqual(mockReturnAuxiliaryBaseCN52N);
+      expect(mockPrisma.$queryRawUnsafe).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('getFator', () => {
     it('should call method getFator and return formatted data of fator', async () => {
       const fatorMap = new Map<string, number>();
@@ -165,11 +189,25 @@ describe('AuxiliaryBaseRepository', () => {
       expect(mockPrisma.base_auxiliar.delete).not.toHaveBeenCalled();
     });
 
+    it('Should delete data of base_auxiliar_ov without id', async () => {
+      await repository.delete('baseOv', undefined);
+
+      expect(mockPrisma.base_auxiliar_ov.deleteMany).toHaveBeenCalled();
+      expect(mockPrisma.base_auxiliar.deleteMany).not.toHaveBeenCalled();
+    });
+
     it('Should delete data of base_auxiliar', async () => {
       await repository.delete('baseNote', 56);
 
       expect(mockPrisma.base_auxiliar_ov.delete).not.toHaveBeenCalled();
       expect(mockPrisma.base_auxiliar.delete).toHaveBeenCalled();
+    });
+
+    it('Should delete data of base_auxiliar without id', async () => {
+      await repository.delete('baseNote', undefined);
+
+      expect(mockPrisma.base_auxiliar_ov.deleteMany).not.toHaveBeenCalled();
+      expect(mockPrisma.base_auxiliar.deleteMany).toHaveBeenCalled();
     });
 
     it('should log error if createMany fails', async () => {
@@ -291,7 +329,7 @@ describe('AuxiliaryBaseRepository', () => {
 
       expect(clean(mockPrisma.$executeRawUnsafe.mock.calls[0][0])).toBe(
         clean(
-          `SELECT construcao_sp.insert_base_auxiliar_bulk(ARRAY[( '16005338', 'B/000215-3', NULL, '190000025090', NULL, NULL, '69', 'CAR', 'RIO DO OURO - ETAPA 2 - DCD', '195ET005120739', 0, 0, 0 ),( '16004316', 'B/000215-7', '170000023493', '190000025094', '150000003441', NULL, '69', 'CAR', 'RIO DO OURO - ETAPA 2 - DCI', '195ET005120739', 1482.56, 16, 10.3 )]::construcao_sp.base_auxiliar_input[])`,
+          `SELECT construcao_sp.insert_base_auxiliar_bulk(ARRAY[( '16005338', 'B/000215-3', NULL, '190000025090', NULL, NULL, '69', 'CAR', 'RIO DO OURO - ETAPA 2 - DCD', '195ET005120739' ),( '16004316', 'B/000215-7', '170000023493', '190000025094', '150000003441', NULL, '69', 'CAR', 'RIO DO OURO - ETAPA 2 - DCI', '195ET005120739' )]::construcao_sp.base_auxiliar_input[])`,
         ),
       );
       expect(result).toEqual({ message: 'Dados inseridos com sucesso' });
@@ -299,8 +337,24 @@ describe('AuxiliaryBaseRepository', () => {
 
     it('should log error if createMany fails', async () => {
       mockPrisma.$executeRawUnsafe.mockRejectedValueOnce(new Error('DB error'));
+      await expect(repository.insertNotes([])).rejects.toThrow();
+    });
+  });
+
+  describe('insertCapex', () => {
+    it('should call the method insertMarket and insert data in the auxiliary base ov', async () => {
+      await repository.insertCapex(mockCalculatedValues);
+
+      expect(mockPrisma.cn52n.createMany).toHaveBeenCalledWith({
+        data: mockCalculatedValues,
+      });
+      expect(mockPrisma.cn52n.createMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('should log error if createMany fails', async () => {
+      mockPrisma.cn52n.createMany.mockRejectedValueOnce(new Error('DB error'));
       await expect(
-        repository.insertNotes({ notesData: [], calculatedValues: [] }),
+        repository.insertCapex(mockCalculatedValues),
       ).rejects.toThrow();
     });
   });

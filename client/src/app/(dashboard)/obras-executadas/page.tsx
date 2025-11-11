@@ -1,11 +1,10 @@
-import dayjs from "dayjs";
 import { cookies } from "next/headers";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import PortfolioWorks from "@/components/worksComponents/portfolioWorks/MainPortfolioWorks";
-import { Transform } from "@/utils/transform";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
+import { Transform } from "@/utils/transform";
 
 export const dynamic = "force-dynamic";
 
@@ -57,6 +56,7 @@ export default async function CompletedWorks() {
     tipo_obra: "Tipo",
     turma: "Parceira",
     executado: "Executado",
+    ano_plan: "Ano do Plano",
     circuito: "Circuito",
     conjunto: "Conjunto",
     status: "Status",
@@ -78,7 +78,7 @@ export default async function CompletedWorks() {
         token={token}
         columns={columns}
         cookie="completedWorksFilters"
-        totalValues={26}
+        totalValues={23}
         url="obras-executadas"
       />
     </EmotionCacheProvider>

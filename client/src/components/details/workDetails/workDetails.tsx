@@ -7,11 +7,18 @@ import { useState, useTransition } from "react";
 import { ButtonComponent } from "@/components/common/Button";
 import ErrorModal from "@/components/common/ErrorModal";
 import ModalComponent from "@/components/common/Modal";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+import { ExclamationCircleIcon, PencilIcon } from "@heroicons/react/20/solid";
 
 import DataItem from "./dataItem";
 import { EditableColumn } from "./editableColumn";
-import { updateWork } from "@/actions/works";
+import { UpdateWork } from "@/actions/works";
+import {
+  IconButton,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+  Tooltip,
+} from "@mui/material";
 
 dayjs.extend(customParseFormat);
 
@@ -58,6 +65,22 @@ interface WorkDetailsProps {
   options: any;
 }
 
+const suspensionOptions = [
+  "CHI - Conjunto crítico",
+  "Falta de aprovação de orgão externo",
+  "Sem acesso ao local da obra",
+  "Impedimento de terceiros",
+  "Fora do plano atual",
+  "Condição climática",
+  "Falta de manobras devido contigencia no COI",
+  "Priorização de atendimento emergencial e urgências",
+  "Necessario desapropriação de terreno",
+  "Risco à vida observado posteriormente a viabilidade",
+  "A pedido do cliente",
+  "Obra executada por CSD",
+  "Transferida para CSD",
+];
+
 export function WorkDetails({
   data,
   idWork,
@@ -68,21 +91,35 @@ export function WorkDetails({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [openModal, setOpenModal] = useState<boolean>(false);
+
+  const [openSuspensionModal, setOpenSuspensionModal] =
+    useState<boolean>(false);
+  const [suspensionReason, setSuspensionReason] = useState<string>("");
+
   const [editableData, setEditableData] = useState({
     data_empreitamento: formattedData.dataEmpreitamento,
     id_status: data.id_status,
     id_turma: data.id_turma,
     tipo_ads: data.tipo_ads,
+    observ_obra: data.observ_obra,
   });
   const [changedFields, setChangedFields] =
     useState<Record<string, string | null>>();
 
   const toggleModal = () => setOpenModal((prev) => !prev);
+  const toggleSuspensionModal = () => setOpenSuspensionModal((prev) => !prev);
 
   const handleSubmit = () => {
     startTransition(async () => {
       try {
-        const response = await updateWork(changedFields, idWork);
+        const payload = {
+          ...changedFields,
+          ...(Number(editableData.id_status) === 4
+            ? { reasonSuspension: suspensionReason }
+            : {}),
+        };
+
+        const response = await UpdateWork(payload, idWork);
 
         if (!response.success) {
           setError(response.error || "Erro ao salvar alterações");
@@ -117,11 +154,15 @@ export function WorkDetails({
       ...prev,
       [field]: formattedValue,
     }));
+
+    if (field === "id_status" && Number(value) === 4) {
+      setOpenSuspensionModal(true);
+    }
   };
 
   return (
     <>
-      <div className="w-full flex justify-between items-center mb-4 px-2 md:px-8">
+      <div className="w-full flex justify-between items-center my-4 px-2 md:px-8">
         <p className="text-2xl font-extrabold">Informações gerais</p>
         <ButtonComponent
           text={isPending ? "Salvando..." : "Salvar alterações"}
@@ -199,7 +240,25 @@ export function WorkDetails({
             data={editableData}
             options={options}
             onHandleChange={handleDataChange}
+            EditSuspension={
+              Number(editableData.id_status) === 4 && suspensionReason ? (
+                <Tooltip title="Editar motivo da suspensão">
+                  <IconButton
+                    onClick={toggleSuspensionModal}
+                    color="primary"
+                    size="small"
+                  >
+                    <PencilIcon
+                      className="text-blue-600"
+                      width={25}
+                      height={25}
+                    />
+                  </IconButton>
+                </Tooltip>
+              ) : null
+            }
           />
+
           <DataItem label="Empreendimento" value={data.empreendimento} />
         </div>
       </div>
@@ -208,15 +267,54 @@ export function WorkDetails({
         <p className="h-full xl:text-lg font-semibold min-w-28 text-center border-r border-zinc-700 border-solid flex items-center justify-start">
           Observação
         </p>
-        <p className="w-full xl:text-lg font-medium text-start pl-5 py-2">
-          {data.observ_obra}
-        </p>
+        <textarea
+          value={editableData.observ_obra || ""}
+          onChange={(e: { target: { value: string } }) =>
+            handleDataChange("observ_obra", e.target.value)
+          }
+          className="flex-1 h-full min-w-32 lg:min-w-36 font-medium text-xl text-center p-2 bg-transparent focus:outline-none"
+        />
       </div>
 
       <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
         <span className="text-center text-lg text-gray-700 dark:text-gray-200 mb-6">
           {success}
         </span>
+      </ModalComponent>
+
+      <ModalComponent
+        title="Motivo da Suspensão"
+        onClose={toggleSuspensionModal}
+        open={openSuspensionModal}
+      >
+        <Select
+          value={suspensionReason}
+          onChange={(e: SelectChangeEvent<string>) =>
+            setSuspensionReason(e.target.value)
+          }
+          className="w-3/5"
+          sx={{
+            ".MuiSelect-select": {
+              textAlign: "center",
+              fontSize: "1rem",
+              padding: "6px 0",
+            },
+          }}
+          MenuProps={{
+            PaperProps: {
+              style: { maxHeight: 400 },
+            },
+          }}
+        >
+          {suspensionOptions.map((value, idx) => (
+            <MenuItem key={idx} value={value}>
+              {value}
+            </MenuItem>
+          ))}
+        </Select>
+        <div className="mt-4 flex justify-end">
+          <ButtonComponent text="Confirmar" onClick={toggleSuspensionModal} />
+        </div>
       </ModalComponent>
 
       {error && (

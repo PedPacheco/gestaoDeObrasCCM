@@ -4,11 +4,11 @@ import { cookies } from "next/headers";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import TabPanel from "@/components/details/TabPanel";
 import { WorkDetails } from "@/components/details/workDetails/workDetails";
 import { formatPercentage } from "@/utils/formatValue";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
+import TabPanel from "@/components/details/tabPanel/TabPanel";
 
 dayjs.extend(utc);
 
@@ -87,7 +87,7 @@ export default async function Details({
   return (
     <EmotionCacheProvider>
       <div className="flex flex-col items-center w-full h-full">
-        <div className="w-full mt-6 flex flex-col">
+        <div className="w-full h-full flex flex-col">
           <WorkDetails
             data={data}
             idWork={Number(id)}

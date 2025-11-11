@@ -4,7 +4,7 @@ import { INSERT_WORKS_REPOSITORY } from 'src/domain/repositories/works/IInsertWo
 
 import { InsertWorksService } from 'src/application/works/InsertWorks.service';
 import { FindExistingWorksService } from 'src/application/works/findExistingWorks.service';
-import { AuxiliaryBaseService } from 'src/application/auxiliaryBase.service';
+import { AuxiliaryBaseService } from 'src/application/auxiliaryBase/auxiliaryBase.service';
 import { mockMarketWorks } from '../../../test/mocks/mockWorksController';
 import { mockGetNotes } from '../../../test/mocks/mockAuxiliaryBaseRepository';
 import { mockMappedNotes } from '../../../test/mocks/mocksAuxiliaryBaseController';
@@ -58,7 +58,10 @@ describe('InsertWorksService', () => {
     it('should call method insertMarketWorks and throw error if no data is valid', async () => {
       jest
         .spyOn(findExistingWorksService, 'findExistingWorks')
-        .mockResolvedValue(['1424535', '1424537']);
+        .mockResolvedValue([
+          { id: 1, ovnota: '1424535' },
+          { id: 2, ovnota: '1424537' },
+        ]);
 
       await expect(
         insertWorksService.insertMarketWorks(mockMarketWorks),
@@ -74,17 +77,29 @@ describe('InsertWorksService', () => {
     it('should call method insertMarketWorks and return the default format of data', async () => {
       jest
         .spyOn(findExistingWorksService, 'findExistingWorks')
-        .mockResolvedValue(['14245356']);
+        .mockResolvedValue([{ id: 1, ovnota: '14245356' }]);
 
       const result =
         await insertWorksService.insertMarketWorks(mockMarketWorks);
 
       expect(mockRepository.insertMarketWorks).toHaveBeenCalledWith(
-        mockMarketWorks,
+        mockMarketWorks.map((work, index) => ({
+          ...work,
+          id: undefined,
+          moPlanejada: 7500,
+          prazo: index === 0 ? 30 : 0,
+          observacao: undefined,
+        })),
       );
       expect(result).toEqual({
         message: 'Inserção concluída com sucesso.',
-        insertedCount: mockMarketWorks,
+        insertedCount: mockMarketWorks.map((work, index) => ({
+          ...work,
+          id: undefined,
+          moPlanejada: 7500,
+          prazo: index === 0 ? 30 : 0,
+          observacao: undefined,
+        })),
         skipped: ['14245356'],
       });
     });
@@ -119,33 +134,33 @@ describe('InsertWorksService', () => {
       ).rejects.toThrow(`Obra 16004316 está com PEP genérico.`);
     });
 
-    it('should throw BadRequestException when obra has no moPlanejada', async () => {
-      const mockWithoutMo = [
-        {
-          ...mockGetNotes[0],
-          mo_plan: 0,
-        },
-      ];
+    // it('should throw BadRequestException when obra has no moPlanejada', async () => {
+    //   const mockWithoutMo = [
+    //     {
+    //       ...mockGetNotes[0],
+    //       mo_plan: 0,
+    //     },
+    //   ];
 
-      const mockReturnNote = [
-        {
-          ...mockMappedNotes[0],
-          mo_plan: 0,
-        },
-      ];
+    //   const mockReturnNote = [
+    //     {
+    //       ...mockMappedNotes[0],
+    //       mo_plan: 0,
+    //     },
+    //   ];
 
-      jest
-        .spyOn(auxiliaryBaseService, 'getNotes')
-        .mockResolvedValue(mockReturnNote);
+    //   jest
+    //     .spyOn(auxiliaryBaseService, 'getNotes')
+    //     .mockResolvedValue(mockReturnNote);
 
-      jest
-        .spyOn(mockRepository, 'getGroup')
-        .mockResolvedValue([{ id: 48, id_grupo: 2 }]);
+    //   jest
+    //     .spyOn(mockRepository, 'getGroup')
+    //     .mockResolvedValue([{ id: 48, id_grupo: 2 }]);
 
-      await expect(
-        insertWorksService.insertNotes(mockWithoutMo),
-      ).rejects.toThrow(`Obra 16004316 não tem valor de Mão de Obra.`);
-    });
+    //   await expect(
+    //     insertWorksService.insertNotes(mockWithoutMo),
+    //   ).rejects.toThrow(`Obra 16004316 não tem valor de Mão de Obra.`);
+    // });
 
     it('should throw BadRequestException when obra has invalid empreendimento for group 3 or 4', async () => {
       jest

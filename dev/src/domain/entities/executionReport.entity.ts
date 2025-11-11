@@ -23,11 +23,11 @@ export class ExecutionReport {
     private readonly equipmentRemoved: EquipmentItem[],
     private readonly changesExecution: boolean,
     private readonly generalObservation: string,
-    private readonly workSituation: string,
     private readonly reason: string,
     private readonly provisionalKeyInstalled: boolean,
     private readonly provisionalKeyReference: string,
     private readonly provisionalKeyWithdrawn: boolean,
+    private readonly provisionalKeyReferenceWithdrawn: string,
   ) {}
 
   static create(
@@ -51,11 +51,11 @@ export class ExecutionReport {
       data.equipmentRemoved,
       data.changesExecution,
       data.generalObservation,
-      data.workSituation,
       data.reason,
       data.provisionalKeyInstalled,
       data.provisionalKeyReference,
       data.provisionalKeyWithdrawn,
+      data.provisionalKeyReferenceWithdrawn,
     );
 
     instance.scheduledFinishTime = scheduledFinishTime;
@@ -79,6 +79,15 @@ export class ExecutionReport {
     if (this.provisionalKeyInstalled && !this.provisionalKeyReference) {
       throw new BadRequestException(
         'Referência da chave provisória é obrigatória.',
+      );
+    }
+
+    if (
+      this.provisionalKeyWithdrawn &&
+      !this.provisionalKeyReferenceWithdrawn
+    ) {
+      throw new BadRequestException(
+        'Referência da chave provisória retirada é obrigatória.',
       );
     }
   }
@@ -124,11 +133,12 @@ export class ExecutionReport {
       instalacao_equipamento_retirado: removidos.instalacao,
       alteracoes_execucao: this.changesExecution,
       observacoes_gerais: this.generalObservation,
-      situacao_obra: this.workSituation,
       referencia_chave_provisoria: this.provisionalKeyReference,
       chave_provisoria_retirada: this.provisionalKeyWithdrawn,
       motivo: this.reason,
       chave_provisoria_instalada: this.provisionalKeyInstalled,
+      referencia_chave_provisoria_retirada:
+        this.provisionalKeyReferenceWithdrawn,
     };
   }
 }

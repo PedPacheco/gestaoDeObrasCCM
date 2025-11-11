@@ -21,6 +21,10 @@ export class UpdateWorkService {
       );
     }
 
+    if (data.observ_obra?.trim() === '') {
+      data.observ_obra = null;
+    }
+
     await this.updateWorkRepository.update(data, id, tx);
   }
 }

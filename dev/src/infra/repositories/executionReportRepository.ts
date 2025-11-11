@@ -87,10 +87,11 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
         patrimonio_equipamento_retirado: true,
         instalacao_equipamento_retirado: true,
         alteracoes_execucao: true,
-        situacao_obra: true,
         observacoes_gerais: true,
+        chave_provisoria_instalada: true,
         referencia_chave_provisoria: true,
         chave_provisoria_retirada: true,
+        referencia_chave_provisoria_retirada: true,
         motivo: true,
         usuario: { select: { nome_usuario: true } },
         obras: {

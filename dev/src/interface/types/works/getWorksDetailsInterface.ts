@@ -10,6 +10,7 @@ export interface Schedules {
   tipo_servico: string;
   prog: number;
   exec: number | null;
+  observacao_programacao: string | null;
   equip_desligado: string | null;
   chi: number | null;
   num_dp: string | null;
@@ -22,6 +23,7 @@ export interface Schedules {
   nome_responsavel_execucao: string | null;
   confirmada: boolean;
   validada: boolean;
+  reprovada: boolean;
   status_programacao: ScheduleStatus;
 }
 

@@ -11,7 +11,7 @@ import {
   mockInsertNotesWithDefaultIdRepository,
 } from '../../../../test/mocks/mockInsertWorksRepository';
 
-describe('InserWorksRepositor', () => {
+describe('InserWorksRepository', () => {
   let repository: InsertWorksRepository;
 
   const mockPrisma = {
@@ -66,7 +66,7 @@ describe('InserWorksRepositor', () => {
             observ_obra: 'Obra em andamento',
             id_gpm: 10,
             id_tipo: 2,
-            prazo: 0,
+            prazo: 120,
             mo_planejada: 1483,
             id_turma: 1,
             id_circuito: 5,
@@ -83,8 +83,6 @@ describe('InserWorksRepositor', () => {
         new MarketWork(
           'Obra 1',
           'PEP001',
-          new Date('2024-05-01'),
-          'Execução em 120 dias',
           '175ET005244969DSRB02',
           null,
           null,
@@ -97,6 +95,8 @@ describe('InserWorksRepositor', () => {
           'Completo',
           1483,
           0,
+          new Date('2024-05-01'),
+          'Execução em 120 dias',
         ),
       ]);
 
@@ -127,7 +127,9 @@ describe('InserWorksRepositor', () => {
       const spy = jest.spyOn(console, 'error').mockImplementation();
       mockPrisma.obras.createMany.mockRejectedValueOnce(new Error('DB error'));
 
-      await repository.insertMarketWorks([]);
+      await expect(repository.insertMarketWorks([])).rejects.toThrow(
+        'DB error',
+      );
 
       expect(spy).toHaveBeenCalledWith(
         'Erro ao inserir obras de mercado:',
@@ -152,15 +154,13 @@ describe('InserWorksRepositor', () => {
             entrada: new Date('2025-06-09T00:00:00.000Z'),
             prazo: 90,
             referencia: '195ET005120739',
-            mo_planejada: 1482.56,
+            mo_planejada: 52,
             qtde_planejada: 16,
             id_gpm: 31,
             id_empreendimento: 1,
             id_tipo: 48,
             id_turma: 1,
             id_circuito: 1,
-            capex_mo_plan: 1483,
-            capex_mat_plan: 0,
             ano_plan: 2025,
           },
         ],
@@ -183,15 +183,13 @@ describe('InserWorksRepositor', () => {
             entrada: new Date('2025-06-09T00:00:00.000Z'),
             prazo: 90,
             referencia: '195ET005120739',
-            mo_planejada: 1482.56,
+            mo_planejada: 52,
             qtde_planejada: 16,
             id_gpm: 1,
             id_empreendimento: 1,
             id_tipo: 1,
             id_turma: 1,
             id_circuito: 1,
-            capex_mo_plan: 1483,
-            capex_mat_plan: 0,
             ano_plan: 2025,
           },
         ],
@@ -203,7 +201,7 @@ describe('InserWorksRepositor', () => {
       const spy = jest.spyOn(console, 'error').mockImplementation();
       mockPrisma.obras.createMany.mockRejectedValueOnce(new Error('DB error'));
 
-      await repository.insertNotes([]);
+      await expect(repository.insertNotes([])).rejects.toThrow('DB error');
 
       expect(spy).toHaveBeenCalledWith(
         'Erro ao inserir notas:',

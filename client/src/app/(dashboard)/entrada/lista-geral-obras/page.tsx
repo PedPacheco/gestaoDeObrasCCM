@@ -58,7 +58,6 @@ export default async function AllWorks() {
     turma: "Parceira",
     executado: "% Exec",
     data_conclusao: "Data exec",
-    last_data_prog: "Data prog",
     status: "Status",
     observ_obra: "Observação",
     referencia: "Referência",

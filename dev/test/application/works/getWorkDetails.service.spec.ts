@@ -84,7 +84,7 @@ describe('GetWorkDetailsService', () => {
           restricao: null,
         },
         nome_responsavel_execucao: null,
-
+        reprovada: false,
         validada: true,
         confirmada: true,
         status_programacao: {
@@ -158,6 +158,7 @@ describe('GetWorkDetailsService', () => {
         status_programacao: 3,
         validada: true,
         confirmada: true,
+        reprovada: false,
       },
     ],
   };

@@ -7,6 +7,7 @@ import { UpdateWorkDTO } from 'src/interface/dtos/worksDto';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UpdateWorkService } from 'src/application/works/updateWork.service';
 import { BadGatewayException, BadRequestException } from '@nestjs/common';
+import { SuspensionWorkService } from 'src/application/works/suspensionWork.service';
 
 describe('HandleWorkUpdateService', () => {
   let service: HandleWorkUpdateService;
@@ -22,6 +23,10 @@ describe('HandleWorkUpdateService', () => {
   const mockStatusFlowRepository = {
     updateStatusWorks: jest.fn(),
     updateScheduleStatus: jest.fn(),
+  };
+
+  const mockSuspensionWorkService = {
+    createSuspension: jest.fn(),
   };
 
   const mockGetDetailsService = {
@@ -41,6 +46,7 @@ describe('HandleWorkUpdateService', () => {
           provide: STATUS_FLOW_REPOSITORY,
           useValue: mockStatusFlowRepository,
         },
+        { provide: SuspensionWorkService, useValue: mockSuspensionWorkService },
         { provide: GetWorkDetailsService, useValue: mockGetDetailsService },
       ],
     }).compile();
@@ -132,6 +138,27 @@ describe('HandleWorkUpdateService', () => {
       await service.update(data, 1, false);
 
       expect(mockStatusFlowRepository.updateStatusWorks).not.toHaveBeenCalled();
+    });
+
+    it('should call suspensionWorkService if id_status equal 4', async () => {
+      const data: UpdateWorkDTO = {
+        id_status: 4,
+        id_turma: 4,
+        tipo_ads: 'Convencional',
+        data_empreitamento: new Date('2025-06-09T00:00:00.000Z'),
+        reasonSuspension: 'Obra suspensa',
+      };
+
+      mockGetDetailsService.get.mockResolvedValue({ id_status: 40, id: 1 });
+
+      mockPrisma.$transaction.mockImplementation(async (cb) => cb({}));
+
+      await service.update(data, 1, false);
+
+      expect(mockSuspensionWorkService.createSuspension).toHaveBeenCalledWith(
+        1,
+        'Obra suspensa',
+      );
     });
   });
 });

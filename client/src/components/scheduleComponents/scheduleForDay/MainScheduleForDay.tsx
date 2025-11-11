@@ -2,7 +2,7 @@
 
 import dayjs from "dayjs";
 import dynamic from "next/dynamic";
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { Cookies } from "react-cookie";
 
 import { fetchData } from "@/actions/fetchData.action";
@@ -15,6 +15,8 @@ import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import ScheduleForDayFilters from "./ScheduleForDayFilters";
+import { FiltersInterface } from "@/interfaces/filtersInterfaces";
+import { useUser } from "@/contexts/userContext";
 
 const ErrorModal = dynamic(() => import("@/components/common/ErrorModal"), {
   ssr: false,
@@ -32,10 +34,21 @@ export default function MainSchduleForDay({
   token,
 }: MainInterface<any>) {
   const [filteredData, setFilteredData] = useState(data);
+  const { permissions } = useUser();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>();
   const [page, setPage] = useState(0);
   const [isPending, startTransition] = useTransition();
+  const [filteredFilters, setFilteredFilters] =
+    useState<FiltersInterface>(filtersData);
+
+  useEffect(() => {
+    if (permissions?.permissao_visualizacao === "parcial") {
+      const { parceira, ...rest } = filtersData;
+
+      setFilteredFilters(rest);
+    }
+  }, [filtersData, permissions?.permissao_visualizacao]);
 
   const toggleModal = () => setOpen((prev) => !prev);
 
@@ -115,12 +128,12 @@ export default function MainSchduleForDay({
     <>
       <div className="my-6 w-11/12 flex flex-col">
         <ScheduleForDayFilters
-          data={filtersData}
+          data={filteredFilters}
           openModal={toggleModal}
           generateExcel={generateExcel}
           isPending={isPending}
           setPage={setPage}
-          applyFilters={fetchSchedule}
+          searchFilteredData={fetchSchedule}
         />
       </div>
 
@@ -135,7 +148,7 @@ export default function MainSchduleForDay({
       <ModalComponent open={open} onClose={toggleModal} title="Valores totais">
         <div className="flex flex-col items-center justify-center xl:flex-row w-full">
           {Object.entries(columns)
-            .slice(24)
+            .slice(27)
             .map(([column, value]) => {
               const item = filteredData.totals;
               let valueFormatted = item[column];

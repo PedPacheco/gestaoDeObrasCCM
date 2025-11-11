@@ -21,12 +21,10 @@ export function ImportButton({ storageKey }: ImportButtonProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const iw38InputRef = useRef<HTMLInputElement>(null);
-  const cn52nInputRef = useRef<HTMLInputElement>(null);
 
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const [iw38File, setIw38File] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [success, setSuccess] = useState<string | null>(null);
@@ -42,7 +40,6 @@ export function ImportButton({ storageKey }: ImportButtonProps) {
   const resetFileInputs = () => {
     if (fileInputRef.current) fileInputRef.current.value = "";
     if (iw38InputRef.current) iw38InputRef.current.value = "";
-    if (cn52nInputRef.current) cn52nInputRef.current.value = "";
   };
 
   const handleSingleFileChange = (
@@ -77,7 +74,7 @@ export function ImportButton({ storageKey }: ImportButtonProps) {
             moEmpresa: row[14],
           }));
 
-        const res = await InsertAuxiliaryBaseMarket(data, storageKey);
+        const res = await InsertAuxiliaryBaseMarket(data, storageKey, "insert");
 
         if (!res.success) {
           resetFileInputs();
@@ -96,28 +93,18 @@ export function ImportButton({ storageKey }: ImportButtonProps) {
   };
 
   const handleIW38Select = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setIw38File(file);
-    setTimeout(() => cn52nInputRef.current?.click(), 100);
-  };
-
-  const handleCN52NSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const cn52nFile = e.target.files?.[0];
-    if (!cn52nFile || !iw38File) return;
+    const iw38File = e.target.files?.[0];
+    if (!iw38File) return;
 
     const allSkippedNotes = new Set<string>();
-    let insertedCounts = 0;
 
     startTransition(async () => {
       try {
         const workbook1 = new ExcelJS.Workbook();
-        const workbook2 = new ExcelJS.Workbook();
+
         await workbook1.xlsx.load(await iw38File.arrayBuffer());
-        await workbook2.xlsx.load(await cn52nFile.arrayBuffer());
 
         const iw38Sheet = workbook1.worksheets[0];
-        const cn52nSheet = workbook2.worksheets[0];
 
         const iw38Data = iw38Sheet
           .getSheetValues()
@@ -133,48 +120,28 @@ export function ImportButton({ storageKey }: ImportButtonProps) {
             denominacao: row[17],
           }));
 
-        const cn52nData = cn52nSheet
-          .getSheetValues()
-          .slice(2)
-          .map((row: any) => ({
-            diagrama_rede: row[2],
-            ctg_item: row[8],
-            um_registro: row[10],
-            texto_material: row[5],
-            qtd_necess: row[12],
-            preco_mi: row[11],
-            material: row[4],
-            def_proj: row[3],
-          }));
-
         const groupData = groupNoteDate(iw38Data);
 
-        const batches = createBatches(groupData, cn52nData, 500);
+        const res = await InsertAuxiliaryBaseMarket(
+          groupData,
+          storageKey,
+          "insert"
+        );
 
-        for (const batch of batches) {
-          const res = await InsertAuxiliaryBaseMarket(batch, storageKey);
-
-          insertedCounts += res.insertedCount || 0;
-
-          res.skippedNotes?.forEach((n) => allSkippedNotes.add(n));
-        }
-
-        if (insertedCounts === 0) {
+        if (res.insertedCount === 0) {
           resetFileInputs();
           throw new Error("Nenhuma obra foi inserida");
         }
 
         resetFileInputs();
-        const skippedNotesArr = Array.from(allSkippedNotes);
 
         let message: string = "";
-        if (skippedNotesArr.length) {
-          message += `\nNotas ignoradas: ${skippedNotesArr.join(", ")}`;
+        if (res.skippedNotes?.length) {
+          message += `\nNotas ignoradas: ${res.skippedNotes.join(", ")}`;
         }
 
         setSuccess(message);
         setOpenModal(true);
-        setIw38File(null);
         resetFileInputs();
 
         router.refresh();
@@ -210,13 +177,6 @@ export function ImportButton({ storageKey }: ImportButtonProps) {
             accept=".xlsx"
             ref={iw38InputRef}
             onChange={handleIW38Select}
-            style={{ display: "none" }}
-          />
-          <input
-            type="file"
-            accept=".xlsx"
-            ref={cn52nInputRef}
-            onChange={handleCN52NSelect}
             style={{ display: "none" }}
           />
         </>

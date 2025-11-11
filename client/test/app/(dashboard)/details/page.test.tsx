@@ -31,6 +31,12 @@ vi.mock("@/components/details/workDetails/workDetails", () => ({
   )),
 }));
 
+vi.mock("@/components/common/ErrorThrower", () => ({
+  ErrorThrower: vi.fn(({ message }) => (
+    <div data-testid="error-component" data-message={message} />
+  )),
+}));
+
 vi.mock("@/components/details/TabPanel", () => ({
   __esModule: true,
   default: vi.fn(({ props }) => (
@@ -40,8 +46,16 @@ vi.mock("@/components/details/TabPanel", () => ({
   )),
 }));
 
+vi.mock("@/contexts/UserContext", () => ({
+  useUser: vi.fn(() => ({
+    user: { id: 1, nome: "Usuário Teste", grupo: 2 },
+    setUser: vi.fn(),
+  })),
+}));
+
 vi.mock("@/utils/formatValue", () => ({
   formatPercentage: vi.fn((value) => `${value}%`),
+  FormatCurrency: vi.fn((value) => `R$ ${value}`),
 }));
 
 describe("Details Page", () => {
@@ -90,6 +104,7 @@ describe("Details Page", () => {
     vi.mocked(cookiesModule.cookies).mockReturnValue(mockCookieStore as any);
 
     vi.mocked(fetchData).mockResolvedValue({
+      success: true,
       token: "mock-token",
       data: mockData,
       success: true,
@@ -102,7 +117,6 @@ describe("Details Page", () => {
       status: [{ id: 1, status: "Programado" }],
     });
 
-    // Mock do env
     process.env.NEXT_PUBLIC_API_URL = "https://api.example.com";
   });
 
@@ -133,6 +147,7 @@ describe("Details Page", () => {
     const modifiedData = { ...mockData, grupo: 2, ano_plan: currentYear };
 
     vi.mocked(fetchData).mockResolvedValueOnce({
+      success: true,
       token: "mock-token",
       data: modifiedData,
       success: true,
@@ -154,6 +169,7 @@ describe("Details Page", () => {
     };
 
     vi.mocked(fetchData).mockResolvedValueOnce({
+      success: true,
       token: "mock-token",
       data: modifiedData,
       success: true,
@@ -171,6 +187,7 @@ describe("Details Page", () => {
     const modifiedData = { ...mockData, grupo: 1 };
 
     vi.mocked(fetchData).mockResolvedValueOnce({
+      success: true,
       token: "mock-token",
       data: modifiedData,
       success: true,
@@ -198,5 +215,17 @@ describe("Details Page", () => {
 
     const details = screen.getByTestId("work-details");
     expect(details.getAttribute("data-executado")).toBe("");
+  });
+
+  it("Deve renderizar o componente, caso algum erro seja retornado do fetchData", async () => {
+    vi.mocked(fetchData).mockResolvedValueOnce({
+      success: false,
+      token: "mock-token",
+      data: mockData,
+    });
+
+    render(await Details({ params: Promise.resolve({ id: mockId }) }));
+
+    expect(screen.getByTestId("error-component")).toBeInTheDocument();
   });
 });
