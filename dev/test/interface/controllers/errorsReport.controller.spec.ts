@@ -1,5 +1,5 @@
 import { ErrorsReportService } from 'src/application/errorsReport.service';
-import { ErrorsReportController } from 'src/interface/controllers/ErrorsReport.controller';
+import { ErrorsReportController } from 'src/interface/controllers/errorsReport.controller';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
