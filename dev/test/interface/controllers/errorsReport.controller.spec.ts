@@ -1,8 +1,8 @@
 import { ErrorsReportService } from 'src/application/errorsReport.service';
 import { ErrorsReportController } from 'src/interface/controllers/ErrorsReport.controller';
 
-import { Test, TestingModule } from '@nestjs/testing';
 import { HttpStatus } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 
 describe('UsersControllers', () => {
   let controller: ErrorsReportController;
