@@ -106,6 +106,11 @@ export const links = [
   {
     name: "Capacidade de execução",
     href: "/capacidade-execucao",
-    needPermission: false,
+    needPermission: true,
+  },
+  {
+    name: "Relatório de erros",
+    href: "/relatorio-erros",
+    needPermission: true,
   },
 ];

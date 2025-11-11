@@ -112,11 +112,13 @@ describe("Monthly Summary Schedule page", () => {
     vi.mocked(fetchData).mockResolvedValueOnce({
       token: mockToken,
       data: mockDataFirstSummary,
+      success: true,
     });
 
     vi.mocked(fetchData).mockResolvedValueOnce({
       token: mockToken,
       data: mockDataSecondSummary,
+      success: true,
     });
 
     vi.mocked(fetchFilters).mockResolvedValue(mockFilters);

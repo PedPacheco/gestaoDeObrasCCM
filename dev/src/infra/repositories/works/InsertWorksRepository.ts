@@ -37,6 +37,7 @@ export class InsertWorksRepository implements IInsertWorksRepository {
       });
     } catch (error) {
       console.error('Erro ao inserir obras de mercado:', error);
+      throw error;
     }
   }
 
@@ -70,6 +71,7 @@ export class InsertWorksRepository implements IInsertWorksRepository {
       });
     } catch (error) {
       console.error('Erro ao inserir notas:', error);
+      throw error;
     }
   }
 

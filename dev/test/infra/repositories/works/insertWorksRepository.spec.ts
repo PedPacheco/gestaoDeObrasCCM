@@ -127,7 +127,9 @@ describe('InserWorksRepository', () => {
       const spy = jest.spyOn(console, 'error').mockImplementation();
       mockPrisma.obras.createMany.mockRejectedValueOnce(new Error('DB error'));
 
-      await repository.insertMarketWorks([]);
+      await expect(repository.insertMarketWorks([])).rejects.toThrow(
+        'DB error',
+      );
 
       expect(spy).toHaveBeenCalledWith(
         'Erro ao inserir obras de mercado:',
@@ -199,7 +201,7 @@ describe('InserWorksRepository', () => {
       const spy = jest.spyOn(console, 'error').mockImplementation();
       mockPrisma.obras.createMany.mockRejectedValueOnce(new Error('DB error'));
 
-      await repository.insertNotes([]);
+      await expect(repository.insertNotes([])).rejects.toThrow('DB error');
 
       expect(spy).toHaveBeenCalledWith(
         'Erro ao inserir notas:',

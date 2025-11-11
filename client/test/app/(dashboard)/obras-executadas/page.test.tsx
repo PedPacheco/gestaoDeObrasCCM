@@ -106,6 +106,7 @@ describe("Completed Works page", () => {
     vi.mocked(fetchData).mockResolvedValue({
       token: mockToken,
       data: mockData,
+      success: true,
     });
 
     vi.mocked(fetchFilters).mockResolvedValue(mockFilters);

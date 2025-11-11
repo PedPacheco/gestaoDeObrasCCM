@@ -181,7 +181,7 @@ export default function SchedulePanelItem({
 
   return (
     <>
-      <TableContainer className="h-full ">
+      <TableContainer className="h-full">
         <Table stickyHeader>
           <TableHead>
             <TableRow>

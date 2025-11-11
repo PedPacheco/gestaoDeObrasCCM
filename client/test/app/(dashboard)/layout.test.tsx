@@ -48,9 +48,7 @@ describe("DashboardLayout", () => {
     const innerDiv = container.querySelector(
       "div.relative.flex.min-h-screen.max-w-full.flex-1.flex-col"
     );
-    const main = container.querySelector(
-      "main.h-\\[calc\\(100vh-3\\.5rem\\)\\]"
-    );
+    const main = container.querySelector("main.h-\\[calc\\(100vh\\)\\]");
     const borderSpan = container.querySelector(
       "span.border-b.border-solid.border-zinc-300.w-full"
     );
@@ -66,6 +64,6 @@ describe("DashboardLayout", () => {
   it("deve ter o main com a altura correta", () => {
     const { container } = render(<DashboardLayout {...childrenMock} />);
     const mainElement = container.querySelector("main");
-    expect(mainElement).toHaveClass("h-[calc(100vh-3.5rem)]");
+    expect(mainElement).toHaveClass("h-[calc(100vh)]");
   });
 });

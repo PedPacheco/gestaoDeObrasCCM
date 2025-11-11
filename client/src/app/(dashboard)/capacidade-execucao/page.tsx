@@ -2,7 +2,6 @@ import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { MainExecutionCapacity } from "@/components/executionCapacity/mainExecutionCapacity";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
-import { Transform } from "@/utils/transform";
 import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +14,7 @@ export default async function ExecutionCapacity() {
   let params = cookieParams ? JSON.parse(cookieParams) : undefined;
 
   const filtersValues = {
-    ...Transform(params?.selectedItems || {}),
+    ...params?.selectedItems,
     year: "2025",
   };
 

@@ -6,7 +6,6 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import WorksInPortfolio from "@/app/(dashboard)/obras-carteira/page";
 import { Transform } from "@/utils/transform";
 import { render } from "@testing-library/react";
-import dayjs from "dayjs";
 
 vi.mock("@/actions/fetchData.action", () => ({
   fetchData: vi.fn(),
@@ -104,6 +103,7 @@ describe("Works in portfolio page", () => {
     vi.mocked(fetchData).mockResolvedValue({
       token: mockToken,
       data: mockData,
+      success: true,
     });
 
     vi.mocked(fetchFilters).mockResolvedValue(mockFilters);

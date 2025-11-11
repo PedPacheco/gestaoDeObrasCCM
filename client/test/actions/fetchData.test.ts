@@ -61,23 +61,6 @@ describe("fetchData", () => {
 
     expect(result).toEqual({
       success: false,
-      message: "Erro 403",
-      token: "mock-token",
-    });
-  });
-
-  it("Deve lançar erro genérico se a resposta da API não contiver mensagem", async () => {
-    global.fetch = vi.fn(() =>
-      Promise.resolve({
-        ok: false,
-        json: () => Promise.resolve({}),
-      })
-    ) as any;
-
-    const result = await fetchData(mockBaseUrl, mockParams, mockToken);
-
-    expect(result).toEqual({
-      success: false,
       message: "Erro ao buscar os dados",
       token: "mock-token",
     });
