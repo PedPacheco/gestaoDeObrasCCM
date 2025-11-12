@@ -18,6 +18,8 @@ import {
 } from "@mui/material";
 import { PencilIcon, TrashIcon } from "@heroicons/react/20/solid";
 import { useState } from "react";
+import { permission } from "process";
+import { useUser } from "@/contexts/userContext";
 
 dayjs.extend(utc);
 
@@ -76,6 +78,7 @@ export default function ExecutionReportPanelItem({
   onDelete,
   onEdit,
 }: ExecutionReportItemProps) {
+  const { permissions } = useUser();
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
 
   const handleEdit = (item: any) => {
@@ -117,47 +120,49 @@ export default function ExecutionReportPanelItem({
                   className="hover:bg-gray-50 transition-colors duration-200"
                 >
                   <TableCell className="py-1 px-2 text-center border-r font-medium text-base border-zinc-700 border-solid bg-white">
-                    <Box
-                      display="flex"
-                      justifyContent="center"
-                      gap={0.5}
-                      sx={{
-                        opacity: hoveredRow === rowIndex ? 1 : 0,
-                        transition: "opacity 0.2s ease-in-out",
-                      }}
-                    >
-                      <Tooltip title="Editar programação" placement="top">
-                        <IconButton
-                          size="small"
-                          color="primary"
-                          onClick={() => handleEdit(item)}
-                          sx={{
-                            padding: "4px",
-                            "&:hover": {
-                              backgroundColor: "rgba(25, 118, 210, 0.08)",
-                            },
-                          }}
-                        >
-                          <PencilIcon width={24} height={24} />
-                        </IconButton>
-                      </Tooltip>
+                    {permissions?.permissao !== "Sem permissão" && (
+                      <Box
+                        display="flex"
+                        justifyContent="center"
+                        gap={0.5}
+                        sx={{
+                          opacity: hoveredRow === rowIndex ? 1 : 0,
+                          transition: "opacity 0.2s ease-in-out",
+                        }}
+                      >
+                        <Tooltip title="Editar programação" placement="top">
+                          <IconButton
+                            size="small"
+                            color="primary"
+                            onClick={() => handleEdit(item)}
+                            sx={{
+                              padding: "4px",
+                              "&:hover": {
+                                backgroundColor: "rgba(25, 118, 210, 0.08)",
+                              },
+                            }}
+                          >
+                            <PencilIcon width={24} height={24} />
+                          </IconButton>
+                        </Tooltip>
 
-                      <Tooltip title="Excluir programação" placement="top">
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => handleDelete(item.id)}
-                          sx={{
-                            padding: "4px",
-                            "&:hover": {
-                              backgroundColor: "rgba(211, 47, 47, 0.08)",
-                            },
-                          }}
-                        >
-                          <TrashIcon width={24} height={24} />
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
+                        <Tooltip title="Excluir programação" placement="top">
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => handleDelete(item.id)}
+                            sx={{
+                              padding: "4px",
+                              "&:hover": {
+                                backgroundColor: "rgba(211, 47, 47, 0.08)",
+                              },
+                            }}
+                          >
+                            <TrashIcon width={24} height={24} />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    )}
                   </TableCell>
                   {Object.keys(columns).map((column, index) => {
                     let cellValue = item[column];
