@@ -99,7 +99,8 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
 
                 if (
                   link.needPermission &&
-                  permissions?.permissao_visualizacao === "parcial"
+                  (permissions?.permissao_visualizacao === "parcial" ||
+                    permissions?.permissao === "Sem permissão")
                 ) {
                   return null;
                 }
@@ -153,7 +154,9 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
                         {link.submenu.map((subItem, subIndex) => {
                           if (
                             subItem.needPermission &&
-                            permissions?.permissao_visualizacao === "parcial"
+                            (permissions?.permissao_visualizacao ===
+                              "parcial" ||
+                              permissions?.permissao === "Sem permissão")
                           ) {
                             return null;
                           }
