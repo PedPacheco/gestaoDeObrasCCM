@@ -432,6 +432,7 @@ model servicos {
   programacoes_servicos programacoes_servicos[]
   equipes               equipes?                @relation(fields: [id_equipe], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipes")
   obras                 obras                   @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
+  servicos_contratos    servicos_contratos      @relation(fields: [id_contrato_servico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_servicos_contratos")
 }
 
 model servicos_adicionais {
@@ -444,18 +445,19 @@ model servicos_adicionais {
 }
 
 model servicos_contratos {
-  id              Int       @id @default(autoincrement())
+  id              Int        @id @default(autoincrement())
   id_regional     Int
   id_turma        Int
-  contrato_antigo String?   @db.VarChar(15)
-  contrato        String?   @db.VarChar(15)
-  material_antigo String?   @db.VarChar(15)
-  material        String?   @db.VarChar(15)
-  texto_breve     String?   @db.VarChar(100)
-  medida          String?   @db.VarChar(15)
+  contrato_antigo String?    @db.VarChar(15)
+  contrato        String?    @db.VarChar(15)
+  material_antigo String?    @db.VarChar(15)
+  material        String?    @db.VarChar(15)
+  texto_breve     String?    @db.VarChar(100)
+  medida          String?    @db.VarChar(15)
   preco           Float?
-  turmas          turmas    @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
-  regionais       regionais @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
+  servicos        servicos[]
+  turmas          turmas     @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
+  regionais       regionais  @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
 }
 
 model status {
@@ -677,16 +679,6 @@ model programacoes_reprovacoes {
   tipo_servico           String?   @db.VarChar(50)
   observacao_programacao String?   @db.VarChar(250)
   obras                  obras     @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model RETIRADA_SUSPENSOES {
-  ID               Int?
-  IDOBRA           Int?
-  IDSTATUSRETIRADA Int?
-  DATARETIRADA     DateTime? @db.Timestamptz(6)
-
-  @@ignore
 }
 
 model suspensoes_retiradas {

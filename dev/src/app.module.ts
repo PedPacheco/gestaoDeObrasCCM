@@ -17,7 +17,7 @@ import { UsersModule } from './interface/modules/users.module';
 import { WorksModule } from './interface/modules/works.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ExecutionReportModule } from './interface/modules/executionReport.module';
-import { ServicesModule } from './interface/modules/services.module';
+import { WorksServicesModule } from './interface/modules/worksServices.module';
 import { ExecutionCapacityModule } from './interface/modules/executionCapacity.module';
 import { ErrorsReportModule } from './interface/modules/errorsReport.module';
 
@@ -37,7 +37,7 @@ import { ErrorsReportModule } from './interface/modules/errorsReport.module';
     EntryModule,
     ExportModule,
     ScheduleModule,
-    ServicesModule,
+    WorksServicesModule,
     ExecutionReportModule,
     AuxiliaryBaseModule,
     ExecutionCapacityModule,
