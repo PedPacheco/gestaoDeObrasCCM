@@ -48,7 +48,11 @@ const TabActions = memo(
             <div className="px-4">
               <ButtonComponent
                 onClick={onNewSchedule}
-                disabled={statusWork === 2 || statusWork === 3}
+                disabled={
+                  statusWork === 2 ||
+                  statusWork === 3 ||
+                  permissions.permissao === "Sem permissão"
+                }
                 text="Nova programação"
               />
             </div>
@@ -57,7 +61,8 @@ const TabActions = memo(
                 onClick={onRejected}
                 disabled={
                   statusWork !== 43 ||
-                  permissions?.permissao_visualizacao === "parcial"
+                  permissions?.permissao_visualizacao === "parcial" ||
+                  permissions.permissao === "Sem permissão"
                 }
                 text="Reprovar programação"
               />
@@ -67,7 +72,8 @@ const TabActions = memo(
                 onClick={onValidate}
                 disabled={
                   statusWork !== 43 ||
-                  permissions?.permissao_visualizacao === "parcial"
+                  permissions?.permissao_visualizacao === "parcial" ||
+                  permissions.permissao === "Sem permissão"
                 }
                 text="Validar programação"
               />
@@ -78,7 +84,8 @@ const TabActions = memo(
                 onClick={onConfirm}
                 disabled={
                   statusWork !== 37 ||
-                  permissions?.permissao_visualizacao === "parcial"
+                  permissions?.permissao_visualizacao === "parcial" ||
+                  permissions.permissao === "Sem permissão"
                 }
                 text="Confirmar programação"
               />
