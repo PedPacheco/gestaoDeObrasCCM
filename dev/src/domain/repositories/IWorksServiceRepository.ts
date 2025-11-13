@@ -27,7 +27,7 @@ export interface IWorksServicesRepository {
     id: number,
   ): Promise<GetServiceScheduleHistoryResponse[]>;
   getServicesFilters(id: number): Promise<GetServicesFiltersResponse>;
-  getAdditionalServices(): Promise<any[]>;
+  getServicesContracts(idRegional?: number): Promise<any[]>;
 }
 
 export const WORKS_SERVICE_REPOSITORY = Symbol('WorksServiceRepository');

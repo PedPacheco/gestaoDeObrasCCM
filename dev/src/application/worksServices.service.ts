@@ -87,8 +87,9 @@ export class WorksServicesService {
     };
   }
 
-  async getAdditionalServices() {
-    const data = await this.worksServicesRepository.getAdditionalServices();
+  async getServiceContracts(idRegional?: number) {
+    const data =
+      await this.worksServicesRepository.getServicesContracts(idRegional);
 
     return data;
   }

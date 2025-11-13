@@ -145,10 +145,18 @@ export class WorksServicesRepository implements IWorksServicesRepository {
     return { services, operations, points };
   }
 
-  async getAdditionalServices(): Promise<any[]> {
-    return await this.prisma.servicos_adicionais.findMany({
+  async getServicesContracts(idRegional?: number): Promise<any[]> {
+    return await this.prisma.servicos_contratos.findMany({
       select: {
-        id_obra: true,
+        texto_breve: true,
+        material: true,
+        preco: true,
+        contrato: true,
+        medida: true,
+        turmas: { select: { turma: true } },
+      },
+      where: {
+        ...(idRegional ? { id_regional: idRegional } : {}),
       },
     });
   }

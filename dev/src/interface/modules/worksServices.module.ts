@@ -3,9 +3,10 @@ import { ServicesController } from '../controllers/worksServices.controller';
 import { WorksServicesService } from 'src/application/worksServices.service';
 import { WORKS_SERVICE_REPOSITORY } from 'src/domain/repositories/IWorksServiceRepository';
 import { WorksServicesRepository } from 'src/infra/repositories/worksServicesRepository';
+import { UsersModule } from './users.module';
 
 @Module({
-  imports: [],
+  imports: [UsersModule],
   controllers: [ServicesController],
   providers: [
     WorksServicesService,

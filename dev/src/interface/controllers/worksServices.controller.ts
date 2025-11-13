@@ -79,13 +79,17 @@ export class ServicesController {
     };
   }
 
-  @Get('adicionais')
-  async getAdditionalServices() {
-    const response = await this.worksServicesService.getAdditionalServices();
+  @Get('contratos')
+  async getServiceContracts(
+    @Query('idRegional', new ParseIntPipe({ optional: true }))
+    idRegional?: number,
+  ) {
+    const response =
+      await this.worksServicesService.getServiceContracts(idRegional);
 
     return {
       statusCode: HttpStatus.OK,
-      message: 'Valores dos filtros retornados',
+      message: 'Retornado contratos dos serviços',
       data: response,
     };
   }
