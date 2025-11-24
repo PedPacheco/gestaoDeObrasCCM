@@ -1,12 +1,15 @@
-import { Module } from '@nestjs/common';
-import { ServicesController } from '../controllers/worksServices.controller';
 import { WorksServicesService } from 'src/application/worksServices.service';
 import { WORKS_SERVICE_REPOSITORY } from 'src/domain/repositories/IWorksServiceRepository';
 import { WorksServicesRepository } from 'src/infra/repositories/worksServicesRepository';
+
+import { Module } from '@nestjs/common';
+
+import { ServicesController } from '../controllers/worksServices.controller';
 import { UsersModule } from './users.module';
+import { WorksModule } from './works.module';
 
 @Module({
-  imports: [UsersModule],
+  imports: [UsersModule, WorksModule],
   controllers: [ServicesController],
   providers: [
     WorksServicesService,

@@ -7,7 +7,7 @@ export interface GetByIdParamsInterface {
 
 export interface GetSelectedServicesParamsInterface {
   id: number;
-  dataProg: string;
+  idProgramacao: number;
   point?: string;
   service?: string;
   operation?: string;
@@ -18,11 +18,11 @@ export interface GetServicesByWorkIdResponse {
   id_obra: number;
   operacao: string;
   ponto: string;
-  data_prog: Date;
   qtde_plan: number;
   qtde_prog: number;
   qtde_real: number;
   obras: { ovnota: string };
+  programacoes: { data_prog: Date };
   servicos_contratos: {
     material: string;
     texto_breve: string;
@@ -37,7 +37,6 @@ export interface GetServicesSelectedByWorkIdResponse {
   id_obra: number;
   operacao: string;
   ponto: string;
-  data_prog: Date;
   qtde_plan: number;
   qtde_prog: number;
   qtde_real: number;
@@ -49,6 +48,7 @@ export interface GetServicesSelectedByWorkIdResponse {
     contrato: string;
     preco: number;
   };
+  programacoes: { data_prog: Date };
   equipes: { equipe: string; encarregado: string; perfil: string };
 }
 

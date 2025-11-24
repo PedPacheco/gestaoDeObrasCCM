@@ -1,12 +1,15 @@
 import {
+  Body,
   Controller,
   Get,
   HttpStatus,
   Param,
   ParseIntPipe,
+  Patch,
   Query,
 } from '@nestjs/common';
 import { WorksServicesService } from 'src/application/worksServices.service';
+import { scheduleServicesDTO } from '../dtos/workServicesDTO';
 
 @Controller('servicos')
 export class ServicesController {
@@ -36,14 +39,14 @@ export class ServicesController {
   @Get('selecionados/:id')
   async getScheduledServices(
     @Param('id', ParseIntPipe) id: number,
-    @Query('dataProg') dataProg: string,
+    @Query('idProgramacao', ParseIntPipe) idProgramacao: number,
     @Query('ponto') point?: string,
     @Query('servico') service?: string,
     @Query('operacao') operation?: string,
   ) {
     const response = await this.worksServicesService.getSelectedServices({
       id,
-      dataProg,
+      idProgramacao,
       point,
       service,
       operation,
@@ -79,18 +82,35 @@ export class ServicesController {
     };
   }
 
-  @Get('contratos')
-  async getServiceContracts(
-    @Query('idRegional', new ParseIntPipe({ optional: true }))
-    idRegional?: number,
-  ) {
-    const response =
-      await this.worksServicesService.getServiceContracts(idRegional);
+  @Get('contratos/:id')
+  async getServiceContracts(@Param('id', ParseIntPipe) id: number) {
+    const response = await this.worksServicesService.getServiceContracts(id);
 
     return {
       statusCode: HttpStatus.OK,
       message: 'Retornado contratos dos serviços',
       data: response,
+    };
+  }
+
+  @Get('equipes/:id')
+  async getTeamsServices(@Param('id', ParseIntPipe) id: number) {
+    const response = await this.worksServicesService.getTeamsServices(id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Retornado equipes',
+      data: response,
+    };
+  }
+
+  @Patch()
+  async scheduleServices(@Body() scheduleServicesData: scheduleServicesDTO[]) {
+    await this.worksServicesService.scheduleServices(scheduleServicesData);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Serviços programados com sucesso',
     };
   }
 }

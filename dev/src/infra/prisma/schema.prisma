@@ -369,6 +369,7 @@ model programacoes {
   tecnicos                        tecnicos                @relation(fields: [id_tecnico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tecnicos")
   programacoes_servicos           programacoes_servicos[]
   relatorio_execucao              relatorio_execucao[]
+  servicos                        servicos[]
 
   @@unique([id, id_obra, data_prog], map: "unique_programacoes")
 }
@@ -423,16 +424,17 @@ model servicos {
   id_obra               Int
   ponto                 String?                 @db.VarChar(15)
   operacao              String?                 @db.VarChar(30)
-  data_prog             DateTime?               @db.Date
   qtde_plan             Float?
   qtde_prog             Float?
   qtde_real             Float?
   id_contrato_servico   Int
   id_equipe             Int?
+  id_programacao        Int?
   programacoes_servicos programacoes_servicos[]
   equipes               equipes?                @relation(fields: [id_equipe], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipes")
   obras                 obras                   @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
   servicos_contratos    servicos_contratos      @relation(fields: [id_contrato_servico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_servicos_contratos")
+  programacoes          programacoes?           @relation(fields: [id_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_servicos_programacoes")
 }
 
 model servicos_adicionais {

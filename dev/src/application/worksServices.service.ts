@@ -7,12 +7,15 @@ import {
   GetByIdParamsInterface,
   GetSelectedServicesParamsInterface,
 } from 'src/interface/types/servicesInterface';
+import { GetWorkDetailsService } from './works/getWorkDetails.service';
+import { scheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
 
 @Injectable()
 export class WorksServicesService {
   constructor(
     @Inject(WORKS_SERVICE_REPOSITORY)
     private readonly worksServicesRepository: IWorksServicesRepository,
+    private readonly getWorkDetailsService: GetWorkDetailsService,
   ) {}
 
   async getById(params: GetByIdParamsInterface) {
@@ -32,11 +35,13 @@ export class WorksServicesService {
       textoBreve: service.servicos_contratos.texto_breve,
       medida: service.servicos_contratos.medida,
       contrato: service.servicos_contratos.contrato,
-      dataProgramada: service.data_prog,
+      dataProgramada: service.programacoes?.data_prog,
       qtdePlanejada: service.qtde_plan,
       qtdeProgramada: service.qtde_prog,
       qtdeRealizada: service.qtde_real,
       preco: service.servicos_contratos.preco,
+      valorUnit: service.servicos_contratos.preco * service.qtde_plan,
+      valorReal: service.servicos_contratos.preco * service.qtde_real,
     }));
   }
 
@@ -58,7 +63,7 @@ export class WorksServicesService {
       textoBreve: service.servicos_contratos.texto_breve,
       medida: service.servicos_contratos.medida,
       contrato: service.servicos_contratos.contrato,
-      dataProgramada: service.data_prog,
+      dataProgramada: service.programacoes.data_prog,
       qtdePlanejada: service.qtde_plan,
       qtdeProgramada: service.qtde_prog,
       qtdeRealizada: service.qtde_real,
@@ -87,10 +92,29 @@ export class WorksServicesService {
     };
   }
 
-  async getServiceContracts(idRegional?: number) {
+  async getServiceContracts(idWork: number) {
+    const work = await this.getWorkDetailsService.get(idWork);
+
+    const idParceira = work?.id_turma;
+
     const data =
-      await this.worksServicesRepository.getServicesContracts(idRegional);
+      await this.worksServicesRepository.getServicesContracts(idParceira);
 
     return data;
+  }
+
+  async getTeamsServices(idWork: number) {
+    const work = await this.getWorkDetailsService.get(idWork);
+
+    const idParceira = work?.id_turma;
+
+    const data =
+      await this.worksServicesRepository.getTeamsServices(idParceira);
+
+    return data;
+  }
+
+  async scheduleServices(data: scheduleServicesDTO[]) {
+    await this.worksServicesRepository.scheduleServices(data);
   }
 }

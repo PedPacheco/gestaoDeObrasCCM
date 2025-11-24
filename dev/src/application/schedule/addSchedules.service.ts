@@ -58,6 +58,6 @@ export class AddSchedulesService {
       id_tecnico: schedule.idTechnical,
     };
 
-    await this.addSchedulesRepository.addSchedules(formattedData, tx);
+    return await this.addSchedulesRepository.addSchedules(formattedData, tx);
   }
 }

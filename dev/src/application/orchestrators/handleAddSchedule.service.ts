@@ -18,10 +18,12 @@ export class HandleAddScheduleService {
   ) {}
 
   async add(data: SchedulesDataDTO) {
-    await this.prisma.$transaction(async (tx) => {
-      await this.addScheduleService.add(data, tx);
+    return await this.prisma.$transaction(async (tx) => {
+      const id = await this.addScheduleService.add(data, tx);
 
       await this.statusFlowRepository.updateStatusWorks(43, data.idWork, tx);
+
+      return id;
     });
   }
 }

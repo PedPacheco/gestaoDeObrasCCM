@@ -29,9 +29,7 @@ export async function saveSchedule(data: any) {
       };
     }
 
-    revalidatePath(`/detalhes/${data.id}`);
-
-    return { success: true, message: res.message };
+    return { success: true, message: res.message, id: res.data };
   } catch (error: any) {
     console.error("Erro ao salvar programação:", error);
     return { success: false, message: error.message };
@@ -62,7 +60,8 @@ export async function editSchedule(data: any, id: number) {
       };
     }
     revalidatePath(`/detalhes/${data.idWork}`);
-    return { success: true, message: res.message };
+
+    return { success: true, message: res.message, id: data.id };
   } catch (error: any) {
     console.error("Erro ao salvar programação:", error);
     return { success: false, message: error.message };

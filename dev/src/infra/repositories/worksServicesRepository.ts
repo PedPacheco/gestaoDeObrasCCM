@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { IWorksServicesRepository } from 'src/domain/repositories/IWorksServiceRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { scheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
 import {
   GetByIdParamsInterface,
   GetSelectedServicesParamsInterface,
@@ -26,11 +27,11 @@ export class WorksServicesRepository implements IWorksServicesRepository {
         id_obra: true,
         operacao: true,
         ponto: true,
-        data_prog: true,
         qtde_plan: true,
         qtde_prog: true,
         qtde_real: true,
         obras: { select: { ovnota: true } },
+        programacoes: { select: { data_prog: true } },
         servicos_contratos: {
           select: {
             material: true,
@@ -58,10 +59,10 @@ export class WorksServicesRepository implements IWorksServicesRepository {
 
   async getSelectedServices({
     id,
+    idProgramacao,
     operation,
     point,
     service,
-    dataProg,
   }: GetSelectedServicesParamsInterface): Promise<
     GetServicesSelectedByWorkIdResponse[]
   > {
@@ -71,7 +72,6 @@ export class WorksServicesRepository implements IWorksServicesRepository {
         id_obra: true,
         operacao: true,
         ponto: true,
-        data_prog: true,
         qtde_plan: true,
         qtde_prog: true,
         qtde_real: true,
@@ -85,11 +85,12 @@ export class WorksServicesRepository implements IWorksServicesRepository {
             preco: true,
           },
         },
+        programacoes: { select: { data_prog: true } },
         equipes: { select: { equipe: true, encarregado: true, perfil: true } },
       },
       where: {
         id_obra: id,
-        data_prog: new Date(dataProg),
+        id_programacao: idProgramacao,
         ...(operation ? { operacao: operation } : {}),
         ...(point ? { ponto: point } : {}),
         ...(service
@@ -145,7 +146,7 @@ export class WorksServicesRepository implements IWorksServicesRepository {
     return { services, operations, points };
   }
 
-  async getServicesContracts(idRegional?: number): Promise<any[]> {
+  async getServicesContracts(idParceira: number): Promise<any[]> {
     return await this.prisma.servicos_contratos.findMany({
       select: {
         texto_breve: true,
@@ -156,8 +157,40 @@ export class WorksServicesRepository implements IWorksServicesRepository {
         turmas: { select: { turma: true } },
       },
       where: {
-        ...(idRegional ? { id_regional: idRegional } : {}),
+        id_turma: idParceira,
       },
     });
+  }
+
+  async getTeamsServices(idParceira: number): Promise<any[]> {
+    console.log(idParceira);
+    return await this.prisma.equipes.findMany({
+      select: {
+        id: true,
+        equipe: true,
+        encarregado: true,
+        perfil: true,
+      },
+      where: {
+        id_turma: 2,
+      },
+    });
+  }
+
+  async scheduleServices(data: scheduleServicesDTO[]): Promise<void> {
+    await this.prisma.$transaction(
+      data.map((item: scheduleServicesDTO) => {
+        const { id, idSchedule, idTeam, prog } = item;
+
+        return this.prisma.servicos.updateMany({
+          where: { id },
+          data: {
+            id_programacao: idSchedule,
+            id_equipe: idTeam,
+            qtde_prog: prog,
+          },
+        });
+      }),
+    );
   }
 }

@@ -5,7 +5,7 @@ import { memo, SyntheticEvent } from "react";
 interface TabActionsProps {
   statusWork: number;
   permissions: any;
-  onNewSchedule: () => void;
+  onNewSchedule: (scheduleData: any) => Promise<void>;
   onValidate: () => void;
   onConfirm: () => void;
   onRejected: () => void;
