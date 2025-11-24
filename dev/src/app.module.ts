@@ -18,6 +18,7 @@ import { WorksModule } from './interface/modules/works.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ExecutionReportModule } from './interface/modules/executionReport.module';
 import { ExecutionCapacityModule } from './interface/modules/executionCapacity.module';
+import { ErrorsReportModule } from './interface/modules/errorsReport.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { ExecutionCapacityModule } from './interface/modules/executionCapacity.m
     ExecutionReportModule,
     AuxiliaryBaseModule,
     ExecutionCapacityModule,
+    ErrorsReportModule,
     JwtModule.registerAsync({
       global: true,
       inject: [ConfigService],

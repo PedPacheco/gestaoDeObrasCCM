@@ -41,7 +41,7 @@ export const EditableColumn = ({
   onHandleChange,
   EditSuspension,
 }: EditableColumnProps) => {
-  const { permissions = { permissao_visualizacao: "total" } } = useUser();
+  const { permissions } = useUser();
 
   const sortedStatus = options.status.sort(
     (a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status)
@@ -56,7 +56,10 @@ export const EditableColumn = ({
         setSelectedItem={(value) => onHandleChange("id_turma", value)}
         valueKey="id"
         displayKey="turma"
-        disabled={permissions?.permissao_visualizacao === "parcial"}
+        disabled={
+          permissions?.permissao_visualizacao === "parcial" ||
+          permissions?.permissao === "Sem permissão"
+        }
       />
 
       <SelectComponent
@@ -66,7 +69,10 @@ export const EditableColumn = ({
         setSelectedItem={(value) => onHandleChange("id_status", value)}
         valueKey="id"
         displayKey="status"
-        disabled={permissions?.permissao_visualizacao === "parcial"}
+        disabled={
+          permissions?.permissao_visualizacao === "parcial" ||
+          permissions?.permissao === "Sem permissão"
+        }
         editButton={EditSuspension}
       />
 
@@ -75,7 +81,10 @@ export const EditableColumn = ({
         value={data.data_empreitamento || ""}
         isEdit={true}
         onEdit={(value) => onHandleChange("data_empreitamento", value)}
-        disabled={permissions?.permissao_visualizacao === "parcial"}
+        disabled={
+          permissions?.permissao_visualizacao === "parcial" ||
+          permissions?.permissao === "Sem permissão"
+        }
       />
 
       <SelectComponent
@@ -89,7 +98,10 @@ export const EditableColumn = ({
         setSelectedItem={(value) => onHandleChange("tipo_ads", value)}
         valueKey="tipo"
         displayKey="tipo"
-        disabled={permissions?.permissao_visualizacao === "parcial"}
+        disabled={
+          permissions?.permissao_visualizacao === "parcial" ||
+          permissions?.permissao === "Sem permissão"
+        }
       />
     </>
   );

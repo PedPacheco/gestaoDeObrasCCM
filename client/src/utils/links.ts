@@ -1,6 +1,6 @@
 export const links = [
   { name: "Tela inicial", href: "/", needPermission: false },
-  { name: "Exportações", href: "/exportacoes", needPermission: true },
+  { name: "Exportações", href: "/exportacoes", needPermission: false },
   {
     name: "Metas",
     href: null,
@@ -26,7 +26,7 @@ export const links = [
   {
     name: "Entrada",
     href: "/entrada",
-    needPermission: true,
+    needPermission: false,
     submenu: [
       {
         name: "Importação mercado",
@@ -42,12 +42,12 @@ export const links = [
       {
         name: "Entrada por data",
         href: "/entrada/por-data",
-        needPermission: true,
+        needPermission: false,
       },
       {
         name: "Lista geral de obras",
         href: "/entrada/lista-geral-obras",
-        needPermission: true,
+        needPermission: false,
       },
     ],
   },
@@ -106,6 +106,11 @@ export const links = [
   {
     name: "Capacidade de execução",
     href: "/capacidade-execucao",
-    needPermission: false,
+    needPermission: true,
+  },
+  {
+    name: "Relatório de erros",
+    href: "/relatorio-erros",
+    needPermission: true,
   },
 ];

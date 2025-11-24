@@ -46,7 +46,7 @@ const VirtuosoTableComponents: TableComponents = {
   Scroller: forwardRef<HTMLDivElement>(function scroller(props, ref) {
     return (
       <TableContainer
-        className="mb-4 w-[70%] min-h-96 h-full max-h-[620px] overflow-y-auto"
+        className="mb-4 w-[70%] min-h-96 h-full max-h-[620px] lg:max-h-0 overflow-y-auto"
         component={Paper}
         {...props}
         ref={ref}

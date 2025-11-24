@@ -73,6 +73,7 @@ export class MarketWork extends Work {
     if (this.idMunicipio != null) updateData.id_gpm = this.idMunicipio;
     if (this.idTipo != null) updateData.id_tipo = this.idTipo;
     if (this.idCircuito != null) updateData.id_circuito = this.idCircuito;
+    if (this.idParceira != null) updateData.id_turma = this.idParceira;
     if (this.prazoTexto != null) updateData.prazo = this.prazo;
     if (this.statusOv != null) updateData.status_ov = this.statusOv;
     if (this.statusDiagrama != null)
@@ -153,7 +154,7 @@ export class NoteWorks extends Work {
     if (this.idMunicipio != null) updateData.id_gpm = this.idMunicipio;
     if (this.idTipo != null) updateData.id_tipo = this.idTipo;
     if (this.idCircuito != null) updateData.id_circuito = this.idCircuito;
-
+    if (this.idParceira != null) updateData.id_turma = this.idParceira;
     if (this.dci != null && this.dci !== '') updateData.ordem_dci = this.dci;
     if (this.dcd != null && this.dcd !== '') updateData.ordem_dcd = this.dcd;
     if (this.dca != null && this.dca !== '') updateData.ordem_dca = this.dca;

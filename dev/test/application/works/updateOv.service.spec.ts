@@ -61,6 +61,7 @@ describe('UpdateOvService', () => {
           id_gpm: 1,
           id_tipo: 2,
           id_circuito: 3,
+          id_turma: 1,
           prazo: 30,
           status_ov: 1,
           status_diagrama: 'Aprovado',
@@ -92,7 +93,7 @@ describe('UpdateOvService', () => {
           equipeNumPedido: null,
           moCliente: null,
           moEmpresa: null,
-          idParceira: 1,
+          idParceira: null,
         },
       ]);
 

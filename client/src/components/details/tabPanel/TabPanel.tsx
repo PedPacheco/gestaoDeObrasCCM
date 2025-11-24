@@ -17,6 +17,7 @@ import TabActions from "./tabsActions";
 import WorkCostPanelItem from "../panelItems/workCostPanelItem";
 import SchedulePanelItem from "../panelItems/schedulePanelItem";
 import ExecutionReportPanelItem from "../panelItems/executionReportPanelItem";
+import { Paper } from "@mui/material";
 
 interface CustomTabPanelProps {
   children?: React.ReactNode;

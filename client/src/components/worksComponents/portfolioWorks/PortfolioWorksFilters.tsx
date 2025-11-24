@@ -9,8 +9,11 @@ import { FiltersInterface } from "@/interfaces/filtersInterfaces";
 import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
-import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
-import { TextField } from "@mui/material";
+import {
+  DocumentArrowDownIcon,
+  MagnifyingGlassCircleIcon,
+} from "@heroicons/react/20/solid";
+import { InputAdornment, TextField } from "@mui/material";
 
 interface PortfolioWorksFiltersProps {
   data: FiltersInterface;
@@ -140,6 +143,13 @@ export default function PortfolioWorksFilters({
             label="Ov/nota"
             value={ovnota}
             onChange={(event) => setOvnota(event.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <MagnifyingGlassCircleIcon height={16} width={16} />
+                </InputAdornment>
+              ),
+            }}
           />
         </div>
       </div>

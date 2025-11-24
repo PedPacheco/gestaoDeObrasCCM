@@ -3,19 +3,19 @@
 import "dayjs/locale/pt-br";
 
 import dayjs from "dayjs";
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState, useTransition } from "react";
 
+import { UpdateExecutionCapacity } from "@/actions/executionCapacity";
+import { fetchData } from "@/actions/fetchData.action";
 import { FiltersInterface } from "@/interfaces/filtersInterfaces";
 import { getButtonContent } from "@/utils/getButtonContent";
+import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import { ButtonComponent } from "../common/Button";
-import { FiltersExecutionCapacity } from "./filtersExecutionCapacity";
-import dynamic from "next/dynamic";
-import { fetchData } from "@/actions/fetchData.action";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import ErrorModal from "../common/ErrorModal";
-import { UpdateExecutionCapacity } from "@/actions/executionCapacity";
 import ModalComponent from "../common/Modal";
+import { FiltersExecutionCapacity } from "./filtersExecutionCapacity";
 import { FinancialValuesModal } from "./financialValuesModal";
 
 interface MainExecutionCapacityProps {
@@ -102,7 +102,7 @@ export function MainExecutionCapacity({
           return;
         }
 
-        setTableData(response.data);
+        setTableData(response.data.executionCapacityValues);
       } catch (error: any) {
         setError(error.message);
       }
