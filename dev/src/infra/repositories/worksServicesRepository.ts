@@ -107,23 +107,22 @@ export class WorksServicesRepository implements IWorksServicesRepository {
   async getServiceScheduleHistory(
     id: number,
   ): Promise<GetServiceScheduleHistoryResponse[]> {
-    return await this.prisma.servicos.findMany({
+    return await this.prisma.programacoes_servicos.findMany({
       select: {
         id: true,
-        ponto: true,
-        operacao: true,
-        programacoes_servicos: {
+        servicos: {
           select: {
-            plan: true,
-            prog: true,
-            real: true,
-            id: true,
-            programacoes: { select: { data_prog: true } },
+            servicos_contratos: { select: { texto_breve: true } },
+            ponto: true,
+            operacao: true,
           },
         },
-        servicos_contratos: { select: { texto_breve: true } },
+        programacoes: { select: { data_prog: true } },
+        prog: true,
+        plan: true,
+        real: true,
       },
-      where: { id },
+      where: { programacoes: { id_obra: id } },
     });
   }
 
@@ -178,11 +177,20 @@ export class WorksServicesRepository implements IWorksServicesRepository {
   }
 
   async scheduleServices(data: scheduleServicesDTO[]): Promise<void> {
-    await this.prisma.$transaction(
-      data.map((item: scheduleServicesDTO) => {
+    await this.prisma.$transaction(async (tx) => {
+      for (const item of data) {
         const { id, idSchedule, idTeam, prog } = item;
 
-        return this.prisma.servicos.updateMany({
+        await tx.programacoes_servicos.create({
+          data: {
+            id_programacao: idSchedule,
+            id_servico: id,
+            plan: prog,
+            prog,
+          },
+        });
+
+        await tx.servicos.update({
           where: { id },
           data: {
             id_programacao: idSchedule,
@@ -190,7 +198,7 @@ export class WorksServicesRepository implements IWorksServicesRepository {
             qtde_prog: prog,
           },
         });
-      }),
-    );
+      }
+    });
   }
 }

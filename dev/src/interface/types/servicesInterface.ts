@@ -54,16 +54,15 @@ export interface GetServicesSelectedByWorkIdResponse {
 
 export interface GetServiceScheduleHistoryResponse {
   id: number;
-  ponto: string;
-  operacao: string;
-  programacoes_servicos: {
-    plan: number;
-    prog: number;
-    real: number;
-    id: number;
-    programacoes: { data_prog: Date };
-  }[];
-  servicos_contratos: { texto_breve: string };
+  servicos: {
+    servicos_contratos: { texto_breve: string };
+    ponto: string;
+    operacao: string;
+  };
+  programacoes: { data_prog: Date };
+  prog: number;
+  plan: number;
+  real: number;
 }
 
 export interface GetServicesFiltersResponse {
