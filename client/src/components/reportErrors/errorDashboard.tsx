@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
+import { useEffect, useState, Suspense, lazy } from "react";
 import { TabItem } from "@/app/(dashboard)/relatorio-erros/page";
 import { useErrorsReportData } from "@/hooks/useErrorsReportData";
+
 import {
   ArrowDownTrayIcon,
   ArrowTrendingUpIcon,
@@ -12,6 +12,7 @@ import {
   ExclamationCircleIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/20/solid";
+
 import {
   AppBar,
   Box,
@@ -27,30 +28,48 @@ import {
   Typography,
   Drawer,
   IconButton,
+  CircularProgress,
 } from "@mui/material";
 import { Bars3Icon } from "@heroicons/react/24/outline";
 
 import { ButtonComponent } from "../common/Button";
-import { ScheduleErrorTable } from "./tabs/scheduleErrorTable";
-import { UndefinedItemsTable } from "./tabs/undefinedItemsTable";
-import { WorksCapexValueZeroTable } from "./tabs/worksCapexValueZeroTable";
-import { ExecutionDifferentialTable } from "./tabs/executionDifferentialTable";
-import { DivergentConclusionTable } from "./tabs/divergentConclusionTable";
-import { WorksWithoutYearPlanTable } from "./tabs/worksWithoutYearPlanTable";
-import { RepeatedWorksTable } from "./tabs/repeatedWorksTable";
 
-interface ErrorDashboardProps {
-  undefinedItemsData: any[];
-  scheduleErrorData: any[];
-  zeroCapexData: any[];
-  executionDifferentialData: any[];
-  divergentConclusionData: any[];
-  worksWithoutYearPlanData: any[];
-  repeatedWorksData: any[];
-  regionalValues: Record<string, string | number>[];
-  tabs: TabItem[];
-  token: string;
-}
+// 🔥 Lazy loading das tabelas
+const UndefinedItemsTable = lazy(() =>
+  import("./tabs/undefinedItemsTable").then((m) => ({
+    default: m.UndefinedItemsTable,
+  }))
+);
+const ScheduleErrorTable = lazy(() =>
+  import("./tabs/scheduleErrorTable").then((m) => ({
+    default: m.ScheduleErrorTable,
+  }))
+);
+const WorksCapexValueZeroTable = lazy(() =>
+  import("./tabs/worksCapexValueZeroTable").then((m) => ({
+    default: m.WorksCapexValueZeroTable,
+  }))
+);
+const ExecutionDifferentialTable = lazy(() =>
+  import("./tabs/executionDifferentialTable").then((m) => ({
+    default: m.ExecutionDifferentialTable,
+  }))
+);
+const DivergentConclusionTable = lazy(() =>
+  import("./tabs/divergentConclusionTable").then((m) => ({
+    default: m.DivergentConclusionTable,
+  }))
+);
+const WorksWithoutYearPlanTable = lazy(() =>
+  import("./tabs/worksWithoutYearPlanTable").then((m) => ({
+    default: m.WorksWithoutYearPlanTable,
+  }))
+);
+const RepeatedWorksTable = lazy(() =>
+  import("./tabs/repeatedWorksTable").then((m) => ({
+    default: m.RepeatedWorksTable,
+  }))
+);
 
 const iconsMap = {
   ExclamationCircleIcon,
@@ -61,32 +80,70 @@ const iconsMap = {
 };
 
 const ENDPOINTS_CONFIG = [
-  { key: "undefinedItems", path: "itens-nao-definidos" },
-  { key: "scheduleError", path: "programacao" },
-  { key: "zeroCapex", path: "valor-zero" },
-  { key: "executionDifferential", path: "diferenca-executado" },
-  { key: "divergentConclusion", path: "conclusao-divergente" },
-  { key: "worksWithoutYearPlan", path: "ano-plan" },
-  { key: "repeatedWorks", path: "obras-repetidas" },
+  {
+    key: "undefinedItems",
+    path: "itens-nao-definidos",
+    label: "Itens Não Definidos",
+    icon: "ExclamationCircleIcon" as const,
+  },
+  {
+    key: "scheduleError",
+    path: "programacao",
+    label: "Programação <100%",
+    icon: "ArrowTrendingUpIcon" as const,
+  },
+  {
+    key: "zeroCapex",
+    path: "valor-zero",
+    label: "Valor Orçado Zero",
+    icon: "ExclamationTriangleIcon" as const,
+  },
+  {
+    key: "executionDifferential",
+    path: "diferenca-executado",
+    label: "Diferença Executado",
+    icon: "DocumentIcon" as const,
+  },
+  {
+    key: "divergentConclusion",
+    path: "conclusao-divergente",
+    label: "Data Conclusão Divergente",
+    icon: "CalendarDateRangeIcon" as const,
+  },
+  {
+    key: "worksWithoutYearPlan",
+    path: "ano-plano",
+    label: "Obras sem Ano Plano",
+    icon: "ExclamationTriangleIcon" as const,
+  },
+  {
+    key: "repeatedWorks",
+    path: "obras-repetidas",
+    label: "Obras Repetidas",
+    icon: "ExclamationTriangleIcon" as const,
+  },
 ];
 
+interface ErrorDashboardProps {
+  regionalValues: Record<string, string | number>[];
+  token: string;
+  initialParams?: any;
+}
+
 export function ErrorDashboard({
-  scheduleErrorData,
-  undefinedItemsData,
-  zeroCapexData,
-  executionDifferentialData,
-  divergentConclusionData,
-  worksWithoutYearPlanData,
-  repeatedWorksData,
   regionalValues,
-  tabs,
   token,
+  initialParams,
 }: ErrorDashboardProps) {
-  const [selectedRegional, setSelectedRegional] = useState("");
+  const [selectedRegional, setSelectedRegional] = useState(
+    initialParams?.idRegional || ""
+  );
   const [activeTab, setActiveTab] = useState(0);
-  const [tabsState, setTabsState] = useState<TabItem[]>(tabs);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  // ✅ Rastreia quais abas já foram carregadas
+  const [loadedTabs, setLoadedTabs] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     const checkMobile = () => {
@@ -104,80 +161,58 @@ export function ErrorDashboard({
     url: `${process.env.NEXT_PUBLIC_API_URL}/relatorio-erros/${path}`,
   }));
 
-  const { state, fetchAll, isPending } = useErrorsReportData({
+  const { state, fetchSingle, fetchMultiple, isPending } = useErrorsReportData({
     token,
     endpoints,
-    initialData: {
-      undefinedItems: undefinedItemsData,
-      scheduleError: scheduleErrorData,
-      zeroCapex: zeroCapexData,
-      executionDifferential: executionDifferentialData,
-      divergentConclusion: divergentConclusionData,
-      worksWithoutYearPlan: worksWithoutYearPlanData,
-      repeatedWorks: repeatedWorksData,
-    },
+    // ✅ NÃO passa initialData - tudo será carregado sob demanda
   });
 
+  // ✅ Carrega primeira aba ao montar o componente
   useEffect(() => {
-    const dataMap: Record<string, any[]> = {
-      "itens-nao-definido": state.undefinedItems.data,
-      programacao: state.scheduleError.data,
-      "valor-zero": state.zeroCapex.data,
-      "diferenca-executado": state.executionDifferential.data,
-      "conclusao-divergente": state.divergentConclusion.data,
-      "ano-plan": state.worksWithoutYearPlan.data,
-      "obras-repetidas": state.repeatedWorks.data,
-    };
+    const params = selectedRegional
+      ? { idRegional: selectedRegional }
+      : undefined;
+    fetchSingle(0, params);
+    setLoadedTabs(new Set([0]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Executa apenas uma vez
 
-    const updated = tabsState.map((tab) => ({
-      ...tab,
-      count: dataMap[tab.id]?.length ?? 0,
-    }));
+  // ✅ Carrega dados quando troca de aba (lazy loading)
+  const handleTabChange = (_: any, newValue: number) => {
+    setActiveTab(newValue);
 
-    const hasChanged = updated.some((t, i) => t.count !== tabsState[i].count);
-
-    if (hasChanged) setTabsState(updated);
-  }, [
-    state.undefinedItems.data,
-    state.scheduleError.data,
-    state.zeroCapex.data,
-    state.executionDifferential.data,
-    state.divergentConclusion.data,
-    state.worksWithoutYearPlan.data,
-    state.repeatedWorks.data,
-    tabsState,
-  ]);
-
-  const handleApplyFilters = () => fetchAll({ idRegional: selectedRegional });
-  const handleClearFilters = () => {
-    setSelectedRegional("");
-    fetchAll();
+    // Só carrega se ainda não foi carregada
+    if (!loadedTabs.has(newValue)) {
+      const params = selectedRegional
+        ? { idRegional: selectedRegional }
+        : undefined;
+      fetchSingle(newValue, params);
+      setLoadedTabs((prev) => new Set([...prev, newValue]));
+    }
   };
 
-  const tableComponents = [
-    <UndefinedItemsTable
-      key={0}
-      undefinedItemsData={state.undefinedItems.data}
-    />,
-    <ScheduleErrorTable key={1} scheduleErrorData={state.scheduleError.data} />,
-    <WorksCapexValueZeroTable
-      key={2}
-      worksCapexValueZeroData={state.zeroCapex.data}
-    />,
-    <ExecutionDifferentialTable
-      key={3}
-      executionDifferentialData={state.executionDifferential.data}
-    />,
-    <DivergentConclusionTable
-      key={4}
-      divergentConclusionData={state.divergentConclusion.data}
-    />,
-    <WorksWithoutYearPlanTable
-      key={5}
-      worksWithoutYearPlanData={state.worksWithoutYearPlan.data}
-    />,
-    <RepeatedWorksTable key={6} repeatedWorksData={state.repeatedWorks.data} />,
-  ];
+  // ✅ Recarrega apenas as abas que já foram visualizadas
+  const handleApplyFilters = () => {
+    const params = selectedRegional
+      ? { idRegional: selectedRegional }
+      : undefined;
+    const tabsToReload = Array.from(loadedTabs);
+    fetchMultiple(tabsToReload, params);
+  };
+
+  const handleClearFilters = () => {
+    setSelectedRegional("");
+    const tabsToReload = Array.from(loadedTabs);
+    fetchMultiple(tabsToReload, undefined);
+  };
+
+  // ✅ Gera tabs dinamicamente
+  const tabs: TabItem[] = ENDPOINTS_CONFIG.map((config, index) => ({
+    id: config.key,
+    label: config.label,
+    icon: config.icon,
+    count: state[config.key]?.data?.length ?? 0,
+  }));
 
   const FiltersContent = () => (
     <div className="flex flex-col sm:flex-row gap-2 p-2 w-full">
@@ -215,6 +250,53 @@ export function ErrorDashboard({
       </div>
     </div>
   );
+
+  // ✅ Renderiza tabela com loading state
+  const renderActiveTable = () => {
+    const currentEndpoint = ENDPOINTS_CONFIG[activeTab];
+    const tabData = state[currentEndpoint.key];
+
+    // Mostra loading se a aba está carregando
+    if (!tabData?.data && (isPending || tabData?.loading)) {
+      return (
+        <div className="flex justify-center items-center h-64">
+          <CircularProgress />
+          <span className="ml-2">Carregando dados...</span>
+        </div>
+      );
+    }
+
+    // Mostra erro se houver
+    if (tabData?.error) {
+      return (
+        <div className="flex justify-center items-center h-64 text-red-500">
+          <ExclamationCircleIcon className="w-6 h-6 mr-2" />
+          <span>Erro: {tabData.error}</span>
+        </div>
+      );
+    }
+
+    const data = tabData?.data || [];
+
+    switch (activeTab) {
+      case 0:
+        return <UndefinedItemsTable undefinedItemsData={data} />;
+      case 1:
+        return <ScheduleErrorTable scheduleErrorData={data} />;
+      case 2:
+        return <WorksCapexValueZeroTable worksCapexValueZeroData={data} />;
+      case 3:
+        return <ExecutionDifferentialTable executionDifferentialData={data} />;
+      case 4:
+        return <DivergentConclusionTable divergentConclusionData={data} />;
+      case 5:
+        return <WorksWithoutYearPlanTable worksWithoutYearPlanData={data} />;
+      case 6:
+        return <RepeatedWorksTable repeatedWorksData={data} />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="min-h-screen w-full sm:w-full md:w-[90%] lg:w-[80%] px-1 sm:px-2 md:px-0">
@@ -271,34 +353,26 @@ export function ErrorDashboard({
       <Paper square elevation={0} className="bg-[#f9fafb]">
         <Tabs
           value={activeTab}
-          onChange={(_, v) => setActiveTab(v)}
+          onChange={handleTabChange}
           variant="scrollable"
           scrollButtons="auto"
           allowScrollButtonsMobile
         >
-          {tabsState.map((tab, i) => {
+          {tabs.map((tab, i) => {
             const Icon = iconsMap[tab.icon];
             return (
               <Tab
-                key={i}
-                className="min-w-[120px] sm:min-w-[160px] text-xs sm:text-sm p-2 sm:p-3"
+                key={tab.id}
                 label={
-                  <Stack
-                    direction={isMobile ? "column" : "row"}
-                    spacing={isMobile ? 0.5 : 1}
-                    alignItems="center"
-                  >
-                    <Icon
-                      width={isMobile ? 24 : 32}
-                      height={isMobile ? 24 : 32}
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Icon height={18} width={18} />
+                    <span>{tab.label}</span>
+                    <Chip
+                      label={tab.count}
+                      size="small"
+                      sx={{ ml: 1 }}
+                      color="primary"
                     />
-                    <Typography
-                      variant="body2"
-                      className={isMobile ? "text-[0.7rem]" : ""}
-                    >
-                      {tab.label}
-                    </Typography>
-                    <Chip size="small" label={tab.count} />
                   </Stack>
                 }
               />
@@ -307,9 +381,17 @@ export function ErrorDashboard({
         </Tabs>
       </Paper>
 
-      <div className="bg-[#f9fafb] p-1 sm:p-2 md:p-3 overflow-x-auto">
-        {tableComponents[activeTab]}
-      </div>
+      <Box mt={2}>
+        <Suspense
+          fallback={
+            <div className="flex justify-center items-center h-64">
+              <CircularProgress />
+            </div>
+          }
+        >
+          {renderActiveTable()}
+        </Suspense>
+      </Box>
     </div>
   );
 }
