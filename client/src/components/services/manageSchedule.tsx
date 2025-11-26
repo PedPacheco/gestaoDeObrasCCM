@@ -13,6 +13,7 @@ interface ManageScheduleProps {
   scheduledServicesData: any[];
   serviceContractData: any[];
   serviceTeams: any[];
+  scheduledServicesHistory: any[];
   serviceFilters: any;
   isInsert: boolean;
   options: any;
@@ -28,6 +29,7 @@ export function ManageSchedule({
   serviceContractData,
   serviceFilters,
   serviceTeams,
+  scheduledServicesHistory,
   isInsert,
   options,
   idWork,
@@ -78,9 +80,9 @@ export function ManageSchedule({
             servicesData={servicesData}
             scheduledServicesData={scheduledServicesData}
             serviceFilters={serviceFilters}
+            scheduledServicesHistory={scheduledServicesHistory}
             serviceContractData={serviceContractData}
             serviceTeams={serviceTeams}
-            isInsert={isInsert}
             idScheduleExisting={idScheduleExisting}
           />
         )}

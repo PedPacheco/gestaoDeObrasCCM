@@ -30,6 +30,7 @@
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.63.0",
     "react-virtuoso": "^4.10.4",
+    "root": "github:tanstack/react-virtual",
     "zod": "^4.1.11"
   },
   "devDependencies": {

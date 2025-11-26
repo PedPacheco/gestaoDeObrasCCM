@@ -1,5 +1,8 @@
-import { PlusIcon } from "@heroicons/react/20/solid";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import { useCallback, useEffect, useState } from "react";
 
+import { PlusIcon } from "@heroicons/react/20/solid";
 import {
   Autocomplete,
   Button,
@@ -17,11 +20,12 @@ import {
   TextField,
 } from "@mui/material";
 
-import { useCallback, useEffect, useState } from "react";
-import { ServicesAvaliable } from "./servicesAvailable";
 import { ScheduledServices } from "./scheduledServices";
+import { ServicesAvaliable } from "./servicesAvailable";
 import { ServicesContractSelect } from "./servicesContractSelect";
 import { TeamModal } from "./teamsModal";
+
+dayjs.extend(utc);
 
 type ServiceContract = {
   texto_breve: string;
@@ -37,8 +41,8 @@ interface ServicesSectionProps {
   scheduledServicesData: any[];
   serviceContractData: ServiceContract[];
   serviceTeams: any[];
+  scheduledServicesHistory: any[];
   serviceFilters: any;
-  isInsert: boolean;
   idScheduleExisting: string | null;
 }
 
@@ -57,47 +61,20 @@ export function ServicesSection({
   serviceContractData,
   serviceFilters,
   serviceTeams,
-  isInsert,
+  scheduledServicesHistory,
   idScheduleExisting,
 }: ServicesSectionProps) {
   const [selectedServices, setSelectedServices] = useState<number[]>([]);
 
   const [openTeamsModal, setOpenTeamsModal] = useState<boolean>(false);
 
-  const shouldBlock =
-    isInsert && idScheduleExisting && selectedServices.length === 0;
-
   const toggleModal = useCallback(() => {
     setOpenTeamsModal((prev) => !prev);
   }, []);
 
-  // useEffect(() => {
-  //   if (!shouldBlock) return;
-
-  //   const handler = (event: BeforeUnloadEvent) => {
-  //     event.preventDefault();
-  //     event.returnValue = "";
-  //   };
-
-  //   const handleBack = (e: PopStateEvent) => {
-  //     const confirmLeave = confirm(
-  //       "Existem alterações não salvas. Deseja sair?"
-  //     );
-  //     if (!confirmLeave) {
-  //       window.history.pushState(null, "", window.location.href);
-  //     }
-  //   };
-
-  //   window.history.pushState(null, "", window.location.href);
-
-  //   window.addEventListener("beforeunload", handler);
-  //   window.addEventListener("popstate", handleBack);
-
-  //   return () => {
-  //     window.removeEventListener("beforeunload", handler);
-  //     window.removeEventListener("popstate", handleBack);
-  //   };
-  // }, [shouldBlock]);
+  const formatDate = (dateString: string) => {
+    return dayjs(dateString).utc().format("DD/MM/YYYY");
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
@@ -225,14 +202,46 @@ export function ServicesSection({
                     <TableCell>SERVIÇO</TableCell>
                     <TableCell>OPERAÇÃO</TableCell>
                     <TableCell>PONTO</TableCell>
+                    <TableCell>DATA PROGRAMADA</TableCell>
+                    <TableCell>PLAN</TableCell>
+                    <TableCell>PROG</TableCell>
+                    <TableCell>REAL</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  <TableRow>
-                    <TableCell colSpan={3} align="center">
-                      Nenhum histórico disponível
-                    </TableCell>
-                  </TableRow>
+                  {scheduledServicesHistory.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} align="center">
+                        Nenhum histórico disponível
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    scheduledServicesHistory.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="text-nowrap">
+                          {item.servicos.servicos_contratos.texto_breve}
+                        </TableCell>
+                        <TableCell className="text-nowrap">
+                          {item.servicos.operacao}
+                        </TableCell>
+                        <TableCell className="text-nowrap">
+                          {item.servicos.ponto}
+                        </TableCell>
+                        <TableCell className="text-nowrap">
+                          {formatDate(item.programacoes.data_prog)}
+                        </TableCell>
+                        <TableCell className="text-nowrap">
+                          {item.plan}
+                        </TableCell>
+                        <TableCell className="text-nowrap">
+                          {item.prog}
+                        </TableCell>
+                        <TableCell className="text-nowrap">
+                          {item.real}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </TableContainer>

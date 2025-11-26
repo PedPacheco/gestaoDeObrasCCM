@@ -27,6 +27,7 @@ export default async function ServicosPage({
     serviceFilters,
     serviceContractData,
     serviceTeams,
+    scheduledServicesHistory,
   ] = await Promise.all([
     fetchFilters({
       restricao: true,
@@ -66,6 +67,12 @@ export default async function ServicosPage({
       cookieStore.get("token")?.value,
       { cache: "no-store" }
     ),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/servicos/historico/${id}`,
+      undefined,
+      cookieStore.get("token")?.value,
+      { cache: "no-store" }
+    ),
   ]);
 
   return (
@@ -76,6 +83,7 @@ export default async function ServicosPage({
         servicesData={servicesData.data}
         serviceContractData={serviceContractData.data}
         serviceFilters={serviceFilters.data}
+        scheduledServicesHistory={scheduledServicesHistory.data}
         serviceTeams={serviceTeams.data}
         isInsert={formData?.id ? false : true}
         options={options}
