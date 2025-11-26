@@ -35,7 +35,7 @@ export class RegisterUserDTO {
 
   @IsNotEmpty()
   @IsString()
-  @MaxLength(50)
+  @MaxLength(70)
   email: string;
 
   @IsString()

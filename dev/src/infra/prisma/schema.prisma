@@ -542,7 +542,7 @@ model usuario {
   formulario_utilizado   String?              @db.VarChar(50)
   nome_maquina           String?              @db.VarChar(30)
   nome_usuario           String               @db.VarChar(50)
-  email                  String               @db.VarChar(50)
+  email                  String               @db.VarChar(70)
   permissao_visualizacao String               @default("total") @db.VarChar(25)
   id_turma               Int                  @default(1)
   relatorio_execucao     relatorio_execucao[]
@@ -690,6 +690,63 @@ model suspensoes_retiradas {
   data_retirada      DateTime? @db.Date
   obras              obras     @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
   status             status?   @relation(fields: [id_status_retirada], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_status")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model OBRAS {
+  CODIGOOBRA            Int?
+  OVNOTA                String?   @db.VarChar(12)
+  PEP                   String?   @db.VarChar(8)
+  DIAGRAMA              String?   @db.VarChar(12)
+  ORDEMDCI              String?   @db.VarChar(12)
+  ORDEMDCD              String?   @db.VarChar(12)
+  ORDEMDCA              String?   @db.VarChar(12)
+  ORDEMDCIM             String?   @db.VarChar(12)
+  STATUSOVSAP           Int?
+  STATUSPEP             String?   @db.VarChar(4)
+  STATUSDIAGRAMA        String?   @db.VarChar(4)
+  STATUS162             String?   @db.VarChar(255)
+  STATUS163             String?   @db.VarChar(4)
+  STATUS165             String?   @db.VarChar(4)
+  STATUS43              String?   @db.VarChar(4)
+  STATUSUSUARIODIAGRAMA String?   @db.VarChar(16)
+  STATUSUSUARIO162      String?   @db.VarChar(16)
+  STATUSUSUARIO163      String?   @db.VarChar(16)
+  STATUSUSUARIO165      String?   @db.VarChar(16)
+  STATUSUSUARIO43       String?   @db.VarChar(16)
+  CODGPM                Int?
+  CODTIPO               Int?
+  ENTRADA               DateTime? @db.Timestamptz(6)
+  PRAZO                 Int?
+  QTDEPLANEJADA         Float?
+  CODCIRCUITO           Int?
+  MOPLANEJADA           Float?
+  MOCALCULADA           Float?
+  MOACERTADA            Float?
+  OBSERVOBRA            String?   @db.VarChar(255)
+  CODTURMA              Int?
+  EXECUTADO             Int?      @map("%EXECUTADO")
+  DATACONCLUSAO         DateTime? @db.Timestamptz(6)
+  CODSTATUS             Int?
+  REFERENCIA            String?   @db.VarChar(14)
+  CAPEXMATPLAN          Float?
+  CAPEXMOPLAN           Float?
+  CAPEXMATPEND          Float?
+  CAPEXMOPEND           Float?
+  QTDEPEND              Float?
+  TIPOADS               String?   @db.VarChar(255)
+  DATAEMPREITAMENTO     DateTime? @db.Timestamptz(6)
+  CODEMPREENDIMENTO     Int?
+  DIAGRAMAANTIGO        String?   @db.VarChar(12)
+  ORDEMDCIANTIGO        String?   @db.VarChar(12)
+  ORDEMDCDANTIGO        String?   @db.VarChar(12)
+  ORDEMDCSANTIGO        String?   @db.VarChar(12)
+  ORDEMDCIMANTIGO       String?   @db.VarChar(12)
+  ANOPLAN               Int?
+  DATAVIABILIDADE       DateTime? @db.Timestamptz(6)
+  PRAZOVIABILIDADE      String?   @db.VarChar(40)
+
+  @@ignore
 }
 
 view exportacao_obras_executadas {
