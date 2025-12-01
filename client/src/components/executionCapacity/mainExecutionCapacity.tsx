@@ -194,7 +194,7 @@ export function MainExecutionCapacity({
         </div>
       </div>
 
-      <div className="self-start mx-6 2xl:h-full w-[98%] flex flex-col justify-between pb-4">
+      <div className="self-start mx-6 2xl:h-[90%] w-[98%] flex flex-col justify-between 2xl:justify-normal pb-4">
         <TableComponent
           columns={columns}
           setTableData={setTableData}

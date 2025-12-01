@@ -1,6 +1,8 @@
 import { CalculatedValue } from 'src/application/works/updateCapex.service';
 import { MaterialCapexDTO } from 'src/interface/dtos/materialDTO';
 
+export const mockGetObraIdsByDiagramas = new Map([['170000027938', 1]]);
+
 export const mockMaterialCapex: MaterialCapexDTO[] = [
   {
     diagrama_rede: '170000027938',
@@ -78,6 +80,7 @@ export const mockMaterialCapex: MaterialCapexDTO[] = [
 
 export const mockMaterialCapexRequest = [
   {
+    id_obra: 1,
     diagrama_rede: '170000027938',
     def_proj: 'X/005017',
     material: '10057267',
@@ -96,6 +99,7 @@ export const mockMaterialCapexRequest = [
     data_nec: '2026-09-23',
   },
   {
+    id_obra: 1,
     diagrama_rede: '170000027938',
     def_proj: 'X/005017',
     material: '10057267',
@@ -114,6 +118,7 @@ export const mockMaterialCapexRequest = [
     data_nec: '2026-09-23',
   },
   {
+    id_obra: 1,
     diagrama_rede: '170000027938',
     def_proj: 'X/004078',
     material: '10054768',
@@ -132,6 +137,7 @@ export const mockMaterialCapexRequest = [
     data_nec: '2026-09-23',
   },
   {
+    id_obra: 1,
     diagrama_rede: '170000027938',
     def_proj: 'X/004078',
     material: '10054765',
@@ -153,9 +159,9 @@ export const mockMaterialCapexRequest = [
 
 export const mockReturnAuxiliaryBaseCN52N = [
   {
-    ovnota: '23435356',
-    ordem_diagrama: '170000027938',
-    diagrama_rede: '170000027938',
+    ovnota: '111',
+    ordem_diagrama: '170000010000',
+    diagrama_rede: '170000010000', // CAPEX (170)
     def_proj: 'X/005017',
     material: '10057267',
     cti: 'L',
@@ -165,11 +171,12 @@ export const mockReturnAuxiliaryBaseCN52N = [
     qtd_retirada: 0,
     qtd_falta: 1,
     reserva: null,
+    id_obra: 1,
   },
   {
-    ovnota: '23435356',
-    ordem_diagrama: '180000027938',
-    diagrama_rede: '180000027938',
+    ovnota: '111',
+    ordem_diagrama: '180000010000',
+    diagrama_rede: '180000010000', // CAPEX (180)
     def_proj: 'X/005017',
     material: '10057267',
     cti: 'L',
@@ -179,69 +186,58 @@ export const mockReturnAuxiliaryBaseCN52N = [
     qtd_retirada: 0,
     qtd_falta: 1,
     reserva: 'X',
+    id_obra: 2,
   },
   {
-    ovnota: '23435356',
-    ordem_diagrama: '180000027938',
-    diagrama_rede: '180000027938',
+    ovnota: '111',
+    ordem_diagrama: '180000010000',
+    diagrama_rede: '180000010000', // CAPEX (180)
     def_proj: 'X/005017',
     material: '10057267',
-    cti: 'N',
+    cti: 'L',
     um_registro: 'PEÇ',
     preco: 2644.57,
     qtd_necessaria: 2,
     qtd_retirada: 0,
     qtd_falta: 1,
     reserva: 'X',
+    id_obra: 2,
   },
   {
-    ovnota: '23435356',
-    ordem_diagrama: '170000027938',
-    diagrama_rede: '170000027938',
+    ovnota: '111',
+    ordem_diagrama: '170000010000',
+    diagrama_rede: '170000010000', // CAPEX (170)
     def_proj: 'X/004078',
-    material: '10054768',
+    material: '10054768', // DELETADO
     cti: 'N',
     um_registro: 'SRV',
     preco: 1.298,
     qtd_necessaria: 5,
-    qtd_retirada: 3,
+    qtd_retirada: 0,
     qtd_falta: 1,
     reserva: 'X',
+    id_obra: 1,
   },
   {
-    ovnota: '23435356',
-    ordem_diagrama: '170000027938',
-    diagrama_rede: '150000027938',
+    ovnota: '111',
+    ordem_diagrama: '150000010000',
+    diagrama_rede: '150000010000', // NÃO CAPEX
     def_proj: 'X/004078',
-    material: '10054768',
+    material: '10054768', // DELETADO
     cti: 'N',
     um_registro: 'SRV',
     preco: 1.298,
     qtd_necessaria: 5,
-    qtd_retirada: 3,
-    qtd_falta: 1,
-    reserva: 'X',
-  },
-  {
-    ovnota: '23435356',
-    ordem_diagrama: '170000027938',
-    diagrama_rede: '170000027938',
-    def_proj: 'X/004078',
-    material: '10054768',
-    cti: 'N',
-    um_registro: 'SRV',
-    preco: 1.298,
-    qtd_necessaria: 5,
-    qtd_retirada: 3,
+    qtd_retirada: 2,
     qtd_falta: 1,
     reserva: null,
+    id_obra: 1,
   },
 ];
 
 export const mockCalculatedValues: CalculatedValue[] = [
   {
-    ovnota: '12131175',
-    diagrama_rede: '170000008998',
+    id: 1,
     qtde_calc: 10,
     qtde_pend: 2,
     mo_calc: 1500.75,

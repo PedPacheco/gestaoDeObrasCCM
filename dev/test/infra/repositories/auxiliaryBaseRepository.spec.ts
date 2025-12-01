@@ -37,6 +37,7 @@ describe('AuxiliaryBaseRepository', () => {
     circuitos: { findMany: jest.fn() },
     $executeRawUnsafe: jest.fn(),
     $queryRawUnsafe: jest.fn(),
+    $queryRaw: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -174,10 +175,27 @@ describe('AuxiliaryBaseRepository', () => {
 
       expect(mockPrisma.conversao.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { OR: [{ material: 'material1', pep_ref: '12345' }] },
+          where: {
+            material: { in: ['material1'] },
+            pep_ref: { in: ['12345'] },
+          },
+          select: {
+            material: true,
+            pep_ref: true,
+            fator: true,
+          },
         }),
       );
       expect(result).toEqual(fatorMap);
+    });
+
+    it('should call method getFator and return empty map', async () => {
+      mockPrisma.$queryRawUnsafe.mockResolvedValue([]);
+
+      const result = await repository.getFator([]);
+
+      expect(result).toEqual(new Map());
+      expect(mockPrisma.conversao.findMany).not.toHaveBeenCalled();
     });
   });
 
@@ -356,6 +374,66 @@ describe('AuxiliaryBaseRepository', () => {
       await expect(
         repository.insertCapex(mockCalculatedValues),
       ).rejects.toThrow();
+    });
+  });
+
+  describe('getObraIdsByDiagramas', () => {
+    it('should return an empty map when diagramas array is empty', async () => {
+      const result = await repository.getObraIdsByDiagramas([]);
+
+      expect(result).toEqual(new Map());
+      expect(mockPrisma.$queryRawUnsafe).not.toHaveBeenCalled();
+    });
+
+    it('should call $queryRawUnsafe with the correct SQL and return a map of diagrama -> id', async () => {
+      mockPrisma.$queryRaw.mockResolvedValue([
+        { diagrama_ref: 'DGM001', id: 10 },
+        { diagrama_ref: 'DGM002', id: 20 },
+      ]);
+
+      const result = await repository.getObraIdsByDiagramas([
+        'DGM001',
+        'DGM002',
+      ]);
+
+      expect(mockPrisma.$queryRaw).toHaveBeenCalledTimes(1);
+
+      // Verifica se passou o array corretamente como parâmetro na query
+      const sqlCall = mockPrisma.$queryRaw.mock.calls[0][0];
+      const mergedSql = sqlCall.join(' ');
+      expect(mergedSql).toContain('unnest(');
+      expect(mergedSql).toContain('::text[])');
+      const param = mockPrisma.$queryRaw.mock.calls[0][1];
+
+      expect(mergedSql.replace(/\s+/g, ' ')).toMatch(/from\s+unnest\s*\(/i);
+      expect(param).toEqual(['DGM001', 'DGM002']);
+
+      expect(result).toEqual(
+        new Map([
+          ['DGM001', 10],
+          ['DGM002', 20],
+        ]),
+      );
+    });
+
+    it('should return a map without duplicates when database returns repeated diagramas', async () => {
+      mockPrisma.$queryRaw.mockResolvedValue([
+        { diagrama_ref: 'DGM100', id: 50 },
+        { diagrama_ref: 'DGM100', id: 50 }, // repetido
+        { diagrama_ref: 'DGM200', id: 60 },
+      ]);
+
+      const result = await repository.getObraIdsByDiagramas([
+        'DGM100',
+        'DGM200',
+      ]);
+
+      expect(result).toEqual(
+        new Map([
+          ['DGM100', 50],
+          ['DGM200', 60],
+        ]),
+      );
     });
   });
 });

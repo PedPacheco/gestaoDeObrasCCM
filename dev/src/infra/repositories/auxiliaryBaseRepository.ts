@@ -91,16 +91,13 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
   }
 
   async getAuxiliaryBaseCN52N(): Promise<GetAuxiliaryBaseMaterialsInterface[]> {
-    const result = await this.prisma.$queryRawUnsafe<
-      GetAuxiliaryBaseMaterialsInterface[]
-    >(`
+    try {
+      const result = await this.prisma.$queryRawUnsafe<
+        GetAuxiliaryBaseMaterialsInterface[]
+      >(`
       SELECT 
+        id_obra,
         obras.ovnota,
-        CASE
-          WHEN obras.diagrama IS NOT NULL THEN obras.diagrama
-          WHEN obras.ordem_dci IS NOT NULL THEN obras.ordem_dci
-          ELSE obras.ordem_dcim
-		    END AS ordem_diagrama,
         cn52n.diagrama_rede,
         cn52n.def_proj,
         cn52n.material,
@@ -111,30 +108,47 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
         cn52n.qtd_falta,
         cn52n.reserva AS reserva
       FROM cn52n
-      LEFT JOIN obras
-        ON cn52n.diagrama_rede = obras.ordem_dci
-        OR cn52n.diagrama_rede = obras.ordem_dcd
-        OR cn52n.diagrama_rede = obras.ordem_dca
-        OR cn52n.diagrama_rede = obras.ordem_dcim
-        OR cn52n.diagrama_rede = CAST(COALESCE(obras.diagrama, '') AS TEXT)
+      INNER JOIN construcao_sp.obras ON obras.id = cn52n.id_obra
     `);
 
-    return result;
+      return result;
+    } catch (error) {
+      throw error;
+    }
   }
 
   async getFator(
     materialDefs: { material: string; pep_ref: string }[],
   ): Promise<Map<string, number>> {
+    if (materialDefs.length === 0) {
+      return new Map();
+    }
+
+    const materials = [...new Set(materialDefs.map((m) => m.material))];
+    const pepRefs = [...new Set(materialDefs.map((m) => m.pep_ref))];
+
     const fatores = await this.prisma.conversao.findMany({
       where: {
-        OR: materialDefs,
+        material: { in: materials },
+        pep_ref: { in: pepRefs },
       },
-      select: { material: true, pep_ref: true, fator: true },
+      select: {
+        material: true,
+        pep_ref: true,
+        fator: true,
+      },
     });
+
+    const requestedSet = new Set(
+      materialDefs.map((m) => `${m.material}|${m.pep_ref}`),
+    );
 
     const fatorMap = new Map<string, number>();
     for (const f of fatores) {
-      fatorMap.set(`${f.material}|${f.pep_ref}`, f.fator);
+      const key = `${f.material}|${f.pep_ref}`;
+      if (requestedSet.has(key)) {
+        fatorMap.set(key, f.fator);
+      }
     }
 
     return fatorMap;
@@ -258,5 +272,33 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     } catch (error) {
       throw error;
     }
+  }
+
+  async getObraIdsByDiagramas(
+    diagramas: string[],
+  ): Promise<Map<string, number>> {
+    if (diagramas.length === 0) return new Map();
+
+    const obras = await this.prisma.$queryRaw<
+      { diagrama_ref: string; id: number }[]
+    >`
+    SELECT DISTINCT
+      dl.diagrama AS diagrama_ref,
+      o.id
+    FROM unnest(${diagramas}::text[]) AS dl(diagrama)
+    JOIN obras o
+      ON  o.ordem_dci  = dl.diagrama
+      OR o.ordem_dcd  = dl.diagrama
+      OR o.ordem_dca  = dl.diagrama
+      OR o.ordem_dcim = dl.diagrama
+      OR o.diagrama::text = dl.diagrama
+  `;
+
+    const map = new Map<string, number>();
+    obras.forEach((obra) => {
+      map.set(obra.diagrama_ref, obra.id);
+    });
+
+    return map;
   }
 }

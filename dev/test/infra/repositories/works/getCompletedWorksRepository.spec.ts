@@ -118,7 +118,7 @@ describe('GetCompletedWorksRepository', () => {
 
       const result = await repository.getCompletedWorks(filters);
 
-      const expectedQuery = `${baseQuery} AND status.id != 42 AND municipios.id_regional IN ()
+      const expectedQuery = `${baseQuery} AND status.id != 42 AND status.id != 4 AND municipios.id_regional IN ()
         AND id_tipo IN ()
         AND id_turma IN ()
         AND tipos.id_grupo IN ()

@@ -1,8 +1,8 @@
+import { cookies } from "next/headers";
+
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { ErrorDashboard } from "@/components/reportErrors/errorDashboard";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
-import { Suspense } from "react";
-import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

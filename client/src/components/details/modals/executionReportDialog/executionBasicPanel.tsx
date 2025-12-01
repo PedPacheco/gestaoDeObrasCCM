@@ -71,7 +71,7 @@ export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
       <Grid item xs={12} sm={6}>
         <TextField
           fullWidth
-          label="Contato Início"
+          label="Nome Operador COI - Inicio"
           value={data.startContact || ""}
           error={!!formErrors.startContact}
           helperText={formErrors.startContact}
@@ -83,7 +83,7 @@ export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
       <Grid item xs={12} sm={6}>
         <TextField
           fullWidth
-          label="Contato Término"
+          label="Nome Operador COI - Término"
           value={data.endContact || ""}
           error={!!formErrors.endContact}
           helperText={formErrors.endContact}

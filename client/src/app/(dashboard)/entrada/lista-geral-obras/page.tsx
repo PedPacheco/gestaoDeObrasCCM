@@ -5,6 +5,7 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainAllWorks from "@/components/worksComponents/allWorks/MainAllWorks";
 import { Transform } from "@/utils/transform";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
+import { ErrorThrower } from "@/components/common/ErrorThrower";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,10 @@ export default async function AllWorks() {
       { cache: "no-store" }
     ),
   ]);
+
+  if (!worksData.success) {
+    return <ErrorThrower message={worksData.message} />;
+  }
 
   const { token, data } = worksData;
 

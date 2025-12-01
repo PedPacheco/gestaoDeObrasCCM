@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  startTransition,
-  Suspense,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 
 import { useScheduleForm } from "@/hooks/useScheduleForm";
 import { useScheduleHandlers } from "@/hooks/useScheduleHandlers";
@@ -17,7 +10,7 @@ import TabActions from "./tabsActions";
 import WorkCostPanelItem from "../panelItems/workCostPanelItem";
 import SchedulePanelItem from "../panelItems/schedulePanelItem";
 import ExecutionReportPanelItem from "../panelItems/executionReportPanelItem";
-import { Paper } from "@mui/material";
+import RejectionsOfSchedulesPanelItem from "../panelItems/rejectionsOfSchedulesPanelItem";
 
 interface CustomTabPanelProps {
   children?: React.ReactNode;
@@ -28,6 +21,7 @@ interface CustomTabPanelProps {
 interface TabPanelProps {
   workData: Record<string, any>;
   executionReportData: Record<string, any>[];
+  rejectionsData: Record<string, any>[];
   options: any;
   id: string;
 }
@@ -56,6 +50,7 @@ export default function TabPanel({
   workData,
   options,
   executionReportData,
+  rejectionsData,
   id,
 }: TabPanelProps) {
   const { permissions } = useUser();
@@ -172,6 +167,10 @@ export default function TabPanel({
             </CustomTabPanel>
 
             <CustomTabPanel value={value} index={2}>
+              <RejectionsOfSchedulesPanelItem data={rejectionsData} />
+            </CustomTabPanel>
+
+            <CustomTabPanel value={value} index={3}>
               <ExecutionReportPanelItem
                 data={executionReportData}
                 onDelete={(id) =>
@@ -181,7 +180,7 @@ export default function TabPanel({
               />
             </CustomTabPanel>
 
-            <CustomTabPanel value={value} index={3}>
+            <CustomTabPanel value={value} index={4}>
               Em breve
             </CustomTabPanel>
           </Suspense>

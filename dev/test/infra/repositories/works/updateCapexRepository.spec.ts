@@ -9,10 +9,13 @@ describe('UpdateCapexRepository', () => {
   const mockPrisma = {
     $transaction: jest.fn(),
     obras: {
-      updateMany: jest.fn(),
+      update: jest.fn(),
     },
-    materiais_excluidos: {
+    servicos_contratos: {
       findMany: jest.fn(),
+    },
+    cn52n: {
+      deleteMany: jest.fn(),
     },
   };
 
@@ -39,23 +42,33 @@ describe('UpdateCapexRepository', () => {
     expect(repository).toBeDefined();
   });
 
-  it('should call prisma.$transaction with formatted data', async () => {
-    mockPrisma.$transaction.mockResolvedValueOnce(undefined);
+  it('should call prisma.$transaction with individual updates for each item', async () => {
+    const mockTx = {
+      obras: {
+        update: jest.fn().mockResolvedValue({}),
+      },
+    };
+
+    mockPrisma.$transaction.mockImplementation(async (callback) => {
+      return await callback(mockTx);
+    });
+
+    mockPrisma.cn52n.deleteMany.mockResolvedValue({ count: 0 });
 
     await repository.update(mockCalculatedValues);
 
-    expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
-    expect(mockPrisma.obras.updateMany).toHaveBeenCalledTimes(1);
+    // Verifica se $transaction foi chamado (uma vez por batch de 500 itens)
+    const expectedBatches = Math.ceil(mockCalculatedValues.length / 500);
+    expect(mockPrisma.$transaction).toHaveBeenCalledTimes(expectedBatches);
 
-    expect(mockPrisma.obras.updateMany).toHaveBeenCalledWith({
-      where: {
-        OR: [
-          { ovnota: mockCalculatedValues[0].ovnota },
-          { diagrama: mockCalculatedValues[0].diagrama_rede },
-          { ordem_dci: mockCalculatedValues[0].diagrama_rede },
-          { ordem_dcim: mockCalculatedValues[0].diagrama_rede },
-        ],
-      },
+    // Verifica se update foi chamado para cada item
+    expect(mockTx.obras.update).toHaveBeenCalledTimes(
+      mockCalculatedValues.length,
+    );
+
+    // Verifica o formato da primeira chamada
+    expect(mockTx.obras.update).toHaveBeenCalledWith({
+      where: { id: mockCalculatedValues[0].id },
       data: {
         capex_mat_pend: mockCalculatedValues[0].capex_mat_pend,
         capex_mat_plan: mockCalculatedValues[0].capex_mat_plan,
@@ -66,6 +79,35 @@ describe('UpdateCapexRepository', () => {
         qtde_pend: mockCalculatedValues[0].qtde_pend,
       },
     });
+
+    // Verifica se cn52n.deleteMany foi chamado após todos os batches
+    expect(mockPrisma.cn52n.deleteMany).toHaveBeenCalledTimes(1);
+  });
+
+  it('should process data in batches of 500', async () => {
+    const largeDataset = Array.from({ length: 1200 }, (_, i) => ({
+      ...mockCalculatedValues[0],
+      id: i,
+    }));
+
+    const mockTx = {
+      obras: {
+        update: jest.fn().mockResolvedValue({}),
+      },
+    };
+
+    mockPrisma.$transaction.mockImplementation(async (callback) => {
+      return await callback(mockTx);
+    });
+
+    mockPrisma.cn52n.deleteMany.mockResolvedValue({ count: 0 });
+
+    await repository.update(largeDataset);
+
+    // Deve ter 3 batches (500 + 500 + 200)
+    expect(mockPrisma.$transaction).toHaveBeenCalledTimes(3);
+    expect(mockTx.obras.update).toHaveBeenCalledTimes(1200);
+    expect(mockPrisma.cn52n.deleteMany).toHaveBeenCalledTimes(1);
   });
 
   it('should log error and throw when prisma.$transaction fails', async () => {
@@ -77,22 +119,23 @@ describe('UpdateCapexRepository', () => {
     );
 
     expect(mockLogger.error).toHaveBeenCalledWith(
-      `Erro ao atualizar contratos. Payload: ${JSON.stringify(mockCalculatedValues)}`,
+      `Erro ao atualizar capex`,
       error.stack,
     );
   });
 
   it('should call getDeletedMaterials and return materials', async () => {
-    mockPrisma.materiais_excluidos.findMany.mockResolvedValue([
-      {
-        codigo_material: '234234',
-      },
-    ]);
+    const mockMaterials = [{ material: 'MAT001' }, { material: 'MAT002' }];
 
-    await repository.getDeletedMaterials();
+    mockPrisma.servicos_contratos.findMany.mockResolvedValue(mockMaterials);
 
-    expect(mockPrisma.materiais_excluidos.findMany).toHaveBeenCalledWith({
-      select: { codigo_material: true },
+    const result = await repository.getDeletedMaterials();
+
+    expect(mockPrisma.servicos_contratos.findMany).toHaveBeenCalledWith({
+      select: { material: true },
+      distinct: ['material'],
     });
+
+    expect(result).toEqual(mockMaterials);
   });
 });

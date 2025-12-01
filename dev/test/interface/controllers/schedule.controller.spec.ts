@@ -25,6 +25,7 @@ import { UsersService } from 'src/application/users.service';
 import { ExecutionReportService } from 'src/application/executionReport.service';
 import { HandleAddScheduleService } from 'src/application/orchestrators/handleAddSchedule.service';
 import { ValidateConfirmAndRejectSchedulesService } from 'src/application/schedule/validateAndConfirmSchedules.service';
+import { RejectionsOfSchedulesService } from 'src/application/schedule/rejectionOfSchedules.service';
 
 describe('ScheduleController', () => {
   let scheduleController: ScheduleController;
@@ -37,6 +38,7 @@ describe('ScheduleController', () => {
   let deleteSchedulesService: DeleteSchedulesService;
   let handleAddScheduleService: HandleAddScheduleService;
   let validateConfirmAndRejectSchedulesService: ValidateConfirmAndRejectSchedulesService;
+  let rejectionsOfSchedulesService: RejectionsOfSchedulesService;
 
   const mockScheduleData: GetScheduleValuesResponse = {
     works: [
@@ -139,6 +141,10 @@ describe('ScheduleController', () => {
           provide: HandleSchedulesUpdateService,
           useValue: { update: jest.fn() },
         },
+        {
+          provide: RejectionsOfSchedulesService,
+          useValue: { get: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -171,6 +177,9 @@ describe('ScheduleController', () => {
       module.get<ValidateConfirmAndRejectSchedulesService>(
         ValidateConfirmAndRejectSchedulesService,
       );
+    rejectionsOfSchedulesService = module.get<RejectionsOfSchedulesService>(
+      RejectionsOfSchedulesService,
+    );
   });
 
   it('Should be defined', () => {
@@ -632,6 +641,48 @@ describe('ScheduleController', () => {
     expect(
       validateConfirmAndRejectSchedulesService.reject,
     ).toHaveBeenCalledTimes(1);
+  });
+
+  it('should call getRejectionsOfSchedules and return data of rejections', async () => {
+    jest.spyOn(rejectionsOfSchedulesService, 'get').mockResolvedValue([
+      {
+        motivo: 'CHI',
+        data_prog: new Date('2025-05-17'),
+        hora_ini: '08:00',
+        hora_ter: '17:00',
+        prog: 80,
+        descricao: 'Obra sem chi',
+        equip_desligado: 'transformador',
+        equipe_linha_morta: 6,
+        equipe_linha_viva: 0,
+        equipe_regularizacao: 0,
+        tipo_servico: 'DP',
+        observacao_programacao: null,
+      },
+    ]);
+
+    const result = await scheduleController.GetRejectionsOfSchedules(1);
+
+    expect(result).toStrictEqual({
+      statusCode: HttpStatus.OK,
+      message: 'Retornados as reprovações das programções',
+      data: [
+        {
+          motivo: 'CHI',
+          data_prog: new Date('2025-05-17'),
+          hora_ini: '08:00',
+          hora_ter: '17:00',
+          prog: 80,
+          descricao: 'Obra sem chi',
+          equip_desligado: 'transformador',
+          equipe_linha_morta: 6,
+          equipe_linha_viva: 0,
+          equipe_regularizacao: 0,
+          tipo_servico: 'DP',
+          observacao_programacao: null,
+        },
+      ],
+    });
   });
 
   describe('DTO Validation', () => {

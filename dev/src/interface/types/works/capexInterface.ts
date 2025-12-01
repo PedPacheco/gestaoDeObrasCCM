@@ -29,4 +29,5 @@ export interface GetAuxiliaryBaseMaterialsInterface {
   qtd_retirada: number;
   qtd_falta: number;
   reserva: string;
+  id_obra: number;
 }

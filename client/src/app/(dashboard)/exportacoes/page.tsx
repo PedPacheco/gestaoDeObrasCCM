@@ -1,22 +1,47 @@
-import { ExportButton } from "@/components/exports/exportButton";
-import { Box, Card, CardContent, Typography, Stack } from "@mui/material";
+import WrapperExportButton from "@/components/exports/wrapperExportButton";
+import { Box, Card, CardContent, Typography } from "@mui/material";
 import { cookies } from "next/headers";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function ExportPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
   const exportOptions = [
-    { name: "EXPORTAÇÃO DADOS OBRAS", path: "obras-carteira-bi" },
-    { name: "EXPORTACAO DADOS OBRAS EXECUTADAS", path: "obras-executadas-bi" },
+    {
+      name: "EXPORTAÇÃO DADOS OBRAS",
+      path: "obras-carteira-bi",
+      visible: true,
+    },
+    {
+      name: "EXPORTACAO DADOS OBRAS EXECUTADAS",
+      path: "obras-executadas-bi",
+      visible: true,
+    },
     {
       name: "EXPORTACAO DAS PROGRAMACOES E RESTRICOES",
       path: "programacoes-bi",
+      visible: true,
     },
-    { name: "Exportar obras a serem multadas", path: "obras-multas" },
-    { name: "Exportar capacidade de execução", path: "capacidade-execucao" },
-    { name: "Exportar dados suspensões", path: "suspensoes" },
-    { name: "Exportar viabilidade", path: "" },
+    {
+      name: "Exportar obras a serem multadas",
+      path: "obras-multas",
+      visible: false,
+    },
+    {
+      name: "Exportar relatórios de execução",
+      path: "relatorio-execucao",
+      visible: false,
+    },
+    {
+      name: "Exportar capacidade de execução",
+      path: "capacidade-execucao",
+      visible: true,
+    },
+    { name: "Exportar dados suspensões", path: "suspensoes", visible: false },
+    { name: "Exportar viabilidade", path: "", visible: true },
   ];
 
   return (
@@ -56,10 +81,11 @@ export default async function ExportPage() {
           </Typography>
 
           {exportOptions.map((option, index) => (
-            <ExportButton
+            <WrapperExportButton
               text={option.name}
               path={option.path}
               token={token}
+              visible={option.visible}
               key={index}
             />
           ))}

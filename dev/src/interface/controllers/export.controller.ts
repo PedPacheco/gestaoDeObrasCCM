@@ -17,6 +17,7 @@ import { ExportSchedulesBIService } from 'src/application/export/BI/exportSchedu
 import { ExportFinedWorksService } from 'src/application/export/exportFinedWorks.service';
 import { ExportExecutionCapacityService } from 'src/application/export/exportExecutionCapacity.service';
 import { ExportSuspensionsService } from 'src/application/export/exportSuspensions.service';
+import { ExportExecutionReportService } from 'src/application/export/exportExecutionReport.service';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -38,6 +39,7 @@ export class ExportController {
     private exportFinedWorksService: ExportFinedWorksService,
     private exportExecutionCapacityService: ExportExecutionCapacityService,
     private exportSuspensionsService: ExportSuspensionsService,
+    private exportExecutionReportService: ExportExecutionReportService,
   ) {}
 
   private applyFilters<
@@ -218,5 +220,20 @@ export class ExportController {
     );
 
     return await this.exportSuspensionsService.export(res);
+  }
+
+  @Get('relatorio-execucao')
+  @UseGuards(PermissionGuard)
+  async exportExecutonReport(@Res() res: Response) {
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="Exportação Suspensões"',
+    );
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+
+    return await this.exportExecutionReportService.export(res);
   }
 }
