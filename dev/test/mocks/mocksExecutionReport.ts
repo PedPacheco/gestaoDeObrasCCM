@@ -196,3 +196,150 @@ export const mockFindByWorkIdResponse = [
     },
   },
 ];
+
+export const mockFindByWorkIdResponseFormatted = [
+  {
+    supervisor: 'João Silva',
+    liberado_ligacao_parcial: true,
+    hora_inicio: new Date('2025-06-24T08:30:00.000Z'),
+    hora_conclusao: new Date('2025-06-24T12:45:00.000Z'),
+    contato_inicio: 'Contato iniciado com responsável local.',
+    contato_termino: 'Contato encerrado com responsável local.',
+    atraso: true,
+    justificativa_atraso: 'Trânsito intenso na região.',
+    possui_equipamentos_instalados: true,
+    equipamentos_aplicados: 'Transformador, Relé de proteção',
+    potencia_equipamento_aplicado: '50, 30',
+    patrimonio_equipamento_aplicado: '123456789, 987654321',
+    equipamentos_retirados: '',
+    potencia_equipamento_retirado: '',
+    patrimonio_equipamento_retirado: '',
+    alteracoes_execucao: false,
+    observacoes_gerais: 'Execução dentro do esperado, sem intercorrências.',
+    chave_provisoria_instalada: true,
+    referencia_chave_provisoria: 'CHV123456',
+    chave_provisoria_retirada: false,
+    motivo: 'Instalação programada',
+
+    // 🔽 campos achatados do objeto usuario
+    nome_usuario: 'Carlos Oliveira',
+
+    // 🔽 campos achatados do objeto obras
+    ovnota: '16004316',
+    ordem_dci: '170000023493',
+    tipo_obra: 'Manutenção',
+    status_obra: 'EM EMPREITAMENTO',
+
+    // 🔽 campos achatados do objeto programacoes
+    data_prog: new Date('2025-06-24T08:30:00.000Z'),
+    prog: 100,
+    exec: 50,
+    num_dp: 2135,
+    hora_ini: new Date('2025-06-24T08:30:00.000Z'),
+    hora_ter: new Date('2025-06-24T12:30:00.000Z'),
+    chave_provisoria: true,
+
+    // 🔽 removidos pelo service
+    usuario: undefined,
+    obras: undefined,
+    programacoes: undefined,
+  },
+];
+
+export const mockFindByWorkIdResponseNull = [
+  {
+    supervisor: null,
+    liberado_ligacao_parcial: null,
+    hora_inicio: null,
+    hora_conclusao: null,
+    contato_inicio: null,
+    contato_termino: null,
+    atraso: null,
+    justificativa_atraso: null,
+    possui_equipamentos_instalados: null,
+    equipamentos_aplicados: null,
+    potencia_equipamento_aplicado: null,
+    patrimonio_equipamento_aplicado: null,
+    equipamentos_retirados: null,
+    potencia_equipamento_retirado: null,
+    patrimonio_equipamento_retirado: null,
+    alteracoes_execucao: null,
+    observacoes_gerais: null,
+    chave_provisoria_instalada: null,
+    referencia_chave_provisoria: null,
+    chave_provisoria_retirada: null,
+    motivo: null,
+
+    usuario: {
+      nome_usuario: null,
+    },
+
+    obras: {
+      ovnota: null,
+      ordem_dci: null,
+      tipos: {
+        tipo_obra: null,
+      },
+      status: {
+        status: null,
+      },
+    },
+
+    programacoes: {
+      data_prog: null,
+      prog: null,
+      exec: null,
+      num_dp: null,
+      hora_ini: null,
+      hora_ter: null,
+      chave_provisoria: null,
+    },
+  },
+];
+
+export const mockFindByWorkIdResponseFormattedNull = [
+  {
+    supervisor: null,
+    liberado_ligacao_parcial: null,
+    hora_inicio: null,
+    hora_conclusao: null,
+    contato_inicio: null,
+    contato_termino: null,
+    atraso: null,
+    justificativa_atraso: null,
+    possui_equipamentos_instalados: null,
+    equipamentos_aplicados: null,
+    potencia_equipamento_aplicado: null,
+    patrimonio_equipamento_aplicado: null,
+    equipamentos_retirados: null,
+    potencia_equipamento_retirado: null,
+    patrimonio_equipamento_retirado: null,
+    alteracoes_execucao: null,
+    observacoes_gerais: null,
+    chave_provisoria_instalada: null,
+    referencia_chave_provisoria: null,
+    chave_provisoria_retirada: null,
+    motivo: null,
+
+    // achatados
+    nome_usuario: null,
+    ovnota: null,
+    ordem_dci: null,
+    tipo_obra: null,
+    status_obra: null,
+
+    // programações achatado
+    data_prog: null,
+    prog: null,
+    exec: null,
+    num_dp: null,
+    hora_ini: null,
+    hora_ter: null,
+    chave_provisoria: null,
+
+    // removidos pelo formatter
+    usuario: undefined,
+    obras: undefined,
+    programacoes: undefined,
+  },
+];

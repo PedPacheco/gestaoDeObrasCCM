@@ -216,7 +216,6 @@ export class ScheduleController {
   }
 
   @Get('reprovacoes/:id')
-  @UseGuards(PermissionGuard)
   async GetRejectionsOfSchedules(@Param('id', ParseIntPipe) idWork: number) {
     const response = await this.rejectionsOfSchedulesService.get(idWork);
 
