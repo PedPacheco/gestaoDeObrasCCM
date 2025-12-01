@@ -114,8 +114,6 @@ export class UpdateNoteService {
       }).toPrismaUpdate();
     });
 
-    console.log(notes);
-
     await this.updateNoteRepository.update(notes);
   }
 }

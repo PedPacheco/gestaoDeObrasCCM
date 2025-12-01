@@ -20,7 +20,7 @@ export interface MainEntryByDateFilters {
   regional: { id: string; regional: string }[];
   parceira: { id: string; turma: string }[];
   tipo: { id: string; tipo_obra: string; id_grupo: number }[];
-  municipio: { id: string; municipio: string }[];
+  municipio: { id: string; municipio: string; id_regional: number }[];
   grupo: { id: string; grupo: string }[];
 }
 

@@ -35,6 +35,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { RejectionsOfSchedulesService } from 'src/application/schedule/rejectionOfSchedules.service';
 
 @Controller('programacao')
 export class ScheduleController {
@@ -48,6 +49,7 @@ export class ScheduleController {
     private handleSchedulesUpdateService: HandleSchedulesUpdateService,
     private deleteSchedulesService: DeleteSchedulesService,
     private validateConfirmAndRejectSchedulesService: ValidateConfirmAndRejectSchedulesService,
+    private rejectionsOfSchedulesService: RejectionsOfSchedulesService,
   ) {}
 
   @Get()
@@ -210,6 +212,18 @@ export class ScheduleController {
     return {
       statusCode: HttpStatus.NO_CONTENT,
       message: 'Atualização da programação feita com sucesso',
+    };
+  }
+
+  @Get('reprovacoes/:id')
+  @UseGuards(PermissionGuard)
+  async GetRejectionsOfSchedules(@Param('id', ParseIntPipe) idWork: number) {
+    const response = await this.rejectionsOfSchedulesService.get(idWork);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Retornados as reprovações das programções',
+      data: response,
     };
   }
 }

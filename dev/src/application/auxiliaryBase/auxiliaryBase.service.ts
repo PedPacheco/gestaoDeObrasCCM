@@ -148,6 +148,18 @@ export class AuxiliaryBaseService {
       };
     });
 
-    return this.auxiliaryBaseRepository.insertCapex(dataFormatted);
+    const uniqueDiagramas = [
+      ...new Set(data.map((item) => item.diagrama_rede)),
+    ];
+
+    const obraIdsMap =
+      await this.auxiliaryBaseRepository.getObraIdsByDiagramas(uniqueDiagramas);
+
+    const dataWithObraId = dataFormatted.map((item) => ({
+      ...item,
+      id_obra: obraIdsMap.get(item.diagrama_rede) || null,
+    }));
+
+    this.auxiliaryBaseRepository.insertCapex(dataWithObraId);
   }
 }

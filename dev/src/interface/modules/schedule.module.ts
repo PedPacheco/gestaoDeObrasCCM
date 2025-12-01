@@ -39,6 +39,9 @@ import { ScheduleController } from '../controllers/schedule.controller';
 import { ExecutionReportModule } from './executionReport.module';
 import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
+import { RejectionsOfSchedulesService } from 'src/application/schedule/rejectionOfSchedules.service';
+import { REJECTION_OF_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IRejectionsOfSchedules';
+import { RejectionsOfSchedulesRepository } from 'src/infra/repositories/schedule/rejectionsOfSchedulesRepository';
 
 @Module({
   imports: [UsersModule, forwardRef(() => ExecutionReportModule), WorksModule],
@@ -56,6 +59,7 @@ import { WorksModule } from './works.module';
     HandleAddScheduleService,
     ValidateConfirmAndRejectSchedulesService,
     ScheduleExecutionValidatorService,
+    RejectionsOfSchedulesService,
     { provide: ADD_SCHEDULES_REPOSITORY, useClass: AddSchedulesRepository },
     {
       provide: UPDATE_SCHEDULES_REPOSITORY,
@@ -93,6 +97,10 @@ import { WorksModule } from './works.module';
     {
       provide: VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY,
       useClass: ValidateAndConfirmSchedulesRepository,
+    },
+    {
+      provide: REJECTION_OF_SCHEDULES_REPOSITORY,
+      useClass: RejectionsOfSchedulesRepository,
     },
   ],
   exports: [GetScheduleValuesService, FIND_SCHEDULE_BY_ID_REPOSITORY],

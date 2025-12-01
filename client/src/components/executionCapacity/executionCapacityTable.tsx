@@ -62,7 +62,7 @@ export function ExecutionCapacityTable({
   return (
     <TableContainer
       component={Paper}
-      className="w-full min-h-96 h-[720px] max-h-[880px] lg:max-h-[640px] flex-1 mb-6 overflow-y-auto xl:mb-0 xl:first:mr-8"
+      className="w-full min-h-96 h-[720px] max-h-[880px] lg:max-h-[640px] 2xl:max-h-full flex-1 mb-6 overflow-y-auto xl:mb-0 xl:first:mr-8"
     >
       <Table stickyHeader>
         <TableHead>
@@ -83,7 +83,7 @@ export function ExecutionCapacityTable({
             })}
           </TableRow>
         </TableHead>
-        <TableBody className="h-[620px]">
+        <TableBody className="h-[620px] 2xl:h-full">
           {data.map((item, rowIndex) => (
             <TableRow key={rowIndex} className="h-16">
               {Object.keys(columns).map((column, colIndex) => {
@@ -112,9 +112,11 @@ export function ExecutionCapacityTable({
                           style: { textAlign: "center" },
                           pattern: "[0-9]*",
                         }}
-                        onChange={(e) =>
-                          handleValueChange(rowIndex, column, e.target.value)
-                        }
+                        onChange={(e) => {
+                          const onlyNumbers = e.target.value.replace(/\D/g, "");
+                          const limited = onlyNumbers.slice(0, 2);
+                          handleValueChange(rowIndex, column, limited);
+                        }}
                       />
                     ) : (
                       item[column]

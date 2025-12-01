@@ -145,6 +145,7 @@ export default function ScheduleFormDialog({
               formErrors={formErrors}
               onInputChange={handleInputChange}
               disabledFields={disabledFields}
+              permissionVisualization={permissions?.permissao_visualizacao}
             />
           </AccordionPanel>
 
