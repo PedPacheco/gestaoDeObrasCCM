@@ -22,10 +22,12 @@ describe('GetScheduleRestrictions', () => {
       executado: 98,
       programacoes: [
         {
+          id: 1,
           data_prog: new Date('2024-08-03T00:00:00.000Z'),
           prog: 0,
           exec: 0,
           observacao_restricao: null,
+          id_restricao_prog1: 1,
           programacoes_restricao_prog1: {
             restricao: 'Aviso',
           },
@@ -34,6 +36,7 @@ describe('GetScheduleRestrictions', () => {
           area_responsavel1: null,
           status_restricao1: null,
           data_resolucao1: null,
+          id_restricao_prog2: 1,
           programacoes_restricao_prog2: {
             restricao: 'Aviso',
           },
@@ -63,10 +66,12 @@ describe('GetScheduleRestrictions', () => {
       executado: 98,
       programacoes: [
         {
+          id: 1,
           data_prog: new Date('2024-08-04T00:00:00.000Z'),
           prog: 0,
           exec: 0,
           observacao_restricao: null,
+          id_restricao_prog1: 1,
           programacoes_restricao_prog1: {
             restricao: 'Aviso',
           },
@@ -75,6 +80,7 @@ describe('GetScheduleRestrictions', () => {
           area_responsavel1: null,
           status_restricao1: null,
           data_resolucao1: null,
+          id_restricao_prog2: 1,
           programacoes_restricao_prog2: {
             restricao: 'Aviso',
           },
@@ -100,6 +106,7 @@ describe('GetScheduleRestrictions', () => {
   const mockResult = [
     {
       id: 1695,
+      id_prog: 1,
       ovnota: '3908435',
       mun: 'SJC',
       tipo: 'REMOÇÃO DE REDE',
@@ -109,12 +116,14 @@ describe('GetScheduleRestrictions', () => {
       prog: 0,
       exec: 0,
       observacao_restricao: null,
+      id_restricao_prog1: 1,
       restricao_prog1: 'Aviso',
       responsabilidade1: null,
       nome_responsavel: null,
       area_responsavel1: null,
       status_restricao1: null,
       data_resolucao1: null,
+      id_restricao_prog2: 1,
       restricao_prog2: 'Aviso',
       responsabilidade2: null,
       nome_responsavel2: null,
@@ -124,6 +133,7 @@ describe('GetScheduleRestrictions', () => {
     },
     {
       id: 1695,
+      id_prog: 1,
       ovnota: '3908435',
       mun: 'SJC',
       tipo: 'REMOÇÃO DE REDE',
@@ -133,12 +143,14 @@ describe('GetScheduleRestrictions', () => {
       prog: 0,
       exec: 0,
       observacao_restricao: null,
+      id_restricao_prog1: 1,
       restricao_prog1: 'Aviso',
       responsabilidade1: null,
       nome_responsavel: null,
       area_responsavel1: null,
       status_restricao1: null,
       data_resolucao1: null,
+      id_restricao_prog2: 1,
       restricao_prog2: 'Aviso',
       responsabilidade2: null,
       nome_responsavel2: null,

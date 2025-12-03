@@ -40,6 +40,18 @@ export function mapScheduleToForm(schedule: any, options: Record<string, any>) {
     idExecutionRestriction: restrictionFound.id ?? 0,
     responsibility: schedule.nome_responsavel_execucao ?? "",
     executionReport: schedule.executionReport,
+    idProgRestriction1: schedule.id_restricao_prog1,
+    responsiblityProg: schedule.responsabilidade1,
+    responsibleName: schedule.nome_responsavel,
+    responsibleArea: schedule.area_responsavel1,
+    restrictionStatus: schedule.status_restricao1,
+    resolutionDate: schedule.data_resolucao1,
+    idProgRestriction2: schedule.id_restricao_prog2,
+    responsiblityProg2: schedule.responsabilidade2,
+    responsibleName2: schedule.nome_responsavel2,
+    responsibleArea2: schedule.area_responsavel2,
+    restrictionStatus2: schedule.status_restricao2,
+    resolutionDate2: schedule.data_resolucao2,
   };
 }
 
@@ -97,4 +109,8 @@ export function transformExecutionReport(data: any): ExecutionReportData {
     provisionalKeyReference: data.referencia_chave_provisoria || "",
     provisionalKeyWithdrawn: data.chave_provisoria_retirada,
   };
+}
+
+export function transformRestrictions(data: any) {
+  return {};
 }

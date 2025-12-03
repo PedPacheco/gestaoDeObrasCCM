@@ -35,6 +35,7 @@ describe('GetScheduleValues', () => {
       equipe_linha_viva: 1,
       equipe_regularizacao: 0,
       id_tecnico: 1,
+      restricao_aberta: true,
     } as unknown as obras,
   ];
 

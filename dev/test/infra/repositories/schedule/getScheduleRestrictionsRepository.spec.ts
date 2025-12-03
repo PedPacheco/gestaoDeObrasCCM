@@ -24,10 +24,12 @@ describe('GetScheduleRestrictions', () => {
       executado: 98,
       programacoes: [
         {
+          id: 1,
           data_prog: new Date('2024-08-03T00:00:00.000Z'),
           prog: 0,
           exec: 0,
           observacao_restricao: null,
+          id_restricao_prog1: 1,
           programacoes_restricao_prog1: {
             restricao: 'Aviso',
           },
@@ -36,6 +38,7 @@ describe('GetScheduleRestrictions', () => {
           area_responsavel1: null,
           status_restricao1: null,
           data_resolucao1: null,
+          id_restricao_prog2: 1,
           programacoes_restricao_prog2: {
             restricao: 'Aviso',
           },
@@ -65,10 +68,12 @@ describe('GetScheduleRestrictions', () => {
       executado: 98,
       programacoes: [
         {
+          id: 1,
           data_prog: new Date('2024-08-04T00:00:00.000Z'),
           prog: 0,
           exec: 0,
           observacao_restricao: null,
+          id_restricao_prog1: 1,
           programacoes_restricao_prog1: {
             restricao: 'Aviso',
           },
@@ -77,6 +82,7 @@ describe('GetScheduleRestrictions', () => {
           area_responsavel1: null,
           status_restricao1: null,
           data_resolucao1: null,
+          id_restricao_prog2: 1,
           programacoes_restricao_prog2: {
             restricao: 'Aviso',
           },
@@ -161,10 +167,12 @@ describe('GetScheduleRestrictions', () => {
           executado: true,
           programacoes: {
             select: {
+              id: true,
               data_prog: true,
               prog: true,
               exec: true,
               observacao_restricao: true,
+              id_restricao_prog1: true,
               programacoes_restricao_prog1: {
                 select: { restricao: true },
               },
@@ -173,6 +181,7 @@ describe('GetScheduleRestrictions', () => {
               area_responsavel1: true,
               status_restricao1: true,
               data_resolucao1: true,
+              id_restricao_prog2: true,
               programacoes_restricao_prog2: {
                 select: { restricao: true },
               },
@@ -240,10 +249,12 @@ describe('GetScheduleRestrictions', () => {
           executado: true,
           programacoes: {
             select: {
+              id: true,
               data_prog: true,
               prog: true,
               exec: true,
               observacao_restricao: true,
+              id_restricao_prog1: true,
               programacoes_restricao_prog1: {
                 select: { restricao: true },
               },
@@ -252,6 +263,7 @@ describe('GetScheduleRestrictions', () => {
               area_responsavel1: true,
               status_restricao1: true,
               data_resolucao1: true,
+              id_restricao_prog2: true,
               programacoes_restricao_prog2: {
                 select: { restricao: true },
               },

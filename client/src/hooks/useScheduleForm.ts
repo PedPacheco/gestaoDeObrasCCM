@@ -53,6 +53,20 @@ export const INITIAL_FORM_DATA: FormData = {
   idTechnical: 1,
   idExecutionRestriction: 1,
   responsibility: "",
+  // Campos de restrições - Bloco 1
+  idProgRestriction1: 1,
+  responsiblityProg: "",
+  responsibleName: "",
+  responsibleArea: "",
+  restrictionStatus: "",
+  resolutionDate: null,
+  // Campos de restrições - Bloco 2
+  idProgRestriction2: 1,
+  responsiblityProg2: "",
+  responsibleName2: "",
+  responsibleArea2: "",
+  restrictionStatus2: "",
+  resolutionDate2: null,
 };
 
 interface UseScheduleFormProps {
@@ -97,28 +111,26 @@ export const useScheduleForm = ({
           | `executionReport.${keyof ExecutionReportData}`
           | keyof ExecutionReportData
       ) =>
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        const isCheckbox = event.target.type === "checkbox";
-        let value: any;
-
-        if (isCheckbox) {
-          value = event.target.checked;
-        } else if (event.target.type === "radio") {
-          value =
-            event.target.value === "true"
+      (value: any) => {
+        // Se o valor já vier processado (do DatePicker ou Select)
+        // usamos diretamente, caso contrário é um evento
+        const finalValue = value?.target
+          ? value.target.type === "checkbox"
+            ? value.target.checked
+            : value.target.type === "radio"
+            ? value.target.value === "true"
               ? true
-              : event.target.value === "false"
+              : value.target.value === "false"
               ? false
-              : event.target.value;
-        } else {
-          value = event.target.value;
-        }
+              : value.target.value
+            : value.target.value
+          : value;
 
         if (field in INITIAL_EXECUTION_REPORT) {
           setExecutionReportData((prev) => {
             return {
               ...prev,
-              [field]: value,
+              [field]: finalValue,
             };
           });
         }
@@ -131,14 +143,14 @@ export const useScheduleForm = ({
               ...prev,
               executionReport: {
                 ...(prev.executionReport ?? INITIAL_EXECUTION_REPORT),
-                [subField]: value,
+                [subField]: finalValue,
               },
             };
           }
 
           return {
             ...prev,
-            [field]: value,
+            [field]: finalValue,
             executionReport: INITIAL_EXECUTION_REPORT,
           };
         });

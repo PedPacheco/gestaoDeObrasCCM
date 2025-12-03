@@ -55,6 +55,7 @@ export default async function ScheduleForDay() {
     id: "ID",
     ovnota: "Nota/Ov",
     ordemdiagrama: "Ordem",
+    restricao_aberta: "Restrição !!",
     mun: "Mun",
     regional: "Regional",
     conjunto: "Conjunto",
