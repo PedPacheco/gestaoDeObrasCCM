@@ -245,7 +245,8 @@ export class InsertMarketWorksDTO {
 
   @IsDate()
   @Type(() => Date)
-  entrada: Date;
+  @IsOptional()
+  entrada?: Date;
 
   @IsNumber()
   idMunicipio: number;

@@ -7,6 +7,8 @@ export const mockAddSchedulesServiceData = {
   finishTime: '09:00',
   serviceType: 'Inspeção Elétrica',
   prog: 100,
+  idProgRestriction1: 1,
+  idProgRestriction2: 1,
 };
 
 export const mockAddSchedulesServiceDataNotTimeValid = {
@@ -16,6 +18,8 @@ export const mockAddSchedulesServiceDataNotTimeValid = {
   finishTime: '07:00',
   serviceType: 'Inspeção Elétrica',
   prog: 100,
+  idProgRestriction1: 1,
+  idProgRestriction2: 1,
 };
 
 export const mockAddSchedulesServiceDataWithoutIdWork = {
@@ -25,6 +29,8 @@ export const mockAddSchedulesServiceDataWithoutIdWork = {
   finishTime: '07:00',
   serviceType: 'Inspeção Elétrica',
   prog: 100,
+  idProgRestriction1: 1,
+  idProgRestriction2: 1,
 };
 
 export const mockAddSchedulesServiceDataWithWrongProg = {
@@ -34,6 +40,8 @@ export const mockAddSchedulesServiceDataWithWrongProg = {
   finishTime: '07:00',
   serviceType: 'Inspeção Elétrica',
   prog: 105,
+  idProgRestriction1: 1,
+  idProgRestriction2: 1,
 };
 
 export const mockAddSchedulesServiceFormattedData = {
@@ -78,6 +86,18 @@ export const mockUpdateSchedulesService = {
   idExecutionRestriction: 1,
   observation: undefined,
   idTechnical: 1,
+  idProgRestriction1: 1,
+  idProgRestriction2: 1,
+  responsiblityProg: '',
+  responsiblityProg2: '',
+  responsibleArea: '',
+  responsibleArea2: '',
+  responsibleName: '',
+  responsibleName2: '',
+  restrictionStatus: '',
+  restrictionStatus2: '',
+  resolutionDate: null,
+  resolutionDate2: null,
 };
 
 export const mockUpdateSchedulesServiceWithoutIdWork = {
@@ -114,11 +134,23 @@ export const mockUpdateSchedulesServiceFormattedData = {
   observacao_execucao: undefined,
   id_tecnico: 1,
   reprovada: false,
+  id_restricao_prog1: 1,
+  id_restricao_prog2: 1,
+  responsabilidade1: '',
+  responsabilidade2: '',
+  area_responsavel1: '',
+  area_responsavel2: '',
+  nome_responsavel: '',
+  nome_responsavel2: '',
+  status_restricao1: '',
+  status_restricao2: '',
+  data_resolucao1: null,
+  data_resolucao2: null,
+  observacao_restricao: undefined,
 };
 
 export const mockUpdateSchedulesController: UpdateSchedulesDataDTO = {
   updateData: {
-    id: 1,
     idWork: 20283,
     chi: 32324,
     dataProg: new Date('2025-06-13'),
@@ -136,6 +168,19 @@ export const mockUpdateSchedulesController: UpdateSchedulesDataDTO = {
     serviceType: 'Obra livre',
     startTime: '08:00',
     temporaryKey: false,
+    idProgRestriction1: 1,
+    idProgRestriction2: 1,
+    responsiblityProg: '',
+    responsiblityProg2: '',
+    responsibleArea: '',
+    responsibleArea2: '',
+    responsibleName: '',
+    responsibleName2: '',
+    restrictionStatus: '',
+    restrictionStatus2: '',
+    resolutionDate: null,
+    resolutionDate2: null,
+    observation: '',
   },
   executionReportData: {
     idUser: 1,

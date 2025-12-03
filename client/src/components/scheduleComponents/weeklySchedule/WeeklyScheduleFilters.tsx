@@ -22,7 +22,7 @@ interface filters {
   regional: { id: string; regional: string }[];
   parceira: { id: string; turma: string }[];
   tipo: { id: string; tipo_obra: string; id_grupo: number }[];
-  municipio: { id: string; municipio: string }[];
+  municipio: { id: string; municipio: string; id_regional: number }[];
   grupo: { id: string; grupo: string }[];
 }
 
@@ -118,31 +118,33 @@ export default function WeeklyScheduleFilters({
           />
         </LocalizationProvider>
 
-        {Object.entries(data).map(([key, value], index) => {
-          const valueKey = Object.keys(value[0])[0];
-          const displayKey = Object.keys(value[0])[1];
+        {Object.entries(data)
+          .slice(0, 5)
+          .map(([key, value], index) => {
+            const valueKey = Object.keys(value[0])[0];
+            const displayKey = Object.keys(value[0])[1];
 
-          const filterValue = `${valueKey}${
-            key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()
-          }`;
+            const filterValue = `${valueKey}${
+              key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()
+            }`;
 
-          return (
-            <MultipleSelectComponent
-              label={capitalize(key)}
-              menuItems={value || []}
-              selectedItem={selectedItems[filterValue]}
-              setSelectedItem={(selectedValue) => {
-                setSelectedItems((prev: any) => ({
-                  ...prev,
-                  [filterValue]: selectedValue,
-                }));
-              }}
-              valueKey={valueKey}
-              displayKey={displayKey}
-              key={index}
-            />
-          );
-        })}
+            return (
+              <MultipleSelectComponent
+                label={capitalize(key)}
+                menuItems={value || []}
+                selectedItem={selectedItems[filterValue]}
+                setSelectedItem={(selectedValue) => {
+                  setSelectedItems((prev: any) => ({
+                    ...prev,
+                    [filterValue]: selectedValue,
+                  }));
+                }}
+                valueKey={valueKey}
+                displayKey={displayKey}
+                key={index}
+              />
+            );
+          })}
 
         <div className="flex flex-row items-center justify-center mb-2">
           <Checkbox

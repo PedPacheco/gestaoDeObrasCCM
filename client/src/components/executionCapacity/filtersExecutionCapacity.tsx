@@ -37,7 +37,11 @@ export function FiltersExecutionCapacity({
             views={["year"]}
             format={"YYYY"}
             value={dayjs(year)}
-            onChange={(value) => (value ? setYear(value.toString()) : dayjs())}
+            onChange={(value) =>
+              value
+                ? setYear(value.year().toString())
+                : dayjs().year().toString()
+            }
             slotProps={{ textField: { size: "small", fullWidth: true } }}
           />
         </LocalizationProvider>

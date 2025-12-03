@@ -68,11 +68,14 @@ export function MainExecutionCapacity({
 
   const changedData = useMemo(() => {
     return tableData
-      .filter((row, index) =>
-        Object.keys(row).some(
-          (key) => row[key] !== data.executionCapacityValues[index][key]
-        )
-      )
+      .filter((row) => {
+        const original = data.executionCapacityValues.find(
+          (d) => d.id === row.id
+        );
+        if (!original) return true;
+
+        return Object.keys(row).some((key) => row[key] !== original[key]);
+      })
       .map((row) => {
         const originalRow =
           data.executionCapacityValues.find((d) => d.id === row.id) || {};

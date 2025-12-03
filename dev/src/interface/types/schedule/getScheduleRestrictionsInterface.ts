@@ -5,16 +5,19 @@ interface Restrictions {
 }
 
 interface Schedules {
+  id: number;
   data_prog: Date;
   prog: number;
   exec: number | null;
   observacao_restricao: string | null;
+  id_restricao_prog1: number;
   programacoes_restricao_prog1: Restrictions | null;
   responsabilidade1: string | null;
   nome_responsavel: string | null;
   area_responsavel1: string | null;
   status_restricao1: string | null;
   data_resolucao1: Date | null;
+  id_restricao_prog2: number;
   programacoes_restricao_prog2: Restrictions | null;
   responsabilidade2: string | null;
   nome_responsavel2: string | null;

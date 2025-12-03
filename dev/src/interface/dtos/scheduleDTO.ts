@@ -178,11 +178,101 @@ export class GetMonthlySummaryDTO {
   idTipo: number[];
 }
 
-export class SchedulesDataDTO {
+export class ValidateSchedulesDTO {
+  @IsNumber()
+  id: number;
+
+  @IsBoolean()
+  validate: boolean;
+}
+
+export class ConfirmSchedulesDTO {
+  @IsNumber()
+  id: number;
+
+  @IsBoolean()
+  confirm: boolean;
+}
+
+export class RejectScheduleDTO {
+  @IsNumber()
+  id: number;
+
+  @IsBoolean()
+  reject: boolean;
+
+  @IsString()
+  reason: string;
+
+  @IsString()
+  description: string;
+}
+
+export class UpdateRestrictionsDTO {
   @IsNumber()
   @IsOptional()
   id?: number;
 
+  @IsNumber()
+  idProgRestriction1: number;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsiblityProg?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsibleName?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsibleArea?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  restrictionStatus?: string;
+
+  @IsDate()
+  @Type(() => Date)
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  resolutionDate?: Date;
+
+  @IsNumber()
+  idProgRestriction2: number;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsiblityProg2?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsibleName2?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsibleArea2?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  restrictionStatus2?: string;
+
+  @IsDate()
+  @Type(() => Date)
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  resolutionDate2?: Date;
+}
+
+export class SchedulesDataDTO {
   @IsNumber()
   idWork: number;
 
@@ -270,6 +360,64 @@ export class SchedulesDataDTO {
   @IsOptional()
   @IsString()
   responsibility?: string;
+
+  @IsNumber()
+  idProgRestriction1: number;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsiblityProg?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsibleName?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsibleArea?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  restrictionStatus?: string;
+
+  @IsDate()
+  @Type(() => Date)
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  resolutionDate?: Date;
+
+  @IsNumber()
+  idProgRestriction2: number;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsiblityProg2?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsibleName2?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsibleArea2?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  restrictionStatus2?: string;
+
+  @IsDate()
+  @Type(() => Date)
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  resolutionDate2?: Date;
 }
 
 export class UpdateSchedulesDataDTO {
@@ -279,34 +427,4 @@ export class UpdateSchedulesDataDTO {
 
   @IsOptional()
   executionReportData?: ExecutionReportDataDTO;
-}
-
-export class ValidateSchedulesDTO {
-  @IsNumber()
-  id: number;
-
-  @IsBoolean()
-  validate: boolean;
-}
-
-export class ConfirmSchedulesDTO {
-  @IsNumber()
-  id: number;
-
-  @IsBoolean()
-  confirm: boolean;
-}
-
-export class RejectScheduleDTO {
-  @IsNumber()
-  id: number;
-
-  @IsBoolean()
-  reject: boolean;
-
-  @IsString()
-  reason: string;
-
-  @IsString()
-  description: string;
 }

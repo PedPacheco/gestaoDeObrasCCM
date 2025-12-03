@@ -69,7 +69,6 @@ export class MarketWork extends Work {
     updateData.ovnota = this.obra;
     if (this.pep != null) updateData.pep = this.pep;
     if (this.diagrama != null) updateData.diagrama = this.diagrama;
-    if (this.entrada != null) updateData.entrada = this.entrada;
     if (this.idMunicipio != null) updateData.id_gpm = this.idMunicipio;
     if (this.idTipo != null) updateData.id_tipo = this.idTipo;
     if (this.idCircuito != null) updateData.id_circuito = this.idCircuito;

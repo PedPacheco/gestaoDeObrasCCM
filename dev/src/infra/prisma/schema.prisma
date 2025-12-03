@@ -350,7 +350,7 @@ model programacoes {
   area_responsavel1               String?                 @db.VarChar(50)
   status_restricao1               String?                 @db.VarChar(50)
   data_resolucao1                 DateTime?               @db.Date
-  id_restricao_prog2              Int?                    @default(1)
+  id_restricao_prog2              Int                     @default(1)
   responsabilidade2               String?                 @db.VarChar(50)
   nome_responsavel2               String?                 @db.VarChar(50)
   area_responsavel2               String?                 @db.VarChar(50)
@@ -367,7 +367,7 @@ model programacoes {
   obras                           obras                   @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
   programacoes_restricao_execucao restricoes              @relation("programacoes_restricao_execucao", fields: [id_restricao_execucao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_execucao")
   programacoes_restricao_prog1    restricoes              @relation("programacoes_restricao_prog1", fields: [id_restricao_prog1], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_prog1")
-  programacoes_restricao_prog2    restricoes?             @relation("programacoes_restricao_prog2", fields: [id_restricao_prog2], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_prog2")
+  programacoes_restricao_prog2    restricoes              @relation("programacoes_restricao_prog2", fields: [id_restricao_prog2], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_prog2")
   status_programacao              status_programacao      @relation(fields: [id_status_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_status_programacao")
   tecnicos                        tecnicos                @relation(fields: [id_tecnico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tecnicos")
   programacoes_servicos           programacoes_servicos[]

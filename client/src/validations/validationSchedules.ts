@@ -137,6 +137,18 @@ export const schedulesSchema = (isInsert?: boolean) =>
         z.number({ error: "Restrição deve ser um número" })
       ),
       responsibility: z.string().optional(),
+      idProgRestriction1: z.number(),
+      responsiblityProg: z.string().nullable().optional(),
+      responsibleName: z.string().nullable().optional(),
+      responsibleArea: z.string().nullable().optional(),
+      restrictionStatus: z.string().nullable().optional(),
+      resolutionDate: z.string().nullable().optional(),
+      idProgRestriction2: z.number(),
+      responsiblityProg2: z.string().nullable().optional(),
+      responsibleName2: z.string().nullable().optional(),
+      responsibleArea2: z.string().nullable().optional(),
+      restrictionStatus2: z.string().nullable().optional(),
+      resolutionDate2: z.string().nullable().optional(),
     })
     .check((ctx) => {
       const { exec, prog, idExecutionRestriction, responsibility } = ctx.value;
