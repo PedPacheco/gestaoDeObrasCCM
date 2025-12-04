@@ -10,7 +10,7 @@ import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import WeeklyScheduleFilters from "../weeklySchedule/WeeklyScheduleFilters";
 import ScheduleRestrictionsTable from "./scheduleRestrictionsTable";
-import EditRestrictionDrawer from "./EditRestrictionDrawer";
+// import EditRestrictionDrawer from "./EditRestrictionDrawer";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { UpdateRestrictions } from "@/actions/schedules";
@@ -116,13 +116,13 @@ export default function MainScheduleRestrictions({
           onEdit={handleEdit}
         />
 
-        <EditRestrictionDrawer
+        {/* <EditRestrictionDrawer
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
           data={selectedRestriction}
           onSave={handleSave}
           restrictionsValues={filtersData.restricao}
-        />
+        /> */}
 
         {error && (
           <ErrorModal

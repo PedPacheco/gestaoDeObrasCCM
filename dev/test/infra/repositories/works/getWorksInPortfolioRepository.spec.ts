@@ -116,6 +116,8 @@ describe('GetWorksInPortfolioRepository', () => {
         idEmpreendimento: [9],
         page: 1,
         insufficientPermission: true,
+        data: null,
+        tipoFiltro: null,
       };
 
       mockPrisma.$queryRaw
@@ -153,6 +155,8 @@ describe('GetWorksInPortfolioRepository', () => {
         ovnota: null,
         page: undefined,
         insufficientPermission: false,
+        data: null,
+        tipoFiltro: null,
       };
 
       mockPrisma.$queryRaw

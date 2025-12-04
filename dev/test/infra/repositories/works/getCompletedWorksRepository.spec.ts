@@ -3,6 +3,7 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetCompletedWorksRepository } from 'src/infra/repositories/works/getCompletedWorksRepository';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 import { totalsWorksInPortfolio } from 'src/interface/types/works/getWorksInPortfolioInterface';
+import * as moment from 'moment';
 
 describe('GetCompletedWorksRepository', () => {
   let repository: GetCompletedWorksRepository;
@@ -110,6 +111,68 @@ describe('GetCompletedWorksRepository', () => {
         idEmpreendimento: [9],
         page: 0,
         insufficientPermission: true,
+        data: '17/09/2024',
+        tipoFiltro: 'day',
+      };
+
+      const expectedDate = moment(filters.data, 'DD/MM/YYYY', true).toDate();
+
+      mockPrisma.$queryRaw
+        .mockResolvedValueOnce(mockWorks)
+        .mockResolvedValueOnce(mockCountQuery);
+
+      const result = await repository.getCompletedWorks(filters);
+
+      const expectedQuery = `${baseQuery} AND status.id != 42 AND status.id != 4 AND municipios.id_regional IN ()
+        AND id_tipo IN ()
+        AND id_turma IN ()
+        AND tipos.id_grupo IN ()
+        AND municipios.id IN ()
+        AND status.id IN ()
+        AND id_circuito IN ()
+        AND circuitos.id_conjunto IN ()
+        AND id_empreendimento IN ()
+        AND obras.ovnota =  
+        AND data_conclusao = ORDER BY data_conclusao DESC LIMIT 200 OFFSET ;`;
+
+      const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
+
+      expect(result).toEqual({ works: mockWorks, totals: mockCountQuery });
+      expect(normalizeSQL(querySent.strings.join(''))).toContain(
+        normalizeSQL(expectedQuery),
+      );
+      expect(querySent.values).toEqual([
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        '10',
+        expectedDate,
+        0,
+      ]);
+    });
+
+    it('should apply multiple filters correctly and month filter', async () => {
+      const filters: GetWorksDTO = {
+        idGrupo: [4],
+        idMunicipio: [5],
+        idParceira: [3],
+        idRegional: [1],
+        idStatus: [6],
+        idTipo: [2],
+        ovnota: '10',
+        idCircuito: [7],
+        idConjunto: [8],
+        idEmpreendimento: [9],
+        page: 0,
+        insufficientPermission: true,
+        data: '09/2024',
+        tipoFiltro: 'month',
       };
 
       mockPrisma.$queryRaw
@@ -127,7 +190,9 @@ describe('GetCompletedWorksRepository', () => {
         AND id_circuito IN ()
         AND circuitos.id_conjunto IN ()
         AND id_empreendimento IN ()
-        AND obras.ovnota =  ORDER BY data_conclusao DESC LIMIT 200 OFFSET ;`;
+        AND obras.ovnota =  
+        AND EXTRACT(MONTH FROM data_conclusao) =  AND EXTRACT(YEAR FROM data_conclusao) = 
+        ORDER BY data_conclusao DESC LIMIT 200 OFFSET ;`;
 
       const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
 
@@ -135,7 +200,21 @@ describe('GetCompletedWorksRepository', () => {
       expect(normalizeSQL(querySent.strings.join(''))).toContain(
         normalizeSQL(expectedQuery),
       );
-      expect(querySent.values).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, '10', 0]);
+      expect(querySent.values).toEqual([
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        '10',
+        9,
+        2024,
+        0,
+      ]);
     });
 
     it('should not apply filters when values filters are not sent', async () => {
@@ -152,6 +231,8 @@ describe('GetCompletedWorksRepository', () => {
         idEmpreendimento: undefined,
         page: undefined,
         insufficientPermission: false,
+        data: null,
+        tipoFiltro: null,
       };
 
       mockPrisma.$queryRaw

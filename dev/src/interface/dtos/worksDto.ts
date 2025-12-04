@@ -111,6 +111,14 @@ export class GetWorksDTO {
   @IsOptional()
   @IsString()
   ovnota?: string;
+
+  @IsOptional()
+  @IsString()
+  data: string;
+
+  @IsOptional()
+  @IsString()
+  tipoFiltro: string;
 }
 
 export class UpdateWorkDTO {
