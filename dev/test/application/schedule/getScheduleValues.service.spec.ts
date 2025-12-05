@@ -136,4 +136,110 @@ describe('GetScheduleValues', () => {
       },
     });
   });
+
+  it('should set restricao_aberta = false when restriction IDs are 1 (restriction bypass rule)', async () => {
+    const mockWork = {
+      id: 1,
+      id_restricao_prog1: 1,
+      id_restricao_prog2: 1,
+      status_restricao1: 'Qualquer',
+      status_restricao2: 'Qualquer',
+      data_resolucao1: null,
+      data_resolucao2: null,
+    };
+
+    mockRepository.getValues.mockResolvedValueOnce({
+      works: [mockWork],
+      resultTotals: [
+        {
+          total_obras: 1,
+          total_mo_planejada: 0,
+          total_mo_exec: 0,
+          total_qtde_planejada: 0,
+        },
+      ],
+    });
+
+    const result = await service.getValues({} as any);
+
+    expect(result.works[0].restricao_aberta).toBe(false);
+  });
+
+  it('should set restricao_aberta = false when restriction IDs != 1 and statuses are resolved and dates exist', async () => {
+    const mockWork = {
+      id: 1,
+      id_restricao_prog1: 5,
+      id_restricao_prog2: 8,
+      status_restricao1: 'Resolvido',
+      status_restricao2: 'Resolvido',
+      data_resolucao1: new Date(),
+      data_resolucao2: new Date(),
+    };
+
+    mockRepository.getValues.mockResolvedValueOnce({
+      works: [mockWork],
+      resultTotals: [
+        {
+          total_obras: 1,
+          total_mo_planejada: 0,
+          total_mo_exec: 0,
+          total_qtde_planejada: 0,
+        },
+      ],
+    });
+
+    const result = await service.getValues({} as any);
+
+    expect(result.works[0].restricao_aberta).toBe(false);
+  });
+
+  it('should set restricao_aberta = true when restriction IDs != 1 but status_restricao1 resolved and data_resolucao1 exist', async () => {
+    const mockWork = {
+      id: 1,
+      id_restricao_prog1: 7,
+      status_restricao1: 'Resolvido',
+      data_resolucao1: new Date(),
+    };
+
+    mockRepository.getValues.mockResolvedValueOnce({
+      works: [mockWork],
+      resultTotals: [
+        {
+          total_obras: 1,
+          total_mo_planejada: 0,
+          total_mo_exec: 0,
+          total_qtde_planejada: 0,
+        },
+      ],
+    });
+
+    const result = await service.getValues({} as any);
+
+    expect(result.works[0].restricao_aberta).toBe(true);
+  });
+
+  it('should set restricao_aberta = true when restriction IDs != 1 but status_restricao2 resolved and data_resolucao2 exist', async () => {
+    const mockWork = {
+      id: 1,
+      id_restricao_prog2: 3,
+      status_restricao2: 'Resolvido',
+      data_resolucao2: new Date(),
+    };
+
+    mockRepository.getValues.mockResolvedValueOnce({
+      works: [mockWork],
+      resultTotals: [
+        {
+          total_obras: 1,
+          total_mo_planejada: 0,
+          total_mo_exec: 0,
+          total_qtde_planejada: 0,
+        },
+      ],
+    });
+
+    const result = await service.getValues({} as any);
+
+    expect(result.works[0].restricao_aberta).toBe(true);
+  });
 });

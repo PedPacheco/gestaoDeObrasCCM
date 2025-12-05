@@ -131,14 +131,17 @@ export class UpdateCapexService {
         // Calcular Material
         if (material.cti === 'L' && isCapexDiagram) {
           current.capex_mat_plan += material.qtd_necessaria * material.preco;
-          current.capex_mat_pend += material.preco * material.qtd_retirada;
+
+          if (material.reserva?.trim()) {
+            current.capex_mat_pend += material.preco * material.qtd_retirada;
+          }
         }
       }
 
       // Converter Map para Array
       return Array.from(capexMap.values());
     } catch (error) {
-      console.error('❌ Erro ao calcular valores CAPEX:', error);
+      // console.error('❌ Erro ao calcular valores CAPEX:', error);
       throw error;
     }
   }

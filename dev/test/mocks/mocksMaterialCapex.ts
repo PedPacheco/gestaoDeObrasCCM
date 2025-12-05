@@ -3,6 +3,8 @@ import { MaterialCapexDTO } from 'src/interface/dtos/materialDTO';
 
 export const mockGetObraIdsByDiagramas = new Map([['170000027938', 1]]);
 
+export const mockGetWrongObraIdsByDiagramas = new Map([['170000027934', 1]]);
+
 export const mockMaterialCapex: MaterialCapexDTO[] = [
   {
     diagrama_rede: '170000027938',

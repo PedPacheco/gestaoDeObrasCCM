@@ -128,6 +128,7 @@ export class NoteWorks extends Work {
     public readonly anoPlan?: number,
     public readonly entrada?: Date,
     public readonly prazoTexto?: string,
+    public readonly ehRda?: boolean,
     id?: number,
   ) {
     super(
@@ -187,6 +188,7 @@ export class NoteWorks extends Work {
     entrada?: Date;
     prazoTexto?: string;
     id?: number;
+    ehRda?: boolean;
   }): NoteWorks {
     const instance = new NoteWorks(
       props.obra,
@@ -207,6 +209,7 @@ export class NoteWorks extends Work {
       props.anoPlan,
       props.entrada,
       props.prazoTexto,
+      props.ehRda,
       props.id,
     );
 
@@ -225,6 +228,18 @@ export class NoteWorks extends Work {
     );
   }
 
+  get isRda(): any {
+    return this.idTipo !== 54 && this.idTipo !== 55 && this.ehRda;
+  }
+
+  get isTypeWorkInvalid(): boolean {
+    return this.idTipo === 1;
+  }
+
+  get isCircuitInvalid(): boolean {
+    return this.idCircuito === 1;
+  }
+
   validateNota(): void {
     if (this.isPepGenericoNote) {
       throw new BadRequestException(`Obra ${this.obra} está com PEP genérico.`);
@@ -234,6 +249,18 @@ export class NoteWorks extends Work {
       throw new BadRequestException(
         `Selecione um empreendimento válido para a obra ${this.obra}.`,
       );
+    }
+
+    if (this.isRda) {
+      throw new BadRequestException('Necessário selecionar o tipo da RDA');
+    }
+
+    if (this.isTypeWorkInvalid) {
+      throw new BadRequestException('Selecione um tipo de obra');
+    }
+
+    if (this.isCircuitInvalid) {
+      throw new BadRequestException('Selecione um circuito');
     }
   }
 }

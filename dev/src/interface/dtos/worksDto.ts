@@ -295,6 +295,18 @@ export class InsertNotesDTO {
   @IsString()
   obra: string;
 
+  @IsString()
+  dci: string;
+
+  @IsString()
+  dcd: string;
+
+  @IsString()
+  dca: string;
+
+  @IsString()
+  dcim: string;
+
   @IsDate()
   entrada: Date;
 
@@ -330,4 +342,7 @@ export class InsertNotesDTO {
 
   @IsNumber()
   anoplan: number;
+
+  @IsBoolean()
+  ehRda: boolean;
 }

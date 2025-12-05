@@ -16,6 +16,7 @@ import {
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   mockGetObraIdsByDiagramas,
+  mockGetWrongObraIdsByDiagramas,
   mockMaterialCapex,
   mockMaterialCapexRequest,
 } from '../../mocks/mocksMaterialCapex';
@@ -147,6 +148,25 @@ describe('AuxiliaryBaseService', () => {
 
       expect(mockRepository.insertCapex).toHaveBeenCalledWith(
         mockMaterialCapexRequest,
+      );
+    });
+
+    it('Should format data and call repository to insert materials', async () => {
+      mockRepository.getObraIdsByDiagramas.mockResolvedValue(
+        mockGetWrongObraIdsByDiagramas,
+      );
+
+      await auxiliaryBaseService.insertAuxiliaryBaseCapex(mockMaterialCapex);
+
+      const mockMaterialCapexRequestWithNull = mockMaterialCapexRequest.map(
+        (item) => ({
+          ...item,
+          id_obra: null,
+        }),
+      );
+
+      expect(mockRepository.insertCapex).toHaveBeenCalledWith(
+        mockMaterialCapexRequestWithNull,
       );
     });
   });

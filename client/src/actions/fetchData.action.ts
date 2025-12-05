@@ -32,7 +32,7 @@ export async function fetchData<T>(
       return { success: false, message: "Erro ao buscar os dados", token };
     }
 
-    if (res.status === 401) {
+    if (res.status === 401 || res.status === 404) {
       return { success: false, message: json.message, token };
     }
 
