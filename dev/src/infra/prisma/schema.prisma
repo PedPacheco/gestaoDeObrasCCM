@@ -31,6 +31,7 @@ model base_auxiliar {
   capex_mo_plan      Int?
   capex_mat_plan     Int?
   anoplan            Int?
+  eh_rda             Boolean?    @default(false)
   municipios         municipios? @relation(fields: [aux_gpm], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_municipios")
 }
 

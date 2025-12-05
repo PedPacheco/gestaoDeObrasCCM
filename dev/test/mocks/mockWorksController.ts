@@ -53,6 +53,11 @@ export const mockInsertNotesController: InsertNotesDTO[] = [
     aux_circuito: 21,
     aux_tecnico: 7,
     anoplan: 2025,
+    dca: '',
+    dcd: '',
+    dci: '',
+    dcim: '',
+    ehRda: false,
   },
 ];
 
@@ -244,7 +249,7 @@ export const mockUpdateNotes: UpdateNotesDTO[] = [
     referencia: 'REF123',
     idMunicipio: 101,
     idEmpreendimento: 201,
-    idTipo: 1,
+    idTipo: 2,
     idTurma: 5,
     idCircuito: 12,
     anoplan: 2023,

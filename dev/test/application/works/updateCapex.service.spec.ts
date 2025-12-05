@@ -189,7 +189,7 @@ describe('UpdateCapexService', () => {
       const updateCall = updateRepo.update.mock.calls[0][0];
       const obra1 = updateCall.find((item) => item.id === 1);
 
-      expect(obra1.capex_mat_pend).toBeCloseTo(1322.285, 2);
+      expect(obra1.capex_mat_pend).toBeCloseTo(0, 2);
     });
 
     it('should skip materials without id_obra', async () => {
@@ -281,6 +281,20 @@ describe('UpdateCapexService', () => {
       );
 
       await expect(service.update()).rejects.toThrow('Failed to fetch data');
+    });
+
+    it('should throw an error if something fails during calculation', () => {
+      const materialData = null as any; // isso força erro no for...of
+      const fatorMap = new Map();
+      const deletedMaterials = [];
+
+      expect(() =>
+        (service as any).calculateCapexValues(
+          materialData,
+          fatorMap,
+          deletedMaterials,
+        ),
+      ).toThrow();
     });
   });
 

@@ -14,7 +14,6 @@ export interface materialsInterface {
   qtd_falta: number;
   qtd_entrada: number;
   reserva: string;
-  data_nec: Date;
 }
 
 export interface GetAuxiliaryBaseMaterialsInterface {

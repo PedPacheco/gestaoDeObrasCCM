@@ -57,6 +57,10 @@ export function InsertMarketWorksButton({
         } else {
           data = parsedData.map((item: any) => ({
             obra: item.obra,
+            dci: item.dci,
+            dcd: item.dcd,
+            dca: item.dca,
+            dcim: item.dcim,
             entrada: item.entrada,
             prazo: item.prazo,
             referencia: item.referencia,
@@ -67,6 +71,7 @@ export function InsertMarketWorksButton({
             aux_circuito: item.circuito,
             aux_tecnico: item.tecnico,
             anoplan: Number(item.anoplan),
+            ehRda: item.ehRda,
           }));
         }
 

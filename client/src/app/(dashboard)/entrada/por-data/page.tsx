@@ -47,7 +47,8 @@ export default async function EntryForDate() {
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/entrada/data`,
       filtersValues,
-      cookieStore.get("token")?.value
+      cookieStore.get("token")?.value,
+      { cache: "no-store" }
     ),
   ]);
 
@@ -58,7 +59,6 @@ export default async function EntryForDate() {
   const { token, data } = entryData;
 
   const columnMapping = {
-    id: "ID",
     ovnota: "Ovnota",
     pep: "Pep",
     diagrama: "Diagrama",
@@ -72,9 +72,9 @@ export default async function EntryForDate() {
     qtde_planejada: "Qtde Planejada",
     mo_planejada: "MO Planejada",
     observ_obra: "Observação",
-    tipos: "Tipo de Obra",
-    turmas: "Turma",
-    municipios: "Município",
+    tipo_obra: "Tipo de Obra",
+    turma: "Turma",
+    mun: "Município",
     total_obras: "Total Obras",
     total_mo_planejada: "Total MO Planejada",
     total_qtde_planejada: "Total Qtde Planejada",

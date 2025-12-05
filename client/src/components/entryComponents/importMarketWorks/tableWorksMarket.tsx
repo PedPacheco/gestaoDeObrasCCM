@@ -71,7 +71,7 @@ export function TableMarketWorks({
       return;
     }
 
-    if (data.length > 0) {
+    if (data?.length > 0) {
       localStorage.setItem(storageKey, JSON.stringify(data));
       cookies.set(storageKey, true);
       setUpdatedData(data);

@@ -6,7 +6,7 @@ import { InsertWorksService } from 'src/application/works/InsertWorks.service';
 import { FindExistingWorksService } from 'src/application/works/findExistingWorks.service';
 import { AuxiliaryBaseService } from 'src/application/auxiliaryBase/auxiliaryBase.service';
 import { mockMarketWorks } from '../../../test/mocks/mockWorksController';
-import { mockGetNotes } from '../../../test/mocks/mockAuxiliaryBaseRepository';
+import { mockInsertNotes } from '../../../test/mocks/mockAuxiliaryBaseRepository';
 import { mockMappedNotes } from '../../../test/mocks/mocksAuxiliaryBaseController';
 
 describe('InsertWorksService', () => {
@@ -109,7 +109,7 @@ describe('InsertWorksService', () => {
     it('should throw BadRequestException when obra has generic PEP', async () => {
       const mockWrongPep = [
         {
-          ...mockGetNotes[0],
+          ...mockInsertNotes[0],
           pep: 'X/003999-001',
         },
       ];
@@ -134,33 +134,89 @@ describe('InsertWorksService', () => {
       ).rejects.toThrow(`Obra 16004316 está com PEP genérico.`);
     });
 
-    // it('should throw BadRequestException when obra has no moPlanejada', async () => {
-    //   const mockWithoutMo = [
-    //     {
-    //       ...mockGetNotes[0],
-    //       mo_plan: 0,
-    //     },
-    //   ];
+    it('should throw BadRequestException when obra has type work invalid', async () => {
+      const mockWithTypeWorkInvalid = [
+        {
+          ...mockInsertNotes[0],
+          aux_tipo: 1,
+        },
+      ];
 
-    //   const mockReturnNote = [
-    //     {
-    //       ...mockMappedNotes[0],
-    //       mo_plan: 0,
-    //     },
-    //   ];
+      const mockReturnNote = [
+        {
+          ...mockMappedNotes[0],
+          mo_plan: 0,
+        },
+      ];
 
-    //   jest
-    //     .spyOn(auxiliaryBaseService, 'getNotes')
-    //     .mockResolvedValue(mockReturnNote);
+      jest
+        .spyOn(auxiliaryBaseService, 'getNotes')
+        .mockResolvedValue(mockReturnNote);
 
-    //   jest
-    //     .spyOn(mockRepository, 'getGroup')
-    //     .mockResolvedValue([{ id: 48, id_grupo: 2 }]);
+      jest
+        .spyOn(mockRepository, 'getGroup')
+        .mockResolvedValue([{ id: 1, id_grupo: 2 }]);
 
-    //   await expect(
-    //     insertWorksService.insertNotes(mockWithoutMo),
-    //   ).rejects.toThrow(`Obra 16004316 não tem valor de Mão de Obra.`);
-    // });
+      await expect(
+        insertWorksService.insertNotes(mockWithTypeWorkInvalid),
+      ).rejects.toThrow('Selecione um tipo de obra');
+    });
+
+    it('should throw BadRequestException when obra has circuit invalid', async () => {
+      const mockWihCircuitInvalid = [
+        {
+          ...mockInsertNotes[0],
+          aux_circuito: 1,
+        },
+      ];
+
+      const mockReturnNote = [
+        {
+          ...mockMappedNotes[0],
+          mo_plan: 0,
+        },
+      ];
+
+      jest
+        .spyOn(auxiliaryBaseService, 'getNotes')
+        .mockResolvedValue(mockReturnNote);
+
+      jest
+        .spyOn(mockRepository, 'getGroup')
+        .mockResolvedValue([{ id: 48, id_grupo: 2 }]);
+
+      await expect(
+        insertWorksService.insertNotes(mockWihCircuitInvalid),
+      ).rejects.toThrow('Selecione um circuito');
+    });
+
+    it('should throw BadRequestException when obra has no rda', async () => {
+      const mockWithRdaInvalid = [
+        {
+          ...mockInsertNotes[0],
+          ehRda: true,
+        },
+      ];
+
+      const mockReturnNote = [
+        {
+          ...mockMappedNotes[0],
+          mo_plan: 0,
+        },
+      ];
+
+      jest
+        .spyOn(auxiliaryBaseService, 'getNotes')
+        .mockResolvedValue(mockReturnNote);
+
+      jest
+        .spyOn(mockRepository, 'getGroup')
+        .mockResolvedValue([{ id: 48, id_grupo: 2 }]);
+
+      await expect(
+        insertWorksService.insertNotes(mockWithRdaInvalid),
+      ).rejects.toThrow('Necessário selecionar o tipo da RDA');
+    });
 
     it('should throw BadRequestException when obra has invalid empreendimento for group 3 or 4', async () => {
       jest
@@ -172,7 +228,7 @@ describe('InsertWorksService', () => {
         .mockResolvedValue([{ id: 48, id_grupo: 4 }]);
 
       await expect(
-        insertWorksService.insertNotes(mockGetNotes),
+        insertWorksService.insertNotes(mockInsertNotes),
       ).rejects.toThrow(
         `Selecione um empreendimento válido para a obra 16004316.`,
       );
@@ -187,7 +243,7 @@ describe('InsertWorksService', () => {
         .spyOn(mockRepository, 'getGroup')
         .mockResolvedValue([{ id: 48, id_grupo: 2 }]);
 
-      await insertWorksService.insertNotes(mockGetNotes);
+      await insertWorksService.insertNotes(mockInsertNotes);
 
       expect(mockRepository.insertNotes).toHaveBeenCalled();
     });

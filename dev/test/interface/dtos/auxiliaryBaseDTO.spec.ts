@@ -103,6 +103,10 @@ describe('DTO Validations', () => {
     it('should be valid', async () => {
       const dto = plainToInstance(InsertNotesDTO, {
         obra: '123',
+        dci: '423',
+        dcd: '235',
+        dca: '242',
+        dcim: '245',
         entrada: new Date(),
         prazo: 'curto',
         referencia: 'ref01',
@@ -113,6 +117,7 @@ describe('DTO Validations', () => {
         aux_circuito: 5,
         aux_tecnico: 6,
         anoplan: 2025,
+        ehRda: false,
       });
 
       await expectValid(dto);

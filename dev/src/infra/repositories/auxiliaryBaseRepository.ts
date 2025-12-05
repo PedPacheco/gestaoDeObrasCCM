@@ -1,13 +1,11 @@
 import { MarketWork } from 'src/domain/entities/works.entity';
 import { IAuxiliaryBaseRepository } from 'src/domain/repositories/IAuxiliaryBaseRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import {
-  InsertBaseAuxiliaryMarketDTO,
-  NotesDTO,
-} from 'src/interface/dtos/auxiliaryBaseDTO';
+import { InsertBaseAuxiliaryMarketDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
 
 import { Injectable, Logger } from '@nestjs/common';
 import { GetAuxiliaryBaseMaterialsInterface } from 'src/interface/types/works/capexInterface';
+import { InsertNotesInterface } from 'src/interface/types/baseAuxiliaryInterface';
 
 @Injectable()
 export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
@@ -39,6 +37,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
         capex_mo_plan: true,
         capex_mat_plan: true,
         anoplan: true,
+        eh_rda: true,
       },
     });
   }
@@ -235,7 +234,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     return `'${value}'`;
   }
 
-  async insertNotes(data: NotesDTO[]): Promise<any> {
+  async insertNotes(data: InsertNotesInterface[]): Promise<any> {
     try {
       const formattedPayload = data.map((d) => {
         return `(
@@ -248,7 +247,8 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
           ${this.formatValue(d.conjunto)},
           ${this.formatValue(d.grp_plnj_pm)},
           ${this.formatValue(d.texto_breve)},
-          ${this.formatValue(d.denominacao)}
+          ${this.formatValue(d.denominacao)},
+          ${d.ehRda}
         )`;
       });
 

@@ -54,6 +54,7 @@ export class AuxiliaryBaseService {
       capex_mo_plan: note.capex_mo_plan,
       capex_mat_plan: note.capex_mat_plan,
       anoplan: note.anoplan,
+      ehRda: note.eh_rda,
     }));
   }
 
