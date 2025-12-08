@@ -28,7 +28,13 @@ export class Schedule {
     public readonly responsibleArea?: string,
     public readonly restrictionStatus?: string,
     public readonly resolutionDate?: Date,
-    public readonly observationProg?: string,
+    public readonly idProgRestriction2: number = 1,
+    public readonly responsiblityProg2?: string,
+    public readonly responsibleName2?: string,
+    public readonly responsibleArea2?: string,
+    public readonly restrictionStatus2?: string,
+    public readonly resolutionDate2?: Date,
+    public readonly observationRestriction?: string,
   ) {
     this.validate();
   }
@@ -84,7 +90,13 @@ export class Schedule {
       data.responsibleArea,
       data.restrictionStatus,
       data.resolutionDate,
-      data.observationProg,
+      data.idProgRestriction2,
+      data.responsiblityProg2,
+      data.responsibleName2,
+      data.responsibleArea2,
+      data.restrictionStatus2,
+      data.resolutionDate2,
+      data.observationRestriction,
     );
   }
 }

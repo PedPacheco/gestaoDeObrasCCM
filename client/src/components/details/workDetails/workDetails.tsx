@@ -2,7 +2,7 @@
 
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
 import ErrorModal from "@/components/common/ErrorModal";
@@ -19,6 +19,8 @@ import {
   SelectChangeEvent,
   Tooltip,
 } from "@mui/material";
+import { useUser } from "@/contexts/userContext";
+import { ErrorThrower } from "@/components/common/ErrorThrower";
 
 dayjs.extend(customParseFormat);
 
@@ -91,6 +93,7 @@ export function WorkDetails({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [openModal, setOpenModal] = useState<boolean>(false);
+  const { permissions } = useUser();
 
   const [openSuspensionModal, setOpenSuspensionModal] =
     useState<boolean>(false);
@@ -108,6 +111,15 @@ export function WorkDetails({
 
   const toggleModal = () => setOpenModal((prev) => !prev);
   const toggleSuspensionModal = () => setOpenSuspensionModal((prev) => !prev);
+
+  if (
+    (data.id_status.toString() === "4" ||
+      data.id_status.toString() === "3" ||
+      data.id_status.toString() === "42") &&
+    permissions?.permissao_visualizacao === "parcial"
+  ) {
+    return <ErrorThrower message="Nível de permissão insuficiente" />;
+  }
 
   const handleSubmit = () => {
     startTransition(async () => {

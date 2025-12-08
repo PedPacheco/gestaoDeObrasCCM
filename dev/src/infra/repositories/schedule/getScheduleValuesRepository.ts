@@ -106,12 +106,13 @@ export class GetScheduleValuesRepository
         WHERE 1=1`;
 
     let query = Prisma.sql`SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, regional, entrada, entrada + prazo AS prazo_fim, 
-        mo_planejada, turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec, tipo_obra, qtde_planejada, qtde_pend,
-        num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status
+        turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_planejada, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec, tipo_obra, qtde_planejada, qtde_pend,
+        num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status, 
+        id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2
         ${baseQuery}`;
 
-    let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras, SUM(mo_planejada) as total_mo_planejada, SUM(mo_planejada*executado/100) as total_mo_exec, 
-        SUM(qtde_planejada) as total_qtde_planejada ${baseQuery}`;
+    let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras, SUM(mo_planejada*prog/100) as total_mo_planejada, SUM(mo_planejada*executado/100) as total_mo_exec, 
+        SUM(qtde_planejada * (prog/100)) as total_qtde_planejada ${baseQuery}`;
 
     query = this.applyFilters(query, filters);
     countQuery = this.applyFilters(countQuery, filters);

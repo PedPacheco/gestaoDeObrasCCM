@@ -41,11 +41,12 @@ export const mockMappedNotes = [
     empreendimento: 1,
     tipo: 48,
     parceira: 1,
-    circuito: 1,
+    circuito: 5,
     tecnico: null,
     capex_mo_plan: 1483,
     capex_mat_plan: 0,
     anoplan: null,
+    ehRda: false,
   },
 ];
 

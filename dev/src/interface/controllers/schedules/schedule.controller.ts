@@ -1,40 +1,28 @@
-import { HandleAddScheduleService } from 'src/application/orchestrators/handleAddSchedule.service';
-import { HandleSchedulesUpdateService } from 'src/application/orchestrators/handleSchedulesUpdate.service';
-import { DeleteSchedulesService } from 'src/application/schedule/deleteSchedules.service';
 import { GetMonthlySummaryService } from 'src/application/schedule/getMonthlySummary.service';
 import { GetScheduleRestrictionsService } from 'src/application/schedule/getScheduleRestrictions.service';
 import { GetScheduleValuesService } from 'src/application/schedule/getScheduleValues.service';
 import { GetTotalValuesScheduleService } from 'src/application/schedule/getTotalValuesSchedule.service';
 import { GetValuesWeeklyScheduleService } from 'src/application/schedule/getValuesWeeklySchedule.service';
-import { ValidateConfirmAndRejectSchedulesService } from 'src/application/schedule/validateAndConfirmSchedules.service';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import {
-  ConfirmSchedulesDTO,
   GetMonthlySummaryDTO,
   GetScheduleValuesDTO,
   GetTotalValuesScheduleDTO,
   GetValueWeeklyScheduleDTO,
-  RejectScheduleDTO,
-  SchedulesDataDTO,
-  UpdateSchedulesDataDTO,
-  ValidateSchedulesDTO,
 } from 'src/interface/dtos/scheduleDTO';
 
 import {
-  Body,
   Controller,
-  Delete,
   Get,
   HttpStatus,
   Param,
   ParseIntPipe,
-  Patch,
-  Post,
   Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { RejectionsOfSchedulesService } from 'src/application/schedule/rejectionOfSchedules.service';
 
 @Controller('programacao')
 export class ScheduleController {
@@ -44,10 +32,7 @@ export class ScheduleController {
     private getValuesWeeklyScheduleService: GetValuesWeeklyScheduleService,
     private getScheduleRestrictionsService: GetScheduleRestrictionsService,
     private getMonthlySummaryService: GetMonthlySummaryService,
-    private handleAddScheduleService: HandleAddScheduleService,
-    private handleSchedulesUpdateService: HandleSchedulesUpdateService,
-    private deleteSchedulesService: DeleteSchedulesService,
-    private validateConfirmAndRejectSchedulesService: ValidateConfirmAndRejectSchedulesService,
+    private rejectionsOfSchedulesService: RejectionsOfSchedulesService,
   ) {}
 
   @Get()
@@ -133,83 +118,14 @@ export class ScheduleController {
     };
   }
 
-  @Post()
-  async addSchedules(@Body() schedulesData: SchedulesDataDTO) {
-    await this.handleAddScheduleService.add(schedulesData);
-
-    return {
-      statusCode: HttpStatus.CREATED,
-      message: 'Programação inserida com sucesso',
-    };
-  }
-
-  @Delete(':id')
-  @UseGuards(PermissionGuard)
-  async deleteSchedules(@Param('id', ParseIntPipe) id: number) {
-    await this.deleteSchedulesService.delete(id);
+  @Get('reprovacoes/:id')
+  async GetRejectionsOfSchedules(@Param('id', ParseIntPipe) idWork: number) {
+    const response = await this.rejectionsOfSchedulesService.get(idWork);
 
     return {
       statusCode: HttpStatus.OK,
-      message: 'Programação excluída com sucesso',
-    };
-  }
-
-  @Patch('validar')
-  @UseGuards(VisualizationGuard)
-  async validateSchedules(@Body() data: ValidateSchedulesDTO[]) {
-    await this.validateConfirmAndRejectSchedulesService.validate(data);
-
-    return {
-      statusCode: HttpStatus.NO_CONTENT,
-      message: 'Programações validadas com sucesso',
-    };
-  }
-
-  @Patch('confirmar')
-  @UseGuards(VisualizationGuard)
-  async confirmSchedules(@Body() id: ConfirmSchedulesDTO[]) {
-    await this.validateConfirmAndRejectSchedulesService.confirm(id);
-
-    return {
-      statusCode: HttpStatus.NO_CONTENT,
-      message: 'Programações confirmadas com sucesso',
-    };
-  }
-
-  @Patch('reprovar')
-  @UseGuards(VisualizationGuard)
-  async rejectSchedules(@Body() data: RejectScheduleDTO) {
-    await this.validateConfirmAndRejectSchedulesService.reject(data);
-
-    return {
-      statusCode: HttpStatus.NO_CONTENT,
-      message: 'Programação reprovada com sucesso',
-    };
-  }
-
-  @Patch(':id')
-  @UseGuards(VisualizationGuard)
-  async updateSchedules(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() schedulesData: UpdateSchedulesDataDTO,
-    @Req() req: any,
-  ) {
-    let permission: boolean;
-
-    if (req.insufficientPermission !== undefined) {
-      permission = req.insufficientPermission;
-    }
-
-    const data = {
-      updateData: { id, ...schedulesData.updateData },
-      executionReportData: { ...schedulesData.executionReportData },
-    };
-
-    await this.handleSchedulesUpdateService.update(data, permission);
-
-    return {
-      statusCode: HttpStatus.NO_CONTENT,
-      message: 'Atualização da programação feita com sucesso',
+      message: 'Retornados as reprovações das programções',
+      data: response,
     };
   }
 }

@@ -35,14 +35,21 @@ import { GetScheduleRestrictionsService } from '../../application/schedule/getSc
 import { GetScheduleValuesService } from '../../application/schedule/getScheduleValues.service';
 import { GetTotalValuesScheduleService } from '../../application/schedule/getTotalValuesSchedule.service';
 import { GetValuesWeeklyScheduleService } from '../../application/schedule/getValuesWeeklySchedule.service';
-import { ScheduleController } from '../controllers/schedule.controller';
+import { ScheduleController } from '../controllers/schedules/schedule.controller';
 import { ExecutionReportModule } from './executionReport.module';
 import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
+import { RejectionsOfSchedulesService } from 'src/application/schedule/rejectionOfSchedules.service';
+import { REJECTION_OF_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IRejectionsOfSchedules';
+import { RejectionsOfSchedulesRepository } from 'src/infra/repositories/schedule/rejectionsOfSchedulesRepository';
+import { SchedulesActionsController } from '../controllers/schedules/schedulesActions.controller';
+// import { UpdateRestrictionsService } from 'src/application/schedule/updateRestrictions.service';
+// import { UPDATE_RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateRestrictionsRepository';
+// import { UpdateRestrictionsRepository } from 'src/infra/repositories/schedule/updateRestrictionsRepository';
 
 @Module({
   imports: [UsersModule, forwardRef(() => ExecutionReportModule), WorksModule],
-  controllers: [ScheduleController],
+  controllers: [ScheduleController, SchedulesActionsController],
   providers: [
     AddSchedulesService,
     UpdateSchedulesService,
@@ -56,6 +63,8 @@ import { WorksModule } from './works.module';
     HandleAddScheduleService,
     ValidateConfirmAndRejectSchedulesService,
     ScheduleExecutionValidatorService,
+    RejectionsOfSchedulesService,
+    // UpdateRestrictionsService,
     { provide: ADD_SCHEDULES_REPOSITORY, useClass: AddSchedulesRepository },
     {
       provide: UPDATE_SCHEDULES_REPOSITORY,
@@ -94,6 +103,14 @@ import { WorksModule } from './works.module';
       provide: VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY,
       useClass: ValidateAndConfirmSchedulesRepository,
     },
+    {
+      provide: REJECTION_OF_SCHEDULES_REPOSITORY,
+      useClass: RejectionsOfSchedulesRepository,
+    },
+    // {
+    //   provide: UPDATE_RESTRICTIONS_REPOSITORY,
+    //   useClass: UpdateRestrictionsRepository,
+    // },
   ],
   exports: [GetScheduleValuesService, FIND_SCHEDULE_BY_ID_REPOSITORY],
 })

@@ -9,6 +9,7 @@ import {
 
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import * as moment from 'moment';
 
 @Injectable()
 export class GetCompletedWorksRepository
@@ -29,10 +30,14 @@ export class GetCompletedWorksRepository
       idStatus,
       idTipo,
       insufficientPermission,
+      data,
+      tipoFiltro,
     } = filters;
 
+    const [month, year] = data ? data.split('/') : [null, null];
+
     if (insufficientPermission) {
-      query = Prisma.sql`${query} AND status.id != 42`;
+      query = Prisma.sql`${query} AND status.id != 42 AND status.id != 4`;
     }
 
     if (idRegional && idRegional.length > 0) {
@@ -73,6 +78,14 @@ export class GetCompletedWorksRepository
 
     if (ovnota) {
       query = Prisma.sql`${query} AND obras.ovnota = ${ovnota}`;
+    }
+
+    if (tipoFiltro === 'month' && data) {
+      query = Prisma.sql`${query} AND EXTRACT(MONTH FROM data_conclusao) = ${parseInt(month)} AND EXTRACT(YEAR FROM data_conclusao) = ${parseInt(year)}`;
+    }
+
+    if (tipoFiltro === 'day' && data) {
+      query = Prisma.sql`${query} AND data_conclusao = ${moment(data, 'DD/MM/YYYY', true).toDate()}`;
     }
 
     return query;

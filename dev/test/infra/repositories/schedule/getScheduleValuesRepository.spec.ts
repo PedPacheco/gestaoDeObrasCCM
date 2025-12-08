@@ -93,8 +93,9 @@ describe('GetScheduleValuesRepository', () => {
       .mockResolvedValueOnce(mockCount);
 
     const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, regional, entrada, entrada + prazo AS prazo_fim, 
-    mo_planejada, turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec, tipo_obra, qtde_planejada, qtde_pend,
-    num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status
+    turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_planejada, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec, tipo_obra, qtde_planejada, qtde_pend,
+    num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status,
+    id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2
     FROM construcao_sp.obras
     INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
     INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
@@ -146,8 +147,9 @@ describe('GetScheduleValuesRepository', () => {
       .mockResolvedValueOnce(mockCount);
 
     const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, regional, entrada, entrada + prazo AS prazo_fim, 
-      mo_planejada, turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec, tipo_obra, qtde_planejada, qtde_pend,
-      num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status
+    turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_planejada, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec, tipo_obra, qtde_planejada, qtde_pend,
+      num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status,
+      id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2
       FROM construcao_sp.obras
       INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
       INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
@@ -226,8 +228,9 @@ describe('GetScheduleValuesRepository', () => {
       .mockResolvedValueOnce(mockCount);
 
     const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, regional, entrada, entrada + prazo AS prazo_fim, 
-    mo_planejada, turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec, tipo_obra, qtde_planejada, qtde_pend,
-    num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status
+    turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_planejada, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec, tipo_obra, qtde_planejada, qtde_pend,
+    num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status,
+    id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2
     FROM construcao_sp.obras
     INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
     INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto

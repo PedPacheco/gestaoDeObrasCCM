@@ -1,30 +1,17 @@
-import { HandleSchedulesUpdateService } from 'src/application/orchestrators/handleSchedulesUpdate.service';
-import { plainToInstance } from 'class-transformer';
-import { validate } from 'class-validator';
-
-import { DeleteSchedulesService } from 'src/application/schedule/deleteSchedules.service';
 import { GetMonthlySummaryService } from 'src/application/schedule/getMonthlySummary.service';
 import { GetScheduleRestrictionsService } from 'src/application/schedule/getScheduleRestrictions.service';
 import { GetScheduleValuesService } from 'src/application/schedule/getScheduleValues.service';
 import { GetTotalValuesScheduleService } from 'src/application/schedule/getTotalValuesSchedule.service';
 import { GetValuesWeeklyScheduleService } from 'src/application/schedule/getValuesWeeklySchedule.service';
-import { UpdateSchedulesService } from 'src/application/schedule/updateSchedules.service';
-import { ScheduleController } from 'src/interface/controllers/schedule.controller';
-import {
-  GetScheduleValuesDTO,
-  SchedulesDataDTO,
-  UpdateSchedulesDataDTO,
-} from 'src/interface/dtos/scheduleDTO';
+import { ScheduleController } from 'src/interface/controllers/schedules/schedule.controller';
+import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
-import { mockUpdateSchedulesController } from '../../../test/mocks/mockAddScheduleService';
+import { RejectionsOfSchedulesService } from 'src/application/schedule/rejectionOfSchedules.service';
 import { UsersService } from 'src/application/users.service';
-import { ExecutionReportService } from 'src/application/executionReport.service';
-import { HandleAddScheduleService } from 'src/application/orchestrators/handleAddSchedule.service';
-import { ValidateConfirmAndRejectSchedulesService } from 'src/application/schedule/validateAndConfirmSchedules.service';
 
 describe('ScheduleController', () => {
   let scheduleController: ScheduleController;
@@ -33,10 +20,7 @@ describe('ScheduleController', () => {
   let getScheduleValuesService: GetScheduleValuesService;
   let getScheduleRestrictionsService: GetScheduleRestrictionsService;
   let getMonthlySummaryService: GetMonthlySummaryService;
-  let handleSchedulesUpdateService: HandleSchedulesUpdateService;
-  let deleteSchedulesService: DeleteSchedulesService;
-  let handleAddScheduleService: HandleAddScheduleService;
-  let validateConfirmAndRejectSchedulesService: ValidateConfirmAndRejectSchedulesService;
+  let rejectionsOfSchedulesService: RejectionsOfSchedulesService;
 
   const mockScheduleData: GetScheduleValuesResponse = {
     works: [
@@ -68,9 +52,15 @@ describe('ScheduleController', () => {
         observprog: '',
         conjunto: '',
         circuito: '',
-        total_obras: 0,
-        total_mo_planejada: 0,
-        total_qtde_planejada: 0,
+        status_programacao: 'PROGRAMADA',
+        status: 'EM EXECUÇÃO',
+        id_restricao_prog1: 0,
+        id_restricao_prog2: 0,
+        data_resolucao1: new Date('1970-01-01T00:00:00.000Z'),
+        data_resolucao2: new Date('1970-01-01T00:00:00.000Z'),
+        status_restricao1: 'SEM RESTRIÇÃO',
+        status_restricao2: 'SEM RESTRIÇÃO',
+        restricao_aberta: false,
       },
     ],
     totals: {
@@ -121,24 +111,11 @@ describe('ScheduleController', () => {
             getSecondSummary: jest.fn(),
           },
         },
-        { provide: HandleAddScheduleService, useValue: { add: jest.fn() } },
-        { provide: UpdateSchedulesService, useValue: { update: jest.fn() } },
-        { provide: DeleteSchedulesService, useValue: { delete: jest.fn() } },
+        {
+          provide: RejectionsOfSchedulesService,
+          useValue: { get: jest.fn() },
+        },
         { provide: UsersService, useValue: { findUser: jest.fn() } },
-        { provide: ExecutionReportService, useValue: { create: jest.fn() } },
-        { provide: HandleAddScheduleService, useValue: { add: jest.fn() } },
-        {
-          provide: ValidateConfirmAndRejectSchedulesService,
-          useValue: {
-            validate: jest.fn(),
-            confirm: jest.fn(),
-            reject: jest.fn(),
-          },
-        },
-        {
-          provide: HandleSchedulesUpdateService,
-          useValue: { update: jest.fn() },
-        },
       ],
     }).compile();
 
@@ -158,19 +135,9 @@ describe('ScheduleController', () => {
     getMonthlySummaryService = module.get<GetMonthlySummaryService>(
       GetMonthlySummaryService,
     );
-    handleAddScheduleService = module.get<HandleAddScheduleService>(
-      HandleAddScheduleService,
+    rejectionsOfSchedulesService = module.get<RejectionsOfSchedulesService>(
+      RejectionsOfSchedulesService,
     );
-    handleSchedulesUpdateService = module.get<HandleSchedulesUpdateService>(
-      HandleSchedulesUpdateService,
-    );
-    deleteSchedulesService = module.get<DeleteSchedulesService>(
-      DeleteSchedulesService,
-    );
-    validateConfirmAndRejectSchedulesService =
-      module.get<ValidateConfirmAndRejectSchedulesService>(
-        ValidateConfirmAndRejectSchedulesService,
-      );
   });
 
   it('Should be defined', () => {
@@ -375,6 +342,7 @@ describe('ScheduleController', () => {
     const getScheduleRestrictionsResponse = [
       {
         id: 1695,
+        id_prog: 1,
         ovnota: '3908435',
         mun: 'SJC',
         tipo: 'REMOÇÃO DE REDE',
@@ -384,12 +352,14 @@ describe('ScheduleController', () => {
         prog: 0,
         exec: 0,
         observacao_restricao: null,
+        id_restricao_prog1: 1,
         restricao_prog1: 'Aviso',
         responsabilidade1: null,
         nome_responsavel: null,
         area_responsavel1: null,
         status_restricao1: null,
         data_resolucao1: null,
+        id_restricao_prog2: 1,
         restricao_prog2: 'Aviso',
         responsabilidade2: null,
         nome_responsavel2: null,
@@ -497,207 +467,45 @@ describe('ScheduleController', () => {
     );
   });
 
-  it('Should call addSchedules and return message', async () => {
-    jest.spyOn(handleAddScheduleService, 'add').mockResolvedValue();
+  it('should call getRejectionsOfSchedules and return data of rejections', async () => {
+    jest.spyOn(rejectionsOfSchedulesService, 'get').mockResolvedValue([
+      {
+        motivo: 'CHI',
+        data_prog: new Date('2025-05-17'),
+        hora_ini: '08:00',
+        hora_ter: '17:00',
+        prog: 80,
+        descricao: 'Obra sem chi',
+        equip_desligado: 'transformador',
+        equipe_linha_morta: 6,
+        equipe_linha_viva: 0,
+        equipe_regularizacao: 0,
+        tipo_servico: 'DP',
+        observacao_programacao: null,
+      },
+    ]);
 
-    const date = new Date('2025-06-10T00:00:00.000Z');
+    const result = await scheduleController.GetRejectionsOfSchedules(1);
 
-    const result = await scheduleController.addSchedules({
-      idWork: 3146044,
-      dataProg: date,
-      startTime: '08:00',
-      finishTime: '07:00',
-      serviceType: 'Inspeção Elétrica',
-      prog: 100,
-    });
-
-    expect(result).toEqual({
-      statusCode: HttpStatus.CREATED,
-      message: 'Programação inserida com sucesso',
-    });
-    expect(handleAddScheduleService.add).toHaveBeenCalledWith({
-      idWork: 3146044,
-      dataProg: date,
-      startTime: '08:00',
-      finishTime: '07:00',
-      serviceType: 'Inspeção Elétrica',
-      prog: 100,
-    });
-  });
-
-  describe('UpdateSchedules', () => {
-    it('Should call updateSchedules and return message', async () => {
-      jest.spyOn(handleSchedulesUpdateService, 'update').mockResolvedValue();
-
-      const result = await scheduleController.updateSchedules(
-        1,
-        mockUpdateSchedulesController,
-        mockReq,
-      );
-
-      expect(result).toEqual({
-        statusCode: HttpStatus.NO_CONTENT,
-        message: 'Atualização da programação feita com sucesso',
-      });
-      expect(handleSchedulesUpdateService.update).toHaveBeenCalledWith(
-        mockUpdateSchedulesController,
-        true,
-      );
-    });
-
-    it('Should call update method and return correct data', async () => {
-      jest.spyOn(handleSchedulesUpdateService, 'update').mockResolvedValue();
-
-      const result = await scheduleController.updateSchedules(
-        1,
-        mockUpdateSchedulesController,
-        { ...mockReq, insufficientPermission: undefined },
-      );
-
-      expect(result).toEqual({
-        statusCode: HttpStatus.NO_CONTENT,
-        message: 'Atualização da programação feita com sucesso',
-      });
-      expect(handleSchedulesUpdateService.update).toHaveBeenCalledWith(
-        mockUpdateSchedulesController,
-        undefined,
-      );
-    });
-  });
-
-  it('Should call deleteSchedules and return message', async () => {
-    jest.spyOn(deleteSchedulesService, 'delete').mockResolvedValue();
-
-    const result = await scheduleController.deleteSchedules(1);
-
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       statusCode: HttpStatus.OK,
-      message: 'Programação excluída com sucesso',
-    });
-    expect(deleteSchedulesService.delete).toHaveBeenCalledWith(1);
-  });
-
-  it('should call validate and return message', async () => {
-    jest
-      .spyOn(validateConfirmAndRejectSchedulesService, 'validate')
-      .mockResolvedValue();
-
-    const result = await scheduleController.validateSchedules([
-      { id: 2, validate: true },
-    ]);
-
-    expect(result).toEqual({
-      statusCode: HttpStatus.NO_CONTENT,
-      message: 'Programações validadas com sucesso',
-    });
-    expect(
-      validateConfirmAndRejectSchedulesService.validate,
-    ).toHaveBeenCalledTimes(1);
-  });
-
-  it('should call confirm and return message', async () => {
-    jest
-      .spyOn(validateConfirmAndRejectSchedulesService, 'confirm')
-      .mockResolvedValue();
-
-    const result = await scheduleController.confirmSchedules([
-      { id: 2, confirm: true },
-    ]);
-
-    expect(result).toEqual({
-      statusCode: HttpStatus.NO_CONTENT,
-      message: 'Programações confirmadas com sucesso',
-    });
-    expect(
-      validateConfirmAndRejectSchedulesService.confirm,
-    ).toHaveBeenCalledTimes(1);
-  });
-
-  it('should call reject and return message', async () => {
-    jest
-      .spyOn(validateConfirmAndRejectSchedulesService, 'reject')
-      .mockResolvedValue();
-
-    const result = await scheduleController.rejectSchedules({
-      id: 2,
-      reject: true,
-      reason: '',
-      description: '',
-    });
-
-    expect(result).toEqual({
-      statusCode: HttpStatus.NO_CONTENT,
-      message: 'Programação reprovada com sucesso',
-    });
-    expect(
-      validateConfirmAndRejectSchedulesService.reject,
-    ).toHaveBeenCalledTimes(1);
-  });
-
-  describe('DTO Validation', () => {
-    it('should fail validation if exec is not a number', async () => {
-      const payload = {
-        idWork: 1,
-        dataProg: new Date(),
-        startTime: '08:00',
-        finishTime: '10:00',
-        prog: 50,
-        exec: null,
-      };
-
-      const dto = plainToInstance(SchedulesDataDTO, payload);
-      await validate(dto);
-
-      expect(dto.exec).toBeNull();
-    });
-
-    it('should pass validation with correct values', async () => {
-      const payload = {
-        idWork: 1,
-        dataProg: new Date(),
-        startTime: '08:00',
-        finishTime: '10:00',
-        prog: 50,
-        exec: 20,
-      };
-
-      const dto = plainToInstance(SchedulesDataDTO, payload);
-      const errors = await validate(dto);
-
-      expect(errors.length).toBe(0);
-    });
-
-    it('should validate UpdateSchedulesDataDTO with nested SchedulesDataDTO', async () => {
-      const payload = {
-        updateData: {
-          idWork: 1,
-          dataProg: new Date(),
-          startTime: '08:00',
-          finishTime: '10:00',
-          prog: 50,
+      message: 'Retornados as reprovações das programções',
+      data: [
+        {
+          motivo: 'CHI',
+          data_prog: new Date('2025-05-17'),
+          hora_ini: '08:00',
+          hora_ter: '17:00',
+          prog: 80,
+          descricao: 'Obra sem chi',
+          equip_desligado: 'transformador',
+          equipe_linha_morta: 6,
+          equipe_linha_viva: 0,
+          equipe_regularizacao: 0,
+          tipo_servico: 'DP',
+          observacao_programacao: null,
         },
-      };
-
-      const dto = plainToInstance(UpdateSchedulesDataDTO, payload);
-      const errors = await validate(dto);
-
-      expect(errors.length).toBe(0);
-    });
-
-    it('Should convert string to Date using class-transformer in SchedulesDataDTO', () => {
-      const input = {
-        idWork: 1,
-        dataProg: '2025-06-10',
-        startTime: '08:00',
-        finishTime: '09:00',
-        serviceType: 'Inspeção',
-        prog: 1,
-      };
-
-      const dtoAdd = plainToInstance(SchedulesDataDTO, input);
-
-      expect(dtoAdd.dataProg).toBeInstanceOf(Date);
-      expect(dtoAdd.dataProg.toISOString().startsWith('2025-06-10')).toBe(true);
+      ],
     });
   });
 });

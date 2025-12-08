@@ -69,6 +69,7 @@ SELECT
   dp.num_dp,
   grupos.grupo,
   obras.referencia,
+  obras.data_empreitamento,
   empreendimento.empreendimento,
   obras.data_viabilidade,
   obras.prazo_viabilidade
@@ -147,6 +148,7 @@ GROUP BY
   dp.num_dp,
   grupos.grupo,
   obras.referencia,
+  obras.data_empreitamento,
   empreendimento.empreendimento,
   obras.data_viabilidade,
   obras.prazo_viabilidade

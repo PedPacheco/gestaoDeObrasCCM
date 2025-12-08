@@ -125,7 +125,7 @@ export const EquipmentList = ({
                 ) : (
                   <TextField
                     fullWidth
-                    label="Número CS"
+                    label="Número CS (ID)"
                     value={
                       eq.equipment?.startsWith("CS")
                         ? eq.equipment
@@ -211,15 +211,17 @@ export const EquipmentList = ({
                 fullWidth
                 label={eq.type === "DEFAULT" ? "Patrimônio" : "Número de série"}
                 value={eq.patrimony}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const onlyNumbers = e.target.value.replace(/\D/g, "");
+                  const limited = onlyNumbers.slice(0, 8);
                   onEquipmentChange(
                     fieldKey,
                     index,
                     "patrimony",
-                    e.target.value,
+                    limited,
                     prefix
-                  )
-                }
+                  );
+                }}
                 error={!!patrimonyError}
                 helperText={patrimonyError}
               />

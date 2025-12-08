@@ -22,7 +22,7 @@ export interface EntryFiltersType {
   regional: { id: string; regional: string }[];
   parceira: { id: string; turma: string }[];
   tipo: { id: string; tipo_obra: string; id_grupo: number }[];
-  municipio: { id: string; municipio: string }[];
+  municipio: { id: string; municipio: string; id_regional: number }[];
   grupo: { id: string; grupo: string }[];
   circuito: { id: string; circuito: string }[];
 }
@@ -35,7 +35,10 @@ export default function MainEntry({
 }: MainInterface<EntryFiltersType>) {
   const [filteredData, setFilteredData] = useState(data);
   const [error, setError] = useState<string | null>();
-  const { clearFilters, filters, saveFilters } = useSaveFilters({pageKey: "entryFilters", data: filtersData});
+  const { clearFilters, filters, saveFilters } = useSaveFilters({
+    pageKey: "entryFilters",
+    data: filtersData,
+  });
   const [selectedYear, setSelectedYear] = useState<Dayjs | null>(dayjs());
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {}

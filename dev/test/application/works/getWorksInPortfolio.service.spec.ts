@@ -110,6 +110,8 @@ describe('GetWorksInPortfolioService', () => {
       idEmpreendimento: [9],
       page: 1,
       insufficientPermission: true,
+      data: null,
+      tipoFiltro: null,
     };
 
     const cacheKey = `worksInPortfolio-${JSON.stringify(filters)}`;
@@ -144,6 +146,8 @@ describe('GetWorksInPortfolioService', () => {
       idEmpreendimento: [9],
       page: 1,
       insufficientPermission: true,
+      data: null,
+      tipoFiltro: null,
     };
 
     const cacheKey = `worksInPortfolio-${JSON.stringify(filters)}`;
@@ -182,6 +186,8 @@ describe('GetWorksInPortfolioService', () => {
       idEmpreendimento: [],
       ovnota: undefined,
       insufficientPermission: false,
+      data: null,
+      tipoFiltro: null,
     };
 
     mockRepository.getWorksInPortfolio.mockResolvedValue({

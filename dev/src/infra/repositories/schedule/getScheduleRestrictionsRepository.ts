@@ -64,10 +64,12 @@ export class GetScheduleRestrictionsRespository
         executado: true,
         programacoes: {
           select: {
+            id: true,
             data_prog: true,
             prog: true,
             exec: true,
             observacao_restricao: true,
+            id_restricao_prog1: true,
             programacoes_restricao_prog1: {
               select: { restricao: true },
             },
@@ -76,6 +78,7 @@ export class GetScheduleRestrictionsRespository
             area_responsavel1: true,
             status_restricao1: true,
             data_resolucao1: true,
+            id_restricao_prog2: true,
             programacoes_restricao_prog2: {
               select: { restricao: true },
             },

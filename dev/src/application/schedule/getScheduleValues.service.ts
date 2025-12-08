@@ -27,8 +27,36 @@ export class GetScheduleValuesService {
       total_qtde_planejada: resultTotals[0].total_qtde_planejada || 0,
     };
 
+    const worksWithRestrictionVerification = works.map((work) => {
+      const {
+        id_restricao_prog1,
+        id_restricao_prog2,
+        status_restricao1,
+        status_restricao2,
+        data_resolucao1,
+        data_resolucao2,
+      } = work;
+
+      let restricao_aberta: boolean = false;
+
+      if (id_restricao_prog1 !== 1 || id_restricao_prog2 !== 1) {
+        if (
+          (status_restricao1 !== 'Resolvido' ||
+            status_restricao2 !== 'Resolvido') &&
+          (!data_resolucao1 || !data_resolucao2)
+        ) {
+          restricao_aberta = true;
+        }
+      }
+
+      return {
+        ...work,
+        restricao_aberta,
+      };
+    });
+
     const response: GetScheduleValuesResponse = {
-      works,
+      works: worksWithRestrictionVerification,
       totals,
     };
 

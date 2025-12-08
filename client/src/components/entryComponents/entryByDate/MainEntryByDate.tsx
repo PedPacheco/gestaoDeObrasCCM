@@ -8,19 +8,20 @@ import { ButtonComponent } from "@/components/common/Button";
 import { DateFilter } from "@/components/common/DateFilter";
 import ErrorModal from "@/components/common/ErrorModal";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
-import { TableWithVirtualization } from "@/components/common/TableWithVirtualization";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { MainInterface } from "@/interfaces/mainInterface";
+import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
-import { capitalize } from "@/utils/formatValue";
+
+import EntryByDateTable from "./entryByDateTable";
 
 export interface MainEntryByDateFilters {
   regional: { id: string; regional: string }[];
   parceira: { id: string; turma: string }[];
   tipo: { id: string; tipo_obra: string; id_grupo: number }[];
-  municipio: { id: string; municipio: string }[];
+  municipio: { id: string; municipio: string; id_regional: number }[];
   grupo: { id: string; grupo: string }[];
 }
 
@@ -157,11 +158,7 @@ export default function MainEntryByDate({
         </div>
       </div>
 
-      <TableWithVirtualization
-        data={filteredData.works}
-        columns={columns}
-        sliceEndIndex={3}
-      />
+      <EntryByDateTable data={filteredData.works} columns={columns} />
 
       {error && (
         <ErrorModal

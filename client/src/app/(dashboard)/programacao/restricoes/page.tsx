@@ -43,6 +43,7 @@ export default async function ScheduleRestrictions() {
       municipio: true,
       grupo: true,
       tipo: true,
+      restricao: true,
     }),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/programacao/restricoes`,
@@ -55,7 +56,6 @@ export default async function ScheduleRestrictions() {
   const { token, data } = scheduleData;
 
   const columns = {
-    id: "id",
     ovnota: "Ovnota",
     mun: "Municipio",
     tipo: "Tipo",

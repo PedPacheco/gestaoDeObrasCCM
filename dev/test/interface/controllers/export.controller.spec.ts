@@ -18,6 +18,7 @@ import { UsersService } from 'src/application/users.service';
 
 import { worksInPortfolioResponseService } from 'src/interface/types/works/getWorksInPortfolioInterface';
 import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
+import { ExportExecutionReportService } from 'src/application/export/exportExecutionReport.service';
 
 describe('ExportController', () => {
   let controller: ExportController;
@@ -33,6 +34,7 @@ describe('ExportController', () => {
   let exportFinedWorksService: ExportFinedWorksService;
   let exportExecutionCapacityService: ExportExecutionCapacityService;
   let exportSuspensionsService: ExportSuspensionsService;
+  let exportExecutionReportService: ExportExecutionReportService;
 
   const mockReq = {
     insufficientPermission: true,
@@ -117,9 +119,15 @@ describe('ExportController', () => {
         observprog: '',
         conjunto: '',
         circuito: '',
-        total_obras: 0,
-        total_mo_planejada: 0,
-        total_qtde_planejada: 0,
+        status_programacao: 'PROGRAMADA',
+        status: 'EM EXECUÇÃO',
+        id_restricao_prog1: 0,
+        id_restricao_prog2: 0,
+        data_resolucao1: new Date('1970-01-01T00:00:00.000Z'),
+        data_resolucao2: new Date('1970-01-01T00:00:00.000Z'),
+        status_restricao1: 'SEM RESTRIÇÃO',
+        status_restricao2: 'SEM RESTRIÇÃO',
+        restricao_aberta: false,
       },
     ],
     totals: {
@@ -204,6 +212,10 @@ describe('ExportController', () => {
           useValue: { export: jest.fn() },
         },
         { provide: ExportSuspensionsService, useValue: { export: jest.fn() } },
+        {
+          provide: ExportExecutionReportService,
+          useValue: { export: jest.fn() },
+        },
         { provide: UsersService, useValue: { findUser: jest.fn() } },
       ],
     }).compile();
@@ -221,6 +233,7 @@ describe('ExportController', () => {
     exportFinedWorksService = module.get(ExportFinedWorksService);
     exportExecutionCapacityService = module.get(ExportExecutionCapacityService);
     exportSuspensionsService = module.get(ExportSuspensionsService);
+    exportExecutionReportService = module.get(ExportExecutionReportService);
   });
 
   afterAll(() => jest.clearAllMocks());
@@ -377,5 +390,22 @@ describe('ExportController', () => {
 
     expect(mockResponse.setHeader).toHaveBeenCalled();
     expect(exportSuspensionsService.export).toHaveBeenCalledWith(mockResponse);
+  });
+
+  it('should export execution report', async () => {
+    const mockResponse = {
+      setHeader: jest.fn(),
+      send: jest.fn(),
+    } as unknown as Response;
+    jest
+      .spyOn(exportExecutionReportService, 'export')
+      .mockResolvedValue(undefined);
+
+    await controller.exportExecutonReport(mockResponse);
+
+    expect(mockResponse.setHeader).toHaveBeenCalled();
+    expect(exportExecutionReportService.export).toHaveBeenCalledWith(
+      mockResponse,
+    );
   });
 });

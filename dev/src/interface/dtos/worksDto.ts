@@ -111,6 +111,14 @@ export class GetWorksDTO {
   @IsOptional()
   @IsString()
   ovnota?: string;
+
+  @IsOptional()
+  @IsString()
+  data: string;
+
+  @IsOptional()
+  @IsString()
+  tipoFiltro: string;
 }
 
 export class UpdateWorkDTO {
@@ -245,7 +253,8 @@ export class InsertMarketWorksDTO {
 
   @IsDate()
   @Type(() => Date)
-  entrada: Date;
+  @IsOptional()
+  entrada?: Date;
 
   @IsNumber()
   idMunicipio: number;
@@ -286,6 +295,18 @@ export class InsertNotesDTO {
   @IsString()
   obra: string;
 
+  @IsString()
+  dci: string;
+
+  @IsString()
+  dcd: string;
+
+  @IsString()
+  dca: string;
+
+  @IsString()
+  dcim: string;
+
   @IsDate()
   entrada: Date;
 
@@ -321,4 +342,7 @@ export class InsertNotesDTO {
 
   @IsNumber()
   anoplan: number;
+
+  @IsBoolean()
+  ehRda: boolean;
 }

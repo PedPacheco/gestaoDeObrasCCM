@@ -105,6 +105,14 @@ export function TableWithPagination({
                         cellValue = formatPercentage(cellValue);
                       }
 
+                      if (column === "restricao_aberta") {
+                        if (cellValue) {
+                          cellValue = "!!!";
+                        } else {
+                          cellValue = "";
+                        }
+                      }
+
                       if (
                         typeof cellValue === "string" &&
                         isValidDateString(cellValue) &&
@@ -132,6 +140,8 @@ export function TableWithPagination({
                             ${
                               column === "ovnota"
                                 ? "sticky left-0 bg-white z-10"
+                                : column === "restricao_aberta"
+                                ? "text-red-500 text-lg"
                                 : ""
                             }`}
                         >

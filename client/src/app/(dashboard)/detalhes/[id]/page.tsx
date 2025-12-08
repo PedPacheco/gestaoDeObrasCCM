@@ -24,30 +24,37 @@ export default async function Details({
   const { id } = await params;
   const cookieStore = await cookies();
 
-  const [options, workData, executionReportData] = await Promise.all([
-    fetchFilters({
-      restricao: true,
-      tecnico: true,
-      municipio: true,
-      parceira: true,
-      circuito: true,
-      status: true,
-      empreendimento: true,
-      tipo: true,
-    }),
-    fetchData<DataResponse>(
-      `${process.env.NEXT_PUBLIC_API_URL}/obras/${id}`,
-      undefined,
-      cookieStore.get("token")?.value,
-      { cache: "no-store" }
-    ),
-    fetchData(
-      `${process.env.NEXT_PUBLIC_API_URL}/relatorio-execucao/${id}`,
-      undefined,
-      cookieStore.get("token")?.value,
-      { cache: "no-store" }
-    ),
-  ]);
+  const [options, workData, executionReportData, rejectionsData] =
+    await Promise.all([
+      fetchFilters({
+        restricao: true,
+        tecnico: true,
+        municipio: true,
+        parceira: true,
+        circuito: true,
+        status: true,
+        empreendimento: true,
+        tipo: true,
+      }),
+      fetchData<DataResponse>(
+        `${process.env.NEXT_PUBLIC_API_URL}/obras/${id}`,
+        undefined,
+        cookieStore.get("token")?.value,
+        { cache: "no-store" }
+      ),
+      fetchData(
+        `${process.env.NEXT_PUBLIC_API_URL}/relatorio-execucao/${id}`,
+        undefined,
+        cookieStore.get("token")?.value,
+        { cache: "no-store" }
+      ),
+      fetchData(
+        `${process.env.NEXT_PUBLIC_API_URL}/programacao/reprovacoes/${id}`,
+        undefined,
+        cookieStore.get("token")?.value,
+        { cache: "no-store" }
+      ),
+    ]);
 
   if (!workData.success) {
     return <ErrorThrower message={workData.message} />;
@@ -99,6 +106,7 @@ export default async function Details({
             options={options}
             id={id}
             executionReportData={executionReportData.data}
+            rejectionsData={rejectionsData.data}
           />
         </div>
       </div>

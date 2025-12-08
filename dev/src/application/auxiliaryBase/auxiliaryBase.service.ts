@@ -54,6 +54,7 @@ export class AuxiliaryBaseService {
       capex_mo_plan: note.capex_mo_plan,
       capex_mat_plan: note.capex_mat_plan,
       anoplan: note.anoplan,
+      ehRda: note.eh_rda,
     }));
   }
 
@@ -148,6 +149,18 @@ export class AuxiliaryBaseService {
       };
     });
 
-    return this.auxiliaryBaseRepository.insertCapex(dataFormatted);
+    const uniqueDiagramas = [
+      ...new Set(data.map((item) => item.diagrama_rede)),
+    ];
+
+    const obraIdsMap =
+      await this.auxiliaryBaseRepository.getObraIdsByDiagramas(uniqueDiagramas);
+
+    const dataWithObraId = dataFormatted.map((item) => ({
+      ...item,
+      id_obra: obraIdsMap.get(item.diagrama_rede) || null,
+    }));
+
+    this.auxiliaryBaseRepository.insertCapex(dataWithObraId);
   }
 }

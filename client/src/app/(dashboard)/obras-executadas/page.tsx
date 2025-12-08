@@ -55,6 +55,7 @@ export default async function CompletedWorks() {
     abrev_regional: "Regional",
     tipo_obra: "Tipo",
     turma: "Parceira",
+    data_conclusao: "Data conclusão",
     executado: "Executado",
     ano_plan: "Ano do Plano",
     circuito: "Circuito",

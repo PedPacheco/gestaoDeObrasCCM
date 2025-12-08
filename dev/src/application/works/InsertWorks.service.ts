@@ -71,8 +71,16 @@ export class InsertWorksService {
     ]);
 
     const notes = data.map((work) => {
-      const group = groups.find((group) => group.id === work.tipo);
-      const dataEntries = noteEntries.find((item) => item.obra === work.obra);
+      const dataEntries = noteEntries.find((item) => {
+        return (
+          item.obra === work.obra &&
+          item.dci === work.dci &&
+          item.dcd === work.dcd &&
+          item.dca === work.dca &&
+          item.dcim === work.dcim
+        );
+      });
+      const group = groups.find((group) => group.id === dataEntries.aux_tipo);
 
       const entity = NoteWorks.create({
         obra: work.obra,
@@ -93,6 +101,7 @@ export class InsertWorksService {
         idEmpreendimento: dataEntries.aux_empreendimento,
         idGrupo: group.id_grupo,
         anoPlan: dataEntries.anoplan,
+        ehRda: dataEntries.ehRda,
       });
 
       return entity;

@@ -14,6 +14,8 @@ import {
   MagnifyingGlassCircleIcon,
 } from "@heroicons/react/20/solid";
 import { InputAdornment, TextField } from "@mui/material";
+import dayjs, { Dayjs } from "dayjs";
+import { DateFilter } from "@/components/common/DateFilter";
 
 interface PortfolioWorksFiltersProps {
   data: FiltersInterface;
@@ -34,28 +36,38 @@ export default function PortfolioWorksFilters({
   isPending,
   setPage,
 }: PortfolioWorksFiltersProps) {
-  const applyFilters = useCallback((data: FiltersInterface, filters: any) => {
-    let newData = { ...data };
+  const applyFilters = useCallback(
+    (data: FiltersInterface, filtersObject: any) => {
+      let newData = { ...data };
 
-    if (filters?.idGrupo) {
-      const idGrupos = filters.idGrupo.map(Number);
-      newData.tipo = data.tipo?.filter((item) =>
-        idGrupos.includes(item.id_grupo)
-      );
-      newData.empreendimento = data.empreendimento?.filter((item) =>
-        idGrupos.includes(item.id_grupo)
-      );
-    }
+      const { selectedItems } = filtersObject;
 
-    if (filters?.idRegional) {
-      const idRegionais = filters.idRegional.map(Number);
-      newData.empreendimento = data.empreendimento?.filter((item) =>
-        idRegionais.includes(item.id_regional)
-      );
-    }
+      if (selectedItems?.idGrupo) {
+        const idGrupos = selectedItems.idGrupo?.map(Number);
 
-    return newData;
-  }, []);
+        newData.tipo = newData.tipo?.filter((item) =>
+          idGrupos.includes(item.id_grupo)
+        );
+        newData.empreendimento = newData.empreendimento?.filter((item) =>
+          idGrupos.includes(item.id_grupo)
+        );
+      }
+
+      if (selectedItems?.idRegional) {
+        const idRegionais = selectedItems.idRegional?.map(Number);
+
+        newData.empreendimento = newData.empreendimento?.filter((item) =>
+          idRegionais.includes(item.id_regional)
+        );
+        newData.municipio = newData.municipio?.filter((item) =>
+          idRegionais.includes(item.id_regional)
+        );
+      }
+
+      return newData;
+    },
+    []
+  );
 
   const { clearFilters, filters, saveFilters, filteredData } = useSaveFilters({
     pageKey: url,
@@ -67,22 +79,51 @@ export default function PortfolioWorksFilters({
     {}
   );
   const [ovnota, setOvnota] = useState<string>("");
+  const [date, setDate] = useState<Dayjs | null>(null);
+  const [filterType, setFilterType] = useState<string>("month");
 
   useEffect(() => {
-    if (filters) {
-      setSelectedItems(filters.selectedItems || {});
-      setOvnota(filters.ovnota || "");
+    if (!filters) return;
+
+    setSelectedItems(filters.selectedItems || {});
+    setOvnota(filters.ovnota || "");
+
+    if (url === "completedWorksFilters") {
+      setDate(filters.date ? dayjs(filters.date) : null);
+      setFilterType(filters.filterType || "month");
     }
-  }, [filters]);
+  }, [filters, url]);
 
   function handleApplyFilters() {
-    saveFilters({ selectedItems, ovnota });
+    const baseFilters: {
+      selectedItems: Record<string, string[]>;
+      ovnota: string;
+      date?: Dayjs | null;
+      filterType?: string;
+    } = {
+      selectedItems,
+      ovnota,
+    };
 
-    const params = {
+    if (url === "completedWorksFilters") {
+      baseFilters["date"] = date;
+      baseFilters["filterType"] = filterType;
+    }
+
+    saveFilters(baseFilters);
+
+    const params: any = {
       ...Transform(selectedItems),
-      ovnota: ovnota,
+      ovnota,
       page: "0",
     };
+
+    if (url === "completedWorksFilters") {
+      params.data = date
+        ? dayjs(date).format(filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY")
+        : "";
+      params.tipoFiltro = filterType;
+    }
 
     setPage(0);
     searchFilteredData(params);
@@ -92,6 +133,11 @@ export default function PortfolioWorksFilters({
     setSelectedItems({});
     setOvnota("");
 
+    if (url === "completedWorksFilters") {
+      setDate(null);
+      setFilterType("month");
+    }
+
     clearFilters();
 
     setPage(0);
@@ -100,9 +146,17 @@ export default function PortfolioWorksFilters({
   }
 
   function handleGenerateExcel() {
-    const newSelectedItems = {
+    const newSelectedItems: any = {
       ...Transform(selectedItems),
     };
+
+    if (url === "completedWorksFilters") {
+      newSelectedItems.data = date
+        ? dayjs(date).format(filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY")
+        : "";
+
+      newSelectedItems.tipoFiltro = filterType;
+    }
 
     generateExcel(newSelectedItems);
   }
@@ -110,9 +164,20 @@ export default function PortfolioWorksFilters({
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 w-full">
+        {url === "completedWorksFilters" && (
+          <DateFilter
+            date={date}
+            setDate={setDate}
+            type={filterType}
+            setType={setFilterType}
+          />
+        )}
+
         {Object.entries(filteredData).map(([key, value], index) => {
-          const valueKey = Object.keys(value[0])[0];
-          const displayKey = Object.keys(value[0])[1];
+          const hasValues = Array.isArray(value) && value.length > 0;
+
+          const valueKey = hasValues ? Object.keys(value[0])[0] : undefined;
+          const displayKey = hasValues ? Object.keys(value[0])[1] : undefined;
 
           const filterValue = `${valueKey}${
             key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()

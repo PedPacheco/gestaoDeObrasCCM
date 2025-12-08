@@ -28,8 +28,12 @@ export async function fetchData<T>(
 
     const json = await res.json();
 
-    if (!res.ok) {
+    if (res.status === 500 && !res.ok) {
       return { success: false, message: "Erro ao buscar os dados", token };
+    }
+
+    if (res.status === 401 || res.status === 404) {
+      return { success: false, message: json.message, token };
     }
 
     return { success: true, data: json.data ?? json, token };

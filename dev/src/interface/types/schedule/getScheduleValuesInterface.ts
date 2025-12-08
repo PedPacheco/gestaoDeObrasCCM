@@ -26,9 +26,15 @@ export interface GetScheduleValuesInterface {
   id_tecnico: number;
   conjunto: string;
   circuito: string;
-  total_obras: number;
-  total_mo_planejada: number;
-  total_qtde_planejada: number;
+  status_programacao: string;
+  status: string;
+  id_restricao_prog1: number;
+  id_restricao_prog2: number;
+  data_resolucao1: Date;
+  data_resolucao2: Date;
+  status_restricao1: string;
+  status_restricao2: string;
+  restricao_aberta: boolean;
 }
 
 export interface totalsGetScheduleValues {

@@ -119,6 +119,8 @@ describe('WorksController', () => {
         idTipo: undefined,
         page: 1,
         insufficientPermission: undefined,
+        data: '2025-05-17',
+        tipoFiltro: 'day',
       };
 
       jest
@@ -154,6 +156,8 @@ describe('WorksController', () => {
         idTipo: undefined,
         page: 1,
         insufficientPermission: true,
+        data: '2025-05',
+        tipoFiltro: 'month',
       };
 
       jest
@@ -188,6 +192,8 @@ describe('WorksController', () => {
         idTipo: undefined,
         page: 1,
         insufficientPermission: undefined,
+        data: '2025-05-17',
+        tipoFiltro: 'day',
       };
 
       jest
@@ -225,6 +231,8 @@ describe('WorksController', () => {
         idTipo: undefined,
         page: 1,
         insufficientPermission: true,
+        data: null,
+        tipoFiltro: null,
       };
 
       jest
@@ -262,6 +270,8 @@ describe('WorksController', () => {
         idTipo: undefined,
         page: 1,
         insufficientPermission: undefined,
+        data: null,
+        tipoFiltro: null,
       };
 
       jest

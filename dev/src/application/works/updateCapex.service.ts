@@ -10,8 +10,7 @@ import {
 import { GetAuxiliaryBaseMaterialsInterface } from 'src/interface/types/works/capexInterface';
 
 export interface CalculatedValue {
-  ovnota: string;
-  diagrama_rede: string;
+  id: number;
   qtde_calc: number;
   qtde_pend: number;
   mo_calc: number;
@@ -23,6 +22,8 @@ export interface CalculatedValue {
 
 @Injectable()
 export class UpdateCapexService {
+  private readonly CAPEX_DIAGRAM_PREFIXES = ['170', '180', '200'];
+
   constructor(
     @Inject(AUXILIARY_BASE_REPOSITORY)
     private readonly auxiliaryBaseRepository: IAuxiliaryBaseRepository,
@@ -31,23 +32,28 @@ export class UpdateCapexService {
   ) {}
 
   async update() {
-    const materials =
-      await this.auxiliaryBaseRepository.getAuxiliaryBaseCN52N();
+    try {
+      const materials =
+        await this.auxiliaryBaseRepository.getAuxiliaryBaseCN52N();
 
-    const allMaterials = this.extractAllMaterials(materials);
+      const allMaterials = this.extractAllMaterials(materials);
 
-    const fatorMap = await this.auxiliaryBaseRepository.getFator(allMaterials);
+      const fatorMap =
+        await this.auxiliaryBaseRepository.getFator(allMaterials);
 
-    const deletedMaterials =
-      await this.updateCapexRepository.getDeletedMaterials();
+      const deletedMaterials =
+        await this.updateCapexRepository.getDeletedMaterials();
 
-    const capexValues = this.calculateCapexValues(
-      materials,
-      fatorMap,
-      deletedMaterials,
-    );
+      const capexValues = this.calculateCapexValues(
+        materials,
+        fatorMap,
+        deletedMaterials,
+      );
 
-    await this.updateCapexRepository.update(capexValues);
+      await this.updateCapexRepository.update(capexValues);
+    } catch (error) {
+      throw error;
+    }
   }
 
   private extractAllMaterials(
@@ -64,68 +70,87 @@ export class UpdateCapexService {
     fatorMap: Map<string, number>,
     deletedMaterials: any[],
   ): CalculatedValue[] {
-    const deletedSet = new Set(
-      deletedMaterials.map((item) => item.codigo_material?.trim()),
-    );
-
-    return materialData.reduce((acc, material) => {
-      const fatorKey = `${material.material}|${material.def_proj}`;
-      const fator = fatorMap.get(fatorKey) ?? 0;
-
-      let current = acc.find(
-        (item) =>
-          item.ovnota === material.ovnota &&
-          item.diagrama_rede === material.ordem_diagrama,
+    try {
+      // Criar Set de materiais deletados para lookup O(1)
+      const deletedSet = new Set(
+        deletedMaterials.map((item) => item.material?.trim()).filter(Boolean),
       );
 
-      if (!current) {
-        current = {
-          ovnota: material.ovnota,
-          diagrama_rede: material.ordem_diagrama,
-          qtde_calc: 0,
-          qtde_pend: 0,
-          mo_calc: 0,
-          capex_mat_plan: 0,
-          capex_mo_plan: 0,
-          capex_mo_pend: 0,
-          capex_mat_pend: 0,
-        };
-        acc.push(current);
-      }
+      // Usar Map para acumular valores por obra (mais eficiente que array.find)
+      const capexMap = new Map<number, CalculatedValue>();
 
-      if (fator > 0) {
-        current.qtde_calc += material.qtd_necessaria / fator;
+      for (const material of materialData) {
+        // Pular materiais sem obra vinculada
+        if (!material.id_obra) continue;
 
-        if (material.reserva?.trim()) {
-          current.qtde_pend += material.qtd_falta / fator;
+        // Buscar fator
+        const fatorKey = `${material.material}|${material.def_proj}`;
+        const fator = fatorMap.get(fatorKey) ?? 0;
+
+        // Obter ou criar entrada no map
+        let current = capexMap.get(material.id_obra);
+        if (!current) {
+          current = {
+            id: material.id_obra,
+            qtde_calc: 0,
+            qtde_pend: 0,
+            mo_calc: 0,
+            capex_mat_plan: 0,
+            capex_mo_plan: 0,
+            capex_mo_pend: 0,
+            capex_mat_pend: 0,
+          };
+          capexMap.set(material.id_obra, current);
         }
-      }
 
-      if (!deletedSet.has(material.material.trim()) && material.cti === 'N') {
-        current.mo_calc += material.preco * material.qtd_necessaria;
+        // Verificar se diagrama é CAPEX relevante
+        const isCapexDiagram = this.isCapexDiagram(material.diagrama_rede);
 
-        if (
-          material.diagrama_rede.startsWith('170') ||
-          material.diagrama_rede.startsWith('180')
-        ) {
-          current.capex_mo_plan += material.preco * material.qtd_necessaria;
+        // Calcular quantidades
+        if (fator > 0) {
+          current.qtde_calc += material.qtd_necessaria / fator;
 
           if (material.reserva?.trim()) {
-            current.capex_mo_pend += material.preco * material.qtd_falta;
+            current.qtde_pend += material.qtd_falta / fator;
+          }
+        }
+
+        // Calcular MO (Mão de Obra)
+        if (deletedSet.has(material.material.trim()) && material.cti === 'N') {
+          current.mo_calc += material.preco * material.qtd_necessaria;
+
+          if (isCapexDiagram) {
+            current.capex_mo_plan += material.preco * material.qtd_necessaria;
+
+            if (material.reserva?.trim()) {
+              current.capex_mo_pend += material.preco * material.qtd_falta;
+            }
+          }
+        }
+
+        // Calcular Material
+        if (material.cti === 'L' && isCapexDiagram) {
+          current.capex_mat_plan += material.qtd_necessaria * material.preco;
+
+          if (material.reserva?.trim()) {
+            current.capex_mat_pend +=
+              material.preco *
+              (material.qtd_necessaria - material.qtd_retirada);
           }
         }
       }
 
-      if (
-        material.cti === 'L' &&
-        (material.diagrama_rede.startsWith('170') ||
-          material.diagrama_rede.startsWith('180'))
-      ) {
-        current.capex_mat_plan += material.qtd_necessaria * material.preco;
-        current.capex_mat_pend += material.preco * material.qtd_retirada;
-      }
+      // Converter Map para Array
+      return Array.from(capexMap.values());
+    } catch (error) {
+      // console.error('❌ Erro ao calcular valores CAPEX:', error);
+      throw error;
+    }
+  }
 
-      return acc;
-    }, [] as CalculatedValue[]);
+  private isCapexDiagram(diagramaRede: string): boolean {
+    return this.CAPEX_DIAGRAM_PREFIXES.some((prefix) =>
+      diagramaRede.startsWith(prefix),
+    );
   }
 }

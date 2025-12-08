@@ -64,9 +64,13 @@ export class FiltersService {
 
     if (municipio) {
       result['municipio'] = await this.getCachedData('municipios', () =>
-        this.filtersRepository.getData('municipios', ['id', 'municipio'], {
-          id_regional: condition,
-        }),
+        this.filtersRepository.getData(
+          'municipios',
+          ['id', 'municipio', 'id_regional'],
+          {
+            id_regional: condition,
+          },
+        ),
       );
     }
 
