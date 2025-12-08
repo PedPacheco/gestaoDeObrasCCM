@@ -133,7 +133,9 @@ export class UpdateCapexService {
           current.capex_mat_plan += material.qtd_necessaria * material.preco;
 
           if (material.reserva?.trim()) {
-            current.capex_mat_pend += material.preco * material.qtd_retirada;
+            current.capex_mat_pend +=
+              material.preco *
+              (material.qtd_necessaria - material.qtd_retirada);
           }
         }
       }

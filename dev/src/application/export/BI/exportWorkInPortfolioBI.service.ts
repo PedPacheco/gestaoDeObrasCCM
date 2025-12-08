@@ -83,6 +83,7 @@ export class ExportWorksInPortfolioBI {
       { header: 'NUMDP', key: 'num_dp', width: 15 },
       { header: 'GRUPO', key: 'grupo', width: 15 },
       { header: 'REFERENCIA', key: 'referencia', width: 15 },
+      { header: 'DATAEMPREITAMENTO', key: 'data_empreitamento', width: 20 },
       { header: 'EMPREENDIMENTO', key: 'empreendimento', width: 25 },
       { header: 'DATAVIABILIDADE', key: 'data_viabilidade', width: 10 },
       { header: 'PRAZOVIABILIDADE', key: 'prazo_viabilidade', width: 20 },

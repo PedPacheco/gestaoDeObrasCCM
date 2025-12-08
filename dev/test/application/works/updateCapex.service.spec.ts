@@ -88,7 +88,7 @@ describe('UpdateCapexService', () => {
       expect(obra2.capex_mat_plan).toBeCloseTo(10578.28, 2);
       expect(obra2.capex_mo_plan).toBe(0);
       expect(obra2.capex_mo_pend).toBe(0);
-      expect(obra2.capex_mat_pend).toBe(0);
+      expect(obra2.capex_mat_pend).toBe(10578.28);
     });
 
     it('should handle materials not in deleted list', async () => {

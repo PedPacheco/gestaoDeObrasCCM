@@ -696,95 +696,41 @@ model suspensoes_retiradas {
   status             status?   @relation(fields: [id_status_retirada], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_status")
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model OBRAS {
-  CODIGOOBRA            Int?
-  OVNOTA                String?   @db.VarChar(12)
-  PEP                   String?   @db.VarChar(8)
-  DIAGRAMA              String?   @db.VarChar(12)
-  ORDEMDCI              String?   @db.VarChar(12)
-  ORDEMDCD              String?   @db.VarChar(12)
-  ORDEMDCA              String?   @db.VarChar(12)
-  ORDEMDCIM             String?   @db.VarChar(12)
-  STATUSOVSAP           Int?
-  STATUSPEP             String?   @db.VarChar(4)
-  STATUSDIAGRAMA        String?   @db.VarChar(4)
-  STATUS162             String?   @db.VarChar(255)
-  STATUS163             String?   @db.VarChar(4)
-  STATUS165             String?   @db.VarChar(4)
-  STATUS43              String?   @db.VarChar(4)
-  STATUSUSUARIODIAGRAMA String?   @db.VarChar(16)
-  STATUSUSUARIO162      String?   @db.VarChar(16)
-  STATUSUSUARIO163      String?   @db.VarChar(16)
-  STATUSUSUARIO165      String?   @db.VarChar(16)
-  STATUSUSUARIO43       String?   @db.VarChar(16)
-  CODGPM                Int?
-  CODTIPO               Int?
-  ENTRADA               DateTime? @db.Timestamptz(6)
-  PRAZO                 Int?
-  QTDEPLANEJADA         Float?
-  CODCIRCUITO           Int?
-  MOPLANEJADA           Float?
-  MOCALCULADA           Float?
-  OBSERVOBRA            String?   @db.VarChar(255)
-  CODTURMA              Int?
-  EXECUTADO             Int?      @map("%EXECUTADO")
-  DATACONCLUSAO         DateTime? @db.Timestamptz(6)
-  CODSTATUS             Int?
-  REFERENCIA            String?   @db.VarChar(14)
-  CAPEXMATPLAN          Float?
-  CAPEXMOPLAN           Float?
-  CAPEXMATPEND          Float?
-  CAPEXMOPEND           Float?
-  QTDEPEND              Float?
-  TIPOADS               String?   @db.VarChar(255)
-  DATAEMPREITAMENTO     DateTime? @db.Timestamptz(6)
-  CODEMPREENDIMENTO     Int?
-  DIAGRAMAANTIGO        String?   @db.VarChar(12)
-  ORDEMDCIANTIGO        String?   @db.VarChar(12)
-  ORDEMDCDANTIGO        String?   @db.VarChar(12)
-  ORDEMDCSANTIGO        String?   @db.VarChar(12)
-  ORDEMDCIMANTIGO       String?   @db.VarChar(12)
-  ANOPLAN               Int?
-  DATAVIABILIDADE       DateTime? @db.Timestamptz(6)
-  PRAZOVIABILIDADE      String?   @db.VarChar(40)
-
-  @@ignore
-}
-
 view exportacao_obras_executadas {
-  id                BigInt    @unique
-  ovnota            String?   @db.VarChar(12)
-  pep               String?   @db.VarChar(8)
-  ordemdiagrama     String?   @db.VarChar(12)
-  ordem_dcd         String?   @db.VarChar(12)
-  ordem_dca         String?   @db.VarChar(12)
-  ordem_dcim        String?   @db.VarChar(12)
-  regional          String?   @db.VarChar(20)
-  mun               String?   @db.VarChar(3)
-  entrada           DateTime? @db.Date
-  data_conclusao    DateTime? @db.Date
-  prazofim          DateTime? @db.Date
-  tipo_obra         String?   @db.VarChar(30)
-  qtde_planejada    Float?
-  qtde_pend         Float?
-  circuito          String?   @db.VarChar(12)
-  mo_planejada      Float?
-  mo_exec           Float?
-  mo_suspensa       Float?
-  observ_obra       String?   @db.VarChar(255)
-  turma             String?   @db.VarChar(15)
-  executado         Int?
-  status            String?   @db.VarChar(25)
-  capex_plan        Float?
-  capex_pend        Float?
-  capex_mat_plan    Float?
-  capex_mo_plan     Float?
-  capex_mat_pend    Float?
-  capex_mo_pend     Float?
-  conjunto          String?   @db.VarChar(100)
-  data_viabilidade  DateTime? @db.Date
-  prazo_viabilidade String?   @db.VarChar(40)
+  id                 BigInt    @unique
+  ovnota             String?   @db.VarChar(12)
+  pep                String?   @db.VarChar(8)
+  ordemdiagrama      String?   @db.VarChar(12)
+  ordem_dcd          String?   @db.VarChar(12)
+  ordem_dca          String?   @db.VarChar(12)
+  ordem_dcim         String?   @db.VarChar(12)
+  regional           String?   @db.VarChar(20)
+  mun                String?   @db.VarChar(3)
+  entrada            DateTime? @db.Date
+  data_conclusao     DateTime? @db.Date
+  prazofim           DateTime? @db.Date
+  tipo_obra          String?   @db.VarChar(30)
+  qtde_planejada     Float?
+  qtde_pend          Float?
+  circuito           String?   @db.VarChar(12)
+  mo_planejada       Float?
+  mo_exec            Float?
+  mo_suspensa        Float?
+  observ_obra        String?   @db.VarChar(255)
+  turma              String?   @db.VarChar(15)
+  executado          Int?
+  status             String?   @db.VarChar(25)
+  capex_plan         Float?
+  capex_pend         Float?
+  capex_mat_plan     Float?
+  capex_mo_plan      Float?
+  capex_mat_pend     Float?
+  capex_mo_pend      Float?
+  conjunto           String?   @db.VarChar(100)
+  empreendimento     String?   @db.VarChar(50)
+  data_empreitamento DateTime? @db.Date
+  data_viabilidade   DateTime? @db.Date
+  prazo_viabilidade  String?   @db.VarChar(40)
 }
 
 view exportacao_programacoes_obras {
@@ -934,6 +880,7 @@ view exportacao_obras_carteira {
   num_dp                  String?
   grupo                   String?   @db.VarChar(20)
   referencia              String?   @db.VarChar(14)
+  data_empreitamento      DateTime? @db.Date
   empreendimento          String?   @db.VarChar(50)
   data_viabilidade        DateTime? @db.Date
   prazo_viabilidade       String?   @db.VarChar(40)

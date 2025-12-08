@@ -52,6 +52,7 @@ export class ExportCompletedWorksBIService {
       { header: 'CAPEXMATPEND', key: 'capex_mat_pend', width: 15 },
       { header: 'CAPEXMOPEND', key: 'capex_mo_pend', width: 15 },
       { header: 'CONJUNTO', key: 'conjunto', width: 25 },
+      { header: 'DATAEMPREITAMENTO', key: 'data_empreitamento', width: 20 },
       { header: 'DATAVIABILIDADE', key: 'data_viabilidade', width: 10 },
       { header: 'PRAZOVIABILIDADE', key: 'prazo_viabilidade', width: 20 },
     ];
