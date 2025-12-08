@@ -1,3 +1,6 @@
+"use client";
+
+import { useUser } from "@/contexts/userContext";
 import { FormData } from "@/hooks/useScheduleForm";
 import { Grid, TextField } from "@mui/material";
 
@@ -15,94 +18,103 @@ export const BasicInfoPanel: React.FC<BasicInfoPanelProps> = ({
   isInsert,
   onInputChange,
   disabledFields,
-}) => (
-  <Grid container spacing={3}>
-    <Grid item xs={12} sm={6}>
-      <TextField
-        fullWidth
-        label="Data da Programação"
-        type="date"
-        value={formData.dataProg}
-        onChange={onInputChange("dataProg")}
-        error={!!formErrors.dataProg}
-        helperText={formErrors.dataProg}
-        InputLabelProps={{ shrink: true }}
-        required
-        disabled={disabledFields()}
-      />
-    </Grid>
+}) => {
+  const { permissions } = useUser();
 
-    <Grid item xs={12} sm={3}>
-      <TextField
-        fullWidth
-        label="Horário Início"
-        type="time"
-        value={formData.startTime}
-        onChange={onInputChange("startTime")}
-        error={!!formErrors.startTime}
-        helperText={formErrors.startTime}
-        InputLabelProps={{ shrink: true }}
-        required
-        disabled={disabledFields()}
-      />
-    </Grid>
-
-    <Grid item xs={12} sm={3}>
-      <TextField
-        fullWidth
-        label="Horário Fim"
-        type="time"
-        value={formData.finishTime}
-        onChange={onInputChange("finishTime")}
-        error={!!formErrors.finishTime}
-        helperText={formErrors.finishTime}
-        InputLabelProps={{ shrink: true }}
-        required
-        autoComplete="off"
-        disabled={disabledFields()}
-      />
-    </Grid>
-
-    <Grid item xs={12} sm={!isInsert && formData.exec !== undefined ? 6 : 12}>
-      <TextField
-        fullWidth
-        label="Progresso Programado:"
-        type="number"
-        value={formData.prog}
-        onChange={onInputChange("prog")}
-        error={!!formErrors.prog}
-        helperText={formErrors.prog}
-        InputLabelProps={{ shrink: true }}
-        disabled={disabledFields()}
-      />
-    </Grid>
-
-    {!isInsert && (
+  return (
+    <Grid container spacing={3}>
       <Grid item xs={12} sm={6}>
         <TextField
           fullWidth
-          label="Progresso Executado:"
-          type="string"
-          value={formData.exec !== "null" ? String(formData.exec) : ""}
-          onChange={onInputChange("exec")}
-          error={!!formErrors.exec}
-          helperText={formErrors.exec}
+          label="Data da Programação"
+          type="date"
+          value={formData.dataProg}
+          onChange={onInputChange("dataProg")}
+          error={!!formErrors.dataProg}
+          helperText={formErrors.dataProg}
           InputLabelProps={{ shrink: true }}
+          required
+          disabled={disabledFields()}
         />
       </Grid>
-    )}
-    <Grid item xs={12} sm={12}>
-      <TextField
-        fullWidth
-        label="Observação da Programação"
-        type="string"
-        value={formData.observation}
-        onChange={onInputChange("observation")}
-        error={!!formErrors.observation}
-        helperText={formErrors.observation}
-        InputLabelProps={{ shrink: true }}
-        disabled={disabledFields()}
-      />
+
+      <Grid item xs={12} sm={3}>
+        <TextField
+          fullWidth
+          label="Horário Início"
+          type="time"
+          value={formData.startTime}
+          onChange={onInputChange("startTime")}
+          error={!!formErrors.startTime}
+          helperText={formErrors.startTime}
+          InputLabelProps={{ shrink: true }}
+          required
+          disabled={disabledFields()}
+        />
+      </Grid>
+
+      <Grid item xs={12} sm={3}>
+        <TextField
+          fullWidth
+          label="Horário Fim"
+          type="time"
+          value={formData.finishTime}
+          onChange={onInputChange("finishTime")}
+          error={!!formErrors.finishTime}
+          helperText={formErrors.finishTime}
+          InputLabelProps={{ shrink: true }}
+          required
+          autoComplete="off"
+          disabled={disabledFields()}
+        />
+      </Grid>
+
+      <Grid item xs={12} sm={!isInsert && formData.exec !== undefined ? 6 : 12}>
+        <TextField
+          fullWidth
+          label="Progresso Programado:"
+          type="number"
+          value={formData.prog}
+          onChange={onInputChange("prog")}
+          error={!!formErrors.prog}
+          helperText={formErrors.prog}
+          InputLabelProps={{ shrink: true }}
+          disabled={disabledFields()}
+        />
+      </Grid>
+
+      {!isInsert && (
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Progresso Executado:"
+            type="string"
+            value={formData.exec !== "null" ? String(formData.exec) : ""}
+            onChange={onInputChange("exec")}
+            error={!!formErrors.exec}
+            helperText={formErrors.exec}
+            InputLabelProps={{ shrink: true }}
+            disabled={
+              !formData.validated &&
+              !formData.confirmed &&
+              permissions?.permissao_visualizacao === "parcial"
+            }
+          />
+        </Grid>
+      )}
+      <Grid item xs={12} sm={12}>
+        <TextField
+          fullWidth
+          label="Observação da Programação"
+          type="string"
+          value={formData.observation}
+          onChange={onInputChange("observation")}
+          error={!!formErrors.observation}
+          helperText={formErrors.observation}
+          InputLabelProps={{ shrink: true }}
+          disabled={disabledFields()}
+        />
+      </Grid>
     </Grid>
-  </Grid>
-);
+  );
+};

@@ -30,6 +30,8 @@ export const mockFormData: FormData = {
   responsibleArea2: "",
   restrictionStatus2: "",
   resolutionDate2: null,
+  validated: false,
+  confirmed: false,
   executionReport: {
     id: 101,
     idUser: 5,

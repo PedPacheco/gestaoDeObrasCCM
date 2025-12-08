@@ -67,6 +67,8 @@ export const INITIAL_FORM_DATA: FormData = {
   responsibleArea2: "",
   restrictionStatus2: "",
   resolutionDate2: null,
+  confirmed: false,
+  validated: false,
 };
 
 interface UseScheduleFormProps {

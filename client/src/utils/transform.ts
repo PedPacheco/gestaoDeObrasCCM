@@ -52,6 +52,8 @@ export function mapScheduleToForm(schedule: any, options: Record<string, any>) {
     responsibleArea2: schedule.area_responsavel2,
     restrictionStatus2: schedule.status_restricao2,
     resolutionDate2: schedule.data_resolucao2,
+    validated: schedule.validada,
+    confirmed: schedule.confirmada,
   };
 }
 
