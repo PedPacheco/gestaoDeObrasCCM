@@ -145,7 +145,8 @@ export default function PortfolioWorks({
       </div>
 
       <TableWithPagination
-        data={filteredData}
+        data={filteredData.works}
+        totals={filteredData.totals}
         columns={columns}
         sliceEndIndex={6}
         handleChangePage={handleChangePage}

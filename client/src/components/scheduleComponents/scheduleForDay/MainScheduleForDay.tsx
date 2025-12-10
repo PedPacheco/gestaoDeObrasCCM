@@ -83,7 +83,7 @@ export default function MainSchduleForDay({
   );
 
   const fetchSchedule = useCallback(
-    (params: Record<string, string | boolean>) => {
+    (params: Record<string, string | boolean | string | null>) => {
       startTransition(async () => {
         try {
           const response = await fetchData(
@@ -139,7 +139,8 @@ export default function MainSchduleForDay({
 
       <TableWithPagination
         columns={columns}
-        data={filteredData}
+        totals={filteredData.totals}
+        data={filteredData.works}
         sliceEndIndex={4}
         page={page}
         handleChangePage={handleChangePage}

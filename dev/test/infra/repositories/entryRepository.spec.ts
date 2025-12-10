@@ -33,25 +33,25 @@ describe('EntryRepository', () => {
     } as unknown as obras,
   ];
 
-  const mockObrasByDay = [
-    {
-      id: 1,
-      ovnota: '4805886',
-      pep: 'pep',
-      diagrama: '200000',
-      ordem_dci: '162344',
-      ordem_dcd: '1900998',
-      ordem_dca: '17088798',
-      ordem_dcim: '1900886',
-      entrada: moment('04/09/2024', 'DD/MM/YYYY', true).toDate(),
-      prazo: 90,
-      qtde_planejada: 8,
-      mo_planejada: 100,
-      tipos: { tipo_obra: 'BTZERO' },
-      turmas: { turma: 'ENGELMIG' },
-      municipios: { mun: 'SJC' },
-    } as unknown as obras,
-  ];
+  // const mockObrasByDay = [
+  //   {
+  //     id: 1,
+  //     ovnota: '4805886',
+  //     pep: 'pep',
+  //     diagrama: '200000',
+  //     ordem_dci: '162344',
+  //     ordem_dcd: '1900998',
+  //     ordem_dca: '17088798',
+  //     ordem_dcim: '1900886',
+  //     entrada: moment('04/09/2024', 'DD/MM/YYYY', true).toDate(),
+  //     prazo: 90,
+  //     qtde_planejada: 8,
+  //     mo_planejada: 100,
+  //     tipos: { tipo_obra: 'BTZERO' },
+  //     turmas: { turma: 'ENGELMIG' },
+  //     municipios: { mun: 'SJC' },
+  //   } as unknown as obras,
+  // ];
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -133,39 +133,6 @@ describe('EntryRepository', () => {
   });
 
   describe('GetEntryOfWorksByDay', () => {
-    it('should return values for the correct date', async () => {
-      const filters: GetEntryOfWorksByDayDTO = {
-        idGrupo: [1],
-        idMunicipio: [1],
-        idParceira: [1],
-        idRegional: [1],
-        idTipo: [1],
-        data: new Date('04/09/2024'),
-        tipoFiltro: 'day',
-      };
-
-      prisma.obras.findMany.mockResolvedValue(mockObrasByDay);
-
-      const dateRange = { equals: filters.data };
-
-      const result = await entryRepository.getEntryOfWorksByDay(
-        filters,
-        dateRange,
-      );
-
-      const call = prisma.obras.findMany.mock.calls[0][0];
-
-      expect(result).toEqual(mockObrasByDay);
-      expect(call.where).toMatchObject({
-        entrada: dateRange,
-        municipios: { id_regional: { in: [1] } },
-        id_gpm: { in: [1] },
-        tipos: { id_grupo: { in: [1] } },
-        id_tipo: { in: [1] },
-        id_turma: { in: [1] },
-      });
-    });
-
     it('should build the query correctly withou values of filters', async () => {
       const filters: GetEntryOfWorksByDayDTO = {
         idGrupo: undefined,
@@ -173,13 +140,13 @@ describe('EntryRepository', () => {
         idParceira: undefined,
         idRegional: undefined,
         idTipo: undefined,
-        data: moment('09/2024', 'MM/YYYY', true).toDate(),
-        tipoFiltro: 'month',
+        dataInicial: '01/10/2024',
+        dataFinal: '02/10/2024',
       };
 
       const dateRange = {
-        gte: moment(filters.data).startOf('month').toDate(),
-        lte: moment(filters.data).endOf('month').startOf('day').toDate(),
+        gte: moment(filters.dataInicial, 'DD/MM/YYYY').toDate(),
+        lte: moment(filters.dataInicial, 'DD/MM/YYYY').toDate(),
       };
 
       await entryRepository.getEntryOfWorksByDay(filters, dateRange);

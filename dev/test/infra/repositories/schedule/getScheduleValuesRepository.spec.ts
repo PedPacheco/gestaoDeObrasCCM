@@ -73,8 +73,8 @@ describe('GetScheduleValuesRepository', () => {
 
   it('should return the correct values without filters', async () => {
     const filters: GetScheduleValuesDTO = {
-      data: '01/10/2024',
-      tipoFiltro: 'day',
+      dataFinal: undefined,
+      dataInicial: undefined,
       executado: false,
       pendente: false,
       page: undefined,
@@ -92,9 +92,9 @@ describe('GetScheduleValuesRepository', () => {
       .mockResolvedValueOnce(mockQueryResponse)
       .mockResolvedValueOnce(mockCount);
 
-    const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, regional, entrada, entrada + prazo AS prazo_fim, 
+    const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada, entrada + prazo AS prazo_fim, 
     turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_planejada, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec, tipo_obra, qtde_planejada, qtde_pend,
-    num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status,
+    num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status, 
     id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2
     FROM construcao_sp.obras
     INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
@@ -107,13 +107,11 @@ describe('GetScheduleValuesRepository', () => {
     INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
     INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
     INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
-    WHERE 1=1 AND data_prog =  AND exec IS NULL ORDER BY data_prog, ovnota`;
+    WHERE 1=1 AND exec IS NULL ORDER BY data_prog, ovnota`;
 
     const result = await repository.getValues(filters);
 
     const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
-
-    const expectedDate = moment('01/10/2024', 'DD/MM/YYYY', true).toDate();
 
     expect(result).toEqual({
       works: mockQueryResponse,
@@ -122,13 +120,12 @@ describe('GetScheduleValuesRepository', () => {
     expect(normalizeSQL(querySent.strings.join(''))).toContain(
       normalizeSQL(expectedQuery),
     );
-    expect(querySent.values).toEqual([expectedDate]);
   });
 
   it('should return the correct values with filters', async () => {
     const filters: GetScheduleValuesDTO = {
-      data: '10/2024',
-      tipoFiltro: 'month',
+      dataInicial: '01/10/2024',
+      dataFinal: '02/10/2024',
       executado: true,
       pendente: false,
       page: 0,
@@ -146,9 +143,9 @@ describe('GetScheduleValuesRepository', () => {
       .mockResolvedValueOnce(mockQueryResponse)
       .mockResolvedValueOnce(mockCount);
 
-    const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, regional, entrada, entrada + prazo AS prazo_fim, 
-    turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_planejada, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec, tipo_obra, qtde_planejada, qtde_pend,
-      num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status,
+    const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada, entrada + prazo AS prazo_fim, 
+      turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_planejada, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec, tipo_obra, qtde_planejada, qtde_pend,
+      num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status, 
       id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2
       FROM construcao_sp.obras
       INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
@@ -161,19 +158,17 @@ describe('GetScheduleValuesRepository', () => {
       INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
       INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
       INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
-      WHERE 1=1 
-      AND EXTRACT(MONTH FROM data_prog) = 
-      AND EXTRACT(YEAR FROM data_prog) = 
-      AND municipios.id_regional IN ()
-      AND municipios.id IN ()
-      AND id_tipo IN ()
-      AND id_turma IN ()
-      AND tipos.id_grupo IN ()
-      AND status.id IN ()
-      AND status_programacao.id IN ()
+      WHERE 1=1 AND programacoes.data_prog BETWEEN AND 
+      AND municipios.id_regional IN () 
+      AND municipios.id IN () 
+      AND id_tipo IN () 
+      AND id_turma IN () 
+      AND tipos.id_grupo IN () 
+      AND status.id IN () 
+      AND status_programacao.id IN () 
       AND obras.ovnota = 
-      AND exec <> 0
-      ORDER BY data_prog, ovnota
+      AND exec <> 0 
+      ORDER BY data_prog, ovnota 
       LIMIT 200 OFFSET
       `;
 
@@ -181,8 +176,13 @@ describe('GetScheduleValuesRepository', () => {
 
     const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
 
-    const month = parseInt(filters.data?.split('/')[0]);
-    const year = parseInt(filters.data?.split('/')[1]);
+    const expectedInitialDate = moment(
+      '01/10/2024',
+      'DD/MM/YYYY',
+      true,
+    ).toDate();
+
+    const expectedEndDate = moment('02/10/2024', 'DD/MM/YYYY', true).toDate();
 
     expect(result).toEqual({
       works: mockQueryResponse,
@@ -192,8 +192,8 @@ describe('GetScheduleValuesRepository', () => {
       normalizeSQL(expectedQuery),
     );
     expect(querySent.values).toEqual([
-      month,
-      year,
+      expectedInitialDate,
+      expectedEndDate,
       1,
       1,
       1,
@@ -208,8 +208,8 @@ describe('GetScheduleValuesRepository', () => {
 
   it('should return the data of pending schedules', async () => {
     const filters: GetScheduleValuesDTO = {
-      data: '01/10/2024',
-      tipoFiltro: 'day',
+      dataFinal: undefined,
+      dataInicial: undefined,
       executado: false,
       pendente: true,
       page: 0,
@@ -227,9 +227,9 @@ describe('GetScheduleValuesRepository', () => {
       .mockResolvedValueOnce(mockQueryResponse)
       .mockResolvedValueOnce(mockCount);
 
-    const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, regional, entrada, entrada + prazo AS prazo_fim, 
+    const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada, entrada + prazo AS prazo_fim, 
     turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_planejada, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec, tipo_obra, qtde_planejada, qtde_pend,
-    num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status,
+    num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status, 
     id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2
     FROM construcao_sp.obras
     INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
@@ -242,13 +242,11 @@ describe('GetScheduleValuesRepository', () => {
     INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
     INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
     INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
-    WHERE 1=1 AND data_prog =  AND exec IS NULL AND data_prog < CURRENT_DATE ORDER BY data_prog, ovnota LIMIT 200 OFFSET`;
+    WHERE 1=1 AND exec IS NULL AND data_prog < CURRENT_DATE ORDER BY data_prog, ovnota LIMIT 200 OFFSET`;
 
     const result = await repository.getValues(filters);
 
     const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
-
-    const expectedDate = moment('01/10/2024', 'DD/MM/YYYY', true).toDate();
 
     expect(result).toEqual({
       works: mockQueryResponse,
@@ -257,6 +255,6 @@ describe('GetScheduleValuesRepository', () => {
     expect(normalizeSQL(querySent.strings.join(''))).toContain(
       normalizeSQL(expectedQuery),
     );
-    expect(querySent.values).toEqual([expectedDate, 0]);
+    expect(querySent.values).toEqual([0]);
   });
 });

@@ -86,11 +86,6 @@ export const links = [
         needPermission: false,
       },
       {
-        name: "Programacao semanal",
-        href: "/programacao/semanal",
-        needPermission: false,
-      },
-      {
         name: "Restrições",
         href: "/programacao/restricoes",
         needPermission: true,

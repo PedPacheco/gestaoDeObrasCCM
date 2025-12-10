@@ -22,16 +22,13 @@ export default async function EntryForDate() {
 
     filtersValues = {
       ...formattedSelectedItems,
-      data:
-        params.filterType === "day"
-          ? dayjs(params.date).format("DD/MM/YYYY")
-          : dayjs(params.date).format("MM/YYYY"),
-      tipoFiltro: params.filterType,
+      dataInicial: params.startDate,
+      dataFinal: params.endDate,
     };
   } else {
     filtersValues = {
-      tipoFiltro: "day",
-      data: dayjs().format("DD/MM/YYYY"),
+      dataInicial: dayjs().format("DD/MM/YYYY"),
+      dataFinal: dayjs().format("DD/MM/YYYY"),
     };
   }
 

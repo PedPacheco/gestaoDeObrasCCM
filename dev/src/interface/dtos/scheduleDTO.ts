@@ -51,11 +51,11 @@ export class GetTotalValuesScheduleDTO {
 export class GetScheduleValuesDTO {
   @IsString()
   @IsOptional()
-  data?: string;
+  dataInicial?: string;
 
   @IsString()
   @IsOptional()
-  tipoFiltro?: string;
+  dataFinal?: string;
 
   @IsOptional()
   @IsArray()
@@ -116,10 +116,12 @@ export class GetScheduleValuesDTO {
 
 export class GetValueWeeklyScheduleDTO {
   @IsString()
-  dataInicial: string;
+  @IsOptional()
+  dataInicial?: string;
 
   @IsString()
-  dataFinal: string;
+  @IsOptional()
+  dataFinal?: string;
 
   @IsOptional()
   @IsArray()
@@ -151,6 +153,11 @@ export class GetValueWeeklyScheduleDTO {
     value === 'true' ? true : value === 'false' ? false : value,
   )
   executado: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  page?: number;
 }
 
 export class GetMonthlySummaryDTO {
@@ -418,10 +425,18 @@ export class SchedulesDataDTO {
   @IsOptional()
   @Transform(({ value }) => (value === '' ? null : value))
   resolutionDate2?: Date;
+
+  @IsBoolean()
+  @IsOptional()
+  validated?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  confirmed?: boolean;
 }
 
 export class UpdateSchedulesDataDTO {
-  @ValidateNested({ each: true })
+  @ValidateNested()
   @Type(() => SchedulesDataDTO)
   updateData: SchedulesDataDTO;
 

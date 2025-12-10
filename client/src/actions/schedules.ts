@@ -55,13 +55,16 @@ export async function editSchedule(data: any, id: number) {
       }
     );
     const res = await result.json();
+
     if (res.statusCode !== 204) {
       return {
         success: false,
         error: res.message || "Erro ao editar programação",
       };
     }
+
     revalidatePath(`/detalhes/${data.idWork}`);
+
     return { success: true, message: res.message };
   } catch (error: any) {
     console.error("Erro ao salvar programação:", error);

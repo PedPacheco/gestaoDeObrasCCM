@@ -18,13 +18,12 @@ export default async function ScheduleForDay() {
 
   const filtersValues = {
     ...Transform(params?.selectedItems || {}),
-    data:
-      params?.filterType === "day"
-        ? dayjs(params?.date).format("DD/MM/YYYY")
-        : params?.filterType === "month"
-        ? dayjs(params?.date).format("MM/YYYY")
-        : "",
-    tipoFiltro: params?.filterType || "",
+    dataInicial: params?.startDate
+      ? dayjs(params?.startDate).format("DD/MM/YYYY")
+      : null,
+    dataFinal: params?.endDate
+      ? dayjs(params?.endDate).format("DD/MM/YYYY")
+      : null,
     executado: params?.executed || "false",
     pendente: params?.pending || "false",
     ovnota: params?.ovnota || "",

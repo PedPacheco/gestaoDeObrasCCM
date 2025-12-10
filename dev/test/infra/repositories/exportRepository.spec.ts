@@ -183,8 +183,8 @@ describe('ExportRepository', () => {
           obras: {
             select: {
               ovnota: true,
-              ordem_dci: true,
               diagrama: true,
+              ordem_dci: true,
               municipios: {
                 select: { regionais: { select: { regional: true } } },
               },
@@ -229,8 +229,8 @@ describe('ExportRepository', () => {
           obras: {
             select: {
               ovnota: true,
-              ordem_dci: true,
               diagrama: true,
+              ordem_dci: true,
               municipios: {
                 select: { regionais: { select: { regional: true } } },
               },
@@ -292,7 +292,12 @@ describe('ExportRepository', () => {
           obras: {
             select: {
               ovnota: true,
+              diagrama: true,
               ordem_dci: true,
+              ordem_dcd: true,
+              ordem_dca: true,
+              ordem_dcim: true,
+              executado: true,
               tipos: { select: { tipo_obra: true } },
               status: { select: { status: true } },
             },

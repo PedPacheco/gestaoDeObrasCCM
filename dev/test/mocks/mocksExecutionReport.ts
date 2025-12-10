@@ -179,7 +179,12 @@ export const mockFindByWorkIdResponse = [
     },
     obras: {
       ovnota: '16004316',
+      diagrama: '2000000000',
       ordem_dci: '170000023493',
+      ordem_dca: '150000023493',
+      ordem_dcd: '190000023493',
+      ordem_dcim: '180000023493',
+      executado: 50,
       tipos: {
         tipo_obra: 'Manutenção',
       },
@@ -226,7 +231,12 @@ export const mockFindByWorkIdResponseFormatted = [
 
     // 🔽 campos achatados do objeto obras
     ovnota: '16004316',
+    diagrama: '2000000000',
     ordem_dci: '170000023493',
+    ordem_dca: '150000023493',
+    ordem_dcd: '190000023493',
+    ordem_dcim: '180000023493',
+    executado: 50,
     tipo_obra: 'Manutenção',
     status_obra: 'EM EMPREITAMENTO',
 
@@ -269,14 +279,17 @@ export const mockFindByWorkIdResponseNull = [
     referencia_chave_provisoria: null,
     chave_provisoria_retirada: null,
     motivo: null,
-
     usuario: {
       nome_usuario: null,
     },
-
     obras: {
       ovnota: null,
+      diagrama: null,
       ordem_dci: null,
+      ordem_dca: null,
+      ordem_dcd: null,
+      ordem_dcim: null,
+      executado: null,
       tipos: {
         tipo_obra: null,
       },
@@ -284,7 +297,6 @@ export const mockFindByWorkIdResponseNull = [
         status: null,
       },
     },
-
     programacoes: {
       data_prog: null,
       prog: null,
@@ -324,7 +336,12 @@ export const mockFindByWorkIdResponseFormattedNull = [
     // achatados
     nome_usuario: null,
     ovnota: null,
+    diagrama: null,
     ordem_dci: null,
+    ordem_dca: null,
+    ordem_dcd: null,
+    ordem_dcim: null,
+    executado: null,
     tipo_obra: null,
     status_obra: null,
 

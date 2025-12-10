@@ -26,9 +26,14 @@ export class ExportExecutionReportService {
 
         // obras
         ovnota: item.obras?.ovnota ?? null,
+        diagrama: item.obras?.diagrama ?? null,
         ordem_dci: item.obras?.ordem_dci ?? null,
+        ordem_dca: item.obras?.ordem_dca ?? null,
+        ordem_dcd: item.obras?.ordem_dcd ?? null,
+        ordem_dcim: item.obras?.ordem_dcim ?? null,
         tipo_obra: item.obras?.tipos?.tipo_obra ?? null,
         status_obra: item.obras?.status?.status ?? null,
+        executado: item.obras?.executado ?? null,
 
         // programações
         data_prog: item.programacoes?.data_prog ?? null,
@@ -54,9 +59,14 @@ export class ExportExecutionReportService {
         { header: 'Usuário', key: 'nome_usuario', width: 25 },
 
         { header: 'Ovnota', key: 'ovnota', width: 15 },
+        { header: 'Diagrama', key: 'diagrama', width: 15 },
         { header: 'Ordem DCI', key: 'ordem_dci', width: 15 },
+        { header: 'Ordem DCA', key: 'ordem_dca', width: 15 },
+        { header: 'Ordem DCD', key: 'ordem_dcd', width: 15 },
+        { header: 'Ordem DCIM', key: 'ordem_dcim', width: 15 },
         { header: 'Tipo da Obra', key: 'tipo_obra', width: 20 },
         { header: 'Status da Obra', key: 'status_obra', width: 20 },
+        { header: 'Total Executado', key: 'executado', width: 15 },
 
         // Programação
         { header: 'Data Programada', key: 'data_prog', width: 20 },

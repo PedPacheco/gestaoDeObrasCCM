@@ -4,7 +4,7 @@ import { GetScheduleRestrictions } from 'src/interface/types/schedule/getSchedul
 export interface IGetScheduleRestrictionsRepository {
   getRestrictions(
     filters: GetValueWeeklyScheduleDTO,
-  ): Promise<GetScheduleRestrictions[]>;
+  ): Promise<{ works: GetScheduleRestrictions[]; totals: any[] }>;
 }
 
 export const GET_SCHEDULE_RESTRICTIONS_REPOSITORY = Symbol(

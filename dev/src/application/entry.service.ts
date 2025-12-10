@@ -74,21 +74,12 @@ export class EntryService {
   }
 
   async getEntryOfWorksByDay(filters: GetEntryOfWorksByDayDTO) {
-    const { data, tipoFiltro } = filters;
+    const { dataFinal, dataInicial } = filters;
 
-    let dateRange: Record<string, Date>;
-
-    switch (tipoFiltro) {
-      case 'day':
-        dateRange = { equals: data };
-        break;
-      case 'month':
-        dateRange = {
-          gte: moment(data).startOf('month').toDate(),
-          lte: moment(data).endOf('month').startOf('day').toDate(),
-        };
-        break;
-    }
+    const dateRange = {
+      gte: moment(dataInicial, 'DD/MM/YYYY').toDate(),
+      lte: moment(dataFinal, 'DD/MM/YYYY').toDate(),
+    };
 
     const result = await this.entryRepository.getEntryOfWorksByDay(
       filters,
