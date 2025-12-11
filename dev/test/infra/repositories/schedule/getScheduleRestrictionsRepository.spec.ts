@@ -9,10 +9,12 @@ describe('GetScheduleRestrictions', () => {
   let repository: GetScheduleRestrictionsRespository;
 
   const mockPrisma = {
-    obras: {
-      findMany: jest.fn(),
-    },
+    $queryRaw: jest.fn(),
   };
+
+  function normalizeSQL(sql: string): string {
+    return sql.replace(/\s+/g, ' ').trim();
+  }
 
   const mockResponseQuery: GetScheduleRestrictions[] = [
     {
@@ -22,42 +24,28 @@ describe('GetScheduleRestrictions', () => {
       ordem_dci: null,
       ordem_dcim: null,
       executado: 98,
-      programacoes: [
-        {
-          id: 1,
-          data_prog: new Date('2024-08-03T00:00:00.000Z'),
-          prog: 0,
-          exec: 0,
-          observacao_restricao: null,
-          id_restricao_prog1: 1,
-          programacoes_restricao_prog1: {
-            restricao: 'Aviso',
-          },
-          responsabilidade1: null,
-          nome_responsavel: null,
-          area_responsavel1: null,
-          status_restricao1: null,
-          data_resolucao1: null,
-          id_restricao_prog2: 1,
-          programacoes_restricao_prog2: {
-            restricao: 'Aviso',
-          },
-          responsabilidade2: null,
-          nome_responsavel2: null,
-          area_responsavel2: null,
-          status_restricao2: null,
-          data_resolucao2: null,
-        },
-      ],
-      municipios: {
-        mun: 'SJC',
-      },
-      tipos: {
-        tipo_obra: 'REMOÇÃO DE REDE',
-      },
-      turmas: {
-        turma: 'ENGELMIG',
-      },
+      prog_id: 1,
+      data_prog: new Date('2024-08-03T00:00:00.000Z'),
+      prog: 0,
+      exec: 0,
+      observacao_restricao: null,
+      id_restricao_prog1: 1,
+      restricao1: 'Aviso',
+      responsabilidade1: null,
+      nome_responsavel: null,
+      area_responsavel1: null,
+      status_restricao1: null,
+      data_resolucao1: null,
+      id_restricao_prog2: 1,
+      restricao2: 'Aviso',
+      responsabilidade2: null,
+      nome_responsavel2: null,
+      area_responsavel2: null,
+      status_restricao2: null,
+      data_resolucao2: null,
+      mun: 'SJC',
+      tipo_obra: 'REMOÇÃO DE REDE',
+      parceira: 'ENGELMIG',
     },
     {
       id: 1695,
@@ -66,42 +54,34 @@ describe('GetScheduleRestrictions', () => {
       ordem_dci: null,
       ordem_dcim: null,
       executado: 98,
-      programacoes: [
-        {
-          id: 1,
-          data_prog: new Date('2024-08-04T00:00:00.000Z'),
-          prog: 0,
-          exec: 0,
-          observacao_restricao: null,
-          id_restricao_prog1: 1,
-          programacoes_restricao_prog1: {
-            restricao: 'Aviso',
-          },
-          responsabilidade1: null,
-          nome_responsavel: null,
-          area_responsavel1: null,
-          status_restricao1: null,
-          data_resolucao1: null,
-          id_restricao_prog2: 1,
-          programacoes_restricao_prog2: {
-            restricao: 'Aviso',
-          },
-          responsabilidade2: null,
-          nome_responsavel2: null,
-          area_responsavel2: null,
-          status_restricao2: null,
-          data_resolucao2: null,
-        },
-      ],
-      municipios: {
-        mun: 'SJC',
-      },
-      tipos: {
-        tipo_obra: 'REMOÇÃO DE REDE',
-      },
-      turmas: {
-        turma: 'ENGELMIG',
-      },
+      prog_id: 1,
+      data_prog: new Date('2024-08-04T00:00:00.000Z'),
+      prog: 0,
+      exec: 0,
+      observacao_restricao: null,
+      id_restricao_prog1: 1,
+      restricao1: 'Aviso',
+      responsabilidade1: null,
+      nome_responsavel: null,
+      area_responsavel1: null,
+      status_restricao1: null,
+      data_resolucao1: null,
+      id_restricao_prog2: 1,
+      restricao2: 'Aviso',
+      responsabilidade2: null,
+      nome_responsavel2: null,
+      area_responsavel2: null,
+      status_restricao2: null,
+      data_resolucao2: null,
+      mun: 'SJC',
+      tipo_obra: 'REMOÇÃO DE REDE',
+      parceira: 'ENGELMIG',
+    },
+  ];
+
+  const mockCount = [
+    {
+      total_obras: 2,
     },
   ];
 
@@ -125,168 +105,182 @@ describe('GetScheduleRestrictions', () => {
   describe('GetRestrictions', () => {
     it('should return the correct values without filters', async () => {
       const filters: GetValueWeeklyScheduleDTO = {
-        dataInicial: '01/09/2024',
-        dataFinal: '10/09/2024',
+        dataInicial: null,
+        dataFinal: null,
         executado: false,
         idGrupo: undefined,
         idMunicipio: undefined,
         idParceira: undefined,
         idRegional: undefined,
         idTipo: undefined,
+        page: 0,
       };
 
-      mockPrisma.obras.findMany.mockResolvedValue(mockResponseQuery);
+      mockPrisma.$queryRaw
+        .mockResolvedValueOnce(mockResponseQuery)
+        .mockResolvedValueOnce(mockCount);
+
+      const expectedQuery = `SELECT 
+        obras.id,
+        obras.ovnota,
+        obras.diagrama,
+        obras.ordem_dci,
+        obras.ordem_dcim,
+        obras.executado,
+        municipios.mun,
+        tipos.tipo_obra,
+        turmas.turma as parceira,
+        programacoes.id AS prog_id,
+        programacoes.data_prog,
+        programacoes.prog,
+        programacoes.exec,
+        programacoes.observacao_restricao,
+        programacoes.id_restricao_prog1,
+        restr1.restricao AS restricao1,
+        programacoes.responsabilidade1,
+        programacoes.nome_responsavel,
+        programacoes.area_responsavel1,
+        programacoes.status_restricao1,
+        programacoes.data_resolucao1,
+        programacoes.id_restricao_prog2,
+        restr2.restricao AS restricao2,
+        programacoes.responsabilidade2,
+        programacoes.nome_responsavel2,
+        programacoes.area_responsavel2,
+        programacoes.status_restricao2,
+        programacoes.data_resolucao2
+        FROM construcao_sp.obras
+        INNER JOIN construcao_sp.programacoes 
+          ON programacoes.id_obra = obras.id
+        INNER JOIN construcao_sp.municipios 
+          ON municipios.id = obras.id_gpm
+        INNER JOIN construcao_sp.tipos 
+          ON tipos.id = obras.id_tipo
+        INNER JOIN construcao_sp.turmas 
+          ON turmas.id = obras.id_turma
+        INNER JOIN construcao_sp.restricoes AS restr1
+          ON restr1.id = programacoes.id_restricao_prog1
+        INNER JOIN construcao_sp.restricoes AS restr2
+          ON restr2.id = programacoes.id_restricao_prog2
+        WHERE 1=1 AND programacoes.exec IS NULL
+        ORDER BY programacoes.data_prog, obras.ovnota
+        LIMIT OFFSET 
+            `;
 
       const result = await repository.getRestrictions(filters);
 
-      expect(result).toEqual(mockResponseQuery);
-      expect(mockPrisma.obras.findMany).toHaveBeenCalledWith({
-        relationLoadStrategy: 'join',
-        where: {
-          programacoes: {
-            some: {
-              exec: null,
-              data_prog: {
-                gte: moment('01/09/2024', 'DD/MM/YYYY').toDate(),
-                lte: moment('10/09/2024', 'DD/MM/YYYY').toDate(),
-              },
-            },
-          },
-          municipios: { id_regional: undefined },
-          id_turma: undefined,
-          id_tipo: undefined,
-          id_gpm: undefined,
-          tipos: { id_grupo: undefined },
-        },
-        select: {
-          id: true,
-          ovnota: true,
-          diagrama: true,
-          ordem_dci: true,
-          ordem_dcim: true,
-          executado: true,
-          programacoes: {
-            select: {
-              id: true,
-              data_prog: true,
-              prog: true,
-              exec: true,
-              observacao_restricao: true,
-              id_restricao_prog1: true,
-              programacoes_restricao_prog1: {
-                select: { restricao: true },
-              },
-              responsabilidade1: true,
-              nome_responsavel: true,
-              area_responsavel1: true,
-              status_restricao1: true,
-              data_resolucao1: true,
-              id_restricao_prog2: true,
-              programacoes_restricao_prog2: {
-                select: { restricao: true },
-              },
-              responsabilidade2: true,
-              nome_responsavel2: true,
-              area_responsavel2: true,
-              status_restricao2: true,
-              data_resolucao2: true,
-            },
-            where: {
-              data_prog: {
-                gte: moment('01/09/2024', 'DD/MM/YYYY').toDate(),
-                lte: moment('10/09/2024', 'DD/MM/YYYY').toDate(),
-              },
-            },
-          },
-          municipios: {
-            select: { mun: true },
-          },
-          tipos: { select: { tipo_obra: true } },
-          turmas: { select: { turma: true } },
-        },
+      const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
+
+      expect(result).toEqual({
+        works: mockResponseQuery,
+        totals: mockCount,
       });
+      expect(normalizeSQL(querySent.strings.join(''))).toContain(
+        normalizeSQL(expectedQuery),
+      );
+      expect(querySent.values).toEqual([200, 0]);
     });
+
     it('should return the correct values with filters', async () => {
       const filters: GetValueWeeklyScheduleDTO = {
         dataInicial: '01/09/2024',
-        dataFinal: '10/09/2024',
+        dataFinal: '02/09/2024',
         executado: true,
         idGrupo: [1],
         idMunicipio: [1],
         idParceira: [1],
         idRegional: [1],
         idTipo: [1],
+        page: 0,
       };
 
-      mockPrisma.obras.findMany.mockResolvedValue(mockResponseQuery);
+      mockPrisma.$queryRaw
+        .mockResolvedValueOnce(mockResponseQuery)
+        .mockResolvedValueOnce(mockCount);
 
-      await repository.getRestrictions(filters);
+      const expectedQuery = `SELECT 
+        obras.id,
+        obras.ovnota,
+        obras.diagrama,
+        obras.ordem_dci,
+        obras.ordem_dcim,
+        obras.executado,
+        municipios.mun,
+        tipos.tipo_obra,
+        turmas.turma as parceira,
+        programacoes.id AS prog_id,
+        programacoes.data_prog,
+        programacoes.prog,
+        programacoes.exec,
+        programacoes.observacao_restricao,
+        programacoes.id_restricao_prog1,
+        restr1.restricao AS restricao1,
+        programacoes.responsabilidade1,
+        programacoes.nome_responsavel,
+        programacoes.area_responsavel1,
+        programacoes.status_restricao1,
+        programacoes.data_resolucao1,
+        programacoes.id_restricao_prog2,
+        restr2.restricao AS restricao2,
+        programacoes.responsabilidade2,
+        programacoes.nome_responsavel2,
+        programacoes.area_responsavel2,
+        programacoes.status_restricao2,
+        programacoes.data_resolucao2
+        FROM construcao_sp.obras
+        INNER JOIN construcao_sp.programacoes 
+          ON programacoes.id_obra = obras.id
+        INNER JOIN construcao_sp.municipios 
+          ON municipios.id = obras.id_gpm
+        INNER JOIN construcao_sp.tipos 
+          ON tipos.id = obras.id_tipo
+        INNER JOIN construcao_sp.turmas 
+          ON turmas.id = obras.id_turma
+        INNER JOIN construcao_sp.restricoes AS restr1
+          ON restr1.id = programacoes.id_restricao_prog1
+        INNER JOIN construcao_sp.restricoes AS restr2
+          ON restr2.id = programacoes.id_restricao_prog2
+        WHERE 1=1 AND programacoes.data_prog BETWEEN AND 
+        AND programacoes.exec IS NOT NULL
+        AND municipios.id_regional IN ()
+        AND municipios.id IN ()
+        AND obras.id_tipo IN ()
+        AND obras.id_turma IN ()
+        AND tipos.id_grupo IN ()
+        ORDER BY programacoes.data_prog, obras.ovnota
+        LIMIT OFFSET 
+            `;
 
-      expect(mockPrisma.obras.findMany).toHaveBeenCalledWith({
-        relationLoadStrategy: 'join',
-        where: {
-          programacoes: {
-            some: {
-              exec: { not: null },
-              data_prog: {
-                gte: moment('01/09/2024', 'DD/MM/YYYY').toDate(),
-                lte: moment('10/09/2024', 'DD/MM/YYYY').toDate(),
-              },
-            },
-          },
-          municipios: { id_regional: { in: [1] } },
-          id_turma: { in: [1] },
-          id_tipo: { in: [1] },
-          id_gpm: { in: [1] },
-          tipos: { id_grupo: { in: [1] } },
-        },
-        select: {
-          id: true,
-          ovnota: true,
-          diagrama: true,
-          ordem_dci: true,
-          ordem_dcim: true,
-          executado: true,
-          programacoes: {
-            select: {
-              id: true,
-              data_prog: true,
-              prog: true,
-              exec: true,
-              observacao_restricao: true,
-              id_restricao_prog1: true,
-              programacoes_restricao_prog1: {
-                select: { restricao: true },
-              },
-              responsabilidade1: true,
-              nome_responsavel: true,
-              area_responsavel1: true,
-              status_restricao1: true,
-              data_resolucao1: true,
-              id_restricao_prog2: true,
-              programacoes_restricao_prog2: {
-                select: { restricao: true },
-              },
-              responsabilidade2: true,
-              nome_responsavel2: true,
-              area_responsavel2: true,
-              status_restricao2: true,
-              data_resolucao2: true,
-            },
-            where: {
-              data_prog: {
-                gte: moment('01/09/2024', 'DD/MM/YYYY').toDate(),
-                lte: moment('10/09/2024', 'DD/MM/YYYY').toDate(),
-              },
-            },
-          },
-          municipios: {
-            select: { mun: true },
-          },
-          tipos: { select: { tipo_obra: true } },
-          turmas: { select: { turma: true } },
-        },
+      const result = await repository.getRestrictions(filters);
+
+      const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
+
+      const expectedInitialDate = moment(
+        '01/09/2024',
+        'DD/MM/YYYY',
+        true,
+      ).toDate();
+
+      const expectedEndDate = moment('02/09/2024', 'DD/MM/YYYY', true).toDate();
+
+      expect(result).toEqual({
+        works: mockResponseQuery,
+        totals: mockCount,
       });
+      expect(normalizeSQL(querySent.strings.join(''))).toContain(
+        normalizeSQL(expectedQuery),
+      );
+      expect(querySent.values).toEqual([
+        expectedInitialDate,
+        expectedEndDate,
+        1,
+        1,
+        1,
+        1,
+        1,
+        200,
+        0,
+      ]);
     });
   });
 });

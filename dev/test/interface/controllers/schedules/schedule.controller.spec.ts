@@ -2,7 +2,6 @@ import { GetMonthlySummaryService } from 'src/application/schedule/getMonthlySum
 import { GetScheduleRestrictionsService } from 'src/application/schedule/getScheduleRestrictions.service';
 import { GetScheduleValuesService } from 'src/application/schedule/getScheduleValues.service';
 import { GetTotalValuesScheduleService } from 'src/application/schedule/getTotalValuesSchedule.service';
-import { GetValuesWeeklyScheduleService } from 'src/application/schedule/getValuesWeeklySchedule.service';
 import { ScheduleController } from 'src/interface/controllers/schedules/schedule.controller';
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
@@ -16,7 +15,6 @@ import { UsersService } from 'src/application/users.service';
 describe('ScheduleController', () => {
   let scheduleController: ScheduleController;
   let getTotalValuesScheduleService: GetTotalValuesScheduleService;
-  let getValuesWeeklyScheduleService: GetValuesWeeklyScheduleService;
   let getScheduleValuesService: GetScheduleValuesService;
   let getScheduleRestrictionsService: GetScheduleRestrictionsService;
   let getMonthlySummaryService: GetMonthlySummaryService;
@@ -87,12 +85,6 @@ describe('ScheduleController', () => {
           },
         },
         {
-          provide: GetValuesWeeklyScheduleService,
-          useValue: {
-            getValues: jest.fn(),
-          },
-        },
-        {
           provide: GetScheduleValuesService,
           useValue: {
             getValues: jest.fn(),
@@ -122,9 +114,6 @@ describe('ScheduleController', () => {
     scheduleController = module.get<ScheduleController>(ScheduleController);
     getTotalValuesScheduleService = module.get<GetTotalValuesScheduleService>(
       GetTotalValuesScheduleService,
-    );
-    getValuesWeeklyScheduleService = module.get<GetValuesWeeklyScheduleService>(
-      GetValuesWeeklyScheduleService,
     );
     getScheduleValuesService = module.get<GetScheduleValuesService>(
       GetScheduleValuesService,
@@ -231,8 +220,8 @@ describe('ScheduleController', () => {
 
   describe('GetSchedulesValues', () => {
     const filters: GetScheduleValuesDTO = {
-      data: '17/05/2024',
-      tipoFiltro: 'day',
+      dataInicial: '17/05/2024',
+      dataFinal: '18/05/2024',
       idRegional: [1],
       idMunicipio: [1],
       idGrupo: [1],
@@ -283,50 +272,6 @@ describe('ScheduleController', () => {
     });
   });
 
-  it('Should call getValuesWeeklyScheduleService method and return correct data', async () => {
-    const filters = {
-      dataInicial: '17/05/2024',
-      dataFinal: '18/05/2024',
-      idRegional: [1],
-      idMunicipio: [1],
-      idGrupo: [1],
-      idTipo: [1],
-      idParceira: [1],
-      executado: false,
-    };
-
-    const getValuesWeeklyScheduleServiceResponse = [
-      {
-        id: 5839,
-        ovnota: '14417407',
-        tipo_abrev: 'SPACER',
-        programacoes: [
-          {
-            data_prog: new Date('2024-10-11T00:00:00.000Z'),
-            hora_ini: new Date('1970-01-01T08:00:00.000Z'),
-            hora_ter: new Date('1970-01-01T17:00:00.000Z'),
-          },
-        ],
-        parceira: 'ENGELMIG',
-      },
-    ];
-
-    jest
-      .spyOn(getValuesWeeklyScheduleService, 'getValues')
-      .mockResolvedValue(getValuesWeeklyScheduleServiceResponse);
-
-    const result = await scheduleController.getValuesWeeklySchedule(filters);
-
-    expect(result).toStrictEqual({
-      statusCode: HttpStatus.OK,
-      message: 'Valores das programações da semana retornadas com sucesso',
-      data: getValuesWeeklyScheduleServiceResponse,
-    });
-    expect(getValuesWeeklyScheduleService.getValues).toHaveBeenCalledWith(
-      filters,
-    );
-  });
-
   it('Should call getScheduleRestrictions method and return correct data', async () => {
     const filters = {
       dataInicial: '17/05/2024',
@@ -339,35 +284,43 @@ describe('ScheduleController', () => {
       executado: false,
     };
 
-    const getScheduleRestrictionsResponse = [
-      {
-        id: 1695,
-        id_prog: 1,
-        ovnota: '3908435',
-        mun: 'SJC',
-        tipo: 'REMOÇÃO DE REDE',
-        parceira: 'ENGELMIG',
-        executado: 98,
-        data_prog: new Date('2024-08-04T00:00:00.000Z'),
-        prog: 0,
-        exec: 0,
-        observacao_restricao: null,
-        id_restricao_prog1: 1,
-        restricao_prog1: 'Aviso',
-        responsabilidade1: null,
-        nome_responsavel: null,
-        area_responsavel1: null,
-        status_restricao1: null,
-        data_resolucao1: null,
-        id_restricao_prog2: 1,
-        restricao_prog2: 'Aviso',
-        responsabilidade2: null,
-        nome_responsavel2: null,
-        area_responsavel2: null,
-        status_restricao2: null,
-        data_resolucao2: null,
-      },
-    ];
+    const getScheduleRestrictionsResponse = {
+      works: [
+        {
+          id: 1695,
+          prog_id: 1,
+          ovnota: '3908435',
+          diagrama: '200',
+          ordem_dci: '170',
+          ordem_dca: '150',
+          ordem_dcd: '190',
+          ordem_dcim: '180',
+          mun: 'SJC',
+          tipo_obra: 'REMOÇÃO DE REDE',
+          parceira: 'ENGELMIG',
+          executado: 98,
+          data_prog: new Date('2024-08-04T00:00:00.000Z'),
+          prog: 0,
+          exec: 0,
+          observacao_restricao: null,
+          id_restricao_prog1: 1,
+          restricao1: 'Aviso',
+          responsabilidade1: null,
+          nome_responsavel: null,
+          area_responsavel1: null,
+          status_restricao1: null,
+          data_resolucao1: null,
+          id_restricao_prog2: 1,
+          restricao2: 'Aviso',
+          responsabilidade2: null,
+          nome_responsavel2: null,
+          area_responsavel2: null,
+          status_restricao2: null,
+          data_resolucao2: null,
+        },
+      ],
+      totals: { total_obras: 1 },
+    };
 
     jest
       .spyOn(getScheduleRestrictionsService, 'getRestrictions')

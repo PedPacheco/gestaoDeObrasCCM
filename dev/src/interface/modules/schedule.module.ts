@@ -2,6 +2,7 @@ import { HandleAddScheduleService } from 'src/application/orchestrators/handleAd
 import { HandleSchedulesUpdateService } from 'src/application/orchestrators/handleSchedulesUpdate.service';
 import { AddSchedulesService } from 'src/application/schedule/addSchedules.service';
 import { DeleteSchedulesService } from 'src/application/schedule/deleteSchedules.service';
+import { RejectionsOfSchedulesService } from 'src/application/schedule/rejectionOfSchedules.service';
 import { ScheduleExecutionValidatorService } from 'src/application/schedule/scheduleExecutionValidator.service';
 import { UpdateSchedulesService } from 'src/application/schedule/updateSchedules.service';
 import { ValidateConfirmAndRejectSchedulesService } from 'src/application/schedule/validateAndConfirmSchedules.service';
@@ -13,7 +14,7 @@ import { GET_MONTHLY_SUMMARY_REPOSITORY } from 'src/domain/repositories/schedule
 import { GET_SCHEDULE_RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/schedule/IGetScheduleRestrictionsRepository';
 import { GET_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetScheduleValuesRepository';
 import { GET_TOTAL_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetTotalValuesScheduleRepository';
-import { GET_VALUES_WEEKLY_SCHEDULE_REPOSITORY } from 'src/domain/repositories/schedule/IGetValuesWeeklyScheduleRepository';
+import { REJECTION_OF_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IRejectionsOfSchedules';
 import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
 import { VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IValidateSchedulesRepository';
 import { AddSchedulesRepository } from 'src/infra/repositories/schedule/addSchedulesRepository';
@@ -23,7 +24,7 @@ import { GetMonthlySummaryRepository } from 'src/infra/repositories/schedule/get
 import { GetScheduleRestrictionsRespository } from 'src/infra/repositories/schedule/getScheduleRestrictionsRepository';
 import { GetScheduleValuesRepository } from 'src/infra/repositories/schedule/getScheduleValuesRepository';
 import { GetTotalValueScheduleRepository } from 'src/infra/repositories/schedule/getTotalValuesScheduleRepository';
-import { GetValuesWeeklyScheduleRepository } from 'src/infra/repositories/schedule/getValuesWeeklyScheduleRepository';
+import { RejectionsOfSchedulesRepository } from 'src/infra/repositories/schedule/rejectionsOfSchedulesRepository';
 import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updateSchedulesRepository';
 import { ValidateAndConfirmSchedulesRepository } from 'src/infra/repositories/schedule/validateAndConfirmSchedulesRepository';
 import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepository';
@@ -34,15 +35,12 @@ import { GetMonthlySummaryService } from '../../application/schedule/getMonthlyS
 import { GetScheduleRestrictionsService } from '../../application/schedule/getScheduleRestrictions.service';
 import { GetScheduleValuesService } from '../../application/schedule/getScheduleValues.service';
 import { GetTotalValuesScheduleService } from '../../application/schedule/getTotalValuesSchedule.service';
-import { GetValuesWeeklyScheduleService } from '../../application/schedule/getValuesWeeklySchedule.service';
 import { ScheduleController } from '../controllers/schedules/schedule.controller';
+import { SchedulesActionsController } from '../controllers/schedules/schedulesActions.controller';
 import { ExecutionReportModule } from './executionReport.module';
 import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
-import { RejectionsOfSchedulesService } from 'src/application/schedule/rejectionOfSchedules.service';
-import { REJECTION_OF_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IRejectionsOfSchedules';
-import { RejectionsOfSchedulesRepository } from 'src/infra/repositories/schedule/rejectionsOfSchedulesRepository';
-import { SchedulesActionsController } from '../controllers/schedules/schedulesActions.controller';
+
 // import { UpdateRestrictionsService } from 'src/application/schedule/updateRestrictions.service';
 // import { UPDATE_RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateRestrictionsRepository';
 // import { UpdateRestrictionsRepository } from 'src/infra/repositories/schedule/updateRestrictionsRepository';
@@ -56,7 +54,6 @@ import { SchedulesActionsController } from '../controllers/schedules/schedulesAc
     DeleteSchedulesService,
     GetTotalValuesScheduleService,
     GetScheduleValuesService,
-    GetValuesWeeklyScheduleService,
     GetScheduleRestrictionsService,
     GetMonthlySummaryService,
     HandleSchedulesUpdateService,
@@ -93,10 +90,6 @@ import { SchedulesActionsController } from '../controllers/schedules/schedulesAc
     {
       provide: GET_TOTAL_SCHEDULE_VALUES_REPOSITORY,
       useClass: GetTotalValueScheduleRepository,
-    },
-    {
-      provide: GET_VALUES_WEEKLY_SCHEDULE_REPOSITORY,
-      useClass: GetValuesWeeklyScheduleRepository,
     },
     { provide: STATUS_FLOW_REPOSITORY, useClass: StatusFlowRepository },
     {

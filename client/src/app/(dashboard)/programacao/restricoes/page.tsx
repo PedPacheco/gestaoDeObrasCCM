@@ -24,15 +24,14 @@ export default async function ScheduleRestrictions() {
 
     filtersValues = {
       ...formattedSelectedItems,
-      dataInicial: params.weekRange.start,
-      dataFinal: params.weekRange.end,
+      dataInicial: params.startDate,
+      dataFinal: params.endDate,
       executado: params.executed,
     };
   } else {
     filtersValues = {
-      dataInicial: dayjs().startOf("isoWeek").format("DD/MM/YYYY"),
-      dataFinal: dayjs().endOf("isoWeek").format("DD/MM/YYYY"),
       executado: "false",
+      page: "0",
     };
   }
 
@@ -56,9 +55,10 @@ export default async function ScheduleRestrictions() {
   const { token, data } = scheduleData;
 
   const columns = {
+    id: "id",
     ovnota: "Ovnota",
     mun: "Municipio",
-    tipo: "Tipo",
+    tipo_obra: "Tipo da Obra",
     parceira: "Parceira",
     executado: "Total executado",
     data_prog: "Data programada",

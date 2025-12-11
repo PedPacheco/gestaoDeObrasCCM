@@ -1,23 +1,20 @@
 import * as moment from 'moment';
-import { IGetScheduleRestrictionsRepository } from 'src/domain/repositories/schedule/IGetScheduleRestrictionsRepository';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { Prisma } from '@prisma/client';
+
+import { IGetScheduleRestrictionsRepository } from 'src/domain/repositories/schedule/IGetScheduleRestrictionsRepository';
 import { GetValueWeeklyScheduleDTO } from 'src/interface/dtos/scheduleDTO';
 import { GetScheduleRestrictions } from 'src/interface/types/schedule/getScheduleRestrictionsInterface';
 
-import { Injectable } from '@nestjs/common';
-
 @Injectable()
-export class GetScheduleRestrictionsRespository
-  implements IGetScheduleRestrictionsRepository
-{
+export class GetScheduleRestrictionsRespository implements IGetScheduleRestrictionsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getRestrictions(
-    filters: GetValueWeeklyScheduleDTO,
-  ): Promise<GetScheduleRestrictions[]> {
+  private applyFilters(query: Prisma.Sql, filters: GetValueWeeklyScheduleDTO) {
     const {
-      dataFinal,
       dataInicial,
+      dataFinal,
       executado,
       idGrupo,
       idMunicipio,
@@ -26,81 +23,113 @@ export class GetScheduleRestrictionsRespository
       idTipo,
     } = filters;
 
-    return await this.prisma.obras.findMany({
-      relationLoadStrategy: 'join',
-      where: {
-        programacoes: {
-          some: {
-            exec: executado ? { not: null } : null,
-            data_prog: {
-              gte: moment(dataInicial, 'DD/MM/YYYY').toDate(),
-              lte: moment(dataFinal, 'DD/MM/YYYY').toDate(),
-            },
-          },
-        },
-        municipios: {
-          id_regional:
-            idRegional && idRegional.length > 0
-              ? { in: idRegional }
-              : undefined,
-        },
-        id_gpm:
-          idMunicipio && idMunicipio.length > 0
-            ? { in: idMunicipio }
-            : undefined,
-        id_turma:
-          idParceira && idMunicipio.length > 0 ? { in: idParceira } : undefined,
-        id_tipo: idTipo && idTipo.length > 0 ? { in: idTipo } : undefined,
-        tipos: {
-          id_grupo: idGrupo && idGrupo.length > 0 ? { in: idGrupo } : undefined,
-        },
-      },
-      select: {
-        id: true,
-        ovnota: true,
-        diagrama: true,
-        ordem_dci: true,
-        ordem_dcim: true,
-        executado: true,
-        programacoes: {
-          select: {
-            id: true,
-            data_prog: true,
-            prog: true,
-            exec: true,
-            observacao_restricao: true,
-            id_restricao_prog1: true,
-            programacoes_restricao_prog1: {
-              select: { restricao: true },
-            },
-            responsabilidade1: true,
-            nome_responsavel: true,
-            area_responsavel1: true,
-            status_restricao1: true,
-            data_resolucao1: true,
-            id_restricao_prog2: true,
-            programacoes_restricao_prog2: {
-              select: { restricao: true },
-            },
-            responsabilidade2: true,
-            nome_responsavel2: true,
-            area_responsavel2: true,
-            status_restricao2: true,
-            data_resolucao2: true,
-          },
-          where: {
-            data_prog: {
-              gte: moment(dataInicial, 'DD/MM/YYYY').toDate(),
-              lte: moment(dataFinal, 'DD/MM/YYYY').toDate(),
-            },
-          },
-        },
-        municipios: {
-          select: { mun: true },
-        },
-        tipos: { select: { tipo_obra: true } },
-        turmas: { select: { turma: true } },
-      },
-    });
+    if (dataInicial && dataFinal) {
+      const ini = moment(dataInicial, 'DD/MM/YYYY').toDate();
+      const fim = moment(dataFinal, 'DD/MM/YYYY').toDate();
+      query = Prisma.sql`${query} AND programacoes.data_prog BETWEEN ${ini} AND ${fim}`;
+    }
+
+    if (executado) {
+      query = Prisma.sql`${query} AND programacoes.exec IS NOT NULL`;
+    } else {
+      query = Prisma.sql`${query} AND programacoes.exec IS NULL`;
+    }
+
+    if (idRegional?.length) {
+      query = Prisma.sql`${query} AND municipios.id_regional IN (${Prisma.join(idRegional)})`;
+    }
+
+    if (idMunicipio?.length) {
+      query = Prisma.sql`${query} AND municipios.id IN (${Prisma.join(idMunicipio)})`;
+    }
+
+    if (idTipo?.length) {
+      query = Prisma.sql`${query} AND obras.id_tipo IN (${Prisma.join(idTipo)})`;
+    }
+
+    if (idParceira?.length) {
+      query = Prisma.sql`${query} AND obras.id_turma IN (${Prisma.join(idParceira)})`;
+    }
+
+    if (idGrupo?.length) {
+      query = Prisma.sql`${query} AND tipos.id_grupo IN (${Prisma.join(idGrupo)})`;
+    }
+
+    return query;
+  }
+
+  async getRestrictions(
+    filters: GetValueWeeklyScheduleDTO,
+  ): Promise<{ works: GetScheduleRestrictions[]; totals: any[] }> {
+    const { page } = filters;
+    const limit = 200;
+    const offset = page * limit;
+
+    const baseQuery = Prisma.sql`
+      FROM construcao_sp.obras
+      INNER JOIN construcao_sp.programacoes 
+        ON programacoes.id_obra = obras.id
+      INNER JOIN construcao_sp.municipios 
+        ON municipios.id = obras.id_gpm
+      INNER JOIN construcao_sp.tipos 
+        ON tipos.id = obras.id_tipo
+      INNER JOIN construcao_sp.turmas 
+        ON turmas.id = obras.id_turma
+      INNER JOIN construcao_sp.restricoes AS restr1
+        ON restr1.id = programacoes.id_restricao_prog1
+      INNER JOIN construcao_sp.restricoes AS restr2
+        ON restr2.id = programacoes.id_restricao_prog2
+      WHERE 1=1
+    `;
+
+    let query = Prisma.sql`
+      SELECT 
+        obras.id,
+        obras.ovnota,
+        obras.diagrama,
+        obras.ordem_dci,
+        obras.ordem_dcim,
+        obras.executado,
+        municipios.mun,
+        tipos.tipo_obra,
+        turmas.turma as parceira,
+        programacoes.id AS prog_id,
+        programacoes.data_prog,
+        programacoes.prog,
+        programacoes.exec,
+        programacoes.observacao_restricao,
+        programacoes.id_restricao_prog1,
+        restr1.restricao AS restricao1,
+        programacoes.responsabilidade1,
+        programacoes.nome_responsavel,
+        programacoes.area_responsavel1,
+        programacoes.status_restricao1,
+        programacoes.data_resolucao1,
+        programacoes.id_restricao_prog2,
+        restr2.restricao AS restricao2,
+        programacoes.responsabilidade2,
+        programacoes.nome_responsavel2,
+        programacoes.area_responsavel2,
+        programacoes.status_restricao2,
+        programacoes.data_resolucao2
+      
+      ${baseQuery}
+    `;
+
+    let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras ${baseQuery}`;
+
+    query = this.applyFilters(query, filters);
+    countQuery = this.applyFilters(countQuery, filters);
+
+    query = Prisma.sql`${query} ORDER BY programacoes.data_prog, obras.ovnota`;
+
+    query = Prisma.sql`${query} LIMIT ${limit} OFFSET ${offset}`;
+
+    const [works, totals] = await Promise.all([
+      await this.prisma.$queryRaw<GetScheduleRestrictions[]>(query),
+      await this.prisma.$queryRaw<any[]>(countQuery),
+    ]);
+
+    return { works, totals };
   }
 }

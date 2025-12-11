@@ -114,11 +114,11 @@ export class GetWorksDTO {
 
   @IsOptional()
   @IsString()
-  data: string;
+  dataInicial: string;
 
   @IsOptional()
   @IsString()
-  tipoFiltro: string;
+  dataFinal: string;
 }
 
 export class UpdateWorkDTO {

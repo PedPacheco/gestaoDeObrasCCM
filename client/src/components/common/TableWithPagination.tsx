@@ -26,14 +26,10 @@ interface totalsInterface {
   total_qtde_pend: number;
 }
 
-interface dataInterface {
-  works: any[];
-  totals: totalsInterface;
-}
-
 interface TableComponentProps {
   columns: any;
-  data: dataInterface;
+  data: any[];
+  totals: totalsInterface;
   sliceEndIndex?: number;
   page: number;
   handleChangePage: (event: unknown, newPage: number) => void;
@@ -43,6 +39,7 @@ dayjs.extend(utc);
 
 export function TableWithPagination({
   data,
+  totals,
   columns,
   sliceEndIndex,
   handleChangePage,
@@ -71,7 +68,7 @@ export function TableWithPagination({
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.works.map((item: any, index: any) => {
+            {data.map((item: any, index: any) => {
               return (
                 <TableRow key={index}>
                   {Object.keys(columns)
@@ -136,7 +133,7 @@ export function TableWithPagination({
                         <TableCell
                           key={column}
                           onClick={() => router.push(`/detalhes/${item.id}`)}
-                          className={`py-1 px-2 text-center text-base text-nowrap min-w-28 hover:cursor-pointer 
+                          className={`py-1 px-2 text-center text-base text-nowrap min-w-36 hover:cursor-pointer 
                             ${
                               column === "ovnota"
                                 ? "sticky left-0 bg-white z-10"
@@ -158,7 +155,7 @@ export function TableWithPagination({
       <div className="sticky bottom-0 bg-white">
         <TablePagination
           component="div"
-          count={data.totals.total_obras}
+          count={totals.total_obras}
           page={page}
           rowsPerPage={200}
           rowsPerPageOptions={[]}

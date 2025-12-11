@@ -12,9 +12,7 @@ import { Prisma } from '@prisma/client';
 import * as moment from 'moment';
 
 @Injectable()
-export class GetCompletedWorksRepository
-  implements IGetCompletedWorksRepository
-{
+export class GetCompletedWorksRepository implements IGetCompletedWorksRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   private applyFilters(query: Prisma.Sql, filters: GetWorksDTO) {
@@ -30,11 +28,9 @@ export class GetCompletedWorksRepository
       idStatus,
       idTipo,
       insufficientPermission,
-      data,
-      tipoFiltro,
+      dataFinal,
+      dataInicial,
     } = filters;
-
-    const [month, year] = data ? data.split('/') : [null, null];
 
     if (insufficientPermission) {
       query = Prisma.sql`${query} AND status.id != 42 AND status.id != 4`;
@@ -80,12 +76,10 @@ export class GetCompletedWorksRepository
       query = Prisma.sql`${query} AND obras.ovnota = ${ovnota}`;
     }
 
-    if (tipoFiltro === 'month' && data) {
-      query = Prisma.sql`${query} AND EXTRACT(MONTH FROM data_conclusao) = ${parseInt(month)} AND EXTRACT(YEAR FROM data_conclusao) = ${parseInt(year)}`;
-    }
-
-    if (tipoFiltro === 'day' && data) {
-      query = Prisma.sql`${query} AND data_conclusao = ${moment(data, 'DD/MM/YYYY', true).toDate()}`;
+    if (dataInicial && dataFinal) {
+      const ini = moment(dataInicial, 'DD/MM/YYYY').toDate();
+      const fim = moment(dataFinal, 'DD/MM/YYYY').toDate();
+      query = Prisma.sql`${query} AND data_conclusao BETWEEN ${ini} AND ${fim}`;
     }
 
     return query;

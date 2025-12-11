@@ -149,8 +149,8 @@ export const schedulesSchema = (isInsert?: boolean) =>
       responsibleArea2: z.string().nullable().optional(),
       restrictionStatus2: z.string().nullable().optional(),
       resolutionDate2: z.string().nullable().optional(),
-      validated: z.boolean(),
-      confirmed: z.boolean(),
+      validated: z.boolean().optional(),
+      confirmed: z.boolean().optional(),
     })
     .check((ctx) => {
       const { exec, prog, idExecutionRestriction, responsibility } = ctx.value;

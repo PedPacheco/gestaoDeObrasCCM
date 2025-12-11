@@ -30,6 +30,14 @@ export const AdditionalInfoPanel: React.FC<AdditionalInfoPanelProps> = ({
   const errorRestriction = formErrors["idExecutionRestriction"];
   const errorResponsibility = formErrors["responsibility"];
 
+  const exec =
+    formData.exec === "null" || formData.exec === null || formData.exec === ""
+      ? null
+      : Number(formData.exec);
+
+  const restrictionIsDisabled =
+    exec === null || (formData.prog != null && exec >= formData.prog);
+
   return (
     <Grid container spacing={2}>
       <Grid item xs={12} sm={6}>
@@ -57,6 +65,7 @@ export const AdditionalInfoPanel: React.FC<AdditionalInfoPanelProps> = ({
             value={formData.idExecutionRestriction}
             onChange={onInputChange("idExecutionRestriction")}
             label="Restrição de Execução"
+            disabled={restrictionIsDisabled}
           >
             {options.restricao.map((restriction) => (
               <MenuItem key={restriction.id} value={restriction.id}>
@@ -79,6 +88,7 @@ export const AdditionalInfoPanel: React.FC<AdditionalInfoPanelProps> = ({
             value={formData.responsibility}
             onChange={onInputChange("responsibility")}
             label="Responsabilidade Execução"
+            disabled={restrictionIsDisabled}
           >
             {EXECUTION_RESPONSIBILITIES.map((responsibility) => (
               <MenuItem key={responsibility} value={responsibility}>
