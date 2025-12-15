@@ -28,6 +28,7 @@ export default async function Details({
     await Promise.all([
       fetchFilters({
         restricao: true,
+        tipoRestricao: ["EXECUÇÃO", "PROGRAMAÇÃO"],
         tecnico: true,
         municipio: true,
         parceira: true,

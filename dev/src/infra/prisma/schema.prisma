@@ -322,6 +322,7 @@ model obras {
   programacoes_reprovacoes programacoes_reprovacoes[]
   relatorio                relatorio[]
   relatorio_execucao       relatorio_execucao[]
+  restricoes_publicacoes   restricoes_publicacoes[]
   servicos                 servicos[]
   suspensoes               suspensoes[]
   suspensoes_retiradas     suspensoes_retiradas[]
@@ -415,12 +416,13 @@ model relatorio {
 }
 
 model restricoes {
-  id                              Int            @id(map: "RESTRICOES_pkey") @default(autoincrement())
-  restricao                       String?        @db.VarChar(80)
-  tipo_restricao                  String         @db.VarChar(15)
-  programacoes_restricao_execucao programacoes[] @relation("programacoes_restricao_execucao")
-  programacoes_restricao_prog1    programacoes[] @relation("programacoes_restricao_prog1")
-  programacoes_restricao_prog2    programacoes[] @relation("programacoes_restricao_prog2")
+  id                              Int                      @id(map: "RESTRICOES_pkey") @default(autoincrement())
+  restricao                       String?                  @db.VarChar(80)
+  tipo_restricao                  String                   @db.VarChar(15)
+  programacoes_restricao_execucao programacoes[]           @relation("programacoes_restricao_execucao")
+  programacoes_restricao_prog1    programacoes[]           @relation("programacoes_restricao_prog1")
+  programacoes_restricao_prog2    programacoes[]           @relation("programacoes_restricao_prog2")
+  restricoes_publicacoes          restricoes_publicacoes[]
 }
 
 model servicos {
@@ -694,6 +696,18 @@ model suspensoes_retiradas {
   data_retirada      DateTime? @db.Date
   obras              obras     @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
   status             status?   @relation(fields: [id_status_retirada], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_status")
+}
+
+model restricoes_publicacoes {
+  id               Int        @id @default(autoincrement())
+  id_obra          Int
+  id_restricao     Int        @default(1)
+  responsabilidade String     @db.VarChar(50)
+  nome_responsavel String     @db.VarChar(50)
+  status_restricao String     @db.VarChar(20)
+  data_resolucao   DateTime?  @db.Date
+  obras            obras      @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
+  restricoes       restricoes @relation(fields: [id_restricao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes")
 }
 
 view exportacao_obras_executadas {

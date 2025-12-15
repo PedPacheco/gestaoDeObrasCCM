@@ -65,37 +65,41 @@ export class AuthService {
   }
 
   async register(registrationData: RegisterUserDTO): Promise<User> {
-    const { username, senha } = registrationData;
+    try {
+      const { username, senha } = registrationData;
 
-    const existingUser = await this.usersService.findUser(username);
+      const existingUser = await this.usersService.findUser(username);
 
-    let password = senha;
+      let password = senha;
 
-    if (existingUser) {
-      throw new BadRequestException('Nome de usuário já está em uso.');
-    }
+      if (existingUser) {
+        throw new BadRequestException('Nome de usuário já está em uso.');
+      }
 
-    if (!password) {
-      password = generateRandomPassword();
-    }
+      if (!password) {
+        password = generateRandomPassword();
+      }
 
-    const salt = await genSalt();
-    const hashedPassword = await hash(password, salt);
+      const salt = await genSalt();
+      const hashedPassword = await hash(password, salt);
 
-    const user = new User({
-      ...registrationData,
-      senha: hashedPassword,
-    });
+      const user = new User({
+        ...registrationData,
+        senha: hashedPassword,
+      });
 
-    const created = await this.authRepository.register(user);
+      const created = await this.authRepository.register(user);
 
-    await this.emailService.sendEmail(
-      '10009591@edp.com.br',
-      'Bem vindo ao sistema',
-      `Usuário: ${username} 
+      await this.emailService.sendEmail(
+        '10009591@edp.com.br',
+        'Bem vindo ao sistema',
+        `Usuário: ${username} 
       Senha: ${password}`,
-    );
+      );
 
-    return created;
+      return created;
+    } catch (error) {
+      throw error;
+    }
   }
 }

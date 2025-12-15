@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import MainScheduleRestrictions from "@/components/scheduleComponents/scheduleRestrictions/MainScheduleRestrictions";
+import MainScheduleRestrictions from "@/components/restrictionsComponents/scheduleRestrictions/MainScheduleRestrictions";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { Transform } from "@/utils/transform";
 
@@ -24,8 +24,12 @@ export default async function ScheduleRestrictions() {
 
     filtersValues = {
       ...formattedSelectedItems,
-      dataInicial: params.startDate,
-      dataFinal: params.endDate,
+      dataInicial: params?.startDate
+        ? dayjs(params?.startDate).format("DD/MM/YYYY")
+        : null,
+      dataFinal: params?.endDate
+        ? dayjs(params?.endDate).format("DD/MM/YYYY")
+        : null,
       executado: params.executed,
     };
   } else {
@@ -43,9 +47,10 @@ export default async function ScheduleRestrictions() {
       grupo: true,
       tipo: true,
       restricao: true,
+      tipoRestricao: ["PROGRAMAÇÃO"],
     }),
     fetchData(
-      `${process.env.NEXT_PUBLIC_API_URL}/programacao/restricoes`,
+      `${process.env.NEXT_PUBLIC_API_URL}/restricao/programacao`,
       filtersValues,
       cookieStore.get("token")?.value,
       { cache: "no-store" }
@@ -86,6 +91,7 @@ export default async function ScheduleRestrictions() {
         filtersData={filters}
         columns={columns}
         token={token}
+        url="programacao"
       />
     </EmotionCacheProvider>
   );

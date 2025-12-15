@@ -11,8 +11,6 @@ import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { Transform } from "@/utils/transform";
 import { Checkbox } from "@mui/material";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { capitalize } from "@/utils/formatValue";
 import { DateFilter } from "@/components/common/DateFilter";
@@ -25,6 +23,7 @@ interface filters {
   tipo: { id: string; tipo_obra: string; id_grupo: number }[];
   municipio: { id: string; municipio: string; id_regional: number }[];
   grupo: { id: string; grupo: string }[];
+  restricao: { id: string; restricao: string; tipo_restricao: string };
 }
 
 interface ScheduleByDateFiltersProps {
@@ -34,7 +33,6 @@ interface ScheduleByDateFiltersProps {
   endDate: Dayjs | null;
   setStartDate: (date: Dayjs | null) => void;
   setEndDate: (date: Dayjs | null) => void;
-  handleDateChange: (newDate: Dayjs | null, key: string) => void;
   applyFilters: (
     params: Record<string, string | boolean | string | null>
   ) => void;
@@ -44,7 +42,6 @@ interface ScheduleByDateFiltersProps {
 export default function WeeklyScheduleFilters({
   data,
   keyFilters,
-  handleDateChange,
   endDate,
   setEndDate,
   setStartDate,
@@ -109,7 +106,7 @@ export default function WeeklyScheduleFilters({
         />
 
         {Object.entries(data)
-          .slice(0, 5)
+          .slice(0, 6)
           .map(([key, value], index) => {
             const valueKey = Object.keys(value[0])[0];
             const displayKey = Object.keys(value[0])[1];

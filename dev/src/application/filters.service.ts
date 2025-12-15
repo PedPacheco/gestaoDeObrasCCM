@@ -31,6 +31,7 @@ export class FiltersService {
       restricao,
       tecnico,
       statusProgramacao,
+      tipoRestricao,
     }: FiltersDto,
     condition?: any,
   ) {
@@ -145,7 +146,13 @@ export class FiltersService {
 
     if (restricao) {
       result['restricao'] = await this.getCachedData('restricao', () =>
-        this.filtersRepository.getData('restricoes', ['id', 'restricao']),
+        this.filtersRepository.getData(
+          'restricoes',
+          ['id', 'restricao', 'tipo_restricao'],
+          {
+            tipo_restricao: { in: tipoRestricao },
+          },
+        ),
       );
     }
 

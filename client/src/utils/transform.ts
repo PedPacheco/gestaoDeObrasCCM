@@ -113,6 +113,16 @@ export function transformExecutionReport(data: any): ExecutionReportData {
   };
 }
 
-export function transformRestrictions(data: any) {
-  return {};
+export function buildPublicationRestrictionPayload(data: any) {
+  const restrictionArray = [
+    {
+      idWork: data.id_obra,
+      idRestriction: data.id_restricao,
+      responsibility: data.responsabilidade,
+      responsibleName: data.nome_responsavel,
+      restrictionStatus: data.status_restricao,
+    },
+  ];
+
+  return restrictionArray;
 }

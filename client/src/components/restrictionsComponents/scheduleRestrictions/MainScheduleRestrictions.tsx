@@ -1,28 +1,39 @@
 "use client";
 
-import dayjs, { Dayjs } from "dayjs";
+import { Dayjs } from "dayjs";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { Cookies } from "react-cookie";
 
 import { fetchData } from "@/actions/fetchData.action";
 import ErrorModal from "@/components/common/ErrorModal";
-import { TableWithPagination } from "@/components/common/TableWithPagination";
-import { MainInterface } from "@/interfaces/mainInterface";
 import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
+import RestrictionDrawer from "./RestrictionDrawer";
+import ScheduleRestrictionsTable from "./scheduleRestrictionsTable";
 import WeeklyScheduleFilters from "./WeeklyScheduleFilters";
+import { InsertPublicationRestrictions } from "@/actions/restrictions";
 
 const cookies = new Cookies();
+
+interface MainScheduleRestrictionsProps {
+  filtersData: any;
+  data: any;
+  token?: string;
+  columns: Record<string, string>;
+  url: string;
+}
 
 export default function MainScheduleRestrictions({
   data,
   filtersData,
   columns,
   token,
-}: MainInterface<any>) {
+  url,
+}: MainScheduleRestrictionsProps) {
   const [filteredData, setFilteredData] = useState(data);
   const [error, setError] = useState<string | null>();
   const [page, setPage] = useState(0);
@@ -30,40 +41,45 @@ export default function MainScheduleRestrictions({
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
 
-  // const [drawerOpen, setDrawerOpen] = useState(false);
-  // const [selectedRestriction, setSelectedRestriction] = useState<any>(null);
+  const cookieKey =
+    url === "programacao"
+      ? "scheduleRestrictionsFilters"
+      : "publicationRestrictionFilters";
 
-  // const router = useRouter();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedRestriction, setSelectedRestriction] = useState<any>(null);
+
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     setFilteredData(data);
   }, [data]);
 
-  // const handleEdit = (item: any) => {
-  //   setSelectedRestriction(item);
-  //   setDrawerOpen(true);
-  // };
+  const handleAdd = (item: any) => {
+    setSelectedRestriction(item);
+    setDrawerOpen(true);
+  };
 
-  // const handleSave = async (updatedItem: any) => {
-  //   setDrawerOpen(false);
+  const handleSave = async (restriction: any) => {
+    setDrawerOpen(false);
 
-  //   startTransition(async () => {
-  //     try {
-  //       await UpdateRestrictions(updatedItem);
+    startTransition(async () => {
+      try {
+        const formattedData = Object.fromEntries(
+          Object.entries(restriction).map(([key, value]) => [
+            key,
+            value === "" ? null : value,
+          ])
+        );
 
-  //       router.refresh();
-  //     } catch (error: any) {
-  //       setError(error.message);
-  //     }
-  //   });
-  // };
+        await InsertPublicationRestrictions(formattedData);
 
-  const handleDateChange = (newDate: Dayjs | null, key: string) => {
-    if (newDate) {
-      if (key === "startDate") setStartDate(newDate);
-      if (key === "endDate") setEndDate(newDate);
-    }
+        router.refresh();
+      } catch (error: any) {
+        setError(error.message);
+      }
+    });
   };
 
   const fetchScheduleRestrictions = useCallback(
@@ -71,7 +87,7 @@ export default function MainScheduleRestrictions({
       startTransition(async () => {
         try {
           const response = await fetchData(
-            `${process.env.NEXT_PUBLIC_API_URL}/programacao/restricoes`,
+            `${process.env.NEXT_PUBLIC_API_URL}/restricao/${url}`,
             params,
             token
           );
@@ -82,14 +98,14 @@ export default function MainScheduleRestrictions({
         }
       });
     },
-    [token]
+    [token, url]
   );
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
 
-    const currentFilters = cookies.get("scheduleForDayFilters")
-      ? cookies.get("scheduleForDayFilters")
+    const currentFilters = cookies.get("cookieKey")
+      ? cookies.get("cookieKey")
       : {};
 
     const filtersValues = {
@@ -109,32 +125,34 @@ export default function MainScheduleRestrictions({
         <div className="my-6 w-4/5 flex flex-col">
           <WeeklyScheduleFilters
             data={filtersData}
-            keyFilters="scheduleRestrictionsFilters"
+            keyFilters={cookieKey}
             endDate={endDate}
             startDate={startDate}
             setEndDate={setEndDate}
             setStartDate={setStartDate}
-            handleDateChange={handleDateChange}
             applyFilters={fetchScheduleRestrictions}
             isPending={isPending}
           />
         </div>
 
-        <TableWithPagination
+        <ScheduleRestrictionsTable
           columns={columns}
           data={filteredData.works}
           totals={filteredData.totals}
           handleChangePage={handleChangePage}
           page={page}
+          handleAdd={handleAdd}
         />
 
-        {/* <EditRestrictionDrawer
-          open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          data={selectedRestriction}
-          onSave={handleSave}
-          restrictionsValues={filtersData.restricao}
-        /> */}
+        {url === "publicacoes" ? (
+          <RestrictionDrawer
+            open={drawerOpen}
+            onClose={() => setDrawerOpen(false)}
+            data={selectedRestriction}
+            onSave={handleSave}
+            restrictionsValues={filtersData.restricao}
+          />
+        ) : undefined}
 
         {error && (
           <ErrorModal

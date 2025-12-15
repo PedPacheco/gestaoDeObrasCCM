@@ -1,5 +1,4 @@
 import { GetMonthlySummaryService } from 'src/application/schedule/getMonthlySummary.service';
-import { GetScheduleRestrictionsService } from 'src/application/schedule/getScheduleRestrictions.service';
 import { GetScheduleValuesService } from 'src/application/schedule/getScheduleValues.service';
 import { GetTotalValuesScheduleService } from 'src/application/schedule/getTotalValuesSchedule.service';
 import { RejectionsOfSchedulesService } from 'src/application/schedule/rejectionOfSchedules.service';
@@ -9,7 +8,6 @@ import {
   GetMonthlySummaryDTO,
   GetScheduleValuesDTO,
   GetTotalValuesScheduleDTO,
-  GetValueWeeklyScheduleDTO,
 } from 'src/interface/dtos/scheduleDTO';
 
 import {
@@ -28,7 +26,7 @@ export class ScheduleController {
   constructor(
     private getTotalValuesScheduleService: GetTotalValuesScheduleService,
     private getScheduleValuesService: GetScheduleValuesService,
-    private getScheduleRestrictionsService: GetScheduleRestrictionsService,
+
     private getMonthlySummaryService: GetMonthlySummaryService,
     private rejectionsOfSchedulesService: RejectionsOfSchedulesService,
   ) {}
@@ -61,19 +59,6 @@ export class ScheduleController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Valores das programações retornadas com sucesso',
-      data: response,
-    };
-  }
-
-  @Get('restricoes')
-  @UseGuards(PermissionGuard)
-  async getScheduleRestrictions(@Query() filters: GetValueWeeklyScheduleDTO) {
-    const response =
-      await this.getScheduleRestrictionsService.getRestrictions(filters);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Restrições das programações retornadas com sucesso',
       data: response,
     };
   }
