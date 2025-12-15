@@ -2,19 +2,20 @@
 
 import dayjs, { Dayjs } from "dayjs";
 import { useCallback, useEffect, useState, useTransition } from "react";
+import { Cookies } from "react-cookie";
 
 import { fetchData } from "@/actions/fetchData.action";
 import ErrorModal from "@/components/common/ErrorModal";
+import { TableWithPagination } from "@/components/common/TableWithPagination";
 import { MainInterface } from "@/interfaces/mainInterface";
+import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
-
-import WeeklyScheduleFilters from "../weeklySchedule/WeeklyScheduleFilters";
-import ScheduleRestrictionsTable from "./scheduleRestrictionsTable";
-// import EditRestrictionDrawer from "./EditRestrictionDrawer";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { UpdateRestrictions } from "@/actions/schedules";
-import { useRouter } from "next/navigation";
+
+import WeeklyScheduleFilters from "./WeeklyScheduleFilters";
+
+const cookies = new Cookies();
 
 export default function MainScheduleRestrictions({
   data,
@@ -22,60 +23,44 @@ export default function MainScheduleRestrictions({
   columns,
   token,
 }: MainInterface<any>) {
-  const [filteredData, setFilteredData] = useState([]);
-  const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
+  const [filteredData, setFilteredData] = useState(data);
   const [error, setError] = useState<string | null>();
-  const [weekRange, setWeekRange] = useState<{
-    start: string;
-    end: string;
-  }>({
-    start: selectedDate.startOf("isoWeek").format("DD/MM/YYYY"),
-    end: selectedDate.endOf("isoWeek").format("DD/MM/YYYY"),
-  });
+  const [page, setPage] = useState(0);
 
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedRestriction, setSelectedRestriction] = useState<any>(null);
+  const [startDate, setStartDate] = useState<Dayjs | null>(null);
+  const [endDate, setEndDate] = useState<Dayjs | null>(null);
 
-  const router = useRouter();
+  // const [drawerOpen, setDrawerOpen] = useState(false);
+  // const [selectedRestriction, setSelectedRestriction] = useState<any>(null);
+
+  // const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     setFilteredData(data);
   }, [data]);
 
-  const handleEdit = (item: any) => {
-    setSelectedRestriction(item);
-    setDrawerOpen(true);
-  };
+  // const handleEdit = (item: any) => {
+  //   setSelectedRestriction(item);
+  //   setDrawerOpen(true);
+  // };
 
-  const handleSave = async (updatedItem: any) => {
-    setDrawerOpen(false);
+  // const handleSave = async (updatedItem: any) => {
+  //   setDrawerOpen(false);
 
-    startTransition(async () => {
-      try {
-        await UpdateRestrictions(updatedItem);
+  //   startTransition(async () => {
+  //     try {
+  //       await UpdateRestrictions(updatedItem);
 
-        router.refresh();
-      } catch (error: any) {
-        setError(error.message);
-      }
-    });
-  };
-
-  const handleDateChange = (newDate: Dayjs | null) => {
-    if (newDate) {
-      const startOfWeek = newDate.startOf("isoWeek");
-      const endOfWeek = newDate.endOf("isoWeek");
-      setSelectedDate(newDate);
-      setWeekRange({
-        start: startOfWeek.format("DD/MM/YYYY"),
-        end: endOfWeek.format("DD/MM/YYYY"),
-      });
-    }
-  };
+  //       router.refresh();
+  //     } catch (error: any) {
+  //       setError(error.message);
+  //     }
+  //   });
+  // };
 
   const fetchScheduleRestrictions = useCallback(
-    (params: Record<string, string | boolean>) => {
+    (params: Record<string, string | boolean | string | null>) => {
       startTransition(async () => {
         try {
           const response = await fetchData(
@@ -93,6 +78,24 @@ export default function MainScheduleRestrictions({
     [token]
   );
 
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+
+    const currentFilters = cookies.get("scheduleForDayFilters")
+      ? cookies.get("scheduleForDayFilters")
+      : {};
+
+    const filtersValues = {
+      ...Transform(currentFilters?.selectedItems || {}),
+      dataInicial: currentFilters?.startDate || null,
+      dataFinal: currentFilters?.endDate || null,
+      executado: currentFilters?.executed || "false",
+      page: newPage.toString(),
+    };
+
+    fetchScheduleRestrictions(filtersValues);
+  };
+
   return (
     <>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -100,20 +103,21 @@ export default function MainScheduleRestrictions({
           <WeeklyScheduleFilters
             data={filtersData}
             keyFilters="scheduleRestrictionsFilters"
-            dateInitial={selectedDate}
-            weekRange={weekRange}
-            setWeekRange={setWeekRange}
-            handleDateChange={handleDateChange}
-            setDateInitial={setSelectedDate}
+            endDate={endDate}
+            startDate={startDate}
+            setEndDate={setEndDate}
+            setStartDate={setStartDate}
             applyFilters={fetchScheduleRestrictions}
             isPending={isPending}
           />
         </div>
 
-        <ScheduleRestrictionsTable
+        <TableWithPagination
           columns={columns}
-          data={filteredData}
-          onEdit={handleEdit}
+          data={filteredData.works}
+          totals={filteredData.totals}
+          handleChangePage={handleChangePage}
+          page={page}
         />
 
         {/* <EditRestrictionDrawer

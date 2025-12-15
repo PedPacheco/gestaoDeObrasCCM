@@ -1,11 +1,12 @@
 "use client";
 
+import "dayjs/locale/pt-br";
+
 import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { ButtonComponent } from "@/components/common/Button";
-import { DateFilter } from "@/components/common/DateFilter";
 import ErrorModal from "@/components/common/ErrorModal";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
@@ -14,6 +15,8 @@ import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 import EntryByDateTable from "./entryByDateTable";
 
@@ -40,29 +43,26 @@ export default function MainEntryByDate({
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {}
   );
-  const [date, setDate] = useState<Dayjs | null>(dayjs());
-  const [filterType, setFilterType] = useState<string>("day");
+  const [startDate, setStartDate] = useState<Dayjs | null>(dayjs());
+  const [endDate, setEndDate] = useState<Dayjs | null>(dayjs());
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     if (filters) {
       setSelectedItems(filters.selectedItems || {});
-      setDate(dayjs(filters.date));
-      setFilterType(filters.filterType);
+      setStartDate(filters?.startDate ? dayjs(filters.startDate) : null);
+      setEndDate(filters?.endDate ? dayjs(filters.endDate) : null);
     }
   }, [filters]);
 
   function fetchWorks() {
-    saveFilters({ selectedItems, date, filterType });
+    saveFilters({ selectedItems, startDate, endDate });
     const formattedSelectedItems = Transform(selectedItems);
 
     const params = {
       ...formattedSelectedItems,
-      data:
-        filterType === "day"
-          ? dayjs(date).format("DD/MM/YYYY")
-          : dayjs(date).format("MM/YYYY"),
-      tipoFiltro: filterType,
+      dataInicial: startDate ? dayjs(startDate).format("DD/MM/YYYY") : null,
+      dataFinal: endDate ? dayjs(endDate).format("DD/MM/YYYY") : null,
     };
 
     startTransition(async () => {
@@ -82,20 +82,18 @@ export default function MainEntryByDate({
 
   function handleCleanigFilters() {
     setSelectedItems({});
-    setDate(dayjs());
-    setFilterType("day");
+    setStartDate(dayjs());
+    setEndDate(dayjs());
 
     clearFilters();
-
-    const params = {
-      tipoFiltro: "day",
-      data: dayjs().format("DD/MM/YYYY"),
-    };
 
     startTransition(async () => {
       const response = await fetchData(
         `${process.env.NEXT_PUBLIC_API_URL}/entrada/data`,
-        params,
+        {
+          dataInicial: dayjs().format("DD/MM/YYYY"),
+          dataFinal: dayjs().format("DD/MM/YYYY"),
+        },
         token
       );
 
@@ -107,13 +105,33 @@ export default function MainEntryByDate({
     <>
       <div className="my-6 w-11/12 flex flex-col">
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center">
-          <DateFilter
-            date={date}
-            setDate={setDate}
-            type={filterType}
-            setType={setFilterType}
-            marginLeft="ml-4"
-          />
+          <LocalizationProvider
+            dateAdapter={AdapterDayjs}
+            adapterLocale="pt-br"
+          >
+            <DatePicker
+              label="Data Inicial"
+              value={startDate}
+              onChange={(newDate) => setStartDate(newDate)}
+              format="DD/MM/YYYY"
+              className="mb-2 w-3/4 pr-2"
+              slotProps={{ textField: { size: "small", fullWidth: true } }}
+            />
+          </LocalizationProvider>
+
+          <LocalizationProvider
+            dateAdapter={AdapterDayjs}
+            adapterLocale="pt-br"
+          >
+            <DatePicker
+              label="Data Final"
+              value={endDate}
+              format="DD/MM/YYYY"
+              onChange={(newDate) => setEndDate(newDate)}
+              className="mb-2 w-3/4"
+              slotProps={{ textField: { size: "small", fullWidth: true } }}
+            />
+          </LocalizationProvider>
 
           {Object.entries(filtersData).map(([key, value], index) => {
             const valueKey = Object.keys(value[0])[0];

@@ -7,54 +7,45 @@ import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
 
 interface DateFilterProps {
-  date: dayjs.Dayjs | null;
-  setDate: (date: dayjs.Dayjs) => void;
-  type: string;
-  setType: (type: string) => void;
-  marginLeft?: string;
+  startDate: dayjs.Dayjs | null;
+  setStartDate: (date: dayjs.Dayjs | null) => void;
+  endDate: dayjs.Dayjs | null;
+  setEndDate: (date: dayjs.Dayjs | null) => void;
+  size?: string;
+  spacing?: string;
 }
 
 export function DateFilter({
-  date,
-  setDate,
-  type,
-  setType,
-  marginLeft,
+  startDate,
+  setStartDate,
+  endDate,
+  setEndDate,
+  size,
+  spacing,
 }: DateFilterProps) {
   return (
     <>
-      <FormControl
-        className={`mb-2 ${
-          marginLeft ? marginLeft : "lg:mx-auto"
-        } w-full xl:w-3/4`}
-        size="small"
-      >
-        <InputLabel htmlFor="tipo-filtro">Tipo de Filtro</InputLabel>
-        <Select
-          value={type}
-          onChange={(event) => setType(event.target.value)}
-          id="tipo-filtro"
-        >
-          <MenuItem value="" className="p-4"></MenuItem>
-          <MenuItem value="day">Por Dia</MenuItem>
-          <MenuItem value="month">Por Mês</MenuItem>
-        </Select>
-      </FormControl>
-      <div
-        className={`mb-2 ${
-          marginLeft ? marginLeft : "lg:mx-auto"
-        } w-full xl:w-3/4`}
-      >
-        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-br">
-          <DatePicker
-            views={type === "day" ? ["day"] : ["month", "year"]}
-            format={type === "day" ? "DD/MM/YYYY" : "MM/YYYY"}
-            value={date}
-            onChange={(value) => (value ? setDate(value) : dayjs())}
-            slotProps={{ textField: { size: "small", fullWidth: true } }}
-          />
-        </LocalizationProvider>
-      </div>
+      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-br">
+        <DatePicker
+          label="Data Inicial"
+          value={startDate}
+          onChange={(newDate) => setStartDate(newDate)}
+          format="DD/MM/YYYY"
+          className={`mb-2 ${size} ${spacing}`}
+          slotProps={{ textField: { size: "small", fullWidth: true } }}
+        />
+      </LocalizationProvider>
+
+      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-br">
+        <DatePicker
+          label="Data Final"
+          value={endDate}
+          format="DD/MM/YYYY"
+          onChange={(newDate) => setEndDate(newDate)}
+          className={`mb-2 ${size} ${spacing}`}
+          slotProps={{ textField: { size: "small", fullWidth: true } }}
+        />
+      </LocalizationProvider>
     </>
   );
 }

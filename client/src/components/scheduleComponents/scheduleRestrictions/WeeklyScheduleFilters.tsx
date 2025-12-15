@@ -15,6 +15,7 @@ import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { capitalize } from "@/utils/formatValue";
+import { DateFilter } from "@/components/common/DateFilter";
 
 dayjs.extend(isoWeek);
 
@@ -29,23 +30,23 @@ interface filters {
 interface ScheduleByDateFiltersProps {
   data: filters;
   keyFilters: string;
-  weekRange: Record<string, string>;
-  handleDateChange: (newDate: Dayjs | null) => void;
-  dateInitial: Dayjs;
-  setDateInitial: (date: Dayjs) => void;
-  setWeekRange: (range: { start: string; end: string }) => void;
-  applyFilters: (params: Record<string, string | boolean>) => void;
+  startDate: Dayjs | null;
+  endDate: Dayjs | null;
+  setStartDate: (date: Dayjs | null) => void;
+  setEndDate: (date: Dayjs | null) => void;
+  applyFilters: (
+    params: Record<string, string | boolean | string | null>
+  ) => void;
   isPending: boolean;
 }
 
 export default function WeeklyScheduleFilters({
   data,
   keyFilters,
-  dateInitial,
-  handleDateChange,
-  setWeekRange,
-  weekRange,
-  setDateInitial,
+  endDate,
+  setEndDate,
+  setStartDate,
+  startDate,
   applyFilters,
   isPending,
 }: ScheduleByDateFiltersProps) {
@@ -60,27 +61,20 @@ export default function WeeklyScheduleFilters({
 
   useEffect(() => {
     if (filters) {
-      const date = dayjs(filters.dateInitial);
-
       setSelectedItems(filters.selectedItems);
       setExecuted(filters.executed);
-      setDateInitial(date);
-      setWeekRange({
-        start: date.startOf("isoWeek").format("DD/MM/YYYY"),
-        end: date.endOf("isoWeek").format("DD/MM/YYYY"),
-      });
     }
-  }, [filters, setDateInitial, setWeekRange]);
+  }, [filters]);
 
   function handleApplyFilters() {
-    saveFilters({ selectedItems, executed, weekRange, dateInitial });
+    saveFilters({ selectedItems, executed, startDate, endDate });
 
     const formattedSelectedItems = Transform(selectedItems);
 
     const params = {
       ...formattedSelectedItems,
-      dataInicial: weekRange.start,
-      dataFinal: weekRange.end,
+      dataInicial: startDate ? startDate.format("DD/MM/YYYY") : "",
+      dataFinal: endDate ? endDate.format("DD/MM/YYYY") : "",
       executado: executed,
     };
 
@@ -89,18 +83,13 @@ export default function WeeklyScheduleFilters({
 
   function handleCleanigFilters() {
     setSelectedItems({});
-    setWeekRange({
-      start: dayjs().startOf("isoWeek").format("DD/MM/YYYY"),
-      end: dayjs().endOf("isoWeek").format("DD/MM/YYYY"),
-    });
-    setDateInitial(dayjs());
+    setStartDate(null);
+    setEndDate(null);
     setExecuted(false);
 
     clearFilters();
 
     applyFilters({
-      dataInicial: dayjs().startOf("isoWeek").format("DD/MM/YYYY"),
-      dataFinal: dayjs().endOf("isoWeek").format("DD/MM/YYYY"),
       executado: "false",
     });
   }
@@ -108,15 +97,14 @@ export default function WeeklyScheduleFilters({
   return (
     <>
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center">
-        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-br">
-          <DatePicker
-            label="Selecione uma data"
-            value={dateInitial}
-            onChange={handleDateChange}
-            className="mb-2 w-full lg:w-3/4"
-            slotProps={{ textField: { size: "small", fullWidth: true } }}
-          />
-        </LocalizationProvider>
+        <DateFilter
+          endDate={endDate}
+          startDate={startDate}
+          setEndDate={setEndDate}
+          setStartDate={setStartDate}
+          size="w-full"
+          spacing="pr-2"
+        />
 
         {Object.entries(data)
           .slice(0, 5)

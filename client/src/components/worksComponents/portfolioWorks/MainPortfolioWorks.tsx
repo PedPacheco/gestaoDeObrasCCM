@@ -84,7 +84,10 @@ export default function PortfolioWorks({
         const downloadUrl = window.URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = downloadUrl;
-        link.download = "Exportação obras em carteira.xlsx";
+        link.download =
+          pathname === "/obras-executadas"
+            ? "Exportação obras executadas"
+            : "Exportação obras em carteira";
         document.body.append(link);
         link.click();
 
@@ -145,7 +148,8 @@ export default function PortfolioWorks({
       </div>
 
       <TableWithPagination
-        data={filteredData}
+        data={filteredData.works}
+        totals={filteredData.totals}
         columns={columns}
         sliceEndIndex={6}
         handleChangePage={handleChangePage}

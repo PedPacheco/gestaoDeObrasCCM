@@ -1,12 +1,6 @@
 import { Transform, Type } from 'class-transformer';
-import {
-  IsArray,
-  IsDate,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
-import * as moment from 'moment';
+import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
+
 import { convertParameterValue } from 'src/utils/convertParameterValue';
 
 export class GetEntryOfWorksDTO {
@@ -46,16 +40,13 @@ export class GetEntryOfWorksDTO {
 }
 
 export class GetEntryOfWorksByDayDTO {
-  @IsDate()
-  @Transform(({ value }) => {
-    const formats = ['DD/MM/YYYY', 'MM/YYYY'];
-    const date = moment(value, formats, true);
-    return date.isValid() ? date.toDate() : null;
-  })
-  data: Date;
-
+  @IsOptional()
   @IsString()
-  tipoFiltro: string;
+  dataInicial: string;
+
+  @IsOptional()
+  @IsString()
+  dataFinal: string;
 
   @IsOptional()
   @IsArray()

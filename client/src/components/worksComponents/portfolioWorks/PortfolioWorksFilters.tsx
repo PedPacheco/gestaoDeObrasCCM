@@ -1,5 +1,8 @@
 "use client";
 
+import "dayjs/locale/pt-br";
+
+import dayjs, { Dayjs } from "dayjs";
 import { useCallback, useEffect, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
@@ -14,7 +17,8 @@ import {
   MagnifyingGlassCircleIcon,
 } from "@heroicons/react/20/solid";
 import { InputAdornment, TextField } from "@mui/material";
-import dayjs, { Dayjs } from "dayjs";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateFilter } from "@/components/common/DateFilter";
 
 interface PortfolioWorksFiltersProps {
@@ -79,8 +83,8 @@ export default function PortfolioWorksFilters({
     {}
   );
   const [ovnota, setOvnota] = useState<string>("");
-  const [date, setDate] = useState<Dayjs | null>(null);
-  const [filterType, setFilterType] = useState<string>("month");
+  const [startDate, setStartDate] = useState<Dayjs | null>(null);
+  const [endDate, setEndDate] = useState<Dayjs | null>(null);
 
   useEffect(() => {
     if (!filters) return;
@@ -89,8 +93,8 @@ export default function PortfolioWorksFilters({
     setOvnota(filters.ovnota || "");
 
     if (url === "completedWorksFilters") {
-      setDate(filters.date ? dayjs(filters.date) : null);
-      setFilterType(filters.filterType || "month");
+      setStartDate(filters?.startDate ? dayjs(filters.startDate) : null);
+      setEndDate(filters?.endDate ? dayjs(filters.endDate) : null);
     }
   }, [filters, url]);
 
@@ -98,16 +102,16 @@ export default function PortfolioWorksFilters({
     const baseFilters: {
       selectedItems: Record<string, string[]>;
       ovnota: string;
-      date?: Dayjs | null;
-      filterType?: string;
+      startDate?: Dayjs | null;
+      endDate?: Dayjs | null;
     } = {
       selectedItems,
       ovnota,
     };
 
     if (url === "completedWorksFilters") {
-      baseFilters["date"] = date;
-      baseFilters["filterType"] = filterType;
+      baseFilters["startDate"] = startDate;
+      baseFilters["endDate"] = endDate;
     }
 
     saveFilters(baseFilters);
@@ -119,10 +123,10 @@ export default function PortfolioWorksFilters({
     };
 
     if (url === "completedWorksFilters") {
-      params.data = date
-        ? dayjs(date).format(filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY")
-        : "";
-      params.tipoFiltro = filterType;
+      params.dataInicial = startDate
+        ? dayjs(startDate).format("DD/MM/YYYY")
+        : null;
+      params.dataFinal = endDate ? dayjs(endDate).format("DD/MM/YYYY") : null;
     }
 
     setPage(0);
@@ -134,8 +138,8 @@ export default function PortfolioWorksFilters({
     setOvnota("");
 
     if (url === "completedWorksFilters") {
-      setDate(null);
-      setFilterType("month");
+      setStartDate(null);
+      setEndDate(null);
     }
 
     clearFilters();
@@ -151,11 +155,12 @@ export default function PortfolioWorksFilters({
     };
 
     if (url === "completedWorksFilters") {
-      newSelectedItems.data = date
-        ? dayjs(date).format(filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY")
-        : "";
-
-      newSelectedItems.tipoFiltro = filterType;
+      newSelectedItems.dataInicial = startDate
+        ? dayjs(startDate).format("DD/MM/YYYY")
+        : null;
+      newSelectedItems.dataFinal = endDate
+        ? dayjs(endDate).format("DD/MM/YYYY")
+        : null;
     }
 
     generateExcel(newSelectedItems);
@@ -166,10 +171,12 @@ export default function PortfolioWorksFilters({
       <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-4 w-full">
         {url === "completedWorksFilters" && (
           <DateFilter
-            date={date}
-            setDate={setDate}
-            type={filterType}
-            setType={setFilterType}
+            endDate={endDate}
+            startDate={startDate}
+            setEndDate={setEndDate}
+            setStartDate={setStartDate}
+            size="w-full lg:w-3/4"
+            spacing="mx-auto"
           />
         )}
 

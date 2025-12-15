@@ -134,7 +134,12 @@ export class ExportRepository implements IExportRepository {
         obras: {
           select: {
             ovnota: true,
+            diagrama: true,
             ordem_dci: true,
+            ordem_dca: true,
+            ordem_dcd: true,
+            ordem_dcim: true,
+            executado: true,
             tipos: { select: { tipo_obra: true } },
             status: { select: { status: true } },
           },

@@ -138,8 +138,8 @@ describe('EntryController', () => {
   describe('getEntryByDay', () => {
     it('Should build filters, get values entry with filters and return the result with correct format', async () => {
       const entryDTO: GetEntryOfWorksByDayDTO = {
-        data: new Date('09/10/2024'),
-        tipoFiltro: 'mes',
+        dataInicial: '01/12/2025',
+        dataFinal: '02/12/2025',
         idRegional: [0],
         idMunicipio: [0],
         idGrupo: [0],
@@ -191,8 +191,8 @@ describe('EntryController', () => {
   describe('GetEntryWorksByDayDTO', () => {
     it('Should GetEntryOfWorksDTO transformer type of params', () => {
       const filters = {
-        data: '09/2024',
-        tipoFiltro: 'mes',
+        dataInicial: '01/12/2025',
+        dataFinal: '02/12/2025',
         idRegional: '2',
         idMunicipio: '4',
         idGrupo: '5',
@@ -207,13 +207,12 @@ describe('EntryController', () => {
       expect(instance.idGrupo).toStrictEqual([5]);
       expect(instance.idTipo).toStrictEqual([1]);
       expect(instance.idParceira).toStrictEqual([5]);
-      expect(instance.data).toEqual(moment('09/2024', 'MM/YYYY').toDate());
     });
 
     it('Should GetEntryOfWorksDTO transformer type of params with data null', () => {
       const filters = {
-        data: 'fsfs/2024',
-        tipoFiltro: 'mes',
+        dataInicial: '01/12/2025',
+        dataFinal: '02/12/2025',
         idRegional: '2,4',
         idMunicipio: '4',
         idGrupo: '5,6',
@@ -228,7 +227,6 @@ describe('EntryController', () => {
       expect(instance.idGrupo).toStrictEqual([5, 6]);
       expect(instance.idTipo).toStrictEqual([1]);
       expect(instance.idParceira).toStrictEqual([5]);
-      expect(instance.data).toEqual(null);
     });
   });
 });

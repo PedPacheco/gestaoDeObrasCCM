@@ -11,9 +11,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
-export class GetWorksInPortfolioRepository
-  implements IGetWorksInPortfolioRepository
-{
+export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   private applyFilters(query: Prisma.Sql, filters: GetWorksDTO) {

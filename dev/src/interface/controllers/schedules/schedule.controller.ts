@@ -2,7 +2,7 @@ import { GetMonthlySummaryService } from 'src/application/schedule/getMonthlySum
 import { GetScheduleRestrictionsService } from 'src/application/schedule/getScheduleRestrictions.service';
 import { GetScheduleValuesService } from 'src/application/schedule/getScheduleValues.service';
 import { GetTotalValuesScheduleService } from 'src/application/schedule/getTotalValuesSchedule.service';
-import { GetValuesWeeklyScheduleService } from 'src/application/schedule/getValuesWeeklySchedule.service';
+import { RejectionsOfSchedulesService } from 'src/application/schedule/rejectionOfSchedules.service';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import {
@@ -22,14 +22,12 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { RejectionsOfSchedulesService } from 'src/application/schedule/rejectionOfSchedules.service';
 
 @Controller('programacao')
 export class ScheduleController {
   constructor(
     private getTotalValuesScheduleService: GetTotalValuesScheduleService,
     private getScheduleValuesService: GetScheduleValuesService,
-    private getValuesWeeklyScheduleService: GetValuesWeeklyScheduleService,
     private getScheduleRestrictionsService: GetScheduleRestrictionsService,
     private getMonthlySummaryService: GetMonthlySummaryService,
     private rejectionsOfSchedulesService: RejectionsOfSchedulesService,
@@ -63,19 +61,6 @@ export class ScheduleController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Valores das programações retornadas com sucesso',
-      data: response,
-    };
-  }
-
-  @Get('semanal')
-  @UseGuards(VisualizationGuard)
-  async getValuesWeeklySchedule(@Query() filters: GetValueWeeklyScheduleDTO) {
-    const response =
-      await this.getValuesWeeklyScheduleService.getValues(filters);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Valores das programações da semana retornadas com sucesso',
       data: response,
     };
   }

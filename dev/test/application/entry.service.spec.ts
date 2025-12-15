@@ -163,63 +163,6 @@ describe('EntryService', () => {
   });
 
   describe('getEntryOfWorksByDay', () => {
-    it('should return values for the correct date', async () => {
-      const filters: GetEntryOfWorksByDayDTO = {
-        idGrupo: [1],
-        idMunicipio: [1],
-        idParceira: [1],
-        idRegional: [1],
-        idTipo: [1],
-        data: new Date('04/09/2024'),
-        tipoFiltro: 'day',
-      };
-
-      const mockObrasByDay = [
-        {
-          id: 1,
-          ovnota: '4805886',
-          pep: 'pep',
-          diagrama: '200000',
-          ordem_dci: '162344',
-          ordem_dcd: '1900998',
-          ordem_dca: '17088798',
-          ordem_dcim: '1900886',
-          entrada: moment('04/09/2024', 'DD/MM/YYYY', true).toDate(),
-          prazo: 90,
-          qtde_planejada: 8,
-          mo_planejada: 100,
-          tipos: { tipo_obra: 'BTZERO' },
-          turmas: { turma: 'ENGELMIG' },
-          municipios: { mun: 'SJC' },
-        } as unknown as obras,
-      ];
-
-      const response = {
-        ...mockObrasByDay[0],
-        prazo_fim: moment('03/12/2024', 'DD/MM/YYYY', true).toDate(),
-      };
-
-      const dateRange = { equals: filters.data };
-
-      mockRepository.getEntryOfWorksByDay.mockResolvedValue(mockObrasByDay);
-
-      const result = await entryService.getEntryOfWorksByDay(filters);
-
-      expect(mockRepository.getEntryOfWorksByDay).toHaveBeenCalledWith(
-        filters,
-        dateRange,
-      );
-
-      expect(result).toEqual({
-        works: [response],
-        totals: {
-          total_obras: 1,
-          total_mo_planejada: 100,
-          total_qtde_planejada: 8,
-        },
-      });
-    });
-
     it('Should return values for corretc month', async () => {
       const filters: GetEntryOfWorksByDayDTO = {
         idGrupo: undefined,
@@ -227,8 +170,8 @@ describe('EntryService', () => {
         idParceira: undefined,
         idRegional: undefined,
         idTipo: undefined,
-        data: moment('09/2024', 'MM/YYYY', true).toDate(),
-        tipoFiltro: 'month',
+        dataInicial: '01/12/2025',
+        dataFinal: '02/12/2025',
       };
 
       const mockObrasByMonth = [
@@ -257,8 +200,8 @@ describe('EntryService', () => {
       };
 
       const dateRange = {
-        gte: moment(filters.data).startOf('month').toDate(),
-        lte: moment(filters.data).endOf('month').startOf('day').toDate(),
+        gte: moment(filters.dataInicial, 'DD/MM/YYYY').toDate(),
+        lte: moment(filters.dataFinal, 'DD/MM/YYYY').toDate(),
       };
 
       mockRepository.getEntryOfWorksByDay.mockResolvedValue(mockObrasByMonth);

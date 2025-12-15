@@ -69,8 +69,8 @@ describe('GetScheduleValues', () => {
 
   it('should return the correct values with filters', async () => {
     const filters: GetScheduleValuesDTO = {
-      data: '10/2024',
-      tipoFiltro: 'month',
+      dataInicial: '01/10/2024',
+      dataFinal: '02/10/2024',
       executado: true,
       pendente: false,
       page: 0,
@@ -97,8 +97,8 @@ describe('GetScheduleValues', () => {
 
   it('should correctly format the data if no data is returned from the database query', async () => {
     const filters: GetScheduleValuesDTO = {
-      data: '01/10/2024',
-      tipoFiltro: 'day',
+      dataInicial: '01/10/2024',
+      dataFinal: '02/10/2024',
       executado: false,
       pendente: false,
       page: 0,
