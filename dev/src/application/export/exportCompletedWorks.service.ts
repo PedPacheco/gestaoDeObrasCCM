@@ -24,8 +24,6 @@ export class ExportCompletedWorksService {
       { header: 'Regional', key: 'abrev_regional', width: 10 },
       { header: 'Conjunto', key: 'conjunto', width: 25 },
       { header: 'Circuito', key: 'circuito', width: 10 },
-      { header: 'Entrada', key: 'entrada', width: 15 },
-      { header: 'Prazo final', key: 'prazo_fim', width: 15 },
       { header: 'Tipo da obra', key: 'tipo_obra', width: 30 },
       { header: 'Qtde planejada', key: 'qtde_planejada', width: 15 },
       { header: 'Qtde pend', key: 'qtde_pend', width: 15 },
@@ -33,37 +31,7 @@ export class ExportCompletedWorksService {
       { header: 'Status', key: 'status', width: 25 },
       { header: 'Parceira', key: 'turma', width: 15 },
       { header: 'Executado da obra', key: 'executado', width: 20 },
-      { header: 'Data Programada', key: 'first_data_prog', width: 20 },
-      { header: 'Programado', key: 'prog', width: 15 },
-      { header: 'Executado da programação', key: 'exec', width: 20 },
-      {
-        header: 'Observação programação',
-        key: 'equip_desligado',
-        width: 70,
-      },
-      { header: 'CHI', key: 'chi', width: 10 },
-      { header: 'Número DP', key: 'num_dp', width: 15 },
-      {
-        header: 'Horário início',
-        key: 'hora_ini',
-        width: 15,
-        style: { numFmt: 'hh:mm' },
-      },
-      {
-        header: 'Horário término',
-        key: 'hora_ter',
-        width: 15,
-        style: { numFmt: 'hh:mm' },
-      },
-      { header: 'Equipe LM', key: 'equipe_linha_morta', width: 10 },
-      { header: 'Equipe LV', key: 'equipe_linha_viva', width: 10 },
-      {
-        header: 'Equipe Regularização',
-        key: 'equipe_regularizacao',
-        width: 20,
-      },
-      { header: 'Data empreitamento', key: 'data_empreitamento', width: 20 },
-      { header: 'Empreendimento', key: 'empreendimento', width: 25 },
+      { header: 'Data Execução', key: 'data_conclusao', width: 20 },
     ];
 
     const batchSize = 1000;

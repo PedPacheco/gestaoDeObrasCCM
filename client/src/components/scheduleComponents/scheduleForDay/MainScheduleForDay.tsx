@@ -53,7 +53,7 @@ export default function MainSchduleForDay({
   const toggleModal = () => setOpen((prev) => !prev);
 
   const generateExcel = useCallback(
-    async (params: Record<string, string | boolean>) => {
+    async (params: Record<string, string | boolean | string | null>) => {
       const { page, ...formattedParams } = params;
 
       const url = mountUrl(

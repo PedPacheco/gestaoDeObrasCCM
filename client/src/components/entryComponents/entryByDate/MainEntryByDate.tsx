@@ -50,8 +50,8 @@ export default function MainEntryByDate({
   useEffect(() => {
     if (filters) {
       setSelectedItems(filters.selectedItems || {});
-      setStartDate(dayjs(filters.startDate) || null);
-      setEndDate(dayjs(filters.endDate) || null);
+      setStartDate(filters?.startDate ? dayjs(filters.startDate) : null);
+      setEndDate(filters?.endDate ? dayjs(filters.endDate) : null);
     }
   }, [filters]);
 
@@ -87,15 +87,13 @@ export default function MainEntryByDate({
 
     clearFilters();
 
-    const params = {
-      tipoFiltro: "day",
-      data: dayjs().format("DD/MM/YYYY"),
-    };
-
     startTransition(async () => {
       const response = await fetchData(
         `${process.env.NEXT_PUBLIC_API_URL}/entrada/data`,
-        params,
+        {
+          dataInicial: dayjs().format("DD/MM/YYYY"),
+          dataFinal: dayjs().format("DD/MM/YYYY"),
+        },
         token
       );
 

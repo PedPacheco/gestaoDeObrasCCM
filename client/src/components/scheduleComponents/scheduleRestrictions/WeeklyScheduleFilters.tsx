@@ -34,7 +34,6 @@ interface ScheduleByDateFiltersProps {
   endDate: Dayjs | null;
   setStartDate: (date: Dayjs | null) => void;
   setEndDate: (date: Dayjs | null) => void;
-  handleDateChange: (newDate: Dayjs | null, key: string) => void;
   applyFilters: (
     params: Record<string, string | boolean | string | null>
   ) => void;
@@ -44,7 +43,6 @@ interface ScheduleByDateFiltersProps {
 export default function WeeklyScheduleFilters({
   data,
   keyFilters,
-  handleDateChange,
   endDate,
   setEndDate,
   setStartDate,

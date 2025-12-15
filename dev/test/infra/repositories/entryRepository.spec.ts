@@ -133,7 +133,7 @@ describe('EntryRepository', () => {
   });
 
   describe('GetEntryOfWorksByDay', () => {
-    it('should build the query correctly withou values of filters', async () => {
+    it('should build the query correctly without values of filters', async () => {
       const filters: GetEntryOfWorksByDayDTO = {
         idGrupo: undefined,
         idMunicipio: undefined,
@@ -160,6 +160,36 @@ describe('EntryRepository', () => {
         id_turma: undefined,
         municipios: { id_regional: undefined },
         tipos: { id_grupo: undefined },
+      });
+    });
+
+    it('should build the query correctly withou values of filters', async () => {
+      const filters: GetEntryOfWorksByDayDTO = {
+        idGrupo: [1],
+        idMunicipio: [1],
+        idParceira: [1],
+        idRegional: [1],
+        idTipo: [1],
+        dataInicial: '01/10/2024',
+        dataFinal: '02/10/2024',
+      };
+
+      const dateRange = {
+        gte: moment(filters.dataInicial, 'DD/MM/YYYY').toDate(),
+        lte: moment(filters.dataInicial, 'DD/MM/YYYY').toDate(),
+      };
+
+      await entryRepository.getEntryOfWorksByDay(filters, dateRange);
+
+      const call = prisma.obras.findMany.mock.calls[0][0];
+
+      expect(call.where).toMatchObject({
+        entrada: dateRange,
+        id_tipo: { in: [1] },
+        id_gpm: { in: [1] },
+        id_turma: { in: [1] },
+        municipios: { id_regional: { in: [1] } },
+        tipos: { id_grupo: { in: [1] } },
       });
     });
   });

@@ -59,13 +59,6 @@ export default function MainScheduleRestrictions({
   //   });
   // };
 
-  const handleDateChange = (newDate: Dayjs | null, key: string) => {
-    if (newDate) {
-      if (key === "startDate") setStartDate(newDate);
-      if (key === "endDate") setEndDate(newDate);
-    }
-  };
-
   const fetchScheduleRestrictions = useCallback(
     (params: Record<string, string | boolean | string | null>) => {
       startTransition(async () => {
@@ -114,7 +107,6 @@ export default function MainScheduleRestrictions({
             startDate={startDate}
             setEndDate={setEndDate}
             setStartDate={setStartDate}
-            handleDateChange={handleDateChange}
             applyFilters={fetchScheduleRestrictions}
             isPending={isPending}
           />
