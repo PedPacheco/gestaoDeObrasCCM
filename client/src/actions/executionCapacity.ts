@@ -33,7 +33,6 @@ export async function UpdateExecutionCapacity(data: any) {
 
     return { success: true, message: res.message };
   } catch (error: any) {
-    console.error("Erro ao editar a capacaidade de execução:", error);
     return { success: false, message: error.message };
   }
 }

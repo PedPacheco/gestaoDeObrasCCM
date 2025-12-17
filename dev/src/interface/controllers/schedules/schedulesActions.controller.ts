@@ -33,7 +33,6 @@ export class SchedulesActionsController {
     private handleSchedulesUpdateService: HandleSchedulesUpdateService,
     private deleteSchedulesService: DeleteSchedulesService,
     private validateConfirmAndRejectSchedulesService: ValidateConfirmAndRejectSchedulesService,
-    // private updateRestrictionsService: UpdateRestrictionsService,
   ) {}
 
   @Post()
@@ -89,17 +88,6 @@ export class SchedulesActionsController {
       message: 'Programação reprovada com sucesso',
     };
   }
-
-  // @Patch('restricoes')
-  // @UseGuards(PermissionGuard)
-  // async updateRestrictions(@Body() data: UpdateRestrictionsDTO) {
-  //   await this.updateRestrictionsService.update(data);
-
-  //   return {
-  //     statusCode: HttpStatus.NO_CONTENT,
-  //     message: 'Restrições atualizadas com sucesso',
-  //   };
-  // }
 
   @Patch(':id')
   @UseGuards(VisualizationGuard)

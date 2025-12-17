@@ -133,6 +133,7 @@ describe('AuthController', () => {
         permissao: 'total',
         email: 'teste@gmail.com',
         nome_usuario: 'Teste',
+        id_turma: 1,
       };
 
       jest.spyOn(authService, 'register').mockResolvedValue(mockResponse);
@@ -157,6 +158,7 @@ describe('AuthController', () => {
         permissao: 'total',
         email: 'teste@gmail.com',
         nome_usuario: 'Teste',
+        id_turma: 1,
       };
 
       jest

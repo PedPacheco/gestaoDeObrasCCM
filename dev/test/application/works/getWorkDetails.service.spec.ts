@@ -55,6 +55,7 @@ describe('GetWorkDetailsService', () => {
     },
     municipios: {
       municipio: 'MONTEIRO LOBATO',
+      regionais: { id: 1 },
     },
     tipos: {
       tipo_obra: 'SPACER CABLE',
@@ -130,6 +131,7 @@ describe('GetWorkDetailsService', () => {
     data_empreitamento: '2024-08-06T00:00:00.000Z',
     id_turma: 1,
     id_status: 4,
+    idRegional: 1,
     executado: 70,
     circuitos: 'CAC-1302',
     conjunto: 'São josé',

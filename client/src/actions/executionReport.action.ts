@@ -33,7 +33,6 @@ export async function editExecutionReport(data: any, id: number) {
 
     return { success: true, message: res.message };
   } catch (error: any) {
-    console.error("Erro ao editar relatório:", error);
     return { success: false, message: error.message };
   }
 }
@@ -67,7 +66,6 @@ export async function deleteExecutionReport(id: number, idWork: number) {
 
     return { success: true, message: res.message };
   } catch (error: any) {
-    console.error("Erro ao excluir relatório:", error);
     return { success: false, message: error.message };
   }
 }

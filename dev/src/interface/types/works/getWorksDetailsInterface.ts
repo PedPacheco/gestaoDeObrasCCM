@@ -79,7 +79,7 @@ export interface GetWorksDetailsResponse {
   ano_plan: number | null;
   circuitos: { circuito: string; conjuntos: { conjunto: string | null } };
   empreendimento: { empreendimento: string | null };
-  municipios: { municipio: string };
+  municipios: { municipio: string; regionais: { id: number } };
   tipos: { tipo_obra: string; id_grupo: number };
   id_turma: number;
   id_status: number;

@@ -152,7 +152,7 @@ export function TableWithPagination({
           </TableBody>
         </Table>
       </TableContainer>
-      <div className="sticky bottom-0 bg-white">
+      <div className="sticky bottom-0 bg-white z-30">
         <TablePagination
           component="div"
           count={totals.total_obras}

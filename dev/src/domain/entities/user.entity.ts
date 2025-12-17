@@ -8,6 +8,7 @@ export class User {
   nome_usuario?: string;
   email?: string;
   permissao_visualizacao?: string;
+  permissao_publicacao?: boolean;
 
   constructor(data: Partial<User>) {
     Object.assign(this, data);

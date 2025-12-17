@@ -26,6 +26,7 @@ export class GetWorkDetailsService {
       municipios: work.municipios.municipio,
       tipos: work.tipos.tipo_obra,
       grupo: work.tipos.id_grupo,
+      idRegional: work.municipios.regionais.id,
       programacoes: work.programacoes.map((programacao) => ({
         id: programacao.id,
         data_prog: programacao.data_prog,

@@ -85,10 +85,22 @@ export const links = [
         href: "/programacao/por-data",
         needPermission: false,
       },
+    ],
+  },
+  {
+    name: "Restrições",
+    href: null,
+    needPermission: false,
+    submenu: [
       {
-        name: "Restrições",
-        href: "/programacao/restricoes",
-        needPermission: true,
+        name: "Restrições Programações",
+        href: "/restricoes/programacoes",
+        needPermission: false,
+      },
+      {
+        name: "Restrições Publicações",
+        href: "/restricoes/publicacoes",
+        needPermission: false,
       },
     ],
   },

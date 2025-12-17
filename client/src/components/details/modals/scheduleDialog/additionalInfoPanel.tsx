@@ -67,11 +67,13 @@ export const AdditionalInfoPanel: React.FC<AdditionalInfoPanelProps> = ({
             label="Restrição de Execução"
             disabled={restrictionIsDisabled}
           >
-            {options.restricao.map((restriction) => (
-              <MenuItem key={restriction.id} value={restriction.id}>
-                {restriction.restricao}
-              </MenuItem>
-            ))}
+            {options.restricao
+              .filter((item) => item.tipo_restricao === "EXECUÇÃO")
+              .map((restriction) => (
+                <MenuItem key={restriction.id} value={restriction.id}>
+                  {restriction.restricao}
+                </MenuItem>
+              ))}
           </Select>
           {formErrors["idExecutionRestriction"] && (
             <FormHelperText>

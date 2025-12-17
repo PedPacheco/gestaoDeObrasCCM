@@ -322,6 +322,7 @@ model obras {
   programacoes_reprovacoes programacoes_reprovacoes[]
   relatorio                relatorio[]
   relatorio_execucao       relatorio_execucao[]
+  restricoes_publicacoes   restricoes_publicacoes[]
   servicos                 servicos[]
   suspensoes               suspensoes[]
   suspensoes_retiradas     suspensoes_retiradas[]
@@ -415,12 +416,13 @@ model relatorio {
 }
 
 model restricoes {
-  id                              Int            @id(map: "RESTRICOES_pkey") @default(autoincrement())
-  restricao                       String?        @db.VarChar(80)
-  tipo_restricao                  String         @db.VarChar(15)
-  programacoes_restricao_execucao programacoes[] @relation("programacoes_restricao_execucao")
-  programacoes_restricao_prog1    programacoes[] @relation("programacoes_restricao_prog1")
-  programacoes_restricao_prog2    programacoes[] @relation("programacoes_restricao_prog2")
+  id                              Int                      @id(map: "RESTRICOES_pkey") @default(autoincrement())
+  restricao                       String?                  @db.VarChar(80)
+  tipo_restricao                  String                   @db.VarChar(15)
+  programacoes_restricao_execucao programacoes[]           @relation("programacoes_restricao_execucao")
+  programacoes_restricao_prog1    programacoes[]           @relation("programacoes_restricao_prog1")
+  programacoes_restricao_prog2    programacoes[]           @relation("programacoes_restricao_prog2")
+  restricoes_publicacoes          restricoes_publicacoes[]
 }
 
 model servicos {
@@ -543,12 +545,11 @@ model usuario {
   senha                  String               @db.VarChar
   permissao              String               @db.VarChar(30)
   id_regional            Int
-  formulario_utilizado   String?              @db.VarChar(50)
-  nome_maquina           String?              @db.VarChar(30)
   nome_usuario           String               @db.VarChar(50)
   email                  String               @db.VarChar(70)
   permissao_visualizacao String               @default("total") @db.VarChar(25)
   id_turma               Int                  @default(1)
+  permissao_publicacao   Boolean              @default(false)
   relatorio_execucao     relatorio_execucao[]
   turmas                 turmas               @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
   regionais              regionais            @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
@@ -696,6 +697,18 @@ model suspensoes_retiradas {
   status             status?   @relation(fields: [id_status_retirada], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_status")
 }
 
+model restricoes_publicacoes {
+  id               Int        @id @default(autoincrement())
+  id_obra          Int
+  id_restricao     Int        @default(1)
+  responsabilidade String     @db.VarChar(50)
+  nome_responsavel String     @db.VarChar(50)
+  status_restricao String     @db.VarChar(20)
+  data_resolucao   DateTime?  @db.Date
+  obras            obras      @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
+  restricoes       restricoes @relation(fields: [id_restricao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes")
+}
+
 view exportacao_obras_executadas {
   id                 BigInt    @unique
   ovnota             String?   @db.VarChar(12)
@@ -781,6 +794,7 @@ view exportacao_programacoes_obras {
   data_resolucao2              DateTime? @db.Date
   observacao_restricao         String?   @db.VarChar(255)
   observacao_execucao          String?   @db.VarChar(255)
+  status_programacao           String?   @db.VarChar(30)
 }
 
 view exportacao_capacidade_execucao {

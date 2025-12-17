@@ -114,52 +114,6 @@ export class GetScheduleValuesDTO {
   page?: number;
 }
 
-export class GetValueWeeklyScheduleDTO {
-  @IsString()
-  @IsOptional()
-  dataInicial?: string;
-
-  @IsString()
-  @IsOptional()
-  dataFinal?: string;
-
-  @IsOptional()
-  @IsArray()
-  @Transform(({ value }) => convertParameterValue(value))
-  idRegional: number[];
-
-  @IsOptional()
-  @IsArray()
-  @Transform(({ value }) => convertParameterValue(value))
-  idMunicipio: number[];
-
-  @IsOptional()
-  @IsArray()
-  @Transform(({ value }) => convertParameterValue(value))
-  idGrupo: number[];
-
-  @IsOptional()
-  @IsArray()
-  @Transform(({ value }) => convertParameterValue(value))
-  idTipo: number[];
-
-  @IsOptional()
-  @IsArray()
-  @Transform(({ value }) => convertParameterValue(value))
-  idParceira: number[];
-
-  @IsBoolean()
-  @Transform(({ value }) =>
-    value === 'true' ? true : value === 'false' ? false : value,
-  )
-  executado: boolean;
-
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  page?: number;
-}
-
 export class GetMonthlySummaryDTO {
   @IsString()
   date: string;
@@ -213,70 +167,6 @@ export class RejectScheduleDTO {
 
   @IsString()
   description: string;
-}
-
-export class UpdateRestrictionsDTO {
-  @IsNumber()
-  @IsOptional()
-  id?: number;
-
-  @IsNumber()
-  idProgRestriction1: number;
-
-  @IsString()
-  @IsOptional()
-  @Transform(({ value }) => (value === '' ? null : value))
-  responsiblityProg?: string;
-
-  @IsString()
-  @IsOptional()
-  @Transform(({ value }) => (value === '' ? null : value))
-  responsibleName?: string;
-
-  @IsString()
-  @IsOptional()
-  @Transform(({ value }) => (value === '' ? null : value))
-  responsibleArea?: string;
-
-  @IsString()
-  @IsOptional()
-  @Transform(({ value }) => (value === '' ? null : value))
-  restrictionStatus?: string;
-
-  @IsDate()
-  @Type(() => Date)
-  @IsOptional()
-  @Transform(({ value }) => (value === '' ? null : value))
-  resolutionDate?: Date;
-
-  @IsNumber()
-  idProgRestriction2: number;
-
-  @IsString()
-  @IsOptional()
-  @Transform(({ value }) => (value === '' ? null : value))
-  responsiblityProg2?: string;
-
-  @IsString()
-  @IsOptional()
-  @Transform(({ value }) => (value === '' ? null : value))
-  responsibleName2?: string;
-
-  @IsString()
-  @IsOptional()
-  @Transform(({ value }) => (value === '' ? null : value))
-  responsibleArea2?: string;
-
-  @IsString()
-  @IsOptional()
-  @Transform(({ value }) => (value === '' ? null : value))
-  restrictionStatus2?: string;
-
-  @IsDate()
-  @Type(() => Date)
-  @IsOptional()
-  @Transform(({ value }) => (value === '' ? null : value))
-  resolutionDate2?: Date;
 }
 
 export class SchedulesDataDTO {

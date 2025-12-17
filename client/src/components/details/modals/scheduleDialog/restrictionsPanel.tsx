@@ -16,7 +16,7 @@ interface RestrictionsPanelProps {
   formData: any;
   formErrors: Record<string, string>;
   options: {
-    restricao: Array<{ id: number; restricao: string }>;
+    restricao: Array<{ id: number; restricao: string; tipo_restricao: string }>;
   };
   onInputChange: (field: keyof FormData) => (event: any) => void;
   disabledFields: () => boolean;
@@ -50,11 +50,13 @@ export function RestrictionsPanel({
           label="1° Restrição"
           disabled={disabled}
         >
-          {options.restricao.map((value) => (
-            <MenuItem key={value.id} value={value.id}>
-              {value.restricao}
-            </MenuItem>
-          ))}
+          {options.restricao
+            .filter((value) => value.tipo_restricao === "PROGRAMAÇÃO")
+            .map((value) => (
+              <MenuItem key={value.id} value={value.id}>
+                {value.restricao}
+              </MenuItem>
+            ))}
         </Select>
         {formErrors.idProgRestriction1 && (
           <Typography color="error" variant="caption">
@@ -166,11 +168,13 @@ export function RestrictionsPanel({
           label="2° Restrição"
           disabled={disabled}
         >
-          {options.restricao.map((value) => (
-            <MenuItem key={value.id} value={value.id}>
-              {value.restricao}
-            </MenuItem>
-          ))}
+          {options.restricao
+            .filter((value) => value.tipo_restricao === "PROGRAMAÇÃO")
+            .map((value) => (
+              <MenuItem key={value.id} value={value.id}>
+                {value.restricao}
+              </MenuItem>
+            ))}
         </Select>
         {formErrors.idProgRestriction2 && (
           <Typography color="error" variant="caption">
