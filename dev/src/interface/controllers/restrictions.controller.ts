@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
@@ -18,14 +19,39 @@ import {
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
 } from '../dtos/restrictionsDTO';
+import { VisualizationGuard } from 'src/core/guards/visualization.guard';
+
+interface CustomRequest extends Request {
+  idParceira?: number;
+  insufficientPermission?: boolean;
+}
 
 @Controller('restricao')
 export class RestrictionController {
   constructor(private restrictionsService: RestrictionsService) {}
 
+  private applyFilters<
+    T extends {
+      idParceira?: number | number[];
+      insufficientPermission?: boolean;
+    },
+  >(filters: T, req: CustomRequest): T {
+    if (req.idParceira) {
+      filters.idParceira = req.idParceira;
+    }
+    if (req.insufficientPermission !== undefined) {
+      filters.insufficientPermission = req.insufficientPermission;
+    }
+    return filters;
+  }
+
   @Get('programacao')
-  @UseGuards(PermissionGuard)
-  async getScheduleRestrictions(@Query() filters: GetRestrictionsDTO) {
+  @UseGuards(VisualizationGuard)
+  async getScheduleRestrictions(
+    @Query() restrictionFilters: GetRestrictionsDTO,
+    @Req() req: any,
+  ) {
+    const filters = this.applyFilters(restrictionFilters, req);
     const response =
       await this.restrictionsService.getScheduleRestricion(filters);
 
@@ -37,8 +63,12 @@ export class RestrictionController {
   }
 
   @Get('publicacoes')
-  @UseGuards(PermissionGuard)
-  async getPublicationsRestrictions(@Query() filters: GetRestrictionsDTO) {
+  @UseGuards(VisualizationGuard)
+  async getPublicationsRestrictions(
+    @Query() restrictionFilters: GetRestrictionsDTO,
+    @Req() req: any,
+  ) {
+    const filters = this.applyFilters(restrictionFilters, req);
     const response =
       await this.restrictionsService.getPublicationRestriction(filters);
 

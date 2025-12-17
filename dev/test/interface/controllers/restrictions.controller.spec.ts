@@ -7,10 +7,16 @@ import {
   mockInsertPublicationRestrictions,
   mockUpdatePublicationRestrictions,
 } from '../../../test/mocks/mockRestrictions';
+import { UsersService } from 'src/application/users.service';
 
 describe('RestrictionController ', () => {
   let controller: RestrictionController;
   let service: RestrictionsService;
+
+  const mockReq = {
+    insufficientPermission: true,
+    idParceira: 1,
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -26,6 +32,7 @@ describe('RestrictionController ', () => {
             deletePublicationRestriction: jest.fn(),
           },
         },
+        { provide: UsersService, useValue: { findUser: jest.fn() } },
       ],
     }).compile();
 
@@ -40,6 +47,7 @@ describe('RestrictionController ', () => {
 
     const result = await controller.getPublicationsRestrictions(
       mockGetRestrictionsFilters,
+      mockReq,
     );
 
     expect(service.getPublicationRestriction).toHaveBeenCalledWith(
@@ -60,6 +68,61 @@ describe('RestrictionController ', () => {
 
     const result = await controller.getScheduleRestrictions(
       mockGetRestrictionsFilters,
+      mockReq,
+    );
+
+    expect(service.getScheduleRestricion).toHaveBeenCalledWith(
+      mockGetRestrictionsFilters,
+    );
+    expect(result).toEqual({
+      data: {
+        works: [mockGetScheduleRestrictions],
+        totals: { total_obras: 1 },
+      },
+      message: 'Restrições das programações retornadas com sucesso',
+      statusCode: 200,
+    });
+  });
+
+  it('Should call getPublicationRestriction service method with the provided filters, without idParceira in req and return a successful response with the expected structure', async () => {
+    jest.spyOn(service, 'getScheduleRestricion').mockResolvedValue({
+      works: [mockGetScheduleRestrictions],
+      totals: { total_obras: 1 },
+    });
+
+    const result = await controller.getScheduleRestrictions(
+      mockGetRestrictionsFilters,
+      {
+        ...mockReq,
+        idParceira: undefined,
+      },
+    );
+
+    expect(service.getScheduleRestricion).toHaveBeenCalledWith(
+      mockGetRestrictionsFilters,
+    );
+    expect(result).toEqual({
+      data: {
+        works: [mockGetScheduleRestrictions],
+        totals: { total_obras: 1 },
+      },
+      message: 'Restrições das programações retornadas com sucesso',
+      statusCode: 200,
+    });
+  });
+
+  it('Should call getPublicationRestriction service method with the provided filters, without insufficientPermission in req and return a successful response with the expected structure', async () => {
+    jest.spyOn(service, 'getScheduleRestricion').mockResolvedValue({
+      works: [mockGetScheduleRestrictions],
+      totals: { total_obras: 1 },
+    });
+
+    const result = await controller.getScheduleRestrictions(
+      mockGetRestrictionsFilters,
+      {
+        ...mockReq,
+        insufficientPermission: undefined,
+      },
     );
 
     expect(service.getScheduleRestricion).toHaveBeenCalledWith(
