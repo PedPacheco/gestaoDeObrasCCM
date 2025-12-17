@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsOptional } from 'class-validator';
+import { IsArray, IsBoolean, IsOptional } from 'class-validator';
 
 export class FiltersDto {
   @IsOptional()
@@ -92,6 +92,11 @@ export class FiltersDto {
     value === 'true' ? true : value === 'false' ? false : value,
   )
   restricao?: boolean;
+
+  @IsOptional()
+  @Transform(({ value }) => (Array.isArray(value) ? value : [value]))
+  @IsArray()
+  tipoRestricao?: string[];
 
   @IsOptional()
   @IsBoolean()

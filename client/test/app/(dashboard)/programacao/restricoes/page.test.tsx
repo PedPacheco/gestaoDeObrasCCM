@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { render, screen } from "@testing-library/react";
-import ScheduleRestrictions from "@/app/(dashboard)/programacao/restricoes/page";
+import ScheduleRestrictions from "@/app/(dashboard)/restricoes/programacoes/page";
 import { Transform } from "@/utils/transform";
 
 vi.mock("@/actions/fetchData.action", () => ({

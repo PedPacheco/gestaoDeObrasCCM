@@ -113,6 +113,26 @@ export function transformExecutionReport(data: any): ExecutionReportData {
   };
 }
 
-export function transformRestrictions(data: any) {
-  return {};
+export function buildPublicationRestrictionPayload(
+  data: any,
+  enginners: any[]
+) {
+  const responsibleEnginner = enginners.find(
+    (enginner) => enginner.idRegional === data.id_regional
+  );
+
+  const restrictionArray = [
+    {
+      id: data.id_obra || data.id_restricao_publicacao,
+      idRestriction: data.id_restricao,
+      responsibility: data.responsabilidade,
+      responsibleName: responsibleEnginner?.name,
+      restrictionStatus: data.status_restricao,
+      resolutionDate: data.resolutionDate
+        ? dayjs(data.resolutionDate).format("DD/MM/YYYY")
+        : null,
+    },
+  ];
+
+  return restrictionArray;
 }

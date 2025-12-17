@@ -1,5 +1,4 @@
 import { GetMonthlySummaryService } from 'src/application/schedule/getMonthlySummary.service';
-import { GetScheduleRestrictionsService } from 'src/application/schedule/getScheduleRestrictions.service';
 import { GetScheduleValuesService } from 'src/application/schedule/getScheduleValues.service';
 import { GetTotalValuesScheduleService } from 'src/application/schedule/getTotalValuesSchedule.service';
 import { ScheduleController } from 'src/interface/controllers/schedules/schedule.controller';
@@ -16,7 +15,6 @@ describe('ScheduleController', () => {
   let scheduleController: ScheduleController;
   let getTotalValuesScheduleService: GetTotalValuesScheduleService;
   let getScheduleValuesService: GetScheduleValuesService;
-  let getScheduleRestrictionsService: GetScheduleRestrictionsService;
   let getMonthlySummaryService: GetMonthlySummaryService;
   let rejectionsOfSchedulesService: RejectionsOfSchedulesService;
 
@@ -91,12 +89,6 @@ describe('ScheduleController', () => {
           },
         },
         {
-          provide: GetScheduleRestrictionsService,
-          useValue: {
-            getRestrictions: jest.fn(),
-          },
-        },
-        {
           provide: GetMonthlySummaryService,
           useValue: {
             getSummary: jest.fn(),
@@ -117,9 +109,6 @@ describe('ScheduleController', () => {
     );
     getScheduleValuesService = module.get<GetScheduleValuesService>(
       GetScheduleValuesService,
-    );
-    getScheduleRestrictionsService = module.get<GetScheduleRestrictionsService>(
-      GetScheduleRestrictionsService,
     );
     getMonthlySummaryService = module.get<GetMonthlySummaryService>(
       GetMonthlySummaryService,
@@ -270,72 +259,6 @@ describe('ScheduleController', () => {
       });
       expect(getScheduleValuesService.getValues).toHaveBeenCalledWith(filters);
     });
-  });
-
-  it('Should call getScheduleRestrictions method and return correct data', async () => {
-    const filters = {
-      dataInicial: '17/05/2024',
-      dataFinal: '18/05/2024',
-      idRegional: [1],
-      idMunicipio: [1],
-      idGrupo: [1],
-      idTipo: [1],
-      idParceira: [1],
-      executado: false,
-    };
-
-    const getScheduleRestrictionsResponse = {
-      works: [
-        {
-          id: 1695,
-          prog_id: 1,
-          ovnota: '3908435',
-          diagrama: '200',
-          ordem_dci: '170',
-          ordem_dca: '150',
-          ordem_dcd: '190',
-          ordem_dcim: '180',
-          mun: 'SJC',
-          tipo_obra: 'REMOÇÃO DE REDE',
-          parceira: 'ENGELMIG',
-          executado: 98,
-          data_prog: new Date('2024-08-04T00:00:00.000Z'),
-          prog: 0,
-          exec: 0,
-          observacao_restricao: null,
-          id_restricao_prog1: 1,
-          restricao1: 'Aviso',
-          responsabilidade1: null,
-          nome_responsavel: null,
-          area_responsavel1: null,
-          status_restricao1: null,
-          data_resolucao1: null,
-          id_restricao_prog2: 1,
-          restricao2: 'Aviso',
-          responsabilidade2: null,
-          nome_responsavel2: null,
-          area_responsavel2: null,
-          status_restricao2: null,
-          data_resolucao2: null,
-        },
-      ],
-      totals: { total_obras: 1 },
-    };
-
-    jest
-      .spyOn(getScheduleRestrictionsService, 'getRestrictions')
-      .mockResolvedValue(getScheduleRestrictionsResponse);
-
-    const result = await scheduleController.getScheduleRestrictions(filters);
-
-    expect(result).toStrictEqual({
-      statusCode: HttpStatus.OK,
-      message: 'Restrições das programações retornadas com sucesso',
-      data: getScheduleRestrictionsResponse,
-    });
-    expect(getScheduleRestrictionsService.getRestrictions).toHaveBeenCalledWith(
-      filters,
-    );
   });
 
   it('Should call getMonthlySummary method and return correct data', async () => {

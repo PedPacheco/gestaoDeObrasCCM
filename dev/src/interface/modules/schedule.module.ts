@@ -11,7 +11,6 @@ import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IAddS
 import { DELETE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IDeleteSchedulesRepository';
 import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
 import { GET_MONTHLY_SUMMARY_REPOSITORY } from 'src/domain/repositories/schedule/IGetMonthlySummaryRepository';
-import { GET_SCHEDULE_RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/schedule/IGetScheduleRestrictionsRepository';
 import { GET_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetScheduleValuesRepository';
 import { GET_TOTAL_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetTotalValuesScheduleRepository';
 import { REJECTION_OF_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IRejectionsOfSchedules';
@@ -21,7 +20,6 @@ import { AddSchedulesRepository } from 'src/infra/repositories/schedule/addSched
 import { DeleteSchedulesRepository } from 'src/infra/repositories/schedule/deleteSchedulesRepository';
 import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
 import { GetMonthlySummaryRepository } from 'src/infra/repositories/schedule/getMonthlySummaryRepository';
-import { GetScheduleRestrictionsRespository } from 'src/infra/repositories/schedule/getScheduleRestrictionsRepository';
 import { GetScheduleValuesRepository } from 'src/infra/repositories/schedule/getScheduleValuesRepository';
 import { GetTotalValueScheduleRepository } from 'src/infra/repositories/schedule/getTotalValuesScheduleRepository';
 import { RejectionsOfSchedulesRepository } from 'src/infra/repositories/schedule/rejectionsOfSchedulesRepository';
@@ -32,7 +30,6 @@ import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepositor
 import { forwardRef, Module } from '@nestjs/common';
 
 import { GetMonthlySummaryService } from '../../application/schedule/getMonthlySummary.service';
-import { GetScheduleRestrictionsService } from '../../application/schedule/getScheduleRestrictions.service';
 import { GetScheduleValuesService } from '../../application/schedule/getScheduleValues.service';
 import { GetTotalValuesScheduleService } from '../../application/schedule/getTotalValuesSchedule.service';
 import { ScheduleController } from '../controllers/schedules/schedule.controller';
@@ -54,7 +51,6 @@ import { WorksModule } from './works.module';
     DeleteSchedulesService,
     GetTotalValuesScheduleService,
     GetScheduleValuesService,
-    GetScheduleRestrictionsService,
     GetMonthlySummaryService,
     HandleSchedulesUpdateService,
     HandleAddScheduleService,
@@ -79,10 +75,7 @@ import { WorksModule } from './works.module';
       provide: GET_MONTHLY_SUMMARY_REPOSITORY,
       useClass: GetMonthlySummaryRepository,
     },
-    {
-      provide: GET_SCHEDULE_RESTRICTIONS_REPOSITORY,
-      useClass: GetScheduleRestrictionsRespository,
-    },
+
     {
       provide: GET_SCHEDULE_VALUES_REPOSITORY,
       useClass: GetScheduleValuesRepository,

@@ -167,7 +167,7 @@ describe('GetScheduleValuesRepository', () => {
       AND status.id IN () 
       AND status_programacao.id IN () 
       AND obras.ovnota = 
-      AND exec <> 0 
+      AND exec IS NOT NULL 
       ORDER BY data_prog, ovnota 
       LIMIT 200 OFFSET
       `;

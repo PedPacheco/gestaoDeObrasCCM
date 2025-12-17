@@ -23,6 +23,7 @@ interface JwtPayload {
   username: string;
   permissao: string;
   permissao_visualizacao: string;
+  permissao_publicacao: boolean;
 }
 
 interface LoginResponse {

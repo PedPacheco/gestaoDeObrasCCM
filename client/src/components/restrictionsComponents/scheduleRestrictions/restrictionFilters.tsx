@@ -11,8 +11,6 @@ import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { Transform } from "@/utils/transform";
 import { Checkbox } from "@mui/material";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { capitalize } from "@/utils/formatValue";
 import { DateFilter } from "@/components/common/DateFilter";
@@ -25,6 +23,7 @@ interface filters {
   tipo: { id: string; tipo_obra: string; id_grupo: number }[];
   municipio: { id: string; municipio: string; id_regional: number }[];
   grupo: { id: string; grupo: string }[];
+  restricao: { id: string; restricao: string; tipo_restricao: string };
 }
 
 interface ScheduleByDateFiltersProps {
@@ -38,9 +37,10 @@ interface ScheduleByDateFiltersProps {
     params: Record<string, string | boolean | string | null>
   ) => void;
   isPending: boolean;
+  isPublication: boolean;
 }
 
-export default function WeeklyScheduleFilters({
+export default function RestrictionFilters({
   data,
   keyFilters,
   endDate,
@@ -49,6 +49,7 @@ export default function WeeklyScheduleFilters({
   startDate,
   applyFilters,
   isPending,
+  isPublication,
 }: ScheduleByDateFiltersProps) {
   const { clearFilters, filters, saveFilters } = useSaveFilters({
     pageKey: keyFilters,
@@ -73,8 +74,8 @@ export default function WeeklyScheduleFilters({
 
     const params = {
       ...formattedSelectedItems,
-      dataInicial: startDate ? startDate.format("DD/MM/YYYY") : "",
-      dataFinal: endDate ? endDate.format("DD/MM/YYYY") : "",
+      dataInicial: startDate ? startDate.format("DD/MM/YYYY") : null,
+      dataFinal: endDate ? endDate.format("DD/MM/YYYY") : null,
       executado: executed,
     };
 
@@ -107,7 +108,7 @@ export default function WeeklyScheduleFilters({
         />
 
         {Object.entries(data)
-          .slice(0, 5)
+          .slice(0, 6)
           .map(([key, value], index) => {
             const valueKey = Object.keys(value[0])[0];
             const displayKey = Object.keys(value[0])[1];
@@ -139,7 +140,11 @@ export default function WeeklyScheduleFilters({
             onChange={() => setExecuted(!executed)}
             checked={executed}
           />
-          <p className="text-nowrap">Programações executadas</p>
+          <p className="text-nowrap">
+            {isPublication
+              ? "Restrições Concluídas"
+              : "Programações Executadas"}
+          </p>
         </div>
       </div>
 

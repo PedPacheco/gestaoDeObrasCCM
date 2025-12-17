@@ -105,6 +105,7 @@ export const mockResponseDetails = {
   ano_plan: 2024,
   id_turma: 1,
   id_status: 4,
+  idRegional: 1,
   executado: 45,
   circuitos: 'CAC-1302',
   conjunto: 'São josé',

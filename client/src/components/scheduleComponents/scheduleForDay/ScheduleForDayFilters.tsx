@@ -81,8 +81,8 @@ export default function ScheduleForDayFilters({
       ...Transform(selectedItems),
       executado: executed.toString(),
       pendente: pending.toString(),
-      dataInicial: startDate ? startDate.format("DD/MM/YYYY") : "",
-      dataFinal: endDate ? endDate.format("DD/MM/YYYY") : "",
+      dataInicial: startDate ? startDate.format("DD/MM/YYYY") : null,
+      dataFinal: endDate ? endDate.format("DD/MM/YYYY") : null,
       ovnota: ovnota,
     };
 

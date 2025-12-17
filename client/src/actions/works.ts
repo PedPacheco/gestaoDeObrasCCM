@@ -214,7 +214,7 @@ export async function InsertContract(data: any) {
 
     const res = await result.json();
 
-    if (res.statusCode !== 204) {
+    if (res.statusCode !== 200) {
       return {
         success: false,
         error: res.message || "Erro ao inserir datas de empreitamento",

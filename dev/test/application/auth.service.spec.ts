@@ -34,13 +34,12 @@ const user: usuario = {
   username: 'username',
   senha: 'teste123',
   email: 'teste@gmail.com',
-  formulario_utilizado: null,
   id_regional: 1,
   id_turma: 2,
-  nome_maquina: null,
   nome_usuario: 'teste',
   permissao: 'Total',
   permissao_visualizacao: 'parcial',
+  permissao_publicacao: false,
 };
 
 describe('AuthService', () => {
@@ -145,6 +144,7 @@ describe('AuthService', () => {
         email: 'teste@gmail.com',
         nome_usuario: 'Teste',
         permissao_visualizacao: 'parcial',
+        id_turma: 1,
       };
 
       (genSalt as jest.Mock).mockResolvedValue(salt);
