@@ -14,8 +14,9 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 import RestrictionDrawer from "./RestrictionDrawer";
 import ScheduleRestrictionsTable from "./scheduleRestrictionsTable";
-import WeeklyScheduleFilters from "./WeeklyScheduleFilters";
-import { InsertPublicationRestrictions } from "@/actions/restrictions";
+import { UpdatePublicationRestrictions } from "@/actions/restrictions";
+import PublicationRestrictionsTable from "../publicationRestrictionsTable";
+import RestrictionFilters from "./restrictionFilters";
 
 const cookies = new Cookies();
 
@@ -52,30 +53,32 @@ export default function MainScheduleRestrictions({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
+  const isPublication = url === "publicacoes";
+
   useEffect(() => {
     setFilteredData(data);
   }, [data]);
 
-  const handleAdd = (item: any) => {
+  const handleOpenDrawer = (item: any) => {
     setSelectedRestriction(item);
     setDrawerOpen(true);
   };
 
-  const handleSave = async (restriction: any) => {
+  const handleEdit = async (restrictions: any) => {
     setDrawerOpen(false);
 
     startTransition(async () => {
       try {
-        const formattedData = Object.fromEntries(
-          Object.entries(restriction).map(([key, value]) => [
-            key,
-            value === "" ? null : value,
-          ])
-        );
+        const response = await UpdatePublicationRestrictions(restrictions);
 
-        await InsertPublicationRestrictions(formattedData);
+        if (!response.success) {
+          setError(response.error || "Erro ao salvar alterações");
+          return;
+        }
 
         router.refresh();
+        // setSuccess(response.message);
+        // setOpenModal(true);
       } catch (error: any) {
         setError(error.message);
       }
@@ -123,7 +126,7 @@ export default function MainScheduleRestrictions({
     <>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <div className="my-6 w-4/5 flex flex-col">
-          <WeeklyScheduleFilters
+          <RestrictionFilters
             data={filtersData}
             keyFilters={cookieKey}
             endDate={endDate}
@@ -132,25 +135,35 @@ export default function MainScheduleRestrictions({
             setStartDate={setStartDate}
             applyFilters={fetchScheduleRestrictions}
             isPending={isPending}
+            isPublication={isPublication}
           />
         </div>
 
-        <ScheduleRestrictionsTable
-          columns={columns}
-          data={filteredData.works}
-          totals={filteredData.totals}
-          handleChangePage={handleChangePage}
-          page={page}
-          handleAdd={handleAdd}
-        />
+        {isPublication ? (
+          <PublicationRestrictionsTable
+            columns={columns}
+            data={filteredData.works}
+            handleAdd={handleOpenDrawer}
+          />
+        ) : (
+          <ScheduleRestrictionsTable
+            columns={columns}
+            data={filteredData.works}
+            totals={filteredData.totals}
+            handleChangePage={handleChangePage}
+            page={page}
+          />
+        )}
 
-        {url === "publicacoes" ? (
+        {isPublication ? (
           <RestrictionDrawer
             open={drawerOpen}
             onClose={() => setDrawerOpen(false)}
             data={selectedRestriction}
-            onSave={handleSave}
+            onSave={handleEdit}
             restrictionsValues={filtersData.restricao}
+            isInsert={false}
+            idRegional={selectedRestriction?.id_regional}
           />
         ) : undefined}
 

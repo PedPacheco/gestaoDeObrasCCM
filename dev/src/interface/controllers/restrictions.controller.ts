@@ -1,8 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -12,6 +16,7 @@ import { RestrictionsService } from 'src/application/restrictions.service';
 import {
   GetRestrictionsDTO,
   InsertPublicationRestrictionsDTO,
+  UpdatePublicationRestrictionsDTO,
 } from '../dtos/restrictionsDTO';
 
 @Controller('restricao')
@@ -47,13 +52,37 @@ export class RestrictionController {
   @Post('publicacoes')
   @UseGuards(PermissionGuard)
   async insertPublicationRestriction(
-    @Body() data: InsertPublicationRestrictionsDTO,
+    @Body() data: InsertPublicationRestrictionsDTO[],
   ) {
     await this.restrictionsService.insertPublicationRestriction(data);
 
     return {
       statusCode: HttpStatus.NO_CONTENT,
-      message: 'Restrições atualizadas com sucesso',
+      message: 'Restrição de publicação criada com sucesso',
+    };
+  }
+
+  @Patch('publicacoes')
+  @UseGuards(PermissionGuard)
+  async updatePublicationRestrictions(
+    @Body() data: UpdatePublicationRestrictionsDTO,
+  ) {
+    await this.restrictionsService.updatePublicationRestriction(data);
+
+    return {
+      statusCode: HttpStatus.NO_CONTENT,
+      message: 'Restrição de publicação atualizadas com sucesso',
+    };
+  }
+
+  @Delete('publicacoes/:id')
+  @UseGuards(PermissionGuard)
+  async deletePublicationRestrictions(@Param('id', ParseIntPipe) id: number) {
+    await this.restrictionsService.deletePublicationRestriction(id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Restrição de publicação excluída com sucesso',
     };
   }
 }

@@ -37,9 +37,10 @@ interface ScheduleByDateFiltersProps {
     params: Record<string, string | boolean | string | null>
   ) => void;
   isPending: boolean;
+  isPublication: boolean;
 }
 
-export default function WeeklyScheduleFilters({
+export default function RestrictionFilters({
   data,
   keyFilters,
   endDate,
@@ -48,6 +49,7 @@ export default function WeeklyScheduleFilters({
   startDate,
   applyFilters,
   isPending,
+  isPublication,
 }: ScheduleByDateFiltersProps) {
   const { clearFilters, filters, saveFilters } = useSaveFilters({
     pageKey: keyFilters,
@@ -72,8 +74,8 @@ export default function WeeklyScheduleFilters({
 
     const params = {
       ...formattedSelectedItems,
-      dataInicial: startDate ? startDate.format("DD/MM/YYYY") : "",
-      dataFinal: endDate ? endDate.format("DD/MM/YYYY") : "",
+      dataInicial: startDate ? startDate.format("DD/MM/YYYY") : null,
+      dataFinal: endDate ? endDate.format("DD/MM/YYYY") : null,
       executado: executed,
     };
 
@@ -138,7 +140,11 @@ export default function WeeklyScheduleFilters({
             onChange={() => setExecuted(!executed)}
             checked={executed}
           />
-          <p className="text-nowrap">Programações executadas</p>
+          <p className="text-nowrap">
+            {isPublication
+              ? "Restrições Concluídas"
+              : "Programações Executadas"}
+          </p>
         </div>
       </div>
 

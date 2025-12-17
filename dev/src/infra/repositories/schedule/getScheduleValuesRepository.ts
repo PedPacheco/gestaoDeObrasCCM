@@ -70,7 +70,7 @@ export class GetScheduleValuesRepository implements IGetScheduleValuesRepository
     }
 
     if (executado && !pendente) {
-      query = Prisma.sql`${query} AND exec <> 0`;
+      query = Prisma.sql`${query} AND exec IS NOT NULL`;
     } else {
       query = Prisma.sql`${query} AND exec IS NULL`;
     }

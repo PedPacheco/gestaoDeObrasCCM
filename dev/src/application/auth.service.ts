@@ -52,6 +52,7 @@ export class AuthService {
       username: user.username,
       permissao: user.permissao,
       permissao_visualizacao: user.permissao_visualizacao,
+      permissao_publicacao: user.permissao_publicacao,
     };
 
     return {

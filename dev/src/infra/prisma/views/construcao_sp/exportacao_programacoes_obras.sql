@@ -48,7 +48,8 @@ SELECT
   programacoes.status_restricao2,
   programacoes.data_resolucao2,
   programacoes.observacao_restricao,
-  programacoes.observacao_execucao
+  programacoes.observacao_execucao,
+  status_programacao.status_programacao
 FROM
   (
     (
@@ -61,10 +62,17 @@ FROM
                   (
                     (
                       (
-                        programacoes
-                        JOIN restricoes ON (
+                        (
+                          programacoes
+                          JOIN restricoes ON (
+                            (
+                              restricoes.id = programacoes.id_restricao_execucao
+                            )
+                          )
+                        )
+                        JOIN status_programacao ON (
                           (
-                            restricoes.id = programacoes.id_restricao_execucao
+                            status_programacao.id = programacoes.id_status_programacao
                           )
                         )
                       )

@@ -2,7 +2,6 @@ import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
-  IsDate,
   IsNumber,
   IsOptional,
   IsString,
@@ -25,32 +24,32 @@ export class GetRestrictionsDTO {
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idRegional: number[];
+  idRegional?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idMunicipio: number[];
+  idMunicipio?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idGrupo: number[];
+  idGrupo?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idTipo: number[];
+  idTipo?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idParceira: number[];
+  idParceira?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idRestricao: number[];
+  idRestricao?: number[];
 
   @IsBoolean()
   @Transform(({ value }) =>
@@ -66,7 +65,7 @@ export class GetRestrictionsDTO {
 
 export class InsertPublicationRestrictionsDTO {
   @IsNumber()
-  idWork: number;
+  id: number;
 
   @IsNumber()
   idRestriction: number;
@@ -93,7 +92,7 @@ export class UpdatePublicationRestrictionsDTO {
 
   @IsString()
   @Transform(({ value }) => (value === '' ? null : value))
-  responsiblity?: string;
+  responsibility?: string;
 
   @IsString()
   @Transform(({ value }) => (value === '' ? null : value))
@@ -103,9 +102,8 @@ export class UpdatePublicationRestrictionsDTO {
   @Transform(({ value }) => (value === '' ? null : value))
   restrictionStatus?: string;
 
-  @IsDate()
-  @Type(() => Date)
+  @IsString()
   @IsOptional()
   @Transform(({ value }) => (value === '' ? null : value))
-  resolutionDate?: Date;
+  resolutionDate?: string;
 }

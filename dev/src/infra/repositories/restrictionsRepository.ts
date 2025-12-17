@@ -7,6 +7,7 @@ import * as moment from 'moment';
 import {
   GetRestrictionsDTO,
   InsertPublicationRestrictionsDTO,
+  UpdatePublicationRestrictionsDTO,
 } from 'src/interface/dtos/restrictionsDTO';
 
 @Injectable()
@@ -46,6 +47,14 @@ export class RestrictionsRepository implements IRestrictionsRepository {
       query = Prisma.sql`${query} AND data_conclusao BETWEEN ${ini} AND ${fim}`;
     }
 
+    if (executado && typeRestriction === 'publication') {
+      query = Prisma.sql`${query} AND restricoes_publicacoes.data_resolucao IS NOT NULL`;
+    }
+
+    if (!executado && typeRestriction === 'publication') {
+      query = Prisma.sql`${query} AND restricoes_publicacoes.data_resolucao IS NULL`;
+    }
+
     if (executado && typeRestriction === 'schedule') {
       query = Prisma.sql`${query} AND programacoes.exec IS NOT NULL`;
     }
@@ -66,8 +75,12 @@ export class RestrictionsRepository implements IRestrictionsRepository {
       query = Prisma.sql`${query} AND obras.id_tipo IN (${Prisma.join(idTipo)})`;
     }
 
-    if (idTipo?.length) {
-      query = Prisma.sql`${query} AND restricoes.id IN (${Prisma.join(idTipo)})`;
+    if (idRestricao?.length && typeRestriction === 'schedule') {
+      query = Prisma.sql`${query} AND (restr1.id IN (${Prisma.join(idRestricao)}) OR restr2.id IN (${Prisma.join(idRestricao)}))`;
+    }
+
+    if (idRestricao?.length && typeRestriction === 'publication') {
+      query = Prisma.sql`${query} AND restricoes_publicacoes.id_restricao IN (${Prisma.join(idRestricao)})`;
     }
 
     if (idParceira?.length) {
@@ -162,12 +175,8 @@ export class RestrictionsRepository implements IRestrictionsRepository {
 
   async getPublicationRestricion(
     filters: GetRestrictionsDTO,
-  ): Promise<{ works: any[]; totals: any[] }> {
+  ): Promise<{ works: any[] }> {
     try {
-      const { page } = filters;
-      const limit = 200;
-      const offset = page * limit;
-
       const baseQuery = Prisma.sql`
       FROM construcao_sp.obras
       INNER JOIN construcao_sp.municipios 
@@ -180,9 +189,9 @@ export class RestrictionsRepository implements IRestrictionsRepository {
         ON turmas.id = obras.id_turma
       INNER JOIN construcao_sp.status
         ON status.id = obras.id_status
-      LEFT JOIN construcao_sp.restricoes_publicacoes
+      INNER JOIN construcao_sp.restricoes_publicacoes
         ON restricoes_publicacoes.id_obra = obras.id
-      LEFT JOIN construcao_sp.restricoes
+      INNER JOIN construcao_sp.restricoes
         ON restricoes.id = restricoes_publicacoes.id_restricao
       WHERE 1=1
     `;
@@ -199,9 +208,12 @@ export class RestrictionsRepository implements IRestrictionsRepository {
         obras.data_conclusao,
         municipios.mun,
         regional,
+        regionais.id as id_regional,
         tipos.tipo_obra,
         turmas.turma as parceira,
+        restricoes_publicacoes.id as id_restricao_publicacao,
         restricoes.restricao,
+        restricoes.id as id_restricao,
         restricoes_publicacoes.responsabilidade,
         restricoes_publicacoes.nome_responsavel,
         restricoes_publicacoes.status_restricao,
@@ -209,37 +221,52 @@ export class RestrictionsRepository implements IRestrictionsRepository {
       ${baseQuery}
     `;
 
-      let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras ${baseQuery}`;
-
       query = this.applyFilters(query, filters, 'publication');
-      countQuery = this.applyFilters(countQuery, filters, 'publication');
 
-      query = Prisma.sql`${query} AND data_conclusao IS NOT NULL ORDER BY obras.data_conclusao DESC`;
+      query = Prisma.sql`${query} ORDER BY obras.data_conclusao DESC`;
 
-      query = Prisma.sql`${query} LIMIT ${limit} OFFSET ${offset}`;
+      const works = await this.prisma.$queryRaw<any[]>(query);
 
-      const [works, totals] = await Promise.all([
-        await this.prisma.$queryRaw<any[]>(query),
-        await this.prisma.$queryRaw<any[]>(countQuery),
-      ]);
-
-      return { works, totals };
+      return { works };
     } catch (error) {
       throw error;
     }
   }
 
   async insertPublicationRestriction(
-    data: InsertPublicationRestrictionsDTO,
+    data: InsertPublicationRestrictionsDTO[],
   ): Promise<void> {
-    await this.prisma.restricoes_publicacoes.create({
+    await this.prisma.$transaction(async (tx) => {
+      await tx.restricoes_publicacoes.createMany({
+        data: data.map((item) => ({
+          id_obra: item.id,
+          id_restricao: item.idRestriction,
+          responsabilidade: item.responsibility,
+          nome_responsavel: item.responsibleName,
+          status_restricao: item.restrictionStatus,
+        })),
+      });
+    });
+  }
+
+  async updatePublicationRestriction(
+    data: UpdatePublicationRestrictionsDTO,
+  ): Promise<void> {
+    await this.prisma.restricoes_publicacoes.update({
+      where: { id: data.id },
       data: {
-        id_obra: data.idWork,
         id_restricao: data.idRestriction,
         responsabilidade: data.responsibility,
         nome_responsavel: data.responsibleName,
         status_restricao: data.restrictionStatus,
+        data_resolucao: data.resolutionDate,
       },
+    });
+  }
+
+  async deletePublicationRestriction(id: number): Promise<void> {
+    await this.prisma.restricoes_publicacoes.delete({
+      where: { id },
     });
   }
 }

@@ -31,12 +31,10 @@ export default async function PublicationRestriction() {
         ? dayjs(params?.endDate).format("DD/MM/YYYY")
         : null,
       executado: params.executed,
-      page: "0",
     };
   } else {
     filtersValues = {
       executado: "false",
-      page: "0",
     };
   }
 

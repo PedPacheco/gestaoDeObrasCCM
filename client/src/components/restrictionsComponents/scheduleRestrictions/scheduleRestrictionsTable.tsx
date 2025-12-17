@@ -16,7 +16,6 @@ import {
   TableRow,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { ButtonComponent } from "@/components/common/Button";
 dayjs.extend(utc);
 
 interface totalsInterface {
@@ -27,7 +26,6 @@ interface ScheduleRestrictionsTableProps {
   data: any[];
   totals: totalsInterface;
   columns: Record<string, string>;
-  handleAdd: (item: any) => void;
   page: number;
   handleChangePage: (event: unknown, newPage: number) => void;
 }
@@ -35,7 +33,6 @@ interface ScheduleRestrictionsTableProps {
 export default function ScheduleRestrictionsTable({
   data,
   columns,
-  handleAdd,
   totals,
   page,
   handleChangePage,
@@ -55,12 +52,15 @@ export default function ScheduleRestrictionsTable({
                     key={column}
                     className={`py-1 px-2 text-center text-zinc-700 font-semibold text-xl bg-[#53FF75] sticky left-0 z-10 min-w-28 ${
                       column === "ovnota" ? "sticky left-0 z-20" : ""
+                    } ${
+                      column === "restricao1" || column === "restricao2"
+                        ? "border-l border-solid"
+                        : ""
                     }`}
                   >
                     {columns[column as keyof typeof columns]}
                   </TableCell>
                 ))}
-              <TableCell className="py-1 px-2 text-center text-zinc-700 font-semibold text-lg bg-[#53FF75] min-w-52 sticky left-0 z-10"></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -97,6 +97,10 @@ export default function ScheduleRestrictionsTable({
                         <TableCell
                           className={`py-1 px-2 text-center font-medium text-lg min-w-36 text-nowrap ${
                             column === "ovnota" ? "hover:cursor-pointer" : ""
+                          } ${
+                            column === "restricao1" || column === "restricao2"
+                              ? "border-l border-solid"
+                              : ""
                           }`}
                           onClick={() =>
                             column === "ovnota"
@@ -109,20 +113,6 @@ export default function ScheduleRestrictionsTable({
                         </TableCell>
                       );
                     })}
-
-                  <TableCell className="text-center flex ">
-                    <ButtonComponent
-                      onClick={() => handleAdd(item)}
-                      text="Adicionar"
-                      styled="w-8 mr-2"
-                    />
-
-                    <ButtonComponent
-                      onClick={() => handleAdd(item)}
-                      styld="w-8"
-                      text="Excluir"
-                    />
-                  </TableCell>
                 </TableRow>
               );
             })}

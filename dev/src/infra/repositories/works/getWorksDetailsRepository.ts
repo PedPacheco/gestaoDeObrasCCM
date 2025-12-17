@@ -67,7 +67,9 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
           },
         },
         empreendimento: { select: { empreendimento: true } },
-        municipios: { select: { municipio: true } },
+        municipios: {
+          select: { municipio: true, regionais: { select: { id: true } } },
+        },
         tipos: { select: { tipo_obra: true, id_grupo: true } },
         id_turma: true,
         id_status: true,

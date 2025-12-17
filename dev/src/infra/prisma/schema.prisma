@@ -545,12 +545,11 @@ model usuario {
   senha                  String               @db.VarChar
   permissao              String               @db.VarChar(30)
   id_regional            Int
-  formulario_utilizado   String?              @db.VarChar(50)
-  nome_maquina           String?              @db.VarChar(30)
   nome_usuario           String               @db.VarChar(50)
   email                  String               @db.VarChar(70)
   permissao_visualizacao String               @default("total") @db.VarChar(25)
   id_turma               Int                  @default(1)
+  permissao_publicacao   Boolean              @default(false)
   relatorio_execucao     relatorio_execucao[]
   turmas                 turmas               @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
   regionais              regionais            @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
@@ -795,6 +794,7 @@ view exportacao_programacoes_obras {
   data_resolucao2              DateTime? @db.Date
   observacao_restricao         String?   @db.VarChar(255)
   observacao_execucao          String?   @db.VarChar(255)
+  status_programacao           String?   @db.VarChar(30)
 }
 
 view exportacao_capacidade_execucao {

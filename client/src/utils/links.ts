@@ -90,17 +90,17 @@ export const links = [
   {
     name: "Restrições",
     href: null,
-    needPermission: true,
+    needPermission: false,
     submenu: [
       {
         name: "Restrições Programações",
         href: "/restricoes/programacoes",
-        needPermission: true,
+        needPermission: false,
       },
       {
         name: "Restrições Publicações",
         href: "/restricoes/publicacoes",
-        needPermission: true,
+        needPermission: false,
       },
     ],
   },

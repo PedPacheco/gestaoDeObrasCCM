@@ -150,6 +150,7 @@ export class ExportSchedulesBIService {
         key: 'observacao_execucao',
         width: 15,
       },
+      { header: 'STATUSPROGRAMACAO', key: 'status_programacao', width: 25 },
     ];
 
     const batchSize = 1000;

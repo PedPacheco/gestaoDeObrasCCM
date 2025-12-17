@@ -93,8 +93,8 @@ export default function PortfolioWorksFilters({
     setOvnota(filters.ovnota || "");
 
     if (url === "completedWorksFilters") {
-      setStartDate(dayjs(filters.startDate) || null);
-      setEndDate(dayjs(filters.endDate) || null);
+      setStartDate(filters?.startDate ? dayjs(filters.startDate) : null);
+      setEndDate(filters?.endDate ? dayjs(filters.endDate) : null);
     }
   }, [filters, url]);
 

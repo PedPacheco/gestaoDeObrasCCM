@@ -21,8 +21,20 @@ import {
 } from "@mui/material";
 import { useUser } from "@/contexts/userContext";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
+// import RestrictionDrawer from "@/components/restrictionsComponents/scheduleRestrictions/RestrictionDrawer";
+import { InsertPublicationRestrictions } from "@/actions/restrictions";
 
 dayjs.extend(customParseFormat);
+
+import dynamic from "next/dynamic";
+
+const RestrictionDrawer = dynamic(
+  () =>
+    import(
+      "@/components/restrictionsComponents/scheduleRestrictions/RestrictionDrawer"
+    ),
+  { ssr: false }
+);
 
 interface WorkDetailsProps {
   data: {
@@ -49,6 +61,7 @@ interface WorkDetailsProps {
     empreendimento: string;
     id_status: string;
     id_turma: string;
+    idRegional: number;
     status_ov_sap: string;
     tipo_ads: string;
     observ_obra: string;
@@ -93,7 +106,15 @@ export function WorkDetails({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [openModal, setOpenModal] = useState<boolean>(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
   const { permissions } = useUser();
+
+  const publicationRestrictions = options.restricao.filter(
+    (restriction: any) => restriction.tipo_restricao === "PUBLICAÇÃO"
+  );
+
+  const [isMounted, setIsMounted] = useState(false);
 
   const [openSuspensionModal, setOpenSuspensionModal] =
     useState<boolean>(false);
@@ -108,6 +129,10 @@ export function WorkDetails({
   });
   const [changedFields, setChangedFields] =
     useState<Record<string, string | null>>();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const toggleModal = () => setOpenModal((prev) => !prev);
   const toggleSuspensionModal = () => setOpenSuspensionModal((prev) => !prev);
@@ -172,20 +197,53 @@ export function WorkDetails({
     }
   };
 
+  const handleSavePublicationRestriction = async (restrictions: any[]) => {
+    setDrawerOpen(false);
+
+    startTransition(async () => {
+      try {
+        const response = await InsertPublicationRestrictions(restrictions);
+
+        if (!response.success) {
+          setError(response.error || "Erro ao salvar alterações");
+          return;
+        }
+
+        setSuccess(response.message);
+        setOpenModal(true);
+      } catch (error: any) {
+        setError(error.message);
+      }
+    });
+  };
+
   return (
     <>
       <div className="w-full flex justify-between items-center my-4 px-2 md:px-8">
         <p className="text-2xl font-extrabold">Informações gerais</p>
-        <ButtonComponent
-          text={isPending ? "Salvando..." : "Salvar alterações"}
-          styled="px-6"
-          onClick={handleSubmit}
-          disabled={
-            isPending ||
-            !changedFields ||
-            Object.keys(changedFields).length === 0
-          }
-        />
+
+        <div className="flex gap-4">
+          {isMounted &&
+            permissions?.permissao_publicacao &&
+            data.id_status.toString() === "2" && (
+              <ButtonComponent
+                onClick={() => setDrawerOpen(true)}
+                text="Adicionar restrição publicação"
+                styled="px-6"
+              />
+            )}
+
+          <ButtonComponent
+            text={isPending ? "Salvando..." : "Salvar alterações"}
+            styled="px-6"
+            onClick={handleSubmit}
+            disabled={
+              isPending ||
+              !changedFields ||
+              Object.keys(changedFields).length === 0
+            }
+          />
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 xl:grid-cols-4 md:px-4 w-full">
@@ -287,6 +345,17 @@ export function WorkDetails({
           className="flex-1 h-full min-w-32 lg:min-w-36 font-medium text-xl text-center p-2 bg-transparent focus:outline-none"
         />
       </div>
+
+      <RestrictionDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        data={null}
+        onSave={handleSavePublicationRestriction}
+        restrictionsValues={publicationRestrictions}
+        idWork={Number(data.id)}
+        idRegional={data.idRegional}
+        isInsert={true}
+      />
 
       <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
         <span className="text-center text-lg text-gray-700 dark:text-gray-200 mb-6">

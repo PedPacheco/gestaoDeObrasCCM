@@ -1,6 +1,5 @@
 "use client";
 
-import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 
 import {
@@ -15,9 +14,11 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers";
 import "dayjs/locale/pt-br";
 import { buildPublicationRestrictionPayload } from "@/utils/transform";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
 
 interface RestrictionDrawerProps {
   open: boolean;
@@ -25,15 +26,26 @@ interface RestrictionDrawerProps {
   data: any | null;
   onSave: (updated: any) => void;
   restrictionsValues: any[];
+  idWork?: number;
+  idRegional?: number;
+  isInsert: boolean;
 }
 
-export const INITIAL_FORM_DATA = {
-  idWork: 1,
+const INITIAL_FORM_DATA = {
+  id: 1,
   idRestriction: 1,
   responsibility: null,
   responsibleName: null,
   restrictionStatus: null,
+  resolutionDate: null,
 };
+
+const RESPONSIBLE_ENGINEERS = [
+  { id: 64, name: "Juliana Escobar Viacava", idRegional: 1 },
+  { id: 66, name: "Henrique de Oliveira Batista", idRegional: 6 },
+  { id: 80, name: "Marcos de Siqueira Mesquita", idRegional: 9 },
+  { id: 94, name: "Luciano Bernardo dos Santos", idRegional: 2 },
+];
 
 export default function RestrictionDrawer({
   open,
@@ -41,34 +53,73 @@ export default function RestrictionDrawer({
   data,
   onSave,
   restrictionsValues,
+  idWork,
+  idRegional,
+  isInsert,
 }: RestrictionDrawerProps) {
   const [form, setForm] = useState<any[]>([INITIAL_FORM_DATA]);
+  const responsibleEnginner = RESPONSIBLE_ENGINEERS.find(
+    (enginner) => enginner.idRegional === idRegional
+  );
 
   useEffect(() => {
     if (data) {
-      const formattedData = buildPublicationRestrictionPayload(data);
-
+      const formattedData = buildPublicationRestrictionPayload(
+        data,
+        RESPONSIBLE_ENGINEERS
+      );
       setForm(formattedData);
+    } else {
+      setForm([
+        {
+          ...INITIAL_FORM_DATA,
+          responsibleName: responsibleEnginner?.name,
+          id: idWork,
+        },
+      ]);
     }
-  }, [data]);
+  }, [data, idWork, responsibleEnginner?.name]);
 
-  const handleChange = (field: string, value: any) => {
-    setForm((prev: any) => ({ ...prev, [field]: value }));
+  const handleChange = (index: number, field: string, value: any) => {
+    setForm((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
+    );
   };
 
   const handleSave = () => {
-    onSave(form);
+    const cleanedForm = form.map((item) =>
+      Object.fromEntries(
+        Object.entries(item).map(([key, value]) => [
+          key,
+          value === "" ? null : value,
+        ])
+      )
+    );
+
+    if (data) {
+      onSave(cleanedForm[0]);
+    } else {
+      onSave(cleanedForm);
+    }
+
     onClose();
   };
 
   const addRestriction = () => {
     setForm((prev) => {
-      return [...prev, INITIAL_FORM_DATA];
+      return [
+        ...prev,
+        {
+          ...INITIAL_FORM_DATA,
+          id: idWork,
+          responsibleName: responsibleEnginner?.name,
+        },
+      ];
     });
   };
 
   return (
-    <Drawer anchor="right" open={open} onClose={onClose}>
+    <Drawer anchor="left" open={open} onClose={onClose}>
       <Box sx={{ width: 420, p: 3 }}>
         <Typography variant="h5" fontWeight="bold" mb={2}>
           Editar Restrição
@@ -76,10 +127,8 @@ export default function RestrictionDrawer({
 
         <Divider />
 
-        {/* === BLOCO 1 === */}
-
-        {form.map((restriction) => (
-          <>
+        {form.map((restriction, index) => (
+          <div key={index}>
             <Typography variant="h6" mt={2}>
               Restrição
             </Typography>
@@ -88,7 +137,9 @@ export default function RestrictionDrawer({
               <InputLabel>Restrição</InputLabel>
               <Select
                 value={restriction.idRestriction || 1}
-                onChange={(e) => handleChange("idRestriction", e.target.value)}
+                onChange={(e) =>
+                  handleChange(index, "idRestriction", e.target.value)
+                }
                 label="Restrição"
               >
                 {restrictionsValues.map((value, index) => (
@@ -103,7 +154,9 @@ export default function RestrictionDrawer({
               <InputLabel>Responsabilidade</InputLabel>
               <Select
                 value={restriction.responsibility || ""}
-                onChange={(e) => handleChange("responsibility", e.target.value)}
+                onChange={(e) =>
+                  handleChange(index, "responsibility", e.target.value)
+                }
                 label="Responsabilidade"
               >
                 <MenuItem className="p-4" value=""></MenuItem>
@@ -116,7 +169,7 @@ export default function RestrictionDrawer({
               fullWidth
               label="Nome do responsável"
               value={restriction.responsibleName || ""}
-              onChange={(e) => handleChange("responsibleName", e.target.value)}
+              disabled
               margin="normal"
             />
 
@@ -125,7 +178,7 @@ export default function RestrictionDrawer({
               <Select
                 value={restriction.restrictionStatus || ""}
                 onChange={(e) =>
-                  handleChange("restrictionStatus", e.target.value)
+                  handleChange(index, "restrictionStatus", e.target.value)
                 }
                 label="Status da restrição"
               >
@@ -135,7 +188,32 @@ export default function RestrictionDrawer({
                 <MenuItem value="Em análise">Em análise</MenuItem>
               </Select>
             </FormControl>
-          </>
+
+            {data && (
+              <LocalizationProvider
+                dateAdapter={AdapterDayjs}
+                adapterLocale="pt-br"
+              >
+                <DatePicker
+                  label="Data resolução"
+                  value={
+                    restriction.resolutionDate
+                      ? dayjs(restriction.resolutionDate, "DD/MM/YYYY")
+                      : null
+                  }
+                  onChange={(value) =>
+                    handleChange(
+                      index,
+                      "resolutionDate",
+                      value ? value.format("DD/MM/YYYY") : null
+                    )
+                  }
+                  format="DD/MM/YYYY"
+                  slotProps={{ textField: { size: "small", fullWidth: true } }}
+                />
+              </LocalizationProvider>
+            )}
+          </div>
         ))}
 
         <div className="flex justify-between">
@@ -143,19 +221,21 @@ export default function RestrictionDrawer({
             variant="contained"
             sx={{ mt: 4 }}
             onClick={handleSave}
-            className="w-40"
+            className={isInsert ? "w-40" : "w-full"}
           >
-            Salvar Alterações
+            Salvar Restrição
           </Button>
 
-          <Button
-            variant="contained"
-            sx={{ mt: 4 }}
-            className="w-40"
-            onClick={addRestriction}
-          >
-            Adiconar restrição
-          </Button>
+          {isInsert && (
+            <Button
+              variant="contained"
+              sx={{ mt: 4 }}
+              className="w-40"
+              onClick={addRestriction}
+            >
+              Adiconar restrição
+            </Button>
+          )}
         </div>
       </Box>
     </Drawer>

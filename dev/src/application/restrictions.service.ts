@@ -7,7 +7,9 @@ import {
 import {
   GetRestrictionsDTO,
   InsertPublicationRestrictionsDTO,
+  UpdatePublicationRestrictionsDTO,
 } from 'src/interface/dtos/restrictionsDTO';
+import * as moment from 'moment';
 
 @Injectable()
 export class RestrictionsService {
@@ -29,12 +31,27 @@ export class RestrictionsService {
     const result =
       await this.restrictionsRepository.getPublicationRestricion(filters);
 
-    const totals = { total_obras: Number(result.totals[0].total_obras) };
-
-    return { works: result.works, totals };
+    return { works: result.works };
   }
 
-  async insertPublicationRestriction(data: InsertPublicationRestrictionsDTO) {
+  async insertPublicationRestriction(data: InsertPublicationRestrictionsDTO[]) {
     await this.restrictionsRepository.insertPublicationRestriction(data);
+  }
+
+  async updatePublicationRestriction(data: UpdatePublicationRestrictionsDTO) {
+    const formattedData = {
+      ...data,
+      resolutionDate: data.resolutionDate
+        ? moment(data.resolutionDate, 'DD/MM/YYYY', true).toISOString()
+        : null,
+    };
+
+    await this.restrictionsRepository.updatePublicationRestriction(
+      formattedData,
+    );
+  }
+
+  async deletePublicationRestriction(id: number) {
+    await this.restrictionsRepository.deletePublicationRestriction(id);
   }
 }

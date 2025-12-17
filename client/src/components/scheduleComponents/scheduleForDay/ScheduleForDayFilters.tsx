@@ -71,8 +71,8 @@ export default function ScheduleForDayFilters({
       setExecuted(filters.executed || false);
       setPending(filters.pending || false);
       setOvnota(filters.ovnota || "");
-      setStartDate(dayjs(filters.startDate) || null);
-      setEndDate(dayjs(filters.endDate) || null);
+      setStartDate(filters?.startDate ? dayjs(filters.startDate) : null);
+      setEndDate(filters?.endDate ? dayjs(filters.endDate) : null);
     }
   }, [filters]);
 
@@ -81,6 +81,9 @@ export default function ScheduleForDayFilters({
       ...Transform(selectedItems),
       executado: executed.toString(),
       pendente: pending.toString(),
+      dataInicial: startDate ? startDate.format("DD/MM/YYYY") : null,
+      dataFinal: endDate ? endDate.format("DD/MM/YYYY") : null,
+      ovnota: ovnota,
     };
 
     generateExcel(newSelectedItems);
