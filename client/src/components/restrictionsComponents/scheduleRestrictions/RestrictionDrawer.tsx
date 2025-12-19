@@ -19,6 +19,7 @@ import { buildPublicationRestrictionPayload } from "@/utils/transform";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import { PlusIcon, TrashIcon } from "@heroicons/react/20/solid";
 
 interface RestrictionDrawerProps {
   open: boolean;
@@ -115,6 +116,13 @@ export default function RestrictionDrawer({
           responsibleName: responsibleEnginner?.name,
         },
       ];
+    });
+  };
+
+  const removeRestriction = () => {
+    setForm((prev) => {
+      if (prev.length === 1) return prev; // impede remover a última
+      return prev.slice(0, -1);
     });
   };
 
@@ -216,10 +224,9 @@ export default function RestrictionDrawer({
           </div>
         ))}
 
-        <div className="flex justify-between">
+        <div className="flex justify-between items-center mt-4">
           <Button
             variant="contained"
-            sx={{ mt: 4 }}
             onClick={handleSave}
             className={isInsert ? "w-40" : "w-full"}
           >
@@ -227,14 +234,24 @@ export default function RestrictionDrawer({
           </Button>
 
           {isInsert && (
-            <Button
-              variant="contained"
-              sx={{ mt: 4 }}
-              className="w-40"
-              onClick={addRestriction}
-            >
-              Adiconar restrição
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={addRestriction}
+              >
+                <PlusIcon />
+              </Button>
+
+              <Button
+                variant="contained"
+                color="error"
+                onClick={removeRestriction}
+                disabled={form.length <= 1}
+              >
+                <TrashIcon />
+              </Button>
+            </div>
           )}
         </div>
       </Box>

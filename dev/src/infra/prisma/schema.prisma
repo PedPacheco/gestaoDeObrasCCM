@@ -633,7 +633,7 @@ model relatorio_execucao {
   contato_inicio                       String?      @db.VarChar(50)
   contato_termino                      String?      @db.VarChar(50)
   atraso                               Boolean?
-  justificativa_atraso                 String?      @db.VarChar(150)
+  justificativa_atraso                 String?      @db.VarChar(350)
   possui_equipamentos_instalados       Boolean?
   equipamentos_aplicados               String?
   possui_equipamentos_retirados        Boolean?
@@ -707,6 +707,63 @@ model restricoes_publicacoes {
   data_resolucao   DateTime?  @db.Date
   obras            obras      @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
   restricoes       restricoes @relation(fields: [id_restricao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model OBRAS {
+  CODIGOOBRA            Int?
+  OVNOTA                String?   @db.VarChar(12)
+  PEP                   String?   @db.VarChar(8)
+  DIAGRAMA              String?   @db.VarChar(12)
+  ORDEMDCI              String?   @db.VarChar(12)
+  ORDEMDCD              String?   @db.VarChar(12)
+  ORDEMDCA              String?   @db.VarChar(12)
+  ORDEMDCIM             String?   @db.VarChar(12)
+  STATUSOVSAP           Int?
+  STATUSPEP             String?   @db.VarChar(4)
+  STATUSDIAGRAMA        String?   @db.VarChar(4)
+  STATUS162             String?   @db.VarChar(255)
+  STATUS163             String?   @db.VarChar(4)
+  STATUS165             String?   @db.VarChar(4)
+  STATUS43              String?   @db.VarChar(4)
+  STATUSUSUARIODIAGRAMA String?   @db.VarChar(16)
+  STATUSUSUARIO162      String?   @db.VarChar(16)
+  STATUSUSUARIO163      String?   @db.VarChar(16)
+  STATUSUSUARIO165      String?   @db.VarChar(16)
+  STATUSUSUARIO43       String?   @db.VarChar(16)
+  CODGPM                Int?
+  CODTIPO               Int?
+  ENTRADA               DateTime? @db.Timestamptz(6)
+  PRAZO                 Int?
+  QTDEPLANEJADA         Float?
+  CODCIRCUITO           Int?
+  MOPLANEJADA           Float?
+  MOCALCULADA           Float?
+  MOACERTADA            Float?
+  OBSERVOBRA            String?   @db.VarChar(255)
+  CODTURMA              Int?
+  EXECUTADO             Int?      @map("%EXECUTADO")
+  DATACONCLUSAO         DateTime? @db.Timestamptz(6)
+  CODSTATUS             Int?
+  REFERENCIA            String?   @db.VarChar(14)
+  CAPEXMATPLAN          Float?
+  CAPEXMOPLAN           Float?
+  CAPEXMATPEND          Float?
+  CAPEXMOPEND           Float?
+  QTDEPEND              Float?
+  TIPOADS               String?   @db.VarChar(255)
+  DATAEMPREITAMENTO     DateTime? @db.Timestamptz(6)
+  CODEMPREENDIMENTO     Int?
+  DIAGRAMAANTIGO        String?   @db.VarChar(12)
+  ORDEMDCIANTIGO        String?   @db.VarChar(12)
+  ORDEMDCDANTIGO        String?   @db.VarChar(12)
+  ORDEMDCSANTIGO        String?   @db.VarChar(12)
+  ORDEMDCIMANTIGO       String?   @db.VarChar(12)
+  ANOPLAN               Int?
+  DATAVIABILIDADE       DateTime? @db.Timestamptz(6)
+  PRAZOVIABILIDADE      String?   @db.VarChar(40)
+
+  @@ignore
 }
 
 view exportacao_obras_executadas {
@@ -802,6 +859,7 @@ view exportacao_capacidade_execucao {
   ano                    String? @db.VarChar(10)
   regional               String? @db.VarChar(20)
   turma                  String? @db.VarChar(15)
+  equipe                 String? @db.VarChar(15)
   total_shouldcost       Float?
   total_qtde_equipes_rfp BigInt?
   jan                    Int?    @db.SmallInt

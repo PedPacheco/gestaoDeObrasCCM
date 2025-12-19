@@ -6,6 +6,7 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainSchduleForDay from "@/components/scheduleComponents/scheduleForDay/MainScheduleForDay";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { Transform } from "@/utils/transform";
+import { ErrorThrower } from "@/components/common/ErrorThrower";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -47,6 +48,10 @@ export default async function ScheduleForDay() {
       { cache: "no-store" }
     ),
   ]);
+
+  if (!scheduleData.success) {
+    return <ErrorThrower message={scheduleData.message} />;
+  }
 
   const { data, token } = scheduleData;
 

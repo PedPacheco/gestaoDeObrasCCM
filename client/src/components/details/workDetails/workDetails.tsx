@@ -341,6 +341,10 @@ export function WorkDetails({
           onChange={(e: { target: { value: string } }) =>
             handleDataChange("observ_obra", e.target.value)
           }
+          disabled={
+            permissions?.permissao_visualizacao === "parcial" ||
+            permissions?.permissao !== "Sem permissão"
+          }
           className="flex-1 h-full min-w-32 lg:min-w-36 font-medium text-xl text-center p-2 bg-transparent focus:outline-none"
         />
       </div>

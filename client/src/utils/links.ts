@@ -72,12 +72,17 @@ export const links = [
   },
   {
     name: "Programação",
-    href: "/programacao",
+    href: null,
     needPermission: false,
     submenu: [
       {
         name: "Resumo mensal",
         href: "/programacao/resumo-mensal",
+        needPermission: true,
+      },
+      {
+        name: "Valores Mensais",
+        href: "/programacao",
         needPermission: true,
       },
       {
