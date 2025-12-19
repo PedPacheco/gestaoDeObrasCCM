@@ -64,6 +64,7 @@ export class ExportWorksInPortfolioService {
       },
       { header: 'Data empreitamento', key: 'data_empreitamento', width: 20 },
       { header: 'Empreendimento', key: 'empreendimento', width: 25 },
+      { header: 'Ano do Plano', key: 'ano_plan', width: 15 },
     ];
 
     const batchSize = 1000;

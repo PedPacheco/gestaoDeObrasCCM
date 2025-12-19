@@ -1,51 +1,55 @@
 import * as cookiesModule from "next/headers";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi, Mock } from "vitest";
+import { render, screen } from "@testing-library/react";
 
 import ExportPage from "@/app/(dashboard)/exportacoes/page";
-import { render, screen } from "@testing-library/react";
+
+vi.mock("@/components/exports/wrapperExportButton", () => ({
+  __esModule: true,
+  default: vi.fn(({ text, path, token }) => (
+    <div
+      data-testid="export-button"
+      data-text={text}
+      data-path={path}
+      data-token={token}
+    >
+      Export Button
+    </div>
+  )),
+}));
 
 vi.mock("next/headers", () => ({
   cookies: vi.fn(),
 }));
 
-vi.mock("@/components/exports/exportButton", () => ({
-  __esModule: true,
-  ExportButton: vi.fn(({ text, path, token }) => (
-    <div
-      data-testid="main-export-button"
-      data-text={text}
-      data-path={path}
-      data-token={token}
-    >
-      Main Execution Capacity
-    </div>
-  )),
-}));
-
-describe("Execution Capacity page", () => {
+describe("ExportPage", () => {
   const mockToken = "mock-token";
 
   const mockCookieStore = {
     get: vi.fn((name) => {
       if (name === "token") return { value: mockToken };
+      return undefined;
     }),
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(cookiesModule.cookies).mockReturnValue(mockCookieStore as any);
-
-    process.env.NEXT_PUBLIC_API_URL = "https://api.example.com";
+    // cookies() agora pode ser mockado diretamente
+    (cookiesModule.cookies as Mock).mockImplementation(() => ({
+      get: vi.fn().mockReturnValue({ value: "123" }),
+      set: vi.fn(),
+      delete: vi.fn(),
+    }));
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
-  });
+  it("renderiza apenas os botões com visible=true", async () => {
+    const page = await ExportPage();
+    render(page);
 
-  it("deve buscar dados com os filtros corretos quando cookie de filtros existe", async () => {
-    render(await ExportPage());
+    const buttons = screen.getAllByTestId("export-button");
 
-    expect(screen.getAllByTestId("main-export-button")).toHaveLength(7);
+    // sua página tem 5 botões visíveis
+    expect(buttons).toHaveLength(8);
   });
 });

@@ -7,6 +7,7 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainScheduleRestrictions from "@/components/restrictionsComponents/scheduleRestrictions/MainScheduleRestrictions";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { Transform } from "@/utils/transform";
+import { ErrorThrower } from "@/components/common/ErrorThrower";
 
 dayjs.extend(isoWeek);
 
@@ -56,6 +57,10 @@ export default async function ScheduleRestrictions() {
       { cache: "no-store" }
     ),
   ]);
+
+  if (!scheduleData.success) {
+    return <ErrorThrower message={scheduleData.message} />;
+  }
 
   const { token, data } = scheduleData;
 

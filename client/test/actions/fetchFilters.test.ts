@@ -40,7 +40,7 @@ describe("fetchFilters", () => {
           "Content-Type": "application/json",
           Authorization: "Bearer mock-token",
         },
-        next: { revalidate: 3600 },
+        cache: "no-store",
       }
     );
 

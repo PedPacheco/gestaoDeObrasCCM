@@ -90,7 +90,7 @@ export const EditableColumn = ({
       <SelectComponent
         label="Tipo ADS"
         menuItems={[
-          { tipo: "" },
+          { tipo: null },
           { tipo: "CONVENCIONAL" },
           { tipo: "PONTO A PONTO" },
         ]}

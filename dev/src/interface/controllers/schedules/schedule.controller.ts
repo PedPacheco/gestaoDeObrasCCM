@@ -32,7 +32,7 @@ export class ScheduleController {
   ) {}
 
   @Get()
-  @UseGuards(VisualizationGuard)
+  @UseGuards(PermissionGuard)
   async getTotalValues(@Query() filters: GetTotalValuesScheduleDTO) {
     const response =
       await this.getTotalValuesScheduleService.getTotalValues(filters);

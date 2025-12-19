@@ -1,5 +1,6 @@
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
+import { ErrorThrower } from "@/components/common/ErrorThrower";
 import { MainExecutionCapacity } from "@/components/executionCapacity/mainExecutionCapacity";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { cookies } from "next/headers";
@@ -51,6 +52,10 @@ export default async function ExecutionCapacity() {
     nov: "Novembro",
     dez: "Dezembro",
   };
+
+  if (!executionCapacityData.success) {
+    return <ErrorThrower message={executionCapacityData.message} />;
+  }
 
   const { token, data } = executionCapacityData;
 

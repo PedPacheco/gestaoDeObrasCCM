@@ -26,27 +26,26 @@ describe("TableWithPagination", () => {
     objeto: "Objeto",
   };
 
-  const data = {
-    works: [
-      {
-        id: 1,
-        data_inicio: "2024-07-20",
-        mo_planejada: 10000.1234,
-        ovnota: "23421432",
-        prog: 78,
-        exec: 92,
-        data_fim: "1970-01-01T14:30:00Z",
-        objeto: { nome: "Pedro", cargo: "Dev" },
-      },
-    ],
-    totals: {
-      total_obras: 1,
-      total_mo_planejada: 10000,
-      total_mo_exec: 9000,
-      total_mo_suspensa: 1000,
-      total_qtde_planejada: 10,
-      total_qtde_pend: 2,
+  const data = [
+    {
+      id: 1,
+      data_inicio: "2024-07-20",
+      mo_planejada: 10000.1234,
+      ovnota: "23421432",
+      prog: 78,
+      exec: 92,
+      data_fim: "1970-01-01T14:30:00Z",
+      objeto: { nome: "Pedro", cargo: "Dev" },
     },
+  ];
+
+  const totals = {
+    total_obras: 1,
+    total_mo_planejada: 10000,
+    total_mo_exec: 9000,
+    total_mo_suspensa: 1000,
+    total_qtde_planejada: 10,
+    total_qtde_pend: 2,
   };
 
   it("renderiza colunas e dados corretamente", () => {
@@ -54,6 +53,7 @@ describe("TableWithPagination", () => {
       <TableWithPagination
         columns={columns}
         data={data}
+        totals={totals}
         page={0}
         sliceEndIndex={0}
         handleChangePage={handleChangePage}
@@ -80,6 +80,7 @@ describe("TableWithPagination", () => {
       <TableWithPagination
         columns={columns}
         data={data}
+        totals={totals}
         page={0}
         sliceEndIndex={0}
         handleChangePage={handleChangePage}
@@ -97,6 +98,7 @@ describe("TableWithPagination", () => {
       <TableWithPagination
         columns={columns}
         data={data}
+        totals={totals}
         page={0}
         sliceEndIndex={1}
         handleChangePage={handleChangePage}
@@ -110,7 +112,8 @@ describe("TableWithPagination", () => {
     render(
       <TableWithPagination
         columns={columns}
-        data={{ ...data, totals: { ...data.totals, total_obras: 400 } }}
+        data={data}
+        totals={{ ...totals, total_obras: 400 }}
         page={0}
         sliceEndIndex={0}
         handleChangePage={handleChangePage}

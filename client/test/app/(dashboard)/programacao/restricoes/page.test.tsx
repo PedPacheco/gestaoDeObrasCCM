@@ -31,7 +31,7 @@ vi.mock("@/utils/transform", () => ({
 }));
 
 vi.mock(
-  "@/components/scheduleComponents/scheduleRestrictions/MainScheduleRestrictions",
+  "@/components/restrictionsComponents/scheduleRestrictions/MainScheduleRestrictions",
   () => ({
     __esModule: true,
     default: vi.fn(({ data, token, filtersData, column }) => (
@@ -119,12 +119,12 @@ describe("Schedule restrictions page", () => {
     });
 
     expect(fetchData).toHaveBeenCalledWith(
-      "https://api.example.com/programacao/restricoes",
+      "https://api.example.com/restricao/programacao",
       {
         regional: "Regional 1",
         parceira: "Parceira 1",
-        dataInicial: "17/05/2025",
-        dataFinal: "22/05/2025",
+        dataInicial: null,
+        dataFinal: null,
         executado: "true",
       },
       mockToken,
@@ -141,11 +141,10 @@ describe("Schedule restrictions page", () => {
     render(await ScheduleRestrictions());
 
     expect(fetchData).toHaveBeenCalledWith(
-      "https://api.example.com/programacao/restricoes",
+      "https://api.example.com/restricao/programacao",
       {
-        dataInicial: "12/05/2025",
-        dataFinal: "18/05/2025",
         executado: "false",
+        page: "0",
       },
       mockToken,
       { cache: "no-store" }

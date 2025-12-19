@@ -141,8 +141,8 @@ export class UpdateWorkDTO {
 
   @IsString()
   @IsOptional()
-  @IsIn(['CONVENCIONAL', 'PONTO A PONTO'])
-  tipo_ads: string;
+  @IsIn([null, 'CONVENCIONAL', 'PONTO A PONTO'])
+  tipo_ads?: string;
 
   @IsString()
   @IsOptional()

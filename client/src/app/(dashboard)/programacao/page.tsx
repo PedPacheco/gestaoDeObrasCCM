@@ -6,6 +6,7 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainSchedule from "@/components/scheduleComponents/schedule/MainSchedule";
 import { Transform } from "@/utils/transform";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
+import { ErrorThrower } from "@/components/common/ErrorThrower";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +45,10 @@ export default async function Schedule() {
       cookieStore.get("token")?.value
     ),
   ]);
+
+  if (!scheduleData.success) {
+    return <ErrorThrower message={scheduleData.message} />;
+  }
 
   const { token, data } = scheduleData;
 

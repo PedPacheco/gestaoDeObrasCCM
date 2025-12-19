@@ -21,7 +21,6 @@ import {
 } from "@mui/material";
 import { useUser } from "@/contexts/userContext";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
-// import RestrictionDrawer from "@/components/restrictionsComponents/scheduleRestrictions/RestrictionDrawer";
 import { InsertPublicationRestrictions } from "@/actions/restrictions";
 
 dayjs.extend(customParseFormat);
@@ -341,6 +340,10 @@ export function WorkDetails({
           value={editableData.observ_obra || ""}
           onChange={(e: { target: { value: string } }) =>
             handleDataChange("observ_obra", e.target.value)
+          }
+          disabled={
+            permissions?.permissao_visualizacao === "parcial" ||
+            permissions?.permissao !== "Sem permissão"
           }
           className="flex-1 h-full min-w-32 lg:min-w-36 font-medium text-xl text-center p-2 bg-transparent focus:outline-none"
         />

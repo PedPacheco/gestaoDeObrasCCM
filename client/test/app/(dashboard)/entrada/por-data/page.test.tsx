@@ -73,8 +73,8 @@ describe("EntryForDate", () => {
       parceira: ["Parceira 1"],
       regional: ["Regional A"],
     },
-    date: "17/05/2025",
-    filterType: "day",
+    startDate: "17/05/2025",
+    endDate: "18/05/2025",
   });
 
   const mockCookieStore = {
@@ -120,42 +120,11 @@ describe("EntryForDate", () => {
       {
         parceira: "Parceira 1",
         regional: "Regional A",
-        data: dayjs("17/05/2025").format("DD/MM/YYYY"),
-        tipoFiltro: "day",
+        dataInicial: "17/05/2025",
+        dataFinal: "18/05/2025",
       },
-      mockToken
-    );
-  });
-
-  it("deve buscar dados com o campo tipoFiltro definido para mês e a data com formato MM/YYYY", async () => {
-    const modifiedData = JSON.stringify({
-      ...JSON.parse(mockParamsFiltes),
-      date: "05/2025",
-      filterType: "month",
-    });
-
-    vi.mocked(mockCookieStore.get).mockImplementation((name) => {
-      if (name === "token") return { value: mockToken };
-      if (name === "entryByDateFilters") return { value: modifiedData };
-      return null;
-    });
-
-    render(await EntryForDate());
-
-    expect(Transform).toHaveBeenCalledWith({
-      parceira: ["Parceira 1"],
-      regional: ["Regional A"],
-    });
-
-    expect(fetchData).toHaveBeenCalledWith(
-      "https://api.example.com/entrada/data",
-      {
-        parceira: "Parceira 1",
-        regional: "Regional A",
-        data: dayjs("05/2025").format("MM/YYYY"),
-        tipoFiltro: "month",
-      },
-      mockToken
+      mockToken,
+      { cache: "no-store" }
     );
   });
 
@@ -170,10 +139,11 @@ describe("EntryForDate", () => {
     expect(fetchData).toHaveBeenCalledWith(
       "https://api.example.com/entrada/data",
       {
-        data: dayjs().format("DD/MM/YYYY"),
-        tipoFiltro: "day",
+        dataFinal: "16/05/2025",
+        dataInicial: "16/05/2025",
       },
-      mockToken
+      mockToken,
+      { cache: "no-store" }
     );
   });
 });

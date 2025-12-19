@@ -128,7 +128,7 @@ describe("Details Page", () => {
       "mock-token",
       { cache: "no-store" }
     );
-    expect(fetchData).toBeCalledTimes(2);
+    expect(fetchData).toBeCalledTimes(3);
     expect(fetchFilters).toHaveBeenCalledWith({
       circuito: true,
       empreendimento: true,
@@ -138,6 +138,7 @@ describe("Details Page", () => {
       tecnico: true,
       parceira: true,
       status: true,
+      tipoRestricao: ["EXECUÇÃO", "PROGRAMAÇÃO", "PUBLICAÇÃO"],
     });
   });
 

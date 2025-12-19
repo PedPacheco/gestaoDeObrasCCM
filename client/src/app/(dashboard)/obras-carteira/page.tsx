@@ -5,6 +5,7 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import PortfolioWorks from "@/components/worksComponents/portfolioWorks/MainPortfolioWorks";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { Transform } from "@/utils/transform";
+import { ErrorThrower } from "@/components/common/ErrorThrower";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -39,6 +40,10 @@ export default async function WorksInPortfolio() {
       { cache: "no-store" }
     ),
   ]);
+
+  if (!worksData.success) {
+    return <ErrorThrower message={worksData.message} />;
+  }
 
   const { data, token } = worksData;
 
