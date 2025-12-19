@@ -116,7 +116,7 @@ describe("Componente EquipmentList", () => {
       "appliedEquipment",
       0,
       "patrimony",
-      "ABC123",
+      "123",
       "TEST"
     );
   });
@@ -177,7 +177,7 @@ describe("Componente EquipmentList", () => {
 
     render(<EquipmentList {...baseProps} items={[csEquipment]} />);
 
-    expect(screen.getByLabelText("Número CS")).toBeInTheDocument();
+    expect(screen.getByLabelText("Número CS (ID)")).toBeInTheDocument();
     expect(screen.getByLabelText("Marca CS")).toBeInTheDocument();
   });
 
@@ -201,7 +201,7 @@ describe("Componente EquipmentList", () => {
       />
     );
 
-    const input = screen.getByLabelText("Número CS");
+    const input = screen.getByLabelText("Número CS (ID)");
     expect(input).toBeInTheDocument();
     expect(input).toHaveValue("CS123");
 

@@ -3,6 +3,16 @@ import { mockFormData } from "../../../../mocks/mockFormData";
 import { render, screen } from "@testing-library/react";
 import { BasicInfoPanel } from "@/components/details/modals/scheduleDialog/basicInfoPanel";
 
+vi.mock("@/contexts/userContext", () => ({
+  useUser: () => ({
+    permissions: {
+      permissao: "Total", // Permite exibir os botões
+      permissao_visualizacao: "total", // Caso seu código cheque isso
+      permissao_publicacao: true, // Incluído por segurança
+    },
+  }),
+}));
+
 describe("BasicInfoPanel Component", () => {
   it("Deve renderizar os campos corretamente", () => {
     const onInputChange = vi.fn();
