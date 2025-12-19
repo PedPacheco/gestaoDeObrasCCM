@@ -54,6 +54,7 @@ describe("fetchData", () => {
       Promise.resolve({
         ok: false,
         json: () => Promise.resolve({ message: "Erro 403" }),
+        status: 500,
       })
     ) as any;
 

@@ -73,8 +73,8 @@ describe("Schedule For Day Page", () => {
       parceira: ["Parceira 1"],
       regional: ["Regional A"],
     },
-    date: "17/05/2025",
-    filterType: "day",
+    startDate: "17/05/2025",
+    endDate: "18/05/2025",
     executed: "true",
     pending: "false",
     page: "0",
@@ -123,8 +123,8 @@ describe("Schedule For Day Page", () => {
       {
         parceira: "Parceira 1",
         regional: "Regional A",
-        data: dayjs("17/05/2025").format("DD/MM/YYYY"),
-        tipoFiltro: "day",
+        dataInicial: dayjs("17/05/2025").format("DD/MM/YYYY"),
+        dataFinal: dayjs("18/05/2025").format("DD/MM/YYYY"),
         executado: "true",
         pendente: "false",
         page: "0",
@@ -135,45 +135,11 @@ describe("Schedule For Day Page", () => {
     );
   });
 
-  it("deve buscar os dados com o filtro de data referente a mês", async () => {
-    const modifiedData = JSON.stringify({
-      ...JSON.parse(mockParamsFiltes),
-      date: "08/2025",
-      filterType: "month",
-      executed: undefined,
-      ovnota: "1234",
-    });
-
-    vi.mocked(mockCookieStore.get).mockImplementation((name) => {
-      if (name === "token") return { value: mockToken };
-      if (name === "scheduleForDayFilters") return { value: modifiedData };
-      return undefined;
-    });
-
-    render(await ScheduleForDay());
-
-    expect(fetchData).toHaveBeenCalledWith(
-      "https://api.example.com/programacao/mensal",
-      {
-        parceira: "Parceira 1",
-        regional: "Regional A",
-        data: dayjs("08/2025").format("MM/YYYY"),
-        tipoFiltro: "month",
-        executado: "false",
-        pendente: "false",
-        page: "0",
-        ovnota: "1234",
-      },
-      mockToken,
-      { cache: "no-store" }
-    );
-  });
-
   it("deve buscar dados com os valores alterados caso os campos de filtro não tenham valor", async () => {
     const modifiedData = JSON.stringify({
       ...JSON.parse(mockParamsFiltes),
-      date: "",
-      filterType: "",
+      startDate: "",
+      endDate: "",
       executed: undefined,
       ovnota: "1234",
     });
@@ -191,8 +157,8 @@ describe("Schedule For Day Page", () => {
       {
         parceira: "Parceira 1",
         regional: "Regional A",
-        data: "",
-        tipoFiltro: "",
+        dataInicial: null,
+        dataFinal: null,
         executado: "false",
         pendente: "false",
         page: "0",
@@ -214,8 +180,8 @@ describe("Schedule For Day Page", () => {
     expect(fetchData).toHaveBeenCalledWith(
       "https://api.example.com/programacao/mensal",
       {
-        data: "",
-        tipoFiltro: "",
+        dataInicial: null,
+        dataFinal: null,
         ovnota: "",
         executado: "false",
         pendente: "false",

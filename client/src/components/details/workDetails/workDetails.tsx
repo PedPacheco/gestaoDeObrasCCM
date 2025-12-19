@@ -21,7 +21,6 @@ import {
 } from "@mui/material";
 import { useUser } from "@/contexts/userContext";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
-// import RestrictionDrawer from "@/components/restrictionsComponents/scheduleRestrictions/RestrictionDrawer";
 import { InsertPublicationRestrictions } from "@/actions/restrictions";
 
 dayjs.extend(customParseFormat);
