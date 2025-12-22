@@ -37,7 +37,7 @@ const reasonsForFailure: string[] = [
   "Quantidade de equipes",
   "Tipo de equipe",
   "CHI",
-  "Outros",
+  "Fora da meta",
 ];
 
 export default function FailureModalComponent({

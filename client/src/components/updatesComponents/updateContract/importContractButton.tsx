@@ -18,6 +18,37 @@ type ContractRow = {
   tipoAds: string;
 };
 
+function excelSerialToDate(serial: number): Date {
+  // Excel começa em 1900-01-01
+  const utcDays = Math.floor(serial - 25569);
+  const utcSeconds = utcDays * 86400;
+  return new Date(utcSeconds * 1000);
+}
+
+function parseExcelDate(value: any): string {
+  if (!value) return "";
+
+  // Caso já seja Date válido
+  if (value instanceof Date && !isNaN(value.getTime())) {
+    return value.toISOString();
+  }
+
+  // Caso seja serial numérico do Excel
+  if (typeof value === "number") {
+    const parsed = excelSerialToDate(value);
+    return parsed.toISOString();
+  }
+
+  // Caso seja string e Date consiga parsear
+  const parsed = new Date(value);
+  if (!isNaN(parsed.getTime())) {
+    return parsed.toISOString();
+  }
+
+  console.warn("Data inválida detectada:", value);
+  return ""; // fallback
+}
+
 export function ImportContractButton() {
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -37,15 +68,22 @@ export function ImportContractButton() {
         await workbook.xlsx.load(await file.arrayBuffer());
         const worksheet = workbook.worksheets[0];
 
-        const newData: ContractRow[] = worksheet
-          .getSheetValues()
-          .slice(2)
-          .map((row: any) => ({
+        const sheetValues = worksheet.getSheetValues().slice(2);
+
+        const newData: ContractRow[] = [];
+
+        for (const row of sheetValues) {
+          if (!Array.isArray(row)) continue;
+
+          if (!row[1]) break;
+
+          newData.push({
             ovnota: row[1]?.toString() || "",
             ordemDiagrama: row[2]?.toString() || "",
-            dataEmpreitamento: new Date(row[3]).toISOString() || "",
+            dataEmpreitamento: parseExcelDate(row[3]),
             tipoAds: row[4]?.toString() || "",
-          }));
+          });
+        }
 
         localStorage.setItem("contracts", JSON.stringify(newData));
         setSuccess("Empreitamento importado com sucesso!");
