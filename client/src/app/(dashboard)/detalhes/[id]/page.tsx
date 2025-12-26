@@ -16,91 +16,121 @@ interface DataResponse {
   data: Record<string, any>;
 }
 
-export default async function Details({
-  params,
-}: {
+interface DetailsParams {
   params: Promise<{ id: string }>;
-}) {
+}
+
+const FETCH_OPTIONS = { cache: "no-store" } as const;
+
+const formatDate = (date: dayjs.Dayjs | null): string => {
+  return date ? date.utc().format("DD/MM/YYYY") : "";
+};
+
+const calculateDeadline = (entrada: dayjs.Dayjs, prazo: number) => {
+  return entrada.add(prazo, "day");
+};
+
+const getBackgroundColor = (grupo: number, anoPlan: number): string => {
+  if (grupo !== 2) return "";
+  return anoPlan === dayjs().year()
+    ? "bg-green-600 text-zinc-100"
+    : "bg-red-600 text-zinc-100";
+};
+
+// Função para buscar dados em paralelo
+async function fetchAllData(id: string, token?: string) {
+  return Promise.all([
+    fetchFilters({
+      restricao: true,
+      tipoRestricao: ["EXECUÇÃO", "PROGRAMAÇÃO", "PUBLICAÇÃO"],
+      tecnico: true,
+      municipio: true,
+      parceira: true,
+      circuito: true,
+      status: true,
+      empreendimento: true,
+      tipo: true,
+    }),
+    fetchData<DataResponse>(
+      `${process.env.NEXT_PUBLIC_API_URL}/obras/${id}`,
+      undefined,
+      token,
+      FETCH_OPTIONS
+    ),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/relatorio-execucao/${id}`,
+      undefined,
+      token,
+      FETCH_OPTIONS
+    ),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/programacao/reprovacoes/${id}`,
+      undefined,
+      token,
+      FETCH_OPTIONS
+    ),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/viabilidade/${id}`,
+      undefined,
+      token,
+      FETCH_OPTIONS
+    ),
+  ]);
+}
+
+// Função para processar dados da obra
+function processWorkData(data: any) {
+  const entrada = data.entrada ? dayjs(data.entrada) : dayjs();
+  const prazo = data.prazo || 0;
+  const prazoFinal = calculateDeadline(entrada, prazo);
+
+  return {
+    entrada: formatDate(entrada),
+    prazo: prazo.toString(),
+    prazoFinal: formatDate(prazoFinal),
+    data_conclusao: formatDate(
+      data.data_conclusao ? dayjs(data.data_conclusao) : null
+    ),
+    dataEmpreitamento: formatDate(
+      data.data_empreitamento ? dayjs(data.data_empreitamento) : null
+    ),
+    backgroundColor: getBackgroundColor(data.grupo, data.ano_plan),
+    executadoFormatted: formatPercentage(data.executado) || "",
+  };
+}
+
+export default async function Details({ params }: DetailsParams) {
   const { id } = await params;
   const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
 
-  const [options, workData, executionReportData, rejectionsData] =
-    await Promise.all([
-      fetchFilters({
-        restricao: true,
-        tipoRestricao: ["EXECUÇÃO", "PROGRAMAÇÃO", "PUBLICAÇÃO"],
-        tecnico: true,
-        municipio: true,
-        parceira: true,
-        circuito: true,
-        status: true,
-        empreendimento: true,
-        tipo: true,
-      }),
-      fetchData<DataResponse>(
-        `${process.env.NEXT_PUBLIC_API_URL}/obras/${id}`,
-        undefined,
-        cookieStore.get("token")?.value,
-        { cache: "no-store" }
-      ),
-      fetchData(
-        `${process.env.NEXT_PUBLIC_API_URL}/relatorio-execucao/${id}`,
-        undefined,
-        cookieStore.get("token")?.value,
-        { cache: "no-store" }
-      ),
-      fetchData(
-        `${process.env.NEXT_PUBLIC_API_URL}/programacao/reprovacoes/${id}`,
-        undefined,
-        cookieStore.get("token")?.value,
-        { cache: "no-store" }
-      ),
-    ]);
+  // Buscar todos os dados em paralelo
+  const [
+    options,
+    workData,
+    executionReportData,
+    rejectionsData,
+    feasibilityExists,
+  ] = await fetchAllData(id, token);
 
+  // Validação de dados
   if (!workData.success) {
     return <ErrorThrower message={workData.message} />;
   }
 
-  const { token, data } = workData;
-
-  const entrada = data.entrada && dayjs(data.entrada);
-  const prazo = data.prazo;
-  const prazoFinal = entrada.add(prazo, "day");
-
-  const data_conclusao =
-    data.data_conclusao &&
-    dayjs(data.data_conclusao).utc().format("DD/MM/YYYY");
-
-  const dataEmpreitamento =
-    data.data_empreitamento &&
-    dayjs(data.data_empreitamento).utc().format("DD/MM/YYYY");
-
-  const backgroundColor =
-    data.grupo !== 2
-      ? ""
-      : data.ano_plan === dayjs().year()
-      ? "bg-green-600 text-zinc-100"
-      : "bg-red-600 text-zinc-100";
-
-  const formattedData = {
-    entrada: entrada.utc().format("DD/MM/YYYY"),
-    prazo,
-    prazoFinal: prazoFinal.utc().format("DD/MM/YYYY"),
-    data_conclusao,
-    dataEmpreitamento,
-    backgroundColor,
-    executadoFormatted: formatPercentage(data.executado) || "",
-  };
+  const { data } = workData;
+  const formattedData = processWorkData(data);
 
   return (
     <EmotionCacheProvider>
-      <div className="flex flex-col items-center w-full h-full">
+      <div className="flex flex-col items-center w-full h-screen">
         <div className="w-full h-full flex flex-col">
           <WorkDetails
             data={data}
             idWork={Number(id)}
             formattedData={formattedData}
             options={options}
+            feasibilityExists={feasibilityExists.data}
           />
           <TabPanel
             workData={data}
@@ -108,6 +138,7 @@ export default async function Details({
             id={id}
             executionReportData={executionReportData.data}
             rejectionsData={rejectionsData.data}
+            feasibilityExists={feasibilityExists.data}
           />
         </div>
       </div>

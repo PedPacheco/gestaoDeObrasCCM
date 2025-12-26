@@ -9,7 +9,9 @@ import {
   Post,
   Req,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { MulterModule } from '@nestjs/platform-express';
 import { HandleAddScheduleService } from 'src/application/orchestrators/handleAddSchedule.service';
 import { HandleSchedulesUpdateService } from 'src/application/orchestrators/handleSchedulesUpdate.service';
 import { DeleteSchedulesService } from 'src/application/schedule/deleteSchedules.service';
@@ -25,6 +27,7 @@ import {
   UpdateSchedulesDataDTO,
   ValidateSchedulesDTO,
 } from 'src/interface/dtos/scheduleDTO';
+import { createMulterConfig } from 'src/shared/multer/multer.config';
 
 @Controller('programacao')
 export class SchedulesActionsController {
@@ -91,6 +94,16 @@ export class SchedulesActionsController {
 
   @Patch(':id')
   @UseGuards(VisualizationGuard)
+  // @UseInterceptors(
+  //   MulterModule.register(
+  //     createMulterConfig({
+  //       destination: process.env.UPLOAD_DEST,
+  //       allowedMimeTypes: ['application/pdf', 'image/jpeg'],
+  //       maxSize: 5 * 1024 * 1024,
+  //       maxFiles: 3,
+  //     }),
+  //   ),
+  // )
   async updateSchedules(
     @Param('id', ParseIntPipe) id: number,
     @Body() schedulesData: UpdateSchedulesDataDTO,

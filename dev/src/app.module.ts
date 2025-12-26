@@ -20,6 +20,7 @@ import { ExecutionReportModule } from './interface/modules/executionReport.modul
 import { ExecutionCapacityModule } from './interface/modules/executionCapacity.module';
 import { ErrorsReportModule } from './interface/modules/errorsReport.module';
 import { RestrictionsModule } from './interface/modules/restrictions.module';
+import { FeasibilityModule } from './interface/modules/feasibility.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { RestrictionsModule } from './interface/modules/restrictions.module';
     EmailModule,
     GoalsModule,
     FiltersModule,
+    FeasibilityModule,
     EntryModule,
     ExportModule,
     ScheduleModule,

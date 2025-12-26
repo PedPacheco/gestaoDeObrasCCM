@@ -322,6 +322,7 @@ model obras {
   programacoes_reprovacoes programacoes_reprovacoes[]
   relatorio                relatorio[]
   relatorio_execucao       relatorio_execucao[]
+  relatorio_viabilidade    relatorio_viabilidade[]
   restricoes_publicacoes   restricoes_publicacoes[]
   servicos                 servicos[]
   suspensoes               suspensoes[]
@@ -566,9 +567,10 @@ model ztab_cn52n_aux {
 }
 
 model relatorio_viabilidade {
-  id         Int     @id(map: "relatorio_viablidade_pkey") @default(autoincrement())
-  ovnota     String  @db.VarChar(15)
-  encontrado Boolean
+  id              Int    @id(map: "relatorio_viablidade_pkey") @default(autoincrement())
+  id_obra         Int
+  caminho_arquivo String @db.VarChar(180)
+  obras           obras  @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
 }
 
 model notas_d5 {
