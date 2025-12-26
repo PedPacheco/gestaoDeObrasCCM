@@ -156,7 +156,7 @@ export const schedulesSchema = (isInsert?: boolean) =>
       const { exec, prog, idExecutionRestriction, responsibility } = ctx.value;
 
       if (!isInsert) {
-        if (Number(exec) !== prog && exec !== "null" && exec !== "") {
+        if (Number(exec) < prog && exec !== "null" && exec !== "") {
           if (idExecutionRestriction === 1) {
             ctx.issues.push({
               path: ["idExecutionRestriction"],
