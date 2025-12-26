@@ -20,6 +20,7 @@ export interface GetAuxiliaryBaseMaterialsInterface {
   ovnota: string;
   ordem_diagrama: string;
   diagrama_rede: string;
+  elemento_pep: string;
   def_proj: string;
   material: string;
   cti: string;
