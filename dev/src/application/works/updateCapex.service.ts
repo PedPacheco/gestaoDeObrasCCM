@@ -119,7 +119,7 @@ export class UpdateCapexService {
         if (deletedSet.has(material.material.trim()) && material.cti === 'N') {
           current.mo_calc += material.preco * material.qtd_necessaria;
 
-          if (isCapexDiagram) {
+          if (isCapexDiagram && material.elemento_pep.includes('-2')) {
             current.capex_mo_plan += material.preco * material.qtd_necessaria;
 
             if (material.reserva?.trim()) {
@@ -129,7 +129,11 @@ export class UpdateCapexService {
         }
 
         // Calcular Material
-        if (material.cti === 'L' && isCapexDiagram) {
+        if (
+          material.cti === 'L' &&
+          isCapexDiagram &&
+          material.elemento_pep.includes('-2')
+        ) {
           current.capex_mat_plan += material.qtd_necessaria * material.preco;
 
           if (material.reserva?.trim()) {

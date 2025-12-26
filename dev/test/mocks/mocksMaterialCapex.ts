@@ -166,6 +166,7 @@ export const mockReturnAuxiliaryBaseCN52N = [
     diagrama_rede: '170000010000', // CAPEX (170)
     def_proj: 'X/005017',
     material: '10057267',
+    elemento_pep: '2325',
     cti: 'L',
     um_registro: 'PEÇ',
     preco: 2644.57,
