@@ -263,6 +263,7 @@ describe('ExportRepository', () => {
       expect(mockPrisma.relatorio_execucao.findMany).toHaveBeenCalledTimes(1);
       expect(mockPrisma.relatorio_execucao.findMany).toHaveBeenCalledWith({
         select: {
+          id: true,
           supervisor: true,
           liberado_ligacao_parcial: true,
           hora_inicio: true,

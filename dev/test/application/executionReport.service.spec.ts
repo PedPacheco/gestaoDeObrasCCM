@@ -136,6 +136,7 @@ describe('ExecutionReportService', () => {
       expect(mockRepository.findByWorkId).toHaveBeenCalledWith(1);
       expect(result).toEqual([
         {
+          id: 1,
           nome_usuario: 'Carlos Oliveira',
           ovnota: '16004316',
           ordem_dci: '170000023493',

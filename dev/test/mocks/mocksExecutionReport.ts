@@ -153,6 +153,7 @@ export const mockExecutionReportRepository = {
 
 export const mockFindByWorkIdResponse = [
   {
+    id: 1,
     supervisor: 'João Silva',
     liberado_ligacao_parcial: true,
     hora_inicio: new Date('2025-06-24T08:30:00.000Z'),
@@ -204,6 +205,7 @@ export const mockFindByWorkIdResponse = [
 
 export const mockFindByWorkIdResponseFormatted = [
   {
+    id: 1,
     supervisor: 'João Silva',
     liberado_ligacao_parcial: true,
     hora_inicio: new Date('2025-06-24T08:30:00.000Z'),

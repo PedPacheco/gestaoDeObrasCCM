@@ -20,6 +20,7 @@ export class ExportExecutionReportService {
 
       const formattedData = data.map((item) => ({
         ...item,
+        id: item.id,
 
         // usuario
         nome_usuario: item.usuario?.nome_usuario ?? null,
@@ -54,6 +55,7 @@ export class ExportExecutionReportService {
       const worksheet = workbook.addWorksheet('Relatórios de execução');
 
       worksheet.columns = [
+        { header: 'ID', key: 'id', width: 10 },
         // Usuário e obra
         { header: 'Supervisor', key: 'supervisor', width: 25 },
         { header: 'Usuário', key: 'nome_usuario', width: 25 },

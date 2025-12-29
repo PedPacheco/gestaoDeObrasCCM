@@ -105,6 +105,7 @@ export class ExportRepository implements IExportRepository {
   async exportExecutionReport(): Promise<any> {
     return await this.prisma.relatorio_execucao.findMany({
       select: {
+        id: true,
         supervisor: true,
         liberado_ligacao_parcial: true,
         hora_inicio: true,
