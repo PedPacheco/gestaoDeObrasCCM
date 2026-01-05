@@ -26,8 +26,9 @@ export class ExecutionReport {
     private readonly reason: string,
     private readonly provisionalKeyInstalled: boolean,
     private readonly provisionalKeyReference: string,
-    private readonly provisionalKeyWithdrawn: boolean,
     private readonly provisionalKeyReferenceWithdrawn: string,
+    private readonly files?: string,
+    private readonly provisionalKeyWithdrawn?: boolean,
   ) {}
 
   static create(
@@ -54,13 +55,24 @@ export class ExecutionReport {
       data.reason,
       data.provisionalKeyInstalled,
       data.provisionalKeyReference,
-      data.provisionalKeyWithdrawn,
       data.provisionalKeyReferenceWithdrawn,
+      data.files,
+      data.provisionalKeyWithdrawn,
     );
 
     instance.scheduledFinishTime = scheduledFinishTime;
     instance.validate();
     return instance;
+  }
+
+  private isComplete(): boolean {
+    return [
+      this.startTime,
+      this.finishTime,
+      this.startContact,
+      this.endContact,
+      this.supervisor,
+    ].every((v) => !!v);
   }
 
   private validate() {
@@ -88,6 +100,12 @@ export class ExecutionReport {
     ) {
       throw new BadRequestException(
         'Referência da chave provisória retirada é obrigatória.',
+      );
+    }
+
+    if (!this.isComplete() && this.files) {
+      throw new BadRequestException(
+        'Arquivos só podem ser enviados quando o relatório de execução estiver completo',
       );
     }
   }
@@ -139,6 +157,7 @@ export class ExecutionReport {
       chave_provisoria_instalada: this.provisionalKeyInstalled,
       referencia_chave_provisoria_retirada:
         this.provisionalKeyReferenceWithdrawn,
+      caminho_arquivo: this.files,
     };
   }
 }

@@ -34,7 +34,7 @@ export const useScheduleSubmit = ({
   const user = rawUser ?? null;
 
   const handleSubmit = useCallback(
-    (data: any, type: "executionReport" | "schedule") => {
+    (data: any, type: "executionReport" | "schedule", files?: File[]) => {
       startTransition(async () => {
         let response;
 
@@ -52,7 +52,11 @@ export const useScheduleSubmit = ({
               ),
             };
 
-            response = await editExecutionReport(cleanedExecutionReport, id);
+            response = await editExecutionReport(
+              cleanedExecutionReport,
+              id,
+              files
+            );
           } else {
             const { executionReport, ...scheduleFields } = data;
 
@@ -95,8 +99,10 @@ export const useScheduleSubmit = ({
               }),
             };
 
+            console.log(payload);
+
             const apiCall = isInsert ? saveSchedule : editSchedule;
-            response = await apiCall(payload, scheduleFields.id);
+            response = await apiCall(payload, scheduleFields.id, files);
           }
 
           if (!response.success) {

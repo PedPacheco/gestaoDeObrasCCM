@@ -3,7 +3,6 @@
 import { useState, DragEvent } from "react";
 import { ButtonComponent } from "@/components/common/Button";
 import ErrorModal from "@/components/common/ErrorModal";
-import ModalComponent from "@/components/common/Modal";
 import {
   ExclamationCircleIcon,
   DocumentArrowUpIcon,

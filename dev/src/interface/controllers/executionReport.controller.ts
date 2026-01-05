@@ -9,11 +9,14 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 
 import { PermissionGuard } from 'src/core/guards/permission.guard';
-import { ExecutionReportDataDTO } from '../dtos/executionReportDTO';
+import { UpdateExecutionReportDTO } from '../dtos/executionReportDTO';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('relatorio-execucao')
 export class ExecutionReportController {
@@ -32,11 +35,17 @@ export class ExecutionReportController {
 
   @Patch(':id')
   @UseGuards(PermissionGuard)
+  @UseInterceptors(FilesInterceptor('files'))
   async update(
     @Param('id', ParseIntPipe) idExecutionReport: number,
-    @Body() data: ExecutionReportDataDTO,
+    @Body() data: UpdateExecutionReportDTO,
+    @UploadedFiles() files?: Express.Multer.File[],
   ): Promise<any> {
-    await this.executionReportService.update(idExecutionReport, data);
+    await this.executionReportService.update(
+      idExecutionReport,
+      data.executionReportData,
+      files,
+    );
 
     return {
       statusCode: HttpStatus.NO_CONTENT,

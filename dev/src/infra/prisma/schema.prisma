@@ -653,6 +653,7 @@ model relatorio_execucao {
   instalacao_equipamento_aplicado      String?
   instalacao_equipamento_retirado      String?
   referencia_chave_provisoria_retirada String?      @db.VarChar(25)
+  caminho_arquivo                      String?      @db.VarChar(420)
   obras                                obras        @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obra")
   programacoes                         programacoes @relation(fields: [id_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_programacao")
   usuario                              usuario      @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario")

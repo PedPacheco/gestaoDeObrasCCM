@@ -119,6 +119,7 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
 
   async findById(idExecutionReport: number): Promise<any> {
     return await this.prisma.relatorio_execucao.findFirst({
+      select: { id: true, id_programacao: true, caminho_arquivo: true },
       where: { id: idExecutionReport },
     });
   }

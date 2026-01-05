@@ -8,8 +8,6 @@ export async function POST(request: NextRequest) {
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
-    console.log(formData);
-
     // Encaminha para o backend NestJS
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/viabilidade/upload`,
