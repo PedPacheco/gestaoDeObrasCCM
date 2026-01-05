@@ -70,89 +70,86 @@ export class UpdateCapexService {
     fatorMap: Map<string, number>,
     deletedMaterials: any[],
   ): CalculatedValue[] {
-    try {
-      // Criar Set de materiais deletados para lookup O(1)
-      const deletedSet = new Set(
-        deletedMaterials.map((item) => item.material?.trim()).filter(Boolean),
-      );
+    const deletedSet = new Set(
+      deletedMaterials.map((item) => item.material?.trim()).filter(Boolean),
+    );
 
-      // Usar Map para acumular valores por obra (mais eficiente que array.find)
-      const capexMap = new Map<number, CalculatedValue>();
+    const capexMap = new Map<number, CalculatedValue>();
 
-      for (const material of materialData) {
-        // Pular materiais sem obra vinculada
-        if (!material.id_obra) continue;
+    for (const material of materialData) {
+      if (!material.id_obra) continue;
 
-        // Buscar fator
-        const fatorKey = `${material.material}|${material.def_proj}`;
-        const fator = fatorMap.get(fatorKey) ?? 0;
+      const fatorKey = `${material.material}|${material.def_proj}`;
+      const fator = fatorMap.get(fatorKey) ?? 0;
 
-        // Obter ou criar entrada no map
-        let current = capexMap.get(material.id_obra);
-        if (!current) {
-          current = {
-            id: material.id_obra,
-            qtde_calc: 0,
-            qtde_pend: 0,
-            mo_calc: 0,
-            capex_mat_plan: 0,
-            capex_mo_plan: 0,
-            capex_mo_pend: 0,
-            capex_mat_pend: 0,
-          };
-          capexMap.set(material.id_obra, current);
-        }
+      let current = capexMap.get(material.id_obra);
+      if (!current) {
+        current = {
+          id: material.id_obra,
+          qtde_calc: 0,
+          qtde_pend: 0,
+          mo_calc: 0,
+          capex_mat_plan: 0,
+          capex_mo_plan: 0,
+          capex_mo_pend: 0,
+          capex_mat_pend: 0,
+        };
+        capexMap.set(material.id_obra, current);
+      }
 
-        // Verificar se diagrama é CAPEX relevante
-        const isCapexDiagram = this.isCapexDiagram(material.diagrama_rede);
+      /** 🔹 Quantidades */
+      if (fator > 0) {
+        current.qtde_calc += material.qtd_necessaria / fator;
 
-        // Calcular quantidades
-        if (fator > 0) {
-          current.qtde_calc += material.qtd_necessaria / fator;
-
-          if (material.reserva?.trim()) {
-            current.qtde_pend += material.qtd_falta / fator;
-          }
-        }
-
-        // Calcular MO (Mão de Obra)
-        if (deletedSet.has(material.material.trim()) && material.cti === 'N') {
-          current.mo_calc += material.preco * material.qtd_necessaria;
-
-          if (isCapexDiagram && material.elemento_pep.includes('-2')) {
-            current.capex_mo_plan += material.preco * material.qtd_necessaria;
-
-            if (material.reserva?.trim()) {
-              current.capex_mo_pend += material.preco * material.qtd_falta;
-            }
-          }
-        }
-
-        // Calcular Material
-        if (
-          material.cti === 'L' &&
-          isCapexDiagram &&
-          material.elemento_pep.includes('-2')
-        ) {
-          current.capex_mat_plan += material.qtd_necessaria * material.preco;
-
-          if (material.reserva?.trim()) {
-            current.capex_mat_pend +=
-              material.preco *
-              (material.qtd_necessaria - material.qtd_retirada);
-          }
+        if (material.reserva?.trim()) {
+          current.qtde_pend += material.qtd_falta / fator;
         }
       }
 
-      // Converter Map para Array
-      return Array.from(capexMap.values());
-    } catch (error) {
-      // console.error('❌ Erro ao calcular valores CAPEX:', error);
-      throw error;
+      /** 🔹 MO (independente de CAPEX) */
+      if (deletedSet.has(material.material.trim()) && material.cti === 'N') {
+        current.mo_calc += material.preco * material.qtd_necessaria;
+      }
+
+      /** 🔥 CAPEX MO */
+      const canIncludeCapex = this.canIncludeCapex(
+        material.diagrama_rede,
+        material.elemento_pep,
+      );
+
+      if (
+        deletedSet.has(material.material.trim()) &&
+        material.cti === 'N' &&
+        canIncludeCapex
+      ) {
+        current.capex_mo_plan += material.preco * material.qtd_necessaria;
+
+        if (material.reserva?.trim()) {
+          current.capex_mo_pend += material.preco * material.qtd_falta;
+        }
+      }
+
+      /** 🔥 CAPEX MATERIAL */
+      if (material.cti === 'L' && canIncludeCapex) {
+        current.capex_mat_plan += material.qtd_necessaria * material.preco;
+
+        if (material.reserva?.trim()) {
+          current.capex_mat_pend +=
+            material.preco * (material.qtd_necessaria - material.qtd_retirada);
+        }
+      }
     }
+
+    return Array.from(capexMap.values());
   }
 
-  private isCapexDiagram(diagramaRede: string): boolean {
+  private canIncludeCapex(diagramaRede: string, elementoPep?: string): boolean {
+    if (!diagramaRede) return false;
+
+    if (diagramaRede.startsWith('200')) {
+      return !!elementoPep && elementoPep.includes('-2');
+    }
+
     return this.CAPEX_DIAGRAM_PREFIXES.some((prefix) =>
       diagramaRede.startsWith(prefix),
     );

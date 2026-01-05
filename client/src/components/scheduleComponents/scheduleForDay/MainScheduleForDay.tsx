@@ -108,20 +108,21 @@ export default function MainSchduleForDay({
       ? cookies.get("scheduleForDayFilters")
       : {};
 
-    const filtersValues = {
+    const newSelectedItems = {
       ...Transform(currentFilters?.selectedItems || {}),
-      data: currentFilters?.date
-        ? dayjs(currentFilters?.date).format(
-            currentFilters?.filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY"
-          )
-        : "",
-      tipoFiltro: currentFilters?.filterType || "",
-      executado: currentFilters?.executed || "false",
-      pendente: currentFilters?.pending || "false",
+      executado: currentFilters.executed || "false",
+      pendente: currentFilters.pending || "false",
+      dataInicial: currentFilters.startDate
+        ? currentFilters.startDate.format("DD/MM/YYYY")
+        : undefined,
+      dataFinal: currentFilters.endDate
+        ? currentFilters.endDate.format("DD/MM/YYYY")
+        : undefined,
       page: newPage.toString(),
+      ovnota: currentFilters.ovnota || undefined,
     };
 
-    fetchSchedule(filtersValues);
+    fetchSchedule(newSelectedItems);
   };
 
   return (
