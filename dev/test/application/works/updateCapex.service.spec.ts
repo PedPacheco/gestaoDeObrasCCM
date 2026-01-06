@@ -312,17 +312,19 @@ describe('UpdateCapexService', () => {
     });
   });
 
-  describe('isCapexDiagram', () => {
+  describe('canIncludeCapex', () => {
     it('should identify CAPEX diagrams correctly', () => {
-      const isCapex170 = service['isCapexDiagram']('170000010000');
-      const isCapex180 = service['isCapexDiagram']('180000010000');
-      const isCapex200 = service['isCapexDiagram']('200000010000');
-      const isNotCapex = service['isCapexDiagram']('150000010000');
+      const isCapex170 = service['canIncludeCapex']('170000010000');
+      const isCapex180 = service['canIncludeCapex']('180000010000');
+      const isCapex200 = service['canIncludeCapex']('200000010000', '23535-2');
+      const isNotCapex = service['canIncludeCapex']('150000010000');
+      const diagramNotSent = service['canIncludeCapex'](null);
 
       expect(isCapex170).toBe(true);
       expect(isCapex180).toBe(true);
       expect(isCapex200).toBe(true);
       expect(isNotCapex).toBe(false);
+      expect(diagramNotSent).toBe(false);
     });
   });
 });
