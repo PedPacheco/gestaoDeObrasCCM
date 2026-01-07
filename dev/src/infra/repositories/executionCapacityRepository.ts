@@ -5,9 +5,7 @@ import { ExecutionCapacityFilter } from 'src/interface/types/executionCapacityIn
 import { UpdateExecutionCapacityDTO } from 'src/interface/dtos/executionCapacityDTO';
 
 @Injectable()
-export class ExecutionCapacityRepository
-  implements IExecutionCapacityRepository
-{
+export class ExecutionCapacityRepository implements IExecutionCapacityRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async get(filters: ExecutionCapacityFilter): Promise<any> {

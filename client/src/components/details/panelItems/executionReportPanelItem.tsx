@@ -23,6 +23,7 @@ import { useUser } from "@/contexts/userContext";
 dayjs.extend(utc);
 
 const columns = {
+  caminho_arquivo: "Arquivos As Build",
   nome_usuario: "Usuário que inseriu a informação",
   hora_ini: "Horário de início (DP)",
   hora_ter: "Horário de término (DP)",

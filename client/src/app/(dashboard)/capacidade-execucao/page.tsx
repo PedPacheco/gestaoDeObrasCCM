@@ -1,9 +1,11 @@
+import dayjs from "dayjs";
+import { cookies } from "next/headers";
+
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
 import { MainExecutionCapacity } from "@/components/executionCapacity/mainExecutionCapacity";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
-import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -16,7 +18,7 @@ export default async function ExecutionCapacity() {
 
   const filtersValues = {
     ...params?.selectedItems,
-    year: "2025",
+    year: dayjs().year().toString(),
   };
 
   const [filters, executionCapacityData] = await Promise.all([

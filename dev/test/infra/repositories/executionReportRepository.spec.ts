@@ -233,6 +233,7 @@ describe('ExecutionReportRepository', () => {
       const result = await repository.findById(1);
 
       expect(mockPrisma.relatorio_execucao.findFirst).toHaveBeenCalledWith({
+        select: { id: true, id_programacao: true, caminho_arquivo: true },
         where: { id: 1 },
       });
 

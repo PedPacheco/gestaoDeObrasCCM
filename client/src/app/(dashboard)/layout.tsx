@@ -9,18 +9,23 @@ export default function DashboardLayout({
 }) {
   return (
     <EmotionCacheProvider>
-      <div className="relative z-0 flex min-h-screen w-full">
-        <div className="relative flex min-h-screen max-w-full flex-1 flex-col">
+      {/* CONTAINER RAIZ */}
+      <div className="flex h-screen w-full overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-hidden">
+          {/* HEADER */}
           <Header />
 
-          <main className="h-[calc(100vh)]">
-            <div className="flex h-full flex-col items-center">
-              <div className="py-2 w-4/5">
+          {/* MAIN */}
+          <main className="flex-1 overflow-hidden">
+            <div className="flex h-full flex-col items-center overflow-hidden">
+              {/* BREADCRUMBS */}
+              <div className="py-2 w-4/5 shrink-0">
                 <BreadcrumpsComponent />
               </div>
 
-              <span className="border-b border-solid border-zinc-300 w-full"></span>
+              <span className="border-b border-solid border-zinc-300 w-full shrink-0" />
 
+              {/* CONTEÚDO DINÂMICO */}
               {children}
             </div>
           </main>
