@@ -99,8 +99,6 @@ export const useScheduleSubmit = ({
               }),
             };
 
-            console.log(payload);
-
             const apiCall = isInsert ? saveSchedule : editSchedule;
             response = await apiCall(payload, scheduleFields.id, files);
           }

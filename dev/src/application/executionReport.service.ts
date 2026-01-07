@@ -80,7 +80,7 @@ export class ExecutionReportService {
         throw new BadRequestException('Arquivos não foram enviados');
       }
 
-      const filePath = files.map((file) => file.path).join(';');
+      const filePath = files.map((file) => file.filename).join(';');
 
       const executionReport = ExecutionReport.create(
         { ...data, files: filePath },
@@ -126,7 +126,7 @@ export class ExecutionReportService {
     }
 
     const newFilesPath = files?.length
-      ? files.map((f) => f.path).join(';')
+      ? files.map((f) => f.filename).join(';')
       : undefined;
 
     const finalFilesPath = newFilesPath ?? existing.caminho_arquivo;

@@ -24,7 +24,7 @@ export class FeasibilityService {
 
     const exists = await this.feasibilityRepository.exists(idWork);
 
-    if (exists) {
+    if (exists && exists.length > 0) {
       throw new BadRequestException(
         'Já existem arquivos importados para esta obra.',
       );

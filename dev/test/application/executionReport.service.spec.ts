@@ -16,6 +16,8 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
 import * as ExecutionReportEntity from 'src/domain/entities/executionReport.entity';
 import { ExecutionReportService } from 'src/application/executionReport.service';
+import { FileService } from 'src/application/file.service';
+import { Readable } from 'stream';
 
 describe('ExecutionReportService', () => {
   let service: ExecutionReportService;
@@ -33,6 +35,27 @@ describe('ExecutionReportService', () => {
     findById: jest.fn(),
   };
 
+  const mockFileService = {
+    deleteFile: jest.fn(),
+  };
+
+  const mockExistsFiles: Express.Multer.File[] = [
+    {
+      fieldname: 'files',
+      originalname: 'teste.pdf',
+      encoding: '7bit',
+      mimetype: 'application/pdf',
+      size: 1024,
+      destination: '/tmp',
+      filename: 'teste.pdf',
+      path: '/tmp/teste.pdf',
+      buffer: Buffer.from('fake file content'),
+      stream: Readable.from(['fake file content']),
+    },
+  ];
+
+  const mockFiles: Express.Multer.File[] = [];
+
   const mockTransaction = {
     programacoes: {
       update: jest.fn(),
@@ -48,6 +71,7 @@ describe('ExecutionReportService', () => {
           provide: FIND_SCHEDULE_BY_ID_REPOSITORY,
           useValue: mockFindScheduleRepository,
         },
+        { provide: FileService, useValue: mockFileService },
       ],
     }).compile();
 
@@ -63,6 +87,7 @@ describe('ExecutionReportService', () => {
       const result = await service.create(
         mockExecutionReportService,
         new Date('17-05-2025'),
+        mockFiles,
         mockTransaction,
       );
 
@@ -76,6 +101,7 @@ describe('ExecutionReportService', () => {
       const result = await service.create(
         mockExecutionReportService,
         new Date('17-05-2025'),
+        mockExistsFiles,
         mockTransaction,
       );
 
@@ -91,6 +117,7 @@ describe('ExecutionReportService', () => {
         service.create(
           mockExecutionReportServiceWithErrorEquipmentInstalled,
           new Date('17-05-2025'),
+          mockFiles,
           mockTransaction,
         ),
       ).rejects.toThrow(BadRequestException);
@@ -101,6 +128,7 @@ describe('ExecutionReportService', () => {
         service.create(
           mockExecutionReportServiceWithErrorProvisionalKeyReferenceWithdrawn,
           new Date('17-05-2025'),
+          mockFiles,
           mockTransaction,
         ),
       ).rejects.toThrow(BadRequestException);
@@ -111,6 +139,7 @@ describe('ExecutionReportService', () => {
         service.create(
           mockExecutionReportServiceWithErrorEquipmentRemoved,
           new Date('17-05-2025'),
+          mockFiles,
           mockTransaction,
         ),
       ).rejects.toThrow(BadRequestException);
@@ -121,6 +150,7 @@ describe('ExecutionReportService', () => {
         service.create(
           mockExecutionReportServiceWithErrorProvisionalKeyReference,
           new Date('17-05-2025'),
+          mockFiles,
           mockTransaction,
         ),
       ).rejects.toThrow(BadRequestException);
@@ -209,12 +239,15 @@ describe('ExecutionReportService', () => {
     });
 
     it('should call method update and should create a execution report entity and sent to update method repository', async () => {
-      mockRepository.findById.mockResolvedValue({ idSchedule: 1, idWork: 2 });
+      mockRepository.findById.mockResolvedValue({
+        id_programacao: 1,
+        id_obra: 2,
+      });
       mockFindScheduleRepository.findById.mockResolvedValue({
         hora_ter: new Date('17-05-2025'),
       });
 
-      await service.update(1, mockUpdateExecutionReportDTO);
+      await service.update(1, mockUpdateExecutionReportDTO, mockExistsFiles);
 
       expect(mockRepository.update).toHaveBeenCalledWith(
         1,
@@ -255,7 +288,10 @@ describe('ExecutionReportService', () => {
     });
 
     it('Should call delete method and call repository', async () => {
-      mockRepository.findById.mockResolvedValue({ id_programacao: 3 });
+      mockRepository.findById.mockResolvedValue({
+        id_programacao: 3,
+        caminho_arquivo: 'teste.pdf',
+      });
 
       await service.delete(1);
 

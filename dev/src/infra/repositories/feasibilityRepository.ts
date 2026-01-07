@@ -6,17 +6,17 @@ import { PrismaService } from '../prisma/prisma.service';
 export class FeasibilityRepository implements IFeasibilityRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async exists(idWork: number): Promise<boolean> {
-    const count = await this.prisma.relatorio_viabilidade.count({
+  async exists(idWork: number): Promise<any[]> {
+    const data = await this.prisma.relatorio_viabilidade.findMany({
       where: { id_obra: idWork },
     });
-    return count > 0;
+    return data;
   }
 
   async saveFiles(idWork: number, files: Express.Multer.File[]): Promise<void> {
     const data = files.map((file) => ({
       id_obra: idWork,
-      caminho_arquivo: file.path,
+      caminho_arquivo: file.filename,
     }));
 
     await this.prisma.relatorio_viabilidade.createMany({

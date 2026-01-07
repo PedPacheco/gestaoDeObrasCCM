@@ -3,14 +3,25 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 
 import * as bodyParser from 'body-parser';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 const rootUrl = process.env.ROOT_URL || 'localhost';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.use(bodyParser.json({ limit: '5mb' }));
   app.use(bodyParser.urlencoded({ limit: '5mb', extended: true }));
+
+  app.useStaticAssets(join(process.env.UPLOAD_DEST!), {
+    prefix: '/uploads/viabilidade',
+  });
+
+  // 📂 As Build
+  app.useStaticAssets(join(process.env.UPLOAD_AS_BUILD!), {
+    prefix: '/uploads/as_build',
+  });
 
   app.useGlobalPipes(new ValidationPipe());
   app.enableCors({

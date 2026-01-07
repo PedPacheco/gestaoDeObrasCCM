@@ -16,6 +16,7 @@ import ErrorModal from "@/components/common/ErrorModal";
 import ModalComponent from "@/components/common/Modal";
 import {
   CheckCircleIcon,
+  DocumentTextIcon,
   ExclamationCircleIcon,
   PencilIcon,
   XMarkIcon,
@@ -52,7 +53,7 @@ interface WorkDetailsProps {
   formattedData: FormattedData;
   idWork: number;
   options: any;
-  feasibilityExists: boolean;
+  feasibilityExists: any[];
 }
 
 interface WorkData {
@@ -175,7 +176,8 @@ export function WorkDetails({
 }: WorkDetailsProps) {
   const [isPending, startTransition] = useTransition();
   const [isMounted, setIsMounted] = useState(false);
-  const [hasFilesFeasibility, setHasFilesFeasibility] = useState(false);
+  const [hasFilesFeasibility, setHasFilesFeasibility] =
+    useState<boolean>(false);
   const [suspensionReason, setSuspensionReason] = useState("");
   const [changedFields, setChangedFields] =
     useState<Record<string, string | null>>();
@@ -220,7 +222,7 @@ export function WorkDetails({
   );
 
   useEffect(() => {
-    setHasFilesFeasibility(feasibilityExists);
+    setHasFilesFeasibility(!!feasibilityExists?.length);
     setIsMounted(true);
   }, [feasibilityExists]);
 
@@ -356,15 +358,38 @@ export function WorkDetails({
               onClick={() => modals.setOpenUploadModal(true)}
             />
           ) : (
-            <div className="w-[70%] flex items-center gap-2 self-center border border-green-800 bg-green-50 dark:bg-green-900/20 px-4 py-3 rounded-md">
+            <div className="flex items-center gap-2 self-center border border-green-800 bg-green-50 dark:bg-green-900/20 px-4 py-3 rounded-md">
               <CheckCircleIcon className="w-6 h-6 text-green-600" />
-              <p className="text-green-700 dark:text-green-400 font-medium">
-                Arquivos de viabilidade já foram importados para esta obra
+              <p className="text-green-700 dark:text-green-400 font-semibold">
+                Viabilidade Importada
               </p>
+
+              {feasibilityExists.map((file: any, i: number) => {
+                const url = `${process.env.NEXT_PUBLIC_API_URL}/uploads/viabilidade/${file.caminho_arquivo}`;
+
+                return (
+                  <Tooltip key={i} title={`${file.caminho_arquivo}`}>
+                    <IconButton>
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-2xl hover:scale-110 transition-transform "
+                      >
+                        <DocumentTextIcon
+                          width={30}
+                          height={30}
+                          className="text-green-600"
+                        />
+                      </a>
+                    </IconButton>
+                  </Tooltip>
+                );
+              })}
 
               <IconButton
                 onClick={() => modals.setOpenConfirmModal(true)}
-                className="w-10 h-10 text-gray-600 dark:text-gray-300"
+                className="w-10 h-10 text-zinc-600"
               >
                 <XMarkIcon />
               </IconButton>

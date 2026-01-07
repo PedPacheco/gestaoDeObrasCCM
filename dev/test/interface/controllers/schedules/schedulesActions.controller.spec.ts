@@ -29,6 +29,8 @@ describe('ScheduleActionsController', () => {
     idParceira: 1,
   };
 
+  const mockFiles: Express.Multer.File[] = [];
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       controllers: [SchedulesActionsController],
@@ -114,6 +116,7 @@ describe('ScheduleActionsController', () => {
 
       const result = await scheduleActionsController.updateSchedules(
         1,
+        mockFiles,
         mockUpdateSchedulesController,
         mockReq,
       );
@@ -130,6 +133,7 @@ describe('ScheduleActionsController', () => {
           },
         },
         true,
+        [],
       );
     });
 
@@ -138,6 +142,7 @@ describe('ScheduleActionsController', () => {
 
       const result = await scheduleActionsController.updateSchedules(
         1,
+        mockFiles,
         mockUpdateSchedulesController,
         { ...mockReq, insufficientPermission: undefined },
       );
@@ -154,6 +159,7 @@ describe('ScheduleActionsController', () => {
           },
         },
         undefined,
+        [],
       );
     });
   });

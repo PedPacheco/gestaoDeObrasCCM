@@ -123,7 +123,7 @@ export default async function Details({ params }: DetailsParams) {
 
   return (
     <EmotionCacheProvider>
-      <div className="flex flex-col items-center w-full h-screen">
+      <div className="flex flex-col items-center w-full overflow-y-auto h-screen">
         <div className="w-full h-full flex flex-col">
           <WorkDetails
             data={data}
