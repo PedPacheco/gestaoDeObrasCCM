@@ -4,6 +4,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from 'src/application/users.service';
 import { FeasibilityModule } from 'src/interface/modules/feasibility.module';
 
+jest.mock('src/shared/multer/multer.config', () => ({
+  createMulterConfig: jest.fn().mockReturnValue({
+    storage: { mock: true },
+  }),
+}));
+
 describe('MetasModule', () => {
   let module: TestingModule;
   beforeEach(async () => {
