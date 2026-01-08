@@ -4,12 +4,12 @@ export const mockExecutionReportService = {
   idSchedule: 1,
   idUser: 1,
   idWork: 1,
-  supervisor: '',
+  supervisor: 'Erick',
   partialConnectionReleased: false,
   startTime: '08:00',
   finishTime: '12:00',
-  startContact: '',
-  endContact: '',
+  startContact: 'Luan',
+  endContact: 'Luan',
   delayJustification: '',
   hasEquipmentInstalled: true,
   appliedEquipment: [
@@ -93,6 +93,7 @@ export const mockExecutionReportPersistenceObject = {
   referencia_chave_provisoria: 'CHV123456',
   chave_provisoria_retirada: false,
   motivo: 'Instalação programada',
+  caminho_arquivo: 'teste.pdf',
   chave_provisoria_instalada: true,
   referencia_chave_provisoria_retirada: null,
 };
@@ -124,12 +125,12 @@ export const mockExecutionReportRepository = {
   id_usuario: 1,
   id_obra: 1,
   id_programacao: 1,
-  supervisor: '',
+  supervisor: 'Erick',
   liberado_ligacao_parcial: false,
   hora_conclusao: new Date('1970-01-01T12:00:00.000Z'),
   hora_inicio: new Date('1970-01-01T08:00:00.000Z'),
-  contato_inicio: '',
-  contato_termino: '',
+  contato_inicio: 'Luan',
+  contato_termino: 'Luan',
   atraso: false,
   justificativa_atraso: '',
   possui_equipamentos_instalados: true,
@@ -149,6 +150,7 @@ export const mockExecutionReportRepository = {
   potencia_equipamento_retirado: '',
   patrimonio_equipamento_retirado: '',
   instalacao_equipamento_retirado: '',
+  caminho_arquivo: 'teste.pdf',
 };
 
 export const mockFindByWorkIdResponse = [

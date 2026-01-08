@@ -17,6 +17,7 @@ export interface GetScheduleValuesInterface {
   observprog: string | null;
   mo_prog: number;
   mo_exec: number;
+  mat_prog: number;
   num_dp: string | null;
   hora_ini: string;
   hora_ter: string;

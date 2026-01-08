@@ -62,7 +62,7 @@ export function ExecutionCapacityTable({
   return (
     <TableContainer
       component={Paper}
-      className="w-full min-h-96 h-[720px] max-h-[880px] lg:max-h-[640px] 2xl:max-h-full flex-1 mb-6 overflow-y-auto xl:mb-0 xl:first:mr-8"
+      className="w-full min-h-96 h-[560px] max-h-[560px] flex-1 mb-6 overflow-y-auto xl:mb-0 xl:first:mr-8"
     >
       <Table stickyHeader>
         <TableHead>

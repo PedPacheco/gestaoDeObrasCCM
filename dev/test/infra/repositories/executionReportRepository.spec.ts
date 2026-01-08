@@ -122,6 +122,7 @@ describe('ExecutionReportRepository', () => {
           chave_provisoria_retirada: true,
           referencia_chave_provisoria_retirada: true,
           motivo: true,
+          caminho_arquivo: true,
           usuario: { select: { nome_usuario: true } },
           obras: {
             select: {
@@ -196,6 +197,7 @@ describe('ExecutionReportRepository', () => {
           chave_provisoria_retirada: true,
           referencia_chave_provisoria_retirada: true,
           motivo: true,
+          caminho_arquivo: true,
           usuario: { select: { nome_usuario: true } },
           obras: {
             select: {
@@ -233,6 +235,7 @@ describe('ExecutionReportRepository', () => {
       const result = await repository.findById(1);
 
       expect(mockPrisma.relatorio_execucao.findFirst).toHaveBeenCalledWith({
+        select: { id: true, id_programacao: true, caminho_arquivo: true },
         where: { id: 1 },
       });
 

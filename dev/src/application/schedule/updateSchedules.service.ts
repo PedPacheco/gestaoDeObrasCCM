@@ -116,7 +116,6 @@ export class UpdateSchedulesService {
     if (reprovada === true) {
       formattedData.reprovada = false;
     }
-
     try {
       await this.updateSchedulesRepository.update(formattedData, tx);
 

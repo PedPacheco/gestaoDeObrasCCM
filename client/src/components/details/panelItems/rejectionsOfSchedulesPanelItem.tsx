@@ -16,6 +16,7 @@ import {
 dayjs.extend(utc);
 
 const columns = {
+  data_prog: "Data Programada",
   motivo: "Motivo da reprovação",
   hora_ini: "Horário de início",
   hora_ter: "Horário de término",

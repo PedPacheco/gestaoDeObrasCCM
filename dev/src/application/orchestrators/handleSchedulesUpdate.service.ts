@@ -19,7 +19,7 @@ export class HandleSchedulesUpdateService {
     private readonly getDetailsWorkService: GetWorkDetailsService,
   ) {}
 
-  async update(data: any, permission: boolean) {
+  async update(data: any, permission: boolean, files?: Express.Multer.File[]) {
     const { updateData, executionReportData } = data;
 
     const work = await this.getDetailsWorkService.get(updateData.idWork);
@@ -42,6 +42,7 @@ export class HandleSchedulesUpdateService {
               ...executionReportData,
             },
             result.scheduledFinishTime,
+            files,
             tx,
           );
         }

@@ -1,4 +1,4 @@
-import { Module, ValidationPipe } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 
@@ -20,6 +20,8 @@ import { ExecutionReportModule } from './interface/modules/executionReport.modul
 import { ExecutionCapacityModule } from './interface/modules/executionCapacity.module';
 import { ErrorsReportModule } from './interface/modules/errorsReport.module';
 import { RestrictionsModule } from './interface/modules/restrictions.module';
+import { FeasibilityModule } from './interface/modules/feasibility.module';
+import { CustomValidationPipe } from './core/pipes/customValidation.pipe';
 
 @Module({
   imports: [
@@ -34,6 +36,7 @@ import { RestrictionsModule } from './interface/modules/restrictions.module';
     EmailModule,
     GoalsModule,
     FiltersModule,
+    FeasibilityModule,
     EntryModule,
     ExportModule,
     ScheduleModule,
@@ -65,7 +68,7 @@ import { RestrictionsModule } from './interface/modules/restrictions.module';
     },
     {
       provide: APP_PIPE,
-      useValue: new ValidationPipe({
+      useValue: new CustomValidationPipe({
         transform: true,
         whitelist: true,
         forbidNonWhitelisted: true,

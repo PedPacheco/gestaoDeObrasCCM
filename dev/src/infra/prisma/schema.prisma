@@ -35,50 +35,6 @@ model base_auxiliar {
   municipios         municipios? @relation(fields: [aux_gpm], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_municipios")
 }
 
-model base_auxiliar_nota {
-  tipo_de_ordem     String?   @db.VarChar(255)
-  nota              String?   @db.VarChar(255)
-  ordem             String?   @db.VarChar(255)
-  campo_ordenacao   String?   @db.VarChar(255)
-  texto_breve       String?   @db.VarChar(255)
-  conjunto          String?   @db.VarChar(255)
-  denom_Conjunto    String?   @db.VarChar(255)
-  pep_cabec_ordem   String?   @db.VarChar(255)
-  grp_plnj_pm       String?   @db.VarChar(255)
-  status_usuario    String?   @db.VarChar(255)
-  status_sistema    String?   @db.VarChar(255)
-  data_entrada      DateTime? @db.Timestamptz(6)
-  custos_tot_plan   Float?
-  custo_tot_reais   Float?
-  centro            String?   @db.VarChar(255)
-  loc_instalacao    String?   @db.VarChar(255)
-  denominacao       String?   @db.VarChar(255)
-  modificado_por    String?   @db.VarChar(255)
-  aux_valor_mo_calc Float?
-  aux_qtde_calc     Float?
-  id                BigInt    @id @default(autoincrement())
-}
-
-model base_auxiliar_nota_cn52n {
-  status         String?   @db.VarChar(10)
-  diagrama_rede  String?   @db.VarChar(15)
-  def_proj       String?   @db.VarChar(10)
-  material       String?   @db.VarChar(10)
-  texto_material String?   @db.VarChar(100)
-  centro         String?   @db.VarChar(10)
-  deposito       String?   @db.VarChar(10)
-  ctg_item       String?   @db.VarChar(3)
-  elemento_pep   String?   @db.VarChar(20)
-  um_registro    String?   @db.VarChar(10)
-  preco_mi       Float?
-  qtd_necess     Float?
-  qtd_retirada   Float?
-  qtd_entrada    Float?
-  qtd_falta      Float?
-  data_nec       DateTime? @db.Date
-  id             BigInt    @id @default(autoincrement())
-}
-
 model base_auxiliar_ov {
   obra                                                  String?     @db.VarChar(20)
   pep                                                   String?     @db.VarChar(20)
@@ -322,6 +278,7 @@ model obras {
   programacoes_reprovacoes programacoes_reprovacoes[]
   relatorio                relatorio[]
   relatorio_execucao       relatorio_execucao[]
+  relatorio_viabilidade    relatorio_viabilidade[]
   restricoes_publicacoes   restricoes_publicacoes[]
   servicos                 servicos[]
   suspensoes               suspensoes[]
@@ -555,20 +512,11 @@ model usuario {
   regionais              regionais            @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
 }
 
-model ztab_cn52n_aux {
-  diagrama_rede       String? @db.VarChar(30)
-  qtde_manut_pend     Float?
-  calc_capex_mat_plan Float?
-  calc_capex_mo_plan  Float?
-  calc_capex_mat_pend Float?
-  calc_capex_mo_pend  Float?
-  id                  BigInt  @id @default(autoincrement())
-}
-
 model relatorio_viabilidade {
-  id         Int     @id(map: "relatorio_viablidade_pkey") @default(autoincrement())
-  ovnota     String  @db.VarChar(15)
-  encontrado Boolean
+  id              Int    @id(map: "relatorio_viablidade_pkey") @default(autoincrement())
+  id_obra         Int
+  caminho_arquivo String @db.VarChar(180)
+  obras           obras  @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
 }
 
 model notas_d5 {
@@ -651,6 +599,7 @@ model relatorio_execucao {
   instalacao_equipamento_aplicado      String?
   instalacao_equipamento_retirado      String?
   referencia_chave_provisoria_retirada String?      @db.VarChar(25)
+  caminho_arquivo                      String?      @db.VarChar(420)
   obras                                obras        @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obra")
   programacoes                         programacoes @relation(fields: [id_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_programacao")
   usuario                              usuario      @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario")
@@ -707,63 +656,6 @@ model restricoes_publicacoes {
   data_resolucao   DateTime?  @db.Date
   obras            obras      @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
   restricoes       restricoes @relation(fields: [id_restricao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes")
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model OBRAS {
-  CODIGOOBRA            Int?
-  OVNOTA                String?   @db.VarChar(12)
-  PEP                   String?   @db.VarChar(8)
-  DIAGRAMA              String?   @db.VarChar(12)
-  ORDEMDCI              String?   @db.VarChar(12)
-  ORDEMDCD              String?   @db.VarChar(12)
-  ORDEMDCA              String?   @db.VarChar(12)
-  ORDEMDCIM             String?   @db.VarChar(12)
-  STATUSOVSAP           Int?
-  STATUSPEP             String?   @db.VarChar(4)
-  STATUSDIAGRAMA        String?   @db.VarChar(4)
-  STATUS162             String?   @db.VarChar(255)
-  STATUS163             String?   @db.VarChar(4)
-  STATUS165             String?   @db.VarChar(4)
-  STATUS43              String?   @db.VarChar(4)
-  STATUSUSUARIODIAGRAMA String?   @db.VarChar(16)
-  STATUSUSUARIO162      String?   @db.VarChar(16)
-  STATUSUSUARIO163      String?   @db.VarChar(16)
-  STATUSUSUARIO165      String?   @db.VarChar(16)
-  STATUSUSUARIO43       String?   @db.VarChar(16)
-  CODGPM                Int?
-  CODTIPO               Int?
-  ENTRADA               DateTime? @db.Timestamptz(6)
-  PRAZO                 Int?
-  QTDEPLANEJADA         Float?
-  CODCIRCUITO           Int?
-  MOPLANEJADA           Float?
-  MOCALCULADA           Float?
-  MOACERTADA            Float?
-  OBSERVOBRA            String?   @db.VarChar(255)
-  CODTURMA              Int?
-  EXECUTADO             Int?      @map("%EXECUTADO")
-  DATACONCLUSAO         DateTime? @db.Timestamptz(6)
-  CODSTATUS             Int?
-  REFERENCIA            String?   @db.VarChar(14)
-  CAPEXMATPLAN          Float?
-  CAPEXMOPLAN           Float?
-  CAPEXMATPEND          Float?
-  CAPEXMOPEND           Float?
-  QTDEPEND              Float?
-  TIPOADS               String?   @db.VarChar(255)
-  DATAEMPREITAMENTO     DateTime? @db.Timestamptz(6)
-  CODEMPREENDIMENTO     Int?
-  DIAGRAMAANTIGO        String?   @db.VarChar(12)
-  ORDEMDCIANTIGO        String?   @db.VarChar(12)
-  ORDEMDCDANTIGO        String?   @db.VarChar(12)
-  ORDEMDCSANTIGO        String?   @db.VarChar(12)
-  ORDEMDCIMANTIGO       String?   @db.VarChar(12)
-  ANOPLAN               Int?
-  DATAVIABILIDADE       DateTime? @db.Timestamptz(6)
-  PRAZOVIABILIDADE      String?   @db.VarChar(40)
-
-  @@ignore
 }
 
 view exportacao_obras_executadas {

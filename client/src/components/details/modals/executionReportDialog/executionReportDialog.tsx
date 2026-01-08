@@ -24,6 +24,7 @@ import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
 import { useState } from "react";
 import ErrorModal from "@/components/common/ErrorModal";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+import { AsBuildImport } from "./asBuildImport";
 
 export type ExecutionReportData = z.infer<typeof executionReportSchema>;
 
@@ -51,6 +52,8 @@ export function ExecutionReportDialog({
   scheduleForm,
 }: ExecutionReportDialogProps) {
   const [error, setError] = useState<string | null>();
+
+  const [files, setFiles] = useState<File[]>([]);
 
   const {
     formData,
@@ -141,6 +144,15 @@ export function ExecutionReportDialog({
             onInputChange={handleInputChange}
           />
         </AccordionPanel>
+
+        <AccordionPanel
+          id="panel4"
+          title="Arquivos As Build"
+          expanded={expanded}
+          onChange={handleAccordionChange}
+        >
+          <AsBuildImport files={files} setFiles={setFiles} />
+        </AccordionPanel>
       </DialogContent>
 
       <DialogActions>
@@ -164,7 +176,7 @@ export function ExecutionReportDialog({
                 return;
               }
 
-              handleSubmit(result.data, "executionReport");
+              handleSubmit(result.data, "executionReport", files);
             } else {
               const validationSchema = validationSchedulesSchema(null, false);
               const result = validationSchema.safeParse(formData);
@@ -199,7 +211,7 @@ export function ExecutionReportDialog({
                 return;
               }
 
-              handleSubmit(result.data, "schedule");
+              handleSubmit(result.data, "schedule", files);
             }
           }}
           disabled={isPending}

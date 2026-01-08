@@ -326,10 +326,18 @@ export class SchedulesDataDTO {
 }
 
 export class UpdateSchedulesDataDTO {
+  @Transform(({ value }) =>
+    typeof value === 'string' ? JSON.parse(value) : value,
+  )
   @ValidateNested()
   @Type(() => SchedulesDataDTO)
   updateData: SchedulesDataDTO;
 
+  @Transform(({ value }) =>
+    typeof value === 'string' ? JSON.parse(value) : value,
+  )
   @IsOptional()
+  @ValidateNested()
+  @Type(() => ExecutionReportDataDTO)
   executionReportData?: ExecutionReportDataDTO;
 }

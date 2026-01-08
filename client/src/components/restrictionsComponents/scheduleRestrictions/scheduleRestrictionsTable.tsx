@@ -95,8 +95,10 @@ export default function ScheduleRestrictionsTable({
 
                       return (
                         <TableCell
-                          className={`py-1 px-2 text-center font-medium text-lg min-w-36 text-nowrap ${
-                            column === "ovnota" ? "hover:cursor-pointer" : ""
+                          className={`py-1 px-2 text-center font-medium text-lg min-w-36  text-nowrap ${
+                            column === "ovnota"
+                              ? "hover:cursor-pointer sticky left-0 bg-white z-10"
+                              : ""
                           } ${
                             column === "restricao1" || column === "restricao2"
                               ? "border-l border-solid"

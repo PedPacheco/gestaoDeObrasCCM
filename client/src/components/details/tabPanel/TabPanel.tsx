@@ -24,6 +24,7 @@ interface TabPanelProps {
   rejectionsData: Record<string, any>[];
   options: any;
   id: string;
+  feasibilityExists: any[];
 }
 
 function CustomTabPanel({
@@ -52,6 +53,7 @@ export default function TabPanel({
   executionReportData,
   rejectionsData,
   id,
+  feasibilityExists,
 }: TabPanelProps) {
   const { permissions } = useUser();
   const modalsRef = useRef<ModalsManagerRef>(null);
@@ -130,8 +132,8 @@ export default function TabPanel({
   };
 
   return (
-    <div className="w-full xl:h-full flex justify-center items-start">
-      <div className="w-[95%] mx-auto max-h-[620px] xl:max-h-full xl:h-[90%] shadow-lg flex flex-col">
+    <div className="w-full xl:h-full flex justify-center items-start pb-6">
+      <div className="w-[95%] mx-auto max-h-[620px] min-h-[620px] xl:max-h-full xl:h-[90%] shadow-lg flex flex-col">
         <div className="border-b border-solid border-zinc-300">
           <TabActions
             onConfirm={handleConfirm}
@@ -142,6 +144,7 @@ export default function TabPanel({
             statusWork={data?.id_status}
             valueTab={value}
             handleChange={handleChange}
+            feasibilityExists={feasibilityExists}
           />
         </div>
 
