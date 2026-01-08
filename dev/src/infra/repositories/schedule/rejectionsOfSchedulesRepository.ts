@@ -5,9 +5,7 @@ import { Injectable } from '@nestjs/common';
 import { IRejectionOfSchedulesRepository } from 'src/domain/repositories/schedule/IRejectionsOfSchedules';
 
 @Injectable()
-export class RejectionsOfSchedulesRepository
-  implements IRejectionOfSchedulesRepository
-{
+export class RejectionsOfSchedulesRepository implements IRejectionOfSchedulesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async get(idWork): Promise<any> {

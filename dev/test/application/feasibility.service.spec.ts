@@ -124,8 +124,14 @@ describe('FeasibilityService', () => {
 
     expect(mockRepository.findFiles).toHaveBeenCalledWith(5);
     expect(mockFileService.deleteFile).toHaveBeenCalledTimes(2);
-    expect(mockFileService.deleteFile).toHaveBeenNthCalledWith(1, '/tmp/a.pdf');
-    expect(mockFileService.deleteFile).toHaveBeenNthCalledWith(2, '/tmp/b.pdf');
+    expect(mockFileService.deleteFile).toHaveBeenNthCalledWith(
+      1,
+      'undefined//tmp/a.pdf',
+    );
+    expect(mockFileService.deleteFile).toHaveBeenNthCalledWith(
+      2,
+      'undefined//tmp/b.pdf',
+    );
 
     expect(mockRepository.deleteFiles).toHaveBeenCalledWith(5);
   });

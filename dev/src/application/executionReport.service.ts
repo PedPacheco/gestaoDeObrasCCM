@@ -94,7 +94,9 @@ export class ExecutionReportService {
     } catch (error) {
       if (files?.length) {
         for (const file of files) {
-          this.fileService.deleteFile(file.path);
+          this.fileService.deleteFile(
+            `${process.env.UPLOAD_AS_BUILD}/${file.path}`,
+          );
         }
       }
       throw error;
@@ -148,7 +150,9 @@ export class ExecutionReportService {
     } catch (error) {
       if (files?.length) {
         for (const file of files) {
-          this.fileService.deleteFile(file.path);
+          this.fileService.deleteFile(
+            `${process.env.UPLOAD_AS_BUILD}/${file.path}`,
+          );
         }
       }
       throw new BadRequestException(
@@ -163,7 +167,9 @@ export class ExecutionReportService {
 
     if (newFilesPath && existing.caminho_arquivo) {
       for (const oldFile of existing.caminho_arquivo.split(';')) {
-        this.fileService.deleteFile(oldFile);
+        this.fileService.deleteFile(
+          `${process.env.UPLOAD_AS_BUILD}/${oldFile}`,
+        );
       }
     }
   }
@@ -182,7 +188,7 @@ export class ExecutionReportService {
     const files = report.caminho_arquivo.split(';');
 
     for (const file of files) {
-      this.fileService.deleteFile(file);
+      this.fileService.deleteFile(`${process.env.UPLOAD_AS_BUILD}/${file}`);
     }
 
     await this.executionReportRepository.delete(id, report.id_programacao);

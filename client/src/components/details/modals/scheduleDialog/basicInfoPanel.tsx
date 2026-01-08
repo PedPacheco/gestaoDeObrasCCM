@@ -1,6 +1,5 @@
 "use client";
 
-import { useUser } from "@/contexts/userContext";
 import { FormData } from "@/hooks/useScheduleForm";
 import { Grid, TextField } from "@mui/material";
 
@@ -19,8 +18,6 @@ export const BasicInfoPanel: React.FC<BasicInfoPanelProps> = ({
   onInputChange,
   disabledFields,
 }) => {
-  const { permissions } = useUser();
-
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} sm={6}>
@@ -94,11 +91,7 @@ export const BasicInfoPanel: React.FC<BasicInfoPanelProps> = ({
             error={!!formErrors.exec}
             helperText={formErrors.exec}
             InputLabelProps={{ shrink: true }}
-            disabled={
-              !formData.validated &&
-              !formData.confirmed &&
-              permissions?.permissao_visualizacao === "parcial"
-            }
+            disabled={!formData.validated && !formData.confirmed}
           />
         </Grid>
       )}

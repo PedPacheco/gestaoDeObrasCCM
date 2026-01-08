@@ -49,7 +49,9 @@ export class FeasibilityService {
     }
 
     for (const file of files) {
-      this.fileService.deleteFile(file.caminho_arquivo);
+      this.fileService.deleteFile(
+        `${process.env.UPLOAD_DEST}/${file.caminho_arquivo}`,
+      );
     }
 
     await this.feasibilityRepository.deleteFiles(idWork);

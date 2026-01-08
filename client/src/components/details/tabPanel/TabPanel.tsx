@@ -24,7 +24,7 @@ interface TabPanelProps {
   rejectionsData: Record<string, any>[];
   options: any;
   id: string;
-  feasibilityExists: boolean;
+  feasibilityExists: any[];
 }
 
 function CustomTabPanel({
