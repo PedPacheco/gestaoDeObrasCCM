@@ -38,6 +38,7 @@ describe('ScheduleController', () => {
         exec: null,
         mo_prog: 3262.21,
         mo_exec: 3262.21,
+        mat_prog: 2345.23,
         num_dp: '15563352',
         hora_ini: '1970-01-01T14:30:00.000Z',
         hora_ter: '1970-01-01T17:30:00.000Z',

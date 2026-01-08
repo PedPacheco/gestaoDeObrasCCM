@@ -37,13 +37,27 @@ import { SchedulesActionsController } from '../controllers/schedules/schedulesAc
 import { ExecutionReportModule } from './executionReport.module';
 import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
+import { MulterModule } from '@nestjs/platform-express';
+import { createMulterConfig } from 'src/shared/multer/multer.config';
 
 // import { UpdateRestrictionsService } from 'src/application/schedule/updateRestrictions.service';
 // import { UPDATE_RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateRestrictionsRepository';
 // import { UpdateRestrictionsRepository } from 'src/infra/repositories/schedule/updateRestrictionsRepository';
 
 @Module({
-  imports: [UsersModule, forwardRef(() => ExecutionReportModule), WorksModule],
+  imports: [
+    UsersModule,
+    forwardRef(() => ExecutionReportModule),
+    WorksModule,
+    MulterModule.register(
+      createMulterConfig({
+        destination: process.env.UPLOAD_AS_BUILD,
+        allowedMimeTypes: ['application/pdf', 'image/jpeg'],
+        maxSize: 5 * 1024 * 1024,
+        maxFiles: 3,
+      }),
+    ),
+  ],
   controllers: [ScheduleController, SchedulesActionsController],
   providers: [
     AddSchedulesService,

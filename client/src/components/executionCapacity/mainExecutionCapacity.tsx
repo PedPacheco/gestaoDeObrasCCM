@@ -129,7 +129,7 @@ export function MainExecutionCapacity({
   const handleClearFilters = async () => {
     setSelectedItems({});
     setTeams(null);
-    setYear("2025");
+    setYear(dayjs().year().toString());
 
     handleDataFetch(`${process.env.NEXT_PUBLIC_API_URL}/capacidade-execucao`, {
       year,

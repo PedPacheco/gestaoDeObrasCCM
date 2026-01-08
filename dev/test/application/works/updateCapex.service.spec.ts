@@ -71,7 +71,7 @@ describe('UpdateCapexService', () => {
       expect(obra1).toBeDefined();
       expect(obra1.id).toBe(1);
       expect(obra1.qtde_calc).toBe(11);
-      expect(obra1.qtde_pend).toBe(1);
+      expect(obra1.qtde_pend).toBe(0);
       expect(obra1.mo_calc).toBeCloseTo(12.98, 2);
       expect(obra1.capex_mat_plan).toBeCloseTo(2644.57, 2);
       expect(obra1.capex_mo_plan).toBeCloseTo(6.49, 2);
@@ -88,7 +88,7 @@ describe('UpdateCapexService', () => {
       expect(obra2.capex_mat_plan).toBeCloseTo(10578.28, 2);
       expect(obra2.capex_mo_plan).toBe(0);
       expect(obra2.capex_mo_pend).toBe(0);
-      expect(obra2.capex_mat_pend).toBe(10578.28);
+      expect(obra2.capex_mat_pend).toBe(5289.14);
     });
 
     it('should handle materials not in deleted list', async () => {

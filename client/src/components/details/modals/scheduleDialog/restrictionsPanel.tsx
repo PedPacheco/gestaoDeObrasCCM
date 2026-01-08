@@ -1,3 +1,8 @@
+import "dayjs/locale/pt-br";
+
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
 import { FormData } from "@/hooks/useScheduleForm";
 import {
   Box,
@@ -9,8 +14,8 @@ import {
   Typography,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
-import dayjs from "dayjs";
-import "dayjs/locale/pt-br";
+
+dayjs.extend(utc);
 
 interface RestrictionsPanelProps {
   formData: any;
@@ -136,10 +141,15 @@ export function RestrictionsPanel({
 
       <DatePicker
         label="1° Data de resolução"
-        value={formData.resolutionDate ? dayjs(formData.resolutionDate) : null}
-        onChange={(v) =>
-          onInputChange("resolutionDate")(v ? v.toISOString() : null)
+        value={
+          formData.resolutionDate ? dayjs.utc(formData.resolutionDate) : null
         }
+        onChange={(v) =>
+          onInputChange("resolutionDate")(
+            v ? dayjs(v).utc().toISOString() : null
+          )
+        }
+        format="DD/MM/YYYY"
         disabled={disabled}
         slotProps={{
           textField: {
@@ -255,12 +265,15 @@ export function RestrictionsPanel({
       <DatePicker
         label="2° Data de resolução"
         value={
-          formData.resolutionDate2 ? dayjs(formData.resolutionDate2) : null
+          formData.resolutionDate2 ? dayjs.utc(formData.resolutionDate2) : null
         }
         onChange={(v) =>
-          onInputChange("resolutionDate2")(v ? v.toISOString() : null)
+          onInputChange("resolutionDate2")(
+            v ? dayjs(v).utc().toISOString() : null
+          )
         }
         disabled={disabled}
+        format="DD/MM/YYYY"
         slotProps={{
           textField: {
             fullWidth: true,

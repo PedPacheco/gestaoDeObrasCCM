@@ -98,6 +98,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
         id_obra,
         obras.ovnota,
         cn52n.diagrama_rede,
+        cn52n.elemento_pep,
         cn52n.def_proj,
         cn52n.material,
         cn52n.elemento_pep,

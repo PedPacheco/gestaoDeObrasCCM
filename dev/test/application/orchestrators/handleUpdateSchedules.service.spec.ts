@@ -24,6 +24,8 @@ describe('HandleUpdateScheduleService', () => {
     create: jest.fn(),
   };
 
+  const mockFiles: Express.Multer.File[] = [];
+
   const mockGetDetailsService = {
     get: jest.fn(),
   };
@@ -112,7 +114,7 @@ describe('HandleUpdateScheduleService', () => {
     mockUpdateSchedulesService.update.mockResolvedValue(mockResult);
     mockGetDetailsService.get.mockResolvedValue({ id_status: 35 });
 
-    await service.update(mockDTO, true);
+    await service.update(mockDTO, true, mockFiles);
 
     expect(mockExecutionReportService.create).toHaveBeenCalledWith(
       {
@@ -121,6 +123,7 @@ describe('HandleUpdateScheduleService', () => {
         supervisor: 'Erick',
       },
       '17-05-2025',
+      mockFiles,
       expect.any(Object),
     );
   });

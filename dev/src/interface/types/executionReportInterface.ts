@@ -20,8 +20,9 @@ export interface ExecutionReportServiceInterface {
   reason: string;
   provisionalKeyInstalled: boolean;
   provisionalKeyReference: string;
-  provisionalKeyWithdrawn: boolean;
   provisionalKeyReferenceWithdrawn?: string;
+  provisionalKeyWithdrawn?: boolean;
+  files?: string;
 }
 
 export interface ExecutionReportRepositoryInterface {

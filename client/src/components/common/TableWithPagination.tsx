@@ -85,7 +85,7 @@ export function TableWithPagination({
                         }
                       }
 
-                      if (column === "mo_planejada") {
+                      if (column === "mo_prog" || column === "mat_prog") {
                         cellValue = FormatCurrency(cellValue);
                       }
 

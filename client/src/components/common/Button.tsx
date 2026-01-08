@@ -18,7 +18,7 @@ export function ButtonComponent({
       {...props}
       className={`${styled} h-12 text-xs xl:text-base`}
       sx={{
-        color: "#E4E4E7", // text-zinc-200
+        color: "#E4E4E7",
         backgroundColor: "#212E3E",
         "&:hover": {
           color: "#53FF75",
@@ -26,7 +26,7 @@ export function ButtonComponent({
         },
         "&.Mui-disabled": {
           opacity: 0.85,
-          color: "#A1A1AA", // zinc-300
+          color: "#A1A1AA",
         },
       }}
     >

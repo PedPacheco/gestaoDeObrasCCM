@@ -17,6 +17,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { FileService } from './file.service';
 
 @Injectable()
 export class ExecutionReportService {
@@ -25,29 +26,8 @@ export class ExecutionReportService {
     private readonly executionReportRepository: IExecutionReportRepository,
     @Inject(FIND_SCHEDULE_BY_ID_REPOSITORY)
     private readonly findScheduleByIdRepository: IFindScheduleByIdRepository,
+    private readonly fileService: FileService,
   ) {}
-
-  async create(
-    data: ExecutionReportServiceInterface,
-    scheduledFinishTime: Date,
-    tx: Prisma.TransactionClient,
-  ) {
-    const existing = await this.executionReportRepository.findByScheduleId(
-      data.idSchedule,
-      tx,
-    );
-
-    if (existing) {
-      return;
-    }
-
-    const executionReport = ExecutionReport.create(data, scheduledFinishTime);
-
-    await this.executionReportRepository.create(
-      executionReport.toPersistenceObject() as Prisma.relatorio_execucaoUncheckedCreateInput,
-      tx,
-    );
-  }
 
   async findByWorkId(idWork: number) {
     if (!idWork) {
@@ -80,7 +60,52 @@ export class ExecutionReportService {
     return formatted;
   }
 
-  async update(idExecutionReport: number, data: ExecutionReportDataDTO) {
+  async create(
+    data: ExecutionReportServiceInterface,
+    scheduledFinishTime: Date,
+    files: Express.Multer.File[],
+    tx: Prisma.TransactionClient,
+  ) {
+    const existing = await this.executionReportRepository.findByScheduleId(
+      data.idSchedule,
+      tx,
+    );
+
+    if (existing) {
+      return;
+    }
+
+    try {
+      if (!files) {
+        throw new BadRequestException('Arquivos não foram enviados');
+      }
+
+      const filePath = files.map((file) => file.filename).join(';');
+
+      const executionReport = ExecutionReport.create(
+        { ...data, files: filePath },
+        scheduledFinishTime,
+      );
+
+      await this.executionReportRepository.create(
+        executionReport.toPersistenceObject() as Prisma.relatorio_execucaoUncheckedCreateInput,
+        tx,
+      );
+    } catch (error) {
+      if (files?.length) {
+        for (const file of files) {
+          this.fileService.deleteFile(file.path);
+        }
+      }
+      throw error;
+    }
+  }
+
+  async update(
+    idExecutionReport: number,
+    data: ExecutionReportDataDTO,
+    files?: Express.Multer.File[],
+  ) {
     if (!data) {
       throw new BadRequestException('Nenhum relatório fornecida para edição.');
     }
@@ -93,33 +118,53 @@ export class ExecutionReportService {
     }
 
     const scheduledFinishTime = await this.findScheduleByIdRepository.findById(
-      existing.idSchedule,
+      existing.id_programacao,
     );
 
     if (!scheduledFinishTime) {
       throw new NotFoundException('Programação não encontrada.');
     }
 
+    const newFilesPath = files?.length
+      ? files.map((f) => f.filename).join(';')
+      : undefined;
+
+    const finalFilesPath = newFilesPath ?? existing.caminho_arquivo;
+
     const updatedData = {
-      idWork: existing.idWork,
-      idSchedule: existing.idSchedule,
+      idWork: existing.id_obra,
+      idSchedule: existing.id_programacao,
+      files: finalFilesPath,
       ...data,
     };
 
+    let executionReport: ExecutionReport;
+
     try {
-      const executionReport = ExecutionReport.create(
+      executionReport = ExecutionReport.create(
         updatedData,
         scheduledFinishTime.hora_ter,
       );
-
-      await this.executionReportRepository.update(
-        idExecutionReport,
-        executionReport.toPersistenceObject(),
-      );
     } catch (error) {
+      if (files?.length) {
+        for (const file of files) {
+          this.fileService.deleteFile(file.path);
+        }
+      }
       throw new BadRequestException(
         `Erro ao criar relatório: ${error.message}`,
       );
+    }
+
+    await this.executionReportRepository.update(
+      idExecutionReport,
+      executionReport.toPersistenceObject(),
+    );
+
+    if (newFilesPath && existing.caminho_arquivo) {
+      for (const oldFile of existing.caminho_arquivo.split(';')) {
+        this.fileService.deleteFile(oldFile);
+      }
     }
   }
 
@@ -132,6 +177,12 @@ export class ExecutionReportService {
 
     if (!report) {
       throw new NotFoundException('Relatório de execução não encontrado.');
+    }
+
+    const files = report.caminho_arquivo.split(';');
+
+    for (const file of files) {
+      this.fileService.deleteFile(file);
     }
 
     await this.executionReportRepository.delete(id, report.id_programacao);

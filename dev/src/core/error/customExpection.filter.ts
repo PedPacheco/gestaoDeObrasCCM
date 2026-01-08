@@ -25,6 +25,8 @@ export class CustomExceptionFilter implements ExceptionFilter {
       'Conflict',
     ];
 
+    console.log(exception);
+
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();

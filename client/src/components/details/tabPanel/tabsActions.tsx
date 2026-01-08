@@ -14,6 +14,7 @@ interface TabActionsProps {
     event: SyntheticEvent<Element, Event>,
     newValue: number
   ) => void;
+  feasibilityExists: boolean;
 }
 
 const TabActions = memo(
@@ -26,6 +27,7 @@ const TabActions = memo(
     onRejected,
     onNewSchedule,
     valueTab,
+    feasibilityExists,
   }: TabActionsProps) => {
     return (
       <div className="flex items-center justify-between">
@@ -35,7 +37,7 @@ const TabActions = memo(
           aria-label="basic tabs example"
           variant="scrollable"
           scrollButtons="auto"
-          className="flex-1"
+          className="flex-1 mt-4"
         >
           <Tab label="Custos" className="xl:text-lg" />
           <Tab label="Programações" className="xl:text-lg" />
@@ -46,18 +48,19 @@ const TabActions = memo(
 
         {valueTab === 1 && (
           <div className="flex justify-center items-center flex-row">
-            <div className="px-4">
+            <div className="px-4 mt-2">
               <ButtonComponent
                 onClick={onNewSchedule}
                 disabled={
                   statusWork === 2 ||
                   statusWork === 3 ||
+                  !feasibilityExists ||
                   permissions.permissao === "Sem permissão"
                 }
                 text="Nova programação"
               />
             </div>
-            <div className="px-4">
+            <div className="px-4 mt-2">
               <ButtonComponent
                 onClick={onRejected}
                 disabled={
@@ -68,7 +71,7 @@ const TabActions = memo(
                 text="Reprovar programação"
               />
             </div>
-            <div className="px-4">
+            <div className="px-4 mt-2">
               <ButtonComponent
                 onClick={onValidate}
                 disabled={
@@ -80,7 +83,7 @@ const TabActions = memo(
               />
             </div>
 
-            <div className="px-4">
+            <div className="px-4 mt-2">
               <ButtonComponent
                 onClick={onConfirm}
                 disabled={

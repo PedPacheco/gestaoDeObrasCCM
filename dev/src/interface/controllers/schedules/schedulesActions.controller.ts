@@ -8,12 +8,14 @@ import {
   Patch,
   Post,
   Req,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { HandleAddScheduleService } from 'src/application/orchestrators/handleAddSchedule.service';
 import { HandleSchedulesUpdateService } from 'src/application/orchestrators/handleSchedulesUpdate.service';
 import { DeleteSchedulesService } from 'src/application/schedule/deleteSchedules.service';
-//import { UpdateRestrictionsService } from 'src/application/schedule/updateRestrictions.service';
 import { ValidateConfirmAndRejectSchedulesService } from 'src/application/schedule/validateAndConfirmSchedules.service';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
@@ -21,7 +23,6 @@ import {
   ConfirmSchedulesDTO,
   RejectScheduleDTO,
   SchedulesDataDTO,
-  // UpdateRestrictionsDTO,
   UpdateSchedulesDataDTO,
   ValidateSchedulesDTO,
 } from 'src/interface/dtos/scheduleDTO';
@@ -91,8 +92,10 @@ export class SchedulesActionsController {
 
   @Patch(':id')
   @UseGuards(VisualizationGuard)
+  @UseInterceptors(FilesInterceptor('files'))
   async updateSchedules(
     @Param('id', ParseIntPipe) id: number,
+    @UploadedFiles() files: Express.Multer.File[],
     @Body() schedulesData: UpdateSchedulesDataDTO,
     @Req() req: any,
   ) {
@@ -107,7 +110,7 @@ export class SchedulesActionsController {
       executionReportData: { ...schedulesData.executionReportData },
     };
 
-    await this.handleSchedulesUpdateService.update(data, permission);
+    await this.handleSchedulesUpdateService.update(data, permission, files);
 
     return {
       statusCode: HttpStatus.NO_CONTENT,

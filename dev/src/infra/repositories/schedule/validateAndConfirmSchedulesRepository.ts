@@ -7,9 +7,7 @@ import {
 } from 'src/interface/dtos/scheduleDTO';
 
 @Injectable()
-export class ValidateAndConfirmSchedulesRepository
-  implements IValidateConfirmAndRejectSchedulesRepository
-{
+export class ValidateAndConfirmSchedulesRepository implements IValidateConfirmAndRejectSchedulesRepository {
   constructor() {}
 
   async validate(
