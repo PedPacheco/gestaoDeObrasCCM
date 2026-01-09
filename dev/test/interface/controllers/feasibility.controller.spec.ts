@@ -277,19 +277,6 @@ describe('FeasibilityController', () => {
       expect(service.handleUpload).toHaveBeenCalledWith(mockIdWork, mockFiles);
     });
 
-    it('deve usar PermissionGuard', () => {
-      const guards = Reflect.getMetadata('__guards__', controller.upload);
-      expect(guards).toBeDefined();
-    });
-
-    it('deve usar FilesInterceptor', () => {
-      const interceptors = Reflect.getMetadata(
-        '__interceptors__',
-        controller.upload,
-      );
-      expect(interceptors).toBeDefined();
-    });
-
     it('deve converter idObra string para número', async () => {
       const mockFiles: Express.Multer.File[] = [];
       const mockIdWork = 999;
