@@ -128,7 +128,7 @@ describe("Details Page", () => {
       "mock-token",
       { cache: "no-store" }
     );
-    expect(fetchData).toBeCalledTimes(3);
+    expect(fetchData).toBeCalledTimes(4);
     expect(fetchFilters).toHaveBeenCalledWith({
       circuito: true,
       empreendimento: true,
@@ -212,6 +212,28 @@ describe("Details Page", () => {
 
     const details = screen.getByTestId("work-details");
     expect(details.getAttribute("data-executado")).toBe("");
+  });
+
+  it("Deve renderizar os campos com valores padrões, caso esses campos não tem valor", async () => {
+    const modifiedData = {
+      ...mockData,
+      entrada: null,
+      prazo: null,
+      data_conclusao: null,
+      data_empreitamento: null,
+      grupo: 1,
+    };
+
+    vi.mocked(fetchData).mockResolvedValueOnce({
+      success: true,
+      token: "mock-token",
+      data: modifiedData,
+    });
+
+    render(await Details({ params: Promise.resolve({ id: mockId }) }));
+
+    const details = screen.getByTestId("work-details");
+    expect(details.getAttribute("data-background")).toBe("");
   });
 
   it("Deve renderizar o componente, caso algum erro seja retornado do fetchData", async () => {

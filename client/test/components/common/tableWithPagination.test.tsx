@@ -18,7 +18,7 @@ describe("TableWithPagination", () => {
   const columns = {
     id: "ID",
     data_inicio: "Data Início",
-    mo_planejada: "M.O Planejada",
+    mo_prog: "M.O Planejada",
     ovnota: "Ovnota",
     prog: "Prog %",
     exec: "Exec %",
@@ -30,7 +30,7 @@ describe("TableWithPagination", () => {
     {
       id: 1,
       data_inicio: "2024-07-20",
-      mo_planejada: 10000.1234,
+      mo_prog: 10000.1234,
       ovnota: "23421432",
       prog: 78,
       exec: 92,

@@ -364,7 +364,7 @@ export function WorkDetails({
                 Viabilidade Importada
               </p>
 
-              {feasibilityExists.map((file: any, i: number) => {
+              {feasibilityExists?.map((file: any, i: number) => {
                 const url = `${process.env.NEXT_PUBLIC_API_URL}/uploads/viabilidade/${file.caminho_arquivo}`;
 
                 return (

@@ -151,7 +151,7 @@ describe("ExecutionReportDialog", () => {
     const btn = screen.getByText("Salvar Execução");
     await user.click(btn);
 
-    expect(handleSubmit).toHaveBeenCalledWith({ ok: true }, "schedule");
+    expect(handleSubmit).toHaveBeenCalledWith({ ok: true }, "schedule", []);
   });
 
   it("Deve chamar handleSubmit('executionReport') quando executionReportIsInsert = false e validação tiver sucesso", async () => {
@@ -174,7 +174,8 @@ describe("ExecutionReportDialog", () => {
 
     expect(handleSubmit).toHaveBeenCalledWith(
       { done: true },
-      "executionReport"
+      "executionReport",
+      []
     );
   });
 
