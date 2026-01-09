@@ -6,6 +6,7 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import { render, screen } from "@testing-library/react";
 import ScheduleRestrictions from "@/app/(dashboard)/restricoes/programacoes/page";
 import { Transform } from "@/utils/transform";
+import { ErrorThrower } from "@/components/common/ErrorThrower";
 
 vi.mock("@/actions/fetchData.action", () => ({
   fetchData: vi.fn(),
@@ -17,6 +18,11 @@ vi.mock("@/actions/fetchFilters.action", () => ({
 
 vi.mock("next/headers", () => ({
   cookies: vi.fn(),
+}));
+
+vi.mock("@/components/common/ErrorThrower", () => ({
+  __esModule: true,
+  ErrorThrower: vi.fn(() => <div data-testid="error-thrower" />),
 }));
 
 vi.mock("@/utils/transform", () => ({
@@ -73,10 +79,8 @@ describe("Schedule restrictions page", () => {
       parceira: ["Parceira 1"],
       regional: ["Regional 1"],
     },
-    weekRange: {
-      start: "17/05/2025",
-      end: "22/05/2025",
-    },
+    startDate: "2025/05/17",
+    endDate: "2025/05/22",
     executed: "true",
   });
 
@@ -111,6 +115,42 @@ describe("Schedule restrictions page", () => {
   });
 
   it("deve buscar dados com os filtros corretos quando cookie de filtros existe", async () => {
+    render(await ScheduleRestrictions());
+
+    expect(Transform).toHaveBeenCalledWith({
+      parceira: ["Parceira 1"],
+      regional: ["Regional 1"],
+    });
+
+    expect(fetchData).toHaveBeenCalledWith(
+      "https://api.example.com/restricao/programacao",
+      {
+        regional: "Regional 1",
+        parceira: "Parceira 1",
+        dataInicial: "17/05/2025",
+        dataFinal: "22/05/2025",
+        executado: "true",
+      },
+      mockToken,
+      { cache: "no-store" }
+    );
+  });
+
+  it("deve buscar dados com os filtros corretos quando cookie de filtros existe, mas sem valores de datas", async () => {
+    vi.mocked(mockCookieStore.get).mockImplementation((name) => {
+      if (name === "token") return { value: mockToken };
+      if (name === "scheduleRestrictionsFilters") {
+        const filters = {
+          ...JSON.parse(mockParamsFiltes),
+          startDate: undefined,
+          endDate: undefined,
+        };
+
+        return { value: JSON.stringify(filters) };
+      }
+      return undefined;
+    });
+
     render(await ScheduleRestrictions());
 
     expect(Transform).toHaveBeenCalledWith({
@@ -167,5 +207,17 @@ describe("Schedule restrictions page", () => {
       JSON.parse(scheduleRestrictions.getAttribute("data-filtersData") || "[]")
     ).toEqual(mockFilters);
     expect(scheduleRestrictions.getAttribute("data-token")).toBe(mockToken);
+  });
+
+  it("Deve disparar o componente de erro ErrorThrower ao ser retornado um erro da api", async () => {
+    vi.mocked(fetchData).mockResolvedValue({
+      token: mockToken,
+      data: mockData,
+      success: false,
+    });
+
+    render(await ScheduleRestrictions());
+
+    expect(ErrorThrower).toHaveBeenCalled();
   });
 });
