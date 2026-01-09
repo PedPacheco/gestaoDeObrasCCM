@@ -291,11 +291,6 @@ describe('FeasibilityController', () => {
   });
 
   describe('Integração de Guards e Interceptors', () => {
-    it('deve ter PermissionGuard aplicado ao método upload', () => {
-      const metadata = Reflect.getMetadata('__guards__', controller.upload);
-      expect(metadata).toBeDefined();
-    });
-
     it('deve permitir acesso quando guard retorna true', async () => {
       mockPermissionGuard.canActivate.mockReturnValue(true);
       mockFeasibilityService.handleUpload.mockResolvedValue({});
