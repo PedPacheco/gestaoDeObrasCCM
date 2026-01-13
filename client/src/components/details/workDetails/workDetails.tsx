@@ -518,7 +518,7 @@ export function WorkDetails({
       <FeasibiltyUpload
         open={modals.openUploadModal}
         onClose={() => modals.setOpenUploadModal(false)}
-        idWork={idWork}
+        idWork={data.id}
         onUploadSuccess={handleUploadSuccess}
       />
 

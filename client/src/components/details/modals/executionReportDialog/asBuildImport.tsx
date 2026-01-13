@@ -113,7 +113,7 @@ export function AsBuildImport({
           onDragOver={handleDrag}
           onDrop={handleDrop}
           className="absolute top-0 left-0 w-full h-full z-50"
-        ></div>
+        />
       )}
 
       {/* REGRAS */}

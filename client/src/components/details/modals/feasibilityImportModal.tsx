@@ -12,7 +12,7 @@ import {
 import { Dialog, DialogContent } from "@mui/material";
 
 interface UploadViabilidadeProps {
-  idWork: number;
+  idWork: string;
   onUploadSuccess: () => void;
   open: boolean;
   onClose: () => void;
@@ -99,7 +99,7 @@ export function FeasibiltyUpload({
 
     const formData = new FormData();
     files.forEach((file) => formData.append("files", file));
-    formData.append("idObra", idWork.toString());
+    formData.append("idObra", idWork);
 
     try {
       const response = await fetch("/api/viabilidade", {

@@ -81,4 +81,20 @@ describe("BreadcrumpsComponent", () => {
     expect(links.length).toBe(0);
     expect(textos.length).toBe(0);
   });
+
+  it("findLinkByHref deve retornar null quando o link não existir", () => {
+    // Pegando a função interna via render
+    vi.mocked(nextNavigation.usePathname).mockReturnValue(
+      "/caminho/inexistente"
+    );
+
+    render(<BreadcrumpsComponent />);
+
+    // Garante que nada foi renderizado porque nenhum link bateu
+    const linksDOM = screen.queryAllByRole("link");
+    const textos = screen.queryAllByText(/./);
+
+    expect(linksDOM.length).toBe(0);
+    expect(textos.length).toBe(0);
+  });
 });

@@ -24,6 +24,7 @@ describe("TableWithPagination", () => {
     exec: "Exec %",
     data_fim: "Data Fim",
     objeto: "Objeto",
+    restricao_aberta: "Restricao Aberta",
   };
 
   const data = [
@@ -36,6 +37,7 @@ describe("TableWithPagination", () => {
       exec: 92,
       data_fim: "1970-01-01T14:30:00Z",
       objeto: { nome: "Pedro", cargo: "Dev" },
+      restricao_aberta: true,
     },
   ];
 
@@ -71,6 +73,7 @@ describe("TableWithPagination", () => {
     expect(screen.getByText("92%")).toBeInTheDocument();
     expect(screen.getByText("14:30")).toBeInTheDocument();
     expect(screen.getByText("Pedro, Dev")).toBeInTheDocument();
+    expect(screen.getByText("!!!")).toBeInTheDocument();
 
     expect(screen.getByText("Página 1 de 1")).toBeInTheDocument();
   });
@@ -105,7 +108,7 @@ describe("TableWithPagination", () => {
       />
     );
 
-    expect(screen.getAllByRole("columnheader")).toHaveLength(6);
+    expect(screen.getAllByRole("columnheader")).toHaveLength(7);
   });
 
   it("chama handleChangePage quando paginação é usada", () => {
@@ -124,5 +127,25 @@ describe("TableWithPagination", () => {
     fireEvent.click(nextPageBtn);
 
     expect(handleChangePage).toHaveBeenCalled();
+  });
+
+  it("renderiza celula com valor nulo, quando restricao_aberta for false", () => {
+    const formattedData = [{ ...data[0], restricao_aberta: false }];
+
+    render(
+      <TableWithPagination
+        columns={columns}
+        data={formattedData}
+        totals={totals}
+        page={0}
+        sliceEndIndex={0}
+        handleChangePage={handleChangePage}
+      />
+    );
+
+    expect(screen.queryByText("!!!")).not.toBeInTheDocument();
+
+    const emptyCells = screen.getAllByText("");
+    expect(emptyCells.length).toBeGreaterThan(0);
   });
 });
