@@ -41,8 +41,47 @@ describe('FeasibilityRepository', () => {
     const result = await repository.exists(10);
 
     expect(prismaMock.relatorio_viabilidade.findMany).toHaveBeenCalledWith({
-      where: { id_obra: 10 },
+      where: {
+        obras: {
+          OR: [
+            { id: 10 },
+            { ovnota: '10' },
+            { ordem_dci: '10' },
+            { ordem_dcd: '10' },
+            { ordem_dca: '10' },
+            { ordem_dcim: '10' },
+            { diagrama: '10' },
+          ],
+        },
+      },
     });
+
+    expect(result).toEqual(mockResult);
+  });
+
+  it('deve retornar registros encontrados por ordens', async () => {
+    const mockResult = [{ id: 1 }, { id: 2 }];
+
+    prismaMock.relatorio_viabilidade.findMany.mockResolvedValue(mockResult);
+
+    const result = await repository.exists(100000000000000);
+
+    expect(prismaMock.relatorio_viabilidade.findMany).toHaveBeenCalledWith({
+      where: {
+        obras: {
+          OR: [
+            { id: undefined },
+            { ovnota: '100000000000000' },
+            { ordem_dci: '100000000000000' },
+            { ordem_dcd: '100000000000000' },
+            { ordem_dca: '100000000000000' },
+            { ordem_dcim: '100000000000000' },
+            { diagrama: '100000000000000' },
+          ],
+        },
+      },
+    });
+
     expect(result).toEqual(mockResult);
   });
 
