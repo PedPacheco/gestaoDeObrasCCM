@@ -116,6 +116,7 @@ export const mockResponseDetails = {
   programacoes: [
     {
       id: 1,
+      criado_em: new Date('2024-09-18T00:00:00.000Z'),
       data_prog: new Date('2024-09-19T00:00:00.000Z'),
       hora_ini: new Date('1970-01-01T08:00:00.000Z'),
       hora_ter: new Date('1970-01-01T17:00:00.000Z'),

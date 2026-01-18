@@ -114,7 +114,7 @@ describe('GoalsRepository', () => {
       const call = mockPrisma.$queryRaw.mock.calls[0][0];
       const sqlString = call.strings.join('');
       expect(sqlString).toContain(
-        'AND id_tipo = 49 AND empreendimento IS NOT NULL',
+        'AND id_tipo = 54 AND id_tipo = 55 AND id_tipo = 35 AND empreendimento IS NOT NULL',
       );
     });
 
@@ -263,7 +263,7 @@ describe('GoalsRepository', () => {
 
       expect(sqlString).toContain('AND id_tipo = 48');
       expect(sqlString).toContain(
-        'AND id_tipo = 49 AND empreendimento IS NOT NULL',
+        'AND id_tipo = 54 AND id_tipo = 55 AND id_tipo = 35 AND empreendimento IS NOT NULL',
       );
       expect(sqlString).toContain('AND metas_anuais.id_regional IN');
       expect(sqlString).toContain('AND metas_anuais.id_tipo IN');

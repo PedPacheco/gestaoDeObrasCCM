@@ -57,7 +57,11 @@ export const links = [
     submenu: [
       { name: "Mercado", href: "/atualizacoes/mercado", needPermission: true },
       { name: "Notas", href: "/atualizacoes/notas", needPermission: true },
-      { name: "Capex - MO", href: "/atualizacoes/capex", needPermission: true },
+      {
+        name: "Material e Serviço",
+        href: "/atualizacoes/capex",
+        needPermission: true,
+      },
       {
         name: "Empreitamento",
         href: "/atualizacoes/empreitamento",
@@ -82,7 +86,7 @@ export const links = [
       },
       {
         name: "Valores Mensais",
-        href: "/programacao",
+        href: "/programacao/valores-mensais",
         needPermission: true,
       },
       {

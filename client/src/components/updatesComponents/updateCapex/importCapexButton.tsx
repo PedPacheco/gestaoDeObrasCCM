@@ -113,7 +113,7 @@ export function ImportCapexButton() {
       <ButtonComponent
         onClick={handleClick}
         startIcon={<DocumentArrowDownIcon width={25} height={25} />}
-        text="Importar Materiais"
+        text="Importar Arquivo CN52N"
         disabled={isPending}
         styled="w-72"
       />

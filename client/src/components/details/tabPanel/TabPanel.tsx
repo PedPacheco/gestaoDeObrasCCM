@@ -193,6 +193,7 @@ export default function TabPanel({
       <ModalsManager
         ref={modalsRef}
         idWork={data?.id}
+        totalExec={data.executado}
         statusWork={data.id_status}
         options={options}
         scheduleForm={scheduleForm}

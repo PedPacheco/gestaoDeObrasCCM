@@ -5,6 +5,7 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import { Transform } from "@/utils/transform";
 import MainGoals from "@/components/goalsComponents/MainGoals";
 import { Metadata } from "next";
+import dayjs from "dayjs";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,7 @@ export default async function Goals() {
   if (params) {
     params = { ...Transform(params), rda: false, btzero: false };
   } else {
-    params = { ano: "2025", btzero: false, rda: false };
+    params = { ano: dayjs().year().toString(), btzero: false, rda: false };
   }
 
   const [filters, goalsData] = await Promise.all([

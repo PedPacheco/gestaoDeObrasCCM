@@ -215,7 +215,7 @@ export function ErrorDashboard({
   }));
 
   const FiltersContent = () => (
-    <div className="flex flex-col sm:flex-row gap-2 p-2 w-full">
+    <div className="flex flex-col sm:flex-row gap-2 p-2 w-full ">
       <FormControl className="min-w-full sm:min-w-[250px] w-full sm:w-auto">
         <InputLabel>Regional</InputLabel>
         <Select
@@ -299,7 +299,8 @@ export function ErrorDashboard({
   };
 
   return (
-    <div className="min-h-screen w-full sm:w-full md:w-[90%] lg:w-[80%] px-1 sm:px-2 md:px-0">
+    <div className="w-full overflow-y-auto mb-2 flex justify-center">
+    <div className="sm:w-full md:w-[90%] lg:w-[80%] px-1 sm:px-2 md:px-0">
       <AppBar
         position="static"
         color="inherit"
@@ -392,6 +393,7 @@ export function ErrorDashboard({
           {renderActiveTable()}
         </Suspense>
       </Box>
+    </div>
     </div>
   );
 }

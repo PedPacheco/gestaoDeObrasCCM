@@ -24,11 +24,12 @@ import {
 dayjs.extend(utc);
 
 const columnConfig = [
+  { key: "criado_em", label: "Data de criação", type: "text" },
   { key: "reprovada", label: "Reprovar", type: "checkbox" },
   { key: "validada", label: "Validar", type: "checkbox" },
   { key: "confirmada", label: "Confirmar", type: "checkbox" },
   { key: "status_programacao", label: "Status da Programação", type: "text" },
-  { key: "data_prog", label: "Data", type: "text" },
+  { key: "data_prog", label: "Data programada", type: "text" },
   { key: "hora_ini", label: "Horário de início", type: "text" },
   { key: "hora_ter", label: "Horário de término", type: "text" },
   { key: "tipo_servico", label: "Tipo de Serviço", type: "text" },

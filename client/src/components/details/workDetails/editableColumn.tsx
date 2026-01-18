@@ -4,11 +4,10 @@ import { useUser } from "@/contexts/userContext";
 import DataItem from "./dataItem";
 import { SelectComponent } from "@/components/common/Select";
 import { ReactNode } from "react";
-import { Tooltip } from "@mui/material";
 
 interface typeData {
   id_turma: string;
-  id_status: string;
+  id_status: number;
   data_empreitamento: string;
   tipo_ads: string;
 }
@@ -65,7 +64,7 @@ export const EditableColumn = ({
       <SelectComponent
         label="Status da Obra"
         menuItems={sortedStatus}
-        selectedItem={data.id_status || "1"}
+        selectedItem={data.id_status.toString() || "1"}
         setSelectedItem={(value) => onHandleChange("id_status", value)}
         valueKey="id"
         displayKey="status"

@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { render, screen } from "@testing-library/react";
-import Schedule from "@/app/(dashboard)/programacao/page";
+import Schedule from "@/app/(dashboard)/programacao/valores-mensais/page";
 import { Transform } from "@/utils/transform";
 import dayjs from "dayjs";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
