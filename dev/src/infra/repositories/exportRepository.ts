@@ -106,6 +106,7 @@ export class ExportRepository implements IExportRepository {
     return await this.prisma.relatorio_execucao.findMany({
       select: {
         id: true,
+        criado_em: true,
         supervisor: true,
         liberado_ligacao_parcial: true,
         hora_inicio: true,

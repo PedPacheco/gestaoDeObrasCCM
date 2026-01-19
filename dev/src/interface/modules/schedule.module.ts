@@ -39,6 +39,7 @@ import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 // import { UpdateRestrictionsService } from 'src/application/schedule/updateRestrictions.service';
 // import { UPDATE_RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateRestrictionsRepository';
@@ -49,14 +50,28 @@ import { createMulterConfig } from 'src/shared/multer/multer.config';
     UsersModule,
     forwardRef(() => ExecutionReportModule),
     WorksModule,
-    MulterModule.register(
-      createMulterConfig({
-        destination: process.env.UPLOAD_AS_BUILD,
-        allowedMimeTypes: ['application/pdf', 'image/jpeg'],
-        maxSize: 5 * 1024 * 1024,
-        maxFiles: 3,
-      }),
-    ),
+    MulterModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const multerCfg = createMulterConfig({
+          destination: config.get<string>('UPLOAD_AS_BUILD'),
+          allowedMimeTypes: [
+            'application/pdf',
+            'image/jpeg',
+            'image/jpg',
+            'image/tiff',
+            'image/png',
+            'image/heic',
+            'image/heif',
+          ],
+          maxSize: 5 * 1024 * 1024,
+          maxFiles: 3,
+        });
+
+        return multerCfg; // ← AGORA SIM está no formato esperado
+      },
+    }),
   ],
   controllers: [ScheduleController, SchedulesActionsController],
   providers: [

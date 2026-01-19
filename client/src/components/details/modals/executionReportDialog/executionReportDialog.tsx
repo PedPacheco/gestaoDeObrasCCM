@@ -38,6 +38,7 @@ export interface ExecutionReportDialogProps {
   onSuccess: (success: string) => void;
   onModalOpen: (open: boolean) => void;
   scheduleForm: ScheduleFormHookReturn;
+  totalExec: number;
 }
 
 export function ExecutionReportDialog({
@@ -50,6 +51,7 @@ export function ExecutionReportDialog({
   onSuccess,
   open,
   scheduleForm,
+  totalExec,
 }: ExecutionReportDialogProps) {
   const [error, setError] = useState<string | null>();
 
@@ -82,6 +84,8 @@ export function ExecutionReportDialog({
 
   const submitButtonText = isPending ? "Salvando..." : "Salvar Execução";
 
+  const wasTheWorkCompleted = Number(formData?.exec ?? 0) + totalExec;
+
   return (
     <Dialog
       open={open}
@@ -113,6 +117,7 @@ export function ExecutionReportDialog({
             formData={!executionReportIsInsert ? executionReportData : formData}
             formErrors={formErrors}
             onInputChange={handleInputChange}
+            wasTheWorkCompleted={wasTheWorkCompleted}
           />
         </AccordionPanel>
 

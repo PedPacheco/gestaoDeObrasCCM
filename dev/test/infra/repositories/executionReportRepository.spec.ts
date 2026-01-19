@@ -97,6 +97,7 @@ describe('ExecutionReportRepository', () => {
         select: {
           id: true,
           id_usuario: true,
+          criado_em: true,
           supervisor: true,
           liberado_ligacao_parcial: true,
           hora_inicio: true,
@@ -172,6 +173,7 @@ describe('ExecutionReportRepository', () => {
         select: {
           id: true,
           id_usuario: true,
+          criado_em: true,
           supervisor: true,
           liberado_ligacao_parcial: true,
           hora_inicio: true,

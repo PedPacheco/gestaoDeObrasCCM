@@ -60,7 +60,6 @@ export default async function WorksInPortfolio() {
     ordem_dcim: "Ordem DCIM",
     status_ov_sap: "Status SAP",
     pep: "Pep",
-    executado: "Executado",
     mun: "Municipio",
     turma: "Parceira",
     entrada: "Entrada",

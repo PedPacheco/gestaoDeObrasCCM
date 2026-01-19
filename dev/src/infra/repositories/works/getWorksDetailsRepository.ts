@@ -76,6 +76,7 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
         programacoes: {
           select: {
             id: true,
+            criado_em: true,
             data_prog: true,
             hora_ini: true,
             hora_ter: true,

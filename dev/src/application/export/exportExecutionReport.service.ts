@@ -71,6 +71,7 @@ export class ExportExecutionReportService {
         { header: 'Total Executado', key: 'executado', width: 15 },
 
         // Programação
+        { header: 'Data de criação', key: 'criado_em', width: 20 },
         { header: 'Data Programada', key: 'data_prog', width: 20 },
         { header: 'Programado', key: 'prog', width: 10 },
         { header: 'Executado', key: 'exec', width: 10 },
@@ -81,7 +82,7 @@ export class ExportExecutionReportService {
 
         // Relatório Execução
         {
-          header: 'Liberado Ligação Parcial',
+          header: 'Liberado Ligação Publicação',
           key: 'liberado_ligacao_parcial',
           width: 25,
         },

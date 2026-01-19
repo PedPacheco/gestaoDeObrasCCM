@@ -7,6 +7,7 @@ import {
   IsOptional,
   IsString,
   Matches,
+  Min,
   ValidateNested,
 } from 'class-validator';
 import { convertParameterValue } from 'src/utils/convertParameterValue';
@@ -195,6 +196,7 @@ export class SchedulesDataDTO {
 
   @IsNumber()
   @Type()
+  @Min(1)
   prog: number;
 
   @IsOptional()

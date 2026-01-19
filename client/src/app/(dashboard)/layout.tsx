@@ -17,7 +17,7 @@ export default function DashboardLayout({
 
           {/* MAIN */}
           <main className="flex-1 overflow-hidden">
-            <div className="flex h-full flex-col items-center overflow-hidden">
+            <div className="flex h-full flex-col items-center">
               {/* BREADCRUMBS */}
               <div className="py-2 w-4/5 shrink-0">
                 <BreadcrumpsComponent />

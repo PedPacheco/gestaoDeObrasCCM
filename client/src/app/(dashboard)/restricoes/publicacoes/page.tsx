@@ -77,6 +77,7 @@ export default async function PublicationRestriction() {
     responsabilidade: "Responsabilidade",
     nome_responsavel: "Nome do responsável",
     status_restricao: "Status da restrição",
+    criado_em: "Data de criação",
     data_resolucao: "Data de resolução",
   };
 

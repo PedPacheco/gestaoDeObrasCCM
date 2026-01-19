@@ -22,20 +22,28 @@ export function AsBuildImport({
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
 
-  const allowedTypes = ["application/pdf", "image/jpeg", "image/jpg"];
+  const allowedTypes = [
+    "application/pdf",
+    "image/jpeg",
+    "image/jpg",
+    "image/tiff",
+    "image/png",
+    "image/heic",
+    "image/heif",
+  ];
   const maxSize = 5 * 1024 * 1024;
 
   const validateFiles = (incoming: FileList | null): boolean => {
     if (!incoming) return false;
 
-    if (incoming.length + files.length > 5) {
-      setError("Máximo de 5 arquivos permitidos.");
+    if (incoming.length + files.length > 3) {
+      setError("Máximo de 3 arquivos permitidos.");
       return false;
     }
 
     for (const file of Array.from(incoming)) {
       if (!allowedTypes.includes(file.type)) {
-        setError(`Arquivo "${file.name}" não é PDF ou JPEG.`);
+        setError(`O formato do arquivo "${file.name}" não é aceito.`);
         return false;
       }
 
