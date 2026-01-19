@@ -1,12 +1,11 @@
-import dayjs from "dayjs";
 import * as cookiesModule from "next/headers";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import ScheduleForDay from "@/app/(dashboard)/programacao/por-data/page";
-import { Transform } from "@/utils/transform";
 import { render, screen } from "@testing-library/react";
+import ScheduleRestrictions from "@/app/(dashboard)/restricoes/programacoes/page";
+import { Transform } from "@/utils/transform";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
 
 vi.mock("@/actions/fetchData.action", () => ({
@@ -38,12 +37,12 @@ vi.mock("@/utils/transform", () => ({
 }));
 
 vi.mock(
-  "@/components/scheduleComponents/scheduleForDay/MainScheduleForDay",
+  "@/components/restrictionsComponents/scheduleRestrictions/MainScheduleRestrictions",
   () => ({
     __esModule: true,
     default: vi.fn(({ data, token, filtersData, column }) => (
       <div
-        data-testid="main-schedule-for-day"
+        data-testid="main-schedule-restrictions"
         data-data={JSON.stringify(data)}
         data-filtersData={JSON.stringify(filtersData)}
         data-token={token}
@@ -55,42 +54,41 @@ vi.mock(
   })
 );
 
-describe("Schedule For Day Page", () => {
+describe("Schedule restrictions page", () => {
   const mockToken = "mock-token";
   const mockData = [
     {
-      id: 1232,
-      ovnota: "2324",
-      ordemDiagrama: "43423",
+      id: 124,
+      ovnota: "34435",
       mun: "SJC",
+      tipo: "BTZERO",
+      parceira: "ENGELMIG",
     },
   ];
 
   const mockFilters = {
-    regional: ["Regional A", "Regional B"],
     parceira: ["Parceira 1", "Parceira 2"],
-    tipo: ["Tipo 1", "Tipo 2"],
-    municipio: ["Cidade A", "Cidade B"],
+    regional: ["Regional 1", "Regional 2"],
+    municipio: ["Municipio 1", "Municipio 2"],
     grupo: ["Grupo 1", "Grupo 2"],
+    tipo: ["Tipo 1", "Tipo 2"],
   };
 
   const mockParamsFiltes = JSON.stringify({
     selectedItems: {
       parceira: ["Parceira 1"],
-      regional: ["Regional A"],
+      regional: ["Regional 1"],
     },
-    startDate: "17/05/2025",
-    endDate: "18/05/2025",
+    startDate: "2025/05/17",
+    endDate: "2025/05/22",
     executed: "true",
-    pending: "false",
-    page: "0",
-    ovnota: "1253",
   });
 
   const mockCookieStore = {
     get: vi.fn((name) => {
       if (name === "token") return { value: mockToken };
-      if (name === "scheduleForDayFilters") return { value: mockParamsFiltes };
+      if (name === "scheduleRestrictionsFilters")
+        return { value: mockParamsFiltes };
     }),
   };
 
@@ -98,8 +96,6 @@ describe("Schedule For Day Page", () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2025-05-17"));
-
-    vi.mocked(cookiesModule.cookies).mockResolvedValue(mockCookieStore as any);
 
     vi.mocked(fetchData).mockResolvedValue({
       token: mockToken,
@@ -109,6 +105,8 @@ describe("Schedule For Day Page", () => {
 
     vi.mocked(fetchFilters).mockResolvedValue(mockFilters);
 
+    vi.mocked(cookiesModule.cookies).mockResolvedValue(mockCookieStore as any);
+
     process.env.NEXT_PUBLIC_API_URL = "https://api.example.com";
   });
 
@@ -117,80 +115,75 @@ describe("Schedule For Day Page", () => {
   });
 
   it("deve buscar dados com os filtros corretos quando cookie de filtros existe", async () => {
-    render(await ScheduleForDay());
+    render(await ScheduleRestrictions());
 
     expect(Transform).toHaveBeenCalledWith({
       parceira: ["Parceira 1"],
-      regional: ["Regional A"],
+      regional: ["Regional 1"],
     });
 
     expect(fetchData).toHaveBeenCalledWith(
-      "https://api.example.com/programacao/mensal",
+      "https://api.example.com/restricao/programacao",
       {
+        regional: "Regional 1",
         parceira: "Parceira 1",
-        regional: "Regional A",
-        dataInicial: dayjs("17/05/2025").format("DD/MM/YYYY"),
-        dataFinal: dayjs("18/05/2025").format("DD/MM/YYYY"),
+        dataInicial: "17/05/2025",
+        dataFinal: "22/05/2025",
         executado: "true",
-        pendente: "false",
-        page: "0",
-        ovnota: "1253",
       },
       mockToken,
       { cache: "no-store" }
     );
   });
 
-  it("deve buscar dados com os valores alterados caso os campos de filtro não tenham valor", async () => {
-    const modifiedData = JSON.stringify({
-      ...JSON.parse(mockParamsFiltes),
-      startDate: "",
-      endDate: "",
-      executed: undefined,
-      ovnota: "1234",
-    });
-
+  it("deve buscar dados com os filtros corretos quando cookie de filtros existe, mas sem valores de datas", async () => {
     vi.mocked(mockCookieStore.get).mockImplementation((name) => {
       if (name === "token") return { value: mockToken };
-      if (name === "scheduleForDayFilters") return { value: modifiedData };
+      if (name === "scheduleRestrictionsFilters") {
+        const filters = {
+          ...JSON.parse(mockParamsFiltes),
+          startDate: undefined,
+          endDate: undefined,
+        };
+
+        return { value: JSON.stringify(filters) };
+      }
       return undefined;
     });
 
-    render(await ScheduleForDay());
+    render(await ScheduleRestrictions());
+
+    expect(Transform).toHaveBeenCalledWith({
+      parceira: ["Parceira 1"],
+      regional: ["Regional 1"],
+    });
 
     expect(fetchData).toHaveBeenCalledWith(
-      "https://api.example.com/programacao/mensal",
+      "https://api.example.com/restricao/programacao",
       {
+        regional: "Regional 1",
         parceira: "Parceira 1",
-        regional: "Regional A",
         dataInicial: null,
         dataFinal: null,
-        executado: "false",
-        pendente: "false",
-        page: "0",
-        ovnota: "1234",
+        executado: "true",
       },
       mockToken,
       { cache: "no-store" }
     );
   });
 
-  it("Deve lidar com ausência de filtro de ano no cookieParams", async () => {
+  it("deve buscar dados com os filtros padrões caso cookie de filtros não existir", async () => {
     vi.mocked(mockCookieStore.get).mockImplementation((name) => {
       if (name === "token") return { value: mockToken };
       return undefined;
     });
 
-    render(await ScheduleForDay());
+    render(await ScheduleRestrictions());
 
     expect(fetchData).toHaveBeenCalledWith(
-      "https://api.example.com/programacao/mensal",
+      "https://api.example.com/restricao/programacao",
       {
-        dataInicial: null,
-        dataFinal: null,
-        ovnota: "",
         executado: "false",
-        pendente: "false",
         page: "0",
       },
       mockToken,
@@ -198,20 +191,22 @@ describe("Schedule For Day Page", () => {
     );
   });
 
-  it("Deve passar os dados corretamente para o componente ScheduleForDay", async () => {
-    render(await ScheduleForDay());
+  it("Deve passar os dados corretamente para o componente ScheduleRestrictions", async () => {
+    render(await ScheduleRestrictions());
 
-    const scheduleForDay = screen.getByTestId("main-schedule-for-day");
+    const scheduleRestrictions = screen.getByTestId(
+      "main-schedule-restrictions"
+    );
 
-    expect(scheduleForDay).toBeInTheDocument();
+    expect(scheduleRestrictions).toBeInTheDocument();
 
     expect(
-      JSON.parse(scheduleForDay.getAttribute("data-data") || "[]")
+      JSON.parse(scheduleRestrictions.getAttribute("data-data") || "[]")
     ).toEqual(mockData);
     expect(
-      JSON.parse(scheduleForDay.getAttribute("data-filtersData") || "[]")
+      JSON.parse(scheduleRestrictions.getAttribute("data-filtersData") || "[]")
     ).toEqual(mockFilters);
-    expect(scheduleForDay.getAttribute("data-token")).toBe(mockToken);
+    expect(scheduleRestrictions.getAttribute("data-token")).toBe(mockToken);
   });
 
   it("Deve disparar o componente de erro ErrorThrower ao ser retornado um erro da api", async () => {
@@ -221,7 +216,7 @@ describe("Schedule For Day Page", () => {
       success: false,
     });
 
-    render(await ScheduleForDay());
+    render(await ScheduleRestrictions());
 
     expect(ErrorThrower).toHaveBeenCalled();
   });

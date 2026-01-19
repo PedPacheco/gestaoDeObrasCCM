@@ -9,18 +9,33 @@ import { ScheduleModule } from './schedule.module';
 import { FileService } from 'src/application/file.service';
 import { MulterModule } from '@nestjs/platform-express';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
     forwardRef(() => ScheduleModule),
-    MulterModule.register(
-      createMulterConfig({
-        destination: process.env.UPLOAD_AS_BUILD,
-        allowedMimeTypes: ['application/pdf', 'image/jpeg'],
-        maxSize: 5 * 1024 * 1024,
-        maxFiles: 3,
-      }),
-    ),
+    MulterModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const multerCfg = createMulterConfig({
+          destination: config.get<string>('UPLOAD_AS_BUILD'),
+          allowedMimeTypes: [
+            'application/pdf',
+            'image/jpeg',
+            'image/jpg',
+            'image/tiff',
+            'image/png',
+            'image/heic',
+            'image/heif',
+          ],
+          maxSize: 5 * 1024 * 1024,
+          maxFiles: 3,
+        });
+
+        return multerCfg; // ← AGORA SIM está no formato esperado
+      },
+    }),
   ],
   controllers: [ExecutionReportController],
   providers: [

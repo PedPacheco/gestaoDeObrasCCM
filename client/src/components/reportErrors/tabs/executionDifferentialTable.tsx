@@ -22,7 +22,7 @@ export function ExecutionDifferentialTable({
   const columns = ["ovnota", "executado", "somaExec"];
 
   return (
-    <TableContainer component={Paper}>
+   <TableContainer component={Paper} className="min-h-[24rem] h-[50vh] md:h-[60vh] lg:h-[75vh] overflow-y-autorounded-xl shadow">
       <Table stickyHeader>
         <TableHead>
           <TableRow>

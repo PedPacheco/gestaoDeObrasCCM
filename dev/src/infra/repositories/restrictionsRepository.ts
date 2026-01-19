@@ -213,6 +213,7 @@ export class RestrictionsRepository implements IRestrictionsRepository {
         turmas.turma as parceira,
         restricoes_publicacoes.id as id_restricao_publicacao,
         restricoes.restricao,
+        restricoes_publicacoes.criado_em,
         restricoes.id as id_restricao,
         restricoes_publicacoes.responsabilidade,
         restricoes_publicacoes.nome_responsavel,

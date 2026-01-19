@@ -41,7 +41,7 @@ export default function ScheduleRestrictionsTable({
 
   return (
     <Paper className="mb-6 w-[95%] min-h-96 h-[720px] lg:h-[560px] xl:h-[90%] max-h-[880px] lg:max-h-[680px] xl:max-h-[90%]">
-      <TableContainer className="h-full overflow-y-auto">
+      <TableContainer className="overflow-y-auto max-h-[calc(100%-56px)]">
         <Table stickyHeader>
           <TableHead>
             <TableRow>
@@ -129,17 +129,11 @@ export default function ScheduleRestrictionsTable({
           rowsPerPage={200}
           rowsPerPageOptions={[]}
           onPageChange={handleChangePage}
-          showFirstButton={true}
-          showLastButton={true}
+          showFirstButton
+          showLastButton
           labelDisplayedRows={({ from, to, count, page }) => {
             const totalPages = Math.ceil(count / 200);
             return `Página ${page + 1} de ${totalPages}`;
-          }}
-          sx={{
-            ".MuiTablePagination-toolbar": {
-              paddingRight: "0px",
-              paddingLeft: "0px",
-            },
           }}
         />
       </div>

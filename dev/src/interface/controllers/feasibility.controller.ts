@@ -8,12 +8,10 @@ import {
   ParseIntPipe,
   Post,
   UploadedFiles,
-  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { FeasibilityService } from 'src/application/feasibility.service';
-import { PermissionGuard } from 'src/core/guards/permission.guard';
 
 @Controller('viabilidade')
 export class FeasibilityController {
@@ -41,7 +39,6 @@ export class FeasibilityController {
   }
 
   @Post('upload')
-  @UseGuards(PermissionGuard)
   @UseInterceptors(FilesInterceptor('files'))
   async upload(
     @UploadedFiles() files: Express.Multer.File[],

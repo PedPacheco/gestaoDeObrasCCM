@@ -1,4 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
+import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
 import { existsSync, mkdirSync } from 'fs';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -10,7 +11,7 @@ export interface MulterConfig {
   maxFiles: number;
 }
 
-export function createMulterConfig(config: MulterConfig) {
+export function createMulterConfig(config: MulterConfig): MulterOptions {
   if (!existsSync(config.destination)) {
     mkdirSync(config.destination, { recursive: true });
   }
@@ -23,11 +24,9 @@ export function createMulterConfig(config: MulterConfig) {
 
       filename: (_req, file, callback) => {
         const ext = extname(file.originalname);
-
         const sanitized = file.originalname
           .replace(ext, '')
           .replace(/[^a-zA-Z0-9]/g, '_');
-
         const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
 
         callback(null, `${sanitized}-${unique}${ext}`);
@@ -41,13 +40,12 @@ export function createMulterConfig(config: MulterConfig) {
           false,
         );
       }
-
       callback(null, true);
     },
 
     limits: {
-      fileSize: config.maxSize, // Ex: 5MB
-      files: config.maxFiles, // Ex: 3 arquivos
+      fileSize: config.maxSize,
+      files: config.maxFiles,
     },
   };
 }

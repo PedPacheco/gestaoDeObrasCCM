@@ -19,12 +19,14 @@ interface ExecutionBasicPanelProps {
       | `executionReport.${keyof ExecutionReportData}`
       | keyof ExecutionReportData
   ) => (event: any) => void;
+  wasTheWorkCompleted: number;
 }
 
 export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
   formData,
   formErrors,
   onInputChange,
+  wasTheWorkCompleted,
 }) => {
   const { data, prefix } = resolveExecutionReportContext(formData);
 
@@ -110,11 +112,20 @@ export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
         <FormControlLabel
           control={
             <Checkbox
-              checked={data.partialConnectionReleased || false}
-              onChange={onInputChange(`${prefix}partialConnectionReleased`)}
+              checked={
+                wasTheWorkCompleted === 100
+                  ? true
+                  : data.partialConnectionReleased || false
+              }
+              disabled={wasTheWorkCompleted === 100}
+              onChange={
+                wasTheWorkCompleted === 100
+                  ? undefined
+                  : onInputChange(`${prefix}partialConnectionReleased`)
+              }
             />
           }
-          label="Liberado para ligação parcial?"
+          label="Liberado para publicação?"
         />
       </Grid>
     </Grid>

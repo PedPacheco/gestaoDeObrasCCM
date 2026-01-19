@@ -54,7 +54,7 @@ const TabActions = memo(
                 disabled={
                   statusWork === 2 ||
                   statusWork === 3 ||
-                  feasibilityExists.length === 0 ||
+                  feasibilityExists?.length === 0 ||
                   permissions.permissao === "Sem permissão"
                 }
                 text="Nova programação"

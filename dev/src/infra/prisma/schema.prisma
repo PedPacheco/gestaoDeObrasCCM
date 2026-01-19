@@ -193,6 +193,7 @@ model metas {
   out_meta_fisico   Float?
   nov_meta_fisico   Float?
   dez_meta_fisico   Float?
+  prazo             String?         @db.VarChar(12)
   empreendimento    empreendimento? @relation(fields: [id_empreendimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_empreendimento")
   turmas            turmas          @relation(fields: [id_parceira], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
   regionais         regionais       @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
@@ -323,6 +324,7 @@ model programacoes {
   confirmada                      Boolean                 @default(false)
   observacao_programacao          String?                 @db.VarChar(250)
   reprovada                       Boolean?                @default(false)
+  criado_em                       DateTime?               @default(now()) @db.Timestamp(6)
   obras                           obras                   @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
   programacoes_restricao_execucao restricoes              @relation("programacoes_restricao_execucao", fields: [id_restricao_execucao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_execucao")
   programacoes_restricao_prog1    restricoes              @relation("programacoes_restricao_prog1", fields: [id_restricao_prog1], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_prog1")
@@ -600,6 +602,7 @@ model relatorio_execucao {
   instalacao_equipamento_retirado      String?
   referencia_chave_provisoria_retirada String?      @db.VarChar(25)
   caminho_arquivo                      String?      @db.VarChar(420)
+  criado_em                            DateTime?    @default(now()) @db.Timestamp(6)
   obras                                obras        @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obra")
   programacoes                         programacoes @relation(fields: [id_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_programacao")
   usuario                              usuario      @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario")
@@ -654,6 +657,7 @@ model restricoes_publicacoes {
   nome_responsavel String     @db.VarChar(50)
   status_restricao String     @db.VarChar(20)
   data_resolucao   DateTime?  @db.Date
+  criado_em        DateTime?  @default(now()) @db.Timestamp(6)
   obras            obras      @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
   restricoes       restricoes @relation(fields: [id_restricao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes")
 }

@@ -29,6 +29,7 @@ export class GetWorkDetailsService {
       idRegional: work.municipios.regionais.id,
       programacoes: work.programacoes.map((programacao) => ({
         id: programacao.id,
+        criado_em: programacao.criado_em,
         data_prog: programacao.data_prog,
         hora_ini: programacao.hora_ini,
         hora_ter: programacao.hora_ter,

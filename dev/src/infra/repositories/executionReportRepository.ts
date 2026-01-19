@@ -67,6 +67,7 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
       },
       select: {
         id: true,
+        criado_em: true,
         id_usuario: true,
         supervisor: true,
         liberado_ligacao_parcial: true,

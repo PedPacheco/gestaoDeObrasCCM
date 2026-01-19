@@ -78,7 +78,7 @@ interface WorkData {
   executado: string;
   ano_plan: string;
   empreendimento: string;
-  id_status: string;
+  id_status: number;
   id_turma: string;
   idRegional: number;
   status_ov_sap: string;
@@ -99,7 +99,7 @@ interface FormattedData {
 
 interface EditableData {
   data_empreitamento: string;
-  id_status: string;
+  id_status: number;
   id_turma: string;
   tipo_ads: string;
   observ_obra: string;
@@ -121,7 +121,7 @@ const SUSPENSION_OPTIONS = [
   "Transferida para CSD",
 ] as const;
 
-const RESTRICTED_STATUS_IDS = ["3", "4", "42"];
+const RESTRICTED_STATUS_IDS = [3, 4, 42];
 const SUSPENDED_STATUS_ID = 4;
 
 function useModals() {
@@ -163,7 +163,7 @@ function formatDateForSubmit(value: string): string | null {
   return parsed.isValid() ? parsed.format("YYYY-MM-DD") : value;
 }
 
-function hasRestrictedAccess(statusId: string, permission?: string): boolean {
+function hasRestrictedAccess(statusId: number, permission?: string): boolean {
   return RESTRICTED_STATUS_IDS.includes(statusId) && permission === "parcial";
 }
 
@@ -204,7 +204,7 @@ export function WorkDetails({
 
   const canShowPublicationButton = useMemo(
     () =>
-      isMounted && permissions?.permissao_publicacao && data.id_status === "2",
+      isMounted && permissions?.permissao_publicacao && data.id_status === 2,
     [isMounted, permissions?.permissao_publicacao, data.id_status]
   );
 
@@ -364,7 +364,7 @@ export function WorkDetails({
                 Viabilidade Importada
               </p>
 
-              {feasibilityExists.map((file: any, i: number) => {
+              {feasibilityExists?.map((file: any, i: number) => {
                 const url = `${process.env.NEXT_PUBLIC_API_URL}/uploads/viabilidade/${file.caminho_arquivo}`;
 
                 return (
@@ -518,7 +518,7 @@ export function WorkDetails({
       <FeasibiltyUpload
         open={modals.openUploadModal}
         onClose={() => modals.setOpenUploadModal(false)}
-        idWork={idWork}
+        idWork={data.id}
         onUploadSuccess={handleUploadSuccess}
       />
 

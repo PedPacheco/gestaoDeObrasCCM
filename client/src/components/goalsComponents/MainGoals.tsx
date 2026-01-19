@@ -42,7 +42,9 @@ export default function MainGoals({
         : "goalsFilters",
     data: filtersData,
   });
-  const [selectedYear, setSelectedYear] = useState<string[]>(["2025"]);
+  const [selectedYear, setSelectedYear] = useState<string[]>([
+    dayjs().year().toString(),
+  ]);
   const [selectedRegionais, setSelectedRegionais] = useState<string[]>([]);
   const [selectedParceiras, setSelectedParceiras] = useState<string[]>([]);
   const [selectedTiposObra, setSelectedTiposObra] = useState<string[]>([]);

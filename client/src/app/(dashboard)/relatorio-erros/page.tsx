@@ -19,33 +19,24 @@ export type TabItem = {
   count: number;
 };
 
-// ✅ Componente que carrega dados assincronamente
-async function ErrorDashboardWrapper() {
+export default async function ErrorsReportPage() {
   const cookieStore = await cookies();
   const cookieParams = cookieStore.get("errorsReportFilter")?.value;
   const token = cookieStore.get("token")?.value;
 
   let params = cookieParams ? JSON.parse(cookieParams) : undefined;
 
-  // ✅ Carrega APENAS os filtros no servidor (rápido)
   const filters = await fetchFilters({
     regional: true,
   });
 
-  // ✅ Passa apenas o necessário para o cliente carregar dados sob demanda
-  return (
-    <ErrorDashboard
-      regionalValues={filters.regional}
-      token={token || ""}
-      initialParams={params}
-    />
-  );
-}
-
-export default async function ErrorsReportPage() {
   return (
     <EmotionCacheProvider>
-      <ErrorDashboardWrapper />
+      <ErrorDashboard
+        regionalValues={filters.regional}
+        token={token || ""}
+        initialParams={params}
+      />
     </EmotionCacheProvider>
   );
 }

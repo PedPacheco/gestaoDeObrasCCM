@@ -27,7 +27,7 @@ import { CustomValidationPipe } from './core/pipes/customValidation.pipe';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '../.env',
+      envFilePath: './.env',
     }),
     WorksModule,
     PrismaModule,
@@ -52,7 +52,7 @@ import { CustomValidationPipe } from './core/pipes/customValidation.pipe';
         const secret = config.get<string>('JWT_SECRECT');
         return {
           secret,
-          signOptions: { expiresIn: '1h' },
+          signOptions: { expiresIn: '6h' },
         };
       },
     }),

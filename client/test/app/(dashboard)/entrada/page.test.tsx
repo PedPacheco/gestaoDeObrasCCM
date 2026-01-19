@@ -7,6 +7,7 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import Entry from "@/app/(dashboard)/entrada/page";
 import { Transform } from "@/utils/transform";
 import { render, screen } from "@testing-library/react";
+import { ErrorThrower } from "@/components/common/ErrorThrower";
 
 // Mocks
 vi.mock("@/actions/fetchData.action", () => ({
@@ -30,6 +31,11 @@ vi.mock("@/utils/transform", () => ({
 
 vi.mock("next/headers", () => ({
   cookies: vi.fn(),
+}));
+
+vi.mock("@/components/common/ErrorThrower", () => ({
+  __esModule: true,
+  ErrorThrower: vi.fn(() => <div data-testid="error-thrower" />),
 }));
 
 vi.mock("@/components/entryComponents/entry/MainEntry", () => ({
@@ -203,5 +209,22 @@ describe("Entry Page", () => {
 
     // Restaura o método original
     Promise.all = originalPromiseAll;
+  });
+
+  it("Deve disparar o componente de erro ErrorThrower ao ser retornado um erro da api", async () => {
+    vi.mocked(mockCookieStore.get).mockImplementation((name) => {
+      if (name === "token") return { value: mockToken };
+      return null;
+    });
+
+    vi.mocked(fetchData).mockResolvedValue({
+      token: mockToken,
+      data: mockData,
+      success: false,
+    });
+
+    render(await Entry());
+
+    expect(ErrorThrower).toHaveBeenCalled();
   });
 });

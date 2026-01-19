@@ -4,8 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { render, screen } from "@testing-library/react";
-import ScheduleRestrictions from "@/app/(dashboard)/restricoes/programacoes/page";
 import { Transform } from "@/utils/transform";
+import { ErrorThrower } from "@/components/common/ErrorThrower";
+import PublicationRestriction from "@/app/(dashboard)/restricoes/publicacoes/page";
 
 vi.mock("@/actions/fetchData.action", () => ({
   fetchData: vi.fn(),
@@ -17,6 +18,11 @@ vi.mock("@/actions/fetchFilters.action", () => ({
 
 vi.mock("next/headers", () => ({
   cookies: vi.fn(),
+}));
+
+vi.mock("@/components/common/ErrorThrower", () => ({
+  __esModule: true,
+  ErrorThrower: vi.fn(() => <div data-testid="error-thrower" />),
 }));
 
 vi.mock("@/utils/transform", () => ({
@@ -48,7 +54,7 @@ vi.mock(
   })
 );
 
-describe("Schedule restrictions page", () => {
+describe("Publications restrictions page", () => {
   const mockToken = "mock-token";
   const mockData = [
     {
@@ -73,17 +79,15 @@ describe("Schedule restrictions page", () => {
       parceira: ["Parceira 1"],
       regional: ["Regional 1"],
     },
-    weekRange: {
-      start: "17/05/2025",
-      end: "22/05/2025",
-    },
+    startDate: "2025/05/17",
+    endDate: "2025/05/22",
     executed: "true",
   });
 
   const mockCookieStore = {
     get: vi.fn((name) => {
       if (name === "token") return { value: mockToken };
-      if (name === "scheduleRestrictionsFilters")
+      if (name === "publicationRestrictionFilters")
         return { value: mockParamsFiltes };
     }),
   };
@@ -111,7 +115,7 @@ describe("Schedule restrictions page", () => {
   });
 
   it("deve buscar dados com os filtros corretos quando cookie de filtros existe", async () => {
-    render(await ScheduleRestrictions());
+    render(await PublicationRestriction());
 
     expect(Transform).toHaveBeenCalledWith({
       parceira: ["Parceira 1"],
@@ -119,7 +123,43 @@ describe("Schedule restrictions page", () => {
     });
 
     expect(fetchData).toHaveBeenCalledWith(
-      "https://api.example.com/restricao/programacao",
+      "https://api.example.com/restricao/publicacoes",
+      {
+        regional: "Regional 1",
+        parceira: "Parceira 1",
+        dataInicial: "17/05/2025",
+        dataFinal: "22/05/2025",
+        executado: "true",
+      },
+      mockToken,
+      { cache: "no-store" }
+    );
+  });
+
+  it("deve buscar dados com os filtros corretos quando cookie de filtros existe, mas sem valores de datas", async () => {
+    vi.mocked(mockCookieStore.get).mockImplementation((name) => {
+      if (name === "token") return { value: mockToken };
+      if (name === "publicationRestrictionFilters") {
+        const filters = {
+          ...JSON.parse(mockParamsFiltes),
+          startDate: undefined,
+          endDate: undefined,
+        };
+
+        return { value: JSON.stringify(filters) };
+      }
+      return undefined;
+    });
+
+    render(await PublicationRestriction());
+
+    expect(Transform).toHaveBeenCalledWith({
+      parceira: ["Parceira 1"],
+      regional: ["Regional 1"],
+    });
+
+    expect(fetchData).toHaveBeenCalledWith(
+      "https://api.example.com/restricao/publicacoes",
       {
         regional: "Regional 1",
         parceira: "Parceira 1",
@@ -138,21 +178,20 @@ describe("Schedule restrictions page", () => {
       return undefined;
     });
 
-    render(await ScheduleRestrictions());
+    render(await PublicationRestriction());
 
     expect(fetchData).toHaveBeenCalledWith(
-      "https://api.example.com/restricao/programacao",
+      "https://api.example.com/restricao/publicacoes",
       {
         executado: "false",
-        page: "0",
       },
       mockToken,
       { cache: "no-store" }
     );
   });
 
-  it("Deve passar os dados corretamente para o componente ScheduleRestrictions", async () => {
-    render(await ScheduleRestrictions());
+  it("Deve passar os dados corretamente para o componente PublicationRestriction", async () => {
+    render(await PublicationRestriction());
 
     const scheduleRestrictions = screen.getByTestId(
       "main-schedule-restrictions"
@@ -167,5 +206,17 @@ describe("Schedule restrictions page", () => {
       JSON.parse(scheduleRestrictions.getAttribute("data-filtersData") || "[]")
     ).toEqual(mockFilters);
     expect(scheduleRestrictions.getAttribute("data-token")).toBe(mockToken);
+  });
+
+  it("Deve disparar o componente de erro ErrorThrower ao ser retornado um erro da api", async () => {
+    vi.mocked(fetchData).mockResolvedValue({
+      token: mockToken,
+      data: mockData,
+      success: false,
+    });
+
+    render(await PublicationRestriction());
+
+    expect(ErrorThrower).toHaveBeenCalled();
   });
 });

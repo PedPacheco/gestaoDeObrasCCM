@@ -96,8 +96,8 @@ export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioReposi
 
     let query = Prisma.sql`SELECT
         obras.id, obras.ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, 
-        executado, mun, id_status, entrada, prazo, entrada + prazo AS prazo_fim, abrev_regional, tipo_obra, qtde_planejada, contagem_ocorrencias,
-        qtde_pend, circuito, mo_planejada,  status, conjunto, data_empreitamento, empreendimento, turma, ano_plan,
+        mun, id_status, entrada, prazo, entrada + prazo AS prazo_fim, abrev_regional, tipo_obra, qtde_planejada, contagem_ocorrencias,
+        qtde_pend, circuito, mo_planejada, status, conjunto, data_empreitamento, empreendimento, turma, ano_plan,
         COALESCE(SUM(prog) FILTER (WHERE exec IS NULL), 0)::int AS total_prog,
         SUM(exec)::int AS total_exec, (100 - (SUM(exec) + COALESCE(SUM(prog) FILTER (WHERE exec IS NULL), 0)))::int AS total_pend,
         SUM(equipe_linha_morta)::int as total_equipe_lm, SUM(equipe_linha_viva)::int as total_equipe_lv, SUM(equipe_regularizacao)::int as total_equipe_reg
@@ -110,7 +110,7 @@ export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioReposi
     query = this.applyFilters(query, filters);
     countQuery = this.applyFilters(countQuery, filters);
 
-    query = Prisma.sql`${query} GROUP BY obras.id, ovnota, diagrama, ordem_dci, ordem_dcim, ordem_dca, ordem_dcd, status_ov_sap, pep, executado,
+    query = Prisma.sql`${query} GROUP BY obras.id, ovnota, diagrama, ordem_dci, ordem_dcim, ordem_dca, ordem_dcd, status_ov_sap, pep,
         mun, id_status, entrada, prazo, abrev_regional, tipo_obra, qtde_planejada, qtde_pend, 
         circuito, mo_planejada, status, conjunto, empreendimento, turma, ano_plan, prog_count.contagem_ocorrencias
         ORDER BY status DESC, entrada + prazo`;

@@ -74,6 +74,22 @@ vi.mock("@mui/material", () => ({
 vi.mock("@heroicons/react/20/solid", () => ({
   ExclamationCircleIcon: () => <div data-testid="exclamation-icon" />,
   PencilIcon: () => <div data-testid="pencil-icon" />,
+  CheckCircleIcon: () => <div data-testid="check-circle-icon" />,
+  XMarkIcon: () => <div data-testid="x-mark-icon" />,
+}));
+
+vi.mock("@/components/details/modals/feasibilityImportModal", () => ({
+  FeasibiltyUpload: ({ open, onClose, onUploadSuccess }: any) => (
+    <div data-testid="mock-feasibility-upload">
+      <button data-testid="mock-close" onClick={onClose}>
+        Fechar
+      </button>
+      <button data-testid="mock-success" onClick={onUploadSuccess}>
+        Success
+      </button>
+      {open && <p data-testid="mock-open-flag">OPEN</p>}
+    </div>
+  ),
 }));
 
 vi.mock("@/components/common/Button", () => ({
@@ -210,6 +226,7 @@ describe("WorkDetails", () => {
     it("deve renderizar o título e botões", () => {
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={mockData}
           formattedData={mockFormattedData}
           idWork={100}
@@ -224,6 +241,7 @@ describe("WorkDetails", () => {
     it("deve renderizar todos os DataItems corretamente", () => {
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={mockData}
           formattedData={mockFormattedData}
           idWork={100}
@@ -245,6 +263,7 @@ describe("WorkDetails", () => {
     it("deve renderizar o campo de observação", () => {
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={mockData}
           formattedData={mockFormattedData}
           idWork={100}
@@ -269,6 +288,7 @@ describe("WorkDetails", () => {
       expect(() =>
         render(
           <WorkDetails
+            feasibilityExists={[]}
             data={dataWithStatus3}
             formattedData={mockFormattedData}
             idWork={100}
@@ -288,6 +308,7 @@ describe("WorkDetails", () => {
       expect(() =>
         render(
           <WorkDetails
+            feasibilityExists={[]}
             data={dataWithStatus4}
             formattedData={mockFormattedData}
             idWork={100}
@@ -307,6 +328,7 @@ describe("WorkDetails", () => {
       expect(() =>
         render(
           <WorkDetails
+            feasibilityExists={[]}
             data={dataWithStatus42}
             formattedData={mockFormattedData}
             idWork={100}
@@ -325,6 +347,7 @@ describe("WorkDetails", () => {
 
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={dataWithStatus3}
           formattedData={mockFormattedData}
           idWork={100}
@@ -349,6 +372,7 @@ describe("WorkDetails", () => {
 
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={dataWithStatus2}
           formattedData={mockFormattedData}
           idWork={100}
@@ -375,6 +399,7 @@ describe("WorkDetails", () => {
 
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={dataWithStatus2}
           formattedData={mockFormattedData}
           idWork={100}
@@ -399,6 +424,7 @@ describe("WorkDetails", () => {
 
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={mockData}
           formattedData={mockFormattedData}
           idWork={100}
@@ -420,6 +446,7 @@ describe("WorkDetails", () => {
 
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={mockData}
           formattedData={mockFormattedData}
           idWork={100}
@@ -438,6 +465,7 @@ describe("WorkDetails", () => {
     it("deve desabilitar botão quando não há mudanças", () => {
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={mockData}
           formattedData={mockFormattedData}
           idWork={100}
@@ -454,6 +482,7 @@ describe("WorkDetails", () => {
 
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={mockData}
           formattedData={mockFormattedData}
           idWork={100}
@@ -473,6 +502,7 @@ describe("WorkDetails", () => {
     it("deve abrir modal ao mudar status para 4 (suspenso)", async () => {
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={mockData}
           formattedData={mockFormattedData}
           idWork={100}
@@ -500,6 +530,7 @@ describe("WorkDetails", () => {
 
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={mockData}
           formattedData={mockFormattedData}
           idWork={100}
@@ -539,6 +570,7 @@ describe("WorkDetails", () => {
 
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={mockData}
           formattedData={mockFormattedData}
           idWork={100}
@@ -564,6 +596,7 @@ describe("WorkDetails", () => {
 
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={mockData}
           formattedData={mockFormattedData}
           idWork={100}
@@ -596,6 +629,7 @@ describe("WorkDetails", () => {
 
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={dataWithStatus4}
           formattedData={mockFormattedData}
           idWork={100}
@@ -632,6 +666,7 @@ describe("WorkDetails", () => {
 
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={mockData}
           formattedData={mockFormattedData}
           idWork={100}
@@ -655,6 +690,7 @@ describe("WorkDetails", () => {
       // Esta funcionalidade é testada indiretamente através da mudança de campos
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={mockData}
           formattedData={mockFormattedData}
           idWork={100}
@@ -676,6 +712,7 @@ describe("WorkDetails", () => {
 
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={mockData}
           formattedData={mockFormattedData}
           idWork={100}
@@ -702,6 +739,7 @@ describe("WorkDetails", () => {
 
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={{ ...mockData, id_status: "2" }}
           formattedData={mockFormattedData}
           idWork={100}
@@ -721,6 +759,7 @@ describe("WorkDetails", () => {
 
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={{ ...mockData, id_status: "2" }}
           formattedData={mockFormattedData}
           idWork={100}
@@ -736,6 +775,7 @@ describe("WorkDetails", () => {
     it("deve filtrar apenas restrições de publicação", () => {
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={mockData}
           formattedData={mockFormattedData}
           idWork={100}
@@ -763,6 +803,7 @@ describe("WorkDetails", () => {
 
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={mockData}
           formattedData={mockFormattedData}
           idWork={100}
@@ -790,6 +831,7 @@ describe("WorkDetails", () => {
 
       render(
         <WorkDetails
+          feasibilityExists={[]}
           data={mockData}
           formattedData={mockFormattedData}
           idWork={100}

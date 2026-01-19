@@ -4,6 +4,7 @@ interface ScheduleStatus {
 
 export interface Schedules {
   id: number;
+  criado_em: Date;
   data_prog: Date;
   hora_ini: Date;
   hora_ter: Date;

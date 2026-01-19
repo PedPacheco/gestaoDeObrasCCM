@@ -53,7 +53,7 @@ export default function GoalsTable({
 
   return (
     <TableContainer
-      className="w-[95%] min-h-96 h-[90%] max-h-[880px] lg:max-h-[640px] overflow-y-auto"
+      className="w-[95%] min-h-96 h-[90%] max-h-[880px] lg:max-h-[640px] overflow-y-auto mb-4"
       component={Paper}
     >
       <Table stickyHeader>

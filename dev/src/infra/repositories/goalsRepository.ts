@@ -69,11 +69,11 @@ export class GoalsRepository implements IGoalsRepository {
     }
 
     if (rda) {
-      query = Prisma.sql`${query} AND id_tipo = 49 AND empreendimento IS NOT NULL`;
+      query = Prisma.sql`${query} AND id_tipo = 54 AND id_tipo = 55 AND id_tipo = 35 AND empreendimento IS NOT NULL`;
     }
 
     if (!rda && !btzero) {
-      query = Prisma.sql`${query} AND (metas_anuais.id_tipo != 48 AND metas_anuais.id_tipo != 49)`;
+      query = Prisma.sql`${query} AND (metas_anuais.id_tipo != 48 AND metas_anuais.id_tipo != 49 AND metas_anuais.id_tipo != 54 AND metas_anuais.id_tipo != 55 AND metas_anuais.id_tipo != 35)`;
     }
 
     if (regional && regional.length > 0) {

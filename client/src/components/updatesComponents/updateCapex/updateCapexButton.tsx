@@ -39,7 +39,7 @@ export function UpdateCapexButton() {
     <>
       <ButtonComponent
         onClick={handleUpdateCapex}
-        text="Atualizar Capex - MO"
+        text="Atualizar Capex/M.O"
         disabled={isPending}
         styled="w-72"
       />

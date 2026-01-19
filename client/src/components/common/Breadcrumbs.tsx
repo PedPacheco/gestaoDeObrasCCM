@@ -10,7 +10,7 @@ export function BreadcrumpsComponent() {
   const pathname = usePathname();
 
   function generateBreadcrumbs(links: any, pathname: any) {
-    const pathnames = pathname?.split("/").filter(Boolean) || [];
+    const pathnames = pathname?.split("/").filter(Boolean);
     let breadcrumbs: any = [];
     let accumulatedPath = "";
 
