@@ -4,6 +4,8 @@ import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainGoals from "@/components/goalsComponents/MainGoals";
 import { Transform } from "@/utils/transform";
+import dayjs from "dayjs";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +19,7 @@ export default async function RdaGoals() {
   if (params) {
     params = { ...Transform(params), rda: true, btzero: false };
   } else {
-    params = { ano: "2025", rda: true, btzero: false };
+    params = { ano: dayjs().year().toString(), rda: true, btzero: false };
   }
 
   const [filters, rdaGoalsData] = await Promise.all([
@@ -27,7 +29,9 @@ export default async function RdaGoals() {
       empreendimento: true,
     }),
 
-    fetchData(`${process.env.NEXT_PUBLIC_API_URL}/metas`, params, token),
+    fetchData(`${process.env.NEXT_PUBLIC_API_URL}/metas`, params, token, {
+      cache: "no-store",
+    }),
   ]);
 
   const { data } = rdaGoalsData;
@@ -56,12 +60,14 @@ export default async function RdaGoals() {
   };
 
   return (
-    <MainGoals
-      columns={columns}
-      data={data}
-      filtersData={filters}
-      token={token}
-      typeGoals="rda"
-    />
+    <EmotionCacheProvider>
+      <MainGoals
+        columns={columns}
+        data={data}
+        filtersData={filters}
+        token={token}
+        typeGoals="rda"
+      />
+    </EmotionCacheProvider>
   );
 }

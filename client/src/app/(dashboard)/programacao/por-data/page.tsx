@@ -65,6 +65,7 @@ export default async function ScheduleForDay() {
     conjunto: "Conjunto",
     circuito: "Circuito",
     prazo_fim: "Prazo",
+    status_prazo: "Status prazo",
     tipo_obra: "Tipo",
     qtde_planejada: "Quantidade planejada",
     qtde_pend: "Quantidade pendente",

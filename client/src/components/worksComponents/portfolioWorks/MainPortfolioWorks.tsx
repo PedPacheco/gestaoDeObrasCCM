@@ -134,8 +134,8 @@ export default function PortfolioWorks({
   };
 
   return (
-    <>
-      <div className="my-6 w-11/12 flex flex-col items-center">
+    <div className="w-full flex flex-col items-center overflow-y-auto">
+      <div className="my-6 w-11/12">
         <PortfolioWorksFilters
           data={filteredFilters}
           url={cookie}
@@ -205,6 +205,6 @@ export default function PortfolioWorks({
           icon={<ExclamationCircleIcon width={48} height={48} />}
         />
       )}
-    </>
+    </div>
   );
 }

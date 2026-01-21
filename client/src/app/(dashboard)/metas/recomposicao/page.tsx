@@ -6,6 +6,7 @@ import { Transform } from "@/utils/transform";
 import MainGoals from "@/components/goalsComponents/MainGoals";
 import { Metadata } from "next";
 import dayjs from "dayjs";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
 
 export const dynamic = "force-dynamic";
 
@@ -62,12 +63,14 @@ export default async function Goals() {
   };
 
   return (
-    <MainGoals
-      filtersData={filters}
-      data={data}
-      token={token}
-      columns={columnMapping}
-      typeGoals="recomposicao"
-    />
+    <EmotionCacheProvider>
+      <MainGoals
+        filtersData={filters}
+        data={data}
+        token={token}
+        columns={columnMapping}
+        typeGoals="recomposicao"
+      />
+    </EmotionCacheProvider>
   );
 }

@@ -34,8 +34,8 @@ export class ExecutionCapacityService {
     return formattedData;
   }
 
-  async getFinancialValue() {
-    const data = await this.executionCapacityRepository.getFinancialValue();
+  async getFinancialValue(year: string) {
+    const data = await this.executionCapacityRepository.getFinancialValue(year);
 
     const financialValues = data.reduce((acc, item) => {
       const key = `${item.regionais.regional}-${item.turmas.turma}`;

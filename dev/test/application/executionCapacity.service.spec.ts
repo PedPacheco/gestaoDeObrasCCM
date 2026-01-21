@@ -78,7 +78,7 @@ describe('ExecutionCapacityService', () => {
         mockResponseDataFinancialValuesExecutionCapacityRepository,
       );
 
-      const response = await service.getFinancialValue();
+      const response = await service.getFinancialValue('2026');
 
       expect(mockRepository.getFinancialValue).toHaveBeenCalled();
       expect(response).toEqual(mockDataSumFinancialValues);

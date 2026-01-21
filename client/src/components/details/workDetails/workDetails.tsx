@@ -337,8 +337,6 @@ export function WorkDetails({
     return <ErrorThrower message="Nível de permissão insuficiente" />;
   }
 
-  console.log(canShowPublicationButton, data.id_status, permissions?.permissao_publicacao, isMounted)
-
   return (
     <>
       <div className="w-full flex justify-between items-center my-4 px-2 md:px-8">

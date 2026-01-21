@@ -6,6 +6,7 @@ import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
 
 import { Inject, Injectable } from '@nestjs/common';
+import * as moment from 'moment';
 
 @Injectable()
 export class GetScheduleValuesService {
@@ -35,9 +36,12 @@ export class GetScheduleValuesService {
         status_restricao2,
         data_resolucao1,
         data_resolucao2,
+        id_grupo,
+        prazo_fim,
       } = work;
 
       let restricao_aberta: boolean = false;
+      let status_prazo: string;
 
       if (id_restricao_prog1 !== 1 || id_restricao_prog2 !== 1) {
         if (
@@ -49,9 +53,25 @@ export class GetScheduleValuesService {
         }
       }
 
+      if (id_grupo === 1) {
+        const prazoFim = moment(prazo_fim).utc();
+        const daysRemaining = prazoFim.diff(moment(), 'days');
+
+        if (daysRemaining < 0) {
+          status_prazo = 'Prazo vencido';
+        } else if (daysRemaining <= 16) {
+          status_prazo = `Crítico: ${daysRemaining} dia(s) restante(s)`;
+        } else if (daysRemaining <= 30 && daysRemaining >= 17) {
+          status_prazo = `Atenção: ${daysRemaining} dias restantes`;
+        } else {
+          status_prazo = `No prazo: (${daysRemaining} dias restantes)`;
+        }
+      }
+
       return {
         ...work,
         restricao_aberta,
+        status_prazo,
       };
     });
 

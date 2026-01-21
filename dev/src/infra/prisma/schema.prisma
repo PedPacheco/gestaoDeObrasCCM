@@ -325,12 +325,14 @@ model programacoes {
   observacao_programacao          String?                 @db.VarChar(250)
   reprovada                       Boolean?                @default(false)
   criado_em                       DateTime?               @default(now()) @db.Timestamp(6)
+  id_usuario                      Int?
   obras                           obras                   @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
   programacoes_restricao_execucao restricoes              @relation("programacoes_restricao_execucao", fields: [id_restricao_execucao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_execucao")
   programacoes_restricao_prog1    restricoes              @relation("programacoes_restricao_prog1", fields: [id_restricao_prog1], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_prog1")
   programacoes_restricao_prog2    restricoes              @relation("programacoes_restricao_prog2", fields: [id_restricao_prog2], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_prog2")
   status_programacao              status_programacao      @relation(fields: [id_status_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_status_programacao")
   tecnicos                        tecnicos                @relation(fields: [id_tecnico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tecnicos")
+  usuario                         usuario?                @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario")
   programacoes_servicos           programacoes_servicos[]
   relatorio_execucao              relatorio_execucao[]
   servicos                        servicos[]
@@ -509,6 +511,7 @@ model usuario {
   permissao_visualizacao String               @default("total") @db.VarChar(25)
   id_turma               Int                  @default(1)
   permissao_publicacao   Boolean              @default(false)
+  programacoes           programacoes[]
   relatorio_execucao     relatorio_execucao[]
   turmas                 turmas               @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
   regionais              regionais            @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")

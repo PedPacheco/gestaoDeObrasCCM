@@ -4,8 +4,8 @@ export interface GetScheduleValuesInterface {
   ordemdiagrama: string;
   diagrama: string | null;
   mun: string;
-  entrada: string;
   prazo_fim: string;
+  id_grupo: number;
   tipo_obra: string;
   qtde_planejada: string;
   mo_planejada: string;
@@ -36,6 +36,7 @@ export interface GetScheduleValuesInterface {
   status_restricao1: string;
   status_restricao2: string;
   restricao_aberta: boolean;
+  status_prazo: string;
 }
 
 export interface totalsGetScheduleValues {

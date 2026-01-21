@@ -55,6 +55,9 @@ export function MainExecutionCapacity({
   const [tableData, setTableData] = useState<
     Record<string, string | number | null>[]
   >(data.executionCapacityValues);
+  const [financialData, setFinancialData] = useState<
+    Record<string, string | number>[]
+  >(data.financialValues);
 
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [openFinancialModal, setOpenFinanciealModal] = useState<boolean>(false);
@@ -63,7 +66,9 @@ export function MainExecutionCapacity({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log(data.financialValues);
     setTableData(data.executionCapacityValues);
+    setFinancialData(data.financialValues);
   }, [data]);
 
   const changedData = useMemo(() => {
@@ -106,6 +111,7 @@ export function MainExecutionCapacity({
         }
 
         setTableData(response.data.executionCapacityValues);
+        setFinancialData(response.data.financialValues);
       } catch (error: any) {
         setError(error.message);
       }
@@ -158,7 +164,7 @@ export function MainExecutionCapacity({
   const toggleFinancialModal = () => setOpenFinanciealModal((prev) => !prev);
 
   return (
-    <>
+    <div className="w-full h-4/5 ">
       <div className="w-full flex justify-between">
         <div className="w-full">
           <div className="flex flex-col justify-center items-center lg:flex-row lg:justify-start lg:items-start pt-4 px-4">
@@ -219,7 +225,7 @@ export function MainExecutionCapacity({
       </ModalComponent>
 
       <FinancialValuesModal
-        data={data.financialValues}
+        data={financialData}
         onClose={toggleFinancialModal}
         open={openFinancialModal}
       />
@@ -232,6 +238,6 @@ export function MainExecutionCapacity({
           icon={<ExclamationCircleIcon width={48} height={48} />}
         />
       )}
-    </>
+    </div>
   );
 }
