@@ -27,7 +27,7 @@ export class ExecutionCapacityController {
     filters: ExecutionCapacityDTO,
   ) {
     const financialValues =
-      await this.executionCapacityService.getFinancialValue();
+      await this.executionCapacityService.getFinancialValue(filters.year);
     const executionCapacityValues =
       await this.executionCapacityService.get(filters);
 

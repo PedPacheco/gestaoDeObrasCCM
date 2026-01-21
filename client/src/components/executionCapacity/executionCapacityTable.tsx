@@ -96,7 +96,7 @@ export function ExecutionCapacityTable({
                 return (
                   <TableCell
                     key={colIndex}
-                    className={`p-0 h-16 text-center min-w-28 text-nowrap text-base ${
+                    className={`p-0 pl-4 h-16 text-center min-w-28 text-nowrap text-base ${
                       isEditable ? "border-l-2 border-solid" : ""
                     }`}
                   >

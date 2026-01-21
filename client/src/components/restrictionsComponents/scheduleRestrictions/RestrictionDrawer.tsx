@@ -46,6 +46,7 @@ const RESPONSIBLE_ENGINEERS = [
   { id: 66, name: "Henrique de Oliveira Batista", idRegional: 6 },
   { id: 80, name: "Marcos de Siqueira Mesquita", idRegional: 9 },
   { id: 94, name: "Luciano Bernardo dos Santos", idRegional: 2 },
+  { id: 130, name: "Jefferson Pereira Facioli da Silva", idRegional: 7 },
 ];
 
 export default function RestrictionDrawer({

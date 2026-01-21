@@ -40,7 +40,7 @@ const columns = {
   prog: "% Programado",
   exec: "% Executado",
   status: "Status da obra",
-  liberado_ligacao_parcial: "Liberado para a ligação mesmo parcial ?",
+  liberado_ligacao_parcial: "Liberado publicação ?",
   num_dp: "Número DP",
   hora_inicio: "Hora de início (Real campo)",
   hora_conclusao: "Hora de conclusão (Real campo)",

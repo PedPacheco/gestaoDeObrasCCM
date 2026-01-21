@@ -66,7 +66,7 @@ describe('GetWorksInPortfolioRepository', () => {
   ];
 
   const baseQuery = `SELECT obras.id, obras.ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, 
-        mun, id_status, entrada, prazo, entrada + prazo AS prazo_fim, abrev_regional, tipo_obra, qtde_planejada, contagem_ocorrencias,
+        mun, id_status, prazo, entrada + prazo AS prazo_fim, abrev_regional, tipo_obra, tipos.id_grupo, qtde_planejada, contagem_ocorrencias,
         qtde_pend, circuito, mo_planejada,  status, conjunto, data_empreitamento, empreendimento, turma, ano_plan,
         COALESCE(SUM(prog) FILTER (WHERE exec IS NULL), 0)::int AS total_prog,
         SUM(exec)::int AS total_exec, (100 - (SUM(exec) + COALESCE(SUM(prog) FILTER (WHERE exec IS NULL), 0)))::int AS total_pend,
@@ -129,7 +129,7 @@ describe('GetWorksInPortfolioRepository', () => {
       const expectedQuery = `${baseQuery} AND status.id != 42 AND status.id != 4 AND municipios.id_regional IN () AND id_tipo IN () AND id_turma IN () AND tipos.id_grupo IN () AND municipios.id IN ()
         AND status.id IN () AND id_circuito IN () AND circuitos.id_conjunto IN () AND id_empreendimento IN () AND obras.ovnota =  
         GROUP BY obras.id, ovnota, diagrama, ordem_dci, ordem_dcim, ordem_dca, ordem_dcd, status_ov_sap, pep, 
-        mun, id_status, entrada, prazo, abrev_regional, tipo_obra, qtde_planejada, qtde_pend, circuito, mo_planejada, status, conjunto, 
+        mun, id_status, prazo, abrev_regional, tipo_obra, tipos.id_grupo, qtde_planejada, qtde_pend, circuito, mo_planejada, status, conjunto, 
         empreendimento, turma, ano_plan, prog_count.contagem_ocorrencias ORDER BY status DESC, entrada + prazo LIMIT 200 OFFSET ;`;
 
       const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
@@ -166,7 +166,7 @@ describe('GetWorksInPortfolioRepository', () => {
       const result = await repository.getWorksInPortfolio(filters);
 
       const expectedQuery = `${baseQuery} GROUP BY obras.id, ovnota, diagrama, ordem_dci, ordem_dcim, ordem_dca, ordem_dcd, status_ov_sap, pep, 
-        mun, id_status, entrada, prazo, abrev_regional, tipo_obra, qtde_planejada, qtde_pend, circuito, mo_planejada, status, conjunto, 
+        mun, id_status, prazo, abrev_regional, tipo_obra, tipos.id_grupo, qtde_planejada, qtde_pend, circuito, mo_planejada, status, conjunto, 
         empreendimento, turma, ano_plan, prog_count.contagem_ocorrencias ORDER BY status DESC, entrada + prazo`;
 
       const querySent = mockPrisma.$queryRaw.mock.calls[0][0];

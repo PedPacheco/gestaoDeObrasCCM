@@ -48,44 +48,52 @@ export function TableWithPagination({
   const router = useRouter();
 
   return (
-    <Paper className="mb-6 w-[95%] min-h-96 h-[720px] lg:h-[560px] xl:h-[90%] max-h-[880px] lg:max-h-[680px] xl:max-h-[90%]">
-      <TableContainer className="overflow-y-auto max-h-[calc(100%-56px)]">
-        <Table stickyHeader>
-          <TableHead>
-            <TableRow>
-              {Object.keys(columns)
-                .slice(1, sliceEndIndex ? -sliceEndIndex : undefined)
-                .map((month) => (
-                  <TableCell
-                    key={month}
-                    className={`py-1 px-2 text-center text-zinc-700 font-semibold text-xl bg-[#53FF75] sticky left-0 z-10 min-w-28 ${
-                      month === "ovnota" ? "sticky left-0 z-20" : ""
-                    }`}
-                  >
-                    {columns[month as keyof typeof columns]}
-                  </TableCell>
-                ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {data.map((item: any, index: any) => {
-              return (
+    <Paper className="mb-6 w-[95%] min-h-96 h-[720px] lg:h-[560px] xl:h-[90%] max-h-[880px] lg:max-h-[680px] xl:max-h-[90%] flex flex-col">
+      {/* Scroll horizontal externo */}
+      <div className="w-full overflow-x-auto flex-1">
+        {/* Scroll vertical interno */}
+        <TableContainer className="overflow-y-auto max-h-full">
+          <Table stickyHeader>
+            <TableHead>
+              <TableRow>
+                {Object.keys(columns)
+                  .slice(1, sliceEndIndex ? -sliceEndIndex : undefined)
+                  .map((month) => (
+                    <TableCell
+                      key={month}
+                      className={`py-1 px-2 text-center text-zinc-700 font-semibold text-xl bg-[#53FF75] 
+                      min-w-28 whitespace-nowrap
+                      ${
+                        month === "ovnota"
+                          ? "sticky left-0 z-20"
+                          : "sticky left-0 z-10"
+                      }
+                    `}
+                    >
+                      {columns[month as keyof typeof columns]}
+                    </TableCell>
+                  ))}
+              </TableRow>
+            </TableHead>
+
+            <TableBody>
+              {data.map((item: any, index: number) => (
                 <TableRow key={index}>
                   {Object.keys(columns)
                     .slice(1, sliceEndIndex ? -sliceEndIndex : undefined)
                     .map((column) => {
                       let cellValue = item[column];
-                      let decimal: string[];
+                      let decimal: string[] = [];
+                      let bgColorClass = "";
 
                       if (typeof cellValue === "number") {
                         decimal = cellValue.toString().split(".");
-
                         if (decimal[1]?.length > 2) {
                           cellValue = cellValue.toFixed(2);
                         }
                       }
 
-                      if (column === "mo_prog" || column === "mat_prog") {
+                      if (["mo_prog", "mat_prog"].includes(column)) {
                         cellValue = FormatCurrency(cellValue);
                       }
 
@@ -103,11 +111,7 @@ export function TableWithPagination({
                       }
 
                       if (column === "restricao_aberta") {
-                        if (cellValue) {
-                          cellValue = "!!!";
-                        } else {
-                          cellValue = "";
-                        }
+                        cellValue = cellValue ? "!!!" : "";
                       }
 
                       if (
@@ -117,11 +121,10 @@ export function TableWithPagination({
                       ) {
                         const date = dayjs(cellValue);
 
-                        if (date.year() === 1970) {
-                          cellValue = date.utc().format("HH:mm");
-                        } else {
-                          cellValue = date.utc().format("DD/MM/YYYY");
-                        }
+                        cellValue =
+                          date.year() === 1970
+                            ? date.utc().format("HH:mm")
+                            : date.utc().format("DD/MM/YYYY");
                       }
 
                       const displayValue =
@@ -129,30 +132,51 @@ export function TableWithPagination({
                           ? Object.values(cellValue).join(", ")
                           : cellValue;
 
+                      if (column === "status_prazo") {
+                        if (displayValue?.includes("No prazo"))
+                          bgColorClass = "bg-green-200 text-green-800";
+                        else if (displayValue?.includes("Atenção"))
+                          bgColorClass = "bg-yellow-200 text-yellow-800";
+                        else if (displayValue?.includes("Urgente"))
+                          bgColorClass = "bg-yellow-300 text-yellow-900";
+                        else if (displayValue?.includes("Crítico"))
+                          bgColorClass = "bg-red-300 text-red-900";
+                        else if (displayValue?.includes("Prazo vencido"))
+                          bgColorClass = "bg-black text-white";
+                      }
+
                       return (
                         <TableCell
                           key={column}
                           onClick={() => router.push(`/detalhes/${item.id}`)}
-                          className={`py-1 px-2 text-center text-base text-nowrap min-w-36 hover:cursor-pointer 
-                            ${
-                              column === "ovnota"
-                                ? "sticky left-0 bg-white z-10"
-                                : column === "restricao_aberta"
-                                ? "text-red-500 text-lg"
-                                : ""
-                            }`}
+                          className={`
+                          py-1 px-2 text-center text-base whitespace-nowrap min-w-36 hover:cursor-pointer
+                          ${
+                            column === "ovnota"
+                              ? "sticky left-0 bg-white z-10"
+                              : ""
+                          }
+                          ${
+                            column === "restricao_aberta"
+                              ? "text-red-500 text-lg"
+                              : ""
+                          }
+                          ${column === "status_prazo" ? bgColorClass : ""}
+                        `}
                         >
                           {displayValue}
                         </TableCell>
                       );
                     })}
                 </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <div className="sticky bottom-0 bg-white z-30">
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </div>
+
+      {/* Paginação fixa sem bloquear scroll horizontal */}
+      <div className="bg-white z-30 border-t">
         <TablePagination
           component="div"
           count={totals.total_obras}
@@ -160,8 +184,8 @@ export function TableWithPagination({
           rowsPerPage={200}
           rowsPerPageOptions={[]}
           onPageChange={handleChangePage}
-          showFirstButton={true}
-          showLastButton={true}
+          showFirstButton
+          showLastButton
           labelDisplayedRows={({ from, to, count, page }) => {
             const totalPages = Math.ceil(count / 200);
             return `Página ${page + 1} de ${totalPages}`;

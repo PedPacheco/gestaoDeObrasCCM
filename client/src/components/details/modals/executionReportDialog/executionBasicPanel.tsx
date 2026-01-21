@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 
 import { ExecutionReportData } from "./executionReportDialog";
+import { useEffect } from "react";
 
 interface ExecutionBasicPanelProps {
   formData: FormData | ExecutionReportData;
@@ -29,6 +30,12 @@ export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
   wasTheWorkCompleted,
 }) => {
   const { data, prefix } = resolveExecutionReportContext(formData);
+
+  useEffect(() => {
+    if (wasTheWorkCompleted === 100) {
+      onInputChange(`${prefix}partialConnectionReleased`)(true);
+    }
+  }, [wasTheWorkCompleted, onInputChange, prefix]);
 
   return (
     <Grid container spacing={3}>

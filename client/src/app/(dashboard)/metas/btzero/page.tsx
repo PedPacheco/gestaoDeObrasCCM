@@ -4,8 +4,11 @@ import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { Transform } from "@/utils/transform";
 import MainGoals from "@/components/goalsComponents/MainGoals";
+import dayjs from "dayjs";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function Bt0Goals() {
   const cookieStore = await cookies();
@@ -17,7 +20,7 @@ export default async function Bt0Goals() {
   if (params) {
     params = { ...Transform(params), btzero: true, rda: false };
   } else {
-    params = { ano: "2025", btzero: true, rda: false };
+    params = { ano: dayjs().year(), btzero: true, rda: false };
   }
 
   const [filters, bt0GoalsData] = await Promise.all([
@@ -26,7 +29,9 @@ export default async function Bt0Goals() {
       parceira: true,
     }),
 
-    fetchData(`${process.env.NEXT_PUBLIC_API_URL}/metas`, params, token),
+    fetchData(`${process.env.NEXT_PUBLIC_API_URL}/metas`, params, token, {
+      cache: "no-store",
+    }),
   ]);
 
   const { data } = bt0GoalsData;
@@ -54,12 +59,15 @@ export default async function Bt0Goals() {
   };
 
   return (
-    <MainGoals
-      columns={columns}
-      data={data}
-      filtersData={filters}
-      token={token}
-      typeGoals="bt0"
-    />
+    <EmotionCacheProvider>
+      <MainGoals
+        columns={columns}
+        data={data}
+        filtersData={filters}
+        token={token}
+        typeGoals="bt0"
+        currentYear={dayjs().year()}
+      />
+    </EmotionCacheProvider>
   );
 }

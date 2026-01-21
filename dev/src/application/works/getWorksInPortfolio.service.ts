@@ -1,3 +1,4 @@
+import * as moment from 'moment';
 import {
   GET_WORKS_IN_PORTFOLIO_REPOSITORY,
   IGetWorksInPortfolioRepository,
@@ -43,8 +44,34 @@ export class GetWorksInPortfolioService {
       total_qtde_pend: totals[0].total_qtde_pend || 0,
     };
 
+    const worksWithDeadlineStatus = works.map((work) => {
+      const { prazo_fim, id_grupo } = work;
+
+      let status_prazo: string;
+
+      if (id_grupo === 1) {
+        const prazoFim = moment(prazo_fim).utc();
+        const daysRemaining = prazoFim.diff(moment(), 'days');
+
+        if (daysRemaining < 0) {
+          status_prazo = 'Prazo vencido';
+        } else if (daysRemaining <= 16) {
+          status_prazo = `Crítico: ${daysRemaining} dia(s) restante(s)`;
+        } else if (daysRemaining <= 30 && daysRemaining >= 17) {
+          status_prazo = `Atenção: ${daysRemaining} dias restantes`;
+        } else {
+          status_prazo = `No prazo: (${daysRemaining} dias restantes)`;
+        }
+      }
+
+      return {
+        ...work,
+        status_prazo,
+      };
+    });
+
     const response: worksInPortfolioResponseService = {
-      works,
+      works: worksWithDeadlineStatus,
       totals: totalsFormatted,
     };
 

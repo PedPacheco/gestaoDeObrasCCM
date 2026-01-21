@@ -1,7 +1,13 @@
 "use client";
 
 import dayjs from "dayjs";
-import { useEffect, useState, useTransition } from "react";
+import {
+  useEffect,
+  useState,
+  useTransition,
+  useMemo,
+  ComponentType,
+} from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
@@ -22,6 +28,7 @@ interface MainGoalsProps {
   token?: string;
   columns: Record<string, string>;
   typeGoals: string;
+  currentYear?: number;
 }
 
 export default function MainGoals({
@@ -30,21 +37,15 @@ export default function MainGoals({
   token,
   columns,
   typeGoals,
+  currentYear,
 }: MainGoalsProps) {
+  const year = currentYear ?? dayjs().year();
+  const defaultYear = year.toString();
+
   const [filteredData, setFilteredData] = useState(data);
   const [open, setOpen] = useState(false);
-  const { clearFilters, filters, saveFilters } = useSaveFilters({
-    pageKey:
-      typeGoals === "bt0"
-        ? "bt0GoalsFilters"
-        : typeGoals === "rda"
-        ? "rdaGoalsFilters"
-        : "goalsFilters",
-    data: filtersData,
-  });
-  const [selectedYear, setSelectedYear] = useState<string[]>([
-    dayjs().year().toString(),
-  ]);
+
+  const [selectedYear, setSelectedYear] = useState<string[]>([defaultYear]);
   const [selectedRegionais, setSelectedRegionais] = useState<string[]>([]);
   const [selectedParceiras, setSelectedParceiras] = useState<string[]>([]);
   const [selectedTiposObra, setSelectedTiposObra] = useState<string[]>([]);
@@ -54,23 +55,33 @@ export default function MainGoals({
   const [error, setError] = useState<string | null>();
   const [isPending, startTransition] = useTransition();
 
+  const { clearFilters, filters, saveFilters } = useSaveFilters({
+    pageKey:
+      typeGoals === "bt0"
+        ? "bt0GoalsFilters"
+        : typeGoals === "rda"
+        ? "rdaGoalsFilters"
+        : "goalsFilters",
+    data: filtersData,
+  });
+
+  const years = useMemo(
+    () =>
+      Array.from({ length: 7 }, (_, index) => (year - 3 + index).toString()),
+    [year]
+  );
+
   const toggleModal = () => setOpen((prev) => !prev);
 
   useEffect(() => {
     if (filters) {
-      setSelectedYear(filters.ano);
-      setSelectedParceiras(filters.parceira);
-      setSelectedRegionais(filters.regional);
-      setSelectedTiposObra(filters.tipo);
-      setSelectedEmpreendimento(filters.empreendimento);
+      setSelectedYear(filters.ano || [defaultYear]);
+      setSelectedParceiras(filters.parceira || []);
+      setSelectedRegionais(filters.regional || []);
+      setSelectedTiposObra(filters.tipo || []);
+      setSelectedEmpreendimento(filters.empreendimento || []);
     }
-  }, [filters]);
-
-  const year = dayjs().year();
-
-  const years = Array.from({ length: 7 }, (_, index) =>
-    (year - 3 + index).toString()
-  );
+  }, [filters, defaultYear]);
 
   function fetchGoals() {
     const params: Record<string, string[]> = {};
@@ -90,13 +101,17 @@ export default function MainGoals({
     };
 
     startTransition(async () => {
-      const response = await fetchData(
-        `${process.env.NEXT_PUBLIC_API_URL}/metas`,
-        formattedSelectedItens,
-        token
-      );
+      try {
+        const response = await fetchData(
+          `${process.env.NEXT_PUBLIC_API_URL}/metas`,
+          formattedSelectedItens,
+          token
+        );
 
-      setFilteredData(response.data);
+        setFilteredData(response.data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Erro ao buscar dados");
+      }
     });
   }
 
@@ -105,22 +120,26 @@ export default function MainGoals({
     setSelectedRegionais([]);
     setSelectedTiposObra([]);
     setSelectedEmpreendimento([]);
-    setSelectedYear(["2025"]);
+    setSelectedYear([defaultYear]);
 
     clearFilters();
 
     startTransition(async () => {
-      const response = await fetchData(
-        `${process.env.NEXT_PUBLIC_API_URL}/metas`,
-        {
-          ano: "2025",
-          btzero: typeGoals === "bt0" ? true : false,
-          rda: typeGoals === "rda" ? true : false,
-        },
-        token
-      );
+      try {
+        const response = await fetchData(
+          `${process.env.NEXT_PUBLIC_API_URL}/metas`,
+          {
+            ano: defaultYear,
+            btzero: typeGoals === "bt0" ? true : false,
+            rda: typeGoals === "rda" ? true : false,
+          },
+          token
+        );
 
-      setFilteredData(response.data);
+        setFilteredData(response.data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Erro ao limpar filtros");
+      }
     });
   }
 

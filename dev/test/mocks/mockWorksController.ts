@@ -168,7 +168,7 @@ export const mockWorksInPortfolio: worksInPortfolioResponseService = {
       ordem_dcim: null,
       mun: 'SAE',
       tipo_obra: 'RISCO A SEGURANÇA',
-      entrada: new Date('04/09/2024'),
+      id_grupo: 1,
       prazo_fim: null,
       qtde_planejada: 0,
       mo_planejada: 91105.824,
@@ -191,6 +191,7 @@ export const mockWorksInPortfolio: worksInPortfolioResponseService = {
       data_empreitamento: undefined,
       empreendimento: '',
       ano_plan: 2025,
+      status_prazo: 'Atenção: 23 dias restantes',
     },
   ],
   totals: {

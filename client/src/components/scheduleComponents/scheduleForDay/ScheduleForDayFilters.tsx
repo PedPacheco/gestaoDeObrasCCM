@@ -14,8 +14,6 @@ import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
 import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
 import { Checkbox, TextField } from "@mui/material";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateFilter } from "@/components/common/DateFilter";
 
 interface ScheduleByDateFiltersProps {
@@ -40,10 +38,21 @@ export default function ScheduleForDayFilters({
   const applyFilters = useCallback((data: FiltersInterface, filters: any) => {
     let newData = { ...data };
 
-    if (filters?.idGrupo) {
-      const idGrupos = filters.idGrupo.map(Number);
-      newData.tipo = data.tipo?.filter((item) =>
+    const { selectedItems } = filters;
+
+    if (selectedItems?.idGrupo) {
+      const idGrupos = selectedItems.idGrupo?.map(Number);
+
+      newData.tipo = newData.tipo?.filter((item) =>
         idGrupos.includes(item.id_grupo)
+      );
+    }
+
+    if (selectedItems?.idRegional) {
+      const idRegionais = selectedItems.idRegional?.map(Number);
+
+      newData.municipio = newData.municipio?.filter((item) =>
+        idRegionais.includes(item.id_regional)
       );
     }
 

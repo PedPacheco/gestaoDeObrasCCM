@@ -16,49 +16,70 @@ export class GoalsService {
 
   async getGoals(filters: GoalsDTO): Promise<Goals[]> {
     const result = await this.goalsRepository.getGoals(filters);
-    const response = this.transformData(result);
+    const response = this.transformData(result, filters.btzero);
     return response;
   }
 
-  private transformData(data: any): any[] {
-    return data.map((item: any) => {
-      const months = [
-        'jan',
-        'fev',
-        'mar',
-        'abr',
-        'mai',
-        'jun',
-        'jul',
-        'ago',
-        'set',
-        'out',
-        'nov',
-        'dez',
-      ];
+  private transformData(data: any[], btzero: boolean): any[] {
+    const months = [
+      'jan',
+      'fev',
+      'mar',
+      'abr',
+      'mai',
+      'jun',
+      'jul',
+      'ago',
+      'set',
+      'out',
+      'nov',
+      'dez',
+    ];
 
-      const transformedItem = {
-        id_tipo: item.id_tipo,
-        tipo_obra: item.tipo_obra,
-        turma: item.turma,
-        regional: item.regional,
-        anocalc: item.anocalc,
-        carteira: item.carteira,
-      };
+    const grouped: Record<string, any> = {};
 
-      if (item.empreendimento !== undefined && item.empreendimento !== null) {
-        transformedItem['empreendimento'] = item.empreendimento;
+    for (const item of data) {
+      const id_tipo = btzero ? 48 : item.id_tipo;
+      const tipo_obra = btzero ? 'BT ZERO' : item.tipo_obra;
+
+      // carteira NÃO faz parte da chave porque deve ser somada
+      const key = `${id_tipo}-${tipo_obra}-${item.turma}-${item.regional}-${item.anocalc}`;
+
+      if (!grouped[key]) {
+        grouped[key] = {
+          id_tipo,
+          tipo_obra,
+          turma: item.turma,
+          regional: item.regional,
+          anocalc: item.anocalc,
+
+          // inicializa carteira com zero para somar depois
+          carteira: 0,
+
+          empreendimento: item.empreendimento ?? undefined,
+        };
+
+        // meses zerados
+        months.forEach((month) => {
+          grouped[key][month] = {
+            meta: 0,
+            prog: 0,
+            real: 0,
+          };
+        });
       }
 
-      months.forEach((month) => {
-        transformedItem[month] = {
-          meta: item[`${month}fismeta`],
-          prog: item[`${month}fisprog`],
-          real: item[`${month}fisreal`],
-        };
-      });
+      // soma carteira
+      grouped[key].carteira += item.carteira ?? 0;
 
-      return transformedItem;
-    });
+      // soma valores dos meses
+      months.forEach((month) => {
+        grouped[key][month].meta += item[`${month}fismeta`] ?? 0;
+        grouped[key][month].prog += item[`${month}fisprog`] ?? 0;
+        grouped[key][month].real += item[`${month}fisreal`] ?? 0;
+      });
+    }
+
+    return Object.values(grouped);
   }
 }
