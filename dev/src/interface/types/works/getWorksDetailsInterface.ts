@@ -2,6 +2,10 @@ interface ScheduleStatus {
   status_programacao: string;
 }
 
+interface User {
+  nome_usuario: string;
+}
+
 export interface Schedules {
   id: number;
   criado_em: Date;
@@ -39,6 +43,8 @@ export interface Schedules {
   area_responsavel2: string | null;
   status_restricao2: string | null;
   data_resolucao2: Date | null;
+  usuario: User | null;
+  usuario_ultima_atualizacao?: User | null;
 }
 
 export interface GetWorksDetailsResponse {

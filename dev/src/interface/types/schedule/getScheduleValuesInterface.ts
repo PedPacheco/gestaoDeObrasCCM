@@ -7,6 +7,7 @@ export interface GetScheduleValuesInterface {
   prazo_fim: string;
   id_grupo: number;
   tipo_obra: string;
+  status_ov_sap: number;
   qtde_planejada: string;
   mo_planejada: string;
   turma: string;

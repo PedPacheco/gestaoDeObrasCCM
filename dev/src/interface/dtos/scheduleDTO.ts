@@ -94,6 +94,11 @@ export class GetScheduleValuesDTO {
   idStatusProgramacao?: number[];
 
   @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idStatusSap?: number[];
+
+  @IsOptional()
   @IsString()
   ovnota?: string;
 
@@ -325,6 +330,9 @@ export class SchedulesDataDTO {
   @IsBoolean()
   @IsOptional()
   confirmed?: boolean;
+
+  @IsNumber()
+  idUser: number;
 }
 
 export class UpdateSchedulesDataDTO {

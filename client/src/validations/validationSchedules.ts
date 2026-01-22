@@ -151,6 +151,7 @@ export const schedulesSchema = (isInsert?: boolean) =>
       resolutionDate2: z.string().nullable().optional(),
       validated: z.boolean().optional(),
       confirmed: z.boolean().optional(),
+      idUser: z.number().nullable().optional(),
     })
     .check((ctx) => {
       const { exec, prog, idExecutionRestriction, responsibility } = ctx.value;

@@ -92,6 +92,7 @@ describe('ScheduleActionsController', () => {
       prog: 100,
       idProgRestriction1: 1,
       idProgRestriction2: 1,
+      idUser: 1,
     });
 
     expect(result).toEqual({
@@ -107,6 +108,7 @@ describe('ScheduleActionsController', () => {
       prog: 100,
       idProgRestriction1: 1,
       idProgRestriction2: 1,
+      idUser: 1,
     });
   });
 
@@ -242,6 +244,7 @@ describe('ScheduleActionsController', () => {
         finishTime: '10:00',
         prog: 50,
         exec: null,
+        idUser: 1,
       };
 
       const dto = plainToInstance(SchedulesDataDTO, payload);
@@ -260,6 +263,7 @@ describe('ScheduleActionsController', () => {
         exec: 20,
         idProgRestriction1: 1,
         idProgRestriction2: 1,
+        idUser: 1,
       };
 
       const dto = plainToInstance(SchedulesDataDTO, payload);
@@ -278,6 +282,7 @@ describe('ScheduleActionsController', () => {
           prog: 50,
           idProgRestriction1: 1,
           idProgRestriction2: 1,
+          idUser: 1,
         },
       };
 
@@ -297,6 +302,7 @@ describe('ScheduleActionsController', () => {
         prog: 1,
         idProgRestriction1: 1,
         idProgRestriction2: 1,
+        idUser: 1,
       };
 
       const dtoAdd = plainToInstance(SchedulesDataDTO, input);

@@ -59,6 +59,7 @@ export default function ScheduleFormDialog({
   statusWork,
 }: ScheduleFormDialogProps) {
   const [error, setError] = useState<string | null>();
+  const { user } = useUser();
 
   const {
     expanded,
@@ -210,8 +211,13 @@ export default function ScheduleFormDialog({
         <ButtonComponent
           styled="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
           onClick={() => {
+            const formDataWithUser = {
+              ...formData,
+              idUser: user?.id,
+            };
+
             const validationResult =
-              schedulesSchema(isInsert).safeParse(formData);
+              schedulesSchema(isInsert).safeParse(formDataWithUser);
 
             if (!validationResult.success) {
               const fieldErrors: Record<string, string> = {};

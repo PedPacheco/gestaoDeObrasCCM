@@ -151,6 +151,8 @@ export const mockResponseDetails = {
       data_resolucao1: null,
       data_resolucao2: null,
       observacao_restricao: undefined,
+      criado_por: 'Pedro',
+      editado_por: 'Pedro',
     },
   ],
 };

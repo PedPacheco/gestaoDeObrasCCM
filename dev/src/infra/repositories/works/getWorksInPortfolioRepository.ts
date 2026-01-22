@@ -92,7 +92,7 @@ export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioReposi
         INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
         LEFT JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
         LEFT JOIN (SELECT id_obra, COUNT(*)::int AS contagem_ocorrencias FROM construcao_sp.programacoes WHERE data_prog > current_date GROUP BY id_obra) AS prog_count ON prog_count.id_obra = obras.id 
-        WHERE data_conclusao IS NULL`;
+        WHERE data_conclusao IS NULL AND status.id != 3`;
 
     let query = Prisma.sql`SELECT
         obras.id, obras.ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, 
@@ -103,8 +103,8 @@ export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioReposi
         SUM(equipe_linha_morta)::int as total_equipe_lm, SUM(equipe_linha_viva)::int as total_equipe_lv, SUM(equipe_regularizacao)::int as total_equipe_reg
         ${baseQuery}`;
 
-    let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras, SUM(mo_planejada) AS total_mo_planejada, SUM(mo_planejada*executado/100) as total_mo_exec, 
-        SUM(CASE WHEN id_status = 4 THEN mo_planejada*executado/100 ELSE 0 END) AS total_mo_suspensa, SUM(qtde_planejada) as total_qtde_planejada,
+    let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras, SUM(mo_planejada) AS total_mo_planejada, SUM(mo_planejada*executado::int/100) as total_mo_exec, 
+        SUM(CASE WHEN id_status = 4 THEN mo_planejada*executado::int/100 ELSE 0 END) AS total_mo_suspensa, SUM(qtde_planejada) as total_qtde_planejada,
         SUM(qtde_pend) AS total_mo_pend ${baseQuery}`;
 
     query = this.applyFilters(query, filters);

@@ -82,7 +82,7 @@ describe('GetWorksInPortfolioRepository', () => {
         INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
         LEFT JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
         LEFT JOIN (SELECT id_obra, COUNT(*)::int AS contagem_ocorrencias FROM construcao_sp.programacoes WHERE data_prog > current_date GROUP BY id_obra) AS prog_count ON prog_count.id_obra = obras.id 
-        WHERE data_conclusao IS NULL`;
+        WHERE data_conclusao IS NULL AND status.id != 3`;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({

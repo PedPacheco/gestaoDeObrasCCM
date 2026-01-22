@@ -66,7 +66,6 @@ export function MainExecutionCapacity({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log(data.financialValues);
     setTableData(data.executionCapacityValues);
     setFinancialData(data.financialValues);
   }, [data]);

@@ -93,7 +93,7 @@ describe('GetScheduleValuesRepository', () => {
       .mockResolvedValueOnce(mockCount);
 
     const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim, 
-    turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec, capex_mat_plan*prog/100 as mat_prog, tipo_obra, id_grupo,
+    turma, status_ov_sap, executado, data_prog, prog, exec, mo_planejada::int*prog/100 AS mo_prog, mo_planejada::int*COALESCE(exec, 100)/100 AS mo_exec, capex_mat_plan::int*prog/100 as mat_prog, tipo_obra, id_grupo,
     qtde_planejada, qtde_pend, num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status, 
     id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2
     FROM construcao_sp.obras
@@ -136,6 +136,7 @@ describe('GetScheduleValuesRepository', () => {
       idParceira: [1],
       idRegional: [1],
       idTipo: [1],
+      idStatusSap: [51],
       ovnota: '1324',
     };
 
@@ -144,7 +145,7 @@ describe('GetScheduleValuesRepository', () => {
       .mockResolvedValueOnce(mockCount);
 
     const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim, 
-      turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec, capex_mat_plan*prog/100 as mat_prog, tipo_obra, id_grupo,
+      turma, status_ov_sap, executado, data_prog, prog, exec, mo_planejada::int*prog/100 AS mo_prog, mo_planejada::int*COALESCE(exec, 100)/100 AS mo_exec, capex_mat_plan::int*prog/100 as mat_prog, tipo_obra, id_grupo,
       qtde_planejada, qtde_pend, num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status, 
       id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2
       FROM construcao_sp.obras
@@ -167,6 +168,7 @@ describe('GetScheduleValuesRepository', () => {
       AND status.id IN () 
       AND status_programacao.id IN () 
       AND obras.ovnota = 
+      AND obras.status_ov_sap IN () AND tipos.id_grupo = 1
       AND exec IS NOT NULL 
       ORDER BY data_prog, ovnota 
       LIMIT 200 OFFSET
@@ -202,6 +204,7 @@ describe('GetScheduleValuesRepository', () => {
       1,
       1,
       '1324',
+      51,
       0,
     ]);
   });
@@ -228,7 +231,7 @@ describe('GetScheduleValuesRepository', () => {
       .mockResolvedValueOnce(mockCount);
 
     const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim, 
-    turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec, capex_mat_plan*prog/100 as mat_prog, tipo_obra, id_grupo,
+    turma, status_ov_sap, executado, data_prog, prog, exec, mo_planejada::int*prog/100 AS mo_prog, mo_planejada::int*COALESCE(exec, 100)/100 AS mo_exec, capex_mat_plan::int*prog/100 as mat_prog, tipo_obra, id_grupo,
     qtde_planejada, qtde_pend, num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status, 
     id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2
     FROM construcao_sp.obras

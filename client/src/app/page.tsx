@@ -15,9 +15,19 @@ export default function Home() {
               <Image
                 src="/logo-sigo.png"
                 alt="Logo SIGO"
-                className="w-1/3 h-auto mr-5"
-                width={100}
-                height={150}
+                className="
+                  w-[60%]
+                  sm:w-[50%]
+                  md:w-[40%]
+                  lg:w-[30%]
+                  xl:w-[25%]
+                  h-auto
+                  mr-12
+                  mb-8
+                  object-contain
+                "
+                width={740}
+                height={500}
               />
               <Suspense
                 fallback={<LoadingComponent color="text-black" />}

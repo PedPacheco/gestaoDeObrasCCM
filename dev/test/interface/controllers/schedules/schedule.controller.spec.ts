@@ -59,6 +59,7 @@ describe('ScheduleController', () => {
         status_restricao2: 'SEM RESTRIÇÃO',
         restricao_aberta: false,
         status_prazo: 'Atenção: 32 dias restantes',
+        status_ov_sap: 51,
       },
     ],
     totals: {
