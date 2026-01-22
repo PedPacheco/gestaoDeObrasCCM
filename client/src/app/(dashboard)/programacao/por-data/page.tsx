@@ -40,6 +40,7 @@ export default async function ScheduleForDay() {
       tipo: true,
       status: true,
       statusProgramacao: true,
+      statusSap: true,
     }),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/programacao/mensal`,
@@ -66,6 +67,7 @@ export default async function ScheduleForDay() {
     circuito: "Circuito",
     prazo_fim: "Prazo",
     status_prazo: "Status prazo",
+    status_ov_sap: "Status SAP",
     tipo_obra: "Tipo",
     qtde_planejada: "Quantidade planejada",
     qtde_pend: "Quantidade pendente",

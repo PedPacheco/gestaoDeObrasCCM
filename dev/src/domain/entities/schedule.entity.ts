@@ -35,6 +35,7 @@ export class Schedule {
     public readonly restrictionStatus2?: string,
     public readonly resolutionDate2?: Date,
     public readonly observationRestriction?: string,
+    public readonly idUser?: number,
   ) {
     this.validate();
   }
@@ -97,6 +98,7 @@ export class Schedule {
       data.restrictionStatus2,
       data.resolutionDate2,
       data.observationRestriction,
+      data.idUser,
     );
   }
 }

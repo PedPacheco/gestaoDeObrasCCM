@@ -17,8 +17,6 @@ import {
   MagnifyingGlassCircleIcon,
 } from "@heroicons/react/20/solid";
 import { InputAdornment, TextField } from "@mui/material";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateFilter } from "@/components/common/DateFilter";
 
 interface PortfolioWorksFiltersProps {
@@ -46,7 +44,7 @@ export default function PortfolioWorksFilters({
 
       const { selectedItems } = filtersObject;
 
-      if (selectedItems?.idGrupo) {
+      if (selectedItems?.idGrupo?.length > 0) {
         const idGrupos = selectedItems.idGrupo?.map(Number);
 
         newData.tipo = newData.tipo?.filter((item) =>
@@ -57,7 +55,7 @@ export default function PortfolioWorksFilters({
         );
       }
 
-      if (selectedItems?.idRegional) {
+      if (selectedItems?.idRegional?.length > 0) {
         const idRegionais = selectedItems.idRegional?.map(Number);
 
         newData.empreendimento = newData.empreendimento?.filter((item) =>
@@ -208,6 +206,7 @@ export default function PortfolioWorksFilters({
             </div>
           );
         })}
+
         <div className="w-full lg:w-3/4 mx-auto">
           <TextField
             className="mb-2 lg:ml-4 lg:first:ml-0 w-full"

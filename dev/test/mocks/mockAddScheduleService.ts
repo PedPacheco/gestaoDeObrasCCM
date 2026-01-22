@@ -9,6 +9,7 @@ export const mockAddSchedulesServiceData = {
   prog: 100,
   idProgRestriction1: 1,
   idProgRestriction2: 1,
+  idUser: 1,
 };
 
 export const mockAddSchedulesServiceDataNotTimeValid = {
@@ -20,6 +21,7 @@ export const mockAddSchedulesServiceDataNotTimeValid = {
   prog: 100,
   idProgRestriction1: 1,
   idProgRestriction2: 1,
+  idUser: 1,
 };
 
 export const mockAddSchedulesServiceDataWithoutIdWork = {
@@ -31,6 +33,7 @@ export const mockAddSchedulesServiceDataWithoutIdWork = {
   prog: 100,
   idProgRestriction1: 1,
   idProgRestriction2: 1,
+  idUser: 1,
 };
 
 export const mockAddSchedulesServiceDataWithWrongProg = {
@@ -42,6 +45,7 @@ export const mockAddSchedulesServiceDataWithWrongProg = {
   prog: 105,
   idProgRestriction1: 1,
   idProgRestriction2: 1,
+  idUser: 1,
 };
 
 export const mockAddSchedulesServiceFormattedData = {
@@ -63,6 +67,8 @@ export const mockAddSchedulesServiceFormattedData = {
   id_restricao_execucao: 1,
   observacao_execucao: undefined,
   id_tecnico: 1,
+  id_usuario: 1,
+  id_usuario_ultima_atualizacao: 1,
 };
 
 export const mockUpdateSchedulesService = {
@@ -147,6 +153,7 @@ export const mockUpdateSchedulesServiceFormattedData = {
   data_resolucao1: null,
   data_resolucao2: null,
   observacao_restricao: undefined,
+  id_usuario_ultima_atualizacao: 1,
 };
 
 export const mockUpdateSchedulesController: UpdateSchedulesDataDTO = {
@@ -181,6 +188,7 @@ export const mockUpdateSchedulesController: UpdateSchedulesDataDTO = {
     resolutionDate: null,
     resolutionDate2: null,
     observation: '',
+    idUser: 1,
   },
   executionReportData: {
     idUser: 1,

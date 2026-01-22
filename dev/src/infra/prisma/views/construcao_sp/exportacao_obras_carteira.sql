@@ -72,7 +72,8 @@ SELECT
   obras.data_empreitamento,
   empreendimento.empreendimento,
   obras.data_viabilidade,
-  obras.prazo_viabilidade
+  obras.prazo_viabilidade,
+  obras.ano_plan
 FROM
   (
     (
@@ -151,7 +152,8 @@ GROUP BY
   obras.data_empreitamento,
   empreendimento.empreendimento,
   obras.data_viabilidade,
-  obras.prazo_viabilidade
+  obras.prazo_viabilidade,
+  obras.ano_plan
 ORDER BY
   CASE
     WHEN (dp.min_data_prog IS NULL) THEN 1

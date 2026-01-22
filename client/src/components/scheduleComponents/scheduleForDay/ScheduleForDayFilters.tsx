@@ -22,9 +22,7 @@ interface ScheduleByDateFiltersProps {
   generateExcel: (params: any) => void;
   isPending: boolean;
   setPage: (page: number) => void;
-  searchFilteredData: (
-    params: Record<string, string | boolean | string | null>
-  ) => void;
+  searchFilteredData: (params: Record<string, string | boolean | null>) => void;
 }
 
 export default function ScheduleForDayFilters({
@@ -40,7 +38,7 @@ export default function ScheduleForDayFilters({
 
     const { selectedItems } = filters;
 
-    if (selectedItems?.idGrupo) {
+    if (selectedItems?.idGrupo?.length > 0) {
       const idGrupos = selectedItems.idGrupo?.map(Number);
 
       newData.tipo = newData.tipo?.filter((item) =>
@@ -48,7 +46,7 @@ export default function ScheduleForDayFilters({
       );
     }
 
-    if (selectedItems?.idRegional) {
+    if (selectedItems?.idRegional?.length > 0) {
       const idRegionais = selectedItems.idRegional?.map(Number);
 
       newData.municipio = newData.municipio?.filter((item) =>
@@ -152,7 +150,7 @@ export default function ScheduleForDayFilters({
         />
 
         {Object.entries(filteredData)
-          .slice(0, 7)
+          .slice(0, 8)
           .map(([key, value], index) => {
             const valueKey = Object.keys(value[0])[0];
             const displayKey = Object.keys(value[0])[1];

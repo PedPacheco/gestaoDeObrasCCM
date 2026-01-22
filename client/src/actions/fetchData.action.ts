@@ -4,7 +4,7 @@ import { mountUrl } from "@/utils/mountUrl";
 
 export async function fetchData<T>(
   baseUrl: string,
-  params?: Record<string, string | boolean | string | null>,
+  params?: Record<string, string | boolean | null>,
   token?: string,
   cacheStrategy: { revalidate?: number; cache?: "force-cache" | "no-store" } = {
     revalidate: 1800,

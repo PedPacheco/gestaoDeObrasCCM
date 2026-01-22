@@ -1,6 +1,5 @@
 "use client";
 
-import dayjs from "dayjs";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { Cookies } from "react-cookie";
@@ -83,7 +82,7 @@ export default function MainSchduleForDay({
   );
 
   const fetchSchedule = useCallback(
-    (params: Record<string, string | boolean | string | null>) => {
+    (params: Record<string, string | boolean | null>) => {
       startTransition(async () => {
         try {
           const response = await fetchData(
@@ -120,13 +119,14 @@ export default function MainSchduleForDay({
         : undefined,
       page: newPage.toString(),
       ovnota: currentFilters.ovnota || undefined,
+      statusPrazo: currentFilters.deadlindStatus || undefined,
     };
 
     fetchSchedule(newSelectedItems);
   };
 
   return (
-    <>
+    <div className="w-full flex flex-col items-center overflow-y-auto">
       <div className="my-6 w-11/12 flex flex-col">
         <ScheduleForDayFilters
           data={filteredFilters}
@@ -150,7 +150,7 @@ export default function MainSchduleForDay({
       <ModalComponent open={open} onClose={toggleModal} title="Valores totais">
         <div className="flex flex-col items-center justify-center xl:flex-row w-full">
           {Object.entries(columns)
-            .slice(27)
+            .slice(30)
             .map(([column, value]) => {
               const item = filteredData.totals;
               let valueFormatted = item[column];
@@ -176,7 +176,7 @@ export default function MainSchduleForDay({
                   <div className="p-2 border border-solid flex justify-center items-center">
                     <p>
                       {typeof valueFormatted === "number"
-                        ? Number(valueFormatted.toFixed(0)).toLocaleString(
+                        ? Number(valueFormatted.toFixed(2)).toLocaleString(
                             "pt-br"
                           )
                         : valueFormatted}
@@ -196,6 +196,6 @@ export default function MainSchduleForDay({
           icon={<ExclamationCircleIcon width={48} height={48} />}
         />
       )}
-    </>
+    </div>
   );
 }

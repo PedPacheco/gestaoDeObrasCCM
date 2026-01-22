@@ -224,6 +224,12 @@ describe('GetWorksDetailsRepository', () => {
               area_responsavel2: true,
               status_restricao2: true,
               data_resolucao2: true,
+              usuario: {
+                select: { nome_usuario: true },
+              },
+              usuario_ultima_atualizacao: {
+                select: { nome_usuario: true },
+              },
             },
             orderBy: { data_prog: 'asc' },
           },
@@ -342,6 +348,12 @@ describe('GetWorksDetailsRepository', () => {
               area_responsavel2: true,
               status_restricao2: true,
               data_resolucao2: true,
+              usuario: {
+                select: { nome_usuario: true },
+              },
+              usuario_ultima_atualizacao: {
+                select: { nome_usuario: true },
+              },
             },
             orderBy: { data_prog: 'asc' },
           },

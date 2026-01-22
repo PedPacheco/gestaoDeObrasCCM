@@ -25,6 +25,7 @@ import { useState } from "react";
 import ErrorModal from "@/components/common/ErrorModal";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { AsBuildImport } from "./asBuildImport";
+import { useUser } from "@/contexts/userContext";
 
 export type ExecutionReportData = z.infer<typeof executionReportSchema>;
 
@@ -54,8 +55,9 @@ export function ExecutionReportDialog({
   totalExec,
 }: ExecutionReportDialogProps) {
   const [error, setError] = useState<string | null>();
-
   const [files, setFiles] = useState<File[]>([]);
+
+  const { user } = useUser();
 
   const {
     formData,
@@ -183,8 +185,13 @@ export function ExecutionReportDialog({
 
               handleSubmit(result.data, "executionReport", files);
             } else {
+              const formDataWithUser = {
+                ...formData,
+                idUser: user?.id,
+              };
+
               const validationSchema = validationSchedulesSchema(null, false);
-              const result = validationSchema.safeParse(formData);
+              const result = validationSchema.safeParse(formDataWithUser);
 
               if (!result.success) {
                 const fieldErrors: Record<string, string> = {};
@@ -216,7 +223,7 @@ export function ExecutionReportDialog({
                 return;
               }
 
-              handleSubmit(result.data, "schedule", files);
+              // handleSubmit(result.data, "schedule", files);
             }
           }}
           disabled={isPending}

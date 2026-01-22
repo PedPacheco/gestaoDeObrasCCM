@@ -121,6 +121,12 @@ describe('FiltersService', () => {
       cacheKey: 'tecnicos',
       data: [{ id: 1, tecnico: 'Tecnico 1' }],
     },
+    {
+      name: 'statusSap',
+      dto: { statusSap: true },
+      cacheKey: 'status_sap',
+      data: [{ id: 1, codigo_sap: 51 }],
+    },
   ];
 
   testCases.forEach(({ name, dto, cacheKey, data }) => {
