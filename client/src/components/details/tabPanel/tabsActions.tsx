@@ -64,7 +64,8 @@ const TabActions = memo(
               <ButtonComponent
                 onClick={onRejected}
                 disabled={
-                  statusWork !== 43 ||
+                  statusWork === 2 ||
+                  statusWork === 3 ||
                   permissions?.permissao_visualizacao === "parcial" ||
                   permissions.permissao === "Sem permissão"
                 }

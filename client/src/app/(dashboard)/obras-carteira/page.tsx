@@ -100,7 +100,7 @@ export default async function WorksInPortfolio() {
         filtersData={{ ...filters, status: filteredStatus }}
         cookie="portfolioWorksFilters"
         columns={columnMapping}
-        totalValues={32}
+        totalValues={31}
         url="obras-carteira"
       />
     </EmotionCacheProvider>

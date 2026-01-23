@@ -173,11 +173,12 @@ export default function SchedulePanelItem({
     );
   };
 
-  const disabledCheckBox = (key: string, status_prog?: string): boolean => {
+  const disabledCheckBox = (key: string, status_prog: string): boolean => {
     return (
-      ((key === "validada" || key === "reprovada") &&
-        status_prog !== "Em validação") ||
+      (key === "validada" && status_prog !== "Em validação") ||
       (key === "confirmada" && status_prog === "Programado") ||
+      (key === "reprovada" &&
+        ["Parcial", "Concluído", "Cancelado"].includes(status_prog)) ||
       permissions?.permissao_visualizacao === "parcial"
     );
   };

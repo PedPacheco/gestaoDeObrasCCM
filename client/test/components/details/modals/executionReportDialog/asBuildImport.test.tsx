@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { AsBuildImport } from "@/components/details/modals/executionReportDialog/asBuildImport";
+import { AsBuildImport } from "@/components/details/modals/executionReportDialog/asBuiltImport";
 import { Dispatch, SetStateAction } from "react";
 
 // Mock do ErrorModal

@@ -114,6 +114,7 @@ describe('GetWorksInPortfolioRepository', () => {
         idCircuito: [7],
         idConjunto: [8],
         idEmpreendimento: [9],
+        idStatusSap: [51],
         page: 1,
         insufficientPermission: true,
         dataFinal: null,
@@ -127,7 +128,7 @@ describe('GetWorksInPortfolioRepository', () => {
       const result = await repository.getWorksInPortfolio(filters);
 
       const expectedQuery = `${baseQuery} AND status.id != 42 AND status.id != 4 AND municipios.id_regional IN () AND id_tipo IN () AND id_turma IN () AND tipos.id_grupo IN () AND municipios.id IN ()
-        AND status.id IN () AND id_circuito IN () AND circuitos.id_conjunto IN () AND id_empreendimento IN () AND obras.ovnota =  
+        AND status.id IN () AND id_circuito IN () AND circuitos.id_conjunto IN () AND id_empreendimento IN () AND obras.ovnota =  AND obras.status_ov_sap IN () AND tipos.id_grupo = 1
         GROUP BY obras.id, ovnota, diagrama, ordem_dci, ordem_dcim, ordem_dca, ordem_dcd, status_ov_sap, pep, 
         mun, id_status, prazo, abrev_regional, tipo_obra, tipos.id_grupo, qtde_planejada, qtde_pend, circuito, mo_planejada, status, conjunto, 
         empreendimento, turma, ano_plan, prog_count.contagem_ocorrencias ORDER BY status DESC, entrada + prazo LIMIT 200 OFFSET ;`;
@@ -138,7 +139,20 @@ describe('GetWorksInPortfolioRepository', () => {
       expect(normalizeSQL(querySent.strings.join(''))).toContain(
         normalizeSQL(expectedQuery),
       );
-      expect(querySent.values).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, '10', 200]);
+      expect(querySent.values).toEqual([
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        '10',
+        51,
+        200,
+      ]);
     });
 
     it('should not apply filters when values filters are not sent', async () => {

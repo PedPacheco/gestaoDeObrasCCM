@@ -43,7 +43,6 @@ const reasonsForFailure: string[] = [
 export default function FailureModalComponent({
   open,
   onClose,
-
   handleReject,
   rejectedSchedule,
 }: FailureModalComponentProps) {
