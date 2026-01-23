@@ -56,6 +56,7 @@ describe('GetWorksInPortfolioService', () => {
       data_empreitamento: '2024-08-06T00:00:00.000Z',
       empreendimento: null,
       turma: 'ENGELMIG',
+      status_prazo: undefined,
     },
   ];
 
@@ -86,6 +87,8 @@ describe('GetWorksInPortfolioService', () => {
       GetWorksInPortfolioService,
     );
     cacheManager = module.get<Cache>(CACHE_MANAGER);
+
+    jest.useFakeTimers().setSystemTime(new Date('2024-01-01T00:00:00.000Z'));
   });
 
   afterEach(() => {
@@ -218,5 +221,95 @@ describe('GetWorksInPortfolioService', () => {
         total_qtde_pend: 0,
       },
     });
+  });
+
+  it('should return "Prazo vencido" when prazo_fim is in the past', async () => {
+    const mockWork = {
+      id_grupo: 1,
+      prazo_fim: '2023-12-20T00:00:00.000Z', // 11 dias no passado
+    };
+
+    mockRepository.getWorksInPortfolio.mockResolvedValueOnce({
+      works: [mockWork],
+      totals: mockCountQuery,
+    });
+
+    const { works } = await getWorksInPortfolioService.getWorksInPortfolio(
+      {} as any,
+    );
+
+    expect(works[0].status_prazo).toBe('Prazo vencido');
+  });
+
+  it('should return "Crítico" when 0 <= daysRemaining <= 16', async () => {
+    const mockWork = {
+      id_grupo: 1,
+      prazo_fim: '2024-01-10T00:00:00.000Z', // 9 dias restantes
+    };
+
+    mockRepository.getWorksInPortfolio.mockResolvedValueOnce({
+      works: [mockWork],
+      totals: mockCountQuery,
+    });
+
+    const { works } = await getWorksInPortfolioService.getWorksInPortfolio(
+      {} as any,
+    );
+
+    expect(works[0].status_prazo).toBe('Crítico: 9 dia(s) restante(s)');
+  });
+
+  it('should return "Atenção" when 17 <= daysRemaining <= 30', async () => {
+    const mockWork = {
+      id_grupo: 1,
+      prazo_fim: '2024-01-25T00:00:00.000Z', // 24 dias restantes
+    };
+
+    mockRepository.getWorksInPortfolio.mockResolvedValueOnce({
+      works: [mockWork],
+      totals: mockCountQuery,
+    });
+
+    const { works } = await getWorksInPortfolioService.getWorksInPortfolio(
+      {} as any,
+    );
+
+    expect(works[0].status_prazo).toBe('Atenção: 24 dias restantes');
+  });
+
+  it('should return "No prazo" when daysRemaining > 30', async () => {
+    const mockWork = {
+      id_grupo: 1,
+      prazo_fim: '2024-03-01T00:00:00.000Z', // 60 dias restantes
+    };
+
+    mockRepository.getWorksInPortfolio.mockResolvedValueOnce({
+      works: [mockWork],
+      totals: mockCountQuery,
+    });
+
+    const { works } = await getWorksInPortfolioService.getWorksInPortfolio(
+      {} as any,
+    );
+
+    expect(works[0].status_prazo).toBe('No prazo: (60 dias restantes)');
+  });
+
+  it('should not set status_prazo if id_grupo !== 1', async () => {
+    const mockWork = {
+      id_grupo: 2, // Não deve calcular status_prazo
+      prazo_fim: '2024-02-01T00:00:00.000Z',
+    };
+
+    mockRepository.getWorksInPortfolio.mockResolvedValueOnce({
+      works: [mockWork],
+      totals: mockCountQuery,
+    });
+
+    const { works } = await getWorksInPortfolioService.getWorksInPortfolio(
+      {} as any,
+    );
+
+    expect(works[0].status_prazo).toBeUndefined();
   });
 });

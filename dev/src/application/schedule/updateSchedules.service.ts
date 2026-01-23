@@ -111,11 +111,13 @@ export class UpdateSchedulesService {
       id_tecnico: schedule.idTechnical,
       observacao_restricao: schedule.observationRestriction,
       reprovada: false,
+      id_usuario_ultima_atualizacao: schedule.idUser,
     };
 
     if (reprovada === true) {
       formattedData.reprovada = false;
     }
+
     try {
       await this.updateSchedulesRepository.update(formattedData, tx);
 

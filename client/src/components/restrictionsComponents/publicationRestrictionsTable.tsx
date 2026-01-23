@@ -125,6 +125,13 @@ export default function PublicationRestrictionsTable({
               {data.map((item: any, rowIndex: number) => (
                 <TableRow
                   key={rowIndex}
+                  sx={{
+                    "& > td": {
+                      maxHeight: "4rem",
+                      padding: "4px 8px",
+                      lineHeight: "1.1",
+                    },
+                  }}
                   className="hover:bg-gray-50 transition-colors duration-200"
                 >
                   {Object.keys(columns)
@@ -152,7 +159,7 @@ export default function PublicationRestrictionsTable({
                       return (
                         <TableCell
                           key={index}
-                          className={`py-1 px-2 text-center font-medium text-lg min-w-36 text-nowrap ${
+                          className={`py-0 px-2 text-center font-medium text-lg min-w-36 text-nowrap ${
                             column === "ovnota"
                               ? "hover:cursor-pointer sticky left-0 z-20 bg-white"
                               : ""

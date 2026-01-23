@@ -57,6 +57,8 @@ export class AddSchedulesService {
       observacao_execucao: schedule.observationExecution,
       observacao_programacao: schedule.observation,
       id_tecnico: schedule.idTechnical,
+      id_usuario: schedule.idUser,
+      id_usuario_ultima_atualizacao: schedule.idUser,
     };
 
     await this.addSchedulesRepository.addSchedules(formattedData, tx);

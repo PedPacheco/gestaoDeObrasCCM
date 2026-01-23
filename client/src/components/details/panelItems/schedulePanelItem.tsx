@@ -25,6 +25,8 @@ dayjs.extend(utc);
 
 const columnConfig = [
   { key: "criado_em", label: "Data de criação", type: "text" },
+  { key: "criado_por", label: "Criado Por", type: "text" },
+  { key: "editado_por", label: "Editado Por", type: "text" },
   { key: "reprovada", label: "Reprovar", type: "checkbox" },
   { key: "validada", label: "Validar", type: "checkbox" },
   { key: "confirmada", label: "Confirmar", type: "checkbox" },

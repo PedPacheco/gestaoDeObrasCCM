@@ -32,6 +32,7 @@ export default async function WorksInPortfolio() {
       conjunto: true,
       status: true,
       empreendimento: true,
+      statusSap: true,
     }),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/obras/obras-carteira`,
@@ -62,9 +63,9 @@ export default async function WorksInPortfolio() {
     pep: "Pep",
     mun: "Municipio",
     turma: "Parceira",
-    entrada: "Entrada",
     prazo: "Prazo",
     prazo_fim: "Prazo Fim",
+    status_prazo: "Status prazo",
     ano_plan: "Ano do Plano",
     abrev_regional: "Regional",
     tipo_obra: "Tipo",

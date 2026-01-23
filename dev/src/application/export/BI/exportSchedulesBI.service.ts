@@ -43,7 +43,7 @@ export class ExportSchedulesBIService {
       { header: 'CHAVEPROVISORIA', key: 'chave_provisoria', width: 10 },
       { header: 'EQUIPELINHAMORTO', key: 'equipe_linha_morta', width: 10 },
       {
-        header: 'EQUIOPELINHAVIVA',
+        header: 'EQUIPELINHAVIVA',
         key: 'equipe_linha_viva',
         width: 10,
       },

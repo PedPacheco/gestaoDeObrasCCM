@@ -32,6 +32,7 @@ export class FiltersService {
       tecnico,
       statusProgramacao,
       tipoRestricao,
+      statusSap,
     }: FiltersDto,
     condition?: any,
   ) {
@@ -161,6 +162,12 @@ export class FiltersService {
         this.filtersRepository.getData('tecnicos', ['id', 'tecnico'], {
           id_regional: condition,
         }),
+      );
+    }
+
+    if (statusSap) {
+      result['statusSap'] = await this.getCachedData('status_sap', () =>
+        this.filtersRepository.getData('status_sap', ['id', 'codigo_sap']),
       );
     }
 

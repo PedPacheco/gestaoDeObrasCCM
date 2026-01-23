@@ -9,10 +9,10 @@ export interface worksInPortfolioInterface {
   pep: string;
   executado: number;
   mun: string;
-  entrada: Date;
   prazo: number;
   prazo_fim: number;
   tipo_obra: string;
+  id_grupo: number;
   qtde_planejada: number;
   contagem_ocorrencias: number;
   total_prog: number;
@@ -35,6 +35,7 @@ export interface worksInPortfolioInterface {
   mo_exec?: number;
   mo_suspensa?: number;
   atraso?: boolean;
+  status_prazo: string;
 }
 
 export interface totalsWorksInPortfolio {

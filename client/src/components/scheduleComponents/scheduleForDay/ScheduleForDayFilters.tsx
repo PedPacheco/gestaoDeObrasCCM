@@ -14,8 +14,6 @@ import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
 import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
 import { Checkbox, TextField } from "@mui/material";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateFilter } from "@/components/common/DateFilter";
 
 interface ScheduleByDateFiltersProps {
@@ -24,9 +22,7 @@ interface ScheduleByDateFiltersProps {
   generateExcel: (params: any) => void;
   isPending: boolean;
   setPage: (page: number) => void;
-  searchFilteredData: (
-    params: Record<string, string | boolean | string | null>
-  ) => void;
+  searchFilteredData: (params: Record<string, string | boolean | null>) => void;
 }
 
 export default function ScheduleForDayFilters({
@@ -40,10 +36,21 @@ export default function ScheduleForDayFilters({
   const applyFilters = useCallback((data: FiltersInterface, filters: any) => {
     let newData = { ...data };
 
-    if (filters?.idGrupo) {
-      const idGrupos = filters.idGrupo.map(Number);
-      newData.tipo = data.tipo?.filter((item) =>
+    const { selectedItems } = filters;
+
+    if (selectedItems?.idGrupo?.length > 0) {
+      const idGrupos = selectedItems.idGrupo?.map(Number);
+
+      newData.tipo = newData.tipo?.filter((item) =>
         idGrupos.includes(item.id_grupo)
+      );
+    }
+
+    if (selectedItems?.idRegional?.length > 0) {
+      const idRegionais = selectedItems.idRegional?.map(Number);
+
+      newData.municipio = newData.municipio?.filter((item) =>
+        idRegionais.includes(item.id_regional)
       );
     }
 
@@ -143,7 +150,7 @@ export default function ScheduleForDayFilters({
         />
 
         {Object.entries(filteredData)
-          .slice(0, 7)
+          .slice(0, 8)
           .map(([key, value], index) => {
             const valueKey = Object.keys(value[0])[0];
             const displayKey = Object.keys(value[0])[1];

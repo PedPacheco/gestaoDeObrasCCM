@@ -36,9 +36,9 @@ describe('ExportWorksInPortfolio', () => {
         abrev_regional: 'SP',
         conjunto: 'Conjunto 1',
         circuito: 'Circuito A',
-        entrada: new Date('2024-01-15T00:00:00.000Z'),
         prazo_fim: 90,
         tipo_obra: 'Manutenção Geral',
+        id_grupo: 1,
         qtde_planejada: 10,
         qtde_pend: 2,
         mo_planejada: 5,
@@ -58,6 +58,7 @@ describe('ExportWorksInPortfolio', () => {
         total_exec: 80,
         total_pend: 20,
         total_prog: 0,
+        status_prazo: 'Atenção: 23 dias restantes',
       },
     ];
 

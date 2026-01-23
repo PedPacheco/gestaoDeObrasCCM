@@ -102,7 +102,9 @@ describe('GoalsRepository', () => {
 
       const call = mockPrisma.$queryRaw.mock.calls[0][0];
       const sqlString = call.strings.join('');
-      expect(sqlString).toContain('AND id_tipo = 48');
+      expect(sqlString).toContain(
+        'AND (id_tipo = 48 OR id_tipo = 25 OR id_tipo = 50)',
+      );
     });
 
     it('should handle rda filter correctly', async () => {
@@ -114,7 +116,7 @@ describe('GoalsRepository', () => {
       const call = mockPrisma.$queryRaw.mock.calls[0][0];
       const sqlString = call.strings.join('');
       expect(sqlString).toContain(
-        'AND id_tipo = 54 AND id_tipo = 55 AND id_tipo = 35 AND empreendimento IS NOT NULL',
+        'AND (id_tipo = 54 OR id_tipo = 55 OR id_tipo = 35) AND empreendimento IS NOT NULL',
       );
     });
 
@@ -178,7 +180,9 @@ describe('GoalsRepository', () => {
 
       const call = mockPrisma.$queryRaw.mock.calls[0][0];
       const sqlString = call.strings.join('');
-      expect(sqlString).toContain('AND id_tipo = 48');
+      expect(sqlString).toContain(
+        'AND (id_tipo = 48 OR id_tipo = 25 OR id_tipo = 50)',
+      );
       expect(sqlString).toContain('AND metas_anuais.id_regional IN (');
       expect(sqlString).toContain('AND metas_anuais.id_tipo IN (');
       expect(sqlString).toContain('AND metas_anuais.id_turma IN (');
@@ -261,9 +265,11 @@ describe('GoalsRepository', () => {
       const query = mockPrisma.$queryRaw.mock.calls[0][0];
       const sqlString = query.strings.join('');
 
-      expect(sqlString).toContain('AND id_tipo = 48');
       expect(sqlString).toContain(
-        'AND id_tipo = 54 AND id_tipo = 55 AND id_tipo = 35 AND empreendimento IS NOT NULL',
+        'AND (id_tipo = 48 OR id_tipo = 25 OR id_tipo = 50)',
+      );
+      expect(sqlString).toContain(
+        'AND (id_tipo = 54 OR id_tipo = 55 OR id_tipo = 35) AND empreendimento IS NOT NULL',
       );
       expect(sqlString).toContain('AND metas_anuais.id_regional IN');
       expect(sqlString).toContain('AND metas_anuais.id_tipo IN');

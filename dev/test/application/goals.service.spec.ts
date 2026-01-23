@@ -176,7 +176,7 @@ describe('GoalsService', () => {
         },
       ];
 
-      const result = service['transformData'](input);
+      const result = service['transformData'](input, false);
 
       expect(result).toEqual([
         {
@@ -252,9 +252,9 @@ describe('GoalsService', () => {
         },
       ];
 
-      const result = service['transformData'](input);
+      const result = service['transformData'](input, false);
 
-      expect(result[0]).not.toHaveProperty('empreendimento');
+      expect(result[0].empreendimento).toBeUndefined();
     });
 
     it('should handle multiple items correctly', () => {
@@ -305,13 +305,13 @@ describe('GoalsService', () => {
           dezfisreal: 80,
         },
         {
-          id_tipo: 2,
-          tipo_obra: 'Obra 2',
-          turma: 'Turma 2',
-          regional: 'Regional 2',
-          empreendimento: 'Empreendimento 2',
+          id_tipo: 1,
+          tipo_obra: 'Obra 1',
+          turma: 'Turma 1',
+          regional: 'Regional 1',
+          empreendimento: 'Empreendimento 1',
           anocalc: 2023,
-          carteira: 2000,
+          carteira: null,
           janfismeta: 200,
           janfisprog: 180,
           janfisreal: 160,
@@ -339,9 +339,9 @@ describe('GoalsService', () => {
           setfismeta: 200,
           setfisprog: 180,
           setfisreal: 160,
-          outfismeta: 200,
-          outfisprog: 180,
-          outfisreal: 160,
+          outfismeta: null,
+          outfisprog: null,
+          outfisreal: null,
           novfismeta: 200,
           novfisprog: 180,
           novfisreal: 160,
@@ -351,14 +351,12 @@ describe('GoalsService', () => {
         },
       ];
 
-      const result = service['transformData'](input);
+      const result = service['transformData'](input, true);
 
-      expect(result.length).toBe(2);
-      expect(result[0].id_tipo).toBe(1);
-      expect(result[1].id_tipo).toBe(2);
+      expect(result.length).toBe(1);
+      expect(result[0].id_tipo).toBe(48);
 
-      expect(result[0].jan).toEqual({ meta: 100, prog: 90, real: 80 });
-      expect(result[1].jan).toEqual({ meta: 200, prog: 180, real: 160 });
+      expect(result[0].jan).toEqual({ meta: 300, prog: 270, real: 240 });
     });
   });
 });
