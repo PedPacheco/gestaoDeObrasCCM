@@ -258,20 +258,53 @@ describe('ExecutionReportRepository', () => {
 
   describe('delete', () => {
     it('Should call delete method and delete item', async () => {
-      mockPrisma.programacoes.update = jest
-        .fn()
-        .mockReturnValue('update_result');
-      mockPrisma.relatorio_execucao.delete = jest
-        .fn()
-        .mockReturnValue('delete_result');
-      mockPrisma.$transaction = jest.fn().mockResolvedValue(undefined);
+      const tx = {
+        programacoes: {
+          findUnique: jest.fn().mockResolvedValue({
+            exec: 20,
+            id_obra: 1,
+          }),
+          update: jest.fn(),
+        },
+        obras: {
+          update: jest.fn(),
+        },
+        relatorio_execucao: {
+          delete: jest.fn(),
+        },
+      };
+
+      mockPrisma.$transaction.mockImplementation(async (cb) => {
+        return cb(tx);
+      });
 
       await repository.delete(1, 3);
 
-      expect(mockPrisma.$transaction).toHaveBeenCalledWith([
-        'update_result',
-        'delete_result',
-      ]);
+      expect(tx.programacoes.findUnique).toHaveBeenCalledWith({
+        where: { id: 3 },
+        select: { exec: true, id_obra: true },
+      });
+
+      expect(tx.programacoes.update).toHaveBeenCalledWith({
+        where: { id: 3 },
+        data: {
+          exec: null,
+          id_status_programacao: 3,
+        },
+      });
+
+      expect(tx.obras.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: {
+          id_status: 35,
+          data_conclusao: null,
+          executado: { decrement: 20 },
+        },
+      });
+
+      expect(tx.relatorio_execucao.delete).toHaveBeenCalledWith({
+        where: { id: 1 },
+      });
     });
   });
 });

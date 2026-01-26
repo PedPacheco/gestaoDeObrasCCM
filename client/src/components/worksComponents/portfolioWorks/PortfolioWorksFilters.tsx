@@ -185,7 +185,7 @@ export default function PortfolioWorksFilters({
           const displayKey = hasValues ? Object.keys(value[0])[1] : undefined;
 
           const filterValue = `${valueKey}${
-            key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()
+            key.charAt(0).toUpperCase() + key.slice(1)
           }`;
 
           return (

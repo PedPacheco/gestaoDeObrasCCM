@@ -27,6 +27,7 @@ export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioReposi
       idConjunto,
       idEmpreendimento,
       insufficientPermission,
+      idStatusSap,
     } = filters;
 
     if (insufficientPermission) {
@@ -71,6 +72,10 @@ export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioReposi
 
     if (ovnota) {
       query = Prisma.sql`${query} AND obras.ovnota = ${ovnota}`;
+    }
+
+    if (idStatusSap) {
+      query = Prisma.sql`${query} AND obras.status_ov_sap IN (${Prisma.join(idStatusSap)}) AND tipos.id_grupo = 1`;
     }
 
     return query;

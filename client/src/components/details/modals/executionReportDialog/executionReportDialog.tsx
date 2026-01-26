@@ -24,7 +24,7 @@ import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
 import { useState } from "react";
 import ErrorModal from "@/components/common/ErrorModal";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
-import { AsBuildImport } from "./asBuildImport";
+import { AsBuiltImport } from "./asBuiltImport";
 import { useUser } from "@/contexts/userContext";
 
 export type ExecutionReportData = z.infer<typeof executionReportSchema>;
@@ -158,7 +158,7 @@ export function ExecutionReportDialog({
           expanded={expanded}
           onChange={handleAccordionChange}
         >
-          <AsBuildImport files={files} setFiles={setFiles} />
+          <AsBuiltImport files={files} setFiles={setFiles} />
         </AccordionPanel>
       </DialogContent>
 
@@ -223,7 +223,7 @@ export function ExecutionReportDialog({
                 return;
               }
 
-              // handleSubmit(result.data, "schedule", files);
+              handleSubmit(result.data, "schedule", files);
             }
           }}
           disabled={isPending}

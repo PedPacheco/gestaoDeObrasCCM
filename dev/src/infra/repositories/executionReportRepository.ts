@@ -25,18 +25,33 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
   }
 
   async delete(id: number, idSchedule: number) {
-    await this.prisma.$transaction([
-      this.prisma.programacoes.update({
+    await this.prisma.$transaction(async (tx) => {
+      const schedule = await tx.programacoes.findUnique({
+        where: { id: idSchedule },
+        select: { exec: true, id_obra: true },
+      });
+
+      await tx.programacoes.update({
         where: { id: idSchedule },
         data: {
           exec: null,
           id_status_programacao: 3,
         },
-      }),
-      this.prisma.relatorio_execucao.delete({
+      });
+
+      await tx.obras.update({
+        where: { id: schedule.id_obra },
+        data: {
+          id_status: 35,
+          data_conclusao: null,
+          executado: { decrement: schedule.exec },
+        },
+      });
+
+      await tx.relatorio_execucao.delete({
         where: { id },
-      }),
-    ]);
+      });
+    });
   }
 
   async findByScheduleId(

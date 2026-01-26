@@ -15,7 +15,7 @@ interface ExecutionReportUploadPanelProps {
   files: File[];
 }
 
-export function AsBuildImport({
+export function AsBuiltImport({
   files,
   setFiles,
 }: ExecutionReportUploadPanelProps) {
@@ -85,7 +85,7 @@ export function AsBuildImport({
       <div className="flex items-center gap-2 mb-6">
         <DocumentArrowUpIcon className="w-7 h-7 text-blue-400" />
         <h3 className="text-2xl font-bold text-zinc-700">
-          Importar Arquivos As Build
+          Importar Arquivos As Built
         </h3>
       </div>
 
@@ -128,7 +128,6 @@ export function AsBuildImport({
       <div className="flex justify-between">
         <div className="mt-4 text-sm text-zinc-700 space-y-1">
           <p>✔ Máximo de 3 arquivos</p>
-          <p>✔ Formatos: PDF ou JPEG</p>
           <p>✔ Tamanho máximo dos arquivos: 5MB</p>
         </div>
       </div>
