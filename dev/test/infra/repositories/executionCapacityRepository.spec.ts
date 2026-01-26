@@ -77,10 +77,11 @@ describe('ExecutionCapacityRepository', () => {
         mockResponseDataExecutionCapacityRepository,
       );
 
-      const response = await repository.getFinancialValue();
+      const response = await repository.getFinancialValue('2026');
 
       expect(response).toEqual(mockResponseDataExecutionCapacityRepository);
       expect(mockPrisma.capacidade_execucao.findMany).toHaveBeenCalledWith({
+        where: { ano: '2026' },
         select: {
           id: true,
           ano: true,

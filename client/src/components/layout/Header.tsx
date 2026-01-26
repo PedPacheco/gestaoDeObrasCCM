@@ -24,8 +24,6 @@ export function Header() {
           <Bars3Icon className="block h-10 w-10" aria-hidden="true" />
         </button>
 
-        <Image src="/Logo.png" alt="Logo sistema" width={360} height={92} />
-
         <div className="p-2 lg:pr-6">
           <Link href="/">
             <Image src="/edpLogo.png" alt="Edp Logo" width={120} height={92} />

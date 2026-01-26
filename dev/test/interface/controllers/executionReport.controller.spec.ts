@@ -10,6 +10,8 @@ describe('ExecutionReportController', () => {
   let controller: ExecutionReportController;
   let service: ExecutionReportService;
 
+  const mockFiles: Express.Multer.File[] = [];
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ExecutionReportController],
@@ -50,11 +52,18 @@ describe('ExecutionReportController', () => {
     it('Should call update service method with id and data received and return a successful reponse with the expected structure', async () => {
       jest.spyOn(service, 'update').mockResolvedValue(null);
 
-      const result = await controller.update(1, mockUpdateExecutionReportDTO);
+      const result = await controller.update(
+        1,
+        {
+          executionReportData: mockUpdateExecutionReportDTO,
+        },
+        mockFiles,
+      );
 
       expect(service.update).toHaveBeenCalledWith(
         1,
         mockUpdateExecutionReportDTO,
+        [],
       );
       expect(result).toEqual({
         message: 'Atualização do relatório feita com sucesso',

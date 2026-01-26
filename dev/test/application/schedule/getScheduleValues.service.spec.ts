@@ -35,6 +35,7 @@ describe('GetScheduleValues', () => {
       equipe_linha_viva: 1,
       equipe_regularizacao: 0,
       id_tecnico: 1,
+      restricao_aberta: true,
     } as unknown as obras,
   ];
 
@@ -60,6 +61,8 @@ describe('GetScheduleValues', () => {
     }).compile();
 
     service = module.get<GetScheduleValuesService>(GetScheduleValuesService);
+
+    jest.useFakeTimers().setSystemTime(new Date('2024-01-01T00:00:00.000Z'));
   });
 
   afterEach(() => {
@@ -68,8 +71,8 @@ describe('GetScheduleValues', () => {
 
   it('should return the correct values with filters', async () => {
     const filters: GetScheduleValuesDTO = {
-      data: '10/2024',
-      tipoFiltro: 'month',
+      dataInicial: '01/10/2024',
+      dataFinal: '02/10/2024',
       executado: true,
       pendente: false,
       page: 0,
@@ -96,8 +99,8 @@ describe('GetScheduleValues', () => {
 
   it('should correctly format the data if no data is returned from the database query', async () => {
     const filters: GetScheduleValuesDTO = {
-      data: '01/10/2024',
-      tipoFiltro: 'day',
+      dataInicial: '01/10/2024',
+      dataFinal: '02/10/2024',
       executado: false,
       pendente: false,
       page: 0,
@@ -134,5 +137,191 @@ describe('GetScheduleValues', () => {
         total_qtde_planejada: 0,
       },
     });
+  });
+
+  it('should set restricao_aberta = false when restriction IDs are 1 (restriction bypass rule)', async () => {
+    const mockWork = {
+      id: 1,
+      id_restricao_prog1: 1,
+      id_restricao_prog2: 1,
+      status_restricao1: 'Qualquer',
+      status_restricao2: 'Qualquer',
+      data_resolucao1: null,
+      data_resolucao2: null,
+    };
+
+    mockRepository.getValues.mockResolvedValueOnce({
+      works: [mockWork],
+      resultTotals: [
+        {
+          total_obras: 1,
+          total_mo_planejada: 0,
+          total_mo_exec: 0,
+          total_qtde_planejada: 0,
+        },
+      ],
+    });
+
+    const result = await service.getValues({} as any);
+
+    expect(result.works[0].restricao_aberta).toBe(false);
+  });
+
+  it('should set restricao_aberta = false when restriction IDs != 1 and statuses are resolved and dates exist', async () => {
+    const mockWork = {
+      id: 1,
+      id_restricao_prog1: 5,
+      id_restricao_prog2: 8,
+      status_restricao1: 'Resolvido',
+      status_restricao2: 'Resolvido',
+      data_resolucao1: new Date(),
+      data_resolucao2: new Date(),
+    };
+
+    mockRepository.getValues.mockResolvedValueOnce({
+      works: [mockWork],
+      resultTotals: [
+        {
+          total_obras: 1,
+          total_mo_planejada: 0,
+          total_mo_exec: 0,
+          total_qtde_planejada: 0,
+        },
+      ],
+    });
+
+    const result = await service.getValues({} as any);
+
+    expect(result.works[0].restricao_aberta).toBe(false);
+  });
+
+  it('should set restricao_aberta = true when restriction IDs != 1 but status_restricao1 resolved and data_resolucao1 exist', async () => {
+    const mockWork = {
+      id: 1,
+      id_restricao_prog1: 7,
+      status_restricao1: 'Resolvido',
+      data_resolucao1: new Date(),
+    };
+
+    mockRepository.getValues.mockResolvedValueOnce({
+      works: [mockWork],
+      resultTotals: [
+        {
+          total_obras: 1,
+          total_mo_planejada: 0,
+          total_mo_exec: 0,
+          total_qtde_planejada: 0,
+        },
+      ],
+    });
+
+    const result = await service.getValues({} as any);
+
+    expect(result.works[0].restricao_aberta).toBe(true);
+  });
+
+  it('should set restricao_aberta = true when restriction IDs != 1 but status_restricao2 resolved and data_resolucao2 exist', async () => {
+    const mockWork = {
+      id: 1,
+      id_restricao_prog2: 3,
+      status_restricao2: 'Resolvido',
+      data_resolucao2: new Date(),
+    };
+
+    mockRepository.getValues.mockResolvedValueOnce({
+      works: [mockWork],
+      resultTotals: [
+        {
+          total_obras: 1,
+          total_mo_planejada: 0,
+          total_mo_exec: 0,
+          total_qtde_planejada: 0,
+        },
+      ],
+    });
+
+    const result = await service.getValues({} as any);
+
+    expect(result.works[0].restricao_aberta).toBe(true);
+  });
+
+  it('should return "Prazo vencido" when prazo_fim is in the past', async () => {
+    const mockWork = {
+      id_grupo: 1,
+      prazo_fim: '2023-12-20T00:00:00.000Z', // 11 dias no passado
+    };
+
+    mockRepository.getValues.mockResolvedValueOnce({
+      works: [mockWork],
+      resultTotals: mockCount,
+    });
+
+    const { works } = await service.getValues({} as any);
+
+    expect(works[0].status_prazo).toBe('Prazo vencido');
+  });
+
+  it('should return "Crítico" when 0 <= daysRemaining <= 16', async () => {
+    const mockWork = {
+      id_grupo: 1,
+      prazo_fim: '2024-01-10T00:00:00.000Z', // 9 dias restantes
+    };
+
+    mockRepository.getValues.mockResolvedValueOnce({
+      works: [mockWork],
+      resultTotals: mockCount,
+    });
+
+    const { works } = await service.getValues({} as any);
+
+    expect(works[0].status_prazo).toBe('Crítico: 9 dia(s) restante(s)');
+  });
+
+  it('should return "Atenção" when 17 <= daysRemaining <= 30', async () => {
+    const mockWork = {
+      id_grupo: 1,
+      prazo_fim: '2024-01-25T00:00:00.000Z', // 24 dias restantes
+    };
+
+    mockRepository.getValues.mockResolvedValueOnce({
+      works: [mockWork],
+      resultTotals: mockCount,
+    });
+
+    const { works } = await service.getValues({} as any);
+
+    expect(works[0].status_prazo).toBe('Atenção: 24 dias restantes');
+  });
+
+  it('should return "No prazo" when daysRemaining > 30', async () => {
+    const mockWork = {
+      id_grupo: 1,
+      prazo_fim: '2024-03-01T00:00:00.000Z', // 60 dias restantes
+    };
+
+    mockRepository.getValues.mockResolvedValueOnce({
+      works: [mockWork],
+      resultTotals: mockCount,
+    });
+
+    const { works } = await service.getValues({} as any);
+
+    expect(works[0].status_prazo).toBe('No prazo: (60 dias restantes)');
+  });
+
+  it('should not set status_prazo if id_grupo !== 1', async () => {
+    const mockWork = {
+      id_grupo: 2, // Não deve calcular status_prazo
+      prazo_fim: '2024-02-01T00:00:00.000Z',
+    };
+
+    mockRepository.getValues.mockResolvedValueOnce({
+      works: [mockWork],
+      resultTotals: mockCount,
+    });
+
+    const { works } = await service.getValues({} as any);
+
+    expect(works[0].status_prazo).toBeUndefined();
   });
 });

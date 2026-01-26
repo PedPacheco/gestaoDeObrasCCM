@@ -46,7 +46,16 @@ export class AuxiliaryNotesInsertService {
       };
     }
 
-    const notesData = validationResult.validatedData.map((item) => item);
+    const notesData = validationResult.validatedData.map((item) => {
+      if (item.conjunto === '37') {
+        return {
+          ...item,
+          conjunto: '0',
+          ehRda: true,
+        };
+      }
+      return { ...item, ehRda: false };
+    });
 
     await this.auxiliaryBaseRepository.insertNotes(notesData);
 

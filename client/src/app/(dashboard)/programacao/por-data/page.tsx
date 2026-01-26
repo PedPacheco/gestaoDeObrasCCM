@@ -6,6 +6,7 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainSchduleForDay from "@/components/scheduleComponents/scheduleForDay/MainScheduleForDay";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { Transform } from "@/utils/transform";
+import { ErrorThrower } from "@/components/common/ErrorThrower";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -18,13 +19,12 @@ export default async function ScheduleForDay() {
 
   const filtersValues = {
     ...Transform(params?.selectedItems || {}),
-    data:
-      params?.filterType === "day"
-        ? dayjs(params?.date).format("DD/MM/YYYY")
-        : params?.filterType === "month"
-        ? dayjs(params?.date).format("MM/YYYY")
-        : "",
-    tipoFiltro: params?.filterType || "",
+    dataInicial: params?.startDate
+      ? dayjs(params?.startDate).format("DD/MM/YYYY")
+      : null,
+    dataFinal: params?.endDate
+      ? dayjs(params?.endDate).format("DD/MM/YYYY")
+      : null,
     executado: params?.executed || "false",
     pendente: params?.pending || "false",
     ovnota: params?.ovnota || "",
@@ -40,6 +40,7 @@ export default async function ScheduleForDay() {
       tipo: true,
       status: true,
       statusProgramacao: true,
+      statusSap: true,
     }),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/programacao/mensal`,
@@ -49,22 +50,29 @@ export default async function ScheduleForDay() {
     ),
   ]);
 
+  if (!scheduleData.success) {
+    return <ErrorThrower message={scheduleData.message} />;
+  }
+
   const { data, token } = scheduleData;
 
   const columns = {
     id: "ID",
     ovnota: "Nota/Ov",
     ordemdiagrama: "Ordem",
+    restricao_aberta: "Restrição !!",
     mun: "Mun",
     regional: "Regional",
     conjunto: "Conjunto",
     circuito: "Circuito",
-    entrada: "Entrada",
     prazo_fim: "Prazo",
+    status_prazo: "Status prazo",
+    status_ov_sap: "Status SAP",
     tipo_obra: "Tipo",
-    qtde_planejada: "QTDE planejada",
-    qtde_pend: "QTDE pend",
-    mo_planejada: "MO planejada",
+    qtde_planejada: "Quantidade planejada",
+    qtde_pend: "Quantidade pendente",
+    mo_prog: "MO planejada",
+    mat_prog: "Material planejado",
     turma: "Parceira",
     executado: "Executado",
     status: "Status da Obra",

@@ -4,9 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { render, screen } from "@testing-library/react";
-import Schedule from "@/app/(dashboard)/programacao/page";
+import Schedule from "@/app/(dashboard)/programacao/valores-mensais/page";
 import { Transform } from "@/utils/transform";
 import dayjs from "dayjs";
+import { ErrorThrower } from "@/components/common/ErrorThrower";
 
 vi.mock("@/actions/fetchData.action", () => ({
   fetchData: vi.fn(),
@@ -18,6 +19,11 @@ vi.mock("@/actions/fetchFilters.action", () => ({
 
 vi.mock("next/headers", () => ({
   cookies: vi.fn(),
+}));
+
+vi.mock("@/components/common/ErrorThrower", () => ({
+  __esModule: true,
+  ErrorThrower: vi.fn(() => <div data-testid="error-thrower" />),
 }));
 
 vi.mock("@/utils/transform", () => ({
@@ -151,5 +157,17 @@ describe("Schedule page", () => {
   it("deve buscar filtros com fetchFilters", async () => {
     render(await Schedule());
     expect(fetchFilters).toHaveBeenCalled();
+  });
+
+  it("Deve disparar o componente de erro ErrorThrower ao ser retornado um erro da api", async () => {
+    vi.mocked(fetchData).mockResolvedValue({
+      token: mockToken,
+      data: mockData,
+      success: false,
+    });
+
+    render(await Schedule());
+
+    expect(ErrorThrower).toHaveBeenCalled();
   });
 });

@@ -24,11 +24,14 @@ import {
 dayjs.extend(utc);
 
 const columnConfig = [
+  { key: "criado_em", label: "Data de criação", type: "text" },
+  { key: "criado_por", label: "Criado Por", type: "text" },
+  { key: "editado_por", label: "Editado Por", type: "text" },
   { key: "reprovada", label: "Reprovar", type: "checkbox" },
   { key: "validada", label: "Validar", type: "checkbox" },
   { key: "confirmada", label: "Confirmar", type: "checkbox" },
   { key: "status_programacao", label: "Status da Programação", type: "text" },
-  { key: "data_prog", label: "Data", type: "text" },
+  { key: "data_prog", label: "Data programada", type: "text" },
   { key: "hora_ini", label: "Horário de início", type: "text" },
   { key: "hora_ter", label: "Horário de término", type: "text" },
   { key: "tipo_servico", label: "Tipo de Serviço", type: "text" },
@@ -170,11 +173,12 @@ export default function SchedulePanelItem({
     );
   };
 
-  const disabledCheckBox = (key: string, status_prog?: string): boolean => {
+  const disabledCheckBox = (key: string, status_prog: string): boolean => {
     return (
-      ((key === "validada" || key === "reprovada") &&
-        status_prog !== "Em validação") ||
+      (key === "validada" && status_prog !== "Em validação") ||
       (key === "confirmada" && status_prog === "Programado") ||
+      (key === "reprovada" &&
+        ["Parcial", "Concluído", "Cancelado"].includes(status_prog)) ||
       permissions?.permissao_visualizacao === "parcial"
     );
   };

@@ -96,8 +96,22 @@ export class UpdateSchedulesService {
       nome_responsavel_execucao: schedule.responsibility,
       id_restricao_execucao: schedule.idExecutionRestriction,
       observacao_execucao: schedule.observationExecution,
+      id_restricao_prog1: schedule.idProgRestriction1,
+      responsabilidade1: schedule.responsiblityProg,
+      nome_responsavel: schedule.responsibleName,
+      area_responsavel1: schedule.responsibleArea,
+      status_restricao1: schedule.restrictionStatus,
+      data_resolucao1: schedule.resolutionDate,
+      id_restricao_prog2: schedule.idProgRestriction2,
+      responsabilidade2: schedule.responsiblityProg2,
+      nome_responsavel2: schedule.responsibleName2,
+      area_responsavel2: schedule.responsibleArea2,
+      status_restricao2: schedule.restrictionStatus2,
+      data_resolucao2: schedule.resolutionDate2,
       id_tecnico: schedule.idTechnical,
+      observacao_restricao: schedule.observationRestriction,
       reprovada: false,
+      id_usuario_ultima_atualizacao: schedule.idUser,
     };
 
     if (reprovada === true) {

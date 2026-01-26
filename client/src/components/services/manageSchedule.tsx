@@ -50,7 +50,7 @@ export function ManageSchedule({
   }, []);
 
   return (
-    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen w-full">
+    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen w-full overflow-y-auto">
       <h1 className="mb-6 text-2xl sm:text-3xl font-bold text-gray-800">
         {dialogTitle}
       </h1>
@@ -74,18 +74,18 @@ export function ManageSchedule({
       </div>
 
       {/* Services Section */}
-      <div className="w-full pb-10">
-        {(!isInsert || idScheduleExisting) && (
-          <ServicesSection
-            servicesData={servicesData}
-            scheduledServicesData={scheduledServicesData}
-            serviceFilters={serviceFilters}
-            scheduledServicesHistory={scheduledServicesHistory}
-            serviceContractData={serviceContractData}
-            serviceTeams={serviceTeams}
-            idScheduleExisting={idScheduleExisting}
-          />
-        )}
+      <div className="w-full pb-10 mb-10">
+        {/* {(!isInsert || idScheduleExisting) && ( */}
+        <ServicesSection
+          servicesData={servicesData}
+          scheduledServicesData={scheduledServicesData}
+          serviceFilters={serviceFilters}
+          scheduledServicesHistory={scheduledServicesHistory}
+          serviceContractData={serviceContractData}
+          serviceTeams={serviceTeams}
+          idScheduleExisting={idScheduleExisting}
+        />
+        {/* )} */}
       </div>
 
       <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>

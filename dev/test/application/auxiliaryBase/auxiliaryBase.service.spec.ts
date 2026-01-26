@@ -15,6 +15,8 @@ import {
 
 import { Test, TestingModule } from '@nestjs/testing';
 import {
+  mockGetObraIdsByDiagramas,
+  mockGetWrongObraIdsByDiagramas,
   mockMaterialCapex,
   mockMaterialCapexRequest,
 } from '../../mocks/mocksMaterialCapex';
@@ -29,6 +31,7 @@ describe('AuxiliaryBaseService', () => {
     getFator: jest.fn(),
     getAuxiliaryBaseNotes: jest.fn(),
     getAuxiliaryBaseMarket: jest.fn(),
+    getObraIdsByDiagramas: jest.fn(),
     delete: jest.fn(),
   };
 
@@ -137,10 +140,33 @@ describe('AuxiliaryBaseService', () => {
 
   describe('InsertAuxiliaryBaseCapex', () => {
     it('Should format data and call repository to insert materials', async () => {
+      mockRepository.getObraIdsByDiagramas.mockResolvedValue(
+        mockGetObraIdsByDiagramas,
+      );
+
       await auxiliaryBaseService.insertAuxiliaryBaseCapex(mockMaterialCapex);
 
       expect(mockRepository.insertCapex).toHaveBeenCalledWith(
         mockMaterialCapexRequest,
+      );
+    });
+
+    it('Should format data and call repository to insert materials', async () => {
+      mockRepository.getObraIdsByDiagramas.mockResolvedValue(
+        mockGetWrongObraIdsByDiagramas,
+      );
+
+      await auxiliaryBaseService.insertAuxiliaryBaseCapex(mockMaterialCapex);
+
+      const mockMaterialCapexRequestWithNull = mockMaterialCapexRequest.map(
+        (item) => ({
+          ...item,
+          id_obra: null,
+        }),
+      );
+
+      expect(mockRepository.insertCapex).toHaveBeenCalledWith(
+        mockMaterialCapexRequestWithNull,
       );
     });
   });

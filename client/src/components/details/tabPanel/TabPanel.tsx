@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  startTransition,
-  Suspense,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 
 import { useScheduleForm } from "@/hooks/useScheduleForm";
 import { useScheduleHandlers } from "@/hooks/useScheduleHandlers";
@@ -17,7 +10,7 @@ import TabActions from "./tabsActions";
 import WorkCostPanelItem from "../panelItems/workCostPanelItem";
 import SchedulePanelItem from "../panelItems/schedulePanelItem";
 import ExecutionReportPanelItem from "../panelItems/executionReportPanelItem";
-import { Paper } from "@mui/material";
+import RejectionsOfSchedulesPanelItem from "../panelItems/rejectionsOfSchedulesPanelItem";
 import { storeScheduleDataAction } from "@/actions/services";
 import ModalsManagerV2 from "@/components/services/modalsManagerV2";
 
@@ -30,8 +23,10 @@ interface CustomTabPanelProps {
 interface TabPanelProps {
   workData: Record<string, any>;
   executionReportData: Record<string, any>[];
+  rejectionsData: Record<string, any>[];
   options: any;
   id: string;
+  feasibilityExists: any[];
 }
 
 function CustomTabPanel({
@@ -58,7 +53,9 @@ export default function TabPanel({
   workData,
   options,
   executionReportData,
+  rejectionsData,
   id,
+  feasibilityExists,
 }: TabPanelProps) {
   const { permissions } = useUser();
   const modalsRef = useRef<ModalsManagerRef>(null);
@@ -140,8 +137,8 @@ export default function TabPanel({
   // };
 
   return (
-    <div className="w-full xl:h-full flex justify-center items-start">
-      <div className="w-[95%] mx-auto max-h-[620px] xl:max-h-full xl:h-[90%] shadow-lg flex flex-col">
+    <div className="w-full xl:h-full flex justify-center items-start pb-6">
+      <div className="w-[95%] mx-auto max-h-[620px] min-h-[620px] xl:max-h-full xl:h-[90%] shadow-lg flex flex-col">
         <div className="border-b border-solid border-zinc-300">
           <TabActions
             onConfirm={handleConfirm}
@@ -152,6 +149,7 @@ export default function TabPanel({
             statusWork={data?.id_status}
             valueTab={value}
             handleChange={handleChange}
+            feasibilityExists={feasibilityExists}
           />
         </div>
 
@@ -177,6 +175,10 @@ export default function TabPanel({
             </CustomTabPanel>
 
             <CustomTabPanel value={value} index={2}>
+              <RejectionsOfSchedulesPanelItem data={rejectionsData} />
+            </CustomTabPanel>
+
+            <CustomTabPanel value={value} index={3}>
               <ExecutionReportPanelItem
                 data={executionReportData}
                 onDelete={(id) =>
@@ -186,7 +188,7 @@ export default function TabPanel({
               />
             </CustomTabPanel>
 
-            <CustomTabPanel value={value} index={3}>
+            <CustomTabPanel value={value} index={4}>
               Em breve
             </CustomTabPanel>
           </Suspense>
@@ -196,6 +198,7 @@ export default function TabPanel({
       {/* <ModalsManager
         ref={modalsRef}
         idWork={data?.id}
+        totalExec={data.executado}
         statusWork={data.id_status}
         options={options}
         scheduleForm={scheduleForm}

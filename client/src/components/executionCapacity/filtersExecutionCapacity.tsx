@@ -1,10 +1,11 @@
+import dayjs from "dayjs";
+import { Dispatch, SetStateAction } from "react";
+
 import { FiltersInterface } from "@/interfaces/filtersInterfaces";
 import { capitalize } from "@/utils/formatValue";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import dayjs from "dayjs";
-import { Dispatch, SetStateAction } from "react";
 
 type SelectItem = string | number;
 
@@ -37,7 +38,11 @@ export function FiltersExecutionCapacity({
             views={["year"]}
             format={"YYYY"}
             value={dayjs(year)}
-            onChange={(value) => (value ? setYear(value.toString()) : dayjs())}
+            onChange={(value) =>
+              value
+                ? setYear(value.year().toString())
+                : dayjs().year().toString()
+            }
             slotProps={{ textField: { size: "small", fullWidth: true } }}
           />
         </LocalizationProvider>

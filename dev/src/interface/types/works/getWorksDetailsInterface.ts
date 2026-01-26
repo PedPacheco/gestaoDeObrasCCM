@@ -2,8 +2,13 @@ interface ScheduleStatus {
   status_programacao: string;
 }
 
+interface User {
+  nome_usuario: string;
+}
+
 export interface Schedules {
   id: number;
+  criado_em: Date;
   data_prog: Date;
   hora_ini: Date;
   hora_ter: Date;
@@ -25,6 +30,21 @@ export interface Schedules {
   validada: boolean;
   reprovada: boolean;
   status_programacao: ScheduleStatus;
+  observacao_restricao: string | null;
+  id_restricao_prog1: number;
+  responsabilidade1: string | null;
+  nome_responsavel: string | null;
+  area_responsavel1: string | null;
+  status_restricao1: string | null;
+  data_resolucao1: Date | null;
+  id_restricao_prog2: number;
+  responsabilidade2: string | null;
+  nome_responsavel2: string | null;
+  area_responsavel2: string | null;
+  status_restricao2: string | null;
+  data_resolucao2: Date | null;
+  usuario: User | null;
+  usuario_ultima_atualizacao?: User | null;
 }
 
 export interface GetWorksDetailsResponse {
@@ -66,7 +86,7 @@ export interface GetWorksDetailsResponse {
   ano_plan: number | null;
   circuitos: { circuito: string; conjuntos: { conjunto: string | null } };
   empreendimento: { empreendimento: string | null };
-  municipios: { municipio: string };
+  municipios: { municipio: string; regionais: { id: number } };
   tipos: { tipo_obra: string; id_grupo: number };
   id_turma: number;
   id_status: number;

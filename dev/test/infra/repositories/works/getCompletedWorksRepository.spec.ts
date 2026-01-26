@@ -3,6 +3,7 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetCompletedWorksRepository } from 'src/infra/repositories/works/getCompletedWorksRepository';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 import { totalsWorksInPortfolio } from 'src/interface/types/works/getWorksInPortfolioInterface';
+import * as moment from 'moment';
 
 describe('GetCompletedWorksRepository', () => {
   let repository: GetCompletedWorksRepository;
@@ -110,6 +111,8 @@ describe('GetCompletedWorksRepository', () => {
         idEmpreendimento: [9],
         page: 0,
         insufficientPermission: true,
+        dataInicial: '01/10/2024',
+        dataFinal: '02/10/2024',
       };
 
       mockPrisma.$queryRaw
@@ -118,7 +121,7 @@ describe('GetCompletedWorksRepository', () => {
 
       const result = await repository.getCompletedWorks(filters);
 
-      const expectedQuery = `${baseQuery} AND status.id != 42 AND municipios.id_regional IN ()
+      const expectedQuery = `${baseQuery} AND status.id != 42 AND status.id != 4 AND municipios.id_regional IN ()
         AND id_tipo IN ()
         AND id_turma IN ()
         AND tipos.id_grupo IN ()
@@ -127,15 +130,38 @@ describe('GetCompletedWorksRepository', () => {
         AND id_circuito IN ()
         AND circuitos.id_conjunto IN ()
         AND id_empreendimento IN ()
-        AND obras.ovnota =  ORDER BY data_conclusao DESC LIMIT 200 OFFSET ;`;
+        AND obras.ovnota =  
+        AND data_conclusao BETWEEN AND ORDER BY data_conclusao DESC LIMIT 200 OFFSET ;`;
 
       const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
+
+      const expectedInitialDate = moment(
+        '01/10/2024',
+        'DD/MM/YYYY',
+        true,
+      ).toDate();
+
+      const expectedEndDate = moment('02/10/2024', 'DD/MM/YYYY', true).toDate();
 
       expect(result).toEqual({ works: mockWorks, totals: mockCountQuery });
       expect(normalizeSQL(querySent.strings.join(''))).toContain(
         normalizeSQL(expectedQuery),
       );
-      expect(querySent.values).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, '10', 0]);
+      expect(querySent.values).toEqual([
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        '10',
+        expectedInitialDate,
+        expectedEndDate,
+        0,
+      ]);
     });
 
     it('should not apply filters when values filters are not sent', async () => {
@@ -152,6 +178,8 @@ describe('GetCompletedWorksRepository', () => {
         idEmpreendimento: undefined,
         page: undefined,
         insufficientPermission: false,
+        dataInicial: undefined,
+        dataFinal: undefined,
       };
 
       mockPrisma.$queryRaw

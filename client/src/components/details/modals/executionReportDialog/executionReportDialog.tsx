@@ -24,6 +24,8 @@ import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
 import { useState } from "react";
 import ErrorModal from "@/components/common/ErrorModal";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+import { AsBuiltImport } from "./asBuiltImport";
+import { useUser } from "@/contexts/userContext";
 
 export type ExecutionReportData = z.infer<typeof executionReportSchema>;
 
@@ -37,6 +39,7 @@ export interface ExecutionReportDialogProps {
   onSuccess: (success: string) => void;
   onModalOpen: (open: boolean) => void;
   scheduleForm: ScheduleFormHookReturn;
+  totalExec: number;
 }
 
 export function ExecutionReportDialog({
@@ -49,8 +52,12 @@ export function ExecutionReportDialog({
   onSuccess,
   open,
   scheduleForm,
+  totalExec,
 }: ExecutionReportDialogProps) {
   const [error, setError] = useState<string | null>();
+  const [files, setFiles] = useState<File[]>([]);
+
+  const { user } = useUser();
 
   const {
     formData,
@@ -78,6 +85,8 @@ export function ExecutionReportDialog({
   });
 
   const submitButtonText = isPending ? "Salvando..." : "Salvar Execução";
+
+  const wasTheWorkCompleted = Number(formData?.exec ?? 0) + totalExec;
 
   return (
     <Dialog
@@ -110,6 +119,7 @@ export function ExecutionReportDialog({
             formData={!executionReportIsInsert ? executionReportData : formData}
             formErrors={formErrors}
             onInputChange={handleInputChange}
+            wasTheWorkCompleted={wasTheWorkCompleted}
           />
         </AccordionPanel>
 
@@ -141,6 +151,15 @@ export function ExecutionReportDialog({
             onInputChange={handleInputChange}
           />
         </AccordionPanel>
+
+        <AccordionPanel
+          id="panel4"
+          title="Arquivos As Build"
+          expanded={expanded}
+          onChange={handleAccordionChange}
+        >
+          <AsBuiltImport files={files} setFiles={setFiles} />
+        </AccordionPanel>
       </DialogContent>
 
       <DialogActions>
@@ -164,10 +183,15 @@ export function ExecutionReportDialog({
                 return;
               }
 
-              handleSubmit(result.data, "executionReport");
+              handleSubmit(result.data, "executionReport", files);
             } else {
+              const formDataWithUser = {
+                ...formData,
+                idUser: user?.id,
+              };
+
               const validationSchema = validationSchedulesSchema(null, false);
-              const result = validationSchema.safeParse(formData);
+              const result = validationSchema.safeParse(formDataWithUser);
 
               if (!result.success) {
                 const fieldErrors: Record<string, string> = {};
@@ -199,7 +223,7 @@ export function ExecutionReportDialog({
                 return;
               }
 
-              handleSubmit(result.data, "schedule");
+              handleSubmit(result.data, "schedule", files);
             }
           }}
           disabled={isPending}

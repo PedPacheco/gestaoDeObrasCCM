@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 
 import { ExecutionReportData } from "./executionReportDialog";
+import { useEffect } from "react";
 
 interface ExecutionBasicPanelProps {
   formData: FormData | ExecutionReportData;
@@ -19,14 +20,22 @@ interface ExecutionBasicPanelProps {
       | `executionReport.${keyof ExecutionReportData}`
       | keyof ExecutionReportData
   ) => (event: any) => void;
+  wasTheWorkCompleted: number;
 }
 
 export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
   formData,
   formErrors,
   onInputChange,
+  wasTheWorkCompleted,
 }) => {
   const { data, prefix } = resolveExecutionReportContext(formData);
+
+  useEffect(() => {
+    if (wasTheWorkCompleted === 100) {
+      onInputChange(`${prefix}partialConnectionReleased`)(true);
+    }
+  }, [wasTheWorkCompleted, onInputChange, prefix]);
 
   return (
     <Grid container spacing={3}>
@@ -71,7 +80,7 @@ export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
       <Grid item xs={12} sm={6}>
         <TextField
           fullWidth
-          label="Contato Início"
+          label="Nome Operador COI - Inicio"
           value={data.startContact || ""}
           error={!!formErrors.startContact}
           helperText={formErrors.startContact}
@@ -83,7 +92,7 @@ export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
       <Grid item xs={12} sm={6}>
         <TextField
           fullWidth
-          label="Contato Término"
+          label="Nome Operador COI - Término"
           value={data.endContact || ""}
           error={!!formErrors.endContact}
           helperText={formErrors.endContact}
@@ -110,11 +119,20 @@ export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
         <FormControlLabel
           control={
             <Checkbox
-              checked={data.partialConnectionReleased || false}
-              onChange={onInputChange(`${prefix}partialConnectionReleased`)}
+              checked={
+                wasTheWorkCompleted === 100
+                  ? true
+                  : data.partialConnectionReleased || false
+              }
+              disabled={wasTheWorkCompleted === 100}
+              onChange={
+                wasTheWorkCompleted === 100
+                  ? undefined
+                  : onInputChange(`${prefix}partialConnectionReleased`)
+              }
             />
           }
-          label="Liberado para ligação parcial?"
+          label="Liberado para publicação?"
         />
       </Grid>
     </Grid>

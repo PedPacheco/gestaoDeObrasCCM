@@ -5,6 +5,7 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import PortfolioWorks from "@/components/worksComponents/portfolioWorks/MainPortfolioWorks";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { Transform } from "@/utils/transform";
+import { ErrorThrower } from "@/components/common/ErrorThrower";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -31,6 +32,7 @@ export default async function WorksInPortfolio() {
       conjunto: true,
       status: true,
       empreendimento: true,
+      statusSap: true,
     }),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/obras/obras-carteira`,
@@ -39,6 +41,10 @@ export default async function WorksInPortfolio() {
       { cache: "no-store" }
     ),
   ]);
+
+  if (!worksData.success) {
+    return <ErrorThrower message={worksData.message} />;
+  }
 
   const { data, token } = worksData;
 
@@ -55,12 +61,11 @@ export default async function WorksInPortfolio() {
     ordem_dcim: "Ordem DCIM",
     status_ov_sap: "Status SAP",
     pep: "Pep",
-    executado: "Executado",
     mun: "Municipio",
     turma: "Parceira",
-    entrada: "Entrada",
     prazo: "Prazo",
     prazo_fim: "Prazo Fim",
+    status_prazo: "Status prazo",
     ano_plan: "Ano do Plano",
     abrev_regional: "Regional",
     tipo_obra: "Tipo",
@@ -95,7 +100,7 @@ export default async function WorksInPortfolio() {
         filtersData={{ ...filters, status: filteredStatus }}
         cookie="portfolioWorksFilters"
         columns={columnMapping}
-        totalValues={32}
+        totalValues={31}
         url="obras-carteira"
       />
     </EmotionCacheProvider>

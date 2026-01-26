@@ -1,4 +1,11 @@
+import { useState } from "react";
+
+import ErrorModal from "@/components/common/ErrorModal";
+import { useUser } from "@/contexts/userContext";
 import { useScheduleForm } from "@/hooks/useScheduleForm";
+import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
+import { schedulesSchema } from "@/validations/validationSchedules";
+import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import {
   Box,
   Dialog,
@@ -8,19 +15,16 @@ import {
   IconButton,
   Typography,
 } from "@mui/material";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 import { ButtonComponent } from "../../../common/Button";
 import { AccordionPanel } from "../../accordionPanel";
 import { AdditionalInfoPanel } from "./additionalInfoPanel";
 import { BasicInfoPanel } from "./basicInfoPanel";
+import { RestrictionsPanel } from "./restrictionsPanel";
 import { ServiceEquipmentPanel } from "./serviceEquipmentPanel";
 import { TeamsPanel } from "./teamsPanel";
-import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
-import { useUser } from "@/contexts/userContext";
-import { schedulesSchema } from "@/validations/validationSchedules";
-import { useState } from "react";
-import ErrorModal from "@/components/common/ErrorModal";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 export type ScheduleFormHookReturn = ReturnType<typeof useScheduleForm>;
 
@@ -35,7 +39,7 @@ export interface ScheduleFormDialogProps {
   onExecutionDialogOpen: (open: boolean) => void;
   options: {
     tecnico: Array<{ id: number; tecnico: string }>;
-    restricao: Array<{ id: number; restricao: string }>;
+    restricao: Array<{ id: number; restricao: string; tipo_restricao: string }>;
   };
   scheduleForm: ScheduleFormHookReturn;
   statusWork: number;
@@ -55,6 +59,7 @@ export default function ScheduleFormDialog({
   statusWork,
 }: ScheduleFormDialogProps) {
   const [error, setError] = useState<string | null>();
+  const { user } = useUser();
 
   const {
     expanded,
@@ -145,6 +150,7 @@ export default function ScheduleFormDialog({
               formErrors={formErrors}
               onInputChange={handleInputChange}
               disabledFields={disabledFields}
+              permissionVisualization={permissions?.permissao_visualizacao}
             />
           </AccordionPanel>
 
@@ -164,20 +170,39 @@ export default function ScheduleFormDialog({
         </>
 
         {!isInsert && (
-          <AccordionPanel
-            id="panel4"
-            title="Informações Adicionais"
-            expanded={expanded}
-            onChange={handleAccordionChange}
-          >
-            <AdditionalInfoPanel
-              formData={formData}
-              formErrors={formErrors}
-              options={options}
-              onInputChange={handleInputChange}
-              disabledFields={disabledFields}
-            />
-          </AccordionPanel>
+          <>
+            <AccordionPanel
+              id="panel4"
+              title="Informações Adicionais"
+              expanded={expanded}
+              onChange={handleAccordionChange}
+            >
+              <AdditionalInfoPanel
+                formData={formData}
+                formErrors={formErrors}
+                options={options}
+                onInputChange={handleInputChange}
+                disabledFields={disabledFields}
+              />
+            </AccordionPanel>
+
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <AccordionPanel
+                id="panel5"
+                title="Restrições"
+                expanded={expanded}
+                onChange={handleAccordionChange}
+              >
+                <RestrictionsPanel
+                  formData={formData}
+                  formErrors={formErrors}
+                  options={options}
+                  onInputChange={handleInputChange}
+                  disabledFields={disabledFields}
+                />
+              </AccordionPanel>
+            </LocalizationProvider>
+          </>
         )}
       </DialogContent>
 
@@ -186,8 +211,13 @@ export default function ScheduleFormDialog({
         <ButtonComponent
           styled="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
           onClick={() => {
+            const formDataWithUser = {
+              ...formData,
+              idUser: user?.id,
+            };
+
             const validationResult =
-              schedulesSchema(isInsert).safeParse(formData);
+              schedulesSchema(isInsert).safeParse(formDataWithUser);
 
             if (!validationResult.success) {
               const fieldErrors: Record<string, string> = {};

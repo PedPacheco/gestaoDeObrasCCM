@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import * as moment from 'moment';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { ExportRepository } from 'src/infra/repositories/exportRepository';
+import { mockFindByWorkIdResponseFormatted } from '../../mocks/mocksExecutionReport';
 
 describe('ExportRepository', () => {
   let repository: ExportRepository;
@@ -14,6 +15,7 @@ describe('ExportRepository', () => {
     suspensoes: { findMany: jest.fn() },
     suspensoes_retiradas: { findMany: jest.fn() },
     programacoes: { findMany: jest.fn() },
+    relatorio_execucao: { findMany: jest.fn() },
   };
 
   beforeEach(async () => {
@@ -181,8 +183,8 @@ describe('ExportRepository', () => {
           obras: {
             select: {
               ovnota: true,
-              ordem_dci: true,
               diagrama: true,
+              ordem_dci: true,
               municipios: {
                 select: { regionais: { select: { regional: true } } },
               },
@@ -227,8 +229,8 @@ describe('ExportRepository', () => {
           obras: {
             select: {
               ovnota: true,
-              ordem_dci: true,
               diagrama: true,
+              ordem_dci: true,
               municipios: {
                 select: { regionais: { select: { regional: true } } },
               },
@@ -247,6 +249,75 @@ describe('ExportRepository', () => {
         },
       });
       expect(response).toEqual(mockResponse);
+    });
+  });
+
+  describe('exportExecutionReport', () => {
+    it('should call exportExecutionReport and return the data', async () => {
+      mockPrisma.relatorio_execucao.findMany.mockResolvedValue(
+        mockFindByWorkIdResponseFormatted,
+      );
+
+      const response = await repository.exportExecutionReport();
+
+      expect(mockPrisma.relatorio_execucao.findMany).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.relatorio_execucao.findMany).toHaveBeenCalledWith({
+        select: {
+          id: true,
+          criado_em: true,
+          supervisor: true,
+          liberado_ligacao_parcial: true,
+          hora_inicio: true,
+          hora_conclusao: true,
+          contato_inicio: true,
+          contato_termino: true,
+          atraso: true,
+          justificativa_atraso: true,
+          possui_equipamentos_instalados: true,
+          equipamentos_aplicados: true,
+          potencia_equipamento_aplicado: true,
+          patrimonio_equipamento_aplicado: true,
+          instalacao_equipamento_aplicado: true,
+          possui_equipamentos_retirados: true,
+          equipamentos_retirados: true,
+          potencia_equipamento_retirado: true,
+          patrimonio_equipamento_retirado: true,
+          instalacao_equipamento_retirado: true,
+          alteracoes_execucao: true,
+          observacoes_gerais: true,
+          chave_provisoria_instalada: true,
+          referencia_chave_provisoria: true,
+          chave_provisoria_retirada: true,
+          referencia_chave_provisoria_retirada: true,
+          motivo: true,
+          usuario: { select: { nome_usuario: true } },
+          obras: {
+            select: {
+              ovnota: true,
+              diagrama: true,
+              ordem_dci: true,
+              ordem_dcd: true,
+              ordem_dca: true,
+              ordem_dcim: true,
+              executado: true,
+              tipos: { select: { tipo_obra: true } },
+              status: { select: { status: true } },
+            },
+          },
+          programacoes: {
+            select: {
+              data_prog: true,
+              prog: true,
+              exec: true,
+              num_dp: true,
+              hora_ini: true,
+              hora_ter: true,
+              chave_provisoria: true,
+            },
+          },
+        },
+      });
+      expect(response).toEqual(mockFindByWorkIdResponseFormatted);
     });
   });
 });

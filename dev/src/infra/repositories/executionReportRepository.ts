@@ -25,18 +25,33 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
   }
 
   async delete(id: number, idSchedule: number) {
-    await this.prisma.$transaction([
-      this.prisma.programacoes.update({
+    await this.prisma.$transaction(async (tx) => {
+      const schedule = await tx.programacoes.findUnique({
+        where: { id: idSchedule },
+        select: { exec: true, id_obra: true },
+      });
+
+      await tx.programacoes.update({
         where: { id: idSchedule },
         data: {
           exec: null,
           id_status_programacao: 3,
         },
-      }),
-      this.prisma.relatorio_execucao.delete({
+      });
+
+      await tx.obras.update({
+        where: { id: schedule.id_obra },
+        data: {
+          id_status: 35,
+          data_conclusao: null,
+          executado: { decrement: schedule.exec },
+        },
+      });
+
+      await tx.relatorio_execucao.delete({
         where: { id },
-      }),
-    ]);
+      });
+    });
   }
 
   async findByScheduleId(
@@ -67,6 +82,7 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
       },
       select: {
         id: true,
+        criado_em: true,
         id_usuario: true,
         supervisor: true,
         liberado_ligacao_parcial: true,
@@ -93,6 +109,7 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
         chave_provisoria_retirada: true,
         referencia_chave_provisoria_retirada: true,
         motivo: true,
+        caminho_arquivo: true,
         usuario: { select: { nome_usuario: true } },
         obras: {
           select: {
@@ -119,6 +136,7 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
 
   async findById(idExecutionReport: number): Promise<any> {
     return await this.prisma.relatorio_execucao.findFirst({
+      select: { id: true, id_programacao: true, caminho_arquivo: true },
       where: { id: idExecutionReport },
     });
   }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import DashboardLayout from "@/app/(dashboard)/layout";
 import { Header } from "@/components/layout/Header";
 import { BreadcrumpsComponent } from "@/components/common/Breadcrumbs";
@@ -25,7 +25,7 @@ describe("DashboardLayout", () => {
     vi.clearAllMocks();
   });
 
-  it("deve renderizar o layout corretamente com todos os componentes", () => {
+  it("deve renderizar o layout com header, breadcrumbs e conteúdo filho", () => {
     render(<DashboardLayout>{childrenMock.children}</DashboardLayout>);
 
     expect(Header).toHaveBeenCalled();
@@ -37,33 +37,21 @@ describe("DashboardLayout", () => {
     expect(screen.getByTestId("mock-children")).toBeInTheDocument();
   });
 
-  it("deve ter a estrutura correta de classes e elementos", () => {
+  it("deve conter estrutura semântica principal", () => {
     const { container } = render(
       <DashboardLayout>{childrenMock.children}</DashboardLayout>
     );
 
-    const outerDiv = container.querySelector(
-      "div.relative.z-0.flex.min-h-screen.w-full"
-    );
-    const innerDiv = container.querySelector(
-      "div.relative.flex.min-h-screen.max-w-full.flex-1.flex-col"
-    );
-    const main = container.querySelector("main.h-\\[calc\\(100vh\\)\\]");
-    const borderSpan = container.querySelector(
-      "span.border-b.border-solid.border-zinc-300.w-full"
-    );
-    const breadcrumbsWrapper = container.querySelector(".py-2.w-4\\/5");
+    const outerDiv = container.querySelector("div.flex.h-screen.w-full");
+    const innerFlex = container.querySelector("div.flex-1.flex-col");
+    const main = container.querySelector("main");
+    const breadcrumbsArea = container.querySelector("div.py-2");
+    const borderSpan = container.querySelector("span.border-b");
 
     expect(outerDiv).toBeInTheDocument();
-    expect(innerDiv).toBeInTheDocument();
+    expect(innerFlex).toBeInTheDocument();
     expect(main).toBeInTheDocument();
-    expect(breadcrumbsWrapper).toBeInTheDocument();
+    expect(breadcrumbsArea).toBeInTheDocument();
     expect(borderSpan).toBeInTheDocument();
-  });
-
-  it("deve ter o main com a altura correta", () => {
-    const { container } = render(<DashboardLayout {...childrenMock} />);
-    const mainElement = container.querySelector("main");
-    expect(mainElement).toHaveClass("h-[calc(100vh)]");
   });
 });

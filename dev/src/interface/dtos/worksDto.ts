@@ -109,8 +109,21 @@ export class GetWorksDTO {
   idEmpreendimento?: number[];
 
   @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idStatusSap?: number[];
+
+  @IsOptional()
   @IsString()
   ovnota?: string;
+
+  @IsOptional()
+  @IsString()
+  dataInicial: string;
+
+  @IsOptional()
+  @IsString()
+  dataFinal: string;
 }
 
 export class UpdateWorkDTO {
@@ -133,8 +146,8 @@ export class UpdateWorkDTO {
 
   @IsString()
   @IsOptional()
-  @IsIn(['CONVENCIONAL', 'PONTO A PONTO'])
-  tipo_ads: string;
+  @IsIn([null, 'CONVENCIONAL', 'PONTO A PONTO'])
+  tipo_ads?: string;
 
   @IsString()
   @IsOptional()
@@ -245,7 +258,8 @@ export class InsertMarketWorksDTO {
 
   @IsDate()
   @Type(() => Date)
-  entrada: Date;
+  @IsOptional()
+  entrada?: Date;
 
   @IsNumber()
   idMunicipio: number;
@@ -286,6 +300,18 @@ export class InsertNotesDTO {
   @IsString()
   obra: string;
 
+  @IsString()
+  dci: string;
+
+  @IsString()
+  dcd: string;
+
+  @IsString()
+  dca: string;
+
+  @IsString()
+  dcim: string;
+
   @IsDate()
   entrada: Date;
 
@@ -321,4 +347,7 @@ export class InsertNotesDTO {
 
   @IsNumber()
   anoplan: number;
+
+  @IsBoolean()
+  ehRda: boolean;
 }

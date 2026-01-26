@@ -13,6 +13,7 @@ interface ServiceEquipmentPanelProps {
   formErrors: Record<string, string>;
   onInputChange: (field: keyof FormData) => (event: any) => void;
   disabledFields: () => boolean | undefined;
+  permissionVisualization: string | undefined;
 }
 
 const SERVICE_TYPES = [
@@ -30,6 +31,7 @@ export const ServiceEquipmentPanel: React.FC<ServiceEquipmentPanelProps> = ({
   formErrors,
   onInputChange,
   disabledFields,
+  permissionVisualization,
 }) => (
   <Grid container spacing={3}>
     <Grid item xs={12} sm={6}>
@@ -70,7 +72,7 @@ export const ServiceEquipmentPanel: React.FC<ServiceEquipmentPanelProps> = ({
         error={!!formErrors.chi}
         helperText={formErrors.chi}
         inputProps={{ min: 0 }}
-        disabled={disabledFields()}
+        disabled={disabledFields() || permissionVisualization === "parcial"}
       />
     </Grid>
 
@@ -80,7 +82,7 @@ export const ServiceEquipmentPanel: React.FC<ServiceEquipmentPanelProps> = ({
         label="Número DP"
         value={formData.numDp}
         onChange={onInputChange("numDp")}
-        disabled={disabledFields()}
+        disabled={disabledFields() || permissionVisualization === "parcial"}
       />
     </Grid>
   </Grid>

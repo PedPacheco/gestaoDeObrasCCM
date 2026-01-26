@@ -69,9 +69,11 @@ SELECT
   dp.num_dp,
   grupos.grupo,
   obras.referencia,
+  obras.data_empreitamento,
   empreendimento.empreendimento,
   obras.data_viabilidade,
-  obras.prazo_viabilidade
+  obras.prazo_viabilidade,
+  obras.ano_plan
 FROM
   (
     (
@@ -147,9 +149,11 @@ GROUP BY
   dp.num_dp,
   grupos.grupo,
   obras.referencia,
+  obras.data_empreitamento,
   empreendimento.empreendimento,
   obras.data_viabilidade,
-  obras.prazo_viabilidade
+  obras.prazo_viabilidade,
+  obras.ano_plan
 ORDER BY
   CASE
     WHEN (dp.min_data_prog IS NULL) THEN 1

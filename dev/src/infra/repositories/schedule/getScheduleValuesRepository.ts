@@ -12,14 +12,11 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
-export class GetScheduleValuesRepository
-  implements IGetScheduleValuesRepository
-{
+export class GetScheduleValuesRepository implements IGetScheduleValuesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   private applyFilters(query: Prisma.Sql, filters: GetScheduleValuesDTO) {
     const {
-      data,
       executado,
       idGrupo,
       idMunicipio,
@@ -28,19 +25,17 @@ export class GetScheduleValuesRepository
       idTipo,
       idStatus,
       idStatusProgramacao,
-      tipoFiltro,
+      dataFinal,
+      dataInicial,
       ovnota,
       pendente,
+      idStatusSap,
     } = filters;
 
-    const [month, year] = data.split('/');
-
-    if (tipoFiltro === 'month' && data) {
-      query = Prisma.sql`${query} AND EXTRACT(MONTH FROM data_prog) = ${parseInt(month)} AND EXTRACT(YEAR FROM data_prog) = ${parseInt(year)}`;
-    }
-
-    if (tipoFiltro === 'day' && data) {
-      query = Prisma.sql`${query} AND data_prog = ${moment(data, 'DD/MM/YYYY', true).toDate()}`;
+    if (dataInicial && dataFinal) {
+      const ini = moment(dataInicial, 'DD/MM/YYYY').toDate();
+      const fim = moment(dataFinal, 'DD/MM/YYYY').toDate();
+      query = Prisma.sql`${query} AND programacoes.data_prog BETWEEN ${ini} AND ${fim}`;
     }
 
     if (idRegional && idRegional.length > 0) {
@@ -75,8 +70,12 @@ export class GetScheduleValuesRepository
       query = Prisma.sql`${query} AND obras.ovnota = ${ovnota}`;
     }
 
+    if (idStatusSap) {
+      query = Prisma.sql`${query} AND obras.status_ov_sap IN (${Prisma.join(idStatusSap)}) AND tipos.id_grupo = 1`;
+    }
+
     if (executado && !pendente) {
-      query = Prisma.sql`${query} AND exec <> 0`;
+      query = Prisma.sql`${query} AND exec IS NOT NULL`;
     } else {
       query = Prisma.sql`${query} AND exec IS NULL`;
     }
@@ -105,13 +104,14 @@ export class GetScheduleValuesRepository
         INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
         WHERE 1=1`;
 
-    let query = Prisma.sql`SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, diagrama, mun, regional, entrada, entrada + prazo AS prazo_fim, 
-        mo_planejada, turma, executado, data_prog, prog, exec, mo_planejada*prog/100 AS mo_prog, mo_planejada*COALESCE(exec, 100)/100 AS mo_exec, tipo_obra, qtde_planejada, qtde_pend,
-        num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status
+    let query = Prisma.sql`SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim, 
+        turma, status_ov_sap, executado, data_prog, prog, exec, mo_planejada::int*prog/100 AS mo_prog, mo_planejada::int*COALESCE(exec, 100)/100 AS mo_exec, capex_mat_plan::int*prog/100 as mat_prog, tipo_obra, 
+        id_grupo, qtde_planejada, qtde_pend, num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, 
+        status_programacao, status, id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2
         ${baseQuery}`;
 
-    let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras, SUM(mo_planejada) as total_mo_planejada, SUM(mo_planejada*executado/100) as total_mo_exec, 
-        SUM(qtde_planejada) as total_qtde_planejada ${baseQuery}`;
+    let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras, SUM(mo_planejada*prog::numeric/100) as total_mo_planejada, SUM(mo_planejada*executado/100) as total_mo_exec, 
+        SUM(qtde_planejada * (prog::numeric/100)) as total_qtde_planejada ${baseQuery}`;
 
     query = this.applyFilters(query, filters);
     countQuery = this.applyFilters(countQuery, filters);

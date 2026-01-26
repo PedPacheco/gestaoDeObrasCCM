@@ -6,6 +6,7 @@ import { render } from "@testing-library/react";
 import EntryForDate from "@/app/(dashboard)/entrada/por-data/page";
 import { Transform } from "@/utils/transform";
 import dayjs from "dayjs";
+import { ErrorThrower } from "@/components/common/ErrorThrower";
 
 vi.mock("@/actions/fetchData.action", () => ({
   fetchData: vi.fn(),
@@ -28,6 +29,11 @@ vi.mock("@/utils/transform", () => ({
       ])
     );
   }),
+}));
+
+vi.mock("@/components/common/ErrorThrower", () => ({
+  __esModule: true,
+  ErrorThrower: vi.fn(() => <div data-testid="error-thrower" />),
 }));
 
 vi.mock("@/components/entryComponents/entryByDate/MainEntryByDate", () => ({
@@ -73,8 +79,8 @@ describe("EntryForDate", () => {
       parceira: ["Parceira 1"],
       regional: ["Regional A"],
     },
-    date: "17/05/2025",
-    filterType: "day",
+    startDate: "17/05/2025",
+    endDate: "18/05/2025",
   });
 
   const mockCookieStore = {
@@ -120,42 +126,11 @@ describe("EntryForDate", () => {
       {
         parceira: "Parceira 1",
         regional: "Regional A",
-        data: dayjs("17/05/2025").format("DD/MM/YYYY"),
-        tipoFiltro: "day",
+        dataInicial: "17/05/2025",
+        dataFinal: "18/05/2025",
       },
-      mockToken
-    );
-  });
-
-  it("deve buscar dados com o campo tipoFiltro definido para mês e a data com formato MM/YYYY", async () => {
-    const modifiedData = JSON.stringify({
-      ...JSON.parse(mockParamsFiltes),
-      date: "05/2025",
-      filterType: "month",
-    });
-
-    vi.mocked(mockCookieStore.get).mockImplementation((name) => {
-      if (name === "token") return { value: mockToken };
-      if (name === "entryByDateFilters") return { value: modifiedData };
-      return null;
-    });
-
-    render(await EntryForDate());
-
-    expect(Transform).toHaveBeenCalledWith({
-      parceira: ["Parceira 1"],
-      regional: ["Regional A"],
-    });
-
-    expect(fetchData).toHaveBeenCalledWith(
-      "https://api.example.com/entrada/data",
-      {
-        parceira: "Parceira 1",
-        regional: "Regional A",
-        data: dayjs("05/2025").format("MM/YYYY"),
-        tipoFiltro: "month",
-      },
-      mockToken
+      mockToken,
+      { cache: "no-store" }
     );
   });
 
@@ -170,10 +145,28 @@ describe("EntryForDate", () => {
     expect(fetchData).toHaveBeenCalledWith(
       "https://api.example.com/entrada/data",
       {
-        data: dayjs().format("DD/MM/YYYY"),
-        tipoFiltro: "day",
+        dataFinal: "16/05/2025",
+        dataInicial: "16/05/2025",
       },
-      mockToken
+      mockToken,
+      { cache: "no-store" }
     );
+  });
+
+  it("Deve disparar o componente de erro ErrorThrower ao ser retornado um erro da api", async () => {
+    vi.mocked(mockCookieStore.get).mockImplementation((name) => {
+      if (name === "token") return { value: mockToken };
+      return null;
+    });
+
+    vi.mocked(fetchData).mockResolvedValue({
+      token: mockToken,
+      data: mockData,
+      success: false,
+    });
+
+    render(await EntryForDate());
+
+    expect(ErrorThrower).toHaveBeenCalled();
   });
 });

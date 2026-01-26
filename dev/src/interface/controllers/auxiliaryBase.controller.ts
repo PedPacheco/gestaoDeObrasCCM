@@ -74,12 +74,11 @@ export class AuxiliaryBaseController {
   @Post('capex')
   @UseGuards(PermissionGuard)
   async InsertAuxiliaryBaseCapex(@Body() data: MaterialCapexDTO[]) {
-    const res = await this.auxiliaryBaseService.insertAuxiliaryBaseCapex(data);
+    await this.auxiliaryBaseService.insertAuxiliaryBaseCapex(data);
 
     return {
       statusCode: HttpStatus.CREATED,
       message: 'Materiais importados com sucesso',
-      res,
     };
   }
 

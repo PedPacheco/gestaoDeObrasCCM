@@ -18,35 +18,36 @@ describe("TableWithPagination", () => {
   const columns = {
     id: "ID",
     data_inicio: "Data Início",
-    mo_planejada: "M.O Planejada",
+    mo_prog: "M.O Planejada",
     ovnota: "Ovnota",
     prog: "Prog %",
     exec: "Exec %",
     data_fim: "Data Fim",
     objeto: "Objeto",
+    restricao_aberta: "Restricao Aberta",
   };
 
-  const data = {
-    works: [
-      {
-        id: 1,
-        data_inicio: "2024-07-20",
-        mo_planejada: 10000.1234,
-        ovnota: "23421432",
-        prog: 78,
-        exec: 92,
-        data_fim: "1970-01-01T14:30:00Z",
-        objeto: { nome: "Pedro", cargo: "Dev" },
-      },
-    ],
-    totals: {
-      total_obras: 1,
-      total_mo_planejada: 10000,
-      total_mo_exec: 9000,
-      total_mo_suspensa: 1000,
-      total_qtde_planejada: 10,
-      total_qtde_pend: 2,
+  const data = [
+    {
+      id: 1,
+      data_inicio: "2024-07-20",
+      mo_prog: 10000.1234,
+      ovnota: "23421432",
+      prog: 78,
+      exec: 92,
+      data_fim: "1970-01-01T14:30:00Z",
+      objeto: { nome: "Pedro", cargo: "Dev" },
+      restricao_aberta: true,
     },
+  ];
+
+  const totals = {
+    total_obras: 1,
+    total_mo_planejada: 10000,
+    total_mo_exec: 9000,
+    total_mo_suspensa: 1000,
+    total_qtde_planejada: 10,
+    total_qtde_pend: 2,
   };
 
   it("renderiza colunas e dados corretamente", () => {
@@ -54,6 +55,7 @@ describe("TableWithPagination", () => {
       <TableWithPagination
         columns={columns}
         data={data}
+        totals={totals}
         page={0}
         sliceEndIndex={0}
         handleChangePage={handleChangePage}
@@ -71,6 +73,7 @@ describe("TableWithPagination", () => {
     expect(screen.getByText("92%")).toBeInTheDocument();
     expect(screen.getByText("14:30")).toBeInTheDocument();
     expect(screen.getByText("Pedro, Dev")).toBeInTheDocument();
+    expect(screen.getByText("!!!")).toBeInTheDocument();
 
     expect(screen.getByText("Página 1 de 1")).toBeInTheDocument();
   });
@@ -80,6 +83,7 @@ describe("TableWithPagination", () => {
       <TableWithPagination
         columns={columns}
         data={data}
+        totals={totals}
         page={0}
         sliceEndIndex={0}
         handleChangePage={handleChangePage}
@@ -97,20 +101,22 @@ describe("TableWithPagination", () => {
       <TableWithPagination
         columns={columns}
         data={data}
+        totals={totals}
         page={0}
         sliceEndIndex={1}
         handleChangePage={handleChangePage}
       />
     );
 
-    expect(screen.getAllByRole("columnheader")).toHaveLength(6);
+    expect(screen.getAllByRole("columnheader")).toHaveLength(7);
   });
 
   it("chama handleChangePage quando paginação é usada", () => {
     render(
       <TableWithPagination
         columns={columns}
-        data={{ ...data, totals: { ...data.totals, total_obras: 400 } }}
+        data={data}
+        totals={{ ...totals, total_obras: 400 }}
         page={0}
         sliceEndIndex={0}
         handleChangePage={handleChangePage}
@@ -121,5 +127,25 @@ describe("TableWithPagination", () => {
     fireEvent.click(nextPageBtn);
 
     expect(handleChangePage).toHaveBeenCalled();
+  });
+
+  it("renderiza celula com valor nulo, quando restricao_aberta for false", () => {
+    const formattedData = [{ ...data[0], restricao_aberta: false }];
+
+    render(
+      <TableWithPagination
+        columns={columns}
+        data={formattedData}
+        totals={totals}
+        page={0}
+        sliceEndIndex={0}
+        handleChangePage={handleChangePage}
+      />
+    );
+
+    expect(screen.queryByText("!!!")).not.toBeInTheDocument();
+
+    const emptyCells = screen.getAllByText("");
+    expect(emptyCells.length).toBeGreaterThan(0);
   });
 });

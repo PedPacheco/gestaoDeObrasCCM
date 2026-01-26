@@ -55,6 +55,9 @@ export function MainExecutionCapacity({
   const [tableData, setTableData] = useState<
     Record<string, string | number | null>[]
   >(data.executionCapacityValues);
+  const [financialData, setFinancialData] = useState<
+    Record<string, string | number>[]
+  >(data.financialValues);
 
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [openFinancialModal, setOpenFinanciealModal] = useState<boolean>(false);
@@ -64,15 +67,19 @@ export function MainExecutionCapacity({
 
   useEffect(() => {
     setTableData(data.executionCapacityValues);
+    setFinancialData(data.financialValues);
   }, [data]);
 
   const changedData = useMemo(() => {
     return tableData
-      .filter((row, index) =>
-        Object.keys(row).some(
-          (key) => row[key] !== data.executionCapacityValues[index][key]
-        )
-      )
+      .filter((row) => {
+        const original = data.executionCapacityValues.find(
+          (d) => d.id === row.id
+        );
+        if (!original) return true;
+
+        return Object.keys(row).some((key) => row[key] !== original[key]);
+      })
       .map((row) => {
         const originalRow =
           data.executionCapacityValues.find((d) => d.id === row.id) || {};
@@ -103,6 +110,7 @@ export function MainExecutionCapacity({
         }
 
         setTableData(response.data.executionCapacityValues);
+        setFinancialData(response.data.financialValues);
       } catch (error: any) {
         setError(error.message);
       }
@@ -126,7 +134,7 @@ export function MainExecutionCapacity({
   const handleClearFilters = async () => {
     setSelectedItems({});
     setTeams(null);
-    setYear("2025");
+    setYear(dayjs().year().toString());
 
     handleDataFetch(`${process.env.NEXT_PUBLIC_API_URL}/capacidade-execucao`, {
       year,
@@ -155,7 +163,7 @@ export function MainExecutionCapacity({
   const toggleFinancialModal = () => setOpenFinanciealModal((prev) => !prev);
 
   return (
-    <>
+    <div className="w-full h-4/5 ">
       <div className="w-full flex justify-between">
         <div className="w-full">
           <div className="flex flex-col justify-center items-center lg:flex-row lg:justify-start lg:items-start pt-4 px-4">
@@ -194,7 +202,7 @@ export function MainExecutionCapacity({
         </div>
       </div>
 
-      <div className="self-start mx-6 2xl:h-full w-[98%] flex flex-col justify-between pb-4">
+      <div className="self-start mx-6 2xl:h-[90%] w-[98%] flex flex-col justify-between 2xl:justify-normal pb-4">
         <TableComponent
           columns={columns}
           setTableData={setTableData}
@@ -216,7 +224,7 @@ export function MainExecutionCapacity({
       </ModalComponent>
 
       <FinancialValuesModal
-        data={data.financialValues}
+        data={financialData}
         onClose={toggleFinancialModal}
         open={openFinancialModal}
       />
@@ -229,6 +237,6 @@ export function MainExecutionCapacity({
           icon={<ExclamationCircleIcon width={48} height={48} />}
         />
       )}
-    </>
+    </div>
   );
 }

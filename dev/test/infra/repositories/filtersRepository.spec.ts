@@ -110,6 +110,7 @@ describe('FiltersRepository', () => {
       it(`should fetch ${table} data from database `, async () => {
         const findManyMock = prisma[table].findMany as jest.Mock;
         findManyMock.mockResolvedValue(data);
+        const orderField = fields[1];
 
         const result = await filtersRepository.getData(
           table,
@@ -123,6 +124,7 @@ describe('FiltersRepository', () => {
             (acc, field) => ({ ...acc, [field]: true }),
             {},
           ),
+          orderBy: orderField ? { [orderField]: 'asc' } : undefined,
         });
         expect(result).toEqual(data);
       });

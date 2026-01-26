@@ -1,6 +1,10 @@
 import { CalculatedValue } from 'src/application/works/updateCapex.service';
 import { MaterialCapexDTO } from 'src/interface/dtos/materialDTO';
 
+export const mockGetObraIdsByDiagramas = new Map([['170000027938', 1]]);
+
+export const mockGetWrongObraIdsByDiagramas = new Map([['170000027934', 1]]);
+
 export const mockMaterialCapex: MaterialCapexDTO[] = [
   {
     diagrama_rede: '170000027938',
@@ -10,7 +14,7 @@ export const mockMaterialCapex: MaterialCapexDTO[] = [
     centro: '1000',
     deposito: 1023,
     ctg_item: 'L',
-    elemento_pep: null,
+    elemento_pep: '2325-2',
     um_registro: 'PEÇ',
     preco_mi: 2644.57,
     qtd_necess: 1,
@@ -28,7 +32,7 @@ export const mockMaterialCapex: MaterialCapexDTO[] = [
     centro: '1000',
     deposito: 1023,
     ctg_item: 'L',
-    elemento_pep: null,
+    elemento_pep: '2325-2',
     um_registro: 'PEÇ',
     preco_mi: 2644.57,
     qtd_necess: 2,
@@ -46,7 +50,7 @@ export const mockMaterialCapex: MaterialCapexDTO[] = [
     centro: '1000',
     deposito: 1023,
     ctg_item: 'N',
-    elemento_pep: null,
+    elemento_pep: '2325-2',
     um_registro: 'SRV',
     preco_mi: 1.298,
     qtd_necess: 5,
@@ -64,7 +68,7 @@ export const mockMaterialCapex: MaterialCapexDTO[] = [
     centro: '1000',
     deposito: 1023,
     ctg_item: 'L',
-    elemento_pep: null,
+    elemento_pep: '2325-2',
     um_registro: 'M',
     preco_mi: 13.76,
     qtd_necess: 6,
@@ -78,6 +82,7 @@ export const mockMaterialCapex: MaterialCapexDTO[] = [
 
 export const mockMaterialCapexRequest = [
   {
+    id_obra: 1,
     diagrama_rede: '170000027938',
     def_proj: 'X/005017',
     material: '10057267',
@@ -85,7 +90,7 @@ export const mockMaterialCapexRequest = [
     centro: '1000',
     dep: 1023,
     cti: 'L',
-    elemento_pep: null,
+    elemento_pep: '2325-2',
     und: 'PEÇ',
     preco: 2644.57,
     qtd_necessaria: 1,
@@ -96,6 +101,7 @@ export const mockMaterialCapexRequest = [
     data_nec: '2026-09-23',
   },
   {
+    id_obra: 1,
     diagrama_rede: '170000027938',
     def_proj: 'X/005017',
     material: '10057267',
@@ -103,7 +109,7 @@ export const mockMaterialCapexRequest = [
     centro: '1000',
     dep: 1023,
     cti: 'L',
-    elemento_pep: null,
+    elemento_pep: '2325-2',
     und: 'PEÇ',
     preco: 2644.57,
     qtd_necessaria: 2,
@@ -114,6 +120,7 @@ export const mockMaterialCapexRequest = [
     data_nec: '2026-09-23',
   },
   {
+    id_obra: 1,
     diagrama_rede: '170000027938',
     def_proj: 'X/004078',
     material: '10054768',
@@ -121,7 +128,7 @@ export const mockMaterialCapexRequest = [
     centro: '1000',
     dep: 1023,
     cti: 'N',
-    elemento_pep: null,
+    elemento_pep: '2325-2',
     und: 'SRV',
     preco: 1.298,
     qtd_necessaria: 5,
@@ -132,6 +139,7 @@ export const mockMaterialCapexRequest = [
     data_nec: '2026-09-23',
   },
   {
+    id_obra: 1,
     diagrama_rede: '170000027938',
     def_proj: 'X/004078',
     material: '10054765',
@@ -139,7 +147,7 @@ export const mockMaterialCapexRequest = [
     centro: '1000',
     dep: 1023,
     cti: 'L',
-    elemento_pep: null,
+    elemento_pep: '2325-2',
     und: 'M',
     preco: 13.76,
     qtd_necessaria: 6,
@@ -153,11 +161,12 @@ export const mockMaterialCapexRequest = [
 
 export const mockReturnAuxiliaryBaseCN52N = [
   {
-    ovnota: '23435356',
-    ordem_diagrama: '170000027938',
-    diagrama_rede: '170000027938',
+    ovnota: '111',
+    ordem_diagrama: '170000010000',
+    diagrama_rede: '170000010000', // CAPEX (170)
     def_proj: 'X/005017',
     material: '10057267',
+    elemento_pep: '2325-2',
     cti: 'L',
     um_registro: 'PEÇ',
     preco: 2644.57,
@@ -165,83 +174,77 @@ export const mockReturnAuxiliaryBaseCN52N = [
     qtd_retirada: 0,
     qtd_falta: 1,
     reserva: null,
+    id_obra: 1,
   },
   {
-    ovnota: '23435356',
-    ordem_diagrama: '180000027938',
-    diagrama_rede: '180000027938',
+    ovnota: '111',
+    ordem_diagrama: '180000010000',
+    diagrama_rede: '180000010000', // CAPEX (180)
     def_proj: 'X/005017',
     material: '10057267',
+    elemento_pep: '2325-2',
     cti: 'L',
     um_registro: 'PEÇ',
     preco: 2644.57,
     qtd_necessaria: 2,
-    qtd_retirada: 0,
+    qtd_retirada: 1,
     qtd_falta: 1,
     reserva: 'X',
+    id_obra: 2,
   },
   {
-    ovnota: '23435356',
-    ordem_diagrama: '180000027938',
-    diagrama_rede: '180000027938',
+    ovnota: '111',
+    ordem_diagrama: '180000010000',
+    diagrama_rede: '180000010000', // CAPEX (180)
     def_proj: 'X/005017',
     material: '10057267',
-    cti: 'N',
+    elemento_pep: '2325-2',
+    cti: 'L',
     um_registro: 'PEÇ',
     preco: 2644.57,
     qtd_necessaria: 2,
+    qtd_retirada: 1,
+    qtd_falta: 1,
+    reserva: 'X',
+    id_obra: 2,
+  },
+  {
+    ovnota: '111',
+    ordem_diagrama: '170000010000',
+    diagrama_rede: '170000010000', // CAPEX (170)
+    def_proj: 'X/004078',
+    material: '10054768', // DELETADO
+    elemento_pep: '2325-2',
+    cti: 'N',
+    um_registro: 'SRV',
+    preco: 1.298,
+    qtd_necessaria: 5,
     qtd_retirada: 0,
     qtd_falta: 1,
     reserva: 'X',
+    id_obra: 1,
   },
   {
-    ovnota: '23435356',
-    ordem_diagrama: '170000027938',
-    diagrama_rede: '170000027938',
+    ovnota: '111',
+    ordem_diagrama: '150000010000',
+    diagrama_rede: '150000010000', // NÃO CAPEX
     def_proj: 'X/004078',
-    material: '10054768',
+    material: '10054768', // DELETADO
+    elemento_pep: '2325-2',
     cti: 'N',
     um_registro: 'SRV',
     preco: 1.298,
     qtd_necessaria: 5,
-    qtd_retirada: 3,
-    qtd_falta: 1,
-    reserva: 'X',
-  },
-  {
-    ovnota: '23435356',
-    ordem_diagrama: '170000027938',
-    diagrama_rede: '150000027938',
-    def_proj: 'X/004078',
-    material: '10054768',
-    cti: 'N',
-    um_registro: 'SRV',
-    preco: 1.298,
-    qtd_necessaria: 5,
-    qtd_retirada: 3,
-    qtd_falta: 1,
-    reserva: 'X',
-  },
-  {
-    ovnota: '23435356',
-    ordem_diagrama: '170000027938',
-    diagrama_rede: '170000027938',
-    def_proj: 'X/004078',
-    material: '10054768',
-    cti: 'N',
-    um_registro: 'SRV',
-    preco: 1.298,
-    qtd_necessaria: 5,
-    qtd_retirada: 3,
+    qtd_retirada: 2,
     qtd_falta: 1,
     reserva: null,
+    id_obra: 1,
   },
 ];
 
 export const mockCalculatedValues: CalculatedValue[] = [
   {
-    ovnota: '12131175',
-    diagrama_rede: '170000008998',
+    id: 1,
     qtde_calc: 10,
     qtde_pend: 2,
     mo_calc: 1500.75,

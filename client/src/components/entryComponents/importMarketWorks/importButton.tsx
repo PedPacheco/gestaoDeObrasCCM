@@ -96,8 +96,6 @@ export function ImportButton({ storageKey }: ImportButtonProps) {
     const iw38File = e.target.files?.[0];
     if (!iw38File) return;
 
-    const allSkippedNotes = new Set<string>();
-
     startTransition(async () => {
       try {
         const workbook1 = new ExcelJS.Workbook();
@@ -113,7 +111,7 @@ export function ImportButton({ storageKey }: ImportButtonProps) {
             campo_ordenacao: String(row[4]),
             pep: row[8],
             tipo_de_ordem: row[1],
-            conjunto: row[6],
+            conjunto: row[6].toString(),
             texto_breve: row[5],
             grp_plnj_pm: row[9],
             ordem: row[3],

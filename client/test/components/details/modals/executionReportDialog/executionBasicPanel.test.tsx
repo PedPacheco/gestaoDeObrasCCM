@@ -35,8 +35,12 @@ describe("ExecutionBasicPanel component", () => {
     expect(
       screen.getByLabelText("Horário de Término (Real campo)")
     ).toBeInTheDocument();
-    expect(screen.getByLabelText("Contato Início")).toBeInTheDocument();
-    expect(screen.getByLabelText("Contato Término")).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("Nome Operador COI - Inicio")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText("Nome Operador COI - Término")
+    ).toBeInTheDocument();
     expect(
       screen.getByLabelText("Justificativa de Atraso")
     ).toBeInTheDocument();
@@ -68,11 +72,11 @@ describe("ExecutionBasicPanel component", () => {
     ) as HTMLInputElement;
 
     const startContactInput = screen.getByLabelText(
-      "Contato Início"
+      "Nome Operador COI - Inicio"
     ) as HTMLInputElement;
 
     const startEndInput = screen.getByLabelText(
-      "Contato Término"
+      "Nome Operador COI - Término"
     ) as HTMLInputElement;
 
     const partialConnectionReleasedCheckbox = screen.getByLabelText(

@@ -67,7 +67,9 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
           },
         },
         empreendimento: { select: { empreendimento: true } },
-        municipios: { select: { municipio: true } },
+        municipios: {
+          select: { municipio: true, regionais: { select: { id: true } } },
+        },
         tipos: { select: { tipo_obra: true, id_grupo: true } },
         id_turma: true,
         id_status: true,
@@ -75,6 +77,7 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
         programacoes: {
           select: {
             id: true,
+            criado_em: true,
             data_prog: true,
             hora_ini: true,
             hora_ter: true,
@@ -97,6 +100,25 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
             reprovada: true,
             status_programacao: {
               select: { status_programacao: true },
+            },
+            observacao_restricao: true,
+            id_restricao_prog1: true,
+            responsabilidade1: true,
+            nome_responsavel: true,
+            area_responsavel1: true,
+            status_restricao1: true,
+            data_resolucao1: true,
+            id_restricao_prog2: true,
+            responsabilidade2: true,
+            nome_responsavel2: true,
+            area_responsavel2: true,
+            status_restricao2: true,
+            data_resolucao2: true,
+            usuario: {
+              select: { nome_usuario: true },
+            },
+            usuario_ultima_atualizacao: {
+              select: { nome_usuario: true },
             },
           },
           orderBy: { data_prog: 'asc' },

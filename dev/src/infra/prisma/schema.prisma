@@ -31,51 +31,8 @@ model base_auxiliar {
   capex_mo_plan      Int?
   capex_mat_plan     Int?
   anoplan            Int?
+  eh_rda             Boolean?    @default(false)
   municipios         municipios? @relation(fields: [aux_gpm], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_municipios")
-}
-
-model base_auxiliar_nota {
-  tipo_de_ordem     String?   @db.VarChar(255)
-  nota              String?   @db.VarChar(255)
-  ordem             String?   @db.VarChar(255)
-  campo_ordenacao   String?   @db.VarChar(255)
-  texto_breve       String?   @db.VarChar(255)
-  conjunto          String?   @db.VarChar(255)
-  denom_Conjunto    String?   @db.VarChar(255)
-  pep_cabec_ordem   String?   @db.VarChar(255)
-  grp_plnj_pm       String?   @db.VarChar(255)
-  status_usuario    String?   @db.VarChar(255)
-  status_sistema    String?   @db.VarChar(255)
-  data_entrada      DateTime? @db.Timestamptz(6)
-  custos_tot_plan   Float?
-  custo_tot_reais   Float?
-  centro            String?   @db.VarChar(255)
-  loc_instalacao    String?   @db.VarChar(255)
-  denominacao       String?   @db.VarChar(255)
-  modificado_por    String?   @db.VarChar(255)
-  aux_valor_mo_calc Float?
-  aux_qtde_calc     Float?
-  id                BigInt    @id @default(autoincrement())
-}
-
-model base_auxiliar_nota_cn52n {
-  status         String?   @db.VarChar(10)
-  diagrama_rede  String?   @db.VarChar(15)
-  def_proj       String?   @db.VarChar(10)
-  material       String?   @db.VarChar(10)
-  texto_material String?   @db.VarChar(100)
-  centro         String?   @db.VarChar(10)
-  deposito       String?   @db.VarChar(10)
-  ctg_item       String?   @db.VarChar(3)
-  elemento_pep   String?   @db.VarChar(20)
-  um_registro    String?   @db.VarChar(10)
-  preco_mi       Float?
-  qtd_necess     Float?
-  qtd_retirada   Float?
-  qtd_entrada    Float?
-  qtd_falta      Float?
-  data_nec       DateTime? @db.Date
-  id             BigInt    @id @default(autoincrement())
 }
 
 model base_auxiliar_ov {
@@ -169,6 +126,8 @@ model cn52n {
   calc_capex_mat_pend Float?
   calc_capex_mo_pend  Float?
   id                  BigInt    @id @default(autoincrement())
+  id_obra             Int
+  obras               obras     @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
 }
 
 model conjuntos {
@@ -234,6 +193,7 @@ model metas {
   out_meta_fisico   Float?
   nov_meta_fisico   Float?
   dez_meta_fisico   Float?
+  prazo             String?         @db.VarChar(12)
   empreendimento    empreendimento? @relation(fields: [id_empreendimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_empreendimento")
   turmas            turmas          @relation(fields: [id_parceira], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
   regionais         regionais       @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
@@ -306,6 +266,7 @@ model obras {
   ano_plan                 Int?
   data_viabilidade         DateTime?                  @db.Date
   prazo_viabilidade        String?                    @default("FALTA VIABILIDADE") @db.VarChar(40)
+  cn52n                    cn52n[]
   notas_d5                 notas_d5[]
   circuitos                circuitos                  @relation(fields: [id_circuito], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_circuitos")
   empreendimento           empreendimento             @relation(fields: [id_empreendimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_empreendimento")
@@ -318,58 +279,65 @@ model obras {
   programacoes_reprovacoes programacoes_reprovacoes[]
   relatorio                relatorio[]
   relatorio_execucao       relatorio_execucao[]
+  relatorio_viabilidade    relatorio_viabilidade[]
+  restricoes_publicacoes   restricoes_publicacoes[]
   servicos                 servicos[]
   suspensoes               suspensoes[]
   suspensoes_retiradas     suspensoes_retiradas[]
 }
 
 model programacoes {
-  id                              Int                     @id(map: "PROGRAMACOES_pkey") @default(autoincrement())
-  id_obra                         Int
-  data_prog                       DateTime                @db.Date
-  prog                            Int                     @default(0)
-  exec                            Int?
-  equip_desligado                 String?
-  num_dp                          String?
-  hora_ini                        DateTime?               @db.Time(6)
-  hora_ter                        DateTime?               @db.Time(6)
-  equipe_linha_morta              Int?
-  equipe_linha_viva               Int?
-  equipe_regularizacao            Int?
-  chave_provisoria                Boolean?
-  tipo_servico                    String?                 @db.VarChar(50)
-  chi                             Int?
-  nome_responsavel_execucao       String?                 @db.VarChar(50)
-  id_restricao_execucao           Int                     @default(1)
-  id_restricao_prog1              Int                     @default(1)
-  responsabilidade1               String?                 @db.VarChar(50)
-  nome_responsavel                String?                 @db.VarChar(50)
-  area_responsavel1               String?                 @db.VarChar(50)
-  status_restricao1               String?                 @db.VarChar(50)
-  data_resolucao1                 DateTime?               @db.Date
-  id_restricao_prog2              Int?                    @default(1)
-  responsabilidade2               String?                 @db.VarChar(50)
-  nome_responsavel2               String?                 @db.VarChar(50)
-  area_responsavel2               String?                 @db.VarChar(50)
-  status_restricao2               String?                 @db.VarChar(50)
-  data_resolucao2                 DateTime?               @db.Date
-  observacao_restricao            String?                 @db.VarChar(255)
-  observacao_execucao             String?                 @db.VarChar(255)
-  id_tecnico                      Int                     @default(1)
-  id_status_programacao           Int                     @default(1)
-  validada                        Boolean                 @default(false)
-  confirmada                      Boolean                 @default(false)
-  observacao_programacao          String?                 @db.VarChar(250)
-  reprovada                       Boolean?                @default(false)
-  obras                           obras                   @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
-  programacoes_restricao_execucao restricoes              @relation("programacoes_restricao_execucao", fields: [id_restricao_execucao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_execucao")
-  programacoes_restricao_prog1    restricoes              @relation("programacoes_restricao_prog1", fields: [id_restricao_prog1], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_prog1")
-  programacoes_restricao_prog2    restricoes?             @relation("programacoes_restricao_prog2", fields: [id_restricao_prog2], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_prog2")
-  status_programacao              status_programacao      @relation(fields: [id_status_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_status_programacao")
-  tecnicos                        tecnicos                @relation(fields: [id_tecnico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tecnicos")
-  programacoes_servicos           programacoes_servicos[]
-  relatorio_execucao              relatorio_execucao[]
-  servicos                        servicos[]
+  id                                                          Int                     @id(map: "PROGRAMACOES_pkey") @default(autoincrement())
+  id_obra                                                     Int
+  data_prog                                                   DateTime                @db.Date
+  prog                                                        Int                     @default(0)
+  exec                                                        Int?
+  equip_desligado                                             String?
+  num_dp                                                      String?
+  hora_ini                                                    DateTime?               @db.Time(6)
+  hora_ter                                                    DateTime?               @db.Time(6)
+  equipe_linha_morta                                          Int?
+  equipe_linha_viva                                           Int?
+  equipe_regularizacao                                        Int?
+  chave_provisoria                                            Boolean?
+  tipo_servico                                                String?                 @db.VarChar(50)
+  chi                                                         Int?
+  nome_responsavel_execucao                                   String?                 @db.VarChar(50)
+  id_restricao_execucao                                       Int                     @default(1)
+  id_restricao_prog1                                          Int                     @default(1)
+  responsabilidade1                                           String?                 @db.VarChar(50)
+  nome_responsavel                                            String?                 @db.VarChar(50)
+  area_responsavel1                                           String?                 @db.VarChar(50)
+  status_restricao1                                           String?                 @db.VarChar(50)
+  data_resolucao1                                             DateTime?               @db.Date
+  id_restricao_prog2                                          Int                     @default(1)
+  responsabilidade2                                           String?                 @db.VarChar(50)
+  nome_responsavel2                                           String?                 @db.VarChar(50)
+  area_responsavel2                                           String?                 @db.VarChar(50)
+  status_restricao2                                           String?                 @db.VarChar(50)
+  data_resolucao2                                             DateTime?               @db.Date
+  observacao_restricao                                        String?                 @db.VarChar(255)
+  observacao_execucao                                         String?                 @db.VarChar(255)
+  id_tecnico                                                  Int                     @default(1)
+  id_status_programacao                                       Int                     @default(1)
+  validada                                                    Boolean                 @default(false)
+  confirmada                                                  Boolean                 @default(false)
+  observacao_programacao                                      String?                 @db.VarChar(250)
+  reprovada                                                   Boolean?                @default(false)
+  criado_em                                                   DateTime?               @default(now()) @db.Timestamp(6)
+  id_usuario                                                  Int?
+  id_usuario_ultima_atualizacao                               Int?
+  obras                                                       obras                   @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
+  programacoes_restricao_execucao                             restricoes              @relation("programacoes_restricao_execucao", fields: [id_restricao_execucao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_execucao")
+  programacoes_restricao_prog1                                restricoes              @relation("programacoes_restricao_prog1", fields: [id_restricao_prog1], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_prog1")
+  programacoes_restricao_prog2                                restricoes              @relation("programacoes_restricao_prog2", fields: [id_restricao_prog2], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes_prog2")
+  status_programacao                                          status_programacao      @relation(fields: [id_status_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_status_programacao")
+  tecnicos                                                    tecnicos                @relation(fields: [id_tecnico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tecnicos")
+  usuario                                                     usuario?                @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario")
+  usuario_ultima_atualizacao                                  usuario?                @relation("usuario_ultima_atualizacao", fields: [id_usuario_ultima_atualizacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_ultima_alteracao")
+  programacoes_servicos                                       programacoes_servicos[]
+  relatorio_execucao                                          relatorio_execucao[]
+  servicos                                                    servicos[]
 
   @@unique([id, id_obra, data_prog], map: "unique_programacoes")
 }
@@ -411,12 +379,13 @@ model relatorio {
 }
 
 model restricoes {
-  id                              Int            @id(map: "RESTRICOES_pkey") @default(autoincrement())
-  restricao                       String?        @db.VarChar(80)
-  tipo_restricao                  String         @db.VarChar(15)
-  programacoes_restricao_execucao programacoes[] @relation("programacoes_restricao_execucao")
-  programacoes_restricao_prog1    programacoes[] @relation("programacoes_restricao_prog1")
-  programacoes_restricao_prog2    programacoes[] @relation("programacoes_restricao_prog2")
+  id                              Int                      @id(map: "RESTRICOES_pkey") @default(autoincrement())
+  restricao                       String?                  @db.VarChar(80)
+  tipo_restricao                  String                   @db.VarChar(15)
+  programacoes_restricao_execucao programacoes[]           @relation("programacoes_restricao_execucao")
+  programacoes_restricao_prog1    programacoes[]           @relation("programacoes_restricao_prog1")
+  programacoes_restricao_prog2    programacoes[]           @relation("programacoes_restricao_prog2")
+  restricoes_publicacoes          restricoes_publicacoes[]
 }
 
 model servicos {
@@ -534,36 +503,28 @@ model turmas {
 }
 
 model usuario {
-  id                     Int                  @id(map: "USUARIO_pkey") @default(autoincrement())
-  username               String               @db.VarChar(8)
-  senha                  String               @db.VarChar
-  permissao              String               @db.VarChar(30)
-  id_regional            Int
-  formulario_utilizado   String?              @db.VarChar(50)
-  nome_maquina           String?              @db.VarChar(30)
-  nome_usuario           String               @db.VarChar(50)
-  email                  String               @db.VarChar(70)
-  permissao_visualizacao String               @default("total") @db.VarChar(25)
-  id_turma               Int                  @default(1)
-  relatorio_execucao     relatorio_execucao[]
-  turmas                 turmas               @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
-  regionais              regionais            @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
-}
-
-model ztab_cn52n_aux {
-  diagrama_rede       String? @db.VarChar(30)
-  qtde_manut_pend     Float?
-  calc_capex_mat_plan Float?
-  calc_capex_mo_plan  Float?
-  calc_capex_mat_pend Float?
-  calc_capex_mo_pend  Float?
-  id                  BigInt  @id @default(autoincrement())
+  id                                                               Int                  @id(map: "USUARIO_pkey") @default(autoincrement())
+  username                                                         String               @db.VarChar(8)
+  senha                                                            String               @db.VarChar
+  permissao                                                        String               @db.VarChar(30)
+  id_regional                                                      Int
+  nome_usuario                                                     String               @db.VarChar(50)
+  email                                                            String               @db.VarChar(70)
+  permissao_visualizacao                                           String               @default("total") @db.VarChar(25)
+  id_turma                                                         Int                  @default(1)
+  permissao_publicacao                                             Boolean              @default(false)
+  programacoes                                                     programacoes[]
+  usuario_ultima_atualizacao                                       programacoes[]       @relation("usuario_ultima_atualizacao")
+  relatorio_execucao                                               relatorio_execucao[]
+  turmas                                                           turmas               @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
+  regionais                                                        regionais            @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
 }
 
 model relatorio_viabilidade {
-  id         Int     @id(map: "relatorio_viablidade_pkey") @default(autoincrement())
-  ovnota     String  @db.VarChar(15)
-  encontrado Boolean
+  id              Int    @id(map: "relatorio_viablidade_pkey") @default(autoincrement())
+  id_obra         Int
+  caminho_arquivo String @db.VarChar(180)
+  obras           obras  @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
 }
 
 model notas_d5 {
@@ -628,7 +589,7 @@ model relatorio_execucao {
   contato_inicio                       String?      @db.VarChar(50)
   contato_termino                      String?      @db.VarChar(50)
   atraso                               Boolean?
-  justificativa_atraso                 String?      @db.VarChar(150)
+  justificativa_atraso                 String?      @db.VarChar(350)
   possui_equipamentos_instalados       Boolean?
   equipamentos_aplicados               String?
   possui_equipamentos_retirados        Boolean?
@@ -646,6 +607,8 @@ model relatorio_execucao {
   instalacao_equipamento_aplicado      String?
   instalacao_equipamento_retirado      String?
   referencia_chave_provisoria_retirada String?      @db.VarChar(25)
+  caminho_arquivo                      String?      @db.VarChar(420)
+  criado_em                            DateTime?    @default(now()) @db.Timestamp(6)
   obras                                obras        @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obra")
   programacoes                         programacoes @relation(fields: [id_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_programacao")
   usuario                              usuario      @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario")
@@ -692,96 +655,54 @@ model suspensoes_retiradas {
   status             status?   @relation(fields: [id_status_retirada], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_status")
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model OBRAS {
-  CODIGOOBRA            Int?
-  OVNOTA                String?   @db.VarChar(12)
-  PEP                   String?   @db.VarChar(8)
-  DIAGRAMA              String?   @db.VarChar(12)
-  ORDEMDCI              String?   @db.VarChar(12)
-  ORDEMDCD              String?   @db.VarChar(12)
-  ORDEMDCA              String?   @db.VarChar(12)
-  ORDEMDCIM             String?   @db.VarChar(12)
-  STATUSOVSAP           Int?
-  STATUSPEP             String?   @db.VarChar(4)
-  STATUSDIAGRAMA        String?   @db.VarChar(4)
-  STATUS162             String?   @db.VarChar(255)
-  STATUS163             String?   @db.VarChar(4)
-  STATUS165             String?   @db.VarChar(4)
-  STATUS43              String?   @db.VarChar(4)
-  STATUSUSUARIODIAGRAMA String?   @db.VarChar(16)
-  STATUSUSUARIO162      String?   @db.VarChar(16)
-  STATUSUSUARIO163      String?   @db.VarChar(16)
-  STATUSUSUARIO165      String?   @db.VarChar(16)
-  STATUSUSUARIO43       String?   @db.VarChar(16)
-  CODGPM                Int?
-  CODTIPO               Int?
-  ENTRADA               DateTime? @db.Timestamptz(6)
-  PRAZO                 Int?
-  QTDEPLANEJADA         Float?
-  CODCIRCUITO           Int?
-  MOPLANEJADA           Float?
-  MOCALCULADA           Float?
-  MOACERTADA            Float?
-  OBSERVOBRA            String?   @db.VarChar(255)
-  CODTURMA              Int?
-  EXECUTADO             Int?      @map("%EXECUTADO")
-  DATACONCLUSAO         DateTime? @db.Timestamptz(6)
-  CODSTATUS             Int?
-  REFERENCIA            String?   @db.VarChar(14)
-  CAPEXMATPLAN          Float?
-  CAPEXMOPLAN           Float?
-  CAPEXMATPEND          Float?
-  CAPEXMOPEND           Float?
-  QTDEPEND              Float?
-  TIPOADS               String?   @db.VarChar(255)
-  DATAEMPREITAMENTO     DateTime? @db.Timestamptz(6)
-  CODEMPREENDIMENTO     Int?
-  DIAGRAMAANTIGO        String?   @db.VarChar(12)
-  ORDEMDCIANTIGO        String?   @db.VarChar(12)
-  ORDEMDCDANTIGO        String?   @db.VarChar(12)
-  ORDEMDCSANTIGO        String?   @db.VarChar(12)
-  ORDEMDCIMANTIGO       String?   @db.VarChar(12)
-  ANOPLAN               Int?
-  DATAVIABILIDADE       DateTime? @db.Timestamptz(6)
-  PRAZOVIABILIDADE      String?   @db.VarChar(40)
-
-  @@ignore
+model restricoes_publicacoes {
+  id               Int        @id @default(autoincrement())
+  id_obra          Int
+  id_restricao     Int        @default(1)
+  responsabilidade String     @db.VarChar(50)
+  nome_responsavel String     @db.VarChar(50)
+  status_restricao String     @db.VarChar(20)
+  data_resolucao   DateTime?  @db.Date
+  criado_em        DateTime?  @default(now()) @db.Timestamp(6)
+  obras            obras      @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
+  restricoes       restricoes @relation(fields: [id_restricao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes")
 }
 
 view exportacao_obras_executadas {
-  id                BigInt    @unique
-  ovnota            String?   @db.VarChar(12)
-  pep               String?   @db.VarChar(8)
-  ordemdiagrama     String?   @db.VarChar(12)
-  ordem_dcd         String?   @db.VarChar(12)
-  ordem_dca         String?   @db.VarChar(12)
-  ordem_dcim        String?   @db.VarChar(12)
-  regional          String?   @db.VarChar(20)
-  mun               String?   @db.VarChar(3)
-  entrada           DateTime? @db.Date
-  data_conclusao    DateTime? @db.Date
-  prazofim          DateTime? @db.Date
-  tipo_obra         String?   @db.VarChar(30)
-  qtde_planejada    Float?
-  qtde_pend         Float?
-  circuito          String?   @db.VarChar(12)
-  mo_planejada      Float?
-  mo_exec           Float?
-  mo_suspensa       Float?
-  observ_obra       String?   @db.VarChar(255)
-  turma             String?   @db.VarChar(15)
-  executado         Int?
-  status            String?   @db.VarChar(25)
-  capex_plan        Float?
-  capex_pend        Float?
-  capex_mat_plan    Float?
-  capex_mo_plan     Float?
-  capex_mat_pend    Float?
-  capex_mo_pend     Float?
-  conjunto          String?   @db.VarChar(100)
-  data_viabilidade  DateTime? @db.Date
-  prazo_viabilidade String?   @db.VarChar(40)
+  id                 BigInt    @unique
+  ovnota             String?   @db.VarChar(12)
+  pep                String?   @db.VarChar(8)
+  ordemdiagrama      String?   @db.VarChar(12)
+  ordem_dcd          String?   @db.VarChar(12)
+  ordem_dca          String?   @db.VarChar(12)
+  ordem_dcim         String?   @db.VarChar(12)
+  regional           String?   @db.VarChar(20)
+  mun                String?   @db.VarChar(3)
+  entrada            DateTime? @db.Date
+  data_conclusao     DateTime? @db.Date
+  prazofim           DateTime? @db.Date
+  tipo_obra          String?   @db.VarChar(30)
+  qtde_planejada     Float?
+  qtde_pend          Float?
+  circuito           String?   @db.VarChar(12)
+  mo_planejada       Float?
+  mo_exec            Float?
+  mo_suspensa        Float?
+  observ_obra        String?   @db.VarChar(255)
+  turma              String?   @db.VarChar(15)
+  executado          Int?
+  status             String?   @db.VarChar(25)
+  capex_plan         Float?
+  capex_pend         Float?
+  capex_mat_plan     Float?
+  capex_mo_plan      Float?
+  capex_mat_pend     Float?
+  capex_mo_pend      Float?
+  conjunto           String?   @db.VarChar(100)
+  empreendimento     String?   @db.VarChar(50)
+  data_empreitamento DateTime? @db.Date
+  data_viabilidade   DateTime? @db.Date
+  prazo_viabilidade  String?   @db.VarChar(40)
 }
 
 view exportacao_programacoes_obras {
@@ -832,6 +753,7 @@ view exportacao_programacoes_obras {
   data_resolucao2              DateTime? @db.Date
   observacao_restricao         String?   @db.VarChar(255)
   observacao_execucao          String?   @db.VarChar(255)
+  status_programacao           String?   @db.VarChar(30)
 }
 
 view exportacao_capacidade_execucao {
@@ -839,6 +761,7 @@ view exportacao_capacidade_execucao {
   ano                    String? @db.VarChar(10)
   regional               String? @db.VarChar(20)
   turma                  String? @db.VarChar(15)
+  equipe                 String? @db.VarChar(15)
   total_shouldcost       Float?
   total_qtde_equipes_rfp BigInt?
   jan                    Int?    @db.SmallInt
@@ -931,7 +854,9 @@ view exportacao_obras_carteira {
   num_dp                  String?
   grupo                   String?   @db.VarChar(20)
   referencia              String?   @db.VarChar(14)
+  data_empreitamento      DateTime? @db.Date
   empreendimento          String?   @db.VarChar(50)
   data_viabilidade        DateTime? @db.Date
   prazo_viabilidade       String?   @db.VarChar(40)
+  ano_plan                Int?
 }

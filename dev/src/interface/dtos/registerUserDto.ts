@@ -29,6 +29,10 @@ export class RegisterUserDTO {
   id_regional: number;
 
   @IsNotEmpty()
+  @IsNumber()
+  id_turma: number;
+
+  @IsNotEmpty()
   @IsString()
   @MaxLength(50)
   nome_usuario: string;

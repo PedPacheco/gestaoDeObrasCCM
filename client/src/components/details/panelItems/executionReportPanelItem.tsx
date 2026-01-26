@@ -16,13 +16,19 @@ import {
   TableRow,
   Tooltip,
 } from "@mui/material";
-import { PencilIcon, TrashIcon } from "@heroicons/react/20/solid";
+import {
+  DocumentTextIcon,
+  PencilIcon,
+  TrashIcon,
+} from "@heroicons/react/20/solid";
 import { useState } from "react";
 import { useUser } from "@/contexts/userContext";
 
 dayjs.extend(utc);
 
 const columns = {
+  criado_em: "Data de criação",
+  caminho_arquivo: "Arquivos As Build",
   nome_usuario: "Usuário que inseriu a informação",
   hora_ini: "Horário de início (DP)",
   hora_ter: "Horário de término (DP)",
@@ -34,7 +40,7 @@ const columns = {
   prog: "% Programado",
   exec: "% Executado",
   status: "Status da obra",
-  liberado_ligacao_parcial: "Liberado para a ligação mesmo parcial ?",
+  liberado_ligacao_parcial: "Liberado publicação ?",
   num_dp: "Número DP",
   hora_inicio: "Hora de início (Real campo)",
   hora_conclusao: "Hora de conclusão (Real campo)",
@@ -92,17 +98,26 @@ export default function ExecutionReportPanelItem({
     }
   };
 
+  const getFiles = (path: string) => {
+    const filesPath = path?.split(";");
+
+    return filesPath?.map(
+      (filename) =>
+        `${process.env.NEXT_PUBLIC_API_URL}/uploads/as_build/${filename}`
+    );
+  };
+
   return (
     <>
       <TableContainer className="h-full overflow-y-auto">
         <Table stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell className="py-1 px-2 text-center text-zinc-700 font-semibold text-lg bg-[#53FF75] border-r border-solid border-zinc-700 min-w-[100px] sticky left-0 z-10" />
+              <TableCell className="p-0 text-center text-zinc-700 font-semibold text-lg bg-[#53FF75] border-r border-solid border-zinc-700 min-w-[100px] sticky left-0 z-10" />
               {Object.keys(columns).map((column) => (
                 <TableCell
                   key={column}
-                  className={`py-1 px-2 text-center text-zinc-700 font-semibold text-lg bg-[#53FF75] border-r border-solid border-zinc-700 min-w-52 sticky left-0 z-10`}
+                  className={`p-0 text-center text-zinc-700 font-semibold text-lg bg-[#53FF75] border-r border-solid border-zinc-700 min-w-52 sticky left-0 z-10`}
                 >
                   {columns[column as keyof typeof columns]}
                 </TableCell>
@@ -165,6 +180,35 @@ export default function ExecutionReportPanelItem({
                   </TableCell>
                   {Object.keys(columns).map((column, index) => {
                     let cellValue = item[column];
+
+                    if (column === "caminho_arquivo") {
+                      const urls = getFiles(item?.caminho_arquivo);
+                      const filenames = item.caminho_arquivo?.split(";");
+
+                      return (
+                        <TableCell
+                          key={index}
+                          className="py-1 px-2 text-center border-r font-medium text-lg border-zinc-700 border-solid"
+                        >
+                          {urls?.map((url: string, i: number) => {
+                            return (
+                              <Tooltip key={i} title={`${filenames[i]}`}>
+                                <IconButton>
+                                  <a
+                                    href={url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-2xl hover:scale-110 transition-transform"
+                                  >
+                                    <DocumentTextIcon width={30} height={30} />
+                                  </a>
+                                </IconButton>
+                              </Tooltip>
+                            );
+                          })}
+                        </TableCell>
+                      );
+                    }
 
                     if (typeof cellValue === "boolean") {
                       cellValue = cellValue ? "Sim" : "Não";

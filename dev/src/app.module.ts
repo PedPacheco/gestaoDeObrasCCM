@@ -1,4 +1,4 @@
-import { Module, ValidationPipe } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 
@@ -20,12 +20,15 @@ import { ExecutionReportModule } from './interface/modules/executionReport.modul
 import { WorksServicesModule } from './interface/modules/worksServices.module';
 import { ExecutionCapacityModule } from './interface/modules/executionCapacity.module';
 import { ErrorsReportModule } from './interface/modules/errorsReport.module';
+import { RestrictionsModule } from './interface/modules/restrictions.module';
+import { FeasibilityModule } from './interface/modules/feasibility.module';
+import { CustomValidationPipe } from './core/pipes/customValidation.pipe';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '../.env',
+      envFilePath: './.env',
     }),
     WorksModule,
     PrismaModule,
@@ -34,6 +37,7 @@ import { ErrorsReportModule } from './interface/modules/errorsReport.module';
     EmailModule,
     GoalsModule,
     FiltersModule,
+    FeasibilityModule,
     EntryModule,
     ExportModule,
     ScheduleModule,
@@ -42,6 +46,7 @@ import { ErrorsReportModule } from './interface/modules/errorsReport.module';
     AuxiliaryBaseModule,
     ExecutionCapacityModule,
     ErrorsReportModule,
+    RestrictionsModule,
     JwtModule.registerAsync({
       global: true,
       inject: [ConfigService],
@@ -49,7 +54,7 @@ import { ErrorsReportModule } from './interface/modules/errorsReport.module';
         const secret = config.get<string>('JWT_SECRECT');
         return {
           secret,
-          signOptions: { expiresIn: '1h' },
+          signOptions: { expiresIn: '6h' },
         };
       },
     }),
@@ -65,7 +70,7 @@ import { ErrorsReportModule } from './interface/modules/errorsReport.module';
     },
     {
       provide: APP_PIPE,
-      useValue: new ValidationPipe({
+      useValue: new CustomValidationPipe({
         transform: true,
         whitelist: true,
         forbidNonWhitelisted: true,

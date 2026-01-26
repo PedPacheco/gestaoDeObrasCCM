@@ -45,6 +45,8 @@ SELECT
   obras.capex_mat_pend,
   obras.capex_mo_pend,
   conjuntos.conjunto,
+  empreendimento.empreendimento,
+  obras.data_empreitamento,
   obras.data_viabilidade,
   obras.prazo_viabilidade
 FROM
@@ -55,20 +57,23 @@ FROM
           (
             (
               (
-                conjuntos
-                JOIN circuitos ON ((circuitos.id_conjunto = conjuntos.id))
+                (
+                  conjuntos
+                  JOIN circuitos ON ((circuitos.id_conjunto = conjuntos.id))
+                )
+                JOIN obras ON ((obras.id_circuito = circuitos.id))
               )
-              JOIN obras ON ((obras.id_circuito = circuitos.id))
+              JOIN turmas ON ((turmas.id = obras.id_turma))
             )
-            JOIN turmas ON ((turmas.id = obras.id_turma))
+            JOIN municipios ON ((municipios.id = obras.id_gpm))
           )
-          JOIN municipios ON ((municipios.id = obras.id_gpm))
+          JOIN regionais ON ((regionais.id = municipios.id_regional))
         )
-        JOIN regionais ON ((regionais.id = municipios.id_regional))
+        JOIN STATUS ON ((STATUS.id = obras.id_status))
       )
-      JOIN STATUS ON ((STATUS.id = obras.id_status))
+      JOIN tipos ON ((tipos.id = obras.id_tipo))
     )
-    JOIN tipos ON ((tipos.id = obras.id_tipo))
+    JOIN empreendimento ON ((empreendimento.id = obras.id_empreendimento))
   )
 WHERE
   (obras.data_conclusao IS NOT NULL)
@@ -100,6 +105,8 @@ GROUP BY
   obras.capex_mat_pend,
   obras.capex_mo_pend,
   conjuntos.conjunto,
+  empreendimento.empreendimento,
+  obras.data_empreitamento,
   obras.data_viabilidade,
   obras.prazo_viabilidade
 ORDER BY

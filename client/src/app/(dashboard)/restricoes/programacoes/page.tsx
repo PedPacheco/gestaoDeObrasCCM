@@ -1,0 +1,103 @@
+import dayjs from "dayjs";
+import isoWeek from "dayjs/plugin/isoWeek";
+import { cookies } from "next/headers";
+
+import { fetchData } from "@/actions/fetchData.action";
+import { fetchFilters } from "@/actions/fetchFilters.action";
+import MainScheduleRestrictions from "@/components/restrictionsComponents/scheduleRestrictions/MainScheduleRestrictions";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
+import { Transform } from "@/utils/transform";
+import { ErrorThrower } from "@/components/common/ErrorThrower";
+
+dayjs.extend(isoWeek);
+
+export const dynamic = "force-dynamic";
+
+export default async function ScheduleRestrictions() {
+  const cookieStore = await cookies();
+  const cookieParams = cookieStore.get("scheduleRestrictionsFilters")?.value;
+
+  const params = cookieParams ? JSON.parse(cookieParams) : undefined;
+  let filtersValues = undefined;
+
+  if (params) {
+    const formattedSelectedItems = Transform(params.selectedItems);
+
+    filtersValues = {
+      ...formattedSelectedItems,
+      dataInicial: params?.startDate
+        ? dayjs(params?.startDate).format("DD/MM/YYYY")
+        : null,
+      dataFinal: params?.endDate
+        ? dayjs(params?.endDate).format("DD/MM/YYYY")
+        : null,
+      executado: params.executed,
+    };
+  } else {
+    filtersValues = {
+      executado: "false",
+      page: "0",
+    };
+  }
+
+  const [filters, scheduleData] = await Promise.all([
+    fetchFilters({
+      parceira: true,
+      regional: true,
+      municipio: true,
+      grupo: true,
+      tipo: true,
+      restricao: true,
+      tipoRestricao: ["PROGRAMAÇÃO"],
+    }),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/restricao/programacao`,
+      filtersValues,
+      cookieStore.get("token")?.value,
+      { cache: "no-store" }
+    ),
+  ]);
+
+  if (!scheduleData.success) {
+    return <ErrorThrower message={scheduleData.message} />;
+  }
+
+  const { token, data } = scheduleData;
+
+  const columns = {
+    id: "id",
+    ovnota: "Ovnota",
+    mun: "Municipio",
+    tipo_obra: "Tipo da Obra",
+    parceira: "Parceira",
+    executado: "Total executado",
+    data_prog: "Data programada",
+    prog: "Programado",
+    exec: "Executado",
+    obersvacao_restricao: "Observação da restrição",
+    restricao1: "1° Restrição",
+    responsabilidade1: "Responsabilidade",
+    nome_responsavel: "Nome do responsável",
+    area_responsavel1: "Área do responsável",
+    status_restricao1: "Status da restrição",
+    data_resolucao1: "Data de resolução",
+    restricao2: "2° Restrição",
+    responsabilidade2: "Responsabilidade",
+    nome_responsavel2: "Nome do responsável",
+    area_responsavel2: "Área do responsável",
+    status_restricao2: "Status da restrição",
+    data_resolucao2: "Data de resolução",
+  };
+
+  return (
+    <EmotionCacheProvider>
+      <MainScheduleRestrictions
+        data={data}
+        filtersData={filters}
+        columns={columns}
+        token={token}
+        url="programacao"
+      />
+    </EmotionCacheProvider>
+  );
+}

@@ -7,6 +7,7 @@ import {
   IsOptional,
   IsString,
   Matches,
+  Min,
   ValidateNested,
 } from 'class-validator';
 import { convertParameterValue } from 'src/utils/convertParameterValue';
@@ -51,11 +52,11 @@ export class GetTotalValuesScheduleDTO {
 export class GetScheduleValuesDTO {
   @IsString()
   @IsOptional()
-  data?: string;
+  dataInicial?: string;
 
   @IsString()
   @IsOptional()
-  tipoFiltro?: string;
+  dataFinal?: string;
 
   @IsOptional()
   @IsArray()
@@ -93,6 +94,11 @@ export class GetScheduleValuesDTO {
   idStatusProgramacao?: number[];
 
   @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idStatusSap?: number[];
+
+  @IsOptional()
   @IsString()
   ovnota?: string;
 
@@ -112,45 +118,6 @@ export class GetScheduleValuesDTO {
   @IsNumber()
   @Type(() => Number)
   page?: number;
-}
-
-export class GetValueWeeklyScheduleDTO {
-  @IsString()
-  dataInicial: string;
-
-  @IsString()
-  dataFinal: string;
-
-  @IsOptional()
-  @IsArray()
-  @Transform(({ value }) => convertParameterValue(value))
-  idRegional: number[];
-
-  @IsOptional()
-  @IsArray()
-  @Transform(({ value }) => convertParameterValue(value))
-  idMunicipio: number[];
-
-  @IsOptional()
-  @IsArray()
-  @Transform(({ value }) => convertParameterValue(value))
-  idGrupo: number[];
-
-  @IsOptional()
-  @IsArray()
-  @Transform(({ value }) => convertParameterValue(value))
-  idTipo: number[];
-
-  @IsOptional()
-  @IsArray()
-  @Transform(({ value }) => convertParameterValue(value))
-  idParceira: number[];
-
-  @IsBoolean()
-  @Transform(({ value }) =>
-    value === 'true' ? true : value === 'false' ? false : value,
-  )
-  executado: boolean;
 }
 
 export class GetMonthlySummaryDTO {
@@ -178,11 +145,37 @@ export class GetMonthlySummaryDTO {
   idTipo: number[];
 }
 
-export class SchedulesDataDTO {
+export class ValidateSchedulesDTO {
   @IsNumber()
-  @IsOptional()
-  id?: number;
+  id: number;
 
+  @IsBoolean()
+  validate: boolean;
+}
+
+export class ConfirmSchedulesDTO {
+  @IsNumber()
+  id: number;
+
+  @IsBoolean()
+  confirm: boolean;
+}
+
+export class RejectScheduleDTO {
+  @IsNumber()
+  id: number;
+
+  @IsBoolean()
+  reject: boolean;
+
+  @IsString()
+  reason: string;
+
+  @IsString()
+  description: string;
+}
+
+export class SchedulesDataDTO {
   @IsNumber()
   idWork: number;
 
@@ -208,6 +201,7 @@ export class SchedulesDataDTO {
 
   @IsNumber()
   @Type()
+  @Min(1)
   prog: number;
 
   @IsOptional()
@@ -270,43 +264,90 @@ export class SchedulesDataDTO {
   @IsOptional()
   @IsString()
   responsibility?: string;
+
+  @IsNumber()
+  idProgRestriction1: number;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsiblityProg?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsibleName?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsibleArea?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  restrictionStatus?: string;
+
+  @IsDate()
+  @Type(() => Date)
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  resolutionDate?: Date;
+
+  @IsNumber()
+  idProgRestriction2: number;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsiblityProg2?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsibleName2?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsibleArea2?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  restrictionStatus2?: string;
+
+  @IsDate()
+  @Type(() => Date)
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  resolutionDate2?: Date;
+
+  @IsBoolean()
+  @IsOptional()
+  validated?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  confirmed?: boolean;
+
+  @IsNumber()
+  idUser: number;
 }
 
 export class UpdateSchedulesDataDTO {
-  @ValidateNested({ each: true })
+  @Transform(({ value }) =>
+    typeof value === 'string' ? JSON.parse(value) : value,
+  )
+  @ValidateNested()
   @Type(() => SchedulesDataDTO)
   updateData: SchedulesDataDTO;
 
+  @Transform(({ value }) =>
+    typeof value === 'string' ? JSON.parse(value) : value,
+  )
   @IsOptional()
+  @ValidateNested()
+  @Type(() => ExecutionReportDataDTO)
   executionReportData?: ExecutionReportDataDTO;
-}
-
-export class ValidateSchedulesDTO {
-  @IsNumber()
-  id: number;
-
-  @IsBoolean()
-  validate: boolean;
-}
-
-export class ConfirmSchedulesDTO {
-  @IsNumber()
-  id: number;
-
-  @IsBoolean()
-  confirm: boolean;
-}
-
-export class RejectScheduleDTO {
-  @IsNumber()
-  id: number;
-
-  @IsBoolean()
-  reject: boolean;
-
-  @IsString()
-  reason: string;
-
-  @IsString()
-  description: string;
 }

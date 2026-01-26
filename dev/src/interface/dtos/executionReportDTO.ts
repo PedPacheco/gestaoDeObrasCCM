@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -86,9 +86,20 @@ export class ExecutionReportDataDTO {
   provisionalKeyReference: string;
 
   @IsBoolean()
-  provisionalKeyWithdrawn: boolean;
+  @IsOptional()
+  provisionalKeyWithdrawn?: boolean;
 
   @IsString()
   @IsOptional()
   provisionalKeyReferenceWithdrawn?: string;
+}
+
+export class UpdateExecutionReportDTO {
+  @Transform(({ value }) => {
+    const parsed = typeof value === 'string' ? JSON.parse(value) : value;
+    return parsed;
+  })
+  @ValidateNested()
+  @Type(() => ExecutionReportDataDTO)
+  executionReportData: ExecutionReportDataDTO;
 }

@@ -15,6 +15,7 @@ import FailureModalComponent from "./failureModal";
 
 interface ModalsManagerProps {
   idWork: any;
+  totalExec: number;
   statusWork: number;
   options: any;
   scheduleForm: any;
@@ -59,6 +60,7 @@ export const ModalsManager = forwardRef<ModalsManagerRef, ModalsManagerProps>(
       onCloseDialog,
       onConfirmDelete,
       onConfirmExecutionDelete,
+      totalExec,
     },
     ref
   ) => {
@@ -176,6 +178,7 @@ export const ModalsManager = forwardRef<ModalsManagerRef, ModalsManagerProps>(
           }}
           scheduleForm={scheduleForm}
           onModalOpen={setOpenModal}
+          totalExec={totalExec}
         />
 
         {error && (

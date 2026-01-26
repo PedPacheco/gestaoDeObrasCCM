@@ -18,6 +18,7 @@ import { UsersService } from 'src/application/users.service';
 
 import { worksInPortfolioResponseService } from 'src/interface/types/works/getWorksInPortfolioInterface';
 import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
+import { ExportExecutionReportService } from 'src/application/export/exportExecutionReport.service';
 
 describe('ExportController', () => {
   let controller: ExportController;
@@ -33,6 +34,7 @@ describe('ExportController', () => {
   let exportFinedWorksService: ExportFinedWorksService;
   let exportExecutionCapacityService: ExportExecutionCapacityService;
   let exportSuspensionsService: ExportSuspensionsService;
+  let exportExecutionReportService: ExportExecutionReportService;
 
   const mockReq = {
     insufficientPermission: true,
@@ -53,9 +55,9 @@ describe('ExportController', () => {
         abrev_regional: 'SP',
         conjunto: 'Conjunto 1',
         circuito: 'Circuito A',
-        entrada: new Date('2024-01-15T00:00:00.000Z'),
         prazo_fim: 90,
         tipo_obra: 'Manutenção Geral',
+        id_grupo: 1,
         qtde_planejada: 10,
         qtde_pend: 2,
         mo_planejada: 5,
@@ -75,6 +77,7 @@ describe('ExportController', () => {
         total_exec: 80,
         total_pend: 20,
         total_prog: 0,
+        status_prazo: 'Atenção: 23 dias restantes',
       },
     ],
     totals: {
@@ -97,16 +100,17 @@ describe('ExportController', () => {
         mun: 'MCR',
         prazo_fim: '2024-03-30T00:00:00.000Z',
         tipo_obra: 'POSTE',
+        id_grupo: 1,
         qtde_planejada: '1',
         mo_planejada: '3262.21',
         turma: 'LIG',
         executado: 0,
-        entrada: '2024-08-01T00:00:00.000Z',
         data_prog: '2024-10-01T00:00:00.000Z',
         prog: 100,
         exec: null,
         mo_prog: 3262.21,
         mo_exec: 3262.21,
+        mat_prog: 2345.32,
         num_dp: '15563352',
         hora_ini: '1970-01-01T14:30:00.000Z',
         hora_ter: '1970-01-01T17:30:00.000Z',
@@ -117,9 +121,17 @@ describe('ExportController', () => {
         observprog: '',
         conjunto: '',
         circuito: '',
-        total_obras: 0,
-        total_mo_planejada: 0,
-        total_qtde_planejada: 0,
+        status_programacao: 'PROGRAMADA',
+        status: 'EM EXECUÇÃO',
+        id_restricao_prog1: 0,
+        id_restricao_prog2: 0,
+        data_resolucao1: new Date('1970-01-01T00:00:00.000Z'),
+        data_resolucao2: new Date('1970-01-01T00:00:00.000Z'),
+        status_restricao1: 'SEM RESTRIÇÃO',
+        status_restricao2: 'SEM RESTRIÇÃO',
+        restricao_aberta: false,
+        status_prazo: 'Atenção: 32 dias restantes',
+        status_ov_sap: 51,
       },
     ],
     totals: {
@@ -204,6 +216,10 @@ describe('ExportController', () => {
           useValue: { export: jest.fn() },
         },
         { provide: ExportSuspensionsService, useValue: { export: jest.fn() } },
+        {
+          provide: ExportExecutionReportService,
+          useValue: { export: jest.fn() },
+        },
         { provide: UsersService, useValue: { findUser: jest.fn() } },
       ],
     }).compile();
@@ -221,6 +237,7 @@ describe('ExportController', () => {
     exportFinedWorksService = module.get(ExportFinedWorksService);
     exportExecutionCapacityService = module.get(ExportExecutionCapacityService);
     exportSuspensionsService = module.get(ExportSuspensionsService);
+    exportExecutionReportService = module.get(ExportExecutionReportService);
   });
 
   afterAll(() => jest.clearAllMocks());
@@ -377,5 +394,22 @@ describe('ExportController', () => {
 
     expect(mockResponse.setHeader).toHaveBeenCalled();
     expect(exportSuspensionsService.export).toHaveBeenCalledWith(mockResponse);
+  });
+
+  it('should export execution report', async () => {
+    const mockResponse = {
+      setHeader: jest.fn(),
+      send: jest.fn(),
+    } as unknown as Response;
+    jest
+      .spyOn(exportExecutionReportService, 'export')
+      .mockResolvedValue(undefined);
+
+    await controller.exportExecutonReport(mockResponse);
+
+    expect(mockResponse.setHeader).toHaveBeenCalled();
+    expect(exportExecutionReportService.export).toHaveBeenCalledWith(
+      mockResponse,
+    );
   });
 });

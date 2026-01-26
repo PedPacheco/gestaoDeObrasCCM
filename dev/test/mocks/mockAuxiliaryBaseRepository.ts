@@ -17,11 +17,38 @@ export const mockGetNotes = [
     aux_empreendimento: 1,
     aux_tipo: 48,
     aux_turma: 1,
-    aux_circuito: 1,
+    aux_circuito: 5,
     aux_tecnico: null,
     capex_mo_plan: 1483,
     capex_mat_plan: 0,
     anoplan: null,
+    eh_rda: false,
+  },
+];
+
+export const mockInsertNotes = [
+  {
+    obra: '16004316',
+    pep: 'B/000215',
+    dci: '170000023493',
+    dcd: '190000025094',
+    dca: '150000003441',
+    dcim: null,
+    entrada: new Date('2025-06-09T00:00:00.000Z'),
+    prazo: '90',
+    referencia: '195ET005120739',
+    mo_plan: 1482.56,
+    qtde_plan: 16,
+    aux_gpm: 31,
+    aux_empreendimento: 1,
+    aux_tipo: 48,
+    aux_turma: 1,
+    aux_circuito: 5,
+    aux_tecnico: null,
+    capex_mo_plan: 1483,
+    capex_mat_plan: 0,
+    anoplan: null,
+    ehRda: false,
   },
 ];
 
@@ -68,8 +95,9 @@ export const mockGetAuxiliaryBaseMarket2 = MarketWork.create({
 export const mockInsertAuxiliaryBaseNotesService = [
   {
     campo_ordenacao: '16005338',
-    conjunto: '69',
+    conjunto: '37',
     denominacao: '195ET005120739',
+    ehRda: false,
     grp_plnj_pm: 'CAR',
     ordem_dca: null,
     ordem_dcd: '190000025090',
@@ -89,13 +117,14 @@ export const mockInsertAuxiliaryBaseNotesService = [
     texto_breve: 'RIO DO OURO - ETAPA 2 - DCI',
     grp_plnj_pm: 'CAR',
     denominacao: '195ET005120739',
+    ehRda: false,
   },
 ];
 
 export const mockInsertNotesRequest = [
   {
     campo_ordenacao: '16005338',
-    conjunto: '69',
+    conjunto: '0',
     denominacao: '195ET005120739',
     grp_plnj_pm: 'CAR',
     ordem_dca: null,
@@ -104,6 +133,7 @@ export const mockInsertNotesRequest = [
     ordem_dcim: null,
     pep: 'B/000215-3',
     texto_breve: 'RIO DO OURO - ETAPA 2 - DCD',
+    ehRda: true,
   },
   {
     campo_ordenacao: '16004316',
@@ -116,5 +146,6 @@ export const mockInsertNotesRequest = [
     texto_breve: 'RIO DO OURO - ETAPA 2 - DCI',
     grp_plnj_pm: 'CAR',
     denominacao: '195ET005120739',
+    ehRda: false,
   },
 ];

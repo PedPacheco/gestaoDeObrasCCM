@@ -20,6 +20,16 @@ const mockData = [
   },
 ];
 
+vi.mock("@/contexts/userContext", () => ({
+  useUser: () => ({
+    permissions: {
+      permissao: "Total", // Permite exibir os botões
+      permissao_visualizacao: "total", // Caso seu código cheque isso
+      permissao_publicacao: true, // Incluído por segurança
+    },
+  }),
+}));
+
 describe("ExecutionReportPanelItem", () => {
   it("deve renderizar corretamente os dados na tabela", () => {
     render(<ExecutionReportPanelItem data={mockData} onDelete={() => {}} />);

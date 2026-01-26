@@ -23,6 +23,7 @@ describe("TabActions", () => {
       onRejected: vi.fn(),
       valueTab: 0,
       handleChange: vi.fn(),
+      feasibilityExists: [{ id: 1, id_obra: 1, caminho_arquivo: "teste.pdf" }],
     };
     return render(<TabActions {...defaultProps} {...props} />);
   };
@@ -56,32 +57,6 @@ describe("TabActions", () => {
     expect(screen.getByText("Confirmar programação")).toBeInTheDocument();
   });
 
-  //   it("deve chamar funções ao clicar nos botões", () => {
-  //     const onNewSchedule = vi.fn();
-  //     const onValidate = vi.fn();
-  //     const onConfirm = vi.fn();
-  //     const onRejected = vi.fn();
-
-  //     setup({
-  //       valueTab: 1,
-  //       onNewSchedule,
-  //       onValidate,
-  //       onConfirm,
-  //       onRejected,
-  //       statusWork: 37,
-  //     });
-
-  //     fireEvent.click(screen.getByText("Nova programação"));
-  //     fireEvent.click(screen.getByText("Reprovar programação"));
-  //     fireEvent.click(screen.getByText("Validar programação"));
-  //     fireEvent.click(screen.getByText("Confirmar programação"));
-
-  //     expect(onNewSchedule).toHaveBeenCalled();
-  //     expect(onValidate).toHaveBeenCalled();
-  //     expect(onConfirm).toHaveBeenCalled();
-  //     expect(onRejected).toHaveBeenCalled();
-  //   });
-
   it("deve desabilitar 'Nova programação' quando statusWork = 2 ou 3", () => {
     setup({ valueTab: 1, statusWork: 2 });
     expect(screen.getByText("Nova programação")).toBeDisabled();
@@ -92,13 +67,14 @@ describe("TabActions", () => {
     expect(screen.getByText("Reprovar programação")).toBeDisabled();
   });
 
-  it("deve desabilitar 'Validar programação' quando permissao_visualizacao = 'parcial'", () => {
+  it("deve desabilitar 'Validar programação' e 'Reprovar programação' quando permissao_visualizacao = 'parcial'", () => {
     setup({
       valueTab: 1,
       statusWork: 43,
       permissions: { permissao_visualizacao: "parcial" },
     });
     expect(screen.getByText("Validar programação")).toBeDisabled();
+    expect(screen.getByText("Reprovar programação")).toBeDisabled();
   });
 
   it("deve desabilitar 'Confirmar programação' quando statusWork != 37", () => {
@@ -117,5 +93,37 @@ describe("TabActions", () => {
       permissions: { permissao_visualizacao: "parcial" },
     });
     expect(screen.getByText("Confirmar programação")).toBeDisabled();
+  });
+
+  it('Deve desabilitar todos os botões, quando permissao.permissao = "Sem permissão"', () => {
+    setup({
+      valueTab: 1,
+      statusWork: 1,
+      permissions: { permissao: "Sem permissão" },
+    });
+
+    expect(screen.getByText("Confirmar programação")).toBeDisabled();
+    expect(screen.getByText("Nova programação")).toBeDisabled();
+  });
+
+  it('Deve desabilitar todos os botões, quando permissao.permissao = "Sem permissão"', () => {
+    setup({
+      valueTab: 1,
+      statusWork: 43,
+      permissions: { permissao: "Sem permissão" },
+    });
+
+    expect(screen.getByText("Validar programação")).toBeDisabled();
+    expect(screen.getByText("Reprovar programação")).toBeDisabled();
+  });
+
+  it("Deve desabilitar o botão nova programação, caso a viabilidade não existir", () => {
+    setup({
+      valueTab: 1,
+      statusWork: 37,
+      feasibilityExists: [],
+    });
+
+    expect(screen.getByText("Nova programação")).toBeDisabled();
   });
 });

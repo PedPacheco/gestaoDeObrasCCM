@@ -2,7 +2,9 @@
 
 import { cookies } from "next/headers";
 
-export async function fetchFilters(params: { [key: string]: boolean } = {}) {
+export async function fetchFilters(
+  params: { [key: string]: boolean | string[] } = {}
+) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
@@ -10,7 +12,17 @@ export async function fetchFilters(params: { [key: string]: boolean } = {}) {
     throw new Error("Token não foi encontrada");
   }
 
-  const queryString = new URLSearchParams(params as any).toString();
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach((v) => searchParams.append(key, v));
+    } else {
+      searchParams.append(key, String(value));
+    }
+  });
+
+  const queryString = searchParams.toString();
 
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_API_URL}/filters?${queryString}`,
@@ -20,7 +32,8 @@ export async function fetchFilters(params: { [key: string]: boolean } = {}) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      next: { revalidate: 3600 },
+      cache: "no-store",
+      // next: { revalidate: 3600 },
     }
   );
 

@@ -83,7 +83,7 @@ export function SelectComponent({
           }}
           disabled={mounted ? disabled : false}
         >
-          {menuItems.map((item, index) => {
+          {menuItems?.map((item, index) => {
             const value = (valueKey ? item[valueKey] : item) as SelectItem;
             const label = (displayKey ? item[displayKey] : item) as ReactNode;
             return (

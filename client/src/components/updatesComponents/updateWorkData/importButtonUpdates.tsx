@@ -8,7 +8,7 @@ import { InsertAuxiliaryBaseMarket } from "@/actions/insertAuxiliaryBase";
 import { ButtonComponent } from "@/components/common/Button";
 import ErrorModal from "@/components/common/ErrorModal";
 import ModalComponent from "@/components/common/Modal";
-import { createBatches, groupNoteDate } from "@/utils/creationNoteBatches";
+import { groupNoteDate } from "@/utils/creationNoteBatches";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { DocumentArrowDownIcon } from "@heroicons/react/24/solid";
@@ -117,6 +117,7 @@ export function ImportButtonUpdates({ storageKey }: ImportButtonUpdatesProps) {
             grp_plnj_pm: row[9],
             ordem: row[3],
             denominacao: row[17],
+            ano_plan: row[19],
           }));
 
         const groupData = groupNoteDate(iw38Data);

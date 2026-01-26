@@ -21,7 +21,7 @@ export default function EntryTable({ data, columns }: EntryTableProps) {
   const sumValues = useMemo(() => {
     let total = {} as Record<string, number>;
 
-    data.forEach((item: any) => {
+    data?.forEach((item: any) => {
       const months = Object.keys(columns);
 
       months.forEach((month) => {
@@ -61,7 +61,7 @@ export default function EntryTable({ data, columns }: EntryTableProps) {
           </TableRow>
         </TableHead>
         <TableBody className="h-[880px]">
-          {data.map((item: any, index: any) => {
+          {data?.map((item: any, index: any) => {
             return (
               <TableRow key={index} className="h-16">
                 <TableCell className="p-0 h-16 text-center min-w-80">

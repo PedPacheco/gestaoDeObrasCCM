@@ -2,7 +2,6 @@
 
 import { FormControl, InputLabel, MenuItem } from "@mui/material";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
-import { useState } from "react";
 
 interface SelectProps<T> {
   label: string;

@@ -55,7 +55,10 @@ export class AddSchedulesService {
       nome_responsavel_execucao: schedule.responsibility,
       id_restricao_execucao: schedule.idExecutionRestriction,
       observacao_execucao: schedule.observationExecution,
+      observacao_programacao: schedule.observation,
       id_tecnico: schedule.idTechnical,
+      id_usuario: schedule.idUser,
+      id_usuario_ultima_atualizacao: schedule.idUser,
     };
 
     return await this.addSchedulesRepository.addSchedules(formattedData, tx);

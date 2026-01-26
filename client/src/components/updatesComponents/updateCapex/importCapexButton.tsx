@@ -65,7 +65,7 @@ export function ImportCapexButton() {
           .getSheetValues()
           .slice(2)
           .map((row: any) => ({
-            diagrama_rede: row[2],
+            diagrama_rede: row[2].toString(),
             def_proj: row[3],
             material: row[4].toString(),
             texto_material: row[5],
@@ -78,7 +78,6 @@ export function ImportCapexButton() {
             qtd_necess: row[12],
             qtd_retirada: row[13],
             qtd_faltante: row[15],
-            data_necessidade: row[16],
             relevancia_calculo: row[17],
           }));
 
@@ -90,7 +89,7 @@ export function ImportCapexButton() {
 
         resetFileInputs();
 
-        setSuccess("Capex e M.O atualizados com sucesso");
+        setSuccess("Materiais e Serviços M.O importados com sucesso");
         setOpenModal(true);
         resetFileInputs();
 
@@ -114,7 +113,7 @@ export function ImportCapexButton() {
       <ButtonComponent
         onClick={handleClick}
         startIcon={<DocumentArrowDownIcon width={25} height={25} />}
-        text="Importar Materiais"
+        text="Importar Arquivo CN52N"
         disabled={isPending}
         styled="w-72"
       />

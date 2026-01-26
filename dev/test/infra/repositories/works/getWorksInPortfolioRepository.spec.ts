@@ -66,7 +66,7 @@ describe('GetWorksInPortfolioRepository', () => {
   ];
 
   const baseQuery = `SELECT obras.id, obras.ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, 
-        executado, mun, id_status, entrada, prazo, entrada + prazo AS prazo_fim, abrev_regional, tipo_obra, qtde_planejada, contagem_ocorrencias,
+        mun, id_status, prazo, entrada + prazo AS prazo_fim, abrev_regional, tipo_obra, tipos.id_grupo, qtde_planejada, contagem_ocorrencias,
         qtde_pend, circuito, mo_planejada,  status, conjunto, data_empreitamento, empreendimento, turma, ano_plan,
         COALESCE(SUM(prog) FILTER (WHERE exec IS NULL), 0)::int AS total_prog,
         SUM(exec)::int AS total_exec, (100 - (SUM(exec) + COALESCE(SUM(prog) FILTER (WHERE exec IS NULL), 0)))::int AS total_pend,
@@ -82,7 +82,7 @@ describe('GetWorksInPortfolioRepository', () => {
         INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
         LEFT JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
         LEFT JOIN (SELECT id_obra, COUNT(*)::int AS contagem_ocorrencias FROM construcao_sp.programacoes WHERE data_prog > current_date GROUP BY id_obra) AS prog_count ON prog_count.id_obra = obras.id 
-        WHERE data_conclusao IS NULL`;
+        WHERE data_conclusao IS NULL AND status.id != 3`;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -114,8 +114,11 @@ describe('GetWorksInPortfolioRepository', () => {
         idCircuito: [7],
         idConjunto: [8],
         idEmpreendimento: [9],
+        idStatusSap: [51],
         page: 1,
         insufficientPermission: true,
+        dataFinal: null,
+        dataInicial: null,
       };
 
       mockPrisma.$queryRaw
@@ -125,9 +128,9 @@ describe('GetWorksInPortfolioRepository', () => {
       const result = await repository.getWorksInPortfolio(filters);
 
       const expectedQuery = `${baseQuery} AND status.id != 42 AND status.id != 4 AND municipios.id_regional IN () AND id_tipo IN () AND id_turma IN () AND tipos.id_grupo IN () AND municipios.id IN ()
-        AND status.id IN () AND id_circuito IN () AND circuitos.id_conjunto IN () AND id_empreendimento IN () AND obras.ovnota =  
-        GROUP BY obras.id, ovnota, diagrama, ordem_dci, ordem_dcim, ordem_dca, ordem_dcd, status_ov_sap, pep, executado, 
-        mun, id_status, entrada, prazo, abrev_regional, tipo_obra, qtde_planejada, qtde_pend, circuito, mo_planejada, status, conjunto, 
+        AND status.id IN () AND id_circuito IN () AND circuitos.id_conjunto IN () AND id_empreendimento IN () AND obras.ovnota =  AND obras.status_ov_sap IN () AND tipos.id_grupo = 1
+        GROUP BY obras.id, ovnota, diagrama, ordem_dci, ordem_dcim, ordem_dca, ordem_dcd, status_ov_sap, pep, 
+        mun, id_status, prazo, abrev_regional, tipo_obra, tipos.id_grupo, qtde_planejada, qtde_pend, circuito, mo_planejada, status, conjunto, 
         empreendimento, turma, ano_plan, prog_count.contagem_ocorrencias ORDER BY status DESC, entrada + prazo LIMIT 200 OFFSET ;`;
 
       const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
@@ -136,7 +139,20 @@ describe('GetWorksInPortfolioRepository', () => {
       expect(normalizeSQL(querySent.strings.join(''))).toContain(
         normalizeSQL(expectedQuery),
       );
-      expect(querySent.values).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, '10', 200]);
+      expect(querySent.values).toEqual([
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        '10',
+        51,
+        200,
+      ]);
     });
 
     it('should not apply filters when values filters are not sent', async () => {
@@ -153,6 +169,8 @@ describe('GetWorksInPortfolioRepository', () => {
         ovnota: null,
         page: undefined,
         insufficientPermission: false,
+        dataFinal: null,
+        dataInicial: null,
       };
 
       mockPrisma.$queryRaw
@@ -161,8 +179,8 @@ describe('GetWorksInPortfolioRepository', () => {
 
       const result = await repository.getWorksInPortfolio(filters);
 
-      const expectedQuery = `${baseQuery} GROUP BY obras.id, ovnota, diagrama, ordem_dci, ordem_dcim, ordem_dca, ordem_dcd, status_ov_sap, pep, executado, 
-        mun, id_status, entrada, prazo, abrev_regional, tipo_obra, qtde_planejada, qtde_pend, circuito, mo_planejada, status, conjunto, 
+      const expectedQuery = `${baseQuery} GROUP BY obras.id, ovnota, diagrama, ordem_dci, ordem_dcim, ordem_dca, ordem_dcd, status_ov_sap, pep, 
+        mun, id_status, prazo, abrev_regional, tipo_obra, tipos.id_grupo, qtde_planejada, qtde_pend, circuito, mo_planejada, status, conjunto, 
         empreendimento, turma, ano_plan, prog_count.contagem_ocorrencias ORDER BY status DESC, entrada + prazo`;
 
       const querySent = mockPrisma.$queryRaw.mock.calls[0][0];

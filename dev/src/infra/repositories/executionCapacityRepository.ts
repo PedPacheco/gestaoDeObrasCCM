@@ -5,9 +5,7 @@ import { ExecutionCapacityFilter } from 'src/interface/types/executionCapacityIn
 import { UpdateExecutionCapacityDTO } from 'src/interface/dtos/executionCapacityDTO';
 
 @Injectable()
-export class ExecutionCapacityRepository
-  implements IExecutionCapacityRepository
-{
+export class ExecutionCapacityRepository implements IExecutionCapacityRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async get(filters: ExecutionCapacityFilter): Promise<any> {
@@ -39,8 +37,9 @@ export class ExecutionCapacityRepository
     });
   }
 
-  async getFinancialValue(): Promise<any[]> {
+  async getFinancialValue(year: string): Promise<any[]> {
     return await this.prisma.capacidade_execucao.findMany({
+      where: { ano: year },
       select: {
         id: true,
         ano: true,

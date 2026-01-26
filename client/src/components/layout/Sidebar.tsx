@@ -59,7 +59,7 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
     <>
       <div
         ref={sidebarRef}
-        className={`fixed top-0 left-0 z-30 h-full bg-[#212E3E] transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 z-40 h-full bg-[#212E3E] overflow-y-auto transition-transform duration-300 ease-in-out ${
           open ? "translate-x-0" : "-translate-x-full"
         } w-64`}
       >
@@ -110,20 +110,20 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
                     <div
                       className={`flex justify-between items-center rounded-md transition-colors ${
                         pathname === link.href
-                          ? "bg-[#1a2635] text-[#53FF75]"
+                          ? "bg-[#5a6c83] text-[#53FF75]"
                           : "text-zinc-200 hover:bg-[#1a2635] hover:text-[#53FF75]"
                       }`}
                     >
                       {link.href ? (
                         <Link
                           href={`${link.href}`}
-                          className={` text-base w-full font-medium leading-8 p-2`}
+                          className={`text-base w-full font-medium leading-8 p-2`}
                         >
                           {link.name}
                         </Link>
                       ) : (
                         <span
-                          className={` text-base w-full font-medium leading-8 p-2`}
+                          className={`text-base w-full font-medium leading-8 p-2`}
                         >
                           {link.name}
                         </span>
@@ -165,9 +165,9 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
                             <li key={subIndex}>
                               <Link
                                 href={`${subItem.href}`}
-                                className={`block rounded-md text-sm p-2 font-medium leading-8 transition-colors ${
+                                className={`block rounded-md text-sm p-2 font-medium leading-8 bg-[#324153] my-1 transition-colors ${
                                   pathname === subItem.href
-                                    ? "bg-[#1a2635] text-[#53FF75]"
+                                    ? "bg-[#5a6c83] text-[#53FF75]"
                                     : "text-zinc-200 hover:bg-[#1a2635] hover:text-[#53FF75]"
                                 }`}
                               >

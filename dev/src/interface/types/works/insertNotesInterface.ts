@@ -19,10 +19,15 @@ export interface InsertNotes {
   capex_mo_plan: number;
   capex_mat_plan: number;
   anoplan: number;
+  ehRda: boolean;
 }
 
 export interface NotesEntriesInterface {
   obra: string;
+  dci: string;
+  dcd: string;
+  dca: string;
+  dcim: string;
   entrada: Date;
   prazo: string;
   referencia: string;
@@ -33,4 +38,5 @@ export interface NotesEntriesInterface {
   aux_circuito: number;
   aux_tecnico: number;
   anoplan: number;
+  ehRda: boolean;
 }

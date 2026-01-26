@@ -1,109 +1,82 @@
+import { render, screen, fireEvent } from "@testing-library/react";
+import { DateFilter } from "@/components/common/DateFilter";
 import dayjs from "dayjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { DateFilter } from "@/components/common/DateFilter";
-import { fireEvent, render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-
-vi.mock("@mui/x-date-pickers", async () => {
-  const actual = await vi.importActual<any>("@mui/x-date-pickers");
-
-  return {
-    ...actual,
-    DatePicker: ({ value, onChange, format }: any) => (
-      <div
-        data-testid="date-picker-container"
-        className="mb-2 ml-4 w-full lg:w-3/4"
-      >
-        <button
-          type="button"
-          onClick={() => onChange(value)}
-          data-testid="open-calendar"
-        >
-          Abrir calendário
-        </button>
-        <input
-          data-testid="mock-datepicker"
-          type="text"
-          value={value?.format(format)}
-          onChange={(e) => {
-            const val = e.target.value;
-            if (val === "null") {
-              onChange(null);
-            } else if (val === "invalid") {
-              onChange("invalid"); // para teste do fallback
-            } else {
-              onChange(dayjs(val, format));
-            }
-          }}
-        />
-      </div>
-    ),
-  };
-});
-
-const mockSetType = vi.fn();
-const mockSetDate = vi.fn();
-const today = dayjs("2025-07-17");
-
-const renderComponent = (type = "day", marginLeft?: undefined | string) => {
-  render(
-    <DateFilter
-      date={today}
-      setDate={mockSetDate}
-      type={type}
-      setType={mockSetType}
-      marginLeft={marginLeft}
+// MOCK do MUI DatePicker para simplificar o teste
+vi.mock("@mui/x-date-pickers", () => ({
+  DatePicker: ({ label, value, onChange, className }: any) => (
+    <input
+      type="text"
+      aria-label={label}
+      data-testid={label}
+      value={value ? value.format("DD/MM/YYYY") : ""}
+      onChange={(e) => onChange(dayjs(e.target.value, "DD/MM/YYYY"))}
+      className={className}
     />
-  );
-};
+  ),
+  LocalizationProvider: ({ children }: any) => <div>{children}</div>,
+}));
 
-describe("Date Filter Component", () => {
+describe("DateFilter Component", () => {
+  const mockSetStartDate = vi.fn();
+  const mockSetEndDate = vi.fn();
+
+  const defaultProps = {
+    startDate: dayjs("2025-01-01"),
+    endDate: dayjs("2025-02-01"),
+    setStartDate: mockSetStartDate,
+    setEndDate: mockSetEndDate,
+    size: "w-40",
+    spacing: "mx-2",
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("deve renderizar o seletor de tipo e o datepicker", () => {
-    renderComponent();
+  it("deve renderizar os dois DatePickers com labels corretos", () => {
+    render(<DateFilter {...defaultProps} />);
 
-    expect(screen.getByText("Tipo de Filtro")).toBeInTheDocument();
-    expect(screen.getByRole("button")).toBeInTheDocument();
+    expect(screen.getByLabelText("Data Inicial")).toBeInTheDocument();
+    expect(screen.getByLabelText("Data Final")).toBeInTheDocument();
   });
 
-  it("renderiza o DatePicker com visualização correta para 'month'", () => {
-    renderComponent("month");
-    expect(screen.getByRole("textbox")).toHaveValue("07/2025");
+  it("deve exibir os valores iniciais formatados corretamente", () => {
+    render(<DateFilter {...defaultProps} />);
+
+    expect(screen.getByTestId("Data Inicial")).toHaveValue("01/01/2025");
+    expect(screen.getByTestId("Data Final")).toHaveValue("01/02/2025");
   });
 
-  it("altera o tipo de filtro quando selecionado", async () => {
-    renderComponent();
+  it("deve chamar setStartDate ao alterar a data inicial", () => {
+    render(<DateFilter {...defaultProps} />);
 
-    const select = screen.getByRole("combobox");
-    await userEvent.click(select);
-    const option = await screen.findByText("Por Mês");
-    await userEvent.click(option);
+    const input = screen.getByTestId("Data Inicial");
 
-    expect(mockSetType).toHaveBeenCalledWith("month");
+    fireEvent.change(input, { target: { value: "2025-01-10" } });
+
+    expect(mockSetStartDate).toHaveBeenCalledTimes(1);
+    expect(mockSetStartDate).toHaveBeenCalledWith(dayjs("2025-01-10"));
   });
 
-  it("chama setDate ao selecionar nova data válida", () => {
-    renderComponent("day");
-    const input = screen.getByTestId("mock-datepicker");
-    fireEvent.change(input, { target: { value: "15/01/2023" } });
-    expect(mockSetDate).toHaveBeenCalledWith(expect.any(dayjs));
+  it("deve chamar setEndDate ao alterar a data final", () => {
+    render(<DateFilter {...defaultProps} />);
+
+    const input = screen.getByTestId("Data Final");
+
+    fireEvent.change(input, { target: { value: "2025-03-20" } });
+
+    expect(mockSetEndDate).toHaveBeenCalledTimes(1);
+    expect(mockSetEndDate).toHaveBeenCalledWith(dayjs("2025-03-20"));
   });
 
-  it("não chama setDate se valor for null", () => {
-    renderComponent();
-    const input = screen.getByTestId("mock-datepicker");
-    fireEvent.change(input, { target: { value: "null" } });
-    expect(mockSetDate).not.toHaveBeenCalled();
-  });
+  it("deve aplicar size e spacing no className", () => {
+    render(<DateFilter {...defaultProps} />);
 
-  it("deve utilizar o valor de margin left passado", () => {
-    renderComponent("day", "ml-4");
-    const containerDiv = screen.getByTestId("date-picker-container");
-    expect(containerDiv).toHaveClass("mb-2", "ml-4", "w-full", "lg:w-3/4");
-    expect(containerDiv).not.toHaveClass("lg:mx-auto");
+    const startInput = screen.getByTestId("Data Inicial");
+
+    expect(startInput.className).toContain("w-40");
+    expect(startInput.className).toContain("mx-2");
   });
 });

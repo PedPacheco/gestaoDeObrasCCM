@@ -102,7 +102,7 @@ describe('UpdateNoteService', () => {
           ovnota: '4001841383',
           referencia: 'REF123',
           id_empreendimento: 201,
-          id_tipo: 1,
+          id_tipo: 2,
           id_gpm: 101,
           id_turma: 5,
           id_circuito: 12,
@@ -139,7 +139,7 @@ describe('UpdateNoteService', () => {
           referencia: null,
           idMunicipio: null,
           idEmpreendimento: null,
-          idTipo: 1,
+          idTipo: 2,
           idTurma: null,
           idCircuito: null,
           anoplan: null,
@@ -173,7 +173,7 @@ describe('UpdateNoteService', () => {
       expect(mockRepository.update).toHaveBeenCalledWith([
         {
           id: 1,
-          id_tipo: 1,
+          id_tipo: 2,
           mo_plan: 1,
           ovnota: '4001841383',
           ordem_dci: 'DCI001',

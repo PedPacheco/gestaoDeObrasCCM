@@ -14,13 +14,13 @@ export interface materialsInterface {
   qtd_falta: number;
   qtd_entrada: number;
   reserva: string;
-  data_nec: Date;
 }
 
 export interface GetAuxiliaryBaseMaterialsInterface {
   ovnota: string;
   ordem_diagrama: string;
   diagrama_rede: string;
+  elemento_pep: string;
   def_proj: string;
   material: string;
   cti: string;
@@ -29,4 +29,5 @@ export interface GetAuxiliaryBaseMaterialsInterface {
   qtd_retirada: number;
   qtd_falta: number;
   reserva: string;
+  id_obra: number;
 }

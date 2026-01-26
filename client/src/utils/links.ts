@@ -57,7 +57,11 @@ export const links = [
     submenu: [
       { name: "Mercado", href: "/atualizacoes/mercado", needPermission: true },
       { name: "Notas", href: "/atualizacoes/notas", needPermission: true },
-      { name: "Capex - MO", href: "/atualizacoes/capex", needPermission: true },
+      {
+        name: "Material e Serviço",
+        href: "/atualizacoes/capex",
+        needPermission: true,
+      },
       {
         name: "Empreitamento",
         href: "/atualizacoes/empreitamento",
@@ -72,7 +76,7 @@ export const links = [
   },
   {
     name: "Programação",
-    href: "/programacao",
+    href: null,
     needPermission: false,
     submenu: [
       {
@@ -81,19 +85,31 @@ export const links = [
         needPermission: true,
       },
       {
+        name: "Valores Mensais",
+        href: "/programacao/valores-mensais",
+        needPermission: true,
+      },
+      {
         name: "Programação por data",
         href: "/programacao/por-data",
         needPermission: false,
       },
+    ],
+  },
+  {
+    name: "Restrições",
+    href: null,
+    needPermission: false,
+    submenu: [
       {
-        name: "Programacao semanal",
-        href: "/programacao/semanal",
+        name: "Restrições Programações",
+        href: "/restricoes/programacoes",
         needPermission: false,
       },
       {
-        name: "Restrições",
-        href: "/programacao/restricoes",
-        needPermission: true,
+        name: "Restrições Publicações",
+        href: "/restricoes/publicacoes",
+        needPermission: false,
       },
     ],
   },

@@ -32,11 +32,11 @@ function checkAppliedEquipment(ctx: any) {
       });
     }
 
-    if (!eq.patrimony?.trim()) {
+    if (eq.patrimony.length < 7) {
       ctx.issues.push({
         code: "custom",
         path: ["appliedEquipment", i, "patrimony"],
-        message: "Patrimônio obrigatório",
+        message: "Número mínimo de caracteres é 7",
       });
     }
 
@@ -79,14 +79,6 @@ function checkRemovedEquipment(ctx: any) {
         code: "custom",
         path: ["equipmentRemoved", i, "power"],
         message: "Potência obrigatória",
-      });
-    }
-
-    if (!eq.patrimony?.trim()) {
-      ctx.issues.push({
-        code: "custom",
-        path: ["equipmentRemoved", i, "patrimony"],
-        message: "Patrimônio obrigatório",
       });
     }
 
@@ -145,12 +137,27 @@ export const schedulesSchema = (isInsert?: boolean) =>
         z.number({ error: "Restrição deve ser um número" })
       ),
       responsibility: z.string().optional(),
+      idProgRestriction1: z.number(),
+      responsiblityProg: z.string().nullable().optional(),
+      responsibleName: z.string().nullable().optional(),
+      responsibleArea: z.string().nullable().optional(),
+      restrictionStatus: z.string().nullable().optional(),
+      resolutionDate: z.string().nullable().optional(),
+      idProgRestriction2: z.number(),
+      responsiblityProg2: z.string().nullable().optional(),
+      responsibleName2: z.string().nullable().optional(),
+      responsibleArea2: z.string().nullable().optional(),
+      restrictionStatus2: z.string().nullable().optional(),
+      resolutionDate2: z.string().nullable().optional(),
+      validated: z.boolean().optional(),
+      confirmed: z.boolean().optional(),
+      idUser: z.number().nullable().optional(),
     })
     .check((ctx) => {
       const { exec, prog, idExecutionRestriction, responsibility } = ctx.value;
 
       if (!isInsert) {
-        if (Number(exec) !== prog && exec !== "null" && exec !== "") {
+        if (Number(exec) < prog && exec !== "null" && exec !== "") {
           if (idExecutionRestriction === 1) {
             ctx.issues.push({
               path: ["idExecutionRestriction"],
@@ -190,8 +197,8 @@ export const executionReportSchema = z
     finishTime: z
       .string()
       .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Formato HH:mm"),
-    startContact: z.string().min(1, "Contato de início obrigatório"),
-    endContact: z.string().min(1, "Contato de término obrigatório"),
+    startContact: z.string().optional(),
+    endContact: z.string().optional(),
     delayJustification: z.string().optional(),
     hasEquipmentInstalled: z.boolean(),
     appliedEquipment: z.array(equipmentItemSchema),
@@ -267,5 +274,31 @@ export const validationSchedulesSchema = (
           message: "Justificativa de atraso obrigatória",
           input: ctx.value,
         });
+      }
+
+      if (ctx.value.serviceType?.includes("DP") && executionReport) {
+        if (
+          !executionReport.startContact ||
+          executionReport.startContact.trim() === ""
+        ) {
+          ctx.issues.push({
+            path: ["executionReport", "startContact"],
+            code: "custom",
+            message: "Contato de início obrigatório para serviços DP",
+            input: ctx.value,
+          });
+        }
+
+        if (
+          !executionReport.endContact ||
+          executionReport.endContact.trim() === ""
+        ) {
+          ctx.issues.push({
+            path: ["executionReport", "endContact"],
+            code: "custom",
+            message: "Contato de término obrigatório para serviços DP",
+            input: ctx.value,
+          });
+        }
       }
     });

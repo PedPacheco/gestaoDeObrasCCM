@@ -31,6 +31,8 @@ export class FiltersService {
       restricao,
       tecnico,
       statusProgramacao,
+      tipoRestricao,
+      statusSap,
     }: FiltersDto,
     condition?: any,
   ) {
@@ -64,9 +66,13 @@ export class FiltersService {
 
     if (municipio) {
       result['municipio'] = await this.getCachedData('municipios', () =>
-        this.filtersRepository.getData('municipios', ['id', 'municipio'], {
-          id_regional: condition,
-        }),
+        this.filtersRepository.getData(
+          'municipios',
+          ['id', 'municipio', 'id_regional'],
+          {
+            id_regional: condition,
+          },
+        ),
       );
     }
 
@@ -141,7 +147,13 @@ export class FiltersService {
 
     if (restricao) {
       result['restricao'] = await this.getCachedData('restricao', () =>
-        this.filtersRepository.getData('restricoes', ['id', 'restricao']),
+        this.filtersRepository.getData(
+          'restricoes',
+          ['id', 'restricao', 'tipo_restricao'],
+          {
+            tipo_restricao: { in: tipoRestricao },
+          },
+        ),
       );
     }
 
@@ -150,6 +162,12 @@ export class FiltersService {
         this.filtersRepository.getData('tecnicos', ['id', 'tecnico'], {
           id_regional: condition,
         }),
+      );
+    }
+
+    if (statusSap) {
+      result['statusSap'] = await this.getCachedData('status_sap', () =>
+        this.filtersRepository.getData('status_sap', ['id', 'codigo_sap']),
       );
     }
 

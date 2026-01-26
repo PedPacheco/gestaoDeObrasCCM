@@ -106,6 +106,8 @@ describe('GetCompletedWorksService', () => {
       idEmpreendimento: [9],
       page: 0,
       insufficientPermission: true,
+      dataInicial: '01/10/2024',
+      dataFinal: '02/10/2024',
     };
 
     const cacheKey = `completedWorks-${JSON.stringify(filters)}`;
@@ -139,6 +141,8 @@ describe('GetCompletedWorksService', () => {
       idEmpreendimento: [9],
       page: 0,
       insufficientPermission: false,
+      dataInicial: '01/10/2024',
+      dataFinal: '02/10/2024',
     };
 
     const cacheKey = `completedWorks-${JSON.stringify(filters)}`;
@@ -174,6 +178,8 @@ describe('GetCompletedWorksService', () => {
       idEmpreendimento: [9],
       page: 0,
       insufficientPermission: true,
+      dataInicial: '01/10/2024',
+      dataFinal: '02/10/2024',
     };
 
     mockRepository.getCompletedWorks.mockResolvedValue({

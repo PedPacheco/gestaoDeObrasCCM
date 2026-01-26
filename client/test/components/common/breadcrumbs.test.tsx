@@ -1,14 +1,16 @@
 import * as nextNavigation from "next/navigation";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { BreadcrumpsComponent } from "@/components/common/Breadcrumbs";
 import { render, screen } from "@testing-library/react";
 
+import { BreadcrumpsComponent } from "@/components/common/Breadcrumbs";
+
+// Mock do next/navigation
 vi.mock("next/navigation", () => ({
   usePathname: vi.fn(),
 }));
 
-vi.mock("@utils/links", () => ({
+// Mock correto do arquivo importado no componente
+vi.mock("@/utils/links", () => ({
   links: [
     { name: "Tela inicial", href: "/", needPermission: false },
     {
@@ -26,20 +28,20 @@ vi.mock("@utils/links", () => ({
   ],
 }));
 
-describe("Breadcrumbs component", () => {
+describe("BreadcrumpsComponent", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("Deve exibir um único breadcrumb só há um segmento", () => {
+  it("deve exibir um único breadcrumb quando há apenas um segmento", () => {
     vi.mocked(nextNavigation.usePathname).mockReturnValue("/programacao");
 
     render(<BreadcrumpsComponent />);
 
-    expect(screen.queryByText("Programação")).toBeInTheDocument();
+    expect(screen.getByText("Programação")).toBeInTheDocument();
   });
 
-  it("deve exibir breadcrumbs com submenus corretamente", () => {
+  it("deve exibir breadcrumbs com submenu corretamente", () => {
     vi.mocked(nextNavigation.usePathname).mockReturnValue(
       "/programacao/resumo-mensal"
     );
@@ -50,26 +52,49 @@ describe("Breadcrumbs component", () => {
     expect(screen.getByText("Resumo mensal")).toBeInTheDocument();
   });
 
-  it("Deve destacar apenas o último breadcrumb como texto (sem link)", () => {
+  it("deve renderizar o último breadcrumb como texto e os anteriores como link", () => {
     vi.mocked(nextNavigation.usePathname).mockReturnValue(
       "/programacao/resumo-mensal"
     );
 
     render(<BreadcrumpsComponent />);
 
-    expect(screen.getByText("Programação").closest("a")).toBeInTheDocument();
+    const programação = screen.getByText("Programação");
+    const resumoMensal = screen.getByText("Resumo mensal");
 
-    expect(
-      screen.getByText("Resumo mensal").closest("a")
-    ).not.toBeInTheDocument();
+    // Programação → deve ser link
+    expect(programação.closest("a")).not.toBeNull();
+
+    // Resumo Mensal → último item, não deve ser link
+    expect(resumoMensal.closest("a")).toBeNull();
   });
 
-  it("não deve renderizar nada se nenhum breadcrumb for encontrado", () => {
+  it("não deve renderizar itens se o pathname estiver vazio", () => {
     vi.mocked(nextNavigation.usePathname).mockReturnValue("");
 
-    const { container } = render(<BreadcrumpsComponent />);
+    render(<BreadcrumpsComponent />);
 
-    expect(container.querySelectorAll("a").length).toBe(0);
-    expect(container.querySelectorAll("p").length).toBe(0);
+    // Breadcrumbs existe sempre, mas sem itens
+    const links = screen.queryAllByRole("link");
+    const textos = screen.queryAllByText(/./);
+
+    expect(links.length).toBe(0);
+    expect(textos.length).toBe(0);
+  });
+
+  it("findLinkByHref deve retornar null quando o link não existir", () => {
+    // Pegando a função interna via render
+    vi.mocked(nextNavigation.usePathname).mockReturnValue(
+      "/caminho/inexistente"
+    );
+
+    render(<BreadcrumpsComponent />);
+
+    // Garante que nada foi renderizado porque nenhum link bateu
+    const linksDOM = screen.queryAllByRole("link");
+    const textos = screen.queryAllByText(/./);
+
+    expect(linksDOM.length).toBe(0);
+    expect(textos.length).toBe(0);
   });
 });

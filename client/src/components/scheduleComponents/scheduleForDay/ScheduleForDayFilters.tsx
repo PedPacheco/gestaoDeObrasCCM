@@ -1,10 +1,11 @@
 "use client";
 
+import "dayjs/locale/pt-br";
+
 import dayjs, { Dayjs } from "dayjs";
 import { useCallback, useEffect, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
-import { DateFilter } from "@/components/common/DateFilter";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { FiltersInterface } from "@/interfaces/filtersInterfaces";
@@ -13,6 +14,7 @@ import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
 import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
 import { Checkbox, TextField } from "@mui/material";
+import { DateFilter } from "@/components/common/DateFilter";
 
 interface ScheduleByDateFiltersProps {
   data: FiltersInterface;
@@ -20,7 +22,7 @@ interface ScheduleByDateFiltersProps {
   generateExcel: (params: any) => void;
   isPending: boolean;
   setPage: (page: number) => void;
-  searchFilteredData: (params: Record<string, string | boolean>) => void;
+  searchFilteredData: (params: Record<string, string | boolean | null>) => void;
 }
 
 export default function ScheduleForDayFilters({
@@ -31,15 +33,24 @@ export default function ScheduleForDayFilters({
   setPage,
   searchFilteredData,
 }: ScheduleByDateFiltersProps) {
-  const [date, setDate] = useState<Dayjs | null>(null);
-
   const applyFilters = useCallback((data: FiltersInterface, filters: any) => {
     let newData = { ...data };
 
-    if (filters?.idGrupo) {
-      const idGrupos = filters.idGrupo.map(Number);
-      newData.tipo = data.tipo?.filter((item) =>
+    const { selectedItems } = filters;
+
+    if (selectedItems?.idGrupo?.length > 0) {
+      const idGrupos = selectedItems.idGrupo?.map(Number);
+
+      newData.tipo = newData.tipo?.filter((item) =>
         idGrupos.includes(item.id_grupo)
+      );
+    }
+
+    if (selectedItems?.idRegional?.length > 0) {
+      const idRegionais = selectedItems.idRegional?.map(Number);
+
+      newData.municipio = newData.municipio?.filter((item) =>
+        idRegionais.includes(item.id_regional)
       );
     }
 
@@ -55,7 +66,8 @@ export default function ScheduleForDayFilters({
     {}
   );
 
-  const [filterType, setFilterType] = useState<string>("");
+  const [startDate, setStartDate] = useState<Dayjs | null>(null);
+  const [endDate, setEndDate] = useState<Dayjs | null>(null);
   const [ovnota, setOvnota] = useState<string>("");
   const [executed, setExecuted] = useState<boolean>(false);
   const [pending, setPending] = useState<boolean>(false);
@@ -63,39 +75,43 @@ export default function ScheduleForDayFilters({
   useEffect(() => {
     if (filters) {
       setSelectedItems(filters.selectedItems || {});
-      setDate(filters.date ? dayjs(filters.date) : null);
       setExecuted(filters.executed || false);
       setPending(filters.pending || false);
-      setFilterType(filters.filterType || "");
       setOvnota(filters.ovnota || "");
+      setStartDate(filters?.startDate ? dayjs(filters.startDate) : null);
+      setEndDate(filters?.endDate ? dayjs(filters.endDate) : null);
     }
   }, [filters]);
 
   function handleGenerateExcel() {
     const newSelectedItems = {
       ...Transform(selectedItems),
-      data: date
-        ? date.format(filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY")
-        : "",
-      tipoFiltro: filterType,
       executado: executed.toString(),
       pendente: pending.toString(),
+      dataInicial: startDate ? startDate.format("DD/MM/YYYY") : null,
+      dataFinal: endDate ? endDate.format("DD/MM/YYYY") : null,
+      ovnota: ovnota,
     };
 
     generateExcel(newSelectedItems);
   }
 
   function handleApplyFilters() {
-    saveFilters({ selectedItems, date, filterType, executed, ovnota, pending });
+    saveFilters({
+      selectedItems,
+      executed,
+      startDate,
+      endDate,
+      ovnota,
+      pending,
+    });
 
     const newSelectedItems = {
       ...Transform(selectedItems),
-      data: date
-        ? date.format(filterType === "day" ? "DD/MM/YYYY" : "MM/YYYY")
-        : "",
-      tipoFiltro: filterType,
       executado: executed.toString(),
       pendente: pending.toString(),
+      dataInicial: startDate ? startDate.format("DD/MM/YYYY") : "",
+      dataFinal: endDate ? endDate.format("DD/MM/YYYY") : "",
       page: "0",
       ovnota: ovnota,
     };
@@ -105,10 +121,10 @@ export default function ScheduleForDayFilters({
 
   function handleCleanigFilters() {
     setSelectedItems({});
-    setDate(null);
-    setFilterType("");
     setExecuted(false);
     setPending(false);
+    setStartDate(null);
+    setEndDate(null);
     setOvnota("");
 
     clearFilters();
@@ -116,8 +132,6 @@ export default function ScheduleForDayFilters({
     setPage(0);
 
     searchFilteredData({
-      data: "",
-      tipoFiltro: "",
       executado: false,
       pendente: false,
       page: "0",
@@ -128,15 +142,15 @@ export default function ScheduleForDayFilters({
     <>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:flex xl:flex-row xl:justify-between xl:items-center">
         <DateFilter
-          date={date}
-          setDate={setDate}
-          type={filterType}
-          setType={setFilterType}
-          marginLeft="lg:ml-4"
+          endDate={endDate}
+          startDate={startDate}
+          setEndDate={setEndDate}
+          setStartDate={setStartDate}
+          size="w-full"
         />
 
         {Object.entries(filteredData)
-          .slice(0, 7)
+          .slice(0, 8)
           .map(([key, value], index) => {
             const valueKey = Object.keys(value[0])[0];
             const displayKey = Object.keys(value[0])[1];

@@ -84,7 +84,10 @@ export default function PortfolioWorks({
         const downloadUrl = window.URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = downloadUrl;
-        link.download = "Exportação obras em carteira.xlsx";
+        link.download =
+          pathname === "/obras-executadas"
+            ? "Exportação obras executadas"
+            : "Exportação obras em carteira";
         document.body.append(link);
         link.click();
 
@@ -131,8 +134,8 @@ export default function PortfolioWorks({
   };
 
   return (
-    <>
-      <div className="my-6 w-11/12 flex flex-col items-center">
+    <div className="w-full flex flex-col items-center overflow-y-auto">
+      <div className="my-6 w-11/12">
         <PortfolioWorksFilters
           data={filteredFilters}
           url={cookie}
@@ -145,7 +148,8 @@ export default function PortfolioWorks({
       </div>
 
       <TableWithPagination
-        data={filteredData}
+        data={filteredData.works}
+        totals={filteredData.totals}
         columns={columns}
         sliceEndIndex={6}
         handleChangePage={handleChangePage}
@@ -201,6 +205,6 @@ export default function PortfolioWorks({
           icon={<ExclamationCircleIcon width={48} height={48} />}
         />
       )}
-    </>
+    </div>
   );
 }

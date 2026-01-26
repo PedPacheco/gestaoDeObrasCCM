@@ -4,9 +4,10 @@ export interface GetScheduleValuesInterface {
   ordemdiagrama: string;
   diagrama: string | null;
   mun: string;
-  entrada: string;
   prazo_fim: string;
+  id_grupo: number;
   tipo_obra: string;
+  status_ov_sap: number;
   qtde_planejada: string;
   mo_planejada: string;
   turma: string;
@@ -17,6 +18,7 @@ export interface GetScheduleValuesInterface {
   observprog: string | null;
   mo_prog: number;
   mo_exec: number;
+  mat_prog: number;
   num_dp: string | null;
   hora_ini: string;
   hora_ter: string;
@@ -26,9 +28,16 @@ export interface GetScheduleValuesInterface {
   id_tecnico: number;
   conjunto: string;
   circuito: string;
-  total_obras: number;
-  total_mo_planejada: number;
-  total_qtde_planejada: number;
+  status_programacao: string;
+  status: string;
+  id_restricao_prog1: number;
+  id_restricao_prog2: number;
+  data_resolucao1: Date;
+  data_resolucao2: Date;
+  status_restricao1: string;
+  status_restricao2: string;
+  restricao_aberta: boolean;
+  status_prazo: string;
 }
 
 export interface totalsGetScheduleValues {

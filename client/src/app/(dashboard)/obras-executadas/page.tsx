@@ -5,6 +5,7 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import PortfolioWorks from "@/components/worksComponents/portfolioWorks/MainPortfolioWorks";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { Transform } from "@/utils/transform";
+import { ErrorThrower } from "@/components/common/ErrorThrower";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,10 @@ export default async function CompletedWorks() {
     ),
   ]);
 
+  if (!worksCompletedData.success) {
+    return <ErrorThrower message={worksCompletedData.message} />;
+  }
+
   const { token, data } = worksCompletedData;
 
   const columns = {
@@ -55,6 +60,7 @@ export default async function CompletedWorks() {
     abrev_regional: "Regional",
     tipo_obra: "Tipo",
     turma: "Parceira",
+    data_conclusao: "Data conclusão",
     executado: "Executado",
     ano_plan: "Ano do Plano",
     circuito: "Circuito",

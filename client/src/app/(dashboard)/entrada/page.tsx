@@ -6,6 +6,7 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import MainEntry from "@/components/entryComponents/entry/MainEntry";
 import { Transform } from "@/utils/transform";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
+import { ErrorThrower } from "@/components/common/ErrorThrower";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +45,10 @@ export default async function Entry() {
       cookieStore.get("token")?.value
     ),
   ]);
+
+  if (!entryData.success) {
+    return <ErrorThrower message={entryData.message} />;
+  }
 
   const { token, data } = entryData;
 
