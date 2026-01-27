@@ -1,6 +1,6 @@
 "use client";
 
-import { scheduleServices } from "@/actions/services";
+import { saveSchedule } from "@/actions/schedules";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import {
   Dialog,
@@ -21,8 +21,9 @@ interface TeamModalProps {
   open: boolean;
   onClose: () => void;
   teams: any[];
-  idSchedule: string;
+  idSchedule: number | null;
   selectedServices: any[];
+  scheduleData: any;
 }
 
 export function TeamModal({
@@ -31,6 +32,7 @@ export function TeamModal({
   teams,
   idSchedule,
   selectedServices,
+  scheduleData,
 }: TeamModalProps) {
   const [idTeam, setIdTeam] = useState<any>("");
 
@@ -42,7 +44,14 @@ export function TeamModal({
       prog: service.prog,
     }));
 
-    const response = await scheduleServices(formattedService);
+    const data = {
+      schedule: scheduleData,
+      services: formattedService,
+    };
+
+    console.log(data);
+
+    const response = await saveSchedule(data);
 
     if (!response.success) {
       console.log(response.error);

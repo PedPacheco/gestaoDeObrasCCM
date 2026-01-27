@@ -53,20 +53,43 @@ export const INITIAL_FORM_DATA: FormData = {
   idTechnical: 1,
   idExecutionRestriction: 1,
   responsibility: "",
+  // Campos de restrições - Bloco 1
+  idProgRestriction1: 1,
+  responsiblityProg: "",
+  responsibleName: "",
+  responsibleArea: "",
+  restrictionStatus: "",
+  resolutionDate: null,
+  // Campos de restrições - Bloco 2
+  idProgRestriction2: 1,
+  responsiblityProg2: "",
+  responsibleName2: "",
+  responsibleArea2: "",
+  restrictionStatus2: "",
+  resolutionDate2: null,
+  confirmed: false,
+  validated: false,
 };
 
 interface UseScheduleFormProps {
   data?: FormData;
   executionData: ExecutionReportData;
   options: ScheduleFormDialogProps["options"];
+  prog: number;
+  user: any;
 }
 
 export const useScheduleFormV2 = ({
   data,
   executionData,
   options,
+  prog,
+  user,
 }: UseScheduleFormProps) => {
-  const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
+  const [formData, setFormData] = useState<FormData>({
+    ...INITIAL_FORM_DATA,
+    idUser: user?.id || 1,
+  });
   const [executionReportData, setExecutionReportData] =
     useState<ExecutionReportData>(INITIAL_EXECUTION_REPORT);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -74,7 +97,8 @@ export const useScheduleFormV2 = ({
 
   useEffect(() => {
     if (data) {
-      const mapped = mapScheduleToForm(data, options);
+      const dataWithProg = { ...data, prog };
+      const mapped = mapScheduleToForm(dataWithProg, options);
       setFormData(mapped);
     }
 
@@ -87,15 +111,21 @@ export const useScheduleFormV2 = ({
     if (data?.exec != null) {
       setInitialExecValue(data.exec);
     }
-  }, [options, data, executionData]);
+  }, [options, data, executionData, prog]);
+
+  useEffect(() => {
+    if (!data) {
+      setFormData((prev) => ({ ...prev, prog }));
+    }
+  }, [prog, data]);
 
   const handleInputChange = useCallback(
     (
-        field:
-          | keyof FormData
-          | `executionReport.${keyof ExecutionReportData}`
-          | keyof ExecutionReportData
-      ) =>
+      field:
+        | keyof FormData
+        | `executionReport.${keyof ExecutionReportData}`
+        | keyof ExecutionReportData,
+    ) =>
       (event: React.ChangeEvent<HTMLInputElement>) => {
         const isCheckbox = event.target.type === "checkbox";
         let value: any;
@@ -107,8 +137,8 @@ export const useScheduleFormV2 = ({
             event.target.value === "true"
               ? true
               : event.target.value === "false"
-              ? false
-              : event.target.value;
+                ? false
+                : event.target.value;
         } else {
           value = event.target.value;
         }
@@ -142,7 +172,7 @@ export const useScheduleFormV2 = ({
           };
         });
       },
-    []
+    [],
   );
 
   const onEquipmentChange = (
@@ -150,7 +180,7 @@ export const useScheduleFormV2 = ({
     index: number,
     subField: keyof EquipmentData,
     value: string,
-    prefix: string
+    prefix: string,
   ) => {
     if (prefix === "executionReport.") {
       setFormData((prev) => {
@@ -191,7 +221,7 @@ export const useScheduleFormV2 = ({
     field: "appliedEquipment" | "equipmentRemoved",
     prefix: string,
     type: "DEFAULT" | "CS" = "DEFAULT",
-    insertIndex?: number
+    insertIndex?: number,
   ) => {
     const newEquipment =
       type === "CS"
@@ -247,7 +277,7 @@ export const useScheduleFormV2 = ({
   const onRemoveEquipment = (
     field: "appliedEquipment" | "equipmentRemoved",
     index: number,
-    prefix: string
+    prefix: string,
   ) => {
     if (prefix === "executionReport.") {
       setFormData((prev) => {

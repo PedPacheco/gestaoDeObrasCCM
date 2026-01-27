@@ -12,6 +12,7 @@ import {
 } from 'class-validator';
 import { convertParameterValue } from 'src/utils/convertParameterValue';
 import { ExecutionReportDataDTO } from './executionReportDTO';
+import { scheduleServicesDTO } from './workServicesDTO';
 
 export class GetTotalValuesScheduleDTO {
   @IsOptional()
@@ -350,4 +351,15 @@ export class UpdateSchedulesDataDTO {
   @ValidateNested()
   @Type(() => ExecutionReportDataDTO)
   executionReportData?: ExecutionReportDataDTO;
+}
+
+export class CreateScheduleWithServicesDTO {
+  @ValidateNested()
+  @Type(() => SchedulesDataDTO)
+  schedule: SchedulesDataDTO;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => scheduleServicesDTO)
+  services: scheduleServicesDTO[];
 }

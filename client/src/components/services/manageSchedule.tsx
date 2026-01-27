@@ -2,10 +2,14 @@
 
 import { ServicesSection } from "./servicesSection/servicesSection";
 import { ScheduleSection } from "./scheduleSection/scheduleSection";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ErrorModal from "../common/ErrorModal";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import ModalComponent from "../common/Modal";
+import { TeamModal } from "./servicesSection/teamsModal";
+import { useScheduleSubmitV2 } from "@/hooks/useScheduleSubmitV2";
+import { useScheduleFormV2 } from "@/hooks/useScheduleFormV2";
+import { useUser } from "@/contexts/userContext";
 
 interface ManageScheduleProps {
   scheduleData: any;
@@ -39,15 +43,58 @@ export function ManageSchedule({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [openModal, setOpenModal] = useState(false);
-  const [idScheduleExisting, setIdScheduleExisting] = useState<string | null>(
-    idSchedule
-  );
+  const [editingExecutionReport, setEditingExecutionReport] = useState<any>();
+
+  const [prog, setProg] = useState<number>(0);
+  const [selectedServices, setSelectedServices] = useState<any[]>([]);
+  const [openTeamsModal, setOpenTeamsModal] = useState<boolean>(false);
+
+  const { user } = useUser();
 
   const dialogTitle = isInsert ? "Nova Programação" : "Editar Programação";
 
   const toggleModal = useCallback(() => {
     setOpenModal((prev) => !prev);
   }, []);
+
+  const toggleTeamsModal = useCallback(() => {
+    setOpenTeamsModal((prev) => !prev);
+  }, []);
+
+  useEffect(() => {
+    const totalPlan = servicesData.reduce(
+      (acc, item) => acc + item.qtdePlanejada,
+      0,
+    );
+    const selectedPlan = selectedServices.reduce(
+      (acc, item) => acc + item.prog,
+      0,
+    );
+
+    setProg((selectedPlan / totalPlan) * 100);
+  }, [selectedServices, servicesData]);
+
+  const scheduleForm = useScheduleFormV2({
+    data: scheduleData,
+    executionData: editingExecutionReport,
+    options,
+    prog,
+    user,
+  });
+
+  const { isPending } = useScheduleSubmitV2({
+    formData: scheduleForm.formData,
+    executionReportData: scheduleForm.executionReportData,
+    idWork: Number(idWork),
+    isInsert,
+    onError: setError,
+    onSuccess: (message) => {
+      setSuccess(message);
+      setOpenModal(true);
+    },
+    onModalOpen: setOpenModal,
+    setFormErrors: scheduleForm.setFormErrors,
+  });
 
   return (
     <div className="p-4 sm:p-6 bg-gray-50 min-h-screen w-full overflow-y-auto">
@@ -61,21 +108,17 @@ export function ManageSchedule({
           idWork={Number(idWork)}
           isInsert={isInsert}
           options={options}
-          scheduleData={scheduleData}
+          scheduleForm={scheduleForm}
           statusWork={idStatusWork}
-          onModalOpen={setOpenModal}
           onError={setError}
-          onSuccess={(message) => {
-            setSuccess(message);
-            setOpenModal(true);
-          }}
-          onIdScheduleExisting={setIdScheduleExisting}
+          setOpenTeamsModal={setOpenTeamsModal}
+          prog={prog}
+          isPending={isPending}
         />
       </div>
 
       {/* Services Section */}
       <div className="w-full pb-10 mb-10">
-        {/* {(!isInsert || idScheduleExisting) && ( */}
         <ServicesSection
           servicesData={servicesData}
           scheduledServicesData={scheduledServicesData}
@@ -83,10 +126,24 @@ export function ManageSchedule({
           scheduledServicesHistory={scheduledServicesHistory}
           serviceContractData={serviceContractData}
           serviceTeams={serviceTeams}
-          idScheduleExisting={idScheduleExisting}
+          idScheduleExisting={idSchedule}
+          selectedServices={selectedServices}
+          setSelectedServices={setSelectedServices}
+          setOpenTeamsModal={setOpenTeamsModal}
+          isInsert={isInsert}
         />
-        {/* )} */}
       </div>
+
+      {openTeamsModal && (
+        <TeamModal
+          onClose={toggleTeamsModal}
+          open={openTeamsModal}
+          teams={serviceTeams}
+          idSchedule={idSchedule ? Number(idSchedule) : null}
+          selectedServices={selectedServices}
+          scheduleData={{ ...scheduleForm.formData, idUser: user?.id }}
+        />
+      )}
 
       <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
         <span className="text-center text-lg text-gray-700 dark:text-gray-200 mb-6">

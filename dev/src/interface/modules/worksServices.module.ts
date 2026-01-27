@@ -18,5 +18,6 @@ import { WorksModule } from './works.module';
       useClass: WorksServicesRepository,
     },
   ],
+  exports: [WorksServicesService],
 })
 export class WorksServicesModule {}

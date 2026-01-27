@@ -32,6 +32,7 @@ interface ServicesAvaliableProps {
   setSelectedServices: (service: any) => void;
   selectedServices: any;
   setOpenTeamsModal: (team: boolean) => void;
+  isInsert: boolean;
 }
 
 const serviceColumns = [
@@ -56,6 +57,7 @@ export function ServicesAvaliable({
   selectedServices,
   setSelectedServices,
   setOpenTeamsModal,
+  isInsert,
 }: ServicesAvaliableProps) {
   const [serviceFilter, setServiceFilter] = useState("");
   const [operationFilter, setOperationFilter] = useState("");
@@ -207,7 +209,7 @@ export function ServicesAvaliable({
                         filteredServicesData.map((s) => ({
                           id: s.id,
                           prog: s.qtdePlanejada,
-                        }))
+                        })),
                       );
                     } else {
                       // Limpar seleção
@@ -234,7 +236,7 @@ export function ServicesAvaliable({
                 <TableCell padding="checkbox">
                   <Checkbox
                     checked={selectedServices.some(
-                      (item: any) => item.id === row.id
+                      (item: any) => item.id === row.id,
                     )}
                     onChange={(e) => {
                       if (e.target.checked) {
@@ -245,8 +247,8 @@ export function ServicesAvaliable({
                       } else {
                         setSelectedServices(
                           selectedServices.filter(
-                            (selected: any) => selected.id !== row.id
-                          )
+                            (selected: any) => selected.id !== row.id,
+                          ),
                         );
                       }
                     }}
@@ -263,17 +265,19 @@ export function ServicesAvaliable({
           </TableBody>
         </Table>
       </TableContainer>
-      <Box className="flex justify-end mt-4">
-        <Button
-          variant="contained"
-          startIcon={<PlusIcon className="w-5 h-5 text-white" />}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-          onClick={() => setOpenTeamsModal(true)}
-          disabled={selectedServices.length === 0}
-        >
-          PROGRAMAR SERVIÇOS
-        </Button>
-      </Box>
+      {!isInsert && (
+        <Box className="flex justify-end mt-4">
+          <Button
+            variant="contained"
+            startIcon={<PlusIcon className="w-5 h-5 text-white" />}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+            onClick={() => setOpenTeamsModal(true)}
+            disabled={selectedServices.length === 0}
+          >
+            PROGRAMAR SERVIÇOS
+          </Button>
+        </Box>
+      )}
     </Paper>
   );
 }

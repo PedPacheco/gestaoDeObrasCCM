@@ -21,8 +21,8 @@ import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import {
   ConfirmSchedulesDTO,
+  CreateScheduleWithServicesDTO,
   RejectScheduleDTO,
-  SchedulesDataDTO,
   UpdateSchedulesDataDTO,
   ValidateSchedulesDTO,
 } from 'src/interface/dtos/scheduleDTO';
@@ -37,7 +37,7 @@ export class SchedulesActionsController {
   ) {}
 
   @Post()
-  async addSchedules(@Body() schedulesData: SchedulesDataDTO) {
+  async addSchedules(@Body() schedulesData: CreateScheduleWithServicesDTO) {
     const id = await this.handleAddScheduleService.add(schedulesData);
 
     return {

@@ -17,7 +17,6 @@ interface UseScheduleSubmitProps {
   onError: (error: string) => void;
   onSuccess: (success: string) => void;
   onModalOpen: (open: boolean) => void;
-  onIdScheduleExisting: (idSchedule: string | null) => void;
   setFormErrors: (errors: Record<string, string>) => void;
 }
 
@@ -27,7 +26,6 @@ export const useScheduleSubmitV2 = ({
   onError,
   onSuccess,
   onModalOpen,
-  onIdScheduleExisting,
 }: UseScheduleSubmitProps) => {
   const [isPending, startTransition] = useTransition();
   const rawUser = cookies.get("userInfo");
@@ -45,10 +43,10 @@ export const useScheduleSubmitV2 = ({
             const cleanedExecutionReport = {
               ...rest,
               appliedEquipment: rest.appliedEquipment?.map(
-                ({ type, ...e }: { type: string; [key: string]: any }) => e
+                ({ type, ...e }: { type: string; [key: string]: any }) => e,
               ),
               equipmentRemoved: rest.equipmentRemoved?.map(
-                ({ type, ...e }: { type: string; [key: string]: any }) => e
+                ({ type, ...e }: { type: string; [key: string]: any }) => e,
               ),
             };
 
@@ -78,7 +76,7 @@ export const useScheduleSubmitV2 = ({
                         }: {
                           type: string;
                           [key: string]: any;
-                        }) => e
+                        }) => e,
                       ),
                       equipmentRemoved: rest.equipmentRemoved?.map(
                         ({
@@ -87,7 +85,7 @@ export const useScheduleSubmitV2 = ({
                         }: {
                           type: string;
                           [key: string]: any;
-                        }) => e
+                        }) => e,
                       ),
                     };
                   })(),
@@ -97,8 +95,6 @@ export const useScheduleSubmitV2 = ({
 
             const apiCall = isInsert ? saveSchedule : editSchedule;
             response = await apiCall(payload, scheduleFields.id);
-
-            onIdScheduleExisting(response.id);
           }
 
           if (!response.success) {
@@ -114,15 +110,7 @@ export const useScheduleSubmitV2 = ({
         }
       });
     },
-    [
-      isInsert,
-      onSuccess,
-      onModalOpen,
-      idWork,
-      user?.id,
-      onIdScheduleExisting,
-      onError,
-    ]
+    [isInsert, onSuccess, onModalOpen, idWork, user?.id, onError],
   );
 
   return { handleSubmit, isPending };

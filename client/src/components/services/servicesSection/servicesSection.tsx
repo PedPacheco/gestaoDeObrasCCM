@@ -23,7 +23,6 @@ import {
 import { ScheduledServices } from "./scheduledServices";
 import { ServicesAvaliable } from "./servicesAvailable";
 import { ServicesContractSelect } from "./servicesContractSelect";
-import { TeamModal } from "./teamsModal";
 
 dayjs.extend(utc);
 
@@ -44,6 +43,10 @@ interface ServicesSectionProps {
   scheduledServicesHistory: any[];
   serviceFilters: any;
   idScheduleExisting: string | null;
+  selectedServices: number[];
+  setSelectedServices: (services: number[]) => void;
+  setOpenTeamsModal: (team: boolean) => void;
+  isInsert: boolean;
 }
 
 const operations = [
@@ -60,18 +63,12 @@ export function ServicesSection({
   scheduledServicesData,
   serviceContractData,
   serviceFilters,
-  serviceTeams,
   scheduledServicesHistory,
-  idScheduleExisting,
+  selectedServices,
+  setSelectedServices,
+  setOpenTeamsModal,
+  isInsert,
 }: ServicesSectionProps) {
-  const [selectedServices, setSelectedServices] = useState<number[]>([]);
-
-  const [openTeamsModal, setOpenTeamsModal] = useState<boolean>(false);
-
-  const toggleModal = useCallback(() => {
-    setOpenTeamsModal((prev) => !prev);
-  }, []);
-
   const formatDate = (dateString: string) => {
     return dayjs(dateString).utc().format("DD/MM/YYYY");
   };
@@ -79,7 +76,7 @@ export function ServicesSection({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
       {/* LEFT SIDE — tables */}
-      <div className="lg:col-span-7 space-y-6">
+      <div className="lg:col-span-8 space-y-6">
         {/* Serviços Disponíveis */}
         <ServicesAvaliable
           servicesData={servicesData}
@@ -89,24 +86,17 @@ export function ServicesSection({
           selectedServices={selectedServices}
           setSelectedServices={setSelectedServices}
           setOpenTeamsModal={setOpenTeamsModal}
+          isInsert={isInsert}
         />
 
         {/* Serviços Programados */}
-        <ScheduledServices scheduledServicesData={scheduledServicesData} />
-
-        {idScheduleExisting && (
-          <TeamModal
-            onClose={toggleModal}
-            open={openTeamsModal}
-            teams={serviceTeams}
-            idSchedule={idScheduleExisting}
-            selectedServices={selectedServices}
-          />
+        {!isInsert && (
+          <ScheduledServices scheduledServicesData={scheduledServicesData} />
         )}
       </div>
 
       {/* RIGHT SIDE — Histórico + Adicionar */}
-      <div className="lg:col-span-5 flex flex-col gap-6">
+      <div className="lg:col-span-4 flex flex-col gap-6">
         {/* Adicionar Serviços */}
         <div className="bg-white shadow rounded-xl p-4 sm:p-6">
           <h2 className="text-xl font-semibold text-gray-700 mb-4">
@@ -181,72 +171,74 @@ export function ServicesSection({
         </div>
 
         {/* Histórico */}
-        <div className="bg-white shadow rounded-xl p-4 sm:p-6 min-h-[480px]">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-700">
-              HISTÓRICO DAS PROGRAMAÇÕES
-            </h2>
-            <Button
-              variant="outlined"
-              className="border-gray-300 text-gray-600"
-            >
-              CANCELAR
-            </Button>
-          </div>
+        {!isInsert && (
+          <div className="bg-white shadow rounded-xl p-4 sm:p-6 min-h-[480px]">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-700">
+                HISTÓRICO DAS PROGRAMAÇÕES
+              </h2>
+              <Button
+                variant="outlined"
+                className="border-gray-300 text-gray-600"
+              >
+                CANCELAR
+              </Button>
+            </div>
 
-          <div className="overflow-x-auto">
-            <TableContainer component={Paper} sx={{ height: 480 }}>
-              <Table size="small" className="text-sm h-full">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>SERVIÇO</TableCell>
-                    <TableCell>OPERAÇÃO</TableCell>
-                    <TableCell>PONTO</TableCell>
-                    <TableCell>DATA PROGRAMADA</TableCell>
-                    <TableCell>PLAN</TableCell>
-                    <TableCell>PROG</TableCell>
-                    <TableCell>REAL</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {scheduledServicesHistory.length === 0 ? (
+            <div className="overflow-x-auto">
+              <TableContainer component={Paper} sx={{ height: 480 }}>
+                <Table size="small" className="text-sm h-full">
+                  <TableHead>
                     <TableRow>
-                      <TableCell colSpan={6} align="center">
-                        Nenhum histórico disponível
-                      </TableCell>
+                      <TableCell>SERVIÇO</TableCell>
+                      <TableCell>OPERAÇÃO</TableCell>
+                      <TableCell>PONTO</TableCell>
+                      <TableCell>DATA PROGRAMADA</TableCell>
+                      <TableCell>PLAN</TableCell>
+                      <TableCell>PROG</TableCell>
+                      <TableCell>REAL</TableCell>
                     </TableRow>
-                  ) : (
-                    scheduledServicesHistory.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="text-nowrap">
-                          {item.servicos.servicos_contratos.texto_breve}
-                        </TableCell>
-                        <TableCell className="text-nowrap">
-                          {item.servicos.operacao}
-                        </TableCell>
-                        <TableCell className="text-nowrap">
-                          {item.servicos.ponto}
-                        </TableCell>
-                        <TableCell className="text-nowrap">
-                          {formatDate(item.programacoes.data_prog)}
-                        </TableCell>
-                        <TableCell className="text-nowrap">
-                          {item.plan}
-                        </TableCell>
-                        <TableCell className="text-nowrap">
-                          {item.prog}
-                        </TableCell>
-                        <TableCell className="text-nowrap">
-                          {item.real}
+                  </TableHead>
+                  <TableBody>
+                    {scheduledServicesHistory.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} align="center">
+                          Nenhum histórico disponível
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                    ) : (
+                      scheduledServicesHistory.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="text-nowrap">
+                            {item.servicos.servicos_contratos.texto_breve}
+                          </TableCell>
+                          <TableCell className="text-nowrap">
+                            {item.servicos.operacao}
+                          </TableCell>
+                          <TableCell className="text-nowrap">
+                            {item.servicos.ponto}
+                          </TableCell>
+                          <TableCell className="text-nowrap">
+                            {formatDate(item.programacoes.data_prog)}
+                          </TableCell>
+                          <TableCell className="text-nowrap">
+                            {item.plan}
+                          </TableCell>
+                          <TableCell className="text-nowrap">
+                            {item.prog}
+                          </TableCell>
+                          <TableCell className="text-nowrap">
+                            {item.real}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

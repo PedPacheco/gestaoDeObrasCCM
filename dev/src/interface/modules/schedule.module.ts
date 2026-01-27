@@ -40,6 +40,9 @@ import { WorksModule } from './works.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { WorksServicesService } from 'src/application/worksServices.service';
+import { WORKS_SERVICE_REPOSITORY } from 'src/domain/repositories/IWorksServiceRepository';
+import { WorksServicesRepository } from 'src/infra/repositories/worksServicesRepository';
 
 // import { UpdateRestrictionsService } from 'src/application/schedule/updateRestrictions.service';
 // import { UPDATE_RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateRestrictionsRepository';
@@ -86,7 +89,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     ValidateConfirmAndRejectSchedulesService,
     ScheduleExecutionValidatorService,
     RejectionsOfSchedulesService,
+    WorksServicesService,
     // UpdateRestrictionsService,
+    {
+      provide: WORKS_SERVICE_REPOSITORY,
+      useClass: WorksServicesRepository,
+    },
     { provide: ADD_SCHEDULES_REPOSITORY, useClass: AddSchedulesRepository },
     {
       provide: UPDATE_SCHEDULES_REPOSITORY,

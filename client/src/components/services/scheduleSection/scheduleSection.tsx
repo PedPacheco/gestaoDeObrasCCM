@@ -1,90 +1,48 @@
 import { useUser } from "@/contexts/userContext";
 import { ArrowUpTrayIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { Box, Button, Grid } from "@mui/material";
-import { useState } from "react";
+
 import { BasicInfoCard } from "./basicInfoCard";
 import { EquipmentCard } from "./equipmentsCard";
 import { RestrictionsCard } from "./restrictionsCard";
-import { useScheduleFormV2 } from "@/hooks/useScheduleFormV2";
-import { useScheduleSubmitV2 } from "@/hooks/useScheduleSubmitV2";
+
 import { ButtonComponent } from "@/components/common/Button";
 import { schedulesSchemaV2 } from "@/validations/validationSchedulesV2";
 import { useRouter } from "next/navigation";
-
-const INITIAL_FORM_DATA = {
-  id: 0,
-  dataProg: new Date().toISOString().split("T")[0],
-  startTime: "08:00",
-  finishTime: "17:00",
-  prog: 0,
-  exec: null,
-  serviceType: "LV",
-  observation: "",
-  equipment: "",
-  chi: 0,
-  numDp: "",
-  temporaryKey: false,
-  lmTeam: 0,
-  regulTeam: 0,
-  lvTeam: 0,
-  idTechnical: 1,
-  idExecutionRestriction: 1,
-  responsibility: "",
-};
+import { useScheduleFormV2 } from "@/hooks/useScheduleFormV2";
 
 interface ScheduleSectionProps {
   idWork: number;
   isInsert: boolean;
-  scheduleData: any;
+  scheduleForm: any;
   onError: (error: string) => void;
-  onSuccess: (success: string) => void;
-  onModalOpen: (open: boolean) => void;
-  onIdScheduleExisting: (idSchedule: string | null) => void;
   options: {
     tecnico: Array<{ id: number; tecnico: string }>;
-    restricao: Array<{ id: number; restricao: string }>;
+    restricao: Array<{ id: number; restricao: string; tipo_restricao: string }>;
   };
   statusWork: number;
+  setOpenTeamsModal: (team: boolean) => void;
+  prog: number;
+  isPending: boolean;
 }
 
-export type ScheduleFormHookReturnV2 = ReturnType<typeof useScheduleFormV2>;
+export type scheduleFormHookReturnV2 = ReturnType<typeof useScheduleFormV2>;
 
 export function ScheduleSection({
+  scheduleForm,
   idWork,
   isInsert,
-  scheduleData,
   onError,
-  onSuccess,
-  onModalOpen,
-  onIdScheduleExisting,
   options,
   statusWork,
+  setOpenTeamsModal,
+  prog,
+  isPending,
 }: ScheduleSectionProps) {
-  const [editingExecutionReport, setEditingExecutionReport] = useState<any>();
-
   const router = useRouter();
-
   const { permissions } = useUser();
 
   const spacingValue = isInsert ? 3 : 2;
-
-  const scheduleForm = useScheduleFormV2({
-    data: scheduleData,
-    executionData: editingExecutionReport,
-    options,
-  });
-
-  const { handleSubmit, isPending } = useScheduleSubmitV2({
-    formData: scheduleForm.formData,
-    executionReportData: scheduleForm.executionReportData,
-    idWork,
-    isInsert,
-    onError,
-    onSuccess,
-    onModalOpen,
-    setFormErrors: scheduleForm.setFormErrors,
-    onIdScheduleExisting,
-  });
 
   const submitButtonText = isPending ? "Salvando..." : "Salvar Programação";
 
@@ -153,7 +111,7 @@ export function ScheduleSection({
           startIcon={<ArrowUpTrayIcon className="w-5 h-5 text-white" />}
           onClick={() => {
             const validationResult = schedulesSchemaV2(isInsert).safeParse(
-              scheduleForm.formData
+              scheduleForm.formData,
             );
 
             if (!validationResult.success) {
@@ -168,10 +126,9 @@ export function ScheduleSection({
               return;
             }
             scheduleForm.setFormErrors({});
-
-            handleSubmit(validationResult.data, "schedule");
+            setOpenTeamsModal(true);
           }}
-          disabled={isPending}
+          disabled={isPending || prog === 0}
           text={submitButtonText}
         />
       </Box>
