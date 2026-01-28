@@ -244,7 +244,7 @@ export const mockFindByWorkIdResponseFormatted = [
     executado: 50,
     tipo_obra: 'Manutenção',
     status_obra: 'EM EMPREITAMENTO',
-    parceria: 'Engelmig',
+    parceira: 'Engelmig',
 
     // 🔽 campos achatados do objeto programacoes
     data_prog: new Date('2025-06-24T08:30:00.000Z'),
