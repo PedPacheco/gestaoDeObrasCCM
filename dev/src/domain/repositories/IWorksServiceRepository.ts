@@ -1,4 +1,4 @@
-import { scheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
+import { ScheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
 import {
   GetByIdParamsInterface,
   GetSelectedServicesParamsInterface,
@@ -30,7 +30,7 @@ export interface IWorksServicesRepository {
   getServicesFilters(id: number): Promise<GetServicesFiltersResponse>;
   getServicesContracts(idParceira: number): Promise<any[]>;
   getTeamsServices(idParceira: number): Promise<any[]>;
-  scheduleServices(data: scheduleServicesDTO[]): Promise<void>;
+  scheduleServices(data: ScheduleServicesDTO[]): Promise<void>;
 }
 
 export const WORKS_SERVICE_REPOSITORY = Symbol('WorksServiceRepository');

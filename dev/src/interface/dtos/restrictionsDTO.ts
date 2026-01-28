@@ -81,6 +81,10 @@ export class InsertPublicationRestrictionsDTO {
   @IsString()
   @Transform(({ value }) => (value === '' ? null : value))
   restrictionStatus: string;
+
+  @IsString()
+  @IsOptional()
+  observation?: string;
 }
 
 export class UpdatePublicationRestrictionsDTO {
@@ -106,4 +110,8 @@ export class UpdatePublicationRestrictionsDTO {
   @IsOptional()
   @Transform(({ value }) => (value === '' ? null : value))
   resolutionDate?: string;
+
+  @IsString()
+  @IsOptional()
+  observation?: string;
 }

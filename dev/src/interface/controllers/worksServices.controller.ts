@@ -9,7 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { WorksServicesService } from 'src/application/worksServices.service';
-import { scheduleServicesDTO } from '../dtos/workServicesDTO';
+import { ScheduleServicesDTO } from '../dtos/workServicesDTO';
 
 @Controller('servicos')
 export class ServicesController {
@@ -105,7 +105,7 @@ export class ServicesController {
   }
 
   @Patch()
-  async scheduleServices(@Body() scheduleServicesData: scheduleServicesDTO[]) {
+  async scheduleServices(@Body() scheduleServicesData: ScheduleServicesDTO[]) {
     await this.worksServicesService.scheduleServices(scheduleServicesData);
 
     return {

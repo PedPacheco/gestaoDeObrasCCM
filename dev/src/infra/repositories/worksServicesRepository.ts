@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { IWorksServicesRepository } from 'src/domain/repositories/IWorksServiceRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { scheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
+import { ScheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
 import {
   GetByIdParamsInterface,
   GetSelectedServicesParamsInterface,
@@ -176,7 +176,7 @@ export class WorksServicesRepository implements IWorksServicesRepository {
     });
   }
 
-  async scheduleServices(data: scheduleServicesDTO[]): Promise<void> {
+  async scheduleServices(data: ScheduleServicesDTO[]): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       for (const item of data) {
         const { id, idSchedule, idTeam, prog } = item;

@@ -8,7 +8,7 @@ import {
   GetSelectedServicesParamsInterface,
 } from 'src/interface/types/servicesInterface';
 import { GetWorkDetailsService } from './works/getWorkDetails.service';
-import { scheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
+import { ScheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
 
 @Injectable()
 export class WorksServicesService {
@@ -114,7 +114,7 @@ export class WorksServicesService {
     return data;
   }
 
-  async scheduleServices(data: scheduleServicesDTO[]) {
+  async scheduleServices(data: ScheduleServicesDTO[]) {
     await this.worksServicesRepository.scheduleServices(data);
   }
 }

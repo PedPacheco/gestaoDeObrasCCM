@@ -43,7 +43,7 @@ export function ImportButton({ storageKey }: ImportButtonProps) {
   };
 
   const handleSingleFileChange = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -123,7 +123,7 @@ export function ImportButton({ storageKey }: ImportButtonProps) {
         const res = await InsertAuxiliaryBaseMarket(
           groupData,
           storageKey,
-          "insert"
+          "insert",
         );
 
         if (res.insertedCount === 0) {
@@ -187,7 +187,7 @@ export function ImportButton({ storageKey }: ImportButtonProps) {
           isPending,
           storageKey === "marketEntryData"
             ? "Importar obras de mercado"
-            : "Importar Notas"
+            : "Importar Notas",
         )}
         disabled={isPending}
         styled="w-72"
