@@ -192,6 +192,7 @@ export const mockFindByWorkIdResponse = [
         tipo_obra: 'Manutenção',
       },
       status: { status: 'EM EMPREITAMENTO' },
+      turmas: { turma: 'Engelmig' },
     },
     programacoes: {
       data_prog: new Date('2025-06-24T08:30:00.000Z'),
@@ -243,6 +244,7 @@ export const mockFindByWorkIdResponseFormatted = [
     executado: 50,
     tipo_obra: 'Manutenção',
     status_obra: 'EM EMPREITAMENTO',
+    parceira: 'Engelmig',
 
     // 🔽 campos achatados do objeto programacoes
     data_prog: new Date('2025-06-24T08:30:00.000Z'),
@@ -300,6 +302,9 @@ export const mockFindByWorkIdResponseNull = [
       status: {
         status: null,
       },
+      turmas: {
+        turma: null,
+      },
     },
     programacoes: {
       data_prog: null,
@@ -348,6 +353,7 @@ export const mockFindByWorkIdResponseFormattedNull = [
     executado: null,
     tipo_obra: null,
     status_obra: null,
+    parceira: null,
 
     // programações achatado
     data_prog: null,

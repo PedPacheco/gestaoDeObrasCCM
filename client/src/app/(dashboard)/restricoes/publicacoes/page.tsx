@@ -53,7 +53,7 @@ export default async function PublicationRestriction() {
       `${process.env.NEXT_PUBLIC_API_URL}/restricao/publicacoes`,
       filtersValues,
       cookieStore.get("token")?.value,
-      { cache: "no-store" }
+      { cache: "no-store" },
     ),
   ]);
 
@@ -76,6 +76,7 @@ export default async function PublicationRestriction() {
     restricao: "Restrição",
     responsabilidade: "Responsabilidade",
     nome_responsavel: "Nome do responsável",
+    observacao: "Observação",
     status_restricao: "Status da restrição",
     criado_em: "Data de criação",
     data_resolucao: "Data de resolução",

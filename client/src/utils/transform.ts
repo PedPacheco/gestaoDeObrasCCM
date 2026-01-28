@@ -7,17 +7,17 @@ export function Transform(filters: Record<string, string[]>) {
     Object.entries(filters).map(([key, value]) => [
       key,
       Array.isArray(value) && value.length > 0 ? value.join(",") : "",
-    ])
+    ]),
   );
 }
 
 export function mapScheduleToForm(schedule: any, options: Record<string, any>) {
   const technicianFound = options.tecnico.find(
-    (t: any) => t.tecnico === schedule.tecnico
+    (t: any) => t.tecnico === schedule.tecnico,
   );
 
   const restrictionFound = options.restricao.find(
-    (r: any) => r.restricao === schedule.restricao
+    (r: any) => r.restricao === schedule.restricao,
   );
 
   return {
@@ -62,7 +62,7 @@ export function transformExecutionReport(data: any): ExecutionReportData {
     equip: string,
     pot: string,
     pat: string,
-    inst: string
+    inst: string,
   ) => {
     if (!equip && !pot && !pat && !inst) return [];
 
@@ -95,14 +95,14 @@ export function transformExecutionReport(data: any): ExecutionReportData {
       data.equipamentos_aplicados,
       data.potencia_equipamento_aplicado,
       data.patrimonio_equipamento_aplicado,
-      data.instalacao_equipamento_aplicado
+      data.instalacao_equipamento_aplicado,
     ),
     hasEquipmentRemoved: data.possui_equipamentos_retirados,
     equipmentRemoved: splitEquipamentos(
       data.equipamentos_retirados,
       data.potencia_equipamento_retirado,
       data.patrimonio_equipamento_retirado,
-      data.instalacao_equipamento_retirado
+      data.instalacao_equipamento_retirado,
     ),
     changesExecution: data.alteracoes_execucao,
     generalObservation: data.observacoes_gerais || "",
@@ -115,10 +115,10 @@ export function transformExecutionReport(data: any): ExecutionReportData {
 
 export function buildPublicationRestrictionPayload(
   data: any,
-  enginners: any[]
+  enginners: any[],
 ) {
   const responsibleEnginner = enginners.find(
-    (enginner) => enginner.idRegional === data.id_regional
+    (enginner) => enginner.idRegional === data.id_regional,
   );
 
   const restrictionArray = [
@@ -131,6 +131,7 @@ export function buildPublicationRestrictionPayload(
       resolutionDate: data.resolutionDate
         ? dayjs(data.resolutionDate).format("DD/MM/YYYY")
         : null,
+      observation: data.observacao,
     },
   ];
 
