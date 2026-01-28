@@ -213,7 +213,7 @@ export default function ScheduleFormDialog({
           onClick={() => {
             const formDataWithUser = {
               ...formData,
-              idUser: user?.id,
+              idUser: Number(user?.id),
             };
 
             const validationResult =

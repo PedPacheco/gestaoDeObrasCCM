@@ -218,7 +218,8 @@ export class RestrictionsRepository implements IRestrictionsRepository {
         restricoes_publicacoes.responsabilidade,
         restricoes_publicacoes.nome_responsavel,
         restricoes_publicacoes.status_restricao,
-        restricoes_publicacoes.data_resolucao
+        restricoes_publicacoes.data_resolucao,
+        restricoes_publicacoes.observacao
       ${baseQuery}
     `;
 
@@ -245,6 +246,7 @@ export class RestrictionsRepository implements IRestrictionsRepository {
           responsabilidade: item.responsibility,
           nome_responsavel: item.responsibleName,
           status_restricao: item.restrictionStatus,
+          observacao: item.observation,
         })),
       });
     });
@@ -261,6 +263,7 @@ export class RestrictionsRepository implements IRestrictionsRepository {
         nome_responsavel: data.responsibleName,
         status_restricao: data.restrictionStatus,
         data_resolucao: data.resolutionDate,
+        observacao: data.observation,
       },
     });
   }

@@ -144,6 +144,7 @@ export class ExportRepository implements IExportRepository {
             executado: true,
             tipos: { select: { tipo_obra: true } },
             status: { select: { status: true } },
+            turmas: { select: { turma: true } },
           },
         },
         programacoes: {

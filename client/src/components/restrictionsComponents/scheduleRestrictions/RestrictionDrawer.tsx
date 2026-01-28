@@ -39,6 +39,7 @@ const INITIAL_FORM_DATA = {
   responsibleName: null,
   restrictionStatus: null,
   resolutionDate: null,
+  observation: null,
 };
 
 const RESPONSIBLE_ENGINEERS = [
@@ -61,14 +62,14 @@ export default function RestrictionDrawer({
 }: RestrictionDrawerProps) {
   const [form, setForm] = useState<any[]>([INITIAL_FORM_DATA]);
   const responsibleEnginner = RESPONSIBLE_ENGINEERS.find(
-    (enginner) => enginner.idRegional === idRegional
+    (enginner) => enginner.idRegional === idRegional,
   );
 
   useEffect(() => {
     if (data) {
       const formattedData = buildPublicationRestrictionPayload(
         data,
-        RESPONSIBLE_ENGINEERS
+        RESPONSIBLE_ENGINEERS,
       );
       setForm(formattedData);
     } else {
@@ -84,7 +85,7 @@ export default function RestrictionDrawer({
 
   const handleChange = (index: number, field: string, value: any) => {
     setForm((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
+      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)),
     );
   };
 
@@ -94,8 +95,8 @@ export default function RestrictionDrawer({
         Object.entries(item).map(([key, value]) => [
           key,
           value === "" ? null : value,
-        ])
-      )
+        ]),
+      ),
     );
 
     if (data) {
@@ -198,6 +199,16 @@ export default function RestrictionDrawer({
               </Select>
             </FormControl>
 
+            <TextField
+              fullWidth
+              label="Observação"
+              value={restriction.observation || ""}
+              onChange={(e) =>
+                handleChange(index, "observation", e.target.value)
+              }
+              margin="normal"
+            />
+
             {data && (
               <LocalizationProvider
                 dateAdapter={AdapterDayjs}
@@ -214,7 +225,7 @@ export default function RestrictionDrawer({
                     handleChange(
                       index,
                       "resolutionDate",
-                      value ? value.format("DD/MM/YYYY") : null
+                      value ? value.format("DD/MM/YYYY") : null,
                     )
                   }
                   format="DD/MM/YYYY"

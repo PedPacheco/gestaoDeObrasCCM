@@ -35,6 +35,7 @@ export class ExportExecutionReportService {
         tipo_obra: item.obras?.tipos?.tipo_obra ?? null,
         status_obra: item.obras?.status?.status ?? null,
         executado: item.obras?.executado ?? null,
+        parceira: item.obras?.turmas?.turma ?? null,
 
         // programações
         data_prog: item.programacoes?.data_prog ?? null,
@@ -69,15 +70,36 @@ export class ExportExecutionReportService {
         { header: 'Tipo da Obra', key: 'tipo_obra', width: 20 },
         { header: 'Status da Obra', key: 'status_obra', width: 20 },
         { header: 'Total Executado', key: 'executado', width: 15 },
+        { header: 'Parceira', key: 'parceira', width: 20 },
 
         // Programação
-        { header: 'Data de criação', key: 'criado_em', width: 20 },
-        { header: 'Data Programada', key: 'data_prog', width: 20 },
+        {
+          header: 'Data de criação',
+          key: 'criado_em',
+          width: 20,
+          style: { numFmt: 'dd/mm/yyyy hh:mm' },
+        },
+        {
+          header: 'Data Programada',
+          key: 'data_prog',
+          width: 20,
+          style: { numFmt: 'dd/mm/yyyy' },
+        },
         { header: 'Programado', key: 'prog', width: 10 },
         { header: 'Executado', key: 'exec', width: 10 },
         { header: 'Número DP', key: 'num_dp', width: 15 },
-        { header: 'Horário início', key: 'hora_ini', width: 15 },
-        { header: 'Horário término', key: 'hora_ter', width: 15 },
+        {
+          header: 'Horário início',
+          key: 'hora_ini',
+          width: 15,
+          style: { numFmt: 'hh:mm' },
+        },
+        {
+          header: 'Horário término',
+          key: 'hora_ter',
+          width: 15,
+          style: { numFmt: 'hh:mm' },
+        },
         { header: 'Chave Provisória', key: 'chave_provisoria', width: 18 },
 
         // Relatório Execução
@@ -87,8 +109,18 @@ export class ExportExecutionReportService {
           width: 25,
         },
 
-        { header: 'Hora Início Execução', key: 'hora_inicio', width: 20 },
-        { header: 'Hora Conclusão Execução', key: 'hora_conclusao', width: 20 },
+        {
+          header: 'Hora Início Execução',
+          key: 'hora_inicio',
+          width: 20,
+          style: { numFmt: 'hh:mm' },
+        },
+        {
+          header: 'Hora Conclusão Execução',
+          key: 'hora_conclusao',
+          width: 20,
+          style: { numFmt: 'hh:mm' },
+        },
         { header: 'Contato Início', key: 'contato_inicio', width: 20 },
         { header: 'Contato Término', key: 'contato_termino', width: 20 },
 
