@@ -664,6 +664,7 @@ model restricoes_publicacoes {
   status_restricao String     @db.VarChar(20)
   data_resolucao   DateTime?  @db.Date
   criado_em        DateTime?  @default(now()) @db.Timestamp(6)
+  observacao       String?
   obras            obras      @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
   restricoes       restricoes @relation(fields: [id_restricao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes")
 }
