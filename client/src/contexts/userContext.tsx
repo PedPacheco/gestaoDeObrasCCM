@@ -1,14 +1,9 @@
 "use client";
 
-import { jwtDecode } from "jwt-decode";
+import { createContext, useContext, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Cookies } from "react-cookie";
-import {
-  createContext,
-  Dispatch,
-  SetStateAction,
-  useContext,
-  useState,
-} from "react";
+import { jwtDecode } from "jwt-decode";
 
 interface UserData {
   id: number;
@@ -20,10 +15,10 @@ interface UserData {
 
 interface JwtPayload {
   id: number;
-  username: string;
   permissao: string;
   permissao_visualizacao: string;
   permissao_publicacao: boolean;
+  exp: number;
 }
 
 interface LoginResponse {
@@ -34,65 +29,94 @@ interface LoginResponse {
 interface UserContextType {
   user: UserData | null;
   permissions: JwtPayload | null;
-  setUser: Dispatch<SetStateAction<UserData | null>>;
+  isLoading: boolean;
   login: (user: string, password: string) => Promise<LoginResponse>;
+  logout: () => void;
 }
 
 const UserContext = createContext<UserContextType | null>(null);
 const cookies = new Cookies();
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserData | null>(() => {
-    const storedUser = cookies.get("userInfo");
-    return storedUser ? storedUser : null;
-  });
+  const router = useRouter();
 
-  const [permissions, setPermissions] = useState<JwtPayload | null>(() => {
+  const [user, setUser] = useState<UserData | null>(null);
+  const [permissions, setPermissions] = useState<JwtPayload | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  /** 🔹 Init */
+  useEffect(() => {
     const token = cookies.get("token");
-    return token ? jwtDecode<JwtPayload>(token) : null;
-  });
+    const userInfo = cookies.get("userInfo");
 
-  async function login(user: string, password: string): Promise<LoginResponse> {
-    const response = await fetch("/api/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ user, password }),
-      credentials: "include",
-    });
+    if (!token || !userInfo) {
+      clearAuth();
+      return;
+    }
 
-    if (response.ok) {
-      const res = await response.json();
+    try {
+      const decoded = jwtDecode<JwtPayload>(token);
 
-      const token = cookies.get("token");
-      if (token) {
-        setPermissions(jwtDecode<JwtPayload>(token));
+      if (decoded.exp * 1000 < Date.now()) {
+        clearAuth();
+        return;
       }
 
-      return { message: res.message, success: true };
-    } else {
-      const error = await response.json();
-      return { message: error.message, success: false };
+      setPermissions(decoded);
+      setUser(typeof userInfo === "string" ? JSON.parse(userInfo) : userInfo);
+    } catch {
+      clearAuth();
+    } finally {
+      setIsLoading(false);
     }
+  }, []);
+
+  /** 🔹 Login */
+  async function login(user: string, password: string): Promise<LoginResponse> {
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user, password }),
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      return { success: false, message: result.message };
+    }
+
+    // força revalidação do contexto
+    window.location.replace("/");
+    return { success: true, message: result.message };
   }
 
+  /** 🔹 Logout */
   function logout() {
+    clearAuth();
+    router.replace("/login");
+  }
+
+  function clearAuth() {
+    cookies.remove("token", { path: "/" });
+    cookies.remove("userInfo", { path: "/" });
     setUser(null);
-    cookies.remove("userInfo");
+    setPermissions(null);
+    setIsLoading(false);
   }
 
   return (
-    <UserContext.Provider value={{ user, permissions, setUser, login }}>
+    <UserContext.Provider
+      value={{ user, permissions, isLoading, login, logout }}
+    >
       {children}
     </UserContext.Provider>
   );
 }
 
-export const useUser = () => {
-  const context = useContext(UserContext);
-  if (!context) {
-    throw new Error("useUser must be used within a UserProvider");
+export function useUser() {
+  const ctx = useContext(UserContext);
+  if (!ctx) {
+    throw new Error("useUser must be used within UserProvider");
   }
-  return context;
-};
+  return ctx;
+}

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
 const secret = new TextEncoder().encode(
-  process.env.JWT_SECRET || "your_jwt_secret"
+  process.env.JWT_SECRET || "your_jwt_secret",
 );
 
 export async function authMiddleware(request: NextRequest) {
@@ -22,6 +22,7 @@ export async function authMiddleware(request: NextRequest) {
   } catch (error) {
     const response = NextResponse.redirect(new URL("/login", request.url));
     response.cookies.delete("token");
+    response.cookies.delete("userInfo");
     return response;
   }
 }
