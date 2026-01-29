@@ -33,7 +33,7 @@ export default function MainSchduleForDay({
   token,
 }: MainInterface<any>) {
   const [filteredData, setFilteredData] = useState(data);
-  const { permissions } = useUser();
+  const { permissions, user } = useUser();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>();
   const [page, setPage] = useState(0);
@@ -57,7 +57,7 @@ export default function MainSchduleForDay({
 
       const url = mountUrl(
         `${process.env.NEXT_PUBLIC_API_URL}/exportacao/programacao`,
-        formattedParams
+        formattedParams,
       );
 
       try {
@@ -78,7 +78,7 @@ export default function MainSchduleForDay({
         setError(`Erro ao gerar a planilha: ${error.message}`);
       }
     },
-    [token]
+    [token],
   );
 
   const fetchSchedule = useCallback(
@@ -89,7 +89,7 @@ export default function MainSchduleForDay({
             `${process.env.NEXT_PUBLIC_API_URL}/programacao/mensal`,
             params,
             token,
-            { cache: "no-store" }
+            { cache: "no-store" },
           );
           setFilteredData(response.data);
         } catch (error: any) {
@@ -97,7 +97,7 @@ export default function MainSchduleForDay({
         }
       });
     },
-    [token]
+    [token],
   );
 
   const handleChangePage = (event: unknown, newPage: number) => {
@@ -177,7 +177,7 @@ export default function MainSchduleForDay({
                     <p>
                       {typeof valueFormatted === "number"
                         ? Number(valueFormatted.toFixed(2)).toLocaleString(
-                            "pt-br"
+                            "pt-br",
                           )
                         : valueFormatted}
                     </p>

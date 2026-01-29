@@ -62,7 +62,7 @@ export const ModalsManager = forwardRef<ModalsManagerRef, ModalsManagerProps>(
       onConfirmExecutionDelete,
       totalExec,
     },
-    ref
+    ref,
   ) => {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
@@ -191,7 +191,7 @@ export const ModalsManager = forwardRef<ModalsManagerRef, ModalsManagerProps>(
         )}
       </>
     );
-  }
+  },
 );
 
 ModalsManager.displayName = "ModalsManager";

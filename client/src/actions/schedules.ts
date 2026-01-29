@@ -17,7 +17,7 @@ export async function saveSchedule(data: any) {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data.updateData),
-      }
+      },
     );
 
     const res = await result.json();
@@ -53,7 +53,7 @@ export async function editSchedule(data: any, id: number, files?: File[]) {
       formData.append("updateData", JSON.stringify(data.updateData));
       formData.append(
         "executionReportData",
-        JSON.stringify(data.executionReportData)
+        JSON.stringify(data.executionReportData),
       );
 
       files?.forEach((file) => {
@@ -72,7 +72,7 @@ export async function editSchedule(data: any, id: number, files?: File[]) {
         method: "PATCH",
         headers,
         body,
-      }
+      },
     );
 
     const res = await result.json();
@@ -104,7 +104,7 @@ export async function deleteSchedule(id: number, idWork: number) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     const res = await result.json();
@@ -126,7 +126,7 @@ export async function deleteSchedule(id: number, idWork: number) {
 
 export async function ValidatedSchedule(
   data: { id: number; validate: boolean }[],
-  idWork: string
+  idWork: string,
 ) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
@@ -141,7 +141,7 @@ export async function ValidatedSchedule(
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
-      }
+      },
     );
 
     const res = await result.json();
@@ -163,7 +163,7 @@ export async function ValidatedSchedule(
 
 export async function ConfirmedSchedule(
   data: { id: number; confirm: boolean }[],
-  idWork: string
+  idWork: string,
 ) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
@@ -178,7 +178,7 @@ export async function ConfirmedSchedule(
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
-      }
+      },
     );
 
     const res = await result.json();
@@ -205,7 +205,7 @@ export async function RejectedSchedule(
     reason: string;
     description: string;
   },
-  idWork: string
+  idWork: string,
 ) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
@@ -220,7 +220,7 @@ export async function RejectedSchedule(
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
-      }
+      },
     );
 
     const res = await result.json();
