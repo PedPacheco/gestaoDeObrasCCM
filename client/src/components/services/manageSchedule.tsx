@@ -21,9 +21,9 @@ interface ManageScheduleProps {
   serviceFilters: any;
   isInsert: boolean;
   options: any;
-  idWork: string;
-  idStatusWork: any;
-  idSchedule: string | null;
+  idWork: number;
+  idStatusWork: number;
+  idSchedule: number | null;
 }
 
 export function ManageSchedule({
@@ -141,7 +141,11 @@ export function ManageSchedule({
           teams={serviceTeams}
           idSchedule={idSchedule ? Number(idSchedule) : null}
           selectedServices={selectedServices}
-          scheduleData={{ ...scheduleForm.formData, idUser: user?.id }}
+          scheduleData={{
+            ...scheduleForm.formData,
+            idUser: user?.id,
+            idWork: idWork,
+          }}
         />
       )}
 

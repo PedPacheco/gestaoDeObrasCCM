@@ -21,11 +21,10 @@ export function mapScheduleToForm(schedule: any, options: Record<string, any>) {
   );
 
   return {
-    id: schedule.id,
     dataProg: formatDateToInput(schedule.data_prog) ?? "",
     startTime: formatToHHMM(schedule.hora_ini) ?? "",
     finishTime: formatToHHMM(schedule.hora_ter) ?? "",
-    prog: schedule.prog ?? 0,
+    prog: schedule.prog,
     exec: schedule.exec,
     serviceType: schedule.tipo_servico ?? "",
     observation: schedule.observacao_programacao ?? "",

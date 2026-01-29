@@ -35,7 +35,6 @@ export const INITIAL_EXECUTION_REPORT: ExecutionReportData = {
 };
 
 export const INITIAL_FORM_DATA: FormData = {
-  id: 0,
   dataProg: new Date().toISOString().split("T")[0],
   startTime: "08:00",
   finishTime: "17:00",
@@ -53,14 +52,12 @@ export const INITIAL_FORM_DATA: FormData = {
   idTechnical: 1,
   idExecutionRestriction: 1,
   responsibility: "",
-  // Campos de restrições - Bloco 1
   idProgRestriction1: 1,
   responsiblityProg: "",
   responsibleName: "",
   responsibleArea: "",
   restrictionStatus: "",
   resolutionDate: null,
-  // Campos de restrições - Bloco 2
   idProgRestriction2: 1,
   responsiblityProg2: "",
   responsibleName2: "",
@@ -72,7 +69,7 @@ export const INITIAL_FORM_DATA: FormData = {
 };
 
 interface UseScheduleFormProps {
-  data?: FormData;
+  data?: FormData | null;
   executionData: ExecutionReportData;
   options: ScheduleFormDialogProps["options"];
   prog: number;
@@ -88,7 +85,7 @@ export const useScheduleFormV2 = ({
 }: UseScheduleFormProps) => {
   const [formData, setFormData] = useState<FormData>({
     ...INITIAL_FORM_DATA,
-    idUser: user?.id || 1,
+    idUser: Number(user?.id) || 1,
   });
   const [executionReportData, setExecutionReportData] =
     useState<ExecutionReportData>(INITIAL_EXECUTION_REPORT);

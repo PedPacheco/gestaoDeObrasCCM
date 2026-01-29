@@ -35,7 +35,6 @@ export const INITIAL_EXECUTION_REPORT: ExecutionReportData = {
 };
 
 export const INITIAL_FORM_DATA: FormData = {
-  id: 0,
   dataProg: new Date().toISOString().split("T")[0],
   startTime: "08:00",
   finishTime: "17:00",
@@ -108,11 +107,11 @@ export const useScheduleForm = ({
 
   const handleInputChange = useCallback(
     (
-        field:
-          | keyof FormData
-          | `executionReport.${keyof ExecutionReportData}`
-          | keyof ExecutionReportData
-      ) =>
+      field:
+        | keyof FormData
+        | `executionReport.${keyof ExecutionReportData}`
+        | keyof ExecutionReportData,
+    ) =>
       (value: any) => {
         // Se o valor já vier processado (do DatePicker ou Select)
         // usamos diretamente, caso contrário é um evento
@@ -120,12 +119,12 @@ export const useScheduleForm = ({
           ? value.target.type === "checkbox"
             ? value.target.checked
             : value.target.type === "radio"
-            ? value.target.value === "true"
-              ? true
-              : value.target.value === "false"
-              ? false
+              ? value.target.value === "true"
+                ? true
+                : value.target.value === "false"
+                  ? false
+                  : value.target.value
               : value.target.value
-            : value.target.value
           : value;
 
         if (field in INITIAL_EXECUTION_REPORT) {
@@ -157,14 +156,14 @@ export const useScheduleForm = ({
           };
         });
       },
-    []
+    [],
   );
 
   const handleAccordionChange = useCallback(
     (panel: string) => (_: any, isExpanded: boolean) => {
       setExpanded(isExpanded ? panel : false);
     },
-    []
+    [],
   );
 
   const onEquipmentChange = (
@@ -172,7 +171,7 @@ export const useScheduleForm = ({
     index: number,
     subField: keyof EquipmentData,
     value: string,
-    prefix: string
+    prefix: string,
   ) => {
     if (prefix === "executionReport.") {
       setFormData((prev) => {
@@ -213,7 +212,7 @@ export const useScheduleForm = ({
     field: "appliedEquipment" | "equipmentRemoved",
     prefix: string,
     type: "DEFAULT" | "CS" = "DEFAULT",
-    insertIndex?: number
+    insertIndex?: number,
   ) => {
     const newEquipment =
       type === "CS"
@@ -269,7 +268,7 @@ export const useScheduleForm = ({
   const onRemoveEquipment = (
     field: "appliedEquipment" | "equipmentRemoved",
     index: number,
-    prefix: string
+    prefix: string,
   ) => {
     if (prefix === "executionReport.") {
       setFormData((prev) => {

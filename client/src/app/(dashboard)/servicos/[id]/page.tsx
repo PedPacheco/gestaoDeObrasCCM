@@ -37,7 +37,7 @@ export default async function ServicosPage({
       `${process.env.NEXT_PUBLIC_API_URL}/servicos/${id}`,
       undefined,
       cookieStore.get("token")?.value,
-      { cache: "no-store" }
+      { cache: "no-store" },
     ),
     fetchData(
       `${
@@ -47,31 +47,31 @@ export default async function ServicosPage({
       }`,
       undefined,
       cookieStore.get("token")?.value,
-      { cache: "no-store" }
+      { cache: "no-store" },
     ),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/servicos/filtros/${id}`,
       undefined,
       cookieStore.get("token")?.value,
-      { cache: "no-store" }
+      { cache: "no-store" },
     ),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/servicos/contratos/${id}`,
       undefined,
       cookieStore.get("token")?.value,
-      { cache: "no-store" }
+      { cache: "no-store" },
     ),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/servicos/equipes/${id}`,
       undefined,
       cookieStore.get("token")?.value,
-      { cache: "no-store" }
+      { cache: "no-store" },
     ),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/servicos/historico/${id}`,
       undefined,
       cookieStore.get("token")?.value,
-      { cache: "no-store" }
+      { cache: "no-store" },
     ),
   ]);
 
@@ -87,9 +87,9 @@ export default async function ServicosPage({
         serviceTeams={serviceTeams.data}
         isInsert={formData?.id ? false : true}
         options={options}
-        idWork={id}
-        idStatusWork={idStatusWorkCookie}
-        idSchedule={formData?.id}
+        idWork={Number(id)}
+        idStatusWork={Number(idStatusWorkCookie)}
+        idSchedule={Number(formData?.id)}
       />
     </EmotionCacheProvider>
   );

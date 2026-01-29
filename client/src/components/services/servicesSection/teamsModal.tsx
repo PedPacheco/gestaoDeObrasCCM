@@ -49,8 +49,6 @@ export function TeamModal({
       services: formattedService,
     };
 
-    console.log(data);
-
     const response = await saveSchedule(data);
 
     if (!response.success) {

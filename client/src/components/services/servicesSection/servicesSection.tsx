@@ -42,7 +42,7 @@ interface ServicesSectionProps {
   serviceTeams: any[];
   scheduledServicesHistory: any[];
   serviceFilters: any;
-  idScheduleExisting: string | null;
+  idScheduleExisting: number | null;
   selectedServices: number[];
   setSelectedServices: (services: number[]) => void;
   setOpenTeamsModal: (team: boolean) => void;
