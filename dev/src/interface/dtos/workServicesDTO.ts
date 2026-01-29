@@ -1,4 +1,4 @@
-import { IsNumber } from 'class-validator';
+import { IsNumber, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class ScheduleServicesDTO {
@@ -12,7 +12,8 @@ export class ScheduleServicesDTO {
 
   @IsNumber()
   @Type(() => Number)
-  idSchedule: number;
+  @IsOptional()
+  idSchedule?: number;
 
   @IsNumber()
   @Type(() => Number)

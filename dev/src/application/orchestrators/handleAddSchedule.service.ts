@@ -33,7 +33,7 @@ export class HandleAddScheduleService {
 
       const servicesWithIdSchedule = services.map((item) => ({
         ...item,
-        id,
+        idSchedule: id,
       }));
 
       await this.servicesService.scheduleServices(servicesWithIdSchedule);

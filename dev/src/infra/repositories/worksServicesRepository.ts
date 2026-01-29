@@ -44,6 +44,7 @@ export class WorksServicesRepository implements IWorksServicesRepository {
       },
       where: {
         id_obra: id,
+        id_programacao: null,
         ...(operation ? { operacao: operation } : {}),
         ...(point ? { ponto: point } : {}),
         ...(service
