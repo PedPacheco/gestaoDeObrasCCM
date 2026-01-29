@@ -45,17 +45,17 @@ export const useScheduleSubmit = ({
             const cleanedExecutionReport = {
               ...rest,
               appliedEquipment: rest.appliedEquipment?.map(
-                ({ type, ...e }: { type: string; [key: string]: any }) => e
+                ({ type, ...e }: { type: string; [key: string]: any }) => e,
               ),
               equipmentRemoved: rest.equipmentRemoved?.map(
-                ({ type, ...e }: { type: string; [key: string]: any }) => e
+                ({ type, ...e }: { type: string; [key: string]: any }) => e,
               ),
             };
 
             response = await editExecutionReport(
               cleanedExecutionReport,
               id,
-              files
+              files,
             );
           } else {
             const { executionReport, ...scheduleFields } = data;
@@ -82,7 +82,7 @@ export const useScheduleSubmit = ({
                         }: {
                           type: string;
                           [key: string]: any;
-                        }) => e
+                        }) => e,
                       ),
                       equipmentRemoved: rest.equipmentRemoved?.map(
                         ({
@@ -91,7 +91,7 @@ export const useScheduleSubmit = ({
                         }: {
                           type: string;
                           [key: string]: any;
-                        }) => e
+                        }) => e,
                       ),
                     };
                   })(),
@@ -116,7 +116,7 @@ export const useScheduleSubmit = ({
         }
       });
     },
-    [isInsert, onSuccess, onClose, onModalOpen, idWork, user?.id, onError]
+    [isInsert, onSuccess, onClose, onModalOpen, idWork, user?.id, onError],
   );
 
   return { handleSubmit, isPending };
