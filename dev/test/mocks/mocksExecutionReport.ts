@@ -32,7 +32,6 @@ export const mockExecutionReportService = {
 };
 
 export const mockUpdateExecutionReportDTO: ExecutionReportDataDTO = {
-  idUser: 1,
   supervisor: 'João Silva',
   partialConnectionReleased: true,
   startTime: '08:30',

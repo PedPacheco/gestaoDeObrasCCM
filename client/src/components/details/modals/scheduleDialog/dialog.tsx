@@ -209,13 +209,8 @@ export default function ScheduleFormDialog({
         <ButtonComponent
           styled="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
           onClick={() => {
-            const formDataWithUser = {
-              ...formData,
-              idUser: Number(user?.id),
-            };
-
             const validationResult =
-              schedulesSchema(isInsert).safeParse(formDataWithUser);
+              schedulesSchema(isInsert).safeParse(formData);
 
             if (!validationResult.success) {
               const fieldErrors: Record<string, string> = {};
