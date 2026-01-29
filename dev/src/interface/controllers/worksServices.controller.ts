@@ -113,4 +113,14 @@ export class ServicesController {
       message: 'Serviços programados com sucesso',
     };
   }
+
+  @Patch(':id')
+  async cancelScheduleService(@Param('id', ParseIntPipe) id: number) {
+    await this.deleteSchedulesService.delete(id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Programação dos serviços foi cancelada',
+    };
+  }
 }

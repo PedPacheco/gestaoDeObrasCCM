@@ -59,7 +59,7 @@ export default function ScheduleFormDialog({
   statusWork,
 }: ScheduleFormDialogProps) {
   const [error, setError] = useState<string | null>();
-  const { user } = useUser();
+  const { user, permissions } = useUser();
 
   const {
     expanded,
@@ -83,8 +83,6 @@ export default function ScheduleFormDialog({
     onClose,
     setFormErrors,
   });
-
-  const { permissions } = useUser();
 
   const dialogTitle = isInsert ? "Nova Programação" : "Editar Programação";
   const submitButtonText = isPending ? "Salvando..." : "Salvar Programação";
