@@ -38,11 +38,12 @@ export class SchedulesActionsController {
 
   @Post()
   async addSchedules(@Body() schedulesData: SchedulesDataDTO) {
-    await this.handleAddScheduleService.add(schedulesData);
+    const id = await this.handleAddScheduleService.add(schedulesData);
 
     return {
       statusCode: HttpStatus.CREATED,
       message: 'Programação inserida com sucesso',
+      data: id,
     };
   }
 

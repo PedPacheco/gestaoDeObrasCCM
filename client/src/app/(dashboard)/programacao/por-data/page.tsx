@@ -46,7 +46,7 @@ export default async function ScheduleForDay() {
       `${process.env.NEXT_PUBLIC_API_URL}/programacao/mensal`,
       filtersValues,
       cookieStore.get("token")?.value,
-      { cache: "no-store" }
+      { cache: "no-store" },
     ),
   ]);
 

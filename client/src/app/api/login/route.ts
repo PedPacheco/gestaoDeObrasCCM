@@ -11,7 +11,7 @@ export async function POST(req: Request) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user, password }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
         JSON.stringify({ success: false, message: error.message }),
         {
           status: 401,
-        }
+        },
       );
     }
 
@@ -50,14 +50,14 @@ export async function POST(req: Request) {
     });
 
     return new Response(
-      JSON.stringify({ success: true, message: res.message, data: res.data })
+      JSON.stringify({ success: true, message: res.message, data: res.data }),
     );
   } catch (err) {
     return new Response(
       JSON.stringify({ success: false, message: "Erro no login" }),
       {
         status: 500,
-      }
+      },
     );
   }
 }
