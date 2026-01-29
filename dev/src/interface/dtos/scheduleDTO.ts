@@ -330,9 +330,6 @@ export class SchedulesDataDTO {
   @IsBoolean()
   @IsOptional()
   confirmed?: boolean;
-
-  @IsNumber()
-  idUser: number;
 }
 
 export class UpdateSchedulesDataDTO {

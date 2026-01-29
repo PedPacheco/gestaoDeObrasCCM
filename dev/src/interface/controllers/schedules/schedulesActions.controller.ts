@@ -37,8 +37,12 @@ export class SchedulesActionsController {
   ) {}
 
   @Post()
-  async addSchedules(@Body() schedulesData: SchedulesDataDTO) {
-    const id = await this.handleAddScheduleService.add(schedulesData);
+  async addSchedules(@Body() schedulesData: SchedulesDataDTO, @Req() req: any) {
+    const idUser = req.user.sub;
+
+    const data = { ...schedulesData, idUser };
+
+    const id = await this.handleAddScheduleService.add(data);
 
     return {
       statusCode: HttpStatus.CREATED,
@@ -106,9 +110,16 @@ export class SchedulesActionsController {
       permission = req.insufficientPermission;
     }
 
+    const idUser = req.user.sub;
+
     const data = {
-      updateData: { id, ...schedulesData.updateData },
-      executionReportData: { ...schedulesData.executionReportData },
+      updateData: { id, idUser, ...schedulesData.updateData },
+      ...(schedulesData.executionReportData && {
+        executionReportData: {
+          ...schedulesData.executionReportData,
+          idUser,
+        },
+      }),
     };
 
     await this.handleSchedulesUpdateService.update(data, permission, files);

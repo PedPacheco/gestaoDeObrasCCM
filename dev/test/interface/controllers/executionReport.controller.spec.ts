@@ -12,6 +12,10 @@ describe('ExecutionReportController', () => {
 
   const mockFiles: Express.Multer.File[] = [];
 
+  const req = {
+    user: { sub: 1 },
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ExecutionReportController],
@@ -53,6 +57,7 @@ describe('ExecutionReportController', () => {
       jest.spyOn(service, 'update').mockResolvedValue(null);
 
       const result = await controller.update(
+        req,
         1,
         {
           executionReportData: mockUpdateExecutionReportDTO,

@@ -9,6 +9,7 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  Req,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -37,13 +38,16 @@ export class ExecutionReportController {
   @UseGuards(PermissionGuard)
   @UseInterceptors(FilesInterceptor('files'))
   async update(
+    @Req() req: any,
     @Param('id', ParseIntPipe) idExecutionReport: number,
     @Body() data: UpdateExecutionReportDTO,
     @UploadedFiles() files?: Express.Multer.File[],
   ): Promise<any> {
+    const idUser = req.user.id;
+
     await this.executionReportService.update(
       idExecutionReport,
-      data.executionReportData,
+      { ...data.executionReportData, idUser },
       files,
     );
 

@@ -27,6 +27,9 @@ describe('ScheduleActionsController', () => {
   const mockReq = {
     insufficientPermission: true,
     idParceira: 1,
+    user: {
+      sub: 1,
+    },
   };
 
   const mockFiles: Express.Multer.File[] = [];
@@ -83,17 +86,19 @@ describe('ScheduleActionsController', () => {
 
     const date = new Date('2025-06-10T00:00:00.000Z');
 
-    const result = await scheduleActionsController.addSchedules({
-      idWork: 3146044,
-      dataProg: date,
-      startTime: '08:00',
-      finishTime: '07:00',
-      serviceType: 'Inspeção Elétrica',
-      prog: 100,
-      idProgRestriction1: 1,
-      idProgRestriction2: 1,
-      idUser: 1,
-    });
+    const result = await scheduleActionsController.addSchedules(
+      {
+        idWork: 3146044,
+        dataProg: date,
+        startTime: '08:00',
+        finishTime: '07:00',
+        serviceType: 'Inspeção Elétrica',
+        prog: 100,
+        idProgRestriction1: 1,
+        idProgRestriction2: 1,
+      },
+      mockReq,
+    );
 
     expect(result).toEqual({
       statusCode: HttpStatus.CREATED,
@@ -129,8 +134,13 @@ describe('ScheduleActionsController', () => {
       });
       expect(handleSchedulesUpdateService.update).toHaveBeenCalledWith(
         {
-          updateData: { id: 1, ...mockUpdateSchedulesController.updateData },
+          updateData: {
+            id: 1,
+            idUser: 1,
+            ...mockUpdateSchedulesController.updateData,
+          },
           executionReportData: {
+            idUser: 1,
             ...mockUpdateSchedulesController.executionReportData,
           },
         },
@@ -155,8 +165,13 @@ describe('ScheduleActionsController', () => {
       });
       expect(handleSchedulesUpdateService.update).toHaveBeenCalledWith(
         {
-          updateData: { id: 1, ...mockUpdateSchedulesController.updateData },
+          updateData: {
+            id: 1,
+            idUser: 1,
+            ...mockUpdateSchedulesController.updateData,
+          },
           executionReportData: {
+            idUser: 1,
             ...mockUpdateSchedulesController.executionReportData,
           },
         },

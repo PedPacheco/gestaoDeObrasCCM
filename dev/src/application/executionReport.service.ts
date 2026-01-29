@@ -7,7 +7,7 @@ import {
   FIND_SCHEDULE_BY_ID_REPOSITORY,
   IFindScheduleByIdRepository,
 } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
-import { ExecutionReportDataDTO } from 'src/interface/dtos/executionReportDTO';
+// import { ExecutionReportDataDTO } from 'src/interface/dtos/executionReportDTO';
 import { ExecutionReportServiceInterface } from 'src/interface/types/executionReportInterface';
 
 import {
@@ -105,7 +105,7 @@ export class ExecutionReportService {
 
   async update(
     idExecutionReport: number,
-    data: ExecutionReportDataDTO,
+    data: any,
     files?: Express.Multer.File[],
   ) {
     if (!data) {

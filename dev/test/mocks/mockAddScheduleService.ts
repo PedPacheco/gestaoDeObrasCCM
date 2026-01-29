@@ -188,10 +188,8 @@ export const mockUpdateSchedulesController: UpdateSchedulesDataDTO = {
     resolutionDate: null,
     resolutionDate2: null,
     observation: '',
-    idUser: 1,
   },
   executionReportData: {
-    idUser: 1,
     supervisor: 'João Silva',
     partialConnectionReleased: true,
     startTime: '08:30',

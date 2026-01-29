@@ -45,17 +45,17 @@ export const useScheduleSubmit = ({
             const cleanedExecutionReport = {
               ...rest,
               appliedEquipment: rest.appliedEquipment?.map(
-                ({ type, ...e }: { type: string; [key: string]: any }) => e
+                ({ type, ...e }: { type: string; [key: string]: any }) => e,
               ),
               equipmentRemoved: rest.equipmentRemoved?.map(
-                ({ type, ...e }: { type: string; [key: string]: any }) => e
+                ({ type, ...e }: { type: string; [key: string]: any }) => e,
               ),
             };
 
             response = await editExecutionReport(
               cleanedExecutionReport,
               id,
-              files
+              files,
             );
           } else {
             const { executionReport, ...scheduleFields } = data;
@@ -70,9 +70,8 @@ export const useScheduleSubmit = ({
               },
               ...(executionReport && {
                 executionReportData: {
-                  idUser: user?.id,
                   ...(() => {
-                    const { idUser, id, ...rest } = executionReport;
+                    const { id, ...rest } = executionReport;
                     return {
                       ...rest,
                       appliedEquipment: rest.appliedEquipment?.map(
@@ -82,7 +81,7 @@ export const useScheduleSubmit = ({
                         }: {
                           type: string;
                           [key: string]: any;
-                        }) => e
+                        }) => e,
                       ),
                       equipmentRemoved: rest.equipmentRemoved?.map(
                         ({
@@ -91,13 +90,15 @@ export const useScheduleSubmit = ({
                         }: {
                           type: string;
                           [key: string]: any;
-                        }) => e
+                        }) => e,
                       ),
                     };
                   })(),
                 },
               }),
             };
+
+            console.log(payload);
 
             const apiCall = isInsert ? saveSchedule : editSchedule;
             response = await apiCall(payload, scheduleFields.id, files);
@@ -116,7 +117,7 @@ export const useScheduleSubmit = ({
         }
       });
     },
-    [isInsert, onSuccess, onClose, onModalOpen, idWork, user?.id, onError]
+    [isInsert, onSuccess, onClose, onModalOpen, idWork, user?.id, onError],
   );
 
   return { handleSubmit, isPending };

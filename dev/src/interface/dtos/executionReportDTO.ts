@@ -2,7 +2,7 @@ import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
-  IsNumber,
+  // IsNumber,
   IsOptional,
   IsString,
   Matches,
@@ -24,9 +24,6 @@ export class EquipmentItem {
 }
 
 export class ExecutionReportDataDTO {
-  @IsNumber()
-  idUser: number;
-
   @IsString()
   supervisor: string;
 
