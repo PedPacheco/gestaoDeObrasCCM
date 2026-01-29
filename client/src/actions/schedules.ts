@@ -76,7 +76,6 @@ export async function editSchedule(data: any, id: number, files?: File[]) {
     );
 
     const res = await result.json();
-    console.log(res);
 
     if (res.statusCode !== 204) {
       return {
