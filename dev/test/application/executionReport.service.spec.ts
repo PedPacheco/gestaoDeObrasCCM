@@ -331,7 +331,11 @@ describe('ExecutionReportService', () => {
         hora_ter: new Date('17-05-2025'),
       });
 
-      await service.update(1, mockUpdateExecutionReportDTO, mockExistsFiles);
+      await service.update(
+        1,
+        { ...mockUpdateExecutionReportDTO, idUser: 1 },
+        mockExistsFiles,
+      );
 
       expect(mockRepository.update).toHaveBeenCalledWith(
         1,
@@ -349,7 +353,11 @@ describe('ExecutionReportService', () => {
         hora_ter: new Date('17-05-2025'),
       });
 
-      await service.update(1, mockUpdateExecutionReportDTO, mockExistsFiles);
+      await service.update(
+        1,
+        { ...mockUpdateExecutionReportDTO, idUser: 1 },
+        mockExistsFiles,
+      );
 
       expect(mockRepository.update).toHaveBeenCalledWith(
         1,

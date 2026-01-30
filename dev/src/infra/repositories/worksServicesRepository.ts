@@ -202,4 +202,24 @@ export class WorksServicesRepository implements IWorksServicesRepository {
       }
     });
   }
+
+  async cancel(id: number): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.programacoes_servicos.deleteMany({
+        where: { id_programacao: id },
+      });
+
+      await tx.servicos.updateMany({
+        data: {
+          id_programacao: null,
+        },
+        where: { id_programacao: id },
+      });
+
+      await tx.programacoes.update({
+        data: { prog: 0 },
+        where: { id },
+      });
+    });
+  }
 }

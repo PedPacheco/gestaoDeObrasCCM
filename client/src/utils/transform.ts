@@ -21,6 +21,7 @@ export function mapScheduleToForm(schedule: any, options: Record<string, any>) {
   );
 
   return {
+    idWork: schedule.idWork,
     dataProg: formatDateToInput(schedule.data_prog) ?? "",
     startTime: formatToHHMM(schedule.hora_ini) ?? "",
     finishTime: formatToHHMM(schedule.hora_ter) ?? "",

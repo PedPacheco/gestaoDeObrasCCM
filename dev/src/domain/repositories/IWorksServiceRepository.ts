@@ -31,6 +31,7 @@ export interface IWorksServicesRepository {
   getServicesContracts(idParceira: number): Promise<any[]>;
   getTeamsServices(idParceira: number): Promise<any[]>;
   scheduleServices(data: ScheduleServicesDTO[]): Promise<void>;
+  cancel(id: number): Promise<void>;
 }
 
 export const WORKS_SERVICE_REPOSITORY = Symbol('WorksServiceRepository');

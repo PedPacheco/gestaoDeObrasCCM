@@ -15,7 +15,10 @@ export class AddSchedulesService {
     private readonly addSchedulesRepository: IAddSchedulesRepository,
   ) {}
 
-  async add(data: SchedulesDataDTO, tx: Prisma.TransactionClient) {
+  async add(
+    data: SchedulesDataDTO,
+    tx: Prisma.TransactionClient,
+  ): Promise<number> {
     if (!data) {
       throw new BadRequestException(
         'Nenhuma programação fornecida para inserção.',

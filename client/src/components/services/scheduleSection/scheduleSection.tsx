@@ -10,9 +10,11 @@ import { ButtonComponent } from "@/components/common/Button";
 import { schedulesSchemaV2 } from "@/validations/validationSchedulesV2";
 import { useRouter } from "next/navigation";
 import { useScheduleFormV2 } from "@/hooks/useScheduleFormV2";
+import { editSchedule } from "@/actions/schedules";
 
 interface ScheduleSectionProps {
   idWork: number;
+  idSchedule: number;
   isInsert: boolean;
   scheduleForm: any;
   onError: (error: string) => void;
@@ -24,6 +26,7 @@ interface ScheduleSectionProps {
   setOpenTeamsModal: (team: boolean) => void;
   prog: number;
   isPending: boolean;
+  handleSubmit: (data: any) => any;
 }
 
 export type scheduleFormHookReturnV2 = ReturnType<typeof useScheduleFormV2>;
@@ -31,6 +34,7 @@ export type scheduleFormHookReturnV2 = ReturnType<typeof useScheduleFormV2>;
 export function ScheduleSection({
   scheduleForm,
   idWork,
+  idSchedule,
   isInsert,
   onError,
   options,
@@ -38,6 +42,7 @@ export function ScheduleSection({
   setOpenTeamsModal,
   prog,
   isPending,
+  handleSubmit,
 }: ScheduleSectionProps) {
   const router = useRouter();
   const { permissions } = useUser();
@@ -114,7 +119,7 @@ export function ScheduleSection({
               scheduleForm.formData,
             );
 
-            if (!validationResult.success) {
+            if (!validationResult.success && isInsert) {
               const fieldErrors: Record<string, string> = {};
               validationResult.error.issues.forEach((err) => {
                 const path = err.path.join(".");
@@ -126,10 +131,17 @@ export function ScheduleSection({
               return;
             }
             scheduleForm.setFormErrors({});
-            setOpenTeamsModal(true);
+
+            if (isInsert) {
+              setOpenTeamsModal(true);
+            } else {
+              const data = { id: idSchedule, ...validationResult.data };
+
+              handleSubmit(data);
+            }
           }}
-          disabled={isPending || prog === 0}
-          text={submitButtonText}
+          disabled={isPending || isInsert ? prog === 0 : false}
+          text={isInsert ? submitButtonText : "Editar programação"}
         />
       </Box>
     </Box>

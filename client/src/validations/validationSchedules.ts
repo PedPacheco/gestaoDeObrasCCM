@@ -95,6 +95,7 @@ function checkRemovedEquipment(ctx: any) {
 export const schedulesSchema = (isInsert?: boolean) =>
   z
     .object({
+      idWork: z.number(),
       dataProg: z.string().min(1, "Data obrigatória"),
       startTime: z.string().min(1, "Horário de início obrigatório"),
       finishTime: z.string().min(1, "Horário de fim obrigatório"),
@@ -150,7 +151,6 @@ export const schedulesSchema = (isInsert?: boolean) =>
       resolutionDate2: z.string().nullable().optional(),
       validated: z.boolean().optional(),
       confirmed: z.boolean().optional(),
-      idUser: z.number().nullable().optional(),
     })
     .check((ctx) => {
       const { exec, prog, idExecutionRestriction, responsibility } = ctx.value;

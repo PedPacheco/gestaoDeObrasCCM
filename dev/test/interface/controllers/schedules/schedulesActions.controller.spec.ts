@@ -8,10 +8,7 @@ import { UpdateSchedulesService } from 'src/application/schedule/updateSchedules
 import { ValidateConfirmAndRejectSchedulesService } from 'src/application/schedule/validateAndConfirmSchedules.service';
 import { UsersService } from 'src/application/users.service';
 import { SchedulesActionsController } from 'src/interface/controllers/schedules/schedulesActions.controller';
-import {
-  SchedulesDataDTO,
-  UpdateSchedulesDataDTO,
-} from 'src/interface/dtos/scheduleDTO';
+import { SchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
 import { mockUpdateSchedulesController } from '../../../mocks/mockAddScheduleService';
 
 import { HttpStatus } from '@nestjs/common';
@@ -27,9 +24,10 @@ describe('ScheduleActionsController', () => {
   const mockReq = {
     insufficientPermission: true,
     idParceira: 1,
+    user: {
+      sub: 1,
+    },
   };
-
-  const mockFiles: Express.Multer.File[] = [];
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -79,36 +77,45 @@ describe('ScheduleActionsController', () => {
   });
 
   it('Should call addSchedules and return message', async () => {
-    jest.spyOn(handleAddScheduleService, 'add').mockResolvedValue();
+    jest.spyOn(handleAddScheduleService, 'add').mockResolvedValue(1);
 
     const date = new Date('2025-06-10T00:00:00.000Z');
 
-    const result = await scheduleActionsController.addSchedules({
-      idWork: 3146044,
-      dataProg: date,
-      startTime: '08:00',
-      finishTime: '07:00',
-      serviceType: 'Inspeção Elétrica',
-      prog: 100,
-      idProgRestriction1: 1,
-      idProgRestriction2: 1,
-      idUser: 1,
-    });
+    const result = await scheduleActionsController.addSchedules(
+      {
+        schedule: {
+          idWork: 3146044,
+          dataProg: date,
+          startTime: '08:00',
+          finishTime: '07:00',
+          serviceType: 'Inspeção Elétrica',
+          prog: 100,
+          idProgRestriction1: 1,
+          idProgRestriction2: 1,
+        },
+        services: [{ id: 1, idTeam: 1, prog: 1 }],
+      },
+      mockReq,
+    );
 
     expect(result).toEqual({
+      data: 1,
       statusCode: HttpStatus.CREATED,
       message: 'Programação inserida com sucesso',
     });
     expect(handleAddScheduleService.add).toHaveBeenCalledWith({
-      idWork: 3146044,
-      dataProg: date,
-      startTime: '08:00',
-      finishTime: '07:00',
-      serviceType: 'Inspeção Elétrica',
-      prog: 100,
-      idProgRestriction1: 1,
-      idProgRestriction2: 1,
-      idUser: 1,
+      schedule: {
+        idWork: 3146044,
+        dataProg: date,
+        startTime: '08:00',
+        finishTime: '07:00',
+        serviceType: 'Inspeção Elétrica',
+        prog: 100,
+        idProgRestriction1: 1,
+        idProgRestriction2: 1,
+        idUser: 1,
+      },
+      services: [{ id: 1, idTeam: 1, prog: 1 }],
     });
   });
 
@@ -118,7 +125,6 @@ describe('ScheduleActionsController', () => {
 
       const result = await scheduleActionsController.updateSchedules(
         1,
-        mockFiles,
         mockUpdateSchedulesController,
         mockReq,
       );
@@ -129,13 +135,11 @@ describe('ScheduleActionsController', () => {
       });
       expect(handleSchedulesUpdateService.update).toHaveBeenCalledWith(
         {
-          updateData: { id: 1, ...mockUpdateSchedulesController.updateData },
-          executionReportData: {
-            ...mockUpdateSchedulesController.executionReportData,
-          },
+          id: 1,
+          idUser: 1,
+          ...mockUpdateSchedulesController,
         },
         true,
-        [],
       );
     });
 
@@ -144,7 +148,6 @@ describe('ScheduleActionsController', () => {
 
       const result = await scheduleActionsController.updateSchedules(
         1,
-        mockFiles,
         mockUpdateSchedulesController,
         { ...mockReq, insufficientPermission: undefined },
       );
@@ -155,13 +158,11 @@ describe('ScheduleActionsController', () => {
       });
       expect(handleSchedulesUpdateService.update).toHaveBeenCalledWith(
         {
-          updateData: { id: 1, ...mockUpdateSchedulesController.updateData },
-          executionReportData: {
-            ...mockUpdateSchedulesController.executionReportData,
-          },
+          id: 1,
+          idUser: 1,
+          ...mockUpdateSchedulesController,
         },
         undefined,
-        [],
       );
     });
   });
@@ -267,26 +268,6 @@ describe('ScheduleActionsController', () => {
       };
 
       const dto = plainToInstance(SchedulesDataDTO, payload);
-      const errors = await validate(dto);
-
-      expect(errors.length).toBe(0);
-    });
-
-    it('should validate UpdateSchedulesDataDTO with nested SchedulesDataDTO', async () => {
-      const payload = {
-        updateData: {
-          idWork: 1,
-          dataProg: new Date(),
-          startTime: '08:00',
-          finishTime: '10:00',
-          prog: 50,
-          idProgRestriction1: 1,
-          idProgRestriction2: 1,
-          idUser: 1,
-        },
-      };
-
-      const dto = plainToInstance(UpdateSchedulesDataDTO, payload);
       const errors = await validate(dto);
 
       expect(errors.length).toBe(0);

@@ -117,4 +117,8 @@ export class WorksServicesService {
   async scheduleServices(data: ScheduleServicesDTO[]) {
     await this.worksServicesRepository.scheduleServices(data);
   }
+
+  async cancel(id: number) {
+    await this.worksServicesRepository.cancel(id);
+  }
 }

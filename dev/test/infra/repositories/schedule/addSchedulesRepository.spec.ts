@@ -31,6 +31,7 @@ describe('AddSchedulesRepository', () => {
 
       expect(mockPrisma.programacoes.create).toHaveBeenCalledWith({
         data: mockAddSchedulesServiceFormattedData,
+        select: { id: true },
       });
     });
 

@@ -70,9 +70,8 @@ export const useScheduleSubmit = ({
               },
               ...(executionReport && {
                 executionReportData: {
-                  idUser: user?.id,
                   ...(() => {
-                    const { idUser, id, ...rest } = executionReport;
+                    const { id, ...rest } = executionReport;
                     return {
                       ...rest,
                       appliedEquipment: rest.appliedEquipment?.map(
@@ -116,7 +115,7 @@ export const useScheduleSubmit = ({
         }
       });
     },
-    [isInsert, onSuccess, onClose, onModalOpen, idWork, user?.id, onError],
+    [isInsert, onSuccess, onClose, onModalOpen, idWork, onError],
   );
 
   return { handleSubmit, isPending };

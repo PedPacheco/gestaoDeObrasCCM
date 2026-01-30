@@ -1,9 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HandleAddScheduleService } from 'src/application/orchestrators/handleAddSchedule.service';
 import { AddSchedulesService } from 'src/application/schedule/addSchedules.service';
+import { WorksServicesService } from 'src/application/worksServices.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { SchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
+import { CreateScheduleWithServicesDTO } from 'src/interface/dtos/scheduleDTO';
 
 describe('HandleAddScheduleService', () => {
   let service: HandleAddScheduleService;
@@ -21,6 +22,10 @@ describe('HandleAddScheduleService', () => {
     updateScheduleStatus: jest.fn(),
   };
 
+  const mockWorksServicesService = {
+    scheduleServices: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -34,6 +39,7 @@ describe('HandleAddScheduleService', () => {
           provide: STATUS_FLOW_REPOSITORY,
           useValue: mockStatusFlowRepository,
         },
+        { provide: WorksServicesService, useValue: mockWorksServicesService },
       ],
     }).compile();
 
@@ -44,8 +50,11 @@ describe('HandleAddScheduleService', () => {
 
   describe('add', () => {
     it('should add schedule and update work status within a transaction', async () => {
-      const data: SchedulesDataDTO = {
-        idWork: 123,
+      const data: CreateScheduleWithServicesDTO = {
+        schedule: {
+          idWork: 123,
+        },
+        services: [{ id: 1, idTeam: 1, prog: 1 }],
       } as any;
 
       mockPrisma.$transaction.mockImplementation(async (cb) => cb({}));
@@ -53,12 +62,14 @@ describe('HandleAddScheduleService', () => {
       await service.add(data);
 
       expect(mockAddSchedulesService.add).toHaveBeenCalledWith(
-        data,
+        {
+          idWork: 123,
+        },
         expect.any(Object),
       );
       expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
         43,
-        data.idWork,
+        data.schedule.idWork,
         expect.any(Object),
       );
     });

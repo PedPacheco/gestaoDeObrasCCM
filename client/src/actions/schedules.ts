@@ -35,41 +35,20 @@ export async function saveSchedule(data: any) {
   }
 }
 
-export async function editSchedule(data: any, id: number, files?: File[]) {
+export async function editSchedule(data: any, id: number) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
   try {
-    let body: BodyInit;
-    let headers: HeadersInit = {
-      Authorization: `Bearer ${token}`,
-    };
-
-    if (files && files.length > 0) {
-      const formData = new FormData();
-
-      formData.append("updateData", JSON.stringify(data.updateData));
-      formData.append(
-        "executionReportData",
-        JSON.stringify(data.executionReportData),
-      );
-
-      files?.forEach((file) => {
-        formData.append("files", file);
-      });
-
-      body = formData;
-    } else {
-      headers["Content-Type"] = "application/json";
-      body = JSON.stringify(data);
-    }
-
     const result = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/programacao/${id}`,
       {
         method: "PATCH",
-        headers,
-        body,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
       },
     );
 

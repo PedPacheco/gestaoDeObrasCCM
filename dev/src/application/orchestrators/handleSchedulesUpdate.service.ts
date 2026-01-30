@@ -7,7 +7,6 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 
-import { ExecutionReportService } from '../executionReport.service';
 import { GetWorkDetailsService } from '../works/getWorkDetails.service';
 
 @Injectable()
@@ -15,14 +14,11 @@ export class HandleSchedulesUpdateService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly updateSchedulesService: UpdateSchedulesService,
-    private readonly executionReportService: ExecutionReportService,
     private readonly getDetailsWorkService: GetWorkDetailsService,
   ) {}
 
-  async update(data: any, permission: boolean, files?: Express.Multer.File[]) {
-    const { updateData, executionReportData } = data;
-
-    const work = await this.getDetailsWorkService.get(updateData.idWork);
+  async update(data: any, permission: boolean) {
+    const work = await this.getDetailsWorkService.get(data.idWork);
 
     if ([2, 3, 4, 37, 42].includes(work.id_status) && permission) {
       throw new BadRequestException(
@@ -32,20 +28,7 @@ export class HandleSchedulesUpdateService {
 
     return await this.prisma.$transaction(async (tx) => {
       try {
-        const result = await this.updateSchedulesService.update(updateData, tx);
-
-        if (Object.keys(executionReportData).length > 0) {
-          await this.executionReportService.create(
-            {
-              idSchedule: result.scheduleId,
-              idWork: result.idWork,
-              ...executionReportData,
-            },
-            result.scheduledFinishTime,
-            files,
-            tx,
-          );
-        }
+        await this.updateSchedulesService.update(data, tx);
       } catch (error) {
         throw new InternalServerErrorException(error);
       }

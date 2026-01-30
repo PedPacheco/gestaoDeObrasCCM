@@ -13,29 +13,24 @@ export class VisualizationGuard implements CanActivate {
   constructor(private userService: UsersService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    try {
-      const request = context.switchToHttp().getRequest();
-      const user = request.user;
+    const request = context.switchToHttp().getRequest();
+    const user = request.user;
 
-      if (!user) {
-        throw new UnauthorizedException('Usuário não autenticado');
-      }
-
-      const userRecord = await this.userService.findUser(user.username);
-
-      if (!userRecord) {
-        throw new UnauthorizedException('Usuário não encontrado');
-      }
-
-      if (user.permissao_visualizacao === 'parcial') {
-        request.idParceira = convertParameterValue(`${userRecord.id_turma}`);
-        request.idRegional = convertParameterValue(`${userRecord.id_regional}`);
-        request.insufficientPermission = true;
-      }
-
-      return true;
-    } catch (error: any) {
-      console.log(error);
+    if (!user) {
+      throw new UnauthorizedException('Usuário não autenticado');
     }
+
+    const userRecord = await this.userService.findUser(user.username);
+
+    if (!userRecord) {
+      throw new UnauthorizedException('Usuário não encontrado');
+    }
+
+    if (user.permissao_visualizacao === 'parcial') {
+      request.idParceira = convertParameterValue(`${userRecord.id_turma}`);
+      request.insufficientPermission = true;
+    }
+
+    return true;
   }
 }

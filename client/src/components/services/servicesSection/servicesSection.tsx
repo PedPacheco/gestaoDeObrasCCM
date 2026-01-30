@@ -23,6 +23,7 @@ import {
 import { ScheduledServices } from "./scheduledServices";
 import { ServicesAvaliable } from "./servicesAvailable";
 import { ServicesContractSelect } from "./servicesContractSelect";
+import { CancelScheduleServices } from "@/actions/services";
 
 dayjs.extend(utc);
 
@@ -47,6 +48,7 @@ interface ServicesSectionProps {
   setSelectedServices: (services: number[]) => void;
   setOpenTeamsModal: (team: boolean) => void;
   isInsert: boolean;
+  idSchedule: number | null;
 }
 
 const operations = [
@@ -68,9 +70,21 @@ export function ServicesSection({
   setSelectedServices,
   setOpenTeamsModal,
   isInsert,
+  idSchedule,
 }: ServicesSectionProps) {
   const formatDate = (dateString: string) => {
     return dayjs(dateString).utc().format("DD/MM/YYYY");
+  };
+
+  const cancelScheduleServices = async (id: number) => {
+    const response = await CancelScheduleServices(id);
+
+    if (!response.success) {
+      console.log(response.error);
+      return;
+    }
+
+    console.log(response.message);
   };
 
   return (
@@ -180,6 +194,11 @@ export function ServicesSection({
               <Button
                 variant="outlined"
                 className="border-gray-300 text-gray-600"
+                onClick={() => {
+                  if (idSchedule) {
+                    cancelScheduleServices(idSchedule);
+                  }
+                }}
               >
                 CANCELAR
               </Button>

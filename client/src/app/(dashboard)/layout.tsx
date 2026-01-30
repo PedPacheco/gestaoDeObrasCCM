@@ -1,5 +1,6 @@
 import { BreadcrumpsComponent } from "@/components/common/Breadcrumbs";
 import { Header } from "@/components/layout/Header";
+import { AuthGuard } from "@/guard/authGuard";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 
 export default function DashboardLayout({
@@ -8,29 +9,31 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <EmotionCacheProvider>
-      {/* CONTAINER RAIZ */}
-      <div className="flex h-screen w-full overflow-hidden">
-        <div className="flex flex-1 flex-col overflow-hidden">
-          {/* HEADER */}
-          <Header />
+    <AuthGuard>
+      <EmotionCacheProvider>
+        {/* CONTAINER RAIZ */}
+        <div className="flex h-screen w-full overflow-hidden">
+          <div className="flex flex-1 flex-col overflow-hidden">
+            {/* HEADER */}
+            <Header />
 
-          {/* MAIN */}
-          <main className="flex-1 overflow-hidden">
-            <div className="flex h-full flex-col items-center">
-              {/* BREADCRUMBS */}
-              <div className="py-2 w-4/5 shrink-0">
-                <BreadcrumpsComponent />
+            {/* MAIN */}
+            <main className="flex-1 overflow-hidden">
+              <div className="flex h-full flex-col items-center">
+                {/* BREADCRUMBS */}
+                <div className="py-2 w-4/5 shrink-0">
+                  <BreadcrumpsComponent />
+                </div>
+
+                <span className="border-b border-solid border-zinc-300 w-full shrink-0" />
+
+                {/* CONTEÚDO DINÂMICO */}
+                {children}
               </div>
-
-              <span className="border-b border-solid border-zinc-300 w-full shrink-0" />
-
-              {/* CONTEÚDO DINÂMICO */}
-              {children}
-            </div>
-          </main>
+            </main>
+          </div>
         </div>
-      </div>
-    </EmotionCacheProvider>
+      </EmotionCacheProvider>
+    </AuthGuard>
   );
 }

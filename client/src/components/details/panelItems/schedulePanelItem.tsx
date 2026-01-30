@@ -134,7 +134,7 @@ export default function SchedulePanelItem({
 
         if (exists) {
           return prev.map((item) =>
-            item.id === id ? { ...item, validate: value } : item
+            item.id === id ? { ...item, validate: value } : item,
           );
         }
 
@@ -148,7 +148,7 @@ export default function SchedulePanelItem({
           return prev.map((item) =>
             item.id === id && (item.exec === null || item.exec === undefined)
               ? { ...item, confirm: value }
-              : item
+              : item,
           );
         }
 
@@ -271,18 +271,18 @@ export default function SchedulePanelItem({
                           col.key === "validada"
                             ? item.validada
                             : col.key === "confirmada"
-                            ? item.confirmada
-                            : item.reprovada
+                              ? item.confirmada
+                              : item.reprovada
                         }
                         onChange={(e) =>
                           handleCheckboxChange(
                             col.key === "validada"
                               ? "validada"
                               : col.key === "confirmada"
-                              ? "confirmada"
-                              : "reprovada",
+                                ? "confirmada"
+                                : "reprovada",
                             e.target.checked,
-                            item.id
+                            item.id,
                           )
                         }
                         disabled={

@@ -35,6 +35,7 @@ export const INITIAL_EXECUTION_REPORT: ExecutionReportData = {
 };
 
 export const INITIAL_FORM_DATA: FormData = {
+  idWork: 1,
   dataProg: new Date().toISOString().split("T")[0],
   startTime: "08:00",
   finishTime: "17:00",
@@ -73,7 +74,6 @@ interface UseScheduleFormProps {
   executionData: ExecutionReportData;
   options: ScheduleFormDialogProps["options"];
   prog: number;
-  user: any;
 }
 
 export const useScheduleFormV2 = ({
@@ -81,12 +81,8 @@ export const useScheduleFormV2 = ({
   executionData,
   options,
   prog,
-  user,
 }: UseScheduleFormProps) => {
-  const [formData, setFormData] = useState<FormData>({
-    ...INITIAL_FORM_DATA,
-    idUser: Number(user?.id) || 1,
-  });
+  const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
   const [executionReportData, setExecutionReportData] =
     useState<ExecutionReportData>(INITIAL_EXECUTION_REPORT);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});

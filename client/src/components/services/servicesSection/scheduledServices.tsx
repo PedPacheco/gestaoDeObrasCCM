@@ -36,7 +36,7 @@ export function ScheduledServices({
   scheduledServicesData,
 }: ScheduledServicesProps) {
   const [scheduledServices, setScheduledServices] = useState<any[]>(
-    scheduledServicesData
+    scheduledServicesData,
   );
 
   return (
@@ -84,6 +84,12 @@ export function ScheduledServices({
       </TableContainer>
 
       <Box className="flex justify-end mt-4">
+        <Button
+          variant="contained"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mr-2"
+        >
+          REPROGRAMAR SERVIÇOS
+        </Button>
         <Button
           variant="contained"
           startIcon={<PlusIcon className="w-5 h-5 text-white" />}

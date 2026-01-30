@@ -6,7 +6,7 @@ export class Schedule {
     public readonly dataProg: Date,
     public readonly startTime: Date,
     public readonly finishTime: Date,
-    public readonly prog: number,
+    public readonly prog?: number,
     public readonly exec?: number,
     public readonly id?: number,
     public readonly observation?: string,
@@ -45,7 +45,7 @@ export class Schedule {
       throw new BadRequestException('ID da obra é obrigatório');
     }
 
-    if (this.prog < 0 || this.prog > 100) {
+    if ((this.prog < 0 || this.prog > 100) && this.prog) {
       throw new BadRequestException('Programado deve estar entre 0 e 100');
     }
 
@@ -61,7 +61,6 @@ export class Schedule {
     dataProg: Date;
     startTime: Date;
     finishTime: Date;
-    prog: number;
     [key: string]: any;
   }): Schedule {
     return new Schedule(

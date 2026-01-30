@@ -24,8 +24,6 @@ describe('HandleUpdateScheduleService', () => {
     create: jest.fn(),
   };
 
-  const mockFiles: Express.Multer.File[] = [];
-
   const mockGetDetailsService = {
     get: jest.fn(),
   };
@@ -68,16 +66,13 @@ describe('HandleUpdateScheduleService', () => {
   };
 
   const mockDTOWithoutExecutionReport = {
-    updateData: {
-      id: 1,
-      idWork: 123,
-      idUser: 99,
-      dataProg: new Date('2025-06-10'),
-      startTime: '08:00',
-      finishTime: '17:00',
-      prog: 80,
-    },
-    executionReportData: {},
+    id: 1,
+    idWork: 123,
+    idUser: 99,
+    dataProg: new Date('2025-06-10'),
+    startTime: '08:00',
+    finishTime: '17:00',
+    prog: 80,
   };
 
   it('should call update and not call executionReportService if executionReportRequired is false', async () => {
@@ -95,37 +90,11 @@ describe('HandleUpdateScheduleService', () => {
     const result = await service.update(mockDTOWithoutExecutionReport, true);
 
     expect(mockUpdateSchedulesService.update).toHaveBeenCalledWith(
-      mockDTOWithoutExecutionReport.updateData,
+      mockDTOWithoutExecutionReport,
       expect.any(Object),
     );
     expect(mockExecutionReportService.create).not.toHaveBeenCalled();
     expect(result).toBeUndefined();
-  });
-
-  it('should call executionReportService.create if executionReportRequired is true', async () => {
-    const mockResult = {
-      success: true,
-      scheduleId: 1,
-      scheduledFinishTime: '17-05-2025',
-      idWork: 123,
-    };
-
-    mockPrisma.$transaction.mockImplementation(async (cb) => cb({}));
-    mockUpdateSchedulesService.update.mockResolvedValue(mockResult);
-    mockGetDetailsService.get.mockResolvedValue({ id_status: 35 });
-
-    await service.update(mockDTO, true, mockFiles);
-
-    expect(mockExecutionReportService.create).toHaveBeenCalledWith(
-      {
-        idSchedule: 1,
-        idWork: 123,
-        supervisor: 'Erick',
-      },
-      '17-05-2025',
-      mockFiles,
-      expect.any(Object),
-    );
   });
 
   it('should throw InternalServerErrorException if something fails inside transaction', async () => {

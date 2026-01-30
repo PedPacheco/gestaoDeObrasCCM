@@ -97,5 +97,21 @@ describe('SuspensionWorkService', () => {
         'O motivo da suspensão da obra ou o próprio número da obra não foi enviado',
       );
     });
+
+    it('should throw error if reason of suspension not sent', async () => {
+      jest
+        .spyOn(findExistingWorksService, 'findExistingWorks')
+        .mockResolvedValue([{ id: 1, ovnota: '2134' }]);
+
+      const data = [{ ovnota: '21355', motivo: 'ano do plano' }];
+
+      await expect(
+        suspensionWorkService.createMultipleSuspensions(data),
+      ).rejects.toThrow(BadRequestException);
+
+      await expect(
+        suspensionWorkService.createMultipleSuspensions(data),
+      ).rejects.toThrow('Obra 21355 não encontrada');
+    });
   });
 });

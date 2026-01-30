@@ -49,8 +49,6 @@ export function ManageSchedule({
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
   const [openTeamsModal, setOpenTeamsModal] = useState<boolean>(false);
 
-  const { user } = useUser();
-
   const dialogTitle = isInsert ? "Nova Programação" : "Editar Programação";
 
   const toggleModal = useCallback(() => {
@@ -79,14 +77,11 @@ export function ManageSchedule({
     executionData: editingExecutionReport,
     options,
     prog,
-    user,
   });
 
-  const { isPending } = useScheduleSubmitV2({
+  const { handleSubmit, isPending } = useScheduleSubmitV2({
     formData: scheduleForm.formData,
-    executionReportData: scheduleForm.executionReportData,
     idWork: Number(idWork),
-    isInsert,
     onError: setError,
     onSuccess: (message) => {
       setSuccess(message);
@@ -106,6 +101,7 @@ export function ManageSchedule({
       <div className="w-full mb-8">
         <ScheduleSection
           idWork={Number(idWork)}
+          idSchedule={Number(idSchedule)}
           isInsert={isInsert}
           options={options}
           scheduleForm={scheduleForm}
@@ -114,6 +110,7 @@ export function ManageSchedule({
           setOpenTeamsModal={setOpenTeamsModal}
           prog={prog}
           isPending={isPending}
+          handleSubmit={handleSubmit}
         />
       </div>
 
@@ -131,6 +128,7 @@ export function ManageSchedule({
           setSelectedServices={setSelectedServices}
           setOpenTeamsModal={setOpenTeamsModal}
           isInsert={isInsert}
+          idSchedule={idSchedule}
         />
       </div>
 
@@ -143,9 +141,10 @@ export function ManageSchedule({
           selectedServices={selectedServices}
           scheduleData={{
             ...scheduleForm.formData,
-            idUser: user?.id,
             idWork: idWork,
           }}
+          prog={prog}
+          isInsert={isInsert}
         />
       )}
 

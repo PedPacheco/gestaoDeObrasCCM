@@ -7,11 +7,9 @@ import {
   IsOptional,
   IsString,
   Matches,
-  Min,
   ValidateNested,
 } from 'class-validator';
 import { convertParameterValue } from 'src/utils/convertParameterValue';
-import { ExecutionReportDataDTO } from './executionReportDTO';
 import { ScheduleServicesDTO } from './workServicesDTO';
 
 export class GetTotalValuesScheduleDTO {
@@ -202,8 +200,8 @@ export class SchedulesDataDTO {
 
   @IsNumber()
   @Type()
-  @Min(1)
-  prog: number;
+  @IsOptional()
+  prog?: number;
 
   @IsOptional()
   @IsNumber({}, { message: 'Progresso executado deve ser um número válido' })
@@ -331,26 +329,6 @@ export class SchedulesDataDTO {
   @IsBoolean()
   @IsOptional()
   confirmed?: boolean;
-
-  @IsNumber()
-  idUser: number;
-}
-
-export class UpdateSchedulesDataDTO {
-  @Transform(({ value }) =>
-    typeof value === 'string' ? JSON.parse(value) : value,
-  )
-  @ValidateNested()
-  @Type(() => SchedulesDataDTO)
-  updateData: SchedulesDataDTO;
-
-  @Transform(({ value }) =>
-    typeof value === 'string' ? JSON.parse(value) : value,
-  )
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => ExecutionReportDataDTO)
-  executionReportData?: ExecutionReportDataDTO;
 }
 
 export class CreateScheduleWithServicesDTO {

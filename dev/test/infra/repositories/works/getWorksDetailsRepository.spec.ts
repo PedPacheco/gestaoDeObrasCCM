@@ -184,6 +184,7 @@ describe('GetWorksDetailsRepository', () => {
           tipos: { select: { tipo_obra: true, id_grupo: true } },
           id_turma: true,
           id_status: true,
+          servicos: true,
           programacoes: {
             select: {
               id: true,
@@ -308,6 +309,7 @@ describe('GetWorksDetailsRepository', () => {
           tipos: { select: { tipo_obra: true, id_grupo: true } },
           id_turma: true,
           id_status: true,
+          servicos: true,
           programacoes: {
             select: {
               id: true,

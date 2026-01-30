@@ -114,9 +114,9 @@ export class ServicesController {
     };
   }
 
-  @Patch(':id')
+  @Patch('cancelar/:id')
   async cancelScheduleService(@Param('id', ParseIntPipe) id: number) {
-    await this.deleteSchedulesService.delete(id);
+    await this.worksServicesService.cancel(id);
 
     return {
       statusCode: HttpStatus.OK,
