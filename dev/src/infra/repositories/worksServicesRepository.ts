@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { IWorksServicesRepository } from 'src/domain/repositories/IWorksServiceRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { ScheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
+import {
+  PerformServicesDTO,
+  ScheduleServicesDTO,
+} from 'src/interface/dtos/workServicesDTO';
 import {
   GetByIdParamsInterface,
   GetSelectedServicesParamsInterface,
@@ -15,7 +18,7 @@ import {
 export class WorksServicesRepository implements IWorksServicesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getServices({
+  async getNotScheduledServices({
     id,
     operation,
     service,
@@ -118,6 +121,7 @@ export class WorksServicesRepository implements IWorksServicesRepository {
             operacao: true,
           },
         },
+        id_programacao: true,
         programacoes: { select: { data_prog: true } },
         prog: true,
         plan: true,
@@ -198,6 +202,35 @@ export class WorksServicesRepository implements IWorksServicesRepository {
             id_equipe: idTeam,
             qtde_prog: prog,
           },
+        });
+      }
+    });
+  }
+
+  async performServices(data: PerformServicesDTO[]): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      for (const item of data) {
+        const { id, qtdeRealizada } = item;
+
+        await tx.programacoes_servicos.updateMany({
+          data: { real: qtdeRealizada },
+          where: { id_servico: id },
+        });
+
+        await tx.servicos.updateMany({
+          data: { qtde_real: qtdeRealizada },
+          where: { id },
+        });
+      }
+    });
+  }
+
+  async reascheduleServices(data: { id: number }[]): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      for (const item of data) {
+        await tx.servicos.updateMany({
+          data: { id_programacao: null },
+          where: { id: item.id },
         });
       }
     });

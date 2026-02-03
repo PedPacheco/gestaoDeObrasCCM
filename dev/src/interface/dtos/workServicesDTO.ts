@@ -19,3 +19,13 @@ export class ScheduleServicesDTO {
   @Type(() => Number)
   prog: number;
 }
+
+export class PerformServicesDTO {
+  @IsNumber()
+  @Type(() => Number)
+  id: number;
+
+  @IsNumber()
+  @Type(() => Number)
+  qtdeRealizada: number;
+}

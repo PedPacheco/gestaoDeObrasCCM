@@ -9,7 +9,10 @@ import {
   Query,
 } from '@nestjs/common';
 import { WorksServicesService } from 'src/application/worksServices.service';
-import { ScheduleServicesDTO } from '../dtos/workServicesDTO';
+import {
+  PerformServicesDTO,
+  ScheduleServicesDTO,
+} from '../dtos/workServicesDTO';
 
 @Controller('servicos')
 export class ServicesController {
@@ -114,6 +117,19 @@ export class ServicesController {
     };
   }
 
+  // @Patch('finalizar/:id')
+  // async finalizaeServices(
+  //   @Param('id', ParseIntPipe) id: number,
+  //   @Body() data: { id: number },
+  // ) {
+  //   await this.worksServicesService.finalizeServices(id, data);
+
+  //   return {
+  //     statusCode: HttpStatus.OK,
+  //     message: 'Programação Finalizada',
+  //   };
+  // }
+
   @Patch('cancelar/:id')
   async cancelScheduleService(@Param('id', ParseIntPipe) id: number) {
     await this.worksServicesService.cancel(id);
@@ -121,6 +137,26 @@ export class ServicesController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Programação dos serviços foi cancelada',
+    };
+  }
+
+  @Patch('realizar')
+  async performServices(@Body() data: PerformServicesDTO[]) {
+    await this.worksServicesService.performServices(data);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Serviços realizados com sucesso',
+    };
+  }
+
+  @Patch('reprogramar')
+  async reascheduleServices(@Body() data: { id: number }[]) {
+    await this.worksServicesService.reascheduleServices(data);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Serviços reprogramados com sucesso',
     };
   }
 }

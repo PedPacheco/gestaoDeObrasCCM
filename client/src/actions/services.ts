@@ -3,84 +3,143 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+type ActionResult =
+  | { success: true; message?: string }
+  | { success: false; error: string };
+
+async function getAuthToken(): Promise<string | undefined> {
+  const cookieStore = await cookies();
+  return cookieStore.get("token")?.value;
+}
+
+async function apiRequest<T = any>(
+  url: string,
+  options: RequestInit,
+): Promise<ActionResult> {
+  try {
+    const res = await fetch(url, options);
+
+    // 204 → sem conteúdo
+    if (res.status === 204) {
+      return { success: true };
+    }
+
+    const body = await res.json();
+
+    if (!res.ok) {
+      return {
+        success: false,
+        error: body?.message || "Erro inesperado na requisição",
+      };
+    }
+
+    return { success: true, message: body?.message };
+  } catch (error: any) {
+    console.error("API error:", error);
+    return {
+      success: false,
+      error: error.message || "Erro de comunicação com o servidor",
+    };
+  }
+}
+
 export async function storeScheduleDataAction(
-  data: any,
+  data: unknown,
   idWork: string,
-  idStatusWork: any,
+  idStatusWork: unknown,
 ) {
   const cookieStore = await cookies();
 
   cookieStore.set("form-data", JSON.stringify(data), {
     path: "/",
-    maxAge: 1800, // 1 minuto
+    maxAge: 60 * 30, // 30 min
   });
 
   cookieStore.set("idStatusWork", JSON.stringify(idStatusWork), {
     path: "/",
-    maxAge: 1800, // 1 minuto
+    maxAge: 60 * 30,
   });
 
   redirect(`/servicos/${idWork}`);
 }
 
-export async function scheduleServices(data: any) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
+export async function scheduleServices(data: unknown): Promise<ActionResult> {
+  const token = await getAuthToken();
 
-  try {
-    const result = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/servicos`, {
+  if (!token) {
+    return { success: false, error: "Usuário não autenticado" };
+  }
+
+  return apiRequest(`${process.env.NEXT_PUBLIC_API_URL}/servicos`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+}
+
+export async function performScheduleServices(
+  data: {
+    id: number;
+    qtdeRealizada: number | null;
+  }[],
+): Promise<ActionResult> {
+  const token = await getAuthToken();
+
+  if (!token) {
+    return { success: false, error: "Usuário não autenticado" };
+  }
+
+  return apiRequest(`${process.env.NEXT_PUBLIC_API_URL}/servicos/realizar`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+}
+
+export async function reascheduleServices(
+  data: {
+    id: number;
+  }[],
+): Promise<ActionResult> {
+  const token = await getAuthToken();
+
+  if (!token) {
+    return { success: false, error: "Usuário não autenticado" };
+  }
+
+  return apiRequest(`${process.env.NEXT_PUBLIC_API_URL}/servicos/reprogramar`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+}
+
+export async function cancelScheduleServices(
+  id: number,
+): Promise<ActionResult> {
+  const token = await getAuthToken();
+
+  if (!token) {
+    return { success: false, error: "Usuário não autenticado" };
+  }
+
+  return apiRequest(
+    `${process.env.NEXT_PUBLIC_API_URL}/servicos/cancelar/${id}`,
+    {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(data),
-    });
-
-    const res = await result.json();
-
-    if (res.statusCode !== 204) {
-      return {
-        success: false,
-        error: res.message || "Erro ao programar serviços",
-      };
-    }
-
-    return { success: true, message: res.message };
-  } catch (error: any) {
-    console.error("Erro ao programar serviços:", error);
-    return { success: false, message: error.message };
-  }
-}
-
-export async function CancelScheduleServices(id: number) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
-
-  try {
-    const result = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/servicos/cancelar/${id}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    const res = await result.json();
-
-    if (res.statusCode !== 204) {
-      return {
-        success: false,
-        error: res.message || "Erro ao cancelar serviços programados",
-      };
-    }
-
-    return { success: true, message: res.message };
-  } catch (error: any) {
-    console.error("Erro ao cancelar serviços programados:", error);
-    return { success: false, message: error.message };
-  }
+    },
+  );
 }

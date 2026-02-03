@@ -1,4 +1,7 @@
-import { ScheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
+import {
+  PerformServicesDTO,
+  ScheduleServicesDTO,
+} from 'src/interface/dtos/workServicesDTO';
 import {
   GetByIdParamsInterface,
   GetSelectedServicesParamsInterface,
@@ -9,7 +12,7 @@ import {
 } from 'src/interface/types/servicesInterface';
 
 export interface IWorksServicesRepository {
-  getServices({
+  getNotScheduledServices({
     id,
     operation,
     point,
@@ -31,6 +34,8 @@ export interface IWorksServicesRepository {
   getServicesContracts(idParceira: number): Promise<any[]>;
   getTeamsServices(idParceira: number): Promise<any[]>;
   scheduleServices(data: ScheduleServicesDTO[]): Promise<void>;
+  performServices(data: PerformServicesDTO[]): Promise<void>;
+  reascheduleServices(data: { id: number }[]): Promise<void>;
   cancel(id: number): Promise<void>;
 }
 

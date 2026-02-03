@@ -59,6 +59,7 @@ export interface GetServiceScheduleHistoryResponse {
     ponto: string;
     operacao: string;
   };
+  id_programacao: number;
   programacoes: { data_prog: Date };
   prog: number;
   plan: number;

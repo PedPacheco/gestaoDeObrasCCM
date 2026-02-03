@@ -1,15 +1,17 @@
 "use client";
 
-import { ServicesSection } from "./servicesSection/servicesSection";
-import { ScheduleSection } from "./scheduleSection/scheduleSection";
 import { useCallback, useEffect, useState } from "react";
-import ErrorModal from "../common/ErrorModal";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
-import ModalComponent from "../common/Modal";
-import { TeamModal } from "./servicesSection/teamsModal";
-import { useScheduleSubmitV2 } from "@/hooks/useScheduleSubmitV2";
-import { useScheduleFormV2 } from "@/hooks/useScheduleFormV2";
+
 import { useUser } from "@/contexts/userContext";
+import { useScheduleFormV2 } from "@/hooks/useScheduleFormV2";
+import { useScheduleSubmitV2 } from "@/hooks/useScheduleSubmitV2";
+import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+
+import ErrorModal from "../common/ErrorModal";
+import ModalComponent from "../common/Modal";
+import { ScheduleSection } from "./scheduleSection/scheduleSection";
+import { ServicesSection } from "./servicesSection/servicesSection";
+import { TeamModal } from "./servicesSection/teamsModal";
 
 interface ManageScheduleProps {
   scheduleData: any;
@@ -129,6 +131,7 @@ export function ManageSchedule({
           setOpenTeamsModal={setOpenTeamsModal}
           isInsert={isInsert}
           idSchedule={idSchedule}
+          prog={prog}
         />
       </div>
 

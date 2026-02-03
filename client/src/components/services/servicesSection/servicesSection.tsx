@@ -1,6 +1,5 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { useCallback, useEffect, useState } from "react";
 
 import { PlusIcon } from "@heroicons/react/20/solid";
 import {
@@ -23,7 +22,7 @@ import {
 import { ScheduledServices } from "./scheduledServices";
 import { ServicesAvaliable } from "./servicesAvailable";
 import { ServicesContractSelect } from "./servicesContractSelect";
-import { CancelScheduleServices } from "@/actions/services";
+import { cancelScheduleServices } from "@/actions/services";
 
 dayjs.extend(utc);
 
@@ -49,6 +48,7 @@ interface ServicesSectionProps {
   setOpenTeamsModal: (team: boolean) => void;
   isInsert: boolean;
   idSchedule: number | null;
+  prog: number;
 }
 
 const operations = [
@@ -76,8 +76,8 @@ export function ServicesSection({
     return dayjs(dateString).utc().format("DD/MM/YYYY");
   };
 
-  const cancelScheduleServices = async (id: number) => {
-    const response = await CancelScheduleServices(id);
+  const cancelServices = async (id: number) => {
+    const response = await cancelScheduleServices(id);
 
     if (!response.success) {
       console.log(response.error);
@@ -196,7 +196,7 @@ export function ServicesSection({
                 className="border-gray-300 text-gray-600"
                 onClick={() => {
                   if (idSchedule) {
-                    cancelScheduleServices(idSchedule);
+                    cancelServices(idSchedule);
                   }
                 }}
               >

@@ -8,7 +8,10 @@ import {
   GetSelectedServicesParamsInterface,
 } from 'src/interface/types/servicesInterface';
 import { GetWorkDetailsService } from './works/getWorkDetails.service';
-import { ScheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
+import {
+  PerformServicesDTO,
+  ScheduleServicesDTO,
+} from 'src/interface/dtos/workServicesDTO';
 
 @Injectable()
 export class WorksServicesService {
@@ -19,7 +22,8 @@ export class WorksServicesService {
   ) {}
 
   async getById(params: GetByIdParamsInterface) {
-    const services = await this.worksServicesRepository.getServices(params);
+    const services =
+      await this.worksServicesRepository.getNotScheduledServices(params);
 
     if (!services) {
       throw new NotFoundException('Obra não encontrada');
@@ -117,6 +121,25 @@ export class WorksServicesService {
   async scheduleServices(data: ScheduleServicesDTO[]) {
     await this.worksServicesRepository.scheduleServices(data);
   }
+
+  async performServices(data: PerformServicesDTO[]) {
+    await this.worksServicesRepository.performServices(data);
+  }
+
+  async reascheduleServices(data: { id: number }[]) {
+    await this.worksServicesRepository.reascheduleServices(data);
+  }
+
+  // async finalizeServices(id: number, data: { id: number }) {
+  //   const services =
+  //     await this.worksServicesRepository.getNotScheduledServices({id, idProgramacao: data.id});
+
+  //   const currentScheduleServices = services.filter(
+  //     (s) => s.id_programacao === data.id,
+  //   ).reduce(())
+
+  //   console.log(currentScheduleServices);
+  // }
 
   async cancel(id: number) {
     await this.worksServicesRepository.cancel(id);
