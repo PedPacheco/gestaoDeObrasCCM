@@ -204,23 +204,6 @@ export class SchedulesDataDTO {
   prog?: number;
 
   @IsOptional()
-  @IsNumber({}, { message: 'Progresso executado deve ser um número válido' })
-  @Transform(({ value }) => {
-    if (
-      value === '' ||
-      value === null ||
-      value === undefined ||
-      value === 'null'
-    ) {
-      return null;
-    }
-
-    const parsed = Number(value);
-    return parsed;
-  })
-  exec?: number;
-
-  @IsOptional()
   @IsString()
   observation?: string;
 
@@ -242,27 +225,7 @@ export class SchedulesDataDTO {
 
   @IsOptional()
   @IsNumber()
-  lmTeam?: number;
-
-  @IsOptional()
-  @IsNumber()
-  regulTeam?: number;
-
-  @IsOptional()
-  @IsNumber()
-  lvTeam?: number;
-
-  @IsOptional()
-  @IsNumber()
   idTechnical?: number;
-
-  @IsOptional()
-  @IsNumber()
-  idExecutionRestriction?: number;
-
-  @IsOptional()
-  @IsString()
-  responsibility?: string;
 
   @IsNumber()
   idProgRestriction1: number;

@@ -10,38 +10,32 @@ import {
 } from "@mui/material";
 
 import { ButtonComponent } from "@/components/common/Button";
-import { FormData } from "@/hooks/useScheduleForm";
-import { resolveExecutionReportContext } from "@/utils/formatValue";
-import { equipmentItemSchema } from "@/validations/validationSchedules";
 import { ExecutionReportData } from "./executionReportDialog";
 import { EquipmentList } from "./equipmentList";
+import { equipmentItemSchemaV2 } from "@/validations/validationExecutionServices";
 
-export type EquipmentData = z.infer<typeof equipmentItemSchema>;
+export type EquipmentData = z.infer<typeof equipmentItemSchemaV2>;
 
 interface ExecutionEquipmentPanelProps {
-  formData: FormData | ExecutionReportData;
+  formData: ExecutionReportData;
   formErrors: Record<string, string>;
-  onInputChange: (
-    field:
-      | keyof FormData
-      | `executionReport.${keyof ExecutionReportData}`
-      | keyof ExecutionReportData
+  handleExecutionReportChange: (
+    field: keyof ExecutionReportData,
   ) => (event: any) => void;
   onEquipmentChange: (
     field: "appliedEquipment" | "equipmentRemoved",
     index: number,
     subField: keyof EquipmentData,
     value: string,
-    prefix: string
   ) => void;
   onAddEquipment: (
     field: "appliedEquipment" | "equipmentRemoved",
-    prefix: string
+    type?: "DEFAULT" | "CS",
+    insertIndex?: number,
   ) => void;
   onRemoveEquipment: (
     field: "appliedEquipment" | "equipmentRemoved",
     index: number,
-    prefix: string
   ) => void;
 }
 
@@ -50,17 +44,15 @@ export const ExecutionEquipmentPanel: React.FC<
 > = ({
   formData,
   formErrors,
-  onInputChange,
+  handleExecutionReportChange,
   onAddEquipment,
   onEquipmentChange,
   onRemoveEquipment,
 }) => {
-  const { data, prefix } = resolveExecutionReportContext(formData);
-
   const renderCheckboxGroup = (
     label: string,
     stateKey: keyof ExecutionReportData,
-    errorKey: string
+    errorKey: string,
   ) => {
     const errorMessage = formErrors[errorKey];
     return (
@@ -71,9 +63,12 @@ export const ExecutionEquipmentPanel: React.FC<
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={data[stateKey] === true}
+                  checked={formData[stateKey] === true}
                   onChange={() =>
-                    onInputChange(`${prefix}${stateKey}`)({
+                    // onInputChange(`${prefix}${stateKey}`)({
+                    //   target: { value: true },
+                    // })
+                    handleExecutionReportChange(stateKey)({
                       target: { value: true },
                     })
                   }
@@ -84,9 +79,9 @@ export const ExecutionEquipmentPanel: React.FC<
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={data[stateKey] === false}
+                  checked={formData[stateKey] === false}
                   onChange={() =>
-                    onInputChange(`${prefix}${stateKey}`)({
+                    handleExecutionReportChange(stateKey)({
                       target: { value: false },
                     })
                   }
@@ -106,15 +101,14 @@ export const ExecutionEquipmentPanel: React.FC<
       {renderCheckboxGroup(
         "Possui equipamentos aplicados?",
         "hasEquipmentInstalled",
-        "appliedEquipment"
+        "appliedEquipment",
       )}
 
-      {data.hasEquipmentInstalled && (
+      {formData.hasEquipmentInstalled && (
         <>
           <EquipmentList
-            items={data.appliedEquipment}
+            items={formData.appliedEquipment}
             fieldKey="appliedEquipment"
-            prefix={prefix}
             onAddEquipment={onAddEquipment}
             onEquipmentChange={onEquipmentChange}
             onRemoveEquipment={onRemoveEquipment}
@@ -122,7 +116,7 @@ export const ExecutionEquipmentPanel: React.FC<
           />
           <Grid item xs={12}>
             <ButtonComponent
-              onClick={() => onAddEquipment("appliedEquipment", prefix)}
+              onClick={() => onAddEquipment("appliedEquipment")}
               text="Adicionar equipamento aplicado"
             />
           </Grid>
@@ -132,15 +126,14 @@ export const ExecutionEquipmentPanel: React.FC<
       {renderCheckboxGroup(
         "Possui equipamentos removidos?",
         "hasEquipmentRemoved",
-        "equipmentRemoved"
+        "equipmentRemoved",
       )}
 
-      {data.hasEquipmentRemoved && (
+      {formData.hasEquipmentRemoved && (
         <>
           <EquipmentList
-            items={data.equipmentRemoved}
+            items={formData.equipmentRemoved}
             fieldKey="equipmentRemoved"
-            prefix={prefix}
             onAddEquipment={onAddEquipment}
             onEquipmentChange={onEquipmentChange}
             onRemoveEquipment={onRemoveEquipment}
@@ -148,7 +141,7 @@ export const ExecutionEquipmentPanel: React.FC<
           />
           <Grid item xs={12}>
             <ButtonComponent
-              onClick={() => onAddEquipment("equipmentRemoved", prefix)}
+              onClick={() => onAddEquipment("equipmentRemoved")}
               text="Adicionar equipamento removido"
             />
           </Grid>

@@ -5,18 +5,17 @@ import { useEffect, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { ButtonComponent } from "@/components/common/Button";
-import ErrorModal from "@/components/common/ErrorModal";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
+import { useFeedback } from "@/hooks/useFeedback";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { MainInterface } from "@/interfaces/mainInterface";
+import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 import ScheduleTable from "./ScheduleTable";
-import { capitalize } from "@/utils/formatValue";
 
 interface Filters {
   regional: { id: string; regional: string }[];
@@ -34,16 +33,17 @@ export default function MainSchedule({
   token,
 }: MainInterface<Filters>) {
   const [filteredData, setFilteredData] = useState(data);
-  const [error, setError] = useState<string | null>();
   const { clearFilters, filters, saveFilters } = useSaveFilters({
     pageKey: "scheduleFilters",
     data: filtersData,
   });
   const [selectedYear, setSelectedYear] = useState<Dayjs | null>(dayjs());
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
-    {}
+    {},
   );
   const [isPending, startTransition] = useTransition();
+
+  const { showError } = useFeedback();
 
   useEffect(() => {
     if (filters) {
@@ -66,12 +66,12 @@ export default function MainSchedule({
         const response = await fetchData(
           `${process.env.NEXT_PUBLIC_API_URL}/programacao`,
           params,
-          token
+          token,
         );
 
         setFilteredData(response.data);
       } catch (error: any) {
-        setError(error.message);
+        showError(error.message);
       }
     });
   }
@@ -91,12 +91,12 @@ export default function MainSchedule({
         const response = await fetchData(
           `${process.env.NEXT_PUBLIC_API_URL}/programacao`,
           params,
-          token
+          token,
         );
 
         setFilteredData(response.data);
       } catch (error: any) {
-        setError(error.message);
+        showError(error.message);
       }
     });
   }
@@ -156,15 +156,6 @@ export default function MainSchedule({
       </div>
 
       <ScheduleTable schedule={filteredData} columnMapping={columns} />
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </>
   );
 }

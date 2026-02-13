@@ -704,6 +704,7 @@ view exportacao_obras_executadas {
   data_empreitamento DateTime? @db.Date
   data_viabilidade   DateTime? @db.Date
   prazo_viabilidade  String?   @db.VarChar(40)
+  ano_plan           Int?
 }
 
 view exportacao_programacoes_obras {

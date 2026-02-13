@@ -5,6 +5,11 @@ export interface GetByIdParamsInterface {
   operation?: string;
 }
 
+export interface GetAllServicesOfWorkInterface {
+  id: number;
+  qtde_plan: number;
+}
+
 export interface GetSelectedServicesParamsInterface {
   id: number;
   idProgramacao: number;
@@ -54,6 +59,7 @@ export interface GetServicesSelectedByWorkIdResponse {
 
 export interface GetServiceScheduleHistoryResponse {
   id: number;
+  id_servico: number;
   servicos: {
     servicos_contratos: { texto_breve: string };
     ponto: string;

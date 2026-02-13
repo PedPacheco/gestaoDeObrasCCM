@@ -48,7 +48,8 @@ SELECT
   empreendimento.empreendimento,
   obras.data_empreitamento,
   obras.data_viabilidade,
-  obras.prazo_viabilidade
+  obras.prazo_viabilidade,
+  obras.ano_plan
 FROM
   (
     (
@@ -108,7 +109,8 @@ GROUP BY
   empreendimento.empreendimento,
   obras.data_empreitamento,
   obras.data_viabilidade,
-  obras.prazo_viabilidade
+  obras.prazo_viabilidade,
+  obras.ano_plan
 ORDER BY
   obras.data_conclusao DESC,
   obras.entrada DESC;

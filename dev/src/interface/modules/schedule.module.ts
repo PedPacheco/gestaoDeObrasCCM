@@ -40,7 +40,7 @@ import { WorksModule } from './works.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { WorksServicesService } from 'src/application/worksServices.service';
+import { WorksServicesService } from 'src/application/services/worksServices.service';
 import { WORKS_SERVICE_REPOSITORY } from 'src/domain/repositories/IWorksServiceRepository';
 import { WorksServicesRepository } from 'src/infra/repositories/worksServicesRepository';
 

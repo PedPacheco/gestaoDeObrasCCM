@@ -17,6 +17,7 @@ import ErrorModal from "../common/ErrorModal";
 import ModalComponent from "../common/Modal";
 import { FiltersExecutionCapacity } from "./filtersExecutionCapacity";
 import { FinancialValuesModal } from "./financialValuesModal";
+import { useFeedback } from "@/hooks/useFeedback";
 
 interface MainExecutionCapacityProps {
   columns: Record<string, string>;
@@ -31,11 +32,11 @@ interface MainExecutionCapacityProps {
 const TableComponent = dynamic(
   () =>
     import("@/components/executionCapacity/executionCapacityTable").then(
-      (mod) => mod.ExecutionCapacityTable
+      (mod) => mod.ExecutionCapacityTable,
     ),
   {
     ssr: false,
-  }
+  },
 );
 
 export function MainExecutionCapacity({
@@ -49,7 +50,7 @@ export function MainExecutionCapacity({
   const [year, setYear] = useState<string>(dayjs().year().toString());
   const [teams, setTeams] = useState<string | null>(null);
   const [selectedItems, setSelectedItems] = useState<Record<string, string>>(
-    {}
+    {},
   );
 
   const [tableData, setTableData] = useState<
@@ -63,7 +64,7 @@ export function MainExecutionCapacity({
   const [openFinancialModal, setOpenFinanciealModal] = useState<boolean>(false);
 
   const [success, setSuccess] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { showError } = useFeedback();
 
   useEffect(() => {
     setTableData(data.executionCapacityValues);
@@ -74,7 +75,7 @@ export function MainExecutionCapacity({
     return tableData
       .filter((row) => {
         const original = data.executionCapacityValues.find(
-          (d) => d.id === row.id
+          (d) => d.id === row.id,
         );
         if (!original) return true;
 
@@ -105,14 +106,14 @@ export function MainExecutionCapacity({
         });
 
         if (!response.success) {
-          setError(response.message);
+          showError(response.message);
           return;
         }
 
         setTableData(response.data.executionCapacityValues);
         setFinancialData(response.data.financialValues);
       } catch (error: any) {
-        setError(error.message);
+        showError(error.message);
       }
     });
   };
@@ -127,7 +128,7 @@ export function MainExecutionCapacity({
 
     handleDataFetch(
       `${process.env.NEXT_PUBLIC_API_URL}/capacidade-execucao`,
-      newSelectedItems
+      newSelectedItems,
     );
   };
 
@@ -147,14 +148,14 @@ export function MainExecutionCapacity({
         const response = await UpdateExecutionCapacity(changedData);
 
         if (!response.success) {
-          setError(response.message);
+          showError(response.message);
           return;
         }
 
         setSuccess(response.message);
         setOpenModal(true);
       } catch (error: any) {
-        setError(error.message);
+        showError(error.message);
       }
     });
   };
@@ -228,15 +229,6 @@ export function MainExecutionCapacity({
         onClose={toggleFinancialModal}
         open={openFinancialModal}
       />
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </div>
   );
 }

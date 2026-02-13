@@ -26,7 +26,6 @@ interface TeamModalProps {
   selectedServices: any[];
   scheduleData: any;
   isInsert: boolean;
-  prog: number;
 }
 
 export function TeamModal({
@@ -37,7 +36,6 @@ export function TeamModal({
   selectedServices,
   scheduleData,
   isInsert,
-  prog,
 }: TeamModalProps) {
   const [idTeam, setIdTeam] = useState<any>("");
 
@@ -49,14 +47,18 @@ export function TeamModal({
       prog: service.prog,
     }));
 
-    const data = {
-      schedule: scheduleData,
-      services: formattedService,
-    };
+    let response;
 
-    const operation = isInsert ? saveSchedule : scheduleServices;
-    const dataSent = isInsert ? data : formattedService;
-    const response = await operation(dataSent);
+    if (isInsert) {
+      const data = {
+        schedule: scheduleData,
+        services: formattedService,
+      };
+
+      response = await saveSchedule(data);
+    } else {
+      response = await scheduleServices(scheduleData.idWork, formattedService);
+    }
 
     if (!response.success) {
       console.log(response.error);

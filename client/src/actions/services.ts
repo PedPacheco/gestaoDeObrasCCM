@@ -63,21 +63,27 @@ export async function storeScheduleDataAction(
   redirect(`/servicos/${idWork}`);
 }
 
-export async function scheduleServices(data: unknown): Promise<ActionResult> {
+export async function scheduleServices(
+  id: number,
+  data: unknown,
+): Promise<ActionResult> {
   const token = await getAuthToken();
 
   if (!token) {
     return { success: false, error: "Usuário não autenticado" };
   }
 
-  return apiRequest(`${process.env.NEXT_PUBLIC_API_URL}/servicos`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+  return apiRequest(
+    `${process.env.NEXT_PUBLIC_API_URL}/servicos/programar/${id}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
     },
-    body: JSON.stringify(data),
-  });
+  );
 }
 
 export async function performScheduleServices(
@@ -100,6 +106,55 @@ export async function performScheduleServices(
     },
     body: JSON.stringify(data),
   });
+}
+
+export async function finalizeServices(
+  data: any,
+  idWork: number,
+  files?: File[],
+) {
+  const token = await getAuthToken();
+
+  if (!token) {
+    return { success: false, error: "Usuário não autenticado" };
+  }
+
+  try {
+    let body: BodyInit;
+    let headers: HeadersInit = {
+      Authorization: `Bearer ${token}`,
+    };
+
+    if (files && files.length > 0) {
+      const formData = new FormData();
+
+      formData.append("data", JSON.stringify(data));
+
+      files?.forEach((file) => {
+        formData.append("files", file);
+      });
+
+      body = formData;
+    } else {
+      headers["Content-Type"] = "application/json";
+      body = JSON.stringify(data);
+    }
+
+    return apiRequest(
+      `${process.env.NEXT_PUBLIC_API_URL}/servicos/finalizar/${idWork}`,
+      {
+        method: "PATCH",
+        headers,
+        body,
+      },
+    );
+  } catch (error: any) {
+    console.error("API error:", error);
+    return {
+      success: false,
+      error: error.message || "Erro ao converter arquivos",
+    };
+  }
 }
 
 export async function reascheduleServices(

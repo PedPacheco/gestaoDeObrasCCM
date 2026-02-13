@@ -1,6 +1,4 @@
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-
+import { cancelScheduleServices } from "@/actions/services";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import {
   Autocomplete,
@@ -8,23 +6,14 @@ import {
   FormControl,
   InputLabel,
   MenuItem,
-  Paper,
   Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   TextField,
 } from "@mui/material";
 
-import { ScheduledServices } from "./scheduledServices";
+import { ScheduledServices } from "./scheduledServices/scheduledServices";
+import { ScheduleHistory } from "./scheduleHistory";
 import { ServicesAvaliable } from "./servicesAvailable";
 import { ServicesContractSelect } from "./servicesContractSelect";
-import { cancelScheduleServices } from "@/actions/services";
-
-dayjs.extend(utc);
 
 type ServiceContract = {
   texto_breve: string;
@@ -36,19 +25,22 @@ type ServiceContract = {
 };
 
 interface ServicesSectionProps {
+  executionForm: any;
   servicesData: any[];
   scheduledServicesData: any[];
   serviceContractData: ServiceContract[];
-  serviceTeams: any[];
   scheduledServicesHistory: any[];
   serviceFilters: any;
-  idScheduleExisting: number | null;
   selectedServices: number[];
   setSelectedServices: (services: number[]) => void;
   setOpenTeamsModal: (team: boolean) => void;
   isInsert: boolean;
   idSchedule: number | null;
-  prog: number;
+  options: {
+    restricao: Array<{ id: number; restricao: string }>;
+  };
+  onError: (error: string) => void;
+  onSuccess: (success: string) => void;
 }
 
 const operations = [
@@ -61,6 +53,7 @@ const operations = [
 const points = ["P1", "P10", "P12", "P13", "P15"];
 
 export function ServicesSection({
+  executionForm,
   servicesData,
   scheduledServicesData,
   serviceContractData,
@@ -71,11 +64,10 @@ export function ServicesSection({
   setOpenTeamsModal,
   isInsert,
   idSchedule,
+  options,
+  onSuccess,
+  onError,
 }: ServicesSectionProps) {
-  const formatDate = (dateString: string) => {
-    return dayjs(dateString).utc().format("DD/MM/YYYY");
-  };
-
   const cancelServices = async (id: number) => {
     const response = await cancelScheduleServices(id);
 
@@ -85,6 +77,7 @@ export function ServicesSection({
     }
 
     console.log(response.message);
+    localStorage.removeItem(`scheduled-services-validation:${idSchedule}`);
   };
 
   return (
@@ -105,7 +98,14 @@ export function ServicesSection({
 
         {/* Serviços Programados */}
         {!isInsert && (
-          <ScheduledServices scheduledServicesData={scheduledServicesData} />
+          <ScheduledServices
+            scheduledServicesData={scheduledServicesData}
+            scheduledServicesHistory={scheduledServicesHistory}
+            options={options}
+            executionForm={executionForm}
+            onError={onError}
+            onSuccess={onSuccess}
+          />
         )}
       </div>
 
@@ -186,77 +186,11 @@ export function ServicesSection({
 
         {/* Histórico */}
         {!isInsert && (
-          <div className="bg-white shadow rounded-xl p-4 sm:p-6 min-h-[480px]">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-700">
-                HISTÓRICO DAS PROGRAMAÇÕES
-              </h2>
-              <Button
-                variant="outlined"
-                className="border-gray-300 text-gray-600"
-                onClick={() => {
-                  if (idSchedule) {
-                    cancelServices(idSchedule);
-                  }
-                }}
-              >
-                CANCELAR
-              </Button>
-            </div>
-
-            <div className="overflow-x-auto">
-              <TableContainer component={Paper} sx={{ height: 480 }}>
-                <Table size="small" className="text-sm h-full">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>SERVIÇO</TableCell>
-                      <TableCell>OPERAÇÃO</TableCell>
-                      <TableCell>PONTO</TableCell>
-                      <TableCell>DATA PROGRAMADA</TableCell>
-                      <TableCell>PLAN</TableCell>
-                      <TableCell>PROG</TableCell>
-                      <TableCell>REAL</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {scheduledServicesHistory.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={6} align="center">
-                          Nenhum histórico disponível
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      scheduledServicesHistory.map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell className="text-nowrap">
-                            {item.servicos.servicos_contratos.texto_breve}
-                          </TableCell>
-                          <TableCell className="text-nowrap">
-                            {item.servicos.operacao}
-                          </TableCell>
-                          <TableCell className="text-nowrap">
-                            {item.servicos.ponto}
-                          </TableCell>
-                          <TableCell className="text-nowrap">
-                            {formatDate(item.programacoes.data_prog)}
-                          </TableCell>
-                          <TableCell className="text-nowrap">
-                            {item.plan}
-                          </TableCell>
-                          <TableCell className="text-nowrap">
-                            {item.prog}
-                          </TableCell>
-                          <TableCell className="text-nowrap">
-                            {item.real}
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </div>
-          </div>
+          <ScheduleHistory
+            cancelServices={cancelServices}
+            idSchedule={idSchedule}
+            scheduledServicesHistory={scheduledServicesHistory}
+          />
         )}
       </div>
     </div>

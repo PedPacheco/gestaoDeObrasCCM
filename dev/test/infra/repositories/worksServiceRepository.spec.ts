@@ -22,6 +22,7 @@ describe('WorksServicesRepository', () => {
       findMany: jest.fn(),
       create: jest.fn(),
       deleteMany: jest.fn(),
+      updateMany: jest.fn(),
     },
     servicos_contratos: {
       groupBy: jest.fn(),
@@ -91,7 +92,7 @@ describe('WorksServicesRepository', () => {
         mockServicesResponse,
       );
 
-      const result = await repository.getServices(mockParams);
+      const result = await repository.getNotScheduledServices(mockParams);
 
       expect(result).toEqual(mockServicesResponse);
       expect(prisma.servicos.findMany).toHaveBeenCalledWith({
@@ -137,7 +138,8 @@ describe('WorksServicesRepository', () => {
         mockServicesResponse,
       );
 
-      const result = await repository.getServices(paramsWithoutFilters);
+      const result =
+        await repository.getNotScheduledServices(paramsWithoutFilters);
 
       expect(result).toEqual(mockServicesResponse);
       expect(prisma.servicos.findMany).toHaveBeenCalledWith({
@@ -159,7 +161,7 @@ describe('WorksServicesRepository', () => {
         mockServicesResponse,
       );
 
-      await repository.getServices(params);
+      await repository.getNotScheduledServices(params);
 
       expect(prisma.servicos.findMany).toHaveBeenCalledWith({
         select: expect.any(Object),
@@ -181,7 +183,7 @@ describe('WorksServicesRepository', () => {
         mockServicesResponse,
       );
 
-      await repository.getServices(params);
+      await repository.getNotScheduledServices(params);
 
       expect(prisma.servicos.findMany).toHaveBeenCalledWith({
         select: expect.any(Object),
@@ -203,7 +205,7 @@ describe('WorksServicesRepository', () => {
         mockServicesResponse,
       );
 
-      await repository.getServices(params);
+      await repository.getNotScheduledServices(params);
 
       expect(prisma.servicos.findMany).toHaveBeenCalledWith({
         select: expect.any(Object),
@@ -220,7 +222,7 @@ describe('WorksServicesRepository', () => {
     it('should return empty array when no services found', async () => {
       mockPrismaService.servicos.findMany.mockResolvedValue([]);
 
-      const result = await repository.getServices(mockParams);
+      const result = await repository.getNotScheduledServices(mockParams);
 
       expect(result).toEqual([]);
     });
@@ -230,7 +232,7 @@ describe('WorksServicesRepository', () => {
 
       mockPrismaService.servicos.findMany.mockResolvedValue([]);
 
-      await repository.getServices(params);
+      await repository.getNotScheduledServices(params);
 
       const callArgs = mockPrismaService.servicos.findMany.mock.calls[0][0];
       expect(callArgs.where.id_programacao).toBeNull();
@@ -427,6 +429,8 @@ describe('WorksServicesRepository', () => {
             },
           },
           programacoes: { select: { data_prog: true } },
+          id_programacao: true,
+          id_servico: true,
           prog: true,
           plan: true,
           real: true,
@@ -718,6 +722,7 @@ describe('WorksServicesRepository', () => {
 
     it('should schedule services in a transaction', async () => {
       const mockTx = {
+        programacoes: { update: jest.fn() },
         programacoes_servicos: {
           create: jest.fn().mockResolvedValue({}),
         },
@@ -730,7 +735,7 @@ describe('WorksServicesRepository', () => {
         return await callback(mockTx);
       });
 
-      await repository.scheduleServices(mockScheduleData);
+      await repository.scheduleServices(mockScheduleData, 80);
 
       expect(prisma.$transaction).toHaveBeenCalledTimes(1);
       expect(mockTx.programacoes_servicos.create).toHaveBeenCalledTimes(2);
@@ -739,6 +744,7 @@ describe('WorksServicesRepository', () => {
 
     it('should create programacoes_servicos with correct data', async () => {
       const mockTx = {
+        programacoes: { update: jest.fn() },
         programacoes_servicos: {
           create: jest.fn().mockResolvedValue({}),
         },
@@ -751,7 +757,7 @@ describe('WorksServicesRepository', () => {
         return await callback(mockTx);
       });
 
-      await repository.scheduleServices([mockScheduleData[0]]);
+      await repository.scheduleServices([mockScheduleData[0]], 100);
 
       expect(mockTx.programacoes_servicos.create).toHaveBeenCalledWith({
         data: {
@@ -765,6 +771,7 @@ describe('WorksServicesRepository', () => {
 
     it('should update servicos with correct data', async () => {
       const mockTx = {
+        programacoes: { update: jest.fn() },
         programacoes_servicos: {
           create: jest.fn().mockResolvedValue({}),
         },
@@ -777,7 +784,7 @@ describe('WorksServicesRepository', () => {
         return await callback(mockTx);
       });
 
-      await repository.scheduleServices([mockScheduleData[0]]);
+      await repository.scheduleServices([mockScheduleData[0]], 60);
 
       expect(mockTx.servicos.update).toHaveBeenCalledWith({
         where: { id: 1 },
@@ -791,6 +798,7 @@ describe('WorksServicesRepository', () => {
 
     it('should handle multiple services in sequence', async () => {
       const mockTx = {
+        programacoes: { update: jest.fn() },
         programacoes_servicos: {
           create: jest.fn().mockResolvedValue({}),
         },
@@ -803,7 +811,7 @@ describe('WorksServicesRepository', () => {
         return await callback(mockTx);
       });
 
-      await repository.scheduleServices(mockScheduleData);
+      await repository.scheduleServices(mockScheduleData, 90);
 
       // Primeira iteração
       expect(mockTx.programacoes_servicos.create).toHaveBeenNthCalledWith(1, {
@@ -846,6 +854,7 @@ describe('WorksServicesRepository', () => {
 
     it('should handle empty array', async () => {
       const mockTx = {
+        programacoes: { update: jest.fn() },
         programacoes_servicos: {
           create: jest.fn().mockResolvedValue({}),
         },
@@ -858,15 +867,15 @@ describe('WorksServicesRepository', () => {
         return await callback(mockTx);
       });
 
-      await repository.scheduleServices([]);
-
-      expect(mockTx.programacoes_servicos.create).not.toHaveBeenCalled();
-      expect(mockTx.servicos.update).not.toHaveBeenCalled();
+      await expect(repository.scheduleServices([], 0)).rejects.toThrow(
+        'Programação não enviada.',
+      );
     });
 
     it('should rollback transaction on error', async () => {
       const mockError = new Error('Database error');
       const mockTx = {
+        programacoes: { update: jest.fn() },
         programacoes_servicos: {
           create: jest.fn().mockRejectedValue(mockError),
         },
@@ -880,7 +889,7 @@ describe('WorksServicesRepository', () => {
       });
 
       await expect(
-        repository.scheduleServices([mockScheduleData[0]]),
+        repository.scheduleServices([mockScheduleData[0]], 0),
       ).rejects.toThrow('Database error');
     });
 
@@ -894,6 +903,7 @@ describe('WorksServicesRepository', () => {
       ];
 
       const mockTx = {
+        programacoes: { update: jest.fn() },
         programacoes_servicos: {
           create: jest.fn().mockResolvedValue({}),
         },
@@ -906,7 +916,7 @@ describe('WorksServicesRepository', () => {
         return await callback(mockTx);
       });
 
-      await repository.scheduleServices(dataWithoutIdSchedule);
+      await repository.scheduleServices(dataWithoutIdSchedule, 0);
 
       expect(mockTx.programacoes_servicos.create).toHaveBeenCalledWith({
         data: {
@@ -994,6 +1004,7 @@ describe('WorksServicesRepository', () => {
       expect(mockTx.servicos.updateMany).toHaveBeenCalledWith({
         data: {
           id_programacao: null,
+          qtde_real: null,
         },
         where: { id_programacao: 5 },
       });
@@ -1080,6 +1091,541 @@ describe('WorksServicesRepository', () => {
       await expect(repository.cancel(mockId)).rejects.toThrow('Delete failed');
       expect(mockTx.servicos.updateMany).not.toHaveBeenCalled();
       expect(mockTx.programacoes.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getAllServicesOfWork', () => {
+    it('should return all services of a work', async () => {
+      const mockWorkId = 1;
+      const mockServices = [
+        { id: 1, qtde_plan: 100 },
+        { id: 2, qtde_plan: 200 },
+        { id: 3, qtde_plan: 150 },
+      ];
+
+      mockPrismaService.servicos.findMany.mockResolvedValue(mockServices);
+
+      const result = await repository.getAllServicesOfWork(mockWorkId);
+
+      expect(result).toEqual(mockServices);
+      expect(prisma.servicos.findMany).toHaveBeenCalledWith({
+        select: {
+          id: true,
+          qtde_plan: true,
+        },
+        where: { id_obra: mockWorkId },
+      });
+      expect(prisma.servicos.findMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return empty array when no services found', async () => {
+      const mockWorkId = 999;
+
+      mockPrismaService.servicos.findMany.mockResolvedValue([]);
+
+      const result = await repository.getAllServicesOfWork(mockWorkId);
+
+      expect(result).toEqual([]);
+      expect(prisma.servicos.findMany).toHaveBeenCalledWith({
+        select: {
+          id: true,
+          qtde_plan: true,
+        },
+        where: { id_obra: mockWorkId },
+      });
+    });
+
+    it('should handle database errors', async () => {
+      const mockWorkId = 1;
+      const mockError = new Error('Database connection error');
+
+      mockPrismaService.servicos.findMany.mockRejectedValue(mockError);
+
+      await expect(repository.getAllServicesOfWork(mockWorkId)).rejects.toThrow(
+        'Database connection error',
+      );
+    });
+  });
+
+  describe('finalizeServices', () => {
+    it('should update programacao with finalization data', async () => {
+      const mockData = {
+        id: 1,
+        prog: 80,
+        exec: 75,
+        idExecutionRestriction: 2,
+        responsibility: 'João Silva',
+      };
+
+      const mockTx = {
+        programacoes: {
+          update: jest.fn().mockResolvedValue({}),
+        },
+      };
+
+      await repository.finalizeServices(mockData, mockTx as any);
+
+      expect(mockTx.programacoes.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: {
+          prog: 80,
+          exec: 75,
+          id_restricao_execucao: 2,
+          nome_responsavel: 'João Silva',
+        },
+      });
+      expect(mockTx.programacoes.update).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw NotFoundException when schedule not found', async () => {
+      const mockData = {
+        id: 999,
+        prog: 80,
+        exec: 75,
+        idExecutionRestriction: 2,
+        responsibility: 'João Silva',
+      };
+
+      const mockTx = {
+        programacoes: {
+          update: jest.fn().mockRejectedValue({ code: 'P2025' }),
+        },
+      };
+
+      await expect(
+        repository.finalizeServices(mockData, mockTx as any),
+      ).rejects.toThrow('Agendamento com ID 999 não encontrado');
+    });
+
+    it('should propagate other errors', async () => {
+      const mockData = {
+        id: 1,
+        prog: 80,
+        exec: 75,
+        idExecutionRestriction: 2,
+        responsibility: 'João Silva',
+      };
+
+      const mockError = new Error('Database error');
+      const mockTx = {
+        programacoes: {
+          update: jest.fn().mockRejectedValue(mockError),
+        },
+      };
+
+      await expect(
+        repository.finalizeServices(mockData, mockTx as any),
+      ).rejects.toThrow('Database error');
+    });
+
+    it('should handle finalization with zero values', async () => {
+      const mockData = {
+        id: 1,
+        prog: 0,
+        exec: 0,
+        idExecutionRestriction: 1,
+        responsibility: 'Maria Santos',
+      };
+
+      const mockTx = {
+        programacoes: {
+          update: jest.fn().mockResolvedValue({}),
+        },
+      };
+
+      await repository.finalizeServices(mockData, mockTx as any);
+
+      expect(mockTx.programacoes.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: {
+          prog: 0,
+          exec: 0,
+          id_restricao_execucao: 1,
+          nome_responsavel: 'Maria Santos',
+        },
+      });
+    });
+  });
+
+  describe('performServices', () => {
+    it('should update services and programacoes_servicos in a transaction', async () => {
+      const mockData = [
+        {
+          id: 1,
+          qtdeRealizada: 50,
+          idSchedule: 5,
+        },
+        {
+          id: 2,
+          qtdeRealizada: 75,
+          idSchedule: 5,
+        },
+      ];
+
+      const mockTx = {
+        programacoes_servicos: {
+          updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+        },
+        servicos: {
+          updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+        },
+      };
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockTx);
+      });
+
+      await repository.performServices(mockData);
+
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(mockTx.programacoes_servicos.updateMany).toHaveBeenCalledTimes(2);
+      expect(mockTx.servicos.updateMany).toHaveBeenCalledTimes(2);
+    });
+
+    it('should update programacoes_servicos with correct data', async () => {
+      const mockData = [
+        {
+          id: 1,
+          qtdeRealizada: 50,
+          idSchedule: 5,
+        },
+      ];
+
+      const mockTx = {
+        programacoes_servicos: {
+          updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+        },
+        servicos: {
+          updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+        },
+      };
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockTx);
+      });
+
+      await repository.performServices(mockData);
+
+      expect(mockTx.programacoes_servicos.updateMany).toHaveBeenCalledWith({
+        data: { real: 50 },
+        where: { id_servico: 1, id_programacao: 5 },
+      });
+    });
+
+    it('should update servicos with correct data', async () => {
+      const mockData = [
+        {
+          id: 1,
+          qtdeRealizada: 50,
+          idSchedule: 5,
+        },
+      ];
+
+      const mockTx = {
+        programacoes_servicos: {
+          updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+        },
+        servicos: {
+          updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+        },
+      };
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockTx);
+      });
+
+      await repository.performServices(mockData);
+
+      expect(mockTx.servicos.updateMany).toHaveBeenCalledWith({
+        data: { qtde_real: 50 },
+        where: { id: 1 },
+      });
+    });
+
+    it('should handle empty data array', async () => {
+      const mockData = [];
+
+      const mockTx = {
+        programacoes_servicos: {
+          updateMany: jest.fn(),
+        },
+        servicos: {
+          updateMany: jest.fn(),
+        },
+      };
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockTx);
+      });
+
+      await repository.performServices(mockData);
+
+      expect(mockTx.programacoes_servicos.updateMany).not.toHaveBeenCalled();
+      expect(mockTx.servicos.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('should process multiple services in order', async () => {
+      const mockData = [
+        { id: 1, qtdeRealizada: 10, idSchedule: 5 },
+        { id: 2, qtdeRealizada: 20, idSchedule: 5 },
+        { id: 3, qtdeRealizada: 30, idSchedule: 5 },
+      ];
+
+      const mockTx = {
+        programacoes_servicos: {
+          updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+        },
+        servicos: {
+          updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+        },
+      };
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockTx);
+      });
+
+      await repository.performServices(mockData);
+
+      // Verificar primeira execução
+      expect(mockTx.programacoes_servicos.updateMany).toHaveBeenNthCalledWith(
+        1,
+        {
+          data: { real: 10 },
+          where: { id_servico: 1, id_programacao: 5 },
+        },
+      );
+
+      expect(mockTx.servicos.updateMany).toHaveBeenNthCalledWith(1, {
+        data: { qtde_real: 10 },
+        where: { id: 1 },
+      });
+
+      // Verificar segunda execução
+      expect(mockTx.programacoes_servicos.updateMany).toHaveBeenNthCalledWith(
+        2,
+        {
+          data: { real: 20 },
+          where: { id_servico: 2, id_programacao: 5 },
+        },
+      );
+
+      expect(mockTx.servicos.updateMany).toHaveBeenNthCalledWith(2, {
+        data: { qtde_real: 20 },
+        where: { id: 2 },
+      });
+
+      // Verificar terceira execução
+      expect(mockTx.programacoes_servicos.updateMany).toHaveBeenNthCalledWith(
+        3,
+        {
+          data: { real: 30 },
+          where: { id_servico: 3, id_programacao: 5 },
+        },
+      );
+
+      expect(mockTx.servicos.updateMany).toHaveBeenNthCalledWith(3, {
+        data: { qtde_real: 30 },
+        where: { id: 3 },
+      });
+    });
+
+    it('should rollback transaction on error', async () => {
+      const mockData = [
+        {
+          id: 1,
+          qtdeRealizada: 50,
+          idSchedule: 5,
+        },
+      ];
+
+      const mockError = new Error('Update failed');
+      const mockTx = {
+        programacoes_servicos: {
+          updateMany: jest.fn().mockRejectedValue(mockError),
+        },
+        servicos: {
+          updateMany: jest.fn(),
+        },
+      };
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockTx);
+      });
+
+      await expect(repository.performServices(mockData)).rejects.toThrow(
+        'Update failed',
+      );
+      expect(mockTx.servicos.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('should handle zero qtdeRealizada', async () => {
+      const mockData = [
+        {
+          id: 1,
+          qtdeRealizada: 0,
+          idSchedule: 5,
+        },
+      ];
+
+      const mockTx = {
+        programacoes_servicos: {
+          updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+        },
+        servicos: {
+          updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+        },
+      };
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockTx);
+      });
+
+      await repository.performServices(mockData);
+
+      expect(mockTx.programacoes_servicos.updateMany).toHaveBeenCalledWith({
+        data: { real: 0 },
+        where: { id_servico: 1, id_programacao: 5 },
+      });
+
+      expect(mockTx.servicos.updateMany).toHaveBeenCalledWith({
+        data: { qtde_real: 0 },
+        where: { id: 1 },
+      });
+    });
+  });
+
+  describe('reascheduleServices', () => {
+    it('should update multiple services to remove programacao in a transaction', async () => {
+      const mockData = [{ id: 1 }, { id: 2 }, { id: 3 }];
+
+      const mockTx = {
+        servicos: {
+          updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+        },
+      };
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockTx);
+      });
+
+      await repository.reascheduleServices(mockData);
+
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(mockTx.servicos.updateMany).toHaveBeenCalledTimes(3);
+    });
+
+    it('should set id_programacao to null for each service', async () => {
+      const mockData = [{ id: 1 }];
+
+      const mockTx = {
+        servicos: {
+          updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+        },
+      };
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockTx);
+      });
+
+      await repository.reascheduleServices(mockData);
+
+      expect(mockTx.servicos.updateMany).toHaveBeenCalledWith({
+        data: { id_programacao: null },
+        where: { id: 1 },
+      });
+    });
+
+    it('should process multiple services correctly', async () => {
+      const mockData = [{ id: 1 }, { id: 2 }, { id: 3 }];
+
+      const mockTx = {
+        servicos: {
+          updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+        },
+      };
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockTx);
+      });
+
+      await repository.reascheduleServices(mockData);
+
+      expect(mockTx.servicos.updateMany).toHaveBeenNthCalledWith(1, {
+        data: { id_programacao: null },
+        where: { id: 1 },
+      });
+
+      expect(mockTx.servicos.updateMany).toHaveBeenNthCalledWith(2, {
+        data: { id_programacao: null },
+        where: { id: 2 },
+      });
+
+      expect(mockTx.servicos.updateMany).toHaveBeenNthCalledWith(3, {
+        data: { id_programacao: null },
+        where: { id: 3 },
+      });
+    });
+
+    it('should handle empty data array', async () => {
+      const mockData = [];
+
+      const mockTx = {
+        servicos: {
+          updateMany: jest.fn(),
+        },
+      };
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockTx);
+      });
+
+      await repository.reascheduleServices(mockData);
+
+      expect(mockTx.servicos.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('should rollback transaction on error', async () => {
+      const mockData = [{ id: 1 }, { id: 2 }];
+      const mockError = new Error('Update failed');
+
+      const mockTx = {
+        servicos: {
+          updateMany: jest
+            .fn()
+            .mockResolvedValueOnce({ count: 1 })
+            .mockRejectedValueOnce(mockError),
+        },
+      };
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockTx);
+      });
+
+      await expect(repository.reascheduleServices(mockData)).rejects.toThrow(
+        'Update failed',
+      );
+    });
+
+    it('should handle single service reschedule', async () => {
+      const mockData = [{ id: 999 }];
+
+      const mockTx = {
+        servicos: {
+          updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+        },
+      };
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockTx);
+      });
+
+      await repository.reascheduleServices(mockData);
+
+      expect(mockTx.servicos.updateMany).toHaveBeenCalledTimes(1);
+      expect(mockTx.servicos.updateMany).toHaveBeenCalledWith({
+        data: { id_programacao: null },
+        where: { id: 999 },
+      });
     });
   });
 });

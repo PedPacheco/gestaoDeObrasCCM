@@ -2,17 +2,18 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 
-import { useScheduleForm } from "@/hooks/useScheduleForm";
 import { useScheduleHandlers } from "@/hooks/useScheduleHandlers";
 import { useUser } from "@/contexts/userContext";
-import { ModalsManager, ModalsManagerRef } from "../modals/detailsModals";
 import TabActions from "./tabsActions";
 import WorkCostPanelItem from "../panelItems/workCostPanelItem";
 import SchedulePanelItem from "../panelItems/schedulePanelItem";
 import ExecutionReportPanelItem from "../panelItems/executionReportPanelItem";
 import RejectionsOfSchedulesPanelItem from "../panelItems/rejectionsOfSchedulesPanelItem";
 import { storeScheduleDataAction } from "@/actions/services";
-import ModalsManagerV2 from "@/components/services/modalsManagerV2";
+import ModalsManager, {
+  ModalsManagerRef,
+} from "@/components/services/modalsManager";
+import { useExecutionServiceForm } from "@/hooks/useExecutionServicesForm";
 
 interface CustomTabPanelProps {
   children?: React.ReactNode;
@@ -22,9 +23,8 @@ interface CustomTabPanelProps {
 
 interface TabPanelProps {
   workData: Record<string, any>;
-  executionReportData: Record<string, any>[];
+  executionReportData: any;
   rejectionsData: Record<string, any>[];
-  options: any;
   id: string;
   feasibilityExists: any[];
 }
@@ -51,7 +51,6 @@ function CustomTabPanel({
 
 export default function TabPanel({
   workData,
-  options,
   executionReportData,
   rejectionsData,
   id,
@@ -63,18 +62,11 @@ export default function TabPanel({
   const [value, setValue] = useState(0);
   const [data, setData] = useState<Record<string, any>>(workData);
 
-  const [editingSchedule, setEditingSchedule] = useState<any>();
   const [editingExecutionReport, setEditingExecutionReport] = useState<any>();
 
-  const [isInsert, setIsInsert] = useState(true);
-  const [executionReportIsInsert, setExecutionReportIsInsert] = useState(true);
-
-  const [success, setSuccess] = useState<string | null>(null);
-
-  const scheduleForm = useScheduleForm({
-    data: editingSchedule,
-    executionData: editingExecutionReport,
-    options,
+  const executionForm = useExecutionServiceForm({
+    enabled: false,
+    executionReportDataExisting: editingExecutionReport,
   });
 
   const {
@@ -90,8 +82,6 @@ export default function TabPanel({
   } = useScheduleHandlers({
     data,
     idWork: id,
-    setError: (msg) => modalsRef.current?.showError(msg),
-    setSuccess,
   });
 
   useEffect(() => {
@@ -110,31 +100,17 @@ export default function TabPanel({
 
   const handleEditSchedule = async (scheduleData: any) => {
     await storeScheduleDataAction(scheduleData, data?.id, data.id_status);
-    // setIsInsert(false);
-    // modalsRef.current?.handleDialog(true);
-    // setExecutionReportIsInsert(true);
-
-    // setEditingSchedule({
-    //   ...scheduleData,
-    //   exec: scheduleData.exec !== undefined ? String(scheduleData.exec) : "",
-    // });
   };
 
   const handleEditExecutionReport = (executionData: any) => {
     modalsRef.current?.handleExecutionDialog(true);
-    setExecutionReportIsInsert(false);
-    setIsInsert(false);
     setEditingExecutionReport(executionData);
   };
 
-  // const handleCloseDialog = () => {
-  //   scheduleForm.resetForm();
-  //   setIsInsert(true);
-  //   setEditingExecutionReport(undefined);
-  //   setEditingSchedule(undefined);
-  //   modalsRef.current?.handleExecutionDialog(false);
-  //   modalsRef.current?.handleDialog(false);
-  // };
+  const handleCloseDialog = () => {
+    executionForm.resetForm();
+    modalsRef.current?.handleExecutionDialog(false);
+  };
 
   return (
     <div className="w-full xl:h-full flex justify-center items-start pb-6">
@@ -195,28 +171,14 @@ export default function TabPanel({
         </div>
       </div>
 
-      {/* <ModalsManager
+      <ModalsManager
         ref={modalsRef}
-        idWork={data?.id}
-        totalExec={data.executado}
-        statusWork={data.id_status}
-        options={options}
-        scheduleForm={scheduleForm}
-        isInsert={isInsert}
         rejectedSchedule={rejectedSchedule}
         handleReject={handleReject}
-        executionReportIsInsert={executionReportIsInsert}
+        onConfirmDelete={handleDelete}
+        onConfirmExecutionDelete={handleExecutionReportDelete}
+        executionForm={executionForm}
         onCloseDialog={handleCloseDialog}
-        onConfirmDelete={handleDelete}
-        onConfirmExecutionDelete={handleExecutionReportDelete}
-      /> */}
-
-      <ModalsManagerV2
-        ref={modalsRef}
-        rejectedSchedule={rejectedSchedule}
-        handleReject={handleReject}
-        onConfirmDelete={handleDelete}
-        onConfirmExecutionDelete={handleExecutionReportDelete}
       />
     </div>
   );

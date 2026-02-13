@@ -1,9 +1,15 @@
+import { useState } from "react";
 import { z } from "zod";
 
+import ErrorModal from "@/components/common/ErrorModal";
+import { useUser } from "@/contexts/userContext";
+import { UseExecutionServiceFormReturn } from "@/hooks/useExecutionServicesForm";
+import { useExecutionServicesSubmit } from "@/hooks/useExecutionServicesSubmit";
 import {
   executionReportSchema,
-  validationSchedulesSchema,
-} from "@/validations/validationSchedules";
+  validationExecutionService,
+} from "@/validations/validationExecutionServices";
+import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import {
   Box,
   Dialog,
@@ -16,77 +22,61 @@ import {
 
 import { ButtonComponent } from "../../../common/Button";
 import { AccordionPanel } from "../../accordionPanel";
-import { ScheduleFormHookReturn } from "../scheduleDialog/dialog";
 import { AdditionalExecutionInfoPanel } from "./additionalExecutionInfoPanel";
+import { AsBuiltImport } from "./asBuiltImport";
 import { ExecutionEquipmentPanel } from "./EquipmentPanel";
 import { ExecutionBasicPanel } from "./executionBasicPanel";
-import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
-import { useState } from "react";
-import ErrorModal from "@/components/common/ErrorModal";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
-import { AsBuiltImport } from "./asBuiltImport";
-import { useUser } from "@/contexts/userContext";
+import { useFeedback } from "@/hooks/useFeedback";
 
 export type ExecutionReportData = z.infer<typeof executionReportSchema>;
 
 export interface ExecutionReportDialogProps {
   open: boolean;
   onClose: () => void;
-  idWork: number;
-  isInsert: boolean;
   executionReportIsInsert: boolean;
-  onError: (error: string) => void;
   onSuccess: (success: string) => void;
+  executionForm: UseExecutionServiceFormReturn;
+  executionIsPartial?: boolean;
   onModalOpen: (open: boolean) => void;
-  scheduleForm: ScheduleFormHookReturn;
-  totalExec: number;
 }
 
 export function ExecutionReportDialog({
-  idWork,
-  isInsert,
   executionReportIsInsert,
+  executionIsPartial,
   onClose,
-  onError,
-  onModalOpen,
   onSuccess,
   open,
-  scheduleForm,
-  totalExec,
+  executionForm,
+  onModalOpen,
 }: ExecutionReportDialogProps) {
-  const [error, setError] = useState<string | null>();
+  const { showError } = useFeedback();
   const [files, setFiles] = useState<File[]>([]);
 
   const { user } = useUser();
 
   const {
-    formData,
     executionReportData,
-    formErrors,
-    expanded,
-    handleAccordionChange,
-    handleInputChange,
+    buildPayload,
+    handleExecutionReportChange,
     onAddEquipment,
     onEquipmentChange,
     onRemoveEquipment,
+    formErrors,
     setFormErrors,
-  } = scheduleForm;
+    handleAccordionChange,
+    expanded,
+  } = executionForm;
 
-  const { handleSubmit, isPending } = useScheduleSubmit({
-    formData,
-    executionReportData,
-    idWork,
-    isInsert,
-    onError,
+  const { handleSubmit, isPending } = useExecutionServicesSubmit({
+    isInsert: executionReportIsInsert,
+    onClose,
+    onError: showError,
     onSuccess,
     onModalOpen,
-    onClose,
     setFormErrors,
   });
 
   const submitButtonText = isPending ? "Salvando..." : "Salvar Execução";
-
-  const wasTheWorkCompleted = Number(formData?.exec ?? 0) + totalExec;
 
   return (
     <Dialog
@@ -116,10 +106,10 @@ export function ExecutionReportDialog({
           onChange={handleAccordionChange}
         >
           <ExecutionBasicPanel
-            formData={!executionReportIsInsert ? executionReportData : formData}
+            formData={executionReportData}
             formErrors={formErrors}
-            onInputChange={handleInputChange}
-            wasTheWorkCompleted={wasTheWorkCompleted}
+            handleExecutionReportChange={handleExecutionReportChange}
+            // wasTheWorkCompleted={wasTheWorkCompleted}
           />
         </AccordionPanel>
 
@@ -130,9 +120,9 @@ export function ExecutionReportDialog({
           onChange={handleAccordionChange}
         >
           <ExecutionEquipmentPanel
-            formData={!executionReportIsInsert ? executionReportData : formData}
+            formData={executionReportData}
             formErrors={formErrors}
-            onInputChange={handleInputChange}
+            handleExecutionReportChange={handleExecutionReportChange}
             onAddEquipment={onAddEquipment}
             onEquipmentChange={onEquipmentChange}
             onRemoveEquipment={onRemoveEquipment}
@@ -146,9 +136,9 @@ export function ExecutionReportDialog({
           onChange={handleAccordionChange}
         >
           <AdditionalExecutionInfoPanel
-            formData={!executionReportIsInsert ? executionReportData : formData}
+            formData={executionReportData}
             formErrors={formErrors}
-            onInputChange={handleInputChange}
+            handleExecutionReportChange={handleExecutionReportChange}
           />
         </AccordionPanel>
 
@@ -179,18 +169,24 @@ export function ExecutionReportDialog({
                 });
 
                 setFormErrors(fieldErrors);
-                setError("Erro ao salvar relatório de execução");
+                showError("Erro ao salvar relatório de execução");
                 return;
               }
 
-              handleSubmit(result.data, "executionReport", files);
+              handleSubmit(result.data, files);
             } else {
+              const formData = buildPayload();
+
               const formDataWithUser = {
                 ...formData,
                 idUser: user?.id,
               };
 
-              const validationSchema = validationSchedulesSchema(null, false);
+              if (!executionIsPartial) return;
+
+              const validationSchema =
+                validationExecutionService(executionIsPartial);
+
               const result = validationSchema.safeParse(formDataWithUser);
 
               if (!result.success) {
@@ -219,26 +215,17 @@ export function ExecutionReportDialog({
                 });
 
                 setFormErrors(fieldErrors);
-                setError("Erro ao salvar relatório de execução");
+                showError("Erro ao salvar relatório de execução");
                 return;
               }
 
-              handleSubmit(result.data, "schedule", files);
+              handleSubmit(result.data, files);
             }
           }}
           disabled={isPending}
           text={submitButtonText}
         />
       </DialogActions>
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </Dialog>
   );
 }

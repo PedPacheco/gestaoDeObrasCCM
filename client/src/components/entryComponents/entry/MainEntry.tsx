@@ -17,6 +17,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 import EntryTable from "./EntryTable";
 import { capitalize } from "@/utils/formatValue";
+import { useFeedback } from "@/hooks/useFeedback";
 
 export interface EntryFiltersType {
   regional: { id: string; regional: string }[];
@@ -34,14 +35,14 @@ export default function MainEntry({
   token,
 }: MainInterface<EntryFiltersType>) {
   const [filteredData, setFilteredData] = useState(data);
-  const [error, setError] = useState<string | null>();
+  const { showError } = useFeedback();
   const { clearFilters, filters, saveFilters } = useSaveFilters({
     pageKey: "entryFilters",
     data: filtersData,
   });
   const [selectedYear, setSelectedYear] = useState<Dayjs | null>(dayjs());
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
-    {}
+    {},
   );
   const [isPending, startTransition] = useTransition();
 
@@ -66,11 +67,11 @@ export default function MainEntry({
         const response = await fetchData(
           `${process.env.NEXT_PUBLIC_API_URL}/entrada`,
           params,
-          token
+          token,
         );
         setFilteredData(response.data);
       } catch (error: any) {
-        setError(error.message);
+        showError(error.message);
       }
     });
   }
@@ -90,11 +91,11 @@ export default function MainEntry({
         const response = await fetchData(
           `${process.env.NEXT_PUBLIC_API_URL}/entrada`,
           params,
-          token
+          token,
         );
         setFilteredData(response.data);
       } catch (error: any) {
-        setError(error.message);
+        showError(error.message);
       }
     });
   }
@@ -155,15 +156,6 @@ export default function MainEntry({
       </div>
 
       <EntryTable data={filteredData} columns={columns} />
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </>
   );
 }

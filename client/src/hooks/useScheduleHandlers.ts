@@ -6,20 +6,19 @@ import {
   RejectedSchedule,
 } from "@/actions/schedules";
 import { deleteExecutionReport } from "@/actions/executionReport.action";
+import { useFeedback } from "./useFeedback";
 
 interface UseScheduleHandlersProps {
   data: Record<string, any>;
   idWork: string;
-  setError: (msg: string) => void;
-  setSuccess: (msg: string) => void;
 }
 
 export function useScheduleHandlers({
   data,
   idWork,
-  setError,
-  setSuccess,
 }: UseScheduleHandlersProps) {
+  const { showError, showSuccess } = useFeedback();
+
   const [validatedSchedule, setValidatedSchedule] = useState<
     { id: number; validate: boolean }[]
   >([]);
@@ -63,27 +62,27 @@ export function useScheduleHandlers({
         try {
           const response = await operation();
           if (!response.success) {
-            setError(response.error);
+            showError(response.error);
             return;
           }
-          setSuccess(response.message);
+          showSuccess(response.message);
         } catch (error: any) {
-          setError(error.message);
+          showError(error.message);
         }
       });
     },
-    [setError, setSuccess]
+    [showError, showSuccess],
   );
 
   const handleExecutionReportDelete = useCallback(
     (id: number) =>
       handleOperation(() => deleteExecutionReport(id, Number(idWork))),
-    [idWork, handleOperation]
+    [idWork, handleOperation],
   );
 
   const handleDelete = useCallback(
     (id: number) => handleOperation(() => deleteSchedule(id, Number(idWork))),
-    [idWork, handleOperation]
+    [idWork, handleOperation],
   );
 
   const handleValidated = useCallback(() => {
@@ -92,7 +91,7 @@ export function useScheduleHandlers({
 
   const handleConfirm = useCallback(
     () => handleOperation(() => ConfirmedSchedule(confirmedSchedule, idWork)),
-    [confirmedSchedule, idWork, handleOperation]
+    [confirmedSchedule, idWork, handleOperation],
   );
 
   const handleReject = useCallback(
@@ -104,7 +103,7 @@ export function useScheduleHandlers({
     }) => {
       handleOperation(() => RejectedSchedule(data, idWork));
     },
-    [idWork, handleOperation]
+    [idWork, handleOperation],
   );
 
   return {

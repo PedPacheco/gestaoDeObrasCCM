@@ -52,24 +52,20 @@ const csBrand = ["Landis Gyr", "Eletra", "Nansen"];
 interface EquipmentListProps {
   items: EquipmentData[];
   fieldKey: "appliedEquipment" | "equipmentRemoved";
-  prefix: string;
-  onAddEquipment: (
-    field: "appliedEquipment" | "equipmentRemoved",
-    prefix: string,
-    type: string,
-    insertIndex?: number
-  ) => void;
   onEquipmentChange: (
     field: "appliedEquipment" | "equipmentRemoved",
     index: number,
     subField: keyof EquipmentData,
     value: string,
-    prefix: string
+  ) => void;
+  onAddEquipment: (
+    field: "appliedEquipment" | "equipmentRemoved",
+    type?: "DEFAULT" | "CS",
+    insertIndex?: number,
   ) => void;
   onRemoveEquipment: (
     field: "appliedEquipment" | "equipmentRemoved",
     index: number,
-    prefix: string
   ) => void;
   formErrors: Record<string, string>;
 }
@@ -77,7 +73,6 @@ interface EquipmentListProps {
 export const EquipmentList = ({
   items,
   fieldKey,
-  prefix,
   onAddEquipment,
   onEquipmentChange,
   onRemoveEquipment,
@@ -111,7 +106,6 @@ export const EquipmentList = ({
                           index,
                           "equipment",
                           e.target.value,
-                          prefix
                         )
                       }
                     >
@@ -137,7 +131,6 @@ export const EquipmentList = ({
                         index,
                         "equipment",
                         e.target.value,
-                        prefix
                       )
                     }
                     autoComplete="off"
@@ -165,7 +158,6 @@ export const EquipmentList = ({
                     index,
                     "installation",
                     e.target.value,
-                    prefix
                   )
                 }
                 error={!!installationError}
@@ -182,13 +174,7 @@ export const EquipmentList = ({
                   value={eq.power}
                   label="Potência"
                   onChange={(e) =>
-                    onEquipmentChange(
-                      fieldKey,
-                      index,
-                      "power",
-                      e.target.value,
-                      prefix
-                    )
+                    onEquipmentChange(fieldKey, index, "power", e.target.value)
                   }
                 >
                   {eq.type === "DEFAULT"
@@ -214,13 +200,7 @@ export const EquipmentList = ({
                 onChange={(e) => {
                   const onlyNumbers = e.target.value.replace(/\D/g, "");
                   const limited = onlyNumbers.slice(0, 8);
-                  onEquipmentChange(
-                    fieldKey,
-                    index,
-                    "patrimony",
-                    limited,
-                    prefix
-                  );
+                  onEquipmentChange(fieldKey, index, "patrimony", limited);
                 }}
                 error={!!patrimonyError}
                 helperText={patrimonyError}
@@ -239,13 +219,13 @@ export const EquipmentList = ({
             >
               {eq.equipment === "Transformador" && (
                 <ButtonComponent
-                  onClick={() => onAddEquipment(fieldKey, prefix, "CS", index)}
+                  onClick={() => onAddEquipment(fieldKey, "CS", index)}
                   text="Adicionar CS"
                   styled="w-[200px]"
                 />
               )}
               <ButtonComponent
-                onClick={() => onRemoveEquipment(fieldKey, index, prefix)}
+                onClick={() => onRemoveEquipment(fieldKey, index)}
                 text={`Remover equipamento ${
                   fieldKey === "appliedEquipment" ? "aplicado" : "removido"
                 }`}

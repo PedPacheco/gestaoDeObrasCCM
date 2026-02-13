@@ -9,6 +9,7 @@ import {
   PhotoIcon,
 } from "@heroicons/react/20/solid";
 import { Box, Typography } from "@mui/material";
+import { useFeedback } from "@/hooks/useFeedback";
 
 interface ExecutionReportUploadPanelProps {
   setFiles: Dispatch<SetStateAction<File[]>>;
@@ -19,7 +20,7 @@ export function AsBuiltImport({
   files,
   setFiles,
 }: ExecutionReportUploadPanelProps) {
-  const [error, setError] = useState<string | null>(null);
+  const { showError } = useFeedback();
   const [dragActive, setDragActive] = useState(false);
 
   const allowedTypes = [
@@ -37,18 +38,18 @@ export function AsBuiltImport({
     if (!incoming) return false;
 
     if (incoming.length + files.length > 3) {
-      setError("Máximo de 3 arquivos permitidos.");
+      showError("Máximo de 3 arquivos permitidos.");
       return false;
     }
 
     for (const file of Array.from(incoming)) {
       if (!allowedTypes.includes(file.type)) {
-        setError(`O formato do arquivo "${file.name}" não é aceito.`);
+        showError(`O formato do arquivo "${file.name}" não é aceito.`);
         return false;
       }
 
       if (file.size > maxSize) {
-        setError(`Arquivo "${file.name}" excede 5MB.`);
+        showError(`Arquivo "${file.name}" excede 5MB.`);
         return false;
       }
     }
@@ -57,7 +58,6 @@ export function AsBuiltImport({
   };
 
   const handleFiles = (incoming: FileList | null) => {
-    setError(null);
     if (validateFiles(incoming)) {
       setFiles((prev) => [...prev, ...Array.from(incoming!)]);
     }
@@ -149,15 +149,6 @@ export function AsBuiltImport({
             </Box>
           ))}
         </Box>
-      )}
-
-      {error && (
-        <ErrorModal
-          open
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
       )}
     </Box>
   );

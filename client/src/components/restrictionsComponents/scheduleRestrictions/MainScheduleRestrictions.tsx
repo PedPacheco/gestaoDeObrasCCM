@@ -6,17 +6,16 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 import { Cookies } from "react-cookie";
 
 import { fetchData } from "@/actions/fetchData.action";
-import ErrorModal from "@/components/common/ErrorModal";
+import { UpdatePublicationRestrictions } from "@/actions/restrictions";
+import { useFeedback } from "@/hooks/useFeedback";
 import { Transform } from "@/utils/transform";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
-import RestrictionDrawer from "./RestrictionDrawer";
-import ScheduleRestrictionsTable from "./scheduleRestrictionsTable";
-import { UpdatePublicationRestrictions } from "@/actions/restrictions";
 import PublicationRestrictionsTable from "../publicationRestrictionsTable";
+import RestrictionDrawer from "./RestrictionDrawer";
 import RestrictionFilters from "./restrictionFilters";
+import ScheduleRestrictionsTable from "./scheduleRestrictionsTable";
 
 const cookies = new Cookies();
 
@@ -36,8 +35,9 @@ export default function MainScheduleRestrictions({
   url,
 }: MainScheduleRestrictionsProps) {
   const [filteredData, setFilteredData] = useState(data);
-  const [error, setError] = useState<string | null>();
   const [page, setPage] = useState(0);
+
+  const { showError } = useFeedback();
 
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
@@ -72,15 +72,13 @@ export default function MainScheduleRestrictions({
         const response = await UpdatePublicationRestrictions(restrictions);
 
         if (!response.success) {
-          setError(response.error || "Erro ao salvar alterações");
+          showError(response.error || "Erro ao salvar alterações");
           return;
         }
 
         router.refresh();
-        // setSuccess(response.message);
-        // setOpenModal(true);
       } catch (error: any) {
-        setError(error.message);
+        showError(error.message);
       }
     });
   };
@@ -92,16 +90,16 @@ export default function MainScheduleRestrictions({
           const response = await fetchData(
             `${process.env.NEXT_PUBLIC_API_URL}/restricao/${url}`,
             params,
-            token
+            token,
           );
 
           setFilteredData(response.data);
         } catch (error: any) {
-          setError(error.message);
+          showError(error.message);
         }
       });
     },
-    [token, url]
+    [token, url],
   );
 
   const handleChangePage = (event: unknown, newPage: number) => {
@@ -166,15 +164,6 @@ export default function MainScheduleRestrictions({
             idRegional={selectedRestriction?.id_regional}
           />
         ) : undefined}
-
-        {error && (
-          <ErrorModal
-            open={true}
-            message={error}
-            onClose={() => setError(null)}
-            icon={<ExclamationCircleIcon width={48} height={48} />}
-          />
-        )}
       </LocalizationProvider>
     </>
   );

@@ -50,23 +50,3 @@ export function formatDateToInput(value: string | Date | undefined): string {
 
   return `${year}-${month}-${day}`;
 }
-
-export function resolveExecutionReportContext(
-  data: FormData | ExecutionReportData
-): { data: ExecutionReportData; prefix: "" | "executionReport." } {
-  const isExecutionReportData = (
-    d: FormData | ExecutionReportData
-  ): d is ExecutionReportData => !("executionReport" in d);
-
-  if (isExecutionReportData(data)) {
-    return {
-      data,
-      prefix: "",
-    };
-  }
-
-  return {
-    data: data.executionReport!,
-    prefix: "executionReport.",
-  };
-}

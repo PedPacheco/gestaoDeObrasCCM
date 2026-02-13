@@ -1,23 +1,34 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpStatus } from '@nestjs/common';
 
-import { WorksServicesService } from 'src/application/worksServices.service';
+import { WorksServicesService } from 'src/application/services/worksServices.service';
 import { ServicesController } from 'src/interface/controllers/worksServices.controller';
-import { ScheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
+import {
+  FinalizeServicesDTO,
+  ScheduleServicesDTO,
+} from 'src/interface/dtos/workServicesDTO';
+import { QueriesServicesService } from 'src/application/services/queriesServices.service';
 
 describe('ServicesController', () => {
   let controller: ServicesController;
   let service: WorksServicesService;
+  let queriesService: QueriesServicesService;
 
   const mockWorksServicesService = {
+    scheduleServices: jest.fn(),
+    reascheduleServices: jest.fn(),
+    performServices: jest.fn(),
+    finalizeServices: jest.fn(),
+    cancel: jest.fn(),
+  };
+
+  const mockQueriesService = {
     getById: jest.fn(),
     getSelectedServices: jest.fn(),
     getServiceScheduleHistory: jest.fn(),
     getServicesFilters: jest.fn(),
     getServiceContracts: jest.fn(),
     getTeamsServices: jest.fn(),
-    scheduleServices: jest.fn(),
-    cancel: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -28,13 +39,14 @@ describe('ServicesController', () => {
           provide: WorksServicesService,
           useValue: mockWorksServicesService,
         },
+        { provide: QueriesServicesService, useValue: mockQueriesService },
       ],
     }).compile();
 
     controller = module.get<ServicesController>(ServicesController);
     service = module.get<WorksServicesService>(WorksServicesService);
+    queriesService = module.get<QueriesServicesService>(QueriesServicesService);
 
-    // Limpar mocks antes de cada teste
     jest.clearAllMocks();
   });
 
@@ -53,7 +65,7 @@ describe('ServicesController', () => {
         },
       ];
 
-      mockWorksServicesService.getById.mockResolvedValue(mockResponse);
+      mockQueriesService.getById.mockResolvedValue(mockResponse);
 
       const result = await controller.getServicesByWorkId(mockId);
 
@@ -62,13 +74,13 @@ describe('ServicesController', () => {
         message: 'Serviços da obra retornados',
         data: mockResponse,
       });
-      expect(service.getById).toHaveBeenCalledWith({
+      expect(queriesService.getById).toHaveBeenCalledWith({
         id: mockId,
         point: undefined,
         service: undefined,
         operation: undefined,
       });
-      expect(service.getById).toHaveBeenCalledTimes(1);
+      expect(queriesService.getById).toHaveBeenCalledTimes(1);
     });
 
     it('should return services by work id with all filters', async () => {
@@ -85,7 +97,7 @@ describe('ServicesController', () => {
         },
       ];
 
-      mockWorksServicesService.getById.mockResolvedValue(mockResponse);
+      mockQueriesService.getById.mockResolvedValue(mockResponse);
 
       const result = await controller.getServicesByWorkId(
         mockId,
@@ -99,7 +111,7 @@ describe('ServicesController', () => {
         message: 'Serviços da obra retornados',
         data: mockResponse,
       });
-      expect(service.getById).toHaveBeenCalledWith({
+      expect(queriesService.getById).toHaveBeenCalledWith({
         id: mockId,
         point: mockPoint,
         service: mockService,
@@ -111,7 +123,7 @@ describe('ServicesController', () => {
       const mockId = 999;
       const mockResponse = [];
 
-      mockWorksServicesService.getById.mockResolvedValue(mockResponse);
+      mockQueriesService.getById.mockResolvedValue(mockResponse);
 
       const result = await controller.getServicesByWorkId(mockId);
 
@@ -134,9 +146,7 @@ describe('ServicesController', () => {
         },
       ];
 
-      mockWorksServicesService.getSelectedServices.mockResolvedValue(
-        mockResponse,
-      );
+      mockQueriesService.getSelectedServices.mockResolvedValue(mockResponse);
 
       const result = await controller.getScheduledServices(
         mockId,
@@ -148,7 +158,7 @@ describe('ServicesController', () => {
         message: 'Serviços Selecionados da obra retornados',
         data: mockResponse,
       });
-      expect(service.getSelectedServices).toHaveBeenCalledWith({
+      expect(queriesService.getSelectedServices).toHaveBeenCalledWith({
         id: mockId,
         idProgramacao: mockIdProgramacao,
         point: undefined,
@@ -170,9 +180,7 @@ describe('ServicesController', () => {
         },
       ];
 
-      mockWorksServicesService.getSelectedServices.mockResolvedValue(
-        mockResponse,
-      );
+      mockQueriesService.getSelectedServices.mockResolvedValue(mockResponse);
 
       const result = await controller.getScheduledServices(
         mockId,
@@ -183,7 +191,7 @@ describe('ServicesController', () => {
       );
 
       expect(result.data).toEqual(mockResponse);
-      expect(service.getSelectedServices).toHaveBeenCalledWith({
+      expect(queriesService.getSelectedServices).toHaveBeenCalledWith({
         id: mockId,
         idProgramacao: mockIdProgramacao,
         point: mockPoint,
@@ -209,7 +217,7 @@ describe('ServicesController', () => {
         },
       ];
 
-      mockWorksServicesService.getServiceScheduleHistory.mockResolvedValue(
+      mockQueriesService.getServiceScheduleHistory.mockResolvedValue(
         mockResponse,
       );
 
@@ -220,13 +228,15 @@ describe('ServicesController', () => {
         message: 'Histórico das programações retornados',
         data: mockResponse,
       });
-      expect(service.getServiceScheduleHistory).toHaveBeenCalledWith(mockId);
-      expect(service.getServiceScheduleHistory).toHaveBeenCalledTimes(1);
+      expect(queriesService.getServiceScheduleHistory).toHaveBeenCalledWith(
+        mockId,
+      );
+      expect(queriesService.getServiceScheduleHistory).toHaveBeenCalledTimes(1);
     });
 
     it('should return empty history', async () => {
       const mockId = 999;
-      mockWorksServicesService.getServiceScheduleHistory.mockResolvedValue([]);
+      mockQueriesService.getServiceScheduleHistory.mockResolvedValue([]);
 
       const result = await controller.getServicesScheduleHistory(mockId);
 
@@ -243,9 +253,7 @@ describe('ServicesController', () => {
         operations: ['Operação 1', 'Operação 2'],
       };
 
-      mockWorksServicesService.getServicesFilters.mockResolvedValue(
-        mockResponse,
-      );
+      mockQueriesService.getServicesFilters.mockResolvedValue(mockResponse);
 
       const result = await controller.getServicesFilters(mockId);
 
@@ -254,7 +262,7 @@ describe('ServicesController', () => {
         message: 'Valores dos filtros retornados',
         data: mockResponse,
       });
-      expect(service.getServicesFilters).toHaveBeenCalledWith(mockId);
+      expect(queriesService.getServicesFilters).toHaveBeenCalledWith(mockId);
     });
   });
 
@@ -269,9 +277,7 @@ describe('ServicesController', () => {
         },
       ];
 
-      mockWorksServicesService.getServiceContracts.mockResolvedValue(
-        mockResponse,
-      );
+      mockQueriesService.getServiceContracts.mockResolvedValue(mockResponse);
 
       const result = await controller.getServiceContracts(mockId);
 
@@ -280,7 +286,7 @@ describe('ServicesController', () => {
         message: 'Retornado contratos dos serviços',
         data: mockResponse,
       });
-      expect(service.getServiceContracts).toHaveBeenCalledWith(mockId);
+      expect(queriesService.getServiceContracts).toHaveBeenCalledWith(mockId);
     });
   });
 
@@ -295,7 +301,7 @@ describe('ServicesController', () => {
         },
       ];
 
-      mockWorksServicesService.getTeamsServices.mockResolvedValue(mockResponse);
+      mockQueriesService.getTeamsServices.mockResolvedValue(mockResponse);
 
       const result = await controller.getTeamsServices(mockId);
 
@@ -304,7 +310,7 @@ describe('ServicesController', () => {
         message: 'Retornado equipes',
         data: mockResponse,
       });
-      expect(service.getTeamsServices).toHaveBeenCalledWith(mockId);
+      expect(queriesService.getTeamsServices).toHaveBeenCalledWith(mockId);
     });
   });
 
@@ -325,13 +331,16 @@ describe('ServicesController', () => {
 
       mockWorksServicesService.scheduleServices.mockResolvedValue(undefined);
 
-      const result = await controller.scheduleServices(mockScheduleData);
+      const result = await controller.scheduleServices(1, mockScheduleData);
 
       expect(result).toEqual({
         statusCode: HttpStatus.OK,
         message: 'Serviços programados com sucesso',
       });
-      expect(service.scheduleServices).toHaveBeenCalledWith(mockScheduleData);
+      expect(service.scheduleServices).toHaveBeenCalledWith(
+        1,
+        mockScheduleData,
+      );
       expect(service.scheduleServices).toHaveBeenCalledTimes(1);
     });
 
@@ -352,13 +361,16 @@ describe('ServicesController', () => {
 
       mockWorksServicesService.scheduleServices.mockResolvedValue(undefined);
 
-      const result = await controller.scheduleServices(mockScheduleData);
+      const result = await controller.scheduleServices(1, mockScheduleData);
 
       expect(result).toEqual({
         statusCode: HttpStatus.OK,
         message: 'Serviços programados com sucesso',
       });
-      expect(service.scheduleServices).toHaveBeenCalledWith(mockScheduleData);
+      expect(service.scheduleServices).toHaveBeenCalledWith(
+        1,
+        mockScheduleData,
+      );
       expect(service.scheduleServices).toHaveBeenCalledTimes(1);
     });
 
@@ -373,10 +385,13 @@ describe('ServicesController', () => {
 
       mockWorksServicesService.scheduleServices.mockResolvedValue(undefined);
 
-      const result = await controller.scheduleServices(mockScheduleData);
+      const result = await controller.scheduleServices(1, mockScheduleData);
 
       expect(result.statusCode).toBe(HttpStatus.OK);
-      expect(service.scheduleServices).toHaveBeenCalledWith(mockScheduleData);
+      expect(service.scheduleServices).toHaveBeenCalledWith(
+        1,
+        mockScheduleData,
+      );
     });
 
     it('should handle empty schedule array', async () => {
@@ -384,10 +399,10 @@ describe('ServicesController', () => {
 
       mockWorksServicesService.scheduleServices.mockResolvedValue(undefined);
 
-      const result = await controller.scheduleServices(mockScheduleData);
+      const result = await controller.scheduleServices(1, mockScheduleData);
 
       expect(result.statusCode).toBe(HttpStatus.OK);
-      expect(service.scheduleServices).toHaveBeenCalledWith([]);
+      expect(service.scheduleServices).toHaveBeenCalledWith(1, []);
     });
 
     it('should schedule services with all fields populated', async () => {
@@ -414,13 +429,121 @@ describe('ServicesController', () => {
 
       mockWorksServicesService.scheduleServices.mockResolvedValue(undefined);
 
-      const result = await controller.scheduleServices(mockScheduleData);
+      const result = await controller.scheduleServices(1, mockScheduleData);
 
       expect(result).toEqual({
         statusCode: HttpStatus.OK,
         message: 'Serviços programados com sucesso',
       });
-      expect(service.scheduleServices).toHaveBeenCalledWith(mockScheduleData);
+      expect(service.scheduleServices).toHaveBeenCalledWith(
+        1,
+        mockScheduleData,
+      );
+    });
+  });
+
+  describe('reascheduleServices', () => {
+    it('should call the method reascheduleServices service', async () => {
+      const mockId = [{ id: 1 }, { id: 2 }];
+
+      mockQueriesService.getTeamsServices.mockResolvedValue(null);
+
+      await controller.reascheduleServices(mockId);
+
+      expect(mockWorksServicesService.reascheduleServices).toHaveBeenCalledWith(
+        mockId,
+      );
+    });
+  });
+
+  describe('finalizeServices', () => {
+    const mockId = 10;
+
+    const mockExecutionData = {
+      data: {
+        idSchedule: 123,
+        executionReport: {
+          supervisor: 'João da Silva',
+          partialConnectionReleased: true,
+          startTime: '08:30',
+          finishTime: '12:45',
+          startContact: 'Carlos Souza',
+          endContact: 'Maria Oliveira',
+          delayJustification: 'Sem atraso',
+          hasEquipmentInstalled: true,
+          appliedEquipment: [
+            {
+              equipment: 'Transformador',
+              power: '75kVA',
+              patrimony: 'PAT-001',
+              installation: 'Poste A12',
+            },
+          ],
+          hasEquipmentRemoved: false,
+          equipmentRemoved: [],
+          changesExecution: false,
+          generalObservation: 'Execução OK',
+          reason: 'Planejado',
+          provisionalKeyInstalled: true,
+          provisionalKeyReference: 'PK-123',
+          provisionalKeyWithdrawn: false,
+          provisionalKeyReferenceWithdrawn: '',
+        },
+      },
+    } as FinalizeServicesDTO;
+
+    const mockFiles = [
+      {
+        originalname: 'teste.pdf',
+        filename: 'teste.pdf',
+        path: '/uploads/teste.pdf',
+        mimetype: 'application/pdf',
+      },
+    ] as Express.Multer.File[];
+
+    const mockReq = {
+      user: {
+        sub: 99,
+      },
+    };
+
+    it('should call finalizeServices service with transformed data', async () => {
+      await controller.finalizeServices(
+        mockId,
+        mockExecutionData,
+        mockFiles,
+        mockReq,
+      );
+
+      const expectedExecutionReportData = {
+        ...mockExecutionData.data.executionReport,
+        idUser: 99,
+      };
+
+      expect(mockWorksServicesService.finalizeServices).toHaveBeenCalledWith(
+        mockId,
+        expect.objectContaining({
+          idSchedule: 123,
+          idUser: 99,
+          executionReportData: expectedExecutionReportData,
+        }),
+        mockFiles,
+      );
+    });
+  });
+
+  describe('performServices', () => {
+    it('should call the method performServices service', async () => {
+      const mockParams = [
+        { id: 1, idSchedule: 1, qtdeRealizada: 3 },
+        { id: 2, idSchedule: 2, qtdeRealizada: 4 },
+      ];
+
+      await controller.performServices(mockParams);
+
+      expect(mockWorksServicesService.performServices).toHaveBeenCalledWith(
+        mockParams,
+      );
     });
   });
 
@@ -457,7 +580,7 @@ describe('ServicesController', () => {
       const mockId = 1;
       const mockError = new Error('Database error');
 
-      mockWorksServicesService.getById.mockRejectedValue(mockError);
+      mockQueriesService.getById.mockRejectedValue(mockError);
 
       await expect(controller.getServicesByWorkId(mockId)).rejects.toThrow(
         'Database error',
@@ -477,7 +600,7 @@ describe('ServicesController', () => {
       mockWorksServicesService.scheduleServices.mockRejectedValue(mockError);
 
       await expect(
-        controller.scheduleServices(mockScheduleData),
+        controller.scheduleServices(1, mockScheduleData),
       ).rejects.toThrow('Schedule conflict');
     });
 

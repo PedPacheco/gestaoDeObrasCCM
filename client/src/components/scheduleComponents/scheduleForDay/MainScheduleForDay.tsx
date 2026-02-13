@@ -7,19 +7,16 @@ import { Cookies } from "react-cookie";
 import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
 import { TableWithPagination } from "@/components/common/TableWithPagination";
+import { useUser } from "@/contexts/userContext";
+import { useFeedback } from "@/hooks/useFeedback";
+import { FiltersInterface } from "@/interfaces/filtersInterfaces";
 import { MainInterface } from "@/interfaces/mainInterface";
 import { FormatCurrency } from "@/utils/formatValue";
 import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import ScheduleForDayFilters from "./ScheduleForDayFilters";
-import { FiltersInterface } from "@/interfaces/filtersInterfaces";
-import { useUser } from "@/contexts/userContext";
 
-const ErrorModal = dynamic(() => import("@/components/common/ErrorModal"), {
-  ssr: false,
-});
 const ModalComponent = dynamic(() => import("@/components/common/Modal"), {
   ssr: false,
 });
@@ -32,11 +29,14 @@ export default function MainSchduleForDay({
   filtersData,
   token,
 }: MainInterface<any>) {
+  const { permissions } = useUser();
+
+  const { showError } = useFeedback();
+
   const [filteredData, setFilteredData] = useState(data);
-  const { permissions, user } = useUser();
   const [open, setOpen] = useState(false);
-  const [error, setError] = useState<string | null>();
   const [page, setPage] = useState(0);
+
   const [isPending, startTransition] = useTransition();
   const [filteredFilters, setFilteredFilters] =
     useState<FiltersInterface>(filtersData);
@@ -75,7 +75,7 @@ export default function MainSchduleForDay({
           window.URL.revokeObjectURL(downloadUrl);
         }
       } catch (error: any) {
-        setError(`Erro ao gerar a planilha: ${error.message}`);
+        showError(`Erro ao gerar a planilha: ${error.message}`);
       }
     },
     [token],
@@ -93,7 +93,7 @@ export default function MainSchduleForDay({
           );
           setFilteredData(response.data);
         } catch (error: any) {
-          setError(error.message);
+          showError(error.message);
         }
       });
     },
@@ -187,15 +187,6 @@ export default function MainSchduleForDay({
             })}
         </div>
       </ModalComponent>
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </div>
   );
 }

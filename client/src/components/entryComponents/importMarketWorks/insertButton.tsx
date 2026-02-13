@@ -10,6 +10,7 @@ import ErrorModal from "@/components/common/ErrorModal";
 import ModalComponent from "@/components/common/Modal";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+import { useFeedback } from "@/hooks/useFeedback";
 
 const cookies = new Cookies();
 
@@ -22,7 +23,7 @@ export function InsertMarketWorksButton({
 }: InsertMarketWorksButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>();
+  const { showError } = useFeedback();
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [success, setSuccess] = useState<string | null>();
 
@@ -78,7 +79,7 @@ export function InsertMarketWorksButton({
         const res = await InsertWorks(data, storageKey);
 
         if (!res.success) {
-          setError(res.error);
+          showError(res.error);
           return;
         }
 
@@ -90,7 +91,7 @@ export function InsertMarketWorksButton({
 
         router.refresh();
       } catch (err: any) {
-        setError(err.message);
+        showError(err.message);
       }
     });
   };
@@ -103,7 +104,7 @@ export function InsertMarketWorksButton({
           isPending,
           storageKey === "marketEntryData"
             ? "Inserir obras de mercado"
-            : "Inserir Notas"
+            : "Inserir Notas",
         )}
         disabled={isPending}
         styled="w-64"
@@ -112,15 +113,6 @@ export function InsertMarketWorksButton({
       <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
         <span className=" font-semibold text-xl">{success}</span>
       </ModalComponent>
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </>
   );
 }

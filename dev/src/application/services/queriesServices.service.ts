@@ -1,20 +1,16 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
-  WORKS_SERVICE_REPOSITORY,
   IWorksServicesRepository,
+  WORKS_SERVICE_REPOSITORY,
 } from 'src/domain/repositories/IWorksServiceRepository';
 import {
   GetByIdParamsInterface,
   GetSelectedServicesParamsInterface,
 } from 'src/interface/types/servicesInterface';
-import { GetWorkDetailsService } from './works/getWorkDetails.service';
-import {
-  PerformServicesDTO,
-  ScheduleServicesDTO,
-} from 'src/interface/dtos/workServicesDTO';
+import { GetWorkDetailsService } from '../works/getWorkDetails.service';
 
 @Injectable()
-export class WorksServicesService {
+export class QueriesServicesService {
   constructor(
     @Inject(WORKS_SERVICE_REPOSITORY)
     private readonly worksServicesRepository: IWorksServicesRepository,
@@ -116,32 +112,5 @@ export class WorksServicesService {
       await this.worksServicesRepository.getTeamsServices(idParceira);
 
     return data;
-  }
-
-  async scheduleServices(data: ScheduleServicesDTO[]) {
-    await this.worksServicesRepository.scheduleServices(data);
-  }
-
-  async performServices(data: PerformServicesDTO[]) {
-    await this.worksServicesRepository.performServices(data);
-  }
-
-  async reascheduleServices(data: { id: number }[]) {
-    await this.worksServicesRepository.reascheduleServices(data);
-  }
-
-  // async finalizeServices(id: number, data: { id: number }) {
-  //   const services =
-  //     await this.worksServicesRepository.getNotScheduledServices({id, idProgramacao: data.id});
-
-  //   const currentScheduleServices = services.filter(
-  //     (s) => s.id_programacao === data.id,
-  //   ).reduce(())
-
-  //   console.log(currentScheduleServices);
-  // }
-
-  async cancel(id: number) {
-    await this.worksServicesRepository.cancel(id);
   }
 }

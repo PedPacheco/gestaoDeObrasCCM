@@ -10,24 +10,21 @@ import {
   GetByIdParamsInterface,
   GetSelectedServicesParamsInterface,
 } from 'src/interface/types/servicesInterface';
-import { ScheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
-import { WorksServicesService } from 'src/application/worksServices.service';
 import { GetWorkDetailsService } from 'src/application/works/getWorkDetails.service';
+import { QueriesServicesService } from 'src/application/services/queriesServices.service';
 
 describe('WorksServicesService', () => {
-  let service: WorksServicesService;
+  let service: QueriesServicesService;
   let repository: IWorksServicesRepository;
   let getWorkDetailsService: GetWorkDetailsService;
 
   const mockWorksServicesRepository = {
-    getServices: jest.fn(),
+    getNotScheduledServices: jest.fn(),
     getSelectedServices: jest.fn(),
     getServiceScheduleHistory: jest.fn(),
     getServicesFilters: jest.fn(),
     getServicesContracts: jest.fn(),
     getTeamsServices: jest.fn(),
-    scheduleServices: jest.fn(),
-    cancel: jest.fn(),
   };
 
   const mockGetWorkDetailsService = {
@@ -37,7 +34,7 @@ describe('WorksServicesService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        WorksServicesService,
+        QueriesServicesService,
         {
           provide: WORKS_SERVICE_REPOSITORY,
           useValue: mockWorksServicesRepository,
@@ -49,7 +46,7 @@ describe('WorksServicesService', () => {
       ],
     }).compile();
 
-    service = module.get<WorksServicesService>(WorksServicesService);
+    service = module.get<QueriesServicesService>(QueriesServicesService);
     repository = module.get<IWorksServicesRepository>(WORKS_SERVICE_REPOSITORY);
     getWorkDetailsService = module.get<GetWorkDetailsService>(
       GetWorkDetailsService,
@@ -116,7 +113,7 @@ describe('WorksServicesService', () => {
     ];
 
     it('should return formatted services successfully', async () => {
-      mockWorksServicesRepository.getServices.mockResolvedValue(
+      mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue(
         mockRepositoryResponse,
       );
 
@@ -160,8 +157,10 @@ describe('WorksServicesService', () => {
           valorReal: 2000,
         },
       ]);
-      expect(repository.getServices).toHaveBeenCalledWith(mockParams);
-      expect(repository.getServices).toHaveBeenCalledTimes(1);
+      expect(repository.getNotScheduledServices).toHaveBeenCalledWith(
+        mockParams,
+      );
+      expect(repository.getNotScheduledServices).toHaveBeenCalledTimes(1);
     });
 
     it('should return services without optional filters', async () => {
@@ -169,18 +168,22 @@ describe('WorksServicesService', () => {
         id: 1,
       };
 
-      mockWorksServicesRepository.getServices.mockResolvedValue([
+      mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue([
         mockRepositoryResponse[0],
       ]);
 
       const result = await service.getById(paramsWithoutFilters);
 
       expect(result).toHaveLength(1);
-      expect(repository.getServices).toHaveBeenCalledWith(paramsWithoutFilters);
+      expect(repository.getNotScheduledServices).toHaveBeenCalledWith(
+        paramsWithoutFilters,
+      );
     });
 
     it('should throw NotFoundException when services is null', async () => {
-      mockWorksServicesRepository.getServices.mockResolvedValue(null);
+      mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue(
+        null,
+      );
 
       await expect(service.getById(mockParams)).rejects.toThrow(
         NotFoundException,
@@ -191,7 +194,9 @@ describe('WorksServicesService', () => {
     });
 
     it('should throw NotFoundException when services is undefined', async () => {
-      mockWorksServicesRepository.getServices.mockResolvedValue(undefined);
+      mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue(
+        undefined,
+      );
 
       await expect(service.getById(mockParams)).rejects.toThrow(
         NotFoundException,
@@ -199,7 +204,7 @@ describe('WorksServicesService', () => {
     });
 
     it('should return empty array when no services found', async () => {
-      mockWorksServicesRepository.getServices.mockResolvedValue([]);
+      mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue([]);
 
       const result = await service.getById(mockParams);
 
@@ -220,7 +225,7 @@ describe('WorksServicesService', () => {
         },
       ];
 
-      mockWorksServicesRepository.getServices.mockResolvedValue(
+      mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue(
         serviceWithCustomValues,
       );
 
@@ -238,7 +243,7 @@ describe('WorksServicesService', () => {
         },
       ];
 
-      mockWorksServicesRepository.getServices.mockResolvedValue(
+      mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue(
         serviceWithoutProgramacao,
       );
 
@@ -654,155 +659,6 @@ describe('WorksServicesService', () => {
       const result = await service.getTeamsServices(mockIdWork);
 
       expect(result).toEqual([]);
-    });
-  });
-
-  describe('scheduleServices', () => {
-    it('should schedule services successfully', async () => {
-      const mockScheduleData: ScheduleServicesDTO[] = [
-        {
-          id: 1,
-          idTeam: 10,
-          prog: 100,
-        },
-        {
-          id: 2,
-          idTeam: 20,
-          prog: 200,
-        },
-      ];
-
-      mockWorksServicesRepository.scheduleServices.mockResolvedValue(undefined);
-
-      await service.scheduleServices(mockScheduleData);
-
-      expect(repository.scheduleServices).toHaveBeenCalledWith(
-        mockScheduleData,
-      );
-      expect(repository.scheduleServices).toHaveBeenCalledTimes(1);
-    });
-
-    it('should schedule services with idSchedule', async () => {
-      const mockScheduleData: ScheduleServicesDTO[] = [
-        {
-          id: 1,
-          idTeam: 10,
-          idSchedule: 5,
-          prog: 100,
-        },
-      ];
-
-      mockWorksServicesRepository.scheduleServices.mockResolvedValue(undefined);
-
-      await service.scheduleServices(mockScheduleData);
-
-      expect(repository.scheduleServices).toHaveBeenCalledWith(
-        mockScheduleData,
-      );
-    });
-
-    it('should handle empty schedule array', async () => {
-      const mockScheduleData: ScheduleServicesDTO[] = [];
-
-      mockWorksServicesRepository.scheduleServices.mockResolvedValue(undefined);
-
-      await service.scheduleServices(mockScheduleData);
-
-      expect(repository.scheduleServices).toHaveBeenCalledWith([]);
-    });
-
-    it('should propagate repository errors', async () => {
-      const mockScheduleData: ScheduleServicesDTO[] = [
-        {
-          id: 1,
-          idTeam: 10,
-          prog: 100,
-        },
-      ];
-      const mockError = new Error('Schedule conflict');
-
-      mockWorksServicesRepository.scheduleServices.mockRejectedValue(mockError);
-
-      await expect(service.scheduleServices(mockScheduleData)).rejects.toThrow(
-        'Schedule conflict',
-      );
-    });
-  });
-
-  describe('cancel', () => {
-    it('should cancel schedule successfully', async () => {
-      const mockId = 1;
-
-      mockWorksServicesRepository.cancel.mockResolvedValue(undefined);
-
-      await service.cancel(mockId);
-
-      expect(repository.cancel).toHaveBeenCalledWith(mockId);
-      expect(repository.cancel).toHaveBeenCalledTimes(1);
-    });
-
-    it('should handle different id values for cancellation', async () => {
-      const mockId = 999;
-
-      mockWorksServicesRepository.cancel.mockResolvedValue(undefined);
-
-      await service.cancel(mockId);
-
-      expect(repository.cancel).toHaveBeenCalledWith(999);
-    });
-
-    it('should propagate repository errors on cancel', async () => {
-      const mockId = 1;
-      const mockError = new Error('Schedule not found');
-
-      mockWorksServicesRepository.cancel.mockRejectedValue(mockError);
-
-      await expect(service.cancel(mockId)).rejects.toThrow(
-        'Schedule not found',
-      );
-    });
-  });
-
-  describe('Integration scenarios', () => {
-    it('should handle complete workflow: get work, get contracts, schedule', async () => {
-      const mockIdWork = 1;
-      const mockIdParceira = 100;
-      const mockWork = {
-        id: 1,
-        id_turma: mockIdParceira,
-      };
-
-      mockGetWorkDetailsService.get.mockResolvedValue(mockWork);
-      mockWorksServicesRepository.getServicesContracts.mockResolvedValue([
-        { id: 1, contrato: 'CONT-001' },
-      ]);
-
-      await service.getServiceContracts(mockIdWork);
-
-      const scheduleData: ScheduleServicesDTO[] = [
-        {
-          id: 1,
-          idTeam: 10,
-          prog: 100,
-        },
-      ];
-
-      mockWorksServicesRepository.scheduleServices.mockResolvedValue(undefined);
-      await service.scheduleServices(scheduleData);
-
-      expect(getWorkDetailsService.get).toHaveBeenCalledWith(mockIdWork);
-      expect(repository.scheduleServices).toHaveBeenCalledWith(scheduleData);
-    });
-
-    it('should handle errors gracefully in service chain', async () => {
-      const mockIdWork = 1;
-      const mockError = new Error('Work not found');
-
-      mockGetWorkDetailsService.get.mockRejectedValue(mockError);
-
-      await expect(service.getServiceContracts(mockIdWork)).rejects.toThrow(
-        'Work not found',
-      );
     });
   });
 });

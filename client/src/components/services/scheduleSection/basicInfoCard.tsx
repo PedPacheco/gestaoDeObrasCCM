@@ -4,20 +4,17 @@ import { FormData } from "@/hooks/useScheduleForm";
 
 interface BasicInfoCardProps {
   formData: FormData;
-  // formErrors: Record<string, string>;
   onInputChange: (field: keyof FormData) => (event: any) => void;
   disabledFields: () => boolean | undefined;
-  isInsert: boolean;
 }
 
 export function BasicInfoCard({
   formData,
   disabledFields,
-  isInsert,
   onInputChange,
 }: BasicInfoCardProps) {
   return (
-    <Grid item xs={12} md={6} lg={!isInsert ? 4 : 6}>
+    <Grid item xs={12} md={6} lg={4}>
       <ScheduleCard title="Informações Básicas">
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>

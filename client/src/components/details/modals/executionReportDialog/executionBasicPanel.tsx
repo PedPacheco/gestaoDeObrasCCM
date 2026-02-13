@@ -1,41 +1,27 @@
-import { FormData } from "@/hooks/useScheduleForm";
-import { resolveExecutionReportContext } from "@/utils/formatValue";
-import {
-  Checkbox,
-  FormControl,
-  FormControlLabel,
-  Grid,
-  TextField,
-} from "@mui/material";
+import { Checkbox, FormControlLabel, Grid, TextField } from "@mui/material";
 
 import { ExecutionReportData } from "./executionReportDialog";
-import { useEffect } from "react";
 
 interface ExecutionBasicPanelProps {
-  formData: FormData | ExecutionReportData;
+  formData: ExecutionReportData;
   formErrors: Record<string, string>;
-  onInputChange: (
-    field:
-      | keyof FormData
-      | `executionReport.${keyof ExecutionReportData}`
-      | keyof ExecutionReportData
+  handleExecutionReportChange: (
+    field: keyof ExecutionReportData,
   ) => (event: any) => void;
-  wasTheWorkCompleted: number;
+  // wasTheWorkCompleted: number;
 }
 
 export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
   formData,
   formErrors,
-  onInputChange,
-  wasTheWorkCompleted,
+  handleExecutionReportChange,
+  // wasTheWorkCompleted,
 }) => {
-  const { data, prefix } = resolveExecutionReportContext(formData);
-
-  useEffect(() => {
-    if (wasTheWorkCompleted === 100) {
-      onInputChange(`${prefix}partialConnectionReleased`)(true);
-    }
-  }, [wasTheWorkCompleted, onInputChange, prefix]);
+  // useEffect(() => {
+  //   if (wasTheWorkCompleted === 100) {
+  //     handleExecutionReportChange("partialConnectionReleased")(true);
+  //   }
+  // }, [wasTheWorkCompleted, handleExecutionReportChange, prefix]);
 
   return (
     <Grid container spacing={3}>
@@ -43,8 +29,8 @@ export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
         <TextField
           fullWidth
           label="Supervisor"
-          value={data.supervisor || ""}
-          onChange={onInputChange(`${prefix}supervisor`)}
+          value={formData.supervisor || ""}
+          onChange={handleExecutionReportChange("supervisor")}
           error={!!formErrors.supervisor}
           helperText={formErrors.supervisor}
           autoComplete="off"
@@ -56,8 +42,8 @@ export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
           fullWidth
           type="time"
           label="Horário de Início (Real campo)"
-          value={data.startTime}
-          onChange={onInputChange(`${prefix}startTime`)}
+          value={formData.startTime}
+          onChange={handleExecutionReportChange("startTime")}
           error={!!formErrors.startTime}
           helperText={formErrors.startTime}
           autoComplete="off"
@@ -69,8 +55,8 @@ export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
           fullWidth
           type="time"
           label="Horário de Término (Real campo)"
-          value={data.finishTime}
-          onChange={onInputChange(`${prefix}finishTime`)}
+          value={formData.finishTime}
+          onChange={handleExecutionReportChange("finishTime")}
           error={!!formErrors.finishTime}
           helperText={formErrors.finishTime}
           autoComplete="off"
@@ -81,10 +67,10 @@ export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
         <TextField
           fullWidth
           label="Nome Operador COI - Inicio"
-          value={data.startContact || ""}
+          value={formData.startContact || ""}
           error={!!formErrors.startContact}
           helperText={formErrors.startContact}
-          onChange={onInputChange(`${prefix}startContact`)}
+          onChange={handleExecutionReportChange("startContact")}
           autoComplete="off"
         />
       </Grid>
@@ -93,10 +79,10 @@ export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
         <TextField
           fullWidth
           label="Nome Operador COI - Término"
-          value={data.endContact || ""}
+          value={formData.endContact || ""}
           error={!!formErrors.endContact}
           helperText={formErrors.endContact}
-          onChange={onInputChange(`${prefix}endContact`)}
+          onChange={handleExecutionReportChange("endContact")}
           autoComplete="off"
         />
       </Grid>
@@ -107,8 +93,8 @@ export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
           label="Justificativa de Atraso"
           multiline
           minRows={2}
-          value={data.delayJustification || ""}
-          onChange={onInputChange(`${prefix}delayJustification`)}
+          value={formData.delayJustification || ""}
+          onChange={handleExecutionReportChange("delayJustification")}
           error={!!formErrors.delayJustification}
           helperText={formErrors.delayJustification}
           autoComplete="off"
@@ -120,15 +106,18 @@ export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
           control={
             <Checkbox
               checked={
-                wasTheWorkCompleted === 100
-                  ? true
-                  : data.partialConnectionReleased || false
+                // wasTheWorkCompleted === 100
+                //   ? true
+                //   : formData.partialConnectionReleased || false
+
+                formData.partialConnectionReleased
               }
-              disabled={wasTheWorkCompleted === 100}
+              // disabled={wasTheWorkCompleted === 100}
               onChange={
-                wasTheWorkCompleted === 100
-                  ? undefined
-                  : onInputChange(`${prefix}partialConnectionReleased`)
+                // wasTheWorkCompleted === 100
+                //   ? undefined
+                //   :
+                handleExecutionReportChange("partialConnectionReleased")
               }
             />
           }

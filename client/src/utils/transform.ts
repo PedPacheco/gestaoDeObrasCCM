@@ -16,17 +16,12 @@ export function mapScheduleToForm(schedule: any, options: Record<string, any>) {
     (t: any) => t.tecnico === schedule.tecnico,
   );
 
-  const restrictionFound = options.restricao.find(
-    (r: any) => r.restricao === schedule.restricao,
-  );
-
   return {
     idWork: schedule.idWork,
     dataProg: formatDateToInput(schedule.data_prog) ?? "",
     startTime: formatToHHMM(schedule.hora_ini) ?? "",
     finishTime: formatToHHMM(schedule.hora_ter) ?? "",
     prog: schedule.prog,
-    exec: schedule.exec,
     serviceType: schedule.tipo_servico ?? "",
     observation: schedule.observacao_programacao ?? "",
     equipment: schedule.equip_desligado ?? "",
@@ -37,9 +32,6 @@ export function mapScheduleToForm(schedule: any, options: Record<string, any>) {
     regulTeam: schedule.equipe_regularizacao ?? 0,
     lvTeam: schedule.equipe_linha_viva ?? 0,
     idTechnical: technicianFound.id ?? 0,
-    idExecutionRestriction: restrictionFound.id ?? 0,
-    responsibility: schedule.nome_responsavel_execucao ?? "",
-    executionReport: schedule.executionReport,
     idProgRestriction1: schedule.id_restricao_prog1,
     responsiblityProg: schedule.responsabilidade1,
     responsibleName: schedule.nome_responsavel,
@@ -56,6 +48,24 @@ export function mapScheduleToForm(schedule: any, options: Record<string, any>) {
     confirmed: schedule.confirmada,
   };
 }
+
+// export function mapExecutionServicesForm(
+//   schedule: any,
+//   options: Record<string, any>,
+// ) {
+//   const restrictionFound = options.restricao.find(
+//     (r: any) => r.restricao === schedule.restricao,
+//   );
+
+//   return {
+//     idSchedule: schedule.id,
+//     finishTime: formatToHHMM(schedule.hora_ter),
+//     serviceType: schedule.tipo_servico ?? "",
+//     idExecutionRestriction: restrictionFound.id ?? 0,
+//     responsibility: schedule.nome_responsavel_execucao ?? "",
+//     executionReport: schedule.executionReport,
+//   };
+// }
 
 export function transformExecutionReport(data: any): ExecutionReportData {
   const splitEquipamentos = (

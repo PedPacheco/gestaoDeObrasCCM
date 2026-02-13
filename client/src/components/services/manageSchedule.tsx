@@ -1,14 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
-import { useUser } from "@/contexts/userContext";
-import { useScheduleFormV2 } from "@/hooks/useScheduleFormV2";
-import { useScheduleSubmitV2 } from "@/hooks/useScheduleSubmitV2";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+import { useExecutionServiceForm } from "@/hooks/useExecutionServicesForm";
+import { useFeedback } from "@/hooks/useFeedback";
+import { useScheduleForm } from "@/hooks/useScheduleForm";
+import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
 
-import ErrorModal from "../common/ErrorModal";
-import ModalComponent from "../common/Modal";
 import { ScheduleSection } from "./scheduleSection/scheduleSection";
 import { ServicesSection } from "./servicesSection/servicesSection";
 import { TeamModal } from "./servicesSection/teamsModal";
@@ -42,54 +40,50 @@ export function ManageSchedule({
   idStatusWork,
   idSchedule,
 }: ManageScheduleProps) {
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [openModal, setOpenModal] = useState(false);
-  const [editingExecutionReport, setEditingExecutionReport] = useState<any>();
-
-  const [prog, setProg] = useState<number>(0);
+  const { showError, showSuccess } = useFeedback();
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
   const [openTeamsModal, setOpenTeamsModal] = useState<boolean>(false);
 
   const dialogTitle = isInsert ? "Nova Programação" : "Editar Programação";
 
-  const toggleModal = useCallback(() => {
-    setOpenModal((prev) => !prev);
-  }, []);
-
   const toggleTeamsModal = useCallback(() => {
     setOpenTeamsModal((prev) => !prev);
   }, []);
 
-  useEffect(() => {
-    const totalPlan = servicesData.reduce(
-      (acc, item) => acc + item.qtdePlanejada,
-      0,
-    );
-    const selectedPlan = selectedServices.reduce(
-      (acc, item) => acc + item.prog,
-      0,
-    );
-
-    setProg((selectedPlan / totalPlan) * 100);
-  }, [selectedServices, servicesData]);
-
-  const scheduleForm = useScheduleFormV2({
-    data: scheduleData,
-    executionData: editingExecutionReport,
-    options,
-    prog,
+  const scheduleForm = useScheduleForm({
+    data: { idWork, ...scheduleData },
+    options: options,
   });
 
-  const { handleSubmit, isPending } = useScheduleSubmitV2({
-    formData: scheduleForm.formData,
+  const executionFormData = useMemo(() => {
+    if (!idSchedule) return null;
+
+    return {
+      idWork,
+      idSchedule,
+      idExecutionRestriction: 1,
+      serviceType: scheduleForm.formData.serviceType,
+      finishTime: scheduleForm.formData.finishTime,
+    };
+  }, [
+    idWork,
+    idSchedule,
+    scheduleForm.formData.finishTime,
+    scheduleForm.formData.serviceType,
+  ]);
+
+  const executionForm = useExecutionServiceForm({
+    enabled: Boolean(idSchedule),
+    data: executionFormData,
+  });
+
+  const { handleSubmit, isPending } = useScheduleSubmit({
     idWork: Number(idWork),
-    onError: setError,
+    onError: showError,
     onSuccess: (message) => {
-      setSuccess(message);
-      setOpenModal(true);
+      showSuccess(message);
     },
-    onModalOpen: setOpenModal,
+    formData: scheduleData,
     setFormErrors: scheduleForm.setFormErrors,
   });
 
@@ -108,9 +102,8 @@ export function ManageSchedule({
           options={options}
           scheduleForm={scheduleForm}
           statusWork={idStatusWork}
-          onError={setError}
+          onError={showError}
           setOpenTeamsModal={setOpenTeamsModal}
-          prog={prog}
           isPending={isPending}
           handleSubmit={handleSubmit}
         />
@@ -119,19 +112,20 @@ export function ManageSchedule({
       {/* Services Section */}
       <div className="w-full pb-10 mb-10">
         <ServicesSection
+          executionForm={executionForm}
           servicesData={servicesData}
           scheduledServicesData={scheduledServicesData}
           serviceFilters={serviceFilters}
           scheduledServicesHistory={scheduledServicesHistory}
           serviceContractData={serviceContractData}
-          serviceTeams={serviceTeams}
-          idScheduleExisting={idSchedule}
           selectedServices={selectedServices}
           setSelectedServices={setSelectedServices}
           setOpenTeamsModal={setOpenTeamsModal}
           isInsert={isInsert}
           idSchedule={idSchedule}
-          prog={prog}
+          options={options}
+          onError={showError}
+          onSuccess={showSuccess}
         />
       </div>
 
@@ -142,27 +136,15 @@ export function ManageSchedule({
           teams={serviceTeams}
           idSchedule={idSchedule ? Number(idSchedule) : null}
           selectedServices={selectedServices}
-          scheduleData={{
-            ...scheduleForm.formData,
-            idWork: idWork,
-          }}
-          prog={prog}
+          scheduleData={
+            idSchedule
+              ? {
+                  // ...executionForm.formData,
+                  idWork: idWork,
+                }
+              : { idWork, ...scheduleData.formData }
+          }
           isInsert={isInsert}
-        />
-      )}
-
-      <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
-        <span className="text-center text-lg text-gray-700 dark:text-gray-200 mb-6">
-          {success}
-        </span>
-      </ModalComponent>
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
         />
       )}
     </div>

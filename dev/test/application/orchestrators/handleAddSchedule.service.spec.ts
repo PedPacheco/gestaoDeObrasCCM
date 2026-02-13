@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HandleAddScheduleService } from 'src/application/orchestrators/handleAddSchedule.service';
 import { AddSchedulesService } from 'src/application/schedule/addSchedules.service';
-import { WorksServicesService } from 'src/application/worksServices.service';
+import { WorksServicesService } from 'src/application/services/worksServices.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { CreateScheduleWithServicesDTO } from 'src/interface/dtos/scheduleDTO';
@@ -23,6 +23,7 @@ describe('HandleAddScheduleService', () => {
   };
 
   const mockWorksServicesService = {
+    calculateScheduledProgress: jest.fn(),
     scheduleServices: jest.fn(),
   };
 
@@ -59,11 +60,14 @@ describe('HandleAddScheduleService', () => {
 
       mockPrisma.$transaction.mockImplementation(async (cb) => cb({}));
 
+      mockWorksServicesService.calculateScheduledProgress.mockResolvedValue(80);
+
       await service.add(data);
 
       expect(mockAddSchedulesService.add).toHaveBeenCalledWith(
         {
           idWork: 123,
+          prog: 80,
         },
         expect.any(Object),
       );

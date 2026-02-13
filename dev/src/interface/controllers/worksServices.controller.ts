@@ -7,16 +7,25 @@ import {
   ParseIntPipe,
   Patch,
   Query,
+  Req,
+  UploadedFiles,
+  UseInterceptors,
 } from '@nestjs/common';
-import { WorksServicesService } from 'src/application/worksServices.service';
+import { WorksServicesService } from 'src/application/services/worksServices.service';
 import {
+  FinalizeServicesDTO,
   PerformServicesDTO,
   ScheduleServicesDTO,
 } from '../dtos/workServicesDTO';
+import { QueriesServicesService } from 'src/application/services/queriesServices.service';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('servicos')
 export class ServicesController {
-  constructor(private readonly worksServicesService: WorksServicesService) {}
+  constructor(
+    private readonly worksServicesService: WorksServicesService,
+    private readonly queriesServicesService: QueriesServicesService,
+  ) {}
 
   @Get(':id')
   async getServicesByWorkId(
@@ -25,7 +34,7 @@ export class ServicesController {
     @Query('servico') service?: string,
     @Query('operacao') operation?: string,
   ) {
-    const response = await this.worksServicesService.getById({
+    const response = await this.queriesServicesService.getById({
       id,
       point,
       service,
@@ -47,7 +56,7 @@ export class ServicesController {
     @Query('servico') service?: string,
     @Query('operacao') operation?: string,
   ) {
-    const response = await this.worksServicesService.getSelectedServices({
+    const response = await this.queriesServicesService.getSelectedServices({
       id,
       idProgramacao,
       point,
@@ -65,7 +74,7 @@ export class ServicesController {
   @Get('historico/:id')
   async getServicesScheduleHistory(@Param('id', ParseIntPipe) id: number) {
     const response =
-      await this.worksServicesService.getServiceScheduleHistory(id);
+      await this.queriesServicesService.getServiceScheduleHistory(id);
 
     return {
       statusCode: HttpStatus.OK,
@@ -76,7 +85,7 @@ export class ServicesController {
 
   @Get('filtros/:id')
   async getServicesFilters(@Param('id', ParseIntPipe) id: number) {
-    const response = await this.worksServicesService.getServicesFilters(id);
+    const response = await this.queriesServicesService.getServicesFilters(id);
 
     return {
       statusCode: HttpStatus.OK,
@@ -87,7 +96,7 @@ export class ServicesController {
 
   @Get('contratos/:id')
   async getServiceContracts(@Param('id', ParseIntPipe) id: number) {
-    const response = await this.worksServicesService.getServiceContracts(id);
+    const response = await this.queriesServicesService.getServiceContracts(id);
 
     return {
       statusCode: HttpStatus.OK,
@@ -98,7 +107,7 @@ export class ServicesController {
 
   @Get('equipes/:id')
   async getTeamsServices(@Param('id', ParseIntPipe) id: number) {
-    const response = await this.worksServicesService.getTeamsServices(id);
+    const response = await this.queriesServicesService.getTeamsServices(id);
 
     return {
       statusCode: HttpStatus.OK,
@@ -106,29 +115,6 @@ export class ServicesController {
       data: response,
     };
   }
-
-  @Patch()
-  async scheduleServices(@Body() scheduleServicesData: ScheduleServicesDTO[]) {
-    await this.worksServicesService.scheduleServices(scheduleServicesData);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Serviços programados com sucesso',
-    };
-  }
-
-  // @Patch('finalizar/:id')
-  // async finalizaeServices(
-  //   @Param('id', ParseIntPipe) id: number,
-  //   @Body() data: { id: number },
-  // ) {
-  //   await this.worksServicesService.finalizeServices(id, data);
-
-  //   return {
-  //     statusCode: HttpStatus.OK,
-  //     message: 'Programação Finalizada',
-  //   };
-  // }
 
   @Patch('cancelar/:id')
   async cancelScheduleService(@Param('id', ParseIntPipe) id: number) {
@@ -140,13 +126,16 @@ export class ServicesController {
     };
   }
 
-  @Patch('realizar')
-  async performServices(@Body() data: PerformServicesDTO[]) {
-    await this.worksServicesService.performServices(data);
+  @Patch('programar/:id')
+  async scheduleServices(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: ScheduleServicesDTO[],
+  ) {
+    await this.worksServicesService.scheduleServices(id, data);
 
     return {
       statusCode: HttpStatus.OK,
-      message: 'Serviços realizados com sucesso',
+      message: 'Serviços programados com sucesso',
     };
   }
 
@@ -157,6 +146,45 @@ export class ServicesController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Serviços reprogramados com sucesso',
+    };
+  }
+
+  @Patch('finalizar/:id')
+  @UseInterceptors(FilesInterceptor('files'))
+  async finalizeServices(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() executionData: FinalizeServicesDTO,
+    @UploadedFiles() files: Express.Multer.File[],
+    @Req() req: any,
+  ) {
+    const idUser = req.user.sub;
+
+    const data = {
+      ...executionData.data,
+      idUser,
+      ...(executionData.data.executionReport && {
+        executionReportData: {
+          ...executionData.data.executionReport,
+          idUser,
+        },
+      }),
+    };
+
+    await this.worksServicesService.finalizeServices(id, data, files);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Programação Finalizada',
+    };
+  }
+
+  @Patch('realizar')
+  async performServices(@Body() data: PerformServicesDTO[]) {
+    await this.worksServicesService.performServices(data);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Serviços realizados com sucesso',
     };
   }
 }

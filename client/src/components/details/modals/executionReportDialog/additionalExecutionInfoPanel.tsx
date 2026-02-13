@@ -1,34 +1,27 @@
-import { FormData } from "@/hooks/useScheduleForm";
 import {
   Grid,
   TextField,
   FormControlLabel,
   Checkbox,
   FormLabel,
-  Box,
   FormControl,
   FormHelperText,
   Radio,
   RadioGroup,
 } from "@mui/material";
 import { ExecutionReportData } from "./executionReportDialog";
-import { resolveExecutionReportContext } from "@/utils/formatValue";
 
 interface AdditionalExecutionInfoPanelProps {
-  formData: FormData | ExecutionReportData;
+  formData: ExecutionReportData;
   formErrors: Record<string, string>;
-  onInputChange: (
-    field:
-      | keyof FormData
-      | `executionReport.${keyof ExecutionReportData}`
-      | keyof ExecutionReportData
+  handleExecutionReportChange: (
+    field: keyof ExecutionReportData,
   ) => (event: any) => void;
 }
 
 export const AdditionalExecutionInfoPanel: React.FC<
   AdditionalExecutionInfoPanelProps
-> = ({ formData, formErrors, onInputChange }) => {
-  const { data, prefix } = resolveExecutionReportContext(formData);
+> = ({ formData, formErrors, handleExecutionReportChange }) => {
   const errorProvisionalKeyWithdrawn = formErrors["provisionalKeyWithdrawn"];
 
   return (
@@ -37,8 +30,8 @@ export const AdditionalExecutionInfoPanel: React.FC<
         <TextField
           fullWidth
           label="Observação Geral"
-          value={data.generalObservation}
-          onChange={onInputChange(`${prefix}generalObservation`)}
+          value={formData.generalObservation}
+          onChange={handleExecutionReportChange("generalObservation")}
           multiline
           minRows={2}
         />
@@ -48,8 +41,8 @@ export const AdditionalExecutionInfoPanel: React.FC<
         <TextField
           fullWidth
           label="Motivo"
-          value={data.reason || ""}
-          onChange={onInputChange(`${prefix}reason`)}
+          value={formData.reason || ""}
+          onChange={handleExecutionReportChange("reason")}
           autoComplete="off"
         />
       </Grid>
@@ -58,8 +51,8 @@ export const AdditionalExecutionInfoPanel: React.FC<
         <FormControlLabel
           control={
             <Checkbox
-              checked={data.provisionalKeyInstalled || false}
-              onChange={onInputChange(`${prefix}provisionalKeyInstalled`)}
+              checked={formData.provisionalKeyInstalled || false}
+              onChange={handleExecutionReportChange("provisionalKeyInstalled")}
             />
           }
           label="Chave Provisória Instalada?"
@@ -70,8 +63,8 @@ export const AdditionalExecutionInfoPanel: React.FC<
         <TextField
           fullWidth
           label="Referência da Chave Provisória - Exemplo: 175ET00554845"
-          value={data.provisionalKeyReference || ""}
-          onChange={onInputChange(`${prefix}provisionalKeyReference`)}
+          value={formData.provisionalKeyReference || ""}
+          onChange={handleExecutionReportChange("provisionalKeyReference")}
           autoComplete="off"
         />
       </Grid>
@@ -82,14 +75,14 @@ export const AdditionalExecutionInfoPanel: React.FC<
           <RadioGroup
             row
             value={
-              data.provisionalKeyWithdrawn === true
+              formData.provisionalKeyWithdrawn === true
                 ? "true"
-                : data.provisionalKeyWithdrawn === false
-                ? "false"
-                : ""
+                : formData.provisionalKeyWithdrawn === false
+                  ? "false"
+                  : ""
             }
             onChange={(event) =>
-              onInputChange(`${prefix}provisionalKeyWithdrawn`)({
+              handleExecutionReportChange("provisionalKeyWithdrawn")({
                 target: { type: "radio", value: event.target.value === "true" },
               } as unknown as React.ChangeEvent<HTMLInputElement>)
             }
@@ -107,8 +100,10 @@ export const AdditionalExecutionInfoPanel: React.FC<
         <TextField
           fullWidth
           label="Referência da Chave Provisória - Exemplo: 175ET00554845"
-          value={data.provisionalKeyReferenceWithdrawn || ""}
-          onChange={onInputChange(`${prefix}provisionalKeyReferenceWithdrawn`)}
+          value={formData.provisionalKeyReferenceWithdrawn || ""}
+          onChange={handleExecutionReportChange(
+            "provisionalKeyReferenceWithdrawn",
+          )}
           autoComplete="off"
         />
       </Grid>

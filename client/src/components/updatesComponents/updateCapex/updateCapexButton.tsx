@@ -1,36 +1,29 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 
 import { UpdateCapex } from "@/actions/works";
 import { ButtonComponent } from "@/components/common/Button";
-import ErrorModal from "@/components/common/ErrorModal";
-import ModalComponent from "@/components/common/Modal";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
-import { DocumentArrowDownIcon } from "@heroicons/react/24/solid";
+
+import { useFeedback } from "@/hooks/useFeedback";
 
 export function UpdateCapexButton() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const [error, setError] = useState<string | null>(null);
-  const [openModal, setOpenModal] = useState<boolean>(false);
-  const [success, setSuccess] = useState<string | null>(null);
-
-  const toggleModal = () => setOpenModal((prev) => !prev);
+  const { showError, showSuccess } = useFeedback();
 
   const handleUpdateCapex = () => {
     startTransition(async () => {
       try {
         await UpdateCapex();
 
-        setSuccess("Capex e M.O atualizados com sucesso");
-        setOpenModal(true);
+        showSuccess("Capex e M.O atualizados com sucesso");
 
         router.refresh();
       } catch (err: any) {
-        setError(err.message);
+        showError(err.message);
       }
     });
   };
@@ -43,19 +36,6 @@ export function UpdateCapexButton() {
         disabled={isPending}
         styled="w-72"
       />
-
-      <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
-        <span className="font-semibold text-xl">{success}</span>
-      </ModalComponent>
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </>
   );
 }

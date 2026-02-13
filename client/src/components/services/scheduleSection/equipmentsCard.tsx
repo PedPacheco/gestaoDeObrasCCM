@@ -13,7 +13,9 @@ interface EquipmentCardProps {
   formData: FormData;
   disabledFields: () => boolean | undefined;
   onInputChange: (field: keyof FormData) => (event: any) => void;
-  isInsert: boolean;
+  options: {
+    tecnico: Array<{ id: number; tecnico: string }>;
+  };
 }
 
 const SERVICE_TYPES = [
@@ -29,11 +31,11 @@ const SERVICE_TYPES = [
 export function EquipmentCard({
   formData,
   disabledFields,
-  isInsert,
   onInputChange,
+  options,
 }: EquipmentCardProps) {
   return (
-    <Grid item xs={12} md={6} lg={!isInsert ? 4 : 6}>
+    <Grid item xs={12} md={6} lg={4}>
       <ScheduleCard title="Serviço e Equipamentos">
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
@@ -84,6 +86,24 @@ export function EquipmentCard({
               disabled={disabledFields()}
               onChange={onInputChange("numDp")}
             />
+          </Grid>
+
+          <Grid item xs={12}>
+            <FormControl fullWidth>
+              <InputLabel>Técnico Responsável</InputLabel>
+              <Select
+                value={formData.idTechnical}
+                label="Técnico Responsável"
+                disabled={disabledFields()}
+                onChange={onInputChange("idTechnical")}
+              >
+                {options.tecnico.map((tec) => (
+                  <MenuItem key={tec.id} value={tec.id}>
+                    {tec.tecnico}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Grid>
         </Grid>
       </ScheduleCard>

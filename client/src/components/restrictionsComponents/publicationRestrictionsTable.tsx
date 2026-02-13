@@ -7,10 +7,12 @@ import { useEffect, useState, useTransition } from "react";
 
 import { deletePublicationRestriction } from "@/actions/restrictions";
 import { ButtonComponent } from "@/components/common/Button";
+import ModalComponent from "@/components/common/Modal";
 import { useUser } from "@/contexts/userContext";
+import { useFeedback } from "@/hooks/useFeedback";
 import { formatPercentage } from "@/utils/formatValue";
 import { isValidDateString } from "@/utils/validDate";
-
+import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import {
   Paper,
   Table,
@@ -20,10 +22,6 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-
-import ModalComponent from "@/components/common/Modal";
-import ErrorModal from "@/components/common/ErrorModal";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 dayjs.extend(utc);
 
@@ -44,21 +42,17 @@ export default function PublicationRestrictionsTable({
   const [isPending, startTransition] = useTransition();
   const [isMounted, setIsMounted] = useState(false);
 
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const { showError, showSuccess } = useFeedback();
 
-  const [openSuccessModal, setOpenSuccessModal] = useState(false);
   const [openConfirmModal, setOpenConfirmModal] = useState(false);
 
   const [restrictionToDelete, setRestrictionToDelete] = useState<number | null>(
-    null
+    null,
   );
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  const toggleSuccessModal = () => setOpenSuccessModal((prev) => !prev);
 
   const handleOpenConfirmDelete = (id: number) => {
     setRestrictionToDelete(id);
@@ -70,20 +64,17 @@ export default function PublicationRestrictionsTable({
 
     startTransition(async () => {
       try {
-        const response = await deletePublicationRestriction(
-          restrictionToDelete
-        );
+        const response =
+          await deletePublicationRestriction(restrictionToDelete);
 
         if (!response.success) {
-          setError(response.error || "Erro ao excluir restrição");
+          showError(response.error || "Erro ao excluir restrição");
           return;
         }
 
-        router.refresh();
-        setSuccess(response.message);
-        setOpenSuccessModal(true);
+        showSuccess(response.message, () => router.refresh());
       } catch (error: any) {
-        setError(error.message);
+        showError(error.message);
       } finally {
         setOpenConfirmModal(false);
         setRestrictionToDelete(null);
@@ -192,7 +183,7 @@ export default function PublicationRestrictionsTable({
                           styled="min-w-8 bg-red-600 hover:bg-red-700"
                           onClick={() =>
                             handleOpenConfirmDelete(
-                              item.id_restricao_publicacao
+                              item.id_restricao_publicacao,
                             )
                           }
                         />
@@ -204,16 +195,6 @@ export default function PublicationRestrictionsTable({
           </Table>
         </TableContainer>
       </Paper>
-
-      <ModalComponent
-        title="Sucesso"
-        open={openSuccessModal}
-        onClose={toggleSuccessModal}
-      >
-        <span className="text-center text-lg text-gray-700 dark:text-gray-200">
-          {success}
-        </span>
-      </ModalComponent>
 
       <ModalComponent
         title="Confirmar exclusão"
@@ -243,15 +224,6 @@ export default function PublicationRestrictionsTable({
           </div>
         </div>
       </ModalComponent>
-
-      {error && (
-        <ErrorModal
-          open
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </>
   );
 }

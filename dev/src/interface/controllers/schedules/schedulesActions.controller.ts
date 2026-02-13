@@ -104,10 +104,8 @@ export class SchedulesActionsController {
 
   // @Patch(':id')
   // @UseGuards(VisualizationGuard)
-  // @UseInterceptors(FilesInterceptor('files'))
   // async updateSchedules(
   //   @Param('id', ParseIntPipe) id: number,
-  //   @UploadedFiles() files: Express.Multer.File[],
   //   @Body() schedulesData: UpdateSchedulesDataDTO,
   //   @Req() req: any,
   // ) {

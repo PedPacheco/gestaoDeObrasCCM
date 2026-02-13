@@ -38,14 +38,13 @@ import { ErrorThrower } from "@/components/common/ErrorThrower";
 import { FeasibiltyUpload } from "../modals/feasibilityImportModal";
 import { useRouter } from "next/navigation";
 import { deleteFeasibilityFiles } from "@/actions/feasibility";
+import { useFeedback } from "@/hooks/useFeedback";
 dayjs.extend(customParseFormat);
 
 const RestrictionDrawer = dynamic(
   () =>
-    import(
-      "@/components/restrictionsComponents/scheduleRestrictions/RestrictionDrawer"
-    ),
-  { ssr: false }
+    import("@/components/restrictionsComponents/scheduleRestrictions/RestrictionDrawer"),
+  { ssr: false },
 );
 
 interface WorkDetailsProps {
@@ -141,20 +140,13 @@ function useModals() {
     setOpenSuspensionModal,
     toggleSuspensionModal: useCallback(
       () => setOpenSuspensionModal((prev) => !prev),
-      []
+      [],
     ),
     openUploadModal,
     setOpenUploadModal,
     drawerOpen,
     setDrawerOpen,
   };
-}
-
-function useNotifications() {
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-
-  return { error, setError, success, setSuccess };
 }
 
 function formatDateForSubmit(value: string): string | null {
@@ -194,31 +186,31 @@ export function WorkDetails({
 
   const { permissions } = useUser();
   const modals = useModals();
-  const { error, setError, success, setSuccess } = useNotifications();
+  const { showError, showSuccess } = useFeedback();
 
   const publicationRestrictions = useMemo(
     () =>
       options.restricao.filter((r: any) => r.tipo_restricao === "PUBLICAÇÃO"),
-    [options.restricao]
+    [options.restricao],
   );
 
   const canShowPublicationButton = useMemo(
     () =>
       isMounted && permissions?.permissao_publicacao && data.id_status === 2,
-    [isMounted, permissions?.permissao_publicacao, data.id_status]
+    [isMounted, permissions?.permissao_publicacao, data.id_status],
   );
 
   const canEditObservation = useMemo(
     () =>
       permissions?.permissao_visualizacao !== "parcial" &&
       permissions?.permissao !== "Sem permissão",
-    [permissions]
+    [permissions],
   );
 
   const isSaveDisabled = useMemo(
     () =>
       isPending || !changedFields || Object.keys(changedFields).length === 0,
-    [isPending, changedFields]
+    [isPending, changedFields],
   );
 
   useEffect(() => {
@@ -239,7 +231,7 @@ export function WorkDetails({
         modals.setOpenSuspensionModal(true);
       }
     },
-    [modals]
+    [modals],
   );
 
   const handleSubmit = useCallback(() => {
@@ -255,15 +247,15 @@ export function WorkDetails({
         const response = await UpdateWork(payload, idWork);
 
         if (!response.success) {
-          setError(response.error || "Erro ao salvar alterações");
+          showError(response.error || "Erro ao salvar alterações");
           return;
         }
 
         setChangedFields(undefined);
-        setSuccess(response.message);
+        showSuccess(response.message);
         modals.setOpenModal(true);
       } catch {
-        setError("Erro de conexão. Tente novamente.");
+        showError("Erro de conexão. Tente novamente.");
       }
     });
   }, [
@@ -272,8 +264,8 @@ export function WorkDetails({
     suspensionReason,
     idWork,
     modals,
-    setError,
-    setSuccess,
+    showError,
+    showSuccess,
   ]);
 
   const handleSavePublicationRestriction = useCallback(
@@ -285,29 +277,29 @@ export function WorkDetails({
           const response = await InsertPublicationRestrictions(restrictions);
 
           if (!response.success) {
-            setError(response.error || "Erro ao salvar alterações");
+            showError(response.error || "Erro ao salvar alterações");
             return;
           }
 
-          setSuccess(response.message);
+          showSuccess(response.message);
           modals.setOpenModal(true);
         } catch (err: any) {
-          setError(err.message);
+          showError(err.message);
         }
       });
     },
-    [modals, setError, setSuccess]
+    [modals, showError, showSuccess],
   );
 
   const handleUploadSuccess = useCallback(() => {
     setHasFilesFeasibility(true);
     modals.setOpenUploadModal(false);
 
-    setSuccess("Arquivos enviados com sucesso!");
+    showSuccess("Arquivos enviados com sucesso!");
     modals.setOpenModal(true);
 
     router.refresh();
-  }, [modals, router, setSuccess]);
+  }, [modals, router, showSuccess]);
 
   const handleFeasibilityFilesDelete = () => {
     startTransition(async () => {
@@ -315,16 +307,16 @@ export function WorkDetails({
         const response = await deleteFeasibilityFiles(idWork);
 
         if (!response.success) {
-          setError("Erro ao excluir viabilidade");
+          showError("Erro ao excluir viabilidade");
           return;
         }
 
-        setSuccess(response.message);
+        showSuccess(response.message);
         modals.setOpenModal(true);
 
         router.refresh();
       } catch (error: any) {
-        setError(error.message);
+        showError(error.message);
       } finally {
         modals.setOpenConfirmModal(false);
       }
@@ -523,16 +515,6 @@ export function WorkDetails({
       />
 
       <ModalComponent
-        title="Sucesso"
-        onClose={modals.toggleModal}
-        open={modals.openModal}
-      >
-        <span className="text-center text-lg text-gray-700 dark:text-gray-200 mb-6">
-          {success}
-        </span>
-      </ModalComponent>
-
-      <ModalComponent
         title="Motivo da Suspensão"
         onClose={modals.toggleSuspensionModal}
         open={modals.openSuspensionModal}
@@ -598,15 +580,6 @@ export function WorkDetails({
           </div>
         </div>
       </ModalComponent>
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </>
   );
 }

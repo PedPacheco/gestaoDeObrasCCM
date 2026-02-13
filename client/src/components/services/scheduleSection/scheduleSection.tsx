@@ -4,13 +4,10 @@ import { Box, Button, Grid } from "@mui/material";
 
 import { BasicInfoCard } from "./basicInfoCard";
 import { EquipmentCard } from "./equipmentsCard";
-import { RestrictionsCard } from "./restrictionsCard";
 
 import { ButtonComponent } from "@/components/common/Button";
-import { schedulesSchemaV2 } from "@/validations/validationSchedulesV2";
 import { useRouter } from "next/navigation";
-import { useScheduleFormV2 } from "@/hooks/useScheduleFormV2";
-import { editSchedule } from "@/actions/schedules";
+import { schedulesSchema } from "@/validations/validationSchedules";
 
 interface ScheduleSectionProps {
   idWork: number;
@@ -24,12 +21,11 @@ interface ScheduleSectionProps {
   };
   statusWork: number;
   setOpenTeamsModal: (team: boolean) => void;
-  prog: number;
   isPending: boolean;
   handleSubmit: (data: any) => any;
 }
 
-export type scheduleFormHookReturnV2 = ReturnType<typeof useScheduleFormV2>;
+export type scheduleFormHookReturnV2 = ReturnType<typeof schedulesSchema>;
 
 export function ScheduleSection({
   scheduleForm,
@@ -40,14 +36,11 @@ export function ScheduleSection({
   options,
   statusWork,
   setOpenTeamsModal,
-  prog,
   isPending,
   handleSubmit,
 }: ScheduleSectionProps) {
   const router = useRouter();
   const { permissions } = useUser();
-
-  const spacingValue = isInsert ? 3 : 2;
 
   const submitButtonText = isPending ? "Salvando..." : "Salvar Programação";
 
@@ -71,33 +64,19 @@ export function ScheduleSection({
 
   return (
     <Box className="space-y-6">
-      <Grid
-        container
-        spacing={spacingValue}
-        className={spacingValue ? "flex justify-between" : ""}
-      >
+      <Grid container spacing={2} justifyContent="center">
         <BasicInfoCard
           formData={scheduleForm.formData}
           disabledFields={disabledFields}
-          isInsert={isInsert}
           onInputChange={scheduleForm.handleInputChange}
         />
 
         <EquipmentCard
           formData={scheduleForm.formData}
           disabledFields={disabledFields}
-          isInsert={isInsert}
           onInputChange={scheduleForm.handleInputChange}
+          options={options}
         />
-
-        {!isInsert && (
-          <RestrictionsCard
-            formData={scheduleForm.formData}
-            options={options}
-            disabledFields={disabledFields}
-            onInputChange={scheduleForm.handleInputChange}
-          />
-        )}
       </Grid>
 
       <Box className="flex flex-wrap justify-end gap-4 mt-4">
@@ -115,7 +94,7 @@ export function ScheduleSection({
           styled="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
           startIcon={<ArrowUpTrayIcon className="w-5 h-5 text-white" />}
           onClick={() => {
-            const validationResult = schedulesSchemaV2(isInsert).safeParse(
+            const validationResult = schedulesSchema().safeParse(
               scheduleForm.formData,
             );
 
@@ -135,12 +114,15 @@ export function ScheduleSection({
             if (isInsert) {
               setOpenTeamsModal(true);
             } else {
-              const data = { id: idSchedule, ...validationResult.data };
+              const data = {
+                id: idSchedule,
+                ...validationResult.data,
+              };
 
               handleSubmit(data);
             }
           }}
-          disabled={isPending || isInsert ? prog === 0 : false}
+          disabled={isPending}
           text={isInsert ? submitButtonText : "Editar programação"}
         />
       </Box>

@@ -237,23 +237,6 @@ describe('ScheduleActionsController', () => {
   });
 
   describe('DTO Validation', () => {
-    it('should fail validation if exec is not a number', async () => {
-      const payload = {
-        idWork: 1,
-        dataProg: new Date(),
-        startTime: '08:00',
-        finishTime: '10:00',
-        prog: 50,
-        exec: null,
-        idUser: 1,
-      };
-
-      const dto = plainToInstance(SchedulesDataDTO, payload);
-      await validate(dto);
-
-      expect(dto.exec).toBeNull();
-    });
-
     it('should pass validation with correct values', async () => {
       const payload = {
         idWork: 1,
@@ -261,7 +244,6 @@ describe('ScheduleActionsController', () => {
         startTime: '08:00',
         finishTime: '10:00',
         prog: 50,
-        exec: 20,
         idProgRestriction1: 1,
         idProgRestriction2: 1,
         idUser: 1,

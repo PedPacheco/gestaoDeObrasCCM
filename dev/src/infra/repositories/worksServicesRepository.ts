@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { IWorksServicesRepository } from 'src/domain/repositories/IWorksServiceRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {
@@ -6,6 +7,7 @@ import {
   ScheduleServicesDTO,
 } from 'src/interface/dtos/workServicesDTO';
 import {
+  GetAllServicesOfWorkInterface,
   GetByIdParamsInterface,
   GetSelectedServicesParamsInterface,
   GetServicesByWorkIdResponse,
@@ -17,6 +19,18 @@ import {
 @Injectable()
 export class WorksServicesRepository implements IWorksServicesRepository {
   constructor(private readonly prisma: PrismaService) {}
+
+  async getAllServicesOfWork(
+    id: number,
+  ): Promise<GetAllServicesOfWorkInterface[]> {
+    return await this.prisma.servicos.findMany({
+      select: {
+        id: true,
+        qtde_plan: true,
+      },
+      where: { id_obra: id },
+    });
+  }
 
   async getNotScheduledServices({
     id,
@@ -114,6 +128,7 @@ export class WorksServicesRepository implements IWorksServicesRepository {
     return await this.prisma.programacoes_servicos.findMany({
       select: {
         id: true,
+        id_servico: true,
         servicos: {
           select: {
             servicos_contratos: { select: { texto_breve: true } },
@@ -181,8 +196,20 @@ export class WorksServicesRepository implements IWorksServicesRepository {
     });
   }
 
-  async scheduleServices(data: ScheduleServicesDTO[]): Promise<void> {
+  async scheduleServices(
+    data: ScheduleServicesDTO[],
+    totalProg: any,
+  ): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
+      if (data.length === 0) {
+        throw new Error('Programação não enviada.');
+      }
+
+      await tx.programacoes.update({
+        data: { prog: totalProg },
+        where: { id: data[0].idSchedule },
+      });
+
       for (const item of data) {
         const { id, idSchedule, idTeam, prog } = item;
 
@@ -207,14 +234,39 @@ export class WorksServicesRepository implements IWorksServicesRepository {
     });
   }
 
+  async finalizeServices(
+    data: any,
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    const { id, prog, exec, idExecutionRestriction, responsibility } = data;
+
+    try {
+      await tx.programacoes.update({
+        where: { id },
+        data: {
+          prog: prog,
+          exec: exec,
+          id_restricao_execucao: idExecutionRestriction,
+          nome_responsavel: responsibility,
+        },
+      });
+    } catch (error) {
+      if (error.code === 'P2025') {
+        throw new NotFoundException(`Agendamento com ID ${id} não encontrado`);
+      }
+
+      throw error;
+    }
+  }
+
   async performServices(data: PerformServicesDTO[]): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       for (const item of data) {
-        const { id, qtdeRealizada } = item;
+        const { id, qtdeRealizada, idSchedule } = item;
 
         await tx.programacoes_servicos.updateMany({
           data: { real: qtdeRealizada },
-          where: { id_servico: id },
+          where: { id_servico: id, id_programacao: idSchedule },
         });
 
         await tx.servicos.updateMany({
@@ -245,6 +297,7 @@ export class WorksServicesRepository implements IWorksServicesRepository {
       await tx.servicos.updateMany({
         data: {
           id_programacao: null,
+          qtde_real: null,
         },
         where: { id_programacao: id },
       });

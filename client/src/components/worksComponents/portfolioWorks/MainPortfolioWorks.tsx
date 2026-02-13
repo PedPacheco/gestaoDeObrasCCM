@@ -16,6 +16,7 @@ import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import PortfolioWorksFilters from "./PortfolioWorksFilters";
+import { useFeedback } from "@/hooks/useFeedback";
 
 const ErrorModal = dynamic(() => import("@/components/common/ErrorModal"), {
   ssr: false,
@@ -45,12 +46,16 @@ export default function PortfolioWorks({
   totalValues,
   url,
 }: MainPortfolioWorksProps) {
-  const [filteredData, setFilteredData] = useState(data);
   const { permissions } = useUser();
+
+  const { showError } = useFeedback();
+
+  const [filteredData, setFilteredData] = useState(data);
   const [open, setOpen] = useState(false);
-  const [error, setError] = useState<string | null>();
   const [page, setPage] = useState(0);
+
   const pathname = usePathname();
+
   const [isPending, startTransition] = useTransition();
   const [filteredFilters, setFilteredFilters] =
     useState<FiltersInterface>(filtersData);
@@ -60,7 +65,7 @@ export default function PortfolioWorks({
       const { parceira, ...rest } = filtersData;
 
       const suspensionRemoved = rest.status?.filter(
-        (item: { id: number }) => ![4].includes(item.id)
+        (item: { id: number }) => ![4].includes(item.id),
       );
 
       setFilteredFilters({ ...rest, status: suspensionRemoved });
@@ -75,7 +80,7 @@ export default function PortfolioWorks({
 
       const url = mountUrl(
         `${process.env.NEXT_PUBLIC_API_URL}/exportacao${pathname}`,
-        formattedParams
+        formattedParams,
       );
 
       try {
@@ -94,10 +99,10 @@ export default function PortfolioWorks({
         document.body.removeChild(link);
         window.URL.revokeObjectURL(downloadUrl);
       } catch (error: any) {
-        setError(`Erro ao gerar a planilha: ${error.message}`);
+        showError(`Erro ao gerar a planilha: ${error.message}`);
       }
     },
-    [pathname, token]
+    [pathname, token],
   );
 
   const fetchWorks = useCallback(
@@ -108,16 +113,16 @@ export default function PortfolioWorks({
             `${process.env.NEXT_PUBLIC_API_URL}/obras/${url}`,
             params,
             token,
-            { cache: "no-store" }
+            { cache: "no-store" },
           );
 
           setFilteredData(response.data);
         } catch (error: any) {
-          setError(error.message);
+          showError(error.message);
         }
       });
     },
-    [token, url]
+    [token, url],
   );
 
   const handleChangePage = (event: unknown, newPage: number) => {
@@ -186,7 +191,7 @@ export default function PortfolioWorks({
                     <p>
                       {typeof valueFormatted === "number"
                         ? Number(valueFormatted.toFixed(0)).toLocaleString(
-                            "pt-br"
+                            "pt-br",
                           )
                         : valueFormatted}
                     </p>
@@ -196,15 +201,6 @@ export default function PortfolioWorks({
             })}
         </div>
       </ModalComponent>
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </div>
   );
 }

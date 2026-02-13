@@ -2,14 +2,12 @@
 
 import ExcelJS from "exceljs";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition } from "react";
+import { useRef, useTransition } from "react";
 
-import { ButtonComponent } from "@/components/common/Button";
-import ErrorModal from "@/components/common/ErrorModal";
-import ModalComponent from "@/components/common/Modal";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
-import { DocumentArrowDownIcon } from "@heroicons/react/24/solid";
 import { InsertCapex } from "@/actions/insertAuxiliaryBase";
+import { ButtonComponent } from "@/components/common/Button";
+import { useFeedback } from "@/hooks/useFeedback";
+import { DocumentArrowDownIcon } from "@heroicons/react/24/solid";
 
 export function ImportCapexButton() {
   const cn52nInputRef = useRef<HTMLInputElement>(null);
@@ -17,11 +15,7 @@ export function ImportCapexButton() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const [error, setError] = useState<string | null>(null);
-  const [openModal, setOpenModal] = useState<boolean>(false);
-  const [success, setSuccess] = useState<string | null>(null);
-
-  const toggleModal = () => setOpenModal((prev) => !prev);
+  const { showError, showSuccess } = useFeedback();
 
   const handleClick = () => {
     cn52nInputRef.current?.click();
@@ -89,13 +83,12 @@ export function ImportCapexButton() {
 
         resetFileInputs();
 
-        setSuccess("Materiais e Serviços M.O importados com sucesso");
-        setOpenModal(true);
+        showSuccess("Materiais e Serviços M.O importados com sucesso");
         resetFileInputs();
 
         router.refresh();
       } catch (err: any) {
-        setError(err.message);
+        showError(err.message);
       }
     });
   };
@@ -117,19 +110,6 @@ export function ImportCapexButton() {
         disabled={isPending}
         styled="w-72"
       />
-
-      <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
-        <span className="font-semibold text-xl">{success}</span>
-      </ModalComponent>
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </>
   );
 }

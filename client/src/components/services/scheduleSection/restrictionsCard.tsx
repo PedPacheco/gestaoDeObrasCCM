@@ -1,54 +1,74 @@
-import { FormControl, Grid, InputLabel, MenuItem, Select } from "@mui/material";
-import { ScheduleCard } from "./scheduleCard";
-import { FormData } from "@/hooks/useScheduleForm";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Select,
+  IconButton,
+} from "@mui/material";
+import { XMarkIcon } from "@heroicons/react/24/solid";
+import { ExecutionEditableData } from "@/hooks/useExecutionServicesForm";
 
-interface RestrictionsCardProps {
-  formData: FormData;
+interface RestrictionsModalProps {
+  open: boolean;
+  onClose: () => void;
+  onSave: () => void;
   options: {
-    tecnico: Array<{ id: number; tecnico: string }>;
     restricao: Array<{ id: number; restricao: string }>;
   };
-  disabledFields: () => boolean | undefined;
-  onInputChange: (field: keyof FormData) => (event: any) => void;
+  onInputChange: (field: keyof ExecutionEditableData) => (event: any) => void;
+  formData: {
+    idExecutionRestriction: number;
+    responsibility?: string;
+  };
 }
 
-export function RestrictionsCard({
+export function RestrictionsModal({
+  open,
+  onClose,
+  onSave,
   formData,
   options,
-  disabledFields,
   onInputChange,
-}: RestrictionsCardProps) {
+}: RestrictionsModalProps) {
   const EXECUTION_RESPONSIBILITIES = ["", "Edp", "Parceira", "Terceiro"];
 
-  return (
-    <Grid item xs={12} md={12} lg={4}>
-      <ScheduleCard title="Responsáveis e Restrições">
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <FormControl fullWidth>
-              <InputLabel>Técnico Responsável</InputLabel>
-              <Select
-                value={formData.idTechnical}
-                label="Técnico Responsável"
-                disabled={disabledFields()}
-                onChange={onInputChange("idTechnical")}
-              >
-                {options.tecnico.map((tec) => (
-                  <MenuItem key={tec.id} value={tec.id}>
-                    {tec.tecnico}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
+  const handleSave = () => {
+    onSave();
+    onClose();
+  };
 
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>
+        Responsáveis e Restrições
+        <IconButton
+          aria-label="close"
+          onClick={onClose}
+          sx={{
+            position: "absolute",
+            right: 8,
+            top: 8,
+            color: (theme) => theme.palette.grey[500],
+          }}
+        >
+          <XMarkIcon />
+        </IconButton>
+      </DialogTitle>
+
+      <DialogContent dividers>
+        <Grid container spacing={3}>
           <Grid item xs={12}>
             <FormControl fullWidth>
               <InputLabel>Restrição de Execução</InputLabel>
               <Select
                 value={formData.idExecutionRestriction}
                 label="Restrição de Execução"
-                disabled={disabledFields()}
                 onChange={onInputChange("idExecutionRestriction")}
               >
                 {options.restricao.map((r) => (
@@ -66,7 +86,6 @@ export function RestrictionsCard({
               <Select
                 value={formData.responsibility}
                 label="Responsabilidade"
-                disabled={disabledFields()}
                 onChange={onInputChange("responsibility")}
               >
                 {EXECUTION_RESPONSIBILITIES.map((resp) => (
@@ -78,7 +97,16 @@ export function RestrictionsCard({
             </FormControl>
           </Grid>
         </Grid>
-      </ScheduleCard>
-    </Grid>
+      </DialogContent>
+
+      <DialogActions sx={{ px: 3, py: 2 }}>
+        <Button onClick={onClose} variant="outlined" color="secondary">
+          Cancelar
+        </Button>
+        <Button onClick={handleSave} variant="contained" color="primary">
+          Salvar
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }

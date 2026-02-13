@@ -5,19 +5,18 @@ import "dayjs/locale/pt-br";
 import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useState, useTransition } from "react";
 
+import { fetchData } from "@/actions/fetchData.action";
 import { ButtonComponent } from "@/components/common/Button";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
+import { useFeedback } from "@/hooks/useFeedback";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { capitalize } from "@/utils/formatValue";
+import { getButtonContent } from "@/utils/getButtonContent";
+import { Transform } from "@/utils/transform";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 import { MonthlySummaryScheduleTable } from "./monthlySummaryScheduleTable";
-import { Transform } from "@/utils/transform";
-import { fetchData } from "@/actions/fetchData.action";
-import { getButtonContent } from "@/utils/getButtonContent";
-import ErrorModal from "@/components/common/ErrorModal";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
-import { capitalize } from "@/utils/formatValue";
 
 export interface Filters {
   regional: { id: string; regional: string }[];
@@ -51,12 +50,13 @@ export function MainMonthlySummarySchedule({
     pageKey: "monthlySummaryScheduleFilters",
     data: filtersData,
   });
-  const [error, setError] = useState<string | null>();
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
-    {}
+    {},
   );
   const [date, setDate] = useState<Dayjs>(dayjs());
   const [isPending, startTransition] = useTransition();
+
+  const { showError } = useFeedback();
 
   useEffect(() => {
     if (filters) {
@@ -81,20 +81,20 @@ export function MainMonthlySummarySchedule({
             fetchData(
               `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal`,
               params,
-              token
+              token,
             ),
             fetchData(
               `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal-2`,
               params,
-              token
+              token,
             ),
-          ]
+          ],
         );
 
         setFilteredDataFirstSummary(responseFirstSummary.data);
         setFilteredDataSecondSummary(responseSecondSummary.data);
       } catch (error: any) {
-        setError(error.message);
+        showError(error.message);
       }
     });
   }
@@ -116,20 +116,20 @@ export function MainMonthlySummarySchedule({
             fetchData(
               `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal`,
               params,
-              token
+              token,
             ),
             fetchData(
               `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal-2`,
               params,
-              token
+              token,
             ),
-          ]
+          ],
         );
 
         setFilteredDataFirstSummary(responseFirstSummary.data);
         setFilteredDataSecondSummary(responseSecondSummary.data);
       } catch (error: any) {
-        setError(error.message);
+        showError(error.message);
       }
     });
   }
@@ -205,15 +205,6 @@ export function MainMonthlySummarySchedule({
           data={filteredDataSecondSummary}
         />
       </div>
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </>
   );
 }

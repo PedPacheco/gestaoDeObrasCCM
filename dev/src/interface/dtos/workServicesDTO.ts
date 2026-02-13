@@ -1,5 +1,11 @@
-import { IsNumber, IsOptional } from 'class-validator';
-import { Type } from 'class-transformer';
+import {
+  IsNumber,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { ExecutionReportDataDTO } from './executionReportDTO';
 
 export class ScheduleServicesDTO {
   @IsNumber()
@@ -27,5 +33,38 @@ export class PerformServicesDTO {
 
   @IsNumber()
   @Type(() => Number)
+  idSchedule: number;
+
+  @IsNumber()
+  @Type(() => Number)
   qtdeRealizada: number;
+}
+
+class DataScheduleInFinalizeServiceDTO {
+  @IsNumber()
+  @Type(() => Number)
+  idSchedule: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  idExecutionRestriction?: number;
+
+  @IsOptional()
+  @IsString()
+  responsibility?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ExecutionReportDataDTO)
+  executionReport?: ExecutionReportDataDTO;
+}
+
+export class FinalizeServicesDTO {
+  @Transform(({ value }) =>
+    typeof value === 'string' ? JSON.parse(value) : value,
+  )
+  @ValidateNested()
+  @Type(() => DataScheduleInFinalizeServiceDTO)
+  data: DataScheduleInFinalizeServiceDTO;
 }

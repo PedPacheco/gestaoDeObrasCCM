@@ -1,26 +1,19 @@
 "use client";
 
 import dayjs from "dayjs";
-import {
-  useEffect,
-  useState,
-  useTransition,
-  useMemo,
-  ComponentType,
-} from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
+import { useFeedback } from "@/hooks/useFeedback";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { FiltersInterface } from "@/interfaces/filtersInterfaces";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import { ButtonComponent } from "../common/Button";
-import ErrorModal from "../common/ErrorModal";
 import { MultipleSelectComponent } from "../common/MultipleSelect";
 import ModalGoals from "./GoalsModal";
 import GoalsTable from "./GoalsTable";
-import { FiltersInterface } from "@/interfaces/filtersInterfaces";
 
 interface MainGoalsProps {
   filtersData: FiltersInterface;
@@ -52,7 +45,7 @@ export default function MainGoals({
   const [selectedEmpreendimento, setSelectedEmpreendimento] = useState<
     string[]
   >([]);
-  const [error, setError] = useState<string | null>();
+  const { showError } = useFeedback();
   const [isPending, startTransition] = useTransition();
 
   const { clearFilters, filters, saveFilters } = useSaveFilters({
@@ -60,15 +53,15 @@ export default function MainGoals({
       typeGoals === "bt0"
         ? "bt0GoalsFilters"
         : typeGoals === "rda"
-        ? "rdaGoalsFilters"
-        : "goalsFilters",
+          ? "rdaGoalsFilters"
+          : "goalsFilters",
     data: filtersData,
   });
 
   const years = useMemo(
     () =>
       Array.from({ length: 7 }, (_, index) => (year - 3 + index).toString()),
-    [year]
+    [year],
   );
 
   const toggleModal = () => setOpen((prev) => !prev);
@@ -105,12 +98,12 @@ export default function MainGoals({
         const response = await fetchData(
           `${process.env.NEXT_PUBLIC_API_URL}/metas`,
           formattedSelectedItens,
-          token
+          token,
         );
 
         setFilteredData(response.data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Erro ao buscar dados");
+        showError(err instanceof Error ? err.message : "Erro ao buscar dados");
       }
     });
   }
@@ -133,12 +126,14 @@ export default function MainGoals({
             btzero: typeGoals === "bt0" ? true : false,
             rda: typeGoals === "rda" ? true : false,
           },
-          token
+          token,
         );
 
         setFilteredData(response.data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Erro ao limpar filtros");
+        showError(
+          err instanceof Error ? err.message : "Erro ao limpar filtros",
+        );
       }
     });
   }
@@ -228,15 +223,6 @@ export default function MainGoals({
         open={open}
         typeGoals={typeGoals}
       />
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </>
   );
 }

@@ -10,6 +10,7 @@ import {
   PhotoIcon,
 } from "@heroicons/react/20/solid";
 import { Dialog, DialogContent } from "@mui/material";
+import { useFeedback } from "@/hooks/useFeedback";
 
 interface UploadViabilidadeProps {
   idWork: string;
@@ -26,16 +27,14 @@ export function FeasibiltyUpload({
 }: UploadViabilidadeProps) {
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { showError } = useFeedback();
   const [dragActive, setDragActive] = useState(false);
 
   const validarArquivos = (arquivosSelecionados: FileList | null): boolean => {
     if (!arquivosSelecionados) return false;
 
-    setError(null);
-
     if (arquivosSelecionados.length + files.length > 3) {
-      setError("Máximo de 3 arquivos permitidos.");
+      showError("Máximo de 3 arquivos permitidos.");
       return false;
     }
 
@@ -46,12 +45,12 @@ export function FeasibiltyUpload({
       const arquivo = arquivosSelecionados[i];
 
       if (!formatosPermitidos.includes(arquivo.type)) {
-        setError(`Arquivo "${arquivo.name}" não é PDF ou JPEG.`);
+        showError(`Arquivo "${arquivo.name}" não é PDF ou JPEG.`);
         return false;
       }
 
       if (arquivo.size > tamanhoMaximo) {
-        setError(`Arquivo "${arquivo.name}" excede 5MB.`);
+        showError(`Arquivo "${arquivo.name}" excede 5MB.`);
         return false;
       }
     }
@@ -90,12 +89,11 @@ export function FeasibiltyUpload({
 
   const handleUpload = async () => {
     if (files.length === 0) {
-      setError("Selecione pelo menos um arquivo.");
+      showError("Selecione pelo menos um arquivo.");
       return;
     }
 
     setUploading(true);
-    setError(null);
 
     const formData = new FormData();
     files.forEach((file) => formData.append("files", file));
@@ -115,8 +113,10 @@ export function FeasibiltyUpload({
       setFiles([]);
       setTimeout(() => onUploadSuccess(), 1000);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Erro ao fazer upload dos arquivos"
+      showError(
+        err instanceof Error
+          ? err.message
+          : "Erro ao fazer upload dos arquivos",
       );
     } finally {
       setUploading(false);
@@ -226,15 +226,6 @@ export function FeasibiltyUpload({
 
           {/* BOTÃO */}
         </div>
-
-        {error && (
-          <ErrorModal
-            open={true}
-            message={error}
-            onClose={() => setError(null)}
-            icon={<ExclamationCircleIcon width={48} height={48} />}
-          />
-        )}
       </DialogContent>
     </Dialog>
   );
