@@ -601,6 +601,7 @@ describe('WorksServicesRepository', () => {
       expect(result).toEqual(mockContractsResponse);
       expect(prisma.servicos_contratos.findMany).toHaveBeenCalledWith({
         select: {
+          id: true,
           texto_breve: true,
           material: true,
           preco: true,
@@ -667,7 +668,7 @@ describe('WorksServicesRepository', () => {
           perfil: true,
         },
         where: {
-          id_turma: 2,
+          id_turma: 100,
         },
       });
       expect(prisma.equipes.findMany).toHaveBeenCalledTimes(1);
@@ -682,25 +683,14 @@ describe('WorksServicesRepository', () => {
       expect(result).toEqual([]);
     });
 
-    it('should always use id_turma: 2 (hardcoded)', async () => {
+    it('should always use id_turma whinch was sent with parameter', async () => {
       const mockIdParceira = 100;
       mockPrismaService.equipes.findMany.mockResolvedValue([]);
 
       await repository.getTeamsServices(mockIdParceira);
 
       const callArgs = mockPrismaService.equipes.findMany.mock.calls[0][0];
-      expect(callArgs.where.id_turma).toBe(2);
-    });
-
-    it('should log idParceira parameter', async () => {
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-      const mockIdParceira = 100;
-      mockPrismaService.equipes.findMany.mockResolvedValue([]);
-
-      await repository.getTeamsServices(mockIdParceira);
-
-      expect(consoleSpy).toHaveBeenCalledWith(100);
-      consoleSpy.mockRestore();
+      expect(callArgs.where.id_turma).toBe(100);
     });
   });
 
