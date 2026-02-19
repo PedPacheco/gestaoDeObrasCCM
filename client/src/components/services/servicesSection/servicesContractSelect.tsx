@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
+
 import { styled } from "@mui/material/styles";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
 type ListboxProps = React.ComponentProps<"ul">;
 

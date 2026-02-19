@@ -163,10 +163,6 @@ export default function TabPanel({
                 onEdit={handleEditExecutionReport}
               />
             </CustomTabPanel>
-
-            <CustomTabPanel value={value} index={4}>
-              Em breve
-            </CustomTabPanel>
           </Suspense>
         </div>
       </div>

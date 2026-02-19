@@ -9,6 +9,7 @@ import {
   IWorksServicesRepository,
 } from 'src/domain/repositories/IWorksServiceRepository';
 import {
+  AddServicesDTO,
   PerformServicesDTO,
   ScheduleServicesDTO,
 } from 'src/interface/dtos/workServicesDTO';
@@ -96,6 +97,11 @@ export class WorksServicesService {
 
   async reascheduleServices(data: { id: number }[]): Promise<void> {
     await this.worksServicesRepository.reascheduleServices(data);
+  }
+
+  async addServices(data: AddServicesDTO): Promise<void> {
+    console.log('entrou');
+    await this.worksServicesRepository.addServices(data);
   }
 
   async cancel(id: number): Promise<void> {

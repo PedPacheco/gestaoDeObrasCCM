@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { IWorksServicesRepository } from 'src/domain/repositories/IWorksServiceRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {
+  AddServicesDTO,
   PerformServicesDTO,
   ScheduleServicesDTO,
 } from 'src/interface/dtos/workServicesDTO';
@@ -168,6 +169,7 @@ export class WorksServicesRepository implements IWorksServicesRepository {
   async getServicesContracts(idParceira: number): Promise<any[]> {
     return await this.prisma.servicos_contratos.findMany({
       select: {
+        id: true,
         texto_breve: true,
         material: true,
         preco: true,
@@ -182,7 +184,6 @@ export class WorksServicesRepository implements IWorksServicesRepository {
   }
 
   async getTeamsServices(idParceira: number): Promise<any[]> {
-    console.log(idParceira);
     return await this.prisma.equipes.findMany({
       select: {
         id: true,
@@ -191,7 +192,7 @@ export class WorksServicesRepository implements IWorksServicesRepository {
         perfil: true,
       },
       where: {
-        id_turma: 2,
+        id_turma: idParceira,
       },
     });
   }
@@ -274,6 +275,20 @@ export class WorksServicesRepository implements IWorksServicesRepository {
           where: { id },
         });
       }
+    });
+  }
+
+  async addServices(data: AddServicesDTO): Promise<void> {
+    const { idService, idWork, operation, point, qtdePlan } = data;
+
+    await this.prisma.servicos.create({
+      data: {
+        id_obra: idWork,
+        id_contrato_servico: idService,
+        operacao: operation,
+        ponto: point,
+        qtde_plan: qtdePlan,
+      },
     });
   }
 

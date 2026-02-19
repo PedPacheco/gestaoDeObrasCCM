@@ -1,5 +1,6 @@
 "use server";
 
+import { ServiceContract } from "@/components/services/servicesSection/addServiceForm";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -170,6 +171,29 @@ export async function reascheduleServices(
 
   return apiRequest(`${process.env.NEXT_PUBLIC_API_URL}/servicos/reprogramar`, {
     method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+}
+
+export async function addService(data: {
+  idWork: number;
+  idService: number;
+  point: string;
+  operation: string;
+  qtdePlan: number;
+}): Promise<ActionResult> {
+  const token = await getAuthToken();
+
+  if (!token) {
+    return { success: false, error: "Usuário não autenticado" };
+  }
+
+  return apiRequest(`${process.env.NEXT_PUBLIC_API_URL}/servicos/adicionar`, {
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,

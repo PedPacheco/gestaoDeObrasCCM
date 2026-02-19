@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import {
+  AddServicesDTO,
   PerformServicesDTO,
   ScheduleServicesDTO,
 } from 'src/interface/dtos/workServicesDTO';
@@ -41,6 +42,7 @@ export interface IWorksServicesRepository {
   performServices(data: PerformServicesDTO[]): Promise<void>;
   reascheduleServices(data: { id: number }[]): Promise<void>;
   cancel(id: number): Promise<void>;
+  addServices(data: AddServicesDTO): Promise<void>;
 }
 
 export const WORKS_SERVICE_REPOSITORY = Symbol('WorksServiceRepository');

@@ -1,3 +1,6 @@
+import dayjs from "dayjs";
+import { useEffect, useMemo, useState } from "react";
+
 import {
   Checkbox,
   Paper,
@@ -8,9 +11,9 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import dayjs from "dayjs";
-import { useMemo } from "react";
+
 import { ScheduledServiceState } from "./scheduledServices";
+import { TableFilter } from "../servicesFilters";
 
 const SERVICE_COLUMNS = [
   { key: "material", label: "CÓDIGO" },
@@ -32,6 +35,9 @@ interface ScheduleServicesTableProps {
   scheduledServices: ScheduledServiceState[];
   setScheduledServices: (service: any) => any;
   clearValidation: () => void;
+  points: string[];
+  operations: string[];
+  services: any[];
 }
 
 export function ScheduledServicesTable({
@@ -39,7 +45,16 @@ export function ScheduledServicesTable({
   scheduledServices,
   setScheduledServices,
   clearValidation,
+  operations,
+  points,
+  services,
 }: ScheduleServicesTableProps) {
+  const [filteredServicesData, setFilteredServicesData] = useState<any[]>([]);
+
+  useEffect(() => {
+    setFilteredServicesData(scheduledServicesData);
+  }, []);
+
   const formatCellValue = (key: string, value: any) => {
     if (key === "dataProgramada") {
       return dayjs(value).utc().format("DD/MM/YYYY");
@@ -151,82 +166,105 @@ export function ScheduledServicesTable({
   };
 
   return (
-    <TableContainer component={Paper} sx={{ height: 380 }}>
-      <Table stickyHeader size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell padding="checkbox">
-              <Checkbox
-                checked={allSelected}
-                indeterminate={indeterminate}
-                onChange={(e) => toggleAllServices(e.target.checked)}
-              />
-            </TableCell>
-            {SERVICE_COLUMNS.map((header, index) => (
-              <TableCell className="text-nowrap max-h-5" key={index}>
-                {header.label}
+    <>
+      <TableFilter
+        data={scheduledServicesData}
+        fields={[
+          {
+            label: "SERVIÇO",
+            field: "textoBreve",
+            options: services,
+          },
+          {
+            label: "OPERAÇÃO",
+            field: "operacao",
+            options: operations,
+          },
+          {
+            label: "PONTO",
+            field: "ponto",
+            options: points,
+          },
+        ]}
+        onFilter={setFilteredServicesData}
+      />
+      <TableContainer component={Paper} sx={{ height: 380 }}>
+        <Table stickyHeader size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell padding="checkbox">
+                <Checkbox
+                  checked={allSelected}
+                  indeterminate={indeterminate}
+                  onChange={(e) => toggleAllServices(e.target.checked)}
+                />
               </TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-
-        <TableBody>
-          {scheduledServicesData.map((row) => {
-            const currentService = scheduledServices.find(
-              (s) => s.id === row.id,
-            );
-
-            if (!currentService) return;
-
-            const rowStyle = getRowClassName(currentService.validationStatus);
-
-            return (
-              <TableRow key={row.id} hover className={rowStyle?.bg}>
-                <TableCell
-                  padding="checkbox"
-                  className={`border-l-4 ${rowStyle?.border}`}
-                >
-                  <Checkbox
-                    checked={currentService?.selected}
-                    onChange={(e) => toggleService(row.id, e.target.checked)}
-                  />
+              {SERVICE_COLUMNS.map((header, index) => (
+                <TableCell className="text-nowrap max-h-5" key={index}>
+                  {header.label}
                 </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
 
-                {SERVICE_COLUMNS.map((col, index) => {
-                  if (col.key === "qtdeRealizada") {
+          <TableBody>
+            {filteredServicesData.map((row) => {
+              const currentService = scheduledServices.find(
+                (s) => s.id === row.id,
+              );
+
+              if (!currentService) return;
+
+              const rowStyle = getRowClassName(currentService.validationStatus);
+
+              return (
+                <TableRow key={row.id} hover className={rowStyle?.bg}>
+                  <TableCell
+                    padding="checkbox"
+                    className={`border-l-4 ${rowStyle?.border}`}
+                  >
+                    <Checkbox
+                      checked={currentService?.selected}
+                      onChange={(e) => toggleService(row.id, e.target.checked)}
+                    />
+                  </TableCell>
+
+                  {SERVICE_COLUMNS.map((col, index) => {
+                    if (col.key === "qtdeRealizada") {
+                      return (
+                        <TableCell key={index}>
+                          <input
+                            type="text"
+                            className="w-16 border rounded px-2 py-1 text-right"
+                            value={currentService?.qtdeRealizada ?? ""}
+                            onChange={(e) =>
+                              updateServiceQuantity(row.id, e.target.value)
+                            }
+                          />
+                        </TableCell>
+                      );
+                    }
+
+                    if (col.key === "status") {
+                      return (
+                        <TableCell key={index}>
+                          {getStatusBadge(currentService.validationStatus)}
+                        </TableCell>
+                      );
+                    }
+
                     return (
-                      <TableCell key={index}>
-                        <input
-                          type="text"
-                          className="w-16 border rounded px-2 py-1 text-right"
-                          value={currentService?.qtdeRealizada ?? ""}
-                          onChange={(e) =>
-                            updateServiceQuantity(row.id, e.target.value)
-                          }
-                        />
+                      <TableCell key={index} className="text-nowrap max-h-5">
+                        {formatCellValue(col.key, row[col.key])}
                       </TableCell>
                     );
-                  }
-
-                  if (col.key === "status") {
-                    return (
-                      <TableCell key={index}>
-                        {getStatusBadge(currentService.validationStatus)}
-                      </TableCell>
-                    );
-                  }
-
-                  return (
-                    <TableCell key={index} className="text-nowrap max-h-5">
-                      {formatCellValue(col.key, row[col.key])}
-                    </TableCell>
-                  );
-                })}
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </TableContainer>
+                  })}
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
   );
 }

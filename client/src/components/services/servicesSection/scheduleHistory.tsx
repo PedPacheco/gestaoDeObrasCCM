@@ -49,8 +49,8 @@ export function ScheduleHistory({
       </div>
 
       <div className="overflow-x-auto">
-        <TableContainer component={Paper} sx={{ height: 480 }}>
-          <Table size="small" className="text-sm h-full">
+        <TableContainer component={Paper} sx={{ height: 680 }}>
+          <Table size="small" className="text-sm">
             <TableHead>
               <TableRow>
                 <TableCell>SERVIÇO</TableCell>
@@ -72,21 +72,27 @@ export function ScheduleHistory({
               ) : (
                 scheduledServicesHistory.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell className="text-nowrap">
+                    <TableCell className="text-nowrap max-h-5">
                       {item.servicos.servicos_contratos.texto_breve}
                     </TableCell>
-                    <TableCell className="text-nowrap">
+                    <TableCell className="text-nowrap max-h-5">
                       {item.servicos.operacao}
                     </TableCell>
-                    <TableCell className="text-nowrap">
+                    <TableCell className="text-nowrap max-h-5">
                       {item.servicos.ponto}
                     </TableCell>
-                    <TableCell className="text-nowrap">
+                    <TableCell className="text-nowrap max-h-5">
                       {formatDate(item.programacoes.data_prog)}
                     </TableCell>
-                    <TableCell className="text-nowrap">{item.plan}</TableCell>
-                    <TableCell className="text-nowrap">{item.prog}</TableCell>
-                    <TableCell className="text-nowrap">{item.real}</TableCell>
+                    <TableCell className="text-nowrap max-h-5">
+                      {item.plan}
+                    </TableCell>
+                    <TableCell className="text-nowrap max-h-5">
+                      {item.prog}
+                    </TableCell>
+                    <TableCell className="text-nowrap max-h-5">
+                      {item.real}
+                    </TableCell>
                   </TableRow>
                 ))
               )}

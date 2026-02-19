@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import {
   ArrowUpTrayIcon,
   FunnelIcon,
@@ -22,7 +24,7 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
+import { TableFilter } from "./servicesFilters";
 
 interface ServicesAvaliableProps {
   servicesData: any[];
@@ -59,37 +61,13 @@ export function ServicesAvaliable({
   setOpenTeamsModal,
   isInsert,
 }: ServicesAvaliableProps) {
-  const [serviceFilter, setServiceFilter] = useState("");
-  const [operationFilter, setOperationFilter] = useState("");
-  const [pointFilter, setPointFilter] = useState("");
+  const [filteredServicesData, setFilteredServicesData] = useState<any[]>([]);
 
-  const [filteredServicesData, setFilteredServicesData] =
-    useState<any[]>(servicesData);
+  useEffect(() => {
+    setFilteredServicesData(servicesData);
+  }, [servicesData]);
 
   const allSelected = selectedServices.length === filteredServicesData.length;
-
-  const handleFilteringData = () => {
-    const result = servicesData.filter((service) => {
-      const matchService =
-        !serviceFilter || service.textoBreve === serviceFilter;
-
-      const matchOperation =
-        !operationFilter || service.operacao === operationFilter;
-
-      const matchPoint = !pointFilter || service.ponto === pointFilter;
-
-      return matchService && matchOperation && matchPoint;
-    });
-
-    setFilteredServicesData(result);
-  };
-
-  const clearFilter = () => {
-    setFilteredServicesData(servicesData);
-    setOperationFilter("");
-    setPointFilter("");
-    setServiceFilter("");
-  };
 
   return (
     <Paper className="p-6 mb-6 min-h-96">
@@ -115,81 +93,28 @@ export function ServicesAvaliable({
         </div>
       </div>
       {/* filtros */}
-      <Paper className="bg-gray-100 p-4 mb-4">
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={4}>
-            <FormControl fullWidth size="small">
-              <InputLabel>SERVIÇO</InputLabel>
-              <Select
-                value={serviceFilter}
-                onChange={(e) => setServiceFilter(e.target.value)}
-              >
-                <MenuItem value="">Selecionar...</MenuItem>
-                {availableServices.map((service, index) => (
-                  <MenuItem key={index} value={service}>
-                    {service}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
+      <TableFilter
+        data={servicesData}
+        fields={[
+          {
+            label: "SERVIÇO",
+            field: "textoBreve",
+            options: availableServices,
+          },
+          {
+            label: "OPERAÇÃO",
+            field: "operacao",
+            options: operations,
+          },
+          {
+            label: "PONTO",
+            field: "ponto",
+            options: points,
+          },
+        ]}
+        onFilter={setFilteredServicesData}
+      />
 
-          <Grid item xs={12} md={4}>
-            <FormControl fullWidth size="small">
-              <InputLabel>OPERAÇÃO</InputLabel>
-              <Select
-                value={operationFilter}
-                onChange={(e) => setOperationFilter(e.target.value)}
-              >
-                <MenuItem value="">Selecionar...</MenuItem>
-                {operations.map((op) => (
-                  <MenuItem key={op} value={op}>
-                    {op}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
-          <Grid item xs={12} md={4}>
-            <FormControl fullWidth size="small">
-              <InputLabel>PONTO</InputLabel>
-              <Select
-                value={pointFilter}
-                onChange={(e) => setPointFilter(e.target.value)}
-              >
-                <MenuItem value="">Selecionar...</MenuItem>
-                {points.map((p) => (
-                  <MenuItem key={p} value={p}>
-                    {p}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
-          {/* Buttons */}
-          <Grid item xs={12} className="flex gap-2">
-            <Button
-              fullWidth
-              variant="contained"
-              className="bg-blue-600 text-white"
-              onClick={handleFilteringData}
-            >
-              <FunnelIcon className="w-5 h-5 mr-1" /> APLICAR
-            </Button>
-
-            <Button
-              fullWidth
-              variant="outlined"
-              className="border-gray-400 text-gray-600"
-              onClick={clearFilter}
-            >
-              LIMPAR
-            </Button>
-          </Grid>
-        </Grid>
-      </Paper>
       {/* tabela de serviços */}
       <TableContainer component={Paper} sx={{ height: 380 }}>
         <Table stickyHeader size="small" className="text-sm h-full">

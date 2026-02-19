@@ -1,18 +1,17 @@
 import {
-  useState,
-  useCallback,
   forwardRef,
-  useImperativeHandle,
   memo,
+  useCallback,
+  useImperativeHandle,
+  useState,
 } from "react";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+
 import ConfirmationModalComponent from "@/components/details/modals/confirmationModal";
-import ErrorModal from "@/components/common/ErrorModal";
-import FailureModalComponent from "../details/modals/failureModal";
-import { ExecutionReportDialog } from "../details/modals/executionReportDialog/executionReportDialog";
 import { UseExecutionServiceFormReturn } from "@/hooks/useExecutionServicesForm";
-import ModalComponent from "../common/Modal";
 import { useFeedback } from "@/hooks/useFeedback";
+
+import { ExecutionReportDialog } from "../details/modals/executionReportDialog/executionReportDialog";
+import FailureModalComponent from "../details/modals/failureModal";
 
 interface ModalsManagerProps {
   onConfirmDelete: (id: number) => void;

@@ -26,9 +26,12 @@ interface ScheduledServicesProps {
   options: {
     restricao: Array<{ id: number; restricao: string }>;
   };
+  points: string[];
+  operations: string[];
+  services: any[];
   executionForm: UseExecutionServiceFormReturn;
   onError: (error: string) => void;
-  onSuccess: (success: string) => void;
+  onSuccess: (success: string, onClose?: () => void) => void;
 }
 
 export interface ScheduledServiceState {
@@ -42,6 +45,9 @@ export interface ScheduledServiceState {
 export function ScheduledServices({
   scheduledServicesData,
   scheduledServicesHistory,
+  operations,
+  points,
+  services,
   options,
   executionForm,
   onError,
@@ -61,21 +67,21 @@ export function ScheduledServices({
 
   const [scheduledServices, setScheduledServices] = useState<
     ScheduledServiceState[]
-  >(() =>
-    scheduledServicesData.map((item) => ({
+  >([]);
+
+  useEffect(() => {
+    const mapped = scheduledServicesData.map((item) => ({
       id: item.id,
       prog: item.qtdeProgramada,
       qtdeRealizada: item.qtdeRealizada,
       selected: false,
       validationStatus: null,
-    })),
-  );
+    }));
 
-  useEffect(() => {
-    const services = hydrateStatuses(scheduledServices);
+    const hydrated = hydrateStatuses(mapped);
 
-    setScheduledServices(services);
-  }, []);
+    setScheduledServices(hydrated);
+  }, [scheduledServicesData]);
 
   const validationSummary = buildSummary(scheduledServices);
 
@@ -144,8 +150,16 @@ export function ScheduledServices({
       qtdeRealizada: item.qtdeRealizada ? Number(item.qtdeRealizada) : null,
     }));
 
-    await performScheduleServices(formatted);
-    router.refresh();
+    const result = await performScheduleServices(formatted);
+
+    if (!result.success) {
+      onError(result.error);
+      return;
+    }
+
+    if (result.message) {
+      onSuccess(result.message, () => router.refresh());
+    }
   };
 
   const handleRescheduleServices = async () => {
@@ -158,8 +172,12 @@ export function ScheduledServices({
     const result = await reascheduleServices(toReschedule);
 
     if (!result.success) {
-      console.error(result.error);
+      onError(result.error);
       return;
+    }
+
+    if (result.message) {
+      onSuccess(result.message, () => router.refresh());
     }
   };
 
@@ -233,6 +251,9 @@ export function ScheduledServices({
           scheduledServices={scheduledServices}
           scheduledServicesData={scheduledServicesData}
           clearValidation={() => clearValidation()}
+          operations={operations}
+          points={points}
+          services={services}
         />
 
         <ValidationOfScheduledServices validationSummary={validationSummary} />

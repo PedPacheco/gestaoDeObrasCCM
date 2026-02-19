@@ -51,8 +51,9 @@ export function ManageSchedule({
   }, []);
 
   const scheduleForm = useScheduleForm({
-    data: { idWork, ...scheduleData },
+    data: scheduleData,
     options: options,
+    idWork,
   });
 
   const executionFormData = useMemo(() => {
@@ -123,6 +124,7 @@ export function ManageSchedule({
           setOpenTeamsModal={setOpenTeamsModal}
           isInsert={isInsert}
           idSchedule={idSchedule}
+          idWork={Number(idWork)}
           options={options}
           onError={showError}
           onSuccess={showSuccess}
@@ -139,10 +141,9 @@ export function ManageSchedule({
           scheduleData={
             idSchedule
               ? {
-                  // ...executionForm.formData,
-                  idWork: idWork,
+                  idWork,
                 }
-              : { idWork, ...scheduleData.formData }
+              : { ...scheduleForm.formData, idWork }
           }
           isInsert={isInsert}
         />

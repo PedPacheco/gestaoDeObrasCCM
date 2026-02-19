@@ -44,9 +44,14 @@ interface UseScheduleFormProps {
     tecnico: Array<{ id: number; tecnico: string }>;
     restricao: Array<{ id: number; restricao: string; tipo_restricao: string }>;
   };
+  idWork: number;
 }
 
-export const useScheduleForm = ({ data, options }: UseScheduleFormProps) => {
+export const useScheduleForm = ({
+  data,
+  options,
+  idWork,
+}: UseScheduleFormProps) => {
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [expanded, setExpanded] = useState<string | false>("panel1");
@@ -57,7 +62,9 @@ export const useScheduleForm = ({ data, options }: UseScheduleFormProps) => {
     if (!data) return;
     if (initializedRef.current) return;
 
-    const mapped = mapScheduleToForm(data, options);
+    const dataWithIdWork = { ...data, idWork };
+
+    const mapped = mapScheduleToForm(dataWithIdWork, options);
     setFormData(mapped);
 
     initializedRef.current = true;

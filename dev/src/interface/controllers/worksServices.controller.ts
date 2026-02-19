@@ -6,6 +6,7 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  Post,
   Query,
   Req,
   UploadedFiles,
@@ -13,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { WorksServicesService } from 'src/application/services/worksServices.service';
 import {
+  AddServicesDTO,
   FinalizeServicesDTO,
   PerformServicesDTO,
   ScheduleServicesDTO,
@@ -181,6 +183,16 @@ export class ServicesController {
   @Patch('realizar')
   async performServices(@Body() data: PerformServicesDTO[]) {
     await this.worksServicesService.performServices(data);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Serviços realizados com sucesso',
+    };
+  }
+
+  @Post('adicionar')
+  async addServices(@Body() data: AddServicesDTO) {
+    await this.worksServicesService.addServices(data);
 
     return {
       statusCode: HttpStatus.OK,

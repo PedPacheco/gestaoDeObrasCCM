@@ -26,6 +26,26 @@ export class ScheduleServicesDTO {
   prog: number;
 }
 
+export class AddServicesDTO {
+  @IsNumber()
+  @Type(() => Number)
+  idWork: number;
+
+  @IsNumber()
+  @Type(() => Number)
+  idService: number;
+
+  @IsString()
+  point: string;
+
+  @IsString()
+  operation: string;
+
+  @IsNumber()
+  @Type(() => Number)
+  qtdePlan: number;
+}
+
 export class PerformServicesDTO {
   @IsNumber()
   @Type(() => Number)

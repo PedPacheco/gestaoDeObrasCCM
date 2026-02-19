@@ -1,22 +1,23 @@
 "use client";
 
-import { editSchedule, saveSchedule } from "@/actions/schedules";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+import { saveSchedule } from "@/actions/schedules";
 import { scheduleServices } from "@/actions/services";
+import { useFeedback } from "@/hooks/useFeedback";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import {
+  Button,
   Dialog,
-  DialogTitle,
-  DialogContent,
   DialogActions,
-} from "@mui/material";
-import {
-  Select,
-  MenuItem,
+  DialogContent,
+  DialogTitle,
   FormControl,
   InputLabel,
-  Button,
+  MenuItem,
+  Select,
 } from "@mui/material";
-import { useState } from "react";
 
 interface TeamModalProps {
   open: boolean;
@@ -38,6 +39,9 @@ export function TeamModal({
   isInsert,
 }: TeamModalProps) {
   const [idTeam, setIdTeam] = useState<any>("");
+
+  const router = useRouter();
+  const { showError, showSuccess } = useFeedback();
 
   const handleServiceScheduling = async () => {
     const formattedService = selectedServices.map((service) => ({
@@ -61,11 +65,12 @@ export function TeamModal({
     }
 
     if (!response.success) {
-      console.log(response.error);
+      showError(response.error);
       return;
     }
 
-    console.log(response.message);
+    showSuccess(response.message, () => router.refresh());
+    onClose();
   };
 
   return (
