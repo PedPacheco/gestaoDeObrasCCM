@@ -17,6 +17,7 @@ describe('WorksServicesRepository', () => {
       update: jest.fn(),
       updateMany: jest.fn(),
       groupBy: jest.fn(),
+      create: jest.fn(),
     },
     programacoes_servicos: {
       findMany: jest.fn(),
@@ -694,6 +695,59 @@ describe('WorksServicesRepository', () => {
     });
   });
 
+  describe('getAllServicesOfWork', () => {
+    it('should return all services of a work', async () => {
+      const mockWorkId = 1;
+      const mockServices = [
+        { id: 1, qtde_plan: 100 },
+        { id: 2, qtde_plan: 200 },
+        { id: 3, qtde_plan: 150 },
+      ];
+
+      mockPrismaService.servicos.findMany.mockResolvedValue(mockServices);
+
+      const result = await repository.getAllServicesOfWork(mockWorkId);
+
+      expect(result).toEqual(mockServices);
+      expect(prisma.servicos.findMany).toHaveBeenCalledWith({
+        select: {
+          id: true,
+          qtde_plan: true,
+        },
+        where: { id_obra: mockWorkId },
+      });
+      expect(prisma.servicos.findMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return empty array when no services found', async () => {
+      const mockWorkId = 999;
+
+      mockPrismaService.servicos.findMany.mockResolvedValue([]);
+
+      const result = await repository.getAllServicesOfWork(mockWorkId);
+
+      expect(result).toEqual([]);
+      expect(prisma.servicos.findMany).toHaveBeenCalledWith({
+        select: {
+          id: true,
+          qtde_plan: true,
+        },
+        where: { id_obra: mockWorkId },
+      });
+    });
+
+    it('should handle database errors', async () => {
+      const mockWorkId = 1;
+      const mockError = new Error('Database connection error');
+
+      mockPrismaService.servicos.findMany.mockRejectedValue(mockError);
+
+      await expect(repository.getAllServicesOfWork(mockWorkId)).rejects.toThrow(
+        'Database connection error',
+      );
+    });
+  });
+
   describe('scheduleServices', () => {
     const mockScheduleData: ScheduleServicesDTO[] = [
       {
@@ -919,7 +973,7 @@ describe('WorksServicesRepository', () => {
     });
   });
 
-  describe('cancel', () => {
+  describe('cancelServices', () => {
     it('should cancel schedule in a transaction', async () => {
       const mockId = 1;
       const mockTx = {
@@ -1081,59 +1135,6 @@ describe('WorksServicesRepository', () => {
       await expect(repository.cancel(mockId)).rejects.toThrow('Delete failed');
       expect(mockTx.servicos.updateMany).not.toHaveBeenCalled();
       expect(mockTx.programacoes.update).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('getAllServicesOfWork', () => {
-    it('should return all services of a work', async () => {
-      const mockWorkId = 1;
-      const mockServices = [
-        { id: 1, qtde_plan: 100 },
-        { id: 2, qtde_plan: 200 },
-        { id: 3, qtde_plan: 150 },
-      ];
-
-      mockPrismaService.servicos.findMany.mockResolvedValue(mockServices);
-
-      const result = await repository.getAllServicesOfWork(mockWorkId);
-
-      expect(result).toEqual(mockServices);
-      expect(prisma.servicos.findMany).toHaveBeenCalledWith({
-        select: {
-          id: true,
-          qtde_plan: true,
-        },
-        where: { id_obra: mockWorkId },
-      });
-      expect(prisma.servicos.findMany).toHaveBeenCalledTimes(1);
-    });
-
-    it('should return empty array when no services found', async () => {
-      const mockWorkId = 999;
-
-      mockPrismaService.servicos.findMany.mockResolvedValue([]);
-
-      const result = await repository.getAllServicesOfWork(mockWorkId);
-
-      expect(result).toEqual([]);
-      expect(prisma.servicos.findMany).toHaveBeenCalledWith({
-        select: {
-          id: true,
-          qtde_plan: true,
-        },
-        where: { id_obra: mockWorkId },
-      });
-    });
-
-    it('should handle database errors', async () => {
-      const mockWorkId = 1;
-      const mockError = new Error('Database connection error');
-
-      mockPrismaService.servicos.findMany.mockRejectedValue(mockError);
-
-      await expect(repository.getAllServicesOfWork(mockWorkId)).rejects.toThrow(
-        'Database connection error',
-      );
     });
   });
 
@@ -1480,6 +1481,30 @@ describe('WorksServicesRepository', () => {
       expect(mockTx.servicos.updateMany).toHaveBeenCalledWith({
         data: { qtde_real: 0 },
         where: { id: 1 },
+      });
+    });
+  });
+
+  describe('addService', () => {
+    it('should add service, where data correctly sent', async () => {
+      const mockData = {
+        idWork: 1,
+        idService: 2,
+        point: 'P1',
+        operation: 'INSTALAÇÃO',
+        qtdePlan: 2,
+      };
+
+      await repository.addServices(mockData);
+
+      expect(mockPrismaService.servicos.create).toHaveBeenCalledWith({
+        data: {
+          id_obra: 1,
+          id_contrato_servico: 2,
+          operacao: 'INSTALAÇÃO',
+          ponto: 'P1',
+          qtde_plan: 2,
+        },
       });
     });
   });

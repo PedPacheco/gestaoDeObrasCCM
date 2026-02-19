@@ -100,7 +100,6 @@ export class WorksServicesService {
   }
 
   async addServices(data: AddServicesDTO): Promise<void> {
-    console.log('entrou');
     await this.worksServicesRepository.addServices(data);
   }
 

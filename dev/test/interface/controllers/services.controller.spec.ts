@@ -20,6 +20,7 @@ describe('ServicesController', () => {
     performServices: jest.fn(),
     finalizeServices: jest.fn(),
     cancel: jest.fn(),
+    addServices: jest.fn(),
   };
 
   const mockQueriesService = {
@@ -446,12 +447,28 @@ describe('ServicesController', () => {
     it('should call the method reascheduleServices service', async () => {
       const mockId = [{ id: 1 }, { id: 2 }];
 
-      mockQueriesService.getTeamsServices.mockResolvedValue(null);
-
       await controller.reascheduleServices(mockId);
 
       expect(mockWorksServicesService.reascheduleServices).toHaveBeenCalledWith(
         mockId,
+      );
+    });
+  });
+
+  describe('addServices', () => {
+    it('should call the method addServices service', async () => {
+      const mockParam = {
+        idWork: 1,
+        idService: 2,
+        point: 'P1',
+        operation: 'INSTALAÇÃO',
+        qtdePlan: 2,
+      };
+
+      await controller.addServices(mockParam);
+
+      expect(mockWorksServicesService.addServices).toHaveBeenCalledWith(
+        mockParam,
       );
     });
   });

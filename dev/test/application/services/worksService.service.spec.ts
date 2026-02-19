@@ -24,6 +24,7 @@ describe('WorksServicesService', () => {
     getServiceScheduleHistory: jest.fn(),
     performServices: jest.fn(),
     reascheduleServices: jest.fn(),
+    addServices: jest.fn(),
     getAllServicesOfWork: jest.fn(),
   };
 
@@ -326,30 +327,24 @@ describe('WorksServicesService', () => {
       expect(repository.reascheduleServices).toHaveBeenCalledWith(mockData);
       expect(repository.reascheduleServices).toHaveBeenCalledTimes(1);
     });
+  });
 
-    it('should handle empty reschedule array', async () => {
-      const mockData = [];
+  describe('addService', () => {
+    it('should add service successfully', async () => {
+      const mockData = {
+        idWork: 1,
+        idService: 2,
+        point: 'P1',
+        operation: 'INSTALAÇÃO',
+        qtdePlan: 2,
+      };
 
-      mockWorksServicesRepository.reascheduleServices.mockResolvedValue(
-        undefined,
-      );
+      mockWorksServicesRepository.addServices.mockResolvedValue(undefined);
 
-      await service.reascheduleServices(mockData);
+      await service.addServices(mockData);
 
-      expect(repository.reascheduleServices).toHaveBeenCalledWith([]);
-    });
-
-    it('should propagate repository errors on reschedule', async () => {
-      const mockData = [{ id: 1 }];
-      const mockError = new Error('Reschedule failed');
-
-      mockWorksServicesRepository.reascheduleServices.mockRejectedValue(
-        mockError,
-      );
-
-      await expect(service.reascheduleServices(mockData)).rejects.toThrow(
-        'Reschedule failed',
-      );
+      expect(repository.addServices).toHaveBeenCalledWith(mockData);
+      expect(repository.addServices).toHaveBeenCalledTimes(1);
     });
   });
 
