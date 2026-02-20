@@ -346,6 +346,30 @@ describe('WorksServicesService', () => {
       expect(repository.addServices).toHaveBeenCalledWith(mockData);
       expect(repository.addServices).toHaveBeenCalledTimes(1);
     });
+
+    it('should trigger an error id the service already exists at the specified location', async () => {
+      const mockData = {
+        idWork: 1,
+        idService: 2,
+        point: 'P1',
+        operation: 'INSTALAÇÃO',
+        qtdePlan: 2,
+      };
+
+      mockWorksServicesRepository.getAllServicesOfWork.mockResolvedValue([
+        {
+          id: 2,
+          id_contrato_servico: 2,
+          ponto: 'P1',
+          operacao: 'INSTALACAO',
+          qtde_plan: 2,
+        },
+      ]);
+
+      await expect(service.addServices(mockData)).rejects.toThrow(
+        'Esse serviço já existe nesse ponto.',
+      );
+    });
   });
 
   describe('calculateScheduledProgress', () => {

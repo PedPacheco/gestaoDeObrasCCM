@@ -7,6 +7,9 @@ export interface GetByIdParamsInterface {
 
 export interface GetAllServicesOfWorkInterface {
   id: number;
+  id_contrato_servico: number;
+  ponto: string;
+  operacao: string;
   qtde_plan: number;
 }
 

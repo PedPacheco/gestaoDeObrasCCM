@@ -20,7 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "overrides": {
-    "minimatch": "^10.2.1",
+    "minimatch": "^9.0.5",
     "ajv": "^8.18.0",
     "rimraf": "^6.0.0"
   },

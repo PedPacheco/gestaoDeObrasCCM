@@ -27,6 +27,9 @@ export class WorksServicesRepository implements IWorksServicesRepository {
     return await this.prisma.servicos.findMany({
       select: {
         id: true,
+        id_contrato_servico: true,
+        ponto: true,
+        operacao: true,
         qtde_plan: true,
       },
       where: { id_obra: id },

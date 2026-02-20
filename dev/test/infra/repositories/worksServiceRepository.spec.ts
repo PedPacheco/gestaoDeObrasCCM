@@ -712,6 +712,9 @@ describe('WorksServicesRepository', () => {
       expect(prisma.servicos.findMany).toHaveBeenCalledWith({
         select: {
           id: true,
+          id_contrato_servico: true,
+          operacao: true,
+          ponto: true,
           qtde_plan: true,
         },
         where: { id_obra: mockWorkId },
@@ -730,6 +733,9 @@ describe('WorksServicesRepository', () => {
       expect(prisma.servicos.findMany).toHaveBeenCalledWith({
         select: {
           id: true,
+          id_contrato_servico: true,
+          operacao: true,
+          ponto: true,
           qtde_plan: true,
         },
         where: { id_obra: mockWorkId },

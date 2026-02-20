@@ -100,6 +100,19 @@ export class WorksServicesService {
   }
 
   async addServices(data: AddServicesDTO): Promise<void> {
+    const { idService, point, idWork } = data;
+
+    const services =
+      await this.worksServicesRepository.getAllServicesOfWork(idWork);
+
+    const servicesMap = new Map(
+      services.map((s) => [`${s.id_contrato_servico}:${s.ponto}`, s]),
+    );
+
+    if (servicesMap.has(`${idService}:${point}`)) {
+      throw new BadRequestException('Esse serviço já existe nesse ponto.');
+    }
+
     await this.worksServicesRepository.addServices(data);
   }
 
