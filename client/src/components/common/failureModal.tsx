@@ -1,18 +1,17 @@
 import React, { useState } from "react";
+
 import {
-  Modal,
   Box,
-  Typography,
-  IconButton,
   FormControl,
   InputLabel,
-  Select,
   MenuItem,
+  Modal,
+  Select,
   TextField,
+  Typography,
 } from "@mui/material";
-import { XMarkIcon } from "@heroicons/react/20/solid";
-import { ButtonComponent } from "../../common/Button";
-import { flushSync } from "react-dom";
+
+import { ButtonComponent } from "./Button";
 
 interface FailureModalComponentProps {
   open: boolean;

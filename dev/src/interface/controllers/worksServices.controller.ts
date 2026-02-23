@@ -15,18 +15,21 @@ import {
 import { WorksServicesService } from 'src/application/services/worksServices.service';
 import {
   AddServicesDTO,
+  ApplyAdditonalDTO,
   FinalizeServicesDTO,
   PerformServicesDTO,
   ScheduleServicesDTO,
 } from '../dtos/workServicesDTO';
 import { QueriesServicesService } from 'src/application/services/queriesServices.service';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { FinalizeServicesService } from 'src/application/services/finalizeServices.service';
 
 @Controller('servicos')
 export class ServicesController {
   constructor(
     private readonly worksServicesService: WorksServicesService,
     private readonly queriesServicesService: QueriesServicesService,
+    private readonly finalizeServicesService: FinalizeServicesService,
   ) {}
 
   @Get(':id')
@@ -120,7 +123,7 @@ export class ServicesController {
 
   @Patch('cancelar/:id')
   async cancelScheduleService(@Param('id', ParseIntPipe) id: number) {
-    await this.worksServicesService.cancel(id);
+    await this.worksServicesService.cancelServices(id);
 
     return {
       statusCode: HttpStatus.OK,
@@ -172,7 +175,7 @@ export class ServicesController {
       }),
     };
 
-    await this.worksServicesService.finalizeServices(id, data, files);
+    await this.finalizeServicesService.finalizeServices(id, data, files);
 
     return {
       statusCode: HttpStatus.OK,
@@ -187,6 +190,16 @@ export class ServicesController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Serviços realizados com sucesso',
+    };
+  }
+
+  @Patch('aplicar-adicional')
+  async applyAdditional(@Body() data: ApplyAdditonalDTO[]) {
+    await this.worksServicesService.applyAdditional(data);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Aplicado adicional no serviço',
     };
   }
 

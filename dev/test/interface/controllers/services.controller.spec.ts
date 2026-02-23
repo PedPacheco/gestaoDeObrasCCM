@@ -8,6 +8,7 @@ import {
   ScheduleServicesDTO,
 } from 'src/interface/dtos/workServicesDTO';
 import { QueriesServicesService } from 'src/application/services/queriesServices.service';
+import { FinalizeServicesService } from 'src/application/services/finalizeServices.service';
 
 describe('ServicesController', () => {
   let controller: ServicesController;
@@ -18,8 +19,8 @@ describe('ServicesController', () => {
     scheduleServices: jest.fn(),
     reascheduleServices: jest.fn(),
     performServices: jest.fn(),
-    finalizeServices: jest.fn(),
-    cancel: jest.fn(),
+    applyAdditional: jest.fn(),
+    cancelServices: jest.fn(),
     addServices: jest.fn(),
   };
 
@@ -32,6 +33,10 @@ describe('ServicesController', () => {
     getTeamsServices: jest.fn(),
   };
 
+  const mockFinalizeServices = {
+    finalizeServices: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ServicesController],
@@ -41,6 +46,7 @@ describe('ServicesController', () => {
           useValue: mockWorksServicesService,
         },
         { provide: QueriesServicesService, useValue: mockQueriesService },
+        { provide: FinalizeServicesService, useValue: mockFinalizeServices },
       ],
     }).compile();
 
@@ -315,6 +321,22 @@ describe('ServicesController', () => {
     });
   });
 
+  describe('applyAdditional', () => {
+    it('should call service method correctly', async () => {
+      const mockData = [{ id: 1, additional: 3 }];
+
+      mockWorksServicesService.applyAdditional.mockResolvedValue(undefined);
+
+      const result = await controller.applyAdditional(mockData);
+
+      expect(result).toEqual({
+        statusCode: HttpStatus.OK,
+        message: 'Aplicado adicional no serviço',
+      });
+      expect(service.applyAdditional).toHaveBeenCalledWith(mockData);
+    });
+  });
+
   describe('scheduleServices', () => {
     it('should schedule services successfully', async () => {
       const mockScheduleData: ScheduleServicesDTO[] = [
@@ -537,7 +559,7 @@ describe('ServicesController', () => {
         idUser: 99,
       };
 
-      expect(mockWorksServicesService.finalizeServices).toHaveBeenCalledWith(
+      expect(mockFinalizeServices.finalizeServices).toHaveBeenCalledWith(
         mockId,
         expect.objectContaining({
           idSchedule: 123,
@@ -568,7 +590,7 @@ describe('ServicesController', () => {
     it('should cancel schedule successfully', async () => {
       const mockId = 1;
 
-      mockWorksServicesService.cancel.mockResolvedValue(undefined);
+      mockWorksServicesService.cancelServices.mockResolvedValue(undefined);
 
       const result = await controller.cancelScheduleService(mockId);
 
@@ -576,19 +598,19 @@ describe('ServicesController', () => {
         statusCode: HttpStatus.OK,
         message: 'Programação dos serviços foi cancelada',
       });
-      expect(service.cancel).toHaveBeenCalledWith(mockId);
-      expect(service.cancel).toHaveBeenCalledTimes(1);
+      expect(service.cancelServices).toHaveBeenCalledWith(mockId);
+      expect(service.cancelServices).toHaveBeenCalledTimes(1);
     });
 
     it('should handle cancellation for different ids', async () => {
       const mockId = 999;
 
-      mockWorksServicesService.cancel.mockResolvedValue(undefined);
+      mockWorksServicesService.cancelServices.mockResolvedValue(undefined);
 
       const result = await controller.cancelScheduleService(mockId);
 
       expect(result.statusCode).toBe(HttpStatus.OK);
-      expect(service.cancel).toHaveBeenCalledWith(mockId);
+      expect(service.cancelServices).toHaveBeenCalledWith(mockId);
     });
   });
 
@@ -625,7 +647,7 @@ describe('ServicesController', () => {
       const mockId = 1;
       const mockError = new Error('Schedule not found');
 
-      mockWorksServicesService.cancel.mockRejectedValue(mockError);
+      mockWorksServicesService.cancelServices.mockRejectedValue(mockError);
 
       await expect(controller.cancelScheduleService(mockId)).rejects.toThrow(
         'Schedule not found',

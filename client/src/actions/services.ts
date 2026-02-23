@@ -202,6 +202,31 @@ export async function addService(data: {
   });
 }
 
+export async function applyAdditonalPlanServices(
+  data: {
+    id: number;
+    additional: number | null;
+  }[],
+): Promise<ActionResult> {
+  const token = await getAuthToken();
+
+  if (!token) {
+    return { success: false, error: "Usuário não autenticado" };
+  }
+
+  return apiRequest(
+    `${process.env.NEXT_PUBLIC_API_URL}/servicos/aplicar-adicional`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    },
+  );
+}
+
 export async function cancelScheduleServices(
   id: number,
 ): Promise<ActionResult> {

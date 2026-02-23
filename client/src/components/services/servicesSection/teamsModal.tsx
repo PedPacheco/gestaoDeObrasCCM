@@ -49,6 +49,7 @@ export function TeamModal({
       idTeam,
       idSchedule,
       prog: service.prog,
+      additional: service.additional,
     }));
 
     let response;

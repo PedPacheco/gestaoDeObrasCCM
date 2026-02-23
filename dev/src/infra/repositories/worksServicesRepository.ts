@@ -4,6 +4,7 @@ import { IWorksServicesRepository } from 'src/domain/repositories/IWorksServiceR
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {
   AddServicesDTO,
+  ApplyAdditonalDTO,
   PerformServicesDTO,
   ScheduleServicesDTO,
 } from 'src/interface/dtos/workServicesDTO';
@@ -31,6 +32,7 @@ export class WorksServicesRepository implements IWorksServicesRepository {
         ponto: true,
         operacao: true,
         qtde_plan: true,
+        qtde_adicional: true,
       },
       where: { id_obra: id },
     });
@@ -51,6 +53,7 @@ export class WorksServicesRepository implements IWorksServicesRepository {
         qtde_plan: true,
         qtde_prog: true,
         qtde_real: true,
+        qtde_adicional: true,
         obras: { select: { ovnota: true } },
         programacoes: { select: { data_prog: true } },
         servicos_contratos: {
@@ -238,6 +241,17 @@ export class WorksServicesRepository implements IWorksServicesRepository {
     });
   }
 
+  async applyAdditional(data: ApplyAdditonalDTO[]): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      for (const item of data) {
+        await tx.servicos.updateMany({
+          data: { qtde_adicional: item.additional },
+          where: { id: item.id },
+        });
+      }
+    });
+  }
+
   async finalizeServices(
     data: any,
     tx: Prisma.TransactionClient,
@@ -306,7 +320,7 @@ export class WorksServicesRepository implements IWorksServicesRepository {
     });
   }
 
-  async cancel(id: number): Promise<void> {
+  async cancelServices(id: number): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       await tx.programacoes_servicos.deleteMany({
         where: { id_programacao: id },

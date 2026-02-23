@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client';
 import {
   AddServicesDTO,
+  ApplyAdditonalDTO,
   PerformServicesDTO,
   ScheduleServicesDTO,
 } from 'src/interface/dtos/workServicesDTO';
@@ -38,10 +39,11 @@ export interface IWorksServicesRepository {
   getServicesContracts(idParceira: number): Promise<any[]>;
   getTeamsServices(idParceira: number): Promise<any[]>;
   scheduleServices(data: ScheduleServicesDTO[], prog: any): Promise<void>;
+  applyAdditional(data: ApplyAdditonalDTO[]): Promise<void>;
   finalizeServices(data: any, tx: Prisma.TransactionClient): Promise<void>;
   performServices(data: PerformServicesDTO[]): Promise<void>;
   reascheduleServices(data: { id: number }[]): Promise<void>;
-  cancel(id: number): Promise<void>;
+  cancelServices(id: number): Promise<void>;
   addServices(data: AddServicesDTO): Promise<void>;
 }
 

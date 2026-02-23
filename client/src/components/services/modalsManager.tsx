@@ -6,12 +6,12 @@ import {
   useState,
 } from "react";
 
-import ConfirmationModalComponent from "@/components/details/modals/confirmationModal";
 import { UseExecutionServiceFormReturn } from "@/hooks/useExecutionServicesForm";
 import { useFeedback } from "@/hooks/useFeedback";
 
 import { ExecutionReportDialog } from "../details/modals/executionReportDialog/executionReportDialog";
-import FailureModalComponent from "../details/modals/failureModal";
+import ConfirmationModalComponent from "../common/confirmationModal";
+import FailureModalComponent from "../common/failureModal";
 
 interface ModalsManagerProps {
   onConfirmDelete: (id: number) => void;

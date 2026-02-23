@@ -5,7 +5,7 @@ export class CustomValidationPipe extends ValidationPipe {
 
   constructor(options?: ValidationPipeOptions) {
     super(options);
-    this.options = options ?? {};
+    this.options = options;
   }
 
   async transform(value: any, metadata: any) {

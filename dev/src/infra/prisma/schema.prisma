@@ -399,6 +399,7 @@ model servicos {
   id_contrato_servico   Int
   id_equipe             Int?
   id_programacao        Int?
+  qtde_adicional        Float?
   programacoes_servicos programacoes_servicos[]
   equipes               equipes?                @relation(fields: [id_equipe], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipes")
   obras                 obras                   @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")

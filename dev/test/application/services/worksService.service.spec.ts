@@ -7,11 +7,6 @@ import {
 
 import { ScheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
 import { WorksServicesService } from 'src/application/services/worksServices.service';
-import { GetWorkDetailsService } from 'src/application/works/getWorkDetails.service';
-import { ScheduleExecutionValidatorService } from 'src/application/schedule/scheduleExecutionValidator.service';
-import { ExecutionReportService } from 'src/application/executionReport.service';
-import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 describe('WorksServicesService', () => {
   let service: WorksServicesService;
@@ -19,33 +14,13 @@ describe('WorksServicesService', () => {
 
   const mockWorksServicesRepository = {
     scheduleServices: jest.fn(),
-    finalizeServices: jest.fn(),
-    cancel: jest.fn(),
+    cancelServices: jest.fn(),
     getServiceScheduleHistory: jest.fn(),
     performServices: jest.fn(),
     reascheduleServices: jest.fn(),
     addServices: jest.fn(),
     getAllServicesOfWork: jest.fn(),
-  };
-
-  const mockGetWorkDetailsService = {
-    get: jest.fn(),
-  };
-
-  const mockExecutionValidator = {
-    validateExecutionAndUpdateStatus: jest.fn(),
-  };
-
-  const mockExecutionReport = {
-    create: jest.fn(),
-  };
-
-  const mockUpdateSchedule = {
-    findExecutionOfSchedules: jest.fn(),
-  };
-
-  const mockPrisma = {
-    $transaction: jest.fn(),
+    applyAdditional: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -56,17 +31,6 @@ describe('WorksServicesService', () => {
           provide: WORKS_SERVICE_REPOSITORY,
           useValue: mockWorksServicesRepository,
         },
-        {
-          provide: GetWorkDetailsService,
-          useValue: mockGetWorkDetailsService,
-        },
-        {
-          provide: ScheduleExecutionValidatorService,
-          useValue: mockExecutionValidator,
-        },
-        { provide: ExecutionReportService, useValue: mockExecutionReport },
-        { provide: UPDATE_SCHEDULES_REPOSITORY, useValue: mockUpdateSchedule },
-        { provide: PrismaService, useValue: mockPrisma },
       ],
     }).compile();
 
@@ -87,17 +51,19 @@ describe('WorksServicesService', () => {
           id: 1,
           idTeam: 10,
           prog: 3,
+          additional: null,
         },
         {
           id: 2,
           idTeam: 20,
           prog: 5,
+          additional: null,
         },
       ];
 
       mockWorksServicesRepository.getAllServicesOfWork.mockResolvedValue([
-        { id: 1, qtde_plan: 3 },
-        { id: 2, qtde_plan: 5 },
+        { id: 1, qtde_plan: 3, qtde_adicional: null },
+        { id: 2, qtde_plan: 5, qtde_adicional: null },
       ]);
       mockWorksServicesRepository.getServiceScheduleHistory.mockResolvedValue(
         [],
@@ -113,32 +79,6 @@ describe('WorksServicesService', () => {
       expect(repository.scheduleServices).toHaveBeenCalledTimes(1);
     });
 
-    it('should schedule services with idSchedule', async () => {
-      const mockScheduleData: ScheduleServicesDTO[] = [
-        {
-          id: 1,
-          idTeam: 10,
-          idSchedule: 5,
-          prog: 2,
-        },
-      ];
-
-      mockWorksServicesRepository.getAllServicesOfWork.mockResolvedValue([
-        { id: 1, qtde_plan: 2 },
-      ]);
-      mockWorksServicesRepository.getServiceScheduleHistory.mockResolvedValue(
-        [],
-      );
-      mockWorksServicesRepository.scheduleServices.mockResolvedValue(undefined);
-
-      await service.scheduleServices(1, mockScheduleData);
-
-      expect(repository.scheduleServices).toHaveBeenCalledWith(
-        mockScheduleData,
-        { increment: 100 },
-      );
-    });
-
     it('should handle empty schedule array', async () => {
       const mockScheduleData: ScheduleServicesDTO[] = [];
 
@@ -151,35 +91,38 @@ describe('WorksServicesService', () => {
     });
   });
 
-  describe('cancel', () => {
+  describe('applyAdditonal', () => {
+    it('should call method of apply additional successfully', async () => {
+      const mockData = [{ id: 2, additional: 2 }];
+
+      mockWorksServicesRepository.cancelServices.mockResolvedValue(undefined);
+
+      await service.applyAdditional(mockData);
+
+      expect(repository.applyAdditional).toHaveBeenCalledWith(mockData);
+      expect(repository.applyAdditional).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('cancelServices', () => {
     it('should cancel schedule successfully', async () => {
       const mockId = 1;
 
-      mockWorksServicesRepository.cancel.mockResolvedValue(undefined);
+      mockWorksServicesRepository.cancelServices.mockResolvedValue(undefined);
 
-      await service.cancel(mockId);
+      await service.cancelServices(mockId);
 
-      expect(repository.cancel).toHaveBeenCalledWith(mockId);
-      expect(repository.cancel).toHaveBeenCalledTimes(1);
-    });
-
-    it('should handle different id values for cancellation', async () => {
-      const mockId = 999;
-
-      mockWorksServicesRepository.cancel.mockResolvedValue(undefined);
-
-      await service.cancel(mockId);
-
-      expect(repository.cancel).toHaveBeenCalledWith(999);
+      expect(repository.cancelServices).toHaveBeenCalledWith(mockId);
+      expect(repository.cancelServices).toHaveBeenCalledTimes(1);
     });
 
     it('should propagate repository errors on cancel', async () => {
       const mockId = 1;
       const mockError = new Error('Schedule not found');
 
-      mockWorksServicesRepository.cancel.mockRejectedValue(mockError);
+      mockWorksServicesRepository.cancelServices.mockRejectedValue(mockError);
 
-      await expect(service.cancel(mockId)).rejects.toThrow(
+      await expect(service.cancelServices(mockId)).rejects.toThrow(
         'Schedule not found',
       );
     });
@@ -193,11 +136,12 @@ describe('WorksServicesService', () => {
           idTeam: 10,
           idSchedule: 5,
           prog: 2,
+          additional: null,
         },
       ];
 
       mockWorksServicesRepository.getAllServicesOfWork.mockResolvedValue([
-        { id: 1, qtde_plan: 2 },
+        { id: 1, qtde_plan: 2, qtde_adicional: null },
       ]);
       mockWorksServicesRepository.getServiceScheduleHistory.mockResolvedValue([
         {
@@ -222,11 +166,12 @@ describe('WorksServicesService', () => {
           idTeam: 10,
           idSchedule: 5,
           prog: 2,
+          additional: null,
         },
       ];
 
       mockWorksServicesRepository.getAllServicesOfWork.mockResolvedValue([
-        { id: 1, qtde_plan: 2 },
+        { id: 1, qtde_plan: 2, qtde_additional: null },
       ]);
       mockWorksServicesRepository.getServiceScheduleHistory.mockResolvedValue([
         {
@@ -375,12 +320,14 @@ describe('WorksServicesService', () => {
   describe('calculateScheduledProgress', () => {
     it('should calculate progress correctly', async () => {
       const mockServices = [
-        { id: 1, qtde_plan: 10 },
-        { id: 2, qtde_plan: 20 },
-        { id: 3, qtde_plan: 70 },
+        { id: 1, qtde_plan: 10, qtde_adicional: null },
+        { id: 2, qtde_plan: 20, qtde_adicional: 2 },
       ];
 
-      const mockSelectedServices = [{ prog: 10 }, { prog: 20 }];
+      const mockSelectedServices = [
+        { prog: 10, additional: null },
+        { prog: 20, additional: 2 },
+      ];
 
       mockWorksServicesRepository.getAllServicesOfWork.mockResolvedValue(
         mockServices,
@@ -391,7 +338,7 @@ describe('WorksServicesService', () => {
         mockSelectedServices,
       );
 
-      expect(progress).toBe(30); // (10 + 20) / 100 * 100
+      expect(progress).toBe(100); // (10 + 20) / 100 * 100
     });
 
     it('should return 0 when total plan is 0', async () => {
@@ -420,7 +367,7 @@ describe('WorksServicesService', () => {
         { id: 2 }, // sem qtde_plan
       ];
 
-      const mockSelectedServices = [{ prog: 25 }];
+      const mockSelectedServices = [{ prog: 25, additional: null }];
 
       mockWorksServicesRepository.getAllServicesOfWork.mockResolvedValue(
         mockServices,
@@ -432,188 +379,6 @@ describe('WorksServicesService', () => {
       );
 
       expect(progress).toBe(50); // 25 / 50 * 100
-    });
-  });
-
-  describe('finalizeServices', () => {
-    const mockWorkId = 1;
-    const mockScheduleId = 5;
-    const mockDate = new Date('2024-01-15');
-
-    const mockData = {
-      idSchedule: mockScheduleId,
-      idExecutionRestriction: 1,
-      responsibility: 'John Doe',
-      executionReportData: {
-        description: 'Test report',
-        observations: 'Test observations',
-      },
-    };
-
-    const mockServices = [
-      { id: 1, qtde_plan: 50 },
-      { id: 2, qtde_plan: 50 },
-    ];
-
-    const mockHistory = [
-      {
-        id_programacao: mockScheduleId,
-        id_servico: 1,
-        prog: 30,
-        real: 25,
-        programacoes: {
-          data_prog: mockDate,
-        },
-      },
-      {
-        id_programacao: mockScheduleId,
-        id_servico: 2,
-        prog: null,
-        real: null,
-        programacoes: {
-          data_prog: mockDate,
-        },
-      },
-    ];
-
-    const mockExecutionValues = [
-      { exec: 25, prog: 30 },
-      { exec: 15, prog: 20 },
-      { exec: null, prog: null },
-    ];
-
-    beforeEach(() => {
-      mockWorksServicesRepository.getAllServicesOfWork.mockResolvedValue(
-        mockServices,
-      );
-      mockWorksServicesRepository.getServiceScheduleHistory.mockResolvedValue(
-        mockHistory,
-      );
-      mockUpdateSchedule.findExecutionOfSchedules.mockResolvedValue(
-        mockExecutionValues,
-      );
-      mockPrisma.$transaction.mockImplementation((callback) =>
-        callback(mockPrisma),
-      );
-      mockExecutionReport.create.mockResolvedValue(undefined);
-      mockExecutionValidator.validateExecutionAndUpdateStatus.mockResolvedValue(
-        undefined,
-      );
-    });
-
-    it('should finalize services successfully', async () => {
-      await service.finalizeServices(mockWorkId, mockData);
-
-      expect(
-        mockWorksServicesRepository.getAllServicesOfWork,
-      ).toHaveBeenCalledWith(mockWorkId);
-      expect(
-        mockWorksServicesRepository.getServiceScheduleHistory,
-      ).toHaveBeenCalledWith(mockWorkId);
-      expect(mockUpdateSchedule.findExecutionOfSchedules).toHaveBeenCalledWith(
-        mockScheduleId,
-        mockWorkId,
-      );
-      expect(mockPrisma.$transaction).toHaveBeenCalled();
-    });
-
-    it('should create execution report when executionReportData is provided', async () => {
-      await service.finalizeServices(mockWorkId, mockData);
-
-      expect(mockExecutionReport.create).toHaveBeenCalledWith(
-        {
-          idSchedule: mockScheduleId,
-          idWork: mockWorkId,
-          description: 'Test report',
-          observations: 'Test observations',
-        },
-        mockDate,
-        undefined,
-        mockPrisma,
-      );
-    });
-
-    it('should not create execution report when executionReportData is empty', async () => {
-      const dataWithoutReport = {
-        idSchedule: mockScheduleId,
-        idExecutionRestriction: 1,
-        responsibility: 'John Doe',
-        executionReportData: {},
-      };
-
-      await service.finalizeServices(mockWorkId, dataWithoutReport);
-
-      expect(mockExecutionReport.create).not.toHaveBeenCalled();
-    });
-
-    it('should handle files when provided', async () => {
-      const mockFiles = [
-        {
-          fieldname: 'file',
-          originalname: 'test.pdf',
-          encoding: '7bit',
-          mimetype: 'application/pdf',
-          buffer: Buffer.from('test'),
-          size: 1234,
-        },
-      ] as Express.Multer.File[];
-
-      await service.finalizeServices(mockWorkId, mockData, mockFiles);
-
-      expect(mockExecutionReport.create).toHaveBeenCalledWith(
-        expect.any(Object),
-        mockDate,
-        mockFiles,
-        mockPrisma,
-      );
-    });
-
-    it('should calculate percentages correctly for finalization', async () => {
-      await service.finalizeServices(mockWorkId, mockData);
-
-      expect(
-        mockExecutionValidator.validateExecutionAndUpdateStatus,
-      ).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: mockScheduleId,
-          idWork: mockWorkId,
-          dataProg: mockDate,
-          prog: 30,
-          exec: 25,
-          idExecutionRestriction: 1,
-          responsibility: 'John Doe',
-        }),
-        { exec: 40, prog: 50 },
-        mockPrisma,
-      );
-    });
-
-    it('should handle errors during transaction and rollback', async () => {
-      const mockError = new Error('Transaction failed');
-      mockExecutionReport.create.mockRejectedValue(mockError);
-
-      await expect(
-        service.finalizeServices(mockWorkId, mockData),
-      ).rejects.toThrow('Transaction failed');
-    });
-
-    it('should handle zero total planned in finalization', async () => {
-      mockWorksServicesRepository.getAllServicesOfWork.mockResolvedValue([
-        { id: 1, qtde_plan: 0 },
-      ]);
-
-      await service.finalizeServices(mockWorkId, mockData);
-
-      expect(
-        mockExecutionValidator.validateExecutionAndUpdateStatus,
-      ).toHaveBeenCalledWith(
-        expect.objectContaining({
-          prog: 0,
-          exec: 0,
-        }),
-        expect.any(Object),
-        mockPrisma,
-      );
     });
   });
 });

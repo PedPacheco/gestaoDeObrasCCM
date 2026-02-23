@@ -17,6 +17,7 @@ import { ExecutionReportModule } from './executionReport.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
+import { FinalizeServicesService } from 'src/application/services/finalizeServices.service';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { createMulterConfig } from 'src/shared/multer/multer.config';
   providers: [
     WorksServicesService,
     QueriesServicesService,
+    FinalizeServicesService,
     ScheduleExecutionValidatorService,
     {
       provide: WORKS_SERVICE_REPOSITORY,

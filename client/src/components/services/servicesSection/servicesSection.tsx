@@ -20,6 +20,7 @@ interface ServicesSectionProps {
   isInsert: boolean;
   idSchedule: number | null;
   idWork: number;
+  statusSchedule: string | null;
   options: {
     restricao: Array<{ id: number; restricao: string }>;
   };
@@ -40,6 +41,7 @@ export function ServicesSection({
   isInsert,
   idSchedule,
   idWork,
+  statusSchedule,
   options,
   onSuccess,
   onError,
@@ -61,6 +63,12 @@ export function ServicesSection({
     localStorage.removeItem(`scheduled-services-validation:${idSchedule}`);
   };
 
+  const disabledStatus = ["Parcial", "Concluído", "Cancelado"];
+
+  const isDisabledButton = statusSchedule
+    ? disabledStatus.includes(statusSchedule)
+    : false;
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
       {/* LEFT SIDE — tables */}
@@ -75,6 +83,9 @@ export function ServicesSection({
           setSelectedServices={setSelectedServices}
           setOpenTeamsModal={setOpenTeamsModal}
           isInsert={isInsert}
+          isDisabled={isDisabledButton}
+          onError={onError}
+          onSuccess={onSuccess}
         />
 
         {/* Serviços Programados */}
@@ -89,6 +100,7 @@ export function ServicesSection({
             executionForm={executionForm}
             onError={onError}
             onSuccess={onSuccess}
+            isDisabled={isDisabledButton}
           />
         )}
       </div>
@@ -119,6 +131,7 @@ export function ServicesSection({
             cancelServices={cancelServices}
             idSchedule={idSchedule}
             scheduledServicesHistory={scheduledServicesHistory}
+            isDisabled={isDisabledButton}
           />
         )}
       </div>

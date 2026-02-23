@@ -24,6 +24,11 @@ export class ScheduleServicesDTO {
   @IsNumber()
   @Type(() => Number)
   prog: number;
+
+  @IsNumber()
+  @Type(() => Number)
+  @IsOptional()
+  additional?: number;
 }
 
 export class AddServicesDTO {
@@ -58,6 +63,16 @@ export class PerformServicesDTO {
   @IsNumber()
   @Type(() => Number)
   qtdeRealizada: number;
+}
+
+export class ApplyAdditonalDTO {
+  @IsNumber()
+  @Type(() => Number)
+  id: number;
+
+  @IsNumber()
+  @Type(() => Number)
+  additional: number;
 }
 
 class DataScheduleInFinalizeServiceDTO {

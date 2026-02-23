@@ -18,12 +18,14 @@ interface ScheduleHistoryProps {
   idSchedule: number | null;
   cancelServices: (id: number) => void;
   scheduledServicesHistory: any[];
+  isDisabled: boolean;
 }
 
 export function ScheduleHistory({
   cancelServices,
   idSchedule,
   scheduledServicesHistory,
+  isDisabled,
 }: ScheduleHistoryProps) {
   const formatDate = (dateString: string) => {
     return dayjs(dateString).utc().format("DD/MM/YYYY");
@@ -43,6 +45,7 @@ export function ScheduleHistory({
               cancelServices(idSchedule);
             }
           }}
+          // disabled={isDisabled}
         >
           CANCELAR
         </Button>

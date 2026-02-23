@@ -25,6 +25,8 @@ import {
   Typography,
 } from "@mui/material";
 import { TableFilter } from "./servicesFilters";
+import { useRouter } from "next/navigation";
+import { applyAdditonalPlanServices } from "@/actions/services";
 
 interface ServicesAvaliableProps {
   servicesData: any[];
@@ -35,6 +37,9 @@ interface ServicesAvaliableProps {
   selectedServices: any;
   setOpenTeamsModal: (team: boolean) => void;
   isInsert: boolean;
+  isDisabled: boolean;
+  onError: (error: string) => void;
+  onSuccess: (success: string, onClose?: () => void) => void;
 }
 
 const serviceColumns = [
@@ -43,11 +48,12 @@ const serviceColumns = [
   { key: "operacao", label: "OPERAÇÃO" },
   { key: "ponto", label: "PONTO" },
   { key: "dataProg", label: "DATA PROG" },
-  { key: "qtdePlanejada", label: "PLAN", align: "right" },
-  { key: "qtdeProgramada", label: "PLAN TOTAL", align: "right" },
-  { key: "qtdeRealizada", label: "REAL", align: "right" },
+  { key: "qtdePlanejada", label: "PLAN" },
+  { key: "qtdeAdicional", label: "ADICIONAL" },
+  { key: "qtdeProgramada", label: "PROG" },
+  { key: "qtdeRealizada", label: "REAL" },
   { key: "dif", label: "DIF" },
-  { key: "valorUnit", label: "VALOR UNIT", align: "right" },
+  { key: "valorUnit", label: "VALOR UNIT" },
   { key: "valorReal", label: "VALOR REAL" },
 ];
 
@@ -60,14 +66,58 @@ export function ServicesAvaliable({
   setSelectedServices,
   setOpenTeamsModal,
   isInsert,
+  isDisabled,
+  onError,
+  onSuccess,
 }: ServicesAvaliableProps) {
   const [filteredServicesData, setFilteredServicesData] = useState<any[]>([]);
+
+  const router = useRouter();
 
   useEffect(() => {
     setFilteredServicesData(servicesData);
   }, [servicesData]);
 
+  const updateServiceQuantity = (id: number, value: string) => {
+    if (!/^\d*$/.test(value)) return;
+
+    setFilteredServicesData((prev: any) =>
+      prev.map((item: any) =>
+        item.id === id
+          ? { ...item, qtdeAdicional: value === "" ? null : value }
+          : item,
+      ),
+    );
+  };
+
+  const isDisableAfterChangeData = filteredServicesData.some((item) => {
+    const original = servicesData.find((service) => service.id === item.id);
+
+    return original?.qtdeAdicional !== item.qtdeAdicional;
+  });
+
   const allSelected = selectedServices.length === filteredServicesData.length;
+
+  const applyAdditional = async () => {
+    const data = filteredServicesData.map((service) => ({
+      id: service.id,
+      additional:
+        service.qtdeAdicional == null || service.qtdeAdicional === ""
+          ? null
+          : Number(service.qtdeAdicional),
+    }));
+
+    const response = await applyAdditonalPlanServices(data);
+
+    if (!response.success) {
+      onError(response.error);
+      return;
+    }
+
+    if (response.message) {
+      onSuccess(response.message, () => router.refresh());
+    }
+  };
 
   return (
     <Paper className="p-6 mb-6 min-h-96">
@@ -134,6 +184,7 @@ export function ServicesAvaliable({
                         filteredServicesData.map((s) => ({
                           id: s.id,
                           prog: s.qtdePlanejada,
+                          additional: s.qtdeAdicional,
                         })),
                       );
                     } else {
@@ -167,7 +218,11 @@ export function ServicesAvaliable({
                       if (e.target.checked) {
                         setSelectedServices([
                           ...selectedServices,
-                          { id: row.id, prog: row.qtdePlanejada },
+                          {
+                            id: row.id,
+                            prog: row.qtdePlanejada,
+                            additional: row.qtdeAdicional,
+                          },
                         ]);
                       } else {
                         setSelectedServices(
@@ -180,29 +235,60 @@ export function ServicesAvaliable({
                   />
                 </TableCell>
 
-                {serviceColumns.map((col, index) => (
-                  <TableCell key={index} className="text-nowrap">
-                    {row[col.key]}
-                  </TableCell>
-                ))}
+                {serviceColumns.map((col, index) => {
+                  if (col.key === "qtdeAdicional") {
+                    return (
+                      <TableCell key={index}>
+                        <input
+                          type="text"
+                          className="w-16 border rounded px-2 py-1 text-right"
+                          value={row[col.key] || ""}
+                          onChange={(e) =>
+                            updateServiceQuantity(row.id, e.target.value)
+                          }
+                        />
+                      </TableCell>
+                    );
+                  }
+
+                  return (
+                    <TableCell key={index} className="text-nowrap">
+                      {row[col.key]}
+                    </TableCell>
+                  );
+                })}
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
-      {!isInsert && (
-        <Box className="flex justify-end mt-4">
+
+      <Box className="flex justify-end mt-4">
+        <Button
+          variant="contained"
+          startIcon={<PlusIcon className="w-5 h-5 text-white" />}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mr-4"
+          onClick={applyAdditional}
+          disabled={isDisabled || !isDisableAfterChangeData}
+        >
+          APLICAR ADICIONAL
+        </Button>
+        {!isInsert && (
           <Button
             variant="contained"
             startIcon={<PlusIcon className="w-5 h-5 text-white" />}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
             onClick={() => setOpenTeamsModal(true)}
-            disabled={selectedServices.length === 0}
+            disabled={
+              selectedServices.length === 0 ||
+              isDisabled ||
+              isDisableAfterChangeData
+            }
           >
             PROGRAMAR SERVIÇOS
           </Button>
-        </Box>
-      )}
+        )}
+      </Box>
     </Paper>
   );
 }

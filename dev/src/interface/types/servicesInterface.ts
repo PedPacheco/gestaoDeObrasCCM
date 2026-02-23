@@ -11,6 +11,7 @@ export interface GetAllServicesOfWorkInterface {
   ponto: string;
   operacao: string;
   qtde_plan: number;
+  qtde_adicional: number;
 }
 
 export interface GetSelectedServicesParamsInterface {
@@ -29,6 +30,7 @@ export interface GetServicesByWorkIdResponse {
   qtde_plan: number;
   qtde_prog: number;
   qtde_real: number;
+  qtde_adicional: number;
   obras: { ovnota: string };
   programacoes: { data_prog: Date };
   servicos_contratos: {

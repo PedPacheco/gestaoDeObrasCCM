@@ -105,6 +105,7 @@ describe('WorksServicesRepository', () => {
           qtde_plan: true,
           qtde_prog: true,
           qtde_real: true,
+          qtde_adicional: true,
           obras: { select: { ovnota: true } },
           programacoes: { select: { data_prog: true } },
           servicos_contratos: {
@@ -716,6 +717,7 @@ describe('WorksServicesRepository', () => {
           operacao: true,
           ponto: true,
           qtde_plan: true,
+          qtde_adicional: true,
         },
         where: { id_obra: mockWorkId },
       });
@@ -737,6 +739,7 @@ describe('WorksServicesRepository', () => {
           operacao: true,
           ponto: true,
           qtde_plan: true,
+          qtde_adicional: true,
         },
         where: { id_obra: mockWorkId },
       });
@@ -998,7 +1001,7 @@ describe('WorksServicesRepository', () => {
         return await callback(mockTx);
       });
 
-      await repository.cancel(mockId);
+      await repository.cancelServices(mockId);
 
       expect(prisma.$transaction).toHaveBeenCalledTimes(1);
       expect(mockTx.programacoes_servicos.deleteMany).toHaveBeenCalledTimes(1);
@@ -1024,7 +1027,7 @@ describe('WorksServicesRepository', () => {
         return await callback(mockTx);
       });
 
-      await repository.cancel(mockId);
+      await repository.cancelServices(mockId);
 
       expect(mockTx.programacoes_servicos.deleteMany).toHaveBeenCalledWith({
         where: { id_programacao: 5 },
@@ -1049,7 +1052,7 @@ describe('WorksServicesRepository', () => {
         return await callback(mockTx);
       });
 
-      await repository.cancel(mockId);
+      await repository.cancelServices(mockId);
 
       expect(mockTx.servicos.updateMany).toHaveBeenCalledWith({
         data: {
@@ -1078,7 +1081,7 @@ describe('WorksServicesRepository', () => {
         return await callback(mockTx);
       });
 
-      await repository.cancel(mockId);
+      await repository.cancelServices(mockId);
 
       expect(mockTx.programacoes.update).toHaveBeenCalledWith({
         data: { prog: 0 },
@@ -1114,7 +1117,7 @@ describe('WorksServicesRepository', () => {
         return await callback(mockTx);
       });
 
-      await repository.cancel(mockId);
+      await repository.cancelServices(mockId);
 
       expect(executionOrder).toEqual(['deleteMany', 'updateMany', 'update']);
     });
@@ -1138,7 +1141,9 @@ describe('WorksServicesRepository', () => {
         return await callback(mockTx);
       });
 
-      await expect(repository.cancel(mockId)).rejects.toThrow('Delete failed');
+      await expect(repository.cancelServices(mockId)).rejects.toThrow(
+        'Delete failed',
+      );
       expect(mockTx.servicos.updateMany).not.toHaveBeenCalled();
       expect(mockTx.programacoes.update).not.toHaveBeenCalled();
     });
@@ -1512,6 +1517,35 @@ describe('WorksServicesRepository', () => {
           qtde_plan: 2,
         },
       });
+    });
+  });
+
+  describe('applyAdditional', () => {
+    it('should apply additional in service, where data correctly sent', async () => {
+      const mockData = [
+        {
+          id: 1,
+          additional: 2,
+        },
+      ];
+
+      const mockTx = {
+        servicos: {
+          updateMany: jest.fn().mockResolvedValue({}),
+        },
+      };
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockTx);
+      });
+
+      await repository.applyAdditional(mockData);
+
+      expect(mockTx.servicos.updateMany).toHaveBeenCalledWith({
+        data: { qtde_adicional: 2 },
+        where: { id: 1 },
+      });
+      expect(mockTx.servicos.updateMany).toHaveBeenCalledTimes(1);
     });
   });
 

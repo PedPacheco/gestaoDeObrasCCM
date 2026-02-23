@@ -32,6 +32,7 @@ interface ScheduledServicesProps {
   executionForm: UseExecutionServiceFormReturn;
   onError: (error: string) => void;
   onSuccess: (success: string, onClose?: () => void) => void;
+  isDisabled: boolean;
 }
 
 export interface ScheduledServiceState {
@@ -52,6 +53,7 @@ export function ScheduledServices({
   executionForm,
   onError,
   onSuccess,
+  isDisabled,
 }: ScheduledServicesProps) {
   const router = useRouter();
 
@@ -203,7 +205,7 @@ export function ScheduledServices({
             variant="contained"
             size="small"
             onClick={handleApplyPlannedToReal}
-            disabled={!scheduledServices.some((s) => s.selected)}
+            disabled={!scheduledServices.some((s) => s.selected) || isDisabled}
           >
             APLICAR PLANEJADO COMO REALIZADO
           </Button>
@@ -212,6 +214,7 @@ export function ScheduledServices({
             variant="contained"
             size="small"
             onClick={handlePerformServices}
+            disabled={isDisabled}
           >
             REALIZAR SERVIÇOS
           </Button>
@@ -231,7 +234,7 @@ export function ScheduledServices({
             variant="contained"
             size="small"
             onClick={handleRescheduleServices}
-            disabled={!canReschedule}
+            disabled={!canReschedule || isDisabled}
           >
             REPROGRAMAR SERVIÇOS
           </Button>
@@ -240,7 +243,7 @@ export function ScheduledServices({
             variant="contained"
             size="small"
             onClick={handleFinalizeServices}
-            disabled={!canFinalize}
+            disabled={!canFinalize || isDisabled}
           >
             FINALIZAR EXECUÇÃO DOS SERVIÇOS
           </Button>

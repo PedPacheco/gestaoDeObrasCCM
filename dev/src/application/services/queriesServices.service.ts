@@ -37,6 +37,7 @@ export class QueriesServicesService {
       contrato: service.servicos_contratos.contrato,
       dataProgramada: service.programacoes?.data_prog,
       qtdePlanejada: service.qtde_plan,
+      qtdeAdicional: service.qtde_adicional,
       qtdeProgramada: service.qtde_prog,
       qtdeRealizada: service.qtde_real,
       preco: service.servicos_contratos.preco,

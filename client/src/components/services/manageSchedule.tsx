@@ -125,6 +125,7 @@ export function ManageSchedule({
           isInsert={isInsert}
           idSchedule={idSchedule}
           idWork={Number(idWork)}
+          statusSchedule={scheduleData ? scheduleData.status_programacao : null}
           options={options}
           onError={showError}
           onSuccess={showSuccess}
