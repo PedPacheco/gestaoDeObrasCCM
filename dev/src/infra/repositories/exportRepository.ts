@@ -22,6 +22,30 @@ export class ExportRepository implements IExportRepository {
     return await this.prisma.exportacao_capacidade_execucao.findMany();
   }
 
+  async exportForecast(): Promise<any> {
+    return await this.prisma.exportacao_forecast.findMany();
+  }
+
+  async exportRejections(): Promise<any> {
+    return await this.prisma.programacoes_reprovacoes.findMany({
+      select: {
+        obras: { select: { ovnota: true } },
+        data_prog: true,
+        motivo: true,
+        hora_ini: true,
+        hora_ter: true,
+        prog: true,
+        descricao: true,
+        equip_desligado: true,
+        equipe_linha_morta: true,
+        equipe_linha_viva: true,
+        equipe_regularizacao: true,
+        tipo_servico: true,
+        observacao_programacao: true,
+      },
+    });
+  }
+
   async exportSuspensions(): Promise<any> {
     return await this.prisma.suspensoes.findMany({
       select: {
