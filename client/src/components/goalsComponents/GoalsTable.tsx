@@ -26,7 +26,7 @@ export default function GoalsTable({
     (item: any) => {
       const months = Object.keys(columnMapping).slice(
         typeGoals === "rda" ? 6 : 5,
-        -2
+        -2,
       );
       const sums = {
         meta: 0,
@@ -42,7 +42,7 @@ export default function GoalsTable({
 
       return sums;
     },
-    [columnMapping, typeGoals]
+    [columnMapping, typeGoals],
   );
 
   const sumValues = useMemo(() => {
@@ -72,8 +72,12 @@ export default function GoalsTable({
         <TableBody>
           {data?.map((item: any, index: any) => {
             const sums = sumValues[index];
+
             return (
-              <TableRow key={index} className="h-16">
+              <TableRow
+                key={`${item.regional}-${item.tipo_obra}-${item.turma}-${item.anocalc}`}
+                className="h-16"
+              >
                 <TableCell className="p-0 px-2 text-center text-nowrap text-base text-zinc-700 ">
                   {item.regional}
                 </TableCell>

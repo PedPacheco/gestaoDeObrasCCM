@@ -159,6 +159,7 @@ export default function PortfolioWorks({
         sliceEndIndex={6}
         handleChangePage={handleChangePage}
         page={page}
+        getRowKey={(item) => item.id}
       />
 
       <ModalComponent open={open} onClose={toggleModal} title="Valores totais">

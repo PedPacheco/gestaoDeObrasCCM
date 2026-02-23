@@ -33,6 +33,7 @@ interface TableComponentProps {
   sliceEndIndex?: number;
   page: number;
   handleChangePage: (event: unknown, newPage: number) => void;
+  getRowKey?: (item: any) => string | number;
 }
 
 dayjs.extend(utc);
@@ -44,6 +45,7 @@ export function TableWithPagination({
   sliceEndIndex,
   handleChangePage,
   page,
+  getRowKey,
 }: TableComponentProps) {
   const router = useRouter();
 
@@ -77,8 +79,8 @@ export function TableWithPagination({
             </TableHead>
 
             <TableBody>
-              {data.map((item: any, index: number) => (
-                <TableRow key={index}>
+              {data.map((item: any, index: any) => (
+                <TableRow key={getRowKey ? getRowKey(item) : index}>
                   {Object.keys(columns)
                     .slice(1, sliceEndIndex ? -sliceEndIndex : undefined)
                     .map((column) => {
