@@ -6,26 +6,14 @@ import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
 
 import { Inject, Injectable } from '@nestjs/common';
-import * as moment from 'moment';
-
-enum DeadlineStatus {
-  OVERDUE = 'Prazo vencido',
-  CRITICAL = 'Crítico',
-  ATTENTION = 'Atenção',
-  ON_TIME = 'No prazo',
-}
-
-const DEADLINE_THRESHOLDS = {
-  CRITICAL_DAYS: 16,
-  ATTENTION_DAYS: 30,
-  ATTENTION_MIN_DAYS: 17,
-} as const;
+import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 
 @Injectable()
 export class GetScheduleValuesService {
   constructor(
     @Inject(GET_SCHEDULE_VALUES_REPOSITORY)
     private readonly getScheduleValuesRepository: IGetScheduleValuesRepository,
+    private readonly deadlineStatusService: DeadlineStatusService,
   ) {}
 
   async getValues(
@@ -40,7 +28,7 @@ export class GetScheduleValuesService {
       return {
         ...work,
         restricao_aberta: this.hasOpenRestriction(work),
-        status_prazo: this.calculateDeadlineStatus(work),
+        status_prazo: this.deadlineStatusService.calculate(work),
       };
     });
 
@@ -89,30 +77,5 @@ export class GetScheduleValuesService {
       hasRestriction2 && isUnresolved2 && hasNoResolutionDate2;
 
     return restriction1Open || restriction2Open;
-  }
-
-  private calculateDeadlineStatus(work: any): string | undefined {
-    if (work.id_grupo !== 1) {
-      return undefined;
-    }
-    const deadlineMoment = moment(work.prazo_fim).utc();
-    const daysRemaining = deadlineMoment.diff(moment(), 'days');
-
-    if (daysRemaining < 0) {
-      return DeadlineStatus.OVERDUE;
-    }
-
-    if (daysRemaining <= DEADLINE_THRESHOLDS.CRITICAL_DAYS) {
-      return `${DeadlineStatus.CRITICAL}: ${daysRemaining} dia(s) restante(s)`;
-    }
-
-    if (
-      daysRemaining >= DEADLINE_THRESHOLDS.ATTENTION_MIN_DAYS &&
-      daysRemaining <= DEADLINE_THRESHOLDS.ATTENTION_DAYS
-    ) {
-      return `${DeadlineStatus.ATTENTION}: ${daysRemaining} dias restantes`;
-    }
-
-    return `${DeadlineStatus.ON_TIME}: (${daysRemaining} dias restantes)`;
   }
 }

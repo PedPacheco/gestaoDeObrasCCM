@@ -34,7 +34,7 @@ export class HandleSchedulesUpdateService {
       try {
         const result = await this.updateSchedulesService.update(updateData, tx);
 
-        if (Object.keys(executionReportData).length > 0) {
+        if (executionReportData) {
           await this.executionReportService.create(
             {
               idSchedule: result.scheduleId,

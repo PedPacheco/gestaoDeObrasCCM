@@ -35,7 +35,7 @@ export default function MainAllWorks({
     data: filtersData,
   });
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
-    {}
+    {},
   );
   const [error, setError] = useState<string | null>();
   const [page, setPage] = useState(0);
@@ -64,7 +64,7 @@ export default function MainAllWorks({
           `${process.env.NEXT_PUBLIC_API_URL}/obras`,
           params,
           token,
-          { cache: "no-store" }
+          { cache: "no-store" },
         );
 
         setFilteredData(response.data);
@@ -88,7 +88,7 @@ export default function MainAllWorks({
           `${process.env.NEXT_PUBLIC_API_URL}/obras`,
           params,
           token,
-          { cache: "no-store" }
+          { cache: "no-store" },
         );
 
         setFilteredData(response.data);

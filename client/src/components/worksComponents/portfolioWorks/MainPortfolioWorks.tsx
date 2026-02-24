@@ -60,7 +60,7 @@ export default function PortfolioWorks({
       const { parceira, ...rest } = filtersData;
 
       const suspensionRemoved = rest.status?.filter(
-        (item: { id: number }) => ![4].includes(item.id)
+        (item: { id: number }) => ![4].includes(item.id),
       );
 
       setFilteredFilters({ ...rest, status: suspensionRemoved });
@@ -75,7 +75,7 @@ export default function PortfolioWorks({
 
       const url = mountUrl(
         `${process.env.NEXT_PUBLIC_API_URL}/exportacao${pathname}`,
-        formattedParams
+        formattedParams,
       );
 
       try {
@@ -97,7 +97,7 @@ export default function PortfolioWorks({
         setError(`Erro ao gerar a planilha: ${error.message}`);
       }
     },
-    [pathname, token]
+    [pathname, token],
   );
 
   const fetchWorks = useCallback(
@@ -108,7 +108,7 @@ export default function PortfolioWorks({
             `${process.env.NEXT_PUBLIC_API_URL}/obras/${url}`,
             params,
             token,
-            { cache: "no-store" }
+            { cache: "no-store" },
           );
 
           setFilteredData(response.data);
@@ -117,7 +117,7 @@ export default function PortfolioWorks({
         }
       });
     },
-    [token, url]
+    [token, url],
   );
 
   const handleChangePage = (event: unknown, newPage: number) => {
@@ -186,7 +186,7 @@ export default function PortfolioWorks({
                     <p>
                       {typeof valueFormatted === "number"
                         ? Number(valueFormatted.toFixed(0)).toLocaleString(
-                            "pt-br"
+                            "pt-br",
                           )
                         : valueFormatted}
                     </p>

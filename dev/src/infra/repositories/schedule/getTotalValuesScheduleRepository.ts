@@ -6,9 +6,7 @@ import { GetTotalValuesScheduleDTO } from 'src/interface/dtos/scheduleDTO';
 import { GetTotalValuesScheduleResponse } from 'src/interface/types/schedule/getTotalValuesScheduleInterface';
 
 @Injectable()
-export class GetTotalValueScheduleRepository
-  implements IGetTotalScheduleValuesRepository
-{
+export class GetTotalValueScheduleRepository implements IGetTotalScheduleValuesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async getTotalValues(

@@ -18,6 +18,8 @@ import { ExportFinedWorksService } from 'src/application/export/exportFinedWorks
 import { ExportExecutionCapacityService } from 'src/application/export/exportExecutionCapacity.service';
 import { ExportSuspensionsService } from 'src/application/export/exportSuspensions.service';
 import { ExportExecutionReportService } from 'src/application/export/exportExecutionReport.service';
+import { ExportForecastService } from 'src/application/export/exportForecast.service';
+import { ExportRejectionsService } from 'src/application/export/exportRejections.service';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -40,6 +42,8 @@ export class ExportController {
     private exportExecutionCapacityService: ExportExecutionCapacityService,
     private exportSuspensionsService: ExportSuspensionsService,
     private exportExecutionReportService: ExportExecutionReportService,
+    private exportForecastService: ExportForecastService,
+    private exportRejectionsService: ExportRejectionsService,
   ) {}
 
   private applyFilters<
@@ -235,5 +239,35 @@ export class ExportController {
     );
 
     return await this.exportExecutionReportService.export(res);
+  }
+
+  @Get('forecast')
+  @UseGuards(PermissionGuard)
+  async exportForecast(@Res() res: Response) {
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="Exportação do Forecast"',
+    );
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+
+    return await this.exportForecastService.export(res);
+  }
+
+  @Get('reprovacoes')
+  @UseGuards(PermissionGuard)
+  async exportRejections(@Res() res: Response) {
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="Exportação das reprovações"',
+    );
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+
+    return await this.exportRejectionsService.export(res);
   }
 }
