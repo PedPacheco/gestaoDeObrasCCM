@@ -6,9 +6,7 @@ import {
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 @Injectable()
-export class FindExistingWorksRepository
-  implements IFindExistingWorksRepository
-{
+export class FindExistingWorksRepository implements IFindExistingWorksRepository {
   private readonly logger = new Logger(FindExistingWorksRepository.name);
   constructor(private readonly prisma: PrismaService) {}
 

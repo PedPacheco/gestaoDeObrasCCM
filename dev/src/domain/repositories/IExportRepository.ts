@@ -7,6 +7,8 @@ export interface IExportRepository {
   exportSuspensions(): Promise<any>;
   exportSuspensionsRemoved(): Promise<any>;
   exportExecutionReport(): Promise<any>;
+  exportForecast(): Promise<any>;
+  exportRejections(): Promise<any>;
 }
 
 export const EXPORT_REPOSITORY = Symbol('ExportRepository');

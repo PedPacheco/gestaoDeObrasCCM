@@ -11,9 +11,7 @@ import { Injectable } from '@nestjs/common';
 import { IGetMonthlySummaryRepository } from '../../../domain/repositories/schedule/IGetMonthlySummaryRepository';
 
 @Injectable()
-export class GetMonthlySummaryRepository
-  implements IGetMonthlySummaryRepository
-{
+export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async getSummary(

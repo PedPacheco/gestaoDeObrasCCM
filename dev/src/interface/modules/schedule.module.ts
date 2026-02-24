@@ -6,7 +6,9 @@ import { RejectionsOfSchedulesService } from 'src/application/schedule/rejection
 import { ScheduleExecutionValidatorService } from 'src/application/schedule/scheduleExecutionValidator.service';
 import { UpdateSchedulesService } from 'src/application/schedule/updateSchedules.service';
 import { ValidateConfirmAndRejectSchedulesService } from 'src/application/schedule/validateAndConfirmSchedules.service';
+import { WorksServicesService } from 'src/application/services/worksServices.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
+import { WORKS_SERVICE_REPOSITORY } from 'src/domain/repositories/IWorksServiceRepository';
 import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IAddSchedulesRepository';
 import { DELETE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IDeleteSchedulesRepository';
 import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
@@ -16,6 +18,7 @@ import { GET_TOTAL_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/sc
 import { REJECTION_OF_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IRejectionsOfSchedules';
 import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
 import { VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IValidateSchedulesRepository';
+import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 import { AddSchedulesRepository } from 'src/infra/repositories/schedule/addSchedulesRepository';
 import { DeleteSchedulesRepository } from 'src/infra/repositories/schedule/deleteSchedulesRepository';
 import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
@@ -26,8 +29,12 @@ import { RejectionsOfSchedulesRepository } from 'src/infra/repositories/schedule
 import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updateSchedulesRepository';
 import { ValidateAndConfirmSchedulesRepository } from 'src/infra/repositories/schedule/validateAndConfirmSchedulesRepository';
 import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepository';
+import { WorksServicesRepository } from 'src/infra/repositories/worksServicesRepository';
+import { createMulterConfig } from 'src/shared/multer/multer.config';
 
 import { forwardRef, Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MulterModule } from '@nestjs/platform-express';
 
 import { GetMonthlySummaryService } from '../../application/schedule/getMonthlySummary.service';
 import { GetScheduleValuesService } from '../../application/schedule/getScheduleValues.service';
@@ -37,12 +44,6 @@ import { SchedulesActionsController } from '../controllers/schedules/schedulesAc
 import { ExecutionReportModule } from './executionReport.module';
 import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
-import { MulterModule } from '@nestjs/platform-express';
-import { createMulterConfig } from 'src/shared/multer/multer.config';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { WorksServicesService } from 'src/application/services/worksServices.service';
-import { WORKS_SERVICE_REPOSITORY } from 'src/domain/repositories/IWorksServiceRepository';
-import { WorksServicesRepository } from 'src/infra/repositories/worksServicesRepository';
 
 // import { UpdateRestrictionsService } from 'src/application/schedule/updateRestrictions.service';
 // import { UPDATE_RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateRestrictionsRepository';
@@ -90,6 +91,7 @@ import { WorksServicesRepository } from 'src/infra/repositories/worksServicesRep
     ScheduleExecutionValidatorService,
     RejectionsOfSchedulesService,
     WorksServicesService,
+    DeadlineStatusService,
     // UpdateRestrictionsService,
     {
       provide: WORKS_SERVICE_REPOSITORY,

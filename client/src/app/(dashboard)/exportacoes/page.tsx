@@ -41,54 +41,65 @@ export default async function ExportPage() {
       visible: true,
     },
     { name: "Exportar dados suspensões", path: "suspensoes", visible: false },
-    { name: "Exportar viabilidade", path: "", visible: true },
+    { name: "Exportar viabilidade", path: "viabilidade", visible: true },
+    { name: "Exportar Forecast", path: "forecast", visible: false },
+    {
+      name: "Exportar Programações Reprovadas",
+      path: "reprovacoes",
+      visible: false,
+    },
   ];
 
   return (
     <Box
       sx={{
         display: "flex",
-        alignItems: "center",
         justifyContent: "center",
-        height: { xs: "auto", md: "90%" },
-        marginTop: { xs: 0, md: 3, lg: 1 },
-        p: { xs: 2, sm: 3, md: 6 },
+        minHeight: "90%",
         backgroundColor: "background.default",
+        py: { xs: 4, md: 6 }, // padding vertical
+        px: 2,
       }}
     >
       <Card
         sx={{
           width: "100%",
-          maxWidth: 800,
-          boxShadow: 6,
+          maxWidth: 900,
           borderRadius: 4,
-          p: 2,
+          overflowY: "auto",
+          boxShadow: 6,
         }}
       >
-        <CardContent sx={{ p: 2 }}>
+        <CardContent sx={{ p: { xs: 3, md: 5 } }}>
           <Typography
             variant="h5"
             align="center"
             fontWeight="bold"
-            color="text.primary"
-            gutterBottom
             sx={{
-              fontSize: { xs: 22, sm: 24, md: 28 },
-              mb: { xs: 3, sm: 4, md: 5 },
+              fontSize: { xs: 20, sm: 24, md: 28 },
+              mb: 4,
             }}
           >
             Exportação de Dados
           </Typography>
 
-          {exportOptions.map((option, index) => (
-            <WrapperExportButton
-              text={option.name}
-              path={option.path}
-              token={token}
-              visible={option.visible}
-              key={index}
-            />
-          ))}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+            }}
+          >
+            {exportOptions.map((option) => (
+              <WrapperExportButton
+                key={option.path || option.name}
+                text={option.name}
+                path={option.path}
+                token={token}
+                visible={option.visible}
+              />
+            ))}
+          </Box>
         </CardContent>
       </Card>
     </Box>
