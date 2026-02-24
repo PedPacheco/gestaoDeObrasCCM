@@ -41,7 +41,7 @@ export default function MainEntryByDate({
     data: filtersData,
   });
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
-    {}
+    {},
   );
   const [startDate, setStartDate] = useState<Dayjs | null>(dayjs());
   const [endDate, setEndDate] = useState<Dayjs | null>(dayjs());
@@ -70,7 +70,7 @@ export default function MainEntryByDate({
         const response = await fetchData(
           `${process.env.NEXT_PUBLIC_API_URL}/entrada/data`,
           params,
-          token
+          token,
         );
 
         setFilteredData(response.data);
@@ -94,7 +94,7 @@ export default function MainEntryByDate({
           dataInicial: dayjs().format("DD/MM/YYYY"),
           dataFinal: dayjs().format("DD/MM/YYYY"),
         },
-        token
+        token,
       );
 
       setFilteredData(response.data);

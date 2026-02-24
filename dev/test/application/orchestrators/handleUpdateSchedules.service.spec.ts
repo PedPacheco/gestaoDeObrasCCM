@@ -77,7 +77,6 @@ describe('HandleUpdateScheduleService', () => {
       finishTime: '17:00',
       prog: 80,
     },
-    executionReportData: {},
   };
 
   it('should call update and not call executionReportService if executionReportRequired is false', async () => {

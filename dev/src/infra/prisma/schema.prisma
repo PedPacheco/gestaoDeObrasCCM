@@ -399,6 +399,7 @@ model servicos {
   id_contrato_servico   Int
   id_equipe             Int?
   id_programacao        Int?
+  qtde_adicional        Float?
   programacoes_servicos programacoes_servicos[]
   equipes               equipes?                @relation(fields: [id_equipe], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipes")
   obras                 obras                   @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
@@ -663,7 +664,7 @@ model restricoes_publicacoes {
   nome_responsavel String     @db.VarChar(50)
   status_restricao String     @db.VarChar(20)
   data_resolucao   DateTime?  @db.Date
-  criado_em        DateTime?  @default(dbgenerated("CURRENT_TIMESTAMP")) @db.Timestamp(6)
+  criado_em        DateTime?  @default(now()) @db.Timestamptz(6)
   observacao       String?
   obras            obras      @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
   restricoes       restricoes @relation(fields: [id_restricao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes")
@@ -704,6 +705,7 @@ view exportacao_obras_executadas {
   data_empreitamento DateTime? @db.Date
   data_viabilidade   DateTime? @db.Date
   prazo_viabilidade  String?   @db.VarChar(40)
+  ano_plan           Int?
 }
 
 view exportacao_programacoes_obras {
@@ -860,4 +862,58 @@ view exportacao_obras_carteira {
   data_viabilidade        DateTime? @db.Date
   prazo_viabilidade       String?   @db.VarChar(40)
   ano_plan                Int?
+}
+
+view exportacao_forecast {
+  row_id                     BigInt?
+  ovnota                     String?   @db.VarChar(12)
+  diagrama                   String?   @db.VarChar(12)
+  ordem_dci                  String?   @db.VarChar(12)
+  ordem_dcd                  String?   @db.VarChar(12)
+  ordem_dca                  String?   @db.VarChar(12)
+  ordem_dcim                 String?   @db.VarChar(12)
+  municipio                  String?   @db.VarChar(22)
+  regional                   String?   @db.VarChar(20)
+  conjunto                   String?   @db.VarChar(100)
+  circuito                   String?   @db.VarChar(12)
+  prazo_fim                  DateTime? @db.Date
+  status_ov_sap              Int?
+  tipo_obra                  String?   @db.VarChar(30)
+  grupo                      String?   @db.VarChar(20)
+  qtde_planejada             Float?
+  qtde_pend                  Float?
+  qtde_prog                  Int?
+  mo_planejada               Float?
+  mo_prog                    Int?
+  capex_mat_plan             Float?
+  capex_mat_pend             Float?
+  mat_prog                   Int?
+  capex_mo_plan              Float?
+  capex_mo_pend              Float?
+  servico_prog               Int?
+  parceira                   String?   @db.VarChar(15)
+  executado                  Int?
+  status                     String?   @db.VarChar(25)
+  status_programacao         String?   @db.VarChar(30)
+  criado_em                  DateTime? @db.Timestamp(6)
+  usuario_criador            String?   @db.VarChar(50)
+  usuario_ultima_atualizacao String?   @db.VarChar(50)
+  reprovada                  Boolean?
+  validada                   Boolean?
+  confirmada                 Boolean?
+  data_prog                  DateTime? @db.Date
+  prog                       Int?
+  exec                       Int?
+  chi                        Int?
+  chave_provisoria           Boolean?
+  num_dp                     String?
+  hora_ini                   DateTime? @db.Time(6)
+  hora_ter                   DateTime? @db.Time(6)
+  equipe_linha_morta         Int?
+  equipe_linha_viva          Int?
+  equipe_regularizacao       Int?
+  tecnico                    String?   @db.VarChar(40)
+  restricao_execucao         String?   @db.VarChar(80)
+  nome_responsavel_execucao  String?   @db.VarChar(50)
+  id_grupo                   Int?
 }

@@ -3,6 +3,10 @@ import * as moment from 'moment';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { ExportRepository } from 'src/infra/repositories/exportRepository';
 import { mockFindByWorkIdResponseFormatted } from '../../mocks/mocksExecutionReport';
+import {
+  exportacaoForecastMock,
+  exportRejectionsMock,
+} from '../../mocks/mockExportRepository';
 
 describe('ExportRepository', () => {
   let repository: ExportRepository;
@@ -12,6 +16,8 @@ describe('ExportRepository', () => {
     exportacao_obras_executadas: { findMany: jest.fn() },
     exportacao_programacoes_obras: { findMany: jest.fn() },
     exportacao_capacidade_execucao: { findMany: jest.fn() },
+    exportacao_forecast: { findMany: jest.fn() },
+    programacoes_reprovacoes: { findMany: jest.fn() },
     suspensoes: { findMany: jest.fn() },
     suspensoes_retiradas: { findMany: jest.fn() },
     programacoes: { findMany: jest.fn() },
@@ -96,6 +102,53 @@ describe('ExportRepository', () => {
         mockPrisma.exportacao_capacidade_execucao.findMany,
       ).toHaveBeenCalledTimes(1);
       expect(response).toEqual(mockResponse);
+    });
+  });
+
+  describe('exportForecast', () => {
+    it('should call method and return all data of exportacao_forecast view', async () => {
+      mockPrisma.exportacao_forecast.findMany.mockResolvedValue(
+        exportacaoForecastMock,
+      );
+
+      const response = await repository.exportForecast();
+
+      expect(mockPrisma.exportacao_forecast.findMany).toHaveBeenCalledTimes(1);
+      expect(response).toEqual(exportacaoForecastMock);
+    });
+  });
+
+  describe('ExportRejections', () => {
+    it('should call exportRejections and return the data', async () => {
+      mockPrisma.programacoes_reprovacoes.findMany.mockResolvedValue(
+        exportRejectionsMock,
+      );
+
+      const response = await repository.exportRejections();
+
+      expect(
+        mockPrisma.programacoes_reprovacoes.findMany,
+      ).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.programacoes_reprovacoes.findMany).toHaveBeenCalledWith(
+        {
+          select: {
+            obras: { select: { ovnota: true } },
+            data_prog: true,
+            motivo: true,
+            hora_ini: true,
+            hora_ter: true,
+            prog: true,
+            descricao: true,
+            equip_desligado: true,
+            equipe_linha_morta: true,
+            equipe_linha_viva: true,
+            equipe_regularizacao: true,
+            tipo_servico: true,
+            observacao_programacao: true,
+          },
+        },
+      );
+      expect(response).toEqual(exportRejectionsMock);
     });
   });
 

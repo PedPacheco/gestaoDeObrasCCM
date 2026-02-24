@@ -17,6 +17,9 @@ import { ExportSchedulesBIService } from 'src/application/export/BI/exportSchedu
 import { ExportFinedWorksService } from 'src/application/export/exportFinedWorks.service';
 import { ExportSuspensionsService } from 'src/application/export/exportSuspensions.service';
 import { ExportExecutionReportService } from 'src/application/export/exportExecutionReport.service';
+import { ExportForecastService } from 'src/application/export/exportForecast.service';
+import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
+import { ExportRejectionsService } from 'src/application/export/exportRejections.service';
 
 @Module({
   imports: [WorksModule, ScheduleModule, UsersModule],
@@ -32,6 +35,9 @@ import { ExportExecutionReportService } from 'src/application/export/exportExecu
     ExportExecutionCapacityService,
     ExportSuspensionsService,
     ExportExecutionReportService,
+    ExportForecastService,
+    DeadlineStatusService,
+    ExportRejectionsService,
     {
       provide: EXPORT_REPOSITORY,
       useClass: ExportRepository,

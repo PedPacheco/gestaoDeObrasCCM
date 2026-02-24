@@ -33,7 +33,7 @@ export default function MainSchduleForDay({
   token,
 }: MainInterface<any>) {
   const [filteredData, setFilteredData] = useState(data);
-  const { permissions, user } = useUser();
+  const { permissions } = useUser();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>();
   const [page, setPage] = useState(0);
