@@ -108,7 +108,7 @@ export default function MainAllWorksTable({
                                     </p>
                                   );
                                 }
-                              }
+                              },
                             )}
                           </div>
                         </TableCell>
