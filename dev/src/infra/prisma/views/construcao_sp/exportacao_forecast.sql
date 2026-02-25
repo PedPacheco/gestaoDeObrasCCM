@@ -115,9 +115,9 @@ FROM
           )
           JOIN turmas ON ((turmas.id = obras.id_turma))
         )
-        JOIN usuario ON ((usuario.id = programacoes.id_usuario))
+        LEFT JOIN usuario ON ((usuario.id = programacoes.id_usuario))
       )
-      JOIN usuario usuario2 ON (
+      LEFT JOIN usuario usuario2 ON (
         (
           usuario2.id = programacoes.id_usuario_ultima_atualizacao
         )

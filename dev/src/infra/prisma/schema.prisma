@@ -157,13 +157,14 @@ model empreendimento {
 }
 
 model equipes {
-  id          Int        @id @default(autoincrement())
-  id_turma    Int
-  equipe      String?    @db.VarChar(20)
-  encarregado String?    @db.VarChar(40)
-  perfil      String?    @db.VarChar(10)
-  turmas      turmas     @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_turmas")
-  servicos    servicos[]
+  id                    Int                     @id @default(autoincrement())
+  id_turma              Int
+  equipe                String?                 @db.VarChar(20)
+  encarregado           String?                 @db.VarChar(40)
+  perfil                String?                 @db.VarChar(10)
+  turmas                turmas                  @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_turmas")
+  programacoes_servicos programacoes_servicos[]
+  servicos              servicos[]
 }
 
 model grupos {
@@ -349,6 +350,9 @@ model programacoes_servicos {
   plan           Float?
   prog           Float?
   real           Float?
+  id_equipe      Int
+  adicional      Float?
+  equipes        equipes      @relation(fields: [id_equipe], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipes")
   programacoes   programacoes @relation(fields: [id_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_programacoes")
   servicos       servicos     @relation(fields: [id_servico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_servicos")
 }
