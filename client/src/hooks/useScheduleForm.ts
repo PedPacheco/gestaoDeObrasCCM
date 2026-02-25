@@ -68,7 +68,7 @@ export const useScheduleForm = ({
     setFormData(mapped);
 
     initializedRef.current = true;
-  }, [data, options]);
+  }, [data, idWork, options]);
 
   const handleInputChange = useCallback(
     (field: keyof FormData) => (value: any) => {

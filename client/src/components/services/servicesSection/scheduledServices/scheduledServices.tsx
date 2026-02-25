@@ -83,7 +83,7 @@ export function ScheduledServices({
     const hydrated = hydrateStatuses(mapped);
 
     setScheduledServices(hydrated);
-  }, [scheduledServicesData]);
+  }, [hydrateStatuses, scheduledServicesData]);
 
   const validationSummary = buildSummary(scheduledServices);
 
@@ -124,14 +124,14 @@ export function ScheduledServices({
           s.validationStatus === "completo" ||
           s.validationStatus === "sem-realizacao",
       ),
-    [scheduledServices],
+    [isValidated, scheduledServices],
   );
 
   const canReschedule = useMemo(
     () =>
       isValidated &&
       scheduledServices.some((s) => s.validationStatus === "reprogramar"),
-    [scheduledServices],
+    [isValidated, scheduledServices],
   );
 
   const handleApplyPlannedToReal = () => {

@@ -100,13 +100,11 @@ export class WorksServicesRepository implements IWorksServicesRepository {
         qtde_plan: true,
         qtde_prog: true,
         qtde_real: true,
-        obras: { select: { ovnota: true } },
+        qtde_adicional: true,
         servicos_contratos: {
           select: {
             material: true,
             texto_breve: true,
-            medida: true,
-            contrato: true,
             preco: true,
           },
         },
@@ -145,9 +143,11 @@ export class WorksServicesRepository implements IWorksServicesRepository {
         },
         id_programacao: true,
         programacoes: { select: { data_prog: true } },
+        equipes: { select: { equipe: true } },
         prog: true,
         plan: true,
         real: true,
+        adicional: true,
       },
       where: { programacoes: { id_obra: id } },
     });
@@ -218,14 +218,16 @@ export class WorksServicesRepository implements IWorksServicesRepository {
       });
 
       for (const item of data) {
-        const { id, idSchedule, idTeam, prog } = item;
+        const { id, idSchedule, idTeam, prog, additional } = item;
 
         await tx.programacoes_servicos.create({
           data: {
             id_programacao: idSchedule,
             id_servico: id,
+            id_equipe: idTeam,
             plan: prog,
-            prog,
+            prog: prog + additional,
+            adicional: additional,
           },
         });
 
@@ -234,7 +236,7 @@ export class WorksServicesRepository implements IWorksServicesRepository {
           data: {
             id_programacao: idSchedule,
             id_equipe: idTeam,
-            qtde_prog: prog,
+            qtde_prog: prog + additional,
           },
         });
       }

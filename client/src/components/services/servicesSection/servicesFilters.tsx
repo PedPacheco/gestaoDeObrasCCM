@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Button,
   FormControl,
@@ -31,10 +31,6 @@ export function TableFilter<T>({
 }: TableFilterProps<T>) {
   const [filters, setFilters] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    clearFilter();
-  }, [data]);
-
   const handleChange = (field: string, value: string) => {
     setFilters((prev) => ({
       ...prev,
@@ -56,10 +52,14 @@ export function TableFilter<T>({
     onFilter(filtered);
   };
 
-  const clearFilter = () => {
+  const clearFilter = useCallback(() => {
     setFilters({});
     onFilter(data);
-  };
+  }, [data, onFilter]);
+
+  useEffect(() => {
+    clearFilter();
+  }, [clearFilter]);
 
   return (
     <Paper className="bg-gray-100 p-4 mb-4">

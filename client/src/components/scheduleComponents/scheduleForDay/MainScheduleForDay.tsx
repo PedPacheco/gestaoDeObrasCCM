@@ -78,7 +78,7 @@ export default function MainSchduleForDay({
         showError(`Erro ao gerar a planilha: ${error.message}`);
       }
     },
-    [token],
+    [showError, token],
   );
 
   const fetchSchedule = useCallback(
@@ -97,7 +97,7 @@ export default function MainSchduleForDay({
         }
       });
     },
-    [token],
+    [showError, token],
   );
 
   const handleChangePage = (event: unknown, newPage: number) => {

@@ -57,10 +57,12 @@ export function ScheduleHistory({
             <TableHead>
               <TableRow>
                 <TableCell>SERVIÇO</TableCell>
+                <TableCell>EQUIPE</TableCell>
                 <TableCell>OPERAÇÃO</TableCell>
                 <TableCell>PONTO</TableCell>
                 <TableCell>DATA PROGRAMADA</TableCell>
                 <TableCell>PLAN</TableCell>
+                <TableCell>ADICIONAL</TableCell>
                 <TableCell>PROG</TableCell>
                 <TableCell>REAL</TableCell>
               </TableRow>
@@ -79,6 +81,9 @@ export function ScheduleHistory({
                       {item.servicos.servicos_contratos.texto_breve}
                     </TableCell>
                     <TableCell className="text-nowrap max-h-5">
+                      {item.equipes.equipe}
+                    </TableCell>
+                    <TableCell className="text-nowrap max-h-5">
                       {item.servicos.operacao}
                     </TableCell>
                     <TableCell className="text-nowrap max-h-5">
@@ -89,6 +94,9 @@ export function ScheduleHistory({
                     </TableCell>
                     <TableCell className="text-nowrap max-h-5">
                       {item.plan}
+                    </TableCell>
+                    <TableCell className="text-nowrap max-h-5">
+                      {item.adicional}
                     </TableCell>
                     <TableCell className="text-nowrap max-h-5">
                       {item.prog}

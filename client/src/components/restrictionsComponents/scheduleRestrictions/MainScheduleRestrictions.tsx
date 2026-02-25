@@ -99,7 +99,7 @@ export default function MainScheduleRestrictions({
         }
       });
     },
-    [token, url],
+    [showError, token, url],
   );
 
   const handleChangePage = (event: unknown, newPage: number) => {

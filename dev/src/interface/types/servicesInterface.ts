@@ -50,12 +50,10 @@ export interface GetServicesSelectedByWorkIdResponse {
   qtde_plan: number;
   qtde_prog: number;
   qtde_real: number;
-  obras: { ovnota: string };
+  qtde_adicional: number;
   servicos_contratos: {
     material: string;
     texto_breve: string;
-    medida: string;
-    contrato: string;
     preco: number;
   };
   programacoes: { data_prog: Date };
@@ -72,9 +70,11 @@ export interface GetServiceScheduleHistoryResponse {
   };
   id_programacao: number;
   programacoes: { data_prog: Date };
+  equipes: { equipe: string };
   prog: number;
   plan: number;
   real: number;
+  adicional: number;
 }
 
 export interface GetServicesFiltersResponse {

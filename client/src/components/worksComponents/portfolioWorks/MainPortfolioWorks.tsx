@@ -102,7 +102,7 @@ export default function PortfolioWorks({
         showError(`Erro ao gerar a planilha: ${error.message}`);
       }
     },
-    [pathname, token],
+    [pathname, showError, token],
   );
 
   const fetchWorks = useCallback(
@@ -122,7 +122,7 @@ export default function PortfolioWorks({
         }
       });
     },
-    [token, url],
+    [showError, token, url],
   );
 
   const handleChangePage = (event: unknown, newPage: number) => {

@@ -25,6 +25,7 @@ export interface Schedules {
   equipe_regularizacao: number | null;
   tecnicos: { tecnico: string | null };
   programacoes_restricao_execucao: { restricao: string | null };
+  programacoes_servicos: { equipes: { equipe: string } }[];
   nome_responsavel_execucao: string | null;
   confirmada: boolean;
   validada: boolean;
