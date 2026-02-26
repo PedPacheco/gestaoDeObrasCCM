@@ -259,12 +259,9 @@ describe('WorksServicesRepository', () => {
         qtde_plan: 10,
         qtde_prog: 8,
         qtde_real: 5,
-        obras: { ovnota: 'OV-001' },
         servicos_contratos: {
           material: 'Material 1',
           texto_breve: 'Serviço 1',
-          medida: 'UN',
-          contrato: 'CONT-001',
           preco: 100,
         },
         programacoes: { data_prog: '2024-01-01' },
@@ -293,13 +290,11 @@ describe('WorksServicesRepository', () => {
           qtde_plan: true,
           qtde_prog: true,
           qtde_real: true,
-          obras: { select: { ovnota: true } },
+          qtde_adicional: true,
           servicos_contratos: {
             select: {
               material: true,
               texto_breve: true,
-              medida: true,
-              contrato: true,
               preco: true,
             },
           },
@@ -393,9 +388,11 @@ describe('WorksServicesRepository', () => {
           operacao: 'Operação 1',
         },
         programacoes: { data_prog: '2024-01-01' },
-        prog: 100,
-        plan: 100,
-        real: 50,
+        equipes: { equipe: 'LM 02' },
+        prog: 3,
+        plan: 1,
+        real: 3,
+        adicional: 2,
       },
       {
         id: 2,
@@ -405,9 +402,11 @@ describe('WorksServicesRepository', () => {
           operacao: 'Operação 2',
         },
         programacoes: { data_prog: '2024-01-02' },
-        prog: 200,
-        plan: 200,
-        real: 100,
+        equipes: { equipe: 'LM 01' },
+        prog: 2,
+        plan: 2,
+        real: null,
+        adicional: null,
       },
     ];
 
@@ -431,11 +430,13 @@ describe('WorksServicesRepository', () => {
             },
           },
           programacoes: { select: { data_prog: true } },
+          equipes: { select: { equipe: true } },
           id_programacao: true,
           id_servico: true,
           prog: true,
           plan: true,
           real: true,
+          adicional: true,
         },
         where: { programacoes: { id_obra: 1 } },
       });
@@ -761,15 +762,17 @@ describe('WorksServicesRepository', () => {
     const mockScheduleData: ScheduleServicesDTO[] = [
       {
         id: 1,
-        idTeam: 10,
+        idTeam: 2,
         idSchedule: 5,
-        prog: 100,
+        prog: 2,
+        additional: null,
       },
       {
         id: 2,
-        idTeam: 20,
+        idTeam: 2,
         idSchedule: 6,
-        prog: 200,
+        prog: 2,
+        additional: 2,
       },
     ];
 
@@ -816,8 +819,10 @@ describe('WorksServicesRepository', () => {
         data: {
           id_programacao: 5,
           id_servico: 1,
-          plan: 100,
-          prog: 100,
+          id_equipe: 2,
+          plan: 2,
+          prog: 2,
+          adicional: null,
         },
       });
     });
@@ -843,8 +848,8 @@ describe('WorksServicesRepository', () => {
         where: { id: 1 },
         data: {
           id_programacao: 5,
-          id_equipe: 10,
-          qtde_prog: 100,
+          id_equipe: 2,
+          qtde_prog: 2,
         },
       });
     });
@@ -871,8 +876,10 @@ describe('WorksServicesRepository', () => {
         data: {
           id_programacao: 5,
           id_servico: 1,
-          plan: 100,
-          prog: 100,
+          id_equipe: 2,
+          plan: 2,
+          prog: 2,
+          adicional: null,
         },
       });
 
@@ -880,8 +887,8 @@ describe('WorksServicesRepository', () => {
         where: { id: 1 },
         data: {
           id_programacao: 5,
-          id_equipe: 10,
-          qtde_prog: 100,
+          id_equipe: 2,
+          qtde_prog: 2,
         },
       });
 
@@ -890,8 +897,10 @@ describe('WorksServicesRepository', () => {
         data: {
           id_programacao: 6,
           id_servico: 2,
-          plan: 200,
-          prog: 200,
+          id_equipe: 2,
+          plan: 2,
+          prog: 4,
+          adicional: 2,
         },
       });
 
@@ -899,8 +908,8 @@ describe('WorksServicesRepository', () => {
         where: { id: 2 },
         data: {
           id_programacao: 6,
-          id_equipe: 20,
-          qtde_prog: 200,
+          id_equipe: 2,
+          qtde_prog: 4,
         },
       });
     });
@@ -950,8 +959,10 @@ describe('WorksServicesRepository', () => {
       const dataWithoutIdSchedule: ScheduleServicesDTO[] = [
         {
           id: 1,
+          idSchedule: undefined,
           idTeam: 10,
-          prog: 100,
+          prog: 2,
+          additional: 2,
         },
       ];
 
@@ -975,8 +986,10 @@ describe('WorksServicesRepository', () => {
         data: {
           id_programacao: undefined,
           id_servico: 1,
-          plan: 100,
-          prog: 100,
+          id_equipe: 10,
+          plan: 2,
+          prog: 4,
+          adicional: 2,
         },
       });
     });

@@ -21,8 +21,7 @@ export class TeamCounterService {
     const regSet = new Set<string>();
 
     for (const service of services) {
-      const equipe = service.equipes?.equipe;
-      if (!equipe) continue;
+      const equipe = service.equipes.equipe;
 
       const equipeUpper = equipe.toUpperCase();
 

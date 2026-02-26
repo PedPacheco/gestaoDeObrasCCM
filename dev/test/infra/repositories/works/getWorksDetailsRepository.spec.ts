@@ -205,6 +205,9 @@ describe('GetWorksDetailsRepository', () => {
               equipe_regularizacao: true,
               tecnicos: { select: { tecnico: true } },
               programacoes_restricao_execucao: { select: { restricao: true } },
+              programacoes_servicos: {
+                select: { equipes: { select: { equipe: true } } },
+              },
               nome_responsavel_execucao: true,
               confirmada: true,
               validada: true,
@@ -330,6 +333,9 @@ describe('GetWorksDetailsRepository', () => {
               equipe_regularizacao: true,
               tecnicos: { select: { tecnico: true } },
               programacoes_restricao_execucao: { select: { restricao: true } },
+              programacoes_servicos: {
+                select: { equipes: { select: { equipe: true } } },
+              },
               nome_responsavel_execucao: true,
               confirmada: true,
               validada: true,

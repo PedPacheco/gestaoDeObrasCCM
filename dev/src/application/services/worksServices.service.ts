@@ -50,7 +50,7 @@ export class WorksServicesService {
       0,
     );
 
-    return totalPlan > 0 ? (selectedPlan / totalPlan) * 100 : 0;
+    return Math.round(totalPlan > 0 ? (selectedPlan / totalPlan) * 100 : 0);
   }
 
   private sumServiceQuantities(services: any[]): number {

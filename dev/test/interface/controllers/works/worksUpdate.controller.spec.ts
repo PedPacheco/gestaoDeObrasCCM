@@ -9,11 +9,11 @@ import { WorksUpdateController } from 'src/interface/controllers/works/worksUpda
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
+import { SuspensionWorkService } from 'src/application/works/suspensionWork.service';
 import {
   mockMarketWorks,
   mockUpdateNotes,
-} from '../../../mocks/mockWorksController';
-import { SuspensionWorkService } from 'src/application/works/suspensionWork.service';
+} from '../../../../test/mocks/mockWorksController';
 
 interface CustomRequest extends Request {
   idParceira?: number;
