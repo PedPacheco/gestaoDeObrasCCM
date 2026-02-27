@@ -124,6 +124,7 @@ export const mockResponseDetails = {
       prog: 45,
       exec: null,
       observacao_programacao: 'Obra em conjunto',
+      observacao_execucao: 'Atraso',
       equip_desligado: 'TRECHO LIVRE',
       chi: 0,
       num_dp: null,

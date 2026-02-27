@@ -265,6 +265,10 @@ export class SchedulesDataDTO {
   @IsString()
   responsibility?: string;
 
+  @IsOptional()
+  @IsString()
+  executionObservation?: string;
+
   @IsNumber()
   idProgRestriction1: number;
 

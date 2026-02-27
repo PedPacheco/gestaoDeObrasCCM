@@ -137,6 +137,7 @@ export const schedulesSchema = (isInsert?: boolean) =>
         z.number({ error: "Restrição deve ser um número" }),
       ),
       responsibility: z.string().optional(),
+      executionObservation: z.string().optional(),
       idProgRestriction1: z.number(),
       responsiblityProg: z.string().nullable().optional(),
       responsibleName: z.string().nullable().optional(),
@@ -153,7 +154,15 @@ export const schedulesSchema = (isInsert?: boolean) =>
       confirmed: z.boolean().optional(),
     })
     .check((ctx) => {
-      const { exec, prog, idExecutionRestriction, responsibility } = ctx.value;
+      const {
+        exec,
+        prog,
+        idExecutionRestriction,
+        responsibility,
+        executionObservation,
+      } = ctx.value;
+
+      console.log(executionObservation);
 
       if (!isInsert) {
         if (Number(exec) < prog && exec !== "null" && exec !== "") {
@@ -171,6 +180,15 @@ export const schedulesSchema = (isInsert?: boolean) =>
               path: ["responsibility"],
               code: "custom",
               message: "Responsável é obrigatório",
+              input: ctx.value,
+            });
+          }
+
+          if (executionObservation === "" || !executionObservation) {
+            ctx.issues.push({
+              path: ["executionObservation"],
+              code: "custom",
+              message: "Observação é obrigatório",
               input: ctx.value,
             });
           }

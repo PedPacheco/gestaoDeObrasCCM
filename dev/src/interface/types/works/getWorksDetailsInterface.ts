@@ -31,6 +31,7 @@ export interface Schedules {
   reprovada: boolean;
   status_programacao: ScheduleStatus;
   observacao_restricao: string | null;
+  observacao_execucao: string | null;
   id_restricao_prog1: number;
   responsabilidade1: string | null;
   nome_responsavel: string | null;
