@@ -54,14 +54,11 @@ export class WorksServicesRepository implements IWorksServicesRepository {
         qtde_prog: true,
         qtde_real: true,
         qtde_adicional: true,
-        obras: { select: { ovnota: true } },
         programacoes: { select: { data_prog: true } },
         servicos_contratos: {
           select: {
             material: true,
             texto_breve: true,
-            medida: true,
-            contrato: true,
             preco: true,
           },
         },
@@ -332,6 +329,7 @@ export class WorksServicesRepository implements IWorksServicesRepository {
         data: {
           id_programacao: null,
           qtde_real: null,
+          qtde_prog: null,
         },
         where: { id_programacao: id },
       });

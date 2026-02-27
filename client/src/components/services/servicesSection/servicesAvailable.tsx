@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 
 import {
   ArrowUpTrayIcon,
@@ -27,6 +27,8 @@ import {
 import { TableFilter } from "./servicesFilters";
 import { useRouter } from "next/navigation";
 import { applyAdditonalPlanServices } from "@/actions/services";
+import { FormatCurrency } from "@/utils/formatValue";
+import { LoadingComponent } from "@/components/common/Loading";
 
 interface ServicesAvaliableProps {
   servicesData: any[];
@@ -72,6 +74,8 @@ export function ServicesAvaliable({
 }: ServicesAvaliableProps) {
   const [filteredServicesData, setFilteredServicesData] = useState<any[]>([]);
 
+  const [isPending, startTransition] = useTransition();
+
   const router = useRouter();
 
   useEffect(() => {
@@ -113,6 +117,8 @@ export function ServicesAvaliable({
       onError(response.error);
       return;
     }
+
+    startTransition(() => {});
 
     if (response.message) {
       onSuccess(response.message, () => router.refresh());
@@ -202,63 +208,77 @@ export function ServicesAvaliable({
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredServicesData?.map((row, index) => (
-              <TableRow
-                key={index}
-                hover
-                selected={selectedServices.includes(index)}
-                className="cursor-pointer"
-              >
-                <TableCell padding="checkbox">
-                  <Checkbox
-                    checked={selectedServices.some(
-                      (item: any) => item.id === row.id,
-                    )}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedServices([
-                          ...selectedServices,
-                          {
-                            id: row.id,
-                            prog: row.qtdePlanejada,
-                            additional: row.qtdeAdicional,
-                          },
-                        ]);
-                      } else {
-                        setSelectedServices(
-                          selectedServices.filter(
-                            (selected: any) => selected.id !== row.id,
-                          ),
-                        );
-                      }
-                    }}
-                  />
+            {isPending ? (
+              <TableRow>
+                <TableCell colSpan={9} align="center">
+                  <LoadingComponent color="text-black" />
                 </TableCell>
+              </TableRow>
+            ) : (
+              filteredServicesData?.map((row, index) => (
+                <TableRow
+                  key={index}
+                  hover
+                  selected={selectedServices.includes(index)}
+                  className="cursor-pointer"
+                >
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      checked={selectedServices.some(
+                        (item: any) => item.id === row.id,
+                      )}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedServices([
+                            ...selectedServices,
+                            {
+                              id: row.id,
+                              prog: row.qtdePlanejada,
+                              additional: row.qtdeAdicional,
+                            },
+                          ]);
+                        } else {
+                          setSelectedServices(
+                            selectedServices.filter(
+                              (selected: any) => selected.id !== row.id,
+                            ),
+                          );
+                        }
+                      }}
+                    />
+                  </TableCell>
 
-                {serviceColumns.map((col, index) => {
-                  if (col.key === "qtdeAdicional") {
+                  {serviceColumns.map((col, index) => {
+                    let value = row[col.key];
+
+                    if (col.key === "qtdeAdicional") {
+                      return (
+                        <TableCell key={index}>
+                          <input
+                            type="text"
+                            className="w-16 border rounded px-2 py-1 text-right"
+                            value={value || ""}
+                            onChange={(e) =>
+                              updateServiceQuantity(row.id, e.target.value)
+                            }
+                          />
+                        </TableCell>
+                      );
+                    }
+
+                    if (col.key === "valorUnit") {
+                      value = FormatCurrency(value);
+                    }
+
                     return (
-                      <TableCell key={index}>
-                        <input
-                          type="text"
-                          className="w-16 border rounded px-2 py-1 text-right"
-                          value={row[col.key] || ""}
-                          onChange={(e) =>
-                            updateServiceQuantity(row.id, e.target.value)
-                          }
-                        />
+                      <TableCell key={index} className="text-nowrap">
+                        {value}
                       </TableCell>
                     );
-                  }
-
-                  return (
-                    <TableCell key={index} className="text-nowrap">
-                      {row[col.key]}
-                    </TableCell>
-                  );
-                })}
-              </TableRow>
-            ))}
+                  })}
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>

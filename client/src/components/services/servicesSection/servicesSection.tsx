@@ -6,6 +6,8 @@ import { AddServiceForm, ServiceContract } from "./addServiceForm";
 import { ScheduledServices } from "./scheduledServices/scheduledServices";
 import { ScheduleHistory } from "./scheduleHistory";
 import { ServicesAvaliable } from "./servicesAvailable";
+import { useFeedback } from "@/hooks/useFeedback";
+import { useState, useTransition } from "react";
 
 interface ServicesSectionProps {
   executionForm: any;
@@ -48,7 +50,13 @@ export function ServicesSection({
 }: ServicesSectionProps) {
   const router = useRouter();
 
+  const [openConfirmationModal, setOpenConfirmationModal] =
+    useState<boolean>(false);
+
+  const [isPending, startTransition] = useTransition();
+
   const cancelServices = async (id: number) => {
+    setOpenConfirmationModal(false);
     const response = await cancelScheduleServices(id);
 
     if (!response.success) {
@@ -56,8 +64,12 @@ export function ServicesSection({
       return;
     }
 
+    startTransition(() => {
+      router.refresh();
+    });
+
     if (response.message) {
-      onSuccess(response.message, () => router.refresh());
+      onSuccess(response.message);
     }
 
     localStorage.removeItem(`scheduled-services-validation:${idSchedule}`);
@@ -132,6 +144,9 @@ export function ServicesSection({
             idSchedule={idSchedule}
             scheduledServicesHistory={scheduledServicesHistory}
             isDisabled={isDisabledButton}
+            isPending={isPending}
+            openConfirmationModal={openConfirmationModal}
+            setOpenConfirmationModal={setOpenConfirmationModal}
           />
         )}
       </div>

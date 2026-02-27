@@ -76,14 +76,10 @@ describe('WorksServicesService', () => {
         qtde_plan: 10,
         qtde_prog: 8,
         qtde_real: 5,
-        obras: {
-          ovnota: 'OV-001',
-        },
+        qtde_adicional: null,
         servicos_contratos: {
           material: 'Material 1',
           texto_breve: 'Serviço 1',
-          medida: 'UN',
-          contrato: 'CONT-001',
           preco: 100,
         },
         programacoes: {
@@ -95,17 +91,13 @@ describe('WorksServicesService', () => {
         id_obra: 100,
         operacao: 'Operação 2',
         ponto: 'Ponto B',
-        qtde_plan: 20,
-        qtde_prog: 15,
-        qtde_real: 10,
-        obras: {
-          ovnota: 'OV-001',
-        },
+        qtde_plan: 2,
+        qtde_prog: 3,
+        qtde_real: null,
+        qtde_adicional: 1,
         servicos_contratos: {
           material: 'Material 2',
           texto_breve: 'Serviço 2',
-          medida: 'M2',
-          contrato: 'CONT-002',
           preco: 200,
         },
         programacoes: null,
@@ -123,17 +115,15 @@ describe('WorksServicesService', () => {
         {
           id: 1,
           idObra: 100,
-          ovnota: 'OV-001',
           operacao: 'Operação 1',
           ponto: 'Ponto A',
           material: 'Material 1',
           textoBreve: 'Serviço 1',
-          medida: 'UN',
-          contrato: 'CONT-001',
           dataProgramada: '2024-01-01',
           qtdePlanejada: 10,
           qtdeProgramada: 8,
           qtdeRealizada: 5,
+          qtdeAdicional: null,
           preco: 100,
           valorUnit: 1000,
           valorReal: 500,
@@ -141,20 +131,18 @@ describe('WorksServicesService', () => {
         {
           id: 2,
           idObra: 100,
-          ovnota: 'OV-001',
           operacao: 'Operação 2',
           ponto: 'Ponto B',
           material: 'Material 2',
           textoBreve: 'Serviço 2',
-          medida: 'M2',
-          contrato: 'CONT-002',
           dataProgramada: undefined,
-          qtdePlanejada: 20,
-          qtdeProgramada: 15,
-          qtdeRealizada: 10,
+          qtdePlanejada: 2,
+          qtdeProgramada: 3,
+          qtdeRealizada: null,
+          qtdeAdicional: 1,
           preco: 200,
-          valorUnit: 4000,
-          valorReal: 2000,
+          valorUnit: 600,
+          valorReal: 0,
         },
       ]);
       expect(repository.getNotScheduledServices).toHaveBeenCalledWith(
@@ -216,11 +204,12 @@ describe('WorksServicesService', () => {
       const serviceWithCustomValues = [
         {
           ...mockRepositoryResponse[0],
-          qtde_plan: 50,
-          qtde_real: 30,
+          qtde_plan: 2,
+          qtde_real: 2,
+          qtde_adicional: null,
           servicos_contratos: {
             ...mockRepositoryResponse[0].servicos_contratos,
-            preco: 25.5,
+            preco: 5,
           },
         },
       ];
@@ -231,8 +220,8 @@ describe('WorksServicesService', () => {
 
       const result = await service.getById(mockParams);
 
-      expect(result[0].valorUnit).toBe(1275); // 50 * 25.5
-      expect(result[0].valorReal).toBe(765); // 30 * 25.5
+      expect(result[0].valorUnit).toBe(10); // 50 * 25.5
+      expect(result[0].valorReal).toBe(10); // 30 * 25.5
     });
 
     it('should handle service without programacoes', async () => {
@@ -312,6 +301,7 @@ describe('WorksServicesService', () => {
           equipe: 'LM 01',
           encarregado: 'João Silva',
           perfil: 'Pedreiro',
+          valorUnit: 800,
         },
       ]);
       expect(repository.getSelectedServices).toHaveBeenCalledWith(mockParams);

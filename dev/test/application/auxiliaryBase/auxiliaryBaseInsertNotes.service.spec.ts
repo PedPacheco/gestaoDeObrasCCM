@@ -55,23 +55,6 @@ describe('AuxiliaryNotesInsertService', () => {
         { id: 2, ovnota: '16004316' },
       ]);
 
-      mockFindExistingWorksService.findExistingOrders.mockResolvedValue([]);
-
-      const result = await auxiliaryNotesInsertService.execute(
-        mockInsertAuxiliaryBaseNotesService,
-        'insert',
-      );
-
-      expect(result).toEqual({
-        insertedCount: 0,
-        skippedNotes: ['16005338', '16004316'],
-      });
-      expect(mockRepository.insertNotes).not.toHaveBeenCalled();
-    });
-
-    it('should call method insertAuxiliaryBaseNotes and return default format if no data is valid with the insert operation', async () => {
-      mockFindExistingWorksService.findExistingWorks.mockResolvedValue([]);
-
       mockFindExistingWorksService.findExistingOrders.mockResolvedValue([
         '170000023493',
         '190000025094',

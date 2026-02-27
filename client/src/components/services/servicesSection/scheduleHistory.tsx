@@ -11,6 +11,9 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
+import { LoadingComponent } from "@/components/common/Loading";
+import { useState } from "react";
+import ConfirmationModalComponent from "@/components/common/confirmationModal";
 
 dayjs.extend(utc);
 
@@ -19,6 +22,9 @@ interface ScheduleHistoryProps {
   cancelServices: (id: number) => void;
   scheduledServicesHistory: any[];
   isDisabled: boolean;
+  isPending: boolean;
+  openConfirmationModal: boolean;
+  setOpenConfirmationModal: (confirmation: boolean) => void;
 }
 
 export function ScheduleHistory({
@@ -26,6 +32,9 @@ export function ScheduleHistory({
   idSchedule,
   scheduledServicesHistory,
   isDisabled,
+  isPending,
+  openConfirmationModal,
+  setOpenConfirmationModal,
 }: ScheduleHistoryProps) {
   const formatDate = (dateString: string) => {
     return dayjs(dateString).utc().format("DD/MM/YYYY");
@@ -41,9 +50,7 @@ export function ScheduleHistory({
           variant="outlined"
           className="border-gray-300 text-gray-600"
           onClick={() => {
-            if (idSchedule) {
-              cancelServices(idSchedule);
-            }
+            setOpenConfirmationModal(true);
           }}
           // disabled={isDisabled}
         >
@@ -52,7 +59,7 @@ export function ScheduleHistory({
       </div>
 
       <div className="overflow-x-auto">
-        <TableContainer component={Paper} sx={{ height: 680 }}>
+        <TableContainer component={Paper} sx={{ height: 780 }}>
           <Table size="small" className="text-sm">
             <TableHead>
               <TableRow>
@@ -68,9 +75,15 @@ export function ScheduleHistory({
               </TableRow>
             </TableHead>
             <TableBody>
-              {scheduledServicesHistory.length === 0 ? (
+              {isPending ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center">
+                  <TableCell colSpan={9} align="center">
+                    <LoadingComponent color="text-black" />
+                  </TableCell>
+                </TableRow>
+              ) : scheduledServicesHistory.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} align="center">
                     Nenhum histórico disponível
                   </TableCell>
                 </TableRow>
@@ -111,6 +124,17 @@ export function ScheduleHistory({
           </Table>
         </TableContainer>
       </div>
+
+      {idSchedule && (
+        <ConfirmationModalComponent
+          idSchedule={idSchedule}
+          message="Você deseja realmente cancelar essa programação ?"
+          onClose={() => setOpenConfirmationModal(false)}
+          onConfirm={cancelServices}
+          open={openConfirmationModal}
+          title="Exclusão de programação"
+        />
+      )}
     </div>
   );
 }

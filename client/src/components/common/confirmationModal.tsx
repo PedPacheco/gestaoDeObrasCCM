@@ -30,7 +30,7 @@ export default function ConfirmationModalComponent({
       aria-describedby="confirmation-modal-description"
       closeAfterTransition
     >
-      <Box className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 shadow-lg p-6 rounded-lg w-96 xl:w-10/12">
+      <Box className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 shadow-lg p-6 rounded-lg w-96 xl:w-2/4">
         {closeButton && (
           <IconButton
             onClick={onClose}

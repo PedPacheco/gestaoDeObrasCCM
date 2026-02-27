@@ -76,13 +76,10 @@ describe('WorksServicesRepository', () => {
         qtde_plan: 10,
         qtde_prog: 8,
         qtde_real: 5,
-        obras: { ovnota: 'OV-001' },
         programacoes: { data_prog: '2024-01-01' },
         servicos_contratos: {
           material: 'Material 1',
           texto_breve: 'Serviço 1',
-          medida: 'UN',
-          contrato: 'CONT-001',
           preco: 100,
         },
       },
@@ -106,14 +103,11 @@ describe('WorksServicesRepository', () => {
           qtde_prog: true,
           qtde_real: true,
           qtde_adicional: true,
-          obras: { select: { ovnota: true } },
           programacoes: { select: { data_prog: true } },
           servicos_contratos: {
             select: {
               material: true,
               texto_breve: true,
-              medida: true,
-              contrato: true,
               preco: true,
             },
           },
@@ -1070,6 +1064,7 @@ describe('WorksServicesRepository', () => {
       expect(mockTx.servicos.updateMany).toHaveBeenCalledWith({
         data: {
           id_programacao: null,
+          qtde_prog: null,
           qtde_real: null,
         },
         where: { id_programacao: 5 },

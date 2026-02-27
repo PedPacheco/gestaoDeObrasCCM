@@ -205,7 +205,11 @@ export function ScheduledServices({
             variant="contained"
             size="small"
             onClick={handleApplyPlannedToReal}
-            disabled={!scheduledServices.some((s) => s.selected) || isDisabled}
+            disabled={
+              !scheduledServices.some((s) => s.selected) ||
+              isDisabled ||
+              scheduledServices.length === 0
+            }
           >
             APLICAR PLANEJADO COMO REALIZADO
           </Button>
@@ -214,7 +218,7 @@ export function ScheduledServices({
             variant="contained"
             size="small"
             onClick={handlePerformServices}
-            disabled={isDisabled}
+            disabled={isDisabled || scheduledServices.length === 0}
           >
             REALIZAR SERVIÇOS
           </Button>
@@ -225,7 +229,9 @@ export function ScheduledServices({
             onClick={() => {
               setScheduledServices(validateServices(scheduledServices));
             }}
-            disabled={!isRealConsistentWithHistory}
+            disabled={
+              !isRealConsistentWithHistory || scheduledServices.length === 0
+            }
           >
             VALIDAR REALIZAÇÃO DOS SERVIÇOS
           </Button>
@@ -234,7 +240,9 @@ export function ScheduledServices({
             variant="contained"
             size="small"
             onClick={handleRescheduleServices}
-            disabled={!canReschedule || isDisabled}
+            disabled={
+              !canReschedule || isDisabled || scheduledServices.length === 0
+            }
           >
             REPROGRAMAR SERVIÇOS
           </Button>
@@ -243,7 +251,9 @@ export function ScheduledServices({
             variant="contained"
             size="small"
             onClick={handleFinalizeServices}
-            disabled={!canFinalize || isDisabled}
+            disabled={
+              !canFinalize || isDisabled || scheduledServices.length === 0
+            }
           >
             FINALIZAR EXECUÇÃO DOS SERVIÇOS
           </Button>

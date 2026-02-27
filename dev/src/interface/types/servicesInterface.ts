@@ -31,13 +31,10 @@ export interface GetServicesByWorkIdResponse {
   qtde_prog: number;
   qtde_real: number;
   qtde_adicional: number;
-  obras: { ovnota: string };
   programacoes: { data_prog: Date };
   servicos_contratos: {
     material: string;
     texto_breve: string;
-    medida: string;
-    contrato: string;
     preco: number;
   };
 }

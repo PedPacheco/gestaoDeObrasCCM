@@ -14,6 +14,7 @@ import {
 
 import { ScheduledServiceState } from "./scheduledServices";
 import { TableFilter } from "../servicesFilters";
+import { FormatCurrency } from "@/utils/formatValue";
 
 const SERVICE_COLUMNS = [
   { key: "material", label: "CÓDIGO" },
@@ -28,9 +29,7 @@ const SERVICE_COLUMNS = [
   { key: "qtdeAdicional", label: "ADICIONAL", align: "right" as const },
   { key: "qtdeProgramada", label: "PROG", align: "right" as const },
   { key: "qtdeRealizada", label: "REAL", align: "right" as const },
-  { key: "dif", label: "DIF" },
   { key: "valorUnit", label: "VALOR UNIT", align: "right" as const },
-  { key: "valorReal", label: "VALOR REAL" },
   { key: "status", label: "STATUS" },
 ] as const;
 
@@ -63,6 +62,11 @@ export function ScheduledServicesTable({
     if (key === "dataProgramada") {
       return dayjs(value).utc().format("DD/MM/YYYY");
     }
+
+    if (key === "valorUnit") {
+      return FormatCurrency(value);
+    }
+
     return value;
   };
 

@@ -59,8 +59,9 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
 
       {feedback?.type === "success" && (
         <ModalComponent open={true} onClose={close}>
-          <div className="flex flex-col items-center text-center">
-            <div className="mb-4 flex items-center justify-center rounded-full bg-green-100 p-4 dark:bg-green-900/30">
+          <div className="flex flex-col items-center text-center px-6">
+            {/* Ícone */}
+            <div className="flex items-center justify-center rounded-full bg-green-100 p-4 dark:bg-green-900/30">
               <svg
                 className="h-10 w-10 text-green-600 dark:text-green-400"
                 fill="none"
@@ -75,10 +76,14 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                 />
               </svg>
             </div>
+
+            {/* Título */}
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-2">
               Operação realizada com sucesso
             </h2>
-            <p className="text-gray-600 dark:text-gray-300 text-xl mb-6 max-w-md">
+
+            {/* Mensagem */}
+            <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-md">
               {feedback.message}
             </p>
           </div>

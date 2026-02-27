@@ -28,20 +28,19 @@ export class QueriesServicesService {
     return services.map((service) => ({
       id: service.id,
       idObra: service.id_obra,
-      ovnota: service.obras.ovnota,
       operacao: service.operacao,
       ponto: service.ponto,
       material: service.servicos_contratos.material,
       textoBreve: service.servicos_contratos.texto_breve,
-      medida: service.servicos_contratos.medida,
-      contrato: service.servicos_contratos.contrato,
       dataProgramada: service.programacoes?.data_prog,
       qtdePlanejada: service.qtde_plan,
       qtdeAdicional: service.qtde_adicional,
       qtdeProgramada: service.qtde_prog,
       qtdeRealizada: service.qtde_real,
       preco: service.servicos_contratos.preco,
-      valorUnit: service.servicos_contratos.preco * service.qtde_plan,
+      valorUnit:
+        service.servicos_contratos.preco *
+        (service.qtde_plan + service.qtde_adicional),
       valorReal: service.servicos_contratos.preco * service.qtde_real,
     }));
   }
@@ -70,6 +69,7 @@ export class QueriesServicesService {
       equipe: service.equipes.equipe,
       encarregado: service.equipes.encarregado,
       perfil: service.equipes.perfil,
+      valorUnit: service.servicos_contratos.preco * service.qtde_prog,
     }));
   }
 
