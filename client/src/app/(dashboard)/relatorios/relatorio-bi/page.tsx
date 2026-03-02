@@ -16,11 +16,11 @@ export default async function BiReports() {
       path: "https://app.powerbi.com/groups/me/apps/2a7a60bb-a7cd-4376-b59a-662f2e8c478b/reports/3a1a7515-a468-43e7-864d-1b0c42f7e818/ReportSection?experience=power-bi",
       visible: true,
     },
-    // {
-    //   name: "EXPORTACAO DAS PROGRAMACOES E RESTRICOES",
-    //   path: "programacoes-bi",
-    //   visible: true,
-    // },
+    {
+      name: "Controle SMC",
+      path: "https://app.powerbi.com/groups/me/apps/cf6dceda-2355-4078-9a15-d1fd15fc4688/reports/decbfee6-e20b-4fca-bc6d-a0585270e1cb/ReportSection?ctid=bf86fbdb-f8c2-440e-923c-05a60dc2bc9b&experience=power-bi",
+      visible: true,
+    },
     // {
     //   name: "Exportar obras a serem multadas",
     //   path: "obras-multas",
