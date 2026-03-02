@@ -56,6 +56,7 @@ export class GetWorkDetailsService {
           confirmada: programacao.confirmada,
           reprovada: programacao.reprovada,
           observacao_restricao: programacao.observacao_restricao,
+          observacao_execucao: programacao.observacao_execucao,
           id_restricao_prog1: programacao.id_restricao_prog1,
           responsabilidade1: programacao.responsabilidade1,
           nome_responsavel: programacao.nome_responsavel,

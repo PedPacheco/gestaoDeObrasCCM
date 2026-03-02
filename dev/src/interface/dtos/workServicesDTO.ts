@@ -90,6 +90,10 @@ class DataScheduleInFinalizeServiceDTO {
   responsibility?: string;
 
   @IsOptional()
+  @IsString()
+  executionObservation?: string;
+
+  @IsOptional()
   @ValidateNested()
   @Type(() => ExecutionReportDataDTO)
   executionReport?: ExecutionReportDataDTO;

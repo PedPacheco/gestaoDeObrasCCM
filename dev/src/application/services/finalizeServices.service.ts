@@ -26,6 +26,7 @@ interface FinalizationData {
   exec: number;
   idExecutionRestriction: number;
   responsibility: string;
+  executionObservation: string;
 }
 
 @Injectable()
@@ -68,6 +69,7 @@ export class FinalizeServicesService {
       totalPlanned,
       updateData.idExecutionRestriction,
       updateData.responsibility,
+      updateData.executionObservation,
     );
 
     await this.executeFinalization(
@@ -105,6 +107,7 @@ export class FinalizeServicesService {
     totalPlanned: number,
     idExecutionRestriction: number,
     responsibility: string,
+    executionObservation: string,
   ): FinalizationData {
     const calculatePercentage = (value: number) =>
       totalPlanned > 0 ? (value / totalPlanned) * 100 : 0;
@@ -117,6 +120,7 @@ export class FinalizeServicesService {
       exec: calculatePercentage(totals.exec),
       idExecutionRestriction,
       responsibility,
+      executionObservation,
     };
   }
 
