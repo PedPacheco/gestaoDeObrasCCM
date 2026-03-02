@@ -35,7 +35,7 @@ import { UpdateWork } from "@/actions/works";
 import { InsertPublicationRestrictions } from "@/actions/restrictions";
 import { useUser } from "@/contexts/userContext";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
-import { FeasibiltyUpload } from "../modals/feasibilityImportModal";
+import { FeasibiltyUpload } from "./feasibilityImportModal";
 import { useRouter } from "next/navigation";
 import { deleteFeasibilityFiles } from "@/actions/feasibility";
 import { useFeedback } from "@/hooks/useFeedback";

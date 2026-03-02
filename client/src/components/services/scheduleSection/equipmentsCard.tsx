@@ -38,7 +38,7 @@ export function EquipmentCard({
     <Grid item xs={12} md={6} lg={4}>
       <ScheduleCard title="Serviço e Equipamentos">
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={4}>
             <FormControl fullWidth>
               <InputLabel>Tipo de Serviço</InputLabel>
               <Select
@@ -56,7 +56,7 @@ export function EquipmentCard({
             </FormControl>
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={8}>
             <TextField
               label="Equipamento"
               value={formData.equipment}
@@ -66,7 +66,7 @@ export function EquipmentCard({
             />
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={4}>
             <TextField
               label="CHI"
               type="number"
@@ -78,7 +78,7 @@ export function EquipmentCard({
             />
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={8}>
             <TextField
               label="Número DP"
               value={formData.numDp}

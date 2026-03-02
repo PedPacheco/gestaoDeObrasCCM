@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { formatDateToInput, formatToHHMM } from "./formatValue";
-import { ExecutionReportData } from "@/components/details/modals/executionReportDialog/executionReportDialog";
+import { ExecutionReportData } from "@/hooks/useExecutionServicesForm";
 
 export function Transform(filters: Record<string, string[]>) {
   return Object.fromEntries(
@@ -48,24 +48,6 @@ export function mapScheduleToForm(schedule: any, options: Record<string, any>) {
     confirmed: schedule.confirmada,
   };
 }
-
-// export function mapExecutionServicesForm(
-//   schedule: any,
-//   options: Record<string, any>,
-// ) {
-//   const restrictionFound = options.restricao.find(
-//     (r: any) => r.restricao === schedule.restricao,
-//   );
-
-//   return {
-//     idSchedule: schedule.id,
-//     finishTime: formatToHHMM(schedule.hora_ter),
-//     serviceType: schedule.tipo_servico ?? "",
-//     idExecutionRestriction: restrictionFound.id ?? 0,
-//     responsibility: schedule.nome_responsavel_execucao ?? "",
-//     executionReport: schedule.executionReport,
-//   };
-// }
 
 export function transformExecutionReport(data: any): ExecutionReportData {
   const splitEquipamentos = (

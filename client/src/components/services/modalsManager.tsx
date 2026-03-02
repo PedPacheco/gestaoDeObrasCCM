@@ -9,9 +9,9 @@ import {
 import { UseExecutionServiceFormReturn } from "@/hooks/useExecutionServicesForm";
 import { useFeedback } from "@/hooks/useFeedback";
 
-import { ExecutionReportDialog } from "../details/modals/executionReportDialog/executionReportDialog";
 import ConfirmationModalComponent from "../common/confirmationModal";
 import FailureModalComponent from "../common/failureModal";
+import { ExecutionReportDialog } from "../executionReport/executionReportDialog";
 
 interface ModalsManagerProps {
   onConfirmDelete: (id: number) => void;

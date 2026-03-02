@@ -11,9 +11,14 @@ import {
   Select,
   IconButton,
   TextField,
+  FormHelperText,
 } from "@mui/material";
 import { XMarkIcon } from "@heroicons/react/24/solid";
-import { ExecutionEditableData } from "@/hooks/useExecutionServicesForm";
+import {
+  ExecutionEditableData,
+  UseExecutionServiceFormReturn,
+} from "@/hooks/useExecutionServicesForm";
+import { schedulesSchemaV2 } from "@/validations/validationExecutionServices";
 
 interface RestrictionsModalProps {
   open: boolean;
@@ -22,22 +27,28 @@ interface RestrictionsModalProps {
   options: {
     restricao: Array<{ id: number; restricao: string }>;
   };
-  onInputChange: (field: keyof ExecutionEditableData) => (event: any) => void;
-  formData: {
-    idExecutionRestriction: number;
-    responsibility?: string;
-    executionObservation?: string;
-  };
+  executionForm: UseExecutionServiceFormReturn;
 }
 
 export function RestrictionsModal({
   open,
   onClose,
   onSave,
-  formData,
   options,
-  onInputChange,
+  executionForm,
 }: RestrictionsModalProps) {
+  const {
+    formErrors,
+    editableData,
+    setFormErrors,
+    handleEditableChange,
+    buildPayload,
+  } = executionForm;
+
+  const errorRestriction = formErrors["idExecutionRestriction"];
+  const errorResponsibility = formErrors["responsibility"];
+  const errorObservation = formErrors["executionObservation"];
+
   const EXECUTION_RESPONSIBILITIES = ["", "Edp", "Parceira", "Terceiro"];
 
   const handleSave = () => {
@@ -66,12 +77,13 @@ export function RestrictionsModal({
       <DialogContent dividers>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <FormControl fullWidth>
+            <FormControl fullWidth error={!!errorRestriction}>
               <InputLabel>Restrição de Execução</InputLabel>
               <Select
-                value={formData.idExecutionRestriction}
+                value={editableData.idExecutionRestriction}
                 label="Restrição de Execução"
-                onChange={onInputChange("idExecutionRestriction")}
+                onChange={handleEditableChange("idExecutionRestriction")}
+                error={!!errorRestriction}
               >
                 {options.restricao.map((r) => (
                   <MenuItem key={r.id} value={r.id}>
@@ -79,16 +91,22 @@ export function RestrictionsModal({
                   </MenuItem>
                 ))}
               </Select>
+              {formErrors["idExecutionRestriction"] && (
+                <FormHelperText>
+                  {formErrors["idExecutionRestriction"]}
+                </FormHelperText>
+              )}
             </FormControl>
           </Grid>
 
           <Grid item xs={12}>
-            <FormControl fullWidth>
+            <FormControl fullWidth error={!!errorResponsibility}>
               <InputLabel>Responsabilidade</InputLabel>
               <Select
-                value={formData.responsibility}
+                value={editableData.responsibility}
                 label="Responsabilidade"
-                onChange={onInputChange("responsibility")}
+                onChange={handleEditableChange("responsibility")}
+                error={!!errorResponsibility}
               >
                 {EXECUTION_RESPONSIBILITIES.map((resp) => (
                   <MenuItem key={resp} value={resp}>
@@ -96,6 +114,9 @@ export function RestrictionsModal({
                   </MenuItem>
                 ))}
               </Select>
+              {formErrors["responsibility"] && (
+                <FormHelperText>{formErrors["responsibility"]}</FormHelperText>
+              )}
             </FormControl>
           </Grid>
 
@@ -103,8 +124,10 @@ export function RestrictionsModal({
             <TextField
               fullWidth
               label="Observação da Execução"
-              value={formData.executionObservation || ""}
-              onChange={onInputChange("executionObservation")}
+              value={editableData.executionObservation || ""}
+              onChange={handleEditableChange("executionObservation")}
+              error={!!errorObservation}
+              helperText={errorObservation}
             />
           </Grid>
         </Grid>
@@ -114,7 +137,32 @@ export function RestrictionsModal({
         <Button onClick={onClose} variant="outlined" color="secondary">
           Cancelar
         </Button>
-        <Button onClick={handleSave} variant="contained" color="primary">
+        <Button
+          onClick={() => {
+            const data = buildPayload();
+
+            const validationResult = schedulesSchemaV2(true).safeParse(data);
+
+            if (!validationResult.success) {
+              const fieldErrors: Record<string, string> = {};
+
+              validationResult.error.issues.forEach((err) => {
+                const path = err.path.join(".");
+                fieldErrors[path] = err.message;
+              });
+
+              setFormErrors(fieldErrors);
+
+              return;
+            }
+
+            setFormErrors({});
+
+            handleSave();
+          }}
+          variant="contained"
+          color="primary"
+        >
           Salvar
         </Button>
       </DialogActions>

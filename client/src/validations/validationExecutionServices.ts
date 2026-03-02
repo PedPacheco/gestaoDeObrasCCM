@@ -93,16 +93,50 @@ function checkRemovedEquipment(ctx: any) {
 }
 
 export const schedulesSchemaV2 = (isPartial: boolean) =>
-  z.object({
-    idWork: z.number(),
-    idSchedule: z.number().nullable(),
-    idExecutionRestriction: z.preprocess(
-      (val) => Number(val),
-      z.number({ error: "Restrição deve ser um número" }),
-    ),
-    responsibility: z.string().optional(),
-    executionObservation: z.string().optional(),
-  });
+  z
+    .object({
+      idWork: z.number(),
+      idSchedule: z.number().nullable(),
+      idExecutionRestriction: z.preprocess(
+        (val) => Number(val),
+        z.number({ error: "Restrição deve ser um número" }),
+      ),
+      responsibility: z.string().optional(),
+      executionObservation: z.string().optional(),
+    })
+    .check((ctx) => {
+      const { executionObservation, idExecutionRestriction, responsibility } =
+        ctx.value;
+
+      if (isPartial) {
+        if (idExecutionRestriction === 1) {
+          ctx.issues.push({
+            path: ["idExecutionRestriction"],
+            code: "custom",
+            message: "Restrição é obrigatória",
+            input: ctx.value,
+          });
+        }
+
+        if (responsibility === "") {
+          ctx.issues.push({
+            path: ["responsibility"],
+            code: "custom",
+            message: "Responsável é obrigatório",
+            input: ctx.value,
+          });
+        }
+
+        if (executionObservation === "" || !executionObservation) {
+          ctx.issues.push({
+            path: ["executionObservation"],
+            code: "custom",
+            message: "Observação é obrigatório",
+            input: ctx.value,
+          });
+        }
+      }
+    });
 
 export const equipmentItemSchemaV2 = z.object({
   equipment: z.string(),
@@ -150,44 +184,9 @@ export const validationExecutionService = (isPartial: boolean) =>
       finishTime: z.string().min(1, "Horário de fim obrigatório"),
     })
     .check((ctx) => {
-      const {
-        executionReport,
-        finishTime,
-        executionObservation,
-        responsibility,
-        idExecutionRestriction,
-      } = ctx.value;
+      const { executionReport, finishTime } = ctx.value;
 
       const result = executionReportSchema.safeParse(executionReport);
-
-      if (isPartial) {
-        if (idExecutionRestriction === 1) {
-          ctx.issues.push({
-            path: ["idExecutionRestriction"],
-            code: "custom",
-            message: "Restrição é obrigatória",
-            input: ctx.value,
-          });
-        }
-
-        if (responsibility === "") {
-          ctx.issues.push({
-            path: ["responsibility"],
-            code: "custom",
-            message: "Responsável é obrigatório",
-            input: ctx.value,
-          });
-        }
-
-        if (executionObservation === "" || !executionObservation) {
-          ctx.issues.push({
-            path: ["executionObservation"],
-            code: "custom",
-            message: "Observação é obrigatório",
-            input: ctx.value,
-          });
-        }
-      }
 
       if (result.data?.finishTime === "00:00") {
         ctx.issues.push({

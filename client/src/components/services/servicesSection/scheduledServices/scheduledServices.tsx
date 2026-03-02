@@ -9,7 +9,6 @@ import {
   performScheduleServices,
   reascheduleServices,
 } from "@/actions/services";
-import { ExecutionReportDialog } from "@/components/details/modals/executionReportDialog/executionReportDialog";
 import { UseExecutionServiceFormReturn } from "@/hooks/useExecutionServicesForm";
 import { usePersistentServiceValidation } from "@/hooks/usePersistentServiceValidation";
 import { Button, Paper, Typography } from "@mui/material";
@@ -17,6 +16,7 @@ import { Button, Paper, Typography } from "@mui/material";
 import { RestrictionsModal } from "../../scheduleSection/restrictionsCard";
 import { ScheduledServicesTable } from "./scheduledServicesTable";
 import { ValidationOfScheduledServices } from "./validationOfScheduledServices";
+import { ExecutionReportDialog } from "@/components/executionReport/executionReportDialog";
 
 dayjs.extend(utc);
 
@@ -277,8 +277,7 @@ export function ScheduledServices({
         onClose={() => setIsRestrictionsModalOpen(false)}
         onSave={() => setIsExecutionReportModalOpen(true)}
         options={options}
-        formData={executionForm.editableData}
-        onInputChange={executionForm.handleEditableChange}
+        executionForm={executionForm}
       />
 
       <ExecutionReportDialog

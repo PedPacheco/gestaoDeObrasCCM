@@ -1,4 +1,4 @@
-import { AccordionPanel } from "@/components/details/accordionPanel";
+import { AccordionPanel } from "@/components/executionReport/accordionPanel";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 

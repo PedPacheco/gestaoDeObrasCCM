@@ -3,12 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 
-import { EquipmentData } from "@/components/details/modals/executionReportDialog/EquipmentPanel";
 import {
   executionReportSchema,
   validationExecutionService,
 } from "@/validations/validationExecutionServices";
 import { transformExecutionReport } from "@/utils/transform";
+import { EquipmentData } from "@/components/executionReport/EquipmentPanel";
 
 export const staticValidationSchema = validationExecutionService(false);
 export type FormData = z.infer<typeof staticValidationSchema>;
@@ -67,7 +67,7 @@ export interface UseExecutionServiceFormReturn {
   setFormErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   handleEditableChange: (
     field: keyof ExecutionEditableData,
-  ) => (event: React.ChangeEvent<HTMLInputElement>) => void;
+  ) => (event: any) => void;
   handleExecutionReportChange: (
     field: keyof ExecutionReportData,
   ) => (event: React.ChangeEvent<HTMLInputElement>) => void;

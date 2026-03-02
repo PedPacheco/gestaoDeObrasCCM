@@ -216,6 +216,7 @@ describe('GetWorksDetailsRepository', () => {
                 select: { status_programacao: true },
               },
               observacao_restricao: true,
+              observacao_execucao: true,
               id_restricao_prog1: true,
               responsabilidade1: true,
               nome_responsavel: true,
