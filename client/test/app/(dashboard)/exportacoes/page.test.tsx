@@ -2,7 +2,7 @@ import * as cookiesModule from "next/headers";
 import { beforeEach, describe, expect, it, vi, Mock } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-import ExportPage from "@/app/(dashboard)/exportacoes/page";
+import ExportPage from "@/app/(dashboard)/relatorios/exportacoes/page";
 
 vi.mock("@/components/exports/wrapperExportButton", () => ({
   __esModule: true,

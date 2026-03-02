@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 
 import * as cookiesModule from "next/headers";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import ErrorsReportPage from "@/app/(dashboard)/relatorio-erros/page";
+import ErrorsReportPage from "@/app/(dashboard)/relatorios/relatorio-erros/page";
 
 vi.mock("next/headers", () => ({
   cookies: vi.fn(),
@@ -61,7 +61,7 @@ describe("ErrorsReportPage (Server Component)", () => {
 
     expect(dashboard).toBeInTheDocument();
     expect(dashboard.getAttribute("data-regional")).toBe(
-      JSON.stringify(["Vale do Paraíba", "Campinas", "Leste Paulista"])
+      JSON.stringify(["Vale do Paraíba", "Campinas", "Leste Paulista"]),
     );
   });
 
