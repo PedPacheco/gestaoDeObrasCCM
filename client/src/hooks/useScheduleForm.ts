@@ -53,7 +53,6 @@ export const useScheduleForm = ({
   idWork,
 }: UseScheduleFormProps) => {
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [expanded, setExpanded] = useState<string | false>("panel1");
 
   const initializedRef = useRef(false);
@@ -91,16 +90,14 @@ export const useScheduleForm = ({
 
   const resetForm = useCallback(() => {
     setFormData(INITIAL_FORM_DATA);
-    setFormErrors({});
+
     setExpanded("panel1");
   }, []);
 
   return {
     formData,
     setFormData,
-    formErrors,
     expanded,
-    setFormErrors,
     handleInputChange,
     handleAccordionChange,
     resetForm,

@@ -46,6 +46,7 @@ type ExecutionContext = {
 export type ExecutionEditableData = {
   idExecutionRestriction: number;
   responsibility?: string;
+  executionObservation?: string;
 };
 
 interface UseExecutionServiceFormProps {
@@ -58,6 +59,7 @@ export interface UseExecutionServiceFormReturn {
   editableData: {
     idExecutionRestriction: number;
     responsibility?: string;
+    executionObservation?: string;
   };
   executionReportData: ExecutionReportData;
   formErrors: Record<string, string>;
@@ -109,6 +111,7 @@ export const useExecutionServiceForm = ({
   const [editableData, setEditableData] = useState<ExecutionEditableData>({
     idExecutionRestriction: 1,
     responsibility: "",
+    executionObservation: "",
   });
 
   const [expanded, setExpanded] = useState<string | false>("panel1");
@@ -127,6 +130,7 @@ export const useExecutionServiceForm = ({
     setEditableData({
       idExecutionRestriction: data.idExecutionRestriction ?? 1,
       responsibility: data.responsibility || "",
+      executionObservation: data.executionObservation || "",
     });
   }, [enabled, data, executionReportDataExisting]);
 
@@ -241,6 +245,7 @@ export const useExecutionServiceForm = ({
 
       idExecutionRestriction: editableData.idExecutionRestriction,
       responsibility: editableData.responsibility,
+      executionObservation: editableData.executionObservation,
 
       executionReport: executionReportData,
     }),

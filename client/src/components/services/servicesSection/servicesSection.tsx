@@ -6,7 +6,6 @@ import { AddServiceForm, ServiceContract } from "./addServiceForm";
 import { ScheduledServices } from "./scheduledServices/scheduledServices";
 import { ScheduleHistory } from "./scheduleHistory";
 import { ServicesAvaliable } from "./servicesAvailable";
-import { useFeedback } from "@/hooks/useFeedback";
 import { useState, useTransition } from "react";
 
 interface ServicesSectionProps {

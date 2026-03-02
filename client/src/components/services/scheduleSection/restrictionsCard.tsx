@@ -10,6 +10,7 @@ import {
   MenuItem,
   Select,
   IconButton,
+  TextField,
 } from "@mui/material";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { ExecutionEditableData } from "@/hooks/useExecutionServicesForm";
@@ -25,6 +26,7 @@ interface RestrictionsModalProps {
   formData: {
     idExecutionRestriction: number;
     responsibility?: string;
+    executionObservation?: string;
   };
 }
 
@@ -95,6 +97,15 @@ export function RestrictionsModal({
                 ))}
               </Select>
             </FormControl>
+          </Grid>
+
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Observação da Execução"
+              value={formData.executionObservation || ""}
+              onChange={onInputChange("executionObservation")}
+            />
           </Grid>
         </Grid>
       </DialogContent>

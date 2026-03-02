@@ -1,4 +1,3 @@
-import dayjs from "dayjs";
 import { z } from "zod";
 
 function checkAppliedEquipment(ctx: any) {
@@ -102,6 +101,7 @@ export const schedulesSchemaV2 = (isPartial: boolean) =>
       z.number({ error: "Restrição deve ser um número" }),
     ),
     responsibility: z.string().optional(),
+    executionObservation: z.string().optional(),
   });
 
 export const equipmentItemSchemaV2 = z.object({
@@ -150,9 +150,44 @@ export const validationExecutionService = (isPartial: boolean) =>
       finishTime: z.string().min(1, "Horário de fim obrigatório"),
     })
     .check((ctx) => {
-      const { executionReport, finishTime } = ctx.value;
+      const {
+        executionReport,
+        finishTime,
+        executionObservation,
+        responsibility,
+        idExecutionRestriction,
+      } = ctx.value;
 
       const result = executionReportSchema.safeParse(executionReport);
+
+      if (isPartial) {
+        if (idExecutionRestriction === 1) {
+          ctx.issues.push({
+            path: ["idExecutionRestriction"],
+            code: "custom",
+            message: "Restrição é obrigatória",
+            input: ctx.value,
+          });
+        }
+
+        if (responsibility === "") {
+          ctx.issues.push({
+            path: ["responsibility"],
+            code: "custom",
+            message: "Responsável é obrigatório",
+            input: ctx.value,
+          });
+        }
+
+        if (executionObservation === "" || !executionObservation) {
+          ctx.issues.push({
+            path: ["executionObservation"],
+            code: "custom",
+            message: "Observação é obrigatório",
+            input: ctx.value,
+          });
+        }
+      }
 
       if (result.data?.finishTime === "00:00") {
         ctx.issues.push({

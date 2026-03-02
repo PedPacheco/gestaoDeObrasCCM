@@ -8,7 +8,6 @@ interface UseScheduleSubmitProps {
   idWork: number;
   onError: (error: string) => void;
   onSuccess: (success: string) => void;
-  setFormErrors: (errors: Record<string, string>) => void;
 }
 
 export const useScheduleSubmit = ({

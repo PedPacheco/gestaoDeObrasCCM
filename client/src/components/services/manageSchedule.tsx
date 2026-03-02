@@ -85,7 +85,6 @@ export function ManageSchedule({
       showSuccess(message);
     },
     formData: scheduleData,
-    setFormErrors: scheduleForm.setFormErrors,
   });
 
   return (
