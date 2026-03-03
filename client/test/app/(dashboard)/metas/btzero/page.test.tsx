@@ -22,7 +22,7 @@ vi.mock("@/utils/transform", () => ({
       Object.entries(filters).map(([key, value]) => [
         key,
         Array.isArray(value) && value.length > 0 ? value.join(",") : "",
-      ])
+      ]),
     );
   }),
 }));
@@ -62,7 +62,7 @@ describe("BT0 Page", () => {
   const mockRdaCookieValue = JSON.stringify({
     regional: ["Regional 1"],
     parceira: ["Parceira X"],
-    ano: ["2024"],
+    ano: ["2025"],
   });
 
   const mockCookieStore = {
@@ -76,7 +76,7 @@ describe("BT0 Page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
-    vi.setSystemTime(dayjs("2025-05-26").format("DD/MM/YYYY"));
+    vi.setSystemTime(new Date("2025-05-26"));
 
     vi.mocked(cookiesModule.cookies).mockResolvedValue(mockCookieStore as any);
 
@@ -105,11 +105,14 @@ describe("BT0 Page", () => {
       {
         regional: "Regional 1",
         parceira: "Parceira X",
-        ano: "2024",
+        ano: "2025",
         btzero: true,
         rda: false,
       },
-      mockToken
+      mockToken,
+      {
+        cache: "no-store",
+      },
     );
   });
 
@@ -128,7 +131,10 @@ describe("BT0 Page", () => {
         btzero: true,
         rda: false,
       },
-      mockToken
+      mockToken,
+      {
+        cache: "no-store",
+      },
     );
   });
 
@@ -149,10 +155,10 @@ describe("BT0 Page", () => {
     expect(mainGoals).toBeInTheDocument();
 
     expect(JSON.parse(mainGoals.getAttribute("data-data") || "[]")).toEqual(
-      mockData
+      mockData,
     );
     expect(JSON.parse(mainGoals.getAttribute("data-filters") || "{}")).toEqual(
-      mockFilters
+      mockFilters,
     );
     expect(mainGoals.getAttribute("data-token")).toBe(mockToken);
 
@@ -179,7 +185,7 @@ describe("BT0 Page", () => {
     };
 
     expect(JSON.parse(mainGoals.getAttribute("data-columns") || "{}")).toEqual(
-      expectedColumns
+      expectedColumns,
     );
   });
 

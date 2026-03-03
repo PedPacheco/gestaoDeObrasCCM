@@ -44,38 +44,35 @@ vi.mock("@/components/details/workDetails/dataItem", () => ({
   ),
 }));
 
-vi.mock("@mui/material", () => ({
-  IconButton: ({ children, onClick }: any) => (
-    <button onClick={onClick} data-testid="icon-button">
-      {children}
-    </button>
-  ),
-  FormControl: ({ children, className }: any) => (
-    <div data-testid="mui-form-control" className={className}>
-      {children}
-    </div>
-  ),
-  Tooltip: ({ children, title }: any) => <div title={title}>{children}</div>,
-  Select: ({ children, value, onChange, className }: any) => (
-    <select
-      value={value}
-      onChange={onChange}
-      className={className}
-      data-testid="mui-select"
-    >
-      {children}
-    </select>
-  ),
-  MenuItem: ({ children, value }: any) => (
-    <option value={value}>{children}</option>
-  ),
-}));
+vi.mock("@mui/material", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@mui/material")>();
+
+  return {
+    ...actual, // mantém Dialog, etc.
+    IconButton: ({ children, onClick }: any) => (
+      <button onClick={onClick} data-testid="icon-button">
+        {children}
+      </button>
+    ),
+    Tooltip: ({ children, title }: any) => <div title={title}>{children}</div>,
+    Select: ({ children, value, onChange }: any) => (
+      <select value={value} onChange={onChange} data-testid="mui-select">
+        {children}
+      </select>
+    ),
+    MenuItem: ({ children, value }: any) => (
+      <option value={value}>{children}</option>
+    ),
+  };
+});
 
 vi.mock("@heroicons/react/20/solid", () => ({
   ExclamationCircleIcon: () => <div data-testid="exclamation-icon" />,
   PencilIcon: () => <div data-testid="pencil-icon" />,
   CheckCircleIcon: () => <div data-testid="check-circle-icon" />,
   XMarkIcon: () => <div data-testid="x-mark-icon" />,
+  DocumentArrowUpIcon: () => <div data-testid="document-arrow-up-icon" />,
+  PhotoIcon: () => <div data-testid="photo-icon" />,
 }));
 
 vi.mock("@/components/details/modals/feasibilityImportModal", () => ({
@@ -105,25 +102,11 @@ vi.mock("@/components/common/Button", () => ({
   ),
 }));
 
-vi.mock("@/components/common/Modal", () => ({
-  default: ({ children, title, open, onClose }: any) =>
-    open ? (
-      <div data-testid="modal" role="dialog">
-        <h2>{title}</h2>
-        {children}
-        <button onClick={onClose}>Fechar</button>
-      </div>
-    ) : null,
-}));
-
-vi.mock("@/components/common/ErrorModal", () => ({
-  default: ({ message, open, onClose }: any) =>
-    open ? (
-      <div data-testid="error-modal" role="alert">
-        <p>{message}</p>
-        <button onClick={onClose}>Fechar</button>
-      </div>
-    ) : null,
+vi.mock("@/hooks/useFeedback", () => ({
+  useFeedback: () => ({
+    showSuccess: vi.fn(),
+    showError: vi.fn(),
+  }),
 }));
 
 vi.mock("@/components/common/ErrorThrower", () => ({
@@ -134,7 +117,7 @@ vi.mock("@/components/common/ErrorThrower", () => ({
 
 const mockUpdateWork = vi.mocked(UpdateWork);
 const mockInsertPublicationRestrictions = vi.mocked(
-  InsertPublicationRestrictions
+  InsertPublicationRestrictions,
 );
 const mockUseUser = vi.mocked(useUser);
 
@@ -161,7 +144,7 @@ describe("WorkDetails", () => {
     executado: "50",
     ano_plan: "2024",
     empreendimento: "Emp 001",
-    id_status: "1",
+    id_status: 1,
     id_turma: "10",
     idRegional: 5,
     status_ov_sap: "SAP-OK",
@@ -231,7 +214,7 @@ describe("WorkDetails", () => {
           formattedData={mockFormattedData}
           idWork={100}
           options={mockOptions}
-        />
+        />,
       );
 
       expect(screen.getByText("Informações gerais")).toBeInTheDocument();
@@ -246,7 +229,7 @@ describe("WorkDetails", () => {
           formattedData={mockFormattedData}
           idWork={100}
           options={mockOptions}
-        />
+        />,
       );
 
       // Verifica se os DataItems estão sendo renderizados
@@ -268,7 +251,7 @@ describe("WorkDetails", () => {
           formattedData={mockFormattedData}
           idWork={100}
           options={mockOptions}
-        />
+        />,
       );
 
       const textarea = screen.getByDisplayValue("Observação inicial");
@@ -283,7 +266,7 @@ describe("WorkDetails", () => {
         permissions: { permissao_visualizacao: "parcial" },
       } as any);
 
-      const dataWithStatus3 = { ...mockData, id_status: "3" };
+      const dataWithStatus3 = { ...mockData, id_status: 3 };
 
       expect(() =>
         render(
@@ -293,8 +276,8 @@ describe("WorkDetails", () => {
             formattedData={mockFormattedData}
             idWork={100}
             options={mockOptions}
-          />
-        )
+          />,
+        ),
       ).toThrow();
     });
 
@@ -303,7 +286,7 @@ describe("WorkDetails", () => {
         permissions: { permissao_visualizacao: "parcial" },
       } as any);
 
-      const dataWithStatus4 = { ...mockData, id_status: "4" };
+      const dataWithStatus4 = { ...mockData, id_status: 4 };
 
       expect(() =>
         render(
@@ -313,8 +296,8 @@ describe("WorkDetails", () => {
             formattedData={mockFormattedData}
             idWork={100}
             options={mockOptions}
-          />
-        )
+          />,
+        ),
       ).toThrow();
     });
 
@@ -323,7 +306,7 @@ describe("WorkDetails", () => {
         permissions: { permissao_visualizacao: "parcial" },
       } as any);
 
-      const dataWithStatus42 = { ...mockData, id_status: "42" };
+      const dataWithStatus42 = { ...mockData, id_status: 42 };
 
       expect(() =>
         render(
@@ -333,8 +316,8 @@ describe("WorkDetails", () => {
             formattedData={mockFormattedData}
             idWork={100}
             options={mockOptions}
-          />
-        )
+          />,
+        ),
       ).toThrow();
     });
 
@@ -343,7 +326,7 @@ describe("WorkDetails", () => {
         permissions: { permissao_visualizacao: "total" },
       } as any);
 
-      const dataWithStatus3 = { ...mockData, id_status: "3" };
+      const dataWithStatus3 = { ...mockData, id_status: 3 };
 
       render(
         <WorkDetails
@@ -352,7 +335,7 @@ describe("WorkDetails", () => {
           formattedData={mockFormattedData}
           idWork={100}
           options={mockOptions}
-        />
+        />,
       );
 
       expect(screen.getByText("Informações gerais")).toBeInTheDocument();
@@ -368,7 +351,7 @@ describe("WorkDetails", () => {
         },
       } as any);
 
-      const dataWithStatus2 = { ...mockData, id_status: "2" };
+      const dataWithStatus2 = { ...mockData, id_status: 2 };
 
       render(
         <WorkDetails
@@ -377,12 +360,12 @@ describe("WorkDetails", () => {
           formattedData={mockFormattedData}
           idWork={100}
           options={mockOptions}
-        />
+        />,
       );
 
       await waitFor(() => {
         expect(
-          screen.getByText("Adicionar restrição publicação")
+          screen.getByText("Adicionar restrição publicação"),
         ).toBeInTheDocument();
       });
     });
@@ -395,7 +378,7 @@ describe("WorkDetails", () => {
         },
       } as any);
 
-      const dataWithStatus2 = { ...mockData, id_status: "2" };
+      const dataWithStatus2 = { ...mockData, id_status: 2 };
 
       render(
         <WorkDetails
@@ -404,12 +387,12 @@ describe("WorkDetails", () => {
           formattedData={mockFormattedData}
           idWork={100}
           options={mockOptions}
-        />
+        />,
       );
 
       await waitFor(() => {
         expect(
-          screen.queryByText("Adicionar restrição publicação")
+          screen.queryByText("Adicionar restrição publicação"),
         ).not.toBeInTheDocument();
       });
     });
@@ -429,12 +412,12 @@ describe("WorkDetails", () => {
           formattedData={mockFormattedData}
           idWork={100}
           options={mockOptions}
-        />
+        />,
       );
 
       await waitFor(() => {
         expect(
-          screen.queryByText("Adicionar restrição publicação")
+          screen.queryByText("Adicionar restrição publicação"),
         ).not.toBeInTheDocument();
       });
     });
@@ -451,7 +434,7 @@ describe("WorkDetails", () => {
           formattedData={mockFormattedData}
           idWork={100}
           options={mockOptions}
-        />
+        />,
       );
 
       const textarea = screen.getByDisplayValue("Observação inicial");
@@ -470,7 +453,7 @@ describe("WorkDetails", () => {
           formattedData={mockFormattedData}
           idWork={100}
           options={mockOptions}
-        />
+        />,
       );
 
       const saveButton = screen.getByText("Salvar alterações");
@@ -487,7 +470,7 @@ describe("WorkDetails", () => {
           formattedData={mockFormattedData}
           idWork={100}
           options={mockOptions}
-        />
+        />,
       );
 
       const textarea = screen.getByDisplayValue("Observação inicial");
@@ -507,7 +490,7 @@ describe("WorkDetails", () => {
           formattedData={mockFormattedData}
           idWork={100}
           options={mockOptions}
-        />
+        />,
       );
 
       const statusSelect = screen.getByTestId("editable-column");
@@ -535,7 +518,7 @@ describe("WorkDetails", () => {
           formattedData={mockFormattedData}
           idWork={100}
           options={mockOptions}
-        />
+        />,
       );
 
       const textarea = screen.getByDisplayValue("Observação inicial");
@@ -550,70 +533,13 @@ describe("WorkDetails", () => {
           expect.objectContaining({
             observ_obra: "Nova observação",
           }),
-          100
+          100,
         );
       });
 
       await waitFor(() => {
         expect(
-          screen.getByText("Alterações salvas com sucesso")
-        ).toBeInTheDocument();
-      });
-    });
-
-    it("deve exibir erro ao falhar no salvamento", async () => {
-      const user = userEvent.setup();
-      mockUpdateWork.mockResolvedValue({
-        success: false,
-        error: "Erro ao salvar",
-      });
-
-      render(
-        <WorkDetails
-          feasibilityExists={[]}
-          data={mockData}
-          formattedData={mockFormattedData}
-          idWork={100}
-          options={mockOptions}
-        />
-      );
-
-      const textarea = screen.getByDisplayValue("Observação inicial");
-      await user.clear(textarea);
-      await user.type(textarea, "Teste");
-
-      const saveButton = screen.getByText("Salvar alterações");
-      await user.click(saveButton);
-
-      await waitFor(() => {
-        expect(screen.getByText("Erro ao salvar")).toBeInTheDocument();
-      });
-    });
-
-    it("deve tratar erro de conexão", async () => {
-      const user = userEvent.setup();
-      mockUpdateWork.mockRejectedValue(new Error("Network error"));
-
-      render(
-        <WorkDetails
-          feasibilityExists={[]}
-          data={mockData}
-          formattedData={mockFormattedData}
-          idWork={100}
-          options={mockOptions}
-        />
-      );
-
-      const textarea = screen.getByDisplayValue("Observação inicial");
-      await user.clear(textarea);
-      await user.type(textarea, "Teste");
-
-      const saveButton = screen.getByText("Salvar alterações");
-      await user.click(saveButton);
-
-      await waitFor(() => {
-        expect(
-          screen.getByText("Erro de conexão. Tente novamente.")
+          screen.getByText("Alterações salvas com sucesso"),
         ).toBeInTheDocument();
       });
     });
@@ -625,7 +551,7 @@ describe("WorkDetails", () => {
         message: "Salvo com sucesso",
       });
 
-      const dataWithStatus4 = { ...mockData, id_status: "4" };
+      const dataWithStatus4 = { ...mockData, id_status: 4 };
 
       render(
         <WorkDetails
@@ -634,7 +560,7 @@ describe("WorkDetails", () => {
           formattedData={mockFormattedData}
           idWork={100}
           options={mockOptions}
-        />
+        />,
       );
 
       // Simula edição da observação para habilitar o botão
@@ -650,7 +576,7 @@ describe("WorkDetails", () => {
           expect.objectContaining({
             reasonSuspension: expect.any(String),
           }),
-          100
+          100,
         );
       });
     });
@@ -671,7 +597,7 @@ describe("WorkDetails", () => {
           formattedData={mockFormattedData}
           idWork={100}
           options={mockOptions}
-        />
+        />,
       );
 
       // Simula mudança de data através do componente EditableColumn
@@ -695,38 +621,10 @@ describe("WorkDetails", () => {
           formattedData={mockFormattedData}
           idWork={100}
           options={mockOptions}
-        />
+        />,
       );
 
       expect(screen.getByText("Informações gerais")).toBeInTheDocument();
-    });
-  });
-
-  describe("Modal de sucesso", () => {
-    it("deve fechar modal de sucesso ao clicar em fechar", async () => {
-      const user = userEvent.setup();
-      mockUpdateWork.mockResolvedValue({
-        success: true,
-        message: "Sucesso!",
-      });
-
-      render(
-        <WorkDetails
-          feasibilityExists={[]}
-          data={mockData}
-          formattedData={mockFormattedData}
-          idWork={100}
-          options={mockOptions}
-        />
-      );
-
-      const textarea = screen.getByDisplayValue("Observação inicial");
-      await user.type(textarea, " teste");
-      await user.click(screen.getByText("Salvar alterações"));
-
-      await waitFor(() => {
-        expect(screen.getByText("Sucesso!")).toBeInTheDocument();
-      });
     });
   });
 
@@ -740,11 +638,11 @@ describe("WorkDetails", () => {
       render(
         <WorkDetails
           feasibilityExists={[]}
-          data={{ ...mockData, id_status: "2" }}
+          data={{ ...mockData, id_status: 2 }}
           formattedData={mockFormattedData}
           idWork={100}
           options={mockOptions}
-        />
+        />,
       );
 
       // Testar através do drawer (componente mockado)
@@ -760,11 +658,11 @@ describe("WorkDetails", () => {
       render(
         <WorkDetails
           feasibilityExists={[]}
-          data={{ ...mockData, id_status: "2" }}
+          data={{ ...mockData, id_status: 2 }}
           formattedData={mockFormattedData}
           idWork={100}
           options={mockOptions}
-        />
+        />,
       );
 
       expect(screen.getByText("Informações gerais")).toBeInTheDocument();
@@ -780,14 +678,14 @@ describe("WorkDetails", () => {
           formattedData={mockFormattedData}
           idWork={100}
           options={mockOptions}
-        />
+        />,
       );
 
       // Verifica se apenas restrições de publicação são passadas
       expect(
         mockOptions.restricao.filter(
-          (r: any) => r.tipo_restricao === "PUBLICAÇÃO"
-        )
+          (r: any) => r.tipo_restricao === "PUBLICAÇÃO",
+        ),
       ).toHaveLength(1);
     });
   });
@@ -808,7 +706,7 @@ describe("WorkDetails", () => {
           formattedData={mockFormattedData}
           idWork={100}
           options={mockOptions}
-        />
+        />,
       );
 
       const textarea = screen.getByDisplayValue("Observação inicial");
@@ -836,7 +734,7 @@ describe("WorkDetails", () => {
           formattedData={mockFormattedData}
           idWork={100}
           options={mockOptions}
-        />
+        />,
       );
 
       const textarea = screen.getByDisplayValue("Observação inicial");

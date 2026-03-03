@@ -50,6 +50,6 @@ describe("ExportPage", () => {
     const buttons = screen.getAllByTestId("export-button");
 
     // sua página tem 5 botões visíveis
-    expect(buttons).toHaveLength(8);
+    expect(buttons).toHaveLength(10);
   });
 });

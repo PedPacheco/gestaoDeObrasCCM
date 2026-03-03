@@ -16,6 +16,14 @@ vi.mock("@/components/common/Breadcrumbs", () => ({
   )),
 }));
 
+vi.mock("@/contexts/userContext", () => ({
+  useUser: () => ({
+    user: { name: "Pedro" },
+    isAuthenticated: true,
+  }),
+  UserProvider: ({ children }: any) => <>{children}</>,
+}));
+
 describe("DashboardLayout", () => {
   const childrenMock = {
     children: <div data-testid="mock-children">Conteúdo Filho</div>,
@@ -39,7 +47,7 @@ describe("DashboardLayout", () => {
 
   it("deve conter estrutura semântica principal", () => {
     const { container } = render(
-      <DashboardLayout>{childrenMock.children}</DashboardLayout>
+      <DashboardLayout>{childrenMock.children}</DashboardLayout>,
     );
 
     const outerDiv = container.querySelector("div.flex.h-screen.w-full");

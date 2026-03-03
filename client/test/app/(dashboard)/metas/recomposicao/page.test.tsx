@@ -22,7 +22,7 @@ vi.mock("@/utils/transform", () => ({
       Object.entries(filters).map(([key, value]) => [
         key,
         Array.isArray(value) && value.length > 0 ? value.join(",") : "",
-      ])
+      ]),
     );
   }),
 }));
@@ -75,7 +75,7 @@ describe("Goals Page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
-    vi.setSystemTime(dayjs("2025-05-26").format("DD/MM/YYYY"));
+    vi.setSystemTime(new Date("2025-05-26"));
 
     vi.mocked(cookiesModule.cookies).mockResolvedValue(mockCookieStore as any);
 
@@ -108,7 +108,7 @@ describe("Goals Page", () => {
         btzero: false,
         rda: false,
       },
-      mockToken
+      mockToken,
     );
   });
 
@@ -127,7 +127,7 @@ describe("Goals Page", () => {
         btzero: false,
         rda: false,
       },
-      mockToken
+      mockToken,
     );
   });
 
@@ -149,10 +149,10 @@ describe("Goals Page", () => {
     expect(mainGoals).toBeInTheDocument();
 
     expect(JSON.parse(mainGoals.getAttribute("data-data") || "[]")).toEqual(
-      mockData
+      mockData,
     );
     expect(JSON.parse(mainGoals.getAttribute("data-filters") || "{}")).toEqual(
-      mockFilters
+      mockFilters,
     );
     expect(mainGoals.getAttribute("data-token")).toBe(mockToken);
 
@@ -179,7 +179,7 @@ describe("Goals Page", () => {
     };
 
     expect(JSON.parse(mainGoals.getAttribute("data-columns") || "{}")).toEqual(
-      expectedColumns
+      expectedColumns,
     );
   });
 

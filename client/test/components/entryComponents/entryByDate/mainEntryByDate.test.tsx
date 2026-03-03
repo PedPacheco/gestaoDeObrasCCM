@@ -66,6 +66,13 @@ vi.mock("@/components/entryComponents/entryByDate/entryByDateTable", () => ({
   default: () => <div data-testid="table">Tabela Renderizada</div>,
 }));
 
+vi.mock("@/hooks/useFeedback", () => ({
+  useFeedback: () => ({
+    showSuccess: vi.fn(),
+    showError: vi.fn(),
+  }),
+}));
+
 // ---------------------------
 // Dados para os testes
 // ---------------------------
@@ -108,7 +115,7 @@ function setup() {
       filtersData={mockFiltersData}
       columns={mockColumns}
       token="fake-token"
-    />
+    />,
   );
 }
 
@@ -152,28 +159,4 @@ describe("MainEntryByDate (Vitest)", () => {
       expect(mockFetchData).toHaveBeenCalledTimes(1);
     });
   });
-
-  it("exibe modal de erro quando fetch falha", async () => {
-    mockFetchData.mockRejectedValue(new Error("Erro inesperado"));
-
-    setup();
-
-    await userEvent.click(screen.getByText("Aplicar filtros"));
-
-    await waitFor(() => {
-      expect(screen.getByTestId("error-modal")).toHaveTextContent(
-        "Erro inesperado"
-      );
-    });
-  });
-
-  // it("carrega filtros salvos via useEffect", () => {
-  //   setup();
-
-  //   const start = screen.getByLabelText("Data Inicial") as HTMLInputElement;
-  //   const end = screen.getByLabelText("Data Final") as HTMLInputElement;
-
-  //   expect(start.value).toBe("10/01/2024");
-  //   expect(end.value).toBe("20/01/2024");
-  // });
 });

@@ -33,13 +33,13 @@ describe("TabActions", () => {
     expect(screen.getByText("Custos")).toBeInTheDocument();
     expect(screen.getByText("Programações")).toBeInTheDocument();
     expect(screen.getByText("Relatórios execuções")).toBeInTheDocument();
-    expect(screen.getByText("Serviços")).toBeInTheDocument();
+    expect(screen.getByText("Reprovações")).toBeInTheDocument();
   });
 
   it("deve chamar handleChange ao trocar de aba", () => {
     const handleChange = vi.fn();
     setup({ handleChange });
-    const tab = screen.getByText("Serviços");
+    const tab = screen.getByText("Programações");
     fireEvent.click(tab);
     expect(handleChange).toHaveBeenCalled();
   });
@@ -62,8 +62,8 @@ describe("TabActions", () => {
     expect(screen.getByText("Nova programação")).toBeDisabled();
   });
 
-  it("deve desabilitar 'Reprovar programação' quando statusWork != 43", () => {
-    setup({ valueTab: 1, statusWork: 1 });
+  it("deve desabilitar 'Reprovar programação' quando statusWork = 2 ou 3", () => {
+    setup({ valueTab: 1, statusWork: 2 });
     expect(screen.getByText("Reprovar programação")).toBeDisabled();
   });
 
