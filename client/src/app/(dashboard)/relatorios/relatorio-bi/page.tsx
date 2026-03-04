@@ -8,8 +8,8 @@ export default async function BiReports() {
   const exportOptions = [
     {
       name: "Capex DSPT",
-      path: "obras-multas",
-      visible: false,
+      path: "https://app.powerbi.com/groups/me/apps/2a7a60bb-a7cd-4376-b59a-662f2e8c478b/reports/05471fc0-7c31-43e1-9afe-2562ee498d81/ReportSection7623530240a29221ca51?experience=power-bi",
+      visible: true,
     },
     {
       name: "Blitz de Segurança",
@@ -26,11 +26,11 @@ export default async function BiReports() {
       path: "https://app.powerbi.com/groups/me/apps/cf6dceda-2355-4078-9a15-d1fd15fc4688/reports/decbfee6-e20b-4fca-bc6d-a0585270e1cb/ReportSection?ctid=bf86fbdb-f8c2-440e-923c-05a60dc2bc9b&experience=power-bi",
       visible: true,
     },
-    {
-      name: "Gerenciamento SMC",
-      path: "",
-      visible: true,
-    },
+    // {
+    //   name: "Gerenciamento SMC",
+    //   path: "",
+    //   visible: true,
+    // },
   ];
 
   return (
