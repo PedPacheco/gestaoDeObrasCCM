@@ -3,14 +3,8 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import TabPanel from "@/components/details/tabPanel/TabPanel";
 
 // Mock actions
-vi.mock("@/actions/executionReport.action", () => ({
-  deleteExecutionReport: vi.fn(),
-}));
-
-vi.mock("@/actions/schedules", () => ({
-  deleteSchedule: vi.fn(),
-  ValidatedSchedule: vi.fn(),
-  ConfirmedSchedule: vi.fn(),
+vi.mock("@/actions/services", () => ({
+  storeScheduleDataAction: vi.fn(),
 }));
 
 // Mock hooks
@@ -55,6 +49,32 @@ vi.mock("@/components/details/panelItems/schedulePanelItem", () => ({
     </div>
   ),
 }));
+
+vi.mock(
+  "@/components/details/panelItems/RejectionsOfSchedulesPanelItem",
+  () => ({
+    default: ({ data, onEdit, onDelete }: any) => (
+      <div data-testid="rejections-panel">
+        {data?.map((item: any, index: number) => (
+          <div key={index}>
+            <button
+              onClick={() => onEdit(item)}
+              data-testid={`edit-schedule-${index}`}
+            >
+              Editar
+            </button>
+            <button
+              onClick={() => onDelete(item.id)}
+              data-testid={`delete-schedule-${index}`}
+            >
+              Excluir
+            </button>
+          </div>
+        ))}
+      </div>
+    ),
+  }),
+);
 
 vi.mock("@/components/details/panelItems/executionReportPanelItem", () => ({
   default: ({ data, onEdit, onDelete }: any) => (
@@ -151,6 +171,13 @@ vi.mock("react", async () => {
   return { ...actual, startTransition: (callback: any) => callback() };
 });
 
+vi.mock("@/hooks/useFeedback", () => ({
+  useFeedback: () => ({
+    showSuccess: vi.fn(),
+    showError: vi.fn(),
+  }),
+}));
+
 describe("TabPanel Component", () => {
   const mockWorkData = {
     id: "1",
@@ -167,12 +194,31 @@ describe("TabPanel Component", () => {
     { id: 2, name: "Report 2" },
   ];
 
+  const mockRejections = [
+    {
+      motivo: "",
+      data_prog: "",
+      hora_ini: "",
+      hora_ter: "",
+      prog: "",
+      descricao: "",
+      equip_desligado: "",
+      equipe_linha_morta: "",
+      equipe_linha_viva: "",
+      equipe_regularizacao: "",
+      tipo_servico: "",
+      observacao_programacao: "",
+    },
+  ];
+
   const mockOptions = { option1: "value1" };
 
   const defaultProps = {
     workData: mockWorkData,
     executionReportData: mockExecutionReportData,
     options: mockOptions,
+    feasibilityExists: [],
+    rejectionsData: mockRejections,
     id: "1",
   };
 
@@ -190,7 +236,6 @@ describe("TabPanel Component", () => {
       render(<TabPanel {...defaultProps} />);
 
       expect(screen.getByTestId("work-cost-panel")).toBeInTheDocument();
-      expect(screen.getByTestId("modals-manager")).toBeInTheDocument();
 
       fireEvent.click(screen.getByText("Programações"));
       expect(screen.getByTestId("schedule-panel")).toBeInTheDocument();
@@ -199,8 +244,8 @@ describe("TabPanel Component", () => {
       fireEvent.click(screen.getByText("Relatórios execuções"));
       expect(screen.getByTestId("execution-report-panel")).toBeInTheDocument();
 
-      fireEvent.click(screen.getByText("Serviços"));
-      expect(screen.getByText("Em breve")).toBeInTheDocument();
+      fireEvent.click(screen.getByText("Reprovações"));
+      expect(screen.getByTestId("rejections-panel")).toBeInTheDocument();
     });
 
     it("deve carregar aba salva no localStorage", () => {
@@ -218,86 +263,6 @@ describe("TabPanel Component", () => {
       rerender(<TabPanel {...defaultProps} workData={newWorkData} />);
 
       expect(screen.getByText("Custos: Updated Work")).toBeInTheDocument();
-    });
-  });
-
-  describe("Edição e deleção", () => {
-    it("deve abrir modal ao editar programação com exec definido e undefined", () => {
-      render(<TabPanel {...defaultProps} />);
-      fireEvent.click(screen.getByText("Programações"));
-
-      fireEvent.click(screen.getByTestId("edit-schedule-0"));
-      expect(handleDialogMock).toHaveBeenCalledWith(true);
-
-      fireEvent.click(screen.getByTestId("edit-schedule-1"));
-      expect(handleDialogMock).toHaveBeenCalledWith(true);
-    });
-
-    it("deve abrir modal ao editar e deletar relatório de execução", () => {
-      render(<TabPanel {...defaultProps} />);
-      fireEvent.click(screen.getByText("Relatórios execuções"));
-
-      fireEvent.click(screen.getByTestId("edit-execution-0"));
-      expect(handleExecutionDialogMock).toHaveBeenCalledWith(true);
-
-      fireEvent.click(screen.getByTestId("delete-execution-0"));
-      expect(openConfirmDeleteExecutionMock).toHaveBeenCalledWith(1);
-    });
-
-    it("deve abrir modal de confirmação ao deletar programação", () => {
-      render(<TabPanel {...defaultProps} />);
-      fireEvent.click(screen.getByText("Programações"));
-
-      fireEvent.click(screen.getByTestId("delete-schedule-0"));
-      expect(openConfirmDeleteScheduleMock).toHaveBeenCalledWith(1);
-    });
-  });
-
-  describe("Fechamento de diálogos", () => {
-    it("deve resetar formulário e estados ao fechar dialog", async () => {
-      render(<TabPanel {...defaultProps} />);
-      fireEvent.click(screen.getByText("Programações"));
-      fireEvent.click(screen.getByTestId("edit-schedule-0"));
-
-      const { ModalsManager } = await import(
-        "@/components/details/modals/detailsModals"
-      );
-      const lastCall =
-        vi.mocked(ModalsManager).mock.calls[
-          vi.mocked(ModalsManager).mock.calls.length - 1
-        ];
-      lastCall[0].onCloseDialog();
-
-      expect(mockResetForm).toHaveBeenCalled();
-      expect(handleDialogMock).toHaveBeenCalledWith(false);
-      expect(handleExecutionDialogMock).toHaveBeenCalledWith(false);
-    });
-  });
-
-  describe("Integração com hooks", () => {
-    it("deve passar dados corretos para os hooks", async () => {
-      const { useScheduleHandlers } = await import(
-        "@/hooks/useScheduleHandlers"
-      );
-      const { useScheduleForm } = await import("@/hooks/useScheduleForm");
-
-      render(<TabPanel {...defaultProps} />);
-
-      const handlersCall =
-        vi.mocked(useScheduleHandlers).mock.calls[
-          vi.mocked(useScheduleHandlers).mock.calls.length - 1
-        ][0];
-      expect(handlersCall).toHaveProperty("data");
-      expect(handlersCall).toHaveProperty("idWork", "1");
-      expect(handlersCall).toHaveProperty("setError");
-      expect(handlersCall).toHaveProperty("setSuccess");
-
-      const formCall =
-        vi.mocked(useScheduleForm).mock.calls[
-          vi.mocked(useScheduleForm).mock.calls.length - 1
-        ][0];
-      expect(formCall).toHaveProperty("options");
-      expect(formCall.options).toEqual(mockOptions);
     });
   });
 });

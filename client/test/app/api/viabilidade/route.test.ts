@@ -1,104 +1,169 @@
+// app/api/viabilidade/upload/route.test.ts
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { POST } from "@/app/api/viabilidade/route";
 import { NextRequest } from "next/server";
 
-// ---- MOCK CORRETO DO next/headers ----
+// ─── Module Mocks ─────────────────────────────────────────────────────────────
+
+const mockCookieGet = vi.fn();
 vi.mock("next/headers", () => ({
-  cookies: vi.fn(),
+  cookies: vi.fn(() => ({ get: mockCookieGet })),
 }));
 
-import { cookies } from "next/headers";
+const mockFetch = vi.fn();
+vi.stubGlobal("fetch", mockFetch);
 
-describe("API Upload Route (POST)", () => {
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+// ✅ Solução: não usar NextRequest com FormData real — mockar formData() diretamente
+// para evitar o erro de Content-Type do undici no ambiente Node.js de testes
+function makeRequest(formData = new FormData()) {
+  const req = {
+    formData: vi.fn().mockResolvedValue(formData),
+  } as unknown as NextRequest;
+  return req;
+}
+
+function mockBackendOk() {
+  mockFetch.mockResolvedValueOnce({ ok: true, status: 201 });
+}
+
+function mockBackendError(status: number, body: object | string) {
+  const text = typeof body === "string" ? body : JSON.stringify(body);
+  mockFetch.mockResolvedValueOnce({
+    ok: false,
+    status,
+    text: vi.fn().mockResolvedValue(text),
+  });
+}
+
+// ─── Tests ────────────────────────────────────────────────────────────────────
+
+describe("POST /api/viabilidade/upload", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    global.fetch = vi.fn();
+    mockCookieGet.mockReturnValue({ value: "mock-token" });
+    process.env.NEXT_PUBLIC_API_URL = "http://backend.test";
   });
 
-  const mockFormData = () => {
-    const fd = new FormData();
-    fd.append("file", new Blob(["abc"]), "file.pdf");
-    return fd;
-  };
+  // ── Success ───────────────────────────────────────────────────────────────
 
-  const createRequest = () =>
-    new NextRequest("http://localhost/api/viabilidade/upload", {
-      method: "POST",
-      body: mockFormData(),
+  describe("success", () => {
+    it("returns 201 with success message", async () => {
+      mockBackendOk();
+      const { POST } = await import("@/app/api/viabilidade/route");
+
+      const res = await POST(makeRequest());
+      const body = await res.json();
+
+      expect(res.status).toBe(201);
+      expect(body).toEqual({ message: "Upload realizado com sucesso" });
     });
 
-  it("Deve realizar upload com sucesso", async () => {
-    // cookies() mockado
-    (cookies as any).mockReturnValue({
-      get: vi.fn().mockReturnValue({ value: "mock-token" }),
+    it("forwards Authorization header with token from cookie", async () => {
+      mockBackendOk();
+      const { POST } = await import("@/app/api/viabilidade/route");
+
+      await POST(makeRequest());
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        "http://backend.test/viabilidade/upload",
+        expect.objectContaining({
+          method: "POST",
+          headers: { Authorization: "Bearer mock-token" },
+        }),
+      );
     });
 
-    (global.fetch as any).mockResolvedValue({
-      ok: true,
-      status: 201,
-      json: () => Promise.resolve({}),
+    it("forwards formData as body to backend", async () => {
+      mockBackendOk();
+      const { POST } = await import("@/app/api/viabilidade/route");
+
+      const formData = new FormData();
+      formData.append("file", new Blob(["content"]), "file.xlsx");
+      await POST(makeRequest(formData));
+
+      const calledBody = mockFetch.mock.calls[0][1].body;
+      expect(calledBody).toBeInstanceOf(FormData);
     });
 
-    const req = createRequest();
-    const res = await POST(req);
-    const body = await res.json();
+    it("sends 'Bearer undefined' when token cookie is absent", async () => {
+      mockCookieGet.mockReturnValue(undefined);
+      mockBackendOk();
+      const { POST } = await import("@/app/api/viabilidade/route");
 
-    expect(global.fetch).toHaveBeenCalled();
-    expect(res.status).toBe(201);
-    expect(body.message).toBe("Upload realizado com sucesso");
+      await POST(makeRequest());
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: { Authorization: "Bearer undefined" },
+        }),
+      );
+    });
   });
 
-  it("Deve retornar erro quando o backend retornar erro", async () => {
-    (cookies as any).mockReturnValue({
-      get: vi.fn().mockReturnValue({ value: "mock-token" }),
+  // ── Backend errors ────────────────────────────────────────────────────────
+
+  describe("backend error responses", () => {
+    it("returns backend status and message when response is not ok", async () => {
+      mockBackendError(400, { message: "Arquivo inválido" });
+      const { POST } = await import("@/app/api/viabilidade/route");
+
+      const res = await POST(makeRequest());
+      const body = await res.json();
+
+      expect(res.status).toBe(400);
+      expect(body).toEqual({ message: "Arquivo inválido" });
     });
 
-    (global.fetch as any).mockResolvedValue({
-      ok: false,
-      status: 400,
-      text: () =>
-        Promise.resolve(JSON.stringify({ message: "Arquivo inválido" })),
+    it("returns fallback message when error body has no message field", async () => {
+      mockBackendError(422, {});
+      const { POST } = await import("@/app/api/viabilidade/route");
+
+      const res = await POST(makeRequest());
+      const body = await res.json();
+
+      expect(res.status).toBe(422);
+      expect(body).toEqual({ message: "Erro ao fazer upload" });
     });
 
-    const req = createRequest();
-    const res = await POST(req);
-    const body = await res.json();
+    it("preserves backend status code (e.g. 413)", async () => {
+      mockBackendError(413, { message: "Arquivo muito grande" });
+      const { POST } = await import("@/app/api/viabilidade/route");
 
-    expect(res.status).toBe(400);
-    expect(body.message).toBe("Arquivo inválido");
+      const res = await POST(makeRequest());
+
+      expect(res.status).toBe(413);
+    });
   });
 
-  it("Deve retornar erro genérico quando o backend retornar erro sem mensagem explicando o erro", async () => {
-    (cookies as any).mockReturnValue({
-      get: vi.fn().mockReturnValue({ value: "mock-token" }),
+  // ── Internal error (catch) ────────────────────────────────────────────────
+
+  describe("internal error", () => {
+    it("returns 500 when fetch throws", async () => {
+      mockFetch.mockRejectedValueOnce(new Error("Network failure"));
+      const { POST } = await import("@/app/api/viabilidade/route");
+
+      const res = await POST(makeRequest());
+      const body = await res.json();
+
+      expect(res.status).toBe(500);
+      expect(body).toEqual({ message: "Erro interno ao processar upload" });
     });
 
-    (global.fetch as any).mockResolvedValue({
-      ok: false,
-      status: 400,
-      text: () => Promise.resolve(JSON.stringify({})), // <= sem message
+    it("returns 500 when JSON.parse throws on malformed error body", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        text: vi.fn().mockResolvedValue("not-json"),
+      });
+      const { POST } = await import("@/app/api/viabilidade/route");
+
+      const res = await POST(makeRequest());
+      const body = await res.json();
+
+      expect(res.status).toBe(500);
+      expect(body).toEqual({ message: "Erro interno ao processar upload" });
     });
-
-    const req = createRequest();
-    const res = await POST(req);
-    const body = await res.json();
-
-    expect(res.status).toBe(400);
-    expect(body.message).toBe("Erro ao fazer upload");
-  });
-
-  it("Deve retornar erro interno em caso de exceção", async () => {
-    (cookies as any).mockReturnValue({
-      get: vi.fn().mockReturnValue({ value: "mock-token" }),
-    });
-
-    (global.fetch as any).mockRejectedValue(new Error("Erro inesperado"));
-
-    const req = createRequest();
-    const res = await POST(req);
-    const body = await res.json();
-
-    expect(res.status).toBe(500);
-    expect(body.message).toBe("Erro interno ao processar upload");
   });
 });

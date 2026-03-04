@@ -1,4 +1,4 @@
-import { EquipmentList } from "@/components/details/modals/executionReportDialog/equipmentList";
+import { EquipmentList } from "@/components/executionReport/equipmentList";
 import { render, screen, fireEvent } from "@testing-library/react";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -43,7 +43,7 @@ describe("Componente EquipmentList", () => {
     expect(screen.getByLabelText("Potência")).toBeInTheDocument();
     expect(screen.getByLabelText("Patrimônio")).toBeInTheDocument();
     expect(
-      screen.getByText("Remover equipamento aplicado")
+      screen.getByText("Remover equipamento aplicado"),
     ).toBeInTheDocument();
   });
 
@@ -71,7 +71,6 @@ describe("Componente EquipmentList", () => {
       0,
       "equipment",
       "Religador",
-      "TEST"
     );
   });
 
@@ -86,7 +85,6 @@ describe("Componente EquipmentList", () => {
       0,
       "installation",
       "123",
-      "TEST"
     );
   });
 
@@ -102,7 +100,6 @@ describe("Componente EquipmentList", () => {
       0,
       "power",
       "5",
-      "TEST"
     );
   });
 
@@ -117,7 +114,6 @@ describe("Componente EquipmentList", () => {
       0,
       "patrimony",
       "123",
-      "TEST"
     );
   });
 
@@ -127,9 +123,8 @@ describe("Componente EquipmentList", () => {
 
     expect(mockHandlers.onAddEquipment).toHaveBeenCalledWith(
       "appliedEquipment",
-      "TEST",
       "CS",
-      0
+      0,
     );
   });
 
@@ -139,7 +134,6 @@ describe("Componente EquipmentList", () => {
     expect(mockHandlers.onRemoveEquipment).toHaveBeenCalledWith(
       "appliedEquipment",
       0,
-      "TEST"
     );
   });
 
@@ -156,14 +150,14 @@ describe("Componente EquipmentList", () => {
         {...baseProps}
         items={[baseEquipment]}
         formErrors={formErrors}
-      />
+      />,
     );
 
     expect(screen.getByText("Campo obrigatório")).toBeInTheDocument();
     expect(screen.getByText("Selecione uma potência")).toBeInTheDocument();
     expect(screen.getByText("Informe o patrimônio")).toBeInTheDocument();
     expect(
-      screen.getByText("Número de instalação inválido")
+      screen.getByText("Número de instalação inválido"),
     ).toBeInTheDocument();
   });
 
@@ -198,7 +192,7 @@ describe("Componente EquipmentList", () => {
         items={[mockEquipment]}
         onEquipmentChange={mockOnEquipmentChange}
         fieldKey="appliedEquipment"
-      />
+      />,
     );
 
     const input = screen.getByLabelText("Número CS (ID)");
@@ -212,7 +206,6 @@ describe("Componente EquipmentList", () => {
       0,
       "equipment",
       "CS123999",
-      "TEST"
     );
   });
 });

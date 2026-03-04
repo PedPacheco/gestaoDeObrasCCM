@@ -101,7 +101,7 @@ export default function FailureModalComponent({
         <div className="mb-4 w-4/5">
           <TextField
             fullWidth
-            label="Motivo"
+            label="Descrição"
             value={description || ""}
             onChange={(event) => setDescription(event.target.value)}
             autoComplete="off"

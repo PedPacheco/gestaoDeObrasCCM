@@ -3,15 +3,17 @@ import { beforeEach, describe, expect, it, vi, Mock } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 import ExportPage from "@/app/(dashboard)/exportacoes/page";
+import WrapperExportButton from "@/components/exports/wrapperExportButton";
 
 vi.mock("@/components/exports/wrapperExportButton", () => ({
   __esModule: true,
-  default: vi.fn(({ text, path, token }) => (
+  default: vi.fn(({ text, path, token, visible }) => (
     <div
       data-testid="export-button"
       data-text={text}
       data-path={path}
       data-token={token}
+      data-visible={visible}
     >
       Export Button
     </div>
@@ -23,33 +25,37 @@ vi.mock("next/headers", () => ({
 }));
 
 describe("ExportPage", () => {
-  const mockToken = "mock-token";
-
-  const mockCookieStore = {
-    get: vi.fn((name) => {
-      if (name === "token") return { value: mockToken };
-      return undefined;
-    }),
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // cookies() agora pode ser mockado diretamente
     (cookiesModule.cookies as Mock).mockImplementation(() => ({
-      get: vi.fn().mockReturnValue({ value: "123" }),
+      get: vi.fn((name: string) => {
+        if (name === "token") return { value: "mock-token" };
+        return undefined;
+      }),
       set: vi.fn(),
       delete: vi.fn(),
     }));
   });
 
-  it("renderiza apenas os botões com visible=true", async () => {
+  it("passa corretamente todas as props para WrapperExportButton", async () => {
     const page = await ExportPage();
     render(page);
 
-    const buttons = screen.getAllByTestId("export-button");
+    expect(WrapperExportButton).toHaveBeenCalledTimes(10);
 
-    // sua página tem 5 botões visíveis
-    expect(buttons).toHaveLength(10);
+    const calls = (WrapperExportButton as any).mock.calls;
+
+    expect(calls[0][0]).toMatchObject({
+      text: "EXPORTAÇÃO DADOS OBRAS",
+      path: "obras-carteira-bi",
+      token: "mock-token",
+      visible: true,
+    });
+
+    expect(calls[3][0]).toMatchObject({
+      text: "Exportar obras a serem multadas",
+      visible: false,
+    });
   });
 });

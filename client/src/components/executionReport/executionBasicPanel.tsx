@@ -8,21 +8,13 @@ interface ExecutionBasicPanelProps {
   handleExecutionReportChange: (
     field: keyof ExecutionReportData,
   ) => (event: any) => void;
-  // wasTheWorkCompleted: number;
 }
 
 export const ExecutionBasicPanel: React.FC<ExecutionBasicPanelProps> = ({
   formData,
   formErrors,
   handleExecutionReportChange,
-  // wasTheWorkCompleted,
 }) => {
-  // useEffect(() => {
-  //   if (wasTheWorkCompleted === 100) {
-  //     handleExecutionReportChange("partialConnectionReleased")(true);
-  //   }
-  // }, [wasTheWorkCompleted, handleExecutionReportChange, prefix]);
-
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} sm={6}>

@@ -7,17 +7,12 @@ import { useState } from "react";
 
 import { exportExcel } from "@/actions/generateExcel.action";
 import { mountUrl } from "@/utils/mountUrl";
-import {
-  ArrowDownTrayIcon,
-  ExclamationCircleIcon,
-  XMarkIcon,
-} from "@heroicons/react/20/solid";
+import { ArrowDownTrayIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { Box, IconButton, Modal, Typography } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 import { ButtonComponent } from "../common/Button";
-import ErrorModal from "../common/ErrorModal";
 import { useUser } from "@/contexts/userContext";
 import { useFeedback } from "@/hooks/useFeedback";
 

@@ -1,18 +1,21 @@
-import { AdditionalExecutionInfoPanel } from "@/components/details/modals/executionReportDialog/additionalExecutionInfoPanel";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { mockFormData } from "../../../../mocks/mockFormData";
+import {
+  mockExecutionReport,
+  mockExecutionReportMinimal,
+} from "../../mocks/mockFormData";
 import { FormData } from "@/hooks/useScheduleForm";
+import { AdditionalExecutionInfoPanel } from "@/components/executionReport/additionalExecutionInfoPanel";
 
 const renderComponent = (formErrors: Record<string, string> = {}) => {
   const onInputChange = vi.fn(() => vi.fn());
 
   render(
     <AdditionalExecutionInfoPanel
-      formData={mockFormData}
+      formData={mockExecutionReport}
       formErrors={formErrors}
-      onInputChange={onInputChange}
-    />
+      handleExecutionReportChange={onInputChange}
+    />,
   );
 
   return {
@@ -39,20 +42,13 @@ describe("AdditionalExecutionInfoPanel Component", () => {
     render(
       <AdditionalExecutionInfoPanel
         formErrors={{}}
-        onInputChange={vi.fn()}
-        formData={{
-          ...mockFormData,
-          executionReport: {
-            ...mockFormData.executionReport,
-            provisionalKeyReference: undefined,
-            provisionalKeyWithdrawn: undefined,
-          } as unknown as NonNullable<FormData["executionReport"]>,
-        }}
-      />
+        handleExecutionReportChange={vi.fn()}
+        formData={mockExecutionReportMinimal}
+      />,
     );
 
     const provisionalKeyReferenceInput = screen.getAllByLabelText(
-      "Referência da Chave Provisória - Exemplo: 175ET00554845"
+      "Referência da Chave Provisória - Exemplo: 175ET00554845",
     ) as HTMLInputElement[];
 
     provisionalKeyReferenceInput.map((item) => {
@@ -64,15 +60,9 @@ describe("AdditionalExecutionInfoPanel Component", () => {
     render(
       <AdditionalExecutionInfoPanel
         formErrors={{}}
-        onInputChange={vi.fn()}
-        formData={{
-          ...mockFormData,
-          executionReport: {
-            ...mockFormData.executionReport,
-            provisionalKeyWithdrawn: false,
-          } as NonNullable<FormData["executionReport"]>,
-        }}
-      />
+        handleExecutionReportChange={vi.fn()}
+        formData={mockExecutionReport}
+      />,
     );
 
     const radioNo = screen.getByLabelText("Não") as HTMLInputElement;
@@ -89,24 +79,16 @@ describe("AdditionalExecutionInfoPanel Component", () => {
     render(
       <AdditionalExecutionInfoPanel
         formErrors={{}}
-        onInputChange={onInputChange}
-        formData={{
-          ...mockFormData,
-          executionReport: {
-            ...mockFormData.executionReport,
-            provisionalKeyWithdrawn: false,
-          } as NonNullable<FormData["executionReport"]>,
-        }}
-      />
+        handleExecutionReportChange={onInputChange}
+        formData={mockExecutionReport}
+      />,
     );
 
     const radioYes = screen.getByLabelText("Sim");
     fireEvent.click(radioYes);
 
     // A função externa
-    expect(onInputChange).toHaveBeenCalledWith(
-      "executionReport.provisionalKeyWithdrawn"
-    );
+    expect(onInputChange).toHaveBeenCalledWith("provisionalKeyWithdrawn");
 
     expect(innerFn).toHaveBeenCalledWith({
       target: { type: "radio", value: true },
@@ -121,9 +103,9 @@ describe("AdditionalExecutionInfoPanel Component", () => {
     render(
       <AdditionalExecutionInfoPanel
         formErrors={{ provisionalKeyWithdrawn: "Campo obrigatório" }}
-        onInputChange={vi.fn()}
-        formData={mockFormData}
-      />
+        handleExecutionReportChange={vi.fn()}
+        formData={mockExecutionReport}
+      />,
     );
 
     expect(screen.getByText("Campo obrigatório")).toBeInTheDocument();

@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -25,19 +25,19 @@ export async function POST(request: NextRequest) {
       const errorData = JSON.parse(text);
       return NextResponse.json(
         { message: errorData.message || "Erro ao fazer upload" },
-        { status: response.status }
+        { status: response.status },
       );
     }
 
     return NextResponse.json(
       { message: "Upload realizado com sucesso" },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Erro no upload:", error);
     return NextResponse.json(
       { message: "Erro interno ao processar upload" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

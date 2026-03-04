@@ -65,9 +65,6 @@ export const ExecutionEquipmentPanel: React.FC<
                 <Checkbox
                   checked={formData[stateKey] === true}
                   onChange={() =>
-                    // onInputChange(`${prefix}${stateKey}`)({
-                    //   target: { value: true },
-                    // })
                     handleExecutionReportChange(stateKey)({
                       target: { value: true },
                     })

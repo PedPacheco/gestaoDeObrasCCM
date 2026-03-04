@@ -58,6 +58,13 @@ vi.mock("@/utils/formatValue", () => ({
   FormatCurrency: vi.fn((value) => `R$ ${value}`),
 }));
 
+vi.mock("@/hooks/useFeedback", () => ({
+  useFeedback: () => ({
+    showSuccess: vi.fn(),
+    showError: vi.fn(),
+  }),
+}));
+
 describe("Details Page", () => {
   const mockId = "123";
   const mockCookieStore = {
@@ -107,7 +114,6 @@ describe("Details Page", () => {
       success: true,
       token: "mock-token",
       data: mockData,
-      success: true,
     });
 
     vi.mocked(fetchFilters).mockResolvedValue({
@@ -127,7 +133,7 @@ describe("Details Page", () => {
       "https://api.example.com/obras/123",
       undefined,
       "mock-token",
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
     expect(fetchData).toBeCalledTimes(4);
     expect(fetchFilters).toHaveBeenCalledWith({
@@ -151,14 +157,13 @@ describe("Details Page", () => {
       success: true,
       token: "mock-token",
       data: modifiedData,
-      success: true,
     });
 
     render(await Details({ params: Promise.resolve({ id: mockId }) }));
 
     const details = screen.getByTestId("work-details");
     expect(details.getAttribute("data-background")).toBe(
-      "bg-green-600 text-zinc-100"
+      "bg-green-600 text-zinc-100",
     );
   });
 
@@ -173,14 +178,13 @@ describe("Details Page", () => {
       success: true,
       token: "mock-token",
       data: modifiedData,
-      success: true,
     });
 
     render(await Details({ params: Promise.resolve({ id: mockId }) }));
 
     const details = screen.getByTestId("work-details");
     expect(details.getAttribute("data-background")).toBe(
-      "bg-red-600 text-zinc-100"
+      "bg-red-600 text-zinc-100",
     );
   });
 
@@ -191,7 +195,6 @@ describe("Details Page", () => {
       success: true,
       token: "mock-token",
       data: modifiedData,
-      success: true,
     });
 
     render(await Details({ params: Promise.resolve({ id: mockId }) }));

@@ -9,7 +9,6 @@ import {
   executionReportSchema,
   validationExecutionService,
 } from "@/validations/validationExecutionServices";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import {
   Box,
   Dialog,
@@ -163,6 +162,8 @@ export function ExecutionReportDialog({
 
               if (!result.success) {
                 const fieldErrors: Record<string, string> = {};
+
+                console.log(result);
                 result.error.issues.forEach((err: any) => {
                   const field = err.path.join(".");
                   fieldErrors[field] = err.message;

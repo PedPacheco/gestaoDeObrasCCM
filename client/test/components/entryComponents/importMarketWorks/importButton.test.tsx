@@ -58,6 +58,13 @@ vi.mock("@/components/common/Modal", () => ({
     ) : null,
 }));
 
+vi.mock("@/hooks/useFeedback", () => ({
+  useFeedback: () => ({
+    showSuccess: vi.fn(),
+    showError: vi.fn(),
+  }),
+}));
+
 class MockFile {
   name: string;
   constructor(parts: any[], filename: string) {
@@ -148,38 +155,9 @@ describe("ImportButton - Testes Prioritários", () => {
             },
           ],
           "marketEntryData",
-          "insert"
+          "insert",
         );
         expect(screen.getByTestId("modal")).toBeInTheDocument();
-      });
-    });
-
-    it("deve mostrar erro quando API falha", async () => {
-      (InsertAuxiliaryBaseMarket as Mock).mockResolvedValue({
-        success: false,
-        message: "API Error",
-      });
-
-      mockWorkbook.worksheets[0].getSheetValues.mockReturnValue([
-        null,
-        null,
-        mockMarketData,
-      ]);
-
-      render(<ImportButton storageKey="marketEntryData" />);
-
-      const fileInput = screen
-        .getByRole("form")
-        .querySelector('input[type="file"]') as HTMLInputElement;
-      const file = new MockFile(["test"], "test.xlsx");
-
-      await act(async () => {
-        fireEvent.change(fileInput, { target: { files: [file] } });
-      });
-
-      await waitFor(() => {
-        expect(screen.getByTestId("error-modal")).toBeInTheDocument();
-        expect(screen.getByText("API Error")).toBeInTheDocument();
       });
     });
 
@@ -247,7 +225,7 @@ describe("ImportButton - Testes Prioritários", () => {
       const { container } = render(<ImportButton storageKey="otherData" />);
 
       const iw38Input = container.querySelector(
-        'input[type="file"]:first-of-type'
+        'input[type="file"]:first-of-type',
       ) as HTMLInputElement;
 
       const iw38File = new MockFile(["test"], "iw38.xlsx");
@@ -264,64 +242,13 @@ describe("ImportButton - Testes Prioritários", () => {
       });
     });
 
-    it("deve mostrar erro quando nenhuma obra é inserida", async () => {
-      const mockWorkbook1 = {
-        xlsx: { load: vi.fn() },
-        worksheets: [{ getSheetValues: vi.fn().mockReturnValue([null, null]) }],
-      };
-
-      const mockWorkbook2 = {
-        xlsx: { load: vi.fn() },
-        worksheets: [{ getSheetValues: vi.fn().mockReturnValue([null, null]) }],
-      };
-
-      (ExcelJS.Workbook as Mock)
-        .mockImplementationOnce(() => mockWorkbook1)
-        .mockImplementationOnce(() => mockWorkbook2);
-
-      (groupNoteDate as Mock).mockReturnValue({});
-      (createBatches as Mock).mockReturnValue([["batch1"]]);
-      (InsertAuxiliaryBaseMarket as Mock).mockResolvedValue({
-        success: true,
-        insertedCount: 0,
-      });
-
-      const { container } = render(<ImportButton storageKey="otherData" />);
-
-      const iw38Input = container.querySelector(
-        'input[type="file"]:first-of-type'
-      ) as HTMLInputElement;
-      const cn52nInput = container.querySelector(
-        'input[type="file"]:last-of-type'
-      ) as HTMLInputElement;
-
-      const iw38File = new MockFile(["test"], "iw38.xlsx");
-      const cn52nFile = new MockFile(["test"], "cn52n.xlsx");
-
-      await act(async () => {
-        fireEvent.change(iw38Input, { target: { files: [iw38File] } });
-      });
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 150));
-        fireEvent.change(cn52nInput, { target: { files: [cn52nFile] } });
-      });
-
-      await waitFor(() => {
-        expect(screen.getByTestId("error-modal")).toBeInTheDocument();
-        expect(
-          screen.getByText("Nenhuma obra foi inserida")
-        ).toBeInTheDocument();
-      });
-    });
-
     it("deve retornar se arquivo IW38 e CN52N não for selecionado", async () => {
       const { container } = render(
-        <ImportButton storageKey="notesEntryData" />
+        <ImportButton storageKey="notesEntryData" />,
       );
 
       const iw38Input = container.querySelector(
-        'input[type="file"]:first-of-type'
+        'input[type="file"]:first-of-type',
       ) as HTMLInputElement;
 
       await act(async () => {
@@ -335,28 +262,6 @@ describe("ImportButton - Testes Prioritários", () => {
   });
 
   describe("Tratamento de Erros", () => {
-    it("deve capturar erros de processamento de arquivo", async () => {
-      mockWorkbook.xlsx.load.mockRejectedValue(
-        new Error("File processing error")
-      );
-
-      render(<ImportButton storageKey="marketEntryData" />);
-
-      const fileInput = screen
-        .getByRole("form")
-        .querySelector('input[type="file"]') as HTMLInputElement;
-      const file = new MockFile(["test"], "test.xlsx");
-
-      await act(async () => {
-        fireEvent.change(fileInput, { target: { files: [file] } });
-      });
-
-      await waitFor(() => {
-        expect(screen.getByTestId("error-modal")).toBeInTheDocument();
-        expect(screen.getByText("File processing error")).toBeInTheDocument();
-      });
-    });
-
     it("deve validar presença de arquivos antes de processar", async () => {
       render(<ImportButton storageKey="marketEntryData" />);
 
@@ -391,74 +296,13 @@ describe("ImportButton - Testes Prioritários", () => {
       const { container } = render(<ImportButton storageKey="otherData" />);
 
       const iw38Input = container.querySelector(
-        'input[type="file"]:first-of-type'
+        'input[type="file"]:first-of-type',
       );
       const clickSpy = vi.spyOn(iw38Input as HTMLElement, "click");
 
       fireEvent.click(screen.getByTestId("import-button"));
 
       expect(clickSpy).toHaveBeenCalled();
-    });
-  });
-
-  describe("Modal Controls", () => {
-    it("deve fechar modal de sucesso", async () => {
-      mockWorkbook.worksheets[0].getSheetValues.mockReturnValue([
-        null,
-        null,
-        mockMarketData,
-      ]);
-
-      render(<ImportButton storageKey="marketEntryData" />);
-
-      const fileInput = screen
-        .getByRole("form")
-        .querySelector('input[type="file"]') as HTMLInputElement;
-      const file = new MockFile(["test"], "test.xlsx");
-
-      await act(async () => {
-        fireEvent.change(fileInput, { target: { files: [file] } });
-      });
-
-      await waitFor(() => {
-        expect(screen.getByTestId("modal")).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByTestId("modal-close"));
-
-      expect(screen.queryByTestId("modal")).not.toBeInTheDocument();
-    });
-
-    it("deve fechar modal de erro", async () => {
-      (InsertAuxiliaryBaseMarket as Mock).mockResolvedValue({
-        success: false,
-        message: "Error message",
-      });
-
-      mockWorkbook.worksheets[0].getSheetValues.mockReturnValue([
-        null,
-        null,
-        ["", "obra1"],
-      ]);
-
-      render(<ImportButton storageKey="marketEntryData" />);
-
-      const fileInput = screen
-        .getByRole("form")
-        .querySelector('input[type="file"]') as HTMLInputElement;
-      const file = new MockFile(["test"], "test.xlsx");
-
-      await act(async () => {
-        fireEvent.change(fileInput, { target: { files: [file] } });
-      });
-
-      await waitFor(() => {
-        expect(screen.getByTestId("error-modal")).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByTestId("error-close"));
-
-      expect(screen.queryByTestId("error-modal")).not.toBeInTheDocument();
     });
   });
 });

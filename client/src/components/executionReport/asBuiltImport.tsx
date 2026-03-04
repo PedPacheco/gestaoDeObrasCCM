@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, DragEvent, SetStateAction, Dispatch } from "react";
-import ErrorModal from "@/components/common/ErrorModal";
 import {
-  ExclamationCircleIcon,
   DocumentArrowUpIcon,
   XMarkIcon,
   PhotoIcon,

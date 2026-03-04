@@ -2,18 +2,19 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 
-import { useScheduleHandlers } from "@/hooks/useScheduleHandlers";
-import { useUser } from "@/contexts/userContext";
-import TabActions from "./tabsActions";
-import WorkCostPanelItem from "../panelItems/workCostPanelItem";
-import SchedulePanelItem from "../panelItems/schedulePanelItem";
-import ExecutionReportPanelItem from "../panelItems/executionReportPanelItem";
-import RejectionsOfSchedulesPanelItem from "../panelItems/rejectionsOfSchedulesPanelItem";
 import { storeScheduleDataAction } from "@/actions/services";
 import ModalsManager, {
   ModalsManagerRef,
 } from "@/components/services/modalsManager";
+import { useUser } from "@/contexts/userContext";
 import { useExecutionServiceForm } from "@/hooks/useExecutionServicesForm";
+import { useScheduleHandlers } from "@/hooks/useScheduleHandlers";
+
+import ExecutionReportPanelItem from "../panelItems/executionReportPanelItem";
+import RejectionsOfSchedulesPanelItem from "../panelItems/rejectionsOfSchedulesPanelItem";
+import SchedulePanelItem from "../panelItems/schedulePanelItem";
+import WorkCostPanelItem from "../panelItems/workCostPanelItem";
+import TabActions from "./tabsActions";
 
 interface CustomTabPanelProps {
   children?: React.ReactNode;

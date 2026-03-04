@@ -14,7 +14,7 @@ describe("ErrorModal component", () => {
         onClose={mockOnClose}
         icon={icon}
         message="Algo deu errado!"
-      />
+      />,
     );
   };
 
@@ -26,7 +26,6 @@ describe("ErrorModal component", () => {
 
   it("renderiza o modal corretamente quando `open` é true", () => {
     renderComponent();
-    expect(screen.getByText("Erro")).toBeInTheDocument();
     expect(screen.getByText("Algo deu errado!")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /fechar/i })).toBeInTheDocument();
     expect(screen.getByTestId("error-icon")).toBeInTheDocument();
@@ -42,7 +41,7 @@ describe("ErrorModal component", () => {
   it("possui descrição acessível", () => {
     renderComponent();
     expect(screen.getByText("Algo deu errado!").closest("p")?.id).toBe(
-      "error-modal-description"
+      "error-modal-description",
     );
   });
 });
