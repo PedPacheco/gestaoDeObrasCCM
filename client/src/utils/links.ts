@@ -1,132 +1,174 @@
+export type UserAccessLevel = "total" | "parcial" | "sem_permissao";
+
+export function getUserAccessLevel(permissions: any): UserAccessLevel {
+  if (permissions?.permissao === "Sem permissão") {
+    return "sem_permissao";
+  }
+
+  if (permissions?.permissao_visualizacao === "parcial") {
+    return "parcial";
+  }
+
+  return "total";
+}
+
 export const links = [
-  { name: "Tela inicial", href: "/", needPermission: false },
-  { name: "Exportações", href: "/exportacoes", needPermission: false },
+  {
+    name: "Tela inicial",
+    href: "/",
+    allowedFor: ["total", "parcial", "sem_permissao"],
+  },
+  {
+    name: "Relatórios",
+    href: null,
+    allowedFor: ["total", "sem_permissao"],
+    submenu: [
+      {
+        name: "Exportações",
+        href: "/relatorios/exportacoes",
+        allowedFor: ["total", "sem_permissao"],
+      },
+      {
+        name: "Relatório de erros",
+        href: "/relatorios/relatorio-erros",
+        allowedFor: ["total", "sem_permissao"],
+      },
+      {
+        name: "Relatório BI's",
+        href: "/relatorios/relatorio-bi",
+        allowedFor: ["total", "sem_permissao"],
+      },
+    ],
+  },
   {
     name: "Metas",
     href: null,
-    needPermission: true,
+    allowedFor: ["total", "sem_permissao"],
     submenu: [
       {
         name: "Metas Recomposição",
         href: "/metas/recomposicao",
-        needPermission: true,
+        allowedFor: ["total", "sem_permissao"],
       },
       {
         name: "Metas BT0",
         href: "/metas/btzero",
-        needPermission: true,
+        allowedFor: ["total", "sem_permissao"],
       },
       {
         name: "Metas RDA",
         href: "/metas/rda",
-        needPermission: true,
+        allowedFor: ["total", "sem_permissao"],
       },
     ],
   },
   {
     name: "Entrada",
     href: "/entrada",
-    needPermission: false,
+    allowedFor: ["total"],
     submenu: [
       {
         name: "Importação mercado",
         href: "/entrada/mercado",
-        needPermission: true,
+        allowedFor: ["total"],
       },
       {
         name: "Importação notas",
         href: "/entrada/notas",
-        needPermission: true,
+        allowedFor: ["total"],
       },
 
       {
         name: "Entrada por data",
         href: "/entrada/por-data",
-        needPermission: false,
+        allowedFor: ["total", "sem_permissao"],
       },
       {
         name: "Lista geral de obras",
         href: "/entrada/lista-geral-obras",
-        needPermission: false,
+        allowedFor: ["total", "sem_permissao"],
       },
     ],
   },
   {
     name: "Atualizações",
-    needPermission: true,
+    allowedFor: ["total"],
     submenu: [
-      { name: "Mercado", href: "/atualizacoes/mercado", needPermission: true },
-      { name: "Notas", href: "/atualizacoes/notas", needPermission: true },
+      {
+        name: "Mercado",
+        href: "/atualizacoes/mercado",
+        allowedFor: ["total"],
+      },
+      { name: "Notas", href: "/atualizacoes/notas", allowedFor: ["total"] },
       {
         name: "Material e Serviço",
         href: "/atualizacoes/capex",
-        needPermission: true,
+        allowedFor: ["total"],
       },
       {
         name: "Empreitamento",
         href: "/atualizacoes/empreitamento",
-        needPermission: true,
+        allowedFor: ["total"],
       },
       {
         name: "Suspensões",
         href: "/atualizacoes/suspensoes",
-        needPermission: true,
+        allowedFor: ["total"],
       },
     ],
   },
   {
     name: "Programação",
     href: null,
-    needPermission: false,
+    allowedFor: ["total", "parcial", "sem_permissao"],
     submenu: [
       {
         name: "Resumo mensal",
         href: "/programacao/resumo-mensal",
-        needPermission: true,
+        allowedFor: ["total", "parcial", "sem_permissao"],
       },
       {
         name: "Valores Mensais",
         href: "/programacao/valores-mensais",
-        needPermission: true,
+        allowedFor: ["total", "parcial", "sem_permissao"],
       },
       {
         name: "Programação por data",
         href: "/programacao/por-data",
-        needPermission: false,
+        allowedFor: ["total", "parcial", "sem_permissao"],
       },
     ],
   },
   {
     name: "Restrições",
     href: null,
-    needPermission: false,
+    allowedFor: ["total", "sem_permissao"],
     submenu: [
       {
         name: "Restrições Programações",
         href: "/restricoes/programacoes",
-        needPermission: false,
+        allowedFor: ["total", "sem_permissao"],
       },
       {
         name: "Restrições Publicações",
         href: "/restricoes/publicacoes",
-        needPermission: false,
+        allowedFor: ["total", "sem_permissao"],
       },
     ],
   },
-  { name: "Obras em carteira", href: "/obras-carteira", needPermission: false },
+  {
+    name: "Obras em carteira",
+    href: "/obras-carteira",
+    allowedFor: ["total", "parcial", "sem_permissao"],
+  },
   {
     name: "Obras executadas",
     href: "/obras-executadas",
-    needPermission: false,
+    allowedFor: ["total", "parcial", "sem_permissao"],
   },
   {
     name: "Capacidade de execução",
     href: "/capacidade-execucao",
-    needPermission: true,
-  },
-  {
-    name: "Relatório de erros",
-    href: "/relatorio-erros",
-    needPermission: true,
+    allowedFor: ["total", "sem_permissao"],
   },
 ];

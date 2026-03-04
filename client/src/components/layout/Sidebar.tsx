@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { useUser } from "@/contexts/userContext";
-import { links } from "@/utils/links";
+import { getUserAccessLevel, links } from "@/utils/links";
 import {
   ChevronDownIcon,
   ChevronUpIcon,
@@ -22,12 +22,13 @@ interface SidebarProps {
 export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
   const [work, setWork] = useState<string>("");
+  const [isClient, setIsClient] = useState<boolean>(false);
+
   const router = useRouter();
+
   const { permissions } = useUser();
 
   const sidebarRef = useRef<HTMLDivElement>(null);
-
-  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -54,6 +55,8 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
     event.stopPropagation();
     setOpenSubmenu(openSubmenu === menu ? null : menu);
   }
+
+  const accessLevel = getUserAccessLevel(permissions);
 
   return (
     <>
@@ -97,11 +100,7 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
               {links.map((link, index) => {
                 if (!isClient) return null;
 
-                if (
-                  link.needPermission &&
-                  (permissions?.permissao_visualizacao === "parcial" ||
-                    permissions?.permissao === "Sem permissão")
-                ) {
+                if (link.allowedFor && !link.allowedFor.includes(accessLevel)) {
                   return null;
                 }
 
@@ -153,10 +152,8 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
                       >
                         {link.submenu.map((subItem, subIndex) => {
                           if (
-                            subItem.needPermission &&
-                            (permissions?.permissao_visualizacao ===
-                              "parcial" ||
-                              permissions?.permissao === "Sem permissão")
+                            subItem.allowedFor &&
+                            !subItem.allowedFor.includes(accessLevel)
                           ) {
                             return null;
                           }
