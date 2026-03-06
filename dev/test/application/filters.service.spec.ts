@@ -1,7 +1,8 @@
+import { FiltersService } from 'src/application/services/filters.service';
+import { FILTERS_REPOSITORY } from 'src/domain/repositories/IFiltersRepository';
+
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Test } from '@nestjs/testing';
-import { FiltersService } from 'src/application/filters.service';
-import { FILTERS_REPOSITORY } from 'src/domain/repositories/IFiltersRepository';
 
 describe('FiltersService', () => {
   let cacheManager: Cache;

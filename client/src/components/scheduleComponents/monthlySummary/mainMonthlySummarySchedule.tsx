@@ -18,6 +18,7 @@ import { getButtonContent } from "@/utils/getButtonContent";
 import ErrorModal from "@/components/common/ErrorModal";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { capitalize } from "@/utils/formatValue";
+import { TableColumn } from "@/app/(dashboard)/programacao/resumo-mensal/page";
 
 export interface Filters {
   regional: { id: string; regional: string }[];
@@ -30,8 +31,8 @@ interface MainMonthlySummaryScheduleProps {
   dataFirstSummary: any;
   dataSecondSummary: any;
   filtersData: Filters;
-  columnsFirstSummary: Record<string, string>;
-  columnsSecondSummary: Record<string, string>;
+  columnsFirstSummary: TableColumn[];
+  columnsSecondSummary: TableColumn[];
   token: string;
 }
 
@@ -53,7 +54,7 @@ export function MainMonthlySummarySchedule({
   });
   const [error, setError] = useState<string | null>();
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
-    {}
+    {},
   );
   const [date, setDate] = useState<Dayjs>(dayjs());
   const [isPending, startTransition] = useTransition();
@@ -81,14 +82,14 @@ export function MainMonthlySummarySchedule({
             fetchData(
               `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal`,
               params,
-              token
+              token,
             ),
             fetchData(
               `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal-2`,
               params,
-              token
+              token,
             ),
-          ]
+          ],
         );
 
         setFilteredDataFirstSummary(responseFirstSummary.data);
@@ -116,14 +117,14 @@ export function MainMonthlySummarySchedule({
             fetchData(
               `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal`,
               params,
-              token
+              token,
             ),
             fetchData(
               `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal-2`,
               params,
-              token
+              token,
             ),
-          ]
+          ],
         );
 
         setFilteredDataFirstSummary(responseFirstSummary.data);
@@ -136,7 +137,7 @@ export function MainMonthlySummarySchedule({
 
   return (
     <>
-      <div className="my-6 w-full flex flex-col px-8">
+      <div className="my-6 w-full flex flex-col px-8 ">
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center">
           <div className={"mb-2 lg:mx-auto w-full lg:w-3/4"}>
             <LocalizationProvider
@@ -180,7 +181,7 @@ export function MainMonthlySummarySchedule({
           })}
         </div>
 
-        <div className=" flex flex-col md:flex-row justify-between items-center xl:justify-around">
+        <div className=" flex flex-col md:flex-row justify-between items-center xl:justify-around ">
           <ButtonComponent
             onClick={fetchSummary}
             text={getButtonContent(isPending, "Aplicar filtros")}
@@ -194,7 +195,7 @@ export function MainMonthlySummarySchedule({
         </div>
       </div>
 
-      <div className="w-full flex flex-col xl:flex-row px-4">
+      <div className="w-full flex flex-col xl:flex-row px-4 overflow-y-auto">
         <MonthlySummaryScheduleTable
           columns={columnsFirstSummary}
           data={filteredDataFirstSummary}

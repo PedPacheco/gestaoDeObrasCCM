@@ -16,9 +16,11 @@ interface FailureModalComponentProps {
   onClose: () => void;
   rejectedSchedule: {
     id: number;
+    reject: boolean;
   } | null;
   handleReject: (data: {
     id: number;
+    reject: boolean;
     reason: string;
     description: string;
   }) => void;
@@ -67,6 +69,7 @@ export default function FailureModalComponent({
 
     handleReject({
       id: rejectedSchedule.id,
+      reject: rejectedSchedule?.reject,
       reason: reason.trim(),
       description: description.trim(),
     });

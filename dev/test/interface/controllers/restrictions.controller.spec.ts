@@ -1,13 +1,15 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { RestrictionsService } from 'src/application/services/restrictions.service';
+import { UsersService } from 'src/application/services/users.service';
 import { RestrictionController } from 'src/interface/controllers/restrictions.controller';
-import { RestrictionsService } from 'src/application/restrictions.service';
+
+import { Test, TestingModule } from '@nestjs/testing';
+
 import {
   mockGetRestrictionsFilters,
   mockGetScheduleRestrictions,
   mockInsertPublicationRestrictions,
   mockUpdatePublicationRestrictions,
 } from '../../../test/mocks/mockRestrictions';
-import { UsersService } from 'src/application/users.service';
 
 describe('RestrictionController ', () => {
   let controller: RestrictionController;

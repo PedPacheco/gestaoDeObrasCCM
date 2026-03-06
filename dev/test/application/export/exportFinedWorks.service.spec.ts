@@ -2,7 +2,7 @@
 import * as ExcelJS from 'exceljs';
 import * as moment from 'moment';
 import { Response } from 'express';
-import { ExportFinedWorksService } from 'src/application/export/exportFinedWorks.service';
+import { ExportFinedWorksService } from 'src/application/services/export/exportFinedWorks.service';
 import { IExportRepository } from 'src/domain/repositories/IExportRepository';
 
 jest.mock('exceljs', () => {

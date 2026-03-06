@@ -1,8 +1,10 @@
+import { AuxiliaryMarketInsertService } from 'src/application/services/auxiliaryBase/auxiliaryBaseInsertMarket.service';
+import { FindExistingWorksService } from 'src/application/services/works/findExistingWorks.service';
+import { AUXILIARY_BASE_REPOSITORY } from 'src/domain/repositories/IAuxiliaryBaseRepository';
+
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuxiliaryMarketInsertService } from 'src/application/auxiliaryBase/auxiliaryBaseInsertMarket.service';
-import { FindExistingWorksService } from 'src/application/works/findExistingWorks.service';
-import { AUXILIARY_BASE_REPOSITORY } from 'src/domain/repositories/IAuxiliaryBaseRepository';
+
 import { mockInsertAuxiliaryBaseMarket } from '../../mocks/mocksAuxiliaryBaseController';
 
 describe('AuxiliaryMarketInsertService', () => {

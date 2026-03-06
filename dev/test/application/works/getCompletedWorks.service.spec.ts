@@ -1,10 +1,10 @@
 import { Cache } from 'cache-manager';
+import { GetCompletedWorksService } from 'src/application/services/works/getCompletedWorks.service';
+import { GET_COMPLETED_WORKS_REPOSITORY } from 'src/domain/repositories/works/IGetCompletedWorksRepository';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Test } from '@nestjs/testing';
-import { GET_COMPLETED_WORKS_REPOSITORY } from 'src/domain/repositories/works/IGetCompletedWorksRepository';
-import { GetCompletedWorksService } from 'src/application/works/getCompletedWorks.service';
 
 describe('GetCompletedWorksService', () => {
   let getCompletedWorksService: GetCompletedWorksService;

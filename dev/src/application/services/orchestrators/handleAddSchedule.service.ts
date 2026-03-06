@@ -2,11 +2,11 @@ import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/repositories/IStatusFlowRepository';
-import { AddSchedulesService } from 'src/application/schedule/addSchedules.service';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { SchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
 
 import { Inject, Injectable } from '@nestjs/common';
+import { AddSchedulesService } from '../schedule/addSchedules.service';
 
 @Injectable()
 export class HandleAddScheduleService {

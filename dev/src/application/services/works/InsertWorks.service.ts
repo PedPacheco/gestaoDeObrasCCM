@@ -3,13 +3,13 @@ import {
   IInsertWorksRepository,
   INSERT_WORKS_REPOSITORY,
 } from 'src/domain/repositories/works/IInsertWorksRepository';
+import { InsertMarketWorksDTO } from 'src/interface/dtos/worksDto';
 import { NotesEntriesInterface } from 'src/interface/types/works/insertNotesInterface';
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 
 import { AuxiliaryBaseService } from '../auxiliaryBase/auxiliaryBase.service';
 import { FindExistingWorksService } from './findExistingWorks.service';
-import { InsertMarketWorksDTO } from 'src/interface/dtos/worksDto';
 
 @Injectable()
 export class InsertWorksService {

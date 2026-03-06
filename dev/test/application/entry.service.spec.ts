@@ -1,6 +1,6 @@
 import * as moment from 'moment';
+import { EntryService } from 'src/application/services/entry.service';
 import { ENTRY_REPOSITORY } from 'src/domain/repositories/IEntryRepository';
-
 import {
   GetEntryOfWorksByDayDTO,
   GetEntryOfWorksDTO,
@@ -8,7 +8,6 @@ import {
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { obras } from '@prisma/client';
-import { EntryService } from 'src/application/entry.service';
 
 describe('EntryService', () => {
   let entryService: EntryService;

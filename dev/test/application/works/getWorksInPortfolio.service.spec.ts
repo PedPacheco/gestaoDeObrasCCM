@@ -1,11 +1,10 @@
 import { Cache } from 'cache-manager';
+import { GetWorksInPortfolioService } from 'src/application/services/works/getWorksInPortfolio.service';
 import { GET_WORKS_IN_PORTFOLIO_REPOSITORY } from 'src/domain/repositories/works/IGetWorksInPortfolioRepository';
-
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Test } from '@nestjs/testing';
-import { GetWorksInPortfolioService } from 'src/application/works/getWorksInPortfolio.service';
 
 describe('GetWorksInPortfolioService', () => {
   let getWorksInPortfolioService: GetWorksInPortfolioService;

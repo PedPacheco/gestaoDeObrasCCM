@@ -1,3 +1,6 @@
+import { ErrorsReportService } from 'src/application/services/errorsReport.service';
+import { PermissionGuard } from 'src/core/guards/permission.guard';
+
 import {
   Controller,
   Get,
@@ -6,8 +9,6 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ErrorsReportService } from 'src/application/errorsReport.service';
-import { PermissionGuard } from 'src/core/guards/permission.guard';
 
 @Controller('relatorio-erros')
 export class ErrorsReportController {

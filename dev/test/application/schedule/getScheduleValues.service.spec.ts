@@ -1,10 +1,10 @@
-import { GetScheduleValuesService } from 'src/application/schedule/getScheduleValues.service';
+import { GetScheduleValuesService } from 'src/application/services/schedule/getScheduleValues.service';
+import { GET_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetScheduleValuesRepository';
+import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
+import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 
 import { Test } from '@nestjs/testing';
 import { obras } from '@prisma/client';
-import { GET_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetScheduleValuesRepository';
-import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
-import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 
 describe('GetScheduleValues', () => {
   let service: GetScheduleValuesService;

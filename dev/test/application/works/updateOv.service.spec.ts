@@ -1,8 +1,10 @@
+import { FindExistingWorksService } from 'src/application/services/works/findExistingWorks.service';
+import { UpdateOvService } from 'src/application/services/works/updateOv.service';
+import { UPDATE_OV_REPOSITORY } from 'src/domain/repositories/works/IUpdateOvRepository';
+
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { FindExistingWorksService } from 'src/application/works/findExistingWorks.service';
-import { UpdateOvService } from 'src/application/works/updateOv.service';
-import { UPDATE_OV_REPOSITORY } from 'src/domain/repositories/works/IUpdateOvRepository';
+
 import { mockMarketWorks } from '../../mocks/mockWorksController';
 
 describe('UpdateOvService', () => {

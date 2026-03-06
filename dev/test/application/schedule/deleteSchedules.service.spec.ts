@@ -1,7 +1,8 @@
+import { DeleteSchedulesService } from 'src/application/services/schedule/deleteSchedules.service';
+import { DELETE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IDeleteSchedulesRepository';
+
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { DELETE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IDeleteSchedulesRepository';
-import { DeleteSchedulesService } from 'src/application/schedule/deleteSchedules.service';
 
 describe('DeleteSchedulesService', () => {
   let deleteSchedulesService: DeleteSchedulesService;

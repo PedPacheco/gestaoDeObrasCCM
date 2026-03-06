@@ -1,6 +1,6 @@
 import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
-import { ExportExecutionReportService } from 'src/application/export/exportExecutionReport.service';
+import { ExportExecutionReportService } from 'src/application/services/export/exportExecutionReport.service';
 import { EXPORT_REPOSITORY } from 'src/domain/repositories/IExportRepository';
 import {
   mockFindByWorkIdResponse,

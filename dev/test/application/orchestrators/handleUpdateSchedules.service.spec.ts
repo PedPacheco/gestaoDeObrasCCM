@@ -1,13 +1,14 @@
+import { ExecutionReportService } from 'src/application/services/executionReport.service';
+import { HandleSchedulesUpdateService } from 'src/application/services/orchestrators/handleSchedulesUpdate.service';
+import { UpdateSchedulesService } from 'src/application/services/schedule/updateSchedules.service';
+import { GetWorkDetailsService } from 'src/application/services/works/getWorkDetails.service';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+
 import {
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { ExecutionReportService } from 'src/application/executionReport.service';
-import { HandleSchedulesUpdateService } from 'src/application/orchestrators/handleSchedulesUpdate.service';
-import { UpdateSchedulesService } from 'src/application/schedule/updateSchedules.service';
-import { GetWorkDetailsService } from 'src/application/works/getWorkDetails.service';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 describe('HandleUpdateScheduleService', () => {
   let service: HandleSchedulesUpdateService;

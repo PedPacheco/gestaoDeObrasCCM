@@ -1,10 +1,6 @@
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { UsersService } from 'src/application/users.service';
-import { GetAllWorksService } from 'src/application/works/getAllWorks.service';
-import { GetCompletedWorksService } from 'src/application/works/getCompletedWorks.service';
-import { GetWorkDetailsService } from 'src/application/works/getWorkDetails.service';
-import { GetWorksInPortfolioService } from 'src/application/works/getWorksInPortfolio.service';
+
 import { WorksController } from 'src/interface/controllers/works/works.controller';
 import {
   GetAllWorksDTO,
@@ -20,6 +16,11 @@ import {
   mockResponseDetails,
   mockWorksInPortfolio,
 } from '../../../mocks/mockWorksController';
+import { GetAllWorksService } from 'src/application/services/works/getAllWorks.service';
+import { GetCompletedWorksService } from 'src/application/services/works/getCompletedWorks.service';
+import { GetWorksInPortfolioService } from 'src/application/services/works/getWorksInPortfolio.service';
+import { GetWorkDetailsService } from 'src/application/services/works/getWorkDetails.service';
+import { UsersService } from 'src/application/services/users.service';
 
 interface CustomRequest extends Request {
   idParceira?: number;

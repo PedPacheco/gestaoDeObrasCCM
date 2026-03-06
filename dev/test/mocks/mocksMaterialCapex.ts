@@ -1,4 +1,4 @@
-import { CalculatedValue } from 'src/application/works/updateCapex.service';
+import { CalculatedValue } from 'src/application/services/works/updateCapex.service';
 import { MaterialCapexDTO } from 'src/interface/dtos/materialDTO';
 
 export const mockGetObraIdsByDiagramas = new Map([['170000027938', 1]]);

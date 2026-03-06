@@ -1,15 +1,17 @@
-import { GetMonthlySummaryService } from 'src/application/schedule/getMonthlySummary.service';
-import { GetScheduleValuesService } from 'src/application/schedule/getScheduleValues.service';
-import { GetTotalValuesScheduleService } from 'src/application/schedule/getTotalValuesSchedule.service';
+import { GetMonthlySummaryService } from 'src/application/services/schedule/getMonthlySummary.service';
+import { GetScheduleValuesService } from 'src/application/services/schedule/getScheduleValues.service';
+import { GetTotalValuesScheduleService } from 'src/application/services/schedule/getTotalValuesSchedule.service';
+import { RejectionsOfSchedulesService } from 'src/application/services/schedule/rejectionOfSchedules.service';
+import { UsersService } from 'src/application/services/users.service';
 import { ScheduleController } from 'src/interface/controllers/schedules/schedule.controller';
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-
-import { RejectionsOfSchedulesService } from 'src/application/schedule/rejectionOfSchedules.service';
-import { UsersService } from 'src/application/users.service';
+import { DailySummaryEntry } from 'src/interface/types/schedule/monthlySummaryInterface';
+import { GetMonthlySummaryForecastService } from 'src/application/services/schedule/getMonthlySummaryForecast.service';
+import { DailySummaryEntryForecast } from 'src/interface/types/schedule/monthlySummaryForecastInterface';
 
 describe('ScheduleController', () => {
   let scheduleController: ScheduleController;
@@ -17,6 +19,7 @@ describe('ScheduleController', () => {
   let getScheduleValuesService: GetScheduleValuesService;
   let getMonthlySummaryService: GetMonthlySummaryService;
   let rejectionsOfSchedulesService: RejectionsOfSchedulesService;
+  let getMonthlySummaryForecastService: GetMonthlySummaryForecastService;
 
   const mockScheduleData: GetScheduleValuesResponse = {
     works: [
@@ -99,6 +102,13 @@ describe('ScheduleController', () => {
           },
         },
         {
+          provide: GetMonthlySummaryForecastService,
+          useValue: {
+            getSummary: jest.fn(),
+            getSecondSummary: jest.fn(),
+          },
+        },
+        {
           provide: RejectionsOfSchedulesService,
           useValue: { get: jest.fn() },
         },
@@ -116,6 +126,11 @@ describe('ScheduleController', () => {
     getMonthlySummaryService = module.get<GetMonthlySummaryService>(
       GetMonthlySummaryService,
     );
+    getMonthlySummaryForecastService =
+      module.get<GetMonthlySummaryForecastService>(
+        GetMonthlySummaryForecastService,
+      );
+
     rejectionsOfSchedulesService = module.get<RejectionsOfSchedulesService>(
       RejectionsOfSchedulesService,
     );
@@ -273,38 +288,76 @@ describe('ScheduleController', () => {
       idParceira: [1],
     };
 
-    const getMonthlySummaryResponse = [
+    const dailySummaryMock: DailySummaryEntry[] = [
       {
-        dataProg: '2024-11-01',
-        totalQtde: 5,
-        totalMoProg: 103682.18347999999,
-        totalMoExec: 95076.57347999999,
-        totalMoPrev: 95076.57347999999,
+        dataProg: '2026-03-01',
+        totalQtde: 25,
+        teamsTotal: 8,
+        financialGoal: 15000,
+        financialGoalWith8: 18000,
+        diaryGoal: 1200,
+        diaryGoalWith8: 1500,
+        totalMoProg: 14000,
+        totalMoExec: 13000,
+        diff: -1000,
       },
       {
-        dataProg: '2024-11-02',
-        totalQtde: 1,
-        totalMoProg: 14459.3,
-        totalMoExec: 0,
-        totalMoPrev: 0,
+        dataProg: '2026-03-02',
+        totalQtde: 30,
+        teamsTotal: 10,
+        financialGoal: 20000,
+        financialGoalWith8: 22000,
+        diaryGoal: 1600,
+        diaryGoalWith8: 1800,
+        totalMoProg: 19500,
+        totalMoExec: 21000,
+        diff: 1500,
+      },
+    ];
+
+    const getSecondMonthlySummaryResponse = [
+      {
+        grupo: 'RECOMPOSIÇÃO',
+        turma: 'ENGELMIG',
+        qtdeObras: 49,
+        totalMoProg: 1075887.9138599995,
+        totalMoExec: 556246.1940299999,
+        totalMoPrev: 948862.9654299996,
+        diff: 55,
+      },
+      {
+        grupo: 'BT ZERO',
+        turma: 'ENGELMIG',
+        qtdeObras: 19,
+        totalMoProg: 673067.8821099999,
+        totalMoExec: 541923.11811,
+        totalMoPrev: 623527.0451099998,
+        diff: 98,
       },
     ];
 
     jest
       .spyOn(getMonthlySummaryService, 'getSummary')
-      .mockResolvedValue(getMonthlySummaryResponse);
+      .mockResolvedValue(dailySummaryMock);
+
+    jest
+      .spyOn(getMonthlySummaryService, 'getSecondSummary')
+      .mockResolvedValue(getSecondMonthlySummaryResponse);
 
     const result = await scheduleController.getMonthlySummary(filters);
 
     expect(result).toEqual({
       statusCode: HttpStatus.OK,
       message: 'Resumo mensal retornado com sucesso',
-      data: getMonthlySummaryResponse,
+      data: {
+        firstSummary: dailySummaryMock,
+        secondSummary: getSecondMonthlySummaryResponse,
+      },
     });
     expect(getMonthlySummaryService.getSummary).toHaveBeenCalledWith(filters);
   });
 
-  it('Should call method getSecondMonthlySummary and return data with correct format', async () => {
+  it('Should call getMonthlySummaryForecast method and return correct data', async () => {
     const filters = {
       date: '11/2024',
       idRegional: [1],
@@ -313,35 +366,81 @@ describe('ScheduleController', () => {
       idParceira: [1],
     };
 
-    const getSecondMonthlySummaryResponse = [
+    const dailySummaryForecastMock: DailySummaryEntryForecast[] = [
+      {
+        dataProg: '2026-03-01',
+        totalQtde: 20,
+        teamsTotal: 6,
+        financialGoal: 18000,
+        diaryGoal: 1200,
+        serviceMoProg: 9000,
+        serviceMoPlan: 8500,
+        serviceMoPend: 500,
+        serviceMoExec: 8000,
+        materialMoProg: 6000,
+        materialMoPlan: 5800,
+        materialMoPend: 200,
+        materialMoExec: 5600,
+        diff: -900,
+      },
+      {
+        dataProg: '2026-03-02',
+        totalQtde: 28,
+        teamsTotal: 9,
+        financialGoal: 22000,
+        diaryGoal: 1500,
+        serviceMoProg: 11000,
+        serviceMoPlan: 10500,
+        serviceMoPend: 500,
+        serviceMoExec: 10800,
+        materialMoProg: 7000,
+        materialMoPlan: 6800,
+        materialMoPend: 200,
+        materialMoExec: 7200,
+        diff: 1000,
+      },
+    ];
+
+    const getSecondMonthlySummaryForecastResponse = [
       {
         grupo: 'RECOMPOSIÇÃO',
         turma: 'ENGELMIG',
+        qtdeObras: 49,
         totalMoProg: 1075887.9138599995,
         totalMoExec: 556246.1940299999,
         totalMoPrev: 948862.9654299996,
+        diff: 55,
       },
       {
         grupo: 'BT ZERO',
         turma: 'ENGELMIG',
+        qtdeObras: 19,
         totalMoProg: 673067.8821099999,
         totalMoExec: 541923.11811,
         totalMoPrev: 623527.0451099998,
+        diff: 98,
       },
     ];
 
     jest
-      .spyOn(getMonthlySummaryService, 'getSecondSummary')
-      .mockResolvedValue(getSecondMonthlySummaryResponse);
+      .spyOn(getMonthlySummaryForecastService, 'getSummary')
+      .mockResolvedValue(dailySummaryForecastMock);
 
-    const result = await scheduleController.getSecondMonthlySummary(filters);
+    jest
+      .spyOn(getMonthlySummaryForecastService, 'getSecondSummary')
+      .mockResolvedValue(getSecondMonthlySummaryForecastResponse);
+
+    const result = await scheduleController.getMonthlySummaryForecast(filters);
 
     expect(result).toEqual({
       statusCode: HttpStatus.OK,
-      message: 'Resumo mensal retornado com sucesso',
-      data: getSecondMonthlySummaryResponse,
+      message: 'Resumo mensal do Forecast retornado com sucesso',
+      data: {
+        firstSummary: dailySummaryForecastMock,
+        secondSummary: getSecondMonthlySummaryForecastResponse,
+      },
     });
-    expect(getMonthlySummaryService.getSecondSummary).toHaveBeenCalledWith(
+    expect(getMonthlySummaryForecastService.getSummary).toHaveBeenCalledWith(
       filters,
     );
   });

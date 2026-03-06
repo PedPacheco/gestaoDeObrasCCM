@@ -1,3 +1,6 @@
+import { ExecutionCapacityService } from 'src/application/services/executionCapacity.service';
+import { PermissionGuard } from 'src/core/guards/permission.guard';
+
 import {
   Body,
   Controller,
@@ -7,12 +10,11 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { PermissionGuard } from 'src/core/guards/permission.guard';
+
 import {
   ExecutionCapacityDTO,
   UpdateExecutionCapacityDTO,
 } from '../dtos/executionCapacityDTO';
-import { ExecutionCapacityService } from 'src/application/executionCapacity.service';
 
 @Controller('capacidade-execucao')
 export class ExecutionCapacityController {

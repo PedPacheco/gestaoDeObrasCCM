@@ -1,11 +1,11 @@
 import { genSalt, hash } from 'bcrypt';
+import { UsersService } from 'src/application/services/users.service';
 import { User } from 'src/domain/entities/user.entity';
 import { USER_REPOSITORY } from 'src/domain/repositories/IUserRepository';
 
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
-import { UsersService } from 'src/application/users.service';
 
 jest.mock('bcrypt', () => ({
   hash: jest.fn(),

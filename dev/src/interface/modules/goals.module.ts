@@ -1,4 +1,4 @@
-import { GoalsService } from 'src/application/goals.service';
+import { GoalsService } from 'src/application/services/goals.service';
 import { GOALS_REPOSITORY } from 'src/domain/repositories/IGoalsRepository';
 import { CacheModule } from 'src/infra/cache/cache.module';
 import { GoalsRepository } from 'src/infra/repositories/goalsRepository';

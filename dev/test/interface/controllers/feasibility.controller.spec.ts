@@ -1,8 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { HttpStatus } from '@nestjs/common';
-import { FeasibilityService } from 'src/application/feasibility.service';
+import { FeasibilityService } from 'src/application/services/feasibility.service';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { FeasibilityController } from 'src/interface/controllers/feasibility.controller';
+
+import { HttpStatus } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 
 describe('FeasibilityController', () => {
   let controller: FeasibilityController;

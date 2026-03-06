@@ -1,3 +1,7 @@
+// Importar mocks
+import { existsSync, unlinkSync } from 'fs';
+import { FileService } from 'src/application/services/file.service';
+
 import { Test, TestingModule } from '@nestjs/testing';
 
 // Mock do módulo 'fs'
@@ -5,10 +9,6 @@ jest.mock('fs', () => ({
   existsSync: jest.fn(),
   unlinkSync: jest.fn(),
 }));
-
-// Importar mocks
-import { existsSync, unlinkSync } from 'fs';
-import { FileService } from 'src/application/file.service';
 
 describe('FileService', () => {
   let service: FileService;

@@ -1,3 +1,7 @@
+import { RestrictionsService } from 'src/application/services/restrictions.service';
+import { PermissionGuard } from 'src/core/guards/permission.guard';
+import { VisualizationGuard } from 'src/core/guards/visualization.guard';
+
 import {
   Body,
   Controller,
@@ -12,14 +16,12 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { PermissionGuard } from 'src/core/guards/permission.guard';
-import { RestrictionsService } from 'src/application/restrictions.service';
+
 import {
   GetRestrictionsDTO,
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
 } from '../dtos/restrictionsDTO';
-import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 
 interface CustomRequest extends Request {
   idParceira?: number;

@@ -1,6 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ExecutionCapacityService } from 'src/application/executionCapacity.service';
+import { ExecutionCapacityService } from 'src/application/services/executionCapacity.service';
 import { ExecutionCapacityController } from 'src/interface/controllers/executionCapacity.controller';
+
+import { Test, TestingModule } from '@nestjs/testing';
 
 describe('ExecutionReportController', () => {
   let controller: ExecutionCapacityController;

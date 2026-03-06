@@ -1,13 +1,15 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { UpdateCapexService } from 'src/application/works/updateCapex.service';
+import { UpdateCapexService } from 'src/application/services/works/updateCapex.service';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
 } from 'src/domain/repositories/IAuxiliaryBaseRepository';
 import {
-  UPDATE_CAPEX_REPOSITORY,
   IUpdateCapexRepository,
+  UPDATE_CAPEX_REPOSITORY,
 } from 'src/domain/repositories/works/IUpdateCapexRepository';
+
+import { Test, TestingModule } from '@nestjs/testing';
+
 import { mockReturnAuxiliaryBaseCN52N } from '../../../test/mocks/mocksMaterialCapex';
 
 describe('UpdateCapexService', () => {

@@ -1,6 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ExecutionCapacityService } from 'src/application/executionCapacity.service';
+import { ExecutionCapacityService } from 'src/application/services/executionCapacity.service';
 import { EXECUTION_CAPACITY_REPOSITORY } from 'src/domain/repositories/IExecutionCapacityRepository';
+
+import { Test, TestingModule } from '@nestjs/testing';
+
 import {
   mockDataSumFinancialValues,
   mockFormattedDataExecutionCapacity,

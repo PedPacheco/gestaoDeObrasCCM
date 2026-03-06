@@ -1,8 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { GoalsDTO } from 'src/interface/dtos/goalsDto';
+import { GoalsService } from 'src/application/services/goals.service';
 import { GOALS_REPOSITORY } from 'src/domain/repositories/IGoalsRepository';
-import { GoalsService } from 'src/application/goals.service';
+import { GoalsDTO } from 'src/interface/dtos/goalsDto';
+
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Test, TestingModule } from '@nestjs/testing';
 
 describe('GoalsService', () => {
   let service: GoalsService;

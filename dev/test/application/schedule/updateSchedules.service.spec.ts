@@ -1,5 +1,5 @@
-import { ScheduleExecutionValidatorService } from 'src/application/schedule/scheduleExecutionValidator.service';
-import { UpdateSchedulesService } from 'src/application/schedule/updateSchedules.service';
+import { ScheduleExecutionValidatorService } from 'src/application/services/schedule/scheduleExecutionValidator.service';
+import { UpdateSchedulesService } from 'src/application/services/schedule/updateSchedules.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
 import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
 import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';

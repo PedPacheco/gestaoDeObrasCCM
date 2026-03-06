@@ -1,4 +1,3 @@
-import { UpdateSchedulesService } from 'src/application/schedule/updateSchedules.service';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import {
@@ -8,6 +7,7 @@ import {
 } from '@nestjs/common';
 
 import { ExecutionReportService } from '../executionReport.service';
+import { UpdateSchedulesService } from '../schedule/updateSchedules.service';
 import { GetWorkDetailsService } from '../works/getWorkDetails.service';
 
 @Injectable()

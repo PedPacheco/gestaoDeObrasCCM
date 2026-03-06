@@ -1,8 +1,9 @@
+import { GetWorkDetailsService } from 'src/application/services/works/getWorkDetails.service';
+import { GET_WORKS_DETAILS_REPOSITORY } from 'src/domain/repositories/works/IGetWorksDetailsRepository';
+
 import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { obras } from '@prisma/client';
-import { GetWorkDetailsService } from 'src/application/works/getWorkDetails.service';
-import { GET_WORKS_DETAILS_REPOSITORY } from 'src/domain/repositories/works/IGetWorksDetailsRepository';
 
 describe('GetWorkDetailsService', () => {
   let getWorkDetailsService: GetWorkDetailsService;

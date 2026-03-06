@@ -1,11 +1,14 @@
-import { UpdateExecutionCapacityDTO } from './../interface/dtos/executionCapacityDTO';
-import { Inject, Injectable } from '@nestjs/common';
 import {
   EXECUTION_CAPACITY_REPOSITORY,
   IExecutionCapacityRepository,
 } from 'src/domain/repositories/IExecutionCapacityRepository';
-import { ExecutionCapacityDTO } from 'src/interface/dtos/executionCapacityDTO';
+import {
+  ExecutionCapacityDTO,
+  UpdateExecutionCapacityDTO,
+} from 'src/interface/dtos/executionCapacityDTO';
 import { ExecutionCapacityFilter } from 'src/interface/types/executionCapacityInterface';
+
+import { Inject, Injectable } from '@nestjs/common';
 
 @Injectable()
 export class ExecutionCapacityService {

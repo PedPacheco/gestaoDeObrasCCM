@@ -1,9 +1,10 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ErrorsReportService } from 'src/application/errorsReport.service';
+import { ErrorsReportService } from 'src/application/services/errorsReport.service';
 import {
   ERRORS_REPORT_REPOSITORY,
   IErrorsReportRepository,
 } from 'src/domain/repositories/IErrorsReportRepository';
+
+import { Test, TestingModule } from '@nestjs/testing';
 
 describe('ErrorsReportService', () => {
   let service: ErrorsReportService;

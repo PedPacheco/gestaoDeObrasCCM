@@ -1,8 +1,9 @@
+import { FindExistingWorksService } from 'src/application/services/works/findExistingWorks.service';
+import { SuspensionWorkService } from 'src/application/services/works/suspensionWork.service';
+import { SUSPENSION_WORK_REPOSITORY } from 'src/domain/repositories/works/ISuspensionWorkRepository';
+
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { FindExistingWorksService } from 'src/application/works/findExistingWorks.service';
-import { SuspensionWorkService } from 'src/application/works/suspensionWork.service';
-import { SUSPENSION_WORK_REPOSITORY } from 'src/domain/repositories/works/ISuspensionWorkRepository';
 
 describe('SuspensionWorkService', () => {
   let suspensionWorkService: SuspensionWorkService;

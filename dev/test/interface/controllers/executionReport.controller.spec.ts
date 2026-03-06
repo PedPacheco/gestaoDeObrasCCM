@@ -1,10 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ExecutionReportController } from 'src/interface/controllers/executionReport.controller';
-import { mockUpdateExecutionReportDTO } from '../../../test/mocks/mocksExecutionReport';
 import { plainToInstance } from 'class-transformer';
-import { ExecutionReportDataDTO } from 'src/interface/dtos/executionReportDTO';
 import { validate } from 'class-validator';
-import { ExecutionReportService } from 'src/application/executionReport.service';
+import { ExecutionReportService } from 'src/application/services/executionReport.service';
+import { ExecutionReportController } from 'src/interface/controllers/executionReport.controller';
+import { ExecutionReportDataDTO } from 'src/interface/dtos/executionReportDTO';
+
+import { Test, TestingModule } from '@nestjs/testing';
+
+import { mockUpdateExecutionReportDTO } from '../../../test/mocks/mocksExecutionReport';
 
 describe('ExecutionReportController', () => {
   let controller: ExecutionReportController;

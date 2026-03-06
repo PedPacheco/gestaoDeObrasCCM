@@ -165,7 +165,7 @@ describe('GetMonthlySummary', () => {
           prog: true,
           exec: true,
           obras: {
-            select: { mo_final: true, mo_planejada: true },
+            select: { mo_planejada: true },
           },
         },
         orderBy: { data_prog: 'asc' },
@@ -197,7 +197,7 @@ describe('GetMonthlySummary', () => {
           prog: true,
           exec: true,
           obras: {
-            select: { mo_final: true, mo_planejada: true },
+            select: { mo_planejada: true },
           },
         },
         orderBy: { data_prog: 'asc' },
@@ -237,7 +237,10 @@ describe('GetMonthlySummary', () => {
         },
         select: {
           ovnota: true,
-          mo_final: true,
+          ordem_dci: true,
+          ordem_dca: true,
+          ordem_dcd: true,
+          ordem_dcim: true,
           mo_planejada: true,
           turmas: { select: { turma: true } },
           tipos: { select: { grupos: { select: { grupo: true } } } },
@@ -278,7 +281,10 @@ describe('GetMonthlySummary', () => {
         },
         select: {
           ovnota: true,
-          mo_final: true,
+          ordem_dci: true,
+          ordem_dca: true,
+          ordem_dcd: true,
+          ordem_dcim: true,
           mo_planejada: true,
           turmas: { select: { turma: true } },
           tipos: { select: { grupos: { select: { grupo: true } } } },

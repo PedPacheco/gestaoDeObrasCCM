@@ -1,7 +1,9 @@
+import * as moment from 'moment';
+import { RestrictionsService } from 'src/application/services/restrictions.service';
+import { RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/IRestrictionsRepository';
+
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { RestrictionsService } from 'src/application/restrictions.service';
-import { RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/IRestrictionsRepository';
 import {
   mockGetRestrictionsFilters,
   mockGetScheduleRestrictions,
@@ -9,7 +11,6 @@ import {
   mockUpdatePublicationRestrictions,
   mockUpdatePublicationRestrictionsWithResoltuionDate,
 } from '../../test/mocks/mockRestrictions';
-import * as moment from 'moment';
 
 describe('RestrictionsService', () => {
   let service: RestrictionsService;

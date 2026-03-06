@@ -1,8 +1,8 @@
-import { UsersService } from 'src/application/users.service';
+import { UsersService } from 'src/application/services/users.service';
 import { PrismaModule } from 'src/infra/prisma/prisma.module';
+import { RestrictionsModule } from 'src/interface/modules/restrictions.module';
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { RestrictionsModule } from 'src/interface/modules/restrictions.module';
 
 describe('RestrictionsModule', () => {
   let module: TestingModule;

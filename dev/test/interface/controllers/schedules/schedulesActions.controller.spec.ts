@@ -1,21 +1,22 @@
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { ExecutionReportService } from 'src/application/executionReport.service';
-import { HandleAddScheduleService } from 'src/application/orchestrators/handleAddSchedule.service';
-import { HandleSchedulesUpdateService } from 'src/application/orchestrators/handleSchedulesUpdate.service';
-import { DeleteSchedulesService } from 'src/application/schedule/deleteSchedules.service';
-import { UpdateSchedulesService } from 'src/application/schedule/updateSchedules.service';
-import { ValidateConfirmAndRejectSchedulesService } from 'src/application/schedule/validateAndConfirmSchedules.service';
-import { UsersService } from 'src/application/users.service';
+import { ExecutionReportService } from 'src/application/services/executionReport.service';
+import { HandleAddScheduleService } from 'src/application/services/orchestrators/handleAddSchedule.service';
+import { HandleSchedulesUpdateService } from 'src/application/services/orchestrators/handleSchedulesUpdate.service';
+import { DeleteSchedulesService } from 'src/application/services/schedule/deleteSchedules.service';
+import { UpdateSchedulesService } from 'src/application/services/schedule/updateSchedules.service';
+import { ValidateConfirmAndRejectSchedulesService } from 'src/application/services/schedule/validateAndConfirmSchedules.service';
+import { UsersService } from 'src/application/services/users.service';
 import { SchedulesActionsController } from 'src/interface/controllers/schedules/schedulesActions.controller';
 import {
   SchedulesDataDTO,
   UpdateSchedulesDataDTO,
 } from 'src/interface/dtos/scheduleDTO';
-import { mockUpdateSchedulesController } from '../../../mocks/mockAddScheduleService';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+
+import { mockUpdateSchedulesController } from '../../../mocks/mockAddScheduleService';
 
 describe('ScheduleActionsController', () => {
   let scheduleActionsController: SchedulesActionsController;

@@ -1,9 +1,9 @@
 import { createTransport, Transporter } from 'nodemailer';
+import { EmailService } from 'src/application/services/email.service';
 
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { InternalServerErrorException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { EmailService } from 'src/application/email.service';
 
 jest.mock('nodemailer', () => ({
   createTransport: jest.fn(),

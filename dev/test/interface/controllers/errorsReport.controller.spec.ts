@@ -1,4 +1,4 @@
-import { ErrorsReportService } from 'src/application/errorsReport.service';
+import { ErrorsReportService } from 'src/application/services/errorsReport.service';
 import { ErrorsReportController } from 'src/interface/controllers/errorsReport.controller';
 
 import { HttpStatus } from '@nestjs/common';

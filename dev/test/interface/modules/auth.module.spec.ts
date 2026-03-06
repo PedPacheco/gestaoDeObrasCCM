@@ -1,11 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { JwtModule } from '@nestjs/jwt';
-import { AuthModule } from 'src/interface/modules/auth.module';
+import { AuthService } from 'src/application/services/auth.service';
+import { EmailService } from 'src/application/services/email.service';
 import { PrismaModule } from 'src/infra/prisma/prisma.module';
-import { jwtConstants } from 'src/shared/costants';
 import { AuthController } from 'src/interface/controllers/auth.controller';
-import { AuthService } from 'src/application/auth.service';
-import { EmailService } from 'src/application/email.service';
+import { AuthModule } from 'src/interface/modules/auth.module';
+import { jwtConstants } from 'src/shared/costants';
+
+import { JwtModule } from '@nestjs/jwt';
+import { Test, TestingModule } from '@nestjs/testing';
 
 describe('AuthModule', () => {
   let module: TestingModule;

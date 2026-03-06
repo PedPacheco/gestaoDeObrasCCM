@@ -1,4 +1,5 @@
-import { ExecutionReportService } from 'src/application/executionReport.service';
+import { ExecutionReportService } from 'src/application/services/executionReport.service';
+import { PermissionGuard } from 'src/core/guards/permission.guard';
 
 import {
   Body,
@@ -14,10 +15,9 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-
-import { PermissionGuard } from 'src/core/guards/permission.guard';
-import { UpdateExecutionReportDTO } from '../dtos/executionReportDTO';
 import { FilesInterceptor } from '@nestjs/platform-express';
+
+import { UpdateExecutionReportDTO } from '../dtos/executionReportDTO';
 
 @Controller('relatorio-execucao')
 export class ExecutionReportController {

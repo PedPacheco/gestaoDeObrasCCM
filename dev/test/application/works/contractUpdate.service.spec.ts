@@ -1,6 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ContractUpdateService } from 'src/application/works/contractUpdate.service';
+import { ContractUpdateService } from 'src/application/services/works/contractUpdate.service';
 import { CONTRACT_UPDATE_REPOSITORY } from 'src/domain/repositories/works/IContractUpdateRepository';
+
+import { Test, TestingModule } from '@nestjs/testing';
 
 describe('ContractUpdateService', () => {
   let contractUpdateService: ContractUpdateService;

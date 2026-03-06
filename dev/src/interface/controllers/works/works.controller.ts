@@ -1,7 +1,3 @@
-import { GetAllWorksService } from 'src/application/works/getAllWorks.service';
-import { GetCompletedWorksService } from 'src/application/works/getCompletedWorks.service';
-import { GetWorkDetailsService } from 'src/application/works/getWorkDetails.service';
-import { GetWorksInPortfolioService } from 'src/application/works/getWorksInPortfolio.service';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import { GetAllWorksDTO, GetWorksDTO } from 'src/interface/dtos/worksDto';
@@ -16,6 +12,10 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { GetWorksInPortfolioService } from 'src/application/services/works/getWorksInPortfolio.service';
+import { GetAllWorksService } from 'src/application/services/works/getAllWorks.service';
+import { GetCompletedWorksService } from 'src/application/services/works/getCompletedWorks.service';
+import { GetWorkDetailsService } from 'src/application/services/works/getWorkDetails.service';
 
 interface CustomRequest extends Request {
   idParceira?: number;

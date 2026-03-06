@@ -1,9 +1,10 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { HandleAddScheduleService } from 'src/application/orchestrators/handleAddSchedule.service';
-import { AddSchedulesService } from 'src/application/schedule/addSchedules.service';
+import { HandleAddScheduleService } from 'src/application/services/orchestrators/handleAddSchedule.service';
+import { AddSchedulesService } from 'src/application/services/schedule/addSchedules.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { SchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
+
+import { Test, TestingModule } from '@nestjs/testing';
 
 describe('HandleAddScheduleService', () => {
   let service: HandleAddScheduleService;

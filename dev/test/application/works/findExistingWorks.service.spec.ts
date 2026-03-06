@@ -1,6 +1,7 @@
+import { FindExistingWorksService } from 'src/application/services/works/findExistingWorks.service';
 import { FIND_EXISITING_WORKS_REPOSITORY } from 'src/domain/repositories/works/IFindExistingWorksRepository';
+
 import { Test, TestingModule } from '@nestjs/testing';
-import { FindExistingWorksService } from 'src/application/works/findExistingWorks.service';
 
 describe('FindExistingWorksService', () => {
   let findExistingWorksService: FindExistingWorksService;

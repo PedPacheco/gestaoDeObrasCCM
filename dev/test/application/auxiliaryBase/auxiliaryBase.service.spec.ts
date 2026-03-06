@@ -1,7 +1,10 @@
-import { AuxiliaryBaseService } from 'src/application/auxiliaryBase/auxiliaryBase.service';
-import { AuxiliaryMarketInsertService } from 'src/application/auxiliaryBase/auxiliaryBaseInsertMarket.service';
-import { AuxiliaryNotesInsertService } from 'src/application/auxiliaryBase/auxiliaryBaseInsertNotes.service';
+import { AuxiliaryBaseService } from 'src/application/services/auxiliaryBase/auxiliaryBase.service';
+import { AuxiliaryMarketInsertService } from 'src/application/services/auxiliaryBase/auxiliaryBaseInsertMarket.service';
+import { AuxiliaryNotesInsertService } from 'src/application/services/auxiliaryBase/auxiliaryBaseInsertNotes.service';
 import { AUXILIARY_BASE_REPOSITORY } from 'src/domain/repositories/IAuxiliaryBaseRepository';
+
+import { Test, TestingModule } from '@nestjs/testing';
+
 import {
   mockGetAuxiliaryBaseMarket,
   mockGetNotes,
@@ -12,8 +15,6 @@ import {
   mockMappedMarketWorks,
   mockMappedNotes,
 } from '../../mocks/mocksAuxiliaryBaseController';
-
-import { Test, TestingModule } from '@nestjs/testing';
 import {
   mockGetObraIdsByDiagramas,
   mockGetWrongObraIdsByDiagramas,

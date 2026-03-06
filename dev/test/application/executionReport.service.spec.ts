@@ -1,6 +1,14 @@
+import { ExecutionReportService } from 'src/application/services/executionReport.service';
+import { FileService } from 'src/application/services/file.service';
+import * as ExecutionReportEntity from 'src/domain/entities/executionReport.entity';
+import { EXECUTION_REPORT_REPOSITORY } from 'src/domain/repositories/IExecutionReportRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
+import { Readable } from 'stream';
+
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from '@prisma/client';
-import { EXECUTION_REPORT_REPOSITORY } from 'src/domain/repositories/IExecutionReportRepository';
+
 import {
   mockExecutionReportPersistenceObject,
   mockExecutionReportRepository,
@@ -12,12 +20,6 @@ import {
   mockFindByWorkIdResponse,
   mockUpdateExecutionReportDTO,
 } from '../mocks/mocksExecutionReport';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
-import * as ExecutionReportEntity from 'src/domain/entities/executionReport.entity';
-import { ExecutionReportService } from 'src/application/executionReport.service';
-import { FileService } from 'src/application/file.service';
-import { Readable } from 'stream';
 
 describe('ExecutionReportService', () => {
   let service: ExecutionReportService;

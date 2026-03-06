@@ -1,7 +1,9 @@
 import { compare, genSalt, hash } from 'bcrypt';
+import { AuthService } from 'src/application/services/auth.service';
+import { EmailService } from 'src/application/services/email.service';
+import { UsersService } from 'src/application/services/users.service';
 import { User } from 'src/domain/entities/user.entity';
 import { AUTH_REPOSITORY } from 'src/domain/repositories/IAuthRepository';
-
 import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
 import { generateRandomPassword } from 'src/utils/generatePassword';
 
@@ -13,9 +15,6 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { usuario } from '@prisma/client';
-import { AuthService } from 'src/application/auth.service';
-import { UsersService } from 'src/application/users.service';
-import { EmailService } from 'src/application/email.service';
 
 jest.mock('bcrypt', () => ({
   compare: jest.fn(),

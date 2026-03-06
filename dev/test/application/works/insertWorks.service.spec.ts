@@ -1,13 +1,14 @@
-import { BadRequestException } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+import { AuxiliaryBaseService } from 'src/application/services/auxiliaryBase/auxiliaryBase.service';
+import { FindExistingWorksService } from 'src/application/services/works/findExistingWorks.service';
+import { InsertWorksService } from 'src/application/services/works/InsertWorks.service';
 import { INSERT_WORKS_REPOSITORY } from 'src/domain/repositories/works/IInsertWorksRepository';
 
-import { InsertWorksService } from 'src/application/works/InsertWorks.service';
-import { FindExistingWorksService } from 'src/application/works/findExistingWorks.service';
-import { AuxiliaryBaseService } from 'src/application/auxiliaryBase/auxiliaryBase.service';
-import { mockMarketWorks } from '../../../test/mocks/mockWorksController';
+import { BadRequestException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+
 import { mockInsertNotes } from '../../../test/mocks/mockAuxiliaryBaseRepository';
 import { mockMappedNotes } from '../../../test/mocks/mocksAuxiliaryBaseController';
+import { mockMarketWorks } from '../../../test/mocks/mockWorksController';
 
 describe('InsertWorksService', () => {
   let insertWorksService: InsertWorksService;

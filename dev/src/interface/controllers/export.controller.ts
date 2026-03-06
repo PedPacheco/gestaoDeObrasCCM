@@ -1,25 +1,25 @@
 import { Response } from 'express';
-import { ExportCompletedWorksService } from 'src/application/export/exportCompletedWorks.service';
-import { ExportScheduleService } from 'src/application/export/exportSchedule.service';
-import { ExportWorksInPortfolioService } from 'src/application/export/exportWorksInPortfolio.service';
-import { GetScheduleValuesService } from 'src/application/schedule/getScheduleValues.service';
-import { GetCompletedWorksService } from 'src/application/works/getCompletedWorks.service';
-import { GetWorksInPortfolioService } from 'src/application/works/getWorksInPortfolio.service';
+import { ExportCompletedWorksService } from 'src/application/services/export/exportCompletedWorks.service';
+import { ExportScheduleService } from 'src/application/services/export/exportSchedule.service';
+import { ExportWorksInPortfolioService } from 'src/application/services/export/exportWorksInPortfolio.service';
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 
 import { Controller, Get, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
-import { ExportWorksInPortfolioBI } from 'src/application/export/BI/exportWorkInPortfolioBI.service';
-import { ExportCompletedWorksBIService } from 'src/application/export/BI/exportCompletedWorksBI.service';
-import { ExportSchedulesBIService } from 'src/application/export/BI/exportSchedulesBI.service';
-import { ExportFinedWorksService } from 'src/application/export/exportFinedWorks.service';
-import { ExportExecutionCapacityService } from 'src/application/export/exportExecutionCapacity.service';
-import { ExportSuspensionsService } from 'src/application/export/exportSuspensions.service';
-import { ExportExecutionReportService } from 'src/application/export/exportExecutionReport.service';
-import { ExportForecastService } from 'src/application/export/exportForecast.service';
-import { ExportRejectionsService } from 'src/application/export/exportRejections.service';
+import { ExportWorksInPortfolioBI } from 'src/application/services/export/BI/exportWorkInPortfolioBI.service';
+import { ExportCompletedWorksBIService } from 'src/application/services/export/BI/exportCompletedWorksBI.service';
+import { ExportSchedulesBIService } from 'src/application/services/export/BI/exportSchedulesBI.service';
+import { ExportFinedWorksService } from 'src/application/services/export/exportFinedWorks.service';
+import { ExportExecutionCapacityService } from 'src/application/services/export/exportExecutionCapacity.service';
+import { ExportSuspensionsService } from 'src/application/services/export/exportSuspensions.service';
+import { ExportExecutionReportService } from 'src/application/services/export/exportExecutionReport.service';
+import { ExportForecastService } from 'src/application/services/export/exportForecast.service';
+import { ExportRejectionsService } from 'src/application/services/export/exportRejections.service';
+import { GetScheduleValuesService } from 'src/application/services/schedule/getScheduleValues.service';
+import { GetWorksInPortfolioService } from 'src/application/services/works/getWorksInPortfolio.service';
+import { GetCompletedWorksService } from 'src/application/services/works/getCompletedWorks.service';
 
 interface CustomRequest extends Request {
   idParceira?: number;

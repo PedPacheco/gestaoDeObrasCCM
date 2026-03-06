@@ -1,4 +1,4 @@
-import { EntryService } from 'src/application/entry.service';
+import { EntryService } from 'src/application/services/entry.service';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import {
   GetEntryOfWorksByDayDTO,

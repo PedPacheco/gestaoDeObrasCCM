@@ -1,9 +1,10 @@
+import { AddSchedulesService } from 'src/application/services/schedule/addSchedules.service';
+import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IAddSchedulesRepository';
+
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IAddSchedulesRepository';
-import { AddSchedulesService } from 'src/application/schedule/addSchedules.service';
-
 import { Prisma } from '@prisma/client';
+
 import {
   mockAddSchedulesServiceData,
   mockAddSchedulesServiceDataNotTimeValid,

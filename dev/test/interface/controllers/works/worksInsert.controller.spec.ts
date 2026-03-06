@@ -1,5 +1,5 @@
-import { UsersService } from 'src/application/users.service';
-import { InsertWorksService } from 'src/application/works/InsertWorks.service';
+import { UsersService } from 'src/application/services/users.service';
+import { InsertWorksService } from 'src/application/services/works/InsertWorks.service';
 import { WorksInsertController } from 'src/interface/controllers/works/worksInsert.controller';
 
 import { HttpStatus } from '@nestjs/common';

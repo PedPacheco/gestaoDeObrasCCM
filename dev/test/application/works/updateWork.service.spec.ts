@@ -1,8 +1,9 @@
+import { UpdateWorkService } from 'src/application/services/works/updateWork.service';
+import { UPDATE_WORK_REPOSITORY } from 'src/domain/repositories/works/IUpdateWorkRepository';
+
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from '@prisma/client';
-import { UpdateWorkService } from 'src/application/works/updateWork.service';
-import { UPDATE_WORK_REPOSITORY } from 'src/domain/repositories/works/IUpdateWorkRepository';
 
 describe('UpdateWorkService', () => {
   let updateWorkService: UpdateWorkService;

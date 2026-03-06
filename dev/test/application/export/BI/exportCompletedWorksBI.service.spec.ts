@@ -1,6 +1,6 @@
 import * as Exceljs from 'exceljs';
 import { Response } from 'express';
-import { ExportCompletedWorksBIService } from 'src/application/export/BI/exportCompletedWorksBI.service';
+import { ExportCompletedWorksBIService } from 'src/application/services/export/BI/exportCompletedWorksBI.service';
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { EXPORT_REPOSITORY } from 'src/domain/repositories/IExportRepository';

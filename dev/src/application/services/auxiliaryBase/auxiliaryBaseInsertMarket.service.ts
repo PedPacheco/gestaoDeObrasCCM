@@ -1,11 +1,13 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
-import { FindExistingWorksService } from 'src/application/works/findExistingWorks.service';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
 } from 'src/domain/repositories/IAuxiliaryBaseRepository';
 import { InsertBaseAuxiliaryMarketDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
 import { OperationType } from 'src/interface/types/baseAuxiliaryInterface';
+
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+
+import { FindExistingWorksService } from '../works/findExistingWorks.service';
 
 @Injectable()
 export class AuxiliaryMarketInsertService {

@@ -9,6 +9,31 @@ import { EmotionCacheProvider } from "@/theme/emotionCache";
 
 export const dynamic = "force-dynamic";
 
+type Column =
+  | {
+      key: string;
+      label: string;
+    }
+  | {
+      label: string;
+      children: {
+        key: string;
+        label: string;
+      }[];
+    };
+
+export interface BaseColumn {
+  key: string;
+  label: string;
+}
+
+export interface GroupColumn {
+  label: string;
+  children: BaseColumn[];
+}
+
+export type TableColumn = BaseColumn | GroupColumn;
+
 export default async function MonthlySummary() {
   const cookieStore = await cookies();
   const cookieParams = cookieStore.get("monthlySummaryScheduleFilters")?.value;
@@ -30,7 +55,7 @@ export default async function MonthlySummary() {
     };
   }
 
-  const [filters, firstSummary, secondSummary] = await Promise.all([
+  const [filters, summaryData] = await Promise.all([
     fetchFilters({
       regional: true,
       parceira: true,
@@ -40,41 +65,57 @@ export default async function MonthlySummary() {
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal`,
       filtersValues,
-      token
-    ),
-    fetchData(
-      `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal-2`,
-      filtersValues,
-      token
+      token,
+      { cache: "no-store" },
     ),
   ]);
 
-  const columnsFirstSummary = {
-    dataProg: "Data",
-    totalQtde: "Quantidade",
-    totalMoProg: "Programado",
-    totalMoExec: "Executado",
-    porcentagem: "%",
-    totalMoPrev: "Previsto",
-  };
+  const columnsFirstSummary: TableColumn[] = [
+    { key: "dataProg", label: "Data" },
+    { key: "dia_semana", label: "Dia da Semana" },
+    { key: "totalQtde", label: "Qtd. Obras" },
+    { key: "teamsTotal", label: "Qtd. Equipes" },
 
-  const columnsSecondSummary = {
-    grupo: "Grupo",
-    turma: "Parceira",
-    totalMoProg: "Programado",
-    totalMoExec: "Executado",
-    totalMoPrev: "Previsto",
-  };
+    {
+      label: "Meta (Meta 100%)",
+      children: [
+        { key: "financialGoal", label: "Valor" },
+        { key: "diaryGoal", label: "% Dia" },
+      ],
+    },
+
+    {
+      label: "Meta (Meta 108% AP)",
+      children: [
+        { key: "financialGoalWith8", label: "Valor" },
+        { key: "diaryGoalWith8", label: "% Dia" },
+      ],
+    },
+
+    { key: "totalMoProg", label: "Programado" },
+    { key: "totalMoExec", label: "Executado" },
+    { key: "diff", label: "Programado x Executado (%)" },
+  ];
+
+  const columnsSecondSummary: TableColumn[] = [
+    { key: "grupo", label: "Grupo" },
+    { key: "turma", label: "Parceira" },
+    { key: "qtdeObras", label: "Qtd. Obras" },
+    { key: "totalMoProg", label: "Programado" },
+    { key: "totalMoExec", label: "Executado" },
+    { key: "totalMoPrev", label: "Previsto" },
+    { key: "diff", label: "Programado x Executado (%)" },
+  ];
 
   return (
     <EmotionCacheProvider>
       <MainMonthlySummarySchedule
         columnsFirstSummary={columnsFirstSummary}
         columnsSecondSummary={columnsSecondSummary}
-        dataFirstSummary={firstSummary?.data}
-        dataSecondSummary={secondSummary?.data}
+        dataFirstSummary={summaryData.data.firstSummary}
+        dataSecondSummary={summaryData.data.secondSummary}
         filtersData={filters}
-        token={firstSummary.token}
+        token={summaryData.data.token}
       />
     </EmotionCacheProvider>
   );

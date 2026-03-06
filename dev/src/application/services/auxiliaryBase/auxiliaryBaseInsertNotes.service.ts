@@ -1,4 +1,3 @@
-import { FindExistingWorksService } from 'src/application/works/findExistingWorks.service';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
@@ -7,6 +6,8 @@ import { NotesDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
 import { OperationType } from 'src/interface/types/baseAuxiliaryInterface';
 
 import { Inject, Injectable } from '@nestjs/common';
+
+import { FindExistingWorksService } from '../works/findExistingWorks.service';
 
 interface InsertNotesResult {
   insertedCount: number;
