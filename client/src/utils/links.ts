@@ -128,6 +128,11 @@ export const links = [
         allowedFor: ["total", "parcial", "sem_permissao"],
       },
       {
+        name: "Resumo mensal Forecast",
+        href: "/programacao/resumo-mensal-forecast",
+        allowedFor: ["total", "parcial", "sem_permissao"],
+      },
+      {
         name: "Valores Mensais",
         href: "/programacao/valores-mensais",
         allowedFor: ["total", "parcial", "sem_permissao"],

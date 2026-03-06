@@ -24,7 +24,11 @@ dayjs.locale("pt-br");
 
 dayjs.extend(utc);
 
-export function MonthlySummaryScheduleTable({ columns, data }: TableInterface) {
+export function MonthlyForecastSummaryTable({ columns, data }: TableInterface) {
+  const flatColumns = columns.flatMap((col: any) =>
+    "children" in col ? col.children : [col],
+  );
+
   function formatValue(value: any, column: any, item: any) {
     switch (column.format) {
       case "currency":
@@ -55,7 +59,7 @@ export function MonthlySummaryScheduleTable({ columns, data }: TableInterface) {
       component={Paper}
       className="w-full min-h-96 h-[720px] max-h-[880px] lg:max-h-[620px] xl:max-h-[95%] flex-1 mb-6 overflow-y-auto xl:mb-0 xl:first:mr-8 xl:w-1/2"
     >
-      <Table stickyHeader sx={{ tableLayout: "auto" }}>
+      <Table sx={{ tableLayout: "auto" }}>
         <TableHead>
           <TableRow>
             {columns.map((col: any, index: number) => {
@@ -65,7 +69,7 @@ export function MonthlySummaryScheduleTable({ columns, data }: TableInterface) {
                     key={index}
                     colSpan={col.children.length}
                     align="center"
-                    className="font-semibold text-center bg-[#53FF75] text-base text-nowrap min-w-4"
+                    className="font-semibold text-center bg-[#53FF75] text-base text-nowrap sticky top-0 border-0"
                   >
                     {col.label}
                   </TableCell>
@@ -76,38 +80,48 @@ export function MonthlySummaryScheduleTable({ columns, data }: TableInterface) {
                 <TableCell
                   key={index}
                   rowSpan={2}
-                  className="font-semibold text-center bg-[#53FF75] text-base text-nowrap min-w-4"
+                  className="font-semibold text-center bg-[#53FF75] text-base text-nowrap sticky top-0"
                 >
                   {col.label}
                 </TableCell>
               );
             })}
           </TableRow>
-        </TableHead>
-        <TableBody className="h-[620px]">
-          {data.map((item: any, index: number) => {
-            const flatColumns = columns.flatMap((col: any) =>
-              "children" in col ? col.children : [col],
-            );
 
-            return (
-              <TableRow key={index} className="h-16">
-                {flatColumns.map((column: any, index: number) => {
-                  const value = formatValue(item[column.key], column, item);
-
-                  return (
+          {/* Segunda linha do header (subcolunas) */}
+          <TableRow>
+            {columns.flatMap((col: any) =>
+              "children" in col
+                ? col.children.map((child: any) => (
                     <TableCell
-                      key={index}
-                      className="text-center text-sm text-nowrap"
+                      key={child.key}
+                      className="font-semibold text-center bg-[#53FF75] text-base text-nowrap sticky top-14 py-0"
                     >
-                      {value}
+                      {child.label}
                     </TableCell>
-                  );
-                })}
-              </TableRow>
-            );
-          })}
-          <TableRow></TableRow>
+                  ))
+                : [],
+            )}
+          </TableRow>
+        </TableHead>
+
+        <TableBody>
+          {data.map((item: any, rowIndex: number) => (
+            <TableRow key={rowIndex} className="h-14">
+              {flatColumns.map((column: any, colIndex: number) => {
+                const value = formatValue(item[column.key], column, item);
+
+                return (
+                  <TableCell
+                    key={colIndex}
+                    className="text-center text-sm text-nowrap py-1"
+                  >
+                    {value}
+                  </TableCell>
+                );
+              })}
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
     </TableContainer>
