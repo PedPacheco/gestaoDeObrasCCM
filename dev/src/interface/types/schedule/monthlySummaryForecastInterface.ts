@@ -1,5 +1,3 @@
-// ─── Domain Types ─────────────────────────────────────────────────────────────
-
 export interface MonthlyCapacityMetricsForecast {
   readonly dailyFinancialGoal: number;
   readonly teamsTotal: number;
@@ -46,13 +44,3 @@ export interface GroupTeamSummaryEntryForecast {
   totalMaterialMoExec: number;
   diff: number;
 }
-
-// export interface GroupTeamSummaryEntryResponse {
-//   grupo: string;
-//   turma: string;
-//   qtdeObras: number;
-//   totalMoProg: number;
-//   totalMoExec: number;
-//   totalMoPrev: number;
-//   diff: number;
-// }

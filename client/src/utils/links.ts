@@ -123,7 +123,7 @@ export const links = [
     allowedFor: ["total", "parcial", "sem_permissao"],
     submenu: [
       {
-        name: "Resumo mensal",
+        name: "Resumo mensal - Mão de Obra",
         href: "/programacao/resumo-mensal",
         allowedFor: ["total", "parcial", "sem_permissao"],
       },

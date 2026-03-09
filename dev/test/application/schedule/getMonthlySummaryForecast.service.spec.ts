@@ -11,7 +11,8 @@ describe('GetMonthlySummaryForecastService', () => {
   let service: GetMonthlySummaryForecastService;
 
   const filters: GetMonthlySummaryDTO = {
-    date: '11/2024',
+    dataFinal: '01/11/2024',
+    dataInicial: '30/11/2024',
     idGrupo: [1],
     idParceira: [2],
     idRegional: [3],
@@ -107,7 +108,7 @@ describe('GetMonthlySummaryForecastService', () => {
 
       expect(
         mockExecutionCapacityRepository.getFinancialValue,
-      ).toHaveBeenCalledWith('2026');
+      ).toHaveBeenCalledWith('2024');
     });
 
     it('should group records by date and return one entry per distinct date', async () => {

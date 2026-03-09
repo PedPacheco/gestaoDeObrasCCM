@@ -3,10 +3,10 @@ import { cookies } from "next/headers";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-
-import { Transform } from "@/utils/transform";
-import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { MainMonthlyForecastSummarySchedule } from "@/components/scheduleComponents/monthlyForecastSummary/mainMonthlyForecastSummary";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
+import { Transform } from "@/utils/transform";
+
 import { MonthlySummaryTableColumn } from "../resumo-mensal/page";
 
 export const dynamic = "force-dynamic";
@@ -17,20 +17,18 @@ export default async function MonthlyForecastSummary() {
   const token = cookieStore.get("token")?.value;
 
   const params = cookieParams ? JSON.parse(cookieParams) : undefined;
-  let filtersValues = undefined;
 
-  if (params) {
-    const formattedSelectedItems = Transform(params.selectedItems);
+  let filtersValues = {
+    ...Transform(params?.selectedItems || {}),
+    dataInicial: params?.startDate
+      ? dayjs(params?.startDate).format("DD/MM/YYYY")
+      : dayjs().startOf("month").format("DD/MM/YYYY"),
+    dataFinal: params?.endDate
+      ? dayjs(params?.endDate).format("DD/MM/YYYY")
+      : dayjs().endOf("month").format("DD/MM/YYYY"),
+  };
 
-    filtersValues = {
-      ...formattedSelectedItems,
-      date: dayjs(params.date).format("MM/YYYY"),
-    };
-  } else {
-    filtersValues = {
-      date: dayjs().format("MM/YYYY"),
-    };
-  }
+  console.log(filtersValues);
 
   const [filters, summaryData] = await Promise.all([
     fetchFilters({
@@ -139,8 +137,8 @@ export default async function MonthlyForecastSummary() {
         columnsSecondSummary={columnsSecondSummary}
         dataFirstSummary={summaryData.data.firstSummary}
         dataSecondSummary={summaryData.data.secondSummary}
+        token={summaryData.token}
         filtersData={filters}
-        token={summaryData.data.token}
       />
     </EmotionCacheProvider>
   );

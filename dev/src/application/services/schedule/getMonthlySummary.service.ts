@@ -37,9 +37,11 @@ export class GetMonthlySummaryService {
   async getSummary(
     filters: GetMonthlySummaryDTO,
   ): Promise<DailySummaryEntry[]> {
+    const year = moment(filters.dataFinal, 'DD/MM/YYYY').year().toString();
+
     const [data, executionCapacity] = await Promise.all([
       this.monthlySummaryRepository.getSummary(filters),
-      this.executionCapacityRepository.getFinancialValue('2026'),
+      this.executionCapacityRepository.getFinancialValue(year),
     ]);
 
     const capacityCache = new Map<number, MonthlyCapacityMetrics>();

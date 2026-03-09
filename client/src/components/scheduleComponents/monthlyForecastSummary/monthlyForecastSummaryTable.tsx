@@ -7,6 +7,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import utc from "dayjs/plugin/utc";
 
 import { TableInterface } from "@/interfaces/tableInterface";
+import { FormatCurrency, formatPercentage } from "@/utils/formatValue";
 import {
   Paper,
   Table,
@@ -16,7 +17,6 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import { FormatCurrency, formatPercentage } from "@/utils/formatValue";
 
 dayjs.extend(customParseFormat);
 
@@ -106,7 +106,7 @@ export function MonthlyForecastSummaryTable({ columns, data }: TableInterface) {
         </TableHead>
 
         <TableBody>
-          {data.map((item: any, rowIndex: number) => (
+          {data?.map((item: any, rowIndex: number) => (
             <TableRow key={rowIndex} className="h-14">
               {flatColumns.map((column: any, colIndex: number) => {
                 const value = formatValue(item[column.key], column, item);

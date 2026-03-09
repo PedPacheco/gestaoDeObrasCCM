@@ -11,7 +11,8 @@ describe('GetMonthlySummary', () => {
   let getMonthlySummaryRepository: GetMonthlySummaryRepository;
 
   const filtersNotDefined: GetMonthlySummaryDTO = {
-    date: '11/2024',
+    dataFinal: '30/11/2024',
+    dataInicial: '01/11/2024',
     idGrupo: undefined,
     idParceira: undefined,
     idRegional: undefined,
@@ -19,7 +20,8 @@ describe('GetMonthlySummary', () => {
   };
 
   const filters: GetMonthlySummaryDTO = {
-    date: '11/2024',
+    dataFinal: '30/11/2024',
+    dataInicial: '01/11/2024',
     idGrupo: [1],
     idParceira: [2],
     idRegional: [3],
@@ -151,7 +153,7 @@ describe('GetMonthlySummary', () => {
         where: {
           data_prog: {
             gte: moment.utc('2024-11-01').toDate(),
-            lt: moment.utc('2024-12-01').toDate(),
+            lt: moment.utc('2024-11-30').toDate(),
           },
           obras: {
             tipos: { id_grupo: undefined },
@@ -183,7 +185,7 @@ describe('GetMonthlySummary', () => {
         where: {
           data_prog: {
             gte: moment.utc('2024-11-01').toDate(),
-            lt: moment.utc('2024-12-01').toDate(),
+            lt: moment.utc('2024-11-30').toDate(),
           },
           obras: {
             tipos: { id_grupo: { in: [1] } },
@@ -226,7 +228,7 @@ describe('GetMonthlySummary', () => {
             some: {
               data_prog: {
                 gte: moment.utc('2024-11-01').toDate(),
-                lt: moment.utc('2024-12-01').toDate(),
+                lt: moment.utc('2024-11-30').toDate(),
               },
             },
           },
@@ -248,7 +250,7 @@ describe('GetMonthlySummary', () => {
             where: {
               data_prog: {
                 gte: moment.utc('2024-11-01').toDate(),
-                lt: moment.utc('2024-12-01').toDate(),
+                lt: moment.utc('2024-11-30').toDate(),
               },
             },
             select: { data_prog: true, prog: true, exec: true },
@@ -270,7 +272,7 @@ describe('GetMonthlySummary', () => {
             some: {
               data_prog: {
                 gte: moment.utc('2024-11-01').toDate(),
-                lt: moment.utc('2024-12-01').toDate(),
+                lt: moment.utc('2024-11-30').toDate(),
               },
             },
           },
@@ -292,7 +294,7 @@ describe('GetMonthlySummary', () => {
             where: {
               data_prog: {
                 gte: moment.utc('2024-11-01').toDate(),
-                lt: moment.utc('2024-12-01').toDate(),
+                lt: moment.utc('2024-11-30').toDate(),
               },
             },
             select: { data_prog: true, prog: true, exec: true },

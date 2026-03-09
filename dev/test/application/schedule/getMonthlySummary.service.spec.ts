@@ -11,7 +11,8 @@ describe('GetMonthlySummaryService', () => {
   let service: GetMonthlySummaryService;
 
   const filters: GetMonthlySummaryDTO = {
-    date: '11/2024',
+    dataFinal: '30/11/2024',
+    dataInicial: '01/11/2024',
     idGrupo: [1],
     idParceira: [2],
     idRegional: [3],
@@ -86,7 +87,7 @@ describe('GetMonthlySummaryService', () => {
       expect(mockRepository.getSummary).toHaveBeenCalledWith(filters);
       expect(
         mockExecutionCapacityRepository.getFinancialValue,
-      ).toHaveBeenCalledWith('2026');
+      ).toHaveBeenCalledWith('2024');
     });
 
     it('should group records by date and accumulate totals correctly', async () => {

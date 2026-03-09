@@ -1,10 +1,10 @@
-import * as moment from 'moment';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
 import {
   GetMonthlySummaryInterface,
   GetSecondMonthlySummaryInterface,
 } from 'src/interface/types/schedule/getMonthlySummaryInterface';
+import * as moment from 'moment';
 
 import { Injectable } from '@nestjs/common';
 
@@ -17,26 +17,14 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
   async getSummary(
     filters: GetMonthlySummaryDTO,
   ): Promise<GetMonthlySummaryInterface[]> {
-    const { date, idRegional, idParceira, idTipo, idGrupo } = filters;
-
-    const month: number = Number(date?.split('/')[0]);
-    const year: number = Number(date?.split('/')[1]);
-
-    const monthInitial = moment
-      .utc([year, month - 1])
-      .startOf('month')
-      .toDate();
-    const monthFinal = moment
-      .utc([year, month - 1])
-      .add(1, 'month')
-      .startOf('month')
-      .toDate();
+    const { dataFinal, dataInicial, idRegional, idParceira, idTipo, idGrupo } =
+      filters;
 
     return await this.prisma.programacoes.findMany({
       where: {
         data_prog: {
-          gte: monthInitial,
-          lt: monthFinal,
+          gte: moment.utc(dataInicial, 'DD/MM/YYYY').toDate(),
+          lt: moment.utc(dataFinal, 'DD/MM/YYYY').toDate(),
         },
         obras: {
           tipos: {
@@ -71,25 +59,18 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
   async getSecondSummary(
     filters: GetMonthlySummaryDTO,
   ): Promise<GetSecondMonthlySummaryInterface[]> {
-    const { date, idGrupo, idParceira, idRegional, idTipo } = filters;
-
-    const month: number = Number(date?.split('/')[0]);
-    const year: number = Number(date?.split('/')[1]);
-
-    const monthInitial = moment
-      .utc([year, month - 1])
-      .startOf('month')
-      .toDate();
-    const monthFinal = moment
-      .utc([year, month - 1])
-      .add(1, 'month')
-      .startOf('month')
-      .toDate();
+    const { dataFinal, dataInicial, idGrupo, idParceira, idRegional, idTipo } =
+      filters;
 
     return await this.prisma.obras.findMany({
       where: {
         programacoes: {
-          some: { data_prog: { gte: monthInitial, lt: monthFinal } },
+          some: {
+            data_prog: {
+              gte: moment.utc(dataInicial, 'DD/MM/YYYY').toDate(),
+              lt: moment.utc(dataFinal, 'DD/MM/YYYY').toDate(),
+            },
+          },
         },
         tipos: {
           id_grupo: idGrupo ? { in: idGrupo } : undefined,
@@ -112,8 +93,8 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
         programacoes: {
           where: {
             data_prog: {
-              gte: monthInitial,
-              lt: monthFinal,
+              gte: moment.utc(dataInicial, 'DD/MM/YYYY').toDate(),
+              lt: moment.utc(dataFinal, 'DD/MM/YYYY').toDate(),
             },
           },
           select: { data_prog: true, prog: true, exec: true },

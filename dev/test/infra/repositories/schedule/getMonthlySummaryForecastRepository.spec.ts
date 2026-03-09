@@ -11,7 +11,8 @@ describe('GetMonthlySummaryForecastRepository', () => {
   let getMonthlySummaryRepository: GetMonthlySummaryForecastRepository;
 
   const filtersNotDefined: GetMonthlySummaryDTO = {
-    date: '11/2024',
+    dataFinal: '30/11/2024',
+    dataInicial: '01/11/2024',
     idGrupo: undefined,
     idParceira: undefined,
     idRegional: undefined,
@@ -19,7 +20,8 @@ describe('GetMonthlySummaryForecastRepository', () => {
   };
 
   const filters: GetMonthlySummaryDTO = {
-    date: '11/2024',
+    dataFinal: '30/11/2024',
+    dataInicial: '01/11/2024',
     idGrupo: [1],
     idParceira: [2],
     idRegional: [3],
@@ -159,7 +161,7 @@ describe('GetMonthlySummaryForecastRepository', () => {
         where: {
           data_prog: {
             gte: moment.utc('2024-11-01').toDate(),
-            lt: moment.utc('2024-12-01').toDate(),
+            lt: moment.utc('2024-11-30').toDate(),
           },
           obras: {
             tipos: { id_grupo: undefined },
@@ -196,7 +198,7 @@ describe('GetMonthlySummaryForecastRepository', () => {
         where: {
           data_prog: {
             gte: moment.utc('2024-11-01').toDate(),
-            lt: moment.utc('2024-12-01').toDate(),
+            lt: moment.utc('2024-11-30').toDate(),
           },
           obras: {
             tipos: { id_grupo: { in: [1] } },
@@ -244,7 +246,7 @@ describe('GetMonthlySummaryForecastRepository', () => {
             some: {
               data_prog: {
                 gte: moment.utc('2024-11-01').toDate(),
-                lt: moment.utc('2024-12-01').toDate(),
+                lt: moment.utc('2024-11-30').toDate(),
               },
             },
           },
@@ -269,7 +271,7 @@ describe('GetMonthlySummaryForecastRepository', () => {
             where: {
               data_prog: {
                 gte: moment.utc('2024-11-01').toDate(),
-                lt: moment.utc('2024-12-01').toDate(),
+                lt: moment.utc('2024-11-30').toDate(),
               },
             },
             select: { data_prog: true, prog: true, exec: true },
@@ -291,7 +293,7 @@ describe('GetMonthlySummaryForecastRepository', () => {
             some: {
               data_prog: {
                 gte: moment.utc('2024-11-01').toDate(),
-                lt: moment.utc('2024-12-01').toDate(),
+                lt: moment.utc('2024-11-30').toDate(),
               },
             },
           },
@@ -316,7 +318,7 @@ describe('GetMonthlySummaryForecastRepository', () => {
             where: {
               data_prog: {
                 gte: moment.utc('2024-11-01').toDate(),
-                lt: moment.utc('2024-12-01').toDate(),
+                lt: moment.utc('2024-11-30').toDate(),
               },
             },
             select: { data_prog: true, prog: true, exec: true },

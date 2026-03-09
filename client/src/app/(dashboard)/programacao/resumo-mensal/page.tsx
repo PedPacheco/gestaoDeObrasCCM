@@ -30,20 +30,16 @@ export default async function MonthlySummary() {
   const token = cookieStore.get("token")?.value;
 
   const params = cookieParams ? JSON.parse(cookieParams) : undefined;
-  let filtersValues = undefined;
 
-  if (params) {
-    const formattedSelectedItems = Transform(params.selectedItems);
-
-    filtersValues = {
-      ...formattedSelectedItems,
-      date: dayjs(params.date).format("MM/YYYY"),
-    };
-  } else {
-    filtersValues = {
-      date: dayjs().format("MM/YYYY"),
-    };
-  }
+  let filtersValues = {
+    ...Transform(params?.selectedItems || {}),
+    dataInicial: params?.startDate
+      ? dayjs(params?.startDate).format("DD/MM/YYYY")
+      : dayjs().startOf("month").format("DD/MM/YYYY"),
+    dataFinal: params?.endDate
+      ? dayjs(params?.endDate).format("DD/MM/YYYY")
+      : dayjs().endOf("month").format("DD/MM/YYYY"),
+  };
 
   const [filters, summaryData] = await Promise.all([
     fetchFilters({
@@ -102,7 +98,7 @@ export default async function MonthlySummary() {
         dataFirstSummary={summaryData.data.firstSummary}
         dataSecondSummary={summaryData.data.secondSummary}
         filtersData={filters}
-        token={summaryData.data.token}
+        token={summaryData.token}
       />
     </EmotionCacheProvider>
   );

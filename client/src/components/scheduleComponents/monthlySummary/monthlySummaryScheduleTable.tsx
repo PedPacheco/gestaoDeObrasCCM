@@ -7,6 +7,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import utc from "dayjs/plugin/utc";
 
 import { TableInterface } from "@/interfaces/tableInterface";
+import { FormatCurrency, formatPercentage } from "@/utils/formatValue";
 import {
   Paper,
   Table,
@@ -16,7 +17,6 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import { FormatCurrency, formatPercentage } from "@/utils/formatValue";
 
 dayjs.extend(customParseFormat);
 
@@ -85,7 +85,7 @@ export function MonthlySummaryScheduleTable({ columns, data }: TableInterface) {
           </TableRow>
         </TableHead>
         <TableBody className="h-[620px]">
-          {data.map((item: any, index: number) => {
+          {data?.map((item: any, index: number) => {
             const flatColumns = columns.flatMap((col: any) =>
               "children" in col ? col.children : [col],
             );
@@ -107,7 +107,6 @@ export function MonthlySummaryScheduleTable({ columns, data }: TableInterface) {
               </TableRow>
             );
           })}
-          <TableRow></TableRow>
         </TableBody>
       </Table>
     </TableContainer>
