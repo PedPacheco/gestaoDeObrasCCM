@@ -18,6 +18,8 @@ import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import { MonthlyForecastSummaryTable } from "./monthlyForecastSummaryTable";
+import { exportExcel } from "@/actions/generateExcel.action";
+import { mountUrl } from "@/utils/mountUrl";
 
 export interface Filters {
   regional: { id: string; regional: string }[];
@@ -108,6 +110,33 @@ export function MainMonthlyForecastSummarySchedule({
     setEndDate(filters.endDate ? dayjs(filters.endDate) : null);
   }, [filters]);
 
+  const generateExcel = async (
+    params: Record<string, string | boolean | string | null>,
+  ) => {
+    const url = mountUrl(
+      `${process.env.NEXT_PUBLIC_API_URL}/exportacao/resumo-mensal-forecast`,
+      params,
+    );
+
+    try {
+      if (token) {
+        const blob = await exportExcel(url, token);
+
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = "Exportação Resumo Mensal - Forecast.xlsx";
+        document.body.append(link);
+        link.click();
+
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+      }
+    } catch (error: any) {
+      setError(`Erro ao gerar a planilha: ${error.message}`);
+    }
+  };
+
   function handleApplyFilters() {
     saveFilters({ selectedItems, startDate, endDate });
     fetch(buildParams(selectedItems, startDate, endDate));
@@ -165,6 +194,19 @@ export function MainMonthlyForecastSummarySchedule({
             text={getButtonContent(isPending, "Aplicar filtros")}
             styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
           />
+
+          <ButtonComponent
+            onClick={() =>
+              generateExcel({
+                ...Transform(selectedItems),
+                dataInicial: startDate ? startDate.format("DD/MM/YYYY") : null,
+                dataFinal: endDate ? endDate.format("DD/MM/YYYY") : null,
+              })
+            }
+            text={getButtonContent(isPending, "Exportar")}
+            styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
+          />
+
           <ButtonComponent
             onClick={handleClearFilters}
             text={getButtonContent(isPending, "Limpar filtros")}

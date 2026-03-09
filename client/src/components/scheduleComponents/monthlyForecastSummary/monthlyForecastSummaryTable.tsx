@@ -37,9 +37,6 @@ export function MonthlyForecastSummaryTable({ columns, data }: TableInterface) {
       case "number":
         return value?.toLocaleString("pt-br");
 
-      case "date":
-        return dayjs(value).utc().format("DD/MM/YYYY");
-
       case "weekday":
         const parsed = dayjs(item.dataProg, ["YYYY-MM-DD", "DD/MM/YYYY"], true);
         return parsed.isValid()

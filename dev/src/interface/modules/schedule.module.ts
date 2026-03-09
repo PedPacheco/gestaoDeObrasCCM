@@ -142,6 +142,11 @@ import { GetMonthlySummaryForecastRepository } from 'src/infra/repositories/sche
     //   useClass: UpdateRestrictionsRepository,
     // },
   ],
-  exports: [GetScheduleValuesService, FIND_SCHEDULE_BY_ID_REPOSITORY],
+  exports: [
+    GetScheduleValuesService,
+    GetMonthlySummaryService,
+    GetMonthlySummaryForecastService,
+    FIND_SCHEDULE_BY_ID_REPOSITORY,
+  ],
 })
 export class ScheduleModule {}

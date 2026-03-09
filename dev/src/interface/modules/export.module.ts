@@ -20,6 +20,8 @@ import { ExportExecutionReportService } from 'src/application/services/export/ex
 import { ExportForecastService } from 'src/application/services/export/exportForecast.service';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 import { ExportRejectionsService } from 'src/application/services/export/exportRejections.service';
+import { ExportMonthlyMOSummaryService } from 'src/application/services/export/exportMonthlySummary.service';
+import { ExportMonthlyForecastSummaryService } from 'src/application/services/export/exportMonthlyForecastSummary.service';
 
 @Module({
   imports: [WorksModule, ScheduleModule, UsersModule],
@@ -38,6 +40,8 @@ import { ExportRejectionsService } from 'src/application/services/export/exportR
     ExportForecastService,
     DeadlineStatusService,
     ExportRejectionsService,
+    ExportMonthlyMOSummaryService,
+    ExportMonthlyForecastSummaryService,
     {
       provide: EXPORT_REPOSITORY,
       useClass: ExportRepository,

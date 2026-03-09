@@ -1,220 +1,264 @@
+import { Test, TestingModule } from '@nestjs/testing';
 import { Response } from 'express';
-import { ExportCompletedWorksBIService } from 'src/application/services/export/BI/exportCompletedWorksBI.service';
-import { ExportSchedulesBIService } from 'src/application/services/export/BI/exportSchedulesBI.service';
-import { ExportWorksInPortfolioBI } from 'src/application/services/export/BI/exportWorkInPortfolioBI.service';
+
+// Controller under test
+import { ExportController } from 'src/interface/controllers/export.controller';
+
+// Guards
+import { PermissionGuard } from 'src/core/guards/permission.guard';
+import { VisualizationGuard } from 'src/core/guards/visualization.guard';
+
+// Services - Schedule
+import { GetScheduleValuesService } from 'src/application/services/schedule/getScheduleValues.service';
+import { GetMonthlySummaryService } from 'src/application/services/schedule/getMonthlySummary.service';
+import { GetMonthlySummaryForecastService } from 'src/application/services/schedule/getMonthlySummaryForecast.service';
+
+// Services - Works
+import { GetWorksInPortfolioService } from 'src/application/services/works/getWorksInPortfolio.service';
+import { GetCompletedWorksService } from 'src/application/services/works/getCompletedWorks.service';
+
+// Services - Export (Standard)
+import { ExportScheduleService } from 'src/application/services/export/exportSchedule.service';
+import { ExportWorksInPortfolioService } from 'src/application/services/export/exportWorksInPortfolio.service';
 import { ExportCompletedWorksService } from 'src/application/services/export/exportCompletedWorks.service';
-import { ExportExecutionCapacityService } from 'src/application/services/export/exportExecutionCapacity.service';
-import { ExportExecutionReportService } from 'src/application/services/export/exportExecutionReport.service';
+import { ExportMonthlyMOSummaryService } from 'src/application/services/export/exportMonthlySummary.service';
+import { ExportMonthlyForecastSummaryService } from 'src/application/services/export/exportMonthlyForecastSummary.service';
 import { ExportFinedWorksService } from 'src/application/services/export/exportFinedWorks.service';
+import { ExportExecutionCapacityService } from 'src/application/services/export/exportExecutionCapacity.service';
+import { ExportSuspensionsService } from 'src/application/services/export/exportSuspensions.service';
+import { ExportExecutionReportService } from 'src/application/services/export/exportExecutionReport.service';
 import { ExportForecastService } from 'src/application/services/export/exportForecast.service';
 import { ExportRejectionsService } from 'src/application/services/export/exportRejections.service';
-import { ExportScheduleService } from 'src/application/services/export/exportSchedule.service';
-import { ExportSuspensionsService } from 'src/application/services/export/exportSuspensions.service';
-import { ExportWorksInPortfolioService } from 'src/application/services/export/exportWorksInPortfolio.service';
-import { GetScheduleValuesService } from 'src/application/services/schedule/getScheduleValues.service';
-import { UsersService } from 'src/application/services/users.service';
-import { GetCompletedWorksService } from 'src/application/services/works/getCompletedWorks.service';
-import { GetWorksInPortfolioService } from 'src/application/services/works/getWorksInPortfolio.service';
-import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
-import { ExportController } from 'src/interface/controllers/export.controller';
+
+// Services - Export (BI)
+import { ExportWorksInPortfolioBI } from 'src/application/services/export/BI/exportWorkInPortfolioBI.service';
+import { ExportCompletedWorksBIService } from 'src/application/services/export/BI/exportCompletedWorksBI.service';
+import { ExportSchedulesBIService } from 'src/application/services/export/BI/exportSchedulesBI.service';
+
+// Types
 import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
 import { worksInPortfolioResponseService } from 'src/interface/types/works/getWorksInPortfolioInterface';
 
-import { Test } from '@nestjs/testing';
+// ─────────────────────────────────────────────
+// Constants
+// ─────────────────────────────────────────────
+
+const XLSX_CONTENT_TYPE =
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+// ─────────────────────────────────────────────
+// Factories
+// ─────────────────────────────────────────────
+
+function makeMockResponse(): jest.Mocked<Pick<Response, 'setHeader' | 'send'>> {
+  return {
+    setHeader: jest.fn(),
+    send: jest.fn(),
+  } as unknown as jest.Mocked<Pick<Response, 'setHeader' | 'send'>>;
+}
+
+function makeReq(
+  overrides: { idParceira?: number; insufficientPermission?: boolean } = {},
+) {
+  return { ...overrides } as unknown as Request;
+}
+
+// ─────────────────────────────────────────────
+// Fixtures
+// ─────────────────────────────────────────────
+
+const mockScheduleData: GetScheduleValuesResponse = {
+  works: [
+    {
+      id: 9045,
+      ovnota: '12398586',
+      ordemdiagrama: '170000002955',
+      diagrama: null,
+      mun: 'MCR',
+      prazo_fim: '2024-03-30T00:00:00.000Z',
+      tipo_obra: 'POSTE',
+      id_grupo: 1,
+      qtde_planejada: '1',
+      mo_planejada: '3262.21',
+      turma: 'LIG',
+      executado: 0,
+      data_prog: '2024-10-01T00:00:00.000Z',
+      prog: 100,
+      exec: null,
+      mo_prog: 3262.21,
+      mo_exec: 3262.21,
+      mat_prog: 2345.32,
+      num_dp: '15563352',
+      hora_ini: '1970-01-01T14:30:00.000Z',
+      hora_ter: '1970-01-01T17:30:00.000Z',
+      equipe_linha_morta: 1,
+      equipe_linha_viva: 1,
+      equipe_regularizacao: 0,
+      id_tecnico: 1,
+      observprog: '',
+      conjunto: '',
+      circuito: '',
+      status_programacao: 'PROGRAMADA',
+      status: 'EM EXECUÇÃO',
+      id_restricao_prog1: 0,
+      id_restricao_prog2: 0,
+      data_resolucao1: new Date('1970-01-01T00:00:00.000Z'),
+      data_resolucao2: new Date('1970-01-01T00:00:00.000Z'),
+      status_restricao1: 'SEM RESTRIÇÃO',
+      status_restricao2: 'SEM RESTRIÇÃO',
+      restricao_aberta: false,
+      status_prazo: 'Atenção: 32 dias restantes',
+      status_ov_sap: 51,
+    },
+  ],
+  totals: {
+    total_obras: 1,
+    total_mo_planejada: 3262.21,
+    total_mo_exec: 0,
+    total_qtde_planejada: 1,
+  },
+};
+
+const mockWorksData: worksInPortfolioResponseService = {
+  works: [
+    {
+      ovnota: '123456',
+      ordemdiagrama: 'OD-001',
+      ordem_dcd: 'DCD-01',
+      ordem_dca: 'DCA-01',
+      ordem_dcim: 'DCIM-01',
+      status_ov_sap: 50,
+      pep: 'PEP001',
+      mun: 'São Paulo',
+      abrev_regional: 'SP',
+      conjunto: 'Conjunto 1',
+      circuito: 'Circuito A',
+      prazo_fim: 90,
+      tipo_obra: 'Manutenção Geral',
+      id_grupo: 1,
+      qtde_planejada: 10,
+      qtde_pend: 2,
+      mo_planejada: 5,
+      status: 'Planejado',
+      turma: 'Equipe Alpha',
+      ano_plan: 2025,
+      executado: 50,
+      data_empreitamento: new Date('2024-02-20T00:00:00.000Z'),
+      empreendimento: 'Empreendimento X',
+      id: 0,
+      prazo: 0,
+      contagem_ocorrencias: 0,
+      id_status: 0,
+      total_equipe_lm: 1,
+      total_equipe_lv: 0,
+      total_equipe_reg: 0,
+      total_exec: 80,
+      total_pend: 20,
+      total_prog: 0,
+      status_prazo: 'Atenção: 23 dias restantes',
+    },
+  ],
+  totals: {
+    total_obras: 1,
+    total_mo_planejada: 5,
+    total_mo_exec: 2.5,
+    total_mo_suspensa: 0,
+    total_qtde_planejada: 10,
+    total_qtde_pend: 2,
+  },
+};
+
+const mockMonthlySummaryFirst = { rows: [{ label: 'Janeiro', value: 100 }] };
+const mockMonthlySummarySecond = { rows: [{ label: 'Fevereiro', value: 200 }] };
+
+// ─────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────
+
+function assertXlsxHeaders(
+  res: ReturnType<typeof makeMockResponse>,
+  filename: string,
+) {
+  expect(res.setHeader).toHaveBeenCalledWith(
+    'Content-Disposition',
+    `attachment; filename="${filename}"`,
+  );
+  expect(res.setHeader).toHaveBeenCalledWith('Content-Type', XLSX_CONTENT_TYPE);
+  expect(res.setHeader).toHaveBeenCalledTimes(2);
+}
+
+// ─────────────────────────────────────────────
+// Suite
+// ─────────────────────────────────────────────
 
 describe('ExportController', () => {
   let controller: ExportController;
-  let getScheduleValuesService: GetScheduleValuesService;
-  let exportScheduleService: ExportScheduleService;
-  let getWorksInPortfolioService: GetWorksInPortfolioService;
-  let exportWorksInPortfolioService: ExportWorksInPortfolioService;
-  let getCompletedWorksService: GetCompletedWorksService;
-  let exportCompletedWorksService: ExportCompletedWorksService;
-  let exportWorksInPortfolioBIService: ExportWorksInPortfolioBI;
-  let exportCompletedWorksBIService: ExportCompletedWorksBIService;
-  let exportSchedulesBIService: ExportSchedulesBIService;
-  let exportFinedWorksService: ExportFinedWorksService;
-  let exportExecutionCapacityService: ExportExecutionCapacityService;
-  let exportSuspensionsService: ExportSuspensionsService;
-  let exportExecutionReportService: ExportExecutionReportService;
-  let exportForecastService: ExportForecastService;
-  let exportRejectionsService: ExportRejectionsService;
 
-  const mockReq = {
-    insufficientPermission: true,
-    idParceira: 1,
-  } as unknown as Request;
-
-  const mockWorksData: worksInPortfolioResponseService = {
-    works: [
-      {
-        ovnota: '123456',
-        ordemdiagrama: 'OD-001',
-        ordem_dcd: 'DCD-01',
-        ordem_dca: 'DCA-01',
-        ordem_dcim: 'DCIM-01',
-        status_ov_sap: 50,
-        pep: 'PEP001',
-        mun: 'São Paulo',
-        abrev_regional: 'SP',
-        conjunto: 'Conjunto 1',
-        circuito: 'Circuito A',
-        prazo_fim: 90,
-        tipo_obra: 'Manutenção Geral',
-        id_grupo: 1,
-        qtde_planejada: 10,
-        qtde_pend: 2,
-        mo_planejada: 5,
-        status: 'Planejado',
-        turma: 'Equipe Alpha',
-        ano_plan: 2025,
-        executado: 50,
-        data_empreitamento: new Date('2024-02-20T00:00:00.000Z'),
-        empreendimento: 'Empreendimento X',
-        id: 0,
-        prazo: 0,
-        contagem_ocorrencias: 0,
-        id_status: 0,
-        total_equipe_lm: 1,
-        total_equipe_lv: 0,
-        total_equipe_reg: 0,
-        total_exec: 80,
-        total_pend: 20,
-        total_prog: 0,
-        status_prazo: 'Atenção: 23 dias restantes',
-      },
-    ],
-    totals: {
-      total_obras: 1,
-      total_mo_planejada: 5,
-      total_mo_exec: 2.5,
-      total_mo_suspensa: 0,
-      total_qtde_planejada: 10,
-      total_qtde_pend: 2,
-    },
-  };
-
-  const mockScheduleData: GetScheduleValuesResponse = {
-    works: [
-      {
-        id: 9045,
-        ovnota: '12398586',
-        ordemdiagrama: '170000002955',
-        diagrama: null,
-        mun: 'MCR',
-        prazo_fim: '2024-03-30T00:00:00.000Z',
-        tipo_obra: 'POSTE',
-        id_grupo: 1,
-        qtde_planejada: '1',
-        mo_planejada: '3262.21',
-        turma: 'LIG',
-        executado: 0,
-        data_prog: '2024-10-01T00:00:00.000Z',
-        prog: 100,
-        exec: null,
-        mo_prog: 3262.21,
-        mo_exec: 3262.21,
-        mat_prog: 2345.32,
-        num_dp: '15563352',
-        hora_ini: '1970-01-01T14:30:00.000Z',
-        hora_ter: '1970-01-01T17:30:00.000Z',
-        equipe_linha_morta: 1,
-        equipe_linha_viva: 1,
-        equipe_regularizacao: 0,
-        id_tecnico: 1,
-        observprog: '',
-        conjunto: '',
-        circuito: '',
-        status_programacao: 'PROGRAMADA',
-        status: 'EM EXECUÇÃO',
-        id_restricao_prog1: 0,
-        id_restricao_prog2: 0,
-        data_resolucao1: new Date('1970-01-01T00:00:00.000Z'),
-        data_resolucao2: new Date('1970-01-01T00:00:00.000Z'),
-        status_restricao1: 'SEM RESTRIÇÃO',
-        status_restricao2: 'SEM RESTRIÇÃO',
-        restricao_aberta: false,
-        status_prazo: 'Atenção: 32 dias restantes',
-        status_ov_sap: 51,
-      },
-    ],
-    totals: {
-      total_obras: 1,
-      total_mo_planejada: 3262.21,
-      total_mo_exec: 0,
-      total_qtde_planejada: 1,
-    },
-  };
-
-  async function testGenericExport(
-    controllerMethod: (...args: any[]) => Promise<void>,
-    serviceGetter: jest.Mock,
-    exportGetter: jest.Mock,
-    mockFilters: any,
-    mockData: any,
-    fileName: string,
-    mockReq?: any,
-  ) {
-    const mockResponse = {
-      setHeader: jest.fn(),
-      send: jest.fn(),
-    } as unknown as Response;
-
-    serviceGetter.mockResolvedValue(mockData);
-    exportGetter.mockResolvedValue(undefined);
-
-    await controllerMethod(mockFilters, mockResponse, mockReq);
-
-    const expectedRequestService =
-      fileName === 'Exportação Programação' ? mockData.works : mockData;
-
-    expect(serviceGetter).toHaveBeenCalledWith(mockFilters);
-    expect(mockResponse.setHeader).toHaveBeenCalledWith(
-      'Content-Disposition',
-      `attachment; filename="${fileName}"`,
-    );
-    expect(mockResponse.setHeader).toHaveBeenCalledWith(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-    expect(exportGetter).toHaveBeenCalledWith(
-      expectedRequestService,
-      mockResponse,
-    );
-  }
+  // Services
+  let getScheduleValuesService: jest.Mocked<GetScheduleValuesService>;
+  let getWorksInPortfolioService: jest.Mocked<GetWorksInPortfolioService>;
+  let getCompletedWorksService: jest.Mocked<GetCompletedWorksService>;
+  let monthlyMOSummaryService: jest.Mocked<GetMonthlySummaryService>;
+  let monthlyForecastSummaryService: jest.Mocked<GetMonthlySummaryForecastService>;
+  let exportScheduleService: jest.Mocked<ExportScheduleService>;
+  let exportWorksInPortfolioService: jest.Mocked<ExportWorksInPortfolioService>;
+  let exportCompletedWorksService: jest.Mocked<ExportCompletedWorksService>;
+  let exportMonthlyMOSummaryService: jest.Mocked<ExportMonthlyMOSummaryService>;
+  let exportMonthlyForecastSummaryService: jest.Mocked<ExportMonthlyForecastSummaryService>;
+  let exportWorksInPortfolioBIService: jest.Mocked<ExportWorksInPortfolioBI>;
+  let exportCompletedWorksBIService: jest.Mocked<ExportCompletedWorksBIService>;
+  let exportSchedulesBIService: jest.Mocked<ExportSchedulesBIService>;
+  let exportFinedWorksService: jest.Mocked<ExportFinedWorksService>;
+  let exportExecutionCapacityService: jest.Mocked<ExportExecutionCapacityService>;
+  let exportSuspensionsService: jest.Mocked<ExportSuspensionsService>;
+  let exportExecutionReportService: jest.Mocked<ExportExecutionReportService>;
+  let exportForecastService: jest.Mocked<ExportForecastService>;
+  let exportRejectionsService: jest.Mocked<ExportRejectionsService>;
 
   beforeEach(async () => {
-    const module = await Test.createTestingModule({
+    const module: TestingModule = await Test.createTestingModule({
       controllers: [ExportController],
       providers: [
-        DeadlineStatusService,
+        // Schedule
         {
           provide: GetScheduleValuesService,
           useValue: { getValues: jest.fn() },
         },
-        { provide: ExportScheduleService, useValue: { export: jest.fn() } },
+        {
+          provide: GetMonthlySummaryService,
+          useValue: { getSummary: jest.fn(), getSecondSummary: jest.fn() },
+        },
+        {
+          provide: GetMonthlySummaryForecastService,
+          useValue: { getSummary: jest.fn(), getSecondSummary: jest.fn() },
+        },
+        // Works
         {
           provide: GetWorksInPortfolioService,
           useValue: { getWorksInPortfolio: jest.fn() },
         },
         {
-          provide: ExportWorksInPortfolioService,
-          useValue: { export: jest.fn() },
-        },
-        {
           provide: GetCompletedWorksService,
           useValue: { getCompletedWorks: jest.fn() },
+        },
+        // Export - Standard
+        { provide: ExportScheduleService, useValue: { export: jest.fn() } },
+        {
+          provide: ExportWorksInPortfolioService,
+          useValue: { export: jest.fn() },
         },
         {
           provide: ExportCompletedWorksService,
           useValue: { export: jest.fn() },
         },
-        { provide: ExportWorksInPortfolioBI, useValue: { export: jest.fn() } },
         {
-          provide: ExportCompletedWorksBIService,
+          provide: ExportMonthlyMOSummaryService,
           useValue: { export: jest.fn() },
         },
-        { provide: ExportSchedulesBIService, useValue: { export: jest.fn() } },
+        {
+          provide: ExportMonthlyForecastSummaryService,
+          useValue: { export: jest.fn() },
+        },
         { provide: ExportFinedWorksService, useValue: { export: jest.fn() } },
         {
           provide: ExportExecutionCapacityService,
@@ -227,17 +271,37 @@ describe('ExportController', () => {
         },
         { provide: ExportForecastService, useValue: { export: jest.fn() } },
         { provide: ExportRejectionsService, useValue: { export: jest.fn() } },
-        { provide: UsersService, useValue: { findUser: jest.fn() } },
+        // Export - BI
+        { provide: ExportWorksInPortfolioBI, useValue: { export: jest.fn() } },
+        {
+          provide: ExportCompletedWorksBIService,
+          useValue: { export: jest.fn() },
+        },
+        { provide: ExportSchedulesBIService, useValue: { export: jest.fn() } },
       ],
-    }).compile();
+    })
+      .overrideGuard(VisualizationGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(PermissionGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
-    controller = module.get<ExportController>(ExportController);
+    controller = module.get(ExportController);
+
     getScheduleValuesService = module.get(GetScheduleValuesService);
-    exportScheduleService = module.get(ExportScheduleService);
     getWorksInPortfolioService = module.get(GetWorksInPortfolioService);
-    exportWorksInPortfolioService = module.get(ExportWorksInPortfolioService);
     getCompletedWorksService = module.get(GetCompletedWorksService);
+    monthlyMOSummaryService = module.get(GetMonthlySummaryService);
+    monthlyForecastSummaryService = module.get(
+      GetMonthlySummaryForecastService,
+    );
+    exportScheduleService = module.get(ExportScheduleService);
+    exportWorksInPortfolioService = module.get(ExportWorksInPortfolioService);
     exportCompletedWorksService = module.get(ExportCompletedWorksService);
+    exportMonthlyMOSummaryService = module.get(ExportMonthlyMOSummaryService);
+    exportMonthlyForecastSummaryService = module.get(
+      ExportMonthlyForecastSummaryService,
+    );
     exportWorksInPortfolioBIService = module.get(ExportWorksInPortfolioBI);
     exportCompletedWorksBIService = module.get(ExportCompletedWorksBIService);
     exportSchedulesBIService = module.get(ExportSchedulesBIService);
@@ -249,202 +313,450 @@ describe('ExportController', () => {
     exportRejectionsService = module.get(ExportRejectionsService);
   });
 
-  afterAll(() => jest.clearAllMocks());
+  afterEach(() => jest.clearAllMocks());
+
+  // ─────────────────────────────────────────────
+  // Instantiation
+  // ─────────────────────────────────────────────
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
 
-  it('should export Schedule', async () => {
-    await testGenericExport(
-      controller.exportSchedule.bind(controller),
-      getScheduleValuesService.getValues as jest.Mock,
-      exportScheduleService.export as jest.Mock,
-      { idParceira: [1] },
-      mockScheduleData,
-      'Exportação Programação',
-      mockReq,
-    );
+  // ─────────────────────────────────────────────
+  // applyFilters (private — tested through public endpoints)
+  // ─────────────────────────────────────────────
+
+  describe('applyFilters (via exportWorksInPortfolio)', () => {
+    it('should inject idParceira from req into filters when present', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      const filters = { page: 1 } as any;
+      const req = makeReq({ idParceira: 42 });
+
+      getWorksInPortfolioService.getWorksInPortfolio.mockResolvedValue(
+        mockWorksData,
+      );
+      exportWorksInPortfolioService.export.mockResolvedValue(undefined);
+
+      await controller.exportWorksInPortfolio(filters, res, req);
+
+      expect(
+        getWorksInPortfolioService.getWorksInPortfolio,
+      ).toHaveBeenCalledWith(expect.objectContaining({ idParceira: 42 }));
+    });
+
+    it('should inject insufficientPermission from req into filters when defined', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      const filters = { page: 1 } as any;
+      const req = makeReq({ insufficientPermission: true });
+
+      getWorksInPortfolioService.getWorksInPortfolio.mockResolvedValue(
+        mockWorksData,
+      );
+      exportWorksInPortfolioService.export.mockResolvedValue(undefined);
+
+      await controller.exportWorksInPortfolio(filters, res, req);
+
+      expect(
+        getWorksInPortfolioService.getWorksInPortfolio,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({ insufficientPermission: true }),
+      );
+    });
+
+    it('should NOT mutate filters when req has no idParceira or insufficientPermission', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      const filters = { page: 1 } as any;
+      const req = makeReq();
+
+      getWorksInPortfolioService.getWorksInPortfolio.mockResolvedValue(
+        mockWorksData,
+      );
+      exportWorksInPortfolioService.export.mockResolvedValue(undefined);
+
+      await controller.exportWorksInPortfolio(filters, res, req);
+
+      expect(
+        getWorksInPortfolioService.getWorksInPortfolio,
+      ).toHaveBeenCalledWith(
+        expect.not.objectContaining({ idParceira: expect.anything() }),
+      );
+    });
   });
 
-  it('should export Schedule without req.idParceira', async () => {
-    const mockReqWithoutIdParceira = {
-      insufficientPermission: undefined,
-    } as unknown as Request;
+  // ─────────────────────────────────────────────
+  // Visualization routes
+  // ─────────────────────────────────────────────
 
-    await testGenericExport(
-      controller.exportSchedule.bind(controller),
-      getScheduleValuesService.getValues as jest.Mock,
-      exportScheduleService.export as jest.Mock,
-      undefined,
-      mockScheduleData,
-      'Exportação Programação',
-      mockReqWithoutIdParceira,
-    );
+  describe('exportSchedule (GET /programacao)', () => {
+    const filters = { idRegional: [1] } as any;
+
+    it('should fetch schedule, set xlsx headers and delegate to export service', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      const req = makeReq({ idParceira: 1 });
+
+      getScheduleValuesService.getValues.mockResolvedValue(mockScheduleData);
+      exportScheduleService.export.mockResolvedValue(undefined);
+
+      await controller.exportSchedule(filters, res, req);
+
+      expect(getScheduleValuesService.getValues).toHaveBeenCalledWith(
+        expect.objectContaining({ idParceira: 1 }),
+      );
+      assertXlsxHeaders(
+        res as unknown as ReturnType<typeof makeMockResponse>,
+        'Exportação Programação',
+      );
+      expect(exportScheduleService.export).toHaveBeenCalledWith(
+        mockScheduleData.works,
+        res,
+      );
+    });
+
+    it('should work without idParceira in req', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      const req = makeReq();
+
+      getScheduleValuesService.getValues.mockResolvedValue(mockScheduleData);
+      exportScheduleService.export.mockResolvedValue(undefined);
+
+      await controller.exportSchedule(filters, res, req);
+
+      expect(getScheduleValuesService.getValues).toHaveBeenCalledWith(filters);
+      expect(exportScheduleService.export).toHaveBeenCalledWith(
+        mockScheduleData.works,
+        res,
+      );
+    });
   });
 
-  it('should export WorksInPortfolio', async () => {
-    await testGenericExport(
-      controller.exportWorksInPortfolio.bind(controller),
-      getWorksInPortfolioService.getWorksInPortfolio as jest.Mock,
-      exportWorksInPortfolioService.export as jest.Mock,
-      { page: 1 },
-      mockWorksData,
-      'Exportação obras em carteira',
-      mockReq,
-    );
+  describe('exportWorksInPortfolio (GET /obras-carteira)', () => {
+    const filters = { page: 1 } as any;
+
+    it('should fetch portfolio works, set xlsx headers and delegate to export service', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      const req = makeReq({ idParceira: 1, insufficientPermission: false });
+
+      getWorksInPortfolioService.getWorksInPortfolio.mockResolvedValue(
+        mockWorksData,
+      );
+      exportWorksInPortfolioService.export.mockResolvedValue(undefined);
+
+      await controller.exportWorksInPortfolio(filters, res, req);
+
+      expect(
+        getWorksInPortfolioService.getWorksInPortfolio,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          idParceira: 1,
+          insufficientPermission: false,
+        }),
+      );
+      assertXlsxHeaders(
+        res as unknown as ReturnType<typeof makeMockResponse>,
+        'Exportação obras em carteira',
+      );
+      expect(exportWorksInPortfolioService.export).toHaveBeenCalledWith(
+        mockWorksData,
+        res,
+      );
+    });
   });
 
-  it('should export CompletedWorks', async () => {
-    const mockReqWithoutIdParceira = {
-      insufficientPermission: undefined,
-    } as unknown as Request;
+  describe('exportCompletedWorks (GET /obras-executadas)', () => {
+    const filters = { idRegional: [2] } as any;
 
-    await testGenericExport(
-      controller.exportCompletedWorks.bind(controller),
-      getCompletedWorksService.getCompletedWorks as jest.Mock,
-      exportCompletedWorksService.export as jest.Mock,
-      { idRegional: [1] },
-      mockWorksData,
-      'Exportação obras executadas',
-      mockReqWithoutIdParceira,
-    );
+    it('should fetch completed works, set xlsx headers and delegate to export service', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      const req = makeReq({ idParceira: 5, insufficientPermission: true });
+
+      getCompletedWorksService.getCompletedWorks.mockResolvedValue(
+        mockWorksData,
+      );
+      exportCompletedWorksService.export.mockResolvedValue(undefined);
+
+      await controller.exportCompletedWorks(filters, res, req);
+
+      expect(getCompletedWorksService.getCompletedWorks).toHaveBeenCalledWith(
+        expect.objectContaining({
+          idParceira: 5,
+          insufficientPermission: true,
+        }),
+      );
+      assertXlsxHeaders(
+        res as unknown as ReturnType<typeof makeMockResponse>,
+        'Exportação obras executadas',
+      );
+      expect(exportCompletedWorksService.export).toHaveBeenCalledWith(
+        mockWorksData,
+        res,
+      );
+    });
+
+    it('should work without req permissions', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      const req = makeReq();
+
+      getCompletedWorksService.getCompletedWorks.mockResolvedValue(
+        mockWorksData,
+      );
+      exportCompletedWorksService.export.mockResolvedValue(undefined);
+
+      await controller.exportCompletedWorks(filters, res, req);
+
+      expect(getCompletedWorksService.getCompletedWorks).toHaveBeenCalledWith(
+        filters,
+      );
+    });
   });
 
-  it('should export WorksInPortfolioBI', async () => {
-    const mockResponse = {
-      setHeader: jest.fn(),
-      send: jest.fn(),
-    } as unknown as Response;
-    jest
-      .spyOn(exportWorksInPortfolioBIService, 'export')
-      .mockResolvedValue(undefined);
+  describe('exportMonthlyMOSummary (GET /resumo-mensal)', () => {
+    const filters = { month: 3, year: 2025 } as any;
 
-    await controller.exportWorksInPortfolioBI(mockResponse);
+    it('should fetch both summaries in parallel, set xlsx headers and export', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      const req = makeReq({ idParceira: 2 });
 
-    expect(mockResponse.setHeader).toHaveBeenCalled();
-    expect(exportWorksInPortfolioBIService.export).toHaveBeenCalledWith(
-      mockResponse,
-    );
+      monthlyMOSummaryService.getSummary.mockResolvedValue(
+        mockMonthlySummaryFirst as any,
+      );
+      monthlyMOSummaryService.getSecondSummary.mockResolvedValue(
+        mockMonthlySummarySecond as any,
+      );
+      exportMonthlyMOSummaryService.export.mockResolvedValue(undefined);
+
+      await controller.exportMonthlyMOSummary(filters, res, req);
+
+      expect(monthlyMOSummaryService.getSummary).toHaveBeenCalledWith(
+        expect.objectContaining({ idParceira: 2 }),
+      );
+      expect(monthlyMOSummaryService.getSecondSummary).toHaveBeenCalledWith(
+        expect.objectContaining({ idParceira: 2 }),
+      );
+      assertXlsxHeaders(
+        res as unknown as ReturnType<typeof makeMockResponse>,
+        'Exportação Resumo Mensal - Mão de Obra',
+      );
+      expect(exportMonthlyMOSummaryService.export).toHaveBeenCalledWith(
+        mockMonthlySummaryFirst,
+        mockMonthlySummarySecond,
+        res,
+      );
+    });
+
+    it('should call getSummary and getSecondSummary concurrently via Promise.all', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      const req = makeReq();
+      const callOrder: string[] = [];
+
+      monthlyMOSummaryService.getSummary.mockImplementation(async () => {
+        callOrder.push('getSummary');
+        return mockMonthlySummaryFirst as any;
+      });
+      monthlyMOSummaryService.getSecondSummary.mockImplementation(async () => {
+        callOrder.push('getSecondSummary');
+        return mockMonthlySummarySecond as any;
+      });
+      exportMonthlyMOSummaryService.export.mockResolvedValue(undefined);
+
+      await controller.exportMonthlyMOSummary(filters, res, req);
+
+      expect(callOrder).toEqual(['getSummary', 'getSecondSummary']);
+    });
   });
 
-  it('should export CompletedWorksBI', async () => {
-    const mockResponse = {
-      setHeader: jest.fn(),
-      send: jest.fn(),
-    } as unknown as Response;
-    jest
-      .spyOn(exportCompletedWorksBIService, 'export')
-      .mockResolvedValue(undefined);
+  describe('exportMonthlyForecastSummary (GET /resumo-mensal-forecast)', () => {
+    const filters = { month: 4, year: 2025 } as any;
 
-    await controller.exportCompletedWorksBI(mockResponse);
+    it('should fetch both forecast summaries in parallel, set xlsx headers and export', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      const req = makeReq({ idParceira: 3 });
 
-    expect(mockResponse.setHeader).toHaveBeenCalled();
-    expect(exportCompletedWorksBIService.export).toHaveBeenCalledWith(
-      mockResponse,
-    );
+      monthlyForecastSummaryService.getSummary.mockResolvedValue(
+        mockMonthlySummaryFirst as any,
+      );
+      monthlyForecastSummaryService.getSecondSummary.mockResolvedValue(
+        mockMonthlySummarySecond as any,
+      );
+      exportMonthlyForecastSummaryService.export.mockResolvedValue(undefined);
+
+      await controller.exportMonthlyForecastSummary(filters, res, req);
+
+      expect(monthlyForecastSummaryService.getSummary).toHaveBeenCalledWith(
+        expect.objectContaining({ idParceira: 3 }),
+      );
+      expect(
+        monthlyForecastSummaryService.getSecondSummary,
+      ).toHaveBeenCalledWith(expect.objectContaining({ idParceira: 3 }));
+      assertXlsxHeaders(
+        res as unknown as ReturnType<typeof makeMockResponse>,
+        'Exportação Resumo Mensal - Forecast',
+      );
+      expect(exportMonthlyForecastSummaryService.export).toHaveBeenCalledWith(
+        mockMonthlySummaryFirst,
+        mockMonthlySummarySecond,
+        res,
+      );
+    });
   });
 
-  it('should export SchedulesBI', async () => {
-    const mockResponse = {
-      setHeader: jest.fn(),
-      send: jest.fn(),
-    } as unknown as Response;
-    jest.spyOn(exportSchedulesBIService, 'export').mockResolvedValue(undefined);
+  // ─────────────────────────────────────────────
+  // BI routes
+  // ─────────────────────────────────────────────
 
-    await controller.exportSchedulesBI(mockResponse);
+  describe('exportWorksInPortfolioBI (GET /obras-carteira-bi)', () => {
+    it('should set xlsx headers and delegate to BI export service', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      exportWorksInPortfolioBIService.export.mockResolvedValue(undefined);
 
-    expect(mockResponse.setHeader).toHaveBeenCalled();
-    expect(exportSchedulesBIService.export).toHaveBeenCalledWith(mockResponse);
+      await controller.exportWorksInPortfolioBI(res);
+
+      assertXlsxHeaders(
+        res as unknown as ReturnType<typeof makeMockResponse>,
+        'Exportação obras em carteira',
+      );
+      expect(exportWorksInPortfolioBIService.export).toHaveBeenCalledWith(res);
+    });
   });
 
-  it('should export FinedWorks', async () => {
-    const mockResponse = {
-      setHeader: jest.fn(),
-      send: jest.fn(),
-    } as unknown as Response;
-    jest.spyOn(exportFinedWorksService, 'export').mockResolvedValue(undefined);
+  describe('exportCompletedWorksBI (GET /obras-executadas-bi)', () => {
+    it('should set xlsx headers and delegate to BI export service', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      exportCompletedWorksBIService.export.mockResolvedValue(undefined);
 
-    await controller.exportFinedWorks(mockResponse, '2025-09-10', '2025-09-15');
+      await controller.exportCompletedWorksBI(res);
 
-    expect(mockResponse.setHeader).toHaveBeenCalled();
-    expect(exportFinedWorksService.export).toHaveBeenCalledWith(
-      mockResponse,
-      '2025-09-10',
-      '2025-09-15',
-    );
+      assertXlsxHeaders(
+        res as unknown as ReturnType<typeof makeMockResponse>,
+        'Exportação obras executadas',
+      );
+      expect(exportCompletedWorksBIService.export).toHaveBeenCalledWith(res);
+    });
   });
 
-  it('should export ExecutionCapacity', async () => {
-    const mockResponse = {
-      setHeader: jest.fn(),
-      send: jest.fn(),
-    } as unknown as Response;
-    jest
-      .spyOn(exportExecutionCapacityService, 'export')
-      .mockResolvedValue(undefined);
+  describe('exportSchedulesBI (GET /programacoes-bi)', () => {
+    it('should set xlsx headers and delegate to BI export service', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      exportSchedulesBIService.export.mockResolvedValue(undefined);
 
-    await controller.exportExecutionCapacity(mockResponse);
+      await controller.exportSchedulesBI(res);
 
-    expect(mockResponse.setHeader).toHaveBeenCalled();
-    expect(exportExecutionCapacityService.export).toHaveBeenCalledWith(
-      mockResponse,
-    );
+      assertXlsxHeaders(
+        res as unknown as ReturnType<typeof makeMockResponse>,
+        'Exportação programações',
+      );
+      expect(exportSchedulesBIService.export).toHaveBeenCalledWith(res);
+    });
   });
 
-  it('should export Suspensions', async () => {
-    const mockResponse = {
-      setHeader: jest.fn(),
-      send: jest.fn(),
-    } as unknown as Response;
-    jest.spyOn(exportSuspensionsService, 'export').mockResolvedValue(undefined);
+  // ─────────────────────────────────────────────
+  // Permission routes
+  // ─────────────────────────────────────────────
 
-    await controller.exportSuspensions(mockResponse);
+  describe('exportFinedWorks (GET /obras-multas)', () => {
+    it('should set xlsx headers and forward date range to export service', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      exportFinedWorksService.export.mockResolvedValue(undefined);
 
-    expect(mockResponse.setHeader).toHaveBeenCalled();
-    expect(exportSuspensionsService.export).toHaveBeenCalledWith(mockResponse);
+      await controller.exportFinedWorks(res, '2025-01-01', '2025-01-31');
+
+      assertXlsxHeaders(
+        res as unknown as ReturnType<typeof makeMockResponse>,
+        'Exportação a serem multadas',
+      );
+      expect(exportFinedWorksService.export).toHaveBeenCalledWith(
+        res,
+        '2025-01-01',
+        '2025-01-31',
+      );
+    });
+
+    it('should work when startDate and endDate are omitted', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      exportFinedWorksService.export.mockResolvedValue(undefined);
+
+      await controller.exportFinedWorks(res);
+
+      expect(exportFinedWorksService.export).toHaveBeenCalledWith(
+        res,
+        undefined,
+        undefined,
+      );
+    });
   });
 
-  it('should export forecast', async () => {
-    const mockResponse = {
-      setHeader: jest.fn(),
-      send: jest.fn(),
-    } as unknown as Response;
-    jest.spyOn(exportForecastService, 'export').mockResolvedValue(undefined);
+  describe('exportExecutionCapacity (GET /capacidade-execucao)', () => {
+    it('should set xlsx headers and delegate to export service', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      exportExecutionCapacityService.export.mockResolvedValue(undefined);
 
-    await controller.exportForecast(mockResponse);
+      await controller.exportExecutionCapacity(res);
 
-    expect(mockResponse.setHeader).toHaveBeenCalled();
-    expect(exportForecastService.export).toHaveBeenCalledWith(mockResponse);
+      assertXlsxHeaders(
+        res as unknown as ReturnType<typeof makeMockResponse>,
+        'Exportação capacidade de execução',
+      );
+      expect(exportExecutionCapacityService.export).toHaveBeenCalledWith(res);
+    });
   });
 
-  it('should export rejections', async () => {
-    const mockResponse = {
-      setHeader: jest.fn(),
-      send: jest.fn(),
-    } as unknown as Response;
-    jest.spyOn(exportRejectionsService, 'export').mockResolvedValue(undefined);
+  describe('exportSuspensions (GET /suspensoes)', () => {
+    it('should set xlsx headers and delegate to export service', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      exportSuspensionsService.export.mockResolvedValue(undefined);
 
-    await controller.exportRejections(mockResponse);
+      await controller.exportSuspensions(res);
 
-    expect(mockResponse.setHeader).toHaveBeenCalled();
-    expect(exportRejectionsService.export).toHaveBeenCalledWith(mockResponse);
+      assertXlsxHeaders(
+        res as unknown as ReturnType<typeof makeMockResponse>,
+        'Exportação Suspensões',
+      );
+      expect(exportSuspensionsService.export).toHaveBeenCalledWith(res);
+    });
   });
 
-  it('should export execution report', async () => {
-    const mockResponse = {
-      setHeader: jest.fn(),
-      send: jest.fn(),
-    } as unknown as Response;
-    jest
-      .spyOn(exportExecutionReportService, 'export')
-      .mockResolvedValue(undefined);
+  describe('exportExecutionReport (GET /relatorio-execucao)', () => {
+    it('should set xlsx headers with the correct filename (not "Suspensões") and delegate', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      exportExecutionReportService.export.mockResolvedValue(undefined);
 
-    await controller.exportExecutonReport(mockResponse);
+      await controller.exportExecutionReport(res);
 
-    expect(mockResponse.setHeader).toHaveBeenCalled();
-    expect(exportExecutionReportService.export).toHaveBeenCalledWith(
-      mockResponse,
-    );
+      assertXlsxHeaders(
+        res as unknown as ReturnType<typeof makeMockResponse>,
+        'Exportação Relatório de Execução',
+      );
+      expect(exportExecutionReportService.export).toHaveBeenCalledWith(res);
+    });
+  });
+
+  describe('exportForecast (GET /forecast)', () => {
+    it('should set xlsx headers and delegate to export service', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      exportForecastService.export.mockResolvedValue(undefined);
+
+      await controller.exportForecast(res);
+
+      assertXlsxHeaders(
+        res as unknown as ReturnType<typeof makeMockResponse>,
+        'Exportação do Forecast',
+      );
+      expect(exportForecastService.export).toHaveBeenCalledWith(res);
+    });
+  });
+
+  describe('exportRejections (GET /reprovacoes)', () => {
+    it('should set xlsx headers and delegate to export service', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      exportRejectionsService.export.mockResolvedValue(undefined);
+
+      await controller.exportRejections(res);
+
+      assertXlsxHeaders(
+        res as unknown as ReturnType<typeof makeMockResponse>,
+        'Exportação das reprovações',
+      );
+      expect(exportRejectionsService.export).toHaveBeenCalledWith(res);
+    });
   });
 });

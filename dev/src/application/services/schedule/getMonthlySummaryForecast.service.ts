@@ -36,8 +36,6 @@ export class GetMonthlySummaryForecastService {
   async getSummary(filters: GetMonthlySummaryDTO): Promise<any> {
     const year = moment(filters.dataFinal, 'DD/MM/YYYY').year().toString();
 
-    console.log(year, filters);
-
     const [data, executionCapacity] = await Promise.all([
       this.monthlySummaryForecastRepository.getSummary(filters),
       this.executionCapacityRepository.getFinancialValue(year),

@@ -24,7 +24,7 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
       where: {
         data_prog: {
           gte: moment.utc(dataInicial, 'DD/MM/YYYY').toDate(),
-          lt: moment.utc(dataFinal, 'DD/MM/YYYY').toDate(),
+          lte: moment.utc(dataFinal, 'DD/MM/YYYY').toDate(),
         },
         obras: {
           tipos: {
@@ -68,7 +68,7 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
           some: {
             data_prog: {
               gte: moment.utc(dataInicial, 'DD/MM/YYYY').toDate(),
-              lt: moment.utc(dataFinal, 'DD/MM/YYYY').toDate(),
+              lte: moment.utc(dataFinal, 'DD/MM/YYYY').toDate(),
             },
           },
         },
@@ -94,11 +94,14 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
           where: {
             data_prog: {
               gte: moment.utc(dataInicial, 'DD/MM/YYYY').toDate(),
-              lt: moment.utc(dataFinal, 'DD/MM/YYYY').toDate(),
+              lte: moment.utc(dataFinal, 'DD/MM/YYYY').toDate(),
             },
           },
           select: { data_prog: true, prog: true, exec: true },
         },
+      },
+      orderBy: {
+        tipos: { id_grupo: 'asc' },
       },
     });
   }

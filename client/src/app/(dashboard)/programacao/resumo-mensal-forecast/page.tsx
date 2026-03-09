@@ -28,8 +28,6 @@ export default async function MonthlyForecastSummary() {
       : dayjs().endOf("month").format("DD/MM/YYYY"),
   };
 
-  console.log(filtersValues);
-
   const [filters, summaryData] = await Promise.all([
     fetchFilters({
       regional: true,
@@ -129,6 +127,8 @@ export default async function MonthlyForecastSummary() {
     },
     { key: "diff", label: "Programado x Executado (%)", format: "percent" },
   ];
+
+  console.log(summaryData.data.firstSummary);
 
   return (
     <EmotionCacheProvider>

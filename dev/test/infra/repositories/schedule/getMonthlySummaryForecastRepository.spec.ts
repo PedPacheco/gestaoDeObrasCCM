@@ -161,7 +161,7 @@ describe('GetMonthlySummaryForecastRepository', () => {
         where: {
           data_prog: {
             gte: moment.utc('2024-11-01').toDate(),
-            lt: moment.utc('2024-11-30').toDate(),
+            lte: moment.utc('2024-11-30').toDate(),
           },
           obras: {
             tipos: { id_grupo: undefined },
@@ -198,7 +198,7 @@ describe('GetMonthlySummaryForecastRepository', () => {
         where: {
           data_prog: {
             gte: moment.utc('2024-11-01').toDate(),
-            lt: moment.utc('2024-11-30').toDate(),
+            lte: moment.utc('2024-11-30').toDate(),
           },
           obras: {
             tipos: { id_grupo: { in: [1] } },
@@ -246,7 +246,7 @@ describe('GetMonthlySummaryForecastRepository', () => {
             some: {
               data_prog: {
                 gte: moment.utc('2024-11-01').toDate(),
-                lt: moment.utc('2024-11-30').toDate(),
+                lte: moment.utc('2024-11-30').toDate(),
               },
             },
           },
@@ -271,11 +271,14 @@ describe('GetMonthlySummaryForecastRepository', () => {
             where: {
               data_prog: {
                 gte: moment.utc('2024-11-01').toDate(),
-                lt: moment.utc('2024-11-30').toDate(),
+                lte: moment.utc('2024-11-30').toDate(),
               },
             },
             select: { data_prog: true, prog: true, exec: true },
           },
+        },
+        orderBy: {
+          tipos: { id_grupo: 'asc' },
         },
       });
     });
@@ -293,7 +296,7 @@ describe('GetMonthlySummaryForecastRepository', () => {
             some: {
               data_prog: {
                 gte: moment.utc('2024-11-01').toDate(),
-                lt: moment.utc('2024-11-30').toDate(),
+                lte: moment.utc('2024-11-30').toDate(),
               },
             },
           },
@@ -318,11 +321,14 @@ describe('GetMonthlySummaryForecastRepository', () => {
             where: {
               data_prog: {
                 gte: moment.utc('2024-11-01').toDate(),
-                lt: moment.utc('2024-11-30').toDate(),
+                lte: moment.utc('2024-11-30').toDate(),
               },
             },
             select: { data_prog: true, prog: true, exec: true },
           },
+        },
+        orderBy: {
+          tipos: { id_grupo: 'asc' },
         },
       });
     });

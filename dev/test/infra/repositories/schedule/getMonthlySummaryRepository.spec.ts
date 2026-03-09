@@ -153,7 +153,7 @@ describe('GetMonthlySummary', () => {
         where: {
           data_prog: {
             gte: moment.utc('2024-11-01').toDate(),
-            lt: moment.utc('2024-11-30').toDate(),
+            lte: moment.utc('2024-11-30').toDate(),
           },
           obras: {
             tipos: { id_grupo: undefined },
@@ -185,7 +185,7 @@ describe('GetMonthlySummary', () => {
         where: {
           data_prog: {
             gte: moment.utc('2024-11-01').toDate(),
-            lt: moment.utc('2024-11-30').toDate(),
+            lte: moment.utc('2024-11-30').toDate(),
           },
           obras: {
             tipos: { id_grupo: { in: [1] } },
@@ -228,7 +228,7 @@ describe('GetMonthlySummary', () => {
             some: {
               data_prog: {
                 gte: moment.utc('2024-11-01').toDate(),
-                lt: moment.utc('2024-11-30').toDate(),
+                lte: moment.utc('2024-11-30').toDate(),
               },
             },
           },
@@ -250,11 +250,14 @@ describe('GetMonthlySummary', () => {
             where: {
               data_prog: {
                 gte: moment.utc('2024-11-01').toDate(),
-                lt: moment.utc('2024-11-30').toDate(),
+                lte: moment.utc('2024-11-30').toDate(),
               },
             },
             select: { data_prog: true, prog: true, exec: true },
           },
+        },
+        orderBy: {
+          tipos: { id_grupo: 'asc' },
         },
       });
     });
@@ -272,7 +275,7 @@ describe('GetMonthlySummary', () => {
             some: {
               data_prog: {
                 gte: moment.utc('2024-11-01').toDate(),
-                lt: moment.utc('2024-11-30').toDate(),
+                lte: moment.utc('2024-11-30').toDate(),
               },
             },
           },
@@ -294,11 +297,14 @@ describe('GetMonthlySummary', () => {
             where: {
               data_prog: {
                 gte: moment.utc('2024-11-01').toDate(),
-                lt: moment.utc('2024-11-30').toDate(),
+                lte: moment.utc('2024-11-30').toDate(),
               },
             },
             select: { data_prog: true, prog: true, exec: true },
           },
+        },
+        orderBy: {
+          tipos: { id_grupo: 'asc' },
         },
       });
     });
