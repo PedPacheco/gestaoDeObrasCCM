@@ -16,7 +16,10 @@ import {
   GroupTeamSummaryEntryResponse,
   MonthlyCapacityMetrics,
 } from 'src/interface/types/schedule/monthlySummaryInterface';
-import { aggregateCapacityByMonth } from 'src/domain/services/monthlySummaryCalculator.service';
+import {
+  aggregateCapacityByMonth,
+  calculateTotalTeams,
+} from 'src/domain/services/monthlySummaryCalculator.service';
 import {
   accumulateDailySummaryEntry,
   accumulateGroupTeamEntry,
@@ -41,7 +44,10 @@ export class GetMonthlySummaryService {
 
     const [data, executionCapacity] = await Promise.all([
       this.monthlySummaryRepository.getSummary(filters),
-      this.executionCapacityRepository.getFinancialValue(year),
+      this.executionCapacityRepository.getFinancialValue(
+        year,
+        filters.idParceira,
+      ),
     ]);
 
     const capacityCache = new Map<number, MonthlyCapacityMetrics>();
@@ -60,6 +66,8 @@ export class GetMonthlySummaryService {
 
     const summaryMap = new Map<string, DailySummaryEntry>();
 
+    const teamsTotalMap = calculateTotalTeams(data);
+
     for (const record of data) {
       const date = moment.utc(record.data_prog);
       const formattedDate = date.format('DD/MM/YYYY');
@@ -67,10 +75,12 @@ export class GetMonthlySummaryService {
 
       const metrics = getOrComputeCapacity(monthIndex);
 
+      const teamsTotal = teamsTotalMap.get(formattedDate);
+
       if (!summaryMap.has(formattedDate)) {
         summaryMap.set(
           formattedDate,
-          createDailySummaryEntry(formattedDate, metrics),
+          createDailySummaryEntry(formattedDate, metrics, teamsTotal),
         );
       }
 

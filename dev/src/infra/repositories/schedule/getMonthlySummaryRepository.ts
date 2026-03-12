@@ -48,6 +48,9 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
         data_prog: true,
         prog: true,
         exec: true,
+        equipe_linha_viva: true,
+        equipe_linha_morta: true,
+        equipe_regularizacao: true,
         obras: {
           select: { mo_planejada: true },
         },

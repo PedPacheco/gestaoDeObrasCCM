@@ -1,12 +1,12 @@
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { ExecutionReportService } from 'src/application/services/executionReport.service';
-import { HandleAddScheduleService } from 'src/application/services/orchestrators/handleAddSchedule.service';
-import { HandleSchedulesUpdateService } from 'src/application/services/orchestrators/handleSchedulesUpdate.service';
-import { DeleteSchedulesService } from 'src/application/services/schedule/deleteSchedules.service';
-import { UpdateSchedulesService } from 'src/application/services/schedule/updateSchedules.service';
-import { ValidateConfirmAndRejectSchedulesService } from 'src/application/services/schedule/validateAndConfirmSchedules.service';
-import { UsersService } from 'src/application/services/users.service';
+import { ExecutionReportService } from 'src/application/usecases/executionReport.service';
+import { HandleAddScheduleService } from 'src/application/usecases/orchestrators/handleAddSchedule.service';
+import { HandleSchedulesUpdateService } from 'src/application/usecases/orchestrators/handleSchedulesUpdate.service';
+import { DeleteSchedulesService } from 'src/application/usecases/schedule/deleteSchedules.service';
+import { UpdateSchedulesService } from 'src/application/usecases/schedule/updateSchedules.service';
+import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/schedule/validateAndConfirmSchedules.service';
+import { UsersService } from 'src/application/usecases/users.service';
 import { SchedulesActionsController } from 'src/interface/controllers/schedules/schedulesActions.controller';
 import {
   SchedulesDataDTO,

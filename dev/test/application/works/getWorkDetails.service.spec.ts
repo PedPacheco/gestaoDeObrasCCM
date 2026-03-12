@@ -1,4 +1,4 @@
-import { GetWorkDetailsService } from 'src/application/services/works/getWorkDetails.service';
+import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
 import { GET_WORKS_DETAILS_REPOSITORY } from 'src/domain/repositories/works/IGetWorksDetailsRepository';
 
 import { NotFoundException } from '@nestjs/common';

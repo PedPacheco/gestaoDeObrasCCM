@@ -1,4 +1,4 @@
-import { UsersService } from 'src/application/services/users.service';
+import { UsersService } from 'src/application/usecases/users.service';
 import { convertParameterValue } from 'src/utils/convertParameterValue';
 
 import {

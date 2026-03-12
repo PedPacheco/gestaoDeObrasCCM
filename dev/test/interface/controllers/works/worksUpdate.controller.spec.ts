@@ -1,10 +1,10 @@
-import { HandleWorkUpdateService } from 'src/application/services/orchestrators/handleWorkUpdate.service';
-import { UsersService } from 'src/application/services/users.service';
-import { ContractUpdateService } from 'src/application/services/works/contractUpdate.service';
-import { SuspensionWorkService } from 'src/application/services/works/suspensionWork.service';
-import { UpdateCapexService } from 'src/application/services/works/updateCapex.service';
-import { UpdateNoteService } from 'src/application/services/works/updateNote.service';
-import { UpdateOvService } from 'src/application/services/works/updateOv.service';
+import { HandleWorkUpdateService } from 'src/application/usecases/orchestrators/handleWorkUpdate.service';
+import { UsersService } from 'src/application/usecases/users.service';
+import { ContractUpdateService } from 'src/application/usecases/works/contractUpdate.service';
+import { SuspensionWorkService } from 'src/application/usecases/works/suspensionWork.service';
+import { UpdateCapexService } from 'src/application/usecases/works/updateCapex.service';
+import { UpdateNoteService } from 'src/application/usecases/works/updateNote.service';
+import { UpdateOvService } from 'src/application/usecases/works/updateOv.service';
 import { WorksUpdateController } from 'src/interface/controllers/works/worksUpdate.controller';
 
 import { HttpStatus } from '@nestjs/common';

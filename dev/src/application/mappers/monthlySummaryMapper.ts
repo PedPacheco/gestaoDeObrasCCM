@@ -15,11 +15,12 @@ import {
 export function createDailySummaryEntry(
   formattedDate: string,
   metrics: MonthlyCapacityMetrics,
+  teamsTotal: number,
 ): DailySummaryEntry {
   return {
     dataProg: formattedDate,
     totalQtde: 0,
-    teamsTotal: metrics.teamsTotal,
+    teamsTotal,
     financialGoal: metrics.dailyFinancialGoal,
     financialGoalWith8: metrics.dailyFinancialGoalWithOverhead,
     diaryGoal: 0,

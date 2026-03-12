@@ -1,4 +1,4 @@
-import { ErrorsReportService } from 'src/application/services/errorsReport.service';
+import { ErrorsReportService } from 'src/application/usecases/errorsReport.service';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 
 import {

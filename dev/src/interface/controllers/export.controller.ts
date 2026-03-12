@@ -13,31 +13,31 @@ import {
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 
 // Services - Schedule
-import { GetScheduleValuesService } from 'src/application/services/schedule/getScheduleValues.service';
-import { GetMonthlySummaryService } from 'src/application/services/schedule/getMonthlySummary.service';
-import { GetMonthlySummaryForecastService } from 'src/application/services/schedule/getMonthlySummaryForecast.service';
+import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
+import { GetMonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
+import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
 
 // Services - Works
-import { GetWorksInPortfolioService } from 'src/application/services/works/getWorksInPortfolio.service';
-import { GetCompletedWorksService } from 'src/application/services/works/getCompletedWorks.service';
+import { GetWorksInPortfolioService } from 'src/application/usecases/works/getWorksInPortfolio.service';
+import { GetCompletedWorksService } from 'src/application/usecases/works/getCompletedWorks.service';
 
 // Services - Export (Standard)
-import { ExportScheduleService } from 'src/application/services/export/exportSchedule.service';
-import { ExportWorksInPortfolioService } from 'src/application/services/export/exportWorksInPortfolio.service';
-import { ExportCompletedWorksService } from 'src/application/services/export/exportCompletedWorks.service';
-import { ExportFinedWorksService } from 'src/application/services/export/exportFinedWorks.service';
-import { ExportExecutionCapacityService } from 'src/application/services/export/exportExecutionCapacity.service';
-import { ExportSuspensionsService } from 'src/application/services/export/exportSuspensions.service';
-import { ExportExecutionReportService } from 'src/application/services/export/exportExecutionReport.service';
-import { ExportForecastService } from 'src/application/services/export/exportForecast.service';
-import { ExportRejectionsService } from 'src/application/services/export/exportRejections.service';
-import { ExportMonthlyMOSummaryService } from 'src/application/services/export/exportMonthlySummary.service';
-import { ExportMonthlyForecastSummaryService } from 'src/application/services/export/exportMonthlyForecastSummary.service';
+import { ExportScheduleService } from 'src/application/usecases/export/exportSchedule.service';
+import { ExportWorksInPortfolioService } from 'src/application/usecases/export/exportWorksInPortfolio.service';
+import { ExportCompletedWorksService } from 'src/application/usecases/export/exportCompletedWorks.service';
+import { ExportFinedWorksService } from 'src/application/usecases/export/exportFinedWorks.service';
+import { ExportExecutionCapacityService } from 'src/application/usecases/export/exportExecutionCapacity.service';
+import { ExportSuspensionsService } from 'src/application/usecases/export/exportSuspensions.service';
+import { ExportExecutionReportService } from 'src/application/usecases/export/exportExecutionReport.service';
+import { ExportForecastService } from 'src/application/usecases/export/exportForecast.service';
+import { ExportRejectionsService } from 'src/application/usecases/export/exportRejections.service';
+import { ExportMonthlyMOSummaryService } from 'src/application/usecases/export/exportMonthlySummary.service';
+import { ExportMonthlyForecastSummaryService } from 'src/application/usecases/export/exportMonthlyForecastSummary.service';
 
 // Services - Export (BI)
-import { ExportWorksInPortfolioBI } from 'src/application/services/export/BI/exportWorkInPortfolioBI.service';
-import { ExportCompletedWorksBIService } from 'src/application/services/export/BI/exportCompletedWorksBI.service';
-import { ExportSchedulesBIService } from 'src/application/services/export/BI/exportSchedulesBI.service';
+import { ExportWorksInPortfolioBI } from 'src/application/usecases/export/BI/exportWorkInPortfolioBI.service';
+import { ExportCompletedWorksBIService } from 'src/application/usecases/export/BI/exportCompletedWorksBI.service';
+import { ExportSchedulesBIService } from 'src/application/usecases/export/BI/exportSchedulesBI.service';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -189,8 +189,8 @@ export class ExportController {
 
     this.setXlsxHeaders(res, 'Exportação Resumo Mensal - Forecast');
     return this.exportMonthlyForecastSummaryService.export(
-      firstSummary,
-      secondSummary,
+      firstSummary.summary,
+      secondSummary.summary,
       res,
     );
   }

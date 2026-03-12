@@ -1,4 +1,4 @@
-import { UsersService } from 'src/application/services/users.service';
+import { UsersService } from 'src/application/usecases/users.service';
 import { USER_REPOSITORY } from 'src/domain/repositories/IUserRepository';
 import { UserRepository } from 'src/infra/repositories/userRepository';
 

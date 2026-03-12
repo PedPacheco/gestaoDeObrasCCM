@@ -1,7 +1,7 @@
 import { Response } from 'express';
 
 import * as ExcelJS from 'exceljs';
-import { ExportMonthlyForecastSummaryService } from 'src/application/services/export/exportMonthlyForecastSummary.service';
+import { ExportMonthlyForecastSummaryService } from 'src/application/usecases/export/exportMonthlyForecastSummary.service';
 
 jest.mock('exceljs');
 

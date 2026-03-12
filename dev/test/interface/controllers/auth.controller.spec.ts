@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { AuthService } from 'src/application/services/auth.service';
+import { AuthService } from 'src/application/usecases/auth.service';
 import { User } from 'src/domain/entities/user.entity';
 import { AuthController } from 'src/interface/controllers/auth.controller';
 import { LoginUserDTO } from 'src/interface/dtos/loginUserDto';

@@ -16,11 +16,11 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { GetMonthlySummaryService } from 'src/application/services/schedule/getMonthlySummary.service';
-import { RejectionsOfSchedulesService } from 'src/application/services/schedule/rejectionOfSchedules.service';
-import { GetTotalValuesScheduleService } from 'src/application/services/schedule/getTotalValuesSchedule.service';
-import { GetScheduleValuesService } from 'src/application/services/schedule/getScheduleValues.service';
-import { GetMonthlySummaryForecastService } from 'src/application/services/schedule/getMonthlySummaryForecast.service';
+import { GetMonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
+import { RejectionsOfSchedulesService } from 'src/application/usecases/schedule/rejectionOfSchedules.service';
+import { GetTotalValuesScheduleService } from 'src/application/usecases/schedule/getTotalValuesSchedule.service';
+import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
+import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
 
 @Controller('programacao')
 export class ScheduleController {

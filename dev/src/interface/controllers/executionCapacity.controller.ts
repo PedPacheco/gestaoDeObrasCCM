@@ -1,4 +1,4 @@
-import { ExecutionCapacityService } from 'src/application/services/executionCapacity.service';
+import { ExecutionCapacityService } from 'src/application/usecases/executionCapacity.service';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 
 import {

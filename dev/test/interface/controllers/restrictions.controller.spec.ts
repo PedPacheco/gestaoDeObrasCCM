@@ -1,5 +1,5 @@
-import { RestrictionsService } from 'src/application/services/restrictions.service';
-import { UsersService } from 'src/application/services/users.service';
+import { RestrictionsService } from 'src/application/usecases/restrictions.service';
+import { UsersService } from 'src/application/usecases/users.service';
 import { RestrictionController } from 'src/interface/controllers/restrictions.controller';
 
 import { Test, TestingModule } from '@nestjs/testing';

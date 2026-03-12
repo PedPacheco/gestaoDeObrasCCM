@@ -1,4 +1,4 @@
-import { UsersService } from 'src/application/services/users.service';
+import { UsersService } from 'src/application/usecases/users.service';
 import { PrismaModule } from 'src/infra/prisma/prisma.module';
 import { ExecutionCapacityModule } from 'src/interface/modules/executionCapacity.module';
 

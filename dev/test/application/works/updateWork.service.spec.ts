@@ -1,4 +1,4 @@
-import { UpdateWorkService } from 'src/application/services/works/updateWork.service';
+import { UpdateWorkService } from 'src/application/usecases/works/updateWork.service';
 import { UPDATE_WORK_REPOSITORY } from 'src/domain/repositories/works/IUpdateWorkRepository';
 
 import { BadRequestException } from '@nestjs/common';

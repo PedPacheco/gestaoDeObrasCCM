@@ -37,9 +37,15 @@ export class ExecutionCapacityRepository implements IExecutionCapacityRepository
     });
   }
 
-  async getFinancialValue(year: string): Promise<any[]> {
+  async getFinancialValue(year: string, turma?: number[]): Promise<any[]> {
     return await this.prisma.capacidade_execucao.findMany({
-      where: { ano: year },
+      where: {
+        ano: year,
+        ...(turma &&
+          turma.length > 0 && {
+            id_turma: { in: turma },
+          }),
+      },
       select: {
         id: true,
         ano: true,

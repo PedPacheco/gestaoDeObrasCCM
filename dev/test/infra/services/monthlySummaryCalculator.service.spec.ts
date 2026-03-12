@@ -14,20 +14,8 @@ describe('aggregateCapacityByMonth', () => {
   it('should return zero metrics when executionCapacity is an empty array', () => {
     const result = aggregateCapacityByMonth([], 0);
 
-    expect(result.teamsTotal).toBe(0);
     expect(result.dailyFinancialGoal).toBe(0);
     expect(result.dailyFinancialGoalWithOverhead).toBe(0);
-  });
-
-  it('should accumulate teamsTotal across all entries for the given month', () => {
-    const capacity = [
-      { jan: 3, should_cost: 1000 },
-      { jan: 5, should_cost: 1000 },
-    ];
-
-    const result = aggregateCapacityByMonth(capacity, 0);
-
-    expect(result.teamsTotal).toBe(8);
   });
 
   it('should compute dailyFinancialGoal as totalFinancial / WORKING_DAYS_PER_MONTH', () => {
@@ -67,19 +55,10 @@ describe('aggregateCapacityByMonth', () => {
 
     const result = aggregateCapacityByMonth(capacity, 10);
 
-    expect(result.teamsTotal).toBe(6);
     expect(result.dailyFinancialGoal).toBeCloseTo(
       (6 * 1100) / WORKING_DAYS_PER_MONTH,
       10,
     );
-  });
-
-  it('should use the correct monthKey for dez (index 11)', () => {
-    const capacity = [{ dez: 2, should_cost: 3000, nov: 99 }];
-
-    const result = aggregateCapacityByMonth(capacity, 11);
-
-    expect(result.teamsTotal).toBe(2);
   });
 
   it('should apply ?? 0 fallback when the monthKey field is missing from an entry', () => {
@@ -87,7 +66,6 @@ describe('aggregateCapacityByMonth', () => {
 
     const result = aggregateCapacityByMonth(capacity, 0);
 
-    expect(result.teamsTotal).toBe(0);
     expect(result.dailyFinancialGoal).toBe(0);
   });
 
@@ -96,7 +74,6 @@ describe('aggregateCapacityByMonth', () => {
 
     const result = aggregateCapacityByMonth(capacity, 0);
 
-    expect(result.teamsTotal).toBe(5);
     expect(result.dailyFinancialGoal).toBe(0);
     expect(result.dailyFinancialGoalWithOverhead).toBe(0);
   });
@@ -109,7 +86,6 @@ describe('aggregateCapacityByMonth', () => {
 
     const result = aggregateCapacityByMonth(capacity, 1);
 
-    expect(result.teamsTotal).toBe(5);
     expect(result.dailyFinancialGoal).toBeCloseTo(
       8000 / WORKING_DAYS_PER_MONTH,
       10,
@@ -125,7 +101,6 @@ describe('aggregateCapacityByMonth', () => {
 
     const result = aggregateCapacityByMonth(capacity, 2);
 
-    expect(result.teamsTotal).toBe(1);
     expect(result.dailyFinancialGoal).toBe(0);
     expect(result.dailyFinancialGoalWithOverhead).toBe(0);
   });

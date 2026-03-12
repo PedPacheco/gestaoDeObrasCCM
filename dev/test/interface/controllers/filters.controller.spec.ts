@@ -1,7 +1,7 @@
 import { plainToInstance } from 'class-transformer';
 import { Request } from 'express';
-import { FiltersService } from 'src/application/services/filters.service';
-import { UsersService } from 'src/application/services/users.service';
+import { FiltersService } from 'src/application/usecases/filters.service';
+import { UsersService } from 'src/application/usecases/users.service';
 import { FiltersController } from 'src/interface/controllers/filters.controller';
 import { FiltersDto } from 'src/interface/dtos/filtersDto';
 

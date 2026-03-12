@@ -12,10 +12,10 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { GetWorksInPortfolioService } from 'src/application/services/works/getWorksInPortfolio.service';
-import { GetAllWorksService } from 'src/application/services/works/getAllWorks.service';
-import { GetCompletedWorksService } from 'src/application/services/works/getCompletedWorks.service';
-import { GetWorkDetailsService } from 'src/application/services/works/getWorkDetails.service';
+import { GetWorksInPortfolioService } from 'src/application/usecases/works/getWorksInPortfolio.service';
+import { GetAllWorksService } from 'src/application/usecases/works/getAllWorks.service';
+import { GetCompletedWorksService } from 'src/application/usecases/works/getCompletedWorks.service';
+import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
 
 interface CustomRequest extends Request {
   idParceira?: number;

@@ -1,16 +1,16 @@
-import { HandleWorkUpdateService } from 'src/application/services/orchestrators/handleWorkUpdate.service';
-import { ContractUpdateService } from 'src/application/services/works/contractUpdate.service';
-import { FindExistingWorksService } from 'src/application/services/works/findExistingWorks.service';
-import { GetAllWorksService } from 'src/application/services/works/getAllWorks.service';
-import { GetCompletedWorksService } from 'src/application/services/works/getCompletedWorks.service';
-import { GetWorkDetailsService } from 'src/application/services/works/getWorkDetails.service';
-import { GetWorksInPortfolioService } from 'src/application/services/works/getWorksInPortfolio.service';
-import { InsertWorksService } from 'src/application/services/works/InsertWorks.service';
-import { SuspensionWorkService } from 'src/application/services/works/suspensionWork.service';
-import { UpdateCapexService } from 'src/application/services/works/updateCapex.service';
-import { UpdateNoteService } from 'src/application/services/works/updateNote.service';
-import { UpdateOvService } from 'src/application/services/works/updateOv.service';
-import { UpdateWorkService } from 'src/application/services/works/updateWork.service';
+import { HandleWorkUpdateService } from 'src/application/usecases/orchestrators/handleWorkUpdate.service';
+import { ContractUpdateService } from 'src/application/usecases/works/contractUpdate.service';
+import { FindExistingWorksService } from 'src/application/usecases/works/findExistingWorks.service';
+import { GetAllWorksService } from 'src/application/usecases/works/getAllWorks.service';
+import { GetCompletedWorksService } from 'src/application/usecases/works/getCompletedWorks.service';
+import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
+import { GetWorksInPortfolioService } from 'src/application/usecases/works/getWorksInPortfolio.service';
+import { InsertWorksService } from 'src/application/usecases/works/InsertWorks.service';
+import { SuspensionWorkService } from 'src/application/usecases/works/suspensionWork.service';
+import { UpdateCapexService } from 'src/application/usecases/works/updateCapex.service';
+import { UpdateNoteService } from 'src/application/usecases/works/updateNote.service';
+import { UpdateOvService } from 'src/application/usecases/works/updateOv.service';
+import { UpdateWorkService } from 'src/application/usecases/works/updateWork.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
 import { CONTRACT_UPDATE_REPOSITORY } from 'src/domain/repositories/works/IContractUpdateRepository';
 import { FIND_EXISITING_WORKS_REPOSITORY } from 'src/domain/repositories/works/IFindExistingWorksRepository';
@@ -46,6 +46,7 @@ import { WorksInsertController } from '../controllers/works/worksInsert.controll
 import { WorksUpdateController } from '../controllers/works/worksUpdate.controller';
 import { AuxiliaryBaseModule } from './auxiliaryBase.module';
 import { UsersModule } from './users.module';
+import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 
 @Module({
   imports: [CacheModule, UsersModule, forwardRef(() => AuxiliaryBaseModule)],
@@ -64,6 +65,7 @@ import { UsersModule } from './users.module';
     UpdateNoteService,
     UpdateCapexService,
     SuspensionWorkService,
+    DeadlineStatusService,
     { provide: CONTRACT_UPDATE_REPOSITORY, useClass: ContractUpdateRepository },
     { provide: UPDATE_OV_REPOSITORY, useClass: UpdateOvRepository },
     { provide: UPDATE_NOTE_REPOSITORY, useClass: UpdateNoteRepository },

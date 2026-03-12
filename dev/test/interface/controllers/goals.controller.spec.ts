@@ -1,5 +1,5 @@
 import { plainToInstance } from 'class-transformer';
-import { GoalsService } from 'src/application/services/goals.service';
+import { GoalsService } from 'src/application/usecases/goals.service';
 import { GoalsController } from 'src/interface/controllers/goals.controller';
 import { GoalsDTO } from 'src/interface/dtos/goalsDto';
 import {

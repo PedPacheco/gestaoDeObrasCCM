@@ -1,5 +1,7 @@
 // ─── Capacity Calculator ───────────────────────────────────────────────────────
 
+import * as moment from 'moment';
+import { GetMonthlySummaryInterface } from 'src/interface/types/schedule/getMonthlySummaryInterface';
 import {
   FINANCIAL_OVERHEAD_FACTOR,
   MONTH_INDEX_TO_KEY,
@@ -20,13 +22,11 @@ export function aggregateCapacityByMonth(
   const monthKey: MonthKey = MONTH_INDEX_TO_KEY[monthIndex];
 
   let totalFinancial = 0;
-  let teamsTotal = 0;
 
   for (const entry of executionCapacity) {
     const teams = Number(entry[monthKey] ?? 0);
     const shouldCost = Number(entry.should_cost ?? 0);
 
-    teamsTotal += teams;
     totalFinancial += teams * shouldCost;
   }
 
@@ -34,7 +34,26 @@ export function aggregateCapacityByMonth(
   const dailyFinancialGoalWithOverhead =
     dailyFinancialGoal > 0 ? dailyFinancialGoal * FINANCIAL_OVERHEAD_FACTOR : 0;
 
-  return { dailyFinancialGoal, dailyFinancialGoalWithOverhead, teamsTotal };
+  return { dailyFinancialGoal, dailyFinancialGoalWithOverhead };
+}
+
+// ─── Calculator For Adding Up Teams ─────────────────────────────────────────────────────
+
+export function calculateTotalTeams(data: GetMonthlySummaryInterface[]) {
+  const map = new Map<string, number>();
+
+  for (const item of data) {
+    const dateKey = moment.utc(item.data_prog).format('DD/MM/YYYY');
+
+    const teams =
+      (item.equipe_linha_morta ?? 0) +
+      (item.equipe_linha_viva ?? 0) +
+      (item.equipe_regularizacao ?? 0);
+
+    map.set(dateKey, (map.get(dateKey) ?? 0) + teams);
+  }
+
+  return map;
 }
 
 // ─── Work Order Calculator ─────────────────────────────────────────────────────

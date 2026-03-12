@@ -1,5 +1,5 @@
-import { AuthService } from 'src/application/services/auth.service';
-import { EmailService } from 'src/application/services/email.service';
+import { AuthService } from 'src/application/usecases/auth.service';
+import { EmailService } from 'src/application/usecases/email.service';
 import { PrismaModule } from 'src/infra/prisma/prisma.module';
 import { AuthController } from 'src/interface/controllers/auth.controller';
 import { AuthModule } from 'src/interface/modules/auth.module';

@@ -1,4 +1,4 @@
-import { AuxiliaryBaseService } from 'src/application/services/auxiliaryBase/auxiliaryBase.service';
+import { AuxiliaryBaseService } from 'src/application/usecases/auxiliaryBase/auxiliaryBase.service';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 

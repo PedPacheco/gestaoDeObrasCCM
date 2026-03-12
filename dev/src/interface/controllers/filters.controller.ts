@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { FiltersService } from 'src/application/services/filters.service';
+import { FiltersService } from 'src/application/usecases/filters.service';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import { FiltersDto } from 'src/interface/dtos/filtersDto';
 

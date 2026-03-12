@@ -54,6 +54,7 @@ function useMonthlyForecastSummary(
           `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal-forecast`,
           params,
           token,
+          { cache: "no-store" },
         );
         setDataFirst(response.data.firstSummary);
         setDataSecond(response.data.secondSummary);
@@ -218,11 +219,15 @@ export function MainMonthlyForecastSummarySchedule({
       <div className="w-full flex flex-col xl:flex-row px-4 overflow-y-auto">
         <MonthlyForecastSummaryTable
           columns={columnsFirstSummary}
-          data={dataFirst}
+          data={dataFirst.summary}
+          totals={dataFirst.totals}
+          isFirstSummary={true}
         />
         <MonthlyForecastSummaryTable
           columns={columnsSecondSummary}
-          data={dataSecond}
+          data={dataSecond.summary}
+          totals={dataSecond.totals}
+          isFirstSummary={false}
         />
       </div>
 

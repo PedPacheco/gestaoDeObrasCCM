@@ -1,5 +1,5 @@
 import * as moment from 'moment';
-import { RestrictionsService } from 'src/application/services/restrictions.service';
+import { RestrictionsService } from 'src/application/usecases/restrictions.service';
 import { RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/IRestrictionsRepository';
 
 import { Test, TestingModule } from '@nestjs/testing';

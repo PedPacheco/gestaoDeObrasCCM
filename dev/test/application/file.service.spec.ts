@@ -1,6 +1,6 @@
 // Importar mocks
 import { existsSync, unlinkSync } from 'fs';
-import { FileService } from 'src/application/services/file.service';
+import { FileService } from 'src/application/usecases/file.service';
 
 import { Test, TestingModule } from '@nestjs/testing';
 

@@ -84,9 +84,9 @@ export default async function MonthlySummary() {
     { key: "grupo", label: "Grupo" },
     { key: "turma", label: "Parceira" },
     { key: "qtdeObras", label: "Qtd. Obras", format: "number" },
-    { key: "totalMoProg", label: "Programado", format: "number" },
-    { key: "totalMoExec", label: "Executado", format: "number" },
-    { key: "totalMoPrev", label: "Previsto", format: "number" },
+    { key: "totalMoProg", label: "Programado", format: "currency" },
+    { key: "totalMoExec", label: "Executado", format: "currency" },
+    { key: "totalMoPrev", label: "Previsto", format: "currency" },
     { key: "diff", label: "Programado x Executado (%)", format: "percent" },
   ];
 

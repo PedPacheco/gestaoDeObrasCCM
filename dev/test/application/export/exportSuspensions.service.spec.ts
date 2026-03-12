@@ -1,7 +1,7 @@
 // test/application/export/exportSuspensions.service.spec.ts
 import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
-import { ExportSuspensionsService } from 'src/application/services/export/exportSuspensions.service';
+import { ExportSuspensionsService } from 'src/application/usecases/export/exportSuspensions.service';
 import { IExportRepository } from 'src/domain/repositories/IExportRepository';
 
 jest.mock('exceljs', () => {

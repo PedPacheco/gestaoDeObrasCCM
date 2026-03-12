@@ -1,4 +1,4 @@
-import { ErrorsReportService } from 'src/application/services/errorsReport.service';
+import { ErrorsReportService } from 'src/application/usecases/errorsReport.service';
 import {
   ERRORS_REPORT_REPOSITORY,
   IErrorsReportRepository,

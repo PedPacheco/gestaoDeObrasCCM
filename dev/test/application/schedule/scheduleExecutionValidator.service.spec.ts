@@ -1,4 +1,4 @@
-import { ScheduleExecutionValidatorService } from 'src/application/services/schedule/scheduleExecutionValidator.service';
+import { ScheduleExecutionValidatorService } from 'src/application/usecases/schedule/scheduleExecutionValidator.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
 
 import { BadRequestException } from '@nestjs/common';

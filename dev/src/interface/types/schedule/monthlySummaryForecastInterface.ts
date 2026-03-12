@@ -1,6 +1,5 @@
 export interface MonthlyCapacityMetricsForecast {
   readonly dailyFinancialGoal: number;
-  readonly teamsTotal: number;
 }
 
 export interface WorkOrderMetricsForecast {
@@ -12,26 +11,29 @@ export interface WorkOrderMetricsForecast {
 
 export interface DailySummaryEntryForecast {
   dataProg: string;
-  totalQtde: number;
-  teamsTotal: number;
+  qtdeWorks: number;
+  teams: number;
   financialGoal: number;
   diaryGoal: number;
   serviceMoProg: number;
   serviceMoPlan: number;
   serviceMoPend: number;
   serviceMoExec: number;
+  serviceMoForecast: number;
   materialMoProg: number;
   materialMoPlan: number;
   materialMoPend: number;
   materialMoExec: number;
+  materialMoForecast: number;
+  isServicePendLowerThanProg: boolean;
+  isMaterialPendLowerThanProg: boolean;
   diff: number;
 }
 
 export interface GroupTeamSummaryEntryForecast {
   grupo: string;
   turma: string;
-  qtdeObras: number;
-  _obrasContabilizadas: Set<string>;
+  qtdeWorks: number;
   totalServiceMoProg: number;
   totalServiceMoPlan: number;
   totalServiceMoPend: number;

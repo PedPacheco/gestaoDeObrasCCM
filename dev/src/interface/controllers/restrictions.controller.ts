@@ -1,4 +1,4 @@
-import { RestrictionsService } from 'src/application/services/restrictions.service';
+import { RestrictionsService } from 'src/application/usecases/restrictions.service';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 

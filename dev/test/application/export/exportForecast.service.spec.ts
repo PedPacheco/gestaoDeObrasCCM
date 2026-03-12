@@ -6,7 +6,7 @@ import {
   EXPORT_REPOSITORY,
   IExportRepository,
 } from 'src/domain/repositories/IExportRepository';
-import { ExportForecastService } from 'src/application/services/export/exportForecast.service';
+import { ExportForecastService } from 'src/application/usecases/export/exportForecast.service';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 
 jest.mock('exceljs');

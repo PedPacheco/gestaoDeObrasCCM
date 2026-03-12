@@ -1,5 +1,5 @@
-import { HandleAddScheduleService } from 'src/application/services/orchestrators/handleAddSchedule.service';
-import { HandleSchedulesUpdateService } from 'src/application/services/orchestrators/handleSchedulesUpdate.service';
+import { HandleAddScheduleService } from 'src/application/usecases/orchestrators/handleAddSchedule.service';
+import { HandleSchedulesUpdateService } from 'src/application/usecases/orchestrators/handleSchedulesUpdate.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
 import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IAddSchedulesRepository';
 import { DELETE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IDeleteSchedulesRepository';
@@ -34,18 +34,23 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 import { EXECUTION_CAPACITY_REPOSITORY } from 'src/domain/repositories/IExecutionCapacityRepository';
 import { ExecutionCapacityRepository } from 'src/infra/repositories/executionCapacityRepository';
-import { ValidateConfirmAndRejectSchedulesService } from 'src/application/services/schedule/validateAndConfirmSchedules.service';
-import { ScheduleExecutionValidatorService } from 'src/application/services/schedule/scheduleExecutionValidator.service';
-import { RejectionsOfSchedulesService } from 'src/application/services/schedule/rejectionOfSchedules.service';
-import { GetMonthlySummaryService } from 'src/application/services/schedule/getMonthlySummary.service';
-import { GetScheduleValuesService } from 'src/application/services/schedule/getScheduleValues.service';
-import { DeleteSchedulesService } from 'src/application/services/schedule/deleteSchedules.service';
-import { GetTotalValuesScheduleService } from 'src/application/services/schedule/getTotalValuesSchedule.service';
-import { AddSchedulesService } from 'src/application/services/schedule/addSchedules.service';
-import { UpdateSchedulesService } from 'src/application/services/schedule/updateSchedules.service';
-import { GetMonthlySummaryForecastService } from 'src/application/services/schedule/getMonthlySummaryForecast.service';
+import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/schedule/validateAndConfirmSchedules.service';
+import { ScheduleExecutionValidatorService } from 'src/application/usecases/schedule/scheduleExecutionValidator.service';
+import { RejectionsOfSchedulesService } from 'src/application/usecases/schedule/rejectionOfSchedules.service';
+import { GetMonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
+import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
+import { DeleteSchedulesService } from 'src/application/usecases/schedule/deleteSchedules.service';
+import { GetTotalValuesScheduleService } from 'src/application/usecases/schedule/getTotalValuesSchedule.service';
+import { AddSchedulesService } from 'src/application/usecases/schedule/addSchedules.service';
+import { UpdateSchedulesService } from 'src/application/usecases/schedule/updateSchedules.service';
+import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
 import { GET_MONTHLY_SUMMARY_FORECAST_REPOSITORY } from 'src/domain/repositories/schedule/IGetMonthlySummaryForecastRepository';
 import { GetMonthlySummaryForecastRepository } from 'src/infra/repositories/schedule/getMonthlySummaryForecastRepository';
+import {
+  MONTHLY_SUMMARY_FORECAST_CALCULATOR,
+  MonthlySummaryForecastCalculator,
+} from 'src/domain/services/monthlySummaryForecastCalculator.service';
+import { MonthlySummaryForecastMapper } from 'src/application/mappers/monthlySummaryForecastMapper';
 
 // import { UpdateRestrictionsService } from 'src/application/schedule/updateRestrictions.service';
 // import { UPDATE_RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateRestrictionsRepository';
@@ -94,7 +99,13 @@ import { GetMonthlySummaryForecastRepository } from 'src/infra/repositories/sche
     RejectionsOfSchedulesService,
     DeadlineStatusService,
     GetMonthlySummaryForecastService,
+    MonthlySummaryForecastCalculator,
+    MonthlySummaryForecastMapper,
     // UpdateRestrictionsService,
+    {
+      provide: MONTHLY_SUMMARY_FORECAST_CALCULATOR,
+      useClass: MonthlySummaryForecastCalculator,
+    },
     { provide: ADD_SCHEDULES_REPOSITORY, useClass: AddSchedulesRepository },
     {
       provide: UPDATE_SCHEDULES_REPOSITORY,

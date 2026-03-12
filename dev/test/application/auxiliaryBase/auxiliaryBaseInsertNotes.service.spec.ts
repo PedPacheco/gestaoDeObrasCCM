@@ -1,5 +1,5 @@
-import { AuxiliaryNotesInsertService } from 'src/application/services/auxiliaryBase/auxiliaryBaseInsertNotes.service';
-import { FindExistingWorksService } from 'src/application/services/works/findExistingWorks.service';
+import { AuxiliaryNotesInsertService } from 'src/application/usecases/auxiliaryBase/auxiliaryBaseInsertNotes.service';
+import { FindExistingWorksService } from 'src/application/usecases/works/findExistingWorks.service';
 import { AUXILIARY_BASE_REPOSITORY } from 'src/domain/repositories/IAuxiliaryBaseRepository';
 
 import { Test, TestingModule } from '@nestjs/testing';

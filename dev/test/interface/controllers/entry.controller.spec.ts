@@ -1,7 +1,7 @@
 import { plainToInstance } from 'class-transformer';
 import * as moment from 'moment';
-import { EntryService } from 'src/application/services/entry.service';
-import { UsersService } from 'src/application/services/users.service';
+import { EntryService } from 'src/application/usecases/entry.service';
+import { UsersService } from 'src/application/usecases/users.service';
 import { EntryController } from 'src/interface/controllers/entry.controller';
 import {
   GetEntryOfWorksByDayDTO,

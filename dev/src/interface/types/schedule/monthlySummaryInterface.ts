@@ -40,7 +40,6 @@ export const MONTH_INDEX_TO_KEY: Readonly<Record<number, MonthKey>> = {
 export interface MonthlyCapacityMetrics {
   readonly dailyFinancialGoal: number;
   readonly dailyFinancialGoalWithOverhead: number;
-  readonly teamsTotal: number;
 }
 
 export interface WorkOrderMetrics {

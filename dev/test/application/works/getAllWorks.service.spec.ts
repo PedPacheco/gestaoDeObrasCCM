@@ -1,5 +1,5 @@
 import { Cache } from 'cache-manager';
-import { GetAllWorksService } from 'src/application/services/works/getAllWorks.service';
+import { GetAllWorksService } from 'src/application/usecases/works/getAllWorks.service';
 import { GET_ALL_WORKS_REPOSITORY } from 'src/domain/repositories/works/IGetAllWorksRepository';
 import { GetAllWorksDTO } from 'src/interface/dtos/worksDto';
 

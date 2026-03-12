@@ -115,7 +115,7 @@ export const useScheduleSubmit = ({
         }
       });
     },
-    [isInsert, onSuccess, onClose, onModalOpen, idWork, user?.id, onError],
+    [isInsert, onSuccess, onClose, onModalOpen, idWork, onError],
   );
 
   return { handleSubmit, isPending };

@@ -1,5 +1,5 @@
 import { plainToInstance } from 'class-transformer';
-import { UsersService } from 'src/application/services/users.service';
+import { UsersService } from 'src/application/usecases/users.service';
 import { User } from 'src/domain/entities/user.entity';
 import { UsersController } from 'src/interface/controllers/users.controller';
 import {

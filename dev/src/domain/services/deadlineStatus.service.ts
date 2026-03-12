@@ -22,6 +22,8 @@ export class DeadlineStatusService {
     const deadlineMoment = moment(work.prazo_fim).utc();
     const daysRemaining = deadlineMoment.diff(moment(), 'days');
 
+    console.log(daysRemaining);
+
     if (daysRemaining < 0) {
       return DeadlineStatus.OVERDUE;
     }

@@ -3,7 +3,7 @@ import { ExecutionCapacityFilter } from 'src/interface/types/executionCapacityIn
 
 export interface IExecutionCapacityRepository {
   get(filters: ExecutionCapacityFilter): Promise<any>;
-  getFinancialValue(year: string): Promise<any[]>;
+  getFinancialValue(year: string, turma?: number[]): Promise<any[]>;
   update(data: UpdateExecutionCapacityDTO[]): Promise<void>;
 }
 

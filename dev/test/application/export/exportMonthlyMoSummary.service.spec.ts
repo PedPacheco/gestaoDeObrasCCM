@@ -1,7 +1,7 @@
 import { Response } from 'express';
 
 import * as ExcelJS from 'exceljs';
-import { ExportMonthlyMOSummaryService } from 'src/application/services/export/exportMonthlySummary.service';
+import { ExportMonthlyMOSummaryService } from 'src/application/usecases/export/exportMonthlySummary.service';
 
 jest.mock('exceljs');
 

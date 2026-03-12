@@ -1,5 +1,5 @@
 import { genSalt, hash } from 'bcrypt';
-import { UsersService } from 'src/application/services/users.service';
+import { UsersService } from 'src/application/usecases/users.service';
 import { User } from 'src/domain/entities/user.entity';
 import { USER_REPOSITORY } from 'src/domain/repositories/IUserRepository';
 

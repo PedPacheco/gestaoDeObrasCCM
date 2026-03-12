@@ -1,5 +1,5 @@
-import { FeasibilityService } from 'src/application/services/feasibility.service';
-import { FileService } from 'src/application/services/file.service';
+import { FeasibilityService } from 'src/application/usecases/feasibility.service';
+import { FileService } from 'src/application/usecases/file.service';
 import {
   FEASIBILITY_REPOSITORY,
   IFeasibilityRepository,

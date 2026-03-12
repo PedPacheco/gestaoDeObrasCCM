@@ -1,10 +1,11 @@
 import { Cache } from 'cache-manager';
-import { GetWorksInPortfolioService } from 'src/application/services/works/getWorksInPortfolio.service';
+import { GetWorksInPortfolioService } from 'src/application/usecases/works/getWorksInPortfolio.service';
 import { GET_WORKS_IN_PORTFOLIO_REPOSITORY } from 'src/domain/repositories/works/IGetWorksInPortfolioRepository';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Test } from '@nestjs/testing';
+import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 
 describe('GetWorksInPortfolioService', () => {
   let getWorksInPortfolioService: GetWorksInPortfolioService;
@@ -74,6 +75,7 @@ describe('GetWorksInPortfolioService', () => {
     const module = await Test.createTestingModule({
       providers: [
         GetWorksInPortfolioService,
+        DeadlineStatusService,
         {
           provide: GET_WORKS_IN_PORTFOLIO_REPOSITORY,
           useValue: mockRepository,

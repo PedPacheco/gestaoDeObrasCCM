@@ -1,5 +1,5 @@
-import { AuxiliaryBaseService } from 'src/application/services/auxiliaryBase/auxiliaryBase.service';
-import { UsersService } from 'src/application/services/users.service';
+import { AuxiliaryBaseService } from 'src/application/usecases/auxiliaryBase/auxiliaryBase.service';
+import { UsersService } from 'src/application/usecases/users.service';
 import { AuxiliaryBaseController } from 'src/interface/controllers/auxiliaryBase.controller';
 
 import { HttpStatus } from '@nestjs/common';

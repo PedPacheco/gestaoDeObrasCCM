@@ -1,4 +1,4 @@
-import { UpdateCapexService } from 'src/application/services/works/updateCapex.service';
+import { UpdateCapexService } from 'src/application/usecases/works/updateCapex.service';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,

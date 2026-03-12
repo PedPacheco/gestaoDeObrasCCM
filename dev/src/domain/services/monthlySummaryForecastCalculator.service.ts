@@ -1,98 +1,230 @@
-// ─── Capacity Calculator ───────────────────────────────────────────────────────
-
+import { Injectable } from '@nestjs/common';
 import {
+  createInitialTotals,
+  createInitialTotalsByGrouping,
+} from 'src/application/mappers/monthlySummaryForecastMapper';
+import {
+  DailySummaryTotals,
+  GroupSummaryTotals,
+  UniqueWorksFinancial,
+} from 'src/interface/types/schedule/getMonthlySummaryForecastInterface';
+import {
+  DailySummaryEntryForecast,
+  GroupTeamSummaryEntryForecast,
   MonthlyCapacityMetricsForecast,
   WorkOrderMetricsForecast,
 } from 'src/interface/types/schedule/monthlySummaryForecastInterface';
 import {
   MONTH_INDEX_TO_KEY,
-  MonthKey,
   WORKING_DAYS_PER_MONTH,
 } from 'src/interface/types/schedule/monthlySummaryInterface';
 
-/**
- * Agrega as métricas financeiras e de equipes para um determinado mês,
- * percorrendo todos os registros de capacidade de execução uma única vez.
- */
-export function aggregateCapacityByMonthForecast(
-  executionCapacity: ReadonlyArray<Record<string, any>>,
-  monthIndex: number,
-): MonthlyCapacityMetricsForecast {
-  const monthKey: MonthKey = MONTH_INDEX_TO_KEY[monthIndex];
+// ─── Tipagem explícita das chaves de mês — elimina o index signature genérico ──
+// ANTES: [monthKey: string]: number  →  qualquer string era aceita, sem type safety
+// AGORA: somente as 12 chaves reais de mês são válidas como campos de capacidade
+export type MonthKey =
+  | 'jan'
+  | 'fev'
+  | 'mar'
+  | 'abr'
+  | 'mai'
+  | 'jun'
+  | 'jul'
+  | 'ago'
+  | 'set'
+  | 'out'
+  | 'nov'
+  | 'dez';
 
-  let totalFinancial = 0;
-  let teamsTotal = 0;
+export interface ExecutionCapacityRecord extends Record<MonthKey, number> {
+  should_cost: number;
+}
 
-  for (const entry of executionCapacity) {
-    const teams = Number(entry[monthKey] ?? 0);
-    const shouldCost = Number(entry.should_cost ?? 0);
+export interface IMonthlySummaryForecastCalculator {
+  aggregateFinancialCapacityByMonth(
+    executionCapacity: ReadonlyArray<ExecutionCapacityRecord>,
+    monthIndex: number,
+  ): MonthlyCapacityMetricsForecast;
 
-    teamsTotal += teams;
-    totalFinancial += teams * shouldCost;
+  calculateWorkOrderMetrics(
+    servicePlan: number,
+    materialPlan: number,
+    prog: number,
+    exec: number,
+  ): WorkOrderMetricsForecast;
+
+  calculateGoalPercentage(value: number, goal: number): number;
+
+  calculateMoPrev(
+    baseMoPlan: number,
+    baseMatPlan: number,
+    exec: number | null,
+    prog: number,
+  ): { serviceCapexPrev: number; materialCapexPrev: number };
+
+  calculateExecutionRate(
+    serviceCapexProg: number,
+    materialCapexProg: number,
+    serviceCapexExec: number,
+    materialCapexExec: number,
+  ): number;
+
+  aggregateDailySummaryTotals(
+    data: DailySummaryEntryForecast[],
+    uniqueWorksFinancial: UniqueWorksFinancial,
+  ): DailySummaryTotals;
+
+  aggregateGroupTotals(
+    summaryData: GroupTeamSummaryEntryForecast[],
+    uniqueWorksFinancial: UniqueWorksFinancial,
+  ): GroupSummaryTotals;
+}
+
+export const MONTHLY_SUMMARY_FORECAST_CALCULATOR =
+  'MONTHLY_SUMMARY_FORECAST_CALCULATOR';
+
+@Injectable()
+export class MonthlySummaryForecastCalculator implements IMonthlySummaryForecastCalculator {
+  aggregateFinancialCapacityByMonth(
+    executionCapacity: ReadonlyArray<ExecutionCapacityRecord>,
+    monthIndex: number,
+  ): MonthlyCapacityMetricsForecast {
+    const monthKey = MONTH_INDEX_TO_KEY[monthIndex] as MonthKey;
+
+    const totalFinancial = executionCapacity.reduce((sum, entry) => {
+      return (
+        sum + Number(entry[monthKey] ?? 0) * Number(entry.should_cost ?? 0)
+      );
+    }, 0);
+
+    return {
+      dailyFinancialGoal: totalFinancial / WORKING_DAYS_PER_MONTH,
+    };
   }
 
-  const dailyFinancialGoal = totalFinancial / WORKING_DAYS_PER_MONTH;
+  calculateWorkOrderMetrics(
+    servicePlan: number,
+    materialPlan: number,
+    prog: number,
+    exec: number,
+  ): WorkOrderMetricsForecast {
+    const progRate = prog / 100;
+    const execRate = exec / 100;
 
-  return { dailyFinancialGoal, teamsTotal };
-}
+    return {
+      serviceCapexProg: servicePlan * progRate,
+      serviceCapexExec: servicePlan * execRate,
+      materialCapexProg: materialPlan * progRate,
+      materialCapexExec: materialPlan * execRate,
+    };
+  }
 
-// ─── Work Order Calculator ─────────────────────────────────────────────────────
+  calculateGoalPercentage(value: number, goal: number): number {
+    return goal > 0 ? (value / goal) * 100 : 0;
+  }
 
-/**
- * Calcula os valores de MO programada e executada a partir do percentual base.
- */
-export function calculateWorkOrderMetricsForecast(
-  servicePlan: number,
-  materialPlan: number,
-  prog: number,
-  exec: number,
-): WorkOrderMetricsForecast {
-  return {
-    serviceCapexProg: servicePlan * (prog / 100),
-    serviceCapexExec: servicePlan * (exec / 100),
-    materialCapexProg: materialPlan * (prog / 100),
-    materialCapexExec: materialPlan * (exec / 100),
-  };
-}
+  calculateMoPrev(
+    baseMoPlan: number,
+    baseMatPlan: number,
+    exec: number | null,
+    prog: number,
+  ): { serviceCapexPrev: number; materialCapexPrev: number } {
+    const effectiveRate = (exec ?? prog) / 100;
 
-/**
- * Calcula o percentual de atingimento de meta diária.
- * Retorna 0 para evitar divisão por zero.
- */
-export function calculateGoalPercentageForecast(
-  value: number,
-  goal: number,
-): number {
-  return goal > 0 ? (value / goal) * 100 : 0;
-}
+    return {
+      serviceCapexPrev: baseMoPlan * effectiveRate,
+      materialCapexPrev: baseMatPlan * effectiveRate,
+    };
+  }
 
-/**
- * Calcula o percentual de execução em relação ao programado.
- * Retorna 0 para evitar divisão por zero.
- */
-export function calculateExecutionRateForecast(
-  serviceCapexProg: number,
-  materialCapexProg: number,
-  serviceCapexExec: number,
-  materialCapexExec: number,
-): number {
-  return (
-    ((materialCapexExec + serviceCapexExec) /
-      (materialCapexProg + serviceCapexProg)) *
-    100
-  );
-}
+  calculateExecutionRate(
+    serviceCapexProg: number,
+    materialCapexProg: number,
+    serviceCapexExec: number,
+    materialCapexExec: number,
+  ): number {
+    const totalProg = serviceCapexProg + materialCapexProg;
 
-/**
- * Calcula a MO prevista com fallback de exec para prog.
- */
-export function calculateMoPrevForecast(
-  baseMoPlan: number,
-  baseMatPlan: number,
-  exec: number | null,
-  prog: number,
-): { serviceCapexPrev: number; materialCapexPrev: number } {
-  const serviceCapexPrev = baseMoPlan * ((exec ?? prog) / 100);
-  const materialCapexPrev = baseMatPlan * ((exec ?? prog) / 100);
-  return { serviceCapexPrev, materialCapexPrev };
+    if (totalProg === 0) return 0;
+
+    return ((serviceCapexExec + materialCapexExec) / totalProg) * 100;
+  }
+
+  aggregateDailySummaryTotals(
+    data: DailySummaryEntryForecast[],
+    uniqueWorksFinancial: UniqueWorksFinancial,
+  ): DailySummaryTotals {
+    // ANTES: { ...initialTotals } com objeto literal exportado — risco de mutação acidental
+    // AGORA: factory function garante sempre uma cópia nova e segura
+    const totals = data.reduce((acc, row) => {
+      acc.totalQtdeObras += row.qtdeWorks;
+      acc.totalTeams += row.teams;
+      acc.totalFinancialGoal += row.financialGoal;
+      acc.totalServiceMoProg += row.serviceMoProg;
+      acc.totalServiceMoExec += row.serviceMoExec;
+      acc.totalServiceMoForecast += row.serviceMoForecast;
+      acc.totalMaterialMoProg += row.materialMoProg;
+      acc.totalMaterialMoForecast += row.materialMoForecast;
+      acc.totalMaterialMoExec += row.materialMoExec;
+
+      return acc;
+    }, createInitialTotals());
+
+    // Valores de plan/pend vêm das obras únicas (sem duplicar por data)
+    totals.totalServiceMoPlan = uniqueWorksFinancial.totalServiceMoPlan;
+    totals.totalMaterialMoPlan = uniqueWorksFinancial.totalMaterialMoPlan;
+    totals.totalServiceMoPend = uniqueWorksFinancial.totalServiceMoPend;
+    totals.totalMaterialMoPend = uniqueWorksFinancial.totalMaterialMoPend;
+
+    totals.totalDiaryGoal = this.calculateGoalPercentage(
+      totals.totalServiceMoProg,
+      totals.totalFinancialGoal,
+    );
+
+    totals.totalDiff = this.calculateExecutionRate(
+      totals.totalServiceMoProg,
+      totals.totalMaterialMoProg,
+      totals.totalServiceMoExec,
+      totals.totalMaterialMoExec,
+    );
+
+    return totals;
+  }
+
+  aggregateGroupTotals(
+    summaryData: GroupTeamSummaryEntryForecast[],
+    uniqueWorksFinancial: UniqueWorksFinancial,
+  ): GroupSummaryTotals {
+    const totals = summaryData.reduce((acc, row) => {
+      acc.totalWorks += row.qtdeWorks;
+      acc.totalServiceMoProgByGrouping += row.totalServiceMoProg;
+      acc.totalServiceMoPlanByGrouping += row.totalServiceMoPlan;
+      acc.totalServiceMoPendByGrouping += row.totalServiceMoPend;
+      acc.totalServiceMoExecByGrouping += row.totalServiceMoExec;
+      acc.totalMaterialMoProgByGrouping += row.totalMaterialMoProg;
+      acc.totalMaterialMoPlanByGrouping += row.totalMaterialMoPlan;
+      acc.totalMaterialMoPendByGrouping += row.totalMaterialMoPend;
+      acc.totalMaterialMoExecByGrouping += row.totalMaterialMoExec;
+
+      return acc;
+    }, createInitialTotalsByGrouping());
+
+    totals.totalServiceMoPlanByGrouping =
+      uniqueWorksFinancial.totalServiceMoPlan;
+    totals.totalMaterialMoPlanByGrouping =
+      uniqueWorksFinancial.totalMaterialMoPlan;
+    totals.totalServiceMoPendByGrouping =
+      uniqueWorksFinancial.totalServiceMoPend;
+    totals.totalMaterialMoPendByGrouping =
+      uniqueWorksFinancial.totalMaterialMoPend;
+
+    totals.totalDiff = this.calculateExecutionRate(
+      totals.totalServiceMoProgByGrouping,
+      totals.totalMaterialMoProgByGrouping,
+      totals.totalServiceMoExecByGrouping,
+      totals.totalMaterialMoExecByGrouping,
+    );
+
+    return totals;
+  }
 }

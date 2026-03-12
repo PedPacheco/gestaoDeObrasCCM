@@ -1,7 +1,7 @@
-import { HandleWorkUpdateService } from 'src/application/services/orchestrators/handleWorkUpdate.service';
-import { GetWorkDetailsService } from 'src/application/services/works/getWorkDetails.service';
-import { SuspensionWorkService } from 'src/application/services/works/suspensionWork.service';
-import { UpdateWorkService } from 'src/application/services/works/updateWork.service';
+import { HandleWorkUpdateService } from 'src/application/usecases/orchestrators/handleWorkUpdate.service';
+import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
+import { SuspensionWorkService } from 'src/application/usecases/works/suspensionWork.service';
+import { UpdateWorkService } from 'src/application/usecases/works/updateWork.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { UpdateWorkDTO } from 'src/interface/dtos/worksDto';

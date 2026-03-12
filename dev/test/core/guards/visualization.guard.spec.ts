@@ -1,4 +1,4 @@
-import { UsersService } from 'src/application/services/users.service';
+import { UsersService } from 'src/application/usecases/users.service';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import { USER_REPOSITORY } from 'src/domain/repositories/IUserRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';

@@ -4,7 +4,7 @@ import { RestrictionController } from '../controllers/restrictions.controller';
 import { RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/IRestrictionsRepository';
 import { RestrictionsRepository } from 'src/infra/repositories/restrictionsRepository';
 import { UsersModule } from './users.module';
-import { RestrictionsService } from 'src/application/services/restrictions.service';
+import { RestrictionsService } from 'src/application/usecases/restrictions.service';
 
 @Module({
   imports: [UsersModule],

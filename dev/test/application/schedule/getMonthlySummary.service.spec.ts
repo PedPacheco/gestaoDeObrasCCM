@@ -1,5 +1,5 @@
 import * as moment from 'moment';
-import { GetMonthlySummaryService } from 'src/application/services/schedule/getMonthlySummary.service';
+import { GetMonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
 import { EXECUTION_CAPACITY_REPOSITORY } from 'src/domain/repositories/IExecutionCapacityRepository';
 import { GET_MONTHLY_SUMMARY_REPOSITORY } from 'src/domain/repositories/schedule/IGetMonthlySummaryRepository';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
@@ -87,7 +87,7 @@ describe('GetMonthlySummaryService', () => {
       expect(mockRepository.getSummary).toHaveBeenCalledWith(filters);
       expect(
         mockExecutionCapacityRepository.getFinancialValue,
-      ).toHaveBeenCalledWith('2024');
+      ).toHaveBeenCalledWith('2024', [2]);
     });
 
     it('should group records by date and accumulate totals correctly', async () => {

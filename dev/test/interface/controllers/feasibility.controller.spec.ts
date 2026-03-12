@@ -1,4 +1,4 @@
-import { FeasibilityService } from 'src/application/services/feasibility.service';
+import { FeasibilityService } from 'src/application/usecases/feasibility.service';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { FeasibilityController } from 'src/interface/controllers/feasibility.controller';
 

@@ -1,6 +1,6 @@
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { ExecutionReportService } from 'src/application/services/executionReport.service';
+import { ExecutionReportService } from 'src/application/usecases/executionReport.service';
 import { ExecutionReportController } from 'src/interface/controllers/executionReport.controller';
 import { ExecutionReportDataDTO } from 'src/interface/dtos/executionReportDTO';
 

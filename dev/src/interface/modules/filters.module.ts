@@ -1,4 +1,4 @@
-import { FiltersService } from 'src/application/services/filters.service';
+import { FiltersService } from 'src/application/usecases/filters.service';
 import { FILTERS_REPOSITORY } from 'src/domain/repositories/IFiltersRepository';
 import { CacheModule } from 'src/infra/cache/cache.module';
 import { FiltersRepository } from 'src/infra/repositories/filtersRepository';

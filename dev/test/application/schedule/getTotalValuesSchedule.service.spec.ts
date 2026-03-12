@@ -1,4 +1,4 @@
-import { GetTotalValuesScheduleService } from 'src/application/services/schedule/getTotalValuesSchedule.service';
+import { GetTotalValuesScheduleService } from 'src/application/usecases/schedule/getTotalValuesSchedule.service';
 import { GET_TOTAL_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetTotalValuesScheduleRepository';
 
 import { Test } from '@nestjs/testing';

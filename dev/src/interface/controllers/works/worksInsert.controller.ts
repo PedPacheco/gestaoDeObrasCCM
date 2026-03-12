@@ -5,7 +5,7 @@ import {
 } from 'src/interface/dtos/worksDto';
 
 import { Body, Controller, HttpStatus, Post, UseGuards } from '@nestjs/common';
-import { InsertWorksService } from 'src/application/services/works/InsertWorks.service';
+import { InsertWorksService } from 'src/application/usecases/works/InsertWorks.service';
 
 @Controller('obras')
 export class WorksInsertController {

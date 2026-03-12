@@ -2,7 +2,7 @@ import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { ExportScheduleService } from 'src/application/services/export/exportSchedule.service';
+import { ExportScheduleService } from 'src/application/usecases/export/exportSchedule.service';
 
 jest.mock('exceljs');
 

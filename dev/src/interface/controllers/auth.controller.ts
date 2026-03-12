@@ -1,6 +1,6 @@
 import { plainToInstance } from 'class-transformer';
 import { Response } from 'express';
-import { AuthService } from 'src/application/services/auth.service';
+import { AuthService } from 'src/application/usecases/auth.service';
 import {
   RegisterUserDTO,
   RegisterUserResponseDTO,

@@ -1,4 +1,4 @@
-import { DeleteSchedulesService } from 'src/application/services/schedule/deleteSchedules.service';
+import { DeleteSchedulesService } from 'src/application/usecases/schedule/deleteSchedules.service';
 import { DELETE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IDeleteSchedulesRepository';
 
 import { BadRequestException } from '@nestjs/common';

@@ -166,6 +166,9 @@ describe('GetMonthlySummary', () => {
           data_prog: true,
           prog: true,
           exec: true,
+          equipe_linha_morta: true,
+          equipe_linha_viva: true,
+          equipe_regularizacao: true,
           obras: {
             select: { mo_planejada: true },
           },
@@ -198,6 +201,9 @@ describe('GetMonthlySummary', () => {
           data_prog: true,
           prog: true,
           exec: true,
+          equipe_linha_morta: true,
+          equipe_linha_viva: true,
+          equipe_regularizacao: true,
           obras: {
             select: { mo_planejada: true },
           },
@@ -300,7 +306,11 @@ describe('GetMonthlySummary', () => {
                 lte: moment.utc('2024-11-30').toDate(),
               },
             },
-            select: { data_prog: true, prog: true, exec: true },
+            select: {
+              data_prog: true,
+              prog: true,
+              exec: true,
+            },
           },
         },
         orderBy: {

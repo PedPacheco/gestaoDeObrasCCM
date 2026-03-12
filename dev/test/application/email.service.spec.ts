@@ -1,5 +1,5 @@
 import { createTransport, Transporter } from 'nodemailer';
-import { EmailService } from 'src/application/services/email.service';
+import { EmailService } from 'src/application/usecases/email.service';
 
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { InternalServerErrorException } from '@nestjs/common';

@@ -5,6 +5,9 @@ export interface GetMonthlySummaryInterface {
   prog: number;
   exec: number;
   data_prog: Date;
+  equipe_linha_morta: number;
+  equipe_linha_viva: number;
+  equipe_regularizacao: number;
 }
 
 export interface GetSecondMonthlySummaryInterface {

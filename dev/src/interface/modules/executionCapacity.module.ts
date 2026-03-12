@@ -1,4 +1,4 @@
-import { ExecutionCapacityService } from 'src/application/services/executionCapacity.service';
+import { ExecutionCapacityService } from 'src/application/usecases/executionCapacity.service';
 import { EXECUTION_CAPACITY_REPOSITORY } from 'src/domain/repositories/IExecutionCapacityRepository';
 import { ExecutionCapacityRepository } from 'src/infra/repositories/executionCapacityRepository';
 

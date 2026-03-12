@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Response } from 'express';
 import * as Exceljs from 'exceljs';
-import { ExportCompletedWorksService } from 'src/application/services/export/exportCompletedWorks.service';
+import { ExportCompletedWorksService } from 'src/application/usecases/export/exportCompletedWorks.service';
 import { worksInPortfolioResponseService } from 'src/interface/types/works/getWorksInPortfolioInterface';
 
 jest.mock('exceljs');

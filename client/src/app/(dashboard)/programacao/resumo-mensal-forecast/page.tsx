@@ -46,9 +46,8 @@ export default async function MonthlyForecastSummary() {
   const columnsFirstSummary: MonthlySummaryTableColumn[] = [
     { key: "dataProg", label: "Data", format: "date" },
     { key: "dia_semana", label: "Dia da Semana", format: "weekday" },
-    { key: "totalQtde", label: "Qtd. Obras", format: "number" },
-    { key: "teamsTotal", label: "Qtd. Equipes", format: "number" },
-
+    { key: "qtdeWorks", label: "Qtd. Obras", format: "number" },
+    { key: "teams", label: "Qtd. Equipes", format: "number" },
     {
       label: "Meta (Meta 100%)",
       children: [
@@ -56,7 +55,6 @@ export default async function MonthlyForecastSummary() {
         { key: "diaryGoal", label: "% Dia", format: "percent" },
       ],
     },
-
     {
       label: "Planejado (R$)",
       children: [
@@ -64,7 +62,6 @@ export default async function MonthlyForecastSummary() {
         { key: "materialMoPlan", label: "Material", format: "currency" },
       ],
     },
-
     {
       label: "Programado (R$)",
       children: [
@@ -72,7 +69,6 @@ export default async function MonthlyForecastSummary() {
         { key: "materialMoProg", label: "Material", format: "currency" },
       ],
     },
-
     {
       label: "Pendente SAP (R$)",
       children: [
@@ -80,7 +76,13 @@ export default async function MonthlyForecastSummary() {
         { key: "materialMoPend", label: "Material", format: "currency" },
       ],
     },
-
+    {
+      label: "Forecast (R$)",
+      children: [
+        { key: "serviceMoForecast", label: "Serviço", format: "currency" },
+        { key: "materialMoForecast", label: "Material", format: "currency" },
+      ],
+    },
     {
       label: "Executado (R$)",
       children: [
@@ -89,13 +91,13 @@ export default async function MonthlyForecastSummary() {
       ],
     },
 
-    { key: "diff", label: "Programado x Executado (%)", format: "percent" },
+    { key: "diff", label: "Prog x Exec (%)", format: "percent" },
   ];
 
   const columnsSecondSummary: MonthlySummaryTableColumn[] = [
     { key: "grupo", label: "Grupo" },
     { key: "turma", label: "Parceira" },
-    { key: "qtdeObras", label: "Qtd. Obras", format: "number" },
+    { key: "qtdeWorks", label: "Qtd. Obras", format: "number" },
     {
       label: "Planejado (R$)",
       children: [
@@ -125,10 +127,8 @@ export default async function MonthlyForecastSummary() {
         { key: "totalMaterialMoExec", label: "Material", format: "currency" },
       ],
     },
-    { key: "diff", label: "Programado x Executado (%)", format: "percent" },
+    { key: "diff", label: "Prog x Exec (%)", format: "percent" },
   ];
-
-  console.log(summaryData.data.firstSummary);
 
   return (
     <EmotionCacheProvider>

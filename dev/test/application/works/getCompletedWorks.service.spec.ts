@@ -1,5 +1,5 @@
 import { Cache } from 'cache-manager';
-import { GetCompletedWorksService } from 'src/application/services/works/getCompletedWorks.service';
+import { GetCompletedWorksService } from 'src/application/usecases/works/getCompletedWorks.service';
 import { GET_COMPLETED_WORKS_REPOSITORY } from 'src/domain/repositories/works/IGetCompletedWorksRepository';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 

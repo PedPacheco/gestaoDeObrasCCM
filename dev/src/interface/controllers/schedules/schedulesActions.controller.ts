@@ -13,10 +13,10 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { HandleAddScheduleService } from 'src/application/services/orchestrators/handleAddSchedule.service';
-import { HandleSchedulesUpdateService } from 'src/application/services/orchestrators/handleSchedulesUpdate.service';
-import { DeleteSchedulesService } from 'src/application/services/schedule/deleteSchedules.service';
-import { ValidateConfirmAndRejectSchedulesService } from 'src/application/services/schedule/validateAndConfirmSchedules.service';
+import { HandleAddScheduleService } from 'src/application/usecases/orchestrators/handleAddSchedule.service';
+import { HandleSchedulesUpdateService } from 'src/application/usecases/orchestrators/handleSchedulesUpdate.service';
+import { DeleteSchedulesService } from 'src/application/usecases/schedule/deleteSchedules.service';
+import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/schedule/validateAndConfirmSchedules.service';
 
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';

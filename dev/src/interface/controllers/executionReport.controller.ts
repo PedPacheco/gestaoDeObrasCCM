@@ -1,4 +1,4 @@
-import { ExecutionReportService } from 'src/application/services/executionReport.service';
+import { ExecutionReportService } from 'src/application/usecases/executionReport.service';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 
 import {
