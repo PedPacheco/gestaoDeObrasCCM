@@ -95,7 +95,10 @@ describe('GetScheduleValues', () => {
 
     const result = await service.getValues(filters);
 
-    expect(result).toEqual({ works: mockQueryResponse, totals: mockCount[0] });
+    expect(result).toEqual({
+      works: mockQueryResponse,
+      totals: { ...mockCount[0], total_exec: 0 },
+    });
     expect(mockRepository.getValues).toHaveBeenCalledTimes(1);
   });
 
@@ -133,6 +136,7 @@ describe('GetScheduleValues', () => {
     expect(result).toEqual({
       works: [],
       totals: {
+        total_exec: 0,
         total_obras: 0,
         total_mo_planejada: 0,
         total_mo_exec: 0,

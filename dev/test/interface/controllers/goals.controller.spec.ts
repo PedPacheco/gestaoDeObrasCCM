@@ -49,6 +49,8 @@ describe('MetasController', () => {
       const metasResponse: Goals[] = [
         {
           id_tipo: 15,
+          id_parceira: 1,
+          id_regional: 1,
           tipo_obra: 'MELHORIA OPERATIVA',
           turma: 'ENGELMIG',
           regional: 'São José dos Campos',

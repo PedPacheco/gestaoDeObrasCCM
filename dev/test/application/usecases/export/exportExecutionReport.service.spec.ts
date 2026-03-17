@@ -7,7 +7,7 @@ import {
   mockFindByWorkIdResponseFormatted,
   mockFindByWorkIdResponseFormattedNull,
   mockFindByWorkIdResponseNull,
-} from '../../mocks/mocksExecutionReport';
+} from '../../../mocks/mocksExecutionReport';
 
 import { Test, TestingModule } from '@nestjs/testing';
 

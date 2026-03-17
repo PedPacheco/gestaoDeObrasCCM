@@ -1,10 +1,7 @@
+import * as moment from 'moment';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
-import {
-  GetMonthlySummaryInterface,
-  GetSecondMonthlySummaryInterface,
-} from 'src/interface/types/schedule/getMonthlySummaryInterface';
-import * as moment from 'moment';
+import { GetMonthlySummaryInterface } from 'src/interface/types/schedule/monthlySummaryInterface';
 
 import { Injectable } from '@nestjs/common';
 
@@ -52,60 +49,20 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
         equipe_linha_morta: true,
         equipe_regularizacao: true,
         obras: {
-          select: { mo_planejada: true },
+          select: {
+            ovnota: true,
+            ordem_dci: true,
+            ordem_dca: true,
+            ordem_dcd: true,
+            ordem_dcim: true,
+            mo_planejada: true,
+            executado: true,
+            turmas: { select: { turma: true } },
+            tipos: { select: { grupos: { select: { grupo: true } } } },
+          },
         },
       },
       orderBy: { data_prog: 'asc' },
-    });
-  }
-
-  async getSecondSummary(
-    filters: GetMonthlySummaryDTO,
-  ): Promise<GetSecondMonthlySummaryInterface[]> {
-    const { dataFinal, dataInicial, idGrupo, idParceira, idRegional, idTipo } =
-      filters;
-
-    return await this.prisma.obras.findMany({
-      where: {
-        programacoes: {
-          some: {
-            data_prog: {
-              gte: moment.utc(dataInicial, 'DD/MM/YYYY').toDate(),
-              lte: moment.utc(dataFinal, 'DD/MM/YYYY').toDate(),
-            },
-          },
-        },
-        tipos: {
-          id_grupo: idGrupo ? { in: idGrupo } : undefined,
-        },
-        municipios: {
-          id_regional: idRegional ? { in: idRegional } : undefined,
-        },
-        id_turma: idParceira ? { in: idParceira } : undefined,
-        id_tipo: idTipo ? { in: idTipo } : undefined,
-      },
-      select: {
-        ovnota: true,
-        ordem_dci: true,
-        ordem_dca: true,
-        ordem_dcd: true,
-        ordem_dcim: true,
-        mo_planejada: true,
-        turmas: { select: { turma: true } },
-        tipos: { select: { grupos: { select: { grupo: true } } } },
-        programacoes: {
-          where: {
-            data_prog: {
-              gte: moment.utc(dataInicial, 'DD/MM/YYYY').toDate(),
-              lte: moment.utc(dataFinal, 'DD/MM/YYYY').toDate(),
-            },
-          },
-          select: { data_prog: true, prog: true, exec: true },
-        },
-      },
-      orderBy: {
-        tipos: { id_grupo: 'asc' },
-      },
     });
   }
 }

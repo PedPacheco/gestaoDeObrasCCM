@@ -1,4 +1,4 @@
-import { GetMonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
+import { MonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
 import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
 import { GetTotalValuesScheduleService } from 'src/application/usecases/schedule/getTotalValuesSchedule.service';
 import { RejectionsOfSchedulesService } from 'src/application/usecases/schedule/rejectionOfSchedules.service';
@@ -11,18 +11,18 @@ import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { DailySummaryEntry } from 'src/interface/types/schedule/monthlySummaryInterface';
 import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
-import { DailySummaryEntryForecast } from 'src/interface/types/schedule/monthlySummaryForecastInterface';
 import {
-  DailySummaryTotals,
-  GroupSummaryTotals,
+  DailyForecastSummaryTotals,
+  DailySummaryEntryForecast,
+  GroupForecastSummaryTotals,
   GroupTeamSummaryEntryForecast,
-} from 'src/interface/types/schedule/getMonthlySummaryForecastInterface';
+} from 'src/interface/types/schedule/monthlySummaryForecastInterface';
 
 describe('ScheduleController', () => {
   let scheduleController: ScheduleController;
   let getTotalValuesScheduleService: GetTotalValuesScheduleService;
   let getScheduleValuesService: GetScheduleValuesService;
-  let getMonthlySummaryService: GetMonthlySummaryService;
+  let getMonthlySummaryService: MonthlySummaryService;
   let rejectionsOfSchedulesService: RejectionsOfSchedulesService;
   let getMonthlySummaryForecastService: GetMonthlySummaryForecastService;
 
@@ -100,7 +100,7 @@ describe('ScheduleController', () => {
           },
         },
         {
-          provide: GetMonthlySummaryService,
+          provide: MonthlySummaryService,
           useValue: {
             getSummary: jest.fn(),
             getSecondSummary: jest.fn(),
@@ -128,8 +128,8 @@ describe('ScheduleController', () => {
     getScheduleValuesService = module.get<GetScheduleValuesService>(
       GetScheduleValuesService,
     );
-    getMonthlySummaryService = module.get<GetMonthlySummaryService>(
-      GetMonthlySummaryService,
+    getMonthlySummaryService = module.get<MonthlySummaryService>(
+      MonthlySummaryService,
     );
     getMonthlySummaryForecastService =
       module.get<GetMonthlySummaryForecastService>(
@@ -324,7 +324,7 @@ describe('ScheduleController', () => {
       {
         grupo: 'RECOMPOSIÇÃO',
         turma: 'ENGELMIG',
-        qtdeObras: 49,
+        qtdeWorks: 49,
         totalMoProg: 1075887.9138599995,
         totalMoExec: 556246.1940299999,
         totalMoPrev: 948862.9654299996,
@@ -333,7 +333,7 @@ describe('ScheduleController', () => {
       {
         grupo: 'BT ZERO',
         turma: 'ENGELMIG',
-        qtdeObras: 19,
+        qtdeWorks: 19,
         totalMoProg: 673067.8821099999,
         totalMoExec: 541923.11811,
         totalMoPrev: 623527.0451099998,
@@ -343,11 +343,12 @@ describe('ScheduleController', () => {
 
     jest
       .spyOn(getMonthlySummaryService, 'getSummary')
-      .mockResolvedValue(dailySummaryMock);
+      .mockResolvedValue({ summary: dailySummaryMock, totals: {} as any });
 
-    jest
-      .spyOn(getMonthlySummaryService, 'getSecondSummary')
-      .mockResolvedValue(getSecondMonthlySummaryResponse);
+    jest.spyOn(getMonthlySummaryService, 'getSecondSummary').mockResolvedValue({
+      summary: getSecondMonthlySummaryResponse,
+      totals: {} as any,
+    });
 
     const result = await scheduleController.getMonthlySummary(filters);
 
@@ -355,8 +356,11 @@ describe('ScheduleController', () => {
       statusCode: HttpStatus.OK,
       message: 'Resumo mensal retornado com sucesso',
       data: {
-        firstSummary: dailySummaryMock,
-        secondSummary: getSecondMonthlySummaryResponse,
+        firstSummary: { summary: dailySummaryMock, totals: {} as any },
+        secondSummary: {
+          summary: getSecondMonthlySummaryResponse,
+          totals: {} as any,
+        },
       },
     });
     expect(getMonthlySummaryService.getSummary).toHaveBeenCalledWith(filters);
@@ -414,7 +418,7 @@ describe('ScheduleController', () => {
       },
     ];
 
-    const mockDailySummaryTotals: DailySummaryTotals = {
+    const mockDailySummaryTotals: DailyForecastSummaryTotals = {
       totalQtdeObras: 10,
       totalTeams: 5,
       totalFinancialGoal: 50000,
@@ -468,7 +472,7 @@ describe('ScheduleController', () => {
         },
       ];
 
-    const mockGroupSummaryTotals: GroupSummaryTotals = {
+    const mockGroupSummaryTotals: GroupForecastSummaryTotals = {
       totalWorks: 12,
       totalServiceMoProgByGrouping: 18000,
       totalServiceMoPlanByGrouping: 22000,

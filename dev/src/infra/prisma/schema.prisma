@@ -171,6 +171,7 @@ model grupos {
   id             Int              @id(map: "GRUPOS_pkey") @default(autoincrement())
   grupo          String           @db.VarChar(20)
   empreendimento empreendimento[]
+  plano_capex    plano_capex[]
   subgrupo       subgrupo[]
   tipos          tipos[]
 }
@@ -370,6 +371,7 @@ model regionais {
   empreendimento      empreendimento[]
   metas               metas[]
   municipios          municipios[]
+  plano_capex         plano_capex[]
   servicos_contratos  servicos_contratos[]
   tecnicos            tecnicos[]
   usuario             usuario[]
@@ -672,6 +674,29 @@ model restricoes_publicacoes {
   observacao       String?
   obras            obras      @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
   restricoes       restricoes @relation(fields: [id_restricao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes")
+}
+
+model plano_capex {
+  id          Int       @id @default(autoincrement())
+  id_regional Int
+  id_grupo    Int
+  valor_jan   Float?
+  valor_fev   Float?
+  valor_mar   Float?
+  valor_abr   Float?
+  valor_mai   Float?
+  valor_jun   Float?
+  valor_jul   Float?
+  valor_ago   Float?
+  valor_set   Float?
+  valor_out   Float?
+  valor_nov   Float?
+  valor_dez   Float?
+  ano_plano   Int?
+  grupos      grupos    @relation(fields: [id_grupo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_grupo")
+  regionais   regionais @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regional")
+
+  @@index([id_grupo], map: "fki_fk_grupo")
 }
 
 view exportacao_obras_executadas {

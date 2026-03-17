@@ -6,7 +6,7 @@ import { UPDATE_NOTE_REPOSITORY } from 'src/domain/repositories/works/IUpdateNot
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { mockUpdateNotes } from '../../mocks/mockWorksController';
+import { mockUpdateNotes } from '../../../mocks/mockWorksController';
 
 describe('UpdateNoteService', () => {
   let updateNoteService: UpdateNoteService;

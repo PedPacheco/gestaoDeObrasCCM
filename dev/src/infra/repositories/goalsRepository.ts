@@ -15,6 +15,8 @@ export class GoalsRepository implements IGoalsRepository {
 
     let query = Prisma.sql`SELECT
       id_tipo,
+      metas_anuais.id_turma as id_parceira,
+      metas_anuais.id_regional,
       tipo_obra,
       turma,
       regional,
@@ -99,7 +101,7 @@ export class GoalsRepository implements IGoalsRepository {
       query = Prisma.sql`${query} AND metas_anuais.id_empreendimento IN (${Prisma.join(empreendimento)})`;
     }
 
-    query = Prisma.sql`${query} GROUP BY tipo_obra, turma, regional, empreendimento, anocalc, id_tipo;`;
+    query = Prisma.sql`${query} GROUP BY tipo_obra, turma, regional, empreendimento, anocalc, id_tipo, metas_anuais.id_turma, metas_anuais.id_regional;`;
 
     const result: goalsInterfaceRepository[] =
       await this.prisma.$queryRaw(query);

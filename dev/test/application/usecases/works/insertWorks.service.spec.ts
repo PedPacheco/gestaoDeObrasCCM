@@ -6,9 +6,9 @@ import { INSERT_WORKS_REPOSITORY } from 'src/domain/repositories/works/IInsertWo
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { mockInsertNotes } from '../../../test/mocks/mockAuxiliaryBaseRepository';
-import { mockMappedNotes } from '../../../test/mocks/mocksAuxiliaryBaseController';
-import { mockMarketWorks } from '../../../test/mocks/mockWorksController';
+import { mockInsertNotes } from '../../../mocks/mockAuxiliaryBaseRepository';
+import { mockMappedNotes } from '../../../mocks/mocksAuxiliaryBaseController';
+import { mockMarketWorks } from '../../../mocks/mockWorksController';
 
 describe('InsertWorksService', () => {
   let insertWorksService: InsertWorksService;

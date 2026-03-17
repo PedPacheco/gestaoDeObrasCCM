@@ -8,7 +8,7 @@ import {
   mockFormattedDataExecutionCapacity,
   mockResponseDataExecutionCapacityRepository,
   mockResponseDataFinancialValuesExecutionCapacityRepository,
-} from '../../test/mocks/mockExecutionCapacityService';
+} from '../../mocks/mockExecutionCapacityService';
 
 describe('ExecutionCapacityService', () => {
   let service: ExecutionCapacityService;

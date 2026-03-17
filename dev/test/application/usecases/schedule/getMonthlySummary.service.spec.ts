@@ -1,0 +1,384 @@
+import { createUniqueWorksFinancial } from 'src/application/mappers/monthlySummaryMapper';
+import { MonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
+import { buildTotalTeamsMap } from 'src/domain/services/teamAggregator.service';
+import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
+import {
+  DailySummaryEntry,
+  GroupTeamSummaryEntry,
+  MonthlyCapacityMetrics,
+} from 'src/interface/types/schedule/monthlySummaryInterface';
+
+// ─── Module mocks ─────────────────────────────────────────────────────────────
+
+jest.mock('src/application/mappers/monthlySummaryMapper', () => ({
+  createUniqueWorksFinancial: jest.fn(),
+  MonthlySummaryMapper: jest.fn(),
+}));
+
+jest.mock('src/domain/services/teamAggregator.service', () => ({
+  buildTotalTeamsMap: jest.fn(),
+}));
+
+const mockCreateUniqueWorksFinancial = createUniqueWorksFinancial as jest.Mock;
+const mockBuildTotalTeamsMap = buildTotalTeamsMap as jest.Mock;
+
+// ─── Factories ────────────────────────────────────────────────────────────────
+
+const DEFAULT_FILTERS: GetMonthlySummaryDTO = {
+  dataFinal: '31/03/2024',
+  idParceira: 'parceira-42',
+  idRegional: 'regional-2',
+} as any;
+
+const DEFAULT_METRICS: MonthlyCapacityMetrics = {
+  dailyFinancialGoal: 5000,
+  dailyFinancialGoalWithOverhead: 5400,
+};
+
+function makeRecord(
+  overrides: {
+    data_prog?: string;
+    prog?: number;
+    exec?: number | null;
+    mo_planejada?: number;
+    ovnota?: string;
+    ordem_dci?: string;
+    ordem_dca?: string;
+    ordem_dcd?: string;
+    ordem_dcim?: string;
+    grupo?: string;
+    turma?: string;
+  } = {},
+) {
+  return {
+    data_prog: overrides.data_prog ?? '2024-03-15T00:00:00.000Z',
+    prog: overrides.prog ?? 100,
+    exec: overrides.exec !== undefined ? overrides.exec : 80,
+    obras: {
+      mo_planejada: overrides.mo_planejada ?? 1000,
+      ovnota: overrides.ovnota ?? 'OV001',
+      ordem_dci: overrides.ordem_dci ?? 'DCI001',
+      ordem_dca: overrides.ordem_dca ?? 'DCA001',
+      ordem_dcd: overrides.ordem_dcd ?? 'DCD001',
+      ordem_dcim: overrides.ordem_dcim ?? 'DCIM001',
+      tipos: { grupos: { grupo: overrides.grupo ?? 'GRP_A' } },
+      turmas: { turma: overrides.turma ?? 'TRM_1' },
+    },
+  };
+}
+
+function makeDailyEntry(date = '15/03/2024'): DailySummaryEntry {
+  return {
+    dataProg: date,
+    totalQtde: 0,
+    teamsTotal: 0,
+    financialGoal: 0,
+    financialGoalWith8: 0,
+    diaryGoal: 0,
+    diaryGoalWith8: 0,
+    totalMoProg: 0,
+    totalMoExec: 0,
+    diff: 0,
+  };
+}
+
+function makeGroupEntry(
+  grupo = 'GRP_A',
+  turma = 'TRM_1',
+): GroupTeamSummaryEntry {
+  return {
+    grupo,
+    turma,
+    qtdeWorks: 0,
+    totalMoProg: 0,
+    totalMoExec: 0,
+    totalMoPrev: 0,
+    diff: 0,
+  };
+}
+
+// ─── Suite ────────────────────────────────────────────────────────────────────
+
+describe('MonthlySummaryService', () => {
+  let service: MonthlySummaryService;
+
+  let monthlySummaryRepository: { getSummary: jest.Mock };
+  let calculator: {
+    aggregateFinancialCapacityByMonth: jest.Mock;
+    calculateWorkOrderMetrics: jest.Mock;
+    calculateGoalPercentage: jest.Mock;
+    calculateMoPrev: jest.Mock;
+    calculateExecutionRate: jest.Mock;
+    aggregateDailySummaryTotals: jest.Mock;
+    aggregateGroupTotals: jest.Mock;
+  };
+  let summaryMapper: {
+    createDailySummaryEntry: jest.Mock;
+    accumulateDailySummaryEntry: jest.Mock;
+    createGroupTeamEntry: jest.Mock;
+    accumulateGroupTeamEntry: jest.Mock;
+  };
+  let executionCapacityRepository: { getFinancialValue: jest.Mock };
+
+  beforeEach(() => {
+    monthlySummaryRepository = { getSummary: jest.fn() };
+    calculator = {
+      aggregateFinancialCapacityByMonth: jest
+        .fn()
+        .mockReturnValue(DEFAULT_METRICS),
+      calculateWorkOrderMetrics: jest
+        .fn()
+        .mockReturnValue({ moProg: 800, moExec: 640 }),
+      calculateGoalPercentage: jest.fn().mockReturnValue(16),
+      calculateMoPrev: jest.fn().mockReturnValue({ moPrev: 720 }),
+      calculateExecutionRate: jest.fn().mockReturnValue(80),
+      aggregateDailySummaryTotals: jest
+        .fn()
+        .mockReturnValue({ totalMoProg: 0 }),
+      aggregateGroupTotals: jest.fn().mockReturnValue({ totalWorks: 0 }),
+    };
+    summaryMapper = {
+      createDailySummaryEntry: jest.fn().mockReturnValue(makeDailyEntry()),
+      accumulateDailySummaryEntry: jest.fn(),
+      createGroupTeamEntry: jest.fn().mockReturnValue(makeGroupEntry()),
+      accumulateGroupTeamEntry: jest.fn(),
+    };
+    executionCapacityRepository = {
+      getFinancialValue: jest.fn().mockResolvedValue([]),
+    };
+
+    mockCreateUniqueWorksFinancial.mockReturnValue({ totalMoPlan: 0 });
+    mockBuildTotalTeamsMap.mockReturnValue(new Map());
+
+    service = new MonthlySummaryService(
+      monthlySummaryRepository as any,
+      calculator as any,
+      summaryMapper as any,
+      executionCapacityRepository as any,
+    );
+  });
+
+  afterEach(() => jest.clearAllMocks());
+
+  // ─── getSummary ─────────────────────────────────────────────────────────────
+
+  describe('getSummary', () => {
+    it('fetches repository data and execution capacity concurrently, deriving year from dataFinal', async () => {
+      monthlySummaryRepository.getSummary.mockResolvedValue([]);
+
+      await service.getSummary(DEFAULT_FILTERS);
+
+      expect(monthlySummaryRepository.getSummary).toHaveBeenCalledWith(
+        DEFAULT_FILTERS,
+      );
+      expect(
+        executionCapacityRepository.getFinancialValue,
+      ).toHaveBeenCalledWith(
+        '2024',
+        DEFAULT_FILTERS.idParceira,
+        DEFAULT_FILTERS.idRegional,
+      );
+    });
+
+    it('returns empty summary with aggregated totals when repository returns no data', async () => {
+      monthlySummaryRepository.getSummary.mockResolvedValue([]);
+
+      const result = await service.getSummary(DEFAULT_FILTERS);
+
+      expect(result.summary).toEqual([]);
+      expect(result.totals).toEqual({ totalMoProg: 0 });
+      expect(summaryMapper.createDailySummaryEntry).not.toHaveBeenCalled();
+    });
+
+    it('creates entry, calculates metrics and accumulates for a single record', async () => {
+      const record = makeRecord({ exec: 80 });
+      monthlySummaryRepository.getSummary.mockResolvedValue([record]);
+      mockBuildTotalTeamsMap.mockReturnValue(new Map([['15/03/2024', 5]]));
+
+      const result = await service.getSummary(DEFAULT_FILTERS);
+
+      // month index 2 (March) → financial capacity computed once
+      expect(calculator.aggregateFinancialCapacityByMonth).toHaveBeenCalledWith(
+        [],
+        2,
+      );
+      // daily entry created with correct date, metrics and teamsTotal
+      expect(summaryMapper.createDailySummaryEntry).toHaveBeenCalledWith(
+        '15/03/2024',
+        DEFAULT_METRICS,
+        5,
+      );
+      // work order metrics use moPlan, prog and exec from the record
+      expect(calculator.calculateWorkOrderMetrics).toHaveBeenCalledWith(
+        1000,
+        100,
+        80,
+      );
+      // goal percentages computed against both daily goals
+      expect(calculator.calculateGoalPercentage).toHaveBeenNthCalledWith(
+        1,
+        800,
+        DEFAULT_METRICS.dailyFinancialGoal,
+      );
+      expect(calculator.calculateGoalPercentage).toHaveBeenNthCalledWith(
+        2,
+        800,
+        DEFAULT_METRICS.dailyFinancialGoalWithOverhead,
+      );
+      // diff is appended to the final summary entry
+      expect(result.summary[0].diff).toBe(80);
+    });
+
+    it('defaults exec to 0 when record.exec is null', async () => {
+      monthlySummaryRepository.getSummary.mockResolvedValue([
+        makeRecord({ exec: null }),
+      ]);
+
+      await service.getSummary(DEFAULT_FILTERS);
+
+      expect(calculator.calculateWorkOrderMetrics).toHaveBeenCalledWith(
+        1000,
+        100,
+        0,
+      );
+    });
+
+    it('caches financial capacity per month — aggregateFinancialCapacityByMonth called once per distinct month', async () => {
+      monthlySummaryRepository.getSummary.mockResolvedValue([
+        makeRecord({ data_prog: '2024-03-01T00:00:00.000Z', ovnota: 'OV001' }),
+        makeRecord({ data_prog: '2024-03-20T00:00:00.000Z', ovnota: 'OV002' }),
+        makeRecord({ data_prog: '2024-04-10T00:00:00.000Z', ovnota: 'OV003' }),
+      ]);
+      summaryMapper.createDailySummaryEntry
+        .mockReturnValueOnce(makeDailyEntry('01/03/2024'))
+        .mockReturnValueOnce(makeDailyEntry('20/03/2024'))
+        .mockReturnValueOnce(makeDailyEntry('10/04/2024'));
+
+      await service.getSummary(DEFAULT_FILTERS);
+
+      expect(
+        calculator.aggregateFinancialCapacityByMonth,
+      ).toHaveBeenCalledTimes(2);
+      expect(calculator.aggregateFinancialCapacityByMonth).toHaveBeenCalledWith(
+        [],
+        2,
+      );
+      expect(calculator.aggregateFinancialCapacityByMonth).toHaveBeenCalledWith(
+        [],
+        3,
+      );
+    });
+
+    it('creates summaryMap entry once per date but accumulates for every record on that date', async () => {
+      monthlySummaryRepository.getSummary.mockResolvedValue([
+        makeRecord({ ovnota: 'OV001' }),
+        makeRecord({ ovnota: 'OV002' }), // same date, different work key
+      ]);
+
+      await service.getSummary(DEFAULT_FILTERS);
+
+      expect(summaryMapper.createDailySummaryEntry).toHaveBeenCalledTimes(1);
+      expect(summaryMapper.accumulateDailySummaryEntry).toHaveBeenCalledTimes(
+        2,
+      );
+    });
+
+    it('skips accumulateUniqueWorkFinancials for a duplicate work key', async () => {
+      const uniqueTarget = { totalMoPlan: 0 };
+      mockCreateUniqueWorksFinancial.mockReturnValue(uniqueTarget);
+      const record = makeRecord({ mo_planejada: 500 });
+      monthlySummaryRepository.getSummary.mockResolvedValue([record, record]); // same key twice
+
+      await service.getSummary(DEFAULT_FILTERS);
+
+      expect(uniqueTarget.totalMoPlan).toBe(500); // counted only once
+    });
+  });
+
+  // ─── getSecondSummary ────────────────────────────────────────────────────────
+
+  describe('getSecondSummary', () => {
+    it('fetches data from repository without calling executionCapacityRepository', async () => {
+      monthlySummaryRepository.getSummary.mockResolvedValue([]);
+
+      await service.getSecondSummary(DEFAULT_FILTERS);
+
+      expect(monthlySummaryRepository.getSummary).toHaveBeenCalledWith(
+        DEFAULT_FILTERS,
+      );
+      expect(
+        executionCapacityRepository.getFinancialValue,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('returns empty summary with aggregated totals when repository returns no data', async () => {
+      monthlySummaryRepository.getSummary.mockResolvedValue([]);
+
+      const result = await service.getSecondSummary(DEFAULT_FILTERS);
+
+      expect(result.summary).toEqual([]);
+      expect(result.totals).toEqual({ totalWorks: 0 });
+    });
+
+    it('creates entry, calculates metrics and accumulates for a single record', async () => {
+      monthlySummaryRepository.getSummary.mockResolvedValue([makeRecord()]);
+
+      const result = await service.getSecondSummary(DEFAULT_FILTERS);
+
+      expect(summaryMapper.createGroupTeamEntry).toHaveBeenCalledWith(
+        'GRP_A',
+        'TRM_1',
+      );
+      expect(calculator.calculateWorkOrderMetrics).toHaveBeenCalledWith(
+        1000,
+        100,
+        80,
+      );
+      expect(calculator.calculateMoPrev).toHaveBeenCalledWith(1000, 80, 100);
+      expect(summaryMapper.accumulateGroupTeamEntry).toHaveBeenCalledWith(
+        expect.any(Object),
+        { moProg: 800, moExec: 640 },
+        720,
+      );
+      expect(result.summary[0].diff).toBe(80);
+    });
+
+    it('creates group entry once per grupo/turma but accumulates for every record in that group', async () => {
+      monthlySummaryRepository.getSummary.mockResolvedValue([
+        makeRecord({ ovnota: 'OV001', grupo: 'GRP_A', turma: 'TRM_1' }),
+        makeRecord({ ovnota: 'OV002', grupo: 'GRP_A', turma: 'TRM_1' }),
+      ]);
+
+      await service.getSecondSummary(DEFAULT_FILTERS);
+
+      expect(summaryMapper.createGroupTeamEntry).toHaveBeenCalledTimes(1);
+      expect(summaryMapper.accumulateGroupTeamEntry).toHaveBeenCalledTimes(2);
+    });
+
+    it('creates separate group entries for different grupo/turma combinations', async () => {
+      monthlySummaryRepository.getSummary.mockResolvedValue([
+        makeRecord({ ovnota: 'OV001', grupo: 'GRP_A', turma: 'TRM_1' }),
+        makeRecord({ ovnota: 'OV002', grupo: 'GRP_B', turma: 'TRM_2' }),
+      ]);
+      summaryMapper.createGroupTeamEntry
+        .mockReturnValueOnce(makeGroupEntry('GRP_A', 'TRM_1'))
+        .mockReturnValueOnce(makeGroupEntry('GRP_B', 'TRM_2'));
+
+      const result = await service.getSecondSummary(DEFAULT_FILTERS);
+
+      expect(summaryMapper.createGroupTeamEntry).toHaveBeenCalledTimes(2);
+      expect(result.summary).toHaveLength(2);
+    });
+
+    it('skips accumulateUniqueWorkFinancials for a duplicate work key', async () => {
+      const uniqueTarget = { totalMoPlan: 0 };
+      mockCreateUniqueWorksFinancial.mockReturnValue(uniqueTarget);
+      const record = makeRecord({ mo_planejada: 300 });
+      monthlySummaryRepository.getSummary.mockResolvedValue([record, record]);
+
+      await service.getSecondSummary(DEFAULT_FILTERS);
+
+      expect(uniqueTarget.totalMoPlan).toBe(300); // counted only once
+    });
+  });
+});

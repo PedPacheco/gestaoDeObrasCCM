@@ -5,7 +5,7 @@ import { UPDATE_OV_REPOSITORY } from 'src/domain/repositories/works/IUpdateOvRep
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { mockMarketWorks } from '../../mocks/mockWorksController';
+import { mockMarketWorks } from '../../../mocks/mockWorksController';
 
 describe('UpdateOvService', () => {
   let updateOvService: UpdateOvService;

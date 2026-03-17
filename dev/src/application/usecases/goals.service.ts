@@ -39,15 +39,18 @@ export class GoalsService {
     const grouped: Record<string, any> = {};
 
     for (const item of data) {
+      const { id_parceira, id_regional } = item;
       const id_tipo = btzero ? 48 : item.id_tipo;
       const tipo_obra = btzero ? 'BT ZERO' : item.tipo_obra;
 
       // carteira NÃO faz parte da chave porque deve ser somada
-      const key = `${id_tipo}-${tipo_obra}-${item.turma}-${item.regional}-${item.anocalc}`;
+      const key = `${id_tipo}-${tipo_obra}-${item.turma}-${item.regional}-${item.anocalc}-${item.empreendimento}`;
 
       if (!grouped[key]) {
         grouped[key] = {
           id_tipo,
+          id_parceira,
+          id_regional,
           tipo_obra,
           turma: item.turma,
           regional: item.regional,

@@ -12,7 +12,7 @@ import {
 import ModalComponent from "../common/Modal";
 import { useCallback, useMemo } from "react";
 
-interface ModalGoalsProps {
+interface ModalTotalGoalValuesProps {
   data: any;
   columns: any;
   handleClose: () => void;
@@ -26,13 +26,13 @@ interface Totals {
   diferencaAcumulada: number;
 }
 
-export default function ModalGoals({
+export default function ModalTotalGoalValues({
   columns,
   data,
   handleClose,
   open,
   typeGoals,
-}: ModalGoalsProps) {
+}: ModalTotalGoalValuesProps) {
   const valuesTypes = {
     meta: "meta",
     prog: "prog",
@@ -74,7 +74,7 @@ export default function ModalGoals({
 
       return totals;
     },
-    [columns, data, typeGoals]
+    [columns, data, typeGoals],
   );
 
   const sumValues = useMemo(() => {
@@ -103,7 +103,7 @@ export default function ModalGoals({
           metaAcumulada: 0,
           progRealAcumulado: 0,
           diferencaAcumulada: 0,
-        }
+        },
       );
       return { ...acc, [month]: cumulativeSum };
     }, {} as Totals);

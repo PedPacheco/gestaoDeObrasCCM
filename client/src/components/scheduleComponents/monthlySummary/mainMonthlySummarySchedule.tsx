@@ -52,6 +52,7 @@ function useMonthlySummary(
           `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal`,
           params,
           token,
+          { cache: "no-store" },
         );
         setDataFirst(response.data.firstSummary);
         setDataSecond(response.data.secondSummary);
@@ -169,7 +170,6 @@ export function MainMonthlySummarySchedule({
       />
     );
   }
-
   return (
     <>
       <div className="my-6 w-full flex flex-col px-8">
@@ -216,11 +216,15 @@ export function MainMonthlySummarySchedule({
       <div className="w-full flex flex-col xl:flex-row px-4 overflow-y-auto">
         <MonthlySummaryScheduleTable
           columns={columnsFirstSummary}
-          data={dataFirst}
+          data={dataFirst.summary}
+          totals={dataFirst.totals}
+          isFirstSummary={true}
         />
         <MonthlySummaryScheduleTable
           columns={columnsSecondSummary}
-          data={dataSecond}
+          data={dataSecond.summary}
+          totals={dataSecond.totals}
+          isFirstSummary={false}
         />
       </div>
 

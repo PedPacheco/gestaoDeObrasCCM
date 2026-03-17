@@ -22,9 +22,11 @@ import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.servic
 import { ExportRejectionsService } from 'src/application/usecases/export/exportRejections.service';
 import { ExportMonthlyMOSummaryService } from 'src/application/usecases/export/exportMonthlySummary.service';
 import { ExportMonthlyForecastSummaryService } from 'src/application/usecases/export/exportMonthlyForecastSummary.service';
+import { ExportGoalsService } from 'src/application/usecases/export/exportGoals.service';
+import { GoalsModule } from './goals.module';
 
 @Module({
-  imports: [WorksModule, ScheduleModule, UsersModule],
+  imports: [WorksModule, ScheduleModule, UsersModule, GoalsModule],
   controllers: [ExportController],
   providers: [
     ExportScheduleService,
@@ -42,6 +44,7 @@ import { ExportMonthlyForecastSummaryService } from 'src/application/usecases/ex
     ExportRejectionsService,
     ExportMonthlyMOSummaryService,
     ExportMonthlyForecastSummaryService,
+    ExportGoalsService,
     {
       provide: EXPORT_REPOSITORY,
       useClass: ExportRepository,

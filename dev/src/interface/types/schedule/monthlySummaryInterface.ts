@@ -1,3 +1,5 @@
+import { Partners, Types } from '../common/commonInterface';
+
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
 export enum MonthKey {
@@ -17,7 +19,7 @@ export enum MonthKey {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-export const WORKING_DAYS_PER_MONTH = 22 as const;
+export const WORKING_DAYS_PER_MONTH = 24 as const;
 export const FINANCIAL_OVERHEAD_FACTOR = 1.08 as const;
 
 export const MONTH_INDEX_TO_KEY: Readonly<Record<number, MonthKey>> = {
@@ -40,6 +42,8 @@ export const MONTH_INDEX_TO_KEY: Readonly<Record<number, MonthKey>> = {
 export interface MonthlyCapacityMetrics {
   readonly dailyFinancialGoal: number;
   readonly dailyFinancialGoalWithOverhead: number;
+  // readonly totalFinancial: number;
+  // readonly totalFinancialWith8: number;
 }
 
 export interface WorkOrderMetrics {
@@ -63,20 +67,58 @@ export interface DailySummaryEntry {
 export interface GroupTeamSummaryEntry {
   grupo: string;
   turma: string;
-  qtdeObras: number;
-  _obrasContabilizadas: Set<string>;
+  qtdeWorks: number;
   totalMoProg: number;
   totalMoExec: number;
   totalMoPrev: number;
   diff: number;
 }
 
-export interface GroupTeamSummaryEntryResponse {
-  grupo: string;
-  turma: string;
-  qtdeObras: number;
+export interface GetMonthlySummaryInterface {
+  obras: {
+    ovnota: string;
+    ordem_dci: string;
+    ordem_dca: string;
+    ordem_dcd: string;
+    ordem_dcim: string;
+    mo_planejada: number | null;
+    turmas: Partners;
+    tipos: Types;
+  };
+  prog: number;
+  exec: number;
+  data_prog: Date;
+  equipe_linha_morta: number;
+  equipe_linha_viva: number;
+  equipe_regularizacao: number;
+}
+
+export interface DailySummaryTotals {
+  totalQtdeObras: number;
+  totalTeams: number;
+  totalFinancialGoal: number;
+  totalDiaryGoal: number;
+  totalFinancialGoalWith8: number;
+  totalDiaryGoalWith8: number;
   totalMoProg: number;
   totalMoExec: number;
-  totalMoPrev: number;
-  diff: number;
+  totalDiff: number;
+}
+
+export interface GroupSummaryTotals {
+  totalWorks: number;
+  totalMoProgByGrouping: number;
+  totalMoExecByGrouping: number;
+  totalMoPrevByGrouping: number;
+  totalDiff: number;
+}
+
+export interface DailySummaryResult {
+  summary: DailySummaryEntry[];
+  totals: DailySummaryTotals;
+}
+
+export interface GroupSummaryResult {
+  summary: GroupTeamSummaryEntry[];
+  totals: GroupSummaryTotals;
 }

@@ -1,8 +1,9 @@
 import * as moment from 'moment';
-import { GetMonthlySummaryForecastInterface } from 'src/interface/types/schedule/getMonthlySummaryForecastInterface';
+import { GetMonthlySummaryForecastInterface } from 'src/interface/types/schedule/monthlySummaryForecastInterface';
+import { GetMonthlySummaryInterface } from 'src/interface/types/schedule/monthlySummaryInterface';
 
 export function buildTotalTeamsMap(
-  data: GetMonthlySummaryForecastInterface[],
+  data: GetMonthlySummaryForecastInterface[] | GetMonthlySummaryInterface[],
 ): Map<string, number> {
   return data.reduce((map, item) => {
     const dateKey = moment.utc(item.data_prog).format('DD/MM/YYYY');

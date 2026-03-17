@@ -24,6 +24,16 @@ export class GetScheduleValuesService {
 
     const totals = this.buildTotals(resultTotals[0]);
 
+    const totalExec =
+      totals.total_obras > 0
+        ? this.calculateTotalExec(works) / totals.total_obras
+        : 0;
+
+    const totalsWithExecMedia = {
+      ...totals,
+      total_exec: totalExec,
+    };
+
     const worksWithRestrictionVerification = works.map((work) => {
       return {
         ...work,
@@ -34,7 +44,7 @@ export class GetScheduleValuesService {
 
     const response: GetScheduleValuesResponse = {
       works: worksWithRestrictionVerification,
-      totals,
+      totals: totalsWithExecMedia,
     };
 
     return response;
@@ -47,6 +57,10 @@ export class GetScheduleValuesService {
       total_mo_exec: rawTotals.total_mo_exec || 0,
       total_qtde_planejada: rawTotals.total_qtde_planejada || 0,
     };
+  }
+
+  private calculateTotalExec(works: any[]) {
+    return works.reduce((acc, work) => acc + work.exec, 0);
   }
 
   private hasOpenRestriction(work: any): boolean {

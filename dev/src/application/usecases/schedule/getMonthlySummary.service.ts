@@ -1,45 +1,45 @@
 import * as moment from 'moment';
-import { Inject, Injectable } from '@nestjs/common';
-
+import {
+  createUniqueWorksFinancial,
+  MonthlySummaryMapper,
+} from 'src/application/mappers/monthlySummaryMapper';
 import {
   GET_MONTHLY_SUMMARY_REPOSITORY,
   IGetMonthlySummaryRepository,
 } from 'src/domain/repositories/schedule/IGetMonthlySummaryRepository';
 import {
-  EXECUTION_CAPACITY_REPOSITORY,
-  IExecutionCapacityRepository,
-} from 'src/domain/repositories/IExecutionCapacityRepository';
+  IMonthlySummaryCalculator,
+  MONTHLY_SUMMARY_CALCULATOR,
+} from 'src/domain/services/monthlySummaryCalculator.service';
+import { buildTotalTeamsMap } from 'src/domain/services/teamAggregator.service';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
 import {
   DailySummaryEntry,
+  DailySummaryResult,
+  GroupSummaryResult,
   GroupTeamSummaryEntry,
-  GroupTeamSummaryEntryResponse,
   MonthlyCapacityMetrics,
 } from 'src/interface/types/schedule/monthlySummaryInterface';
+
+import { Inject, Injectable } from '@nestjs/common';
 import {
-  aggregateCapacityByMonth,
-  calculateTotalTeams,
-} from 'src/domain/services/monthlySummaryCalculator.service';
-import {
-  accumulateDailySummaryEntry,
-  accumulateGroupTeamEntry,
-  createDailySummaryEntry,
-  createGroupTeamEntry,
-  finalizeDailySummaryEntry,
-} from '../../mappers/monthlySummaryMapper';
+  EXECUTION_CAPACITY_REPOSITORY,
+  IExecutionCapacityRepository,
+} from 'src/domain/repositories/IExecutionCapacityRepository';
 
 @Injectable()
-export class GetMonthlySummaryService {
+export class MonthlySummaryService {
   constructor(
     @Inject(GET_MONTHLY_SUMMARY_REPOSITORY)
     private readonly monthlySummaryRepository: IGetMonthlySummaryRepository,
+    @Inject(MONTHLY_SUMMARY_CALCULATOR)
+    private readonly calculator: IMonthlySummaryCalculator,
+    private readonly summaryMapper: MonthlySummaryMapper,
     @Inject(EXECUTION_CAPACITY_REPOSITORY)
     private readonly executionCapacityRepository: IExecutionCapacityRepository,
   ) {}
 
-  async getSummary(
-    filters: GetMonthlySummaryDTO,
-  ): Promise<DailySummaryEntry[]> {
+  async getSummary(filters: GetMonthlySummaryDTO): Promise<DailySummaryResult> {
     const year = moment(filters.dataFinal, 'DD/MM/YYYY').year().toString();
 
     const [data, executionCapacity] = await Promise.all([
@@ -47,102 +47,207 @@ export class GetMonthlySummaryService {
       this.executionCapacityRepository.getFinancialValue(
         year,
         filters.idParceira,
+        filters.idRegional,
       ),
     ]);
 
-    const capacityCache = new Map<number, MonthlyCapacityMetrics>();
-
-    const getOrComputeCapacity = (
-      monthIndex: number,
-    ): MonthlyCapacityMetrics => {
-      if (!capacityCache.has(monthIndex)) {
-        capacityCache.set(
-          monthIndex,
-          aggregateCapacityByMonth(executionCapacity, monthIndex),
-        );
-      }
-      return capacityCache.get(monthIndex)!;
-    };
+    const financialCapacityByMonth: (MonthlyCapacityMetrics | undefined)[] =
+      new Array(12);
 
     const summaryMap = new Map<string, DailySummaryEntry>();
+    const uniqueWorksFinancial = createUniqueWorksFinancial();
+    const contabilizedWorks = new Set<string>();
 
-    const teamsTotalMap = calculateTotalTeams(data);
+    const totalTeamsMap = buildTotalTeamsMap(data);
 
     for (const record of data) {
+      const { ordem_dca, ordem_dcd, ordem_dci, ordem_dcim, ovnota } =
+        record.obras;
+
       const date = moment.utc(record.data_prog);
       const formattedDate = date.format('DD/MM/YYYY');
       const monthIndex = date.month();
 
-      const metrics = getOrComputeCapacity(monthIndex);
+      financialCapacityByMonth[monthIndex] ??=
+        this.calculator.aggregateFinancialCapacityByMonth(
+          executionCapacity,
+          monthIndex,
+        );
 
-      const teamsTotal = teamsTotalMap.get(formattedDate);
+      const metrics = financialCapacityByMonth[monthIndex]!;
+      const teamsTotal = totalTeamsMap.get(formattedDate);
 
       if (!summaryMap.has(formattedDate)) {
         summaryMap.set(
           formattedDate,
-          createDailySummaryEntry(formattedDate, metrics, teamsTotal),
+          this.summaryMapper.createDailySummaryEntry(
+            formattedDate,
+            metrics,
+            teamsTotal,
+          ),
         );
       }
 
       const entry = summaryMap.get(formattedDate)!;
-      const baseMo = record.obras.mo_planejada;
-      const prog = record.prog;
+      const financials = this.extractFinancials(record.obras);
+
       const exec = record.exec ?? 0;
 
-      accumulateDailySummaryEntry(entry, baseMo, prog, exec, metrics);
+      const workOrderMetrics = this.calculator.calculateWorkOrderMetrics(
+        financials.moPlan,
+        record.prog,
+        exec,
+      );
+
+      const goalContribution = this.calculator.calculateGoalPercentage(
+        workOrderMetrics.moProg,
+        metrics.dailyFinancialGoal,
+      );
+
+      const goalWith8Contribution = this.calculator.calculateGoalPercentage(
+        workOrderMetrics.moProg,
+        metrics.dailyFinancialGoalWithOverhead,
+      );
+
+      this.summaryMapper.accumulateDailySummaryEntry(
+        entry,
+        workOrderMetrics,
+        goalContribution,
+        goalWith8Contribution,
+      );
+
+      const workKey = this.buildWorkKey(
+        ovnota,
+        ordem_dci,
+        ordem_dca,
+        ordem_dcd,
+        ordem_dcim,
+      );
+
+      if (!contabilizedWorks.has(workKey)) {
+        contabilizedWorks.add(workKey);
+        this.accumulateUniqueWorkFinancials(uniqueWorksFinancial, financials);
+      }
     }
 
-    for (const entry of summaryMap.values()) {
-      finalizeDailySummaryEntry(entry);
-    }
+    const summaryArray = Array.from(summaryMap.values());
 
-    return Array.from(summaryMap.values());
+    const summary = summaryArray.map((entry) => ({
+      ...entry,
+      diff: this.calculator.calculateExecutionRate(
+        entry.totalMoProg,
+        entry.totalMoExec,
+      ),
+    }));
+
+    const totals = this.calculator.aggregateDailySummaryTotals(summary);
+
+    return { summary, totals };
   }
 
   async getSecondSummary(
     filters: GetMonthlySummaryDTO,
-  ): Promise<GroupTeamSummaryEntryResponse[]> {
-    const data = await this.monthlySummaryRepository.getSecondSummary(filters);
+  ): Promise<GroupSummaryResult> {
+    const data = await this.monthlySummaryRepository.getSummary(filters);
 
     const summaryMap = new Map<string, GroupTeamSummaryEntry>();
+    const uniqueWorksFinancial = createUniqueWorksFinancial();
+    const contabilizedWorks = new Set<string>();
 
     for (const record of data) {
-      const { ovnota, ordem_dci, ordem_dca, ordem_dcd, ordem_dcim } = record;
-      const grupo: string = record.tipos.grupos.grupo;
-      const turma: string = record.turmas.turma;
-      const key = `${grupo}::${turma}`;
-      const keyWork = `${ovnota}-${ordem_dci}-${ordem_dca}-${ordem_dcd}-${ordem_dcim}`;
+      const {
+        tipos,
+        turmas,
+        ordem_dca,
+        ordem_dcd,
+        ordem_dci,
+        ordem_dcim,
+        ovnota,
+      } = record.obras;
 
-      if (!summaryMap.has(key)) {
-        summaryMap.set(key, createGroupTeamEntry(grupo, turma));
-      }
+      const grupo: string = tipos.grupos.grupo;
+      const turma: string = turmas.turma;
+      const groupKey = `${grupo}::${turma}`;
 
-      const entry = summaryMap.get(key)!;
-      const baseMo: number = record.mo_planejada;
-
-      if (!entry._obrasContabilizadas.has(keyWork)) {
-        entry._obrasContabilizadas.add(keyWork);
-        entry.qtdeObras += 1;
-      }
-
-      for (const programacao of record.programacoes) {
-        accumulateGroupTeamEntry(
-          entry,
-          baseMo,
-          programacao.prog,
-          programacao.exec,
+      if (!summaryMap.has(groupKey)) {
+        summaryMap.set(
+          groupKey,
+          this.summaryMapper.createGroupTeamEntry(grupo, turma),
         );
+      }
+
+      const entry = summaryMap.get(groupKey)!;
+      const financials = this.extractFinancials(record.obras);
+
+      const workOrderMetrics = this.calculator.calculateWorkOrderMetrics(
+        financials.moPlan,
+        record.prog,
+        record.exec,
+      );
+
+      const prevMetrics = this.calculator.calculateMoPrev(
+        financials.moPlan,
+        record.exec,
+        record.prog,
+      );
+
+      this.summaryMapper.accumulateGroupTeamEntry(
+        entry,
+        workOrderMetrics,
+        prevMetrics.moPrev,
+      );
+
+      const workKey = this.buildWorkKey(
+        ovnota,
+        ordem_dci,
+        ordem_dca,
+        ordem_dcd,
+        ordem_dcim,
+      );
+
+      if (!contabilizedWorks.has(workKey)) {
+        contabilizedWorks.add(workKey);
+        this.accumulateUniqueWorkFinancials(uniqueWorksFinancial, financials);
       }
     }
 
-    return Array.from(summaryMap.values()).map((entry) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { _obrasContabilizadas, ...rest } = entry;
+    const summaryArray = Array.from(summaryMap.values());
 
-      rest.diff =
-        rest.totalMoProg > 0 ? (rest.totalMoExec / rest.totalMoProg) * 100 : 0;
+    const totals = this.calculator.aggregateGroupTotals(summaryArray);
 
-      return rest;
-    });
+    const summary = summaryArray.map((entry) => ({
+      ...entry,
+      diff: this.calculator.calculateExecutionRate(
+        entry.totalMoProg,
+        entry.totalMoExec,
+      ),
+    }));
+
+    return { summary, totals };
+  }
+
+  private extractFinancials(obras: { mo_planejada: number }): {
+    moPlan: number;
+  } {
+    return {
+      moPlan: obras.mo_planejada,
+    };
+  }
+
+  private buildWorkKey(
+    ovnota: string,
+    ordem_dci: string,
+    ordem_dca: string,
+    ordem_dcd: string,
+    ordem_dcim: string,
+  ): string {
+    return `${ovnota}-${ordem_dci}-${ordem_dca}-${ordem_dcd}-${ordem_dcim}`;
+  }
+
+  private accumulateUniqueWorkFinancials(
+    target: { totalMoPlan: number },
+    financials: { moPlan: number },
+  ): void {
+    target.totalMoPlan += financials.moPlan;
   }
 }

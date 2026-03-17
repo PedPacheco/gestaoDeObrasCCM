@@ -32,12 +32,10 @@ import { MulterModule } from '@nestjs/platform-express';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
-import { EXECUTION_CAPACITY_REPOSITORY } from 'src/domain/repositories/IExecutionCapacityRepository';
-import { ExecutionCapacityRepository } from 'src/infra/repositories/executionCapacityRepository';
 import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/schedule/validateAndConfirmSchedules.service';
 import { ScheduleExecutionValidatorService } from 'src/application/usecases/schedule/scheduleExecutionValidator.service';
 import { RejectionsOfSchedulesService } from 'src/application/usecases/schedule/rejectionOfSchedules.service';
-import { GetMonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
+import { MonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
 import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
 import { DeleteSchedulesService } from 'src/application/usecases/schedule/deleteSchedules.service';
 import { GetTotalValuesScheduleService } from 'src/application/usecases/schedule/getTotalValuesSchedule.service';
@@ -51,6 +49,13 @@ import {
   MonthlySummaryForecastCalculator,
 } from 'src/domain/services/monthlySummaryForecastCalculator.service';
 import { MonthlySummaryForecastMapper } from 'src/application/mappers/monthlySummaryForecastMapper';
+import { MonthlySummaryMapper } from 'src/application/mappers/monthlySummaryMapper';
+import {
+  MONTHLY_SUMMARY_CALCULATOR,
+  MonthlySummaryCalculator,
+} from 'src/domain/services/monthlySummaryCalculator.service';
+import { ExecutionCapacityRepository } from 'src/infra/repositories/executionCapacityRepository';
+import { EXECUTION_CAPACITY_REPOSITORY } from 'src/domain/repositories/IExecutionCapacityRepository';
 
 // import { UpdateRestrictionsService } from 'src/application/schedule/updateRestrictions.service';
 // import { UPDATE_RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateRestrictionsRepository';
@@ -91,7 +96,6 @@ import { MonthlySummaryForecastMapper } from 'src/application/mappers/monthlySum
     DeleteSchedulesService,
     GetTotalValuesScheduleService,
     GetScheduleValuesService,
-    GetMonthlySummaryService,
     HandleSchedulesUpdateService,
     HandleAddScheduleService,
     ValidateConfirmAndRejectSchedulesService,
@@ -101,10 +105,16 @@ import { MonthlySummaryForecastMapper } from 'src/application/mappers/monthlySum
     GetMonthlySummaryForecastService,
     MonthlySummaryForecastCalculator,
     MonthlySummaryForecastMapper,
+    MonthlySummaryMapper,
+    MonthlySummaryService,
     // UpdateRestrictionsService,
     {
       provide: MONTHLY_SUMMARY_FORECAST_CALCULATOR,
       useClass: MonthlySummaryForecastCalculator,
+    },
+    {
+      provide: MONTHLY_SUMMARY_CALCULATOR,
+      useClass: MonthlySummaryCalculator,
     },
     { provide: ADD_SCHEDULES_REPOSITORY, useClass: AddSchedulesRepository },
     {
@@ -155,7 +165,7 @@ import { MonthlySummaryForecastMapper } from 'src/application/mappers/monthlySum
   ],
   exports: [
     GetScheduleValuesService,
-    GetMonthlySummaryService,
+    MonthlySummaryService,
     GetMonthlySummaryForecastService,
     FIND_SCHEDULE_BY_ID_REPOSITORY,
   ],

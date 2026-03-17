@@ -32,7 +32,7 @@ describe('GetMonthlySummaryForecastRepository', () => {
     programacoes: {
       findMany: jest.fn(),
     },
-    obras: {
+    plano_capex: {
       findMany: jest.fn(),
     },
   };
@@ -121,6 +121,26 @@ describe('GetMonthlySummaryForecastRepository', () => {
     },
   ];
 
+  const mockGetPlanCapex: any[] = [
+    {
+      regionais: { regional: 'Sul' },
+      grupos: { grupo: 'G1' },
+      ano_plano: 2024,
+      valor_jan: 1000,
+      valor_fev: 2000,
+      valor_mar: 1500,
+      valor_abr: 1800,
+      valor_mai: 2100,
+      valor_jun: 2200,
+      valor_jul: 1900,
+      valor_ago: 1700,
+      valor_set: 1600,
+      valor_out: 2000,
+      valor_nov: 2300,
+      valor_dez: 2500,
+    },
+  ];
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
@@ -181,6 +201,7 @@ describe('GetMonthlySummaryForecastRepository', () => {
               capex_mat_plan: true,
               capex_mo_pend: true,
               capex_mo_plan: true,
+              executado: true,
               turmas: { select: { turma: true } },
               tipos: { select: { grupos: { select: { grupo: true } } } },
             },
@@ -228,12 +249,77 @@ describe('GetMonthlySummaryForecastRepository', () => {
               capex_mat_plan: true,
               capex_mo_pend: true,
               capex_mo_plan: true,
+              executado: true,
               turmas: { select: { turma: true } },
               tipos: { select: { grupos: { select: { grupo: true } } } },
             },
           },
         },
         orderBy: { data_prog: 'asc' },
+      });
+    });
+  });
+
+  describe('GetCapexPlan', () => {
+    it('should call the method getCapexPlan without filters and return data correctly', async () => {
+      const spyPrisma = jest
+        .spyOn(prisma.plano_capex, 'findMany')
+        .mockResolvedValue(mockGetPlanCapex);
+
+      const result = await getMonthlySummaryRepository.getCapexPlan(
+        filtersNotDefined,
+        2026,
+      );
+
+      expect(result).toEqual(mockGetPlanCapex);
+      expect(spyPrisma).toHaveBeenCalledWith({
+        where: { ano_plano: 2026 },
+        select: {
+          regionais: { select: { regional: true } },
+          grupos: { select: { grupo: true } },
+          ano_plano: true,
+          valor_jan: true,
+          valor_fev: true,
+          valor_mar: true,
+          valor_abr: true,
+          valor_mai: true,
+          valor_jun: true,
+          valor_jul: true,
+          valor_ago: true,
+          valor_set: true,
+          valor_out: true,
+          valor_nov: true,
+          valor_dez: true,
+        },
+      });
+    });
+
+    it('should apply all filters correctly in the Prisma query', async () => {
+      const spyPrisma = jest
+        .spyOn(prisma.plano_capex, 'findMany')
+        .mockResolvedValue(mockGetPlanCapex);
+
+      await getMonthlySummaryRepository.getCapexPlan(filters, 2026);
+
+      expect(spyPrisma).toHaveBeenCalledWith({
+        where: { id_regional: { in: [3] }, ano_plano: 2026 },
+        select: {
+          regionais: { select: { regional: true } },
+          grupos: { select: { grupo: true } },
+          ano_plano: true,
+          valor_jan: true,
+          valor_fev: true,
+          valor_mar: true,
+          valor_abr: true,
+          valor_mai: true,
+          valor_jun: true,
+          valor_jul: true,
+          valor_ago: true,
+          valor_set: true,
+          valor_out: true,
+          valor_nov: true,
+          valor_dez: true,
+        },
       });
     });
   });

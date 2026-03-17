@@ -19,7 +19,7 @@ import {
   mockExecutionReportServiceWithErrorProvisionalKeyReferenceWithdrawn,
   mockFindByWorkIdResponse,
   mockUpdateExecutionReportDTO,
-} from '../mocks/mocksExecutionReport';
+} from '../../mocks/mocksExecutionReport';
 
 describe('ExecutionReportService', () => {
   let service: ExecutionReportService;

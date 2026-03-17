@@ -10,7 +10,7 @@ import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 
 // Services - Schedule
 import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
-import { GetMonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
+import { MonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
 import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
 
 // Services - Works
@@ -38,6 +38,8 @@ import { ExportSchedulesBIService } from 'src/application/usecases/export/BI/exp
 // Types
 import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
 import { worksInPortfolioResponseService } from 'src/interface/types/works/getWorksInPortfolioInterface';
+import { GoalsService } from 'src/application/usecases/goals.service';
+import { ExportGoalsService } from 'src/application/usecases/export/exportGoals.service';
 
 // ─────────────────────────────────────────────
 // Constants
@@ -168,6 +170,59 @@ const mockWorksData: worksInPortfolioResponseService = {
   },
 };
 
+const mockGoalsData = [
+  {
+    id_tipo: 99,
+    id_parceira: 1,
+    id_regional: 10,
+    tipo_obra: 'Construção',
+    turma: 'T1',
+    regional: 'Sul',
+    anocalc: 2024,
+    carteira: 150,
+    empreendimento: 'Empreendimento A',
+
+    jan: { meta: 15, prog: 7, real: 4 },
+    fev: { meta: 30, prog: 15, real: 12 },
+
+    mar: { meta: 0, prog: 0, real: 0 },
+    abr: { meta: 0, prog: 0, real: 0 },
+    mai: { meta: 0, prog: 0, real: 0 },
+    jun: { meta: 0, prog: 0, real: 0 },
+    jul: { meta: 0, prog: 0, real: 0 },
+    ago: { meta: 0, prog: 0, real: 0 },
+    set: { meta: 0, prog: 0, real: 0 },
+    out: { meta: 0, prog: 0, real: 0 },
+    nov: { meta: 0, prog: 0, real: 0 },
+    dez: { meta: 0, prog: 0, real: 0 },
+  },
+  {
+    id_tipo: 77,
+    id_parceira: 2,
+    id_regional: 20,
+    tipo_obra: 'Reforma',
+    turma: 'T2',
+    regional: 'Norte',
+    anocalc: 2024,
+    carteira: 0,
+    empreendimento: undefined,
+
+    jan: { meta: 0, prog: 0, real: 0 },
+    fev: { meta: 0, prog: 0, real: 0 },
+    mar: { meta: 30, prog: 15, real: 10 },
+
+    abr: { meta: 0, prog: 0, real: 0 },
+    mai: { meta: 0, prog: 0, real: 0 },
+    jun: { meta: 0, prog: 0, real: 0 },
+    jul: { meta: 0, prog: 0, real: 0 },
+    ago: { meta: 0, prog: 0, real: 0 },
+    set: { meta: 0, prog: 0, real: 0 },
+    out: { meta: 0, prog: 0, real: 0 },
+    nov: { meta: 0, prog: 0, real: 0 },
+    dez: { meta: 0, prog: 0, real: 0 },
+  },
+];
+
 const mockMonthlySummaryFirst = { rows: [{ label: 'Janeiro', value: 100 }] };
 const mockMonthlySummarySecond = { rows: [{ label: 'Fevereiro', value: 200 }] };
 
@@ -198,13 +253,15 @@ describe('ExportController', () => {
   let getScheduleValuesService: jest.Mocked<GetScheduleValuesService>;
   let getWorksInPortfolioService: jest.Mocked<GetWorksInPortfolioService>;
   let getCompletedWorksService: jest.Mocked<GetCompletedWorksService>;
-  let monthlyMOSummaryService: jest.Mocked<GetMonthlySummaryService>;
+  let monthlyMOSummaryService: jest.Mocked<MonthlySummaryService>;
   let monthlyForecastSummaryService: jest.Mocked<GetMonthlySummaryForecastService>;
+  let goalsService: jest.Mocked<GoalsService>;
   let exportScheduleService: jest.Mocked<ExportScheduleService>;
   let exportWorksInPortfolioService: jest.Mocked<ExportWorksInPortfolioService>;
   let exportCompletedWorksService: jest.Mocked<ExportCompletedWorksService>;
   let exportMonthlyMOSummaryService: jest.Mocked<ExportMonthlyMOSummaryService>;
   let exportMonthlyForecastSummaryService: jest.Mocked<ExportMonthlyForecastSummaryService>;
+  let exportGoalsService: jest.Mocked<ExportGoalsService>;
   let exportWorksInPortfolioBIService: jest.Mocked<ExportWorksInPortfolioBI>;
   let exportCompletedWorksBIService: jest.Mocked<ExportCompletedWorksBIService>;
   let exportSchedulesBIService: jest.Mocked<ExportSchedulesBIService>;
@@ -225,7 +282,7 @@ describe('ExportController', () => {
           useValue: { getValues: jest.fn() },
         },
         {
-          provide: GetMonthlySummaryService,
+          provide: MonthlySummaryService,
           useValue: { getSummary: jest.fn(), getSecondSummary: jest.fn() },
         },
         {
@@ -241,6 +298,7 @@ describe('ExportController', () => {
           provide: GetCompletedWorksService,
           useValue: { getCompletedWorks: jest.fn() },
         },
+        { provide: GoalsService, useValue: { getGoals: jest.fn() } },
         // Export - Standard
         { provide: ExportScheduleService, useValue: { export: jest.fn() } },
         {
@@ -257,6 +315,10 @@ describe('ExportController', () => {
         },
         {
           provide: ExportMonthlyForecastSummaryService,
+          useValue: { export: jest.fn() },
+        },
+        {
+          provide: ExportGoalsService,
           useValue: { export: jest.fn() },
         },
         { provide: ExportFinedWorksService, useValue: { export: jest.fn() } },
@@ -291,10 +353,11 @@ describe('ExportController', () => {
     getScheduleValuesService = module.get(GetScheduleValuesService);
     getWorksInPortfolioService = module.get(GetWorksInPortfolioService);
     getCompletedWorksService = module.get(GetCompletedWorksService);
-    monthlyMOSummaryService = module.get(GetMonthlySummaryService);
+    monthlyMOSummaryService = module.get(MonthlySummaryService);
     monthlyForecastSummaryService = module.get(
       GetMonthlySummaryForecastService,
     );
+    goalsService = module.get(GoalsService);
     exportScheduleService = module.get(ExportScheduleService);
     exportWorksInPortfolioService = module.get(ExportWorksInPortfolioService);
     exportCompletedWorksService = module.get(ExportCompletedWorksService);
@@ -302,6 +365,7 @@ describe('ExportController', () => {
     exportMonthlyForecastSummaryService = module.get(
       ExportMonthlyForecastSummaryService,
     );
+    exportGoalsService = module.get(ExportGoalsService);
     exportWorksInPortfolioBIService = module.get(ExportWorksInPortfolioBI);
     exportCompletedWorksBIService = module.get(ExportCompletedWorksBIService);
     exportSchedulesBIService = module.get(ExportSchedulesBIService);
@@ -510,6 +574,47 @@ describe('ExportController', () => {
     });
   });
 
+  describe('exportGoalsService (GET /metas)', () => {
+    const filters = { idRegional: [2] } as any;
+
+    it('should fetch goals, set xlsx headers and delegate to export service', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      const req = makeReq({ idParceira: 5, insufficientPermission: true });
+
+      goalsService.getGoals.mockResolvedValue(mockGoalsData);
+      exportGoalsService.export.mockResolvedValue(undefined);
+
+      await controller.exportGoals(filters, res, req);
+
+      expect(goalsService.getGoals).toHaveBeenCalledWith(
+        expect.objectContaining({
+          idParceira: 5,
+          insufficientPermission: true,
+        }),
+      );
+      assertXlsxHeaders(
+        res as unknown as ReturnType<typeof makeMockResponse>,
+        'Exportação Metas',
+      );
+      expect(exportGoalsService.export).toHaveBeenCalledWith(
+        mockGoalsData,
+        res,
+      );
+    });
+
+    it('should work without req permissions', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      const req = makeReq();
+
+      goalsService.getGoals.mockResolvedValue(mockGoalsData);
+      exportGoalsService.export.mockResolvedValue(undefined);
+
+      await controller.exportGoals(filters, res, req);
+
+      expect(goalsService.getGoals).toHaveBeenCalledWith(filters);
+    });
+  });
+
   describe('exportMonthlyMOSummary (GET /resumo-mensal)', () => {
     const filters = { month: 3, year: 2025 } as any;
 
@@ -517,12 +622,14 @@ describe('ExportController', () => {
       const res = makeMockResponse() as unknown as Response;
       const req = makeReq({ idParceira: 2 });
 
-      monthlyMOSummaryService.getSummary.mockResolvedValue(
-        mockMonthlySummaryFirst as any,
-      );
-      monthlyMOSummaryService.getSecondSummary.mockResolvedValue(
-        mockMonthlySummarySecond as any,
-      );
+      monthlyMOSummaryService.getSummary.mockResolvedValue({
+        summary: mockMonthlySummaryFirst as any,
+        totals: {} as any,
+      });
+      monthlyMOSummaryService.getSecondSummary.mockResolvedValue({
+        summary: mockMonthlySummarySecond as any,
+        totals: {} as any,
+      });
       exportMonthlyMOSummaryService.export.mockResolvedValue(undefined);
 
       await controller.exportMonthlyMOSummary(filters, res, req);

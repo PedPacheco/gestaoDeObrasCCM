@@ -3,7 +3,7 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetMonthlySummaryRepository } from 'src/infra/repositories/schedule/getMonthlySummaryRepository';
 
 import { Test } from '@nestjs/testing';
-import { obras, programacoes } from '@prisma/client';
+import { programacoes } from '@prisma/client';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
 
 describe('GetMonthlySummary', () => {
@@ -58,69 +58,6 @@ describe('GetMonthlySummary', () => {
     } as unknown as programacoes,
   ];
 
-  const mockGetSecondSummaryResponse = [
-    {
-      ovnota: '13906734',
-      mo_final: null,
-      mo_planejada: 40243.45360000001,
-      turmas: {
-        turma: 'START-TAU',
-      },
-      tipos: {
-        grupos: {
-          grupo: 'BT ZERO',
-        },
-      },
-      programacoes: [
-        {
-          data_prog: moment.utc('2024-11-18').toDate(),
-          prog: 100,
-          exec: 0,
-        },
-      ],
-    } as unknown as obras,
-    {
-      ovnota: '14032497',
-      mo_final: null,
-      mo_planejada: 2942.13,
-      turmas: {
-        turma: 'ENGELMIG',
-      },
-      tipos: {
-        grupos: {
-          grupo: 'RECOMPOSIÇÃO',
-        },
-      },
-      programacoes: [
-        {
-          data_prog: moment.utc('2024-11-29').toDate(),
-          prog: 100,
-          exec: null,
-        },
-      ],
-    } as unknown as obras,
-    {
-      ovnota: '14490588',
-      mo_final: null,
-      mo_planejada: 55343.5343,
-      turmas: {
-        turma: 'ENGELMIG',
-      },
-      tipos: {
-        grupos: {
-          grupo: 'BT ZERO',
-        },
-      },
-      programacoes: [
-        {
-          data_prog: moment.utc('2024-11-29').toDate(),
-          prog: 100,
-          exec: 50,
-        },
-      ],
-    } as unknown as obras,
-  ];
-
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
@@ -170,7 +107,17 @@ describe('GetMonthlySummary', () => {
           equipe_linha_viva: true,
           equipe_regularizacao: true,
           obras: {
-            select: { mo_planejada: true },
+            select: {
+              ovnota: true,
+              ordem_dci: true,
+              ordem_dca: true,
+              ordem_dcd: true,
+              ordem_dcim: true,
+              mo_planejada: true,
+              executado: true,
+              turmas: { select: { turma: true } },
+              tipos: { select: { grupos: { select: { grupo: true } } } },
+            },
           },
         },
         orderBy: { data_prog: 'asc' },
@@ -205,117 +152,20 @@ describe('GetMonthlySummary', () => {
           equipe_linha_viva: true,
           equipe_regularizacao: true,
           obras: {
-            select: { mo_planejada: true },
+            select: {
+              ovnota: true,
+              ordem_dci: true,
+              ordem_dca: true,
+              ordem_dcd: true,
+              ordem_dcim: true,
+              mo_planejada: true,
+              executado: true,
+              turmas: { select: { turma: true } },
+              tipos: { select: { grupos: { select: { grupo: true } } } },
+            },
           },
         },
         orderBy: { data_prog: 'asc' },
-      });
-    });
-  });
-
-  describe('GetSecodnSummary', () => {
-    it('should call the method getSummary without filters and format the results correctly', async () => {
-      const spyPrisma = jest
-        .spyOn(prisma.obras, 'findMany')
-        .mockResolvedValue(mockGetSecondSummaryResponse);
-
-      const result =
-        await getMonthlySummaryRepository.getSecondSummary(filtersNotDefined);
-
-      const firstItem = result[0];
-      const secondItem = result[1];
-
-      expect(result).toEqual(mockGetSecondSummaryResponse);
-      expect(firstItem.turmas.turma).toBe('START-TAU');
-      expect(secondItem.turmas.turma).toBe('ENGELMIG');
-      expect(spyPrisma).toHaveBeenCalledWith({
-        where: {
-          programacoes: {
-            some: {
-              data_prog: {
-                gte: moment.utc('2024-11-01').toDate(),
-                lte: moment.utc('2024-11-30').toDate(),
-              },
-            },
-          },
-          tipos: { id_grupo: undefined },
-          municipios: { id_regional: undefined },
-          id_turma: undefined,
-          id_tipo: undefined,
-        },
-        select: {
-          ovnota: true,
-          ordem_dci: true,
-          ordem_dca: true,
-          ordem_dcd: true,
-          ordem_dcim: true,
-          mo_planejada: true,
-          turmas: { select: { turma: true } },
-          tipos: { select: { grupos: { select: { grupo: true } } } },
-          programacoes: {
-            where: {
-              data_prog: {
-                gte: moment.utc('2024-11-01').toDate(),
-                lte: moment.utc('2024-11-30').toDate(),
-              },
-            },
-            select: { data_prog: true, prog: true, exec: true },
-          },
-        },
-        orderBy: {
-          tipos: { id_grupo: 'asc' },
-        },
-      });
-    });
-
-    it('should apply all filters correctly in the Prisma query', async () => {
-      const spyPrisma = jest
-        .spyOn(prisma.obras, 'findMany')
-        .mockResolvedValue(mockGetSecondSummaryResponse);
-
-      await getMonthlySummaryRepository.getSecondSummary(filters);
-
-      expect(spyPrisma).toHaveBeenCalledWith({
-        where: {
-          programacoes: {
-            some: {
-              data_prog: {
-                gte: moment.utc('2024-11-01').toDate(),
-                lte: moment.utc('2024-11-30').toDate(),
-              },
-            },
-          },
-          tipos: { id_grupo: { in: [1] } },
-          municipios: { id_regional: { in: [3] } },
-          id_turma: { in: [2] },
-          id_tipo: { in: [4] },
-        },
-        select: {
-          ovnota: true,
-          ordem_dci: true,
-          ordem_dca: true,
-          ordem_dcd: true,
-          ordem_dcim: true,
-          mo_planejada: true,
-          turmas: { select: { turma: true } },
-          tipos: { select: { grupos: { select: { grupo: true } } } },
-          programacoes: {
-            where: {
-              data_prog: {
-                gte: moment.utc('2024-11-01').toDate(),
-                lte: moment.utc('2024-11-30').toDate(),
-              },
-            },
-            select: {
-              data_prog: true,
-              prog: true,
-              exec: true,
-            },
-          },
-        },
-        orderBy: {
-          tipos: { id_grupo: 'asc' },
-        },
       });
     });
   });

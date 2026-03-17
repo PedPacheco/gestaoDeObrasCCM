@@ -77,17 +77,17 @@ export default async function MonthlySummary() {
     },
     { key: "totalMoProg", label: "Programado", format: "currency" },
     { key: "totalMoExec", label: "Executado", format: "currency" },
-    { key: "diff", label: "Programado x Executado (%)", format: "percent" },
+    { key: "diff", label: "Prog x Exec (%)", format: "percent" },
   ];
 
   const columnsSecondSummary: MonthlySummaryTableColumn[] = [
     { key: "grupo", label: "Grupo" },
     { key: "turma", label: "Parceira" },
-    { key: "qtdeObras", label: "Qtd. Obras", format: "number" },
+    { key: "qtdeWorks", label: "Qtd. Obras", format: "number" },
     { key: "totalMoProg", label: "Programado", format: "currency" },
     { key: "totalMoExec", label: "Executado", format: "currency" },
     { key: "totalMoPrev", label: "Previsto", format: "currency" },
-    { key: "diff", label: "Programado x Executado (%)", format: "percent" },
+    { key: "diff", label: "Prog x Exec (%)", format: "percent" },
   ];
 
   return (

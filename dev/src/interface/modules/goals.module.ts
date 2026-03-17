@@ -14,5 +14,6 @@ import { GoalsController } from '../controllers/goals.controller';
     GoalsService,
     { provide: GOALS_REPOSITORY, useClass: GoalsRepository },
   ],
+  exports: [GoalsService],
 })
 export class GoalsModule {}

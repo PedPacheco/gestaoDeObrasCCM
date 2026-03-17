@@ -10,7 +10,7 @@ import {
   mockInsertPublicationRestrictions,
   mockUpdatePublicationRestrictions,
   mockUpdatePublicationRestrictionsWithResoltuionDate,
-} from '../../test/mocks/mockRestrictions';
+} from '../../mocks/mockRestrictions';
 
 describe('RestrictionsService', () => {
   let service: RestrictionsService;

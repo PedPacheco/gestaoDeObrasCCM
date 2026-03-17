@@ -7,7 +7,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import {
   mockInsertAuxiliaryBaseNotesService,
   mockInsertNotesRequest,
-} from '../../mocks/mockAuxiliaryBaseRepository';
+} from '../../../mocks/mockAuxiliaryBaseRepository';
 
 describe('AuxiliaryNotesInsertService', () => {
   let auxiliaryNotesInsertService: AuxiliaryNotesInsertService;

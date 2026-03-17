@@ -1,15 +1,15 @@
-import { Injectable } from '@nestjs/common';
 import {
-  DailySummaryTotals,
-  GroupSummaryTotals,
-  UniqueWorksFinancial,
-} from 'src/interface/types/schedule/getMonthlySummaryForecastInterface';
-import {
+  DailyForecastSummaryTotals,
   DailySummaryEntryForecast,
+  GroupForecastSummaryTotals,
   GroupTeamSummaryEntryForecast,
   MonthlyCapacityMetricsForecast,
+  UniqueWorksFinancialForecast,
+  WorkItemFinancialsForecast,
   WorkOrderMetricsForecast,
 } from 'src/interface/types/schedule/monthlySummaryForecastInterface';
+
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class MonthlySummaryForecastMapper {
@@ -42,7 +42,7 @@ export class MonthlySummaryForecastMapper {
 
   accumulateDailySummaryEntry(
     entry: DailySummaryEntryForecast,
-    financials: WorkItemFinancials,
+    financials: WorkItemFinancialsForecast,
     workOrderMetrics: WorkOrderMetricsForecast,
     goalContribution: number,
   ): void {
@@ -51,6 +51,8 @@ export class MonthlySummaryForecastMapper {
       serviceCapexExec,
       materialCapexProg,
       materialCapexExec,
+      materialCapexForecast,
+      serviceCapexForecast,
     } = workOrderMetrics;
 
     entry.qtdeWorks++;
@@ -59,19 +61,13 @@ export class MonthlySummaryForecastMapper {
     entry.materialMoProg += materialCapexProg;
     entry.materialMoPend += financials.materialPend;
     entry.materialMoExec += materialCapexExec;
-    entry.materialMoForecast = Math.min(
-      entry.materialMoProg,
-      entry.materialMoPend,
-    );
+    entry.materialMoForecast += materialCapexForecast;
 
     entry.serviceMoPlan += financials.servicePlan;
     entry.serviceMoProg += serviceCapexProg;
     entry.serviceMoPend += financials.servicePend;
     entry.serviceMoExec += serviceCapexExec;
-    entry.serviceMoForecast = Math.min(
-      entry.serviceMoProg,
-      entry.serviceMoPend,
-    );
+    entry.serviceMoForecast += serviceCapexForecast;
 
     entry.isServicePendLowerThanProg =
       entry.serviceMoProg > entry.serviceMoPend;
@@ -112,7 +108,7 @@ export class MonthlySummaryForecastMapper {
 
   accumulateGroupTeamEntry(
     entry: GroupTeamSummaryEntryForecast,
-    financials: WorkItemFinancials,
+    financials: WorkItemFinancialsForecast,
     workOrderMetrics: WorkOrderMetricsForecast,
     prevMetrics: { serviceCapexPrev: number; materialCapexPrev: number },
   ): void {
@@ -139,29 +135,12 @@ export class MonthlySummaryForecastMapper {
   }
 }
 
-export interface WorkItemFinancials {
-  servicePlan: number;
-  servicePend: number;
-  materialPlan: number;
-  materialPend: number;
-}
-
-// ─── Factory functions para totais iniciais ───────────────────────────────────
-//
-// ANTES: objetos literais exportados (initialTotals, initialTotalsByGrouping)
-//        eram usados com spread { ...initialTotals }. O spread funciona, mas
-//        exportar um objeto mutável é uma armadilha: qualquer módulo que
-//        importar e esquecer o spread corrompe o estado compartilhado.
-// AGORA: factory functions garantem sempre uma cópia isolada e nova. O mesmo
-//        padrão que já existia em createUniqueWorksFinancial() foi aplicado
-//        consistentemente aos outros dois.
-
 export type DailySummaryTotalsShape = ReturnType<typeof createInitialTotals>;
 export type GroupSummaryTotalsShape = ReturnType<
   typeof createInitialTotalsByGrouping
 >;
 
-export function createInitialTotals(): DailySummaryTotals {
+export function createInitialTotals(): DailyForecastSummaryTotals {
   return {
     totalQtdeObras: 0,
     totalTeams: 0,
@@ -181,7 +160,7 @@ export function createInitialTotals(): DailySummaryTotals {
   };
 }
 
-export function createInitialTotalsByGrouping(): GroupSummaryTotals {
+export function createInitialTotalsByGrouping(): GroupForecastSummaryTotals {
   return {
     totalWorks: 0,
     totalServiceMoProgByGrouping: 0,
@@ -196,7 +175,7 @@ export function createInitialTotalsByGrouping(): GroupSummaryTotals {
   };
 }
 
-export function createUniqueWorksFinancial(): UniqueWorksFinancial {
+export function createUniqueWorksFinancialForecast(): UniqueWorksFinancialForecast {
   return {
     totalServiceMoPlan: 0,
     totalMaterialMoPlan: 0,

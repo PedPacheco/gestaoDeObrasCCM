@@ -10,7 +10,7 @@ import {
 
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { mockReturnAuxiliaryBaseCN52N } from '../../../test/mocks/mocksMaterialCapex';
+import { mockReturnAuxiliaryBaseCN52N } from '../../../mocks/mocksMaterialCapex';
 
 describe('UpdateCapexService', () => {
   let service: UpdateCapexService;

@@ -14,7 +14,7 @@ import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 
 // Services - Schedule
 import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
-import { GetMonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
+import { MonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
 import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
 
 // Services - Works
@@ -38,6 +38,9 @@ import { ExportMonthlyForecastSummaryService } from 'src/application/usecases/ex
 import { ExportWorksInPortfolioBI } from 'src/application/usecases/export/BI/exportWorkInPortfolioBI.service';
 import { ExportCompletedWorksBIService } from 'src/application/usecases/export/BI/exportCompletedWorksBI.service';
 import { ExportSchedulesBIService } from 'src/application/usecases/export/BI/exportSchedulesBI.service';
+import { GoalsDTO } from '../dtos/goalsDto';
+import { ExportGoalsService } from 'src/application/usecases/export/exportGoals.service';
+import { GoalsService } from 'src/application/usecases/goals.service';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -57,12 +60,15 @@ export class ExportController {
   constructor(
     // Schedule
     private readonly getScheduleValuesService: GetScheduleValuesService,
-    private readonly monthlyMOSummary: GetMonthlySummaryService,
+    private readonly monthlyMOSummary: MonthlySummaryService,
     private readonly monthlyForecastSummary: GetMonthlySummaryForecastService,
 
     // Works
     private readonly getWorksInPortfolioService: GetWorksInPortfolioService,
     private readonly getCompletedWorksService: GetCompletedWorksService,
+
+    // Goals
+    private readonly getGoalsService: GoalsService,
 
     // Export - Standard
     private readonly exportScheduleService: ExportScheduleService,
@@ -76,6 +82,7 @@ export class ExportController {
     private readonly exportExecutionReportService: ExportExecutionReportService,
     private readonly exportForecastService: ExportForecastService,
     private readonly exportRejectionsService: ExportRejectionsService,
+    private readonly exportGoalsService: ExportGoalsService,
 
     // Export - BI
     private readonly exportWorksInPortfolioBIService: ExportWorksInPortfolioBI,
@@ -167,8 +174,8 @@ export class ExportController {
 
     this.setXlsxHeaders(res, 'Exportação Resumo Mensal - Mão de Obra');
     return this.exportMonthlyMOSummaryService.export(
-      firstSummary,
-      secondSummary,
+      firstSummary.summary,
+      secondSummary.summary,
       res,
     );
   }
@@ -193,6 +200,20 @@ export class ExportController {
       secondSummary.summary,
       res,
     );
+  }
+
+  @Get('metas')
+  @UseGuards(VisualizationGuard)
+  async exportGoals(
+    @Query() filters: GoalsDTO,
+    @Res() res: Response,
+    @Req() req: CustomRequest,
+  ) {
+    const appliedFilters = this.applyFilters(filters, req);
+    const goalsData = await this.getGoalsService.getGoals(appliedFilters);
+
+    this.setXlsxHeaders(res, 'Exportação Metas');
+    return this.exportGoalsService.export(goalsData, res);
   }
 
   // ─────────────────────────────────────────────

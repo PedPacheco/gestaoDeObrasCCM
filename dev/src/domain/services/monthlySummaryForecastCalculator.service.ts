@@ -1,17 +1,14 @@
-import { Injectable } from '@nestjs/common';
 import {
   createInitialTotals,
   createInitialTotalsByGrouping,
 } from 'src/application/mappers/monthlySummaryForecastMapper';
 import {
-  DailySummaryTotals,
-  GroupSummaryTotals,
-  UniqueWorksFinancial,
-} from 'src/interface/types/schedule/getMonthlySummaryForecastInterface';
-import {
+  DailyForecastSummaryTotals,
   DailySummaryEntryForecast,
+  GroupForecastSummaryTotals,
   GroupTeamSummaryEntryForecast,
   MonthlyCapacityMetricsForecast,
+  UniqueWorksFinancialForecast,
   WorkOrderMetricsForecast,
 } from 'src/interface/types/schedule/monthlySummaryForecastInterface';
 import {
@@ -19,9 +16,8 @@ import {
   WORKING_DAYS_PER_MONTH,
 } from 'src/interface/types/schedule/monthlySummaryInterface';
 
-// ─── Tipagem explícita das chaves de mês — elimina o index signature genérico ──
-// ANTES: [monthKey: string]: number  →  qualquer string era aceita, sem type safety
-// AGORA: somente as 12 chaves reais de mês são válidas como campos de capacidade
+import { Injectable } from '@nestjs/common';
+
 export type MonthKey =
   | 'jan'
   | 'fev'
@@ -36,13 +32,9 @@ export type MonthKey =
   | 'nov'
   | 'dez';
 
-export interface ExecutionCapacityRecord extends Record<MonthKey, number> {
-  should_cost: number;
-}
-
 export interface IMonthlySummaryForecastCalculator {
   aggregateFinancialCapacityByMonth(
-    executionCapacity: ReadonlyArray<ExecutionCapacityRecord>,
+    executionCapacity: ReadonlyArray<any>,
     monthIndex: number,
   ): MonthlyCapacityMetricsForecast;
 
@@ -51,6 +43,9 @@ export interface IMonthlySummaryForecastCalculator {
     materialPlan: number,
     prog: number,
     exec: number,
+    servicePend: number,
+    materialPend: number,
+    totalExec: number,
   ): WorkOrderMetricsForecast;
 
   calculateGoalPercentage(value: number, goal: number): number;
@@ -71,13 +66,14 @@ export interface IMonthlySummaryForecastCalculator {
 
   aggregateDailySummaryTotals(
     data: DailySummaryEntryForecast[],
-    uniqueWorksFinancial: UniqueWorksFinancial,
-  ): DailySummaryTotals;
+    uniqueWorksFinancial: UniqueWorksFinancialForecast,
+    totalFinancial: number,
+  ): DailyForecastSummaryTotals;
 
   aggregateGroupTotals(
     summaryData: GroupTeamSummaryEntryForecast[],
-    uniqueWorksFinancial: UniqueWorksFinancial,
-  ): GroupSummaryTotals;
+    uniqueWorksFinancial: UniqueWorksFinancialForecast,
+  ): GroupForecastSummaryTotals;
 }
 
 export const MONTHLY_SUMMARY_FORECAST_CALCULATOR =
@@ -86,19 +82,20 @@ export const MONTHLY_SUMMARY_FORECAST_CALCULATOR =
 @Injectable()
 export class MonthlySummaryForecastCalculator implements IMonthlySummaryForecastCalculator {
   aggregateFinancialCapacityByMonth(
-    executionCapacity: ReadonlyArray<ExecutionCapacityRecord>,
+    executionCapacity: ReadonlyArray<any>,
     monthIndex: number,
   ): MonthlyCapacityMetricsForecast {
     const monthKey = MONTH_INDEX_TO_KEY[monthIndex] as MonthKey;
 
+    const field = `valor_${monthKey}`;
+
     const totalFinancial = executionCapacity.reduce((sum, entry) => {
-      return (
-        sum + Number(entry[monthKey] ?? 0) * Number(entry.should_cost ?? 0)
-      );
+      return sum + Number(entry[field] ?? 0);
     }, 0);
 
     return {
       dailyFinancialGoal: totalFinancial / WORKING_DAYS_PER_MONTH,
+      totalFinancial,
     };
   }
 
@@ -107,15 +104,22 @@ export class MonthlySummaryForecastCalculator implements IMonthlySummaryForecast
     materialPlan: number,
     prog: number,
     exec: number,
+    servicePend: number,
+    materialPend: number,
+    totalExec: number,
   ): WorkOrderMetricsForecast {
     const progRate = prog / 100;
     const execRate = exec / 100;
 
+    const execTotal = totalExec !== 100 ? (totalExec + prog) / 100 : 1;
+
     return {
       serviceCapexProg: servicePlan * progRate,
       serviceCapexExec: servicePlan * execRate,
+      serviceCapexForecast: (execTotal > 1 ? 1 : execTotal) * servicePend,
       materialCapexProg: materialPlan * progRate,
       materialCapexExec: materialPlan * execRate,
+      materialCapexForecast: (execTotal > 1 ? 1 : execTotal) * materialPend,
     };
   }
 
@@ -152,14 +156,12 @@ export class MonthlySummaryForecastCalculator implements IMonthlySummaryForecast
 
   aggregateDailySummaryTotals(
     data: DailySummaryEntryForecast[],
-    uniqueWorksFinancial: UniqueWorksFinancial,
-  ): DailySummaryTotals {
-    // ANTES: { ...initialTotals } com objeto literal exportado — risco de mutação acidental
-    // AGORA: factory function garante sempre uma cópia nova e segura
+    uniqueWorksFinancial: UniqueWorksFinancialForecast,
+    totalFinancial: number,
+  ): DailyForecastSummaryTotals {
     const totals = data.reduce((acc, row) => {
       acc.totalQtdeObras += row.qtdeWorks;
       acc.totalTeams += row.teams;
-      acc.totalFinancialGoal += row.financialGoal;
       acc.totalServiceMoProg += row.serviceMoProg;
       acc.totalServiceMoExec += row.serviceMoExec;
       acc.totalServiceMoForecast += row.serviceMoForecast;
@@ -170,11 +172,12 @@ export class MonthlySummaryForecastCalculator implements IMonthlySummaryForecast
       return acc;
     }, createInitialTotals());
 
-    // Valores de plan/pend vêm das obras únicas (sem duplicar por data)
     totals.totalServiceMoPlan = uniqueWorksFinancial.totalServiceMoPlan;
     totals.totalMaterialMoPlan = uniqueWorksFinancial.totalMaterialMoPlan;
     totals.totalServiceMoPend = uniqueWorksFinancial.totalServiceMoPend;
     totals.totalMaterialMoPend = uniqueWorksFinancial.totalMaterialMoPend;
+
+    totals.totalFinancialGoal = totalFinancial;
 
     totals.totalDiaryGoal = this.calculateGoalPercentage(
       totals.totalServiceMoProg,
@@ -193,8 +196,8 @@ export class MonthlySummaryForecastCalculator implements IMonthlySummaryForecast
 
   aggregateGroupTotals(
     summaryData: GroupTeamSummaryEntryForecast[],
-    uniqueWorksFinancial: UniqueWorksFinancial,
-  ): GroupSummaryTotals {
+    uniqueWorksFinancial: UniqueWorksFinancialForecast,
+  ): GroupForecastSummaryTotals {
     const totals = summaryData.reduce((acc, row) => {
       acc.totalWorks += row.qtdeWorks;
       acc.totalServiceMoProgByGrouping += row.totalServiceMoProg;

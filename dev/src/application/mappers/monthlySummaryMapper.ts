@@ -1,90 +1,109 @@
-// ─── Daily Summary Mapper ─────────────────────────────────────────────────────
-
-import {
-  calculateExecutionRate,
-  calculateGoalPercentage,
-  calculateMoPrev,
-  calculateWorkOrderMetrics,
-} from 'src/domain/services/monthlySummaryCalculator.service';
 import {
   DailySummaryEntry,
+  DailySummaryTotals,
+  GroupSummaryTotals,
   GroupTeamSummaryEntry,
   MonthlyCapacityMetrics,
+  WorkOrderMetrics,
 } from 'src/interface/types/schedule/monthlySummaryInterface';
 
-export function createDailySummaryEntry(
-  formattedDate: string,
-  metrics: MonthlyCapacityMetrics,
-  teamsTotal: number,
-): DailySummaryEntry {
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class MonthlySummaryMapper {
+  createDailySummaryEntry(
+    formattedDate: string,
+    metrics: MonthlyCapacityMetrics,
+    teamsTotal: number,
+  ): DailySummaryEntry {
+    return {
+      dataProg: formattedDate,
+      totalQtde: 0,
+      teamsTotal,
+      financialGoal: metrics.dailyFinancialGoal,
+      diaryGoal: 0,
+      financialGoalWith8: metrics.dailyFinancialGoalWithOverhead,
+      diaryGoalWith8: 0,
+      totalMoProg: 0,
+      totalMoExec: 0,
+      diff: 0,
+    };
+  }
+
+  accumulateDailySummaryEntry(
+    entry: DailySummaryEntry,
+    workOrderMetrics: WorkOrderMetrics,
+    goalContribution: number,
+    goalWith8Contribution: number,
+  ): void {
+    const { moProg, moExec } = workOrderMetrics;
+
+    entry.totalQtde++;
+
+    entry.totalMoProg += moProg;
+    entry.totalMoExec += moExec;
+    entry.diaryGoal += goalContribution;
+    entry.diaryGoalWith8 += goalWith8Contribution;
+  }
+
+  createGroupTeamEntry(grupo: string, turma: string): GroupTeamSummaryEntry {
+    return {
+      grupo,
+      turma,
+      qtdeWorks: 0,
+      totalMoProg: 0,
+      totalMoExec: 0,
+      totalMoPrev: 0,
+      diff: 0,
+    };
+  }
+
+  accumulateGroupTeamEntry(
+    entry: GroupTeamSummaryEntry,
+    workOrderMetrics: WorkOrderMetrics,
+    moPrev: number,
+  ): void {
+    const { moProg, moExec } = workOrderMetrics;
+
+    entry.qtdeWorks++;
+
+    entry.totalMoProg += moProg;
+    entry.totalMoExec += moExec;
+    entry.totalMoPrev += moPrev;
+  }
+}
+
+export type DailySummaryTotalsShape = ReturnType<typeof createInitialTotals>;
+export type GroupSummaryTotalsShape = ReturnType<
+  typeof createInitialTotalsByGrouping
+>;
+
+export function createInitialTotals(): DailySummaryTotals {
   return {
-    dataProg: formattedDate,
-    totalQtde: 0,
-    teamsTotal,
-    financialGoal: metrics.dailyFinancialGoal,
-    financialGoalWith8: metrics.dailyFinancialGoalWithOverhead,
-    diaryGoal: 0,
-    diaryGoalWith8: 0,
+    totalQtdeObras: 0,
+    totalTeams: 0,
+    totalFinancialGoal: 0,
+    totalDiaryGoal: 0,
+    totalFinancialGoalWith8: 0,
+    totalDiaryGoalWith8: 0,
     totalMoProg: 0,
     totalMoExec: 0,
-    diff: 0,
+    totalDiff: 0,
   };
 }
 
-export function accumulateDailySummaryEntry(
-  entry: DailySummaryEntry,
-  baseMo: number,
-  prog: number,
-  exec: number,
-  metrics: MonthlyCapacityMetrics,
-): void {
-  const { moProg, moExec } = calculateWorkOrderMetrics(baseMo, prog, exec);
-
-  entry.totalQtde++;
-  entry.totalMoProg += moProg;
-  entry.totalMoExec += moExec;
-  entry.diaryGoal += calculateGoalPercentage(
-    moProg,
-    metrics.dailyFinancialGoal,
-  );
-  entry.diaryGoalWith8 += calculateGoalPercentage(
-    moProg,
-    metrics.dailyFinancialGoalWithOverhead,
-  );
-}
-
-export function finalizeDailySummaryEntry(entry: DailySummaryEntry): void {
-  entry.diff = calculateExecutionRate(entry.totalMoExec, entry.totalMoProg);
-}
-
-// ─── Group Team Summary Mapper ────────────────────────────────────────────────
-
-export function createGroupTeamEntry(
-  grupo: string,
-  turma: string,
-): GroupTeamSummaryEntry {
+export function createInitialTotalsByGrouping(): GroupSummaryTotals {
   return {
-    grupo,
-    turma,
-    qtdeObras: 0,
-    _obrasContabilizadas: new Set<string>(),
-    totalMoProg: 0,
-    totalMoExec: 0,
-    totalMoPrev: 0,
-    diff: 0,
+    totalWorks: 0,
+    totalMoProgByGrouping: 0,
+    totalMoExecByGrouping: 0,
+    totalMoPrevByGrouping: 0,
+    totalDiff: 0,
   };
 }
 
-export function accumulateGroupTeamEntry(
-  entry: GroupTeamSummaryEntry,
-  baseMo: number,
-  prog: number,
-  exec: number | null,
-): void {
-  const { moProg, moExec } = calculateWorkOrderMetrics(baseMo, prog, exec ?? 0);
-  const moPrev = calculateMoPrev(baseMo, exec, prog);
-
-  entry.totalMoProg += moProg;
-  entry.totalMoExec += moExec;
-  entry.totalMoPrev += moPrev;
+export function createUniqueWorksFinancial(): { totalMoPlan: number } {
+  return {
+    totalMoPlan: 0,
+  };
 }

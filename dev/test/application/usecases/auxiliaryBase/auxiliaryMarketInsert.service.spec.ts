@@ -5,7 +5,7 @@ import { AUXILIARY_BASE_REPOSITORY } from 'src/domain/repositories/IAuxiliaryBas
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { mockInsertAuxiliaryBaseMarket } from '../../mocks/mocksAuxiliaryBaseController';
+import { mockInsertAuxiliaryBaseMarket } from '../../../mocks/mocksAuxiliaryBaseController';
 
 describe('AuxiliaryMarketInsertService', () => {
   let auxiliaryMarketInsertService: AuxiliaryMarketInsertService;

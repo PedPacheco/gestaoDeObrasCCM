@@ -16,7 +16,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { GetMonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
+import { MonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
 import { RejectionsOfSchedulesService } from 'src/application/usecases/schedule/rejectionOfSchedules.service';
 import { GetTotalValuesScheduleService } from 'src/application/usecases/schedule/getTotalValuesSchedule.service';
 import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
@@ -27,7 +27,7 @@ export class ScheduleController {
   constructor(
     private getTotalValuesScheduleService: GetTotalValuesScheduleService,
     private getScheduleValuesService: GetScheduleValuesService,
-    private getMonthlySummaryService: GetMonthlySummaryService,
+    private getMonthlySummaryService: MonthlySummaryService,
     private rejectionsOfSchedulesService: RejectionsOfSchedulesService,
     private getMonthlySummaryForecastService: GetMonthlySummaryForecastService,
   ) {}

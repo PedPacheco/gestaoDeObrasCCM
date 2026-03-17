@@ -12,7 +12,7 @@ import {
   mockUpdateSchedulesService,
   mockUpdateSchedulesServiceFormattedData,
   mockUpdateSchedulesServiceWithoutIdWork,
-} from '../../../test/mocks/mockAddScheduleService';
+} from '../../../mocks/mockAddScheduleService';
 
 describe('UpdateSchedulesService', () => {
   let updateSchedulesService: UpdateSchedulesService;

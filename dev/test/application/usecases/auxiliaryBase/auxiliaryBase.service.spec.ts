@@ -8,19 +8,19 @@ import { Test, TestingModule } from '@nestjs/testing';
 import {
   mockGetAuxiliaryBaseMarket,
   mockGetNotes,
-} from '../../mocks/mockAuxiliaryBaseRepository';
+} from '../../../mocks/mockAuxiliaryBaseRepository';
 import {
   mockInsertAuxiliaryBaseMarket,
   mockInsertAuxiliaryBaseNotes,
   mockMappedMarketWorks,
   mockMappedNotes,
-} from '../../mocks/mocksAuxiliaryBaseController';
+} from '../../../mocks/mocksAuxiliaryBaseController';
 import {
   mockGetObraIdsByDiagramas,
   mockGetWrongObraIdsByDiagramas,
   mockMaterialCapex,
   mockMaterialCapexRequest,
-} from '../../mocks/mocksMaterialCapex';
+} from '../../../mocks/mocksMaterialCapex';
 
 describe('AuxiliaryBaseService', () => {
   let auxiliaryBaseService: AuxiliaryBaseService;
