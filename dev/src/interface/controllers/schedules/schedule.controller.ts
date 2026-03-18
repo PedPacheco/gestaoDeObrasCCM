@@ -21,6 +21,8 @@ import { RejectionsOfSchedulesService } from 'src/application/usecases/schedule/
 import { GetTotalValuesScheduleService } from 'src/application/usecases/schedule/getTotalValuesSchedule.service';
 import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
 import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
+import { ForecastSnapshotService } from 'src/application/usecases/schedule/forecastSnapshot.service';
+import { GetForecastSnapshotDTO } from 'src/interface/dtos/forecastSnapshotDTO';
 
 @Controller('programacao')
 export class ScheduleController {
@@ -30,6 +32,7 @@ export class ScheduleController {
     private getMonthlySummaryService: MonthlySummaryService,
     private rejectionsOfSchedulesService: RejectionsOfSchedulesService,
     private getMonthlySummaryForecastService: GetMonthlySummaryForecastService,
+    private forecastSnapshotService: ForecastSnapshotService,
   ) {}
 
   @Get()
@@ -101,6 +104,17 @@ export class ScheduleController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Retornados as reprovações das programções',
+      data: response,
+    };
+  }
+
+  @Get('forecast-snapshot')
+  async getForecastSnapshot(@Query() filters: GetForecastSnapshotDTO) {
+    const response = await this.forecastSnapshotService.get(filters);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Retornado dados do forecast',
       data: response,
     };
   }

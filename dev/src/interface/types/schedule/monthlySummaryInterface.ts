@@ -19,7 +19,7 @@ export enum MonthKey {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-export const WORKING_DAYS_PER_MONTH = 24 as const;
+export const WORKING_DAYS_PER_MONTH = 22 as const;
 export const FINANCIAL_OVERHEAD_FACTOR = 1.08 as const;
 
 export const MONTH_INDEX_TO_KEY: Readonly<Record<number, MonthKey>> = {
@@ -42,11 +42,12 @@ export const MONTH_INDEX_TO_KEY: Readonly<Record<number, MonthKey>> = {
 export interface MonthlyCapacityMetrics {
   readonly dailyFinancialGoal: number;
   readonly dailyFinancialGoalWithOverhead: number;
-  // readonly totalFinancial: number;
-  // readonly totalFinancialWith8: number;
+  readonly totalFinancial: number;
+  readonly totalFinancialWith8: number;
 }
 
 export interface WorkOrderMetrics {
+  readonly moPlan: number;
   readonly moProg: number;
   readonly moExec: number;
 }
@@ -68,6 +69,7 @@ export interface GroupTeamSummaryEntry {
   grupo: string;
   turma: string;
   qtdeWorks: number;
+  totalMoPlan: number;
   totalMoProg: number;
   totalMoExec: number;
   totalMoPrev: number;
@@ -107,6 +109,7 @@ export interface DailySummaryTotals {
 
 export interface GroupSummaryTotals {
   totalWorks: number;
+  totalMoPlanByGrouping: number;
   totalMoProgByGrouping: number;
   totalMoExecByGrouping: number;
   totalMoPrevByGrouping: number;

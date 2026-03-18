@@ -36,6 +36,7 @@ function makeGroupEntry(
     grupo: 'G1',
     turma: 'T1',
     qtdeWorks: 0,
+    totalMoPlan: 0,
     totalMoProg: 0,
     totalMoExec: 0,
     totalMoPrev: 0,
@@ -287,7 +288,10 @@ describe('MonthlySummaryCalculator', () => {
 
   describe('aggregateDailySummaryTotals', () => {
     it('should return zeroed totals when data is empty', () => {
-      const result = calculator.aggregateDailySummaryTotals([]);
+      const result = calculator.aggregateDailySummaryTotals([], {
+        totalFinancialGoal: 0,
+        totalFinancialGoalWith8: 0,
+      });
 
       expect(result).toEqual(createInitialTotals());
     });
@@ -298,10 +302,13 @@ describe('MonthlySummaryCalculator', () => {
         makeDailyEntry({ financialGoal: 500, financialGoalWith8: 540 }),
       ];
 
-      const result = calculator.aggregateDailySummaryTotals(data);
+      const result = calculator.aggregateDailySummaryTotals(data, {
+        totalFinancialGoal: 2000,
+        totalFinancialGoalWith8: 2500,
+      });
 
-      expect(result.totalFinancialGoal).toBe(1500);
-      expect(result.totalFinancialGoalWith8).toBe(1620);
+      expect(result.totalFinancialGoal).toBe(2000);
+      expect(result.totalFinancialGoalWith8).toBe(2500);
     });
 
     it('should calculate totalDiaryGoal correctly', () => {
@@ -312,15 +319,21 @@ describe('MonthlySummaryCalculator', () => {
         }),
       ];
 
-      const result = calculator.aggregateDailySummaryTotals(data);
+      const result = calculator.aggregateDailySummaryTotals(data, {
+        totalFinancialGoal: 2000,
+        totalFinancialGoalWith8: 2500,
+      });
 
-      expect(result.totalDiaryGoal).toBeCloseTo(50, 10);
+      expect(result.totalDiaryGoal).toBeCloseTo(25, 10);
     });
 
     it('should return 0 for totalDiaryGoal when financialGoal is 0', () => {
       const data = [makeDailyEntry({ totalMoProg: 500 })];
 
-      const result = calculator.aggregateDailySummaryTotals(data);
+      const result = calculator.aggregateDailySummaryTotals(data, {
+        totalFinancialGoal: 0,
+        totalFinancialGoalWith8: 0,
+      });
 
       expect(result.totalDiaryGoal).toBe(0);
     });
@@ -328,7 +341,10 @@ describe('MonthlySummaryCalculator', () => {
     it('should calculate totalDiff correctly', () => {
       const data = [makeDailyEntry({ totalMoProg: 1000, totalMoExec: 800 })];
 
-      const result = calculator.aggregateDailySummaryTotals(data);
+      const result = calculator.aggregateDailySummaryTotals(data, {
+        totalFinancialGoal: 2000,
+        totalFinancialGoalWith8: 2500,
+      });
 
       expect(result.totalDiff).toBeCloseTo(80, 10);
     });
@@ -338,7 +354,7 @@ describe('MonthlySummaryCalculator', () => {
 
   describe('aggregateGroupTotals', () => {
     it('should return zeroed totals when summaryData is empty', () => {
-      const result = calculator.aggregateGroupTotals([]);
+      const result = calculator.aggregateGroupTotals([], 0);
 
       expect(result).toMatchObject(createInitialTotalsByGrouping());
     });
@@ -349,7 +365,7 @@ describe('MonthlySummaryCalculator', () => {
         makeGroupEntry({ qtdeWorks: 7 }),
       ];
 
-      const result = calculator.aggregateGroupTotals(data);
+      const result = calculator.aggregateGroupTotals(data, 0);
 
       expect(result.totalWorks).toBe(10);
     });
@@ -360,7 +376,7 @@ describe('MonthlySummaryCalculator', () => {
         makeGroupEntry({ totalMoProg: 600 }),
       ];
 
-      const result = calculator.aggregateGroupTotals(data);
+      const result = calculator.aggregateGroupTotals(data, 0);
 
       expect(result.totalMoProgByGrouping).toBe(1000);
     });
@@ -371,7 +387,7 @@ describe('MonthlySummaryCalculator', () => {
         makeGroupEntry({ totalMoExec: 300 }),
       ];
 
-      const result = calculator.aggregateGroupTotals(data);
+      const result = calculator.aggregateGroupTotals(data, 0);
 
       expect(result.totalMoExecByGrouping).toBe(500);
     });
@@ -382,7 +398,7 @@ describe('MonthlySummaryCalculator', () => {
         makeGroupEntry({ totalMoPrev: 250 }),
       ];
 
-      const result = calculator.aggregateGroupTotals(data);
+      const result = calculator.aggregateGroupTotals(data, 0);
 
       expect(result.totalMoPrevByGrouping).toBe(400);
     });
@@ -390,14 +406,14 @@ describe('MonthlySummaryCalculator', () => {
     it('should compute totalDiff as calculateExecutionRate(totalMoProgByGrouping, totalMoExecByGrouping)', () => {
       const data = [makeGroupEntry({ totalMoProg: 1000, totalMoExec: 600 })];
 
-      const result = calculator.aggregateGroupTotals(data);
+      const result = calculator.aggregateGroupTotals(data, 0);
 
       // (600 / 1000) * 100 = 60
       expect(result.totalDiff).toBeCloseTo(60, 10);
     });
 
     it('should return 0 for totalDiff when totalMoProgByGrouping is 0', () => {
-      const result = calculator.aggregateGroupTotals([]);
+      const result = calculator.aggregateGroupTotals([], 0);
 
       expect(result.totalDiff).toBe(0);
     });
@@ -418,7 +434,7 @@ describe('MonthlySummaryCalculator', () => {
         }),
       ];
 
-      const result = calculator.aggregateGroupTotals(data);
+      const result = calculator.aggregateGroupTotals(data, 0);
 
       expect(result.totalWorks).toBe(5);
       expect(result.totalMoProgByGrouping).toBe(1000);

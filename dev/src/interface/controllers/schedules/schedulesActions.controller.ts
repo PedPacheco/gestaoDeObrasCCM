@@ -16,10 +16,12 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { HandleAddScheduleService } from 'src/application/usecases/orchestrators/handleAddSchedule.service';
 import { HandleSchedulesUpdateService } from 'src/application/usecases/orchestrators/handleSchedulesUpdate.service';
 import { DeleteSchedulesService } from 'src/application/usecases/schedule/deleteSchedules.service';
+import { ForecastSnapshotService } from 'src/application/usecases/schedule/forecastSnapshot.service';
 import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/schedule/validateAndConfirmSchedules.service';
 
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
+import { CreateForecastSnapshotDTO } from 'src/interface/dtos/forecastSnapshotDTO';
 import {
   ConfirmSchedulesDTO,
   RejectScheduleDTO,
@@ -35,6 +37,7 @@ export class SchedulesActionsController {
     private handleSchedulesUpdateService: HandleSchedulesUpdateService,
     private deleteSchedulesService: DeleteSchedulesService,
     private validateConfirmAndRejectSchedulesService: ValidateConfirmAndRejectSchedulesService,
+    private forecastSnapshotService: ForecastSnapshotService,
   ) {}
 
   @Post()
@@ -128,6 +131,18 @@ export class SchedulesActionsController {
     return {
       statusCode: HttpStatus.NO_CONTENT,
       message: 'Atualização da programação feita com sucesso',
+    };
+  }
+
+  @Post('forecast/snapshot')
+  @UseGuards(VisualizationGuard)
+  async saveForecastSnapshot(@Body() data: CreateForecastSnapshotDTO) {
+    const snapshot = await this.forecastSnapshotService.execute(data);
+
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'Snapshot do forecast salvo com sucesso',
+      data: snapshot,
     };
   }
 }

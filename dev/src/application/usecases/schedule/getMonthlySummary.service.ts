@@ -52,18 +52,13 @@ export class MonthlySummaryService {
     ]);
 
     const financialCapacityByMonth: (MonthlyCapacityMetrics | undefined)[] =
-      new Array(12);
+      Array.from({ length: 12 }, () => undefined);
 
     const summaryMap = new Map<string, DailySummaryEntry>();
-    const uniqueWorksFinancial = createUniqueWorksFinancial();
-    const contabilizedWorks = new Set<string>();
 
     const totalTeamsMap = buildTotalTeamsMap(data);
 
     for (const record of data) {
-      const { ordem_dca, ordem_dcd, ordem_dci, ordem_dcim, ovnota } =
-        record.obras;
-
       const date = moment.utc(record.data_prog);
       const formattedDate = date.format('DD/MM/YYYY');
       const monthIndex = date.month();
@@ -115,19 +110,6 @@ export class MonthlySummaryService {
         goalContribution,
         goalWith8Contribution,
       );
-
-      const workKey = this.buildWorkKey(
-        ovnota,
-        ordem_dci,
-        ordem_dca,
-        ordem_dcd,
-        ordem_dcim,
-      );
-
-      if (!contabilizedWorks.has(workKey)) {
-        contabilizedWorks.add(workKey);
-        this.accumulateUniqueWorkFinancials(uniqueWorksFinancial, financials);
-      }
     }
 
     const summaryArray = Array.from(summaryMap.values());
@@ -140,7 +122,17 @@ export class MonthlySummaryService {
       ),
     }));
 
-    const totals = this.calculator.aggregateDailySummaryTotals(summary);
+    const total = financialCapacityByMonth.reduce(
+      (acc, item) => {
+        acc.totalFinancialGoal += item?.totalFinancial ?? 0;
+        acc.totalFinancialGoalWith8 += item?.totalFinancialWith8 ?? 0;
+
+        return acc;
+      },
+      { totalFinancialGoal: 0, totalFinancialGoalWith8: 0 },
+    );
+
+    const totals = this.calculator.aggregateDailySummaryTotals(summary, total);
 
     return { summary, totals };
   }
@@ -191,18 +183,19 @@ export class MonthlySummaryService {
         record.prog,
       );
 
-      this.summaryMapper.accumulateGroupTeamEntry(
-        entry,
-        workOrderMetrics,
-        prevMetrics.moPrev,
-      );
-
       const workKey = this.buildWorkKey(
         ovnota,
         ordem_dci,
         ordem_dca,
         ordem_dcd,
         ordem_dcim,
+      );
+
+      this.summaryMapper.accumulateGroupTeamEntry(
+        entry,
+        workOrderMetrics,
+        prevMetrics.moPrev,
+        contabilizedWorks.has(workKey),
       );
 
       if (!contabilizedWorks.has(workKey)) {
@@ -213,7 +206,10 @@ export class MonthlySummaryService {
 
     const summaryArray = Array.from(summaryMap.values());
 
-    const totals = this.calculator.aggregateGroupTotals(summaryArray);
+    const totals = this.calculator.aggregateGroupTotals(
+      summaryArray,
+      uniqueWorksFinancial.totalMoPlan,
+    );
 
     const summary = summaryArray.map((entry) => ({
       ...entry,

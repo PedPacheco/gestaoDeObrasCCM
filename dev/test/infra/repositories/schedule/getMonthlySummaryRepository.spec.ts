@@ -88,6 +88,7 @@ describe('GetMonthlySummary', () => {
       expect(result).toEqual(mockGetSummaryResponse);
       expect(spyPrisma).toHaveBeenCalledWith({
         where: {
+          id_status_programacao: { not: 7 },
           data_prog: {
             gte: moment.utc('2024-11-01').toDate(),
             lte: moment.utc('2024-11-30').toDate(),
@@ -133,6 +134,7 @@ describe('GetMonthlySummary', () => {
 
       expect(spyPrisma).toHaveBeenCalledWith({
         where: {
+          id_status_programacao: { not: 7 },
           data_prog: {
             gte: moment.utc('2024-11-01').toDate(),
             lte: moment.utc('2024-11-30').toDate(),

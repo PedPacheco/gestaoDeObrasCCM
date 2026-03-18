@@ -19,6 +19,7 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
 
     return await this.prisma.programacoes.findMany({
       where: {
+        id_status_programacao: { not: 7 },
         data_prog: {
           gte: moment.utc(dataInicial, 'DD/MM/YYYY').toDate(),
           lte: moment.utc(dataFinal, 'DD/MM/YYYY').toDate(),

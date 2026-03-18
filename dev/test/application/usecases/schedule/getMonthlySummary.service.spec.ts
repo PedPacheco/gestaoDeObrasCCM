@@ -33,6 +33,8 @@ const DEFAULT_FILTERS: GetMonthlySummaryDTO = {
 const DEFAULT_METRICS: MonthlyCapacityMetrics = {
   dailyFinancialGoal: 5000,
   dailyFinancialGoalWithOverhead: 5400,
+  totalFinancial: 5000,
+  totalFinancialWith8: 5800,
 };
 
 function makeRecord(
@@ -90,6 +92,7 @@ function makeGroupEntry(
     grupo,
     turma,
     qtdeWorks: 0,
+    totalMoPlan: 0,
     totalMoProg: 0,
     totalMoExec: 0,
     totalMoPrev: 0,
@@ -291,7 +294,39 @@ describe('MonthlySummaryService', () => {
 
       await service.getSummary(DEFAULT_FILTERS);
 
-      expect(uniqueTarget.totalMoPlan).toBe(500); // counted only once
+      expect(uniqueTarget.totalMoPlan).toBe(0); // counted only once
+    });
+
+    it('should treat undefined financial values as 0 when aggregating monthly totals', async () => {
+      monthlySummaryRepository.getSummary.mockResolvedValue([makeRecord()]);
+
+      // força cenário com undefined
+      calculator.aggregateFinancialCapacityByMonth = jest
+        .fn()
+        .mockReturnValueOnce({
+          totalFinancial: null,
+          totalFinancialWith8: null,
+          dailyFinancialGoal: 0,
+          dailyFinancialGoalWithOverhead: 0,
+        });
+
+      calculator.aggregateDailySummaryTotals = jest.fn().mockReturnValueOnce({
+        totalQtdeObras: 0,
+        totalTeams: 0,
+        totalFinancialGoal: 0,
+        totalDiaryGoal: 0,
+        totalFinancialGoalWith8: 0,
+        totalDiaryGoalWith8: 0,
+        totalMoProg: 0,
+        totalMoExec: 0,
+        totalDiff: 0,
+      });
+
+      const result = await service.getSummary(DEFAULT_FILTERS);
+
+      // aqui você valida o resultado final agregado
+      expect(result.totals.totalFinancialGoal).toBe(0);
+      expect(result.totals.totalFinancialGoalWith8).toBe(0);
     });
   });
 
@@ -339,6 +374,7 @@ describe('MonthlySummaryService', () => {
         expect.any(Object),
         { moProg: 800, moExec: 640 },
         720,
+        false,
       );
       expect(result.summary[0].diff).toBe(80);
     });

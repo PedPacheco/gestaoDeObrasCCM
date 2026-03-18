@@ -466,6 +466,7 @@ model tecnicos {
   id                    Int                     @id(map: "TECNICOS_pkey") @default(autoincrement())
   tecnico               String?                 @db.VarChar(40)
   id_regional           Int
+  empresa               String?                 @db.VarChar
   programacoes          programacoes[]
   programacoes_notas_d5 programacoes_notas_d5[]
   regionais             regionais               @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
@@ -697,6 +698,14 @@ model plano_capex {
   regionais   regionais @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regional")
 
   @@index([id_grupo], map: "fki_fk_grupo")
+}
+
+model forecast_snapshot {
+  id        Int       @id @default(autoincrement())
+  gerado_em DateTime? @default(now()) @db.Timestamp(6)
+  filtros   Json?
+  diario    Json?
+  grupo     Json?
 }
 
 view exportacao_obras_executadas {

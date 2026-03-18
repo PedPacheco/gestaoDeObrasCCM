@@ -23,6 +23,8 @@ describe('MonthlySummaryMapper', () => {
         {
           dailyFinancialGoal: 1000,
           dailyFinancialGoalWithOverhead: 1080,
+          totalFinancial: 2000,
+          totalFinancialWith8: 2500,
         },
         5,
       );
@@ -53,11 +55,13 @@ describe('MonthlySummaryMapper', () => {
         {
           dailyFinancialGoal: 1000,
           dailyFinancialGoalWithOverhead: 1080,
+          totalFinancial: 2000,
+          totalFinancialWith8: 2500,
         },
         2,
       );
 
-      const metrics = { moProg: 500, moExec: 300 };
+      const metrics = { moPlan: 500, moProg: 500, moExec: 300 };
 
       mapper.accumulateDailySummaryEntry(entry, metrics, 10, 12);
 
@@ -74,11 +78,13 @@ describe('MonthlySummaryMapper', () => {
         {
           dailyFinancialGoal: 1000,
           dailyFinancialGoalWithOverhead: 1080,
+          totalFinancial: 2000,
+          totalFinancialWith8: 2500,
         },
         1,
       );
 
-      const metrics = { moProg: 100, moExec: 50 };
+      const metrics = { moPlan: 500, moProg: 100, moExec: 50 };
 
       mapper.accumulateDailySummaryEntry(entry, metrics, 5, 6);
       mapper.accumulateDailySummaryEntry(entry, metrics, 5, 6);
@@ -96,11 +102,18 @@ describe('MonthlySummaryMapper', () => {
         {
           dailyFinancialGoal: 0,
           dailyFinancialGoalWithOverhead: 0,
+          totalFinancial: 0,
+          totalFinancialWith8: 0,
         },
         0,
       );
 
-      mapper.accumulateDailySummaryEntry(entry, { moProg: 0, moExec: 0 }, 0, 0);
+      mapper.accumulateDailySummaryEntry(
+        entry,
+        { moPlan: 0, moProg: 0, moExec: 0 },
+        0,
+        0,
+      );
 
       expect(entry.totalQtde).toBe(1);
       expect(entry.totalMoProg).toBe(0);
@@ -120,6 +133,7 @@ describe('MonthlySummaryMapper', () => {
         grupo: 'G1',
         turma: 'T1',
         qtdeWorks: 0,
+        totalMoPlan: 0,
         totalMoProg: 0,
         totalMoExec: 0,
         totalMoPrev: 0,
@@ -136,7 +150,12 @@ describe('MonthlySummaryMapper', () => {
     it('should accumulate group values correctly', () => {
       const entry = mapper.createGroupTeamEntry('G1', 'T1');
 
-      mapper.accumulateGroupTeamEntry(entry, { moProg: 500, moExec: 300 }, 200);
+      mapper.accumulateGroupTeamEntry(
+        entry,
+        { moPlan: 500, moProg: 500, moExec: 300 },
+        200,
+        false,
+      );
 
       expect(entry.qtdeWorks).toBe(1);
       expect(entry.totalMoProg).toBe(500);
@@ -147,9 +166,19 @@ describe('MonthlySummaryMapper', () => {
     it('should accumulate multiple calls correctly', () => {
       const entry = mapper.createGroupTeamEntry('G1', 'T1');
 
-      mapper.accumulateGroupTeamEntry(entry, { moProg: 100, moExec: 50 }, 30);
+      mapper.accumulateGroupTeamEntry(
+        entry,
+        { moPlan: 500, moProg: 100, moExec: 50 },
+        30,
+        true,
+      );
 
-      mapper.accumulateGroupTeamEntry(entry, { moProg: 200, moExec: 150 }, 70);
+      mapper.accumulateGroupTeamEntry(
+        entry,
+        { moPlan: 500, moProg: 200, moExec: 150 },
+        70,
+        false,
+      );
 
       expect(entry.qtdeWorks).toBe(2);
       expect(entry.totalMoProg).toBe(300);
@@ -160,7 +189,12 @@ describe('MonthlySummaryMapper', () => {
     it('should handle zero values correctly', () => {
       const entry = mapper.createGroupTeamEntry('G1', 'T1');
 
-      mapper.accumulateGroupTeamEntry(entry, { moProg: 0, moExec: 0 }, 0);
+      mapper.accumulateGroupTeamEntry(
+        entry,
+        { moPlan: 500, moProg: 0, moExec: 0 },
+        0,
+        false,
+      );
 
       expect(entry.qtdeWorks).toBe(1);
       expect(entry.totalMoProg).toBe(0);
@@ -191,6 +225,7 @@ describe('MonthlySummaryMapper', () => {
     it('createInitialTotalsByGrouping should return zeroed totals', () => {
       expect(createInitialTotalsByGrouping()).toEqual({
         totalWorks: 0,
+        totalMoPlanByGrouping: 0,
         totalMoProgByGrouping: 0,
         totalMoExecByGrouping: 0,
         totalMoPrevByGrouping: 0,

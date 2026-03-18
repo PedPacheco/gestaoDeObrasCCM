@@ -39,6 +39,7 @@ const totalsKeyMap: Record<string, string> = {
 
 const totalsSecondSummaryKeyMap: Record<string, string> = {
   qtdeWorks: "totalWorks",
+  totalMoPlan: "totalMoPlanByGrouping",
   totalMoProg: "totalMoProgByGrouping",
   totalMoExec: "totalMoExecByGrouping",
   totalMoPrev: "totalMoPrevByGrouping",

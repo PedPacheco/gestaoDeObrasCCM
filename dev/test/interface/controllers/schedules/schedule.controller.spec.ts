@@ -1,4 +1,6 @@
+import { ForecastSnapshotService } from 'src/application/usecases/schedule/forecastSnapshot.service';
 import { MonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
+import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
 import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
 import { GetTotalValuesScheduleService } from 'src/application/usecases/schedule/getTotalValuesSchedule.service';
 import { RejectionsOfSchedulesService } from 'src/application/usecases/schedule/rejectionOfSchedules.service';
@@ -6,17 +8,17 @@ import { UsersService } from 'src/application/usecases/users.service';
 import { ScheduleController } from 'src/interface/controllers/schedules/schedule.controller';
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
-
-import { HttpStatus } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
-import { DailySummaryEntry } from 'src/interface/types/schedule/monthlySummaryInterface';
-import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
 import {
   DailyForecastSummaryTotals,
   DailySummaryEntryForecast,
   GroupForecastSummaryTotals,
   GroupTeamSummaryEntryForecast,
 } from 'src/interface/types/schedule/monthlySummaryForecastInterface';
+import { DailySummaryEntry } from 'src/interface/types/schedule/monthlySummaryInterface';
+import { createForecastSnapshotMock } from '../../../mocks/mockAddScheduleService';
+
+import { HttpStatus } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 
 describe('ScheduleController', () => {
   let scheduleController: ScheduleController;
@@ -25,6 +27,7 @@ describe('ScheduleController', () => {
   let getMonthlySummaryService: MonthlySummaryService;
   let rejectionsOfSchedulesService: RejectionsOfSchedulesService;
   let getMonthlySummaryForecastService: GetMonthlySummaryForecastService;
+  let forecastSnapshotService: ForecastSnapshotService;
 
   const mockScheduleData: GetScheduleValuesResponse = {
     works: [
@@ -118,6 +121,10 @@ describe('ScheduleController', () => {
           useValue: { get: jest.fn() },
         },
         { provide: UsersService, useValue: { findUser: jest.fn() } },
+        {
+          provide: ForecastSnapshotService,
+          useValue: { get: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -135,9 +142,11 @@ describe('ScheduleController', () => {
       module.get<GetMonthlySummaryForecastService>(
         GetMonthlySummaryForecastService,
       );
-
     rejectionsOfSchedulesService = module.get<RejectionsOfSchedulesService>(
       RejectionsOfSchedulesService,
+    );
+    forecastSnapshotService = module.get<ForecastSnapshotService>(
+      ForecastSnapshotService,
     );
   });
 
@@ -325,6 +334,7 @@ describe('ScheduleController', () => {
         grupo: 'RECOMPOSIÇÃO',
         turma: 'ENGELMIG',
         qtdeWorks: 49,
+        totalMoPlan: 1075887.9138599995,
         totalMoProg: 1075887.9138599995,
         totalMoExec: 556246.1940299999,
         totalMoPrev: 948862.9654299996,
@@ -334,6 +344,7 @@ describe('ScheduleController', () => {
         grupo: 'BT ZERO',
         turma: 'ENGELMIG',
         qtdeWorks: 19,
+        totalMoPlan: 673067.8821099999,
         totalMoProg: 673067.8821099999,
         totalMoExec: 541923.11811,
         totalMoPrev: 623527.0451099998,
@@ -557,6 +568,37 @@ describe('ScheduleController', () => {
           equipe_regularizacao: 0,
           tipo_servico: 'DP',
           observacao_programacao: null,
+        },
+      ],
+    });
+  });
+
+  it('should call forecastSnapshotService.get and return data of forecast', async () => {
+    jest.spyOn(forecastSnapshotService, 'get').mockResolvedValue([
+      {
+        id: 1,
+        geradoEm: '2026-03-01',
+        nomeArquivo: 'forecast_diario',
+        diario: createForecastSnapshotMock.diario,
+        grupo: createForecastSnapshotMock.grupo,
+      },
+    ]);
+
+    const result = await scheduleController.getForecastSnapshot({
+      dataInicial: '2026-03-01',
+      dataFinal: '2026-03-31',
+    });
+
+    expect(result).toStrictEqual({
+      statusCode: HttpStatus.OK,
+      message: 'Retornado dados do forecast',
+      data: [
+        {
+          id: 1,
+          geradoEm: '2026-03-01',
+          nomeArquivo: 'forecast_diario',
+          diario: createForecastSnapshotMock.diario,
+          grupo: createForecastSnapshotMock.grupo,
         },
       ],
     });

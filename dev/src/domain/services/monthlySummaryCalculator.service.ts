@@ -52,10 +52,17 @@ export interface IMonthlySummaryCalculator {
 
   calculateExecutionRate(moProg: number, moExec: number): number;
 
-  aggregateDailySummaryTotals(data: DailySummaryEntry[]): DailySummaryTotals;
+  aggregateDailySummaryTotals(
+    data: DailySummaryEntry[],
+    total: {
+      totalFinancialGoal: number;
+      totalFinancialGoalWith8: number;
+    },
+  ): DailySummaryTotals;
 
   aggregateGroupTotals(
     summaryData: GroupTeamSummaryEntry[],
+    totalPlan: number,
   ): GroupSummaryTotals;
 }
 
@@ -87,6 +94,8 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
     return {
       dailyFinancialGoal,
       dailyFinancialGoalWithOverhead,
+      totalFinancial,
+      totalFinancialWith8: totalFinancial * 1.08,
     };
   }
 
@@ -99,6 +108,7 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
     const execRate = exec / 100;
 
     return {
+      moPlan,
       moProg: moPlan * progRate,
       moExec: moPlan * execRate,
     };
@@ -126,7 +136,13 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
     return (moExec / moProg) * 100;
   }
 
-  aggregateDailySummaryTotals(data: DailySummaryEntry[]): DailySummaryTotals {
+  aggregateDailySummaryTotals(
+    data: DailySummaryEntry[],
+    total: {
+      totalFinancialGoal: number;
+      totalFinancialGoalWith8: number;
+    },
+  ): DailySummaryTotals {
     const totals = data.reduce((acc, row) => {
       acc.totalQtdeObras += row.totalQtde;
       acc.totalTeams += row.teamsTotal;
@@ -134,18 +150,18 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
       acc.totalMoProg += row.totalMoProg;
       acc.totalMoExec += row.totalMoExec;
 
-      acc.totalFinancialGoal += row.financialGoal;
-      acc.totalFinancialGoalWith8 += row.financialGoalWith8;
-
       return acc;
     }, createInitialTotals());
 
+    totals.totalFinancialGoal = total.totalFinancialGoal;
+    totals.totalFinancialGoalWith8 = total.totalFinancialGoalWith8;
+
     totals.totalDiaryGoal += this.calculateExecutionRate(
-      totals.totalFinancialGoal,
+      total.totalFinancialGoal,
       totals.totalMoProg,
     );
     totals.totalDiaryGoalWith8 += this.calculateExecutionRate(
-      totals.totalFinancialGoalWith8,
+      total.totalFinancialGoalWith8,
       totals.totalMoProg,
     );
 
@@ -159,6 +175,7 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
 
   aggregateGroupTotals(
     summaryData: GroupTeamSummaryEntry[],
+    totalPlan: number,
   ): GroupSummaryTotals {
     const totals = summaryData.reduce((acc, row) => {
       acc.totalWorks += row.qtdeWorks;
@@ -168,6 +185,8 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
 
       return acc;
     }, createInitialTotalsByGrouping());
+
+    totals.totalMoPlanByGrouping = totalPlan;
 
     totals.totalDiff = this.calculateExecutionRate(
       totals.totalMoProgByGrouping,
