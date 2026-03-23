@@ -5,6 +5,7 @@ export function FormatCurrency(value: number) {
   return new Intl.NumberFormat("pt-br", {
     style: "currency",
     currency: "BRL",
+    maximumFractionDigits: 0,
   }).format(value);
 }
 
@@ -52,10 +53,10 @@ export function formatDateToInput(value: string | Date | undefined): string {
 }
 
 export function resolveExecutionReportContext(
-  data: FormData | ExecutionReportData
+  data: FormData | ExecutionReportData,
 ): { data: ExecutionReportData; prefix: "" | "executionReport." } {
   const isExecutionReportData = (
-    d: FormData | ExecutionReportData
+    d: FormData | ExecutionReportData,
   ): d is ExecutionReportData => !("executionReport" in d);
 
   if (isExecutionReportData(data)) {

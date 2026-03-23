@@ -35,7 +35,9 @@ export default async function Goals() {
       tipo: true,
     }),
 
-    fetchData(`${process.env.NEXT_PUBLIC_API_URL}/metas`, params, token),
+    fetchData(`${process.env.NEXT_PUBLIC_API_URL}/metas`, params, token, {
+      cache: "no-store",
+    }),
   ]);
 
   const { data } = goalsData;

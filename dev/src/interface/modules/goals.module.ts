@@ -1,4 +1,4 @@
-import { GoalsService } from 'src/application/goals.service';
+import { GoalsService } from 'src/application/usecases/goals.service';
 import { GOALS_REPOSITORY } from 'src/domain/repositories/IGoalsRepository';
 import { CacheModule } from 'src/infra/cache/cache.module';
 import { GoalsRepository } from 'src/infra/repositories/goalsRepository';
@@ -14,5 +14,6 @@ import { GoalsController } from '../controllers/goals.controller';
     GoalsService,
     { provide: GOALS_REPOSITORY, useClass: GoalsRepository },
   ],
+  exports: [GoalsService],
 })
 export class GoalsModule {}

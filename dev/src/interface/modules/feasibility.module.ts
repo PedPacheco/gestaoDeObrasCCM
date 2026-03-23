@@ -1,12 +1,14 @@
-import { Module } from '@nestjs/common';
-import { MulterModule } from '@nestjs/platform-express';
-import { createMulterConfig } from 'src/shared/multer/multer.config';
-import { FeasibilityController } from '../controllers/feasibility.controller';
-import { FeasibilityService } from 'src/application/feasibility.service';
+import { FeasibilityService } from 'src/application/usecases/feasibility.service';
+import { FileService } from 'src/application/usecases/file.service';
 import { FEASIBILITY_REPOSITORY } from 'src/domain/repositories/IFeasibilityRepository';
 import { FeasibilityRepository } from 'src/infra/repositories/feasibilityRepository';
-import { FileService } from 'src/application/file.service';
+import { createMulterConfig } from 'src/shared/multer/multer.config';
+
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MulterModule } from '@nestjs/platform-express';
+
+import { FeasibilityController } from '../controllers/feasibility.controller';
 
 @Module({
   imports: [

@@ -59,7 +59,7 @@ export default function ScheduleFormDialog({
   statusWork,
 }: ScheduleFormDialogProps) {
   const [error, setError] = useState<string | null>();
-  const { user, permissions } = useUser();
+  const { permissions } = useUser();
 
   const {
     expanded,
@@ -181,6 +181,7 @@ export default function ScheduleFormDialog({
                 options={options}
                 onInputChange={handleInputChange}
                 disabledFields={disabledFields}
+                permission={permissions?.permissao_visualizacao}
               />
             </AccordionPanel>
 

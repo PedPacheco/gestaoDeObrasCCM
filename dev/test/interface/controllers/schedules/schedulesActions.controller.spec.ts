@@ -1,21 +1,26 @@
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { ExecutionReportService } from 'src/application/executionReport.service';
-import { HandleAddScheduleService } from 'src/application/orchestrators/handleAddSchedule.service';
-import { HandleSchedulesUpdateService } from 'src/application/orchestrators/handleSchedulesUpdate.service';
-import { DeleteSchedulesService } from 'src/application/schedule/deleteSchedules.service';
-import { UpdateSchedulesService } from 'src/application/schedule/updateSchedules.service';
-import { ValidateConfirmAndRejectSchedulesService } from 'src/application/schedule/validateAndConfirmSchedules.service';
-import { UsersService } from 'src/application/users.service';
+import { ExecutionReportService } from 'src/application/usecases/executionReport.service';
+import { HandleAddScheduleService } from 'src/application/usecases/orchestrators/handleAddSchedule.service';
+import { HandleSchedulesUpdateService } from 'src/application/usecases/orchestrators/handleSchedulesUpdate.service';
+import { DeleteSchedulesService } from 'src/application/usecases/schedule/deleteSchedules.service';
+import { UpdateSchedulesService } from 'src/application/usecases/schedule/updateSchedules.service';
+import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/schedule/validateAndConfirmSchedules.service';
+import { UsersService } from 'src/application/usecases/users.service';
 import { SchedulesActionsController } from 'src/interface/controllers/schedules/schedulesActions.controller';
 import {
   SchedulesDataDTO,
   UpdateSchedulesDataDTO,
 } from 'src/interface/dtos/scheduleDTO';
-import { mockUpdateSchedulesController } from '../../../mocks/mockAddScheduleService';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+
+import {
+  createForecastSnapshotMock,
+  mockUpdateSchedulesController,
+} from '../../../mocks/mockAddScheduleService';
+import { ForecastSnapshotService } from 'src/application/usecases/schedule/forecastSnapshot.service';
 
 describe('ScheduleActionsController', () => {
   let scheduleActionsController: SchedulesActionsController;
@@ -23,6 +28,7 @@ describe('ScheduleActionsController', () => {
   let deleteSchedulesService: DeleteSchedulesService;
   let handleAddScheduleService: HandleAddScheduleService;
   let validateConfirmAndRejectSchedulesService: ValidateConfirmAndRejectSchedulesService;
+  let forecastSnapshotService: ForecastSnapshotService;
 
   const mockReq = {
     insufficientPermission: true,
@@ -56,6 +62,10 @@ describe('ScheduleActionsController', () => {
           provide: HandleSchedulesUpdateService,
           useValue: { update: jest.fn() },
         },
+        {
+          provide: ForecastSnapshotService,
+          useValue: { execute: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -75,6 +85,9 @@ describe('ScheduleActionsController', () => {
       module.get<ValidateConfirmAndRejectSchedulesService>(
         ValidateConfirmAndRejectSchedulesService,
       );
+    forecastSnapshotService = module.get<ForecastSnapshotService>(
+      ForecastSnapshotService,
+    );
   });
 
   it('Should be defined', () => {
@@ -248,6 +261,20 @@ describe('ScheduleActionsController', () => {
     expect(
       validateConfirmAndRejectSchedulesService.reject,
     ).toHaveBeenCalledTimes(1);
+  });
+
+  it('should call saveForecastSnapshot and return message', async () => {
+    jest.spyOn(forecastSnapshotService, 'execute').mockResolvedValue();
+
+    const result = await scheduleActionsController.saveForecastSnapshot(
+      createForecastSnapshotMock,
+    );
+
+    expect(result).toEqual({
+      statusCode: HttpStatus.CREATED,
+      message: 'Snapshot do forecast salvo com sucesso',
+    });
+    expect(forecastSnapshotService.execute).toHaveBeenCalledTimes(1);
   });
 
   describe('DTO Validation', () => {

@@ -2,15 +2,16 @@
 
 import dayjs from "dayjs";
 import {
+  useCallback,
   useEffect,
+  useMemo,
   useState,
   useTransition,
-  useMemo,
-  ComponentType,
 } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { FiltersInterface } from "@/interfaces/filtersInterfaces";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
@@ -18,9 +19,10 @@ import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { ButtonComponent } from "../common/Button";
 import ErrorModal from "../common/ErrorModal";
 import { MultipleSelectComponent } from "../common/MultipleSelect";
-import ModalGoals from "./GoalsModal";
 import GoalsTable from "./GoalsTable";
-import { FiltersInterface } from "@/interfaces/filtersInterfaces";
+import ModalTotalGoalValues from "./ModalTotalGoalValues";
+import { mountUrl } from "@/utils/mountUrl";
+import { exportExcel } from "@/actions/generateExcel.action";
 
 interface MainGoalsProps {
   filtersData: FiltersInterface;
@@ -60,15 +62,15 @@ export default function MainGoals({
       typeGoals === "bt0"
         ? "bt0GoalsFilters"
         : typeGoals === "rda"
-        ? "rdaGoalsFilters"
-        : "goalsFilters",
+          ? "rdaGoalsFilters"
+          : "goalsFilters",
     data: filtersData,
   });
 
   const years = useMemo(
     () =>
       Array.from({ length: 7 }, (_, index) => (year - 3 + index).toString()),
-    [year]
+    [year],
   );
 
   const toggleModal = () => setOpen((prev) => !prev);
@@ -82,6 +84,45 @@ export default function MainGoals({
       setSelectedEmpreendimento(filters.empreendimento || []);
     }
   }, [filters, defaultYear]);
+
+  const generateExcel = async () => {
+    const params: Record<string, string[]> = {};
+
+    params["parceira"] = selectedParceiras;
+    params["regional"] = selectedRegionais;
+    params["tipo"] = selectedTiposObra;
+    params["ano"] = selectedYear;
+    params["empreendimento"] = selectedEmpreendimento;
+
+    const formattedSelectedItens = {
+      ...Transform(params),
+      btzero: typeGoals === "bt0" ? true : false,
+      rda: typeGoals === "rda" ? true : false,
+    };
+
+    const url = mountUrl(
+      `${process.env.NEXT_PUBLIC_API_URL}/exportacao/metas`,
+      formattedSelectedItens,
+    );
+
+    try {
+      if (token) {
+        const blob = await exportExcel(url, token);
+
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = "Exportação Metas.xlsx";
+        document.body.append(link);
+        link.click();
+
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+      }
+    } catch (error: any) {
+      setError(`Erro ao gerar a planilha: ${error.message}`);
+    }
+  };
 
   function fetchGoals() {
     const params: Record<string, string[]> = {};
@@ -105,7 +146,7 @@ export default function MainGoals({
         const response = await fetchData(
           `${process.env.NEXT_PUBLIC_API_URL}/metas`,
           formattedSelectedItens,
-          token
+          token,
         );
 
         setFilteredData(response.data);
@@ -133,7 +174,7 @@ export default function MainGoals({
             btzero: typeGoals === "bt0" ? true : false,
             rda: typeGoals === "rda" ? true : false,
           },
-          token
+          token,
         );
 
         setFilteredData(response.data);
@@ -199,17 +240,23 @@ export default function MainGoals({
           <ButtonComponent
             onClick={fetchGoals}
             text={getButtonContent(isPending, "Aplicar filtros")}
-            styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
+            styled="w-8/12 mb-2 md:w-1/4 md:mb-0 max-w-md"
           />
           <ButtonComponent
             onClick={handleCleaningFilters}
             text={getButtonContent(isPending, "Limpar filtros")}
-            styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
+            styled="w-8/12 mb-2 md:w-1/4 md:mb-0 max-w-md"
           />
           <ButtonComponent
             onClick={toggleModal}
             text={getButtonContent(isPending, "Ver valores totais")}
-            styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
+            styled="w-8/12 mb-2 md:w-1/4 md:mb-0 max-w-md"
+          />
+
+          <ButtonComponent
+            onClick={generateExcel}
+            text={getButtonContent(isPending, "Exportar")}
+            styled="w-8/12 mb-2 md:w-1/6 md:mb-0 max-w-md"
           />
         </div>
       </div>
@@ -221,7 +268,7 @@ export default function MainGoals({
         typeGoals={typeGoals}
       />
 
-      <ModalGoals
+      <ModalTotalGoalValues
         columns={columns}
         data={filteredData}
         handleClose={toggleModal}

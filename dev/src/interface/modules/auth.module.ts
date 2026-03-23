@@ -1,4 +1,4 @@
-import { AuthService } from 'src/application/auth.service';
+import { AuthService } from 'src/application/usecases/auth.service';
 import { AUTH_REPOSITORY } from 'src/domain/repositories/IAuthRepository';
 import { CacheModule } from 'src/infra/cache/cache.module';
 import { AuthRepository } from 'src/infra/repositories/authRepository';

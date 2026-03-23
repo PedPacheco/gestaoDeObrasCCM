@@ -1,4 +1,3 @@
-import { InsertWorksService } from 'src/application/works/InsertWorks.service';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import {
   InsertMarketWorksDTO,
@@ -6,6 +5,7 @@ import {
 } from 'src/interface/dtos/worksDto';
 
 import { Body, Controller, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { InsertWorksService } from 'src/application/usecases/works/InsertWorks.service';
 
 @Controller('obras')
 export class WorksInsertController {

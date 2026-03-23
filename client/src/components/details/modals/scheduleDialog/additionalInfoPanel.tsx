@@ -17,6 +17,7 @@ interface AdditionalInfoPanelProps {
   options: ScheduleFormDialogProps["options"];
   onInputChange: (field: keyof FormData) => (event: any) => void;
   disabledFields: () => boolean | undefined;
+  permission?: string;
 }
 
 const EXECUTION_RESPONSIBILITIES = ["", "Edp", "Parceira", "Terceiro"];
@@ -27,6 +28,7 @@ export const AdditionalInfoPanel: React.FC<AdditionalInfoPanelProps> = ({
   options,
   onInputChange,
   disabledFields,
+  permission,
 }) => {
   const errorRestriction = formErrors["idExecutionRestriction"];
   const errorResponsibility = formErrors["responsibility"];
@@ -67,7 +69,7 @@ export const AdditionalInfoPanel: React.FC<AdditionalInfoPanelProps> = ({
             value={formData.idExecutionRestriction}
             onChange={onInputChange("idExecutionRestriction")}
             label="Restrição de Execução"
-            disabled={restrictionIsDisabled}
+            disabled={restrictionIsDisabled && permission === "parcial"}
             error={!!errorRestriction}
           >
             {options.restricao
@@ -93,7 +95,7 @@ export const AdditionalInfoPanel: React.FC<AdditionalInfoPanelProps> = ({
             value={formData.responsibility}
             onChange={onInputChange("responsibility")}
             label="Responsabilidade Execução"
-            disabled={restrictionIsDisabled}
+            disabled={restrictionIsDisabled && permission === "parcial"}
             error={!!errorResponsibility}
           >
             {EXECUTION_RESPONSIBILITIES.map((responsibility) => (
@@ -114,6 +116,7 @@ export const AdditionalInfoPanel: React.FC<AdditionalInfoPanelProps> = ({
           label="Observação da Execução"
           value={formData.executionObservation || ""}
           onChange={onInputChange("executionObservation")}
+          disabled={restrictionIsDisabled && permission === "parcial"}
           error={!!errorObservation}
           helperText={errorObservation}
         />

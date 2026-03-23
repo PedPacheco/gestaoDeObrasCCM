@@ -1,3 +1,5 @@
+import { FeasibilityService } from 'src/application/usecases/feasibility.service';
+
 import {
   Body,
   Controller,
@@ -11,7 +13,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { FeasibilityService } from 'src/application/feasibility.service';
 
 @Controller('viabilidade')
 export class FeasibilityController {

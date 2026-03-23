@@ -4,6 +4,10 @@ import { convertParameterValue } from 'src/utils/convertParameterValue';
 
 export class GoalsDTO {
   @IsOptional()
+  @IsBoolean()
+  insufficientPermission?: boolean;
+
+  @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
   tipo?: number[];

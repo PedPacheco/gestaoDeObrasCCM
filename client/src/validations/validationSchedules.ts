@@ -162,8 +162,6 @@ export const schedulesSchema = (isInsert?: boolean) =>
         executionObservation,
       } = ctx.value;
 
-      console.log(executionObservation);
-
       if (!isInsert) {
         if (Number(exec) < prog && exec !== "null" && exec !== "") {
           if (idExecutionRestriction === 1) {

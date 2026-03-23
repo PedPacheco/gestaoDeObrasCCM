@@ -1,10 +1,7 @@
 import * as moment from 'moment';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
-import {
-  GetMonthlySummaryInterface,
-  GetSecondMonthlySummaryInterface,
-} from 'src/interface/types/schedule/getMonthlySummaryInterface';
+import { GetMonthlySummaryInterface } from 'src/interface/types/schedule/monthlySummaryInterface';
 
 import { Injectable } from '@nestjs/common';
 
@@ -17,26 +14,15 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
   async getSummary(
     filters: GetMonthlySummaryDTO,
   ): Promise<GetMonthlySummaryInterface[]> {
-    const { date, idRegional, idParceira, idTipo, idGrupo } = filters;
-
-    const month: number = Number(date?.split('/')[0]);
-    const year: number = Number(date?.split('/')[1]);
-
-    const monthInitial = moment
-      .utc([year, month - 1])
-      .startOf('month')
-      .toDate();
-    const monthFinal = moment
-      .utc([year, month - 1])
-      .add(1, 'month')
-      .startOf('month')
-      .toDate();
+    const { dataFinal, dataInicial, idRegional, idParceira, idTipo, idGrupo } =
+      filters;
 
     return await this.prisma.programacoes.findMany({
       where: {
+        id_status_programacao: { not: 7 },
         data_prog: {
-          gte: monthInitial,
-          lt: monthFinal,
+          gte: moment.utc(dataInicial, 'DD/MM/YYYY').toDate(),
+          lte: moment.utc(dataFinal, 'DD/MM/YYYY').toDate(),
         },
         obras: {
           tipos: {
@@ -60,62 +46,24 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
         data_prog: true,
         prog: true,
         exec: true,
+        equipe_linha_viva: true,
+        equipe_linha_morta: true,
+        equipe_regularizacao: true,
         obras: {
-          select: { mo_final: true, mo_planejada: true },
+          select: {
+            ovnota: true,
+            ordem_dci: true,
+            ordem_dca: true,
+            ordem_dcd: true,
+            ordem_dcim: true,
+            mo_planejada: true,
+            executado: true,
+            turmas: { select: { turma: true } },
+            tipos: { select: { grupos: { select: { grupo: true } } } },
+          },
         },
       },
       orderBy: { data_prog: 'asc' },
-    });
-  }
-
-  async getSecondSummary(
-    filters: GetMonthlySummaryDTO,
-  ): Promise<GetSecondMonthlySummaryInterface[]> {
-    const { date, idGrupo, idParceira, idRegional, idTipo } = filters;
-
-    const month: number = Number(date?.split('/')[0]);
-    const year: number = Number(date?.split('/')[1]);
-
-    const monthInitial = moment
-      .utc([year, month - 1])
-      .startOf('month')
-      .toDate();
-    const monthFinal = moment
-      .utc([year, month - 1])
-      .add(1, 'month')
-      .startOf('month')
-      .toDate();
-
-    return await this.prisma.obras.findMany({
-      where: {
-        programacoes: {
-          some: { data_prog: { gte: monthInitial, lt: monthFinal } },
-        },
-        tipos: {
-          id_grupo: idGrupo ? { in: idGrupo } : undefined,
-        },
-        municipios: {
-          id_regional: idRegional ? { in: idRegional } : undefined,
-        },
-        id_turma: idParceira ? { in: idParceira } : undefined,
-        id_tipo: idTipo ? { in: idTipo } : undefined,
-      },
-      select: {
-        ovnota: true,
-        mo_final: true,
-        mo_planejada: true,
-        turmas: { select: { turma: true } },
-        tipos: { select: { grupos: { select: { grupo: true } } } },
-        programacoes: {
-          where: {
-            data_prog: {
-              gte: monthInitial,
-              lt: monthFinal,
-            },
-          },
-          select: { data_prog: true, prog: true, exec: true },
-        },
-      },
     });
   }
 }

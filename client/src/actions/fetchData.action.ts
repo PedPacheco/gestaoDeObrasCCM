@@ -8,7 +8,7 @@ export async function fetchData<T>(
   token?: string,
   cacheStrategy: { revalidate?: number; cache?: "force-cache" | "no-store" } = {
     revalidate: 1800,
-  }
+  },
 ) {
   if (!token) {
     throw new Error("Token não foi encontrada");
