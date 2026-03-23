@@ -143,7 +143,7 @@ export class AuxiliaryBaseService {
         qtd_necessaria: qtd_necess,
         qtd_retirada,
         qtd_falta: qtd_faltante,
-        qtd_entrada: qtd_recebida,
+        qtd_recebida,
         reserva: relevancia_calculo,
         data_nec: data_necessidade,
       };

@@ -5,7 +5,7 @@ import {
 
 export interface IForecastSnapshotRepository {
   create(data: CreateForecastSnapshotDTO): Promise<void>;
-  get(params: GetForecastSnapshotDTO): Promise<any[]>;
+  get(params: GetForecastSnapshotDTO): Promise<any>;
 }
 
 export const FORECAST_SNAPSHOT = Symbol('ForecastSnapshotRepository');

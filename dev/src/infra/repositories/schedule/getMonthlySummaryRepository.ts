@@ -57,6 +57,7 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
             ordem_dcd: true,
             ordem_dcim: true,
             mo_planejada: true,
+            mo_pend: true,
             executado: true,
             turmas: { select: { turma: true } },
             tipos: { select: { grupos: { select: { grupo: true } } } },

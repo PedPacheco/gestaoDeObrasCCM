@@ -43,6 +43,7 @@ function makeRecord(
     prog?: number;
     exec?: number | null;
     mo_planejada?: number;
+    mo_pend?: number;
     ovnota?: string;
     ordem_dci?: string;
     ordem_dca?: string;
@@ -58,6 +59,7 @@ function makeRecord(
     exec: overrides.exec !== undefined ? overrides.exec : 80,
     obras: {
       mo_planejada: overrides.mo_planejada ?? 1000,
+      mo_pend: overrides.mo_pend ?? 200,
       ovnota: overrides.ovnota ?? 'OV001',
       ordem_dci: overrides.ordem_dci ?? 'DCI001',
       ordem_dca: overrides.ordem_dca ?? 'DCA001',
@@ -94,6 +96,7 @@ function makeGroupEntry(
     qtdeWorks: 0,
     totalMoPlan: 0,
     totalMoProg: 0,
+    totalMoPend: 0,
     totalMoExec: 0,
     totalMoPrev: 0,
     diff: 0,
@@ -214,6 +217,7 @@ describe('MonthlySummaryService', () => {
       // work order metrics use moPlan, prog and exec from the record
       expect(calculator.calculateWorkOrderMetrics).toHaveBeenCalledWith(
         1000,
+        200,
         100,
         80,
       );
@@ -241,6 +245,7 @@ describe('MonthlySummaryService', () => {
 
       expect(calculator.calculateWorkOrderMetrics).toHaveBeenCalledWith(
         1000,
+        200,
         100,
         0,
       );
@@ -366,6 +371,7 @@ describe('MonthlySummaryService', () => {
       );
       expect(calculator.calculateWorkOrderMetrics).toHaveBeenCalledWith(
         1000,
+        200,
         100,
         80,
       );

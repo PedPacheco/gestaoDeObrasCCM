@@ -336,6 +336,7 @@ describe('ScheduleController', () => {
         qtdeWorks: 49,
         totalMoPlan: 1075887.9138599995,
         totalMoProg: 1075887.9138599995,
+        totalMoPend: 0,
         totalMoExec: 556246.1940299999,
         totalMoPrev: 948862.9654299996,
         diff: 55,
@@ -346,6 +347,7 @@ describe('ScheduleController', () => {
         qtdeWorks: 19,
         totalMoPlan: 673067.8821099999,
         totalMoProg: 673067.8821099999,
+        totalMoPend: 0,
         totalMoExec: 541923.11811,
         totalMoPrev: 623527.0451099998,
         diff: 98,
@@ -574,33 +576,28 @@ describe('ScheduleController', () => {
   });
 
   it('should call forecastSnapshotService.get and return data of forecast', async () => {
-    jest.spyOn(forecastSnapshotService, 'get').mockResolvedValue([
-      {
+    jest.spyOn(forecastSnapshotService, 'get').mockResolvedValue({
+      id: 1,
+      geradoEm: '2026-03-01',
+      nomeArquivo: 'forecast_diario',
+      diario: createForecastSnapshotMock.diario,
+      grupo: createForecastSnapshotMock.grupo,
+    });
+
+    const result = await scheduleController.getForecastSnapshot({
+      idForecast: 1,
+    });
+
+    expect(result).toStrictEqual({
+      statusCode: HttpStatus.OK,
+      message: 'Retornado dados do forecast',
+      data: {
         id: 1,
         geradoEm: '2026-03-01',
         nomeArquivo: 'forecast_diario',
         diario: createForecastSnapshotMock.diario,
         grupo: createForecastSnapshotMock.grupo,
       },
-    ]);
-
-    const result = await scheduleController.getForecastSnapshot({
-      dataInicial: '2026-03-01',
-      dataFinal: '2026-03-31',
-    });
-
-    expect(result).toStrictEqual({
-      statusCode: HttpStatus.OK,
-      message: 'Retornado dados do forecast',
-      data: [
-        {
-          id: 1,
-          geradoEm: '2026-03-01',
-          nomeArquivo: 'forecast_diario',
-          diario: createForecastSnapshotMock.diario,
-          grupo: createForecastSnapshotMock.grupo,
-        },
-      ],
     });
   });
 });

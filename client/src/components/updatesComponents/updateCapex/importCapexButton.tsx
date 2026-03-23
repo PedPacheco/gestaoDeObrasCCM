@@ -77,6 +77,7 @@ export function ImportCapexButton() {
             preco_mi: row[11],
             qtd_necess: row[12],
             qtd_retirada: row[13],
+            qtd_recebida: row[14],
             qtd_faltante: row[15],
             relevancia_calculo: row[17],
           }));

@@ -17,11 +17,11 @@ export class ForecastSnapshotService {
   ) {}
 
   async execute(data: CreateForecastSnapshotDTO) {
-    if (!data.diario?.length) {
+    if (!data.diario?.summary.length) {
       throw new Error('Snapshot diário não pode estar vazio');
     }
 
-    if (!data.grupo?.length) {
+    if (!data.grupo?.summary.length) {
       throw new Error('Snapshot de grupo não pode estar vazio');
     }
 
@@ -29,76 +29,84 @@ export class ForecastSnapshotService {
   }
 
   async get(params: GetForecastSnapshotDTO) {
-    const snapshots = await this.repository.get(params);
+    const snapshot = await this.repository.get(params);
 
-    const data = snapshots.map((snapshot) => {
-      const { filtros, diario, grupo, gerado_em, id } = snapshot;
+    const { filtros, diario, grupo, gerado_em, id } = snapshot;
 
-      return {
-        id: id,
-        geradoEm: gerado_em,
-        nomeArquivo: `forecast_período_${filtros.dataInicial}-${filtros.dataFinal}`,
-        diario: this.formatDaily(diario),
-        grupo: this.formatGroup(grupo),
-      };
-    });
+    const snapshotFormatted = {
+      id: id,
+      geradoEm: gerado_em,
+      nomeArquivo: `forecast_período_${filtros.dataInicial}-${filtros.dataFinal}`,
+      diario: this.formatDaily(diario),
+      grupo: this.formatGroup(grupo),
+    };
 
-    return data;
+    return snapshotFormatted;
   }
 
-  private formatDaily(data: any[]): any[] {
-    if (!Array.isArray(data)) return [];
+  private formatDaily(data: any): any {
+    if (!Array.isArray(data.summary)) return [];
 
-    return data.map((item) => ({
-      dataProg: item.dataProg,
+    const formattedData = {
+      totals: data.totals,
+      summary: data.summary.map((item) => ({
+        dataProg: item.dataProg,
 
-      qtdeWorks: Number(item.qtdeWorks ?? 0),
-      teams: Number(item.teams ?? 0),
+        qtdeWorks: Number(item.qtdeWorks ?? 0),
+        teams: Number(item.teams ?? 0),
 
-      financialGoal: Number(item.financialGoal ?? 0),
-      diaryGoal: Number(item.diaryGoal ?? 0),
+        financialGoal: Number(item.financialGoal ?? 0),
+        diaryGoal: Number(item.diaryGoal ?? 0),
 
-      serviceMoProg: Number(item.serviceMoProg ?? 0),
-      serviceMoPlan: Number(item.serviceMoPlan ?? 0),
-      serviceMoPend: Number(item.serviceMoPend ?? 0),
-      serviceMoExec: Number(item.serviceMoExec ?? 0),
-      serviceMoForecast: Number(item.serviceMoForecast ?? 0),
+        serviceMoProg: Number(item.serviceMoProg ?? 0),
+        serviceMoPlan: Number(item.serviceMoPlan ?? 0),
+        serviceMoPend: Number(item.serviceMoPend ?? 0),
+        serviceMoExec: Number(item.serviceMoExec ?? 0),
+        serviceMoForecast: Number(item.serviceMoForecast ?? 0),
 
-      materialMoProg: Number(item.materialMoProg ?? 0),
-      materialMoPlan: Number(item.materialMoPlan ?? 0),
-      materialMoPend: Number(item.materialMoPend ?? 0),
-      materialMoExec: Number(item.materialMoExec ?? 0),
-      materialMoForecast: Number(item.materialMoForecast ?? 0),
+        materialMoProg: Number(item.materialMoProg ?? 0),
+        materialMoPlan: Number(item.materialMoPlan ?? 0),
+        materialMoPend: Number(item.materialMoPend ?? 0),
+        materialMoExec: Number(item.materialMoExec ?? 0),
+        materialMoForecast: Number(item.materialMoForecast ?? 0),
 
-      isServicePendLowerThanProg: Boolean(item.isServicePendLowerThanProg),
-      isMaterialPendLowerThanProg: Boolean(item.isMaterialPendLowerThanProg),
+        isServicePendLowerThanProg: Boolean(item.isServicePendLowerThanProg),
+        isMaterialPendLowerThanProg: Boolean(item.isMaterialPendLowerThanProg),
 
-      diff: Number(item.diff ?? 0),
-    }));
+        diff: Number(item.diff ?? 0),
+      })),
+    };
+
+    return formattedData;
   }
 
-  private formatGroup(data: any[]): any[] {
-    if (!Array.isArray(data)) return [];
+  private formatGroup(data: any): any {
+    if (!Array.isArray(data.summary)) return [];
 
-    return data.map((item) => ({
-      grupo: item.grupo,
-      turma: item.turma,
+    const formattedData = {
+      totals: data.totals,
+      summary: data.summary.map((item) => ({
+        grupo: item.grupo,
+        turma: item.turma,
 
-      qtdeWorks: Number(item.qtdeWorks ?? 0),
+        qtdeWorks: Number(item.qtdeWorks ?? 0),
 
-      totalServiceMoProg: Number(item.totalServiceMoProg ?? 0),
-      totalServiceMoPlan: Number(item.totalServiceMoPlan ?? 0),
-      totalServiceMoPend: Number(item.totalServiceMoPend ?? 0),
-      totalServiceMoPrev: Number(item.totalServiceMoPrev ?? 0),
-      totalServiceMoExec: Number(item.totalServiceMoExec ?? 0),
+        totalServiceMoProg: Number(item.totalServiceMoProg ?? 0),
+        totalServiceMoPlan: Number(item.totalServiceMoPlan ?? 0),
+        totalServiceMoPend: Number(item.totalServiceMoPend ?? 0),
+        totalServiceMoPrev: Number(item.totalServiceMoPrev ?? 0),
+        totalServiceMoExec: Number(item.totalServiceMoExec ?? 0),
 
-      totalMaterialMoProg: Number(item.totalMaterialMoProg ?? 0),
-      totalMaterialMoPlan: Number(item.totalMaterialMoPlan ?? 0),
-      totalMaterialMoPend: Number(item.totalMaterialMoPend ?? 0),
-      totalMaterialMoPrev: Number(item.totalMaterialMoPrev ?? 0),
-      totalMaterialMoExec: Number(item.totalMaterialMoExec ?? 0),
+        totalMaterialMoProg: Number(item.totalMaterialMoProg ?? 0),
+        totalMaterialMoPlan: Number(item.totalMaterialMoPlan ?? 0),
+        totalMaterialMoPend: Number(item.totalMaterialMoPend ?? 0),
+        totalMaterialMoPrev: Number(item.totalMaterialMoPrev ?? 0),
+        totalMaterialMoExec: Number(item.totalMaterialMoExec ?? 0),
 
-      diff: Number(item.diff ?? 0),
-    }));
+        diff: Number(item.diff ?? 0),
+      })),
+    };
+
+    return formattedData;
   }
 }

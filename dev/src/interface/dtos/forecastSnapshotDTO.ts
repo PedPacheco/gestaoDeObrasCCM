@@ -2,7 +2,6 @@ import { Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
-  IsDateString,
   IsNumber,
   IsOptional,
   IsString,
@@ -67,6 +66,53 @@ export class DailySummaryEntryForecastDTO {
   diff: number;
 }
 
+export class DailyForecastSummaryTotalsDTO {
+  @IsNumber()
+  totalQtdeObras: number;
+
+  @IsNumber()
+  totalTeams: number;
+
+  @IsNumber()
+  totalFinancialGoal: number;
+
+  @IsNumber()
+  totalDiaryGoal: number;
+
+  @IsNumber()
+  totalServiceMoProg: number;
+
+  @IsNumber()
+  totalServiceMoPlan: number;
+
+  @IsNumber()
+  totalServiceMoPend: number;
+
+  @IsNumber()
+  totalServiceMoExec: number;
+
+  @IsNumber()
+  totalServiceMoForecast: number;
+
+  @IsNumber()
+  totalMaterialMoProg: number;
+
+  @IsNumber()
+  totalMaterialMoPlan: number;
+
+  @IsNumber()
+  totalMaterialMoPend: number;
+
+  @IsNumber()
+  totalMaterialMoForecast: number;
+
+  @IsNumber()
+  totalMaterialMoExec: number;
+
+  @IsNumber()
+  totalDiff: number;
+}
+
 export class GroupTeamSummaryEntryForecastDTO {
   @IsString()
   grupo: string;
@@ -111,16 +157,68 @@ export class GroupTeamSummaryEntryForecastDTO {
   diff: number;
 }
 
-export class CreateForecastSnapshotDTO {
+export class GroupForecastSummaryTotalsDTO {
+  @IsNumber()
+  totalWorks: number;
+
+  @IsNumber()
+  totalServiceMoProgByGrouping: number;
+
+  @IsNumber()
+  totalServiceMoPlanByGrouping: number;
+
+  @IsNumber()
+  totalServiceMoPendByGrouping: number;
+
+  @IsNumber()
+  totalServiceMoExecByGrouping: number;
+
+  @IsNumber()
+  totalMaterialMoProgByGrouping: number;
+
+  @IsNumber()
+  totalMaterialMoPlanByGrouping: number;
+
+  @IsNumber()
+  totalMaterialMoPendByGrouping: number;
+
+  @IsNumber()
+  totalMaterialMoExecByGrouping: number;
+
+  @IsNumber()
+  totalDiff: number;
+}
+
+export class DiaryDTO {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => DailySummaryEntryForecastDTO)
-  diario: DailySummaryEntryForecastDTO[];
+  summary: DailySummaryEntryForecastDTO[];
 
+  @ValidateNested()
+  @Type(() => DailyForecastSummaryTotalsDTO)
+  totals: DailyForecastSummaryTotalsDTO;
+}
+
+export class GroupDTO {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => GroupTeamSummaryEntryForecastDTO)
-  grupo: GroupTeamSummaryEntryForecastDTO[];
+  summary: GroupTeamSummaryEntryForecastDTO[];
+
+  @ValidateNested()
+  @Type(() => GroupForecastSummaryTotalsDTO)
+  totals: GroupForecastSummaryTotalsDTO;
+}
+
+export class CreateForecastSnapshotDTO {
+  @ValidateNested()
+  @Type(() => DiaryDTO)
+  diario: DiaryDTO;
+
+  @ValidateNested()
+  @Type(() => GroupDTO)
+  grupo: GroupDTO;
 
   @IsOptional()
   @ValidateNested()
@@ -129,11 +227,15 @@ export class CreateForecastSnapshotDTO {
 }
 
 export class GetForecastSnapshotDTO {
-  @IsOptional()
-  @IsDateString()
-  dataInicial?: string;
+  // @IsOptional()
+  // @IsDateString()
+  // dataInicial?: string;
 
-  @IsOptional()
-  @IsDateString()
-  dataFinal?: string;
+  // @IsOptional()
+  // @IsDateString()
+  // dataFinal?: string;
+
+  @IsNumber()
+  @Type(() => Number)
+  idForecast: number;
 }

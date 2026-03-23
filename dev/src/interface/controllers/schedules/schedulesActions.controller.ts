@@ -134,7 +134,7 @@ export class SchedulesActionsController {
     };
   }
 
-  @Post('forecast/snapshot')
+  @Post('forecast-snapshot')
   @UseGuards(VisualizationGuard)
   async saveForecastSnapshot(@Body() data: CreateForecastSnapshotDTO) {
     const snapshot = await this.forecastSnapshotService.execute(data);

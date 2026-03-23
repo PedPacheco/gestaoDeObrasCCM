@@ -27,6 +27,7 @@ export interface GetAuxiliaryBaseMaterialsInterface {
   preco: number;
   qtd_necessaria: number;
   qtd_retirada: number;
+  qtd_recebida: number;
   qtd_falta: number;
   reserva: string;
   id_obra: number;

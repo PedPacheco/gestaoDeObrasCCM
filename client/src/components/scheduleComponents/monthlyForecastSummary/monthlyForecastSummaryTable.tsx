@@ -215,7 +215,7 @@ export function MonthlyForecastSummaryTable({
                   <TableCell
                     key={child.key}
                     ref={flatIdx === 0 ? firstColRef : undefined}
-                    className="font-semibold text-center bg-[#53FF75] text-lg text-nowrap sticky top-14 py-0"
+                    className="font-semibold text-center bg-[#53FF75] text-lg text-nowrap sticky top-[60px] py-0"
                     sx={getStickyColSx(flatIdx, firstColWidth, 4, "#53FF75")}
                   >
                     {child.label}

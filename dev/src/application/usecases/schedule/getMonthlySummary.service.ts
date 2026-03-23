@@ -90,6 +90,7 @@ export class MonthlySummaryService {
 
       const workOrderMetrics = this.calculator.calculateWorkOrderMetrics(
         financials.moPlan,
+        financials.moPend,
         record.prog,
         exec,
       );
@@ -173,6 +174,7 @@ export class MonthlySummaryService {
 
       const workOrderMetrics = this.calculator.calculateWorkOrderMetrics(
         financials.moPlan,
+        financials.moPend,
         record.prog,
         record.exec,
       );
@@ -208,7 +210,7 @@ export class MonthlySummaryService {
 
     const totals = this.calculator.aggregateGroupTotals(
       summaryArray,
-      uniqueWorksFinancial.totalMoPlan,
+      uniqueWorksFinancial,
     );
 
     const summary = summaryArray.map((entry) => ({
@@ -222,11 +224,13 @@ export class MonthlySummaryService {
     return { summary, totals };
   }
 
-  private extractFinancials(obras: { mo_planejada: number }): {
+  private extractFinancials(obras: { mo_planejada: number; mo_pend: number }): {
     moPlan: number;
+    moPend: number;
   } {
     return {
       moPlan: obras.mo_planejada,
+      moPend: obras.mo_pend,
     };
   }
 
@@ -241,9 +245,10 @@ export class MonthlySummaryService {
   }
 
   private accumulateUniqueWorkFinancials(
-    target: { totalMoPlan: number },
-    financials: { moPlan: number },
+    target: { totalMoPlan: number; totalMoPend: number },
+    financials: { moPlan: number; moPend: number },
   ): void {
     target.totalMoPlan += financials.moPlan;
+    target.totalMoPend += financials.moPend;
   }
 }

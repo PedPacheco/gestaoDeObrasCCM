@@ -58,7 +58,7 @@ export class EntryService {
 
       const month = obra.entrada.getUTCMonth();
       const monthKey = monthAbbreviations[month];
-      const value = obra.mo_final !== null ? obra.mo_final : obra.mo_planejada;
+      const value = obra.mo_pend !== null ? obra.mo_pend : obra.mo_planejada;
 
       const grupoData = acc[tipo];
 

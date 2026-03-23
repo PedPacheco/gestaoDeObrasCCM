@@ -1,10 +1,6 @@
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { ForecastSnapshotRepository } from 'src/infra/repositories/schedule/forecastSnapshotRepository';
 import { CreateForecastSnapshotDTO } from 'src/interface/dtos/forecastSnapshotDTO';
-import {
-  DailySummaryEntryForecast,
-  GroupTeamSummaryEntryForecast,
-} from 'src/interface/types/schedule/monthlySummaryForecastInterface';
 
 import { Test, TestingModule } from '@nestjs/testing';
 
@@ -15,13 +11,12 @@ describe('SaveForecastSnapshotRepository', () => {
   const prismaMock = {
     forecast_snapshot: {
       create: jest.fn(),
+      findUnique: jest.fn(),
     },
   };
 
-  // 🔹 Factories (ESSENCIAL para clean test)
-  const makeDailyEntry = (
-    override?: Partial<DailySummaryEntryForecast>,
-  ): DailySummaryEntryForecast => ({
+  // 🔹 Factories
+  const makeDailyEntry = (override?: Partial<any>) => ({
     dataProg: '2026-03-18',
     qtdeWorks: 10,
     teams: 2,
@@ -43,9 +38,7 @@ describe('SaveForecastSnapshotRepository', () => {
     ...override,
   });
 
-  const makeGroupEntry = (
-    override?: Partial<GroupTeamSummaryEntryForecast>,
-  ): GroupTeamSummaryEntryForecast => ({
+  const makeGroupEntry = (override?: Partial<any>) => ({
     grupo: 'Grupo A',
     turma: 'Turma 1',
     qtdeWorks: 20,
@@ -66,8 +59,41 @@ describe('SaveForecastSnapshotRepository', () => {
   const makeDTO = (
     override?: Partial<CreateForecastSnapshotDTO>,
   ): CreateForecastSnapshotDTO => ({
-    diario: [makeDailyEntry()],
-    grupo: [makeGroupEntry()],
+    diario: {
+      summary: [makeDailyEntry()],
+      totals: {
+        totalQtdeObras: 142,
+        totalTeams: 38,
+        totalFinancialGoal: 850000,
+        totalDiaryGoal: 42000,
+        totalServiceMoProg: 600000,
+        totalServiceMoPlan: 580000,
+        totalServiceMoPend: 90000,
+        totalServiceMoExec: 470000,
+        totalServiceMoForecast: 560000,
+        totalMaterialMoProg: 320000,
+        totalMaterialMoPlan: 300000,
+        totalMaterialMoPend: 50000,
+        totalMaterialMoForecast: 290000,
+        totalMaterialMoExec: 250000,
+        totalDiff: -100000,
+      },
+    },
+    grupo: {
+      summary: [makeGroupEntry()],
+      totals: {
+        totalWorks: 128,
+        totalServiceMoProgByGrouping: 520000,
+        totalServiceMoPlanByGrouping: 500000,
+        totalServiceMoPendByGrouping: 80000,
+        totalServiceMoExecByGrouping: 420000,
+        totalMaterialMoProgByGrouping: 310000,
+        totalMaterialMoPlanByGrouping: 295000,
+        totalMaterialMoPendByGrouping: 45000,
+        totalMaterialMoExecByGrouping: 250000,
+        totalDiff: -85000,
+      },
+    },
     filtros: {
       idRegional: [1],
       idGrupo: [1],
@@ -133,10 +159,13 @@ describe('SaveForecastSnapshotRepository', () => {
 
     it('should handle multiple daily entries correctly', async () => {
       const dto = makeDTO({
-        diario: [
-          makeDailyEntry(),
-          makeDailyEntry({ dataProg: '2026-03-19', qtdeWorks: 15 }),
-        ],
+        diario: {
+          summary: [
+            makeDailyEntry(),
+            makeDailyEntry({ dataProg: '2026-03-19', qtdeWorks: 15 }),
+          ],
+          totals: makeDTO().diario.totals,
+        },
       });
 
       prismaMock.forecast_snapshot.create.mockResolvedValue({});
@@ -145,20 +174,25 @@ describe('SaveForecastSnapshotRepository', () => {
 
       expect(prismaService.forecast_snapshot.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
-          diario: expect.arrayContaining([
-            expect.objectContaining({ dataProg: '2026-03-18' }),
-            expect.objectContaining({ dataProg: '2026-03-19' }),
-          ]),
+          diario: expect.objectContaining({
+            summary: expect.arrayContaining([
+              expect.objectContaining({ dataProg: '2026-03-18' }),
+              expect.objectContaining({ dataProg: '2026-03-19' }),
+            ]),
+          }),
         }),
       });
     });
 
     it('should handle multiple group entries correctly', async () => {
       const dto = makeDTO({
-        grupo: [
-          makeGroupEntry(),
-          makeGroupEntry({ grupo: 'Grupo B', turma: 'Turma 2' }),
-        ],
+        grupo: {
+          summary: [
+            makeGroupEntry(),
+            makeGroupEntry({ grupo: 'Grupo B', turma: 'Turma 2' }),
+          ],
+          totals: makeDTO().grupo.totals,
+        },
       });
 
       prismaMock.forecast_snapshot.create.mockResolvedValue({});
@@ -167,10 +201,12 @@ describe('SaveForecastSnapshotRepository', () => {
 
       expect(prismaService.forecast_snapshot.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
-          grupo: expect.arrayContaining([
-            expect.objectContaining({ grupo: 'Grupo A' }),
-            expect.objectContaining({ grupo: 'Grupo B' }),
-          ]),
+          grupo: expect.objectContaining({
+            summary: expect.arrayContaining([
+              expect.objectContaining({ grupo: 'Grupo A' }),
+              expect.objectContaining({ grupo: 'Grupo B' }),
+            ]),
+          }),
         }),
       });
     });
@@ -198,8 +234,14 @@ describe('SaveForecastSnapshotRepository', () => {
         expect.objectContaining({
           data: expect.objectContaining({
             filtros: expect.any(Object),
-            diario: expect.any(Array),
-            grupo: expect.any(Array),
+            diario: expect.objectContaining({
+              summary: expect.any(Array),
+              totals: expect.any(Object),
+            }),
+            grupo: expect.objectContaining({
+              summary: expect.any(Array),
+              totals: expect.any(Object),
+            }),
           }),
         }),
       );
@@ -207,18 +249,14 @@ describe('SaveForecastSnapshotRepository', () => {
   });
 
   describe('get', () => {
-    it('should call prisma.findMany without date filter when no params are provided', async () => {
-      const params = {} as any;
-
+    it('should call prisma.findMany without filters when no params are provided', async () => {
       const prismaResponse = [{ id: 1 }];
 
-      prismaService.forecast_snapshot.findMany = jest
-        .fn()
-        .mockResolvedValue(prismaResponse);
+      prismaMock.forecast_snapshot.findUnique.mockResolvedValue(prismaResponse);
 
-      const result = await repository.get(params);
+      const result = await repository.get({} as any);
 
-      expect(prismaService.forecast_snapshot.findMany).toHaveBeenCalledWith({
+      expect(prismaService.forecast_snapshot.findUnique).toHaveBeenCalledWith({
         where: {},
       });
 
@@ -226,73 +264,29 @@ describe('SaveForecastSnapshotRepository', () => {
     });
 
     it('should apply date filter when dataInicial and dataFinal are provided', async () => {
-      const params = {
-        dataInicial: '2026-03-01',
-        dataFinal: '2026-03-31',
-      };
+      prismaMock.forecast_snapshot.findUnique.mockResolvedValue([]);
 
-      prismaService.forecast_snapshot.findMany = jest
-        .fn()
-        .mockResolvedValue([]);
+      await repository.get({ idForecast: 1 });
 
-      await repository.get(params);
-
-      expect(prismaService.forecast_snapshot.findMany).toHaveBeenCalledWith({
+      expect(prismaService.forecast_snapshot.findUnique).toHaveBeenCalledWith({
         where: {
-          gerado_em: {
-            gte: new Date('2026-03-01'),
-            lte: new Date('2026-03-31'),
-          },
+          id: 1,
         },
       });
     });
 
-    it('should not apply date filter when only dataInicial is provided', async () => {
-      const params = {
-        dataInicial: '2026-03-01',
-      };
-
-      prismaService.forecast_snapshot.findMany = jest
-        .fn()
-        .mockResolvedValue([]);
-
-      await repository.get(params);
-
-      expect(prismaService.forecast_snapshot.findMany).toHaveBeenCalledWith({
-        where: {},
-      });
-    });
-
-    it('should not apply date filter when only dataFinal is provided', async () => {
-      const params = {
-        dataFinal: '2026-03-31',
-      };
-
-      prismaService.forecast_snapshot.findMany = jest
-        .fn()
-        .mockResolvedValue([]);
-
-      await repository.get(params);
-
-      expect(prismaService.forecast_snapshot.findMany).toHaveBeenCalledWith({
-        where: {},
-      });
-    });
-
-    it('should return the raw data from prisma without transformation', async () => {
+    it('should return raw data from prisma without transformation', async () => {
       const prismaResponse = [
         {
           id: 1,
           filtros: {},
-          diario: [],
-          grupo: [],
+          diario: {},
+          grupo: {},
           gerado_em: new Date(),
         },
       ];
 
-      prismaService.forecast_snapshot.findMany = jest
-        .fn()
-        .mockResolvedValue(prismaResponse);
+      prismaMock.forecast_snapshot.findUnique.mockResolvedValue(prismaResponse);
 
       const result = await repository.get({} as any);
 

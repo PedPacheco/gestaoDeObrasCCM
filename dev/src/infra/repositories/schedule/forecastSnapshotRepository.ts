@@ -23,18 +23,12 @@ export class ForecastSnapshotRepository implements IForecastSnapshotRepository {
     });
   }
 
-  async get(params: GetForecastSnapshotDTO): Promise<any[]> {
-    const { dataInicial, dataFinal } = params;
+  async get(params: GetForecastSnapshotDTO): Promise<any> {
+    // const { dataInicial, dataFinal } = params;
 
-    return await this.prisma.forecast_snapshot.findMany({
+    return await this.prisma.forecast_snapshot.findUnique({
       where: {
-        ...(dataInicial &&
-          dataFinal && {
-            gerado_em: {
-              gte: new Date(dataInicial),
-              lte: new Date(dataFinal),
-            },
-          }),
+        id: params.idForecast,
       },
     });
   }

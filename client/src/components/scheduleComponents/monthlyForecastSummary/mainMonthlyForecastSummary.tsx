@@ -20,6 +20,7 @@ import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { MonthlyForecastSummaryTable } from "./monthlyForecastSummaryTable";
 import { exportExcel } from "@/actions/generateExcel.action";
 import { mountUrl } from "@/utils/mountUrl";
+import { saveForecastSnapshot } from "@/actions/schedules";
 
 export interface Filters {
   regional: { id: string; regional: string }[];
@@ -153,6 +154,24 @@ export function MainMonthlyForecastSummarySchedule({
     fetch(buildParams({}, start, end));
   }
 
+  async function handleSave() {
+    const data = {
+      filtros: {
+        dataInicial: startDate?.toISOString(),
+        dataFinal: endDate?.toISOString(),
+      },
+      diario: dataFirst,
+      grupo: dataSecond,
+    };
+
+    const response = await saveForecastSnapshot(data);
+
+    if (!response.success) {
+      console.error(response.error);
+      return;
+    }
+  }
+
   function renderFilterSelect(key: string, value: any[], index: number) {
     const valueKey = Object.keys(value[0])[0];
     const displayKey = Object.keys(value[0])[1];
@@ -193,7 +212,13 @@ export function MainMonthlyForecastSummarySchedule({
           <ButtonComponent
             onClick={handleApplyFilters}
             text={getButtonContent(isPending, "Aplicar filtros")}
-            styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
+            styled="w-full mb-2 md:w-1/5 md:mb-0 max-w-md"
+          />
+
+          <ButtonComponent
+            onClick={handleClearFilters}
+            text={getButtonContent(isPending, "Limpar filtros")}
+            styled="w-full mb-2 md:w-1/5 md:mb-0 max-w-md"
           />
 
           <ButtonComponent
@@ -205,14 +230,14 @@ export function MainMonthlyForecastSummarySchedule({
               })
             }
             text={getButtonContent(isPending, "Exportar")}
-            styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
+            styled="w-full mb-2 md:w-1/5 md:mb-0 max-w-md"
           />
 
-          <ButtonComponent
-            onClick={handleClearFilters}
-            text={getButtonContent(isPending, "Limpar filtros")}
-            styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
-          />
+          {/* <ButtonComponent
+            onClick={handleSave}
+            text={getButtonContent(isPending, "Salvar Forecast")}
+            styled="w-full mb-2 md:w-1/5 md:mb-0 max-w-md"
+          /> */}
         </div>
       </div>
 

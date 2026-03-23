@@ -17,10 +17,10 @@ describe('EntryService', () => {
     getEntryOfWorksByDay: jest.fn(),
   };
 
-  const mockObras = (mo_final: number | null, mo_planejada: number) => [
+  const mockObras = (mo_pend: number | null, mo_planejada: number) => [
     {
       ovnota: 'ov1',
-      mo_final,
+      mo_pend,
       mo_planejada,
       entrada: new Date('2024-01-15'),
       tipos: {
@@ -32,7 +32,7 @@ describe('EntryService', () => {
     } as unknown as obras,
     {
       ovnota: 'ov2',
-      mo_final,
+      mo_pend,
       mo_planejada,
       entrada: new Date('2024-01-15'),
       tipos: {
