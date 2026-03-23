@@ -89,6 +89,7 @@ export class GetMonthlySummaryForecastService {
       const financials = this.extractFinancials(record.obras);
 
       const exec = record.exec ?? 0;
+
       const workOrderMetrics = this.calculator.calculateWorkOrderMetrics(
         financials.servicePlan,
         financials.materialPlan,
