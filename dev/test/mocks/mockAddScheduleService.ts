@@ -338,9 +338,9 @@ export const createForecastSnapshotMock: CreateForecastSnapshotDTO = {
   filtros: {
     dataInicial: '2026-03-01',
     dataFinal: '2026-03-31',
-    idRegional: [1, 2],
-    idGrupo: [10, 20],
-    idParceira: [2, 4],
-    idTipo: [4, 5],
+    regional: ['São josé'],
+    grupo: ['Mercado'],
+    parceira: ['Engelmig'],
+    tipo: ['Poste'],
   },
 };

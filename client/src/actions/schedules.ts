@@ -246,7 +246,7 @@ export async function saveForecastSnapshot(data: any) {
 
   try {
     const result = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/programacao/forecast-snapshot`,
+      `${process.env.NEXT_PUBLIC_API_URL}/forecast/snapshot`,
       {
         method: "POST",
         headers: {

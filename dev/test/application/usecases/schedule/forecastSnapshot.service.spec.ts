@@ -3,12 +3,15 @@ import { ForecastSnapshotService } from 'src/application/usecases/schedule/forec
 import { FORECAST_SNAPSHOT } from 'src/domain/repositories/schedule/IForecastSnapshotRepository';
 import { createForecastSnapshotMock } from '../../../mocks/mockAddScheduleService';
 
+import * as moment from 'moment';
+
 describe('ForecastSnapshotService', () => {
   let service: ForecastSnapshotService;
 
   const mockRepository = {
     create: jest.fn(),
     get: jest.fn(),
+    getAll: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -153,9 +156,9 @@ describe('ForecastSnapshotService', () => {
 
       mockRepository.get = jest.fn().mockResolvedValue(repositoryResponse);
 
-      const result = await service.get({ idForecast: 1 });
+      const result = await service.get(1);
 
-      expect(mockRepository.get).toHaveBeenCalledWith({ idForecast: 1 });
+      expect(mockRepository.get).toHaveBeenCalledWith(1);
 
       expect(result).toEqual({
         id: 1,
@@ -224,7 +227,7 @@ describe('ForecastSnapshotService', () => {
 
       mockRepository.get = jest.fn().mockResolvedValue(repositoryResponse);
 
-      const result = await service.get({ idForecast: 1 });
+      const result = await service.get(1);
 
       expect(result.diario).toEqual([]);
       expect(result.grupo).toEqual([]);
@@ -244,7 +247,7 @@ describe('ForecastSnapshotService', () => {
 
       mockRepository.get = jest.fn().mockResolvedValue(repositoryResponse);
 
-      const result = await service.get({ idForecast: 1 });
+      const result = await service.get(1);
 
       expect(result.nomeArquivo).toBe('forecast_período_2026-03-01-2026-03-31');
     });
@@ -307,7 +310,7 @@ describe('ForecastSnapshotService', () => {
 
       mockRepository.get = jest.fn().mockResolvedValue(repositoryResponse);
 
-      const result = await service.get({ idForecast: 1 });
+      const result = await service.get(1);
 
       expect(result.diario).toEqual({
         summary: [
@@ -356,6 +359,38 @@ describe('ForecastSnapshotService', () => {
         ],
         totals: {},
       });
+    });
+  });
+
+  describe('getAll', () => {
+    it('should call repository.getAll and return formatted data', async () => {
+      const repositoryResponse = [
+        {
+          id: 1,
+          filtros: {
+            dataInicial: '2026-03-01',
+            dataFinal: '2026-03-31',
+            idParceira: ['São José'],
+          },
+          gerado_em: '2026-03-24 12:19:11.1-03',
+        },
+      ];
+
+      mockRepository.getAll = jest.fn().mockResolvedValue(repositoryResponse);
+
+      const result = await service.getAll();
+
+      expect(result).toEqual([
+        {
+          id: 1,
+          nomeArquivo: `Relatório do dia ${moment(repositoryResponse[0].gerado_em).format('DD/MM/YYYY HH:mm')}`,
+          filtros: {
+            dataInicial: '2026-03-01',
+            dataFinal: '2026-03-31',
+            idParceira: ['São José'],
+          },
+        },
+      ]);
     });
   });
 });

@@ -9,7 +9,6 @@ import { GetMonthlySummaryForecastService } from 'src/application/usecases/sched
 import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
 import { GetTotalValuesScheduleService } from 'src/application/usecases/schedule/getTotalValuesSchedule.service';
 import { RejectionsOfSchedulesService } from 'src/application/usecases/schedule/rejectionOfSchedules.service';
-import { ForecastSnapshotService } from 'src/application/usecases/schedule/forecastSnapshot.service';
 import { ScheduleExecutionValidatorService } from 'src/application/usecases/schedule/scheduleExecutionValidator.service';
 import { UpdateSchedulesService } from 'src/application/usecases/schedule/updateSchedules.service';
 import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/schedule/validateAndConfirmSchedules.service';
@@ -110,7 +109,6 @@ import { WorksModule } from './works.module';
     MonthlySummaryForecastMapper,
     MonthlySummaryMapper,
     MonthlySummaryService,
-    ForecastSnapshotService,
     // UpdateRestrictionsService,
     {
       provide: MONTHLY_SUMMARY_FORECAST_CALCULATOR,

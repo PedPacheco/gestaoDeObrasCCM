@@ -81,6 +81,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
     const result = await res.json();
 
+    console.log(res, result);
+
     if (!res.ok) {
       return { success: false, message: result.message };
     }

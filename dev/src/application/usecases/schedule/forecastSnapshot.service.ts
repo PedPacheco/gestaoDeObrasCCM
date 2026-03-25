@@ -2,10 +2,9 @@ import {
   FORECAST_SNAPSHOT,
   IForecastSnapshotRepository,
 } from 'src/domain/repositories/schedule/IForecastSnapshotRepository';
-import {
-  CreateForecastSnapshotDTO,
-  GetForecastSnapshotDTO,
-} from 'src/interface/dtos/forecastSnapshotDTO';
+import { CreateForecastSnapshotDTO } from 'src/interface/dtos/forecastSnapshotDTO';
+
+import * as moment from 'moment';
 
 import { Inject, Injectable } from '@nestjs/common';
 
@@ -28,7 +27,7 @@ export class ForecastSnapshotService {
     return this.repository.create(data);
   }
 
-  async get(params: GetForecastSnapshotDTO) {
+  async get(params: number) {
     const snapshot = await this.repository.get(params);
 
     const { filtros, diario, grupo, gerado_em, id } = snapshot;
@@ -42,6 +41,20 @@ export class ForecastSnapshotService {
     };
 
     return snapshotFormatted;
+  }
+
+  async getAll() {
+    const snapshots = await this.repository.getAll();
+
+    return snapshots.map((snapshot) => {
+      const { id, filtros, gerado_em } = snapshot;
+
+      return {
+        id: id,
+        nomeArquivo: `Relatório do dia ${moment(gerado_em).format('DD/MM/YYYY HH:mm')}`,
+        filtros,
+      };
+    });
   }
 
   private formatDaily(data: any): any {

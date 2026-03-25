@@ -99,6 +99,9 @@ export function MainMonthlyForecastSummarySchedule({
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {},
   );
+  const [selectedOptions, setSelectedOptions] = useState<
+    Record<string, string[]>
+  >({});
 
   const { clearFilters, filters, saveFilters } = useSaveFilters({
     pageKey: "monthlyForecastSummaryFilters",
@@ -155,10 +158,12 @@ export function MainMonthlyForecastSummarySchedule({
   }
 
   async function handleSave() {
+    console.log(selectedOptions);
     const data = {
       filtros: {
         dataInicial: startDate?.toISOString(),
         dataFinal: endDate?.toISOString(),
+        ...selectedOptions,
       },
       diario: dataFirst,
       grupo: dataSecond,
@@ -183,9 +188,23 @@ export function MainMonthlyForecastSummarySchedule({
         label={capitalize(key)}
         menuItems={value}
         selectedItem={selectedItems[filterValue]}
-        setSelectedItem={(selected) =>
-          setSelectedItems((prev) => ({ ...prev, [filterValue]: selected }))
-        }
+        setSelectedItem={(selectedValues) => {
+          // ✅ 1. mantém comportamento original (IDs)
+          setSelectedItems((prev) => ({
+            ...prev,
+            [filterValue]: selectedValues,
+          }));
+
+          // ✅ 2. deriva os objetos completos (sem alterar o componente)
+          const selectedFull = value
+            .filter((item) => selectedValues.includes(item[valueKey]))
+            .map((item) => item[displayKey]);
+
+          setSelectedOptions((prev) => ({
+            ...prev,
+            [key]: selectedFull,
+          }));
+        }}
         valueKey={valueKey}
         displayKey={displayKey}
       />
@@ -233,11 +252,11 @@ export function MainMonthlyForecastSummarySchedule({
             styled="w-full mb-2 md:w-1/5 md:mb-0 max-w-md"
           />
 
-          {/* <ButtonComponent
+          <ButtonComponent
             onClick={handleSave}
             text={getButtonContent(isPending, "Salvar Forecast")}
             styled="w-full mb-2 md:w-1/5 md:mb-0 max-w-md"
-          /> */}
+          />
         </div>
       </div>
 

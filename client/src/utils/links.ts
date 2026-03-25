@@ -38,11 +38,11 @@ export const links = [
         href: "/relatorios/relatorio-bi",
         allowedFor: ["total", "parcial", "sem_permissao"],
       },
-      // {
-      //   name: "Relatório Forecast",
-      //   href: "/relatorios/forecast",
-      //   allowedFor: ["total", "parcial", "sem_permissao"],
-      // },
+      {
+        name: "Relatório Forecast",
+        href: "/relatorios/forecast",
+        allowedFor: ["total", "parcial", "sem_permissao"],
+      },
     ],
   },
   {

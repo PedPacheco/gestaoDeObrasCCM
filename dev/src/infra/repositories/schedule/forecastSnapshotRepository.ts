@@ -1,11 +1,7 @@
 import { IForecastSnapshotRepository } from 'src/domain/repositories/schedule/IForecastSnapshotRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import {
-  CreateForecastSnapshotDTO,
-  GetForecastSnapshotDTO,
-} from 'src/interface/dtos/forecastSnapshotDTO';
+import { CreateForecastSnapshotDTO } from 'src/interface/dtos/forecastSnapshotDTO';
 
-// prismaForecastSnapshot.repository.ts
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
@@ -23,12 +19,18 @@ export class ForecastSnapshotRepository implements IForecastSnapshotRepository {
     });
   }
 
-  async get(params: GetForecastSnapshotDTO): Promise<any> {
-    // const { dataInicial, dataFinal } = params;
-
+  async get(id: number): Promise<any> {
     return await this.prisma.forecast_snapshot.findUnique({
-      where: {
-        id: params.idForecast,
+      where: { id },
+    });
+  }
+
+  async getAll(): Promise<any> {
+    return await this.prisma.forecast_snapshot.findMany({
+      select: {
+        id: true,
+        gerado_em: true,
+        filtros: true,
       },
     });
   }

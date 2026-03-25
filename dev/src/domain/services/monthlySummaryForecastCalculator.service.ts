@@ -116,10 +116,10 @@ export class MonthlySummaryForecastCalculator implements IMonthlySummaryForecast
     return {
       serviceCapexProg: servicePlan * progRate,
       serviceCapexExec: servicePlan * execRate,
-      serviceCapexForecast: (execTotal > 1 ? 1 : execTotal) * servicePend,
+      serviceCapexForecast: servicePend * (execTotal > 1 ? 1 : progRate),
       materialCapexProg: materialPlan * progRate,
       materialCapexExec: materialPlan * execRate,
-      materialCapexForecast: (execTotal > 1 ? 1 : execTotal) * materialPend,
+      materialCapexForecast: materialPend * (execTotal > 1 ? 1 : progRate),
     };
   }
 

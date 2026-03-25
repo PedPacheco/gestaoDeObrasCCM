@@ -8,8 +8,6 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-import { GetMonthlySummaryDTO } from './scheduleDTO';
-
 export class DailySummaryEntryForecastDTO {
   @IsString()
   dataProg: string;
@@ -211,6 +209,32 @@ export class GroupDTO {
   totals: GroupForecastSummaryTotalsDTO;
 }
 
+export class CreateSnapshotFiltersDTO {
+  @IsString()
+  @IsOptional()
+  dataInicial?: string;
+
+  @IsString()
+  @IsOptional()
+  dataFinal?: string;
+
+  @IsOptional()
+  @IsArray()
+  parceira: string[];
+
+  @IsOptional()
+  @IsArray()
+  regional: string[];
+
+  @IsOptional()
+  @IsArray()
+  grupo: string[];
+
+  @IsOptional()
+  @IsArray()
+  tipo: string[];
+}
+
 export class CreateForecastSnapshotDTO {
   @ValidateNested()
   @Type(() => DiaryDTO)
@@ -222,20 +246,6 @@ export class CreateForecastSnapshotDTO {
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => GetMonthlySummaryDTO)
-  filtros?: GetMonthlySummaryDTO;
-}
-
-export class GetForecastSnapshotDTO {
-  // @IsOptional()
-  // @IsDateString()
-  // dataInicial?: string;
-
-  // @IsOptional()
-  // @IsDateString()
-  // dataFinal?: string;
-
-  @IsNumber()
-  @Type(() => Number)
-  idForecast: number;
+  @Type(() => CreateSnapshotFiltersDTO)
+  filtros?: CreateSnapshotFiltersDTO;
 }

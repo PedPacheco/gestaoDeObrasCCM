@@ -2,40 +2,75 @@ import dayjs from "dayjs";
 import { cookies } from "next/headers";
 
 import { fetchData } from "@/actions/fetchData.action";
-import { fetchFilters } from "@/actions/fetchFilters.action";
-import { MainMonthlyForecastSummarySchedule } from "@/components/scheduleComponents/monthlyForecastSummary/mainMonthlyForecastSummary";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
-import { Transform } from "@/utils/transform";
 import { MonthlySummaryTableColumn } from "../../programacao/resumo-mensal/page";
 import { MonthlyForecastSummaryTable } from "@/components/scheduleComponents/monthlyForecastSummary/monthlyForecastSummaryTable";
+import { SnapshotSelect } from "@/components/forecast/forecastSelect";
 
 export const dynamic = "force-dynamic";
 
-export default async function ForecastReportPage() {
+type Snapshot = {
+  id: number;
+  nomeArquivo: string;
+  geradoEm?: string;
+};
+
+export default async function ForecastReportPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ snapshotId?: string }>;
+}) {
+  const params = await searchParams;
+
   const cookieStore = await cookies();
-  // const cookieParams = cookieStore.get("ForecastReportPageFilters")?.value;
   const token = cookieStore.get("token")?.value;
 
-  // const params = cookieParams ? JSON.parse(cookieParams) : undefined;
+  // 🔹 1. Buscar lista de snapshots
+  const initialResponse = await fetchData(
+    `${process.env.NEXT_PUBLIC_API_URL}/forecast/snapshot`,
+    {},
+    token,
+    { cache: "no-store" },
+  );
 
-  // let filtersValues = {
-  //   ...Transform(params?.selectedItems || {}),
-  //   dataInicial: params?.startDate
-  //     ? dayjs(params?.startDate).format("DD/MM/YYYY")
-  //     : dayjs().startOf("month").format("DD/MM/YYYY"),
-  //   dataFinal: params?.endDate
-  //     ? dayjs(params?.endDate).format("DD/MM/YYYY")
-  //     : dayjs().endOf("month").format("DD/MM/YYYY"),
-  // };
+  const snapshots: Snapshot[] = initialResponse.data ?? [];
 
-  const [summaryData] = await Promise.all([
-    fetchData(
-      `${process.env.NEXT_PUBLIC_API_URL}/programacao/forecast-snapshot`,
-      { idForecast: 2 },
-      token,
-      { cache: "no-store" },
-    ),
-  ]);
+  // 🔹 2. Ordenar (mais recente primeiro)
+  const snapshotsSorted = [...snapshots].sort((a, b) => b.id - a.id);
+
+  const latestId = snapshotsSorted.length ? snapshotsSorted[0].id : null;
+
+  const selectedId = params.snapshotId ? Number(params.snapshotId) : latestId;
+
+  // 🔹 Empty state
+  if (!latestId) {
+    return (
+      <EmotionCacheProvider>
+        <div className="w-full h-[60vh] flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-2">
+              Nenhum relatório encontrado
+            </h2>
+            <p className="text-gray-500">
+              Ainda não existem snapshots gerados para exibição.
+            </p>
+          </div>
+        </div>
+      </EmotionCacheProvider>
+    );
+  }
+
+  console.log(
+    `${process.env.NEXT_PUBLIC_API_URL}/forecast/snapshot/${selectedId}`,
+  );
+
+  // 🔹 4. Buscar snapshot selecionado
+  const summaryData = await fetchData(
+    `${process.env.NEXT_PUBLIC_API_URL}/forecast/snapshot/${selectedId}`,
+    {},
+    token,
+    { cache: "no-store" },
+  );
 
   const columnsFirstSummary: MonthlySummaryTableColumn[] = [
     { key: "dataProg", label: "Data", format: "date" },
@@ -84,7 +119,6 @@ export default async function ForecastReportPage() {
         { key: "materialMoExec", label: "Material", format: "currency" },
       ],
     },
-
     { key: "diff", label: "Prog x Exec (%)", format: "percent" },
   ];
 
@@ -99,7 +133,6 @@ export default async function ForecastReportPage() {
         { key: "totalMaterialMoPlan", label: "Material", format: "currency" },
       ],
     },
-
     {
       label: "Programado (R$)",
       children: [
@@ -126,19 +159,26 @@ export default async function ForecastReportPage() {
 
   return (
     <EmotionCacheProvider>
-      <div className="w-full flex flex-col xl:flex-row px-4 overflow-y-auto">
-        <MonthlyForecastSummaryTable
-          columns={columnsFirstSummary}
-          data={summaryData.data.diario.summary}
-          totals={summaryData.data.diario.totals}
-          isFirstSummary={true}
-        />
-        <MonthlyForecastSummaryTable
-          columns={columnsSecondSummary}
-          data={summaryData.data.grupo.summary}
-          totals={summaryData.data.grupo.totals}
-          isFirstSummary={false}
-        />
+      <div className="w-full flex flex-col px-4 overflow-y-auto">
+        {/* 🔹 Select */}
+        <SnapshotSelect snapshots={snapshotsSorted} selectedId={selectedId} />
+
+        {/* 🔹 Tabelas */}
+        <div className="w-full flex flex-col xl:flex-row gap-4 h-[85%]">
+          <MonthlyForecastSummaryTable
+            columns={columnsFirstSummary}
+            data={summaryData.data.diario.summary}
+            totals={summaryData.data.diario.totals}
+            isFirstSummary={true}
+          />
+
+          <MonthlyForecastSummaryTable
+            columns={columnsSecondSummary}
+            data={summaryData.data.grupo.summary}
+            totals={summaryData.data.grupo.totals}
+            isFirstSummary={false}
+          />
+        </div>
       </div>
     </EmotionCacheProvider>
   );

@@ -12,6 +12,7 @@ describe('SaveForecastSnapshotRepository', () => {
     forecast_snapshot: {
       create: jest.fn(),
       findUnique: jest.fn(),
+      findMany: jest.fn(),
     },
   };
 
@@ -95,10 +96,10 @@ describe('SaveForecastSnapshotRepository', () => {
       },
     },
     filtros: {
-      idRegional: [1],
-      idGrupo: [1],
-      idParceira: [2],
-      idTipo: [3],
+      regional: ['São josé'],
+      grupo: ['Mercado'],
+      parceira: ['Engelmig'],
+      tipo: ['Poste'],
       dataInicial: '2026-01-01',
       dataFinal: '2026-01-31',
     },
@@ -254,10 +255,10 @@ describe('SaveForecastSnapshotRepository', () => {
 
       prismaMock.forecast_snapshot.findUnique.mockResolvedValue(prismaResponse);
 
-      const result = await repository.get({} as any);
+      const result = await repository.get(1);
 
       expect(prismaService.forecast_snapshot.findUnique).toHaveBeenCalledWith({
-        where: {},
+        where: { id: 1 },
       });
 
       expect(result).toEqual(prismaResponse);
@@ -266,7 +267,7 @@ describe('SaveForecastSnapshotRepository', () => {
     it('should apply date filter when dataInicial and dataFinal are provided', async () => {
       prismaMock.forecast_snapshot.findUnique.mockResolvedValue([]);
 
-      await repository.get({ idForecast: 1 });
+      await repository.get(1);
 
       expect(prismaService.forecast_snapshot.findUnique).toHaveBeenCalledWith({
         where: {
@@ -288,9 +289,62 @@ describe('SaveForecastSnapshotRepository', () => {
 
       prismaMock.forecast_snapshot.findUnique.mockResolvedValue(prismaResponse);
 
-      const result = await repository.get({} as any);
+      const result = await repository.get(1);
 
       expect(result).toBe(prismaResponse);
+    });
+  });
+
+  describe('getAll', () => {
+    it('should call prisma.findMany with correct select fields', async () => {
+      prismaMock.forecast_snapshot.findMany.mockResolvedValue([]);
+
+      await repository.getAll();
+
+      expect(prismaService.forecast_snapshot.findMany).toHaveBeenCalledWith({
+        select: {
+          id: true,
+          gerado_em: true,
+          filtros: true,
+        },
+      });
+    });
+
+    it('should return all snapshots with selected fields', async () => {
+      const prismaResponse = [
+        {
+          id: 1,
+          gerado_em: new Date('2026-03-01'),
+          filtros: { dataInicial: '2026-03-01', dataFinal: '2026-03-31' },
+        },
+        {
+          id: 2,
+          gerado_em: new Date('2026-03-02'),
+          filtros: { idRegional: [1, 2] },
+        },
+      ];
+
+      prismaMock.forecast_snapshot.findMany.mockResolvedValue(prismaResponse);
+
+      const result = await repository.getAll();
+
+      expect(result).toEqual(prismaResponse);
+    });
+
+    it('should return an empty array when no snapshots exist', async () => {
+      prismaMock.forecast_snapshot.findMany.mockResolvedValue([]);
+
+      const result = await repository.getAll();
+
+      expect(result).toEqual([]);
+    });
+
+    it('should propagate prisma errors', async () => {
+      prismaMock.forecast_snapshot.findMany.mockRejectedValue(
+        new Error('Database error'),
+      );
+
+      await expect(repository.getAll()).rejects.toThrow('Database error');
     });
   });
 });
