@@ -65,7 +65,7 @@ export default async function Bt0Goals() {
         data={data}
         filtersData={filters}
         token={token}
-        typeGoals="bt0"
+        typeGoals="recomposicao"
         currentYear={dayjs().year()}
       />
     </EmotionCacheProvider>

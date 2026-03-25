@@ -52,7 +52,7 @@ export default function ModalComponent({
         </div>
         <ButtonComponent
           onClick={onClose}
-          styled="mt-6 text-white py-2 px-4 rounded"
+          styled="mt-2 text-white py-2 px-4 rounded"
           text="Fechar"
         />
       </Box>
