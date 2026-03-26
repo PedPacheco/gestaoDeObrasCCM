@@ -228,6 +228,13 @@ export class NoteWorks extends Work {
     );
   }
 
+  get isAnoplanInvalid(): boolean {
+    return (
+      this.idGrupo === 2 &&
+      (this.anoPlan == null || this.anoPlan.toString().length < 4)
+    );
+  }
+
   get isRda(): any {
     return this.idTipo !== 54 && this.idTipo !== 55 && this.ehRda;
   }
@@ -249,6 +256,10 @@ export class NoteWorks extends Work {
       throw new BadRequestException(
         `Selecione um empreendimento válido para a obra ${this.obra}.`,
       );
+    }
+
+    if (this.isAnoplanInvalid) {
+      throw new BadRequestException('Falta informar o ano de Planejamento');
     }
 
     if (this.isRda) {

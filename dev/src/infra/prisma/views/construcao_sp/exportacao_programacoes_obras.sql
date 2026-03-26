@@ -103,6 +103,4 @@ FROM
       JOIN regionais ON ((regionais.id = municipios.id_regional))
     )
     JOIN turmas ON ((turmas.id = obras.id_turma))
-  )
-WHERE
-  (programacoes.id_status_programacao <> 7);
+  );

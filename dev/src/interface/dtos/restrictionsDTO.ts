@@ -85,6 +85,13 @@ export class InsertPublicationRestrictionsDTO {
   @IsString()
   @IsOptional()
   observation?: string;
+
+  @IsString()
+  @IsOptional()
+  constructionObservation?: string;
+
+  @IsNumber()
+  idUser: number;
 }
 
 export class UpdatePublicationRestrictionsDTO {
@@ -114,4 +121,11 @@ export class UpdatePublicationRestrictionsDTO {
   @IsString()
   @IsOptional()
   observation?: string;
+
+  @IsString()
+  @IsOptional()
+  constructionObservation?: string;
+
+  @IsNumber()
+  idUser: number;
 }

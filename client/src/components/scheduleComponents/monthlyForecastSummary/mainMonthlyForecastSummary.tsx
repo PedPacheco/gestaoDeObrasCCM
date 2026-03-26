@@ -158,7 +158,6 @@ export function MainMonthlyForecastSummarySchedule({
   }
 
   async function handleSave() {
-    console.log(selectedOptions);
     const data = {
       filtros: {
         dataInicial: startDate?.toISOString(),

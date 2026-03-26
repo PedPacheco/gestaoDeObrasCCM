@@ -60,10 +60,6 @@ export default async function ForecastReportPage({
     );
   }
 
-  console.log(
-    `${process.env.NEXT_PUBLIC_API_URL}/forecast/snapshot/${selectedId}`,
-  );
-
   // 🔹 4. Buscar snapshot selecionado
   const summaryData = await fetchData(
     `${process.env.NEXT_PUBLIC_API_URL}/forecast/snapshot/${selectedId}`,

@@ -28,10 +28,10 @@ export class ExecutionCapacityController {
     @Query()
     filters: ExecutionCapacityDTO,
   ) {
-    const financialValues =
-      await this.executionCapacityService.getFinancialValue(filters.year);
-    const executionCapacityValues =
-      await this.executionCapacityService.get(filters);
+    const [executionCapacityValues, financialValues] = await Promise.all([
+      this.executionCapacityService.get(filters),
+      this.executionCapacityService.getFinancialValue(filters),
+    ]);
 
     const response = {
       financialValues,

@@ -6,7 +6,6 @@ import {
   ExecutionCapacityDTO,
   UpdateExecutionCapacityDTO,
 } from 'src/interface/dtos/executionCapacityDTO';
-import { ExecutionCapacityFilter } from 'src/interface/types/executionCapacityInterface';
 
 import { Inject, Injectable } from '@nestjs/common';
 
@@ -18,15 +17,7 @@ export class ExecutionCapacityService {
   ) {}
 
   async get(filters: ExecutionCapacityDTO) {
-    const { year, partnerId, regionalId, teams } = filters;
-
-    const where: ExecutionCapacityFilter = { ano: year };
-
-    if (partnerId) where.id_turma = partnerId;
-    if (regionalId) where.id_regional = regionalId;
-    if (teams) where.equipe = teams;
-
-    const data = await this.executionCapacityRepository.get(where);
+    const data = await this.executionCapacityRepository.get(filters);
 
     const formattedData = data.map(({ regionais, turmas, ...rest }) => ({
       regional: regionais?.regional,
@@ -37,8 +28,9 @@ export class ExecutionCapacityService {
     return formattedData;
   }
 
-  async getFinancialValue(year: string) {
-    const data = await this.executionCapacityRepository.getFinancialValue(year);
+  async getFinancialValue(filters: ExecutionCapacityDTO) {
+    const data =
+      await this.executionCapacityRepository.getFinancialValue(filters);
 
     const financialValues = data.reduce((acc, item) => {
       const key = `${item.regionais.regional}-${item.turmas.turma}`;

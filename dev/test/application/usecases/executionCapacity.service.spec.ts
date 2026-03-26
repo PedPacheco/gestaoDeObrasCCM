@@ -39,21 +39,16 @@ describe('ExecutionCapacityService', () => {
       );
 
       const filters = {
-        year: '2025',
-        partnerId: 1,
-        regionalId: 1,
+        ano: '2025',
+        idParceira: [1],
+        idRegional: [1],
         teams: 'LM',
       };
 
       const response = await service.get(filters);
 
       expect(response).toEqual(mockFormattedDataExecutionCapacity);
-      expect(mockRepository.get).toHaveBeenCalledWith({
-        ano: '2025',
-        id_turma: 1,
-        id_regional: 1,
-        equipe: 'LM',
-      });
+      expect(mockRepository.get).toHaveBeenCalledWith(filters);
     });
 
     it('should call method get without filters and return formatted data', async () => {
@@ -62,15 +57,15 @@ describe('ExecutionCapacityService', () => {
       );
 
       const filters = {
-        year: '2025',
+        ano: '2026',
+        idParceira: [1],
+        idRegional: [1],
       };
 
       const response = await service.get(filters);
 
       expect(response).toEqual(mockFormattedDataExecutionCapacity);
-      expect(mockRepository.get).toHaveBeenCalledWith({
-        ano: '2025',
-      });
+      expect(mockRepository.get).toHaveBeenCalledWith(filters);
     });
   });
 
@@ -80,9 +75,17 @@ describe('ExecutionCapacityService', () => {
         mockResponseDataFinancialValuesExecutionCapacityRepository,
       );
 
-      const response = await service.getFinancialValue('2026');
+      const response = await service.getFinancialValue({
+        ano: '2026',
+        idParceira: [1],
+        idRegional: [1],
+      });
 
-      expect(mockRepository.getFinancialValue).toHaveBeenCalled();
+      expect(mockRepository.getFinancialValue).toHaveBeenCalledWith({
+        ano: '2026',
+        idParceira: [1],
+        idRegional: [1],
+      });
       expect(response).toEqual(mockDataSumFinancialValues);
     });
   });

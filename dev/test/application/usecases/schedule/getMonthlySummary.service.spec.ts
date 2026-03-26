@@ -179,11 +179,11 @@ describe('MonthlySummaryService', () => {
       );
       expect(
         executionCapacityRepository.getFinancialValue,
-      ).toHaveBeenCalledWith(
-        '2024',
-        DEFAULT_FILTERS.idParceira,
-        DEFAULT_FILTERS.idRegional,
-      );
+      ).toHaveBeenCalledWith({
+        ano: '2024',
+        idParceira: DEFAULT_FILTERS.idParceira,
+        idRegional: DEFAULT_FILTERS.idRegional,
+      });
     });
 
     it('returns empty summary with aggregated totals when repository returns no data', async () => {

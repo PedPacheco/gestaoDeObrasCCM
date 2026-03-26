@@ -44,11 +44,11 @@ export class MonthlySummaryService {
 
     const [data, executionCapacity] = await Promise.all([
       this.monthlySummaryRepository.getSummary(filters),
-      this.executionCapacityRepository.getFinancialValue(
-        year,
-        filters.idParceira,
-        filters.idRegional,
-      ),
+      this.executionCapacityRepository.getFinancialValue({
+        ano: year,
+        idParceira: filters.idParceira,
+        idRegional: filters.idRegional,
+      }),
     ]);
 
     const financialCapacityByMonth: (MonthlyCapacityMetrics | undefined)[] =
