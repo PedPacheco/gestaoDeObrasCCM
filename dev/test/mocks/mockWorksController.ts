@@ -95,6 +95,7 @@ export const mockResponseDetails = {
   qtde_pend: 0.77165,
   mo_planejada: 89223.8157,
   mo_final: null,
+  mo_pend: 1000,
   referencia: '190BF006190439',
   capex_mat_pend: 186326.1654099993,
   capex_mat_plan: 186326.1654099993,

@@ -21,22 +21,27 @@ export const links = [
   {
     name: "Relatórios",
     href: null,
-    allowedFor: ["total", "sem_permissao"],
+    allowedFor: ["total", "parcial", "sem_permissao"],
     submenu: [
       {
         name: "Exportações",
         href: "/relatorios/exportacoes",
-        allowedFor: ["total", "sem_permissao"],
+        allowedFor: ["total", "parcial", "sem_permissao"],
       },
       {
         name: "Relatório de erros",
         href: "/relatorios/relatorio-erros",
-        allowedFor: ["total", "sem_permissao"],
+        allowedFor: ["total", "parcial", "sem_permissao"],
       },
       {
         name: "Relatório BI's",
         href: "/relatorios/relatorio-bi",
-        allowedFor: ["total", "sem_permissao"],
+        allowedFor: ["total", "parcial", "sem_permissao"],
+      },
+      {
+        name: "Relatório Forecast",
+        href: "/relatorios/forecast",
+        allowedFor: ["total", "parcial", "sem_permissao"],
       },
     ],
   },

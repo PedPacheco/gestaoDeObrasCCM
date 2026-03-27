@@ -68,6 +68,18 @@ SELECT
   tecnicos.tecnico,
   restricoes.restricao AS restricao_execucao,
   programacoes.nome_responsavel_execucao,
+  restricoes_prog1.restricao AS restricao_prog1,
+  programacoes.responsabilidade1,
+  programacoes.nome_responsavel,
+  programacoes.area_responsavel1,
+  programacoes.status_restricao1,
+  programacoes.data_resolucao1,
+  restricoes_prog2.restricao AS restricao_prog2,
+  programacoes.responsabilidade2,
+  programacoes.nome_responsavel2,
+  programacoes.area_responsavel2,
+  programacoes.status_restricao2,
+  programacoes.data_resolucao2,
   tipos.id_grupo
 FROM
   (
@@ -84,10 +96,24 @@ FROM
                         (
                           (
                             (
-                              programacoes
-                              JOIN restricoes ON (
+                              (
                                 (
-                                  restricoes.id = programacoes.id_restricao_execucao
+                                  programacoes
+                                  JOIN restricoes ON (
+                                    (
+                                      restricoes.id = programacoes.id_restricao_execucao
+                                    )
+                                  )
+                                )
+                                LEFT JOIN restricoes restricoes_prog1 ON (
+                                  (
+                                    restricoes_prog1.id = programacoes.id_restricao_prog1
+                                  )
+                                )
+                              )
+                              LEFT JOIN restricoes restricoes_prog2 ON (
+                                (
+                                  restricoes_prog2.id = programacoes.id_restricao_prog2
                                 )
                               )
                             )

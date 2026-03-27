@@ -52,6 +52,7 @@ export class MonthlySummaryMapper {
       turma,
       qtdeWorks: 0,
       totalMoPlan: 0,
+      totalMoPend: 0,
       totalMoProg: 0,
       totalMoExec: 0,
       totalMoPrev: 0,
@@ -65,12 +66,13 @@ export class MonthlySummaryMapper {
     moPrev: number,
     workExists: boolean,
   ): void {
-    const { moProg, moExec, moPlan } = workOrderMetrics;
+    const { moProg, moExec, moPlan, moPend } = workOrderMetrics;
 
     entry.qtdeWorks++;
 
     if (!workExists) {
       entry.totalMoPlan += moPlan;
+      entry.totalMoPend += moPend;
     }
 
     entry.totalMoProg += moProg;
@@ -102,6 +104,7 @@ export function createInitialTotalsByGrouping(): GroupSummaryTotals {
   return {
     totalWorks: 0,
     totalMoPlanByGrouping: 0,
+    totalMoPendByGrouping: 0,
     totalMoProgByGrouping: 0,
     totalMoExecByGrouping: 0,
     totalMoPrevByGrouping: 0,
@@ -109,8 +112,12 @@ export function createInitialTotalsByGrouping(): GroupSummaryTotals {
   };
 }
 
-export function createUniqueWorksFinancial(): { totalMoPlan: number } {
+export function createUniqueWorksFinancial(): {
+  totalMoPlan: number;
+  totalMoPend: number;
+} {
   return {
     totalMoPlan: 0,
+    totalMoPend: 0,
   };
 }

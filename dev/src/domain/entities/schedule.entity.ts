@@ -35,9 +35,31 @@ export class Schedule {
     public readonly restrictionStatus2?: string,
     public readonly resolutionDate2?: Date,
     public readonly observationRestriction?: string,
+    public readonly idScheduleStatus: number = 1,
     public readonly idUser?: number,
   ) {
     this.validate();
+  }
+
+  private checkTypeOfService(): boolean {
+    if (!this.serviceType) return false;
+
+    const normalized = this.serviceType.toUpperCase();
+
+    return normalized.includes('REGULARIZAÇÃO') || normalized.includes('DP');
+  }
+
+  public validatedSchedulingConfirmation() {
+    const isRequired = this.checkTypeOfService();
+
+    if (!isRequired) return;
+
+    const dp = this.numDp?.trim();
+
+    // ❗ Regra completa
+    if (!dp || dp === '0' || !/^\d{8}$/.test(dp)) {
+      throw new BadRequestException('Falta inserir número do DP');
+    }
   }
 
   private validate(): void {
@@ -98,6 +120,7 @@ export class Schedule {
       data.restrictionStatus2,
       data.resolutionDate2,
       data.observationRestriction,
+      data.idScheduleStatus,
       data.idUser,
     );
   }

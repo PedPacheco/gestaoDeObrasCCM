@@ -512,21 +512,22 @@ model turmas {
 }
 
 model usuario {
-  id                         Int                  @id(map: "USUARIO_pkey") @default(autoincrement())
-  username                   String               @db.VarChar(8)
-  senha                      String               @db.VarChar
-  permissao                  String               @db.VarChar(30)
+  id                         Int                      @id(map: "USUARIO_pkey") @default(autoincrement())
+  username                   String                   @db.VarChar(8)
+  senha                      String                   @db.VarChar
+  permissao                  String                   @db.VarChar(30)
   id_regional                Int
-  nome_usuario               String               @db.VarChar(50)
-  email                      String               @db.VarChar(70)
-  permissao_visualizacao     String               @default("total") @db.VarChar(25)
-  id_turma                   Int                  @default(1)
-  permissao_publicacao       Boolean              @default(false)
+  nome_usuario               String                   @db.VarChar(50)
+  email                      String                   @db.VarChar(70)
+  permissao_visualizacao     String                   @default("total") @db.VarChar(25)
+  id_turma                   Int                      @default(1)
+  permissao_publicacao       Boolean                  @default(false)
   programacoes               programacoes[]
-  usuario_ultima_atualizacao programacoes[]       @relation("usuario_ultima_atualizacao")
+  usuario_ultima_atualizacao programacoes[]           @relation("usuario_ultima_atualizacao")
   relatorio_execucao         relatorio_execucao[]
-  turmas                     turmas               @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
-  regionais                  regionais            @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
+  restricoes_publicacoes     restricoes_publicacoes[]
+  turmas                     turmas                   @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
+  regionais                  regionais                @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
 }
 
 model relatorio_viabilidade {
@@ -665,17 +666,20 @@ model suspensoes_retiradas {
 }
 
 model restricoes_publicacoes {
-  id               Int        @id @default(autoincrement())
-  id_obra          Int
-  id_restricao     Int        @default(1)
-  responsabilidade String     @db.VarChar(50)
-  nome_responsavel String     @db.VarChar(50)
-  status_restricao String     @db.VarChar(20)
-  data_resolucao   DateTime?  @db.Date
-  criado_em        DateTime?  @default(now()) @db.Timestamptz(6)
-  observacao       String?
-  obras            obras      @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
-  restricoes       restricoes @relation(fields: [id_restricao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes")
+  id                    Int        @id @default(autoincrement())
+  id_obra               Int
+  id_restricao          Int        @default(1)
+  responsabilidade      String     @db.VarChar(50)
+  nome_responsavel      String     @db.VarChar(50)
+  status_restricao      String     @db.VarChar(20)
+  data_resolucao        DateTime?  @db.Date
+  criado_em             DateTime?  @default(now()) @db.Timestamptz(6)
+  observacao            String?
+  criado_por            Int?
+  observacao_construcao String?
+  obras                 obras      @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
+  restricoes            restricoes @relation(fields: [id_restricao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes")
+  usuario               usuario?   @relation(fields: [criado_por], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario")
 }
 
 model plano_capex {
@@ -954,5 +958,25 @@ view exportacao_forecast {
   tecnico                    String?   @db.VarChar(40)
   restricao_execucao         String?   @db.VarChar(80)
   nome_responsavel_execucao  String?   @db.VarChar(50)
+  restricao_prog1            String?   @db.VarChar(80)
+  responsabilidade1          String?   @db.VarChar(50)
+  nome_responsavel           String?   @db.VarChar(50)
+  area_responsavel1          String?   @db.VarChar(50)
+  status_restricao1          String?   @db.VarChar(50)
+  data_resolucao1            DateTime? @db.Date
+  restricao_prog2            String?   @db.VarChar(80)
+  responsabilidade2          String?   @db.VarChar(50)
+  nome_responsavel2          String?   @db.VarChar(50)
+  area_responsavel2          String?   @db.VarChar(50)
+  status_restricao2          String?   @db.VarChar(50)
+  data_resolucao2            DateTime? @db.Date
   id_grupo                   Int?
+}
+
+view exportacao_ordens {
+  ovnota        String? @db.VarChar(12)
+  grupo         String? @db.VarChar(20)
+  tipo_obra     String? @db.VarChar(30)
+  status        String? @db.VarChar(25)
+  ordemdiagrama String? @db.VarChar(12)
 }

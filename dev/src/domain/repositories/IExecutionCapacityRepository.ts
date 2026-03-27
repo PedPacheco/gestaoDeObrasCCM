@@ -1,13 +1,11 @@
-import { UpdateExecutionCapacityDTO } from './../../interface/dtos/executionCapacityDTO';
-import { ExecutionCapacityFilter } from 'src/interface/types/executionCapacityInterface';
+import {
+  ExecutionCapacityDTO,
+  UpdateExecutionCapacityDTO,
+} from './../../interface/dtos/executionCapacityDTO';
 
 export interface IExecutionCapacityRepository {
-  get(filters: ExecutionCapacityFilter): Promise<any>;
-  getFinancialValue(
-    year: string,
-    turma?: number[],
-    regional?: number[],
-  ): Promise<any[]>;
+  get(filters: ExecutionCapacityDTO): Promise<any>;
+  getFinancialValue(filters: ExecutionCapacityDTO): Promise<any[]>;
   update(data: UpdateExecutionCapacityDTO[]): Promise<void>;
 }
 

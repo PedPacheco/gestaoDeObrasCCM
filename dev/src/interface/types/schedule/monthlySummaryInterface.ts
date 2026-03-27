@@ -48,6 +48,7 @@ export interface MonthlyCapacityMetrics {
 
 export interface WorkOrderMetrics {
   readonly moPlan: number;
+  readonly moPend: number;
   readonly moProg: number;
   readonly moExec: number;
 }
@@ -70,6 +71,7 @@ export interface GroupTeamSummaryEntry {
   turma: string;
   qtdeWorks: number;
   totalMoPlan: number;
+  totalMoPend: number;
   totalMoProg: number;
   totalMoExec: number;
   totalMoPrev: number;
@@ -84,6 +86,7 @@ export interface GetMonthlySummaryInterface {
     ordem_dcd: string;
     ordem_dcim: string;
     mo_planejada: number | null;
+    mo_pend: number | null;
     turmas: Partners;
     tipos: Types;
   };
@@ -110,6 +113,7 @@ export interface DailySummaryTotals {
 export interface GroupSummaryTotals {
   totalWorks: number;
   totalMoPlanByGrouping: number;
+  totalMoPendByGrouping: number;
   totalMoProgByGrouping: number;
   totalMoExecByGrouping: number;
   totalMoPrevByGrouping: number;

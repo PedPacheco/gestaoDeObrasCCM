@@ -1,5 +1,8 @@
 "use client";
 
+import ExcelJS from "exceljs";
+import { useCallback, useMemo } from "react";
+
 import {
   Paper,
   Table,
@@ -9,22 +12,63 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import ModalComponent from "../common/Modal";
-import { useCallback, useMemo } from "react";
 
-interface ModalTotalGoalValuesProps {
-  data: any;
-  columns: any;
-  handleClose: () => void;
-  open: boolean;
-  typeGoals: string;
+import ModalComponent from "../common/Modal";
+import { CumulativeValuesRows } from "./cumulativeValuesRows";
+import { MonthTotals, TypeGoals } from "./MainGoals";
+import { SimpleValuesRows } from "./simpleValuesRows";
+import { ButtonComponent } from "../common/Button";
+
+interface MonthValues {
+  meta: number;
+  prog: number;
+  real: number;
 }
 
-interface Totals {
+export interface Totals {
   metaAcumulada: number;
   progRealAcumulado: number;
   diferencaAcumulada: number;
 }
+
+interface GoalItem {
+  carteira?: number;
+  [month: string]: MonthValues | number | undefined;
+}
+
+interface ModalTotalGoalValuesProps {
+  data: GoalItem[];
+  columns: Record<string, string>;
+  handleClose: () => void;
+  open: boolean;
+  typeGoals: TypeGoals;
+}
+
+const COLUMN_OFFSET: Record<TypeGoals, number> = {
+  rda: 6,
+  recomposicao: 5,
+  bt0: 5,
+};
+
+export const SIMPLE_KEYS = ["meta", "prog", "real"] as const;
+
+export const CUMULATIVE_KEYS = [
+  "metaAcumulada",
+  "progRealAcumulado",
+  "diferencaAcumulada",
+] as const;
+
+export const VALUES_LABELS: Record<
+  (typeof SIMPLE_KEYS)[number] | (typeof CUMULATIVE_KEYS)[number],
+  string
+> = {
+  meta: "META",
+  prog: "PROG",
+  real: "REAL",
+  metaAcumulada: "META ACUMULADA",
+  progRealAcumulado: "PROG + REAL ACUMULADO",
+  diferencaAcumulada: "DIFERENÇA ACUMULADA",
+};
 
 export default function ModalTotalGoalValues({
   columns,
@@ -33,163 +77,232 @@ export default function ModalTotalGoalValues({
   open,
   typeGoals,
 }: ModalTotalGoalValuesProps) {
-  const valuesTypes = {
-    meta: "meta",
-    prog: "prog",
-    real: "real",
-    metaAcumulada: "meta acumulada",
-    progRealAcumulado: "prog + real acumulado",
-    diferencaAcumulada: "diferença acumulada",
-  };
+  const columnStart = COLUMN_OFFSET[typeGoals] ?? COLUMN_OFFSET.recomposicao;
+
+  const monthKeys = useMemo(
+    () => Object.keys(columns).slice(columnStart, -1),
+    [columns, columnStart],
+  );
+
+  const cumulativeMonthKeys = useMemo(
+    () => Object.keys(columns).slice(columnStart, -2),
+    [columns, columnStart],
+  );
 
   const sumValuesByMonth = useCallback(
-    (month: any) => {
-      const totals = {
-        meta: 0,
-        prog: 0,
-        real: 0,
-        carteira: 0,
-      };
+    (month: string): MonthTotals => {
+      const totals: MonthTotals = { meta: 0, prog: 0, real: 0, carteira: 0 };
 
-      data?.forEach((item: any) => {
-        if (item[month]) {
-          totals.meta += item[month].meta || 0;
-          totals.prog += item[month].prog || 0;
-          totals.real += item[month].real || 0;
-        }
+      data.forEach((item) => {
+        const monthData = item[month];
+
         if (month === "carteira") {
-          totals.carteira += item["carteira"] || 0;
+          totals.carteira += (item.carteira as number) || 0;
+          return;
         }
 
         if (month === "total") {
-          Object.keys(columns)
-            .slice(typeGoals === "rda" ? 6 : 5, -2)
-            .forEach((value: any) => {
-              totals.meta += item[value]?.meta || 0;
-              totals.prog += item[value]?.prog || 0;
-              totals.real += item[value]?.real || 0;
-            });
+          cumulativeMonthKeys.forEach((m) => {
+            const values = item[m] as MonthValues | undefined;
+            totals.meta += values?.meta || 0;
+            totals.prog += values?.prog || 0;
+            totals.real += values?.real || 0;
+          });
+          return;
+        }
+
+        if (monthData && typeof monthData === "object") {
+          const values = monthData as MonthValues;
+          totals.meta += values.meta || 0;
+          totals.prog += values.prog || 0;
+          totals.real += values.real || 0;
         }
       });
 
       return totals;
     },
-    [columns, data, typeGoals],
+    [data, cumulativeMonthKeys],
   );
 
-  const sumValues = useMemo(() => {
-    return Object.keys(columns)
-      .slice(typeGoals === "rda" ? 6 : 5, -1)
-      .reduce((acc: any, month: any) => {
-        acc[month] = sumValuesByMonth(month);
-        return acc;
-      }, {});
-  }, [columns, sumValuesByMonth, typeGoals]);
+  const sumValues = useMemo<Record<string, MonthTotals>>(
+    () =>
+      monthKeys.reduce(
+        (acc, month) => ({ ...acc, [month]: sumValuesByMonth(month) }),
+        {},
+      ),
+    [monthKeys, sumValuesByMonth],
+  );
 
-  const cumulativeTotals = useMemo(() => {
-    const months = Object.keys(sumValues);
-    return months.reduce((acc: any, month: any, index: number) => {
-      const cumulativeSum = months.slice(0, index + 1).reduce(
-        (totals: Totals, m: string) => {
-          totals.metaAcumulada = totals.metaAcumulada + sumValues[m].meta;
-          totals.progRealAcumulado =
-            totals.progRealAcumulado + (sumValues[m].real + sumValues[m].prog);
-          totals.diferencaAcumulada =
-            totals.metaAcumulada - totals.progRealAcumulado;
+  // O(n) em vez de O(n²)
+  const cumulativeTotals = useMemo<Record<string, Totals>>(() => {
+    let metaAcumulada = 0;
+    let progRealAcumulado = 0;
 
-          return totals;
-        },
-        {
-          metaAcumulada: 0,
-          progRealAcumulado: 0,
-          diferencaAcumulada: 0,
-        },
-      );
-      return { ...acc, [month]: cumulativeSum };
-    }, {} as Totals);
-  }, [sumValues]);
+    return cumulativeMonthKeys.reduce(
+      (acc, month) => {
+        metaAcumulada += sumValues[month]?.meta ?? 0;
+        progRealAcumulado +=
+          (sumValues[month]?.real ?? 0) + (sumValues[month]?.prog ?? 0);
+
+        return {
+          ...acc,
+          [month]: {
+            metaAcumulada,
+            progRealAcumulado,
+            diferencaAcumulada: progRealAcumulado - metaAcumulada,
+          },
+        };
+      },
+      {} as Record<string, Totals>,
+    );
+  }, [cumulativeMonthKeys, sumValues]);
+
+  const carteiraTotal = useMemo(
+    () => sumValuesByMonth("carteira").carteira.toFixed(3),
+    [sumValuesByMonth],
+  );
+
+  const handleExportExcel = useCallback(async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Metas Totais");
+
+    // 🔹 Header
+    const header = ["", ...monthKeys.map((m) => columns[m])];
+
+    worksheet.addRow(header);
+
+    // 🔹 Estilo do header
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).alignment = { horizontal: "center" };
+
+    // 🔹 SIMPLE VALUES
+    SIMPLE_KEYS.forEach((key) => {
+      const row = [
+        VALUES_LABELS[key],
+        ...monthKeys.map(
+          (month) =>
+            Number(
+              sumValues[month]?.[key].toFixed(3).toString().replace(".", ""),
+            ) ?? 0,
+        ),
+      ];
+
+      worksheet.addRow(row);
+    });
+
+    // 🔹 CUMULATIVE VALUES
+    CUMULATIVE_KEYS.forEach((key) => {
+      const row = [
+        VALUES_LABELS[key],
+        ...cumulativeMonthKeys.map(
+          (month) =>
+            Number(
+              cumulativeTotals[month]?.[key]
+                .toFixed(3)
+                .toString()
+                .replace(".", ""),
+            ) ?? 0,
+        ),
+      ];
+
+      worksheet.addRow(row);
+    });
+
+    // 🔹 Espaço
+    worksheet.addRow([]);
+
+    // 🔹 CARTEIRA
+    worksheet.addRow(["CARTEIRA", Number(carteiraTotal)]);
+
+    // 🎨 Formatação de número
+    worksheet.eachRow((row: any, rowNumber: number) => {
+      if (rowNumber === 1) return;
+
+      row.eachCell((cell: any, colNumber: number) => {
+        if (colNumber > 1 && typeof cell.value === "number") {
+          cell.numFmt = "#,##0.000";
+        }
+      });
+    });
+
+    // 📏 Auto width
+    worksheet.columns.forEach((column: any) => {
+      let maxLength = 10;
+
+      column.eachCell?.({ includeEmpty: true }, (cell: any) => {
+        const value = cell.value?.toString() || "";
+        maxLength = Math.max(maxLength, value.length);
+      });
+
+      column.width = maxLength + 2;
+    });
+
+    // ❄️ Freeze header
+    worksheet.views = [{ state: "frozen", ySplit: 1 }];
+
+    // 💾 Export
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "Exportação Metas totais.xlsx";
+    link.click();
+  }, [
+    sumValues,
+    cumulativeTotals,
+    monthKeys,
+    cumulativeMonthKeys,
+    columns,
+    carteiraTotal,
+  ]);
 
   return (
-    <>
-      <ModalComponent title="Metas Totais" open={open} onClose={handleClose}>
-        <TableContainer
-          className="mb-20 h-full max-h-[480px]"
-          component={Paper}
-        >
-          <Table stickyHeader>
-            <TableHead>
-              <TableRow>
-                <TableCell className="p-2 text-center text-base font-bold"></TableCell>
-                {Object.keys(columns)
-                  .slice(typeGoals === "rda" ? 6 : 5, -1)
-                  .map((month) => (
-                    <TableCell
-                      key={month}
-                      className="p-2 text-center text-zinc-200 font-semibold text-xl bg-[#212E3E]"
-                    >
-                      {columns[month as keyof typeof columns]}
-                    </TableCell>
-                  ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {Object.entries(valuesTypes)
-                .slice(0, 3)
-                .map(([key, value], index) => (
-                  <TableRow key={index}>
-                    <TableCell className="p-2 text-center text-base font-bold">
-                      {value.toUpperCase()}
-                    </TableCell>
-                    {Object.keys(columns)
-                      .slice(typeGoals === "rda" ? 6 : 5, -1)
-                      .map((month) => {
-                        return (
-                          <TableCell
-                            key={month}
-                            className="p-2 text-center text-base"
-                          >
-                            {sumValues[month]?.[key]?.toFixed(3) || "0.000"}
-                          </TableCell>
-                        );
-                      })}
-                  </TableRow>
-                ))}
+    <ModalComponent title="Metas Totais" open={open} onClose={handleClose}>
+      <TableContainer className="mb-10 h-full max-h-[480px]" component={Paper}>
+        <Table stickyHeader>
+          <TableHead>
+            <TableRow>
+              <TableCell className="p-2 text-center text-base font-bold" />
+              {monthKeys.map((month) => (
+                <TableCell
+                  key={month}
+                  className="p-2 text-center text-zinc-200 font-semibold text-xl bg-[#212E3E]"
+                >
+                  {columns[month]}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <SimpleValuesRows monthKeys={monthKeys} sumValues={sumValues} />
+            <CumulativeValuesRows
+              monthKeys={cumulativeMonthKeys}
+              cumulativeTotals={cumulativeTotals}
+            />
+          </TableBody>
+        </Table>
+      </TableContainer>
 
-              {Object.entries(valuesTypes)
-                .slice(3)
-                .map(([key, value], index) => (
-                  <TableRow key={index}>
-                    <TableCell className="p-2 text-center text-base font-bold">
-                      {value.toUpperCase()}
-                    </TableCell>
-                    {Object.keys(columns)
-                      .slice(5, -2)
-                      .map((month) => {
-                        return (
-                          <TableCell
-                            key={month}
-                            className="p-2 text-center text-base"
-                          >
-                            {cumulativeTotals[month]?.[key]?.toFixed(3) ||
-                              "0.000"}
-                          </TableCell>
-                        );
-                      })}
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+      <div className="flex flex-row items-center">
+        <span className="bg-[#212E3E] text-zinc-200 p-3">
+          <p>CARTEIRA:</p>
+        </span>
+        <span className="ml-1 border-2 border-solid p-3">
+          <p>{carteiraTotal}</p>
+        </span>
+      </div>
 
-        <div className="flex flex-row items-center ">
-          <span className="bg-[#212E3E] text-zinc-200 p-2">
-            <p>CARTEIRA:</p>
-          </span>
-          <span className="ml-1 border-2 border-solid p-2">
-            <p>{sumValuesByMonth("carteira").carteira.toFixed(3)}</p>
-          </span>
-        </div>
-      </ModalComponent>
-    </>
+      <div className="w-full flex items-start">
+        <ButtonComponent
+          onClick={handleExportExcel}
+          styled="px-4 py-2 mt-2 rounded w-48"
+          text="Export Excel"
+        />
+      </div>
+    </ModalComponent>
   );
 }

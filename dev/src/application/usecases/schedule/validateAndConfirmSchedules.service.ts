@@ -1,7 +1,14 @@
 import {
+  IStatusFlowRepository,
+  STATUS_FLOW_REPOSITORY,
+} from 'src/domain/repositories/IStatusFlowRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
+import {
   IValidateConfirmAndRejectSchedulesRepository,
   VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY,
 } from 'src/domain/repositories/schedule/IValidateSchedulesRepository';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
 import {
   ConfirmSchedulesDTO,
   RejectScheduleDTO,
@@ -14,13 +21,8 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import {
-  IStatusFlowRepository,
-  STATUS_FLOW_REPOSITORY,
-} from 'src/domain/repositories/IStatusFlowRepository';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
-import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
+import { ScheduleMapper } from 'src/application/mappers/scheduleMapper';
+import { Schedule } from 'src/domain/entities/schedule.entity';
 
 @Injectable()
 export class ValidateConfirmAndRejectSchedulesService {
@@ -66,12 +68,38 @@ export class ValidateConfirmAndRejectSchedulesService {
       throw new BadRequestException('Nenhuma programação para ser confirmada');
     }
 
-    const work = await this.findScheduleByIdRepository.findById(data[0].id);
+    const works = await Promise.all(
+      confirmedSchedules.map((item) =>
+        this.findScheduleByIdRepository.findById(item.id),
+      ),
+    );
+
+    let schedules: Schedule[];
+
+    try {
+      schedules = works.map((work) => ScheduleMapper.toDomain(work));
+    } catch (error: any) {
+      throw new BadRequestException(
+        `Erro ao criar programação: ${error.message}`,
+      );
+    }
+
+    for (const schedule of schedules) {
+      schedule.validatedSchedulingConfirmation();
+    }
 
     try {
       await this.prisma.$transaction(async (tx) => {
-        await this.validateAndConfirmSchedulesRepository.confirm(data, tx);
-        await this.statusFlowRepository.updateStatusWorks(35, work.id_obra, tx);
+        await this.validateAndConfirmSchedulesRepository.confirm(
+          confirmedSchedules,
+          tx,
+        );
+
+        await this.statusFlowRepository.updateStatusWorks(
+          35,
+          works[0].id_obra,
+          tx,
+        );
       });
     } catch (error: any) {
       throw new InternalServerErrorException(error);

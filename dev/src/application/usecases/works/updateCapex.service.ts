@@ -14,6 +14,8 @@ export interface CalculatedValue {
   qtde_calc: number;
   qtde_pend: number;
   mo_calc: number;
+  mo_exec: number;
+  mo_pend: number;
   capex_mo_plan: number;
   capex_mat_plan: number;
   capex_mo_pend: number;
@@ -89,6 +91,8 @@ export class UpdateCapexService {
           qtde_calc: 0,
           qtde_pend: 0,
           mo_calc: 0,
+          mo_exec: 0,
+          mo_pend: 0,
           capex_mat_plan: 0,
           capex_mo_plan: 0,
           capex_mo_pend: 0,
@@ -109,6 +113,8 @@ export class UpdateCapexService {
       /** 🔹 MO (independente de CAPEX) */
       if (deletedSet.has(material.material.trim()) && material.cti === 'N') {
         current.mo_calc += material.preco * material.qtd_necessaria;
+        current.mo_exec += material.preco * material.qtd_recebida;
+        current.mo_pend += material.preco * material.qtd_falta;
       }
 
       /** 🔥 CAPEX MO */

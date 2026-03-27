@@ -51,7 +51,7 @@ export default function PublicationRestrictionsTable({
   const [openConfirmModal, setOpenConfirmModal] = useState(false);
 
   const [restrictionToDelete, setRestrictionToDelete] = useState<number | null>(
-    null
+    null,
   );
 
   useEffect(() => {
@@ -70,9 +70,8 @@ export default function PublicationRestrictionsTable({
 
     startTransition(async () => {
       try {
-        const response = await deletePublicationRestriction(
-          restrictionToDelete
-        );
+        const response =
+          await deletePublicationRestriction(restrictionToDelete);
 
         if (!response.success) {
           setError(response.error || "Erro ao excluir restrição");
@@ -161,7 +160,7 @@ export default function PublicationRestrictionsTable({
                           key={index}
                           className={`py-0 px-2 text-center font-medium text-lg min-w-36 text-nowrap ${
                             column === "ovnota"
-                              ? "hover:cursor-pointer sticky left-0 z-20 bg-white"
+                              ? "hover:cursor-pointer sticky left-0 z-15 bg-white"
                               : ""
                           }`}
                           onClick={() =>
@@ -192,7 +191,7 @@ export default function PublicationRestrictionsTable({
                           styled="min-w-8 bg-red-600 hover:bg-red-700"
                           onClick={() =>
                             handleOpenConfirmDelete(
-                              item.id_restricao_publicacao
+                              item.id_restricao_publicacao,
                             )
                           }
                         />

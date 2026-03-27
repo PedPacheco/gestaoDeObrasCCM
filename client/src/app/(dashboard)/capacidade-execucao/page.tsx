@@ -18,7 +18,7 @@ export default async function ExecutionCapacity() {
 
   const filtersValues = {
     ...params?.selectedItems,
-    year: dayjs().year().toString(),
+    ano: dayjs().year().toString(),
   };
 
   const [filters, executionCapacityData] = await Promise.all([
@@ -30,7 +30,7 @@ export default async function ExecutionCapacity() {
       `${process.env.NEXT_PUBLIC_API_URL}/capacidade-execucao`,
       filtersValues,
       cookieStore.get("token")?.value,
-      { cache: "no-store" }
+      { cache: "no-store" },
     ),
   ]);
 

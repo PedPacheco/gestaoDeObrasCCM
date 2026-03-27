@@ -40,6 +40,7 @@ const totalsKeyMap: Record<string, string> = {
 const totalsSecondSummaryKeyMap: Record<string, string> = {
   qtdeWorks: "totalWorks",
   totalMoPlan: "totalMoPlanByGrouping",
+  totalMoPend: "totalMoPendByGrouping",
   totalMoProg: "totalMoProgByGrouping",
   totalMoExec: "totalMoExecByGrouping",
   totalMoPrev: "totalMoPrevByGrouping",
@@ -127,10 +128,14 @@ export function MonthlySummaryScheduleTable({
 
   function buildHeaderFlatIndexMap() {
     let flatIndex = 0;
+
     return columns.map((col: any) => {
       const span = "children" in col ? col.children.length : 1;
+
       const startFlatIndex = flatIndex;
+
       flatIndex += span;
+
       return { col, startFlatIndex, span };
     });
   }
@@ -142,7 +147,7 @@ export function MonthlySummaryScheduleTable({
       component={Paper}
       className="w-full min-h-96 h-[720px] max-h-[880px] lg:max-h-[620px] xl:max-h-[95%] xl:h-full flex-1 mb-6 overflow-y-auto xl:mb-0 xl:first:mr-8 xl:w-1/2"
     >
-      <Table stickyHeader sx={{ tableLayout: "auto" }}>
+      <Table sx={{ tableLayout: "auto" }}>
         <TableHead>
           {/* Primeira linha do header */}
           <TableRow>
@@ -151,15 +156,13 @@ export function MonthlySummaryScheduleTable({
                 { col, startFlatIndex }: { col: any; startFlatIndex: number },
                 index: number,
               ) => {
-                const isLastColumn = index === columns.length - 1;
-
                 if ("children" in col) {
                   return (
                     <TableCell
                       key={index}
                       colSpan={col.children.length}
                       align="center"
-                      className="font-semibold text-center bg-[#53FF75] text-lg text-nowrap min-w-4"
+                      className="font-semibold text-center bg-[#53FF75] text-lg text-nowrap last:text-wrap sticky top-0 border-0"
                     >
                       {col.label}
                     </TableCell>
@@ -173,7 +176,7 @@ export function MonthlySummaryScheduleTable({
                     key={index}
                     ref={startFlatIndex === 0 ? firstColRef : undefined}
                     rowSpan={2}
-                    className="font-semibold text-center bg-[#53FF75] text-lg min-w-4 text-nowrap"
+                    className="font-semibold text-center bg-[#53FF75] text-lg text-nowrap sticky top-0"
                     sx={getStickyColSx(
                       startFlatIndex,
                       firstColWidth,
@@ -207,7 +210,7 @@ export function MonthlySummaryScheduleTable({
                   <TableCell
                     key={child.key}
                     ref={flatIdx === 0 ? firstColRef : undefined}
-                    className="font-semibold text-center bg-[#53FF75] text-lg text-nowrap py-0"
+                    className="font-semibold text-center bg-[#53FF75] text-lg text-nowrap sticky top-[60px] py-0"
                     sx={getStickyColSx(flatIdx, firstColWidth, 4, "#53FF75")}
                   >
                     {child.label}

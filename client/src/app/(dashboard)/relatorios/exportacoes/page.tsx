@@ -48,6 +48,12 @@ export default async function ExportPage() {
       path: "reprovacoes",
       visible: false,
     },
+
+    {
+      name: "Exportar Ordens para atualização MO/Material",
+      path: "ordens",
+      visible: false,
+    },
   ];
 
   return (
@@ -72,7 +78,7 @@ export default async function ExportPage() {
       >
         <CardContent sx={{ p: { xs: 3, md: 5 } }}>
           <Typography
-            variant="h5"
+            variant="h4"
             align="center"
             fontWeight="bold"
             sx={{

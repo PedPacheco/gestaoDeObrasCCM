@@ -108,6 +108,66 @@ export class ExportForecastService {
         key: 'nome_responsavel_execucao',
         width: 20,
       },
+      {
+        header: 'Restrição Programado 1',
+        key: 'restricao_prog1',
+        width: 15,
+      },
+      {
+        header: 'Responsabilidade 1',
+        key: 'responsabilidade1',
+        width: 15,
+      },
+      {
+        header: 'Nome do Responsável 1',
+        key: 'nome_do_responsavel1',
+        width: 15,
+      },
+      {
+        header: 'Área do Responsável 1',
+        key: 'area_responsavel1',
+        width: 15,
+      },
+      {
+        header: 'Status da Restrição 1',
+        key: 'status_restricao1',
+        width: 15,
+      },
+      {
+        header: 'Data de Resolução 1',
+        key: 'data_resolucao1',
+        width: 15,
+      },
+      {
+        header: 'Restrição Programado 2',
+        key: 'restricao_prog2',
+        width: 15,
+      },
+      {
+        header: 'Responsabilidade 2',
+        key: 'responsabilidade2',
+        width: 15,
+      },
+      {
+        header: 'Nome do Responsável 2',
+        key: 'nome_do_responsavel2',
+        width: 15,
+      },
+      {
+        header: 'Área do Responsável 2',
+        key: 'area_responsavel2',
+        width: 15,
+      },
+      {
+        header: 'Status da Restrição 2',
+        key: 'status_restricao2',
+        width: 15,
+      },
+      {
+        header: 'Data de resolução 2',
+        key: 'data_resolucao2',
+        width: 15,
+      },
     ];
 
     const batchSize = 1000;

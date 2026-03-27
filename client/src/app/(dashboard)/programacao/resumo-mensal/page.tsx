@@ -85,6 +85,7 @@ export default async function MonthlySummary() {
     { key: "turma", label: "Parceira" },
     { key: "qtdeWorks", label: "Qtd. Obras", format: "number" },
     { key: "totalMoPlan", label: "Planejado", format: "currency" },
+    { key: "totalMoPend", label: "Pendente", format: "currency" },
     { key: "totalMoProg", label: "Programado", format: "currency" },
     { key: "totalMoExec", label: "Executado", format: "currency" },
     { key: "totalMoPrev", label: "Previsto", format: "currency" },

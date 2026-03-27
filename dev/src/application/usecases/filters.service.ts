@@ -50,6 +50,7 @@ export class FiltersService {
       result['parceira'] = await this.getCachedData('parceiras', () =>
         this.filtersRepository.getData('turmas', ['id', 'turma'], {
           id_regional: condition,
+          id: { not: 15 },
         }),
       );
     }

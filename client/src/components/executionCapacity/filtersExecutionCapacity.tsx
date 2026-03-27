@@ -13,10 +13,10 @@ interface FiltersExecutionCapacityProps {
   year: string;
   setYear: Dispatch<SetStateAction<string>>;
   filtersData: FiltersInterface;
-  selectedItems: Record<string, string>;
-  setSelectedItems: Dispatch<SetStateAction<Record<string, string>>>;
-  teams: string | null;
-  setTeams: Dispatch<SetStateAction<string | null>>;
+  selectedItems: Record<string, string[]>;
+  setSelectedItems: Dispatch<SetStateAction<Record<string, string[]>>>;
+  teams: string[] | null;
+  setTeams: Dispatch<SetStateAction<string[] | null>>;
 }
 
 const existingTeams = ["BTZERO", "LM", "LV"];
@@ -70,7 +70,8 @@ export function FiltersExecutionCapacity({
                 labelId={capitalize(displayKey)}
                 label={capitalize(displayKey)}
                 className="w-full"
-                value={selectedItems[filterValue] || ""}
+                value={selectedItems[filterValue] || []}
+                multiple
                 onChange={(event) => {
                   setSelectedItems((prev: any) => ({
                     ...prev,
@@ -121,8 +122,9 @@ export function FiltersExecutionCapacity({
             labelId={capitalize("equipe")}
             label={capitalize("equipe")}
             className="w-full"
-            value={teams || ""}
-            onChange={(event) => setTeams(event.target.value)}
+            value={teams || []}
+            multiple
+            onChange={(event) => setTeams(event.target.value as string[])}
             MenuProps={{
               PaperProps: {
                 style: {

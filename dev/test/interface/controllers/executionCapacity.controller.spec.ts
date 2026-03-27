@@ -55,9 +55,17 @@ describe('ExecutionReportController', () => {
         .spyOn(service, 'getFinancialValue')
         .mockResolvedValue(mockFinancialValues);
 
-      const result = await controller.getExecutionCapacity({ year: '2025' });
+      const result = await controller.getExecutionCapacity({
+        ano: '2025',
+        idParceira: [1],
+        idRegional: [1],
+      });
 
-      expect(service.get).toHaveBeenCalledWith({ year: '2025' });
+      expect(service.get).toHaveBeenCalledWith({
+        ano: '2025',
+        idParceira: [1],
+        idRegional: [1],
+      });
       expect(result).toEqual({
         data: {
           financialValues: mockFinancialValues,

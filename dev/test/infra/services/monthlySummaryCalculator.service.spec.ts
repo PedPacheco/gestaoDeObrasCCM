@@ -39,6 +39,7 @@ function makeGroupEntry(
     totalMoPlan: 0,
     totalMoProg: 0,
     totalMoExec: 0,
+    totalMoPend: 0,
     totalMoPrev: 0,
     diff: 0,
     ...overrides,
@@ -107,42 +108,42 @@ describe('MonthlySummaryCalculator', () => {
 
   describe('calculateWorkOrderMetrics', () => {
     it('should compute moProg and moExec proportionally to prog and exec percentages', () => {
-      const result = calculator.calculateWorkOrderMetrics(2000, 100, 50);
+      const result = calculator.calculateWorkOrderMetrics(2000, 100, 50, 50);
 
-      expect(result.moProg).toBe(2000);
+      expect(result.moProg).toBe(1000);
       expect(result.moExec).toBe(1000);
     });
 
     it('should return moProg=0 and moExec=0 when prog and exec are both 0', () => {
-      const result = calculator.calculateWorkOrderMetrics(5000, 0, 0);
+      const result = calculator.calculateWorkOrderMetrics(5000, 0, 0, 0);
 
       expect(result.moProg).toBe(0);
       expect(result.moExec).toBe(0);
     });
 
     it('should return moProg=0 and moExec=0 when moPlan is 0 regardless of percentages', () => {
-      const result = calculator.calculateWorkOrderMetrics(0, 100, 100);
+      const result = calculator.calculateWorkOrderMetrics(0, 100, 100, 100);
 
       expect(result.moProg).toBe(0);
       expect(result.moExec).toBe(0);
     });
 
     it('should compute fractional values correctly for partial percentages', () => {
-      const result = calculator.calculateWorkOrderMetrics(3000, 50, 25);
+      const result = calculator.calculateWorkOrderMetrics(3000, 50, 25, 25);
 
-      expect(result.moProg).toBeCloseTo(1500, 10);
+      expect(result.moProg).toBeCloseTo(750, 10);
       expect(result.moExec).toBeCloseTo(750, 10);
     });
 
     it('should allow exec to exceed prog — no upper-bound enforcement', () => {
-      const result = calculator.calculateWorkOrderMetrics(1000, 50, 80);
+      const result = calculator.calculateWorkOrderMetrics(1000, 50, 100, 80);
 
-      expect(result.moProg).toBeCloseTo(500, 10);
+      expect(result.moProg).toBeCloseTo(1000, 10);
       expect(result.moExec).toBeCloseTo(800, 10);
     });
 
     it('should return an object with both moProg and moExec properties', () => {
-      const result = calculator.calculateWorkOrderMetrics(1000, 100, 100);
+      const result = calculator.calculateWorkOrderMetrics(1000, 100, 100, 100);
 
       expect(result).toHaveProperty('moProg');
       expect(result).toHaveProperty('moExec');
@@ -354,7 +355,10 @@ describe('MonthlySummaryCalculator', () => {
 
   describe('aggregateGroupTotals', () => {
     it('should return zeroed totals when summaryData is empty', () => {
-      const result = calculator.aggregateGroupTotals([], 0);
+      const result = calculator.aggregateGroupTotals([], {
+        totalMoPend: 0,
+        totalMoPlan: 0,
+      });
 
       expect(result).toMatchObject(createInitialTotalsByGrouping());
     });
@@ -365,7 +369,10 @@ describe('MonthlySummaryCalculator', () => {
         makeGroupEntry({ qtdeWorks: 7 }),
       ];
 
-      const result = calculator.aggregateGroupTotals(data, 0);
+      const result = calculator.aggregateGroupTotals(data, {
+        totalMoPend: 0,
+        totalMoPlan: 0,
+      });
 
       expect(result.totalWorks).toBe(10);
     });
@@ -376,7 +383,10 @@ describe('MonthlySummaryCalculator', () => {
         makeGroupEntry({ totalMoProg: 600 }),
       ];
 
-      const result = calculator.aggregateGroupTotals(data, 0);
+      const result = calculator.aggregateGroupTotals(data, {
+        totalMoPend: 0,
+        totalMoPlan: 0,
+      });
 
       expect(result.totalMoProgByGrouping).toBe(1000);
     });
@@ -387,7 +397,10 @@ describe('MonthlySummaryCalculator', () => {
         makeGroupEntry({ totalMoExec: 300 }),
       ];
 
-      const result = calculator.aggregateGroupTotals(data, 0);
+      const result = calculator.aggregateGroupTotals(data, {
+        totalMoPend: 0,
+        totalMoPlan: 0,
+      });
 
       expect(result.totalMoExecByGrouping).toBe(500);
     });
@@ -398,7 +411,10 @@ describe('MonthlySummaryCalculator', () => {
         makeGroupEntry({ totalMoPrev: 250 }),
       ];
 
-      const result = calculator.aggregateGroupTotals(data, 0);
+      const result = calculator.aggregateGroupTotals(data, {
+        totalMoPend: 0,
+        totalMoPlan: 0,
+      });
 
       expect(result.totalMoPrevByGrouping).toBe(400);
     });
@@ -406,14 +422,20 @@ describe('MonthlySummaryCalculator', () => {
     it('should compute totalDiff as calculateExecutionRate(totalMoProgByGrouping, totalMoExecByGrouping)', () => {
       const data = [makeGroupEntry({ totalMoProg: 1000, totalMoExec: 600 })];
 
-      const result = calculator.aggregateGroupTotals(data, 0);
+      const result = calculator.aggregateGroupTotals(data, {
+        totalMoPend: 0,
+        totalMoPlan: 0,
+      });
 
       // (600 / 1000) * 100 = 60
       expect(result.totalDiff).toBeCloseTo(60, 10);
     });
 
     it('should return 0 for totalDiff when totalMoProgByGrouping is 0', () => {
-      const result = calculator.aggregateGroupTotals([], 0);
+      const result = calculator.aggregateGroupTotals([], {
+        totalMoPend: 0,
+        totalMoPlan: 0,
+      });
 
       expect(result.totalDiff).toBe(0);
     });
@@ -434,7 +456,10 @@ describe('MonthlySummaryCalculator', () => {
         }),
       ];
 
-      const result = calculator.aggregateGroupTotals(data, 0);
+      const result = calculator.aggregateGroupTotals(data, {
+        totalMoPend: 0,
+        totalMoPlan: 0,
+      });
 
       expect(result.totalWorks).toBe(5);
       expect(result.totalMoProgByGrouping).toBe(1000);

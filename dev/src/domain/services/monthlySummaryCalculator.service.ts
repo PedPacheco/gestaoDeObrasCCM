@@ -38,6 +38,7 @@ export interface IMonthlySummaryCalculator {
 
   calculateWorkOrderMetrics(
     moPlan: number,
+    moPend: number,
     prog: number,
     exec: number,
   ): WorkOrderMetrics;
@@ -62,7 +63,7 @@ export interface IMonthlySummaryCalculator {
 
   aggregateGroupTotals(
     summaryData: GroupTeamSummaryEntry[],
-    totalPlan: number,
+    totalPlan: { totalMoPlan: number; totalMoPend: number },
   ): GroupSummaryTotals;
 }
 
@@ -101,6 +102,7 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
 
   calculateWorkOrderMetrics(
     moPlan: number,
+    moPend: number,
     prog: number,
     exec: number,
   ): WorkOrderMetrics {
@@ -109,6 +111,7 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
 
     return {
       moPlan,
+      moPend,
       moProg: moPlan * progRate,
       moExec: moPlan * execRate,
     };
@@ -175,8 +178,10 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
 
   aggregateGroupTotals(
     summaryData: GroupTeamSummaryEntry[],
-    totalPlan: number,
+    uniqueWorksFinancial: { totalMoPlan: number; totalMoPend: number },
   ): GroupSummaryTotals {
+    const { totalMoPend, totalMoPlan } = uniqueWorksFinancial;
+
     const totals = summaryData.reduce((acc, row) => {
       acc.totalWorks += row.qtdeWorks;
       acc.totalMoProgByGrouping += row.totalMoProg;
@@ -186,7 +191,8 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
       return acc;
     }, createInitialTotalsByGrouping());
 
-    totals.totalMoPlanByGrouping = totalPlan;
+    totals.totalMoPlanByGrouping = totalMoPlan;
+    totals.totalMoPendByGrouping = totalMoPend;
 
     totals.totalDiff = this.calculateExecutionRate(
       totals.totalMoProgByGrouping,

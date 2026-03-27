@@ -40,6 +40,7 @@ import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getSched
 import { worksInPortfolioResponseService } from 'src/interface/types/works/getWorksInPortfolioInterface';
 import { GoalsService } from 'src/application/usecases/goals.service';
 import { ExportGoalsService } from 'src/application/usecases/export/exportGoals.service';
+import { ExportOrdersService } from 'src/application/usecases/export/exportOrders.service';
 
 // ─────────────────────────────────────────────
 // Constants
@@ -271,6 +272,7 @@ describe('ExportController', () => {
   let exportExecutionReportService: jest.Mocked<ExportExecutionReportService>;
   let exportForecastService: jest.Mocked<ExportForecastService>;
   let exportRejectionsService: jest.Mocked<ExportRejectionsService>;
+  let exportOrdersService: jest.Mocked<ExportOrdersService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -340,6 +342,7 @@ describe('ExportController', () => {
           useValue: { export: jest.fn() },
         },
         { provide: ExportSchedulesBIService, useValue: { export: jest.fn() } },
+        { provide: ExportOrdersService, useValue: { export: jest.fn() } },
       ],
     })
       .overrideGuard(VisualizationGuard)
@@ -375,6 +378,7 @@ describe('ExportController', () => {
     exportExecutionReportService = module.get(ExportExecutionReportService);
     exportForecastService = module.get(ExportForecastService);
     exportRejectionsService = module.get(ExportRejectionsService);
+    exportOrdersService = module.get(ExportOrdersService);
   });
 
   afterEach(() => jest.clearAllMocks());
@@ -866,6 +870,21 @@ describe('ExportController', () => {
         'Exportação das reprovações',
       );
       expect(exportRejectionsService.export).toHaveBeenCalledWith(res);
+    });
+  });
+
+  describe('exportOrders (GET /ordens)', () => {
+    it('should set xlsx headers and delegate to export service', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      exportOrdersService.export.mockResolvedValue(undefined);
+
+      await controller.exportOrders(res);
+
+      assertXlsxHeaders(
+        res as unknown as ReturnType<typeof makeMockResponse>,
+        'Exportação Ordens/Diagramas',
+      );
+      expect(exportOrdersService.export).toHaveBeenCalledWith(res);
     });
   });
 });

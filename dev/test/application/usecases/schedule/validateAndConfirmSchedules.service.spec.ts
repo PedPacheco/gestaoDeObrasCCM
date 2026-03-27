@@ -3,6 +3,7 @@ import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepos
 import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
 import { VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IValidateSchedulesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { mockResponseFindScheduleByIdRepository } from '../../../../test/mocks/mockAddScheduleService';
 
 import {
   BadRequestException,
@@ -54,7 +55,10 @@ describe('ValidateAndConfirmSchedulesService', () => {
     );
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.resetAllMocks();
+  });
 
   describe('validate', () => {
     it('should throw BadRequestException when data is not sent or is an empty array', async () => {
@@ -150,7 +154,10 @@ describe('ValidateAndConfirmSchedulesService', () => {
         },
       ];
 
-      mockFindScheduleByIdRepository.findById.mockResolvedValue({ id_obra: 2 });
+      mockFindScheduleByIdRepository.findById.mockResolvedValue(
+        mockResponseFindScheduleByIdRepository,
+      );
+
       mockPrisma.$transaction.mockImplementation(async (cb) => cb({}));
 
       await service.confirm(data);
@@ -165,6 +172,24 @@ describe('ValidateAndConfirmSchedulesService', () => {
       );
     });
 
+    it('should throw InternalServerErrorException when fail in create Schedule Entity', async () => {
+      const data = [
+        {
+          id: 1,
+          confirm: true,
+        },
+      ];
+
+      mockFindScheduleByIdRepository.findById.mockResolvedValue({
+        ...mockResponseFindScheduleByIdRepository,
+        hora_ini: null,
+      });
+
+      mockPrisma.$transaction.mockImplementation(async (cb) => cb({}));
+
+      await expect(service.confirm(data)).rejects.toThrow(BadRequestException);
+    });
+
     it('should throw InternalServerErrorException when transaction fails during schedule confirmation and status update', async () => {
       const error = new Error('Erro interno');
       const data = [
@@ -173,6 +198,10 @@ describe('ValidateAndConfirmSchedulesService', () => {
           confirm: true,
         },
       ];
+
+      mockFindScheduleByIdRepository.findById.mockResolvedValue(
+        mockResponseFindScheduleByIdRepository,
+      );
 
       mockValidateAndConfirmSchedulesRepository.confirm.mockImplementation(
         () => {
@@ -186,6 +215,56 @@ describe('ValidateAndConfirmSchedulesService', () => {
 
       await expect(service.confirm(data)).rejects.toThrow(
         InternalServerErrorException,
+      );
+    });
+
+    it('should throw BadRequestException when serviceType requires DP and num_dp is invalid', async () => {
+      const data = [
+        {
+          id: 1,
+          confirm: true,
+        },
+      ];
+
+      mockFindScheduleByIdRepository.findById.mockResolvedValue({
+        ...mockResponseFindScheduleByIdRepository,
+        tipo_servico: 'DP',
+        num_dp: '123', // inválido (menos de 8 dígitos)
+      });
+
+      mockPrisma.$transaction.mockImplementation(async (cb) => cb({}));
+
+      await expect(service.confirm(data)).rejects.toThrow(
+        new BadRequestException('Falta inserir número do DP'),
+      );
+    });
+
+    it('should confirm successfully when serviceType requires DP and num_dp is valid', async () => {
+      const data = [
+        {
+          id: 1,
+          confirm: true,
+        },
+      ];
+
+      mockFindScheduleByIdRepository.findById.mockResolvedValue({
+        ...mockResponseFindScheduleByIdRepository,
+        tipo_servico: 'DP',
+        num_dp: '12345678',
+      });
+
+      mockPrisma.$transaction.mockImplementation(async (cb) => cb({}));
+
+      await service.confirm(data);
+
+      expect(
+        mockValidateAndConfirmSchedulesRepository.confirm,
+      ).toHaveBeenCalledWith(data, expect.any(Object));
+
+      expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
+        35,
+        2,
+        expect.any(Object),
       );
     });
   });
@@ -232,10 +311,27 @@ describe('ValidateAndConfirmSchedulesService', () => {
       const error = new Error('Erro interno');
       const data = {
         id: 1,
+        id_obra: 1,
         reject: true,
         reason: '',
         description: '',
       };
+
+      const mockResponse = {
+        id_obra: 2,
+        data_prog: new Date('17/05/2025'),
+        prog: 100,
+        equip_desligado: '',
+        hora_ini: '15:00',
+        hora_ter: '17:00',
+        equipe_linha_viva: 1,
+        equipe_linha_morta: 2,
+        equipe_regularizacao: 3,
+        tipo_servico: 'DP',
+        observacao_programacao: '',
+      };
+
+      mockFindScheduleByIdRepository.findById.mockResolvedValue(mockResponse);
 
       mockValidateAndConfirmSchedulesRepository.reject.mockImplementation(
         () => {

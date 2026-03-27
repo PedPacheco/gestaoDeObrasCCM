@@ -41,6 +41,7 @@ import { ExportSchedulesBIService } from 'src/application/usecases/export/BI/exp
 import { GoalsDTO } from '../dtos/goalsDto';
 import { ExportGoalsService } from 'src/application/usecases/export/exportGoals.service';
 import { GoalsService } from 'src/application/usecases/goals.service';
+import { ExportOrdersService } from 'src/application/usecases/export/exportOrders.service';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -83,6 +84,7 @@ export class ExportController {
     private readonly exportForecastService: ExportForecastService,
     private readonly exportRejectionsService: ExportRejectionsService,
     private readonly exportGoalsService: ExportGoalsService,
+    private readonly exportOrdersService: ExportOrdersService,
 
     // Export - BI
     private readonly exportWorksInPortfolioBIService: ExportWorksInPortfolioBI,
@@ -289,5 +291,12 @@ export class ExportController {
   async exportRejections(@Res() res: Response) {
     this.setXlsxHeaders(res, 'Exportação das reprovações');
     return this.exportRejectionsService.export(res);
+  }
+
+  @Get('ordens')
+  @UseGuards(VisualizationGuard)
+  async exportOrders(@Res() res: Response) {
+    this.setXlsxHeaders(res, 'Exportação Ordens/Diagramas');
+    return this.exportOrdersService.export(res);
   }
 }

@@ -45,6 +45,11 @@ describe('InsertWorksService', () => {
       module.get<AuxiliaryBaseService>(AuxiliaryBaseService);
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.resetAllMocks();
+  });
+
   describe('insertMarketWorks', () => {
     it('should call method insertMarketWorks and throw error if no data send', async () => {
       await expect(insertWorksService.insertMarketWorks([])).rejects.toThrow(
@@ -233,6 +238,28 @@ describe('InsertWorksService', () => {
       ).rejects.toThrow(
         `Selecione um empreendimento válido para a obra 16004316.`,
       );
+    });
+
+    it('should throw BadRequestException when obra has not sent anoPlan for group 3 or 4', async () => {
+      const mockWithTypeWorkInvalid = [
+        {
+          ...mockInsertNotes[0],
+          aux_tipo: 5,
+          anoplan: null,
+        },
+      ];
+
+      jest
+        .spyOn(auxiliaryBaseService, 'getNotes')
+        .mockResolvedValue(mockMappedNotes);
+
+      jest
+        .spyOn(mockRepository, 'getGroup')
+        .mockResolvedValue([{ id: 5, id_grupo: 2 }]);
+
+      await expect(
+        insertWorksService.insertNotes(mockWithTypeWorkInvalid),
+      ).rejects.toThrow('Falta informar o ano de Planejamento');
     });
 
     it('should insert notes successfully when all data is valid', async () => {

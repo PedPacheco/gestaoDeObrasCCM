@@ -31,6 +31,8 @@ export class UpdateCapexRepository implements IUpdateCapexRepository {
               capex_mo_pend,
               capex_mo_plan,
               mo_calc,
+              mo_exec,
+              mo_pend,
               qtde_calc,
               qtde_pend,
             } = item;
@@ -43,6 +45,8 @@ export class UpdateCapexRepository implements IUpdateCapexRepository {
                 capex_mo_pend,
                 capex_mo_plan,
                 mo_planejada: mo_calc,
+                mo_final: mo_exec,
+                mo_pend,
                 qtde_planejada: qtde_calc,
                 qtde_pend,
               },

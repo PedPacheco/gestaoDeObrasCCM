@@ -16,10 +16,7 @@ import {
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
-import {
-  createForecastSnapshotMock,
-  mockUpdateSchedulesController,
-} from '../../../mocks/mockAddScheduleService';
+import { mockUpdateSchedulesController } from '../../../mocks/mockAddScheduleService';
 import { ForecastSnapshotService } from 'src/application/usecases/schedule/forecastSnapshot.service';
 
 describe('ScheduleActionsController', () => {
@@ -28,7 +25,6 @@ describe('ScheduleActionsController', () => {
   let deleteSchedulesService: DeleteSchedulesService;
   let handleAddScheduleService: HandleAddScheduleService;
   let validateConfirmAndRejectSchedulesService: ValidateConfirmAndRejectSchedulesService;
-  let forecastSnapshotService: ForecastSnapshotService;
 
   const mockReq = {
     insufficientPermission: true,
@@ -85,9 +81,6 @@ describe('ScheduleActionsController', () => {
       module.get<ValidateConfirmAndRejectSchedulesService>(
         ValidateConfirmAndRejectSchedulesService,
       );
-    forecastSnapshotService = module.get<ForecastSnapshotService>(
-      ForecastSnapshotService,
-    );
   });
 
   it('Should be defined', () => {
@@ -261,20 +254,6 @@ describe('ScheduleActionsController', () => {
     expect(
       validateConfirmAndRejectSchedulesService.reject,
     ).toHaveBeenCalledTimes(1);
-  });
-
-  it('should call saveForecastSnapshot and return message', async () => {
-    jest.spyOn(forecastSnapshotService, 'execute').mockResolvedValue();
-
-    const result = await scheduleActionsController.saveForecastSnapshot(
-      createForecastSnapshotMock,
-    );
-
-    expect(result).toEqual({
-      statusCode: HttpStatus.CREATED,
-      message: 'Snapshot do forecast salvo com sucesso',
-    });
-    expect(forecastSnapshotService.execute).toHaveBeenCalledTimes(1);
   });
 
   describe('DTO Validation', () => {

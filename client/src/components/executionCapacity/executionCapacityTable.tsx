@@ -46,7 +46,7 @@ export function ExecutionCapacityTable({
   const handleValueChange = (
     rowIndex: number,
     column: string,
-    value: string
+    value: string,
   ) => {
     setTableData((prev) => {
       const updated = [...prev];
@@ -62,7 +62,7 @@ export function ExecutionCapacityTable({
   return (
     <TableContainer
       component={Paper}
-      className="w-full min-h-96 h-[560px] max-h-[560px] flex-1 mb-6 overflow-y-auto xl:mb-0 xl:first:mr-8"
+      className="w-full min-h-96 flex-1 mb-6 overflow-y-auto xl:mb-0 xl:first:mr-8"
     >
       <Table stickyHeader>
         <TableHead>

@@ -61,7 +61,7 @@ describe('MonthlySummaryMapper', () => {
         2,
       );
 
-      const metrics = { moPlan: 500, moProg: 500, moExec: 300 };
+      const metrics = { moPlan: 500, moProg: 500, moExec: 300, moPend: 0 };
 
       mapper.accumulateDailySummaryEntry(entry, metrics, 10, 12);
 
@@ -84,7 +84,7 @@ describe('MonthlySummaryMapper', () => {
         1,
       );
 
-      const metrics = { moPlan: 500, moProg: 100, moExec: 50 };
+      const metrics = { moPlan: 500, moProg: 100, moExec: 50, moPend: 0 };
 
       mapper.accumulateDailySummaryEntry(entry, metrics, 5, 6);
       mapper.accumulateDailySummaryEntry(entry, metrics, 5, 6);
@@ -110,7 +110,7 @@ describe('MonthlySummaryMapper', () => {
 
       mapper.accumulateDailySummaryEntry(
         entry,
-        { moPlan: 0, moProg: 0, moExec: 0 },
+        { moPlan: 0, moProg: 0, moExec: 0, moPend: 0 },
         0,
         0,
       );
@@ -135,6 +135,7 @@ describe('MonthlySummaryMapper', () => {
         qtdeWorks: 0,
         totalMoPlan: 0,
         totalMoProg: 0,
+        totalMoPend: 0,
         totalMoExec: 0,
         totalMoPrev: 0,
         diff: 0,
@@ -152,7 +153,7 @@ describe('MonthlySummaryMapper', () => {
 
       mapper.accumulateGroupTeamEntry(
         entry,
-        { moPlan: 500, moProg: 500, moExec: 300 },
+        { moPlan: 500, moProg: 500, moExec: 300, moPend: 0 },
         200,
         false,
       );
@@ -168,14 +169,14 @@ describe('MonthlySummaryMapper', () => {
 
       mapper.accumulateGroupTeamEntry(
         entry,
-        { moPlan: 500, moProg: 100, moExec: 50 },
+        { moPlan: 500, moProg: 100, moExec: 50, moPend: 0 },
         30,
         true,
       );
 
       mapper.accumulateGroupTeamEntry(
         entry,
-        { moPlan: 500, moProg: 200, moExec: 150 },
+        { moPlan: 500, moProg: 200, moExec: 150, moPend: 0 },
         70,
         false,
       );
@@ -191,7 +192,7 @@ describe('MonthlySummaryMapper', () => {
 
       mapper.accumulateGroupTeamEntry(
         entry,
-        { moPlan: 500, moProg: 0, moExec: 0 },
+        { moPlan: 500, moProg: 0, moExec: 0, moPend: 0 },
         0,
         false,
       );
@@ -227,6 +228,7 @@ describe('MonthlySummaryMapper', () => {
         totalWorks: 0,
         totalMoPlanByGrouping: 0,
         totalMoProgByGrouping: 0,
+        totalMoPendByGrouping: 0,
         totalMoExecByGrouping: 0,
         totalMoPrevByGrouping: 0,
         totalDiff: 0,
@@ -236,6 +238,7 @@ describe('MonthlySummaryMapper', () => {
     it('createUniqueWorksFinancial should return default structure', () => {
       expect(createUniqueWorksFinancial()).toEqual({
         totalMoPlan: 0,
+        totalMoPend: 0,
       });
     });
   });
