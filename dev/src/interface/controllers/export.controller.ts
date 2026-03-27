@@ -296,7 +296,7 @@ export class ExportController {
   @Get('ordens')
   @UseGuards(VisualizationGuard)
   async exportOrders(@Res() res: Response) {
-    this.setXlsxHeaders(res, 'Exportação Metas');
+    this.setXlsxHeaders(res, 'Exportação Ordens/Diagramas');
     return this.exportOrdersService.export(res);
   }
 }
