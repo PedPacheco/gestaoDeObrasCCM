@@ -958,5 +958,25 @@ view exportacao_forecast {
   tecnico                    String?   @db.VarChar(40)
   restricao_execucao         String?   @db.VarChar(80)
   nome_responsavel_execucao  String?   @db.VarChar(50)
+  restricao_prog1            String?   @db.VarChar(80)
+  responsabilidade1          String?   @db.VarChar(50)
+  nome_responsavel           String?   @db.VarChar(50)
+  area_responsavel1          String?   @db.VarChar(50)
+  status_restricao1          String?   @db.VarChar(50)
+  data_resolucao1            DateTime? @db.Date
+  restricao_prog2            String?   @db.VarChar(80)
+  responsabilidade2          String?   @db.VarChar(50)
+  nome_responsavel2          String?   @db.VarChar(50)
+  area_responsavel2          String?   @db.VarChar(50)
+  status_restricao2          String?   @db.VarChar(50)
+  data_resolucao2            DateTime? @db.Date
   id_grupo                   Int?
+}
+
+view exportacao_ordens {
+  ovnota        String? @db.VarChar(12)
+  grupo         String? @db.VarChar(20)
+  tipo_obra     String? @db.VarChar(30)
+  status        String? @db.VarChar(25)
+  ordemdiagrama String? @db.VarChar(12)
 }

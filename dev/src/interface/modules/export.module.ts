@@ -24,6 +24,7 @@ import { ExportMonthlyMOSummaryService } from 'src/application/usecases/export/e
 import { ExportMonthlyForecastSummaryService } from 'src/application/usecases/export/exportMonthlyForecastSummary.service';
 import { ExportGoalsService } from 'src/application/usecases/export/exportGoals.service';
 import { GoalsModule } from './goals.module';
+import { ExportOrdersService } from 'src/application/usecases/export/exportOrders.service';
 
 @Module({
   imports: [WorksModule, ScheduleModule, UsersModule, GoalsModule],
@@ -45,6 +46,7 @@ import { GoalsModule } from './goals.module';
     ExportMonthlyMOSummaryService,
     ExportMonthlyForecastSummaryService,
     ExportGoalsService,
+    ExportOrdersService,
     {
       provide: EXPORT_REPOSITORY,
       useClass: ExportRepository,
