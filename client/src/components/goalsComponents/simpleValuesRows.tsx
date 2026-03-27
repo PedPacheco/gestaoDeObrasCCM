@@ -1,10 +1,7 @@
 import { TableCell, TableRow } from "@mui/material";
 
-import {
-  MonthTotals,
-  SIMPLE_KEYS,
-  VALUES_LABELS,
-} from "./ModalTotalGoalValues";
+import { MonthTotals } from "./MainGoals";
+import { SIMPLE_KEYS, VALUES_LABELS } from "./ModalTotalGoalValues";
 
 interface SimpleValuesRowsProps {
   monthKeys: string[];
