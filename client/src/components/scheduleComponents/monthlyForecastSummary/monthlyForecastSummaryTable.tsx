@@ -40,6 +40,8 @@ const totalsKeyMap: Record<string, string> = {
   materialMoPend: "totalMaterialMoPend",
   materialMoExec: "totalMaterialMoExec",
   materialMoForecast: "totalMaterialMoForecast",
+  forecastTotal: "totalForecast",
+  execTotal: "totalExec",
   diff: "totalDiff",
 };
 

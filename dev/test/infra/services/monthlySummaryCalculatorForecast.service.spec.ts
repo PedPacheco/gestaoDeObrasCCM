@@ -195,6 +195,9 @@ describe('MonthlySummaryForecastCalculator', () => {
           materialMoExec: 25,
           materialMoForecast: 40,
 
+          execTotal: 75,
+          forecastTotal: 120,
+
           isServicePendLowerThanProg: false,
           isMaterialPendLowerThanProg: false,
           diff: 0,

@@ -113,13 +113,18 @@ export class MonthlySummaryForecastCalculator implements IMonthlySummaryForecast
 
     const execTotal = totalExec !== 100 ? (totalExec + prog) / 100 : 1;
 
+    const serviceCapexForecast = servicePend * (execTotal > 1 ? 1 : progRate);
+    const materialCapexForecast = materialPend * (execTotal > 1 ? 1 : progRate);
+
     return {
       serviceCapexProg: servicePlan * progRate,
       serviceCapexExec: servicePlan * execRate,
-      serviceCapexForecast: servicePend * (execTotal > 1 ? 1 : progRate),
+      serviceCapexForecast,
       materialCapexProg: materialPlan * progRate,
       materialCapexExec: materialPlan * execRate,
-      materialCapexForecast: materialPend * (execTotal > 1 ? 1 : progRate),
+      materialCapexForecast,
+      forecastTotal: serviceCapexForecast + materialCapexForecast,
+      execTotal: (servicePlan + materialPlan) * execRate,
     };
   }
 
@@ -168,6 +173,8 @@ export class MonthlySummaryForecastCalculator implements IMonthlySummaryForecast
       acc.totalMaterialMoProg += row.materialMoProg;
       acc.totalMaterialMoForecast += row.materialMoForecast;
       acc.totalMaterialMoExec += row.materialMoExec;
+      acc.totalForecast += row.forecastTotal;
+      acc.totalExec += row.execTotal;
 
       return acc;
     }, createInitialTotals());
