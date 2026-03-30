@@ -314,6 +314,8 @@ describe('MonthlySummaryForecastMapper', () => {
         totalMaterialMoPend: 0,
         totalMaterialMoForecast: 0,
         totalMaterialMoExec: 0,
+        totalForecast: 0,
+        totalExec: 0,
         totalDiff: 0,
       });
     });

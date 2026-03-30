@@ -81,6 +81,7 @@ export default async function MonthlyForecastSummary() {
       children: [
         { key: "serviceMoForecast", label: "Serviço", format: "currency" },
         { key: "materialMoForecast", label: "Material", format: "currency" },
+        { key: "forecastTotal", label: "Total", format: "currency" },
       ],
     },
     {
@@ -88,6 +89,7 @@ export default async function MonthlyForecastSummary() {
       children: [
         { key: "serviceMoExec", label: "Serviço", format: "currency" },
         { key: "materialMoExec", label: "Material", format: "currency" },
+        { key: "execTotal", label: "Total", format: "currency" },
       ],
     },
 

@@ -34,6 +34,8 @@ export class MonthlySummaryForecastMapper {
       materialMoPend: 0,
       materialMoExec: 0,
       materialMoForecast: 0,
+      forecastTotal: 0,
+      execTotal: 0,
       isMaterialPendLowerThanProg: false,
       isServicePendLowerThanProg: false,
       diff: 0,
@@ -53,6 +55,8 @@ export class MonthlySummaryForecastMapper {
       materialCapexExec,
       materialCapexForecast,
       serviceCapexForecast,
+      execTotal,
+      forecastTotal,
     } = workOrderMetrics;
 
     entry.qtdeWorks++;
@@ -68,6 +72,9 @@ export class MonthlySummaryForecastMapper {
     entry.serviceMoPend += financials.servicePend;
     entry.serviceMoExec += serviceCapexExec;
     entry.serviceMoForecast += serviceCapexForecast;
+
+    entry.forecastTotal += forecastTotal;
+    entry.execTotal += execTotal;
 
     entry.isServicePendLowerThanProg =
       entry.serviceMoProg > entry.serviceMoPend;
@@ -156,6 +163,8 @@ export function createInitialTotals(): DailyForecastSummaryTotals {
     totalMaterialMoPend: 0,
     totalMaterialMoForecast: 0,
     totalMaterialMoExec: 0,
+    totalForecast: 0,
+    totalExec: 0,
     totalDiff: 0,
   };
 }

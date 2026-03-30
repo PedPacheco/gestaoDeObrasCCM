@@ -396,6 +396,8 @@ describe('ScheduleController', () => {
         diff: -900,
         serviceMoForecast: 500,
         materialMoForecast: 200,
+        execTotal: 12000,
+        forecastTotal: 14000,
         isMaterialPendLowerThanProg: true,
         isServicePendLowerThanProg: true,
       },
@@ -416,6 +418,8 @@ describe('ScheduleController', () => {
         diff: 1000,
         serviceMoForecast: 500,
         materialMoForecast: 200,
+        execTotal: 12000,
+        forecastTotal: 14000,
         isMaterialPendLowerThanProg: true,
         isServicePendLowerThanProg: true,
       },
@@ -436,6 +440,8 @@ describe('ScheduleController', () => {
       totalMaterialMoPend: 5000,
       totalMaterialMoForecast: 10000,
       totalMaterialMoExec: 8000,
+      totalExec: 20000,
+      totalForecast: 25000,
       totalDiff: 3000,
     };
 

@@ -53,6 +53,8 @@ export interface WorkOrderMetricsForecast {
   readonly materialCapexProg: number;
   readonly materialCapexExec: number;
   readonly materialCapexForecast: number;
+  readonly forecastTotal: number;
+  readonly execTotal: number;
 }
 
 export interface DailySummaryEntryForecast {
@@ -71,6 +73,8 @@ export interface DailySummaryEntryForecast {
   materialMoPend: number;
   materialMoExec: number;
   materialMoForecast: number;
+  forecastTotal: number;
+  execTotal: number;
   isServicePendLowerThanProg: boolean;
   isMaterialPendLowerThanProg: boolean;
   diff: number;
@@ -91,6 +95,8 @@ export interface DailyForecastSummaryTotals {
   totalMaterialMoPend: number;
   totalMaterialMoForecast: number;
   totalMaterialMoExec: number;
+  totalForecast: number;
+  totalExec: number;
   totalDiff: number;
 }
 
