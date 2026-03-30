@@ -8,15 +8,22 @@ vi.mock("@/components/layout/Header", () => ({
   Header: vi.fn(() => <div data-testid="mock-header">Header Mockado</div>),
 }));
 
+vi.mock("next/image", () => ({
+  __esModule: true,
+  // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
+  default: (props: any) => <img {...props} />,
+}));
+
 describe("Home page component", () => {
   it("Deve renderizar a página com o componente Header e com imagem no plano de fundo", () => {
-    const { container } = render(<Home />);
-
-    const rootDiv = container.firstChild as HTMLElement;
+    render(<Home />);
 
     expect(Header).toHaveBeenCalled();
     expect(screen.getByTestId("mock-header")).toBeInTheDocument();
 
-    expect(rootDiv.className).toContain("bg-[url(/edp-background.png)]");
+    const image = screen.getByAltText("Logo SIGO");
+
+    expect(image).toBeInTheDocument();
+    expect(image).toHaveAttribute("src", "/logo-sigo.png");
   });
 });

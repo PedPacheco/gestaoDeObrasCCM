@@ -1,17 +1,19 @@
 import * as cookiesModule from "next/headers";
-import { beforeEach, describe, expect, it, vi, Mock } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 
 import ExportPage from "@/app/(dashboard)/relatorios/exportacoes/page";
+import { render } from "@testing-library/react";
+import WrapperExportButton from "@/components/exports/wrapperExportButton";
 
 vi.mock("@/components/exports/wrapperExportButton", () => ({
   __esModule: true,
-  default: vi.fn(({ text, path, token }) => (
+  default: vi.fn(({ text, path, token, visible }) => (
     <div
       data-testid="export-button"
       data-text={text}
       data-path={path}
       data-token={token}
+      data-visible={visible}
     >
       Export Button
     </div>
@@ -23,15 +25,6 @@ vi.mock("next/headers", () => ({
 }));
 
 describe("ExportPage", () => {
-  const mockToken = "mock-token";
-
-  const mockCookieStore = {
-    get: vi.fn((name) => {
-      if (name === "token") return { value: mockToken };
-      return undefined;
-    }),
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
 
@@ -43,13 +36,17 @@ describe("ExportPage", () => {
     }));
   });
 
-  it("renderiza apenas os botões com visible=true", async () => {
+  it("deve chamar WrapperExportButton com visible true e false", async () => {
     const page = await ExportPage();
     render(page);
 
-    const buttons = screen.getAllByTestId("export-button");
+    const mock = WrapperExportButton as unknown as Mock;
 
-    // sua página tem 5 botões visíveis
-    expect(buttons).toHaveLength(8);
+    const calls = mock.mock.calls;
+
+    const visibles = calls.map((call) => call[0].visible);
+
+    expect(visibles).toContain(true);
+    expect(visibles).toContain(false);
   });
 });

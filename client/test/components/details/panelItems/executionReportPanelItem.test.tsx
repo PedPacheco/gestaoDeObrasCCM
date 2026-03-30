@@ -1,7 +1,7 @@
 import ExecutionReportPanelItem from "@/components/details/panelItems/executionReportPanelItem";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockData = [
   {
@@ -30,6 +30,10 @@ vi.mock("@/contexts/userContext", () => ({
   }),
 }));
 
+beforeEach(() => {
+  process.env.NEXT_PUBLIC_API_URL = "http://localhost:3000";
+});
+
 describe("ExecutionReportPanelItem", () => {
   it("deve renderizar corretamente os dados na tabela", () => {
     render(<ExecutionReportPanelItem data={mockData} onDelete={() => {}} />);
@@ -50,7 +54,7 @@ describe("ExecutionReportPanelItem", () => {
         data={mockData}
         onEdit={onEditMock}
         onDelete={() => {}}
-      />
+      />,
     );
 
     const user = userEvent.setup();
@@ -75,7 +79,7 @@ describe("ExecutionReportPanelItem", () => {
         data={mockData}
         onDelete={onDeleteMock}
         onEdit={() => {}}
-      />
+      />,
     );
 
     const user = userEvent.setup();
@@ -91,5 +95,71 @@ describe("ExecutionReportPanelItem", () => {
     await user.click(deleteButton);
 
     expect(onDeleteMock).toHaveBeenCalledWith(mockData[0].id);
+  });
+
+  it("deve renderizar os arquivos corretamente com os links", () => {
+    const dataWithFiles = [
+      {
+        ...mockData[0],
+        caminho_arquivo: "file1.pdf;file2.pdf",
+      },
+    ];
+
+    render(
+      <ExecutionReportPanelItem data={dataWithFiles} onDelete={() => {}} />,
+    );
+
+    const links = screen.getAllByRole("link");
+
+    expect(links).toHaveLength(2);
+
+    expect(links[0]).toHaveAttribute(
+      "href",
+      "http://localhost:3000/uploads/as_build/file1.pdf",
+    );
+
+    expect(links[1]).toHaveAttribute(
+      "href",
+      "http://localhost:3000/uploads/as_build/file2.pdf",
+    );
+  });
+
+  it("deve abrir os arquivos em nova aba com segurança", () => {
+    const dataWithFiles = [
+      {
+        ...mockData[0],
+        caminho_arquivo: "file1.pdf",
+      },
+    ];
+
+    render(
+      <ExecutionReportPanelItem data={dataWithFiles} onDelete={() => {}} />,
+    );
+
+    const link = screen.getByRole("link");
+
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("deve exibir o nome do arquivo no tooltip ao passar o mouse", async () => {
+    const user = userEvent.setup();
+
+    const dataWithFiles = [
+      {
+        ...mockData[0],
+        caminho_arquivo: "file1.pdf",
+      },
+    ];
+
+    render(
+      <ExecutionReportPanelItem data={dataWithFiles} onDelete={() => {}} />,
+    );
+
+    const icon = screen.getByRole("link");
+
+    await user.hover(icon);
+
+    expect(await screen.findByText("file1.pdf")).toBeInTheDocument();
   });
 });
