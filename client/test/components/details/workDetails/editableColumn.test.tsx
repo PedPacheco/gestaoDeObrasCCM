@@ -77,7 +77,7 @@ vi.mock("@/contexts/userContext", () => {
 describe("EditableColumn component", () => {
   const mockFormData = {
     id_turma: "2",
-    id_status: "2",
+    id_status: 2,
     data_empreitamento: "",
     tipo_ads: "",
   };
@@ -101,7 +101,7 @@ describe("EditableColumn component", () => {
         data={mockFormData}
         options={options}
         onHandleChange={onHandleChange}
-      />
+      />,
     );
 
     expect(screen.getByText("Parceira")).toBeInTheDocument();
@@ -118,11 +118,11 @@ describe("EditableColumn component", () => {
         data={{
           ...mockFormData,
           id_turma: undefined as unknown as string,
-          id_status: undefined as unknown as string,
+          id_status: null as unknown as number,
         }}
         options={options}
         onHandleChange={onHandleChange}
-      />
+      />,
     );
 
     const select = screen.getAllByTestId("mock-select")[0] as HTMLSelectElement;
@@ -138,7 +138,7 @@ describe("EditableColumn component", () => {
         data={mockFormData}
         options={options}
         onHandleChange={onHandleChange}
-      />
+      />,
     );
 
     const selects = screen.getAllByTestId("mock-select") as HTMLSelectElement[];

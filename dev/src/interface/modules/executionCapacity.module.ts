@@ -1,8 +1,10 @@
-import { Module } from '@nestjs/common';
-import { ExecutionCapacityController } from '../controllers/executionCapacity.controller';
-import { ExecutionCapacityService } from 'src/application/executionCapacity.service';
+import { ExecutionCapacityService } from 'src/application/usecases/executionCapacity.service';
 import { EXECUTION_CAPACITY_REPOSITORY } from 'src/domain/repositories/IExecutionCapacityRepository';
 import { ExecutionCapacityRepository } from 'src/infra/repositories/executionCapacityRepository';
+
+import { Module } from '@nestjs/common';
+
+import { ExecutionCapacityController } from '../controllers/executionCapacity.controller';
 
 @Module({
   controllers: [ExecutionCapacityController],

@@ -4,6 +4,7 @@ import {
   TableBody,
   TableCell,
   TableContainer,
+  TableFooter,
   TableHead,
   TableRow,
 } from "@mui/material";
@@ -39,11 +40,25 @@ export function FinancialValuesModal({
   onClose,
   open,
 }: FinancialValuesModalProps) {
+  const totals = columns.reduce<Record<string, number>>((acc, column) => {
+    acc[column] = data.reduce((sum, row) => {
+      const value = row[column];
+
+      if (typeof value === "number") {
+        return sum + value;
+      }
+
+      return sum;
+    }, 0);
+
+    return acc;
+  }, {});
+
   return (
     <>
       <ModalComponent title="FINANCEIRO" open={open} onClose={onClose}>
         <TableContainer
-          className="mb-20 h-full max-h-[480px]"
+          className="mb-10 h-full max-h-[520px]"
           component={Paper}
         >
           <Table stickyHeader>
@@ -81,6 +96,32 @@ export function FinancialValuesModal({
                 </TableRow>
               ))}
             </TableBody>
+
+            <TableFooter>
+              <TableRow>
+                {columns.map((column, index) => {
+                  const value = totals[column];
+
+                  return (
+                    <TableCell
+                      key={column}
+                      className="p-3 text-center text-lg font-bold bg-[#53FF75]"
+                      sx={{
+                        position: "sticky",
+                        bottom: 0,
+                        zIndex: 2,
+                      }}
+                    >
+                      {index < 3
+                        ? index === 0
+                          ? "TOTAL"
+                          : ""
+                        : FormatCurrency(value || 0)}
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            </TableFooter>
           </Table>
         </TableContainer>
       </ModalComponent>

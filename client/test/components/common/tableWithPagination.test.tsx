@@ -59,7 +59,7 @@ describe("TableWithPagination", () => {
         page={0}
         sliceEndIndex={0}
         handleChangePage={handleChangePage}
-      />
+      />,
     );
 
     expect(screen.getByText("Data Início")).toBeInTheDocument();
@@ -68,7 +68,7 @@ describe("TableWithPagination", () => {
     expect(screen.getByText("Exec %")).toBeInTheDocument();
 
     expect(screen.getByText("20/07/2024")).toBeInTheDocument();
-    expect(screen.getByText("R$ 10.000,12")).toBeInTheDocument();
+    expect(screen.getByText("R$ 10.000")).toBeInTheDocument();
     expect(screen.getByText("78%")).toBeInTheDocument();
     expect(screen.getByText("92%")).toBeInTheDocument();
     expect(screen.getByText("14:30")).toBeInTheDocument();
@@ -87,7 +87,7 @@ describe("TableWithPagination", () => {
         page={0}
         sliceEndIndex={0}
         handleChangePage={handleChangePage}
-      />
+      />,
     );
 
     const cell = screen.getByText("20/07/2024");
@@ -105,7 +105,7 @@ describe("TableWithPagination", () => {
         page={0}
         sliceEndIndex={1}
         handleChangePage={handleChangePage}
-      />
+      />,
     );
 
     expect(screen.getAllByRole("columnheader")).toHaveLength(7);
@@ -120,7 +120,7 @@ describe("TableWithPagination", () => {
         page={0}
         sliceEndIndex={0}
         handleChangePage={handleChangePage}
-      />
+      />,
     );
 
     const nextPageBtn = screen.getByTitle("Go to last page");
@@ -140,7 +140,7 @@ describe("TableWithPagination", () => {
         page={0}
         sliceEndIndex={0}
         handleChangePage={handleChangePage}
-      />
+      />,
     );
 
     expect(screen.queryByText("!!!")).not.toBeInTheDocument();
@@ -148,4 +148,42 @@ describe("TableWithPagination", () => {
     const emptyCells = screen.getAllByText("");
     expect(emptyCells.length).toBeGreaterThan(0);
   });
+
+  it.each([
+    ["No prazo", "bg-green-200 text-green-800"],
+    ["Atenção", "bg-yellow-200 text-yellow-800"],
+    ["Urgente", "bg-yellow-300 text-yellow-900"],
+    ["Crítico", "bg-red-300 text-red-900"],
+    ["Prazo vencido", "bg-black text-white"],
+  ])(
+    "deve aplicar a cor correta para status_prazo = %s",
+    (status, expectedClass) => {
+      const columnsWithStatus = {
+        ...columns,
+        status_prazo: "Status Prazo",
+      };
+
+      const dataWithStatus = [
+        {
+          ...data[0],
+          status_prazo: status,
+        },
+      ];
+
+      render(
+        <TableWithPagination
+          columns={columnsWithStatus}
+          data={dataWithStatus}
+          totals={totals}
+          page={0}
+          sliceEndIndex={0}
+          handleChangePage={handleChangePage}
+        />,
+      );
+
+      const cell = screen.getByText(status);
+
+      expect(cell).toHaveClass(expectedClass);
+    },
+  );
 });

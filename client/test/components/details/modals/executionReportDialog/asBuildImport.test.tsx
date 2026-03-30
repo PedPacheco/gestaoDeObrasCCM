@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { AsBuildImport } from "@/components/details/modals/executionReportDialog/asBuiltImport";
 import { Dispatch, SetStateAction } from "react";
+import { AsBuiltImport } from "@/components/details/modals/executionReportDialog/asBuiltImport";
 
 // Mock do ErrorModal
 vi.mock("@/components/common/ErrorModal", () => ({
@@ -26,7 +26,7 @@ function createFile(name: string, type: string, sizeMB: number) {
   return new File(["a".repeat(size)], name, { type });
 }
 
-describe("AsBuildImport", () => {
+describe("AsBuiltImport", () => {
   let files: File[];
   let setFiles: Dispatch<SetStateAction<File[]>> = vi.fn();
 
@@ -38,19 +38,19 @@ describe("AsBuildImport", () => {
   });
 
   const renderComponent = () =>
-    render(<AsBuildImport files={files} setFiles={setFiles} />);
+    render(<AsBuiltImport files={files} setFiles={setFiles} />);
 
   it("deve exibir título e elementos base", () => {
     renderComponent();
-    expect(screen.getByText("Importar Arquivos As Build")).toBeInTheDocument();
+    expect(screen.getByText("Importar Arquivos As Built")).toBeInTheDocument();
     expect(
-      screen.getByText("Clique para selecionar arquivos ou arraste e solte")
+      screen.getByText("Clique para selecionar arquivos ou arraste e solte"),
     ).toBeInTheDocument();
   });
 
   it("deve permitir upload de arquivos válidos", () => {
     const { container } = render(
-      <AsBuildImport files={[]} setFiles={setFiles} />
+      <AsBuiltImport files={[]} setFiles={setFiles} />,
     );
 
     fireEvent.change(container.querySelector('input[type="file"]')!, {
@@ -64,7 +64,7 @@ describe("AsBuildImport", () => {
 
   it("deve rejeitar arquivo com tipo inválido", () => {
     const { container, queryByTestId } = render(
-      <AsBuildImport files={[]} setFiles={setFiles} />
+      <AsBuiltImport files={[]} setFiles={setFiles} />,
     );
 
     fireEvent.change(container.querySelector('input[type="file"]')!, {
@@ -76,7 +76,7 @@ describe("AsBuildImport", () => {
     });
 
     expect(queryByTestId("close-error")).toHaveTextContent(
-      'Arquivo "arquivo.exe" não é PDF ou JPEG.'
+      'O formato do arquivo "arquivo.exe" não é aceito.',
     );
 
     fireEvent.click(queryByTestId("close-error")!);
@@ -88,7 +88,7 @@ describe("AsBuildImport", () => {
     const bigFile = createFile("grande.pdf", "application/pdf", 6);
 
     const { container, queryByTestId } = render(
-      <AsBuildImport files={[]} setFiles={setFiles} />
+      <AsBuiltImport files={[]} setFiles={setFiles} />,
     );
 
     fireEvent.change(container.querySelector('input[type="file"]')!, {
@@ -98,7 +98,7 @@ describe("AsBuildImport", () => {
     });
 
     expect(queryByTestId("close-error")).toHaveTextContent(
-      'Arquivo "grande.pdf" excede 5MB.'
+      'Arquivo "grande.pdf" excede 5MB.',
     );
 
     fireEvent.click(queryByTestId("close-error")!);
@@ -106,7 +106,7 @@ describe("AsBuildImport", () => {
     expect(queryByTestId("close-error")).not.toBeInTheDocument();
   });
 
-  it("deve impedir upload quando exceder 5 arquivos", () => {
+  it("deve impedir upload quando exceder 3 arquivos", () => {
     files = [
       createFile("1.pdf", "application/pdf", 1),
       createFile("2.pdf", "application/pdf", 1),
@@ -118,7 +118,7 @@ describe("AsBuildImport", () => {
     setFiles = vi.fn((fn) => (files = fn(files)));
 
     const { container, queryByTestId } = render(
-      <AsBuildImport files={files} setFiles={setFiles} />
+      <AsBuiltImport files={files} setFiles={setFiles} />,
     );
 
     const newFile = createFile("extra.pdf", "application/pdf", 1);
@@ -130,7 +130,7 @@ describe("AsBuildImport", () => {
     });
 
     expect(queryByTestId("close-error")).toHaveTextContent(
-      "Máximo de 5 arquivos permitidos."
+      "Máximo de 3 arquivos permitidos.",
     );
   });
 
@@ -138,7 +138,7 @@ describe("AsBuildImport", () => {
     renderComponent();
 
     const area = screen.getByText(
-      "Clique para selecionar arquivos ou arraste e solte"
+      "Clique para selecionar arquivos ou arraste e solte",
     ).parentElement!;
 
     fireEvent.dragEnter(area);
@@ -153,10 +153,10 @@ describe("AsBuildImport", () => {
   });
 
   it("deve fazer upload ao soltar arquivos (drop)", () => {
-    render(<AsBuildImport files={[]} setFiles={setFiles} />);
+    render(<AsBuiltImport files={[]} setFiles={setFiles} />);
 
     const area = screen.getByText(
-      "Clique para selecionar arquivos ou arraste e solte"
+      "Clique para selecionar arquivos ou arraste e solte",
     ).parentElement!;
 
     const file = new File(["conteudo"], "teste.pdf", {
@@ -184,7 +184,7 @@ describe("AsBuildImport", () => {
 
     setFiles = vi.fn((fn) => (files = fn(files)));
 
-    render(<AsBuildImport files={files} setFiles={setFiles} />);
+    render(<AsBuiltImport files={files} setFiles={setFiles} />);
 
     const removeButton = screen.getByRole("button");
 
@@ -196,7 +196,7 @@ describe("AsBuildImport", () => {
   it("deve exibir lista de arquivos", () => {
     files = [createFile("item.pdf", "application/pdf", 1)];
 
-    render(<AsBuildImport files={files} setFiles={setFiles} />);
+    render(<AsBuiltImport files={files} setFiles={setFiles} />);
 
     expect(screen.getByText("item.pdf")).toBeInTheDocument();
   });
@@ -205,13 +205,13 @@ describe("AsBuildImport", () => {
     const setFiles = vi.fn();
 
     const { container, queryByTestId } = render(
-      <AsBuildImport files={[]} setFiles={setFiles} />
+      <AsBuiltImport files={[]} setFiles={setFiles} />,
     );
 
     // Dispara erro enviando arquivo inválido
     fireEvent.change(container.querySelector('input[type="file"]')!, {
       target: {
-        files: [new File(["x"], "foto.png", { type: "image/png" })],
+        files: [new File(["x"], "foto.dasdwe", { type: "image/afafe" })],
       },
     });
 

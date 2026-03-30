@@ -6,6 +6,8 @@ interface valuesGoals {
 
 export interface Goals {
   id_tipo: number;
+  id_parceira: number;
+  id_regional: number;
   tipo_obra: string;
   turma: string;
   regional: string;
@@ -28,6 +30,8 @@ export interface Goals {
 
 export interface goalsInterfaceRepository {
   id_tipo: number;
+  id_parceira: number;
+  id_regional: number;
   tipo_obra: string;
   turma: string;
   regional: string;

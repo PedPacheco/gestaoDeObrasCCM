@@ -1,8 +1,8 @@
+import { UsersService } from 'src/application/usecases/users.service';
 import { PrismaModule } from 'src/infra/prisma/prisma.module';
+import { ExecutionCapacityModule } from 'src/interface/modules/executionCapacity.module';
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { UsersService } from 'src/application/users.service';
-import { ExecutionCapacityModule } from 'src/interface/modules/executionCapacity.module';
 
 describe('ExecutionCapacityModule', () => {
   let module: TestingModule;

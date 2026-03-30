@@ -2,6 +2,7 @@
 
 import { FormData } from "@/hooks/useScheduleForm";
 import { Grid, TextField } from "@mui/material";
+import dayjs from "dayjs";
 
 interface BasicInfoPanelProps {
   formData: FormData;
@@ -91,7 +92,10 @@ export const BasicInfoPanel: React.FC<BasicInfoPanelProps> = ({
             error={!!formErrors.exec}
             helperText={formErrors.exec}
             InputLabelProps={{ shrink: true }}
-            disabled={!formData.validated && !formData.confirmed}
+            disabled={
+              (!formData.validated && !formData.confirmed) ||
+              dayjs().isBefore(dayjs(formData.dataProg))
+            }
           />
         </Grid>
       )}

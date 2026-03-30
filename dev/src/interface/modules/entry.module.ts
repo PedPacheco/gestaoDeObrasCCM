@@ -1,4 +1,4 @@
-import { EntryService } from 'src/application/entry.service';
+import { EntryService } from 'src/application/usecases/entry.service';
 import { ENTRY_REPOSITORY } from 'src/domain/repositories/IEntryRepository';
 import { EntryRespository } from 'src/infra/repositories/entryRepository';
 

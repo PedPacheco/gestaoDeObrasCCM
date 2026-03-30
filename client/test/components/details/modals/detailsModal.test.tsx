@@ -50,39 +50,50 @@ vi.mock("@/components/details/modals/confirmationModal", () => ({
     ) : null,
 }));
 
-vi.mock("./failureModal", () => ({
+vi.mock("@/components/details/modals/failureModal", () => ({
   default: ({ open, onClose }: any) =>
     open ? (
       <div>
         <p>FailureModal</p>
-        <button onClick={onClose}>close failure</button>
+        <button onClick={onClose} data-testid="close-failure">
+          close failure
+        </button>
       </div>
     ) : null,
 }));
 
-vi.mock("./scheduleDialog/dialog", () => ({
+vi.mock("@/components/details/modals/scheduleDialog/dialog", () => ({
   default: ({ open, onClose, onSuccess, onError }: any) =>
     open ? (
       <div>
         <p>ScheduleFormDialog</p>
         <button onClick={() => onSuccess("ok sucesso")}>success</button>
         <button onClick={() => onError("erro schedule")}>error</button>
-        <button onClick={onClose}>close</button>
+        <button onClick={onClose} data-testid="close-schedule">
+          close
+        </button>
       </div>
     ) : null,
 }));
 
-vi.mock("./executionReportDialog/executionReportDialog", () => ({
-  ExecutionReportDialog: ({ open, onClose, onSuccess, onError }: any) =>
-    open ? (
-      <div>
-        <p>ExecutionReportDialog</p>
-        <button onClick={() => onSuccess("exec sucesso")}>exec success</button>
-        <button onClick={() => onError("erro exec")}>exec error</button>
-        <button onClick={onClose}>close</button>
-      </div>
-    ) : null,
-}));
+vi.mock(
+  "@/components/details/modals/executionReportDialog/executionReportDialog",
+  () => ({
+    ExecutionReportDialog: ({ open, onClose, onSuccess, onError }: any) =>
+      open ? (
+        <div>
+          <p>ExecutionReportDialog</p>
+          <button onClick={() => onSuccess("exec sucesso")}>
+            exec success
+          </button>
+          <button onClick={() => onError("erro exec")}>exec error</button>
+          <button onClick={onClose} data-testid="close-execution-report">
+            close
+          </button>
+        </div>
+      ) : null,
+  }),
+);
 
 vi.mock("@/components/common/ErrorModal", () => ({
   default: ({ open, message, onClose }: any) =>
@@ -107,6 +118,7 @@ describe("ModalsManager", () => {
     onCloseDialog: vi.fn(),
     onConfirmDelete: vi.fn(),
     onConfirmExecutionDelete: vi.fn(),
+    totalExec: 80,
   };
 
   const setup = () => {
@@ -136,54 +148,56 @@ describe("ModalsManager", () => {
 
     fireEvent.click(screen.getByText("close error"));
     expect(
-      screen.queryByText("ErrorModal: mensagem erro")
+      screen.queryByText("ErrorModal: mensagem erro"),
     ).not.toBeInTheDocument();
   });
 
-  //   it("deve abrir modal de programação (handleDialog) e executar onSuccess e onError", () => {
-  //     const ref = setup();
-  //     act(() => {
-  //       ref.current?.handleDialog(true);
-  //     });
-  //     expect(screen.getByText("ScheduleFormDialog")).toBeInTheDocument();
+  it("deve abrir modal de programação (handleDialog) e executar onSuccess e onError", () => {
+    const ref = setup();
+    act(() => {
+      ref.current?.handleDialog(true);
+    });
+    expect(screen.getByText("ScheduleFormDialog")).toBeInTheDocument();
 
-  //     fireEvent.click(screen.getByText("success"));
-  //     expect(screen.getByText("ok sucesso")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("success"));
+    expect(screen.getByText("ok sucesso")).toBeInTheDocument();
 
-  //     fireEvent.click(screen.getByText("close"));
-  //     expect(defaultProps.onCloseDialog).toHaveBeenCalled();
+    fireEvent.click(screen.getByTestId("close-schedule"));
+    expect(defaultProps.onCloseDialog).toHaveBeenCalled();
 
-  //     fireEvent.click(screen.getByText("error"));
-  //     expect(screen.getByText("ErrorModal: erro schedule")).toBeInTheDocument();
-  //   });
+    fireEvent.click(screen.getByText("error"));
+    expect(screen.getByText("ErrorModal: erro schedule")).toBeInTheDocument();
+  });
 
-  //   it("deve abrir ExecutionReportDialog (handleExecutionDialog) e executar callbacks", () => {
-  //     const ref = setup();
-  //     act(() => {
-  //       ref.current?.handleExecutionDialog(true);
-  //     });
-  //     expect(screen.getByText("ExecutionReportDialog")).toBeInTheDocument();
+  it("deve abrir ExecutionReportDialog (handleExecutionDialog) e executar callbacks", () => {
+    const ref = setup();
+    act(() => {
+      ref.current?.handleExecutionDialog(true);
+    });
+    expect(screen.getByText("ExecutionReportDialog")).toBeInTheDocument();
 
-  //     fireEvent.click(screen.getByText("exec success"));
-  //     expect(screen.getByText("exec sucesso")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("exec success"));
+    expect(screen.getByText("exec sucesso")).toBeInTheDocument();
 
-  //     fireEvent.click(screen.getByText("exec error"));
-  //     expect(screen.getByText("ErrorModal: erro exec")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("exec error"));
+    expect(screen.getByText("ErrorModal: erro exec")).toBeInTheDocument();
 
-  //     fireEvent.click(screen.getByText("close"));
-  //     expect(defaultProps.onCloseDialog).toHaveBeenCalled();
-  //   });
+    fireEvent.click(screen.getByTestId("close-execution-report"));
+    expect(defaultProps.onCloseDialog).toHaveBeenCalled();
+  });
 
-  //   it("deve abrir e fechar FailureModalComponent", () => {
-  //     const ref = setup();
-  //     act(() => {
-  //       ref.current?.handleRejectedModalOpen(true);
-  //     });
-  //     expect(screen.getByText("FailureModal")).toBeInTheDocument();
+  it("deve abrir e fechar FailureModalComponent", () => {
+    const ref = setup();
 
-  //     fireEvent.click(screen.getByText("close failure"));
-  //     expect(screen.queryByText("FailureModal")).not.toBeInTheDocument();
-  //   });
+    act(() => {
+      ref.current?.handleRejectedModalOpen(true);
+    });
+
+    expect(screen.getByText("FailureModal")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("close-failure"));
+    expect(screen.queryByText("FailureModal")).not.toBeInTheDocument();
+  });
 
   it("deve abrir e confirmar exclusão de programação", () => {
     const ref = setup();
@@ -214,7 +228,7 @@ describe("ModalsManager", () => {
     });
     fireEvent.click(screen.getByText("cancel"));
     expect(
-      screen.queryByText("Exclusão de programação")
+      screen.queryByText("Exclusão de programação"),
     ).not.toBeInTheDocument();
 
     act(() => {

@@ -1,3 +1,17 @@
+import { HandleAddScheduleService } from 'src/application/usecases/orchestrators/handleAddSchedule.service';
+import { HandleSchedulesUpdateService } from 'src/application/usecases/orchestrators/handleSchedulesUpdate.service';
+import { DeleteSchedulesService } from 'src/application/usecases/schedule/deleteSchedules.service';
+import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/schedule/validateAndConfirmSchedules.service';
+import { PermissionGuard } from 'src/core/guards/permission.guard';
+import { VisualizationGuard } from 'src/core/guards/visualization.guard';
+import {
+  ConfirmSchedulesDTO,
+  RejectScheduleDTO,
+  SchedulesDataDTO,
+  UpdateSchedulesDataDTO,
+  ValidateSchedulesDTO,
+} from 'src/interface/dtos/scheduleDTO';
+
 import {
   Body,
   Controller,
@@ -13,19 +27,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { HandleAddScheduleService } from 'src/application/orchestrators/handleAddSchedule.service';
-import { HandleSchedulesUpdateService } from 'src/application/orchestrators/handleSchedulesUpdate.service';
-import { DeleteSchedulesService } from 'src/application/schedule/deleteSchedules.service';
-import { ValidateConfirmAndRejectSchedulesService } from 'src/application/schedule/validateAndConfirmSchedules.service';
-import { PermissionGuard } from 'src/core/guards/permission.guard';
-import { VisualizationGuard } from 'src/core/guards/visualization.guard';
-import {
-  ConfirmSchedulesDTO,
-  RejectScheduleDTO,
-  SchedulesDataDTO,
-  UpdateSchedulesDataDTO,
-  ValidateSchedulesDTO,
-} from 'src/interface/dtos/scheduleDTO';
 
 @Controller('programacao')
 export class SchedulesActionsController {

@@ -1,5 +1,5 @@
 import { plainToInstance } from 'class-transformer';
-import { UsersService } from 'src/application/users.service';
+import { UsersService } from 'src/application/usecases/users.service';
 import { userChangePasswordController } from 'src/interface/types/userInterface';
 
 import { Body, Controller, HttpStatus, Put } from '@nestjs/common';

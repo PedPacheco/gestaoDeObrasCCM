@@ -66,6 +66,7 @@ export default async function PublicationRestriction() {
   const columns = {
     id: "id",
     ovnota: "Ovnota",
+    ordemdiagrama: "Ordem/Diagrama",
     mun: "Municipio",
     regional: "Regional",
     tipo_obra: "Tipo da Obra",
@@ -76,10 +77,12 @@ export default async function PublicationRestriction() {
     restricao: "Restrição",
     responsabilidade: "Responsabilidade",
     nome_responsavel: "Nome do responsável",
-    observacao: "Observação",
+    observacao: "Observação da publicação",
+    observacao_construcao: "Observação da construção",
     status_restricao: "Status da restrição",
     criado_em: "Data de criação",
     data_resolucao: "Data de resolução",
+    nome_usuario: "Criado por",
   };
 
   return (

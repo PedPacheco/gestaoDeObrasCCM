@@ -103,7 +103,7 @@ export function InsertMarketWorksButton({
           isPending,
           storageKey === "marketEntryData"
             ? "Inserir obras de mercado"
-            : "Inserir Notas"
+            : "Inserir Notas",
         )}
         disabled={isPending}
         styled="w-64"

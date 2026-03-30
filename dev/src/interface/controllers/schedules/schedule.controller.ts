@@ -1,7 +1,3 @@
-import { GetMonthlySummaryService } from 'src/application/schedule/getMonthlySummary.service';
-import { GetScheduleValuesService } from 'src/application/schedule/getScheduleValues.service';
-import { GetTotalValuesScheduleService } from 'src/application/schedule/getTotalValuesSchedule.service';
-import { RejectionsOfSchedulesService } from 'src/application/schedule/rejectionOfSchedules.service';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import {
@@ -20,15 +16,20 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { MonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
+import { RejectionsOfSchedulesService } from 'src/application/usecases/schedule/rejectionOfSchedules.service';
+import { GetTotalValuesScheduleService } from 'src/application/usecases/schedule/getTotalValuesSchedule.service';
+import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
+import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
 
 @Controller('programacao')
 export class ScheduleController {
   constructor(
     private getTotalValuesScheduleService: GetTotalValuesScheduleService,
     private getScheduleValuesService: GetScheduleValuesService,
-
-    private getMonthlySummaryService: GetMonthlySummaryService,
+    private getMonthlySummaryService: MonthlySummaryService,
     private rejectionsOfSchedulesService: RejectionsOfSchedulesService,
+    private getMonthlySummaryForecastService: GetMonthlySummaryForecastService,
   ) {}
 
   @Get()
@@ -66,25 +67,30 @@ export class ScheduleController {
   @Get('resumo-mensal')
   @UseGuards(PermissionGuard)
   async getMonthlySummary(@Query() filters: GetMonthlySummaryDTO) {
-    const response = await this.getMonthlySummaryService.getSummary(filters);
+    const [firstSummary, secondSummary] = await Promise.all([
+      this.getMonthlySummaryService.getSummary(filters),
+      this.getMonthlySummaryService.getSecondSummary(filters),
+    ]);
 
     return {
       statusCode: HttpStatus.OK,
       message: 'Resumo mensal retornado com sucesso',
-      data: response,
+      data: { firstSummary, secondSummary },
     };
   }
 
-  @Get('resumo-mensal-2')
+  @Get('resumo-mensal-forecast')
   @UseGuards(PermissionGuard)
-  async getSecondMonthlySummary(@Query() filters: GetMonthlySummaryDTO) {
-    const response =
-      await this.getMonthlySummaryService.getSecondSummary(filters);
+  async getMonthlySummaryForecast(@Query() filters: GetMonthlySummaryDTO) {
+    const [firstSummary, secondSummary] = await Promise.all([
+      this.getMonthlySummaryForecastService.getSummary(filters),
+      this.getMonthlySummaryForecastService.getSecondSummary(filters),
+    ]);
 
     return {
       statusCode: HttpStatus.OK,
-      message: 'Resumo mensal retornado com sucesso',
-      data: response,
+      message: 'Resumo mensal do Forecast retornado com sucesso',
+      data: { firstSummary, secondSummary },
     };
   }
 

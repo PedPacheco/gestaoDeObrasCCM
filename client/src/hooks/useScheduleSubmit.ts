@@ -98,8 +98,6 @@ export const useScheduleSubmit = ({
               }),
             };
 
-            console.log(payload);
-
             const apiCall = isInsert ? saveSchedule : editSchedule;
             response = await apiCall(payload, scheduleFields.id, files);
           }
@@ -117,7 +115,7 @@ export const useScheduleSubmit = ({
         }
       });
     },
-    [isInsert, onSuccess, onClose, onModalOpen, idWork, user?.id, onError],
+    [isInsert, onSuccess, onClose, onModalOpen, idWork, onError],
   );
 
   return { handleSubmit, isPending };

@@ -1,6 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ExecutionCapacityService } from 'src/application/executionCapacity.service';
+import { ExecutionCapacityService } from 'src/application/usecases/executionCapacity.service';
 import { ExecutionCapacityController } from 'src/interface/controllers/executionCapacity.controller';
+
+import { Test, TestingModule } from '@nestjs/testing';
 
 describe('ExecutionReportController', () => {
   let controller: ExecutionCapacityController;
@@ -54,9 +55,17 @@ describe('ExecutionReportController', () => {
         .spyOn(service, 'getFinancialValue')
         .mockResolvedValue(mockFinancialValues);
 
-      const result = await controller.getExecutionCapacity({ year: '2025' });
+      const result = await controller.getExecutionCapacity({
+        ano: '2025',
+        idParceira: [1],
+        idRegional: [1],
+      });
 
-      expect(service.get).toHaveBeenCalledWith({ year: '2025' });
+      expect(service.get).toHaveBeenCalledWith({
+        ano: '2025',
+        idParceira: [1],
+        idRegional: [1],
+      });
       expect(result).toEqual({
         data: {
           financialValues: mockFinancialValues,
