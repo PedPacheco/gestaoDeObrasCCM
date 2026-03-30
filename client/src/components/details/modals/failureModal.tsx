@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Box,
   FormControl,
@@ -65,11 +65,22 @@ export default function FailureModalComponent({
   }, [onClose, resetForm]);
 
   const handleRejectedSchedule = useCallback(() => {
+    const newErrors = {
+      reason: reason.trim() === "",
+      description: description.trim() === "",
+    };
+
+    setErrors(newErrors);
+
+    const hasError = Object.values(newErrors).some(Boolean);
+
+    if (hasError) return;
+
     if (!rejectedSchedule) return;
 
     handleReject({
       id: rejectedSchedule.id,
-      reject: rejectedSchedule?.reject,
+      reject: rejectedSchedule.reject,
       reason: reason.trim(),
       description: description.trim(),
     });
@@ -78,9 +89,7 @@ export default function FailureModalComponent({
     onClose();
   }, [rejectedSchedule, handleReject, reason, description, resetForm, onClose]);
 
-  const isFormValid = useMemo(() => {
-    return reason.trim() !== "" && description.trim() !== "";
-  }, [reason, description]);
+  const isFormValid = reason.trim() && description.trim();
 
   return (
     <Modal
@@ -106,7 +115,10 @@ export default function FailureModalComponent({
             <InputLabel>Motivo da reprovação</InputLabel>
             <Select
               value={reason}
-              onChange={(event) => setReason(event.target.value)}
+              onChange={(event) => {
+                setReason(event.target.value);
+                setErrors((prev) => ({ ...prev, reason: false }));
+              }}
               label="Motivo da reprovação"
             >
               {reasonsForFailure.map((item) => (
@@ -130,7 +142,10 @@ export default function FailureModalComponent({
             fullWidth
             label="Descrição"
             value={description}
-            onChange={(event) => setDescription(event.target.value)}
+            onChange={(event) => {
+              setDescription(event.target.value);
+              setErrors((prev) => ({ ...prev, description: false }));
+            }}
             error={errors.description}
             helperText={errors.description ? "Descrição é obrigatória" : ""}
             autoComplete="off"
@@ -147,7 +162,7 @@ export default function FailureModalComponent({
           <ButtonComponent
             onClick={handleRejectedSchedule}
             text="Confirmar"
-            disabled={!isFormValid}
+            // disabled={!isFormValid}
             styled="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded disabled:opacity-50"
           />
         </div>

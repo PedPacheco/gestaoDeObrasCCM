@@ -112,11 +112,15 @@ export function FeasibiltyUpload({
         throw new Error(errorData.message);
       }
 
+      console.log(response);
+
       setFiles([]);
       setTimeout(() => onUploadSuccess(), 1000);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Erro ao fazer upload dos arquivos"
+        err instanceof Error
+          ? err.message
+          : "Erro ao fazer upload dos arquivos",
       );
     } finally {
       setUploading(false);
