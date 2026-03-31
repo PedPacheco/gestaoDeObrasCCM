@@ -62,6 +62,21 @@ describe("AsBuiltImport", () => {
     expect(setFiles).toHaveBeenCalled();
   });
 
+  it("deve retornar false se nenhum arquivo for enviado (incoming = null)", () => {
+    const setFiles = vi.fn();
+    const { container } = render(
+      <AsBuiltImport files={[]} setFiles={setFiles} />,
+    );
+
+    fireEvent.change(container.querySelector('input[type="file"]')!, {
+      target: { files: null },
+    });
+
+    expect(setFiles).not.toHaveBeenCalled();
+    // não deve exibir modal de erro
+    expect(screen.queryByTestId("asbuilt-error-modal")).not.toBeInTheDocument();
+  });
+
   it("deve rejeitar arquivo com tipo inválido", () => {
     const { container, queryByTestId } = render(
       <AsBuiltImport files={[]} setFiles={setFiles} />,

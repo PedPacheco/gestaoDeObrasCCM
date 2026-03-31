@@ -106,6 +106,7 @@ describe("BT0 Page", () => {
         regional: "Regional 1",
         parceira: "Parceira X",
         ano: "2024",
+        anoPlan: null,
         btzero: true,
         rda: false,
       },
@@ -126,6 +127,7 @@ describe("BT0 Page", () => {
       "https://api.example.com/metas",
       {
         ano: "2025",
+        anoPlan: null,
         btzero: true,
         rda: false,
       },

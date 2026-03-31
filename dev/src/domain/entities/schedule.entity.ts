@@ -46,7 +46,7 @@ export class Schedule {
 
     const normalized = this.serviceType.toUpperCase();
 
-    return normalized.includes('REGULARIZAÇÃO') || normalized.includes('DP');
+    return normalized.includes('DP');
   }
 
   public validatedSchedulingConfirmation() {

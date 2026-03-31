@@ -125,6 +125,7 @@ describe("Goals Page", () => {
       "https://api.example.com/metas",
       {
         ano: "2025",
+        anoPlan: "2025",
         btzero: false,
         rda: false,
       },

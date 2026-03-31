@@ -106,6 +106,7 @@ describe("RdaGoals Page", () => {
         regional: "Regional 1",
         parceira: "Parceira X",
         ano: "2025",
+        anoPlan: null,
         btzero: false,
         rda: true,
       },
@@ -126,6 +127,7 @@ describe("RdaGoals Page", () => {
       "https://api.example.com/metas",
       {
         ano: "2025",
+        anoPlan: null,
         btzero: false,
         rda: true,
       },

@@ -3,7 +3,8 @@ SELECT
   g.grupo,
   t.tipo_obra,
   s.status,
-  ordens.ordemdiagrama
+  ordens.ordemdiagrama,
+  o.data_conclusao
 FROM
   (
     (

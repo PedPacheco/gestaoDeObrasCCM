@@ -11,7 +11,7 @@ export default async function ExportPage() {
 
   const exportOptions = [
     {
-      name: "EXPORTAÇÃO DADOS OBRAS",
+      name: "EXPORTAÇÃO DADOS OBRAS EM CARTEIRA",
       path: "obras-carteira-bi",
       visible: true,
     },

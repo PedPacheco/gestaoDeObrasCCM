@@ -7,6 +7,7 @@ import userEvent from "@testing-library/user-event";
 import { fetchData } from "@/actions/fetchData.action";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { Transform } from "@/utils/transform";
+import dayjs from "dayjs";
 
 // Mock das dependências
 vi.mock("@/actions/fetchData.action", () => ({
@@ -19,7 +20,7 @@ vi.mock("@/hooks/useSaveFilters", () => ({
 
 vi.mock("@/utils/getButtonContent", () => ({
   getButtonContent: vi.fn((isPending, text) =>
-    isPending ? "Carregando..." : text
+    isPending ? "Carregando..." : text,
   ),
 }));
 
@@ -74,7 +75,7 @@ vi.mock("@/components/common/MultipleSelect", () => ({
         onChange={(e) => {
           const values = Array.from(
             e.target.selectedOptions,
-            (option) => option.value
+            (option) => option.value,
           );
           setSelectedItem?.(values);
         }}
@@ -102,13 +103,13 @@ vi.mock("@/components/entryComponents/entry/EntryTable", () => ({
 }));
 
 vi.mock("@mui/x-date-pickers", () => ({
-  DatePicker: ({ value, onChange, views, slotProps }: any) => (
+  DatePicker: ({ value, onChange }: any) => (
     <div data-testid="date-picker">
       <input
         data-testid="date-input"
         type="text"
         value={value?.format?.("YYYY") || ""}
-        onChange={(e) => onChange?.(e.target.value)}
+        onChange={(e) => onChange?.(dayjs(e.target.value))}
       />
     </div>
   ),
@@ -170,8 +171,8 @@ describe("MainEntry component", () => {
       { id: "2", tipo_obra: "Tipo Obra B", id_grupo: 2 },
     ],
     municipio: [
-      { id: "1", municipio: "São Paulo" },
-      { id: "2", municipio: "Rio de Janeiro" },
+      { id: "1", municipio: "São Paulo", id_regional: 1 },
+      { id: "2", municipio: "Rio de Janeiro", id_regional: 2 },
     ],
     grupo: [
       { id: "1", grupo: "Grupo A" },
@@ -230,6 +231,26 @@ describe("MainEntry component", () => {
     expect(screen.getByTestId("select-circuito")).toBeInTheDocument();
   });
 
+  it("deve renderizar sem erro quando filtersData estiver vazio", () => {
+    const emptyFilters: EntryFiltersType = {
+      regional: [],
+      parceira: [],
+      tipo: [],
+      municipio: [],
+      grupo: [],
+      circuito: [],
+    };
+
+    render(
+      <MainEntry
+        {...defaultProps}
+        filtersData={emptyFilters} // 👈 nenhum filtro
+      />,
+    );
+
+    expect(screen.getByText("Aplicar filtros")).toBeInTheDocument();
+  });
+
   it("deve renderizar os botões de ação", () => {
     render(<MainEntry {...defaultProps} />);
 
@@ -276,7 +297,7 @@ describe("MainEntry component", () => {
       expect(fetchData).toHaveBeenCalledWith(
         "http://localhost:3000/api/entrada",
         { ano: "2024" },
-        "mock-token"
+        "mock-token",
       );
     });
   });
@@ -315,7 +336,7 @@ describe("MainEntry component", () => {
       expect(fetchData).toHaveBeenCalledWith(
         "http://localhost:3000/api/entrada",
         { ano: "2024" },
-        "mock-token"
+        "mock-token",
       );
     });
   });
@@ -345,7 +366,7 @@ describe("MainEntry component", () => {
     await waitFor(() => {
       expect(screen.getByTestId("error-modal")).toBeInTheDocument();
       expect(screen.getByTestId("error-message")).toHaveTextContent(
-        "Erro na API"
+        "Erro na API",
       );
     });
   });
@@ -362,7 +383,7 @@ describe("MainEntry component", () => {
     await waitFor(() => {
       expect(screen.getByTestId("error-modal")).toBeInTheDocument();
       expect(screen.getByTestId("error-message")).toHaveTextContent(
-        "Erro na API"
+        "Erro na API",
       );
     });
   });
@@ -392,9 +413,9 @@ describe("MainEntry component", () => {
         new Promise((resolve) =>
           setTimeout(
             () => resolve({ token: "mock-token", data: mockData }),
-            100
-          )
-        )
+            100,
+          ),
+        ),
     );
 
     const user = userEvent.setup();
@@ -465,7 +486,7 @@ describe("MainEntry component", () => {
 
   it("deve renderizar sem filtros quando filtersData está vazio", () => {
     render(
-      <MainEntry {...defaultProps} filtersData={{} as EntryFiltersType} />
+      <MainEntry {...defaultProps} filtersData={{} as EntryFiltersType} />,
     );
 
     expect(screen.getByTestId("date-picker")).toBeInTheDocument();
@@ -480,15 +501,16 @@ describe("MainEntry component", () => {
     expect(dateInput).toHaveValue("2024");
   });
 
-  //   it("deve chamar onChange com o valor correto", async () => {
-  //     const setSelectedYear = vi.fn();
-  //     const user = userEvent.setup();
+  it("deve atualizar o ano ao selecionar uma nova data", async () => {
+    const user = userEvent.setup();
 
-  //     render(<MainEntry {...defaultProps} />);
+    render(<MainEntry {...defaultProps} />);
 
-  //     const input = screen.getByTestId("date-input");
-  //     await user.type(input, "2024-01-01");
+    const input = screen.getByRole("textbox");
 
-  //     expect(setSelectedYear).toHaveBeenCalledWith("2024-01-01");
-  //   });
+    await user.clear(input);
+    await user.type(input, "2024");
+
+    expect(input).toHaveValue("2024");
+  });
 });
