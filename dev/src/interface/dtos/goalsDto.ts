@@ -1,5 +1,5 @@
-import { Transform } from 'class-transformer';
-import { IsArray, IsBoolean, IsOptional } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsArray, IsBoolean, IsNumber, IsOptional } from 'class-validator';
 import { convertParameterValue } from 'src/utils/convertParameterValue';
 
 export class GoalsDTO {
@@ -25,6 +25,11 @@ export class GoalsDTO {
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
   ano?: number[];
+
+  @IsNumber()
+  @IsOptional()
+  @Type(() => Number)
+  anoPlan?: number;
 
   @IsOptional()
   @IsArray()

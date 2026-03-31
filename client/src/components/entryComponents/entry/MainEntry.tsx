@@ -41,7 +41,7 @@ export default function MainEntry({
   });
   const [selectedYear, setSelectedYear] = useState<Dayjs | null>(dayjs());
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
-    {}
+    {},
   );
   const [isPending, startTransition] = useTransition();
 
@@ -66,7 +66,7 @@ export default function MainEntry({
         const response = await fetchData(
           `${process.env.NEXT_PUBLIC_API_URL}/entrada`,
           params,
-          token
+          token,
         );
         setFilteredData(response.data);
       } catch (error: any) {
@@ -90,7 +90,7 @@ export default function MainEntry({
         const response = await fetchData(
           `${process.env.NEXT_PUBLIC_API_URL}/entrada`,
           params,
-          token
+          token,
         );
         setFilteredData(response.data);
       } catch (error: any) {
@@ -114,6 +114,8 @@ export default function MainEntry({
             </LocalizationProvider>
           </div>
           {Object.entries(filtersData).map(([key, value], index) => {
+            if (!value || value.length === 0) return null;
+
             const valueKey = Object.keys(value[0])[0];
             const displayKey = Object.keys(value[0])[1];
 
@@ -124,7 +126,7 @@ export default function MainEntry({
             return (
               <MultipleSelectComponent
                 label={capitalize(key)}
-                menuItems={value || []}
+                menuItems={value}
                 selectedItem={selectedItems[filterValue]}
                 setSelectedItem={(selectedValue) => {
                   setSelectedItems((prev) => ({

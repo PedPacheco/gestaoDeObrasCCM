@@ -4,19 +4,20 @@ import dayjs from "dayjs";
 import { useCallback, useMemo, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
+import { exportExcel } from "@/actions/generateExcel.action";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { FiltersInterface } from "@/interfaces/filtersInterfaces";
 import { getButtonContent } from "@/utils/getButtonContent";
+import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 
 import { ButtonComponent } from "../common/Button";
 import ErrorModal from "../common/ErrorModal";
 import { MultipleSelectComponent } from "../common/MultipleSelect";
 import GoalsTable from "./GoalsTable";
 import ModalTotalGoalValues from "./ModalTotalGoalValues";
-import { mountUrl } from "@/utils/mountUrl";
-import { exportExcel } from "@/actions/generateExcel.action";
 
 export type TypeGoals = "rda" | "recomposicao" | "bt0";
 
@@ -71,6 +72,9 @@ export default function MainGoals({
   const [selectedYear, setSelectedYear] = useState<string[]>(
     () => filters?.ano ?? [defaultYear],
   );
+  const [yearPlan, setYearPlan] = useState<string | null>(
+    () => filters?.ano ?? null,
+  );
   const [selectedRegionais, setSelectedRegionais] = useState<string[]>(
     () => filters?.regional ?? [],
   );
@@ -85,7 +89,7 @@ export default function MainGoals({
   >(() => filters?.empreendimento ?? []);
 
   const years = useMemo(
-    () => Array.from({ length: 7 }, (_, i) => (year - 3 + i).toString()),
+    () => Array.from({ length: 7 }, (_, i) => (year - 1 + i).toString()),
     [year],
   );
 
@@ -94,7 +98,7 @@ export default function MainGoals({
       parceira: selectedParceiras,
       regional: selectedRegionais,
       tipo: selectedTiposObra,
-      ano: selectedYear,
+      ano: selectedYear.length ? selectedYear : [defaultYear],
       empreendimento: selectedEmpreendimento,
     }),
     [
@@ -111,8 +115,9 @@ export default function MainGoals({
       ...Transform(buildParams()),
       btzero: typeGoals === "bt0",
       rda: typeGoals === "rda",
+      anoPlan: yearPlan,
     }),
-    [buildParams, typeGoals],
+    [buildParams, typeGoals, yearPlan],
   );
 
   const toggleModal = useCallback(() => setOpen((prev) => !prev), []);
@@ -140,6 +145,7 @@ export default function MainGoals({
     setSelectedTiposObra([]);
     setSelectedEmpreendimento([]);
     setSelectedYear([defaultYear]);
+    setYearPlan(null);
     clearFilters();
 
     startTransition(async () => {
@@ -196,18 +202,49 @@ export default function MainGoals({
       />
     ),
     recomposicao: (
-      <MultipleSelectComponent
-        label="Tipos de Obra"
-        menuItems={
-          filtersData.tipo?.filter((item) => item.id_grupo === 2) || []
-        }
-        selectedItem={selectedTiposObra}
-        setSelectedItem={setSelectedTiposObra}
-        valueKey="id"
-        displayKey="tipo_obra"
-      />
+      <>
+        <MultipleSelectComponent
+          label="Tipos de Obra"
+          menuItems={
+            filtersData.tipo?.filter((item) => item.id_grupo === 2) || []
+          }
+          selectedItem={selectedTiposObra}
+          setSelectedItem={setSelectedTiposObra}
+          valueKey="id"
+          displayKey="tipo_obra"
+        />
+
+        <FormControl className="mb-2 lg:ml-4 lg:first:ml-0 w-full" size="small">
+          <InputLabel id="ano-plano-label">Ano Plano</InputLabel>
+          <Select
+            labelId="ano-plano-label"
+            label="ano-plano"
+            value={yearPlan || ""}
+            onChange={(e) => setYearPlan(e.target.value)}
+            MenuProps={{
+              PaperProps: { style: { maxHeight: 400 } },
+              MenuListProps: { style: { overflowY: "auto", maxHeight: 400 } },
+            }}
+            fullWidth
+          >
+            <MenuItem value="">
+              <em>Nenhum</em>
+            </MenuItem>
+            {years.map((yearOption) => (
+              <MenuItem key={yearOption} value={yearOption}>
+                {yearOption}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </>
     ),
   };
+
+  const handleYearChange = useCallback((values: string[]) => {
+    if (values.length === 0) return; // bloqueia remoção total
+    setSelectedYear(values);
+  }, []);
 
   return (
     <>
@@ -226,7 +263,7 @@ export default function MainGoals({
             label="Ano"
             menuItems={years}
             selectedItem={selectedYear}
-            setSelectedItem={setSelectedYear}
+            setSelectedItem={handleYearChange}
           />
 
           <MultipleSelectComponent
