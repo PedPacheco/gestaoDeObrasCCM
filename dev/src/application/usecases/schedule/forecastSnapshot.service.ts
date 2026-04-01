@@ -86,6 +86,9 @@ export class ForecastSnapshotService {
         isServicePendLowerThanProg: Boolean(item.isServicePendLowerThanProg),
         isMaterialPendLowerThanProg: Boolean(item.isMaterialPendLowerThanProg),
 
+        forecastTotal: Number(item.forecastTotal ?? 0),
+        execTotal: Number(item.execTotal ?? 0),
+
         diff: Number(item.diff ?? 0),
       })),
     };
@@ -115,6 +118,9 @@ export class ForecastSnapshotService {
         totalMaterialMoPend: Number(item.totalMaterialMoPend ?? 0),
         totalMaterialMoPrev: Number(item.totalMaterialMoPrev ?? 0),
         totalMaterialMoExec: Number(item.totalMaterialMoExec ?? 0),
+
+        totalForecast: Number(item.totalForecast ?? 0),
+        totalExec: Number(item.totalExec ?? 0),
 
         diff: Number(item.diff ?? 0),
       })),

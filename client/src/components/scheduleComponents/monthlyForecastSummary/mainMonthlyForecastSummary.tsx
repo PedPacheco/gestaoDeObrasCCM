@@ -168,6 +168,8 @@ export function MainMonthlyForecastSummarySchedule({
       grupo: dataSecond,
     };
 
+    console.log(data);
+
     const response = await saveForecastSnapshot(data);
 
     if (!response.success) {

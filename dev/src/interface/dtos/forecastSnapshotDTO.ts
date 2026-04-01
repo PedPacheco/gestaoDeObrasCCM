@@ -61,6 +61,12 @@ export class DailySummaryEntryForecastDTO {
   isMaterialPendLowerThanProg: boolean;
 
   @IsNumber()
+  forecastTotal: number;
+
+  @IsNumber()
+  execTotal: number;
+
+  @IsNumber()
   diff: number;
 }
 
@@ -106,6 +112,12 @@ export class DailyForecastSummaryTotalsDTO {
 
   @IsNumber()
   totalMaterialMoExec: number;
+
+  @IsNumber()
+  totalForecast: number;
+
+  @IsNumber()
+  totalExec: number;
 
   @IsNumber()
   totalDiff: number;
