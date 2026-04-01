@@ -96,7 +96,7 @@ export function ExportButton({
             <Typography
               sx={{
                 fontWeight: 600,
-                fontSize: 20,
+                fontSize: 18,
                 textTransform: "uppercase",
                 paddingRight: { xs: 1, md: 8 },
               }}
@@ -109,7 +109,7 @@ export function ExportButton({
                 path === "obras-multas" ? setOpenModal(true) : generateExcel()
               }
               startIcon={<ArrowDownTrayIcon width={20} height={20} />}
-              styled="min-w-48"
+              styled="min-w-48 !h-9"
             />
           </Box>
 

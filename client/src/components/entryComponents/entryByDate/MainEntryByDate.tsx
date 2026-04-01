@@ -135,6 +135,8 @@ export default function MainEntryByDate({
           </LocalizationProvider>
 
           {Object.entries(filtersData).map(([key, value], index) => {
+            if (!value || value.length === 0) return null;
+
             const valueKey = Object.keys(value[0])[0];
             const displayKey = Object.keys(value[0])[1];
 
@@ -145,7 +147,7 @@ export default function MainEntryByDate({
             return (
               <MultipleSelectComponent
                 label={capitalize(displayKey)}
-                menuItems={value || []}
+                menuItems={value}
                 selectedItem={selectedItems[filterValue]}
                 setSelectedItem={(selectedValue) => {
                   setSelectedItems((prev) => ({

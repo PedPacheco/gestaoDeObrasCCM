@@ -118,7 +118,7 @@ describe("EditableColumn component", () => {
         data={{
           ...mockFormData,
           id_turma: undefined as unknown as string,
-          id_status: 1,
+          id_status: null as unknown as number,
         }}
         options={options}
         onHandleChange={onHandleChange}

@@ -108,6 +108,7 @@ export function transformExecutionReport(data: any): ExecutionReportData {
 export function buildPublicationRestrictionPayload(
   data: any,
   enginners: any[],
+  idUser: number,
 ) {
   const responsibleEnginner = enginners.find(
     (enginner) => enginner.idRegional === data.id_regional,
@@ -124,6 +125,8 @@ export function buildPublicationRestrictionPayload(
         ? dayjs(data.resolutionDate).format("DD/MM/YYYY")
         : null,
       observation: data.observacao,
+      constructionObservation: data.observacao_construcao,
+      idUser,
     },
   ];
 

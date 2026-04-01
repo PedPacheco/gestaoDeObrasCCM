@@ -1,22 +1,30 @@
-import { GetMonthlySummaryService } from 'src/application/schedule/getMonthlySummary.service';
-import { GetScheduleValuesService } from 'src/application/schedule/getScheduleValues.service';
-import { GetTotalValuesScheduleService } from 'src/application/schedule/getTotalValuesSchedule.service';
+import { MonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
+import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
+import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
+import { GetTotalValuesScheduleService } from 'src/application/usecases/schedule/getTotalValuesSchedule.service';
+import { RejectionsOfSchedulesService } from 'src/application/usecases/schedule/rejectionOfSchedules.service';
+import { UsersService } from 'src/application/usecases/users.service';
 import { ScheduleController } from 'src/interface/controllers/schedules/schedule.controller';
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
+import {
+  DailyForecastSummaryTotals,
+  DailySummaryEntryForecast,
+  GroupForecastSummaryTotals,
+  GroupTeamSummaryEntryForecast,
+} from 'src/interface/types/schedule/monthlySummaryForecastInterface';
+import { DailySummaryEntry } from 'src/interface/types/schedule/monthlySummaryInterface';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-
-import { RejectionsOfSchedulesService } from 'src/application/schedule/rejectionOfSchedules.service';
-import { UsersService } from 'src/application/users.service';
 
 describe('ScheduleController', () => {
   let scheduleController: ScheduleController;
   let getTotalValuesScheduleService: GetTotalValuesScheduleService;
   let getScheduleValuesService: GetScheduleValuesService;
-  let getMonthlySummaryService: GetMonthlySummaryService;
+  let getMonthlySummaryService: MonthlySummaryService;
   let rejectionsOfSchedulesService: RejectionsOfSchedulesService;
+  let getMonthlySummaryForecastService: GetMonthlySummaryForecastService;
 
   const mockScheduleData: GetScheduleValuesResponse = {
     works: [
@@ -92,7 +100,14 @@ describe('ScheduleController', () => {
           },
         },
         {
-          provide: GetMonthlySummaryService,
+          provide: MonthlySummaryService,
+          useValue: {
+            getSummary: jest.fn(),
+            getSecondSummary: jest.fn(),
+          },
+        },
+        {
+          provide: GetMonthlySummaryForecastService,
           useValue: {
             getSummary: jest.fn(),
             getSecondSummary: jest.fn(),
@@ -113,9 +128,13 @@ describe('ScheduleController', () => {
     getScheduleValuesService = module.get<GetScheduleValuesService>(
       GetScheduleValuesService,
     );
-    getMonthlySummaryService = module.get<GetMonthlySummaryService>(
-      GetMonthlySummaryService,
+    getMonthlySummaryService = module.get<MonthlySummaryService>(
+      MonthlySummaryService,
     );
+    getMonthlySummaryForecastService =
+      module.get<GetMonthlySummaryForecastService>(
+        GetMonthlySummaryForecastService,
+      );
     rejectionsOfSchedulesService = module.get<RejectionsOfSchedulesService>(
       RejectionsOfSchedulesService,
     );
@@ -273,38 +292,84 @@ describe('ScheduleController', () => {
       idParceira: [1],
     };
 
-    const getMonthlySummaryResponse = [
+    const dailySummaryMock: DailySummaryEntry[] = [
       {
-        dataProg: '2024-11-01',
-        totalQtde: 5,
-        totalMoProg: 103682.18347999999,
-        totalMoExec: 95076.57347999999,
-        totalMoPrev: 95076.57347999999,
+        dataProg: '2026-03-01',
+        totalQtde: 25,
+        teamsTotal: 8,
+        financialGoal: 15000,
+        financialGoalWith8: 18000,
+        diaryGoal: 1200,
+        diaryGoalWith8: 1500,
+        totalMoProg: 14000,
+        totalMoExec: 13000,
+        diff: -1000,
       },
       {
-        dataProg: '2024-11-02',
-        totalQtde: 1,
-        totalMoProg: 14459.3,
-        totalMoExec: 0,
-        totalMoPrev: 0,
+        dataProg: '2026-03-02',
+        totalQtde: 30,
+        teamsTotal: 10,
+        financialGoal: 20000,
+        financialGoalWith8: 22000,
+        diaryGoal: 1600,
+        diaryGoalWith8: 1800,
+        totalMoProg: 19500,
+        totalMoExec: 21000,
+        diff: 1500,
+      },
+    ];
+
+    const getSecondMonthlySummaryResponse = [
+      {
+        grupo: 'RECOMPOSIÇÃO',
+        turma: 'ENGELMIG',
+        qtdeWorks: 49,
+        totalMoPlan: 1075887.9138599995,
+        totalMoProg: 1075887.9138599995,
+        totalMoPend: 0,
+        totalMoExec: 556246.1940299999,
+        totalMoPrev: 948862.9654299996,
+        diff: 55,
+      },
+      {
+        grupo: 'BT ZERO',
+        turma: 'ENGELMIG',
+        qtdeWorks: 19,
+        totalMoPlan: 673067.8821099999,
+        totalMoProg: 673067.8821099999,
+        totalMoPend: 0,
+        totalMoExec: 541923.11811,
+        totalMoPrev: 623527.0451099998,
+        diff: 98,
       },
     ];
 
     jest
       .spyOn(getMonthlySummaryService, 'getSummary')
-      .mockResolvedValue(getMonthlySummaryResponse);
+      .mockResolvedValue({ summary: dailySummaryMock, totals: {} as any });
+
+    jest.spyOn(getMonthlySummaryService, 'getSecondSummary').mockResolvedValue({
+      summary: getSecondMonthlySummaryResponse,
+      totals: {} as any,
+    });
 
     const result = await scheduleController.getMonthlySummary(filters);
 
     expect(result).toEqual({
       statusCode: HttpStatus.OK,
       message: 'Resumo mensal retornado com sucesso',
-      data: getMonthlySummaryResponse,
+      data: {
+        firstSummary: { summary: dailySummaryMock, totals: {} as any },
+        secondSummary: {
+          summary: getSecondMonthlySummaryResponse,
+          totals: {} as any,
+        },
+      },
     });
     expect(getMonthlySummaryService.getSummary).toHaveBeenCalledWith(filters);
   });
 
-  it('Should call method getSecondMonthlySummary and return data with correct format', async () => {
+  it('Should call getMonthlySummaryForecast method and return correct data', async () => {
     const filters = {
       date: '11/2024',
       idRegional: [1],
@@ -313,35 +378,153 @@ describe('ScheduleController', () => {
       idParceira: [1],
     };
 
-    const getSecondMonthlySummaryResponse = [
+    const dailySummaryForecastMock: DailySummaryEntryForecast[] = [
       {
-        grupo: 'RECOMPOSIÇÃO',
-        turma: 'ENGELMIG',
-        totalMoProg: 1075887.9138599995,
-        totalMoExec: 556246.1940299999,
-        totalMoPrev: 948862.9654299996,
+        dataProg: '2026-03-01',
+        qtdeWorks: 20,
+        teams: 6,
+        financialGoal: 18000,
+        diaryGoal: 1200,
+        serviceMoProg: 9000,
+        serviceMoPlan: 8500,
+        serviceMoPend: 500,
+        serviceMoExec: 8000,
+        materialMoProg: 6000,
+        materialMoPlan: 5800,
+        materialMoPend: 200,
+        materialMoExec: 5600,
+        diff: -900,
+        serviceMoForecast: 500,
+        materialMoForecast: 200,
+        execTotal: 12000,
+        forecastTotal: 14000,
+        isMaterialPendLowerThanProg: true,
+        isServicePendLowerThanProg: true,
       },
       {
-        grupo: 'BT ZERO',
-        turma: 'ENGELMIG',
-        totalMoProg: 673067.8821099999,
-        totalMoExec: 541923.11811,
-        totalMoPrev: 623527.0451099998,
+        dataProg: '2026-03-02',
+        qtdeWorks: 28,
+        teams: 9,
+        financialGoal: 22000,
+        diaryGoal: 1500,
+        serviceMoProg: 11000,
+        serviceMoPlan: 10500,
+        serviceMoPend: 500,
+        serviceMoExec: 10800,
+        materialMoProg: 7000,
+        materialMoPlan: 6800,
+        materialMoPend: 200,
+        materialMoExec: 7200,
+        diff: 1000,
+        serviceMoForecast: 500,
+        materialMoForecast: 200,
+        execTotal: 12000,
+        forecastTotal: 14000,
+        isMaterialPendLowerThanProg: true,
+        isServicePendLowerThanProg: true,
       },
     ];
 
-    jest
-      .spyOn(getMonthlySummaryService, 'getSecondSummary')
-      .mockResolvedValue(getSecondMonthlySummaryResponse);
+    const mockDailySummaryTotals: DailyForecastSummaryTotals = {
+      totalQtdeObras: 10,
+      totalTeams: 5,
+      totalFinancialGoal: 50000,
+      totalDiaryGoal: 2000,
+      totalServiceMoProg: 15000,
+      totalServiceMoPlan: 20000,
+      totalServiceMoPend: 5000,
+      totalServiceMoExec: 12000,
+      totalServiceMoForecast: 15000,
+      totalMaterialMoProg: 10000,
+      totalMaterialMoPlan: 15000,
+      totalMaterialMoPend: 5000,
+      totalMaterialMoForecast: 10000,
+      totalMaterialMoExec: 8000,
+      totalExec: 20000,
+      totalForecast: 25000,
+      totalDiff: 3000,
+    };
 
-    const result = await scheduleController.getSecondMonthlySummary(filters);
+    const getSecondMonthlySummaryForecastResponse: GroupTeamSummaryEntryForecast[] =
+      [
+        {
+          grupo: 'RECOMPOSIÇÃO',
+          turma: 'ENGELMIG',
+          qtdeWorks: 49,
+          totalServiceMoProg: 1075887.9138599995,
+          totalServiceMoPlan: 0,
+          totalServiceMoPend: 0,
+          totalServiceMoPrev: 948862.9654299996,
+          totalServiceMoExec: 556246.1940299999,
+          totalMaterialMoProg: 0,
+          totalMaterialMoPlan: 0,
+          totalMaterialMoPend: 0,
+          totalMaterialMoPrev: 0,
+          totalMaterialMoExec: 0,
+          diff: 55,
+        },
+        {
+          grupo: 'BT ZERO',
+          turma: 'ENGELMIG',
+          qtdeWorks: 19,
+          totalServiceMoProg: 673067.8821099999,
+          totalServiceMoPlan: 0,
+          totalServiceMoPend: 0,
+          totalServiceMoPrev: 623527.0451099998,
+          totalServiceMoExec: 541923.11811,
+          totalMaterialMoProg: 0,
+          totalMaterialMoPlan: 0,
+          totalMaterialMoPend: 0,
+          totalMaterialMoPrev: 0,
+          totalMaterialMoExec: 0,
+          diff: 98,
+        },
+      ];
+
+    const mockGroupSummaryTotals: GroupForecastSummaryTotals = {
+      totalWorks: 12,
+      totalServiceMoProgByGrouping: 18000,
+      totalServiceMoPlanByGrouping: 22000,
+      totalServiceMoPendByGrouping: 4000,
+      totalServiceMoExecByGrouping: 15000,
+      totalMaterialMoProgByGrouping: 12000,
+      totalMaterialMoPlanByGrouping: 16000,
+      totalMaterialMoPendByGrouping: 4000,
+      totalMaterialMoExecByGrouping: 9000,
+      totalDiff: 3000,
+    };
+
+    jest
+      .spyOn(getMonthlySummaryForecastService, 'getSummary')
+      .mockResolvedValue({
+        summary: dailySummaryForecastMock,
+        totals: mockDailySummaryTotals,
+      });
+
+    jest
+      .spyOn(getMonthlySummaryForecastService, 'getSecondSummary')
+      .mockResolvedValue({
+        summary: getSecondMonthlySummaryForecastResponse,
+        totals: mockGroupSummaryTotals,
+      });
+
+    const result = await scheduleController.getMonthlySummaryForecast(filters);
 
     expect(result).toEqual({
       statusCode: HttpStatus.OK,
-      message: 'Resumo mensal retornado com sucesso',
-      data: getSecondMonthlySummaryResponse,
+      message: 'Resumo mensal do Forecast retornado com sucesso',
+      data: {
+        firstSummary: {
+          summary: dailySummaryForecastMock,
+          totals: mockDailySummaryTotals,
+        },
+        secondSummary: {
+          summary: getSecondMonthlySummaryForecastResponse,
+          totals: mockGroupSummaryTotals,
+        },
+      },
     });
-    expect(getMonthlySummaryService.getSecondSummary).toHaveBeenCalledWith(
+    expect(getMonthlySummaryForecastService.getSummary).toHaveBeenCalledWith(
       filters,
     );
   });

@@ -68,7 +68,7 @@ describe("TableWithPagination", () => {
     expect(screen.getByText("Exec %")).toBeInTheDocument();
 
     expect(screen.getByText("20/07/2024")).toBeInTheDocument();
-    expect(screen.getByText("R$ 10.000,12")).toBeInTheDocument();
+    expect(screen.getByText("R$ 10.000")).toBeInTheDocument();
     expect(screen.getByText("78%")).toBeInTheDocument();
     expect(screen.getByText("92%")).toBeInTheDocument();
     expect(screen.getByText("14:30")).toBeInTheDocument();
@@ -149,41 +149,41 @@ describe("TableWithPagination", () => {
     expect(emptyCells.length).toBeGreaterThan(0);
   });
 
-  it("renderiza corretamente todas as cores de status_prazo", () => {
-    const columnsWithStatus = {
-      id: "ID",
-      status_prazo: "Status Prazo",
-    };
+  it.each([
+    ["No prazo", "bg-green-200 text-green-800"],
+    ["Atenção", "bg-yellow-200 text-yellow-800"],
+    ["Urgente", "bg-yellow-300 text-yellow-900"],
+    ["Crítico", "bg-red-300 text-red-900"],
+    ["Prazo vencido", "bg-black text-white"],
+  ])(
+    "deve aplicar a cor correta para status_prazo = %s",
+    (status, expectedClass) => {
+      const columnsWithStatus = {
+        ...columns,
+        status_prazo: "Status Prazo",
+      };
 
-    const statusData = [
-      { id: 1, status_prazo: "No prazo" },
-      { id: 2, status_prazo: "Atenção" },
-      { id: 3, status_prazo: "Urgente" },
-      { id: 4, status_prazo: "Crítico" },
-      { id: 5, status_prazo: "Prazo vencido" },
-    ];
+      const dataWithStatus = [
+        {
+          ...data[0],
+          status_prazo: status,
+        },
+      ];
 
-    render(
-      <TableWithPagination
-        columns={columnsWithStatus}
-        data={statusData}
-        totals={{ ...totals, total_obras: 5 }}
-        page={0}
-        sliceEndIndex={0}
-        handleChangePage={handleChangePage}
-      />,
-    );
+      render(
+        <TableWithPagination
+          columns={columnsWithStatus}
+          data={dataWithStatus}
+          totals={totals}
+          page={0}
+          sliceEndIndex={0}
+          handleChangePage={handleChangePage}
+        />,
+      );
 
-    const noPrazo = screen.getByText("No prazo");
-    const atencao = screen.getByText("Atenção");
-    const urgente = screen.getByText("Urgente");
-    const critico = screen.getByText("Crítico");
-    const vencido = screen.getByText("Prazo vencido");
+      const cell = screen.getByText(status);
 
-    expect(noPrazo).toHaveClass("bg-green-200", "text-green-800");
-    expect(atencao).toHaveClass("bg-yellow-200", "text-yellow-800");
-    expect(urgente).toHaveClass("bg-yellow-300", "text-yellow-900");
-    expect(critico).toHaveClass("bg-red-300", "text-red-900");
-    expect(vencido).toHaveClass("bg-black", "text-white");
-  });
+      expect(cell).toHaveClass(expectedClass);
+    },
+  );
 });

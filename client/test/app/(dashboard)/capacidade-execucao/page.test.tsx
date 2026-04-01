@@ -60,8 +60,8 @@ describe("Execution Capacity page", () => {
 
   const mockParamsFilters = JSON.stringify({
     selectedItems: {
-      regionalId: 1,
-      partnerId: 2,
+      idRegional: 1,
+      idParceira: 2,
     },
   });
 
@@ -100,12 +100,12 @@ describe("Execution Capacity page", () => {
     expect(fetchData).toHaveBeenCalledWith(
       "https://api.example.com/capacidade-execucao",
       {
-        regionalId: 1,
-        partnerId: 2,
-        year: "2026",
+        idRegional: 1,
+        idParceira: 2,
+        ano: "2026",
       },
       mockToken,
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
   });
 
@@ -120,10 +120,10 @@ describe("Execution Capacity page", () => {
     expect(fetchData).toHaveBeenCalledWith(
       "https://api.example.com/capacidade-execucao",
       {
-        year: "2026",
+        ano: "2026",
       },
       mockToken,
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
   });
 

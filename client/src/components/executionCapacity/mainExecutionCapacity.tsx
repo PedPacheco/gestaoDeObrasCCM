@@ -4,40 +4,53 @@ import "dayjs/locale/pt-br";
 
 import dayjs from "dayjs";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+} from "react";
 
 import { UpdateExecutionCapacity } from "@/actions/executionCapacity";
 import { fetchData } from "@/actions/fetchData.action";
 import { FiltersInterface } from "@/interfaces/filtersInterfaces";
 import { getButtonContent } from "@/utils/getButtonContent";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+import { Transform } from "@/utils/transform";
 
 import { ButtonComponent } from "../common/Button";
-import ErrorModal from "../common/ErrorModal";
-import ModalComponent from "../common/Modal";
+
 import { FiltersExecutionCapacity } from "./filtersExecutionCapacity";
 import { FinancialValuesModal } from "./financialValuesModal";
 import { useFeedback } from "@/hooks/useFeedback";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type RowData = Record<string, string | number | null>;
+
+type FetchParams = Record<string, string | string[] | number | boolean | null>;
 
 interface MainExecutionCapacityProps {
   columns: Record<string, string>;
   token: string;
   data: {
     financialValues: Record<string, string | number>[];
-    executionCapacityValues: Record<string, string | number>[];
+    executionCapacityValues: RowData[];
   };
   filtersData: FiltersInterface;
 }
+
+// ─── Dynamic Import ───────────────────────────────────────────────────────────
 
 const TableComponent = dynamic(
   () =>
     import("@/components/executionCapacity/executionCapacityTable").then(
       (mod) => mod.ExecutionCapacityTable,
     ),
-  {
-    ssr: false,
-  },
+  { ssr: false },
 );
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export function MainExecutionCapacity({
   columns,
@@ -48,101 +61,113 @@ export function MainExecutionCapacity({
   const [isPending, startTransition] = useTransition();
 
   const [year, setYear] = useState<string>(dayjs().year().toString());
-  const [teams, setTeams] = useState<string | null>(null);
-  const [selectedItems, setSelectedItems] = useState<Record<string, string>>(
+  const [teams, setTeams] = useState<string[] | null>(null);
+  const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {},
   );
 
-  const [tableData, setTableData] = useState<
-    Record<string, string | number | null>[]
-  >(data.executionCapacityValues);
+  const [tableData, setTableData] = useState<RowData[]>(
+    data.executionCapacityValues,
+  );
   const [financialData, setFinancialData] = useState<
     Record<string, string | number>[]
   >(data.financialValues);
 
   const [openModal, setOpenModal] = useState<boolean>(false);
-  const [openFinancialModal, setOpenFinanciealModal] = useState<boolean>(false);
+  const [openFinancialModal, setOpenFinancialModal] = useState<boolean>(false); // fix: typo no setter
 
-  const [success, setSuccess] = useState<string | null>(null);
-  const { showError } = useFeedback();
+  const { showError, showSuccess } = useFeedback();
 
+  // Improvement #6: dependências granulares para evitar execuções desnecessárias
   useEffect(() => {
     setTableData(data.executionCapacityValues);
     setFinancialData(data.financialValues);
-  }, [data]);
+  }, [data.executionCapacityValues, data.financialValues]);
 
+  // Improvement #5: lógica do useMemo separada em funções nomeadas para melhor legibilidade
   const changedData = useMemo(() => {
-    return tableData
-      .filter((row) => {
-        const original = data.executionCapacityValues.find(
-          (d) => d.id === row.id,
-        );
-        if (!original) return true;
+    const getOriginal = (id: unknown) =>
+      data.executionCapacityValues.find((d) => d.id === id) ?? {};
 
-        return Object.keys(row).some((key) => row[key] !== original[key]);
-      })
-      .map((row) => {
-        const originalRow =
-          data.executionCapacityValues.find((d) => d.id === row.id) || {};
+    const hasChanges = (row: RowData): boolean => {
+      const original = getOriginal(row.id);
+      return (
+        !original ||
+        Object.keys(row).some(
+          (key) => row[key] !== original[key as keyof typeof original],
+        )
+      );
+    };
 
-        const changes: Record<string, number | null> = { id: row.id as number };
+    const toChangeset = (row: RowData): Record<string, number | null> => {
+      const original = getOriginal(row.id);
+      const changes: Record<string, number | null> = { id: row.id as number };
 
-        Object.keys(row).forEach((key) => {
-          if (row[key] !== originalRow[key])
-            changes[key] =
-              row[key] === null || row[key] === "" || row[key] === undefined
-                ? null
-                : Number(row[key]);
-        });
-        return changes;
-      });
-  }, [tableData, data]);
-
-  const handleDataFetch = async (url: string, params: any) => {
-    startTransition(async () => {
-      try {
-        const response = await fetchData(url, params, token, {
-          cache: "no-store",
-        });
-
-        if (!response.success) {
-          showError(response.message);
-          return;
+      Object.keys(row).forEach((key) => {
+        if (row[key] !== original[key as keyof typeof original]) {
+          const val = row[key];
+          changes[key] = val == null || val === "" ? null : Number(val);
         }
+      });
 
-        setTableData(response.data.executionCapacityValues);
-        setFinancialData(response.data.financialValues);
-      } catch (error: any) {
-        showError(error.message);
-      }
-    });
-  };
+      return changes;
+    };
 
-  const handleApplyFilters = () => {
-    const newSelectedItems = {
-      regionalId: selectedItems.idRegional,
-      partnerId: selectedItems.idParceira,
-      teams: teams || "",
-      year,
+    return tableData.filter(hasChanges).map(toChangeset);
+  }, [tableData, data.executionCapacityValues]);
+
+  // Improvement #1 e #2: handlers memoizados com useCallback
+  const handleDataFetch = useCallback(
+    async (url: string, params: FetchParams) => {
+      startTransition(async () => {
+        try {
+          const response = await fetchData(url, params, token, {
+            cache: "no-store",
+          });
+
+          if (!response.success) {
+            showError(response.message);
+            return;
+          }
+
+          setTableData(response.data.executionCapacityValues);
+          setFinancialData(response.data.financialValues);
+        } catch (error) {
+          // Improvement #3: sem any no catch
+          if (error instanceof Error) showError(error.message);
+        }
+      });
+    },
+    [showError, token],
+  );
+
+  const handleApplyFilters = useCallback(() => {
+    const params: FetchParams = {
+      ...Transform(selectedItems),
+      equipe: teams,
+      ano: year,
     };
 
     handleDataFetch(
       `${process.env.NEXT_PUBLIC_API_URL}/capacidade-execucao`,
-      newSelectedItems,
+      params,
     );
-  };
+  }, [selectedItems, teams, year, handleDataFetch]);
 
-  const handleClearFilters = async () => {
+  const handleClearFilters = useCallback(() => {
+    // Improvement #7: usa o valor calculado diretamente para evitar uso do estado desatualizado
+    const currentYear = dayjs().year().toString();
+
     setSelectedItems({});
     setTeams(null);
-    setYear(dayjs().year().toString());
+    setYear(currentYear);
 
     handleDataFetch(`${process.env.NEXT_PUBLIC_API_URL}/capacidade-execucao`, {
-      year,
+      ano: currentYear,
     });
-  };
+  }, [handleDataFetch]);
 
-  const handleSaveChangedData = () => {
+  const handleSaveChangedData = useCallback(() => {
     startTransition(async () => {
       try {
         const response = await UpdateExecutionCapacity(changedData);
@@ -152,19 +177,24 @@ export function MainExecutionCapacity({
           return;
         }
 
-        setSuccess(response.message);
+        showSuccess(response.message);
         setOpenModal(true);
-      } catch (error: any) {
-        showError(error.message);
+      } catch (error) {
+        // Improvement #3: sem any no catch
+        if (error instanceof Error) showError(error.message);
       }
     });
-  };
+  }, [showError, showSuccess, changedData]);
 
-  const toggleModal = () => setOpenModal((prev) => !prev);
-  const toggleFinancialModal = () => setOpenFinanciealModal((prev) => !prev);
+  const toggleModal = useCallback(() => setOpenModal((prev) => !prev), []);
+
+  const toggleFinancialModal = useCallback(
+    () => setOpenFinancialModal((prev) => !prev),
+    [],
+  );
 
   return (
-    <div className="w-full h-4/5 ">
+    <div className="w-full h-4/5">
       <div className="w-full flex justify-between">
         <div className="w-full">
           <div className="flex flex-col justify-center items-center lg:flex-row lg:justify-start lg:items-start pt-4 px-4">
@@ -194,6 +224,7 @@ export function MainExecutionCapacity({
             />
           </div>
         </div>
+
         <div className="w-[480px] pt-8 pr-16 flex justify-center">
           <ButtonComponent
             text="Financeiro"
@@ -219,10 +250,6 @@ export function MainExecutionCapacity({
           />
         </div>
       </div>
-
-      <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
-        <span className=" font-semibold text-xl">{success}</span>
-      </ModalComponent>
 
       <FinancialValuesModal
         data={financialData}

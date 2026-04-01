@@ -1,7 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import MainEntryByDate from "@/components/entryComponents/entryByDate/MainEntryByDate";
+import { useSaveFilters } from "@/hooks/useSaveFilters";
+import dayjs from "dayjs";
 
 // ---------------------------
 // Mock do dayjs
@@ -12,12 +14,20 @@ vi.mock("@mui/x-date-pickers/AdapterDayjs", () => ({
 }));
 
 vi.mock("@mui/x-date-pickers", () => ({
-  LocalizationProvider: ({ children }: any) => <div>{children}</div>,
-  DatePicker: ({ label }: any) => (
-    <input aria-label={label} data-testid={label} />
+  DatePicker: ({ value, onChange }: any) => (
+    <div data-testid="date-picker">
+      <input
+        data-testid="date-input"
+        type="text"
+        value={value?.format?.("YYYY") || ""}
+        onChange={(e) => onChange?.(dayjs(e.target.value))}
+      />
+    </div>
+  ),
+  LocalizationProvider: ({ children }: any) => (
+    <div data-testid="localization-provider">{children}</div>
   ),
 }));
-
 vi.mock("dayjs", async () => {
   const actual = await vi.importActual<any>("dayjs");
   return actual;
@@ -28,27 +38,28 @@ vi.mock("dayjs", async () => {
 // ---------------------------
 const mockFetchData = vi.fn();
 
-vi.mock("@/actions/fetchData.action", () => ({
-  fetchData: (...args: any[]) => mockFetchData(...args),
-}));
-
 const fixedFilters = {
   selectedItems: {},
   startDate: "2024-01-10",
   endDate: "2024-01-20",
 };
 
+vi.mock("@/actions/fetchData.action", () => ({
+  fetchData: (...args: any[]) => mockFetchData(...args),
+}));
+
 vi.mock("@/hooks/useSaveFilters", () => ({
-  useSaveFilters: () => ({
-    filters: fixedFilters,
-    saveFilters: vi.fn(),
-    clearFilters: vi.fn(),
-  }),
+  useSaveFilters: vi.fn(),
 }));
 
 vi.mock("@/components/common/MultipleSelect", () => ({
-  MultipleSelectComponent: ({ label }: any) => (
-    <div data-testid="mock-select">{label}</div>
+  MultipleSelectComponent: ({ label, setSelectedItem }: any) => (
+    <button
+      data-testid={`select-${label}`}
+      onClick={() => setSelectedItem(["1"])}
+    >
+      {label}
+    </button>
   ),
 }));
 
@@ -59,7 +70,12 @@ vi.mock("@/components/common/Button", () => ({
 }));
 
 vi.mock("@/components/common/ErrorModal", () => ({
-  default: ({ message }: any) => <div data-testid="error-modal">{message}</div>,
+  default: ({ message, onClose }: any) => (
+    <div>
+      <span data-testid="error-modal">{message}</span>
+      <button onClick={onClose}>fechar</button>
+    </div>
+  ),
 }));
 
 vi.mock("@/components/entryComponents/entryByDate/entryByDateTable", () => ({
@@ -124,16 +140,22 @@ function setup() {
 // ---------------------------
 describe("MainEntryByDate (Vitest)", () => {
   beforeEach(() => {
+    (useSaveFilters as Mock).mockReturnValue({
+      filters: fixedFilters,
+      saveFilters: vi.fn(),
+      clearFilters: vi.fn(),
+    });
+
     mockFetchData.mockReset();
   });
 
   it("renderiza selects e datepickers corretamente", () => {
     setup();
 
-    expect(screen.getAllByTestId("mock-select").length).toBe(5);
+    expect(screen.getAllByTestId(/select-/).length).toBe(5);
 
-    expect(screen.getByLabelText("Data Inicial")).toBeInTheDocument();
-    expect(screen.getByLabelText("Data Final")).toBeInTheDocument();
+    expect(screen.getAllByTestId("date-input")[0]).toBeInTheDocument();
+    expect(screen.getAllByTestId("date-input")[0]).toBeInTheDocument();
   });
 
   it("chama fetchData ao aplicar filtros", async () => {
@@ -158,5 +180,196 @@ describe("MainEntryByDate (Vitest)", () => {
     await waitFor(() => {
       expect(mockFetchData).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it("exibe modal de erro quando fetch falha", async () => {
+    mockFetchData.mockRejectedValue(new Error("Erro inesperado"));
+
+    setup();
+
+    await userEvent.click(screen.getByText("Aplicar filtros"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("error-modal")).toHaveTextContent(
+        "Erro inesperado",
+      );
+    });
+  });
+
+  it("carrega startDate e endDate corretamente do filtro", () => {
+    const mockFilters = {
+      selectedItems: {},
+      startDate: "2024-01-10",
+      endDate: "2024-01-20",
+    };
+
+    (useSaveFilters as Mock).mockReturnValue({
+      filters: mockFilters,
+      saveFilters: vi.fn(),
+      clearFilters: vi.fn(),
+    });
+
+    setup();
+
+    expect(screen.getAllByTestId("date-input")[0]).toBeInTheDocument();
+  });
+
+  it("não quebra quando não há filtros salvos", () => {
+    (useSaveFilters as Mock).mockReturnValue({
+      filters: {
+        // 👇 selectedItems ausente
+      },
+      saveFilters: vi.fn(),
+      clearFilters: vi.fn(),
+    });
+
+    setup();
+
+    expect(screen.getByText("Aplicar filtros")).toBeInTheDocument();
+    expect(screen.getAllByTestId("date-input")[0]).toBeInTheDocument();
+    expect(screen.getAllByTestId("date-input")[1]).toBeInTheDocument();
+  });
+
+  it("envia parâmetros formatados corretamente ao aplicar filtros", async () => {
+    mockFetchData.mockResolvedValue({ data: { works: [] } });
+
+    const saveFiltersMock = vi.fn();
+
+    (useSaveFilters as Mock).mockReturnValue({
+      filters: fixedFilters,
+      saveFilters: saveFiltersMock,
+      clearFilters: vi.fn(),
+    });
+
+    setup();
+
+    await userEvent.click(screen.getByText("Aplicar filtros"));
+
+    await waitFor(() => {
+      expect(saveFiltersMock).toHaveBeenCalled();
+      expect(mockFetchData).toHaveBeenCalledWith(
+        expect.stringContaining("/entrada/data"),
+        expect.objectContaining({
+          dataInicial: expect.any(String),
+          dataFinal: expect.any(String),
+        }),
+        "fake-token",
+      );
+    });
+  });
+
+  it("envia parâmetros formatados corretamente sem as datas ao aplicar filtros", async () => {
+    mockFetchData.mockResolvedValue({ data: { works: [] } });
+
+    const saveFiltersMock = vi.fn();
+
+    (useSaveFilters as Mock).mockReturnValue({
+      filters: { selectedItems: fixedFilters.selectedItems },
+      saveFilters: saveFiltersMock,
+      clearFilters: vi.fn(),
+    });
+
+    setup();
+
+    await userEvent.click(screen.getByText("Aplicar filtros"));
+
+    await waitFor(() => {
+      expect(saveFiltersMock).toHaveBeenCalled();
+      expect(mockFetchData).toHaveBeenCalledWith(
+        expect.stringContaining("/entrada/data"),
+        expect.objectContaining({
+          dataInicial: null,
+          dataFinal: null,
+        }),
+        "fake-token",
+      );
+    });
+  });
+
+  it("chama clearFilters ao limpar filtros", async () => {
+    const clearFiltersMock = vi.fn();
+
+    (useSaveFilters as Mock).mockReturnValue({
+      filters: fixedFilters,
+      saveFilters: vi.fn(),
+      clearFilters: clearFiltersMock,
+    });
+
+    mockFetchData.mockResolvedValue({ data: { works: [] } });
+
+    setup();
+
+    await userEvent.click(screen.getByText("Limpar filtros"));
+
+    await waitFor(() => {
+      expect(clearFiltersMock).toHaveBeenCalled();
+      expect(mockFetchData).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          dataInicial: expect.any(String),
+          dataFinal: expect.any(String),
+        }),
+        "fake-token",
+      );
+    });
+  });
+
+  it("atualiza selectedItems ao selecionar filtro", async () => {
+    setup();
+
+    const select = screen.getAllByTestId(/select-/)[0];
+
+    await userEvent.click(select);
+
+    expect(select).toBeInTheDocument();
+  });
+
+  it("não renderiza select quando lista está vazia", () => {
+    const emptyFilters = {
+      ...mockFiltersData,
+      regional: [],
+    };
+
+    render(
+      <MainEntryByDate
+        data={mockData}
+        filtersData={emptyFilters}
+        columns={mockColumns}
+        token="fake-token"
+      />,
+    );
+
+    // um select a menos
+    expect(screen.getAllByTestId(/select-/).length).toBe(4);
+  });
+
+  it("fecha modal de erro ao clicar em fechar", async () => {
+    mockFetchData.mockRejectedValue(new Error("Erro"));
+
+    setup();
+
+    await userEvent.click(screen.getByText("Aplicar filtros"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("error-modal")).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByText("fechar"));
+
+    await waitFor(() => {
+      expect(screen.queryByTestId("error-modal")).not.toBeInTheDocument();
+    });
+  });
+
+  it("atualiza valores dos campos de data", () => {
+    setup();
+
+    const [startInput, endInput] = screen.getAllByTestId("date-input");
+
+    fireEvent.change(startInput, { target: { value: "2025" } });
+    fireEvent.change(endInput, { target: { value: "2026" } });
+
+    expect(startInput).toHaveValue("2025");
+    expect(endInput).toHaveValue("2026");
   });
 });

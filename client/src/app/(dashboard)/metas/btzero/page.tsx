@@ -18,9 +18,14 @@ export default async function Bt0Goals() {
   let params = cookieParams ? JSON.parse(cookieParams) : undefined;
 
   if (params) {
-    params = { ...Transform(params), btzero: true, rda: false };
+    params = { ...Transform(params), anoPlan: null, btzero: true, rda: false };
   } else {
-    params = { ano: dayjs().year().toString(), btzero: true, rda: false };
+    params = {
+      ano: dayjs().year().toString(),
+      anoPlan: null,
+      btzero: true,
+      rda: false,
+    };
   }
 
   const [filters, bt0GoalsData] = await Promise.all([

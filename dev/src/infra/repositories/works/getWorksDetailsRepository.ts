@@ -50,6 +50,7 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
         qtde_planejada: true,
         qtde_pend: true,
         mo_planejada: true,
+        mo_pend: true,
         mo_final: true,
         executado: true,
         referencia: true,

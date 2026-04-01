@@ -74,7 +74,7 @@ interface WorkData {
   status_150: string;
   ordem_dcim: string;
   status_180: string;
-  executado: string;
+  executado: number;
   ano_plan: string;
   empreendimento: string;
   id_status: number;
@@ -195,9 +195,8 @@ export function WorkDetails({
   );
 
   const canShowPublicationButton = useMemo(
-    () =>
-      isMounted && permissions?.permissao_publicacao && data.id_status === 2,
-    [isMounted, permissions?.permissao_publicacao, data.id_status],
+    () => isMounted && permissions?.permissao_publicacao && data.executado > 0,
+    [isMounted, permissions?.permissao_publicacao, data.executado],
   );
 
   const canEditObservation = useMemo(

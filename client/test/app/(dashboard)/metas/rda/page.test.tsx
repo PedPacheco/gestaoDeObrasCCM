@@ -76,7 +76,7 @@ describe("RdaGoals Page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
-    vi.setSystemTime(new Date("2025-05-26"));
+    vi.setSystemTime(dayjs("2025-05-26").toDate());
 
     vi.mocked(cookiesModule.cookies).mockResolvedValue(mockCookieStore as any);
 
@@ -106,13 +106,12 @@ describe("RdaGoals Page", () => {
         regional: "Regional 1",
         parceira: "Parceira X",
         ano: "2025",
+        anoPlan: null,
         btzero: false,
         rda: true,
       },
       mockToken,
-      {
-        cache: "no-store",
-      },
+      { cache: "no-store" },
     );
   });
 
@@ -128,13 +127,12 @@ describe("RdaGoals Page", () => {
       "https://api.example.com/metas",
       {
         ano: "2025",
+        anoPlan: null,
         btzero: false,
         rda: true,
       },
       mockToken,
-      {
-        cache: "no-store",
-      },
+      { cache: "no-store" },
     );
   });
 

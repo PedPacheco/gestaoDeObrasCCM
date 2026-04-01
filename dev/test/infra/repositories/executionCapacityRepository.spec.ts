@@ -34,9 +34,9 @@ describe('ExecutionCapacityRepository', () => {
 
       const filters = {
         ano: '2025',
-        id_turma: 1,
-        id_regional: 1,
-        equipe: 'LM',
+        idParceira: [1],
+        idRegional: [1],
+        equipe: ['LM'],
       };
 
       const response = await repository.get(filters);
@@ -65,7 +65,12 @@ describe('ExecutionCapacityRepository', () => {
           nov: true,
           dez: true,
         },
-        where: filters,
+        where: {
+          ano: '2025',
+          id_turma: { in: [1] },
+          id_regional: { in: [1] },
+          equipe: { in: ['LM'] },
+        },
         orderBy: [{ regionais: { id: 'asc' } }, { equipe: { sort: 'asc' } }],
       });
     });
@@ -77,11 +82,21 @@ describe('ExecutionCapacityRepository', () => {
         mockResponseDataExecutionCapacityRepository,
       );
 
-      const response = await repository.getFinancialValue('2026');
+      const response = await repository.getFinancialValue({
+        ano: '2026',
+        idParceira: [2],
+        idRegional: [1],
+        equipe: ['LM'],
+      });
 
       expect(response).toEqual(mockResponseDataExecutionCapacityRepository);
       expect(mockPrisma.capacidade_execucao.findMany).toHaveBeenCalledWith({
-        where: { ano: '2026' },
+        where: {
+          ano: '2026',
+          id_turma: { in: [2] },
+          id_regional: { in: [1] },
+          equipe: { in: ['LM'] },
+        },
         select: {
           id: true,
           ano: true,

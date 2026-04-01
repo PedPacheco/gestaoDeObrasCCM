@@ -522,6 +522,7 @@ describe('RestrictionsRepository', () => {
           responsibility: 'Test Company',
           responsibleName: 'Test User',
           restrictionStatus: 'Active',
+          idUser: 1,
         },
       ];
 
@@ -548,6 +549,7 @@ describe('RestrictionsRepository', () => {
           responsabilidade: 'Test Company',
           nome_responsavel: 'Test User',
           status_restricao: 'Active',
+          criado_por: 1,
         },
       ]);
     });
@@ -621,6 +623,7 @@ describe('RestrictionsRepository', () => {
         responsibility: 'Company',
         responsibleName: 'User',
         restrictionStatus: 'Pendente',
+        idUser: 1,
       };
 
       const error = new Error('Record not found');

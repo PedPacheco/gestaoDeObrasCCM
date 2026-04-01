@@ -109,7 +109,6 @@ export function ScheduleSection({
 
               return;
             }
-            scheduleForm.setFormErrors({});
 
             if (isInsert) {
               setOpenTeamsModal(true);

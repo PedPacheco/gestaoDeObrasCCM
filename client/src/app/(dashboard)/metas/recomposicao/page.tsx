@@ -25,7 +25,12 @@ export default async function Goals() {
   if (params) {
     params = { ...Transform(params), rda: false, btzero: false };
   } else {
-    params = { ano: dayjs().year().toString(), btzero: false, rda: false };
+    params = {
+      ano: dayjs().year().toString(),
+      anoPlan: dayjs().year().toString(),
+      btzero: false,
+      rda: false,
+    };
   }
 
   const [filters, goalsData] = await Promise.all([
@@ -35,7 +40,9 @@ export default async function Goals() {
       tipo: true,
     }),
 
-    fetchData(`${process.env.NEXT_PUBLIC_API_URL}/metas`, params, token),
+    fetchData(`${process.env.NEXT_PUBLIC_API_URL}/metas`, params, token, {
+      cache: "no-store",
+    }),
   ]);
 
   const { data } = goalsData;

@@ -12,7 +12,6 @@ import {
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
-import { WorksServicesService } from 'src/application/services/worksServices.service';
 import {
   AddServicesDTO,
   ApplyAdditonalDTO,
@@ -20,9 +19,11 @@ import {
   PerformServicesDTO,
   ScheduleServicesDTO,
 } from '../dtos/workServicesDTO';
-import { QueriesServicesService } from 'src/application/services/queriesServices.service';
+
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { FinalizeServicesService } from 'src/application/services/finalizeServices.service';
+import { FinalizeServicesService } from 'src/application/usecases/services/finalizeServices.service';
+import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
+import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
 
 @Controller('servicos')
 export class ServicesController {

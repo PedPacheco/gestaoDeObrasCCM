@@ -1,6 +1,6 @@
 export function mountUrl(
   baseUrl: string,
-  params?: Record<string, string | boolean | null | string[]>
+  params?: Record<string, string | boolean | null | string[] | number>,
 ) {
   let url = baseUrl;
   let query: string[] = [];

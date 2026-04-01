@@ -115,6 +115,8 @@ export default function MainEntry({
             </LocalizationProvider>
           </div>
           {Object.entries(filtersData).map(([key, value], index) => {
+            if (!value || value.length === 0) return null;
+
             const valueKey = Object.keys(value[0])[0];
             const displayKey = Object.keys(value[0])[1];
 
@@ -125,7 +127,7 @@ export default function MainEntry({
             return (
               <MultipleSelectComponent
                 label={capitalize(key)}
-                menuItems={value || []}
+                menuItems={value}
                 selectedItem={selectedItems[filterValue]}
                 setSelectedItem={(selectedValue) => {
                   setSelectedItems((prev) => ({

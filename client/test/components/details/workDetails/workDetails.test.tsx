@@ -141,7 +141,7 @@ describe("WorkDetails", () => {
     status_150: "Pendente",
     ordem_dcim: "DCIM001",
     status_180: "Ativo",
-    executado: "50",
+    executado: 50,
     ano_plan: "2024",
     empreendimento: "Emp 001",
     id_status: 1,
@@ -397,7 +397,7 @@ describe("WorkDetails", () => {
       });
     });
 
-    it("não deve exibir botão quando status não é 2", async () => {
+    it("não deve exibir botão quando o valor executado for 0", async () => {
       mockUseUser.mockReturnValue({
         permissions: {
           ...defaultPermissions,
@@ -408,7 +408,7 @@ describe("WorkDetails", () => {
       render(
         <WorkDetails
           feasibilityExists={[]}
-          data={mockData}
+          data={{ ...mockData, executado: 0 }}
           formattedData={mockFormattedData}
           idWork={100}
           options={mockOptions}
@@ -503,6 +503,145 @@ describe("WorkDetails", () => {
     });
   });
 
+<<<<<<< HEAD
+=======
+  describe("Salvamento de alterações", () => {
+    it("deve salvar alterações com sucesso", async () => {
+      const user = userEvent.setup();
+      mockUpdateWork.mockResolvedValue({
+        success: true,
+        message: "Alterações salvas com sucesso",
+      });
+
+      render(
+        <WorkDetails
+          feasibilityExists={[]}
+          data={mockData}
+          formattedData={mockFormattedData}
+          idWork={100}
+          options={mockOptions}
+        />,
+      );
+
+      const textarea = screen.getByDisplayValue("Observação inicial");
+      await user.clear(textarea);
+      await user.type(textarea, "Nova observação");
+
+      const saveButton = screen.getByText("Salvar alterações");
+      await user.click(saveButton);
+
+      await waitFor(() => {
+        expect(mockUpdateWork).toHaveBeenCalledWith(
+          expect.objectContaining({
+            observ_obra: "Nova observação",
+          }),
+          100,
+        );
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("Alterações salvas com sucesso"),
+        ).toBeInTheDocument();
+      });
+    });
+
+    it("deve exibir erro ao falhar no salvamento", async () => {
+      const user = userEvent.setup();
+      mockUpdateWork.mockResolvedValue({
+        success: false,
+        error: "Erro ao salvar",
+      });
+
+      render(
+        <WorkDetails
+          feasibilityExists={[]}
+          data={mockData}
+          formattedData={mockFormattedData}
+          idWork={100}
+          options={mockOptions}
+        />,
+      );
+
+      const textarea = screen.getByDisplayValue("Observação inicial");
+      await user.clear(textarea);
+      await user.type(textarea, "Teste");
+
+      const saveButton = screen.getByText("Salvar alterações");
+      await user.click(saveButton);
+
+      await waitFor(() => {
+        expect(screen.getByText("Erro ao salvar")).toBeInTheDocument();
+      });
+    });
+
+    it("deve tratar erro de conexão", async () => {
+      const user = userEvent.setup();
+      mockUpdateWork.mockRejectedValue(new Error("Network error"));
+
+      render(
+        <WorkDetails
+          feasibilityExists={[]}
+          data={mockData}
+          formattedData={mockFormattedData}
+          idWork={100}
+          options={mockOptions}
+        />,
+      );
+
+      const textarea = screen.getByDisplayValue("Observação inicial");
+      await user.clear(textarea);
+      await user.type(textarea, "Teste");
+
+      const saveButton = screen.getByText("Salvar alterações");
+      await user.click(saveButton);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("Erro de conexão. Tente novamente."),
+        ).toBeInTheDocument();
+      });
+    });
+
+    it("deve incluir motivo de suspensão quando status é 4", async () => {
+      const user = userEvent.setup();
+      mockUpdateWork.mockResolvedValue({
+        success: true,
+        message: "Salvo com sucesso",
+      });
+
+      const dataWithStatus4 = { ...mockData, id_status: 4 };
+
+      render(
+        <WorkDetails
+          feasibilityExists={[]}
+          data={dataWithStatus4}
+          formattedData={mockFormattedData}
+          idWork={100}
+          options={mockOptions}
+        />,
+      );
+
+      // Simula edição da observação para habilitar o botão
+      const textarea = screen.getByDisplayValue("Observação inicial");
+      await user.clear(textarea);
+      await user.type(textarea, "Teste");
+
+      const saveButton = screen.getByText("Salvar alterações");
+      await user.click(saveButton);
+
+      await waitFor(() => {
+        expect(mockUpdateWork).toHaveBeenCalledWith(
+          expect.objectContaining({
+            reasonSuspension: expect.any(String),
+          }),
+          100,
+        );
+      });
+    });
+  });
+
+>>>>>>> ff0c48d43746708e8adcb6973a96ca008fbb5109
   describe("Formatação de datas", () => {
     it("deve formatar data de empreitamento corretamente", async () => {
       const user = userEvent.setup();
@@ -549,6 +688,37 @@ describe("WorkDetails", () => {
     });
   });
 
+<<<<<<< HEAD
+=======
+  describe("Modal de sucesso", () => {
+    it("deve fechar modal de sucesso ao clicar em fechar", async () => {
+      const user = userEvent.setup();
+      mockUpdateWork.mockResolvedValue({
+        success: true,
+        message: "Sucesso!",
+      });
+
+      render(
+        <WorkDetails
+          feasibilityExists={[]}
+          data={mockData}
+          formattedData={mockFormattedData}
+          idWork={100}
+          options={mockOptions}
+        />,
+      );
+
+      const textarea = screen.getByDisplayValue("Observação inicial");
+      await user.type(textarea, " teste");
+      await user.click(screen.getByText("Salvar alterações"));
+
+      await waitFor(() => {
+        expect(screen.getByText("Sucesso!")).toBeInTheDocument();
+      });
+    });
+  });
+
+>>>>>>> ff0c48d43746708e8adcb6973a96ca008fbb5109
   describe("Inserção de restrições de publicação", () => {
     it("deve salvar restrições de publicação com sucesso", async () => {
       mockInsertPublicationRestrictions.mockResolvedValue({

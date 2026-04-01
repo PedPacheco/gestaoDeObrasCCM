@@ -1,14 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { IExecutionCapacityRepository } from 'src/domain/repositories/IExecutionCapacityRepository';
 import { PrismaService } from '../prisma/prisma.service';
-import { ExecutionCapacityFilter } from 'src/interface/types/executionCapacityInterface';
-import { UpdateExecutionCapacityDTO } from 'src/interface/dtos/executionCapacityDTO';
+
+import {
+  ExecutionCapacityDTO,
+  UpdateExecutionCapacityDTO,
+} from 'src/interface/dtos/executionCapacityDTO';
 
 @Injectable()
 export class ExecutionCapacityRepository implements IExecutionCapacityRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async get(filters: ExecutionCapacityFilter): Promise<any> {
+  async get(filters: ExecutionCapacityDTO): Promise<any> {
+    const { ano, equipe, idParceira, idRegional } = filters;
+
     return await this.prisma.capacidade_execucao.findMany({
       select: {
         id: true,
@@ -32,14 +37,44 @@ export class ExecutionCapacityRepository implements IExecutionCapacityRepository
         nov: true,
         dez: true,
       },
-      where: filters,
+      where: {
+        ano,
+        ...(idParceira &&
+          idParceira.length > 0 && {
+            id_turma: { in: idParceira },
+          }),
+        ...(idRegional &&
+          idRegional.length > 0 && {
+            id_regional: { in: idRegional },
+          }),
+        ...(equipe &&
+          equipe.length > 0 && {
+            equipe: { in: equipe },
+          }),
+      },
       orderBy: [{ regionais: { id: 'asc' } }, { equipe: { sort: 'asc' } }],
     });
   }
 
-  async getFinancialValue(year: string): Promise<any[]> {
+  async getFinancialValue(filters: ExecutionCapacityDTO): Promise<any[]> {
+    const { ano, equipe, idParceira, idRegional } = filters;
+
     return await this.prisma.capacidade_execucao.findMany({
-      where: { ano: year },
+      where: {
+        ano,
+        ...(idParceira &&
+          idParceira.length > 0 && {
+            id_turma: { in: idParceira },
+          }),
+        ...(idRegional &&
+          idRegional.length > 0 && {
+            id_regional: { in: idRegional },
+          }),
+        ...(equipe &&
+          equipe.length > 0 && {
+            equipe: { in: equipe },
+          }),
+      },
       select: {
         id: true,
         ano: true,

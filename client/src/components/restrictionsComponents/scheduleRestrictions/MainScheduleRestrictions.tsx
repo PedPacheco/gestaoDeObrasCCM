@@ -2,7 +2,13 @@
 
 import { Dayjs } from "dayjs";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState, useTransition } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+} from "react";
 import { Cookies } from "react-cookie";
 
 import { fetchData } from "@/actions/fetchData.action";
@@ -41,6 +47,8 @@ export default function MainScheduleRestrictions({
 
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
+
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
 
   const cookieKey =
     url === "programacao"
@@ -120,10 +128,25 @@ export default function MainScheduleRestrictions({
     fetchScheduleRestrictions(filtersValues);
   };
 
+  const publicationDataFiltered = useMemo(() => {
+    if (!isPublication) return filteredData.works;
+
+    if (!selectedUser) return filteredData.works;
+
+    return filteredData.works.filter(
+      (item: any) => item.nome_usuario === selectedUser,
+    );
+  }, [filteredData, selectedUser, isPublication]);
+
+  const uniqueNames: string[] = Array.from(
+    new Set(data.works.map((item: any) => item.nome_usuario)),
+  );
+
   return (
     <>
+      {/* <div className="h-full w-full overflow-y-auto px-10"> */}
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <div className="my-6 w-4/5 flex flex-col">
+        <div className="my-6 w-full flex flex-col px-10">
           <RestrictionFilters
             data={filtersData}
             keyFilters={cookieKey}
@@ -131,6 +154,9 @@ export default function MainScheduleRestrictions({
             startDate={startDate}
             setEndDate={setEndDate}
             setStartDate={setStartDate}
+            selectedUser={selectedUser}
+            setSelectedUser={setSelectedUser}
+            uniqueNames={uniqueNames}
             applyFilters={fetchScheduleRestrictions}
             isPending={isPending}
             isPublication={isPublication}
@@ -140,7 +166,7 @@ export default function MainScheduleRestrictions({
         {isPublication ? (
           <PublicationRestrictionsTable
             columns={columns}
-            data={filteredData.works}
+            data={publicationDataFiltered}
             handleAdd={handleOpenDrawer}
           />
         ) : (
@@ -165,6 +191,7 @@ export default function MainScheduleRestrictions({
           />
         ) : undefined}
       </LocalizationProvider>
+      {/* </div> */}
     </>
   );
 }

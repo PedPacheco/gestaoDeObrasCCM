@@ -47,7 +47,7 @@ export const mockInsertNotes = [
     aux_tecnico: null,
     capex_mo_plan: 1483,
     capex_mat_plan: 0,
-    anoplan: null,
+    anoplan: 2026,
     ehRda: false,
   },
 ];

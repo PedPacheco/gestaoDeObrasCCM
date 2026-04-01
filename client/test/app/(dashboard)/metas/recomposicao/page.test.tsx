@@ -75,7 +75,7 @@ describe("Goals Page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
-    vi.setSystemTime(new Date("2025-05-26"));
+    vi.setSystemTime(dayjs("2025-05-26").toDate());
 
     vi.mocked(cookiesModule.cookies).mockResolvedValue(mockCookieStore as any);
 
@@ -109,6 +109,7 @@ describe("Goals Page", () => {
         rda: false,
       },
       mockToken,
+      { cache: "no-store" },
     );
   });
 
@@ -124,10 +125,12 @@ describe("Goals Page", () => {
       "https://api.example.com/metas",
       {
         ano: "2025",
+        anoPlan: "2025",
         btzero: false,
         rda: false,
       },
       mockToken,
+      { cache: "no-store" },
     );
   });
 

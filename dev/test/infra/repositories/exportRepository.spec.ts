@@ -17,6 +17,7 @@ describe('ExportRepository', () => {
     exportacao_programacoes_obras: { findMany: jest.fn() },
     exportacao_capacidade_execucao: { findMany: jest.fn() },
     exportacao_forecast: { findMany: jest.fn() },
+    exportacao_ordens: { findMany: jest.fn() },
     programacoes_reprovacoes: { findMany: jest.fn() },
     suspensoes: { findMany: jest.fn() },
     suspensoes_retiradas: { findMany: jest.fn() },
@@ -372,6 +373,27 @@ describe('ExportRepository', () => {
         },
       });
       expect(response).toEqual(mockFindByWorkIdResponseFormatted);
+    });
+  });
+
+  describe('exportSchedules', () => {
+    it('should call method and return all data of exportacao_programacoes_obras view', async () => {
+      const mockResponse = [
+        {
+          ovnota: '123',
+          grupo: 'mercado',
+          tipo_obra: 'Ligação',
+          status: 'Programado',
+          ordemdiagrama: '23453',
+        },
+      ];
+
+      mockPrisma.exportacao_ordens.findMany.mockResolvedValue(mockResponse);
+
+      const response = await repository.exportOrders();
+
+      expect(mockPrisma.exportacao_ordens.findMany).toHaveBeenCalledTimes(1);
+      expect(response).toEqual(mockResponse);
     });
   });
 });

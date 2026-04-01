@@ -43,7 +43,7 @@ export const EditableColumn = ({
   const { permissions } = useUser();
 
   const sortedStatus = options.status.sort(
-    (a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status)
+    (a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status),
   );
 
   return (
@@ -64,7 +64,7 @@ export const EditableColumn = ({
       <SelectComponent
         label="Status da Obra"
         menuItems={sortedStatus}
-        selectedItem={data.id_status.toString() || "1"}
+        selectedItem={data.id_status?.toString() || "1"}
         setSelectedItem={(value) => onHandleChange("id_status", value)}
         valueKey="id"
         displayKey="status"

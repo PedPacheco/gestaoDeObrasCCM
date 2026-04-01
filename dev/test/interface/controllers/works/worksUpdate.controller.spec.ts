@@ -1,19 +1,19 @@
-import { HandleWorkUpdateService } from 'src/application/orchestrators/handleWorkUpdate.service';
-import { UsersService } from 'src/application/users.service';
-import { ContractUpdateService } from 'src/application/works/contractUpdate.service';
-import { UpdateCapexService } from 'src/application/works/updateCapex.service';
-import { UpdateNoteService } from 'src/application/works/updateNote.service';
-import { UpdateOvService } from 'src/application/works/updateOv.service';
+import { HandleWorkUpdateService } from 'src/application/usecases/orchestrators/handleWorkUpdate.service';
+import { UsersService } from 'src/application/usecases/users.service';
+import { ContractUpdateService } from 'src/application/usecases/works/contractUpdate.service';
+import { SuspensionWorkService } from 'src/application/usecases/works/suspensionWork.service';
+import { UpdateCapexService } from 'src/application/usecases/works/updateCapex.service';
+import { UpdateNoteService } from 'src/application/usecases/works/updateNote.service';
+import { UpdateOvService } from 'src/application/usecases/works/updateOv.service';
 import { WorksUpdateController } from 'src/interface/controllers/works/worksUpdate.controller';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
-import { SuspensionWorkService } from 'src/application/works/suspensionWork.service';
 import {
   mockMarketWorks,
   mockUpdateNotes,
-} from '../../../../test/mocks/mockWorksController';
+} from '../../../mocks/mockWorksController';
 
 interface CustomRequest extends Request {
   idParceira?: number;

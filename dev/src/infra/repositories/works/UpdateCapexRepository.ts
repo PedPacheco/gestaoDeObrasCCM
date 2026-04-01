@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CalculatedValue } from 'src/application/works/updateCapex.service';
+import { CalculatedValue } from 'src/application/usecases/works/updateCapex.service';
 import { IUpdateCapexRepository } from 'src/domain/repositories/works/IUpdateCapexRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
@@ -31,6 +31,8 @@ export class UpdateCapexRepository implements IUpdateCapexRepository {
               capex_mo_pend,
               capex_mo_plan,
               mo_calc,
+              mo_exec,
+              mo_pend,
               qtde_calc,
               qtde_pend,
             } = item;
@@ -43,6 +45,8 @@ export class UpdateCapexRepository implements IUpdateCapexRepository {
                 capex_mo_pend,
                 capex_mo_plan,
                 mo_planejada: mo_calc,
+                mo_final: mo_exec,
+                mo_pend,
                 qtde_planejada: qtde_calc,
                 qtde_pend,
               },

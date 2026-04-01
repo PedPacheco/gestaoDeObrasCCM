@@ -152,7 +152,7 @@ export default function PublicationRestrictionsTable({
                           key={index}
                           className={`py-0 px-2 text-center font-medium text-lg min-w-36 text-nowrap ${
                             column === "ovnota"
-                              ? "hover:cursor-pointer sticky left-0 z-20 bg-white"
+                              ? "hover:cursor-pointer sticky left-0 z-15 bg-white"
                               : ""
                           }`}
                           onClick={() =>

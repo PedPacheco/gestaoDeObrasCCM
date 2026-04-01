@@ -1,115 +1,131 @@
-import ConfirmationModalComponent from "@/components/common/confirmationModal";
 import FailureModalComponent from "@/components/common/failureModal";
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, it, expect, vi } from "vitest";
 
-describe("ErrorModal component", () => {
-  const mockOnClose = vi.fn();
-  const mockRejected = vi.fn();
+const defaultProps = {
+  open: true,
+  onClose: vi.fn(),
+  handleReject: vi.fn(),
+  rejectedSchedule: {
+    id: 1,
+    reject: true,
+  },
+};
 
-  const mockRejectedSchedule = { id: 1, reject: true };
+describe("FailureModal", () => {
+  it("deve renderizar o modal quando open = true", () => {
+    render(<FailureModalComponent {...defaultProps} />);
 
-  const renderComponent = (open = true) => {
+    expect(screen.getByText("Reprovação da programação")).toBeInTheDocument();
+
+    expect(screen.getByRole("combobox")).toBeInTheDocument();
+
+    expect(screen.getByLabelText("Descrição")).toBeInTheDocument();
+  });
+
+  it("deve habilitar o botão confirmar quando formulário estiver válido", async () => {
+    const user = userEvent.setup();
+
+    render(<FailureModalComponent {...defaultProps} />);
+
+    // abre select
+    await user.click(screen.getByRole("combobox"));
+    await user.click(screen.getByText("Data"));
+
+    // digita descrição
+    await user.type(screen.getByLabelText("Descrição"), "Erro na execução");
+
+    const confirmButton = screen.getByRole("button", {
+      name: /confirmar/i,
+    });
+
+    expect(confirmButton).toBeEnabled();
+  });
+
+  it("deve chamar handleReject com os dados corretos", async () => {
+    const user = userEvent.setup();
+    const handleRejectMock = vi.fn();
+
     render(
       <FailureModalComponent
-        rejectedSchedule={mockRejectedSchedule}
-        handleReject={mockRejected}
-        open={open}
-        onClose={mockOnClose}
+        {...defaultProps}
+        handleReject={handleRejectMock}
       />,
     );
-  };
 
-  it("Deve renderizar com título, botão de fechar e conteúdo", () => {
-    renderComponent();
+    await user.click(screen.getByRole("combobox"));
+    await user.click(screen.getByText("Data"));
 
-    expect(screen.getByText("Motivo")).toBeInTheDocument();
-    expect(screen.getByLabelText("Descrição")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Cancelar/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Confirmar/i }),
-    ).toBeInTheDocument();
-  });
+    await user.type(screen.getByLabelText("Descrição"), "Teste descrição");
 
-  it("Deve chamar onClose ao clicar no botão Cancelar", () => {
-    renderComponent();
+    await user.click(screen.getByRole("button", { name: /confirmar/i }));
 
-    const button = screen.getByRole("button", { name: /Cancelar/i });
-
-    fireEvent.click(button);
-    expect(mockOnClose).toHaveBeenCalled();
-  });
-
-  it("Deve alterar os valores dos estados ao digitar no input e selecionar uma opção", () => {
-    renderComponent();
-
-    const selectReason = screen.getByRole("combobox");
-    const descriptionInput = screen.getByLabelText(
-      "Descrição",
-    ) as HTMLInputElement;
-
-    fireEvent.mouseDown(selectReason);
-
-    const option = screen.getByText("Data");
-    fireEvent.click(option);
-
-    fireEvent.change(descriptionInput, {
-      target: { value: "Teste de descrição" },
-    });
-
-    expect(selectReason.textContent).toBe("Data");
-
-    expect(descriptionInput.value).toBe("Teste de descrição");
-  });
-
-  it("Deve chamar a função handleRejectedSchedule ao clicar no botão, e caso tenha uma reprovação chamar a função da props handleReject", () => {
-    renderComponent();
-
-    const selectReason = screen.getByRole("combobox");
-    const descriptionInput = screen.getByLabelText(
-      "Descrição",
-    ) as HTMLInputElement;
-
-    fireEvent.mouseDown(selectReason);
-
-    const option = screen.getByText("Data");
-    fireEvent.click(option);
-
-    fireEvent.change(descriptionInput, {
-      target: { value: "Teste de descrição" },
-    });
-
-    const button = screen.getByRole("button", { name: /Confirmar/i });
-
-    fireEvent.click(button);
-
-    expect(mockRejected).toHaveBeenCalled();
-    expect(mockRejected).toHaveBeenCalledWith({
+    expect(handleRejectMock).toHaveBeenCalledWith({
       id: 1,
       reject: true,
       reason: "Data",
-      description: "Teste de descrição",
+      description: "Teste descrição",
     });
-
-    expect(mockOnClose).toHaveBeenCalled();
   });
 
-  it("Deve chamar a função handleRejectedSchedule ao clicar no botão, e caso não tenha uma reprovação, para execução da função", () => {
-    render(
-      <FailureModalComponent
-        rejectedSchedule={null}
-        handleReject={mockRejected}
-        open={true}
-        onClose={mockOnClose}
-      />,
+  it("deve chamar onClose ao clicar em cancelar", async () => {
+    const user = userEvent.setup();
+    const onCloseMock = vi.fn();
+
+    render(<FailureModalComponent {...defaultProps} onClose={onCloseMock} />);
+
+    await user.click(screen.getByRole("button", { name: /cancelar/i }));
+
+    expect(onCloseMock).toHaveBeenCalled();
+  });
+
+  it("deve resetar o formulário ao fechar", async () => {
+    const user = userEvent.setup();
+
+    const { rerender } = render(
+      <FailureModalComponent {...defaultProps} open={true} />,
     );
 
-    const button = screen.getByRole("button", { name: /Confirmar/i });
+    await user.click(screen.getByRole("combobox"));
+    await user.click(screen.getByRole("option", { name: "Data" }));
 
-    fireEvent.click(button);
+    await user.type(screen.getByLabelText("Descrição"), "Teste");
 
-    expect(mockRejected).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: /cancelar/i }));
+
+    rerender(<FailureModalComponent {...defaultProps} open={false} />);
+
+    rerender(<FailureModalComponent {...defaultProps} open={true} />);
+
+    expect(screen.getByLabelText("Descrição")).toHaveValue("");
+  });
+
+  it("deve exibir mensagens de erro ao tentar confirmar com campos vazios", async () => {
+    const user = userEvent.setup();
+
+    render(<FailureModalComponent {...defaultProps} />);
+
+    const confirmButton = screen.getByRole("button", {
+      name: /confirmar/i,
+    });
+
+    await user.click(confirmButton);
+
+    expect(screen.getByText("Motivo é obrigatório")).toBeInTheDocument();
+    expect(screen.getByText("Descrição é obrigatória")).toBeInTheDocument();
+  });
+
+  it("deve retornar e não chamar a função handleReject, caso rejectedSchedule não exista", async () => {
+    const user = userEvent.setup();
+    render(<FailureModalComponent {...defaultProps} rejectedSchedule={null} />);
+
+    const confirmButton = screen.getByRole("button", {
+      name: /confirmar/i,
+    });
+
+    await user.click(confirmButton);
+
+    expect(defaultProps.handleReject).not.toHaveBeenCalled();
   });
 });

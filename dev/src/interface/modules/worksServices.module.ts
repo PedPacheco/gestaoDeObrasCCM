@@ -1,23 +1,23 @@
-import { WorksServicesService } from 'src/application/services/worksServices.service';
+import { ScheduleExecutionValidatorService } from 'src/application/usecases/schedule/scheduleExecutionValidator.service';
+import { FinalizeServicesService } from 'src/application/usecases/services/finalizeServices.service';
+import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
+import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
+import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
 import { WORKS_SERVICE_REPOSITORY } from 'src/domain/repositories/IWorksServiceRepository';
-import { WorksServicesRepository } from 'src/infra/repositories/worksServicesRepository';
-
-import { forwardRef, Module } from '@nestjs/common';
-
-import { ServicesController } from '../controllers/worksServices.controller';
-import { UsersModule } from './users.module';
-import { WorksModule } from './works.module';
-import { QueriesServicesService } from 'src/application/services/queriesServices.service';
 import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
 import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updateSchedulesRepository';
-import { ScheduleExecutionValidatorService } from 'src/application/schedule/scheduleExecutionValidator.service';
 import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepository';
-import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
-import { ExecutionReportModule } from './executionReport.module';
-import { MulterModule } from '@nestjs/platform-express';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { WorksServicesRepository } from 'src/infra/repositories/worksServicesRepository';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
-import { FinalizeServicesService } from 'src/application/services/finalizeServices.service';
+
+import { forwardRef, Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MulterModule } from '@nestjs/platform-express';
+
+import { ServicesController } from '../controllers/worksServices.controller';
+import { ExecutionReportModule } from './executionReport.module';
+import { UsersModule } from './users.module';
+import { WorksModule } from './works.module';
 
 @Module({
   imports: [

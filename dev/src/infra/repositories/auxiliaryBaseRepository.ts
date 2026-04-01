@@ -105,6 +105,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
         cn52n.preco,
         cn52n.qtd_necessaria,
         cn52n.qtd_retirada,
+        cn52n.qtd_recebida,
         cn52n.qtd_falta,
         cn52n.reserva AS reserva
       FROM cn52n

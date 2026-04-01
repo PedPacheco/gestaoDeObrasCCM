@@ -5,10 +5,8 @@ import { useState, useTransition } from "react";
 import { Cookies } from "react-cookie";
 
 import { DeleteWork } from "@/actions/works";
-import { ButtonComponent } from "@/components/common/Button";
 import ErrorModal from "@/components/common/ErrorModal";
 import ModalComponent from "@/components/common/Modal";
-import { getButtonContent } from "@/utils/getButtonContent";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { Button } from "@mui/material";
 import { useFeedback } from "@/hooks/useFeedback";

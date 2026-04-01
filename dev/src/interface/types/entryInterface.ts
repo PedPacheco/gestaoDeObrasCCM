@@ -9,7 +9,7 @@ interface Tipos {
 
 export interface entryResponse {
   ovnota: string;
-  mo_final: number | null;
+  mo_pend: number | null;
   mo_planejada: number;
   entrada: Date;
   tipos: Tipos;

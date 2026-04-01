@@ -7,6 +7,7 @@ import userEvent from "@testing-library/user-event";
 import { fetchData } from "@/actions/fetchData.action";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { Transform } from "@/utils/transform";
+import dayjs from "dayjs";
 
 // Mock das dependências
 vi.mock("@/actions/fetchData.action", () => ({
@@ -102,13 +103,13 @@ vi.mock("@/components/entryComponents/entry/EntryTable", () => ({
 }));
 
 vi.mock("@mui/x-date-pickers", () => ({
-  DatePicker: ({ value, onChange, views, slotProps }: any) => (
+  DatePicker: ({ value, onChange }: any) => (
     <div data-testid="date-picker">
       <input
         data-testid="date-input"
         type="text"
         value={value?.format?.("YYYY") || ""}
-        onChange={(e) => onChange?.(e.target.value)}
+        onChange={(e) => onChange?.(dayjs(e.target.value))}
       />
     </div>
   ),
@@ -237,6 +238,26 @@ describe("MainEntry component", () => {
     expect(screen.getByTestId("select-circuito")).toBeInTheDocument();
   });
 
+  it("deve renderizar sem erro quando filtersData estiver vazio", () => {
+    const emptyFilters: EntryFiltersType = {
+      regional: [],
+      parceira: [],
+      tipo: [],
+      municipio: [],
+      grupo: [],
+      circuito: [],
+    };
+
+    render(
+      <MainEntry
+        {...defaultProps}
+        filtersData={emptyFilters} // 👈 nenhum filtro
+      />,
+    );
+
+    expect(screen.getByText("Aplicar filtros")).toBeInTheDocument();
+  });
+
   it("deve renderizar os botões de ação", () => {
     render(<MainEntry {...defaultProps} />);
 
@@ -340,6 +361,59 @@ describe("MainEntry component", () => {
     expect(screen.getByText("Regional Sul")).toBeInTheDocument();
   });
 
+  it("deve exibir modal de erro quando fetchData falha", async () => {
+    (fetchData as Mock).mockRejectedValue(new Error("Erro na API"));
+
+    const user = userEvent.setup();
+    render(<MainEntry {...defaultProps} />);
+
+    const applyButton = screen.getByText("Aplicar filtros");
+    await user.click(applyButton);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("error-modal")).toBeInTheDocument();
+      expect(screen.getByTestId("error-message")).toHaveTextContent(
+        "Erro na API",
+      );
+    });
+  });
+
+  it("deve exibir modal de erro quando a chamada de fetchData com os filtros limpos falhar", async () => {
+    (fetchData as Mock).mockRejectedValue(new Error("Erro na API"));
+
+    const user = userEvent.setup();
+    render(<MainEntry {...defaultProps} />);
+
+    const cleaningButton = screen.getByText("Limpar filtros");
+    await user.click(cleaningButton);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("error-modal")).toBeInTheDocument();
+      expect(screen.getByTestId("error-message")).toHaveTextContent(
+        "Erro na API",
+      );
+    });
+  });
+
+  it("deve fechar modal de erro ao clicar em close", async () => {
+    (fetchData as Mock).mockRejectedValue(new Error("Erro na API"));
+
+    const user = userEvent.setup();
+    render(<MainEntry {...defaultProps} />);
+
+    const applyButton = screen.getByText("Aplicar filtros");
+    await user.click(applyButton);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("error-modal")).toBeInTheDocument();
+    });
+
+    const closeButton = screen.getByText("Close");
+    await user.click(closeButton);
+
+    expect(screen.queryByTestId("error-modal")).not.toBeInTheDocument();
+  });
+
   it("deve desabilitar botões durante carregamento", async () => {
     (fetchData as Mock).mockImplementation(
       () =>
@@ -432,5 +506,18 @@ describe("MainEntry component", () => {
 
     const dateInput = screen.getByTestId("date-input");
     expect(dateInput).toHaveValue("2024");
+  });
+
+  it("deve atualizar o ano ao selecionar uma nova data", async () => {
+    const user = userEvent.setup();
+
+    render(<MainEntry {...defaultProps} />);
+
+    const input = screen.getByRole("textbox");
+
+    await user.clear(input);
+    await user.type(input, "2024");
+
+    expect(input).toHaveValue("2024");
   });
 });

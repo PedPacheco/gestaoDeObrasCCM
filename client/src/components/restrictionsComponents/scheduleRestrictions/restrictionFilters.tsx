@@ -10,10 +10,20 @@ import { ButtonComponent } from "@/components/common/Button";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { Transform } from "@/utils/transform";
-import { Checkbox } from "@mui/material";
+import {
+  Checkbox,
+  Divider,
+  InputAdornment,
+  InputLabel,
+  FormControl,
+  MenuItem,
+  Select,
+  TextField,
+} from "@mui/material";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { capitalize } from "@/utils/formatValue";
 import { DateFilter } from "@/components/common/DateFilter";
+import { MagnifyingGlassCircleIcon } from "@heroicons/react/20/solid";
 
 dayjs.extend(isoWeek);
 
@@ -33,8 +43,11 @@ interface ScheduleByDateFiltersProps {
   endDate: Dayjs | null;
   setStartDate: (date: Dayjs | null) => void;
   setEndDate: (date: Dayjs | null) => void;
+  selectedUser: string | null;
+  setSelectedUser: (user: string | null) => void;
+  uniqueNames: string[];
   applyFilters: (
-    params: Record<string, string | boolean | string | null>
+    params: Record<string, string | boolean | string | null>,
   ) => void;
   isPending: boolean;
   isPublication: boolean;
@@ -46,6 +59,9 @@ export default function RestrictionFilters({
   endDate,
   setEndDate,
   setStartDate,
+  selectedUser,
+  setSelectedUser,
+  uniqueNames,
   startDate,
   applyFilters,
   isPending,
@@ -55,9 +71,11 @@ export default function RestrictionFilters({
     pageKey: keyFilters,
     data: data,
   });
+
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
-    {}
+    {},
   );
+  const [ovnota, setOvnota] = useState<string>("");
   const [executed, setExecuted] = useState<boolean>(false);
 
   useEffect(() => {
@@ -87,6 +105,7 @@ export default function RestrictionFilters({
     setStartDate(null);
     setEndDate(null);
     setExecuted(false);
+    setSelectedUser(null);
 
     clearFilters();
 
@@ -96,17 +115,28 @@ export default function RestrictionFilters({
   }
 
   return (
-    <>
-      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center">
-        <DateFilter
-          endDate={endDate}
-          startDate={startDate}
-          setEndDate={setEndDate}
-          setStartDate={setStartDate}
-          size="w-full"
-          spacing="pr-2"
-        />
+    <div className="flex flex-col gap-3 p-4 bg-white rounded-xl shadow-sm border border-gray-100">
+      {/* ── LINHA ÚNICA: Datas + Selects + campos de publicação ──
+          Sem isPublication : 8 cols (2 datas + 6 selects)
+          Com isPublication : 10 cols (2 datas + 6 selects + usuário + OV/nota) */}
+      <div
+        className={`grid gap-3 items-start
+          grid-cols-2
+          sm:grid-cols-4
+          ${isPublication ? "lg:grid-cols-10" : "lg:grid-cols-8"}
+        `}
+      >
+        {/* Datas — col-span-2 dividido internamente em 2 */}
+        <div className="col-span-2 grid grid-cols-2 gap-2">
+          <DateFilter
+            startDate={startDate}
+            endDate={endDate}
+            setStartDate={setStartDate}
+            setEndDate={setEndDate}
+          />
+        </div>
 
+        {/* 6 selects principais */}
         {Object.entries(data)
           .slice(0, 6)
           .map(([key, value], index) => {
@@ -119,6 +149,7 @@ export default function RestrictionFilters({
 
             return (
               <MultipleSelectComponent
+                key={index}
                 label={capitalize(key)}
                 menuItems={value || []}
                 selectedItem={selectedItems[filterValue]}
@@ -130,36 +161,83 @@ export default function RestrictionFilters({
                 }}
                 valueKey={valueKey}
                 displayKey={displayKey}
-                key={index}
               />
             );
           })}
 
-        <div className="flex flex-row items-center justify-center mb-2">
+        {/* Campos exclusivos de publicação — mesma coluna que os selects */}
+        {isPublication && (
+          <>
+            {/* Select usuário */}
+            <FormControl size="small" className="w-full pl-4">
+              <Select
+                value={selectedUser || ""}
+                label="Usuário"
+                onChange={(e) => setSelectedUser(e.target.value || null)}
+                displayEmpty
+              >
+                <MenuItem value="">Todos</MenuItem>
+                {uniqueNames.map((name: string) => (
+                  <MenuItem key={name} value={name}>
+                    {name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {/* Campo OV / Nota */}
+            <TextField
+              size="small"
+              label="OV / Nota"
+              value={ovnota}
+              onChange={(event) => setOvnota(event.target.value)}
+              className="w-full"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <MagnifyingGlassCircleIcon
+                      height={16}
+                      width={16}
+                      className="text-gray-400"
+                    />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </>
+        )}
+      </div>
+
+      <Divider className="!my-0.5" />
+
+      {/* ── Checkbox + Botões ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <label className="flex items-center gap-1.5 cursor-pointer select-none w-fit">
           <Checkbox
             onChange={() => setExecuted(!executed)}
             checked={executed}
+            size="small"
           />
-          <p className="text-nowrap">
+          <span className="text-sm text-gray-700 whitespace-nowrap">
             {isPublication
               ? "Restrições Concluídas"
               : "Programações Executadas"}
-          </p>
+          </span>
+        </label>
+
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <ButtonComponent
+            onClick={handleApplyFilters}
+            text={getButtonContent(isPending, "Aplicar filtros")}
+            styled="w-full sm:w-auto"
+          />
+          <ButtonComponent
+            onClick={handleCleanigFilters}
+            text={getButtonContent(isPending, "Limpar filtros")}
+            styled="w-full sm:w-auto"
+          />
         </div>
       </div>
-
-      <div className=" flex flex-col md:flex-row justify-between items-center xl:justify-around">
-        <ButtonComponent
-          onClick={handleApplyFilters}
-          text={getButtonContent(isPending, "Aplicar filtros")}
-          styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
-        />
-        <ButtonComponent
-          onClick={handleCleanigFilters}
-          text={getButtonContent(isPending, "Limpar filtros")}
-          styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
-        />
-      </div>
-    </>
+    </div>
   );
 }

@@ -9,6 +9,7 @@ export interface IExportRepository {
   exportExecutionReport(): Promise<any>;
   exportForecast(): Promise<any>;
   exportRejections(): Promise<any>;
+  exportOrders(): Promise<any>;
 }
 
 export const EXPORT_REPOSITORY = Symbol('ExportRepository');

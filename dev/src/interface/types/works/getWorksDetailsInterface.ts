@@ -77,6 +77,7 @@ export interface GetWorksDetailsResponse {
   qtde_planejada: number | null;
   qtde_pend: number | null;
   mo_planejada: number | null;
+  mo_pend: number | null;
   mo_final: number | null;
   referencia: string | null;
   capex_mat_pend: number | null;
