@@ -34,7 +34,6 @@ export function AsBuiltImport({
   const maxSize = 5 * 1024 * 1024;
 
   const validateFiles = (incoming: FileList | null): boolean => {
-    console.log(incoming);
     if (!incoming) return false;
 
     if (incoming.length + files.length > 3) {
