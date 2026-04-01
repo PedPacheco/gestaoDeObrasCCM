@@ -35,6 +35,8 @@ describe('SaveForecastSnapshotRepository', () => {
     materialMoForecast: 32,
     isServicePendLowerThanProg: true,
     isMaterialPendLowerThanProg: true,
+    forecastTotal: 50,
+    execTotal: 50,
     diff: -10,
     ...override,
   });
@@ -77,6 +79,8 @@ describe('SaveForecastSnapshotRepository', () => {
         totalMaterialMoPend: 50000,
         totalMaterialMoForecast: 290000,
         totalMaterialMoExec: 250000,
+        totalExec: 300000,
+        totalForecast: 300000,
         totalDiff: -100000,
       },
     },

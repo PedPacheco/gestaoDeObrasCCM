@@ -25,6 +25,7 @@ export class ExportOrdersService {
       { header: 'Tipo de Obra', key: 'tipo_obra', width: 20 },
       { header: 'Status', key: 'status', width: 20 },
       { header: 'Ordem/Diagrama', key: 'ordemdiagrama', width: 20 },
+      { header: 'Data execução', key: 'data_conclusao', width: 20 },
     ];
 
     const batchSize = 1000;

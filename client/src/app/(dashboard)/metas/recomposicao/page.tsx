@@ -25,7 +25,12 @@ export default async function Goals() {
   if (params) {
     params = { ...Transform(params), rda: false, btzero: false };
   } else {
-    params = { ano: dayjs().year().toString(), btzero: false, rda: false };
+    params = {
+      ano: dayjs().year().toString(),
+      anoPlan: dayjs().year().toString(),
+      btzero: false,
+      rda: false,
+    };
   }
 
   const [filters, goalsData] = await Promise.all([

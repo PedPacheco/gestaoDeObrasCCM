@@ -974,9 +974,10 @@ view exportacao_forecast {
 }
 
 view exportacao_ordens {
-  ovnota        String? @db.VarChar(12)
-  grupo         String? @db.VarChar(20)
-  tipo_obra     String? @db.VarChar(30)
-  status        String? @db.VarChar(25)
-  ordemdiagrama String? @db.VarChar(12)
+  ovnota         String?   @db.VarChar(12)
+  grupo          String?   @db.VarChar(20)
+  tipo_obra      String?   @db.VarChar(30)
+  status         String?   @db.VarChar(25)
+  ordemdiagrama  String?   @db.VarChar(12)
+  data_conclusao DateTime? @db.Date
 }

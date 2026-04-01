@@ -6,12 +6,14 @@ import { RestrictionsPanel } from "@/components/details/modals/scheduleDialog/re
 
 // ✅ Mock do DatePicker fiel (respeita disabled e propaga valor)
 vi.mock("@mui/x-date-pickers", () => ({
-  DatePicker: ({ label, value, onChange, disabled }: any) => (
+  DatePicker: ({ label, onChange, disabled }: any) => (
     <input
       data-testid={label}
       disabled={disabled}
-      value={value ? dayjs(value).format("YYYY-MM-DD") : ""}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={(e) => {
+        const value = e.target.value;
+        onChange(value || null); // 👈 força null quando vazio
+      }}
     />
   ),
 }));
@@ -185,5 +187,47 @@ describe("RestrictionsPanel", () => {
 
     const selects = screen.getAllByRole("combobox");
     expect(selects.length).toBeGreaterThan(0);
+  });
+
+  it("deve deixar valor nulo no segundo dataResolucao (bloco 1)", async () => {
+    const handleChange = vi.fn();
+
+    const onInputChange = (field: string) => (value: any) =>
+      handleChange(field, value);
+
+    render(<RestrictionsPanel {...baseProps} onInputChange={onInputChange} />);
+
+    const dateInput = screen.getByTestId(
+      "1° Data de resolução",
+    ) as HTMLInputElement;
+
+    // 1. Primeiro coloca um valor válido
+    fireEvent.change(dateInput, { target: { value: "2024-01-01" } });
+
+    // 2. Depois limpa (agora sim há mudança real)
+    fireEvent.change(dateInput, { target: { value: "" } });
+
+    expect(handleChange).toHaveBeenCalledWith("resolutionDate", null);
+  });
+
+  it("deve deixar valor nulo no segundo dataResolucao (bloco 2)", async () => {
+    const handleChange = vi.fn();
+
+    const onInputChange = (field: string) => (value: any) =>
+      handleChange(field, value);
+
+    render(<RestrictionsPanel {...baseProps} onInputChange={onInputChange} />);
+
+    const dateInput = screen.getByTestId(
+      "2° Data de resolução",
+    ) as HTMLInputElement;
+
+    // 1. Primeiro coloca um valor válido
+    fireEvent.change(dateInput, { target: { value: "2024-01-01" } });
+
+    // 2. Depois limpa (agora sim há mudança real)
+    fireEvent.change(dateInput, { target: { value: "" } });
+
+    expect(handleChange).toHaveBeenCalledWith("resolutionDate2", null);
   });
 });

@@ -30,6 +30,7 @@ describe('ForecastSnapshotService', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   describe('execute', () => {
@@ -62,6 +63,8 @@ describe('ForecastSnapshotService', () => {
               totalMaterialMoPend: 50000,
               totalMaterialMoForecast: 290000,
               totalMaterialMoExec: 250000,
+              totalExec: 300000,
+              totalForecast: 300000,
               totalDiff: -100000,
             },
           },
@@ -126,6 +129,8 @@ describe('ForecastSnapshotService', () => {
               materialMoForecast: '32',
               isServicePendLowerThanProg: 1,
               isMaterialPendLowerThanProg: 0,
+              forecastTotal: 2000,
+              execTotal: 2000,
               diff: '-10',
             },
           ],
@@ -147,6 +152,8 @@ describe('ForecastSnapshotService', () => {
               totalMaterialMoPend: '10',
               totalMaterialMoPrev: '85',
               totalMaterialMoExec: '70',
+              totalForecast: 2000,
+              totalExec: 2000,
               diff: '-30',
             },
           ],
@@ -184,6 +191,8 @@ describe('ForecastSnapshotService', () => {
               materialMoForecast: 32,
               isServicePendLowerThanProg: true,
               isMaterialPendLowerThanProg: false,
+              execTotal: 2000,
+              forecastTotal: 2000,
               diff: -10,
             },
           ],
@@ -205,6 +214,8 @@ describe('ForecastSnapshotService', () => {
               totalMaterialMoPend: 10,
               totalMaterialMoPrev: 85,
               totalMaterialMoExec: 70,
+              totalExec: 2000,
+              totalForecast: 2000,
               diff: -30,
             },
           ],
@@ -280,6 +291,8 @@ describe('ForecastSnapshotService', () => {
               materialMoForecast: undefined,
               isServicePendLowerThanProg: null,
               isMaterialPendLowerThanProg: undefined,
+              forecastTotal: null,
+              execTotal: null,
               diff: null,
             },
           ],
@@ -301,6 +314,8 @@ describe('ForecastSnapshotService', () => {
               totalMaterialMoPend: null,
               totalMaterialMoPrev: undefined,
               totalMaterialMoExec: null,
+              totalForecast: null,
+              totalExec: null,
               diff: undefined,
             },
           ],
@@ -332,6 +347,8 @@ describe('ForecastSnapshotService', () => {
             materialMoForecast: 0,
             isServicePendLowerThanProg: false,
             isMaterialPendLowerThanProg: false,
+            forecastTotal: 0,
+            execTotal: 0,
             diff: 0,
           },
         ],
@@ -354,6 +371,8 @@ describe('ForecastSnapshotService', () => {
             totalMaterialMoPend: 0,
             totalMaterialMoPrev: 0,
             totalMaterialMoExec: 0,
+            totalForecast: 0,
+            totalExec: 0,
             diff: 0,
           },
         ],

@@ -89,4 +89,30 @@ describe("ExecutionBasicPanel component", () => {
     expect(startEndInput.value).toBe("");
     expect(partialConnectionReleasedCheckbox.checked).toBe(true);
   });
+
+  it("deve deixar o checkbox como false", () => {
+    render(
+      <ExecutionBasicPanel
+        formData={{
+          ...mockFormData,
+          executionReport: {
+            ...mockFormData.executionReport,
+            supervisor: undefined,
+            startContact: undefined,
+            endContact: undefined,
+            partialConnectionReleased: false,
+          } as unknown as NonNullable<FormData["executionReport"]>,
+        }}
+        formErrors={{}}
+        onInputChange={vi.fn()}
+        wasTheWorkCompleted={80}
+      />,
+    );
+
+    const partialConnectionReleasedCheckbox = screen.getByLabelText(
+      "Liberado para publicação?",
+    ) as HTMLInputElement;
+
+    expect(partialConnectionReleasedCheckbox.checked).toBe(false);
+  });
 });

@@ -17,9 +17,14 @@ export default async function RdaGoals() {
   let params = cookieParams ? JSON.parse(cookieParams) : undefined;
 
   if (params) {
-    params = { ...Transform(params), rda: true, btzero: false };
+    params = { ...Transform(params), anoPlan: null, rda: true, btzero: false };
   } else {
-    params = { ano: dayjs().year().toString(), rda: true, btzero: false };
+    params = {
+      ano: dayjs().year().toString(),
+      anoPlan: null,
+      rda: true,
+      btzero: false,
+    };
   }
 
   const [filters, rdaGoalsData] = await Promise.all([
