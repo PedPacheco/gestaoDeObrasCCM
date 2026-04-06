@@ -13,6 +13,7 @@ describe('SaveForecastSnapshotRepository', () => {
       create: jest.fn(),
       findUnique: jest.fn(),
       findMany: jest.fn(),
+      delete: jest.fn(),
     },
   };
 
@@ -303,9 +304,17 @@ describe('SaveForecastSnapshotRepository', () => {
     it('should call prisma.findMany with correct select fields', async () => {
       prismaMock.forecast_snapshot.findMany.mockResolvedValue([]);
 
-      await repository.getAll();
+      const where: any = {};
+
+      where.gerado_em = {};
+
+      where.gerado_em.gte = new Date('2026-04-01');
+      where.gerado_em.lte = new Date('2026-04-01');
+
+      await repository.getAll(where);
 
       expect(prismaService.forecast_snapshot.findMany).toHaveBeenCalledWith({
+        where,
         select: {
           id: true,
           gerado_em: true,
@@ -328,9 +337,13 @@ describe('SaveForecastSnapshotRepository', () => {
         },
       ];
 
+      const where: any = {};
+
+      where.gerado_em = {};
+
       prismaMock.forecast_snapshot.findMany.mockResolvedValue(prismaResponse);
 
-      const result = await repository.getAll();
+      const result = await repository.getAll(where);
 
       expect(result).toEqual(prismaResponse);
     });
@@ -338,7 +351,7 @@ describe('SaveForecastSnapshotRepository', () => {
     it('should return an empty array when no snapshots exist', async () => {
       prismaMock.forecast_snapshot.findMany.mockResolvedValue([]);
 
-      const result = await repository.getAll();
+      const result = await repository.getAll({});
 
       expect(result).toEqual([]);
     });
@@ -348,7 +361,25 @@ describe('SaveForecastSnapshotRepository', () => {
         new Error('Database error'),
       );
 
-      await expect(repository.getAll()).rejects.toThrow('Database error');
+      const where: any = {};
+
+      where.gerado_em = {};
+
+      await expect(repository.getAll(where)).rejects.toThrow('Database error');
+    });
+  });
+
+  describe('delete', () => {
+    it('should call delete method with sent id', async () => {
+      prismaMock.forecast_snapshot.delete.mockResolvedValue({});
+
+      await repository.delete(1);
+
+      expect(prismaService.forecast_snapshot.delete).toHaveBeenCalledTimes(1);
+
+      expect(prismaService.forecast_snapshot.delete).toHaveBeenCalledWith({
+        where: { id: 1 },
+      });
     });
   });
 });

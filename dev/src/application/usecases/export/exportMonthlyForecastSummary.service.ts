@@ -25,12 +25,15 @@ export class ExportMonthlyForecastSummaryService {
         width: 20,
         style: { numFmt: 'dd/mm/yyyy' },
       },
-      { header: 'Total de Obras', key: 'totalQtde', width: 15 },
-      { header: 'Total de Equipes', key: 'teamsTotal', width: 15 },
+      { header: 'Total de Obras', key: 'qtdeWorks', width: 15 },
+      { header: 'Total de Equipes', key: 'teams', width: 15 },
       {
         header: 'Meta Financeiro',
         key: 'financialGoal',
         width: 15,
+        style: {
+          numFmt: '"R$" #,##0.00',
+        },
       },
       {
         header: 'Meta Diária',
@@ -39,14 +42,20 @@ export class ExportMonthlyForecastSummaryService {
         style: { numFmt: '0.00%' },
       },
       {
-        header: 'Valor do Serviço Programado',
-        key: 'serviceMoProg',
-        width: 25,
-      },
-      {
         header: 'Valor do Serviço Planejado',
         key: 'serviceMoPlan',
         width: 25,
+        style: {
+          numFmt: '"R$" #,##0.00',
+        },
+      },
+      {
+        header: 'Valor do Serviço Programado',
+        key: 'serviceMoProg',
+        width: 25,
+        style: {
+          numFmt: '"R$" #,##0.00',
+        },
       },
       {
         header: 'Valor do Serviço Pendente',
@@ -57,36 +66,57 @@ export class ExportMonthlyForecastSummaryService {
         header: 'Valor do Serviço Forecast',
         key: 'serviceMoForecast',
         width: 25,
+        style: {
+          numFmt: '"R$" #,##0.00',
+        },
       },
       {
         header: 'Valor do Serviço Executado',
         key: 'serviceMoExec',
         width: 25,
-      },
-      {
-        header: 'Valor do Material Programado',
-        key: 'materialMoProg',
-        width: 25,
+        style: {
+          numFmt: '"R$" #,##0.00',
+        },
       },
       {
         header: 'Valor do Material Planejado',
         key: 'materialMoPlan',
         width: 25,
+        style: {
+          numFmt: '"R$" #,##0.00',
+        },
+      },
+      {
+        header: 'Valor do Material Programado',
+        key: 'materialMoProg',
+        width: 25,
+        style: {
+          numFmt: '"R$" #,##0.00',
+        },
       },
       {
         header: 'Valor do Material Pendente',
         key: 'materialMoPend',
         width: 25,
+        style: {
+          numFmt: '"R$" #,##0.00',
+        },
       },
       {
         header: 'Valor do Material Forecast',
         key: 'materialMoForecast',
         width: 25,
+        style: {
+          numFmt: '"R$" #,##0.00',
+        },
       },
       {
         header: 'Valor do Material Executados',
         key: 'materialMoExec',
         width: 25,
+        style: {
+          numFmt: '"R$" #,##0.00',
+        },
       },
       {
         header: 'Programado x Executado (%)',
@@ -103,50 +133,103 @@ export class ExportMonthlyForecastSummaryService {
         width: 20,
       },
       { header: 'Parceira', key: 'turma', width: 15 },
-      { header: 'Total de obras', key: 'qtdeObras', width: 15 },
-      {
-        header: 'Total Serviço Prog',
-        key: 'totalServiceMoProg',
-        width: 25,
-      },
+      { header: 'Total de obras', key: 'qtdeWorks', width: 15 },
       {
         header: 'Total Serviço Plan',
         key: 'totalServiceMoPlan',
         width: 25,
+        style: {
+          numFmt: '"R$" #,##0.00',
+        },
+      },
+      {
+        header: 'Total Serviço Prog',
+        key: 'totalServiceMoProg',
+        width: 25,
+        style: {
+          numFmt: '"R$" #,##0.00',
+        },
       },
       {
         header: 'Total Serviço Pend',
         key: 'totalServiceMoPend',
         width: 25,
+        style: {
+          numFmt: '"R$" #,##0.00',
+        },
       },
-      { header: 'Total Serviço Exec', key: 'totalServiceMoExec', width: 25 },
+      {
+        header: 'Total Serviço Forecast',
+        key: 'totalServiceMoForecast',
+        width: 25,
+        style: {
+          numFmt: '"R$" #,##0.00',
+        },
+      },
+      {
+        header: 'Total Serviço Exec',
+        key: 'totalServiceMoExec',
+        width: 25,
+        style: {
+          numFmt: '"R$" #,##0.00',
+        },
+      },
       {
         header: 'Total Serviço Prev',
         key: 'totalServiceMoPrev',
         width: 25,
-      },
-      {
-        header: 'Total Material Prog',
-        key: 'totalMaterialMoProg',
-        width: 25,
+        style: {
+          numFmt: '"R$" #,##0.00',
+        },
       },
       {
         header: 'Total Material Plan',
         key: 'totalMaterialMoPlan',
         width: 25,
+        style: {
+          numFmt: '"R$" #,##0.00',
+        },
+      },
+      {
+        header: 'Total Material Prog',
+        key: 'totalMaterialMoProg',
+        width: 25,
+        style: {
+          numFmt: '"R$" #,##0.00',
+        },
       },
       {
         header: 'Total Material Pend',
         key: 'totalMaterialMoPend',
         width: 25,
+        style: {
+          numFmt: '"R$" #,##0.00',
+        },
       },
-      { header: 'Total Material Exec', key: 'totalMaterialMoExec', width: 25 },
+      {
+        header: 'Total Material Forecast',
+        key: 'totalMaterialMoForecast',
+        width: 25,
+        style: {
+          numFmt: '"R$" #,##0.00',
+        },
+      },
+      {
+        header: 'Total Material Exec',
+        key: 'totalMaterialMoExec',
+        width: 25,
+        style: {
+          numFmt: '"R$" #,##0.00',
+        },
+      },
       {
         header: 'Total Material Prev',
         key: 'totalMaterialMoPrev',
         width: 25,
+        style: {
+          numFmt: '"R$" #,##0.00',
+        },
       },
-
       {
         header: 'Diferença',
         key: 'diff',

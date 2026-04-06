@@ -99,6 +99,7 @@ model circuitos {
   critico          Boolean?
   base_auxiliar_ov base_auxiliar_ov[]
   conjuntos        conjuntos          @relation(fields: [id_conjunto], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_conjuntos")
+  equipamentos     equipamentos[]
   obras            obras[]
 }
 
@@ -212,6 +213,7 @@ model municipios {
   base_auxiliar                                               base_auxiliar[]
   base_auxiliar_ov_base_auxiliar_ov_aux_municipioTomunicipios base_auxiliar_ov[] @relation("base_auxiliar_ov_aux_municipioTomunicipios")
   base_auxiliar_ov                                            base_auxiliar_ov[]
+  equipamentos                                                equipamentos[]
   regionais                                                   regionais          @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
   notas_d5                                                    notas_d5[]
   obras                                                       obras[]
@@ -713,6 +715,27 @@ model forecast_snapshot {
   grupo     Json?
 }
 
+model equipamentos {
+  id                    Int        @id @default(autoincrement())
+  codigo_instalacao     String     @db.VarChar(25)
+  codigo_instalacao_pai String?    @db.VarChar(25)
+  classe_tensao         Int?
+  tipo_dispositivo      String?    @db.VarChar(80)
+  bairro                String?    @db.VarChar(100)
+  latitude              Float
+  longitude             Float
+  clientes_bt           Int?
+  clientes_mt           Int?
+  fases                 String?    @db.VarChar(3)
+  configuracao_banco    String?    @db.VarChar(25)
+  tensao_operacao_prim  Int?
+  tensao_operacao_sec   Int?
+  id_circuito           Int
+  id_municipio          Int
+  circuitos             circuitos  @relation(fields: [id_circuito], references: [id], onUpdate: NoAction, map: "fk_circuitos")
+  municipios            municipios @relation(fields: [id_municipio], references: [id], onUpdate: NoAction, map: "fk_municipios")
+}
+
 view exportacao_obras_executadas {
   id                 BigInt    @unique
   ovnota             String?   @db.VarChar(12)
@@ -980,4 +1003,6 @@ view exportacao_ordens {
   status         String?   @db.VarChar(25)
   ordemdiagrama  String?   @db.VarChar(12)
   data_conclusao DateTime? @db.Date
+  regional       String?   @db.VarChar(20)
+  turma          String?   @db.VarChar(15)
 }

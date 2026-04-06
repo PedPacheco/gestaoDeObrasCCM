@@ -126,7 +126,7 @@ export default function PublicationRestrictionsTable({
                   key={rowIndex}
                   sx={{
                     "& > td": {
-                      maxHeight: "4rem",
+                      maxHeight: "2rem",
                       padding: "4px 8px",
                       lineHeight: "1.1",
                     },

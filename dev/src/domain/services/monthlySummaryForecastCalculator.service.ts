@@ -211,10 +211,15 @@ export class MonthlySummaryForecastCalculator implements IMonthlySummaryForecast
       acc.totalServiceMoPlanByGrouping += row.totalServiceMoPlan;
       acc.totalServiceMoPendByGrouping += row.totalServiceMoPend;
       acc.totalServiceMoExecByGrouping += row.totalServiceMoExec;
+      acc.totalServiceMoForecastByGrouping += row.totalServiceMoForecast;
       acc.totalMaterialMoProgByGrouping += row.totalMaterialMoProg;
       acc.totalMaterialMoPlanByGrouping += row.totalMaterialMoPlan;
       acc.totalMaterialMoPendByGrouping += row.totalMaterialMoPend;
       acc.totalMaterialMoExecByGrouping += row.totalMaterialMoExec;
+      acc.totalMaterialMoForecastByGrouping += row.totalMaterialMoForecast;
+
+      acc.totalForecast += row.forecastTotal;
+      acc.totalExec += row.execTotal;
 
       return acc;
     }, createInitialTotalsByGrouping());
