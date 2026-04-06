@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { UpdateCapexRepository } from 'src/infra/repositories/works/updateCapexRepository';
 import { mockCalculatedValues } from '../../../../test/mocks/mocksMaterialCapex';
+import { UpdateCapexRepository } from 'src/infra/repositories/works/updateCapexRepository';
 
 describe('UpdateCapexRepository', () => {
   let repository: UpdateCapexRepository;

@@ -47,7 +47,7 @@ import { WorksUpdateController } from '../controllers/works/worksUpdate.controll
 import { AuxiliaryBaseModule } from './auxiliaryBase.module';
 import { UsersModule } from './users.module';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
-import { UpdateCapexRepository } from 'src/infra/repositories/works/UpdateCapexRepository';
+import { UpdateCapexRepository } from 'src/infra/repositories/works/updateCapexRepository';
 
 @Module({
   imports: [CacheModule, UsersModule, forwardRef(() => AuxiliaryBaseModule)],
