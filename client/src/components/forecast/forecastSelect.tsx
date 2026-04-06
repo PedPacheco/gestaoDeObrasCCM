@@ -123,9 +123,8 @@ export function SnapshotSelect({ snapshots, selectedId, token }: Props) {
           startDate={startDate}
           setEndDate={setEndDate}
           setStartDate={setStartDate}
-          size="w-1/3"
+          size="w-48"
           spacing="my-6 ml-4"
-          flex="flex-row flex"
         />
 
         {/* ✅ Botão de aplicar filtro */}
@@ -139,7 +138,7 @@ export function SnapshotSelect({ snapshots, selectedId, token }: Props) {
         <FormControl
           fullWidth
           size="medium"
-          sx={{ maxWidth: 460, my: 2, ml: 6 }}
+          sx={{ maxWidth: 460, my: 2, mx: 6 }}
         >
           <InputLabel id="snapshot-select-label" className="text-xl">
             Selecione o relatório
@@ -215,7 +214,7 @@ export function SnapshotSelect({ snapshots, selectedId, token }: Props) {
       {permissions?.permissao === "Total" && (
         <ButtonComponent
           text="Excluir relatório"
-          styled="my-4 w-56"
+          styled="mb-4 mt-6 w-56"
           onClick={handleDelete}
         />
       )}
