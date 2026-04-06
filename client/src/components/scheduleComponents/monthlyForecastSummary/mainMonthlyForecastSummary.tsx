@@ -21,6 +21,7 @@ import { MonthlyForecastSummaryTable } from "./monthlyForecastSummaryTable";
 import { exportExcel } from "@/actions/generateExcel.action";
 import { mountUrl } from "@/utils/mountUrl";
 import { saveForecastSnapshot } from "@/actions/schedules";
+import { useUser } from "@/contexts/userContext";
 
 export interface Filters {
   regional: { id: string; regional: string }[];
@@ -93,6 +94,8 @@ export function MainMonthlyForecastSummarySchedule({
 }: MainMonthlySummaryScheduleProps) {
   const { dataFirst, dataSecond, error, setError, isPending, fetch } =
     useMonthlyForecastSummary(dataFirstSummary, dataSecondSummary, token);
+
+  const { permissions } = useUser();
 
   const [startDate, setStartDate] = useState<Dayjs | null>(DEFAULT_START());
   const [endDate, setEndDate] = useState<Dayjs | null>(DEFAULT_END());
@@ -167,8 +170,6 @@ export function MainMonthlyForecastSummarySchedule({
       diario: dataFirst,
       grupo: dataSecond,
     };
-
-    console.log(data);
 
     const response = await saveForecastSnapshot(data);
 
@@ -253,11 +254,13 @@ export function MainMonthlyForecastSummarySchedule({
             styled="w-full mb-2 md:w-1/5 md:mb-0 max-w-md"
           />
 
-          <ButtonComponent
-            onClick={handleSave}
-            text={getButtonContent(isPending, "Salvar Forecast")}
-            styled="w-full mb-2 md:w-1/5 md:mb-0 max-w-md"
-          />
+          {permissions?.permissao === "Total" && (
+            <ButtonComponent
+              onClick={handleSave}
+              text={getButtonContent(isPending, "Salvar Forecast")}
+              styled="w-full mb-2 md:w-1/5 md:mb-0 max-w-md"
+            />
+          )}
         </div>
       </div>
 

@@ -20,7 +20,12 @@ describe('ForecastController', () => {
         { provide: UsersService, useValue: { findUser: jest.fn() } },
         {
           provide: ForecastSnapshotService,
-          useValue: { execute: jest.fn(), get: jest.fn(), getAll: jest.fn() },
+          useValue: {
+            execute: jest.fn(),
+            get: jest.fn(),
+            getAll: jest.fn(),
+            delete: jest.fn(),
+          },
         },
       ],
     }).compile();
@@ -86,11 +91,23 @@ describe('ForecastController', () => {
 
     jest.spyOn(service, 'getAll').mockResolvedValue(mockResponseService);
 
-    const result = await controller.getAllSnapshots();
+    const result = await controller.getAllSnapshots({});
 
     expect(result).toStrictEqual({
       statusCode: HttpStatus.OK,
       data: mockResponseService,
     });
+  });
+
+  it('should call delete method', async () => {
+    jest.spyOn(service, 'delete').mockResolvedValue();
+
+    const result = await controller.deleteForecastSnapshot(1);
+
+    expect(result).toEqual({
+      statusCode: HttpStatus.CREATED,
+      message: 'Snapshot do forecast deletado com sucesso',
+    });
+    expect(service.delete).toHaveBeenCalledTimes(1);
   });
 });

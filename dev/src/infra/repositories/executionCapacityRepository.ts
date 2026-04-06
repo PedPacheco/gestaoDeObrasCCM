@@ -81,6 +81,7 @@ export class ExecutionCapacityRepository implements IExecutionCapacityRepository
         regionais: { select: { regional: true } },
         turmas: { select: { turma: true } },
         should_cost: true,
+        qtd_equipes_rfp: true,
         jan: true,
         fev: true,
         mar: true,

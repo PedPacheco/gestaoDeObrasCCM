@@ -18,16 +18,31 @@ type Snapshot = {
 export default async function ForecastReportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ snapshotId?: string }>;
+  searchParams: Promise<{ snapshotId?: string; startDate: any; endDate: any }>;
 }) {
   const params = await searchParams;
 
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
+  const startDate = params.startDate;
+  const endDate = params.endDate;
+
+  const queryParams = new URLSearchParams();
+
+  if (startDate) {
+    queryParams.set("startDate", startDate);
+  }
+
+  if (endDate) {
+    queryParams.set("endDate", endDate);
+  }
+
   // 🔹 1. Buscar lista de snapshots
   const initialResponse = await fetchData(
-    `${process.env.NEXT_PUBLIC_API_URL}/forecast/snapshot`,
+    `${process.env.NEXT_PUBLIC_API_URL}/forecast/snapshot${
+      queryParams.toString() ? `?${queryParams.toString()}` : ""
+    }`,
     {},
     token,
     { cache: "no-store" },
@@ -41,24 +56,6 @@ export default async function ForecastReportPage({
   const latestId = snapshotsSorted.length ? snapshotsSorted[0].id : null;
 
   const selectedId = params.snapshotId ? Number(params.snapshotId) : latestId;
-
-  // 🔹 Empty state
-  if (!latestId) {
-    return (
-      <EmotionCacheProvider>
-        <div className="w-full h-[60vh] flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-xl font-semibold mb-2">
-              Nenhum relatório encontrado
-            </h2>
-            <p className="text-gray-500">
-              Ainda não existem snapshots gerados para exibição.
-            </p>
-          </div>
-        </div>
-      </EmotionCacheProvider>
-    );
-  }
 
   // 🔹 4. Buscar snapshot selecionado
   const summaryData = await fetchData(
@@ -106,6 +103,7 @@ export default async function ForecastReportPage({
       children: [
         { key: "serviceMoForecast", label: "Serviço", format: "currency" },
         { key: "materialMoForecast", label: "Material", format: "currency" },
+        { key: "forecastTotal", label: "Total", format: "currency" },
       ],
     },
     {
@@ -113,6 +111,7 @@ export default async function ForecastReportPage({
       children: [
         { key: "serviceMoExec", label: "Serviço", format: "currency" },
         { key: "materialMoExec", label: "Material", format: "currency" },
+        { key: "execTotal", label: "Total", format: "currency" },
       ],
     },
     { key: "diff", label: "Prog x Exec (%)", format: "percent" },
@@ -157,24 +156,41 @@ export default async function ForecastReportPage({
     <EmotionCacheProvider>
       <div className="w-full flex flex-col px-4 overflow-y-auto">
         {/* 🔹 Select */}
-        <SnapshotSelect snapshots={snapshotsSorted} selectedId={selectedId} />
+        <SnapshotSelect
+          snapshots={snapshotsSorted}
+          selectedId={selectedId}
+          token={token}
+        />
 
         {/* 🔹 Tabelas */}
-        <div className="w-full flex flex-col xl:flex-row gap-4 h-[85%]">
-          <MonthlyForecastSummaryTable
-            columns={columnsFirstSummary}
-            data={summaryData.data.diario.summary}
-            totals={summaryData.data.diario.totals}
-            isFirstSummary={true}
-          />
+        {!latestId ? (
+          <div className="w-full h-[60vh] flex items-center justify-center">
+            <div className="text-center">
+              <h2 className="text-xl font-semibold mb-2">
+                Nenhum relatório encontrado
+              </h2>
+              <p className="text-gray-500">
+                Ainda não existem snapshots gerados para exibição.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="w-full flex flex-col xl:flex-row gap-4 h-[85%]">
+            <MonthlyForecastSummaryTable
+              columns={columnsFirstSummary}
+              data={summaryData.data.diario.summary}
+              totals={summaryData.data.diario.totals}
+              isFirstSummary={true}
+            />
 
-          <MonthlyForecastSummaryTable
-            columns={columnsSecondSummary}
-            data={summaryData.data.grupo.summary}
-            totals={summaryData.data.grupo.totals}
-            isFirstSummary={false}
-          />
-        </div>
+            <MonthlyForecastSummaryTable
+              columns={columnsSecondSummary}
+              data={summaryData.data.grupo.summary}
+              totals={summaryData.data.grupo.totals}
+              isFirstSummary={false}
+            />
+          </div>
+        )}
       </div>
     </EmotionCacheProvider>
   );

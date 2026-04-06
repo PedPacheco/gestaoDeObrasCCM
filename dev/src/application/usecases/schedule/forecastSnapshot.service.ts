@@ -24,7 +24,7 @@ export class ForecastSnapshotService {
       throw new Error('Snapshot de grupo não pode estar vazio');
     }
 
-    return this.repository.create(data);
+    await this.repository.create(data);
   }
 
   async get(params: number) {
@@ -43,8 +43,21 @@ export class ForecastSnapshotService {
     return snapshotFormatted;
   }
 
-  async getAll() {
-    const snapshots = await this.repository.getAll();
+  async getAll(filters?: { startDate?: string; endDate?: string }) {
+    const where: any = {};
+
+    if (filters?.startDate || filters?.endDate) {
+      where.gerado_em = {
+        ...(filters.startDate && {
+          gte: moment(filters.startDate).startOf('day').toDate(),
+        }),
+        ...(filters.endDate && {
+          lte: moment(filters.endDate).endOf('day').toDate(),
+        }),
+      };
+    }
+
+    const snapshots = await this.repository.getAll(where);
 
     return snapshots.map((snapshot) => {
       const { id, filtros, gerado_em } = snapshot;
@@ -55,6 +68,10 @@ export class ForecastSnapshotService {
         filtros,
       };
     });
+  }
+
+  async delete(id: number) {
+    await this.repository.delete(id);
   }
 
   private formatDaily(data: any): any {

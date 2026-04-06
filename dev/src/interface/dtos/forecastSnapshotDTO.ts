@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
+  IsDateString,
   IsNumber,
   IsOptional,
   IsString,
@@ -260,4 +261,14 @@ export class CreateForecastSnapshotDTO {
   @ValidateNested()
   @Type(() => CreateSnapshotFiltersDTO)
   filtros?: CreateSnapshotFiltersDTO;
+}
+
+export class GetSnapshotsQueryDto {
+  @IsOptional()
+  @IsDateString()
+  startDate?: string;
+
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
 }

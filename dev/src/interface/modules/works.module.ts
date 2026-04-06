@@ -34,7 +34,7 @@ import { GetWorksDetailsRepository } from 'src/infra/repositories/works/getWorks
 import { GetWorksInPortfolioRepository } from 'src/infra/repositories/works/getWorksInPortfolioRepository';
 import { InsertWorksRepository } from 'src/infra/repositories/works/InsertWorksRepository';
 import { SuspensionWorkRepository } from 'src/infra/repositories/works/suspensionWorkRepository';
-import { UpdateCapexRepository } from 'src/infra/repositories/works/UpdateCapexRepository';
+import { UpdateCapexRepository } from 'src/infra/repositories/works/updateCapexRepository';
 import { UpdateNoteRepository } from 'src/infra/repositories/works/updateNoteRepository';
 import { UpdateOvRepository } from 'src/infra/repositories/works/updateOvRepository';
 import { UpdateWorkRepository } from 'src/infra/repositories/works/updateWorkRepository';
