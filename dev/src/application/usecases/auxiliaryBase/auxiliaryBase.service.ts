@@ -161,6 +161,6 @@ export class AuxiliaryBaseService {
       id_obra: obraIdsMap.get(item.diagrama_rede) || null,
     }));
 
-    this.auxiliaryBaseRepository.insertCapex(dataWithObraId);
+    await this.auxiliaryBaseRepository.insertCapex(dataWithObraId);
   }
 }

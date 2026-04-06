@@ -34,7 +34,7 @@ import { GetWorksDetailsRepository } from 'src/infra/repositories/works/getWorks
 import { GetWorksInPortfolioRepository } from 'src/infra/repositories/works/getWorksInPortfolioRepository';
 import { InsertWorksRepository } from 'src/infra/repositories/works/InsertWorksRepository';
 import { SuspensionWorkRepository } from 'src/infra/repositories/works/suspensionWorkRepository';
-import { UpdateCapexRepository } from 'src/infra/repositories/works/UpdateCapexRepository';
+
 import { UpdateNoteRepository } from 'src/infra/repositories/works/updateNoteRepository';
 import { UpdateOvRepository } from 'src/infra/repositories/works/updateOvRepository';
 import { UpdateWorkRepository } from 'src/infra/repositories/works/updateWorkRepository';
@@ -47,6 +47,7 @@ import { WorksUpdateController } from '../controllers/works/worksUpdate.controll
 import { AuxiliaryBaseModule } from './auxiliaryBase.module';
 import { UsersModule } from './users.module';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
+import { UpdateCapexRepository } from 'src/infra/repositories/works/UpdateCapexRepository';
 
 @Module({
   imports: [CacheModule, UsersModule, forwardRef(() => AuxiliaryBaseModule)],

@@ -19,14 +19,21 @@ export class ForecastSnapshotRepository implements IForecastSnapshotRepository {
     });
   }
 
+  async delete(id: number): Promise<void> {
+    await this.prisma.forecast_snapshot.delete({
+      where: { id },
+    });
+  }
+
   async get(id: number): Promise<any> {
     return await this.prisma.forecast_snapshot.findUnique({
       where: { id },
     });
   }
 
-  async getAll(): Promise<any> {
+  async getAll(where: any): Promise<any> {
     return await this.prisma.forecast_snapshot.findMany({
+      where,
       select: {
         id: true,
         gerado_em: true,

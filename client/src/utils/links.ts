@@ -31,17 +31,17 @@ export const links = [
       {
         name: "Relatório de erros",
         href: "/relatorios/relatorio-erros",
-        allowedFor: ["total", "parcial", "sem_permissao"],
+        allowedFor: ["total", "sem_permissao"],
       },
       {
         name: "Relatório BI's",
         href: "/relatorios/relatorio-bi",
-        allowedFor: ["total", "parcial", "sem_permissao"],
+        allowedFor: ["total", "sem_permissao"],
       },
       {
         name: "Relatório Forecast",
         href: "/relatorios/forecast",
-        allowedFor: ["total", "parcial", "sem_permissao"],
+        allowedFor: ["total", "sem_permissao"],
       },
     ],
   },
@@ -130,17 +130,17 @@ export const links = [
       {
         name: "Resumo mensal - Mão de Obra",
         href: "/programacao/resumo-mensal",
-        allowedFor: ["total", "parcial", "sem_permissao"],
+        allowedFor: ["total", "sem_permissao"],
       },
       {
         name: "Resumo mensal - Forecast",
         href: "/programacao/resumo-mensal-forecast",
-        allowedFor: ["total", "parcial", "sem_permissao"],
+        allowedFor: ["total", "sem_permissao"],
       },
       {
         name: "Valores Mensais",
         href: "/programacao/valores-mensais",
-        allowedFor: ["total", "parcial", "sem_permissao"],
+        allowedFor: ["total", "sem_permissao"],
       },
       {
         name: "Programação por data",
@@ -152,7 +152,7 @@ export const links = [
   {
     name: "Restrições",
     href: null,
-    allowedFor: ["total", "sem_permissao"],
+    allowedFor: ["total", "parcial", "sem_permissao"],
     submenu: [
       {
         name: "Restrições Programações",
@@ -162,7 +162,7 @@ export const links = [
       {
         name: "Restrições Publicações",
         href: "/restricoes/publicacoes",
-        allowedFor: ["total", "sem_permissao"],
+        allowedFor: ["total", "parcial", "sem_permissao"],
       },
     ],
   },
@@ -179,6 +179,6 @@ export const links = [
   {
     name: "Capacidade de execução",
     href: "/capacidade-execucao",
-    allowedFor: ["total", "sem_permissao"],
+    allowedFor: ["total", "parcial", "sem_permissao"],
   },
 ];

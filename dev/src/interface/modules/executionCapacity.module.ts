@@ -5,9 +5,11 @@ import { ExecutionCapacityRepository } from 'src/infra/repositories/executionCap
 import { Module } from '@nestjs/common';
 
 import { ExecutionCapacityController } from '../controllers/executionCapacity.controller';
+import { UsersModule } from './users.module';
 
 @Module({
   controllers: [ExecutionCapacityController],
+  imports: [UsersModule],
   providers: [
     ExecutionCapacityService,
     {

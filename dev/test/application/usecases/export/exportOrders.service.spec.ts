@@ -33,6 +33,8 @@ describe('ExportOrdersSrrvice', () => {
         tipo_obra: 'Ligação',
         status: 'Programado',
         ordemdiagrama: '23453',
+        regional: 'São José',
+        turma: 'Engelmig',
       },
     ];
 
