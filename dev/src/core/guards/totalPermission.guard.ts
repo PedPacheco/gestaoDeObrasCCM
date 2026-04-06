@@ -16,7 +16,7 @@ export class TotalPermissionGuard implements CanActivate {
       throw new UnauthorizedException('Usuário não autenticado');
     }
 
-    if (user.permissao_visualizacao !== 'Total') {
+    if (user.permissao !== 'Total') {
       throw new ForbiddenException(
         'Acesso permitido apenas para usuários com permissão total.',
       );

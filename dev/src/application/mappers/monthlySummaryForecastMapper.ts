@@ -104,11 +104,15 @@ export class MonthlySummaryForecastMapper {
       totalServiceMoPend: 0,
       totalServiceMoPrev: 0,
       totalServiceMoExec: 0,
+      totalServiceMoForecast: 0,
       totalMaterialMoProg: 0,
       totalMaterialMoPlan: 0,
       totalMaterialMoPend: 0,
       totalMaterialMoPrev: 0,
       totalMaterialMoExec: 0,
+      totalMaterialMoForecast: 0,
+      forecastTotal: 0,
+      execTotal: 0,
       diff: 0,
     };
   }
@@ -124,6 +128,10 @@ export class MonthlySummaryForecastMapper {
       serviceCapexExec,
       materialCapexProg,
       materialCapexExec,
+      materialCapexForecast,
+      serviceCapexForecast,
+      execTotal,
+      forecastTotal,
     } = workOrderMetrics;
 
     entry.qtdeWorks++;
@@ -133,12 +141,17 @@ export class MonthlySummaryForecastMapper {
     entry.totalMaterialMoPrev += prevMetrics.materialCapexPrev;
     entry.totalMaterialMoPend += financials.materialPend;
     entry.totalMaterialMoExec += materialCapexExec;
+    entry.totalMaterialMoForecast += materialCapexForecast;
 
     entry.totalServiceMoPlan += financials.servicePlan;
     entry.totalServiceMoProg += serviceCapexProg;
     entry.totalServiceMoPend += financials.servicePend;
     entry.totalServiceMoPrev += prevMetrics.serviceCapexPrev;
     entry.totalServiceMoExec += serviceCapexExec;
+    entry.totalServiceMoForecast += serviceCapexForecast;
+
+    entry.forecastTotal += forecastTotal;
+    entry.execTotal += execTotal;
   }
 }
 
@@ -176,10 +189,14 @@ export function createInitialTotalsByGrouping(): GroupForecastSummaryTotals {
     totalServiceMoPlanByGrouping: 0,
     totalServiceMoPendByGrouping: 0,
     totalServiceMoExecByGrouping: 0,
+    totalServiceMoForecastByGrouping: 0,
     totalMaterialMoProgByGrouping: 0,
     totalMaterialMoPlanByGrouping: 0,
     totalMaterialMoPendByGrouping: 0,
     totalMaterialMoExecByGrouping: 0,
+    totalMaterialMoForecastByGrouping: 0,
+    totalForecast: 0,
+    totalExec: 0,
     totalDiff: 0,
   };
 }

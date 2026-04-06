@@ -239,19 +239,20 @@ describe('MonthlySummaryForecastCalculator', () => {
           grupo: 'RDA',
           turma: 'Turma A',
           qtdeWorks: 2,
-
           totalServiceMoProg: 100,
           totalServiceMoPlan: 150,
           totalServiceMoPend: 50,
           totalServiceMoPrev: 80,
           totalServiceMoExec: 60,
-
+          totalServiceMoForecast: 60,
           totalMaterialMoProg: 50,
           totalMaterialMoPlan: 80,
           totalMaterialMoPend: 30,
           totalMaterialMoPrev: 40,
           totalMaterialMoExec: 25,
-
+          totalMaterialMoForecast: 30,
+          execTotal: 85,
+          forecastTotal: 90,
           diff: 0,
         },
       ];

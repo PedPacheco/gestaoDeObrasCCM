@@ -13,6 +13,7 @@ describe('SaveForecastSnapshotRepository', () => {
       create: jest.fn(),
       findUnique: jest.fn(),
       findMany: jest.fn(),
+      delete: jest.fn(),
     },
   };
 
@@ -365,6 +366,20 @@ describe('SaveForecastSnapshotRepository', () => {
       where.gerado_em = {};
 
       await expect(repository.getAll(where)).rejects.toThrow('Database error');
+    });
+  });
+
+  describe('delete', () => {
+    it('should call delete method with sent id', async () => {
+      prismaMock.forecast_snapshot.delete.mockResolvedValue({});
+
+      await repository.delete(1);
+
+      expect(prismaService.forecast_snapshot.delete).toHaveBeenCalledTimes(1);
+
+      expect(prismaService.forecast_snapshot.delete).toHaveBeenCalledWith({
+        where: { id: 1 },
+      });
     });
   });
 });
