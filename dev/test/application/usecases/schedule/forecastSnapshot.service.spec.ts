@@ -12,6 +12,7 @@ describe('ForecastSnapshotService', () => {
     create: jest.fn(),
     get: jest.fn(),
     getAll: jest.fn(),
+    delete: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -397,7 +398,7 @@ describe('ForecastSnapshotService', () => {
 
       mockRepository.getAll = jest.fn().mockResolvedValue(repositoryResponse);
 
-      const result = await service.getAll();
+      const result = await service.getAll({ startDate: null, endDate: null });
 
       expect(result).toEqual([
         {
@@ -410,6 +411,47 @@ describe('ForecastSnapshotService', () => {
           },
         },
       ]);
+    });
+
+    it('should call repository.getAll and return formatted data with period filter', async () => {
+      const repositoryResponse = [
+        {
+          id: 1,
+          filtros: {
+            dataInicial: '2026-03-01',
+            dataFinal: '2026-03-31',
+            idParceira: ['São José'],
+          },
+          gerado_em: '2026-03-24 12:19:11.1-03',
+        },
+      ];
+
+      mockRepository.getAll = jest.fn().mockResolvedValue(repositoryResponse);
+
+      const result = await service.getAll({
+        startDate: '2026-04-01',
+        endDate: '2026-04-31',
+      });
+
+      expect(result).toEqual([
+        {
+          id: 1,
+          nomeArquivo: `Relatório do dia ${moment(repositoryResponse[0].gerado_em).format('DD/MM/YYYY HH:mm')}`,
+          filtros: {
+            dataInicial: '2026-03-01',
+            dataFinal: '2026-03-31',
+            idParceira: ['São José'],
+          },
+        },
+      ]);
+    });
+  });
+
+  describe('delete', () => {
+    it('should call delete', async () => {
+      await service.delete(1);
+
+      expect(mockRepository.delete).toHaveBeenCalledWith(1);
     });
   });
 });

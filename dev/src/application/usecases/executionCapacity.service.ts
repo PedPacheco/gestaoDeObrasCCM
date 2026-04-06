@@ -40,6 +40,7 @@ export class ExecutionCapacityService {
           ano: item.ano,
           regional: item.regionais.regional,
           parceira: item.turmas.turma,
+          total_rfp: 0,
           jan: 0,
           fev: 0,
           mar: 0,
@@ -55,6 +56,7 @@ export class ExecutionCapacityService {
         };
       }
 
+      acc[key].total_rfp += item.should_cost * item.qtd_equipes_rfp;
       acc[key].jan += item.should_cost * (item.jan ?? 0);
       acc[key].fev += item.should_cost * (item.fev ?? 0);
       acc[key].mar += item.should_cost * (item.mar ?? 0);

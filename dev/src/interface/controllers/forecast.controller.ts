@@ -1,17 +1,22 @@
 import { ForecastSnapshotService } from 'src/application/usecases/schedule/forecastSnapshot.service';
-import { VisualizationGuard } from 'src/core/guards/visualization.guard';
+import { TotalPermissionGuard } from 'src/core/guards/totalPermission.guard';
 
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpStatus,
   Param,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 
-import { CreateForecastSnapshotDTO } from '../dtos/forecastSnapshotDTO';
+import {
+  CreateForecastSnapshotDTO,
+  GetSnapshotsQueryDto,
+} from '../dtos/forecastSnapshotDTO';
 
 @Controller('forecast')
 export class ForecastController {
@@ -29,8 +34,8 @@ export class ForecastController {
   }
 
   @Get('snapshot')
-  async getAllSnapshots() {
-    const snapshots = await this.forecastSnapshotService.getAll();
+  async getAllSnapshots(@Query() query: GetSnapshotsQueryDto) {
+    const snapshots = await this.forecastSnapshotService.getAll(query);
 
     return {
       statusCode: HttpStatus.OK,
@@ -39,7 +44,7 @@ export class ForecastController {
   }
 
   @Post('snapshot')
-  @UseGuards(VisualizationGuard)
+  @UseGuards(TotalPermissionGuard)
   async saveForecastSnapshot(@Body() data: CreateForecastSnapshotDTO) {
     const snapshot = await this.forecastSnapshotService.execute(data);
 
@@ -47,6 +52,17 @@ export class ForecastController {
       statusCode: HttpStatus.CREATED,
       message: 'Snapshot do forecast salvo com sucesso',
       data: snapshot,
+    };
+  }
+
+  @Delete('snapshot/:id')
+  @UseGuards(TotalPermissionGuard)
+  async deleteForecastSnapshot(@Param('id') id: number) {
+    await this.forecastSnapshotService.delete(id);
+
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'Snapshot do forecast deletado com sucesso',
     };
   }
 }

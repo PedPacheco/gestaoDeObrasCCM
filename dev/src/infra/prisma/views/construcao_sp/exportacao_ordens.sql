@@ -4,18 +4,29 @@ SELECT
   t.tipo_obra,
   s.status,
   ordens.ordemdiagrama,
-  o.data_conclusao
+  o.data_conclusao,
+  r.regional,
+  p.turma
 FROM
   (
     (
       (
         (
-          obras o
-          JOIN tipos t ON ((t.id = o.id_tipo))
+          (
+            (
+              (
+                obras o
+                JOIN tipos t ON ((t.id = o.id_tipo))
+              )
+              JOIN grupos g ON ((g.id = t.id_grupo))
+            )
+            JOIN STATUS s ON ((s.id = o.id_status))
+          )
+          JOIN municipios m ON ((m.id = o.id_gpm))
         )
-        JOIN grupos g ON ((g.id = t.id_grupo))
+        JOIN regionais r ON ((r.id = m.id_regional))
       )
-      JOIN STATUS s ON ((s.id = o.id_status))
+      JOIN turmas p ON ((p.id = o.id_turma))
     )
     CROSS JOIN LATERAL (
       VALUES
