@@ -171,6 +171,8 @@ export function MainMonthlyForecastSummarySchedule({
       grupo: dataSecond,
     };
 
+    console.log(dataSecond);
+
     const response = await saveForecastSnapshot(data);
 
     if (!response.success) {
