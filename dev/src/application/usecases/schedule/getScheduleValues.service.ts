@@ -35,10 +35,16 @@ export class GetScheduleValuesService {
     };
 
     const worksWithRestrictionVerification = works.map((work) => {
+      const forecast = this.calculateForecast(work);
+
       return {
         ...work,
         restricao_aberta: this.hasOpenRestriction(work),
         status_prazo: this.deadlineStatusService.calculate(work),
+
+        mo_forecast: forecast.serviceCapexForecast,
+        mat_forecast: forecast.materialCapexForecast,
+        forecast_total: forecast.forecastTotal,
       };
     });
 
@@ -48,6 +54,30 @@ export class GetScheduleValuesService {
     };
 
     return response;
+  }
+
+  private calculateForecast(work: any) {
+    const { prog, exec, executado, capex_mat_pend, capex_mo_pend } = work;
+
+    const progRate = prog / 100;
+    const totalExecRate = executado / 100;
+
+    const execTotal =
+      exec == null
+        ? Math.min(1, totalExecRate + progRate)
+        : totalExecRate < 1
+          ? progRate
+          : totalExecRate;
+
+    const factor = execTotal >= 1 ? 1 : progRate;
+    const serviceCapexForecast = capex_mo_pend * factor;
+    const materialCapexForecast = capex_mat_pend * factor;
+
+    return {
+      serviceCapexForecast,
+      materialCapexForecast,
+      forecastTotal: serviceCapexForecast + materialCapexForecast,
+    };
   }
 
   private buildTotals(rawTotals: any) {
