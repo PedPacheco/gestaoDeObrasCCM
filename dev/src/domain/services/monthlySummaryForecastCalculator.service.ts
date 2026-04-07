@@ -109,9 +109,15 @@ export class MonthlySummaryForecastCalculator implements IMonthlySummaryForecast
     totalExec: number,
   ): WorkOrderMetricsForecast {
     const progRate = prog / 100;
-    const execRate = exec / 100;
+    const execRate = exec != null ? exec / 100 : null;
+    const totalExecRate = totalExec / 100;
 
-    const execTotal = totalExec !== 100 ? (totalExec + prog) / 100 : 1;
+    const execTotal =
+      exec == null
+        ? Math.min(1, totalExecRate + progRate)
+        : totalExecRate < 1
+          ? progRate
+          : totalExecRate;
 
     const serviceCapexForecast = servicePend * (execTotal >= 1 ? 1 : progRate);
     const materialCapexForecast =
