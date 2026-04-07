@@ -1,6 +1,5 @@
 "use client";
 
-import ExcelJS from "exceljs";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 
@@ -9,10 +8,9 @@ import ErrorModal from "@/components/common/ErrorModal";
 import ModalComponent from "@/components/common/Modal";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { DocumentArrowDownIcon } from "@heroicons/react/24/solid";
-import { InsertCapex } from "@/actions/insertAuxiliaryBase";
 
 export function ImportCapexButton() {
-  const cn52nInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -24,81 +22,39 @@ export function ImportCapexButton() {
   const toggleModal = () => setOpenModal((prev) => !prev);
 
   const handleClick = () => {
-    cn52nInputRef.current?.click();
+    fileInputRef.current?.click();
   };
 
-  const resetFileInputs = () => {
-    if (cn52nInputRef.current) cn52nInputRef.current.value = "";
+  const resetFileInput = () => {
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  function createMaterialBatches(materialData: any[], batchSize: number = 150) {
-    const batches: any[][] = [];
-    let currentBatch: any[] = [];
-
-    for (const material of materialData) {
-      if (currentBatch.length >= batchSize) {
-        batches.push(currentBatch);
-        currentBatch = [];
-      }
-      currentBatch.push(material);
-    }
-
-    if (currentBatch.length > 0) {
-      batches.push(currentBatch);
-    }
-
-    return batches;
-  }
-
-  const handleCN52NSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const cn52nFile = e.target.files?.[0];
-    if (!cn52nFile) return;
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     startTransition(async () => {
       try {
-        const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.load(await cn52nFile.arrayBuffer());
+        const formData = new FormData();
+        formData.append("file", file);
 
-        const cn52nSheet = workbook.worksheets[0];
+        const response = await fetch("/api/import/capex", {
+          method: "POST",
+          body: formData,
+        });
 
-        const cn52nData = cn52nSheet
-          .getSheetValues()
-          .slice(2)
-          .map((row: any) => {
-            return {
-              diagrama_rede: row[2].toString() ?? "",
-              def_proj: row[3],
-              material: row[4].toString() ?? "",
-              texto_material: row[5],
-              centro: row[6],
-              deposito: row[7],
-              ctg_item: row[8],
-              elemento_pep: row[9],
-              um_registro: row[10],
-              preco_mi: row[11],
-              qtd_necess: row[12],
-              qtd_retirada: row[13],
-              qtd_recebida: row[14],
-              qtd_faltante: row[15],
-              relevancia_calculo: row[17],
-            };
-          });
-
-        const batches = createMaterialBatches(cn52nData);
-
-        for (const batch of batches) {
-          await InsertCapex(batch);
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data?.message || "Erro ao importar arquivo");
         }
 
-        resetFileInputs();
-
-        setSuccess("Materiais e Serviços M.O importados com sucesso");
+        setSuccess("Arquivo enviado e processamento iniciado com sucesso");
         setOpenModal(true);
-        resetFileInputs();
 
+        resetFileInput();
         router.refresh();
       } catch (err: any) {
-        console.log(err);
+        console.error(err);
         setError(err.message);
       }
     });
@@ -109,8 +65,8 @@ export function ImportCapexButton() {
       <input
         type="file"
         accept=".xlsx"
-        ref={cn52nInputRef}
-        onChange={handleCN52NSelect}
+        ref={fileInputRef}
+        onChange={handleFileSelect}
         style={{ display: "none" }}
       />
 
