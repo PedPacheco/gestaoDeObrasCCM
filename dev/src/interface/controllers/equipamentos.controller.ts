@@ -15,13 +15,13 @@ export class EquipamentosController {
     return this.equipamentosService.getEquipamentos(query);
   }
 
-  @Get('sem-localizacao/export')
+  @Get('without-location/export')
   @UseGuards(VisualizationGuard)
-  async exportSemLocalizacao(
+  async exportWithoutLocation(
     @Query('ovnotas') ovnotas: string,
     @Res() res: Response,
   ) {
-    const obras = await this.equipamentosService.getSemLocalizacao(ovnotas ?? '');
+    const obras = await this.equipamentosService.getWithoutLocation(ovnotas ?? '');
 
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Obras sem localização');
@@ -38,7 +38,7 @@ export class EquipamentosController {
       { header: 'Empreendimento', key: 'empreendimento', width: 25 },
     ];
 
-    // PG Cabeçalho em negrito
+    // PG Bold header row
     sheet.getRow(1).font = { bold: true };
 
     sheet.addRows(obras);

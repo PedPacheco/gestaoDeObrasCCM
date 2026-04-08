@@ -134,7 +134,7 @@ export class EquipamentosRepository implements IEquipamentosRepository {
     return this.prisma.obras.count({ where: this.buildObrasWhere(params) });
   }
 
-  async findSemLocalizacao(ovnotas: string[]): Promise<any[]> {
+  async findWithoutLocation(ovnotas: string[]): Promise<any[]> {
     const obras = await this.prisma.obras.findMany({
       where: { ovnota: { in: ovnotas } },
       select: {

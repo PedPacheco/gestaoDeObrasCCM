@@ -20,7 +20,7 @@ export interface EquipamentosFilter {
 export interface IEquipamentosRepository {
   findAll(params: EquipamentosFilter): Promise<any[]>;
   count(params: Omit<EquipamentosFilter, 'limit' | 'offset'>): Promise<number>;
-  findSemLocalizacao(ovnotas: string[]): Promise<any[]>;
+  findWithoutLocation(ovnotas: string[]): Promise<any[]>;
 }
 
 export const EQUIPAMENTOS_REPOSITORY = Symbol('EquipamentosRepository');

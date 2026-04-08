@@ -77,9 +77,9 @@ export class EquipamentosService {
     return { data, total };
   }
 
-  async getSemLocalizacao(ovnotasParam: string): Promise<any[]> {
+  async getWithoutLocation(ovnotasParam: string): Promise<any[]> {
     const ovnotas = ovnotasParam.split(',').map((s) => s.trim()).filter(Boolean);
     if (ovnotas.length === 0) return [];
-    return this.repo.findSemLocalizacao(ovnotas);
+    return this.repo.findWithoutLocation(ovnotas);
   }
 }
