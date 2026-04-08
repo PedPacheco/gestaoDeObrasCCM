@@ -106,7 +106,8 @@ export class UpdateCapexService {
         current.qtde_calc += material.qtd_necessaria / fator;
 
         if (material.reserva?.trim()) {
-          current.qtde_pend += material.qtd_retirada / fator;
+          current.qtde_pend +=
+            (material.qtd_necessaria - material.qtd_retirada) / fator;
         }
       }
 

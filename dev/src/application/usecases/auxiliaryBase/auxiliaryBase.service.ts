@@ -1,4 +1,3 @@
-import * as ExcelJS from 'exceljs';
 import { MarketWork } from 'src/domain/entities/works.entity';
 import {
   AUXILIARY_BASE_REPOSITORY,
@@ -22,8 +21,6 @@ export interface DataAuxiliaryNotes {
 
 @Injectable()
 export class AuxiliaryBaseService {
-  private obraCache = new Map<string, number>();
-
   constructor(
     @Inject(AUXILIARY_BASE_REPOSITORY)
     private readonly auxiliaryBaseRepository: IAuxiliaryBaseRepository,
@@ -109,97 +106,5 @@ export class AuxiliaryBaseService {
     operation: OperationType,
   ) {
     return this.auxiliaryMarketInsertService.execute(data, operation);
-  }
-
-  async processCapexFile(filePath: string) {
-    try {
-      // 🔥 melhor manter aqui (antes do processamento)
-      await this.auxiliaryBaseRepository.truncateCN52N();
-
-      const workbook = new ExcelJS.stream.xlsx.WorkbookReader(filePath, {
-        entries: 'emit',
-        sharedStrings: 'cache',
-        hyperlinks: 'emit',
-        worksheets: 'emit',
-      });
-
-      const BATCH_SIZE = 5000;
-      let batch: any[] = [];
-
-      for await (const worksheet of workbook) {
-        for await (const row of worksheet) {
-          if (row.number <= 2) continue;
-
-          const values = row.values as any[];
-
-          const item = {
-            diagrama_rede: values[2].toString(),
-            def_proj: values[3],
-            material: values[4].toString(),
-            texto_breve: values[5],
-            centro: values[6],
-            dep: values[7],
-            cti: values[8],
-            elemento_pep: values[9],
-            und: values[10],
-            preco: values[11],
-            qtd_necessaria: values[12],
-            qtd_retirada: values[13],
-            qtd_recebida: values[14],
-            qtd_falta: values[15],
-            reserva: values[17],
-          };
-
-          batch.push(item);
-
-          if (batch.length >= BATCH_SIZE) {
-            await this.processBatch(batch);
-            batch = [];
-          }
-        }
-      }
-
-      // flush final
-      if (batch.length) {
-        await this.processBatch(batch);
-      }
-    } catch (error) {
-      console.error('Erro no processamento CAPEX', error);
-      throw error;
-    } finally {
-      // 🧹 cleanup obrigatório
-      await import('fs').then((fs) =>
-        fs.promises.unlink(filePath).catch(() => {}),
-      );
-    }
-  }
-
-  private async processBatch(batch: any[]) {
-    const uniqueDiagramas = [
-      ...new Set(batch.map((item) => item.diagrama_rede)),
-    ];
-
-    // 🔥 busca apenas os que ainda não estão no cache
-    const missingDiagramas = uniqueDiagramas.filter(
-      (d) => !this.obraCache.has(d),
-    );
-
-    if (missingDiagramas.length) {
-      const obraIdsMap =
-        await this.auxiliaryBaseRepository.getObraIdsByDiagramas(
-          missingDiagramas,
-        );
-
-      obraIdsMap.forEach((value, key) => {
-        this.obraCache.set(key, value);
-      });
-    }
-
-    const dataWithObraId = batch.map((item) => ({
-      ...item,
-      id_obra: this.obraCache.get(item.diagrama_rede) ?? null,
-    }));
-
-    await this.auxiliaryBaseRepository.insertCapex(dataWithObraId);
   }
 }
