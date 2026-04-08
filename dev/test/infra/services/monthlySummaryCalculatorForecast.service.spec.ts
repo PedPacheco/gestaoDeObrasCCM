@@ -122,6 +122,21 @@ describe('MonthlySummaryForecastCalculator', () => {
       expect(result.serviceCapexForecast).toBeLessThanOrEqual(200);
       expect(result.materialCapexForecast).toBeLessThanOrEqual(100);
     });
+
+    it('should cap forecast by prog', () => {
+      const result = calculator.calculateWorkOrderMetrics(
+        1000,
+        500,
+        80,
+        null,
+        200,
+        100,
+        null,
+      );
+
+      expect(result.serviceCapexForecast).toBeLessThanOrEqual(160);
+      expect(result.materialCapexForecast).toBeLessThanOrEqual(80);
+    });
   });
 
   // -----------------------------
