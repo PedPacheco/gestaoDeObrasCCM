@@ -113,6 +113,7 @@ export const links = [
       },
     ],
   },
+  { name: "Mapa de obras", href: "/mapa-obras", needPermission: false },
   { name: "Obras em carteira", href: "/obras-carteira", needPermission: false },
   {
     name: "Obras executadas",

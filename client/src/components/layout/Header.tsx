@@ -3,24 +3,19 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 
 import { Bars3Icon } from "@heroicons/react/20/solid";
-
+import { useSidebar } from "@/contexts/sidebarContext";
 import { Sidebar } from "./Sidebar";
 
 export function Header() {
-  const [open, setOpen] = useState<boolean>(false);
+  const { open, toggle } = useSidebar();
   const pathname = usePathname();
-
-  function changeOpen() {
-    setOpen(!open);
-  }
 
   return (
     <>
       <div className="sticky top-0 z-10 flex min-h-14 items-center justify-between p-2 bg-[#212E3E]">
-        <button className="text-white lg:pl-6" onClick={() => changeOpen()}>
+        <button className="text-white lg:pl-6" onClick={toggle}>
           <Bars3Icon className="block h-10 w-10" aria-hidden="true" />
         </button>
 
@@ -31,11 +26,7 @@ export function Header() {
         </div>
       </div>
 
-      <Sidebar
-        open={open}
-        changeOpen={() => changeOpen()}
-        pathname={pathname}
-      />
+      <Sidebar open={open} changeOpen={toggle} pathname={pathname} />
     </>
   );
 }
