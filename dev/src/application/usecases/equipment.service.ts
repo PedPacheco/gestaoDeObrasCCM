@@ -63,7 +63,10 @@ export class EquipmentService {
   }
 
   async getWithoutLocation(ovnotasParam: string) {
-    const ovnotas = ovnotasParam.split(',').map((s) => s.trim());
+    const ovnotas = ovnotasParam
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
 
     if (!ovnotas.length) return [];
 

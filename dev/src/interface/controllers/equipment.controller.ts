@@ -3,7 +3,7 @@ import { Response } from 'express';
 import * as ExcelJS from 'exceljs';
 
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
-import { EquipmentService } from 'src/application/equipment.service';
+import { EquipmentService } from 'src/application/usecases/equipment.service';
 
 @Controller('equipamentos')
 export class EquipmentController {
