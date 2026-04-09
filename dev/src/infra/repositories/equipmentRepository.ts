@@ -12,6 +12,11 @@ export class EquipmentRepository implements IEquipmentRepository {
       select: {
         id: true,
         ovnota: true,
+        diagrama: true,
+        ordem_dci: true,
+        ordem_dca: true,
+        ordem_dcd: true,
+        ordem_dcim: true,
         referencia: true,
         id_circuito: true,
         id_status: true,
@@ -39,9 +44,9 @@ export class EquipmentRepository implements IEquipmentRepository {
     });
   }
 
-  async findWithoutLocationRaw(ovnotas: string[]) {
+  async findWithoutLocationRaw(where: any) {
     return this.prisma.obras.findMany({
-      where: { ovnota: { in: ovnotas } },
+      where,
       select: {
         ovnota: true,
         referencia: true,

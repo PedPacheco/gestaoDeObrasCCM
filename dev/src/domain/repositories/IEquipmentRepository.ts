@@ -21,7 +21,7 @@ export interface IEquipmentRepository {
   findWorks(where: any): Promise<any[]>;
   countWorks(where: any): Promise<number>;
   findEquipmentByCode(codigos: string[]): Promise<any[]>;
-  findWithoutLocationRaw(ovnotas: string[]): Promise<any[]>;
+  findWithoutLocationRaw(ovnotas: any): Promise<any[]>;
 }
 
 export const EQUIPMENT_REPOSITORY = Symbol('EquipmentRepository');

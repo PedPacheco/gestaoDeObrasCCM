@@ -4,6 +4,7 @@
 export interface ObraPin {
   id: number;
   ovnota: string;
+  ordemDiagrama: string;
   referencia: string | null;
   tipo_obra: string | null;
   status: string | null;

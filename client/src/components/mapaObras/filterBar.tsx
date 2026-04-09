@@ -1,11 +1,12 @@
 "use client";
 
+import { MapFilterItem } from "@/contexts/mapFilterContext";
 import { ObraPin } from "@/interfaces/worksMapInterface";
 
 interface FilterBarProps {
   loading: boolean;
   obras: ObraPin[];
-  ovnotas: string[] | null;
+  ovnotas: MapFilterItem[] | null;
   displayObras: ObraPin[];
   faltamCount: number;
   showPlanner: boolean;

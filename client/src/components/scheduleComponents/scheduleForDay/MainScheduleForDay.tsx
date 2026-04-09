@@ -16,7 +16,7 @@ import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import ScheduleForDayFilters from "./ScheduleForDayFilters";
 import { FiltersInterface } from "@/interfaces/filtersInterfaces";
 import { useUser } from "@/contexts/userContext";
-import { useMapFilter } from "@/contexts/mapFilterContext";
+import { MapFilterItem, useMapFilter } from "@/contexts/mapFilterContext";
 
 const ErrorModal = dynamic(() => import("@/components/common/ErrorModal"), {
   ssr: false,
@@ -45,10 +45,7 @@ export default function MainSchduleForDay({
 
   // Sync map context on initial load and whenever data changes (keep duplicates — map uses them for counting)
   useEffect(() => {
-    const ovnotasList: string[] = (filteredData?.works ?? [])
-      .map((w: any) => w.ovnota)
-      .filter(Boolean);
-    setOvnotas(ovnotasList.length > 0 ? ovnotasList : null);
+    setOvnotas(filteredData.works);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredData]);
 
@@ -106,11 +103,7 @@ export default function MainSchduleForDay({
           );
 
           setFilteredData(response.data);
-
-          const ovnotasList: string[] = (response.data?.works ?? [])
-            .map((w: any) => w.ovnota)
-            .filter(Boolean);
-          setOvnotas(ovnotasList.length > 0 ? ovnotasList : null);
+          setOvnotas(response.data?.works);
         } catch (error: any) {
           setError(error.message);
         }

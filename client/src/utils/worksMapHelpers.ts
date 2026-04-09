@@ -1,13 +1,11 @@
-import { ObraPin, SelectedFilters } from "@/interfaces/worksMapInterface";
+import { MapFilterItem } from "@/contexts/mapFilterContext";
+import { ObraPin } from "@/interfaces/worksMapInterface";
 
-/**
- * Gera o HTML do popup Leaflet para uma obra.
- * Função pura — facilmente testável sem montar componentes React.
- */
 export function buildObraPopup(obra: ObraPin): string {
   return `
     <div style="min-width:190px;font-family:sans-serif;font-size:13px;line-height:1.6">
       <strong style="font-size:14px">${obra.ovnota}</strong><br/>
+      <b>Ordem/Diagrama:</b> ${obra.ordemDiagrama ?? "-"}<br/>
       <b>Ref:</b> ${obra.referencia ?? "-"}<br/>
       <b>Tipo:</b> ${obra.tipo_obra ?? "-"}<br/>
       <b>Status:</b> ${obra.status ?? "-"}<br/>
@@ -18,16 +16,20 @@ export function buildObraPopup(obra: ObraPin): string {
   `;
 }
 
-/**
- * Converte o estado de filtros selecionados em query params para a API.
- * Omite chaves com arrays vazios.
- */
-export function buildFilterParams(
-  filters: SelectedFilters,
-): Record<string, string> {
-  return Object.fromEntries(
-    (Object.entries(filters) as [keyof SelectedFilters, string[]][])
-      .filter(([, v]) => v.length > 0)
-      .map(([k, v]) => [k, v.join(",")]),
-  );
-}
+export const buildPayloadForEquipments = (filters?: MapFilterItem[]) => {
+  if (!filters?.length) return { items: [] };
+
+  const payload = filters.map((f) => ({
+    ovnota: f.ovnota ?? "",
+    ordemDiagrama: f.ordemDiagrama ?? "",
+  }));
+
+  return {
+    items: payload.map((p) => ({
+      ovnota: p.ovnota, // 🔥 corrigido
+      ordemDiagrama: p.ordemDiagrama,
+    })),
+  };
+};
+
+export const buildKey = (o?: string, d?: string) => `${o ?? ""}::${d ?? ""}`;

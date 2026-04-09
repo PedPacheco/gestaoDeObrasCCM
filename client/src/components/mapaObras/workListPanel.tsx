@@ -1,13 +1,14 @@
 "use client";
 
+import { MapFilterItem } from "@/contexts/mapFilterContext";
 import { ObraPin } from "@/interfaces/worksMapInterface";
 
 interface ObraListPanelProps {
   displayObras: ObraPin[];
-  semLocObras: string[];
+  semLocObras: MapFilterItem[];
   faltamCount: number;
-  ovnotas: string[] | null;
-  repetidasComLoc: string[];
+  ovnotas: MapFilterItem[] | null;
+  repetidasComLoc: MapFilterItem[];
   onClose: () => void;
   onExportSemLoc: () => void;
 }
@@ -98,15 +99,20 @@ export function ObraListPanel({
 
             {semLocObras.map((ov) => {
               const repeats = ovnotas
-                ? ovnotas.filter((o) => o === ov).length
+                ? ovnotas.filter(
+                    (o) =>
+                      o.ovnota === ov.ovnota &&
+                      o.ordemDiagrama === ov.ordemDiagrama,
+                  ).length
                 : 1;
+
               return (
                 <div
-                  key={ov}
+                  key={`${ov.ovnota}-${ov.ordemDiagrama}`}
                   className="px-3 py-2 border-b border-zinc-100 hover:bg-zinc-50 transition-colors"
                 >
                   <div className="font-semibold text-zinc-500 flex items-center gap-2">
-                    {ov}
+                    {`${ov.ovnota}-${ov.ordemDiagrama}`}
                     {repeats > 1 && (
                       <span className="text-xs bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full">
                         ×{repeats}
@@ -125,11 +131,11 @@ export function ObraListPanel({
               const repeats = ovnotas!.filter((o) => o === ov).length;
               return (
                 <div
-                  key={ov}
+                  key={`${ov.ovnota}-${ov.ordemDiagrama}`}
                   className="px-3 py-2 border-b border-zinc-100 hover:bg-zinc-50 transition-colors"
                 >
                   <div className="font-semibold text-zinc-500 flex items-center gap-2">
-                    {ov}
+                    {`${ov.ovnota}-${ov.ordemDiagrama}`}
                     <span className="text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full">
                       ×{repeats} na aba
                     </span>

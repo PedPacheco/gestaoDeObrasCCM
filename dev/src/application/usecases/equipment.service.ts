@@ -3,6 +3,7 @@ import {
   EQUIPMENT_REPOSITORY,
   IEquipmentRepository,
 } from 'src/domain/repositories/IEquipmentRepository';
+import { GetEquipmentDTO } from 'src/interface/dtos/equipmentsDTO';
 
 @Injectable()
 export class EquipmentService {
@@ -11,16 +12,38 @@ export class EquipmentService {
     private repo: IEquipmentRepository,
   ) {}
 
-  async getEquipment(query: any) {
-    const params = {
-      ovnotas: query.ovnotas?.split(',') ?? undefined,
+  private buildWhere(query: GetEquipmentDTO[]) {
+    const ovnotas = query
+      .flatMap((q) => q.ovnota?.split(',') ?? [])
+      .filter(Boolean);
+
+    const ordemDiagramas = query
+      .flatMap((q) => q.ordemDiagrama?.split(',') ?? [])
+      .filter(Boolean);
+
+    const where: any = {
+      referencia: { not: null },
     };
 
-    const where: any = { referencia: { not: null } };
-
-    if (params.ovnotas?.length) {
-      where.ovnota = { in: params.ovnotas };
+    if (ovnotas.length) {
+      where.ovnota = { in: ovnotas };
     }
+
+    if (ordemDiagramas.length) {
+      where.OR = [
+        { diagrama: { in: ordemDiagramas } },
+        { ordem_dci: { in: ordemDiagramas } },
+        { ordem_dcd: { in: ordemDiagramas } },
+        { ordem_dca: { in: ordemDiagramas } },
+        { ordem_dcim: { in: ordemDiagramas } },
+      ];
+    }
+
+    return where;
+  }
+
+  async getEquipment(query: GetEquipmentDTO[]) {
+    const where = this.buildWhere(query);
 
     const [works, total] = await Promise.all([
       this.repo.findWorks(where),
@@ -47,6 +70,12 @@ export class EquipmentService {
         return {
           id: work.id,
           ovnota: work.ovnota,
+          ordemDiagrama:
+            work.diagrama ??
+            work.ordem_dci ??
+            work.ordem_dca ??
+            work.ordem_dcd ??
+            work.ordem_dcim,
           referencia: work.referencia,
           tipo_obra: work.tipos?.tipo_obra,
           status: work.status?.status,
@@ -62,15 +91,10 @@ export class EquipmentService {
     return { data, total };
   }
 
-  async getWithoutLocation(ovnotasParam: string) {
-    const ovnotas = ovnotasParam
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
+  async getWithoutLocation(params: GetEquipmentDTO[]) {
+    const where = this.buildWhere(params);
 
-    if (!ovnotas.length) return [];
-
-    const works = await this.repo.findWithoutLocationRaw(ovnotas);
+    const works = await this.repo.findWithoutLocationRaw(where);
 
     // 🔹 transformação no service
     return works.map((o) => ({
