@@ -5,7 +5,6 @@ import "leaflet/dist/leaflet.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useMapFilter } from "@/contexts/mapFilterContext";
-import { useSidebar } from "@/contexts/sidebarContext";
 import { useLeafletMap } from "@/hooks/useLeafletMap";
 import { FiltersInterface } from "@/interfaces/filtersInterfaces";
 import { ObraPin } from "@/interfaces/worksMapInterface";
@@ -17,12 +16,10 @@ import RoutePlanner from "./RoutePlanner";
 import { ObraListPanel } from "./workListPanel";
 
 interface Props {
-  filtersData: FiltersInterface;
   token: string;
 }
 
-export default function MapaObrasComponent({ filtersData, token }: Props) {
-  const { open: sidebarOpen } = useSidebar();
+export default function MapaObrasComponent({ token }: Props) {
   const { ovnotas } = useMapFilter();
 
   // Hook que encapsula todo o ciclo de vida do Leaflet
@@ -33,7 +30,7 @@ export default function MapaObrasComponent({ filtersData, token }: Props) {
     routeLayerRef,
     LRef,
     mapReady,
-  } = useLeafletMap(sidebarOpen);
+  } = useLeafletMap();
 
   // ── Estado ──────────────────────────────────────────────────────────────────
   const [obras, setObras] = useState<ObraPin[]>([]);
@@ -193,7 +190,6 @@ export default function MapaObrasComponent({ filtersData, token }: Props) {
   }, [semLocObras, token]);
 
   const handleToggleList = () => {
-    console.log(showList);
     setShowList((v) => !v);
     setShowPlanner(false);
   };
@@ -202,8 +198,6 @@ export default function MapaObrasComponent({ filtersData, token }: Props) {
     setShowPlanner((v) => !v);
     setShowList(false);
   };
-
-  console.log(showPlanner, showList);
 
   return (
     <div className="flex flex-col w-full h-full">
@@ -234,8 +228,8 @@ export default function MapaObrasComponent({ filtersData, token }: Props) {
          *
          * MapOverlays fica aqui dentro para continuar posicionado sobre o mapa.
          */}
-        <div className="relative flex-1">
-          <div ref={containerRef} className="absolute inset-0" />
+        <div className="relative flex-1 z-0">
+          <div ref={containerRef} className="absolute inset-0 z-0" />
           <MapOverlays
             obras={obras}
             loading={loading}

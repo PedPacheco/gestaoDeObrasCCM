@@ -166,16 +166,12 @@ export const links = [
       },
     ],
   },
-<<<<<<< HEAD
   { name: "Mapa de obras", href: "/mapa-obras", needPermission: false },
-  { name: "Obras em carteira", href: "/obras-carteira", needPermission: false },
-=======
   {
     name: "Obras em carteira",
     href: "/obras-carteira",
     allowedFor: ["total", "parcial", "sem_permissao"],
   },
->>>>>>> 5cab2796564286444a8d4855beb073dd69014210
   {
     name: "Obras executadas",
     href: "/obras-executadas",

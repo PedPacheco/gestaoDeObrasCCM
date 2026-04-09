@@ -31,7 +31,6 @@ export function ObraListPanel({
   onClose,
   onExportSemLoc,
 }: ObraListPanelProps) {
-  console.log("está sendo renderizado");
   return (
     <div className="w-80 shrink-0 bg-white border-l border-zinc-200 flex flex-col overflow-hidden shadow-xl">
       {/* Cabeçalho */}

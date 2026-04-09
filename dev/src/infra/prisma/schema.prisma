@@ -5,7 +5,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model base_auxiliar {
@@ -930,15 +929,6 @@ view exportacao_obras_carteira {
   ano_plan                Int?
 }
 
-model equipamentos {
-  id                 Int     @id @default(autoincrement())
-  codigo_instalacao  String  @unique @db.VarChar(14)
-  latitude           Float?
-  longitude          Float?
-  bairro             String? @db.VarChar(100)
-  municipio          String? @db.VarChar(100)
-  tipo_equipamento   String? @db.VarChar(50)
-}
 
 view exportacao_forecast {
   row_id                     BigInt?

@@ -15,26 +15,12 @@ export default async function MapaObrasPage() {
     return <ErrorThrower message="Token não encontrado" />;
   }
 
-  let filters = { regional: [], municipio: [], parceira: [], tipo: [], status: [] };
-  try {
-    filters = await fetchFilters({
-      regional: true,
-      municipio: true,
-      parceira: true,
-      tipo: true,
-      status: true,
-      grupo: true,
-    });
-  } catch {
-    // filters remain empty — user can still use the map
-  }
-
   return (
     <div
       className="w-full flex-1 overflow-hidden flex flex-col"
       style={{ height: "calc(100vh - 120px)" }}
     >
-      <MapaObrasWrapper filtersData={filters} token={token} />
+      <MapaObrasWrapper token={token} />
     </div>
   );
 }

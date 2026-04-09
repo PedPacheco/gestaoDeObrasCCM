@@ -29,20 +29,25 @@ type RouteDirection = "outbound" | "return";
 
 export default function RoutePlanner({ obras, onClose }: Props) {
   const [waypoints, setWaypoints] = useState<Waypoint[]>(
-    obras.map((o, i) => ({ obra: o, order: i }))
+    obras.map((o, i) => ({ obra: o, order: i })),
   );
   const [startMode, setStartMode] = useState<StartMode>("gps");
   const [address, setAddress] = useState("");
-  const [startCoord, setStartCoord] = useState<{ lat: number; lng: number } | null>(null);
+  const [startCoord, setStartCoord] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   const [geocoding, setGeocoding] = useState(false);
   const [geocodeError, setGeocodeError] = useState<string | null>(null);
   const [gpsError, setGpsError] = useState<string | null>(null);
   const [gpsLoading, setGpsLoading] = useState(false);
-  const [routeDirection, setRouteDirection] = useState<RouteDirection>("outbound");
+  const [routeDirection, setRouteDirection] =
+    useState<RouteDirection>("outbound");
   const dragIndex = useRef<number | null>(null);
 
   // PG Waypoints ordered according to the selected route direction
-  const orderedWaypoints = routeDirection === "return" ? [...waypoints].reverse() : waypoints;
+  const orderedWaypoints =
+    routeDirection === "return" ? [...waypoints].reverse() : waypoints;
 
   // Auto-get GPS on open
   useEffect(() => {
@@ -64,10 +69,12 @@ export default function RoutePlanner({ obras, onClose }: Props) {
         setGpsLoading(false);
       },
       () => {
-        setGpsError("Não foi possível obter sua localização. Verifique as permissões.");
+        setGpsError(
+          "Não foi possível obter sua localização. Verifique as permissões.",
+        );
         setGpsLoading(false);
       },
-      { timeout: 10000 }
+      { timeout: 10000 },
     );
   }
 
@@ -83,7 +90,10 @@ export default function RoutePlanner({ obras, onClose }: Props) {
       if (data.length === 0) {
         setGeocodeError("Endereço não encontrado. Tente ser mais específico.");
       } else {
-        setStartCoord({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
+        setStartCoord({
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon),
+        });
       }
     } catch {
       setGeocodeError("Erro ao buscar endereço. Verifique a conexão.");
@@ -112,7 +122,9 @@ export default function RoutePlanner({ obras, onClose }: Props) {
   }
 
   function removeWaypoint(index: number) {
-    setWaypoints((prev) => prev.filter((_, i) => i !== index).map((w, i) => ({ ...w, order: i })));
+    setWaypoints((prev) =>
+      prev.filter((_, i) => i !== index).map((w, i) => ({ ...w, order: i })),
+    );
   }
 
   function moveUp(index: number) {
@@ -132,7 +144,9 @@ export default function RoutePlanner({ obras, onClose }: Props) {
   function openGoogleMaps() {
     if (orderedWaypoints.length === 0) return;
 
-    const stops = orderedWaypoints.map((w) => `${w.obra.latitude},${w.obra.longitude}`);
+    const stops = orderedWaypoints.map(
+      (w) => `${w.obra.latitude},${w.obra.longitude}`,
+    );
 
     // PG Outbound: origin = startCoord (or 1st stop), destination = last stop
     // PG Return: origin = 1st stop (farthest), destination = startCoord (or last stop)
@@ -159,9 +173,8 @@ export default function RoutePlanner({ obras, onClose }: Props) {
       }
     }
 
-    const waypointsParam = intermediates.length > 0
-      ? `&waypoints=${intermediates.join("|")}`
-      : "";
+    const waypointsParam =
+      intermediates.length > 0 ? `&waypoints=${intermediates.join("|")}` : "";
 
     const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypointsParam}&travelmode=driving`;
     window.open(url, "_blank");
@@ -181,14 +194,23 @@ export default function RoutePlanner({ obras, onClose }: Props) {
     <div className="flex flex-col h-full bg-white">
       {/* Header */}
       <div className="bg-[#212E3E] px-4 py-3 flex items-center justify-between shrink-0">
-        <span className="text-white font-semibold text-sm">Planejador de rota</span>
-        <button onClick={onClose} className="text-zinc-400 hover:text-white text-lg leading-none">✕</button>
+        <span className="text-white font-semibold text-sm">
+          Planejador de rota
+        </span>
+        <button
+          onClick={onClose}
+          className="text-zinc-400 hover:text-white text-lg leading-none"
+        >
+          ✕
+        </button>
       </div>
 
       <div className="overflow-y-auto flex-1 flex flex-col gap-0">
         {/* Start location */}
         <div className="px-4 py-3 border-b border-zinc-200 bg-zinc-50">
-          <div className="text-xs font-semibold text-zinc-600 uppercase tracking-wide mb-2">Ponto de partida</div>
+          <div className="text-xs font-semibold text-zinc-600 uppercase tracking-wide mb-2">
+            Ponto de partida
+          </div>
 
           <div className="flex gap-2 mb-3">
             <button
@@ -207,16 +229,24 @@ export default function RoutePlanner({ obras, onClose }: Props) {
 
           {startMode === "gps" && (
             <div className="text-xs">
-              {gpsLoading && <span className="text-zinc-500">Obtendo localização...</span>}
+              {gpsLoading && (
+                <span className="text-zinc-500">Obtendo localização...</span>
+              )}
               {gpsError && (
                 <div>
                   <span className="text-red-500">{gpsError}</span>
-                  <button onClick={getGPS} className="ml-2 text-blue-600 underline">Tentar novamente</button>
+                  <button
+                    onClick={getGPS}
+                    className="ml-2 text-blue-600 underline"
+                  >
+                    Tentar novamente
+                  </button>
                 </div>
               )}
               {startCoord && !gpsLoading && (
                 <span className="text-green-600 font-medium">
-                  ✓ Localização obtida ({startCoord.lat.toFixed(5)}, {startCoord.lng.toFixed(5)})
+                  ✓ Localização obtida ({startCoord.lat.toFixed(5)},{" "}
+                  {startCoord.lng.toFixed(5)})
                 </span>
               )}
             </div>
@@ -241,9 +271,13 @@ export default function RoutePlanner({ obras, onClose }: Props) {
                   {geocoding ? "..." : "Buscar"}
                 </button>
               </div>
-              {geocodeError && <span className="text-red-500 text-xs">{geocodeError}</span>}
+              {geocodeError && (
+                <span className="text-red-500 text-xs">{geocodeError}</span>
+              )}
               {startCoord && !geocoding && (
-                <span className="text-green-600 text-xs font-medium">✓ Endereço encontrado</span>
+                <span className="text-green-600 text-xs font-medium">
+                  ✓ Endereço encontrado
+                </span>
               )}
             </div>
           )}
@@ -251,7 +285,9 @@ export default function RoutePlanner({ obras, onClose }: Props) {
 
         {/* Route direction */}
         <div className="px-4 py-3 border-b border-zinc-200 bg-zinc-50">
-          <div className="text-xs font-semibold text-zinc-600 uppercase tracking-wide mb-2">Sentido da rota</div>
+          <div className="text-xs font-semibold text-zinc-600 uppercase tracking-wide mb-2">
+            Sentido da rota
+          </div>
           <div className="flex gap-2">
             <button
               onClick={() => setRouteDirection("outbound")}
@@ -262,7 +298,9 @@ export default function RoutePlanner({ obras, onClose }: Props) {
               }`}
             >
               <div>Ida</div>
-              <div className={`font-normal mt-0.5 ${routeDirection === "outbound" ? "text-zinc-300" : "text-zinc-400"}`}>
+              <div
+                className={`font-normal mt-0.5 ${routeDirection === "outbound" ? "text-zinc-300" : "text-zinc-400"}`}
+              >
                 Partida → obra mais distante
               </div>
             </button>
@@ -275,7 +313,9 @@ export default function RoutePlanner({ obras, onClose }: Props) {
               }`}
             >
               <div>Volta</div>
-              <div className={`font-normal mt-0.5 ${routeDirection === "return" ? "text-zinc-300" : "text-zinc-400"}`}>
+              <div
+                className={`font-normal mt-0.5 ${routeDirection === "return" ? "text-zinc-300" : "text-zinc-400"}`}
+              >
                 Obra mais distante → partida
               </div>
             </button>
@@ -292,13 +332,17 @@ export default function RoutePlanner({ obras, onClose }: Props) {
 
         <div className="px-2 pb-3">
           {orderedWaypoints.length === 0 && (
-            <p className="text-xs text-zinc-400 text-center py-4">Nenhuma obra selecionada</p>
+            <p className="text-xs text-zinc-400 text-center py-4">
+              Nenhuma obra selecionada
+            </p>
           )}
           {orderedWaypoints.map((wp, visualIndex) => {
             // PG Real index within `waypoints` (always in outbound order)
-            const realIndex = routeDirection === "return"
-              ? waypoints.length - 1 - visualIndex
-              : visualIndex;
+            const realIndex =
+              routeDirection === "return"
+                ? waypoints.length - 1 - visualIndex
+                : visualIndex;
+
             return (
               <div
                 key={wp.obra.id}
@@ -315,9 +359,13 @@ export default function RoutePlanner({ obras, onClose }: Props) {
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-semibold text-zinc-800 truncate">{wp.obra.ovnota}</div>
+                  <div className="text-xs font-semibold text-zinc-800 truncate">
+                    {wp.obra.ovnota}
+                  </div>
                   <div className="text-xs text-zinc-400 truncate">
-                    {[wp.obra.municipio, wp.obra.bairro].filter(Boolean).join(" · ")}
+                    {[wp.obra.municipio, wp.obra.bairro]
+                      .filter(Boolean)
+                      .join(" · ")}
                   </div>
                 </div>
 
@@ -354,7 +402,9 @@ export default function RoutePlanner({ obras, onClose }: Props) {
       <div className="px-4 py-3 border-t border-zinc-200 bg-zinc-50 flex flex-col gap-2 shrink-0">
         {!startCoord && (
           <p className="text-xs text-amber-600 text-center">
-            {startMode === "gps" ? "Aguardando localização..." : "Informe um endereço de partida"}
+            {startMode === "gps"
+              ? "Aguardando localização..."
+              : "Informe um endereço de partida"}
           </p>
         )}
         <button

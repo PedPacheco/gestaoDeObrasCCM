@@ -30,7 +30,7 @@ export function FilterBar({
   onTogglePlanner,
 }: FilterBarProps) {
   return (
-    <div className="bg-white px-4 py-3 shrink-0 flex flex-wrap gap-2 items-end relative z-[1000]">
+    <div className="bg-white px-4 py-3 shrink-0 flex flex-wrap gap-2 items-end relative z-[30]">
       <button
         onClick={onPuxarFiltros}
         disabled={loading || !ovnotas?.length}

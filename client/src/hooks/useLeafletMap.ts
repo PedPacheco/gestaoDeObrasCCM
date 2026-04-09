@@ -18,7 +18,7 @@ const LEAFLET_ICON_BASE = "https://unpkg.com/leaflet@1.9.4/dist/images";
  *  - Facilita testes unitários do hook de forma isolada
  *  - Permite reutilizar a inicialização em outros mapas do sistema
  */
-export function useLeafletMap(sidebarOpen: boolean) {
+export function useLeafletMap() {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const markersLayerRef = useRef<LayerGroup | null>(null);
@@ -85,16 +85,6 @@ export function useLeafletMap(sidebarOpen: boolean) {
       setMapReady(false);
     };
   }, []);
-
-  // Invalida tamanho do mapa após a transição da sidebar (300ms + margem)
-  useEffect(() => {
-    const SIDEBAR_TRANSITION_DELAY_MS = 320;
-    const timer = setTimeout(
-      () => mapRef.current?.invalidateSize(),
-      SIDEBAR_TRANSITION_DELAY_MS,
-    );
-    return () => clearTimeout(timer);
-  }, [sidebarOpen]);
 
   return {
     containerRef,
