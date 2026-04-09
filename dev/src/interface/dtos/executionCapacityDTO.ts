@@ -1,24 +1,35 @@
-import { Type } from 'class-transformer';
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import {
+  convertParameterValue,
+  convertParameterValueForArray,
+} from 'src/utils/convertParameterValue';
 
 export class ExecutionCapacityDTO {
   @IsString()
   @IsNotEmpty()
-  year: string;
+  ano: string;
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  regionalId?: number;
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idRegional: number[];
 
   @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  partnerId?: number;
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idParceira: number[];
 
   @IsOptional()
-  @IsString()
-  teams?: string;
+  @IsArray()
+  @Transform(({ value }) => convertParameterValueForArray(value))
+  equipe?: string[];
 }
 
 export class UpdateExecutionCapacityDTO {

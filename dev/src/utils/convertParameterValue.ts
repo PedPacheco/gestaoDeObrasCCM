@@ -7,3 +7,12 @@ export function convertParameterValue(param: string) {
         .map(Number)
     : [];
 }
+
+export function convertParameterValueForArray(param: string) {
+  return param && param !== ''
+    ? param
+        .toString()
+        .split(',')
+        .filter((v: string) => v !== '')
+    : [];
+}

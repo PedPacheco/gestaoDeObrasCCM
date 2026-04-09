@@ -19,12 +19,12 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { HandleWorkUpdateService } from 'src/application/orchestrators/handleWorkUpdate.service';
-import { ContractUpdateService } from 'src/application/works/contractUpdate.service';
-import { UpdateOvService } from 'src/application/works/updateOv.service';
-import { UpdateNoteService } from 'src/application/works/updateNote.service';
-import { UpdateCapexService } from 'src/application/works/updateCapex.service';
-import { SuspensionWorkService } from 'src/application/works/suspensionWork.service';
+import { HandleWorkUpdateService } from 'src/application/usecases/orchestrators/handleWorkUpdate.service';
+import { ContractUpdateService } from 'src/application/usecases/works/contractUpdate.service';
+import { UpdateOvService } from 'src/application/usecases/works/updateOv.service';
+import { UpdateNoteService } from 'src/application/usecases/works/updateNote.service';
+import { UpdateCapexService } from 'src/application/usecases/works/updateCapex.service';
+import { SuspensionWorkService } from 'src/application/usecases/works/suspensionWork.service';
 
 interface CustomRequest extends Request {
   idParceira?: number;

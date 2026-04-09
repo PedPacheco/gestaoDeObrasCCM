@@ -185,4 +185,8 @@ export class ExportRepository implements IExportRepository {
       },
     });
   }
+
+  async exportOrders(): Promise<any> {
+    return await this.prisma.exportacao_ordens.findMany();
+  }
 }

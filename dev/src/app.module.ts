@@ -23,6 +23,7 @@ import { RestrictionsModule } from './interface/modules/restrictions.module';
 import { FeasibilityModule } from './interface/modules/feasibility.module';
 import { CustomValidationPipe } from './core/pipes/customValidation.pipe';
 import { EquipmentsModule } from './interface/modules/equipments.module';
+import { ForecastModule } from './interface/modules/forecast.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { EquipmentsModule } from './interface/modules/equipments.module';
     ErrorsReportModule,
     RestrictionsModule,
     EquipmentsModule,
+    ForecastModule,
     JwtModule.registerAsync({
       global: true,
       inject: [ConfigService],

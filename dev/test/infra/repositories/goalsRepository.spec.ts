@@ -204,6 +204,7 @@ describe('GoalsRepository', () => {
 
       const filters: GoalsDTO = {
         ano: [2023],
+        anoPlan: null,
         parceira: [],
         regional: [],
         tipo: [],
@@ -218,7 +219,7 @@ describe('GoalsRepository', () => {
       expect(query).toBeDefined();
       expect(query.strings.join('')).toContain('SELECT');
       expect(query.strings.join('')).toContain(
-        'FROM construcao_sp.get_view_data(NULL)',
+        'FROM construcao_sp.get_view_data()',
       );
       expect(query.strings.join('')).toContain('WHERE anocalc IN');
       expect(query.strings.join('')).toContain(
@@ -231,6 +232,7 @@ describe('GoalsRepository', () => {
 
       const filters: GoalsDTO = {
         ano: [2022, 2023],
+        anoPlan: 2026,
         parceira: [],
         regional: [],
         tipo: [],
@@ -244,7 +246,7 @@ describe('GoalsRepository', () => {
       const query = mockPrisma.$queryRaw.mock.calls[0][0];
       const sqlString = query.values;
 
-      expect(sqlString).toEqual([2022, 2023]);
+      expect(sqlString).toEqual([2026, 2022, 2023]);
     });
 
     it('should apply all filters simultaneously in the query', async () => {

@@ -42,10 +42,8 @@ dayjs.extend(customParseFormat);
 
 const RestrictionDrawer = dynamic(
   () =>
-    import(
-      "@/components/restrictionsComponents/scheduleRestrictions/RestrictionDrawer"
-    ),
-  { ssr: false }
+    import("@/components/restrictionsComponents/scheduleRestrictions/RestrictionDrawer"),
+  { ssr: false },
 );
 
 interface WorkDetailsProps {
@@ -75,7 +73,7 @@ interface WorkData {
   status_150: string;
   ordem_dcim: string;
   status_180: string;
-  executado: string;
+  executado: number;
   ano_plan: string;
   empreendimento: string;
   id_status: number;
@@ -141,7 +139,7 @@ function useModals() {
     setOpenSuspensionModal,
     toggleSuspensionModal: useCallback(
       () => setOpenSuspensionModal((prev) => !prev),
-      []
+      [],
     ),
     openUploadModal,
     setOpenUploadModal,
@@ -199,26 +197,25 @@ export function WorkDetails({
   const publicationRestrictions = useMemo(
     () =>
       options.restricao.filter((r: any) => r.tipo_restricao === "PUBLICAÇÃO"),
-    [options.restricao]
+    [options.restricao],
   );
 
   const canShowPublicationButton = useMemo(
-    () =>
-      isMounted && permissions?.permissao_publicacao && data.id_status === 2,
-    [isMounted, permissions?.permissao_publicacao, data.id_status]
+    () => isMounted && permissions?.permissao_publicacao && data.executado > 0,
+    [isMounted, permissions?.permissao_publicacao, data.executado],
   );
 
   const canEditObservation = useMemo(
     () =>
       permissions?.permissao_visualizacao !== "parcial" &&
       permissions?.permissao !== "Sem permissão",
-    [permissions]
+    [permissions],
   );
 
   const isSaveDisabled = useMemo(
     () =>
       isPending || !changedFields || Object.keys(changedFields).length === 0,
-    [isPending, changedFields]
+    [isPending, changedFields],
   );
 
   useEffect(() => {
@@ -239,7 +236,7 @@ export function WorkDetails({
         modals.setOpenSuspensionModal(true);
       }
     },
-    [modals]
+    [modals],
   );
 
   const handleSubmit = useCallback(() => {
@@ -296,7 +293,7 @@ export function WorkDetails({
         }
       });
     },
-    [modals, setError, setSuccess]
+    [modals, setError, setSuccess],
   );
 
   const handleUploadSuccess = useCallback(() => {

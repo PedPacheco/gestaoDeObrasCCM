@@ -54,7 +54,7 @@ export default async function ScheduleRestrictions() {
       `${process.env.NEXT_PUBLIC_API_URL}/restricao/programacao`,
       filtersValues,
       cookieStore.get("token")?.value,
-      { cache: "no-store" }
+      { cache: "no-store" },
     ),
   ]);
 

@@ -1,35 +1,52 @@
 "use client";
 
 import dayjs from "dayjs";
-import {
-  useEffect,
-  useState,
-  useTransition,
-  useMemo,
-  ComponentType,
-} from "react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
+import { exportExcel } from "@/actions/generateExcel.action";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { FiltersInterface } from "@/interfaces/filtersInterfaces";
 import { getButtonContent } from "@/utils/getButtonContent";
+import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
+import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 
 import { ButtonComponent } from "../common/Button";
 import ErrorModal from "../common/ErrorModal";
 import { MultipleSelectComponent } from "../common/MultipleSelect";
-import ModalGoals from "./GoalsModal";
 import GoalsTable from "./GoalsTable";
-import { FiltersInterface } from "@/interfaces/filtersInterfaces";
+import ModalTotalGoalValues from "./ModalTotalGoalValues";
+
+export type TypeGoals = "rda" | "recomposicao" | "bt0";
+
+export interface MonthTotals {
+  meta: number;
+  prog: number;
+  real: number;
+  carteira: number;
+}
+
+export interface GoalItem {
+  carteira?: number;
+  [month: string]: MonthTotals | number | undefined;
+}
 
 interface MainGoalsProps {
   filtersData: FiltersInterface;
-  data: any;
+  data: GoalItem[];
   token?: string;
   columns: Record<string, string>;
-  typeGoals: string;
+  typeGoals: TypeGoals;
   currentYear?: number;
 }
+
+const PAGE_KEY: Record<TypeGoals, string> = {
+  bt0: "bt0GoalsFilters",
+  rda: "rdaGoalsFilters",
+  recomposicao: "goalsFilters",
+};
 
 export default function MainGoals({
   filtersData,
@@ -42,86 +59,93 @@ export default function MainGoals({
   const year = currentYear ?? dayjs().year();
   const defaultYear = year.toString();
 
-  const [filteredData, setFilteredData] = useState(data);
-  const [open, setOpen] = useState(false);
-
-  const [selectedYear, setSelectedYear] = useState<string[]>([defaultYear]);
-  const [selectedRegionais, setSelectedRegionais] = useState<string[]>([]);
-  const [selectedParceiras, setSelectedParceiras] = useState<string[]>([]);
-  const [selectedTiposObra, setSelectedTiposObra] = useState<string[]>([]);
-  const [selectedEmpreendimento, setSelectedEmpreendimento] = useState<
-    string[]
-  >([]);
-  const [error, setError] = useState<string | null>();
-  const [isPending, startTransition] = useTransition();
-
   const { clearFilters, filters, saveFilters } = useSaveFilters({
-    pageKey:
-      typeGoals === "bt0"
-        ? "bt0GoalsFilters"
-        : typeGoals === "rda"
-        ? "rdaGoalsFilters"
-        : "goalsFilters",
+    pageKey: PAGE_KEY[typeGoals],
     data: filtersData,
   });
 
+  const [filteredData, setFilteredData] = useState<GoalItem[]>(data);
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  const [selectedYear, setSelectedYear] = useState<string[]>(
+    () => filters?.ano ?? [defaultYear],
+  );
+  const [yearPlan, setYearPlan] = useState<string | null>(
+    () => filters?.ano ?? null,
+  );
+  const [selectedRegionais, setSelectedRegionais] = useState<string[]>(
+    () => filters?.regional ?? [],
+  );
+  const [selectedParceiras, setSelectedParceiras] = useState<string[]>(
+    () => filters?.parceira ?? [],
+  );
+  const [selectedTiposObra, setSelectedTiposObra] = useState<string[]>(
+    () => filters?.tipo ?? [],
+  );
+  const [selectedEmpreendimento, setSelectedEmpreendimento] = useState<
+    string[]
+  >(() => filters?.empreendimento ?? []);
+
   const years = useMemo(
-    () =>
-      Array.from({ length: 7 }, (_, index) => (year - 3 + index).toString()),
-    [year]
+    () => Array.from({ length: 7 }, (_, i) => (year - 1 + i).toString()),
+    [year],
   );
 
-  const toggleModal = () => setOpen((prev) => !prev);
+  const buildParams = useCallback(
+    (): Record<string, string[]> => ({
+      parceira: selectedParceiras,
+      regional: selectedRegionais,
+      tipo: selectedTiposObra,
+      ano: selectedYear.length ? selectedYear : [defaultYear],
+      empreendimento: selectedEmpreendimento,
+    }),
+    [
+      selectedParceiras,
+      selectedRegionais,
+      selectedTiposObra,
+      selectedYear,
+      selectedEmpreendimento,
+    ],
+  );
 
-  useEffect(() => {
-    if (filters) {
-      setSelectedYear(filters.ano || [defaultYear]);
-      setSelectedParceiras(filters.parceira || []);
-      setSelectedRegionais(filters.regional || []);
-      setSelectedTiposObra(filters.tipo || []);
-      setSelectedEmpreendimento(filters.empreendimento || []);
-    }
-  }, [filters, defaultYear]);
+  const buildFormattedParams = useCallback(
+    () => ({
+      ...Transform(buildParams()),
+      btzero: typeGoals === "bt0",
+      rda: typeGoals === "rda",
+      anoPlan: yearPlan,
+    }),
+    [buildParams, typeGoals, yearPlan],
+  );
 
-  function fetchGoals() {
-    const params: Record<string, string[]> = {};
+  const toggleModal = useCallback(() => setOpen((prev) => !prev), []);
 
-    params["parceira"] = selectedParceiras;
-    params["regional"] = selectedRegionais;
-    params["tipo"] = selectedTiposObra;
-    params["ano"] = selectedYear;
-    params["empreendimento"] = selectedEmpreendimento;
-
-    saveFilters(params);
-
-    const formattedSelectedItens = {
-      ...Transform(params),
-      btzero: typeGoals === "bt0" ? true : false,
-      rda: typeGoals === "rda" ? true : false,
-    };
+  const fetchGoals = useCallback(() => {
+    saveFilters(buildParams());
 
     startTransition(async () => {
       try {
         const response = await fetchData(
           `${process.env.NEXT_PUBLIC_API_URL}/metas`,
-          formattedSelectedItens,
-          token
+          buildFormattedParams(),
+          token,
         );
-
         setFilteredData(response.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Erro ao buscar dados");
       }
     });
-  }
+  }, [buildParams, buildFormattedParams, saveFilters, token]);
 
-  function handleCleaningFilters() {
+  const handleCleaningFilters = useCallback(() => {
     setSelectedParceiras([]);
     setSelectedRegionais([]);
     setSelectedTiposObra([]);
     setSelectedEmpreendimento([]);
     setSelectedYear([defaultYear]);
-
+    setYearPlan(null);
     clearFilters();
 
     startTransition(async () => {
@@ -130,18 +154,97 @@ export default function MainGoals({
           `${process.env.NEXT_PUBLIC_API_URL}/metas`,
           {
             ano: defaultYear,
-            btzero: typeGoals === "bt0" ? true : false,
-            rda: typeGoals === "rda" ? true : false,
+            btzero: typeGoals === "bt0",
+            rda: typeGoals === "rda",
           },
-          token
+          token,
         );
-
         setFilteredData(response.data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Erro ao limpar filtros");
       }
     });
-  }
+  }, [clearFilters, defaultYear, token, typeGoals]);
+
+  const generateExcel = useCallback(async () => {
+    if (!token) return;
+
+    const url = mountUrl(
+      `${process.env.NEXT_PUBLIC_API_URL}/exportacao/metas`,
+      buildFormattedParams(),
+    );
+
+    try {
+      const blob = await exportExcel(url, token);
+      const link = Object.assign(document.createElement("a"), {
+        href: window.URL.createObjectURL(blob),
+        download: "Exportacao Metas.xlsx",
+      });
+
+      link.click();
+      window.URL.revokeObjectURL(link.href);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Erro ao exportar planilha",
+      );
+    }
+  }, [buildFormattedParams, token]);
+
+  const conditionalFilter: Partial<Record<TypeGoals, React.ReactNode>> = {
+    rda: (
+      <MultipleSelectComponent
+        label="Empreendimento"
+        menuItems={filtersData.empreendimento || []}
+        selectedItem={selectedEmpreendimento}
+        setSelectedItem={setSelectedEmpreendimento}
+        valueKey="id"
+        displayKey="empreendimento"
+      />
+    ),
+    recomposicao: (
+      <>
+        <MultipleSelectComponent
+          label="Tipos de Obra"
+          menuItems={
+            filtersData.tipo?.filter((item) => item.id_grupo === 2) || []
+          }
+          selectedItem={selectedTiposObra}
+          setSelectedItem={setSelectedTiposObra}
+          valueKey="id"
+          displayKey="tipo_obra"
+        />
+
+        <FormControl className="mb-2 lg:ml-4 lg:first:ml-0 w-full" size="small">
+          <InputLabel id="ano-plano-label">Ano Plano</InputLabel>
+          <Select
+            labelId="ano-plano-label"
+            label="ano-plano"
+            value={yearPlan || ""}
+            onChange={(e) => setYearPlan(e.target.value)}
+            MenuProps={{
+              PaperProps: { style: { maxHeight: 400 } },
+              MenuListProps: { style: { overflowY: "auto", maxHeight: 400 } },
+            }}
+            fullWidth
+          >
+            <MenuItem value="">
+              <em>Nenhum</em>
+            </MenuItem>
+            {years.map((yearOption) => (
+              <MenuItem key={yearOption} value={yearOption}>
+                {yearOption}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </>
+    ),
+  };
+
+  const handleYearChange = useCallback((values: string[]) => {
+    if (values.length === 0) return; // bloqueia remoção total
+    setSelectedYear(values);
+  }, []);
 
   return (
     <>
@@ -160,7 +263,7 @@ export default function MainGoals({
             label="Ano"
             menuItems={years}
             selectedItem={selectedYear}
-            setSelectedItem={setSelectedYear}
+            setSelectedItem={handleYearChange}
           />
 
           <MultipleSelectComponent
@@ -172,44 +275,29 @@ export default function MainGoals({
             displayKey="turma"
           />
 
-          {typeGoals === "bt0" ? null : typeGoals === "rda" ? (
-            <MultipleSelectComponent
-              label="Empreendimento"
-              menuItems={filtersData.empreendimento || []}
-              selectedItem={selectedEmpreendimento}
-              setSelectedItem={setSelectedEmpreendimento}
-              valueKey="id"
-              displayKey="empreendimento"
-            />
-          ) : (
-            <MultipleSelectComponent
-              label="Tipos de Obra"
-              menuItems={
-                filtersData.tipo?.filter((item) => item.id_grupo === 2) || []
-              }
-              selectedItem={selectedTiposObra}
-              setSelectedItem={setSelectedTiposObra}
-              valueKey="id"
-              displayKey="tipo_obra"
-            />
-          )}
+          {conditionalFilter[typeGoals] ?? null}
         </div>
 
         <div className="mb-2 flex flex-col md:flex-row justify-between items-center xl:justify-around">
           <ButtonComponent
             onClick={fetchGoals}
             text={getButtonContent(isPending, "Aplicar filtros")}
-            styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
+            styled="w-8/12 mb-2 md:w-1/4 md:mb-0 max-w-md"
           />
           <ButtonComponent
             onClick={handleCleaningFilters}
             text={getButtonContent(isPending, "Limpar filtros")}
-            styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
+            styled="w-8/12 mb-2 md:w-1/4 md:mb-0 max-w-md"
           />
           <ButtonComponent
             onClick={toggleModal}
             text={getButtonContent(isPending, "Ver valores totais")}
-            styled="w-full mb-2 md:w-1/4 md:mb-0 max-w-md"
+            styled="w-8/12 mb-2 md:w-1/4 md:mb-0 max-w-md"
+          />
+          <ButtonComponent
+            onClick={generateExcel}
+            text={getButtonContent(isPending, "Exportar")}
+            styled="w-8/12 mb-2 md:w-1/6 md:mb-0 max-w-md"
           />
         </div>
       </div>
@@ -221,7 +309,7 @@ export default function MainGoals({
         typeGoals={typeGoals}
       />
 
-      <ModalGoals
+      <ModalTotalGoalValues
         columns={columns}
         data={filteredData}
         handleClose={toggleModal}

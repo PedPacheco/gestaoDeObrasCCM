@@ -8,15 +8,6 @@ import {
 
 describe('ScheduleDTO', () => {
   it('Should transform query params to correct type', () => {
-    // const getValueWeeklyScheduleFilters = {
-    //   idRegional: '1',
-    //   idMunicipio: '1',
-    //   idGrupo: '1',
-    //   idTipo: '1',
-    //   idParceira: '1',
-    //   executado: 'false',
-    // };
-
     const getScheduleValuesFilters = {
       data: '01/2025',
       tipoFiltro: 'month',
@@ -49,11 +40,6 @@ describe('ScheduleDTO', () => {
       idParceira: '1',
     };
 
-    // const getValueWeeklyScheduleInstance = plainToInstance(
-    //   GetValueWeeklyScheduleDTO,
-    //   getValueWeeklyScheduleFilters,
-    // );
-
     const getScheduleValuesInstance = plainToInstance(
       GetScheduleValuesDTO,
       getScheduleValuesFilters,
@@ -69,14 +55,6 @@ describe('ScheduleDTO', () => {
       getMonthlySummaryFilters,
     );
 
-    // expect(getValueWeeklyScheduleInstance).toEqual({
-    //   idRegional: [1],
-    //   idMunicipio: [1],
-    //   idGrupo: [1],
-    //   idTipo: [1],
-    //   idParceira: [1],
-    //   executado: false,
-    // });
     expect(getScheduleValuesInstance).toEqual({
       data: '01/2025',
       tipoFiltro: 'month',
@@ -109,28 +87,16 @@ describe('ScheduleDTO', () => {
   });
 
   it('Should transform query params to correct type', () => {
-    // const filters = {
-    //   executado: 'true',
-    // };
-
     const getScheduleFilters = {
       executado: 'true',
       pendente: 'true',
     };
-
-    // const getValueWeeklyScheduleInstance = plainToInstance(
-    //   GetValueWeeklyScheduleDTO,
-    //   filters,
-    // );
 
     const getScheduleValuesInstance = plainToInstance(
       GetScheduleValuesDTO,
       getScheduleFilters,
     );
 
-    // expect(getValueWeeklyScheduleInstance).toEqual({
-    //   executado: true,
-    // });
     expect(getScheduleValuesInstance).toEqual({
       executado: true,
       pendente: true,
@@ -138,31 +104,16 @@ describe('ScheduleDTO', () => {
   });
 
   it('Should transform query params to correct type', () => {
-    // const filters = {
-    //   executado: undefined,
-    //   idRegional: undefined,
-    // };
-
     const getScheduleFilters = {
       executado: undefined,
       pendente: undefined,
       idRegional: undefined,
     };
-
-    // const getValueWeeklyScheduleInstance = plainToInstance(
-    //   GetValueWeeklyScheduleDTO,
-    //   filters,
-    // );
-
     const getScheduleValuesInstance = plainToInstance(
       GetScheduleValuesDTO,
       getScheduleFilters,
     );
 
-    // expect(getValueWeeklyScheduleInstance).toEqual({
-    //   executado: undefined,
-    //   idRegional: [],
-    // });
     expect(getScheduleValuesInstance).toEqual({
       executado: undefined,
       pendente: undefined,

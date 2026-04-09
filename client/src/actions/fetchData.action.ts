@@ -4,11 +4,11 @@ import { mountUrl } from "@/utils/mountUrl";
 
 export async function fetchData<T>(
   baseUrl: string,
-  params?: Record<string, string | boolean | null>,
+  params?: Record<string, string | boolean | null | number | string[]>,
   token?: string,
   cacheStrategy: { revalidate?: number; cache?: "force-cache" | "no-store" } = {
     revalidate: 1800,
-  }
+  },
 ) {
   if (!token) {
     throw new Error("Token não foi encontrada");

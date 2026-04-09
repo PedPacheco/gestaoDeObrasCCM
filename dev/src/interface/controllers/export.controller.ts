@@ -1,89 +1,133 @@
 import { Response } from 'express';
-import { ExportCompletedWorksService } from 'src/application/export/exportCompletedWorks.service';
-import { ExportScheduleService } from 'src/application/export/exportSchedule.service';
-import { ExportWorksInPortfolioService } from 'src/application/export/exportWorksInPortfolio.service';
-import { GetScheduleValuesService } from 'src/application/schedule/getScheduleValues.service';
-import { GetCompletedWorksService } from 'src/application/works/getCompletedWorks.service';
-import { GetWorksInPortfolioService } from 'src/application/works/getWorksInPortfolio.service';
-import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
+import { Controller, Get, Query, Req, Res, UseGuards } from '@nestjs/common';
+
+// Guards
+import { PermissionGuard } from 'src/core/guards/permission.guard';
+import { VisualizationGuard } from 'src/core/guards/visualization.guard';
+
+// DTOs
+import {
+  GetMonthlySummaryDTO,
+  GetScheduleValuesDTO,
+} from 'src/interface/dtos/scheduleDTO';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 
-import { Controller, Get, Query, Req, Res, UseGuards } from '@nestjs/common';
-import { VisualizationGuard } from 'src/core/guards/visualization.guard';
-import { PermissionGuard } from 'src/core/guards/permission.guard';
-import { ExportWorksInPortfolioBI } from 'src/application/export/BI/exportWorkInPortfolioBI.service';
-import { ExportCompletedWorksBIService } from 'src/application/export/BI/exportCompletedWorksBI.service';
-import { ExportSchedulesBIService } from 'src/application/export/BI/exportSchedulesBI.service';
-import { ExportFinedWorksService } from 'src/application/export/exportFinedWorks.service';
-import { ExportExecutionCapacityService } from 'src/application/export/exportExecutionCapacity.service';
-import { ExportSuspensionsService } from 'src/application/export/exportSuspensions.service';
-import { ExportExecutionReportService } from 'src/application/export/exportExecutionReport.service';
-import { ExportForecastService } from 'src/application/export/exportForecast.service';
-import { ExportRejectionsService } from 'src/application/export/exportRejections.service';
+// Services - Schedule
+import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
+import { MonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
+import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
+
+// Services - Works
+import { GetWorksInPortfolioService } from 'src/application/usecases/works/getWorksInPortfolio.service';
+import { GetCompletedWorksService } from 'src/application/usecases/works/getCompletedWorks.service';
+
+// Services - Export (Standard)
+import { ExportScheduleService } from 'src/application/usecases/export/exportSchedule.service';
+import { ExportWorksInPortfolioService } from 'src/application/usecases/export/exportWorksInPortfolio.service';
+import { ExportCompletedWorksService } from 'src/application/usecases/export/exportCompletedWorks.service';
+import { ExportFinedWorksService } from 'src/application/usecases/export/exportFinedWorks.service';
+import { ExportExecutionCapacityService } from 'src/application/usecases/export/exportExecutionCapacity.service';
+import { ExportSuspensionsService } from 'src/application/usecases/export/exportSuspensions.service';
+import { ExportExecutionReportService } from 'src/application/usecases/export/exportExecutionReport.service';
+import { ExportForecastService } from 'src/application/usecases/export/exportForecast.service';
+import { ExportRejectionsService } from 'src/application/usecases/export/exportRejections.service';
+import { ExportMonthlyMOSummaryService } from 'src/application/usecases/export/exportMonthlySummary.service';
+import { ExportMonthlyForecastSummaryService } from 'src/application/usecases/export/exportMonthlyForecastSummary.service';
+
+// Services - Export (BI)
+import { ExportWorksInPortfolioBI } from 'src/application/usecases/export/BI/exportWorkInPortfolioBI.service';
+import { ExportCompletedWorksBIService } from 'src/application/usecases/export/BI/exportCompletedWorksBI.service';
+import { ExportSchedulesBIService } from 'src/application/usecases/export/BI/exportSchedulesBI.service';
+import { GoalsDTO } from '../dtos/goalsDto';
+import { ExportGoalsService } from 'src/application/usecases/export/exportGoals.service';
+import { GoalsService } from 'src/application/usecases/goals.service';
+import { ExportOrdersService } from 'src/application/usecases/export/exportOrders.service';
 
 interface CustomRequest extends Request {
   idParceira?: number;
   insufficientPermission?: boolean;
 }
 
+type FiltersWithPermission = {
+  idParceira?: number | number[];
+  insufficientPermission?: boolean;
+};
+
+const XLSX_CONTENT_TYPE =
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
 @Controller('exportacao')
 export class ExportController {
   constructor(
-    private getScheduleValuesService: GetScheduleValuesService,
-    private exportScheduleService: ExportScheduleService,
-    private getWorksInPortfolioService: GetWorksInPortfolioService,
-    private exportWorksInPortfolioService: ExportWorksInPortfolioService,
-    private getCompletedWorksService: GetCompletedWorksService,
-    private exportCompletedWorksService: ExportCompletedWorksService,
-    private exportWorksInPortfolioBIService: ExportWorksInPortfolioBI,
-    private exportCompletedWorksBIService: ExportCompletedWorksBIService,
-    private exportSchedulesBIService: ExportSchedulesBIService,
-    private exportFinedWorksService: ExportFinedWorksService,
-    private exportExecutionCapacityService: ExportExecutionCapacityService,
-    private exportSuspensionsService: ExportSuspensionsService,
-    private exportExecutionReportService: ExportExecutionReportService,
-    private exportForecastService: ExportForecastService,
-    private exportRejectionsService: ExportRejectionsService,
+    // Schedule
+    private readonly getScheduleValuesService: GetScheduleValuesService,
+    private readonly monthlyMOSummary: MonthlySummaryService,
+    private readonly monthlyForecastSummary: GetMonthlySummaryForecastService,
+
+    // Works
+    private readonly getWorksInPortfolioService: GetWorksInPortfolioService,
+    private readonly getCompletedWorksService: GetCompletedWorksService,
+
+    // Goals
+    private readonly getGoalsService: GoalsService,
+
+    // Export - Standard
+    private readonly exportScheduleService: ExportScheduleService,
+    private readonly exportWorksInPortfolioService: ExportWorksInPortfolioService,
+    private readonly exportCompletedWorksService: ExportCompletedWorksService,
+    private readonly exportMonthlyMOSummaryService: ExportMonthlyMOSummaryService,
+    private readonly exportMonthlyForecastSummaryService: ExportMonthlyForecastSummaryService,
+    private readonly exportFinedWorksService: ExportFinedWorksService,
+    private readonly exportExecutionCapacityService: ExportExecutionCapacityService,
+    private readonly exportSuspensionsService: ExportSuspensionsService,
+    private readonly exportExecutionReportService: ExportExecutionReportService,
+    private readonly exportForecastService: ExportForecastService,
+    private readonly exportRejectionsService: ExportRejectionsService,
+    private readonly exportGoalsService: ExportGoalsService,
+    private readonly exportOrdersService: ExportOrdersService,
+
+    // Export - BI
+    private readonly exportWorksInPortfolioBIService: ExportWorksInPortfolioBI,
+    private readonly exportCompletedWorksBIService: ExportCompletedWorksBIService,
+    private readonly exportSchedulesBIService: ExportSchedulesBIService,
   ) {}
 
-  private applyFilters<
-    T extends {
-      idParceira?: number | number[];
-      insufficientPermission?: boolean;
-    },
-  >(filters: T, req: CustomRequest): T {
-    if (req.idParceira) {
-      filters.idParceira = req.idParceira;
-    }
-    if (req.insufficientPermission !== undefined) {
+  // ─────────────────────────────────────────────
+  // Private helpers
+  // ─────────────────────────────────────────────
+
+  private applyFilters<T extends FiltersWithPermission>(
+    filters: T,
+    req: CustomRequest,
+  ): T {
+    if (req.idParceira) filters.idParceira = req.idParceira;
+    if (req.insufficientPermission !== undefined)
       filters.insufficientPermission = req.insufficientPermission;
-    }
     return filters;
   }
+
+  private setXlsxHeaders(res: Response, filename: string): void {
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', XLSX_CONTENT_TYPE);
+  }
+
+  // ─────────────────────────────────────────────
+  // Visualization routes
+  // ─────────────────────────────────────────────
 
   @Get('programacao')
   @UseGuards(VisualizationGuard)
   async exportSchedule(
     @Query() filters: GetScheduleValuesDTO,
     @Res() res: Response,
-    @Req() req: any,
+    @Req() req: CustomRequest,
   ) {
-    if (req.idParceira) {
-      filters.idParceira = req.idParceira;
-    }
+    const appliedFilters = this.applyFilters(filters, req);
+    const { works } =
+      await this.getScheduleValuesService.getValues(appliedFilters);
+    this.setXlsxHeaders(res, 'Exportação Programação');
 
-    const { works } = await this.getScheduleValuesService.getValues(filters);
-
-    res.setHeader(
-      'Content-Disposition',
-      'attachment; filename="Exportação Programação"',
-    );
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-
-    return await this.exportScheduleService.export(works, res);
+    return this.exportScheduleService.export(works, res);
   }
 
   @Get('obras-carteira')
@@ -97,16 +141,8 @@ export class ExportController {
     const worksData =
       await this.getWorksInPortfolioService.getWorksInPortfolio(filters);
 
-    res.setHeader(
-      'Content-Disposition',
-      'attachment; filename="Exportação obras em carteira"',
-    );
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-
-    return await this.exportWorksInPortfolioService.export(worksData, res);
+    this.setXlsxHeaders(res, 'Exportação obras em carteira');
+    return this.exportWorksInPortfolioService.export(worksData, res);
   }
 
   @Get('obras-executadas')
@@ -120,62 +156,96 @@ export class ExportController {
     const worksData =
       await this.getCompletedWorksService.getCompletedWorks(filters);
 
-    res.setHeader(
-      'Content-Disposition',
-      'attachment; filename="Exportação obras executadas"',
-    );
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-
-    return await this.exportCompletedWorksService.export(worksData, res);
+    this.setXlsxHeaders(res, 'Exportação obras executadas');
+    return this.exportCompletedWorksService.export(worksData, res);
   }
+
+  @Get('resumo-mensal')
+  @UseGuards(VisualizationGuard)
+  async exportMonthlyMOSummary(
+    @Query() summaryFilters: GetMonthlySummaryDTO,
+    @Res() res: Response,
+    @Req() req: CustomRequest,
+  ) {
+    const filters = this.applyFilters(summaryFilters, req);
+
+    const [firstSummary, secondSummary] = await Promise.all([
+      this.monthlyMOSummary.getSummary(filters),
+      this.monthlyMOSummary.getSecondSummary(filters),
+    ]);
+
+    this.setXlsxHeaders(res, 'Exportação Resumo Mensal - Mão de Obra');
+    return this.exportMonthlyMOSummaryService.export(
+      firstSummary.summary,
+      secondSummary.summary,
+      res,
+    );
+  }
+
+  @Get('resumo-mensal-forecast')
+  @UseGuards(VisualizationGuard)
+  async exportMonthlyForecastSummary(
+    @Query() summaryFilters: GetMonthlySummaryDTO,
+    @Res() res: Response,
+    @Req() req: CustomRequest,
+  ) {
+    const filters = this.applyFilters(summaryFilters, req);
+
+    const [firstSummary, secondSummary] = await Promise.all([
+      this.monthlyForecastSummary.getSummary(filters),
+      this.monthlyForecastSummary.getSecondSummary(filters),
+    ]);
+
+    this.setXlsxHeaders(res, 'Exportação Resumo Mensal - Forecast');
+    return this.exportMonthlyForecastSummaryService.export(
+      firstSummary.summary,
+      secondSummary.summary,
+      res,
+    );
+  }
+
+  @Get('metas')
+  @UseGuards(VisualizationGuard)
+  async exportGoals(
+    @Query() filters: GoalsDTO,
+    @Res() res: Response,
+    @Req() req: CustomRequest,
+  ) {
+    const appliedFilters = this.applyFilters(filters, req);
+    const goalsData = await this.getGoalsService.getGoals(appliedFilters);
+
+    this.setXlsxHeaders(res, 'Exportação Metas');
+    return this.exportGoalsService.export(goalsData, res);
+  }
+
+  // ─────────────────────────────────────────────
+  // BI routes (PermissionGuard - no filters)
+  // ─────────────────────────────────────────────
 
   @Get('obras-carteira-bi')
   @UseGuards(PermissionGuard)
   async exportWorksInPortfolioBI(@Res() res: Response) {
-    res.setHeader(
-      'Content-Disposition',
-      'attachment; filename="Exportação obras em carteira"',
-    );
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-
-    return await this.exportWorksInPortfolioBIService.export(res);
+    this.setXlsxHeaders(res, 'Exportação obras em carteira');
+    return this.exportWorksInPortfolioBIService.export(res);
   }
 
   @Get('obras-executadas-bi')
   @UseGuards(PermissionGuard)
   async exportCompletedWorksBI(@Res() res: Response) {
-    res.setHeader(
-      'Content-Disposition',
-      'attachment; filename="Exportação obras executadas"',
-    );
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-
-    return await this.exportCompletedWorksBIService.export(res);
+    this.setXlsxHeaders(res, 'Exportação obras executadas');
+    return this.exportCompletedWorksBIService.export(res);
   }
 
   @Get('programacoes-bi')
   @UseGuards(PermissionGuard)
   async exportSchedulesBI(@Res() res: Response) {
-    res.setHeader(
-      'Content-Disposition',
-      'attachment; filename="Exportação programações"',
-    );
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-
-    return await this.exportSchedulesBIService.export(res);
+    this.setXlsxHeaders(res, 'Exportação programações');
+    return this.exportSchedulesBIService.export(res);
   }
+
+  // ─────────────────────────────────────────────
+  // Permission routes (PermissionGuard - with optional filters)
+  // ─────────────────────────────────────────────
 
   @Get('obras-multas')
   @UseGuards(PermissionGuard)
@@ -184,90 +254,49 @@ export class ExportController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
-    res.setHeader(
-      'Content-Disposition',
-      'attachment; filename="Exportação a serem multadas"',
-    );
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-
-    return await this.exportFinedWorksService.export(res, startDate, endDate);
+    this.setXlsxHeaders(res, 'Exportação a serem multadas');
+    return this.exportFinedWorksService.export(res, startDate, endDate);
   }
 
   @Get('capacidade-execucao')
   @UseGuards(PermissionGuard)
   async exportExecutionCapacity(@Res() res: Response) {
-    res.setHeader(
-      'Content-Disposition',
-      'attachment; filename="Exportação capacidade de execução"',
-    );
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-
-    return await this.exportExecutionCapacityService.export(res);
+    this.setXlsxHeaders(res, 'Exportação capacidade de execução');
+    return this.exportExecutionCapacityService.export(res);
   }
 
   @Get('suspensoes')
   @UseGuards(PermissionGuard)
   async exportSuspensions(@Res() res: Response) {
-    res.setHeader(
-      'Content-Disposition',
-      'attachment; filename="Exportação Suspensões"',
-    );
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-
-    return await this.exportSuspensionsService.export(res);
+    this.setXlsxHeaders(res, 'Exportação Suspensões');
+    return this.exportSuspensionsService.export(res);
   }
 
   @Get('relatorio-execucao')
   @UseGuards(PermissionGuard)
-  async exportExecutonReport(@Res() res: Response) {
-    res.setHeader(
-      'Content-Disposition',
-      'attachment; filename="Exportação Suspensões"',
-    );
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-
-    return await this.exportExecutionReportService.export(res);
+  async exportExecutionReport(@Res() res: Response) {
+    this.setXlsxHeaders(res, 'Exportação Relatório de Execução');
+    return this.exportExecutionReportService.export(res);
   }
 
   @Get('forecast')
   @UseGuards(PermissionGuard)
   async exportForecast(@Res() res: Response) {
-    res.setHeader(
-      'Content-Disposition',
-      'attachment; filename="Exportação do Forecast"',
-    );
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
-
-    return await this.exportForecastService.export(res);
+    this.setXlsxHeaders(res, 'Exportação do Forecast');
+    return this.exportForecastService.export(res);
   }
 
   @Get('reprovacoes')
   @UseGuards(PermissionGuard)
   async exportRejections(@Res() res: Response) {
-    res.setHeader(
-      'Content-Disposition',
-      'attachment; filename="Exportação das reprovações"',
-    );
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    );
+    this.setXlsxHeaders(res, 'Exportação das reprovações');
+    return this.exportRejectionsService.export(res);
+  }
 
-    return await this.exportRejectionsService.export(res);
+  @Get('ordens')
+  @UseGuards(VisualizationGuard)
+  async exportOrders(@Res() res: Response) {
+    this.setXlsxHeaders(res, 'Exportação Ordens/Diagramas');
+    return this.exportOrdersService.export(res);
   }
 }

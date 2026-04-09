@@ -1,4 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { mockFormData } from "../../../../mocks/mockFormData";
 import { render, screen } from "@testing-library/react";
 import { BasicInfoPanel } from "@/components/details/modals/scheduleDialog/basicInfoPanel";
@@ -14,6 +22,18 @@ vi.mock("@/contexts/userContext", () => ({
 }));
 
 describe("BasicInfoPanel Component", () => {
+  beforeAll(() => {
+    vi.useFakeTimers();
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
+  beforeEach(() => {
+    vi.setSystemTime(new Date("2025-01-10"));
+  });
+
   it("Deve renderizar os campos corretamente", () => {
     const onInputChange = vi.fn();
 
@@ -24,7 +44,7 @@ describe("BasicInfoPanel Component", () => {
         formErrors={{}}
         onInputChange={onInputChange}
         disabledFields={() => false}
-      />
+      />,
     );
 
     expect(screen.getByLabelText(/Data da Programação/i)).toBeInTheDocument();
@@ -44,7 +64,7 @@ describe("BasicInfoPanel Component", () => {
         formErrors={{}}
         onInputChange={onInputChange}
         disabledFields={() => false}
-      />
+      />,
     );
 
     expect(screen.getByLabelText(/Progresso Executado:/i)).toHaveValue("");
@@ -60,7 +80,7 @@ describe("BasicInfoPanel Component", () => {
         formErrors={{}}
         onInputChange={onInputChange}
         disabledFields={() => false}
-      />
+      />,
     );
 
     const gridElement =
@@ -68,5 +88,26 @@ describe("BasicInfoPanel Component", () => {
         ?.parentElement?.parentElement;
 
     expect(gridElement?.className).toMatch(/MuiGrid-grid-sm-12/);
+  });
+
+  it("deve desabilitar quando a data atual for antes da dataProg", () => {
+    vi.setSystemTime(new Date("2025-01-10"));
+
+    render(
+      <BasicInfoPanel
+        formData={{
+          ...mockFormData,
+          validated: true,
+          confirmed: true,
+          dataProg: "2025-01-15",
+        }}
+        isInsert={false}
+        formErrors={{}}
+        onInputChange={vi.fn()}
+        disabledFields={() => false}
+      />,
+    );
+
+    expect(screen.getByLabelText("Progresso Executado:")).toBeDisabled();
   });
 });

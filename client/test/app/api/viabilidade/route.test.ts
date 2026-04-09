@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST } from "@/app/api/viabilidade/route";
 import { NextRequest } from "next/server";
 
-// ---- MOCK CORRETO DO next/headers ----
+// ✅ mock correto
 vi.mock("next/headers", () => ({
   cookies: vi.fn(),
 }));
@@ -21,81 +21,78 @@ describe("API Upload Route (POST)", () => {
     return fd;
   };
 
-  const createRequest = () =>
-    new NextRequest("http://localhost/api/viabilidade/upload", {
+  const createRequest = () => {
+    const req = new NextRequest("http://localhost/api/viabilidade/upload", {
       method: "POST",
-      body: mockFormData(),
     });
 
-  it("Deve realizar upload com sucesso", async () => {
-    // cookies() mockado
-    (cookies as any).mockReturnValue({
+    (req as any).formData = vi.fn().mockResolvedValue(mockFormData());
+
+    return req;
+  };
+
+  const mockCookies = () => {
+    (cookies as any).mockResolvedValue({
       get: vi.fn().mockReturnValue({ value: "mock-token" }),
     });
+  };
+
+  it("Deve realizar upload com sucesso", async () => {
+    mockCookies();
 
     (global.fetch as any).mockResolvedValue({
       ok: true,
       status: 201,
-      json: () => Promise.resolve({}),
+      json: async () => ({}),
     });
 
-    const req = createRequest();
-    const res = await POST(req);
+    const res = await POST(createRequest());
     const body = await res.json();
 
-    expect(global.fetch).toHaveBeenCalled();
+    expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(res.status).toBe(201);
     expect(body.message).toBe("Upload realizado com sucesso");
   });
 
   it("Deve retornar erro quando o backend retornar erro", async () => {
-    (cookies as any).mockReturnValue({
-      get: vi.fn().mockReturnValue({ value: "mock-token" }),
-    });
+    mockCookies();
 
     (global.fetch as any).mockResolvedValue({
       ok: false,
       status: 400,
-      text: () =>
-        Promise.resolve(JSON.stringify({ message: "Arquivo inválido" })),
+      text: async () => JSON.stringify({ message: "Arquivo inválido" }),
     });
 
-    const req = createRequest();
-    const res = await POST(req);
+    const res = await POST(createRequest());
     const body = await res.json();
 
+    expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(res.status).toBe(400);
     expect(body.message).toBe("Arquivo inválido");
   });
 
-  it("Deve retornar erro genérico quando o backend retornar erro sem mensagem explicando o erro", async () => {
-    (cookies as any).mockReturnValue({
-      get: vi.fn().mockReturnValue({ value: "mock-token" }),
-    });
+  it("Deve retornar erro genérico quando backend não retorna message", async () => {
+    mockCookies();
 
     (global.fetch as any).mockResolvedValue({
       ok: false,
       status: 400,
-      text: () => Promise.resolve(JSON.stringify({})), // <= sem message
+      text: async () => JSON.stringify({}),
     });
 
-    const req = createRequest();
-    const res = await POST(req);
+    const res = await POST(createRequest());
     const body = await res.json();
 
     expect(res.status).toBe(400);
-    expect(body.message).toBe("Erro ao fazer upload");
+    expect(body.message).toBe("Erro ao fazer upload"); // ⚠️ importante
   });
 
   it("Deve retornar erro interno em caso de exceção", async () => {
-    (cookies as any).mockReturnValue({
-      get: vi.fn().mockReturnValue({ value: "mock-token" }),
-    });
+    mockCookies();
 
     (global.fetch as any).mockRejectedValue(new Error("Erro inesperado"));
 
-    const req = createRequest();
-    const res = await POST(req);
+    const res = await POST(createRequest());
     const body = await res.json();
 
     expect(res.status).toBe(500);

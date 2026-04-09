@@ -11,6 +11,24 @@ import userEvent from "@testing-library/user-event";
 
 import { mockFormData } from "../../../../mocks/mockFormData";
 
+vi.mock("@/contexts/userContext", () => ({
+  useUser: () => ({
+    user: {
+      id: 1,
+      username: "test-user",
+      id_regional: "001",
+      nome_usuario: "Test User",
+      email: "test@example.com",
+    },
+    permissions: {
+      id: 1,
+      username: "test-user",
+      permissao: "total",
+      permissao_visualizacao: "total",
+    },
+  }),
+}));
+
 vi.mock("@/hooks/useScheduleSubmit", () => ({
   useScheduleSubmit: vi.fn(() => ({
     handleSubmit: vi.fn(),
@@ -26,21 +44,21 @@ vi.mock(
   "@/components/details/modals/executionReportDialog/executionBasicPanel",
   () => ({
     ExecutionBasicPanel: () => <div>ExecutionBasicPanel</div>,
-  })
+  }),
 );
 
 vi.mock(
   "@/components/details/modals/executionReportDialog/EquipmentPanel",
   () => ({
     ExecutionEquipmentPanel: () => <div>ExecutionEquipmentPanel</div>,
-  })
+  }),
 );
 
 vi.mock(
   "@/components/details/modals/executionReportDialog/additionalExecutionInfoPanel",
   () => ({
     AdditionalExecutionInfoPanel: () => <div>AdditionalExecutionInfoPanel</div>,
-  })
+  }),
 );
 
 vi.mock("@/components/common/ErrorModal", () => ({
@@ -62,13 +80,6 @@ vi.mock("@/components/common/Button", () => ({
   ),
 }));
 
-// vi.mock("@/validations/validationSchedules", () => ({
-//   ...vi.importActual("@/validations/validationSchedules"),
-//   executionReportSchema: {
-//     safeParse: vi.fn(),
-//   },
-// }));
-
 const baseProps = {
   open: true,
   onClose: vi.fn(),
@@ -78,6 +89,7 @@ const baseProps = {
   onError: vi.fn(),
   onSuccess: vi.fn(),
   onModalOpen: vi.fn(),
+  totalExec: 80,
   scheduleForm: {
     formData: mockFormData,
     setFormData: vi.fn(),
@@ -102,12 +114,12 @@ describe("ExecutionReportDialog", () => {
     render(<ExecutionReportDialog {...baseProps} />);
 
     expect(
-      screen.getByText("Confirmar Alteração da Execução")
+      screen.getByText("Confirmar Alteração da Execução"),
     ).toBeInTheDocument();
     expect(screen.getByText("ExecutionBasicPanel")).toBeInTheDocument();
     expect(screen.getByText("ExecutionEquipmentPanel")).toBeInTheDocument();
     expect(
-      screen.getByText("AdditionalExecutionInfoPanel")
+      screen.getByText("AdditionalExecutionInfoPanel"),
     ).toBeInTheDocument();
 
     expect(screen.getByText("Cancelar")).toBeInTheDocument();
@@ -116,7 +128,7 @@ describe("ExecutionReportDialog", () => {
 
   it("usa executionReportData quando executionReportIsInsert = false", () => {
     render(
-      <ExecutionReportDialog {...baseProps} executionReportIsInsert={false} />
+      <ExecutionReportDialog {...baseProps} executionReportIsInsert={false} />,
     );
 
     expect(screen.getByText("ExecutionBasicPanel")).toBeInTheDocument();
@@ -168,14 +180,14 @@ describe("ExecutionReportDialog", () => {
     } as any);
 
     render(
-      <ExecutionReportDialog {...baseProps} executionReportIsInsert={false} />
+      <ExecutionReportDialog {...baseProps} executionReportIsInsert={false} />,
     );
     await user.click(screen.getByText("Salvar Execução"));
 
     expect(handleSubmit).toHaveBeenCalledWith(
       { done: true },
       "executionReport",
-      []
+      [],
     );
   });
 
@@ -215,7 +227,7 @@ describe("ExecutionReportDialog", () => {
       <ExecutionReportDialog
         {...baseProps}
         scheduleForm={{ ...baseProps.scheduleForm, setFormErrors }}
-      />
+      />,
     );
 
     await user.click(screen.getByText("Salvar Execução"));
@@ -226,7 +238,7 @@ describe("ExecutionReportDialog", () => {
       });
       expect(screen.getByTestId("error-modal")).toBeInTheDocument();
       expect(screen.getByTestId("error-message")).toHaveTextContent(
-        "Erro ao salvar relatório de execução"
+        "Erro ao salvar relatório de execução",
       );
     });
   });
@@ -237,7 +249,7 @@ describe("ExecutionReportDialog", () => {
 
     vi.spyOn(
       schemasModule.executionReportSchema,
-      "safeParse"
+      "safeParse",
     ).mockImplementation(
       () =>
         ({
@@ -251,7 +263,7 @@ describe("ExecutionReportDialog", () => {
               },
             ],
           },
-        } as any)
+        }) as any,
     );
 
     render(
@@ -259,7 +271,7 @@ describe("ExecutionReportDialog", () => {
         {...baseProps}
         executionReportIsInsert={false}
         scheduleForm={{ ...baseProps.scheduleForm, setFormErrors }}
-      />
+      />,
     );
 
     await user.click(screen.getByText("Salvar Execução"));
@@ -303,7 +315,7 @@ describe("ExecutionReportDialog", () => {
       <ExecutionReportDialog
         {...baseProps}
         scheduleForm={{ ...baseProps.scheduleForm, setFormErrors }}
-      />
+      />,
     );
 
     await user.click(screen.getByText("Salvar Execução"));
@@ -340,7 +352,7 @@ describe("ExecutionReportDialog", () => {
       <ExecutionReportDialog
         {...baseProps}
         scheduleForm={{ ...baseProps.scheduleForm, setFormErrors }}
-      />
+      />,
     );
 
     await user.click(screen.getByText("Salvar Execução"));
@@ -383,7 +395,7 @@ describe("ExecutionReportDialog", () => {
       <ExecutionReportDialog
         {...baseProps}
         scheduleForm={{ ...baseProps.scheduleForm }}
-      />
+      />,
     );
 
     const safeParseMock = vi.fn().mockReturnValue({
@@ -404,7 +416,7 @@ describe("ExecutionReportDialog", () => {
       <ExecutionReportDialog
         {...baseProps}
         scheduleForm={{ ...baseProps.scheduleForm }}
-      />
+      />,
     );
 
     await user.click(closeButton);

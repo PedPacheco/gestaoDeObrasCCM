@@ -42,7 +42,7 @@ export default function ScheduleForDayFilters({
       const idGrupos = selectedItems.idGrupo?.map(Number);
 
       newData.tipo = newData.tipo?.filter((item) =>
-        idGrupos.includes(item.id_grupo)
+        idGrupos.includes(item.id_grupo),
       );
     }
 
@@ -50,7 +50,7 @@ export default function ScheduleForDayFilters({
       const idRegionais = selectedItems.idRegional?.map(Number);
 
       newData.municipio = newData.municipio?.filter((item) =>
-        idRegionais.includes(item.id_regional)
+        idRegionais.includes(item.id_regional),
       );
     }
 
@@ -63,7 +63,7 @@ export default function ScheduleForDayFilters({
     applyFilters,
   });
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
-    {}
+    {},
   );
 
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
