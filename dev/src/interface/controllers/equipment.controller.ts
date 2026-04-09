@@ -2,17 +2,17 @@ import { Controller, Get, Query, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import * as ExcelJS from 'exceljs';
 
-import { EquipamentosService } from 'src/application/equipamentos.service';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
+import { EquipmentService } from 'src/application/equipment.service';
 
 @Controller('equipamentos')
-export class EquipamentosController {
-  constructor(private equipamentosService: EquipamentosService) {}
+export class EquipmentController {
+  constructor(private readonly equipmentService: EquipmentService) {}
 
   @Get()
   @UseGuards(VisualizationGuard)
   async getEquipamentos(@Query() query: any) {
-    return this.equipamentosService.getEquipamentos(query);
+    return this.equipmentService.getEquipment(query);
   }
 
   @Get('without-location/export')
@@ -21,7 +21,7 @@ export class EquipamentosController {
     @Query('ovnotas') ovnotas: string,
     @Res() res: Response,
   ) {
-    const obras = await this.equipamentosService.getWithoutLocation(ovnotas ?? '');
+    const obras = await this.equipmentService.getWithoutLocation(ovnotas ?? '');
 
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Obras sem localização');
@@ -43,8 +43,14 @@ export class EquipamentosController {
 
     sheet.addRows(obras);
 
-    res.setHeader('Content-Disposition', 'attachment; filename="obras-sem-localizacao.xlsx"');
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="obras-sem-localizacao.xlsx"',
+    );
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
 
     await workbook.xlsx.write(res);
     res.end();
