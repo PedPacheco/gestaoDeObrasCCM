@@ -42,7 +42,7 @@ jobs:
         working-directory: ./dev
 
       - name: Generate Prisma Client
-        run: npx prisma generate --schema=src/infra/prisma/schema.prisma
+        run: npx prisma generate --config=prisma.config.ts
         working-directory: ./dev
 
       - name: Run Linter (Backend)
