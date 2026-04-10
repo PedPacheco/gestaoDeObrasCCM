@@ -65,8 +65,8 @@ describe('GetWorksInPortfolioRepository', () => {
     },
   ];
 
-  const baseQuery = `SELECT obras.id, obras.ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, 
-        mun, id_status, prazo, entrada + prazo AS prazo_fim, abrev_regional, tipo_obra, tipos.id_grupo, qtde_planejada, contagem_ocorrencias,
+  const baseQuery = `SELECT obras.id, obras.ovnota, COALESCE(diagrama, COALESCE(ordem_dci, ordem_dcim)) AS ordem_principal, ordem_dca, ordem_dcd, ordem_dcim, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama,  
+        status_ov_sap, pep, mun, id_status, prazo, entrada + prazo AS prazo_fim, abrev_regional, tipo_obra, tipos.id_grupo, qtde_planejada, contagem_ocorrencias,
         qtde_pend, circuito, mo_planejada,  status, conjunto, data_empreitamento, empreendimento, turma, ano_plan,
         COALESCE(SUM(prog) FILTER (WHERE exec IS NULL), 0)::int AS total_prog,
         SUM(exec)::int AS total_exec, (100 - (SUM(exec) + COALESCE(SUM(prog) FILTER (WHERE exec IS NULL), 0)))::int AS total_pend,

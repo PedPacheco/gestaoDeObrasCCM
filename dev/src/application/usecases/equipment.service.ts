@@ -24,9 +24,9 @@ export class EquipmentService {
     const where: any = {};
 
     if (hasReference) {
-      referencia: {
-        not: null;
-      }
+      where.referencia = {
+        not: null,
+      };
     }
 
     if (ovnotas.length) {
