@@ -12,7 +12,7 @@ export class EquipmentService {
     private repo: IEquipmentRepository,
   ) {}
 
-  private buildWhere(query: GetEquipmentDTO[]) {
+  private buildWhere(query: GetEquipmentDTO[], hasReference: boolean) {
     const ovnotas = query
       .flatMap((q) => q.ovnota?.split(',') ?? [])
       .filter(Boolean);
@@ -21,9 +21,13 @@ export class EquipmentService {
       .flatMap((q) => q.ordemDiagrama?.split(',') ?? [])
       .filter(Boolean);
 
-    const where: any = {
-      referencia: { not: null },
-    };
+    const where: any = {};
+
+    if (hasReference) {
+      referencia: {
+        not: null;
+      }
+    }
 
     if (ovnotas.length) {
       where.ovnota = { in: ovnotas };
@@ -43,7 +47,7 @@ export class EquipmentService {
   }
 
   async getEquipment(query: GetEquipmentDTO[]) {
-    const where = this.buildWhere(query);
+    const where = this.buildWhere(query, true);
 
     const [works, total] = await Promise.all([
       this.repo.findWorks(where),
@@ -92,7 +96,7 @@ export class EquipmentService {
   }
 
   async getWithoutLocation(params: GetEquipmentDTO[]) {
-    const where = this.buildWhere(params);
+    const where = this.buildWhere(params, false);
 
     const works = await this.repo.findWithoutLocationRaw(where);
 
