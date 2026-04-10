@@ -39,7 +39,7 @@ describe('EquipmentService', () => {
     mockRepository.findWorks.mockResolvedValue([]);
     mockRepository.countWorks.mockResolvedValue(0);
 
-    const result = await service.getEquipment({});
+    const result = await service.getEquipment([{ ovnota: '12' }]);
 
     expect(result).toEqual({
       data: [],
@@ -54,11 +54,18 @@ describe('EquipmentService', () => {
     mockRepository.findWorks.mockResolvedValue([]);
     mockRepository.countWorks.mockResolvedValue(0);
 
-    await service.getEquipment({ ovnotas: '1,2,3' });
+    await service.getEquipment([{ ovnota: '1', ordemDiagrama: '123' }]);
 
     expect(mockRepository.findWorks).toHaveBeenCalledWith({
       referencia: { not: null },
-      ovnota: { in: ['1', '2', '3'] },
+      ovnota: { in: ['1'] },
+      OR: [
+        { diagrama: { in: ['123'] } },
+        { ordem_dci: { in: ['123'] } },
+        { ordem_dcd: { in: ['123'] } },
+        { ordem_dca: { in: ['123'] } },
+        { ordem_dcim: { in: ['123'] } },
+      ],
     });
   });
 
@@ -88,7 +95,7 @@ describe('EquipmentService', () => {
     mockRepository.countWorks.mockResolvedValue(1);
     mockRepository.findEquipmentByCode.mockResolvedValue(equipmentMock);
 
-    const result = await service.getEquipment({});
+    const result = await service.getEquipment([{ ordemDiagrama: '212412' }]);
 
     expect(result).toEqual({
       total: 1,
@@ -122,7 +129,7 @@ describe('EquipmentService', () => {
     mockRepository.countWorks.mockResolvedValue(1);
     mockRepository.findEquipmentByCode.mockResolvedValue([]);
 
-    const result = await service.getEquipment({});
+    const result = await service.getEquipment([]);
 
     expect(result).toEqual({
       total: 1,
@@ -141,7 +148,7 @@ describe('EquipmentService', () => {
     mockRepository.countWorks.mockResolvedValue(3);
     mockRepository.findEquipmentByCode.mockResolvedValue([]);
 
-    await service.getEquipment({});
+    await service.getEquipment([]);
 
     expect(mockRepository.findEquipmentByCode).toHaveBeenCalledWith(['EQ1']);
   });
@@ -172,7 +179,7 @@ describe('EquipmentService', () => {
     mockRepository.countWorks.mockResolvedValue(1);
     mockRepository.findEquipmentByCode.mockResolvedValue(equipmentMock);
 
-    const result = await service.getEquipment({});
+    const result = await service.getEquipment([]);
 
     expect(result.data[0]).toEqual(
       expect.objectContaining({
@@ -190,23 +197,22 @@ describe('EquipmentService', () => {
    * ============================
    */
 
-  it('should return empty array when ovnotas is empty', async () => {
-    const result = await service.getWithoutLocation('');
-
-    expect(result).toEqual([]);
-    expect(mockRepository.findWithoutLocationRaw).not.toHaveBeenCalled();
-  });
-
   it('should call repository with parsed ovnotas', async () => {
     mockRepository.findWithoutLocationRaw.mockResolvedValue([]);
 
-    await service.getWithoutLocation('1,2,3');
+    await service.getWithoutLocation([{ ovnota: '1', ordemDiagrama: '123' }]);
 
-    expect(mockRepository.findWithoutLocationRaw).toHaveBeenCalledWith([
-      '1',
-      '2',
-      '3',
-    ]);
+    expect(mockRepository.findWithoutLocationRaw).toHaveBeenCalledWith({
+      referencia: { not: null },
+      ovnota: { in: ['1'] },
+      OR: [
+        { diagrama: { in: ['123'] } },
+        { ordem_dci: { in: ['123'] } },
+        { ordem_dcd: { in: ['123'] } },
+        { ordem_dca: { in: ['123'] } },
+        { ordem_dcim: { in: ['123'] } },
+      ],
+    });
   });
 
   it('should map works correctly in getWithoutLocation', async () => {
@@ -228,7 +234,9 @@ describe('EquipmentService', () => {
 
     mockRepository.findWithoutLocationRaw.mockResolvedValue(rawMock);
 
-    const result = await service.getWithoutLocation('123');
+    const result = await service.getWithoutLocation([
+      { ovnota: '1', ordemDiagrama: '123' },
+    ]);
 
     expect(result).toEqual([
       {
@@ -261,7 +269,9 @@ describe('EquipmentService', () => {
 
     mockRepository.findWithoutLocationRaw.mockResolvedValue(rawMock);
 
-    const result = await service.getWithoutLocation('123');
+    const result = await service.getWithoutLocation([
+      { ovnota: '1', ordemDiagrama: '123' },
+    ]);
 
     expect(result).toEqual([
       {

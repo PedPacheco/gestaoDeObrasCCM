@@ -14,6 +14,10 @@ describe('EquipmentController', () => {
     getWithoutLocation: jest.fn(),
   };
 
+  const filter = {
+    items: [{ ovnota: '1', ordemDiagrama: '123' }],
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [EquipmentController],
@@ -31,13 +35,12 @@ describe('EquipmentController', () => {
 
   describe('getEquipamentos', () => {
     it('should call equipmentService.getEquipment and return result', async () => {
-      const query = { filter: 'test' };
       const expectedResult = [{ id: 1, name: 'Equipamento 1' }];
       mockService.getEquipment.mockResolvedValueOnce(expectedResult);
 
-      const result = await controller.getEquipamentos(query);
+      const result = await controller.getEquipamentos(filter);
 
-      expect(service.getEquipment).toHaveBeenCalledWith(query);
+      expect(service.getEquipment).toHaveBeenCalledWith(filter.items);
       expect(result).toEqual(expectedResult);
     });
   });
@@ -58,7 +61,6 @@ describe('EquipmentController', () => {
     });
 
     it('should generate excel and send response', async () => {
-      const ovnotas = '12345,67890';
       const mockObras = [
         {
           ovnota: '12345',
@@ -86,9 +88,9 @@ describe('EquipmentController', () => {
 
       mockService.getWithoutLocation.mockResolvedValueOnce(mockObras);
 
-      await controller.exportWithoutLocation(ovnotas, mockRes as Response);
+      await controller.exportWithoutLocation(filter, mockRes as Response);
 
-      expect(service.getWithoutLocation).toHaveBeenCalledWith(ovnotas);
+      expect(service.getWithoutLocation).toHaveBeenCalledWith(filter.items);
       expect(mockRes.setHeader).toHaveBeenCalledWith(
         'Content-Disposition',
         'attachment; filename="obras-sem-localizacao.xlsx"',
@@ -101,12 +103,15 @@ describe('EquipmentController', () => {
       expect(mockRes.end).toHaveBeenCalled();
     });
 
-    it('should handle empty ovnotas and call service with empty string', async () => {
+    it('should handle empty ovnotas and call service with []', async () => {
       mockService.getWithoutLocation.mockResolvedValueOnce([]);
 
-      await controller.exportWithoutLocation(undefined, mockRes as Response);
+      await controller.exportWithoutLocation(
+        { items: [] },
+        mockRes as Response,
+      );
 
-      expect(service.getWithoutLocation).toHaveBeenCalledWith('');
+      expect(service.getWithoutLocation).toHaveBeenCalledWith([]);
       expect(mockWorkbookWrite).toHaveBeenCalled();
       expect(mockRes.end).toHaveBeenCalled();
     });
@@ -123,7 +128,7 @@ describe('EquipmentController', () => {
 
       mockService.getWithoutLocation.mockResolvedValueOnce([]);
 
-      await controller.exportWithoutLocation('', mockRes as Response);
+      await controller.exportWithoutLocation(filter, mockRes as Response);
 
       expect(addWorksheetSpy).toHaveBeenCalledWith('Obras sem localização');
 

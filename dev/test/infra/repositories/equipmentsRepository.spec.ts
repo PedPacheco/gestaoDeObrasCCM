@@ -30,6 +30,7 @@ describe('EquipmentRepository', () => {
     repository = module.get<EquipmentRepository>(EquipmentRepository);
     prisma = module.get(PrismaService);
 
+    jest.clearAllMocks();
     jest.resetAllMocks();
   });
 
@@ -52,6 +53,11 @@ describe('EquipmentRepository', () => {
       select: {
         id: true,
         ovnota: true,
+        diagrama: true,
+        ordem_dci: true,
+        ordem_dca: true,
+        ordem_dcd: true,
+        ordem_dcim: true,
         referencia: true,
         id_circuito: true,
         id_status: true,
@@ -116,7 +122,7 @@ describe('EquipmentRepository', () => {
    */
 
   it('should call prisma.obras.findMany with correct params for raw query', async () => {
-    const ovnotas = ['1', '2'];
+    const ovnotas = { ovnota: { in: ['1'] } };
     const mockResult = [{ ovnota: '1' }];
 
     (prisma.obras.findMany as jest.Mock).mockResolvedValue(mockResult);
@@ -124,7 +130,7 @@ describe('EquipmentRepository', () => {
     const result = await repository.findWithoutLocationRaw(ovnotas);
 
     expect(prisma.obras.findMany).toHaveBeenCalledWith({
-      where: { ovnota: { in: ovnotas } },
+      where: ovnotas,
       select: {
         ovnota: true,
         referencia: true,
