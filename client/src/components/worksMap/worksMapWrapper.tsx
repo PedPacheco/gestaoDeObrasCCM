@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 
-const MapaObrasComponent = dynamic(() => import("./MapaObrasComponent"), {
+const WorksMapComponent = dynamic(() => import("./worksMapComponent"), {
   ssr: false,
   loading: () => (
     <div className="flex-1 flex items-center justify-center text-zinc-500">
@@ -15,6 +15,6 @@ interface Props {
   token: string;
 }
 
-export default function MapaObrasWrapper({ token }: Props) {
-  return <MapaObrasComponent token={token} />;
+export default function WorksMapWrapper({ token }: Props) {
+  return <WorksMapComponent token={token} />;
 }

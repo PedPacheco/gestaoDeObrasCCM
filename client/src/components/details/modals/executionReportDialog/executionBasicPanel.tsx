@@ -1,4 +1,4 @@
-import { FormData } from "@/hooks/useScheduleForm";
+import { FormData } from "@/hooks/details/useScheduleForm";
 import { resolveExecutionReportContext } from "@/utils/formatValue";
 import {
   Checkbox,
@@ -18,7 +18,7 @@ interface ExecutionBasicPanelProps {
     field:
       | keyof FormData
       | `executionReport.${keyof ExecutionReportData}`
-      | keyof ExecutionReportData
+      | keyof ExecutionReportData,
   ) => (event: any) => void;
   wasTheWorkCompleted: number;
 }

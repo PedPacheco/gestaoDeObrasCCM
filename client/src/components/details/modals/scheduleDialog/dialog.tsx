@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import ErrorModal from "@/components/common/ErrorModal";
 import { useUser } from "@/contexts/userContext";
-import { useScheduleForm } from "@/hooks/useScheduleForm";
+import { useScheduleForm } from "@/hooks/details/useScheduleForm";
 import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
 import { schedulesSchema } from "@/validations/validationSchedules";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";

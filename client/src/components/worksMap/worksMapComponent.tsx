@@ -4,8 +4,8 @@ import "leaflet/dist/leaflet.css";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { useLeafletMap } from "@/hooks/worksMap/useLeafletMap";
 import { MapFilterItem, useMapFilter } from "@/contexts/mapFilterContext";
-import { useLeafletMap } from "@/hooks/useLeafletMap";
 import { ObraPin } from "@/interfaces/worksMapInterface";
 import {
   buildKey,
@@ -15,7 +15,7 @@ import {
 
 import { FilterBar } from "./filterBar";
 import { MapOverlays } from "./mapOverlays";
-import RoutePlanner from "./RoutePlanner";
+import RoutePlanner from "./routePlanner/RoutePlanner";
 import { ObraListPanel } from "./workListPanel";
 
 interface Props {
@@ -26,7 +26,7 @@ interface requestItem {
   items: MapFilterItem[];
 }
 
-export default function MapaObrasComponent({ token }: Props) {
+export default function WorksMapComponent({ token }: Props) {
   const { ovnotas } = useMapFilter();
 
   const {
@@ -130,7 +130,7 @@ export default function MapaObrasComponent({ token }: Props) {
     });
 
     map.fitBounds(bounds, { padding: [40, 40] });
-  }, [mapReady, displayObras]);
+  }, [mapReady, displayObras, LRef, mapRef, markersLayerRef, routeLayerRef]);
 
   // ── API (POST 🔥) ──────────────────────────────────────────────────────────
   const fetchObras = useCallback(

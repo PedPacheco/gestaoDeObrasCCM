@@ -5,7 +5,7 @@ import { editExecutionReport } from "@/actions/executionReport.action";
 import { editSchedule, saveSchedule } from "@/actions/schedules";
 import { ExecutionReportData } from "@/components/details/modals/executionReportDialog/executionReportDialog";
 
-import { FormData } from "./useScheduleForm";
+import { FormData } from "./details/useScheduleForm";
 
 const cookies = new Cookies();
 
