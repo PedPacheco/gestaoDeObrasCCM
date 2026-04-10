@@ -8,7 +8,6 @@ interface ObraListPanelProps {
   semLocObras: MapFilterItem[];
   faltamCount: number;
   ovnotas: MapFilterItem[] | null;
-  repetidasComLoc: MapFilterItem[];
   onClose: () => void;
   onExportSemLoc: () => void;
 }
@@ -19,7 +18,6 @@ interface ObraListPanelProps {
  * Painel lateral deslizante com três seções:
  *  1. Obras COM localização — exibidas no mapa
  *  2. Obras SEM coordenadas — com opção de exportar para Excel
- *  3. Obras repetidas na aba de origem que têm coordenada (aparecem 1x no mapa)
  *
  * Responsabilidade única: apresentar dados. Nenhuma lógica de fetch ou estado global aqui.
  */
@@ -28,7 +26,6 @@ export function ObraListPanel({
   semLocObras,
   faltamCount,
   ovnotas,
-  repetidasComLoc,
   onClose,
   onExportSemLoc,
 }: ObraListPanelProps) {
@@ -59,7 +56,7 @@ export function ObraListPanel({
             key={o.id}
             className="px-3 py-2 border-b border-zinc-100 hover:bg-zinc-50 transition-colors"
           >
-            <div className="font-semibold text-zinc-800">{o.ovnota}</div>
+            <div className="font-semibold text-zinc-800">{`${o.ovnota}-${o.ordemDiagrama}`}</div>
             <div className="text-zinc-500 text-xs mt-0.5">
               {[o.municipio, o.bairro, o.tipo_obra].filter(Boolean).join(" · ")}
             </div>
@@ -121,27 +118,6 @@ export function ObraListPanel({
                   </div>
                   <div className="text-zinc-400 text-xs mt-0.5">
                     Sem coordenadas cadastradas
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* ── Seção: Repetidas com coordenada ───────────────────────── */}
-            {repetidasComLoc.map((ov) => {
-              const repeats = ovnotas!.filter((o) => o === ov).length;
-              return (
-                <div
-                  key={`${ov.ovnota}-${ov.ordemDiagrama}`}
-                  className="px-3 py-2 border-b border-zinc-100 hover:bg-zinc-50 transition-colors"
-                >
-                  <div className="font-semibold text-zinc-500 flex items-center gap-2">
-                    {`${ov.ovnota}-${ov.ordemDiagrama}`}
-                    <span className="text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full">
-                      ×{repeats} na aba
-                    </span>
-                  </div>
-                  <div className="text-zinc-400 text-xs mt-0.5">
-                    No mapa aparece 1 vez (localização única)
                   </div>
                 </div>
               );

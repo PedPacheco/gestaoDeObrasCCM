@@ -75,11 +75,12 @@ export default function WorksMapComponent({ token }: Props) {
     [requested],
   );
 
-  const semLocObras = useMemo(
-    () =>
-      requested.items.filter(
+  const semLocObras = useMemo<requestItem>(
+    () => ({
+      items: requested.items.filter(
         (r) => !obrasComLocSet.has(buildKey(r.ovnota, r.ordemDiagrama)),
       ),
+    }),
     [requested, obrasComLocSet],
   );
 
@@ -87,22 +88,6 @@ export default function WorksMapComponent({ token }: Props) {
     () => requestedSet.size - obrasComLocSet.size,
     [requestedSet, obrasComLocSet],
   );
-
-  const repetidasComLoc = useMemo(() => {
-    if (!ovnotas?.length) return [];
-
-    const map = new Map<string, number>();
-
-    ovnotas.forEach((o) => {
-      const key = buildKey(o.ovnota, o.ordemDiagrama);
-      map.set(key, (map.get(key) ?? 0) + 1);
-    });
-
-    return ovnotas.filter((o) => {
-      const key = buildKey(o.ovnota, o.ordemDiagrama);
-      return map.get(key)! > 1 && obrasComLocSet.has(key);
-    });
-  }, [ovnotas, obrasComLocSet]);
 
   // ── Map sync ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -137,8 +122,6 @@ export default function WorksMapComponent({ token }: Props) {
     async (payload: requestItem) => {
       setLoading(true);
       setFetchError(null);
-
-      console.log(payload);
 
       try {
         const url = `${process.env.NEXT_PUBLIC_API_URL}/equipamentos`;
@@ -203,7 +186,7 @@ export default function WorksMapComponent({ token }: Props) {
   }, [ovnotas, fetchObras]);
 
   const handleExportSemLoc = useCallback(async () => {
-    if (!semLocObras.length) return;
+    if (!semLocObras.items.length) return;
 
     const url = `${process.env.NEXT_PUBLIC_API_URL}/equipamentos/without-location/export`;
 
@@ -279,10 +262,9 @@ export default function WorksMapComponent({ token }: Props) {
           <div className="w-80 shrink-0">
             <ObraListPanel
               displayObras={displayObras}
-              semLocObras={semLocObras}
+              semLocObras={semLocObras.items}
               faltamCount={faltamCount}
               ovnotas={ovnotas}
-              repetidasComLoc={repetidasComLoc}
               onClose={() => setShowList(false)}
               onExportSemLoc={handleExportSemLoc}
             />
