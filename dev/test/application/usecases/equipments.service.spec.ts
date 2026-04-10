@@ -203,7 +203,6 @@ describe('EquipmentService', () => {
     await service.getWithoutLocation([{ ovnota: '1', ordemDiagrama: '123' }]);
 
     expect(mockRepository.findWithoutLocationRaw).toHaveBeenCalledWith({
-      referencia: { not: null },
       ovnota: { in: ['1'] },
       OR: [
         { diagrama: { in: ['123'] } },

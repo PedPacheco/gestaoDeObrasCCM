@@ -69,15 +69,6 @@ export default function PortfolioWorks({
     }
   }, [filtersData, permissions?.permissao_visualizacao]);
 
-  // Sync map context whenever visible data changes (including initial server data)
-  useEffect(() => {
-    const ovnotasList = (filteredData?.works ?? [])
-      .map((w: any) => w.ovnota)
-      .filter(Boolean);
-    setOvnotas(ovnotasList.length > 0 ? ovnotasList : null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredData]);
-
   const toggleModal = () => setOpen((prev) => !prev);
 
   const generateExcel = useCallback(
@@ -123,11 +114,7 @@ export default function PortfolioWorks({
           );
 
           setFilteredData(response.data);
-          // Silently update map context with current filtered ovnotas
-          const ovnotasList = (response.data?.works ?? [])
-            .map((w: any) => w.ovnota)
-            .filter(Boolean);
-          setOvnotas(ovnotasList.length > 0 ? ovnotasList : null);
+          setOvnotas(response.data?.works);
         } catch (error: any) {
           setError(error.message);
         }

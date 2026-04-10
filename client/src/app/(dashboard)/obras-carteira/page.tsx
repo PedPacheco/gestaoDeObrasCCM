@@ -38,7 +38,7 @@ export default async function WorksInPortfolio() {
       `${process.env.NEXT_PUBLIC_API_URL}/obras/obras-carteira`,
       filtersValues,
       cookieStore.get("token")?.value,
-      { cache: "no-store" }
+      { cache: "no-store" },
     ),
   ]);
 
@@ -49,13 +49,13 @@ export default async function WorksInPortfolio() {
   const { data, token } = worksData;
 
   const filteredStatus = filters.status.filter(
-    (item: { id: number }) => ![2, 3].includes(item.id)
+    (item: { id: number }) => ![2, 3].includes(item.id),
   );
 
   const columnMapping = {
     id: "ID",
     ovnota: "Ovnota",
-    ordemdiagrama: "Ordem DCI/Diagrama",
+    ordem_principal: "Ordem DCI/Diagrama",
     ordem_dcd: "Ordem DCD",
     ordem_dca: "Ordem DCA",
     ordem_dcim: "Ordem DCIM",
