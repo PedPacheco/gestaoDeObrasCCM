@@ -259,9 +259,8 @@ describe("TabPanel Component", () => {
       fireEvent.click(screen.getByText("Programações"));
       fireEvent.click(screen.getByTestId("edit-schedule-0"));
 
-      const { ModalsManager } = await import(
-        "@/components/details/modals/detailsModals"
-      );
+      const { ModalsManager } =
+        await import("@/components/details/modals/detailsModals");
       const lastCall =
         vi.mocked(ModalsManager).mock.calls[
           vi.mocked(ModalsManager).mock.calls.length - 1
@@ -276,10 +275,10 @@ describe("TabPanel Component", () => {
 
   describe("Integração com hooks", () => {
     it("deve passar dados corretos para os hooks", async () => {
-      const { useScheduleHandlers } = await import(
-        "@/hooks/useScheduleHandlers"
-      );
-      const { useScheduleForm } = await import("@/hooks/useScheduleForm");
+      const { useScheduleHandlers } =
+        await import("@/hooks/details/useScheduleHandlers");
+      const { useScheduleForm } =
+        await import("@/hooks/details/useScheduleForm");
 
       render(<TabPanel {...defaultProps} />);
 

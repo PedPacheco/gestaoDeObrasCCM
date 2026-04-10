@@ -2,8 +2,8 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 
-import { useScheduleForm } from "@/hooks/useScheduleForm";
-import { useScheduleHandlers } from "@/hooks/useScheduleHandlers";
+import { useScheduleForm } from "@/hooks/details/useScheduleForm";
+import { useScheduleHandlers } from "@/hooks/details/useScheduleHandlers";
 import { useUser } from "@/contexts/userContext";
 import { ModalsManager, ModalsManagerRef } from "../modals/detailsModals";
 import TabActions from "./tabsActions";

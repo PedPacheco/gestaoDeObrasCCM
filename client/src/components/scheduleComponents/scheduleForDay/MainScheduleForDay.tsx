@@ -16,6 +16,7 @@ import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import ScheduleForDayFilters from "./ScheduleForDayFilters";
 import { FiltersInterface } from "@/interfaces/filtersInterfaces";
 import { useUser } from "@/contexts/userContext";
+import { MapFilterItem, useMapFilter } from "@/contexts/mapFilterContext";
 
 const ErrorModal = dynamic(() => import("@/components/common/ErrorModal"), {
   ssr: false,
@@ -34,25 +35,34 @@ export default function MainSchduleForDay({
 }: MainInterface<any>) {
   const [filteredData, setFilteredData] = useState(data);
   const { permissions } = useUser();
+  const { setOvnotas } = useMapFilter();
   const [open, setOpen] = useState(false);
-  const [error, setError] = useState<string | null>();
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [isPending, startTransition] = useTransition();
   const [filteredFilters, setFilteredFilters] =
     useState<FiltersInterface>(filtersData);
 
+  // Sync map context on initial load and whenever data changes (keep duplicates — map uses them for counting)
+  useEffect(() => {
+    setOvnotas(filteredData.works);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredData]);
+
+  // Ajusta filtros baseado na permissão
   useEffect(() => {
     if (permissions?.permissao_visualizacao === "parcial") {
       const { parceira, ...rest } = filtersData;
-
       setFilteredFilters(rest);
+    } else {
+      setFilteredFilters(filtersData);
     }
   }, [filtersData, permissions?.permissao_visualizacao]);
 
   const toggleModal = () => setOpen((prev) => !prev);
 
   const generateExcel = useCallback(
-    async (params: Record<string, string | boolean | string | null>) => {
+    async (params: Record<string, string | boolean | null>) => {
       const { page, ...formattedParams } = params;
 
       const url = mountUrl(
@@ -91,21 +101,21 @@ export default function MainSchduleForDay({
             token,
             { cache: "no-store" },
           );
+
           setFilteredData(response.data);
+          setOvnotas(response.data?.works);
         } catch (error: any) {
           setError(error.message);
         }
       });
     },
-    [token],
+    [token, setOvnotas],
   );
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
 
-    const currentFilters = cookies.get("scheduleForDayFilters")
-      ? cookies.get("scheduleForDayFilters")
-      : {};
+    const currentFilters = cookies.get("scheduleForDayFilters") || {};
 
     const newSelectedItems = {
       ...Transform(currentFilters?.selectedItems || {}),

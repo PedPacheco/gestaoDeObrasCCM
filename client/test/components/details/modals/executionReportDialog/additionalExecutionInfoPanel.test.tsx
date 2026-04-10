@@ -2,7 +2,7 @@ import { AdditionalExecutionInfoPanel } from "@/components/details/modals/execut
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mockFormData } from "../../../../mocks/mockFormData";
-import { FormData } from "@/hooks/useScheduleForm";
+import { FormData } from "@/hooks/details/useScheduleForm";
 
 const renderComponent = (formErrors: Record<string, string> = {}) => {
   const onInputChange = vi.fn(() => vi.fn());
@@ -12,7 +12,7 @@ const renderComponent = (formErrors: Record<string, string> = {}) => {
       formData={mockFormData}
       formErrors={formErrors}
       onInputChange={onInputChange}
-    />
+    />,
   );
 
   return {
@@ -48,11 +48,11 @@ describe("AdditionalExecutionInfoPanel Component", () => {
             provisionalKeyWithdrawn: undefined,
           } as unknown as NonNullable<FormData["executionReport"]>,
         }}
-      />
+      />,
     );
 
     const provisionalKeyReferenceInput = screen.getAllByLabelText(
-      "Referência da Chave Provisória - Exemplo: 175ET00554845"
+      "Referência da Chave Provisória - Exemplo: 175ET00554845",
     ) as HTMLInputElement[];
 
     provisionalKeyReferenceInput.map((item) => {
@@ -72,7 +72,7 @@ describe("AdditionalExecutionInfoPanel Component", () => {
             provisionalKeyWithdrawn: false,
           } as NonNullable<FormData["executionReport"]>,
         }}
-      />
+      />,
     );
 
     const radioNo = screen.getByLabelText("Não") as HTMLInputElement;
@@ -97,7 +97,7 @@ describe("AdditionalExecutionInfoPanel Component", () => {
             provisionalKeyWithdrawn: false,
           } as NonNullable<FormData["executionReport"]>,
         }}
-      />
+      />,
     );
 
     const radioYes = screen.getByLabelText("Sim");
@@ -105,7 +105,7 @@ describe("AdditionalExecutionInfoPanel Component", () => {
 
     // A função externa
     expect(onInputChange).toHaveBeenCalledWith(
-      "executionReport.provisionalKeyWithdrawn"
+      "executionReport.provisionalKeyWithdrawn",
     );
 
     expect(innerFn).toHaveBeenCalledWith({
@@ -123,7 +123,7 @@ describe("AdditionalExecutionInfoPanel Component", () => {
         formErrors={{ provisionalKeyWithdrawn: "Campo obrigatório" }}
         onInputChange={vi.fn()}
         formData={mockFormData}
-      />
+      />,
     );
 
     expect(screen.getByText("Campo obrigatório")).toBeInTheDocument();
