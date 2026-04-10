@@ -41,7 +41,7 @@ jobs:
         working-directory: ./dev
 
       - name: Generate Prisma client
-        run: npx prisma generate --config=src/infra/prisma/prisma.config.ts
+        run: npx prisma generate --schema=src/infra/prisma/schema.prisma
         working-directory: ./dev
 
       - name: Run backend tests
