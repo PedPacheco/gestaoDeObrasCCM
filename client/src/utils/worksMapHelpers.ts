@@ -5,7 +5,7 @@ export function buildObraPopup(obra: ObraPin): string {
   return `
     <div style="min-width:190px;font-family:sans-serif;font-size:13px;line-height:1.6">
       <strong style="font-size:14px">${obra.ovnota}</strong><br/>
-      <b>Ordem/Diagrama:</b> ${obra.ordemDiagrama ?? "-"}<br/>
+      <b>Ordem/Diagrama:</b> ${obra.ordemDiagrama ?? "Sem ordem/diagrama"}<br/>
       <b>Ref:</b> ${obra.referencia ?? "-"}<br/>
       <b>Tipo:</b> ${obra.tipo_obra ?? "-"}<br/>
       <b>Status:</b> ${obra.status ?? "-"}<br/>

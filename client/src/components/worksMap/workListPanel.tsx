@@ -56,7 +56,7 @@ export function ObraListPanel({
             key={o.id}
             className="px-3 py-2 border-b border-zinc-100 hover:bg-zinc-50 transition-colors"
           >
-            <div className="font-semibold text-zinc-800">{`${o.ovnota}-${o.ordemDiagrama}`}</div>
+            <div className="font-semibold text-zinc-800">{`${o.ovnota}-${o.ordemDiagrama ?? "Sem ordem/diagrama"}`}</div>
             <div className="text-zinc-500 text-xs mt-0.5">
               {[o.municipio, o.bairro, o.tipo_obra].filter(Boolean).join(" · ")}
             </div>
@@ -105,11 +105,11 @@ export function ObraListPanel({
 
               return (
                 <div
-                  key={`${ov.ovnota}-${ov.ordemDiagrama}`}
+                  key={`${ov.ovnota}-${ov.ordemDiagrama ?? "Sem ordem/diagrama"}`}
                   className="px-3 py-2 border-b border-zinc-100 hover:bg-zinc-50 transition-colors"
                 >
                   <div className="font-semibold text-zinc-500 flex items-center gap-2">
-                    {`${ov.ovnota}-${ov.ordemDiagrama}`}
+                    {`${ov.ovnota}-${ov.ordemDiagrama ?? "Sem ordem/diagrama"}`}
                     {repeats > 1 && (
                       <span className="text-xs bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full">
                         ×{repeats}

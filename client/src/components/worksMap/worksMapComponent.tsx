@@ -122,6 +122,7 @@ export default function WorksMapComponent({ token }: Props) {
     async (payload: requestItem) => {
       setLoading(true);
       setFetchError(null);
+      setShowList(false);
 
       try {
         const url = `${process.env.NEXT_PUBLIC_API_URL}/equipamentos`;
