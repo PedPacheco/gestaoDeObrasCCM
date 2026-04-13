@@ -4,7 +4,7 @@ import {
 } from 'src/domain/repositories/schedule/IForecastSnapshotRepository';
 import { CreateForecastSnapshotDTO } from 'src/interface/dtos/forecastSnapshotDTO';
 
-import * as moment from 'moment';
+import moment from 'moment';
 
 import { Inject, Injectable } from '@nestjs/common';
 

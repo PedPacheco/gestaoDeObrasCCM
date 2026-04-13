@@ -3,7 +3,7 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetCompletedWorksRepository } from 'src/infra/repositories/works/getCompletedWorksRepository';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 import { totalsWorksInPortfolio } from 'src/interface/types/works/getWorksInPortfolioInterface';
-import * as moment from 'moment';
+import moment from 'moment';
 
 describe('GetCompletedWorksRepository', () => {
   let repository: GetCompletedWorksRepository;

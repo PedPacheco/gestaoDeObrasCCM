@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import { Test } from '@nestjs/testing';

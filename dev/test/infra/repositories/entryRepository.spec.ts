@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { obras } from '@prisma/client';
-import * as moment from 'moment';
+import moment from 'moment';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { EntryRespository } from 'src/infra/repositories/entryRepository';
 import {
