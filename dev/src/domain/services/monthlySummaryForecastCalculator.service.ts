@@ -119,10 +119,9 @@ export class MonthlySummaryForecastCalculator implements IMonthlySummaryForecast
           ? progRate
           : totalExecRate;
 
-    const factor = execTotal >= 1 ? 1 : progRate;
-
-    const serviceCapexForecast = servicePend * factor;
-    const materialCapexForecast = materialPend * factor;
+    const serviceCapexForecast = servicePend * (execTotal >= 1 ? 1 : progRate);
+    const materialCapexForecast =
+      materialPend * (execTotal >= 1 ? 1 : progRate);
 
     return {
       serviceCapexProg: servicePlan * progRate,

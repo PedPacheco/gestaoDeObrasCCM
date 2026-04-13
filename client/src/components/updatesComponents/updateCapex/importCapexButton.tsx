@@ -144,7 +144,6 @@ export function ImportCapexButton({ token }: ImportCapexButtonProps) {
         resetFileInput();
         startPolling(jobId);
       } catch (err: any) {
-        console.error(err);
         setError(err.message);
       }
     });

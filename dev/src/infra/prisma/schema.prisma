@@ -930,6 +930,7 @@ view exportacao_obras_carteira {
   ano_plan                Int?
 }
 
+
 view exportacao_forecast {
   row_id                     BigInt?
   ovnota                     String?   @db.VarChar(12)

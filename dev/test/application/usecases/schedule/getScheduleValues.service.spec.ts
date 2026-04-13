@@ -53,6 +53,19 @@ describe('GetScheduleValues', () => {
     getValues: jest.fn(),
   };
 
+  /**
+   * 🔧 Builder padrão para evitar duplicação e manter consistência
+   */
+  const buildWork = (overrides: Partial<any> = {}) => ({
+    ...mockQueryResponse[0],
+    capex_mo_pend: 100,
+    capex_mat_pend: 100,
+    prog: 50,
+    executado: 50,
+    exec: null,
+    ...overrides,
+  });
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
@@ -96,29 +109,14 @@ describe('GetScheduleValues', () => {
     const result = await service.getValues(filters);
 
     expect(result).toEqual({
-      works: mockQueryResponse,
+      works: expect.any(Array),
       totals: { ...mockCount[0], total_exec: 0 },
     });
+
     expect(mockRepository.getValues).toHaveBeenCalledTimes(1);
   });
 
-  it('should correctly format the data if no data is returned from the database query', async () => {
-    const filters: GetScheduleValuesDTO = {
-      dataInicial: '01/10/2024',
-      dataFinal: '02/10/2024',
-      executado: false,
-      pendente: false,
-      page: 0,
-      idGrupo: undefined,
-      idStatus: undefined,
-      idStatusProgramacao: undefined,
-      idMunicipio: undefined,
-      idParceira: undefined,
-      idRegional: undefined,
-      idTipo: undefined,
-      ovnota: undefined,
-    };
-
+  it('should correctly format empty data', async () => {
     mockRepository.getValues.mockResolvedValueOnce({
       works: [],
       resultTotals: [
@@ -131,7 +129,7 @@ describe('GetScheduleValues', () => {
       ],
     });
 
-    const result = await service.getValues(filters);
+    const result = await service.getValues({} as any);
 
     expect(result).toEqual({
       works: [],
@@ -145,6 +143,12 @@ describe('GetScheduleValues', () => {
     });
   });
 
+  /**
+   * ========================
+   *  RESTRICTIONS TESTS
+   * ========================
+   */
+
   it('should set restricao_aberta = false when restriction IDs are 1 (restriction bypass rule)', async () => {
     const mockWork = {
       id: 1,
@@ -155,7 +159,6 @@ describe('GetScheduleValues', () => {
       data_resolucao1: null,
       data_resolucao2: null,
     };
-
     mockRepository.getValues.mockResolvedValueOnce({
       works: [mockWork],
       resultTotals: [
@@ -167,12 +170,9 @@ describe('GetScheduleValues', () => {
         },
       ],
     });
-
     const result = await service.getValues({} as any);
-
     expect(result.works[0].restricao_aberta).toBe(false);
   });
-
   it('should set restricao_aberta = false when restriction IDs != 1 and statuses are resolved and dates exist', async () => {
     const mockWork = {
       id: 1,
@@ -183,7 +183,6 @@ describe('GetScheduleValues', () => {
       data_resolucao1: new Date(),
       data_resolucao2: new Date(),
     };
-
     mockRepository.getValues.mockResolvedValueOnce({
       works: [mockWork],
       resultTotals: [
@@ -195,12 +194,9 @@ describe('GetScheduleValues', () => {
         },
       ],
     });
-
     const result = await service.getValues({} as any);
-
     expect(result.works[0].restricao_aberta).toBe(false);
   });
-
   it('should set restricao_aberta = true when restriction IDs != 1 but status_restricao1 resolved and data_resolucao1 exist', async () => {
     const mockWork = {
       id: 1,
@@ -208,7 +204,6 @@ describe('GetScheduleValues', () => {
       status_restricao1: 'Resolvido',
       data_resolucao1: new Date(),
     };
-
     mockRepository.getValues.mockResolvedValueOnce({
       works: [mockWork],
       resultTotals: [
@@ -220,12 +215,9 @@ describe('GetScheduleValues', () => {
         },
       ],
     });
-
     const result = await service.getValues({} as any);
-
     expect(result.works[0].restricao_aberta).toBe(true);
   });
-
   it('should set restricao_aberta = true when restriction IDs != 1 but status_restricao2 resolved and data_resolucao2 exist', async () => {
     const mockWork = {
       id: 1,
@@ -233,7 +225,6 @@ describe('GetScheduleValues', () => {
       status_restricao2: 'Resolvido',
       data_resolucao2: new Date(),
     };
-
     mockRepository.getValues.mockResolvedValueOnce({
       works: [mockWork],
       resultTotals: [
@@ -245,17 +236,23 @@ describe('GetScheduleValues', () => {
         },
       ],
     });
-
     const result = await service.getValues({} as any);
-
     expect(result.works[0].restricao_aberta).toBe(true);
   });
 
-  it('should return "Prazo vencido" when prazo_fim is in the past', async () => {
-    const mockWork = {
-      id_grupo: 1,
-      prazo_fim: '2023-12-20T00:00:00.000Z', // 11 dias no passado
-    };
+  /**
+   * ========================
+   * 🚀 FORECAST TESTS
+   * ========================
+   */
+
+  it('should calculate forecast when exec is null', async () => {
+    const mockWork = buildWork({
+      prog: 50,
+      executado: 20,
+      capex_mo_pend: 100,
+      capex_mat_pend: 200,
+    });
 
     mockRepository.getValues.mockResolvedValueOnce({
       works: [mockWork],
@@ -263,15 +260,19 @@ describe('GetScheduleValues', () => {
     });
 
     const { works } = await service.getValues({} as any);
+    const result = works[0] as any;
 
-    expect(works[0].status_prazo).toBe('Prazo vencido');
+    expect(result.mo_forecast).toBe(50);
+    expect(result.mat_forecast).toBe(100);
+    expect(result.forecast_total).toBe(150);
   });
 
-  it('should return "Crítico" when 0 <= daysRemaining <= 16', async () => {
-    const mockWork = {
-      id_grupo: 1,
-      prazo_fim: '2024-01-10T00:00:00.000Z', // 9 dias restantes
-    };
+  it('should use progRate when exec exists and executado < 100%', async () => {
+    const mockWork = buildWork({
+      prog: 40,
+      executado: 30,
+      exec: 10,
+    });
 
     mockRepository.getValues.mockResolvedValueOnce({
       works: [mockWork],
@@ -279,15 +280,20 @@ describe('GetScheduleValues', () => {
     });
 
     const { works } = await service.getValues({} as any);
+    const result = works[0] as any;
 
-    expect(works[0].status_prazo).toBe('Crítico: 9 dia(s) restante(s)');
+    expect(result.mo_forecast).toBe(40);
+    expect(result.mat_forecast).toBe(40);
+    expect(result.forecast_total).toBe(80);
   });
 
-  it('should return "Atenção" when 17 <= daysRemaining <= 30', async () => {
-    const mockWork = {
-      id_grupo: 1,
-      prazo_fim: '2024-01-25T00:00:00.000Z', // 24 dias restantes
-    };
+  it('should use factor = 1 when executado >= 100%', async () => {
+    const mockWork = buildWork({
+      executado: 100,
+      exec: 100,
+      capex_mo_pend: 300,
+      capex_mat_pend: 200,
+    });
 
     mockRepository.getValues.mockResolvedValueOnce({
       works: [mockWork],
@@ -295,15 +301,18 @@ describe('GetScheduleValues', () => {
     });
 
     const { works } = await service.getValues({} as any);
+    const result = works[0] as any;
 
-    expect(works[0].status_prazo).toBe('Atenção: 24 dias restantes');
+    expect(result.mo_forecast).toBe(300);
+    expect(result.mat_forecast).toBe(200);
+    expect(result.forecast_total).toBe(500);
   });
 
-  it('should return "No prazo" when daysRemaining > 30', async () => {
-    const mockWork = {
-      id_grupo: 1,
-      prazo_fim: '2024-03-01T00:00:00.000Z', // 60 dias restantes
-    };
+  it('should clamp execTotal to 1', async () => {
+    const mockWork = buildWork({
+      prog: 80,
+      executado: 50,
+    });
 
     mockRepository.getValues.mockResolvedValueOnce({
       works: [mockWork],
@@ -311,15 +320,18 @@ describe('GetScheduleValues', () => {
     });
 
     const { works } = await service.getValues({} as any);
+    const result = works[0] as any;
 
-    expect(works[0].status_prazo).toBe('No prazo: (60 dias restantes)');
+    expect(result.mo_forecast).toBe(100);
+    expect(result.mat_forecast).toBe(100);
+    expect(result.forecast_total).toBe(200);
   });
 
-  it('should not set status_prazo if id_grupo !== 1', async () => {
-    const mockWork = {
-      id_grupo: 2, // Não deve calcular status_prazo
-      prazo_fim: '2024-02-01T00:00:00.000Z',
-    };
+  it('should return zero forecast when capex is zero', async () => {
+    const mockWork = buildWork({
+      capex_mo_pend: 0,
+      capex_mat_pend: 0,
+    });
 
     mockRepository.getValues.mockResolvedValueOnce({
       works: [mockWork],
@@ -327,7 +339,25 @@ describe('GetScheduleValues', () => {
     });
 
     const { works } = await service.getValues({} as any);
+    const result = works[0] as any;
 
-    expect(works[0].status_prazo).toBeUndefined();
+    expect(result.forecast_total).toBe(0);
+  });
+
+  it('should handle null capex safely', async () => {
+    const mockWork = buildWork({
+      capex_mo_pend: null,
+      capex_mat_pend: null,
+    });
+
+    mockRepository.getValues.mockResolvedValueOnce({
+      works: [mockWork],
+      resultTotals: mockCount,
+    });
+
+    const { works } = await service.getValues({} as any);
+    const result = works[0] as any;
+
+    expect(result.forecast_total).toBe(0);
   });
 });

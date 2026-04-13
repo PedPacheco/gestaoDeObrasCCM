@@ -126,10 +126,11 @@ const mockWorksData: worksInPortfolioResponseService = {
   works: [
     {
       ovnota: '123456',
-      ordemdiagrama: 'OD-001',
+      ordem_principal: 'OD-001',
       ordem_dcd: 'DCD-01',
       ordem_dca: 'DCA-01',
       ordem_dcim: 'DCIM-01',
+      ordemdiagrama: 'OD-001',
       status_ov_sap: 50,
       pep: 'PEP001',
       mun: 'São Paulo',
