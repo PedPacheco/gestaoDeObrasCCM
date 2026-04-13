@@ -1,18 +1,25 @@
 "use client";
 
-import ExcelJS from "exceljs";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
 import ErrorModal from "@/components/common/ErrorModal";
 import ModalComponent from "@/components/common/Modal";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { DocumentArrowDownIcon } from "@heroicons/react/24/solid";
-import { InsertCapex } from "@/actions/insertAuxiliaryBase";
+import { Box, LinearProgress, Typography } from "@mui/material";
 
-export function ImportCapexButton() {
-  const cn52nInputRef = useRef<HTMLInputElement>(null);
+const POLLING_INTERVAL = 1500;
+const STORAGE_KEY = "capexJobId";
+
+interface ImportCapexButtonProps {
+  token?: string;
+}
+
+export function ImportCapexButton({ token }: ImportCapexButtonProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -21,105 +28,177 @@ export function ImportCapexButton() {
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [success, setSuccess] = useState<string | null>(null);
 
+  const [progress, setProgress] = useState<number | null>(null);
+  const [progressLabel, setProgressLabel] = useState<string>("");
+
   const toggleModal = () => setOpenModal((prev) => !prev);
 
   const handleClick = () => {
-    cn52nInputRef.current?.click();
+    fileInputRef.current?.click();
   };
 
-  const resetFileInputs = () => {
-    if (cn52nInputRef.current) cn52nInputRef.current.value = "";
+  const resetFileInput = () => {
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  function createMaterialBatches(materialData: any[], batchSize: number = 150) {
-    const batches: any[][] = [];
-    let currentBatch: any[] = [];
+  const stopPolling = () => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+  };
 
-    for (const material of materialData) {
-      if (currentBatch.length >= batchSize) {
-        batches.push(currentBatch);
-        currentBatch = [];
+  const startPolling = (jobId: string) => {
+    // 🛑 evita múltiplos intervals
+    if (pollingRef.current) return;
+
+    setProgress(0);
+    setProgressLabel("Iniciando processamento...");
+
+    pollingRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/progress/${jobId}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        const progressData = await res.json();
+
+        if (!res.ok) {
+          throw new Error(progressData?.message || "Erro ao buscar progresso");
+        }
+
+        const currentProgress = progressData.percentage ?? 0;
+        const processed = progressData.processed ?? 0;
+        const total = progressData.total ?? 0;
+        const status = progressData.status ?? "";
+
+        setProgress(currentProgress);
+        setProgressLabel(
+          `${processed.toLocaleString()} / ${total.toLocaleString()}`,
+        );
+
+        // ✅ FINALIZAÇÃO
+        if (currentProgress >= 100 || status === "completed") {
+          stopPolling();
+          localStorage.removeItem(STORAGE_KEY);
+
+          setProgress(100);
+          setProgressLabel("Concluído!");
+          setSuccess("Arquivo enviado e processado com sucesso");
+          setOpenModal(true);
+
+          router.refresh();
+        }
+
+        if (status === "failed") {
+          stopPolling();
+          localStorage.removeItem(STORAGE_KEY);
+
+          setProgress(null);
+          throw new Error(progressData?.message || "Processamento falhou");
+        }
+      } catch (err: any) {
+        stopPolling();
+        setProgress(null);
+        setProgressLabel("");
+        setError(err.message);
       }
-      currentBatch.push(material);
-    }
+    }, POLLING_INTERVAL);
+  };
 
-    if (currentBatch.length > 0) {
-      batches.push(currentBatch);
-    }
-
-    return batches;
-  }
-
-  const handleCN52NSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const cn52nFile = e.target.files?.[0];
-    if (!cn52nFile) return;
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     startTransition(async () => {
       try {
-        const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.load(await cn52nFile.arrayBuffer());
+        const formData = new FormData();
+        formData.append("file", file);
 
-        const cn52nSheet = workbook.worksheets[0];
+        const response = await fetch("/api/import/capex", {
+          method: "POST",
+          body: formData,
+        });
 
-        const cn52nData = cn52nSheet
-          .getSheetValues()
-          .slice(2)
-          .map((row: any) => {
-            return {
-              diagrama_rede: row[2].toString() ?? "",
-              def_proj: row[3],
-              material: row[4].toString() ?? "",
-              texto_material: row[5],
-              centro: row[6],
-              deposito: row[7],
-              ctg_item: row[8],
-              elemento_pep: row[9],
-              um_registro: row[10],
-              preco_mi: row[11],
-              qtd_necess: row[12],
-              qtd_retirada: row[13],
-              qtd_recebida: row[14],
-              qtd_faltante: row[15],
-              relevancia_calculo: row[17],
-            };
-          });
+        const data = await response.json();
 
-        const batches = createMaterialBatches(cn52nData);
-
-        for (const batch of batches) {
-          await InsertCapex(batch);
+        if (!response.ok) {
+          throw new Error(data?.message || "Erro ao importar arquivo");
         }
 
-        resetFileInputs();
+        const { jobId } = data;
 
-        setSuccess("Materiais e Serviços M.O importados com sucesso");
-        setOpenModal(true);
-        resetFileInputs();
+        if (!jobId) {
+          throw new Error("jobId não encontrado na resposta");
+        }
 
-        router.refresh();
+        // ✅ SALVA NO LOCALSTORAGE
+        localStorage.setItem(STORAGE_KEY, jobId);
+
+        resetFileInput();
+        startPolling(jobId);
       } catch (err: any) {
         setError(err.message);
       }
     });
   };
 
+  // ✅ RECUPERA JOB AO RECARREGAR A PÁGINA
+  useEffect(() => {
+    const savedJobId = localStorage.getItem(STORAGE_KEY);
+
+    if (savedJobId) {
+      startPolling(savedJobId);
+    }
+
+    return () => stopPolling();
+  }, []);
+
+  const isProcessing = isPending || (progress !== null && progress < 100);
+
   return (
     <>
       <input
         type="file"
         accept=".xlsx"
-        ref={cn52nInputRef}
-        onChange={handleCN52NSelect}
+        ref={fileInputRef}
+        onChange={handleFileSelect}
         style={{ display: "none" }}
       />
 
-      <ButtonComponent
-        onClick={handleClick}
-        startIcon={<DocumentArrowDownIcon width={25} height={25} />}
-        text="Importar Arquivo CN52N"
-        disabled={isPending}
-        styled="w-72"
-      />
+      <Box className="flex flex-col gap-2 w-72">
+        <ButtonComponent
+          onClick={handleClick}
+          startIcon={<DocumentArrowDownIcon width={25} height={25} />}
+          text="Importar Arquivo CN52N"
+          disabled={isProcessing}
+          styled="w-72"
+        />
+
+        {progress !== null && (
+          <Box className="w-full">
+            <Box className="flex justify-between items-center mb-1">
+              <Typography variant="caption" color="text.secondary">
+                {progressLabel}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {progress}%
+              </Typography>
+            </Box>
+            <LinearProgress
+              variant="determinate"
+              value={progress}
+              sx={{ borderRadius: 1, height: 6 }}
+            />
+          </Box>
+        )}
+      </Box>
 
       <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
         <span className="font-semibold text-xl">{success}</span>

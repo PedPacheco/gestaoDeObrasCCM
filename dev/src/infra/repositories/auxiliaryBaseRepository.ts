@@ -270,11 +270,15 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
   async insertCapex(data: any[]): Promise<void> {
     try {
       await this.prisma.cn52n.createMany({
-        data: data,
+        data,
       });
     } catch (error) {
       throw error;
     }
+  }
+
+  async truncateCN52N(): Promise<void> {
+    await this.prisma.$executeRawUnsafe(`TRUNCATE TABLE cn52n`);
   }
 
   async getObraIdsByDiagramas(

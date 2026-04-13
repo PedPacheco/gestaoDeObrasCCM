@@ -9,12 +9,14 @@ import { forwardRef, Module } from '@nestjs/common';
 import { AuxiliaryBaseController } from '../controllers/auxiliaryBase.controller';
 import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
+import { CapexProcessingService } from 'src/application/usecases/auxiliaryBase/capex/capexProcessing.service';
 
 @Module({
   imports: [UsersModule, forwardRef(() => WorksModule)],
   controllers: [AuxiliaryBaseController],
   providers: [
     AuxiliaryBaseService,
+    CapexProcessingService,
     AuxiliaryNotesInsertService,
     AuxiliaryMarketInsertService,
     {

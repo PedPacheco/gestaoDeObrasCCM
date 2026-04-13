@@ -12,19 +12,27 @@ import {
   ParseIntPipe,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 
 import {
   InsertBaseAuxiliaryMarketDTO,
   NotesDTO,
 } from '../dtos/auxiliaryBaseDTO';
-import { MaterialCapexDTO } from '../dtos/materialDTO';
 import { OperationType } from '../types/baseAuxiliaryInterface';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { randomUUID } from 'crypto';
+import { CapexProcessingService } from 'src/application/usecases/auxiliaryBase/capex/capexProcessing.service';
 
 @Controller('base-auxiliar')
 export class AuxiliaryBaseController {
-  constructor(private readonly auxiliaryBaseService: AuxiliaryBaseService) {}
+  constructor(
+    private readonly auxiliaryBaseService: AuxiliaryBaseService,
+    private readonly capexProcessingService: CapexProcessingService,
+  ) {}
 
   @Get('mercado')
   @UseGuards(VisualizationGuard)
@@ -73,13 +81,50 @@ export class AuxiliaryBaseController {
 
   @Post('capex')
   @UseGuards(PermissionGuard)
-  async InsertAuxiliaryBaseCapex(@Body() data: MaterialCapexDTO[]) {
-    await this.auxiliaryBaseService.insertAuxiliaryBaseCapex(data);
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/imports',
+        filename: (_, file, cb) => {
+          cb(null, `${Date.now()}-${file.originalname}`);
+        },
+      }),
+      limits: {
+        fileSize: 150 * 1024 * 1024, // 150MB
+      },
+      fileFilter: (_, file, cb) => {
+        if (
+          file.mimetype ===
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ) {
+          cb(null, true);
+        } else {
+          cb(new Error('Apenas arquivos Excel são permitidos'), false);
+        }
+      },
+    }),
+  )
+  async uploadAuxiliaryBaseMarket(@UploadedFile() file: Express.Multer.File) {
+    const jobId = randomUUID();
+
+    this.capexProcessingService
+      .process(file.path, jobId)
+      .catch((err) => console.log('Erro no processamento', err.stack));
 
     return {
-      statusCode: HttpStatus.CREATED,
-      message: 'Materiais importados com sucesso',
+      statusCode: HttpStatus.ACCEPTED,
+      message: 'Arquivo de obras enviado e processamento iniciado com sucesso',
+      jobId,
     };
+  }
+
+  @Get('progress/:jobId')
+  getUploadProgress(@Param('jobId') jobId: string) {
+    const progress = this.capexProcessingService.getProgress(jobId);
+
+    console.log(progress);
+
+    return progress;
   }
 
   @Post('mercado')
