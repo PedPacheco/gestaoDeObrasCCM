@@ -109,7 +109,7 @@ export class EntryRespository implements IEntryRepository {
       },
       select: {
         ovnota: true,
-        mo_final: true,
+        mo_pend: true,
         mo_planejada: true,
         entrada: true,
         tipos: {

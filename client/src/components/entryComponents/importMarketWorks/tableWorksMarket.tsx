@@ -66,7 +66,7 @@ export function TableMarketWorks({
     if (cookies.get(storageKey)) {
       const storedData = localStorage.getItem(storageKey);
 
-      const parsedData = JSON.parse(storedData || "");
+      const parsedData = storedData ? JSON.parse(storedData) : [];
       setUpdatedData(parsedData);
       return;
     }
@@ -127,7 +127,7 @@ export function TableMarketWorks({
     column: string,
     value: any,
     display: string,
-    index: number
+    index: number,
   ) {
     const options = selectOptionsByColumn?.[column] || [];
     const isValidValue = options.some((opt: any) => opt.id === value);
@@ -174,7 +174,7 @@ export function TableMarketWorks({
                 column,
                 value,
                 displayValue,
-                index
+                index,
               );
             }
 

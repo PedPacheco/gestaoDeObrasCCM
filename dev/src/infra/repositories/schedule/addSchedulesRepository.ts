@@ -6,7 +6,7 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 export class AddSchedulesRepository implements IAddSchedulesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async addSchedules(data: any): Promise<void> {
+  async addSchedules(data: any): Promise<any> {
     try {
       await this.prisma.programacoes.create({
         data,

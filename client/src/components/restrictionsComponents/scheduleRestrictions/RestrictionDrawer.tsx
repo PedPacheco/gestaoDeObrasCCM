@@ -1,7 +1,13 @@
 "use client";
 
+import "dayjs/locale/pt-br";
+
+import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 
+import { useUser } from "@/contexts/userContext";
+import { buildPublicationRestrictionPayload } from "@/utils/transform";
+import { PlusIcon, TrashIcon } from "@heroicons/react/20/solid";
 import {
   Box,
   Button,
@@ -14,12 +20,8 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import "dayjs/locale/pt-br";
-import { buildPublicationRestrictionPayload } from "@/utils/transform";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import dayjs from "dayjs";
-import { PlusIcon, TrashIcon } from "@heroicons/react/20/solid";
 
 interface RestrictionDrawerProps {
   open: boolean;
@@ -40,13 +42,14 @@ const INITIAL_FORM_DATA = {
   restrictionStatus: null,
   resolutionDate: null,
   observation: null,
+  constructionObservation: null,
 };
 
 const RESPONSIBLE_ENGINEERS = [
   { id: 64, name: "Juliana Escobar Viacava", idRegional: 1 },
   { id: 66, name: "Henrique de Oliveira Batista", idRegional: 6 },
   { id: 80, name: "Marcos de Siqueira Mesquita", idRegional: 9 },
-  { id: 94, name: "Luciano Bernardo dos Santos", idRegional: 2 },
+  { id: 94, name: "Diego Melegari", idRegional: 2 },
   { id: 130, name: "Jefferson Pereira Facioli da Silva", idRegional: 7 },
 ];
 
@@ -61,15 +64,21 @@ export default function RestrictionDrawer({
   isInsert,
 }: RestrictionDrawerProps) {
   const [form, setForm] = useState<any[]>([INITIAL_FORM_DATA]);
+
+  const { user, permissions } = useUser();
+
   const responsibleEnginner = RESPONSIBLE_ENGINEERS.find(
     (enginner) => enginner.idRegional === idRegional,
   );
 
   useEffect(() => {
+    if (!user) return;
+
     if (data) {
       const formattedData = buildPublicationRestrictionPayload(
         data,
         RESPONSIBLE_ENGINEERS,
+        user.id,
       );
       setForm(formattedData);
     } else {
@@ -77,11 +86,12 @@ export default function RestrictionDrawer({
         {
           ...INITIAL_FORM_DATA,
           responsibleName: responsibleEnginner?.name,
+          idUser: user?.id,
           id: idWork,
         },
       ]);
     }
-  }, [data, idWork, responsibleEnginner?.name]);
+  }, [data, idWork, responsibleEnginner?.name, user]);
 
   const handleChange = (index: number, field: string, value: any) => {
     setForm((prev) =>
@@ -115,6 +125,7 @@ export default function RestrictionDrawer({
         {
           ...INITIAL_FORM_DATA,
           id: idWork,
+          idUser: user?.id,
           responsibleName: responsibleEnginner?.name,
         },
       ];
@@ -146,6 +157,7 @@ export default function RestrictionDrawer({
             <FormControl fullWidth margin="normal">
               <InputLabel>Restrição</InputLabel>
               <Select
+                disabled={!permissions?.permissao_publicacao}
                 value={restriction.idRestriction || 1}
                 onChange={(e) =>
                   handleChange(index, "idRestriction", e.target.value)
@@ -163,6 +175,7 @@ export default function RestrictionDrawer({
             <FormControl fullWidth margin="normal">
               <InputLabel>Responsabilidade</InputLabel>
               <Select
+                disabled={!permissions?.permissao_publicacao}
                 value={restriction.responsibility || ""}
                 onChange={(e) =>
                   handleChange(index, "responsibility", e.target.value)
@@ -201,11 +214,23 @@ export default function RestrictionDrawer({
 
             <TextField
               fullWidth
-              label="Observação"
+              label="Observação Publicação"
               value={restriction.observation || ""}
               onChange={(e) =>
                 handleChange(index, "observation", e.target.value)
               }
+              disabled={!permissions?.permissao_publicacao}
+              margin="normal"
+            />
+
+            <TextField
+              fullWidth
+              label="Observação construção"
+              value={restriction.constructionObservation || ""}
+              onChange={(e) =>
+                handleChange(index, "constructionObservation", e.target.value)
+              }
+              disabled={permissions?.permissao_publicacao}
               margin="normal"
             />
 
@@ -216,6 +241,7 @@ export default function RestrictionDrawer({
               >
                 <DatePicker
                   label="Data resolução"
+                  disabled={permissions?.permissao_publicacao}
                   value={
                     restriction.resolutionDate
                       ? dayjs(restriction.resolutionDate, "DD/MM/YYYY")

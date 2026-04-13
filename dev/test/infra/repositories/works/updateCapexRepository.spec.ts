@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { UpdateCapexRepository } from 'src/infra/repositories/works/UpdateCapexRepository';
 import { mockCalculatedValues } from '../../../../test/mocks/mocksMaterialCapex';
+import { UpdateCapexRepository } from 'src/infra/repositories/works/updateCapexRepository';
 
 describe('UpdateCapexRepository', () => {
   let repository: UpdateCapexRepository;
@@ -77,6 +77,8 @@ describe('UpdateCapexRepository', () => {
         mo_planejada: mockCalculatedValues[0].mo_calc,
         qtde_planejada: mockCalculatedValues[0].qtde_calc,
         qtde_pend: mockCalculatedValues[0].qtde_pend,
+        mo_final: mockCalculatedValues[0].mo_exec,
+        mo_pend: mockCalculatedValues[0].mo_pend,
       },
     });
 

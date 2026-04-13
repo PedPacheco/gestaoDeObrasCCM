@@ -50,10 +50,14 @@ export default function WorkCostPanelItem({ data }: Record<string, any>) {
         </p>
         <DataItem label="Planejado" value={FormatCurrency(data.mo_planejada)} />
         <DataItem
-          label="Final"
+          label="Executado"
           value={
             data.mo_final !== undefined ? FormatCurrency(data.mo_final) : ""
           }
+        />
+        <DataItem
+          label="Pendente"
+          value={data.mo_pend !== undefined ? FormatCurrency(data.mo_pend) : ""}
         />
       </div>
       <div className="flex flex-col items-center h-40">

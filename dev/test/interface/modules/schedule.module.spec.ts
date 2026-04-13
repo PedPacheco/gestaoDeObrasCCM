@@ -1,8 +1,8 @@
+import { UsersService } from 'src/application/usecases/users.service';
 import { PrismaModule } from 'src/infra/prisma/prisma.module';
 import { ScheduleModule } from 'src/interface/modules/schedule.module';
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { UsersService } from 'src/application/users.service';
 
 jest.mock('src/shared/multer/multer.config', () => ({
   createMulterConfig: jest.fn().mockReturnValue({

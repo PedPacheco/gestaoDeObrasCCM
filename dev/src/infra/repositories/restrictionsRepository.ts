@@ -193,6 +193,8 @@ export class RestrictionsRepository implements IRestrictionsRepository {
         ON restricoes_publicacoes.id_obra = obras.id
       INNER JOIN construcao_sp.restricoes
         ON restricoes.id = restricoes_publicacoes.id_restricao
+      INNER JOIN construcao_sp.usuario
+        ON usuario.id = restricoes_publicacoes.criado_por
       WHERE 1=1
     `;
 
@@ -200,9 +202,7 @@ export class RestrictionsRepository implements IRestrictionsRepository {
       SELECT 
         obras.id,
         obras.ovnota,
-        obras.diagrama,
-        obras.ordem_dci,
-        obras.ordem_dcim,
+        COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama,
         obras.executado,
         status.status,
         obras.data_conclusao,
@@ -219,7 +219,9 @@ export class RestrictionsRepository implements IRestrictionsRepository {
         restricoes_publicacoes.nome_responsavel,
         restricoes_publicacoes.status_restricao,
         restricoes_publicacoes.data_resolucao,
-        restricoes_publicacoes.observacao
+        restricoes_publicacoes.observacao,
+        restricoes_publicacoes.observacao_construcao,
+        usuario.nome_usuario
       ${baseQuery}
     `;
 
@@ -247,6 +249,8 @@ export class RestrictionsRepository implements IRestrictionsRepository {
           nome_responsavel: item.responsibleName,
           status_restricao: item.restrictionStatus,
           observacao: item.observation,
+          observacao_construcao: item.constructionObservation,
+          criado_por: item.idUser,
         })),
       });
     });
@@ -263,6 +267,7 @@ export class RestrictionsRepository implements IRestrictionsRepository {
         nome_responsavel: data.responsibleName,
         status_restricao: data.restrictionStatus,
         data_resolucao: data.resolutionDate,
+        observacao_construcao: data.constructionObservation,
         observacao: data.observation,
       },
     });

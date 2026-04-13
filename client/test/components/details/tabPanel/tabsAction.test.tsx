@@ -62,8 +62,8 @@ describe("TabActions", () => {
     expect(screen.getByText("Nova programação")).toBeDisabled();
   });
 
-  it("deve desabilitar 'Reprovar programação' quando statusWork != 43", () => {
-    setup({ valueTab: 1, statusWork: 1 });
+  it("deve desabilitar 'Reprovar programação' quando statusWork === 2 ou statusWork === 3", () => {
+    setup({ valueTab: 1, statusWork: 2 });
     expect(screen.getByText("Reprovar programação")).toBeDisabled();
   });
 

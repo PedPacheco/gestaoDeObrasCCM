@@ -122,7 +122,12 @@ export class GetScheduleValuesDTO {
 
 export class GetMonthlySummaryDTO {
   @IsString()
-  date: string;
+  @IsOptional()
+  dataInicial?: string;
+
+  @IsString()
+  @IsOptional()
+  dataFinal?: string;
 
   @IsOptional()
   @IsArray()
@@ -264,6 +269,10 @@ export class SchedulesDataDTO {
   @IsOptional()
   @IsString()
   responsibility?: string;
+
+  @IsOptional()
+  @IsString()
+  executionObservation?: string;
 
   @IsNumber()
   idProgRestriction1: number;

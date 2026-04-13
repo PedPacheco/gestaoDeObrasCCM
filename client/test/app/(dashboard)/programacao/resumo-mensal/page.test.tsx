@@ -25,7 +25,7 @@ vi.mock("@/utils/transform", () => ({
       Object.entries(filters).map(([key, value]) => [
         key,
         Array.isArray(value) && value.length > 0 ? value.join(",") : "",
-      ])
+      ]),
     );
   }),
 }));
@@ -54,13 +54,14 @@ vi.mock(
         >
           Main Monthly Summary Schedule
         </div>
-      )
+      ),
     ),
-  })
+  }),
 );
 
 describe("Monthly Summary Schedule page", () => {
   const mockToken = "mock-token";
+
   const mockDataFirstSummary = [
     {
       dataProg: "17/05/2025",
@@ -88,19 +89,20 @@ describe("Monthly Summary Schedule page", () => {
     tipo: ["Tipo 1", "Tipo 2"],
   };
 
-  const mockParamsFiltes = JSON.stringify({
+  const mockParamsFilters = JSON.stringify({
     selectedItems: {
       parceira: ["Parceira 1"],
       regional: ["Regional 1"],
     },
-    date: "2025-05-17",
+    startDate: "2025-05-01",
+    endDate: "2025-05-31",
   });
 
   const mockCookieStore = {
     get: vi.fn((name) => {
       if (name === "token") return { value: mockToken };
       if (name === "monthlySummaryScheduleFilters")
-        return { value: mockParamsFiltes };
+        return { value: mockParamsFilters };
     }),
   };
 
@@ -109,15 +111,12 @@ describe("Monthly Summary Schedule page", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2025-05-17"));
 
-    vi.mocked(fetchData).mockResolvedValueOnce({
+    vi.mocked(fetchData).mockResolvedValue({
       token: mockToken,
-      data: mockDataFirstSummary,
-      success: true,
-    });
-
-    vi.mocked(fetchData).mockResolvedValueOnce({
-      token: mockToken,
-      data: mockDataSecondSummary,
+      data: {
+        firstSummary: mockDataFirstSummary,
+        secondSummary: mockDataSecondSummary,
+      },
       success: true,
     });
 
@@ -140,28 +139,18 @@ describe("Monthly Summary Schedule page", () => {
       regional: ["Regional 1"],
     });
 
-    expect(fetchData).toHaveBeenCalledTimes(2);
+    expect(fetchData).toHaveBeenCalledTimes(1);
 
-    expect(fetchData).toHaveBeenNthCalledWith(
-      1,
+    expect(fetchData).toHaveBeenCalledWith(
       "https://api.example.com/programacao/resumo-mensal",
       {
         regional: "Regional 1",
         parceira: "Parceira 1",
-        date: "05/2025",
+        dataInicial: "01/05/2025",
+        dataFinal: "31/05/2025",
       },
-      mockToken
-    );
-
-    expect(fetchData).toHaveBeenNthCalledWith(
-      2,
-      "https://api.example.com/programacao/resumo-mensal-2",
-      {
-        regional: "Regional 1",
-        parceira: "Parceira 1",
-        date: "05/2025",
-      },
-      mockToken
+      mockToken,
+      { cache: "no-store" },
     );
   });
 
@@ -173,49 +162,36 @@ describe("Monthly Summary Schedule page", () => {
 
     render(await MonthlySummary());
 
-    expect(fetchData).toHaveBeenNthCalledWith(
-      1,
+    expect(fetchData).toHaveBeenCalledWith(
       "https://api.example.com/programacao/resumo-mensal",
       {
-        date: "05/2025",
+        dataInicial: "01/05/2025",
+        dataFinal: "31/05/2025",
       },
-      mockToken
-    );
-
-    expect(fetchData).toHaveBeenNthCalledWith(
-      2,
-      "https://api.example.com/programacao/resumo-mensal-2",
-      {
-        date: "05/2025",
-      },
-      mockToken
+      mockToken,
+      { cache: "no-store" },
     );
   });
 
-  it("Deve passar os dados corretamente para o componente MonthlySummarySchedule", async () => {
+  it("deve passar os dados corretamente para o componente MonthlySummarySchedule", async () => {
     render(await MonthlySummary());
 
-    const monthlySummarySchedule = screen.getByTestId(
-      "main-monthly-summary-schedule"
+    const el = screen.getByTestId("main-monthly-summary-schedule");
+
+    expect(el).toBeInTheDocument();
+
+    expect(
+      JSON.parse(el.getAttribute("data-data-first-summary") || "[]"),
+    ).toEqual(mockDataFirstSummary);
+
+    expect(
+      JSON.parse(el.getAttribute("data-data-second-summary") || "[]"),
+    ).toEqual(mockDataSecondSummary);
+
+    expect(JSON.parse(el.getAttribute("data-filtersData") || "[]")).toEqual(
+      mockFilters,
     );
 
-    expect(monthlySummarySchedule).toBeInTheDocument();
-
-    expect(
-      JSON.parse(
-        monthlySummarySchedule.getAttribute("data-data-first-summary") || "[]"
-      )
-    ).toEqual(mockDataFirstSummary);
-    expect(
-      JSON.parse(
-        monthlySummarySchedule.getAttribute("data-data-second-summary") || "[]"
-      )
-    ).toEqual(mockDataSecondSummary);
-    expect(
-      JSON.parse(
-        monthlySummarySchedule.getAttribute("data-filtersData") || "[]"
-      )
-    ).toEqual(mockFilters);
-    expect(monthlySummarySchedule.getAttribute("data-token")).toBe(mockToken);
+    expect(el.getAttribute("data-token")).toBe(mockToken);
   });
 });

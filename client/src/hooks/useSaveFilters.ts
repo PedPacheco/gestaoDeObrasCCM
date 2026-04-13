@@ -6,12 +6,12 @@ import { FiltersInterface } from "@/interfaces/filtersInterfaces";
 
 const cookies = new Cookies();
 
-interface UseSaveFiltersOptions<> {
+interface UseSaveFiltersOptions {
   pageKey: string;
   data: FiltersInterface;
   applyFilters?: (
     data: FiltersInterface,
-    filters: Record<string, any>
+    filters: Record<string, any>,
   ) => FiltersInterface;
 }
 

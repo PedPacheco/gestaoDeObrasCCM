@@ -64,22 +64,25 @@ export function ImportCapexButton() {
         const cn52nData = cn52nSheet
           .getSheetValues()
           .slice(2)
-          .map((row: any) => ({
-            diagrama_rede: row[2].toString(),
-            def_proj: row[3],
-            material: row[4].toString(),
-            texto_material: row[5],
-            centro: row[6],
-            deposito: row[7],
-            ctg_item: row[8],
-            elemento_pep: row[9],
-            um_registro: row[10],
-            preco_mi: row[11],
-            qtd_necess: row[12],
-            qtd_retirada: row[13],
-            qtd_faltante: row[15],
-            relevancia_calculo: row[17],
-          }));
+          .map((row: any) => {
+            return {
+              diagrama_rede: row[2].toString() ?? "",
+              def_proj: row[3],
+              material: row[4].toString() ?? "",
+              texto_material: row[5],
+              centro: row[6],
+              deposito: row[7],
+              ctg_item: row[8],
+              elemento_pep: row[9],
+              um_registro: row[10],
+              preco_mi: row[11],
+              qtd_necess: row[12],
+              qtd_retirada: row[13],
+              qtd_recebida: row[14],
+              qtd_faltante: row[15],
+              relevancia_calculo: row[17],
+            };
+          });
 
         const batches = createMaterialBatches(cn52nData);
 

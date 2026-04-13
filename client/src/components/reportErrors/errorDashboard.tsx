@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, Suspense, lazy } from "react";
-import { TabItem } from "@/app/(dashboard)/relatorio-erros/page";
+import { TabItem } from "@/app/(dashboard)/relatorios/relatorio-erros/page";
 import { useErrorsReportData } from "@/hooks/useErrorsReportData";
 
 import {
@@ -38,37 +38,37 @@ import { ButtonComponent } from "../common/Button";
 const UndefinedItemsTable = lazy(() =>
   import("./tabs/undefinedItemsTable").then((m) => ({
     default: m.UndefinedItemsTable,
-  }))
+  })),
 );
 const ScheduleErrorTable = lazy(() =>
   import("./tabs/scheduleErrorTable").then((m) => ({
     default: m.ScheduleErrorTable,
-  }))
+  })),
 );
 const WorksCapexValueZeroTable = lazy(() =>
   import("./tabs/worksCapexValueZeroTable").then((m) => ({
     default: m.WorksCapexValueZeroTable,
-  }))
+  })),
 );
 const ExecutionDifferentialTable = lazy(() =>
   import("./tabs/executionDifferentialTable").then((m) => ({
     default: m.ExecutionDifferentialTable,
-  }))
+  })),
 );
 const DivergentConclusionTable = lazy(() =>
   import("./tabs/divergentConclusionTable").then((m) => ({
     default: m.DivergentConclusionTable,
-  }))
+  })),
 );
 const WorksWithoutYearPlanTable = lazy(() =>
   import("./tabs/worksWithoutYearPlanTable").then((m) => ({
     default: m.WorksWithoutYearPlanTable,
-  }))
+  })),
 );
 const RepeatedWorksTable = lazy(() =>
   import("./tabs/repeatedWorksTable").then((m) => ({
     default: m.RepeatedWorksTable,
-  }))
+  })),
 );
 
 const iconsMap = {
@@ -136,7 +136,7 @@ export function ErrorDashboard({
   initialParams,
 }: ErrorDashboardProps) {
   const [selectedRegional, setSelectedRegional] = useState(
-    initialParams?.idRegional || ""
+    initialParams?.idRegional || "",
   );
   const [activeTab, setActiveTab] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -300,100 +300,100 @@ export function ErrorDashboard({
 
   return (
     <div className="w-full overflow-y-auto mb-2 flex justify-center">
-    <div className="sm:w-full md:w-[90%] lg:w-[80%] px-1 sm:px-2 md:px-0">
-      <AppBar
-        position="static"
-        color="inherit"
-        className="my-4 flex flex-col lg:flex-row lg:justify-between"
-        elevation={1}
-      >
-        {isMobile ? (
-          <>
-            <div className="flex justify-between items-center p-2">
-              <Typography variant="h6">Filtros</Typography>
-              <IconButton onClick={() => setDrawerOpen(true)}>
-                <Bars3Icon height={24} width={24} />
-              </IconButton>
-            </div>
-
-            <Drawer
-              anchor="left"
-              open={drawerOpen}
-              onClose={() => setDrawerOpen(false)}
-            >
-              <div className="w-[300px] p-2">
-                <FiltersContent />
+      <div className="sm:w-full md:w-[90%] lg:w-[80%] px-1 sm:px-2 md:px-0">
+        <AppBar
+          position="static"
+          color="inherit"
+          className="my-4 flex flex-col lg:flex-row lg:justify-between"
+          elevation={1}
+        >
+          {isMobile ? (
+            <>
+              <div className="flex justify-between items-center p-2">
+                <Typography variant="h6">Filtros</Typography>
+                <IconButton onClick={() => setDrawerOpen(true)}>
+                  <Bars3Icon height={24} width={24} />
+                </IconButton>
               </div>
-            </Drawer>
 
-            <div className="p-2 w-full">
-              <ButtonComponent
-                startIcon={<ArrowDownTrayIcon height={24} width={24} />}
-                text="Exportar"
-                styled="w-full"
-                disabled={isPending}
-              />
-            </div>
-          </>
-        ) : (
-          <>
-            <FiltersContent />
+              <Drawer
+                anchor="left"
+                open={drawerOpen}
+                onClose={() => setDrawerOpen(false)}
+              >
+                <div className="w-[300px] p-2">
+                  <FiltersContent />
+                </div>
+              </Drawer>
 
-            <div className="p-2 mt-1 w-full sm:w-full md:w-auto lg:w-[260px]">
-              <ButtonComponent
-                startIcon={<ArrowDownTrayIcon height={24} width={24} />}
-                text="Exportar"
-                styled="w-full"
-                disabled={isPending}
-              />
-            </div>
-          </>
-        )}
-      </AppBar>
+              <div className="p-2 w-full">
+                <ButtonComponent
+                  startIcon={<ArrowDownTrayIcon height={24} width={24} />}
+                  text="Exportar"
+                  styled="w-full"
+                  disabled={isPending}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <FiltersContent />
 
-      <Paper square elevation={0} className="bg-[#f9fafb]">
-        <Tabs
-          value={activeTab}
-          onChange={handleTabChange}
-          variant="scrollable"
-          scrollButtons="auto"
-          allowScrollButtonsMobile
-        >
-          {tabs.map((tab, i) => {
-            const Icon = iconsMap[tab.icon];
-            return (
-              <Tab
-                key={tab.id}
-                label={
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Icon height={18} width={18} />
-                    <span>{tab.label}</span>
-                    <Chip
-                      label={tab.count}
-                      size="small"
-                      sx={{ ml: 1 }}
-                      color="primary"
-                    />
-                  </Stack>
-                }
-              />
-            );
-          })}
-        </Tabs>
-      </Paper>
+              <div className="p-2 mt-1 w-full sm:w-full md:w-auto lg:w-[260px]">
+                <ButtonComponent
+                  startIcon={<ArrowDownTrayIcon height={24} width={24} />}
+                  text="Exportar"
+                  styled="w-full"
+                  disabled={isPending}
+                />
+              </div>
+            </>
+          )}
+        </AppBar>
 
-      <Box mt={2}>
-        <Suspense
-          fallback={
-            <div className="flex justify-center items-center h-64">
-              <CircularProgress />
-            </div>
-          }
-        >
-          {renderActiveTable()}
-        </Suspense>
-      </Box>
-    </div>
+        <Paper square elevation={0} className="bg-[#f9fafb]">
+          <Tabs
+            value={activeTab}
+            onChange={handleTabChange}
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
+          >
+            {tabs.map((tab, i) => {
+              const Icon = iconsMap[tab.icon];
+              return (
+                <Tab
+                  key={tab.id}
+                  label={
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Icon height={18} width={18} />
+                      <span>{tab.label}</span>
+                      <Chip
+                        label={tab.count}
+                        size="small"
+                        sx={{ ml: 1 }}
+                        color="primary"
+                      />
+                    </Stack>
+                  }
+                />
+              );
+            })}
+          </Tabs>
+        </Paper>
+
+        <Box mt={2}>
+          <Suspense
+            fallback={
+              <div className="flex justify-center items-center h-64">
+                <CircularProgress />
+              </div>
+            }
+          >
+            {renderActiveTable()}
+          </Suspense>
+        </Box>
+      </div>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  TextField,
 } from "@mui/material";
 
 import { ScheduleFormDialogProps } from "./dialog";
@@ -16,6 +17,7 @@ interface AdditionalInfoPanelProps {
   options: ScheduleFormDialogProps["options"];
   onInputChange: (field: keyof FormData) => (event: any) => void;
   disabledFields: () => boolean | undefined;
+  permission?: string;
 }
 
 const EXECUTION_RESPONSIBILITIES = ["", "Edp", "Parceira", "Terceiro"];
@@ -26,9 +28,11 @@ export const AdditionalInfoPanel: React.FC<AdditionalInfoPanelProps> = ({
   options,
   onInputChange,
   disabledFields,
+  permission,
 }) => {
   const errorRestriction = formErrors["idExecutionRestriction"];
   const errorResponsibility = formErrors["responsibility"];
+  const errorObservation = formErrors["executionObservation"];
 
   const exec =
     formData.exec === "null" || formData.exec === null || formData.exec === ""
@@ -65,7 +69,8 @@ export const AdditionalInfoPanel: React.FC<AdditionalInfoPanelProps> = ({
             value={formData.idExecutionRestriction}
             onChange={onInputChange("idExecutionRestriction")}
             label="Restrição de Execução"
-            disabled={restrictionIsDisabled}
+            disabled={restrictionIsDisabled && permission === "parcial"}
+            error={!!errorRestriction}
           >
             {options.restricao
               .filter((item) => item.tipo_restricao === "EXECUÇÃO")
@@ -90,7 +95,8 @@ export const AdditionalInfoPanel: React.FC<AdditionalInfoPanelProps> = ({
             value={formData.responsibility}
             onChange={onInputChange("responsibility")}
             label="Responsabilidade Execução"
-            disabled={restrictionIsDisabled}
+            disabled={restrictionIsDisabled && permission === "parcial"}
+            error={!!errorResponsibility}
           >
             {EXECUTION_RESPONSIBILITIES.map((responsibility) => (
               <MenuItem key={responsibility} value={responsibility}>
@@ -102,6 +108,18 @@ export const AdditionalInfoPanel: React.FC<AdditionalInfoPanelProps> = ({
             <FormHelperText>{formErrors["responsibility"]}</FormHelperText>
           )}
         </FormControl>
+      </Grid>
+
+      <Grid item xs={12} sm={6}>
+        <TextField
+          fullWidth
+          label="Observação da Execução"
+          value={formData.executionObservation || ""}
+          onChange={onInputChange("executionObservation")}
+          disabled={restrictionIsDisabled && permission === "parcial"}
+          error={!!errorObservation}
+          helperText={errorObservation}
+        />
       </Grid>
     </Grid>
   );

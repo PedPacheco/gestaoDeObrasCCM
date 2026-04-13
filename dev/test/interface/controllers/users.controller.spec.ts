@@ -1,13 +1,14 @@
-import { HttpStatus } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
 import { plainToInstance } from 'class-transformer';
-import { UsersService } from 'src/application/users.service';
+import { UsersService } from 'src/application/usecases/users.service';
 import { User } from 'src/domain/entities/user.entity';
 import { UsersController } from 'src/interface/controllers/users.controller';
 import {
   ChangePasswordDTO,
   changePasswordResponseDTO,
 } from 'src/interface/dtos/changePasswordDto';
+
+import { HttpStatus } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 
 describe('UsersControllers', () => {
   let usersController: UsersController;

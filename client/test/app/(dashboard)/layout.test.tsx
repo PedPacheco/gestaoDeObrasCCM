@@ -4,6 +4,24 @@ import DashboardLayout from "@/app/(dashboard)/layout";
 import { Header } from "@/components/layout/Header";
 import { BreadcrumpsComponent } from "@/components/common/Breadcrumbs";
 
+vi.mock("@/contexts/userContext", () => ({
+  useUser: () => ({
+    user: {
+      id: 1,
+      username: "test-user",
+      id_regional: "001",
+      nome_usuario: "Test User",
+      email: "test@example.com",
+    },
+    permissions: {
+      id: 1,
+      username: "test-user",
+      permissao: "total",
+      permissao_visualizacao: "total",
+    },
+  }),
+}));
+
 vi.mock("@/components/layout/Header", () => ({
   __esModule: true,
   Header: vi.fn(() => <div data-testid="mock-header">Header Mockado</div>),
@@ -39,7 +57,7 @@ describe("DashboardLayout", () => {
 
   it("deve conter estrutura semântica principal", () => {
     const { container } = render(
-      <DashboardLayout>{childrenMock.children}</DashboardLayout>
+      <DashboardLayout>{childrenMock.children}</DashboardLayout>,
     );
 
     const outerDiv = container.querySelector("div.flex.h-screen.w-full");
