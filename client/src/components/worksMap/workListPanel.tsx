@@ -30,7 +30,7 @@ export function ObraListPanel({
   onExportSemLoc,
 }: ObraListPanelProps) {
   return (
-    <div className="w-80 shrink-0 bg-white border-l border-zinc-200 flex flex-col overflow-hidden shadow-xl">
+    <div className="w-80 shrink-0 bg-white border-l border-zinc-200 flex flex-col h-full shadow-xl">
       {/* Cabeçalho */}
       <div className="bg-[#212E3E] px-4 py-3 flex items-center justify-between shrink-0">
         <span className="text-white font-semibold text-sm">Lista de obras</span>
@@ -43,7 +43,7 @@ export function ObraListPanel({
         </button>
       </div>
 
-      <div className="overflow-y-auto flex-1 text-sm">
+      <div className="overflow-y-auto flex-1 text-sm ">
         {/* ── Seção: Com localização ─────────────────────────────────────── */}
         <div className="px-3 py-2 bg-green-50 border-b border-green-200 sticky top-0">
           <span className="font-semibold text-green-700 text-xs uppercase tracking-wide">

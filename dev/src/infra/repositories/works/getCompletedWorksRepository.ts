@@ -9,7 +9,7 @@ import {
 
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import * as moment from 'moment';
+import moment from 'moment';
 
 @Injectable()
 export class GetCompletedWorksRepository implements IGetCompletedWorksRepository {

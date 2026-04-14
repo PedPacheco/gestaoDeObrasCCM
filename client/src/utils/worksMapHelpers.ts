@@ -11,7 +11,14 @@ export function buildObraPopup(obra: ObraPin): string {
       <b>Status:</b> ${obra.status ?? "-"}<br/>
       <b>Município:</b> ${obra.municipio ?? "-"}<br/>
       <b>Bairro:</b> ${obra.bairro ?? "-"}<br/>
-      <a href="/detalhes/${obra.ovnota}" style="color:#2563eb;font-weight:600">Ver detalhes →</a>
+      <a 
+        href="/detalhes/${obra.ovnota}" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        style="color:#2563eb;font-weight:600"
+      >
+        Ver detalhes →
+      </a>
     </div>
   `;
 }

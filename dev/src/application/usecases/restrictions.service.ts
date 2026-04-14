@@ -9,7 +9,7 @@ import {
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
 } from 'src/interface/dtos/restrictionsDTO';
-import * as moment from 'moment';
+import moment from 'moment';
 
 @Injectable()
 export class RestrictionsService {

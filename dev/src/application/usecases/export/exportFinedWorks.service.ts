@@ -1,6 +1,6 @@
 import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
-import * as moment from 'moment';
+import moment from 'moment';
 import {
   EXPORT_REPOSITORY,
   IExportRepository,

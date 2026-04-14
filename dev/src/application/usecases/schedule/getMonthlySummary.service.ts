@@ -1,8 +1,12 @@
-import * as moment from 'moment';
+import moment from 'moment';
 import {
   createUniqueWorksFinancial,
   MonthlySummaryMapper,
 } from 'src/application/mappers/monthlySummaryMapper';
+import {
+  EXECUTION_CAPACITY_REPOSITORY,
+  IExecutionCapacityRepository,
+} from 'src/domain/repositories/IExecutionCapacityRepository';
 import {
   GET_MONTHLY_SUMMARY_REPOSITORY,
   IGetMonthlySummaryRepository,
@@ -22,10 +26,6 @@ import {
 } from 'src/interface/types/schedule/monthlySummaryInterface';
 
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  EXECUTION_CAPACITY_REPOSITORY,
-  IExecutionCapacityRepository,
-} from 'src/domain/repositories/IExecutionCapacityRepository';
 
 @Injectable()
 export class MonthlySummaryService {

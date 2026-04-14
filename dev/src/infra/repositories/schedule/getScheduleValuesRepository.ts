@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 import { IGetScheduleValuesRepository } from 'src/domain/repositories/schedule/IGetScheduleValuesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
