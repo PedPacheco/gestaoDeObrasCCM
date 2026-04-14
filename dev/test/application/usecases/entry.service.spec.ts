@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 import { EntryService } from 'src/application/usecases/entry.service';
 import { ENTRY_REPOSITORY } from 'src/domain/repositories/IEntryRepository';
 import {

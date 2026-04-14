@@ -3,7 +3,7 @@ import { IRestrictionsRepository } from 'src/domain/repositories/IRestrictionsRe
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { GetScheduleRestrictions } from 'src/interface/types/schedule/getScheduleRestrictionsInterface';
-import * as moment from 'moment';
+import moment from 'moment';
 import {
   GetRestrictionsDTO,
   InsertPublicationRestrictionsDTO,

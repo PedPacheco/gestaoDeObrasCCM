@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 import { RestrictionsService } from 'src/application/usecases/restrictions.service';
 import { RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/IRestrictionsRepository';
 

@@ -930,7 +930,6 @@ view exportacao_obras_carteira {
   ano_plan                Int?
 }
 
-
 view exportacao_forecast {
   row_id                     BigInt?
   ovnota                     String?   @db.VarChar(12)
@@ -1006,4 +1005,5 @@ view exportacao_ordens {
   data_conclusao DateTime? @db.Date
   regional       String?   @db.VarChar(20)
   turma          String?   @db.VarChar(15)
+  data_prog      DateTime? @db.Date
 }

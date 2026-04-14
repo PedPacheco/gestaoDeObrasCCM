@@ -1,6 +1,6 @@
 // test/application/export/exportFinedWorks.service.spec.ts
 import * as ExcelJS from 'exceljs';
-import * as moment from 'moment';
+import moment from 'moment';
 import { Response } from 'express';
 import { ExportFinedWorksService } from 'src/application/usecases/export/exportFinedWorks.service';
 import { IExportRepository } from 'src/domain/repositories/IExportRepository';
