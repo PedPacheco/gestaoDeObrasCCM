@@ -170,7 +170,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
       } else {
         return await this.prisma.base_auxiliar.deleteMany();
       }
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Erro ao excluir obra: ', error.stack);
       throw error;
     }
@@ -223,7 +223,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
         data: marketWorks,
         skipDuplicates: true,
       });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         'Erro ao inserir dados da base auxiliar OV:',
         error.stack,

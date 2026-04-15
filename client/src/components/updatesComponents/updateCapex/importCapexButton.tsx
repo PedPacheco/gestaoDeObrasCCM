@@ -58,7 +58,7 @@ export function ImportCapexButton({ token }: ImportCapexButtonProps) {
     pollingRef.current = setInterval(async () => {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/progress/${jobId}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/capex/progress/${jobId}`,
           {
             method: "GET",
             headers: {
@@ -73,18 +73,15 @@ export function ImportCapexButton({ token }: ImportCapexButtonProps) {
           throw new Error(progressData?.message || "Erro ao buscar progresso");
         }
 
-        const currentProgress = progressData.percentage ?? 0;
-        const processed = progressData.processed ?? 0;
-        const total = progressData.total ?? 0;
-        const status = progressData.status ?? "";
+        const currentProgress = progressData.data.percentage ?? 0;
+        // const processed = progressData.data.processed ?? 0;
+        const status = progressData.data.status ?? "";
 
         setProgress(currentProgress);
-        setProgressLabel(
-          `${processed.toLocaleString()} / ${total.toLocaleString()}`,
-        );
+        setProgressLabel(progressData.data.message);
 
         // ✅ FINALIZAÇÃO
-        if (currentProgress >= 100 || status === "completed") {
+        if (currentProgress >= 100 || status === "done") {
           stopPolling();
           localStorage.removeItem(STORAGE_KEY);
 

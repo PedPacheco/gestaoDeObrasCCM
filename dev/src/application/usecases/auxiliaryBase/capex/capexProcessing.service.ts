@@ -1,38 +1,90 @@
 import * as ExcelJS from 'exceljs';
+import { promises as fs } from 'fs';
+
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import {
+  CapexProgressPayload,
+  ProgressEmitter,
+} from 'src/application/shared/capex.types';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
 } from 'src/domain/repositories/IAuxiliaryBaseRepository';
 
-import { Inject, Injectable } from '@nestjs/common';
-
-export interface ProgressState {
-  total: number;
-  processed: number;
-  percentage: number;
-  status: 'processing' | 'done' | 'error';
+interface CapexItem {
+  diagrama_rede: string;
+  def_proj: any;
+  material: string;
+  texto_breve: any;
+  centro: any;
+  dep: any;
+  cti: any;
+  elemento_pep: any;
+  und: any;
+  preco: any;
+  qtd_necessaria: any;
+  qtd_retirada: any;
+  qtd_recebida: any;
+  qtd_falta: any;
+  reserva: any;
 }
+
+// Estado interno para o endpoint de polling (fallback sem WS)
+export type ImportProgressState = CapexProgressPayload;
 
 @Injectable()
 export class CapexProcessingService {
-  private obraCache = new Map<string, number>();
-  private progressMap = new Map<string, ProgressState>();
+  private readonly logger = new Logger(CapexProcessingService.name);
 
-  private readonly BATCH_SIZE = 5000;
+  // Cache de diagrama_rede → id_obra reutilizado entre jobs.
+  // Shared entre execuções: melhora hit-rate em reimportações do mesmo dataset.
+  private readonly obraCache = new Map<string, number>();
+
+  // Fallback para polling HTTP — mantido para compatibilidade.
+  // Chave: jobId, Valor: último estado emitido
+  private readonly progressMap = new Map<string, ImportProgressState>();
+
+  private readonly BATCH_SIZE = 5_000;
+  private readonly MAX_CACHE = 50_000;
+
+  // Throttle: emite progresso de leitura no máximo 1x por N linhas,
+  // evitando overhead de emit a cada linha em arquivos grandes.
+  private readonly READ_EMIT_INTERVAL = 1_000;
 
   constructor(
     @Inject(AUXILIARY_BASE_REPOSITORY)
     private readonly repository: IAuxiliaryBaseRepository,
   ) {}
 
-  async process(filePath: string, jobId: string): Promise<void> {
+  /**
+   * Processa o arquivo xlsx e insere os dados na tabela cn52n.
+   *
+   * Faixas de progresso (fluxo isolado):
+   *   reading    →  0% – 30%
+   *   processing → 30% – 100%
+   *   done       → 100%
+   *
+   * Quando chamado pelo CapexFullPipelineService, o emitter recebido
+   * já mapeia para a sub-faixa correta do pipeline completo (0–45%).
+   *
+   * @param filePath  Caminho do arquivo salvo pelo multer
+   * @param jobId     UUID do job (para room WS e fallback polling)
+   * @param onProgress  Callback para push em tempo real (opcional)
+   */
+  async process(
+    filePath: string,
+    jobId: string,
+    onProgress?: ProgressEmitter,
+  ): Promise<void> {
+    this.initProgress(jobId);
+
+    const emit = (payload: CapexProgressPayload) => {
+      this.progressMap.set(jobId, payload);
+      onProgress?.(payload);
+    };
+
     try {
       await this.repository.truncateCN52N();
-
-      this.initProgress(jobId);
-
-      const totalRows = await this.countRows(filePath);
-      this.setTotal(jobId, totalRows);
 
       const workbook = new ExcelJS.stream.xlsx.WorkbookReader(filePath, {
         entries: 'emit',
@@ -41,152 +93,125 @@ export class CapexProcessingService {
         worksheets: 'emit',
       });
 
-      let batch: any[] = [];
+      let batch: CapexItem[] = [];
       let processed = 0;
+      let total = 0;
 
       for await (const worksheet of workbook) {
         for await (const row of worksheet) {
-          if (row.number <= 2) continue;
+          if (row.number <= 2) continue; // pula cabeçalho duplo
 
-          const item = this.mapRow(row.values as any[]);
+          total++;
 
-          batch.push(item);
-          processed++;
+          batch.push({
+            diagrama_rede: row.values[2]?.toString(),
+            def_proj: row.values[3],
+            material: row.values[4]?.toString(),
+            texto_breve: row.values[5],
+            centro: row.values[6],
+            dep: row.values[7],
+            cti: row.values[8],
+            elemento_pep: row.values[9],
+            und: row.values[10],
+            preco: row.values[11],
+            qtd_necessaria: row.values[12],
+            qtd_retirada: row.values[13],
+            qtd_recebida: row.values[14],
+            qtd_falta: row.values[15],
+            reserva: row.values[17],
+          });
 
-          if (processed % 1000 === 0) {
-            this.updateProgress(jobId, processed, totalRows);
+          // Throttle: emite leitura a cada READ_EMIT_INTERVAL linhas
+          if (total % this.READ_EMIT_INTERVAL === 0) {
+            emit({
+              phase: 'reading',
+              processed: total,
+              percentage: this.calcReadingPct(total),
+              message: `Lendo linha ${total}...`,
+            });
           }
 
           if (batch.length >= this.BATCH_SIZE) {
             await this.processBatch(batch);
+            processed += batch.length;
             batch = [];
+
+            emit({
+              phase: 'processing',
+              processed,
+              percentage: this.calcProcessingPct(processed, total),
+              message: `${processed} de ~${total} registros inseridos`,
+            });
           }
         }
       }
 
-      if (batch.length) {
+      // Processa o restante fora do loop
+      if (batch.length > 0) {
         await this.processBatch(batch);
+        processed += batch.length;
       }
 
-      this.updateProgress(jobId, totalRows, totalRows, 'done');
-    } catch (error) {
-      this.setError(jobId);
+      emit({
+        phase: 'completed',
+        processed,
+        percentage: 100,
+        message: `Importação concluída: ${processed} registros`,
+      });
+
+      this.scheduleCleanup(jobId);
+    } catch (error: any) {
+      const errPayload: CapexProgressPayload = {
+        phase: 'error',
+        processed: 0,
+        percentage: 0,
+        message: error.message ?? 'Erro durante a importação',
+      };
+      this.progressMap.set(jobId, errPayload);
+      onProgress?.(errPayload);
+
+      this.logger.error(`Erro no processamento do job ${jobId}`, error.stack);
       throw error;
     } finally {
-      await import('fs').then((fs) =>
-        fs.promises.unlink(filePath).catch(() => {}),
-      );
+      await fs
+        .unlink(filePath)
+        .catch(() =>
+          this.logger.warn(`Não foi possível remover o arquivo ${filePath}`),
+        );
     }
   }
 
-  getProgress(jobId: string): ProgressState | null {
+  /** Fallback para polling HTTP — usado se o cliente não suportar WS */
+  getProgress(jobId: string): ImportProgressState | null {
     return this.progressMap.get(jobId) ?? null;
   }
 
-  // =========================
-  // PRIVATE HELPERS
-  // =========================
+  // ─── Cálculo de percentuais ────────────────────────────────────────
 
-  private initProgress(jobId: string) {
-    this.progressMap.set(jobId, {
-      total: 0,
-      processed: 0,
-      percentage: 0,
-      status: 'processing',
-    });
+  private calcReadingPct(linesRead: number): number {
+    const approx = Math.min(linesRead / 100_000, 1);
+    return Math.floor(approx * 100);
   }
 
-  private setTotal(jobId: string, total: number) {
-    const state = this.progressMap.get(jobId);
-    if (!state) return;
-
-    this.progressMap.set(jobId, {
-      ...state,
-      total,
-    });
+  private calcProcessingPct(processed: number, total: number): number {
+    if (total === 0) return 0;
+    return Math.floor((processed / total) * 100);
   }
+  // ─── Batch helpers ────────────────────────────────────────────────
 
-  private setError(jobId: string) {
-    const state = this.progressMap.get(jobId);
-    if (!state) return;
+  private async processBatch(batch: CapexItem[]): Promise<void> {
+    const uniqueDiagramas = [...new Set(batch.map((i) => i.diagrama_rede))];
 
-    this.progressMap.set(jobId, {
-      ...state,
-      status: 'error',
-    });
-  }
+    const missing = uniqueDiagramas.filter((d) => !this.obraCache.has(d));
 
-  private async countRows(filePath: string): Promise<number> {
-    const workbook = new ExcelJS.stream.xlsx.WorkbookReader(filePath, {
-      entries: 'emit',
-      sharedStrings: 'cache',
-      hyperlinks: 'emit',
-      worksheets: 'emit',
-    });
+    if (missing.length > 0) {
+      const obraIdsMap = await this.repository.getObraIdsByDiagramas(missing);
 
-    let total = 0;
+      obraIdsMap.forEach((value, key) => this.obraCache.set(key, value));
 
-    for await (const worksheet of workbook) {
-      for await (const row of worksheet) {
-        if (row.number > 2) total++;
+      if (this.obraCache.size > this.MAX_CACHE) {
+        this.obraCache.clear();
       }
-    }
-
-    return total;
-  }
-
-  private updateProgress(
-    jobId: string,
-    processed: number,
-    total: number,
-    status: 'processing' | 'done' = 'processing',
-  ) {
-    const percentage = Math.min(100, Math.floor((processed / total) * 100));
-
-    this.progressMap.set(jobId, {
-      total,
-      processed,
-      percentage,
-      status,
-    });
-  }
-
-  private mapRow(values: any[]) {
-    return {
-      diagrama_rede: values[2]?.toString(),
-      def_proj: values[3],
-      material: values[4]?.toString(),
-      texto_breve: values[5],
-      centro: values[6],
-      dep: values[7],
-      cti: values[8],
-      elemento_pep: values[9],
-      und: values[10],
-      preco: values[11],
-      qtd_necessaria: values[12],
-      qtd_retirada: values[13],
-      qtd_recebida: values[14],
-      qtd_falta: values[15],
-      reserva: values[17],
-    };
-  }
-
-  private async processBatch(batch: any[]) {
-    const uniqueDiagramas = [
-      ...new Set(batch.map((item) => item.diagrama_rede)),
-    ];
-
-    const missingDiagramas = uniqueDiagramas.filter(
-      (d) => !this.obraCache.has(d),
-    );
-
-    if (missingDiagramas.length) {
-      const obraIdsMap =
-        await this.repository.getObraIdsByDiagramas(missingDiagramas);
-
-      obraIdsMap.forEach((value, key) => {
-        this.obraCache.set(key, value);
-      });
     }
 
     const dataWithObraId = batch.map((item) => ({
@@ -195,5 +220,21 @@ export class CapexProcessingService {
     }));
 
     await this.repository.insertCapex(dataWithObraId);
+  }
+
+  // ─── State helpers ────────────────────────────────────────────────
+
+  private initProgress(jobId: string): void {
+    this.progressMap.set(jobId, {
+      phase: 'reading',
+      processed: 0,
+      percentage: 0,
+      message: 'Importação iniciada',
+    });
+  }
+
+  /** Remove o estado do job após TTL para evitar memory leak */
+  private scheduleCleanup(jobId: string, ttlMs = 5 * 60 * 1_000): void {
+    setTimeout(() => this.progressMap.delete(jobId), ttlMs);
   }
 }

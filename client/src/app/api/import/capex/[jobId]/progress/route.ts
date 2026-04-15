@@ -2,13 +2,15 @@ import { cookies } from "next/headers";
 
 export async function GET(
   req: Request,
-  { params }: { params: { jobId: string } },
+  context: { params: Promise<{ jobId: string }> },
 ) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
+  const { jobId } = await context.params;
+
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/progress/${params.jobId}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/progress/${jobId}`,
     {
       method: "GET",
       headers: {

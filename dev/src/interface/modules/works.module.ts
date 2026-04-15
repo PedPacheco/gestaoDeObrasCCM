@@ -1,3 +1,4 @@
+import { forwardRef, Module } from '@nestjs/common';
 import { HandleWorkUpdateService } from 'src/application/usecases/orchestrators/handleWorkUpdate.service';
 import { ContractUpdateService } from 'src/application/usecases/works/contractUpdate.service';
 import { FindExistingWorksService } from 'src/application/usecases/works/findExistingWorks.service';
@@ -39,17 +40,20 @@ import { UpdateCapexRepository } from 'src/infra/repositories/works/updateCapexR
 import { UpdateNoteRepository } from 'src/infra/repositories/works/updateNoteRepository';
 import { UpdateOvRepository } from 'src/infra/repositories/works/updateOvRepository';
 import { UpdateWorkRepository } from 'src/infra/repositories/works/updateWorkRepository';
-
-import { forwardRef, Module } from '@nestjs/common';
-
 import { WorksController } from '../controllers/works/works.controller';
 import { WorksInsertController } from '../controllers/works/worksInsert.controller';
 import { WorksUpdateController } from '../controllers/works/worksUpdate.controller';
 import { AuxiliaryBaseModule } from './auxiliaryBase.module';
+import { CapexGatewayModule } from './capex-gateway.module';
 import { UsersModule } from './users.module';
 
 @Module({
-  imports: [CacheModule, UsersModule, forwardRef(() => AuxiliaryBaseModule)],
+  imports: [
+    CacheModule,
+    UsersModule,
+    CapexGatewayModule, // Provê o CapexGateway para o WorksUpdateController
+    forwardRef(() => AuxiliaryBaseModule),
+  ],
   controllers: [WorksController, WorksUpdateController, WorksInsertController],
   providers: [
     FindExistingWorksService,
@@ -84,10 +88,7 @@ import { UsersModule } from './users.module';
       provide: GET_WORKS_IN_PORTFOLIO_REPOSITORY,
       useClass: GetWorksInPortfolioRepository,
     },
-    {
-      provide: INSERT_WORKS_REPOSITORY,
-      useClass: InsertWorksRepository,
-    },
+    { provide: INSERT_WORKS_REPOSITORY, useClass: InsertWorksRepository },
     {
       provide: FIND_EXISITING_WORKS_REPOSITORY,
       useClass: FindExistingWorksRepository,
@@ -100,6 +101,7 @@ import { UsersModule } from './users.module';
     GetCompletedWorksService,
     FindExistingWorksService,
     GetWorkDetailsService,
+    UpdateCapexService, // Exportado para uso pelo CapexFullPipelineService via AuxiliaryBaseModule
   ],
 })
 export class WorksModule {}

@@ -1,7 +1,3 @@
-import { AuxiliaryBaseService } from 'src/application/usecases/auxiliaryBase/auxiliaryBase.service';
-import { PermissionGuard } from 'src/core/guards/permission.guard';
-import { VisualizationGuard } from 'src/core/guards/visualization.guard';
-
 import {
   Body,
   Controller,
@@ -16,29 +12,128 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-
+import { FileInterceptor } from '@nestjs/platform-express';
+import { AuxiliaryBaseService } from 'src/application/usecases/auxiliaryBase/auxiliaryBase.service';
+import { CapexFullPipelineService } from 'src/application/usecases/auxiliaryBase/capex/capexFullPipeline.service';
+import { CapexProcessingService } from 'src/application/usecases/auxiliaryBase/capex/capexProcessing.service';
+import { PermissionGuard } from 'src/core/guards/permission.guard';
+import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import {
   InsertBaseAuxiliaryMarketDTO,
   NotesDTO,
 } from '../dtos/auxiliaryBaseDTO';
 import { OperationType } from '../types/baseAuxiliaryInterface';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { randomUUID } from 'crypto';
-import { CapexProcessingService } from 'src/application/usecases/auxiliaryBase/capex/capexProcessing.service';
+import { CapexGateway } from '../gateway/capex/capex.gateway';
+
+const capexFileInterceptor = FileInterceptor('file', {
+  storage: diskStorage({
+    destination: './uploads/imports',
+    filename: (_, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
+  }),
+  limits: {
+    fileSize: 150 * 1024 * 1024, // 150 MB
+  },
+  fileFilter: (_, file, cb) => {
+    const isXlsx =
+      file.mimetype ===
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    cb(
+      isXlsx ? null : new Error('Apenas arquivos .xlsx são permitidos'),
+      isXlsx,
+    );
+  },
+});
 
 @Controller('base-auxiliar')
 export class AuxiliaryBaseController {
   constructor(
     private readonly auxiliaryBaseService: AuxiliaryBaseService,
     private readonly capexProcessingService: CapexProcessingService,
+    private readonly capexFullPipelineService: CapexFullPipelineService,
+    private readonly capexGateway: CapexGateway,
   ) {}
+
+  // ─── CAPEX: Fluxo separado — apenas importação ───────────────────
+  //
+  // Usa-se quando o usuário quer importar e só depois, manualmente,
+  // clicar em "Atualizar CAPEX" (POST /obras/atualizar-capex).
+  //
+  // WS: cliente faz join(jobId) e escuta fases: reading → processing → done
+  // ─────────────────────────────────────────────────────────────────
+
+  // @Post('capex')
+  // @UseGuards(PermissionGuard)
+  // @UseInterceptors(capexFileInterceptor)
+  // async importCapex(@UploadedFile() file: Express.Multer.File) {
+  //   const jobId = randomUUID();
+
+  //   this.capexProcessingService
+  //     .process(file.path, jobId, this.capexGateway.createEmitter(jobId))
+  //     .catch((err) =>
+  //       console.error(`[capex/import] Erro no job ${jobId}:`, err.stack),
+  //     );
+
+  //   return {
+  //     statusCode: HttpStatus.ACCEPTED,
+  //     message: 'Importação iniciada. Acompanhe o progresso via WebSocket.',
+  //     jobId,
+  //   };
+  // }
+
+  // ─── CAPEX: Fluxo único — importação + atualização encadeadas ────
+  //
+  // Usa-se quando o usuário quer executar todo o pipeline de uma vez.
+  // O servidor importa o xlsx para cn52n e na sequência já calcula
+  // e grava os valores de CAPEX nas obras, sem intervenção manual.
+  //
+  // WS: cliente faz join(jobId) e escuta fases:
+  //     reading → processing → loading → calculating → updating → done
+  // ─────────────────────────────────────────────────────────────────
+
+  @Post('capex/pipeline')
+  @UseGuards(PermissionGuard)
+  @UseInterceptors(capexFileInterceptor)
+  async importAndUpdateCapex(@UploadedFile() file: Express.Multer.File) {
+    const jobId = randomUUID();
+
+    this.capexFullPipelineService
+      .run(file.path, jobId, this.capexGateway.createEmitter(jobId))
+      .catch((err) =>
+        console.error(`[capex/pipeline] Erro no job ${jobId}:`, err.stack),
+      );
+
+    return {
+      statusCode: HttpStatus.ACCEPTED,
+      message:
+        'Pipeline de importação e atualização de CAPEX iniciado. Acompanhe via WebSocket.',
+      jobId,
+    };
+  }
+
+  // ─── Fallback: polling HTTP para clientes sem suporte a WS ───────
+
+  @Get('capex/progress/:jobId')
+  getCapexProgress(@Param('jobId') jobId: string) {
+    const progress = this.capexProcessingService.getProgress(jobId);
+
+    if (!progress) {
+      return {
+        statusCode: HttpStatus.NOT_FOUND,
+        message: 'Job não encontrado ou já expirado.',
+      };
+    }
+
+    return { statusCode: HttpStatus.OK, data: progress };
+  }
+
+  // ─── Demais endpoints ─────────────────────────────────────────────
 
   @Get('mercado')
   @UseGuards(VisualizationGuard)
   async GetAuxiliaryBaseMarket(@Query('idRegional') idRegional?: number) {
     const response = await this.auxiliaryBaseService.getMarket(idRegional);
-
     return {
       statusCode: HttpStatus.OK,
       message: 'Valores retornados com sucesso',
@@ -50,7 +145,6 @@ export class AuxiliaryBaseController {
   @UseGuards(VisualizationGuard)
   async GetAuxiliaryBaseNotes(@Query('idRegional') idRegional?: number) {
     const response = await this.auxiliaryBaseService.getNotes(idRegional);
-
     return {
       statusCode: HttpStatus.OK,
       message: 'Valores das notas na base auxiliar retornadas com sucesso',
@@ -61,70 +155,17 @@ export class AuxiliaryBaseController {
   @Post('notas')
   @UseGuards(PermissionGuard)
   async InsertAuxiliaryBaseNotes(
-    @Body()
-    body: {
-      data: NotesDTO[];
-      operation: OperationType;
-    },
+    @Body() body: { data: NotesDTO[]; operation: OperationType },
   ) {
     const res = await this.auxiliaryBaseService.insertAuxiliaryBaseNotes(
       body.data,
       body.operation,
     );
-
     return {
       statusCode: HttpStatus.CREATED,
       message: 'Notas inseridas na base auxiliar com sucesso',
       res,
     };
-  }
-
-  @Post('capex')
-  @UseGuards(PermissionGuard)
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './uploads/imports',
-        filename: (_, file, cb) => {
-          cb(null, `${Date.now()}-${file.originalname}`);
-        },
-      }),
-      limits: {
-        fileSize: 150 * 1024 * 1024, // 150MB
-      },
-      fileFilter: (_, file, cb) => {
-        if (
-          file.mimetype ===
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        ) {
-          cb(null, true);
-        } else {
-          cb(new Error('Apenas arquivos Excel são permitidos'), false);
-        }
-      },
-    }),
-  )
-  async uploadAuxiliaryBaseMarket(@UploadedFile() file: Express.Multer.File) {
-    const jobId = randomUUID();
-
-    this.capexProcessingService
-      .process(file.path, jobId)
-      .catch((err) => console.log('Erro no processamento', err.stack));
-
-    return {
-      statusCode: HttpStatus.ACCEPTED,
-      message: 'Arquivo de obras enviado e processamento iniciado com sucesso',
-      jobId,
-    };
-  }
-
-  @Get('progress/:jobId')
-  getUploadProgress(@Param('jobId') jobId: string) {
-    const progress = this.capexProcessingService.getProgress(jobId);
-
-    console.log(progress);
-
-    return progress;
   }
 
   @Post('mercado')
@@ -140,7 +181,6 @@ export class AuxiliaryBaseController {
       body.data,
       body.operation,
     );
-
     return {
       statusCode: HttpStatus.CREATED,
       message: 'Obras de mercado inseridas na base auxiliar com sucesso',
@@ -151,43 +191,27 @@ export class AuxiliaryBaseController {
   @UseGuards(PermissionGuard)
   async DeleteAuxiliaryBaseMarket(@Param('id', ParseIntPipe) id: number) {
     await this.auxiliaryBaseService.delete('baseOv', id);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Obra removida com sucesso',
-    };
+    return { statusCode: HttpStatus.OK, message: 'Obra removida com sucesso' };
   }
 
   @Delete('mercado')
   @UseGuards(PermissionGuard)
   async DeleteAuxiliaryBaseMarketWithoutId() {
     await this.auxiliaryBaseService.delete('baseOv', undefined);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Obra removida com sucesso',
-    };
+    return { statusCode: HttpStatus.OK, message: 'Obra removida com sucesso' };
   }
 
   @Delete('notas/:id')
   @UseGuards(PermissionGuard)
   async DeleteAuxiliaryBaseNotes(@Param('id', ParseIntPipe) id: number) {
     await this.auxiliaryBaseService.delete('baseNotes', id);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Nota removida com sucesso',
-    };
+    return { statusCode: HttpStatus.OK, message: 'Nota removida com sucesso' };
   }
 
   @Delete('notas/')
   @UseGuards(PermissionGuard)
   async DeleteAuxiliaryBaseNotesWithoutId() {
     await this.auxiliaryBaseService.delete('baseNotes', undefined);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Nota removida com sucesso',
-    };
+    return { statusCode: HttpStatus.OK, message: 'Nota removida com sucesso' };
   }
 }

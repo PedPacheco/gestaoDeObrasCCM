@@ -1,3 +1,8 @@
+import { HandleWorkUpdateService } from 'src/application/usecases/orchestrators/handleWorkUpdate.service';
+import { ContractUpdateService } from 'src/application/usecases/works/contractUpdate.service';
+import { SuspensionWorkService } from 'src/application/usecases/works/suspensionWork.service';
+import { UpdateNoteService } from 'src/application/usecases/works/updateNote.service';
+import { UpdateOvService } from 'src/application/usecases/works/updateOv.service';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import {
@@ -19,12 +24,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { HandleWorkUpdateService } from 'src/application/usecases/orchestrators/handleWorkUpdate.service';
-import { ContractUpdateService } from 'src/application/usecases/works/contractUpdate.service';
-import { UpdateOvService } from 'src/application/usecases/works/updateOv.service';
-import { UpdateNoteService } from 'src/application/usecases/works/updateNote.service';
-import { UpdateCapexService } from 'src/application/usecases/works/updateCapex.service';
-import { SuspensionWorkService } from 'src/application/usecases/works/suspensionWork.service';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -34,19 +33,49 @@ interface CustomRequest extends Request {
 @Controller('obras')
 export class WorksUpdateController {
   constructor(
-    private handleWorkUpdateService: HandleWorkUpdateService,
-    private contractUpdateService: ContractUpdateService,
-    private updateOvService: UpdateOvService,
-    private updateNoteService: UpdateNoteService,
-    private updateCapexService: UpdateCapexService,
-    private suspensionWorksService: SuspensionWorkService,
+    private readonly handleWorkUpdateService: HandleWorkUpdateService,
+    private readonly contractUpdateService: ContractUpdateService,
+    private readonly updateOvService: UpdateOvService,
+    private readonly updateNoteService: UpdateNoteService,
+    // private readonly updateCapexService: UpdateCapexService,
+    private readonly suspensionWorksService: SuspensionWorkService,
+    // private readonly capexGateway: CapexGateway,
   ) {}
+
+  // ─── CAPEX: Fluxo separado — apenas atualização ───────────────────
+  //
+  // Chamado após o usuário já ter importado o xlsx via POST /base-auxiliar/capex.
+  // Lê os dados já presentes em cn52n, calcula e grava nas obras.
+  //
+  // WS: cliente faz join(jobId) e escuta fases:
+  //     loading → calculating → updating → done
+  // ─────────────────────────────────────────────────────────────────
+
+  // @Post('atualizar-capex')
+  // @UseGuards(PermissionGuard)
+  // async updateCapex() {
+  //   const jobId = randomUUID();
+
+  //   this.updateCapexService
+  //     .update(this.capexGateway.createEmitter(jobId))
+  //     .catch((err) =>
+  //       console.error(`[capex/update] Erro no job ${jobId}:`, err.stack),
+  //     );
+
+  //   return {
+  //     statusCode: HttpStatus.ACCEPTED,
+  //     message:
+  //       'Atualização de CAPEX iniciada. Acompanhe o progresso via WebSocket.',
+  //     jobId,
+  //   };
+  // }
+
+  // ─── Demais endpoints (sem alteração de comportamento) ────────────
 
   @Post('atualizar-empreitamento')
   @UseGuards(PermissionGuard)
   async ContractUpdate(@Body() data: ContractUpdateDTO[]) {
     await this.contractUpdateService.update(data);
-
     return {
       statusCode: HttpStatus.OK,
       message: 'Empreitamento das obras atualizado com sucesso',
@@ -57,7 +86,6 @@ export class WorksUpdateController {
   @UseGuards(PermissionGuard)
   async SuspensionWorks(@Body() data: SuspensionWorksDTO[]) {
     await this.suspensionWorksService.createMultipleSuspensions(data);
-
     return {
       statusCode: HttpStatus.OK,
       message: 'Obras suspensas com sucesso',
@@ -71,27 +99,24 @@ export class WorksUpdateController {
     @Body() data: UpdateWorkDTO,
     @Req() req: CustomRequest,
   ) {
-    const insufficientPermission = req.insufficientPermission;
-
-    await this.handleWorkUpdateService.update(data, id, insufficientPermission);
-
+    await this.handleWorkUpdateService.update(
+      data,
+      id,
+      req.insufficientPermission,
+    );
     return {
       statusCode: HttpStatus.OK,
-      message: 'Obras atualizada com sucesso',
+      message: 'Obra atualizada com sucesso',
     };
   }
 
   @Post('atualizar-ov')
   @UseGuards(PermissionGuard)
-  async updateOv(
-    @Body()
-    body: InsertMarketWorksDTO[],
-  ) {
+  async updateOv(@Body() body: InsertMarketWorksDTO[]) {
     await this.updateOvService.update(body);
-
     return {
       statusCode: HttpStatus.OK,
-      message: 'Obras atualizada com sucesso',
+      message: 'Obras atualizadas com sucesso',
     };
   }
 
@@ -99,21 +124,9 @@ export class WorksUpdateController {
   @UseGuards(PermissionGuard)
   async updateNote(@Body() data: UpdateNotesDTO[]) {
     await this.updateNoteService.update(data);
-
     return {
       statusCode: HttpStatus.OK,
-      message: 'Obras atualizada com sucesso',
-    };
-  }
-
-  @Post('atualizar-capex')
-  @UseGuards(PermissionGuard)
-  async updateCapex() {
-    await this.updateCapexService.update();
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Capex e M.O atualizado com sucesso',
+      message: 'Obras atualizadas com sucesso',
     };
   }
 }

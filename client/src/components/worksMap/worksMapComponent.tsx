@@ -75,14 +75,21 @@ export default function WorksMapComponent({ token }: Props) {
     [requested],
   );
 
-  const semLocObras = useMemo<requestItem>(
-    () => ({
-      items: requested.items.filter(
-        (r) => !obrasComLocSet.has(buildKey(r.ovnota, r.ordemDiagrama)),
-      ),
-    }),
-    [requested, obrasComLocSet],
-  );
+  const semLocObras = useMemo<requestItem>(() => {
+    const map = new Map<string, MapFilterItem>();
+
+    for (const item of requested.items) {
+      const key = buildKey(item.ovnota, item.ordemDiagrama);
+
+      if (!obrasComLocSet.has(key)) {
+        map.set(key, item); // 🔥 garante unicidade
+      }
+    }
+
+    return {
+      items: Array.from(map.values()),
+    };
+  }, [requested, obrasComLocSet]);
 
   const faltamCount = useMemo(
     () => requestedSet.size - obrasComLocSet.size,
