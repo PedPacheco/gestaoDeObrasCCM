@@ -11,7 +11,8 @@ import {
   mockMappedMarketWorks,
   mockMappedNotes,
 } from '../../mocks/mocksAuxiliaryBaseController';
-import { mockMaterialCapex } from '../../mocks/mocksMaterialCapex';
+import { CapexFullPipelineService } from 'src/application/usecases/auxiliaryBase/capex/capexFullPipeline.service';
+import { CapexGateway } from 'src/interface/gateway/capex/capex.gateway';
 
 describe('AuxiliaryBaseController', () => {
   let auxiliaryBaseController: AuxiliaryBaseController;
@@ -29,9 +30,10 @@ describe('AuxiliaryBaseController', () => {
             delete: jest.fn(),
             insertAuxiliaryBaseNotes: jest.fn(),
             insertAuxiliaryBaseMarket: jest.fn(),
-            insertAuxiliaryBaseCapex: jest.fn(),
           },
         },
+        { provide: CapexFullPipelineService, useValue: { run: jest.fn() } },
+        { provide: CapexGateway, useValue: { createEmitter: jest.fn() } },
         { provide: UsersService, useValue: { findUser: jest.fn() } },
       ],
     }).compile();
@@ -134,26 +136,64 @@ describe('AuxiliaryBaseController', () => {
     });
   });
 
-  describe('InsertAuxiliaryBaseCapex', () => {
-    it('should be call the method insertAuxiliaryBaseCapex with correct data', async () => {
-      jest
-        .spyOn(auxiliaryBaseService, 'insertAuxiliaryBaseCapex')
-        .mockResolvedValue();
+  describe('importAndUpdateCapex', () => {
+    it('should start pipeline and return jobId', async () => {
+      const mockRun = jest.fn().mockResolvedValue(undefined);
+      const mockEmitter = jest.fn();
+
+      const mockFile = {
+        path: '/uploads/test.xlsx',
+      } as Express.Multer.File;
+
+      const mockGateway = auxiliaryBaseController['capexGateway'];
+      const mockPipeline = auxiliaryBaseController['capexFullPipelineService'];
+
+      jest.spyOn(mockGateway, 'createEmitter').mockReturnValue(mockEmitter);
+      jest.spyOn(mockPipeline, 'run').mockImplementation(mockRun);
 
       const result =
-        await auxiliaryBaseController.InsertAuxiliaryBaseCapex(
-          mockMaterialCapex,
-        );
+        await auxiliaryBaseController.importAndUpdateCapex(mockFile);
 
-      const expectedResponse = {
-        statusCode: HttpStatus.CREATED,
-        message: 'Materiais importados com sucesso',
-      };
+      expect(mockGateway.createEmitter).toHaveBeenCalled();
+      expect(mockPipeline.run).toHaveBeenCalledWith(
+        mockFile.path,
+        expect.any(String),
+        mockEmitter,
+      );
 
-      expect(
-        auxiliaryBaseService.insertAuxiliaryBaseCapex,
-      ).toHaveBeenCalledWith(mockMaterialCapex);
-      expect(result).toEqual(expectedResponse);
+      expect(result).toEqual({
+        statusCode: HttpStatus.ACCEPTED,
+        message:
+          'Pipeline de importação e atualização de CAPEX iniciado. Acompanhe via WebSocket.',
+        jobId: expect.any(String),
+      });
+    });
+
+    it('should not throw if pipeline fails (fire-and-forget)', async () => {
+      const error = new Error('pipeline error');
+
+      const mockFile = {
+        path: '/uploads/test.xlsx',
+      } as Express.Multer.File;
+
+      jest
+        .spyOn(auxiliaryBaseController['capexFullPipelineService'], 'run')
+        .mockRejectedValue(error);
+
+      jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const result =
+        await auxiliaryBaseController.importAndUpdateCapex(mockFile);
+
+      expect(result.statusCode).toBe(HttpStatus.ACCEPTED);
+
+      // garante que erro foi logado
+      await Promise.resolve(); // flush microtask queue
+
+      expect(console.error).toHaveBeenCalledWith(
+        expect.stringContaining('[capex/pipeline]'),
+        error.stack,
+      );
     });
   });
 

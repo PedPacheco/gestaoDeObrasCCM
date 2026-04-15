@@ -449,4 +449,12 @@ describe('AuxiliaryBaseRepository', () => {
       );
     });
   });
+
+  describe('truncateCN52N', () => {
+    it('Should delete data of CN52N', async () => {
+      await repository.truncateCN52N();
+
+      expect(mockPrisma.$executeRawUnsafe).toHaveBeenCalled();
+    });
+  });
 });
