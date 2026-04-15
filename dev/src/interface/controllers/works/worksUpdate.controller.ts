@@ -37,40 +37,8 @@ export class WorksUpdateController {
     private readonly contractUpdateService: ContractUpdateService,
     private readonly updateOvService: UpdateOvService,
     private readonly updateNoteService: UpdateNoteService,
-    // private readonly updateCapexService: UpdateCapexService,
     private readonly suspensionWorksService: SuspensionWorkService,
-    // private readonly capexGateway: CapexGateway,
   ) {}
-
-  // ─── CAPEX: Fluxo separado — apenas atualização ───────────────────
-  //
-  // Chamado após o usuário já ter importado o xlsx via POST /base-auxiliar/capex.
-  // Lê os dados já presentes em cn52n, calcula e grava nas obras.
-  //
-  // WS: cliente faz join(jobId) e escuta fases:
-  //     loading → calculating → updating → done
-  // ─────────────────────────────────────────────────────────────────
-
-  // @Post('atualizar-capex')
-  // @UseGuards(PermissionGuard)
-  // async updateCapex() {
-  //   const jobId = randomUUID();
-
-  //   this.updateCapexService
-  //     .update(this.capexGateway.createEmitter(jobId))
-  //     .catch((err) =>
-  //       console.error(`[capex/update] Erro no job ${jobId}:`, err.stack),
-  //     );
-
-  //   return {
-  //     statusCode: HttpStatus.ACCEPTED,
-  //     message:
-  //       'Atualização de CAPEX iniciada. Acompanhe o progresso via WebSocket.',
-  //     jobId,
-  //   };
-  // }
-
-  // ─── Demais endpoints (sem alteração de comportamento) ────────────
 
   @Post('atualizar-empreitamento')
   @UseGuards(PermissionGuard)

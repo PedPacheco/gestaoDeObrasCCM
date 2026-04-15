@@ -15,7 +15,6 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuxiliaryBaseService } from 'src/application/usecases/auxiliaryBase/auxiliaryBase.service';
 import { CapexFullPipelineService } from 'src/application/usecases/auxiliaryBase/capex/capexFullPipeline.service';
-import { CapexProcessingService } from 'src/application/usecases/auxiliaryBase/capex/capexProcessing.service';
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import {
@@ -50,47 +49,9 @@ const capexFileInterceptor = FileInterceptor('file', {
 export class AuxiliaryBaseController {
   constructor(
     private readonly auxiliaryBaseService: AuxiliaryBaseService,
-    private readonly capexProcessingService: CapexProcessingService,
     private readonly capexFullPipelineService: CapexFullPipelineService,
     private readonly capexGateway: CapexGateway,
   ) {}
-
-  // ─── CAPEX: Fluxo separado — apenas importação ───────────────────
-  //
-  // Usa-se quando o usuário quer importar e só depois, manualmente,
-  // clicar em "Atualizar CAPEX" (POST /obras/atualizar-capex).
-  //
-  // WS: cliente faz join(jobId) e escuta fases: reading → processing → done
-  // ─────────────────────────────────────────────────────────────────
-
-  // @Post('capex')
-  // @UseGuards(PermissionGuard)
-  // @UseInterceptors(capexFileInterceptor)
-  // async importCapex(@UploadedFile() file: Express.Multer.File) {
-  //   const jobId = randomUUID();
-
-  //   this.capexProcessingService
-  //     .process(file.path, jobId, this.capexGateway.createEmitter(jobId))
-  //     .catch((err) =>
-  //       console.error(`[capex/import] Erro no job ${jobId}:`, err.stack),
-  //     );
-
-  //   return {
-  //     statusCode: HttpStatus.ACCEPTED,
-  //     message: 'Importação iniciada. Acompanhe o progresso via WebSocket.',
-  //     jobId,
-  //   };
-  // }
-
-  // ─── CAPEX: Fluxo único — importação + atualização encadeadas ────
-  //
-  // Usa-se quando o usuário quer executar todo o pipeline de uma vez.
-  // O servidor importa o xlsx para cn52n e na sequência já calcula
-  // e grava os valores de CAPEX nas obras, sem intervenção manual.
-  //
-  // WS: cliente faz join(jobId) e escuta fases:
-  //     reading → processing → loading → calculating → updating → done
-  // ─────────────────────────────────────────────────────────────────
 
   @Post('capex/pipeline')
   @UseGuards(PermissionGuard)
@@ -110,22 +71,6 @@ export class AuxiliaryBaseController {
         'Pipeline de importação e atualização de CAPEX iniciado. Acompanhe via WebSocket.',
       jobId,
     };
-  }
-
-  // ─── Fallback: polling HTTP para clientes sem suporte a WS ───────
-
-  @Get('capex/progress/:jobId')
-  getCapexProgress(@Param('jobId') jobId: string) {
-    const progress = this.capexProcessingService.getProgress(jobId);
-
-    if (!progress) {
-      return {
-        statusCode: HttpStatus.NOT_FOUND,
-        message: 'Job não encontrado ou já expirado.',
-      };
-    }
-
-    return { statusCode: HttpStatus.OK, data: progress };
   }
 
   // ─── Demais endpoints ─────────────────────────────────────────────

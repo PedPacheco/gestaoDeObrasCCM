@@ -44,16 +44,10 @@ import { WorksController } from '../controllers/works/works.controller';
 import { WorksInsertController } from '../controllers/works/worksInsert.controller';
 import { WorksUpdateController } from '../controllers/works/worksUpdate.controller';
 import { AuxiliaryBaseModule } from './auxiliaryBase.module';
-import { CapexGatewayModule } from './capex-gateway.module';
 import { UsersModule } from './users.module';
 
 @Module({
-  imports: [
-    CacheModule,
-    UsersModule,
-    CapexGatewayModule, // Provê o CapexGateway para o WorksUpdateController
-    forwardRef(() => AuxiliaryBaseModule),
-  ],
+  imports: [CacheModule, UsersModule, forwardRef(() => AuxiliaryBaseModule)],
   controllers: [WorksController, WorksUpdateController, WorksInsertController],
   providers: [
     FindExistingWorksService,
