@@ -6,23 +6,26 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { ButtonComponent } from "@/components/common/Button";
 import ErrorModal from "@/components/common/ErrorModal";
 import ModalComponent from "@/components/common/Modal";
+import { useCapexSocket } from "@/hooks/updateCapex/useCapexSocket";
 
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { ArrowUpTrayIcon } from "@heroicons/react/24/solid";
 import { Box, LinearProgress, Typography } from "@mui/material";
 
-import { useCapexSocket } from "@/hooks/updateCapex/useCapexSocket";
-
-// const phaseLabels: Record<string, string> = {
-//   reading: "Lendo arquivo",
-//   processing: "Processando dados",
-//   loading: "Carregando dados",
-//   calculating: "Calculando CAPEX",
-//   updating: "Atualizando obras",
-//   done: "Concluído",
-// };
-
+/**
+ * Botão unificado para importação + atualização do CAPEX.
+ *
+ * Fluxo:
+ *  1. Usuário seleciona o arquivo .xlsx
+ *  2. POST /api/import/capex  →  proxy Next.js  →  /base-auxiliar/capex/pipeline
+ *  3. Backend retorna { jobId }
+ *  4. useCapexSocket entra na sala via jobId e recebe progresso em tempo real
+ *  5. phase "done" → finaliza com sucesso | phase "error" → exibe mensagem
+ *
+ * Componente ImportCapexButton (polling) e a rota [jobId]/progress foram removidos.
+ */
 export function CapexPipelineButton({ token }: { token?: string }) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -30,33 +33,61 @@ export function CapexPipelineButton({ token }: { token?: string }) {
   const [openModal, setOpenModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
+  const [isDone, setIsDone] = useState(false);
 
-  const { progress, message, phase, disconnect } = useCapexSocket(jobId, token);
+  const { progress, message, phase, socketError, disconnect } = useCapexSocket(
+    jobId,
+    token,
+  );
 
-  // 🚀 dispara seleção de arquivo
-  const handleClick = () => {
-    fileInputRef.current?.click();
-  };
+  // ─── Reage às fases terminais do socket ──────────────────────────────────
+  useEffect(() => {
+    if (!phase) return;
 
-  // 🚀 upload + pipeline
+    if (phase === "done") {
+      setIsDone(true);
+      router.refresh();
+
+      // Aguarda o usuário ver "Concluído!" antes de desconectar
+      const timer = setTimeout(() => disconnect(), 1500);
+      return () => clearTimeout(timer);
+    }
+
+    if (phase === "error") {
+      setOpenModal(false);
+      setError("Erro durante o pipeline de CAPEX. Tente novamente.");
+      const timer = setTimeout(() => disconnect(), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ─── Propaga erros de conexão do socket ──────────────────────────────────
+  useEffect(() => {
+    if (socketError) {
+      setOpenModal(false);
+      setError(`Falha na conexão: ${socketError}`);
+    }
+  }, [socketError]);
+
+  // ─── Upload do arquivo ────────────────────────────────────────────────────
   const handleFileChange = (file?: File) => {
     if (!file) return;
+
+    // Reset de estado anterior
+    setIsDone(false);
+    setError(null);
+    setJobId(null);
 
     startTransition(async () => {
       try {
         const formData = new FormData();
         formData.append("file", file);
 
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/capex/pipeline`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            body: formData,
-          },
-        );
+        // Chamada passa pelo proxy Next.js — token não trafega no cliente
+        const res = await fetch("/api/import/capex", {
+          method: "POST",
+          body: formData,
+        });
 
         const data = await res.json();
 
@@ -65,76 +96,84 @@ export function CapexPipelineButton({ token }: { token?: string }) {
         }
 
         if (!data.jobId) {
-          throw new Error("jobId não retornado");
+          throw new Error("jobId não retornado pelo servidor");
         }
 
         setJobId(data.jobId);
         setOpenModal(true);
       } catch (err: any) {
         setError(err.message);
+      } finally {
+        // Limpa o input para permitir reenvio do mesmo arquivo
+        if (fileInputRef.current) fileInputRef.current.value = "";
       }
     });
   };
 
-  // 🎯 finalização automática
-  useEffect(() => {
-    if (!phase) return;
-
-    if (phase === "done") {
-      setTimeout(() => {
-        disconnect();
-      }, 1000);
-    }
-
-    if (phase === "error") {
-      setError("Erro durante o pipeline de CAPEX");
-      setTimeout(() => {
-        disconnect();
-      }, 1000);
-    }
-  }, [phase, disconnect]);
-
-  const isProcessing = isPending || (phase !== null && phase !== "done");
+  const isProcessing =
+    isPending || (phase !== null && phase !== "done" && phase !== "error");
 
   return (
     <>
       <Box>
         <ButtonComponent
-          onClick={handleClick}
+          onClick={() => fileInputRef.current?.click()}
           startIcon={<ArrowUpTrayIcon width={22} height={22} />}
           text="Importar + Atualizar CAPEX"
           disabled={isProcessing}
           styled="w-full"
         />
 
-        {/* input escondido */}
         <input
           type="file"
+          accept=".xlsx"
           ref={fileInputRef}
           className="hidden"
           onChange={(e) => handleFileChange(e.target.files?.[0])}
         />
       </Box>
 
-      {/* modal */}
+      {/* Modal de progresso */}
       <ModalComponent
         title="Atualização dos valores CAPEX/MO"
-        onClose={() => setOpenModal(false)}
+        onClose={() => {
+          if (!isProcessing) setOpenModal(false);
+        }}
         open={openModal}
       >
-        {progress !== null ? (
-          <div className="flex flex-col gap-3">
-            <span className="text-sm text-zinc-600">{message}</span>
+        <Box className="flex flex-col gap-3 min-w-[300px]">
+          <Typography variant="body2" color="text.secondary">
+            {message || "Conectando ao servidor..."}
+          </Typography>
 
-            <LinearProgress variant="determinate" value={progress} />
+          <LinearProgress
+            variant={progress !== null ? "determinate" : "indeterminate"}
+            value={progress ?? 0}
+            sx={{ borderRadius: 1, height: 6 }}
+          />
 
-            {phase === "done" && (
-              <span className="text-green-600 font-semibold">Concluído!</span>
+          <Box className="flex justify-between items-center">
+            <Typography variant="caption" color="text.secondary">
+              {phase ?? "aguardando"}
+            </Typography>
+            {progress !== null && (
+              <Typography variant="caption" color="text.secondary">
+                {progress}%
+              </Typography>
             )}
-          </div>
-        ) : (
-          <span>Conectando ao servidor...</span>
-        )}
+          </Box>
+
+          {isDone && (
+            <Typography
+              variant="body2"
+              color="success.main"
+              fontWeight={600}
+              className="text-center"
+            >
+              ✓ Concluído com sucesso!
+            </Typography>
+          )}
+        </Box>
       </ModalComponent>
 
       {error && (
