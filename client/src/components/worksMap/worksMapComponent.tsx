@@ -107,12 +107,30 @@ export default function WorksMapComponent({ token }: Props) {
 
     const bounds: [number, number][] = [];
 
-    displayObras.forEach((obra) => {
-      const latlng: [number, number] = [obra.latitude, obra.longitude];
+    // 🔹 Agrupamento por coordenada
+    const obrasAgrupadas = new Map<string, ObraPin[]>();
+
+    for (const obra of displayObras) {
+      const key = `${obra.latitude}-${obra.longitude}`;
+
+      if (!obrasAgrupadas.has(key)) {
+        obrasAgrupadas.set(key, []);
+      }
+
+      obrasAgrupadas.get(key)!.push(obra);
+    }
+
+    // 🔹 Criação dos markers
+    for (const [, obras] of obrasAgrupadas) {
+      const { latitude, longitude } = obras[0];
+
+      const latlng: [number, number] = [latitude, longitude];
       bounds.push(latlng);
 
-      L.marker(latlng).bindPopup(buildObraPopup(obra)).addTo(markersLayer);
-    });
+      L.marker(latlng)
+        .bindPopup(buildObraPopup(obras)) // 👈 agora é array
+        .addTo(markersLayer);
+    }
 
     map.fitBounds(bounds, { padding: [40, 40] });
   }, [mapReady, displayObras, LRef, mapRef, markersLayerRef, routeLayerRef]);
