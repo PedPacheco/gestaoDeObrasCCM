@@ -67,7 +67,7 @@ export default function PublicationRestrictionsPanelItem({
                     ) {
                       const date = dayjs(cellValue);
 
-                      cellValue = date.utc().format("DD/MM/YYYY HH:mm");
+                      cellValue = date.format("DD/MM/YYYY HH:mm");
                     }
 
                     return (

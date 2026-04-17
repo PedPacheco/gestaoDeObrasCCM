@@ -19,9 +19,11 @@ export class ExportPublicationRestrictionService {
           criado_em: moment(restriction.criado_em)
             .utcOffset(-3)
             .format('DD/MM/YYYY HH:mm'),
-          data_resolucao: moment(restriction.data_resolucao)
-            .utcOffset(-3)
-            .format('DD/MM/YYYY HH:mm'),
+          data_resolucao: restriction.data_resolucao
+            ? moment(restriction.data_resolucao)
+                .utcOffset(-3)
+                .format('DD/MM/YYYY HH:mm')
+            : undefined,
         }),
       );
 

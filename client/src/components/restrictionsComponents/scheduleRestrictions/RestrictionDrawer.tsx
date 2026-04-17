@@ -231,8 +231,8 @@ export default function RestrictionDrawer({
                 handleChange(index, "constructionObservation", e.target.value)
               }
               disabled={
-                permissions?.permissao_publicacao ||
-                permissions?.permissao === "Total"
+                permissions?.permissao_publicacao &&
+                permissions?.permissao !== "Total"
               }
               margin="normal"
             />
@@ -245,8 +245,8 @@ export default function RestrictionDrawer({
                 <DatePicker
                   label="Data resolução"
                   disabled={
-                    permissions?.permissao_publicacao ||
-                    permissions?.permissao === "Total"
+                    permissions?.permissao_publicacao &&
+                    permissions.permissao !== "Total"
                   }
                   value={
                     restriction.resolutionDate
@@ -291,7 +291,11 @@ export default function RestrictionDrawer({
                 variant="contained"
                 color="error"
                 onClick={removeRestriction}
-                disabled={form.length <= 1}
+                disabled={
+                  form.length <= 1 ||
+                  (!permissions?.permissao_publicacao &&
+                    permissions?.permissao !== "Total")
+                }
               >
                 <TrashIcon />
               </Button>

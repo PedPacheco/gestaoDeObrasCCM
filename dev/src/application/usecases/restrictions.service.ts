@@ -111,7 +111,11 @@ export class RestrictionsService {
     const formattedData = {
       ...data,
       resolutionDate: data.resolutionDate
-        ? moment(data.resolutionDate, 'DD/MM/YYYY', true).toISOString()
+        ? moment(data.resolutionDate, 'DD/MM/YYYY', true)
+            .hour(moment().hour())
+            .minute(moment().minute())
+            .second(moment().second())
+            .toISOString()
         : null,
     };
 
