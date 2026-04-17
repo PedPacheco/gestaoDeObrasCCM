@@ -41,6 +41,9 @@ import { worksInPortfolioResponseService } from 'src/interface/types/works/getWo
 import { GoalsService } from 'src/application/usecases/goals.service';
 import { ExportGoalsService } from 'src/application/usecases/export/exportGoals.service';
 import { ExportOrdersService } from 'src/application/usecases/export/exportOrders.service';
+import { ExportPublicationRestrictionService } from 'src/application/usecases/export/exportPublicationRestriction.service';
+import { RestrictionsService } from 'src/application/usecases/restrictions.service';
+import { ExportReportToPubliationService } from 'src/application/usecases/export/exportReportToPublication.service';
 
 // ─────────────────────────────────────────────
 // Constants
@@ -258,6 +261,7 @@ describe('ExportController', () => {
   let monthlyMOSummaryService: jest.Mocked<MonthlySummaryService>;
   let monthlyForecastSummaryService: jest.Mocked<GetMonthlySummaryForecastService>;
   let goalsService: jest.Mocked<GoalsService>;
+  let restrictionService: jest.Mocked<RestrictionsService>;
   let exportScheduleService: jest.Mocked<ExportScheduleService>;
   let exportWorksInPortfolioService: jest.Mocked<ExportWorksInPortfolioService>;
   let exportCompletedWorksService: jest.Mocked<ExportCompletedWorksService>;
@@ -274,6 +278,8 @@ describe('ExportController', () => {
   let exportForecastService: jest.Mocked<ExportForecastService>;
   let exportRejectionsService: jest.Mocked<ExportRejectionsService>;
   let exportOrdersService: jest.Mocked<ExportOrdersService>;
+  let exportPublicationRestrictionService: jest.Mocked<ExportPublicationRestrictionService>;
+  let exportReportToPubliationService: jest.Mocked<ExportReportToPubliationService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -302,6 +308,10 @@ describe('ExportController', () => {
           useValue: { getCompletedWorks: jest.fn() },
         },
         { provide: GoalsService, useValue: { getGoals: jest.fn() } },
+        {
+          provide: RestrictionsService,
+          useValue: { getPublicationRestriction: jest.fn() },
+        },
         // Export - Standard
         { provide: ExportScheduleService, useValue: { export: jest.fn() } },
         {
@@ -344,6 +354,14 @@ describe('ExportController', () => {
         },
         { provide: ExportSchedulesBIService, useValue: { export: jest.fn() } },
         { provide: ExportOrdersService, useValue: { export: jest.fn() } },
+        {
+          provide: ExportPublicationRestrictionService,
+          useValue: { export: jest.fn() },
+        },
+        {
+          provide: ExportReportToPubliationService,
+          useValue: { export: jest.fn() },
+        },
       ],
     })
       .overrideGuard(VisualizationGuard)
@@ -362,6 +380,7 @@ describe('ExportController', () => {
       GetMonthlySummaryForecastService,
     );
     goalsService = module.get(GoalsService);
+    restrictionService = module.get(RestrictionsService);
     exportScheduleService = module.get(ExportScheduleService);
     exportWorksInPortfolioService = module.get(ExportWorksInPortfolioService);
     exportCompletedWorksService = module.get(ExportCompletedWorksService);
@@ -380,6 +399,12 @@ describe('ExportController', () => {
     exportForecastService = module.get(ExportForecastService);
     exportRejectionsService = module.get(ExportRejectionsService);
     exportOrdersService = module.get(ExportOrdersService);
+    exportPublicationRestrictionService = module.get(
+      ExportPublicationRestrictionService,
+    );
+    exportReportToPubliationService = module.get(
+      ExportReportToPubliationService,
+    );
   });
 
   afterEach(() => jest.clearAllMocks());
@@ -714,6 +739,51 @@ describe('ExportController', () => {
     });
   });
 
+  describe('exportPublicationRestrictions (GET /metas)', () => {
+    const filters = { idRegional: [2] } as any;
+
+    it('should fetch publication restrictions, set xlsx headers and delegate to export service', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      const req = makeReq({ idParceira: 5, insufficientPermission: true });
+
+      restrictionService.getPublicationRestriction.mockResolvedValue({
+        works: [],
+      });
+      exportPublicationRestrictionService.export.mockResolvedValue(undefined);
+
+      await controller.exportPublicationRestrictions(filters, res, req);
+
+      expect(restrictionService.getPublicationRestriction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          idParceira: 5,
+          insufficientPermission: true,
+        }),
+      );
+      assertXlsxHeaders(
+        res as unknown as ReturnType<typeof makeMockResponse>,
+        'Exportação Restrições de Publicação',
+      );
+      expect(exportPublicationRestrictionService.export).toHaveBeenCalledWith(
+        {
+          works: [],
+        },
+        res,
+      );
+    });
+
+    it('should work without req permissions', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      const req = makeReq();
+
+      goalsService.getGoals.mockResolvedValue(mockGoalsData);
+      exportGoalsService.export.mockResolvedValue(undefined);
+
+      await controller.exportGoals(filters, res, req);
+
+      expect(goalsService.getGoals).toHaveBeenCalledWith(filters);
+    });
+  });
+
   // ─────────────────────────────────────────────
   // BI routes
   // ─────────────────────────────────────────────
@@ -886,6 +956,21 @@ describe('ExportController', () => {
         'Exportação Ordens/Diagramas',
       );
       expect(exportOrdersService.export).toHaveBeenCalledWith(res);
+    });
+  });
+
+  describe('exportReportToPublication (GET /ordens)', () => {
+    it('should set xlsx headers and delegate to export service', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      exportOrdersService.export.mockResolvedValue(undefined);
+
+      await controller.exportReportToPublication(res);
+
+      assertXlsxHeaders(
+        res as unknown as ReturnType<typeof makeMockResponse>,
+        'Exportação Relatório Publicações ',
+      );
+      expect(exportReportToPubliationService.export).toHaveBeenCalledWith(res);
     });
   });
 });

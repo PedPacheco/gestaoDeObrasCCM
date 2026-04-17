@@ -32,6 +32,7 @@ describe('RestrictionController ', () => {
             insertPublicationRestriction: jest.fn(),
             updatePublicationRestriction: jest.fn(),
             deletePublicationRestriction: jest.fn(),
+            getPublicationRestrictionsByWorkId: jest.fn(),
           },
         },
         { provide: UsersService, useValue: { findUser: jest.fn() } },
@@ -62,7 +63,7 @@ describe('RestrictionController ', () => {
     });
   });
 
-  it('Should call getPublicationRestriction service method with the provided filters and return a successful response with the expected structure', async () => {
+  it('Should call getScheduleRestricion service method with the provided filters and return a successful response with the expected structure', async () => {
     jest.spyOn(service, 'getScheduleRestricion').mockResolvedValue({
       works: [mockGetScheduleRestrictions],
       totals: { total_obras: 1 },
@@ -86,7 +87,7 @@ describe('RestrictionController ', () => {
     });
   });
 
-  it('Should call getPublicationRestriction service method with the provided filters, without idParceira in req and return a successful response with the expected structure', async () => {
+  it('Should call getScheduleRestricion service method with the provided filters, without idParceira in req and return a successful response with the expected structure', async () => {
     jest.spyOn(service, 'getScheduleRestricion').mockResolvedValue({
       works: [mockGetScheduleRestrictions],
       totals: { total_obras: 1 },
@@ -136,6 +137,21 @@ describe('RestrictionController ', () => {
         totals: { total_obras: 1 },
       },
       message: 'Restrições das programações retornadas com sucesso',
+      statusCode: 200,
+    });
+  });
+
+  it('Should call getPublicationRestrictionsByWorkId service method with the data and return a successful response with the expected structure', async () => {
+    jest
+      .spyOn(service, 'getPublicationRestrictionsByWorkId')
+      .mockResolvedValue([]);
+
+    const result = await controller.getPublicationsRestrictionsByWorkID(1);
+
+    expect(service.getPublicationRestrictionsByWorkId).toHaveBeenCalledWith(1);
+    expect(result).toEqual({
+      message: 'Restrições de publicação da obra retornadas com sucesso',
+      data: [],
       statusCode: 200,
     });
   });

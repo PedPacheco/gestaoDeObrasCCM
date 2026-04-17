@@ -55,25 +55,31 @@ async function fetchAllData(id: string, token?: string) {
       `${process.env.NEXT_PUBLIC_API_URL}/obras/${id}`,
       undefined,
       token,
-      FETCH_OPTIONS
+      FETCH_OPTIONS,
     ),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/relatorio-execucao/${id}`,
       undefined,
       token,
-      FETCH_OPTIONS
+      FETCH_OPTIONS,
     ),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/programacao/reprovacoes/${id}`,
       undefined,
       token,
-      FETCH_OPTIONS
+      FETCH_OPTIONS,
     ),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/viabilidade/${id}`,
       undefined,
       token,
-      FETCH_OPTIONS
+      FETCH_OPTIONS,
+    ),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/restricao/publicacoes/${id}`,
+      undefined,
+      token,
+      FETCH_OPTIONS,
     ),
   ]);
 }
@@ -89,10 +95,10 @@ function processWorkData(data: any) {
     prazo: prazo.toString(),
     prazoFinal: formatDate(prazoFinal),
     data_conclusao: formatDate(
-      data.data_conclusao ? dayjs(data.data_conclusao) : null
+      data.data_conclusao ? dayjs(data.data_conclusao) : null,
     ),
     dataEmpreitamento: formatDate(
-      data.data_empreitamento ? dayjs(data.data_empreitamento) : null
+      data.data_empreitamento ? dayjs(data.data_empreitamento) : null,
     ),
     backgroundColor: getBackgroundColor(data.grupo, data.ano_plan),
     executadoFormatted: formatPercentage(data.executado) || "",
@@ -111,6 +117,7 @@ export default async function Details({ params }: DetailsParams) {
     executionReportData,
     rejectionsData,
     feasibilityExists,
+    publicationRestriction,
   ] = await fetchAllData(id, token);
 
   // Validação de dados
@@ -139,6 +146,7 @@ export default async function Details({ params }: DetailsParams) {
             executionReportData={executionReportData.data}
             rejectionsData={rejectionsData.data}
             feasibilityExists={feasibilityExists.data}
+            publicationRestrictionData={publicationRestriction.data}
           />
         </div>
       </div>

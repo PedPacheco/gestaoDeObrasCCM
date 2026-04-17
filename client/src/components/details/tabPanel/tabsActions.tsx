@@ -12,7 +12,7 @@ interface TabActionsProps {
   valueTab: number;
   handleChange: (
     event: SyntheticEvent<Element, Event>,
-    newValue: number
+    newValue: number,
   ) => void;
   feasibilityExists: any[];
 }
@@ -43,6 +43,7 @@ const TabActions = memo(
           <Tab label="Programações" className="xl:text-lg" />
           <Tab label="Reprovações" className="xl:text-lg" />
           <Tab label="Relatórios execuções" className="xl:text-lg" />
+          <Tab label="Restrições Publicação" className="xl:text-lg" />
           <Tab label="Serviços" className="xl:text-lg" />
         </Tabs>
 
@@ -99,7 +100,7 @@ const TabActions = memo(
         )}
       </div>
     );
-  }
+  },
 );
 
 TabActions.displayName = "TabActions";
