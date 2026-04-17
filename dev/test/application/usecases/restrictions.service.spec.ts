@@ -18,6 +18,7 @@ describe('RestrictionsService', () => {
   const mockRepository = {
     getScheduleRestrictions: jest.fn(),
     getPublicationRestricion: jest.fn(),
+    getPublicationRestrictionByWorkId: jest.fn(),
     insertPublicationRestriction: jest.fn(),
     updatePublicationRestriction: jest.fn(),
     deletePublicationRestriction: jest.fn(),
@@ -32,6 +33,9 @@ describe('RestrictionsService', () => {
     }).compile();
 
     service = module.get<RestrictionsService>(RestrictionsService);
+
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   it('should be defined', () => {
@@ -57,7 +61,7 @@ describe('RestrictionsService', () => {
   });
 
   describe('GetPublicationRestrictions', () => {
-    it('should return publication restrictions and correctly format totals from repository response', async () => {
+    it('should return publication restrictions with status done and pending and correctly format totals from repository response', async () => {
       mockRepository.getPublicationRestricion.mockResolvedValue({
         works: [mockGetScheduleRestrictions],
       });
@@ -69,6 +73,90 @@ describe('RestrictionsService', () => {
       expect(response).toEqual({
         works: [mockGetScheduleRestrictions],
       });
+    });
+
+    it('should return publication restrictions with status done and correctly format totals from repository response', async () => {
+      mockRepository.getPublicationRestricion.mockResolvedValue({
+        works: [mockGetScheduleRestrictions],
+      });
+
+      await service.getPublicationRestriction({
+        ...mockGetRestrictionsFilters,
+        status: ['done'],
+        dataInicial: '01/10/2024',
+        dataFinal: '31/10/2024',
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const rest = (({ dataInicial, dataFinal, status, ...r }) => r)(
+        mockGetRestrictionsFilters,
+      );
+
+      expect(mockRepository.getPublicationRestricion).toHaveBeenCalledWith({
+        ...rest,
+        filterExecutado: true,
+        dataFinal: new Date('2024-10-31T03:00:00.000Z'),
+        dataInicial: new Date('2024-10-01T03:00:00.000Z'),
+      });
+    });
+
+    it('should return publication restrictions with status pending and correctly format totals from repository response', async () => {
+      mockRepository.getPublicationRestricion.mockResolvedValue({
+        works: [mockGetScheduleRestrictions],
+      });
+
+      await service.getPublicationRestriction({
+        ...mockGetRestrictionsFilters,
+        status: ['pending'],
+        dataInicial: '01/10/2024',
+        dataFinal: '31/10/2024',
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const rest = (({ dataInicial, dataFinal, status, ...r }) => r)(
+        mockGetRestrictionsFilters,
+      );
+
+      expect(mockRepository.getPublicationRestricion).toHaveBeenCalledWith({
+        ...rest,
+        filterExecutado: false, // ✅ aqui estava errado
+        dataFinal: new Date('2024-10-31T03:00:00.000Z'),
+        dataInicial: new Date('2024-10-01T03:00:00.000Z'),
+      });
+    });
+
+    it('should return publication restrictions without status and period date and correctly format totals from repository response', async () => {
+      mockRepository.getPublicationRestricion.mockResolvedValue({
+        works: [mockGetScheduleRestrictions],
+      });
+
+      await service.getPublicationRestriction({
+        ...mockGetRestrictionsFilters,
+        status: undefined,
+        dataFinal: undefined,
+        dataInicial: undefined,
+      });
+
+      expect(mockRepository.getPublicationRestricion).toHaveBeenCalledWith({
+        ...mockGetRestrictionsFilters,
+        status: undefined,
+        dataFinal: undefined,
+        dataInicial: undefined,
+      });
+    });
+  });
+
+  describe('GetScheduleRestrictons', () => {
+    it('should return schedule restrictions and correctly format totals from repository response', async () => {
+      mockRepository.getPublicationRestrictionByWorkId.mockResolvedValue([
+        { restricoes: { restricao: 'Data' }, status_resolucao: 'Pendente' },
+      ]);
+
+      const response = await service.getPublicationRestrictionsByWorkId(1);
+
+      expect(response).toEqual([
+        { restricao: 'Data', status_resolucao: 'Pendente' },
+      ]);
     });
   });
 

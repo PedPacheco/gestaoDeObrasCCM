@@ -14,7 +14,6 @@ import {
   Checkbox,
   Divider,
   InputAdornment,
-  InputLabel,
   FormControl,
   MenuItem,
   Select,
@@ -23,35 +22,12 @@ import {
 import { getButtonContent } from "@/utils/getButtonContent";
 import { capitalize } from "@/utils/formatValue";
 import { DateFilter } from "@/components/common/DateFilter";
-import { MagnifyingGlassCircleIcon } from "@heroicons/react/20/solid";
+import {
+  DocumentArrowDownIcon,
+  MagnifyingGlassCircleIcon,
+} from "@heroicons/react/20/solid";
 
 dayjs.extend(isoWeek);
-
-interface filters {
-  regional: { id: string; regional: string }[];
-  parceira: { id: string; turma: string }[];
-  tipo: { id: string; tipo_obra: string; id_grupo: number }[];
-  municipio: { id: string; municipio: string; id_regional: number }[];
-  grupo: { id: string; grupo: string }[];
-  restricao: { id: string; restricao: string; tipo_restricao: string };
-}
-
-interface ScheduleByDateFiltersProps {
-  data: filters;
-  keyFilters: string;
-  startDate: Dayjs | null;
-  endDate: Dayjs | null;
-  setStartDate: (date: Dayjs | null) => void;
-  setEndDate: (date: Dayjs | null) => void;
-  selectedUser: string | null;
-  setSelectedUser: (user: string | null) => void;
-  uniqueNames: string[];
-  applyFilters: (
-    params: Record<string, string | boolean | string | null>,
-  ) => void;
-  isPending: boolean;
-  isPublication: boolean;
-}
 
 export default function RestrictionFilters({
   data,
@@ -66,7 +42,8 @@ export default function RestrictionFilters({
   applyFilters,
   isPending,
   isPublication,
-}: ScheduleByDateFiltersProps) {
+  generateExcel,
+}: any) {
   const { clearFilters, filters, saveFilters } = useSaveFilters({
     pageKey: keyFilters,
     data: data,
@@ -75,50 +52,73 @@ export default function RestrictionFilters({
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {},
   );
-  const [ovnota, setOvnota] = useState<string>("");
-  const [executed, setExecuted] = useState<boolean>(false);
+  const [ovnota, setOvnota] = useState("");
 
+  const [statusFilter, setStatusFilter] = useState({
+    done: false,
+    pending: false,
+  });
+
+  // 🔥 carregar filtros salvos
   useEffect(() => {
     if (filters) {
-      setSelectedItems(filters.selectedItems);
-      setExecuted(filters.executed);
+      setSelectedItems(filters.selectedItems || {});
+      setStatusFilter(filters.statusFilter || { done: false, pending: false });
     }
   }, [filters]);
 
-  function handleApplyFilters() {
-    saveFilters({ selectedItems, executed, startDate, endDate });
-
+  // 🎯 montar payload padronizado
+  function buildParams() {
     const formattedSelectedItems = Transform(selectedItems);
 
-    const params = {
+    const status: string[] = [];
+
+    if (statusFilter.done) status.push("done");
+    if (statusFilter.pending) status.push("pending");
+
+    return {
       ...formattedSelectedItems,
       dataInicial: startDate ? startDate.format("DD/MM/YYYY") : null,
       dataFinal: endDate ? endDate.format("DD/MM/YYYY") : null,
-      executado: executed,
+
+      status: status.length ? status.join(",") : null,
     };
+  }
+
+  function handleApplyFilters() {
+    const params = buildParams();
+
+    saveFilters({
+      selectedItems,
+      statusFilter,
+      startDate,
+      endDate,
+    });
 
     applyFilters(params);
   }
 
-  function handleCleanigFilters() {
+  function handleGenerateExcel() {
+    const params = buildParams();
+    generateExcel(params);
+  }
+
+  function handleCleaningFilters() {
     setSelectedItems({});
     setStartDate(null);
     setEndDate(null);
-    setExecuted(false);
+    setStatusFilter({ done: false, pending: false });
     setSelectedUser(null);
+    setOvnota("");
 
     clearFilters();
 
-    applyFilters({
-      executado: "false",
-    });
+    applyFilters({});
   }
 
   return (
     <div className="flex flex-col gap-3 p-4 bg-white rounded-xl shadow-sm border border-gray-100">
-      {/* ── LINHA ÚNICA: Datas + Selects + campos de publicação ──
-          Sem isPublication : 8 cols (2 datas + 6 selects)
-          Com isPublication : 10 cols (2 datas + 6 selects + usuário + OV/nota) */}
+      {/* GRID */}
       <div
         className={`grid gap-3 items-start
           grid-cols-2
@@ -126,7 +126,7 @@ export default function RestrictionFilters({
           ${isPublication ? "lg:grid-cols-10" : "lg:grid-cols-8"}
         `}
       >
-        {/* Datas — col-span-2 dividido internamente em 2 */}
+        {/* Datas */}
         <div className="col-span-2 grid grid-cols-2 gap-2">
           <DateFilter
             startDate={startDate}
@@ -136,10 +136,10 @@ export default function RestrictionFilters({
           />
         </div>
 
-        {/* 6 selects principais */}
+        {/* Selects */}
         {Object.entries(data)
           .slice(0, 6)
-          .map(([key, value], index) => {
+          .map(([key, value]: any, index) => {
             const valueKey = Object.keys(value[0])[0];
             const displayKey = Object.keys(value[0])[1];
 
@@ -165,14 +165,12 @@ export default function RestrictionFilters({
             );
           })}
 
-        {/* Campos exclusivos de publicação — mesma coluna que os selects */}
+        {/* Publicação */}
         {isPublication && (
           <>
-            {/* Select usuário */}
             <FormControl size="small" className="w-full pl-4">
               <Select
                 value={selectedUser || ""}
-                label="Usuário"
                 onChange={(e) => setSelectedUser(e.target.value || null)}
                 displayEmpty
               >
@@ -185,12 +183,11 @@ export default function RestrictionFilters({
               </Select>
             </FormControl>
 
-            {/* Campo OV / Nota */}
             <TextField
               size="small"
               label="OV / Nota"
               value={ovnota}
-              onChange={(event) => setOvnota(event.target.value)}
+              onChange={(e) => setOvnota(e.target.value)}
               className="w-full"
               InputProps={{
                 startAdornment: (
@@ -210,31 +207,59 @@ export default function RestrictionFilters({
 
       <Divider className="!my-0.5" />
 
-      {/* ── Checkbox + Botões ── */}
+      {/* ✅ CHECKBOXES NOVOS */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <label className="flex items-center gap-1.5 cursor-pointer select-none w-fit">
-          <Checkbox
-            onChange={() => setExecuted(!executed)}
-            checked={executed}
-            size="small"
-          />
-          <span className="text-sm text-gray-700 whitespace-nowrap">
-            {isPublication
-              ? "Restrições Concluídas"
-              : "Programações Executadas"}
-          </span>
-        </label>
+        <div className="flex gap-4">
+          <label className="flex items-center gap-1.5 cursor-pointer">
+            <Checkbox
+              checked={statusFilter.done}
+              onChange={() =>
+                setStatusFilter((prev) => ({
+                  ...prev,
+                  done: !prev.done,
+                }))
+              }
+              size="small"
+            />
+            <span className="text-sm text-gray-700">Concluídas</span>
+          </label>
 
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <label className="flex items-center gap-1.5 cursor-pointer">
+            <Checkbox
+              checked={statusFilter.pending}
+              onChange={() =>
+                setStatusFilter((prev) => ({
+                  ...prev,
+                  pending: !prev.pending,
+                }))
+              }
+              size="small"
+            />
+            <span className="text-sm text-gray-700">Pendentes</span>
+          </label>
+        </div>
+
+        {/* BOTÕES */}
+        <div className="flex flex-col sm:flex-row gap-3 w-1/3">
+          {isPublication && (
+            <ButtonComponent
+              onClick={handleGenerateExcel}
+              text="Exportar"
+              styled="flex-1 w-full"
+              startIcon={<DocumentArrowDownIcon width={20} height={20} />}
+            />
+          )}
+
           <ButtonComponent
             onClick={handleApplyFilters}
             text={getButtonContent(isPending, "Aplicar filtros")}
-            styled="w-full sm:w-auto"
+            styled="flex-1 w-full"
           />
+
           <ButtonComponent
-            onClick={handleCleanigFilters}
+            onClick={handleCleaningFilters}
             text={getButtonContent(isPending, "Limpar filtros")}
-            styled="w-full sm:w-auto"
+            styled="flex-1 w-full"
           />
         </div>
       </div>

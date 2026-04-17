@@ -354,6 +354,8 @@ describe('ExportRepository', () => {
               ordem_dca: true,
               ordem_dcim: true,
               executado: true,
+              entrada: true,
+              prazo: true,
               tipos: { select: { tipo_obra: true } },
               status: { select: { status: true } },
               turmas: { select: { turma: true } },
