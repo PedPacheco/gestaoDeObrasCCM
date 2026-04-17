@@ -95,8 +95,8 @@ describe('RestrictionsService', () => {
       expect(mockRepository.getPublicationRestricion).toHaveBeenCalledWith({
         ...rest,
         filterExecutado: true,
-        dataFinal: new Date('2024-10-31T03:00:00.000Z'),
-        dataInicial: new Date('2024-10-01T03:00:00.000Z'),
+        dataFinal: moment('2024-10-31').startOf('day').toDate(),
+        dataInicial: moment('2024-10-01').startOf('day').toDate(),
       });
     });
 
@@ -120,8 +120,8 @@ describe('RestrictionsService', () => {
       expect(mockRepository.getPublicationRestricion).toHaveBeenCalledWith({
         ...rest,
         filterExecutado: false, // ✅ aqui estava errado
-        dataFinal: new Date('2024-10-31T03:00:00.000Z'),
-        dataInicial: new Date('2024-10-01T03:00:00.000Z'),
+        dataFinal: moment('2024-10-31').startOf('day').toDate(),
+        dataInicial: moment('2024-10-01').startOf('day').toDate(),
       });
     });
 
