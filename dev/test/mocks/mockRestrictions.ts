@@ -46,7 +46,7 @@ export const mockGetRestrictionsFilters: GetRestrictionsDTO = {
   idTipo: [5],
   idParceira: [7],
   idRestricao: [2, 4],
-  executado: false,
+  status: ['done', 'pending'],
   page: 0,
 };
 

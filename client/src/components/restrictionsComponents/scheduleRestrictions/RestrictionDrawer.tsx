@@ -230,7 +230,10 @@ export default function RestrictionDrawer({
               onChange={(e) =>
                 handleChange(index, "constructionObservation", e.target.value)
               }
-              disabled={permissions?.permissao_publicacao}
+              disabled={
+                permissions?.permissao_publicacao ||
+                permissions?.permissao === "Total"
+              }
               margin="normal"
             />
 
@@ -241,7 +244,10 @@ export default function RestrictionDrawer({
               >
                 <DatePicker
                   label="Data resolução"
-                  disabled={permissions?.permissao_publicacao}
+                  disabled={
+                    permissions?.permissao_publicacao ||
+                    permissions?.permissao === "Total"
+                  }
                   value={
                     restriction.resolutionDate
                       ? dayjs(restriction.resolutionDate, "DD/MM/YYYY")

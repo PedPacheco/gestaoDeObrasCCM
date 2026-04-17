@@ -21,21 +21,31 @@ export default async function PublicationRestriction() {
   let filtersValues = undefined;
 
   if (params) {
-    const formattedSelectedItems = Transform(params.selectedItems);
+    const formattedSelectedItems = Transform(params.selectedItems || {});
+
+    // 🔥 compatibilidade com formato antigo (executed)
+    const statusFilter = params?.statusFilter ?? {
+      done: params?.executed === false,
+      pending: params?.executed === true,
+    };
 
     filtersValues = {
       ...formattedSelectedItems,
+
       dataInicial: params?.startDate
-        ? dayjs(params?.startDate).format("DD/MM/YYYY")
+        ? dayjs(params.startDate).format("DD/MM/YYYY")
         : null,
+
       dataFinal: params?.endDate
-        ? dayjs(params?.endDate).format("DD/MM/YYYY")
+        ? dayjs(params.endDate).format("DD/MM/YYYY")
         : null,
-      executado: params.executed,
+
+      // 🔥 novo padrão
+      status: statusFilter.length ? statusFilter.join(",") : null,
     };
   } else {
     filtersValues = {
-      executado: "false",
+      status: null,
     };
   }
 

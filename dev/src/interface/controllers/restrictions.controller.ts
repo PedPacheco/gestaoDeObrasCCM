@@ -107,6 +107,21 @@ export class RestrictionController {
     };
   }
 
+  @Get('publicacoes/:id')
+  @UseGuards(VisualizationGuard)
+  async getPublicationsRestrictionsByWorkID(
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    const response =
+      await this.restrictionsService.getPublicationRestrictionsByWorkId(id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Restrições de publicação da obra retornadas com sucesso',
+      data: response,
+    };
+  }
+
   @Delete('publicacoes/:id')
   @UseGuards(PermissionGuard)
   async deletePublicationRestrictions(@Param('id', ParseIntPipe) id: number) {
