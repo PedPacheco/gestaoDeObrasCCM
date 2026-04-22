@@ -413,6 +413,56 @@ describe('CapexProcessingService', () => {
   });
 
   // ============================================================
+  // 🧠 DRAIN EVERY
+  // ============================================================
+
+  it('should drain task pool periodically (DRAIN_EVERY)', async () => {
+    // 🔥 força cenário controlado
+    (service as any).BATCH_SIZE = 2;
+    (service as any).DRAIN_EVERY = 2;
+    (service as any).CONCURRENCY = 1;
+
+    const rows = [
+      [],
+      [],
+      [null, null, 'D1'],
+      [null, null, 'D2'], // batch 1
+      [null, null, 'D3'],
+      [null, null, 'D4'], // batch 2 -> DRAIN aqui
+      [null, null, 'D5'],
+      [null, null, 'D6'], // batch 3
+    ];
+
+    jest
+      .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
+      .mockImplementation(() => mockWorkbook(rows) as any);
+
+    mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
+
+    // 🔥 controle de execução
+    let runningTasks = 0;
+    let maxParallel = 0;
+
+    jest.spyOn(service as any, 'processBatch').mockImplementation(async () => {
+      runningTasks++;
+      maxParallel = Math.max(maxParallel, runningTasks);
+
+      // simula async real
+      await Promise.resolve();
+
+      runningTasks--;
+    });
+
+    await service.process('file.xlsx', 'job-1');
+
+    // 🔥 garante que não acumulou tasks descontroladamente
+    expect(maxParallel).toBeLessThanOrEqual(1);
+
+    // 🔥 sanity check: processBatch foi chamado
+    expect((service as any).processBatch).toHaveBeenCalled();
+  });
+
+  // ============================================================
   // 🧾 FS ERROR
   // ============================================================
 

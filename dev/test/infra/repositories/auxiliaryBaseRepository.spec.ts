@@ -258,6 +258,147 @@ describe('AuxiliaryBaseRepository', () => {
     });
   });
 
+  describe('withRetry (private)', () => {
+    const callWithRetry = <T>(fn: () => Promise<T>) =>
+      (repository as any).withRetry(fn, 'teste');
+
+    beforeEach(() => {
+      jest.spyOn(global, 'setTimeout').mockImplementation((fn: any) => {
+        fn();
+        return {} as any;
+      });
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('should resolve on first attempt', async () => {
+      const operation = jest.fn().mockResolvedValue('success');
+
+      const result = await callWithRetry(operation);
+
+      expect(result).toBe('success');
+      expect(operation).toHaveBeenCalledTimes(1);
+    });
+
+    it('should retry on connection error and succeed', async () => {
+      const error = new Error('connection refused');
+      const operation = jest
+        .fn()
+        .mockRejectedValueOnce(error)
+        .mockResolvedValueOnce('success');
+
+      const loggerSpy = jest.spyOn(repository['logger'], 'warn');
+
+      const result = await callWithRetry(operation);
+
+      expect(result).toBe('success');
+      expect(operation).toHaveBeenCalledTimes(2);
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Tentativa 1'),
+      );
+    });
+
+    it('should retry based on prisma error code', async () => {
+      const error = { message: 'random', code: 'P1001' };
+
+      const operation = jest
+        .fn()
+        .mockRejectedValueOnce(error)
+        .mockResolvedValueOnce('ok');
+
+      const result = await callWithRetry(operation);
+
+      expect(result).toBe('ok');
+      expect(operation).toHaveBeenCalledTimes(2);
+    });
+
+    it('should NOT retry on non-connection error', async () => {
+      const error = new Error('validation failed');
+
+      const operation = jest.fn().mockRejectedValue(error);
+
+      await expect(callWithRetry(operation)).rejects.toThrow(
+        'validation failed',
+      );
+
+      expect(operation).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw after max retries', async () => {
+      const error = new Error('connection refused');
+
+      const operation = jest.fn().mockRejectedValue(error);
+
+      await expect(callWithRetry(operation)).rejects.toThrow(
+        'connection refused',
+      );
+
+      // depende do seu MAX_RETRIES (assumindo 3)
+      expect(operation).toHaveBeenCalledTimes(repository['MAX_RETRIES']);
+    });
+
+    it('should apply exponential backoff delays', async () => {
+      const error = new Error('connection refused');
+
+      const operation = jest
+        .fn()
+        .mockRejectedValueOnce(error)
+        .mockRejectedValueOnce(error)
+        .mockResolvedValueOnce('ok');
+
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
+      await callWithRetry(operation);
+
+      expect(setTimeoutSpy).toHaveBeenCalledTimes(2);
+
+      expect(setTimeoutSpy).toHaveBeenNthCalledWith(
+        1,
+        expect.any(Function),
+        300,
+      );
+
+      expect(setTimeoutSpy).toHaveBeenNthCalledWith(
+        2,
+        expect.any(Function),
+        600,
+      );
+    });
+
+    it('should throw original error after max retries', async () => {
+      const error = new Error('connection refused');
+
+      const operation = jest.fn().mockRejectedValue(error);
+
+      const call = () =>
+        (repository as any).withRetry(operation, 'teste-final');
+
+      await expect(call()).rejects.toThrow('connection refused');
+
+      expect(operation).toHaveBeenCalledTimes((repository as any).MAX_RETRIES);
+    });
+
+    it('should handle error without message safely', async () => {
+      const error = { code: 'P1001' }; // sem message
+
+      const operation = jest
+        .fn()
+        .mockRejectedValueOnce(error)
+        .mockResolvedValueOnce('ok');
+
+      const result = await (repository as any).withRetry(
+        operation,
+        'teste-sem-message',
+      );
+
+      expect(result).toBe('ok');
+      expect(operation).toHaveBeenCalledTimes(2);
+    });
+  });
+
   describe('insertMarket', () => {
     it('should call the method insertMarket and insert data in the auxiliary base ov', async () => {
       mockPrisma.municipios.findMany.mockResolvedValue([{ id: 2, mun: 'SJC' }]);
@@ -378,6 +519,7 @@ describe('AuxiliaryBaseRepository', () => {
 
       expect(mockPrisma.cn52n.createMany).toHaveBeenCalledWith({
         data: mockCalculatedValues,
+        skipDuplicates: true,
       });
       expect(mockPrisma.cn52n.createMany).toHaveBeenCalledTimes(1);
     });

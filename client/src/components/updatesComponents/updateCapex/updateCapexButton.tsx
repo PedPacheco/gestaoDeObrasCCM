@@ -24,6 +24,16 @@ import { Box, LinearProgress, Typography } from "@mui/material";
  *
  * Componente ImportCapexButton (polling) e a rota [jobId]/progress foram removidos.
  */
+
+const phaseMessages: Record<string, string> = {
+  reading: "Lendo arquivo",
+  processing: "Processando dados",
+  loading: "Carregando dados",
+  calculando: "Calculando valores",
+  updating: "Atualizando valores",
+  done: "Finalizado",
+};
+
 export function CapexPipelineButton({ token }: { token?: string }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -154,7 +164,7 @@ export function CapexPipelineButton({ token }: { token?: string }) {
 
           <Box className="flex justify-between items-center">
             <Typography variant="caption" color="text.secondary">
-              {phase ?? "aguardando"}
+              {phase ? phaseMessages[phase] : "aguardando"}
             </Typography>
             {progress !== null && (
               <Typography variant="caption" color="text.secondary">
