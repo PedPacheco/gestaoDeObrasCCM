@@ -16,6 +16,6 @@ import { RestrictionsService } from 'src/application/usecases/restrictions.servi
       useClass: RestrictionsRepository,
     },
   ],
-  exports: [],
+  exports: [RestrictionsService],
 })
 export class RestrictionsModule {}

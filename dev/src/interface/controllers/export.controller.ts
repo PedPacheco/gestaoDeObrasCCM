@@ -42,6 +42,10 @@ import { GoalsDTO } from '../dtos/goalsDto';
 import { ExportGoalsService } from 'src/application/usecases/export/exportGoals.service';
 import { GoalsService } from 'src/application/usecases/goals.service';
 import { ExportOrdersService } from 'src/application/usecases/export/exportOrders.service';
+import { GetRestrictionsDTO } from '../dtos/restrictionsDTO';
+import { RestrictionsService } from 'src/application/usecases/restrictions.service';
+import { ExportPublicationRestrictionService } from 'src/application/usecases/export/exportPublicationRestriction.service';
+import { ExportReportToPubliationService } from 'src/application/usecases/export/exportReportToPublication.service';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -71,6 +75,9 @@ export class ExportController {
     // Goals
     private readonly getGoalsService: GoalsService,
 
+    // Restrictions
+    private readonly restrictionsService: RestrictionsService,
+
     // Export - Standard
     private readonly exportScheduleService: ExportScheduleService,
     private readonly exportWorksInPortfolioService: ExportWorksInPortfolioService,
@@ -85,6 +92,8 @@ export class ExportController {
     private readonly exportRejectionsService: ExportRejectionsService,
     private readonly exportGoalsService: ExportGoalsService,
     private readonly exportOrdersService: ExportOrdersService,
+    private readonly exportPublicationRestrictionService: ExportPublicationRestrictionService,
+    private readonly exportReportToPublicationService: ExportReportToPubliationService,
 
     // Export - BI
     private readonly exportWorksInPortfolioBIService: ExportWorksInPortfolioBI,
@@ -218,6 +227,24 @@ export class ExportController {
     return this.exportGoalsService.export(goalsData, res);
   }
 
+  @Get('publicacoes')
+  @UseGuards(VisualizationGuard)
+  async exportPublicationRestrictions(
+    @Query() filters: GetRestrictionsDTO,
+    @Res() res: Response,
+    @Req() req: CustomRequest,
+  ) {
+    const appliedFilters = this.applyFilters(filters, req);
+    const publicationRestrictionData =
+      await this.restrictionsService.getPublicationRestriction(appliedFilters);
+
+    this.setXlsxHeaders(res, 'Exportação Restrições de Publicação');
+    return this.exportPublicationRestrictionService.export(
+      publicationRestrictionData,
+      res,
+    );
+  }
+
   // ─────────────────────────────────────────────
   // BI routes (PermissionGuard - no filters)
   // ─────────────────────────────────────────────
@@ -298,5 +325,12 @@ export class ExportController {
   async exportOrders(@Res() res: Response) {
     this.setXlsxHeaders(res, 'Exportação Ordens/Diagramas');
     return this.exportOrdersService.export(res);
+  }
+
+  @Get('relatorio-publicacoes')
+  @UseGuards(VisualizationGuard)
+  async exportReportToPublication(@Res() res: Response) {
+    this.setXlsxHeaders(res, 'Exportação Relatório Publicações ');
+    return this.exportReportToPublicationService.export(res);
   }
 }

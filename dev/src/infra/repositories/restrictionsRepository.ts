@@ -1,28 +1,33 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+
 import { IRestrictionsRepository } from 'src/domain/repositories/IRestrictionsRepository';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
 import { GetScheduleRestrictions } from 'src/interface/types/schedule/getScheduleRestrictionsInterface';
-import moment from 'moment';
 import {
-  GetRestrictionsDTO,
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
 } from 'src/interface/dtos/restrictionsDTO';
+import { ProcessedRestrictionsFilters } from 'src/application/usecases/restrictions.service';
 
 @Injectable()
 export class RestrictionsRepository implements IRestrictionsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * Aplica os filtros já processados à query SQL.
+   * Não contém regras de negócio — apenas constrói cláusulas WHERE
+   * a partir de valores prontos recebidos do service.
+   */
   private applyFilters(
     query: Prisma.Sql,
-    filters: GetRestrictionsDTO,
-    typeRestriction: string,
-  ) {
+    filters: ProcessedRestrictionsFilters,
+    typeRestriction: 'schedule' | 'publication',
+  ): Prisma.Sql {
     const {
       dataInicial,
       dataFinal,
-      executado,
+      filterExecutado,
       idGrupo,
       idMunicipio,
       idParceira,
@@ -32,34 +37,27 @@ export class RestrictionsRepository implements IRestrictionsRepository {
       ovnota,
     } = filters;
 
-    const ini = dataInicial
-      ? moment(dataInicial, 'DD/MM/YYYY').toDate()
-      : undefined;
-    const fim = dataFinal
-      ? moment(dataFinal, 'DD/MM/YYYY').toDate()
-      : undefined;
-
-    if (ini && fim && typeRestriction === 'schedule') {
-      query = Prisma.sql`${query} AND programacoes.data_prog BETWEEN ${ini} AND ${fim}`;
+    if (dataInicial && dataFinal && typeRestriction === 'schedule') {
+      query = Prisma.sql`${query} AND programacoes.data_prog BETWEEN ${dataInicial} AND ${dataFinal}`;
     }
 
-    if (ini && fim && typeRestriction === 'publication') {
-      query = Prisma.sql`${query} AND data_conclusao BETWEEN ${ini} AND ${fim}`;
+    if (dataInicial && dataFinal && typeRestriction === 'publication') {
+      query = Prisma.sql`${query} AND data_conclusao BETWEEN ${dataInicial} AND ${dataFinal}`;
     }
 
-    if (executado && typeRestriction === 'publication') {
+    if (filterExecutado === true && typeRestriction === 'publication') {
       query = Prisma.sql`${query} AND restricoes_publicacoes.data_resolucao IS NOT NULL`;
     }
 
-    if (!executado && typeRestriction === 'publication') {
+    if (filterExecutado === false && typeRestriction === 'publication') {
       query = Prisma.sql`${query} AND restricoes_publicacoes.data_resolucao IS NULL`;
     }
 
-    if (executado && typeRestriction === 'schedule') {
+    if (filterExecutado === true && typeRestriction === 'schedule') {
       query = Prisma.sql`${query} AND programacoes.exec IS NOT NULL`;
     }
 
-    if (!executado && typeRestriction === 'schedule') {
+    if (filterExecutado === false && typeRestriction === 'schedule') {
       query = Prisma.sql`${query} AND programacoes.exec IS NULL`;
     }
 
@@ -99,9 +97,9 @@ export class RestrictionsRepository implements IRestrictionsRepository {
   }
 
   async getScheduleRestrictions(
-    filters: GetRestrictionsDTO,
+    filters: ProcessedRestrictionsFilters,
   ): Promise<{ works: GetScheduleRestrictions[]; totals: any[] }> {
-    const { page } = filters;
+    const { page = 0 } = filters;
     const limit = 200;
     const offset = page * limit;
 
@@ -152,7 +150,6 @@ export class RestrictionsRepository implements IRestrictionsRepository {
         programacoes.area_responsavel2,
         programacoes.status_restricao2,
         programacoes.data_resolucao2
-      
       ${baseQuery}
     `;
 
@@ -162,22 +159,20 @@ export class RestrictionsRepository implements IRestrictionsRepository {
     countQuery = this.applyFilters(countQuery, filters, 'schedule');
 
     query = Prisma.sql`${query} ORDER BY programacoes.data_prog, obras.ovnota`;
-
     query = Prisma.sql`${query} LIMIT ${limit} OFFSET ${offset}`;
 
     const [works, totals] = await Promise.all([
-      await this.prisma.$queryRaw<GetScheduleRestrictions[]>(query),
-      await this.prisma.$queryRaw<any[]>(countQuery),
+      this.prisma.$queryRaw<GetScheduleRestrictions[]>(query),
+      this.prisma.$queryRaw<any[]>(countQuery),
     ]);
 
     return { works, totals };
   }
 
   async getPublicationRestricion(
-    filters: GetRestrictionsDTO,
+    filters: ProcessedRestrictionsFilters,
   ): Promise<{ works: any[] }> {
-    try {
-      const baseQuery = Prisma.sql`
+    const baseQuery = Prisma.sql`
       FROM construcao_sp.obras
       INNER JOIN construcao_sp.municipios 
         ON municipios.id = obras.id_gpm
@@ -198,7 +193,7 @@ export class RestrictionsRepository implements IRestrictionsRepository {
       WHERE 1=1
     `;
 
-      let query = Prisma.sql`
+    let query = Prisma.sql`
       SELECT 
         obras.id,
         obras.ovnota,
@@ -225,16 +220,43 @@ export class RestrictionsRepository implements IRestrictionsRepository {
       ${baseQuery}
     `;
 
-      query = this.applyFilters(query, filters, 'publication');
+    query = this.applyFilters(query, filters, 'publication');
+    query = Prisma.sql`${query} ORDER BY obras.data_conclusao DESC`;
 
-      query = Prisma.sql`${query} ORDER BY obras.data_conclusao DESC`;
+    const works = await this.prisma.$queryRaw<any[]>(query);
 
-      const works = await this.prisma.$queryRaw<any[]>(query);
+    return { works };
+  }
 
-      return { works };
-    } catch (error) {
-      throw error;
-    }
+  async getPublicationRestrictionByWorkId(id: number): Promise<any[]> {
+    const value = id.toString();
+
+    return await this.prisma.restricoes_publicacoes.findMany({
+      where: {
+        obras: {
+          OR: [
+            { id: value.length >= 10 ? undefined : id },
+            { ovnota: value },
+            { ordem_dci: value },
+            { ordem_dcd: value },
+            { ordem_dca: value },
+            { ordem_dcim: value },
+            { diagrama: value },
+          ],
+        },
+      },
+      select: {
+        restricoes: { select: { restricao: true } },
+        responsabilidade: true,
+        nome_responsavel: true,
+        status_restricao: true,
+        data_resolucao: true,
+        criado_em: true,
+        criado_por: true,
+        observacao: true,
+        observacao_construcao: true,
+      },
+    });
   }
 
   async insertPublicationRestriction(
