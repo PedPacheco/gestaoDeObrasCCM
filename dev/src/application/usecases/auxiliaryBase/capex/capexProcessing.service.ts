@@ -39,10 +39,22 @@ export class CapexProcessingService {
   private readonly obraCache = new Map<string, number>();
   private readonly progressMap = new Map<string, ImportProgressState>();
 
+  // Tamanho do batch de leitura do Excel antes de despachar para o banco.
+  // Mantido em 1 000 — o repositório cuida de subdividir em mini-batches de INSERT.
   private readonly BATCH_SIZE = 1000;
+
   private readonly MAX_CACHE = 50_000;
-  private readonly CONCURRENCY = 3;
+
+  // Máximo de processBatch rodando em paralelo.
+  // Aumentado de 3 → 5 porque cada processBatch agora envia vários INSERTs
+  // menores em vez de um único INSERT enorme, reduzindo a pressão por conexão.
+  private readonly CONCURRENCY = 5;
+
   private readonly READ_EMIT_INTERVAL = 1000;
+
+  // A cada quantos batches despachados aguardamos o pool de tasks pendentes.
+  // Evita acumular centenas de Promises em memória ao processar arquivos grandes.
+  private readonly DRAIN_EVERY = 20;
 
   private readonly limit = pLimit(this.CONCURRENCY);
 
@@ -63,7 +75,10 @@ export class CapexProcessingService {
       onProgress?.(payload);
     };
 
-    const tasks: Promise<void>[] = [];
+    // Mantemos apenas as tasks do "ciclo atual" (até DRAIN_EVERY batches).
+    // Depois de cada drain, o array é zerado — evitando crescimento ilimitado.
+    let tasks: Promise<void>[] = [];
+    let batchesDispatched = 0;
 
     try {
       await this.repository.truncateCN52N();
@@ -125,6 +140,7 @@ export class CapexProcessingService {
             );
 
             processed += chunk.length;
+            batchesDispatched++;
 
             emit({
               phase: 'processing',
@@ -132,10 +148,18 @@ export class CapexProcessingService {
               percentage: this.calcProcessingPct(processed),
               message: `${processed} registros processados`,
             });
+
+            // Drena o pool periodicamente para liberar memória e garantir
+            // que erros de conexão sejam propagados antes do fim do arquivo.
+            if (batchesDispatched % this.DRAIN_EVERY === 0) {
+              await Promise.all(tasks);
+              tasks = [];
+            }
           }
         }
       }
 
+      // Último batch (menor que BATCH_SIZE)
       if (batch.length > 0) {
         const chunk = batch;
 
@@ -148,7 +172,7 @@ export class CapexProcessingService {
         processed += chunk.length;
       }
 
-      // 🔥 garante que tudo terminou
+      // Aguarda tasks restantes
       await Promise.all(tasks);
 
       emit({
