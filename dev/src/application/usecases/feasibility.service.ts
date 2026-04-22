@@ -42,7 +42,10 @@ export class FeasibilityService {
   }
 
   async deleteFeasibilityFiles(idWork: number) {
+    console.log(idWork);
     const files = await this.feasibilityRepository.findFiles(idWork);
+
+    console.log(files);
 
     if (!files.length) {
       throw new BadRequestException('Nenhum arquivo encontrado para esta obra');
