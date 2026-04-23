@@ -100,7 +100,6 @@ export class CapexGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const event: CapexProgressEvent = { jobId, ...payload };
 
     this.updateCache(jobId, event);
-    console.log(event);
     this.server.to(jobId).emit('capex:progress', event);
   }
 
