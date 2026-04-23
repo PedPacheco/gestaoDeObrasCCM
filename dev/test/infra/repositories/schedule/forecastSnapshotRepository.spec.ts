@@ -13,6 +13,7 @@ describe('SaveForecastSnapshotRepository', () => {
       create: jest.fn(),
       findUnique: jest.fn(),
       findMany: jest.fn(),
+      delete: jest.fn(),
     },
   };
 
@@ -50,11 +51,15 @@ describe('SaveForecastSnapshotRepository', () => {
     totalServiceMoPend: 20,
     totalServiceMoPrev: 110,
     totalServiceMoExec: 90,
+    totalServiceMoForecast: 100,
     totalMaterialMoProg: 80,
     totalMaterialMoPlan: 90,
     totalMaterialMoPend: 10,
     totalMaterialMoPrev: 85,
     totalMaterialMoExec: 70,
+    totalMaterialMoForecast: 90,
+    execTotal: 100,
+    forecastTotal: 200,
     diff: -30,
     ...override,
   });
@@ -92,10 +97,14 @@ describe('SaveForecastSnapshotRepository', () => {
         totalServiceMoPlanByGrouping: 500000,
         totalServiceMoPendByGrouping: 80000,
         totalServiceMoExecByGrouping: 420000,
+        totalServiceMoForecastByGrouping: 320000,
         totalMaterialMoProgByGrouping: 310000,
         totalMaterialMoPlanByGrouping: 295000,
         totalMaterialMoPendByGrouping: 45000,
         totalMaterialMoExecByGrouping: 250000,
+        totalMaterialMoForecastByGrouping: 200000,
+        totalExec: 100000,
+        totalForecast: 200000,
         totalDiff: -85000,
       },
     },
@@ -365,6 +374,20 @@ describe('SaveForecastSnapshotRepository', () => {
       where.gerado_em = {};
 
       await expect(repository.getAll(where)).rejects.toThrow('Database error');
+    });
+  });
+
+  describe('delete', () => {
+    it('should call delete method with sent id', async () => {
+      prismaMock.forecast_snapshot.delete.mockResolvedValue({});
+
+      await repository.delete(1);
+
+      expect(prismaService.forecast_snapshot.delete).toHaveBeenCalledTimes(1);
+
+      expect(prismaService.forecast_snapshot.delete).toHaveBeenCalledWith({
+        where: { id: 1 },
+      });
     });
   });
 });

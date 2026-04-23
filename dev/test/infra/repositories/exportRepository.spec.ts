@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import * as moment from 'moment';
+import moment from 'moment';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { ExportRepository } from 'src/infra/repositories/exportRepository';
 import { mockFindByWorkIdResponseFormatted } from '../../mocks/mocksExecutionReport';
@@ -354,6 +354,8 @@ describe('ExportRepository', () => {
               ordem_dca: true,
               ordem_dcim: true,
               executado: true,
+              entrada: true,
+              prazo: true,
               tipos: { select: { tipo_obra: true } },
               status: { select: { status: true } },
               turmas: { select: { turma: true } },

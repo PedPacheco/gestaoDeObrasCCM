@@ -7,7 +7,7 @@ import {
   TextField,
 } from "@mui/material";
 import { ScheduleCard } from "./scheduleCard";
-import { FormData } from "@/hooks/useScheduleForm";
+import { FormData } from "@/hooks/details/useScheduleForm";
 
 interface EquipmentCardProps {
   formData: FormData;

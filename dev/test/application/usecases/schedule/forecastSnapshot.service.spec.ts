@@ -3,7 +3,7 @@ import { ForecastSnapshotService } from 'src/application/usecases/schedule/forec
 import { FORECAST_SNAPSHOT } from 'src/domain/repositories/schedule/IForecastSnapshotRepository';
 import { createForecastSnapshotMock } from '../../../mocks/mockAddScheduleService';
 
-import * as moment from 'moment';
+import moment from 'moment';
 
 describe('ForecastSnapshotService', () => {
   let service: ForecastSnapshotService;
@@ -87,10 +87,14 @@ describe('ForecastSnapshotService', () => {
               totalServiceMoPlanByGrouping: 500000,
               totalServiceMoPendByGrouping: 80000,
               totalServiceMoExecByGrouping: 420000,
+              totalServiceMoForecastByGrouping: 40000,
               totalMaterialMoProgByGrouping: 310000,
               totalMaterialMoPlanByGrouping: 295000,
               totalMaterialMoPendByGrouping: 45000,
               totalMaterialMoExecByGrouping: 250000,
+              totalMaterialMoForecastByGrouping: 200000,
+              totalExec: 100000,
+              totalForecast: 100000,
               totalDiff: -85000,
             },
           },

@@ -1,6 +1,26 @@
 import * as ExcelJS from 'exceljs';
 import { ExportGoalsService } from 'src/application/usecases/export/exportGoals.service';
 
+jest.mock('exceljs', () => {
+  const addRowsMock = jest.fn();
+  const addWorksheetMock = jest.fn(() => ({
+    columns: [],
+    addRows: addRowsMock,
+    getRow: jest.fn(() => ({ font: {} })),
+  }));
+
+  const writeMock = jest.fn();
+
+  return {
+    Workbook: jest.fn().mockImplementation(() => ({
+      addWorksheet: addWorksheetMock,
+      xlsx: {
+        write: writeMock,
+      },
+    })),
+  };
+});
+
 describe('ExportGoalsService', () => {
   let service: ExportGoalsService;
 

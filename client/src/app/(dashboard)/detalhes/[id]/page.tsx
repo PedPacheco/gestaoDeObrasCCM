@@ -4,11 +4,11 @@ import { cookies } from "next/headers";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import { WorkDetails } from "@/components/details/workDetails/workDetails";
-import { formatPercentage } from "@/utils/formatValue";
-import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
 import TabPanel from "@/components/details/tabPanel/TabPanel";
+import { WorkDetails } from "@/components/details/workDetails/workDetails";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
+import { formatPercentage } from "@/utils/formatValue";
 
 dayjs.extend(utc);
 
@@ -75,6 +75,12 @@ async function fetchAllData(id: string, token?: string) {
       token,
       FETCH_OPTIONS,
     ),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/restricao/publicacoes/${id}`,
+      undefined,
+      token,
+      FETCH_OPTIONS,
+    ),
   ]);
 }
 
@@ -111,6 +117,7 @@ export default async function Details({ params }: DetailsParams) {
     executionReportData,
     rejectionsData,
     feasibilityExists,
+    publicationRestriction,
   ] = await fetchAllData(id, token);
 
   // Validação de dados
@@ -138,6 +145,7 @@ export default async function Details({ params }: DetailsParams) {
             executionReportData={executionReportData.data}
             rejectionsData={rejectionsData.data}
             feasibilityExists={feasibilityExists.data}
+            publicationRestrictionData={publicationRestriction.data}
           />
         </div>
       </div>

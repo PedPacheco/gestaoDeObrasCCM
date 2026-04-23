@@ -122,11 +122,25 @@ export default async function MonthlyForecastSummary() {
         { key: "totalMaterialMoPend", label: "Material", format: "currency" },
       ],
     },
+
+    {
+      label: "Forecast (R$)",
+      children: [
+        { key: "totalServiceMoForecast", label: "Serviço", format: "currency" },
+        {
+          key: "totalMaterialMoForecast",
+          label: "Material",
+          format: "currency",
+        },
+        { key: "forecastTotal", label: "Total", format: "currency" },
+      ],
+    },
     {
       label: "Executado (R$)",
       children: [
         { key: "totalServiceMoExec", label: "Serviço", format: "currency" },
         { key: "totalMaterialMoExec", label: "Material", format: "currency" },
+        { key: "execTotal", label: "Total", format: "currency" },
       ],
     },
     { key: "diff", label: "Prog x Exec (%)", format: "percent" },

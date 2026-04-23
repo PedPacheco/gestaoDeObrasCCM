@@ -54,6 +54,16 @@ export default function PublicationRestrictionsTable({
     setIsMounted(true);
   }, []);
 
+  const canEdit =
+    permissions?.permissao === "Total" ||
+    permissions?.permissao === "Parcial" ||
+    permissions?.permissao_visualizacao === "parcial" ||
+    permissions?.permissao_publicacao === true;
+
+  const canDelete =
+    permissions?.permissao === "Total" ||
+    permissions?.permissao_publicacao === true;
+
   const handleOpenConfirmDelete = (id: number) => {
     setRestrictionToDelete(id);
     setOpenConfirmModal(true);
@@ -101,14 +111,17 @@ export default function PublicationRestrictionsTable({
                       {columns[column]}
                     </TableCell>
                   ))}
+                {isMounted && (canEdit || canDelete) && (
+                  <>
+                    {canEdit && (
+                      <TableCell className="py-1 px-2 bg-[#53FF75] sticky left-0 z-10" />
+                    )}
 
-                {isMounted &&
-                  (((permissions?.permissao === "Parcial" ||
-                    permissions?.permissao === "Total") &&
-                    permissions?.permissao_visualizacao === "total") ||
-                    permissions?.permissao_publicacao) && (
-                    <TableCell className="py-1 px-2 bg-[#53FF75] min-w-52 sticky left-0 z-10" />
-                  )}
+                    {canDelete && (
+                      <TableCell className="py-1 px-2 bg-[#53FF75] sticky left-0 z-10" />
+                    )}
+                  </>
+                )}
               </TableRow>
             </TableHead>
 
@@ -118,9 +131,9 @@ export default function PublicationRestrictionsTable({
                   key={rowIndex}
                   sx={{
                     "& > td": {
-                      maxHeight: "2rem",
-                      padding: "4px 8px",
-                      lineHeight: "1.1",
+                      padding: "6px 10px",
+                      lineHeight: 1.3,
+                      height: "40px", // controla altura real da linha
                     },
                   }}
                   className="hover:bg-gray-50 transition-colors duration-200"
@@ -166,29 +179,31 @@ export default function PublicationRestrictionsTable({
                       );
                     })}
 
-                  {isMounted &&
-                    (((permissions?.permissao === "Parcial" ||
-                      permissions?.permissao === "Total") &&
-                      permissions?.permissao_visualizacao === "total") ||
-                      permissions?.permissao_publicacao) && (
-                      <TableCell className="text-center flex">
-                        <ButtonComponent
-                          text="Editar"
-                          styled="min-w-8 mr-2"
-                          onClick={() => handleAdd(item)}
-                        />
+                  {isMounted && (canEdit || canDelete) && (
+                    <TableCell className="text-center">
+                      <div className="flex justify-center items-center gap-2">
+                        {canEdit && (
+                          <ButtonComponent
+                            text="Editar"
+                            styled="min-w-8 mr-2"
+                            onClick={() => handleAdd(item)}
+                          />
+                        )}
 
-                        <ButtonComponent
-                          text="Excluir"
-                          styled="min-w-8 bg-red-600 hover:bg-red-700"
-                          onClick={() =>
-                            handleOpenConfirmDelete(
-                              item.id_restricao_publicacao,
-                            )
-                          }
-                        />
-                      </TableCell>
-                    )}
+                        {canDelete && (
+                          <ButtonComponent
+                            text="Excluir"
+                            styled="min-w-8 bg-red-600 hover:bg-red-700"
+                            onClick={() =>
+                              handleOpenConfirmDelete(
+                                item.id_restricao_publicacao,
+                              )
+                            }
+                          />
+                        )}
+                      </div>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>

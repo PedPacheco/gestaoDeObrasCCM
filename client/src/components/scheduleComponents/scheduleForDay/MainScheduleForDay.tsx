@@ -9,6 +9,7 @@ import { exportExcel } from "@/actions/generateExcel.action";
 import { TableWithPagination } from "@/components/common/TableWithPagination";
 import { useUser } from "@/contexts/userContext";
 import { useFeedback } from "@/hooks/useFeedback";
+import { useMapFilter } from "@/contexts/mapFilterContext";
 import { FiltersInterface } from "@/interfaces/filtersInterfaces";
 import { MainInterface } from "@/interfaces/mainInterface";
 import { FormatCurrency } from "@/utils/formatValue";
@@ -32,6 +33,7 @@ export default function MainSchduleForDay({
   const { permissions } = useUser();
 
   const { showError } = useFeedback();
+  const { setOvnotas } = useMapFilter();
 
   const [filteredData, setFilteredData] = useState(data);
   const [open, setOpen] = useState(false);
@@ -41,18 +43,20 @@ export default function MainSchduleForDay({
   const [filteredFilters, setFilteredFilters] =
     useState<FiltersInterface>(filtersData);
 
+  // Ajusta filtros baseado na permissão
   useEffect(() => {
     if (permissions?.permissao_visualizacao === "parcial") {
       const { parceira, ...rest } = filtersData;
-
       setFilteredFilters(rest);
+    } else {
+      setFilteredFilters(filtersData);
     }
   }, [filtersData, permissions?.permissao_visualizacao]);
 
   const toggleModal = () => setOpen((prev) => !prev);
 
   const generateExcel = useCallback(
-    async (params: Record<string, string | boolean | string | null>) => {
+    async (params: Record<string, string | boolean | null>) => {
       const { page, ...formattedParams } = params;
 
       const url = mountUrl(
@@ -91,21 +95,21 @@ export default function MainSchduleForDay({
             token,
             { cache: "no-store" },
           );
+
           setFilteredData(response.data);
+          setOvnotas(response.data?.works);
         } catch (error: any) {
           showError(error.message);
         }
       });
     },
-    [showError, token],
+    [showError, token, setOvnotas],
   );
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
 
-    const currentFilters = cookies.get("scheduleForDayFilters")
-      ? cookies.get("scheduleForDayFilters")
-      : {};
+    const currentFilters = cookies.get("scheduleForDayFilters") || {};
 
     const newSelectedItems = {
       ...Transform(currentFilters?.selectedItems || {}),

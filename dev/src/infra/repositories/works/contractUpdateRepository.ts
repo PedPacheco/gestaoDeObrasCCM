@@ -16,8 +16,8 @@ export class ContractUpdateRepository implements IContractUpdateRepository {
         data.map((work) => {
           return this.prisma.obras.updateMany({
             where: {
-              ovnota: work.ovnota,
-              [work.ordemField]: work.ordemDiagrama,
+              ovnota: work.ovnota.trim(),
+              [work.ordemField]: work.ordemDiagrama.trim(),
             },
             data: {
               data_empreitamento: work.dataEmpreitamento,
@@ -27,7 +27,7 @@ export class ContractUpdateRepository implements IContractUpdateRepository {
           });
         }),
       );
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Erro ao atualizar contratos. Payload: ${JSON.stringify(data)}`,
         error.stack,

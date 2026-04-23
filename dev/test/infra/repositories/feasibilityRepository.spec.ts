@@ -122,7 +122,48 @@ describe('FeasibilityRepository', () => {
     const result = await repository.findFiles(3);
 
     expect(prismaMock.relatorio_viabilidade.findMany).toHaveBeenCalledWith({
-      where: { id_obra: 3 },
+      where: {
+        obras: {
+          OR: [
+            { id: 3 },
+            { ovnota: '3' },
+            { ordem_dci: '3' },
+            { ordem_dcd: '3' },
+            { ordem_dca: '3' },
+            { ordem_dcim: '3' },
+            { diagrama: '3' },
+          ],
+        },
+      },
+      select: { id: true, caminho_arquivo: true },
+    });
+    expect(result).toEqual(mockFiles);
+  });
+
+  it('deve buscar arquivos por ordem', async () => {
+    const mockFiles = [
+      { id: 1, caminho_arquivo: 'x.pdf' },
+      { id: 2, caminho_arquivo: 'y.pdf' },
+    ];
+
+    prismaMock.relatorio_viabilidade.findMany.mockResolvedValue(mockFiles);
+
+    const result = await repository.findFiles(100000000000);
+
+    expect(prismaMock.relatorio_viabilidade.findMany).toHaveBeenCalledWith({
+      where: {
+        obras: {
+          OR: [
+            { id: undefined },
+            { ovnota: '100000000000' },
+            { ordem_dci: '100000000000' },
+            { ordem_dcd: '100000000000' },
+            { ordem_dca: '100000000000' },
+            { ordem_dcim: '100000000000' },
+            { diagrama: '100000000000' },
+          ],
+        },
+      },
       select: { id: true, caminho_arquivo: true },
     });
     expect(result).toEqual(mockFiles);

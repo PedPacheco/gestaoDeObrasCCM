@@ -265,4 +265,86 @@ describe("TabPanel Component", () => {
       expect(screen.getByText("Custos: Updated Work")).toBeInTheDocument();
     });
   });
+<<<<<<< HEAD
+=======
+
+  describe("Edição e deleção", () => {
+    it("deve abrir modal ao editar programação com exec definido e undefined", () => {
+      render(<TabPanel {...defaultProps} />);
+      fireEvent.click(screen.getByText("Programações"));
+
+      fireEvent.click(screen.getByTestId("edit-schedule-0"));
+      expect(handleDialogMock).toHaveBeenCalledWith(true);
+
+      fireEvent.click(screen.getByTestId("edit-schedule-1"));
+      expect(handleDialogMock).toHaveBeenCalledWith(true);
+    });
+
+    it("deve abrir modal ao editar e deletar relatório de execução", () => {
+      render(<TabPanel {...defaultProps} />);
+      fireEvent.click(screen.getByText("Relatórios execuções"));
+
+      fireEvent.click(screen.getByTestId("edit-execution-0"));
+      expect(handleExecutionDialogMock).toHaveBeenCalledWith(true);
+
+      fireEvent.click(screen.getByTestId("delete-execution-0"));
+      expect(openConfirmDeleteExecutionMock).toHaveBeenCalledWith(1);
+    });
+
+    it("deve abrir modal de confirmação ao deletar programação", () => {
+      render(<TabPanel {...defaultProps} />);
+      fireEvent.click(screen.getByText("Programações"));
+
+      fireEvent.click(screen.getByTestId("delete-schedule-0"));
+      expect(openConfirmDeleteScheduleMock).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe("Fechamento de diálogos", () => {
+    it("deve resetar formulário e estados ao fechar dialog", async () => {
+      render(<TabPanel {...defaultProps} />);
+      fireEvent.click(screen.getByText("Programações"));
+      fireEvent.click(screen.getByTestId("edit-schedule-0"));
+
+      const { ModalsManager } =
+        await import("@/components/details/modals/detailsModals");
+      const lastCall =
+        vi.mocked(ModalsManager).mock.calls[
+          vi.mocked(ModalsManager).mock.calls.length - 1
+        ];
+      lastCall[0].onCloseDialog();
+
+      expect(mockResetForm).toHaveBeenCalled();
+      expect(handleDialogMock).toHaveBeenCalledWith(false);
+      expect(handleExecutionDialogMock).toHaveBeenCalledWith(false);
+    });
+  });
+
+  describe("Integração com hooks", () => {
+    it("deve passar dados corretos para os hooks", async () => {
+      const { useScheduleHandlers } =
+        await import("@/hooks/details/useScheduleHandlers");
+      const { useScheduleForm } =
+        await import("@/hooks/details/useScheduleForm");
+
+      render(<TabPanel {...defaultProps} />);
+
+      const handlersCall =
+        vi.mocked(useScheduleHandlers).mock.calls[
+          vi.mocked(useScheduleHandlers).mock.calls.length - 1
+        ][0];
+      expect(handlersCall).toHaveProperty("data");
+      expect(handlersCall).toHaveProperty("idWork", "1");
+      expect(handlersCall).toHaveProperty("setError");
+      expect(handlersCall).toHaveProperty("setSuccess");
+
+      const formCall =
+        vi.mocked(useScheduleForm).mock.calls[
+          vi.mocked(useScheduleForm).mock.calls.length - 1
+        ][0];
+      expect(formCall).toHaveProperty("options");
+      expect(formCall.options).toEqual(mockOptions);
+    });
+  });
+>>>>>>> a7a509c77690b8fb62bbf36bcdf7efbe0dee13c3
 });

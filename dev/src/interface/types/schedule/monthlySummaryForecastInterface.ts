@@ -109,11 +109,15 @@ export interface GroupTeamSummaryEntryForecast {
   totalServiceMoPend: number;
   totalServiceMoPrev: number;
   totalServiceMoExec: number;
+  totalServiceMoForecast: number;
   totalMaterialMoProg: number;
   totalMaterialMoPlan: number;
   totalMaterialMoPend: number;
   totalMaterialMoPrev: number;
   totalMaterialMoExec: number;
+  totalMaterialMoForecast: number;
+  forecastTotal: number;
+  execTotal: number;
   diff: number;
 }
 
@@ -123,10 +127,14 @@ export interface GroupForecastSummaryTotals {
   totalServiceMoPlanByGrouping: number;
   totalServiceMoPendByGrouping: number;
   totalServiceMoExecByGrouping: number;
+  totalServiceMoForecastByGrouping: number;
   totalMaterialMoProgByGrouping: number;
   totalMaterialMoPlanByGrouping: number;
   totalMaterialMoPendByGrouping: number;
   totalMaterialMoExecByGrouping: number;
+  totalMaterialMoForecastByGrouping: number;
+  totalForecast: number;
+  totalExec: number;
   totalDiff: number;
 }
 

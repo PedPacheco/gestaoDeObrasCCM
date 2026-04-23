@@ -110,8 +110,6 @@ export function FeasibiltyUpload({
         throw new Error(errorData.message);
       }
 
-      console.log(response);
-
       setFiles([]);
       setTimeout(() => onUploadSuccess(), 1000);
     } catch (err) {

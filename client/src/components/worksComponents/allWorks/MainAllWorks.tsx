@@ -6,6 +6,7 @@ import { fetchData } from "@/actions/fetchData.action";
 import { ButtonComponent } from "@/components/common/Button";
 import ErrorModal from "@/components/common/ErrorModal";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
+import { useMapFilter } from "@/contexts/mapFilterContext";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { MainInterface } from "@/interfaces/mainInterface";
 import { getButtonContent } from "@/utils/getButtonContent";

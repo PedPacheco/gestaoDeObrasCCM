@@ -329,10 +329,14 @@ describe('MonthlySummaryForecastMapper', () => {
         totalServiceMoPlanByGrouping: 0,
         totalServiceMoPendByGrouping: 0,
         totalServiceMoExecByGrouping: 0,
+        totalServiceMoForecastByGrouping: 0,
         totalMaterialMoProgByGrouping: 0,
         totalMaterialMoPlanByGrouping: 0,
         totalMaterialMoPendByGrouping: 0,
         totalMaterialMoExecByGrouping: 0,
+        totalMaterialMoForecastByGrouping: 0,
+        totalForecast: 0,
+        totalExec: 0,
         totalDiff: 0,
       });
     });

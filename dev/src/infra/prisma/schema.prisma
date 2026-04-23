@@ -674,7 +674,7 @@ model restricoes_publicacoes {
   responsabilidade      String     @db.VarChar(50)
   nome_responsavel      String     @db.VarChar(50)
   status_restricao      String     @db.VarChar(20)
-  data_resolucao        DateTime?  @db.Date
+  data_resolucao        DateTime?  @db.Timestamptz(6)
   criado_em             DateTime?  @default(now()) @db.Timestamptz(6)
   observacao            String?
   criado_por            Int?
@@ -1005,4 +1005,5 @@ view exportacao_ordens {
   data_conclusao DateTime? @db.Date
   regional       String?   @db.VarChar(20)
   turma          String?   @db.VarChar(15)
+  data_prog      DateTime? @db.Date
 }

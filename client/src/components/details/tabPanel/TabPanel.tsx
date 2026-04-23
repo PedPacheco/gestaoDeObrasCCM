@@ -6,15 +6,17 @@ import { storeScheduleDataAction } from "@/actions/services";
 import ModalsManager, {
   ModalsManagerRef,
 } from "@/components/services/modalsManager";
+import { useScheduleForm } from "@/hooks/details/useScheduleForm";
+import { useScheduleHandlers } from "@/hooks/details/useScheduleHandlers";
 import { useUser } from "@/contexts/userContext";
 import { useExecutionServiceForm } from "@/hooks/useExecutionServicesForm";
-import { useScheduleHandlers } from "@/hooks/useScheduleHandlers";
 
 import ExecutionReportPanelItem from "../panelItems/executionReportPanelItem";
 import RejectionsOfSchedulesPanelItem from "../panelItems/rejectionsOfSchedulesPanelItem";
 import SchedulePanelItem from "../panelItems/schedulePanelItem";
 import WorkCostPanelItem from "../panelItems/workCostPanelItem";
 import TabActions from "./tabsActions";
+import PublicationRestrictionsPanelItem from "../panelItems/publicationRestrictionsPanelItem";
 
 interface CustomTabPanelProps {
   children?: React.ReactNode;
@@ -26,6 +28,7 @@ interface TabPanelProps {
   workData: Record<string, any>;
   executionReportData: any;
   rejectionsData: Record<string, any>[];
+  publicationRestrictionData: Record<string, any>[];
   id: string;
   feasibilityExists: any[];
 }
@@ -54,6 +57,7 @@ export default function TabPanel({
   workData,
   executionReportData,
   rejectionsData,
+  publicationRestrictionData,
   id,
   feasibilityExists,
 }: TabPanelProps) {
@@ -163,6 +167,16 @@ export default function TabPanel({
                 }
                 onEdit={handleEditExecutionReport}
               />
+            </CustomTabPanel>
+
+            <CustomTabPanel value={value} index={4}>
+              <PublicationRestrictionsPanelItem
+                data={publicationRestrictionData}
+              />
+            </CustomTabPanel>
+
+            <CustomTabPanel value={value} index={5}>
+              Em breve
             </CustomTabPanel>
           </Suspense>
         </div>

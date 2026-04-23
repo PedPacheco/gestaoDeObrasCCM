@@ -51,10 +51,14 @@ const totalsSecondSummaryKeyMap: Record<string, string> = {
   totalServiceMoPlan: "totalServiceMoPlanByGrouping",
   totalServiceMoPend: "totalServiceMoPendByGrouping",
   totalServiceMoExec: "totalServiceMoExecByGrouping",
+  totalServiceMoForecast: "totalServiceMoForecastByGrouping",
   totalMaterialMoProg: "totalMaterialMoProgByGrouping",
   totalMaterialMoPlan: "totalMaterialMoPlanByGrouping",
   totalMaterialMoPend: "totalMaterialMoPendByGrouping",
   totalMaterialMoExec: "totalMaterialMoExecByGrouping",
+  totalMaterialMoForecast: "totalMaterialMoForecastByGrouping",
+  forecastTotal: "totalForecast",
+  execTotal: "totalExec",
   diff: "totalDiff",
 };
 

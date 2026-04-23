@@ -95,7 +95,15 @@ export function TableWithPagination({
                         }
                       }
 
-                      if (["mo_prog", "mat_prog"].includes(column)) {
+                      if (
+                        [
+                          "mo_prog",
+                          "mat_prog",
+                          "mo_forecast",
+                          "mat_forecast",
+                          "forecast_total",
+                        ].includes(column)
+                      ) {
                         cellValue = FormatCurrency(cellValue);
                       }
 

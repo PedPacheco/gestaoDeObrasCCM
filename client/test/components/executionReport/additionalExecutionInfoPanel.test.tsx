@@ -4,7 +4,6 @@ import {
   mockExecutionReport,
   mockExecutionReportMinimal,
 } from "../../mocks/mockFormData";
-import { FormData } from "@/hooks/useScheduleForm";
 import { AdditionalExecutionInfoPanel } from "@/components/executionReport/additionalExecutionInfoPanel";
 
 const renderComponent = (formErrors: Record<string, string> = {}) => {

@@ -4,8 +4,9 @@ import {
   mockExecutionReport,
   mockExecutionReportMinimal,
 } from "../../mocks/mockFormData";
-import { FormData } from "@/hooks/useScheduleForm";
 import { ExecutionBasicPanel } from "@/components/executionReport/executionBasicPanel";
+import { mockFormData } from "../../../../mocks/mockFormData";
+import { FormData } from "@/hooks/details/useScheduleForm";
 
 const renderComponent = (formErrors: Record<string, string> = {}) => {
   const onInputChange = vi.fn(() => vi.fn());

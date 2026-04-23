@@ -9,6 +9,7 @@ import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
 import { TableWithPagination } from "@/components/common/TableWithPagination";
 import { useUser } from "@/contexts/userContext";
+import { useMapFilter } from "@/contexts/mapFilterContext";
 import { FiltersInterface } from "@/interfaces/filtersInterfaces";
 import { FormatCurrency } from "@/utils/formatValue";
 import { mountUrl } from "@/utils/mountUrl";
@@ -51,6 +52,7 @@ export default function PortfolioWorks({
   const { showError } = useFeedback();
 
   const [filteredData, setFilteredData] = useState(data);
+  const { setOvnotas } = useMapFilter();
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(0);
 
@@ -117,12 +119,13 @@ export default function PortfolioWorks({
           );
 
           setFilteredData(response.data);
+          setOvnotas(response.data?.works);
         } catch (error: any) {
           showError(error.message);
         }
       });
     },
-    [showError, token, url],
+    [showError, token, url, setOvnotas],
   );
 
   const handleChangePage = (event: unknown, newPage: number) => {

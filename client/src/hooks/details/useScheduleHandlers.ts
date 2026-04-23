@@ -6,7 +6,7 @@ import {
   RejectedSchedule,
 } from "@/actions/schedules";
 import { deleteExecutionReport } from "@/actions/executionReport.action";
-import { useFeedback } from "./useFeedback";
+import { useFeedback } from "../useFeedback";
 
 interface UseScheduleHandlersProps {
   data: Record<string, any>;

@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 import { GetMonthlySummaryForecastInterface } from 'src/interface/types/schedule/monthlySummaryForecastInterface';
 import { GetMonthlySummaryInterface } from 'src/interface/types/schedule/monthlySummaryInterface';
 

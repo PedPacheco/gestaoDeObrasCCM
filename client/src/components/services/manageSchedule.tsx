@@ -4,12 +4,12 @@ import { useCallback, useMemo, useState } from "react";
 
 import { useExecutionServiceForm } from "@/hooks/useExecutionServicesForm";
 import { useFeedback } from "@/hooks/useFeedback";
-import { useScheduleForm } from "@/hooks/useScheduleForm";
 import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
 
 import { ScheduleSection } from "./scheduleSection/scheduleSection";
 import { ServicesSection } from "./servicesSection/servicesSection";
 import { TeamModal } from "./servicesSection/teamsModal";
+import { useScheduleForm } from "@/hooks/details/useScheduleForm";
 
 interface ManageScheduleProps {
   scheduleData: any;

@@ -147,6 +147,9 @@ export class GroupTeamSummaryEntryForecastDTO {
   totalServiceMoPrev: number;
 
   @IsNumber()
+  totalServiceMoForecast: number;
+
+  @IsNumber()
   totalServiceMoExec: number;
 
   @IsNumber()
@@ -162,7 +165,16 @@ export class GroupTeamSummaryEntryForecastDTO {
   totalMaterialMoPrev: number;
 
   @IsNumber()
+  totalMaterialMoForecast: number;
+
+  @IsNumber()
   totalMaterialMoExec: number;
+
+  @IsNumber()
+  forecastTotal: number;
+
+  @IsNumber()
+  execTotal: number;
 
   @IsNumber()
   diff: number;
@@ -195,6 +207,18 @@ export class GroupForecastSummaryTotalsDTO {
 
   @IsNumber()
   totalMaterialMoExecByGrouping: number;
+
+  @IsNumber()
+  totalServiceMoForecastByGrouping: number;
+
+  @IsNumber()
+  totalMaterialMoForecastByGrouping: number;
+
+  @IsNumber()
+  totalForecast: number;
+
+  @IsNumber()
+  totalExec: number;
 
   @IsNumber()
   totalDiff: number;

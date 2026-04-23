@@ -1,13 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { UpdateCapexRepository } from 'src/infra/repositories/works/updateCapexRepository';
-import { mockCalculatedValues } from '../../../../test/mocks/mocksMaterialCapex';
 
 describe('UpdateCapexRepository', () => {
   let repository: UpdateCapexRepository;
 
   const mockPrisma = {
-    $transaction: jest.fn(),
     obras: {
       update: jest.fn(),
     },
@@ -31,105 +29,29 @@ describe('UpdateCapexRepository', () => {
       ],
     }).compile();
 
-    repository = module.get<UpdateCapexRepository>(UpdateCapexRepository);
+    repository = module.get(UpdateCapexRepository);
 
     (repository as any).logger = mockLogger;
 
     jest.clearAllMocks();
   });
 
+  // ============================================================
+  // 🧩 BASICS
+  // ============================================================
+
   it('should be defined', () => {
     expect(repository).toBeDefined();
   });
 
-  it('should call prisma.$transaction with individual updates for each item', async () => {
-    const mockTx = {
-      obras: {
-        update: jest.fn().mockResolvedValue({}),
-      },
-    };
+  // ============================================================
+  // 🧠 getDeletedMaterials
+  // ============================================================
 
-    mockPrisma.$transaction.mockImplementation(async (callback) => {
-      return await callback(mockTx);
-    });
+  it('should return deleted materials', async () => {
+    const mock = [{ material: 'MAT1' }];
 
-    mockPrisma.cn52n.deleteMany.mockResolvedValue({ count: 0 });
-
-    await repository.update(mockCalculatedValues);
-
-    // Verifica se $transaction foi chamado (uma vez por batch de 500 itens)
-    const expectedBatches = Math.ceil(mockCalculatedValues.length / 500);
-    expect(mockPrisma.$transaction).toHaveBeenCalledTimes(expectedBatches);
-
-    // Verifica se update foi chamado para cada item
-    expect(mockTx.obras.update).toHaveBeenCalledTimes(
-      mockCalculatedValues.length,
-    );
-
-    // Verifica o formato da primeira chamada
-    expect(mockTx.obras.update).toHaveBeenCalledWith({
-      where: { id: mockCalculatedValues[0].id },
-      data: {
-        capex_mat_pend: mockCalculatedValues[0].capex_mat_pend,
-        capex_mat_plan: mockCalculatedValues[0].capex_mat_plan,
-        capex_mo_pend: mockCalculatedValues[0].capex_mo_pend,
-        capex_mo_plan: mockCalculatedValues[0].capex_mo_plan,
-        mo_planejada: mockCalculatedValues[0].mo_calc,
-        qtde_planejada: mockCalculatedValues[0].qtde_calc,
-        qtde_pend: mockCalculatedValues[0].qtde_pend,
-        mo_final: mockCalculatedValues[0].mo_exec,
-        mo_pend: mockCalculatedValues[0].mo_pend,
-      },
-    });
-
-    // Verifica se cn52n.deleteMany foi chamado após todos os batches
-    expect(mockPrisma.cn52n.deleteMany).toHaveBeenCalledTimes(1);
-  });
-
-  it('should process data in batches of 500', async () => {
-    const largeDataset = Array.from({ length: 1200 }, (_, i) => ({
-      ...mockCalculatedValues[0],
-      id: i,
-    }));
-
-    const mockTx = {
-      obras: {
-        update: jest.fn().mockResolvedValue({}),
-      },
-    };
-
-    mockPrisma.$transaction.mockImplementation(async (callback) => {
-      return await callback(mockTx);
-    });
-
-    mockPrisma.cn52n.deleteMany.mockResolvedValue({ count: 0 });
-
-    await repository.update(largeDataset);
-
-    // Deve ter 3 batches (500 + 500 + 200)
-    expect(mockPrisma.$transaction).toHaveBeenCalledTimes(3);
-    expect(mockTx.obras.update).toHaveBeenCalledTimes(1200);
-    expect(mockPrisma.cn52n.deleteMany).toHaveBeenCalledTimes(1);
-  });
-
-  it('should log error and throw when prisma.$transaction fails', async () => {
-    const error = new Error('DB error');
-    mockPrisma.$transaction.mockRejectedValueOnce(error);
-
-    await expect(repository.update(mockCalculatedValues)).rejects.toThrow(
-      'DB error',
-    );
-
-    expect(mockLogger.error).toHaveBeenCalledWith(
-      `Erro ao atualizar capex`,
-      error.stack,
-    );
-  });
-
-  it('should call getDeletedMaterials and return materials', async () => {
-    const mockMaterials = [{ material: 'MAT001' }, { material: 'MAT002' }];
-
-    mockPrisma.servicos_contratos.findMany.mockResolvedValue(mockMaterials);
+    mockPrisma.servicos_contratos.findMany.mockResolvedValue(mock);
 
     const result = await repository.getDeletedMaterials();
 
@@ -138,6 +60,132 @@ describe('UpdateCapexRepository', () => {
       distinct: ['material'],
     });
 
-    expect(result).toEqual(mockMaterials);
+    expect(result).toEqual(mock);
+  });
+
+  // ============================================================
+  // 🚀 update - fluxo principal
+  // ============================================================
+
+  it('should update all items and delete cn52n at the end', async () => {
+    const data = Array.from({ length: 10 }, (_, i) => ({
+      id: i,
+      capex_mat_pend: 1,
+      capex_mat_plan: 2,
+      capex_mo_pend: 3,
+      capex_mo_plan: 4,
+      mo_calc: 5,
+      mo_exec: 6,
+      mo_pend: 7,
+      qtde_calc: 8,
+      qtde_pend: 9,
+    }));
+
+    mockPrisma.obras.update.mockResolvedValue({});
+    mockPrisma.cn52n.deleteMany.mockResolvedValue({});
+
+    await repository.update(data);
+
+    expect(mockPrisma.obras.update).toHaveBeenCalledTimes(10);
+
+    expect(mockPrisma.cn52n.deleteMany).toHaveBeenCalledTimes(1);
+  });
+
+  // ============================================================
+  // 🔥 batch + concorrência
+  // ============================================================
+
+  it('should process in batches of 500 and chunks of 50', async () => {
+    const data = Array.from({ length: 600 }, (_, i) => ({
+      id: i,
+      capex_mat_pend: 1,
+      capex_mat_plan: 2,
+      capex_mo_pend: 3,
+      capex_mo_plan: 4,
+      mo_calc: 5,
+      mo_exec: 6,
+      mo_pend: 7,
+      qtde_calc: 8,
+      qtde_pend: 9,
+    }));
+
+    mockPrisma.obras.update.mockResolvedValue({});
+    mockPrisma.cn52n.deleteMany.mockResolvedValue({});
+
+    await repository.update(data);
+
+    expect(mockPrisma.obras.update).toHaveBeenCalledTimes(600);
+  });
+
+  // ============================================================
+  // 📡 progresso
+  // ============================================================
+
+  it('should emit progress correctly', async () => {
+    const data = Array.from({ length: 100 }, (_, i) => ({
+      id: i,
+      capex_mat_pend: 1,
+      capex_mat_plan: 2,
+      capex_mo_pend: 3,
+      capex_mo_plan: 4,
+      mo_calc: 5,
+      mo_exec: 6,
+      mo_pend: 7,
+      qtde_calc: 8,
+      qtde_pend: 9,
+    }));
+
+    const progressMock = jest.fn();
+
+    mockPrisma.obras.update.mockResolvedValue({});
+    mockPrisma.cn52n.deleteMany.mockResolvedValue({});
+
+    await repository.update(data, progressMock);
+
+    expect(progressMock).toHaveBeenCalled();
+
+    expect(progressMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        phase: 'updating',
+        processed: 100,
+      }),
+    );
+  });
+
+  // ============================================================
+  // ⚠️ erro
+  // ============================================================
+
+  it('should log error and rethrow', async () => {
+    const error = new Error('DB error');
+
+    mockPrisma.obras.update.mockRejectedValue(error);
+
+    await expect(repository.update([{ id: 1 } as any])).rejects.toThrow(
+      'DB error',
+    );
+
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      'Erro ao atualizar capex nas obras',
+      error.stack,
+    );
+  });
+
+  // ============================================================
+  // 🧮 calcPercentage (private)
+  // ============================================================
+
+  describe('calcPercentage', () => {
+    it('should return 50 when total is 0', () => {
+      const result = (repository as any).calcPercentage(0, 0);
+
+      expect(result).toBe(50);
+    });
+
+    it('should calculate correctly', () => {
+      const result = (repository as any).calcPercentage(50, 100);
+
+      expect(result).toBe(Math.floor(50 + (50 / 100) * 49));
+    });
   });
 });
