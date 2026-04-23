@@ -2,7 +2,6 @@ import { HandleWorkUpdateService } from 'src/application/usecases/orchestrators/
 import { UsersService } from 'src/application/usecases/users.service';
 import { ContractUpdateService } from 'src/application/usecases/works/contractUpdate.service';
 import { SuspensionWorkService } from 'src/application/usecases/works/suspensionWork.service';
-import { UpdateCapexService } from 'src/application/usecases/works/updateCapex.service';
 import { UpdateNoteService } from 'src/application/usecases/works/updateNote.service';
 import { UpdateOvService } from 'src/application/usecases/works/updateOv.service';
 import { WorksUpdateController } from 'src/interface/controllers/works/worksUpdate.controller';
@@ -26,7 +25,6 @@ describe('WorksUpdateController', () => {
   let contractUpdateService: ContractUpdateService;
   let updateOvService: UpdateOvService;
   let updateNoteService: UpdateNoteService;
-  let updateCapexService: UpdateCapexService;
   let suspensionWorksService: SuspensionWorkService;
 
   const mockReq: CustomRequest = {
@@ -39,7 +37,6 @@ describe('WorksUpdateController', () => {
       controllers: [WorksUpdateController],
       providers: [
         { provide: UsersService, useValue: { findUser: jest.fn() } },
-        { provide: UpdateCapexService, useValue: { update: jest.fn() } },
         { provide: HandleWorkUpdateService, useValue: { update: jest.fn() } },
         { provide: ContractUpdateService, useValue: { update: jest.fn() } },
         { provide: UpdateOvService, useValue: { update: jest.fn() } },
@@ -62,7 +59,6 @@ describe('WorksUpdateController', () => {
     );
     updateOvService = module.get<UpdateOvService>(UpdateOvService);
     updateNoteService = module.get<UpdateNoteService>(UpdateNoteService);
-    updateCapexService = module.get<UpdateCapexService>(UpdateCapexService);
     suspensionWorksService = module.get<SuspensionWorkService>(
       SuspensionWorkService,
     );
@@ -89,7 +85,7 @@ describe('WorksUpdateController', () => {
 
       const expectedResponse = {
         statusCode: HttpStatus.OK,
-        message: 'Obras atualizada com sucesso',
+        message: 'Obra atualizada com sucesso',
       };
 
       expect(handleWorkUpdateService.update).toHaveBeenCalledWith(
@@ -144,7 +140,7 @@ describe('WorksUpdateController', () => {
 
       const expectedResponse = {
         statusCode: HttpStatus.OK,
-        message: 'Obras atualizada com sucesso',
+        message: 'Obras atualizadas com sucesso',
       };
 
       expect(updateOvService.update).toHaveBeenCalledWith(mockMarketWorks);
@@ -160,26 +156,10 @@ describe('WorksUpdateController', () => {
 
       const expectedResponse = {
         statusCode: HttpStatus.OK,
-        message: 'Obras atualizada com sucesso',
+        message: 'Obras atualizadas com sucesso',
       };
 
       expect(updateNoteService.update).toHaveBeenCalledWith(mockUpdateNotes);
-      expect(result).toEqual(expectedResponse);
-    });
-  });
-
-  describe('UpdateCapex', () => {
-    it('Should call the update method of the UpdateCapex service correctly', async () => {
-      jest.spyOn(updateCapexService, 'update').mockResolvedValue();
-
-      const result = await worksController.updateCapex();
-
-      const expectedResponse = {
-        statusCode: HttpStatus.OK,
-        message: 'Capex e M.O atualizado com sucesso',
-      };
-
-      expect(updateCapexService.update).toHaveBeenCalledWith();
       expect(result).toEqual(expectedResponse);
     });
   });

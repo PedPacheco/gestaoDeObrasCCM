@@ -1,3 +1,4 @@
+import { MarketWork } from 'src/domain/entities/works.entity';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
@@ -6,14 +7,13 @@ import {
   InsertBaseAuxiliaryMarketDTO,
   NotesDTO,
 } from 'src/interface/dtos/auxiliaryBaseDTO';
+import { OperationType } from 'src/interface/types/baseAuxiliaryInterface';
 import { InsertNotes } from 'src/interface/types/works/insertNotesInterface';
 
 import { Inject, Injectable } from '@nestjs/common';
-import { MarketWork } from 'src/domain/entities/works.entity';
-import { AuxiliaryNotesInsertService } from './auxiliaryBaseInsertNotes.service';
+
 import { AuxiliaryMarketInsertService } from './auxiliaryBaseInsertMarket.service';
-import { OperationType } from 'src/interface/types/baseAuxiliaryInterface';
-import { MaterialCapexDTO } from 'src/interface/dtos/materialDTO';
+import { AuxiliaryNotesInsertService } from './auxiliaryBaseInsertNotes.service';
 
 export interface DataAuxiliaryNotes {
   notesData: NotesDTO[];
@@ -106,61 +106,5 @@ export class AuxiliaryBaseService {
     operation: OperationType,
   ) {
     return this.auxiliaryMarketInsertService.execute(data, operation);
-  }
-
-  async insertAuxiliaryBaseCapex(data: MaterialCapexDTO[]) {
-    const dataFormatted = data.map((materialData) => {
-      const {
-        centro,
-        ctg_item,
-        data_necessidade,
-        def_proj,
-        deposito,
-        diagrama_rede,
-        elemento_pep,
-        material,
-        preco_mi,
-        qtd_faltante,
-        qtd_necess,
-        qtd_recebida,
-        qtd_retirada,
-        relevancia_calculo,
-        texto_material,
-        um_registro,
-      } = materialData;
-
-      return {
-        diagrama_rede,
-        def_proj,
-        material,
-        texto_breve: texto_material,
-        centro,
-        dep: deposito,
-        cti: ctg_item,
-        elemento_pep,
-        und: um_registro,
-        preco: preco_mi,
-        qtd_necessaria: qtd_necess,
-        qtd_retirada,
-        qtd_falta: qtd_faltante,
-        qtd_recebida,
-        reserva: relevancia_calculo,
-        data_nec: data_necessidade,
-      };
-    });
-
-    const uniqueDiagramas = [
-      ...new Set(data.map((item) => item.diagrama_rede)),
-    ];
-
-    const obraIdsMap =
-      await this.auxiliaryBaseRepository.getObraIdsByDiagramas(uniqueDiagramas);
-
-    const dataWithObraId = dataFormatted.map((item) => ({
-      ...item,
-      id_obra: obraIdsMap.get(item.diagrama_rede) || null,
-    }));
-
-    await this.auxiliaryBaseRepository.insertCapex(dataWithObraId);
   }
 }
