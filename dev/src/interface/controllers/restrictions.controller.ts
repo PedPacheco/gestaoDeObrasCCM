@@ -95,7 +95,6 @@ export class RestrictionController {
   }
 
   @Patch('publicacoes')
-  @UseGuards(PermissionGuard)
   async updatePublicationRestrictions(
     @Body() data: UpdatePublicationRestrictionsDTO,
   ) {

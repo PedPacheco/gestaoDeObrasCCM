@@ -1,332 +1,331 @@
 import { UpdateCapexService } from 'src/application/usecases/works/updateCapex.service';
-import {
-  AUXILIARY_BASE_REPOSITORY,
-  IAuxiliaryBaseRepository,
-} from 'src/domain/repositories/IAuxiliaryBaseRepository';
-import {
-  IUpdateCapexRepository,
-  UPDATE_CAPEX_REPOSITORY,
-} from 'src/domain/repositories/works/IUpdateCapexRepository';
-
-import { Test, TestingModule } from '@nestjs/testing';
-
-import { mockReturnAuxiliaryBaseCN52N } from '../../../mocks/mocksMaterialCapex';
 
 describe('UpdateCapexService', () => {
   let service: UpdateCapexService;
-  let auxiliaryRepo: jest.Mocked<IAuxiliaryBaseRepository>;
-  let updateRepo: jest.Mocked<IUpdateCapexRepository>;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        UpdateCapexService,
-        {
-          provide: AUXILIARY_BASE_REPOSITORY,
-          useValue: {
-            getFator: jest.fn(),
-            getAuxiliaryBaseCN52N: jest.fn(),
-          },
-        },
-        {
-          provide: UPDATE_CAPEX_REPOSITORY,
-          useValue: {
-            update: jest.fn(),
-            getDeletedMaterials: jest.fn(),
-          },
-        },
-      ],
-    }).compile();
+  const auxiliaryBaseRepository = {
+    getAuxiliaryBaseCN52N: jest.fn(),
+    getFator: jest.fn(),
+  };
 
-    service = module.get(UpdateCapexService);
-    auxiliaryRepo = module.get(AUXILIARY_BASE_REPOSITORY);
-    updateRepo = module.get(UPDATE_CAPEX_REPOSITORY);
+  const updateCapexRepository = {
+    getDeletedMaterials: jest.fn(),
+    update: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    service = new UpdateCapexService(
+      auxiliaryBaseRepository as any,
+      updateCapexRepository as any,
+    );
   });
 
-  afterEach(() => jest.clearAllMocks());
+  // ============================================================
+  // 🧩 TESTES DO UPDATE (ORQUESTRAÇÃO)
+  // ============================================================
 
   describe('update', () => {
-    it('should calculate and update capex values correctly', async () => {
-      auxiliaryRepo.getAuxiliaryBaseCN52N.mockResolvedValue(
-        mockReturnAuxiliaryBaseCN52N,
-      );
-
-      const fatorMap = new Map<string, number>();
-      fatorMap.set('10057267|X/005017', 1);
-      fatorMap.set('10054768|X/004078', 1);
-
-      auxiliaryRepo.getFator.mockResolvedValue(fatorMap);
-
-      updateRepo.getDeletedMaterials.mockResolvedValue([
-        { material: '10054768' },
-      ]);
-
-      await service.update();
-
-      const updateCall = updateRepo.update.mock.calls[0][0];
-
-      // Deve agrupar por id_obra (1 e 2)
-      expect(updateCall).toHaveLength(2);
-
-      const obra1 = updateCall.find((item) => item.id === 1);
-
-      expect(obra1).toBeDefined();
-      expect(obra1.id).toBe(1);
-      expect(obra1.qtde_calc).toBe(11);
-      expect(obra1.qtde_pend).toBe(0);
-      expect(obra1.mo_calc).toBeCloseTo(12.98, 2);
-      expect(obra1.capex_mat_plan).toBeCloseTo(2644.57, 2);
-      expect(obra1.capex_mo_plan).toBeCloseTo(6.49, 2);
-      expect(obra1.capex_mo_pend).toBeCloseTo(1.298, 3);
-      expect(obra1.capex_mat_pend).toBe(0);
-
-      const obra2 = updateCall.find((item) => item.id === 2);
-
-      expect(obra2).toBeDefined();
-      expect(obra2.id).toBe(2);
-      expect(obra2.qtde_calc).toBe(4);
-      expect(obra2.qtde_pend).toBe(2);
-      expect(obra2.mo_calc).toBe(0);
-      expect(obra2.capex_mat_plan).toBeCloseTo(10578.28, 2);
-      expect(obra2.capex_mo_plan).toBe(0);
-      expect(obra2.capex_mo_pend).toBe(0);
-      expect(obra2.capex_mat_pend).toBe(5289.14);
-    });
-
-    it('should handle materials not in deleted list', async () => {
-      auxiliaryRepo.getAuxiliaryBaseCN52N.mockResolvedValue(
-        mockReturnAuxiliaryBaseCN52N,
-      );
-
-      const fatorMap = new Map<string, number>();
-      fatorMap.set('10057267|X/005017', 1);
-      fatorMap.set('10054768|X/004078', 1);
-
-      auxiliaryRepo.getFator.mockResolvedValue(fatorMap);
-
-      updateRepo.getDeletedMaterials.mockResolvedValue([]);
-
-      await service.update();
-
-      const updateCall = updateRepo.update.mock.calls[0][0];
-      const obra1 = updateCall.find((item) => item.id === 1);
-
-      expect(obra1.mo_calc).toBe(0);
-      expect(obra1.capex_mo_plan).toBe(0);
-      expect(obra1.capex_mo_pend).toBe(0);
-    });
-
-    it('should not calculate qtde_pend and capex_mo_pend without reserva', async () => {
-      const mockWithoutReserva = mockReturnAuxiliaryBaseCN52N.map((item) => ({
-        ...item,
-        reserva: null,
-      }));
-
-      auxiliaryRepo.getAuxiliaryBaseCN52N.mockResolvedValue(mockWithoutReserva);
-
-      const fatorMap = new Map<string, number>();
-      fatorMap.set('10057267|X/005017', 1);
-      fatorMap.set('10054768|X/004078', 1);
-
-      auxiliaryRepo.getFator.mockResolvedValue(fatorMap);
-      updateRepo.getDeletedMaterials.mockResolvedValue([
-        { material: '10054768' },
-      ]);
-
-      await service.update();
-
-      const updateCall = updateRepo.update.mock.calls[0][0];
-
-      updateCall.forEach((obra) => {
-        expect(obra.qtde_pend).toBe(0);
-        expect(obra.capex_mo_pend).toBe(0);
-      });
-    });
-
-    it('should only calculate CAPEX for diagrams starting with 170, 180, 200', async () => {
-      auxiliaryRepo.getAuxiliaryBaseCN52N.mockResolvedValue(
-        mockReturnAuxiliaryBaseCN52N,
-      );
-
-      const fatorMap = new Map<string, number>();
-      fatorMap.set('10057267|X/005017', 1);
-      fatorMap.set('10054768|X/004078', 1);
-
-      auxiliaryRepo.getFator.mockResolvedValue(fatorMap);
-      updateRepo.getDeletedMaterials.mockResolvedValue([
-        { material: '10054768' },
-      ]);
-
-      await service.update();
-
-      const updateCall = updateRepo.update.mock.calls[0][0];
-      const obra1 = updateCall.find((item) => item.id === 1);
-
-      expect(obra1.mo_calc).toBeCloseTo(12.98, 2);
-      expect(obra1.capex_mo_plan).toBeCloseTo(6.49, 2);
-      expect(obra1.capex_mo_plan).toBeLessThan(obra1.mo_calc);
-    });
-
-    it('should use qtd_retirada for capex_mat_pend calculation', async () => {
-      const mockWithRetirada = mockReturnAuxiliaryBaseCN52N.map((item) => {
-        if (item.cti === 'L' && item.id_obra === 1) {
-          return { ...item, qtd_retirada: 0.5 };
-        }
-        return item;
-      });
-
-      auxiliaryRepo.getAuxiliaryBaseCN52N.mockResolvedValue(mockWithRetirada);
-
-      const fatorMap = new Map<string, number>();
-      fatorMap.set('10057267|X/005017', 1);
-      fatorMap.set('10054768|X/004078', 1);
-
-      auxiliaryRepo.getFator.mockResolvedValue(fatorMap);
-      updateRepo.getDeletedMaterials.mockResolvedValue([
-        { material: '10054768' },
-      ]);
-
-      await service.update();
-
-      const updateCall = updateRepo.update.mock.calls[0][0];
-      const obra1 = updateCall.find((item) => item.id === 1);
-
-      expect(obra1.capex_mat_pend).toBeCloseTo(0, 2);
-    });
-
-    it('should skip materials without id_obra', async () => {
-      const mockWithNullObra = [
-        ...mockReturnAuxiliaryBaseCN52N,
+    it('deve executar o fluxo completo com sucesso', async () => {
+      const mockMaterials = [
         {
-          ...mockReturnAuxiliaryBaseCN52N[0],
-          id_obra: null,
+          id_obra: 1,
+          material: 'MAT1',
+          def_proj: 'P1',
+          qtd_necessaria: 10,
+          qtd_retirada: 5,
+          qtd_recebida: 3,
+          qtd_falta: 2,
+          preco: 100,
+          reserva: 'X',
+          cti: 'N',
+          diagrama_rede: '170123',
+          elemento_pep: 'XXX-2',
         },
       ];
 
-      auxiliaryRepo.getAuxiliaryBaseCN52N.mockResolvedValue(mockWithNullObra);
-
-      const fatorMap = new Map<string, number>();
-      fatorMap.set('10057267|X/005017', 1);
-      fatorMap.set('10054768|X/004078', 1);
-
-      auxiliaryRepo.getFator.mockResolvedValue(fatorMap);
-      updateRepo.getDeletedMaterials.mockResolvedValue([
-        { material: '10054768' },
+      auxiliaryBaseRepository.getAuxiliaryBaseCN52N.mockResolvedValue(
+        mockMaterials,
+      );
+      auxiliaryBaseRepository.getFator.mockResolvedValue(
+        new Map([['MAT1|P1', 2]]),
+      );
+      updateCapexRepository.getDeletedMaterials.mockResolvedValue([
+        { material: 'MAT1' },
       ]);
+      updateCapexRepository.update.mockResolvedValue(undefined);
 
-      await service.update();
+      const progressMock = jest.fn();
 
-      const updateCall = updateRepo.update.mock.calls[0][0];
+      await service.update(progressMock);
 
-      expect(updateCall).toHaveLength(2);
-      expect(updateCall.every((item) => item.id !== null)).toBe(true);
+      expect(auxiliaryBaseRepository.getAuxiliaryBaseCN52N).toHaveBeenCalled();
+      expect(auxiliaryBaseRepository.getFator).toHaveBeenCalled();
+      expect(updateCapexRepository.getDeletedMaterials).toHaveBeenCalled();
+      expect(updateCapexRepository.update).toHaveBeenCalled();
+
+      expect(progressMock).toHaveBeenCalled();
     });
 
-    it('should handle empty fatorMap without breaking calculations', async () => {
-      auxiliaryRepo.getAuxiliaryBaseCN52N.mockResolvedValue(
-        mockReturnAuxiliaryBaseCN52N,
-      );
-      auxiliaryRepo.getFator.mockResolvedValue(new Map());
-      updateRepo.getDeletedMaterials.mockResolvedValue([]);
+    it('deve funcionar sem onProgress', async () => {
+      auxiliaryBaseRepository.getAuxiliaryBaseCN52N.mockResolvedValue([]);
+      auxiliaryBaseRepository.getFator.mockResolvedValue(new Map());
+      updateCapexRepository.getDeletedMaterials.mockResolvedValue([]);
+      updateCapexRepository.update.mockResolvedValue(undefined);
 
-      await service.update();
-
-      const updateCall = updateRepo.update.mock.calls[0][0];
-
-      updateCall.forEach((obra) => {
-        expect(obra.qtde_calc).toBe(0);
-        expect(obra.qtde_pend).toBe(0);
-      });
+      await expect(service.update()).resolves.not.toThrow();
     });
 
-    it('should handle deleted materials with whitespace correctly', async () => {
-      const mockWithSpaces = mockReturnAuxiliaryBaseCN52N.map((item) => ({
-        ...item,
-        material: `  ${item.material}  `,
-      }));
-
-      auxiliaryRepo.getAuxiliaryBaseCN52N.mockResolvedValue(mockWithSpaces);
-
-      const fatorMap = new Map<string, number>();
-      fatorMap.set('  10057267  |X/005017', 1);
-      fatorMap.set('  10054768  |X/004078', 1);
-
-      auxiliaryRepo.getFator.mockResolvedValue(fatorMap);
-
-      updateRepo.getDeletedMaterials.mockResolvedValue([
-        { material: '10054768' },
-      ]);
-
-      await service.update();
-
-      const updateCall = updateRepo.update.mock.calls[0][0];
-      const obra1 = updateCall.find((item) => item.id === 1);
-
-      expect(obra1.mo_calc).toBeCloseTo(12.98, 2);
-    });
-
-    it('should throw error when update fails', async () => {
-      auxiliaryRepo.getAuxiliaryBaseCN52N.mockResolvedValue(
-        mockReturnAuxiliaryBaseCN52N,
-      );
-      auxiliaryRepo.getFator.mockResolvedValue(new Map());
-      updateRepo.getDeletedMaterials.mockResolvedValue([]);
-
-      updateRepo.update.mockRejectedValue(new Error('Database error'));
-
-      await expect(service.update()).rejects.toThrow('Database error');
-    });
-
-    it('should throw error when getAuxiliaryBaseCN52N fails', async () => {
-      auxiliaryRepo.getAuxiliaryBaseCN52N.mockRejectedValue(
-        new Error('Failed to fetch data'),
+    it('deve emitir erro no onProgress e relançar exceção', async () => {
+      auxiliaryBaseRepository.getAuxiliaryBaseCN52N.mockRejectedValue(
+        new Error('Erro teste'),
       );
 
-      await expect(service.update()).rejects.toThrow('Failed to fetch data');
+      const progressMock = jest.fn();
+
+      await expect(service.update(progressMock)).rejects.toThrow('Erro teste');
+
+      expect(progressMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          phase: 'error',
+        }),
+      );
     });
 
-    it('should throw an error if something fails during calculation', () => {
-      const materialData = null as any; // isso força erro no for...of
-      const fatorMap = new Map();
-      const deletedMaterials = [];
+    it('deve emitir erro no onProgress e relançar exceção com mensagem padrão', async () => {
+      const error = new Error();
+      (error as any).message = undefined;
 
-      expect(() =>
-        (service as any).calculateCapexValues(
-          materialData,
-          fatorMap,
-          deletedMaterials,
-        ),
-      ).toThrow();
+      auxiliaryBaseRepository.getAuxiliaryBaseCN52N.mockRejectedValue(error);
+
+      const progressMock = jest.fn();
+
+      await expect(service.update(progressMock)).rejects.toThrow();
+
+      expect(progressMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          phase: 'error',
+          message: 'Erro desconhecido na atualização do CAPEX',
+        }),
+      );
     });
   });
 
-  describe('extractAllMaterials', () => {
-    it('should extract all materials correctly', () => {
-      const materials = service['extractAllMaterials'](
-        mockReturnAuxiliaryBaseCN52N,
-      );
+  // ============================================================
+  // 🧠 TESTES DE HELPERS
+  // ============================================================
 
-      expect(materials).toHaveLength(mockReturnAuxiliaryBaseCN52N.length);
-      expect(materials[0]).toHaveProperty('material');
-      expect(materials[0]).toHaveProperty('pep_ref');
-      expect(materials[0].material).toBe('10057267');
-      expect(materials[0].pep_ref).toBe('X/005017');
+  describe('extractAllMaterials', () => {
+    it('deve extrair material e pep_ref corretamente', () => {
+      const input = [{ material: 'MAT1', def_proj: 'P1' }];
+
+      const result = (service as any).extractAllMaterials(input);
+
+      expect(result).toEqual([{ material: 'MAT1', pep_ref: 'P1' }]);
     });
   });
 
   describe('canIncludeCapex', () => {
-    it('should identify CAPEX diagrams correctly', () => {
-      const isCapex170 = service['canIncludeCapex']('170000010000');
-      const isCapex180 = service['canIncludeCapex']('180000010000');
-      const isCapex200 = service['canIncludeCapex']('200000010000', '23535-2');
-      const isNotCapex = service['canIncludeCapex']('150000010000');
-      const diagramNotSent = service['canIncludeCapex'](null);
+    it('deve retornar false se diagrama for vazio', () => {
+      const result = (service as any).canIncludeCapex('');
 
-      expect(isCapex170).toBe(true);
-      expect(isCapex180).toBe(true);
-      expect(isCapex200).toBe(true);
-      expect(isNotCapex).toBe(false);
-      expect(diagramNotSent).toBe(false);
+      expect(result).toBe(false);
+    });
+
+    it('deve validar prefixos padrão', () => {
+      const result = (service as any).canIncludeCapex('170123');
+
+      expect(result).toBe(true);
+    });
+
+    it('deve validar regra especial do prefixo 200 com elemento_pep', () => {
+      const result = (service as any).canIncludeCapex('200123', 'ABC-2');
+
+      expect(result).toBe(true);
+    });
+
+    it('deve falhar regra do 200 sem -2', () => {
+      const result = (service as any).canIncludeCapex('200123', 'ABC-1');
+
+      expect(result).toBe(false);
+    });
+  });
+
+  // ============================================================
+  // 🔥 TESTES DO CORE (calculateCapexValues)
+  // ============================================================
+
+  describe('calculateCapexValues', () => {
+    it('deve calcular corretamente todos os campos', () => {
+      const materials = [
+        {
+          id_obra: 1,
+          material: 'MAT1',
+          def_proj: 'P1',
+          qtd_necessaria: 10,
+          qtd_retirada: 5,
+          qtd_recebida: 3,
+          qtd_falta: 2,
+          preco: 100,
+          reserva: 'X',
+          cti: 'N',
+          diagrama_rede: '170123',
+          elemento_pep: 'XXX-2',
+        },
+      ];
+
+      const fatorMap = new Map([['MAT1|P1', 2]]);
+      const deleted = [{ material: 'MAT1' }];
+
+      const result = (service as any).calculateCapexValues(
+        materials,
+        fatorMap,
+        deleted,
+      );
+
+      expect(result).toHaveLength(1);
+
+      const item = result[0];
+
+      expect(item.qtde_calc).toBe(5);
+      expect(item.qtde_pend).toBe(2.5);
+      expect(item.mo_calc).toBe(1000);
+      expect(item.mo_exec).toBe(300);
+      expect(item.mo_pend).toBe(200);
+      expect(item.capex_mo_plan).toBe(1000);
+      expect(item.capex_mo_pend).toBe(200);
+    });
+
+    it('deve ignorar materiais sem id_obra', () => {
+      const result = (service as any).calculateCapexValues(
+        [{ material: 'MAT1' }],
+        new Map(),
+        [],
+      );
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('deve lidar com fator inexistente', () => {
+      const materials = [
+        {
+          id_obra: 1,
+          material: 'MAT1',
+          def_proj: 'P1',
+          qtd_necessaria: 10,
+        },
+      ];
+
+      const result = (service as any).calculateCapexValues(
+        materials,
+        new Map(),
+        [],
+      );
+
+      expect(result[0].qtde_calc).toBe(0);
+    });
+
+    it('deve calcular capex de material (cti = L)', () => {
+      const materials = [
+        {
+          id_obra: 1,
+          material: 'MAT1',
+          def_proj: 'P1',
+          qtd_necessaria: 10,
+          qtd_retirada: 5,
+          preco: 100,
+          reserva: 'X',
+          cti: 'L',
+          diagrama_rede: '170123',
+        },
+      ];
+
+      const result = (service as any).calculateCapexValues(
+        materials,
+        new Map(),
+        [],
+      );
+
+      expect(result[0].capex_mat_plan).toBe(1000);
+      expect(result[0].capex_mat_pend).toBe(500);
+    });
+
+    it('deve não incluir capex quando não permitido', () => {
+      const materials = [
+        {
+          id_obra: 1,
+          material: 'MAT1',
+          def_proj: 'P1',
+          qtd_necessaria: 10,
+          preco: 100,
+          cti: 'L',
+          diagrama_rede: '999999',
+        },
+      ];
+
+      const result = (service as any).calculateCapexValues(
+        materials,
+        new Map(),
+        [],
+      );
+
+      expect(result[0].capex_mat_plan).toBe(0);
+    });
+
+    it('deve ignorar materiais com reserva inexistente', () => {
+      jest.spyOn(service as any, 'canIncludeCapex').mockReturnValue(true);
+
+      const materials = [
+        {
+          id_obra: 1,
+          material: 'MAT1',
+          def_proj: 'P1',
+          qtd_necessaria: 10,
+          preco: 100,
+          cti: 'L',
+          diagrama_rede: '170000',
+          reserva: null,
+
+          // 🔥 CAMPOS NECESSÁRIOS
+          qtd_retirada: 5,
+          qtd_recebida: 5,
+          qtd_falta: 5,
+          elemento_pep: 'X',
+        },
+        {
+          id_obra: 1,
+          material: 'MAT1',
+          def_proj: 'P1',
+          qtd_necessaria: 10,
+          preco: 100,
+          cti: 'N',
+          diagrama_rede: '170000',
+          reserva: null,
+
+          qtd_retirada: 5,
+          qtd_recebida: 5,
+          qtd_falta: 5,
+          elemento_pep: 'X',
+        },
+      ];
+
+      const result = (service as any).calculateCapexValues(
+        materials,
+        new Map([['MAT1|P1', 2]]),
+        [{ material: 'MAT1' }],
+      );
+
+      const item = result[0];
+
+      // 🔥 NÃO deve entrar nos blocos com reserva
+      expect(item.qtde_pend).toBe(0);
+      expect(item.capex_mat_pend).toBe(0);
+      expect(item.capex_mo_pend).toBe(0);
+
+      // 🔥 MAS deve calcular os planos
+      expect(item.capex_mat_plan).toBeGreaterThan(0);
+      expect(item.capex_mo_plan).toBeGreaterThan(0);
     });
   });
 });

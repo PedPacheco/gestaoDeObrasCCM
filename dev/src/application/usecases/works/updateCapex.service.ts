@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { ProgressEmitter } from 'src/application/shared/capex.types';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
@@ -33,18 +34,63 @@ export class UpdateCapexService {
     private readonly updateCapexRepository: IUpdateCapexRepository,
   ) {}
 
-  async update() {
+  /**
+   * Executa o pipeline de atualização do CAPEX nas obras.
+   *
+   * Faixas de progresso quando chamado de forma isolada (fluxo separado):
+   *   loading     →  0% – 40%
+   *   calculating → 40% – 50%
+   *   updating    → 50% – 99%  (delegado ao repositório)
+   *   done        → 100%
+   *
+   * Quando chamado pelo CapexFullPipelineService (fluxo único), o caller
+   * injeta um emitter que já mapeia para a faixa correta do pipeline completo.
+   *
+   * @param onProgress  Callback opcional para push de progresso via WebSocket.
+   *                    Se omitido, o serviço funciona de forma silenciosa
+   *                    (compatibilidade com chamadas sem WS).
+   */
+  async update(onProgress?: ProgressEmitter): Promise<void> {
     try {
+      // ─── Fase: loading ────────────────────────────────────────────
+      onProgress?.({
+        phase: 'loading',
+        processed: 0,
+        percentage: 5,
+        message: 'Carregando materiais da base auxiliar...',
+      });
+
       const materials =
         await this.auxiliaryBaseRepository.getAuxiliaryBaseCN52N();
 
-      const allMaterials = this.extractAllMaterials(materials);
+      onProgress?.({
+        phase: 'loading',
+        processed: 1,
+        percentage: 15,
+        message: `${materials.length} materiais carregados. Buscando fatores...`,
+      });
 
+      const allMaterials = this.extractAllMaterials(materials);
       const fatorMap =
         await this.auxiliaryBaseRepository.getFator(allMaterials);
 
+      onProgress?.({
+        phase: 'loading',
+        processed: 2,
+        percentage: 30,
+        message: 'Buscando materiais de contratos...',
+      });
+
       const deletedMaterials =
         await this.updateCapexRepository.getDeletedMaterials();
+
+      // ─── Fase: calculating ────────────────────────────────────────
+      onProgress?.({
+        phase: 'calculating',
+        processed: 3,
+        percentage: 40,
+        message: `Calculando CAPEX para ${materials.length} registros...`,
+      });
 
       const capexValues = this.calculateCapexValues(
         materials,
@@ -52,16 +98,40 @@ export class UpdateCapexService {
         deletedMaterials,
       );
 
-      await this.updateCapexRepository.update(capexValues);
-    } catch (error) {
+      onProgress?.({
+        phase: 'calculating',
+        processed: 3,
+        percentage: 50,
+        message: `${capexValues.length} obras calculadas. Gravando...`,
+      });
+
+      // ─── Fase: updating (delegada ao repositório) ─────────────────
+      await this.updateCapexRepository.update(capexValues, onProgress);
+
+      // ─── Conclusão ────────────────────────────────────────────────
+      onProgress?.({
+        phase: 'done',
+        processed: capexValues.length,
+        percentage: 100,
+        message: 'Atualização finalizada',
+      });
+    } catch (error: any) {
+      onProgress?.({
+        phase: 'error',
+        processed: 0,
+        percentage: 0,
+        message: error.message ?? 'Erro desconhecido na atualização do CAPEX',
+      });
       throw error;
     }
   }
 
+  // ─── Helpers privados ──────────────────────────────────────────────
+
   private extractAllMaterials(
     validatedData: GetAuxiliaryBaseMaterialsInterface[],
   ) {
-    return validatedData.flatMap((item) => ({
+    return validatedData.map((item) => ({
       material: item.material,
       pep_ref: item.def_proj,
     }));
@@ -72,7 +142,7 @@ export class UpdateCapexService {
     fatorMap: Map<string, number>,
     deletedMaterials: any[],
   ): CalculatedValue[] {
-    const deletedSet = new Set(
+    const deletedSet = new Set<string>(
       deletedMaterials.map((item) => item.material?.trim()).filter(Boolean),
     );
 
@@ -101,23 +171,21 @@ export class UpdateCapexService {
         capexMap.set(material.id_obra, current);
       }
 
-      /** 🔹 Quantidades */
       if (fator > 0) {
         current.qtde_calc += material.qtd_necessaria / fator;
 
         if (material.reserva?.trim()) {
-          current.qtde_pend += material.qtd_retirada / fator;
+          current.qtde_pend +=
+            (material.qtd_necessaria - material.qtd_retirada) / fator;
         }
       }
 
-      /** 🔹 MO (independente de CAPEX) */
       if (deletedSet.has(material.material.trim()) && material.cti === 'N') {
         current.mo_calc += material.preco * material.qtd_necessaria;
         current.mo_exec += material.preco * material.qtd_recebida;
         current.mo_pend += material.preco * material.qtd_falta;
       }
 
-      /** 🔥 CAPEX MO */
       const canIncludeCapex = this.canIncludeCapex(
         material.diagrama_rede,
         material.elemento_pep,
@@ -135,7 +203,6 @@ export class UpdateCapexService {
         }
       }
 
-      /** 🔥 CAPEX MATERIAL */
       if (material.cti === 'L' && canIncludeCapex) {
         current.capex_mat_plan += material.qtd_necessaria * material.preco;
 

@@ -12,6 +12,7 @@ export interface IAuxiliaryBaseRepository {
   getAuxiliaryBaseCN52N(): Promise<GetAuxiliaryBaseMaterialsInterface[]>;
   getAuxiliaryBaseMarket(idRegional?: number): Promise<any>;
   delete(tableToDelete: string, id: number): Promise<void>;
+  truncateCN52N(): Promise<void>;
   getObraIdsByDiagramas(diagramas: string[]): Promise<any>;
 }
 
