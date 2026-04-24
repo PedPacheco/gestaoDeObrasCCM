@@ -35,6 +35,8 @@ export class AuxiliaryNotesInsertService {
       return { insertedCount: 0, skippedNotes: [] };
     }
 
+    await this.auxiliaryBaseRepository.delete('baseNotes');
+
     const validationResult = await this.validateAndFilterExistingData(
       data,
       operation,

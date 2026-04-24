@@ -93,8 +93,6 @@ export default function FailureModalComponent({
     onClose();
   }, [rejectedSchedule, handleReject, reason, description, resetForm, onClose]);
 
-  const isFormValid = reason.trim() && description.trim();
-
   return (
     <Modal
       open={open}
