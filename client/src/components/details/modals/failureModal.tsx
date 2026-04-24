@@ -17,13 +17,15 @@ interface FailureModalComponentProps {
   rejectedSchedule: {
     id: number;
     reject: boolean;
-  } | null;
-  handleReject: (data: {
-    id: number;
-    reject: boolean;
-    reason: string;
-    description: string;
-  }) => void;
+  }[];
+  handleReject: (
+    data: {
+      id: number;
+      reject: boolean;
+      reason: string;
+      description: string;
+    }[],
+  ) => void;
 }
 
 const reasonsForFailure: string[] = [
@@ -78,12 +80,14 @@ export default function FailureModalComponent({
 
     if (!rejectedSchedule) return;
 
-    handleReject({
-      id: rejectedSchedule.id,
-      reject: rejectedSchedule.reject,
-      reason: reason.trim(),
-      description: description.trim(),
-    });
+    handleReject(
+      rejectedSchedule.map((item) => ({
+        id: item.id,
+        reject: item.reject,
+        description: description.trim(),
+        reason: reason.trim(),
+      })),
+    );
 
     resetForm();
     onClose();

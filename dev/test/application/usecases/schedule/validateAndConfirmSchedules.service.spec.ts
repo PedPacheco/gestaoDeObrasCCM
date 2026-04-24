@@ -271,12 +271,14 @@ describe('ValidateAndConfirmSchedulesService', () => {
 
   describe('reject', () => {
     it('should reject schedule and update work status when no erros occur', async () => {
-      const data = {
-        id: 1,
-        reject: true,
-        reason: '',
-        description: '',
-      };
+      const data = [
+        {
+          id: 1,
+          reject: true,
+          reason: '',
+          description: '',
+        },
+      ];
 
       const mockResponse = {
         id_obra: 2,
@@ -299,7 +301,10 @@ describe('ValidateAndConfirmSchedulesService', () => {
 
       expect(
         mockValidateAndConfirmSchedulesRepository.reject,
-      ).toHaveBeenCalledWith({ ...data, ...mockResponse }, expect.any(Object));
+      ).toHaveBeenCalledWith(
+        { ...data[0], ...mockResponse },
+        expect.any(Object),
+      );
       expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
         36,
         2,
@@ -309,13 +314,15 @@ describe('ValidateAndConfirmSchedulesService', () => {
 
     it('should throw error when transaction fails during schedule confirmation and status update', async () => {
       const error = new Error('Erro interno');
-      const data = {
-        id: 1,
-        id_obra: 1,
-        reject: true,
-        reason: '',
-        description: '',
-      };
+      const data = [
+        {
+          id: 1,
+          id_obra: 1,
+          reject: true,
+          reason: '',
+          description: '',
+        },
+      ];
 
       const mockResponse = {
         id_obra: 2,

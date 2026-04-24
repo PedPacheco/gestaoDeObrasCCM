@@ -28,10 +28,12 @@ export function useScheduleHandlers({
     { id: number; confirm: boolean }[]
   >([]);
 
-  const [rejectedSchedule, setRejectedSchedule] = useState<{
-    id: number;
-    reject: boolean;
-  } | null>(null);
+  const [rejectedSchedule, setRejectedSchedule] = useState<
+    {
+      id: number;
+      reject: boolean;
+    }[]
+  >([]);
 
   useEffect(() => {
     if (!data?.programacoes) return;
@@ -72,18 +74,18 @@ export function useScheduleHandlers({
         }
       });
     },
-    [setError, setSuccess]
+    [setError, setSuccess],
   );
 
   const handleExecutionReportDelete = useCallback(
     (id: number) =>
       handleOperation(() => deleteExecutionReport(id, Number(idWork))),
-    [idWork, handleOperation]
+    [idWork, handleOperation],
   );
 
   const handleDelete = useCallback(
     (id: number) => handleOperation(() => deleteSchedule(id, Number(idWork))),
-    [idWork, handleOperation]
+    [idWork, handleOperation],
   );
 
   const handleValidated = useCallback(() => {
@@ -92,19 +94,21 @@ export function useScheduleHandlers({
 
   const handleConfirm = useCallback(
     () => handleOperation(() => ConfirmedSchedule(confirmedSchedule, idWork)),
-    [confirmedSchedule, idWork, handleOperation]
+    [confirmedSchedule, idWork, handleOperation],
   );
 
   const handleReject = useCallback(
-    (data: {
-      id: number;
-      reject: boolean;
-      reason: string;
-      description: string;
-    }) => {
+    (
+      data: {
+        id: number;
+        reject: boolean;
+        reason: string;
+        description: string;
+      }[],
+    ) => {
       handleOperation(() => RejectedSchedule(data, idWork));
     },
-    [idWork, handleOperation]
+    [idWork, handleOperation],
   );
 
   return {
