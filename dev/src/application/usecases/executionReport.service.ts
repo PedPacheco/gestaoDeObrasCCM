@@ -147,7 +147,7 @@ export class ExecutionReportService {
         updatedData,
         scheduledFinishTime.hora_ter,
       );
-    } catch (error) {
+    } catch (error: any) {
       if (files?.length) {
         for (const file of files) {
           this.fileService.deleteFile(

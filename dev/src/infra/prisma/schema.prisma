@@ -823,6 +823,7 @@ view exportacao_programacoes_obras {
   observacao_restricao         String?   @db.VarChar(255)
   observacao_execucao          String?   @db.VarChar(255)
   status_programacao           String?   @db.VarChar(30)
+  observacao_programacao       String?   @db.VarChar(250)
 }
 
 view exportacao_capacidade_execucao {

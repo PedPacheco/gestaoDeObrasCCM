@@ -18,13 +18,13 @@ dayjs.extend(utc);
 const columns = {
   observacao: "Observação Publicação",
   observacao_construcao: "Observacao Construção",
-  restricoes: "Data Programada",
-  responsabilidade: "Motivo da reprovação",
-  nome_responsavel: "Horário de início",
-  status_restricao: "Horário de término",
-  data_resolucao: "% Programado",
-  criado_em: "Descrição",
-  criado_por: "Equipamento desligado",
+  restricao: "Restrição",
+  criado_por: "Criado por",
+  criado_em: "Criado em ",
+  nome_responsavel: "Nome do responsável",
+  responsabilidade: "Responsabilidade",
+  status_restricao: "Status da restrição",
+  data_resolucao: "Data de resolução",
 };
 
 interface PublicationRestrictionsPanelItemProps {

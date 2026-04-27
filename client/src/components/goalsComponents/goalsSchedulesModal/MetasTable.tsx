@@ -18,13 +18,17 @@ import {
   formatToHHMM,
 } from "@/utils/formatValue";
 
-import { columns, MetaProgramacao } from "./";
-import { useRouter } from "next/navigation";
+import {
+  columnsForPortfolioTable,
+  columnsForScheduleTable,
+  MetaProgramacao,
+} from "./";
 
 dayjs.extend(utc);
 
 interface MetasTableProps {
   rows: MetaProgramacao[];
+  typeColumns: string;
 }
 
 const formatCell = (key: string, value: any) => {
@@ -34,6 +38,7 @@ const formatCell = (key: string, value: any) => {
       return value?.toFixed(2);
 
     case "mo_prog":
+    case "mo_planejada":
       return FormatCurrency(value);
 
     case "exec":
@@ -42,6 +47,7 @@ const formatCell = (key: string, value: any) => {
 
     case "data_prog":
     case "prazo_fim":
+    case "data_empreitamento":
       return value ? dayjs(value).utc().format("DD/MM/YYYY") : "";
 
     case "hora_ini":
@@ -72,9 +78,12 @@ const bgColorClass = (column: string, value: any) => {
   return bgColorClass;
 };
 
-export default function MetasTable({ rows }: MetasTableProps) {
-  const router = useRouter();
-  const columnKeys = Object.keys(columns);
+export default function MetasTable({ rows, typeColumns }: MetasTableProps) {
+  const columnKeys = Object.keys(
+    typeColumns === "schedule"
+      ? columnsForScheduleTable
+      : columnsForPortfolioTable,
+  );
 
   return (
     <TableContainer className="w-[98%] mx-auto overflow-y-auto scrollbar-thin scrollbar-thumb-green-300/50 scrollbar-track-transparent">
@@ -94,7 +103,13 @@ export default function MetasTable({ rows }: MetasTableProps) {
                       }
                     `}
               >
-                {columns[key as keyof typeof columns]}
+                {typeColumns === "schedule"
+                  ? columnsForScheduleTable[
+                      key as keyof typeof columnsForScheduleTable
+                    ]
+                  : columnsForPortfolioTable[
+                      key as keyof typeof columnsForPortfolioTable
+                    ]}
               </TableCell>
             ))}
           </TableRow>

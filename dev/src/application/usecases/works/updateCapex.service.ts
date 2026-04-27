@@ -199,7 +199,10 @@ export class UpdateCapexService {
         current.capex_mo_plan += material.preco * material.qtd_necessaria;
 
         if (material.reserva?.trim()) {
-          current.capex_mo_pend += material.preco * material.qtd_falta;
+          current.capex_mo_pend += Math.max(
+            0,
+            material.preco * material.qtd_falta,
+          );
         }
       }
 
@@ -207,8 +210,10 @@ export class UpdateCapexService {
         current.capex_mat_plan += material.qtd_necessaria * material.preco;
 
         if (material.reserva?.trim()) {
-          current.capex_mat_pend +=
-            material.preco * (material.qtd_necessaria - material.qtd_retirada);
+          current.capex_mat_pend += Math.max(
+            0,
+            material.preco * (material.qtd_necessaria - material.qtd_retirada),
+          );
         }
       }
     }

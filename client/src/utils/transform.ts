@@ -39,6 +39,7 @@ export function mapScheduleToForm(schedule: any, options: Record<string, any>) {
     idTechnical: technicianFound.id ?? 0,
     idExecutionRestriction: restrictionFound.id ?? 0,
     responsibility: schedule.nome_responsavel_execucao ?? "",
+    executionObservation: schedule.observacao_execucao ?? "",
     executionReport: schedule.executionReport,
     idProgRestriction1: schedule.id_restricao_prog1,
     responsiblityProg: schedule.responsabilidade1,

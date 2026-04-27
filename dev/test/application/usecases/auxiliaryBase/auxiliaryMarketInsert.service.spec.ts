@@ -12,6 +12,7 @@ describe('AuxiliaryMarketInsertService', () => {
 
   const mockRepository = {
     insertMarket: jest.fn(),
+    delete: jest.fn(),
   };
 
   const mockFindExistingWorksService = {
