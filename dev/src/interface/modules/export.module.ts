@@ -25,9 +25,18 @@ import { ExportMonthlyForecastSummaryService } from 'src/application/usecases/ex
 import { ExportGoalsService } from 'src/application/usecases/export/exportGoals.service';
 import { GoalsModule } from './goals.module';
 import { ExportOrdersService } from 'src/application/usecases/export/exportOrders.service';
+import { RestrictionsModule } from './restrictions.module';
+import { ExportPublicationRestrictionService } from 'src/application/usecases/export/exportPublicationRestriction.service';
+import { ExportReportToPubliationService } from 'src/application/usecases/export/exportReportToPublication.service';
 
 @Module({
-  imports: [WorksModule, ScheduleModule, UsersModule, GoalsModule],
+  imports: [
+    WorksModule,
+    ScheduleModule,
+    UsersModule,
+    GoalsModule,
+    RestrictionsModule,
+  ],
   controllers: [ExportController],
   providers: [
     ExportScheduleService,
@@ -47,6 +56,8 @@ import { ExportOrdersService } from 'src/application/usecases/export/exportOrder
     ExportMonthlyForecastSummaryService,
     ExportGoalsService,
     ExportOrdersService,
+    ExportPublicationRestrictionService,
+    ExportReportToPubliationService,
     {
       provide: EXPORT_REPOSITORY,
       useClass: ExportRepository,

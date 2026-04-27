@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 
 import { ButtonComponent } from "@/components/common/Button";
-import { FormData } from "@/hooks/useScheduleForm";
+import { FormData } from "@/hooks/details/useScheduleForm";
 import { resolveExecutionReportContext } from "@/utils/formatValue";
 import { equipmentItemSchema } from "@/validations/validationSchedules";
 import { ExecutionReportData } from "./executionReportDialog";
@@ -25,23 +25,23 @@ interface ExecutionEquipmentPanelProps {
     field:
       | keyof FormData
       | `executionReport.${keyof ExecutionReportData}`
-      | keyof ExecutionReportData
+      | keyof ExecutionReportData,
   ) => (event: any) => void;
   onEquipmentChange: (
     field: "appliedEquipment" | "equipmentRemoved",
     index: number,
     subField: keyof EquipmentData,
     value: string,
-    prefix: string
+    prefix: string,
   ) => void;
   onAddEquipment: (
     field: "appliedEquipment" | "equipmentRemoved",
-    prefix: string
+    prefix: string,
   ) => void;
   onRemoveEquipment: (
     field: "appliedEquipment" | "equipmentRemoved",
     index: number,
-    prefix: string
+    prefix: string,
   ) => void;
 }
 
@@ -60,7 +60,7 @@ export const ExecutionEquipmentPanel: React.FC<
   const renderCheckboxGroup = (
     label: string,
     stateKey: keyof ExecutionReportData,
-    errorKey: string
+    errorKey: string,
   ) => {
     const errorMessage = formErrors[errorKey];
     return (
@@ -106,7 +106,7 @@ export const ExecutionEquipmentPanel: React.FC<
       {renderCheckboxGroup(
         "Possui equipamentos aplicados?",
         "hasEquipmentInstalled",
-        "appliedEquipment"
+        "appliedEquipment",
       )}
 
       {data.hasEquipmentInstalled && (
@@ -132,7 +132,7 @@ export const ExecutionEquipmentPanel: React.FC<
       {renderCheckboxGroup(
         "Possui equipamentos removidos?",
         "hasEquipmentRemoved",
-        "equipmentRemoved"
+        "equipmentRemoved",
       )}
 
       {data.hasEquipmentRemoved && (

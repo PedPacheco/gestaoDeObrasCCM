@@ -7,6 +7,7 @@ import { ExecutionReportDataDTO } from 'src/interface/dtos/executionReportDTO';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { mockUpdateExecutionReportDTO } from '../../../test/mocks/mocksExecutionReport';
+import { ForbiddenException } from '@nestjs/common';
 
 describe('ExecutionReportController', () => {
   let controller: ExecutionReportController;
@@ -76,6 +77,32 @@ describe('ExecutionReportController', () => {
         message: 'Atualização do relatório feita com sucesso',
         statusCode: 204,
       });
+    });
+
+    it('should throw ForbiddenException when partial user tries to update report data without files', async () => {
+      const mockReqWithPartialPermission = {
+        user: {
+          ...req.user,
+          permissao_visualizacao: 'parcial',
+        },
+      };
+
+      await expect(
+        controller.update(
+          mockReqWithPartialPermission,
+          1,
+          {
+            executionReportData: mockUpdateExecutionReportDTO,
+          },
+          [],
+        ),
+      ).rejects.toThrow(
+        new ForbiddenException(
+          'Usuários com permissão parcial podem alterar apenas os arquivos.',
+        ),
+      );
+
+      expect(service.update).not.toHaveBeenCalled();
     });
   });
 

@@ -1,5 +1,5 @@
 import { ExecutionReportData } from "@/components/details/modals/executionReportDialog/executionReportDialog";
-import { FormData } from "@/hooks/useScheduleForm";
+import { FormData } from "@/hooks/details/useScheduleForm";
 
 export function FormatCurrency(value: number) {
   return new Intl.NumberFormat("pt-br", {
@@ -17,7 +17,9 @@ export function capitalize(text: string): string {
 
 export function formatPercentage(value: number, locale: string = "pt-BR") {
   if (value === null) {
-    return null;
+    return new Intl.NumberFormat(locale, {
+      style: "percent",
+    }).format(0);
   }
 
   const correctValue = value / 100;

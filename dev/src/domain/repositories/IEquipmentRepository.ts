@@ -1,4 +1,4 @@
-export interface EquipamentosFilter {
+export interface EquipmentFilter {
   idRegional?: number;
   idMunicipio?: number | number[];
   idCircuito?: number;
@@ -17,10 +17,11 @@ export interface EquipamentosFilter {
   offset?: number;
 }
 
-export interface IEquipamentosRepository {
-  findAll(params: EquipamentosFilter): Promise<any[]>;
-  count(params: Omit<EquipamentosFilter, 'limit' | 'offset'>): Promise<number>;
-  findWithoutLocation(ovnotas: string[]): Promise<any[]>;
+export interface IEquipmentRepository {
+  findWorks(where: any): Promise<any[]>;
+  countWorks(where: any): Promise<number>;
+  findEquipmentByCode(codigos: string[]): Promise<any[]>;
+  findWithoutLocationRaw(ovnotas: any): Promise<any[]>;
 }
 
-export const EQUIPAMENTOS_REPOSITORY = Symbol('EquipamentosRepository');
+export const EQUIPMENT_REPOSITORY = Symbol('EquipmentRepository');

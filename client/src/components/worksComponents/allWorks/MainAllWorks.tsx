@@ -31,7 +31,6 @@ export default function MainAllWorks({
   token,
 }: MainInterface<allWorksType>) {
   const [filteredData, setFilteredData] = useState(data);
-  const { setOvnotas } = useMapFilter();
   const { clearFilters, filters, saveFilters } = useSaveFilters({
     pageKey: "allWorksFilters",
     data: filtersData,
@@ -48,15 +47,6 @@ export default function MainAllWorks({
       setSelectedItems(filters.selectedItems);
     }
   }, [filters]);
-
-  // Sync map context whenever visible data changes (including initial load)
-  useEffect(() => {
-    const ovnotasList = (filteredData?.works ?? [])
-      .map((w: any) => w.ovnota)
-      .filter(Boolean);
-    setOvnotas(ovnotasList.length > 0 ? ovnotasList : null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredData]);
 
   function fetchWorks(newPage: number) {
     saveFilters({ selectedItems });
@@ -79,10 +69,6 @@ export default function MainAllWorks({
         );
 
         setFilteredData(response.data);
-        const ovnotasList = (response.data?.works ?? [])
-          .map((w: any) => w.ovnota)
-          .filter(Boolean);
-        setOvnotas(ovnotasList.length > 0 ? ovnotasList : null);
       } catch (error: any) {
         setError(error.message);
       }
@@ -107,10 +93,6 @@ export default function MainAllWorks({
         );
 
         setFilteredData(response.data);
-        const ovnotasList = (response.data?.works ?? [])
-          .map((w: any) => w.ovnota)
-          .filter(Boolean);
-        setOvnotas(ovnotasList.length > 0 ? ovnotasList : null);
       } catch (error: any) {
         setError(error.message);
       }

@@ -48,10 +48,14 @@ export default async function ExportPage() {
       path: "reprovacoes",
       visible: false,
     },
-
     {
       name: "Exportar Ordens para atualização MO/Material",
       path: "ordens",
+      visible: false,
+    },
+    {
+      name: "Exportar Relatório para Publicações",
+      path: "relatorio-publicacoes",
       visible: false,
     },
   ];

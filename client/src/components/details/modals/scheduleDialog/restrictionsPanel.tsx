@@ -3,7 +3,7 @@ import "dayjs/locale/pt-br";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 
-import { FormData } from "@/hooks/useScheduleForm";
+import { FormData } from "@/hooks/details/useScheduleForm";
 import {
   Box,
   FormControl,
@@ -146,7 +146,7 @@ export function RestrictionsPanel({
         }
         onChange={(v) =>
           onInputChange("resolutionDate")(
-            v ? dayjs(v).utc().toISOString() : null
+            v ? dayjs(v).utc().toISOString() : null,
           )
         }
         format="DD/MM/YYYY"
@@ -269,7 +269,7 @@ export function RestrictionsPanel({
         }
         onChange={(v) =>
           onInputChange("resolutionDate2")(
-            v ? dayjs(v).utc().toISOString() : null
+            v ? dayjs(v).utc().toISOString() : null,
           )
         }
         disabled={disabled}

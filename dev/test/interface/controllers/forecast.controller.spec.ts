@@ -5,7 +5,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ForecastController } from 'src/interface/controllers/forecast.controller';
 import { ForecastSnapshotService } from 'src/application/usecases/schedule/forecastSnapshot.service';
 import { createForecastSnapshotMock } from '../../../test/mocks/mockAddScheduleService';
-import * as moment from 'moment';
+import moment from 'moment';
 
 describe('ForecastController', () => {
   let controller: ForecastController;

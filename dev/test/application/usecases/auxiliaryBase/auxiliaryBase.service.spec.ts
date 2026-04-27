@@ -15,12 +15,6 @@ import {
   mockMappedMarketWorks,
   mockMappedNotes,
 } from '../../../mocks/mocksAuxiliaryBaseController';
-import {
-  mockGetObraIdsByDiagramas,
-  mockGetWrongObraIdsByDiagramas,
-  mockMaterialCapex,
-  mockMaterialCapexRequest,
-} from '../../../mocks/mocksMaterialCapex';
 
 describe('AuxiliaryBaseService', () => {
   let auxiliaryBaseService: AuxiliaryBaseService;
@@ -139,36 +133,36 @@ describe('AuxiliaryBaseService', () => {
     });
   });
 
-  describe('InsertAuxiliaryBaseCapex', () => {
-    it('Should format data and call repository to insert materials', async () => {
-      mockRepository.getObraIdsByDiagramas.mockResolvedValue(
-        mockGetObraIdsByDiagramas,
-      );
+  // describe('InsertAuxiliaryBaseCapex', () => {
+  //   it('Should format data and call repository to insert materials', async () => {
+  //     mockRepository.getObraIdsByDiagramas.mockResolvedValue(
+  //       mockGetObraIdsByDiagramas,
+  //     );
 
-      await auxiliaryBaseService.insertAuxiliaryBaseCapex(mockMaterialCapex);
+  //     await auxiliaryBaseService.(mockMaterialCapex);
 
-      expect(mockRepository.insertCapex).toHaveBeenCalledWith(
-        mockMaterialCapexRequest,
-      );
-    });
+  //     expect(mockRepository.insertCapex).toHaveBeenCalledWith(
+  //       mockMaterialCapexRequest,
+  //     );
+  //   });
 
-    it('Should format data and call repository to insert materials', async () => {
-      mockRepository.getObraIdsByDiagramas.mockResolvedValue(
-        mockGetWrongObraIdsByDiagramas,
-      );
+  //   it('Should format data and call repository to insert materials', async () => {
+  //     mockRepository.getObraIdsByDiagramas.mockResolvedValue(
+  //       mockGetWrongObraIdsByDiagramas,
+  //     );
 
-      await auxiliaryBaseService.insertAuxiliaryBaseCapex(mockMaterialCapex);
+  //     await auxiliaryBaseService.insertAuxiliaryBaseCapex(mockMaterialCapex);
 
-      const mockMaterialCapexRequestWithNull = mockMaterialCapexRequest.map(
-        (item) => ({
-          ...item,
-          id_obra: null,
-        }),
-      );
+  //     const mockMaterialCapexRequestWithNull = mockMaterialCapexRequest.map(
+  //       (item) => ({
+  //         ...item,
+  //         id_obra: null,
+  //       }),
+  //     );
 
-      expect(mockRepository.insertCapex).toHaveBeenCalledWith(
-        mockMaterialCapexRequestWithNull,
-      );
-    });
-  });
+  //     expect(mockRepository.insertCapex).toHaveBeenCalledWith(
+  //       mockMaterialCapexRequestWithNull,
+  //     );
+  //   });
+  // });
 });

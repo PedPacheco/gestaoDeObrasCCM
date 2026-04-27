@@ -41,8 +41,22 @@ export class FeasibilityRepository implements IFeasibilityRepository {
   async findFiles(
     idWork: number,
   ): Promise<{ id: number; caminho_arquivo: string }[]> {
+    const value = idWork.toString();
+
     return await this.prisma.relatorio_viabilidade.findMany({
-      where: { id_obra: idWork },
+      where: {
+        obras: {
+          OR: [
+            { id: value.length >= 10 ? undefined : idWork },
+            { ovnota: value },
+            { ordem_dci: value },
+            { ordem_dcd: value },
+            { ordem_dca: value },
+            { ordem_dcim: value },
+            { diagrama: value },
+          ],
+        },
+      },
       select: { id: true, caminho_arquivo: true },
     });
   }

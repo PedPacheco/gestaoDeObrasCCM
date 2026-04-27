@@ -22,9 +22,9 @@ import { ErrorsReportModule } from './interface/modules/errorsReport.module';
 import { RestrictionsModule } from './interface/modules/restrictions.module';
 import { FeasibilityModule } from './interface/modules/feasibility.module';
 import { CustomValidationPipe } from './core/pipes/customValidation.pipe';
-import { EquipamentosModule } from './interface/modules/equipamentos.module';
-import { ForecastModule } from './interface/modules/forecast.module';
 import { DashboardModule } from './interface/modules/dashboard.module';
+import { ForecastModule } from './interface/modules/forecast.module';
+import { EquipmentsModule } from './interface/modules/equipments.module';
 
 @Module({
   imports: [
@@ -48,9 +48,9 @@ import { DashboardModule } from './interface/modules/dashboard.module';
     ExecutionCapacityModule,
     ErrorsReportModule,
     RestrictionsModule,
-    EquipamentosModule,
-    ForecastModule,
     DashboardModule,
+    EquipmentsModule,
+    ForecastModule,
     JwtModule.registerAsync({
       global: true,
       inject: [ConfigService],

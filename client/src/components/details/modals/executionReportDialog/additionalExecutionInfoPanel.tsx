@@ -1,4 +1,4 @@
-import { FormData } from "@/hooks/useScheduleForm";
+import { FormData } from "@/hooks/details/useScheduleForm";
 import {
   Grid,
   TextField,
@@ -21,7 +21,7 @@ interface AdditionalExecutionInfoPanelProps {
     field:
       | keyof FormData
       | `executionReport.${keyof ExecutionReportData}`
-      | keyof ExecutionReportData
+      | keyof ExecutionReportData,
   ) => (event: any) => void;
 }
 
@@ -85,8 +85,8 @@ export const AdditionalExecutionInfoPanel: React.FC<
               data.provisionalKeyWithdrawn === true
                 ? "true"
                 : data.provisionalKeyWithdrawn === false
-                ? "false"
-                : ""
+                  ? "false"
+                  : ""
             }
             onChange={(event) =>
               onInputChange(`${prefix}provisionalKeyWithdrawn`)({

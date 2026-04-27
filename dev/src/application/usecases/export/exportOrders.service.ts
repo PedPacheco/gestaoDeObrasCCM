@@ -26,6 +26,7 @@ export class ExportOrdersService {
       { header: 'Status', key: 'status', width: 20 },
       { header: 'Ordem/Diagrama', key: 'ordemdiagrama', width: 20 },
       { header: 'Data execução', key: 'data_conclusao', width: 20 },
+      { header: 'Data programada', key: 'data_prog', width: 20 },
       { header: 'Regional', key: 'regional', width: 20 },
       { header: 'Parceira', key: 'turma', width: 20 },
     ];

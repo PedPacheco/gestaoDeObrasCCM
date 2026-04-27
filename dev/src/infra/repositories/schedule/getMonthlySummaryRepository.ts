@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
 import { GetMonthlySummaryInterface } from 'src/interface/types/schedule/monthlySummaryInterface';

@@ -164,6 +164,7 @@ export const mockWorksInPortfolio: worksInPortfolioResponseService = {
     {
       id: 17617,
       ovnota: '15373379',
+      ordem_principal: '170000015211',
       ordemdiagrama: '170000015211',
       status_ov_sap: 99,
       pep: 'X/005016',

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense, lazy } from "react";
 import { TabItem } from "@/app/(dashboard)/relatorios/relatorio-erros/page";
-import { useErrorsReportData } from "@/hooks/useErrorsReportData";
+import { useErrorsReportData } from "@/components/reportErrors/hooks/useErrorsReportData";
 
 import {
   ArrowDownTrayIcon,
