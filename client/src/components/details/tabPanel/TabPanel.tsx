@@ -112,6 +112,8 @@ export default function TabPanel({
     modalsRef.current?.handleDialog(true);
     setExecutionReportIsInsert(true);
 
+    console.log(scheduleData);
+
     setEditingSchedule({
       ...scheduleData,
       exec: scheduleData.exec !== undefined ? String(scheduleData.exec) : "",
