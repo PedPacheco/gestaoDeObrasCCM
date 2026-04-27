@@ -247,12 +247,12 @@ export class RestrictionsRepository implements IRestrictionsRepository {
       },
       select: {
         restricoes: { select: { restricao: true } },
+        usuario: { select: { nome_usuario: true } },
         responsabilidade: true,
         nome_responsavel: true,
         status_restricao: true,
         data_resolucao: true,
         criado_em: true,
-        criado_por: true,
         observacao: true,
         observacao_construcao: true,
       },

@@ -146,16 +146,24 @@ describe('RestrictionsService', () => {
     });
   });
 
-  describe('GetScheduleRestrictons', () => {
+  describe('GetScheduleRestrictonsByWorkId', () => {
     it('should return schedule restrictions and correctly format totals from repository response', async () => {
       mockRepository.getPublicationRestrictionByWorkId.mockResolvedValue([
-        { restricoes: { restricao: 'Data' }, status_resolucao: 'Pendente' },
+        {
+          restricoes: { restricao: 'Data' },
+          usuario: { nome_usuario: 'Pedro' },
+          status_resolucao: 'Pendente',
+        },
       ]);
 
       const response = await service.getPublicationRestrictionsByWorkId(1);
 
       expect(response).toEqual([
-        { restricao: 'Data', status_resolucao: 'Pendente' },
+        {
+          restricao: 'Data',
+          criado_por: 'Pedro',
+          status_resolucao: 'Pendente',
+        },
       ]);
     });
   });

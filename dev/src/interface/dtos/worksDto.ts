@@ -119,11 +119,11 @@ export class GetWorksDTO {
 
   @IsOptional()
   @IsString()
-  dataInicial: string;
+  dataInicial?: string;
 
   @IsOptional()
   @IsString()
-  dataFinal: string;
+  dataFinal?: string;
 }
 
 export class UpdateWorkDTO {

@@ -34,6 +34,7 @@ interface MetasProgramacoesModalProps {
   setOpen: (value: boolean) => void;
   params: ParamsInterface | null;
   label: string;
+  typeRequest: string;
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -42,6 +43,7 @@ export default function MetasProgramacoesModal({
   setOpen,
   params,
   label,
+  typeRequest,
 }: MetasProgramacoesModalProps) {
   const cookies = new Cookies();
   const token = cookies.get("token");
@@ -62,6 +64,20 @@ export default function MetasProgramacoesModal({
     const fetchGoalsSchedule = async () => {
       try {
         const { mes, ano, regional, parceira, ...rest } = params;
+
+        if (typeRequest === "portfolio") {
+          const response = await fetchData(
+            `${process.env.NEXT_PUBLIC_API_URL}/obras/obras-carteira`,
+            rest as any,
+            token,
+          );
+
+          setData(response.data);
+
+          return;
+        }
+
+        if (!mes) return;
 
         const dataInicial = dayjs()
           .year(ano)
@@ -95,7 +111,7 @@ export default function MetasProgramacoesModal({
     };
 
     fetchGoalsSchedule();
-  }, [open, params, token]);
+  }, [open, params, token, typeRequest]);
 
   return (
     <>
@@ -126,7 +142,9 @@ export default function MetasProgramacoesModal({
               </div>
               <div>
                 <h2 className="font-['Syne',sans-serif] text-lg font-bold text-white uppercase tracking-[0.05em]">
-                  Metas Programações
+                  {typeRequest === "schedule"
+                    ? "Metas Programações"
+                    : "Metas Obras em carteira"}
                 </h2>
                 <p className="text-base text-white/40 mt-0.5  tracking-wide">
                   {`${params?.regional} · ${params?.parceira} · ${params?.ano}`}
@@ -202,15 +220,17 @@ export default function MetasProgramacoesModal({
                 .replace(".", ",")}
               valueClass="text-blue-600"
             />
-            <StatCard
-              label="Exec. Geral"
-              value={formatPercentage(data.totals.total_exec)}
-              valueClass="text-green-700"
-            />
+            {typeRequest === "schedule" && (
+              <StatCard
+                label="Exec. Geral"
+                value={formatPercentage(data.totals.total_exec)}
+                valueClass="text-green-700"
+              />
+            )}
           </div>
 
           {/* ── TABLE (scrollable) ── */}
-          <MetasTable rows={data.works} />
+          <MetasTable rows={data.works} typeColumns={typeRequest} />
         </DialogContent>
       </Dialog>
     </>

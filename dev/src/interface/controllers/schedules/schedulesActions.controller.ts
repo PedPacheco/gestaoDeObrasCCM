@@ -87,7 +87,7 @@ export class SchedulesActionsController {
 
   @Patch('reprovar')
   @UseGuards(VisualizationGuard)
-  async rejectSchedules(@Body() data: RejectScheduleDTO) {
+  async rejectSchedules(@Body() data: RejectScheduleDTO[]) {
     await this.validateConfirmAndRejectSchedulesService.reject(data);
 
     return {
