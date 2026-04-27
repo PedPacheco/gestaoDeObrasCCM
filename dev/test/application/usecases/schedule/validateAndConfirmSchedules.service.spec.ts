@@ -352,5 +352,15 @@ describe('ValidateAndConfirmSchedulesService', () => {
 
       await expect(service.reject(data)).rejects.toThrow(error);
     });
+
+    it('should return when data not sent', async () => {
+      await service.reject([]);
+
+      expect(mockFindScheduleByIdRepository.findById).not.toHaveBeenCalled();
+      expect(
+        mockValidateAndConfirmSchedulesRepository.reject,
+      ).not.toHaveBeenCalled();
+      expect(mockStatusFlowRepository.updateStatusWorks).not.toHaveBeenCalled();
+    });
   });
 });
