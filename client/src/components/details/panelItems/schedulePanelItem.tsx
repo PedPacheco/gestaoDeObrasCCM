@@ -72,10 +72,12 @@ interface SchedulePanelItemProps {
     React.SetStateAction<{ id: number; confirm: boolean }[]>
   >;
   setRejectedSchedule: React.Dispatch<
-    React.SetStateAction<{
-      id: number;
-      reject: boolean;
-    } | null>
+    React.SetStateAction<
+      {
+        id: number;
+        reject: boolean;
+      }[]
+    >
   >;
   setData: React.Dispatch<React.SetStateAction<any>>;
 }
@@ -155,7 +157,21 @@ export default function SchedulePanelItem({
         return [...prev, { id, confirm: value }];
       });
     } else if (key === "reprovada") {
-      setRejectedSchedule({ id, reject: value });
+      setRejectedSchedule((prev: { id: number; reject: boolean }[]) => {
+        const exists = prev.some((item) => item.id === id);
+        if (exists) {
+          if (!value) {
+            return prev.filter((item) => item.id !== id);
+          }
+          return prev.map((item) =>
+            item.id === id ? { ...item, reject: value } : item,
+          );
+        }
+        if (value) {
+          return [...prev, { id, reject: value }];
+        }
+        return prev;
+      });
     }
 
     setData((prev: any) => ({

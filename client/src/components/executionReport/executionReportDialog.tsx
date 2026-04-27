@@ -51,7 +51,7 @@ export function ExecutionReportDialog({
   const { showError } = useFeedback();
   const [files, setFiles] = useState<File[]>([]);
 
-  const { user } = useUser();
+  const { user, permissions } = useUser();
 
   const {
     executionReportData,
@@ -98,48 +98,52 @@ export function ExecutionReportDialog({
       </DialogTitle>
 
       <DialogContent dividers>
-        <AccordionPanel
-          id="panel1"
-          title="Informações Básicas"
-          expanded={expanded}
-          onChange={handleAccordionChange}
-        >
-          <ExecutionBasicPanel
-            formData={executionReportData}
-            formErrors={formErrors}
-            handleExecutionReportChange={handleExecutionReportChange}
-            // wasTheWorkCompleted={wasTheWorkCompleted}
-          />
-        </AccordionPanel>
+        {permissions?.permissao_visualizacao === "parcial" ? undefined : (
+          <>
+            <AccordionPanel
+              id="panel1"
+              title="Informações Básicas"
+              expanded={expanded}
+              onChange={handleAccordionChange}
+            >
+              <ExecutionBasicPanel
+                formData={executionReportData}
+                formErrors={formErrors}
+                handleExecutionReportChange={handleExecutionReportChange}
+                // wasTheWorkCompleted={wasTheWorkCompleted}
+              />
+            </AccordionPanel>
 
-        <AccordionPanel
-          id="panel2"
-          title="Equipamentos"
-          expanded={expanded}
-          onChange={handleAccordionChange}
-        >
-          <ExecutionEquipmentPanel
-            formData={executionReportData}
-            formErrors={formErrors}
-            handleExecutionReportChange={handleExecutionReportChange}
-            onAddEquipment={onAddEquipment}
-            onEquipmentChange={onEquipmentChange}
-            onRemoveEquipment={onRemoveEquipment}
-          />
-        </AccordionPanel>
+            <AccordionPanel
+              id="panel2"
+              title="Equipamentos"
+              expanded={expanded}
+              onChange={handleAccordionChange}
+            >
+              <ExecutionEquipmentPanel
+                formData={executionReportData}
+                formErrors={formErrors}
+                handleExecutionReportChange={handleExecutionReportChange}
+                onAddEquipment={onAddEquipment}
+                onEquipmentChange={onEquipmentChange}
+                onRemoveEquipment={onRemoveEquipment}
+              />
+            </AccordionPanel>
 
-        <AccordionPanel
-          id="panel3"
-          title="Informações Adicionais"
-          expanded={expanded}
-          onChange={handleAccordionChange}
-        >
-          <AdditionalExecutionInfoPanel
-            formData={executionReportData}
-            formErrors={formErrors}
-            handleExecutionReportChange={handleExecutionReportChange}
-          />
-        </AccordionPanel>
+            <AccordionPanel
+              id="panel3"
+              title="Informações Adicionais"
+              expanded={expanded}
+              onChange={handleAccordionChange}
+            >
+              <AdditionalExecutionInfoPanel
+                formData={executionReportData}
+                formErrors={formErrors}
+                handleExecutionReportChange={handleExecutionReportChange}
+              />
+            </AccordionPanel>
+          </>
+        )}
 
         <AccordionPanel
           id="panel4"

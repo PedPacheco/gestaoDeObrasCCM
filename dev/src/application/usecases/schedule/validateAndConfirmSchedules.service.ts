@@ -106,46 +106,31 @@ export class ValidateConfirmAndRejectSchedulesService {
     }
   }
 
-  async reject(data: RejectScheduleDTO) {
-    const {
-      id_obra,
-      data_prog,
-      prog,
-      equip_desligado,
-      hora_ini,
-      hora_ter,
-      equipe_linha_morta,
-      equipe_linha_viva,
-      equipe_regularizacao,
-      tipo_servico,
-      observacao_programacao,
-    } = await this.findScheduleByIdRepository.findById(data.id);
+  async reject(data: RejectScheduleDTO[]) {
+    if (!data.length) return;
 
-    try {
-      const rejectedScheduleData = {
-        ...data,
-        id_obra,
-        data_prog,
-        prog,
-        equip_desligado,
-        hora_ini,
-        hora_ter,
-        equipe_linha_viva,
-        equipe_linha_morta,
-        equipe_regularizacao,
-        tipo_servico,
-        observacao_programacao,
-      };
+    await this.prisma.$transaction(async (tx) => {
+      for (const item of data) {
+        const schedule = await this.findScheduleByIdRepository.findById(
+          item.id,
+        );
 
-      await this.prisma.$transaction(async (tx) => {
+        const rejectedScheduleData = {
+          ...item,
+          ...schedule,
+        };
+
         await this.validateAndConfirmSchedulesRepository.reject(
           rejectedScheduleData,
           tx,
         );
-        await this.statusFlowRepository.updateStatusWorks(36, id_obra, tx);
-      });
-    } catch (error) {
-      throw error;
-    }
+
+        await this.statusFlowRepository.updateStatusWorks(
+          36,
+          schedule.id_obra,
+          tx,
+        );
+      }
+    });
   }
 }

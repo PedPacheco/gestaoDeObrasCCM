@@ -96,8 +96,10 @@ export class RestrictionsService {
     const formattedData = data.map((item) => ({
       ...item,
       restricao: item.restricoes.restricao,
+      criado_por: item.usuario.nome_usuario,
 
       restricoes: undefined,
+      usuario: undefined,
     }));
 
     return formattedData;

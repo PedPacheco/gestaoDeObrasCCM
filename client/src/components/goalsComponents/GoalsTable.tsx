@@ -23,9 +23,9 @@ export interface ParamsInterface {
   idTipo: number;
   parceira: string;
   regional: string;
-  mes: number;
   ano: number;
-  executado: boolean;
+  mes?: number;
+  executado?: boolean;
 }
 
 const MONTH_MAP: Record<string, number> = {
@@ -52,6 +52,8 @@ export default function GoalsTable({
   const [open, setOpen] = useState<boolean>(false);
   const [modalLabel, setModalLabel] = useState<string>("");
   const [params, setParams] = useState<ParamsInterface | null>(null);
+
+  const [typeRequest, setTypeRequest] = useState<string>("");
 
   const calculateSum = useCallback(
     (item: any) => {
@@ -82,7 +84,11 @@ export default function GoalsTable({
     }
   }, [data, calculateSum]);
 
-  const handleOpenModal = (item: any, month: string, executado: boolean) => {
+  const handleOpenModalToSchedule = (
+    item: any,
+    month: string,
+    executado: boolean,
+  ) => {
     const monthNumber = MONTH_MAP[month];
 
     setParams({
@@ -95,6 +101,23 @@ export default function GoalsTable({
       ano: item.anocalc,
       executado,
     });
+
+    setTypeRequest("schedule");
+
+    setOpen(true);
+  };
+
+  const handleOpenModalToPortfolio = (item: any) => {
+    setParams({
+      idRegional: item.id_regional,
+      idParceira: item.id_parceira,
+      idTipo: item.id_tipo,
+      parceira: item.turma,
+      regional: item.regional,
+      ano: item.anocalc,
+    });
+
+    setTypeRequest("portfolio");
 
     setOpen(true);
   };
@@ -167,7 +190,7 @@ export default function GoalsTable({
                             <p
                               className="py-1 px-2 text-center border-b-0 text-base text-zinc-700 hover:cursor-pointer"
                               onClick={() => {
-                                handleOpenModal(item, month, false);
+                                handleOpenModalToSchedule(item, month, false);
                                 setModalLabel("PROGRAMADO");
                               }}
                             >
@@ -176,7 +199,7 @@ export default function GoalsTable({
                             <p
                               className="py-1 px-2 text-center border-b-0 text-base text-zinc-700 hover:cursor-pointer"
                               onClick={() => {
-                                handleOpenModal(item, month, true);
+                                handleOpenModalToSchedule(item, month, true);
                                 setModalLabel("EXECUTADO");
                               }}
                             >
@@ -201,7 +224,13 @@ export default function GoalsTable({
                     </div>
                   </TableCell>
 
-                  <TableCell className="p-0 text-center text-red-600 text-base ">
+                  <TableCell
+                    className="p-0 text-center text-red-600 text-base hover:cursor-pointer"
+                    onClick={() => {
+                      handleOpenModalToPortfolio(item);
+                      setModalLabel("CARTEIRA");
+                    }}
+                  >
                     {item.carteira?.toFixed(fixedNumber)}
                   </TableCell>
                 </TableRow>
@@ -217,6 +246,7 @@ export default function GoalsTable({
           setOpen={setOpen}
           params={params}
           label={modalLabel}
+          typeRequest={typeRequest}
         />
       )}
     </>

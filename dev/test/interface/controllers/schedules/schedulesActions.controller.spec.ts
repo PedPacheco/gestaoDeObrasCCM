@@ -229,12 +229,14 @@ describe('ScheduleActionsController', () => {
       .spyOn(validateConfirmAndRejectSchedulesService, 'reject')
       .mockResolvedValue();
 
-    const result = await scheduleActionsController.rejectSchedules({
-      id: 2,
-      reject: true,
-      reason: '',
-      description: '',
-    });
+    const result = await scheduleActionsController.rejectSchedules([
+      {
+        id: 2,
+        reject: true,
+        reason: '',
+        description: '',
+      },
+    ]);
 
     expect(result).toEqual({
       statusCode: HttpStatus.NO_CONTENT,

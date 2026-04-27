@@ -131,7 +131,7 @@ export function CapexPipelineButton({ token }: { token?: string }) {
         <ButtonComponent
           onClick={() => fileInputRef.current?.click()}
           startIcon={<ArrowUpTrayIcon width={22} height={22} />}
-          text="Importar + Atualizar CAPEX"
+          text="Importar + Atualizar Valores"
           disabled={isProcessing}
           styled="w-full"
         />
@@ -147,14 +147,14 @@ export function CapexPipelineButton({ token }: { token?: string }) {
 
       {/* Modal de progresso */}
       <ModalComponent
-        title="Atualização dos valores CAPEX/MO"
+        title="Atualização dos valores CAPEX - MATERIAL/M.O."
         onClose={() => {
           if (!isProcessing) setOpenModal(false);
         }}
-        open={openModal}
+        open={true}
       >
-        <Box className="flex flex-col gap-3 min-w-[300px]">
-          <Typography variant="body2" color="text.secondary">
+        <Box className="flex flex-col gap-3 w-10/12 mx-auto">
+          <Typography variant="body1" color="text.secondary">
             {message || "Conectando ao servidor..."}
           </Typography>
 
@@ -165,11 +165,11 @@ export function CapexPipelineButton({ token }: { token?: string }) {
           />
 
           <Box className="flex justify-between items-center">
-            <Typography variant="caption" color="text.secondary">
-              {phase ? phaseMessages[phase] : "aguardando"}
+            <Typography variant="body1" color="text.secondary">
+              {phase ? phaseMessages[phase] : "Aguardando"}
             </Typography>
             {progress !== null && (
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant="body1" color="text.secondary">
                 {progress}%
               </Typography>
             )}

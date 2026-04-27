@@ -15,6 +15,7 @@ describe('AuxiliaryNotesInsertService', () => {
   const mockRepository = {
     insertNotes: jest.fn(),
     getFator: jest.fn(),
+    delete: jest.fn(),
   };
 
   const mockFindExistingWorksService = {

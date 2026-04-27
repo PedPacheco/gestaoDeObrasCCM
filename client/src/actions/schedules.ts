@@ -182,7 +182,7 @@ export async function RejectedSchedule(
     reject: boolean;
     reason: string;
     description: string;
-  },
+  }[],
   idWork: string,
 ) {
   const cookieStore = await cookies();

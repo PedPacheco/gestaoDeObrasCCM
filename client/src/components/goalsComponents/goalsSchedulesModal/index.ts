@@ -47,7 +47,7 @@ export interface MetaProgramacao {
   selected?: boolean;
 }
 
-export const columns = {
+export const columnsForScheduleTable = {
   id: "ID",
   ovnota: "Nota/Ov",
   ordemdiagrama: "Ordem",
@@ -78,4 +78,38 @@ export const columns = {
   equipe_linha_morta: "Equipe LM",
   equipe_regularizacao: "Equipe Reg",
   tecnico: "Técnico Responsável",
+};
+
+export const columnsForPortfolioTable = {
+  id: "ID",
+  ovnota: "Ovnota",
+  ordem_principal: "Ordem DCI/Diagrama",
+  ordem_dcd: "Ordem DCD",
+  ordem_dca: "Ordem DCA",
+  ordem_dcim: "Ordem DCIM",
+  status_ov_sap: "Status SAP",
+  pep: "Pep",
+  mun: "Municipio",
+  turma: "Parceira",
+  prazo: "Prazo",
+  prazo_fim: "Prazo Fim",
+  status_prazo: "Status prazo",
+  ano_plan: "Ano do Plano",
+  abrev_regional: "Regional",
+  tipo_obra: "Tipo",
+  qtde_planejada: "Qtde plan",
+  qtde_pend: "Qtde pend",
+  contagem_ocorrencias: "!",
+  total_prog: "Total Programado",
+  total_exec: "Total Executado",
+  total_pend: "Total Pendente",
+  total_equipe_lm: "Total Equipe LM",
+  total_equipe_lv: "Total Equipe LV",
+  total_equipe_reg: "Total Equipe Reg",
+  circuito: "Circuito",
+  mo_planejada: "MO Plan",
+  status: "Status da Obra",
+  conjunto: "Conjunto",
+  data_empreitamento: "Data empreitamento",
+  empreendimento: "Empreendimento",
 };

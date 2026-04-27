@@ -20,13 +20,15 @@ interface ModalsManagerProps {
   rejectedSchedule: {
     id: number;
     reject: boolean;
-  } | null;
-  handleReject: (data: {
-    id: number;
-    reject: boolean;
-    reason: string;
-    description: string;
-  }) => void;
+  }[];
+  handleReject: (
+    data: {
+      id: number;
+      reject: boolean;
+      reason: string;
+      description: string;
+    }[],
+  ) => void;
   executionForm: UseExecutionServiceFormReturn;
 }
 
