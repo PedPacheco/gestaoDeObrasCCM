@@ -112,8 +112,6 @@ export class ExecutionReportService {
       throw new BadRequestException('Nenhum relatório fornecida para edição.');
     }
 
-    console.log(data, idExecutionReport);
-
     const existing =
       await this.executionReportRepository.findById(idExecutionReport);
 

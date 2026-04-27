@@ -31,7 +31,6 @@ export const useScheduleSubmit = ({
 }: UseScheduleSubmitProps) => {
   const [isPending, startTransition] = useTransition();
   const rawUser = cookies.get("userInfo");
-  const user = rawUser ?? null;
 
   const handleSubmit = useCallback(
     (data: any, type: "executionReport" | "schedule", files?: File[]) => {
