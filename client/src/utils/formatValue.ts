@@ -17,9 +17,7 @@ export function capitalize(text: string): string {
 
 export function formatPercentage(value: number, locale: string = "pt-BR") {
   if (value === null) {
-    return new Intl.NumberFormat(locale, {
-      style: "percent",
-    }).format(0);
+    return null;
   }
 
   const correctValue = value / 100;
