@@ -2,13 +2,18 @@ import { cookies } from "next/headers";
 import Image from "next/image";
 import { Header } from "@/components/layout/Header";
 import DashboardClient from "@/components/dashboard/DashboardClient";
-import DashboardWrapper from "@/components/dashboard/DashboardWrapper";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const emptyData = {
-  kpis: { total: 0, concludedThisMonth: 0, totalConcluded: 0, withoutSchedule: 0, executionRate: 0 },
+  kpis: {
+    total: 0,
+    concludedThisMonth: 0,
+    totalConcluded: 0,
+    withoutSchedule: 0,
+    executionRate: 0,
+  },
   byStatus: [],
   byRegional: [],
   trend: [],
@@ -59,13 +64,13 @@ async function fetchGoalsFilters(token: string) {
 }
 
 async function fetchForecast(token: string) {
-  const now      = new Date();
-  const month    = now.getMonth() + 1;
-  const year     = now.getFullYear();
-  const mm       = String(month).padStart(2, "0");
-  const lastDay  = new Date(year, month, 0).getDate();
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const year = now.getFullYear();
+  const mm = String(month).padStart(2, "0");
+  const lastDay = new Date(year, month, 0).getDate();
   const dataInicial = `01/${mm}/${year}`;
-  const dataFinal   = `${lastDay}/${mm}/${year}`;
+  const dataFinal = `${lastDay}/${mm}/${year}`;
 
   const empty = { summary: [], totals: {} };
   try {
@@ -76,7 +81,7 @@ async function fetchForecast(token: string) {
     if (!res.ok) return { first: empty, second: empty };
     const json = await res.json();
     return {
-      first:  json.data?.firstSummary  ?? empty,
+      first: json.data?.firstSummary ?? empty,
       second: json.data?.secondSummary ?? empty,
     };
   } catch {
@@ -101,13 +106,13 @@ async function fetchExecMonitoring(token: string) {
 }
 
 async function fetchMaodeObra(token: string) {
-  const now      = new Date();
-  const month    = now.getMonth() + 1;
-  const year     = now.getFullYear();
-  const mm       = String(month).padStart(2, "0");
-  const lastDay  = new Date(year, month, 0).getDate();
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const year = now.getFullYear();
+  const mm = String(month).padStart(2, "0");
+  const lastDay = new Date(year, month, 0).getDate();
   const dataInicial = `01/${mm}/${year}`;
-  const dataFinal   = `${lastDay}/${mm}/${year}`;
+  const dataFinal = `${lastDay}/${mm}/${year}`;
 
   try {
     const res = await fetch(
@@ -117,13 +122,13 @@ async function fetchMaodeObra(token: string) {
     if (!res.ok) return { data: [], data2: [], metaDiaria: 0 };
     const json = await res.json();
 
-    const firstSummary  = json.data?.firstSummary  ?? {};
+    const firstSummary = json.data?.firstSummary ?? {};
     const secondSummary = json.data?.secondSummary ?? {};
-    const summaryData: any[] = firstSummary.summary  ?? [];
+    const summaryData: any[] = firstSummary.summary ?? [];
     const metaDiaria: number = summaryData[0]?.financialGoal ?? 0;
 
     return {
-      data:  summaryData,
+      data: summaryData,
       data2: secondSummary.summary ?? [],
       metaDiaria,
     };
@@ -135,7 +140,14 @@ async function fetchMaodeObra(token: string) {
 export default async function Home() {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value ?? "";
-  const [data, maodeObra, forecast, metasRecomposicao, goalsFilters, execMonitoring] = await Promise.all([
+  const [
+    data,
+    maodeObra,
+    forecast,
+    metasRecomposicao,
+    goalsFilters,
+    execMonitoring,
+  ] = await Promise.all([
     fetchDashboard(token),
     fetchMaodeObra(token),
     fetchForecast(token),
@@ -146,20 +158,20 @@ export default async function Home() {
 
   return (
     <div
-      className="relative z-0 flex min-h-screen bg-[#1a2636]"
-      style={{
-        backgroundImage: "url('/fundo.png')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        backgroundAttachment: "fixed",
-      }}
+      className="relative z-0 flex min-h-screen "
+      // style={{
+      //   backgroundImage: "url('/fundo.png')",
+      //   backgroundSize: "cover",
+      //   backgroundPosition: "center",
+      //   backgroundRepeat: "no-repeat",
+      //   backgroundAttachment: "fixed",
+      // }}
     >
-      <DashboardWrapper>
+      <div className="flex flex-1 flex-col overflow-hidden transition-all duration-300 ease-in-out">
         <Header />
 
         {/* Dashboard header strip */}
-        <div className="bg-[#212E3E] border-b border-[#354a60] px-6 py-4 flex items-center justify-between shrink-0">
+        {/* <div className="bg-[#212E3E] border-b border-[#354a60] px-6 py-4 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-4">
             <Image
               src="/logo-sigo.png"
@@ -170,14 +182,21 @@ export default async function Home() {
             />
             <div className="h-6 w-px bg-[#404d5e]" />
             <div>
-              <p className="text-white font-semibold text-sm">Dashboard Geral</p>
-              <p className="text-zinc-500 text-xs">Visão consolidada das obras</p>
+              <p className="text-white font-semibold text-sm">
+                Dashboard Geral
+              </p>
+              <p className="text-zinc-500 text-xs">
+                Visão consolidada das obras
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-zinc-500 text-xs">
               {new Date().toLocaleDateString("pt-BR", {
-                weekday: "long", day: "2-digit", month: "long", year: "numeric",
+                weekday: "long",
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
               })}
             </span>
             <Image
@@ -188,7 +207,7 @@ export default async function Home() {
               className="h-6 w-auto object-contain opacity-80"
             />
           </div>
-        </div>
+        </div> */}
 
         {/* Main dashboard content */}
         <main className="flex-1 overflow-y-auto">
@@ -211,7 +230,7 @@ export default async function Home() {
             initialExecMonitoring={execMonitoring}
           />
         </main>
-      </DashboardWrapper>
+      </div>
     </div>
   );
 }

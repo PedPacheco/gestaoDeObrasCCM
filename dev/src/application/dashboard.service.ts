@@ -8,7 +8,14 @@ export class DashboardService {
   async getDashboardData() {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    const endOfMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+    );
 
     const sixMonthsAgo = new Date(now);
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
@@ -50,7 +57,9 @@ export class DashboardService {
       `,
 
       // PG Works grouped by regional with concluded count
-      this.prisma.$queryRaw<{ regional: string; total: number; concluded: number }[]>`
+      this.prisma.$queryRaw<
+        { regional: string; total: number; concluded: number }[]
+      >`
         SELECT r.regional, COUNT(o.id)::int AS total,
           SUM(CASE WHEN o.data_conclusao IS NOT NULL THEN 1 ELSE 0 END)::int AS concluded
         FROM construcao_sp.obras o
@@ -61,7 +70,9 @@ export class DashboardService {
       `,
 
       // PG Monthly trend for the last 6 months (entered vs concluded)
-      this.prisma.$queryRaw<{ month: string; entered: number; concluded: number }[]>`
+      this.prisma.$queryRaw<
+        { month: string; entered: number; concluded: number }[]
+      >`
         SELECT
           TO_CHAR(DATE_TRUNC('month', entrada), 'YYYY-MM') AS month,
           COUNT(*)::int AS entered,
@@ -83,14 +94,16 @@ export class DashboardService {
       `,
 
       // PG 10 most recently added works
-      this.prisma.$queryRaw<{
-        ovnota: string;
-        status: string;
-        partner: string;
-        municipio: string;
-        executado: number | null;
-        entrada: Date;
-      }[]>`
+      this.prisma.$queryRaw<
+        {
+          ovnota: string;
+          status: string;
+          partner: string;
+          municipio: string;
+          executado: number | null;
+          entrada: Date;
+        }[]
+      >`
         SELECT
           o.ovnota,
           s.status,
@@ -111,7 +124,8 @@ export class DashboardService {
     const totalConcluded = await this.prisma.obras.count({
       where: { data_conclusao: { not: null } },
     });
-    const executionRate = total > 0 ? Math.round((totalConcluded / total) * 100) : 0;
+    const executionRate =
+      total > 0 ? Math.round((totalConcluded / total) * 100) : 0;
 
     // PG Status breakdown for each of the top 5 partners
     const partnerNames = topPartners.map((p) => p.partner);
@@ -128,10 +142,14 @@ export class DashboardService {
     `;
 
     // PG Group status rows by partner name
-    const partnerDetails: Record<string, { status: string; count: number }[]> = {};
+    const partnerDetails: Record<string, { status: string; count: number }[]> =
+      {};
     for (const row of partnerStatusRaw) {
       if (!partnerDetails[row.partner]) partnerDetails[row.partner] = [];
-      partnerDetails[row.partner].push({ status: row.status, count: row.count });
+      partnerDetails[row.partner].push({
+        status: row.status,
+        count: row.count,
+      });
     }
 
     return {
