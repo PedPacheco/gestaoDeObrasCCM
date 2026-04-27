@@ -1,6 +1,7 @@
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import {
+  GetExecMonitoringDTO,
   GetMonthlySummaryDTO,
   GetScheduleValuesDTO,
   GetTotalValuesScheduleDTO,
@@ -21,6 +22,7 @@ import { RejectionsOfSchedulesService } from 'src/application/usecases/schedule/
 import { GetTotalValuesScheduleService } from 'src/application/usecases/schedule/getTotalValuesSchedule.service';
 import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
 import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
+import { ExecMonitoringService } from 'src/application/usecases/schedule/execMonitoring.service';
 
 @Controller('programacao')
 export class ScheduleController {
@@ -30,6 +32,7 @@ export class ScheduleController {
     private getMonthlySummaryService: MonthlySummaryService,
     private rejectionsOfSchedulesService: RejectionsOfSchedulesService,
     private getMonthlySummaryForecastService: GetMonthlySummaryForecastService,
+    private execMonitoringService: ExecMonitoringService,
   ) {}
 
   @Get()
@@ -91,6 +94,17 @@ export class ScheduleController {
       statusCode: HttpStatus.OK,
       message: 'Resumo mensal do Forecast retornado com sucesso',
       data: { firstSummary, secondSummary },
+    };
+  }
+
+  @Get('acompanhamento-mensal')
+  @UseGuards(PermissionGuard)
+  async getExecMonitoring(@Query() filters: GetExecMonitoringDTO) {
+    const data = await this.execMonitoringService.getData(filters);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Acompanhamento mensal retornado com sucesso',
+      data,
     };
   }
 

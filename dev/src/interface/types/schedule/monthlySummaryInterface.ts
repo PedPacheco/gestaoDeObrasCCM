@@ -69,6 +69,8 @@ export interface DailySummaryEntry {
 export interface GroupTeamSummaryEntry {
   grupo: string;
   turma: string;
+  idTurma?: number;
+  idGrupo?: number;
   qtdeWorks: number;
   totalMoPlan: number;
   totalMoPend: number;
@@ -87,6 +89,7 @@ export interface GetMonthlySummaryInterface {
     ordem_dcim: string;
     mo_planejada: number | null;
     mo_pend: number | null;
+    id_turma?: number;
     turmas: Partners;
     tipos: Types;
   };

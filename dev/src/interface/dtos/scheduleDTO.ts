@@ -150,6 +150,36 @@ export class GetMonthlySummaryDTO {
   idTipo: number[];
 }
 
+export class GetExecMonitoringDTO {
+  @IsString()
+  @IsOptional()
+  dataInicial?: string;
+
+  @IsString()
+  @IsOptional()
+  dataFinal?: string;
+
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idRegional?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idTecnico?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idTurma?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idTipo?: number[];
+}
+
 export class ValidateSchedulesDTO {
   @IsNumber()
   id: number;

@@ -24,6 +24,7 @@ import { FeasibilityModule } from './interface/modules/feasibility.module';
 import { CustomValidationPipe } from './core/pipes/customValidation.pipe';
 import { EquipamentosModule } from './interface/modules/equipamentos.module';
 import { ForecastModule } from './interface/modules/forecast.module';
+import { DashboardModule } from './interface/modules/dashboard.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { ForecastModule } from './interface/modules/forecast.module';
     RestrictionsModule,
     EquipamentosModule,
     ForecastModule,
+    DashboardModule,
     JwtModule.registerAsync({
       global: true,
       inject: [ConfigService],

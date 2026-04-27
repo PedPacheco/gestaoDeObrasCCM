@@ -160,12 +160,14 @@ export class MonthlySummaryService {
 
       const grupo: string = tipos.grupos.grupo;
       const turma: string = turmas.turma;
+      const idTurma: number = record.obras.id_turma;
+      const idGrupo: number = tipos.id_grupo;
       const groupKey = `${grupo}::${turma}`;
 
       if (!summaryMap.has(groupKey)) {
         summaryMap.set(
           groupKey,
-          this.summaryMapper.createGroupTeamEntry(grupo, turma),
+          this.summaryMapper.createGroupTeamEntry(grupo, turma, idTurma, idGrupo),
         );
       }
 

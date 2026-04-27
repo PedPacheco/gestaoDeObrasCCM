@@ -26,8 +26,12 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   app.enableCors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (server-side / curl) and any localhost port
-      if (!origin || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
+      // Allow requests with no origin (server-side / curl), localhost, or the local network IP
+      if (
+        !origin ||
+        /^http:\/\/localhost(:\d+)?$/.test(origin) ||
+        /^http:\/\/172\.20\.70\.7(:\d+)?$/.test(origin)
+      ) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));

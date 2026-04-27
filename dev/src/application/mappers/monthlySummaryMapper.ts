@@ -46,10 +46,12 @@ export class MonthlySummaryMapper {
     entry.diaryGoalWith8 += goalWith8Contribution;
   }
 
-  createGroupTeamEntry(grupo: string, turma: string): GroupTeamSummaryEntry {
+  createGroupTeamEntry(grupo: string, turma: string, idTurma?: number, idGrupo?: number): GroupTeamSummaryEntry {
     return {
       grupo,
       turma,
+      idTurma,
+      idGrupo,
       qtdeWorks: 0,
       totalMoPlan: 0,
       totalMoPend: 0,

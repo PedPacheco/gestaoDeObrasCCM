@@ -4,6 +4,7 @@ import { HandleAddScheduleService } from 'src/application/usecases/orchestrators
 import { HandleSchedulesUpdateService } from 'src/application/usecases/orchestrators/handleSchedulesUpdate.service';
 import { AddSchedulesService } from 'src/application/usecases/schedule/addSchedules.service';
 import { DeleteSchedulesService } from 'src/application/usecases/schedule/deleteSchedules.service';
+import { ExecMonitoringService } from 'src/application/usecases/schedule/execMonitoring.service';
 import { MonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
 import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
 import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
@@ -12,6 +13,8 @@ import { RejectionsOfSchedulesService } from 'src/application/usecases/schedule/
 import { ScheduleExecutionValidatorService } from 'src/application/usecases/schedule/scheduleExecutionValidator.service';
 import { UpdateSchedulesService } from 'src/application/usecases/schedule/updateSchedules.service';
 import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/schedule/validateAndConfirmSchedules.service';
+import { EXEC_MONITORING_REPOSITORY } from 'src/domain/repositories/schedule/IExecMonitoringRepository';
+import { ExecMonitoringRepository } from 'src/infra/repositories/schedule/execMonitoringRepository';
 import { EXECUTION_CAPACITY_REPOSITORY } from 'src/domain/repositories/IExecutionCapacityRepository';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
 import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IAddSchedulesRepository';
@@ -93,6 +96,7 @@ import { WorksModule } from './works.module';
   ],
   controllers: [ScheduleController, SchedulesActionsController],
   providers: [
+    ExecMonitoringService,
     AddSchedulesService,
     UpdateSchedulesService,
     DeleteSchedulesService,
@@ -163,6 +167,10 @@ import { WorksModule } from './works.module';
     {
       provide: FORECAST_SNAPSHOT,
       useClass: ForecastSnapshotRepository,
+    },
+    {
+      provide: EXEC_MONITORING_REPOSITORY,
+      useClass: ExecMonitoringRepository,
     },
     // {
     //   provide: UPDATE_RESTRICTIONS_REPOSITORY,
