@@ -109,7 +109,8 @@ export function ExecutionReportDialog({
       </DialogTitle>
 
       <DialogContent dividers>
-        {permissions?.permissao_visualizacao === "parcial" ? undefined : (
+        {permissions?.permissao_visualizacao === "parcial" &&
+        !executionReportIsInsert ? undefined : (
           <>
             <AccordionPanel
               id="panel1"
