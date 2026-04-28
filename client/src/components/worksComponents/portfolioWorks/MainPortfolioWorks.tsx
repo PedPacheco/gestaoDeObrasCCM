@@ -167,11 +167,13 @@ export default function PortfolioWorks({
               const item = data.totals;
               let valueFormatted = item[column];
 
+              console.log(column, item);
+
               if (
                 [
                   "total_mo_planejada",
                   "total_mo_exec",
-                  "total_mo_suspensa",
+                  "total_mo_pend",
                 ].includes(column)
               ) {
                 valueFormatted = FormatCurrency(item[column]);

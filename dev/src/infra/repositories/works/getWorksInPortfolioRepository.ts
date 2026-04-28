@@ -145,6 +145,8 @@ export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioReposi
         qtde_pend,
         circuito,
         mo_planejada,
+        mo_final,
+        mo_pend,
         status,
         conjunto,
         data_empreitamento,
@@ -170,10 +172,10 @@ export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioReposi
       SELECT 
         COUNT(obras.id) as total_obras,
         SUM(mo_planejada) AS total_mo_planejada,
-        SUM(mo_planejada * executado::int / 100) as total_mo_exec,
-        SUM(CASE WHEN obras.id_status = 4 THEN mo_planejada * executado::int / 100 ELSE 0 END) AS total_mo_suspensa,
+        SUM(mo_final) as total_mo_exec,
+        SUM(mo_pend) AS total_mo_pend,
         SUM(qtde_planejada) as total_qtde_planejada,
-        SUM(qtde_pend) AS total_mo_pend
+        SUM(qtde_pend) AS total_qtde_pend
         ${baseCount}
     `;
 

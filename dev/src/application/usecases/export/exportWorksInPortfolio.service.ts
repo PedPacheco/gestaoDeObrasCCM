@@ -30,6 +30,8 @@ export class ExportWorksInPortfolioService {
       { header: 'Qtde planejada', key: 'qtde_planejada', width: 15 },
       { header: 'Qtde pend', key: 'qtde_pend', width: 15 },
       { header: 'MO planejada', key: 'mo_planejada', width: 15 },
+      { header: 'MO Executada', key: 'mo_final', width: 15 },
+      { header: 'MO Pendente', key: 'mo_pend', width: 15 },
       { header: 'Status', key: 'status', width: 25 },
       { header: 'Parceira', key: 'turma', width: 15 },
       { header: 'Executado da obra', key: 'total_exec', width: 20 },
