@@ -80,6 +80,8 @@ export default async function WorksInPortfolio() {
     total_equipe_reg: "Total Equipe Reg",
     circuito: "Circuito",
     mo_planejada: "MO Plan",
+    mo_final: "MO Executada",
+    mo_pend: "MO Pendente",
     status: "Status da Obra",
     conjunto: "Conjunto",
     data_empreitamento: "Data empreitamento",
@@ -87,7 +89,7 @@ export default async function WorksInPortfolio() {
     total_obras: "Total de obras",
     total_mo_planejada: "Total MO planejada",
     total_mo_exec: "Total MO executada",
-    total_mo_suspensa: "Total MO suspensa",
+    total_mo_pend: "Total MO Pendente",
     total_qtde_planejada: "Total QTDE planejada",
     total_qtde_pend: "Total QTDE pend",
   };
@@ -100,7 +102,7 @@ export default async function WorksInPortfolio() {
         filtersData={{ ...filters, status: filteredStatus }}
         cookie="portfolioWorksFilters"
         columns={columnMapping}
-        totalValues={31}
+        totalValues={33}
         url="obras-carteira"
       />
     </EmotionCacheProvider>

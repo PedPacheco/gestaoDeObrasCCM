@@ -60,7 +60,7 @@ describe('GetCompletedWorksRepository', () => {
       total_obras: 1,
       total_mo_planejada: 91105.824,
       total_mo_exec: 91105.824,
-      total_mo_suspensa: 0,
+      total_mo_pend: 0,
       total_qtde_planejada: 0,
       total_qtde_pend: 0,
     },
