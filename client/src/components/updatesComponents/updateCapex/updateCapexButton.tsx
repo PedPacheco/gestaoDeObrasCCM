@@ -149,7 +149,7 @@ export function CapexPipelineButton({ token }: { token?: string }) {
         onClose={() => {
           if (!isProcessing) setOpenModal(false);
         }}
-        open={true}
+        open={openModal}
       >
         <Box className="flex flex-col gap-3 w-10/12 mx-auto">
           <Typography variant="body1" color="text.secondary">

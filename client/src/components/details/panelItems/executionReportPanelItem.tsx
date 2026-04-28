@@ -103,7 +103,7 @@ export default function ExecutionReportPanelItem({
 
     return filesPath?.map(
       (filename) =>
-        `${process.env.NEXT_PUBLIC_API_URL}/uploads/as_build/${filename}`
+        `${process.env.NEXT_PUBLIC_API_URL}/uploads/as_build/${filename}`,
     );
   };
 
