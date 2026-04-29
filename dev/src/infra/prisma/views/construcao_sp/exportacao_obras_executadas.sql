@@ -77,7 +77,13 @@ FROM
     JOIN empreendimento ON ((empreendimento.id = obras.id_empreendimento))
   )
 WHERE
-  (obras.data_conclusao IS NOT NULL)
+  (
+    (
+      (obras.id_status = 2)
+      AND (obras.executado = 100)
+    )
+    OR (obras.id_status = ANY (ARRAY [2, 3]))
+  )
 GROUP BY
   obras.ovnota,
   obras.pep,
