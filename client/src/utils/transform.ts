@@ -130,8 +130,8 @@ export function buildPublicationRestrictionPayload(
       responsibility: data.responsabilidade,
       responsibleName: responsibleEnginner?.name,
       restrictionStatus: data.status_restricao,
-      resolutionDate: data.resolutionDate
-        ? dayjs(data.resolutionDate).format("DD/MM/YYYY")
+      resolutionDate: data.data_resolucao
+        ? dayjs(data.data_resolucao).format("DD/MM/YYYY")
         : null,
       observation: data.observacao,
       constructionObservation: data.observacao_construcao,
