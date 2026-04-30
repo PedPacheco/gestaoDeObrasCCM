@@ -61,7 +61,9 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
             executado: true,
             id_turma: true,
             turmas: { select: { turma: true } },
-            tipos: { select: { id_grupo: true, grupos: { select: { grupo: true } } } },
+            tipos: {
+              select: { id_grupo: true, grupos: { select: { grupo: true } } },
+            },
           },
         },
       },

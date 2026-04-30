@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
-import Image from "next/image";
 import { Header } from "@/components/layout/Header";
 import DashboardClient from "@/components/dashboard/DashboardClient";
+import { fetchFilters } from "@/actions/fetchFilters.action";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -147,6 +147,7 @@ export default async function Home() {
     metasRecomposicao,
     goalsFilters,
     execMonitoring,
+    filtersData,
   ] = await Promise.all([
     fetchDashboard(token),
     fetchMaodeObra(token),
@@ -154,60 +155,19 @@ export default async function Home() {
     fetchMetasRecomposicao(token),
     fetchGoalsFilters(token),
     fetchExecMonitoring(token),
+    fetchFilters({
+      regional: true,
+      parceira: true,
+      tipo: true,
+      municipio: true,
+      grupo: true,
+    }),
   ]);
 
   return (
-    <div
-      className="relative z-0 flex min-h-screen "
-      // style={{
-      //   backgroundImage: "url('/fundo.png')",
-      //   backgroundSize: "cover",
-      //   backgroundPosition: "center",
-      //   backgroundRepeat: "no-repeat",
-      //   backgroundAttachment: "fixed",
-      // }}
-    >
+    <div className="relative z-0 flex min-h-screen ">
       <div className="flex flex-1 flex-col overflow-hidden transition-all duration-300 ease-in-out">
         <Header />
-
-        {/* Dashboard header strip */}
-        {/* <div className="bg-[#212E3E] border-b border-[#354a60] px-6 py-4 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-4">
-            <Image
-              src="/logo-sigo.png"
-              alt="Logo SIGO"
-              width={120}
-              height={40}
-              className="h-10 w-auto object-contain"
-            />
-            <div className="h-6 w-px bg-[#404d5e]" />
-            <div>
-              <p className="text-white font-semibold text-sm">
-                Dashboard Geral
-              </p>
-              <p className="text-zinc-500 text-xs">
-                Visão consolidada das obras
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-zinc-500 text-xs">
-              {new Date().toLocaleDateString("pt-BR", {
-                weekday: "long",
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-              })}
-            </span>
-            <Image
-              src="/edpLogo.png"
-              alt="EDP"
-              width={60}
-              height={24}
-              className="h-6 w-auto object-contain opacity-80"
-            />
-          </div>
-        </div> */}
 
         {/* Main dashboard content */}
         <main className="flex-1 overflow-y-auto">
@@ -228,6 +188,7 @@ export default async function Home() {
             initialMetasRecomposicao={metasRecomposicao}
             goalsFilters={goalsFilters}
             initialExecMonitoring={execMonitoring}
+            filtersData={filtersData}
           />
         </main>
       </div>

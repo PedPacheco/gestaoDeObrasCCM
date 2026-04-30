@@ -46,7 +46,7 @@ export function SnapshotSelect({ snapshots, selectedId, token }: Props) {
 
     if (start) setStartDate(dayjs(start));
     if (end) setEndDate(dayjs(end));
-  }, []);
+  }, [searchParams]);
 
   // ✅ Atualiza snapshot selecionado
   const handleChange = (event: SelectChangeEvent) => {

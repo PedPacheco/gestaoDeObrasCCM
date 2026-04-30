@@ -16,10 +16,14 @@ import {
   AreaChart,
   Area,
 } from "recharts";
-import MaodeObraDashboard from "./MaodeObraDashboard";
 import ForecastDashboard from "./ForecastDashboard";
 import MetasRecomposicaoDashboard from "./MetasRecomposicaoDashboard";
 import AcompanhamentoExecucaoDashboard from "./AcompanhamentoExecucaoDashboard";
+
+import { ChartTooltip } from "./ChartTooltip";
+import { KpiCard } from "./KpiCard";
+import LaborDashboard from "./laborDashboard/LaborDashboard";
+import { ChartCard } from "./ChartCard";
 
 // Status-to-color mapping per business rules
 const STATUS_COLORS: Record<string, string> = {
@@ -130,86 +134,12 @@ interface Props {
   goalsFilters: any;
   // Acompanhamento da Execução
   initialExecMonitoring: any[];
+  filtersData: any;
 }
 
 // KPI card with gradient background and accent bar
-function KpiCard({
-  label,
-  value,
-  sub,
-  gradient,
-  accent,
-}: {
-  label: string;
-  value: string | number;
-  sub?: string;
-  gradient: string;
-  accent: string;
-}) {
-  return (
-    <div
-      className={`relative rounded-2xl p-5 flex flex-col gap-2 overflow-hidden shadow-lg ${gradient}`}
-    >
-      <div
-        className="absolute top-0 left-0 w-1 h-full rounded-l-2xl"
-        style={{ background: accent }}
-      />
-      <span className="text-white/60 text-xs uppercase tracking-widest font-medium pl-2">
-        {label}
-      </span>
-      <span className="text-4xl font-black text-white pl-2 leading-none">
-        {value}
-      </span>
-      {sub && <span className="text-white/40 text-xs pl-2">{sub}</span>}
-    </div>
-  );
-}
-
-// Custom rich tooltip used across all charts
-function ChartTooltip({ active, payload, label }: any) {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="bg-[#0f1e2e]/95 border border-white/10 rounded-xl px-4 py-3 text-xs text-zinc-100 shadow-2xl backdrop-blur-sm">
-      {label && (
-        <div className="font-bold text-white mb-2 text-sm">{label}</div>
-      )}
-      {payload.map((p: any, i: number) => (
-        <div key={i} className="flex items-center gap-2 py-0.5">
-          <span
-            className="w-2 h-2 rounded-full shrink-0"
-            style={{ background: p.color }}
-          />
-          <span className="text-zinc-400">{p.name}:</span>
-          <span className="font-bold text-white">
-            {p.value?.toLocaleString("pt-BR")}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 // Chart card wrapper with consistent dark glass styling
-function ChartCard({
-  title,
-  children,
-  className = "",
-}: {
-  title: string;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      className={`bg-gradient-to-br from-[#1e2f42] to-[#192535] rounded-2xl p-6 border border-white/5 shadow-xl ${className}`}
-    >
-      <h3 className="text-white font-bold text-sm mb-5 tracking-wide uppercase">
-        {title}
-      </h3>
-      {children}
-    </div>
-  );
-}
 
 type Tab =
   | "geral"
@@ -234,6 +164,7 @@ export default function DashboardClient({
   initialMetasRecomposicao,
   goalsFilters,
   initialExecMonitoring,
+  filtersData,
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("geral");
   const trendFormatted = trend.map((t) => ({
@@ -248,7 +179,10 @@ export default function DashboardClient({
         {(
           [
             { key: "geral", label: "Visão Geral" },
-            { key: "mao-de-obra", label: "Resumo Mensal — Mão de Obra" },
+            {
+              key: "mao-de-obra",
+              label: "Resumo Mensal — Mão de Obra Parceira",
+            },
             { key: "forecast", label: "Resumo Mensal — Forecast" },
             { key: "metas-recomposicao", label: "Metas Recomposição" },
             {
@@ -260,7 +194,7 @@ export default function DashboardClient({
           <button
             key={key}
             onClick={() => setActiveTab(key)}
-            className={`px-5 py-2.5 text-xs font-semibold tracking-wide rounded-t-xl transition-all duration-200 ${
+            className={`px-5 py-2.5 text-base font-semibold tracking-wide rounded-t-xl transition-all duration-200 ${
               activeTab === key
                 ? "bg-gradient-to-br from-[#1e2f42] to-[#192535] text-white border border-b-0 border-white/10 shadow-lg"
                 : "text-zinc-500 hover:text-zinc-300"
@@ -273,11 +207,12 @@ export default function DashboardClient({
 
       {/* ── Tab Content ───────────────────────────────────────────── */}
       {activeTab === "mao-de-obra" ? (
-        <MaodeObraDashboard
+        <LaborDashboard
           initialData={initialMaodeObra}
           initialData2={initialMaodeObra2}
           token={token}
           initialMetaDiaria={initialMetaDiaria}
+          filtersData={filtersData}
         />
       ) : activeTab === "forecast" ? (
         <ForecastDashboard
@@ -304,28 +239,24 @@ export default function DashboardClient({
             <KpiCard
               label="Total de obras"
               value={kpis.total.toLocaleString("pt-BR")}
-              sub="em carteira"
               gradient="bg-gradient-to-br from-[#0f2744] to-[#1e3a5f]"
               accent="#3b82f6"
             />
             <KpiCard
               label="Concluídas no mês"
               value={kpis.concludedThisMonth.toLocaleString("pt-BR")}
-              sub="este mês"
               gradient="bg-gradient-to-br from-[#052e16] to-[#14532d]"
               accent="#53FF75"
             />
             <KpiCard
               label="Total concluídas"
               value={kpis.totalConcluded.toLocaleString("pt-BR")}
-              sub={`${kpis.executionRate}% do total`}
               gradient="bg-gradient-to-br from-[#431407] to-[#7c2d12]"
               accent="#f97316"
             />
             <KpiCard
               label="Sem programação"
               value={kpis.withoutSchedule.toLocaleString("pt-BR")}
-              sub="aguardando"
               gradient="bg-gradient-to-br from-[#3b0764] to-[#4c1d95]"
               accent="#a78bfa"
             />
