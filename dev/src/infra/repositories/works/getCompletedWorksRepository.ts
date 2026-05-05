@@ -98,7 +98,7 @@ export class GetCompletedWorksRepository implements IGetCompletedWorksRepository
         INNER JOIN construcao_sp.conjuntos ON circuitos.id_conjunto = conjuntos.id
         INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
         INNER JOIN construcao_sp.turmas ON obras.id_turma = turmas.id
-        WHERE (id_status = 2 AND executado = 100) OR id_status IN (2, 3)`;
+        WHERE ((id_status = 2 AND executado = 100) OR id_status IN (2, 3))`;
 
     let query = Prisma.sql`SELECT obras.id, obras.ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, executado, 
     mun, CASE WHEN current_date > entrada + prazo THEN 1 ELSE 0 END AS atraso, data_conclusao, tipo_obra, qtde_planejada, qtde_pend,

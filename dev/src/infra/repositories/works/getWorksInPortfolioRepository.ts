@@ -42,7 +42,7 @@ export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioReposi
   }
 
   private applyBaseWhere(query: Prisma.Sql) {
-    return Prisma.sql`${query} WHERE (obras.id_status = 2 AND obras.executado < 100) OR obras.id_status NOT IN (2, 3)`;
+    return Prisma.sql`${query} WHERE ((obras.id_status = 2 AND obras.executado < 100) OR obras.id_status NOT IN (2, 3))`;
   }
 
   private applyFilters(query: Prisma.Sql, filters: GetWorksDTO) {
