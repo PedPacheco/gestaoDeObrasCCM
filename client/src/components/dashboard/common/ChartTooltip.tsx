@@ -20,7 +20,7 @@ export function ChartTooltip({ active, payload, label }: any) {
             {typeof p.value === "number"
               ? p.value >= 1000
                 ? FormatCurrency(p.value)
-                : `${p.value.toFixed(1)}%`
+                : `${p.value.toFixed(1)}`
               : p.value}
           </span>
         </div>

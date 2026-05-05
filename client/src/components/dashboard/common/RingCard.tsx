@@ -16,8 +16,8 @@ export function RingCard({
   const circ = 2 * Math.PI * radius;
   const offset = circ - (visualPct / 100) * circ;
   return (
-    <div className="flex items-center gap-4 bg-gradient-to-br from-[#1e2f42] to-[#192535] rounded-2xl p-5 border border-white/5 shadow-xl hover:border-white/10 transition-all">
-      <div className="relative shrink-0" style={{ width: 88, height: 88 }}>
+    <div className="flex items-center gap-4 bg-gradient-to-br from-[#1e2f42] to-[#192535] rounded-2xl p-5 h-28 border border-white/5 shadow-xl hover:border-white/10 transition-all">
+      <div className="relative shrink-0" style={{ width: 88 }}>
         <svg width={88} height={88} viewBox="0 0 88 88">
           <circle
             cx={44}

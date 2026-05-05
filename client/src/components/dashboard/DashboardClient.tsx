@@ -20,10 +20,11 @@ import ForecastDashboard from "./ForecastDashboard";
 import MetasRecomposicaoDashboard from "./MetasRecomposicaoDashboard";
 import AcompanhamentoExecucaoDashboard from "./AcompanhamentoExecucaoDashboard";
 
-import { ChartTooltip } from "./ChartTooltip";
-import { KpiCard } from "./KpiCard";
+import { ChartTooltip } from "./common/ChartTooltip";
+import { KpiCard } from "./common/KpiCard";
 import LaborDashboard from "./laborDashboard/LaborDashboard";
-import { ChartCard } from "./ChartCard";
+import { ChartCard } from "./common/ChartCard";
+import RecompositionGoalsDashboard from "./recompositionGoalsDashboard/RecompositionGoalsDashboard";
 
 // Status-to-color mapping per business rules
 const STATUS_COLORS: Record<string, string> = {
@@ -221,7 +222,7 @@ export default function DashboardClient({
           token={token}
         />
       ) : activeTab === "metas-recomposicao" ? (
-        <MetasRecomposicaoDashboard
+        <RecompositionGoalsDashboard
           initialGoals={initialMetasRecomposicao}
           filtersData={goalsFilters}
           token={token}

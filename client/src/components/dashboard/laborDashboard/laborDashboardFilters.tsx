@@ -75,7 +75,7 @@ export function LaborDashboardFilters({
         />
       </div>
 
-      <div className=" min-w-[220px] flex-1">
+      <div className="min-w-[220px] flex-1">
         <MultipleSelectComponent
           label="Parceiras"
           menuItems={filtersData.parceira ?? []}
@@ -88,7 +88,7 @@ export function LaborDashboardFilters({
         />
       </div>
 
-      <div className=" min-w-[220px] flex-1">
+      <div className="min-w-[220px] flex-1">
         <MultipleSelectComponent
           label="Tipos de Obra"
           menuItems={
@@ -103,7 +103,7 @@ export function LaborDashboardFilters({
         />
       </div>
 
-      <div className=" min-w-[220px] flex-1">
+      <div className="min-w-[220px] flex-1">
         <MultipleSelectComponent
           label="Grupo"
           menuItems={filtersData.grupo ?? []}
