@@ -59,6 +59,8 @@ export class AuxiliaryBaseController {
   async importAndUpdateCapex(@UploadedFile() file: Express.Multer.File) {
     const jobId = randomUUID();
 
+    console.log(jobId);
+
     this.capexFullPipelineService
       .run(file.path, jobId, this.capexGateway.createEmitter(jobId))
       .catch((err) =>
