@@ -84,6 +84,37 @@ async function fetchForecast(token: string) {
   }
 }
 
+async function fetchEliminacaoRestricao(token: string) {
+  const year = new Date().getFullYear();
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/restricao/eliminacao-restricao?dataInicial=01/01/${year}&dataFinal=31/12/${year}`,
+      { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
+    );
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+async function fetchAderenciaParceira(token: string) {
+  const year = new Date().getFullYear();
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/restricao/aderencia-parceira?dataInicial=01/01/${year}&dataFinal=31/12/${year}`,
+      { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
+    );
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+
 async function fetchExecMonitoring(token: string) {
   const year = new Date().getFullYear();
   const lastDay = new Date(year, 11, 31).getDate();
@@ -135,13 +166,15 @@ async function fetchMaodeObra(token: string) {
 export default async function Home() {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value ?? "";
-  const [data, maodeObra, forecast, metasRecomposicao, goalsFilters, execMonitoring] = await Promise.all([
+  const [data, maodeObra, forecast, metasRecomposicao, goalsFilters, execMonitoring, eliminacaoRestricao, aderenciaParceira] = await Promise.all([
     fetchDashboard(token),
     fetchMaodeObra(token),
     fetchForecast(token),
     fetchMetasRecomposicao(token),
     fetchGoalsFilters(token),
     fetchExecMonitoring(token),
+    fetchEliminacaoRestricao(token),
+    fetchAderenciaParceira(token),
   ]);
 
   return (
@@ -209,6 +242,8 @@ export default async function Home() {
             initialMetasRecomposicao={metasRecomposicao}
             goalsFilters={goalsFilters}
             initialExecMonitoring={execMonitoring}
+            initialEliminacaoRestricao={eliminacaoRestricao}
+            initialAderenciaParceira={aderenciaParceira}
           />
         </main>
       </DashboardWrapper>

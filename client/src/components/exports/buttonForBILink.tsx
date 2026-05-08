@@ -11,9 +11,10 @@ interface ButtonForBILinkProps {
   text: string;
   path: string;
   visible: boolean;
+  compact?: boolean;
 }
 
-export function ButtonForBILink({ text, path, visible }: ButtonForBILinkProps) {
+export function ButtonForBILink({ text, path, visible, compact = false }: ButtonForBILinkProps) {
   const { permissions } = useUser();
 
   return (
@@ -22,18 +23,20 @@ export function ButtonForBILink({ text, path, visible }: ButtonForBILinkProps) {
         <Box
           sx={{
             display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
+            flexDirection: compact ? "column" : "row",
+            alignItems: compact ? "flex-start" : "center",
+            justifyContent: compact ? "flex-start" : "space-between",
             borderBottom: "1px solid #e2e8f0",
-            py: 2,
+            py: compact ? 1.5 : 2,
+            gap: compact ? 1 : 0,
           }}
         >
           <Typography
             sx={{
               fontWeight: 600,
-              fontSize: 20,
+              fontSize: compact ? 13 : 20,
               textTransform: "uppercase",
-              paddingRight: { xs: 1, md: 8 },
+              paddingRight: compact ? 0 : { xs: 1, md: 8 },
             }}
           >
             {text}
@@ -42,7 +45,11 @@ export function ButtonForBILink({ text, path, visible }: ButtonForBILinkProps) {
             href={path}
             target="_blank"
             rel="noopener noreferrer"
-            className="min-w-48 h-12 text-center text-xs xl:text-base rounded-sm flex items-center justify-center bg-[#212E3E] text-[#E4E4E7] hover:bg-[#394658] hover:text-[#53FF75] transition-colors"
+            className={
+              compact
+                ? "w-full h-9 text-center text-xs rounded-sm flex items-center justify-center bg-[#212E3E] text-[#E4E4E7] hover:bg-[#394658] hover:text-[#53FF75] transition-colors"
+                : "min-w-48 h-12 text-center text-xs xl:text-base rounded-sm flex items-center justify-center bg-[#212E3E] text-[#E4E4E7] hover:bg-[#394658] hover:text-[#53FF75] transition-colors"
+            }
           >
             Ir para o BI
           </Link>

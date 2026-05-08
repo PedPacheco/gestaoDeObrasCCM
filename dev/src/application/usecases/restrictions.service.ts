@@ -5,6 +5,7 @@ import {
   RESTRICTIONS_REPOSITORY,
 } from 'src/domain/repositories/IRestrictionsRepository';
 import {
+  GetEliminacaoRestricaoDTO,
   GetRestrictionsDTO,
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
@@ -54,4 +55,25 @@ export class RestrictionsService {
   async deletePublicationRestriction(id: number) {
     await this.restrictionsRepository.deletePublicationRestriction(id);
   }
+
+  async getEliminacaoRestricao(filters: GetEliminacaoRestricaoDTO) {
+    return await this.restrictionsRepository.getEliminacaoRestricao(filters);
+  }
+
+  async getAderenciaParceira(filters: GetEliminacaoRestricaoDTO) {
+    return await this.restrictionsRepository.getAderenciaParceira(filters);
+  }
+
+  async getObrasProgramadas(filters: GetEliminacaoRestricaoDTO) {
+    return await this.restrictionsRepository.getObrasProgramadas(filters);
+  }
+
+  async getMotivosReprogramacao(filters: GetEliminacaoRestricaoDTO) {
+    return await this.restrictionsRepository.getMotivosReprogramacao(filters);
+  }
+
+  async getRestricoesExecucao(filters: GetEliminacaoRestricaoDTO) {
+    return await this.restrictionsRepository.getRestricoesExecucao(filters);
+  }
+
 }

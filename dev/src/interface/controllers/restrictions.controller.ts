@@ -18,6 +18,7 @@ import {
 } from '@nestjs/common';
 
 import {
+  GetEliminacaoRestricaoDTO,
   GetRestrictionsDTO,
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
@@ -104,6 +105,81 @@ export class RestrictionController {
     return {
       statusCode: HttpStatus.NO_CONTENT,
       message: 'Restrição de publicação atualizadas com sucesso',
+    };
+  }
+
+  @Get('eliminacao-restricao')
+  @UseGuards(VisualizationGuard)
+  async getEliminacaoRestricao(
+    @Query() filters: GetEliminacaoRestricaoDTO,
+    @Req() req: any,
+  ) {
+    if (req.idParceira) filters.idParceira = Array.isArray(req.idParceira) ? req.idParceira : [req.idParceira];
+    const data = await this.restrictionsService.getEliminacaoRestricao(filters);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Dados de eliminação de restrição retornados com sucesso',
+      data,
+    };
+  }
+
+  @Get('aderencia-parceira')
+  @UseGuards(VisualizationGuard)
+  async getAderenciaParceira(
+    @Query() filters: GetEliminacaoRestricaoDTO,
+    @Req() req: any,
+  ) {
+    if (req.idParceira) filters.idParceira = Array.isArray(req.idParceira) ? req.idParceira : [req.idParceira];
+    const data = await this.restrictionsService.getAderenciaParceira(filters);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Dados de aderência parceira retornados com sucesso',
+      data,
+    };
+  }
+
+  @Get('obras-programadas')
+  @UseGuards(VisualizationGuard)
+  async getObrasProgramadas(
+    @Query() filters: GetEliminacaoRestricaoDTO,
+    @Req() req: any,
+  ) {
+    if (req.idParceira) filters.idParceira = Array.isArray(req.idParceira) ? req.idParceira : [req.idParceira];
+    const data = await this.restrictionsService.getObrasProgramadas(filters);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Dados de obras programadas retornados com sucesso',
+      data,
+    };
+  }
+
+  @Get('motivos-reprogramacao')
+  @UseGuards(VisualizationGuard)
+  async getMotivosReprogramacao(
+    @Query() filters: GetEliminacaoRestricaoDTO,
+    @Req() req: any,
+  ) {
+    if (req.idParceira) filters.idParceira = Array.isArray(req.idParceira) ? req.idParceira : [req.idParceira];
+    const data = await this.restrictionsService.getMotivosReprogramacao(filters);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Motivos de reprogramação retornados com sucesso',
+      data,
+    };
+  }
+
+  @Get('restricoes-execucao')
+  @UseGuards(VisualizationGuard)
+  async getRestricoesExecucao(
+    @Query() filters: GetEliminacaoRestricaoDTO,
+    @Req() req: any,
+  ) {
+    if (req.idParceira) filters.idParceira = Array.isArray(req.idParceira) ? req.idParceira : [req.idParceira];
+    const data = await this.restrictionsService.getRestricoesExecucao(filters);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Restrições de execução retornadas com sucesso',
+      data,
     };
   }
 

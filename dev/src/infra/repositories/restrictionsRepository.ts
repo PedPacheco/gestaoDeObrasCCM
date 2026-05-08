@@ -5,6 +5,7 @@ import { Prisma } from '@prisma/client';
 import { GetScheduleRestrictions } from 'src/interface/types/schedule/getScheduleRestrictionsInterface';
 import * as moment from 'moment';
 import {
+  GetEliminacaoRestricaoDTO,
   GetRestrictionsDTO,
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
@@ -278,4 +279,268 @@ export class RestrictionsRepository implements IRestrictionsRepository {
       where: { id },
     });
   }
+
+  async getEliminacaoRestricao(
+    filters: GetEliminacaoRestricaoDTO,
+  ): Promise<any[]> {
+    const { dataInicial, dataFinal, idRegional, idParceira } = filters;
+    const ini = dataInicial ? moment(dataInicial, 'DD/MM/YYYY').toDate() : undefined;
+    const fim = dataFinal ? moment(dataFinal, 'DD/MM/YYYY').toDate() : undefined;
+
+    // Filtro base igual ao da aderência:
+    // col AU: excluir REPROVADO/REPROVADA
+    // col Z: excluir obras com REPROGRAMAÇÃO PREVISTA
+    let where = Prisma.sql`WHERE (status_programacao IS NULL OR UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROVADA'))
+      AND (restricao_execucao IS NULL OR UPPER(TRIM(restricao_execucao)) NOT IN ('REPROGRAMAÇÃO PREVISTA', 'REPROGRAMACAO PREVISTA', 'REPROG. PREVISTA'))`;
+    if (ini && fim)
+      where = Prisma.sql`${where} AND data_prog BETWEEN ${ini} AND ${fim}`;
+    if (idRegional?.length)
+      where = Prisma.sql`${where} AND regional IN (SELECT regional FROM construcao_sp.regionais WHERE id IN (${Prisma.join(idRegional)}))`;
+    if (idParceira?.length)
+      where = Prisma.sql`${where} AND parceira IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(idParceira)}))`;
+
+    // Regra col AB (restricao_programacao) + col AF (status_restricao):
+    // AB null/vazio                              → SEM RESTRIÇÃO
+    // AB preenchido + AF resolvido/concluído     → SEM RESTRIÇÃO
+    // AB preenchido + AF outro valor ou vazio    → COM RESTRIÇÃO
+    const query = Prisma.sql`
+      SELECT
+        mes,
+        MIN(data_ref) AS data_ref,
+        COUNT(*) AS total,
+        SUM(CASE WHEN has_restricao = 0 THEN 1 ELSE 0 END) AS sem_restricao
+      FROM (
+        SELECT
+          TO_CHAR(data_prog, 'MM/YYYY') AS mes,
+          MIN(data_prog) AS data_ref,
+          ovnota,
+          MAX(CASE
+            WHEN restricao_programacao IS NOT NULL
+              AND TRIM(restricao_programacao) != ''
+              AND (status_restricao IS NULL
+                   OR UPPER(TRIM(status_restricao)) NOT IN ('RESOLVIDO','RESOLVIDA','CONCLUIDO','CONCLUIDA','CONCLUÍDO','CONCLUÍDA'))
+            THEN 1 ELSE 0
+          END) AS has_restricao
+        FROM construcao_sp.exportacao_programacoes_obras
+        ${where}
+        GROUP BY TO_CHAR(data_prog, 'MM/YYYY'), ovnota
+      ) sub
+      GROUP BY mes
+      ORDER BY MIN(data_ref)
+    `;
+
+    const rows = await this.prisma.$queryRaw<any[]>(query);
+    return rows.map((r) => {
+      const total = Number(r.total);
+      const sem = Number(r.sem_restricao);
+      return { mes: r.mes, total, sem_restricao: sem, com_restricao: total - sem, pct: total > 0 ? Math.round((sem / total) * 100) : 0 };
+    });
+  }
+
+  async getAderenciaParceira(
+    filters: GetEliminacaoRestricaoDTO,
+  ): Promise<any[]> {
+    const { dataInicial, dataFinal, idRegional, idParceira } = filters;
+    const ini = dataInicial ? moment(dataInicial, 'DD/MM/YYYY').toDate() : undefined;
+    const fim = dataFinal ? moment(dataFinal, 'DD/MM/YYYY').toDate() : undefined;
+
+    // Query direto nas tabelas (sem a view) para evitar o INNER JOIN da view
+    // que exclui programações sem restrição cadastrada (id_restricao_execucao NULL).
+    // LEFT JOIN nas tabelas de lookup para aplicar os filtros base sem excluir NULLs.
+    let where = Prisma.sql`WHERE
+      (sp.status_programacao IS NULL OR UPPER(TRIM(sp.status_programacao)) NOT IN ('REPROVADO', 'REPROVADA'))
+      AND (re.restricao IS NULL OR UPPER(TRIM(re.restricao)) NOT IN ('REPROGRAMAÇÃO PREVISTA', 'REPROGRAMACAO PREVISTA', 'REPROG. PREVISTA'))`;
+    if (ini && fim)
+      where = Prisma.sql`${where} AND p.data_prog BETWEEN ${ini} AND ${fim}`;
+    if (idRegional?.length)
+      where = Prisma.sql`${where} AND r.id IN (${Prisma.join(idRegional)})`;
+    if (idParceira?.length)
+      where = Prisma.sql`${where} AND t.id IN (${Prisma.join(idParceira)})`;
+
+    // Categorias via comparação prog (col P) vs exec (col Q) — por linha de programacao:
+    // - exec IS NULL       → nao_informada
+    // - exec = 0           → nao_executada
+    // - exec < prog        → executada_parcial  (implicitamente exec > 0)
+    // - exec >= prog       → executada
+    // Sem GROUP BY ovnota: uma obra com 2 programacoes na mesma semana conta como 2 linhas.
+    const query = Prisma.sql`
+      SELECT
+        semana,
+        MIN(data_ref) AS data_ref,
+        COUNT(*) AS total,
+        SUM(CASE WHEN cat = 'executada'         THEN 1 ELSE 0 END) AS executada,
+        SUM(CASE WHEN cat = 'executada_parcial' THEN 1 ELSE 0 END) AS executada_parcial,
+        SUM(CASE WHEN cat = 'nao_executada'     THEN 1 ELSE 0 END) AS nao_executada,
+        SUM(CASE WHEN cat = 'nao_informada'     THEN 1 ELSE 0 END) AS nao_informada
+      FROM (
+        SELECT
+          TO_CHAR(p.data_prog, 'IW') || '/' || TO_CHAR(p.data_prog, 'IYYY') AS semana,
+          p.data_prog AS data_ref,
+          CASE
+            WHEN p.exec IS NULL  THEN 'nao_informada'
+            WHEN p.exec = 0      THEN 'nao_executada'
+            WHEN p.exec < p.prog THEN 'executada_parcial'
+            ELSE                      'executada'
+          END AS cat
+        FROM construcao_sp.programacoes p
+        JOIN construcao_sp.obras o ON o.id = p.id_obra
+        JOIN construcao_sp.turmas t ON t.id = o.id_turma
+        JOIN construcao_sp.municipios m ON m.id = o.id_gpm
+        JOIN construcao_sp.regionais r ON r.id = m.id_regional
+        LEFT JOIN construcao_sp.status_programacao sp ON sp.id = p.id_status_programacao
+        LEFT JOIN construcao_sp.restricoes re ON re.id = p.id_restricao_execucao
+        ${where}
+      ) sub
+      GROUP BY semana
+      ORDER BY MIN(data_ref)
+    `;
+
+    const rows = await this.prisma.$queryRaw<any[]>(query);
+    return rows.map((r) => {
+      const total = Number(r.total);
+      const executada = Number(r.executada);
+      const executada_parcial = Number(r.executada_parcial);
+      const nao_executada = Number(r.nao_executada);
+      const nao_informada = Number(r.nao_informada);
+      return {
+        semana: r.semana,
+        total,
+        executada,
+        executada_parcial,
+        nao_executada,
+        nao_informada,
+        pct: total > 0 ? Math.round((executada / total) * 100) : 0,
+      };
+    });
+  }
+
+  async getObrasProgramadas(
+    filters: GetEliminacaoRestricaoDTO,
+  ): Promise<any[]> {
+    const { dataInicial, dataFinal, idRegional, idParceira } = filters;
+    const ini = dataInicial ? moment(dataInicial, 'DD/MM/YYYY').toDate() : undefined;
+    const fim = dataFinal ? moment(dataFinal, 'DD/MM/YYYY').toDate() : undefined;
+
+    let where = Prisma.sql`WHERE (status_programacao IS NULL OR UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROGRAMAR'))`;
+    if (ini && fim)
+      where = Prisma.sql`${where} AND data_prog BETWEEN ${ini} AND ${fim}`;
+    if (idRegional?.length)
+      where = Prisma.sql`${where} AND regional IN (SELECT regional FROM construcao_sp.regionais WHERE id IN (${Prisma.join(idRegional)}))`;
+    if (idParceira?.length)
+      where = Prisma.sql`${where} AND parceira IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(idParceira)}))`;
+
+    const query = Prisma.sql`
+      SELECT
+        mes,
+        MIN(data_ref) AS data_ref,
+        COUNT(*) AS total_programadas,
+        SUM(CASE WHEN has_exec_restricao = 1 THEN 1 ELSE 0 END) AS com_restricao
+      FROM (
+        SELECT
+          TO_CHAR(data_prog, 'MM/YYYY') AS mes,
+          MIN(data_prog) AS data_ref,
+          ovnota,
+          MAX(CASE
+            WHEN restricao_execucao IS NOT NULL AND TRIM(restricao_execucao) != ''
+            THEN 1 ELSE 0
+          END) AS has_exec_restricao
+        FROM construcao_sp.exportacao_programacoes_obras
+        ${where}
+        GROUP BY TO_CHAR(data_prog, 'MM/YYYY'), ovnota
+      ) sub
+      GROUP BY mes
+      ORDER BY MIN(data_ref)
+    `;
+
+    const rows = await this.prisma.$queryRaw<any[]>(query);
+    return rows.map((r) => {
+      const total = Number(r.total_programadas);
+      const com = Number(r.com_restricao);
+      return { mes: r.mes, total_programadas: total, com_restricao: com, sem_restricao: total - com };
+    });
+  }
+
+  async getMotivosReprogramacao(
+    filters: GetEliminacaoRestricaoDTO,
+  ): Promise<any[]> {
+    const { dataInicial, dataFinal, idRegional, idParceira } = filters;
+
+    const ini = dataInicial
+      ? moment(dataInicial, 'DD/MM/YYYY').toDate()
+      : undefined;
+    const fim = dataFinal
+      ? moment(dataFinal, 'DD/MM/YYYY').toDate()
+      : undefined;
+
+    // Motivos de reprogramação = obras em status 'REPROGRAMAR' (excluídas dos KPIs).
+    // Mostra ovnota + motivo (restricao_programacao) de cada obra reprogramada.
+    let baseWhere = Prisma.sql`
+      status_programacao IS NOT NULL AND UPPER(TRIM(status_programacao)) = 'REPROGRAMAR'
+    `;
+
+    if (ini && fim)
+      baseWhere = Prisma.sql`${baseWhere} AND data_prog BETWEEN ${ini} AND ${fim}`;
+    if (idRegional?.length)
+      baseWhere = Prisma.sql`${baseWhere} AND regional IN (SELECT regional FROM construcao_sp.regionais WHERE id IN (${Prisma.join(idRegional)}))`;
+    if (idParceira?.length)
+      baseWhere = Prisma.sql`${baseWhere} AND parceira IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(idParceira)}))`;
+
+    const query = Prisma.sql`
+      SELECT ovnota, motivo
+      FROM (
+        SELECT ovnota, restricao_programacao AS motivo
+        FROM construcao_sp.exportacao_programacoes_obras
+        WHERE ${baseWhere}
+          AND restricao_programacao IS NOT NULL AND TRIM(restricao_programacao) != ''
+
+        UNION ALL
+
+        SELECT ovnota, restricao_programacao2 AS motivo
+        FROM construcao_sp.exportacao_programacoes_obras
+        WHERE ${baseWhere}
+          AND restricao_programacao2 IS NOT NULL AND TRIM(restricao_programacao2) != ''
+      ) AS motivos
+      ORDER BY ovnota
+    `;
+
+    const rows = await this.prisma.$queryRaw<any[]>(query);
+    return rows.map((r) => ({ ovnota: r.ovnota, motivo: r.motivo }));
+  }
+
+  async getRestricoesExecucao(
+    filters: GetEliminacaoRestricaoDTO,
+  ): Promise<any[]> {
+    const { dataInicial, dataFinal, idRegional, idParceira } = filters;
+
+    const ini = dataInicial
+      ? moment(dataInicial, 'DD/MM/YYYY').toDate()
+      : undefined;
+    const fim = dataFinal
+      ? moment(dataFinal, 'DD/MM/YYYY').toDate()
+      : undefined;
+
+    // Obras com restrição de execução ativa (as "com restrição" do gráfico de aderência).
+    let baseWhere = Prisma.sql`
+      (status_programacao IS NULL OR UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROGRAMAR'))
+      AND restricao_execucao IS NOT NULL AND TRIM(restricao_execucao) != ''
+    `;
+
+    if (ini && fim)
+      baseWhere = Prisma.sql`${baseWhere} AND data_prog BETWEEN ${ini} AND ${fim}`;
+    if (idRegional?.length)
+      baseWhere = Prisma.sql`${baseWhere} AND regional IN (SELECT regional FROM construcao_sp.regionais WHERE id IN (${Prisma.join(idRegional)}))`;
+    if (idParceira?.length)
+      baseWhere = Prisma.sql`${baseWhere} AND parceira IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(idParceira)}))`;
+
+    const query = Prisma.sql`
+      SELECT DISTINCT ovnota, restricao_execucao AS restricao
+      FROM construcao_sp.exportacao_programacoes_obras
+      WHERE ${baseWhere}
+      ORDER BY ovnota
+    `;
+
+    const rows = await this.prisma.$queryRaw<any[]>(query);
+    return rows.map((r) => ({ ovnota: r.ovnota, restricao: r.restricao }));
+  }
+
 }

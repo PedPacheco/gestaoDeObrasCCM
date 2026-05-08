@@ -10,6 +10,7 @@ import MaodeObraDashboard from "./MaodeObraDashboard";
 import ForecastDashboard from "./ForecastDashboard";
 import MetasRecomposicaoDashboard from "./MetasRecomposicaoDashboard";
 import AcompanhamentoExecucaoDashboard from "./AcompanhamentoExecucaoDashboard";
+import AvancaParceiroDashboard from "./AvancaParceiroDashboard";
 
 // Status-to-color mapping per business rules
 const STATUS_COLORS: Record<string, string> = {
@@ -76,6 +77,9 @@ interface Props {
   goalsFilters: any;
   // Acompanhamento da Execução
   initialExecMonitoring: any[];
+  // Avança Parceiro
+  initialEliminacaoRestricao: any[];
+  initialAderenciaParceira: any[];
 }
 
 // KPI card with gradient background and accent bar
@@ -120,7 +124,7 @@ function ChartCard({ title, children, className = "" }: { title: string; childre
   );
 }
 
-type Tab = "geral" | "mao-de-obra" | "forecast" | "metas-recomposicao" | "acompanhamento-execucao";
+type Tab = "geral" | "mao-de-obra" | "forecast" | "metas-recomposicao" | "acompanhamento-execucao" | "avanca-parceiro";
 
 export default function DashboardClient({
   kpis, byStatus, byRegional, trend, topPartners, recentWorks,
@@ -128,6 +132,8 @@ export default function DashboardClient({
   initialForecastFirst, initialForecastSecond,
   initialMetasRecomposicao, goalsFilters,
   initialExecMonitoring,
+  initialEliminacaoRestricao,
+  initialAderenciaParceira,
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("geral");
   const trendFormatted = trend.map((t) => ({ ...t, month: formatMonth(t.month) }));
@@ -143,6 +149,7 @@ export default function DashboardClient({
           { key: "forecast",             label: "Resumo Mensal — Forecast" },
           { key: "metas-recomposicao",       label: "Metas Recomposição" },
           { key: "acompanhamento-execucao",  label: "Acompanhamento da Execução" },
+          { key: "avanca-parceiro",          label: "Avança parceiro" },
         ] as { key: Tab; label: string }[]).map(({ key, label }) => (
           <button
             key={key}
@@ -181,6 +188,13 @@ export default function DashboardClient({
       ) : activeTab === "acompanhamento-execucao" ? (
         <AcompanhamentoExecucaoDashboard
           initialData={initialExecMonitoring}
+          filtersData={goalsFilters}
+          token={token}
+        />
+      ) : activeTab === "avanca-parceiro" ? (
+        <AvancaParceiroDashboard
+          initialEliminacao={initialEliminacaoRestricao}
+          initialAderencia={initialAderenciaParceira}
           filtersData={goalsFilters}
           token={token}
         />
