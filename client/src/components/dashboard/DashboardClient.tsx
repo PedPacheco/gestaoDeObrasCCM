@@ -189,7 +189,7 @@ export default function DashboardClient({
           <button
             key={key}
             onClick={() => setActiveTab(key)}
-            className={`px-5 py-2.5 text-base font-semibold tracking-wide rounded-t-xl transition-all duration-200 ${
+            className={`px-5 py-2.5 text-sm font-semibold tracking-wide rounded-t-xl transition-all duration-200 ${
               activeTab === key
                 ? "bg-gradient-to-br from-[#1e2f42] to-[#192535] text-white border border-b-0 border-white/10 shadow-lg"
                 : "text-zinc-500 hover:text-zinc-300"
