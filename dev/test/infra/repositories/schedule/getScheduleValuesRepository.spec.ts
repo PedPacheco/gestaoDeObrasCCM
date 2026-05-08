@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetScheduleValuesRepository } from 'src/infra/repositories/schedule/getScheduleValuesRepository';
-import * as moment from 'moment';
+import moment from 'moment';
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 
 describe('GetScheduleValuesRepository', () => {

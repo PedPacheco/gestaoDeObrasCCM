@@ -49,7 +49,8 @@ SELECT
   programacoes.data_resolucao2,
   programacoes.observacao_restricao,
   programacoes.observacao_execucao,
-  status_programacao.status_programacao
+  status_programacao.status_programacao,
+  programacoes.observacao_programacao
 FROM
   (
     (

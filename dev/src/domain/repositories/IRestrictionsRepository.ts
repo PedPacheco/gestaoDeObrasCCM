@@ -1,3 +1,4 @@
+import { ProcessedRestrictionsFilters } from 'src/application/usecases/restrictions.service';
 import {
   GetEliminacaoRestricaoDTO,
   GetRestrictionsDTO,
@@ -8,11 +9,12 @@ import { GetScheduleRestrictions } from 'src/interface/types/schedule/getSchedul
 
 export interface IRestrictionsRepository {
   getScheduleRestrictions(
-    filters: GetRestrictionsDTO,
+    filters: ProcessedRestrictionsFilters,
   ): Promise<{ works: GetScheduleRestrictions[]; totals: any[] }>;
   getPublicationRestricion(
-    filters: GetRestrictionsDTO,
+    filters: ProcessedRestrictionsFilters,
   ): Promise<{ works: any[] }>;
+  getPublicationRestrictionByWorkId(id: number): Promise<any[]>;
   insertPublicationRestriction(
     data: InsertPublicationRestrictionsDTO[],
   ): Promise<void>;

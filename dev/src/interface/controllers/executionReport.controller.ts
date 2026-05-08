@@ -35,7 +35,6 @@ export class ExecutionReportController {
   }
 
   @Patch(':id')
-  @UseGuards(PermissionGuard)
   @UseInterceptors(FilesInterceptor('files'))
   async update(
     @Req() req: any,
@@ -43,7 +42,7 @@ export class ExecutionReportController {
     @Body() data: UpdateExecutionReportDTO,
     @UploadedFiles() files?: Express.Multer.File[],
   ): Promise<any> {
-    const idUser = req.user.id;
+    const { id: idUser } = req.user;
 
     await this.executionReportService.update(
       idExecutionReport,

@@ -10,7 +10,8 @@
       "Bash(python3 *)",
       "Bash(Get-ChildItem C:\\\\Users\\\\EX164698\\\\Desktop\\\\Nova pasta *)",
       "Bash(git config *)",
-      "Bash(git ls-remote *)"
+      "Bash(git ls-remote *)",
+      "Bash(git add *)"
     ]
   }
 }

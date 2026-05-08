@@ -3,7 +3,7 @@ import { ForecastSnapshotService } from 'src/application/usecases/schedule/forec
 import { FORECAST_SNAPSHOT } from 'src/domain/repositories/schedule/IForecastSnapshotRepository';
 import { createForecastSnapshotMock } from '../../../mocks/mockAddScheduleService';
 
-import * as moment from 'moment';
+import moment from 'moment';
 
 describe('ForecastSnapshotService', () => {
   let service: ForecastSnapshotService;

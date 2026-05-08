@@ -1,4 +1,4 @@
-import { FormData } from "@/hooks/useScheduleForm";
+import { FormData } from "@/hooks/details/useScheduleForm";
 
 export const mockFormData: FormData = {
   id: 1,

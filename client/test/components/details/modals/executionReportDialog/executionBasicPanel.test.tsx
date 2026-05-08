@@ -2,7 +2,7 @@ import { ExecutionBasicPanel } from "@/components/details/modals/executionReport
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mockFormData } from "../../../../mocks/mockFormData";
-import { FormData } from "@/hooks/useScheduleForm";
+import { FormData } from "@/hooks/details/useScheduleForm";
 
 const renderComponent = (formErrors: Record<string, string> = {}) => {
   const onInputChange = vi.fn(() => vi.fn());

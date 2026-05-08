@@ -57,7 +57,7 @@ export function ExecutionReportDialog({
   const [error, setError] = useState<string | null>();
   const [files, setFiles] = useState<File[]>([]);
 
-  const { user } = useUser();
+  const { user, permissions } = useUser();
 
   const {
     formData,
@@ -109,48 +109,57 @@ export function ExecutionReportDialog({
       </DialogTitle>
 
       <DialogContent dividers>
-        <AccordionPanel
-          id="panel1"
-          title="Informações Básicas"
-          expanded={expanded}
-          onChange={handleAccordionChange}
-        >
-          <ExecutionBasicPanel
-            formData={!executionReportIsInsert ? executionReportData : formData}
-            formErrors={formErrors}
-            onInputChange={handleInputChange}
-            wasTheWorkCompleted={wasTheWorkCompleted}
-          />
-        </AccordionPanel>
-
-        <AccordionPanel
-          id="panel2"
-          title="Equipamentos"
-          expanded={expanded}
-          onChange={handleAccordionChange}
-        >
-          <ExecutionEquipmentPanel
-            formData={!executionReportIsInsert ? executionReportData : formData}
-            formErrors={formErrors}
-            onInputChange={handleInputChange}
-            onAddEquipment={onAddEquipment}
-            onEquipmentChange={onEquipmentChange}
-            onRemoveEquipment={onRemoveEquipment}
-          />
-        </AccordionPanel>
-
-        <AccordionPanel
-          id="panel3"
-          title="Informações Adicionais"
-          expanded={expanded}
-          onChange={handleAccordionChange}
-        >
-          <AdditionalExecutionInfoPanel
-            formData={!executionReportIsInsert ? executionReportData : formData}
-            formErrors={formErrors}
-            onInputChange={handleInputChange}
-          />
-        </AccordionPanel>
+        {permissions?.permissao_visualizacao === "parcial" &&
+        !executionReportIsInsert ? undefined : (
+          <>
+            <AccordionPanel
+              id="panel1"
+              title="Informações Básicas"
+              expanded={expanded}
+              onChange={handleAccordionChange}
+            >
+              <ExecutionBasicPanel
+                formData={
+                  !executionReportIsInsert ? executionReportData : formData
+                }
+                formErrors={formErrors}
+                onInputChange={handleInputChange}
+                wasTheWorkCompleted={wasTheWorkCompleted}
+              />
+            </AccordionPanel>
+            <AccordionPanel
+              id="panel2"
+              title="Equipamentos"
+              expanded={expanded}
+              onChange={handleAccordionChange}
+            >
+              <ExecutionEquipmentPanel
+                formData={
+                  !executionReportIsInsert ? executionReportData : formData
+                }
+                formErrors={formErrors}
+                onInputChange={handleInputChange}
+                onAddEquipment={onAddEquipment}
+                onEquipmentChange={onEquipmentChange}
+                onRemoveEquipment={onRemoveEquipment}
+              />
+            </AccordionPanel>
+            <AccordionPanel
+              id="panel3"
+              title="Informações Adicionais"
+              expanded={expanded}
+              onChange={handleAccordionChange}
+            >
+              <AdditionalExecutionInfoPanel
+                formData={
+                  !executionReportIsInsert ? executionReportData : formData
+                }
+                formErrors={formErrors}
+                onInputChange={handleInputChange}
+              />
+            </AccordionPanel>
+          </>
+        )}
 
         <AccordionPanel
           id="panel4"

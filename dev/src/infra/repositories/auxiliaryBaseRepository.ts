@@ -10,7 +10,65 @@ import { InsertNotesInterface } from 'src/interface/types/baseAuxiliaryInterface
 @Injectable()
 export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
   private readonly logger = new Logger(AuxiliaryBaseRepository.name);
+
+  // Máximo de registros por chamada de createMany.
+  // 200 é conservador porque o createMany gera um único INSERT com todos
+  // os valores inline — muito mais pesado em bytes do que um UPDATE.
+  private readonly INSERT_BATCH_SIZE = 200;
+
+  // Tentativas em caso de queda de conexão transitória.
+  private readonly MAX_RETRIES = 3;
+
   constructor(private readonly prisma: PrismaService) {}
+
+  // ─── Retry helper ─────────────────────────────────────────────────────────
+
+  /**
+   * Executa `operation` com backoff exponencial.
+   * Só faz retry em erros reconhecíveis de conexão/timeout do Prisma/SQL Server.
+   */
+  private async withRetry<T>(operation: () => Promise<T>): Promise<T> {
+    const CONNECTION_ERROR_CODES = new Set([
+      'P1001',
+      'P1002',
+      'P1008',
+      'P1017',
+    ]);
+    const CONNECTION_ERROR_MESSAGES = [
+      'server has closed the connection',
+      'connection refused',
+      'connection timed out',
+      'econnreset',
+      'socket hang up',
+    ];
+
+    for (let attempt = 1; attempt <= this.MAX_RETRIES; attempt++) {
+      try {
+        return await operation();
+      } catch (error: any) {
+        const msg: string = (error?.message ?? '').toLowerCase();
+        const code: string = error?.code ?? '';
+
+        const isConnectionError =
+          CONNECTION_ERROR_CODES.has(code) ||
+          CONNECTION_ERROR_MESSAGES.some((m) => msg.includes(m));
+
+        if (isConnectionError && attempt < this.MAX_RETRIES) {
+          const delayMs = 300 * 2 ** (attempt - 1); // 300ms, 600ms, 1200ms…
+          this.logger.warn(
+            `Operação Tentativa ${attempt}/${this.MAX_RETRIES} falhou (${error.message}). ` +
+              `Aguardando ${delayMs}ms antes de tentar novamente.`,
+          );
+          await new Promise((res) => setTimeout(res, delayMs));
+          continue;
+        }
+
+        throw error;
+      }
+    }
+  }
+
+  // ─── Métodos existentes (inalterados) ─────────────────────────────────────
 
   async getAuxiliaryBaseNotes(idRegional?: number): Promise<any[]> {
     return await this.prisma.base_auxiliar.findMany({
@@ -170,7 +228,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
       } else {
         return await this.prisma.base_auxiliar.deleteMany();
       }
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Erro ao excluir obra: ', error.stack);
       throw error;
     }
@@ -223,7 +281,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
         data: marketWorks,
         skipDuplicates: true,
       });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         'Erro ao inserir dados da base auxiliar OV:',
         error.stack,
@@ -267,14 +325,30 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     }
   }
 
+  /**
+   * Insere registros na tabela cn52n em mini-batches de INSERT_BATCH_SIZE.
+   *
+   * Por que não um único createMany?
+   * O Prisma/SQL Server transforma createMany em um único INSERT com todos
+   * os valores inline. Com 1 000 registros e ~15 colunas cada, o statement
+   * pode facilmente ultrapassar os limites de pacote/timeout do servidor,
+   * causando "Server has closed the connection".
+   *
+   * Cada mini-batch roda com retry + backoff exponencial para absorver
+   * quedas de conexão transitórias sem derrubar o job inteiro.
+   */
   async insertCapex(data: any[]): Promise<void> {
-    try {
-      await this.prisma.cn52n.createMany({
-        data: data,
-      });
-    } catch (error) {
-      throw error;
+    for (let i = 0; i < data.length; i += this.INSERT_BATCH_SIZE) {
+      const batch = data.slice(i, i + this.INSERT_BATCH_SIZE);
+
+      await this.withRetry(() =>
+        this.prisma.cn52n.createMany({ data: batch, skipDuplicates: true }),
+      );
     }
+  }
+
+  async truncateCN52N(): Promise<void> {
+    await this.prisma.$executeRawUnsafe(`TRUNCATE TABLE cn52n`);
   }
 
   async getObraIdsByDiagramas(

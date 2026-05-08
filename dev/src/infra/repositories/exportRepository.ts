@@ -166,6 +166,8 @@ export class ExportRepository implements IExportRepository {
             ordem_dcd: true,
             ordem_dcim: true,
             executado: true,
+            entrada: true,
+            prazo: true,
             tipos: { select: { tipo_obra: true } },
             status: { select: { status: true } },
             turmas: { select: { turma: true } },

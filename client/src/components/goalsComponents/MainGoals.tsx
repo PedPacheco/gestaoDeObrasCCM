@@ -106,6 +106,7 @@ export default function MainGoals({
       selectedRegionais,
       selectedTiposObra,
       selectedYear,
+      defaultYear,
       selectedEmpreendimento,
     ],
   );

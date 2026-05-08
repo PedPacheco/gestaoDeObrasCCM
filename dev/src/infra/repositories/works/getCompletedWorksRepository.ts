@@ -9,7 +9,7 @@ import {
 
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import * as moment from 'moment';
+import moment from 'moment';
 
 @Injectable()
 export class GetCompletedWorksRepository implements IGetCompletedWorksRepository {
@@ -98,16 +98,15 @@ export class GetCompletedWorksRepository implements IGetCompletedWorksRepository
         INNER JOIN construcao_sp.conjuntos ON circuitos.id_conjunto = conjuntos.id
         INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
         INNER JOIN construcao_sp.turmas ON obras.id_turma = turmas.id
-        WHERE data_conclusao IS NOT NULL`;
+        WHERE ((id_status = 2 AND executado = 100) OR id_status IN (2, 3))`;
 
     let query = Prisma.sql`SELECT obras.id, obras.ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim) AS ordemdiagrama, ordem_dca, ordem_dcd, ordem_dcim, status_ov_sap, pep, executado, 
     mun, CASE WHEN current_date > entrada + prazo THEN 1 ELSE 0 END AS atraso, data_conclusao, tipo_obra, qtde_planejada, qtde_pend,
     circuito, mo_planejada, turma, status, conjunto, abrev_regional, observ_obra, ano_plan
     ${baseQuery}`;
 
-    let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras, SUM(mo_planejada) AS total_mo_planejada, SUM(mo_planejada*executado/100) as total_mo_exec, 
-    SUM(CASE WHEN id_status = 4 THEN mo_planejada*executado/100 ELSE 0 END) AS total_mo_suspensa, SUM(qtde_planejada) as total_qtde_planejada, 
-    SUM(qtde_pend) AS total_mo_pend  ${baseQuery}`;
+    let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras, SUM(mo_planejada) AS total_mo_planejada, SUM(mo_final) as total_mo_exec, 
+    SUM(mo_pend) AS total_mo_pend, SUM(qtde_planejada) as total_qtde_planejada, SUM(qtde_pend) AS total_qtde_pend  ${baseQuery}`;
 
     query = this.applyFilters(query, filters);
     countQuery = this.applyFilters(countQuery, filters);

@@ -164,6 +164,7 @@ export const mockWorksInPortfolio: worksInPortfolioResponseService = {
     {
       id: 17617,
       ovnota: '15373379',
+      ordem_principal: '170000015211',
       ordemdiagrama: '170000015211',
       status_ov_sap: 99,
       pep: 'X/005016',
@@ -202,7 +203,7 @@ export const mockWorksInPortfolio: worksInPortfolioResponseService = {
     total_obras: 1,
     total_mo_planejada: 91105.824,
     total_mo_exec: 91105.824,
-    total_mo_suspensa: 0,
+    total_mo_pend: 0,
     total_qtde_planejada: 0,
     total_qtde_pend: 0,
   },

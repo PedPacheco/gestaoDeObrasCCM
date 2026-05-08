@@ -132,22 +132,22 @@ export class GetMonthlySummaryDTO {
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idParceira: number[];
+  idParceira?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idRegional: number[];
+  idRegional?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idGrupo: number[];
+  idGrupo?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idTipo: number[];
+  idTipo?: number[];
 }
 
 export class GetExecMonitoringDTO {

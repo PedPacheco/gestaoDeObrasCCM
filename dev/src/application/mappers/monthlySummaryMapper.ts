@@ -24,6 +24,7 @@ export class MonthlySummaryMapper {
       diaryGoal: 0,
       financialGoalWith8: metrics.dailyFinancialGoalWithOverhead,
       diaryGoalWith8: 0,
+      totalMoPlan: 0,
       totalMoProg: 0,
       totalMoExec: 0,
       diff: 0,
@@ -36,17 +37,23 @@ export class MonthlySummaryMapper {
     goalContribution: number,
     goalWith8Contribution: number,
   ): void {
-    const { moProg, moExec } = workOrderMetrics;
+    const { moProg, moExec, moPlan } = workOrderMetrics;
 
     entry.totalQtde++;
 
+    entry.totalMoPlan += moPlan;
     entry.totalMoProg += moProg;
     entry.totalMoExec += moExec;
     entry.diaryGoal += goalContribution;
     entry.diaryGoalWith8 += goalWith8Contribution;
   }
 
-  createGroupTeamEntry(grupo: string, turma: string, idTurma?: number, idGrupo?: number): GroupTeamSummaryEntry {
+  createGroupTeamEntry(
+    grupo: string,
+    turma: string,
+    idTurma?: number,
+    idGrupo?: number,
+  ): GroupTeamSummaryEntry {
     return {
       grupo,
       turma,

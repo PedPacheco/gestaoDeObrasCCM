@@ -1,11 +1,5 @@
 import { Transform, Type } from 'class-transformer';
-import {
-  IsArray,
-  IsBoolean,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsArray, IsIn, IsNumber, IsOptional, IsString } from 'class-validator';
 import { convertParameterValue } from 'src/utils/convertParameterValue';
 
 export class GetRestrictionsDTO {
@@ -51,11 +45,17 @@ export class GetRestrictionsDTO {
   @Transform(({ value }) => convertParameterValue(value))
   idRestricao?: number[];
 
-  @IsBoolean()
-  @Transform(({ value }) =>
-    value === 'true' ? true : value === 'false' ? false : value,
-  )
-  executado: boolean;
+  @IsOptional()
+  @IsArray()
+  @IsIn(['done', 'pending'], { each: true })
+  @Transform(({ value }) => {
+    if (!value) return undefined;
+
+    if (Array.isArray(value)) return value;
+
+    return value.split(',').map((v: string) => v.trim());
+  })
+  status?: ('done' | 'pending')[];
 
   @IsOptional()
   @IsNumber()

@@ -23,6 +23,11 @@ export default async function ScheduleRestrictions() {
   if (params) {
     const formattedSelectedItems = Transform(params.selectedItems);
 
+    const statusFilter = params?.statusFilter ?? {
+      done: params?.executed === false,
+      pending: params?.executed === true,
+    };
+
     filtersValues = {
       ...formattedSelectedItems,
       dataInicial: params?.startDate
@@ -31,11 +36,11 @@ export default async function ScheduleRestrictions() {
       dataFinal: params?.endDate
         ? dayjs(params?.endDate).format("DD/MM/YYYY")
         : null,
-      executado: params.executed,
+      status: statusFilter.length ? statusFilter.join(",") : null,
     };
   } else {
     filtersValues = {
-      executado: "false",
+      status: null,
       page: "0",
     };
   }

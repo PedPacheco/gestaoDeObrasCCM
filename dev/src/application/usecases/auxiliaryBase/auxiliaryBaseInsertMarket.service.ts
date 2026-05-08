@@ -25,6 +25,8 @@ export class AuxiliaryMarketInsertService {
       throw new BadRequestException('Nenhum dado enviado.');
     }
 
+    await this.auxiliaryBaseRepository.delete('baseOv');
+
     const uniqueWorks = this.extractUniqueWorks(data);
     const existingOvs =
       await this.findExistingWorksService.findExistingWorks(uniqueWorks);

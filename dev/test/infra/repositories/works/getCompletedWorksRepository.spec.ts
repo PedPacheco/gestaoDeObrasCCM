@@ -3,7 +3,7 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetCompletedWorksRepository } from 'src/infra/repositories/works/getCompletedWorksRepository';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 import { totalsWorksInPortfolio } from 'src/interface/types/works/getWorksInPortfolioInterface';
-import * as moment from 'moment';
+import moment from 'moment';
 
 describe('GetCompletedWorksRepository', () => {
   let repository: GetCompletedWorksRepository;
@@ -60,7 +60,7 @@ describe('GetCompletedWorksRepository', () => {
       total_obras: 1,
       total_mo_planejada: 91105.824,
       total_mo_exec: 91105.824,
-      total_mo_suspensa: 0,
+      total_mo_pend: 0,
       total_qtde_planejada: 0,
       total_qtde_pend: 0,
     },
@@ -77,7 +77,7 @@ describe('GetCompletedWorksRepository', () => {
         INNER JOIN construcao_sp.conjuntos ON circuitos.id_conjunto = conjuntos.id
         INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
         INNER JOIN construcao_sp.turmas ON obras.id_turma = turmas.id
-        WHERE data_conclusao IS NOT NULL`;
+        WHERE (id_status = 2 AND executado = 100) OR id_status IN (2, 3)`;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({

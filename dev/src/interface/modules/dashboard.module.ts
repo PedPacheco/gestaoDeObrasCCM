@@ -1,6 +1,8 @@
+import { DashboardService } from 'src/application/usecases/dashboard.service';
+
 import { Module } from '@nestjs/common';
+
 import { DashboardController } from '../controllers/dashboard.controller';
-import { DashboardService } from 'src/application/dashboard.service';
 import { UsersModule } from './users.module';
 
 @Module({

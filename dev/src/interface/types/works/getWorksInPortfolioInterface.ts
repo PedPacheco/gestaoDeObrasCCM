@@ -1,10 +1,11 @@
 export interface worksInPortfolioInterface {
   id: number;
   ovnota: string;
-  ordemdiagrama: string;
+  ordem_principal: string;
   ordem_dca: string;
   ordem_dcd: string;
   ordem_dcim: string;
+  ordemdiagrama: string;
   status_ov_sap: number;
   pep: string;
   executado: number;
@@ -42,7 +43,7 @@ export interface totalsWorksInPortfolio {
   total_obras: number;
   total_mo_planejada: number;
   total_mo_exec: number;
-  total_mo_suspensa: number;
+  total_mo_pend: number;
   total_qtde_planejada: number;
   total_qtde_pend: number;
 }

@@ -4,25 +4,26 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 const STORAGE_KEY = "mapFilterOvnotas";
 
+export type MapFilterItem = {
+  ovnota?: string;
+  ordemDiagrama?: string;
+};
+
 interface MapFilterContextType {
-  ovnotas: string[] | null;
-  setOvnotas: (ovnotas: string[] | null) => void;
+  ovnotas: MapFilterItem[] | null;
+  setOvnotas: (data: any[]) => void;
 }
 
 const MapFilterContext = createContext<MapFilterContextType | null>(null);
 
 export function MapFilterProvider({ children }: { children: React.ReactNode }) {
-  const [ovnotas, setOvnotasState] = useState<string[] | null>(null);
+  const [ovnotas, setOvnotasState] = useState<MapFilterItem[] | null>(null);
 
   // On mount, read from localStorage (in case another tab already set it)
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      try {
-        setOvnotasState(JSON.parse(stored));
-      } catch {
-        // ignore
-      }
+      setOvnotasState(JSON.parse(stored));
     }
   }, []);
 
@@ -45,11 +46,17 @@ export function MapFilterProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
-  function setOvnotas(ovnotas: string[] | null) {
-    setOvnotasState(ovnotas);
+  function setOvnotas(data: any[]) {
+    const ovnotasList: MapFilterItem[] = (data ?? [])
+      .map((w: any) => ({ ovnota: w.ovnota, ordemDiagrama: w.ordemdiagrama }))
+      .filter(Boolean);
+
+    const works = ovnotasList.length > 0 ? ovnotasList : null;
+
+    setOvnotasState(works);
     // Persist so other tabs can read it
-    if (ovnotas && ovnotas.length > 0) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(ovnotas));
+    if (works && works.length > 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(works));
     } else {
       localStorage.removeItem(STORAGE_KEY);
     }

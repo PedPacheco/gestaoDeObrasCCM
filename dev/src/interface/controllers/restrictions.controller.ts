@@ -96,7 +96,6 @@ export class RestrictionController {
   }
 
   @Patch('publicacoes')
-  @UseGuards(PermissionGuard)
   async updatePublicationRestrictions(
     @Body() data: UpdatePublicationRestrictionsDTO,
   ) {
@@ -180,6 +179,21 @@ export class RestrictionController {
       statusCode: HttpStatus.OK,
       message: 'Restrições de execução retornadas com sucesso',
       data,
+    };
+  }
+
+  @Get('publicacoes/:id')
+  @UseGuards(VisualizationGuard)
+  async getPublicationsRestrictionsByWorkID(
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    const response =
+      await this.restrictionsService.getPublicationRestrictionsByWorkId(id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Restrições de publicação da obra retornadas com sucesso',
+      data: response,
     };
   }
 

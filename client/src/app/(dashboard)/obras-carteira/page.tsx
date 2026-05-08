@@ -38,7 +38,7 @@ export default async function WorksInPortfolio() {
       `${process.env.NEXT_PUBLIC_API_URL}/obras/obras-carteira`,
       filtersValues,
       cookieStore.get("token")?.value,
-      { cache: "no-store" }
+      { cache: "no-store" },
     ),
   ]);
 
@@ -49,13 +49,13 @@ export default async function WorksInPortfolio() {
   const { data, token } = worksData;
 
   const filteredStatus = filters.status.filter(
-    (item: { id: number }) => ![2, 3].includes(item.id)
+    (item: { id: number }) => ![2, 3].includes(item.id),
   );
 
   const columnMapping = {
     id: "ID",
     ovnota: "Ovnota",
-    ordemdiagrama: "Ordem DCI/Diagrama",
+    ordem_principal: "Ordem DCI/Diagrama",
     ordem_dcd: "Ordem DCD",
     ordem_dca: "Ordem DCA",
     ordem_dcim: "Ordem DCIM",
@@ -80,6 +80,8 @@ export default async function WorksInPortfolio() {
     total_equipe_reg: "Total Equipe Reg",
     circuito: "Circuito",
     mo_planejada: "MO Plan",
+    mo_final: "MO Executada",
+    mo_pend: "MO Pendente",
     status: "Status da Obra",
     conjunto: "Conjunto",
     data_empreitamento: "Data empreitamento",
@@ -87,7 +89,7 @@ export default async function WorksInPortfolio() {
     total_obras: "Total de obras",
     total_mo_planejada: "Total MO planejada",
     total_mo_exec: "Total MO executada",
-    total_mo_suspensa: "Total MO suspensa",
+    total_mo_pend: "Total MO Pendente",
     total_qtde_planejada: "Total QTDE planejada",
     total_qtde_pend: "Total QTDE pend",
   };
@@ -100,7 +102,7 @@ export default async function WorksInPortfolio() {
         filtersData={{ ...filters, status: filteredStatus }}
         cookie="portfolioWorksFilters"
         columns={columnMapping}
-        totalValues={31}
+        totalValues={33}
         url="obras-carteira"
       />
     </EmotionCacheProvider>

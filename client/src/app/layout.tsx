@@ -3,7 +3,6 @@ import "@/globals.css";
 
 import { UserProvider } from "@/contexts/userContext";
 import { MapFilterProvider } from "@/contexts/mapFilterContext";
-import { SidebarProvider } from "@/contexts/sidebarContext";
 
 export const metadata: Metadata = {
   title: "Gestão de obras CCM - São Paulo",
@@ -19,9 +18,7 @@ export default function RootLayout({
     <html lang="en" className="h-full">
       <body className="h-full">
         <UserProvider>
-          <SidebarProvider>
-            <MapFilterProvider>{children}</MapFilterProvider>
-          </SidebarProvider>
+          <MapFilterProvider>{children}</MapFilterProvider>
         </UserProvider>
       </body>
     </html>

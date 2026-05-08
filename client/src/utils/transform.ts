@@ -39,6 +39,7 @@ export function mapScheduleToForm(schedule: any, options: Record<string, any>) {
     idTechnical: technicianFound.id ?? 0,
     idExecutionRestriction: restrictionFound.id ?? 0,
     responsibility: schedule.nome_responsavel_execucao ?? "",
+    executionObservation: schedule.observacao_execucao ?? "",
     executionReport: schedule.executionReport,
     idProgRestriction1: schedule.id_restricao_prog1,
     responsiblityProg: schedule.responsabilidade1,
@@ -129,8 +130,8 @@ export function buildPublicationRestrictionPayload(
       responsibility: data.responsabilidade,
       responsibleName: responsibleEnginner?.name,
       restrictionStatus: data.status_restricao,
-      resolutionDate: data.resolutionDate
-        ? dayjs(data.resolutionDate).format("DD/MM/YYYY")
+      resolutionDate: data.data_resolucao
+        ? dayjs(data.data_resolucao).format("DD/MM/YYYY")
         : null,
       observation: data.observacao,
       constructionObservation: data.observacao_construcao,

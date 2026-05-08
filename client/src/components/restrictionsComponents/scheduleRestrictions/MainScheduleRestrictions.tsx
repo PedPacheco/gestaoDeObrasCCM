@@ -23,13 +23,15 @@ import ScheduleRestrictionsTable from "./scheduleRestrictionsTable";
 import { UpdatePublicationRestrictions } from "@/actions/restrictions";
 import PublicationRestrictionsTable from "../publicationRestrictionsTable";
 import RestrictionFilters from "./restrictionFilters";
+import { mountUrl } from "@/utils/mountUrl";
+import { exportExcel } from "@/actions/generateExcel.action";
 
 const cookies = new Cookies();
 
 interface MainScheduleRestrictionsProps {
   filtersData: any;
   data: any;
-  token?: string;
+  token: string;
   columns: Record<string, string>;
   url: string;
 }
@@ -117,16 +119,53 @@ export default function MainScheduleRestrictions({
       ? cookies.get("cookieKey")
       : {};
 
+    const statusFilter = currentFilters?.statusFilter || {
+      done: false,
+      pending: false,
+    };
+
     const filtersValues = {
       ...Transform(currentFilters?.selectedItems || {}),
       dataInicial: currentFilters?.startDate || null,
       dataFinal: currentFilters?.endDate || null,
-      executado: currentFilters?.executed || "false",
+
+      // 🔥 novo padrão
+      status_done: statusFilter.done,
+      status_pending: statusFilter.pending,
+
       page: newPage.toString(),
     };
 
     fetchScheduleRestrictions(filtersValues);
   };
+
+  const generateExcel = useCallback(
+    async (params: Record<string, string>) => {
+      const { page, ...formattedParams } = params;
+
+      const url = mountUrl(
+        `${process.env.NEXT_PUBLIC_API_URL}/exportacao/publicacoes`,
+        formattedParams,
+      );
+
+      try {
+        const blob = await exportExcel(url, token);
+
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = "Exportação restrições de publicação";
+        document.body.append(link);
+        link.click();
+
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+      } catch (error: any) {
+        setError(`Erro ao gerar a planilha: ${error.message}`);
+      }
+    },
+    [token],
+  );
 
   const publicationDataFiltered = useMemo(() => {
     if (!isPublication) return filteredData.works;
@@ -160,6 +199,7 @@ export default function MainScheduleRestrictions({
             applyFilters={fetchScheduleRestrictions}
             isPending={isPending}
             isPublication={isPublication}
+            generateExcel={generateExcel}
           />
         </div>
 

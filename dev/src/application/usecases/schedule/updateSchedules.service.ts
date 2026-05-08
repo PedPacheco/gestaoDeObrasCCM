@@ -70,7 +70,7 @@ export class UpdateSchedulesService {
         dataProg: new Date(data.dataProg),
         reject: reprovada,
       });
-    } catch (error) {
+    } catch (error: any) {
       throw new BadRequestException(
         `Erro ao criar programação: ${error.message}`,
       );
@@ -95,7 +95,7 @@ export class UpdateSchedulesService {
       chi: schedule.chi,
       nome_responsavel_execucao: schedule.responsibility,
       id_restricao_execucao: schedule.idExecutionRestriction,
-      observacao_execucao: schedule.observationExecution,
+      observacao_execucao: schedule.executionObservation,
       id_restricao_prog1: schedule.idProgRestriction1,
       responsabilidade1: schedule.responsiblityProg,
       nome_responsavel: schedule.responsibleName,
@@ -132,7 +132,7 @@ export class UpdateSchedulesService {
         scheduledFinishTime: schedule.finishTime,
         idWork: schedule.idWork,
       };
-    } catch (err) {
+    } catch (err: any) {
       throw new BadRequestException(`Erro ao criar relatório: ${err.message}`);
     }
   }

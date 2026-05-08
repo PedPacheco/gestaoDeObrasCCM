@@ -27,44 +27,52 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-
 // Percentual mínimo de obras acompanhadas exigido por mês/regional
 const META_PCT = 30;
 
 // Paleta de cores para diferenciar regionais no gráfico e na tabela
 const REGIONAL_COLORS = [
-  "#3b82f6", "#10b981", "#f59e0b", "#ef4444",
-  "#8b5cf6", "#06b6d4", "#f97316", "#ec4899",
+  "#3b82f6",
+  "#10b981",
+  "#f59e0b",
+  "#ef4444",
+  "#8b5cf6",
+  "#06b6d4",
+  "#f97316",
+  "#ec4899",
 ];
 
 // ── Tipos ──────────────────────────────────────────────────────────────────
 
 /** Linha de resultado vinda da API: uma combinação de mês + regional */
 interface Row {
-  mes: string;          // formato "MM/YYYY" (ex: "04/2025")
-  regional: string;     // nome da regional
+  mes: string; // formato "MM/YYYY" (ex: "04/2025")
+  regional: string; // nome da regional
   id_regional: number;
-  total: number;        // total de programações parciais + concluídas no mês/regional
-  acompanhado: number;  // quantas têm técnico responsável diferente de NÃO DEFINIDO
+  total: number; // total de programações parciais + concluídas no mês/regional
+  acompanhado: number; // quantas têm técnico responsável diferente de NÃO DEFINIDO
   naoAcompanhado: number;
-  pct: number;          // acompanhado / total * 100 (calculado no backend)
+  pct: number; // acompanhado / total * 100 (calculado no backend)
 }
 
 /** Tipo base para os dropdowns de filtro — id sempre string para o MultiSelect */
-interface FilterOption { id: string; [key: string]: string | number }
+interface FilterOption {
+  id: string;
+  [key: string]: string | number;
+}
 
 /** Dados dos filtros vindos do endpoint /filters */
 interface FilterData {
   regional?: { id: number; regional: string }[];
-  parceira?: { id: number; turma: string }[];   // turma = parceira executora
-  tecnico?:  { id: number; tecnico: string }[]; // técnicos responsáveis cadastrados
-  tipo?:     { id: number; tipo_obra: string }[];
+  parceira?: { id: number; turma: string }[]; // turma = parceira executora
+  tecnico?: { id: number; tecnico: string }[]; // técnicos responsáveis cadastrados
+  tipo?: { id: number; tipo_obra: string }[];
 }
 
 interface Props {
-  initialData: Row[];      // dados carregados no server (sem filtros — ano inteiro)
+  initialData: Row[]; // dados carregados no server (sem filtros — ano inteiro)
   filtersData: FilterData; // opções disponíveis para os dropdowns
-  token: string;           // JWT para autenticação nas chamadas client-side
+  token: string; // JWT para autenticação nas chamadas client-side
 }
 
 // ── Componente MultiSelect com checkboxes ─────────────────────────────────
@@ -79,7 +87,11 @@ interface Props {
  *  3. Controlar o estado externo com useState<string[]>
  */
 function MultiSelect<T extends FilterOption>({
-  label, options, displayKey, selected, onChange,
+  label,
+  options,
+  displayKey,
+  selected,
+  onChange,
 }: {
   label: string;
   options: T[];
@@ -93,14 +105,19 @@ function MultiSelect<T extends FilterOption>({
   // Fecha o dropdown ao clicar fora dele
   useEffect(() => {
     function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
     }
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   function toggle(id: string) {
-    onChange(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id]);
+    onChange(
+      selected.includes(id)
+        ? selected.filter((x) => x !== id)
+        : [...selected, id],
+    );
   }
 
   // Texto exibido no botão do dropdown
@@ -108,12 +125,14 @@ function MultiSelect<T extends FilterOption>({
     selected.length === 0
       ? "Todos"
       : selected.length === 1
-      ? String(options.find((o) => o.id === selected[0])?.[displayKey] ?? "")
-      : `${selected.length} selecionados`;
+        ? String(options.find((o) => o.id === selected[0])?.[displayKey] ?? "")
+        : `${selected.length} selecionados`;
 
   return (
     <div ref={ref} className="relative flex flex-col gap-1">
-      <span className="text-zinc-500 text-[10px] uppercase tracking-wider">{label}</span>
+      <span className="text-zinc-500 text-[10px] uppercase tracking-wider">
+        {label}
+      </span>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -122,9 +141,16 @@ function MultiSelect<T extends FilterOption>({
         <span className="truncate max-w-[140px]">{labelDisplay}</span>
         <svg
           className={`w-3 h-3 text-zinc-500 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-          fill="none" viewBox="0 0 24 24" stroke="currentColor"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </button>
 
@@ -139,10 +165,22 @@ function MultiSelect<T extends FilterOption>({
             onClick={() => onChange([])}
             className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs hover:bg-white/5 transition-colors border-b border-white/5 ${selected.length === 0 ? "text-[#3b82f6]" : "text-zinc-400"}`}
           >
-            <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${selected.length === 0 ? "bg-[#3b82f6] border-[#3b82f6]" : "border-white/20"}`}>
+            <span
+              className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${selected.length === 0 ? "bg-[#3b82f6] border-[#3b82f6]" : "border-white/20"}`}
+            >
               {selected.length === 0 && (
-                <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                <svg
+                  className="w-2.5 h-2.5 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={3}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               )}
             </span>
@@ -158,10 +196,22 @@ function MultiSelect<T extends FilterOption>({
                 onClick={() => toggle(o.id)}
                 className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs hover:bg-white/5 transition-colors text-left ${checked ? "text-white" : "text-zinc-400"}`}
               >
-                <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${checked ? "bg-[#3b82f6] border-[#3b82f6]" : "border-white/20"}`}>
+                <span
+                  className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${checked ? "bg-[#3b82f6] border-[#3b82f6]" : "border-white/20"}`}
+                >
                   {checked && (
-                    <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    <svg
+                      className="w-2.5 h-2.5 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={3}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                   )}
                 </span>
@@ -188,7 +238,20 @@ function fmt(n: number) {
  */
 function monthLabel(mes: string) {
   const [mm, yyyy] = mes.split("/");
-  const names = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  const names = [
+    "Jan",
+    "Fev",
+    "Mar",
+    "Abr",
+    "Mai",
+    "Jun",
+    "Jul",
+    "Ago",
+    "Set",
+    "Out",
+    "Nov",
+    "Dez",
+  ];
   return `${names[parseInt(mm) - 1]}/${yyyy.slice(2)}`;
 }
 
@@ -210,7 +273,10 @@ function CustomTooltip({ active, payload, label }: any) {
       <div className="font-bold text-white mb-2 text-sm">{label}</div>
       {payload.map((p: any, i: number) => (
         <div key={i} className="flex items-center gap-2 py-0.5">
-          <span className="w-2 h-2 rounded-full shrink-0" style={{ background: p.color }} />
+          <span
+            className="w-2 h-2 rounded-full shrink-0"
+            style={{ background: p.color }}
+          />
           <span className="text-zinc-400">{p.name}:</span>
           <span className="font-bold text-white">
             {/* A linha de % usa eixo direito (0–100) — exibe com sinal de % */}
@@ -223,7 +289,11 @@ function CustomTooltip({ active, payload, label }: any) {
 }
 
 // ── Componente principal ───────────────────────────────────────────────────
-export default function AcompanhamentoExecucaoDashboard({ initialData, filtersData, token }: Props) {
+export default function AcompanhamentoExecucaoDashboard({
+  initialData,
+  filtersData,
+  token,
+}: Props) {
   const year = new Date().getFullYear();
 
   // Dados exibidos (começa com o carregamento server-side; muda ao aplicar filtros)
@@ -233,25 +303,37 @@ export default function AcompanhamentoExecucaoDashboard({ initialData, filtersDa
   // ── Estados dos filtros ───────────────────────────────────────────────────
   // Período padrão: ano inteiro corrente (mesmo que o server usa)
   const [dataInicial, setDataInicial] = useState(`01/01/${year}`);
-  const [dataFinal,   setDataFinal]   = useState(`31/12/${year}`);
+  const [dataFinal, setDataFinal] = useState(`31/12/${year}`);
 
   // Arrays de IDs selecionados como strings (padrão do MultiSelect)
   // Array vazio = "Todos" = sem filtro aplicado ao parâmetro
   const [selRegional, setSelRegional] = useState<string[]>([]);
-  const [selTurma,    setSelTurma]    = useState<string[]>([]);
-  const [selTecnico,  setSelTecnico]  = useState<string[]>([]);
+  const [selTurma, setSelTurma] = useState<string[]>([]);
+  const [selTecnico, setSelTecnico] = useState<string[]>([]);
 
   // ── Normalização dos filtros (número → string para o MultiSelect) ─────────
   const optRegional = useMemo(
-    () => (filtersData.regional ?? []).map((r) => ({ id: String(r.id), regional: r.regional })),
+    () =>
+      (filtersData.regional ?? []).map((r) => ({
+        id: String(r.id),
+        regional: r.regional,
+      })),
     [filtersData],
   );
   const optTurma = useMemo(
-    () => (filtersData.parceira ?? []).map((t) => ({ id: String(t.id), turma: t.turma })),
+    () =>
+      (filtersData.parceira ?? []).map((t) => ({
+        id: String(t.id),
+        turma: t.turma,
+      })),
     [filtersData],
   );
   const optTecnico = useMemo(
-    () => (filtersData.tecnico ?? []).map((t) => ({ id: String(t.id), tecnico: t.tecnico })),
+    () =>
+      (filtersData.tecnico ?? []).map((t) => ({
+        id: String(t.id),
+        tecnico: t.tecnico,
+      })),
     [filtersData],
   );
 
@@ -290,7 +372,9 @@ export default function AcompanhamentoExecucaoDashboard({ initialData, filtersDa
   // Mapa de cor por regional (para legendas e cabeçalhos da tabela)
   const regionalColor = useMemo(() => {
     const map: Record<string, string> = {};
-    regionais.forEach((r, i) => { map[r] = REGIONAL_COLORS[i % REGIONAL_COLORS.length]; });
+    regionais.forEach((r, i) => {
+      map[r] = REGIONAL_COLORS[i % REGIONAL_COLORS.length];
+    });
     return map;
   }, [regionais]);
 
@@ -310,9 +394,9 @@ export default function AcompanhamentoExecucaoDashboard({ initialData, filtersDa
       const row: Record<string, any> = { mes: monthLabel(mes) };
       regionais.forEach((reg) => {
         const found = data.find((r) => r.mes === mes && r.regional === reg);
-        row[reg]           = found ? found.pct : null;
-        row[`${reg}_total`]  = found ? found.total : 0;
-        row[`${reg}_acomp`]  = found ? found.acompanhado : 0;
+        row[reg] = found ? found.pct : null;
+        row[`${reg}_total`] = found ? found.total : 0;
+        row[`${reg}_acomp`] = found ? found.acompanhado : 0;
       });
       return row;
     });
@@ -322,7 +406,11 @@ export default function AcompanhamentoExecucaoDashboard({ initialData, filtersDa
   const totals = useMemo(() => {
     const total = data.reduce((s, r) => s + r.total, 0);
     const acomp = data.reduce((s, r) => s + r.acompanhado, 0);
-    return { total, acomp, pct: total > 0 ? Math.round((acomp / total) * 100) : 0 };
+    return {
+      total,
+      acomp,
+      pct: total > 0 ? Math.round((acomp / total) * 100) : 0,
+    };
   }, [data]);
 
   // ── Busca com filtros ─────────────────────────────────────────────────────
@@ -345,8 +433,8 @@ export default function AcompanhamentoExecucaoDashboard({ initialData, filtersDa
       // então os IDs devem vir como string separada por vírgula, não params repetidos.
       const params = new URLSearchParams({ dataInicial, dataFinal });
       if (selRegional.length) params.set("idRegional", selRegional.join(","));
-      if (selTurma.length)    params.set("idTurma",    selTurma.join(","));
-      if (selTecnico.length)  params.set("idTecnico",  selTecnico.join(","));
+      if (selTurma.length) params.set("idTurma", selTurma.join(","));
+      if (selTecnico.length) params.set("idTecnico", selTecnico.join(","));
 
       const url = `${process.env.NEXT_PUBLIC_API_URL}/programacao/acompanhamento-mensal?${params}`;
       console.log("[AcompanhamentoExecucao] URL:", url);
@@ -355,7 +443,11 @@ export default function AcompanhamentoExecucaoDashboard({ initialData, filtersDa
         cache: "no-store" as RequestCache,
       });
       if (!res.ok) {
-        console.error("[AcompanhamentoExecucao] fetch falhou:", res.status, res.statusText);
+        console.error(
+          "[AcompanhamentoExecucao] fetch falhou:",
+          res.status,
+          res.statusText,
+        );
         return;
       }
       const json = await res.json();
@@ -370,7 +462,6 @@ export default function AcompanhamentoExecucaoDashboard({ initialData, filtersDa
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col gap-6 p-6">
-
       {/* ── Barra de Filtros ──────────────────────────────────────────────
           Todos os filtros são opcionais. Array vazio = sem filtro = "Todos".
           Para mudar o período padrão, altere os estados dataInicial e dataFinal.
@@ -378,10 +469,11 @@ export default function AcompanhamentoExecucaoDashboard({ initialData, filtersDa
       ────────────────────────────────────────────────────────────────────── */}
       <div className="bg-gradient-to-br from-[#1e2f42] to-[#192535] rounded-2xl p-5 border border-white/5 shadow-xl">
         <div className="flex flex-wrap gap-4 items-end">
-
           {/* Datas: formato DD/MM/AAAA — enviadas direto para o backend */}
           <div className="flex flex-col gap-1">
-            <span className="text-zinc-500 text-[10px] uppercase tracking-wider">Data inicial</span>
+            <span className="text-zinc-500 text-[10px] uppercase tracking-wider">
+              Data inicial
+            </span>
             <input
               type="text"
               placeholder="DD/MM/AAAA"
@@ -391,7 +483,9 @@ export default function AcompanhamentoExecucaoDashboard({ initialData, filtersDa
             />
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-zinc-500 text-[10px] uppercase tracking-wider">Data final</span>
+            <span className="text-zinc-500 text-[10px] uppercase tracking-wider">
+              Data final
+            </span>
             <input
               type="text"
               placeholder="DD/MM/AAAA"
@@ -452,23 +546,39 @@ export default function AcompanhamentoExecucaoDashboard({ initialData, filtersDa
       <div className="grid grid-cols-3 gap-4">
         {/* Total de programações executadas (parcial + concluído) */}
         <div className="bg-gradient-to-br from-[#0f2744] to-[#1e3a5f] rounded-2xl p-5 border border-white/5 shadow-lg flex flex-col gap-1">
-          <span className="text-white/60 text-xs uppercase tracking-widest">Total executado</span>
-          <span className="text-3xl font-black text-white">{fmt(totals.total)}</span>
-          <span className="text-zinc-500 text-xs">programações (parcial + concluído)</span>
+          <span className="text-white/60 text-xs uppercase tracking-widest">
+            Total executado
+          </span>
+          <span className="text-3xl font-black text-white">
+            {fmt(totals.total)}
+          </span>
+          <span className="text-zinc-500 text-xs">
+            programações (parcial + concluído)
+          </span>
         </div>
         {/* Programações com técnico definido (id_tecnico != 1) */}
         <div className="bg-gradient-to-br from-[#052e16] to-[#14532d] rounded-2xl p-5 border border-white/5 shadow-lg flex flex-col gap-1">
-          <span className="text-white/60 text-xs uppercase tracking-widest">Acompanhadas</span>
-          <span className="text-3xl font-black text-white">{fmt(totals.acomp)}</span>
-          <span className="text-zinc-500 text-xs">com técnico responsável definido</span>
+          <span className="text-white/60 text-xs uppercase tracking-widest">
+            Acompanhadas
+          </span>
+          <span className="text-3xl font-black text-white">
+            {fmt(totals.acomp)}
+          </span>
+          <span className="text-zinc-500 text-xs">
+            com técnico responsável definido
+          </span>
         </div>
         {/* % global — verde se ≥ META_PCT, vermelho se abaixo */}
-        <div className={`rounded-2xl p-5 border border-white/5 shadow-lg flex flex-col gap-1 ${
-          totals.pct >= META_PCT
-            ? "bg-gradient-to-br from-[#052e16] to-[#14532d]"
-            : "bg-gradient-to-br from-[#431407] to-[#7c2d12]"
-        }`}>
-          <span className="text-white/60 text-xs uppercase tracking-widest">% Acompanhado</span>
+        <div
+          className={`rounded-2xl p-5 border border-white/5 shadow-lg flex flex-col gap-1 ${
+            totals.pct >= META_PCT
+              ? "bg-gradient-to-br from-[#052e16] to-[#14532d]"
+              : "bg-gradient-to-br from-[#431407] to-[#7c2d12]"
+          }`}
+        >
+          <span className="text-white/60 text-xs uppercase tracking-widest">
+            % Acompanhado
+          </span>
           <span className="text-3xl font-black text-white">{totals.pct}%</span>
           <span className="text-zinc-500 text-xs">meta: ≥ {META_PCT}%</span>
         </div>
@@ -495,7 +605,10 @@ export default function AcompanhamentoExecucaoDashboard({ initialData, filtersDa
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={320}>
-            <ComposedChart data={byMonth} margin={{ top: 5, right: 40, left: 0, bottom: 5 }}>
+            <ComposedChart
+              data={byMonth}
+              margin={{ top: 5, right: 40, left: 0, bottom: 5 }}
+            >
               <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" />
               <XAxis dataKey="mes" tick={{ fill: "#94a3b8", fontSize: 11 }} />
               {/* Eixo esquerdo: contagem absoluta de programações */}
@@ -509,19 +622,43 @@ export default function AcompanhamentoExecucaoDashboard({ initialData, filtersDa
                 tick={{ fill: "#94a3b8", fontSize: 11 }}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Legend wrapperStyle={{ fontSize: 12, color: "#94a3b8", paddingTop: 12 }} />
+              <Legend
+                wrapperStyle={{
+                  fontSize: 12,
+                  color: "#94a3b8",
+                  paddingTop: 12,
+                }}
+              />
               {/* Linha de referência da meta (30%) — tracejada amarela */}
               <ReferenceLine
                 yAxisId="right"
                 y={META_PCT}
                 stroke="#f59e0b"
                 strokeDasharray="6 3"
-                label={{ value: `Meta ${META_PCT}%`, fill: "#f59e0b", fontSize: 11, position: "insideTopRight" }}
+                label={{
+                  value: `Meta ${META_PCT}%`,
+                  fill: "#f59e0b",
+                  fontSize: 11,
+                  position: "insideTopRight",
+                }}
               />
               {/* Barra inferior (cinza) = não acompanhado */}
-              <Bar yAxisId="left" dataKey="naoAcompanhado" name="Não acompanhado" stackId="a" fill="#374151" />
+              <Bar
+                yAxisId="left"
+                dataKey="naoAcompanhado"
+                name="Não acompanhado"
+                stackId="a"
+                fill="#374151"
+              />
               {/* Barra superior (verde) = acompanhado — radius arredonda o topo da barra empilhada */}
-              <Bar yAxisId="left" dataKey="acompanhado" name="Acompanhado" stackId="a" fill="#10b981" radius={[4, 4, 0, 0]} />
+              <Bar
+                yAxisId="left"
+                dataKey="acompanhado"
+                name="Acompanhado"
+                stackId="a"
+                fill="#10b981"
+                radius={[4, 4, 0, 0]}
+              />
               {/* Linha azul de percentual — usa eixo direito */}
               <Line
                 yAxisId="right"
@@ -559,10 +696,16 @@ export default function AcompanhamentoExecucaoDashboard({ initialData, filtersDa
                   Mês
                 </th>
                 {regionais.map((r) => (
-                  <th key={r} className="text-center py-2 px-3 text-zinc-400 font-semibold uppercase tracking-wider border-b border-white/5 whitespace-nowrap">
+                  <th
+                    key={r}
+                    className="text-center py-2 px-3 text-zinc-400 font-semibold uppercase tracking-wider border-b border-white/5 whitespace-nowrap"
+                  >
                     <span className="inline-flex items-center gap-1">
                       {/* Bolinha colorida = cor da regional (mesma paleta REGIONAL_COLORS) */}
-                      <span className="w-2 h-2 rounded-full" style={{ background: regionalColor[r] }} />
+                      <span
+                        className="w-2 h-2 rounded-full"
+                        style={{ background: regionalColor[r] }}
+                      />
                       {r}
                     </span>
                   </th>
@@ -572,24 +715,42 @@ export default function AcompanhamentoExecucaoDashboard({ initialData, filtersDa
             <tbody>
               {tableMonths.map((row, i) => (
                 <tr key={i} className="hover:bg-white/5 transition-colors">
-                  <td className="py-2 px-3 font-medium text-white border-b border-white/5">{row.mes}</td>
+                  <td className="py-2 px-3 font-medium text-white border-b border-white/5">
+                    {row.mes}
+                  </td>
                   {regionais.map((r) => {
                     const pct: number | null = row[r];
                     const acomp: number = row[`${r}_acomp`];
                     const total: number = row[`${r}_total`];
                     // "—" quando não há programações na regional naquele mês
                     if (pct === null) {
-                      return <td key={r} className="py-2 px-3 text-center text-zinc-600 border-b border-white/5">—</td>;
+                      return (
+                        <td
+                          key={r}
+                          className="py-2 px-3 text-center text-zinc-600 border-b border-white/5"
+                        >
+                          —
+                        </td>
+                      );
                     }
                     const ok = pct >= META_PCT; // verde ou vermelho
                     return (
-                      <td key={r} className="py-2 px-3 text-center border-b border-white/5">
-                        <span className={`inline-flex flex-col items-center gap-0.5 rounded-lg px-2 py-1 font-bold ${
-                          ok ? "bg-emerald-900/40 text-emerald-400" : "bg-red-900/40 text-red-400"
-                        }`}>
+                      <td
+                        key={r}
+                        className="py-2 px-3 text-center border-b border-white/5"
+                      >
+                        <span
+                          className={`inline-flex flex-col items-center gap-0.5 rounded-lg px-2 py-1 font-bold ${
+                            ok
+                              ? "bg-emerald-900/40 text-emerald-400"
+                              : "bg-red-900/40 text-red-400"
+                          }`}
+                        >
                           <span>{pct}%</span>
                           {/* Detalhe: acompanhadas / total — útil para avaliar volume */}
-                          <span className="text-[10px] font-normal opacity-70">{acomp}/{total}</span>
+                          <span className="text-[10px] font-normal opacity-70">
+                            {acomp}/{total}
+                          </span>
                         </span>
                       </td>
                     );

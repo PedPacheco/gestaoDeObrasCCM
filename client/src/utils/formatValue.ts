@@ -1,5 +1,5 @@
 import { ExecutionReportData } from "@/components/details/modals/executionReportDialog/executionReportDialog";
-import { FormData } from "@/hooks/useScheduleForm";
+import { FormData } from "@/hooks/details/useScheduleForm";
 
 export function FormatCurrency(value: number) {
   return new Intl.NumberFormat("pt-br", {
@@ -14,6 +14,9 @@ export function capitalize(text: string): string {
     .replace(/([a-z])([A-Z])/g, "$1 $2")
     .replace(/^./, (str) => str.toUpperCase());
 }
+
+export const NUM = (v: number) =>
+  (v ?? 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 });
 
 export function formatPercentage(value: number, locale: string = "pt-BR") {
   if (value === null) {

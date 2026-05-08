@@ -1,5 +1,5 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { DashboardService } from 'src/application/dashboard.service';
+import { DashboardService } from 'src/application/usecases/dashboard.service';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 
 @Controller('dashboard')

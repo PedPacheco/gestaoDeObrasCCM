@@ -2,8 +2,8 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 
-import { useScheduleForm } from "@/hooks/useScheduleForm";
-import { useScheduleHandlers } from "@/hooks/useScheduleHandlers";
+import { useScheduleForm } from "@/hooks/details/useScheduleForm";
+import { useScheduleHandlers } from "@/hooks/details/useScheduleHandlers";
 import { useUser } from "@/contexts/userContext";
 import { ModalsManager, ModalsManagerRef } from "../modals/detailsModals";
 import TabActions from "./tabsActions";
@@ -11,6 +11,7 @@ import WorkCostPanelItem from "../panelItems/workCostPanelItem";
 import SchedulePanelItem from "../panelItems/schedulePanelItem";
 import ExecutionReportPanelItem from "../panelItems/executionReportPanelItem";
 import RejectionsOfSchedulesPanelItem from "../panelItems/rejectionsOfSchedulesPanelItem";
+import PublicationRestrictionsPanelItem from "../panelItems/publicationRestrictionsPanelItem";
 
 interface CustomTabPanelProps {
   children?: React.ReactNode;
@@ -22,6 +23,7 @@ interface TabPanelProps {
   workData: Record<string, any>;
   executionReportData: Record<string, any>[];
   rejectionsData: Record<string, any>[];
+  publicationRestrictionData: Record<string, any>[];
   options: any;
   id: string;
   feasibilityExists: any[];
@@ -52,6 +54,7 @@ export default function TabPanel({
   options,
   executionReportData,
   rejectionsData,
+  publicationRestrictionData,
   id,
   feasibilityExists,
 }: TabPanelProps) {
@@ -108,6 +111,8 @@ export default function TabPanel({
     setIsInsert(false);
     modalsRef.current?.handleDialog(true);
     setExecutionReportIsInsert(true);
+
+    console.log(scheduleData);
 
     setEditingSchedule({
       ...scheduleData,
@@ -184,6 +189,12 @@ export default function TabPanel({
             </CustomTabPanel>
 
             <CustomTabPanel value={value} index={4}>
+              <PublicationRestrictionsPanelItem
+                data={publicationRestrictionData}
+              />
+            </CustomTabPanel>
+
+            <CustomTabPanel value={value} index={5}>
               Em breve
             </CustomTabPanel>
           </Suspense>

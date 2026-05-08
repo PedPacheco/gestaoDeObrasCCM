@@ -5,7 +5,7 @@ import { editExecutionReport } from "@/actions/executionReport.action";
 import { editSchedule, saveSchedule } from "@/actions/schedules";
 import { ExecutionReportData } from "@/components/details/modals/executionReportDialog/executionReportDialog";
 
-import { FormData } from "./useScheduleForm";
+import { FormData } from "./details/useScheduleForm";
 
 const cookies = new Cookies();
 
@@ -31,7 +31,6 @@ export const useScheduleSubmit = ({
 }: UseScheduleSubmitProps) => {
   const [isPending, startTransition] = useTransition();
   const rawUser = cookies.get("userInfo");
-  const user = rawUser ?? null;
 
   const handleSubmit = useCallback(
     (data: any, type: "executionReport" | "schedule", files?: File[]) => {

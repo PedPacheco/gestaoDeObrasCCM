@@ -61,6 +61,7 @@ export interface DailySummaryEntry {
   financialGoalWith8: number;
   diaryGoal: number;
   diaryGoalWith8: number;
+  totalMoPlan: number;
   totalMoProg: number;
   totalMoExec: number;
   diff: number;
@@ -108,6 +109,7 @@ export interface DailySummaryTotals {
   totalDiaryGoal: number;
   totalFinancialGoalWith8: number;
   totalDiaryGoalWith8: number;
+
   totalMoProg: number;
   totalMoExec: number;
   totalDiff: number;
