@@ -6,7 +6,7 @@ import {
   RESTRICTIONS_REPOSITORY,
 } from 'src/domain/repositories/IRestrictionsRepository';
 import {
-  GetEliminacaoRestricaoDTO,
+  GetRestrictionsAdvancePartnerDTO,
   GetRestrictionsDTO,
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
@@ -29,6 +29,13 @@ export interface ProcessedRestrictionsFilters {
    */
   filterExecutado?: boolean;
   page?: number;
+}
+
+export interface ProcessedEliminacaoFilters {
+  dataInicial?: Date;
+  dataFinal?: Date;
+  idRegional?: number[];
+  idParceira?: number[];
 }
 
 @Injectable()
@@ -63,6 +70,23 @@ export class RestrictionsService {
         ? moment(dataFinal, 'DD/MM/YYYY').toDate()
         : undefined,
       filterExecutado,
+    };
+  }
+
+  private parseEliminationFilters(
+    filters: GetRestrictionsAdvancePartnerDTO,
+  ): ProcessedEliminacaoFilters {
+    const { dataInicial, dataFinal, idRegional, idParceira } = filters;
+
+    return {
+      dataInicial: dataInicial
+        ? moment(dataInicial, 'DD/MM/YYYY').toDate()
+        : undefined,
+      dataFinal: dataFinal
+        ? moment(dataFinal, 'DD/MM/YYYY').toDate()
+        : undefined,
+      idRegional,
+      idParceira,
     };
   }
 
@@ -106,6 +130,84 @@ export class RestrictionsService {
     return formattedData;
   }
 
+  async getRestrictionsAdvancePartner(
+    filters: GetRestrictionsAdvancePartnerDTO,
+  ) {
+    const processedFilters = this.parseEliminationFilters(filters);
+    const rows =
+      await this.restrictionsRepository.getRestrictionsAdvancePartner(
+        processedFilters,
+      );
+
+    return rows.map((r) => {
+      const total = Number(r.total);
+      const sem = Number(r.sem_restricao);
+      return {
+        month: r.mes,
+        total,
+        withoutRestriction: sem,
+        withRestriction: total - sem,
+        pct: total > 0 ? Math.round((sem / total) * 100) : 0,
+      };
+    });
+  }
+
+  async getGripPartner(filters: GetRestrictionsAdvancePartnerDTO) {
+    const processedFilters = this.parseEliminationFilters(filters);
+    const rows =
+      await this.restrictionsRepository.getGripPartner(processedFilters);
+
+    return rows.map((r) => {
+      const total = Number(r.total);
+      const executed = Number(r.executada);
+      const partialExecuted = Number(r.executada_parcial);
+      const notExecuted = Number(r.nao_executada);
+      const notInformed = Number(r.nao_informada);
+      return {
+        week: r.semana,
+        total,
+        executed,
+        partialExecuted,
+        notExecuted,
+        notInformed,
+        pct: total > 0 ? Math.round((executed / total) * 100) : 0,
+      };
+    });
+  }
+
+  async getScheduledWorks(filters: GetRestrictionsAdvancePartnerDTO) {
+    const processedFilters = this.parseEliminationFilters(filters);
+    const rows =
+      await this.restrictionsRepository.getScheduledWorks(processedFilters);
+
+    return rows.map((r) => {
+      const total = Number(r.total_programadas);
+      const com = Number(r.com_restricao);
+      return {
+        month: r.mes,
+        totalScheduled: total,
+        withRestriction: com,
+        withoutRestriction: total - com,
+      };
+    });
+  }
+
+  async getReaschedulingReasons(filters: GetRestrictionsAdvancePartnerDTO) {
+    const processedFilters = this.parseEliminationFilters(filters);
+
+    return await this.restrictionsRepository.getReaschedulingReasons(
+      processedFilters,
+    );
+  }
+
+  async getExecutionRestrictions(filters: GetRestrictionsAdvancePartnerDTO) {
+    const processedFilters = this.parseEliminationFilters(filters);
+
+    return await this.restrictionsRepository.getExecutionRestrictions(
+      processedFilters,
+    );
+  }
+
   async insertPublicationRestriction(data: InsertPublicationRestrictionsDTO[]) {
     await this.restrictionsRepository.insertPublicationRestriction(data);
   }
@@ -130,25 +232,4 @@ export class RestrictionsService {
   async deletePublicationRestriction(id: number) {
     await this.restrictionsRepository.deletePublicationRestriction(id);
   }
-
-  async getEliminacaoRestricao(filters: GetEliminacaoRestricaoDTO) {
-    return await this.restrictionsRepository.getEliminacaoRestricao(filters);
-  }
-
-  async getAderenciaParceira(filters: GetEliminacaoRestricaoDTO) {
-    return await this.restrictionsRepository.getAderenciaParceira(filters);
-  }
-
-  async getObrasProgramadas(filters: GetEliminacaoRestricaoDTO) {
-    return await this.restrictionsRepository.getObrasProgramadas(filters);
-  }
-
-  async getMotivosReprogramacao(filters: GetEliminacaoRestricaoDTO) {
-    return await this.restrictionsRepository.getMotivosReprogramacao(filters);
-  }
-
-  async getRestricoesExecucao(filters: GetEliminacaoRestricaoDTO) {
-    return await this.restrictionsRepository.getRestricoesExecucao(filters);
-  }
-
 }

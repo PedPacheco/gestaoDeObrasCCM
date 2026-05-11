@@ -38,7 +38,6 @@ export class CapexFullPipelineService {
     jobId: string,
     onProgress: ProgressEmitter,
   ): Promise<void> {
-    console.log(filePath, jobId, onProgress);
     try {
       // ─── Fase 1: Importação (0% → 45%) ────────────────────────────
       await this.capexProcessingService.process(

@@ -42,19 +42,42 @@ export class MonthlySummaryService {
   async getSummary(filters: GetMonthlySummaryDTO): Promise<DailySummaryResult> {
     const year = moment(filters.dataFinal, 'DD/MM/YYYY').year().toString();
 
-    const [data, executionCapacity] = await Promise.all([
+    const [data, executionCapacity, portfolioData] = await Promise.all([
       this.monthlySummaryRepository.getSummary(filters),
       this.executionCapacityRepository.getFinancialValue({
         ano: year,
         idParceira: filters.idParceira,
         idRegional: filters.idRegional,
       }),
+      this.monthlySummaryRepository.getPortfolioSummary(filters),
     ]);
 
     const financialCapacityByMonth: (MonthlyCapacityMetrics | undefined)[] =
       Array.from({ length: 12 }, () => undefined);
 
     const summaryMap = new Map<string, DailySummaryEntry>();
+
+    const portfolioTotal = portfolioData.reduce(
+      (acc, item) => {
+        return {
+          portfolioSap: acc.portfolioSap + (item.mo_pend ?? 0),
+          portfolioPlan: acc.portfolioPlan + (item.mo_planejada ?? 0),
+          portfolioExecTotal:
+            acc.portfolioExecTotal +
+            (item.mo_planejada ?? 0) * ((item.executado ?? 0) / 100),
+          portfolioExec:
+            acc.portfolioExec +
+            ((item.mo_planejada ?? 0) -
+              ((item.mo_planejada ?? 0) * (item.executado ?? 0)) / 100),
+        };
+      },
+      {
+        portfolioSap: 0,
+        portfolioPlan: 0,
+        portfolioExecTotal: 0,
+        portfolioExec: 0,
+      },
+    );
 
     const totalTeamsMap = buildTotalTeamsMap(data);
 
@@ -133,7 +156,11 @@ export class MonthlySummaryService {
       { totalFinancialGoal: 0, totalFinancialGoalWith8: 0 },
     );
 
-    const totals = this.calculator.aggregateDailySummaryTotals(summary, total);
+    const totals = this.calculator.aggregateDailySummaryTotals(
+      summary,
+      total,
+      portfolioTotal,
+    );
 
     return { summary, totals };
   }

@@ -97,6 +97,8 @@ export type GroupSummaryTotalsShape = ReturnType<
 
 export function createInitialTotals(): DailySummaryTotals {
   return {
+    totalWalletAvaliable: 0,
+    totalWalletExec: 0,
     totalQtdeObras: 0,
     totalTeams: 0,
     totalFinancialGoal: 0,

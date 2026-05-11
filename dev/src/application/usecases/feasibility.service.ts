@@ -54,6 +54,6 @@ export class FeasibilityService {
       );
     }
 
-    await this.feasibilityRepository.deleteFiles(idWork);
+    await this.feasibilityRepository.deleteFiles(files[0].id_obra);
   }
 }
