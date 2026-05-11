@@ -18,7 +18,7 @@ import {
 } from '@nestjs/common';
 
 import {
-  GetEliminacaoRestricaoDTO,
+  GetRestrictionsAdvancePartnerDTO,
   GetRestrictionsDTO,
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
@@ -36,15 +36,12 @@ export class RestrictionController {
   private applyFilters<
     T extends {
       idParceira?: number | number[];
-      insufficientPermission?: boolean;
     },
   >(filters: T, req: CustomRequest): T {
     if (req.idParceira) {
       filters.idParceira = req.idParceira;
     }
-    if (req.insufficientPermission !== undefined) {
-      filters.insufficientPermission = req.insufficientPermission;
-    }
+
     return filters;
   }
 
@@ -107,14 +104,17 @@ export class RestrictionController {
     };
   }
 
-  @Get('eliminacao-restricao')
+  @Get('avanca-parceira')
   @UseGuards(VisualizationGuard)
-  async getEliminacaoRestricao(
-    @Query() filters: GetEliminacaoRestricaoDTO,
+  async getRestrictionsAdvancePartner(
+    @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
     @Req() req: any,
   ) {
-    if (req.idParceira) filters.idParceira = Array.isArray(req.idParceira) ? req.idParceira : [req.idParceira];
-    const data = await this.restrictionsService.getEliminacaoRestricao(filters);
+    const filters = this.applyFilters(restrictionFilters, req);
+
+    const data =
+      await this.restrictionsService.getRestrictionsAdvancePartner(filters);
+
     return {
       statusCode: HttpStatus.OK,
       message: 'Dados de eliminação de restrição retornados com sucesso',
@@ -124,12 +124,14 @@ export class RestrictionController {
 
   @Get('aderencia-parceira')
   @UseGuards(VisualizationGuard)
-  async getAderenciaParceira(
-    @Query() filters: GetEliminacaoRestricaoDTO,
+  async getGripPartner(
+    @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
     @Req() req: any,
   ) {
-    if (req.idParceira) filters.idParceira = Array.isArray(req.idParceira) ? req.idParceira : [req.idParceira];
-    const data = await this.restrictionsService.getAderenciaParceira(filters);
+    const filters = this.applyFilters(restrictionFilters, req);
+
+    const data = await this.restrictionsService.getGripPartner(filters);
+
     return {
       statusCode: HttpStatus.OK,
       message: 'Dados de aderência parceira retornados com sucesso',
@@ -139,12 +141,14 @@ export class RestrictionController {
 
   @Get('obras-programadas')
   @UseGuards(VisualizationGuard)
-  async getObrasProgramadas(
-    @Query() filters: GetEliminacaoRestricaoDTO,
+  async getScheduledWorks(
+    @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
     @Req() req: any,
   ) {
-    if (req.idParceira) filters.idParceira = Array.isArray(req.idParceira) ? req.idParceira : [req.idParceira];
-    const data = await this.restrictionsService.getObrasProgramadas(filters);
+    const filters = this.applyFilters(restrictionFilters, req);
+
+    const data = await this.restrictionsService.getScheduledWorks(filters);
+
     return {
       statusCode: HttpStatus.OK,
       message: 'Dados de obras programadas retornados com sucesso',
@@ -154,12 +158,15 @@ export class RestrictionController {
 
   @Get('motivos-reprogramacao')
   @UseGuards(VisualizationGuard)
-  async getMotivosReprogramacao(
-    @Query() filters: GetEliminacaoRestricaoDTO,
+  async getReaschedulingReasons(
+    @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
     @Req() req: any,
   ) {
-    if (req.idParceira) filters.idParceira = Array.isArray(req.idParceira) ? req.idParceira : [req.idParceira];
-    const data = await this.restrictionsService.getMotivosReprogramacao(filters);
+    const filters = this.applyFilters(restrictionFilters, req);
+
+    const data =
+      await this.restrictionsService.getReaschedulingReasons(filters);
+
     return {
       statusCode: HttpStatus.OK,
       message: 'Motivos de reprogramação retornados com sucesso',
@@ -169,12 +176,15 @@ export class RestrictionController {
 
   @Get('restricoes-execucao')
   @UseGuards(VisualizationGuard)
-  async getRestricoesExecucao(
-    @Query() filters: GetEliminacaoRestricaoDTO,
+  async getExecutionRestrictions(
+    @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
     @Req() req: any,
   ) {
-    if (req.idParceira) filters.idParceira = Array.isArray(req.idParceira) ? req.idParceira : [req.idParceira];
-    const data = await this.restrictionsService.getRestricoesExecucao(filters);
+    const filters = this.applyFilters(restrictionFilters, req);
+
+    const data =
+      await this.restrictionsService.getExecutionRestrictions(filters);
+
     return {
       statusCode: HttpStatus.OK,
       message: 'Restrições de execução retornadas com sucesso',

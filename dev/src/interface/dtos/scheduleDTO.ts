@@ -172,7 +172,7 @@ export class GetExecMonitoringDTO {
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idTurma?: number[];
+  idParceira?: number[];
 
   @IsOptional()
   @IsArray()

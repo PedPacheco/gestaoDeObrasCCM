@@ -94,7 +94,7 @@ export class InsertPublicationRestrictionsDTO {
   idUser: number;
 }
 
-export class GetEliminacaoRestricaoDTO {
+export class GetRestrictionsAdvancePartnerDTO {
   @IsString()
   @IsOptional()
   dataInicial?: string;

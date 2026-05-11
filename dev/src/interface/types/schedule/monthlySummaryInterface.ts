@@ -103,13 +103,14 @@ export interface GetMonthlySummaryInterface {
 }
 
 export interface DailySummaryTotals {
+  totalWalletAvaliable: number;
+  totalWalletExec: number;
   totalQtdeObras: number;
   totalTeams: number;
   totalFinancialGoal: number;
   totalDiaryGoal: number;
   totalFinancialGoalWith8: number;
   totalDiaryGoalWith8: number;
-
   totalMoProg: number;
   totalMoExec: number;
   totalDiff: number;
