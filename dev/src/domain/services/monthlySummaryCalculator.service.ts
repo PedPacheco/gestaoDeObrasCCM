@@ -59,6 +59,7 @@ export interface IMonthlySummaryCalculator {
       totalFinancialGoal: number;
       totalFinancialGoalWith8: number;
     },
+    portofolioData: { portfolioSap: number; portfolioExec: number },
   ): DailySummaryTotals;
 
   aggregateGroupTotals(
@@ -145,6 +146,7 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
       totalFinancialGoal: number;
       totalFinancialGoalWith8: number;
     },
+    portofolioData: { portfolioSap: number; portfolioExec: number },
   ): DailySummaryTotals {
     const totals = data.reduce((acc, row) => {
       acc.totalQtdeObras += row.totalQtde;
@@ -172,6 +174,9 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
       totals.totalMoProg,
       totals.totalMoExec,
     );
+
+    totals.totalWalletAvaliable = portofolioData.portfolioSap;
+    totals.totalWalletExec = portofolioData.portfolioExec;
 
     return totals;
   }

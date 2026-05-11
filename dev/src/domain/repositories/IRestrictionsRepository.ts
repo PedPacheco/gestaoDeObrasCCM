@@ -1,7 +1,8 @@
-import { ProcessedRestrictionsFilters } from 'src/application/usecases/restrictions.service';
 import {
-  GetEliminacaoRestricaoDTO,
-  GetRestrictionsDTO,
+  ProcessedEliminacaoFilters,
+  ProcessedRestrictionsFilters,
+} from 'src/application/usecases/restrictions.service';
+import {
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
 } from 'src/interface/dtos/restrictionsDTO';
@@ -22,11 +23,13 @@ export interface IRestrictionsRepository {
     data: UpdatePublicationRestrictionsDTO,
   ): Promise<void>;
   deletePublicationRestriction(id: number): Promise<void>;
-  getEliminacaoRestricao(filters: GetEliminacaoRestricaoDTO): Promise<any[]>;
-  getAderenciaParceira(filters: GetEliminacaoRestricaoDTO): Promise<any[]>;
-  getObrasProgramadas(filters: GetEliminacaoRestricaoDTO): Promise<any[]>;
-  getMotivosReprogramacao(filters: GetEliminacaoRestricaoDTO): Promise<any[]>;
-  getRestricoesExecucao(filters: GetEliminacaoRestricaoDTO): Promise<any[]>;
+  getRestrictionsAdvancePartner(
+    filters: ProcessedEliminacaoFilters,
+  ): Promise<any[]>;
+  getGripPartner(filters: ProcessedEliminacaoFilters): Promise<any[]>;
+  getScheduledWorks(filters: ProcessedEliminacaoFilters): Promise<any[]>;
+  getReaschedulingReasons(filters: ProcessedEliminacaoFilters): Promise<any[]>;
+  getExecutionRestrictions(filters: ProcessedEliminacaoFilters): Promise<any[]>;
 }
 
 export const RESTRICTIONS_REPOSITORY = Symbol('RestrictionsRepository');
