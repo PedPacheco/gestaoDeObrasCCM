@@ -16,7 +16,7 @@ export function capitalize(text: string): string {
 }
 
 export const NUM = (v: number) =>
-  (v ?? 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 });
+  (v ?? 0).toLocaleString("pt-BR", { maximumFractionDigits: 1 });
 
 export function formatPercentage(value: number, locale: string = "pt-BR") {
   if (value === null) {
