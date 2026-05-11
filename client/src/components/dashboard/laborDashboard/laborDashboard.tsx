@@ -28,9 +28,10 @@ import { fetchData } from "@/actions/fetchData.action";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { LaborDashboardFilters } from "./laborDashboardFilters";
 import { useLaborMetrics } from "@/hooks/dashboard/laborDashboard/useLaborDashboardMetrics";
+import { usePersistedNavigation } from "@/hooks/dashboard/laborDashboard/usePersistedNavigation";
 
 // ── Types ──────────────────────────────────────────────────────────────────
-export interface DailySummary {
+export interface DailySummaryItem {
   dataProg: string;
   totalQtde: number;
   teamsTotal: number;
@@ -38,7 +39,27 @@ export interface DailySummary {
   totalMoProg: number;
   totalMoExec: number;
   totalMoPrev: number;
+  totalWalletAvaliable: number;
   financialGoal: number;
+}
+
+export interface DailySummaryTotals {
+  totalWalletAvaliable: number;
+  totalWalletExec: number;
+  totalQtdeObras: number;
+  totalTeams: number;
+  totalFinancialGoal: number;
+  totalDiaryGoal: number;
+  totalFinancialGoalWith8: number;
+  totalDiaryGoalWith8: number;
+  totalMoProg: number;
+  totalMoExec: number;
+  totalDiff: number;
+}
+
+export interface DailySummary {
+  summary: DailySummaryItem[];
+  totals: DailySummaryTotals;
 }
 
 export interface GroupSummary {
@@ -52,7 +73,7 @@ export interface GroupSummary {
 }
 
 interface Props {
-  initialData: DailySummary[];
+  initialData: DailySummary;
   initialData2: GroupSummary[];
   token: string;
   initialMetaDiaria: number;
@@ -63,7 +84,8 @@ interface Props {
 
 export function pctColor(pct: number) {
   if (pct >= 100) return { bg: "#053715", text: "#53FF75", bar: "#53FF75" };
-  if (pct >= 70) return { bg: "#431407", text: "#f97316", bar: "#f97316" };
+  // if (pct >= 70) return { bg: "#431407", text: "#f97316", bar: "#f97316" };
+  // return { bg: "#431407", text: "#f97316", bar: "#f97316" };
   return { bg: "#1e1b4b", text: "#818cf8", bar: "#818cf8" };
 }
 
@@ -84,7 +106,23 @@ export default function LaborDashboard({
     data: filtersData,
   });
 
-  const [data, setData] = useState<DailySummary[]>(initialData ?? []);
+  const { openWithFiltersInNewTab } = usePersistedNavigation();
+
+  const [data, setData] = useState<DailySummary>({
+    summary: initialData?.summary ?? [],
+    totals: initialData?.totals ?? {
+      totalWalletAvaliable: 0,
+      totalQtdeObras: 0,
+      totalTeams: 0,
+      totalFinancialGoal: 0,
+      totalDiaryGoal: 0,
+      totalFinancialGoalWith8: 0,
+      totalDiaryGoalWith8: 0,
+      totalMoProg: 0,
+      totalMoExec: 0,
+      totalDiff: 0,
+    },
+  });
   const [data2, setData2] = useState<GroupSummary[]>(initialData2 ?? []);
   const [metaDiaria, setMetaDiaria] = useState<number>(initialMetaDiaria ?? 0);
   const [startDate, setStartDate] = useState<Dayjs | null>(DEFAULT_START());
@@ -107,16 +145,16 @@ export default function LaborDashboard({
   const {
     barByDay,
     display,
-    metaTotal,
-    pctMeta100,
-    pctMeta108,
-    taxaExecucao,
-    topParceiraData,
+    totalGoal,
+    pctGoal100,
+    pctGoal108,
+    executionRate,
+    topPartnerData,
     totals,
   } = useLaborMetrics({
     dailyData: data,
     groupData: data2,
-    metaDiaria: metaDiaria,
+    dailyGoal: metaDiaria,
     isFiltered,
   });
 
@@ -153,7 +191,7 @@ export default function LaborDashboard({
         { cache: "no-store" },
       );
 
-      setData(response.data.firstSummary?.summary ?? []);
+      setData(response.data.firstSummary ?? {});
       setData2(response.data.secondSummary?.summary ?? []);
       setMetaDiaria(response.data.firstSummary?.summary[0]?.financialGoal ?? 0);
       setIsFiltered(true);
@@ -181,12 +219,44 @@ export default function LaborDashboard({
         token,
       );
 
-      setData(response.data.firstSummary?.summary ?? []);
+      setData(response.data.firstSummary ?? {});
       setData2(response.data.secondSummary?.summary ?? []);
 
       setMetaDiaria(response.data.firstSummary?.summary[0]?.financialGoal ?? 0);
     });
   }, [clearFilters, token]);
+
+  const handleOpenPortfolio = () => {
+    openWithFiltersInNewTab(
+      "portfolioWorksFilters",
+      {
+        selectedItems: {
+          idRegional: selectedRegionais,
+          idParceira: selectedParceiras,
+          idTipo: selectedTiposObra,
+          idGrupo: selectedGroup,
+        },
+      },
+      "/obras-carteira",
+    );
+  };
+
+  const handleOpenSchedule = () => {
+    openWithFiltersInNewTab(
+      "scheduleForDayFilters",
+      {
+        selectedItems: {
+          idRegional: selectedRegionais,
+          idParceira: selectedParceiras,
+          idTipo: selectedTiposObra,
+          idGrupo: selectedGroup,
+        },
+        dataInicial: startDate,
+        dataFinal: endDate,
+      },
+      "/programacao/por-data",
+    );
+  };
 
   return (
     <div className="flex flex-col gap-5 p-6 min-h-full">
@@ -211,7 +281,7 @@ export default function LaborDashboard({
 
       {/* ── Cartões ──────────────────────────────────────────────────── */}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {[
           {
             label: "Total Obras",
@@ -221,7 +291,8 @@ export default function LaborDashboard({
                   .toLocaleString("pt-BR")
               : totals.obras.toLocaleString("pt-BR"),
             gradient: "bg-gradient-to-br from-[#182638] to-[#1c2f42]",
-            accent: "#60a5fa",
+            accent: "#53FF75",
+            onclick: handleOpenSchedule,
           },
           {
             label: "Total Equipes",
@@ -229,55 +300,62 @@ export default function LaborDashboard({
               ? totals.equipesHoje.toLocaleString("pt-BR")
               : totals.equipes.toLocaleString("pt-BR"),
             gradient: "bg-gradient-to-br from-[#182638] to-[#1c2f42]",
-            accent: "#38bdf8",
+            accent: "#53FF75",
           },
           {
             type: "ring",
             component: (
               <RingCard
                 label="Meta 100%"
-                value={pctMeta100}
-                color={pctColor(pctMeta100).bar}
-                sub={`${FormatCurrency(display.programado)} / ${FormatCurrency(metaTotal)}`}
+                value={pctGoal100}
+                color={pctColor(pctGoal100).bar}
+                sub={`${FormatCurrency(display.programado)} / ${FormatCurrency(totalGoal)}`}
               />
             ),
+          },
+          {
+            label: "Carteira (Pendente SAP)",
+            value: FormatCurrency(display.carteira),
+            gradient: "bg-gradient-to-br from-[#182638] to-[#1c2f42]",
+            accent: "#53FF75",
+            onclick: handleOpenPortfolio,
+          },
+          {
+            label: "Carteira (Pendente CAMPO)",
+            value: FormatCurrency(display.carteiraExec),
+            gradient: " bg-gradient-to-br from-[#182638] to-[#1c2f42]",
+            accent: "#53FF75",
           },
           {
             type: "ring",
             component: (
               <RingCard
                 label="Meta 108%"
-                value={pctMeta108}
-                color={pctColor(pctMeta108).bar}
-                sub={`${FormatCurrency(display.programado)} / ${FormatCurrency(metaTotal * 1.08)}`}
+                value={pctGoal108}
+                color={pctColor(pctGoal108).bar}
+                sub={`${FormatCurrency(display.programado)} / ${FormatCurrency(totalGoal * 1.08)}`}
               />
             ),
           },
           {
-            label: "Planejado",
-            value: FormatCurrency(display.planejado),
-            gradient: "bg-gradient-to-br from-[#182638] to-[#1c2f42]",
-            accent: "#818cf8",
-          },
-          {
-            label: "Programado",
+            label: "Programado (Conforme o filtro)",
             value: FormatCurrency(display.programado),
             gradient: " bg-gradient-to-br from-[#182638] to-[#1c2f42]",
-            accent: "#6366f1",
+            accent: "#53FF75",
           },
           {
-            label: "Executado",
+            label: "Executado (Conforme o filtro)",
             value: FormatCurrency(display.executado),
             gradient: "bg-gradient-to-br from-[#182638] to-[#1c2f42]",
-            accent: "#4ade80",
+            accent: "#53FF75",
           },
           {
             type: "ring",
             component: (
               <RingCard
                 label="Taxa de Execução"
-                value={taxaExecucao}
-                color={pctColor(taxaExecucao).bar}
+                value={executionRate}
+                color={pctColor(executionRate).bar}
                 sub={`${FormatCurrency(display.executado)} / ${FormatCurrency(display.programado)}`}
               />
             ),
@@ -289,7 +367,7 @@ export default function LaborDashboard({
             );
           }
 
-          const { label, value, gradient, accent } = item;
+          const { label, value, gradient, accent, onclick } = item;
 
           if (!label || !value || !gradient || !accent) {
             return;
@@ -302,6 +380,7 @@ export default function LaborDashboard({
               label={label}
               value={value}
               key={index}
+              onClick={onclick}
             />
           );
         })}
@@ -347,7 +426,7 @@ export default function LaborDashboard({
                   tickLine={false}
                   tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
                 />
-                <Tooltip content={<ChartTooltip />} />
+                <Tooltip content={<ChartTooltip metricConfig="currency" />} />
                 <Legend
                   iconType="square"
                   iconSize={8}
@@ -376,7 +455,7 @@ export default function LaborDashboard({
           <ChartCard title="Programado X Executado (Parceira)">
             <ResponsiveContainer width="100%" height={520}>
               <ComposedChart
-                data={topParceiraData}
+                data={topPartnerData}
                 margin={{ left: 0, right: 10, top: 4, bottom: 0 }}
                 barGap={2}
               >
@@ -395,7 +474,6 @@ export default function LaborDashboard({
                   stroke="#ffffff08"
                   horizontal={false}
                 />
-
                 <XAxis
                   type="category"
                   dataKey="name"
@@ -411,7 +489,7 @@ export default function LaborDashboard({
                   tickLine={false}
                   tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
                 />
-                <Tooltip content={<ChartTooltip />} />
+                <Tooltip content={<ChartTooltip metricConfig="currency" />} />
                 <Legend
                   iconType="square"
                   iconSize={8}
@@ -424,13 +502,13 @@ export default function LaborDashboard({
                   dataKey="Programado"
                   fill="url(#gProg2)"
                   radius={[0, 3, 3, 0]}
-                  maxBarSize={9}
+                  maxBarSize={15}
                 />
                 <Bar
                   dataKey="Executado"
                   fill="url(#gExec2)"
                   radius={[0, 3, 3, 0]}
-                  maxBarSize={9}
+                  maxBarSize={15}
                 />
               </ComposedChart>
             </ResponsiveContainer>
@@ -439,12 +517,12 @@ export default function LaborDashboard({
       </div>
 
       <DailySummaryTable
-        data={data}
-        metaDiaria={metaDiaria}
-        totalEquipes={totals.equipes}
+        data={data.summary}
+        dailyGoal={metaDiaria}
+        totalTeams={totals.equipes}
         totalExec={totals.executado}
-        totalObras={totals.obras}
-        totalProg={totals.programado}
+        totalWorks={totals.obras}
+        totalScheduled={totals.programado}
       />
 
       <GroupSummaryTable data={data2} />

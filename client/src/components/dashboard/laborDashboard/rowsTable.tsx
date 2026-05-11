@@ -83,7 +83,12 @@ export function PerformanceRow({
     <TableRow
       hover
       sx={{
-        "& td": { borderColor: "rgba(255,255,255,0.04)" },
+        "& td": {
+          borderColor: "rgba(255,255,255,0.04)",
+          paddingY: 0.8, // 👈 reduz altura vertical
+          paddingX: 1.2,
+        },
+        transition: "background 0.2s ease",
       }}
     >
       <TableCell>

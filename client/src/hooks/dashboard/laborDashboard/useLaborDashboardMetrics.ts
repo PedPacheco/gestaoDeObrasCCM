@@ -1,13 +1,13 @@
 import {
   DailySummary,
   GroupSummary,
-} from "@/components/dashboard/laborDashboard/LaborDashboard";
+} from "@/components/dashboard/laborDashboard/laborDashboard";
 import { useMemo } from "react";
 
 interface Props {
-  dailyData: DailySummary[];
+  dailyData: DailySummary;
   groupData: GroupSummary[];
-  metaDiaria: number;
+  dailyGoal: number;
   isFiltered: boolean;
 }
 
@@ -20,23 +20,37 @@ export function isWeekend(dateStr: string) {
 export function useLaborMetrics({
   dailyData,
   groupData,
-  metaDiaria,
+  dailyGoal,
   isFiltered,
 }: Props) {
   return useMemo(() => {
     const totals = {
-      obras: dailyData.reduce((acc, item) => acc + item.totalQtde, 0),
-      equipes: dailyData.reduce((acc, item) => acc + (item.teamsTotal ?? 0), 0),
+      obras: dailyData.summary.reduce((acc, item) => acc + item.totalQtde, 0),
+      equipes: dailyData.summary.reduce(
+        (acc, item) => acc + (item.teamsTotal ?? 0),
+        0,
+      ),
       equipesHoje:
-        dailyData.length > 0
-          ? (dailyData[dailyData.length - 1]?.teamsTotal ?? 0)
+        dailyData.summary.length > 0
+          ? (dailyData.summary[dailyData.summary.length - 1]?.teamsTotal ?? 0)
           : 0,
-      planejado: dailyData.reduce((acc, item) => acc + item.totalMoPlan, 0),
-      programado: dailyData.reduce((acc, item) => acc + item.totalMoProg, 0),
-      executado: dailyData.reduce((acc, item) => acc + item.totalMoExec, 0),
+      planejado: dailyData.summary.reduce(
+        (acc, item) => acc + item.totalMoPlan,
+        0,
+      ),
+      programado: dailyData.summary.reduce(
+        (acc, item) => acc + item.totalMoProg,
+        0,
+      ),
+      executado: dailyData.summary.reduce(
+        (acc, item) => acc + item.totalMoExec,
+        0,
+      ),
+      carteira: dailyData.totals.totalWalletAvaliable,
+      carteiraExec: dailyData.totals.totalWalletExec,
     };
 
-    const metaTotal = metaDiaria * dailyData.length;
+    const totalGoal = dailyGoal * 22;
 
     const display = isFiltered
       ? {
@@ -51,36 +65,38 @@ export function useLaborMetrics({
           ),
           executado: groupData.reduce((acc, item) => acc + item.totalMoExec, 0),
           previsto: groupData.reduce((acc, item) => acc + item.totalMoPrev, 0),
+          carteira: dailyData.totals.totalWalletAvaliable,
+          carteiraExec: dailyData.totals.totalWalletExec,
         }
       : {
           planejado: totals.planejado,
           obras: totals.obras,
           programado: totals.programado,
           executado: totals.executado,
+          carteira: totals.carteira,
+          carteiraExec: totals.carteiraExec,
         };
 
-    const taxaExecucao =
+    const executionRate =
       display.programado > 0
         ? (display.executado / display.programado) * 100
         : 0;
 
-    const pctMeta100 = (display.programado / metaTotal) * 100;
+    const pctGoal100 = (display.programado / totalGoal) * 100;
 
-    const pctMeta108 = (display.programado / (metaTotal * 1.08)) * 100;
+    const pctGoal108 = (display.programado / (totalGoal * 1.08)) * 100;
 
-    const barByDay = dailyData.map((item) => ({
+    const barByDay = dailyData.summary.map((item) => ({
       dia: item.dataProg.substring(0, 5),
       Programado: Math.round(item.totalMoProg),
       Executado: Math.round(item.totalMoExec),
-      Meta: Math.round(metaDiaria),
+      Meta: Math.round(dailyGoal),
       "% Meta":
-        metaDiaria > 0
-          ? +((item.totalMoProg / metaDiaria) * 100).toFixed(1)
-          : 0,
+        dailyGoal > 0 ? +((item.totalMoProg / dailyGoal) * 100).toFixed(1) : 0,
       weekend: isWeekend(item.dataProg),
     }));
 
-    const topParceiraData = Object.values(
+    const topPartnerData = Object.values(
       groupData.reduce<
         Record<
           string,
@@ -123,12 +139,12 @@ export function useLaborMetrics({
     return {
       totals,
       display,
-      metaTotal,
-      taxaExecucao,
-      pctMeta100,
-      pctMeta108,
+      totalGoal,
+      executionRate,
+      pctGoal100,
+      pctGoal108,
       barByDay,
-      topParceiraData,
+      topPartnerData,
     };
-  }, [dailyData, groupData, metaDiaria, isFiltered]);
+  }, [dailyData, groupData, dailyGoal, isFiltered]);
 }

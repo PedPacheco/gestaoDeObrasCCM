@@ -1,16 +1,16 @@
 import { FormatCurrency } from "@/utils/formatValue";
-import { DailySummary, pctColor } from "./LaborDashboard";
+import { DailySummary, DailySummaryItem, pctColor } from "./laborDashboard";
 import { useMemo, useState } from "react";
 import { PerformanceRow, TotalsRow } from "./rowsTable";
 import { isWeekend } from "@/hooks/dashboard/laborDashboard/useLaborDashboardMetrics";
 
 interface DailySummaryTableProps {
-  data: DailySummary[];
-  metaDiaria: number;
-  totalProg: number;
-  totalObras: number;
+  data: DailySummaryItem[];
+  dailyGoal: number;
+  totalScheduled: number;
+  totalWorks: number;
   totalExec: number;
-  totalEquipes: number;
+  totalTeams: number;
 }
 
 function getDayOfWeek(dateStr: string) {
@@ -21,11 +21,11 @@ function getDayOfWeek(dateStr: string) {
 
 export function DailySummaryTable({
   data,
-  metaDiaria,
+  dailyGoal,
   totalExec,
-  totalObras,
-  totalProg,
-  totalEquipes,
+  totalWorks,
+  totalScheduled,
+  totalTeams,
 }: DailySummaryTableProps) {
   const [filterWeekday, setFilterWeekday] = useState(false);
   const [filterPerf, setFilterPerf] = useState<"all" | "above" | "below">(
@@ -35,10 +35,10 @@ export function DailySummaryTable({
   const processedRows = useMemo(() => {
     return data
       .map((row) => {
-        const pct100 = metaDiaria ? (row.totalMoProg / metaDiaria) * 100 : 0;
+        const pct100 = dailyGoal ? (row.totalMoProg / dailyGoal) * 100 : 0;
 
-        const pct108 = metaDiaria
-          ? (row.totalMoProg / metaDiaria) * 1.08 * 100
+        const pct108 = dailyGoal
+          ? (row.totalMoProg / dailyGoal) * 1.08 * 100
           : 0;
 
         return {
@@ -56,16 +56,16 @@ export function DailySummaryTable({
         if (filterPerf === "below") return row.pct100 < 100;
         return true;
       });
-  }, [data, metaDiaria, filterWeekday, filterPerf]);
+  }, [data, dailyGoal, filterWeekday, filterPerf]);
 
   const totals = useMemo(() => {
     const totalRows = processedRows.length;
 
-    const target100 = metaDiaria * totalRows;
+    const target100 = dailyGoal * totalRows;
     const target108 = target100 * 1.08;
 
-    const pct100 = target100 ? (totalProg / target100) * 100 : 0;
-    const pct108 = target108 ? (totalProg / target108) * 100 : 0;
+    const pct100 = target100 ? (totalScheduled / target100) * 100 : 0;
+    const pct108 = target108 ? (totalScheduled / target108) * 100 : 0;
 
     return {
       target100,
@@ -75,7 +75,7 @@ export function DailySummaryTable({
       color100: pctColor(pct100),
       color108: pctColor(pct108),
     };
-  }, [processedRows, metaDiaria, totalProg]);
+  }, [processedRows, dailyGoal, totalScheduled]);
 
   return (
     <div className="bg-gradient-to-br from-[#1e2f42] to-[#192535] rounded-2xl border border-white/5 shadow-xl overflow-hidden flex flex-col">
@@ -186,8 +186,8 @@ export function DailySummaryTable({
               <PerformanceRow
                 key={row.dataProg}
                 row={row}
-                meta100={metaDiaria}
-                meta108={metaDiaria * 1.08}
+                meta100={dailyGoal}
+                meta108={dailyGoal * 1.08}
                 getDayOfWeek={getDayOfWeek}
                 formatCurrency={FormatCurrency}
               />
@@ -196,9 +196,9 @@ export function DailySummaryTable({
             {processedRows.length > 0 && (
               <TotalsRow
                 totals={totals}
-                totalObras={totalObras}
-                totalEquipes={totalEquipes}
-                totalProg={totalProg}
+                totalObras={totalWorks}
+                totalEquipes={totalTeams}
+                totalProg={totalScheduled}
                 totalExec={totalExec}
                 formatCurrency={FormatCurrency}
               />

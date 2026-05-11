@@ -1,5 +1,6 @@
 import { FormatCurrency } from "@/utils/formatValue";
-import { GroupSummary, pctColor } from "./LaborDashboard";
+import { GroupSummary, pctColor } from "./laborDashboard";
+import { GroupSummaryRow } from "./GroupSummaryRow";
 
 interface GroupSummaryTableProps {
   data: GroupSummary[];
@@ -36,55 +37,21 @@ export function GroupSummaryTable({ data }: GroupSummaryTableProps) {
           </thead>
           <tbody>
             {data
-              .sort((a, b) => b.totalMoProg - a.totalMoProg)
-              .map((row, i) => {
-                const pct =
-                  row.totalMoProg > 0
-                    ? (row.totalMoExec / row.totalMoProg) * 100
-                    : 0;
-                const { bg, text, bar } = pctColor(pct);
-                return (
-                  <tr
-                    key={i}
-                    className="border-b border-white/[0.03] hover:bg-white/[0.04] transition-colors"
-                  >
-                    <td className="py-2 px-3 text-zinc-200 font-semibold text-xs">
-                      {row.grupo}
-                    </td>
-                    <td className="py-2 px-3 font-bold text-[#53FF75] text-xs">
-                      {row.turma}
-                    </td>
-                    <td className="py-2 px-3 text-zinc-300 font-semibold text-xs">
-                      {FormatCurrency(row.totalMoProg)}
-                    </td>
-                    <td className="py-2 px-3 text-zinc-300 font-semibold text-xs">
-                      {FormatCurrency(row.totalMoExec)}
-                    </td>
-                    <td className="py-2 px-3 text-zinc-300 font-semibold text-xs">
-                      {FormatCurrency(row.totalMoPrev)}
-                    </td>
-                    <td className="py-2 px-3">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="font-bold px-1.5 py-0.5 rounded-full text-xs whitespace-nowrap"
-                          style={{ background: bg, color: text }}
-                        >
-                          {pct.toFixed(0)}%
-                        </span>
-                        <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden min-w-[40px]">
-                          <div
-                            className="h-full rounded-full transition-all"
-                            style={{
-                              width: `${Math.min(pct, 100)}%`,
-                              background: bar,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+              .sort((a, b) => {
+                // 1. grupo (alfabético)
+                const groupCompare = a.grupo.localeCompare(b.grupo);
+                if (groupCompare !== 0) return groupCompare;
+
+                // 2. parceira / turma (alfabético)
+                const turmaCompare = a.turma.localeCompare(b.turma);
+                if (turmaCompare !== 0) return turmaCompare;
+
+                // 3. desempate por programado (desc)
+                return b.totalMoProg - a.totalMoProg;
+              })
+              .map((row, i) => (
+                <GroupSummaryRow key={i} row={row} index={i} />
+              ))}
           </tbody>
         </table>
       </div>
