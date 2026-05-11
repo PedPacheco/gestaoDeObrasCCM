@@ -22,6 +22,7 @@ function makeDailyEntry(
     financialGoalWith8: 0,
     diaryGoal: 0,
     diaryGoalWith8: 0,
+    totalMoPlan: 0,
     totalMoProg: 0,
     totalMoExec: 0,
     diff: 0,
@@ -289,10 +290,14 @@ describe('MonthlySummaryCalculator', () => {
 
   describe('aggregateDailySummaryTotals', () => {
     it('should return zeroed totals when data is empty', () => {
-      const result = calculator.aggregateDailySummaryTotals([], {
-        totalFinancialGoal: 0,
-        totalFinancialGoalWith8: 0,
-      });
+      const result = calculator.aggregateDailySummaryTotals(
+        [],
+        {
+          totalFinancialGoal: 0,
+          totalFinancialGoalWith8: 0,
+        },
+        { portfolioExec: 0, portfolioSap: 0 },
+      );
 
       expect(result).toEqual(createInitialTotals());
     });
@@ -303,10 +308,14 @@ describe('MonthlySummaryCalculator', () => {
         makeDailyEntry({ financialGoal: 500, financialGoalWith8: 540 }),
       ];
 
-      const result = calculator.aggregateDailySummaryTotals(data, {
-        totalFinancialGoal: 2000,
-        totalFinancialGoalWith8: 2500,
-      });
+      const result = calculator.aggregateDailySummaryTotals(
+        data,
+        {
+          totalFinancialGoal: 2000,
+          totalFinancialGoalWith8: 2500,
+        },
+        { portfolioExec: 0, portfolioSap: 0 },
+      );
 
       expect(result.totalFinancialGoal).toBe(2000);
       expect(result.totalFinancialGoalWith8).toBe(2500);
@@ -320,10 +329,14 @@ describe('MonthlySummaryCalculator', () => {
         }),
       ];
 
-      const result = calculator.aggregateDailySummaryTotals(data, {
-        totalFinancialGoal: 2000,
-        totalFinancialGoalWith8: 2500,
-      });
+      const result = calculator.aggregateDailySummaryTotals(
+        data,
+        {
+          totalFinancialGoal: 2000,
+          totalFinancialGoalWith8: 2500,
+        },
+        { portfolioExec: 0, portfolioSap: 0 },
+      );
 
       expect(result.totalDiaryGoal).toBeCloseTo(25, 10);
     });
@@ -331,10 +344,14 @@ describe('MonthlySummaryCalculator', () => {
     it('should return 0 for totalDiaryGoal when financialGoal is 0', () => {
       const data = [makeDailyEntry({ totalMoProg: 500 })];
 
-      const result = calculator.aggregateDailySummaryTotals(data, {
-        totalFinancialGoal: 0,
-        totalFinancialGoalWith8: 0,
-      });
+      const result = calculator.aggregateDailySummaryTotals(
+        data,
+        {
+          totalFinancialGoal: 0,
+          totalFinancialGoalWith8: 0,
+        },
+        { portfolioExec: 0, portfolioSap: 0 },
+      );
 
       expect(result.totalDiaryGoal).toBe(0);
     });
@@ -342,10 +359,14 @@ describe('MonthlySummaryCalculator', () => {
     it('should calculate totalDiff correctly', () => {
       const data = [makeDailyEntry({ totalMoProg: 1000, totalMoExec: 800 })];
 
-      const result = calculator.aggregateDailySummaryTotals(data, {
-        totalFinancialGoal: 2000,
-        totalFinancialGoalWith8: 2500,
-      });
+      const result = calculator.aggregateDailySummaryTotals(
+        data,
+        {
+          totalFinancialGoal: 2000,
+          totalFinancialGoalWith8: 2500,
+        },
+        { portfolioExec: 0, portfolioSap: 0 },
+      );
 
       expect(result.totalDiff).toBeCloseTo(80, 10);
     });

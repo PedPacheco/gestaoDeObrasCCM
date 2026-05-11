@@ -16,8 +16,7 @@ describe('RestrictionController ', () => {
   let service: RestrictionsService;
 
   const mockReq = {
-    insufficientPermission: true,
-    idParceira: 1,
+    idParceira: [1],
   };
 
   beforeEach(async () => {
@@ -29,6 +28,11 @@ describe('RestrictionController ', () => {
           useValue: {
             getScheduleRestricion: jest.fn(),
             getPublicationRestriction: jest.fn(),
+            getRestrictionsAdvancePartner: jest.fn(),
+            getGripPartner: jest.fn(),
+            getScheduledWorks: jest.fn(),
+            getReaschedulingReasons: jest.fn(),
+            getExecutionRestrictions: jest.fn(),
             insertPublicationRestriction: jest.fn(),
             updatePublicationRestriction: jest.fn(),
             deletePublicationRestriction: jest.fn(),
@@ -151,6 +155,122 @@ describe('RestrictionController ', () => {
     expect(service.getPublicationRestrictionsByWorkId).toHaveBeenCalledWith(1);
     expect(result).toEqual({
       message: 'Restrições de publicação da obra retornadas com sucesso',
+      data: [],
+      statusCode: 200,
+    });
+  });
+
+  it('Should call getRestrictionsAdvancePartner service method with the data and return a successful response with the expected structure', async () => {
+    jest.spyOn(service, 'getRestrictionsAdvancePartner').mockResolvedValue([]);
+
+    const result = await controller.getRestrictionsAdvancePartner(
+      {
+        dataInicial: '2026-05-01',
+        dataFinal: '2026-05-31',
+      },
+      mockReq,
+    );
+
+    expect(service.getRestrictionsAdvancePartner).toHaveBeenCalledWith({
+      dataInicial: '2026-05-01',
+      dataFinal: '2026-05-31',
+      idParceira: [1],
+    });
+    expect(result).toEqual({
+      message: 'Dados de eliminação de restrição retornados com sucesso',
+      data: [],
+      statusCode: 200,
+    });
+  });
+
+  it('Should call getGripPartner service method with the data and return a successful response with the expected structure', async () => {
+    jest.spyOn(service, 'getGripPartner').mockResolvedValue([]);
+
+    const result = await controller.getGripPartner(
+      {
+        dataInicial: '2026-05-01',
+        dataFinal: '2026-05-31',
+      },
+      mockReq,
+    );
+
+    expect(service.getGripPartner).toHaveBeenCalledWith({
+      dataInicial: '2026-05-01',
+      dataFinal: '2026-05-31',
+      idParceira: [1],
+    });
+    expect(result).toEqual({
+      message: 'Dados de aderência parceira retornados com sucesso',
+      data: [],
+      statusCode: 200,
+    });
+  });
+
+  it('Should call getScheduledWorks service method with the data and return a successful response with the expected structure', async () => {
+    jest.spyOn(service, 'getScheduledWorks').mockResolvedValue([]);
+
+    const result = await controller.getScheduledWorks(
+      {
+        dataInicial: '2026-05-01',
+        dataFinal: '2026-05-31',
+      },
+      mockReq,
+    );
+
+    expect(service.getScheduledWorks).toHaveBeenCalledWith({
+      dataInicial: '2026-05-01',
+      dataFinal: '2026-05-31',
+      idParceira: [1],
+    });
+    expect(result).toEqual({
+      message: 'Dados de obras programadas retornados com sucesso',
+      data: [],
+      statusCode: 200,
+    });
+  });
+
+  it('Should call getReaschedulingReasons service method with the data and return a successful response with the expected structure', async () => {
+    jest.spyOn(service, 'getReaschedulingReasons').mockResolvedValue([]);
+
+    const result = await controller.getReaschedulingReasons(
+      {
+        dataInicial: '2026-05-01',
+        dataFinal: '2026-05-31',
+        idParceira: [1],
+      },
+      { undefined },
+    );
+
+    expect(service.getReaschedulingReasons).toHaveBeenCalledWith({
+      dataInicial: '2026-05-01',
+      dataFinal: '2026-05-31',
+      idParceira: [1],
+    });
+    expect(result).toEqual({
+      message: 'Motivos de reprogramação retornados com sucesso',
+      data: [],
+      statusCode: 200,
+    });
+  });
+
+  it('Should call getExecutionRestrictions service method with the data and return a successful response with the expected structure', async () => {
+    jest.spyOn(service, 'getExecutionRestrictions').mockResolvedValue([]);
+
+    const result = await controller.getExecutionRestrictions(
+      {
+        dataInicial: '2026-05-01',
+        dataFinal: '2026-05-31',
+      },
+      mockReq,
+    );
+
+    expect(service.getExecutionRestrictions).toHaveBeenCalledWith({
+      dataInicial: '2026-05-01',
+      dataFinal: '2026-05-31',
+      idParceira: [1],
+    });
+    expect(result).toEqual({
+      message: 'Restrições de execução retornadas com sucesso',
       data: [],
       statusCode: 200,
     });

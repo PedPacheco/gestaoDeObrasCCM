@@ -127,52 +127,30 @@ describe('CapexProcessingService', () => {
     expect(fs.unlink).toHaveBeenCalledWith('file.xlsx');
   });
 
-  it('should process file successfully with missing.length === 0', async () => {
-    const rows = [
-      [], // header
-      [],
-      [
-        null,
-        null,
-        'D1',
-        'P1',
-        'MAT1',
-        '',
-        '',
-        '',
-        'L',
-        '',
-        '',
-        10,
-        5,
-        3,
-        2,
-        '',
-        '',
-        'X',
-      ],
-    ];
+  it('should ignore records when id_obra is not found', async () => {
+    const rows = [[], [], [null, null, null, 'P1', 'MAT1']];
 
     jest
       .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
       .mockImplementation(() => mockWorkbook(rows) as any);
 
-    mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map([]));
+    // 🔥 nenhum id_obra encontrado
+    mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
 
-    const progress = jest.fn();
+    await service.process('file.xlsx', 'job-1');
 
-    await service.process('file.xlsx', 'job-1', progress);
+    // ✅ não deve inserir
+    expect(mockRepository.insertCapex).not.toHaveBeenCalled();
 
-    expect(mockRepository.truncateCN52N).toHaveBeenCalled();
-    expect(mockRepository.insertCapex).toHaveBeenCalled();
+    // ✅ deve armazenar ignorados
+    const ignored = service.getIgnored('job-1');
 
-    expect(progress).toHaveBeenCalledWith(
-      expect.objectContaining({
-        phase: 'completed',
-      }),
-    );
+    expect(ignored).toHaveLength(1);
 
-    expect(fs.unlink).toHaveBeenCalledWith('file.xlsx');
+    expect(ignored[0]).toMatchObject({
+      diagrama_rede: null,
+      material: 'MAT1',
+    });
   });
 
   it('should evict oldest cache entry when MAX_CACHE is exceeded (FIFO)', async () => {
@@ -230,11 +208,14 @@ describe('CapexProcessingService', () => {
       .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
       .mockImplementation(() => mockWorkbook([[], [], ...rows]) as any);
 
-    mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
+    mockRepository.getObraIdsByDiagramas.mockImplementation(
+      async (diagramas: string[]) => {
+        return new Map(diagramas.map((d, i) => [d, i + 1]));
+      },
+    );
 
     await service.process('file.xlsx', 'job-1');
 
-    // Deve chamar insert mais de uma vez (batch > 1000)
     expect(mockRepository.insertCapex).toHaveBeenCalledTimes(3);
   });
 
@@ -247,6 +228,8 @@ describe('CapexProcessingService', () => {
       `D${i}`,
     ]);
 
+    rows.push([null, null, null]);
+
     jest
       .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
       .mockImplementation(() => mockWorkbook([[], [], ...rows]) as any);
@@ -258,13 +241,41 @@ describe('CapexProcessingService', () => {
     await service.process('file.xlsx', 'job-1');
 
     // 🔥 processBatch deve ser chamado exatamente 1 vez (no loop principal)
-    expect(processBatchSpy).toHaveBeenCalledTimes(1);
+    expect(processBatchSpy).toHaveBeenCalledTimes(2);
 
     // 🔥 garante que NÃO houve chamada extra (do bloco final)
-    expect(processBatchSpy).not.toHaveBeenCalledTimes(2);
+    expect(processBatchSpy).not.toHaveBeenCalledTimes(3);
 
     // 🔥 sanity check
-    expect(mockRepository.insertCapex).toHaveBeenCalledTimes(1);
+    expect(mockRepository.insertCapex).toHaveBeenCalledTimes(0);
+  });
+
+  it('should add ignored items only until remaining space limit', async () => {
+    (service as any).MAX_IGNORED = 3;
+
+    // 🔥 já existe 1
+    (service as any).ignoredMap.set('job-1', [{ diagrama_rede: 'A' }]);
+
+    const rows = [
+      [],
+      [],
+      [null, null, 'D2'],
+      [null, null, 'D3'],
+      [null, null, 'D4'],
+    ];
+
+    jest
+      .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
+      .mockImplementation(() => mockWorkbook(rows) as any);
+
+    mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
+
+    await service.process('file.xlsx', 'job-1');
+
+    const ignored = service.getIgnored('job-1');
+
+    // 🔥 só pode completar até 3
+    expect(ignored).toHaveLength(3);
   });
 
   // ============================================================
@@ -292,13 +303,17 @@ describe('CapexProcessingService', () => {
   });
 
   it('should emit processing progress', async () => {
-    const rows = Array.from({ length: 1001 }, () => [null, null, null]);
+    const rows = Array.from({ length: 1001 }, (_, i) => [null, null, `D${i}`]);
 
     jest
       .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
       .mockImplementation(() => mockWorkbook([[], [], ...rows]) as any);
 
-    mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
+    mockRepository.getObraIdsByDiagramas.mockImplementation(
+      async (diagramas: string[]) => {
+        return new Map(diagramas.map((d, i) => [d, i + 1]));
+      },
+    );
 
     const progress = jest.fn();
 
@@ -309,6 +324,81 @@ describe('CapexProcessingService', () => {
         phase: 'processing',
       }),
     );
+  });
+
+  it('should respect MAX_IGNORED limit', async () => {
+    (service as any).MAX_IGNORED = 2;
+
+    const rows = [
+      [],
+      [],
+      [null, null, 'D1'],
+      [null, null, 'D2'],
+      [null, null, 'D3'],
+    ];
+
+    jest
+      .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
+      .mockImplementation(() => mockWorkbook(rows) as any);
+
+    mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
+
+    await service.process('file.xlsx', 'job-1');
+
+    const ignored = service.getIgnored('job-1');
+
+    expect(ignored).toHaveLength(2);
+  });
+
+  it('should initialize ignored array when jobId does not exist in ignoredMap', async () => {
+    const batch = [{ diagrama_rede: 'INVALID-1' }];
+
+    // 🔥 nenhum id_obra encontrado
+    mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
+
+    // 🔥 sanity check
+    expect((service as any).ignoredMap.has('job-1')).toBe(false);
+
+    await (service as any).processBatch(batch, 'job-1');
+
+    const ignored = service.getIgnored('job-1');
+
+    expect(ignored).toHaveLength(1);
+
+    expect(ignored[0]).toMatchObject({
+      diagrama_rede: 'INVALID-1',
+    });
+  });
+
+  it('should not add ignored items when MAX_IGNORED is already reached', async () => {
+    (service as any).MAX_IGNORED = 2;
+
+    // 🔥 mapa já cheio
+    (service as any).ignoredMap.set('job-1', [
+      { diagrama_rede: 'A' },
+      { diagrama_rede: 'B' },
+    ]);
+
+    const batch = [{ diagrama_rede: 'D3' }, { diagrama_rede: 'D4' }];
+
+    mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
+
+    await (service as any).processBatch(batch, 'job-1');
+
+    const ignored = service.getIgnored('job-1');
+
+    // 🔥 continua exatamente igual
+    expect(ignored).toEqual([{ diagrama_rede: 'A' }, { diagrama_rede: 'B' }]);
+
+    expect(ignored).toHaveLength(2);
+  });
+
+  it('should build progress message with ignored count', () => {
+    (service as any).ignoredMap.set('job-1', [{}, {}]);
+
+    const result = (service as any).buildProgressMessage('job-1', 100);
+
+    expect(result).toBe('100 registros processados (2 ignorados)');
   });
 
   // ============================================================
@@ -383,6 +473,24 @@ describe('CapexProcessingService', () => {
     expect((service as any).progressMap.has('job-1')).toBe(false);
   });
 
+  it('should cleanup ignoredMap after ttl', async () => {
+    const rows = [[], [], [null, null, 'D1']];
+
+    jest
+      .spyOn(ExcelJS.stream.xlsx, 'WorkbookReader')
+      .mockImplementation(() => mockWorkbook(rows) as any);
+
+    mockRepository.getObraIdsByDiagramas.mockResolvedValue(new Map());
+
+    await service.process('file.xlsx', 'job-1');
+
+    expect((service as any).ignoredMap.has('job-1')).toBe(true);
+
+    jest.advanceTimersByTime(5 * 60 * 1000);
+
+    expect((service as any).ignoredMap.has('job-1')).toBe(false);
+  });
+
   // ============================================================
   // 🧠 HELPERS
   // ============================================================
@@ -409,6 +517,24 @@ describe('CapexProcessingService', () => {
         phase: 'reading',
         percentage: 0,
       });
+    });
+
+    it('buildProgressMessage should return zero ignored when job does not exist', () => {
+      const result = (service as any).buildProgressMessage('unknown-job', 10);
+
+      expect(result).toBe('10 registros processados (0 ignorados)');
+    });
+
+    it('buildProgressMessage should return completed message', () => {
+      (service as any).ignoredMap.set('job-1', [{}, {}]);
+
+      const result = (service as any).buildProgressMessage('job-1', 100, true);
+
+      expect(result).toBe('Importação concluída: 100 registros (2 ignorados)');
+    });
+
+    it('getIgnored should return empty array when job does not exist', () => {
+      expect(service.getIgnored('unknown-job')).toEqual([]);
     });
   });
 

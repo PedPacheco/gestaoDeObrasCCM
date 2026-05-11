@@ -71,6 +71,38 @@ function makeRecord(
   };
 }
 
+function makePortfolioRecord(
+  overrides: {
+    mo_planejada?: number;
+    mo_pend?: number;
+    ovnota?: string;
+    ordem_dci?: string;
+    ordem_dca?: string;
+    ordem_dcd?: string;
+    ordem_dcim?: string;
+    executado?: number;
+    id_turma?: number;
+    grupo?: string;
+    turma?: string;
+  } = {},
+) {
+  return {
+    obras: {
+      mo_planejada: overrides.mo_planejada ?? 1000,
+      mo_pend: overrides.mo_pend ?? 200,
+      ovnota: overrides.ovnota ?? 'OV001',
+      ordem_dci: overrides.ordem_dci ?? 'DCI001',
+      ordem_dca: overrides.ordem_dca ?? 'DCA001',
+      ordem_dcd: overrides.ordem_dcd ?? 'DCD001',
+      ordem_dcim: overrides.ordem_dcim ?? 'DCIM001',
+      executado: overrides.executado ?? 30,
+      id_turma: overrides.id_turma ?? 1,
+      tipos: { grupos: { grupo: overrides.grupo ?? 'GRP_A' } },
+      turmas: { turma: overrides.turma ?? 'TRM_1' },
+    },
+  };
+}
+
 function makeDailyEntry(date = '15/03/2024'): DailySummaryEntry {
   return {
     dataProg: date,
@@ -80,6 +112,7 @@ function makeDailyEntry(date = '15/03/2024'): DailySummaryEntry {
     financialGoalWith8: 0,
     diaryGoal: 0,
     diaryGoalWith8: 0,
+    totalMoPlan: 0,
     totalMoProg: 0,
     totalMoExec: 0,
     diff: 0,
@@ -108,7 +141,10 @@ function makeGroupEntry(
 describe('MonthlySummaryService', () => {
   let service: MonthlySummaryService;
 
-  let monthlySummaryRepository: { getSummary: jest.Mock };
+  let monthlySummaryRepository: {
+    getSummary: jest.Mock;
+    getPortfolioSummary: jest.Mock;
+  };
   let calculator: {
     aggregateFinancialCapacityByMonth: jest.Mock;
     calculateWorkOrderMetrics: jest.Mock;
@@ -127,7 +163,10 @@ describe('MonthlySummaryService', () => {
   let executionCapacityRepository: { getFinancialValue: jest.Mock };
 
   beforeEach(() => {
-    monthlySummaryRepository = { getSummary: jest.fn() };
+    monthlySummaryRepository = {
+      getSummary: jest.fn(),
+      getPortfolioSummary: jest.fn(),
+    };
     calculator = {
       aggregateFinancialCapacityByMonth: jest
         .fn()
@@ -171,6 +210,7 @@ describe('MonthlySummaryService', () => {
   describe('getSummary', () => {
     it('fetches repository data and execution capacity concurrently, deriving year from dataFinal', async () => {
       monthlySummaryRepository.getSummary.mockResolvedValue([]);
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([]);
 
       await service.getSummary(DEFAULT_FILTERS);
 
@@ -188,6 +228,7 @@ describe('MonthlySummaryService', () => {
 
     it('returns empty summary with aggregated totals when repository returns no data', async () => {
       monthlySummaryRepository.getSummary.mockResolvedValue([]);
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([]);
 
       const result = await service.getSummary(DEFAULT_FILTERS);
 
@@ -198,6 +239,10 @@ describe('MonthlySummaryService', () => {
 
     it('creates entry, calculates metrics and accumulates for a single record', async () => {
       const record = makeRecord({ exec: 80 });
+      const recordPorfolio = makePortfolioRecord();
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        recordPorfolio,
+      ]);
       monthlySummaryRepository.getSummary.mockResolvedValue([record]);
       mockBuildTotalTeamsMap.mockReturnValue(new Map([['15/03/2024', 5]]));
 
@@ -240,6 +285,9 @@ describe('MonthlySummaryService', () => {
       monthlySummaryRepository.getSummary.mockResolvedValue([
         makeRecord({ exec: null }),
       ]);
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        makePortfolioRecord(),
+      ]);
 
       await service.getSummary(DEFAULT_FILTERS);
 
@@ -256,6 +304,9 @@ describe('MonthlySummaryService', () => {
         makeRecord({ data_prog: '2024-03-01T00:00:00.000Z', ovnota: 'OV001' }),
         makeRecord({ data_prog: '2024-03-20T00:00:00.000Z', ovnota: 'OV002' }),
         makeRecord({ data_prog: '2024-04-10T00:00:00.000Z', ovnota: 'OV003' }),
+      ]);
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        makePortfolioRecord(),
       ]);
       summaryMapper.createDailySummaryEntry
         .mockReturnValueOnce(makeDailyEntry('01/03/2024'))
@@ -282,6 +333,9 @@ describe('MonthlySummaryService', () => {
         makeRecord({ ovnota: 'OV001' }),
         makeRecord({ ovnota: 'OV002' }), // same date, different work key
       ]);
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        makePortfolioRecord(),
+      ]);
 
       await service.getSummary(DEFAULT_FILTERS);
 
@@ -295,6 +349,9 @@ describe('MonthlySummaryService', () => {
       const uniqueTarget = { totalMoPlan: 0 };
       mockCreateUniqueWorksFinancial.mockReturnValue(uniqueTarget);
       const record = makeRecord({ mo_planejada: 500 });
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        makePortfolioRecord(),
+      ]);
       monthlySummaryRepository.getSummary.mockResolvedValue([record, record]); // same key twice
 
       await service.getSummary(DEFAULT_FILTERS);
@@ -304,6 +361,9 @@ describe('MonthlySummaryService', () => {
 
     it('should treat undefined financial values as 0 when aggregating monthly totals', async () => {
       monthlySummaryRepository.getSummary.mockResolvedValue([makeRecord()]);
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        makePortfolioRecord(),
+      ]);
 
       // força cenário com undefined
       calculator.aggregateFinancialCapacityByMonth = jest
@@ -368,6 +428,8 @@ describe('MonthlySummaryService', () => {
       expect(summaryMapper.createGroupTeamEntry).toHaveBeenCalledWith(
         'GRP_A',
         'TRM_1',
+        undefined,
+        undefined,
       );
       expect(calculator.calculateWorkOrderMetrics).toHaveBeenCalledWith(
         1000,

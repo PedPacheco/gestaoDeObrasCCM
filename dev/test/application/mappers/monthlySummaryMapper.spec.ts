@@ -37,6 +37,7 @@ describe('MonthlySummaryMapper', () => {
         diaryGoal: 0,
         financialGoalWith8: 1080,
         diaryGoalWith8: 0,
+        totalMoPlan: 0,
         totalMoProg: 0,
         totalMoExec: 0,
         diff: 0,
@@ -211,6 +212,8 @@ describe('MonthlySummaryMapper', () => {
   describe('helpers', () => {
     it('createInitialTotals should return zeroed totals', () => {
       expect(createInitialTotals()).toEqual({
+        totalWalletAvaliable: 0,
+        totalWalletExec: 0,
         totalQtdeObras: 0,
         totalTeams: 0,
         totalFinancialGoal: 0,

@@ -19,6 +19,11 @@ describe('RestrictionsService', () => {
     getScheduleRestrictions: jest.fn(),
     getPublicationRestricion: jest.fn(),
     getPublicationRestrictionByWorkId: jest.fn(),
+    getRestrictionsAdvancePartner: jest.fn(),
+    getGripPartner: jest.fn(),
+    getScheduledWorks: jest.fn(),
+    getReaschedulingReasons: jest.fn(),
+    getExecutionRestrictions: jest.fn(),
     insertPublicationRestriction: jest.fn(),
     updatePublicationRestriction: jest.fn(),
     deletePublicationRestriction: jest.fn(),
@@ -165,6 +170,189 @@ describe('RestrictionsService', () => {
           status_resolucao: 'Pendente',
         },
       ]);
+    });
+  });
+
+  describe('getRestrictionsAdvancePartner', () => {
+    it('should return restrictions for partner advancement and correctly format totals from repository response', async () => {
+      mockRepository.getRestrictionsAdvancePartner.mockResolvedValue([
+        {
+          mes: '05/2026',
+          total: 50,
+          sem_restricao: 25,
+        },
+      ]);
+
+      const response = await service.getRestrictionsAdvancePartner({
+        dataInicial: '2026-05-12',
+        dataFinal: '2026-05-12',
+      });
+
+      expect(response).toEqual([
+        {
+          month: '05/2026',
+          total: 50,
+          withoutRestriction: 25,
+          withRestriction: 25,
+          pct: 50,
+        },
+      ]);
+    });
+
+    it('should return restrictions for partner advancement with total 0 and correctly format totals from repository response', async () => {
+      mockRepository.getRestrictionsAdvancePartner.mockResolvedValue([
+        {
+          mes: '05/2026',
+          total: 0,
+          sem_restricao: 0,
+        },
+      ]);
+
+      const response = await service.getRestrictionsAdvancePartner({
+        dataInicial: '2026-05-12',
+        dataFinal: '2026-05-12',
+      });
+
+      expect(response).toEqual([
+        {
+          month: '05/2026',
+          total: 0,
+          withoutRestriction: 0,
+          withRestriction: 0,
+          pct: 0,
+        },
+      ]);
+    });
+  });
+
+  describe('getGripPower', () => {
+    it('should return mapped partner grip data with numeric conversions and calculated percentage', async () => {
+      const returnedData = [
+        {
+          semana: '18/2026',
+          total: 50,
+          executada: 25,
+          executada_parcial: 10,
+          nao_executada: 10,
+          nao_informada: 15,
+        },
+      ];
+
+      mockRepository.getGripPartner.mockResolvedValue(returnedData);
+
+      const response = await service.getGripPartner({
+        dataInicial: '2026-05-12',
+        dataFinal: '2026-05-12',
+      });
+
+      expect(response).toEqual([
+        {
+          week: '18/2026',
+          total: 50,
+          executed: 25,
+          partialExecuted: 10,
+          notExecuted: 10,
+          notInformed: 15,
+          pct: 50,
+        },
+      ]);
+    });
+
+    it('should return percentage as 0 when total restrictions is zero', async () => {
+      const returnedData = [
+        {
+          semana: '18/2026',
+          total: 0,
+          executada: 0,
+          executada_parcial: 0,
+          nao_executada: 0,
+          nao_informada: 0,
+        },
+      ];
+
+      mockRepository.getGripPartner.mockResolvedValue(returnedData);
+
+      const response = await service.getGripPartner({});
+
+      expect(response).toEqual([
+        {
+          week: '18/2026',
+          total: 0,
+          executed: 0,
+          partialExecuted: 0,
+          notExecuted: 0,
+          notInformed: 0,
+          pct: 0,
+        },
+      ]);
+    });
+  });
+
+  describe('getScheduledWorks', () => {
+    it('should return mapped scheduled works data with numeric conversions and calculated sem_restricao', async () => {
+      const returnedData = [
+        {
+          mes: '03/2026',
+          com_restricao: 50,
+          total_programadas: 100,
+        },
+      ];
+
+      mockRepository.getScheduledWorks.mockResolvedValue(returnedData);
+
+      const response = await service.getScheduledWorks({
+        dataInicial: '2026-05-12',
+        dataFinal: '2026-05-12',
+      });
+
+      expect(response).toEqual([
+        {
+          month: '03/2026',
+          totalScheduled: 100,
+          withRestriction: 50,
+          withoutRestriction: 50,
+        },
+      ]);
+    });
+  });
+
+  describe('getReaschedulingReasons', () => {
+    it('should return rescheduling reasons data with ovnota and motivo fields', async () => {
+      const returnedData = [
+        {
+          ovnota: '12342545',
+          motivo: 'Trânsito',
+        },
+      ];
+
+      mockRepository.getReaschedulingReasons.mockResolvedValue(returnedData);
+
+      const response = await service.getReaschedulingReasons({
+        dataInicial: '2026-05-12',
+        dataFinal: '2026-05-12',
+      });
+
+      expect(response).toEqual(returnedData);
+    });
+  });
+
+  describe('getExecutionRestriction', () => {
+    it('should return execution restriction data with ovnota and restricao fields', async () => {
+      const returnedData = [
+        {
+          ovnota: '12342545',
+          restricao: 'Trânsito',
+        },
+      ];
+
+      mockRepository.getExecutionRestrictions.mockResolvedValue(returnedData);
+
+      const response = await service.getExecutionRestrictions({
+        dataInicial: '2026-05-12',
+        dataFinal: '2026-05-12',
+      });
+
+      expect(response).toEqual(returnedData);
     });
   });
 

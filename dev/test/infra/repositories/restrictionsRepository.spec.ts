@@ -49,6 +49,7 @@ describe('RestrictionsRepository', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   describe('getScheduleRestrictions', () => {
@@ -280,6 +281,228 @@ describe('RestrictionsRepository', () => {
           observacao_construcao: true,
         },
       });
+    });
+  });
+
+  describe('getRestrictionsAdvancePartner', () => {
+    it('should execute query without filters', async () => {
+      prismaService.$queryRaw.mockResolvedValueOnce([]);
+
+      await repository.getRestrictionsAdvancePartner({} as any);
+
+      const query = getSqlString(prismaService.$queryRaw.mock.calls[0][0]);
+
+      expect(query).toContain(
+        'FROM construcao_sp.exportacao_programacoes_obras',
+      );
+
+      expect(query).toContain(
+        'status_programacao IS NULL OR UPPER(TRIM(status_programacao))',
+      );
+
+      expect(query).not.toContain('data_prog BETWEEN');
+      expect(query).not.toContain('regional IN');
+      expect(query).not.toContain('parceira IN');
+    });
+
+    it('should apply all filters correctly', async () => {
+      prismaService.$queryRaw.mockResolvedValueOnce([]);
+
+      await repository.getRestrictionsAdvancePartner({
+        dataInicial: new Date('2024-01-01'),
+        dataFinal: new Date('2024-01-31'),
+        idRegional: [1],
+        idParceira: [2],
+      } as any);
+
+      const query = getSqlString(prismaService.$queryRaw.mock.calls[0][0]);
+
+      expect(query).toContain('data_prog BETWEEN');
+      expect(query).toContain('regional IN');
+      expect(query).toContain('parceira IN');
+    });
+  });
+
+  describe('getGripPartner', () => {
+    it('should execute query without filters', async () => {
+      prismaService.$queryRaw.mockResolvedValueOnce([]);
+
+      await repository.getGripPartner({} as any);
+
+      const query = getSqlString(prismaService.$queryRaw.mock.calls[0][0]);
+
+      expect(query).toContain('FROM construcao_sp.programacoes p');
+
+      expect(query).toContain('WHEN p.exec IS NULL');
+
+      expect(query).not.toContain('p.data_prog BETWEEN');
+      expect(query).not.toContain('r.id IN');
+      expect(query).not.toContain('t.id IN');
+    });
+
+    it('should apply all filters correctly', async () => {
+      prismaService.$queryRaw.mockResolvedValueOnce([]);
+
+      await repository.getGripPartner({
+        dataInicial: new Date('2024-01-01'),
+        dataFinal: new Date('2024-01-31'),
+        idRegional: [1],
+        idParceira: [2],
+      } as any);
+
+      const query = getSqlString(prismaService.$queryRaw.mock.calls[0][0]);
+
+      expect(query).toContain('p.data_prog BETWEEN');
+      expect(query).toContain('r.id IN');
+      expect(query).toContain('t.id IN');
+    });
+
+    it('should return query result correctly', async () => {
+      const mockResponse = [
+        {
+          semana: '01/2025',
+          total: 10,
+        },
+      ];
+
+      prismaService.$queryRaw.mockResolvedValueOnce(mockResponse);
+
+      const result = await repository.getGripPartner({} as any);
+
+      expect(result).toEqual(mockResponse);
+    });
+  });
+
+  describe('getScheduledWorks', () => {
+    it('should execute query without filters', async () => {
+      prismaService.$queryRaw.mockResolvedValueOnce([]);
+
+      await repository.getScheduledWorks({} as any);
+
+      const query = getSqlString(prismaService.$queryRaw.mock.calls[0][0]);
+
+      expect(query).toContain('COUNT(*) AS total_programadas');
+
+      expect(query).toContain('has_exec_restricao');
+
+      expect(query).not.toContain('data_prog BETWEEN');
+    });
+
+    it('should apply all filters correctly', async () => {
+      prismaService.$queryRaw.mockResolvedValueOnce([]);
+
+      await repository.getScheduledWorks({
+        dataInicial: new Date('2024-01-01'),
+        dataFinal: new Date('2024-01-31'),
+        idRegional: [1],
+        idParceira: [2],
+      } as any);
+
+      const query = getSqlString(prismaService.$queryRaw.mock.calls[0][0]);
+
+      expect(query).toContain('data_prog BETWEEN');
+      expect(query).toContain('regional IN');
+      expect(query).toContain('parceira IN');
+    });
+  });
+
+  describe('getReaschedulingReasons', () => {
+    it('should execute query without filters', async () => {
+      prismaService.$queryRaw.mockResolvedValueOnce([]);
+
+      await repository.getReaschedulingReasons({} as any);
+
+      const query = getSqlString(prismaService.$queryRaw.mock.calls[0][0]);
+
+      expect(query).toContain("status_programacao IN ('Parcial', 'Cancelado')");
+
+      expect(query).toContain('UNION ALL');
+
+      expect(query).toContain('restricao_programacao2 AS motivo');
+
+      expect(query).not.toContain('data_prog BETWEEN');
+    });
+
+    it('should apply all filters correctly', async () => {
+      prismaService.$queryRaw.mockResolvedValueOnce([]);
+
+      await repository.getReaschedulingReasons({
+        dataInicial: new Date('2024-01-01'),
+        dataFinal: new Date('2024-01-31'),
+        idRegional: [1],
+        idParceira: [2],
+      } as any);
+
+      const query = getSqlString(prismaService.$queryRaw.mock.calls[0][0]);
+
+      expect(query).toContain('data_prog BETWEEN');
+      expect(query).toContain('regional IN');
+      expect(query).toContain('parceira IN');
+    });
+
+    it('should return query result correctly', async () => {
+      const mockResponse = [
+        {
+          ovnota: '123',
+          motivo: 'Falta material',
+        },
+      ];
+
+      prismaService.$queryRaw.mockResolvedValueOnce(mockResponse);
+
+      const result = await repository.getReaschedulingReasons({} as any);
+
+      expect(result).toEqual(mockResponse);
+    });
+  });
+
+  describe('getExecutionRestrictions', () => {
+    it('should execute query without filters', async () => {
+      prismaService.$queryRaw.mockResolvedValueOnce([]);
+
+      await repository.getExecutionRestrictions({} as any);
+
+      const query = getSqlString(prismaService.$queryRaw.mock.calls[0][0]);
+
+      expect(query).toContain('SELECT DISTINCT ovnota');
+
+      expect(query).toContain('restricao_execucao AS restricao');
+
+      expect(query).toContain('restricao_execucao IS NOT NULL');
+
+      expect(query).not.toContain('data_prog BETWEEN');
+    });
+
+    it('should apply all filters correctly', async () => {
+      prismaService.$queryRaw.mockResolvedValueOnce([]);
+
+      await repository.getExecutionRestrictions({
+        dataInicial: new Date('2024-01-01'),
+        dataFinal: new Date('2024-01-31'),
+        idRegional: [1],
+        idParceira: [2],
+      } as any);
+
+      const query = getSqlString(prismaService.$queryRaw.mock.calls[0][0]);
+
+      expect(query).toContain('data_prog BETWEEN');
+      expect(query).toContain('regional IN');
+      expect(query).toContain('parceira IN');
+    });
+
+    it('should return query result correctly', async () => {
+      const mockResponse = [
+        {
+          ovnota: '123',
+          restricao: 'Sem equipe',
+        },
+      ];
+
+      prismaService.$queryRaw.mockResolvedValueOnce(mockResponse);
+
+      const result = await repository.getExecutionRestrictions({} as any);
+
+      expect(result).toEqual(mockResponse);
     });
   });
 
