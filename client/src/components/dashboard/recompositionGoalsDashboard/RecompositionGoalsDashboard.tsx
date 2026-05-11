@@ -100,6 +100,12 @@ export function rowTotal(g: Goal) {
   );
 }
 
+export const MONTH_OPTIONS = MONTHS.map((value, index) => ({
+  value,
+  label: MONTH_LABELS[index],
+  index,
+}));
+
 // ── Cores de desempenho ───────────────────────────────────────────────────────
 
 /** Retorna paleta de cores baseada no percentual de atingimento */
@@ -114,6 +120,9 @@ export default function RecompositionGoalsDashboard({
   filtersData,
   token,
 }: Props) {
+  const currentMonth = dayjs().month();
+  const now = dayjs();
+
   const { clearFilters, filters, saveFilters } = useSaveFilters({
     pageKey: "recompositionGoalsDashboardFilters",
     data: filtersData,
@@ -121,8 +130,11 @@ export default function RecompositionGoalsDashboard({
 
   const [goals, setGoals] = useState<Goal[]>(initialGoals ?? []);
 
-  const [ano, setAno] = useState<Dayjs>(dayjs());
+  const [year, setYear] = useState<Dayjs>(dayjs());
   const [anoPlan, setAnoPlan] = useState<Dayjs>(dayjs());
+  const [selectedStartMonth, setSelectedStartMonth] = useState<number>(0);
+  const [selectedEndMonth, setSelectedEndMonth] =
+    useState<number>(currentMonth);
   const [selectedRegionais, setSelectedRegionais] = useState<string[]>(
     () => filters?.regional ?? [],
   );
@@ -134,9 +146,11 @@ export default function RecompositionGoalsDashboard({
   );
   const [isPending, startTransition] = useTransition();
 
-  const metrics = useDashboardMetrics(goals);
-
-  const now = dayjs();
+  const metrics = useDashboardMetrics(
+    goals,
+    selectedStartMonth,
+    selectedEndMonth,
+  );
 
   const tiposRecomp = useMemo(
     () => (filtersData?.tipo ?? []).filter((t) => t.id_grupo === 2),
@@ -183,7 +197,7 @@ export default function RecompositionGoalsDashboard({
     setSelectedParceiras([]);
     setSelectedRegionais([]);
     setSelectedTiposObra([]);
-    setAno(now);
+    setYear(now);
     setAnoPlan(now);
     clearFilters();
 
@@ -210,17 +224,21 @@ export default function RecompositionGoalsDashboard({
       <GoalsFilters
         filtersData={filtersData}
         tiposRecomp={tiposRecomp}
-        ano={ano}
-        anoPlan={anoPlan}
+        year={year}
+        yearPlan={anoPlan}
+        selectedStartMonth={selectedStartMonth}
+        selectedEndMonth={selectedEndMonth}
+        setSelectedStartMonth={setSelectedStartMonth}
+        setSelectedEndMonth={setSelectedEndMonth}
         selRegional={selectedRegionais}
-        selParceira={selectedParceiras}
-        selTipo={selectedTiposObra}
+        selPartner={selectedParceiras}
+        selType={selectedTiposObra}
         isPending={isPending}
-        setAno={setAno}
-        setAnoPlan={setAnoPlan}
+        setYear={setYear}
+        setYearPlan={setAnoPlan}
         setSelRegional={setSelectedRegionais}
-        setSelParceira={setSelectedParceiras}
-        setSelTipo={setSelectedTiposObra}
+        setSelPartner={setSelectedParceiras}
+        setSelType={setSelectedTiposObra}
         onApply={applyFilter}
         onClear={handleCleaningFilters}
       />

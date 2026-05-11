@@ -97,8 +97,8 @@ export interface MonthlyTotal {
 export interface CumulativePoint {
   mes: string;
   "Meta Acum.": number;
-  "Prog Acum.": number;
-  "Diferença Acum.": number;
+  // "Prog Acum.": number;
+  // "Diferença Acum.": number;
   "Prog+Real Acum."?: number;
   Projeção?: number;
 }
@@ -133,7 +133,7 @@ export interface DashboardMetrics {
   cumulative: CumulativePoint[];
   pieByTipo: PieSlice[];
   barByParceira: BarParceira[];
-  parceiraMap: Map<string, ParceiraAggregate>;
+  tipoKpiMap: Map<string, ParceiraAggregate>;
   groupedRows: GroupedRow[];
   // Projeção — Curva S
   totalMetaFull: number;

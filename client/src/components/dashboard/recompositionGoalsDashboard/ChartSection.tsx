@@ -98,19 +98,14 @@ function MonthlyBarChart({
               tickFormatter={K_FORMATTER}
               width={36}
             />
-            <Tooltip content={<ChartTooltip />} />
+            <Tooltip content={<ChartTooltip metricConfig="number" />} />
             <Legend
               iconType="circle"
               iconSize={9}
               formatter={LEGEND_FORMATTER}
               wrapperStyle={{ paddingTop: 14 }}
             />
-            <Bar
-              dataKey="Meta"
-              fill="url(#gMeta)"
-              radius={[4, 4, 0, 0]}
-              maxBarSize={10}
-            />
+            <Line dataKey="Meta" fill="url(#gMeta)" />
             <Bar
               dataKey="Programado"
               fill="url(#gProg2)"
@@ -194,23 +189,24 @@ function CurvaSPanel({ metrics }: { metrics: DashboardMetrics }) {
             />
             <XAxis
               dataKey="mes"
-              tick={AXIS_TICK_X}
+              tick={{ fill: "#94a3b8", fontSize: 12, fontWeight: 500 }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
-              tick={AXIS_TICK_Y}
+              tick={{ fill: "#64748b", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
-              tickFormatter={K_FORMATTER}
-              domain={[0, "dataMax"]}
+              tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
               width={36}
             />
-            <Tooltip content={<ChartTooltip />} />
+            <Tooltip content={<ChartTooltip metricConfig="number" />} />
             <Legend
               iconType="circle"
               iconSize={9}
-              formatter={LEGEND_FORMATTER}
+              formatter={(v) => (
+                <span style={{ color: "#cbd5e1", fontSize: 12 }}>{v}</span>
+              )}
               wrapperStyle={{ paddingTop: 14 }}
             />
             <ReferenceLine
@@ -231,47 +227,25 @@ function CurvaSPanel({ metrics }: { metrics: DashboardMetrics }) {
             <Area
               type="monotone"
               dataKey="Meta Acum."
-              stroke="#94a3b8" // slate-400
+              stroke="#94a3b8"
               fill="url(#aMetaAc)"
               strokeWidth={2.5}
               dot={false}
               connectNulls
             />
-
-            <Area
-              type="monotone"
-              dataKey="Prog Acum."
-              stroke="#3b82f6" // 🔵 azul (programado)
-              fill="transparent"
-              strokeWidth={3}
-              dot={{ r: 4, fill: "#3b82f6", strokeWidth: 0 }}
-              connectNulls
-            />
-
             <Area
               type="monotone"
               dataKey="Prog+Real Acum."
-              stroke="#4ade80" // 🟢 verde principal (já usado)
+              stroke="#4ade80"
               fill="url(#aRealAc)"
               strokeWidth={3}
               dot={{ r: 4, fill: "#4ade80", strokeWidth: 0 }}
               connectNulls
             />
-
-            <Area
-              type="monotone"
-              dataKey="Diferença Acum."
-              stroke="#16a34a" // 🟢 verde mais escuro (real puro)
-              fill="transparent"
-              strokeWidth={3}
-              dot={{ r: 4, fill: "#16a34a", strokeWidth: 0 }}
-              connectNulls
-            />
-
             <Line
               type="monotone"
               dataKey="Projeção"
-              stroke="#d4e216" // 🟡 projeção
+              stroke="#d4e216"
               strokeWidth={2.5}
               strokeDasharray="6 3"
               dot={false}
@@ -330,17 +304,17 @@ function ProjectionPanel({
   const stats = [
     {
       label: "Prog+Real acumulado",
-      value: FormatCurrency(cumRealNow),
+      value: cumRealNow,
       color: "#4ade80",
     },
     {
       label: "Meta total do ano",
-      value: FormatCurrency(totalMetaFull),
+      value: totalMetaFull,
       color: "#94a3b8",
     },
     {
       label: "Diferença acumulada",
-      value: FormatCurrency(cumRealNow - totalMetaFull),
+      value: cumRealNow - totalMetaFull,
       color: cumRealNow >= totalMetaFull ? "#53FF75" : "#f97316",
     },
     {

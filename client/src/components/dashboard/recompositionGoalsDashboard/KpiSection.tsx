@@ -24,19 +24,19 @@ export function KpiSection({ metrics }: KpiSectionProps) {
   const kpis = useMemo(
     () => [
       {
-        label: "Meta Ano",
+        label: "Meta Acumulado",
         value: NUM(totalMeta),
         gradient: "bg-gradient-to-br from-[#182638] to-[#1c2f42]",
         accent: "#3b82f6",
       },
       {
-        label: "Programado",
+        label: "Prog. Acumulado",
         value: NUM(totalProg),
         gradient: "bg-gradient-to-br from-[#182638] to-[#1c2f42]",
         accent: "#a78bfa",
       },
       {
-        label: "Realizado",
+        label: "Real. Acumulado",
         value: NUM(totalReal),
         gradient: "bg-gradient-to-br from-[#182638] to-[#1c2f42]",
         accent: "#53FF75",
@@ -117,7 +117,7 @@ interface KpiDrillDownProps {
 }
 
 function KpiDrillDown({ activeKpi, metrics }: KpiDrillDownProps) {
-  const { parceiraMap, groupedRows } = metrics;
+  const { tipoKpiMap, groupedRows } = metrics;
 
   return (
     <div className="bg-gradient-to-br from-[#1a2d42] to-[#182333] rounded-2xl p-5 border border-white/8 shadow-xl">
@@ -127,10 +127,10 @@ function KpiDrillDown({ activeKpi, metrics }: KpiDrillDownProps) {
         </span>
       </div>
 
-      {(activeKpi === "Meta Ano" ||
-        activeKpi === "Programado" ||
-        activeKpi === "Realizado") && (
-        <TopParceirasBars activeKpi={activeKpi} parceiraMap={parceiraMap} />
+      {(activeKpi === "Meta Acumulado" ||
+        activeKpi === "Prog. Acumulado" ||
+        activeKpi === "Real. Acumulado") && (
+        <TopTiposBars activeKpi={activeKpi} tipoMap={tipoKpiMap} />
       )}
 
       {activeKpi === "Taxa Real / Meta" && (
@@ -138,7 +138,7 @@ function KpiDrillDown({ activeKpi, metrics }: KpiDrillDownProps) {
       )}
 
       {activeKpi === "Carteira" && (
-        <TopCarteiraBars parceiraMap={parceiraMap} groupedRows={groupedRows} />
+        <TopCarteiraBars groupedRows={groupedRows} />
       )}
     </div>
   );
@@ -154,12 +154,12 @@ function DrillContainer({ children }: { children: React.ReactNode }) {
   );
 }
 
-function TopParceirasBars({
+function TopTiposBars({
   activeKpi,
-  parceiraMap,
+  tipoMap,
 }: {
   activeKpi: string;
-  parceiraMap: DashboardMetrics["parceiraMap"];
+  tipoMap: DashboardMetrics["tipoKpiMap"];
 }) {
   const field =
     activeKpi === "Meta Total"
@@ -174,10 +174,10 @@ function TopParceirasBars({
         ? "#a78bfa"
         : "#53FF75";
 
-  const sorted = [...parceiraMap.entries()]
+  const sorted = [...tipoMap.entries()]
     .map(([name, v]) => ({
       name,
-      value: Math.round(v[field as "meta" | "real" | "prog"]),
+      value: v[field as "meta" | "real" | "prog"],
     }))
     .sort((a, b) => b.value - a.value);
   const maxV = Math.max(...sorted.map((r) => r.value), 1);
@@ -185,8 +185,8 @@ function TopParceirasBars({
   return (
     <DrillContainer>
       <div className="flex flex-col gap-2.5">
-        <p className="text-zinc-500 text-xs mb-1 uppercase tracking-wider">
-          Parceiras
+        <p className="text-zinc-400 text-xs mb-1 uppercase tracking-wider">
+          Tipos de obra
         </p>
         {sorted.map((r, i) => (
           <div key={i} className="flex items-center gap-3">
@@ -202,7 +202,7 @@ function TopParceirasBars({
                 }}
               />
             </div>
-            <span className="text-white font-bold text-xs whitespace-nowrap">
+            <span className="text-white font-bold text-sm whitespace-nowrap w-5 text-right shrink-0 mr-2">
               {NUM(r.value)}
             </span>
           </div>
@@ -217,23 +217,29 @@ function TaxaBreakdown({
 }: {
   groupedRows: DashboardMetrics["groupedRows"];
 }) {
-  const buckets = [
-    {
-      label: "Acima de 100%",
-      count: groupedRows.filter((r) => r.taxa >= 100).length,
-      color: "#53FF75",
-    },
-    {
-      label: "Entre 70–99%",
-      count: groupedRows.filter((r) => r.taxa >= 70 && r.taxa < 100).length,
-      color: "#f97316",
-    },
-    {
-      label: "Abaixo de 70%",
-      count: groupedRows.filter((r) => r.taxa < 70).length,
-      color: "#818cf8",
-    },
-  ];
+  const buckets = useMemo(() => {
+    let above100 = 0;
+    let between70_99 = 0;
+    let below70 = 0;
+
+    for (const regional of groupedRows) {
+      for (const parceria of regional.children) {
+        for (const tipo of parceria.children) {
+          const taxa = tipo.taxa ?? 0;
+
+          if (taxa >= 100) above100++;
+          else below70++;
+        }
+      }
+    }
+
+    return [
+      { label: "Acima de 100%", count: above100, color: "#53FF75" },
+      { label: "Entre 70–99%", count: between70_99, color: "#f97316" },
+      { label: "Abaixo de 70%", count: below70, color: "#818cf8" },
+    ];
+  }, [groupedRows]);
+
   return (
     <DrillContainer>
       <div className="grid grid-cols-3 gap-4">
@@ -252,34 +258,42 @@ function TaxaBreakdown({
 }
 
 function TopCarteiraBars({
-  parceiraMap,
   groupedRows,
 }: {
-  parceiraMap: DashboardMetrics["parceiraMap"];
   groupedRows: DashboardMetrics["groupedRows"];
 }) {
-  // Agrega carteira por parceira direto do groupedRows (mais eficiente que re-filtrar goals)
-  const parceriaTotals = new Map<string, number>();
+  const sorted = useMemo(() => {
+    const map = new Map<string, number>();
+    let max = 1;
 
-  for (const regional of groupedRows) {
-    for (const parceria of regional.children) {
-      const prev = parceriaTotals.get(parceria.turma) ?? 0;
+    for (const regional of groupedRows) {
+      for (const parceria of regional.children) {
+        for (const tipo of parceria.children) {
+          const key = tipo.tipo_obra;
+          const value = tipo.carteira ?? 0;
 
-      parceriaTotals.set(parceria.turma, prev + (parceria.carteira ?? 0));
+          const next = (map.get(key) ?? 0) + value;
+          map.set(key, next);
+
+          if (next > max) max = next;
+        }
+      }
     }
-  }
 
-  const sorted = [...parceriaTotals.entries()]
-    .map(([name, value]) => ({ name, value }))
-    .sort((a, b) => b.value - a.value);
-
-  const maxV = Math.max(...sorted.map((r) => r.value), 1);
+    return Array.from(map.entries())
+      .map(([name, value]) => ({
+        name,
+        value,
+        pct: (value / max) * 100,
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [groupedRows]);
 
   return (
     <DrillContainer>
       <div className="flex flex-col gap-2.5">
-        <p className="text-zinc-500 text-xs mb-1 uppercase tracking-wider">
-          Parceiras — carteira
+        <p className="text-zinc-400 text-xs mb-1 uppercase tracking-wider">
+          Tipos — carteira
         </p>
         {sorted.map((r, i) => (
           <div key={i} className="flex items-center gap-3">
@@ -289,10 +303,10 @@ function TopCarteiraBars({
             <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full bg-[#f97316]"
-                style={{ width: `${(r.value / maxV) * 100}%` }}
+                style={{ width: `${r.pct}%` }}
               />
             </div>
-            <span className="text-white font-bold text-xs whitespace-nowrap">
+            <span className="text-white font-bold text-sm whitespace-nowrap w-5 text-right shrink-0 mr-2">
               {NUM(r.value)}
             </span>
           </div>

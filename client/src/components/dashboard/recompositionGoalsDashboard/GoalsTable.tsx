@@ -1,15 +1,13 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import {
   DashboardMetrics,
   GroupedRow,
   ParceiraRowInterface,
 } from "@/types/dashboard/recompositionGoals/goals";
-import { FormatCurrency } from "@/utils/formatValue";
-
-import { pctColor } from "./RecompositionGoalsDashboard";
+import { NUM } from "@/utils/formatValue";
 
 interface GoalsTableProps {
   groupedRows: DashboardMetrics["groupedRows"];
@@ -44,6 +42,51 @@ export function GoalsTable({
   totalCarteira,
   taxaReal,
 }: GoalsTableProps) {
+  function aggregateTipos(groupedRows: GroupedRow[]) {
+    const map = new Map<
+      string,
+      {
+        tipo_obra: string;
+        meta: number;
+        prog: number;
+        real: number;
+        carteira: number;
+      }
+    >();
+
+    for (const regional of groupedRows) {
+      for (const parceria of regional.children) {
+        for (const tipo of parceria.children) {
+          const key = tipo.tipo_obra;
+
+          if (!map.has(key)) {
+            map.set(key, {
+              tipo_obra: key,
+              meta: 0,
+              prog: 0,
+              real: 0,
+              carteira: 0,
+            });
+          }
+
+          const acc = map.get(key)!;
+
+          acc.meta += tipo.meta;
+          acc.prog += tipo.prog;
+          acc.real += tipo.real;
+          acc.carteira += tipo.carteira ?? 0;
+        }
+      }
+    }
+
+    return Array.from(map.values()).map((t) => ({
+      ...t,
+      taxa: t.meta > 0 ? (t.real / t.meta) * 100 : 0,
+    }));
+  }
+
+  const tiposTotais = useMemo(() => aggregateTipos(groupedRows), [groupedRows]);
+
   return (
     <div
       className={`pt-1 grid ${groupedRows.length > 1 ? "sm:grid-cols-2" : "grid-cols-1"} gap-3`}
@@ -64,6 +107,7 @@ export function GoalsTable({
             totalReal={totalReal}
             totalCarteira={totalCarteira}
             taxaReal={taxaReal}
+            tipos={tiposTotais}
           />
         </div>
       )}
@@ -193,9 +237,7 @@ function Metrics({
           <span className="text-zinc-500 text-[10px] uppercase tracking-wider">
             {label}
           </span>
-          <span className={`${color} text-sm font-semibold`}>
-            {FormatCurrency(value)}
-          </span>
+          <span className={`${color} text-sm font-semibold`}>{NUM(value)}</span>
         </div>
       ))}
     </>
@@ -210,26 +252,6 @@ function ProgressBar({ prog, real }: { prog: number; real: number }) {
         className="absolute top-0 left-0 h-full bg-[#4ade80]"
         style={{ width: `${real}%` }}
       />
-    </div>
-  );
-}
-
-function ProgressBadge({ taxa }: { taxa: number }) {
-  const c = pctColor(taxa);
-  return (
-    <div className="flex items-center gap-3 min-w-[160px]">
-      <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-700"
-          style={{ width: `${Math.min(taxa, 100)}%`, background: c.bar }}
-        />
-      </div>
-      <span
-        className="font-black text-sm px-2 py-0.5 rounded-full whitespace-nowrap"
-        style={{ background: c.bg, color: c.text }}
-      >
-        {taxa.toFixed(0)}%
-      </span>
     </div>
   );
 }
@@ -329,28 +351,47 @@ function TotaisGerais({
   totalReal,
   totalCarteira,
   taxaReal,
+  tipos,
 }: {
   totalMeta: number;
   totalProg: number;
   totalReal: number;
   totalCarteira: number;
   taxaReal: number;
+  tipos: Array<{
+    tipo_obra: string;
+    meta: number;
+    prog: number;
+    real: number;
+    carteira: number;
+    taxa: number;
+  }>;
 }) {
-  return (
-    <div className="bg-gradient-to-br from-[#1e3a5f] to-[#0f2744] rounded-2xl border border-[#3b82f6]/20 shadow-xl px-5 py-4 flex items-center gap-6">
-      <span className="text-white font-black text-sm uppercase tracking-wide shrink-0">
-        Total Geral
-      </span>
+  const { toggle, isOpen } = useExpandableSet();
 
-      <div className="flex items-center gap-6 ml-auto flex-wrap">
-        <Metrics
+  const id = "total-geral"; // 🔥 chave única
+
+  return (
+    <RowContainer
+      id={id}
+      isOpen={isOpen(id)}
+      onToggle={() => toggle(id)}
+      header={
+        <KpiRow
+          name="Total Geral"
           meta={totalMeta}
           prog={totalProg}
           real={totalReal}
           carteira={totalCarteira}
+          taxa={taxaReal}
         />
-        <ProgressBadge taxa={taxaReal} />
+      }
+    >
+      <div className="p-3 border-t border-white/5 flex flex-col gap-2 w-full">
+        {tipos.map((t) => (
+          <TipoRow key={t.tipo_obra} row={t} />
+        ))}
       </div>
-    </div>
+    </RowContainer>
   );
 }

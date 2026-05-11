@@ -11,6 +11,36 @@ import {
   rowTotal,
 } from "@/components/dashboard/recompositionGoalsDashboard/RecompositionGoalsDashboard";
 
+function getMonthsRange(startMonth: number, endMonth: number) {
+  return MONTHS.slice(startMonth, endMonth + 1);
+}
+
+function filterGoalByMonth(
+  goal: Goal,
+  startMonth: number,
+  endMonth: number,
+): Goal {
+  const allowedMonths = new Set(getMonthsRange(startMonth, endMonth));
+
+  return {
+    ...goal,
+
+    ...Object.fromEntries(
+      MONTHS.map((monthKey) => [
+        monthKey,
+
+        allowedMonths.has(monthKey)
+          ? goal[monthKey]
+          : {
+              meta: 0,
+              prog: 0,
+              real: 0,
+            },
+      ]),
+    ),
+  };
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // 1. Aggregation (single pass)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -27,7 +57,7 @@ function aggregateGoals(goals: Goal[]) {
   let totalCarteira = 0;
 
   const tipoMap = new Map<string, number>();
-  const parceiraMap = new Map<string, ParceiraAggregate>();
+  const tipoKpiMap = new Map<string, ParceiraAggregate>();
 
   for (const g of goals) {
     let metaSum = 0;
@@ -59,13 +89,13 @@ function aggregateGoals(goals: Goal[]) {
     tipoMap.set(g.tipo_obra, (tipoMap.get(g.tipo_obra) ?? 0) + realSum);
 
     // Bar (parceira)
-    const curr = parceiraMap.get(g.turma) ?? {
+    const curr = tipoKpiMap.get(g.tipo_obra) ?? {
       meta: 0,
       prog: 0,
       real: 0,
     };
 
-    parceiraMap.set(g.turma, {
+    tipoKpiMap.set(g.tipo_obra, {
       meta: curr.meta + metaSum,
       prog: curr.prog + progSum,
       real: curr.real + realSum,
@@ -81,7 +111,7 @@ function aggregateGoals(goals: Goal[]) {
       totalCarteira,
     },
     tipoMap,
-    parceiraMap,
+    tipoKpiMap,
   };
 }
 
@@ -140,7 +170,6 @@ function buildCurve(monthlyTotals: any[]) {
 
   const remaining = Math.max(totalMetaFull - cumulativeDataAtCutoff, 0);
   const monthsToEnd = 11 - Math.max(lastDataIdx, 0);
-
   const rateNeededForDec = monthsToEnd > 0 ? remaining / monthsToEnd : 0;
 
   const futureProgSum =
@@ -153,42 +182,54 @@ function buildCurve(monthlyTotals: any[]) {
   const projByDecOnProg = cumulativeDataAtCutoff + futureProgSum;
   const naturallyHitsThisYear = projByDecOnProg >= totalMetaFull;
 
-  let cumulativeMeta = 0;
-  let cumulativeRealProg = 0; // até cutoff
-  let cumulativeProgFull = 0; // FULL timeline
-  let cumulativeDiff = 0;
+  // 🔹 estados acumulados
+  let cumMeta = 0;
+  let cumRealProg = 0;
+  let cumProgFull = 0;
+  let cumDiff = 0;
+  let lockedOnMeta = false;
 
   const cumulative = monthlyTotals.map((m, i) => {
-    cumulativeMeta += m.Meta;
+    const monthTotal = m.Programado + m.Realizado;
 
-    cumulativeProgFull += m.Programado;
-
-    cumulativeDiff += m.Meta - (m.Programado + m.Realizado);
+    cumMeta += m.Meta;
+    cumProgFull += m.Programado;
+    cumDiff += m.Meta - monthTotal;
 
     if (i <= lastDataIdx) {
-      cumulativeRealProg += m.Programado + m.Realizado;
+      cumRealProg += monthTotal;
     }
 
     const currentValue =
-      i <= lastDataIdx ? cumulativeRealProg : cumulativeDataAtCutoff;
+      i <= lastDataIdx ? cumRealProg : cumulativeDataAtCutoff;
 
     let projValue: number | undefined;
 
-    if (i < lastDataIdx) {
+    // 🔥 lógica ORIGINAL preservada
+    if (i === lastDataIdx) {
+      projValue = currentValue;
+    } else if (i < lastDataIdx) {
       projValue = undefined;
     } else {
-      const monthsAhead = i - lastDataIdx;
-
-      projValue = currentValue + avgMonthlyRate * monthsAhead;
+      if (!lockedOnMeta) {
+        if (currentValue >= cumMeta) {
+          projValue = currentValue;
+        } else {
+          projValue = cumMeta;
+          lockedOnMeta = true;
+        }
+      } else {
+        projValue = cumMeta;
+      }
     }
 
     return {
       mes: m.mes,
-      "Meta Acum.": Number(cumulativeMeta.toFixed(2)),
-      "Prog Acum.": Number(cumulativeProgFull.toFixed(2)),
-      "Diferença Acum.": Number(cumulativeDiff.toFixed(2)),
+      "Meta Acum.": Number(cumMeta.toFixed(2)),
+      "Prog Acum.": Number(cumProgFull.toFixed(2)),
+      "Diferença Acum.": Number(cumDiff.toFixed(2)),
       "Prog+Real Acum.":
-        i <= lastDataIdx ? Number(cumulativeRealProg.toFixed(2)) : undefined,
+        i <= lastDataIdx ? Number(cumRealProg.toFixed(2)) : undefined,
       Projeção:
         projValue !== undefined ? Number(projValue.toFixed(2)) : undefined,
     };
@@ -320,9 +361,18 @@ function buildGroupedRows(goals: Goal[]): GroupedRow[] {
 // ─────────────────────────────────────────────────────────────────────────────
 // HOOK FINAL
 // ─────────────────────────────────────────────────────────────────────────────
-export function useDashboardMetrics(goals: Goal[]): DashboardMetrics {
+export function useDashboardMetrics(
+  goals: Goal[],
+  startMonth: number,
+  endMonth: number,
+): DashboardMetrics {
   return useMemo(() => {
-    const { monthly, totals, tipoMap, parceiraMap } = aggregateGoals(goals);
+    const filteredGoals = goals.map((goal) =>
+      filterGoalByMonth(goal, startMonth, endMonth),
+    );
+
+    const { monthly, totals, tipoMap, tipoKpiMap } =
+      aggregateGoals(filteredGoals);
 
     const monthlyTotals = buildMonthlyTotals(monthly);
 
@@ -330,11 +380,11 @@ export function useDashboardMetrics(goals: Goal[]): DashboardMetrics {
       totals.totalMeta > 0 ? (totals.totalReal / totals.totalMeta) * 100 : 0;
 
     const pieByTipo = buildPie(tipoMap);
-    const barByParceira = buildBar(parceiraMap);
+    const barByParceira = buildBar(tipoKpiMap);
 
     const curve = buildCurve(monthlyTotals);
 
-    const groupedRows = buildGroupedRows(goals);
+    const groupedRows = buildGroupedRows(filteredGoals);
 
     return {
       ...totals,
@@ -342,9 +392,9 @@ export function useDashboardMetrics(goals: Goal[]): DashboardMetrics {
       monthlyTotals,
       pieByTipo,
       barByParceira,
-      parceiraMap,
+      tipoKpiMap,
       groupedRows,
       ...curve,
     };
-  }, [goals]);
+  }, [endMonth, goals, startMonth]);
 }
