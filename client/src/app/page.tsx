@@ -2,14 +2,20 @@ import { cookies } from "next/headers";
 import { Header } from "@/components/layout/Header";
 import DashboardClient from "@/components/dashboard/DashboardClient";
 import { fetchFilters } from "@/actions/fetchFilters.action";
+import dayjs from "dayjs";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+const DEFAULT_START = () => dayjs().month(0).startOf("month");
+const DEFAULT_END = () => dayjs().endOf("month");
 
 const emptyData = {
   kpis: {
     total: 0,
     concludedThisMonth: 0,
+    portfoliototal: 0,
+    valueExecutedTotal: 0,
     totalConcluded: 0,
     withoutSchedule: 0,
     executionRate: 0,
@@ -23,10 +29,13 @@ const emptyData = {
 
 async function fetchDashboard(token: string) {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store",
-    });
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/dashboard?dataInicial=${DEFAULT_START().format("DD-MM-YYYY")}&dataFinal=${DEFAULT_END().format("DD-MM-YYYY")}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      },
+    );
     if (!res.ok) return emptyData;
     return res.json();
   } catch {
@@ -93,7 +102,7 @@ async function fetchEliminacaoRestricao(token: string) {
   const year = new Date().getFullYear();
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/restricao/eliminacao-restricao?dataInicial=01/01/${year}&dataFinal=31/12/${year}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/restricao/avanca-parceira?dataInicial=01/01/${year}&dataFinal=31/12/${year}`,
       { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
     );
     if (!res.ok) return [];
@@ -118,7 +127,6 @@ async function fetchAderenciaParceira(token: string) {
     return [];
   }
 }
-
 
 async function fetchExecMonitoring(token: string) {
   const year = new Date().getFullYear();
@@ -146,6 +154,9 @@ async function fetchMaodeObra(token: string) {
   const dataFinal = `${lastDay}/${mm}/${year}`;
 
   try {
+    console.log(
+      `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal?dataInicial=${dataInicial}&dataFinal=${dataFinal}`,
+    );
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal?dataInicial=${dataInicial}&dataFinal=${dataFinal}`,
       { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
@@ -153,26 +164,37 @@ async function fetchMaodeObra(token: string) {
     if (!res.ok) return { data: [], data2: [], metaDiaria: 0 };
     const json = await res.json();
 
+    console.log(json);
+
     const firstSummary = json.data?.firstSummary ?? {};
     const secondSummary = json.data?.secondSummary ?? {};
-    const summaryData: any[] = firstSummary.summary ?? [];
-    const metaDiaria: number = summaryData[0]?.financialGoal ?? 0;
+    const metaDiaria: number = firstSummary.summary[0].financialGoal ?? 0;
 
     return {
-      data: summaryData,
+      data: firstSummary,
       data2: secondSummary.summary ?? [],
       metaDiaria,
     };
   } catch {
-    return { data: [], data2: [], metaDiaria: 0 };
+    return { data: { summary: [], totals: {} }, data2: [], metaDiaria: 0 };
   }
 }
 
 export default async function Home() {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value ?? "";
-  const [data, maodeObra, forecast, metasRecomposicao, goalsFilters, execMonitoring, eliminacaoRestricao, aderenciaParceira, filtersData] = await Promise.all([
-    fetchDashboard(token),
+  const [
+    // data,
+    maodeObra,
+    forecast,
+    metasRecomposicao,
+    goalsFilters,
+    execMonitoring,
+    eliminacaoRestricao,
+    aderenciaParceira,
+    filtersData,
+  ] = await Promise.all([
+    // fetchDashboard(token),
     fetchMaodeObra(token),
     fetchForecast(token),
     fetchMetasRecomposicao(token),
@@ -190,20 +212,14 @@ export default async function Home() {
   ]);
 
   return (
-    <div className="relative z-0 flex min-h-screen bg-[#0d1929]">
+    <div className="relative z-0 flex min-h-screen">
       <div className="flex flex-1 flex-col overflow-hidden transition-all duration-300 ease-in-out">
         <Header />
 
         {/* Main dashboard content */}
         <main className="flex-1 overflow-y-auto">
           <DashboardClient
-            kpis={data.kpis}
-            byStatus={data.byStatus}
-            byRegional={data.byRegional}
-            trend={data.trend}
-            topPartners={data.topPartners}
-            partnerDetails={data.partnerDetails ?? {}}
-            recentWorks={data.recentWorks}
+            // dataDashboard={data}
             token={token}
             initialMaodeObra={maodeObra.data}
             initialMaodeObra2={maodeObra.data2}
