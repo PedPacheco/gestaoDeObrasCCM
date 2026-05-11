@@ -40,7 +40,7 @@ export class FeasibilityRepository implements IFeasibilityRepository {
 
   async findFiles(
     idWork: number,
-  ): Promise<{ id: number; caminho_arquivo: string }[]> {
+  ): Promise<{ id: number; caminho_arquivo: string; id_obra: number }[]> {
     const value = idWork.toString();
 
     return await this.prisma.relatorio_viabilidade.findMany({
@@ -57,7 +57,7 @@ export class FeasibilityRepository implements IFeasibilityRepository {
           ],
         },
       },
-      select: { id: true, caminho_arquivo: true },
+      select: { id: true, caminho_arquivo: true, id_obra: true },
     });
   }
 

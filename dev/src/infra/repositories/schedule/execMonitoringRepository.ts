@@ -14,8 +14,14 @@ export class ExecMonitoringRepository implements IExecMonitoringRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async getData(filters: GetExecMonitoringDTO): Promise<ExecMonitoringRow[]> {
-    const { dataInicial, dataFinal, idRegional, idTecnico, idTurma, idTipo } =
-      filters;
+    const {
+      dataInicial,
+      dataFinal,
+      idRegional,
+      idTecnico,
+      idParceira,
+      idTipo,
+    } = filters;
 
     const startDate = moment.utc(dataInicial, 'DD/MM/YYYY').toDate();
     const endDate = moment.utc(dataFinal, 'DD/MM/YYYY').toDate();
@@ -25,6 +31,7 @@ export class ExecMonitoringRepository implements IExecMonitoringRepository {
         TO_CHAR(p.data_prog, 'MM/YYYY') AS mes,
         r.regional,
         r.id::int AS id_regional,
+        t.turma,
         COUNT(*)::int AS total,
         SUM(CASE WHEN p.id_tecnico != 1 THEN 1 ELSE 0 END)::int AS acompanhado,
         SUM(CASE WHEN p.id_tecnico = 1 THEN 1 ELSE 0 END)::int AS nao_acompanhado
@@ -32,6 +39,7 @@ export class ExecMonitoringRepository implements IExecMonitoringRepository {
       INNER JOIN construcao_sp.obras o ON o.id = p.id_obra
       INNER JOIN construcao_sp.municipios m ON m.id = o.id_gpm
       INNER JOIN construcao_sp.regionais r ON r.id = m.id_regional
+      INNER JOIN construcao_sp.turmas t ON t.id = o.id_turma
       WHERE p.id_status_programacao IN (4, 6)
         AND p.data_prog >= ${startDate}
         AND p.data_prog <= ${endDate}
@@ -43,15 +51,15 @@ export class ExecMonitoringRepository implements IExecMonitoringRepository {
     if (idTecnico?.length > 0) {
       query = Prisma.sql`${query} AND p.id_tecnico IN (${Prisma.join(idTecnico)})`;
     }
-    if (idTurma?.length > 0) {
-      query = Prisma.sql`${query} AND o.id_turma IN (${Prisma.join(idTurma)})`;
+    if (idParceira?.length > 0) {
+      query = Prisma.sql`${query} AND o.id_turma IN (${Prisma.join(idParceira)})`;
     }
     if (idTipo?.length > 0) {
       query = Prisma.sql`${query} AND o.id_tipo IN (${Prisma.join(idTipo)})`;
     }
 
     query = Prisma.sql`${query}
-      GROUP BY TO_CHAR(p.data_prog, 'MM/YYYY'), r.regional, r.id
+      GROUP BY TO_CHAR(p.data_prog, 'MM/YYYY'), r.regional, r.id, t.turma
       ORDER BY MIN(p.data_prog), r.regional
     `;
 
