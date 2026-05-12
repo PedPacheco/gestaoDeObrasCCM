@@ -33,7 +33,7 @@ describe('RejectionsOfSchedulesService', () => {
   it('should call get method and return data', async () => {
     mockRepository.get.mockResolvedValue([
       {
-        motivo: 'CHI',
+        restricoes: { restricao: 'CHI' },
         data_prog: new Date('2025-05-17'),
         hora_ini: '08:00',
         hora_ter: '17:00',

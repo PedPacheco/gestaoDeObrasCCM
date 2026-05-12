@@ -388,12 +388,13 @@ model relatorio {
 }
 
 model restricoes {
-  id                              Int                      @id(map: "RESTRICOES_pkey") @default(autoincrement())
-  restricao                       String?                  @db.VarChar(80)
-  tipo_restricao                  String                   @db.VarChar(15)
-  programacoes_restricao_execucao programacoes[]           @relation("programacoes_restricao_execucao")
-  programacoes_restricao_prog1    programacoes[]           @relation("programacoes_restricao_prog1")
-  programacoes_restricao_prog2    programacoes[]           @relation("programacoes_restricao_prog2")
+  id                              Int                        @id(map: "RESTRICOES_pkey") @default(autoincrement())
+  restricao                       String?                    @db.VarChar(80)
+  tipo_restricao                  String                     @db.VarChar(15)
+  programacoes_restricao_execucao programacoes[]             @relation("programacoes_restricao_execucao")
+  programacoes_restricao_prog1    programacoes[]             @relation("programacoes_restricao_prog1")
+  programacoes_restricao_prog2    programacoes[]             @relation("programacoes_restricao_prog2")
+  programacoes_reprovacoes        programacoes_reprovacoes[]
   restricoes_publicacoes          restricoes_publicacoes[]
 }
 
@@ -641,21 +642,23 @@ model materiais_excluidos {
 }
 
 model programacoes_reprovacoes {
-  id                     Int       @id @default(autoincrement())
+  id                     Int        @id @default(autoincrement())
   id_obra                Int
-  motivo                 String    @db.VarChar(100)
-  descricao              String    @db.VarChar(300)
-  data_prog              DateTime? @db.Date
+  motivo                 String     @db.VarChar(100)
+  descricao              String     @db.VarChar(300)
+  data_prog              DateTime?  @db.Date
   prog                   Int?
   equip_desligado        String?
-  hora_ini               DateTime? @db.Time(6)
-  hora_ter               DateTime? @db.Time(6)
+  hora_ini               DateTime?  @db.Time(6)
+  hora_ter               DateTime?  @db.Time(6)
   equipe_linha_morta     Int?
   equipe_linha_viva      Int?
   equipe_regularizacao   Int?
-  tipo_servico           String?   @db.VarChar(50)
-  observacao_programacao String?   @db.VarChar(250)
-  obras                  obras     @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
+  tipo_servico           String?    @db.VarChar(50)
+  observacao_programacao String?    @db.VarChar(250)
+  id_restricao           Int        @default(1)
+  obras                  obras      @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
+  restricoes             restricoes @relation(fields: [id_restricao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricoes")
 }
 
 model suspensoes_retiradas {

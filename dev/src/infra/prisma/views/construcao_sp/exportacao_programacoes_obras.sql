@@ -65,25 +65,25 @@ FROM
                       (
                         (
                           programacoes
-                          LEFT JOIN restricoes ON (
+                          JOIN restricoes ON (
                             (
                               restricoes.id = programacoes.id_restricao_execucao
                             )
                           )
                         )
-                        LEFT JOIN status_programacao ON (
+                        JOIN status_programacao ON (
                           (
                             status_programacao.id = programacoes.id_status_programacao
                           )
                         )
                       )
-                      LEFT JOIN restricoes restricoes_1 ON (
+                      JOIN restricoes restricoes_1 ON (
                         (
                           programacoes.id_restricao_prog1 = restricoes_1.id
                         )
                       )
                     )
-                    LEFT JOIN restricoes restricoes_2 ON (
+                    JOIN restricoes restricoes_2 ON (
                       (
                         programacoes.id_restricao_prog2 = restricoes_2.id
                       )

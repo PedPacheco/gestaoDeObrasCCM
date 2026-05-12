@@ -154,17 +154,12 @@ async function fetchMaodeObra(token: string) {
   const dataFinal = `${lastDay}/${mm}/${year}`;
 
   try {
-    console.log(
-      `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal?dataInicial=${dataInicial}&dataFinal=${dataFinal}`,
-    );
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal?dataInicial=${dataInicial}&dataFinal=${dataFinal}`,
       { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
     );
     if (!res.ok) return { data: [], data2: [], metaDiaria: 0 };
     const json = await res.json();
-
-    console.log(json);
 
     const firstSummary = json.data?.firstSummary ?? {};
     const secondSummary = json.data?.secondSummary ?? {};
