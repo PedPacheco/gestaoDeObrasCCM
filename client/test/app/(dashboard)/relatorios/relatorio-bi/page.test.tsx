@@ -13,7 +13,7 @@ vi.mock("@/components/exports/buttonForBILink", () => ({
     if (!visible) return null;
 
     return (
-      <div data-testid="bi-link" data-path={path}>
+      <div data-testid="bi-link" data-path={path} data-visible={visible}>
         {text}
       </div>
     );

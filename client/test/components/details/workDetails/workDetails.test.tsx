@@ -167,6 +167,7 @@ describe("WorkDetails", () => {
     status_ov_sap: "SAP-OK",
     tipo_ads: "ADS-1",
     observ_obra: "Observação inicial",
+    data_empreitamento: null,
     id: "100",
   };
 

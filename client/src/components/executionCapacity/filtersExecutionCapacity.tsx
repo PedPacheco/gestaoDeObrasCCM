@@ -68,7 +68,7 @@ export function FiltersExecutionCapacity({
             onChange={(value) =>
               value
                 ? setYear(value.year().toString())
-                : dayjs().year().toString()
+                : setYear(dayjs().year().toString())
             }
             slotProps={{
               textField: { size: "small", fullWidth: true },
