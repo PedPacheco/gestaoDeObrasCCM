@@ -15,66 +15,25 @@ import {
   YAxis,
 } from "recharts";
 
-import { FormatCurrency } from "@/utils/formatValue";
-
-import { ChartTooltip } from "../common/ChartTooltip";
-import { DailySummaryTable } from "./DailySummaryTable";
-import { RingCard } from "../common/RingCard";
-import { GroupSummaryTable } from "./GroupSummaryTable";
-import { KpiCard } from "../common/KpiCard";
-import { ChartCard } from "../common/ChartCard";
-import { Transform } from "@/utils/transform";
 import { fetchData } from "@/actions/fetchData.action";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { LaborDashboardFilters } from "./laborDashboardFilters";
 import { useLaborMetrics } from "@/hooks/dashboard/laborDashboard/useLaborDashboardMetrics";
 import { usePersistedNavigation } from "@/hooks/dashboard/laborDashboard/usePersistedNavigation";
+import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { DailySummary, GroupSummary } from "@/types/dashboard/labor/labor";
+import { Transform } from "@/utils/transform";
+
+import { ChartCard } from "../common/ChartCard";
+import { ChartTooltip } from "../common/ChartTooltip";
+import { DailySummaryTable } from "./DailySummaryTable";
+import { GroupSummaryTable } from "./GroupSummaryTable";
+import { KpiSection } from "./KpiSection";
+import { LaborDashboardFilters } from "./laborDashboardFilters";
 
 // ── Types ──────────────────────────────────────────────────────────────────
-export interface DailySummaryItem {
-  dataProg: string;
-  totalQtde: number;
-  teamsTotal: number;
-  totalMoPlan: number;
-  totalMoProg: number;
-  totalMoExec: number;
-  totalMoPrev: number;
-  totalWalletAvaliable: number;
-  financialGoal: number;
-}
-
-export interface DailySummaryTotals {
-  totalWalletAvaliable: number;
-  totalWalletExec: number;
-  totalQtdeObras: number;
-  totalTeams: number;
-  totalFinancialGoal: number;
-  totalDiaryGoal: number;
-  totalFinancialGoalWith8: number;
-  totalDiaryGoalWith8: number;
-  totalMoProg: number;
-  totalMoExec: number;
-  totalDiff: number;
-}
-
-export interface DailySummary {
-  summary: DailySummaryItem[];
-  totals: DailySummaryTotals;
-}
-
-export interface GroupSummary {
-  grupo: string;
-  turma: string;
-  qtdeWorks: number;
-  totalMoPlan: number;
-  totalMoProg: number;
-  totalMoExec: number;
-  totalMoPrev: number;
-}
 
 interface Props {
   initialData: DailySummary;
-  initialData2: GroupSummary[];
+  initialData2: GroupSummary;
   token: string;
   initialMetaDiaria: number;
   filtersData: any;
@@ -83,10 +42,27 @@ interface Props {
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 export function pctColor(pct: number) {
-  if (pct >= 100) return { bg: "#053715", text: "#53FF75", bar: "#53FF75" };
-  // if (pct >= 70) return { bg: "#431407", text: "#f97316", bar: "#f97316" };
-  // return { bg: "#431407", text: "#f97316", bar: "#f97316" };
-  return { bg: "#1e1b4b", text: "#818cf8", bar: "#818cf8" };
+  if (pct >= 100) {
+    return {
+      bg: "#053715",
+      text: "#53FF75",
+      bar: "#53FF75",
+    };
+  }
+
+  if (pct >= 89 && pct < 100) {
+    return {
+      bg: "#451a03",
+      text: "#facc15",
+      bar: "#facc15",
+    };
+  }
+
+  return {
+    bg: "#450a0a",
+    text: "#f87171",
+    bar: "#ef4444",
+  };
 }
 
 const DEFAULT_START = () => dayjs().startOf("month");
@@ -106,14 +82,15 @@ export default function LaborDashboard({
     data: filtersData,
   });
 
-  const { openWithFiltersInNewTab } = usePersistedNavigation();
-
   const [data, setData] = useState<DailySummary>({
     summary: initialData?.summary ?? [],
     totals: initialData?.totals ?? {
-      totalWalletAvaliable: 0,
-      totalQtdeObras: 0,
+      totalWorks: 0,
+      totalSchedules: 0,
       totalTeams: 0,
+      totalExecutionCapacityTeams: 0,
+      totalQtdeRfpTeams: 0,
+      totalWalletExec: 0,
       totalFinancialGoal: 0,
       totalDiaryGoal: 0,
       totalFinancialGoalWith8: 0,
@@ -122,12 +99,37 @@ export default function LaborDashboard({
       totalMoExec: 0,
       totalDiff: 0,
     },
+    contractValueByMonth: initialData?.contractValueByMonth ?? {
+      monthlyValue: 0,
+    },
   });
-  const [data2, setData2] = useState<GroupSummary[]>(initialData2 ?? []);
+  const [data2, setData2] = useState<GroupSummary>({
+    summary: initialData2.summary ?? [],
+    totals: initialData2.totals ?? {
+      totalSchedules: 0,
+      totalMoPlanByGrouping: 0,
+      totalMoPendByGrouping: 0,
+      totalMoProgByGrouping: 0,
+      totalMoExecByGrouping: 0,
+      totalMoPrevByGrouping: 0,
+      totalWalletRda: 0,
+      totalExecRda: 0,
+      totalProgRda: 0,
+      totalWalletBt0: 0,
+      totalProgBt0: 0,
+      totalExecBt0: 0,
+      totalWalletMarket: 0,
+      totalProgMarket: 0,
+      totalExecMarket: 0,
+      totalWalletRecom: 0,
+      totalProgRecom: 0,
+      totalExecRecom: 0,
+      totalDiff: 0,
+    },
+  });
   const [metaDiaria, setMetaDiaria] = useState<number>(initialMetaDiaria ?? 0);
   const [startDate, setStartDate] = useState<Dayjs | null>(DEFAULT_START());
   const [endDate, setEndDate] = useState<Dayjs | null>(DEFAULT_END());
-  const [isFiltered, setIsFiltered] = useState<boolean>(false);
 
   const [selectedRegionais, setSelectedRegionais] = useState<string[]>(
     () => filters?.regional ?? [],
@@ -150,12 +152,10 @@ export default function LaborDashboard({
     pctGoal108,
     executionRate,
     topPartnerData,
-    totals,
   } = useLaborMetrics({
     dailyData: data,
     groupData: data2,
     dailyGoal: metaDiaria,
-    isFiltered,
   });
 
   const buildParams = useCallback(
@@ -192,9 +192,8 @@ export default function LaborDashboard({
       );
 
       setData(response.data.firstSummary ?? {});
-      setData2(response.data.secondSummary?.summary ?? []);
+      setData2(response.data.secondSummary ?? {});
       setMetaDiaria(response.data.firstSummary?.summary[0]?.financialGoal ?? 0);
-      setIsFiltered(true);
     });
   }
 
@@ -220,43 +219,11 @@ export default function LaborDashboard({
       );
 
       setData(response.data.firstSummary ?? {});
-      setData2(response.data.secondSummary?.summary ?? []);
+      setData2(response.data.secondSummary ?? {});
 
       setMetaDiaria(response.data.firstSummary?.summary[0]?.financialGoal ?? 0);
     });
   }, [clearFilters, token]);
-
-  const handleOpenPortfolio = () => {
-    openWithFiltersInNewTab(
-      "portfolioWorksFilters",
-      {
-        selectedItems: {
-          idRegional: selectedRegionais,
-          idParceira: selectedParceiras,
-          idTipo: selectedTiposObra,
-          idGrupo: selectedGroup,
-        },
-      },
-      "/obras-carteira",
-    );
-  };
-
-  const handleOpenSchedule = () => {
-    openWithFiltersInNewTab(
-      "scheduleForDayFilters",
-      {
-        selectedItems: {
-          idRegional: selectedRegionais,
-          idParceira: selectedParceiras,
-          idTipo: selectedTiposObra,
-          idGrupo: selectedGroup,
-        },
-        dataInicial: startDate,
-        dataFinal: endDate,
-      },
-      "/programacao/por-data",
-    );
-  };
 
   return (
     <div className="flex flex-col gap-5 p-6 min-h-full">
@@ -281,110 +248,16 @@ export default function LaborDashboard({
 
       {/* ── Cartões ──────────────────────────────────────────────────── */}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-        {[
-          {
-            label: "Total Obras",
-            value: isFiltered
-              ? data2
-                  .reduce((s, r) => s + (r.qtdeWorks ?? 0), 0)
-                  .toLocaleString("pt-BR")
-              : totals.obras.toLocaleString("pt-BR"),
-            gradient: "bg-gradient-to-br from-[#182638] to-[#1c2f42]",
-            accent: "#53FF75",
-            onclick: handleOpenSchedule,
-          },
-          {
-            label: "Total Equipes",
-            value: isFiltered
-              ? totals.equipesHoje.toLocaleString("pt-BR")
-              : totals.equipes.toLocaleString("pt-BR"),
-            gradient: "bg-gradient-to-br from-[#182638] to-[#1c2f42]",
-            accent: "#53FF75",
-          },
-          {
-            type: "ring",
-            component: (
-              <RingCard
-                label="Meta 100%"
-                value={pctGoal100}
-                color={pctColor(pctGoal100).bar}
-                sub={`${FormatCurrency(display.programado)} / ${FormatCurrency(totalGoal)}`}
-              />
-            ),
-          },
-          {
-            label: "Carteira (Pendente SAP)",
-            value: FormatCurrency(display.carteira),
-            gradient: "bg-gradient-to-br from-[#182638] to-[#1c2f42]",
-            accent: "#53FF75",
-            onclick: handleOpenPortfolio,
-          },
-          {
-            label: "Carteira (Pendente CAMPO)",
-            value: FormatCurrency(display.carteiraExec),
-            gradient: " bg-gradient-to-br from-[#182638] to-[#1c2f42]",
-            accent: "#53FF75",
-          },
-          {
-            type: "ring",
-            component: (
-              <RingCard
-                label="Meta 108%"
-                value={pctGoal108}
-                color={pctColor(pctGoal108).bar}
-                sub={`${FormatCurrency(display.programado)} / ${FormatCurrency(totalGoal * 1.08)}`}
-              />
-            ),
-          },
-          {
-            label: "Programado (Conforme o filtro)",
-            value: FormatCurrency(display.programado),
-            gradient: " bg-gradient-to-br from-[#182638] to-[#1c2f42]",
-            accent: "#53FF75",
-          },
-          {
-            label: "Executado (Conforme o filtro)",
-            value: FormatCurrency(display.executado),
-            gradient: "bg-gradient-to-br from-[#182638] to-[#1c2f42]",
-            accent: "#53FF75",
-          },
-          {
-            type: "ring",
-            component: (
-              <RingCard
-                label="Taxa de Execução"
-                value={executionRate}
-                color={pctColor(executionRate).bar}
-                sub={`${FormatCurrency(display.executado)} / ${FormatCurrency(display.programado)}`}
-              />
-            ),
-          },
-        ].map((item, index) => {
-          if (item.type === "ring") {
-            return (
-              <div key={item.component?.props.label}>{item.component}</div>
-            );
-          }
-
-          const { label, value, gradient, accent, onclick } = item;
-
-          if (!label || !value || !gradient || !accent) {
-            return;
-          }
-
-          return (
-            <KpiCard
-              accent={accent}
-              gradient={gradient}
-              label={label}
-              value={value}
-              key={index}
-              onClick={onclick}
-            />
-          );
-        })}
-      </div>
+      <KpiSection
+        buildParams={buildParams}
+        display={display}
+        endDate={endDate}
+        startDate={startDate}
+        executionRate={executionRate}
+        pctGoal100={pctGoal100}
+        pctGoal108={pctGoal108}
+        totalGoal={totalGoal}
+      />
 
       {/* ── Gráficos ───────────────────────────────────────────────────── */}
 
@@ -441,6 +314,7 @@ export default function LaborDashboard({
                   radius={[3, 3, 0, 0]}
                   maxBarSize={10}
                 />
+
                 <Bar
                   dataKey="Executado"
                   fill="url(#gExec)"
@@ -516,14 +390,7 @@ export default function LaborDashboard({
         </div>
       </div>
 
-      <DailySummaryTable
-        data={data.summary}
-        dailyGoal={metaDiaria}
-        totalTeams={totals.equipes}
-        totalExec={totals.executado}
-        totalWorks={totals.obras}
-        totalScheduled={totals.programado}
-      />
+      <DailySummaryTable data={data} dailyGoal={metaDiaria} />
 
       <GroupSummaryTable data={data2} />
     </div>

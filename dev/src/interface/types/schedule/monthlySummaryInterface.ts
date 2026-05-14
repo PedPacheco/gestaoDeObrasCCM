@@ -55,7 +55,7 @@ export interface WorkOrderMetrics {
 
 export interface DailySummaryEntry {
   dataProg: string;
-  totalQtde: number;
+  qtdeSchedules: number;
   teamsTotal: number;
   financialGoal: number;
   financialGoalWith8: number;
@@ -72,7 +72,7 @@ export interface GroupTeamSummaryEntry {
   turma: string;
   idTurma?: number;
   idGrupo?: number;
-  qtdeWorks: number;
+  qtdeSchedules: number;
   totalMoPlan: number;
   totalMoPend: number;
   totalMoProg: number;
@@ -103,10 +103,13 @@ export interface GetMonthlySummaryInterface {
 }
 
 export interface DailySummaryTotals {
-  totalWalletAvaliable: number;
-  totalWalletExec: number;
-  totalQtdeObras: number;
+  totalWorks: number;
+  totalSchedules: number;
   totalTeams: number;
+  totalQtdeRfpTeams: number;
+  totalExecutionCapacityTeams: number;
+  totalWalletExec: number;
+
   totalFinancialGoal: number;
   totalDiaryGoal: number;
   totalFinancialGoalWith8: number;
@@ -117,18 +120,31 @@ export interface DailySummaryTotals {
 }
 
 export interface GroupSummaryTotals {
-  totalWorks: number;
+  totalSchedules: number;
   totalMoPlanByGrouping: number;
   totalMoPendByGrouping: number;
   totalMoProgByGrouping: number;
   totalMoExecByGrouping: number;
   totalMoPrevByGrouping: number;
+  totalWalletRda: number;
+  totalProgRda: number;
+  totalExecRda: number;
+  totalWalletBt0: number;
+  totalProgBt0: number;
+  totalExecBt0: number;
+  totalWalletRecom: number;
+  totalProgRecom: number;
+  totalExecRecom: number;
+  totalWalletMarket: number;
+  totalProgMarket: number;
+  totalExecMarket: number;
   totalDiff: number;
 }
 
 export interface DailySummaryResult {
   summary: DailySummaryEntry[];
   totals: DailySummaryTotals;
+  contractValueByMonth: { monthlyValue: number };
 }
 
 export interface GroupSummaryResult {

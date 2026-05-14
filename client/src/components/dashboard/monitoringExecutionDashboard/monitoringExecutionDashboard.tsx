@@ -100,7 +100,7 @@ export default function MonitoringExecutionDashboard({
 
   const buildParams = useCallback(
     (): Record<string, string[]> => ({
-      idTurma: selectedParceiras,
+      idParceira: selectedParceiras,
       idRegional: selectedRegionais,
       idTecnico: selectedTechnician,
     }),

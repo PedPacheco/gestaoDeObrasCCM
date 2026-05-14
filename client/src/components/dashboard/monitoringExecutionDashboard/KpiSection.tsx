@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { KpiCard } from "../common/KpiCard";
-import { META_PCT, Row } from "./monitoringExecutionDashboard";
+import { Row } from "./monitoringExecutionDashboard";
 import { formatPercentage } from "@/utils/formatValue";
 
 export function KpiSectionMonitoringExecution({ data }: { data: Row[] }) {
@@ -26,19 +26,13 @@ export function KpiSectionMonitoringExecution({ data }: { data: Row[] }) {
         {
           label: "Acompanhadas",
           value: totals.acomp,
-          gradient:
-            totals.pct >= META_PCT
-              ? "bg-gradient-to-br from-[#052e16] to-[#14532d]"
-              : "bg-gradient-to-br from-[#431407] to-[#7c2d12]",
+          gradient: "bg-gradient-to-br from-[#182638] to-[#1c2f42]",
           accent: "#38bdf8",
         },
         {
           label: "% Acompanhado",
           value: formatPercentage(totals.pct),
-          gradient:
-            totals.pct >= META_PCT
-              ? "bg-gradient-to-br from-[#052e16] to-[#14532d]"
-              : "bg-gradient-to-br from-[#431407] to-[#7c2d12]",
+          gradient: "bg-gradient-to-br from-[#182638] to-[#1c2f42]",
           accent: "#38bdf8",
         },
       ].map((item, index) => {

@@ -19,25 +19,45 @@ import {
   Row,
   sortMes,
 } from "./monitoringExecutionDashboard";
-import { formatPercentage } from "@/utils/formatValue";
 
 export function MonitoredMonthlyTable({ data }: { data: Row[] }) {
   const byMonth = useMemo(() => {
-    const map: Record<string, { total: number; acompanhado: number }> = {};
-    data.forEach((r) => {
-      if (!map[r.mes]) map[r.mes] = { total: 0, acompanhado: 0 };
-      map[r.mes].total += r.total;
-      map[r.mes].acompanhado += r.acompanhado;
-    });
-    return Object.entries(map)
+    const grouped = data.reduce<
+      Record<
+        string,
+        {
+          total: number;
+          acompanhado: number;
+          naoAcompanhado: number;
+        }
+      >
+    >((acc, row) => {
+      if (!acc[row.mes]) {
+        acc[row.mes] = {
+          total: 0,
+          acompanhado: 0,
+          naoAcompanhado: 0,
+        };
+      }
+
+      acc[row.mes].total += row.total;
+      acc[row.mes].acompanhado += row.acompanhado;
+      acc[row.mes].naoAcompanhado += row.naoAcompanhado;
+
+      return acc;
+    }, {});
+
+    return Object.entries(grouped)
       .sort(([a], [b]) => sortMes(a, b))
-      .map(([mes, v]) => ({
+      .map(([mes, values]) => ({
         mes: monthLabel(mes),
-        total: v.total,
-        acompanhado: v.acompanhado,
-        naoAcompanhado: v.total - v.acompanhado,
-        // pct recalculado aqui para garantir consistência com o agrupamento atual
-        pct: v.total > 0 ? Math.round((v.acompanhado / v.total) * 100) : 0,
+        total: values.total,
+        acompanhado: values.acompanhado,
+        naoAcompanhado: values.naoAcompanhado,
+        pct:
+          values.total > 0
+            ? Math.round((values.acompanhado / values.total) * 100)
+            : 0,
       }));
   }, [data]);
 
@@ -126,7 +146,7 @@ export function MonitoredMonthlyTable({ data }: { data: Row[] }) {
               label={{
                 position: "top",
                 fill: "#e5e7eb",
-                fontSize: 12,
+                fontSize: 14,
                 offset: 20,
                 formatter: (value) => `${value}%`,
               }}

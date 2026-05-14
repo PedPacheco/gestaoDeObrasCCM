@@ -63,7 +63,7 @@ interface Props {
   // Resumo Mensal — Mão de Obra
   token: string;
   initialMaodeObra: any;
-  initialMaodeObra2: any[];
+  initialMaodeObra2: any;
   initialMetaDiaria: number;
   // Resumo Mensal — Forecast
   initialForecastFirst: any;
@@ -119,13 +119,13 @@ export default function DashboardClient({
               key: "mao-de-obra",
               label: "Resumo — Mão de Obra Parceira",
             },
-            { key: "forecast", label: "Resumo Mensal — Forecast" },
+            // { key: "forecast", label: "Resumo Mensal — Forecast" },
             { key: "metas-recomposicao", label: "Metas Recomposição" },
             {
               key: "acompanhamento-execucao",
               label: "Acompanhamento da Execução",
             },
-            { key: "avanca-parceiro", label: "Avança parceiro" },
+            // { key: "avanca-parceiro", label: "Avança parceiro" },
           ] as { key: Tab; label: string }[]
         ).map(({ key, label }) => (
           <button
@@ -143,20 +143,7 @@ export default function DashboardClient({
       </div>
 
       {/* ── Tab Content ───────────────────────────────────────────── */}
-      {activeTab === "avanca-parceiro" ? (
-        <AvancaParceiroDashboard
-          initialEliminacao={initialEliminacaoRestricao}
-          initialAderencia={initialAderenciaParceira}
-          filtersData={goalsFilters}
-          token={token}
-        />
-      ) : activeTab === "forecast" ? (
-        <ForecastDashboard
-          initialFirst={initialForecastFirst}
-          initialSecond={initialForecastSecond}
-          token={token}
-        />
-      ) : activeTab === "metas-recomposicao" ? (
+      {activeTab === "metas-recomposicao" ? (
         <RecompositionGoalsDashboard
           initialGoals={initialMetasRecomposicao}
           filtersData={goalsFilters}

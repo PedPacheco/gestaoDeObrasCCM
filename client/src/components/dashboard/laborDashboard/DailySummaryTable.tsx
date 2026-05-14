@@ -1,16 +1,13 @@
 import { FormatCurrency } from "@/utils/formatValue";
-import { DailySummary, DailySummaryItem, pctColor } from "./laborDashboard";
+import { pctColor } from "./laborDashboard";
 import { useMemo, useState } from "react";
 import { PerformanceRow, TotalsRow } from "./rowsTable";
 import { isWeekend } from "@/hooks/dashboard/laborDashboard/useLaborDashboardMetrics";
+import { DailySummary } from "@/types/dashboard/labor/labor";
 
 interface DailySummaryTableProps {
-  data: DailySummaryItem[];
+  data: DailySummary;
   dailyGoal: number;
-  totalScheduled: number;
-  totalWorks: number;
-  totalExec: number;
-  totalTeams: number;
 }
 
 function getDayOfWeek(dateStr: string) {
@@ -19,21 +16,14 @@ function getDayOfWeek(dateStr: string) {
   return days[new Date(+y, +m - 1, +d).getDay()];
 }
 
-export function DailySummaryTable({
-  data,
-  dailyGoal,
-  totalExec,
-  totalWorks,
-  totalScheduled,
-  totalTeams,
-}: DailySummaryTableProps) {
+export function DailySummaryTable({ data, dailyGoal }: DailySummaryTableProps) {
   const [filterWeekday, setFilterWeekday] = useState(false);
   const [filterPerf, setFilterPerf] = useState<"all" | "above" | "below">(
     "all",
   );
 
   const processedRows = useMemo(() => {
-    return data
+    return data.summary
       .map((row) => {
         const pct100 = dailyGoal ? (row.totalMoProg / dailyGoal) * 100 : 0;
 
@@ -59,13 +49,11 @@ export function DailySummaryTable({
   }, [data, dailyGoal, filterWeekday, filterPerf]);
 
   const totals = useMemo(() => {
-    const totalRows = processedRows.length;
-
-    const target100 = dailyGoal * totalRows;
+    const target100 = dailyGoal * 22;
     const target108 = target100 * 1.08;
 
-    const pct100 = target100 ? (totalScheduled / target100) * 100 : 0;
-    const pct108 = target108 ? (totalScheduled / target108) * 100 : 0;
+    const pct100 = target100 ? (data.totals.totalMoProg / target100) * 100 : 0;
+    const pct108 = target108 ? (data.totals.totalMoExec / target108) * 100 : 0;
 
     return {
       target100,
@@ -75,12 +63,12 @@ export function DailySummaryTable({
       color100: pctColor(pct100),
       color108: pctColor(pct108),
     };
-  }, [processedRows, dailyGoal, totalScheduled]);
+  }, [dailyGoal, data.totals.totalMoExec, data.totals.totalMoProg]);
 
   return (
     <div className="bg-gradient-to-br from-[#1e2f42] to-[#192535] rounded-2xl border border-white/5 shadow-xl overflow-hidden flex flex-col">
       <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between">
-        <span className="text-white font-bold text-sm uppercase tracking-wide">
+        <span className="text-zinc-300 font-bold text-sm uppercase tracking-wide">
           Detalhe da Programação por Data
         </span>
         <div className="flex items-center gap-2">
@@ -138,13 +126,13 @@ export function DailySummaryTable({
               <th colSpan={4} className="py-2 px-3 text-zinc-600 text-xs" />
               <th
                 colSpan={2}
-                className="py-2 px-3 text-center text-[#3b82f6] font-bold text-base tracking-wider border-x border-[#3b82f6]"
+                className="py-2 px-3 text-center text-zinc-300 font-bold text-base tracking-wider border-x border-[#3b82f6]"
               >
                 Meta 100%
               </th>
               <th
                 colSpan={2}
-                className="py-2 px-3 text-center text-[#a78bfa] font-bold text-base tracking-wider border-x border-[#a78bfa]"
+                className="py-2 px-3 text-center text-zinc-300 font-bold text-base tracking-wider border-x border-[#a78bfa]"
               >
                 Meta 108%
               </th>
@@ -160,16 +148,16 @@ export function DailySummaryTable({
                 </th>
               ))}
               <>
-                <th className="text-left py-2.5 px-3 text-[#3b82f6] font-semibold text-base">
+                <th className="text-left py-2.5 px-3 text-zinc-300 font-semibold text-base">
                   Valor
                 </th>
-                <th className="text-left py-2.5 px-3 text-[#3b82f6] font-semibold text-base">
+                <th className="text-left py-2.5 px-3 text-zinc-300 font-semibold text-base">
                   % Dia
                 </th>
-                <th className="text-left py-2.5 px-3 text-[#a78bfa] font-semibold text-base">
+                <th className="text-left py-2.5 px-3 text-zinc-300 font-semibold text-base">
                   Valor
                 </th>
-                <th className="text-left py-2.5 px-3 text-[#a78bfa] font-semibold text-base">
+                <th className="text-left py-2.5 px-3 text-zinc-300 font-semibold text-base">
                   % Dia
                 </th>
               </>
@@ -196,10 +184,10 @@ export function DailySummaryTable({
             {processedRows.length > 0 && (
               <TotalsRow
                 totals={totals}
-                totalObras={totalWorks}
-                totalEquipes={totalTeams}
-                totalProg={totalScheduled}
-                totalExec={totalExec}
+                totalObras={data.totals.totalSchedules}
+                totalEquipes={data.totals.totalTeams}
+                totalProg={data.totals.totalMoProg}
+                totalExec={data.totals.totalMoExec}
                 formatCurrency={FormatCurrency}
               />
             )}

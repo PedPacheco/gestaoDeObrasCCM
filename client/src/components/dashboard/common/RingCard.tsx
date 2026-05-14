@@ -1,10 +1,12 @@
 export function RingCard({
   label,
+  subLabel,
   value,
   color,
   sub,
 }: {
   label: string;
+  subLabel?: string;
   value: number;
   color: string;
   sub?: string;
@@ -16,7 +18,7 @@ export function RingCard({
   const circ = 2 * Math.PI * radius;
   const offset = circ - (visualPct / 100) * circ;
   return (
-    <div className="flex items-center gap-4 bg-gradient-to-br from-[#1e2f42] to-[#192535] rounded-2xl p-5 h-28 border border-white/5 shadow-xl hover:border-white/10 transition-all">
+    <div className="flex items-center gap-4 bg-gradient-to-br from-[#1e2f42] to-[#192535] rounded-2xl p-5 h-[118px] border border-white/5 shadow-xl hover:border-white/10 transition-all">
       <div className="relative shrink-0" style={{ width: 88 }}>
         <svg width={88} height={88} viewBox="0 0 88 88">
           <circle
@@ -51,6 +53,7 @@ export function RingCard({
         <span className="text-white font-bold text-lg leading-tight">
           {label}
         </span>
+        {subLabel && <span className="text-zinc-300 text-sm">{subLabel}</span>}
         {sub && <span className="text-zinc-300 text-sm">{sub}</span>}
         <div className="w-full h-1 bg-white/5 rounded-full mt-1">
           <div

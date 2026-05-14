@@ -6,6 +6,7 @@ export interface IGetMonthlySummaryRepository {
     filters: GetMonthlySummaryDTO,
   ): Promise<GetMonthlySummaryInterface[]>;
   getPortfolioSummary(filters: GetMonthlySummaryDTO): Promise<any[]>;
+  getContractValue(filters: GetMonthlySummaryDTO): Promise<any[]>;
 }
 
 export const GET_MONTHLY_SUMMARY_REPOSITORY = Symbol(

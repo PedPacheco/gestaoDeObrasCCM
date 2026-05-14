@@ -107,4 +107,21 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
       },
     });
   }
+
+  async getContractValue(filters: GetMonthlySummaryDTO): Promise<any[]> {
+    const { idRegional, idParceira } = filters;
+
+    return await this.prisma.valores_contratos.findMany({
+      where: {
+        id_turma:
+          idParceira && idParceira.length > 0 ? { in: idParceira } : undefined,
+        turmas: {
+          id_regional:
+            idRegional && idRegional.length > 0
+              ? { in: idRegional }
+              : undefined,
+        },
+      },
+    });
+  }
 }

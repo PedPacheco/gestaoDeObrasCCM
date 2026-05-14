@@ -61,6 +61,7 @@ import { SchedulesActionsController } from '../controllers/schedules/schedulesAc
 import { ExecutionReportModule } from './executionReport.module';
 import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
+import { TeamAggregationService } from 'src/domain/services/teamAggregator.service';
 
 // import { UpdateRestrictionsService } from 'src/application/schedule/updateRestrictions.service';
 // import { UPDATE_RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateRestrictionsRepository';
@@ -96,6 +97,7 @@ import { WorksModule } from './works.module';
   ],
   controllers: [ScheduleController, SchedulesActionsController],
   providers: [
+    TeamAggregationService,
     ExecMonitoringService,
     AddSchedulesService,
     UpdateSchedulesService,

@@ -512,6 +512,7 @@ model turmas {
   obras               obras[]
   servicos_contratos  servicos_contratos[]
   usuario             usuario[]
+  valores_contratos   valores_contratos[]
 }
 
 model usuario {
@@ -737,6 +738,14 @@ model equipamentos {
   id_municipio          Int
   circuitos             circuitos  @relation(fields: [id_circuito], references: [id], onUpdate: NoAction, map: "fk_circuitos")
   municipios            municipios @relation(fields: [id_municipio], references: [id], onUpdate: NoAction, map: "fk_municipios")
+}
+
+model valores_contratos {
+  id             Int      @id @default(autoincrement())
+  meses          Int
+  id_turma       Int
+  valor_contrato Decimal? @db.Decimal(15, 2)
+  turmas         turmas   @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_turmas")
 }
 
 view exportacao_obras_executadas {

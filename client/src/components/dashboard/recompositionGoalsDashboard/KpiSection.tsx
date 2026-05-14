@@ -162,15 +162,16 @@ function TopTiposBars({
   tipoMap: DashboardMetrics["tipoKpiMap"];
 }) {
   const field =
-    activeKpi === "Meta Total"
+    activeKpi === "Meta Acumulado"
       ? "meta"
-      : activeKpi === "Programado"
+      : activeKpi === "Prog. Acumulado"
         ? "prog"
         : "real";
+
   const color =
-    activeKpi === "Meta Total"
+    activeKpi === "Meta Acumulado"
       ? "#3b82f6"
-      : activeKpi === "Programado"
+      : activeKpi === "Prog. Acumulado"
         ? "#a78bfa"
         : "#53FF75";
 

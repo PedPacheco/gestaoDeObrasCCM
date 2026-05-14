@@ -167,7 +167,7 @@ async function fetchMaodeObra(token: string) {
 
     return {
       data: firstSummary,
-      data2: secondSummary.summary ?? [],
+      data2: secondSummary ?? [],
       metaDiaria,
     };
   } catch {

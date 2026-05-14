@@ -1,9 +1,11 @@
 import { TableRow, TableCell, Typography, Box } from "@mui/material";
 import { FormatCurrency } from "@/utils/formatValue";
-import { GroupSummary, pctColor } from "./laborDashboard";
+import { pctColor } from "./laborDashboard";
+import { GroupSummaryItem } from "@/types/dashboard/labor/labor";
+import { PerformanceBadge } from "../common/performanceBadge";
 
 interface GroupSummaryRowProps {
-  row: GroupSummary;
+  row: GroupSummaryItem;
   index: number;
 }
 
@@ -11,7 +13,7 @@ export function GroupSummaryRow({ row, index }: GroupSummaryRowProps) {
   const pct =
     row.totalMoProg > 0 ? (row.totalMoExec / row.totalMoProg) * 100 : 0;
 
-  const { bg, text, bar } = pctColor(pct);
+  const colors = pctColor(pct);
 
   return (
     <TableRow
@@ -20,7 +22,6 @@ export function GroupSummaryRow({ row, index }: GroupSummaryRowProps) {
         "& td": {
           borderColor: "rgba(255,255,255,0.04)",
           paddingY: 0.8, // 👈 reduz altura vertical
-          paddingX: 1.2,
         },
         transition: "background 0.2s ease",
       }}
@@ -62,42 +63,7 @@ export function GroupSummaryRow({ row, index }: GroupSummaryRowProps) {
 
       {/* % Performance (estilo badge + bar como PerformanceBadge) */}
       <TableCell>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Box
-            sx={{
-              fontWeight: 800,
-              fontSize: 11,
-              px: 1,
-              py: 0.3,
-              borderRadius: 999,
-              background: bg,
-              color: text,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {pct.toFixed(0)}%
-          </Box>
-
-          <Box
-            sx={{
-              flex: 1,
-              height: 6,
-              backgroundColor: "rgba(255,255,255,0.05)",
-              borderRadius: 999,
-              overflow: "hidden",
-              minWidth: 40,
-            }}
-          >
-            <Box
-              sx={{
-                height: "100%",
-                width: `${Math.min(pct, 100)}%`,
-                background: bar,
-                transition: "all 0.3s ease",
-              }}
-            />
-          </Box>
-        </Box>
+        <PerformanceBadge percentage={pct} colors={colors} />
       </TableCell>
     </TableRow>
   );

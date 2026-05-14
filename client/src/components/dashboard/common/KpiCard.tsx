@@ -1,11 +1,18 @@
+interface SubItens {
+  subLabel: string;
+  subValue: string;
+}
+
 export function KpiCard({
   label,
+  sub,
   value,
   gradient,
   accent,
   onClick,
 }: {
   label: string;
+  sub?: SubItens[];
   value: string | number;
   gradient: string;
   accent: string;
@@ -13,11 +20,13 @@ export function KpiCard({
 }) {
   const isClickable = !!onClick;
 
+  const hasSubItems = !!sub?.length;
+
   return (
     <div
       onClick={onClick}
       className={`
-        relative rounded-2xl p-5 flex flex-col gap-2 overflow-hidden shadow-lg h-28
+        relative rounded-2xl p-4 flex flex-col gap-2 overflow-hidden shadow-lg h-[120px]
         ${gradient}
         transition-all duration-200
         ${isClickable ? "cursor-pointer hover:scale-[1.02] hover:shadow-2xl active:scale-[0.99]" : ""}
@@ -29,15 +38,31 @@ export function KpiCard({
         style={{ background: accent }}
       />
 
-      {/* Label */}
-      <span className="text-white/60 text-xs uppercase tracking-widest font-medium pl-2">
-        {label}
-      </span>
+      <div className="pl-3 flex flex-col">
+        <span className="text-white/60 text-xs uppercase tracking-widest font-medium">
+          {label}
+        </span>
 
-      {/* Value */}
-      <span className="text-4xl font-black text-white pl-2 leading-none">
-        {value}
-      </span>
+        <span className="font-black text-3xl text-white leading-none pt-2">
+          {value}
+        </span>
+      </div>
+
+      {hasSubItems && (
+        <div className="pl-3 grid grid-cols-2 gap-x-3">
+          {sub.map((item, index) => (
+            <div key={index} className="flex items-center gap-1 min-w-0">
+              <span className="text-sm text-white/60 truncate w-28">
+                {item.subLabel}
+              </span>
+
+              <span className="text-sm text-zinc-200 font-medium truncate">
+                {item.subValue}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

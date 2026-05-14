@@ -50,7 +50,7 @@ export function ChartTooltip({
           />
           <span className="text-zinc-400">Diferença Acum.:</span>
           <span className="font-bold text-white">
-            {FormatCurrency(data["Diferença Acum."])}
+            {data["Diferença Acum."]}
           </span>
         </div>
       )}

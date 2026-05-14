@@ -26,7 +26,7 @@ dayjs.locale("pt-br");
 dayjs.extend(utc);
 
 const totalsKeyMap: Record<string, string> = {
-  totalQtde: "totalQtdeObras",
+  qtdeSchedules: "totalSchedules",
   teamsTotal: "totalTeams",
   financialGoal: "totalFinancialGoal",
   diaryGoal: "totalDiaryGoal",
@@ -38,7 +38,7 @@ const totalsKeyMap: Record<string, string> = {
 };
 
 const totalsSecondSummaryKeyMap: Record<string, string> = {
-  qtdeWorks: "totalWorks",
+  qtdeSchedules: "totalSchedules",
   totalMoPlan: "totalMoPlanByGrouping",
   totalMoPend: "totalMoPendByGrouping",
   totalMoProg: "totalMoProgByGrouping",

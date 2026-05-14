@@ -13,36 +13,65 @@ export function MonitoredByRegional({ data }: { data: Row[] }) {
   );
 
   const tableMonths = useMemo(() => {
-    const months = [...new Set(data.map((r) => r.mes))].sort(sortMes);
+    const grouped = new Map<string, Map<string, Row>>();
 
-    return months.map((mes) => {
-      const row: Record<string, any> = { mes: monthLabel(mes) };
+    for (const row of data) {
+      if (!grouped.has(row.mes)) {
+        grouped.set(row.mes, new Map());
+      }
 
-      let totalGeral = 0;
-      let acompGeral = 0;
+      const regionalMap = grouped.get(row.mes)!;
+      const existing = regionalMap.get(row.regional);
 
-      regionais.forEach((reg) => {
-        const found = data.find((r) => r.mes === mes && r.regional === reg);
+      if (existing) {
+        const total = existing.total + row.total;
+        const acompanhado = existing.acompanhado + row.acompanhado;
 
-        row[reg] = found ? found.pct : null;
-        row[`${reg}_total`] = found ? found.total : 0;
-        row[`${reg}_acomp`] = found ? found.acompanhado : 0;
+        regionalMap.set(row.regional, {
+          ...existing,
+          total,
+          acompanhado,
+          naoAcompanhado: existing.naoAcompanhado + row.naoAcompanhado,
+          pct: total > 0 ? Math.round((acompanhado / total) * 100) : 0,
+        });
+      } else {
+        regionalMap.set(row.regional, {
+          ...row,
+        });
+      }
+    }
 
-        if (found) {
-          totalGeral += found.total;
-          acompGeral += found.acompanhado;
+    return [...grouped.entries()]
+      .sort(([a], [b]) => sortMes(a, b))
+      .map(([mes, regionalMap]) => {
+        const result: Record<string, any> = {
+          mes: monthLabel(mes),
+        };
+
+        let totalGeral = 0;
+        let acompGeral = 0;
+
+        for (const regional of regionais) {
+          const values = regionalMap.get(regional);
+
+          result[regional] = values?.pct ?? null;
+          result[`${regional}_total`] = values?.total ?? 0;
+          result[`${regional}_acomp`] = values?.acompanhado ?? 0;
+          result[`${regional}_naoAcomp`] = values?.naoAcompanhado ?? 0;
+
+          if (values) {
+            totalGeral += values.total;
+            acompGeral += values.acompanhado;
+          }
         }
+
+        result.mediaTotal = totalGeral;
+        result.mediaAcomp = acompGeral;
+        result.mediaPct =
+          totalGeral > 0 ? Math.round((acompGeral / totalGeral) * 100) : 0;
+
+        return result;
       });
-
-      row.mediaPct =
-        totalGeral > 0 ? Math.round((acompGeral / totalGeral) * 100) : null;
-
-      row.mediaTotal = totalGeral;
-
-      row.mediaAcomp = acompGeral;
-
-      return row;
-    });
   }, [data, regionais]);
 
   return (

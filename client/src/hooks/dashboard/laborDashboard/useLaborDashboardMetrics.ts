@@ -1,14 +1,10 @@
-import {
-  DailySummary,
-  GroupSummary,
-} from "@/components/dashboard/laborDashboard/laborDashboard";
+import { DailySummary, GroupSummary } from "@/types/dashboard/labor/labor";
 import { useMemo } from "react";
 
 interface Props {
   dailyData: DailySummary;
-  groupData: GroupSummary[];
+  groupData: GroupSummary;
   dailyGoal: number;
-  isFiltered: boolean;
 }
 
 export function isWeekend(dateStr: string) {
@@ -17,65 +13,33 @@ export function isWeekend(dateStr: string) {
   return dow === 0 || dow === 6;
 }
 
-export function useLaborMetrics({
-  dailyData,
-  groupData,
-  dailyGoal,
-  isFiltered,
-}: Props) {
+export function useLaborMetrics({ dailyData, groupData, dailyGoal }: Props) {
   return useMemo(() => {
-    const totals = {
-      obras: dailyData.summary.reduce((acc, item) => acc + item.totalQtde, 0),
-      equipes: dailyData.summary.reduce(
-        (acc, item) => acc + (item.teamsTotal ?? 0),
-        0,
-      ),
-      equipesHoje:
-        dailyData.summary.length > 0
-          ? (dailyData.summary[dailyData.summary.length - 1]?.teamsTotal ?? 0)
-          : 0,
-      planejado: dailyData.summary.reduce(
-        (acc, item) => acc + item.totalMoPlan,
-        0,
-      ),
-      programado: dailyData.summary.reduce(
-        (acc, item) => acc + item.totalMoProg,
-        0,
-      ),
-      executado: dailyData.summary.reduce(
-        (acc, item) => acc + item.totalMoExec,
-        0,
-      ),
-      carteira: dailyData.totals.totalWalletAvaliable,
-      carteiraExec: dailyData.totals.totalWalletExec,
-    };
-
     const totalGoal = dailyGoal * 22;
 
-    const display = isFiltered
-      ? {
-          obras: groupData.reduce(
-            (acc, item) => acc + (item.qtdeWorks ?? 0),
-            0,
-          ),
-          planejado: groupData.reduce((acc, item) => acc + item.totalMoPlan, 0),
-          programado: groupData.reduce(
-            (acc, item) => acc + item.totalMoProg,
-            0,
-          ),
-          executado: groupData.reduce((acc, item) => acc + item.totalMoExec, 0),
-          previsto: groupData.reduce((acc, item) => acc + item.totalMoPrev, 0),
-          carteira: dailyData.totals.totalWalletAvaliable,
-          carteiraExec: dailyData.totals.totalWalletExec,
-        }
-      : {
-          planejado: totals.planejado,
-          obras: totals.obras,
-          programado: totals.programado,
-          executado: totals.executado,
-          carteira: totals.carteira,
-          carteiraExec: totals.carteiraExec,
-        };
+    const display = {
+      programacoes: dailyData.totals.totalSchedules,
+      programado: dailyData.totals.totalMoProg,
+      executado: dailyData.totals.totalMoExec,
+      obras: dailyData.totals.totalWorks,
+      carteira: dailyData.totals.totalWalletExec,
+      equipesRfp: dailyData.totals.totalQtdeRfpTeams,
+      equipesCapacidadeExecucao: dailyData.totals.totalExecutionCapacityTeams,
+      valorContrato: dailyData.contractValueByMonth.monthlyValue,
+      valorContrato108: dailyData.contractValueByMonth.monthlyValue * 1.085,
+      programadoRda: groupData.totals.totalProgRda,
+      executadoRda: groupData.totals.totalExecRda,
+      carteiraRda: groupData.totals.totalWalletRda,
+      programadoBt0: groupData.totals.totalProgBt0,
+      executadoBt0: groupData.totals.totalExecBt0,
+      carteiraBt0: groupData.totals.totalWalletBt0,
+      programadoRecom: groupData.totals.totalProgRecom,
+      executadoRecom: groupData.totals.totalExecRecom,
+      carteiraRecom: groupData.totals.totalWalletRecom,
+      programadoMarket: groupData.totals.totalProgMarket,
+      executadoMarket: groupData.totals.totalExecMarket,
+      carteiraMarket: groupData.totals.totalWalletMarket,
+    };
 
     const executionRate =
       display.programado > 0
@@ -84,7 +48,7 @@ export function useLaborMetrics({
 
     const pctGoal100 = (display.programado / totalGoal) * 100;
 
-    const pctGoal108 = (display.programado / (totalGoal * 1.08)) * 100;
+    const pctGoal108 = (display.programado / (totalGoal * 1.085)) * 100;
 
     const barByDay = dailyData.summary.map((item) => ({
       dia: item.dataProg.substring(0, 5),
@@ -97,7 +61,7 @@ export function useLaborMetrics({
     }));
 
     const topPartnerData = Object.values(
-      groupData.reduce<
+      groupData.summary.reduce<
         Record<
           string,
           {
@@ -137,7 +101,6 @@ export function useLaborMetrics({
       }));
 
     return {
-      totals,
       display,
       totalGoal,
       executionRate,
@@ -146,5 +109,5 @@ export function useLaborMetrics({
       barByDay,
       topPartnerData,
     };
-  }, [dailyData, groupData, dailyGoal, isFiltered]);
+  }, [dailyData, groupData, dailyGoal]);
 }

@@ -1,11 +1,5 @@
-import {
-  Box,
-  Chip,
-  LinearProgress,
-  TableCell,
-  TableRow,
-  Typography,
-} from "@mui/material";
+import { TableCell, TableRow, Typography } from "@mui/material";
+import { PerformanceBadge } from "../common/performanceBadge";
 
 interface PerformanceColors {
   bg: string;
@@ -15,7 +9,7 @@ interface PerformanceColors {
 
 interface PerformanceRowData {
   dataProg: string;
-  totalQtde: number;
+  qtdeSchedules: number;
   teamsTotal?: number;
   totalMoProg: number;
   totalMoExec: number;
@@ -34,44 +28,6 @@ interface PerformanceRowProps {
   formatCurrency: (value: number) => string;
 }
 
-interface PerformanceBadgeProps {
-  percentage: number;
-  colors: PerformanceColors;
-}
-
-function PerformanceBadge({ percentage, colors }: PerformanceBadgeProps) {
-  return (
-    <Box display="flex" alignItems="center" gap={1.5}>
-      <Chip
-        label={`${percentage.toFixed(0)}%`}
-        size="small"
-        sx={{
-          backgroundColor: colors.bg,
-          color: colors.text,
-          fontWeight: 700,
-          minWidth: 58,
-        }}
-      />
-
-      <Box sx={{ width: 48 }}>
-        <LinearProgress
-          variant="determinate"
-          value={Math.min(percentage, 100)}
-          sx={{
-            height: 6,
-            borderRadius: 999,
-            backgroundColor: "rgba(255,255,255,0.08)",
-            "& .MuiLinearProgress-bar": {
-              backgroundColor: colors.bar,
-              borderRadius: 999,
-            },
-          }}
-        />
-      </Box>
-    </Box>
-  );
-}
-
 export function PerformanceRow({
   row,
   meta100,
@@ -86,7 +42,6 @@ export function PerformanceRow({
         "& td": {
           borderColor: "rgba(255,255,255,0.04)",
           paddingY: 0.8, // 👈 reduz altura vertical
-          paddingX: 1.2,
         },
         transition: "background 0.2s ease",
       }}
@@ -108,35 +63,47 @@ export function PerformanceRow({
       </TableCell>
 
       <TableCell>
-        <Typography className="text-zinc-300" fontWeight={600}>
-          {row.totalQtde}
+        <Typography variant="body2" className="text-zinc-300">
+          {row.qtdeSchedules}
         </Typography>
       </TableCell>
 
       <TableCell>
-        <Typography className="text-zinc-300" fontWeight={600}>
+        <Typography variant="body2" className="text-zinc-300">
           {row.teamsTotal ?? 0}
         </Typography>
       </TableCell>
 
-      <TableCell className="text-zinc-300">{formatCurrency(meta100)}</TableCell>
+      <TableCell>
+        <Typography variant="body2" className="text-zinc-300">
+          {formatCurrency(meta100)}
+        </Typography>
+      </TableCell>
 
       <TableCell>
         <PerformanceBadge percentage={row.pct100} colors={row.color100} />
       </TableCell>
 
-      <TableCell className="text-zinc-300">{formatCurrency(meta108)}</TableCell>
+      <TableCell>
+        <Typography variant="body2" className="text-zinc-300">
+          {formatCurrency(meta108)}
+        </Typography>
+      </TableCell>
 
       <TableCell>
         <PerformanceBadge percentage={row.pct108} colors={row.color108} />
       </TableCell>
 
-      <TableCell className="text-zinc-300">
-        {formatCurrency(row.totalMoProg)}
+      <TableCell>
+        <Typography variant="body2" className="text-zinc-300">
+          {formatCurrency(row.totalMoProg)}
+        </Typography>
       </TableCell>
 
-      <TableCell className="text-zinc-300">
-        {formatCurrency(row.totalMoExec)}
+      <TableCell>
+        <Typography variant="body2" className="text-zinc-300">
+          {formatCurrency(row.totalMoExec)}
+        </Typography>
       </TableCell>
     </TableRow>
   );
@@ -150,10 +117,12 @@ interface TotalsData {
   color100: {
     bg: string;
     text: string;
+    bar: string;
   };
   color108: {
     bg: string;
     text: string;
+    bar: string;
   };
 }
 
@@ -164,27 +133,6 @@ interface TotalsRowProps {
   totalProg: number;
   totalExec: number;
   formatCurrency: (value: number) => string;
-}
-
-interface TotalBadgeProps {
-  percentage: number;
-  bg: string;
-  color: string;
-}
-
-function TotalBadge({ percentage, bg, color }: TotalBadgeProps) {
-  return (
-    <Chip
-      label={`${percentage.toFixed(0)}%`}
-      size="small"
-      sx={{
-        backgroundColor: bg,
-        color,
-        fontWeight: 800,
-        minWidth: 64,
-      }}
-    />
-  );
 }
 
 export function TotalsRow({
@@ -198,7 +146,11 @@ export function TotalsRow({
   return (
     <TableRow
       sx={{
-        backgroundColor: "rgba(5, 55, 21, 0.2)",
+        position: "sticky",
+        bottom: 0,
+        zIndex: 5,
+
+        backgroundColor: "#11281a",
         "& td": {
           borderTop: "2px solid rgba(83, 255, 117, 0.2)",
           fontWeight: 700,
@@ -226,11 +178,7 @@ export function TotalsRow({
       </TableCell>
 
       <TableCell>
-        <TotalBadge
-          percentage={totals.pct100}
-          bg={totals.color100.bg}
-          color={totals.color100.text}
-        />
+        <PerformanceBadge percentage={totals.pct100} colors={totals.color100} />
       </TableCell>
 
       <TableCell className="text-zinc-300">
@@ -238,11 +186,7 @@ export function TotalsRow({
       </TableCell>
 
       <TableCell>
-        <TotalBadge
-          percentage={totals.pct108}
-          bg={totals.color108.bg}
-          color={totals.color108.text}
-        />
+        <PerformanceBadge percentage={totals.pct108} colors={totals.color108} />
       </TableCell>
 
       <TableCell className="text-zinc-300">

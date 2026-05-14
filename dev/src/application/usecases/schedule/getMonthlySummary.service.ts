@@ -15,7 +15,7 @@ import {
   IMonthlySummaryCalculator,
   MONTHLY_SUMMARY_CALCULATOR,
 } from 'src/domain/services/monthlySummaryCalculator.service';
-import { buildTotalTeamsMap } from 'src/domain/services/teamAggregator.service';
+import { TeamAggregationService } from 'src/domain/services/teamAggregator.service';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
 import {
   DailySummaryEntry,
@@ -34,52 +34,71 @@ export class MonthlySummaryService {
     private readonly monthlySummaryRepository: IGetMonthlySummaryRepository,
     @Inject(MONTHLY_SUMMARY_CALCULATOR)
     private readonly calculator: IMonthlySummaryCalculator,
-    private readonly summaryMapper: MonthlySummaryMapper,
     @Inject(EXECUTION_CAPACITY_REPOSITORY)
     private readonly executionCapacityRepository: IExecutionCapacityRepository,
+    private readonly summaryMapper: MonthlySummaryMapper,
+    private readonly teamsAggregatorService: TeamAggregationService,
   ) {}
 
   async getSummary(filters: GetMonthlySummaryDTO): Promise<DailySummaryResult> {
     const year = moment(filters.dataFinal, 'DD/MM/YYYY').year().toString();
 
-    const [data, executionCapacity, portfolioData] = await Promise.all([
-      this.monthlySummaryRepository.getSummary(filters),
-      this.executionCapacityRepository.getFinancialValue({
-        ano: year,
-        idParceira: filters.idParceira,
-        idRegional: filters.idRegional,
-      }),
-      this.monthlySummaryRepository.getPortfolioSummary(filters),
-    ]);
+    const [data, portfolioData, contractValue, executionCapacity] =
+      await Promise.all([
+        this.monthlySummaryRepository.getSummary(filters),
+        this.monthlySummaryRepository.getPortfolioSummary(filters),
+        this.monthlySummaryRepository.getContractValue(filters),
+        this.executionCapacityRepository.getFinancialValue({
+          ano: year,
+          idParceira: filters.idParceira,
+          idRegional: filters.idRegional,
+        }),
+      ]);
 
     const financialCapacityByMonth: (MonthlyCapacityMetrics | undefined)[] =
       Array.from({ length: 12 }, () => undefined);
+
+    const contractValueByMonth = contractValue.reduce(
+      (acc, item) => {
+        const value = item.valor_contrato / item.meses;
+
+        acc.monthlyValue += value;
+
+        return acc;
+      },
+      { monthlyValue: 0 },
+    );
 
     const summaryMap = new Map<string, DailySummaryEntry>();
 
     const portfolioTotal = portfolioData.reduce(
       (acc, item) => {
+        const moPlanejada = item.mo_planejada ?? 0;
+
         return {
-          portfolioSap: acc.portfolioSap + (item.mo_pend ?? 0),
-          portfolioPlan: acc.portfolioPlan + (item.mo_planejada ?? 0),
-          portfolioExecTotal:
-            acc.portfolioExecTotal +
-            (item.mo_planejada ?? 0) * ((item.executado ?? 0) / 100),
+          qtdeWorks: acc.qtdeWorks + 1,
+
+          portfolioPlan: acc.portfolioPlan + moPlanejada,
+
           portfolioExec:
             acc.portfolioExec +
-            ((item.mo_planejada ?? 0) -
-              ((item.mo_planejada ?? 0) * (item.executado ?? 0)) / 100),
+            (moPlanejada - (moPlanejada * (item.executado ?? 0)) / 100),
         };
       },
       {
-        portfolioSap: 0,
+        qtdeWorks: 0,
         portfolioPlan: 0,
-        portfolioExecTotal: 0,
         portfolioExec: 0,
       },
     );
 
-    const totalTeamsMap = buildTotalTeamsMap(data);
+    const totalTeamsMap = this.teamsAggregatorService.buildTotalTeamsMap(data);
+    const executionTeams =
+      this.teamsAggregatorService.buildExecutionCapacityTeams(
+        filters.dataInicial,
+        filters.dataFinal,
+        executionCapacity,
+      );
 
     for (const record of data) {
       const date = moment.utc(record.data_prog);
@@ -160,19 +179,57 @@ export class MonthlySummaryService {
       summary,
       total,
       portfolioTotal,
+      executionTeams,
     );
 
-    return { summary, totals };
+    return { summary, totals, contractValueByMonth };
   }
 
   async getSecondSummary(
     filters: GetMonthlySummaryDTO,
   ): Promise<GroupSummaryResult> {
-    const data = await this.monthlySummaryRepository.getSummary(filters);
+    const [data, portfolioData] = await Promise.all([
+      await this.monthlySummaryRepository.getSummary(filters),
+      await this.monthlySummaryRepository.getPortfolioSummary(filters),
+    ]);
 
     const summaryMap = new Map<string, GroupTeamSummaryEntry>();
     const uniqueWorksFinancial = createUniqueWorksFinancial();
     const contabilizedWorks = new Set<string>();
+
+    const portfolioTotal = portfolioData.reduce(
+      (acc, item) => {
+        const moPlanejada = item.mo_planejada ?? 0;
+
+        return {
+          portfolioRda:
+            item.tipos.id_grupo === 3
+              ? acc.portfolioRda + moPlanejada
+              : acc.portfolioRda,
+
+          portfolioBt0:
+            item.tipos.id_grupo === 4
+              ? acc.portfolioBt0 + moPlanejada
+              : acc.portfolioBt0,
+
+          portfolioRecom:
+            item.tipos.id_grupo === 2
+              ? acc.portfolioRecom + moPlanejada
+              : acc.portfolioRecom,
+
+          portfolioMarket:
+            item.tipos.id_grupo === 1
+              ? acc.portfolioMarket + moPlanejada
+              : acc.portfolioMarket,
+        };
+      },
+      {
+        portfolioRda: 0,
+        portfolioBt0: 0,
+        portfolioRecom: 0,
+        portfolioMarket: 0,
+      },
+    );
 
     for (const record of data) {
       const {
@@ -244,6 +301,7 @@ export class MonthlySummaryService {
 
     const totals = this.calculator.aggregateGroupTotals(
       summaryArray,
+      portfolioTotal,
       uniqueWorksFinancial,
     );
 

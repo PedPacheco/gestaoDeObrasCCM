@@ -188,19 +188,19 @@ export function GoalsFilters({
 
       <div className="flex gap-2 ml-auto">
         <button
-          onClick={onClear}
-          disabled={isPending}
-          className="px-6 py-2 rounded-xl bg-[#3b82f6] hover:bg-[#2563eb] text-white text-sm font-semibold transition-all shadow-lg disabled:opacity-50"
-        >
-          Limpar
-        </button>
-
-        <button
           onClick={onApply}
           disabled={isPending}
           className="px-6 py-2 rounded-xl bg-[#3b82f6] hover:bg-[#2563eb] text-white text-sm font-semibold transition-all shadow-lg disabled:opacity-50"
         >
           {isPending ? "Carregando..." : "Aplicar"}
+        </button>
+
+        <button
+          onClick={onClear}
+          disabled={isPending}
+          className="px-6 py-2 rounded-xl bg-[#3b82f6] hover:bg-[#2563eb] text-white text-sm font-semibold transition-all shadow-lg disabled:opacity-50"
+        >
+          Limpar
         </button>
       </div>
 

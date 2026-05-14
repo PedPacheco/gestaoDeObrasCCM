@@ -19,8 +19,6 @@ export class RejectionsOfSchedulesService {
       motivo: restricoes?.restricao,
     }));
 
-    console.log(formattedData);
-
     return formattedData;
   }
 }
