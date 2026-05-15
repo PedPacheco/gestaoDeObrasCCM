@@ -49,7 +49,9 @@ export function ChartTooltip({
             style={{ background: "#a78bfa" }} // violet
           />
           <span className="text-zinc-400">Diferença Acum.:</span>
-          <span className="font-bold text-white">
+          <span
+            className={`font-bold ${data["Diferença Acum."] > 0 ? "text-green-400" : "text-red-500"}`}
+          >
             {data["Diferença Acum."]}
           </span>
         </div>

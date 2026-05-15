@@ -304,7 +304,7 @@ describe('ScheduleController', () => {
     const dailySummaryMock: DailySummaryEntry[] = [
       {
         dataProg: '2026-03-01',
-        totalQtde: 25,
+        qtdeSchedules: 25,
         teamsTotal: 8,
         financialGoal: 15000,
         financialGoalWith8: 18000,
@@ -317,7 +317,7 @@ describe('ScheduleController', () => {
       },
       {
         dataProg: '2026-03-02',
-        totalQtde: 30,
+        qtdeSchedules: 30,
         teamsTotal: 10,
         financialGoal: 20000,
         financialGoalWith8: 22000,
@@ -334,7 +334,7 @@ describe('ScheduleController', () => {
       {
         grupo: 'RECOMPOSIÇÃO',
         turma: 'ENGELMIG',
-        qtdeWorks: 49,
+        qtdeSchedules: 49,
         totalMoPlan: 1075887.9138599995,
         totalMoProg: 1075887.9138599995,
         totalMoPend: 0,
@@ -345,7 +345,7 @@ describe('ScheduleController', () => {
       {
         grupo: 'BT ZERO',
         turma: 'ENGELMIG',
-        qtdeWorks: 19,
+        qtdeSchedules: 19,
         totalMoPlan: 673067.8821099999,
         totalMoProg: 673067.8821099999,
         totalMoPend: 0,
@@ -355,9 +355,11 @@ describe('ScheduleController', () => {
       },
     ];
 
-    jest
-      .spyOn(getMonthlySummaryService, 'getSummary')
-      .mockResolvedValue({ summary: dailySummaryMock, totals: {} as any });
+    jest.spyOn(getMonthlySummaryService, 'getSummary').mockResolvedValue({
+      summary: dailySummaryMock,
+      totals: {} as any,
+      contractValueByMonth: { monthlyValue: 0 },
+    });
 
     jest.spyOn(getMonthlySummaryService, 'getSecondSummary').mockResolvedValue({
       summary: getSecondMonthlySummaryResponse,
@@ -370,7 +372,11 @@ describe('ScheduleController', () => {
       statusCode: HttpStatus.OK,
       message: 'Resumo mensal retornado com sucesso',
       data: {
-        firstSummary: { summary: dailySummaryMock, totals: {} as any },
+        firstSummary: {
+          summary: dailySummaryMock,
+          totals: {} as any,
+          contractValueByMonth: { monthlyValue: 0 },
+        },
         secondSummary: {
           summary: getSecondMonthlySummaryResponse,
           totals: {} as any,

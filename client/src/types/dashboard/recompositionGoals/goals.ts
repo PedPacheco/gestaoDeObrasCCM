@@ -138,12 +138,12 @@ export interface DashboardMetrics {
   // Projeção — Curva S
   totalMetaFull: number;
   lastDataIdx: number;
-  cumulativeDataAtCutoff: number;
-  avgMonthlyRate: number;
-  remaining: number;
+  // cumulativeDataAtCutoff: number;
+  // avgMonthlyRate: number;
+  // remaining: number;
   monthsToEnd: number;
-  rateNeededForDec: number;
+  // rateNeededForDec: number;
   naturallyHitsThisYear: boolean;
-  projByDec: number;
+  // projByDec: number;
   projectedCrossMonth: string | null;
 }

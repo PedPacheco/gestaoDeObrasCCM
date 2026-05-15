@@ -35,6 +35,9 @@ describe('GetMonthlySummary', () => {
     obras: {
       findMany: jest.fn(),
     },
+    valores_contratos: {
+      findMany: jest.fn(),
+    },
   };
 
   const mockGetSummaryResponse = [
@@ -79,6 +82,10 @@ describe('GetMonthlySummary', () => {
         },
       },
     },
+  ];
+
+  const mockContractValueResponse = [
+    { id: 1, meses: 60, id_turma: 2, valor_contrato: 12423543.9 },
   ];
 
   beforeEach(async () => {
@@ -301,6 +308,44 @@ describe('GetMonthlySummary', () => {
               },
             },
           },
+        },
+      });
+    });
+  });
+
+  describe('getContractValue', () => {
+    it('should return contract values summary without filters', async () => {
+      const spyPrisma = jest
+        .spyOn(prisma.valores_contratos, 'findMany')
+        .mockResolvedValue(mockContractValueResponse as any);
+
+      const result =
+        await getMonthlySummaryRepository.getContractValue(filtersNotDefined);
+
+      expect(result).toEqual(mockContractValueResponse);
+
+      expect(spyPrisma).toHaveBeenCalledWith({
+        where: {
+          id_turma: undefined,
+          turmas: { id_regional: undefined },
+        },
+      });
+    });
+
+    it('should apply all filters correctly in contract values query', async () => {
+      const spyPrisma = jest
+        .spyOn(prisma.valores_contratos, 'findMany')
+        .mockResolvedValue(mockContractValueResponse as any);
+
+      const result =
+        await getMonthlySummaryRepository.getContractValue(filters);
+
+      expect(result).toEqual(mockContractValueResponse);
+
+      expect(spyPrisma).toHaveBeenCalledWith({
+        where: {
+          id_turma: { in: [2] },
+          turmas: { id_regional: { in: [3] } },
         },
       });
     });

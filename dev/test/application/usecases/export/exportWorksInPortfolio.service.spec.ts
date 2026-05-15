@@ -43,6 +43,8 @@ describe('ExportWorksInPortfolio', () => {
         qtde_planejada: 10,
         qtde_pend: 2,
         mo_planejada: 5,
+        mo_exec: 3,
+        mo_pend: 2,
         status: 'Planejado',
         turma: 'Equipe Alpha',
         ano_plan: 2025,

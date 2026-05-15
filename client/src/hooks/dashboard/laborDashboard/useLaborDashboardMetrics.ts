@@ -26,7 +26,7 @@ export function useLaborMetrics({ dailyData, groupData, dailyGoal }: Props) {
       equipesRfp: dailyData.totals.totalQtdeRfpTeams,
       equipesCapacidadeExecucao: dailyData.totals.totalExecutionCapacityTeams,
       valorContrato: dailyData.contractValueByMonth.monthlyValue,
-      valorContrato108: dailyData.contractValueByMonth.monthlyValue * 1.085,
+      valorContrato108: dailyData.contractValueByMonth.monthlyValue,
       programadoRda: groupData.totals.totalProgRda,
       executadoRda: groupData.totals.totalExecRda,
       carteiraRda: groupData.totals.totalWalletRda,

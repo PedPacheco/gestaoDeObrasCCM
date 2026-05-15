@@ -131,6 +131,8 @@ export default function LaborDashboard({
   const [startDate, setStartDate] = useState<Dayjs | null>(DEFAULT_START());
   const [endDate, setEndDate] = useState<Dayjs | null>(DEFAULT_END());
 
+  const [isFiltered, setIsFiltered] = useState<boolean>(false);
+
   const [selectedRegionais, setSelectedRegionais] = useState<string[]>(
     () => filters?.regional ?? [],
   );
@@ -194,6 +196,7 @@ export default function LaborDashboard({
       setData(response.data.firstSummary ?? {});
       setData2(response.data.secondSummary ?? {});
       setMetaDiaria(response.data.firstSummary?.summary[0]?.financialGoal ?? 0);
+      setIsFiltered(true);
     });
   }
 
@@ -204,6 +207,7 @@ export default function LaborDashboard({
     setSelectedGroup([]);
     setStartDate(DEFAULT_START);
     setEndDate(DEFAULT_END);
+    setIsFiltered(false);
     clearFilters();
 
     const params = {
@@ -257,6 +261,7 @@ export default function LaborDashboard({
         pctGoal100={pctGoal100}
         pctGoal108={pctGoal108}
         totalGoal={totalGoal}
+        isFiltered={isFiltered}
       />
 
       {/* ── Gráficos ───────────────────────────────────────────────────── */}

@@ -101,7 +101,7 @@ export function TableWithPagination({
                           "mat_forecast",
                           "forecast_total",
                           "mo_pend",
-                          "mo_final",
+                          "mo_exec",
                           "mo_planejada",
                         ].includes(column)
                       ) {

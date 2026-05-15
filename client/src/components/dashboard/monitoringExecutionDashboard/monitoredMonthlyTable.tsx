@@ -122,7 +122,7 @@ export function MonitoredMonthlyTable({ data }: { data: Row[] }) {
               dataKey="naoAcompanhado"
               name="Não acompanhado"
               stackId="a"
-              fill="#6b7280"
+              fill="#3b82f6"
             />
             {/* Barra superior (verde) = acompanhado — radius arredonda o topo da barra empilhada */}
             <Bar
@@ -139,9 +139,9 @@ export function MonitoredMonthlyTable({ data }: { data: Row[] }) {
               type="monotone"
               dataKey="pct"
               name="% Acompanhado"
-              stroke="#3b82f6"
+              stroke="#6b7280"
               strokeWidth={2}
-              dot={{ fill: "#3b82f6", r: 4 }}
+              dot={{ fill: "#6b7280", r: 4 }}
               activeDot={{ r: 6 }}
               label={{
                 position: "top",

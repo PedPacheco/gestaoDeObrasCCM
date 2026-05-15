@@ -126,20 +126,20 @@ export function DailySummaryTable({ data, dailyGoal }: DailySummaryTableProps) {
               <th colSpan={4} className="py-2 px-3 text-zinc-600 text-xs" />
               <th
                 colSpan={2}
-                className="py-2 px-3 text-center text-zinc-300 font-bold text-base tracking-wider border-x border-[#3b82f6]"
+                className="py-2 px-3 text-center text-zinc-300 font-bold text-base tracking-wider border-x border-solid border-zinc-200"
               >
                 Meta 100%
               </th>
               <th
                 colSpan={2}
-                className="py-2 px-3 text-center text-zinc-300 font-bold text-base tracking-wider border-x border-[#a78bfa]"
+                className="py-2 px-3 text-center text-zinc-300 font-bold text-base tracking-wider border-x border-solid border-zinc-200"
               >
                 Meta 108%
               </th>
               <th colSpan={2} className="py-2 px-3 text-zinc-600 text-xs" />
             </tr>
             <tr className="border-b border-white bg-[#0f1e2e]">
-              {["Data", "Dia", "Obras", "Equipes"].map((h) => (
+              {["Data", "Dia", "Qtd. Obras", "Equipes Programadas"].map((h) => (
                 <th
                   key={h}
                   className="text-left py-2.5 px-3 text-zinc-300 font-semibold tracking-wider text-base"
@@ -148,24 +148,24 @@ export function DailySummaryTable({ data, dailyGoal }: DailySummaryTableProps) {
                 </th>
               ))}
               <>
-                <th className="text-left py-2.5 px-3 text-zinc-300 font-semibold text-base">
-                  Valor
+                <th className="text-left py-2.5 px-3 text-zinc-300 font-semibold text-base border-l border-solid border-zinc-200">
+                  Meta diária equipe
                 </th>
                 <th className="text-left py-2.5 px-3 text-zinc-300 font-semibold text-base">
                   % Dia
                 </th>
-                <th className="text-left py-2.5 px-3 text-zinc-300 font-semibold text-base">
-                  Valor
+                <th className="text-left py-2.5 px-3 text-zinc-300 font-semibold text-base border-l border-solid border-zinc-200">
+                  Meta diária equipe
                 </th>
-                <th className="text-left py-2.5 px-3 text-zinc-300 font-semibold text-base">
+                <th className="text-left py-2.5 px-3 text-zinc-300 font-semibold text-base border-r border-solid border-zinc-200">
                   % Dia
                 </th>
               </>
               <th className="text-left py-2.5 px-3 text-zinc-300 font-semibold text-base">
-                Prog.
+                Programado
               </th>
               <th className="text-left py-2.5 px-3 text-zinc-300 font-semibold text-base">
-                Exec.
+                Executado
               </th>
             </tr>
           </thead>

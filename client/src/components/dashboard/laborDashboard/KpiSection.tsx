@@ -4,6 +4,7 @@ import { RingCard } from "../common/RingCard";
 import { pctColor } from "./laborDashboard";
 import { usePersistedNavigation } from "@/hooks/dashboard/laborDashboard/usePersistedNavigation";
 import { Dayjs } from "dayjs";
+import { Transform } from "@/utils/transform";
 
 interface DisplayInterface {
   programacoes: number;
@@ -30,7 +31,7 @@ interface DisplayInterface {
 }
 
 interface KpiSectionProps {
-  buildParams: () => void;
+  buildParams: () => any;
   startDate: Dayjs | null;
   endDate: Dayjs | null;
   display: DisplayInterface;
@@ -38,6 +39,7 @@ interface KpiSectionProps {
   pctGoal100: number;
   pctGoal108: number;
   executionRate: number;
+  isFiltered: boolean;
 }
 
 export function KpiSection({
@@ -49,14 +51,20 @@ export function KpiSection({
   pctGoal100,
   pctGoal108,
   totalGoal,
+  isFiltered,
 }: KpiSectionProps) {
   const { openWithFiltersInNewTab } = usePersistedNavigation();
 
   const handleOpenPortfolio = () => {
     const params = buildParams();
+    const paramsWithStatus = {
+      ...params,
+      idStatus: [1, 35, 36, 37, 42, 43],
+    };
+
     openWithFiltersInNewTab(
       "portfolioWorksFilters",
-      { selectedItems: params },
+      { selectedItems: paramsWithStatus },
       "/obras-carteira",
     );
   };
@@ -137,7 +145,7 @@ export function KpiSection({
               subLabel="Programado / Capacidade Mês / Contrato Mês"
               value={pctGoal108}
               color={pctColor(pctGoal108).bar}
-              sub={`${FormatCurrency(display.programado)} / ${FormatCurrency(totalGoal * 1.08)}  / ${FormatCurrency(display.valorContrato108)}`}
+              sub={`${FormatCurrency(display.programado)} / ${FormatCurrency(totalGoal * 1.085)}  / ${FormatCurrency(display.valorContrato108)}`}
             />
           ),
         },
@@ -197,7 +205,7 @@ export function KpiSection({
               label="Taxa de Execução"
               subLabel="Executado / Programado"
               value={executionRate}
-              color={pctColor(executionRate).bar}
+              color={isFiltered ? pctColor(executionRate).bar : "#6b7280"}
               sub={`${FormatCurrency(display.executado)} / ${FormatCurrency(display.programado)}`}
             />
           ),

@@ -31,7 +31,7 @@ describe('MonthlySummaryMapper', () => {
 
       expect(result).toEqual({
         dataProg: '01/01/2024',
-        totalQtde: 0,
+        qtdeSchedules: 0,
         teamsTotal: 5,
         financialGoal: 1000,
         diaryGoal: 0,
@@ -66,7 +66,7 @@ describe('MonthlySummaryMapper', () => {
 
       mapper.accumulateDailySummaryEntry(entry, metrics, 10, 12);
 
-      expect(entry.totalQtde).toBe(1);
+      expect(entry.qtdeSchedules).toBe(1);
       expect(entry.totalMoProg).toBe(500);
       expect(entry.totalMoExec).toBe(300);
       expect(entry.diaryGoal).toBe(10);
@@ -90,7 +90,7 @@ describe('MonthlySummaryMapper', () => {
       mapper.accumulateDailySummaryEntry(entry, metrics, 5, 6);
       mapper.accumulateDailySummaryEntry(entry, metrics, 5, 6);
 
-      expect(entry.totalQtde).toBe(2);
+      expect(entry.qtdeSchedules).toBe(2);
       expect(entry.totalMoProg).toBe(200);
       expect(entry.totalMoExec).toBe(100);
       expect(entry.diaryGoal).toBe(10);
@@ -116,7 +116,7 @@ describe('MonthlySummaryMapper', () => {
         0,
       );
 
-      expect(entry.totalQtde).toBe(1);
+      expect(entry.qtdeSchedules).toBe(1);
       expect(entry.totalMoProg).toBe(0);
       expect(entry.totalMoExec).toBe(0);
     });
@@ -128,12 +128,14 @@ describe('MonthlySummaryMapper', () => {
 
   describe('createGroupTeamEntry', () => {
     it('should create a default group entry', () => {
-      const result = mapper.createGroupTeamEntry('G1', 'T1');
+      const result = mapper.createGroupTeamEntry('G1', 'T1', 2, 2);
 
       expect(result).toEqual({
+        idGrupo: 2,
+        idTurma: 2,
         grupo: 'G1',
         turma: 'T1',
-        qtdeWorks: 0,
+        qtdeSchedules: 0,
         totalMoPlan: 0,
         totalMoProg: 0,
         totalMoPend: 0,
@@ -159,7 +161,7 @@ describe('MonthlySummaryMapper', () => {
         false,
       );
 
-      expect(entry.qtdeWorks).toBe(1);
+      expect(entry.qtdeSchedules).toBe(1);
       expect(entry.totalMoProg).toBe(500);
       expect(entry.totalMoExec).toBe(300);
       expect(entry.totalMoPrev).toBe(200);
@@ -182,7 +184,7 @@ describe('MonthlySummaryMapper', () => {
         false,
       );
 
-      expect(entry.qtdeWorks).toBe(2);
+      expect(entry.qtdeSchedules).toBe(2);
       expect(entry.totalMoProg).toBe(300);
       expect(entry.totalMoExec).toBe(200);
       expect(entry.totalMoPrev).toBe(100);
@@ -198,7 +200,7 @@ describe('MonthlySummaryMapper', () => {
         false,
       );
 
-      expect(entry.qtdeWorks).toBe(1);
+      expect(entry.qtdeSchedules).toBe(1);
       expect(entry.totalMoProg).toBe(0);
       expect(entry.totalMoExec).toBe(0);
       expect(entry.totalMoPrev).toBe(0);
@@ -212,10 +214,12 @@ describe('MonthlySummaryMapper', () => {
   describe('helpers', () => {
     it('createInitialTotals should return zeroed totals', () => {
       expect(createInitialTotals()).toEqual({
-        totalWalletAvaliable: 0,
-        totalWalletExec: 0,
-        totalQtdeObras: 0,
+        totalWorks: 0,
+        totalSchedules: 0,
         totalTeams: 0,
+        totalExecutionCapacityTeams: 0,
+        totalQtdeRfpTeams: 0,
+        totalWalletExec: 0,
         totalFinancialGoal: 0,
         totalDiaryGoal: 0,
         totalFinancialGoalWith8: 0,
@@ -228,12 +232,24 @@ describe('MonthlySummaryMapper', () => {
 
     it('createInitialTotalsByGrouping should return zeroed totals', () => {
       expect(createInitialTotalsByGrouping()).toEqual({
-        totalWorks: 0,
+        totalSchedules: 0,
         totalMoPlanByGrouping: 0,
-        totalMoProgByGrouping: 0,
         totalMoPendByGrouping: 0,
+        totalMoProgByGrouping: 0,
         totalMoExecByGrouping: 0,
         totalMoPrevByGrouping: 0,
+        totalWalletRda: 0,
+        totalExecRda: 0,
+        totalProgRda: 0,
+        totalWalletBt0: 0,
+        totalProgBt0: 0,
+        totalExecBt0: 0,
+        totalWalletMarket: 0,
+        totalProgMarket: 0,
+        totalExecMarket: 0,
+        totalWalletRecom: 0,
+        totalProgRecom: 0,
+        totalExecRecom: 0,
         totalDiff: 0,
       });
     });

@@ -74,13 +74,21 @@ export function PerformanceRow({
         </Typography>
       </TableCell>
 
-      <TableCell>
+      <TableCell
+        sx={{
+          borderLeft: "2px solid #e4e4e7 !important",
+        }}
+      >
         <Typography variant="body2" className="text-zinc-300">
           {formatCurrency(meta100)}
         </Typography>
       </TableCell>
 
-      <TableCell>
+      <TableCell
+        sx={{
+          borderRight: "2px solid #e4e4e7 !important",
+        }}
+      >
         <PerformanceBadge percentage={row.pct100} colors={row.color100} />
       </TableCell>
 
@@ -90,7 +98,11 @@ export function PerformanceRow({
         </Typography>
       </TableCell>
 
-      <TableCell>
+      <TableCell
+        sx={{
+          borderRight: "2px solid #e4e4e7 !important",
+        }}
+      >
         <PerformanceBadge percentage={row.pct108} colors={row.color108} />
       </TableCell>
 
@@ -173,7 +185,12 @@ export function TotalsRow({
 
       <TableCell className="text-zinc-300">{totalObras}</TableCell>
       <TableCell className="text-zinc-300">{totalEquipes}</TableCell>
-      <TableCell className="text-zinc-300">
+      <TableCell
+        sx={{
+          borderLeft: "2px solid #e4e4e7 !important",
+        }}
+        className="text-zinc-300"
+      >
         {formatCurrency(totals.target100)}
       </TableCell>
 
@@ -181,11 +198,20 @@ export function TotalsRow({
         <PerformanceBadge percentage={totals.pct100} colors={totals.color100} />
       </TableCell>
 
-      <TableCell className="text-zinc-300">
+      <TableCell
+        sx={{
+          borderLeft: "2px solid #e4e4e7 !important",
+        }}
+        className="text-zinc-300"
+      >
         {formatCurrency(totals.target108)}
       </TableCell>
 
-      <TableCell>
+      <TableCell
+        sx={{
+          borderRight: "2px solid #e4e4e7 !important",
+        }}
+      >
         <PerformanceBadge percentage={totals.pct108} colors={totals.color108} />
       </TableCell>
 

@@ -16,7 +16,7 @@ function makeDailyEntry(
 ): DailySummaryEntry {
   return {
     dataProg: '01/01/2024',
-    totalQtde: 0,
+    qtdeSchedules: 0,
     teamsTotal: 0,
     financialGoal: 0,
     financialGoalWith8: 0,
@@ -36,7 +36,7 @@ function makeGroupEntry(
   return {
     grupo: 'G1',
     turma: 'T1',
-    qtdeWorks: 0,
+    qtdeSchedules: 0,
     totalMoPlan: 0,
     totalMoProg: 0,
     totalMoExec: 0,
@@ -296,7 +296,11 @@ describe('MonthlySummaryCalculator', () => {
           totalFinancialGoal: 0,
           totalFinancialGoalWith8: 0,
         },
-        { portfolioExec: 0, portfolioSap: 0 },
+        { portfolioExec: 0, portfolioSap: 0, qtdeWorks: 0 },
+        {
+          rfpTeams: 0,
+          executionCapacityTeams: 0,
+        },
       );
 
       expect(result).toEqual(createInitialTotals());
@@ -314,7 +318,11 @@ describe('MonthlySummaryCalculator', () => {
           totalFinancialGoal: 2000,
           totalFinancialGoalWith8: 2500,
         },
-        { portfolioExec: 0, portfolioSap: 0 },
+        { portfolioExec: 0, portfolioSap: 0, qtdeWorks: 0 },
+        {
+          rfpTeams: 0,
+          executionCapacityTeams: 0,
+        },
       );
 
       expect(result.totalFinancialGoal).toBe(2000);
@@ -335,7 +343,11 @@ describe('MonthlySummaryCalculator', () => {
           totalFinancialGoal: 2000,
           totalFinancialGoalWith8: 2500,
         },
-        { portfolioExec: 0, portfolioSap: 0 },
+        { portfolioExec: 0, portfolioSap: 0, qtdeWorks: 0 },
+        {
+          rfpTeams: 0,
+          executionCapacityTeams: 0,
+        },
       );
 
       expect(result.totalDiaryGoal).toBeCloseTo(25, 10);
@@ -350,7 +362,11 @@ describe('MonthlySummaryCalculator', () => {
           totalFinancialGoal: 0,
           totalFinancialGoalWith8: 0,
         },
-        { portfolioExec: 0, portfolioSap: 0 },
+        { portfolioExec: 0, portfolioSap: 0, qtdeWorks: 0 },
+        {
+          rfpTeams: 0,
+          executionCapacityTeams: 0,
+        },
       );
 
       expect(result.totalDiaryGoal).toBe(0);
@@ -365,7 +381,11 @@ describe('MonthlySummaryCalculator', () => {
           totalFinancialGoal: 2000,
           totalFinancialGoalWith8: 2500,
         },
-        { portfolioExec: 0, portfolioSap: 0 },
+        { portfolioExec: 0, portfolioSap: 0, qtdeWorks: 0 },
+        {
+          rfpTeams: 0,
+          executionCapacityTeams: 0,
+        },
       );
 
       expect(result.totalDiff).toBeCloseTo(80, 10);
@@ -376,26 +396,44 @@ describe('MonthlySummaryCalculator', () => {
 
   describe('aggregateGroupTotals', () => {
     it('should return zeroed totals when summaryData is empty', () => {
-      const result = calculator.aggregateGroupTotals([], {
-        totalMoPend: 0,
-        totalMoPlan: 0,
-      });
+      const result = calculator.aggregateGroupTotals(
+        [],
+        {
+          portfolioRda: 0,
+          portfolioBt0: 0,
+          portfolioRecom: 0,
+          portfolioMarket: 0,
+        },
+        {
+          totalMoPend: 0,
+          totalMoPlan: 0,
+        },
+      );
 
       expect(result).toMatchObject(createInitialTotalsByGrouping());
     });
 
     it('should accumulate totalWorks from row.qtdeWorks', () => {
       const data = [
-        makeGroupEntry({ qtdeWorks: 3 }),
-        makeGroupEntry({ qtdeWorks: 7 }),
+        makeGroupEntry({ qtdeSchedules: 3 }),
+        makeGroupEntry({ qtdeSchedules: 7 }),
       ];
 
-      const result = calculator.aggregateGroupTotals(data, {
-        totalMoPend: 0,
-        totalMoPlan: 0,
-      });
+      const result = calculator.aggregateGroupTotals(
+        data,
+        {
+          portfolioRda: 0,
+          portfolioBt0: 0,
+          portfolioRecom: 0,
+          portfolioMarket: 0,
+        },
+        {
+          totalMoPend: 0,
+          totalMoPlan: 0,
+        },
+      );
 
-      expect(result.totalWorks).toBe(10);
+      expect(result.totalSchedules).toBe(10);
     });
 
     it('should accumulate totalMoProgByGrouping from row.totalMoProg', () => {
@@ -404,10 +442,19 @@ describe('MonthlySummaryCalculator', () => {
         makeGroupEntry({ totalMoProg: 600 }),
       ];
 
-      const result = calculator.aggregateGroupTotals(data, {
-        totalMoPend: 0,
-        totalMoPlan: 0,
-      });
+      const result = calculator.aggregateGroupTotals(
+        data,
+        {
+          portfolioRda: 0,
+          portfolioBt0: 0,
+          portfolioRecom: 0,
+          portfolioMarket: 0,
+        },
+        {
+          totalMoPend: 0,
+          totalMoPlan: 0,
+        },
+      );
 
       expect(result.totalMoProgByGrouping).toBe(1000);
     });
@@ -418,10 +465,19 @@ describe('MonthlySummaryCalculator', () => {
         makeGroupEntry({ totalMoExec: 300 }),
       ];
 
-      const result = calculator.aggregateGroupTotals(data, {
-        totalMoPend: 0,
-        totalMoPlan: 0,
-      });
+      const result = calculator.aggregateGroupTotals(
+        data,
+        {
+          portfolioRda: 0,
+          portfolioBt0: 0,
+          portfolioRecom: 0,
+          portfolioMarket: 0,
+        },
+        {
+          totalMoPend: 0,
+          totalMoPlan: 0,
+        },
+      );
 
       expect(result.totalMoExecByGrouping).toBe(500);
     });
@@ -432,10 +488,19 @@ describe('MonthlySummaryCalculator', () => {
         makeGroupEntry({ totalMoPrev: 250 }),
       ];
 
-      const result = calculator.aggregateGroupTotals(data, {
-        totalMoPend: 0,
-        totalMoPlan: 0,
-      });
+      const result = calculator.aggregateGroupTotals(
+        data,
+        {
+          portfolioRda: 0,
+          portfolioBt0: 0,
+          portfolioRecom: 0,
+          portfolioMarket: 0,
+        },
+        {
+          totalMoPend: 0,
+          totalMoPlan: 0,
+        },
+      );
 
       expect(result.totalMoPrevByGrouping).toBe(400);
     });
@@ -443,20 +508,38 @@ describe('MonthlySummaryCalculator', () => {
     it('should compute totalDiff as calculateExecutionRate(totalMoProgByGrouping, totalMoExecByGrouping)', () => {
       const data = [makeGroupEntry({ totalMoProg: 1000, totalMoExec: 600 })];
 
-      const result = calculator.aggregateGroupTotals(data, {
-        totalMoPend: 0,
-        totalMoPlan: 0,
-      });
+      const result = calculator.aggregateGroupTotals(
+        data,
+        {
+          portfolioRda: 0,
+          portfolioBt0: 0,
+          portfolioRecom: 0,
+          portfolioMarket: 0,
+        },
+        {
+          totalMoPend: 0,
+          totalMoPlan: 0,
+        },
+      );
 
       // (600 / 1000) * 100 = 60
       expect(result.totalDiff).toBeCloseTo(60, 10);
     });
 
     it('should return 0 for totalDiff when totalMoProgByGrouping is 0', () => {
-      const result = calculator.aggregateGroupTotals([], {
-        totalMoPend: 0,
-        totalMoPlan: 0,
-      });
+      const result = calculator.aggregateGroupTotals(
+        [],
+        {
+          portfolioRda: 0,
+          portfolioBt0: 0,
+          portfolioRecom: 0,
+          portfolioMarket: 0,
+        },
+        {
+          totalMoPend: 0,
+          totalMoPlan: 0,
+        },
+      );
 
       expect(result.totalDiff).toBe(0);
     });
@@ -464,25 +547,34 @@ describe('MonthlySummaryCalculator', () => {
     it('should handle multiple rows accumulating all fields correctly', () => {
       const data = [
         makeGroupEntry({
-          qtdeWorks: 2,
+          qtdeSchedules: 2,
           totalMoProg: 500,
           totalMoExec: 400,
           totalMoPrev: 450,
         }),
         makeGroupEntry({
-          qtdeWorks: 3,
+          qtdeSchedules: 3,
           totalMoProg: 500,
           totalMoExec: 300,
           totalMoPrev: 350,
         }),
       ];
 
-      const result = calculator.aggregateGroupTotals(data, {
-        totalMoPend: 0,
-        totalMoPlan: 0,
-      });
+      const result = calculator.aggregateGroupTotals(
+        data,
+        {
+          portfolioRda: 0,
+          portfolioBt0: 0,
+          portfolioRecom: 0,
+          portfolioMarket: 0,
+        },
+        {
+          totalMoPend: 0,
+          totalMoPlan: 0,
+        },
+      );
 
-      expect(result.totalWorks).toBe(5);
+      expect(result.totalSchedules).toBe(5);
       expect(result.totalMoProgByGrouping).toBe(1000);
       expect(result.totalMoExecByGrouping).toBe(700);
       expect(result.totalMoPrevByGrouping).toBe(800);

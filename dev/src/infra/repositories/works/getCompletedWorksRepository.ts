@@ -105,8 +105,8 @@ export class GetCompletedWorksRepository implements IGetCompletedWorksRepository
     circuito, mo_planejada, turma, status, conjunto, abrev_regional, observ_obra, ano_plan
     ${baseQuery}`;
 
-    let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras, SUM(mo_planejada) AS total_mo_planejada, SUM(mo_final) as total_mo_exec, 
-    SUM(mo_pend) AS total_mo_pend, SUM(qtde_planejada) as total_qtde_planejada, SUM(qtde_pend) AS total_qtde_pend  ${baseQuery}`;
+    let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras, SUM(mo_planejada) AS total_mo_planejada, SUM(mo_final) as total_mo_exec,
+    SUM(qtde_planejada) as total_qtde_planejada, SUM(qtde_pend) AS total_qtde_pend  ${baseQuery}`;
 
     query = this.applyFilters(query, filters);
     countQuery = this.applyFilters(countQuery, filters);

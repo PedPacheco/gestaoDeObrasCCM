@@ -165,12 +165,7 @@ function buildCurve(monthlyTotals: any[]) {
           .reduce((s, m) => s + m.Programado + m.Realizado, 0)
       : 0;
 
-  const avgMonthlyRate =
-    lastDataIdx >= 0 ? cumulativeDataAtCutoff / (lastDataIdx + 1) : 0;
-
-  const remaining = Math.max(totalMetaFull - cumulativeDataAtCutoff, 0);
   const monthsToEnd = 11 - Math.max(lastDataIdx, 0);
-  const rateNeededForDec = monthsToEnd > 0 ? remaining / monthsToEnd : 0;
 
   const futureProgSum =
     lastDataIdx >= 0
@@ -194,7 +189,7 @@ function buildCurve(monthlyTotals: any[]) {
 
     cumMeta += m.Meta;
     cumProgFull += m.Programado;
-    cumDiff += m.Meta - monthTotal;
+    cumDiff += monthTotal - m.Meta;
 
     if (i <= lastDataIdx) {
       cumRealProg += monthTotal;
@@ -235,10 +230,6 @@ function buildCurve(monthlyTotals: any[]) {
     };
   });
 
-  const projByDec = naturallyHitsThisYear
-    ? Math.round(projByDecOnProg)
-    : Math.round(cumulativeDataAtCutoff + rateNeededForDec * monthsToEnd);
-
   const projectedCrossMonth =
     cumulative.find(
       (p) =>
@@ -251,13 +242,8 @@ function buildCurve(monthlyTotals: any[]) {
     cumulative,
     totalMetaFull,
     lastDataIdx,
-    cumulativeDataAtCutoff,
-    avgMonthlyRate,
-    remaining,
     monthsToEnd,
-    rateNeededForDec,
     naturallyHitsThisYear,
-    projByDec,
     projectedCrossMonth,
   };
 }
