@@ -311,11 +311,8 @@ export class RestrictionsRepository implements IRestrictionsRepository {
   ): Promise<any[]> {
     const { dataInicial, dataFinal, idRegional, idParceira } = filters;
 
-    // Filtro base igual ao da aderência:
-    // col AU: excluir REPROVADO/REPROVADA
-    // col Z: excluir obras com REPROGRAMAÇÃO PREVISTA
-    let where = Prisma.sql`WHERE (status_programacao IS NULL OR UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROVADA'))
-      AND (restricao_execucao IS NULL OR UPPER(TRIM(restricao_execucao)) NOT IN ('REPROGRAMAÇÃO PREVISTA', 'REPROGRAMACAO PREVISTA', 'REPROG. PREVISTA'))`;
+    // Filtro base: exclui REPROVADO e REPROG. PREVISTA — validado contra BI em 05/05/2026
+    let where = Prisma.sql`WHERE (status_programacao IS NULL OR UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROG. PREVISTA'))`;
 
     if (dataInicial && dataFinal)
       where = Prisma.sql`${where} AND data_prog BETWEEN ${dataInicial} AND ${dataFinal}`;
@@ -324,33 +321,22 @@ export class RestrictionsRepository implements IRestrictionsRepository {
     if (idParceira?.length)
       where = Prisma.sql`${where} AND parceira IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(idParceira)}))`;
 
-    // Regra col AB (restricao_programacao) + col AF (status_restricao):
-    // AB null/vazio                              → SEM RESTRIÇÃO
-    // AB preenchido + AF resolvido/concluído     → SEM RESTRIÇÃO
-    // AB preenchido + AF outro valor ou vazio    → COM RESTRIÇÃO
+    // Conta linhas de programação (sem GROUP BY ovnota) para alinhar com resumo-mensal.
+    // Regra por linha: sem restrição = restricao_programacao vazia/nula OU status resolvido/concluído.
     const query = Prisma.sql`
       SELECT
-        mes,
+        TO_CHAR(data_prog, 'MM/YYYY') AS mes,
+        MIN(data_prog) AS data_ref,
         COUNT(*) AS total,
-        SUM(CASE WHEN has_restricao = 0 THEN 1 ELSE 0 END) AS sem_restricao
-      FROM (
-        SELECT
-          TO_CHAR(data_prog, 'MM/YYYY') AS mes,
-          MIN(data_prog) AS data_ref,
-          ovnota,
-          MAX(CASE
-            WHEN restricao_programacao IS NOT NULL
-              AND TRIM(restricao_programacao) != ''
-              AND (status_restricao IS NULL
-                   OR UPPER(TRIM(status_restricao)) NOT IN ('RESOLVIDO','RESOLVIDA','CONCLUIDO','CONCLUIDA','CONCLUÍDO','CONCLUÍDA'))
-            THEN 1 ELSE 0
-          END) AS has_restricao
-        FROM construcao_sp.exportacao_programacoes_obras
-        ${where}
-        GROUP BY TO_CHAR(data_prog, 'MM/YYYY'), ovnota
-      ) sub
-      GROUP BY mes
-      ORDER BY MIN(data_ref)
+        SUM(CASE
+          WHEN restricao_programacao IS NULL OR TRIM(restricao_programacao) = ''
+            OR UPPER(TRIM(status_restricao)) IN ('RESOLVIDO','RESOLVIDA','CONCLUIDO','CONCLUIDA','CONCLUÍDO','CONCLUÍDA')
+          THEN 1 ELSE 0
+        END) AS sem_restricao
+      FROM construcao_sp.exportacao_programacoes_obras
+      ${where}
+      GROUP BY TO_CHAR(data_prog, 'MM/YYYY')
+      ORDER BY MIN(data_prog)
     `;
 
     return this.prisma.$queryRaw<any[]>(query);
@@ -359,23 +345,20 @@ export class RestrictionsRepository implements IRestrictionsRepository {
   async getGripPartner(filters: ProcessedEliminacaoFilters): Promise<any[]> {
     const { dataInicial, dataFinal, idRegional, idParceira } = filters;
 
+    // Usa a view exportacao_programacoes_obras (mesma fonte do BI via Access).
+    // Exclui: REPROVADO (admin), REPROG. PREVISTA (execução), "Obra não programada executada" (prog=0).
     let where = Prisma.sql`WHERE
-      (sp.status_programacao IS NULL OR UPPER(TRIM(sp.status_programacao)) NOT IN ('REPROVADO', 'REPROVADA'))
-      AND (re.restricao IS NULL OR UPPER(TRIM(re.restricao)) NOT IN ('REPROGRAMAÇÃO PREVISTA', 'REPROGRAMACAO PREVISTA', 'REPROG. PREVISTA'))`;
+      UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROVADA')
+      AND UPPER(TRIM(COALESCE(restricao_execucao, ''))) NOT IN ('REPROGRAMAÇÃO PREVISTA', 'REPROGRAMACAO PREVISTA', 'REPROG. PREVISTA')
+      AND prog IS NOT NULL AND prog > 0`;
 
     if (dataInicial && dataFinal)
-      where = Prisma.sql`${where} AND p.data_prog BETWEEN ${dataInicial} AND ${dataFinal}`;
+      where = Prisma.sql`${where} AND data_prog BETWEEN ${dataInicial} AND ${dataFinal}`;
     if (idRegional?.length)
-      where = Prisma.sql`${where} AND r.id IN (${Prisma.join(idRegional)})`;
+      where = Prisma.sql`${where} AND regional IN (SELECT regional FROM construcao_sp.regionais WHERE id IN (${Prisma.join(idRegional)}))`;
     if (idParceira?.length)
-      where = Prisma.sql`${where} AND t.id IN (${Prisma.join(idParceira)})`;
+      where = Prisma.sql`${where} AND parceira IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(idParceira)}))`;
 
-    // Categorias via comparação prog (col P) vs exec (col Q) — por linha de programacao:
-    // - exec IS NULL       → nao_informada
-    // - exec = 0           → nao_executada
-    // - exec < prog        → executada_parcial  (implicitamente exec > 0)
-    // - exec >= prog       → executada
-    // Sem GROUP BY ovnota: uma obra com 2 programacoes na mesma semana conta como 2 linhas.
     const query = Prisma.sql`
       SELECT
         semana,
@@ -386,21 +369,15 @@ export class RestrictionsRepository implements IRestrictionsRepository {
         SUM(CASE WHEN cat = 'nao_informada'     THEN 1 ELSE 0 END) AS nao_informada
       FROM (
         SELECT
-          TO_CHAR(p.data_prog, 'IW') || '/' || TO_CHAR(p.data_prog, 'IYYY') AS semana,
-          p.data_prog AS data_ref,
+          TO_CHAR((data_prog - EXTRACT(DOW FROM data_prog)::integer), 'DD/MM/YYYY') AS semana,
+          data_prog AS data_ref,
           CASE
-            WHEN p.exec IS NULL  THEN 'nao_informada'
-            WHEN p.exec = 0      THEN 'nao_executada'
-            WHEN p.exec < p.prog THEN 'executada_parcial'
-            ELSE                      'executada'
+            WHEN exec IS NULL  THEN 'nao_informada'
+            WHEN exec = 0      THEN 'nao_executada'
+            WHEN exec < prog   THEN 'executada_parcial'
+            ELSE                    'executada'
           END AS cat
-        FROM construcao_sp.programacoes p
-        JOIN construcao_sp.obras o ON o.id = p.id_obra
-        JOIN construcao_sp.turmas t ON t.id = o.id_turma
-        JOIN construcao_sp.municipios m ON m.id = o.id_gpm
-        JOIN construcao_sp.regionais r ON r.id = m.id_regional
-        LEFT JOIN construcao_sp.status_programacao sp ON sp.id = p.id_status_programacao
-        LEFT JOIN construcao_sp.restricoes re ON re.id = p.id_restricao_execucao
+        FROM construcao_sp.exportacao_programacoes_obras
         ${where}
       ) sub
       GROUP BY semana
@@ -452,10 +429,14 @@ export class RestrictionsRepository implements IRestrictionsRepository {
   ): Promise<any[]> {
     const { dataInicial, dataFinal, idRegional, idParceira } = filters;
 
-    // Motivos de reprogramação = obras em status 'REPROGRAMAR' (excluídas dos KPIs).
-    // Mostra ovnota + motivo (restricao_programacao) de cada obra reprogramada.
-    let baseWhere = Prisma.sql`
-      status_programacao IS NOT NULL AND status_programacao IN ('Parcial', 'Cancelado')
+    // Motivos = restricao_execucao (razão pela qual a obra não foi executada).
+    // Exclui REPROVADO, REPROG. PREVISTA e valores nulos/vazios.
+    // JOIN em programacoes + restricoes para obter tipo_restricao (EDP/PARCEIRA/TERCEIRO).
+    let baseWhere = Prisma.sql`WHERE
+      (status_programacao IS NULL OR UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROG. PREVISTA'))
+      AND restricao_execucao IS NOT NULL
+      AND TRIM(restricao_execucao) != ''
+      AND UPPER(TRIM(restricao_execucao)) NOT IN ('REPROG. PREVISTA', 'REPROGRAMAÇÃO PREVISTA', 'REPROGRAMACAO PREVISTA')
     `;
 
     if (dataInicial && dataFinal)
@@ -466,21 +447,178 @@ export class RestrictionsRepository implements IRestrictionsRepository {
       baseWhere = Prisma.sql`${baseWhere} AND parceira IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(idParceira)}))`;
 
     const query = Prisma.sql`
-      SELECT ovnota, motivo
-      FROM (
-        SELECT ovnota, restricao_programacao AS motivo
-        FROM construcao_sp.exportacao_programacoes_obras
-        WHERE ${baseWhere}
-          AND restricao_programacao IS NOT NULL AND TRIM(restricao_programacao) != ''
-
-        UNION ALL
-
-        SELECT ovnota, restricao_programacao2 AS motivo
-        FROM construcao_sp.exportacao_programacoes_obras
-        WHERE ${baseWhere}
-          AND restricao_programacao2 IS NOT NULL AND TRIM(restricao_programacao2) != ''
-      ) AS motivos
+      SELECT ovnota, restricao_execucao AS motivo, NULL::text AS responsavel
+      FROM construcao_sp.exportacao_programacoes_obras
+      ${baseWhere}
       ORDER BY ovnota
+    `;
+
+    return this.prisma.$queryRaw<any[]>(query);
+  }
+
+  async getSparklinesByPartner(
+    filters: ProcessedEliminacaoFilters,
+  ): Promise<{ aderencia: any[]; eliminacao: any[] }> {
+    const { dataInicial, dataFinal, idRegional, idParceira } = filters;
+
+    // ── Base WHERE: usa a view exportacao_programacoes_obras (mesma fonte do BI via Access) ──
+    // Exclui REPROVADO (status admin), REPROG. PREVISTA (restrição execução) e "Obra não programada executada" (prog = 0).
+    let baseWhere = Prisma.sql`WHERE
+      UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROVADA')
+      AND UPPER(TRIM(COALESCE(restricao_execucao, ''))) NOT IN ('REPROGRAMAÇÃO PREVISTA', 'REPROGRAMACAO PREVISTA', 'REPROG. PREVISTA')
+      AND prog IS NOT NULL AND prog > 0`;
+
+    if (dataInicial && dataFinal)
+      baseWhere = Prisma.sql`${baseWhere}
+        AND data_prog BETWEEN ${dataInicial}::date AND ${dataFinal}::date`;
+    if (idRegional?.length)
+      baseWhere = Prisma.sql`${baseWhere} AND regional IN (SELECT regional FROM construcao_sp.regionais WHERE id IN (${Prisma.join(idRegional)}))`;
+    if (idParceira?.length)
+      baseWhere = Prisma.sql`${baseWhere} AND parceira IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(idParceira)}))`;
+
+    // ── Aderência: agrupado por parceira + domingo da semana (Dom-Sáb = WEEKNUM padrão DAX) ──
+    const adQuery = Prisma.sql`
+      SELECT
+        parceira,
+        TO_CHAR((data_prog - EXTRACT(DOW FROM data_prog)::integer), 'DD/MM/YYYY') AS semana,
+        MIN(data_prog) AS data_ref,
+        COUNT(*) AS total,
+        SUM(CASE
+          WHEN exec IS NULL  THEN 0
+          WHEN exec = 0      THEN 0
+          WHEN exec < prog   THEN 0
+          ELSE 1
+        END) AS executada
+      FROM construcao_sp.exportacao_programacoes_obras
+      ${baseWhere}
+      GROUP BY parceira, (data_prog - EXTRACT(DOW FROM data_prog)::integer)
+      ORDER BY parceira, MIN(data_prog)
+    `;
+
+    // ── Eliminação: por semana (Dom-Sáb = WEEKNUM padrão DAX) e parceira, dedup por ovnota ──
+    const elQuery = Prisma.sql`
+      SELECT
+        parceira,
+        semana,
+        MIN(data_ref) AS data_ref,
+        COUNT(*) AS total,
+        SUM(CASE WHEN has_restricao = 0 THEN 1 ELSE 0 END) AS sem_restricao
+      FROM (
+        SELECT
+          parceira,
+          TO_CHAR((data_prog - EXTRACT(DOW FROM data_prog)::integer), 'DD/MM/YYYY') AS semana,
+          MIN(data_prog) AS data_ref,
+          ovnota,
+          MAX(CASE
+            WHEN restricao_programacao IS NOT NULL
+              AND TRIM(restricao_programacao) != ''
+              AND (status_restricao IS NULL
+                   OR UPPER(TRIM(status_restricao)) NOT IN ('RESOLVIDO','RESOLVIDA','CONCLUIDO','CONCLUIDA','CONCLUÍDO','CONCLUÍDA'))
+            THEN 1 ELSE 0
+          END) AS has_restricao
+        FROM construcao_sp.exportacao_programacoes_obras
+        ${baseWhere}
+        GROUP BY parceira, (data_prog - EXTRACT(DOW FROM data_prog)::integer), ovnota
+      ) sub
+      GROUP BY parceira, semana
+      ORDER BY parceira, MIN(data_ref)
+    `;
+
+    const [aderencia, eliminacao] = await Promise.all([
+      this.prisma.$queryRaw<any[]>(adQuery),
+      this.prisma.$queryRaw<any[]>(elQuery),
+    ]);
+
+    return { aderencia, eliminacao };
+  }
+
+  async getWeeksByPartner(
+    filters: ProcessedEliminacaoFilters,
+  ): Promise<any[]> {
+    const { idRegional, idParceira } = filters;
+
+    // Replica DAX: SEMANA PROGRAMADA = equipes_alocadas / (capacidade_mes * 5) >= 0.7
+    // SEMANA PROGRAMADA AJUSTADA = apenas semanas >= semana_atual - 1 (forward-looking)
+    let where = Prisma.sql`WHERE data_prog >= DATE_TRUNC('year', CURRENT_DATE)::date
+      AND (status_programacao IS NULL OR UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROG. PREVISTA'))`;
+
+    if (idRegional?.length)
+      where = Prisma.sql`${where} AND regional IN (SELECT regional FROM construcao_sp.regionais WHERE id IN (${Prisma.join(idRegional)}))`;
+    if (idParceira?.length)
+      where = Prisma.sql`${where} AND parceira IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(idParceira)}))`;
+
+    const query = Prisma.sql`
+      WITH semana_equipes AS (
+        SELECT
+          parceira,
+          (data_prog - EXTRACT(DOW FROM data_prog)::integer)::date AS semana_inicio,
+          SUM(
+            COALESCE(equipe_linha_morta, 0) +
+            COALESCE(equipe_linha_viva, 0) +
+            COALESCE(equipe_regularizacao, 0)
+          ) AS equipes_alocadas
+        FROM construcao_sp.exportacao_programacoes_obras
+        ${where}
+        GROUP BY
+          parceira,
+          (data_prog - EXTRACT(DOW FROM data_prog)::integer)
+      ),
+      cap_por_mes AS (
+        SELECT
+          t.turma AS parceira,
+          SUM(COALESCE(ce.jan, 0)) * 5   AS cap_01,
+          SUM(COALESCE(ce.fev, 0)) * 5   AS cap_02,
+          SUM(COALESCE(ce.mar, 0)) * 5   AS cap_03,
+          SUM(COALESCE(ce.abr, 0)) * 5   AS cap_04,
+          SUM(COALESCE(ce.mai, 0)) * 5   AS cap_05,
+          SUM(COALESCE(ce.jun, 0)) * 5   AS cap_06,
+          SUM(COALESCE(ce.jul, 0)) * 5   AS cap_07,
+          SUM(COALESCE(ce.ago, 0)) * 5   AS cap_08,
+          SUM(COALESCE(ce.set, 0)) * 5   AS cap_09,
+          SUM(COALESCE(ce."out", 0)) * 5 AS cap_10,
+          SUM(COALESCE(ce.nov, 0)) * 5   AS cap_11,
+          SUM(COALESCE(ce.dez, 0)) * 5   AS cap_12
+        FROM construcao_sp.capacidade_execucao ce
+        JOIN construcao_sp.turmas t ON t.id = ce.id_turma
+        WHERE ce.ano = TO_CHAR(CURRENT_DATE, 'YYYY')
+        GROUP BY t.turma
+      ),
+      semana_com_cap AS (
+        SELECT
+          s.parceira,
+          s.semana_inicio,
+          s.equipes_alocadas,
+          COALESCE(
+            CASE EXTRACT(MONTH FROM s.semana_inicio)::integer
+              WHEN 1  THEN c.cap_01
+              WHEN 2  THEN c.cap_02
+              WHEN 3  THEN c.cap_03
+              WHEN 4  THEN c.cap_04
+              WHEN 5  THEN c.cap_05
+              WHEN 6  THEN c.cap_06
+              WHEN 7  THEN c.cap_07
+              WHEN 8  THEN c.cap_08
+              WHEN 9  THEN c.cap_09
+              WHEN 10 THEN c.cap_10
+              WHEN 11 THEN c.cap_11
+              WHEN 12 THEN c.cap_12
+            END,
+            0
+          ) AS equipes_disponiveis
+        FROM semana_equipes s
+        LEFT JOIN cap_por_mes c ON c.parceira = s.parceira
+      )
+      SELECT
+        parceira,
+        COUNT(*) FILTER (
+          WHERE
+            equipes_disponiveis > 0
+            AND equipes_alocadas::float / equipes_disponiveis >= 0.7
+            AND semana_inicio >= (CURRENT_DATE - EXTRACT(DOW FROM CURRENT_DATE)::integer - 7)::date
+        ) AS semanas
+      FROM semana_com_cap
+      GROUP BY parceira
+      ORDER BY parceira
     `;
 
     return this.prisma.$queryRaw<any[]>(query);
