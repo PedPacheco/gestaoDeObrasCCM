@@ -21,7 +21,7 @@ export default async function AvancaParceiro() {
   const [filtersData, eliminacaoRes, aderenciaRes] = await Promise.all([
     fetchFilters({ parceira: true, regional: true }),
     fetchData(
-      `${process.env.NEXT_PUBLIC_API_URL}/restricao/eliminacao-restricao`,
+      `${process.env.NEXT_PUBLIC_API_URL}/restricao/avanca-parceira`,
       defaultParams,
       token,
       { cache: "no-store" },

@@ -208,6 +208,47 @@ export class RestrictionsService {
     );
   }
 
+  async getSparklinesByPartner(filters: GetRestrictionsAdvancePartnerDTO) {
+    const processedFilters = this.parseEliminationFilters(filters);
+    const { aderencia, eliminacao } =
+      await this.restrictionsRepository.getSparklinesByPartner(processedFilters);
+
+    const map = new Map<string, { aderencia: { semana: string; pct: number }[]; eliminacao: { semana: string; pct: number }[] }>();
+
+    for (const r of aderencia) {
+      const p: string = r.parceira;
+      if (!map.has(p)) map.set(p, { aderencia: [], eliminacao: [] });
+      const total = Number(r.total);
+      const exec = Number(r.executada);
+      map.get(p)!.aderencia.push({
+        semana: r.semana,
+        pct: total > 0 ? Math.round((exec / total) * 100) : 0,
+      });
+    }
+
+    for (const r of eliminacao) {
+      const p: string = r.parceira;
+      if (!map.has(p)) map.set(p, { aderencia: [], eliminacao: [] });
+      const total = Number(r.total);
+      const sem = Number(r.sem_restricao);
+      map.get(p)!.eliminacao.push({
+        semana: r.semana,
+        pct: total > 0 ? Math.round((sem / total) * 100) : 0,
+      });
+    }
+
+    return Array.from(map.entries()).map(([parceira, data]) => ({
+      parceira,
+      ...data,
+    }));
+  }
+
+  async getWeeksByPartner(filters: GetRestrictionsAdvancePartnerDTO) {
+    const processedFilters = this.parseEliminationFilters(filters);
+    const rows = await this.restrictionsRepository.getWeeksByPartner(processedFilters);
+    return rows.map((r) => ({ parceira: r.parceira, semanas: Number(r.semanas) }));
+  }
+
   async insertPublicationRestriction(data: InsertPublicationRestrictionsDTO[]) {
     await this.restrictionsRepository.insertPublicationRestriction(data);
   }

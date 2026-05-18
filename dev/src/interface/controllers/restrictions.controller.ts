@@ -174,6 +174,38 @@ export class RestrictionController {
     };
   }
 
+  @Get('sparklines-parceira')
+  @UseGuards(VisualizationGuard)
+  async getSparklinesByPartner(
+    @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
+    @Req() req: any,
+  ) {
+    const filters = this.applyFilters(restrictionFilters, req);
+    const data = await this.restrictionsService.getSparklinesByPartner(filters);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Sparklines por parceira retornados com sucesso',
+      data,
+    };
+  }
+
+  @Get('semanas-parceira')
+  @UseGuards(VisualizationGuard)
+  async getWeeksByPartner(
+    @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
+    @Req() req: any,
+  ) {
+    const filters = this.applyFilters(restrictionFilters, req);
+    const data = await this.restrictionsService.getWeeksByPartner(filters);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Semanas programadas por parceira retornadas com sucesso',
+      data,
+    };
+  }
+
   @Get('restricoes-execucao')
   @UseGuards(VisualizationGuard)
   async getExecutionRestrictions(

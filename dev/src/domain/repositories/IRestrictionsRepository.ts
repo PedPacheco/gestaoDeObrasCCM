@@ -30,6 +30,8 @@ export interface IRestrictionsRepository {
   getScheduledWorks(filters: ProcessedEliminacaoFilters): Promise<any[]>;
   getReaschedulingReasons(filters: ProcessedEliminacaoFilters): Promise<any[]>;
   getExecutionRestrictions(filters: ProcessedEliminacaoFilters): Promise<any[]>;
+  getSparklinesByPartner(filters: ProcessedEliminacaoFilters): Promise<{ aderencia: any[]; eliminacao: any[] }>;
+  getWeeksByPartner(filters: ProcessedEliminacaoFilters): Promise<any[]>;
 }
 
 export const RESTRICTIONS_REPOSITORY = Symbol('RestrictionsRepository');

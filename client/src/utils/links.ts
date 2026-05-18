@@ -34,7 +34,7 @@ export const links = [
         allowedFor: ["total", "sem_permissao"],
       },
       {
-        name: "Relatório BI's",
+        name: "Repositório",
         href: "/relatorios/relatorio-bi",
         allowedFor: ["total", "sem_permissao"],
       },
