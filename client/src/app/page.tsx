@@ -208,11 +208,11 @@ export default async function Home() {
 
   return (
     <div className="relative z-0 flex min-h-screen">
-      <div className="flex flex-1 flex-col overflow-hidden transition-all duration-300 ease-in-out">
+      <div className="flex flex-1 flex-col h-screen overflow-y-auto transition-all duration-300 ease-in-out">
         <Header />
 
         {/* Main dashboard content */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1">
           <DashboardClient
             // dataDashboard={data}
             token={token}

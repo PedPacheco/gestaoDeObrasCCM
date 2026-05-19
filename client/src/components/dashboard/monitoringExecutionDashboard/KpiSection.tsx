@@ -15,7 +15,7 @@ export function KpiSectionMonitoringExecution({ data }: { data: Row[] }) {
   }, [data]);
 
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="grid grid-cols-3 gap-4 px-5">
       {[
         {
           label: "Total Obras",

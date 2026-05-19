@@ -1,3 +1,6 @@
+import { ReactNode } from "react";
+import { RingCard } from "./RingCard";
+
 interface SubItens {
   subLabel: string;
   subValue: string;
@@ -10,6 +13,7 @@ export function KpiCard({
   gradient,
   accent,
   onClick,
+  ringCard,
 }: {
   label: string;
   sub?: SubItens[];
@@ -17,6 +21,7 @@ export function KpiCard({
   gradient: string;
   accent: string;
   onClick?: () => void;
+  ringCard?: ReactNode;
 }) {
   const isClickable = !!onClick;
 
@@ -38,14 +43,18 @@ export function KpiCard({
         style={{ background: accent }}
       />
 
-      <div className="pl-3 flex flex-col">
-        <span className="text-white/60 text-xs uppercase tracking-widest font-medium">
-          {label}
-        </span>
+      <div className="pl-3 flex items-start justify-between gap-4">
+        <div className="flex flex-col">
+          <span className="text-white/60 text-xs uppercase tracking-widest font-medium">
+            {label}
+          </span>
 
-        <span className="font-black text-3xl text-white leading-none pt-2">
-          {value}
-        </span>
+          <span className="font-black text-3xl text-white leading-none pt-2">
+            {value}
+          </span>
+        </div>
+
+        {ringCard}
       </div>
 
       {hasSubItems && (

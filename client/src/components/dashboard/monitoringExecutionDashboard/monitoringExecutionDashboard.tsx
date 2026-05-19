@@ -94,17 +94,17 @@ export default function MonitoringExecutionDashboard({
   const [selectedParceiras, setSelectedParceiras] = useState<string[]>(
     () => filters?.parceira ?? [],
   );
-  const [selectedTechnician, setSelectedTechnician] = useState<string[]>(
-    () => filters?.tipo ?? [],
-  );
+  // const [selectedTechnician, setSelectedTechnician] = useState<string[]>(
+  //   () => filters?.tipo ?? [],
+  // );
 
   const buildParams = useCallback(
     (): Record<string, string[]> => ({
       idParceira: selectedParceiras,
       idRegional: selectedRegionais,
-      idTecnico: selectedTechnician,
+      // idTecnico: selectedTechnician,
     }),
-    [selectedParceiras, selectedRegionais, selectedTechnician],
+    [selectedParceiras, selectedRegionais],
   );
 
   const buildFormattedParams = useCallback(
@@ -137,7 +137,7 @@ export default function MonitoringExecutionDashboard({
   const handleCleaningFilters = useCallback(() => {
     setSelectedParceiras([]);
     setSelectedRegionais([]);
-    setSelectedTechnician([]);
+    // setSelectedTechnician([]);
     setStartDate(DEFAULT_START);
     setEndDate(DEFAULT_END);
     clearFilters();
@@ -160,7 +160,7 @@ export default function MonitoringExecutionDashboard({
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6 pb-6">
       <MonitoringExecutionFilters
         endDate={endDate}
         startDate={startDate}
@@ -169,12 +169,12 @@ export default function MonitoringExecutionDashboard({
         onApply={applyFilter}
         selectedParceiras={selectedParceiras}
         selectedRegionais={selectedRegionais}
-        selectedTechnician={selectedTechnician}
+        // selectedTechnician={selectedTechnician}
         setEndDate={setEndDate}
         setStartDate={setStartDate}
         setSelectedParceiras={setSelectedParceiras}
         setSelectedRegionais={setSelectedRegionais}
-        setSelectedTechnician={setSelectedTechnician}
+        // setSelectedTechnician={setSelectedTechnician}
         clearFilters={handleCleaningFilters}
       />
 

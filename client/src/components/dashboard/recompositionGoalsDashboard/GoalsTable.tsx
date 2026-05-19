@@ -8,6 +8,7 @@ import {
   ParceiraRowInterface,
 } from "@/types/dashboard/recompositionGoals/goals";
 import { NUM } from "@/utils/formatValue";
+import { pctColor } from "../DashboardClient";
 
 interface GoalsTableProps {
   groupedRows: DashboardMetrics["groupedRows"];
@@ -81,7 +82,7 @@ export function GoalsTable({
 
     return Array.from(map.values()).map((t) => ({
       ...t,
-      taxa: t.meta > 0 ? (t.real / t.meta) * 100 : 0,
+      taxa: t.meta > 0 ? ((t.real + t.prog) / t.meta) * 100 : 0,
     }));
   }
 
@@ -89,7 +90,7 @@ export function GoalsTable({
 
   return (
     <div
-      className={`pt-1 grid ${groupedRows.length > 1 ? "sm:grid-cols-2" : "grid-cols-1"} gap-3`}
+      className={`pt-1 grid ${groupedRows.length > 1 ? "sm:grid-cols-2" : "grid-cols-1"} gap-3 px-5`}
     >
       {groupedRows.length === 0 ? (
         <div className="bg-gradient-to-br from-[#1e2f42] to-[#192535] rounded-2xl p-10 text-center text-zinc-500 border border-white/5">
@@ -167,92 +168,6 @@ function Chevron({ isOpen }: { isOpen: boolean }) {
         fill="none"
       />
     </svg>
-  );
-}
-
-//////////////////////////////////////////////////////////////////
-// 🔹 KPI ROW (REUTILIZÁVEL)
-//////////////////////////////////////////////////////////////////
-
-function KpiRow({
-  name,
-  meta,
-  prog,
-  real,
-  carteira,
-  taxa,
-}: {
-  name: string;
-  meta: number;
-  prog: number;
-  real: number;
-  carteira: number;
-  taxa: number;
-}) {
-  const pctProg = meta > 0 ? Math.min((prog / meta) * 100, 100) : 0;
-  const pctReal = meta > 0 ? Math.min((real / meta) * 100, 100) : 0;
-
-  return (
-    <>
-      <div className="flex flex-col min-w-[120px]">
-        <span className="text-zinc-300 font-bold text-sm truncate">{name}</span>
-      </div>
-
-      <div className="flex items-center gap-4 ml-auto">
-        <Metrics meta={meta} prog={prog} real={real} carteira={carteira} />
-
-        <div className="hidden md:flex items-center gap-2 w-[200px]">
-          <ProgressBar prog={pctProg} real={pctReal} />
-          <span className="text-[11px] font-bold text-[#6366f1] w-[40px] text-right">
-            {taxa.toFixed(0)}%
-          </span>
-        </div>
-      </div>
-    </>
-  );
-}
-
-function Metrics({
-  meta,
-  prog,
-  real,
-  carteira,
-}: {
-  meta: number;
-  prog: number;
-  real: number;
-  carteira: number;
-}) {
-  const items = [
-    { label: "Meta", value: meta, color: "text-zinc-300" },
-    { label: "Prog", value: prog, color: "text-[#a78bfa]" },
-    { label: "Real", value: real, color: "text-[#4ade80]" },
-    { label: "Carteira", value: carteira, color: "text-[#f97316]" },
-  ] as const;
-
-  return (
-    <>
-      {items.map(({ label, value, color }) => (
-        <div key={label} className="hidden md:flex flex-col items-end">
-          <span className="text-zinc-500 text-[10px] uppercase tracking-wider">
-            {label}
-          </span>
-          <span className={`${color} text-sm font-semibold`}>{NUM(value)}</span>
-        </div>
-      ))}
-    </>
-  );
-}
-
-function ProgressBar({ prog, real }: { prog: number; real: number }) {
-  return (
-    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden relative">
-      <div className="h-full bg-[#a78bfa]" style={{ width: `${prog}%` }} />
-      <div
-        className="absolute top-0 left-0 h-full bg-[#4ade80]"
-        style={{ width: `${real}%` }}
-      />
-    </div>
   );
 }
 
@@ -393,5 +308,91 @@ function TotaisGerais({
         ))}
       </div>
     </RowContainer>
+  );
+}
+
+//////////////////////////////////////////////////////////////////
+// 🔹 KPI ROW (REUTILIZÁVEL)
+//////////////////////////////////////////////////////////////////
+
+function KpiRow({
+  name,
+  meta,
+  prog,
+  real,
+  carteira,
+  taxa,
+}: {
+  name: string;
+  meta: number;
+  prog: number;
+  real: number;
+  carteira: number;
+  taxa: number;
+}) {
+  return (
+    <>
+      <div className="flex flex-col min-w-[120px]">
+        <span className="text-zinc-300 font-bold text-sm truncate">{name}</span>
+      </div>
+
+      <div className="flex items-center gap-4 ml-auto">
+        <Metrics meta={meta} prog={prog} real={real} carteira={carteira} />
+
+        <div className="hidden md:flex items-center gap-2 w-[200px]">
+          <ProgressBar taxa={taxa} />
+
+          <span className="text-[11px] font-bold text-[#6366f1] w-[40px] text-right">
+            {taxa.toFixed(0)}%
+          </span>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function Metrics({
+  meta,
+  prog,
+  real,
+  carteira,
+}: {
+  meta: number;
+  prog: number;
+  real: number;
+  carteira: number;
+}) {
+  const items = [
+    { label: "Meta", value: meta, color: "text-zinc-300" },
+    { label: "Prog", value: prog, color: "text-[#a78bfa]" },
+    { label: "Real", value: real, color: "text-[#4ade80]" },
+    { label: "Carteira", value: carteira, color: "text-[#f97316]" },
+  ] as const;
+
+  return (
+    <>
+      {items.map(({ label, value, color }) => (
+        <div key={label} className="hidden md:flex flex-col items-end">
+          <span className="text-zinc-500 text-[10px] uppercase tracking-wider">
+            {label}
+          </span>
+          <span className={`${color} text-sm font-semibold`}>{NUM(value)}</span>
+        </div>
+      ))}
+    </>
+  );
+}
+
+function ProgressBar({ taxa }: { taxa: number }) {
+  return (
+    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden relative">
+      <div
+        className="absolute top-0 left-0 h-full transition-all duration-500"
+        style={{
+          width: `${taxa}%`,
+          background: pctColor(taxa).bar,
+        }}
+      />
+    </div>
   );
 }

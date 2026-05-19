@@ -325,14 +325,19 @@ function buildGroupedRows(goals: Goal[]): GroupedRow[] {
   // ── CALCULA TAXAS ──────────────────────────
   for (const regional of regionalMap.values()) {
     regional.taxa =
-      regional.meta > 0 ? (regional.real / regional.meta) * 100 : 0;
+      regional.meta > 0
+        ? ((regional.real + regional.prog) / regional.meta) * 100
+        : 0;
 
     for (const parceiro of regional.children) {
       parceiro.taxa =
-        parceiro.meta > 0 ? (parceiro.real / parceiro.meta) * 100 : 0;
+        parceiro.meta > 0
+          ? ((parceiro.real + parceiro.prog) / parceiro.meta) * 100
+          : 0;
 
       for (const tipo of parceiro.children) {
-        tipo.taxa = tipo.meta > 0 ? (tipo.real / tipo.meta) * 100 : 0;
+        tipo.taxa =
+          tipo.meta > 0 ? ((tipo.real + tipo.prog) / tipo.meta) * 100 : 0;
       }
     }
 
@@ -363,7 +368,9 @@ export function useDashboardMetrics(
     const monthlyTotals = buildMonthlyTotals(monthly);
 
     const taxaReal =
-      totals.totalMeta > 0 ? (totals.totalReal / totals.totalMeta) * 100 : 0;
+      totals.totalMeta > 0
+        ? ((totals.totalReal + totals.totalProg) / totals.totalMeta) * 100
+        : 0;
 
     const pieByTipo = buildPie(tipoMap);
     const barByParceira = buildBar(tipoKpiMap);

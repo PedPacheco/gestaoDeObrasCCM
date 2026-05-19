@@ -55,7 +55,7 @@ export function LaborDashboardFilters({
     selectedGroup.length > 0;
 
   return (
-    <div className="flex flex-col gap-2 rounded-2xl border border-white/5 bg-gradient-to-br from-[#1e2f42] to-[#192535] p-4 shadow-xl">
+    <div className="flex flex-col gap-2 border border-white/5 bg-gradient-to-br from-[#1e2f42] to-[#192535] p-4 shadow-xl">
       <div className="flex flex-row items-end gap-4 overflow-x-auto">
         <div className="flex w-96">
           <DateFilter

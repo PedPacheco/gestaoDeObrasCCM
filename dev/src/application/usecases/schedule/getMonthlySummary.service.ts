@@ -78,8 +78,6 @@ export class MonthlySummaryService {
         return {
           qtdeWorks: acc.qtdeWorks + 1,
 
-          portfolioPlan: acc.portfolioPlan + moPlanejada,
-
           portfolioExec:
             acc.portfolioExec +
             (moPlanejada - (moPlanejada * (item.executado ?? 0)) / 100),
@@ -87,7 +85,6 @@ export class MonthlySummaryService {
       },
       {
         qtdeWorks: 0,
-        portfolioPlan: 0,
         portfolioExec: 0,
       },
     );
@@ -204,22 +201,26 @@ export class MonthlySummaryService {
         return {
           portfolioRda:
             item.tipos.id_grupo === 3
-              ? acc.portfolioRda + moPlanejada
+              ? acc.portfolioRda +
+                (moPlanejada - (moPlanejada * (item.executado ?? 0)) / 100)
               : acc.portfolioRda,
 
           portfolioBt0:
             item.tipos.id_grupo === 4
-              ? acc.portfolioBt0 + moPlanejada
+              ? acc.portfolioBt0 +
+                (moPlanejada - (moPlanejada * (item.executado ?? 0)) / 100)
               : acc.portfolioBt0,
 
           portfolioRecom:
             item.tipos.id_grupo === 2
-              ? acc.portfolioRecom + moPlanejada
+              ? acc.portfolioRecom +
+                (moPlanejada - (moPlanejada * (item.executado ?? 0)) / 100)
               : acc.portfolioRecom,
 
           portfolioMarket:
             item.tipos.id_grupo === 1
-              ? acc.portfolioMarket + moPlanejada
+              ? acc.portfolioMarket +
+                (moPlanejada - (moPlanejada * (item.executado ?? 0)) / 100)
               : acc.portfolioMarket,
         };
       },

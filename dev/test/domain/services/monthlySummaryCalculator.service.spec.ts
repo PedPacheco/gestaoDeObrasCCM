@@ -43,6 +43,7 @@ function makeGroupEntry(
     totalMoPend: 0,
     totalMoPrev: 0,
     diff: 0,
+    idGrupo: 1,
     ...overrides,
   };
 }
@@ -579,6 +580,138 @@ describe('MonthlySummaryCalculator', () => {
       expect(result.totalMoExecByGrouping).toBe(700);
       expect(result.totalMoPrevByGrouping).toBe(800);
       expect(result.totalDiff).toBeCloseTo(70, 10);
+    });
+
+    it('should accumulate Market grouping totals when idGrupo is 1', () => {
+      const data = [
+        makeGroupEntry({
+          idGrupo: 1,
+          totalMoProg: 100,
+          totalMoExec: 80,
+        }),
+        makeGroupEntry({
+          idGrupo: 1,
+          totalMoProg: 200,
+          totalMoExec: 150,
+        }),
+      ];
+
+      const result = calculator.aggregateGroupTotals(
+        data,
+        {
+          portfolioRda: 0,
+          portfolioBt0: 0,
+          portfolioRecom: 0,
+          portfolioMarket: 500,
+        },
+        {
+          totalMoPend: 0,
+          totalMoPlan: 0,
+        },
+      );
+
+      expect(result.totalProgMarket).toBe(300);
+      expect(result.totalExecMarket).toBe(230);
+      expect(result.totalWalletMarket).toBe(500);
+    });
+
+    it('should accumulate Recom grouping totals when idGrupo is 2', () => {
+      const data = [
+        makeGroupEntry({
+          idGrupo: 2,
+          totalMoProg: 300,
+          totalMoExec: 250,
+        }),
+        makeGroupEntry({
+          idGrupo: 2,
+          totalMoProg: 100,
+          totalMoExec: 50,
+        }),
+      ];
+
+      const result = calculator.aggregateGroupTotals(
+        data,
+        {
+          portfolioRda: 0,
+          portfolioBt0: 0,
+          portfolioRecom: 700,
+          portfolioMarket: 0,
+        },
+        {
+          totalMoPend: 0,
+          totalMoPlan: 0,
+        },
+      );
+
+      expect(result.totalProgRecom).toBe(400);
+      expect(result.totalExecRecom).toBe(300);
+      expect(result.totalWalletRecom).toBe(700);
+    });
+
+    it('should accumulate RDA grouping totals when idGrupo is 3', () => {
+      const data = [
+        makeGroupEntry({
+          idGrupo: 3,
+          totalMoProg: 500,
+          totalMoExec: 400,
+        }),
+        makeGroupEntry({
+          idGrupo: 3,
+          totalMoProg: 250,
+          totalMoExec: 200,
+        }),
+      ];
+
+      const result = calculator.aggregateGroupTotals(
+        data,
+        {
+          portfolioRda: 900,
+          portfolioBt0: 0,
+          portfolioRecom: 0,
+          portfolioMarket: 0,
+        },
+        {
+          totalMoPend: 0,
+          totalMoPlan: 0,
+        },
+      );
+
+      expect(result.totalProgRda).toBe(750);
+      expect(result.totalExecRda).toBe(600);
+      expect(result.totalWalletRda).toBe(900);
+    });
+
+    it('should accumulate BT0 grouping totals when idGrupo is 4', () => {
+      const data = [
+        makeGroupEntry({
+          idGrupo: 4,
+          totalMoProg: 800,
+          totalMoExec: 600,
+        }),
+        makeGroupEntry({
+          idGrupo: 4,
+          totalMoProg: 200,
+          totalMoExec: 100,
+        }),
+      ];
+
+      const result = calculator.aggregateGroupTotals(
+        data,
+        {
+          portfolioRda: 0,
+          portfolioBt0: 1200,
+          portfolioRecom: 0,
+          portfolioMarket: 0,
+        },
+        {
+          totalMoPend: 0,
+          totalMoPlan: 0,
+        },
+      );
+
+      expect(result.totalProgBt0).toBe(1000);
+      expect(result.totalExecBt0).toBe(700);
+      expect(result.totalWalletBt0).toBe(1200);
     });
   });
 });

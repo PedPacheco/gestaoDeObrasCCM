@@ -41,30 +41,6 @@ interface Props {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-export function pctColor(pct: number) {
-  if (pct >= 100) {
-    return {
-      bg: "#053715",
-      text: "#53FF75",
-      bar: "#53FF75",
-    };
-  }
-
-  if (pct >= 89 && pct < 100) {
-    return {
-      bg: "#451a03",
-      text: "#facc15",
-      bar: "#facc15",
-    };
-  }
-
-  return {
-    bg: "#450a0a",
-    text: "#f87171",
-    bar: "#ef4444",
-  };
-}
-
 const DEFAULT_START = () => dayjs().startOf("month");
 const DEFAULT_END = () => dayjs().endOf("month");
 
@@ -230,7 +206,7 @@ export default function LaborDashboard({
   }, [clearFilters, token]);
 
   return (
-    <div className="flex flex-col gap-5 p-6 min-h-full">
+    <div className="flex flex-col gap-5 pb-5 min-h-full">
       <LaborDashboardFilters
         endDate={endDate}
         startDate={startDate}
@@ -266,7 +242,7 @@ export default function LaborDashboard({
 
       {/* ── Gráficos ───────────────────────────────────────────────────── */}
 
-      <div className="overflow-hidden transition-all duration-500 ease-in-out">
+      <div className="overflow-hidden transition-all duration-500 ease-in-out px-5">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-1">
           {/* Composted: Barras Prog/Exec + Linha Meta */}
           <ChartCard title="Programado vs Executado (dia)">
@@ -366,7 +342,7 @@ export default function LaborDashboard({
                   tick={{ fill: "#a1a1aa", fontSize: 12 }}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
+                  tickFormatter={(v) => `${(v / 1000000).toFixed(1)}M`}
                 />
                 <Tooltip content={<ChartTooltip metricConfig="currency" />} />
                 <Legend
@@ -395,9 +371,11 @@ export default function LaborDashboard({
         </div>
       </div>
 
-      <DailySummaryTable data={data} dailyGoal={metaDiaria} />
+      <div className="flex flex-col gap-y-4 px-5">
+        <DailySummaryTable data={data} dailyGoal={metaDiaria} />
 
-      <GroupSummaryTable data={data2} />
+        <GroupSummaryTable data={data2} />
+      </div>
     </div>
   );
 }

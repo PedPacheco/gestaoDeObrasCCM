@@ -8,6 +8,7 @@ import AvancaParceiroDashboard from "./AvancaParceiroDashboard";
 import MonitoringExecutionDashboard from "./monitoringExecutionDashboard/monitoringExecutionDashboard";
 import RecompositionGoalsDashboard from "./recompositionGoalsDashboard/RecompositionGoalsDashboard";
 import LaborDashboard from "./laborDashboard/laborDashboard";
+import Image from "next/image";
 
 // Formats "YYYY-MM" → "MMM/YY"
 
@@ -91,6 +92,30 @@ type Tab =
   | "acompanhamento-execucao"
   | "avanca-parceiro";
 
+export function pctColor(pct: number) {
+  if (pct >= 100) {
+    return {
+      bg: "#053715",
+      text: "#53FF75",
+      bar: "#53FF75",
+    };
+  }
+
+  if (pct >= 89 && pct < 100) {
+    return {
+      bg: "#451a03",
+      text: "#facc15",
+      bar: "#facc15",
+    };
+  }
+
+  return {
+    bg: "#450a0a",
+    text: "#f87171",
+    bar: "#ef4444",
+  };
+}
+
 export default function DashboardClient({
   // dataDashboard,
   token,
@@ -108,38 +133,90 @@ export default function DashboardClient({
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("mao-de-obra");
 
+  const partners = [
+    {
+      name: "Engelmig",
+      logo: "/engelmig-logo.png",
+    },
+    {
+      name: "LIG",
+      logo: "/lig-logo.png",
+    },
+    {
+      name: "Start",
+      logo: "/start-logo.png",
+    },
+    {
+      name: "Manserv",
+      logo: "/manserv-logo.png",
+    },
+    {
+      name: "OCA",
+      logo: "/oca-logo.png",
+    },
+    {
+      name: "Cosampa",
+      logo: "/cosampa-logo.png",
+    },
+    {
+      name: "Compel",
+      logo: "/compel-logo.png",
+    },
+    {
+      name: "Baramaia",
+      logo: "/baramaia-logo.png",
+    },
+  ];
+
   return (
     <div className="flex flex-col min-h-full ">
       {/* ── Tab Switcher ──────────────────────────────────────────── */}
-      <div className="flex gap-1 px-6 pt-5 pb-0 border-b border-white/5">
-        {(
-          [
-            // { key: "geral", label: "Visão Geral" },
-            {
-              key: "mao-de-obra",
-              label: "Resumo — Mão de Obra Parceira",
-            },
-            // { key: "forecast", label: "Resumo Mensal — Forecast" },
-            { key: "metas-recomposicao", label: "Metas Recomposição" },
-            {
-              key: "acompanhamento-execucao",
-              label: "Acompanhamento da Execução",
-            },
-            // { key: "avanca-parceiro", label: "Avança parceiro" },
-          ] as { key: Tab; label: string }[]
-        ).map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => setActiveTab(key)}
-            className={`px-5 py-2.5 text-base font-semibold tracking-wide rounded-t-xl transition-all duration-200 ${
-              activeTab === key
-                ? "bg-gradient-to-br from-[#1e2f42] to-[#192535] text-white border border-b-0 border-white/10 shadow-lg"
-                : "text-zinc-500 hover:text-zinc-300"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="sticky top-16 z-30 bg-white flex justify-between items-center gap-1 px-6 pt-5 pb-0 border-b border-white/5">
+        <div className="flex gap-1">
+          {(
+            [
+              {
+                key: "mao-de-obra",
+                label: "Resumo — Mão de Obra Parceira",
+              },
+              { key: "metas-recomposicao", label: "Metas Recomposição" },
+              {
+                key: "acompanhamento-execucao",
+                label: "Acompanhamento da Execução",
+              },
+              { key: "avanca-parceiro", label: "Avança Parceiro" },
+            ] as { key: Tab; label: string }[]
+          ).map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`px-5 py-2.5 text-base font-semibold tracking-wide rounded-t-xl transition-all duration-200 ${
+                activeTab === key
+                  ? "bg-gradient-to-br from-[#1e2f42] to-[#192535] text-white border border-b-0 border-white/10 shadow-lg"
+                  : "text-zinc-500 hover:text-zinc-300"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-4 pb-2">
+          {partners.map((item, index) => (
+            <div
+              key={index}
+              className="relative h-12 w-20 opacity-80 transition hover:opacity-100"
+            >
+              <Image
+                title={item.name}
+                src={item.logo}
+                alt={`Parceira ${index + 1}`}
+                fill
+                className="object-contain"
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* ── Tab Content ───────────────────────────────────────────── */}
@@ -152,6 +229,13 @@ export default function DashboardClient({
       ) : activeTab === "acompanhamento-execucao" ? (
         <MonitoringExecutionDashboard
           initialData={initialExecMonitoring}
+          filtersData={goalsFilters}
+          token={token}
+        />
+      ) : activeTab === "avanca-parceiro" ? (
+        <AvancaParceiroDashboard
+          initialEliminacao={initialEliminacaoRestricao}
+          initialAderencia={initialAderenciaParceira}
           filtersData={goalsFilters}
           token={token}
         />

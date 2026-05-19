@@ -1,8 +1,8 @@
-import { TableRow, TableCell, Typography, Box } from "@mui/material";
+import { TableRow, TableCell, Typography } from "@mui/material";
 import { FormatCurrency } from "@/utils/formatValue";
-import { pctColor } from "./laborDashboard";
 import { GroupSummaryItem } from "@/types/dashboard/labor/labor";
 import { PerformanceBadge } from "../common/performanceBadge";
+import { pctColor } from "../DashboardClient";
 
 interface GroupSummaryRowProps {
   row: GroupSummaryItem;

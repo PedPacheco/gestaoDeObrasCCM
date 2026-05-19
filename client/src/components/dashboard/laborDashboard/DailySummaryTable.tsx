@@ -1,9 +1,9 @@
 import { FormatCurrency } from "@/utils/formatValue";
-import { pctColor } from "./laborDashboard";
 import { useMemo, useState } from "react";
 import { PerformanceRow, TotalsRow } from "./rowsTable";
 import { isWeekend } from "@/hooks/dashboard/laborDashboard/useLaborDashboardMetrics";
 import { DailySummary } from "@/types/dashboard/labor/labor";
+import { pctColor } from "../DashboardClient";
 
 interface DailySummaryTableProps {
   data: DailySummary;

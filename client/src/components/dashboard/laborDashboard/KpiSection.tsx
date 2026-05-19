@@ -1,10 +1,10 @@
 import { FormatCurrency } from "@/utils/formatValue";
 import { KpiCard } from "../common/KpiCard";
 import { RingCard } from "../common/RingCard";
-import { pctColor } from "./laborDashboard";
+
 import { usePersistedNavigation } from "@/hooks/dashboard/laborDashboard/usePersistedNavigation";
 import { Dayjs } from "dayjs";
-import { Transform } from "@/utils/transform";
+import { pctColor } from "../DashboardClient";
 
 interface DisplayInterface {
   programacoes: number;
@@ -79,7 +79,7 @@ export function KpiSection({
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 px-5">
       {[
         {
           label: "Qtd. Obras Programadas",

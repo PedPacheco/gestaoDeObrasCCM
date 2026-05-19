@@ -109,11 +109,6 @@ export const MONTH_OPTIONS = MONTHS.map((value, index) => ({
 // ── Cores de desempenho ───────────────────────────────────────────────────────
 
 /** Retorna paleta de cores baseada no percentual de atingimento */
-export function pctColor(v: number) {
-  if (v >= 100) return { bar: "#53FF75", bg: "#052e16", text: "#4ade80" };
-  if (v >= 70) return { bar: "#f97316", bg: "#431407", text: "#fb923c" };
-  return { bar: "#818cf8", bg: "#1e1b4b", text: "#818cf8" };
-}
 
 export default function RecompositionGoalsDashboard({
   initialGoals,
@@ -220,7 +215,7 @@ export default function RecompositionGoalsDashboard({
   }, [clearFilters, now, token]);
 
   return (
-    <div className="flex flex-col gap-5 p-6 min-h-full">
+    <div className="flex flex-col gap-5 pb-6 min-h-full">
       <GoalsFilters
         filtersData={filtersData}
         tiposRecomp={tiposRecomp}

@@ -27,7 +27,7 @@ export function MonitoredByPartner({ data }: { data: Row[] }) {
   }, [data, parceiras]);
 
   return (
-    <>
+    <div className="px-5">
       {parceiras.length > 0 && tableMonths.length > 0 && (
         <div className="bg-gradient-to-br from-[#1e2f42] to-[#192535] rounded-2xl p-6 border border-white/5 shadow-xl overflow-x-auto">
           <h3 className="text-white font-bold text-sm mb-5 tracking-wide uppercase">
@@ -98,6 +98,6 @@ export function MonitoredByPartner({ data }: { data: Row[] }) {
           </table>
         </div>
       )}
-    </>
+    </div>
   );
 }

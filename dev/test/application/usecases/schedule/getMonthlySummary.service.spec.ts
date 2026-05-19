@@ -76,21 +76,25 @@ function makePortfolioRecord(
     ordem_dcim?: string;
     executado?: number;
     id_turma?: number;
+    id_grupo?: number;
     grupo?: string;
     turma?: string;
   } = {},
 ) {
   return {
-    mo_planejada: overrides.mo_planejada ?? 1000,
+    mo_planejada: overrides.mo_planejada ?? null,
     mo_pend: overrides.mo_pend ?? 200,
     ovnota: overrides.ovnota ?? 'OV001',
     ordem_dci: overrides.ordem_dci ?? 'DCI001',
     ordem_dca: overrides.ordem_dca ?? 'DCA001',
     ordem_dcd: overrides.ordem_dcd ?? 'DCD001',
     ordem_dcim: overrides.ordem_dcim ?? 'DCIM001',
-    executado: overrides.executado ?? 30,
+    executado: overrides.executado ?? null,
     id_turma: overrides.id_turma ?? 1,
-    tipos: { id_grupo: 2, grupos: { grupo: overrides.grupo ?? 'GRP_A' } },
+    tipos: {
+      id_grupo: overrides.id_grupo ?? 2,
+      grupos: { grupo: overrides.grupo ?? 'GRP_A' },
+    },
     turmas: { turma: overrides.turma ?? 'TRM_1' },
   };
 }
@@ -467,7 +471,7 @@ describe('MonthlySummaryService', () => {
         'GRP_A',
         'TRM_1',
         undefined,
-        undefined,
+        1,
       );
       expect(calculator.calculateWorkOrderMetrics).toHaveBeenCalledWith(
         1000,
@@ -530,6 +534,81 @@ describe('MonthlySummaryService', () => {
       await service.getSecondSummary(DEFAULT_FILTERS);
 
       expect(uniqueTarget.totalMoPlan).toBe(300); // counted only once
+    });
+
+    it('should accumulate portfolioMarket when portfolio item belongs to Market group (id_grupo = 1)', async () => {
+      monthlySummaryRepository.getSummary.mockResolvedValue([makeRecord()]);
+
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        makePortfolioRecord({
+          id_grupo: 1,
+          mo_planejada: 1000,
+          executado: null,
+        }),
+      ]);
+
+      await service.getSecondSummary(DEFAULT_FILTERS);
+
+      expect(calculator.aggregateGroupTotals).toHaveBeenCalledWith(
+        expect.any(Array),
+        {
+          portfolioRda: 0,
+          portfolioBt0: 0,
+          portfolioRecom: 0,
+          portfolioMarket: 1000,
+        },
+        expect.any(Object),
+      );
+    });
+
+    it('should accumulate portfolioMarket when portfolio item belongs to Market group (id_grupo = 3)', async () => {
+      monthlySummaryRepository.getSummary.mockResolvedValue([makeRecord()]);
+
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        makePortfolioRecord({
+          id_grupo: 3,
+          mo_planejada: 1000,
+          executado: null,
+        }),
+      ]);
+
+      await service.getSecondSummary(DEFAULT_FILTERS);
+
+      expect(calculator.aggregateGroupTotals).toHaveBeenCalledWith(
+        expect.any(Array),
+        {
+          portfolioRda: 1000,
+          portfolioBt0: 0,
+          portfolioRecom: 0,
+          portfolioMarket: 0,
+        },
+        expect.any(Object),
+      );
+    });
+
+    it('should accumulate portfolioMarket when portfolio item belongs to Market group (id_grupo = 4)', async () => {
+      monthlySummaryRepository.getSummary.mockResolvedValue([makeRecord()]);
+
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        makePortfolioRecord({
+          id_grupo: 4,
+          mo_planejada: 1000,
+          executado: null,
+        }),
+      ]);
+
+      await service.getSecondSummary(DEFAULT_FILTERS);
+
+      expect(calculator.aggregateGroupTotals).toHaveBeenCalledWith(
+        expect.any(Array),
+        {
+          portfolioRda: 0,
+          portfolioBt0: 1000,
+          portfolioRecom: 0,
+          portfolioMarket: 0,
+        },
+        expect.any(Object),
+      );
     });
   });
 });

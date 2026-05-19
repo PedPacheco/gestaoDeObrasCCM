@@ -16,8 +16,8 @@ import { GroupSummary } from "@/types/dashboard/labor/labor";
 import { FormatCurrency } from "@/utils/formatValue";
 
 import { GroupSummaryRow } from "./GroupSummaryRow";
-import { pctColor } from "./laborDashboard";
 import { PerformanceBadge } from "../common/performanceBadge";
+import { pctColor } from "../DashboardClient";
 
 interface GroupSummaryTableProps {
   data: GroupSummary;
@@ -44,6 +44,7 @@ export function GroupSummaryTable({ data }: GroupSummaryTableProps) {
         boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
         display: "flex",
         flexDirection: "column",
+        paddingX: "20px",
       }}
     >
       {/* Header */}

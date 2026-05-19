@@ -9,9 +9,9 @@ import { useMemo } from "react";
 
 import { DashboardMetrics } from "@/types/dashboard/recompositionGoals/goals";
 import { NUM } from "@/utils/formatValue";
-import { pctColor } from "./RecompositionGoalsDashboard";
 import { KpiCard } from "../common/KpiCard";
-import { RingCard } from "../common/RingCard";
+import { RingCardExecution } from "./ringCardExecution";
+import { pctColor } from "../DashboardClient";
 
 interface KpiSectionProps {
   metrics: DashboardMetrics;
@@ -27,24 +27,21 @@ export function KpiSection({ metrics }: KpiSectionProps) {
         label: "Meta Acumulado",
         value: NUM(totalMeta),
         gradient: "bg-gradient-to-br from-[#182638] to-[#1c2f42]",
-        accent: "#3b82f6",
+        accent: "#94a3b8",
       },
       {
         label: "Prog. Acumulado",
         value: NUM(totalProg),
         gradient: "bg-gradient-to-br from-[#182638] to-[#1c2f42]",
-        accent: "#a78bfa",
+        accent: "#3b82f6",
       },
       {
         label: "Real. Acumulado",
         value: NUM(totalReal),
         gradient: "bg-gradient-to-br from-[#182638] to-[#1c2f42]",
         accent: "#53FF75",
-      },
-      {
-        type: "ring",
-        component: (
-          <RingCard
+        ringCard: (
+          <RingCardExecution
             label="Taxa REAL / META"
             value={taxaReal}
             color={pctColor(taxaReal).bar}
@@ -64,26 +61,9 @@ export function KpiSection({ metrics }: KpiSectionProps) {
 
   return (
     <>
-      <div className="grid grid-cols-2 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 px-5">
         {kpis.map((item) => {
-          if (item.type === "ring") {
-            return (
-              <div
-                key={item.component?.props.label}
-                className="flex flex-col gap-3"
-              >
-                {item.component}
-
-                <KpiDrillDown
-                  activeKpi="Taxa Real / Meta"
-                  metrics={metrics}
-                  hideHeader
-                />
-              </div>
-            );
-          }
-
-          const { label, value, gradient, accent } = item;
+          const { label, value, gradient, accent, ringCard } = item;
 
           if (!label || !value || !gradient || !accent) return null;
 
@@ -94,6 +74,7 @@ export function KpiSection({ metrics }: KpiSectionProps) {
                 value={value}
                 gradient={gradient}
                 accent={accent}
+                ringCard={ringCard}
               />
 
               <KpiDrillDown activeKpi={label} metrics={metrics} hideHeader />
@@ -170,9 +151,9 @@ function TopTiposBars({
 
   const color =
     activeKpi === "Meta Acumulado"
-      ? "#3b82f6"
+      ? "#94a3b8"
       : activeKpi === "Prog. Acumulado"
-        ? "#a78bfa"
+        ? "#3b82f6"
         : "#53FF75";
 
   const sorted = [...tipoMap.entries()]

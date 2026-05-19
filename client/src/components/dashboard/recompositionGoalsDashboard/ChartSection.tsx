@@ -39,7 +39,7 @@ const K_FORMATTER = (v: number) => `${(v / 1000).toFixed(0)}k`;
 export function ChartsSection({ metrics }: ChartsSectionProps) {
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-1">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-1 px-5">
         <MonthlyBarChart data={metrics.monthlyTotals} />
         <CurvaSPanel metrics={metrics} />
       </div>

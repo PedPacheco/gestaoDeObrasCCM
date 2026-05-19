@@ -36,6 +36,7 @@ interface ModalsManagerProps {
       description: string;
     }[],
   ) => void;
+  scheduleStatus: string;
 }
 
 export interface ModalsManagerRef {
@@ -63,6 +64,7 @@ export const ModalsManager = forwardRef<ModalsManagerRef, ModalsManagerProps>(
       onConfirmDelete,
       onConfirmExecutionDelete,
       totalExec,
+      scheduleStatus,
     },
     ref,
   ) => {
@@ -170,6 +172,7 @@ export const ModalsManager = forwardRef<ModalsManagerRef, ModalsManagerProps>(
           statusWork={statusWork}
           onModalOpen={setOpenModal}
           onExecutionDialogOpen={setIsExecutionDialogOpen}
+          scheduleStatus={scheduleStatus}
         />
 
         <ExecutionReportDialog

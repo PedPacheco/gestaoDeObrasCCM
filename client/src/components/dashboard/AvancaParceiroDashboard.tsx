@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { KpiCard } from "./common/KpiCard";
 import {
   Bar,
   CartesianGrid,
@@ -84,20 +83,20 @@ const EXCLUDE_PARCEIRAS = new Set([
 // ── Renomeações (nome BD → nome exibido, para alinhar com o Power BI) ────
 const PARCEIRA_RENAME: Record<string, string> = {
   "START VALE": "START TAU",
-  "ENGELMIG": "ENGELMIG SJC",
+  ENGELMIG: "ENGELMIG SJC",
 };
 
 // ── Semanas do ano ─────────────────────────────────────────────────────────
 const WEEKS: { num: number; inicio: string; fim: string; mes: string }[] = [
-  { num:  1, inicio: "28/12/2025", fim: "03/01/2026", mes: "Dezembro" },
-  { num:  2, inicio: "04/01/2026", fim: "10/01/2026", mes: "Janeiro" },
-  { num:  3, inicio: "11/01/2026", fim: "17/01/2026", mes: "Janeiro" },
-  { num:  4, inicio: "18/01/2026", fim: "24/01/2026", mes: "Janeiro" },
-  { num:  5, inicio: "25/01/2026", fim: "31/01/2026", mes: "Janeiro" },
-  { num:  6, inicio: "01/02/2026", fim: "07/02/2026", mes: "Fevereiro" },
-  { num:  7, inicio: "08/02/2026", fim: "14/02/2026", mes: "Fevereiro" },
-  { num:  8, inicio: "15/02/2026", fim: "21/02/2026", mes: "Fevereiro" },
-  { num:  9, inicio: "22/02/2026", fim: "28/02/2026", mes: "Fevereiro" },
+  { num: 1, inicio: "28/12/2025", fim: "03/01/2026", mes: "Dezembro" },
+  { num: 2, inicio: "04/01/2026", fim: "10/01/2026", mes: "Janeiro" },
+  { num: 3, inicio: "11/01/2026", fim: "17/01/2026", mes: "Janeiro" },
+  { num: 4, inicio: "18/01/2026", fim: "24/01/2026", mes: "Janeiro" },
+  { num: 5, inicio: "25/01/2026", fim: "31/01/2026", mes: "Janeiro" },
+  { num: 6, inicio: "01/02/2026", fim: "07/02/2026", mes: "Fevereiro" },
+  { num: 7, inicio: "08/02/2026", fim: "14/02/2026", mes: "Fevereiro" },
+  { num: 8, inicio: "15/02/2026", fim: "21/02/2026", mes: "Fevereiro" },
+  { num: 9, inicio: "22/02/2026", fim: "28/02/2026", mes: "Fevereiro" },
   { num: 10, inicio: "01/03/2026", fim: "07/03/2026", mes: "Março" },
   { num: 11, inicio: "08/03/2026", fim: "14/03/2026", mes: "Março" },
   { num: 12, inicio: "15/03/2026", fim: "21/03/2026", mes: "Março" },
@@ -163,7 +162,13 @@ function fmt(n: number) {
 }
 
 function fmtMoeda(n: number) {
-  return "R$ " + n.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  return (
+    "R$ " +
+    n.toLocaleString("pt-BR", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    })
+  );
 }
 
 function pctExact(num: number, den: number) {
@@ -189,9 +194,18 @@ function PercentOrb({ pct }: { pct: number }) {
   const offset = circumference * (1 - pct / 100);
   return (
     <svg width="100" height="100" viewBox="0 0 100 100" className="shrink-0">
-      <circle cx="50" cy="50" r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7" />
       <circle
-        cx="50" cy="50" r={r}
+        cx="50"
+        cy="50"
+        r={r}
+        fill="none"
+        stroke="rgba(255,255,255,0.07)"
+        strokeWidth="7"
+      />
+      <circle
+        cx="50"
+        cy="50"
+        r={r}
         fill="none"
         stroke={color}
         strokeWidth="7"
@@ -202,7 +216,8 @@ function PercentOrb({ pct }: { pct: number }) {
         style={{ transition: "stroke-dashoffset 0.6s ease, stroke 0.3s ease" }}
       />
       <text
-        x="50" y="50"
+        x="50"
+        y="50"
         textAnchor="middle"
         dominantBaseline="central"
         fill="white"
@@ -235,7 +250,12 @@ function Sparkline({
   data: SparkPoint[];
   colorFn: (pct: number) => string;
 }) {
-  if (!data.length) return <div className="h-[72px] flex items-center justify-center text-zinc-600 text-[10px]">—</div>;
+  if (!data.length)
+    return (
+      <div className="h-[72px] flex items-center justify-center text-zinc-600 text-[10px]">
+        —
+      </div>
+    );
 
   const CustomDot = (props: any) => {
     const { cx, cy, payload } = props;
@@ -245,9 +265,17 @@ function Sparkline({
   const CustomLabel = (props: any) => {
     const { x, y, value, index } = props;
     // Ajusta ancora p/ evitar corte nas bordas
-    const anchor = index === 0 ? "start" : index === data.length - 1 ? "end" : "middle";
+    const anchor =
+      index === 0 ? "start" : index === data.length - 1 ? "end" : "middle";
     return (
-      <text x={x} y={y - 7} textAnchor={anchor} fontSize={9} fontWeight="700" fill={colorFn(value)}>
+      <text
+        x={x}
+        y={y - 7}
+        textAnchor={anchor}
+        fontSize={9}
+        fontWeight="700"
+        fill={colorFn(value)}
+      >
         {value}%
       </text>
     );
@@ -438,7 +466,8 @@ function WeekSelect({
 
   useEffect(() => {
     function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
     }
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -446,7 +475,9 @@ function WeekSelect({
 
   return (
     <div ref={ref} className="relative flex flex-col gap-1">
-      <span className="text-zinc-500 text-[10px] uppercase tracking-wider">{label}</span>
+      <span className="text-zinc-500 text-[10px] uppercase tracking-wider">
+        {label}
+      </span>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -459,9 +490,16 @@ function WeekSelect({
         </div>
         <svg
           className={`w-3 h-3 text-zinc-500 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-          fill="none" viewBox="0 0 24 24" stroke="currentColor"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </button>
       {open && (
@@ -475,14 +513,25 @@ function WeekSelect({
               <button
                 key={w.num}
                 type="button"
-                onClick={() => { onChange(w.num); setOpen(false); }}
+                onClick={() => {
+                  onChange(w.num);
+                  setOpen(false);
+                }}
                 className={`w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-white/5 transition-colors ${sel ? "text-[#3b82f6]" : "text-zinc-400"}`}
               >
-                <span className={`font-bold w-12 shrink-0 text-left ${sel ? "text-[#3b82f6]" : "text-zinc-200"}`}>
+                <span
+                  className={`font-bold w-12 shrink-0 text-left ${sel ? "text-[#3b82f6]" : "text-zinc-200"}`}
+                >
                   Sem. {w.num}
                 </span>
-                <span className="text-zinc-500 text-[10px] flex-1 text-left">{w.inicio} – {w.fim}</span>
-                <span className={`text-[10px] shrink-0 ${sel ? "text-blue-400" : "text-zinc-600"}`}>{w.mes}</span>
+                <span className="text-zinc-500 text-[10px] flex-1 text-left">
+                  {w.inicio} – {w.fim}
+                </span>
+                <span
+                  className={`text-[10px] shrink-0 ${sel ? "text-blue-400" : "text-zinc-600"}`}
+                >
+                  {w.mes}
+                </span>
               </button>
             );
           })}
@@ -565,10 +614,16 @@ function TooltipMotivos({ active, payload, label, display }: any) {
   const isPct = display === "pct";
   return (
     <div className="bg-[#0f1e2e]/95 border border-white/10 rounded-xl px-4 py-3 text-xs shadow-2xl backdrop-blur-sm max-w-xs">
-      <div className="font-bold text-white mb-1 text-xs break-words">{label}</div>
+      <div className="font-bold text-white mb-1 text-xs break-words">
+        {label}
+      </div>
       <div className="flex items-center gap-2">
-        <span className="text-zinc-400">{isPct ? "% do total:" : "Ocorrências:"}</span>
-        <span className="font-bold text-blue-400">{isPct ? `${payload[0]?.value}%` : payload[0]?.value}</span>
+        <span className="text-zinc-400">
+          {isPct ? "% do total:" : "Ocorrências:"}
+        </span>
+        <span className="font-bold text-blue-400">
+          {isPct ? `${payload[0]?.value}%` : payload[0]?.value}
+        </span>
       </div>
     </div>
   );
@@ -578,7 +633,12 @@ function TooltipMotivos({ active, payload, label, display }: any) {
 
 function BuildingIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -614,15 +674,20 @@ export default function AvancaParceiroDashboard({
 
   const [filterMode, setFilterMode] = useState<FilterMode>("semana");
   const [dataInicialStr, setDataInicialStr] = useState(`01/${_mm}/${_year}`);
-  const [dataFinalStr, setDataFinalStr] = useState(`${_lastDay}/${_mm}/${_year}`);
+  const [dataFinalStr, setDataFinalStr] = useState(
+    `${_lastDay}/${_mm}/${_year}`,
+  );
   const [semanaInicial, setSemanaInicial] = useState(() => findCurrentWeek());
   const [semanaFinal, setSemanaFinal] = useState(() => findCurrentWeek());
-  const dataInicial = filterMode === "semana"
-    ? (WEEKS.find((w) => w.num === semanaInicial) ?? WEEKS[0]).inicio
-    : dataInicialStr;
-  const dataFinal = filterMode === "semana"
-    ? (WEEKS.find((w) => w.num === semanaFinal) ?? WEEKS[WEEKS.length - 1]).fim
-    : dataFinalStr;
+  const dataInicial =
+    filterMode === "semana"
+      ? (WEEKS.find((w) => w.num === semanaInicial) ?? WEEKS[0]).inicio
+      : dataInicialStr;
+  const dataFinal =
+    filterMode === "semana"
+      ? (WEEKS.find((w) => w.num === semanaFinal) ?? WEEKS[WEEKS.length - 1])
+          .fim
+      : dataFinalStr;
   const [selRegional, setSelRegional] = useState<string[]>([]);
   const [selParceira, setSelParceira] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -643,7 +708,10 @@ export default function AvancaParceiroDashboard({
   const [motivoDisplay, setMotivoDisplay] = useState<MotivoDisplay>("qtd");
 
   const [totalObras, setTotalObras] = useState<number>(0);
-  const [taxaExec, setTaxaExec] = useState<{ exec: number; prog: number }>({ exec: 0, prog: 0 });
+  const [taxaExec, setTaxaExec] = useState<{ exec: number; prog: number }>({
+    exec: 0,
+    prog: 0,
+  });
 
   const [sparklines, setSparklines] = useState<SparklineRow[]>([]);
   const [loadingSparklines, setLoadingSparklines] = useState(false);
@@ -685,14 +753,39 @@ export default function AvancaParceiroDashboard({
       const opts = { headers, cache: "no-store" as RequestCache };
 
       const [r1, r2, r3, r4, r5, r6] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/restricao/avanca-parceira?${params}`, opts),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/restricao/aderencia-parceira?${params}`, opts),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/restricao/sparklines-parceira?${params}`, opts),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/restricao/motivos-reprogramacao?${params}`, opts),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal?${params}`, opts),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/restricao/semanas-parceira?${params}`, opts),
+        fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/restricao/avanca-parceira?${params}`,
+          opts,
+        ),
+        fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/restricao/aderencia-parceira?${params}`,
+          opts,
+        ),
+        fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/restricao/sparklines-parceira?${params}`,
+          opts,
+        ),
+        fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/restricao/motivos-reprogramacao?${params}`,
+          opts,
+        ),
+        fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal?${params}`,
+          opts,
+        ),
+        fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/restricao/semanas-parceira?${params}`,
+          opts,
+        ),
       ]);
-      const [j1, j2, j3, j4, j5, j6] = await Promise.all([r1.json(), r2.json(), r3.json(), r4.json(), r5.json(), r6.json()]);
+      const [j1, j2, j3, j4, j5, j6] = await Promise.all([
+        r1.json(),
+        r2.json(),
+        r3.json(),
+        r4.json(),
+        r5.json(),
+        r6.json(),
+      ]);
 
       if (r1.ok)
         setEliminacao(
@@ -706,18 +799,28 @@ export default function AvancaParceiroDashboard({
       if (r4.ok) setMotivos(j4.data ?? []);
       if (r6.ok) {
         const m: Record<string, number> = {};
-        for (const row of (j6.data ?? [])) {
-          const displayName = PARCEIRA_RENAME[row.parceira?.toUpperCase()?.trim()] ?? row.parceira;
+        for (const row of j6.data ?? []) {
+          const displayName =
+            PARCEIRA_RENAME[row.parceira?.toUpperCase()?.trim()] ??
+            row.parceira;
           m[displayName] = row.semanas;
         }
         setSemanasMap(m);
       }
       if (r5.ok) {
         const summary = j5.data?.firstSummary?.summary ?? [];
-        setTotalObras(summary.reduce((s: number, r: any) => s + (r.totalQtde ?? 0), 0));
+        setTotalObras(
+          summary.reduce((s: number, r: any) => s + (r.totalQtde ?? 0), 0),
+        );
         setTaxaExec({
-          exec: summary.reduce((s: number, r: any) => s + (Number(r.totalMoExec) || 0), 0),
-          prog: summary.reduce((s: number, r: any) => s + (Number(r.totalMoProg) || 0), 0),
+          exec: summary.reduce(
+            (s: number, r: any) => s + (Number(r.totalMoExec) || 0),
+            0,
+          ),
+          prog: summary.reduce(
+            (s: number, r: any) => s + (Number(r.totalMoProg) || 0),
+            0,
+          ),
         });
       }
     } catch (err) {
@@ -727,7 +830,16 @@ export default function AvancaParceiroDashboard({
       setLoadingSparklines(false);
       setLoadingMotivos(false);
     }
-  }, [token, filterMode, dataInicialStr, dataFinalStr, semanaInicial, semanaFinal, selRegional, selParceira]);
+  }, [
+    token,
+    filterMode,
+    dataInicialStr,
+    dataFinalStr,
+    semanaInicial,
+    semanaFinal,
+    selRegional,
+    selParceira,
+  ]);
 
   // Busca sparklines e motivos na montagem inicial
   useEffect(() => {
@@ -737,10 +849,22 @@ export default function AvancaParceiroDashboard({
     setLoadingSparklines(true);
     setLoadingMotivos(true);
     Promise.all([
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/restricao/sparklines-parceira?${params}`, opts).then((r) => r.json()),
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/restricao/motivos-reprogramacao?${params}`, opts).then((r) => r.json()),
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal?${params}`, opts).then((r) => r.json()),
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/restricao/semanas-parceira?${params}`, opts).then((r) => r.json()),
+      fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/restricao/sparklines-parceira?${params}`,
+        opts,
+      ).then((r) => r.json()),
+      fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/restricao/motivos-reprogramacao?${params}`,
+        opts,
+      ).then((r) => r.json()),
+      fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal?${params}`,
+        opts,
+      ).then((r) => r.json()),
+      fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/restricao/semanas-parceira?${params}`,
+        opts,
+      ).then((r) => r.json()),
     ])
       .then(([js, jm, jr, jw]) => {
         if (js.data) setSparklines(applyParceiraTransforms(js.data));
@@ -748,21 +872,34 @@ export default function AvancaParceiroDashboard({
         if (jw.data) {
           const m: Record<string, number> = {};
           for (const row of jw.data) {
-            const displayName = PARCEIRA_RENAME[row.parceira?.toUpperCase()?.trim()] ?? row.parceira;
+            const displayName =
+              PARCEIRA_RENAME[row.parceira?.toUpperCase()?.trim()] ??
+              row.parceira;
             m[displayName] = row.semanas;
           }
           setSemanasMap(m);
         }
         const summary = jr.data?.firstSummary?.summary ?? [];
-        setTotalObras(summary.reduce((s: number, r: any) => s + (r.totalQtde ?? 0), 0));
+        setTotalObras(
+          summary.reduce((s: number, r: any) => s + (r.totalQtde ?? 0), 0),
+        );
         setTaxaExec({
-          exec: summary.reduce((s: number, r: any) => s + (Number(r.totalMoExec) || 0), 0),
-          prog: summary.reduce((s: number, r: any) => s + (Number(r.totalMoProg) || 0), 0),
+          exec: summary.reduce(
+            (s: number, r: any) => s + (Number(r.totalMoExec) || 0),
+            0,
+          ),
+          prog: summary.reduce(
+            (s: number, r: any) => s + (Number(r.totalMoProg) || 0),
+            0,
+          ),
         });
       })
       .catch(() => {})
-      .finally(() => { setLoadingSparklines(false); setLoadingMotivos(false); });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+      .finally(() => {
+        setLoadingSparklines(false);
+        setLoadingMotivos(false);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── KPIs ────────────────────────────────────────────────────────────────
@@ -793,9 +930,12 @@ export default function AvancaParceiroDashboard({
   // Agrega motivos filtrados pela aba de responsabilidade
   const motivosChartData = useMemo(() => {
     if (!motivos) return [];
-    const filtered = motivoTab === "GERAL"
-      ? motivos
-      : motivos.filter((m) => (m.responsavel ?? "").toUpperCase().trim() === motivoTab);
+    const filtered =
+      motivoTab === "GERAL"
+        ? motivos
+        : motivos.filter(
+            (m) => (m.responsavel ?? "").toUpperCase().trim() === motivoTab,
+          );
 
     const counts: Record<string, number> = {};
     filtered.forEach((m) => {
@@ -804,7 +944,11 @@ export default function AvancaParceiroDashboard({
     });
     const total = filtered.length;
     return Object.entries(counts)
-      .map(([motivo, count]) => ({ motivo, count, pct: total > 0 ? Math.round((count / total) * 100) : 0 }))
+      .map(([motivo, count]) => ({
+        motivo,
+        count,
+        pct: total > 0 ? Math.round((count / total) * 100) : 0,
+      }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 12);
   }, [motivos, motivoTab]);
@@ -836,7 +980,9 @@ export default function AvancaParceiroDashboard({
         <div className="flex flex-wrap gap-4 items-end">
           {/* Toggle modo de filtro */}
           <div className="flex flex-col gap-1">
-            <span className="text-zinc-500 text-[10px] uppercase tracking-wider">Filtrar por</span>
+            <span className="text-zinc-500 text-[10px] uppercase tracking-wider">
+              Filtrar por
+            </span>
             <div className="flex rounded-xl overflow-hidden border border-white/10">
               {(["semana", "data"] as FilterMode[]).map((m) => (
                 <button
@@ -869,20 +1015,28 @@ export default function AvancaParceiroDashboard({
           ) : (
             <>
               <div className="flex flex-col gap-1">
-                <span className="text-zinc-500 text-[10px] uppercase tracking-wider">Data inicial</span>
+                <span className="text-zinc-500 text-[10px] uppercase tracking-wider">
+                  Data inicial
+                </span>
                 <input
                   type="date"
                   value={toInputDate(dataInicialStr)}
-                  onChange={(e) => setDataInicialStr(fromInputDate(e.target.value))}
+                  onChange={(e) =>
+                    setDataInicialStr(fromInputDate(e.target.value))
+                  }
                   className="bg-[#0f1e2e] border border-white/10 hover:border-white/20 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 w-[150px] [color-scheme:dark]"
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-zinc-500 text-[10px] uppercase tracking-wider">Data final</span>
+                <span className="text-zinc-500 text-[10px] uppercase tracking-wider">
+                  Data final
+                </span>
                 <input
                   type="date"
                   value={toInputDate(dataFinalStr)}
-                  onChange={(e) => setDataFinalStr(fromInputDate(e.target.value))}
+                  onChange={(e) =>
+                    setDataFinalStr(fromInputDate(e.target.value))
+                  }
                   className="bg-[#0f1e2e] border border-white/10 hover:border-white/20 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 w-[150px] [color-scheme:dark]"
                 />
               </div>
@@ -920,48 +1074,117 @@ export default function AvancaParceiroDashboard({
       {(() => {
         const pctAd = roundDisplay(kpiAderencia.pct);
         const pctEl = roundDisplay(kpiEliminacao.pct);
-        const pctTaxa = taxaExec.prog > 0 ? roundDisplay((taxaExec.exec / taxaExec.prog) * 100) : 0;
+        const pctTaxa =
+          taxaExec.prog > 0
+            ? roundDisplay((taxaExec.exec / taxaExec.prog) * 100)
+            : 0;
         return (
           <div className="grid grid-cols-3 gap-4">
             {/* Card 1 — Taxa de Execução */}
             <div className="relative bg-gradient-to-br from-[#182638] to-[#1c2f42] rounded-2xl p-5 pl-6 border border-white/5 shadow-lg overflow-hidden">
-              <div className="absolute top-0 left-0 w-1 h-full rounded-l-2xl" style={{ background: getOrbColor(pctTaxa) }} />
-              <span className="text-white/60 text-xs uppercase tracking-widest font-medium">Rentabilidade</span>
+              <div
+                className="absolute top-0 left-0 w-1 h-full rounded-l-2xl"
+                style={{ background: getOrbColor(pctTaxa) }}
+              />
+              <span className="text-white/60 text-xs uppercase tracking-widest font-medium">
+                Rentabilidade
+              </span>
               <div className="mt-1 mb-2">
-                <span className="text-4xl font-black text-white leading-none">{pctTaxa}%</span>
+                <span className="text-4xl font-black text-white leading-none">
+                  {pctTaxa}%
+                </span>
               </div>
               <div className="flex flex-col gap-0.5 text-xs text-zinc-400">
-                <span><span className="text-zinc-400 font-semibold">{fmtMoeda(taxaExec.exec)}</span> executado</span>
-                <span><span className="text-zinc-400 font-semibold">{fmtMoeda(taxaExec.prog)}</span> programado</span>
+                <span>
+                  <span className="text-zinc-400 font-semibold">
+                    {fmtMoeda(taxaExec.exec)}
+                  </span>{" "}
+                  executado
+                </span>
+                <span>
+                  <span className="text-zinc-400 font-semibold">
+                    {fmtMoeda(taxaExec.prog)}
+                  </span>{" "}
+                  programado
+                </span>
               </div>
             </div>
 
             {/* Card 2 — Aderência */}
             <div className="relative bg-gradient-to-br from-[#182638] to-[#1c2f42] rounded-2xl p-5 pl-6 border border-white/5 shadow-lg overflow-hidden">
-              <div className="absolute top-0 left-0 w-1 h-full rounded-l-2xl" style={{ background: getOrbColor(pctAd) }} />
-              <span className="text-white/60 text-xs uppercase tracking-widest font-medium">Aderência Parceira</span>
+              <div
+                className="absolute top-0 left-0 w-1 h-full rounded-l-2xl"
+                style={{ background: getOrbColor(pctAd) }}
+              />
+              <span className="text-white/60 text-xs uppercase tracking-widest font-medium">
+                Aderência Parceira
+              </span>
               <div className="mt-1 mb-2">
-                <span className="text-4xl font-black text-white leading-none">{pctAd}%</span>
+                <span className="text-4xl font-black text-white leading-none">
+                  {pctAd}%
+                </span>
               </div>
               <div className="flex flex-col gap-0.5 text-xs text-zinc-400">
-                <span><span className="text-zinc-400 font-semibold">{fmt(kpiAderencia.exec)}</span> executadas</span>
-                <span><span className="text-zinc-400 font-semibold">{fmt(kpiAderencia.parcial)}</span> parciais</span>
-                <span><span className="text-zinc-400 font-semibold">{fmt(kpiAderencia.naoExec)}</span> não executadas</span>
-                <span><span className="text-zinc-400 font-semibold">{fmt(totalObras)}</span> obras programadas</span>
+                <span>
+                  <span className="text-zinc-400 font-semibold">
+                    {fmt(kpiAderencia.exec)}
+                  </span>{" "}
+                  executadas
+                </span>
+                <span>
+                  <span className="text-zinc-400 font-semibold">
+                    {fmt(kpiAderencia.parcial)}
+                  </span>{" "}
+                  parciais
+                </span>
+                <span>
+                  <span className="text-zinc-400 font-semibold">
+                    {fmt(kpiAderencia.naoExec)}
+                  </span>{" "}
+                  não executadas
+                </span>
+                <span>
+                  <span className="text-zinc-400 font-semibold">
+                    {fmt(totalObras)}
+                  </span>{" "}
+                  obras programadas
+                </span>
               </div>
             </div>
 
             {/* Card 3 — Eliminação */}
             <div className="relative bg-gradient-to-br from-[#182638] to-[#1c2f42] rounded-2xl p-5 pl-6 border border-white/5 shadow-lg overflow-hidden">
-              <div className="absolute top-0 left-0 w-1 h-full rounded-l-2xl" style={{ background: getOrbColor(pctEl) }} />
-              <span className="text-white/60 text-xs uppercase tracking-widest font-medium">Eliminação de Restrições</span>
+              <div
+                className="absolute top-0 left-0 w-1 h-full rounded-l-2xl"
+                style={{ background: getOrbColor(pctEl) }}
+              />
+              <span className="text-white/60 text-xs uppercase tracking-widest font-medium">
+                Eliminação de Restrições
+              </span>
               <div className="mt-1 mb-2">
-                <span className="text-4xl font-black text-white leading-none">{pctEl}%</span>
+                <span className="text-4xl font-black text-white leading-none">
+                  {pctEl}%
+                </span>
               </div>
               <div className="flex flex-col gap-0.5 text-xs text-zinc-400">
-                <span><span className="text-zinc-400 font-semibold">{fmt(kpiEliminacao.sem)}</span> sem restrição</span>
-                <span><span className="text-zinc-400 font-semibold">{fmt(kpiEliminacao.total - kpiEliminacao.sem)}</span> com restrição</span>
-                <span><span className="text-zinc-400 font-semibold">{fmt(kpiEliminacao.total)}</span> total</span>
+                <span>
+                  <span className="text-zinc-400 font-semibold">
+                    {fmt(kpiEliminacao.sem)}
+                  </span>{" "}
+                  sem restrição
+                </span>
+                <span>
+                  <span className="text-zinc-400 font-semibold">
+                    {fmt(kpiEliminacao.total - kpiEliminacao.sem)}
+                  </span>{" "}
+                  com restrição
+                </span>
+                <span>
+                  <span className="text-zinc-400 font-semibold">
+                    {fmt(kpiEliminacao.total)}
+                  </span>{" "}
+                  total
+                </span>
               </div>
             </div>
           </div>
@@ -969,35 +1192,59 @@ export default function AvancaParceiroDashboard({
       })()}
 
       {/* ── Sparklines: 3 cards — Empresas | Eliminação | Aderência ── */}
-      <div className="grid gap-4" style={{ gridTemplateColumns: "220px 1fr 1fr" }}>
-
+      <div
+        className="grid gap-4"
+        style={{ gridTemplateColumns: "220px 1fr 1fr" }}
+      >
         {/* Card 1 — Empresas + Semanas */}
         <div className="bg-gradient-to-br from-[#1e2f42] to-[#192535] rounded-2xl p-5 border border-white/5 shadow-xl">
           <div className="mb-4">
-            <h3 className="text-white font-bold text-sm tracking-wide uppercase">Empresas</h3>
+            <h3 className="text-white font-bold text-sm tracking-wide uppercase">
+              Empresas
+            </h3>
             <p className="text-zinc-500 text-xs mt-0.5">Semanas programadas</p>
           </div>
           {loadingSparklines ? (
-            <div className="flex items-center justify-center h-24 text-zinc-500 text-sm">Carregando…</div>
+            <div className="flex items-center justify-center h-24 text-zinc-500 text-sm">
+              Carregando…
+            </div>
           ) : sparklinesFull.length === 0 ? (
-            <div className="flex items-center justify-center h-24 text-zinc-500 text-sm">Nenhum dado.</div>
+            <div className="flex items-center justify-center h-24 text-zinc-500 text-sm">
+              Nenhum dado.
+            </div>
           ) : (
             <div className="flex flex-col divide-y divide-white/5">
               {sparklinesFull.map((row) => {
                 const semanas = semanasMap[row.parceira] ?? null;
                 const META_SEMANAS = 6;
-                const semDotColor = semanas === null ? "#52525b" : semanas >= META_SEMANAS ? "#10b981" : "#ef4444";
+                const semDotColor =
+                  semanas === null
+                    ? "#52525b"
+                    : semanas >= META_SEMANAS
+                      ? "#10b981"
+                      : "#ef4444";
                 return (
-                  <div key={row.parceira} className="flex items-center h-[72px]">
+                  <div
+                    key={row.parceira}
+                    className="flex items-center h-[72px]"
+                  >
                     <div className="flex items-center gap-2.5">
                       <div className="w-8 h-8 rounded-lg bg-emerald-900/40 border border-emerald-700/30 flex items-center justify-center shrink-0">
                         <BuildingIcon className="w-4 h-4 text-emerald-400" />
                       </div>
                       <div className="flex flex-col gap-1 min-w-0">
-                        <span className="text-emerald-400 font-bold text-xs leading-tight truncate">{row.parceira}</span>
+                        <span className="text-emerald-400 font-bold text-xs leading-tight truncate">
+                          {row.parceira}
+                        </span>
                         <div className="flex items-center gap-1.5">
-                          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: semDotColor }} />
-                          <span className="text-sm font-bold leading-none" style={{ color: semDotColor }}>
+                          <span
+                            className="w-2.5 h-2.5 rounded-full shrink-0"
+                            style={{ background: semDotColor }}
+                          />
+                          <span
+                            className="text-sm font-bold leading-none"
+                            style={{ color: semDotColor }}
+                          >
                             {semanas !== null ? `${semanas} semanas` : "—"}
                           </span>
                         </div>
@@ -1013,13 +1260,21 @@ export default function AvancaParceiroDashboard({
         {/* Card 2 — Eliminação de Restrições */}
         <div className="bg-gradient-to-br from-[#1e2f42] to-[#192535] rounded-2xl p-5 border border-white/5 shadow-xl">
           <div className="mb-4">
-            <h3 className="text-white font-bold text-sm tracking-wide uppercase">Eliminação de Restrições</h3>
-            <p className="text-zinc-500 text-xs mt-0.5">Evolução semanal por empresa</p>
+            <h3 className="text-white font-bold text-sm tracking-wide uppercase">
+              Eliminação de Restrições
+            </h3>
+            <p className="text-zinc-500 text-xs mt-0.5">
+              Evolução semanal por empresa
+            </p>
           </div>
           {loadingSparklines ? (
-            <div className="flex items-center justify-center h-24 text-zinc-500 text-sm">Carregando…</div>
+            <div className="flex items-center justify-center h-24 text-zinc-500 text-sm">
+              Carregando…
+            </div>
           ) : sparklinesFull.length === 0 ? (
-            <div className="flex items-center justify-center h-24 text-zinc-500 text-sm">Nenhum dado encontrado.</div>
+            <div className="flex items-center justify-center h-24 text-zinc-500 text-sm">
+              Nenhum dado encontrado.
+            </div>
           ) : (
             <div className="flex flex-col divide-y divide-white/5">
               {sparklinesFull.map((row) => (
@@ -1034,13 +1289,21 @@ export default function AvancaParceiroDashboard({
         {/* Card 3 — Aderência à Programação */}
         <div className="bg-gradient-to-br from-[#1e2f42] to-[#192535] rounded-2xl p-5 border border-white/5 shadow-xl">
           <div className="mb-4">
-            <h3 className="text-white font-bold text-sm tracking-wide uppercase">Aderência à Programação</h3>
-            <p className="text-zinc-500 text-xs mt-0.5">Evolução semanal por empresa</p>
+            <h3 className="text-white font-bold text-sm tracking-wide uppercase">
+              Aderência à Programação
+            </h3>
+            <p className="text-zinc-500 text-xs mt-0.5">
+              Evolução semanal por empresa
+            </p>
           </div>
           {loadingSparklines ? (
-            <div className="flex items-center justify-center h-24 text-zinc-500 text-sm">Carregando…</div>
+            <div className="flex items-center justify-center h-24 text-zinc-500 text-sm">
+              Carregando…
+            </div>
           ) : sparklinesFull.length === 0 ? (
-            <div className="flex items-center justify-center h-24 text-zinc-500 text-sm">Nenhum dado encontrado.</div>
+            <div className="flex items-center justify-center h-24 text-zinc-500 text-sm">
+              Nenhum dado encontrado.
+            </div>
           ) : (
             <div className="flex flex-col divide-y divide-white/5">
               {sparklinesFull.map((row) => (
@@ -1051,7 +1314,6 @@ export default function AvancaParceiroDashboard({
             </div>
           )}
         </div>
-
       </div>
 
       {/* ── Motivos de Reprogramação ── */}
@@ -1062,7 +1324,10 @@ export default function AvancaParceiroDashboard({
               Motivos de Reprogramação
             </h3>
             <p className="text-zinc-500 text-xs mt-0.5">
-              Top ocorrências por motivo{motivos ? ` — ${motivos.length} registro${motivos.length !== 1 ? "s" : ""}` : ""}
+              Top ocorrências por motivo
+              {motivos
+                ? ` — ${motivos.length} registro${motivos.length !== 1 ? "s" : ""}`
+                : ""}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -1080,41 +1345,61 @@ export default function AvancaParceiroDashboard({
             </div>
             {/* Tabs responsabilidade */}
             <div className="flex rounded-lg overflow-hidden border border-white/10">
-              {(["EDP", "GERAL", "PARCEIRA", "TERCEIRO"] as MotivoTab[]).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setMotivoTab(t)}
-                  className={`px-3 py-1.5 text-xs font-bold transition-colors ${motivoTab === t ? "bg-[#1d4ed8] text-white" : "bg-[#0f1e2e] text-zinc-400 hover:text-white"}`}
-                >
-                  {t}
-                </button>
-              ))}
+              {(["EDP", "GERAL", "PARCEIRA", "TERCEIRO"] as MotivoTab[]).map(
+                (t) => (
+                  <button
+                    key={t}
+                    onClick={() => setMotivoTab(t)}
+                    className={`px-3 py-1.5 text-xs font-bold transition-colors ${motivoTab === t ? "bg-[#1d4ed8] text-white" : "bg-[#0f1e2e] text-zinc-400 hover:text-white"}`}
+                  >
+                    {t}
+                  </button>
+                ),
+              )}
             </div>
           </div>
         </div>
 
         {loadingMotivos ? (
-          <div className="flex items-center justify-center h-32 text-zinc-500 text-sm">Carregando…</div>
+          <div className="flex items-center justify-center h-32 text-zinc-500 text-sm">
+            Carregando…
+          </div>
         ) : motivosChartData.length === 0 ? (
           <div className="flex items-center justify-center h-32 text-zinc-500 text-sm">
             Nenhum motivo de reprogramação para o período e filtro selecionados.
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={380}>
-            <ComposedChart data={motivosChartData} margin={{ top: 20, right: 10, left: 10, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
+            <ComposedChart
+              data={motivosChartData}
+              margin={{ top: 20, right: 10, left: 10, bottom: 5 }}
+            >
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#ffffff08"
+                vertical={false}
+              />
               <XAxis
                 type="category"
                 dataKey="motivo"
-                tick={{ fill: "#94a3b8", fontSize: 9, angle: -45, textAnchor: "end" }}
-                tickFormatter={(v: string) => v.length > 28 ? v.slice(0, 28) + "…" : v}
+                tick={{
+                  fill: "#94a3b8",
+                  fontSize: 9,
+                  angle: -45,
+                  textAnchor: "end",
+                }}
+                tickFormatter={(v: string) =>
+                  v.length > 28 ? v.slice(0, 28) + "…" : v
+                }
                 interval={0}
                 height={110}
               />
               <YAxis
                 type="number"
                 tick={{ fill: "#94a3b8", fontSize: 11 }}
-                tickFormatter={(v) => motivoDisplay === "pct" ? `${v}%` : String(v)}
+                tickFormatter={(v) =>
+                  motivoDisplay === "pct" ? `${v}%` : String(v)
+                }
               />
               <Tooltip content={<TooltipMotivos display={motivoDisplay} />} />
               <Bar
@@ -1123,14 +1408,18 @@ export default function AvancaParceiroDashboard({
                 fill="#1d4ed8"
                 radius={[4, 4, 0, 0]}
                 maxBarSize={72}
-                label={{ position: "top", fill: "#94a3b8", fontSize: 10, formatter: (v: number) => motivoDisplay === "pct" ? `${v}%` : String(v) }}
+                label={{
+                  position: "top",
+                  fill: "#94a3b8",
+                  fontSize: 10,
+                  formatter: (v: any) =>
+                    motivoDisplay === "pct" ? `${v}%` : String(v),
+                }}
               />
             </ComposedChart>
           </ResponsiveContainer>
         )}
       </div>
-
-
     </div>
   );
 }

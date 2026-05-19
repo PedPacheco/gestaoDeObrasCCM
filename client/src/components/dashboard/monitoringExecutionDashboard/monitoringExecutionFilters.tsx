@@ -22,8 +22,8 @@ interface MonitoringExecutionFiltersProps {
   setSelectedRegionais: (value: string[]) => void;
   selectedParceiras: string[];
   setSelectedParceiras: (value: string[]) => void;
-  selectedTechnician: string[];
-  setSelectedTechnician: (value: string[]) => void;
+  // selectedTechnician: string[];
+  // setSelectedTechnician: (value: string[]) => void;
   onApply: () => void;
   clearFilters: () => void;
 }
@@ -39,18 +39,16 @@ export function MonitoringExecutionFilters({
   setSelectedRegionais,
   selectedParceiras,
   setSelectedParceiras,
-  selectedTechnician,
-  setSelectedTechnician,
+  // selectedTechnician,
+  // setSelectedTechnician,
   onApply,
   clearFilters,
 }: MonitoringExecutionFiltersProps) {
   const hasActiveFilters =
-    selectedRegionais.length > 0 ||
-    selectedParceiras.length > 0 ||
-    selectedTechnician.length > 0;
+    selectedRegionais.length > 0 || selectedParceiras.length > 0;
 
   return (
-    <div className="flex flex-col gap-2 rounded-2xl border border-white/5 bg-gradient-to-br from-[#1e2f42] to-[#192535] p-4 shadow-xl">
+    <div className="flex flex-col gap-2 border border-white/5 bg-gradient-to-br from-[#1e2f42] to-[#192535] p-4 shadow-xl">
       <div className="flex flex-row items-end gap-4 overflow-x-auto">
         <div className="flex w-96">
           <DateFilter
@@ -91,7 +89,7 @@ export function MonitoringExecutionFilters({
           />
         </div>
 
-        <div className="min-w-[220px] flex-1">
+        {/* <div className="min-w-[220px] flex-1">
           <MultipleSelectComponent
             label="Técnico Responsável"
             menuItems={filtersData.tecnico ?? []}
@@ -102,7 +100,7 @@ export function MonitoringExecutionFilters({
             backgroundColor="#0f1e2e"
             textColor="#a1a1aa"
           />
-        </div>
+        </div> */}
 
         <div className=" flex items-center gap-3">
           <button
@@ -137,10 +135,10 @@ export function MonitoringExecutionFilters({
             const p = filtersData.parceira?.find((x) => x.id === id);
             return p ? <FilterTag key={id} label={p.turma} /> : null;
           })}
-          {selectedTechnician.map((id) => {
+          {/* {selectedTechnician.map((id) => {
             const t = filtersData.tecnico?.find((x) => x.id === id);
             return t ? <FilterTag key={id} label={t.tecnico} /> : null;
-          })}
+          })} */}
         </div>
       )}
     </div>

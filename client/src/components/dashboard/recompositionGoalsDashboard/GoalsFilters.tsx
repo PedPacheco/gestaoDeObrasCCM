@@ -127,7 +127,7 @@ export function GoalsFilters({
     selRegional.length > 0 || selPartner.length > 0 || selType.length > 0;
 
   return (
-    <div className="flex flex-wrap items-end gap-4 bg-gradient-to-br from-[#1e2f42] to-[#192535] rounded-2xl p-4 border border-white/5 shadow-xl">
+    <div className="flex flex-wrap items-end gap-2 bg-gradient-to-br from-[#1e2f42] to-[#192535] p-4 border border-white/5 shadow-xl">
       <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-br">
         <YearPicker label="Ano" value={year} onChange={setYear} />
 
