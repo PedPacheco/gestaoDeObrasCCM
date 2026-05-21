@@ -532,9 +532,7 @@ export class RestrictionsRepository implements IRestrictionsRepository {
     return { aderencia, eliminacao };
   }
 
-  async getWeeksByPartner(
-    filters: ProcessedEliminacaoFilters,
-  ): Promise<any[]> {
+  async getWeeksByPartner(filters: ProcessedEliminacaoFilters): Promise<any[]> {
     const { idRegional, idParceira } = filters;
 
     // Replica DAX: SEMANA PROGRAMADA = equipes_alocadas / (capacidade_mes * 5) >= 0.7

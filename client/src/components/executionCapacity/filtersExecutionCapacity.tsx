@@ -3,7 +3,7 @@
 import dayjs from "dayjs";
 import { Dispatch, SetStateAction } from "react";
 
-import { FiltersInterface } from "@/interfaces/filtersInterfaces";
+import { FiltersInterface } from "@/types/filtersInterfaces";
 import { capitalize } from "@/utils/formatValue";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";

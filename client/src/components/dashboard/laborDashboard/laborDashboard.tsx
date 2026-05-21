@@ -17,7 +17,6 @@ import {
 
 import { fetchData } from "@/actions/fetchData.action";
 import { useLaborMetrics } from "@/hooks/dashboard/laborDashboard/useLaborDashboardMetrics";
-import { usePersistedNavigation } from "@/hooks/dashboard/laborDashboard/usePersistedNavigation";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { DailySummary, GroupSummary } from "@/types/dashboard/labor/labor";
 import { Transform } from "@/utils/transform";

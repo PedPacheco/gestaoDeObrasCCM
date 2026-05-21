@@ -1,5 +1,5 @@
 import { MapFilterItem } from "@/contexts/mapFilterContext";
-import { ObraPin } from "@/interfaces/worksMapInterface";
+import { ObraPin } from "@/types/worksMapInterface";
 
 export function buildObraPopup(obras: ObraPin[]): string {
   if (!obras || obras.length === 0) {

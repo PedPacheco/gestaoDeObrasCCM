@@ -58,10 +58,10 @@ export function KpiCard({
       </div>
 
       {hasSubItems && (
-        <div className="pl-3 grid grid-cols-2 gap-x-3">
+        <div className="grid grid-cols-2 gap-x-3">
           {sub.map((item, index) => (
             <div key={index} className="flex items-center gap-1 min-w-0">
-              <span className="text-sm text-white/60 truncate w-28">
+              <span className="text-sm text-white/60 truncate w-auto">
                 {item.subLabel}
               </span>
 

@@ -8,7 +8,7 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import utc from "dayjs/plugin/utc";
 
-import { TableSummaryInterface } from "@/interfaces/tableSummaryInterface";
+import { TableSummaryInterface } from "@/types/tableSummaryInterface";
 import { FormatCurrency, formatPercentage } from "@/utils/formatValue";
 import {
   Paper,

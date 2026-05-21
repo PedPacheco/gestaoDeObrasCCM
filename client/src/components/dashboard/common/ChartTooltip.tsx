@@ -12,6 +12,8 @@ export function ChartTooltip({
   const data = payload[0]?.payload; // 🔥 fonte de verdade
   const turma = data?.turma as string | undefined;
 
+  console.log(data);
+
   return (
     <div className="bg-[#0f1e2e]/95 border border-white/10 rounded-xl px-4 py-3 text-xs text-zinc-100 shadow-2xl backdrop-blur-sm min-w-[220px]">
       {turma && <div className="text-zinc-400 text-xs mb-0.5">{turma}</div>}
@@ -54,6 +56,17 @@ export function ChartTooltip({
           >
             {data["Diferença Acum."]}
           </span>
+        </div>
+      )}
+
+      {data?.["count"] && (
+        <div className="flex items-center gap-2 py-0.5">
+          <span
+            className="w-2 h-2 rounded-full"
+            style={{ background: "#a78bfa" }} // violet
+          />
+          <span className="text-zinc-400">Quantidade</span>
+          <span className="text-zinc-400">{data["count"]}</span>
         </div>
       )}
     </div>

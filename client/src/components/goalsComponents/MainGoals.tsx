@@ -6,7 +6,7 @@ import { useCallback, useMemo, useState, useTransition } from "react";
 import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { FiltersInterface } from "@/interfaces/filtersInterfaces";
+import { FiltersInterface } from "@/types/filtersInterfaces";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";

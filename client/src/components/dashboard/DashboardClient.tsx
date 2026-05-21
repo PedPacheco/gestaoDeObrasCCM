@@ -3,12 +3,12 @@
 import { useState } from "react";
 
 import ForecastDashboard from "./ForecastDashboard";
-import AvancaParceiroDashboard from "./AvancaParceiroDashboard";
 
 import MonitoringExecutionDashboard from "./monitoringExecutionDashboard/monitoringExecutionDashboard";
 import RecompositionGoalsDashboard from "./recompositionGoalsDashboard/RecompositionGoalsDashboard";
 import LaborDashboard from "./laborDashboard/laborDashboard";
 import Image from "next/image";
+import MoveForwardPartnerDashboard from "./moveForwardPartner/moveForwardPartner";
 
 // Formats "YYYY-MM" → "MMM/YY"
 
@@ -77,12 +77,13 @@ interface Props {
   // Avança Parceiro
   initialEliminacaoRestricao: any[];
   initialAderenciaParceira: any[];
+  initialSparklinesPartners: any[];
+  initialPartnerWeeks: any[];
+  initialReasonsReascheduling: any[];
+  initialLaborMoveForwardPartner: any;
+  initialDailyGoalMoveForwardPartner: number;
   filtersData: any;
 }
-
-// KPI card with gradient background and accent bar
-
-// Chart card wrapper with consistent dark glass styling
 
 type Tab =
   | "geral"
@@ -129,6 +130,11 @@ export default function DashboardClient({
   initialExecMonitoring,
   initialEliminacaoRestricao,
   initialAderenciaParceira,
+  initialPartnerWeeks,
+  initialReasonsReascheduling,
+  initialSparklinesPartners,
+  initialLaborMoveForwardPartner,
+  initialDailyGoalMoveForwardPartner,
   filtersData,
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("mao-de-obra");
@@ -171,7 +177,7 @@ export default function DashboardClient({
   return (
     <div className="flex flex-col min-h-full ">
       {/* ── Tab Switcher ──────────────────────────────────────────── */}
-      <div className="sticky top-16 z-30 bg-white flex justify-between items-center gap-1 px-6 pt-5 pb-0 border-b border-white/5">
+      <div className="sticky top-16 z-30 bg-white flex justify-between items-center gap-1 px-3 pt-3 pb-0 border-b border-white/5">
         <div className="flex gap-1">
           {(
             [
@@ -190,7 +196,7 @@ export default function DashboardClient({
             <button
               key={key}
               onClick={() => setActiveTab(key)}
-              className={`px-5 py-2.5 text-base font-semibold tracking-wide rounded-t-xl transition-all duration-200 ${
+              className={`px-3 py-2.5 text-base font-semibold tracking-wide rounded-t-xl transition-all duration-200 ${
                 activeTab === key
                   ? "bg-gradient-to-br from-[#1e2f42] to-[#192535] text-white border border-b-0 border-white/10 shadow-lg"
                   : "text-zinc-500 hover:text-zinc-300"
@@ -233,9 +239,14 @@ export default function DashboardClient({
           token={token}
         />
       ) : activeTab === "avanca-parceiro" ? (
-        <AvancaParceiroDashboard
+        <MoveForwardPartnerDashboard
           initialEliminacao={initialEliminacaoRestricao}
           initialAderencia={initialAderenciaParceira}
+          initialSparklinesPartners={initialSparklinesPartners}
+          initialPartnerWeeks={initialPartnerWeeks}
+          initialSummary={initialLaborMoveForwardPartner}
+          initialReasonsReascheduling={initialReasonsReascheduling}
+          initialDailyGoal={initialDailyGoalMoveForwardPartner}
           filtersData={goalsFilters}
           token={token}
         />

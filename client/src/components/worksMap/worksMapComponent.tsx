@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useLeafletMap } from "@/hooks/worksMap/useLeafletMap";
 import { MapFilterItem, useMapFilter } from "@/contexts/mapFilterContext";
-import { ObraPin } from "@/interfaces/worksMapInterface";
+import { ObraPin } from "@/types/worksMapInterface";
 import {
   buildKey,
   buildObraPopup,

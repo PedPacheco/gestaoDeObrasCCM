@@ -1,183 +1,154 @@
 import { cookies } from "next/headers";
-import { Header } from "@/components/layout/Header";
-import DashboardClient from "@/components/dashboard/DashboardClient";
+
+import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import dayjs from "dayjs";
+import DashboardClient from "@/components/dashboard/DashboardClient";
+import { Header } from "@/components/layout/Header";
+import { getCurrentMonthRange, getCurrentWeekData } from "@/utils/weeks";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const DEFAULT_START = () => dayjs().month(0).startOf("month");
-const DEFAULT_END = () => dayjs().endOf("month");
+const API = process.env.NEXT_PUBLIC_API_URL!;
+const NO_CACHE = { cache: "no-store" as const };
 
-const emptyData = {
-  kpis: {
-    total: 0,
-    concludedThisMonth: 0,
-    portfoliototal: 0,
-    valueExecutedTotal: 0,
-    totalConcluded: 0,
-    withoutSchedule: 0,
-    executionRate: 0,
-  },
-  byStatus: [],
-  byRegional: [],
-  trend: [],
-  topPartners: [],
-  recentWorks: [],
-};
+async function fetchSparklinesParceira(token: string) {
+  const { inicio, fim } = getCurrentWeekData();
+  const res = await fetchData(
+    `${API}/restricao/sparklines-parceira`,
+    { dataInicial: inicio, dataFinal: fim },
+    token,
+    NO_CACHE,
+  );
+  return res.success ? (res.data ?? []) : [];
+}
 
-async function fetchDashboard(token: string) {
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/dashboard?dataInicial=${DEFAULT_START().format("DD-MM-YYYY")}&dataFinal=${DEFAULT_END().format("DD-MM-YYYY")}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        cache: "no-store",
-      },
-    );
-    if (!res.ok) return emptyData;
-    return res.json();
-  } catch {
-    return emptyData;
-  }
+async function fetchMotivosReprogramacao(token: string) {
+  const { inicio, fim } = getCurrentWeekData();
+  const res = await fetchData(
+    `${API}/restricao/motivos-reprogramacao`,
+    { dataInicial: inicio, dataFinal: fim },
+    token,
+    NO_CACHE,
+  );
+  return res.success ? (res.data ?? []) : [];
+}
+
+async function fetchSemanasParceira(token: string) {
+  const res = await fetchData(
+    `${API}/restricao/semanas-parceira`,
+    {},
+    token,
+    NO_CACHE,
+  );
+  return res.success ? (res.data ?? []) : [];
+}
+
+async function fetchEliminacaoRestricao(token: string) {
+  const { inicio, fim } = getCurrentWeekData();
+  const res = await fetchData(
+    `${API}/restricao/avanca-parceira`,
+    { dataInicial: inicio, dataFinal: fim },
+    token,
+    NO_CACHE,
+  );
+  return res.success ? (res.data ?? []) : [];
+}
+
+async function fetchAderenciaParceira(token: string) {
+  const { inicio, fim } = getCurrentWeekData();
+  const res = await fetchData(
+    `${API}/restricao/aderencia-parceira`,
+    { dataInicial: inicio, dataFinal: fim },
+    token,
+    NO_CACHE,
+  );
+  return res.success ? (res.data ?? []) : [];
 }
 
 async function fetchMetasRecomposicao(token: string) {
   const year = new Date().getFullYear();
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/metas?btzero=false&rda=false&ano=${year}&anoPlan=${year}`,
-      { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
-    );
-    if (!res.ok) return [];
-    const json = await res.json();
-    return json.data ?? [];
-  } catch {
-    return [];
-  }
+  const res = await fetchData(
+    `${API}/metas`,
+    { btzero: false, rda: false, ano: year, anoPlan: year },
+    token,
+    NO_CACHE,
+  );
+  return res.success ? (res.data ?? []) : [];
 }
 
 async function fetchGoalsFilters(token: string) {
   const empty = { regional: [], parceira: [], tipo: [], tecnico: [] };
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/filters?regional=true&parceira=true&tipo=true&tecnico=true`,
-      { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
-    );
-    if (!res.ok) return empty;
-    return await res.json();
-  } catch {
-    return empty;
-  }
-}
-
-async function fetchForecast(token: string) {
-  const now = new Date();
-  const month = now.getMonth() + 1;
-  const year = now.getFullYear();
-  const mm = String(month).padStart(2, "0");
-  const lastDay = new Date(year, month, 0).getDate();
-  const dataInicial = `01/${mm}/${year}`;
-  const dataFinal = `${lastDay}/${mm}/${year}`;
-
-  const empty = { summary: [], totals: {} };
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal-forecast?dataInicial=${dataInicial}&dataFinal=${dataFinal}`,
-      { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
-    );
-    if (!res.ok) return { first: empty, second: empty };
-    const json = await res.json();
-    return {
-      first: json.data?.firstSummary ?? empty,
-      second: json.data?.secondSummary ?? empty,
-    };
-  } catch {
-    return { first: empty, second: empty };
-  }
-}
-
-async function fetchEliminacaoRestricao(token: string) {
-  const year = new Date().getFullYear();
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/restricao/avanca-parceira?dataInicial=01/01/${year}&dataFinal=31/12/${year}`,
-      { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
-    );
-    if (!res.ok) return [];
-    const json = await res.json();
-    return json.data ?? [];
-  } catch {
-    return [];
-  }
-}
-
-async function fetchAderenciaParceira(token: string) {
-  const year = new Date().getFullYear();
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/restricao/aderencia-parceira?dataInicial=01/01/${year}&dataFinal=31/12/${year}`,
-      { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
-    );
-    if (!res.ok) return [];
-    const json = await res.json();
-    return json.data ?? [];
-  } catch {
-    return [];
-  }
+  const res = await fetchData(
+    `${API}/filters`,
+    { regional: true, parceira: true, tipo: true, tecnico: true },
+    token,
+    NO_CACHE,
+  );
+  return res.success ? (res.data ?? empty) : empty;
 }
 
 async function fetchExecMonitoring(token: string) {
   const year = new Date().getFullYear();
-  const lastDay = new Date(year, 11, 31).getDate();
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/programacao/acompanhamento-mensal?dataInicial=01/01/${year}&dataFinal=${lastDay}/12/${year}`,
-      { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
-    );
-    if (!res.ok) return [];
-    const json = await res.json();
-    return json.data ?? [];
-  } catch {
-    return [];
-  }
+  const res = await fetchData(
+    `${API}/programacao/acompanhamento-mensal`,
+    { dataInicial: `01/01/${year}`, dataFinal: `31/12/${year}` },
+    token,
+    NO_CACHE,
+  );
+  return res.success ? (res.data ?? []) : [];
 }
 
-async function fetchMaodeObra(token: string) {
-  const now = new Date();
-  const month = now.getMonth() + 1;
-  const year = now.getFullYear();
-  const mm = String(month).padStart(2, "0");
-  const lastDay = new Date(year, month, 0).getDate();
-  const dataInicial = `01/${mm}/${year}`;
-  const dataFinal = `${lastDay}/${mm}/${year}`;
+async function fetchForecast(token: string) {
+  const { dataInicial, dataFinal } = getCurrentMonthRange();
+  const empty = { summary: [], totals: {} };
+  const res = await fetchData(
+    `${API}/programacao/resumo-mensal-forecast`,
+    { dataInicial, dataFinal },
+    token,
+    NO_CACHE,
+  );
+  if (!res.success) return { first: empty, second: empty };
+  return {
+    first: res.data?.firstSummary ?? empty,
+    second: res.data?.secondSummary ?? empty,
+  };
+}
 
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal?dataInicial=${dataInicial}&dataFinal=${dataFinal}`,
-      { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" },
-    );
-    if (!res.ok) return { data: [], data2: [], metaDiaria: 0 };
-    const json = await res.json();
+async function fetchMaodeObra(token: string, dashboard: "labor" | "partner") {
+  const { dataInicial, dataFinal } = getCurrentMonthRange();
+  const { inicio, fim } = getCurrentWeekData();
 
-    const firstSummary = json.data?.firstSummary ?? {};
-    const secondSummary = json.data?.secondSummary ?? {};
-    const metaDiaria: number = firstSummary.summary[0].financialGoal ?? 0;
+  const params =
+    dashboard === "labor"
+      ? { dataInicial, dataFinal }
+      : { dataInicial: inicio, dataFinal: fim };
 
-    return {
-      data: firstSummary,
-      data2: secondSummary ?? [],
-      metaDiaria,
-    };
-  } catch {
-    return { data: { summary: [], totals: {} }, data2: [], metaDiaria: 0 };
-  }
+  const fallback = {
+    data: { summary: [], totals: {} },
+    data2: [],
+    metaDiaria: 0,
+  };
+  const res = await fetchData(
+    `${API}/programacao/resumo-mensal`,
+    params,
+    token,
+    NO_CACHE,
+  );
+
+  if (!res.success) return fallback;
+
+  const firstSummary = res.data?.firstSummary ?? {};
+  const secondSummary = res.data?.secondSummary ?? [];
+  const metaDiaria: number = firstSummary.summary?.[0]?.financialGoal ?? 0;
+
+  return { data: firstSummary, data2: secondSummary, metaDiaria };
 }
 
 export default async function Home() {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value ?? "";
+
   const [
     // data,
     maodeObra,
@@ -187,16 +158,24 @@ export default async function Home() {
     execMonitoring,
     eliminacaoRestricao,
     aderenciaParceira,
+    sparklinesParceira,
+    semanasParceira,
+    motivosReprogramacao,
+    maodeObraAvanca,
     filtersData,
   ] = await Promise.all([
     // fetchDashboard(token),
-    fetchMaodeObra(token),
+    fetchMaodeObra(token, "labor"),
     fetchForecast(token),
     fetchMetasRecomposicao(token),
     fetchGoalsFilters(token),
     fetchExecMonitoring(token),
     fetchEliminacaoRestricao(token),
     fetchAderenciaParceira(token),
+    fetchSparklinesParceira(token),
+    fetchSemanasParceira(token),
+    fetchMotivosReprogramacao(token),
+    fetchMaodeObra(token, "partner"),
     fetchFilters({
       regional: true,
       parceira: true,
@@ -226,6 +205,11 @@ export default async function Home() {
             initialExecMonitoring={execMonitoring}
             initialEliminacaoRestricao={eliminacaoRestricao}
             initialAderenciaParceira={aderenciaParceira}
+            initialPartnerWeeks={semanasParceira}
+            initialReasonsReascheduling={motivosReprogramacao}
+            initialSparklinesPartners={sparklinesParceira}
+            initialLaborMoveForwardPartner={maodeObraAvanca.data}
+            initialDailyGoalMoveForwardPartner={maodeObraAvanca.metaDiaria}
             filtersData={filtersData}
           />
         </main>

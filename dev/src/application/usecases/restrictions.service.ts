@@ -211,9 +211,17 @@ export class RestrictionsService {
   async getSparklinesByPartner(filters: GetRestrictionsAdvancePartnerDTO) {
     const processedFilters = this.parseEliminationFilters(filters);
     const { aderencia, eliminacao } =
-      await this.restrictionsRepository.getSparklinesByPartner(processedFilters);
+      await this.restrictionsRepository.getSparklinesByPartner(
+        processedFilters,
+      );
 
-    const map = new Map<string, { aderencia: { semana: string; pct: number }[]; eliminacao: { semana: string; pct: number }[] }>();
+    const map = new Map<
+      string,
+      {
+        aderencia: { semana: string; pct: number }[];
+        eliminacao: { semana: string; pct: number }[];
+      }
+    >();
 
     for (const r of aderencia) {
       const p: string = r.parceira;
@@ -245,8 +253,12 @@ export class RestrictionsService {
 
   async getWeeksByPartner(filters: GetRestrictionsAdvancePartnerDTO) {
     const processedFilters = this.parseEliminationFilters(filters);
-    const rows = await this.restrictionsRepository.getWeeksByPartner(processedFilters);
-    return rows.map((r) => ({ parceira: r.parceira, semanas: Number(r.semanas) }));
+    const rows =
+      await this.restrictionsRepository.getWeeksByPartner(processedFilters);
+    return rows.map((r) => ({
+      parceira: r.parceira,
+      semanas: Number(r.semanas),
+    }));
   }
 
   async insertPublicationRestriction(data: InsertPublicationRestrictionsDTO[]) {

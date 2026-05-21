@@ -8,7 +8,7 @@ import { ButtonComponent } from "@/components/common/Button";
 import ErrorModal from "@/components/common/ErrorModal";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { MainInterface } from "@/interfaces/mainInterface";
+import { MainInterface } from "@/types/mainInterface";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
@@ -41,7 +41,7 @@ export default function MainSchedule({
   });
   const [selectedYear, setSelectedYear] = useState<Dayjs | null>(dayjs());
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
-    {}
+    {},
   );
   const [isPending, startTransition] = useTransition();
 
@@ -66,7 +66,7 @@ export default function MainSchedule({
         const response = await fetchData(
           `${process.env.NEXT_PUBLIC_API_URL}/programacao`,
           params,
-          token
+          token,
         );
 
         setFilteredData(response.data);
@@ -91,7 +91,7 @@ export default function MainSchedule({
         const response = await fetchData(
           `${process.env.NEXT_PUBLIC_API_URL}/programacao`,
           params,
-          token
+          token,
         );
 
         setFilteredData(response.data);
