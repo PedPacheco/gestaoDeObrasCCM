@@ -27,7 +27,7 @@ export class UpdateWorkRepository implements IUpdateWorkRepository {
           observ_obra,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Erro ao editar obra: ', error.stack);
       throw error;
     }

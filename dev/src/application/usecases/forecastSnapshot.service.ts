@@ -1,7 +1,7 @@
 import {
   FORECAST_SNAPSHOT,
   IForecastSnapshotRepository,
-} from 'src/domain/repositories/schedule/IForecastSnapshotRepository';
+} from 'src/domain/repositories/IForecastSnapshotRepository';
 import { CreateForecastSnapshotDTO } from 'src/interface/dtos/forecastSnapshotDTO';
 
 import moment from 'moment';

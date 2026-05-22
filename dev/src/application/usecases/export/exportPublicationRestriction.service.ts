@@ -28,6 +28,7 @@ export class ExportPublicationRestrictionService {
       );
 
       worksheet.columns = [
+        { header: 'ID Obra', key: 'id', width: 10 },
         { header: 'Ovnota', key: 'ovnota', width: 15 },
         { header: 'Diagrama', key: 'ordemdiagrama', width: 15 },
         { header: 'Municipio', key: 'mun', width: 20 },

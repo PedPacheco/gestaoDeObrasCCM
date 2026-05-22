@@ -75,7 +75,7 @@ export function UpdateButton({ storageKey }: UpdateButtonProps) {
           }));
         }
 
-        const res = await UpdateSap(data, key, "marketEntryData");
+        const res = await UpdateSap(data, key);
 
         if (!res.success) {
           setError(res.error);
@@ -103,7 +103,7 @@ export function UpdateButton({ storageKey }: UpdateButtonProps) {
           isPending,
           storageKey === "marketUpdatesData"
             ? "Atualizar obras de mercado"
-            : "Atualizar Notas"
+            : "Atualizar Notas",
         )}
         disabled={isPending}
       />

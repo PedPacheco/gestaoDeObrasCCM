@@ -16,8 +16,7 @@ describe('RestrictionController ', () => {
   let service: RestrictionsService;
 
   const mockReq = {
-    insufficientPermission: true,
-    idParceira: 1,
+    idParceira: [1],
   };
 
   beforeEach(async () => {

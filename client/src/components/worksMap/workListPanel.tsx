@@ -1,7 +1,7 @@
 "use client";
 
 import { MapFilterItem } from "@/contexts/mapFilterContext";
-import { ObraPin } from "@/interfaces/worksMapInterface";
+import { ObraPin } from "@/types/worksMapInterface";
 
 interface ObraListPanelProps {
   displayObras: ObraPin[];

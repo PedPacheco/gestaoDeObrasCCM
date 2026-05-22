@@ -26,6 +26,16 @@ describe('GetMonthlySummaryForecastService', () => {
     accumulateGroupTeamEntry: jest.fn(),
   };
 
+  const mockTeamAggregator = {
+    buildExecutionCapacityTeams: jest.fn().mockReturnValue([]),
+    buildTotalTeamsMap: jest.fn().mockReturnValue(
+      new Map<string, number>([
+        ['15/03/2024', 5],
+        ['16/03/2024', 4],
+      ]),
+    ),
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -33,6 +43,7 @@ describe('GetMonthlySummaryForecastService', () => {
       mockRepository as any,
       mockCalculator as any,
       mockMapper as any,
+      mockTeamAggregator as any,
     );
   });
 

@@ -17,7 +17,7 @@ vi.mock("@/actions/schedules", () => ({
 const mockResetForm = vi.fn();
 const mockSetOpenExecChangeDialog = vi.fn();
 
-vi.mock("@/hooks/useScheduleForm", () => ({
+vi.mock("@/hooks/details/useScheduleForm", () => ({
   useScheduleForm: vi.fn(() => ({
     resetForm: mockResetForm,
     setOpenExecChangeDialog: mockSetOpenExecChangeDialog,
@@ -114,7 +114,7 @@ const mockSetConfirmedSchedule = vi.fn();
 const mockSetValidatedSchedule = vi.fn();
 const mockSetRejectedSchedule = vi.fn();
 
-vi.mock("@/hooks/useScheduleHandlers", () => ({
+vi.mock("@/hooks/details/useScheduleHandlers", () => ({
   useScheduleHandlers: vi.fn(() => ({
     handleConfirm: mockHandleConfirm,
     handleDelete: mockHandleDelete,
@@ -157,8 +157,20 @@ describe("TabPanel Component", () => {
     id_status: "1",
     name: "Test Work",
     programacoes: [
-      { id: 1, name: "Schedule 1", exec: "50" },
-      { id: 2, name: "Schedule 2", exec: undefined },
+      {
+        id: 1,
+        name: "Schedule 1",
+        exec: "50",
+        tecnico: "Jorge",
+        restricao: "Data",
+      },
+      {
+        id: 2,
+        name: "Schedule 2",
+        exec: undefined,
+        tecnico: "Jorge",
+        restricao: "Trânsito",
+      },
     ],
   };
 
@@ -167,11 +179,19 @@ describe("TabPanel Component", () => {
     { id: 2, name: "Report 2" },
   ];
 
-  const mockOptions = { option1: "value1" };
+  const mockOptions = {
+    tecnico: [{ id: 1, tecnico: "Jorge" }],
+    restricao: [
+      { id: 1, restricao: "Data", tipo_restricao: "REPROVADO" },
+      { id: 2, restricao: "Trânsito", tipo_restricao: "EXECUÇÃO" },
+    ],
+  };
 
   const defaultProps = {
     workData: mockWorkData,
     executionReportData: mockExecutionReportData,
+    rejectionsData: [],
+    feasibilityExists: [],
     options: mockOptions,
     id: "1",
   };

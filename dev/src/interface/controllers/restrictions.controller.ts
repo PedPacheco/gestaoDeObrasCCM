@@ -35,15 +35,12 @@ export class RestrictionController {
   private applyFilters<
     T extends {
       idParceira?: number | number[];
-      insufficientPermission?: boolean;
     },
   >(filters: T, req: CustomRequest): T {
     if (req.idParceira) {
       filters.idParceira = req.idParceira;
     }
-    if (req.insufficientPermission !== undefined) {
-      filters.insufficientPermission = req.insufficientPermission;
-    }
+
     return filters;
   }
 

@@ -5,7 +5,6 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   HttpStatus,
   Param,
@@ -43,15 +42,7 @@ export class ExecutionReportController {
     @Body() data: UpdateExecutionReportDTO,
     @UploadedFiles() files?: Express.Multer.File[],
   ): Promise<any> {
-    const { id: idUser, permissao_visualizacao } = req.user;
-
-    const hasNonFileChanges = Object.keys(data.executionReportData).length > 0;
-
-    if (permissao_visualizacao === 'parcial' && hasNonFileChanges) {
-      throw new ForbiddenException(
-        'Usuários com permissão parcial podem alterar apenas os arquivos.',
-      );
-    }
+    const { id: idUser } = req.user;
 
     await this.executionReportService.update(
       idExecutionReport,

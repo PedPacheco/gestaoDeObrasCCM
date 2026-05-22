@@ -34,7 +34,7 @@ describe('RejectionsOfSchedulesRepository', () => {
     it('should call findMany method of programacoes_reprovacoes table and return data', async () => {
       mockPrisma.programacoes_reprovacoes.findMany.mockResolvedValue([
         {
-          motivo: 'CHI',
+          restricoes: { restricao: 'CHI' },
           data_prog: new Date('2025-05-17'),
           hora_ini: '08:00',
           hora_ter: '17:00',
@@ -55,7 +55,7 @@ describe('RejectionsOfSchedulesRepository', () => {
 
       expect(result).toEqual([
         {
-          motivo: 'CHI',
+          restricoes: { restricao: 'CHI' },
           data_prog: new Date('2025-05-17'),
           hora_ini: '08:00',
           hora_ter: '17:00',
@@ -86,7 +86,7 @@ describe('RejectionsOfSchedulesRepository', () => {
             },
           },
           select: {
-            motivo: true,
+            restricoes: { select: { restricao: true } },
             data_prog: true,
             hora_ini: true,
             hora_ter: true,
@@ -106,7 +106,7 @@ describe('RejectionsOfSchedulesRepository', () => {
     it('should call findMany method of programacoes_reprovacoes table and return data', async () => {
       mockPrisma.programacoes_reprovacoes.findMany.mockResolvedValue([
         {
-          motivo: 'CHI',
+          restricoes: { restricao: 'CHI' },
           data_prog: new Date('2025-05-17'),
           hora_ini: '08:00',
           hora_ter: '17:00',
@@ -127,7 +127,7 @@ describe('RejectionsOfSchedulesRepository', () => {
 
       expect(result).toEqual([
         {
-          motivo: 'CHI',
+          restricoes: { restricao: 'CHI' },
           data_prog: new Date('2025-05-17'),
           hora_ini: '08:00',
           hora_ter: '17:00',
@@ -158,7 +158,7 @@ describe('RejectionsOfSchedulesRepository', () => {
             },
           },
           select: {
-            motivo: true,
+            restricoes: { select: { restricao: true } },
             data_prog: true,
             hora_ini: true,
             hora_ter: true,

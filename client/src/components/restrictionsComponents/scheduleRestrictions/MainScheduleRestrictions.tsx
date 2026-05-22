@@ -227,7 +227,7 @@ export default function MainScheduleRestrictions({
             onSave={handleEdit}
             restrictionsValues={filtersData.restricao}
             isInsert={false}
-            idRegional={selectedRestriction?.id_regional}
+            idParceira={selectedRestriction?.id_turma}
           />
         ) : undefined}
 

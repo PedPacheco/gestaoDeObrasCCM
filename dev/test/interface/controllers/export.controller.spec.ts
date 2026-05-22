@@ -146,6 +146,8 @@ const mockWorksData: worksInPortfolioResponseService = {
       qtde_planejada: 10,
       qtde_pend: 2,
       mo_planejada: 5,
+      mo_exec: 2,
+      mo_pend: 3,
       status: 'Planejado',
       turma: 'Equipe Alpha',
       ano_plan: 2025,
@@ -655,6 +657,7 @@ describe('ExportController', () => {
       monthlyMOSummaryService.getSummary.mockResolvedValue({
         summary: mockMonthlySummaryFirst as any,
         totals: {} as any,
+        contractValueByMonth: { monthlyValue: 0 },
       });
       monthlyMOSummaryService.getSecondSummary.mockResolvedValue({
         summary: mockMonthlySummarySecond as any,

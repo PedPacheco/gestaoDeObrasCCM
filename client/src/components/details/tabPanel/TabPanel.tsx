@@ -67,6 +67,8 @@ export default function TabPanel({
   const [editingSchedule, setEditingSchedule] = useState<any>();
   const [editingExecutionReport, setEditingExecutionReport] = useState<any>();
 
+  const [scheduleStatus, setScheduleStatus] = useState<string>("");
+
   const [isInsert, setIsInsert] = useState(true);
   const [executionReportIsInsert, setExecutionReportIsInsert] = useState(true);
 
@@ -112,7 +114,7 @@ export default function TabPanel({
     modalsRef.current?.handleDialog(true);
     setExecutionReportIsInsert(true);
 
-    console.log(scheduleData);
+    setScheduleStatus(scheduleData.status_programacao);
 
     setEditingSchedule({
       ...scheduleData,
@@ -215,6 +217,7 @@ export default function TabPanel({
         onCloseDialog={handleCloseDialog}
         onConfirmDelete={handleDelete}
         onConfirmExecutionDelete={handleExecutionReportDelete}
+        scheduleStatus={scheduleStatus}
       />
     </div>
   );

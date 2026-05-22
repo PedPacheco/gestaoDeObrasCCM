@@ -59,7 +59,7 @@ export default async function MonthlySummary() {
   const columnsFirstSummary: MonthlySummaryTableColumn[] = [
     { key: "dataProg", label: "Data", format: "date" },
     { key: "dia_semana", label: "Dia da Semana", format: "weekday" },
-    { key: "totalQtde", label: "Qtd. Obras", format: "number" },
+    { key: "qtdeSchedules", label: "Qtd. Obras", format: "number" },
     { key: "teamsTotal", label: "Qtd. Equipes", format: "number" },
     {
       label: "Meta (Meta 100%)",
@@ -83,7 +83,7 @@ export default async function MonthlySummary() {
   const columnsSecondSummary: MonthlySummaryTableColumn[] = [
     { key: "grupo", label: "Grupo" },
     { key: "turma", label: "Parceira" },
-    { key: "qtdeWorks", label: "Qtd. Obras", format: "number" },
+    { key: "qtdeSchedules", label: "Qtd. Obras", format: "number" },
     { key: "totalMoPlan", label: "Planejado", format: "currency" },
     { key: "totalMoPend", label: "Pendente", format: "currency" },
     { key: "totalMoProg", label: "Programado", format: "currency" },

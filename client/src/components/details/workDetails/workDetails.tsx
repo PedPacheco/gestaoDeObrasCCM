@@ -508,7 +508,7 @@ export function WorkDetails({
         onSave={handleSavePublicationRestriction}
         restrictionsValues={publicationRestrictions}
         idWork={Number(data.id)}
-        idRegional={data.idRegional}
+        idParceira={Number(data.id_turma)}
         isInsert={true}
       />
 

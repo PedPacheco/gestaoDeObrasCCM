@@ -10,7 +10,7 @@ import { ButtonComponent } from "@/components/common/Button";
 import ErrorModal from "@/components/common/ErrorModal";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { MainInterface } from "@/interfaces/mainInterface";
+import { MainInterface } from "@/types/mainInterface";
 import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";

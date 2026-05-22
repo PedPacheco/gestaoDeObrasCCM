@@ -1,9 +1,27 @@
-import { ProcessedRestrictionsFilters } from 'src/application/usecases/restrictions.service';
 import {
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
 } from 'src/interface/dtos/restrictionsDTO';
 import { GetScheduleRestrictions } from 'src/interface/types/schedule/getScheduleRestrictionsInterface';
+
+export interface ProcessedRestrictionsFilters {
+  dataInicial?: Date;
+  dataFinal?: Date;
+  ovnota?: string;
+  idRegional?: number[];
+  idMunicipio?: number[];
+  idGrupo?: number[];
+  idTipo?: number[];
+  idParceira?: number[];
+  idRestricao?: number[];
+  /**
+   * undefined → sem filtro de execução (ambos ou nenhum status selecionado)
+   * true      → apenas registros executados (status 'done')
+   * false     → apenas registros pendentes (status 'pending')
+   */
+  filterExecutado?: boolean;
+  page?: number;
+}
 
 export interface IRestrictionsRepository {
   getScheduleRestrictions(

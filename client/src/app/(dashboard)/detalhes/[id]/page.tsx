@@ -42,7 +42,7 @@ async function fetchAllData(id: string, token?: string) {
   return Promise.all([
     fetchFilters({
       restricao: true,
-      tipoRestricao: ["EXECUÇÃO", "PROGRAMAÇÃO", "PUBLICAÇÃO"],
+      tipoRestricao: ["EXECUÇÃO", "PROGRAMAÇÃO", "PUBLICAÇÃO", "REPROVADO"],
       tecnico: true,
       municipio: true,
       parceira: true,

@@ -105,8 +105,10 @@ export function MainMonthlySummarySchedule({
   useEffect(() => {
     if (!filters) return;
     setSelectedItems(filters.selectedItems);
-    setStartDate(filters.startDate ? dayjs(filters.startDate) : null);
-    setEndDate(filters.endDate ? dayjs(filters.endDate) : null);
+    setStartDate(
+      filters.startDate ? dayjs(filters.startDate) : DEFAULT_START(),
+    );
+    setEndDate(filters.endDate ? dayjs(filters.endDate) : DEFAULT_END());
   }, [filters]);
 
   const generateExcel = async (
@@ -170,6 +172,7 @@ export function MainMonthlySummarySchedule({
       />
     );
   }
+
   return (
     <>
       <div className="my-6 w-full flex flex-col px-8">

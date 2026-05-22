@@ -17,6 +17,7 @@ import { DailySummaryEntry } from 'src/interface/types/schedule/monthlySummaryIn
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { ExecMonitoringService } from 'src/application/usecases/schedule/execMonitoring.service';
 
 describe('ScheduleController', () => {
   let scheduleController: ScheduleController;
@@ -25,6 +26,7 @@ describe('ScheduleController', () => {
   let getMonthlySummaryService: MonthlySummaryService;
   let rejectionsOfSchedulesService: RejectionsOfSchedulesService;
   let getMonthlySummaryForecastService: GetMonthlySummaryForecastService;
+  let execMonitoringService: ExecMonitoringService;
 
   const mockScheduleData: GetScheduleValuesResponse = {
     works: [
@@ -117,6 +119,10 @@ describe('ScheduleController', () => {
           provide: RejectionsOfSchedulesService,
           useValue: { get: jest.fn() },
         },
+        {
+          provide: ExecMonitoringService,
+          useValue: { getData: jest.fn() },
+        },
         { provide: UsersService, useValue: { findUser: jest.fn() } },
       ],
     }).compile();
@@ -135,6 +141,9 @@ describe('ScheduleController', () => {
       module.get<GetMonthlySummaryForecastService>(
         GetMonthlySummaryForecastService,
       );
+    execMonitoringService = module.get<ExecMonitoringService>(
+      ExecMonitoringService,
+    );
     rejectionsOfSchedulesService = module.get<RejectionsOfSchedulesService>(
       RejectionsOfSchedulesService,
     );
@@ -295,22 +304,24 @@ describe('ScheduleController', () => {
     const dailySummaryMock: DailySummaryEntry[] = [
       {
         dataProg: '2026-03-01',
-        totalQtde: 25,
+        qtdeSchedules: 25,
         teamsTotal: 8,
         financialGoal: 15000,
         financialGoalWith8: 18000,
         diaryGoal: 1200,
         diaryGoalWith8: 1500,
+        totalMoPlan: 15000,
         totalMoProg: 14000,
         totalMoExec: 13000,
         diff: -1000,
       },
       {
         dataProg: '2026-03-02',
-        totalQtde: 30,
+        qtdeSchedules: 30,
         teamsTotal: 10,
         financialGoal: 20000,
         financialGoalWith8: 22000,
+        totalMoPlan: 2000,
         diaryGoal: 1600,
         diaryGoalWith8: 1800,
         totalMoProg: 19500,
@@ -323,7 +334,7 @@ describe('ScheduleController', () => {
       {
         grupo: 'RECOMPOSIÇÃO',
         turma: 'ENGELMIG',
-        qtdeWorks: 49,
+        qtdeSchedules: 49,
         totalMoPlan: 1075887.9138599995,
         totalMoProg: 1075887.9138599995,
         totalMoPend: 0,
@@ -334,7 +345,7 @@ describe('ScheduleController', () => {
       {
         grupo: 'BT ZERO',
         turma: 'ENGELMIG',
-        qtdeWorks: 19,
+        qtdeSchedules: 19,
         totalMoPlan: 673067.8821099999,
         totalMoProg: 673067.8821099999,
         totalMoPend: 0,
@@ -344,22 +355,28 @@ describe('ScheduleController', () => {
       },
     ];
 
-    jest
-      .spyOn(getMonthlySummaryService, 'getSummary')
-      .mockResolvedValue({ summary: dailySummaryMock, totals: {} as any });
+    jest.spyOn(getMonthlySummaryService, 'getSummary').mockResolvedValue({
+      summary: dailySummaryMock,
+      totals: {} as any,
+      contractValueByMonth: { monthlyValue: 0 },
+    });
 
     jest.spyOn(getMonthlySummaryService, 'getSecondSummary').mockResolvedValue({
       summary: getSecondMonthlySummaryResponse,
       totals: {} as any,
     });
 
-    const result = await scheduleController.getMonthlySummary(filters);
+    const result = await scheduleController.getMonthlySummary(filters, {});
 
     expect(result).toEqual({
       statusCode: HttpStatus.OK,
       message: 'Resumo mensal retornado com sucesso',
       data: {
-        firstSummary: { summary: dailySummaryMock, totals: {} as any },
+        firstSummary: {
+          summary: dailySummaryMock,
+          totals: {} as any,
+          contractValueByMonth: { monthlyValue: 0 },
+        },
         secondSummary: {
           summary: getSecondMonthlySummaryResponse,
           totals: {} as any,
@@ -375,7 +392,6 @@ describe('ScheduleController', () => {
       idRegional: [1],
       idGrupo: [1],
       idTipo: [1],
-      idParceira: [1],
     };
 
     const dailySummaryForecastMock: DailySummaryEntryForecast[] = [
@@ -520,7 +536,9 @@ describe('ScheduleController', () => {
         totals: mockGroupSummaryTotals,
       });
 
-    const result = await scheduleController.getMonthlySummaryForecast(filters);
+    const result = await scheduleController.getMonthlySummaryForecast(filters, {
+      idParceira: 1,
+    });
 
     expect(result).toEqual({
       statusCode: HttpStatus.OK,
@@ -580,6 +598,37 @@ describe('ScheduleController', () => {
           observacao_programacao: null,
         },
       ],
+    });
+  });
+
+  it('should call getExecMonitoring and return data', async () => {
+    const data = [
+      {
+        mes: 'Jan',
+        regional: 'São José',
+        id_regional: 1,
+        parceira: 'ENGELMIG',
+        total: 200,
+        acompanhado: 80,
+        naoAcompanhado: 120,
+        pct: 40,
+      },
+    ];
+
+    jest.spyOn(execMonitoringService, 'getData').mockResolvedValue(data);
+
+    const result = await scheduleController.getExecMonitoring(
+      {
+        dataFinal: '2026-04-01',
+        dataInicial: '2026-05-01',
+      },
+      { idParceira: 1 },
+    );
+
+    expect(result).toStrictEqual({
+      statusCode: HttpStatus.OK,
+      message: 'Acompanhamento mensal retornado com sucesso',
+      data,
     });
   });
 });

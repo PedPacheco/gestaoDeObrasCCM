@@ -80,7 +80,7 @@ export default async function WorksInPortfolio() {
     total_equipe_reg: "Total Equipe Reg",
     circuito: "Circuito",
     mo_planejada: "MO Plan",
-    mo_final: "MO Executada",
+    mo_exec: "MO Executada",
     mo_pend: "MO Pendente",
     status: "Status da Obra",
     conjunto: "Conjunto",

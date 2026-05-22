@@ -1,6 +1,7 @@
 import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import {
+  GetExecMonitoringDTO,
   GetMonthlySummaryDTO,
   GetScheduleValuesDTO,
   GetTotalValuesScheduleDTO,
@@ -21,6 +22,7 @@ import { RejectionsOfSchedulesService } from 'src/application/usecases/schedule/
 import { GetTotalValuesScheduleService } from 'src/application/usecases/schedule/getTotalValuesSchedule.service';
 import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
 import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
+import { ExecMonitoringService } from 'src/application/usecases/schedule/execMonitoring.service';
 
 @Controller('programacao')
 export class ScheduleController {
@@ -30,7 +32,20 @@ export class ScheduleController {
     private getMonthlySummaryService: MonthlySummaryService,
     private rejectionsOfSchedulesService: RejectionsOfSchedulesService,
     private getMonthlySummaryForecastService: GetMonthlySummaryForecastService,
+    private execMonitoringService: ExecMonitoringService,
   ) {}
+
+  private applyFilters<
+    T extends {
+      idParceira?: number | number[];
+    },
+  >(filters: T, req: { idParceira?: number }): T {
+    if (req.idParceira) {
+      filters.idParceira = req.idParceira;
+    }
+
+    return filters;
+  }
 
   @Get()
   @UseGuards(PermissionGuard)
@@ -48,12 +63,10 @@ export class ScheduleController {
   @Get('mensal')
   @UseGuards(VisualizationGuard)
   async getScheduleValues(
-    @Query() filters: GetScheduleValuesDTO,
+    @Query() scheduleFilters: GetScheduleValuesDTO,
     @Req() req: any,
   ) {
-    if (req.idParceira) {
-      filters.idParceira = req.idParceira;
-    }
+    const filters = this.applyFilters(scheduleFilters, req);
 
     const response = await this.getScheduleValuesService.getValues(filters);
 
@@ -65,8 +78,13 @@ export class ScheduleController {
   }
 
   @Get('resumo-mensal')
-  @UseGuards(PermissionGuard)
-  async getMonthlySummary(@Query() filters: GetMonthlySummaryDTO) {
+  @UseGuards(VisualizationGuard)
+  async getMonthlySummary(
+    @Query() scheduleFilters: GetMonthlySummaryDTO,
+    @Req() req: any,
+  ) {
+    const filters = this.applyFilters(scheduleFilters, req);
+
     const [firstSummary, secondSummary] = await Promise.all([
       this.getMonthlySummaryService.getSummary(filters),
       this.getMonthlySummaryService.getSecondSummary(filters),
@@ -80,8 +98,13 @@ export class ScheduleController {
   }
 
   @Get('resumo-mensal-forecast')
-  @UseGuards(PermissionGuard)
-  async getMonthlySummaryForecast(@Query() filters: GetMonthlySummaryDTO) {
+  @UseGuards(VisualizationGuard)
+  async getMonthlySummaryForecast(
+    @Query() scheduleFilters: GetMonthlySummaryDTO,
+    @Req() req: any,
+  ) {
+    const filters = this.applyFilters(scheduleFilters, req);
+
     const [firstSummary, secondSummary] = await Promise.all([
       this.getMonthlySummaryForecastService.getSummary(filters),
       this.getMonthlySummaryForecastService.getSecondSummary(filters),
@@ -91,6 +114,22 @@ export class ScheduleController {
       statusCode: HttpStatus.OK,
       message: 'Resumo mensal do Forecast retornado com sucesso',
       data: { firstSummary, secondSummary },
+    };
+  }
+
+  @Get('acompanhamento-mensal')
+  @UseGuards(VisualizationGuard)
+  async getExecMonitoring(
+    @Query() scheduleFilters: GetExecMonitoringDTO,
+    @Req() req: any,
+  ) {
+    const filters = this.applyFilters(scheduleFilters, req);
+
+    const data = await this.execMonitoringService.getData(filters);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Acompanhamento mensal retornado com sucesso',
+      data,
     };
   }
 

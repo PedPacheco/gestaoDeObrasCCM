@@ -2,18 +2,31 @@ import { GoalsService } from 'src/application/usecases/goals.service';
 import { GoalsDTO } from 'src/interface/dtos/goalsDto';
 import { GoalsIntefaceController } from 'src/interface/types/goalsInterface';
 
-import { Controller, Get, HttpStatus, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpStatus,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 
 @Controller('metas')
 export class GoalsController {
   constructor(private goalsService: GoalsService) {}
 
   @Get()
+  @UseGuards(VisualizationGuard)
   async getGoals(
-    @Query()
-    goalsFilter: GoalsDTO,
+    @Query() filters: GoalsDTO,
+    @Req() req: any,
   ): Promise<GoalsIntefaceController> {
-    const response = await this.goalsService.getGoals(goalsFilter);
+    if (req.idParceira) {
+      filters.parceira = req.idParceira;
+    }
+
+    const response = await this.goalsService.getGoals(filters);
 
     return {
       statusCode: HttpStatus.OK,

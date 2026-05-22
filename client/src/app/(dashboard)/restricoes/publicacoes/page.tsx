@@ -84,6 +84,7 @@ export default async function PublicationRestriction() {
     parceira: "Parceira",
     executado: "Total executado",
     data_conclusao: "Data de conclusão",
+    prazo_fim: "Prazo Regulado",
     restricao: "Restrição",
     responsabilidade: "Responsabilidade",
     nome_responsavel: "Nome do responsável",

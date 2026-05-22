@@ -8,7 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ButtonComponent } from "@/components/common/Button";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { FiltersInterface } from "@/interfaces/filtersInterfaces";
+import { FiltersInterface } from "@/types/filtersInterfaces";
 import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
@@ -48,10 +48,10 @@ export default function PortfolioWorksFilters({
         const idGrupos = selectedItems.idGrupo?.map(Number);
 
         newData.tipo = newData.tipo?.filter((item) =>
-          idGrupos.includes(item.id_grupo)
+          idGrupos.includes(item.id_grupo),
         );
         newData.empreendimento = newData.empreendimento?.filter((item) =>
-          idGrupos.includes(item.id_grupo)
+          idGrupos.includes(item.id_grupo),
         );
       }
 
@@ -59,16 +59,16 @@ export default function PortfolioWorksFilters({
         const idRegionais = selectedItems.idRegional?.map(Number);
 
         newData.empreendimento = newData.empreendimento?.filter((item) =>
-          idRegionais.includes(item.id_regional)
+          idRegionais.includes(item.id_regional),
         );
         newData.municipio = newData.municipio?.filter((item) =>
-          idRegionais.includes(item.id_regional)
+          idRegionais.includes(item.id_regional),
         );
       }
 
       return newData;
     },
-    []
+    [],
   );
 
   const { clearFilters, filters, saveFilters, filteredData } = useSaveFilters({
@@ -78,7 +78,7 @@ export default function PortfolioWorksFilters({
   });
 
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
-    {}
+    {},
   );
   const [ovnota, setOvnota] = useState<string>("");
   const [startDate, setStartDate] = useState<Dayjs | null>(null);

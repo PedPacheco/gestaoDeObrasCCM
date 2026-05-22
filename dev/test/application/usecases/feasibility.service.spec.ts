@@ -114,8 +114,8 @@ describe('FeasibilityService', () => {
 
   it('deve remover os arquivos e depois deletar os registros', async () => {
     mockRepository.findFiles.mockResolvedValue([
-      { id: 1, caminho_arquivo: '/tmp/a.pdf' },
-      { id: 2, caminho_arquivo: '/tmp/b.pdf' },
+      { id: 1, caminho_arquivo: '/tmp/a.pdf', id_obra: 2 },
+      { id: 2, caminho_arquivo: '/tmp/b.pdf', id_obra: 3 },
     ]);
 
     mockRepository.deleteFiles.mockResolvedValue(undefined);
@@ -133,6 +133,6 @@ describe('FeasibilityService', () => {
       'undefined//tmp/b.pdf',
     );
 
-    expect(mockRepository.deleteFiles).toHaveBeenCalledWith(5);
+    expect(mockRepository.deleteFiles).toHaveBeenCalledWith(2);
   });
 });
