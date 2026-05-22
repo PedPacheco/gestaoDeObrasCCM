@@ -4,7 +4,7 @@ import { DashboardService } from 'src/application/usecases/dashboard.service';
 import {
   DASHBOARD_REPOSITORY,
   IDashboardRepository,
-} from 'src/domain/repositories/schedule/IDashboardRepository';
+} from 'src/domain/repositories/IDashboardRepository';
 import { DashboardFiltersDTO } from 'src/interface/dtos/dashboardDTO';
 
 import { Test, TestingModule } from '@nestjs/testing';

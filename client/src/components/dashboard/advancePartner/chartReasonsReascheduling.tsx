@@ -9,34 +9,40 @@ import {
 } from "recharts";
 import { useMemo } from "react";
 import { ChartTooltip } from "../common/ChartTooltip";
-import { MotivoRow, MotivoTab } from "./moveForwardPartner";
+import { MotivoRow, MotivoTab } from "./advancePartner";
 
 interface ChartReasonsReaschedulingProps {
-  motivos: MotivoRow[] | null;
+  motivos: MotivoRow[];
   motivoTab: MotivoTab;
   setMotivoTab: (data: MotivoTab) => void;
+  isPending: boolean;
 }
 
 export function ChartReasonsReascheduling({
   motivos,
   motivoTab,
   setMotivoTab,
+  isPending,
 }: ChartReasonsReaschedulingProps) {
+  const filteredReasons =
+    motivoTab === "GERAL"
+      ? motivos
+      : motivos.filter(
+          (m) => (m.responsavel ?? "").toUpperCase().trim() === motivoTab,
+        );
+
   const motivosChartData = useMemo(() => {
-    if (!motivos) return [];
-    const filtered =
-      motivoTab === "GERAL"
-        ? motivos
-        : motivos.filter(
-            (m) => (m.responsavel ?? "").toUpperCase().trim() === motivoTab,
-          );
+    if (!filteredReasons) return [];
 
     const counts: Record<string, number> = {};
-    filtered.forEach((m) => {
+
+    filteredReasons.forEach((m) => {
       const k = (m.motivo || "Sem motivo informado").toUpperCase().trim();
       counts[k] = (counts[k] || 0) + 1;
     });
-    const total = filtered.length;
+
+    const total = filteredReasons.length;
+
     return Object.entries(counts)
       .map(([motivo, count]) => ({
         motivo,
@@ -45,7 +51,7 @@ export function ChartReasonsReascheduling({
       }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 12);
-  }, [motivos, motivoTab]);
+  }, [filteredReasons]);
 
   return (
     <div className="bg-gradient-to-br from-[#1e2f42] to-[#192535] rounded-2xl p-5 border border-white/5 shadow-xl">
@@ -56,15 +62,15 @@ export function ChartReasonsReascheduling({
           </h3>
           <p className="text-zinc-500 text-xs mt-0.5">
             Top ocorrências por motivo
-            {motivos
-              ? ` — ${motivos.length} registro${motivos.length !== 1 ? "s" : ""}`
+            {filteredReasons
+              ? ` — ${filteredReasons.length} registro${filteredReasons.length !== 1 ? "s" : ""}`
               : ""}
           </p>
         </div>
         <div className="flex items-center gap-2">
           {/* Tabs responsabilidade */}
           <div className="flex rounded-lg overflow-hidden border border-white/10">
-            {(["EDP", "GERAL", "PARCEIRA", "TERCEIRO"] as MotivoTab[]).map(
+            {(["GERAL", "EDP", "PARCEIRA", "TERCEIRO"] as MotivoTab[]).map(
               (t) => (
                 <button
                   key={t}
@@ -79,7 +85,7 @@ export function ChartReasonsReascheduling({
         </div>
       </div>
 
-      {false ? (
+      {isPending ? (
         <div className="flex items-center justify-center h-32 text-zinc-500 text-sm">
           Carregando…
         </div>

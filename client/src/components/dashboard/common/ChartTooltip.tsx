@@ -12,8 +12,6 @@ export function ChartTooltip({
   const data = payload[0]?.payload; // 🔥 fonte de verdade
   const turma = data?.turma as string | undefined;
 
-  console.log(data);
-
   return (
     <div className="bg-[#0f1e2e]/95 border border-white/10 rounded-xl px-4 py-3 text-xs text-zinc-100 shadow-2xl backdrop-blur-sm min-w-[220px]">
       {turma && <div className="text-zinc-400 text-xs mb-0.5">{turma}</div>}

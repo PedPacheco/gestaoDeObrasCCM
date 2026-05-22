@@ -1,5 +1,11 @@
+import { DateFilter } from "@/components/common/DateFilter";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
+import {
+  EXCLUDE_PARCEIRAS,
+  FilterMode,
+} from "@/hooks/dashboard/advancePartner/useAdvancePartnerFilters";
 import { WEEKS } from "@/utils/weeks";
+import { Dayjs } from "dayjs";
 import { useEffect, useRef, useState } from "react";
 
 interface FiltersData {
@@ -7,17 +13,25 @@ interface FiltersData {
   parceira?: Array<Record<string, any>>;
 }
 
-interface MoveForwartPartnerFiltesProps {
+interface AdvancePartnerFiltesProps {
+  startDate: Dayjs | null;
+  endDate: Dayjs | null;
   filtersData: FiltersData;
   initialWeek: number;
   finalWeek: number;
   selectedRegional: string[];
   selectedParceira: string[];
+  filterMode: FilterMode;
+  setFilterMode: (mode: FilterMode) => void;
+  setStartDate: (date: Dayjs | null) => void;
+  setEndDate: (date: Dayjs | null) => void;
   setInitialWeek: (week: number) => void;
   setFinalWeek: (week: number) => void;
   setSelectedRegional: (data: string[]) => void;
   setSelectedParceira: (data: string[]) => void;
   applyFilters: () => void;
+  clearFilters: () => void;
+  isPending: boolean;
 }
 
 function WeekSelect({
@@ -112,35 +126,77 @@ function WeekSelect({
   );
 }
 
-export function MoveForwartPartnerFilters({
+export function AdvancePartnerFilters({
+  startDate,
+  endDate,
   initialWeek,
   finalWeek,
   selectedParceira,
   selectedRegional,
+  filterMode,
+  setFilterMode,
+  setStartDate,
+  setEndDate,
   setInitialWeek,
   setFinalWeek,
   setSelectedParceira,
   setSelectedRegional,
   filtersData,
   applyFilters,
-}: MoveForwartPartnerFiltesProps) {
+  clearFilters,
+  isPending,
+}: AdvancePartnerFiltesProps) {
   return (
-    <div className="bg-gradient-to-br from-[#1e2f42] to-[#192535] rounded-2xl p-5 border border-white/5 shadow-xl">
-      <div className="flex flex-row gap-4 items-end">
-        <WeekSelect
-          label="Semana inicial"
-          value={initialWeek}
-          onChange={setInitialWeek}
-          showField="inicio"
-        />
-        <WeekSelect
-          label="Semana final"
-          value={finalWeek}
-          onChange={setFinalWeek}
-          showField="fim"
-        />
+    <div className="bg-gradient-to-br from-[#1e2f42] to-[#192535]  p-5 border border-white/5 shadow-xl">
+      <div className="flex flex-row justify-between gap-4 items-end">
+        <div className="flex flex-row gap-2 w-full items-end">
+          <div className="flex flex-col gap-1 mb-1">
+            <span className="text-zinc-500 text-[12px] uppercase tracking-wider">
+              Filtrar por
+            </span>
+            <div className="flex rounded-xl overflow-hidden border border-white/10">
+              {(["semana", "data"] as FilterMode[]).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setFilterMode(m)}
+                  className={`px-3 py-2 text-xs font-bold transition-colors ${filterMode === m ? "bg-[#3b82f6] text-white" : "bg-[#0f1e2e] text-zinc-400 hover:text-white"}`}
+                >
+                  {m === "semana" ? "Semana" : "Data"}
+                </button>
+              ))}
+            </div>
+          </div>
 
-        <div className="flex flex-row w-1/2 justify-between">
+          {filterMode === "semana" ? (
+            <>
+              <WeekSelect
+                label="Semana inicial"
+                value={initialWeek}
+                onChange={setInitialWeek}
+                showField="inicio"
+              />
+              <WeekSelect
+                label="Semana final"
+                value={finalWeek}
+                onChange={setFinalWeek}
+                showField="fim"
+              />
+            </>
+          ) : (
+            <DateFilter
+              endDate={endDate}
+              setEndDate={setEndDate}
+              setStartDate={setStartDate}
+              startDate={startDate}
+              backgroundColor="#0f1e2e"
+              textColor="#a1a1aa"
+              svgColor="#94a3b8"
+              spacing="mr-4 !mb-0 mt-2"
+              size=""
+            />
+          )}
+
           <div className="min-w-[120px] flex-1 mr-4">
             <MultipleSelectComponent
               label="Regionais"
@@ -157,11 +213,16 @@ export function MoveForwartPartnerFilters({
           <div className="min-w-[120px] flex-1">
             <MultipleSelectComponent
               label="Parceira"
-              menuItems={filtersData.parceira ?? []}
+              menuItems={
+                filtersData.parceira?.filter(
+                  (item) =>
+                    !EXCLUDE_PARCEIRAS.has(item.turma.toUpperCase().trim()),
+                ) ?? []
+              }
               selectedItem={selectedParceira}
               setSelectedItem={setSelectedParceira}
               valueKey="id"
-              displayKey="parceira"
+              displayKey="turma"
               backgroundColor="#0f1e2e"
               textColor="#a1a1aa"
             />
@@ -172,19 +233,19 @@ export function MoveForwartPartnerFilters({
           <button
             type="button"
             onClick={applyFilters}
-            disabled={false}
+            disabled={isPending}
             className="rounded-xl bg-[#3b82f6] px-6 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:bg-[#2563eb] hover:shadow-[#3b82f6]/30 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {false ? "Carregando..." : "Aplicar"}
+            {isPending ? "Carregando..." : "Aplicar"}
           </button>
 
           <button
             type="button"
-            onClick={() => console.log("aplicar")}
-            disabled={false}
+            onClick={clearFilters}
+            disabled={isPending}
             className="rounded-xl bg-[#3b82f6] px-6 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:bg-[#2563eb] hover:shadow-[#3b82f6]/30 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {false ? "Carregando..." : "Limpar"}
+            {isPending ? "Carregando..." : "Limpar"}
           </button>
         </div>
       </div>

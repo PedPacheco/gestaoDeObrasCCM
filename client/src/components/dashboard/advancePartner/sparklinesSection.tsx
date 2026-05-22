@@ -4,7 +4,7 @@ import { Line, LineChart, ResponsiveContainer } from "recharts";
 import { Box, Card, Divider, Grid, Stack, Typography } from "@mui/material";
 
 import { pctColor } from "../DashboardClient";
-import { SparklineRow, SparkPoint } from "./moveForwardPartner";
+import { SparklineRow, SparkPoint } from "./advancePartner";
 
 interface SparklinesSectionProps {
   semanasMap: Record<string, number>;
@@ -88,6 +88,7 @@ export function SparklinesSection({
   semanasMap,
   sparklines,
 }: SparklinesSectionProps) {
+  console.log(sparklines);
   const sparklinesFull = useMemo((): SparklineRow[] => {
     const withData = new Map(sparklines.map((s) => [s.parceira, s]));
 
@@ -100,15 +101,16 @@ export function SparklinesSection({
       );
   }, [sparklines, filtersPartner]);
 
+  // console.log(sparklinesFull);
+
   return (
-    <Grid
-      container
-      spacing={2}
-      sx={{
-        display: "grid",
-        gridTemplateColumns: "220px 1fr 1fr",
-        gap: 2,
-      }}
+    <div
+      className="grid grid-cols-7 gap-2"
+      // sx={{
+      //   display: "grid",
+      //   gridTemplateColumns: "220px 1fr 1fr",
+      //   gap: 2,
+      // }}
     >
       {/* Card 1 — Empresas + Semanas */}
       <Card
@@ -120,6 +122,7 @@ export function SparklinesSection({
           boxShadow:
             "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
         }}
+        className="col-span-1"
       >
         <Box mb={4}>
           <Typography
@@ -260,6 +263,7 @@ export function SparklinesSection({
           boxShadow:
             "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
         }}
+        className="col-span-3"
       >
         <Box mb={4}>
           <Typography
@@ -335,6 +339,7 @@ export function SparklinesSection({
           boxShadow:
             "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
         }}
+        className="col-span-3"
       >
         <Box mb={4}>
           <Typography
@@ -399,6 +404,6 @@ export function SparklinesSection({
           </Stack>
         )}
       </Card>
-    </Grid>
+    </div>
   );
 }

@@ -1,4 +1,4 @@
-import { IForecastSnapshotRepository } from 'src/domain/repositories/schedule/IForecastSnapshotRepository';
+import { IForecastSnapshotRepository } from 'src/domain/repositories/IForecastSnapshotRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { CreateForecastSnapshotDTO } from 'src/interface/dtos/forecastSnapshotDTO';
 

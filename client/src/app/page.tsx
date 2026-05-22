@@ -15,7 +15,7 @@ const NO_CACHE = { cache: "no-store" as const };
 async function fetchSparklinesParceira(token: string) {
   const { inicio, fim } = getCurrentWeekData();
   const res = await fetchData(
-    `${API}/restricao/sparklines-parceira`,
+    `${API}/avanca-parceira/sparklines-parceira`,
     { dataInicial: inicio, dataFinal: fim },
     token,
     NO_CACHE,
@@ -26,7 +26,7 @@ async function fetchSparklinesParceira(token: string) {
 async function fetchMotivosReprogramacao(token: string) {
   const { inicio, fim } = getCurrentWeekData();
   const res = await fetchData(
-    `${API}/restricao/motivos-reprogramacao`,
+    `${API}/avanca-parceira/motivos-reprogramacao`,
     { dataInicial: inicio, dataFinal: fim },
     token,
     NO_CACHE,
@@ -36,7 +36,7 @@ async function fetchMotivosReprogramacao(token: string) {
 
 async function fetchSemanasParceira(token: string) {
   const res = await fetchData(
-    `${API}/restricao/semanas-parceira`,
+    `${API}/avanca-parceira/semanas-parceira`,
     {},
     token,
     NO_CACHE,
@@ -47,7 +47,7 @@ async function fetchSemanasParceira(token: string) {
 async function fetchEliminacaoRestricao(token: string) {
   const { inicio, fim } = getCurrentWeekData();
   const res = await fetchData(
-    `${API}/restricao/avanca-parceira`,
+    `${API}/avanca-parceira`,
     { dataInicial: inicio, dataFinal: fim },
     token,
     NO_CACHE,
@@ -58,7 +58,7 @@ async function fetchEliminacaoRestricao(token: string) {
 async function fetchAderenciaParceira(token: string) {
   const { inicio, fim } = getCurrentWeekData();
   const res = await fetchData(
-    `${API}/restricao/aderencia-parceira`,
+    `${API}/avanca-parceira/aderencia-parceira`,
     { dataInicial: inicio, dataFinal: fim },
     token,
     NO_CACHE,

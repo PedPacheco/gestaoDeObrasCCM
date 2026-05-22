@@ -1,14 +1,13 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 
+import AdvancePartnerDashboard from "./advancePartner/advancePartner";
 import ForecastDashboard from "./ForecastDashboard";
-
+import LaborDashboard from "./laborDashboard/laborDashboard";
 import MonitoringExecutionDashboard from "./monitoringExecutionDashboard/monitoringExecutionDashboard";
 import RecompositionGoalsDashboard from "./recompositionGoalsDashboard/RecompositionGoalsDashboard";
-import LaborDashboard from "./laborDashboard/laborDashboard";
-import Image from "next/image";
-import MoveForwardPartnerDashboard from "./moveForwardPartner/moveForwardPartner";
 
 // Formats "YYYY-MM" → "MMM/YY"
 
@@ -239,7 +238,7 @@ export default function DashboardClient({
           token={token}
         />
       ) : activeTab === "avanca-parceiro" ? (
-        <MoveForwardPartnerDashboard
+        <AdvancePartnerDashboard
           initialEliminacao={initialEliminacaoRestricao}
           initialAderencia={initialAderenciaParceira}
           initialSparklinesPartners={initialSparklinesPartners}

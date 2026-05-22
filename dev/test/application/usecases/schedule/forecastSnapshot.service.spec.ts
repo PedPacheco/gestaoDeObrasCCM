@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
-import { ForecastSnapshotService } from 'src/application/usecases/schedule/forecastSnapshot.service';
-import { FORECAST_SNAPSHOT } from 'src/domain/repositories/schedule/IForecastSnapshotRepository';
+import { ForecastSnapshotService } from 'src/application/usecases/forecastSnapshot.service';
+import { FORECAST_SNAPSHOT } from 'src/domain/repositories/IForecastSnapshotRepository';
 import { createForecastSnapshotMock } from '../../../mocks/mockAddScheduleService';
 
 import moment from 'moment';

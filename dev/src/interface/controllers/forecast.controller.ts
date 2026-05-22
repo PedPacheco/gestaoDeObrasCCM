@@ -1,4 +1,4 @@
-import { ForecastSnapshotService } from 'src/application/usecases/schedule/forecastSnapshot.service';
+import { ForecastSnapshotService } from 'src/application/usecases/forecastSnapshot.service';
 import { TotalPermissionGuard } from 'src/core/guards/totalPermission.guard';
 
 import {

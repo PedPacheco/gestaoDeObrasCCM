@@ -1,7 +1,7 @@
 import { FormatCurrency, NUM } from "@/utils/formatValue";
 import { KpiCard } from "../common/KpiCard";
 import { useMemo } from "react";
-import { AderenciaRow, EliminacaoRow, pctExact } from "./moveForwardPartner";
+import { AderenciaRow, EliminacaoRow, pctExact } from "./advancePartner";
 
 interface KpiSectionProps {
   eliminacao: EliminacaoRow[];

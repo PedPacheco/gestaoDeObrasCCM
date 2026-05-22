@@ -3,5 +3,9 @@ import AcompanhamentoPlanoDeAcaoDashboard from "@/components/dashboard/acompanha
 export const dynamic = "force-dynamic";
 
 export default function GapAnalysisPage() {
-  return <AcompanhamentoPlanoDeAcaoDashboard />;
+  return (
+    <div className="h-full w-11/12 overflow-y-auto">
+      <AcompanhamentoPlanoDeAcaoDashboard />
+    </div>
+  );
 }

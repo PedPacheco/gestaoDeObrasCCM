@@ -1,7 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
-import { IDashboardRepository } from 'src/domain/repositories/schedule/IDashboardRepository';
+import { IDashboardRepository } from 'src/domain/repositories/IDashboardRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { DashboardFiltersDTO } from 'src/interface/dtos/dashboardDTO';
 import { DashboardFiltersBuilder } from 'src/utils/dashboardFilters.builder';

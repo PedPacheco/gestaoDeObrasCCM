@@ -86,8 +86,6 @@ export default function ScheduleFormDialog({
     setFormErrors,
   });
 
-  console.log(formData);
-
   const dialogTitle = isInsert ? "Nova Programação" : "Editar Programação";
   const submitButtonText = isPending ? "Salvando..." : "Salvar Programação";
 

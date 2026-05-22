@@ -18,7 +18,6 @@ import {
 } from '@nestjs/common';
 
 import {
-  GetRestrictionsAdvancePartnerDTO,
   GetRestrictionsDTO,
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
@@ -101,126 +100,6 @@ export class RestrictionController {
     return {
       statusCode: HttpStatus.NO_CONTENT,
       message: 'Restrição de publicação atualizadas com sucesso',
-    };
-  }
-
-  @Get('avanca-parceira')
-  @UseGuards(VisualizationGuard)
-  async getRestrictionsAdvancePartner(
-    @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
-    @Req() req: any,
-  ) {
-    const filters = this.applyFilters(restrictionFilters, req);
-
-    const data =
-      await this.restrictionsService.getRestrictionsAdvancePartner(filters);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Dados de eliminação de restrição retornados com sucesso',
-      data,
-    };
-  }
-
-  @Get('aderencia-parceira')
-  @UseGuards(VisualizationGuard)
-  async getGripPartner(
-    @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
-    @Req() req: any,
-  ) {
-    const filters = this.applyFilters(restrictionFilters, req);
-
-    const data = await this.restrictionsService.getGripPartner(filters);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Dados de aderência parceira retornados com sucesso',
-      data,
-    };
-  }
-
-  @Get('obras-programadas')
-  @UseGuards(VisualizationGuard)
-  async getScheduledWorks(
-    @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
-    @Req() req: any,
-  ) {
-    const filters = this.applyFilters(restrictionFilters, req);
-
-    const data = await this.restrictionsService.getScheduledWorks(filters);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Dados de obras programadas retornados com sucesso',
-      data,
-    };
-  }
-
-  @Get('motivos-reprogramacao')
-  @UseGuards(VisualizationGuard)
-  async getReaschedulingReasons(
-    @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
-    @Req() req: any,
-  ) {
-    const filters = this.applyFilters(restrictionFilters, req);
-
-    const data =
-      await this.restrictionsService.getReaschedulingReasons(filters);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Motivos de reprogramação retornados com sucesso',
-      data,
-    };
-  }
-
-  @Get('sparklines-parceira')
-  @UseGuards(VisualizationGuard)
-  async getSparklinesByPartner(
-    @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
-    @Req() req: any,
-  ) {
-    const filters = this.applyFilters(restrictionFilters, req);
-    const data = await this.restrictionsService.getSparklinesByPartner(filters);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Sparklines por parceira retornados com sucesso',
-      data,
-    };
-  }
-
-  @Get('semanas-parceira')
-  @UseGuards(VisualizationGuard)
-  async getWeeksByPartner(
-    @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
-    @Req() req: any,
-  ) {
-    const filters = this.applyFilters(restrictionFilters, req);
-    const data = await this.restrictionsService.getWeeksByPartner(filters);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Semanas programadas por parceira retornadas com sucesso',
-      data,
-    };
-  }
-
-  @Get('restricoes-execucao')
-  @UseGuards(VisualizationGuard)
-  async getExecutionRestrictions(
-    @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
-    @Req() req: any,
-  ) {
-    const filters = this.applyFilters(restrictionFilters, req);
-
-    const data =
-      await this.restrictionsService.getExecutionRestrictions(filters);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Restrições de execução retornadas com sucesso',
-      data,
     };
   }
 

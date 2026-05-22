@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   DASHBOARD_REPOSITORY,
   IDashboardRepository,
-} from 'src/domain/repositories/schedule/IDashboardRepository';
+} from 'src/domain/repositories/IDashboardRepository';
 import { DashboardFiltersDTO } from 'src/interface/dtos/dashboardDTO';
 
 @Injectable()
