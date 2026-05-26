@@ -5,7 +5,6 @@ import {
   IAuthRepository,
 } from 'src/domain/repositories/IAuthRepository';
 import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
-import { loginInterfaceService } from 'src/interface/types/userInterface';
 import { generateRandomPassword } from 'src/utils/generatePassword';
 
 import {
@@ -19,6 +18,7 @@ import { JwtService } from '@nestjs/jwt';
 
 import { EmailService } from './email.service';
 import { UsersService } from './users.service';
+import { loginInterfaceService } from 'src/interface/types/userInterface';
 
 @Injectable()
 export class AuthService {
@@ -50,17 +50,24 @@ export class AuthService {
     const payload = {
       sub: user.id,
       username: user.username,
-      permissao: user.permissao,
-      permissao_visualizacao: user.permissao_visualizacao,
-      permissao_publicacao: user.permissao_publicacao,
+      tipo_usuario: user.tipo_usuario,
+      is_admin: user.is_admin,
+      permissao_edicao: user.permissao_edicao,
+      id_turma: user.id_turma,
+      id_area: user.id_area,
     };
 
     return {
       id: user.id,
       username: user.username,
-      id_regional: user.id_regional,
-      nome_usuario: user.nome_usuario,
+      nome_usuario: user.nome,
       email: user.email,
+      tipo_usuario: user.tipo_usuario,
+      is_admin: user.is_admin,
+      permissao_edicao: user.permissao_edicao,
+      id_regional: user.id_regional,
+      id_turma: user.id_turma,
+      id_area: user.id_area,
       access_token: await this.jwtService.signAsync(payload),
     };
   }
@@ -91,12 +98,12 @@ export class AuthService {
 
       const created = await this.authRepository.register(user);
 
-      await this.emailService.sendEmail(
-        '10009591@edp.com.br',
-        'Bem vindo ao sistema',
-        `Usuário: ${username} 
-      Senha: ${password}`,
-      );
+      // await this.emailService.sendEmail(
+      //   '10009591@edp.com.br',
+      //   'Bem vindo ao sistema',
+      //   `Usuário: ${username}
+      // Senha: ${password}`,
+      // );
 
       return created;
     } catch (error) {

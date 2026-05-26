@@ -36,7 +36,7 @@ export function FiltersExecutionCapacity({
   const { permissions } = useUser();
 
   // ✅ Regra de permissão
-  const isPartialView = permissions?.permissao_visualizacao === "parcial";
+  const isPartialView = permissions?.tipo_usuario === "PARCEIRA";
 
   // ✅ Filtra antes de renderizar (melhor prática)
   const filteredEntries = Object.entries(filtersData).filter(([_, value]) => {

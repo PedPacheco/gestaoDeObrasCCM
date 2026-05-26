@@ -188,8 +188,6 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
       ORDER BY parceira
     `;
 
-    console.log(adQuery, elQuery);
-
     const [aderencia, eliminacao] = await Promise.all([
       this.prisma.$queryRaw<any[]>(adQuery),
       this.prisma.$queryRaw<any[]>(elQuery),

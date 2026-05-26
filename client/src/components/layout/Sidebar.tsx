@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { useUser } from "@/contexts/userContext";
-import { getUserAccessLevel, links } from "@/utils/links";
+import { canAccessLink, getUserAccessLevel, links } from "@/utils/links";
 import {
   ChevronDownIcon,
   ChevronUpIcon,
@@ -55,8 +55,6 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
     setOpenSubmenu(openSubmenu === menu ? null : menu);
   }
 
-  const accessLevel = getUserAccessLevel(permissions);
-
   return (
     <div
       ref={sidebarRef}
@@ -93,9 +91,7 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
             {links.map((link, index) => {
               if (!isClient) return null;
 
-              if (link.allowedFor && !link.allowedFor.includes(accessLevel)) {
-                return null;
-              }
+              if (!canAccessLink(link, permissions)) return null;
 
               return (
                 <div key={index}>
@@ -142,17 +138,12 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
                       }`}
                     >
                       {link.submenu.map((subItem, subIndex) => {
-                        if (
-                          subItem.allowedFor &&
-                          !subItem.allowedFor.includes(accessLevel)
-                        ) {
-                          return null;
-                        }
+                        if (!canAccessLink(subItem, permissions)) return null;
 
                         return (
                           <li key={subIndex}>
                             <Link
-                              href={subItem.href}
+                              href={subItem.href || ""}
                               className={`block rounded-md text-sm p-2 my-1 ${
                                 pathname === subItem.href
                                   ? "bg-[#5a6c83] text-[#53FF75]"

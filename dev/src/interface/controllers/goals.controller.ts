@@ -10,14 +10,15 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { VisualizationGuard } from 'src/core/guards/visualization.guard';
+
+import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
 
 @Controller('metas')
 export class GoalsController {
   constructor(private goalsService: GoalsService) {}
 
   @Get()
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2] }))
   async getGoals(
     @Query() filters: GoalsDTO,
     @Req() req: any,

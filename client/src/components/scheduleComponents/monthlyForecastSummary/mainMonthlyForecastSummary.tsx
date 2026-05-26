@@ -254,7 +254,7 @@ export function MainMonthlyForecastSummarySchedule({
             styled="w-full mb-2 md:w-1/5 md:mb-0 max-w-md"
           />
 
-          {permissions?.permissao === "Total" && (
+          {permissions?.is_admin && (
             <ButtonComponent
               onClick={handleSave}
               text={getButtonContent(isPending, "Salvar Forecast")}

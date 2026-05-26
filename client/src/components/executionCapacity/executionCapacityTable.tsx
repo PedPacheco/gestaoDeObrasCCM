@@ -59,6 +59,11 @@ export function ExecutionCapacityTable({
     });
   };
 
+  const havePermission =
+    permissions?.tipo_usuario === "PARCEIRA" ||
+    permissions?.is_admin ||
+    (permissions?.id_area === 8 && permissions.permissao_edicao);
+
   return (
     <TableContainer
       component={Paper}
@@ -89,9 +94,7 @@ export function ExecutionCapacityTable({
               {Object.keys(columns).map((column, colIndex) => {
                 const isEditable = editableColumns.includes(column);
                 const canEdit =
-                  (user?.id_regional === item.id_regional &&
-                    permissions?.permissao === "Parcial") ||
-                  permissions?.permissao === "Total";
+                  user?.id_regional === item.id_regional && havePermission;
 
                 return (
                   <TableCell

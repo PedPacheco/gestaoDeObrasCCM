@@ -1,5 +1,3 @@
-import { PermissionGuard } from 'src/core/guards/permission.guard';
-import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import { GetAllWorksDTO, GetWorksDTO } from 'src/interface/dtos/worksDto';
 
 import {
@@ -16,10 +14,12 @@ import { GetWorksInPortfolioService } from 'src/application/usecases/works/getWo
 import { GetAllWorksService } from 'src/application/usecases/works/getAllWorks.service';
 import { GetCompletedWorksService } from 'src/application/usecases/works/getCompletedWorks.service';
 import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
+import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
 
 interface CustomRequest extends Request {
   idParceira?: number;
   insufficientPermission?: boolean;
+  user: any;
 }
 
 @Controller('obras')
@@ -40,14 +40,14 @@ export class WorksController {
     if (req.idParceira) {
       filters.idParceira = req.idParceira;
     }
-    if (req.insufficientPermission !== undefined) {
+    if (req.user.tipo_usuario === 'PARCEIRA') {
       filters.insufficientPermission = req.insufficientPermission;
     }
     return filters;
   }
 
   @Get()
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
   async getAllWorks(
     @Query() worksFilters: GetAllWorksDTO,
     @Req() req: CustomRequest,
@@ -63,7 +63,7 @@ export class WorksController {
   }
 
   @Get('obras-carteira')
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2] }))
   async getWorksInPortfolio(
     @Query() worksFilters: GetWorksDTO,
     @Req() req: CustomRequest,
@@ -80,7 +80,7 @@ export class WorksController {
   }
 
   @Get('obras-executadas')
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2] }))
   async GetCompletedWorks(
     @Query() worksFilters: GetWorksDTO,
     @Req() req: CustomRequest,
@@ -97,6 +97,7 @@ export class WorksController {
   }
 
   @Get(':id')
+  @UseGuards(AreaViewGuard())
   async getWorkDetails(@Param('id', ParseIntPipe) id: number) {
     const response = await this.getWorkDetailsService.get(id);
 

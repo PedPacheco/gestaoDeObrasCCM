@@ -30,13 +30,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new LoggingInterceptor());
 
   app.enableCors({
-    origin: (origin, callback) => {
-      if (!origin || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin) || origin === `http://${rootUrl}:3000`) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: `http://${rootUrl}:3000`,
     credentials: true,
   });
   await app.listen(8080, '0.0.0.0');

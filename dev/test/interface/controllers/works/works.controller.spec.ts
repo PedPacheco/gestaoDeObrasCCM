@@ -1,6 +1,10 @@
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-
+import { UsersService } from 'src/application/usecases/users.service';
+import { GetAllWorksService } from 'src/application/usecases/works/getAllWorks.service';
+import { GetCompletedWorksService } from 'src/application/usecases/works/getCompletedWorks.service';
+import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
+import { GetWorksInPortfolioService } from 'src/application/usecases/works/getWorksInPortfolio.service';
 import { WorksController } from 'src/interface/controllers/works/works.controller';
 import {
   GetAllWorksDTO,
@@ -16,15 +20,11 @@ import {
   mockResponseDetails,
   mockWorksInPortfolio,
 } from '../../../mocks/mockWorksController';
-import { GetAllWorksService } from 'src/application/usecases/works/getAllWorks.service';
-import { GetCompletedWorksService } from 'src/application/usecases/works/getCompletedWorks.service';
-import { GetWorksInPortfolioService } from 'src/application/usecases/works/getWorksInPortfolio.service';
-import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
-import { UsersService } from 'src/application/usecases/users.service';
 
 interface CustomRequest extends Request {
   idParceira?: number;
   insufficientPermission?: boolean;
+  user: any;
 }
 
 describe('WorksController', () => {
@@ -37,6 +37,7 @@ describe('WorksController', () => {
   const mockReq: CustomRequest = {
     idParceira: 1,
     insufficientPermission: true,
+    user: { tipo_usuario: 'PARCEIRA' },
   } as unknown as CustomRequest;
 
   beforeEach(async () => {
@@ -87,7 +88,6 @@ describe('WorksController', () => {
         idStatus: undefined,
         idTipo: undefined,
         page: 0,
-        insufficientPermission: true,
       };
 
       jest
@@ -119,7 +119,7 @@ describe('WorksController', () => {
         idStatus: undefined,
         idTipo: undefined,
         page: 1,
-        insufficientPermission: undefined,
+
         dataInicial: '01/10/2024',
         dataFinal: '02/10/2024',
       };
@@ -128,10 +128,9 @@ describe('WorksController', () => {
         .spyOn(getAllWorksService, 'getAllWorks')
         .mockResolvedValue(mockAllWorks);
 
-      const result = await worksController.getAllWorks(
-        worksDTO,
-        {} as CustomRequest,
-      );
+      const result = await worksController.getAllWorks(worksDTO, {
+        user: { tipo_usuario: 'INTERNO' },
+      } as CustomRequest);
 
       expect(getAllWorksService.getAllWorks).toHaveBeenCalledWith(worksDTO);
       expect(result).toEqual({
@@ -156,7 +155,6 @@ describe('WorksController', () => {
         idStatus: undefined,
         idTipo: undefined,
         page: 1,
-        insufficientPermission: true,
         dataInicial: '01/10/2024',
         dataFinal: '02/10/2024',
       };
@@ -192,7 +190,7 @@ describe('WorksController', () => {
         idStatus: undefined,
         idTipo: undefined,
         page: 1,
-        insufficientPermission: undefined,
+
         dataInicial: '01/10/2024',
         dataFinal: '02/10/2024',
       };
@@ -201,10 +199,9 @@ describe('WorksController', () => {
         .spyOn(getCompletedWorksService, 'getCompletedWorks')
         .mockResolvedValue(mockWorksInPortfolio);
 
-      const result = await worksController.GetCompletedWorks(
-        worksDTO,
-        {} as CustomRequest,
-      );
+      const result = await worksController.GetCompletedWorks(worksDTO, {
+        user: { tipo_usuario: 'INTERNO' },
+      } as CustomRequest);
 
       expect(getCompletedWorksService.getCompletedWorks).toHaveBeenCalledWith(
         worksDTO,
@@ -231,7 +228,6 @@ describe('WorksController', () => {
         idStatus: undefined,
         idTipo: undefined,
         page: 1,
-        insufficientPermission: true,
         dataInicial: undefined,
         dataFinal: undefined,
       };
@@ -270,7 +266,7 @@ describe('WorksController', () => {
         idStatus: undefined,
         idTipo: undefined,
         page: 1,
-        insufficientPermission: undefined,
+
         dataInicial: '01/10/2024',
         dataFinal: '02/10/2024',
       };
@@ -279,10 +275,9 @@ describe('WorksController', () => {
         .spyOn(getWorksInPortfolio, 'getWorksInPortfolio')
         .mockResolvedValue(mockWorksInPortfolio);
 
-      const result = await worksController.getWorksInPortfolio(
-        worksDTO,
-        {} as CustomRequest,
-      );
+      const result = await worksController.getWorksInPortfolio(worksDTO, {
+        user: { tipo_usuario: 'INTERNO' },
+      } as CustomRequest);
 
       expect(getWorksInPortfolio.getWorksInPortfolio).toHaveBeenCalledWith(
         worksDTO,

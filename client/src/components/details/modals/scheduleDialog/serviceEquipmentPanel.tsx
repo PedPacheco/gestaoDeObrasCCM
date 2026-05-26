@@ -72,7 +72,7 @@ export const ServiceEquipmentPanel: React.FC<ServiceEquipmentPanelProps> = ({
         error={!!formErrors.chi}
         helperText={formErrors.chi}
         inputProps={{ min: 0 }}
-        disabled={disabledFields() || permissionVisualization === "parcial"}
+        disabled={disabledFields() || permissionVisualization === "PARCEIRA"}
       />
     </Grid>
 
@@ -82,7 +82,7 @@ export const ServiceEquipmentPanel: React.FC<ServiceEquipmentPanelProps> = ({
         label="Número DP"
         value={formData.numDp}
         onChange={onInputChange("numDp")}
-        disabled={disabledFields() || permissionVisualization === "parcial"}
+        disabled={disabledFields() || permissionVisualization === "PARCEIRA"}
       />
     </Grid>
   </Grid>

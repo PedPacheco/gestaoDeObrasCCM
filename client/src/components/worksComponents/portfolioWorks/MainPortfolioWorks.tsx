@@ -64,7 +64,7 @@ export default function PortfolioWorks({
     useState<FiltersInterface>(filtersData);
 
   useEffect(() => {
-    if (permissions?.permissao_visualizacao === "parcial") {
+    if (permissions?.tipo_usuario === "PARCEIRO") {
       const { parceira, ...rest } = filtersData;
 
       const suspensionRemoved = rest.status?.filter(
@@ -73,7 +73,7 @@ export default function PortfolioWorks({
 
       setFilteredFilters({ ...rest, status: suspensionRemoved });
     }
-  }, [filtersData, permissions?.permissao_visualizacao]);
+  }, [filtersData, permissions?.tipo_usuario]);
 
   const toggleModal = () => setOpen((prev) => !prev);
 

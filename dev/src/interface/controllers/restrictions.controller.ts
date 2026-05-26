@@ -1,6 +1,4 @@
 import { RestrictionsService } from 'src/application/usecases/restrictions.service';
-import { PermissionGuard } from 'src/core/guards/permission.guard';
-import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 
 import {
   Body,
@@ -22,6 +20,10 @@ import {
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
 } from '../dtos/restrictionsDTO';
+import {
+  AreaEditGuard,
+  AreaViewGuard,
+} from 'src/core/guards/newPermission.guard';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -45,7 +47,7 @@ export class RestrictionController {
   }
 
   @Get('programacao')
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
   async getScheduleRestrictions(
     @Query() restrictionFilters: GetRestrictionsDTO,
     @Req() req: any,
@@ -62,7 +64,7 @@ export class RestrictionController {
   }
 
   @Get('publicacoes')
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2, 7] }))
   async getPublicationsRestrictions(
     @Query() restrictionFilters: GetRestrictionsDTO,
     @Req() req: any,
@@ -79,7 +81,7 @@ export class RestrictionController {
   }
 
   @Post('publicacoes')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8, 7], blockPartner: true }))
   async insertPublicationRestriction(
     @Body() data: InsertPublicationRestrictionsDTO[],
   ) {
@@ -92,6 +94,7 @@ export class RestrictionController {
   }
 
   @Patch('publicacoes')
+  @UseGuards(AreaEditGuard({ allowedAreas: [8, 7] }))
   async updatePublicationRestrictions(
     @Body() data: UpdatePublicationRestrictionsDTO,
   ) {
@@ -104,7 +107,7 @@ export class RestrictionController {
   }
 
   @Get('publicacoes/:id')
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaViewGuard())
   async getPublicationsRestrictionsByWorkID(
     @Param('id', ParseIntPipe) id: number,
   ) {
@@ -119,7 +122,7 @@ export class RestrictionController {
   }
 
   @Delete('publicacoes/:id')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8, 7], blockPartner: true }))
   async deletePublicationRestrictions(@Param('id', ParseIntPipe) id: number) {
     await this.restrictionsService.deletePublicationRestriction(id);
 

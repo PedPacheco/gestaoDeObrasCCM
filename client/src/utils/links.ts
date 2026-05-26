@@ -1,185 +1,259 @@
-export type UserAccessLevel = "total" | "parcial" | "sem_permissao";
+export type UserAccessLevel =
+  | "admin"
+  | "interno_editor"
+  | "interno_viewer"
+  | "parceira";
 
-export function getUserAccessLevel(permissions: any): UserAccessLevel {
-  if (permissions?.permissao === "Sem permissão") {
-    return "sem_permissao";
-  }
-
-  if (permissions?.permissao_visualizacao === "parcial") {
-    return "parcial";
-  }
-
-  return "total";
+interface Link {
+  name: string;
+  href?: string | null;
+  allowedFor?: UserAccessLevel[];
+  allowedAreas?: number[]; // Vazio ou ausente = todas as áreas
+  submenu?: Link[];
 }
 
-export const links = [
+export function getUserAccessLevel(userPermissions: any): UserAccessLevel {
+  if (userPermissions?.is_admin) return "admin";
+  if (userPermissions?.tipo_usuario === "PARCEIRA") return "parceira";
+  if (
+    userPermissions?.tipo_usuario === "INTERNO" &&
+    userPermissions?.permissao_edicao
+  )
+    return "interno_editor";
+  return "interno_viewer";
+}
+
+export function canAccessLink(link: Link, userPermissions: any): boolean {
+  const accessLevel = getUserAccessLevel(userPermissions);
+
+  // Admin acessa tudo
+  if (accessLevel === "admin") return true;
+
+  // Verifica nível de acesso
+  if (link.allowedFor && !link.allowedFor.includes(accessLevel)) {
+    return false;
+  }
+
+  // Verifica área do usuário
+  if (
+    link.allowedAreas?.length &&
+    !link.allowedAreas.includes(userPermissions?.id_area) &&
+    userPermissions.tipo_usuario === "INTERNO"
+  ) {
+    return false;
+  }
+
+  return true;
+}
+export const links: Link[] = [
   {
     name: "Tela inicial",
     href: "/",
-    allowedFor: ["total", "parcial", "sem_permissao"],
+    allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+    allowedAreas: [8, 1],
   },
   {
     name: "Relatórios",
     href: null,
-    allowedFor: ["total", "parcial", "sem_permissao"],
+    allowedFor: ["interno_editor", "interno_viewer"],
+    allowedAreas: [8, 1],
     submenu: [
       {
         name: "Exportações",
         href: "/relatorios/exportacoes",
-        allowedFor: ["total", "parcial", "sem_permissao"],
+        allowedFor: ["interno_editor", "interno_viewer"],
+        allowedAreas: [8, 1],
       },
       {
         name: "Relatório de erros",
         href: "/relatorios/relatorio-erros",
-        allowedFor: ["total", "sem_permissao"],
+        allowedFor: ["interno_editor", "interno_viewer"],
+        allowedAreas: [8, 1],
       },
       {
         name: "Repositório",
         href: "/relatorios/relatorio-bi",
-        allowedFor: ["total", "sem_permissao"],
+        allowedFor: ["interno_editor", "interno_viewer"],
+        allowedAreas: [8, 1],
       },
       {
         name: "Relatório Forecast",
         href: "/relatorios/forecast",
-        allowedFor: ["total", "sem_permissao"],
+        allowedFor: ["interno_editor", "interno_viewer"],
+        allowedAreas: [8, 1],
       },
     ],
   },
   {
     name: "Metas",
     href: null,
-    allowedFor: ["total", "sem_permissao"],
+    allowedFor: ["interno_editor", "interno_viewer"],
+    allowedAreas: [8, 1],
     submenu: [
       {
         name: "Metas Recomposição",
         href: "/metas/recomposicao",
-        allowedFor: ["total", "sem_permissao"],
+        allowedFor: ["interno_editor", "interno_viewer"],
+        allowedAreas: [8, 1],
       },
       {
         name: "Metas BT0",
         href: "/metas/btzero",
-        allowedFor: ["total", "sem_permissao"],
+        allowedFor: ["interno_editor", "interno_viewer"],
+        allowedAreas: [8, 1],
       },
       {
         name: "Metas RDA",
         href: "/metas/rda",
-        allowedFor: ["total", "sem_permissao"],
+        allowedFor: ["interno_editor", "interno_viewer"],
+        allowedAreas: [8, 1],
       },
     ],
   },
   {
     name: "Entrada",
     href: "/entrada",
-    allowedFor: ["total"],
+    allowedFor: ["interno_editor", "interno_viewer"],
+    allowedAreas: [8, 1],
     submenu: [
       {
         name: "Importação mercado",
         href: "/entrada/mercado",
-        allowedFor: ["total"],
+        allowedFor: ["interno_editor", "interno_viewer"],
+        allowedAreas: [8, 1],
       },
       {
         name: "Importação notas",
         href: "/entrada/notas",
-        allowedFor: ["total"],
+        allowedFor: ["interno_editor", "interno_viewer"],
+        allowedAreas: [8, 1],
       },
 
       {
         name: "Entrada por data",
         href: "/entrada/por-data",
-        allowedFor: ["total", "sem_permissao"],
+        allowedFor: ["interno_editor", "interno_viewer"],
+        allowedAreas: [8, 1],
       },
       {
         name: "Lista geral de obras",
         href: "/entrada/lista-geral-obras",
-        allowedFor: ["total", "sem_permissao"],
+        allowedFor: ["interno_editor", "interno_viewer"],
+        allowedAreas: [8, 1],
       },
     ],
   },
   {
     name: "Atualizações",
-    allowedFor: ["total"],
+    allowedFor: ["interno_editor"],
+    allowedAreas: [8, 1],
     submenu: [
       {
         name: "Mercado",
         href: "/atualizacoes/mercado",
-        allowedFor: ["total"],
+        allowedFor: ["interno_editor"],
+        allowedAreas: [8, 1],
       },
-      { name: "Notas", href: "/atualizacoes/notas", allowedFor: ["total"] },
+      {
+        name: "Notas",
+        href: "/atualizacoes/notas",
+        allowedFor: ["interno_editor"],
+        allowedAreas: [8, 1],
+      },
       {
         name: "Material e Serviço",
         href: "/atualizacoes/capex",
-        allowedFor: ["total"],
+        allowedFor: ["interno_editor"],
+        allowedAreas: [8, 1],
       },
       {
         name: "Empreitamento",
         href: "/atualizacoes/empreitamento",
-        allowedFor: ["total"],
+        allowedFor: ["interno_editor"],
+        allowedAreas: [8, 1],
       },
       {
         name: "Suspensões",
         href: "/atualizacoes/suspensoes",
-        allowedFor: ["total"],
+        allowedFor: ["interno_editor"],
+        allowedAreas: [8, 1],
       },
     ],
   },
   {
     name: "Programação",
     href: null,
-    allowedFor: ["total", "parcial", "sem_permissao"],
+    allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+    allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7],
     submenu: [
       {
         name: "Resumo mensal - Mão de Obra",
         href: "/programacao/resumo-mensal",
-        allowedFor: ["total", "sem_permissao"],
+        allowedFor: ["interno_editor", "interno_viewer"],
+        allowedAreas: [8, 1],
       },
       {
         name: "Resumo mensal - Forecast",
         href: "/programacao/resumo-mensal-forecast",
-        allowedFor: ["total", "sem_permissao"],
+        allowedFor: ["interno_editor", "interno_viewer"],
+        allowedAreas: [8, 1],
       },
       {
         name: "Valores Mensais",
         href: "/programacao/valores-mensais",
-        allowedFor: ["total", "sem_permissao"],
+        allowedFor: ["interno_editor", "interno_viewer"],
+        allowedAreas: [8, 1],
       },
       {
         name: "Programação por data",
         href: "/programacao/por-data",
-        allowedFor: ["total", "parcial", "sem_permissao"],
+        allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+        allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7],
       },
     ],
   },
   {
     name: "Restrições",
     href: null,
-    allowedFor: ["total", "parcial", "sem_permissao"],
+    allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+    allowedAreas: [8, 1, 7],
     submenu: [
       {
         name: "Restrições Programações",
         href: "/restricoes/programacoes",
-        allowedFor: ["total", "sem_permissao"],
+        allowedFor: ["interno_editor", "interno_viewer"],
+        allowedAreas: [8, 1],
       },
       {
         name: "Restrições Publicações",
         href: "/restricoes/publicacoes",
-        allowedFor: ["total", "parcial", "sem_permissao"],
+        allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+        allowedAreas: [8, 1, 7],
       },
     ],
   },
-  { name: "Mapa de obras", href: "/mapa-obras", needPermission: false },
+  {
+    name: "Mapa de obras",
+    href: "/mapa-obras",
+    allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+    allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7],
+  },
   {
     name: "Obras em carteira",
     href: "/obras-carteira",
-    allowedFor: ["total", "parcial", "sem_permissao"],
+    allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+    allowedAreas: [8, 1],
   },
   {
     name: "Obras executadas",
     href: "/obras-executadas",
-    allowedFor: ["total", "parcial", "sem_permissao"],
+    allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+    allowedAreas: [8, 1],
   },
   {
     name: "Capacidade de execução",
     href: "/capacidade-execucao",
-    allowedFor: ["total", "parcial", "sem_permissao"],
+    allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+    allowedAreas: [8, 1],
   },
 ];

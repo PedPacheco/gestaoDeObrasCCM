@@ -1,5 +1,4 @@
 import { ExecutionReportService } from 'src/application/usecases/executionReport.service';
-import { PermissionGuard } from 'src/core/guards/permission.guard';
 
 import {
   Body,
@@ -18,12 +17,17 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 
 import { UpdateExecutionReportDTO } from '../dtos/executionReportDTO';
+import {
+  AreaEditGuard,
+  AreaViewGuard,
+} from 'src/core/guards/newPermission.guard';
 
 @Controller('relatorio-execucao')
 export class ExecutionReportController {
   constructor(private executionReportService: ExecutionReportService) {}
 
   @Get(':id')
+  @UseGuards(AreaViewGuard())
   async findByWorkId(@Param('id', ParseIntPipe) idWork: number): Promise<any> {
     const response = await this.executionReportService.findByWorkId(idWork);
 
@@ -36,6 +40,7 @@ export class ExecutionReportController {
 
   @Patch(':id')
   @UseInterceptors(FilesInterceptor('files'))
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async update(
     @Req() req: any,
     @Param('id', ParseIntPipe) idExecutionReport: number,
@@ -57,7 +62,7 @@ export class ExecutionReportController {
   }
 
   @Delete(':id')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async delete(@Param('id', ParseIntPipe) id: number): Promise<any> {
     await this.executionReportService.delete(id);
 

@@ -157,9 +157,12 @@ export default function TabPanel({
 
         <div className="flex flex-1 overflow-auto">
           <Suspense fallback={<p>carregando informações....</p>}>
-            <CustomTabPanel value={value} index={0}>
-              <WorkCostPanelItem data={data} />
-            </CustomTabPanel>
+            {permissions?.id_area != null &&
+              [8, 2].includes(permissions.id_area) && (
+                <CustomTabPanel value={value} index={0}>
+                  <WorkCostPanelItem data={data} />
+                </CustomTabPanel>
+              )}
 
             <CustomTabPanel value={value} index={1}>
               <SchedulePanelItem

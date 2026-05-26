@@ -1,5 +1,4 @@
 import { ErrorsReportService } from 'src/application/usecases/errorsReport.service';
-import { PermissionGuard } from 'src/core/guards/permission.guard';
 
 import {
   Controller,
@@ -9,13 +8,14 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
 
 @Controller('relatorio-erros')
 export class ErrorsReportController {
   constructor(private readonly errorsReportService: ErrorsReportService) {}
 
   @Get('itens-nao-definidos')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8], blockPartner: true }))
   async searchWorksWithUndefiendItens(
     @Query('idRegional', new ParseIntPipe({ optional: true }))
     idRegional?: number,
@@ -31,7 +31,7 @@ export class ErrorsReportController {
   }
 
   @Get('programacao')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8], blockPartner: true }))
   async getWorksWithScheduleError(
     @Query('idRegional', new ParseIntPipe({ optional: true }))
     idRegional?: number,
@@ -47,7 +47,7 @@ export class ErrorsReportController {
   }
 
   @Get('valor-zero')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8], blockPartner: true }))
   async getWorksZeroCapex(
     @Query('idRegional', new ParseIntPipe({ optional: true }))
     idRegional?: number,
@@ -62,7 +62,7 @@ export class ErrorsReportController {
   }
 
   @Get('diferenca-executado')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8], blockPartner: true }))
   async getExecutionDifferential(
     @Query('idRegional', new ParseIntPipe({ optional: true }))
     idRegional?: number,
@@ -78,7 +78,7 @@ export class ErrorsReportController {
   }
 
   @Get('conclusao-divergente')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8], blockPartner: true }))
   async getDivergentConclusion(
     @Query('idRegional', new ParseIntPipe({ optional: true }))
     idRegional?: number,
@@ -94,7 +94,7 @@ export class ErrorsReportController {
   }
 
   @Get('ano-plano')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8], blockPartner: true }))
   async getWorksWithoutYearPlan(
     @Query('idRegional', new ParseIntPipe({ optional: true }))
     idRegional?: number,
@@ -110,7 +110,7 @@ export class ErrorsReportController {
   }
 
   @Get('obras-repetidas')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8], blockPartner: true }))
   async getRepeatedWorks(
     @Query('idRegional', new ParseIntPipe({ optional: true }))
     idRegional?: number,

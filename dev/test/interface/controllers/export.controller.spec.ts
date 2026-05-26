@@ -4,10 +4,6 @@ import { Response } from 'express';
 // Controller under test
 import { ExportController } from 'src/interface/controllers/export.controller';
 
-// Guards
-import { PermissionGuard } from 'src/core/guards/permission.guard';
-import { VisualizationGuard } from 'src/core/guards/visualization.guard';
-
 // Services - Schedule
 import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
 import { MonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
@@ -44,6 +40,10 @@ import { ExportOrdersService } from 'src/application/usecases/export/exportOrder
 import { ExportPublicationRestrictionService } from 'src/application/usecases/export/exportPublicationRestriction.service';
 import { RestrictionsService } from 'src/application/usecases/restrictions.service';
 import { ExportReportToPubliationService } from 'src/application/usecases/export/exportReportToPublication.service';
+import {
+  AreaEditGuard,
+  AreaViewGuard,
+} from 'src/core/guards/newPermission.guard';
 
 // ─────────────────────────────────────────────
 // Constants
@@ -366,9 +366,9 @@ describe('ExportController', () => {
         },
       ],
     })
-      .overrideGuard(VisualizationGuard)
+      .overrideGuard(AreaViewGuard)
       .useValue({ canActivate: () => true })
-      .overrideGuard(PermissionGuard)
+      .overrideGuard(AreaEditGuard)
       .useValue({ canActivate: () => true })
       .compile();
 

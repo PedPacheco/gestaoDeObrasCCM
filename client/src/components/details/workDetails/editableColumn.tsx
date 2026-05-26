@@ -46,6 +46,9 @@ export const EditableColumn = ({
     (a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status),
   );
 
+  const havePermission =
+    permissions?.tipo_usuario === "PARCEIRA" || !permissions?.permissao_edicao;
+
   return (
     <>
       <SelectComponent
@@ -55,10 +58,7 @@ export const EditableColumn = ({
         setSelectedItem={(value) => onHandleChange("id_turma", value)}
         valueKey="id"
         displayKey="turma"
-        disabled={
-          permissions?.permissao_visualizacao === "parcial" ||
-          permissions?.permissao === "Sem permissão"
-        }
+        disabled={havePermission}
       />
 
       <SelectComponent
@@ -68,10 +68,7 @@ export const EditableColumn = ({
         setSelectedItem={(value) => onHandleChange("id_status", value)}
         valueKey="id"
         displayKey="status"
-        disabled={
-          permissions?.permissao_visualizacao === "parcial" ||
-          permissions?.permissao === "Sem permissão"
-        }
+        disabled={havePermission}
         editButton={EditSuspension}
       />
 
@@ -80,10 +77,7 @@ export const EditableColumn = ({
         value={data.data_empreitamento || ""}
         isEdit={true}
         onEdit={(value) => onHandleChange("data_empreitamento", value)}
-        disabled={
-          permissions?.permissao_visualizacao === "parcial" ||
-          permissions?.permissao === "Sem permissão"
-        }
+        disabled={havePermission}
       />
 
       <SelectComponent
@@ -97,10 +91,7 @@ export const EditableColumn = ({
         setSelectedItem={(value) => onHandleChange("tipo_ads", value)}
         valueKey="tipo"
         displayKey="tipo"
-        disabled={
-          permissions?.permissao_visualizacao === "parcial" ||
-          permissions?.permissao === "Sem permissão"
-        }
+        disabled={havePermission}
       />
     </>
   );
