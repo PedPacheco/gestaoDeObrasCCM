@@ -8,16 +8,24 @@ import { jwtDecode } from "jwt-decode";
 interface UserData {
   id: number;
   username: string;
-  id_regional: number;
   nome_usuario: string;
   email: string;
+  tipo_usuario: string;
+  is_admin: boolean;
+  permissao_edicao: boolean;
+  id_regional: number | null;
+  id_turma: number | null;
+  id_area: number | null;
 }
 
 interface JwtPayload {
-  id: number;
-  permissao: string;
-  permissao_visualizacao: string;
-  permissao_publicacao: boolean;
+  sub: number;
+  username: string;
+  tipo_usuario: string;
+  is_admin: boolean;
+  permissao_edicao: boolean;
+  id_turma: number | null;
+  id_area: number | null;
   exp: number;
 }
 

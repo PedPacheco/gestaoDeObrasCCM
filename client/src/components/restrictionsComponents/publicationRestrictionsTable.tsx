@@ -68,14 +68,12 @@ export default function PublicationRestrictionsTable({
   }, [data]);
 
   const canEdit =
-    permissions?.permissao === "Total" ||
-    permissions?.permissao === "Parcial" ||
-    permissions?.permissao_visualizacao === "parcial" ||
-    permissions?.permissao_publicacao === true;
+    permissions?.is_admin ||
+    (permissions?.id_area === 8 && permissions.permissao_edicao) ||
+    permissions?.tipo_usuario === "PARCEIRA" ||
+    permissions?.id_area === 7;
 
-  const canDelete =
-    permissions?.permissao === "Total" ||
-    permissions?.permissao_publicacao === true;
+  const canDelete = permissions?.is_admin || permissions?.id_area === 7;
 
   const toggleSuccessModal = () => setOpenSuccessModal((prev) => !prev);
 

@@ -90,8 +90,7 @@ export default function ScheduleFormDialog({
   const submitButtonText = isPending ? "Salvando..." : "Salvar Programação";
 
   const disabledFields = (): boolean => {
-    const isPartialPermission =
-      permissions?.permissao_visualizacao === "parcial";
+    const isPartialPermission = permissions?.tipo_usuario === "PARCEIRA";
 
     if (!isPartialPermission) {
       return false;
@@ -152,7 +151,7 @@ export default function ScheduleFormDialog({
               formErrors={formErrors}
               onInputChange={handleInputChange}
               disabledFields={disabledFields}
-              permissionVisualization={permissions?.permissao_visualizacao}
+              permissionVisualization={permissions?.tipo_usuario}
             />
           </AccordionPanel>
 
@@ -185,7 +184,7 @@ export default function ScheduleFormDialog({
                 options={options}
                 onInputChange={handleInputChange}
                 disabledFields={disabledFields}
-                permission={permissions?.permissao_visualizacao}
+                permission={permissions?.tipo_usuario}
               />
             </AccordionPanel>
 

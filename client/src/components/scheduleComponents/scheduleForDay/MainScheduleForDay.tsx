@@ -45,13 +45,13 @@ export default function MainSchduleForDay({
 
   // Ajusta filtros baseado na permissão
   useEffect(() => {
-    if (permissions?.permissao_visualizacao === "parcial") {
+    if (permissions?.tipo_usuario === "PARCEIRO") {
       const { parceira, ...rest } = filtersData;
       setFilteredFilters(rest);
     } else {
       setFilteredFilters(filtersData);
     }
-  }, [filtersData, permissions?.permissao_visualizacao]);
+  }, [filtersData, permissions?.tipo_usuario]);
 
   const toggleModal = () => setOpen((prev) => !prev);
 

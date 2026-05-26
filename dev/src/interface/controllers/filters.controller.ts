@@ -1,16 +1,16 @@
 import { Request } from 'express';
 import { FiltersService } from 'src/application/usecases/filters.service';
-import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import { FiltersDto } from 'src/interface/dtos/filtersDto';
 
 import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
+import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
 
 @Controller('filters')
 export class FiltersController {
   constructor(private filtersService: FiltersService) {}
 
   @Get()
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaViewGuard())
   async getFilters(
     @Query() query: FiltersDto,
     @Req() req: Request,

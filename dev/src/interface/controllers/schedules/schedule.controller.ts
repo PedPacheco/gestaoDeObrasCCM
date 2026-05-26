@@ -1,5 +1,3 @@
-import { PermissionGuard } from 'src/core/guards/permission.guard';
-import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import {
   GetExecMonitoringDTO,
   GetMonthlySummaryDTO,
@@ -23,6 +21,7 @@ import { GetTotalValuesScheduleService } from 'src/application/usecases/schedule
 import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
 import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
 import { ExecMonitoringService } from 'src/application/usecases/schedule/execMonitoring.service';
+import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
 
 @Controller('programacao')
 export class ScheduleController {
@@ -48,7 +47,7 @@ export class ScheduleController {
   }
 
   @Get()
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
   async getTotalValues(@Query() filters: GetTotalValuesScheduleDTO) {
     const response =
       await this.getTotalValuesScheduleService.getTotalValues(filters);
@@ -61,7 +60,7 @@ export class ScheduleController {
   }
 
   @Get('mensal')
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaViewGuard())
   async getScheduleValues(
     @Query() scheduleFilters: GetScheduleValuesDTO,
     @Req() req: any,
@@ -78,7 +77,7 @@ export class ScheduleController {
   }
 
   @Get('resumo-mensal')
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
   async getMonthlySummary(
     @Query() scheduleFilters: GetMonthlySummaryDTO,
     @Req() req: any,
@@ -98,7 +97,7 @@ export class ScheduleController {
   }
 
   @Get('resumo-mensal-forecast')
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
   async getMonthlySummaryForecast(
     @Query() scheduleFilters: GetMonthlySummaryDTO,
     @Req() req: any,
@@ -118,7 +117,7 @@ export class ScheduleController {
   }
 
   @Get('acompanhamento-mensal')
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
   async getExecMonitoring(
     @Query() scheduleFilters: GetExecMonitoringDTO,
     @Req() req: any,
@@ -134,6 +133,7 @@ export class ScheduleController {
   }
 
   @Get('reprovacoes/:id')
+  @UseGuards(AreaViewGuard())
   async GetRejectionsOfSchedules(@Param('id', ParseIntPipe) idWork: number) {
     const response = await this.rejectionsOfSchedulesService.get(idWork);
 

@@ -11,23 +11,27 @@ export class AuthRepository implements IAuthRepository {
   async register({
     username,
     senha,
-    permissao,
+    is_admin,
+    nome,
+    permissao_edicao,
+    tipo_usuario,
+    id_area,
     id_regional,
     id_turma,
     email,
-    nome_usuario,
-    permissao_visualizacao,
   }: User): Promise<User> {
-    const user = await this.prisma.usuario.create({
+    const user = await this.prisma.novo_tabela_usuarios.create({
       data: {
         username,
         senha: senha,
-        permissao,
+        permissao_edicao,
+        id_area,
+        is_admin,
         id_regional,
         id_turma,
         email,
-        nome_usuario,
-        permissao_visualizacao,
+        nome,
+        tipo_usuario,
       },
     });
 

@@ -1,4 +1,3 @@
-import { PermissionGuard } from 'src/core/guards/permission.guard';
 import {
   InsertMarketWorksDTO,
   InsertNotesDTO,
@@ -6,13 +5,14 @@ import {
 
 import { Body, Controller, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import { InsertWorksService } from 'src/application/usecases/works/InsertWorks.service';
+import { AreaEditGuard } from 'src/core/guards/newPermission.guard';
 
 @Controller('obras')
 export class WorksInsertController {
   constructor(private insertWorksService: InsertWorksService) {}
 
   @Post('inserir-ov')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async InsertMarketWorks(
     @Body() marketWorksParameters: InsertMarketWorksDTO[],
   ) {
@@ -28,7 +28,7 @@ export class WorksInsertController {
   }
 
   @Post('inserir-notas')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async InsertNotes(@Body() data: InsertNotesDTO[]) {
     await this.insertWorksService.insertNotes(data);
 

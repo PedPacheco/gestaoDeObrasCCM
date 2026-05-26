@@ -362,22 +362,23 @@ model programacoes_servicos {
 }
 
 model regionais {
-  id                  Int                   @id(map: "REGIONAIS_pkey") @default(autoincrement())
-  regional            String                @db.VarChar(20)
-  csd                 String?               @db.VarChar(4)
-  gestor              String?               @db.VarChar(20)
-  engenheiro          String?               @db.VarChar(50)
-  total_clientes      Int?
-  centro              Int?
-  abrev_regional      String?               @db.VarChar(3)
-  capacidade_execucao capacidade_execucao[]
-  empreendimento      empreendimento[]
-  metas               metas[]
-  municipios          municipios[]
-  plano_capex         plano_capex[]
-  servicos_contratos  servicos_contratos[]
-  tecnicos            tecnicos[]
-  usuario             usuario[]
+  id                   Int                    @id(map: "REGIONAIS_pkey") @default(autoincrement())
+  regional             String                 @db.VarChar(20)
+  csd                  String?                @db.VarChar(4)
+  gestor               String?                @db.VarChar(20)
+  engenheiro           String?                @db.VarChar(50)
+  total_clientes       Int?
+  centro               Int?
+  abrev_regional       String?                @db.VarChar(3)
+  capacidade_execucao  capacidade_execucao[]
+  empreendimento       empreendimento[]
+  metas                metas[]
+  municipios           municipios[]
+  novo_tabela_usuarios novo_tabela_usuarios[]
+  plano_capex          plano_capex[]
+  servicos_contratos   servicos_contratos[]
+  tecnicos             tecnicos[]
+  usuario              usuario[]
 }
 
 model relatorio {
@@ -496,23 +497,24 @@ model tipos {
 }
 
 model turmas {
-  id                  Int                   @id(map: "TURMAS_pkey") @default(autoincrement())
-  turma               String                @db.VarChar(15)
-  turma_abrev         String?               @db.VarChar(5)
-  deposito_atual      String?               @db.VarChar(4)
-  turma_sap           String?               @db.VarChar(9)
-  contrato            String?               @db.VarChar(10)
-  email_referencia    String?               @db.VarChar(50)
-  id_regional         Int
-  base_auxiliar_ov    base_auxiliar_ov[]
-  capacidade_execucao capacidade_execucao[]
-  equipes             equipes[]
-  metas               metas[]
-  notas_d5            notas_d5[]
-  obras               obras[]
-  servicos_contratos  servicos_contratos[]
-  usuario             usuario[]
-  valores_contratos   valores_contratos[]
+  id                   Int                    @id(map: "TURMAS_pkey") @default(autoincrement())
+  turma                String                 @db.VarChar(15)
+  turma_abrev          String?                @db.VarChar(5)
+  deposito_atual       String?                @db.VarChar(4)
+  turma_sap            String?                @db.VarChar(9)
+  contrato             String?                @db.VarChar(10)
+  email_referencia     String?                @db.VarChar(50)
+  id_regional          Int
+  base_auxiliar_ov     base_auxiliar_ov[]
+  capacidade_execucao  capacidade_execucao[]
+  equipes              equipes[]
+  metas                metas[]
+  notas_d5             notas_d5[]
+  novo_tabela_usuarios novo_tabela_usuarios[]
+  obras                obras[]
+  servicos_contratos   servicos_contratos[]
+  usuario              usuario[]
+  valores_contratos    valores_contratos[]
 }
 
 model usuario {
@@ -746,6 +748,36 @@ model valores_contratos {
   id_turma       Int
   valor_contrato Decimal? @db.Decimal(15, 2)
   turmas         turmas   @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_turmas")
+}
+
+model areas {
+  id                   Int                    @id @default(autoincrement())
+  nome                 String                 @unique @db.VarChar(100)
+  descricao            String?
+  novo_tabela_usuarios novo_tabela_usuarios[]
+}
+
+enum TipoUsuario {
+  INTERNO
+  PARCEIRA
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model novo_tabela_usuarios {
+  id               Int       @id @default(autoincrement())
+  id_regional      Int
+  id_turma         Int
+  id_area          Int?
+  tipo_usuario     TipoUsuario
+  is_admin         Boolean   @default(false)
+  permissao_edicao Boolean   @default(false)
+  username         String    @unique @db.VarChar(30)
+  senha            String    @db.VarChar(255)
+  nome             String    @db.VarChar(100)
+  email            String    @db.VarChar(100)
+  areas            areas?    @relation(fields: [id_area], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_area")
+  turmas           turmas    @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
+  regionais        regionais @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regional")
 }
 
 view exportacao_obras_executadas {

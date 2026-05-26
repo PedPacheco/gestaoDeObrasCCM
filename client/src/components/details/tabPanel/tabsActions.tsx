@@ -29,6 +29,12 @@ const TabActions = memo(
     valueTab,
     feasibilityExists,
   }: TabActionsProps) => {
+    const canValidateOrConfirm =
+      permissions?.permissao_edicao && permissions?.tipo_usuario !== "PARCEIRA";
+
+    const hasTabAccessByArea =
+      permissions?.id_area != null && [8, 2].includes(permissions.id_area);
+
     return (
       <div className="flex items-center justify-between">
         <Tabs
@@ -39,12 +45,14 @@ const TabActions = memo(
           scrollButtons="auto"
           className="flex-1 mt-4"
         >
-          <Tab label="Custos" className="xl:text-lg" />
+          {hasTabAccessByArea && <Tab label="Custos" className="xl:text-lg" />}
           <Tab label="Programações" className="xl:text-lg" />
           <Tab label="Reprovações" className="xl:text-lg" />
           <Tab label="Relatórios execuções" className="xl:text-lg" />
           <Tab label="Restrições Publicação" className="xl:text-lg" />
-          <Tab label="Serviços" className="xl:text-lg" />
+          {hasTabAccessByArea && (
+            <Tab label="Serviços" className="xl:text-lg" />
+          )}
         </Tabs>
 
         {valueTab === 1 && (
@@ -56,7 +64,7 @@ const TabActions = memo(
                   statusWork === 2 ||
                   statusWork === 3 ||
                   feasibilityExists?.length === 0 ||
-                  permissions.permissao === "Sem permissão"
+                  !permissions.permissao_edicao
                 }
                 text="Nova programação"
               />
@@ -65,10 +73,7 @@ const TabActions = memo(
               <ButtonComponent
                 onClick={onRejected}
                 disabled={
-                  statusWork === 2 ||
-                  statusWork === 3 ||
-                  permissions?.permissao_visualizacao === "parcial" ||
-                  permissions.permissao === "Sem permissão"
+                  statusWork === 2 || statusWork === 3 || !canValidateOrConfirm
                 }
                 text="Reprovar programação"
               />
@@ -76,11 +81,7 @@ const TabActions = memo(
             <div className="px-4 mt-2">
               <ButtonComponent
                 onClick={onValidate}
-                disabled={
-                  statusWork !== 43 ||
-                  permissions?.permissao_visualizacao === "parcial" ||
-                  permissions.permissao === "Sem permissão"
-                }
+                disabled={statusWork !== 43 || !canValidateOrConfirm}
                 text="Validar programação"
               />
             </div>
@@ -88,11 +89,7 @@ const TabActions = memo(
             <div className="px-4 mt-2">
               <ButtonComponent
                 onClick={onConfirm}
-                disabled={
-                  statusWork !== 37 ||
-                  permissions?.permissao_visualizacao === "parcial" ||
-                  permissions.permissao === "Sem permissão"
-                }
+                disabled={statusWork !== 37 || !canValidateOrConfirm}
                 text="Confirmar programação"
               />
             </div>

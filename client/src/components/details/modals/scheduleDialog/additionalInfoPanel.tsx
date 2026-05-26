@@ -69,7 +69,7 @@ export const AdditionalInfoPanel: React.FC<AdditionalInfoPanelProps> = ({
             value={formData.idExecutionRestriction}
             onChange={onInputChange("idExecutionRestriction")}
             label="Restrição de Execução"
-            disabled={restrictionIsDisabled && permission === "parcial"}
+            disabled={restrictionIsDisabled && permission === "PARCEIRA"}
             error={!!errorRestriction}
           >
             {options.restricao
@@ -95,7 +95,7 @@ export const AdditionalInfoPanel: React.FC<AdditionalInfoPanelProps> = ({
             value={formData.responsibility}
             onChange={onInputChange("responsibility")}
             label="Responsabilidade Execução"
-            disabled={restrictionIsDisabled && permission === "parcial"}
+            disabled={restrictionIsDisabled && permission === "PARCEIRA"}
             error={!!errorResponsibility}
           >
             {EXECUTION_RESPONSIBILITIES.map((responsibility) => (
@@ -116,7 +116,7 @@ export const AdditionalInfoPanel: React.FC<AdditionalInfoPanelProps> = ({
           label="Observação da Execução"
           value={formData.executionObservation || ""}
           onChange={onInputChange("executionObservation")}
-          disabled={restrictionIsDisabled && permission === "parcial"}
+          disabled={restrictionIsDisabled && permission === "PARCEIRA"}
           error={!!errorObservation}
           helperText={errorObservation}
         />

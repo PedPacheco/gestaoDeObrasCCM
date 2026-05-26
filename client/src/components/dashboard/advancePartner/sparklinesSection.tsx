@@ -101,8 +101,6 @@ export function SparklinesSection({
       );
   }, [sparklines, filtersPartner]);
 
-  // console.log(sparklinesFull);
-
   return (
     <div
       className="grid grid-cols-7 gap-2"

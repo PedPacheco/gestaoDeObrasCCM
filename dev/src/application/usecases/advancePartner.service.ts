@@ -92,8 +92,6 @@ export class AdvancePartnerService {
         processedFilters,
       );
 
-    // console.log(aderencia, eliminacao);
-
     const map = new Map<
       string,
       {

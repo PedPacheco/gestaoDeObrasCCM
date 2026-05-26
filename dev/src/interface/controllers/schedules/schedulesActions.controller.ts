@@ -2,8 +2,7 @@ import { HandleAddScheduleService } from 'src/application/usecases/orchestrators
 import { HandleSchedulesUpdateService } from 'src/application/usecases/orchestrators/handleSchedulesUpdate.service';
 import { DeleteSchedulesService } from 'src/application/usecases/schedule/deleteSchedules.service';
 import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/schedule/validateAndConfirmSchedules.service';
-import { PermissionGuard } from 'src/core/guards/permission.guard';
-import { VisualizationGuard } from 'src/core/guards/visualization.guard';
+import { AreaEditGuard } from 'src/core/guards/newPermission.guard';
 import {
   ConfirmSchedulesDTO,
   RejectScheduleDTO,
@@ -38,6 +37,7 @@ export class SchedulesActionsController {
   ) {}
 
   @Post()
+  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   async addSchedules(@Body() schedulesData: SchedulesDataDTO, @Req() req: any) {
     const idUser = req.user.sub;
 
@@ -53,7 +53,7 @@ export class SchedulesActionsController {
   }
 
   @Delete(':id')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async deleteSchedules(@Param('id', ParseIntPipe) id: number) {
     await this.deleteSchedulesService.delete(id);
 
@@ -64,7 +64,7 @@ export class SchedulesActionsController {
   }
 
   @Patch('validar')
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async validateSchedules(@Body() data: ValidateSchedulesDTO[]) {
     await this.validateConfirmAndRejectSchedulesService.validate(data);
 
@@ -75,7 +75,7 @@ export class SchedulesActionsController {
   }
 
   @Patch('confirmar')
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async confirmSchedules(@Body() id: ConfirmSchedulesDTO[]) {
     await this.validateConfirmAndRejectSchedulesService.confirm(id);
 
@@ -86,7 +86,7 @@ export class SchedulesActionsController {
   }
 
   @Patch('reprovar')
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async rejectSchedules(@Body() data: RejectScheduleDTO[]) {
     await this.validateConfirmAndRejectSchedulesService.reject(data);
 
@@ -97,7 +97,7 @@ export class SchedulesActionsController {
   }
 
   @Patch(':id')
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   @UseInterceptors(FilesInterceptor('files'))
   async updateSchedules(
     @Param('id', ParseIntPipe) id: number,

@@ -182,21 +182,27 @@ export default function SchedulePanelItem({
     }));
   };
 
-  const enableButtons = (exec: string | null) => {
-    return (
-      permissions?.permissao_visualizacao === "parcial" &&
-      (statusToDisable.includes(statusWork) || exec !== null)
-    );
-  };
-
   const disabledCheckBox = (key: string, status_prog: string): boolean => {
     return (
       (key === "validada" && status_prog !== "Em validação") ||
       (key === "confirmada" && status_prog === "Programado") ||
       (key === "reprovada" &&
         ["Parcial", "Concluído", "Cancelado"].includes(status_prog)) ||
-      permissions?.permissao_visualizacao === "parcial"
+      permissions?.tipo_usuario === "PARCEIRA"
     );
+  };
+
+  const canAccessScheduleActions = (permissions: any): boolean => {
+    const isAdmin = permissions?.is_admin === true;
+
+    const isArea8WithEditPermission =
+      permissions?.id_area === 8 && permissions?.permissao_edicao === true;
+
+    const isParceiraAllowedStatus =
+      permissions?.tipo_usuario === "PARCEIRA" &&
+      !statusToDisable.includes(statusWork);
+
+    return isAdmin || isArea8WithEditPermission || isParceiraAllowedStatus;
   };
 
   return (
@@ -226,8 +232,8 @@ export default function SchedulePanelItem({
                 onMouseLeave={() => setHoveredRow(null)}
               >
                 <TableCell className="py-1 px-2 text-center border-r font-medium text-base border-zinc-700 border-solid sticky left-0 bg-white z-10">
-                  {!enableButtons(item.exec) &&
-                    permissions?.permissao !== "Sem permissão" && (
+                  {item.exec === null &&
+                    canAccessScheduleActions(permissions) && (
                       <Box
                         display="flex"
                         justifyContent="center"
@@ -304,7 +310,7 @@ export default function SchedulePanelItem({
                         disabled={
                           disabledCheckBox(col.key, item.status_programacao) ||
                           item.exec !== null ||
-                          permissions?.permissao === "Sem permissão"
+                          !canAccessScheduleActions(permissions)
                         }
                       />
                     ) : (

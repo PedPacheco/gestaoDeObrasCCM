@@ -6,9 +6,9 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import { GetRestrictionsAdvancePartnerDTO } from '../dtos/restrictionsDTO';
 import { AdvancePartnerService } from 'src/application/usecases/advancePartner.service';
+import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -32,7 +32,7 @@ export class AdvancePartnerController {
   }
 
   @Get()
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2] }))
   async getRestrictionsAdvancePartner(
     @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
     @Req() req: any,
@@ -49,7 +49,7 @@ export class AdvancePartnerController {
   }
 
   @Get('aderencia-parceira')
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2] }))
   async getGripPartner(
     @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
     @Req() req: any,
@@ -66,7 +66,7 @@ export class AdvancePartnerController {
   }
 
   @Get('motivos-reprogramacao')
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2] }))
   async getReaschedulingReasons(
     @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
     @Req() req: any,
@@ -83,7 +83,7 @@ export class AdvancePartnerController {
   }
 
   @Get('sparklines-parceira')
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2] }))
   async getSparklinesByPartner(
     @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
     @Req() req: any,
@@ -99,7 +99,7 @@ export class AdvancePartnerController {
   }
 
   @Get('semanas-parceira')
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2] }))
   async getWeeksByPartner(
     @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
     @Req() req: any,
