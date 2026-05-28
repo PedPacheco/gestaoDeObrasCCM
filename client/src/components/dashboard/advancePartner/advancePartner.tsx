@@ -31,9 +31,8 @@ export interface MotivoRow {
   ovnota: string;
   motivo: string;
   responsavel?: string;
+  mo_nao_executada: number;
 }
-
-export type MotivoTab = "GERAL" | "EDP" | "PARCEIRA" | "TERCEIRO";
 
 export interface SparkPoint {
   semana: string;
@@ -56,6 +55,7 @@ interface Props {
   initialDailyGoal: number;
   filtersData: any;
   token: string;
+  filtersTop: number;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -74,10 +74,9 @@ export default function AdvancePartnerDashboard({
   initialSparklinesPartners,
   initialDailyGoal,
   filtersData,
+  filtersTop,
   token,
 }: Props) {
-  const [motivoTab, setMotivoTab] = useState<MotivoTab>("GERAL");
-
   const {
     aderencia,
     applyFilters,
@@ -91,6 +90,7 @@ export default function AdvancePartnerDashboard({
     resetFilters,
     selParceira,
     selRegional,
+    motivoTab,
     semanasMap,
     setStartDate,
     setEndDate,
@@ -98,9 +98,9 @@ export default function AdvancePartnerDashboard({
     setInitialWeek,
     setSelParceira,
     setSelRegional,
+    setMotivoTab,
     sparklines,
     taxaExec,
-    totalObras,
     dailyGoal,
     filterMode,
     setFilterMode,
@@ -129,6 +129,8 @@ export default function AdvancePartnerDashboard({
         selectedParceira={selParceira}
         selectedRegional={selRegional}
         filterMode={filterMode}
+        motivoTab={motivoTab}
+        setMotivoTab={setMotivoTab}
         setFilterMode={setFilterMode}
         setSelectedParceira={setSelParceira}
         setSelectedRegional={setSelRegional}
@@ -139,6 +141,7 @@ export default function AdvancePartnerDashboard({
         applyFilters={applyFilters}
         clearFilters={resetFilters}
         isPending={isPending}
+        filtersTop={filtersTop}
       />
 
       {/* ── KPIs ── */}
@@ -146,7 +149,7 @@ export default function AdvancePartnerDashboard({
         aderencia={aderencia}
         eliminacao={eliminacao}
         taxaExec={taxaExec}
-        totalObras={totalObras}
+        reasonsReascheduling={motivos}
         dailyGoal={dailyGoal * 22}
       />
 
@@ -159,12 +162,14 @@ export default function AdvancePartnerDashboard({
       />
 
       {/* ── Motivos de Reprogramação ── */}
-      <ChartReasonsReascheduling
-        motivoTab={motivoTab}
-        motivos={motivos}
-        setMotivoTab={setMotivoTab}
-        isPending={isPending}
-      />
+      <div className="w-full px-5">
+        <ChartReasonsReascheduling
+          motivoTab={motivoTab}
+          motivos={motivos}
+          setMotivoTab={setMotivoTab}
+          isPending={isPending}
+        />
+      </div>
     </div>
   );
 }

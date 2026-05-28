@@ -3,6 +3,7 @@ export interface ProcessedEliminacaoFilters {
   dataFinal?: Date;
   idRegional?: number[];
   idParceira?: number[];
+  responsabilidade?: string;
 }
 
 export interface IAdvancePartnerRepository {

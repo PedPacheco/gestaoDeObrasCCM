@@ -1,10 +1,11 @@
 import { useMemo } from "react";
 import { Line, LineChart, ResponsiveContainer } from "recharts";
 
-import { Box, Card, Divider, Grid, Stack, Typography } from "@mui/material";
+import { Box, Card, Divider, Stack, Typography } from "@mui/material";
 
 import { pctColor } from "../DashboardClient";
 import { SparklineRow, SparkPoint } from "./advancePartner";
+import Image from "next/image";
 
 interface SparklinesSectionProps {
   semanasMap: Record<string, number>;
@@ -62,33 +63,12 @@ function Sparkline({ data }: { data: SparkPoint[] }) {
   );
 }
 
-// ── BuildingIcon ──────────────────────────────────────────────────────────
-
-function BuildingIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={1.5}
-        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-      />
-    </svg>
-  );
-}
-
 export function SparklinesSection({
   filtersPartner,
   loading,
   semanasMap,
   sparklines,
 }: SparklinesSectionProps) {
-  console.log(sparklines);
   const sparklinesFull = useMemo((): SparklineRow[] => {
     const withData = new Map(sparklines.map((s) => [s.parceira, s]));
 
@@ -102,14 +82,7 @@ export function SparklinesSection({
   }, [sparklines, filtersPartner]);
 
   return (
-    <div
-      className="grid grid-cols-7 gap-2"
-      // sx={{
-      //   display: "grid",
-      //   gridTemplateColumns: "220px 1fr 1fr",
-      //   gap: 2,
-      // }}
-    >
+    <div className="grid grid-cols-7 gap-2 px-5">
       {/* Card 1 — Empresas + Semanas */}
       <Card
         sx={{
@@ -170,7 +143,14 @@ export function SparklinesSection({
           </Box>
         ) : (
           <Stack
-            divider={<Divider sx={{ borderColor: "rgba(255,255,255,0.05)" }} />}
+            divider={
+              <Divider
+                sx={{
+                  borderColor: "rgba(255,255,255,0.15)",
+                  borderBottomWidth: "4px",
+                }}
+              />
+            }
           >
             {sparklinesFull.map((row) => {
               const semanas = semanasMap[row.parceira] ?? null;
@@ -191,21 +171,16 @@ export function SparklinesSection({
                   height={72}
                 >
                   <Stack direction="row" spacing={1.5} alignItems="center">
-                    <Box
-                      sx={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: "10px",
-                        background: "rgba(6, 95, 70, 0.4)",
-                        border: "1px solid rgba(4, 120, 87, 0.3)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                      }}
-                    >
-                      <BuildingIcon className="w-4 h-4 text-[#34d399]" />
-                    </Box>
+                    <Image
+                      src={
+                        ["START VALE", "START MCR"].includes(row.parceira)
+                          ? "start-logo.png"
+                          : `${row.parceira.toLowerCase()}-logo.png`
+                      }
+                      alt={`Logo ${row.parceira}`}
+                      width={76}
+                      height={60}
+                    />
 
                     <Stack spacing={0.5} minWidth={0}>
                       <Typography
@@ -213,7 +188,7 @@ export function SparklinesSection({
                         sx={{
                           color: "#34d399",
                           fontWeight: 700,
-                          fontSize: "0.75rem",
+                          fontSize: "0.9rem",
                           lineHeight: 1.2,
                         }}
                       >
@@ -233,7 +208,7 @@ export function SparklinesSection({
 
                         <Typography
                           sx={{
-                            fontSize: "0.875rem",
+                            fontSize: "0.9rem",
                             fontWeight: 700,
                             lineHeight: 1,
                             color: semDotColor,
@@ -311,7 +286,14 @@ export function SparklinesSection({
           </Box>
         ) : (
           <Stack
-            divider={<Divider sx={{ borderColor: "rgba(255,255,255,0.05)" }} />}
+            divider={
+              <Divider
+                sx={{
+                  borderColor: "rgba(255,255,255,0.15)",
+                  borderBottomWidth: "4px",
+                }}
+              />
+            }
           >
             {sparklinesFull.map((row) => (
               <Box
@@ -387,7 +369,14 @@ export function SparklinesSection({
           </Box>
         ) : (
           <Stack
-            divider={<Divider sx={{ borderColor: "rgba(255,255,255,0.05)" }} />}
+            divider={
+              <Divider
+                sx={{
+                  borderColor: "rgba(255,255,255,0.15)",
+                  borderBottomWidth: "4px",
+                }}
+              />
+            }
           >
             {sparklinesFull.map((row) => (
               <Box

@@ -20,7 +20,6 @@ import dayjs, { Dayjs } from "dayjs";
 interface UseAdvancePartnerFiltersProps {
   token: string;
   filtersData: any;
-
   initialEliminacao: EliminacaoRow[];
   initialAderencia: AderenciaRow[];
   initialSparklinesPartners: SparklineRow[];
@@ -31,6 +30,8 @@ interface UseAdvancePartnerFiltersProps {
 }
 
 export type FilterMode = "semana" | "data";
+
+export type MotivoTab = "Geral" | "Edp" | "Parceira" | "Terceiro";
 
 const DEFAULT_START = () => dayjs().startOf("month");
 const DEFAULT_END = () => dayjs().endOf("month");
@@ -83,6 +84,8 @@ export function useAdvancePartnerFilters({
 
   const [filterMode, setFilterMode] = useState<FilterMode>("semana");
 
+  const [motivoTab, setMotivoTab] = useState<MotivoTab>("Geral");
+
   const [initialWeek, setInitialWeek] = useState(currentWeek);
 
   const [finalWeek, setFinalWeek] = useState(currentWeek);
@@ -112,13 +115,6 @@ export function useAdvancePartnerFilters({
 
   const [motivos, setMotivos] = useState<MotivoRow[]>(
     initialReasonsReascheduling ?? [],
-  );
-
-  const [totalObras, setTotalObras] = useState<number>(() =>
-    initialSummary.summary?.reduce(
-      (acc: number, row: any) => acc + (row.totalQtde ?? 0),
-      0,
-    ),
   );
 
   const [taxaExec, setTaxaExec] = useState<{
@@ -175,7 +171,9 @@ export function useAdvancePartnerFilters({
     return {
       ...Transform(buildParams()),
       dataInicial:
-        filterMode === "semana" ? initial.fim : startDate?.format("DD/MM/YYYY"),
+        filterMode === "semana"
+          ? initial.inicio
+          : startDate?.format("DD/MM/YYYY"),
       dataFinal:
         filterMode === "semana" ? final.fim : endDate?.format("DD/MM/YYYY"),
     };
@@ -222,13 +220,6 @@ export function useAdvancePartnerFilters({
         data.resumoMensal.data?.firstSummary?.summary?.[0]?.financialGoal ?? 0,
       );
 
-      setTotalObras(
-        summary.reduce(
-          (acc: number, row: any) => acc + (row.totalQtde ?? 0),
-          0,
-        ),
-      );
-
       setTaxaExec({
         exec: summary.reduce(
           (acc: number, row: any) => acc + (Number(row.totalMoExec) || 0),
@@ -245,6 +236,13 @@ export function useAdvancePartnerFilters({
 
   const fetchDashboardData = useCallback(
     async (params: Record<string, any>) => {
+      const motivosParams = {
+        ...params,
+        ...(motivoTab !== "Geral" && {
+          responsabilidade: motivoTab,
+        }),
+      };
+
       const [
         eliminacaoRes,
         aderenciaRes,
@@ -255,28 +253,28 @@ export function useAdvancePartnerFilters({
       ] = await Promise.all([
         fetchData(
           `${process.env.NEXT_PUBLIC_API_URL}/avanca-parceira`,
-          params,
+          motivosParams,
           token,
           { cache: "no-store" },
         ),
 
         fetchData(
           `${process.env.NEXT_PUBLIC_API_URL}/avanca-parceira/aderencia-parceira`,
-          params,
+          motivosParams,
           token,
           { cache: "no-store" },
         ),
 
         fetchData(
           `${process.env.NEXT_PUBLIC_API_URL}/avanca-parceira/sparklines-parceira`,
-          params,
+          motivosParams,
           token,
           { cache: "no-store" },
         ),
 
         fetchData(
           `${process.env.NEXT_PUBLIC_API_URL}/avanca-parceira/motivos-reprogramacao`,
-          params,
+          motivosParams,
           token,
           { cache: "no-store" },
         ),
@@ -290,7 +288,7 @@ export function useAdvancePartnerFilters({
 
         fetchData(
           `${process.env.NEXT_PUBLIC_API_URL}/avanca-parceira/semanas-parceira`,
-          params,
+          motivosParams,
           token,
           { cache: "no-store" },
         ),
@@ -305,7 +303,7 @@ export function useAdvancePartnerFilters({
         semanas: semanasRes,
       };
     },
-    [token],
+    [token, motivoTab],
   );
 
   /* -------------------------------------------------------------------------- */
@@ -373,6 +371,7 @@ export function useAdvancePartnerFilters({
     endDate,
     selRegional,
     selParceira,
+    motivoTab,
     setFilterMode,
     setInitialWeek,
     setFinalWeek,
@@ -380,12 +379,12 @@ export function useAdvancePartnerFilters({
     setEndDate,
     setSelRegional,
     setSelParceira,
+    setMotivoTab,
     eliminacao,
     aderencia,
     motivos,
     sparklines,
     semanasMap,
-    totalObras,
     taxaExec,
     dailyGoal,
     applyFilters,

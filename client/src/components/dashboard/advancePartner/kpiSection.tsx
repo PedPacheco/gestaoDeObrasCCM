@@ -1,13 +1,20 @@
 import { FormatCurrency, NUM } from "@/utils/formatValue";
 import { KpiCard } from "../common/KpiCard";
 import { useMemo } from "react";
-import { AderenciaRow, EliminacaoRow, pctExact } from "./advancePartner";
+import {
+  AderenciaRow,
+  EliminacaoRow,
+  MotivoRow,
+  pctExact,
+} from "./advancePartner";
+import { RingCard } from "../common/RingCard";
+import { pctColor } from "../DashboardClient";
 
 interface KpiSectionProps {
   eliminacao: EliminacaoRow[];
   aderencia: AderenciaRow[];
   taxaExec: { exec: number; prog: number };
-  totalObras: number;
+  reasonsReascheduling: MotivoRow[];
   dailyGoal: number;
 }
 
@@ -15,17 +22,35 @@ function roundDisplay(x: number): number {
   return Math.floor(x + 0.4);
 }
 
-function getOrbColor(pct: number): string {
-  if (pct >= 85) return "#10b981";
-  if (pct >= 71) return "#f59e0b";
-  return "#ef4444";
+function pctColorGripAndElimination(pct: number) {
+  if (pct >= 85) {
+    return {
+      bg: "#053715",
+      text: "#53FF75",
+      bar: "#53FF75",
+    };
+  }
+
+  if (pct >= 71 && pct < 85) {
+    return {
+      bg: "#451a03",
+      text: "#facc15",
+      bar: "#facc15",
+    };
+  }
+
+  return {
+    bg: "#450a0a",
+    text: "#f87171",
+    bar: "#ef4444",
+  };
 }
 
 export function KpiSection({
   aderencia,
   eliminacao,
   taxaExec,
-  totalObras,
+  reasonsReascheduling,
   dailyGoal,
 }: KpiSectionProps) {
   const kpiEliminacao = useMemo(() => {
@@ -51,6 +76,12 @@ export function KpiSection({
     };
   }, [aderencia]);
 
+  const moNaoExecutada = useMemo(() => {
+    return reasonsReascheduling.reduce((total, reason) => {
+      return total + Number(reason.mo_nao_executada ?? 0);
+    }, 0);
+  }, [reasonsReascheduling]);
+
   const pctAd = roundDisplay(kpiAderencia.pct);
   const pctEl = roundDisplay(kpiEliminacao.pct);
   const pctTaxaProg =
@@ -59,52 +90,43 @@ export function KpiSection({
     taxaExec.exec > 0 ? roundDisplay((taxaExec.exec / dailyGoal) * 100) : 0;
 
   return (
-    <div className="grid grid-cols-4 gap-2">
-      <KpiCard
+    <div className="grid grid-cols-5 gap-2 px-5">
+      <RingCard
         label="Rentabilidade Programado"
-        value={`${pctTaxaProg}%`}
-        gradient="bg-gradient-to-br from-[#182638] to-[#1c2f42]"
-        accent="#53FF75"
-        sub={[
-          { subLabel: "Meta", subValue: FormatCurrency(dailyGoal) },
-          { subLabel: "Programado", subValue: FormatCurrency(taxaExec.prog) },
-        ]}
+        subLabel="Meta / Programado"
+        value={pctTaxaProg}
+        color={pctColor(pctTaxaProg).bar}
+        sub={`${FormatCurrency(dailyGoal)} / ${FormatCurrency(taxaExec.prog)}`}
       />
-      <KpiCard
+      <RingCard
         label="Rentabilidade Execução"
-        value={`${pctTaxaExec}%`}
+        subLabel="Meta / Executado"
+        value={pctTaxaExec}
+        color={pctColor(pctTaxaExec).bar}
+        sub={`${FormatCurrency(dailyGoal)} / ${FormatCurrency(taxaExec.exec)}`}
+      />
+
+      <RingCard
+        label="Aderência Programação"
+        subLabel="Obras / Executado / Parcial / Não exec."
+        value={pctAd}
+        color={pctColorGripAndElimination(pctAd).bar}
+        sub={`${NUM(kpiAderencia.total)} / ${NUM(kpiAderencia.exec)} / ${NUM(kpiAderencia.parcial)} / ${NUM(kpiAderencia.naoExec)}`}
+      />
+
+      <KpiCard
+        label="Reprogramações"
+        value={FormatCurrency(moNaoExecutada)}
         gradient="bg-gradient-to-br from-[#182638] to-[#1c2f42]"
         accent="#53FF75"
-        sub={[
-          { subLabel: "Meta", subValue: FormatCurrency(dailyGoal) },
-          { subLabel: "Executado", subValue: FormatCurrency(taxaExec.exec) },
-        ]}
       />
-      <KpiCard
-        label="Aderência Parceira"
-        value={`${pctAd}%`}
-        gradient="bg-gradient-to-br from-[#182638] to-[#1c2f42]"
-        accent="#53FF75"
-        sub={[
-          { subLabel: "Executadas", subValue: NUM(kpiAderencia.exec) },
-          { subLabel: "Parciais", subValue: NUM(kpiAderencia.parcial) },
-          { subLabel: "Não exec.", subValue: NUM(kpiAderencia.naoExec) },
-          { subLabel: "Obras", subValue: NUM(totalObras) },
-        ]}
-      />
-      <KpiCard
+
+      <RingCard
         label="Eliminação de Restrições"
-        value={`${pctEl}%`}
-        gradient="bg-gradient-to-br from-[#182638] to-[#1c2f42]"
-        accent={getOrbColor(pctEl)}
-        sub={[
-          { subLabel: "Sem restrição", subValue: NUM(kpiEliminacao.sem) },
-          {
-            subLabel: "Com restrição",
-            subValue: NUM(kpiEliminacao.total - kpiEliminacao.sem),
-          },
-          { subLabel: "Total", subValue: NUM(kpiEliminacao.total) },
-        ]}
+        subLabel="Total / Sem restrição / Com restrição"
+        value={pctEl}
+        color={pctColorGripAndElimination(pctEl).bar}
+        sub={`${NUM(kpiEliminacao.total)} / ${NUM(kpiEliminacao.sem)} / ${NUM(kpiEliminacao.total - kpiEliminacao.sem)}`}
       />
     </div>
   );

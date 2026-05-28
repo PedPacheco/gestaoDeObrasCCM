@@ -112,6 +112,11 @@ export class GetRestrictionsAdvancePartnerDTO {
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
   idParceira?: number[];
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['Edp', 'Parceira', 'Terceiro'])
+  responsabilidade?: string;
 }
 
 export class UpdatePublicationRestrictionsDTO {

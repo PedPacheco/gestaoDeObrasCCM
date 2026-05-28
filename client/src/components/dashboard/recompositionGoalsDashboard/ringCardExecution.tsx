@@ -22,7 +22,7 @@ export function RingCardExecution({
 
   return (
     <div className="flex items-center gap-3 bg-transparent rounded-xl p-3 h-[84px]">
-      <div className="relative shrink-0 flex items-center justify-center w-[120px] h-[120px]">
+      <div className="relative shrink-0 flex items-center justify-center w-[120] h-[120px]">
         <svg width={120} height={120} viewBox="0 0 140 140">
           <circle
             cx={70}
@@ -49,7 +49,7 @@ export function RingCardExecution({
         </svg>
 
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-2xl font-black leading-none" style={{ color }}>
+          <span className="text-xl font-black leading-none" style={{ color }}>
             {pct.toFixed(0)}%
           </span>
         </div>

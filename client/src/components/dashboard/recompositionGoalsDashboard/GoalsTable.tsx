@@ -231,7 +231,7 @@ function ParceiraRow({ row }: { row: ParceiraRowInterface }) {
         className="overflow-hidden transition-all duration-300"
         style={{ maxHeight: isOpen(row.turma) ? "600px" : "0px" }}
       >
-        <div className="border-t border-white/5 flex flex-col gap-2 w-full">
+        <div className="border-t border-white/5 flex flex-col gap-2 w-full p-3">
           {row.children.map((t, idx) => (
             <TipoRow key={idx} row={t} />
           ))}
@@ -243,15 +243,18 @@ function ParceiraRow({ row }: { row: ParceiraRowInterface }) {
 
 function TipoRow({ row }: { row: ParceiraRowInterface["children"][0] }) {
   return (
-    <div className="px-4 py-2 border-b border-white/[0.04] last:border-none w-full flex items-center">
-      <KpiRow
-        name={row.tipo_obra}
-        meta={row.meta}
-        prog={row.prog}
-        real={row.real}
-        carteira={row.carteira ?? 0}
-        taxa={row.taxa}
-      />
+    // <div className="bg-gradient-to-br from-[#1e2f42] to-[#192535] rounded-2xl border border-white/5 shadow-xl overflow-hidden"></div>
+    <div className="bg-white/[0.02] rounded-xl border border-white/5 overflow-hidden">
+      <div className="w-full flex items-center gap-3 px-3 py-2 hover:bg-white/[0.04] transition-colors">
+        <KpiRow
+          name={row.tipo_obra}
+          meta={row.meta}
+          prog={row.prog}
+          real={row.real}
+          carteira={row.carteira ?? 0}
+          taxa={row.taxa}
+        />
+      </div>
     </div>
   );
 }
@@ -331,23 +334,47 @@ function KpiRow({
   taxa: number;
 }) {
   return (
-    <>
-      <div className="flex flex-col min-w-[120px]">
-        <span className="text-zinc-300 font-bold text-sm truncate">{name}</span>
-      </div>
-
-      <div className="flex items-center gap-4 ml-auto">
-        <Metrics meta={meta} prog={prog} real={real} carteira={carteira} />
-
-        <div className="hidden md:flex items-center gap-2 w-[200px]">
-          <ProgressBar taxa={taxa} />
-
-          <span className="text-[11px] font-bold text-[#6366f1] w-[40px] text-right">
-            {taxa.toFixed(0)}%
+    <div className="w-full max-w-full flex flex-col gap-1.5 overflow-hidden">
+      {/* Linha 1: Nome + Métricas + Barra em ecrãs grandes */}
+      <div className="flex items-center gap-3 w-full max-w-full min-w-0 overflow-hidden">
+        {/* Nome */}
+        <div className="w-[160px] md:w-[200px] shrink-0 min-w-0">
+          <span className="text-zinc-300 font-bold text-sm truncate block">
+            {name}
           </span>
         </div>
+
+        {/* Conteúdo restante */}
+        <div className="flex flex-1 items-center gap-3 min-w-0 overflow-hidden">
+          {/* Métricas */}
+          <div className="shrink-0">
+            <Metrics meta={meta} prog={prog} real={real} carteira={carteira} />
+          </div>
+
+          {/* Barra inline — só ≥ 2xl */}
+          <div className="hidden 2xl:flex flex-1 min-w-0 max-w-full items-center gap-2 overflow-hidden">
+            <div className="flex-1 min-w-0 max-w-full">
+              <ProgressBar taxa={taxa} />
+            </div>
+
+            <span className="text-[11px] font-bold text-[#6366f1] w-[40px] shrink-0 text-right">
+              {taxa.toFixed(0)}%
+            </span>
+          </div>
+        </div>
       </div>
-    </>
+
+      {/* Linha 2: Barra + % — abaixo de 2xl */}
+      <div className="flex 2xl:hidden items-center gap-2 w-full max-w-full min-w-0 overflow-hidden">
+        <div className="flex-1 min-w-0 max-w-full">
+          <ProgressBar taxa={taxa} />
+        </div>
+
+        <span className="text-[11px] font-bold text-[#6366f1] w-[40px] shrink-0 text-right">
+          {taxa.toFixed(0)}%
+        </span>
+      </div>
+    </div>
   );
 }
 
@@ -370,16 +397,18 @@ function Metrics({
   ] as const;
 
   return (
-    <>
+    <div className="hidden md:flex items-center gap-4">
       {items.map(({ label, value, color }) => (
-        <div key={label} className="hidden md:flex flex-col items-end">
+        <div key={label} className="flex flex-col items-end min-w-[48px]">
           <span className="text-zinc-500 text-[10px] uppercase tracking-wider">
             {label}
           </span>
-          <span className={`${color} text-sm font-semibold`}>{NUM(value)}</span>
+          <span className={`${color} text-sm font-semibold whitespace-nowrap`}>
+            {NUM(value)}
+          </span>
         </div>
       ))}
-    </>
+    </div>
   );
 }
 
