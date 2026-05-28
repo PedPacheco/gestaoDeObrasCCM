@@ -14,12 +14,20 @@ vi.mock("@/contexts/userContext", () => {
         id_regional: "001",
         nome_usuario: "Test User",
         email: "test@example.com",
+        tipo_usuario: "INTERNO",
+        is_admin: false,
+        permissao_edicao: true,
+        id_turma: 1,
+        id_area: 1,
       },
       permissions: {
-        id: 1,
+        sub: 1,
         username: "test-user",
-        permissao: "total",
-        permissao_visualizacao: "total",
+        tipo_usuario: "INTERNO",
+        is_admin: false,
+        permissao_edicao: true,
+        id_turma: 1,
+        id_area: 1,
       },
     }),
   };
@@ -75,7 +83,7 @@ describe("SchedulePanelItem component", () => {
         setData={setDataMock}
         setRejectedSchedule={setRejectedScheduleMock}
         statusWork={1}
-      />
+      />,
     );
 
     expect(screen.getByText("16/07/2025")).toBeInTheDocument();
@@ -98,7 +106,7 @@ describe("SchedulePanelItem component", () => {
         setData={setDataMock}
         setRejectedSchedule={setRejectedScheduleMock}
         statusWork={1}
-      />
+      />,
     );
 
     const user = userEvent.setup();
@@ -128,7 +136,7 @@ describe("SchedulePanelItem component", () => {
         setRejectedSchedule={setRejectedScheduleMock}
         setData={setDataMock}
         statusWork={1}
-      />
+      />,
     );
 
     const user = userEvent.setup();
@@ -154,15 +162,25 @@ describe("SchedulePanelItem component", () => {
         nome_usuario: "Partial User",
         id_regional: 2,
         email: "partial@example.com",
+        tipo_usuario: "PARCEIRA",
+        is_admin: false,
+        permissao_edicao: true,
+        id_turma: 1,
+        id_area: 1,
       },
       permissions: {
-        id: 2,
-        username: "partial-user",
-        permissao: "total",
-        permissao_visualizacao: "parcial",
+        sub: 1,
+        username: "test-user",
+        tipo_usuario: "PARCEIRA",
+        is_admin: false,
+        permissao_edicao: true,
+        id_turma: 1,
+        id_area: 1,
+        exp: 132,
       },
       login: vi.fn(),
-      setUser: vi.fn(),
+      logout: vi.fn(),
+      isLoading: false,
     });
 
     const mockDataWithExec = [
@@ -182,7 +200,7 @@ describe("SchedulePanelItem component", () => {
         setRejectedSchedule={setRejectedScheduleMock}
         setData={setDataMock}
         statusWork={1}
-      />
+      />,
     );
 
     const deleteButton = screen.queryByRole("button", {
@@ -214,7 +232,7 @@ describe("SchedulePanelItem component", () => {
         setRejectedSchedule={setRejectedScheduleMock}
         setData={setDataMock}
         statusWork={43} // status que normalmente permitiria validar
-      />
+      />,
     );
 
     screen.getAllByRole("checkbox").forEach((checkbox) => {
@@ -235,7 +253,7 @@ describe("SchedulePanelItem component", () => {
         setData={setDataMock}
         setRejectedSchedule={setRejectedScheduleMock}
         statusWork={43}
-      />
+      />,
     );
 
     const validarCheckbox = screen.getAllByRole("checkbox")[1];
@@ -268,7 +286,7 @@ describe("SchedulePanelItem component", () => {
         setRejectedSchedule={setRejectedScheduleMock}
         setData={setDataMock}
         statusWork={37}
-      />
+      />,
     );
 
     const confirmarCheckbox = screen.getAllByRole("checkbox")[2];
@@ -309,7 +327,7 @@ describe("SchedulePanelItem component", () => {
         setRejectedSchedule={setRejectedScheduleMock}
         setData={setDataMock}
         statusWork={43}
-      />
+      />,
     );
 
     const validarCheckbox = screen.getAllByRole("checkbox")[1];
@@ -356,7 +374,7 @@ describe("SchedulePanelItem component", () => {
         setRejectedSchedule={setRejectedScheduleMock}
         setData={setDataMock}
         statusWork={43}
-      />
+      />,
     );
 
     const confirmarCheckbox = screen.getAllByRole("checkbox")[2];
@@ -387,7 +405,7 @@ describe("SchedulePanelItem component", () => {
         setData={setDataMock}
         setRejectedSchedule={setRejectedScheduleMock}
         statusWork={43}
-      />
+      />,
     );
 
     const reprovarCheckbx = screen.getAllByRole("checkbox")[0];

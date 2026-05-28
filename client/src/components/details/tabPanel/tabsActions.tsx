@@ -15,6 +15,7 @@ interface TabActionsProps {
     newValue: number,
   ) => void;
   feasibilityExists: any[];
+  canSeeTabs: boolean;
 }
 
 const TabActions = memo(
@@ -28,12 +29,10 @@ const TabActions = memo(
     onNewSchedule,
     valueTab,
     feasibilityExists,
+    canSeeTabs,
   }: TabActionsProps) => {
     const canValidateOrConfirm =
       permissions?.permissao_edicao && permissions?.tipo_usuario !== "PARCEIRA";
-
-    const hasTabAccessByArea =
-      permissions?.id_area != null && [8, 2].includes(permissions.id_area);
 
     return (
       <div className="flex items-center justify-between">
@@ -45,17 +44,19 @@ const TabActions = memo(
           scrollButtons="auto"
           className="flex-1 mt-4"
         >
-          {hasTabAccessByArea && <Tab label="Custos" className="xl:text-lg" />}
-          <Tab label="Programações" className="xl:text-lg" />
-          <Tab label="Reprovações" className="xl:text-lg" />
-          <Tab label="Relatórios execuções" className="xl:text-lg" />
-          <Tab label="Restrições Publicação" className="xl:text-lg" />
-          {hasTabAccessByArea && (
-            <Tab label="Serviços" className="xl:text-lg" />
+          {canSeeTabs && (
+            <Tab value={0} label="Custos" className="xl:text-lg" />
+          )}
+          <Tab value={1} label="Programações" className="xl:text-lg" />
+          <Tab value={2} label="Reprovações" className="xl:text-lg" />
+          <Tab value={3} label="Relatórios execuções" className="xl:text-lg" />
+          <Tab value={4} label="Restrições Publicação" className="xl:text-lg" />
+          {canSeeTabs && (
+            <Tab value={5} label="Serviços" className="xl:text-lg" />
           )}
         </Tabs>
 
-        {valueTab === 1 && (
+        {valueTab === 1 && canSeeTabs && (
           <div className="flex justify-center items-center flex-row">
             <div className="px-4 mt-2">
               <ButtonComponent
