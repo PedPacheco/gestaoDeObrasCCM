@@ -28,6 +28,7 @@ interface LaborDashboardFiltersProps {
   setSelectedGroup: (value: string[]) => void;
   onApply: () => void;
   clearFilters: () => void;
+  filtersTop: number;
 }
 
 export function LaborDashboardFilters({
@@ -47,6 +48,7 @@ export function LaborDashboardFilters({
   setSelectedGroup,
   onApply,
   clearFilters,
+  filtersTop,
 }: LaborDashboardFiltersProps) {
   const hasActiveFilters =
     selectedRegionais.length > 0 ||
@@ -55,7 +57,17 @@ export function LaborDashboardFilters({
     selectedGroup.length > 0;
 
   return (
-    <div className="flex flex-col gap-2 border border-white/5 bg-gradient-to-br from-[#1e2f42] to-[#192535] p-4 shadow-xl">
+    <div
+      className="
+        sticky z-30
+        flex flex-col gap-2
+        border border-white/5
+        bg-gradient-to-br from-[#1e2f42] to-[#192535]
+        p-3 sm:p-4
+        shadow-xl backdrop-blur-sm
+      "
+      style={{ top: filtersTop }}
+    >
       <div className="flex flex-row items-end gap-4 overflow-x-auto">
         <div className="flex w-96">
           <DateFilter

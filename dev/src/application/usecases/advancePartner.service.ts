@@ -17,7 +17,8 @@ export class AdvancePartnerService {
   private parseEliminationFilters(
     filters: GetRestrictionsAdvancePartnerDTO,
   ): ProcessedEliminacaoFilters {
-    const { dataInicial, dataFinal, idRegional, idParceira } = filters;
+    const { dataInicial, dataFinal, idRegional, idParceira, responsabilidade } =
+      filters;
 
     return {
       dataInicial: dataInicial
@@ -28,6 +29,7 @@ export class AdvancePartnerService {
         : undefined,
       idRegional,
       idParceira,
+      responsabilidade,
     };
   }
 

@@ -31,6 +31,7 @@ interface Props {
   initialData: Row[]; // dados carregados no server (sem filtros — ano inteiro)
   filtersData: any; // opções disponíveis para os dropdowns
   token: string; // JWT para autenticação nas chamadas client-side
+  filtersTop: number;
 }
 
 /**
@@ -74,6 +75,7 @@ export default function MonitoringExecutionDashboard({
   initialData,
   filtersData,
   token,
+  filtersTop,
 }: Props) {
   const [isPending, startTransition] = useTransition();
 
@@ -176,6 +178,7 @@ export default function MonitoringExecutionDashboard({
         setSelectedRegionais={setSelectedRegionais}
         // setSelectedTechnician={setSelectedTechnician}
         clearFilters={handleCleaningFilters}
+        filtersTop={filtersTop}
       />
 
       <KpiSectionMonitoringExecution data={data} />

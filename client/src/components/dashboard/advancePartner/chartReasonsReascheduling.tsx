@@ -9,7 +9,8 @@ import {
 } from "recharts";
 import { useMemo } from "react";
 import { ChartTooltip } from "../common/ChartTooltip";
-import { MotivoRow, MotivoTab } from "./advancePartner";
+import { MotivoRow } from "./advancePartner";
+import { MotivoTab } from "@/hooks/dashboard/advancePartner/useAdvancePartnerFilters";
 
 interface ChartReasonsReaschedulingProps {
   motivos: MotivoRow[];
@@ -20,38 +21,44 @@ interface ChartReasonsReaschedulingProps {
 
 export function ChartReasonsReascheduling({
   motivos,
-  motivoTab,
-  setMotivoTab,
   isPending,
 }: ChartReasonsReaschedulingProps) {
-  const filteredReasons =
-    motivoTab === "GERAL"
-      ? motivos
-      : motivos.filter(
-          (m) => (m.responsavel ?? "").toUpperCase().trim() === motivoTab,
-        );
-
   const motivosChartData = useMemo(() => {
-    if (!filteredReasons) return [];
+    const counts: Record<
+      string,
+      {
+        count: number;
+        moNaoExecutada: number;
+      }
+    > = {};
 
-    const counts: Record<string, number> = {};
-
-    filteredReasons.forEach((m) => {
+    motivos.forEach((m) => {
       const k = (m.motivo || "Sem motivo informado").toUpperCase().trim();
-      counts[k] = (counts[k] || 0) + 1;
+
+      if (!counts[k]) {
+        counts[k] = {
+          count: 0,
+          moNaoExecutada: 0,
+        };
+      }
+
+      counts[k].count += 1;
+      counts[k].moNaoExecutada += Number(m.mo_nao_executada ?? 0);
     });
 
-    const total = filteredReasons.length;
-
     return Object.entries(counts)
-      .map(([motivo, count]) => ({
+      .map(([motivo, data]) => ({
         motivo,
-        count,
-        pct: total > 0 ? Math.round((count / total) * 100) : 0,
+        count: data.count,
+        moNaoExecutada: data.moNaoExecutada,
+        pct:
+          motivos.length > 0
+            ? Math.round((data.count / motivos.length) * 100)
+            : 0,
       }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 12);
-  }, [filteredReasons]);
+  }, [motivos]);
 
   return (
     <div className="bg-gradient-to-br from-[#1e2f42] to-[#192535] rounded-2xl p-5 border border-white/5 shadow-xl">
@@ -62,26 +69,8 @@ export function ChartReasonsReascheduling({
           </h3>
           <p className="text-zinc-500 text-xs mt-0.5">
             Top ocorrências por motivo
-            {filteredReasons
-              ? ` — ${filteredReasons.length} registro${filteredReasons.length !== 1 ? "s" : ""}`
-              : ""}
+            {` — ${motivos.length} registros`}
           </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* Tabs responsabilidade */}
-          <div className="flex rounded-lg overflow-hidden border border-white/10">
-            {(["GERAL", "EDP", "PARCEIRA", "TERCEIRO"] as MotivoTab[]).map(
-              (t) => (
-                <button
-                  key={t}
-                  onClick={() => setMotivoTab(t)}
-                  className={`px-3 py-1.5 text-xs font-bold transition-colors ${motivoTab === t ? "bg-[#1d4ed8] text-white" : "bg-[#0f1e2e] text-zinc-400 hover:text-white"}`}
-                >
-                  {t}
-                </button>
-              ),
-            )}
-          </div>
         </div>
       </div>
 
@@ -109,19 +98,19 @@ export function ChartReasonsReascheduling({
               dataKey="motivo"
               tick={{
                 fill: "#94a3b8",
-                fontSize: 9,
-                angle: -45,
+                fontSize: 11,
+                angle: -25,
                 textAnchor: "end",
               }}
               tickFormatter={(v: string) =>
-                v.length > 28 ? v.slice(0, 28) + "…" : v
+                v.length > 20 ? v.slice(0, 20) + "…" : v
               }
               interval={0}
               height={110}
             />
             <YAxis
               type="number"
-              tick={{ fill: "#94a3b8", fontSize: 11 }}
+              tick={{ fill: "#94a3b8", fontSize: 10 }}
               tickFormatter={(v) => `${v}%`}
             />
             <Tooltip content={<ChartTooltip percentageFields={"pct"} />} />
@@ -134,7 +123,7 @@ export function ChartReasonsReascheduling({
               label={{
                 position: "top",
                 fill: "#94a3b8",
-                fontSize: 10,
+                fontSize: 14,
                 formatter: (v: any) => `${v}%`,
               }}
             />

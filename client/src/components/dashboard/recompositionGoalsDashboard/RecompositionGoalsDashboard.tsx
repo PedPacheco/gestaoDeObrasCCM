@@ -41,6 +41,7 @@ interface Props {
   initialGoals: Goal[];
   filtersData: FiltersData;
   token: string;
+  filtersTop: number;
 }
 
 export const MONTHS: MonthKey[] = [
@@ -114,6 +115,7 @@ export default function RecompositionGoalsDashboard({
   initialGoals,
   filtersData,
   token,
+  filtersTop,
 }: Props) {
   const currentMonth = dayjs().month();
   const now = dayjs();
@@ -218,6 +220,7 @@ export default function RecompositionGoalsDashboard({
     <div className="flex flex-col gap-5 pb-6 min-h-full">
       <GoalsFilters
         filtersData={filtersData}
+        filtersTop={filtersTop}
         tiposRecomp={tiposRecomp}
         year={year}
         yearPlan={anoPlan}

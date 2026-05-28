@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import AdvancePartnerDashboard from "./advancePartner/advancePartner";
 import ForecastDashboard from "./ForecastDashboard";
@@ -122,8 +122,8 @@ export default function DashboardClient({
   initialMaodeObra,
   initialMaodeObra2,
   initialMetaDiaria,
-  initialForecastFirst,
-  initialForecastSecond,
+  // initialForecastFirst,
+  // initialForecastSecond,
   initialMetasRecomposicao,
   goalsFilters,
   initialExecMonitoring,
@@ -137,6 +137,23 @@ export default function DashboardClient({
   filtersData,
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>("mao-de-obra");
+  const tabSwitcherRef = useRef<HTMLDivElement>(null);
+  const [tabSwitcherHeight, setTabSwitcherHeight] = useState(0);
+
+  useEffect(() => {
+    if (!tabSwitcherRef.current) return;
+
+    const observer = new ResizeObserver(([entry]) => {
+      setTabSwitcherHeight(entry.contentRect.height);
+    });
+
+    observer.observe(tabSwitcherRef.current);
+
+    return () => observer.disconnect();
+  }, []);
+
+  // top-16 = 64px (navbar) + altura real do tab switcher
+  const filtersTop = 76 + tabSwitcherHeight;
 
   const partners = [
     {
@@ -176,7 +193,10 @@ export default function DashboardClient({
   return (
     <div className="flex flex-col min-h-full ">
       {/* ── Tab Switcher ──────────────────────────────────────────── */}
-      <div className="sticky top-16 z-30 bg-white flex justify-between items-center gap-1 px-3 pt-3 pb-0 border-b border-white/5">
+      <div
+        ref={tabSwitcherRef}
+        className="sticky top-16 z-30 bg-white flex justify-between items-center gap-1 px-3 pt-3 pb-0 border-b border-white/5"
+      >
         <div className="flex gap-1">
           {(
             [
@@ -230,12 +250,14 @@ export default function DashboardClient({
           initialGoals={initialMetasRecomposicao}
           filtersData={goalsFilters}
           token={token}
+          filtersTop={filtersTop}
         />
       ) : activeTab === "acompanhamento-execucao" ? (
         <MonitoringExecutionDashboard
           initialData={initialExecMonitoring}
           filtersData={goalsFilters}
           token={token}
+          filtersTop={filtersTop}
         />
       ) : activeTab === "avanca-parceiro" ? (
         <AdvancePartnerDashboard
@@ -247,6 +269,7 @@ export default function DashboardClient({
           initialReasonsReascheduling={initialReasonsReascheduling}
           initialDailyGoal={initialDailyGoalMoveForwardPartner}
           filtersData={goalsFilters}
+          filtersTop={filtersTop}
           token={token}
         />
       ) : (
@@ -256,6 +279,7 @@ export default function DashboardClient({
           token={token}
           initialMetaDiaria={initialMetaDiaria}
           filtersData={filtersData}
+          filtersTop={filtersTop}
         />
       )}
     </div>

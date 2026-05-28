@@ -36,6 +36,7 @@ interface Props {
   token: string;
   initialMetaDiaria: number;
   filtersData: any;
+  filtersTop: number;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -49,6 +50,7 @@ export default function LaborDashboard({
   token,
   initialMetaDiaria,
   filtersData,
+  filtersTop,
 }: Props) {
   const [isPending, startTransition] = useTransition();
 
@@ -223,6 +225,7 @@ export default function LaborDashboard({
         setSelectedRegionais={setSelectedRegionais}
         setSelectedTiposObra={setSelectedTiposObra}
         clearFilters={handleCleaningFilters}
+        filtersTop={filtersTop}
       />
 
       {/* ── Cartões ──────────────────────────────────────────────────── */}

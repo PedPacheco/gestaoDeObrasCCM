@@ -52,12 +52,14 @@ export function ChartTooltip({
           <span
             className={`font-bold ${data["Diferença Acum."] > 0 ? "text-green-400" : "text-red-500"}`}
           >
-            {data["Diferença Acum."]}
+            {data["Diferença Acum."] > 0
+              ? `+${data["Diferença Acum."]}`
+              : data["Diferença Acum."]}
           </span>
         </div>
       )}
 
-      {data?.["count"] && (
+      {data?.["moNaoExecutada"] && (
         <div className="flex items-center gap-2 py-0.5">
           <span
             className="w-2 h-2 rounded-full"
@@ -65,6 +67,19 @@ export function ChartTooltip({
           />
           <span className="text-zinc-400">Quantidade</span>
           <span className="text-zinc-400">{data["count"]}</span>
+        </div>
+      )}
+
+      {data?.["moNaoExecutada"] && (
+        <div className="flex items-center gap-2 py-0.5">
+          <span
+            className="w-2 h-2 rounded-full"
+            style={{ background: "#a78bfa" }} // violet
+          />
+          <span className="text-zinc-400">MO não executada</span>
+          <span className="text-zinc-400">
+            {FormatCurrency(data["moNaoExecutada"])}
+          </span>
         </div>
       )}
     </div>

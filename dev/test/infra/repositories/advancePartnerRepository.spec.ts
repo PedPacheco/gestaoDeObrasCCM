@@ -66,6 +66,7 @@ describe('AdvancePartnerRepository', () => {
         dataFinal: new Date('2024-01-31'),
         idRegional: [1],
         idParceira: [2],
+        responsabilidade: 'Edp',
       } as any);
 
       const query = getSqlString(prismaService.$queryRaw.mock.calls[0][0]);
@@ -73,6 +74,7 @@ describe('AdvancePartnerRepository', () => {
       expect(query).toContain('data_prog BETWEEN');
       expect(query).toContain('regional IN');
       expect(query).toContain('parceira IN');
+      expect(query).toContain('AND nome_do_responsavel_execucao');
     });
   });
 
@@ -103,6 +105,7 @@ describe('AdvancePartnerRepository', () => {
         dataFinal: new Date('2024-01-31'),
         idRegional: [1],
         idParceira: [2],
+        responsabilidade: 'Edp',
       } as any);
 
       const query = getSqlString(prismaService.$queryRaw.mock.calls[0][0]);
@@ -110,6 +113,7 @@ describe('AdvancePartnerRepository', () => {
       expect(query).toContain('data_prog BETWEEN');
       expect(query).toContain('regional IN');
       expect(query).toContain('parceira IN');
+      expect(query).toContain('AND nome_do_responsavel_execucao');
     });
 
     it('should return query result correctly', async () => {
@@ -159,6 +163,7 @@ describe('AdvancePartnerRepository', () => {
         dataFinal: new Date('2024-01-31'),
         idRegional: [1],
         idParceira: [2],
+        responsabilidade: 'Edp',
       } as any);
 
       const query = getSqlString(prismaService.$queryRaw.mock.calls[0][0]);
@@ -166,6 +171,7 @@ describe('AdvancePartnerRepository', () => {
       expect(query).toContain('data_prog BETWEEN');
       expect(query).toContain('regional IN');
       expect(query).toContain('parceira IN');
+      expect(query).toContain('AND nome_do_responsavel_execucao');
     });
 
     it('should return query result correctly', async () => {
@@ -231,6 +237,7 @@ describe('AdvancePartnerRepository', () => {
         dataFinal: new Date('2024-01-31'),
         idRegional: [1],
         idParceira: [2],
+        responsabilidade: 'Edp',
       } as any);
 
       const aderenciaQuery = getSqlString(
@@ -244,10 +251,12 @@ describe('AdvancePartnerRepository', () => {
       expect(aderenciaQuery).toContain('data_prog BETWEEN');
       expect(aderenciaQuery).toContain('regional IN');
       expect(aderenciaQuery).toContain('parceira IN');
+      expect(aderenciaQuery).toContain('AND nome_do_responsavel_execucao');
 
       expect(eliminacaoQuery).toContain('data_prog BETWEEN');
       expect(eliminacaoQuery).toContain('regional IN');
       expect(eliminacaoQuery).toContain('parceira IN');
+      expect(eliminacaoQuery).toContain('AND nome_do_responsavel_execucao');
     });
 
     it('should return aderencia and eliminacao query results correctly', async () => {

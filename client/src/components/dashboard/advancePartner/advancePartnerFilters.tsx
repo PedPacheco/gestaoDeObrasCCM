@@ -3,6 +3,7 @@ import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import {
   EXCLUDE_PARCEIRAS,
   FilterMode,
+  MotivoTab,
 } from "@/hooks/dashboard/advancePartner/useAdvancePartnerFilters";
 import { WEEKS } from "@/utils/weeks";
 import { Dayjs } from "dayjs";
@@ -13,7 +14,7 @@ interface FiltersData {
   parceira?: Array<Record<string, any>>;
 }
 
-interface AdvancePartnerFiltesProps {
+interface AdvancePartnerFiltersProps {
   startDate: Dayjs | null;
   endDate: Dayjs | null;
   filtersData: FiltersData;
@@ -22,6 +23,8 @@ interface AdvancePartnerFiltesProps {
   selectedRegional: string[];
   selectedParceira: string[];
   filterMode: FilterMode;
+  motivoTab: MotivoTab;
+  setMotivoTab: (tab: MotivoTab) => void;
   setFilterMode: (mode: FilterMode) => void;
   setStartDate: (date: Dayjs | null) => void;
   setEndDate: (date: Dayjs | null) => void;
@@ -32,6 +35,7 @@ interface AdvancePartnerFiltesProps {
   applyFilters: () => void;
   clearFilters: () => void;
   isPending: boolean;
+  filtersTop: number;
 }
 
 function WeekSelect({
@@ -60,13 +64,13 @@ function WeekSelect({
 
   return (
     <div ref={ref} className="relative flex flex-col gap-1">
-      <span className="text-zinc-500 text-[10px] uppercase tracking-wider">
+      <span className="text-zinc-500 text-xs uppercase tracking-wider">
         {label}
       </span>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center justify-between gap-2 bg-[#0f1e2e] border border-white/10 hover:border-white/20 text-zinc-300 text-xs rounded-xl pl-3 pr-2.5 py-2 min-w-[210px] transition-colors"
+        className="flex items-center justify-between gap-2 bg-[#0f1e2e] border border-white/10 hover:border-white/20 text-zinc-300 text-xs rounded-xl pl-3 pr-2.5 py-2 min-w-[180px] lg:min-w-[210px] transition-colors"
       >
         <div className="flex items-center gap-1.5">
           <span className="font-bold text-white">Sem. {value}</span>
@@ -105,15 +109,15 @@ function WeekSelect({
                 className={`w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-white/5 transition-colors ${sel ? "text-[#3b82f6]" : "text-zinc-400"}`}
               >
                 <span
-                  className={`font-bold w-12 shrink-0 text-left ${sel ? "text-[#3b82f6]" : "text-zinc-200"}`}
+                  className={`font-bold w-12 shrink-0 text-left ${sel ? "text-[#3b82f6]" : "text-zinc-400"}`}
                 >
                   Sem. {w.num}
                 </span>
-                <span className="text-zinc-500 text-[10px] flex-1 text-left">
+                <span className="text-zinc-500 text-xs flex-1 text-left">
                   {w.inicio} – {w.fim}
                 </span>
                 <span
-                  className={`text-[10px] shrink-0 ${sel ? "text-blue-400" : "text-zinc-600"}`}
+                  className={`text-xs shrink-0 ${sel ? "text-blue-400" : "text-zinc-400"}`}
                 >
                   {w.mes}
                 </span>
@@ -126,6 +130,44 @@ function WeekSelect({
   );
 }
 
+function ToggleGroup<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+  activeColor = "bg-[#3b82f6]",
+}: {
+  label: string;
+  options: T[];
+  value: T;
+  onChange: (val: T) => void;
+  activeColor?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-zinc-500 text-xs uppercase tracking-wider">
+        {label}
+      </span>
+      <div className="flex rounded-xl overflow-hidden border border-white/10">
+        {options.map((opt) => (
+          <button
+            key={opt}
+            type="button"
+            onClick={() => onChange(opt)}
+            className={`px-2.5 sm:px-3 py-2 text-[10px] sm:text-xs font-bold transition-colors ${
+              value === opt
+                ? `${activeColor} text-white`
+                : "bg-[#0f1e2e] text-zinc-400 hover:text-white"
+            }`}
+          >
+            {opt === "semana" ? "Semana" : opt === "data" ? "Data" : opt}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function AdvancePartnerFilters({
   startDate,
   endDate,
@@ -134,6 +176,8 @@ export function AdvancePartnerFilters({
   selectedParceira,
   selectedRegional,
   filterMode,
+  motivoTab,
+  setMotivoTab,
   setFilterMode,
   setStartDate,
   setEndDate,
@@ -144,97 +188,115 @@ export function AdvancePartnerFilters({
   filtersData,
   applyFilters,
   clearFilters,
+  filtersTop,
   isPending,
-}: AdvancePartnerFiltesProps) {
+}: AdvancePartnerFiltersProps) {
   return (
-    <div className="bg-gradient-to-br from-[#1e2f42] to-[#192535]  p-5 border border-white/5 shadow-xl">
-      <div className="flex flex-row justify-between gap-4 items-end">
-        <div className="flex flex-row gap-2 w-full items-end">
-          <div className="flex flex-col gap-1 mb-1">
-            <span className="text-zinc-500 text-[12px] uppercase tracking-wider">
-              Filtrar por
-            </span>
-            <div className="flex rounded-xl overflow-hidden border border-white/10">
-              {(["semana", "data"] as FilterMode[]).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setFilterMode(m)}
-                  className={`px-3 py-2 text-xs font-bold transition-colors ${filterMode === m ? "bg-[#3b82f6] text-white" : "bg-[#0f1e2e] text-zinc-400 hover:text-white"}`}
-                >
-                  {m === "semana" ? "Semana" : "Data"}
-                </button>
-              ))}
+    <div
+      className="
+        sticky z-30
+        flex flex-col gap-2
+        border border-white/5
+        bg-gradient-to-br from-[#1e2f42] to-[#192535]
+        p-3 sm:p-4
+        shadow-xl backdrop-blur-sm
+      "
+      style={{ top: filtersTop }}
+    >
+      <div className="flex flex-col xl:flex-row xl:justify-between gap-4 xl:items-end">
+        {/* Filtros */}
+        <div className="flex flex-col lg:flex-row gap-3 lg:gap-2 w-full lg:items-end">
+          {/* Toggles: Filtrar por + Responsabilidade */}
+          <div className="flex flex-wrap gap-2 items-end">
+            <ToggleGroup
+              label="Filtrar por"
+              options={["semana", "data"] as FilterMode[]}
+              value={filterMode}
+              onChange={setFilterMode}
+            />
+
+            {filterMode === "semana" ? (
+              <>
+                <WeekSelect
+                  label="Semana inicial"
+                  value={initialWeek}
+                  onChange={setInitialWeek}
+                  showField="inicio"
+                />
+                <WeekSelect
+                  label="Semana final"
+                  value={finalWeek}
+                  onChange={setFinalWeek}
+                  showField="fim"
+                />
+              </>
+            ) : (
+              <DateFilter
+                endDate={endDate}
+                setEndDate={setEndDate}
+                setStartDate={setStartDate}
+                startDate={startDate}
+                backgroundColor="#0f1e2e"
+                textColor="#a1a1aa"
+                svgColor="#94a3b8"
+                spacing="mr-4 !mb-0 mt-2"
+              />
+            )}
+
+            <ToggleGroup
+              label="Responsabilidade"
+              options={["Geral", "Edp", "Parceira", "Terceiro"] as MotivoTab[]}
+              value={motivoTab}
+              onChange={setMotivoTab}
+              activeColor="bg-[#1d4ed8]"
+            />
+          </div>
+
+          {/* Semana ou Data
+          <div className="flex flex-wrap gap-2 items-end"></div> */}
+
+          {/* Selects */}
+          <div className="flex flex-col sm:flex-row gap-2 flex-1">
+            <div className="min-w-[120px] flex-1">
+              <MultipleSelectComponent
+                label="Regionais"
+                menuItems={filtersData.regional ?? []}
+                selectedItem={selectedRegional}
+                setSelectedItem={setSelectedRegional}
+                valueKey="id"
+                displayKey="regional"
+                backgroundColor="#0f1e2e"
+                textColor="#a1a1aa"
+              />
             </div>
-          </div>
 
-          {filterMode === "semana" ? (
-            <>
-              <WeekSelect
-                label="Semana inicial"
-                value={initialWeek}
-                onChange={setInitialWeek}
-                showField="inicio"
+            <div className="min-w-[120px] flex-1">
+              <MultipleSelectComponent
+                label="Parceira"
+                menuItems={
+                  filtersData.parceira?.filter(
+                    (item) =>
+                      !EXCLUDE_PARCEIRAS.has(item.turma.toUpperCase().trim()),
+                  ) ?? []
+                }
+                selectedItem={selectedParceira}
+                setSelectedItem={setSelectedParceira}
+                valueKey="id"
+                displayKey="turma"
+                backgroundColor="#0f1e2e"
+                textColor="#a1a1aa"
               />
-              <WeekSelect
-                label="Semana final"
-                value={finalWeek}
-                onChange={setFinalWeek}
-                showField="fim"
-              />
-            </>
-          ) : (
-            <DateFilter
-              endDate={endDate}
-              setEndDate={setEndDate}
-              setStartDate={setStartDate}
-              startDate={startDate}
-              backgroundColor="#0f1e2e"
-              textColor="#a1a1aa"
-              svgColor="#94a3b8"
-              spacing="mr-4 !mb-0 mt-2"
-              size=""
-            />
-          )}
-
-          <div className="min-w-[120px] flex-1 mr-4">
-            <MultipleSelectComponent
-              label="Regionais"
-              menuItems={filtersData.regional ?? []}
-              selectedItem={selectedRegional}
-              setSelectedItem={setSelectedRegional}
-              valueKey="id"
-              displayKey="regional"
-              backgroundColor="#0f1e2e"
-              textColor="#a1a1aa"
-            />
-          </div>
-
-          <div className="min-w-[120px] flex-1">
-            <MultipleSelectComponent
-              label="Parceira"
-              menuItems={
-                filtersData.parceira?.filter(
-                  (item) =>
-                    !EXCLUDE_PARCEIRAS.has(item.turma.toUpperCase().trim()),
-                ) ?? []
-              }
-              selectedItem={selectedParceira}
-              setSelectedItem={setSelectedParceira}
-              valueKey="id"
-              displayKey="turma"
-              backgroundColor="#0f1e2e"
-              textColor="#a1a1aa"
-            />
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Botões */}
+        <div className="flex items-center gap-3 shrink-0">
           <button
             type="button"
             onClick={applyFilters}
             disabled={isPending}
-            className="rounded-xl bg-[#3b82f6] px-6 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:bg-[#2563eb] hover:shadow-[#3b82f6]/30 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-xl bg-[#3b82f6] px-4 sm:px-6 py-2 text-xs sm:text-sm font-semibold text-white shadow-lg transition-all hover:bg-[#2563eb] hover:shadow-[#3b82f6]/30 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isPending ? "Carregando..." : "Aplicar"}
           </button>
@@ -243,7 +305,7 @@ export function AdvancePartnerFilters({
             type="button"
             onClick={clearFilters}
             disabled={isPending}
-            className="rounded-xl bg-[#3b82f6] px-6 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:bg-[#2563eb] hover:shadow-[#3b82f6]/30 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-xl bg-[#3b82f6] px-4 sm:px-6 py-2 text-xs sm:text-sm font-semibold text-white shadow-lg transition-all hover:bg-[#2563eb] hover:shadow-[#3b82f6]/30 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isPending ? "Carregando..." : "Limpar"}
           </button>

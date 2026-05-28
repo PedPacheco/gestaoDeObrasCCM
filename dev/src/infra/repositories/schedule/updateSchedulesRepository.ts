@@ -19,7 +19,7 @@ export class UpdateSchedulesRepository implements IUpdateSchedulesRepository {
         where: { id },
         data: updateData,
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === 'P2025') {
         throw new NotFoundException(`Agendamento com ID ${id} não encontrado`);
       }
@@ -44,7 +44,7 @@ export class UpdateSchedulesRepository implements IUpdateSchedulesRepository {
       });
 
       return executed.map((p) => ({ exec: p.exec, prog: p.prog }));
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === 'P2025') {
         throw new NotFoundException(`Agendamento com ID ${id} não encontrado`);
       }
