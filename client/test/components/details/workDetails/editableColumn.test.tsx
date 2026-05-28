@@ -65,19 +65,24 @@ vi.mock("@/contexts/userContext", () => {
         email: "test@example.com",
       },
       permissions: {
-        id: 1,
+        sub: 1,
         username: "test-user",
-        permissao: "total",
-        permissao_visualizacao: "total",
+        tipo_usuario: "INTERNO",
+        is_admin: false,
+        permissao_edicao: true,
+        id_turma: 1,
+        id_area: 1,
       },
     }),
   };
 });
 
 describe("EditableColumn component", () => {
+  // Valores iniciais diferentes dos que vamos selecionar,
+  // para garantir que o onChange é disparado
   const mockFormData = {
-    id_turma: "2",
-    id_status: 2,
+    id_turma: "1",
+    id_status: 1,
     data_empreitamento: "",
     tipo_ads: "",
   };
@@ -144,15 +149,19 @@ describe("EditableColumn component", () => {
     const selects = screen.getAllByTestId("mock-select") as HTMLSelectElement[];
     const input = screen.getByTestId("mock-data-input");
 
+    // selects[0] = Parceira (id_turma) — valor inicial "1", selecionar "2"
     await user.selectOptions(selects[0], "2");
+    // selects[1] = Status da Obra (id_status) — valor inicial "1", selecionar "2"
     await user.selectOptions(selects[1], "2");
+    // selects[2] = Tipo ADS (tipo_ads) — valor inicial "", selecionar "CONVENCIONAL"
     await user.selectOptions(selects[2], "CONVENCIONAL");
+    // input = Data empreitamento — digitar "2"
     await user.type(input, "2");
 
     expect(onHandleChange).toHaveBeenCalledWith("id_turma", "2");
     expect(onHandleChange).toHaveBeenCalledWith("id_status", "2");
-    expect(onHandleChange).toHaveBeenLastCalledWith("data_empreitamento", "2");
     expect(onHandleChange).toHaveBeenCalledWith("tipo_ads", "CONVENCIONAL");
+    expect(onHandleChange).toHaveBeenCalledWith("data_empreitamento", "2");
 
     expect(onHandleChange).toHaveBeenCalledTimes(4);
   });

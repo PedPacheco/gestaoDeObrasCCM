@@ -61,7 +61,7 @@ export default function TabPanel({
   const { permissions } = useUser();
   const modalsRef = useRef<ModalsManagerRef>(null);
 
-  const [value, setValue] = useState(0);
+  const [value, setValue] = useState(1);
   const [data, setData] = useState<Record<string, any>>(workData);
 
   const [editingSchedule, setEditingSchedule] = useState<any>();
@@ -71,6 +71,12 @@ export default function TabPanel({
 
   const [isInsert, setIsInsert] = useState(true);
   const [executionReportIsInsert, setExecutionReportIsInsert] = useState(true);
+
+  const isAreaAllowed =
+    permissions?.id_area != null &&
+    [8, 2].includes(Number(permissions.id_area));
+
+  const canSeeTab = isAreaAllowed || permissions?.tipo_usuario === "PARCEIRA";
 
   const scheduleForm = useScheduleForm({
     data: editingSchedule,
@@ -96,15 +102,30 @@ export default function TabPanel({
   });
 
   useEffect(() => {
-    const tab = localStorage.getItem("tab");
-    if (tab) setValue(Number(tab));
-  }, []);
-
-  useEffect(() => {
     if (workData) setData(workData);
   }, [workData]);
 
+  useEffect(() => {
+    if (!permissions) return;
+
+    const defaultTab = canSeeTab ? 0 : 1;
+
+    setValue(defaultTab);
+    localStorage.setItem("tab", String(defaultTab));
+  }, [permissions, canSeeTab]);
+
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
+    const allowedTabs = [
+      ...(canSeeTab ? [0] : []),
+      1,
+      2,
+      3,
+      4,
+      ...(canSeeTab ? [5] : []),
+    ];
+
+    if (!allowedTabs.includes(newValue)) return;
+
     setValue(newValue);
     localStorage.setItem("tab", newValue.toString());
   };
@@ -152,17 +173,17 @@ export default function TabPanel({
             valueTab={value}
             handleChange={handleChange}
             feasibilityExists={feasibilityExists}
+            canSeeTabs={canSeeTab}
           />
         </div>
 
         <div className="flex flex-1 overflow-auto">
           <Suspense fallback={<p>carregando informações....</p>}>
-            {permissions?.id_area != null &&
-              [8, 2].includes(permissions.id_area) && (
-                <CustomTabPanel value={value} index={0}>
-                  <WorkCostPanelItem data={data} />
-                </CustomTabPanel>
-              )}
+            {canSeeTab && (
+              <CustomTabPanel value={value} index={0}>
+                <WorkCostPanelItem data={data} />
+              </CustomTabPanel>
+            )}
 
             <CustomTabPanel value={value} index={1}>
               <SchedulePanelItem
@@ -199,9 +220,11 @@ export default function TabPanel({
               />
             </CustomTabPanel>
 
-            <CustomTabPanel value={value} index={5}>
-              Em breve
-            </CustomTabPanel>
+            {canSeeTab && (
+              <CustomTabPanel value={value} index={5}>
+                Em breve
+              </CustomTabPanel>
+            )}
           </Suspense>
         </div>
       </div>

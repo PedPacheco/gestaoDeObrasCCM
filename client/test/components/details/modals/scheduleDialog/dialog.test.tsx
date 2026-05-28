@@ -43,14 +43,14 @@ vi.mock(
   "@/components/details/modals/scheduleDialog/serviceEquipmentPanel",
   () => ({
     ServiceEquipmentPanel: () => <div>ServiceEquipmentPanel</div>,
-  })
+  }),
 );
 
 vi.mock(
   "@/components/details/modals/scheduleDialog/additionalInfoPanel",
   () => ({
     AdditionalInfoPanel: () => <div>AdditionalInfoPanel</div>,
-  })
+  }),
 );
 
 vi.mock("@/components/details/modals/scheduleDialog/teamsPanel", () => ({
@@ -86,10 +86,13 @@ vi.mock("@/contexts/userContext", () => ({
       email: "test@example.com",
     },
     permissions: {
-      id: 1,
+      sub: 1,
       username: "test-user",
-      permissao: "total",
-      permissao_visualizacao: "total",
+      tipo_usuario: "INTERNO",
+      is_admin: false,
+      permissao_edicao: true,
+      id_turma: 1,
+      id_area: 1,
     },
   }),
 }));
@@ -132,7 +135,8 @@ describe("ScheduleFormDialog", () => {
         onExecutionDialogOpen={() => {}}
         options={{ tecnico: [], restricao: [] }}
         statusWork={0}
-      />
+        scheduleStatus="Programado"
+      />,
     );
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
@@ -150,7 +154,8 @@ describe("ScheduleFormDialog", () => {
         statusWork={0}
         onExecutionDialogOpen={() => {}}
         options={{ tecnico: [], restricao: [] }}
-      />
+        scheduleStatus="Programado"
+      />,
     );
     const toggle = screen.getByTestId("accordion-toggle-panel1");
     fireEvent.click(toggle);
@@ -167,7 +172,8 @@ describe("ScheduleFormDialog", () => {
         {...baseProps}
         statusWork={35}
         scheduleForm={{ ...baseProps.scheduleForm }}
-      />
+        scheduleStatus="Programado"
+      />,
     );
     const button = screen.getByRole("button", { name: /Salvar Programação/i });
     await user.click(button);
@@ -182,7 +188,8 @@ describe("ScheduleFormDialog", () => {
         onExecutionDialogOpen={() => {}}
         options={{ tecnico: [], restricao: [] }}
         {...baseProps}
-      />
+        scheduleStatus="Programado"
+      />,
     );
     const button = screen.getByRole("button", { name: /Cancelar/i });
     await user.click(button);
@@ -210,7 +217,8 @@ describe("ScheduleFormDialog", () => {
           formData: { ...baseProps.scheduleForm.formData, exec: "null" },
           initialExecValue: "null",
         }}
-      />
+        scheduleStatus="Programado"
+      />,
     );
     const button = screen.getByRole("button", { name: /Salvar Programação/i });
     await user.click(button);
@@ -228,10 +236,11 @@ describe("ScheduleFormDialog", () => {
         onExecutionDialogOpen={() => {}}
         options={{ tecnico: [], restricao: [] }}
         {...baseProps}
-      />
+        scheduleStatus="Programado"
+      />,
     );
     expect(
-      screen.getByRole("button", { name: /Salvando.../i })
+      screen.getByRole("button", { name: /Salvando.../i }),
     ).toBeInTheDocument();
   });
 
@@ -244,10 +253,13 @@ describe("ScheduleFormDialog", () => {
       email: "partial@example.com",
     },
     permissions: {
-      id: 2,
-      username: "partial-user",
-      permissao: "total",
-      permissao_visualizacao: "parcial",
+      sub: 1,
+      username: "test-user",
+      tipo_usuario: "PARCEIRA",
+      is_admin: false,
+      permissao_edicao: true,
+      id_turma: 1,
+      id_area: 1,
     },
   };
 
@@ -259,7 +271,7 @@ describe("ScheduleFormDialog", () => {
     "disables fields when user has partial permission (isInsert=$isInsert, statusWork=$statusWork)",
     ({ isInsert, statusWork }) => {
       vi.spyOn(UserContextModule, "useUser").mockReturnValue(
-        partialUserMock as any
+        partialUserMock as any,
       );
 
       render(
@@ -269,7 +281,8 @@ describe("ScheduleFormDialog", () => {
           statusWork={statusWork}
           onExecutionDialogOpen={() => {}}
           options={{ tecnico: [], restricao: [] }}
-        />
+          scheduleStatus="Programado"
+        />,
       );
 
       const accordionToggle = screen.getByTestId("accordion-toggle-panel1");
@@ -277,9 +290,9 @@ describe("ScheduleFormDialog", () => {
 
       expect(screen.getByTestId("mock-basic-info-panel")).toHaveAttribute(
         "data-disabled",
-        "true"
+        "true",
       );
-    }
+    },
   );
 
   it("shows and closes ErrorModal when validation fails", async () => {
@@ -307,7 +320,8 @@ describe("ScheduleFormDialog", () => {
           ...baseProps.scheduleForm,
           setFormErrors: setFormErrorsMock,
         }}
-      />
+        scheduleStatus="Programado"
+      />,
     );
 
     const button = screen.getByRole("button", { name: /Salvar Programação/i });
@@ -344,14 +358,15 @@ describe("ScheduleFormDialog", () => {
           ...baseProps.scheduleForm,
           setFormErrors: setFormErrorsMock,
         }}
-      />
+        scheduleStatus="Programado"
+      />,
     );
     const button = screen.getByRole("button", { name: /Salvar Programação/i });
     await user.click(button);
     await waitFor(() => {
       expect(screen.getByTestId("error-modal")).toBeInTheDocument();
       expect(screen.getByTestId("error-message")).toHaveTextContent(
-        "Erro ao salvar programação"
+        "Erro ao salvar programação",
       );
     });
   });
