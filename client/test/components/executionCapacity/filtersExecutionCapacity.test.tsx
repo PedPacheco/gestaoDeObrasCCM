@@ -1,15 +1,23 @@
 // filtersExecutionCapacity.test.tsx
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { FiltersExecutionCapacity } from "@/components/executionCapacity/filtersExecutionCapacity";
 import dayjs from "dayjs";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// =========================
+import { FiltersExecutionCapacity } from "@/components/executionCapacity/filtersExecutionCapacity";
+
+// ============================================================
+// HOISTED MOCKS
+// ============================================================
+
+const { mockUseUser, datePickerOnChangeMock } = vi.hoisted(() => ({
+  mockUseUser: vi.fn(),
+  datePickerOnChangeMock: vi.fn(),
+}));
+
+// ============================================================
 // MOCKS
-// =========================
-
-const mockUseUser = vi.fn();
+// ============================================================
 
 vi.mock("@/contexts/userContext", () => ({
   useUser: () => mockUseUser(),
@@ -21,13 +29,11 @@ vi.mock("@/utils/formatValue", () => ({
   ),
 }));
 
-const datePickerOnChangeMock = vi.fn();
-
-// Mock DatePicker
 vi.mock("@mui/x-date-pickers", () => ({
   LocalizationProvider: ({ children }: any) => <div>{children}</div>,
   DatePicker: ({ onChange }: any) => (
     <button
+      type="button"
       data-testid="date-picker"
       onClick={() => datePickerOnChangeMock(onChange)}
     >
@@ -40,242 +46,203 @@ vi.mock("@mui/x-date-pickers/AdapterDayjs", () => ({
   AdapterDayjs: {},
 }));
 
+// ============================================================
+// CONSTANTES
+// ============================================================
+
+const INTERNAL_ADMIN_PERMISSIONS = {
+  id_area: 8,
+  permissao_edicao: false,
+  is_admin: true,
+  tipo_usuario: "INTERNO",
+};
+
+const PARTNER_PERMISSIONS = {
+  id_area: null,
+  permissao_edicao: false,
+  is_admin: false,
+  tipo_usuario: "PARCEIRA",
+};
+
+const DEFAULT_FILTERS_DATA = {
+  regional: [
+    {
+      id: "1",
+      regional: "Campinas",
+    },
+  ],
+  parceira: [
+    {
+      id: "1",
+      turma: "Turma A",
+    },
+  ],
+};
+
+const DEFAULT_PROPS = {
+  year: "2025",
+  setYear: vi.fn(),
+  filtersData: DEFAULT_FILTERS_DATA,
+  selectedItems: {},
+  setSelectedItems: vi.fn(),
+  teams: [],
+  setTeams: vi.fn(),
+};
+
+// ============================================================
+// HELPERS
+// ============================================================
+
+function mockUserPermissions(permissions: any = INTERNAL_ADMIN_PERMISSIONS) {
+  mockUseUser.mockReturnValue({
+    permissions,
+  });
+}
+
+function renderComponent(overrides: Partial<typeof DEFAULT_PROPS> = {}) {
+  return render(
+    <FiltersExecutionCapacity {...DEFAULT_PROPS} {...(overrides as any)} />,
+  );
+}
+
+function openSelectByIndex(index: number) {
+  const selects = screen.getAllByRole("combobox");
+  fireEvent.mouseDown(selects[index]);
+}
+
+function openLastSelect() {
+  const selects = screen.getAllByRole("combobox");
+  fireEvent.mouseDown(selects[selects.length - 1]);
+}
+
+// ============================================================
+// TESTES
+// ============================================================
+
 describe("FiltersExecutionCapacity", () => {
-  const setYearMock = vi.fn();
-  const setSelectedItemsMock = vi.fn();
-  const setTeamsMock = vi.fn();
-
-  const defaultFiltersData = {
-    regional: [
-      {
-        id: "1",
-        regional: "Campinas",
-      },
-    ],
-    parceira: [
-      {
-        id: "1",
-        turma: "Turma A",
-      },
-    ],
-  };
-
-  const defaultProps = {
-    year: "2025",
-    setYear: setYearMock,
-    filtersData: defaultFiltersData,
-    selectedItems: {},
-    setSelectedItems: setSelectedItemsMock,
-    teams: [],
-    setTeams: setTeamsMock,
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUserPermissions();
   });
 
+  // ----------------------------------------------------------
+  // Renderização
+  // ----------------------------------------------------------
   describe("Renderização", () => {
-    it("deve renderizar DatePicker", () => {
-      mockUseUser.mockReturnValue({
-        permissions: {
-          permissao_visualizacao: "total",
-        },
-      });
-
-      render(<FiltersExecutionCapacity {...defaultProps} />);
+    it("deve renderizar o DatePicker", () => {
+      renderComponent();
 
       expect(screen.getByTestId("date-picker")).toBeInTheDocument();
     });
 
-    it("deve renderizar filtros dinamicamente", () => {
-      mockUseUser.mockReturnValue({
-        permissions: {
-          permissao_visualizacao: "total",
-        },
-      });
-
-      render(<FiltersExecutionCapacity {...defaultProps} />);
+    it("deve renderizar os filtros dinâmicos", () => {
+      renderComponent();
 
       expect(screen.getByLabelText("Regional")).toBeInTheDocument();
       expect(screen.getByLabelText("Turma")).toBeInTheDocument();
     });
 
-    it("deve renderizar filtro de equipes", () => {
-      mockUseUser.mockReturnValue({
-        permissions: {
-          permissao_visualizacao: "total",
-        },
-      });
-
-      render(<FiltersExecutionCapacity {...defaultProps} />);
+    it("deve renderizar o filtro de equipes", () => {
+      renderComponent();
 
       expect(screen.getAllByText("Equipe")[0]).toBeInTheDocument();
     });
 
-    it("deve ocultar filtro turma para visão parcial", () => {
-      mockUseUser.mockReturnValue({
-        permissions: {
-          permissao_visualizacao: "parcial",
-        },
-      });
+    it("deve ocultar o filtro Turma para utilizador PARCEIRA", () => {
+      mockUserPermissions(PARTNER_PERMISSIONS);
 
-      render(<FiltersExecutionCapacity {...defaultProps} />);
+      renderComponent();
 
       expect(screen.getByLabelText("Regional")).toBeInTheDocument();
-
       expect(screen.queryByLabelText("Turma")).not.toBeInTheDocument();
     });
 
-    it("deve renderizar turma para visão total", () => {
-      mockUseUser.mockReturnValue({
-        permissions: {
-          permissao_visualizacao: "total",
+    it("não deve renderizar filtros quando os arrays estiverem vazios", () => {
+      renderComponent({
+        filtersData: {
+          regional: [],
+          parceira: [],
         },
       });
-
-      render(<FiltersExecutionCapacity {...defaultProps} />);
-
-      expect(screen.getByLabelText("Turma")).toBeInTheDocument();
-    });
-
-    it("não deve renderizar filtros vazios", () => {
-      mockUseUser.mockReturnValue({
-        permissions: {
-          permissao_visualizacao: "total",
-        },
-      });
-
-      render(
-        <FiltersExecutionCapacity
-          {...defaultProps}
-          filtersData={{
-            regional: [],
-            parceira: [],
-          }}
-        />,
-      );
 
       expect(screen.queryByLabelText("Regional")).not.toBeInTheDocument();
-
       expect(screen.queryByLabelText("Turma")).not.toBeInTheDocument();
     });
 
-    it("não deve renderizar filtros null", () => {
-      mockUseUser.mockReturnValue({
-        permissions: {
-          permissao_visualizacao: "total",
+    it("não deve renderizar filtros quando os valores forem null", () => {
+      renderComponent({
+        filtersData: {
+          regional: null as any,
+          parceira: null as any,
         },
       });
 
-      render(
-        <FiltersExecutionCapacity
-          {...defaultProps}
-          filtersData={{
-            regional: null as any,
-            parceira: null as any,
-          }}
-        />,
-      );
-
       expect(screen.queryByLabelText("Regional")).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("Turma")).not.toBeInTheDocument();
     });
   });
 
+  // ----------------------------------------------------------
+  // DatePicker
+  // ----------------------------------------------------------
   describe("DatePicker", () => {
-    it("deve chamar setYear ao alterar ano", () => {
-      mockUseUser.mockReturnValue({
-        permissions: {
-          permissao_visualizacao: "total",
-        },
-      });
-
+    it("deve chamar setYear com o ano selecionado", () => {
       datePickerOnChangeMock.mockImplementation((onChange) => {
         onChange({
           year: () => 2026,
         });
       });
 
-      render(<FiltersExecutionCapacity {...defaultProps} />);
+      renderComponent();
 
       fireEvent.click(screen.getByTestId("date-picker"));
 
-      expect(setYearMock).toHaveBeenCalledWith("2026");
+      expect(DEFAULT_PROPS.setYear).toHaveBeenCalledWith("2026");
     });
 
     it("deve selecionar o ano atual ao limpar o filtro", () => {
-      mockUseUser.mockReturnValue({
-        permissions: {
-          permissao_visualizacao: "total",
-        },
-      });
-
       const currentYear = dayjs().year().toString();
 
       datePickerOnChangeMock.mockImplementation((onChange) => {
         onChange(null);
       });
 
-      render(<FiltersExecutionCapacity {...defaultProps} />);
+      renderComponent();
 
       fireEvent.click(screen.getByTestId("date-picker"));
 
-      expect(setYearMock).toHaveBeenCalledWith(currentYear);
+      expect(DEFAULT_PROPS.setYear).toHaveBeenCalledWith(currentYear);
     });
   });
 
+  // ----------------------------------------------------------
+  // Selects
+  // ----------------------------------------------------------
   describe("Selects", () => {
-    it("deve chamar setSelectedItems ao alterar filtro", () => {
-      mockUseUser.mockReturnValue({
-        permissions: {
-          permissao_visualizacao: "total",
-        },
-      });
+    it("deve chamar setSelectedItems ao alterar um filtro dinâmico", () => {
+      renderComponent();
 
-      render(<FiltersExecutionCapacity {...defaultProps} />);
+      openSelectByIndex(0);
 
-      const selects = screen.getAllByRole("combobox");
+      fireEvent.click(screen.getByText("Campinas"));
 
-      fireEvent.mouseDown(selects[0]);
-
-      const option = screen.getByText("Campinas");
-
-      fireEvent.click(option);
-
-      expect(setSelectedItemsMock).toHaveBeenCalled();
+      expect(DEFAULT_PROPS.setSelectedItems).toHaveBeenCalled();
     });
 
-    it("deve chamar setTeams ao alterar equipes", () => {
-      mockUseUser.mockReturnValue({
-        permissions: {
-          permissao_visualizacao: "total",
-        },
-      });
+    it("deve chamar setTeams ao alterar o filtro de equipes", () => {
+      renderComponent();
 
-      render(<FiltersExecutionCapacity {...defaultProps} />);
-
-      const selects = screen.getAllByRole("combobox");
-
-      const teamSelect = selects[selects.length - 1];
-
-      fireEvent.mouseDown(teamSelect);
+      openLastSelect();
 
       fireEvent.click(screen.getByText("BTZERO"));
 
-      expect(setTeamsMock).toHaveBeenCalled();
+      expect(DEFAULT_PROPS.setTeams).toHaveBeenCalled();
     });
 
-    it("deve renderizar todas as equipes", () => {
-      mockUseUser.mockReturnValue({
-        permissions: {
-          permissao_visualizacao: "total",
-        },
-      });
+    it("deve renderizar todas as opções de equipe", () => {
+      renderComponent();
 
-      render(<FiltersExecutionCapacity {...defaultProps} />);
-
-      const selects = screen.getAllByRole("combobox");
-
-      fireEvent.mouseDown(selects[selects.length - 1]);
+      openLastSelect();
 
       expect(screen.getByText("BTZERO")).toBeInTheDocument();
       expect(screen.getByText("LM")).toBeInTheDocument();
@@ -283,69 +250,48 @@ describe("FiltersExecutionCapacity", () => {
     });
   });
 
-  describe("Cobertura de branches", () => {
+  // ----------------------------------------------------------
+  // Branches / casos limite
+  // ----------------------------------------------------------
+  describe("Branches e casos limite", () => {
     it("deve funcionar quando permissions for undefined", () => {
-      mockUseUser.mockReturnValue({
-        permissions: undefined,
-      });
+      mockUserPermissions(undefined);
 
-      render(<FiltersExecutionCapacity {...defaultProps} />);
+      renderComponent();
 
       expect(screen.getByTestId("date-picker")).toBeInTheDocument();
     });
 
     it("deve renderizar corretamente quando teams for null", () => {
-      mockUseUser.mockReturnValue({
-        permissions: {
-          permissao_visualizacao: "total",
-        },
+      renderComponent({
+        teams: null as any,
       });
-
-      render(<FiltersExecutionCapacity {...defaultProps} teams={null} />);
 
       expect(screen.getAllByText("Equipe")[0]).toBeInTheDocument();
     });
 
     it("deve renderizar corretamente quando selectedItems possuir valores", () => {
-      mockUseUser.mockReturnValue({
-        permissions: {
-          permissao_visualizacao: "total",
+      renderComponent({
+        selectedItems: {
+          id_regionalRegionais: ["001"],
         },
       });
-
-      render(
-        <FiltersExecutionCapacity
-          {...defaultProps}
-          selectedItems={{
-            id_regionalRegionais: ["001"],
-          }}
-        />,
-      );
 
       expect(screen.getByLabelText("Regional")).toBeInTheDocument();
     });
 
     it("deve renderizar corretamente quando displayKey possuir underscore", () => {
-      mockUseUser.mockReturnValue({
-        permissions: {
-          permissao_visualizacao: "total",
-        },
+      renderComponent({
+        filtersData: {
+          tipo: [
+            {
+              id: "1",
+              tipo_obra: "Item 1",
+              id_grupo: 3,
+            },
+          ],
+        } as any,
       });
-
-      render(
-        <FiltersExecutionCapacity
-          {...defaultProps}
-          filtersData={{
-            tipo: [
-              {
-                id: "1",
-                tipo_obra: "Item 1",
-                id_grupo: 3,
-              },
-            ],
-          }}
-        />,
-      );
 
       expect(screen.getByLabelText("Tipo obra")).toBeInTheDocument();
     });

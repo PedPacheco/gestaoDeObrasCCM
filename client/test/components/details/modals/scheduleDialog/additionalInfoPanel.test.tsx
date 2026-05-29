@@ -62,7 +62,7 @@ describe("AdditionalInfoPanel component", () => {
         }}
         onInputChange={vi.fn()}
         disabledFields={() => false}
-        permission="parcial"
+        permission="PARCEIRA"
       />,
     );
 
@@ -71,6 +71,6 @@ describe("AdditionalInfoPanel component", () => {
     expect(comboboxes[1]).toHaveAttribute("aria-disabled", "true");
     expect(comboboxes[2]).toHaveAttribute("aria-disabled", "true");
 
-    expect(screen.getByLabelText("Observação da Execução")).toBeDisabled(); // TextField funciona normal
+    expect(screen.getByLabelText("Observação da Execução")).toBeDisabled();
   });
 });

@@ -212,8 +212,10 @@ describe("WorkDetails", () => {
   };
 
   const defaultPermissions = {
-    permissao_visualizacao: "total",
-    permissao_publicacao: true,
+    id_area: 8,
+    permissao_edicao: false,
+    is_admin: true,
+    tipo_usuario: "INTERNO",
   };
 
   beforeEach(() => {

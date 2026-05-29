@@ -109,16 +109,19 @@ describe("ModalsManager", () => {
   const defaultProps = {
     idWork: 1,
     statusWork: 1,
-    options: {},
+    options: {
+      restricao: [{ restricao: "DATA", tipo_restricao: "REPROVADO" }],
+    },
     scheduleForm: {},
     isInsert: false,
     executionReportIsInsert: false,
     handleReject: vi.fn(),
-    rejectedSchedule: { id: 1, reject: false },
+    rejectedSchedule: [{ id: 1, reject: false }],
     onCloseDialog: vi.fn(),
     onConfirmDelete: vi.fn(),
     onConfirmExecutionDelete: vi.fn(),
     totalExec: 80,
+    scheduleStatus: "PROGRAMADO",
   };
 
   const setup = () => {
