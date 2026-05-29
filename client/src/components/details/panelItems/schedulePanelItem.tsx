@@ -205,8 +205,6 @@ export default function SchedulePanelItem({
     return isAdmin || isArea8WithEditPermission || isParceiraAllowedStatus;
   };
 
-  console.log();
-
   return (
     <>
       <TableContainer className="h-full">

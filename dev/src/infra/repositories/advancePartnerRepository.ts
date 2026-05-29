@@ -289,7 +289,7 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
           WHERE
             equipes_disponiveis > 0
             AND equipes_alocadas::float / equipes_disponiveis >= 0.7
-            AND semana_inicio >= (CURRENT_DATE - EXTRACT(DOW FROM CURRENT_DATE)::integer - 7)::date
+            AND semana_inicio >= (CURRENT_DATE - EXTRACT(DOW FROM CURRENT_DATE)::integer)::date
         ) AS semanas
       FROM semana_com_cap
       GROUP BY parceira

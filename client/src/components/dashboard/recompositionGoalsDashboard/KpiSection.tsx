@@ -47,7 +47,7 @@ export function KpiSection({ metrics }: KpiSectionProps) {
             color={pctColor(taxaReal).bar}
             sub={
               totalReal - totalMeta > 0
-                ? `Meta superada por ${NUM(totalReal - totalMeta)}`
+                ? `Meta superada +${NUM(totalReal - totalMeta)}`
                 : `Faltam ${NUM(totalReal - totalMeta)}`
             }
           />
