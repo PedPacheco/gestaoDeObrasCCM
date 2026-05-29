@@ -372,7 +372,7 @@ describe('AdvancePartnerRepository', () => {
       const query = getSqlString(prismaService.$queryRaw.mock.calls[0][0]);
 
       expect(query).toContain(
-        'semana_inicio >= (CURRENT_DATE - EXTRACT(DOW FROM CURRENT_DATE)::integer - 7)::date',
+        'semana_inicio >= (CURRENT_DATE - EXTRACT(DOW FROM CURRENT_DATE)::integer)::date',
       );
     });
   });
