@@ -31,7 +31,7 @@ vi.mock("@/utils/transform", () => ({
       Object.entries(filters).map(([key, value]) => [
         key,
         Array.isArray(value) && value.length > 0 ? value.join(",") : "",
-      ])
+      ]),
     );
   }),
 }));
@@ -51,7 +51,7 @@ vi.mock(
         Main Schedule For Day
       </div>
     )),
-  })
+  }),
 );
 
 describe("Publications restrictions page", () => {
@@ -129,10 +129,10 @@ describe("Publications restrictions page", () => {
         parceira: "Parceira 1",
         dataInicial: "17/05/2025",
         dataFinal: "22/05/2025",
-        executado: "true",
+        status: null,
       },
       mockToken,
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
   });
 
@@ -165,10 +165,10 @@ describe("Publications restrictions page", () => {
         parceira: "Parceira 1",
         dataInicial: null,
         dataFinal: null,
-        executado: "true",
+        status: null,
       },
       mockToken,
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
   });
 
@@ -183,10 +183,10 @@ describe("Publications restrictions page", () => {
     expect(fetchData).toHaveBeenCalledWith(
       "https://api.example.com/restricao/publicacoes",
       {
-        executado: "false",
+        status: null,
       },
       mockToken,
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
   });
 
@@ -194,16 +194,16 @@ describe("Publications restrictions page", () => {
     render(await PublicationRestriction());
 
     const scheduleRestrictions = screen.getByTestId(
-      "main-schedule-restrictions"
+      "main-schedule-restrictions",
     );
 
     expect(scheduleRestrictions).toBeInTheDocument();
 
     expect(
-      JSON.parse(scheduleRestrictions.getAttribute("data-data") || "[]")
+      JSON.parse(scheduleRestrictions.getAttribute("data-data") || "[]"),
     ).toEqual(mockData);
     expect(
-      JSON.parse(scheduleRestrictions.getAttribute("data-filtersData") || "[]")
+      JSON.parse(scheduleRestrictions.getAttribute("data-filtersData") || "[]"),
     ).toEqual(mockFilters);
     expect(scheduleRestrictions.getAttribute("data-token")).toBe(mockToken);
   });
