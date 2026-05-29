@@ -8,8 +8,9 @@ import ForecastDashboard from "./ForecastDashboard";
 import LaborDashboard from "./laborDashboard/laborDashboard";
 import MonitoringExecutionDashboard from "./monitoringExecutionDashboard/monitoringExecutionDashboard";
 import RecompositionGoalsDashboard from "./recompositionGoalsDashboard/RecompositionGoalsDashboard";
+import { useUser } from "@/contexts/userContext";
 
-// Formats "YYYY-MM" → "MMM/YY"
+// ... (manter todas as interfaces existentes: Kpis, ByStatus, ByRegional, etc.)
 
 export interface Kpis {
   total: number;
@@ -59,21 +60,15 @@ export interface DataDashboardInterface {
 }
 
 interface Props {
-  // dataDashboard: DataDashboardInterface;
-  // Resumo Mensal — Mão de Obra
   token: string;
   initialMaodeObra: any;
   initialMaodeObra2: any;
   initialMetaDiaria: number;
-  // Resumo Mensal — Forecast
   initialForecastFirst: any;
   initialForecastSecond: any;
-  // Metas Recomposição
   initialMetasRecomposicao: any[];
   goalsFilters: any;
-  // Acompanhamento da Execução
   initialExecMonitoring: any[];
-  // Avança Parceiro
   initialEliminacaoRestricao: any[];
   initialAderenciaParceira: any[];
   initialSparklinesPartners: any[];
@@ -94,36 +89,22 @@ type Tab =
 
 export function pctColor(pct: number) {
   if (pct >= 100) {
-    return {
-      bg: "#053715",
-      text: "#53FF75",
-      bar: "#53FF75",
-    };
+    return { bg: "#053715", text: "#53FF75", bar: "#53FF75" };
   }
-
   if (pct >= 89 && pct < 100) {
-    return {
-      bg: "#451a03",
-      text: "#facc15",
-      bar: "#facc15",
-    };
+    return { bg: "#451a03", text: "#facc15", bar: "#facc15" };
   }
-
-  return {
-    bg: "#450a0a",
-    text: "#f87171",
-    bar: "#ef4444",
-  };
+  return { bg: "#450a0a", text: "#f87171", bar: "#ef4444" };
 }
 
+// ✅ Áreas permitidas para utilizadores internos
+const ALLOWED_AREAS = [2, 8];
+
 export default function DashboardClient({
-  // dataDashboard,
   token,
   initialMaodeObra,
   initialMaodeObra2,
   initialMetaDiaria,
-  // initialForecastFirst,
-  // initialForecastSecond,
   initialMetasRecomposicao,
   goalsFilters,
   initialExecMonitoring,
@@ -152,47 +133,22 @@ export default function DashboardClient({
     return () => observer.disconnect();
   }, []);
 
-  // top-16 = 64px (navbar) + altura real do tab switcher
   const filtersTop = 76 + tabSwitcherHeight;
 
   const partners = [
-    {
-      name: "Engelmig",
-      logo: "/engelmig-logo.png",
-    },
-    {
-      name: "LIG",
-      logo: "/lig-logo.png",
-    },
-    {
-      name: "Start",
-      logo: "/start-logo.png",
-    },
-    {
-      name: "Manserv",
-      logo: "/manserv-logo.png",
-    },
-    {
-      name: "OCA",
-      logo: "/oca-logo.png",
-    },
-    {
-      name: "Cosampa",
-      logo: "/cosampa-logo.png",
-    },
-    {
-      name: "Compel",
-      logo: "/compel-logo.png",
-    },
-    {
-      name: "Baramaia",
-      logo: "/baramaia-logo.png",
-    },
+    { name: "Engelmig", logo: "/engelmig-logo.png" },
+    { name: "LIG", logo: "/lig-logo.png" },
+    { name: "Start", logo: "/start-logo.png" },
+    { name: "Manserv", logo: "/manserv-logo.png" },
+    { name: "OCA", logo: "/oca-logo.png" },
+    { name: "Cosampa", logo: "/cosampa-logo.png" },
+    { name: "Compel", logo: "/compel-logo.png" },
+    { name: "Baramaia", logo: "/baramaia-logo.png" },
   ];
 
   return (
-    <div className="flex flex-col min-h-full ">
-      {/* ── Tab Switcher ──────────────────────────────────────────── */}
+    <div className="flex flex-col min-h-full">
+      {/* ── Tab Switcher ─────────────────────────────────────── */}
       <div
         ref={tabSwitcherRef}
         className="sticky top-16 z-30 bg-white flex justify-between items-center gap-1 px-3 pt-3 pb-0 border-b border-white/5"
@@ -200,10 +156,7 @@ export default function DashboardClient({
         <div className="flex gap-1">
           {(
             [
-              {
-                key: "mao-de-obra",
-                label: "Resumo — Mão de Obra Parceira",
-              },
+              { key: "mao-de-obra", label: "Resumo — Mão de Obra Parceira" },
               { key: "metas-recomposicao", label: "Metas Recomposição" },
               {
                 key: "acompanhamento-execucao",
@@ -244,7 +197,7 @@ export default function DashboardClient({
         </div>
       </div>
 
-      {/* ── Tab Content ───────────────────────────────────────────── */}
+      {/* ── Tab Content ──────────────────────────────────────── */}
       {activeTab === "metas-recomposicao" ? (
         <RecompositionGoalsDashboard
           initialGoals={initialMetasRecomposicao}
