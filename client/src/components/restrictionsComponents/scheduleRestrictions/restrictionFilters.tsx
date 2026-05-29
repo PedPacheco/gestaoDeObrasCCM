@@ -80,7 +80,7 @@ export default function RestrictionFilters({
       ...formattedSelectedItems,
       dataInicial: startDate ? startDate.format("DD/MM/YYYY") : null,
       dataFinal: endDate ? endDate.format("DD/MM/YYYY") : null,
-
+      ovnota: ovnota,
       status: status.length ? status.join(",") : null,
     };
   }

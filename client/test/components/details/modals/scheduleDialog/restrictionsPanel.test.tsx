@@ -66,7 +66,7 @@ describe("RestrictionsPanel", () => {
     await userEvent.click(selects[1]);
     await userEvent.click(screen.getByText("Edp"));
 
-    expect(onInputChange).toHaveBeenCalledWith("responsiblityProg");
+    expect(onInputChange).toHaveBeenCalledWith("responsibilityProg");
   });
 
   it("deve renderizar valores nos campos de texto", () => {

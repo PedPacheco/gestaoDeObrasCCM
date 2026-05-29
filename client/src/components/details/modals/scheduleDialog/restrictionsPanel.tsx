@@ -73,12 +73,12 @@ export function RestrictionsPanel({
       <FormControl
         fullWidth
         margin="normal"
-        error={!!formErrors.responsiblityProg}
+        error={!!formErrors.responsibilityProg}
       >
         <InputLabel>1° Responsabilidade</InputLabel>
         <Select
-          value={formData.responsiblityProg || ""}
-          onChange={onInputChange("responsiblityProg")}
+          value={formData.responsibilityProg || ""}
+          onChange={onInputChange("responsibilityProg")}
           label="1° Responsabilidade"
           disabled={disabled}
         >
@@ -201,7 +201,7 @@ export function RestrictionsPanel({
         <InputLabel>2° Responsabilidade</InputLabel>
         <Select
           value={formData.responsibilityProg2 || ""}
-          onChange={onInputChange("responsiblityProg2")}
+          onChange={onInputChange("responsibilityProg2")}
           label="2° Responsabilidade"
           disabled={disabled}
         >

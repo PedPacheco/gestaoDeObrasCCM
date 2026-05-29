@@ -56,14 +56,14 @@ export const INITIAL_FORM_DATA: FormData = {
   executionObservation: "",
   // Campos de restrições - Bloco 1
   idProgRestriction1: 1,
-  responsiblityProg: "",
+  responsibilityProg: "",
   responsibleName: "",
   responsibleArea: "",
   restrictionStatus: "",
   resolutionDate: null,
   // Campos de restrições - Bloco 2
   idProgRestriction2: 1,
-  responsiblityProg2: "",
+  responsibilityProg2: "",
   responsibleName2: "",
   responsibleArea2: "",
   restrictionStatus2: "",

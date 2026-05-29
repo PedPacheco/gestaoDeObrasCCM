@@ -4,6 +4,7 @@ import { HandleAddScheduleService } from 'src/application/usecases/orchestrators
 import { HandleSchedulesUpdateService } from 'src/application/usecases/orchestrators/handleSchedulesUpdate.service';
 import { AddSchedulesService } from 'src/application/usecases/schedule/addSchedules.service';
 import { DeleteSchedulesService } from 'src/application/usecases/schedule/deleteSchedules.service';
+import { ExecMonitoringService } from 'src/application/usecases/schedule/execMonitoring.service';
 import { MonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
 import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
 import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
@@ -12,12 +13,14 @@ import { RejectionsOfSchedulesService } from 'src/application/usecases/schedule/
 import { ScheduleExecutionValidatorService } from 'src/application/usecases/schedule/scheduleExecutionValidator.service';
 import { UpdateSchedulesService } from 'src/application/usecases/schedule/updateSchedules.service';
 import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/schedule/validateAndConfirmSchedules.service';
+import { EXEC_MONITORING_REPOSITORY } from 'src/domain/repositories/schedule/IExecMonitoringRepository';
+import { ExecMonitoringRepository } from 'src/infra/repositories/schedule/execMonitoringRepository';
 import { EXECUTION_CAPACITY_REPOSITORY } from 'src/domain/repositories/IExecutionCapacityRepository';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
 import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IAddSchedulesRepository';
 import { DELETE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IDeleteSchedulesRepository';
 import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
-import { FORECAST_SNAPSHOT } from 'src/domain/repositories/schedule/IForecastSnapshotRepository';
+import { FORECAST_SNAPSHOT } from 'src/domain/repositories/IForecastSnapshotRepository';
 import { GET_MONTHLY_SUMMARY_FORECAST_REPOSITORY } from 'src/domain/repositories/schedule/IGetMonthlySummaryForecastRepository';
 import { GET_MONTHLY_SUMMARY_REPOSITORY } from 'src/domain/repositories/schedule/IGetMonthlySummaryRepository';
 import { GET_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetScheduleValuesRepository';
@@ -58,6 +61,7 @@ import { SchedulesActionsController } from '../controllers/schedules/schedulesAc
 import { ExecutionReportModule } from './executionReport.module';
 import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
+import { TeamAggregationService } from 'src/domain/services/teamAggregator.service';
 
 // import { UpdateRestrictionsService } from 'src/application/schedule/updateRestrictions.service';
 // import { UPDATE_RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateRestrictionsRepository';
@@ -93,6 +97,8 @@ import { WorksModule } from './works.module';
   ],
   controllers: [ScheduleController, SchedulesActionsController],
   providers: [
+    TeamAggregationService,
+    ExecMonitoringService,
     AddSchedulesService,
     UpdateSchedulesService,
     DeleteSchedulesService,
@@ -163,6 +169,10 @@ import { WorksModule } from './works.module';
     {
       provide: FORECAST_SNAPSHOT,
       useClass: ForecastSnapshotRepository,
+    },
+    {
+      provide: EXEC_MONITORING_REPOSITORY,
+      useClass: ExecMonitoringRepository,
     },
     // {
     //   provide: UPDATE_RESTRICTIONS_REPOSITORY,

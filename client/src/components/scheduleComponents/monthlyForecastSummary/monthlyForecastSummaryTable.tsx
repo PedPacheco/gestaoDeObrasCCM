@@ -8,7 +8,7 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import utc from "dayjs/plugin/utc";
 
-import { TableSummaryInterface } from "@/interfaces/tableSummaryInterface";
+import { TableSummaryInterface } from "@/types/tableSummaryInterface";
 import { FormatCurrency, formatPercentage } from "@/utils/formatValue";
 import {
   Paper,
@@ -46,7 +46,7 @@ const totalsKeyMap: Record<string, string> = {
 };
 
 const totalsSecondSummaryKeyMap: Record<string, string> = {
-  qtdeWorks: "totalWorks",
+  totalSchedules: "totalWorks",
   totalServiceMoProg: "totalServiceMoProgByGrouping",
   totalServiceMoPlan: "totalServiceMoPlanByGrouping",
   totalServiceMoPend: "totalServiceMoPendByGrouping",

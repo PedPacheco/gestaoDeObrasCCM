@@ -94,6 +94,31 @@ export class InsertPublicationRestrictionsDTO {
   idUser: number;
 }
 
+export class GetRestrictionsAdvancePartnerDTO {
+  @IsString()
+  @IsOptional()
+  dataInicial?: string;
+
+  @IsString()
+  @IsOptional()
+  dataFinal?: string;
+
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idRegional?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idParceira?: number[];
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['Edp', 'Parceira', 'Terceiro'])
+  responsabilidade?: string;
+}
+
 export class UpdatePublicationRestrictionsDTO {
   @IsNumber()
   id: number;

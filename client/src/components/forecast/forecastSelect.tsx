@@ -46,7 +46,7 @@ export function SnapshotSelect({ snapshots, selectedId, token }: Props) {
 
     if (start) setStartDate(dayjs(start));
     if (end) setEndDate(dayjs(end));
-  }, []);
+  }, [searchParams]);
 
   // ✅ Atualiza snapshot selecionado
   const handleChange = (event: SelectChangeEvent) => {
@@ -211,7 +211,7 @@ export function SnapshotSelect({ snapshots, selectedId, token }: Props) {
       </div>
 
       {/* ✅ Botão deletar */}
-      {permissions?.permissao === "Total" && (
+      {permissions?.is_admin && (
         <ButtonComponent
           text="Excluir relatório"
           styled="mb-4 mt-6 w-56"

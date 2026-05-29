@@ -7,7 +7,7 @@ import {
   useRouteNavigation,
 } from "@/hooks/routePlanner/useRouteNavigation";
 import { useWaypoints } from "@/hooks/routePlanner/useWaypoints";
-import { ObraPin } from "@/interfaces/worksMapInterface";
+import { ObraPin } from "@/types/worksMapInterface";
 
 import { RouteDirectionToggle } from "./routeDirectionToggle";
 import { RoutePlannerFooter } from "./routePlannerFooter";

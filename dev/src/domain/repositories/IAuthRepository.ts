@@ -4,11 +4,14 @@ export interface IAuthRepository {
   register({
     username,
     senha,
-    permissao,
+    is_admin,
+    nome,
+    permissao_edicao,
+    tipo_usuario,
+    id_area,
     id_regional,
+    id_turma,
     email,
-    nome_usuario,
-    permissao_visualizacao,
   }: User): Promise<User>;
 }
 

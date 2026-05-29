@@ -1,4 +1,4 @@
-import { ObraPin } from "@/interfaces/worksMapInterface";
+import { ObraPin } from "@/types/worksMapInterface";
 import { useState, useRef, useCallback } from "react";
 
 export interface Waypoint {

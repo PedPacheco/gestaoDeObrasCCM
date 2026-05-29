@@ -3,6 +3,7 @@ import moment from 'moment';
 
 import {
   IRestrictionsRepository,
+  ProcessedRestrictionsFilters,
   RESTRICTIONS_REPOSITORY,
 } from 'src/domain/repositories/IRestrictionsRepository';
 import {
@@ -10,25 +11,6 @@ import {
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
 } from 'src/interface/dtos/restrictionsDTO';
-
-export interface ProcessedRestrictionsFilters {
-  dataInicial?: Date;
-  dataFinal?: Date;
-  ovnota?: string;
-  idRegional?: number[];
-  idMunicipio?: number[];
-  idGrupo?: number[];
-  idTipo?: number[];
-  idParceira?: number[];
-  idRestricao?: number[];
-  /**
-   * undefined → sem filtro de execução (ambos ou nenhum status selecionado)
-   * true      → apenas registros executados (status 'done')
-   * false     → apenas registros pendentes (status 'pending')
-   */
-  filterExecutado?: boolean;
-  page?: number;
-}
 
 @Injectable()
 export class RestrictionsService {

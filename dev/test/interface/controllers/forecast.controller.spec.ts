@@ -3,7 +3,7 @@ import { UsersService } from 'src/application/usecases/users.service';
 import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ForecastController } from 'src/interface/controllers/forecast.controller';
-import { ForecastSnapshotService } from 'src/application/usecases/schedule/forecastSnapshot.service';
+import { ForecastSnapshotService } from 'src/application/usecases/forecastSnapshot.service';
 import { createForecastSnapshotMock } from '../../../test/mocks/mockAddScheduleService';
 import moment from 'moment';
 

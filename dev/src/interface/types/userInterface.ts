@@ -29,6 +29,11 @@ export interface loginInterfaceService {
   nome_usuario: string;
   email: string;
   access_token: string;
+  is_admin: boolean;
+  permissao_edicao: boolean;
+  id_turma: number;
+  id_area: number;
+  tipo_usuario: string;
 }
 
 export interface loginInterfaceController {

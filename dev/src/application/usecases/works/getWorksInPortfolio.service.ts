@@ -60,7 +60,7 @@ export class GetWorksInPortfolioService {
       total_obras: Number(totals[0].total_obras),
       total_mo_planejada: totals[0].total_mo_planejada || 0,
       total_mo_exec: totals[0].total_mo_exec || 0,
-      total_mo_pend: totals[0].total_mo_pend || 0,
+      total_mo_pend: totals[0].total_mo_planejada - totals[0].total_mo_exec,
       total_qtde_planejada: totals[0].total_qtde_planejada || 0,
       total_qtde_pend: totals[0].total_qtde_pend || 0,
     };

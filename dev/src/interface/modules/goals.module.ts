@@ -6,9 +6,10 @@ import { GoalsRepository } from 'src/infra/repositories/goalsRepository';
 import { Module } from '@nestjs/common';
 
 import { GoalsController } from '../controllers/goals.controller';
+import { UsersModule } from './users.module';
 
 @Module({
-  imports: [CacheModule],
+  imports: [CacheModule, UsersModule],
   controllers: [GoalsController],
   providers: [
     GoalsService,

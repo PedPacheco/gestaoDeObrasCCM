@@ -46,16 +46,15 @@ describe('AuthController', () => {
 
       const mockResponse = {
         id: 1,
-        username: 'username',
-        senha: 'teste123',
-        email: 'teste@gmail.com',
-        formulario_utilizado: null,
+        username: 'teste123',
         id_regional: 1,
-        id_parceira: 2,
-        nome_maquina: null,
-        nome_usuario: 'teste',
-        permissao: 'Total',
-        permissao_visualizacao: 'parcial',
+        id_turma: 1,
+        id_area: 8,
+        is_admin: true,
+        nome_usuario: 'Teste',
+        tipo_usuario: 'INTERNO',
+        permissao_edicao: true,
+        email: 'teste@gmail.com',
         access_token: 'token',
       };
 
@@ -87,9 +86,14 @@ describe('AuthController', () => {
         data: {
           id: mockResponse.id,
           username: mockResponse.username,
-          id_regional: mockResponse.id_regional,
           nome_usuario: mockResponse.nome_usuario,
+          id_regional: mockResponse.id_regional,
+          id_area: mockResponse.id_area,
+          id_turma: mockResponse.id_turma,
+          permissao_edicao: mockResponse.permissao_edicao,
+          tipo_usuario: mockResponse.tipo_usuario,
           email: mockResponse.email,
+          is_admin: mockResponse.is_admin,
         },
       });
     });
@@ -119,21 +123,26 @@ describe('AuthController', () => {
       const mockResponse = new User({
         id: 1,
         username: 'teste123',
-        senha: '12345',
-        permissao: 'total',
         id_regional: 1,
-        nome_usuario: 'Teste',
+        id_turma: 1,
+        id_area: 8,
+        is_admin: true,
+        nome: 'Teste',
+        tipo_usuario: 'INTERNO',
+        permissao_edicao: true,
         email: 'teste@gmail.com',
-        permissao_visualizacao: 'parcial',
       });
 
       const registerUserDTO: RegisterUserDTO = {
         username: 'teste123',
         id_regional: 1,
-        permissao: 'total',
-        email: 'teste@gmail.com',
-        nome_usuario: 'Teste',
         id_turma: 1,
+        id_area: 8,
+        is_admin: true,
+        nome: 'Teste',
+        tipo_usuario: 'INTERNO',
+        permissao_edicao: true,
+        email: 'teste@gmail.com',
       };
 
       jest.spyOn(authService, 'register').mockResolvedValue(mockResponse);
@@ -155,10 +164,13 @@ describe('AuthController', () => {
       const registerUserDTO: RegisterUserDTO = {
         username: 'teste123',
         id_regional: 1,
-        permissao: 'total',
-        email: 'teste@gmail.com',
-        nome_usuario: 'Teste',
         id_turma: 1,
+        id_area: 8,
+        is_admin: true,
+        nome: 'Teste',
+        tipo_usuario: 'INTERNO',
+        permissao_edicao: true,
+        email: 'teste@gmail.com',
       };
 
       jest

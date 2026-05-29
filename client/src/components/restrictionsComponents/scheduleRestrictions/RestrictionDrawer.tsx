@@ -22,6 +22,7 @@ import {
 } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { permission } from "process";
 
 interface RestrictionDrawerProps {
   open: boolean;
@@ -30,7 +31,7 @@ interface RestrictionDrawerProps {
   onSave: (updated: any) => void;
   restrictionsValues: any[];
   idWork?: number;
-  idRegional?: number;
+  idParceira: number;
   isInsert: boolean;
 }
 
@@ -46,11 +47,14 @@ const INITIAL_FORM_DATA = {
 };
 
 const RESPONSIBLE_ENGINEERS = [
-  { id: 64, name: "Juliana Escobar Viacava", idRegional: 1 },
-  { id: 66, name: "Henrique de Oliveira Batista", idRegional: 6 },
-  { id: 80, name: "Marcos de Siqueira Mesquita", idRegional: 9 },
-  { id: 94, name: "Diego Melegari", idRegional: 2 },
-  { id: 130, name: "Jefferson Pereira Facioli da Silva", idRegional: 7 },
+  { id: 64, name: "Juliana Escobar Viacava", idParceira: 2 },
+  { id: 66, name: "Henrique de Oliveira Batista", idParceira: 4 },
+  { id: 80, name: "Marcos de Siqueira Mesquita", idParceira: 16 },
+  { id: 80, name: "Marcos de Siqueira Mesquita", idParceira: 9 },
+  { id: 94, name: "Diego Melegari", idParceira: 7 },
+  { id: 94, name: "Diego Melegari", idParceira: 9 },
+  { id: 94, name: "Diego Melegari", idParceira: 17 },
+  { id: 130, name: "Jefferson Pereira Facioli da Silva", idParceira: 13 },
 ];
 
 export default function RestrictionDrawer({
@@ -60,7 +64,7 @@ export default function RestrictionDrawer({
   onSave,
   restrictionsValues,
   idWork,
-  idRegional,
+  idParceira,
   isInsert,
 }: RestrictionDrawerProps) {
   const [form, setForm] = useState<any[]>([INITIAL_FORM_DATA]);
@@ -68,7 +72,7 @@ export default function RestrictionDrawer({
   const { user, permissions } = useUser();
 
   const responsibleEnginner = RESPONSIBLE_ENGINEERS.find(
-    (enginner) => enginner.idRegional === idRegional,
+    (enginner) => enginner.idParceira === idParceira,
   );
 
   useEffect(() => {
@@ -157,7 +161,10 @@ export default function RestrictionDrawer({
             <FormControl fullWidth margin="normal">
               <InputLabel>Restrição</InputLabel>
               <Select
-                disabled={!permissions?.permissao_publicacao}
+                disabled={
+                  !permissions?.is_admin ||
+                  ![7].includes(permissions?.id_area ?? -1)
+                }
                 value={restriction.idRestriction || 1}
                 onChange={(e) =>
                   handleChange(index, "idRestriction", e.target.value)
@@ -175,7 +182,10 @@ export default function RestrictionDrawer({
             <FormControl fullWidth margin="normal">
               <InputLabel>Responsabilidade</InputLabel>
               <Select
-                disabled={!permissions?.permissao_publicacao}
+                disabled={
+                  !permissions?.is_admin ||
+                  ![7].includes(permissions?.id_area ?? -1)
+                }
                 value={restriction.responsibility || ""}
                 onChange={(e) =>
                   handleChange(index, "responsibility", e.target.value)
@@ -219,7 +229,12 @@ export default function RestrictionDrawer({
               onChange={(e) =>
                 handleChange(index, "observation", e.target.value)
               }
-              disabled={!permissions?.permissao_publicacao}
+              disabled={
+                !(
+                  permissions?.is_admin ||
+                  [7].includes(permissions?.id_area ?? -1)
+                )
+              }
               margin="normal"
             />
 
@@ -231,8 +246,9 @@ export default function RestrictionDrawer({
                 handleChange(index, "constructionObservation", e.target.value)
               }
               disabled={
-                permissions?.permissao_publicacao &&
-                permissions?.permissao !== "Total"
+                (permissions?.id_area !== 8 &&
+                  !permissions?.permissao_edicao) ||
+                !permissions?.is_admin
               }
               margin="normal"
             />
@@ -245,8 +261,9 @@ export default function RestrictionDrawer({
                 <DatePicker
                   label="Data resolução"
                   disabled={
-                    permissions?.permissao_publicacao &&
-                    permissions.permissao !== "Total"
+                    (permissions?.id_area !== 8 &&
+                      !permissions?.permissao_edicao) ||
+                    !permissions?.is_admin
                   }
                   value={
                     restriction.resolutionDate
@@ -293,8 +310,8 @@ export default function RestrictionDrawer({
                 onClick={removeRestriction}
                 disabled={
                   form.length <= 1 ||
-                  (!permissions?.permissao_publicacao &&
-                    permissions?.permissao !== "Total")
+                  !permissions?.is_admin ||
+                  ![7].includes(permissions?.id_area ?? -1)
                 }
               >
                 <TrashIcon />

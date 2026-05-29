@@ -16,7 +16,7 @@ import { exportExcel } from "@/actions/generateExcel.action";
 import { TableWithPagination } from "@/components/common/TableWithPagination";
 import { useUser } from "@/contexts/userContext";
 import { useMapFilter } from "@/contexts/mapFilterContext";
-import { FiltersInterface } from "@/interfaces/filtersInterfaces";
+import { FiltersInterface } from "@/types/filtersInterfaces";
 import { FormatCurrency } from "@/utils/formatValue";
 import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
@@ -64,7 +64,7 @@ export default function PortfolioWorks({
     useState<FiltersInterface>(filtersData);
 
   useEffect(() => {
-    if (permissions?.permissao_visualizacao === "parcial") {
+    if (permissions?.tipo_usuario === "PARCEIRO") {
       const { parceira, ...rest } = filtersData;
 
       const suspensionRemoved = rest.status?.filter(
@@ -73,7 +73,7 @@ export default function PortfolioWorks({
 
       setFilteredFilters({ ...rest, status: suspensionRemoved });
     }
-  }, [filtersData, permissions?.permissao_visualizacao]);
+  }, [filtersData, permissions?.tipo_usuario]);
 
   const toggleModal = () => setOpen((prev) => !prev);
 

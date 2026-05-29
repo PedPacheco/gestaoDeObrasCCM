@@ -27,4 +27,19 @@ export class LoginUserResponseDTO {
 
   @Expose()
   email: string;
+
+  @Expose()
+  tipo_usuario: string;
+
+  @Expose()
+  is_admin: boolean;
+
+  @Expose()
+  permissao_edicao: boolean;
+
+  @Expose()
+  id_turma: number;
+
+  @Expose()
+  id_area: number;
 }

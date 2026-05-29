@@ -7,17 +7,21 @@ import WrapperExportButton from "@/components/exports/wrapperExportButton";
 
 vi.mock("@/components/exports/wrapperExportButton", () => ({
   __esModule: true,
-  default: vi.fn(({ text, path, token, visible }) => (
-    <div
-      data-testid="export-button"
-      data-text={text}
-      data-path={path}
-      data-token={token}
-      data-visible={visible}
-    >
-      Export Button
-    </div>
-  )),
+  default: vi.fn(({ text, path, token, visible }) => {
+    if (!visible) return null;
+
+    return (
+      <div
+        data-testid="export-button"
+        data-text={text}
+        data-path={path}
+        data-token={token}
+        data-visible={visible}
+      >
+        Export Button
+      </div>
+    );
+  }),
 }));
 
 vi.mock("next/headers", () => ({

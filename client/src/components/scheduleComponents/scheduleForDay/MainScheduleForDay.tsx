@@ -9,8 +9,8 @@ import { exportExcel } from "@/actions/generateExcel.action";
 import { TableWithPagination } from "@/components/common/TableWithPagination";
 import { useMapFilter } from "@/contexts/mapFilterContext";
 import { useUser } from "@/contexts/userContext";
-import { FiltersInterface } from "@/interfaces/filtersInterfaces";
-import { MainInterface } from "@/interfaces/mainInterface";
+import { FiltersInterface } from "@/types/filtersInterfaces";
+import { MainInterface } from "@/types/mainInterface";
 import { FormatCurrency } from "@/utils/formatValue";
 import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
@@ -45,13 +45,13 @@ export default function MainSchduleForDay({
 
   // Ajusta filtros baseado na permissão
   useEffect(() => {
-    if (permissions?.permissao_visualizacao === "parcial") {
+    if (permissions?.tipo_usuario === "PARCEIRO") {
       const { parceira, ...rest } = filtersData;
       setFilteredFilters(rest);
     } else {
       setFilteredFilters(filtersData);
     }
-  }, [filtersData, permissions?.permissao_visualizacao]);
+  }, [filtersData, permissions?.tipo_usuario]);
 
   const toggleModal = () => setOpen((prev) => !prev);
 

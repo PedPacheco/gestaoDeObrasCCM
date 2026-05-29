@@ -15,8 +15,6 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuxiliaryBaseService } from 'src/application/usecases/auxiliaryBase/auxiliaryBase.service';
 import { CapexFullPipelineService } from 'src/application/usecases/auxiliaryBase/capex/capexFullPipeline.service';
-import { PermissionGuard } from 'src/core/guards/permission.guard';
-import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import {
   InsertBaseAuxiliaryMarketDTO,
   NotesDTO,
@@ -25,6 +23,10 @@ import { OperationType } from '../types/baseAuxiliaryInterface';
 import { diskStorage } from 'multer';
 import { randomUUID } from 'crypto';
 import { CapexGateway } from '../gateway/capex/capex.gateway';
+import {
+  AreaEditGuard,
+  AreaViewGuard,
+} from 'src/core/guards/newPermission.guard';
 
 const capexFileInterceptor = FileInterceptor('file', {
   storage: diskStorage({
@@ -54,7 +56,7 @@ export class AuxiliaryBaseController {
   ) {}
 
   @Post('capex/pipeline')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   @UseInterceptors(capexFileInterceptor)
   async importAndUpdateCapex(@UploadedFile() file: Express.Multer.File) {
     const jobId = randomUUID();
@@ -76,7 +78,7 @@ export class AuxiliaryBaseController {
   // ─── Demais endpoints ─────────────────────────────────────────────
 
   @Get('mercado')
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8], blockPartner: true }))
   async GetAuxiliaryBaseMarket(@Query('idRegional') idRegional?: number) {
     const response = await this.auxiliaryBaseService.getMarket(idRegional);
     return {
@@ -87,7 +89,7 @@ export class AuxiliaryBaseController {
   }
 
   @Get('notas')
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8], blockPartner: true }))
   async GetAuxiliaryBaseNotes(@Query('idRegional') idRegional?: number) {
     const response = await this.auxiliaryBaseService.getNotes(idRegional);
     return {
@@ -98,7 +100,7 @@ export class AuxiliaryBaseController {
   }
 
   @Post('notas')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async InsertAuxiliaryBaseNotes(
     @Body() body: { data: NotesDTO[]; operation: OperationType },
   ) {
@@ -114,7 +116,7 @@ export class AuxiliaryBaseController {
   }
 
   @Post('mercado')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async InsertAuxiliaryBaseMarket(
     @Body()
     body: {
@@ -133,28 +135,28 @@ export class AuxiliaryBaseController {
   }
 
   @Delete('mercado/:id')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async DeleteAuxiliaryBaseMarket(@Param('id', ParseIntPipe) id: number) {
     await this.auxiliaryBaseService.delete('baseOv', id);
     return { statusCode: HttpStatus.OK, message: 'Obra removida com sucesso' };
   }
 
   @Delete('mercado')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async DeleteAuxiliaryBaseMarketWithoutId() {
     await this.auxiliaryBaseService.delete('baseOv', undefined);
     return { statusCode: HttpStatus.OK, message: 'Obra removida com sucesso' };
   }
 
   @Delete('notas/:id')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async DeleteAuxiliaryBaseNotes(@Param('id', ParseIntPipe) id: number) {
     await this.auxiliaryBaseService.delete('baseNotes', id);
     return { statusCode: HttpStatus.OK, message: 'Nota removida com sucesso' };
   }
 
   @Delete('notas/')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async DeleteAuxiliaryBaseNotesWithoutId() {
     await this.auxiliaryBaseService.delete('baseNotes', undefined);
     return { statusCode: HttpStatus.OK, message: 'Nota removida com sucesso' };

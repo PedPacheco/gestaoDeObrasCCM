@@ -42,7 +42,7 @@ export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioReposi
   }
 
   private applyBaseWhere(query: Prisma.Sql) {
-    return Prisma.sql`${query} WHERE (obras.id_status = 2 AND obras.executado < 100) OR obras.id_status NOT IN (2, 3)`;
+    return Prisma.sql`${query} WHERE ((obras.id_status = 2 AND obras.executado < 100) OR obras.id_status NOT IN (2, 3))`;
   }
 
   private applyFilters(query: Prisma.Sql, filters: GetWorksDTO) {
@@ -145,8 +145,8 @@ export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioReposi
         qtde_pend,
         circuito,
         mo_planejada,
-        mo_final,
-        mo_pend,
+        mo_planejada * (executado::numeric / 100) AS mo_exec,
+        mo_planejada * (1 - executado::numeric / 100) AS mo_pend,
         status,
         conjunto,
         data_empreitamento,
@@ -172,8 +172,7 @@ export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioReposi
       SELECT 
         COUNT(obras.id) as total_obras,
         SUM(mo_planejada) AS total_mo_planejada,
-        SUM(mo_final) as total_mo_exec,
-        SUM(mo_pend) AS total_mo_pend,
+        SUM(mo_planejada * (executado::numeric / 100)) as total_mo_exec,
         SUM(qtde_planejada) as total_qtde_planejada,
         SUM(qtde_pend) AS total_qtde_pend
         ${baseCount}

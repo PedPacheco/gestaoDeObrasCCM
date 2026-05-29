@@ -10,6 +10,8 @@ interface SelectProps<T> {
   setSelectedItem: (items: T[]) => void;
   valueKey?: string;
   displayKey?: string;
+  backgroundColor?: string;
+  textColor?: string;
 }
 
 type SelectItem = string | number;
@@ -21,6 +23,8 @@ export function MultipleSelectComponent<T>({
   setSelectedItem,
   valueKey,
   displayKey,
+  backgroundColor,
+  textColor,
 }: SelectProps<T>) {
   const handleChange = (event: SelectChangeEvent<T[]>) => {
     const { value } = event.target;
@@ -30,7 +34,20 @@ export function MultipleSelectComponent<T>({
   return (
     <>
       <FormControl className="mb-2 lg:ml-4 lg:first:ml-0 w-full" size="small">
-        <InputLabel id={label}>{label.replace("_", " ")}</InputLabel>
+        <InputLabel
+          id={label}
+          sx={{
+            color: textColor,
+            "& .MuiSelect-select": {
+              color: textColor,
+            },
+            "&.Mui-focused": {
+              color: textColor,
+            },
+          }}
+        >
+          {label.replace("_", " ")}
+        </InputLabel>
         <Select
           labelId={label}
           label={`${label}1`}
@@ -38,6 +55,13 @@ export function MultipleSelectComponent<T>({
           multiple
           value={selectedItem || []}
           onChange={handleChange}
+          sx={{
+            backgroundColor,
+            color: textColor,
+            "& .MuiSelect-icon": {
+              color: textColor,
+            },
+          }}
           MenuProps={{
             PaperProps: {
               style: {

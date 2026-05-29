@@ -9,7 +9,6 @@ describe('ExecutionReportController', () => {
   let service: ExecutionCapacityService;
 
   const mockReq = {
-    insufficientPermission: true,
     idParceira: 1,
   };
 
@@ -75,7 +74,6 @@ describe('ExecutionReportController', () => {
         ano: '2025',
         idParceira: 1,
         idRegional: [1],
-        insufficientPermission: true,
       });
       expect(result).toEqual({
         data: {
@@ -120,7 +118,6 @@ describe('ExecutionReportController', () => {
           idRegional: [1],
         },
         {
-          insufficientPermission: undefined,
           idParceira: undefined,
         },
       );

@@ -1,6 +1,5 @@
 import { createUniqueWorksFinancial } from 'src/application/mappers/monthlySummaryMapper';
 import { MonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
-import { buildTotalTeamsMap } from 'src/domain/services/teamAggregator.service';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
 import {
   DailySummaryEntry,
@@ -15,12 +14,7 @@ jest.mock('src/application/mappers/monthlySummaryMapper', () => ({
   MonthlySummaryMapper: jest.fn(),
 }));
 
-jest.mock('src/domain/services/teamAggregator.service', () => ({
-  buildTotalTeamsMap: jest.fn(),
-}));
-
 const mockCreateUniqueWorksFinancial = createUniqueWorksFinancial as jest.Mock;
-const mockBuildTotalTeamsMap = buildTotalTeamsMap as jest.Mock;
 
 // ─── Factories ────────────────────────────────────────────────────────────────
 
@@ -65,21 +59,56 @@ function makeRecord(
       ordem_dca: overrides.ordem_dca ?? 'DCA001',
       ordem_dcd: overrides.ordem_dcd ?? 'DCD001',
       ordem_dcim: overrides.ordem_dcim ?? 'DCIM001',
-      tipos: { grupos: { grupo: overrides.grupo ?? 'GRP_A' } },
+      tipos: { id_grupo: 1, grupos: { grupo: overrides.grupo ?? 'GRP_A' } },
       turmas: { turma: overrides.turma ?? 'TRM_1' },
     },
+  };
+}
+
+function makePortfolioRecord(
+  overrides: {
+    mo_planejada?: number;
+    mo_pend?: number;
+    ovnota?: string;
+    ordem_dci?: string;
+    ordem_dca?: string;
+    ordem_dcd?: string;
+    ordem_dcim?: string;
+    executado?: number;
+    id_turma?: number;
+    id_grupo?: number;
+    grupo?: string;
+    turma?: string;
+  } = {},
+) {
+  return {
+    mo_planejada: overrides.mo_planejada ?? null,
+    mo_pend: overrides.mo_pend ?? 200,
+    ovnota: overrides.ovnota ?? 'OV001',
+    ordem_dci: overrides.ordem_dci ?? 'DCI001',
+    ordem_dca: overrides.ordem_dca ?? 'DCA001',
+    ordem_dcd: overrides.ordem_dcd ?? 'DCD001',
+    ordem_dcim: overrides.ordem_dcim ?? 'DCIM001',
+    executado: overrides.executado ?? null,
+    id_turma: overrides.id_turma ?? 1,
+    tipos: {
+      id_grupo: overrides.id_grupo ?? 2,
+      grupos: { grupo: overrides.grupo ?? 'GRP_A' },
+    },
+    turmas: { turma: overrides.turma ?? 'TRM_1' },
   };
 }
 
 function makeDailyEntry(date = '15/03/2024'): DailySummaryEntry {
   return {
     dataProg: date,
-    totalQtde: 0,
+    qtdeSchedules: 0,
     teamsTotal: 0,
     financialGoal: 0,
     financialGoalWith8: 0,
     diaryGoal: 0,
     diaryGoalWith8: 0,
+    totalMoPlan: 0,
     totalMoProg: 0,
     totalMoExec: 0,
     diff: 0,
@@ -93,7 +122,7 @@ function makeGroupEntry(
   return {
     grupo,
     turma,
-    qtdeWorks: 0,
+    qtdeSchedules: 0,
     totalMoPlan: 0,
     totalMoProg: 0,
     totalMoPend: 0,
@@ -108,7 +137,11 @@ function makeGroupEntry(
 describe('MonthlySummaryService', () => {
   let service: MonthlySummaryService;
 
-  let monthlySummaryRepository: { getSummary: jest.Mock };
+  let monthlySummaryRepository: {
+    getSummary: jest.Mock;
+    getPortfolioSummary: jest.Mock;
+    getContractValue: jest.Mock;
+  };
   let calculator: {
     aggregateFinancialCapacityByMonth: jest.Mock;
     calculateWorkOrderMetrics: jest.Mock;
@@ -125,9 +158,17 @@ describe('MonthlySummaryService', () => {
     accumulateGroupTeamEntry: jest.Mock;
   };
   let executionCapacityRepository: { getFinancialValue: jest.Mock };
+  let teamAggregatorService: {
+    buildExecutionCapacityTeams: jest.Mock;
+    buildTotalTeamsMap: jest.Mock;
+  };
 
   beforeEach(() => {
-    monthlySummaryRepository = { getSummary: jest.fn() };
+    monthlySummaryRepository = {
+      getSummary: jest.fn(),
+      getPortfolioSummary: jest.fn(),
+      getContractValue: jest.fn(),
+    };
     calculator = {
       aggregateFinancialCapacityByMonth: jest
         .fn()
@@ -152,15 +193,24 @@ describe('MonthlySummaryService', () => {
     executionCapacityRepository = {
       getFinancialValue: jest.fn().mockResolvedValue([]),
     };
+    teamAggregatorService = {
+      buildExecutionCapacityTeams: jest.fn().mockReturnValue([]),
+      buildTotalTeamsMap: jest.fn().mockReturnValue(
+        new Map<string, number>([
+          ['15/03/2024', 5],
+          ['16/03/2024', 4],
+        ]),
+      ),
+    };
 
     mockCreateUniqueWorksFinancial.mockReturnValue({ totalMoPlan: 0 });
-    mockBuildTotalTeamsMap.mockReturnValue(new Map());
 
     service = new MonthlySummaryService(
       monthlySummaryRepository as any,
       calculator as any,
-      summaryMapper as any,
       executionCapacityRepository as any,
+      summaryMapper as any,
+      teamAggregatorService as any,
     );
   });
 
@@ -171,6 +221,8 @@ describe('MonthlySummaryService', () => {
   describe('getSummary', () => {
     it('fetches repository data and execution capacity concurrently, deriving year from dataFinal', async () => {
       monthlySummaryRepository.getSummary.mockResolvedValue([]);
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([]);
+      monthlySummaryRepository.getContractValue.mockResolvedValue([]);
 
       await service.getSummary(DEFAULT_FILTERS);
 
@@ -188,6 +240,8 @@ describe('MonthlySummaryService', () => {
 
     it('returns empty summary with aggregated totals when repository returns no data', async () => {
       monthlySummaryRepository.getSummary.mockResolvedValue([]);
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([]);
+      monthlySummaryRepository.getContractValue.mockResolvedValue([]);
 
       const result = await service.getSummary(DEFAULT_FILTERS);
 
@@ -198,8 +252,17 @@ describe('MonthlySummaryService', () => {
 
     it('creates entry, calculates metrics and accumulates for a single record', async () => {
       const record = makeRecord({ exec: 80 });
+      const recordPorfolio = makePortfolioRecord();
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        recordPorfolio,
+      ]);
       monthlySummaryRepository.getSummary.mockResolvedValue([record]);
-      mockBuildTotalTeamsMap.mockReturnValue(new Map([['15/03/2024', 5]]));
+      monthlySummaryRepository.getContractValue.mockResolvedValue([
+        { id: 1, meses: 60, id_turma: 2, valor_contrato: 151000035.0 },
+      ]);
+      teamAggregatorService.buildTotalTeamsMap.mockReturnValue(
+        new Map([['15/03/2024', 5]]),
+      );
 
       const result = await service.getSummary(DEFAULT_FILTERS);
 
@@ -240,6 +303,12 @@ describe('MonthlySummaryService', () => {
       monthlySummaryRepository.getSummary.mockResolvedValue([
         makeRecord({ exec: null }),
       ]);
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        makePortfolioRecord(),
+      ]);
+      monthlySummaryRepository.getContractValue.mockResolvedValue([
+        { id: 1, meses: 60, id_turma: 2, valor_contrato: 151000035.0 },
+      ]);
 
       await service.getSummary(DEFAULT_FILTERS);
 
@@ -256,6 +325,12 @@ describe('MonthlySummaryService', () => {
         makeRecord({ data_prog: '2024-03-01T00:00:00.000Z', ovnota: 'OV001' }),
         makeRecord({ data_prog: '2024-03-20T00:00:00.000Z', ovnota: 'OV002' }),
         makeRecord({ data_prog: '2024-04-10T00:00:00.000Z', ovnota: 'OV003' }),
+      ]);
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        makePortfolioRecord(),
+      ]);
+      monthlySummaryRepository.getContractValue.mockResolvedValue([
+        { id: 1, meses: 60, id_turma: 2, valor_contrato: 151000035.0 },
       ]);
       summaryMapper.createDailySummaryEntry
         .mockReturnValueOnce(makeDailyEntry('01/03/2024'))
@@ -282,6 +357,12 @@ describe('MonthlySummaryService', () => {
         makeRecord({ ovnota: 'OV001' }),
         makeRecord({ ovnota: 'OV002' }), // same date, different work key
       ]);
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        makePortfolioRecord(),
+      ]);
+      monthlySummaryRepository.getContractValue.mockResolvedValue([
+        { id: 1, meses: 60, id_turma: 2, valor_contrato: 151000035.0 },
+      ]);
 
       await service.getSummary(DEFAULT_FILTERS);
 
@@ -295,6 +376,12 @@ describe('MonthlySummaryService', () => {
       const uniqueTarget = { totalMoPlan: 0 };
       mockCreateUniqueWorksFinancial.mockReturnValue(uniqueTarget);
       const record = makeRecord({ mo_planejada: 500 });
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        makePortfolioRecord(),
+      ]);
+      monthlySummaryRepository.getContractValue.mockResolvedValue([
+        { id: 1, meses: 60, id_turma: 2, valor_contrato: 151000035.0 },
+      ]);
       monthlySummaryRepository.getSummary.mockResolvedValue([record, record]); // same key twice
 
       await service.getSummary(DEFAULT_FILTERS);
@@ -304,6 +391,12 @@ describe('MonthlySummaryService', () => {
 
     it('should treat undefined financial values as 0 when aggregating monthly totals', async () => {
       monthlySummaryRepository.getSummary.mockResolvedValue([makeRecord()]);
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        makePortfolioRecord(),
+      ]);
+      monthlySummaryRepository.getContractValue.mockResolvedValue([
+        { id: 1, meses: 60, id_turma: 2, valor_contrato: 151000035.0 },
+      ]);
 
       // força cenário com undefined
       calculator.aggregateFinancialCapacityByMonth = jest
@@ -340,6 +433,9 @@ describe('MonthlySummaryService', () => {
   describe('getSecondSummary', () => {
     it('fetches data from repository without calling executionCapacityRepository', async () => {
       monthlySummaryRepository.getSummary.mockResolvedValue([]);
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        makePortfolioRecord(),
+      ]);
 
       await service.getSecondSummary(DEFAULT_FILTERS);
 
@@ -353,6 +449,9 @@ describe('MonthlySummaryService', () => {
 
     it('returns empty summary with aggregated totals when repository returns no data', async () => {
       monthlySummaryRepository.getSummary.mockResolvedValue([]);
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        makePortfolioRecord(),
+      ]);
 
       const result = await service.getSecondSummary(DEFAULT_FILTERS);
 
@@ -362,12 +461,17 @@ describe('MonthlySummaryService', () => {
 
     it('creates entry, calculates metrics and accumulates for a single record', async () => {
       monthlySummaryRepository.getSummary.mockResolvedValue([makeRecord()]);
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        makePortfolioRecord(),
+      ]);
 
       const result = await service.getSecondSummary(DEFAULT_FILTERS);
 
       expect(summaryMapper.createGroupTeamEntry).toHaveBeenCalledWith(
         'GRP_A',
         'TRM_1',
+        undefined,
+        1,
       );
       expect(calculator.calculateWorkOrderMetrics).toHaveBeenCalledWith(
         1000,
@@ -390,6 +494,9 @@ describe('MonthlySummaryService', () => {
         makeRecord({ ovnota: 'OV001', grupo: 'GRP_A', turma: 'TRM_1' }),
         makeRecord({ ovnota: 'OV002', grupo: 'GRP_A', turma: 'TRM_1' }),
       ]);
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        makePortfolioRecord(),
+      ]);
 
       await service.getSecondSummary(DEFAULT_FILTERS);
 
@@ -401,6 +508,9 @@ describe('MonthlySummaryService', () => {
       monthlySummaryRepository.getSummary.mockResolvedValue([
         makeRecord({ ovnota: 'OV001', grupo: 'GRP_A', turma: 'TRM_1' }),
         makeRecord({ ovnota: 'OV002', grupo: 'GRP_B', turma: 'TRM_2' }),
+      ]);
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        makePortfolioRecord(),
       ]);
       summaryMapper.createGroupTeamEntry
         .mockReturnValueOnce(makeGroupEntry('GRP_A', 'TRM_1'))
@@ -417,10 +527,88 @@ describe('MonthlySummaryService', () => {
       mockCreateUniqueWorksFinancial.mockReturnValue(uniqueTarget);
       const record = makeRecord({ mo_planejada: 300 });
       monthlySummaryRepository.getSummary.mockResolvedValue([record, record]);
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        makePortfolioRecord(),
+      ]);
 
       await service.getSecondSummary(DEFAULT_FILTERS);
 
       expect(uniqueTarget.totalMoPlan).toBe(300); // counted only once
+    });
+
+    it('should accumulate portfolioMarket when portfolio item belongs to Market group (id_grupo = 1)', async () => {
+      monthlySummaryRepository.getSummary.mockResolvedValue([makeRecord()]);
+
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        makePortfolioRecord({
+          id_grupo: 1,
+          mo_planejada: 1000,
+          executado: null,
+        }),
+      ]);
+
+      await service.getSecondSummary(DEFAULT_FILTERS);
+
+      expect(calculator.aggregateGroupTotals).toHaveBeenCalledWith(
+        expect.any(Array),
+        {
+          portfolioRda: 0,
+          portfolioBt0: 0,
+          portfolioRecom: 0,
+          portfolioMarket: 1000,
+        },
+        expect.any(Object),
+      );
+    });
+
+    it('should accumulate portfolioMarket when portfolio item belongs to Market group (id_grupo = 3)', async () => {
+      monthlySummaryRepository.getSummary.mockResolvedValue([makeRecord()]);
+
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        makePortfolioRecord({
+          id_grupo: 3,
+          mo_planejada: 1000,
+          executado: null,
+        }),
+      ]);
+
+      await service.getSecondSummary(DEFAULT_FILTERS);
+
+      expect(calculator.aggregateGroupTotals).toHaveBeenCalledWith(
+        expect.any(Array),
+        {
+          portfolioRda: 1000,
+          portfolioBt0: 0,
+          portfolioRecom: 0,
+          portfolioMarket: 0,
+        },
+        expect.any(Object),
+      );
+    });
+
+    it('should accumulate portfolioMarket when portfolio item belongs to Market group (id_grupo = 4)', async () => {
+      monthlySummaryRepository.getSummary.mockResolvedValue([makeRecord()]);
+
+      monthlySummaryRepository.getPortfolioSummary.mockResolvedValue([
+        makePortfolioRecord({
+          id_grupo: 4,
+          mo_planejada: 1000,
+          executado: null,
+        }),
+      ]);
+
+      await service.getSecondSummary(DEFAULT_FILTERS);
+
+      expect(calculator.aggregateGroupTotals).toHaveBeenCalledWith(
+        expect.any(Array),
+        {
+          portfolioRda: 0,
+          portfolioBt0: 1000,
+          portfolioRecom: 0,
+          portfolioMarket: 0,
+        },
+        expect.any(Object),
+      );
     });
   });
 });

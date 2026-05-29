@@ -7,10 +7,13 @@ const defaultProps = {
   open: true,
   onClose: vi.fn(),
   handleReject: vi.fn(),
-  rejectedSchedule: {
-    id: 1,
-    reject: true,
-  },
+  options: [{ id: 1, restricao: "Transito", tipo_restricao: "Execução" }],
+  rejectedSchedule: [
+    {
+      id: 1,
+      reject: true,
+    },
+  ],
 };
 
 describe("FailureModal", () => {
@@ -31,7 +34,7 @@ describe("FailureModal", () => {
 
     // abre select
     await user.click(screen.getByRole("combobox"));
-    await user.click(screen.getByText("Data"));
+    await user.click(screen.getByText("Transito"));
 
     // digita descrição
     await user.type(screen.getByLabelText("Descrição"), "Erro na execução");
@@ -55,18 +58,20 @@ describe("FailureModal", () => {
     );
 
     await user.click(screen.getByRole("combobox"));
-    await user.click(screen.getByText("Data"));
+    await user.click(screen.getByText("Transito"));
 
     await user.type(screen.getByLabelText("Descrição"), "Teste descrição");
 
     await user.click(screen.getByRole("button", { name: /confirmar/i }));
 
-    expect(handleRejectMock).toHaveBeenCalledWith({
-      id: 1,
-      reject: true,
-      reason: "Data",
-      description: "Teste descrição",
-    });
+    expect(handleRejectMock).toHaveBeenCalledWith([
+      {
+        id: 1,
+        reject: true,
+        reason: "Transito",
+        description: "Teste descrição",
+      },
+    ]);
   });
 
   it("deve chamar onClose ao clicar em cancelar", async () => {
@@ -88,7 +93,7 @@ describe("FailureModal", () => {
     );
 
     await user.click(screen.getByRole("combobox"));
-    await user.click(screen.getByRole("option", { name: "Data" }));
+    await user.click(screen.getByRole("option", { name: "Transito" }));
 
     await user.type(screen.getByLabelText("Descrição"), "Teste");
 
@@ -118,7 +123,7 @@ describe("FailureModal", () => {
 
   it("deve retornar e não chamar a função handleReject, caso rejectedSchedule não exista", async () => {
     const user = userEvent.setup();
-    render(<FailureModalComponent {...defaultProps} rejectedSchedule={null} />);
+    render(<FailureModalComponent {...defaultProps} rejectedSchedule={[]} />);
 
     const confirmButton = screen.getByRole("button", {
       name: /confirmar/i,

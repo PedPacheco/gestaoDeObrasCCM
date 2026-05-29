@@ -19,7 +19,7 @@ export async function InsertWorks(data: any[], storageKey: string) {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
-      }
+      },
     );
 
     const res = await result.json();
@@ -41,7 +41,7 @@ export async function InsertWorks(data: any[], storageKey: string) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return { success: true, message: res.message };
@@ -64,7 +64,7 @@ export async function UpdateWork(data: any, id: number) {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
-      }
+      },
     );
 
     const res = await result.json();
@@ -84,7 +84,7 @@ export async function UpdateWork(data: any, id: number) {
   }
 }
 
-export async function UpdateSap(data: any, key: string, storageKey: string) {
+export async function UpdateSap(data: any, key: string) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
@@ -98,7 +98,7 @@ export async function UpdateSap(data: any, key: string, storageKey: string) {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
-      }
+      },
     );
 
     const res = await result.json();
@@ -109,19 +109,6 @@ export async function UpdateSap(data: any, key: string, storageKey: string) {
         error: res.message || "Erro ao editar obra",
       };
     }
-
-    await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/base-auxiliar/${
-        storageKey === "marketUpdatesData" ? "mercado" : "notas"
-      }`,
-      {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
 
     return { success: true, message: res.message };
   } catch (error: any) {
@@ -142,7 +129,7 @@ export async function UpdateCapex() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     const res = await result.json();
@@ -177,7 +164,7 @@ export async function DeleteWork(storageKey: string, id: number) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     const res = await result.json();
@@ -209,7 +196,7 @@ export async function InsertContract(data: any) {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
-      }
+      },
     );
 
     const res = await result.json();
@@ -241,7 +228,7 @@ export async function SuspensionsWorks(data: any) {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
-      }
+      },
     );
 
     const res = await result.json();

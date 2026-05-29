@@ -50,23 +50,30 @@ export default function PublicationRestrictionsTable({
   const [openSuccessModal, setOpenSuccessModal] = useState(false);
   const [openConfirmModal, setOpenConfirmModal] = useState(false);
 
+  const [restricions, setRestrictions] = useState<any[]>(data);
+
   const [restrictionToDelete, setRestrictionToDelete] = useState<number | null>(
     null,
   );
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+
+    setRestrictions(
+      data.map((item) => ({
+        ...item,
+        prazo_fim: item.id_grupo !== 1 ? null : item.prazo_fim,
+      })),
+    );
+  }, [data]);
 
   const canEdit =
-    permissions?.permissao === "Total" ||
-    permissions?.permissao === "Parcial" ||
-    permissions?.permissao_visualizacao === "parcial" ||
-    permissions?.permissao_publicacao === true;
+    permissions?.is_admin ||
+    (permissions?.id_area === 8 && permissions.permissao_edicao) ||
+    permissions?.tipo_usuario === "PARCEIRA" ||
+    permissions?.id_area === 7;
 
-  const canDelete =
-    permissions?.permissao === "Total" ||
-    permissions?.permissao_publicacao === true;
+  const canDelete = permissions?.is_admin || permissions?.id_area === 7;
 
   const toggleSuccessModal = () => setOpenSuccessModal((prev) => !prev);
 
@@ -134,14 +141,14 @@ export default function PublicationRestrictionsTable({
             </TableHead>
 
             <TableBody>
-              {data.map((item: any, rowIndex: number) => (
+              {restricions.map((item: any, rowIndex: number) => (
                 <TableRow
                   key={rowIndex}
                   sx={{
                     "& > td": {
-                      padding: "6px 10px",
-                      lineHeight: 1.3,
-                      height: "40px", // controla altura real da linha
+                      padding: "6px",
+                      lineHeight: 1.1,
+                      height: "14px", // controla altura real da linha
                     },
                   }}
                   className="hover:bg-gray-50 transition-colors duration-200"
@@ -193,7 +200,7 @@ export default function PublicationRestrictionsTable({
                         {canEdit && (
                           <ButtonComponent
                             text="Editar"
-                            styled="min-w-8 mr-2"
+                            styled="min-w-8 mr-2 !h-10"
                             onClick={() => handleAdd(item)}
                           />
                         )}
@@ -201,7 +208,7 @@ export default function PublicationRestrictionsTable({
                         {canDelete && (
                           <ButtonComponent
                             text="Excluir"
-                            styled="min-w-8 bg-red-600 hover:bg-red-700"
+                            styled="min-w-8 bg-red-600 hover:bg-red-700 !h-10"
                             onClick={() =>
                               handleOpenConfirmDelete(
                                 item.id_restricao_publicacao,

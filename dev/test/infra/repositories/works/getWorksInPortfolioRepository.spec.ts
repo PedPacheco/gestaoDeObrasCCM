@@ -72,8 +72,9 @@ describe('GetWorksInPortfolioRepository', () => {
       const querySent = mockPrisma.$queryRaw.mock.calls[0][0];
       const sql = normalizeSQL(querySent.strings.join(''));
 
-      expect(sql).toContain('(obras.id_status = 2 AND obras.executado < 100)');
-      expect(sql).toContain('obras.id_status NOT IN (2, 3)');
+      expect(sql).toContain(
+        '((obras.id_status = 2 AND obras.executado < 100) OR obras.id_status NOT IN (2, 3))',
+      );
     });
 
     it('should apply filters correctly', async () => {

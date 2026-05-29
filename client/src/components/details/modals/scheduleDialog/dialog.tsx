@@ -43,6 +43,7 @@ export interface ScheduleFormDialogProps {
   };
   scheduleForm: ScheduleFormHookReturn;
   statusWork: number;
+  scheduleStatus: string;
 }
 
 export default function ScheduleFormDialog({
@@ -57,6 +58,7 @@ export default function ScheduleFormDialog({
   options,
   scheduleForm,
   statusWork,
+  scheduleStatus,
 }: ScheduleFormDialogProps) {
   const [error, setError] = useState<string | null>();
   const { permissions } = useUser();
@@ -87,17 +89,18 @@ export default function ScheduleFormDialog({
   const dialogTitle = isInsert ? "Nova Programação" : "Editar Programação";
   const submitButtonText = isPending ? "Salvando..." : "Salvar Programação";
 
-  const disabledFields = () => {
-    if (isInsert) {
-      return (
-        permissions?.permissao_visualizacao === "parcial" &&
-        (statusWork === 3 || statusWork === 2)
-      );
+  const disabledFields = (): boolean => {
+    const isPartialPermission = permissions?.tipo_usuario === "PARCEIRA";
+
+    if (!isPartialPermission) {
+      return false;
     }
 
-    return (
-      permissions?.permissao_visualizacao === "parcial" && statusWork === 35
-    );
+    if (isInsert) {
+      return statusWork === 2 || statusWork === 3;
+    }
+
+    return scheduleStatus !== "Reprovado";
   };
 
   return (
@@ -148,7 +151,7 @@ export default function ScheduleFormDialog({
               formErrors={formErrors}
               onInputChange={handleInputChange}
               disabledFields={disabledFields}
-              permissionVisualization={permissions?.permissao_visualizacao}
+              permissionVisualization={permissions?.tipo_usuario}
             />
           </AccordionPanel>
 
@@ -181,7 +184,7 @@ export default function ScheduleFormDialog({
                 options={options}
                 onInputChange={handleInputChange}
                 disabledFields={disabledFields}
-                permission={permissions?.permissao_visualizacao}
+                permission={permissions?.tipo_usuario}
               />
             </AccordionPanel>
 

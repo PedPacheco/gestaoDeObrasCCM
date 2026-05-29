@@ -10,10 +10,18 @@ import {
   userRegisterInterfaceController,
 } from 'src/interface/types/userInterface';
 
-import { Body, Controller, HttpStatus, Post, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpStatus,
+  Post,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 
 import { Public } from '../../shared/costants';
 import { LoginUserDTO, LoginUserResponseDTO } from '../dtos/loginUserDto';
+import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -42,6 +50,7 @@ export class AuthController {
   }
 
   @Post('register')
+  @UseGuards(AreaViewGuard({ adminOnly: true }))
   async register(
     @Body() registerDto: RegisterUserDTO,
   ): Promise<userRegisterInterfaceController> {

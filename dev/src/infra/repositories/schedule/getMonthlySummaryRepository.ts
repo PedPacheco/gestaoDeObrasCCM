@@ -59,12 +59,69 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
             mo_planejada: true,
             mo_pend: true,
             executado: true,
+            id_turma: true,
             turmas: { select: { turma: true } },
-            tipos: { select: { grupos: { select: { grupo: true } } } },
+            tipos: {
+              select: { id_grupo: true, grupos: { select: { grupo: true } } },
+            },
           },
         },
       },
       orderBy: { data_prog: 'asc' },
+    });
+  }
+
+  async getPortfolioSummary(filters: any): Promise<any[]> {
+    const { idRegional, idParceira, idTipo, idGrupo } = filters;
+
+    return await this.prisma.obras.findMany({
+      where: {
+        id_status: { notIn: [2, 3, 4] },
+        tipos: {
+          id_grupo: idGrupo && idGrupo.length > 0 ? { in: idGrupo } : undefined,
+        },
+        municipios: {
+          id_regional:
+            idRegional && idRegional.length > 0
+              ? { in: idRegional }
+              : undefined,
+        },
+        id_turma:
+          idParceira && idParceira.length > 0 ? { in: idParceira } : undefined,
+        id_tipo: idTipo && idTipo.length > 0 ? { in: idTipo } : undefined,
+      },
+      select: {
+        ovnota: true,
+        ordem_dci: true,
+        ordem_dca: true,
+        ordem_dcd: true,
+        ordem_dcim: true,
+        mo_planejada: true,
+        mo_pend: true,
+        executado: true,
+        id_turma: true,
+        turmas: { select: { turma: true } },
+        tipos: {
+          select: { id_grupo: true, grupos: { select: { grupo: true } } },
+        },
+      },
+    });
+  }
+
+  async getContractValue(filters: GetMonthlySummaryDTO): Promise<any[]> {
+    const { idRegional, idParceira } = filters;
+
+    return await this.prisma.valores_contratos.findMany({
+      where: {
+        id_turma:
+          idParceira && idParceira.length > 0 ? { in: idParceira } : undefined,
+        turmas: {
+          id_regional:
+            idRegional && idRegional.length > 0
+              ? { in: idRegional }
+              : undefined,
+        },
+      },
     });
   }
 }

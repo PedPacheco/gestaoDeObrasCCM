@@ -1,5 +1,4 @@
-import { ForecastSnapshotService } from 'src/application/usecases/schedule/forecastSnapshot.service';
-import { TotalPermissionGuard } from 'src/core/guards/totalPermission.guard';
+import { ForecastSnapshotService } from 'src/application/usecases/forecastSnapshot.service';
 
 import {
   Body,
@@ -17,12 +16,17 @@ import {
   CreateForecastSnapshotDTO,
   GetSnapshotsQueryDto,
 } from '../dtos/forecastSnapshotDTO';
+import {
+  AreaEditGuard,
+  AreaViewGuard,
+} from 'src/core/guards/newPermission.guard';
 
 @Controller('forecast')
 export class ForecastController {
   constructor(private forecastSnapshotService: ForecastSnapshotService) {}
 
   @Get('snapshot/:id')
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
   async getSnapshotById(@Param('id') id: number) {
     const snapshot = await this.forecastSnapshotService.get(id);
 
@@ -34,6 +38,7 @@ export class ForecastController {
   }
 
   @Get('snapshot')
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
   async getAllSnapshots(@Query() query: GetSnapshotsQueryDto) {
     const snapshots = await this.forecastSnapshotService.getAll(query);
 
@@ -44,7 +49,7 @@ export class ForecastController {
   }
 
   @Post('snapshot')
-  @UseGuards(TotalPermissionGuard)
+  @UseGuards(AreaEditGuard({ adminOnly: true }))
   async saveForecastSnapshot(@Body() data: CreateForecastSnapshotDTO) {
     const snapshot = await this.forecastSnapshotService.execute(data);
 
@@ -56,7 +61,7 @@ export class ForecastController {
   }
 
   @Delete('snapshot/:id')
-  @UseGuards(TotalPermissionGuard)
+  @UseGuards(AreaEditGuard({ adminOnly: true }))
   async deleteForecastSnapshot(@Param('id') id: number) {
     await this.forecastSnapshotService.delete(id);
 

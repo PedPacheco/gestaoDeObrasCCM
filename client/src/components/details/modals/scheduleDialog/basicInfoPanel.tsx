@@ -92,10 +92,7 @@ export const BasicInfoPanel: React.FC<BasicInfoPanelProps> = ({
             error={!!formErrors.exec}
             helperText={formErrors.exec}
             InputLabelProps={{ shrink: true }}
-            disabled={
-              (!formData.validated && !formData.confirmed) ||
-              dayjs().isBefore(dayjs(formData.dataProg))
-            }
+            disabled={dayjs().isBefore(dayjs(formData.dataProg))}
           />
         </Grid>
       )}

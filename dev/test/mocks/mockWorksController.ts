@@ -177,6 +177,8 @@ export const mockWorksInPortfolio: worksInPortfolioResponseService = {
       prazo_fim: null,
       qtde_planejada: 0,
       mo_planejada: 91105.824,
+      mo_exec: 324524,
+      mo_pend: 12423,
       turma: 'ENGELMIG',
       executado: 100,
       status: 'EXECUTADA',

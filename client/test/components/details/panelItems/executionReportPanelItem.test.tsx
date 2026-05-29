@@ -23,9 +23,10 @@ const mockData = [
 vi.mock("@/contexts/userContext", () => ({
   useUser: () => ({
     permissions: {
-      permissao: "Total", // Permite exibir os botões
-      permissao_visualizacao: "total", // Caso seu código cheque isso
-      permissao_publicacao: true, // Incluído por segurança
+      id_area: 8,
+      permissao_edicao: false,
+      is_admin: true,
+      tipo_usuario: "INTERNO",
     },
   }),
 }));

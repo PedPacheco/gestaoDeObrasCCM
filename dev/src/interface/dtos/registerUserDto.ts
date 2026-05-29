@@ -1,5 +1,8 @@
 import { Exclude, Expose } from 'class-transformer';
 import {
+  IsBoolean,
+  IsEmail,
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -9,20 +12,42 @@ import {
   MinLength,
 } from 'class-validator';
 
+import { TipoUsuario } from '@prisma/client';
+
 export class RegisterUserDTO {
   @IsNotEmpty()
   @IsString()
-  @MaxLength(8)
+  @MaxLength(30)
   username: string;
 
   @IsString()
   @MinLength(8)
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
+    message: 'A senha deve possuir letra maiúscula, minúscula e número',
+  })
   senha?: string;
 
   @IsNotEmpty()
   @IsString()
-  permissao: string;
+  @MaxLength(100)
+  nome: string;
+
+  @IsNotEmpty()
+  @IsEmail()
+  @MaxLength(100)
+  email: string;
+
+  @IsNotEmpty()
+  @IsEnum(TipoUsuario)
+  tipo_usuario: TipoUsuario;
+
+  @IsBoolean()
+  @IsOptional()
+  is_admin?: boolean = false;
+
+  @IsBoolean()
+  @IsOptional()
+  permissao_edicao?: boolean = false;
 
   @IsNotEmpty()
   @IsNumber()
@@ -32,19 +57,9 @@ export class RegisterUserDTO {
   @IsNumber()
   id_turma: number;
 
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(50)
-  nome_usuario: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(50)
-  email: string;
-
-  @IsString()
+  @IsNumber()
   @IsOptional()
-  permissao_visualizacao?: string;
+  id_area?: number;
 }
 
 @Exclude()

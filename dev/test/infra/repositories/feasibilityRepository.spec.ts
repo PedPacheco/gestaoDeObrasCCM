@@ -135,7 +135,7 @@ describe('FeasibilityRepository', () => {
           ],
         },
       },
-      select: { id: true, caminho_arquivo: true },
+      select: { id: true, caminho_arquivo: true, id_obra: true },
     });
     expect(result).toEqual(mockFiles);
   });
@@ -164,7 +164,7 @@ describe('FeasibilityRepository', () => {
           ],
         },
       },
-      select: { id: true, caminho_arquivo: true },
+      select: { id: true, caminho_arquivo: true, id_obra: true },
     });
     expect(result).toEqual(mockFiles);
   });

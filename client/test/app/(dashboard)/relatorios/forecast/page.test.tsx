@@ -140,7 +140,10 @@ describe("ForecastReportPage (Vitest)", () => {
       });
 
     const component = await ForecastReportPage({
-      searchParams: createSearchParams({}),
+      searchParams: createSearchParams({
+        startDate: "2026-05-01",
+        endDate: "2026-05-31",
+      }),
     });
 
     render(component);
