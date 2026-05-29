@@ -5,12 +5,60 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import DashboardClient from "@/components/dashboard/DashboardClient";
 import { Header } from "@/components/layout/Header";
 import { getCurrentMonthRange, getCurrentWeekData } from "@/utils/weeks";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const API = process.env.NEXT_PUBLIC_API_URL!;
 const NO_CACHE = { cache: "no-store" as const };
+
+// ── Áreas com permissão de acesso ao dashboard ──────────────
+const ALLOWED_AREAS = [2, 8];
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Função para extrair dados do utilizador dos cookies
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+interface UserInfo {
+  id: number;
+  username: string;
+  nome_usuario: string;
+  email: string;
+  tipo_usuario: string; // "INTERNO" | "EXTERNO"
+  is_admin: boolean;
+  permissao_edicao: boolean;
+  id_regional: number | null;
+  id_turma: number | null;
+  id_area: number | null;
+}
+
+function getUserFromCookies(
+  cookieStore: Awaited<ReturnType<typeof cookies>>,
+): UserInfo | null {
+  const raw = cookieStore.get("userInfo")?.value;
+  if (!raw) return null;
+
+  try {
+    // O cookie pode estar URL-encoded (ex: %7B...%7D)
+    const decoded = decodeURIComponent(raw);
+    return JSON.parse(decoded) as UserInfo;
+  } catch {
+    return null;
+  }
+}
+
+function checkDashboardAccess(user: UserInfo | null): boolean {
+  // Sem utilizador → sem acesso
+  if (!user) return false;
+
+  // EXTERNO → tem acesso
+  if (user.tipo_usuario !== "INTERNO") return true;
+
+  // INTERNO → só se estiver nas áreas permitidas
+  return ALLOWED_AREAS.includes(user.id_area ?? -1);
+}
+
+// ── Todos os fetches (mantidos como estão) ──────────────────
 
 async function fetchSparklinesParceira(token: string) {
   const { inicio, fim } = getCurrentWeekData();
@@ -145,12 +193,47 @@ async function fetchMaodeObra(token: string, dashboard: "labor" | "partner") {
   return { data: firstSummary, data2: secondSummary, metaDiaria };
 }
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// PAGE COMPONENT
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 export default async function Home() {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value ?? "";
 
+  // ✅ Ler dados do utilizador diretamente do cookie "userInfo"
+  const user = getUserFromCookies(cookieStore);
+  const hasDashboardAccess = checkDashboardAccess(user);
+
+  // ✅ Se NÃO tem permissão → tela com logo (ZERO fetches)
+  if (!hasDashboardAccess) {
+    return (
+      <div className="relative z-0 flex min-h-screen">
+        <div className="flex flex-1 flex-col h-screen overflow-y-auto">
+          <Header />
+          <main className="flex-1 bg-[url(/fundo.png)] bg-cover bg-center bg-no-repeat">
+            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)]">
+              <Image
+                src="/logo-sigo.png"
+                alt="Logo SIGO"
+                className="
+                  w-[60%] sm:w-[50%] md:w-[40%] lg:w-[30%] xl:w-[25%]
+                  h-auto mr-12 mb-8 object-contain
+                "
+                width={740}
+                height={500}
+              />
+              <p className="text-zinc-500 text-lg font-medium">
+                Você não tem permissão para acessar este painel.
+              </p>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ Se TEM permissão → buscar dados normalmente
   const [
-    // data,
     maodeObra,
     forecast,
     metasRecomposicao,
@@ -164,7 +247,6 @@ export default async function Home() {
     maodeObraAvanca,
     filtersData,
   ] = await Promise.all([
-    // fetchDashboard(token),
     fetchMaodeObra(token, "labor"),
     fetchForecast(token),
     fetchMetasRecomposicao(token),
@@ -189,11 +271,8 @@ export default async function Home() {
     <div className="relative z-0 flex min-h-screen">
       <div className="flex flex-1 flex-col h-screen overflow-y-auto transition-all duration-300 ease-in-out">
         <Header />
-
-        {/* Main dashboard content */}
         <main className="flex-1">
           <DashboardClient
-            // dataDashboard={data}
             token={token}
             initialMaodeObra={maodeObra.data}
             initialMaodeObra2={maodeObra.data2}

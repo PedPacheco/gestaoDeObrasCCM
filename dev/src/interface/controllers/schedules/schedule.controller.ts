@@ -77,7 +77,7 @@ export class ScheduleController {
   }
 
   @Get('resumo-mensal')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2] }))
   async getMonthlySummary(
     @Query() scheduleFilters: GetMonthlySummaryDTO,
     @Req() req: any,
@@ -117,7 +117,7 @@ export class ScheduleController {
   }
 
   @Get('acompanhamento-mensal')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2] }))
   async getExecMonitoring(
     @Query() scheduleFilters: GetExecMonitoringDTO,
     @Req() req: any,
