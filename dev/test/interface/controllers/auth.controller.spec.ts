@@ -86,9 +86,14 @@ describe('AuthController', () => {
         data: {
           id: mockResponse.id,
           username: mockResponse.username,
-          id_regional: mockResponse.id_regional,
           nome_usuario: mockResponse.nome_usuario,
+          id_regional: mockResponse.id_regional,
+          id_area: mockResponse.id_area,
+          id_turma: mockResponse.id_turma,
+          permissao_edicao: mockResponse.permissao_edicao,
+          tipo_usuario: mockResponse.tipo_usuario,
           email: mockResponse.email,
+          is_admin: mockResponse.is_admin,
         },
       });
     });
