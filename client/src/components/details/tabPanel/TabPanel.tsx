@@ -161,8 +161,6 @@ export default function TabPanel({
     modalsRef.current?.handleDialog(false);
   };
 
-  console.log(value);
-
   return (
     <div className="w-full xl:h-full flex justify-center items-start pb-6">
       <div className="w-[95%] mx-auto max-h-[620px] min-h-[620px] xl:max-h-full xl:h-[90%] shadow-lg flex flex-col">

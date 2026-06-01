@@ -120,7 +120,6 @@ export default async function Details({ params }: DetailsParams) {
     publicationRestriction,
   ] = await fetchAllData(id, token);
 
-  console.log(workData);
   // Validação de dados
   if (!workData.success) {
     return <ErrorThrower message={workData.message} />;
