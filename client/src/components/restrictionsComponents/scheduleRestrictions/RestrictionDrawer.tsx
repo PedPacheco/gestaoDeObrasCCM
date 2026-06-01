@@ -246,9 +246,9 @@ export default function RestrictionDrawer({
                 handleChange(index, "constructionObservation", e.target.value)
               }
               disabled={
-                (permissions?.id_area !== 8 &&
-                  !permissions?.permissao_edicao) ||
-                !permissions?.is_admin
+                !permissions?.is_admin &&
+                permissions?.id_area !== 8 &&
+                !permissions?.permissao_edicao
               }
               margin="normal"
             />
@@ -261,9 +261,9 @@ export default function RestrictionDrawer({
                 <DatePicker
                   label="Data resolução"
                   disabled={
-                    (permissions?.id_area !== 8 &&
-                      !permissions?.permissao_edicao) ||
-                    !permissions?.is_admin
+                    !permissions?.is_admin &&
+                    permissions?.id_area !== 8 &&
+                    !permissions?.permissao_edicao
                   }
                   value={
                     restriction.resolutionDate
