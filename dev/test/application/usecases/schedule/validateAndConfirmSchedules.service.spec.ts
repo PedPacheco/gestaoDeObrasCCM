@@ -218,7 +218,7 @@ describe('ValidateAndConfirmSchedulesService', () => {
       );
     });
 
-    it('should throw BadRequestException when serviceType requires DP and num_dp is invalid', async () => {
+    it('should throw BadRequestException when serviceType num_dp is invalid', async () => {
       const data = [
         {
           id: 1,
@@ -230,6 +230,29 @@ describe('ValidateAndConfirmSchedulesService', () => {
         ...mockResponseFindScheduleByIdRepository,
         tipo_servico: 'DP',
         num_dp: '123', // inválido (menos de 8 dígitos)
+      });
+
+      mockPrisma.$transaction.mockImplementation(async (cb) => cb({}));
+
+      await expect(service.confirm(data)).rejects.toThrow(
+        new BadRequestException(
+          'Número do DP deve conter exatamente 8 dígitos',
+        ),
+      );
+    });
+
+    it('should throw BadRequestException when serviceType requires DP ', async () => {
+      const data = [
+        {
+          id: 1,
+          confirm: true,
+        },
+      ];
+
+      mockFindScheduleByIdRepository.findById.mockResolvedValue({
+        ...mockResponseFindScheduleByIdRepository,
+        tipo_servico: 'DP',
+        num_dp: null,
       });
 
       mockPrisma.$transaction.mockImplementation(async (cb) => cb({}));
