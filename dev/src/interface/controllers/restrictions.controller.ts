@@ -47,7 +47,7 @@ export class RestrictionController {
   }
 
   @Get('programacao')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
   async getScheduleRestrictions(
     @Query() restrictionFilters: GetRestrictionsDTO,
     @Req() req: any,
@@ -64,7 +64,7 @@ export class RestrictionController {
   }
 
   @Get('publicacoes')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2, 7] }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1, 7] }))
   async getPublicationsRestrictions(
     @Query() restrictionFilters: GetRestrictionsDTO,
     @Req() req: any,

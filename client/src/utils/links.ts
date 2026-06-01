@@ -56,13 +56,13 @@ export const links: Link[] = [
     name: "Relatórios",
     href: null,
     allowedFor: ["interno_editor", "interno_viewer"],
-    allowedAreas: [8, 1],
+    allowedAreas: [8, 1, 7],
     submenu: [
       {
         name: "Exportações",
         href: "/relatorios/exportacoes",
         allowedFor: ["interno_editor", "interno_viewer"],
-        allowedAreas: [8, 1],
+        allowedAreas: [8, 1, 7],
       },
       {
         name: "Relatório de erros",

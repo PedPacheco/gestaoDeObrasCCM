@@ -47,7 +47,7 @@ export class WorksController {
   }
 
   @Get()
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
   async getAllWorks(
     @Query() worksFilters: GetAllWorksDTO,
     @Req() req: CustomRequest,
@@ -63,7 +63,7 @@ export class WorksController {
   }
 
   @Get('obras-carteira')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2] }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async getWorksInPortfolio(
     @Query() worksFilters: GetWorksDTO,
     @Req() req: CustomRequest,
@@ -80,7 +80,7 @@ export class WorksController {
   }
 
   @Get('obras-executadas')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2] }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async GetCompletedWorks(
     @Query() worksFilters: GetWorksDTO,
     @Req() req: CustomRequest,

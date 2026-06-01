@@ -12,7 +12,7 @@ export class EntryController {
   constructor(private entryService: EntryService) {}
 
   @Get()
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
   async getEntry(@Query() entryFilters: GetEntryOfWorksDTO) {
     const response = await this.entryService.getValuesFromEntry(entryFilters);
 
@@ -24,7 +24,7 @@ export class EntryController {
   }
 
   @Get('data')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
   async getEntryByDay(@Query() entryFilters: GetEntryOfWorksByDayDTO) {
     const response = await this.entryService.getEntryOfWorksByDay(entryFilters);
 

@@ -40,7 +40,7 @@ export class ExecutionReportController {
 
   @Patch(':id')
   @UseInterceptors(FilesInterceptor('files'))
-  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
+  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   async update(
     @Req() req: any,
     @Param('id', ParseIntPipe) idExecutionReport: number,

@@ -357,7 +357,7 @@ function KpiRow({
               <ProgressBar taxa={taxa} />
             </div>
 
-            <span className="text-[11px] font-bold text-[#6366f1] w-[40px] shrink-0 text-right">
+            <span className="text-sm font-bold text-[#6366f1] w-[40px] shrink-0 text-right">
               {taxa.toFixed(0)}%
             </span>
           </div>
@@ -400,7 +400,7 @@ function Metrics({
     <div className="hidden md:flex items-center gap-4">
       {items.map(({ label, value, color }) => (
         <div key={label} className="flex flex-col items-end min-w-[48px]">
-          <span className="text-zinc-500 text-[10px] uppercase tracking-wider">
+          <span className="text-zinc-300 text-xs uppercase tracking-wider">
             {label}
           </span>
           <span className={`${color} text-sm font-semibold whitespace-nowrap`}>
