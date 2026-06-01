@@ -8,7 +8,7 @@ export class DashboardController {
   constructor(private dashboardService: DashboardService) {}
 
   @Get()
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2] }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async getDashboard(@Query() filters: DashboardFiltersDTO) {
     const data = await this.dashboardService.getDashboardData(filters);
     return data;

@@ -124,7 +124,7 @@ export class ExportController {
   // ─────────────────────────────────────────────
 
   @Get('programacao')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
   async exportSchedule(
     @Query() filters: GetScheduleValuesDTO,
     @Res() res: Response,
@@ -139,7 +139,7 @@ export class ExportController {
   }
 
   @Get('obras-carteira')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
   async exportWorksInPortfolio(
     @Query() workFilters: GetWorksDTO,
     @Res() res: Response,
@@ -154,7 +154,7 @@ export class ExportController {
   }
 
   @Get('obras-executadas')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
   async exportCompletedWorks(
     @Query() workFilters: GetWorksDTO,
     @Res() res: Response,
@@ -169,7 +169,7 @@ export class ExportController {
   }
 
   @Get('resumo-mensal')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
   async exportMonthlyMOSummary(
     @Query() summaryFilters: GetMonthlySummaryDTO,
     @Res() res: Response,
@@ -191,7 +191,7 @@ export class ExportController {
   }
 
   @Get('resumo-mensal-forecast')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
   async exportMonthlyForecastSummary(
     @Query() summaryFilters: GetMonthlySummaryDTO,
     @Res() res: Response,
@@ -213,7 +213,7 @@ export class ExportController {
   }
 
   @Get('metas')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
   async exportGoals(
     @Query() filters: GoalsDTO,
     @Res() res: Response,
@@ -227,7 +227,7 @@ export class ExportController {
   }
 
   @Get('publicacoes')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2, 7], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1, 7], blockPartner: true }))
   async exportPublicationRestrictions(
     @Query() filters: GetRestrictionsDTO,
     @Res() res: Response,
@@ -249,21 +249,21 @@ export class ExportController {
   // ─────────────────────────────────────────────
 
   @Get('obras-carteira-bi')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
   async exportWorksInPortfolioBI(@Res() res: Response) {
     this.setXlsxHeaders(res, 'Exportação obras em carteira');
     return this.exportWorksInPortfolioBIService.export(res);
   }
 
   @Get('obras-executadas-bi')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
   async exportCompletedWorksBI(@Res() res: Response) {
     this.setXlsxHeaders(res, 'Exportação obras executadas');
     return this.exportCompletedWorksBIService.export(res);
   }
 
   @Get('programacoes-bi')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
   async exportSchedulesBI(@Res() res: Response) {
     this.setXlsxHeaders(res, 'Exportação programações');
     return this.exportSchedulesBIService.export(res);
@@ -274,7 +274,7 @@ export class ExportController {
   // ─────────────────────────────────────────────
 
   @Get('obras-multas')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
   async exportFinedWorks(
     @Res() res: Response,
     @Query('startDate') startDate?: string,
@@ -285,49 +285,49 @@ export class ExportController {
   }
 
   @Get('capacidade-execucao')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
   async exportExecutionCapacity(@Res() res: Response) {
     this.setXlsxHeaders(res, 'Exportação capacidade de execução');
     return this.exportExecutionCapacityService.export(res);
   }
 
   @Get('suspensoes')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
   async exportSuspensions(@Res() res: Response) {
     this.setXlsxHeaders(res, 'Exportação Suspensões');
     return this.exportSuspensionsService.export(res);
   }
 
   @Get('relatorio-execucao')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2, 7], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1, 7], blockPartner: true }))
   async exportExecutionReport(@Res() res: Response) {
     this.setXlsxHeaders(res, 'Exportação Relatório de Execução');
     return this.exportExecutionReportService.export(res);
   }
 
   @Get('forecast')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
   async exportForecast(@Res() res: Response) {
     this.setXlsxHeaders(res, 'Exportação do Forecast');
     return this.exportForecastService.export(res);
   }
 
   @Get('reprovacoes')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
   async exportRejections(@Res() res: Response) {
     this.setXlsxHeaders(res, 'Exportação das reprovações');
     return this.exportRejectionsService.export(res);
   }
 
   @Get('ordens')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
   async exportOrders(@Res() res: Response) {
     this.setXlsxHeaders(res, 'Exportação Ordens/Diagramas');
     return this.exportOrdersService.export(res);
   }
 
   @Get('relatorio-publicacoes')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2, 7], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1, 7], blockPartner: true }))
   async exportReportToPublication(@Res() res: Response) {
     this.setXlsxHeaders(res, 'Exportação Relatório Publicações ');
     return this.exportReportToPublicationService.export(res);

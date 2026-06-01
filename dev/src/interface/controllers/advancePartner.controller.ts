@@ -32,7 +32,7 @@ export class AdvancePartnerController {
   }
 
   @Get()
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2] }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async getRestrictionsAdvancePartner(
     @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
     @Req() req: any,
@@ -49,7 +49,7 @@ export class AdvancePartnerController {
   }
 
   @Get('aderencia-parceira')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2] }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async getGripPartner(
     @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
     @Req() req: any,
@@ -66,7 +66,7 @@ export class AdvancePartnerController {
   }
 
   @Get('motivos-reprogramacao')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2] }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async getReaschedulingReasons(
     @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
     @Req() req: any,
@@ -83,7 +83,7 @@ export class AdvancePartnerController {
   }
 
   @Get('sparklines-parceira')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2] }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async getSparklinesByPartner(
     @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
     @Req() req: any,
@@ -99,7 +99,7 @@ export class AdvancePartnerController {
   }
 
   @Get('semanas-parceira')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2] }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async getWeeksByPartner(
     @Query() restrictionFilters: GetRestrictionsAdvancePartnerDTO,
     @Req() req: any,

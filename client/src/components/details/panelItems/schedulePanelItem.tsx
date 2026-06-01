@@ -192,7 +192,10 @@ export default function SchedulePanelItem({
     );
   };
 
-  const canAccessScheduleActions = (permissions: any): boolean => {
+  const canAccessScheduleActions = (
+    permissions: any,
+    exec?: number | null,
+  ): boolean => {
     const isAdmin = permissions?.is_admin === true;
 
     const isArea8WithEditPermission =
@@ -200,7 +203,8 @@ export default function SchedulePanelItem({
 
     const isParceiraAllowedStatus =
       permissions?.tipo_usuario === "PARCEIRA" &&
-      !statusToDisable.includes(statusWork);
+      !statusToDisable.includes(statusWork) &&
+      exec === null;
 
     return isAdmin || isArea8WithEditPermission || isParceiraAllowedStatus;
   };
@@ -232,50 +236,49 @@ export default function SchedulePanelItem({
                 onMouseLeave={() => setHoveredRow(null)}
               >
                 <TableCell className="py-1 px-2 text-center border-r font-medium text-base border-zinc-700 border-solid sticky left-0 bg-white z-10">
-                  {item.exec === null &&
-                    canAccessScheduleActions(permissions) && (
-                      <Box
-                        display="flex"
-                        justifyContent="center"
-                        gap={0.5}
-                        sx={{
-                          opacity: hoveredRow === rowIndex ? 1 : 0,
-                          transition: "opacity 0.2s ease-in-out",
-                        }}
-                      >
-                        <Tooltip title="Editar programação" placement="top">
-                          <IconButton
-                            size="small"
-                            color="primary"
-                            onClick={() => handleEdit(item)}
-                            sx={{
-                              padding: "4px",
-                              "&:hover": {
-                                backgroundColor: "rgba(25, 118, 210, 0.08)",
-                              },
-                            }}
-                          >
-                            <PencilIcon width={24} height={24} />
-                          </IconButton>
-                        </Tooltip>
+                  {canAccessScheduleActions(permissions, item.exec) && (
+                    <Box
+                      display="flex"
+                      justifyContent="center"
+                      gap={0.5}
+                      sx={{
+                        opacity: hoveredRow === rowIndex ? 1 : 0,
+                        transition: "opacity 0.2s ease-in-out",
+                      }}
+                    >
+                      <Tooltip title="Editar programação" placement="top">
+                        <IconButton
+                          size="small"
+                          color="primary"
+                          onClick={() => handleEdit(item)}
+                          sx={{
+                            padding: "4px",
+                            "&:hover": {
+                              backgroundColor: "rgba(25, 118, 210, 0.08)",
+                            },
+                          }}
+                        >
+                          <PencilIcon width={24} height={24} />
+                        </IconButton>
+                      </Tooltip>
 
-                        <Tooltip title="Excluir programação" placement="top">
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={() => handleDelete(item.id)}
-                            sx={{
-                              padding: "4px",
-                              "&:hover": {
-                                backgroundColor: "rgba(211, 47, 47, 0.08)",
-                              },
-                            }}
-                          >
-                            <TrashIcon width={24} height={24} />
-                          </IconButton>
-                        </Tooltip>
-                      </Box>
-                    )}
+                      <Tooltip title="Excluir programação" placement="top">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleDelete(item.id)}
+                          sx={{
+                            padding: "4px",
+                            "&:hover": {
+                              backgroundColor: "rgba(211, 47, 47, 0.08)",
+                            },
+                          }}
+                        >
+                          <TrashIcon width={24} height={24} />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  )}
                 </TableCell>
                 {columnConfig.map((col) => (
                   <TableCell

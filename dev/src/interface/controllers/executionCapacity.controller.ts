@@ -44,7 +44,7 @@ export class ExecutionCapacityController {
   }
 
   @Get()
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2] }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async getExecutionCapacity(
     @Query()
     filters: ExecutionCapacityDTO,

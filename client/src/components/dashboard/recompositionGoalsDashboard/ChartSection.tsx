@@ -29,8 +29,8 @@ interface ChartsSectionProps {
   metrics: DashboardMetrics;
 }
 
-const AXIS_TICK_X = { fill: "#94a3b8", fontSize: 12, fontWeight: 500 } as const;
-const AXIS_TICK_Y = { fill: "#64748b", fontSize: 11 } as const;
+const AXIS_TICK_X = { fill: "#94a3b8", fontSize: 14, fontWeight: 500 } as const;
+const AXIS_TICK_Y = { fill: "#64748b", fontSize: 14 } as const;
 const LEGEND_FORMATTER = (v: string) => (
   <span style={{ color: "#cbd5e1", fontSize: 12 }}>{v}</span>
 );
@@ -181,12 +181,12 @@ function CurvaSPanel({ metrics }: { metrics: DashboardMetrics }) {
             />
             <XAxis
               dataKey="mes"
-              tick={{ fill: "#94a3b8", fontSize: 12, fontWeight: 500 }}
+              tick={{ fill: "#94a3b8", fontSize: 14, fontWeight: 500 }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
-              tick={{ fill: "#64748b", fontSize: 11 }}
+              tick={{ fill: "#64748b", fontSize: 14 }}
               axisLine={false}
               tickLine={false}
               tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
@@ -212,7 +212,7 @@ function CurvaSPanel({ metrics }: { metrics: DashboardMetrics }) {
                   : `⚠ Projeção-alvo: Meta em Dez`,
                 position: "insideTopRight",
                 fill: naturallyHitsThisYear ? "#53FF75" : "#fbbf24",
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: 700,
               }}
             />

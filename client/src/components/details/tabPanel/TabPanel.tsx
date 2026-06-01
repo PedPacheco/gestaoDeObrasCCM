@@ -61,7 +61,7 @@ export default function TabPanel({
   const { permissions } = useUser();
   const modalsRef = useRef<ModalsManagerRef>(null);
 
-  const [value, setValue] = useState(1);
+  const [value, setValue] = useState<number>(1);
   const [data, setData] = useState<Record<string, any>>(workData);
 
   const [editingSchedule, setEditingSchedule] = useState<any>();
@@ -108,7 +108,9 @@ export default function TabPanel({
   useEffect(() => {
     if (!permissions) return;
 
-    const defaultTab = canSeeTab ? 0 : 1;
+    const tab = localStorage.getItem("tab");
+
+    const defaultTab = canSeeTab && tab ? Number(tab) : 1;
 
     setValue(defaultTab);
     localStorage.setItem("tab", String(defaultTab));
@@ -158,6 +160,8 @@ export default function TabPanel({
     modalsRef.current?.handleExecutionDialog(false);
     modalsRef.current?.handleDialog(false);
   };
+
+  console.log(value);
 
   return (
     <div className="w-full xl:h-full flex justify-center items-start pb-6">

@@ -26,7 +26,7 @@ export class ForecastController {
   constructor(private forecastSnapshotService: ForecastSnapshotService) {}
 
   @Get('snapshot/:id')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8], blockPartner: true }))
   async getSnapshotById(@Param('id') id: number) {
     const snapshot = await this.forecastSnapshotService.get(id);
 
@@ -38,7 +38,7 @@ export class ForecastController {
   }
 
   @Get('snapshot')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8], blockPartner: true }))
   async getAllSnapshots(@Query() query: GetSnapshotsQueryDto) {
     const snapshots = await this.forecastSnapshotService.getAll(query);
 

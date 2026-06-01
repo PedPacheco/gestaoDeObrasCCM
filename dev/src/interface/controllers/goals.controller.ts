@@ -18,7 +18,7 @@ export class GoalsController {
   constructor(private goalsService: GoalsService) {}
 
   @Get()
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2] }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async getGoals(
     @Query() filters: GoalsDTO,
     @Req() req: any,

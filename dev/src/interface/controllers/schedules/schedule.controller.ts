@@ -47,7 +47,7 @@ export class ScheduleController {
   }
 
   @Get()
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
   async getTotalValues(@Query() filters: GetTotalValuesScheduleDTO) {
     const response =
       await this.getTotalValuesScheduleService.getTotalValues(filters);
@@ -77,7 +77,7 @@ export class ScheduleController {
   }
 
   @Get('resumo-mensal')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2] }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async getMonthlySummary(
     @Query() scheduleFilters: GetMonthlySummaryDTO,
     @Req() req: any,
@@ -97,7 +97,7 @@ export class ScheduleController {
   }
 
   @Get('resumo-mensal-forecast')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
   async getMonthlySummaryForecast(
     @Query() scheduleFilters: GetMonthlySummaryDTO,
     @Req() req: any,
@@ -117,7 +117,7 @@ export class ScheduleController {
   }
 
   @Get('acompanhamento-mensal')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 2] }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async getExecMonitoring(
     @Query() scheduleFilters: GetExecMonitoringDTO,
     @Req() req: any,

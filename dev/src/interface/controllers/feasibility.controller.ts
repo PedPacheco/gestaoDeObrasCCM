@@ -21,6 +21,7 @@ export class FeasibilityController {
   constructor(private readonly feasibilityService: FeasibilityService) {}
 
   @Get('/:id')
+  @UseGuards(AreaEditGuard())
   async getFeasibility(@Param('id', ParseIntPipe) id: number) {
     const response = await this.feasibilityService.feasibilityExists(id);
 
