@@ -156,13 +156,11 @@ export function SparklinesSection({
               const semanas = semanasMap[row.parceira] ?? null;
 
               const semDotColor =
-                semanas === null
-                  ? "#52525b" // cinza — sem dados
-                  : semanas >= 8
-                    ? "#10b981" // verde — 8 ou mais semanas
-                    : semanas >= 6
-                      ? "#eab308" // amarelo — 6 ou 7 semanas
-                      : "#ef4444"; // vermelho — até 5 semanas
+                semanas >= 8
+                  ? "#10b981" // verde — 8 ou mais semanas
+                  : semanas >= 6
+                    ? "#eab308" // amarelo — 6 ou 7 semanas
+                    : "#ef4444"; // vermelho — até 5 semanas
 
               return (
                 <Box

@@ -162,7 +162,7 @@ export default function RestrictionDrawer({
               <InputLabel>Restrição</InputLabel>
               <Select
                 disabled={
-                  !permissions?.is_admin ||
+                  !permissions?.is_admin &&
                   ![7].includes(permissions?.id_area ?? -1)
                 }
                 value={restriction.idRestriction || 1}
@@ -183,7 +183,7 @@ export default function RestrictionDrawer({
               <InputLabel>Responsabilidade</InputLabel>
               <Select
                 disabled={
-                  !permissions?.is_admin ||
+                  !permissions?.is_admin &&
                   ![7].includes(permissions?.id_area ?? -1)
                 }
                 value={restriction.responsibility || ""}
