@@ -57,8 +57,14 @@ export class Schedule {
     const dp = this.numDp?.trim();
 
     // ❗ Regra completa
-    if (!dp || dp === '0' || !/^\d{8}$/.test(dp)) {
+    if (!dp || dp === '0') {
       throw new BadRequestException('Falta inserir número do DP');
+    }
+
+    if (!/^\d{8}$/.test(dp)) {
+      throw new BadRequestException(
+        'Número do DP deve conter exatamente 8 dígitos',
+      );
     }
   }
 

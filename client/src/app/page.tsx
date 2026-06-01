@@ -14,7 +14,7 @@ const API = process.env.NEXT_PUBLIC_API_URL!;
 const NO_CACHE = { cache: "no-store" as const };
 
 // ── Áreas com permissão de acesso ao dashboard ──────────────
-const ALLOWED_AREAS = [2, 8];
+const ALLOWED_AREAS = [1, 8];
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Função para extrair dados do utilizador dos cookies
