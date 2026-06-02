@@ -9,6 +9,7 @@ import LaborDashboard from "./laborDashboard/laborDashboard";
 import MonitoringExecutionDashboard from "./monitoringExecutionDashboard/monitoringExecutionDashboard";
 import RecompositionGoalsDashboard from "./recompositionGoalsDashboard/RecompositionGoalsDashboard";
 import { useUser } from "@/contexts/userContext";
+import { LoadingComponent } from "../common/Loading";
 
 // ... (manter todas as interfaces existentes: Kpis, ByStatus, ByRegional, etc.)
 
@@ -98,7 +99,7 @@ export function pctColor(pct: number) {
 }
 
 // ✅ Áreas permitidas para utilizadores internos
-const ALLOWED_AREAS = [2, 8];
+const ALLOWED_AREAS = [2, 8, 9];
 
 export default function DashboardClient({
   token,
@@ -117,9 +118,20 @@ export default function DashboardClient({
   initialDailyGoalMoveForwardPartner,
   filtersData,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<Tab>("mao-de-obra");
+  const { permissions } = useUser();
+
+  const isRestricted = permissions?.id_area === 9;
+  const isLoaded = permissions !== null && permissions !== undefined;
+
   const tabSwitcherRef = useRef<HTMLDivElement>(null);
   const [tabSwitcherHeight, setTabSwitcherHeight] = useState(0);
+  const [activeTab, setActiveTab] = useState<Tab>("mao-de-obra");
+
+  useEffect(() => {
+    if (isRestricted) {
+      setActiveTab("metas-recomposicao");
+    }
+  }, [isRestricted]);
 
   useEffect(() => {
     if (!tabSwitcherRef.current) return;
@@ -146,6 +158,35 @@ export default function DashboardClient({
     { name: "Baramaia", logo: "/baramaia-logo.png" },
   ];
 
+  const allTabs: { key: Tab; label: string }[] = [
+    { key: "mao-de-obra", label: "Resumo — Mão de Obra Parceira" },
+    { key: "metas-recomposicao", label: "Metas Recomposição" },
+    { key: "acompanhamento-execucao", label: "Acompanhamento da Execução" },
+    { key: "avanca-parceiro", label: "Avança Parceiro" },
+  ];
+
+  const visibleTabs = isRestricted
+    ? allTabs.filter((tab) => tab.key === "metas-recomposicao")
+    : allTabs;
+
+  const safeTab = isRestricted ? "metas-recomposicao" : activeTab;
+
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center justify-center gap-2">
+          <div className="h-5 overflow-hidden flex items-center justify-center">
+            <LoadingComponent color="text-black" />
+          </div>
+
+          <span className="text-sm text-zinc-500">
+            Carregando dados do Dashboard
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-full">
       {/* ── Tab Switcher ─────────────────────────────────────── */}
@@ -154,17 +195,7 @@ export default function DashboardClient({
         className="sticky top-16 z-30 bg-white flex justify-between items-center gap-1 px-3 pt-3 pb-0 border-b border-white/5"
       >
         <div className="flex gap-1">
-          {(
-            [
-              { key: "mao-de-obra", label: "Resumo — Mão de Obra Parceira" },
-              { key: "metas-recomposicao", label: "Metas Recomposição" },
-              {
-                key: "acompanhamento-execucao",
-                label: "Acompanhamento da Execução",
-              },
-              { key: "avanca-parceiro", label: "Avança Parceiro" },
-            ] as { key: Tab; label: string }[]
-          ).map(({ key, label }) => (
+          {visibleTabs.map(({ key, label }) => (
             <button
               key={key}
               onClick={() => setActiveTab(key)}
@@ -198,21 +229,21 @@ export default function DashboardClient({
       </div>
 
       {/* ── Tab Content ──────────────────────────────────────── */}
-      {activeTab === "metas-recomposicao" ? (
+      {safeTab === "metas-recomposicao" ? (
         <RecompositionGoalsDashboard
           initialGoals={initialMetasRecomposicao}
           filtersData={goalsFilters}
           token={token}
           filtersTop={filtersTop}
         />
-      ) : activeTab === "acompanhamento-execucao" ? (
+      ) : safeTab === "acompanhamento-execucao" ? (
         <MonitoringExecutionDashboard
           initialData={initialExecMonitoring}
           filtersData={goalsFilters}
           token={token}
           filtersTop={filtersTop}
         />
-      ) : activeTab === "avanca-parceiro" ? (
+      ) : safeTab === "avanca-parceiro" ? (
         <AdvancePartnerDashboard
           initialEliminacao={initialEliminacaoRestricao}
           initialAderencia={initialAderenciaParceira}

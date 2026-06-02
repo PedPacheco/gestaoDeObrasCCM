@@ -164,9 +164,8 @@ export default function AdvancePartnerDashboard({
       {/* ── Motivos de Reprogramação ── */}
       <div className="w-full px-5">
         <ChartReasonsReascheduling
-          motivoTab={motivoTab}
           motivos={motivos}
-          setMotivoTab={setMotivoTab}
+          aderencia={aderencia}
           isPending={isPending}
         />
       </div>

@@ -14,7 +14,7 @@ const API = process.env.NEXT_PUBLIC_API_URL!;
 const NO_CACHE = { cache: "no-store" as const };
 
 // ── Áreas com permissão de acesso ao dashboard ──────────────
-const ALLOWED_AREAS = [1, 8];
+const ALLOWED_AREAS = [1, 8, 9];
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Função para extrair dados do utilizador dos cookies
@@ -222,9 +222,6 @@ export default async function Home() {
                 width={740}
                 height={500}
               />
-              <p className="text-zinc-500 text-lg font-medium">
-                Você não tem permissão para acessar este painel.
-              </p>
             </div>
           </main>
         </div>

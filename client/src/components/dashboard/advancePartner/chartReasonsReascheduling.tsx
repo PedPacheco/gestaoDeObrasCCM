@@ -9,20 +9,24 @@ import {
 } from "recharts";
 import { useMemo } from "react";
 import { ChartTooltip } from "../common/ChartTooltip";
-import { MotivoRow } from "./advancePartner";
-import { MotivoTab } from "@/hooks/dashboard/advancePartner/useAdvancePartnerFilters";
+import { AderenciaRow, MotivoRow } from "./advancePartner";
 
 interface ChartReasonsReaschedulingProps {
   motivos: MotivoRow[];
-  motivoTab: MotivoTab;
-  setMotivoTab: (data: MotivoTab) => void;
+  aderencia: AderenciaRow[];
   isPending: boolean;
 }
 
 export function ChartReasonsReascheduling({
   motivos,
+  aderencia,
   isPending,
 }: ChartReasonsReaschedulingProps) {
+  const totalWorks = useMemo(
+    () => aderencia.reduce((s, r) => s + r.total, 0),
+    [aderencia],
+  );
+
   const motivosChartData = useMemo(() => {
     const counts: Record<
       string,
@@ -51,14 +55,11 @@ export function ChartReasonsReascheduling({
         motivo,
         count: data.count,
         moNaoExecutada: data.moNaoExecutada,
-        pct:
-          motivos.length > 0
-            ? Math.round((data.count / motivos.length) * 100)
-            : 0,
+        pct: totalWorks > 0 ? ((data.count / totalWorks) * 100).toFixed(2) : 0,
       }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 12);
-  }, [motivos]);
+  }, [motivos, totalWorks]);
 
   return (
     <div className="bg-gradient-to-br from-[#1e2f42] to-[#192535] rounded-2xl p-5 border border-white/5 shadow-xl">

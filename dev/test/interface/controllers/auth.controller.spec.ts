@@ -7,6 +7,7 @@ import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { TipoUsuario } from '@prisma/client';
 
 describe('AuthController', () => {
   let authController: AuthController;
@@ -52,7 +53,7 @@ describe('AuthController', () => {
         id_area: 8,
         is_admin: true,
         nome_usuario: 'Teste',
-        tipo_usuario: 'INTERNO',
+        tipo_usuario: TipoUsuario.INTERNO,
         permissao_edicao: true,
         email: 'teste@gmail.com',
         access_token: 'token',
@@ -128,7 +129,7 @@ describe('AuthController', () => {
         id_area: 8,
         is_admin: true,
         nome: 'Teste',
-        tipo_usuario: 'INTERNO',
+        tipo_usuario: TipoUsuario.INTERNO,
         permissao_edicao: true,
         email: 'teste@gmail.com',
       });
@@ -140,7 +141,7 @@ describe('AuthController', () => {
         id_area: 8,
         is_admin: true,
         nome: 'Teste',
-        tipo_usuario: 'INTERNO',
+        tipo_usuario: TipoUsuario.PARCEIRA,
         permissao_edicao: true,
         email: 'teste@gmail.com',
       };
@@ -168,7 +169,7 @@ describe('AuthController', () => {
         id_area: 8,
         is_admin: true,
         nome: 'Teste',
-        tipo_usuario: 'INTERNO',
+        tipo_usuario: TipoUsuario.INTERNO,
         permissao_edicao: true,
         email: 'teste@gmail.com',
       };

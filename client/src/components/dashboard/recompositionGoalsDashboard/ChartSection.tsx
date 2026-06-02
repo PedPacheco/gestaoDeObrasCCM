@@ -34,7 +34,7 @@ const AXIS_TICK_Y = { fill: "#64748b", fontSize: 14 } as const;
 const LEGEND_FORMATTER = (v: string) => (
   <span style={{ color: "#cbd5e1", fontSize: 12 }}>{v}</span>
 );
-const K_FORMATTER = (v: number) => `${(v / 1000).toFixed(0)}k`;
+const K_FORMATTER = (v: number) => `${v.toFixed(0)}`;
 
 export function ChartsSection({ metrics }: ChartsSectionProps) {
   return (
@@ -189,7 +189,7 @@ function CurvaSPanel({ metrics }: { metrics: DashboardMetrics }) {
               tick={{ fill: "#64748b", fontSize: 14 }}
               axisLine={false}
               tickLine={false}
-              tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
+              tickFormatter={K_FORMATTER}
               width={36}
             />
             <Tooltip content={<ChartTooltip metricConfig="number" />} />

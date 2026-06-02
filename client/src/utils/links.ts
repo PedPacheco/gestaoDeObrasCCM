@@ -50,7 +50,7 @@ export const links: Link[] = [
     name: "Tela inicial",
     href: "/",
     allowedFor: ["interno_editor", "interno_viewer", "parceira"],
-    allowedAreas: [8, 1],
+    allowedAreas: [8, 1, 9],
   },
   {
     name: "Relatórios",
@@ -88,13 +88,13 @@ export const links: Link[] = [
     name: "Metas",
     href: null,
     allowedFor: ["interno_editor", "interno_viewer"],
-    allowedAreas: [8, 1],
+    allowedAreas: [8, 1, 9],
     submenu: [
       {
         name: "Metas Recomposição",
         href: "/metas/recomposicao",
         allowedFor: ["interno_editor", "interno_viewer"],
-        allowedAreas: [8, 1],
+        allowedAreas: [8, 1, 9],
       },
       {
         name: "Metas BT0",
@@ -146,37 +146,37 @@ export const links: Link[] = [
   {
     name: "Atualizações",
     allowedFor: ["interno_editor"],
-    allowedAreas: [8, 1],
+    allowedAreas: [8],
     submenu: [
       {
         name: "Mercado",
         href: "/atualizacoes/mercado",
         allowedFor: ["interno_editor"],
-        allowedAreas: [8, 1],
+        allowedAreas: [8],
       },
       {
         name: "Notas",
         href: "/atualizacoes/notas",
         allowedFor: ["interno_editor"],
-        allowedAreas: [8, 1],
+        allowedAreas: [8],
       },
       {
         name: "Material e Serviço",
         href: "/atualizacoes/capex",
         allowedFor: ["interno_editor"],
-        allowedAreas: [8, 1],
+        allowedAreas: [8],
       },
       {
         name: "Empreitamento",
         href: "/atualizacoes/empreitamento",
         allowedFor: ["interno_editor"],
-        allowedAreas: [8, 1],
+        allowedAreas: [8],
       },
       {
         name: "Suspensões",
         href: "/atualizacoes/suspensoes",
         allowedFor: ["interno_editor"],
-        allowedAreas: [8, 1],
+        allowedAreas: [8],
       },
     ],
   },
@@ -184,7 +184,7 @@ export const links: Link[] = [
     name: "Programação",
     href: null,
     allowedFor: ["interno_editor", "interno_viewer", "parceira"],
-    allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7],
+    allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7, 9],
     submenu: [
       {
         name: "Resumo mensal - Mão de Obra",
@@ -208,7 +208,7 @@ export const links: Link[] = [
         name: "Programação por data",
         href: "/programacao/por-data",
         allowedFor: ["interno_editor", "interno_viewer", "parceira"],
-        allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7],
+        allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7, 9],
       },
     ],
   },
@@ -236,7 +236,7 @@ export const links: Link[] = [
     name: "Mapa de obras",
     href: "/mapa-obras",
     allowedFor: ["interno_editor", "interno_viewer", "parceira"],
-    allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7],
+    allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7, 9],
   },
   {
     name: "Obras em carteira",
