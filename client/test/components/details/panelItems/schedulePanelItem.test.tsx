@@ -239,7 +239,10 @@ describe("SchedulePanelItem", () => {
 
     it("oculta os botões de ação quando exec não é nulo", () => {
       mockUseUser.mockReturnValue({
-        permissions: makePermissions({ is_admin: true }),
+        permissions: makePermissions({
+          is_admin: false,
+          tipo_usuario: "PARCEIRA",
+        }),
       });
       const item = makeItem({ exec: 100 });
       render(<SchedulePanelItem {...makeProps({ data: [item] })} />);

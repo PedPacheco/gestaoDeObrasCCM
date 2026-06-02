@@ -283,7 +283,7 @@ describe("WorkDetails", () => {
   describe("Controle de permissões", () => {
     it("deve lançar erro quando permissão é parcial e status é 3", () => {
       mockUseUser.mockReturnValue({
-        permissions: { permissao_visualizacao: "parcial" },
+        permissions: { tipo_usuario: "PARCEIRA" },
       } as any);
 
       const dataWithStatus3 = { ...mockData, id_status: 3 };
@@ -303,7 +303,7 @@ describe("WorkDetails", () => {
 
     it("deve lançar erro quando permissão é parcial e status é 4", () => {
       mockUseUser.mockReturnValue({
-        permissions: { permissao_visualizacao: "parcial" },
+        permissions: { tipo_usuario: "PARCEIRA" },
       } as any);
 
       const dataWithStatus4 = { ...mockData, id_status: 4 };
@@ -323,7 +323,7 @@ describe("WorkDetails", () => {
 
     it("deve lançar erro quando permissão é parcial e status é 42", () => {
       mockUseUser.mockReturnValue({
-        permissions: { permissao_visualizacao: "parcial" },
+        permissions: { tipo_usuario: "PARCEIRA" },
       } as any);
 
       const dataWithStatus42 = { ...mockData, id_status: 42 };
@@ -394,7 +394,7 @@ describe("WorkDetails", () => {
       mockUseUser.mockReturnValue({
         permissions: {
           ...defaultPermissions,
-          permissao_publicacao: false,
+          is_admin: false,
         },
       } as any);
 

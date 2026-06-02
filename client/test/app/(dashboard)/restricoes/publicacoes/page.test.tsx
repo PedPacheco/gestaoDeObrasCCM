@@ -82,6 +82,7 @@ describe("Publications restrictions page", () => {
     startDate: "2025/05/17",
     endDate: "2025/05/22",
     executed: "true",
+    statusFilter: ["done", "pending"],
   });
 
   const mockCookieStore = {
@@ -129,7 +130,7 @@ describe("Publications restrictions page", () => {
         parceira: "Parceira 1",
         dataInicial: "17/05/2025",
         dataFinal: "22/05/2025",
-        status: null,
+        status: "done,pending",
       },
       mockToken,
       { cache: "no-store" },
@@ -144,6 +145,7 @@ describe("Publications restrictions page", () => {
           ...JSON.parse(mockParamsFiltes),
           startDate: undefined,
           endDate: undefined,
+          statusFilter: undefined,
         };
 
         return { value: JSON.stringify(filters) };
@@ -191,6 +193,11 @@ describe("Publications restrictions page", () => {
   });
 
   it("Deve passar os dados corretamente para o componente PublicationRestriction", async () => {
+    vi.mocked(mockCookieStore.get).mockImplementation((name) => {
+      if (name === "token") return { value: mockToken };
+      return undefined;
+    });
+
     render(await PublicationRestriction());
 
     const scheduleRestrictions = screen.getByTestId(
