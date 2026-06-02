@@ -82,6 +82,7 @@ describe("Schedule restrictions page", () => {
     startDate: "2025/05/17",
     endDate: "2025/05/22",
     executed: "true",
+    statusFilter: ["done", "pending"],
   });
 
   const mockCookieStore = {
@@ -129,7 +130,7 @@ describe("Schedule restrictions page", () => {
         parceira: "Parceira 1",
         dataInicial: "17/05/2025",
         dataFinal: "22/05/2025",
-        status: null,
+        status: "done,pending",
       },
       mockToken,
       { cache: "no-store" },
@@ -144,6 +145,7 @@ describe("Schedule restrictions page", () => {
           ...JSON.parse(mockParamsFiltes),
           startDate: undefined,
           endDate: undefined,
+          statusFilter: undefined,
         };
 
         return { value: JSON.stringify(filters) };

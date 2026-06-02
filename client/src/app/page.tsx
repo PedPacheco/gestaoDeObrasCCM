@@ -1,11 +1,11 @@
 import { cookies } from "next/headers";
+import Image from "next/image";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import DashboardClient from "@/components/dashboard/DashboardClient";
 import { Header } from "@/components/layout/Header";
 import { getCurrentMonthRange, getCurrentWeekData } from "@/utils/weeks";
-import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
