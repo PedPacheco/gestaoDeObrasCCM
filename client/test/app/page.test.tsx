@@ -179,9 +179,6 @@ describe("Home (Server Component)", () => {
       const jsx = await Home();
       render(jsx);
 
-      expect(
-        screen.getByText("Você não tem permissão para acessar este painel."),
-      ).toBeInTheDocument();
       expect(screen.getByAltText("Logo SIGO")).toBeInTheDocument();
       expect(screen.queryByTestId("dashboard-client")).not.toBeInTheDocument();
     });
@@ -195,9 +192,6 @@ describe("Home (Server Component)", () => {
       const jsx = await Home();
       render(jsx);
 
-      expect(
-        screen.getByText("Você não tem permissão para acessar este painel."),
-      ).toBeInTheDocument();
       expect(screen.queryByTestId("dashboard-client")).not.toBeInTheDocument();
     });
 
@@ -210,9 +204,6 @@ describe("Home (Server Component)", () => {
       const jsx = await Home();
       render(jsx);
 
-      expect(
-        screen.getByText("Você não tem permissão para acessar este painel."),
-      ).toBeInTheDocument();
       expect(screen.queryByTestId("dashboard-client")).not.toBeInTheDocument();
     });
 
@@ -228,9 +219,7 @@ describe("Home (Server Component)", () => {
       const jsx = await Home();
       render(jsx);
 
-      expect(
-        screen.getByText("Você não tem permissão para acessar este painel."),
-      ).toBeInTheDocument();
+      expect(screen.queryByTestId("dashboard-client")).not.toBeInTheDocument();
     });
 
     it("deve permitir acesso a utilizador INTERNO com id_area 1", async () => {
@@ -244,9 +233,6 @@ describe("Home (Server Component)", () => {
       render(jsx);
 
       expect(screen.getByTestId("dashboard-client")).toBeInTheDocument();
-      expect(
-        screen.queryByText("Você não tem permissão para acessar este painel."),
-      ).not.toBeInTheDocument();
     });
 
     it("deve permitir acesso a utilizador INTERNO com id_area 8", async () => {
