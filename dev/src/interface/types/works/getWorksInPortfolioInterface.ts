@@ -25,6 +25,8 @@ export interface worksInPortfolioInterface {
   qtde_pend: number;
   circuito: string;
   mo_planejada: number;
+  mo_exec: number;
+  mo_pend: number;
   id_status: number;
   status: string;
   conjunto: string;
@@ -33,9 +35,6 @@ export interface worksInPortfolioInterface {
   empreendimento: string;
   turma: string;
   ano_plan: number;
-  mo_exec?: number;
-  mo_suspensa?: number;
-  atraso?: boolean;
   status_prazo: string;
 }
 
@@ -43,7 +42,7 @@ export interface totalsWorksInPortfolio {
   total_obras: number;
   total_mo_planejada: number;
   total_mo_exec: number;
-  total_mo_suspensa: number;
+  total_mo_pend?: number;
   total_qtde_planejada: number;
   total_qtde_pend: number;
 }

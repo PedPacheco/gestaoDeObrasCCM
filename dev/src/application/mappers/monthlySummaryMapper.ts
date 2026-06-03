@@ -18,12 +18,13 @@ export class MonthlySummaryMapper {
   ): DailySummaryEntry {
     return {
       dataProg: formattedDate,
-      totalQtde: 0,
+      qtdeSchedules: 0,
       teamsTotal,
       financialGoal: metrics.dailyFinancialGoal,
       diaryGoal: 0,
       financialGoalWith8: metrics.dailyFinancialGoalWithOverhead,
       diaryGoalWith8: 0,
+      totalMoPlan: 0,
       totalMoProg: 0,
       totalMoExec: 0,
       diff: 0,
@@ -36,21 +37,29 @@ export class MonthlySummaryMapper {
     goalContribution: number,
     goalWith8Contribution: number,
   ): void {
-    const { moProg, moExec } = workOrderMetrics;
+    const { moProg, moExec, moPlan } = workOrderMetrics;
 
-    entry.totalQtde++;
+    entry.qtdeSchedules++;
 
+    entry.totalMoPlan += moPlan;
     entry.totalMoProg += moProg;
     entry.totalMoExec += moExec;
     entry.diaryGoal += goalContribution;
     entry.diaryGoalWith8 += goalWith8Contribution;
   }
 
-  createGroupTeamEntry(grupo: string, turma: string): GroupTeamSummaryEntry {
+  createGroupTeamEntry(
+    grupo: string,
+    turma: string,
+    idTurma?: number,
+    idGrupo?: number,
+  ): GroupTeamSummaryEntry {
     return {
       grupo,
       turma,
-      qtdeWorks: 0,
+      idTurma,
+      idGrupo,
+      qtdeSchedules: 0,
       totalMoPlan: 0,
       totalMoPend: 0,
       totalMoProg: 0,
@@ -68,7 +77,7 @@ export class MonthlySummaryMapper {
   ): void {
     const { moProg, moExec, moPlan, moPend } = workOrderMetrics;
 
-    entry.qtdeWorks++;
+    entry.qtdeSchedules++;
 
     if (!workExists) {
       entry.totalMoPlan += moPlan;
@@ -88,8 +97,12 @@ export type GroupSummaryTotalsShape = ReturnType<
 
 export function createInitialTotals(): DailySummaryTotals {
   return {
-    totalQtdeObras: 0,
+    totalWorks: 0,
+    totalSchedules: 0,
     totalTeams: 0,
+    totalExecutionCapacityTeams: 0,
+    totalQtdeRfpTeams: 0,
+    totalWalletExec: 0,
     totalFinancialGoal: 0,
     totalDiaryGoal: 0,
     totalFinancialGoalWith8: 0,
@@ -102,12 +115,24 @@ export function createInitialTotals(): DailySummaryTotals {
 
 export function createInitialTotalsByGrouping(): GroupSummaryTotals {
   return {
-    totalWorks: 0,
+    totalSchedules: 0,
     totalMoPlanByGrouping: 0,
     totalMoPendByGrouping: 0,
     totalMoProgByGrouping: 0,
     totalMoExecByGrouping: 0,
     totalMoPrevByGrouping: 0,
+    totalWalletRda: 0,
+    totalExecRda: 0,
+    totalProgRda: 0,
+    totalWalletBt0: 0,
+    totalProgBt0: 0,
+    totalExecBt0: 0,
+    totalWalletMarket: 0,
+    totalProgMarket: 0,
+    totalExecMarket: 0,
+    totalWalletRecom: 0,
+    totalProgRecom: 0,
+    totalExecRecom: 0,
     totalDiff: 0,
   };
 }

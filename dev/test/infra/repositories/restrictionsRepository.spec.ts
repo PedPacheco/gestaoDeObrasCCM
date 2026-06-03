@@ -49,6 +49,7 @@ describe('RestrictionsRepository', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   describe('getScheduleRestrictions', () => {

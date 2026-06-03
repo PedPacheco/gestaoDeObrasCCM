@@ -17,7 +17,7 @@ import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
 import { mockUpdateSchedulesController } from '../../../mocks/mockAddScheduleService';
-import { ForecastSnapshotService } from 'src/application/usecases/schedule/forecastSnapshot.service';
+import { ForecastSnapshotService } from 'src/application/usecases/forecastSnapshot.service';
 
 describe('ScheduleActionsController', () => {
   let scheduleActionsController: SchedulesActionsController;

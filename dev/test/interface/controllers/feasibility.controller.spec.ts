@@ -1,9 +1,9 @@
 import { FeasibilityService } from 'src/application/usecases/feasibility.service';
-import { PermissionGuard } from 'src/core/guards/permission.guard';
 import { FeasibilityController } from 'src/interface/controllers/feasibility.controller';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
 
 describe('FeasibilityController', () => {
   let controller: FeasibilityController;
@@ -29,7 +29,7 @@ describe('FeasibilityController', () => {
         },
       ],
     })
-      .overrideGuard(PermissionGuard)
+      .overrideGuard(AreaViewGuard())
       .useValue(mockPermissionGuard)
       .compile();
 

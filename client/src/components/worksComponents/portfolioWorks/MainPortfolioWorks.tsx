@@ -2,7 +2,13 @@
 
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useState, useTransition } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+} from "react";
 import { Cookies } from "react-cookie";
 
 import { fetchData } from "@/actions/fetchData.action";
@@ -10,7 +16,7 @@ import { exportExcel } from "@/actions/generateExcel.action";
 import { TableWithPagination } from "@/components/common/TableWithPagination";
 import { useUser } from "@/contexts/userContext";
 import { useMapFilter } from "@/contexts/mapFilterContext";
-import { FiltersInterface } from "@/interfaces/filtersInterfaces";
+import { FiltersInterface } from "@/types/filtersInterfaces";
 import { FormatCurrency } from "@/utils/formatValue";
 import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
@@ -63,16 +69,16 @@ export default function PortfolioWorks({
     useState<FiltersInterface>(filtersData);
 
   useEffect(() => {
-    if (permissions?.permissao_visualizacao === "parcial") {
+    if (permissions?.tipo_usuario === "PARCEIRO") {
       const { parceira, ...rest } = filtersData;
 
       const suspensionRemoved = rest.status?.filter(
-        (item: { id: number }) => ![4].includes(item.id),
+        (item: { id: number }) => item.id !== 4,
       );
 
       setFilteredFilters({ ...rest, status: suspensionRemoved });
     }
-  }, [filtersData, permissions?.permissao_visualizacao]);
+  }, [filtersData, permissions?.tipo_usuario]);
 
   const toggleModal = () => setOpen((prev) => !prev);
 
@@ -80,13 +86,13 @@ export default function PortfolioWorks({
     async (params: Record<string, string>) => {
       const { page, ...formattedParams } = params;
 
-      const url = mountUrl(
+      const exportUrl = mountUrl(
         `${process.env.NEXT_PUBLIC_API_URL}/exportacao${pathname}`,
         formattedParams,
       );
 
       try {
-        const blob = await exportExcel(url, token);
+        const blob = await exportExcel(exportUrl, token);
 
         const downloadUrl = window.URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -95,9 +101,9 @@ export default function PortfolioWorks({
           pathname === "/obras-executadas"
             ? "Exportação obras executadas"
             : "Exportação obras em carteira";
+
         document.body.append(link);
         link.click();
-
         document.body.removeChild(link);
         window.URL.revokeObjectURL(downloadUrl);
       } catch (error: any) {
@@ -119,7 +125,7 @@ export default function PortfolioWorks({
           );
 
           setFilteredData(response.data);
-          setOvnotas(response.data?.works);
+          setOvnotas(response.data?.works ?? []);
         } catch (error: any) {
           showError(error.message);
         }
@@ -128,21 +134,21 @@ export default function PortfolioWorks({
     [showError, token, url, setOvnotas],
   );
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
 
-    const currentFilters = cookies.get(cookie) ? cookies.get(cookie) : {};
+    const currentFilters = cookies.get(cookie) ?? {};
 
-    const filtersValues = {
+    fetchWorks({
       ...Transform(currentFilters?.selectedItems || {}),
       page: newPage.toString(),
-    };
-
-    fetchWorks(filtersValues);
+    });
   };
 
+  const totals = useMemo(() => filteredData?.totals ?? {}, [filteredData]);
+
   return (
-    <div className="w-full flex flex-col items-center overflow-y-auto">
+    <div className="flex w-full flex-col items-center overflow-y-auto">
       <div className="my-6 w-11/12">
         <PortfolioWorksFilters
           data={filteredFilters}
@@ -156,8 +162,8 @@ export default function PortfolioWorks({
       </div>
 
       <TableWithPagination
-        data={filteredData.works}
-        totals={filteredData.totals}
+        data={filteredData?.works ?? []}
+        totals={totals}
         columns={columns}
         sliceEndIndex={6}
         handleChangePage={handleChangePage}
@@ -166,36 +172,36 @@ export default function PortfolioWorks({
       />
 
       <ModalComponent open={open} onClose={toggleModal} title="Valores totais">
-        <div className="flex flex-col items-center justify-center xl:flex-row w-full">
+        <div className="flex w-full flex-col items-center justify-center xl:flex-row">
           {Object.entries(columns)
             .slice(totalValues)
-            .map(([column, value]) => {
-              const item = data.totals;
-              let valueFormatted = item[column];
+            .map(([column, label]) => {
+              let valueFormatted = totals[column];
 
               if (
                 [
                   "total_mo_planejada",
                   "total_mo_exec",
-                  "total_mo_suspensa",
+                  "total_mo_pend",
                 ].includes(column)
               ) {
-                valueFormatted = FormatCurrency(item[column]);
+                valueFormatted = FormatCurrency(totals[column]);
               }
 
               return (
                 <div
                   key={column}
-                  className="flex flex-row py-2 xl:py-0 xl:mx-2"
+                  className="flex flex-row py-2 xl:mx-2 xl:py-0"
                 >
-                  <span className="p-1 bg-[#212E3E] text-zinc-200 flex items-center">
-                    <p>{value}</p>
+                  <span className="flex items-center bg-[#212E3E] p-1 text-zinc-200">
+                    <p>{label}</p>
                   </span>
-                  <div className="p-2 border border-solid flex justify-center items-center">
+
+                  <div className="flex items-center justify-center border border-solid p-2">
                     <p>
                       {typeof valueFormatted === "number"
                         ? Number(valueFormatted.toFixed(0)).toLocaleString(
-                            "pt-br",
+                            "pt-BR",
                           )
                         : valueFormatted}
                     </p>

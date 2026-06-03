@@ -7,6 +7,7 @@ export interface Groups {
 }
 
 export interface Types {
+  id_grupo?: number;
   grupos: Groups;
 }
 

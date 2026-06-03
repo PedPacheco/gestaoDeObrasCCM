@@ -1,11 +1,9 @@
 import { ExecutionReportService } from 'src/application/usecases/executionReport.service';
-import { PermissionGuard } from 'src/core/guards/permission.guard';
 
 import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   HttpStatus,
   Param,
@@ -19,12 +17,17 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 
 import { UpdateExecutionReportDTO } from '../dtos/executionReportDTO';
+import {
+  AreaEditGuard,
+  AreaViewGuard,
+} from 'src/core/guards/newPermission.guard';
 
 @Controller('relatorio-execucao')
 export class ExecutionReportController {
   constructor(private executionReportService: ExecutionReportService) {}
 
   @Get(':id')
+  @UseGuards(AreaViewGuard())
   async findByWorkId(@Param('id', ParseIntPipe) idWork: number): Promise<any> {
     const response = await this.executionReportService.findByWorkId(idWork);
 
@@ -37,21 +40,14 @@ export class ExecutionReportController {
 
   @Patch(':id')
   @UseInterceptors(FilesInterceptor('files'))
+  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   async update(
     @Req() req: any,
     @Param('id', ParseIntPipe) idExecutionReport: number,
     @Body() data: UpdateExecutionReportDTO,
     @UploadedFiles() files?: Express.Multer.File[],
   ): Promise<any> {
-    const { id: idUser, permissao_visualizacao } = req.user;
-
-    const hasNonFileChanges = Object.keys(data.executionReportData).length > 0;
-
-    if (permissao_visualizacao === 'parcial' && hasNonFileChanges) {
-      throw new ForbiddenException(
-        'Usuários com permissão parcial podem alterar apenas os arquivos.',
-      );
-    }
+    const { id: idUser } = req.user;
 
     await this.executionReportService.update(
       idExecutionReport,
@@ -66,7 +62,7 @@ export class ExecutionReportController {
   }
 
   @Delete(':id')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async delete(@Param('id', ParseIntPipe) id: number): Promise<any> {
     await this.executionReportService.delete(id);
 

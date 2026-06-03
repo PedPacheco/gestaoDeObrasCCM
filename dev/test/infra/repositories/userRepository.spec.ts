@@ -1,4 +1,4 @@
-import { usuario } from '@prisma/client';
+import { novo_tabela_usuarios } from '@prisma/client';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { UserRepository } from 'src/infra/repositories/userRepository';
@@ -8,7 +8,7 @@ describe('UserRepository', () => {
   let prismaService: PrismaService;
 
   const prismaMock = {
-    usuario: {
+    novo_tabela_usuarios: {
       findFirst: jest.fn(),
       update: jest.fn(),
     },
@@ -34,27 +34,32 @@ describe('UserRepository', () => {
     it('Should return user if found', async () => {
       const user = {
         id: 1,
+        id_area: 8,
+        id_turma: 1,
+        id_regional: 1,
         username: 'teste123',
         senha: '12345',
-        permissao: 'Total',
-        id_regional: 1,
-        nome_usuario: 'teste',
+        nome: 'teste',
         email: 'teste@gmail.com',
-        permissao_visualizacao: 'parcial',
-      } as usuario;
+        tipo_usuario: 'INTERNO',
+        is_admin: true,
+        permissao_edicao: true,
+      } as novo_tabela_usuarios;
 
-      prismaMock.usuario.findFirst.mockResolvedValue(user);
+      prismaMock.novo_tabela_usuarios.findFirst.mockResolvedValue(user);
 
       const result = await userRepository.findUser(user.username);
 
       expect(result).toEqual(user);
-      expect(prismaService.usuario.findFirst).toHaveBeenCalledWith({
-        where: { username: 'teste123' },
-      });
+      expect(prismaService.novo_tabela_usuarios.findFirst).toHaveBeenCalledWith(
+        {
+          where: { username: 'teste123' },
+        },
+      );
     });
 
     it('Should return null if no user is found', async () => {
-      prismaMock.usuario.findFirst.mockResolvedValue(null);
+      prismaMock.novo_tabela_usuarios.findFirst.mockResolvedValue(null);
 
       const result = await userRepository.findUser('noexistet');
 
@@ -73,19 +78,16 @@ describe('UserRepository', () => {
         senha: '13254',
       };
 
-      prismaMock.usuario.update.mockResolvedValue(mockUserResponse);
+      prismaMock.novo_tabela_usuarios.update.mockResolvedValue(
+        mockUserResponse,
+      );
 
       const result = await userRepository.updatePassword(numberId, newPassword);
 
       expect(result).toEqual(mockUserResponse);
-      expect(prismaService.usuario.update).toHaveBeenCalledWith({
+      expect(prismaService.novo_tabela_usuarios.update).toHaveBeenCalledWith({
         where: { id: numberId },
         data: { senha: newPassword },
-        select: {
-          id: true,
-          username: true,
-          senha: true,
-        },
       });
     });
   });

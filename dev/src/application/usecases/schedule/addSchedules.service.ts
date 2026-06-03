@@ -34,7 +34,7 @@ export class AddSchedulesService {
         finishTime: parseTimeToDate(data.finishTime),
         dataProg: new Date(data.dataProg),
       });
-    } catch (error) {
+    } catch (error: any) {
       throw new BadRequestException(
         `Erro ao criar programação: ${error.message}`,
       );

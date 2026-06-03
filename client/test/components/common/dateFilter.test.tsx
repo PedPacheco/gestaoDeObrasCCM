@@ -74,9 +74,13 @@ describe("DateFilter Component", () => {
   it("deve aplicar size e spacing no className", () => {
     render(<DateFilter {...defaultProps} />);
 
-    const startInput = screen.getByTestId("Data Inicial");
+    // O label "Data Inicial" está no input, mas as classes estão no Box container
+    const startInput = screen.getByLabelText("Data Inicial");
+    // Subir até ao Box que contém as classes
+    const startBox = startInput.closest(".mb-2");
 
-    expect(startInput.className).toContain("w-40");
-    expect(startInput.className).toContain("mx-2");
+    expect(startBox).toBeInTheDocument();
+    expect(startBox?.className).toContain("w-40");
+    expect(startBox?.className).toContain("mx-2");
   });
 });

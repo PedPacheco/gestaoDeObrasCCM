@@ -2,22 +2,22 @@ import { Body, Controller, Post, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import * as ExcelJS from 'exceljs';
 
-import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import { EquipmentService } from 'src/application/usecases/equipment.service';
 import { GetEquipmentListDTO } from '../dtos/equipmentsDTO';
+import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
 
 @Controller('equipamentos')
 export class EquipmentController {
   constructor(private readonly equipmentService: EquipmentService) {}
 
   @Post()
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaViewGuard())
   async getEquipamentos(@Body() body: GetEquipmentListDTO) {
     return this.equipmentService.getEquipment(body.items);
   }
 
   @Post('without-location/export')
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaViewGuard())
   async exportWithoutLocation(
     @Body() params: GetEquipmentListDTO,
     @Res() res: Response,

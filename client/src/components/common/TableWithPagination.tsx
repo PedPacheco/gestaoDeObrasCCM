@@ -102,6 +102,9 @@ export function TableWithPagination({
                           "mo_forecast",
                           "mat_forecast",
                           "forecast_total",
+                          "mo_pend",
+                          "mo_exec",
+                          "mo_planejada",
                         ].includes(column)
                       ) {
                         cellValue = FormatCurrency(cellValue);

@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { TipoUsuario } from '@prisma/client';
 import { User } from 'src/domain/entities/user.entity';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { AuthRepository } from 'src/infra/repositories/authRepository';
@@ -8,7 +9,7 @@ describe('AuthRepository', () => {
   let prismaService: PrismaService;
 
   const prismaMock = {
-    usuario: {
+    novo_tabela_usuarios: {
       create: jest.fn(),
     },
   };
@@ -31,39 +32,36 @@ describe('AuthRepository', () => {
 
   describe('Register', () => {
     it('Should create a user and return your data', async () => {
-      const user: User = {
-        id: 1,
+      const user: User = new User({
         username: 'teste123',
         senha: '12345',
-        permissao: 'Total',
         id_regional: 1,
+        id_area: 8,
+        id_turma: 1,
+        tipo_usuario: TipoUsuario.INTERNO,
+        permissao_edicao: true,
+        is_admin: true,
         email: 'teste@gmail.com',
-        nome_usuario: 'teste',
-        permissao_visualizacao: 'parcial',
-      };
-
-      prismaMock.usuario.create.mockResolvedValue(user);
-
-      const result = await authRepository.register({
-        username: user.username,
-        senha: user.senha,
-        permissao: user.permissao,
-        id_regional: user.id_regional,
-        email: user.email,
-        nome_usuario: user.nome_usuario,
-        permissao_visualizacao: user.permissao_visualizacao,
+        nome: 'teste',
       });
 
+      prismaMock.novo_tabela_usuarios.create.mockResolvedValue(user);
+
+      const result = await authRepository.register(user);
+
       expect(result).toEqual(user);
-      expect(prismaService.usuario.create).toHaveBeenCalledWith({
+      expect(prismaService.novo_tabela_usuarios.create).toHaveBeenCalledWith({
         data: {
           username: user.username,
           senha: user.senha,
-          permissao: user.permissao,
+          id_area: user.id_area,
+          id_turma: user.id_turma,
           id_regional: user.id_regional,
+          tipo_usuario: user.tipo_usuario,
+          is_admin: user.is_admin,
+          permissao_edicao: user.permissao_edicao,
           email: user.email,
-          nome_usuario: user.nome_usuario,
-          permissao_visualizacao: user.permissao_visualizacao,
+          nome: user.nome,
         },
       });
     });

@@ -17,6 +17,7 @@ interface ModalsManagerProps {
   onConfirmDelete: (id: number) => void;
   onConfirmExecutionDelete: (id: number) => void;
   onCloseDialog: () => void;
+  options: any;
   rejectedSchedule: {
     id: number;
     reject: boolean;
@@ -30,6 +31,7 @@ interface ModalsManagerProps {
     }[],
   ) => void;
   executionForm: UseExecutionServiceFormReturn;
+  scheduleStatus: string;
 }
 
 export interface ModalsManagerRef {
@@ -48,6 +50,8 @@ export const ModalsManager = forwardRef<ModalsManagerRef, ModalsManagerProps>(
       onConfirmExecutionDelete,
       onCloseDialog,
       executionForm,
+      options,
+      scheduleStatus,
     },
     ref,
   ) => {
@@ -87,6 +91,10 @@ export const ModalsManager = forwardRef<ModalsManagerRef, ModalsManagerProps>(
       setIdSchedule(0);
     }, [idSchedule, onConfirmExecutionDelete]);
 
+    const optionsFailure = options.restricao.filter(
+      (restriction: any) => restriction.tipo_restricao === "REPROVADO",
+    );
+
     return (
       <>
         <ConfirmationModalComponent
@@ -101,6 +109,7 @@ export const ModalsManager = forwardRef<ModalsManagerRef, ModalsManagerProps>(
         <FailureModalComponent
           onClose={() => setIsRejectedModalOpen(false)}
           open={isRejectModalOpen}
+          options={optionsFailure}
           rejectedSchedule={rejectedSchedule}
           handleReject={handleReject}
         />

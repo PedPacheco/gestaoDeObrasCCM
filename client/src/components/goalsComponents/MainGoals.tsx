@@ -6,7 +6,7 @@ import { useCallback, useMemo, useState, useTransition } from "react";
 import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { FiltersInterface } from "@/interfaces/filtersInterfaces";
+import { FiltersInterface } from "@/types/filtersInterfaces";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
@@ -254,7 +254,7 @@ export default function MainGoals({
   return (
     <>
       <div className="mt-6 w-4/5 flex flex-col">
-        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center">
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-2 mb-4">
           <MultipleSelectComponent
             label="Regionais"
             menuItems={filtersData.regional || []}

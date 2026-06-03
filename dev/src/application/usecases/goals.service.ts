@@ -73,13 +73,13 @@ export class GoalsService {
       }
 
       // soma carteira
-      grouped[key].carteira += item.carteira ?? 0;
+      grouped[key].carteira += Number(item.carteira ?? 0);
 
-      // soma valores dos meses
+      // soma valores dos meses (Number() garante conversão correta de Decimal/BigInt do Prisma)
       months.forEach((month) => {
-        grouped[key][month].meta += item[`${month}fismeta`] ?? 0;
-        grouped[key][month].prog += item[`${month}fisprog`] ?? 0;
-        grouped[key][month].real += item[`${month}fisreal`] ?? 0;
+        grouped[key][month].meta += Number(item[`${month}fismeta`] ?? 0);
+        grouped[key][month].prog += Number(item[`${month}fisprog`] ?? 0);
+        grouped[key][month].real += Number(item[`${month}fisreal`] ?? 0);
       });
     }
 

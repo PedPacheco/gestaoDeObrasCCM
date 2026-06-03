@@ -8,7 +8,6 @@ import { ButtonComponent } from "@/components/common/Button";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useFeedback } from "@/hooks/useFeedback";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { MainInterface } from "@/interfaces/mainInterface";
 import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
@@ -16,6 +15,7 @@ import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 import ScheduleTable from "./ScheduleTable";
+import { MainInterface } from "@/types/mainInterface";
 
 interface Filters {
   regional: { id: string; regional: string }[];

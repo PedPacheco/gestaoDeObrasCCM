@@ -156,7 +156,7 @@ function formatDateForSubmit(value: string): string | null {
 }
 
 function hasRestrictedAccess(statusId: number, permission?: string): boolean {
-  return RESTRICTED_STATUS_IDS.includes(statusId) && permission === "parcial";
+  return RESTRICTED_STATUS_IDS.includes(statusId) && permission === "PARCEIRA";
 }
 
 export function WorkDetails({
@@ -195,15 +195,11 @@ export function WorkDetails({
   );
 
   const canShowPublicationButton = useMemo(
-    () => isMounted && permissions?.permissao_publicacao && data.executado > 0,
-    [isMounted, permissions?.permissao_publicacao, data.executado],
-  );
-
-  const canEditObservation = useMemo(
     () =>
-      permissions?.permissao_visualizacao !== "parcial" &&
-      permissions?.permissao !== "Sem permissão",
-    [permissions],
+      isMounted &&
+      (permissions?.is_admin || [7].includes(permissions?.id_area ?? -1)) &&
+      data.executado > 0,
+    [isMounted, permissions, data.executado],
   );
 
   const isSaveDisabled = useMemo(
@@ -322,9 +318,7 @@ export function WorkDetails({
     });
   };
 
-  if (
-    hasRestrictedAccess(data.id_status, permissions?.permissao_visualizacao)
-  ) {
+  if (hasRestrictedAccess(data.id_status, permissions?.tipo_usuario)) {
     return <ErrorThrower message="Nível de permissão insuficiente" />;
   }
 
@@ -490,7 +484,7 @@ export function WorkDetails({
         <textarea
           value={editableData.observ_obra || ""}
           onChange={(e) => handleDataChange("observ_obra", e.target.value)}
-          disabled={!canEditObservation}
+          disabled={permissions?.id_area === 8 && permissions?.permissao_edicao}
           className="flex-1 h-full min-w-32 lg:min-w-36 font-medium text-xl text-center p-2 bg-transparent focus:outline-none"
         />
       </div>
@@ -502,7 +496,7 @@ export function WorkDetails({
         onSave={handleSavePublicationRestriction}
         restrictionsValues={publicationRestrictions}
         idWork={Number(data.id)}
-        idRegional={data.idRegional}
+        idParceira={Number(data.id_turma)}
         isInsert={true}
       />
 

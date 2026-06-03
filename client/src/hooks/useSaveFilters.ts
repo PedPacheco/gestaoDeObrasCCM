@@ -2,7 +2,7 @@
 
 import { Cookies } from "react-cookie";
 import { useEffect, useState } from "react";
-import { FiltersInterface } from "@/interfaces/filtersInterfaces";
+import { FiltersInterface } from "@/types/filtersInterfaces";
 
 const cookies = new Cookies();
 

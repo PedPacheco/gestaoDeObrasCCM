@@ -4,10 +4,6 @@ import { Response } from 'express';
 // Controller under test
 import { ExportController } from 'src/interface/controllers/export.controller';
 
-// Guards
-import { PermissionGuard } from 'src/core/guards/permission.guard';
-import { VisualizationGuard } from 'src/core/guards/visualization.guard';
-
 // Services - Schedule
 import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
 import { MonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
@@ -44,6 +40,10 @@ import { ExportOrdersService } from 'src/application/usecases/export/exportOrder
 import { ExportPublicationRestrictionService } from 'src/application/usecases/export/exportPublicationRestriction.service';
 import { RestrictionsService } from 'src/application/usecases/restrictions.service';
 import { ExportReportToPubliationService } from 'src/application/usecases/export/exportReportToPublication.service';
+import {
+  AreaEditGuard,
+  AreaViewGuard,
+} from 'src/core/guards/newPermission.guard';
 
 // ─────────────────────────────────────────────
 // Constants
@@ -146,6 +146,8 @@ const mockWorksData: worksInPortfolioResponseService = {
       qtde_planejada: 10,
       qtde_pend: 2,
       mo_planejada: 5,
+      mo_exec: 2,
+      mo_pend: 3,
       status: 'Planejado',
       turma: 'Equipe Alpha',
       ano_plan: 2025,
@@ -169,7 +171,7 @@ const mockWorksData: worksInPortfolioResponseService = {
     total_obras: 1,
     total_mo_planejada: 5,
     total_mo_exec: 2.5,
-    total_mo_suspensa: 0,
+    total_mo_pend: 0,
     total_qtde_planejada: 10,
     total_qtde_pend: 2,
   },
@@ -364,9 +366,9 @@ describe('ExportController', () => {
         },
       ],
     })
-      .overrideGuard(VisualizationGuard)
+      .overrideGuard(AreaViewGuard)
       .useValue({ canActivate: () => true })
-      .overrideGuard(PermissionGuard)
+      .overrideGuard(AreaEditGuard)
       .useValue({ canActivate: () => true })
       .compile();
 
@@ -655,6 +657,7 @@ describe('ExportController', () => {
       monthlyMOSummaryService.getSummary.mockResolvedValue({
         summary: mockMonthlySummaryFirst as any,
         totals: {} as any,
+        contractValueByMonth: { monthlyValue: 0 },
       });
       monthlyMOSummaryService.getSecondSummary.mockResolvedValue({
         summary: mockMonthlySummarySecond as any,

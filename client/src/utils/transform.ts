@@ -33,13 +33,13 @@ export function mapScheduleToForm(schedule: any, options: Record<string, any>) {
     lvTeam: schedule.equipe_linha_viva ?? 0,
     idTechnical: technicianFound.id ?? 0,
     idProgRestriction1: schedule.id_restricao_prog1,
-    responsiblityProg: schedule.responsabilidade1,
+    responsibilityProg: schedule.responsabilidade1,
     responsibleName: schedule.nome_responsavel,
     responsibleArea: schedule.area_responsavel1,
     restrictionStatus: schedule.status_restricao1,
     resolutionDate: schedule.data_resolucao1,
     idProgRestriction2: schedule.id_restricao_prog2,
-    responsiblityProg2: schedule.responsabilidade2,
+    responsibilityProg2: schedule.responsabilidade2,
     responsibleName2: schedule.nome_responsavel2,
     responsibleArea2: schedule.area_responsavel2,
     restrictionStatus2: schedule.status_restricao2,
@@ -121,8 +121,8 @@ export function buildPublicationRestrictionPayload(
       responsibility: data.responsabilidade,
       responsibleName: responsibleEnginner?.name,
       restrictionStatus: data.status_restricao,
-      resolutionDate: data.resolutionDate
-        ? dayjs(data.resolutionDate).format("DD/MM/YYYY")
+      resolutionDate: data.data_resolucao
+        ? dayjs(data.data_resolucao).format("DD/MM/YYYY")
         : null,
       observation: data.observacao,
       constructionObservation: data.observacao_construcao,

@@ -150,6 +150,7 @@ describe("WorkDetails", () => {
     status_ov_sap: "SAP-OK",
     tipo_ads: "ADS-1",
     observ_obra: "Observação inicial",
+    data_empreitamento: null,
     id: "100",
   };
 
@@ -194,8 +195,10 @@ describe("WorkDetails", () => {
   };
 
   const defaultPermissions = {
-    permissao_visualizacao: "total",
-    permissao_publicacao: true,
+    id_area: 8,
+    permissao_edicao: false,
+    is_admin: true,
+    tipo_usuario: "INTERNO",
   };
 
   beforeEach(() => {
@@ -263,7 +266,7 @@ describe("WorkDetails", () => {
   describe("Controle de permissões", () => {
     it("deve lançar erro quando permissão é parcial e status é 3", () => {
       mockUseUser.mockReturnValue({
-        permissions: { permissao_visualizacao: "parcial" },
+        permissions: { tipo_usuario: "PARCEIRA" },
       } as any);
 
       const dataWithStatus3 = { ...mockData, id_status: 3 };
@@ -283,7 +286,7 @@ describe("WorkDetails", () => {
 
     it("deve lançar erro quando permissão é parcial e status é 4", () => {
       mockUseUser.mockReturnValue({
-        permissions: { permissao_visualizacao: "parcial" },
+        permissions: { tipo_usuario: "PARCEIRA" },
       } as any);
 
       const dataWithStatus4 = { ...mockData, id_status: 4 };
@@ -303,7 +306,7 @@ describe("WorkDetails", () => {
 
     it("deve lançar erro quando permissão é parcial e status é 42", () => {
       mockUseUser.mockReturnValue({
-        permissions: { permissao_visualizacao: "parcial" },
+        permissions: { tipo_usuario: "PARCEIRA" },
       } as any);
 
       const dataWithStatus42 = { ...mockData, id_status: 42 };
@@ -374,7 +377,7 @@ describe("WorkDetails", () => {
       mockUseUser.mockReturnValue({
         permissions: {
           ...defaultPermissions,
-          permissao_publicacao: false,
+          is_admin: false,
         },
       } as any);
 

@@ -9,6 +9,7 @@ import {
 
 import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { UsersService } from 'src/application/usecases/users.service';
 
 describe('MetasController', () => {
   let metasController: GoalsController;
@@ -26,6 +27,7 @@ describe('MetasController', () => {
             getGoals: jest.fn(),
           },
         },
+        { provide: UsersService, useValue: { findUser: jest.fn() } },
       ],
     }).compile();
 
@@ -79,7 +81,9 @@ describe('MetasController', () => {
 
       jest.spyOn(metasService, 'getGoals').mockResolvedValue(metasResponse);
 
-      const result = await metasController.getGoals(goalsFilter);
+      const result = await metasController.getGoals(goalsFilter, {
+        idRegional: 1,
+      });
 
       expect(metasService.getGoals).toHaveBeenCalledWith(goalsFilter);
       expect(result).toEqual(expectedResponse);
@@ -98,7 +102,7 @@ describe('MetasController', () => {
 
       const goalsDTO = plainToInstance(GoalsDTO, query);
 
-      await metasController.getGoals(goalsDTO);
+      await metasController.getGoals(goalsDTO, { idRegional: 1 });
 
       expect(goalsDTO.parceira).toStrictEqual([1, 6]);
       expect(goalsDTO.regional).toStrictEqual([1, 2, 3]);
@@ -114,7 +118,7 @@ describe('MetasController', () => {
     it('should correctly transform btzero in false', async () => {
       const valueFalse = plainToInstance(GoalsDTO, { btzero: 'fafa' });
 
-      await metasController.getGoals(valueFalse);
+      await metasController.getGoals(valueFalse, { idParceira: 1 });
 
       expect(valueFalse.btzero).toBeFalsy();
 
@@ -124,7 +128,7 @@ describe('MetasController', () => {
     it('should correctly transform rda in false', async () => {
       const valueFalse = plainToInstance(GoalsDTO, { rda: 'fafa' });
 
-      await metasController.getGoals(valueFalse);
+      await metasController.getGoals(valueFalse, { idRegional: 1 });
 
       expect(valueFalse.rda).toBeFalsy();
 

@@ -10,13 +10,14 @@ import { TableWithPagination } from "@/components/common/TableWithPagination";
 import { useUser } from "@/contexts/userContext";
 import { useFeedback } from "@/hooks/useFeedback";
 import { useMapFilter } from "@/contexts/mapFilterContext";
-import { FiltersInterface } from "@/interfaces/filtersInterfaces";
-import { MainInterface } from "@/interfaces/mainInterface";
+
 import { FormatCurrency } from "@/utils/formatValue";
 import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
 
 import ScheduleForDayFilters from "./ScheduleForDayFilters";
+import { MainInterface } from "@/types/mainInterface";
+import { FiltersInterface } from "@/types/filtersInterfaces";
 
 const ModalComponent = dynamic(() => import("@/components/common/Modal"), {
   ssr: false,
@@ -45,13 +46,13 @@ export default function MainSchduleForDay({
 
   // Ajusta filtros baseado na permissão
   useEffect(() => {
-    if (permissions?.permissao_visualizacao === "parcial") {
+    if (permissions?.tipo_usuario === "PARCEIRO") {
       const { parceira, ...rest } = filtersData;
       setFilteredFilters(rest);
     } else {
       setFilteredFilters(filtersData);
     }
-  }, [filtersData, permissions?.permissao_visualizacao]);
+  }, [filtersData, permissions?.tipo_usuario]);
 
   const toggleModal = () => setOpen((prev) => !prev);
 

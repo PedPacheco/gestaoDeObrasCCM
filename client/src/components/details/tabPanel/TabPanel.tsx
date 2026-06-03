@@ -64,7 +64,7 @@ export default function TabPanel({
   const { permissions } = useUser();
   const modalsRef = useRef<ModalsManagerRef>(null);
 
-  const [value, setValue] = useState(0);
+  const [value, setValue] = useState<number>(1);
   const [data, setData] = useState<Record<string, any>>(workData);
 
   const [editingExecutionReport, setEditingExecutionReport] = useState<any>();
@@ -90,15 +90,32 @@ export default function TabPanel({
   });
 
   useEffect(() => {
-    const tab = localStorage.getItem("tab");
-    if (tab) setValue(Number(tab));
-  }, []);
-
-  useEffect(() => {
     if (workData) setData(workData);
   }, [workData]);
 
+  useEffect(() => {
+    if (!permissions) return;
+
+    const tab = localStorage.getItem("tab");
+
+    const defaultTab = canSeeTab && tab ? Number(tab) : 1;
+
+    setValue(defaultTab);
+    localStorage.setItem("tab", String(defaultTab));
+  }, [permissions, canSeeTab]);
+
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
+    const allowedTabs = [
+      ...(canSeeTab ? [0] : []),
+      1,
+      2,
+      3,
+      4,
+      ...(canSeeTab ? [5] : []),
+    ];
+
+    if (!allowedTabs.includes(newValue)) return;
+
     setValue(newValue);
     localStorage.setItem("tab", newValue.toString());
   };
@@ -131,14 +148,17 @@ export default function TabPanel({
             valueTab={value}
             handleChange={handleChange}
             feasibilityExists={feasibilityExists}
+            canSeeTabs={canSeeTab}
           />
         </div>
 
         <div className="flex flex-1 overflow-auto">
           <Suspense fallback={<p>carregando informações....</p>}>
-            <CustomTabPanel value={value} index={0}>
-              <WorkCostPanelItem data={data} />
-            </CustomTabPanel>
+            {canSeeTab && (
+              <CustomTabPanel value={value} index={0}>
+                <WorkCostPanelItem data={data} />
+              </CustomTabPanel>
+            )}
 
             <CustomTabPanel value={value} index={1}>
               <SchedulePanelItem
@@ -175,9 +195,11 @@ export default function TabPanel({
               />
             </CustomTabPanel>
 
-            <CustomTabPanel value={value} index={5}>
-              Em breve
-            </CustomTabPanel>
+            {canSeeTab && (
+              <CustomTabPanel value={value} index={5}>
+                Em breve
+              </CustomTabPanel>
+            )}
           </Suspense>
         </div>
       </div>
@@ -188,8 +210,12 @@ export default function TabPanel({
         handleReject={handleReject}
         onConfirmDelete={handleDelete}
         onConfirmExecutionDelete={handleExecutionReportDelete}
+<<<<<<< HEAD
         executionForm={executionForm}
         onCloseDialog={handleCloseDialog}
+=======
+        scheduleStatus={scheduleStatus}
+>>>>>>> 7119125a38dbd02133b8e606db209840d184654a
       />
     </div>
   );

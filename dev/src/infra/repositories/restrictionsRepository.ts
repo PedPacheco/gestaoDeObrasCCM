@@ -1,24 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
-import { IRestrictionsRepository } from 'src/domain/repositories/IRestrictionsRepository';
+import {
+  IRestrictionsRepository,
+  ProcessedRestrictionsFilters,
+} from 'src/domain/repositories/IRestrictionsRepository';
 import { PrismaService } from '../prisma/prisma.service';
 import { GetScheduleRestrictions } from 'src/interface/types/schedule/getScheduleRestrictionsInterface';
 import {
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
 } from 'src/interface/dtos/restrictionsDTO';
-import { ProcessedRestrictionsFilters } from 'src/application/usecases/restrictions.service';
 
 @Injectable()
 export class RestrictionsRepository implements IRestrictionsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Aplica os filtros já processados à query SQL.
-   * Não contém regras de negócio — apenas constrói cláusulas WHERE
-   * a partir de valores prontos recebidos do service.
-   */
   private applyFilters(
     query: Prisma.Sql,
     filters: ProcessedRestrictionsFilters,
@@ -203,7 +200,9 @@ export class RestrictionsRepository implements IRestrictionsRepository {
         obras.data_conclusao,
         municipios.mun,
         regional,
-        regionais.id as id_regional,
+        obras.id_turma,
+        entrada + prazo AS prazo_fim,
+        tipos.id_grupo,
         tipos.tipo_obra,
         turmas.turma as parceira,
         restricoes_publicacoes.id as id_restricao_publicacao,

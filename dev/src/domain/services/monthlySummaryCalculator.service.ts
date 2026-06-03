@@ -59,10 +59,21 @@ export interface IMonthlySummaryCalculator {
       totalFinancialGoal: number;
       totalFinancialGoalWith8: number;
     },
+    portofolioData: { portfolioSap: number; portfolioExec: number },
+    executionTeams: {
+      rfpTeams: number | null;
+      executionCapacityTeams: number | null;
+    },
   ): DailySummaryTotals;
 
   aggregateGroupTotals(
     summaryData: GroupTeamSummaryEntry[],
+    portfolioData: {
+      portfolioRda: number;
+      portfolioBt0: number;
+      portfolioRecom: number;
+      portfolioMarket: number;
+    },
     totalPlan: { totalMoPlan: number; totalMoPend: number },
   ): GroupSummaryTotals;
 }
@@ -96,7 +107,7 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
       dailyFinancialGoal,
       dailyFinancialGoalWithOverhead,
       totalFinancial,
-      totalFinancialWith8: totalFinancial * 1.08,
+      totalFinancialWith8: totalFinancial * 1.085,
     };
   }
 
@@ -145,9 +156,18 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
       totalFinancialGoal: number;
       totalFinancialGoalWith8: number;
     },
+    portofolioData: {
+      qtdeWorks: number;
+      portfolioSap: number;
+      portfolioExec: number;
+    },
+    executionTeams: {
+      rfpTeams: number | null;
+      executionCapacityTeams: number | null;
+    },
   ): DailySummaryTotals {
     const totals = data.reduce((acc, row) => {
-      acc.totalQtdeObras += row.totalQtde;
+      acc.totalSchedules += row.qtdeSchedules;
       acc.totalTeams += row.teamsTotal;
 
       acc.totalMoProg += row.totalMoProg;
@@ -173,23 +193,60 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
       totals.totalMoExec,
     );
 
+    totals.totalWorks = portofolioData.qtdeWorks;
+    totals.totalWalletExec = portofolioData.portfolioExec;
+
+    totals.totalQtdeRfpTeams = executionTeams.rfpTeams;
+    totals.totalExecutionCapacityTeams = executionTeams.executionCapacityTeams;
+
     return totals;
   }
 
   aggregateGroupTotals(
     summaryData: GroupTeamSummaryEntry[],
+    portfolioData: {
+      portfolioRda: number;
+      portfolioBt0: number;
+      portfolioRecom: number;
+      portfolioMarket: number;
+    },
     uniqueWorksFinancial: { totalMoPlan: number; totalMoPend: number },
   ): GroupSummaryTotals {
     const { totalMoPend, totalMoPlan } = uniqueWorksFinancial;
 
     const totals = summaryData.reduce((acc, row) => {
-      acc.totalWorks += row.qtdeWorks;
+      acc.totalSchedules += row.qtdeSchedules;
       acc.totalMoProgByGrouping += row.totalMoProg;
       acc.totalMoExecByGrouping += row.totalMoExec;
       acc.totalMoPrevByGrouping += row.totalMoPrev;
 
+      if (row.idGrupo === 1) {
+        acc.totalProgMarket += row.totalMoProg;
+        acc.totalExecMarket += row.totalMoExec;
+      }
+
+      if (row.idGrupo === 2) {
+        acc.totalProgRecom += row.totalMoProg;
+        acc.totalExecRecom += row.totalMoExec;
+      }
+
+      if (row.idGrupo === 3) {
+        acc.totalProgRda += row.totalMoProg;
+        acc.totalExecRda += row.totalMoExec;
+      }
+
+      if (row.idGrupo === 4) {
+        acc.totalProgBt0 += row.totalMoProg;
+        acc.totalExecBt0 += row.totalMoExec;
+      }
+
       return acc;
     }, createInitialTotalsByGrouping());
+
+    totals.totalWalletBt0 = portfolioData.portfolioBt0;
+    totals.totalWalletMarket = portfolioData.portfolioMarket;
+    totals.totalWalletRecom = portfolioData.portfolioRecom;
+    totals.totalWalletRda = portfolioData.portfolioRda;
 
     totals.totalMoPlanByGrouping = totalMoPlan;
     totals.totalMoPendByGrouping = totalMoPend;

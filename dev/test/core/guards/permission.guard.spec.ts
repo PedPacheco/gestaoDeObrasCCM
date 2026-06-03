@@ -1,76 +1,361 @@
-import { PermissionGuard } from 'src/core/guards/permission.guard';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  AreaEditGuard,
+  AreaViewGuard,
+} from 'src/core/guards/newPermission.guard';
 
-import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { Test } from '@nestjs/testing';
+// Mock do utilitário
+jest.mock('src/utils/convertParameterValue', () => ({
+  convertParameterValue: jest.fn((value: string) => Number(value)),
+}));
 
-describe('PermissionGuard', () => {
-  let permissionGuard: PermissionGuard;
+const createMockExecutionContext = (user: any): ExecutionContext => {
+  const request = { user } as any;
 
-  beforeEach(async () => {
-    const module = await Test.createTestingModule({
-      providers: [PermissionGuard, PrismaService, JwtService],
-    }).compile();
+  return {
+    switchToHttp: () => ({
+      getRequest: () => request,
+    }),
+  } as ExecutionContext;
+};
 
-    permissionGuard = module.get<PermissionGuard>(PermissionGuard);
+describe('AreaPermissionGuards', () => {
+  // ─────────────────────────────────────────────
+  // validateBasePermissions (testado via guards)
+  // ─────────────────────────────────────────────
+  describe('validateBasePermissions', () => {
+    it('should throw ForbiddenException when user is null', async () => {
+      const Guard = AreaViewGuard();
+      const guard = new Guard();
+      const context = createMockExecutionContext(null);
+
+      await expect(guard.canActivate(context)).rejects.toThrow(
+        new ForbiddenException('Usuário não autenticado'),
+      );
+    });
+
+    it('should throw ForbiddenException when user is undefined', async () => {
+      const Guard = AreaViewGuard();
+      const guard = new Guard();
+      const context = createMockExecutionContext(undefined);
+
+      await expect(guard.canActivate(context)).rejects.toThrow(
+        new ForbiddenException('Usuário não autenticado'),
+      );
+    });
+
+    it('should throw ForbiddenException when adminOnly is true and user is not admin', async () => {
+      const Guard = AreaViewGuard({ adminOnly: true });
+      const guard = new Guard();
+      const user = { is_admin: false, tipo_usuario: 'INTERNO', id_area: 1 };
+      const context = createMockExecutionContext(user);
+
+      await expect(guard.canActivate(context)).rejects.toThrow(
+        new ForbiddenException(
+          'Apenas administradores podem acessar este recurso',
+        ),
+      );
+    });
+
+    it('should allow access when adminOnly is true and user is admin', async () => {
+      const Guard = AreaViewGuard({ adminOnly: true });
+      const guard = new Guard();
+      const user = { is_admin: true, tipo_usuario: 'INTERNO', id_area: 1 };
+      const context = createMockExecutionContext(user);
+
+      await expect(guard.canActivate(context)).resolves.toBe(true);
+    });
+
+    it('should allow access when user is admin (bypasses all other checks)', async () => {
+      const Guard = AreaViewGuard({
+        allowedAreas: [1],
+        blockPartner: true,
+      });
+      const guard = new Guard();
+      const user = { is_admin: true, tipo_usuario: 'PARCEIRA', id_area: 99 };
+      const context = createMockExecutionContext(user);
+
+      await expect(guard.canActivate(context)).resolves.toBe(true);
+    });
+
+    it('should throw ForbiddenException when blockPartner is true and user is PARCEIRA', async () => {
+      const Guard = AreaViewGuard({ blockPartner: true });
+      const guard = new Guard();
+      const user = {
+        is_admin: false,
+        tipo_usuario: 'PARCEIRA',
+        id_turma: 10,
+      };
+      const context = createMockExecutionContext(user);
+
+      await expect(guard.canActivate(context)).rejects.toThrow(
+        new ForbiddenException(
+          'Usuários parceiros não têm acesso a este recurso',
+        ),
+      );
+    });
+
+    it('should throw ForbiddenException when INTERNO user has no id_area', async () => {
+      const Guard = AreaViewGuard();
+      const guard = new Guard();
+      const user = { is_admin: false, tipo_usuario: 'INTERNO', id_area: null };
+      const context = createMockExecutionContext(user);
+
+      await expect(guard.canActivate(context)).rejects.toThrow(
+        new ForbiddenException('Usuário interno sem área vinculada'),
+      );
+    });
+
+    it('should throw ForbiddenException when INTERNO user area is not in allowedAreas', async () => {
+      const Guard = AreaViewGuard({ allowedAreas: [1, 2, 3] });
+      const guard = new Guard();
+      const user = { is_admin: false, tipo_usuario: 'INTERNO', id_area: 5 };
+      const context = createMockExecutionContext(user);
+
+      await expect(guard.canActivate(context)).rejects.toThrow(
+        new ForbiddenException('Sua área não possui acesso a este recurso'),
+      );
+    });
+
+    it('should allow INTERNO user when area is in allowedAreas', async () => {
+      const Guard = AreaViewGuard({ allowedAreas: [1, 2, 3] });
+      const guard = new Guard();
+      const user = { is_admin: false, tipo_usuario: 'INTERNO', id_area: 2 };
+      const context = createMockExecutionContext(user);
+
+      await expect(guard.canActivate(context)).resolves.toBe(true);
+    });
+
+    it('should allow INTERNO user when allowedAreas is empty', async () => {
+      const Guard = AreaViewGuard({ allowedAreas: [] });
+      const guard = new Guard();
+      const user = { is_admin: false, tipo_usuario: 'INTERNO', id_area: 99 };
+      const context = createMockExecutionContext(user);
+
+      await expect(guard.canActivate(context)).resolves.toBe(true);
+    });
+
+    it('should use default options when none are provided', async () => {
+      const Guard = AreaViewGuard();
+      const guard = new Guard();
+      const user = { is_admin: false, tipo_usuario: 'INTERNO', id_area: 5 };
+      const context = createMockExecutionContext(user);
+
+      await expect(guard.canActivate(context)).resolves.toBe(true);
+    });
   });
 
-  it('Should PermissionGuard is defined', () => {
-    expect(permissionGuard).toBeDefined();
+  // ─────────────────────────────────────────────
+  // AreaViewGuard
+  // ─────────────────────────────────────────────
+  describe('AreaViewGuard', () => {
+    it('should set idParceira on request when user is PARCEIRA', async () => {
+      const Guard = AreaViewGuard();
+      const guard = new Guard();
+      const user = {
+        is_admin: false,
+        tipo_usuario: 'PARCEIRA',
+        id_turma: 42,
+      };
+      const request = { user } as any;
+
+      const context = {
+        switchToHttp: () => ({
+          getRequest: () => request,
+        }),
+      } as ExecutionContext;
+
+      const result = await guard.canActivate(context);
+
+      expect(result).toBe(true);
+      expect(request.idParceira).toBe(42);
+    });
+
+    it('should not set idParceira when user is INTERNO', async () => {
+      const Guard = AreaViewGuard();
+      const guard = new Guard();
+      const user = { is_admin: false, tipo_usuario: 'INTERNO', id_area: 1 };
+      const request = { user } as any;
+
+      const context = {
+        switchToHttp: () => ({
+          getRequest: () => request,
+        }),
+      } as ExecutionContext;
+
+      await guard.canActivate(context);
+
+      expect(request.idParceira).toBeUndefined();
+    });
+
+    it('should not set idParceira when user is admin', async () => {
+      const Guard = AreaViewGuard();
+      const guard = new Guard();
+      const user = { is_admin: true, tipo_usuario: 'INTERNO', id_area: 1 };
+      const request = { user } as any;
+
+      const context = {
+        switchToHttp: () => ({
+          getRequest: () => request,
+        }),
+      } as ExecutionContext;
+
+      await guard.canActivate(context);
+
+      expect(request.idParceira).toBeUndefined();
+    });
   });
 
-  it('Should be throw error if user is not found in request', async () => {
-    const context = {
-      switchToHttp: () => ({
-        getRequest: () => ({}),
-      }),
-    } as unknown as ExecutionContext;
+  // ─────────────────────────────────────────────
+  // AreaEditGuard
+  // ─────────────────────────────────────────────
+  describe('AreaEditGuard', () => {
+    it('should throw ForbiddenException when user is null', async () => {
+      const Guard = AreaEditGuard();
+      const guard = new Guard();
+      const context = createMockExecutionContext(null);
 
-    await expect(permissionGuard.canActivate(context)).rejects.toThrow(
-      new UnauthorizedException('Usuário não autenticado'),
-    );
-  });
+      await expect(guard.canActivate(context)).rejects.toThrow(
+        new ForbiddenException('Usuário não autenticado'),
+      );
+    });
 
-  it('should be throw an error if the user has the permission_view field equal to partial', async () => {
-    const mockRequest = {
-      user: {
-        username: 'teste',
-        permissao: 'Total',
-        permissao_visualizacao: 'parcial',
-      },
-    };
+    it('should allow access when user is admin', async () => {
+      const Guard = AreaEditGuard();
+      const guard = new Guard();
+      const user = {
+        is_admin: true,
+        tipo_usuario: 'INTERNO',
+        id_area: 8,
+        permissao_edicao: false,
+      };
+      const context = createMockExecutionContext(user);
 
-    const context = {
-      switchToHttp: () => ({
-        getRequest: () => mockRequest,
-      }),
-    } as unknown as ExecutionContext;
+      await expect(guard.canActivate(context)).resolves.toBe(true);
+    });
 
-    await expect(permissionGuard.canActivate(context)).rejects.toThrow(
-      new UnauthorizedException(
-        'Usuário não tem permissão para acessar este recurso.',
-      ),
-    );
-  });
+    it('should throw ForbiddenException when area 8 user has no edit permission', async () => {
+      const Guard = AreaEditGuard();
+      const guard = new Guard();
+      const user = {
+        is_admin: false,
+        tipo_usuario: 'INTERNO',
+        id_area: 8,
+        permissao_edicao: false,
+      };
+      const context = createMockExecutionContext(user);
 
-  it('should be return true if the user has the permission_view field equal to total', async () => {
-    const mockRequest = {
-      user: {
-        username: 'teste',
-        permissao: 'Total',
-        permissao_visualizacao: 'total',
-      },
-    };
+      await expect(guard.canActivate(context)).rejects.toThrow(
+        new ForbiddenException(
+          'Usuário da área de construção sem permissão de edição',
+        ),
+      );
+    });
 
-    const context = {
-      switchToHttp: () => ({
-        getRequest: () => mockRequest,
-      }),
-    } as unknown as ExecutionContext;
+    it('should allow access when area 8 user has edit permission', async () => {
+      const Guard = AreaEditGuard();
+      const guard = new Guard();
+      const user = {
+        is_admin: false,
+        tipo_usuario: 'INTERNO',
+        id_area: 8,
+        permissao_edicao: true,
+      };
+      const context = createMockExecutionContext(user);
 
-    const result = await permissionGuard.canActivate(context);
+      await expect(guard.canActivate(context)).resolves.toBe(true);
+    });
 
-    expect(result).toBe(true);
+    it('should allow access when INTERNO user is not in area 8', async () => {
+      const Guard = AreaEditGuard();
+      const guard = new Guard();
+      const user = {
+        is_admin: false,
+        tipo_usuario: 'INTERNO',
+        id_area: 3,
+        permissao_edicao: false,
+      };
+      const context = createMockExecutionContext(user);
+
+      await expect(guard.canActivate(context)).resolves.toBe(true);
+    });
+
+    it('should allow access for PARCEIRA user when blockPartner is false', async () => {
+      const Guard = AreaEditGuard();
+      const guard = new Guard();
+      const user = {
+        is_admin: false,
+        tipo_usuario: 'PARCEIRA',
+        id_turma: 5,
+        permissao_edicao: false,
+      };
+      const context = createMockExecutionContext(user);
+
+      await expect(guard.canActivate(context)).resolves.toBe(true);
+    });
+
+    it('should throw ForbiddenException when blockPartner is true and user is PARCEIRA', async () => {
+      const Guard = AreaEditGuard({ blockPartner: true });
+      const guard = new Guard();
+      const user = {
+        is_admin: false,
+        tipo_usuario: 'PARCEIRA',
+        id_turma: 5,
+      };
+      const context = createMockExecutionContext(user);
+
+      await expect(guard.canActivate(context)).rejects.toThrow(
+        new ForbiddenException(
+          'Usuários parceiros não têm acesso a este recurso',
+        ),
+      );
+    });
+
+    it('should throw ForbiddenException when adminOnly and user is not admin', async () => {
+      const Guard = AreaEditGuard({ adminOnly: true });
+      const guard = new Guard();
+      const user = {
+        is_admin: false,
+        tipo_usuario: 'INTERNO',
+        id_area: 1,
+      };
+      const context = createMockExecutionContext(user);
+
+      await expect(guard.canActivate(context)).rejects.toThrow(
+        new ForbiddenException(
+          'Apenas administradores podem acessar este recurso',
+        ),
+      );
+    });
+
+    it('should throw ForbiddenException when INTERNO user has no id_area', async () => {
+      const Guard = AreaEditGuard();
+      const guard = new Guard();
+      const user = {
+        is_admin: false,
+        tipo_usuario: 'INTERNO',
+        id_area: undefined,
+      };
+      const context = createMockExecutionContext(user);
+
+      await expect(guard.canActivate(context)).rejects.toThrow(
+        new ForbiddenException('Usuário interno sem área vinculada'),
+      );
+    });
+
+    it('should throw ForbiddenException when INTERNO user area is not in allowedAreas', async () => {
+      const Guard = AreaEditGuard({ allowedAreas: [1, 2] });
+      const guard = new Guard();
+      const user = {
+        is_admin: false,
+        tipo_usuario: 'INTERNO',
+        id_area: 5,
+      };
+      const context = createMockExecutionContext(user);
+
+      await expect(guard.canActivate(context)).rejects.toThrow(
+        new ForbiddenException('Sua área não possui acesso a este recurso'),
+      );
+    });
   });
 });

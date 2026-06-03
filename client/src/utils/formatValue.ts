@@ -12,11 +12,12 @@ export function capitalize(text: string): string {
     .replace(/^./, (str) => str.toUpperCase());
 }
 
+export const NUM = (v: number) =>
+  (v ?? 0).toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+
 export function formatPercentage(value: number, locale: string = "pt-BR") {
   if (value === null) {
-    return new Intl.NumberFormat(locale, {
-      style: "percent",
-    }).format(0);
+    return null;
   }
 
   const correctValue = value / 100;

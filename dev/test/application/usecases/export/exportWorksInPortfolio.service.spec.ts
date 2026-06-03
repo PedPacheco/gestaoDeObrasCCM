@@ -43,6 +43,8 @@ describe('ExportWorksInPortfolio', () => {
         qtde_planejada: 10,
         qtde_pend: 2,
         mo_planejada: 5,
+        mo_exec: 3,
+        mo_pend: 2,
         status: 'Planejado',
         turma: 'Equipe Alpha',
         ano_plan: 2025,
@@ -67,7 +69,7 @@ describe('ExportWorksInPortfolio', () => {
       total_obras: 1,
       total_mo_planejada: 5,
       total_mo_exec: 2.5,
-      total_mo_suspensa: 0,
+      total_mo_pend: 0,
       total_qtde_planejada: 10,
       total_qtde_pend: 2,
     };

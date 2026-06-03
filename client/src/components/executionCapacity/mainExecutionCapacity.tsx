@@ -14,7 +14,7 @@ import {
 
 import { UpdateExecutionCapacity } from "@/actions/executionCapacity";
 import { fetchData } from "@/actions/fetchData.action";
-import { FiltersInterface } from "@/interfaces/filtersInterfaces";
+import { FiltersInterface } from "@/types/filtersInterfaces";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
 

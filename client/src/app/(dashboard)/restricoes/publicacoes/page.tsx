@@ -21,7 +21,7 @@ export default async function PublicationRestriction() {
   let filtersValues = undefined;
 
   if (params) {
-    const formattedSelectedItems = Transform(params.selectedItems || {});
+    const formattedSelectedItems = Transform(params.selectedItems);
 
     // 🔥 compatibilidade com formato antigo (executed)
     const statusFilter = params?.statusFilter ?? {
@@ -84,6 +84,7 @@ export default async function PublicationRestriction() {
     parceira: "Parceira",
     executado: "Total executado",
     data_conclusao: "Data de conclusão",
+    prazo_fim: "Prazo Regulado",
     restricao: "Restrição",
     responsabilidade: "Responsabilidade",
     nome_responsavel: "Nome do responsável",

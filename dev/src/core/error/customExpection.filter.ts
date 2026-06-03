@@ -30,7 +30,6 @@ export class CustomExceptionFilter implements ExceptionFilter {
       const exceptionResponse = exception.getResponse();
 
       console.log(exception);
-
       if (
         typeof exceptionResponse === 'object' &&
         exceptionResponse !== null &&

@@ -8,7 +8,7 @@ import ErrorModal from "@/components/common/ErrorModal";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useMapFilter } from "@/contexts/mapFilterContext";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { MainInterface } from "@/interfaces/mainInterface";
+import { MainInterface } from "@/types/mainInterface";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";

@@ -1,5 +1,4 @@
 import { ExecutionCapacityService } from 'src/application/usecases/executionCapacity.service';
-import { PermissionGuard } from 'src/core/guards/permission.guard';
 
 import {
   Body,
@@ -16,7 +15,10 @@ import {
   ExecutionCapacityDTO,
   UpdateExecutionCapacityDTO,
 } from '../dtos/executionCapacityDTO';
-import { VisualizationGuard } from 'src/core/guards/visualization.guard';
+import {
+  AreaEditGuard,
+  AreaViewGuard,
+} from 'src/core/guards/newPermission.guard';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -32,20 +34,17 @@ export class ExecutionCapacityController {
   private applyFilters<
     T extends {
       idParceira?: number | number[];
-      insufficientPermission?: boolean;
     },
   >(filters: T, req: CustomRequest): T {
     if (req.idParceira) {
       filters.idParceira = req.idParceira;
     }
-    if (req.insufficientPermission !== undefined) {
-      filters.insufficientPermission = req.insufficientPermission;
-    }
+
     return filters;
   }
 
   @Get()
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async getExecutionCapacity(
     @Query()
     filters: ExecutionCapacityDTO,
@@ -71,7 +70,7 @@ export class ExecutionCapacityController {
   }
 
   @Patch()
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async updateExecutionCapacity(@Body() data: UpdateExecutionCapacityDTO[]) {
     await this.executionCapacityService.update(data);
 

@@ -8,29 +8,34 @@ import { Injectable } from '@nestjs/common';
 export class AuthRepository implements IAuthRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async register({
-    username,
-    senha,
-    permissao,
-    id_regional,
-    id_turma,
-    email,
-    nome_usuario,
-    permissao_visualizacao,
-  }: User): Promise<User> {
-    const user = await this.prisma.usuario.create({
+  async register(data: User): Promise<User> {
+    const {
+      email,
+      id_regional,
+      id_turma,
+      id_area,
+      is_admin,
+      nome,
+      permissao_edicao,
+      senha,
+      tipo_usuario,
+      username,
+    } = data;
+    const { id } = await this.prisma.novo_tabela_usuarios.create({
       data: {
         username,
         senha: senha,
-        permissao,
+        permissao_edicao,
+        id_area,
+        is_admin,
         id_regional,
         id_turma,
         email,
-        nome_usuario,
-        permissao_visualizacao,
+        nome,
+        tipo_usuario,
       },
     });
 
-    return new User(user);
+    return new User({ id, ...data });
   }
 }

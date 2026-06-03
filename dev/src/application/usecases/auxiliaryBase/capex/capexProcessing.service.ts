@@ -39,22 +39,17 @@ export class CapexProcessingService {
   private readonly obraCache = new Map<string, number>();
   private readonly progressMap = new Map<string, ImportProgressState>();
 
-  // Tamanho do batch de leitura do Excel antes de despachar para o banco.
-  // Mantido em 1 000 — o repositório cuida de subdividir em mini-batches de INSERT.
+  // 🆕 ignorados por job
+  private readonly ignoredMap = new Map<string, CapexItem[]>();
+
   private readonly BATCH_SIZE = 1000;
-
   private readonly MAX_CACHE = 50_000;
-
-  // Máximo de processBatch rodando em paralelo.
-  // Aumentado de 3 → 5 porque cada processBatch agora envia vários INSERTs
-  // menores em vez de um único INSERT enorme, reduzindo a pressão por conexão.
   private readonly CONCURRENCY = 5;
-
   private readonly READ_EMIT_INTERVAL = 1000;
-
-  // A cada quantos batches despachados aguardamos o pool de tasks pendentes.
-  // Evita acumular centenas de Promises em memória ao processar arquivos grandes.
   private readonly DRAIN_EVERY = 20;
+
+  // 🆕 proteção de memória
+  private readonly MAX_IGNORED = 10_000;
 
   private readonly limit = pLimit(this.CONCURRENCY);
 
@@ -75,8 +70,6 @@ export class CapexProcessingService {
       onProgress?.(payload);
     };
 
-    // Mantemos apenas as tasks do "ciclo atual" (até DRAIN_EVERY batches).
-    // Depois de cada drain, o array é zerado — evitando crescimento ilimitado.
     let tasks: Promise<void>[] = [];
     let batchesDispatched = 0;
 
@@ -133,11 +126,7 @@ export class CapexProcessingService {
             const chunk = batch;
             batch = [];
 
-            tasks.push(
-              this.limit(async () => {
-                await this.processBatch(chunk);
-              }),
-            );
+            tasks.push(this.limit(() => this.processBatch(chunk, jobId)));
 
             processed += chunk.length;
             batchesDispatched++;
@@ -146,11 +135,9 @@ export class CapexProcessingService {
               phase: 'processing',
               processed,
               percentage: this.calcProcessingPct(processed),
-              message: `${processed} registros processados`,
+              message: this.buildProgressMessage(jobId, processed),
             });
 
-            // Drena o pool periodicamente para liberar memória e garantir
-            // que erros de conexão sejam propagados antes do fim do arquivo.
             if (batchesDispatched % this.DRAIN_EVERY === 0) {
               await Promise.all(tasks);
               tasks = [];
@@ -159,27 +146,21 @@ export class CapexProcessingService {
         }
       }
 
-      // Último batch (menor que BATCH_SIZE)
       if (batch.length > 0) {
         const chunk = batch;
 
-        tasks.push(
-          this.limit(async () => {
-            await this.processBatch(chunk);
-          }),
-        );
+        tasks.push(this.limit(() => this.processBatch(chunk, jobId)));
 
         processed += chunk.length;
       }
 
-      // Aguarda tasks restantes
       await Promise.all(tasks);
 
       emit({
         phase: 'completed',
         processed,
         percentage: 100,
-        message: `Importação concluída: ${processed} registros`,
+        message: this.buildProgressMessage(jobId, processed, true),
       });
 
       this.scheduleCleanup(jobId);
@@ -205,16 +186,7 @@ export class CapexProcessingService {
     }
   }
 
-  private calcReadingPct(linesRead: number): number {
-    const approx = Math.min(linesRead / 100_000, 1);
-    return Math.floor(approx * 100);
-  }
-
-  private calcProcessingPct(processed: number): number {
-    return Math.min(Math.floor(processed / 1000), 100);
-  }
-
-  private async processBatch(batch: CapexItem[]): Promise<void> {
+  private async processBatch(batch: CapexItem[], jobId: string): Promise<void> {
     const uniqueDiagramas = [...new Set(batch.map((i) => i.diagrama_rede))];
 
     const missing = uniqueDiagramas.filter((d) => d && !this.obraCache.has(d));
@@ -225,7 +197,6 @@ export class CapexProcessingService {
       obraIdsMap.forEach((value, key) => {
         this.obraCache.set(key, value);
 
-        // controle simples de cache (FIFO)
         if (this.obraCache.size > this.MAX_CACHE) {
           const firstKey = this.obraCache.keys().next().value;
           this.obraCache.delete(firstKey);
@@ -233,14 +204,66 @@ export class CapexProcessingService {
       });
     }
 
-    const dataWithObraId = batch.map((item) => ({
-      ...item,
-      id_obra: item.diagrama_rede
-        ? (this.obraCache.get(item.diagrama_rede) ?? null)
-        : null,
-    }));
+    const validItems: any[] = [];
+    const ignoredItems: CapexItem[] = [];
 
-    await this.repository.insertCapex(dataWithObraId);
+    for (const item of batch) {
+      const id_obra = item.diagrama_rede
+        ? (this.obraCache.get(item.diagrama_rede) ?? null)
+        : null;
+
+      if (!id_obra) {
+        ignoredItems.push(item);
+        continue;
+      }
+
+      validItems.push({
+        ...item,
+        id_obra,
+      });
+    }
+
+    // 🔴 armazenar ignorados com limite
+    if (ignoredItems.length > 0) {
+      const current = this.ignoredMap.get(jobId) ?? [];
+
+      if (current.length < this.MAX_IGNORED) {
+        const remainingSpace = this.MAX_IGNORED - current.length;
+        current.push(...ignoredItems.slice(0, remainingSpace));
+        this.ignoredMap.set(jobId, current);
+      }
+    }
+
+    if (validItems.length > 0) {
+      await this.repository.insertCapex(validItems);
+    }
+  }
+
+  private buildProgressMessage(
+    jobId: string,
+    processed: number,
+    completed = false,
+  ): string {
+    const ignored = this.ignoredMap.get(jobId)?.length ?? 0;
+
+    if (completed) {
+      return `Importação concluída: ${processed} registros (${ignored} ignorados)`;
+    }
+
+    return `${processed} registros processados (${ignored} ignorados)`;
+  }
+
+  getIgnored(jobId: string): CapexItem[] {
+    return this.ignoredMap.get(jobId) ?? [];
+  }
+
+  private calcReadingPct(linesRead: number): number {
+    const approx = Math.min(linesRead / 100_000, 1);
+    return Math.floor(approx * 100);
+  }
+
+  private calcProcessingPct(processed: number): number {
+    return Math.min(Math.floor(processed / 1000), 100);
   }
 
   private initProgress(jobId: string): void {
@@ -250,9 +273,14 @@ export class CapexProcessingService {
       percentage: 0,
       message: 'Importação iniciada',
     });
+
+    this.ignoredMap.set(jobId, []);
   }
 
   private scheduleCleanup(jobId: string, ttlMs = 5 * 60 * 1000): void {
-    setTimeout(() => this.progressMap.delete(jobId), ttlMs);
+    setTimeout(() => {
+      this.progressMap.delete(jobId);
+      this.ignoredMap.delete(jobId); // 🧹 limpeza completa
+    }, ttlMs);
   }
 }

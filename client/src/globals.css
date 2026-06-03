@@ -135,6 +135,7 @@ table {
 
 /* Track */
 ::-webkit-scrollbar-track {
+  /* background: #1a2635; fundo escuro */
   background: #ffffff;
 }
 

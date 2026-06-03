@@ -103,7 +103,7 @@ export default function ExecutionReportPanelItem({
 
     return filesPath?.map(
       (filename) =>
-        `${process.env.NEXT_PUBLIC_API_URL}/uploads/as_build/${filename}`
+        `${process.env.NEXT_PUBLIC_API_URL}/uploads/as_build/${filename}`,
     );
   };
 
@@ -134,7 +134,10 @@ export default function ExecutionReportPanelItem({
                   className="hover:bg-gray-50 transition-colors duration-200"
                 >
                   <TableCell className="py-1 px-2 text-center border-r font-medium text-base border-zinc-700 border-solid bg-white">
-                    {permissions?.permissao !== "Sem permissão" && (
+                    {(permissions?.is_admin ||
+                      (permissions?.id_area === 8 &&
+                        permissions?.permissao_edicao) ||
+                      permissions?.tipo_usuario === "PARCEIRA") && (
                       <Box
                         display="flex"
                         justifyContent="center"

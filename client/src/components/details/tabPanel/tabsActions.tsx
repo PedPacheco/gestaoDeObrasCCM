@@ -15,6 +15,7 @@ interface TabActionsProps {
     newValue: number,
   ) => void;
   feasibilityExists: any[];
+  canSeeTabs: boolean;
 }
 
 const TabActions = memo(
@@ -28,7 +29,11 @@ const TabActions = memo(
     onNewSchedule,
     valueTab,
     feasibilityExists,
+    canSeeTabs,
   }: TabActionsProps) => {
+    const canValidateOrConfirm =
+      permissions?.permissao_edicao && permissions?.tipo_usuario !== "PARCEIRA";
+
     return (
       <div className="flex items-center justify-between">
         <Tabs
@@ -39,15 +44,19 @@ const TabActions = memo(
           scrollButtons="auto"
           className="flex-1 mt-4"
         >
-          <Tab label="Custos" className="xl:text-lg" />
-          <Tab label="Programações" className="xl:text-lg" />
-          <Tab label="Reprovações" className="xl:text-lg" />
-          <Tab label="Relatórios execuções" className="xl:text-lg" />
-          <Tab label="Restrições Publicação" className="xl:text-lg" />
-          <Tab label="Serviços" className="xl:text-lg" />
+          {canSeeTabs && (
+            <Tab value={0} label="Custos" className="xl:text-lg" />
+          )}
+          <Tab value={1} label="Programações" className="xl:text-lg" />
+          <Tab value={2} label="Reprovações" className="xl:text-lg" />
+          <Tab value={3} label="Relatórios execuções" className="xl:text-lg" />
+          <Tab value={4} label="Restrições Publicação" className="xl:text-lg" />
+          {canSeeTabs && (
+            <Tab value={5} label="Serviços" className="xl:text-lg" />
+          )}
         </Tabs>
 
-        {valueTab === 1 && (
+        {valueTab === 1 && canSeeTabs && (
           <div className="flex justify-center items-center flex-row">
             <div className="px-4 mt-2">
               <ButtonComponent
@@ -56,7 +65,7 @@ const TabActions = memo(
                   statusWork === 2 ||
                   statusWork === 3 ||
                   feasibilityExists?.length === 0 ||
-                  permissions.permissao === "Sem permissão"
+                  !permissions.permissao_edicao
                 }
                 text="Nova programação"
               />
@@ -65,10 +74,7 @@ const TabActions = memo(
               <ButtonComponent
                 onClick={onRejected}
                 disabled={
-                  statusWork === 2 ||
-                  statusWork === 3 ||
-                  permissions?.permissao_visualizacao === "parcial" ||
-                  permissions.permissao === "Sem permissão"
+                  statusWork === 2 || statusWork === 3 || !canValidateOrConfirm
                 }
                 text="Reprovar programação"
               />
@@ -76,11 +82,7 @@ const TabActions = memo(
             <div className="px-4 mt-2">
               <ButtonComponent
                 onClick={onValidate}
-                disabled={
-                  statusWork !== 43 ||
-                  permissions?.permissao_visualizacao === "parcial" ||
-                  permissions.permissao === "Sem permissão"
-                }
+                disabled={statusWork !== 43 || !canValidateOrConfirm}
                 text="Validar programação"
               />
             </div>
@@ -88,11 +90,7 @@ const TabActions = memo(
             <div className="px-4 mt-2">
               <ButtonComponent
                 onClick={onConfirm}
-                disabled={
-                  statusWork !== 37 ||
-                  permissions?.permissao_visualizacao === "parcial" ||
-                  permissions.permissao === "Sem permissão"
-                }
+                disabled={statusWork !== 37 || !canValidateOrConfirm}
                 text="Confirmar programação"
               />
             </div>

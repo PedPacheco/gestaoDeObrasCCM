@@ -11,9 +11,16 @@ import {
 } from "@mui/material";
 import { ButtonComponent } from "@/components/common/Button";
 
+interface optionFailure {
+  id: number;
+  restricao: string;
+  tipo_restricao: string;
+}
+
 interface FailureModalComponentProps {
   open: boolean;
   onClose: () => void;
+  options: optionFailure[];
   rejectedSchedule: {
     id: number;
     reject: boolean;
@@ -28,20 +35,10 @@ interface FailureModalComponentProps {
   ) => void;
 }
 
-const reasonsForFailure: string[] = [
-  "Data",
-  "Horário",
-  "Equipamento divergente",
-  "Viabilidade",
-  "Quantidade de equipes",
-  "Tipo de equipe",
-  "CHI",
-  "Fora da meta",
-];
-
 export default function FailureModalComponent({
   open,
   onClose,
+  options,
   handleReject,
   rejectedSchedule,
 }: FailureModalComponentProps) {
@@ -123,9 +120,9 @@ export default function FailureModalComponent({
               }}
               label="Motivo da reprovação"
             >
-              {reasonsForFailure.map((item) => (
-                <MenuItem key={item} value={item}>
-                  {item}
+              {options.map((item) => (
+                <MenuItem key={item.id} value={item.restricao}>
+                  {item.restricao}
                 </MenuItem>
               ))}
             </Select>

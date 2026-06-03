@@ -70,7 +70,7 @@ export function UpdateButton({ storageKey }: UpdateButtonProps) {
           }));
         }
 
-        const res = await UpdateSap(data, key, "marketEntryData");
+        const res = await UpdateSap(data, key);
 
         if (!res.success) {
           showError(res.error);

@@ -11,7 +11,7 @@ import {
   IMonthlySummaryForecastCalculator,
   MONTHLY_SUMMARY_FORECAST_CALCULATOR,
 } from 'src/domain/services/monthlySummaryForecastCalculator.service';
-import { buildTotalTeamsMap } from 'src/domain/services/teamAggregator.service';
+import { TeamAggregationService } from 'src/domain/services/teamAggregator.service';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
 import {
   DailySummaryEntryForecast,
@@ -33,6 +33,7 @@ export class GetMonthlySummaryForecastService {
     @Inject(MONTHLY_SUMMARY_FORECAST_CALCULATOR)
     private readonly calculator: IMonthlySummaryForecastCalculator,
     private readonly summaryMapper: MonthlySummaryForecastMapper,
+    private readonly teamsAggregatorService: TeamAggregationService,
   ) {}
 
   async getSummary(
@@ -54,7 +55,7 @@ export class GetMonthlySummaryForecastService {
     const uniqueWorksFinancial = createUniqueWorksFinancialForecast();
     const contabilizedWorks = new Set<string>();
 
-    const totalTeamsMap = buildTotalTeamsMap(data);
+    const totalTeamsMap = this.teamsAggregatorService.buildTotalTeamsMap(data);
 
     for (const record of data) {
       const { ordem_dca, ordem_dcd, ordem_dci, ordem_dcim, ovnota, executado } =

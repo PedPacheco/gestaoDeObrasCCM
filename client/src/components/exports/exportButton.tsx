@@ -82,7 +82,7 @@ export function ExportButton({
 
   return (
     <>
-      {permissions?.permissao_visualizacao === "parcial" && !visible ? null : (
+      {permissions?.tipo_usuario === "PARCEIRA" && !visible ? null : (
         <>
           <Box
             sx={{

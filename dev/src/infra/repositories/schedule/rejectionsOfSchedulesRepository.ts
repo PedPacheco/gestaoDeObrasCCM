@@ -8,7 +8,7 @@ import { IRejectionOfSchedulesRepository } from 'src/domain/repositories/schedul
 export class RejectionsOfSchedulesRepository implements IRejectionOfSchedulesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async get(idWork): Promise<any> {
+  async get(idWork): Promise<any[]> {
     const value = idWork.toString();
 
     return await this.prisma.programacoes_reprovacoes.findMany({
@@ -26,7 +26,6 @@ export class RejectionsOfSchedulesRepository implements IRejectionOfSchedulesRep
         },
       },
       select: {
-        motivo: true,
         data_prog: true,
         hora_ini: true,
         hora_ter: true,
@@ -38,6 +37,7 @@ export class RejectionsOfSchedulesRepository implements IRejectionOfSchedulesRep
         equipe_regularizacao: true,
         tipo_servico: true,
         observacao_programacao: true,
+        restricoes: { select: { restricao: true } },
       },
     });
   }

@@ -3,8 +3,6 @@ import { ContractUpdateService } from 'src/application/usecases/works/contractUp
 import { SuspensionWorkService } from 'src/application/usecases/works/suspensionWork.service';
 import { UpdateNoteService } from 'src/application/usecases/works/updateNote.service';
 import { UpdateOvService } from 'src/application/usecases/works/updateOv.service';
-import { PermissionGuard } from 'src/core/guards/permission.guard';
-import { VisualizationGuard } from 'src/core/guards/visualization.guard';
 import {
   ContractUpdateDTO,
   InsertMarketWorksDTO,
@@ -24,6 +22,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { AreaEditGuard } from 'src/core/guards/newPermission.guard';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -41,7 +40,7 @@ export class WorksUpdateController {
   ) {}
 
   @Post('atualizar-empreitamento')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async ContractUpdate(@Body() data: ContractUpdateDTO[]) {
     await this.contractUpdateService.update(data);
     return {
@@ -51,7 +50,7 @@ export class WorksUpdateController {
   }
 
   @Post('suspender-obras')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async SuspensionWorks(@Body() data: SuspensionWorksDTO[]) {
     await this.suspensionWorksService.createMultipleSuspensions(data);
     return {
@@ -61,7 +60,7 @@ export class WorksUpdateController {
   }
 
   @Patch(':id')
-  @UseGuards(VisualizationGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async Update(
     @Param('id', ParseIntPipe) id: number,
     @Body() data: UpdateWorkDTO,
@@ -79,7 +78,7 @@ export class WorksUpdateController {
   }
 
   @Post('atualizar-ov')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async updateOv(@Body() body: InsertMarketWorksDTO[]) {
     await this.updateOvService.update(body);
     return {
@@ -89,7 +88,7 @@ export class WorksUpdateController {
   }
 
   @Post('atualizar-nota')
-  @UseGuards(PermissionGuard)
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async updateNote(@Body() data: UpdateNotesDTO[]) {
     await this.updateNoteService.update(data);
     return {
