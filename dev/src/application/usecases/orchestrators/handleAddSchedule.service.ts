@@ -48,7 +48,7 @@ export class HandleAddScheduleService {
         progress,
       );
 
-      return scheduleId;
+      return 1;
     });
   }
 

@@ -42,13 +42,12 @@ export function ManageSchedule({
 }: ManageScheduleProps) {
   const { showError, showSuccess } = useFeedback();
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
-  const [openTeamsModal, setOpenTeamsModal] = useState<boolean>(false);
 
   const dialogTitle = isInsert ? "Nova Programação" : "Editar Programação";
 
-  const toggleTeamsModal = useCallback(() => {
-    setOpenTeamsModal((prev) => !prev);
-  }, []);
+  // const toggleTeamsModal = useCallback(() => {
+  //   setOpenTeamsModal((prev) => !prev);
+  // }, []);
 
   const scheduleForm = useScheduleForm({
     data: scheduleData,
@@ -87,6 +86,8 @@ export function ManageSchedule({
     formData: scheduleData,
   });
 
+  console.log(selectedServices);
+
   return (
     <div className="p-4 sm:p-6 bg-gray-50 min-h-screen w-full overflow-y-auto">
       <h1 className="mb-6 text-2xl sm:text-3xl font-bold text-gray-800">
@@ -103,7 +104,7 @@ export function ManageSchedule({
           scheduleForm={scheduleForm}
           statusWork={idStatusWork}
           onError={showError}
-          setOpenTeamsModal={setOpenTeamsModal}
+          // setOpenTeamsModal={setOpenTeamsModal}
           isPending={isPending}
           handleSubmit={handleSubmit}
         />
@@ -120,7 +121,8 @@ export function ManageSchedule({
           serviceContractData={serviceContractData}
           selectedServices={selectedServices}
           setSelectedServices={setSelectedServices}
-          setOpenTeamsModal={setOpenTeamsModal}
+          teams={serviceTeams}
+          // setOpenTeamsModal={setOpenTeamsModal}
           isInsert={isInsert}
           idSchedule={idSchedule}
           idWork={Number(idWork)}
@@ -131,7 +133,7 @@ export function ManageSchedule({
         />
       </div>
 
-      {openTeamsModal && (
+      {/* {openTeamsModal && (
         <TeamModal
           onClose={toggleTeamsModal}
           open={openTeamsModal}
@@ -147,7 +149,7 @@ export function ManageSchedule({
           }
           isInsert={isInsert}
         />
-      )}
+      )} */}
     </div>
   );
 }

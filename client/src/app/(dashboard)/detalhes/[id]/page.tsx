@@ -142,6 +142,7 @@ export default async function Details({ params }: DetailsParams) {
           <TabPanel
             workData={data}
             id={id}
+            options={options}
             executionReportData={executionReportData.data}
             rejectionsData={rejectionsData.data}
             feasibilityExists={feasibilityExists.data}

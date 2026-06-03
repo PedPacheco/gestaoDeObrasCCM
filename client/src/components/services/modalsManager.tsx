@@ -31,7 +31,6 @@ interface ModalsManagerProps {
     }[],
   ) => void;
   executionForm: UseExecutionServiceFormReturn;
-  scheduleStatus: string;
 }
 
 export interface ModalsManagerRef {
@@ -51,7 +50,6 @@ export const ModalsManager = forwardRef<ModalsManagerRef, ModalsManagerProps>(
       onCloseDialog,
       executionForm,
       options,
-      scheduleStatus,
     },
     ref,
   ) => {

@@ -20,7 +20,7 @@ interface ScheduleSectionProps {
     restricao: Array<{ id: number; restricao: string; tipo_restricao: string }>;
   };
   statusWork: number;
-  setOpenTeamsModal: (team: boolean) => void;
+  // setOpenTeamsModal: (team: boolean) => void;
   isPending: boolean;
   handleSubmit: (data: any) => any;
 }
@@ -35,7 +35,6 @@ export function ScheduleSection({
   onError,
   options,
   statusWork,
-  setOpenTeamsModal,
   isPending,
   handleSubmit,
 }: ScheduleSectionProps) {
@@ -52,14 +51,12 @@ export function ScheduleSection({
   const disabledFields = () => {
     if (isInsert) {
       return (
-        permissions?.permissao_visualizacao === "parcial" &&
+        permissions?.tipo_usuario === "PARCEIRA" &&
         (statusWork === 3 || statusWork === 2)
       );
     }
 
-    return (
-      permissions?.permissao_visualizacao === "parcial" && statusWork === 35
-    );
+    return permissions?.tipo_usuario === "PARCEIRA" && statusWork === 35;
   };
 
   return (
@@ -80,50 +77,54 @@ export function ScheduleSection({
       </Grid>
 
       <Box className="flex flex-wrap justify-end gap-4 mt-4">
-        <Button
-          variant="contained"
-          color="inherit"
-          startIcon={<XMarkIcon className="w-5 h-5 text-white" />}
-          onClick={handleCancel}
-          className="bg-gray-700 hover:bg-gray-800 text-white"
-        >
-          CANCELAR
-        </Button>
+        {!isInsert && (
+          <>
+            {" "}
+            <Button
+              variant="contained"
+              color="inherit"
+              startIcon={<XMarkIcon className="w-5 h-5 text-white" />}
+              onClick={handleCancel}
+              className="bg-gray-700 hover:bg-gray-800 text-white"
+            >
+              CANCELAR
+            </Button>
+            <ButtonComponent
+              styled="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
+              startIcon={<ArrowUpTrayIcon className="w-5 h-5 text-white" />}
+              onClick={() => {
+                const validationResult = schedulesSchema().safeParse(
+                  scheduleForm.formData,
+                );
 
-        <ButtonComponent
-          styled="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
-          startIcon={<ArrowUpTrayIcon className="w-5 h-5 text-white" />}
-          onClick={() => {
-            const validationResult = schedulesSchema().safeParse(
-              scheduleForm.formData,
-            );
+                if (!validationResult.success && isInsert) {
+                  const fieldErrors: Record<string, string> = {};
+                  validationResult.error.issues.forEach((err) => {
+                    const path = err.path.join(".");
+                    fieldErrors[path] = err.message;
+                  });
+                  scheduleForm.setFormErrors(fieldErrors);
+                  onError("Erro ao salvar programação");
 
-            if (!validationResult.success && isInsert) {
-              const fieldErrors: Record<string, string> = {};
-              validationResult.error.issues.forEach((err) => {
-                const path = err.path.join(".");
-                fieldErrors[path] = err.message;
-              });
-              scheduleForm.setFormErrors(fieldErrors);
-              onError("Erro ao salvar programação");
+                  return;
+                }
 
-              return;
-            }
+                // if (isInsert) {
+                //   setOpenTeamsModal(true);
+                // } else {
+                const data = {
+                  id: idSchedule,
+                  ...validationResult.data,
+                };
 
-            if (isInsert) {
-              setOpenTeamsModal(true);
-            } else {
-              const data = {
-                id: idSchedule,
-                ...validationResult.data,
-              };
-
-              handleSubmit(data);
-            }
-          }}
-          disabled={isPending}
-          text={isInsert ? submitButtonText : "Editar programação"}
-        />
+                handleSubmit(data);
+                // }
+              }}
+              disabled={isPending}
+              text="Editar programação"
+            />
+          </>
+        )}
       </Box>
     </Box>
   );

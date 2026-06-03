@@ -6,7 +6,6 @@ import { storeScheduleDataAction } from "@/actions/services";
 import ModalsManager, {
   ModalsManagerRef,
 } from "@/components/services/modalsManager";
-import { useScheduleForm } from "@/hooks/details/useScheduleForm";
 import { useScheduleHandlers } from "@/hooks/details/useScheduleHandlers";
 import { useUser } from "@/contexts/userContext";
 import { useExecutionServiceForm } from "@/hooks/useExecutionServicesForm";
@@ -29,6 +28,7 @@ interface TabPanelProps {
   executionReportData: any;
   rejectionsData: Record<string, any>[];
   publicationRestrictionData: Record<string, any>[];
+  options: any;
   id: string;
   feasibilityExists: any[];
 }
@@ -58,6 +58,7 @@ export default function TabPanel({
   executionReportData,
   rejectionsData,
   publicationRestrictionData,
+  options,
   id,
   feasibilityExists,
 }: TabPanelProps) {
@@ -67,7 +68,15 @@ export default function TabPanel({
   const [value, setValue] = useState<number>(1);
   const [data, setData] = useState<Record<string, any>>(workData);
 
+  const [scheduleStatus, setScheduleStatus] = useState<string>("");
+
   const [editingExecutionReport, setEditingExecutionReport] = useState<any>();
+
+  const isAreaAllowed =
+    permissions?.id_area != null &&
+    [8, 2].includes(Number(permissions.id_area));
+
+  const canSeeTab = isAreaAllowed || permissions?.tipo_usuario === "PARCEIRA";
 
   const executionForm = useExecutionServiceForm({
     enabled: false,
@@ -210,12 +219,9 @@ export default function TabPanel({
         handleReject={handleReject}
         onConfirmDelete={handleDelete}
         onConfirmExecutionDelete={handleExecutionReportDelete}
-<<<<<<< HEAD
         executionForm={executionForm}
         onCloseDialog={handleCloseDialog}
-=======
-        scheduleStatus={scheduleStatus}
->>>>>>> 7119125a38dbd02133b8e606db209840d184654a
+        options={options}
       />
     </div>
   );

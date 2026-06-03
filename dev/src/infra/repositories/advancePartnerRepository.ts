@@ -124,7 +124,7 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
 
     const query = Prisma.sql`
       SELECT ovnota, restricao_execucao AS motivo, 
-      nome_do_responsavel_execucao AS responsavel, mo_planejada * (GREATEST(prog - COALESCE(exec, 0), 0)::numeric / prog) AS mo_nao_executada
+      nome_do_responsavel_execucao AS responsavel, mo_planejada * (GREATEST(prog - COALESCE(exec, 0), 0)::numeric / 100) AS mo_nao_executada
       FROM construcao_sp.exportacao_programacoes_obras
       ${where}
       ORDER BY ovnota

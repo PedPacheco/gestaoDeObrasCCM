@@ -267,7 +267,7 @@ export class WorksServicesRepository implements IWorksServicesRepository {
           nome_responsavel: responsibility,
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       if (error.code === 'P2025') {
         throw new NotFoundException(`Agendamento com ID ${id} não encontrado`);
       }

@@ -17,7 +17,8 @@ interface ServicesSectionProps {
   serviceFilters: any;
   selectedServices: number[];
   setSelectedServices: (services: number[]) => void;
-  setOpenTeamsModal: (team: boolean) => void;
+  teams: any[];
+  // setOpenTeamsModal: (team: boolean) => void;
   isInsert: boolean;
   idSchedule: number | null;
   idWork: number;
@@ -38,7 +39,8 @@ export function ServicesSection({
   scheduledServicesHistory,
   selectedServices,
   setSelectedServices,
-  setOpenTeamsModal,
+  teams,
+  // setOpenTeamsModal,
   isInsert,
   idSchedule,
   idWork,
@@ -92,7 +94,8 @@ export function ServicesSection({
           points={serviceFilters.points}
           selectedServices={selectedServices}
           setSelectedServices={setSelectedServices}
-          setOpenTeamsModal={setOpenTeamsModal}
+          teams={teams}
+          // setOpenTeamsModal={setOpenTeamsModal}
           isInsert={isInsert}
           isDisabled={isDisabledButton}
           onError={onError}
