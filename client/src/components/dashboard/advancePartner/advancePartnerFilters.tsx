@@ -63,19 +63,21 @@ function WeekSelect({
   }, []);
 
   return (
-    <div ref={ref} className="relative flex flex-col gap-1">
+    <div ref={ref} className="relative flex flex-col gap-1 w-full sm:w-auto">
       <span className="text-zinc-500 text-xs uppercase tracking-wider">
         {label}
       </span>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center justify-between gap-2 bg-[#0f1e2e] border border-white/10 hover:border-white/20 text-zinc-300 text-xs rounded-xl pl-3 pr-2.5 py-2 min-w-[180px] lg:min-w-[210px] transition-colors"
+        // FIX: min-w fixo substituído por w-full no mobile e min-w no desktop
+        className="flex items-center justify-between gap-2 bg-[#0f1e2e] border border-white/10 hover:border-white/20 text-zinc-300 text-xs rounded-xl pl-3 pr-2.5 py-2 w-full sm:min-w-[180px] lg:min-w-[210px] transition-colors"
       >
-        <div className="flex items-center gap-1.5">
-          <span className="font-bold text-white">Sem. {value}</span>
-          <span className="text-zinc-600">·</span>
-          <span className="text-zinc-400">{week[showField]}</span>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="font-bold text-white shrink-0">Sem. {value}</span>
+          <span className="text-zinc-600 shrink-0">·</span>
+          {/* FIX: truncate adicionado para textos longos não quebrarem layout */}
+          <span className="text-zinc-400 truncate">{week[showField]}</span>
         </div>
         <svg
           className={`w-3 h-3 text-zinc-500 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
@@ -93,7 +95,8 @@ function WeekSelect({
       </button>
       {open && (
         <div
-          className="absolute top-full mt-1.5 left-0 z-50 bg-[#0f1e2e] border border-white/10 rounded-xl shadow-2xl w-[300px] max-h-[280px] overflow-y-auto"
+          // FIX: max-w e min-w para evitar que o dropdown estoure o viewport em mobile
+          className="absolute top-full mt-1.5 left-0 z-50 bg-[#0f1e2e] border border-white/10 rounded-xl shadow-2xl w-[280px] sm:w-[300px] max-h-[280px] overflow-y-auto"
           style={{ scrollbarWidth: "thin" }}
         >
           {WEEKS.map((w) => {
@@ -154,6 +157,7 @@ function ToggleGroup<T extends string>({
             key={opt}
             type="button"
             onClick={() => onChange(opt)}
+            // FIX: py-2 padronizado para altura igual ao WeekSelect e DateFilter
             className={`px-2.5 sm:px-3 py-2 text-[10px] sm:text-xs font-bold transition-colors ${
               value === opt
                 ? `${activeColor} text-white`
@@ -195,7 +199,7 @@ export function AdvancePartnerFilters({
     <div
       className="
         sticky z-30
-        flex flex-col gap-2
+        flex flex-col gap-3
         border border-white/5
         bg-gradient-to-br from-[#1e2f42] to-[#192535]
         p-3 sm:p-4
@@ -203,11 +207,20 @@ export function AdvancePartnerFilters({
       "
       style={{ top: filtersTop }}
     >
-      <div className="flex flex-col xl:flex-row xl:justify-between gap-4 xl:items-end">
-        {/* Filtros */}
-        <div className="flex flex-col lg:flex-row gap-3 lg:gap-2 w-full lg:items-end">
+      {/*
+        ANTES: flex-col xl:flex-row (quebrava em 2 linhas até xl=1280px sem organização clara)
+        AGORA: flex-col com quebra inteligente por seção — Toggles | Período | Selects | Botões
+        O layout se adapta em 3 fases:
+          mobile  (<640px)  → tudo empilhado
+          tablet  (sm/md)   → toggles em linha, semanas/datas em linha, selects em linha
+          desktop (lg+)     → tudo em uma única linha horizontal
+      */}
+      <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3">
+        {/* ── Grupo 1: Todos os filtros ── */}
+        <div className="flex flex-col md:flex-row md:flex-wrap gap-3 md:items-end flex-1 min-w-0">
           {/* Toggles: Filtrar por + Responsabilidade */}
-          <div className="flex flex-wrap gap-2 items-end">
+          {/* FIX: flex-wrap para acomodar em telas estreitas sem overflow */}
+          <div className="flex flex-wrap gap-2 items-end shrink-0">
             <ToggleGroup
               label="Filtrar por"
               options={["semana", "data"] as FilterMode[]}
@@ -215,6 +228,18 @@ export function AdvancePartnerFilters({
               onChange={setFilterMode}
             />
 
+            <ToggleGroup
+              label="Responsabilidade"
+              options={["Geral", "Edp", "Parceira", "Terceiro"] as MotivoTab[]}
+              value={motivoTab}
+              onChange={setMotivoTab}
+              activeColor="bg-[#1d4ed8]"
+            />
+          </div>
+
+          {/* Semana ou Data */}
+          {/* FIX: flex-wrap para WeekSelects lado a lado no mobile sem overflow */}
+          <div className="flex flex-wrap sm:flex-nowrap gap-2 items-end min-w-0">
             {filterMode === "semana" ? (
               <>
                 <WeekSelect
@@ -239,25 +264,16 @@ export function AdvancePartnerFilters({
                 backgroundColor="#0f1e2e"
                 textColor="#a1a1aa"
                 svgColor="#94a3b8"
-                spacing="mr-4 !mb-0 mt-2"
+                // FIX: margin removida — espaçamento controlado pelo gap do flex pai
+                spacing="!mb-0"
               />
             )}
-
-            <ToggleGroup
-              label="Responsabilidade"
-              options={["Geral", "Edp", "Parceira", "Terceiro"] as MotivoTab[]}
-              value={motivoTab}
-              onChange={setMotivoTab}
-              activeColor="bg-[#1d4ed8]"
-            />
           </div>
 
-          {/* Semana ou Data
-          <div className="flex flex-wrap gap-2 items-end"></div> */}
-
-          {/* Selects */}
-          <div className="flex flex-col sm:flex-row gap-2 flex-1">
-            <div className="min-w-[120px] flex-1">
+          {/* Selects: Regionais + Parceira */}
+          {/* FIX: flex-col em mobile, flex-row em sm+ com flex-1 para ocupar espaço disponível */}
+          <div className="flex flex-col sm:flex-row gap-2 flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <MultipleSelectComponent
                 label="Regionais"
                 menuItems={filtersData.regional ?? []}
@@ -270,7 +286,7 @@ export function AdvancePartnerFilters({
               />
             </div>
 
-            <div className="min-w-[120px] flex-1">
+            <div className="min-w-0 flex-1">
               <MultipleSelectComponent
                 label="Parceira"
                 menuItems={
@@ -290,13 +306,19 @@ export function AdvancePartnerFilters({
           </div>
         </div>
 
-        {/* Botões */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* ── Grupo 2: Botões de ação ── */}
+        {/*
+          ANTES: shrink-0 sem controle de alinhamento mobile
+          AGORA: self-stretch em mobile (botões full-width), auto em lg+
+          Os botões Aplicar/Limpar têm visual diferente para distingui-los
+        */}
+        <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row items-stretch sm:items-center gap-2 shrink-0">
           <button
             type="button"
             onClick={applyFilters}
             disabled={isPending}
-            className="rounded-xl bg-[#3b82f6] px-4 sm:px-6 py-2 text-xs sm:text-sm font-semibold text-white shadow-lg transition-all hover:bg-[#2563eb] hover:shadow-[#3b82f6]/30 disabled:cursor-not-allowed disabled:opacity-50"
+            // FIX: botão Aplicar com cor cheia (ação primária)
+            className="flex-1 lg:flex-none rounded-xl bg-[#3b82f6] px-4 sm:px-6 py-2 text-xs sm:text-sm font-semibold text-white shadow-lg transition-all hover:bg-[#2563eb] hover:shadow-[#3b82f6]/30 disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
           >
             {isPending ? "Carregando..." : "Aplicar"}
           </button>
@@ -305,7 +327,8 @@ export function AdvancePartnerFilters({
             type="button"
             onClick={clearFilters}
             disabled={isPending}
-            className="rounded-xl bg-[#3b82f6] px-4 sm:px-6 py-2 text-xs sm:text-sm font-semibold text-white shadow-lg transition-all hover:bg-[#2563eb] hover:shadow-[#3b82f6]/30 disabled:cursor-not-allowed disabled:opacity-50"
+            // FIX: botão Limpar com estilo outline (ação secundária) para distinguir visualmente
+            className="flex-1 lg:flex-none rounded-xl bg-transparent border border-white/20 px-4 sm:px-6 py-2 text-xs sm:text-sm font-semibold text-zinc-300 transition-all hover:border-white/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
           >
             {isPending ? "Carregando..." : "Limpar"}
           </button>
