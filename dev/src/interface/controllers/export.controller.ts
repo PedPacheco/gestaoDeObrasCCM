@@ -124,7 +124,7 @@ export class ExportController {
   // ─────────────────────────────────────────────
 
   @Get('programacao')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async exportSchedule(
     @Query() filters: GetScheduleValuesDTO,
     @Res() res: Response,
@@ -139,7 +139,7 @@ export class ExportController {
   }
 
   @Get('obras-carteira')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async exportWorksInPortfolio(
     @Query() workFilters: GetWorksDTO,
     @Res() res: Response,
@@ -154,7 +154,7 @@ export class ExportController {
   }
 
   @Get('obras-executadas')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async exportCompletedWorks(
     @Query() workFilters: GetWorksDTO,
     @Res() res: Response,

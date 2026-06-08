@@ -98,9 +98,6 @@ export function pctColor(pct: number) {
   return { bg: "#450a0a", text: "#f87171", bar: "#ef4444" };
 }
 
-// ✅ Áreas permitidas para utilizadores internos
-const ALLOWED_AREAS = [2, 8, 9];
-
 export default function DashboardClient({
   token,
   initialMaodeObra,

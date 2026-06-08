@@ -34,17 +34,6 @@ export interface MotivoRow {
   observacao_execucao?: string | null;
 }
 
-export interface SparkPoint {
-  semana: string;
-  pct: number;
-}
-
-export interface SparklineRow {
-  parceira: string;
-  aderencia: SparkPoint[];
-  eliminacao: SparkPoint[];
-}
-
 interface Props {
   initialEliminacao: EliminacaoRow[];
   initialAderencia: AderenciaRow[];
@@ -63,6 +52,54 @@ interface Props {
 export function pctExact(num: number, den: number) {
   if (den === 0) return 0;
   return Math.round((num / den) * 100 * 10) / 10;
+}
+
+export function pctColorGripSchedule(pct: number) {
+  if (pct >= 85) {
+    return {
+      bg: "#053715",
+      text: "#53FF75",
+      bar: "#53FF75",
+    };
+  }
+
+  if (pct >= 71 && pct < 85) {
+    return {
+      bg: "#451a03",
+      text: "#facc15",
+      bar: "#facc15",
+    };
+  }
+
+  return {
+    bg: "#450a0a",
+    text: "#f87171",
+    bar: "#ef4444",
+  };
+}
+
+export function pctColorRestrictionsElimination(pct: number) {
+  if (pct >= 100) {
+    return {
+      bg: "#053715",
+      text: "#53FF75",
+      bar: "#53FF75",
+    };
+  }
+
+  if (pct >= 86 && pct < 100) {
+    return {
+      bg: "#451a03",
+      text: "#facc15",
+      bar: "#facc15",
+    };
+  }
+
+  return {
+    bg: "#450a0a",
+    text: "#f87171",
+    bar: "#ef4444",
+  };
 }
 
 export default function AdvancePartnerDashboard({

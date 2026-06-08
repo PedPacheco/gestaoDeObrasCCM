@@ -5,6 +5,8 @@ import {
   AderenciaRow,
   EliminacaoRow,
   MotivoRow,
+  pctColorGripSchedule,
+  pctColorRestrictionsElimination,
   pctExact,
 } from "./advancePartner";
 import { RingCard } from "../common/RingCard";
@@ -20,30 +22,6 @@ interface KpiSectionProps {
 
 function roundDisplay(x: number): number {
   return Math.floor(x + 0.4);
-}
-
-function pctColorGripAndElimination(pct: number) {
-  if (pct >= 85) {
-    return {
-      bg: "#053715",
-      text: "#53FF75",
-      bar: "#53FF75",
-    };
-  }
-
-  if (pct >= 71 && pct < 85) {
-    return {
-      bg: "#451a03",
-      text: "#facc15",
-      bar: "#facc15",
-    };
-  }
-
-  return {
-    bg: "#450a0a",
-    text: "#f87171",
-    bar: "#ef4444",
-  };
 }
 
 export function KpiSection({
@@ -119,7 +97,7 @@ export function KpiSection({
         label="Aderência Programação"
         subLabel="Obras / Executado / Parcial / Não exec."
         value={pctAd}
-        color={pctColorGripAndElimination(pctAd).bar}
+        color={pctColorGripSchedule(pctAd).bar}
         sub={`${NUM(kpiAderencia.total)} / ${NUM(kpiAderencia.exec)} / ${NUM(kpiAderencia.parcial)} / ${NUM(kpiAderencia.naoExec)}`}
       />
 
@@ -134,7 +112,7 @@ export function KpiSection({
         label="Eliminação de Restrições"
         subLabel="Total / Sem restrição / Com restrição"
         value={pctEl}
-        color={pctColorGripAndElimination(pctEl).bar}
+        color={pctColorRestrictionsElimination(pctEl).bar}
         sub={`${NUM(kpiEliminacao.total)} / ${NUM(kpiEliminacao.sem)} / ${NUM(kpiEliminacao.total - kpiEliminacao.sem)}`}
       />
     </div>

@@ -310,7 +310,7 @@ export class SchedulesDataDTO {
   @IsString()
   @IsOptional()
   @Transform(({ value }) => (value === '' ? null : value))
-  responsiblityProg?: string;
+  responsibilityProg?: string;
 
   @IsString()
   @IsOptional()
@@ -339,7 +339,7 @@ export class SchedulesDataDTO {
   @IsString()
   @IsOptional()
   @Transform(({ value }) => (value === '' ? null : value))
-  responsiblityProg2?: string;
+  responsibilityProg2?: string;
 
   @IsString()
   @IsOptional()
