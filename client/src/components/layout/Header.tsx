@@ -24,7 +24,7 @@ export function Header() {
           <Bars3Icon className="block h-10 w-10" aria-hidden="true" />
         </button>
 
-        <div className="h-14 w-[460px] relative">
+        <div className="h-14 w-[460px] relative ml-20">
           <Image
             src="/novo-logo-sigo.png"
             alt="Sigo logo"

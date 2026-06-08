@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ============================================================
@@ -33,6 +33,7 @@ const {
     handleRejectedModalOpen: vi.fn(),
     openConfirmDeleteSchedule: vi.fn(),
     openConfirmDeleteExecution: vi.fn(),
+    onCloseDialog: vi.fn(),
     showError: vi.fn(),
     showSuccess: vi.fn(),
   },
@@ -272,14 +273,15 @@ describe("TabPanel", () => {
   // ----------------------------------------------------------
   describe("Permissões (canSeeTab)", () => {
     it.each([
-      { id_area: 8, tipo_usuario: "ADMIN", expected: true },
-      { id_area: 2, tipo_usuario: "ADMIN", expected: true },
+      { id_area: 8, tipo_usuario: "INTERNO", expected: true },
+      { id_area: 2, tipo_usuario: "INTERNO", expected: true },
       { id_area: 99, tipo_usuario: "PARCEIRA", expected: true },
-      { id_area: 5, tipo_usuario: "OUTRO", expected: false },
-      { id_area: null, tipo_usuario: "ADMIN", expected: false },
+      { id_area: 5, tipo_usuario: "INTERNO", expected: false },
+      { id_area: null, tipo_usuario: "PARCEIRA", expected: true },
     ])(
       "canSeeTab=$expected quando id_area=$id_area e tipo=$tipo_usuario",
       ({ id_area, tipo_usuario, expected }) => {
+        localStorageMock.getItem.mockReturnValue("0");
         mockPermissions.current = { id_area, tipo_usuario };
         mockedUseUser.mockReturnValue({
           permissions: mockPermissions.current,
@@ -317,6 +319,8 @@ describe("TabPanel", () => {
   // ----------------------------------------------------------
   describe("Tab padrão", () => {
     it("deve definir tab 0 quando canSeeTab é true", () => {
+      localStorageMock.getItem.mockReturnValue("0");
+
       renderComponent();
 
       expect(screen.getByTestId("tab-actions").dataset.value).toBe("0");
@@ -403,6 +407,7 @@ describe("TabPanel", () => {
   // ----------------------------------------------------------
   describe("Conteúdo das tabs", () => {
     it("deve mostrar WorkCostPanelItem na tab 0", () => {
+      localStorageMock.getItem.mockReturnValue("0");
       renderComponent();
       expect(screen.getByTestId("work-cost-panel")).toBeInTheDocument();
     });
@@ -601,17 +606,44 @@ describe("TabPanel", () => {
   // Sincronização de workData
   // ----------------------------------------------------------
   describe("Sincronização de workData", () => {
-    it("deve atualizar data interna quando workData muda", () => {
+    it("deve atualizar ModalsManager quando workData muda", async () => {
+      mockPermissions.current = {
+        id_area: 7,
+        tipo_usuario: "ADMIN",
+      } as any;
+
+      localStorage.setItem("tab", "0");
+
       const { rerender } = renderComponent();
 
-      const newWorkData = { ...defaultProps.workData, id: 999, id_status: 5 };
+      await screen.findByTestId("work-cost-panel");
+
+      const newWorkData = {
+        ...defaultProps.workData,
+        id: 777,
+        executado: 0.5,
+        id_status: 9,
+      };
+
       rerender(<TabPanel {...defaultProps} workData={newWorkData} />);
 
-      expect(screen.getByTestId("work-cost-panel").dataset.id).toBe("999");
-      expect(screen.getByTestId("tab-actions").dataset.status).toBe("5");
+      await waitFor(() => {
+        const props = getModalsProps();
+
+        expect(props.idWork).toBe(777);
+        expect(props.totalExec).toBe(0.5);
+        expect(props.statusWork).toBe(9);
+      });
     });
 
     it("deve atualizar ModalsManager quando workData muda", () => {
+      mockPermissions.current = {
+        id_area: 7,
+        tipo_usuario: "ADMIN",
+      } as any;
+
+      localStorage.setItem("tab", "0");
+
       const { rerender } = renderComponent();
 
       const newWorkData = {

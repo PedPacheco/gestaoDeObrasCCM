@@ -5,7 +5,6 @@ import { KpiSection } from "./kpiSection";
 import { SparklinesSection } from "./sparklinesSection";
 import { ChartReasonsReascheduling } from "./chartReasonsReascheduling";
 import { useAdvancePartnerFilters } from "@/hooks/dashboard/advancePartner/useAdvancePartnerFilters";
-import { useState } from "react";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -32,6 +31,7 @@ export interface MotivoRow {
   motivo: string;
   responsavel?: string;
   mo_nao_executada: number;
+  observacao_execucao?: string | null;
 }
 
 export interface SparkPoint {
@@ -117,9 +117,10 @@ export default function AdvancePartnerDashboard({
   });
 
   return (
-    <div className="flex flex-col gap-6 pb-6">
+    // Removido: useState desnecessário que não estava em uso
+    // Layout principal: flex-col com gap consistente e padding lateral responsivo
+    <div className="flex flex-col gap-4 sm:gap-6 pb-6">
       {/* ── Filtros ── */}
-
       <AdvancePartnerFilters
         startDate={startDate}
         endDate={endDate}
@@ -162,11 +163,11 @@ export default function AdvancePartnerDashboard({
       />
 
       {/* ── Motivos de Reprogramação ── */}
-      <div className="w-full px-5">
+      {/* Padding lateral padronizado via px-4 sm:px-5 para consistência com KpiSection/SparklinesSection */}
+      <div className="w-full px-4 sm:px-5">
         <ChartReasonsReascheduling
-          motivoTab={motivoTab}
           motivos={motivos}
-          setMotivoTab={setMotivoTab}
+          aderencia={aderencia}
           isPending={isPending}
         />
       </div>

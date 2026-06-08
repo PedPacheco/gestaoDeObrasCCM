@@ -22,11 +22,6 @@ export class UserRepository implements IUserRepository {
     const user = await this.prisma.novo_tabela_usuarios.update({
       where: { id: numberId },
       data: { senha: newPassword },
-      select: {
-        id: true,
-        username: true,
-        senha: true,
-      },
     });
 
     return user;

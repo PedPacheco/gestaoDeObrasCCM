@@ -88,11 +88,6 @@ describe('UserRepository', () => {
       expect(prismaService.novo_tabela_usuarios.update).toHaveBeenCalledWith({
         where: { id: numberId },
         data: { senha: newPassword },
-        select: {
-          id: true,
-          username: true,
-          senha: true,
-        },
       });
     });
   });

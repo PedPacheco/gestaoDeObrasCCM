@@ -90,7 +90,16 @@ export function KpiSection({
     taxaExec.exec > 0 ? roundDisplay((taxaExec.exec / dailyGoal) * 100) : 0;
 
   return (
-    <div className="grid grid-cols-5 gap-2 px-5">
+    /*
+      ANTES: grid-cols-5 fixo — em telas pequenas os 5 cards ficavam espremidos
+      AGORA: grid responsivo em 3 fases:
+        mobile (<640px)   → 1 coluna (cards empilhados, leitura linear)
+        tablet (sm/md)    → 2 colunas (2+2+1 ou 2+3 dependendo do conteúdo)
+        desktop (lg+)     → 3 colunas intermediário
+        desktop xl (xl+)  → 5 colunas (layout original)
+      padding lateral padronizado: px-4 sm:px-5
+    */
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 sm:gap-3 px-4 sm:px-5">
       <RingCard
         label="Rentabilidade Programado"
         subLabel="Meta / Programado"

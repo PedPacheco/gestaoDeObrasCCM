@@ -59,7 +59,7 @@ export function ChartTooltip({
         </div>
       )}
 
-      {data?.["moNaoExecutada"] && (
+      {data?.["count"] && (
         <div className="flex items-center gap-2 py-0.5">
           <span
             className="w-2 h-2 rounded-full"

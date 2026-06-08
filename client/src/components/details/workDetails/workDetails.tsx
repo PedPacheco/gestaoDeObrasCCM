@@ -324,6 +324,10 @@ export function WorkDetails({
     });
   };
 
+  if (hasRestrictedAccess(data.id_status, permissions?.tipo_usuario)) {
+    return <ErrorThrower message="Nível de permissão insuficiente" />;
+  }
+
   return (
     <>
       <div className="w-full flex justify-between items-center my-4 px-2 md:px-8">

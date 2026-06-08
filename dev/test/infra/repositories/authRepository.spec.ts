@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { TipoUsuario } from '@prisma/client';
 import { User } from 'src/domain/entities/user.entity';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { AuthRepository } from 'src/infra/repositories/authRepository';
@@ -37,7 +38,7 @@ describe('AuthRepository', () => {
         id_regional: 1,
         id_area: 8,
         id_turma: 1,
-        tipo_usuario: 'INTERNO',
+        tipo_usuario: TipoUsuario.INTERNO,
         permissao_edicao: true,
         is_admin: true,
         email: 'teste@gmail.com',
