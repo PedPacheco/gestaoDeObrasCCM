@@ -269,8 +269,7 @@ export function ChartReasonsReascheduling({
         moNaoExecutada: data.moNaoExecutada,
         pct: totalWorks > 0 ? ((data.count / totalWorks) * 100).toFixed(2) : 0,
       }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 12);
+      .sort((a, b) => b.count - a.count);
   }, [motivos, totalWorks]);
 
   const registrosDoMotivo = useMemo(() => {
