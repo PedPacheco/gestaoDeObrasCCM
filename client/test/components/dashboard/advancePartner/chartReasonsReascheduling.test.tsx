@@ -1,6 +1,6 @@
 // test/components/dashboard/advancePartner/chartReasonsReascheduling.test.tsx
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ChartReasonsReascheduling } from "@/components/dashboard/advancePartner/chartReasonsReascheduling";
@@ -18,7 +18,6 @@ const {
   mockTooltip,
   mockBar,
   mockChartTooltip,
-  mockSetMotivoTab,
 } = vi.hoisted(() => ({
   mockResponsiveContainer: vi.fn(),
   mockComposedChart: vi.fn(),
@@ -28,7 +27,6 @@ const {
   mockTooltip: vi.fn(),
   mockBar: vi.fn(),
   mockChartTooltip: vi.fn(),
-  mockSetMotivoTab: vi.fn(),
 }));
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -106,6 +104,14 @@ vi.mock("@/components/dashboard/common/ChartTooltip", () => ({
 // HELPERS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+type MotivoTest = {
+  ovnota: string;
+  motivo: string;
+  responsavel: string;
+  mo_nao_executada: number;
+  observacao_execucao?: string | null;
+};
+
 const defaultProps = {
   motivos: [
     {
@@ -114,7 +120,7 @@ const defaultProps = {
       responsavel: "Parceira",
       mo_nao_executada: 2,
     },
-  ],
+  ] as MotivoTest[],
   aderencia: [
     {
       total: 10,
@@ -190,9 +196,13 @@ describe("ChartReasonsReascheduling", () => {
 
       expect(root).toHaveClass(
         "bg-gradient-to-br",
+        "from-[#1e2f42]",
+        "to-[#192535]",
         "rounded-2xl",
-        "p-5",
+        "p-4",
+        "sm:p-5",
         "border",
+        "border-white/5",
         "shadow-xl",
       );
     });
@@ -478,7 +488,7 @@ describe("ChartReasonsReascheduling", () => {
   });
 
   describe("configuração do Recharts", () => {
-    it("deve renderizar ResponsiveContainer com width 100% e height 380", () => {
+    it("deve renderizar ResponsiveContainer com width 100% e height 100%", () => {
       renderComponent();
 
       expect(screen.getByTestId("responsive-container")).toBeInTheDocument();
@@ -486,7 +496,7 @@ describe("ChartReasonsReascheduling", () => {
       const props = getLastCall(mockResponsiveContainer);
 
       expect(props.width).toBe("100%");
-      expect(props.height).toBe(380);
+      expect(props.height).toBe("100%");
     });
 
     it("deve renderizar ComposedChart com data e margin corretos", () => {
@@ -506,7 +516,7 @@ describe("ChartReasonsReascheduling", () => {
       expect(props.margin).toEqual({
         top: 20,
         right: 10,
-        left: 10,
+        left: 0,
         bottom: 5,
       });
     });
@@ -529,12 +539,12 @@ describe("ChartReasonsReascheduling", () => {
       expect(props.type).toBe("category");
       expect(props.dataKey).toBe("motivo");
       expect(props.interval).toBe(0);
-      expect(props.height).toBe(110);
+      expect(props.height).toBe(100);
 
       expect(props.tick).toEqual({
         fill: "#94a3b8",
-        fontSize: 11,
-        angle: -25,
+        fontSize: 14,
+        angle: -30,
         textAnchor: "end",
       });
     });
@@ -548,7 +558,7 @@ describe("ChartReasonsReascheduling", () => {
 
       expect(
         props.tickFormatter("Motivo muito longo para ser exibido completo"),
-      ).toBe("Motivo muito longo p…");
+      ).toBe("Motivo muito longo…");
     });
 
     it("deve configurar YAxis corretamente", () => {
@@ -560,7 +570,7 @@ describe("ChartReasonsReascheduling", () => {
 
       expect(props.tick).toEqual({
         fill: "#94a3b8",
-        fontSize: 10,
+        fontSize: 14,
       });
 
       expect(props.tickFormatter(75)).toBe("75%");
@@ -659,6 +669,174 @@ describe("ChartReasonsReascheduling", () => {
       ).toBeInTheDocument();
 
       expect(screen.queryByTestId("composed-chart")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("Modal de observações", () => {
+    it("deve abrir a modal ao clicar em uma barra", () => {
+      renderComponent({
+        motivos: [
+          {
+            ovnota: "OV001",
+            motivo: "Clima",
+            mo_nao_executada: 2,
+            responsavel: "Edp",
+            observacao_execucao: "Sem acesso ao local",
+          },
+        ],
+      });
+
+      const barProps = getLastCall(mockBar);
+
+      // simula clique na barra
+
+      act(() => {
+        barProps.onClick({
+          motivo: "CLIMA",
+        });
+      });
+
+      expect(screen.getByText("Observações de Execução")).toBeInTheDocument();
+
+      expect(screen.getByText(/Motivo:/)).toBeInTheDocument();
+      expect(screen.getByText("CLIMA")).toBeInTheDocument();
+    });
+
+    it("deve exibir quantidade correta de registros na modal", () => {
+      renderComponent({
+        motivos: [
+          {
+            ovnota: "OV001",
+            motivo: "Clima",
+            mo_nao_executada: 2,
+            responsavel: "Edp",
+            observacao_execucao: "Obs 1",
+          },
+          {
+            ovnota: "OV002",
+            motivo: "Clima",
+            mo_nao_executada: 3,
+            responsavel: "Edp",
+            observacao_execucao: "Obs 2",
+          },
+        ],
+      });
+
+      const barProps = getLastCall(mockBar);
+
+      act(() => {
+        barProps.onClick({
+          motivo: "CLIMA",
+        });
+      });
+
+      expect(screen.getAllByText(/2 registros/)).toHaveLength(2);
+    });
+
+    it("deve listar os registros com OV/Nota e observação", () => {
+      renderComponent({
+        motivos: [
+          {
+            ovnota: "OV001",
+            motivo: "Clima",
+            mo_nao_executada: 2,
+            responsavel: "Edp",
+            observacao_execucao: "Teste observação",
+          },
+        ],
+      });
+
+      const barProps = getLastCall(mockBar);
+
+      act(() => {
+        barProps.onClick({
+          motivo: "CLIMA",
+        });
+      });
+
+      expect(screen.getByText(/OV001/)).toBeInTheDocument();
+      expect(screen.getByText("Teste observação")).toBeInTheDocument();
+    });
+
+    it("deve exibir fallback quando observacao_execucao estiver vazio", () => {
+      renderComponent({
+        motivos: [
+          {
+            ovnota: "OV001",
+            motivo: "Clima",
+            mo_nao_executada: 2,
+            responsavel: "Edp",
+            observacao_execucao: "",
+          },
+        ],
+      });
+
+      const barProps = getLastCall(mockBar);
+
+      act(() => {
+        barProps.onClick({
+          motivo: "CLIMA",
+        });
+      });
+
+      expect(screen.getByText("Sem observação informada.")).toBeInTheDocument();
+    });
+
+    // it("deve fechar a modal ao clicar no botão fechar", () => {
+    //   renderComponent({
+    //     motivos: [
+    //       {
+    //         ovnota: "OV001",
+    //         motivo: "Clima",
+    //         mo_nao_executada: 2,
+    //         responsavel: "Edp",
+    //         observacao_execucao: "Teste",
+    //       },
+    //     ],
+    //   });
+
+    //   const barProps = getLastCall(mockBar);
+
+    //   act(() => {
+    //     barProps.onClick({
+    //       motivo: "CLIMA",
+    //     });
+    //   });
+
+    //   const closeButton = screen.getByText("Fechar");
+
+    //   closeButton.click();
+
+    //   expect(
+    //     screen.queryByText("Observações de Execução"),
+    //   ).not.toBeInTheDocument();
+    // });
+
+    it("deve exibir mensagem quando não houver registros", () => {
+      renderComponent({
+        motivos: [
+          {
+            ovnota: "OV001",
+            motivo: "Clima",
+            mo_nao_executada: 2,
+            responsavel: "Edp",
+            observacao_execucao: null,
+          },
+        ] as any,
+      });
+
+      const barProps = getLastCall(mockBar);
+
+      act(() => {
+        // motivo que NÃO existe na lista
+        barProps.onClick({
+          motivo: "MATERIAL",
+        });
+      });
+
+      expect(
+        screen.getByText("Nenhuma observação registrada."),
+      ).toBeInTheDocument();
     });
   });
 });

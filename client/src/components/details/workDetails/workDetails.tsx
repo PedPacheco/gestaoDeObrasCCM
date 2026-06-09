@@ -328,6 +328,8 @@ export function WorkDetails({
     return <ErrorThrower message="Nível de permissão insuficiente" />;
   }
 
+  console.log(permissions);
+
   return (
     <>
       <div className="w-full flex justify-between items-center my-4 px-2 md:px-8">
@@ -490,7 +492,10 @@ export function WorkDetails({
         <textarea
           value={editableData.observ_obra || ""}
           onChange={(e) => handleDataChange("observ_obra", e.target.value)}
-          disabled={permissions?.id_area === 8 && permissions?.permissao_edicao}
+          disabled={
+            (permissions?.id_area === 8 && !permissions?.permissao_edicao) ||
+            permissions?.id_area !== 8
+          }
           className="flex-1 h-full min-w-32 lg:min-w-36 font-medium text-xl text-center p-2 bg-transparent focus:outline-none"
         />
       </div>

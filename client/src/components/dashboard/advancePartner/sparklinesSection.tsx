@@ -1,11 +1,24 @@
+import Image from "next/image";
 import { useMemo } from "react";
 import { Line, LineChart, ResponsiveContainer } from "recharts";
 
 import { Box, Card, Divider, Stack, Typography } from "@mui/material";
 
-import { pctColor } from "../DashboardClient";
-import { SparklineRow, SparkPoint } from "./advancePartner";
-import Image from "next/image";
+import {
+  pctColorGripSchedule,
+  pctColorRestrictionsElimination,
+} from "./advancePartner";
+
+interface SparkPoint {
+  semana: string;
+  pct: number;
+}
+
+export interface SparklineRow {
+  parceira: string;
+  aderencia: SparkPoint[];
+  eliminacao: SparkPoint[];
+}
 
 interface SparklinesSectionProps {
   semanasMap: Record<string, number>;
@@ -14,7 +27,13 @@ interface SparklinesSectionProps {
   filtersPartner: any;
 }
 
-function Sparkline({ data }: { data: SparkPoint[] }) {
+function Sparkline({
+  data,
+  pctColor,
+}: {
+  data: SparkPoint[];
+  pctColor: (pct: number) => any;
+}) {
   if (!data.length)
     return (
       <div className="h-[72px] flex items-center justify-center text-zinc-600 text-[14px]">
@@ -62,11 +81,10 @@ function Sparkline({ data }: { data: SparkPoint[] }) {
   );
 }
 
-// ── Card reutilizável para Eliminação e Aderência ──────────────────────────
-// FIX: extraído componente para eliminar duplicação de código (DRY)
 function SparklineCard({
   title,
   subtitle,
+  secondSubtitle,
   loading,
   rows,
   dataKey,
@@ -74,6 +92,7 @@ function SparklineCard({
 }: {
   title: string;
   subtitle: string;
+  secondSubtitle: string;
   loading: boolean;
   rows: SparklineRow[];
   dataKey: "eliminacao" | "aderencia";
@@ -104,6 +123,16 @@ function SparklineCard({
         </Typography>
         <Typography sx={{ color: "#71717a", fontSize: "0.9rem", mt: 0.5 }}>
           {subtitle}
+        </Typography>
+        <Typography
+          sx={{
+            color: "#53FF75", // usa o verde do tema
+            fontSize: "0.9rem",
+            fontWeight: 700,
+            mt: 0.5,
+          }}
+        >
+          {secondSubtitle}
         </Typography>
       </Box>
 
@@ -147,7 +176,14 @@ function SparklineCard({
               alignItems="center"
               height={72}
             >
-              <Sparkline data={row[dataKey]} />
+              <Sparkline
+                data={row[dataKey]}
+                pctColor={
+                  dataKey === "aderencia"
+                    ? pctColorGripSchedule
+                    : pctColorRestrictionsElimination
+                }
+              />
             </Box>
           ))}
         </Stack>
@@ -213,6 +249,16 @@ export function SparklinesSection({
           <Typography sx={{ color: "#71717a", fontSize: "0.9rem", mt: 0.5 }}>
             Semanas programadas
           </Typography>
+          <Typography
+            sx={{
+              color: "#53FF75",
+              fontWeight: 700,
+              fontSize: "0.9rem",
+              mt: 0.5,
+            }}
+          >
+            Meta: 8 semanas
+          </Typography>
         </Box>
 
         {loading ? (
@@ -248,7 +294,7 @@ export function SparklinesSection({
               const semanas = semanasMap[row.parceira] ?? null;
 
               const semDotColor =
-                semanas >= 8 ? "#10b981" : semanas >= 6 ? "#eab308" : "#ef4444";
+                semanas >= 8 ? "#53FF75" : semanas >= 6 ? "#eab308" : "#ef4444";
 
               const isLastOdd =
                 sparklinesFull.length % 2 !== 0 &&
@@ -331,6 +377,7 @@ export function SparklinesSection({
       <SparklineCard
         title="Eliminação de Restrições"
         subtitle="Evolução semanal por empresa"
+        secondSubtitle="Meta: 100%"
         loading={loading}
         rows={sparklinesFull}
         dataKey="eliminacao"
@@ -342,6 +389,7 @@ export function SparklinesSection({
       <SparklineCard
         title="Aderência à Programação"
         subtitle="Evolução semanal por empresa"
+        secondSubtitle="Meta: 85%"
         loading={loading}
         rows={sparklinesFull}
         dataKey="aderencia"
