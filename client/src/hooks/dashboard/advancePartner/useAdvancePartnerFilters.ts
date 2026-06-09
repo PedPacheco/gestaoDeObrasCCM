@@ -13,9 +13,9 @@ import {
   EliminacaoRow,
   MotivoRow,
   pctExact,
-  SparklineRow,
 } from "@/components/dashboard/advancePartner/advancePartner";
 import dayjs, { Dayjs } from "dayjs";
+import { SparklineRow } from "@/components/dashboard/advancePartner/sparklinesSection";
 
 interface UseAdvancePartnerFiltersProps {
   token: string;
