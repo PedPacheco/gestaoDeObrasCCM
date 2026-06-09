@@ -123,7 +123,7 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
       where = Prisma.sql`${where} AND nome_do_responsavel_execucao = ${responsabilidade}`;
 
     const query = Prisma.sql`
-      SELECT ovnota, restricao_execucao AS motivo, 
+      SELECT ovnota, restricao_execucao AS motivo, observacao_execucao,
       nome_do_responsavel_execucao AS responsavel, mo_planejada * (GREATEST(prog - COALESCE(exec, 0), 0)::numeric / 100) AS mo_nao_executada
       FROM construcao_sp.exportacao_programacoes_obras
       ${where}

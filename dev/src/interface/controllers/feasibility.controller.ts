@@ -14,14 +14,17 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { AreaEditGuard } from 'src/core/guards/newPermission.guard';
+import {
+  AreaEditGuard,
+  AreaViewGuard,
+} from 'src/core/guards/newPermission.guard';
 
 @Controller('viabilidade')
 export class FeasibilityController {
   constructor(private readonly feasibilityService: FeasibilityService) {}
 
   @Get('/:id')
-  @UseGuards(AreaEditGuard())
+  @UseGuards(AreaViewGuard())
   async getFeasibility(@Param('id', ParseIntPipe) id: number) {
     const response = await this.feasibilityService.feasibilityExists(id);
 

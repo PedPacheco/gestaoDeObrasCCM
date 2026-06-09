@@ -5,7 +5,6 @@ import { KpiSection } from "./kpiSection";
 import { SparklinesSection } from "./sparklinesSection";
 import { ChartReasonsReascheduling } from "./chartReasonsReascheduling";
 import { useAdvancePartnerFilters } from "@/hooks/dashboard/advancePartner/useAdvancePartnerFilters";
-import { useState } from "react";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -32,17 +31,7 @@ export interface MotivoRow {
   motivo: string;
   responsavel?: string;
   mo_nao_executada: number;
-}
-
-export interface SparkPoint {
-  semana: string;
-  pct: number;
-}
-
-export interface SparklineRow {
-  parceira: string;
-  aderencia: SparkPoint[];
-  eliminacao: SparkPoint[];
+  observacao_execucao?: string | null;
 }
 
 interface Props {
@@ -63,6 +52,54 @@ interface Props {
 export function pctExact(num: number, den: number) {
   if (den === 0) return 0;
   return Math.round((num / den) * 100 * 10) / 10;
+}
+
+export function pctColorGripSchedule(pct: number) {
+  if (pct >= 85) {
+    return {
+      bg: "#053715",
+      text: "#53FF75",
+      bar: "#53FF75",
+    };
+  }
+
+  if (pct >= 71 && pct < 85) {
+    return {
+      bg: "#451a03",
+      text: "#facc15",
+      bar: "#facc15",
+    };
+  }
+
+  return {
+    bg: "#450a0a",
+    text: "#f87171",
+    bar: "#ef4444",
+  };
+}
+
+export function pctColorRestrictionsElimination(pct: number) {
+  if (pct >= 100) {
+    return {
+      bg: "#053715",
+      text: "#53FF75",
+      bar: "#53FF75",
+    };
+  }
+
+  if (pct >= 86 && pct < 100) {
+    return {
+      bg: "#451a03",
+      text: "#facc15",
+      bar: "#facc15",
+    };
+  }
+
+  return {
+    bg: "#450a0a",
+    text: "#f87171",
+    bar: "#ef4444",
+  };
 }
 
 export default function AdvancePartnerDashboard({
@@ -117,9 +154,10 @@ export default function AdvancePartnerDashboard({
   });
 
   return (
-    <div className="flex flex-col gap-6 pb-6">
+    // Removido: useState desnecessário que não estava em uso
+    // Layout principal: flex-col com gap consistente e padding lateral responsivo
+    <div className="flex flex-col gap-4 sm:gap-6 pb-6">
       {/* ── Filtros ── */}
-
       <AdvancePartnerFilters
         startDate={startDate}
         endDate={endDate}
@@ -162,7 +200,8 @@ export default function AdvancePartnerDashboard({
       />
 
       {/* ── Motivos de Reprogramação ── */}
-      <div className="w-full px-5">
+      {/* Padding lateral padronizado via px-4 sm:px-5 para consistência com KpiSection/SparklinesSection */}
+      <div className="w-full px-4 sm:px-5">
         <ChartReasonsReascheduling
           motivos={motivos}
           aderencia={aderencia}

@@ -327,7 +327,7 @@ describe("AdvancePartnerDashboard", () => {
 
       const root = container.firstElementChild as HTMLElement;
 
-      expect(root).toHaveClass("flex", "flex-col", "gap-6", "pb-6");
+      expect(root).toHaveClass("flex", "flex-col", "gap-4", "sm:gap-6", "pb-6");
     });
   });
 

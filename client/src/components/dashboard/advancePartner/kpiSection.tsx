@@ -5,6 +5,8 @@ import {
   AderenciaRow,
   EliminacaoRow,
   MotivoRow,
+  pctColorGripSchedule,
+  pctColorRestrictionsElimination,
   pctExact,
 } from "./advancePartner";
 import { RingCard } from "../common/RingCard";
@@ -20,30 +22,6 @@ interface KpiSectionProps {
 
 function roundDisplay(x: number): number {
   return Math.floor(x + 0.4);
-}
-
-function pctColorGripAndElimination(pct: number) {
-  if (pct >= 85) {
-    return {
-      bg: "#053715",
-      text: "#53FF75",
-      bar: "#53FF75",
-    };
-  }
-
-  if (pct >= 71 && pct < 85) {
-    return {
-      bg: "#451a03",
-      text: "#facc15",
-      bar: "#facc15",
-    };
-  }
-
-  return {
-    bg: "#450a0a",
-    text: "#f87171",
-    bar: "#ef4444",
-  };
 }
 
 export function KpiSection({
@@ -90,7 +68,16 @@ export function KpiSection({
     taxaExec.exec > 0 ? roundDisplay((taxaExec.exec / dailyGoal) * 100) : 0;
 
   return (
-    <div className="grid grid-cols-5 gap-2 px-5">
+    /*
+      ANTES: grid-cols-5 fixo — em telas pequenas os 5 cards ficavam espremidos
+      AGORA: grid responsivo em 3 fases:
+        mobile (<640px)   → 1 coluna (cards empilhados, leitura linear)
+        tablet (sm/md)    → 2 colunas (2+2+1 ou 2+3 dependendo do conteúdo)
+        desktop (lg+)     → 3 colunas intermediário
+        desktop xl (xl+)  → 5 colunas (layout original)
+      padding lateral padronizado: px-4 sm:px-5
+    */
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 sm:gap-3 px-4 sm:px-5">
       <RingCard
         label="Rentabilidade Programado"
         subLabel="Meta / Programado"
@@ -110,7 +97,7 @@ export function KpiSection({
         label="Aderência Programação"
         subLabel="Obras / Executado / Parcial / Não exec."
         value={pctAd}
-        color={pctColorGripAndElimination(pctAd).bar}
+        color={pctColorGripSchedule(pctAd).bar}
         sub={`${NUM(kpiAderencia.total)} / ${NUM(kpiAderencia.exec)} / ${NUM(kpiAderencia.parcial)} / ${NUM(kpiAderencia.naoExec)}`}
       />
 
@@ -125,7 +112,7 @@ export function KpiSection({
         label="Eliminação de Restrições"
         subLabel="Total / Sem restrição / Com restrição"
         value={pctEl}
-        color={pctColorGripAndElimination(pctEl).bar}
+        color={pctColorRestrictionsElimination(pctEl).bar}
         sub={`${NUM(kpiEliminacao.total)} / ${NUM(kpiEliminacao.sem)} / ${NUM(kpiEliminacao.total - kpiEliminacao.sem)}`}
       />
     </div>
