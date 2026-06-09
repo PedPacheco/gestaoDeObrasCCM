@@ -41,7 +41,7 @@ export class WorksController {
       filters.idParceira = req.idParceira;
     }
     if (req.user.tipo_usuario === 'PARCEIRA') {
-      filters.insufficientPermission = req.insufficientPermission;
+      filters.insufficientPermission = true;
     }
     return filters;
   }
