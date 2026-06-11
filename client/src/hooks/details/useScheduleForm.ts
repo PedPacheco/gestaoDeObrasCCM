@@ -23,13 +23,13 @@ export const INITIAL_FORM_DATA: FormData = {
   temporaryKey: false,
   idTechnical: 1,
   idProgRestriction1: 1,
-  responsiblityProg: "",
+  responsibilityProg: "",
   responsibleName: "",
   responsibleArea: "",
   restrictionStatus: "",
   resolutionDate: null,
   idProgRestriction2: 1,
-  responsiblityProg2: "",
+  responsibilityProg2: "",
   responsibleName2: "",
   responsibleArea2: "",
   restrictionStatus2: "",
@@ -57,6 +57,7 @@ export const useScheduleForm = ({
 
   const initializedRef = useRef(false);
 
+  // Inicialização completa — só executa quando data existe e apenas uma vez
   useEffect(() => {
     if (!data) return;
     if (initializedRef.current) return;
@@ -68,6 +69,14 @@ export const useScheduleForm = ({
 
     initializedRef.current = true;
   }, [data, idWork, options]);
+
+  // Atualiza apenas o idWork sempre que ele mudar
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      idWork,
+    }));
+  }, [idWork]);
 
   const handleInputChange = useCallback(
     (field: keyof FormData) => (value: any) => {
@@ -90,8 +99,8 @@ export const useScheduleForm = ({
 
   const resetForm = useCallback(() => {
     setFormData(INITIAL_FORM_DATA);
-
     setExpanded("panel1");
+    initializedRef.current = false;
   }, []);
 
   return {

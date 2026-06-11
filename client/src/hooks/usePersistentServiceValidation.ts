@@ -73,12 +73,12 @@ export function usePersistentServiceValidation(idSchedule?: number | null) {
       const newStatuses: Record<number, ValidationStatus> = {};
 
       const updatedServices = services.map((service) => {
-        const real = service.qtdeRealizada;
+        const real = service.qtdeRealizada?.toString();
         const plan = service.prog;
 
         let status: ValidationStatus;
 
-        if (real === "0") {
+        if (real && real === "0") {
           status = "sem-realizacao";
         } else if (Number(real) < plan || !real) {
           status = "reprogramar";

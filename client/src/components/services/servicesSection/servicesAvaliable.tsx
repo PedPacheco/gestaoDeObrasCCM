@@ -1,8 +1,13 @@
-import { useEffect, useState, useTransition } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useState,
+  useTransition,
+} from "react";
 
 import {
   ArrowUpTrayIcon,
-  FunnelIcon,
   PlusIcon,
   TrashIcon,
 } from "@heroicons/react/20/solid";
@@ -10,12 +15,7 @@ import {
   Box,
   Button,
   Checkbox,
-  FormControl,
-  Grid,
-  InputLabel,
-  MenuItem,
   Paper,
-  Select,
   Table,
   TableBody,
   TableCell,
@@ -24,28 +24,24 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { TableFilter } from "./servicesFilters";
 import { useRouter } from "next/navigation";
-import {
-  applyAdditonalPlanServices,
-  scheduleServices,
-} from "@/actions/services";
+import { applyAdditonalPlanServices } from "@/actions/services";
 import { FormatCurrency } from "@/utils/formatValue";
 import { LoadingComponent } from "@/components/common/Loading";
+import { TableFilter } from "./servicesFilters";
 import { TeamModal } from "./teamsModal";
 import { useFeedback } from "@/hooks/useFeedback";
+import { ButtonComponent } from "@/components/common/Button";
 
 interface ServicesAvaliableProps {
   servicesData: any[];
   points: string[];
   operations: string[];
   availableServices: any[];
-  setSelectedServices: (service: any) => void;
-  selectedServices: any;
-  teams: any[];
-  // setOpenTeamsModal: (team: boolean) => void;
+  setScheduledServices: Dispatch<SetStateAction<any[]>>;
   isInsert: boolean;
   isDisabled: boolean;
+  teams: any[];
   onError: (error: string) => void;
   onSuccess: (success: string, onClose?: () => void) => void;
 }
@@ -55,36 +51,30 @@ const serviceColumns = [
   { key: "textoBreve", label: "SERVIÇO" },
   { key: "operacao", label: "OPERAÇÃO" },
   { key: "ponto", label: "PONTO" },
-  { key: "dataProg", label: "DATA PROG" },
   { key: "qtdePlanejada", label: "PLAN" },
   { key: "qtdeAdicional", label: "ADICIONAL" },
-  { key: "qtdeProgramada", label: "PROG" },
   { key: "qtdeRealizada", label: "REAL" },
-  { key: "dif", label: "DIF" },
   { key: "valorUnit", label: "VALOR UNIT" },
-  { key: "valorReal", label: "VALOR REAL" },
 ];
 
-export function ServicesAvaliable({
+export function NewServicesAvaliable({
   servicesData,
   availableServices,
   operations,
   points,
-  teams,
-  selectedServices,
-  setSelectedServices,
-  // setOpenTeamsModal,
-  isInsert,
+  setScheduledServices,
   isDisabled,
+  teams,
   onError,
   onSuccess,
 }: ServicesAvaliableProps) {
   const [filteredServicesData, setFilteredServicesData] = useState<any[]>([]);
+  const [selectedServices, setSelectedServices] = useState<any[]>([]);
   const [openTeamsModal, setOpenTeamsModal] = useState(false);
 
   const [isPending, startTransition] = useTransition();
 
-  const { showError, showSuccess } = useFeedback();
+  const { showError } = useFeedback();
 
   const router = useRouter();
 
@@ -129,24 +119,38 @@ export function ServicesAvaliable({
     }
   };
 
-  const handleTeamConfirm = (idTeam: number | string) => {
-    setOpenTeamsModal(false);
-
+  const handleAddClick = () => {
     if (selectedServices.length === 0) {
       showError("Nenhum serviço selecionado.");
       return;
     }
 
-    // console.log(idTeam, selectedServices);
+    setOpenTeamsModal(true);
+  };
 
-    const formattedServices = selectedServices.map((service: any) => ({
-      id: service.id,
-      idTeam,
-      prog: service.prog,
-      additional: service.additional,
-    }));
+  const handleTeamConfirm = (team: any) => {
+    setScheduledServices((prev: any[]) => {
+      // adiciona equipa aos serviços selecionados
+      const selectedWithTeam = selectedServices.map((service: any) => ({
+        ...service,
+        idTeam: team.id,
+        equipe: team.equipe,
+        prog: service.prog ?? null,
+        additional: service.additional ?? null,
+      }));
 
-    setSelectedServices(formattedServices);
+      // junta com os já programados
+      const merged = [...prev, ...selectedWithTeam];
+
+      // remove duplicados por id (mantém o último, ou seja, o recém-adicionado)
+      const map = new Map<number | string, any>();
+      merged.forEach((item) => map.set(item.id, item));
+
+      return Array.from(map.values());
+    });
+
+    setOpenTeamsModal(false);
+    setSelectedServices([]); // opcional: limpa seleção após adicionar
   };
 
   const isDisableAfterChangeData = filteredServicesData.some((item) => {
@@ -155,59 +159,63 @@ export function ServicesAvaliable({
     return original?.qtdeAdicional !== item.qtdeAdicional;
   });
 
-  const canSchedule =
-    selectedServices.length > 0 && !isDisabled && !isDisableAfterChangeData;
-
   return (
     <>
-      <Paper className="p-6 mb-6 min-h-96">
-        <div className="flex items-center justify-between flex-wrap mb-4">
+      <Paper className="flex h-full min-h-0 flex-col p-6">
+        {/* Header com botões */}
+        <div className="mb-4 flex shrink-0 flex-wrap items-center justify-between">
           <Typography className="text-xl font-semibold text-gray-700">
             SERVIÇOS DISPONÍVEIS PARA PROGRAMAÇÃO
           </Typography>
           <div className="flex gap-2">
             <Button
               variant="outlined"
-              startIcon={<TrashIcon className="w-5 h-5 text-gray-700" />}
+              startIcon={<TrashIcon className="h-5 w-5 text-gray-700" />}
               className="border-blue-600 text-blue-600"
             >
               EXCLUIR SERVIÇOS
             </Button>
             <Button
               variant="outlined"
-              startIcon={<ArrowUpTrayIcon className="w-5 h-5 text-gray-700" />}
+              startIcon={<ArrowUpTrayIcon className="h-5 w-5 text-gray-700" />}
               className="border-blue-600 text-blue-600"
             >
               IMPORTAR SERVIÇOS
             </Button>
           </div>
         </div>
-        {/* filtros */}
-        <TableFilter
-          data={servicesData}
-          fields={[
-            {
-              label: "SERVIÇO",
-              field: "textoBreve",
-              options: availableServices,
-            },
-            {
-              label: "OPERAÇÃO",
-              field: "operacao",
-              options: operations,
-            },
-            {
-              label: "PONTO",
-              field: "ponto",
-              options: points,
-            },
-          ]}
-          onFilter={setFilteredServicesData}
-        />
 
-        {/* tabela de serviços */}
-        <TableContainer component={Paper} sx={{ height: 380 }}>
-          <Table stickyHeader size="small" className="text-sm h-full">
+        {/* Filtros */}
+        <div className="shrink-0">
+          <TableFilter
+            data={servicesData}
+            fields={[
+              {
+                label: "SERVIÇO",
+                field: "textoBreve",
+                options: availableServices,
+              },
+              {
+                label: "OPERAÇÃO",
+                field: "operacao",
+                options: operations,
+              },
+              {
+                label: "PONTO",
+                field: "ponto",
+                options: points,
+              },
+            ]}
+            onFilter={setFilteredServicesData}
+          />
+        </div>
+
+        {/* Tabela — cresce para preencher todo o espaço restante */}
+        <TableContainer
+          component={Paper}
+          sx={{ flex: 1, minHeight: 0, overflow: "auto" }}
+        >
+          <Table stickyHeader size="small">
             <TableHead>
               <TableRow>
                 <TableCell padding="checkbox">
@@ -219,16 +227,14 @@ export function ServicesAvaliable({
                     }
                     onChange={(e) => {
                       if (e.target.checked) {
-                        // Selecionar todos
                         setSelectedServices(
                           filteredServicesData.map((s) => ({
-                            id: s.id,
+                            ...s,
                             prog: s.qtdePlanejada,
                             additional: s.qtdeAdicional,
                           })),
                         );
                       } else {
-                        // Limpar seleção
                         setSelectedServices([]);
                       }
                     }}
@@ -266,9 +272,9 @@ export function ServicesAvaliable({
                             setSelectedServices([
                               ...selectedServices,
                               {
-                                id: row.id,
+                                ...row,
                                 prog: row.qtdePlanejada,
-                                additional: row.qtdeAdicional,
+                                qtdeAdicional: row.qtdeAdicional,
                               },
                             ]);
                           } else {
@@ -290,7 +296,7 @@ export function ServicesAvaliable({
                           <TableCell key={index}>
                             <input
                               type="text"
-                              className="w-16 border rounded px-2 py-1 text-right"
+                              className="w-16 rounded border px-2 py-1 text-right"
                               value={value || ""}
                               onChange={(e) =>
                                 updateServiceQuantity(row.id, e.target.value)
@@ -317,26 +323,23 @@ export function ServicesAvaliable({
           </Table>
         </TableContainer>
 
-        <Box className="flex justify-end mt-4">
-          <Button
-            variant="contained"
-            startIcon={<PlusIcon className="w-5 h-5 text-white" />}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mr-4"
+        {/* Botões de ação */}
+        <Box className="mt-4 flex shrink-0 justify-end">
+          <ButtonComponent
+            startIcon={<PlusIcon className="h-5 w-5 text-white" />}
+            styled="mr-4 rounded px-4 px-2 !text-sm"
             onClick={applyAdditional}
             disabled={isDisabled || !isDisableAfterChangeData}
-          >
-            APLICAR ADICIONAL
-          </Button>
+            text="Aplicar Adicional"
+          />
 
-          <Button
-            variant="contained"
-            startIcon={<PlusIcon className="w-5 h-5 text-white" />}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-            onClick={() => setOpenTeamsModal(true)}
-            disabled={!canSchedule}
-          >
-            PROGRAMAR SERVIÇOS
-          </Button>
+          <ButtonComponent
+            startIcon={<PlusIcon className="h-5 w-5 " />}
+            styled="mr-4 rounded px-4 px-2 !text-sm"
+            onClick={handleAddClick}
+            disabled={isDisabled}
+            text="Adicionar à programação"
+          />
         </Box>
       </Paper>
 

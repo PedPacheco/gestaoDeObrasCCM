@@ -48,7 +48,6 @@ export function ScheduleHistory({
         </h2>
         <Button
           variant="outlined"
-          className="border-gray-300 text-gray-600"
           onClick={() => {
             setOpenConfirmationModal(true);
           }}

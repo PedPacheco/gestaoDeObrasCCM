@@ -1,21 +1,33 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { useExecutionServiceForm } from "@/hooks/useExecutionServicesForm";
 import { useFeedback } from "@/hooks/useFeedback";
 import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
-
-import { ScheduleSection } from "./scheduleSection/scheduleSection";
-import { ServicesSection } from "./servicesSection/servicesSection";
-import { TeamModal } from "./servicesSection/teamsModal";
 import { useScheduleForm } from "@/hooks/details/useScheduleForm";
+import { useScheduleWorkflow } from "@/hooks/details/useScheduleWorkflow";
+
+import { schedulesSchema } from "@/validations/validationSchedules";
+import { saveSchedule } from "@/actions/schedules";
+
+import { ScheduleTopbar } from "./scheduleTopbar";
+import { NewScheduleSection } from "./newScheduleSection/newScheduleSection";
+import { NewServicesSection } from "./servicesSection/servicesSection";
+import { ScheduleSidebar } from "./scheduleSidebar";
+import { EditManageSchedule } from "./editManageSchedule";
+import { ServiceContract } from "./servicesSection/addServiceForm";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
 
 interface ManageScheduleProps {
   scheduleData: any;
   servicesData: any[];
   scheduledServicesData: any[];
-  serviceContractData: any[];
+  serviceContractData: ServiceContract[];
   serviceTeams: any[];
   scheduledServicesHistory: any[];
   serviceFilters: any;
@@ -26,7 +38,11 @@ interface ManageScheduleProps {
   idSchedule: number | null;
 }
 
-export function ManageSchedule({
+// ─────────────────────────────────────────────────────────────────────────────
+// Component
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function NewManageSchedule({
   scheduleData,
   scheduledServicesData,
   servicesData,
@@ -40,24 +56,15 @@ export function ManageSchedule({
   idStatusWork,
   idSchedule,
 }: ManageScheduleProps) {
+  const router = useRouter();
   const { showError, showSuccess } = useFeedback();
-  const [selectedServices, setSelectedServices] = useState<any[]>([]);
 
-  const dialogTitle = isInsert ? "Nova Programação" : "Editar Programação";
+  const [scheduledServices, setScheduledService] = useState<any[]>([]);
 
-  // const toggleTeamsModal = useCallback(() => {
-  //   setOpenTeamsModal((prev) => !prev);
-  // }, []);
-
-  const scheduleForm = useScheduleForm({
-    data: scheduleData,
-    options: options,
-    idWork,
-  });
+  const scheduleForm = useScheduleForm({ data: scheduleData, options, idWork });
 
   const executionFormData = useMemo(() => {
     if (!idSchedule) return null;
-
     return {
       idWork,
       idSchedule,
@@ -77,79 +84,126 @@ export function ManageSchedule({
     data: executionFormData,
   });
 
-  const { handleSubmit, isPending } = useScheduleSubmit({
+  const { isPending } = useScheduleSubmit({
     idWork: Number(idWork),
     onError: showError,
-    onSuccess: (message) => {
-      showSuccess(message);
-    },
+    onSuccess: (message) => showSuccess(message),
     formData: scheduleData,
   });
 
-  console.log(selectedServices);
+  const workflow = useScheduleWorkflow({ selectedServices: scheduledServices });
+
+  const handleCancel = useCallback(() => {
+    router.replace(`/detalhes/${idWork}`);
+    router.refresh();
+  }, [router, idWork]);
+
+  const handleSaveSchedule = useCallback(async () => {
+    const validationResult = schedulesSchema().safeParse(scheduleForm.formData);
+
+    if (!validationResult.success) {
+      showError("Preencha todos os campos obrigatórios");
+      return;
+    }
+
+    if (scheduledServices.length === 0) {
+      showError("Selecione ao menos um serviço para criar a programação");
+      return;
+    }
+
+    const formattedService = scheduledServices.map((service) => ({
+      id: service.id,
+      idTeam: service.idTeam,
+      prog: service.prog,
+      additional: service.qtdeAdicional,
+    }));
+
+    const data = {
+      schedule: validationResult.data,
+      services: formattedService,
+    };
+
+    const response = await saveSchedule(data);
+
+    if (!response.success) {
+      showError(response.error);
+      return;
+    }
+
+    showSuccess(response.message, () => router.refresh());
+  }, [
+    scheduleForm.formData,
+    scheduledServices,
+    showSuccess,
+    showError,
+    router,
+  ]);
+
+  // ─── Modo edição: delega ao layout específico ──────────────
+
+  if (!isInsert && idSchedule !== null) {
+    return (
+      <EditManageSchedule
+        scheduleData={scheduleData}
+        servicesData={servicesData}
+        scheduledServicesData={scheduledServicesData}
+        serviceContractData={serviceContractData}
+        serviceTeams={serviceTeams}
+        scheduledServicesHistory={scheduledServicesHistory}
+        serviceFilters={serviceFilters}
+        options={options}
+        idWork={idWork}
+        idStatusWork={idStatusWork}
+        idSchedule={idSchedule}
+      />
+    );
+  }
+
+  // ─── Modo inserção ──────────────────────────────────────────
 
   return (
-    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen w-full overflow-y-auto">
-      <h1 className="mb-6 text-2xl sm:text-3xl font-bold text-gray-800">
-        {dialogTitle}
-      </h1>
+    <div className="h-screen w-full overflow-hidden bg-gray-50">
+      <div className="grid h-full grid-rows-[auto_minmax(0,1fr)]">
+        <ScheduleTopbar title="Adicionar programação" idWork={idWork} />
 
-      {/* Schedule Section */}
-      <div className="w-full mb-8">
-        <ScheduleSection
-          idWork={Number(idWork)}
-          idSchedule={Number(idSchedule)}
-          isInsert={isInsert}
-          options={options}
-          scheduleForm={scheduleForm}
-          statusWork={idStatusWork}
-          onError={showError}
-          // setOpenTeamsModal={setOpenTeamsModal}
-          isPending={isPending}
-          handleSubmit={handleSubmit}
-        />
-      </div>
+        <div className="grid min-h-[600px] grid-cols-1 lg:grid-cols-[1fr_320px]">
+          <main className="flex flex-col items-center gap-5 overflow-y-auto py-4">
+            <div className="flex w-full max-w-[90%] flex-col gap-5">
+              <NewScheduleSection
+                isInsert={isInsert}
+                options={options}
+                scheduleForm={scheduleForm}
+                statusWork={idStatusWork}
+              />
 
-      {/* Services Section */}
-      <div className="w-full pb-10 mb-10">
-        <ServicesSection
-          executionForm={executionForm}
-          servicesData={servicesData}
-          scheduledServicesData={scheduledServicesData}
-          serviceFilters={serviceFilters}
-          scheduledServicesHistory={scheduledServicesHistory}
-          serviceContractData={serviceContractData}
-          selectedServices={selectedServices}
-          setSelectedServices={setSelectedServices}
-          teams={serviceTeams}
-          // setOpenTeamsModal={setOpenTeamsModal}
-          isInsert={isInsert}
-          idSchedule={idSchedule}
-          idWork={Number(idWork)}
-          statusSchedule={scheduleData ? scheduleData.status_programacao : null}
-          options={options}
-          onError={showError}
-          onSuccess={showSuccess}
-        />
-      </div>
-
-      {/* {openTeamsModal && (
-        <TeamModal
-          onClose={toggleTeamsModal}
-          open={openTeamsModal}
-          teams={serviceTeams}
-          idSchedule={idSchedule ? Number(idSchedule) : null}
-          selectedServices={selectedServices}
-          scheduleData={
-            idSchedule
-              ? {
-                  idWork,
+              <NewServicesSection
+                servicesData={servicesData}
+                serviceFilters={serviceFilters}
+                setScheduledServices={setScheduledService}
+                isInsert={isInsert}
+                idSchedule={idSchedule}
+                statusSchedule={
+                  scheduleData ? scheduleData.status_programacao : null
                 }
-              : { ...scheduleForm.formData, idWork }
-          }
-          isInsert={isInsert}
-        />
-      )} */}
+                teams={serviceTeams}
+                onError={showError}
+                onSuccess={showSuccess}
+              />
+            </div>
+          </main>
+
+          <ScheduleSidebar
+            selectedServices={scheduledServices}
+            setSelectedServices={setScheduledService}
+            servicesData={servicesData}
+            selectedCount={workflow.selectedCount}
+            canCreate={workflow.canCreate}
+            isPending={isPending}
+            onCancel={handleCancel}
+            onSubmit={handleSaveSchedule}
+          />
+        </div>
+      </div>
     </div>
   );
 }

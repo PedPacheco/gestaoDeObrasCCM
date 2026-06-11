@@ -1,60 +1,43 @@
+"use client";
+
 import { useRouter } from "next/navigation";
+import { Dispatch, SetStateAction, useState, useTransition } from "react";
 
-import { addService, cancelScheduleServices } from "@/actions/services";
-
-import { AddServiceForm, ServiceContract } from "./addServiceForm";
-import { ScheduledServices } from "./scheduledServices/scheduledServices";
-import { ScheduleHistory } from "./scheduleHistory";
-import { ServicesAvaliable } from "./servicesAvailable";
-import { useState, useTransition } from "react";
+import { cancelScheduleServices } from "@/actions/services";
+import { ServiceContract } from "./addServiceForm";
+import { NewServicesAvaliable } from "./servicesAvaliable";
 
 interface ServicesSectionProps {
-  executionForm: any;
   servicesData: any[];
-  scheduledServicesData: any[];
-  serviceContractData: ServiceContract[];
-  scheduledServicesHistory: any[];
   serviceFilters: any;
-  selectedServices: number[];
-  setSelectedServices: (services: number[]) => void;
-  teams: any[];
-  // setOpenTeamsModal: (team: boolean) => void;
+  setScheduledServices: Dispatch<SetStateAction<any[]>>;
   isInsert: boolean;
   idSchedule: number | null;
-  idWork: number;
   statusSchedule: string | null;
-  options: {
-    restricao: Array<{ id: number; restricao: string }>;
-  };
+  teams: any[];
   onError: (error: string) => void;
   onSuccess: (success: string, onClose?: () => void) => void;
 }
 
-export function ServicesSection({
-  executionForm,
+export function NewServicesSection({
   servicesData,
-  scheduledServicesData,
-  serviceContractData,
   serviceFilters,
-  scheduledServicesHistory,
-  selectedServices,
-  setSelectedServices,
-  teams,
-  // setOpenTeamsModal,
+  setScheduledServices,
   isInsert,
   idSchedule,
-  idWork,
   statusSchedule,
-  options,
+  teams,
   onSuccess,
   onError,
 }: ServicesSectionProps) {
   const router = useRouter();
-
-  const [openConfirmationModal, setOpenConfirmationModal] =
-    useState<boolean>(false);
-
+  const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
   const [isPending, startTransition] = useTransition();
+
+  const disabledStatus = ["Parcial", "Concluído", "Cancelado"];
+  const isDisabledButton = statusSchedule
+    ? disabledStatus.includes(statusSchedule)
+    : false;
 
   const cancelServices = async (id: number) => {
     setOpenConfirmationModal(false);
@@ -76,82 +59,23 @@ export function ServicesSection({
     localStorage.removeItem(`scheduled-services-validation:${idSchedule}`);
   };
 
-  const disabledStatus = ["Parcial", "Concluído", "Cancelado"];
-
-  const isDisabledButton = statusSchedule
-    ? disabledStatus.includes(statusSchedule)
-    : false;
-
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // MODO INSERÇÃO: apenas a tabela de serviços disponíveis
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
-      {/* LEFT SIDE — tables */}
-      <div className="lg:col-span-8 space-y-6">
-        {/* Serviços Disponíveis */}
-        <ServicesAvaliable
-          servicesData={servicesData}
-          availableServices={serviceFilters.services}
-          operations={serviceFilters.operations}
-          points={serviceFilters.points}
-          selectedServices={selectedServices}
-          setSelectedServices={setSelectedServices}
-          teams={teams}
-          // setOpenTeamsModal={setOpenTeamsModal}
-          isInsert={isInsert}
-          isDisabled={isDisabledButton}
-          onError={onError}
-          onSuccess={onSuccess}
-        />
-
-        {/* Serviços Programados */}
-        {!isInsert && (
-          <ScheduledServices
-            scheduledServicesData={scheduledServicesData}
-            scheduledServicesHistory={scheduledServicesHistory}
-            services={serviceFilters.services}
-            operations={serviceFilters.operations}
-            points={serviceFilters.points}
-            options={options}
-            executionForm={executionForm}
-            onError={onError}
-            onSuccess={onSuccess}
-            isDisabled={isDisabledButton}
-          />
-        )}
-      </div>
-
-      {/* RIGHT SIDE — Histórico + Adicionar */}
-      <div className="lg:col-span-4 flex flex-col gap-6">
-        {/* Adicionar Serviços */}
-        <AddServiceForm
-          idWork={idWork}
-          serviceContractData={serviceContractData}
-          operations={serviceFilters.operations}
-          points={serviceFilters.points}
-          onSubmit={async (data) => {
-            const response = await addService(data);
-
-            if (!response.success) {
-              onError(response.error);
-              return;
-            }
-
-            onSuccess("Serviço adicionado", () => router.refresh());
-          }}
-        />
-
-        {/* Histórico */}
-        {!isInsert && (
-          <ScheduleHistory
-            cancelServices={cancelServices}
-            idSchedule={idSchedule}
-            scheduledServicesHistory={scheduledServicesHistory}
-            isDisabled={isDisabledButton}
-            isPending={isPending}
-            openConfirmationModal={openConfirmationModal}
-            setOpenConfirmationModal={setOpenConfirmationModal}
-          />
-        )}
-      </div>
+    <div className="flex h-[760px] overflow-hidden">
+      <NewServicesAvaliable
+        servicesData={servicesData}
+        availableServices={serviceFilters.services}
+        operations={serviceFilters.operations}
+        points={serviceFilters.points}
+        setScheduledServices={setScheduledServices}
+        isInsert={isInsert}
+        teams={teams}
+        isDisabled={isDisabledButton}
+        onError={onError}
+        onSuccess={onSuccess}
+      />
     </div>
   );
 }

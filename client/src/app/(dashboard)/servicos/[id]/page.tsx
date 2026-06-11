@@ -1,6 +1,6 @@
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import { ManageSchedule } from "@/components/services/manageSchedule";
+import { NewManageSchedule } from "@/components/services/manageSchedule";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { cookies } from "next/headers";
 
@@ -77,7 +77,7 @@ export default async function ServicosPage({
 
   return (
     <EmotionCacheProvider>
-      <ManageSchedule
+      <NewManageSchedule
         scheduleData={formData}
         scheduledServicesData={scheduledServicesData.data}
         servicesData={servicesData.data}

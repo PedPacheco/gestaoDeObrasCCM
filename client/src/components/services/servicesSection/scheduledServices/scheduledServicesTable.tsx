@@ -196,7 +196,7 @@ export function ScheduledServicesTable({
         ]}
         onFilter={setFilteredServicesData}
       />
-      <TableContainer component={Paper} sx={{ height: 380 }}>
+      <TableContainer component={Paper} sx={{ height: 460 }}>
         <Table stickyHeader size="small">
           <TableHead>
             <TableRow>
