@@ -1,5 +1,5 @@
 import { IUserRepository } from 'src/domain/repositories/IUserRepository';
-import { userInterface } from 'src/interface/types/userInterface';
+// import { userInterface } from 'src/interface/types/userInterface';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
@@ -15,10 +15,7 @@ export class UserRepository implements IUserRepository {
     });
   }
 
-  async updatePassword(
-    numberId: number,
-    newPassword: string,
-  ): Promise<userInterface> {
+  async updatePassword(numberId: number, newPassword: string): Promise<any> {
     const user = await this.prisma.novo_tabela_usuarios.update({
       where: { id: numberId },
       data: { senha: newPassword },
