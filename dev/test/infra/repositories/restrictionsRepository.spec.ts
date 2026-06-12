@@ -232,7 +232,7 @@ describe('RestrictionsRepository', () => {
         },
         select: {
           restricoes: { select: { restricao: true } },
-          usuario: { select: { nome_usuario: true } },
+          usuario: { select: { nome: true } },
           responsabilidade: true,
           nome_responsavel: true,
           status_restricao: true,
@@ -271,7 +271,7 @@ describe('RestrictionsRepository', () => {
         },
         select: {
           restricoes: { select: { restricao: true } },
-          usuario: { select: { nome_usuario: true } },
+          usuario: { select: { nome: true } },
           responsabilidade: true,
           nome_responsavel: true,
           status_restricao: true,
