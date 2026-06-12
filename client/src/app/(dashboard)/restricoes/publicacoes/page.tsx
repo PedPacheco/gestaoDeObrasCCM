@@ -93,7 +93,7 @@ export default async function PublicationRestriction() {
     status_restricao: "Status da restrição",
     criado_em: "Data de criação",
     data_resolucao: "Data de resolução",
-    nome_usuario: "Criado por",
+    nome: "Criado por",
   };
 
   return (

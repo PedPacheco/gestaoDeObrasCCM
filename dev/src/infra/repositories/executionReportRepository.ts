@@ -110,7 +110,7 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
         referencia_chave_provisoria_retirada: true,
         motivo: true,
         caminho_arquivo: true,
-        usuario: { select: { nome_usuario: true } },
+        usuario: { select: { nome: true } },
         obras: {
           select: {
             ovnota: true,

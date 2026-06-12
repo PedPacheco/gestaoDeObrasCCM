@@ -120,10 +120,10 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
             status_restricao2: true,
             data_resolucao2: true,
             usuario: {
-              select: { nome_usuario: true },
+              select: { nome: true },
             },
             usuario_ultima_atualizacao: {
-              select: { nome_usuario: true },
+              select: { nome: true },
             },
           },
           orderBy: { data_prog: 'asc' },

@@ -227,7 +227,7 @@ export class ExportController {
   }
 
   @Get('publicacoes')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1, 7], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1, 7] }))
   async exportPublicationRestrictions(
     @Query() filters: GetRestrictionsDTO,
     @Res() res: Response,

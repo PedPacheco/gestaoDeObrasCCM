@@ -156,7 +156,7 @@ export class ExportRepository implements IExportRepository {
         chave_provisoria_retirada: true,
         referencia_chave_provisoria_retirada: true,
         motivo: true,
-        usuario: { select: { nome_usuario: true } },
+        usuario: { select: { nome: true } },
         obras: {
           select: {
             ovnota: true,
