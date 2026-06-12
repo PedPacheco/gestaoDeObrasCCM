@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { TipoUsuario } from '@prisma/client';
-import { User } from 'src/domain/entities/user.entity';
+import { TipoUsuario, User } from 'src/domain/entities/user.entity';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { AuthRepository } from 'src/infra/repositories/authRepository';
 

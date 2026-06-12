@@ -1,4 +1,4 @@
-import { TipoUsuario } from '@prisma/client';
+import { TipoUsuario } from 'src/domain/entities/user.entity';
 
 export interface userInterface {
   id: number;

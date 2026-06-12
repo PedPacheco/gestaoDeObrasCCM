@@ -1,5 +1,9 @@
 import { BadRequestException } from '@nestjs/common';
-import { TipoUsuario } from '@prisma/client';
+
+export enum TipoUsuario {
+  INTERNO = 'INTERNO',
+  PARCEIRA = 'PARCEIRA',
+}
 
 export class User {
   id?: number;

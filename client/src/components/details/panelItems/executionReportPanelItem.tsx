@@ -29,7 +29,7 @@ dayjs.extend(utc);
 const columns = {
   criado_em: "Data de criação",
   caminho_arquivo: "Arquivos As Build",
-  nome_usuario: "Usuário que inseriu a informação",
+  nome: "Usuário que inseriu a informação",
   hora_ini: "Horário de início (DP)",
   hora_ter: "Horário de término (DP)",
   ovnota: "OV/Nota",
