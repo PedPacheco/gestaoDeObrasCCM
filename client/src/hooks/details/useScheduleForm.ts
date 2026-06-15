@@ -47,12 +47,26 @@ interface UseScheduleFormProps {
   idWork: number;
 }
 
+export interface UseScheduleFormReturn {
+  formData: FormData;
+  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
+  formErrors: Record<string, string>;
+  setFormErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  expanded: string | false;
+  handleInputChange: (field: keyof FormData) => (value: any) => void;
+  handleAccordionChange: (
+    panel: string,
+  ) => (_: any, isExpanded: boolean) => void;
+  resetForm: () => void;
+}
+
 export const useScheduleForm = ({
   data,
   options,
   idWork,
 }: UseScheduleFormProps) => {
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_DATA);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [expanded, setExpanded] = useState<string | false>("panel1");
 
   const initializedRef = useRef(false);
@@ -106,6 +120,8 @@ export const useScheduleForm = ({
   return {
     formData,
     setFormData,
+    formErrors,
+    setFormErrors,
     expanded,
     handleInputChange,
     handleAccordionChange,

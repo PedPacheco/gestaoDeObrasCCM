@@ -1,23 +1,20 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useCallback, useState, useTransition } from "react";
 
-import { useExecutionServiceForm } from "@/hooks/useExecutionServicesForm";
-import { useFeedback } from "@/hooks/useFeedback";
-import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
+import { saveSchedule } from "@/actions/schedules";
 import { useScheduleForm } from "@/hooks/details/useScheduleForm";
 import { useScheduleWorkflow } from "@/hooks/details/useScheduleWorkflow";
-
+import { useFeedback } from "@/hooks/useFeedback";
 import { schedulesSchema } from "@/validations/validationSchedules";
-import { saveSchedule } from "@/actions/schedules";
 
-import { ScheduleTopbar } from "./scheduleTopbar";
-import { NewScheduleSection } from "./newScheduleSection/newScheduleSection";
-import { NewServicesSection } from "./servicesSection/servicesSection";
+import { EditSchedule } from "./editSchedule";
+import { NewScheduleSection } from "./scheduleSection/newScheduleSection";
 import { ScheduleSidebar } from "./scheduleSidebar";
-import { EditManageSchedule } from "./editManageSchedule";
+import { ScheduleTopbar } from "./scheduleTopbar";
 import { ServiceContract } from "./servicesSection/addServiceForm";
+import { NewServicesAvaliable } from "./servicesSection/servicesAvaliable";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -36,7 +33,10 @@ interface ManageScheduleProps {
   idWork: number;
   idStatusWork: number;
   idSchedule: number | null;
+  statusSchedule?: string;
 }
+
+const disabledStatus = ["Parcial", "Concluído", "Cancelado"];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Component
@@ -55,43 +55,22 @@ export function NewManageSchedule({
   idWork,
   idStatusWork,
   idSchedule,
+  statusSchedule,
 }: ManageScheduleProps) {
   const router = useRouter();
   const { showError, showSuccess } = useFeedback();
 
   const [scheduledServices, setScheduledService] = useState<any[]>([]);
 
+  const [isPending, startTransition] = useTransition();
+
   const scheduleForm = useScheduleForm({ data: scheduleData, options, idWork });
 
-  const executionFormData = useMemo(() => {
-    if (!idSchedule) return null;
-    return {
-      idWork,
-      idSchedule,
-      idExecutionRestriction: 1,
-      serviceType: scheduleForm.formData.serviceType,
-      finishTime: scheduleForm.formData.finishTime,
-    };
-  }, [
-    idWork,
-    idSchedule,
-    scheduleForm.formData.finishTime,
-    scheduleForm.formData.serviceType,
-  ]);
-
-  const executionForm = useExecutionServiceForm({
-    enabled: Boolean(idSchedule),
-    data: executionFormData,
-  });
-
-  const { isPending } = useScheduleSubmit({
-    idWork: Number(idWork),
-    onError: showError,
-    onSuccess: (message) => showSuccess(message),
-    formData: scheduleData,
-  });
-
   const workflow = useScheduleWorkflow({ selectedServices: scheduledServices });
+
+  const isDisabled = statusSchedule
+    ? disabledStatus.includes(statusSchedule)
+    : false;
 
   const handleCancel = useCallback(() => {
     router.replace(`/detalhes/${idWork}`);
@@ -123,14 +102,20 @@ export function NewManageSchedule({
       services: formattedService,
     };
 
-    const response = await saveSchedule(data);
+    startTransition(async () => {
+      try {
+        const response = await saveSchedule(data);
 
-    if (!response.success) {
-      showError(response.error);
-      return;
-    }
+        if (!response.success) {
+          showError(response.error);
+          return;
+        }
 
-    showSuccess(response.message, () => router.refresh());
+        showSuccess(response.message, () => router.refresh());
+      } catch {
+        showError("Erro inesperado ao salvar a programação");
+      }
+    });
   }, [
     scheduleForm.formData,
     scheduledServices,
@@ -143,7 +128,7 @@ export function NewManageSchedule({
 
   if (!isInsert && idSchedule !== null) {
     return (
-      <EditManageSchedule
+      <EditSchedule
         scheduleData={scheduleData}
         servicesData={servicesData}
         scheduledServicesData={scheduledServicesData}
@@ -155,6 +140,7 @@ export function NewManageSchedule({
         idWork={idWork}
         idStatusWork={idStatusWork}
         idSchedule={idSchedule}
+        isDisabled={isDisabled}
       />
     );
   }
@@ -174,34 +160,38 @@ export function NewManageSchedule({
                 options={options}
                 scheduleForm={scheduleForm}
                 statusWork={idStatusWork}
+                scheduleStatus={statusSchedule}
               />
 
-              <NewServicesSection
-                servicesData={servicesData}
-                serviceFilters={serviceFilters}
-                setScheduledServices={setScheduledService}
-                isInsert={isInsert}
-                idSchedule={idSchedule}
-                statusSchedule={
-                  scheduleData ? scheduleData.status_programacao : null
-                }
-                teams={serviceTeams}
-                onError={showError}
-                onSuccess={showSuccess}
-              />
+              <div className="h-[760px]">
+                <NewServicesAvaliable
+                  servicesData={servicesData}
+                  availableServices={serviceFilters.services}
+                  operations={serviceFilters.operations}
+                  points={serviceFilters.points}
+                  setScheduledServices={setScheduledService}
+                  isInsert={isInsert}
+                  teams={serviceTeams}
+                  isDisabled={isDisabled}
+                  onError={showError}
+                  onSuccess={showSuccess}
+                />
+              </div>
             </div>
           </main>
 
-          <ScheduleSidebar
-            selectedServices={scheduledServices}
-            setSelectedServices={setScheduledService}
-            servicesData={servicesData}
-            selectedCount={workflow.selectedCount}
-            canCreate={workflow.canCreate}
-            isPending={isPending}
-            onCancel={handleCancel}
-            onSubmit={handleSaveSchedule}
-          />
+          <div className="min-h-0 flex-1 w-full overflow-hidden">
+            <ScheduleSidebar
+              selectedServices={scheduledServices}
+              setSelectedServices={setScheduledService}
+              servicesData={servicesData}
+              selectedCount={workflow.selectedCount}
+              canCreate={workflow.canCreate}
+              isPending={isPending}
+              onCancel={handleCancel}
+              onSubmit={handleSaveSchedule}
+            />
+          </div>
         </div>
       </div>
     </div>

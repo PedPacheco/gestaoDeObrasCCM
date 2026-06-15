@@ -17,6 +17,7 @@ export default async function ServicosPage({
 
   const rawCookie = cookieStore.get("form-data")?.value;
   const idStatusWorkCookie = cookieStore.get("idStatusWork")?.value;
+  const statusSchedule = cookieStore.get("statusSchedule")?.value;
 
   const formData = rawCookie ? JSON.parse(rawCookie) : null;
 
@@ -90,6 +91,7 @@ export default async function ServicosPage({
         idWork={Number(id)}
         idStatusWork={Number(idStatusWorkCookie)}
         idSchedule={Number(formData?.id)}
+        statusSchedule={statusSchedule}
       />
     </EmotionCacheProvider>
   );

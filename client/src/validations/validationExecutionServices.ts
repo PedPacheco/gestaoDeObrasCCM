@@ -92,7 +92,7 @@ function checkRemovedEquipment(ctx: any) {
   }
 }
 
-export const schedulesSchemaV2 = (isPartial: boolean) =>
+export const schedulesSchemaV2 = (isPartial?: boolean) =>
   z
     .object({
       idWork: z.number(),
@@ -176,7 +176,7 @@ export const executionReportSchema = z
     checkAppliedEquipment(ctx);
   });
 
-export const validationExecutionService = (isPartial: boolean) =>
+export const validationExecutionService = (isPartial?: boolean) =>
   schedulesSchemaV2(isPartial)
     .safeExtend({
       executionReport: z.union([executionReportSchema, z.null()]).optional(),

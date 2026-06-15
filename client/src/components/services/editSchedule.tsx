@@ -8,7 +8,7 @@ import { useScheduleForm } from "@/hooks/details/useScheduleForm";
 import { useScheduleWorkflow } from "@/hooks/details/useScheduleWorkflow";
 import { useExecutionServiceForm } from "@/hooks/useExecutionServicesForm";
 import { useFeedback } from "@/hooks/useFeedback";
-import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
+import { useScheduleSubmit } from "@/hooks/details/useScheduleSubmit";
 import { schedulesSchema } from "@/validations/validationSchedules";
 import {
   ArrowUpTrayIcon,
@@ -19,7 +19,7 @@ import {
 } from "@heroicons/react/20/solid";
 import { Button, Tab, Tabs } from "@mui/material";
 
-import { NewScheduleSection } from "./newScheduleSection/newScheduleSection";
+import { NewScheduleSection } from "./scheduleSection/newScheduleSection";
 import { NewServicesAvaliable } from "./servicesSection/servicesAvaliable";
 import { ScheduleSidebar } from "./scheduleSidebar";
 import { ScheduleTopbar } from "./scheduleTopbar";
@@ -30,12 +30,13 @@ import {
 import { ScheduledServices } from "./servicesSection/scheduledServices/scheduledServices";
 import { ScheduleHistory } from "./servicesSection/scheduleHistory";
 import { ButtonComponent } from "../common/Button";
+import { TabsServices } from "./TabsServices";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface EditManageScheduleProps {
+interface EditScheduleProps {
   scheduleData: any;
   servicesData: any[];
   scheduledServicesData: any[];
@@ -47,22 +48,16 @@ interface EditManageScheduleProps {
   idWork: number;
   idStatusWork: number;
   idSchedule: number;
+  isDisabled: boolean;
 }
 
-type TabId = "scheduled" | "available" | "add" | "history";
-
-interface TabConfig {
-  id: TabId;
-  label: string;
-  icon: React.ReactNode;
-  badge?: number;
-}
+export type TabId = "scheduled" | "available" | "add" | "history";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Main component
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function EditManageSchedule({
+export function EditSchedule({
   scheduleData,
   scheduledServicesData,
   servicesData,
@@ -74,7 +69,8 @@ export function EditManageSchedule({
   idWork,
   idStatusWork,
   idSchedule,
-}: EditManageScheduleProps) {
+  isDisabled,
+}: EditScheduleProps) {
   const router = useRouter();
   const { showError, showSuccess } = useFeedback();
   const [isPending, startTransition] = useTransition();
@@ -115,11 +111,6 @@ export function EditManageSchedule({
 
   const workflow = useScheduleWorkflow({ selectedServices: scheduledServices });
 
-  const disabledStatus = ["Parcial", "Concluído", "Cancelado"];
-  const isDisabled = scheduleData?.status_programacao
-    ? disabledStatus.includes(scheduleData.status_programacao)
-    : false;
-
   // ── Handlers ──────────────────────────────────────────────
 
   const handleCancel = useCallback(() => {
@@ -156,11 +147,13 @@ export function EditManageSchedule({
         const path = err.path.join(".");
         fieldErrors[path] = err.message;
       });
-      // scheduleForm.setFormErrors(fieldErrors);
+      scheduleForm.setFormErrors(fieldErrors);
       showError("Erro ao salvar programação");
 
       return;
     }
+
+    scheduleForm.setFormErrors({});
 
     const data = {
       id: idSchedule,
@@ -169,29 +162,6 @@ export function EditManageSchedule({
 
     handleSubmit(data);
   };
-
-  // ── Tab config ─────────────────────────────────────────────
-
-  const tabs: TabConfig[] = [
-    {
-      id: "scheduled",
-      label: "Serviços programados",
-      icon: <CheckCircleIcon className="h-4 w-4" />,
-      badge: scheduledServicesData.length,
-    },
-    {
-      id: "available",
-      label: "Serviços disponíveis",
-      icon: <PlusIcon className="h-4 w-4" />,
-      badge: servicesData.length,
-    },
-    {
-      id: "history",
-      label: "Histórico",
-      icon: <ClockIcon className="h-4 w-4" />,
-      badge: scheduledServicesHistory.length,
-    },
-  ];
 
   // ─────────────────────────────────────────────────────────────────────────
   // Render
@@ -215,6 +185,14 @@ export function EditManageSchedule({
         <div className="flex justify-end gap-4 bg-white border-b border-gray-200 pr-10 pb-4">
           {/* Ações principais */}
           <div className="flex shrink-0 items-center gap-2">
+            <ButtonComponent
+              text={isSubmitPending ? "Salvando..." : "Salvar programação"}
+              onClick={handleSaveSchedule}
+              disabled={isSubmitPending}
+              styled="!py-[5px] !px-[15px]"
+              startIcon={<ArrowUpTrayIcon className="h-4 w-4" />}
+            />
+
             <Button
               variant="outlined"
               startIcon={<XMarkIcon className="h-4 w-4" />}
@@ -228,69 +206,17 @@ export function EditManageSchedule({
             >
               CANCELAR
             </Button>
-
-            <ButtonComponent
-              text={isSubmitPending ? "Salvando..." : "Salvar programação"}
-              onClick={handleSaveSchedule}
-              disabled={isSubmitPending}
-              styled="!py-[5px] !px-[15px]"
-              startIcon={<ArrowUpTrayIcon className="h-4 w-4" />}
-            />
           </div>
         </div>
 
         {/* ── Tab navigation ────────────────────────────────────── */}
-        <div className="sticky top-0 z-20 border-b border-gray-200 bg-white px-6">
-          <Tabs
-            value={activeTab}
-            onChange={(_, v) => setActiveTab(v as TabId)}
-            variant="scrollable"
-            scrollButtons="auto"
-            sx={{
-              minHeight: 44,
-              "& .MuiTab-root": {
-                textTransform: "none",
-                fontSize: 13,
-                minHeight: 44,
-                paddingX: 2,
-                color: "#6b7280",
-                fontWeight: 400,
-              },
-              "& .Mui-selected": {
-                color: "#378ADD !important",
-                fontWeight: 500,
-              },
-              "& .MuiTabs-indicator": {
-                backgroundColor: "#378ADD",
-                height: 2,
-              },
-            }}
-          >
-            {tabs.map((tab) => (
-              <Tab
-                key={tab.id}
-                value={tab.id}
-                label={
-                  <div className="flex items-center gap-1.5">
-                    {tab.icon}
-                    <span>{tab.label}</span>
-                    {tab.badge !== undefined && tab.badge > 0 && (
-                      <span
-                        className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none ${
-                          activeTab === tab.id
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-gray-100 text-gray-500"
-                        }`}
-                      >
-                        {tab.badge}
-                      </span>
-                    )}
-                  </div>
-                }
-              />
-            ))}
-          </Tabs>
-        </div>
+        <TabsServices
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          scheduledServicesHistoryLength={scheduledServicesHistory.length}
+          scheduledServicesLength={scheduledServicesData.length}
+          servicesDataLength={servicesData.length}
+        />
 
         {/* ── Tab panels ────────────────────────────────────────── */}
         <div
@@ -318,9 +244,9 @@ export function EditManageSchedule({
 
           {/* TAB: Adicionar serviços da lista disponível */}
           {activeTab === "available" && (
-            <div className="flex h-[860px] overflow-hidden">
+            <div className="flex flex-1 h-[820px] justify-between items-center">
               {/* Conteúdo principal — scrollável */}
-              <div className="flex-1 p-6 h-full">
+              <div className="flex-1 p-5 h-full max-w-[70%] 2xl:max-w-full">
                 <NewServicesAvaliable
                   servicesData={servicesData}
                   availableServices={serviceFilters.services}
@@ -336,7 +262,7 @@ export function EditManageSchedule({
               </div>
 
               {/* Sidebar — altura total restante, fixa à direita */}
-              <div className="flex h-full flex-col items-center overflow-hidden pr-4">
+              <div className="flex h-full flex-col items-center overflow-hidden pr-4 pt-5">
                 <div className="mx-auto max-w-xl my-3 w-full shrink-0">
                   <div className="mb-4">
                     <h2 className="text-[14px] font-medium text-gray-800">

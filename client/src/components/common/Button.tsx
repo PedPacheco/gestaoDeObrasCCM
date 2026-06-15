@@ -16,8 +16,11 @@ export function ButtonComponent({
   return (
     <Button
       {...props}
-      className={`${styled} h-12 text-xs xl:text-base`}
+      className={styled}
       sx={{
+        height: 48,
+        fontSize: { xs: "0.75rem", xl: "1rem" },
+        lineHeight: { xs: "1rem", xl: "1.5rem" },
         color: "#E4E4E7",
         backgroundColor: "#212E3E",
         "&:hover": {

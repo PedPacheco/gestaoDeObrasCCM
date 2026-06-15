@@ -58,8 +58,8 @@ export function ScheduleHistory({
       </div>
 
       <div className="overflow-x-auto">
-        <TableContainer component={Paper} sx={{ height: 780 }}>
-          <Table size="small" className="text-sm">
+        <TableContainer component={Paper} sx={{ height: 560 }}>
+          <Table size="small" className="text-sm" stickyHeader>
             <TableHead>
               <TableRow>
                 <TableCell>SERVIÇO</TableCell>

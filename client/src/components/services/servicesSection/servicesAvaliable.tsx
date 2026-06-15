@@ -324,10 +324,10 @@ export function NewServicesAvaliable({
         </TableContainer>
 
         {/* Botões de ação */}
-        <Box className="mt-4 flex shrink-0 justify-end">
+        <Box className="mt-4 flex justify-end">
           <ButtonComponent
             startIcon={<PlusIcon className="h-5 w-5 text-white" />}
-            styled="mr-4 rounded px-4 px-2 !text-sm"
+            styled="!mr-4 rounded px-4 px-2 !text-sm "
             onClick={applyAdditional}
             disabled={isDisabled || !isDisableAfterChangeData}
             text="Aplicar Adicional"
@@ -335,7 +335,7 @@ export function NewServicesAvaliable({
 
           <ButtonComponent
             startIcon={<PlusIcon className="h-5 w-5 " />}
-            styled="mr-4 rounded px-4 px-2 !text-sm"
+            styled="rounded px-4 px-2 !text-sm"
             onClick={handleAddClick}
             disabled={isDisabled}
             text="Adicionar à programação"

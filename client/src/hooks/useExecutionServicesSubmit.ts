@@ -47,6 +47,7 @@ export const useExecutionServicesSubmit = ({
             );
           } else {
             const { finishTime, serviceType, idWork, ...dataToBeSent } = data;
+            console.log(data);
             response = await finalizeServices(dataToBeSent, idWork, files);
           }
 

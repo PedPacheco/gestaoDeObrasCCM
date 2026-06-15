@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 
 import ScheduleFormDialog from "@/components/details/modals/scheduleDialog/dialog";
 import * as UserContextModule from "@/contexts/userContext";
-import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
+import { useScheduleSubmit } from "@/hooks/details/useScheduleSubmit";
 import * as schemasModule from "@/validations/validationSchedules";
 import { ExecutionReportData } from "@/components/details/modals/executionReportDialog/executionReportDialog";
 import { mockFormData } from "../../../../mocks/mockFormData";

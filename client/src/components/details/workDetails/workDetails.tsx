@@ -322,8 +322,6 @@ export function WorkDetails({
     return <ErrorThrower message="Nível de permissão insuficiente" />;
   }
 
-  console.log(permissions);
-
   return (
     <>
       <div className="w-full flex justify-between items-center my-4 px-2 md:px-8">

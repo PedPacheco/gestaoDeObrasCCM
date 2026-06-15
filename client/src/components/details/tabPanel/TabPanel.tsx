@@ -68,8 +68,6 @@ export default function TabPanel({
   const [value, setValue] = useState<number>(1);
   const [data, setData] = useState<Record<string, any>>(workData);
 
-  const [scheduleStatus, setScheduleStatus] = useState<string>("");
-
   const [editingExecutionReport, setEditingExecutionReport] = useState<any>();
 
   const isAreaAllowed =
@@ -130,7 +128,12 @@ export default function TabPanel({
   };
 
   const handleEditSchedule = async (scheduleData: any) => {
-    await storeScheduleDataAction(scheduleData, data?.id, data.id_status);
+    await storeScheduleDataAction(
+      scheduleData,
+      data?.id,
+      data.id_status,
+      data.status_programacao,
+    );
   };
 
   const handleEditExecutionReport = (executionData: any) => {

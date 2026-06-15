@@ -196,7 +196,7 @@ export function TableFilter<T>({
   return (
     <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 mb-3 shadow-sm">
       {/* Campos de filtro */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-5">
         <>
           {fields.map((field) => (
             <MultiSelect

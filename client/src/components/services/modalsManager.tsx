@@ -54,6 +54,7 @@ export const ModalsManager = forwardRef<ModalsManagerRef, ModalsManagerProps>(
     ref,
   ) => {
     const { showSuccess } = useFeedback();
+
     const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
     const [openConfirmationModalExecution, setOpenConfirmationModalExecution] =
       useState(false);

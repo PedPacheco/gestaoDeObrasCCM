@@ -1,7 +1,7 @@
 import { useCallback, useTransition } from "react";
 
 import { editSchedule } from "@/actions/schedules";
-import { FormData } from "./useExecutionServicesForm";
+import { FormData } from "../useExecutionServicesForm";
 
 interface UseScheduleSubmitProps {
   formData: FormData;

@@ -11,13 +11,13 @@ import {
 } from "@/actions/services";
 import { UseExecutionServiceFormReturn } from "@/hooks/useExecutionServicesForm";
 import { usePersistentServiceValidation } from "@/hooks/usePersistentServiceValidation";
-import { Button, Paper, Typography } from "@mui/material";
+import { Paper, Typography } from "@mui/material";
 
-import { RestrictionsModal } from "../../scheduleSection/restrictionsCard";
 import { ScheduledServicesTable } from "./scheduledServicesTable";
 import { ValidationOfScheduledServices } from "./validationOfScheduledServices";
 import { ExecutionReportDialog } from "@/components/executionReport/executionReportDialog";
 import { ButtonComponent } from "@/components/common/Button";
+import { RestrictionsModal } from "../../scheduleSection/executionRestrictionModal";
 
 dayjs.extend(utc);
 
@@ -25,7 +25,7 @@ interface ScheduledServicesProps {
   scheduledServicesData: any[];
   scheduledServicesHistory: any[];
   options: {
-    restricao: Array<{ id: number; restricao: string }>;
+    restricao: Array<{ id: number; restricao: string; tipo_restricao: string }>;
   };
   points: string[];
   operations: string[];
@@ -204,7 +204,7 @@ export function ScheduledServices({
         <div className="flex justify-end gap-2 my-4">
           <ButtonComponent
             text="Aplicar Planejado como realizado"
-            styled="!text-sm !h-8"
+            styled="!h-8"
             onClick={handleApplyPlannedToReal}
             disabled={
               !scheduledServices.some((s) => s.selected) ||
@@ -215,14 +215,14 @@ export function ScheduledServices({
 
           <ButtonComponent
             text="Realizar Serviços"
-            styled="!text-sm !h-8"
+            styled="!h-8"
             onClick={handlePerformServices}
             disabled={isDisabled || scheduledServices.length === 0}
           />
 
           <ButtonComponent
             text="Validar Realização dos Serviços"
-            styled="!text-sm !h-8"
+            styled="!h-8"
             onClick={() => {
               setScheduledServices(validateServices(scheduledServices));
             }}
@@ -233,7 +233,7 @@ export function ScheduledServices({
 
           <ButtonComponent
             text="Reprogramar Serviços"
-            styled="!text-sm !h-8"
+            styled="!h-8"
             onClick={handleRescheduleServices}
             disabled={
               !canReschedule || isDisabled || scheduledServices.length === 0
@@ -242,7 +242,7 @@ export function ScheduledServices({
 
           <ButtonComponent
             text="Finalizar Execução dos Serviços"
-            styled="!text-sm !h-8"
+            styled="!h-8"
             onClick={handleFinalizeServices}
             disabled={
               !canFinalize || isDisabled || scheduledServices.length === 0

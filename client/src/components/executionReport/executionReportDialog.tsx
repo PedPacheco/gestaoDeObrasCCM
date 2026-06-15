@@ -168,7 +168,6 @@ export function ExecutionReportDialog({
               if (!result.success) {
                 const fieldErrors: Record<string, string> = {};
 
-                console.log(result);
                 result.error.issues.forEach((err: any) => {
                   const field = err.path.join(".");
                   fieldErrors[field] = err.message;
@@ -187,8 +186,6 @@ export function ExecutionReportDialog({
                 ...formData,
                 idUser: user?.id,
               };
-
-              if (!executionIsPartial) return;
 
               const validationSchema =
                 validationExecutionService(executionIsPartial);
@@ -219,6 +216,8 @@ export function ExecutionReportDialog({
                   const field = item.path[1];
                   fieldErrors[field] = item.message;
                 });
+
+                console.log(fieldErrors);
 
                 setFormErrors(fieldErrors);
                 showError("Erro ao salvar relatório de execução");

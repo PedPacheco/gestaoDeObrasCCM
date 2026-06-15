@@ -22,7 +22,7 @@ interface RestrictionsModalProps {
   onClose: () => void;
   onSave: () => void;
   options: {
-    restricao: Array<{ id: number; restricao: string }>;
+    restricao: Array<{ id: number; restricao: string; tipo_restricao: string }>;
   };
   executionForm: UseExecutionServiceFormReturn;
 }
@@ -82,11 +82,13 @@ export function RestrictionsModal({
                 onChange={handleEditableChange("idExecutionRestriction")}
                 error={!!errorRestriction}
               >
-                {options.restricao.map((r) => (
-                  <MenuItem key={r.id} value={r.id}>
-                    {r.restricao}
-                  </MenuItem>
-                ))}
+                {options.restricao
+                  .filter((item) => item.tipo_restricao === "EXECUÇÃO")
+                  .map((restriction) => (
+                    <MenuItem key={restriction.id} value={restriction.id}>
+                      {restriction.restricao}
+                    </MenuItem>
+                  ))}
               </Select>
               {formErrors["idExecutionRestriction"] && (
                 <FormHelperText>

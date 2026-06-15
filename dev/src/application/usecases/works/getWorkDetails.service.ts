@@ -70,7 +70,7 @@ export class GetWorkDetailsService {
           status_restricao2: programacao.status_restricao2,
           data_resolucao2: programacao.data_resolucao2,
           criado_por: programacao.usuario?.nome,
-          editado_por: programacao.usuario_ultima_atualizacao?.nome_usuario,
+          editado_por: programacao.usuario_ultima_atualizacao?.nome,
         };
       }),
     };
