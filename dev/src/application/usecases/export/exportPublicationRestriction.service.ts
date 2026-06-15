@@ -46,9 +46,9 @@ export class ExportPublicationRestrictionService {
         { header: 'Restrição', key: 'restricao', width: 20 },
         { header: 'Responsabilidade', key: 'responsabilidade', width: 20 },
         { header: 'Nome do responsável', key: 'nome_responsavel', width: 20 },
-        { header: 'Obersavação da publicação', key: 'observacao', width: 20 },
+        { header: 'Obersvação da publicação', key: 'observacao', width: 20 },
         {
-          header: 'Obersavação da construção',
+          header: 'Obersvação da construção',
           key: 'observacao_construcao',
           width: 20,
         },
