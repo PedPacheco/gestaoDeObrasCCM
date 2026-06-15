@@ -9,7 +9,6 @@ interface UseExecutionServicesSubmitProps {
   onSuccess: (success: string) => void;
   onModalOpen: (open: boolean) => void;
   onClose: () => void;
-  setFormErrors: (errors: Record<string, string>) => void;
 }
 
 export const useExecutionServicesSubmit = ({
@@ -47,7 +46,7 @@ export const useExecutionServicesSubmit = ({
             );
           } else {
             const { finishTime, serviceType, idWork, ...dataToBeSent } = data;
-            console.log(data);
+
             response = await finalizeServices(dataToBeSent, idWork, files);
           }
 

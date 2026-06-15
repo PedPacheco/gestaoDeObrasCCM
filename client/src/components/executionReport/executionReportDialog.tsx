@@ -72,11 +72,9 @@ export function ExecutionReportDialog({
     onError: showError,
     onSuccess,
     onModalOpen,
-    setFormErrors,
   });
 
   const submitButtonText = isPending ? "Salvando..." : "Salvar Execução";
-
   return (
     <Dialog
       open={open}
@@ -216,8 +214,6 @@ export function ExecutionReportDialog({
                   const field = item.path[1];
                   fieldErrors[field] = item.message;
                 });
-
-                console.log(fieldErrors);
 
                 setFormErrors(fieldErrors);
                 showError("Erro ao salvar relatório de execução");
