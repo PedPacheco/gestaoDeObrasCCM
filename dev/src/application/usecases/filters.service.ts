@@ -101,10 +101,11 @@ export class FiltersService {
       result['statusProgramacao'] = await this.getCachedData(
         'status_programacao',
         () =>
-          this.filtersRepository.getData('status_programacao', [
-            'id',
+          this.filtersRepository.getData(
             'status_programacao',
-          ]),
+            ['id', 'status_programacao'],
+            { id: { not: 7 } },
+          ),
       );
     }
 
