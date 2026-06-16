@@ -1,6 +1,6 @@
 import { useCallback, useTransition } from "react";
 
-import { editSchedule } from "@/actions/schedules";
+import { newEditSchedule } from "@/actions/schedules";
 import { FormData } from "../useExecutionServicesForm";
 
 interface UseScheduleSubmitProps {
@@ -31,7 +31,7 @@ export const useScheduleSubmit = ({
             })(),
           };
 
-          response = await editSchedule(payload, data.id);
+          response = await newEditSchedule(payload, data.id);
 
           if (!response.success) {
             onError(response.error);

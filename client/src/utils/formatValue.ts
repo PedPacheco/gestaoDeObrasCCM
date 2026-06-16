@@ -1,3 +1,6 @@
+import { OldExecutionReportData } from "@/components/details/modals/oldExecutionReportDialog/oldExecutionReportDialog";
+import { FormData } from "@/hooks/details/useOldScheduleForm";
+
 export function FormatCurrency(value: number) {
   return new Intl.NumberFormat("pt-br", {
     style: "currency",
@@ -50,4 +53,24 @@ export function formatDateToInput(value: string | Date | undefined): string {
   const day = date.getUTCDate().toString().padStart(2, "0");
 
   return `${year}-${month}-${day}`;
+}
+
+export function resolveExecutionReportContext(
+  data: FormData | OldExecutionReportData,
+): { data: OldExecutionReportData; prefix: "" | "executionReport." } {
+  const isExecutionReportData = (
+    d: FormData | OldExecutionReportData,
+  ): d is OldExecutionReportData => !("executionReport" in d);
+
+  if (isExecutionReportData(data)) {
+    return {
+      data,
+      prefix: "",
+    };
+  }
+
+  return {
+    data: data.executionReport!,
+    prefix: "executionReport.",
+  };
 }

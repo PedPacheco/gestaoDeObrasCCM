@@ -97,6 +97,7 @@ export class UpdateSchedulesService {
       return {
         success: true,
         scheduleId: schedule.id,
+        scheduleFinishTime: schedule.finishTime,
         idWork: schedule.idWork,
       };
     } catch (err: any) {

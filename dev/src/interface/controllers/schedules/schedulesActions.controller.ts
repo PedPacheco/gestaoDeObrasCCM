@@ -8,6 +8,7 @@ import {
   CreateScheduleWithServicesDTO,
   RejectScheduleDTO,
   SchedulesDataDTO,
+  UpdateSchedulesDataDTO,
   ValidateSchedulesDTO,
 } from 'src/interface/dtos/scheduleDTO';
 
@@ -21,8 +22,11 @@ import {
   Patch,
   Post,
   Req,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('programacao')
 export class SchedulesActionsController {
@@ -35,7 +39,23 @@ export class SchedulesActionsController {
 
   @Post()
   @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
-  async addSchedules(
+  async addSchedules(@Body() schedulesData: SchedulesDataDTO, @Req() req: any) {
+    const idUser = req.user.sub;
+
+    const data = { ...schedulesData, idUser };
+
+    const id = await this.handleAddScheduleService.add(data);
+
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'Programação inserida com sucesso',
+      data: id,
+    };
+  }
+
+  @Post('ponto-a-ponto')
+  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
+  async newAddSchedules(
     @Body() schedulesData: CreateScheduleWithServicesDTO,
     @Req() req: any,
   ) {
@@ -49,7 +69,7 @@ export class SchedulesActionsController {
       },
     };
 
-    const id = await this.handleAddScheduleService.add(data);
+    const id = await this.handleAddScheduleService.newAdd(data);
 
     return {
       statusCode: HttpStatus.CREATED,
@@ -102,38 +122,40 @@ export class SchedulesActionsController {
     };
   }
 
-  // @Patch(':id')
-  // @UseGuards(VisualizationGuard)
-  // async updateSchedules(
-  //   @Param('id', ParseIntPipe) id: number,
-  //   @Body() schedulesData: UpdateSchedulesDataDTO,
-  //   @Req() req: any,
-  // ) {
-  //   let permission: boolean;
+  @Patch(':id/ponto-a-ponto')
+  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
+  @UseInterceptors(FilesInterceptor('files'))
+  async oldUpdateSchedules(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body() schedulesData: UpdateSchedulesDataDTO,
+    @Req() req: any,
+  ) {
+    let permission: boolean;
 
-  //   if (req.insufficientPermission !== undefined) {
-  //     permission = req.insufficientPermission;
-  //   }
+    if (req.insufficientPermission !== undefined) {
+      permission = req.insufficientPermission;
+    }
 
-  //   const idUser = req.user.sub;
+    const idUser = req.user.sub;
 
-  //   const data = {
-  //     updateData: { id, idUser, ...schedulesData.updateData },
-  //     ...(schedulesData.executionReportData && {
-  //       executionReportData: {
-  //         ...schedulesData.executionReportData,
-  //         idUser,
-  //       },
-  //     }),
-  //   };
+    const data = {
+      updateData: { id, idUser, ...schedulesData.updateData },
+      ...(schedulesData.executionReportData && {
+        executionReportData: {
+          ...schedulesData.executionReportData,
+          idUser,
+        },
+      }),
+    };
 
-  //   await this.handleSchedulesUpdateService.update(data, permission, files);
+    await this.handleSchedulesUpdateService.newUpdate(data, permission, files);
 
-  //   return {
-  //     statusCode: HttpStatus.NO_CONTENT,
-  //     message: 'Atualização da programação feita com sucesso',
-  //   };
-  // }
+    return {
+      statusCode: HttpStatus.NO_CONTENT,
+      message: 'Atualização da programação feita com sucesso',
+    };
+  }
 
   @Patch(':id')
   @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
@@ -151,12 +173,6 @@ export class SchedulesActionsController {
     const idUser = req.user.sub;
 
     const data = { id, idUser, ...schedulesData };
-    // ...(schedulesData.executionReportData && {
-    //   executionReportData: {
-    //     ...schedulesData.executionReportData,
-    //     idUser,
-    //   },
-    // }),
 
     await this.handleSchedulesUpdateService.update(data, permission);
 

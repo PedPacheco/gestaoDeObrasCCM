@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useState, useTransition } from "react";
 
-import { saveSchedule } from "@/actions/schedules";
+import { newSaveSchedule, saveSchedule } from "@/actions/schedules";
 import { useScheduleForm } from "@/hooks/details/useScheduleForm";
 import { useScheduleWorkflow } from "@/hooks/details/useScheduleWorkflow";
 import { useFeedback } from "@/hooks/useFeedback";
@@ -104,7 +104,7 @@ export function NewManageSchedule({
 
     startTransition(async () => {
       try {
-        const response = await saveSchedule(data);
+        const response = await newSaveSchedule(data);
 
         if (!response.success) {
           showError(response.error);

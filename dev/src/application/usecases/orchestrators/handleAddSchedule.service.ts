@@ -8,7 +8,10 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import { AddSchedulesService } from '../schedule/addSchedules.service';
 import { WorksServicesService } from '../services/worksServices.service';
-import { CreateScheduleWithServicesDTO } from 'src/interface/dtos/scheduleDTO';
+import {
+  CreateScheduleWithServicesDTO,
+  SchedulesDataDTO,
+} from 'src/interface/dtos/scheduleDTO';
 
 const SCHEDULE_STATUS_ID = 43;
 @Injectable()
@@ -21,7 +24,15 @@ export class HandleAddScheduleService {
     private readonly addScheduleService: AddSchedulesService,
   ) {}
 
-  async add(data: CreateScheduleWithServicesDTO): Promise<number> {
+  async add(data: SchedulesDataDTO) {
+    await this.prisma.$transaction(async (tx) => {
+      await this.addScheduleService.add(data, tx);
+
+      await this.statusFlowRepository.updateStatusWorks(43, data.idWork, tx);
+    });
+  }
+
+  async newAdd(data: CreateScheduleWithServicesDTO): Promise<number> {
     const { schedule, services } = data;
 
     return this.prisma.$transaction(async (tx) => {

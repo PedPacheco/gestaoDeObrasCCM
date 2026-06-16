@@ -6,7 +6,7 @@ import ScheduleFormDialog from "@/components/details/modals/scheduleDialog/dialo
 import * as UserContextModule from "@/contexts/userContext";
 import { useScheduleSubmit } from "@/hooks/details/useScheduleSubmit";
 import * as schemasModule from "@/validations/validationSchedules";
-import { ExecutionReportData } from "@/components/details/modals/executionReportDialog/executionReportDialog";
+import { ExecutionReportData } from "@/components/details/modals/oldExecutionReportDialog/oldExecutionReportDialog";
 import { mockFormData } from "../../../../mocks/mockFormData";
 
 // ---------- Mocks ----------

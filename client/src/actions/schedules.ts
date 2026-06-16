@@ -16,6 +16,94 @@ export async function saveSchedule(data: any) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify(data.updateData),
+      },
+    );
+
+    const res = await result.json();
+
+    if (res.statusCode !== 201) {
+      return {
+        success: false,
+        error: res.message || "Erro ao adicionar programação",
+      };
+    }
+
+    revalidatePath(`/detalhes/${data.id}`);
+
+    return { success: true, message: res.message };
+  } catch (error: any) {
+    return { success: false, message: error.message };
+  }
+}
+
+export async function editSchedule(data: any, id: number, files?: File[]) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  try {
+    let body: BodyInit;
+    let headers: HeadersInit = {
+      Authorization: `Bearer ${token}`,
+    };
+
+    if (files && files.length > 0) {
+      const formData = new FormData();
+
+      formData.append("updateData", JSON.stringify(data.updateData));
+      formData.append(
+        "executionReportData",
+        JSON.stringify(data.executionReportData),
+      );
+
+      files?.forEach((file) => {
+        formData.append("files", file);
+      });
+
+      body = formData;
+    } else {
+      headers["Content-Type"] = "application/json";
+      body = JSON.stringify(data);
+    }
+
+    const result = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/programacao/${id}`,
+      {
+        method: "PATCH",
+        headers,
+        body,
+      },
+    );
+
+    const res = await result.json();
+
+    if (res.statusCode !== 204) {
+      return {
+        success: false,
+        error: res.message || "Erro ao editar programação",
+      };
+    }
+
+    revalidatePath(`/detalhes/${data.idWork}`);
+    return { success: true, message: res.message };
+  } catch (error: any) {
+    return { success: false, message: error.message };
+  }
+}
+
+export async function newSaveSchedule(data: any) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  try {
+    const result = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/programacao/ponto-a-ponto`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(data),
       },
     );
@@ -35,13 +123,13 @@ export async function saveSchedule(data: any) {
   }
 }
 
-export async function editSchedule(data: any, id: number) {
+export async function newEditSchedule(data: any, id: number) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
   try {
     const result = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/programacao/${id}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/programacao/${id}/ponto-a-ponto`,
       {
         method: "PATCH",
         headers: {

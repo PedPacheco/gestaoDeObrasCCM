@@ -49,6 +49,56 @@ export function mapScheduleToForm(schedule: any, options: Record<string, any>) {
   };
 }
 
+export function OldMapScheduleToForm(
+  schedule: any,
+  options: Record<string, any>,
+) {
+  const technicianFound = options.tecnico.find(
+    (t: any) => t.tecnico === schedule.tecnico,
+  );
+
+  const restrictionFound = options.restricao.find(
+    (r: any) => r.restricao === schedule.restricao,
+  );
+
+  return {
+    id: schedule.id,
+    dataProg: formatDateToInput(schedule.data_prog) ?? "",
+    startTime: formatToHHMM(schedule.hora_ini) ?? "",
+    finishTime: formatToHHMM(schedule.hora_ter) ?? "",
+    prog: schedule.prog ?? 0,
+    exec: schedule.exec,
+    serviceType: schedule.tipo_servico ?? "",
+    observation: schedule.observacao_programacao ?? "",
+    equipment: schedule.equip_desligado ?? "",
+    chi: schedule.chi ?? 0,
+    numDp: schedule.num_dp ?? "",
+    temporaryKey: schedule.chave_provisoria ?? false,
+    lmTeam: schedule.equipe_linha_morta ?? 0,
+    regulTeam: schedule.equipe_regularizacao ?? 0,
+    lvTeam: schedule.equipe_linha_viva ?? 0,
+    idTechnical: technicianFound.id ?? 0,
+    idExecutionRestriction: restrictionFound.id ?? 0,
+    responsibility: schedule.nome_responsavel_execucao ?? "",
+    executionObservation: schedule.observacao_execucao ?? "",
+    executionReport: schedule.executionReport,
+    idProgRestriction1: schedule.id_restricao_prog1,
+    responsibilityProg: schedule.responsabilidade1,
+    responsibleName: schedule.nome_responsavel,
+    responsibleArea: schedule.area_responsavel1,
+    restrictionStatus: schedule.status_restricao1,
+    resolutionDate: schedule.data_resolucao1,
+    idProgRestriction2: schedule.id_restricao_prog2,
+    responsibilityProg2: schedule.responsabilidade2,
+    responsibleName2: schedule.nome_responsavel2,
+    responsibleArea2: schedule.area_responsavel2,
+    restrictionStatus2: schedule.status_restricao2,
+    resolutionDate2: schedule.data_resolucao2,
+    validated: schedule.validada,
+    confirmed: schedule.confirmada,
+  };
+}
+
 export function transformExecutionReport(data: any): ExecutionReportData {
   const splitEquipamentos = (
     equip: string,

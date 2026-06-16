@@ -5,10 +5,11 @@ import { cookies } from "next/headers";
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
-import TabPanel from "@/components/details/tabPanel/TabPanel";
+import NewTabPanel from "@/components/details/tabPanel/newTabPanel";
 import { WorkDetails } from "@/components/details/workDetails/workDetails";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { formatPercentage } from "@/utils/formatValue";
+import OldTabPanel from "@/components/details/tabPanel/oldTabPanel";
 
 dayjs.extend(utc);
 
@@ -128,6 +129,23 @@ export default async function Details({ params }: DetailsParams) {
   const { data } = workData;
   const formattedData = processWorkData(data);
 
+  const hasSchedules =
+    Array.isArray(data?.programacoes) && data.programacoes.length > 0;
+
+  const hasExecution = data.executado != null && Number(data.executado) > 0;
+
+  const useNewFlow = !hasSchedules && !hasExecution;
+
+  const tabPanelProps = {
+    workData: data,
+    options,
+    id,
+    executionReportData: executionReportData.data,
+    rejectionsData: rejectionsData.data,
+    feasibilityExists: feasibilityExists.data,
+    publicationRestrictionData: publicationRestriction.data,
+  };
+
   return (
     <EmotionCacheProvider>
       <div className="flex flex-col items-center w-full overflow-y-auto h-screen">
@@ -139,15 +157,11 @@ export default async function Details({ params }: DetailsParams) {
             options={options}
             feasibilityExists={feasibilityExists.data}
           />
-          <TabPanel
-            workData={data}
-            id={id}
-            options={options}
-            executionReportData={executionReportData.data}
-            rejectionsData={rejectionsData.data}
-            feasibilityExists={feasibilityExists.data}
-            publicationRestrictionData={publicationRestriction.data}
-          />
+          {useNewFlow ? (
+            <NewTabPanel {...tabPanelProps} />
+          ) : (
+            <OldTabPanel {...tabPanelProps} />
+          )}
         </div>
       </div>
     </EmotionCacheProvider>
