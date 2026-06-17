@@ -13,7 +13,7 @@ import ConfirmationModalComponent from "../common/confirmationModal";
 import FailureModalComponent from "../common/failureModal";
 import { ExecutionReportDialog } from "../executionReport/executionReportDialog";
 
-interface ModalsManagerProps {
+interface NewModalsManagerProps {
   onConfirmDelete: (id: number) => void;
   onConfirmExecutionDelete: (id: number) => void;
   onCloseDialog: () => void;
@@ -33,14 +33,17 @@ interface ModalsManagerProps {
   executionForm: UseExecutionServiceFormReturn;
 }
 
-export interface ModalsManagerRef {
+export interface NewModalsManagerRef {
   handleExecutionDialog: (value: boolean) => void;
   handleRejectedModalOpen: (value: boolean) => void;
   openConfirmDeleteSchedule: (id: number) => void;
   openConfirmDeleteExecution: (id: number) => void;
 }
 
-export const ModalsManager = forwardRef<ModalsManagerRef, ModalsManagerProps>(
+export const NewModalsManager = forwardRef<
+  NewModalsManagerRef,
+  NewModalsManagerProps
+>(
   (
     {
       handleReject,
@@ -137,6 +140,6 @@ export const ModalsManager = forwardRef<ModalsManagerRef, ModalsManagerProps>(
   },
 );
 
-ModalsManager.displayName = "ModalsManager";
+NewModalsManager.displayName = "NewModalsManager";
 
-export default memo(ModalsManager);
+export default memo(NewModalsManager);

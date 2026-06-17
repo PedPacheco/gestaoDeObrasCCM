@@ -111,6 +111,10 @@ export default async function Details({ params }: DetailsParams) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
+  const userInfo = cookieStore.get("userInfo")?.value;
+
+  const user = userInfo ? JSON.parse(userInfo) : null;
+
   // Buscar todos os dados em paralelo
   const [
     options,
@@ -129,12 +133,12 @@ export default async function Details({ params }: DetailsParams) {
   const { data } = workData;
   const formattedData = processWorkData(data);
 
-  const hasSchedules =
-    Array.isArray(data?.programacoes) && data.programacoes.length > 0;
+  const userPermissionToEdit =
+    (user.tipo_usuario === "PARCEIRO" && user.id_turma === 2) ||
+    (user.tipo_usuario === "INTERNO" && user.id_regional === 1) ||
+    user.is_admin;
 
-  const hasExecution = data.executado != null && Number(data.executado) > 0;
-
-  const useNewFlow = !hasSchedules && !hasExecution;
+  const useNewFlow = data.programacao_ponto_a_ponto && userPermissionToEdit;
 
   const tabPanelProps = {
     workData: data,

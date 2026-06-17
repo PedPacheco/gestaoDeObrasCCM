@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
 
 import {
   WORKS_SERVICE_REPOSITORY,
@@ -6,7 +7,6 @@ import {
 } from 'src/domain/repositories/IWorksServiceRepository';
 
 import { ScheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
-import { WorksServicesService } from 'src/application/services/worksServices.service';
 
 describe('WorksServicesService', () => {
   let service: WorksServicesService;

@@ -21,7 +21,7 @@ import { Button, Tab, Tabs } from "@mui/material";
 
 import { NewScheduleSection } from "./scheduleSection/newScheduleSection";
 import { NewServicesAvaliable } from "./servicesSection/servicesAvaliable";
-import { ScheduleSidebar } from "./scheduleSidebar";
+import { ScheduleSidebar } from "./scheduleSidebar/scheduleSidebar";
 import { ScheduleTopbar } from "./scheduleTopbar";
 import {
   AddServiceForm,
@@ -78,6 +78,10 @@ export function EditSchedule({
   const [activeTab, setActiveTab] = useState<TabId>("scheduled");
   const [scheduledServices, setScheduledServices] = useState<any[]>([]);
   const [openConfirmationModal, setOpenConfirmationModal] = useState(false);
+
+  const [servicesAvaliable, setServicesAvaliable] = useState<any[]>(
+    servicesData || [],
+  );
 
   const scheduleForm = useScheduleForm({ data: scheduleData, options, idWork });
 
@@ -161,6 +165,11 @@ export function EditSchedule({
     };
 
     handleSubmit(data);
+  };
+
+  const clearScheduledServices = () => {
+    setServicesAvaliable(servicesData);
+    setScheduledServices([]);
   };
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -248,7 +257,8 @@ export function EditSchedule({
               {/* Conteúdo principal — scrollável */}
               <div className="flex-1 p-5 h-full max-w-[70%] 2xl:max-w-full">
                 <NewServicesAvaliable
-                  servicesData={servicesData}
+                  servicesData={servicesAvaliable}
+                  setServicesData={setServicesAvaliable}
                   availableServices={serviceFilters.services}
                   operations={serviceFilters.operations}
                   points={serviceFilters.points}
@@ -300,6 +310,8 @@ export function EditSchedule({
                   <ScheduleSidebar
                     selectedServices={scheduledServices}
                     setSelectedServices={setScheduledServices}
+                    clearScheduledServices={clearScheduledServices}
+                    setServicesData={setServicesAvaliable}
                     servicesData={servicesData}
                     selectedCount={workflow.selectedCount}
                     canCreate={workflow.canCreate}

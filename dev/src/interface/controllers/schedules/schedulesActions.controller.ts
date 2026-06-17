@@ -6,6 +6,7 @@ import { AreaEditGuard } from 'src/core/guards/newPermission.guard';
 import {
   ConfirmSchedulesDTO,
   CreateScheduleWithServicesDTO,
+  NewSchedulesDataDTO,
   RejectScheduleDTO,
   SchedulesDataDTO,
   UpdateSchedulesDataDTO,
@@ -124,6 +125,31 @@ export class SchedulesActionsController {
 
   @Patch(':id/ponto-a-ponto')
   @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
+  async updateSchedules(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() schedulesData: NewSchedulesDataDTO,
+    @Req() req: any,
+  ) {
+    let permission: boolean;
+
+    if (req.insufficientPermission !== undefined) {
+      permission = req.insufficientPermission;
+    }
+
+    const idUser = req.user.sub;
+
+    const data = { id, idUser, ...schedulesData };
+
+    await this.handleSchedulesUpdateService.newUpdate(data, permission);
+
+    return {
+      statusCode: HttpStatus.NO_CONTENT,
+      message: 'Atualização da programação feita com sucesso',
+    };
+  }
+
+  @Patch(':id')
+  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   @UseInterceptors(FilesInterceptor('files'))
   async oldUpdateSchedules(
     @Param('id', ParseIntPipe) id: number,
@@ -149,32 +175,7 @@ export class SchedulesActionsController {
       }),
     };
 
-    await this.handleSchedulesUpdateService.newUpdate(data, permission, files);
-
-    return {
-      statusCode: HttpStatus.NO_CONTENT,
-      message: 'Atualização da programação feita com sucesso',
-    };
-  }
-
-  @Patch(':id')
-  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
-  async updateSchedules(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() schedulesData: SchedulesDataDTO,
-    @Req() req: any,
-  ) {
-    let permission: boolean;
-
-    if (req.insufficientPermission !== undefined) {
-      permission = req.insufficientPermission;
-    }
-
-    const idUser = req.user.sub;
-
-    const data = { id, idUser, ...schedulesData };
-
-    await this.handleSchedulesUpdateService.update(data, permission);
+    await this.handleSchedulesUpdateService.oldUpdate(data, permission, files);
 
     return {
       statusCode: HttpStatus.NO_CONTENT,

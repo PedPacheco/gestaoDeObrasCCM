@@ -1,11 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { WorksServicesService } from 'src/application/services/worksServices.service';
 import { HandleAddScheduleService } from 'src/application/usecases/orchestrators/handleAddSchedule.service';
 import { AddSchedulesService } from 'src/application/usecases/schedule/addSchedules.service';
+import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { CreateScheduleWithServicesDTO } from 'src/interface/dtos/scheduleDTO';
+import {
+  CreateScheduleWithServicesDTO,
+  SchedulesDataDTO,
+} from 'src/interface/dtos/scheduleDTO';
 
 describe('HandleAddScheduleService', () => {
   let service: HandleAddScheduleService;
@@ -16,6 +19,7 @@ describe('HandleAddScheduleService', () => {
 
   const mockAddSchedulesService = {
     add: jest.fn(),
+    newAdd: jest.fn(),
   };
 
   const mockStatusFlowRepository = {
@@ -50,7 +54,7 @@ describe('HandleAddScheduleService', () => {
 
   afterEach(jest.clearAllMocks);
 
-  describe('add', () => {
+  describe('newAdd', () => {
     it('should add schedule and update work status within a transaction', async () => {
       const data: CreateScheduleWithServicesDTO = {
         schedule: {
@@ -63,7 +67,7 @@ describe('HandleAddScheduleService', () => {
 
       mockWorksServicesService.calculateScheduledProgress.mockResolvedValue(80);
 
-      await service.add(data);
+      await service.newAdd(data);
 
       expect(mockAddSchedulesService.add).toHaveBeenCalledWith(
         {
@@ -75,6 +79,28 @@ describe('HandleAddScheduleService', () => {
       expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
         43,
         data.schedule.idWork,
+        expect.any(Object),
+      );
+    });
+  });
+
+  describe('add', () => {
+    it('should add schedule and update work status within a transaction', async () => {
+      const data: SchedulesDataDTO = {
+        idWork: 123,
+      } as any;
+
+      mockPrisma.$transaction.mockImplementation(async (cb) => cb({}));
+
+      await service.add(data);
+
+      expect(mockAddSchedulesService.add).toHaveBeenCalledWith(
+        data,
+        expect.any(Object),
+      );
+      expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
+        43,
+        data.idWork,
         expect.any(Object),
       );
     });

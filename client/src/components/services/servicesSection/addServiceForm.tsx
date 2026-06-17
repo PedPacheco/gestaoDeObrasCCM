@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import clsx from "clsx";
+import { useCallback, useState } from "react";
 
+import { ButtonComponent } from "@/components/common/Button";
+import { FormatCurrency } from "@/utils/formatValue";
+import { PlusIcon } from "@heroicons/react/20/solid";
 import {
   Autocomplete,
-  Button,
   FormControl,
   InputLabel,
   MenuItem,
@@ -12,9 +15,7 @@ import {
   TextField,
 } from "@mui/material";
 
-import { PlusIcon } from "@heroicons/react/20/solid";
 import { ServicesContractSelect } from "./servicesContractSelect";
-import { ButtonComponent } from "@/components/common/Button";
 
 export type ServiceContract = {
   id: number;
@@ -115,16 +116,47 @@ export function AddServiceForm({
           getOptionLabel={(s) => s.texto_breve}
           ListboxComponent={ServicesContractSelect}
           renderOption={(props, s) => {
-            const { key, ...other } = props;
+            const { key, className, ...other } = props;
             return (
-              <li key={key} {...other}>
-                <div className="flex flex-col">
-                  <strong>{s.texto_breve}</strong>
-                  <small>Material: {s.material}</small>
-                  <small>Preço: {s.preco}</small>
-                  <small>Contrato: {s.contrato}</small>
-                  <small>Unidade: {s.medida}</small>
-                  <small>Turma: {s.turmas.turma}</small>
+              <li
+                key={key}
+                {...other}
+                className={clsx(
+                  className,
+                  "!mx-2 !rounded-lg !border !border-gray-200 !p-3 transition-all hover:!bg-blue-50 hover:!border-blue-300",
+                )}
+              >
+                <div className="flex w-full flex-col">
+                  {/* Título */}
+                  <span className="text-sm font-semibold text-gray-800">
+                    {s.texto_breve}
+                  </span>
+
+                  {/* Linha de detalhes */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                      💲 {FormatCurrency(Number(s.preco))}
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                      📄 {s.contrato}
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
+                      👥 {s.turmas.turma}
+                    </span>
+                  </div>
+
+                  {/* Info secundária */}
+                  <div className="flex items-center gap-3 text-xs text-gray-500">
+                    <span>
+                      <strong className="text-gray-600">Material:</strong>{" "}
+                      {s.material}
+                    </span>
+                    <span className="text-gray-300">|</span>
+                    <span>
+                      <strong className="text-gray-600">Unidade:</strong>{" "}
+                      {s.medida}
+                    </span>
+                  </div>
                 </div>
               </li>
             );

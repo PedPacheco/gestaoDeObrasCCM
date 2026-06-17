@@ -1,14 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpStatus } from '@nestjs/common';
 
-import { WorksServicesService } from 'src/application/services/worksServices.service';
 import { ServicesController } from 'src/interface/controllers/worksServices.controller';
 import {
   FinalizeServicesDTO,
   ScheduleServicesDTO,
 } from 'src/interface/dtos/workServicesDTO';
-import { QueriesServicesService } from 'src/application/services/queriesServices.service';
-import { FinalizeServicesService } from 'src/application/services/finalizeServices.service';
+import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
+import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
+import { FinalizeServicesService } from 'src/application/usecases/services/finalizeServices.service';
 
 describe('ServicesController', () => {
   let controller: ServicesController;

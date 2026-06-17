@@ -4,6 +4,7 @@ import ErrorModal from "@/components/common/ErrorModal";
 import { AccordionPanel } from "@/components/executionReport/accordionPanel";
 import { useUser } from "@/contexts/userContext";
 import { useOldScheduleForm } from "@/hooks/details/useOldScheduleForm";
+import { useOldScheduleSubmit } from "@/hooks/details/useOldScheduleSubmit";
 import { OldSchedulesSchema } from "@/validations/oldValidationSchedules";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import {
@@ -24,7 +25,6 @@ import { BasicInfoPanel } from "./basicInfoPanel";
 import { RestrictionsPanel } from "./restrictionsPanel";
 import { ServiceEquipmentPanel } from "./serviceEquipmentPanel";
 import { TeamsPanel } from "./teamsPanel";
-import { useOldScheduleSubmit } from "@/hooks/details/useOldScheduleSubmit";
 
 export type ScheduleFormHookReturn = ReturnType<typeof useOldScheduleForm>;
 

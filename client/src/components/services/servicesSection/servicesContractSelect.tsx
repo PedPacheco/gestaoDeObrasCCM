@@ -7,11 +7,12 @@ type ListboxProps = React.ComponentProps<"ul">;
 
 const StyledListbox = styled("ul")({
   margin: 0,
-  padding: 0,
+  padding: "8px 0",
   listStyle: "none",
-  maxHeight: 300,
-  overflow: "auto",
+  maxHeight: 460,
+  overflow: "hidden",
   position: "relative",
+  backgroundColor: "#fff",
 });
 
 export const ServicesContractSelect = React.forwardRef<
@@ -23,22 +24,24 @@ export const ServicesContractSelect = React.forwardRef<
   const items = React.Children.toArray(children);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const ITEM_SIZE = 160;
-
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => scrollRef.current,
-    estimateSize: () => ITEM_SIZE,
+    estimateSize: () => 150, // estimativa inicial (não precisa ser exata)
     overscan: 5,
   });
 
   return (
-    <StyledListbox ref={ref} {...other}>
+    <StyledListbox
+      ref={ref}
+      {...other}
+      style={{ ...other.style, overflow: "hidden", maxHeight: 460 }}
+    >
       <div
         ref={scrollRef}
         style={{
-          height: Math.min(items.length * ITEM_SIZE, 300),
-          maxHeight: 300,
+          height: "100%",
+          maxHeight: 460,
           overflow: "auto",
           position: "relative",
         }}
@@ -53,6 +56,8 @@ export const ServicesContractSelect = React.forwardRef<
           {virtualizer.getVirtualItems().map((vr) => (
             <div
               key={vr.key}
+              data-index={vr.index}
+              ref={virtualizer.measureElement}
               style={{
                 position: "absolute",
                 top: vr.start,

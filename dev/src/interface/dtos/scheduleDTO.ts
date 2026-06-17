@@ -7,6 +7,7 @@ import {
   IsOptional,
   IsString,
   Matches,
+  Min,
   ValidateNested,
 } from 'class-validator';
 import { convertParameterValue } from 'src/utils/convertParameterValue';
@@ -210,7 +211,7 @@ export class RejectScheduleDTO {
   description: string;
 }
 
-export class SchedulesDataDTO {
+export class NewSchedulesDataDTO {
   @IsNumber()
   idWork: number;
 
@@ -330,10 +331,171 @@ export class SchedulesDataDTO {
   confirmed?: boolean;
 }
 
+export class SchedulesDataDTO {
+  @IsNumber()
+  idWork: number;
+
+  @IsDate()
+  @Type(() => Date)
+  dataProg: Date;
+
+  @IsString()
+  @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+    message: 'horario deve estar no formato HH:mm (ex: 14:30)',
+  })
+  startTime: string;
+
+  @IsString()
+  @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+    message: 'horario deve estar no formato HH:mm (ex: 14:30)',
+  })
+  finishTime: string;
+
+  @IsOptional()
+  @IsString()
+  serviceType?: string;
+
+  @IsNumber()
+  @Type()
+  @Min(1)
+  prog: number;
+
+  @IsOptional()
+  @IsNumber({}, { message: 'Progresso executado deve ser um número válido' })
+  @Transform(({ value }) => {
+    if (
+      value === '' ||
+      value === null ||
+      value === undefined ||
+      value === 'null'
+    ) {
+      return null;
+    }
+
+    const parsed = Number(value);
+    return parsed;
+  })
+  exec?: number;
+
+  @IsOptional()
+  @IsString()
+  observation?: string;
+
+  @IsOptional()
+  @IsString()
+  equipment?: string;
+
+  @IsOptional()
+  @IsNumber()
+  chi?: number;
+
+  @IsOptional()
+  @IsString()
+  numDp?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  temporaryKey?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  lmTeam?: number;
+
+  @IsOptional()
+  @IsNumber()
+  regulTeam?: number;
+
+  @IsOptional()
+  @IsNumber()
+  lvTeam?: number;
+
+  @IsOptional()
+  @IsNumber()
+  idTechnical?: number;
+
+  @IsOptional()
+  @IsNumber()
+  idExecutionRestriction?: number;
+
+  @IsOptional()
+  @IsString()
+  responsibility?: string;
+
+  @IsOptional()
+  @IsString()
+  executionObservation?: string;
+
+  @IsNumber()
+  idProgRestriction1: number;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsibilityProg?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsibleName?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsibleArea?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  restrictionStatus?: string;
+
+  @IsDate()
+  @Type(() => Date)
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  resolutionDate?: Date;
+
+  @IsNumber()
+  idProgRestriction2: number;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsibilityProg2?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsibleName2?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  responsibleArea2?: string;
+
+  @IsString()
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  restrictionStatus2?: string;
+
+  @IsDate()
+  @Type(() => Date)
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? null : value))
+  resolutionDate2?: Date;
+
+  @IsBoolean()
+  @IsOptional()
+  validated?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  confirmed?: boolean;
+}
+
 export class CreateScheduleWithServicesDTO {
   @ValidateNested()
-  @Type(() => SchedulesDataDTO)
-  schedule: SchedulesDataDTO;
+  @Type(() => NewSchedulesDataDTO)
+  schedule: NewSchedulesDataDTO;
 
   @IsArray()
   @ValidateNested({ each: true })

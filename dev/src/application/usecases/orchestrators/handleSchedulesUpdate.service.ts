@@ -19,7 +19,7 @@ export class HandleSchedulesUpdateService {
     private readonly getDetailsWorkService: GetWorkDetailsService,
   ) {}
 
-  async update(data: any, permission: boolean) {
+  async newUpdate(data: any, permission: boolean) {
     const work = await this.getDetailsWorkService.get(data.idWork);
 
     if ([2, 3, 4, 37, 42].includes(work.id_status) && permission) {
@@ -37,7 +37,7 @@ export class HandleSchedulesUpdateService {
     });
   }
 
-  async newUpdate(
+  async oldUpdate(
     data: any,
     permission: boolean,
     files?: Express.Multer.File[],

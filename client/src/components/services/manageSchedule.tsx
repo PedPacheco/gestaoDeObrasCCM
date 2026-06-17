@@ -11,7 +11,7 @@ import { schedulesSchema } from "@/validations/validationSchedules";
 
 import { EditSchedule } from "./editSchedule";
 import { NewScheduleSection } from "./scheduleSection/newScheduleSection";
-import { ScheduleSidebar } from "./scheduleSidebar";
+import { ScheduleSidebar } from "./scheduleSidebar/scheduleSidebar";
 import { ScheduleTopbar } from "./scheduleTopbar";
 import { ServiceContract } from "./servicesSection/addServiceForm";
 import { NewServicesAvaliable } from "./servicesSection/servicesAvaliable";
@@ -60,13 +60,16 @@ export function NewManageSchedule({
   const router = useRouter();
   const { showError, showSuccess } = useFeedback();
 
-  const [scheduledServices, setScheduledService] = useState<any[]>([]);
+  const [selectedServices, setSelectedServices] = useState<any[]>([]);
+  const [servicesAvaliable, setServicesAvaliable] = useState<any[]>(
+    servicesData || [],
+  );
 
   const [isPending, startTransition] = useTransition();
 
   const scheduleForm = useScheduleForm({ data: scheduleData, options, idWork });
 
-  const workflow = useScheduleWorkflow({ selectedServices: scheduledServices });
+  const workflow = useScheduleWorkflow({ selectedServices: selectedServices });
 
   const isDisabled = statusSchedule
     ? disabledStatus.includes(statusSchedule)
@@ -85,12 +88,12 @@ export function NewManageSchedule({
       return;
     }
 
-    if (scheduledServices.length === 0) {
+    if (selectedServices.length === 0) {
       showError("Selecione ao menos um serviço para criar a programação");
       return;
     }
 
-    const formattedService = scheduledServices.map((service) => ({
+    const formattedService = selectedServices.map((service) => ({
       id: service.id,
       idTeam: service.idTeam,
       prog: service.prog,
@@ -111,18 +114,24 @@ export function NewManageSchedule({
           return;
         }
 
-        showSuccess(response.message, () => router.refresh());
+        showSuccess(response.message, () => router.push(`/detalhes/${idWork}`));
       } catch {
         showError("Erro inesperado ao salvar a programação");
       }
     });
   }, [
     scheduleForm.formData,
-    scheduledServices,
-    showSuccess,
+    selectedServices,
     showError,
+    showSuccess,
     router,
+    idWork,
   ]);
+
+  const clearScheduledServices = () => {
+    setServicesAvaliable(servicesData);
+    setSelectedServices([]);
+  };
 
   // ─── Modo edição: delega ao layout específico ──────────────
 
@@ -165,11 +174,12 @@ export function NewManageSchedule({
 
               <div className="h-[760px]">
                 <NewServicesAvaliable
-                  servicesData={servicesData}
+                  servicesData={servicesAvaliable}
+                  setServicesData={setServicesAvaliable}
                   availableServices={serviceFilters.services}
                   operations={serviceFilters.operations}
                   points={serviceFilters.points}
-                  setScheduledServices={setScheduledService}
+                  setScheduledServices={setSelectedServices}
                   isInsert={isInsert}
                   teams={serviceTeams}
                   isDisabled={isDisabled}
@@ -182,9 +192,11 @@ export function NewManageSchedule({
 
           <div className="min-h-0 flex-1 w-full overflow-hidden">
             <ScheduleSidebar
-              selectedServices={scheduledServices}
-              setSelectedServices={setScheduledService}
+              selectedServices={selectedServices}
+              setSelectedServices={setSelectedServices}
+              clearScheduledServices={clearScheduledServices}
               servicesData={servicesData}
+              setServicesData={setServicesAvaliable}
               selectedCount={workflow.selectedCount}
               canCreate={workflow.canCreate}
               isPending={isPending}

@@ -3,6 +3,10 @@ import { GET_WORKS_DETAILS_REPOSITORY } from 'src/domain/repositories/works/IGet
 
 import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import {
+  mockGetWorkDetailsRepositoryQueryResponse,
+  mockGetWorkDetailsRepositoryResponse,
+} from '../../../mocks/works/mockGetWorkDetails';
 
 describe('GetWorkDetailsService', () => {
   let getWorkDetailsService: GetWorkDetailsService;

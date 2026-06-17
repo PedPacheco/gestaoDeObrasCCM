@@ -8,15 +8,15 @@ import { UpdateSchedulesService } from 'src/application/usecases/schedule/update
 import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/schedule/validateAndConfirmSchedules.service';
 import { UsersService } from 'src/application/usecases/users.service';
 import { SchedulesActionsController } from 'src/interface/controllers/schedules/schedulesActions.controller';
-import {
-  SchedulesDataDTO,
-  UpdateSchedulesDataDTO,
-} from 'src/interface/dtos/scheduleDTO';
+import { SchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
-import { mockUpdateSchedulesController } from '../../../mocks/mockAddScheduleService';
+import {
+  mockNewUpdateSchedulesService,
+  mockUpdateSchedulesController,
+} from '../../../mocks/schedules/mockUpdateSchedules';
 import { ForecastSnapshotService } from 'src/application/usecases/forecastSnapshot.service';
 
 describe('ScheduleActionsController', () => {
@@ -43,7 +43,10 @@ describe('ScheduleActionsController', () => {
         { provide: DeleteSchedulesService, useValue: { delete: jest.fn() } },
         { provide: UsersService, useValue: { findUser: jest.fn() } },
         { provide: ExecutionReportService, useValue: { create: jest.fn() } },
-        { provide: HandleAddScheduleService, useValue: { add: jest.fn() } },
+        {
+          provide: HandleAddScheduleService,
+          useValue: { add: jest.fn(), newAdd: jest.fn() },
+        },
         {
           provide: ValidateConfirmAndRejectSchedulesService,
           useValue: {
@@ -54,7 +57,7 @@ describe('ScheduleActionsController', () => {
         },
         {
           provide: HandleSchedulesUpdateService,
-          useValue: { update: jest.fn() },
+          useValue: { newUpdate: jest.fn(), oldUpdate: jest.fn() },
         },
         {
           provide: ForecastSnapshotService,
@@ -85,12 +88,12 @@ describe('ScheduleActionsController', () => {
     expect(SchedulesActionsController).toBeDefined();
   });
 
-  it('Should call addSchedules and return message', async () => {
-    jest.spyOn(handleAddScheduleService, 'add').mockResolvedValue(1);
+  it('Should call newAddSchedules and return message', async () => {
+    jest.spyOn(handleAddScheduleService, 'newAdd').mockResolvedValue(1);
 
     const date = new Date('2025-06-10T00:00:00.000Z');
 
-    const result = await scheduleActionsController.addSchedules(
+    const result = await scheduleActionsController.newAddSchedules(
       {
         schedule: {
           idWork: 3146044,
@@ -112,7 +115,7 @@ describe('ScheduleActionsController', () => {
       statusCode: HttpStatus.CREATED,
       message: 'Programação inserida com sucesso',
     });
-    expect(handleAddScheduleService.add).toHaveBeenCalledWith({
+    expect(handleAddScheduleService.newAdd).toHaveBeenCalledWith({
       schedule: {
         idWork: 3146044,
         dataProg: date,
@@ -128,12 +131,49 @@ describe('ScheduleActionsController', () => {
     });
   });
 
-  describe('UpdateSchedules', () => {
-    it('Should call updateSchedules and return message', async () => {
-      jest.spyOn(handleSchedulesUpdateService, 'update').mockResolvedValue();
+  it('Should call addSchedules and return message', async () => {
+    jest.spyOn(handleAddScheduleService, 'add').mockResolvedValue();
 
-      const result = await scheduleActionsController.updateSchedules(
+    const date = new Date('2025-06-10T00:00:00.000Z');
+
+    const result = await scheduleActionsController.addSchedules(
+      {
+        idWork: 3146044,
+        dataProg: date,
+        startTime: '08:00',
+        finishTime: '07:00',
+        serviceType: 'Inspeção Elétrica',
+        prog: 100,
+        idProgRestriction1: 1,
+        idProgRestriction2: 1,
+      },
+      mockReq,
+    );
+
+    expect(result).toEqual({
+      statusCode: HttpStatus.CREATED,
+      message: 'Programação inserida com sucesso',
+    });
+    expect(handleAddScheduleService.add).toHaveBeenCalledWith({
+      idWork: 3146044,
+      dataProg: date,
+      startTime: '08:00',
+      finishTime: '07:00',
+      serviceType: 'Inspeção Elétrica',
+      prog: 100,
+      idProgRestriction1: 1,
+      idProgRestriction2: 1,
+      idUser: 1,
+    });
+  });
+
+  describe('oldUpdateSchedules', () => {
+    it('Should call updateSchedules and return message', async () => {
+      jest.spyOn(handleSchedulesUpdateService, 'oldUpdate').mockResolvedValue();
+
+      const result = await scheduleActionsController.oldUpdateSchedules(
         1,
+        [],
         mockUpdateSchedulesController,
         mockReq,
       );
@@ -142,21 +182,29 @@ describe('ScheduleActionsController', () => {
         statusCode: HttpStatus.NO_CONTENT,
         message: 'Atualização da programação feita com sucesso',
       });
-      expect(handleSchedulesUpdateService.update).toHaveBeenCalledWith(
+      expect(handleSchedulesUpdateService.oldUpdate).toHaveBeenCalledWith(
         {
-          id: 1,
-          idUser: 1,
-          ...mockUpdateSchedulesController,
+          updateData: {
+            id: 1,
+            idUser: 1,
+            ...mockUpdateSchedulesController.updateData,
+          },
+          executionReportData: {
+            idUser: 1,
+            ...mockUpdateSchedulesController.executionReportData,
+          },
         },
         true,
+        [],
       );
     });
 
     it('Should call update method and return correct data', async () => {
-      jest.spyOn(handleSchedulesUpdateService, 'update').mockResolvedValue();
+      jest.spyOn(handleSchedulesUpdateService, 'oldUpdate').mockResolvedValue();
 
-      const result = await scheduleActionsController.updateSchedules(
+      const result = await scheduleActionsController.oldUpdateSchedules(
         1,
+        [],
         mockUpdateSchedulesController,
         { ...mockReq, insufficientPermission: undefined },
       );
@@ -165,11 +213,66 @@ describe('ScheduleActionsController', () => {
         statusCode: HttpStatus.NO_CONTENT,
         message: 'Atualização da programação feita com sucesso',
       });
-      expect(handleSchedulesUpdateService.update).toHaveBeenCalledWith(
+      expect(handleSchedulesUpdateService.oldUpdate).toHaveBeenCalledWith(
+        {
+          updateData: {
+            id: 1,
+            idUser: 1,
+            ...mockUpdateSchedulesController.updateData,
+          },
+          executionReportData: {
+            idUser: 1,
+            ...mockUpdateSchedulesController.executionReportData,
+          },
+        },
+        undefined,
+        [],
+      );
+    });
+  });
+
+  describe('newUpdateSchedules', () => {
+    it('Should call updateSchedules and return message', async () => {
+      jest.spyOn(handleSchedulesUpdateService, 'newUpdate').mockResolvedValue();
+
+      const result = await scheduleActionsController.updateSchedules(
+        1,
+        mockNewUpdateSchedulesService,
+        mockReq,
+      );
+
+      expect(result).toEqual({
+        statusCode: HttpStatus.NO_CONTENT,
+        message: 'Atualização da programação feita com sucesso',
+      });
+      expect(handleSchedulesUpdateService.newUpdate).toHaveBeenCalledWith(
         {
           id: 1,
           idUser: 1,
-          ...mockUpdateSchedulesController,
+          ...mockNewUpdateSchedulesService,
+        },
+        true,
+      );
+    });
+
+    it('Should call update method and return correct data', async () => {
+      jest.spyOn(handleSchedulesUpdateService, 'newUpdate').mockResolvedValue();
+
+      const result = await scheduleActionsController.updateSchedules(
+        1,
+        mockNewUpdateSchedulesService,
+        { ...mockReq, insufficientPermission: undefined },
+      );
+
+      expect(result).toEqual({
+        statusCode: HttpStatus.NO_CONTENT,
+        message: 'Atualização da programação feita com sucesso',
+      });
+      expect(handleSchedulesUpdateService.newUpdate).toHaveBeenCalledWith(
+        {
+          id: 1,
+          idUser: 1,
+          ...mockNewUpdateSchedulesService,
         },
         undefined,
       );

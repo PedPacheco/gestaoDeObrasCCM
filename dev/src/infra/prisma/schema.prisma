@@ -220,75 +220,76 @@ model municipios {
 }
 
 model obras {
-  id                       Int                        @id(map: "OBRAS_pkey") @default(autoincrement())
-  ovnota                   String                     @db.VarChar(12)
-  pep                      String?                    @db.VarChar(8)
-  diagrama                 String?                    @db.VarChar(12)
-  ordem_dci                String?                    @db.VarChar(12)
-  ordem_dcd                String?                    @db.VarChar(12)
-  ordem_dca                String?                    @db.VarChar(12)
-  ordem_dcim               String?                    @db.VarChar(12)
-  status_ov_sap            Int?
-  status_pep               String?                    @db.VarChar(4)
-  status_diagrama          String?                    @db.VarChar(4)
-  status_170               String?                    @db.VarChar(4)
-  status_190               String?                    @db.VarChar(4)
-  status_150               String?                    @db.VarChar(4)
-  status_180               String?                    @db.VarChar(4)
-  status_usuario_diagrama  String?                    @db.VarChar(16)
-  status_usuario_170       String?                    @db.VarChar(16)
-  status_usuario_190       String?                    @db.VarChar(16)
-  status_usuario_150       String?                    @db.VarChar(16)
-  status_usuario_180       String?                    @db.VarChar(16)
-  id_gpm                   Int
-  id_tipo                  Int
-  entrada                  DateTime                   @db.Date
-  prazo                    Int
-  qtde_planejada           Float?
-  id_circuito              Int
-  mo_planejada             Float?
-  mo_final                 Float?
-  observ_obra              String?                    @db.VarChar(255)
-  id_turma                 Int
-  executado                Int?
-  data_conclusao           DateTime?                  @db.Date
-  id_status                Int                        @default(42)
-  referencia               String?                    @db.VarChar(14)
-  capex_mat_plan           Float?
-  capex_mo_plan            Float?
-  capex_mat_pend           Float?
-  capex_mo_pend            Float?
-  qtde_pend                Float?
-  tipo_ads                 String?                    @db.VarChar(50)
-  data_empreitamento       DateTime?                  @db.Date
-  id_empreendimento        Int
-  diagrama_antigo          String?                    @db.VarChar(12)
-  ordem_dci_antigo         String?                    @db.VarChar(12)
-  ordem_dcd_antigo         String?                    @db.VarChar(12)
-  ordem_dca_antigo         String?                    @db.VarChar(12)
-  ordem_dcim_antigo        String?                    @db.VarChar(12)
-  ano_plan                 Int?
-  data_viabilidade         DateTime?                  @db.Date
-  prazo_viabilidade        String?                    @default("FALTA VIABILIDADE") @db.VarChar(40)
-  mo_pend                  Float?
-  cn52n                    cn52n[]
-  notas_d5                 notas_d5[]
-  circuitos                circuitos                  @relation(fields: [id_circuito], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_circuitos")
-  empreendimento           empreendimento             @relation(fields: [id_empreendimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_empreendimento")
-  municipios               municipios                 @relation(fields: [id_gpm], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_municipio")
-  turmas                   turmas                     @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceiras")
-  status                   status                     @relation(fields: [id_status], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_status")
-  status_sap               status_sap?                @relation(fields: [status_ov_sap], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_statussap")
-  tipos                    tipos                      @relation(fields: [id_tipo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tipos")
-  programacoes             programacoes[]
-  programacoes_reprovacoes programacoes_reprovacoes[]
-  relatorio                relatorio[]
-  relatorio_execucao       relatorio_execucao[]
-  relatorio_viabilidade    relatorio_viabilidade[]
-  restricoes_publicacoes   restricoes_publicacoes[]
-  servicos                 servicos[]
-  suspensoes               suspensoes[]
-  suspensoes_retiradas     suspensoes_retiradas[]
+  id                        Int                        @id(map: "OBRAS_pkey") @default(autoincrement())
+  ovnota                    String                     @db.VarChar(12)
+  pep                       String?                    @db.VarChar(8)
+  diagrama                  String?                    @db.VarChar(12)
+  ordem_dci                 String?                    @db.VarChar(12)
+  ordem_dcd                 String?                    @db.VarChar(12)
+  ordem_dca                 String?                    @db.VarChar(12)
+  ordem_dcim                String?                    @db.VarChar(12)
+  status_ov_sap             Int?
+  status_pep                String?                    @db.VarChar(4)
+  status_diagrama           String?                    @db.VarChar(4)
+  status_170                String?                    @db.VarChar(4)
+  status_190                String?                    @db.VarChar(4)
+  status_150                String?                    @db.VarChar(4)
+  status_180                String?                    @db.VarChar(4)
+  status_usuario_diagrama   String?                    @db.VarChar(16)
+  status_usuario_170        String?                    @db.VarChar(16)
+  status_usuario_190        String?                    @db.VarChar(16)
+  status_usuario_150        String?                    @db.VarChar(16)
+  status_usuario_180        String?                    @db.VarChar(16)
+  id_gpm                    Int
+  id_tipo                   Int
+  entrada                   DateTime                   @db.Date
+  prazo                     Int
+  qtde_planejada            Float?
+  id_circuito               Int
+  mo_planejada              Float?
+  mo_final                  Float?
+  observ_obra               String?                    @db.VarChar(255)
+  id_turma                  Int
+  executado                 Int?
+  data_conclusao            DateTime?                  @db.Date
+  id_status                 Int                        @default(42)
+  referencia                String?                    @db.VarChar(14)
+  capex_mat_plan            Float?
+  capex_mo_plan             Float?
+  capex_mat_pend            Float?
+  capex_mo_pend             Float?
+  qtde_pend                 Float?
+  tipo_ads                  String?                    @db.VarChar(50)
+  data_empreitamento        DateTime?                  @db.Date
+  id_empreendimento         Int
+  diagrama_antigo           String?                    @db.VarChar(12)
+  ordem_dci_antigo          String?                    @db.VarChar(12)
+  ordem_dcd_antigo          String?                    @db.VarChar(12)
+  ordem_dca_antigo          String?                    @db.VarChar(12)
+  ordem_dcim_antigo         String?                    @db.VarChar(12)
+  ano_plan                  Int?
+  data_viabilidade          DateTime?                  @db.Date
+  prazo_viabilidade         String?                    @default("FALTA VIABILIDADE") @db.VarChar(40)
+  mo_pend                   Float?
+  programacao_ponto_a_ponto Boolean?
+  cn52n                     cn52n[]
+  notas_d5                  notas_d5[]
+  circuitos                 circuitos                  @relation(fields: [id_circuito], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_circuitos")
+  empreendimento            empreendimento             @relation(fields: [id_empreendimento], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_empreendimento")
+  municipios                municipios                 @relation(fields: [id_gpm], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_municipio")
+  turmas                    turmas                     @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceiras")
+  status                    status                     @relation(fields: [id_status], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_status")
+  status_sap                status_sap?                @relation(fields: [status_ov_sap], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_statussap")
+  tipos                     tipos                      @relation(fields: [id_tipo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tipos")
+  programacoes              programacoes[]
+  programacoes_reprovacoes  programacoes_reprovacoes[]
+  relatorio                 relatorio[]
+  relatorio_execucao        relatorio_execucao[]
+  relatorio_viabilidade     relatorio_viabilidade[]
+  restricoes_publicacoes    restricoes_publicacoes[]
+  servicos                  servicos[]
+  suspensoes                suspensoes[]
+  suspensoes_retiradas      suspensoes_retiradas[]
 }
 
 model programacoes {
@@ -771,8 +772,23 @@ model novo_tabela_usuarios {
   regionais                  regionais                @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regional")
   programacoes               programacoes[]
   usuario_ultima_atualizacao programacoes[]           @relation("usuario_ultima_atualizacao")
+  recursos_contingencia      recursos_contingencia[]
   relatorio_execucao         relatorio_execucao[]
   restricoes_publicacoes     restricoes_publicacoes[]
+}
+
+model recursos_contingencia {
+  id                    Int                   @id @default(autoincrement())
+  dia_disponibilidade   DateTime              @db.Date
+  parceira              String                @db.VarChar(100)
+  tipo_recurso_mao_obra String                @db.VarChar(100)
+  quantidade_mao_obra   Int                   @default(0)
+  tipo_recurso_equipe   String                @db.VarChar(100)
+  quantidade_equipe     Int                   @default(0)
+  disponibilizado_csd   String                @db.VarChar(100)
+  id_usuario            Int?
+  criado_em             DateTime?             @default(now()) @db.Timestamp(6)
+  novo_tabela_usuarios  novo_tabela_usuarios? @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_contingencia")
 }
 
 view exportacao_obras_executadas {

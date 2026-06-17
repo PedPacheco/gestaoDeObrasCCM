@@ -3,8 +3,8 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 
 import { storeScheduleDataAction } from "@/actions/services";
-import ModalsManager, {
-  ModalsManagerRef,
+import NewModalsManager, {
+  NewModalsManagerRef,
 } from "@/components/services/modalsManager";
 import { useScheduleHandlers } from "@/hooks/details/useScheduleHandlers";
 import { useUser } from "@/contexts/userContext";
@@ -63,7 +63,7 @@ export default function NewTabPanel({
   feasibilityExists,
 }: NewTabPanelProps) {
   const { permissions } = useUser();
-  const modalsRef = useRef<ModalsManagerRef>(null);
+  const modalsRef = useRef<NewModalsManagerRef>(null);
 
   const [value, setValue] = useState<number>(1);
   const [data, setData] = useState<Record<string, any>>(workData);
@@ -216,7 +216,7 @@ export default function NewTabPanel({
         </div>
       </div>
 
-      <ModalsManager
+      <NewModalsManager
         ref={modalsRef}
         rejectedSchedule={rejectedSchedule}
         handleReject={handleReject}

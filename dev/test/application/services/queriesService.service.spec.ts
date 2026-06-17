@@ -10,8 +10,8 @@ import {
   GetByIdParamsInterface,
   GetSelectedServicesParamsInterface,
 } from 'src/interface/types/servicesInterface';
-import { GetWorkDetailsService } from 'src/application/works/getWorkDetails.service';
-import { QueriesServicesService } from 'src/application/services/queriesServices.service';
+import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
+import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
 
 describe('WorksServicesService', () => {
   let service: QueriesServicesService;

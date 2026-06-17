@@ -87,6 +87,7 @@ export interface GetWorksDetailsResponse {
   tipo_ads: string | null;
   data_empreitamento: Date | null;
   ano_plan: number | null;
+  programacao_ponto_a_ponto: boolean | null;
   circuitos: { circuito: string; conjuntos: { conjunto: string | null } };
   empreendimento: { empreendimento: string | null };
   municipios: { municipio: string; regionais: { id: number } };

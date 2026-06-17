@@ -35,6 +35,7 @@ import { ButtonComponent } from "@/components/common/Button";
 
 interface ServicesAvaliableProps {
   servicesData: any[];
+  setServicesData: Dispatch<SetStateAction<any[]>>;
   points: string[];
   operations: string[];
   availableServices: any[];
@@ -59,6 +60,7 @@ const serviceColumns = [
 
 export function NewServicesAvaliable({
   servicesData,
+  setServicesData,
   availableServices,
   operations,
   points,
@@ -149,6 +151,11 @@ export function NewServicesAvaliable({
       return Array.from(map.values());
     });
 
+    const selectedIds = new Set(selectedServices.map((s: any) => s.id));
+    setServicesData((prev: any[]) =>
+      prev.filter((service: any) => !selectedIds.has(service.id)),
+    );
+
     setOpenTeamsModal(false);
     setSelectedServices([]); // opcional: limpa seleção após adicionar
   };
@@ -193,17 +200,27 @@ export function NewServicesAvaliable({
               {
                 label: "SERVIÇO",
                 field: "textoBreve",
-                options: availableServices,
+                options: availableServices.filter((item) => {
+                  return servicesData.some(
+                    (service) => service.texto_breve === item,
+                  );
+                }),
               },
               {
                 label: "OPERAÇÃO",
                 field: "operacao",
-                options: operations,
+                options: operations.filter((item) => {
+                  return servicesData.some(
+                    (service) => service.operacao === item,
+                  );
+                }),
               },
               {
                 label: "PONTO",
                 field: "ponto",
-                options: points,
+                options: points.filter((item) => {
+                  return servicesData.some((service) => service.ponto === item);
+                }),
               },
             ]}
             onFilter={setFilteredServicesData}

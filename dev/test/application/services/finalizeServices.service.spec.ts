@@ -1,12 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ExecutionReportService } from 'src/application/usecases/executionReport.service';
+import { ScheduleExecutionValidatorService } from 'src/application/usecases/schedule/scheduleExecutionValidator.service';
+import { FinalizeServicesService } from 'src/application/usecases/services/finalizeServices.service';
 
 import { WORKS_SERVICE_REPOSITORY } from 'src/domain/repositories/IWorksServiceRepository';
 
-import { ScheduleExecutionValidatorService } from 'src/application/schedule/scheduleExecutionValidator.service';
-import { ExecutionReportService } from 'src/application/executionReport.service';
 import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { FinalizeServicesService } from 'src/application/services/finalizeServices.service';
 
 describe('WorksServicesService', () => {
   let service: FinalizeServicesService;

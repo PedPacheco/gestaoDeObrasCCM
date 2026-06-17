@@ -61,6 +61,7 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
         tipo_ads: true,
         data_empreitamento: true,
         ano_plan: true,
+        programacao_ponto_a_ponto: true,
         circuitos: {
           select: {
             circuito: true,

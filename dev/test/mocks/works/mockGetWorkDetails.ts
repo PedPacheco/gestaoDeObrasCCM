@@ -35,6 +35,7 @@ export const mockGetWorkDetailsRepositoryQueryResponse = {
   capex_mo_plan: 74310.44331999999,
   tipo_ads: 'CONVENCIONAL',
   data_empreitamento: '2024-08-06T00:00:00.000Z',
+  programacao_ponto_a_ponto: true,
   circuitos: {
     circuito: 'CAC-1302',
     conjuntos: { conjunto: 'São josé' },
@@ -181,6 +182,7 @@ export const mockGetWorkDetailsRepositoryResponse = {
   capex_mo_plan: 74310.44331999999,
   tipo_ads: 'CONVENCIONAL',
   data_empreitamento: '2024-08-06T00:00:00.000Z',
+  programacao_ponto_a_ponto: true,
   id_turma: 1,
   id_status: 4,
   idRegional: 1,

@@ -2,7 +2,7 @@ import { PrismaModule } from 'src/infra/prisma/prisma.module';
 import { WorksServicesModule } from 'src/interface/modules/worksServices.module';
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { UsersService } from 'src/application/users.service';
+import { UsersService } from 'src/application/usecases/users.service';
 
 describe('WorksModule', () => {
   let module: TestingModule;
