@@ -178,7 +178,7 @@ export default function ScheduleForDayFilters({
           })}
 
         <TextField
-          className="mb-2 lg:ml-4 lg:first:ml-0 w-full"
+          className="mb-2 lg:ml-4 w-full"
           size="small"
           label="Ov/nota"
           value={ovnota}
