@@ -1,5 +1,5 @@
 import { genSalt, hash } from 'bcrypt';
-import { User } from 'src/domain/entities/user.entity';
+import { TipoUsuario, User } from 'src/domain/entities/user.entity';
 import {
   IUserRepository,
   USER_REPOSITORY,
@@ -22,7 +22,10 @@ export class UsersService {
       return null;
     }
 
-    const user = new User(response);
+    const user = new User({
+      ...response,
+      tipo_usuario: response.tipo_usuario as TipoUsuario,
+    });
 
     return user;
   }

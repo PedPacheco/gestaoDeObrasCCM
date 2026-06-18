@@ -14,14 +14,28 @@ export function MonitoredByPartner({ data }: { data: Row[] }) {
 
   const tableMonths = useMemo(() => {
     const months = [...new Set(data.map((r) => r.mes))].sort(sortMes);
-    return months.map((mes) => {
+
+    return months.map((mes: any) => {
       const row: Record<string, any> = { mes: monthLabel(mes) };
+
       parceiras.forEach((reg) => {
-        const found = data.find((r) => r.mes === mes && r.parceira === reg);
-        row[reg] = found ? found.pct : null;
-        row[`${reg}_total`] = found ? found.total : 0;
-        row[`${reg}_acomp`] = found ? found.acompanhado : 0;
+        const totals = data
+          .filter((r) => r.mes === mes && r.parceira === reg)
+          .reduce(
+            (acc, r) => ({
+              total: acc.total + (r.total ?? 0),
+              acompanhado: acc.acompanhado + (r.acompanhado ?? 0),
+            }),
+            { total: 0, acompanhado: 0 },
+          );
+
+        const hasData = totals.total > 0;
+
+        row[reg] = hasData ? (totals.acompanhado / totals.total) * 100 : null;
+        row[`${reg}_total`] = totals.total;
+        row[`${reg}_acomp`] = totals.acompanhado;
       });
+
       return row;
     });
   }, [data, parceiras]);
@@ -83,7 +97,7 @@ export function MonitoredByPartner({ data }: { data: Row[] }) {
                               : "bg-red-900/40 text-red-400"
                           }`}
                         >
-                          <span>{pct}%</span>
+                          <span>{pct.toFixed(0)}%</span>
                           {/* Detalhe: acompanhadas / total — útil para avaliar volume */}
                           <span className="text-[12px] font-normal opacity-70">
                             {acomp}/{total}

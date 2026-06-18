@@ -101,6 +101,7 @@ export default function MainScheduleRestrictions({
             `${process.env.NEXT_PUBLIC_API_URL}/restricao/${url}`,
             params,
             token,
+            { cache: "no-store" },
           );
 
           setFilteredData(response.data);
@@ -172,13 +173,11 @@ export default function MainScheduleRestrictions({
 
     if (!selectedUser) return filteredData.works;
 
-    return filteredData.works.filter(
-      (item: any) => item.nome_usuario === selectedUser,
-    );
+    return filteredData.works.filter((item: any) => item.nome === selectedUser);
   }, [filteredData, selectedUser, isPublication]);
 
   const uniqueNames: string[] = Array.from(
-    new Set(data.works.map((item: any) => item.nome_usuario)),
+    new Set(data.works.map((item: any) => item.nome)),
   );
 
   return (

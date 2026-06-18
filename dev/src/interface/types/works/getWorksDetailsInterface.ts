@@ -3,7 +3,7 @@ interface ScheduleStatus {
 }
 
 interface User {
-  nome_usuario: string;
+  nome: string;
 }
 
 export interface Schedules {

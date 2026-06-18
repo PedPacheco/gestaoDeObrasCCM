@@ -14,7 +14,7 @@ interface SparkPoint {
   pct: number;
 }
 
-interface SparklineRow {
+export interface SparklineRow {
   parceira: string;
   aderencia: SparkPoint[];
   eliminacao: SparkPoint[];

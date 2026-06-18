@@ -1,4 +1,3 @@
-import { TipoUsuario } from '@prisma/client';
 import { Exclude, Expose } from 'class-transformer';
 import {
   IsBoolean,
@@ -12,6 +11,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { TipoUsuario } from 'src/domain/entities/user.entity';
 
 export class RegisterUserDTO {
   @IsNotEmpty()
