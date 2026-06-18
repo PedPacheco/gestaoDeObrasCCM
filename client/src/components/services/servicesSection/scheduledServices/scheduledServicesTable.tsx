@@ -181,17 +181,29 @@ export function ScheduledServicesTable({
           {
             label: "SERVIÇO",
             field: "textoBreve",
-            options: services,
+            options: services.filter((item) => {
+              return scheduledServicesData.some(
+                (service) => service.textoBreve === item,
+              );
+            }),
           },
           {
             label: "OPERAÇÃO",
             field: "operacao",
-            options: operations,
+            options: operations.filter((item) => {
+              return scheduledServicesData.some(
+                (service) => service.operacao === item,
+              );
+            }),
           },
           {
             label: "PONTO",
             field: "ponto",
-            options: points,
+            options: points.filter((item) => {
+              return scheduledServicesData.some(
+                (service) => service.ponto === item,
+              );
+            }),
           },
         ]}
         onFilter={setFilteredServicesData}

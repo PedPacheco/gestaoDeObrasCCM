@@ -202,7 +202,7 @@ export function NewServicesAvaliable({
                 field: "textoBreve",
                 options: availableServices.filter((item) => {
                   return servicesData.some(
-                    (service) => service.texto_breve === item,
+                    (service) => service.textoBreve === item,
                   );
                 }),
               },

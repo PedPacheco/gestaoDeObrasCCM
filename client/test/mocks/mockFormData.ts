@@ -6,7 +6,6 @@ export const mockExecutionReport: ExecutionReportData = {
   supervisor: "Carlos Silva",
   partialConnectionReleased: true,
   startTime: "08:00",
-<<<<<<< HEAD
   finishTime: "17:30",
   startContact: "07:50",
   endContact: "17:45",
@@ -60,8 +59,6 @@ export const mockExecutionReportMinimal = {
   equipmentRemoved: [],
   changesExecution: false,
   provisionalKeyInstalled: false,
-=======
-  finishTime: "12:00",
   prog: 50,
   exec: "Exec Test",
   serviceType: "Tipo A",
@@ -126,5 +123,4 @@ export const mockExecutionReportMinimal = {
     provisionalKeyReference: "ABC",
     provisionalKeyWithdrawn: true,
   },
->>>>>>> 7119125a38dbd02133b8e606db209840d184654a
 };
