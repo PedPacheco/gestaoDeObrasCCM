@@ -196,7 +196,7 @@ describe("WorkDetails", () => {
 
   const defaultPermissions = {
     id_area: 8,
-    permissao_edicao: false,
+    permissao_edicao: true,
     is_admin: true,
     tipo_usuario: "INTERNO",
   };

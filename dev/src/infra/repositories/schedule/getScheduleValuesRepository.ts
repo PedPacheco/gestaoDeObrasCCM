@@ -102,7 +102,7 @@ export class GetScheduleValuesRepository implements IGetScheduleValuesRepository
         INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
         INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
         INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
-        WHERE status.id != 4 AND status_programacao.id != 7 `;
+        WHERE status.id NOT IN (3, 4)`;
 
     let query = Prisma.sql`SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim, 
         turma, status_ov_sap, executado, data_prog, prog, exec, mo_planejada::int*prog/100 AS mo_prog, mo_planejada::int*COALESCE(exec, 100)/100 AS mo_exec, capex_mat_pend, capex_mo_pend, tipo_obra, 

@@ -124,7 +124,7 @@ export class ExportController {
   // ─────────────────────────────────────────────
 
   @Get('programacao')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
+  @UseGuards(AreaViewGuard())
   async exportSchedule(
     @Query() filters: GetScheduleValuesDTO,
     @Res() res: Response,

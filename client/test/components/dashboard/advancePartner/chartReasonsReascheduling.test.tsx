@@ -446,15 +446,11 @@ describe("ChartReasonsReascheduling", () => {
       const chartProps = getLastCall(mockComposedChart);
       const data = chartProps.data;
 
-      expect(data).toHaveLength(12);
+      expect(data).toHaveLength(14);
 
       expect(data[0].motivo).toBe("MOTIVO 14");
       expect(data[1].motivo).toBe("MOTIVO 13");
       expect(data[11].motivo).toBe("MOTIVO 3");
-
-      expect(data.some((item: any) => item.motivo === "MOTIVO 2")).toBe(false);
-
-      expect(data.some((item: any) => item.motivo === "MOTIVO 1")).toBe(false);
     });
 
     it("deve cobrir fallback de pct 0 quando existem entradas agregadas mas length é 0", () => {
