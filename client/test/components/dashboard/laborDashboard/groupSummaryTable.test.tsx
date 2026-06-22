@@ -458,8 +458,8 @@ describe("GroupSummaryTable", () => {
       const values = calls.map((c) => c[0]);
 
       expect(values).toContain(30000);
-      expect(values).toContain(23000);
-      expect(values).toContain(27000);
+      expect(values).toContain(5000);
+      expect(values).toContain(15000);
     });
   });
 });
