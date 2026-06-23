@@ -37,6 +37,7 @@ describe('UsersService', () => {
     nome_maquina: null,
     nome_usuario: null,
     email: null,
+    ativo: true,
   };
 
   beforeEach(async () => {
@@ -94,6 +95,7 @@ describe('UsersService', () => {
         id: userId,
         username: 'testuser',
         senha: hashedPassword,
+        ativo: true,
       };
 
       jwtService.verify = jest.fn().mockResolvedValue({ id: userId });

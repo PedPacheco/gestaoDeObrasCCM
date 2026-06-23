@@ -42,6 +42,7 @@ describe('AuthRepository', () => {
         is_admin: true,
         email: 'teste@gmail.com',
         nome: 'teste',
+        ativo: true,
       });
 
       prismaMock.novo_tabela_usuarios.create.mockResolvedValue(user);

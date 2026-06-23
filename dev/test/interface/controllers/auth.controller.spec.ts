@@ -56,6 +56,7 @@ describe('AuthController', () => {
         permissao_edicao: true,
         email: 'teste@gmail.com',
         access_token: 'token',
+        ativo: true,
       };
 
       const res = {
@@ -131,6 +132,7 @@ describe('AuthController', () => {
         tipo_usuario: TipoUsuario.INTERNO,
         permissao_edicao: true,
         email: 'teste@gmail.com',
+        ativo: true,
       });
 
       const registerUserDTO: RegisterUserDTO = {

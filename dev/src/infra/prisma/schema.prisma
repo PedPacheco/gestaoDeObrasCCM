@@ -379,7 +379,6 @@ model regionais {
   plano_capex          plano_capex[]
   servicos_contratos   servicos_contratos[]
   tecnicos             tecnicos[]
-  usuario              usuario[]
 }
 
 model relatorio {
@@ -514,23 +513,7 @@ model turmas {
   novo_tabela_usuarios novo_tabela_usuarios[]
   obras                obras[]
   servicos_contratos   servicos_contratos[]
-  usuario              usuario[]
   valores_contratos    valores_contratos[]
-}
-
-model usuario {
-  id                     Int       @id(map: "USUARIO_pkey") @default(autoincrement())
-  username               String    @db.VarChar(8)
-  senha                  String    @db.VarChar
-  permissao              String    @db.VarChar(30)
-  id_regional            Int
-  nome_usuario           String    @db.VarChar(50)
-  email                  String    @db.VarChar(70)
-  permissao_visualizacao String    @default("total") @db.VarChar(25)
-  id_turma               Int       @default(1)
-  permissao_publicacao   Boolean   @default(false)
-  turmas                 turmas    @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
-  regionais              regionais @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
 }
 
 model relatorio_viabilidade {
@@ -767,6 +750,7 @@ model novo_tabela_usuarios {
   senha                      String                   @db.VarChar(255)
   nome                       String                   @db.VarChar(100)
   email                      String                   @db.VarChar(100)
+  ativo                      Boolean?                 @default(true)
   areas                      areas?                   @relation(fields: [id_area], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_area")
   turmas                     turmas                   @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
   regionais                  regionais                @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regional")
@@ -1019,8 +1003,8 @@ view exportacao_forecast {
   status                     String?   @db.VarChar(25)
   status_programacao         String?   @db.VarChar(30)
   criado_em                  DateTime? @db.Timestamp(6)
-  usuario_criador            String?   @db.VarChar(50)
-  usuario_ultima_atualizacao String?   @db.VarChar(50)
+  usuario_criador            String?   @db.VarChar(100)
+  usuario_ultima_atualizacao String?   @db.VarChar(100)
   reprovada                  Boolean?
   validada                   Boolean?
   confirmada                 Boolean?

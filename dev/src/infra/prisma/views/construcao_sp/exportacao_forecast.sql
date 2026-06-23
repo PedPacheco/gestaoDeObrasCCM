@@ -49,8 +49,8 @@ SELECT
   STATUS.status,
   status_programacao.status_programacao,
   programacoes.criado_em,
-  usuario.nome_usuario AS usuario_criador,
-  usuario2.nome_usuario AS usuario_ultima_atualizacao,
+  usuario.nome AS usuario_criador,
+  usuario2.nome AS usuario_ultima_atualizacao,
   programacoes.reprovada,
   programacoes.validada,
   programacoes.confirmada,
@@ -141,9 +141,9 @@ FROM
           )
           JOIN turmas ON ((turmas.id = obras.id_turma))
         )
-        LEFT JOIN usuario ON ((usuario.id = programacoes.id_usuario))
+        LEFT JOIN novo_tabela_usuarios usuario ON ((usuario.id = programacoes.id_usuario))
       )
-      LEFT JOIN usuario usuario2 ON (
+      LEFT JOIN novo_tabela_usuarios usuario2 ON (
         (
           usuario2.id = programacoes.id_usuario_ultima_atualizacao
         )
