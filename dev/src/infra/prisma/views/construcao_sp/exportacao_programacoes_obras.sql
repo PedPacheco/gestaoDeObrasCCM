@@ -50,7 +50,8 @@ SELECT
   programacoes.observacao_restricao,
   programacoes.observacao_execucao,
   status_programacao.status_programacao,
-  programacoes.observacao_programacao
+  programacoes.observacao_programacao,
+  programacoes.id_obra
 FROM
   (
     (
