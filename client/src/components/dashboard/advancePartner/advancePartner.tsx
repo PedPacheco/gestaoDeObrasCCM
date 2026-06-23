@@ -27,8 +27,10 @@ export interface AderenciaRow {
 }
 
 export interface MotivoRow {
+  id_obra: number;
   ovnota: string;
   motivo: string;
+  data_prog: string;
   responsavel?: string;
   mo_nao_executada: number;
   observacao_execucao?: string | null;
