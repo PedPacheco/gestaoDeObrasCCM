@@ -195,6 +195,7 @@ export function ScheduledServicesTable({
                 (service) => service.operacao === item,
               );
             }),
+            width: "w-1/4",
           },
           {
             label: "PONTO",
@@ -204,6 +205,7 @@ export function ScheduledServicesTable({
                 (service) => service.ponto === item,
               );
             }),
+            width: "w-44",
           },
         ]}
         onFilter={setFilteredServicesData}

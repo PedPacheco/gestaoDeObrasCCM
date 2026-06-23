@@ -221,7 +221,7 @@ export function ScheduledServices({
           />
 
           <ButtonComponent
-            text="Validar Realização dos Serviços"
+            text="Validar Serviços"
             styled="!h-8"
             onClick={() => {
               setScheduledServices(validateServices(scheduledServices));

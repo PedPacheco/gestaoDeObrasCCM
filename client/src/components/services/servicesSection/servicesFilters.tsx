@@ -6,13 +6,16 @@ import {
   XMarkIcon,
   ChevronDownIcon,
 } from "@heroicons/react/20/solid";
-import { Button, Grid } from "@mui/material";
+import { Button } from "@mui/material";
 import { ButtonComponent } from "@/components/common/Button";
 
 export interface FilterField<T> {
   label: string;
   field: keyof T;
   options: string[];
+  /** Largura do select (classe tailwind). Ex: "w-64", "w-40", "w-28".
+   *  Se omitido, o campo cresce/encolhe de forma flexível (flex-1). */
+  width?: string;
 }
 
 interface TableFilterProps<T> {
@@ -33,7 +36,6 @@ function MultiSelect({ label, options, selected, onChange }: MultiSelectProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Fecha o dropdown ao clicar fora
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -60,12 +62,10 @@ function MultiSelect({ label, options, selected, onChange }: MultiSelectProps) {
 
   return (
     <div ref={ref} className="relative w-full">
-      {/* Label */}
       <label className="block text-sm font-medium text-gray-600 mb-1">
         {label}
       </label>
 
-      {/* Trigger */}
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
@@ -74,7 +74,6 @@ function MultiSelect({ label, options, selected, onChange }: MultiSelectProps) {
                    shadow-sm transition hover:border-blue-400
                    focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
-        {/* Chips ou placeholder */}
         <span className="flex flex-wrap gap-1 overflow-hidden">
           {selected.length === 0 && (
             <span className="text-gray-400">Selecionar...</span>
@@ -102,7 +101,6 @@ function MultiSelect({ label, options, selected, onChange }: MultiSelectProps) {
         />
       </button>
 
-      {/* Dropdown */}
       {open && (
         <ul
           className="absolute z-20 mt-1 max-h-60 w-full overflow-auto
@@ -124,7 +122,6 @@ function MultiSelect({ label, options, selected, onChange }: MultiSelectProps) {
                                 : "text-gray-700 hover:bg-gray-50"
                             }`}
               >
-                {/* Checkbox visual */}
                 <span
                   className={`flex h-4 w-4 shrink-0 items-center justify-center
                               rounded border transition
@@ -195,35 +192,33 @@ export function TableFilter<T>({
 
   return (
     <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 mb-3 shadow-sm">
-      {/* Campos de filtro */}
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-5">
-        <>
-          {fields.map((field) => (
+      {/* Campos de filtro — flex em vez de grid de colunas iguais,
+          assim cada select usa a largura definida em field.width */}
+      <div className="flex flex-wrap items-end gap-4">
+        {fields.map((field) => (
+          <div
+            key={String(field.field)}
+            className={field.width ?? "flex-1 min-w-[160px]"}
+          >
             <MultiSelect
-              key={String(field.field)}
               label={field.label}
               options={field.options}
               selected={filters[field.field as string] || []}
               onChange={(values) => handleChange(String(field.field), values)}
             />
-          ))}
+          </div>
+        ))}
 
-          <ButtonComponent
-            text="Aplicar"
-            styled="!h-10 self-end"
-            onClick={applyFilter}
-            startIcon={<FunnelIcon className="w-5 h-5 mr-1" />}
-          />
+        <ButtonComponent
+          text="Aplicar"
+          styled="!h-10 w-32"
+          onClick={applyFilter}
+          startIcon={<FunnelIcon className="w-5 h-5 mr-1" />}
+        />
 
-          <Button
-            fullWidth
-            variant="outlined"
-            className="h-10 self-end"
-            onClick={clearFilter}
-          >
-            LIMPAR
-          </Button>
-        </>
+        <Button variant="outlined" className="h-10 w-32" onClick={clearFilter}>
+          LIMPAR
+        </Button>
       </div>
     </div>
   );

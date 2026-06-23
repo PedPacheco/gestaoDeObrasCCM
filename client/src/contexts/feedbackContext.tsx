@@ -77,15 +77,9 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
               </svg>
             </div>
 
-            {/* Título */}
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-2">
-              Operação realizada com sucesso
-            </h2>
-
-            {/* Mensagem */}
-            <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-md">
               {feedback.message}
-            </p>
+            </h2>
           </div>
         </ModalComponent>
       )}

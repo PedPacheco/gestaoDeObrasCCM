@@ -23,6 +23,10 @@ export function formatPercentage(value: number, locale: string = "pt-BR") {
     return null;
   }
 
+  if (value > 0 && value < 1) {
+    value = 1;
+  }
+
   const correctValue = value / 100;
 
   return new Intl.NumberFormat(locale, {

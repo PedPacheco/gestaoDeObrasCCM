@@ -94,7 +94,7 @@ export function RestrictionBlock({
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex w-full items-center justify-between bg-gray-50 px-4 py-3 text-left hover:bg-gray-100"
+        className="flex w-full items-center justify-between bg-zinc-100 px-4 py-3 text-left hover:bg-zinc-200 transition-colors shadow-md rounded"
       >
         <div className="flex items-center gap-3">
           <span className="text-xs font-medium text-gray-400">{label}</span>

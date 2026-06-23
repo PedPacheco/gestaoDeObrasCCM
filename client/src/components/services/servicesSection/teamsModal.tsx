@@ -26,21 +26,16 @@ interface TeamModalProps {
 }
 
 function getTeamInitials(team: any): string {
-  const explicitInitials = team?.initials ?? team?.sigla ?? team?.codigo_equipe;
+  const teamType = team.equipe;
 
-  if (explicitInitials) {
-    return String(explicitInitials).slice(0, 2).toUpperCase();
+  if (teamType.includes("LM")) {
+    return "LM";
+  }
+  if (teamType.includes("LV")) {
+    return "LV";
   }
 
-  const name: string = team.equipe ?? "";
-
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part: string) => part[0])
-    .join("")
-    .toUpperCase();
+  return "BT0";
 }
 
 export function TeamModal({ open, onClose, onConfirm, teams }: TeamModalProps) {
@@ -102,56 +97,63 @@ export function TeamModal({ open, onClose, onConfirm, teams }: TeamModalProps) {
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            {teams.map((team, index) => {
-              const isSelected =
-                selectedTeam !== null &&
-                String(selectedTeam.id) === String(team.id);
+            {teams
+              .sort((a, b) => {
+                if (a.perfil < b.perfil) return -1;
+                if (a.perfil > b.perfil) return 1;
 
-              return (
-                <button
-                  key={team.id ?? index}
-                  type="button"
-                  onClick={() => setSelectedTeam(team)}
-                  className={`flex w-full items-center gap-3 rounded-md border p-3 text-left transition-colors ${
-                    isSelected
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 bg-white hover:border-blue-300"
-                  }`}
-                >
-                  <Avatar
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      fontSize: 11,
-                      fontWeight: 600,
-                      backgroundColor: "#E6F1FB",
-                      color: "#185FA5",
-                      flexShrink: 0,
-                    }}
+                return 0;
+              })
+              .map((team, index) => {
+                const isSelected =
+                  selectedTeam !== null &&
+                  String(selectedTeam.id) === String(team.id);
+
+                return (
+                  <button
+                    key={team.id ?? index}
+                    type="button"
+                    onClick={() => setSelectedTeam(team)}
+                    className={`flex w-full items-center gap-3 rounded-md border p-3 text-left transition-colors ${
+                      isSelected
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 bg-white hover:border-blue-300"
+                    }`}
                   >
-                    {getTeamInitials(team)}
-                  </Avatar>
+                    <Avatar
+                      sx={{
+                        width: 44,
+                        height: 44,
+                        fontSize: 14,
+                        fontWeight: 600,
+                        backgroundColor: "#E6F1FB",
+                        color: "#185FA5",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {getTeamInitials(team)}
+                    </Avatar>
 
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13px] font-medium text-gray-900">
-                      {team.equipe}
-                    </p>
-                    <p className="truncate text-[11px] text-gray-500">
-                      Encarregado: {team.encarregado}
-                    </p>
-                    {team.perfil && (
-                      <p className="truncate text-[11px] text-gray-400">
-                        Perfil: {team.perfil}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-base font-medium text-zinc-700">
+                        {team.equipe}
                       </p>
-                    )}
-                  </div>
+                      <p className="truncate text-sm text-zinc-500">
+                        Encarregado: {team.encarregado}
+                      </p>
+                      {team.perfil && (
+                        <p className="truncate text-sm text-zinc-500">
+                          Perfil: {team.perfil}
+                        </p>
+                      )}
+                    </div>
 
-                  {isSelected && (
-                    <CheckCircleIcon className="h-5 w-5 flex-shrink-0 text-blue-500" />
-                  )}
-                </button>
-              );
-            })}
+                    {isSelected && (
+                      <CheckCircleIcon className="h-5 w-5 flex-shrink-0 text-blue-500" />
+                    )}
+                  </button>
+                );
+              })}
           </div>
         )}
       </DialogContent>

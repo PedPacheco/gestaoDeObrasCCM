@@ -253,9 +253,9 @@ export function EditSchedule({
 
           {/* TAB: Adicionar serviços da lista disponível */}
           {activeTab === "available" && (
-            <div className="flex flex-1 h-[820px] justify-between items-center">
+            <div className="grid h-full max-h-[90vh] grid-cols-1 lg:grid-cols-[1fr_25%]">
               {/* Conteúdo principal — scrollável */}
-              <div className="flex-1 p-5 h-full max-w-[70%] 2xl:max-w-full">
+              <div className="min-h-0 overflow-y-auto p-5">
                 <NewServicesAvaliable
                   servicesData={servicesAvaliable}
                   setServicesData={setServicesAvaliable}
@@ -271,9 +271,9 @@ export function EditSchedule({
                 />
               </div>
 
-              {/* Sidebar — altura total restante, fixa à direita */}
-              <div className="flex h-full flex-col items-center overflow-hidden pr-4 pt-5">
-                <div className="mx-auto max-w-xl my-3 w-full shrink-0">
+              {/* Sidebar — 30% da largura, altura total */}
+              <div className="flex min-h-0 h-full flex-col overflow-hidden pr-4 pt-5">
+                <div className="my-3 w-full shrink-0">
                   <div className="mb-4">
                     <h2 className="text-[14px] font-medium text-gray-800">
                       Adicionar novo serviço
@@ -284,7 +284,7 @@ export function EditSchedule({
                     </p>
                   </div>
 
-                  <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                  <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm w-full">
                     <AddServiceForm
                       idWork={idWork}
                       serviceContractData={serviceContractData}
@@ -306,6 +306,7 @@ export function EditSchedule({
                     />
                   </div>
                 </div>
+
                 <div className="min-h-0 flex-1 w-full overflow-hidden">
                   <ScheduleSidebar
                     selectedServices={scheduledServices}
@@ -323,7 +324,6 @@ export function EditSchedule({
               </div>
             </div>
           )}
-
           {/* TAB: Histórico */}
           {activeTab === "history" && (
             <ScheduleHistory

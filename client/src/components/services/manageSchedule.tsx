@@ -35,9 +35,6 @@ interface ManageScheduleProps {
   idSchedule: number | null;
   statusSchedule?: string;
 }
-
-const disabledStatus = ["Parcial", "Concluído", "Cancelado"];
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
@@ -71,9 +68,7 @@ export function NewManageSchedule({
 
   const workflow = useScheduleWorkflow({ selectedServices: selectedServices });
 
-  const isDisabled = statusSchedule
-    ? disabledStatus.includes(statusSchedule)
-    : false;
+  const isDisabled = statusSchedule ? statusSchedule === "PROGRAMADO" : false;
 
   const handleCancel = useCallback(() => {
     router.replace(`/detalhes/${idWork}`);
@@ -161,9 +156,9 @@ export function NewManageSchedule({
       <div className="grid h-full grid-rows-[auto_minmax(0,1fr)]">
         <ScheduleTopbar title="Adicionar programação" idWork={idWork} />
 
-        <div className="grid min-h-[600px] grid-cols-1 lg:grid-cols-[1fr_320px]">
+        <div className="grid min-h-[600px] grid-cols-1 lg:grid-cols-[1fr_30%]">
           <main className="flex flex-col items-center gap-5 overflow-y-auto py-4">
-            <div className="flex w-full max-w-[90%] flex-col gap-5">
+            <div className="flex w-full max-w-[95%] flex-col gap-5">
               <NewScheduleSection
                 isInsert={isInsert}
                 options={options}
@@ -172,7 +167,7 @@ export function NewManageSchedule({
                 scheduleStatus={statusSchedule}
               />
 
-              <div className="h-[760px]">
+              <div className="h-[620px] 2xl:h-full max-h-[90vh]">
                 <NewServicesAvaliable
                   servicesData={servicesAvaliable}
                   setServicesData={setServicesAvaliable}

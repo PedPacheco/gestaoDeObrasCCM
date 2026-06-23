@@ -15,10 +15,10 @@ export function SectionHeader({
     <button
       type="button"
       onClick={onToggle}
-      className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-gray-50"
+      className="flex w-full items-center justify-between px-5 py-4 text-left bg-zinc-100 hover:bg-zinc-200 transition-colors rounded mb-3 shadow-md"
     >
       <div className="flex items-center gap-2">
-        <span className="text-xs font-medium uppercase tracking-wider text-gray-500">
+        <span className="text-xs font-medium uppercase tracking-wider text-zinc-500">
           {title}
         </span>
         {children}
@@ -26,7 +26,7 @@ export function SectionHeader({
       <ChevronDownIcon
         height={10}
         width={10}
-        className={`text-gray-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        className={`text-zinc-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
       />
     </button>
   );
