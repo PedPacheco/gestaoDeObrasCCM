@@ -230,6 +230,11 @@ export const links: Link[] = [
         allowedFor: ["interno_editor", "interno_viewer", "parceira"],
         allowedAreas: [8, 1, 7],
       },
+      {
+        name: "Equipes para Contingência",
+        href: "/recursos-contingencia",
+        allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+      },
     ],
   },
   {

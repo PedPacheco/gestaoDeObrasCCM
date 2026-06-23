@@ -773,6 +773,21 @@ model novo_tabela_usuarios {
   usuario_ultima_atualizacao programacoes[]           @relation("usuario_ultima_atualizacao")
   relatorio_execucao         relatorio_execucao[]
   restricoes_publicacoes     restricoes_publicacoes[]
+  recursos_contingencia      recursos_contingencia[]
+}
+
+model recursos_contingencia {
+  id                    Int                  @id @default(autoincrement())
+  dia_disponibilidade   DateTime             @db.Date
+  parceira              String               @db.VarChar(100)
+  tipo_recurso_mao_obra String               @db.VarChar(100)
+  quantidade_mao_obra   Int                  @default(0)
+  tipo_recurso_equipe   String               @db.VarChar(100)
+  quantidade_equipe     Int                  @default(0)
+  disponibilizado_csd   String               @db.VarChar(100)
+  id_usuario            Int?
+  criado_em             DateTime?            @default(now()) @db.Timestamp(6)
+  usuario               novo_tabela_usuarios? @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_contingencia")
 }
 
 view exportacao_obras_executadas {

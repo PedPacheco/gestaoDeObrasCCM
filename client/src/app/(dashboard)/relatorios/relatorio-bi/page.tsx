@@ -41,7 +41,6 @@ const categories = [
       { name: "Capex DSPT", path: "https://app.powerbi.com/groups/me/apps/2a7a60bb-a7cd-4376-b59a-662f2e8c478b/reports/05471fc0-7c31-43e1-9afe-2562ee498d81/ReportSection7623530240a29221ca51?experience=power-bi", visible: true },
       { name: "Controle SMC", path: "https://app.powerbi.com/groups/me/apps/cf6dceda-2355-4078-9a15-d1fd15fc4688/reports/decbfee6-e20b-4fca-bc6d-a0585270e1cb/ReportSection?ctid=bf86fbdb-f8c2-440e-923c-05a60dc2bc9b&experience=power-bi", visible: true },
       { name: "Árteri", path: "https://smc.arteri.com.br/login", visible: true },
-      { name: "Equipes para Contingência", path: "https://forms.office.com/Pages/AnalysisPage.aspx?AnalyzerToken=lc5ZCKhzwj9hYfcfnalSog6wSPsJntfG&&id=2_uGv8L4DkSSPAWmDcK8m7yDM7CWJflBu3ULJobsEoBUOVJBNDAwVVI2Mzk4Tkg4TUw4V0FRV0k5Uy4u", visible: true },
       { name: "EFEN's / TA's", path: "https://apps.powerapps.com/play/e/default-bf86fbdb-f8c2-440e-923c-05a60dc2bc9b/a/7767095b-9129-4a8c-aeff-c595a862ed6d?tenantId=bf86fbdb-f8c2-440e-923c-05a60dc2bc9b&&sourcetime=1747049457490", visible: true },
     ],
   },

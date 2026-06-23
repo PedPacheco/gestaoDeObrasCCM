@@ -10,6 +10,7 @@ import { PrismaModule } from './infra/prisma/prisma.module';
 import { AdvancePartnerModule } from './interface/modules/advancePartner.module';
 import { AuthModule } from './interface/modules/auth.module';
 import { AuxiliaryBaseModule } from './interface/modules/auxiliaryBase.module';
+import { ContingencyModule } from './interface/modules/contingency.module';
 import { DashboardModule } from './interface/modules/dashboard.module';
 import { EmailModule } from './interface/modules/email.module';
 import { EntryModule } from './interface/modules/entry.module';
@@ -53,6 +54,7 @@ import { WorksModule } from './interface/modules/works.module';
     EquipmentsModule,
     ForecastModule,
     AdvancePartnerModule,
+    ContingencyModule,
     JwtModule.registerAsync({
       global: true,
       inject: [ConfigService],
