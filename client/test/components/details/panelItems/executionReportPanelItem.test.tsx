@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mockData = [
   {
     id: 1,
-    nome_usuario: "João",
+    nome: "João",
     hora_ini: "1970-01-01T08:00:00.000Z",
     hora_ter: "1970-01-01T12:00:00.000Z",
     prog: 50,
@@ -24,7 +24,7 @@ vi.mock("@/contexts/userContext", () => ({
   useUser: () => ({
     permissions: {
       id_area: 8,
-      permissao_edicao: false,
+      permissao_edicao: true,
       is_admin: true,
       tipo_usuario: "INTERNO",
     },
