@@ -1048,3 +1048,31 @@ view exportacao_ordens {
   turma          String?   @db.VarChar(15)
   data_prog      DateTime? @db.Date
 }
+
+model gap_analysis_audits {
+  id                            Int      @id @default(autoincrement())
+  parceira                      String   @db.VarChar(100)
+  num_auditoria                 String?  @db.VarChar(50)
+  data_inicio                   String?  @db.VarChar(20)
+  data_fim                      String?  @db.VarChar(20)
+  gap_anterior                  String?  @db.VarChar(20)
+  gap_atual                     String?  @db.VarChar(20)
+  apresentacao_interna          String?  @db.VarChar(20)
+  reuniao_apresentacao          String?  @db.VarChar(20)
+  notificacao_gestao            String?  @db.VarChar(20)
+  retorno_parceira              String?  @db.VarChar(20)
+  validacao_plano_edp           String?  @db.VarChar(20)
+  plano_validado                String?  @db.VarChar(10)
+  devolutiva_novo_plano         String?  @db.VarChar(20)
+  validacao_novo_plano          String?  @db.VarChar(20)
+  lancamento_desvios_sgs        String?  @db.VarChar(20)
+  inicio_acompanhamento         String?  @db.VarChar(20)
+  quantidade_desvios_planejados String?  @db.VarChar(20)
+  quantidade_desvios_executados String?  @db.VarChar(20)
+  executados_fora_prazo         String?  @db.VarChar(20)
+  itens_pendentes_fora_do_prazo String?  @db.VarChar(20)
+  observacao                    String?  @db.VarChar(500)
+  status                        String?  @db.VarChar(30)
+  created_at                    DateTime @default(now())
+  updated_at                    DateTime @updatedAt
+}

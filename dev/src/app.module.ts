@@ -21,6 +21,7 @@ import { ExportModule } from './interface/modules/export.module';
 import { FeasibilityModule } from './interface/modules/feasibility.module';
 import { FiltersModule } from './interface/modules/filters.module';
 import { ForecastModule } from './interface/modules/forecast.module';
+import { GapAnalysisAuditModule } from './interface/modules/gapAnalysisAudit.module';
 import { GoalsModule } from './interface/modules/goals.module';
 import { RestrictionsModule } from './interface/modules/restrictions.module';
 import { ScheduleModule } from './interface/modules/schedule.module';
@@ -53,6 +54,7 @@ import { WorksModule } from './interface/modules/works.module';
     EquipmentsModule,
     ForecastModule,
     AdvancePartnerModule,
+    GapAnalysisAuditModule,
     JwtModule.registerAsync({
       global: true,
       inject: [ConfigService],
