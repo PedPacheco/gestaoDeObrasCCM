@@ -185,8 +185,8 @@ export class RestrictionsRepository implements IRestrictionsRepository {
         ON restricoes_publicacoes.id_obra = obras.id
       INNER JOIN construcao_sp.restricoes
         ON restricoes.id = restricoes_publicacoes.id_restricao
-      INNER JOIN construcao_sp.usuario
-        ON usuario.id = restricoes_publicacoes.criado_por
+      INNER JOIN construcao_sp.novo_tabela_usuarios
+        ON novo_tabela_usuarios.id = restricoes_publicacoes.criado_por
       WHERE 1=1
     `;
 
@@ -215,7 +215,7 @@ export class RestrictionsRepository implements IRestrictionsRepository {
         restricoes_publicacoes.data_resolucao,
         restricoes_publicacoes.observacao,
         restricoes_publicacoes.observacao_construcao,
-        usuario.nome_usuario
+        novo_tabela_usuarios.nome
       ${baseQuery}
     `;
 

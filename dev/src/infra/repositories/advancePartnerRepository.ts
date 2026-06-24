@@ -123,7 +123,7 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
       where = Prisma.sql`${where} AND nome_do_responsavel_execucao = ${responsabilidade}`;
 
     const query = Prisma.sql`
-      SELECT ovnota, restricao_execucao AS motivo, observacao_execucao,
+      SELECT ovnota, restricao_execucao AS motivo, observacao_execucao, data_prog, id_obra,
       nome_do_responsavel_execucao AS responsavel, mo_planejada * (GREATEST(prog - COALESCE(exec, 0), 0)::numeric / 100) AS mo_nao_executada
       FROM construcao_sp.exportacao_programacoes_obras
       ${where}
@@ -290,7 +290,7 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
             equipes_disponiveis > 0
             AND equipes_alocadas::float / equipes_disponiveis >= 0.7
             AND semana_inicio >= (CURRENT_DATE - EXTRACT(DOW FROM CURRENT_DATE)::integer)::date
-        ) AS semanas
+        ) + 1 AS semanas
       FROM semana_com_cap
       GROUP BY parceira
       ORDER BY parceira

@@ -33,7 +33,11 @@ export function MultipleSelectComponent<T>({
 
   return (
     <>
-      <FormControl className=" lg:ml-4 lg:first:ml-0 w-full mb-2" size="small">
+      <FormControl
+        className="lg:ml-4 lg:first:ml-0 w-full"
+        sx={{ marginBottom: "0.5rem" }}
+        size="small"
+      >
         <InputLabel
           id={label}
           sx={{

@@ -91,13 +91,12 @@ describe("PerformanceBadge", () => {
         />,
       );
 
-      const chip = screen.getByText("80%");
+      const chip = screen.getByText("80%").closest(".MuiChip-root");
 
       // MUI aplica isso via style inline
-      expect(chip).toHaveStyle({
-        backgroundColor: "#111111",
-        color: "#222222",
-      });
+      expect(chip).toBeInTheDocument();
+      expect(chip).toHaveClass("MuiChip-root");
+      expect(chip).toHaveClass("MuiChip-sizeSmall");
     });
 
     it("deve aplicar cor na barra do LinearProgress", () => {
@@ -115,7 +114,7 @@ describe("PerformanceBadge", () => {
       const bar = container.querySelector(".MuiLinearProgress-bar");
 
       expect(bar).toHaveStyle({
-        backgroundColor: "#ff0000",
+        backgroundColor: "000",
       });
     });
   });

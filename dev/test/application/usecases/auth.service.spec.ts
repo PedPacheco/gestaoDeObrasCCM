@@ -52,13 +52,13 @@ const loginUser = {
   is_admin: true,
   tipo_usuario: TipoUsuario.INTERNO,
   permissao_edicao: true,
+  ativo: true,
 };
 
 describe('AuthService', () => {
   let authService: AuthService;
   let usersService: UsersService;
   let jwtService: JwtService;
-  // let emailService: EmailService;
 
   beforeEach(async () => {
     jest.resetAllMocks();
@@ -96,7 +96,6 @@ describe('AuthService', () => {
     authService = module.get<AuthService>(AuthService);
     usersService = module.get<UsersService>(UsersService);
     jwtService = module.get<JwtService>(JwtService);
-    // emailService = module.get<EmailService>(EmailService);
   });
 
   describe('login', () => {
@@ -117,6 +116,17 @@ describe('AuthService', () => {
       await expect(
         authService.login('username', 'wrong_password'),
       ).rejects.toThrow(new UnauthorizedException('Senha incorreta'));
+    });
+
+    it('should throw BadRequestException if user is not active', async () => {
+      jest.spyOn(usersService, 'findUser').mockResolvedValue({
+        ...loginUser,
+        ativo: false,
+      } as User);
+
+      await expect(authService.login('username', 'teste123')).rejects.toThrow(
+        new BadRequestException('Usuário está inativo no sistema'),
+      );
     });
 
     it('should return user and access_token if login is successful', async () => {
@@ -173,11 +183,13 @@ describe('AuthService', () => {
       const salt = 10;
       const hashedPassword = 'hashPassword';
 
-      jest
-        .spyOn(usersService, 'findUser')
-        .mockResolvedValue(
-          new User({ ...registerUser, tipo_usuario: TipoUsuario.PARCEIRA }),
-        );
+      jest.spyOn(usersService, 'findUser').mockResolvedValue(
+        new User({
+          ...registerUser,
+          tipo_usuario: TipoUsuario.PARCEIRA,
+          ativo: true,
+        }),
+      );
 
       jest.spyOn(usersService, 'findUser').mockResolvedValue(null);
 
@@ -195,6 +207,7 @@ describe('AuthService', () => {
         senha: hashedPassword,
         id_area: null,
         tipo_usuario: 'PARCEIRA',
+        ativo: true,
       });
     });
 
@@ -207,7 +220,11 @@ describe('AuthService', () => {
       (genSalt as jest.Mock).mockResolvedValue(salt);
       (hash as jest.Mock).mockResolvedValue(hashedPassword);
 
-      const user = new User({ ...registerUser, senha: hashedPassword });
+      const user = new User({
+        ...registerUser,
+        senha: hashedPassword,
+        ativo: true,
+      });
 
       jest.spyOn(usersService, 'findUser').mockResolvedValue(null);
       mockAuthRepository.register.mockResolvedValue(user);
@@ -215,20 +232,7 @@ describe('AuthService', () => {
 
       const result = await authService.register(registerUser);
 
-      // const sendEmailSpy = jest.spyOn(emailService, 'sendEmail');
-
       expect(result).toEqual(user);
-      // expect(sendEmailSpy).toHaveBeenCalledTimes(1);
-      // expect(sendEmailSpy).toHaveBeenCalledWith(
-      //   '10009591@edp.com.br',
-      //   'Bem vindo ao sistema',
-      //   expect.stringContaining(user.username),
-      // );
-      // expect(sendEmailSpy).toHaveBeenCalledWith(
-      //   '10009591@edp.com.br',
-      //   'Bem vindo ao sistema',
-      //   expect.stringContaining(hashedPassword),
-      // );
     });
   });
 });

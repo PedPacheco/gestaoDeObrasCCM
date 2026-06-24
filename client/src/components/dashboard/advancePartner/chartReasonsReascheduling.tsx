@@ -1,3 +1,6 @@
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import { useCallback, useMemo, useState } from "react";
 import {
   Bar,
   CartesianGrid,
@@ -7,26 +10,24 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useCallback, useMemo, useState } from "react";
+
+import { XCircleIcon } from "@heroicons/react/24/solid";
+import {
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  IconButton,
+  Paper,
+  Typography,
+} from "@mui/material";
+
 import { ChartTooltip } from "../common/ChartTooltip";
 import { AderenciaRow, MotivoRow } from "./advancePartner";
-
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  IconButton,
-  Typography,
-  Box,
-  Chip,
-  Divider,
-  Paper,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
-import { XCircleIcon } from "@heroicons/react/24/solid";
 
 interface ModalObservacoesProps {
   open: boolean;
@@ -34,6 +35,8 @@ interface ModalObservacoesProps {
   registros: MotivoRow[];
   onClose: () => void;
 }
+
+dayjs.extend(utc);
 
 function ModalObservacoes({
   open,
@@ -159,25 +162,81 @@ function ModalObservacoes({
                 bgcolor: "rgba(255,255,255,0.05)",
                 border: "1px solid rgba(255,255,255,0.05)",
                 borderRadius: 3,
-                p: { xs: 1.5, md: 2 }, // FIX: padding menor em mobile
+                p: { xs: 1.5, md: 2 },
                 display: "flex",
                 flexDirection: "column",
                 gap: 1,
+                cursor: "pointer",
+                transition: "all 0.2s ease-in-out",
+                "&:hover": {
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  bgcolor: "rgba(255,255,255,0.08)",
+                },
+                "&:active": {
+                  transform: "translateY(0px)",
+                  boxShadow: "none",
+                },
               }}
+              onClick={() =>
+                window.open(
+                  `/detalhes/${r.id_obra}`,
+                  "_blank",
+                  "noopener,noreferrer",
+                )
+              }
             >
-              {/* OV/Nota */}
-              <Typography
-                variant="caption"
-                sx={{ color: "#a1a1aa", fontSize: { xs: 12, md: 14 } }}
-              >
-                OV/Nota:{" "}
-                <Box
-                  component="span"
-                  sx={{ color: "#e4e4e7", fontWeight: 500 }}
+              <div>
+                <Typography
+                  variant="caption"
+                  sx={{ color: "#a1a1aa", fontSize: { xs: 12, md: 14 } }}
                 >
-                  {r.ovnota ?? "—"}
-                </Box>
-              </Typography>
+                  OV/Nota:{" "}
+                  <Box
+                    component="span"
+                    sx={{ color: "#e4e4e7", fontWeight: 500 }}
+                  >
+                    {r.ovnota ?? "—"}
+                  </Box>
+                </Typography>
+
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: "#a1a1aa",
+                    fontSize: { xs: 12, md: 14 },
+                    marginLeft: 2,
+                  }}
+                >
+                  Data programada:{" "}
+                  <Box
+                    component="span"
+                    sx={{ color: "#e4e4e7", fontWeight: 500 }}
+                  >
+                    {dayjs(r.data_prog).utc().format("DD/MM/YYYY").toString() ??
+                      "—"}
+                  </Box>
+                </Typography>
+
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: "#a1a1aa",
+                    fontSize: { xs: 12, md: 14 },
+                    marginLeft: 2,
+                  }}
+                >
+                  Responsabilidade:{" "}
+                  <Box
+                    component="span"
+                    sx={{ color: "#e4e4e7", fontWeight: 500 }}
+                  >
+                    {r.responsavel ?? "—"}
+                  </Box>
+                </Typography>
+              </div>
+              {/* OV/Nota */}
 
               {/* Observação */}
               <Typography
@@ -232,6 +291,7 @@ export function ChartReasonsReascheduling({
   aderencia,
   isPending,
 }: ChartReasonsReaschedulingProps) {
+  console.log(motivos);
   const [selectedMotivo, setSelectedMotivo] = useState<string | null>(null);
 
   const totalWorks = useMemo(
