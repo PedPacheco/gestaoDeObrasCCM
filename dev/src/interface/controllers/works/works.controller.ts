@@ -80,7 +80,7 @@ export class WorksController {
   }
 
   @Get('obras-executadas')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1, 9] }))
   async GetCompletedWorks(
     @Query() worksFilters: GetWorksDTO,
     @Req() req: CustomRequest,
