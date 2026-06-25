@@ -9,7 +9,7 @@ export interface SelectProps {
   label: string;
   menuItems: any[];
   selectedItem?: string | number;
-  setSelectedItem?: (item: string | number) => void;
+  setSelectedItem?: (item: string) => void;
   valueKey?: string | number;
   displayKey?: string | number;
   disabled?: boolean;
