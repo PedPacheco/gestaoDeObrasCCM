@@ -1,13 +1,3 @@
-export const PARCEIRAS = [
-  "EDP - Time próprio (técnicos)",
-  "ENGELMIG",
-  "START - VALE",
-  "COSAMPA",
-  "LIG",
-  "START - MCR",
-  "MANSERV",
-];
-
 export const TIPOS_MAO_OBRA = [
   "Batedor (Técnico EDP)",
   "Viabilizador (Técnico EDP)",

@@ -19,12 +19,15 @@ import { KpiCard } from "@/components/dashboard/common/KpiCard";
 import { RingCard } from "@/components/dashboard/common/RingCard";
 import {
   CSDS,
-  PARCEIRAS,
   TIPOS_EQUIPE,
   TIPOS_MAO_OBRA,
 } from "@/utils/contingenciaOptions";
-
-import { ContingencyDashboard, CountItem } from "./types";
+import {
+  ContingencyDashboardInterface,
+  CountItem,
+} from "@/app/(dashboard)/recursos-contingencia/page";
+import { ChartTooltip } from "../dashboard/common/ChartTooltip";
+import { FiltersInterface } from "@/types/filtersInterfaces";
 
 const KPI_GRADIENT = "bg-gradient-to-br from-[#182638] to-[#1c2f42]";
 const KPI_ACCENT = "#53FF75";
@@ -42,30 +45,24 @@ const COLORS = [
 ];
 
 interface ContingenciaDashboardProps {
-  data: ContingencyDashboard;
-}
-
-// Tooltip customizado: mostra só a categoria e o número (sem o "value :")
-function CustomTooltip({ active, payload, label }: any) {
-  if (!active || !payload?.length) return null;
-  const title = label ?? payload[0]?.name;
-  return (
-    <div className="rounded-lg border border-white/15 bg-[#0f1a26] px-3 py-2">
-      {title && (
-        <div className="text-sm font-semibold text-zinc-300">{title}</div>
-      )}
-      <div className="text-lg font-bold text-zinc-100">{payload[0].value}</div>
-    </div>
-  );
+  optionsPartner: FiltersInterface;
+  data: ContingencyDashboardInterface;
 }
 
 // Garante que todas as opções apareçam (mesmo com 0 respostas), na ordem oficial
-function zeroFill(options: string[], items: CountItem[]): CountItem[] {
+function zeroFill(
+  options: string[],
+  items: CountItem[],
+): { name: string; Quantidade: number }[] {
   const map = new Map(items.map((i) => [i.name, i.value]));
-  return options.map((name) => ({ name, value: map.get(name) ?? 0 }));
+  return options.map((name) => ({ name, Quantidade: map.get(name) ?? 0 }));
 }
 
-function BarSection({ data }: { data: CountItem[] }) {
+function BarSection({
+  data,
+}: {
+  data: { name: string; Quantidade: number }[];
+}) {
   return (
     <ResponsiveContainer width="100%" height={380}>
       <BarChart data={data} margin={{ left: 0, right: 10, top: 4, bottom: 0 }}>
@@ -98,10 +95,10 @@ function BarSection({ data }: { data: CountItem[] }) {
         />
         <Tooltip
           cursor={{ fill: "rgba(255,255,255,0.05)" }}
-          content={<CustomTooltip />}
+          content={<ChartTooltip metricConfig="number" />}
         />
         <Bar
-          dataKey="value"
+          dataKey="Quantidade"
           fill="url(#gContBar)"
           radius={[3, 3, 0, 0]}
           maxBarSize={22}
@@ -111,8 +108,14 @@ function BarSection({ data }: { data: CountItem[] }) {
   );
 }
 
-export function ContingenciaDashboard({ data }: ContingenciaDashboardProps) {
-  const parceira = zeroFill(PARCEIRAS, data.parceira);
+export function ContingenciaDashboard({
+  data,
+  optionsPartner,
+}: ContingenciaDashboardProps) {
+  const parceira = zeroFill(
+    optionsPartner.parceira?.map((p) => p.turma) || [],
+    data.parceira,
+  );
   const maoObra = zeroFill(TIPOS_MAO_OBRA, data.maoObra);
   const equipe = zeroFill(TIPOS_EQUIPE, data.equipe);
   const csd = zeroFill(CSDS, data.csd);
@@ -121,6 +124,8 @@ export function ContingenciaDashboard({ data }: ContingenciaDashboardProps) {
     date: d.date.split("-").reverse().join("/"),
     nome: d.nome,
   }));
+
+  console.log(parceira);
 
   return (
     <div className="flex flex-col gap-6">
@@ -194,7 +199,7 @@ export function ContingenciaDashboard({ data }: ContingenciaDashboardProps) {
           <ResponsiveContainer width="100%" height={380}>
             <PieChart>
               <Pie
-                data={maoObra}
+                data={data.maoObra}
                 dataKey="value"
                 nameKey="name"
                 cx="50%"
@@ -202,13 +207,10 @@ export function ContingenciaDashboard({ data }: ContingenciaDashboardProps) {
                 outerRadius={100}
               >
                 {maoObra.map((entry, index) => (
-                  <Cell
-                    key={entry.name}
-                    fill={COLORS[index % COLORS.length]}
-                  />
+                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<ChartTooltip metricConfig="number" />} />
               <Legend wrapperStyle={{ fontSize: 14, color: "#d4d4d8" }} />
             </PieChart>
           </ResponsiveContainer>

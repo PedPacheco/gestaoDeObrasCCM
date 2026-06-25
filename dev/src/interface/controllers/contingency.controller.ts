@@ -7,26 +7,26 @@ import {
   HttpStatus,
   Post,
   Query,
-  Req,
+  UseGuards,
 } from '@nestjs/common';
 
 import {
   CreateContingencyDTO,
   DashboardFilterDTO,
 } from '../dtos/contingencyDTO';
+import {
+  AreaEditGuard,
+  AreaViewGuard,
+} from 'src/core/guards/newPermission.guard';
 
 @Controller('recursos-contingencia')
 export class ContingencyController {
   constructor(private readonly contingencyService: ContingencyService) {}
 
   @Post()
-  async create(
-    @Req() req: any,
-    @Body() data: CreateContingencyDTO,
-  ): Promise<any> {
-    const { id: idUser } = req.user;
-
-    await this.contingencyService.create(data, idUser);
+  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
+  async create(@Body() data: CreateContingencyDTO): Promise<any> {
+    await this.contingencyService.create(data);
 
     return {
       statusCode: HttpStatus.CREATED,
@@ -35,6 +35,7 @@ export class ContingencyController {
   }
 
   @Get('dashboard')
+  @UseGuards(AreaViewGuard({ allowedAreas: [8] }))
   async getDashboard(@Query() query: DashboardFilterDTO): Promise<any> {
     const response = await this.contingencyService.getDashboard(query);
 

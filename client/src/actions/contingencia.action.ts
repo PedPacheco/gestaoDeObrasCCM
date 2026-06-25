@@ -5,12 +5,13 @@ import { cookies } from "next/headers";
 
 export interface ContingenciaPayload {
   dia_disponibilidade: string;
-  parceira: string;
+  idParceira: number;
   tipo_recurso_mao_obra: string;
   quantidade_mao_obra: number;
   tipo_recurso_equipe: string;
   quantidade_equipe: number;
   disponibilizado_csd: string;
+  idUser?: number;
 }
 
 export interface ContingenciaFilters {

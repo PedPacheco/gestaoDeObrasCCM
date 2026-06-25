@@ -10,7 +10,6 @@ import {
 } from "@/actions/contingencia.action";
 import {
   CSDS,
-  PARCEIRAS,
   TIPOS_EQUIPE,
   TIPOS_MAO_OBRA,
 } from "@/utils/contingenciaOptions";
@@ -24,8 +23,12 @@ import {
 } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { FiltersInterface } from "@/types/filtersInterfaces";
+import { SelectComponent } from "../common/Select";
+import { useUser } from "@/contexts/userContext";
 
 interface ContingenciaFormProps {
+  optionsPartner: FiltersInterface;
   onSaved: () => void;
 }
 
@@ -47,10 +50,15 @@ const fieldSx = {
 
 const menuItemSx = { fontSize: "1rem" };
 
-export function ContingenciaForm({ onSaved }: ContingenciaFormProps) {
+export function ContingenciaForm({
+  optionsPartner,
+  onSaved,
+}: ContingenciaFormProps) {
+  const { user } = useUser();
+
   const [diaDisponibilidade, setDiaDisponibilidade] =
     useState<dayjs.Dayjs | null>(null);
-  const [parceira, setParceira] = useState("");
+  const [parceira, setParceira] = useState<string>("");
   const [tipoMaoObra, setTipoMaoObra] = useState("");
   const [quantidadeMaoObra, setQuantidadeMaoObra] = useState("");
   const [tipoEquipe, setTipoEquipe] = useState("");
@@ -96,14 +104,14 @@ export function ContingenciaForm({ onSaved }: ContingenciaFormProps) {
 
     const payload: ContingenciaPayload = {
       dia_disponibilidade: diaDisponibilidade.format("YYYY-MM-DD"),
-      parceira,
+      idParceira: Number(parceira),
       tipo_recurso_mao_obra: tipoMaoObra,
       quantidade_mao_obra: Number(quantidadeMaoObra),
       tipo_recurso_equipe: tipoEquipe,
       quantidade_equipe: Number(quantidadeEquipe),
       disponibilizado_csd: csd,
+      idUser: user?.id,
     };
-
     setLoading(true);
     const result = await saveContingencia(payload);
     setLoading(false);
@@ -131,10 +139,7 @@ export function ContingenciaForm({ onSaved }: ContingenciaFormProps) {
       className="bg-gradient-to-br from-[#1e2f42] to-[#192535] rounded-2xl border border-white/5 shadow-xl p-6"
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <LocalizationProvider
-          dateAdapter={AdapterDayjs}
-          adapterLocale="pt-br"
-        >
+        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-br">
           <DatePicker
             label="1. Dia da disponibilidade do recurso *"
             value={diaDisponibilidade}
@@ -146,6 +151,15 @@ export function ContingenciaForm({ onSaved }: ContingenciaFormProps) {
           />
         </LocalizationProvider>
 
+        {/* <SelectComponent
+          label="Parceira"
+          menuItems={optionsPartner.parceira || []}
+          selectedItem={parceira}
+          setSelectedItem={(value) => setParceira(Number(value))}
+          valueKey="id"
+          displayKey="turma"
+        /> */}
+
         <TextField
           select
           size="small"
@@ -155,9 +169,9 @@ export function ContingenciaForm({ onSaved }: ContingenciaFormProps) {
           onChange={(e) => setParceira(e.target.value)}
           sx={fieldSx}
         >
-          {PARCEIRAS.map((option) => (
-            <MenuItem key={option} value={option} sx={menuItemSx}>
-              {option}
+          {optionsPartner.parceira?.map((option) => (
+            <MenuItem key={option.id} value={option.id} sx={menuItemSx}>
+              {option.turma}
             </MenuItem>
           ))}
         </TextField>

@@ -1,22 +1,18 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
+  IsArray,
   IsIn,
   IsInt,
   IsISO8601,
+  IsNotEmpty,
+  IsNumber,
   IsOptional,
-  IsString,
   Min,
 } from 'class-validator';
-
-export const PARCEIRAS = [
-  'EDP - Time próprio (técnicos)',
-  'ENGELMIG',
-  'START - VALE',
-  'COSAMPA',
-  'LIG',
-  'START - MCR',
-  'MANSERV',
-];
+import {
+  convertParameterValue,
+  convertParameterValueForArray,
+} from 'src/utils/convertParameterValue';
 
 export const TIPOS_MAO_OBRA = [
   'Batedor (Técnico EDP)',
@@ -53,8 +49,9 @@ export class CreateContingencyDTO {
   )
   dia_disponibilidade: string;
 
-  @IsIn(PARCEIRAS, { message: 'Parceira inválida' })
-  parceira: string;
+  @IsNumber()
+  @IsNotEmpty()
+  idParceira: number;
 
   @IsIn(TIPOS_MAO_OBRA, { message: 'Tipo de recurso - Mão de Obra inválido' })
   tipo_recurso_mao_obra: string;
@@ -74,13 +71,20 @@ export class CreateContingencyDTO {
 
   @IsIn(CSDS, { message: 'Disponibilizado ao CSD inválido' })
   disponibilizado_csd: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  idUser: number;
 }
 
 // Filtros do dashboard (query params). Valores multivalorados chegam
 // separados por vírgula (ex.: parceira=ENGELMIG,LIG) e são divididos no service.
 export class DashboardFilterDTO {
   @IsOptional()
-  @IsISO8601({}, { message: 'dataInicial deve ser uma data válida (YYYY-MM-DD)' })
+  @IsISO8601(
+    {},
+    { message: 'dataInicial deve ser uma data válida (YYYY-MM-DD)' },
+  )
   dataInicial?: string;
 
   @IsOptional()
@@ -88,18 +92,22 @@ export class DashboardFilterDTO {
   dataFinal?: string;
 
   @IsOptional()
-  @IsString()
-  parceira?: string;
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idParceira?: number[];
 
   @IsOptional()
-  @IsString()
-  tipo_recurso_mao_obra?: string;
+  @IsArray()
+  @Transform(({ value }) => convertParameterValueForArray(value))
+  tipo_recurso_mao_obra?: string[];
 
   @IsOptional()
-  @IsString()
-  tipo_recurso_equipe?: string;
+  @IsArray()
+  @Transform(({ value }) => convertParameterValueForArray(value))
+  tipo_recurso_equipe?: string[];
 
   @IsOptional()
-  @IsString()
-  disponibilizado_csd?: string;
+  @IsArray()
+  @Transform(({ value }) => convertParameterValueForArray(value))
+  disponibilizado_csd?: string[];
 }

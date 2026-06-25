@@ -1,37 +1,88 @@
 import { Prisma } from '@prisma/client';
 
-export interface RecentResponse {
+export const CONTINGENCY_REPOSITORY = 'CONTINGENCY_REPOSITORY';
+
+export interface DashboardFilter {
+  dataInicial?: string;
+  dataFinal?: string;
+  idParceira?: number[];
+  maoObra?: string[];
+  equipe?: string[];
+  csd?: string[];
+}
+
+export interface NamedCount {
+  name: string;
+  value: number;
+}
+
+export interface RecentContingencyEntry {
   date: string;
   nome: string | null;
 }
 
 export interface ContingencyDashboard {
   total: number;
-  recentDates: RecentResponse[];
   totalMaoObra: number;
   totalEquipe: number;
   porcentagemCedida: number | null;
   capacidadeMes: number | null;
-  parceira: { name: string; value: number }[];
-  maoObra: { name: string; value: number }[];
-  equipe: { name: string; value: number }[];
-  csd: { name: string; value: number }[];
+  recentDates: RecentContingencyEntry[];
+  parceira: NamedCount[];
+  maoObra: NamedCount[];
+  equipe: NamedCount[];
+  csd: NamedCount[];
 }
 
-export interface DashboardFilter {
-  dataInicial?: string;
-  dataFinal?: string;
-  parceira?: string[];
-  maoObra?: string[];
-  equipe?: string[];
-  csd?: string[];
+// --- Tipos de fronteira repository <-> service (dados "crus", sem cálculo) ---
+
+export interface ContingencyAggregateSums {
+  totalMaoObra: number;
+  totalEquipe: number;
+  minDate: Date | null;
+  maxDate: Date | null;
 }
+
+export interface RecentContingencyRow {
+  dia_disponibilidade: Date;
+  usuario: { nome: string } | null;
+  turmas: { turma: string } | null;
+}
+
+export interface CapacidadePorAnoMesRow {
+  ano: string;
+  mes: number;
+  capacidade: number;
+}
+
+export type ContingencyGroupField =
+  | 'tipo_recurso_mao_obra'
+  | 'tipo_recurso_equipe'
+  | 'disponibilizado_csd';
 
 export interface IContingencyRepository {
-  create(
-    data: Prisma.recursos_contingenciaUncheckedCreateInput,
-  ): Promise<void>;
-  getDashboard(filter?: DashboardFilter): Promise<ContingencyDashboard>;
-}
+  create(data: Prisma.recursos_contingenciaUncheckedCreateInput): Promise<void>;
 
-export const CONTINGENCY_REPOSITORY = Symbol('ContingencyRepository');
+  count(filter?: DashboardFilter): Promise<number>;
+
+  aggregateSums(filter?: DashboardFilter): Promise<ContingencyAggregateSums>;
+
+  findRecent(
+    filter: DashboardFilter | undefined,
+    take: number,
+  ): Promise<RecentContingencyRow[]>;
+
+  groupByField(
+    field: ContingencyGroupField,
+    filter?: DashboardFilter,
+  ): Promise<NamedCount[]>;
+
+  groupByParceira(filter?: DashboardFilter): Promise<NamedCount[]>;
+
+  // Dados crus de capacidade por ano/mês/turma, sem nenhuma lógica de
+  // dias úteis ou soma de período — isso é regra de negócio e fica no service.
+  getCapacidadePorAnoMes(
+    anos: string[],
+    turmas: number[],
+  ): Promise<CapacidadePorAnoMesRow[]>;
+}

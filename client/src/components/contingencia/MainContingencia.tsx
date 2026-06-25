@@ -12,21 +12,26 @@ import { ChevronUpIcon } from "@heroicons/react/20/solid";
 import { ContingenciaDashboard } from "./ContingenciaDashboard";
 import { ContingenciaFilters } from "./ContingenciaFilters";
 import { ContingenciaForm } from "./ContingenciaForm";
-import { ContingencyDashboard } from "./types";
+import { ContingencyDashboardInterface } from "@/app/(dashboard)/recursos-contingencia/page";
+import { FiltersInterface } from "@/types/filtersInterfaces";
 
 interface MainContingenciaProps {
-  data: ContingencyDashboard;
+  optionsPartner: FiltersInterface;
+  data: ContingencyDashboardInterface;
 }
 
-export function MainContingencia({ data: initialData }: MainContingenciaProps) {
-  const [data, setData] = useState<ContingencyDashboard>(initialData);
+export function MainContingencia({
+  data: initialData,
+  optionsPartner,
+}: MainContingenciaProps) {
+  const [data, setData] = useState<ContingencyDashboardInterface>(initialData);
   const [formOpen, setFormOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
 
   // Estado dos filtros
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
-  const [parceira, setParceira] = useState<string[]>([]);
+  const [partners, setPartners] = useState<string[]>([]);
   const [maoObra, setMaoObra] = useState<string[]>([]);
   const [equipe, setEquipe] = useState<string[]>([]);
   const [csd, setCsd] = useState<string[]>([]);
@@ -34,7 +39,7 @@ export function MainContingencia({ data: initialData }: MainContingenciaProps) {
   async function fetchDashboard(filters: Filters) {
     setIsPending(true);
     const res = await getContingenciaDashboard(filters);
-    if (res.success) setData(res.data as ContingencyDashboard);
+    if (res.success) setData(res.data);
     setIsPending(false);
   }
 
@@ -42,7 +47,7 @@ export function MainContingencia({ data: initialData }: MainContingenciaProps) {
     return {
       dataInicial: startDate?.format("YYYY-MM-DD"),
       dataFinal: endDate?.format("YYYY-MM-DD"),
-      parceira,
+      parceira: partners,
       maoObra,
       equipe,
       csd,
@@ -56,7 +61,7 @@ export function MainContingencia({ data: initialData }: MainContingenciaProps) {
   function clearFilters() {
     setStartDate(null);
     setEndDate(null);
-    setParceira([]);
+    setPartners([]);
     setMaoObra([]);
     setEquipe([]);
     setCsd([]);
@@ -66,12 +71,13 @@ export function MainContingencia({ data: initialData }: MainContingenciaProps) {
   return (
     <div className="w-full flex-1 min-h-0 overflow-y-auto flex flex-col">
       <ContingenciaFilters
+        optionsPartner={optionsPartner}
         startDate={startDate}
         endDate={endDate}
         setStartDate={setStartDate}
         setEndDate={setEndDate}
-        parceira={parceira}
-        setParceira={setParceira}
+        parceira={partners}
+        setParceira={setPartners}
         maoObra={maoObra}
         setMaoObra={setMaoObra}
         equipe={equipe}
@@ -108,10 +114,13 @@ export function MainContingencia({ data: initialData }: MainContingenciaProps) {
         </div>
 
         {formOpen && (
-          <ContingenciaForm onSaved={() => fetchDashboard(currentFilters())} />
+          <ContingenciaForm
+            optionsPartner={optionsPartner}
+            onSaved={() => fetchDashboard(currentFilters())}
+          />
         )}
 
-        <ContingenciaDashboard data={data} />
+        <ContingenciaDashboard optionsPartner={optionsPartner} data={data} />
       </div>
     </div>
   );

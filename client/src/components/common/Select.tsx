@@ -8,8 +8,8 @@ import Select from "@mui/material/Select";
 export interface SelectProps {
   label: string;
   menuItems: any[];
-  selectedItem?: string;
-  setSelectedItem?: (item: string) => void;
+  selectedItem?: string | number;
+  setSelectedItem?: (item: string | number) => void;
   valueKey?: string | number;
   displayKey?: string | number;
   disabled?: boolean;
@@ -51,7 +51,7 @@ export function SelectComponent({
         size="small"
       >
         <Select
-          value={selectedItem}
+          value={selectedItem?.toString()}
           displayEmpty
           className="text-center w-full h-full px-2"
           onChange={(e: { target: { value: string } }) =>

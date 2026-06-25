@@ -6,12 +6,14 @@ import { DateFilter } from "@/components/common/DateFilter";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import {
   CSDS,
-  PARCEIRAS,
   TIPOS_EQUIPE,
   TIPOS_MAO_OBRA,
 } from "@/utils/contingenciaOptions";
+import { FiltersInterface } from "@/types/filtersInterfaces";
+import { ButtonComponent } from "../common/Button";
 
 interface ContingenciaFiltersProps {
+  optionsPartner: FiltersInterface;
   startDate: Dayjs | null;
   endDate: Dayjs | null;
   setStartDate: (date: Dayjs | null) => void;
@@ -30,6 +32,7 @@ interface ContingenciaFiltersProps {
 }
 
 export function ContingenciaFilters({
+  optionsPartner,
   startDate,
   endDate,
   setStartDate,
@@ -65,18 +68,20 @@ export function ContingenciaFilters({
           </div>
 
           {/* Selects */}
-          <div className="min-w-0 flex-1 sm:min-w-[180px]">
+          <div className="min-w-0 flex-1 sm:min-w-[180px] mt-2">
             <MultipleSelectComponent
               label="Parceira"
-              menuItems={PARCEIRAS}
+              menuItems={optionsPartner.parceira || []}
               selectedItem={parceira}
               setSelectedItem={setParceira}
+              valueKey="id"
+              displayKey="turma"
               backgroundColor="#0f1e2e"
               textColor="#a1a1aa"
             />
           </div>
 
-          <div className="min-w-0 flex-1 sm:min-w-[180px]">
+          <div className="min-w-0 flex-1 sm:min-w-[180px] mt-2">
             <MultipleSelectComponent
               label="Mão de Obra"
               menuItems={TIPOS_MAO_OBRA}
@@ -87,7 +92,7 @@ export function ContingenciaFilters({
             />
           </div>
 
-          <div className="min-w-0 flex-1 sm:min-w-[180px]">
+          <div className="min-w-0 flex-1 sm:min-w-[180px] mt-2">
             <MultipleSelectComponent
               label="Por Equipe"
               menuItems={TIPOS_EQUIPE}
@@ -98,7 +103,7 @@ export function ContingenciaFilters({
             />
           </div>
 
-          <div className="min-w-0 flex-1 sm:min-w-[180px]">
+          <div className="min-w-0 flex-1 sm:min-w-[180px] mt-2">
             <MultipleSelectComponent
               label="CSD"
               menuItems={CSDS}
@@ -112,23 +117,20 @@ export function ContingenciaFilters({
 
         {/* Botões */}
         <div className="flex flex-row items-center gap-2 shrink-0">
-          <button
-            type="button"
+          <ButtonComponent
             onClick={onApply}
             disabled={isPending}
-            className="flex-1 lg:flex-none rounded-xl bg-[#3b82f6] px-5 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:bg-[#2563eb] disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
-          >
-            {isPending ? "Carregando..." : "Aplicar"}
-          </button>
+            text={isPending ? "Carregando..." : "Aplicar"}
+            styled="flex-1 lg:flex-none bg-[#53FF75] hover:bg-[#3de062] text-[#0f1a26] rounded-xl px-3 py-1 shadow-lg transition-all disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
+          />
 
-          <button
+          <ButtonComponent
             type="button"
             onClick={onClear}
             disabled={isPending}
-            className="flex-1 lg:flex-none rounded-xl border border-white/20 bg-transparent px-5 py-2 text-sm font-semibold text-zinc-300 transition-all hover:border-white/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
-          >
-            Limpar
-          </button>
+            text="Limpar"
+            styled="flex-1 lg:flex-none rounded-xl border border-solid border-white/60 bg-transparent px-3 py-1 text-zinc-300 transition-all hover:border-white/40 hover:text-white disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
+          />
         </div>
       </div>
     </div>

@@ -497,23 +497,24 @@ model tipos {
 }
 
 model turmas {
-  id                   Int                    @id(map: "TURMAS_pkey") @default(autoincrement())
-  turma                String                 @db.VarChar(15)
-  turma_abrev          String?                @db.VarChar(5)
-  deposito_atual       String?                @db.VarChar(4)
-  turma_sap            String?                @db.VarChar(9)
-  contrato             String?                @db.VarChar(10)
-  email_referencia     String?                @db.VarChar(50)
-  id_regional          Int
-  base_auxiliar_ov     base_auxiliar_ov[]
-  capacidade_execucao  capacidade_execucao[]
-  equipes              equipes[]
-  metas                metas[]
-  notas_d5             notas_d5[]
-  novo_tabela_usuarios novo_tabela_usuarios[]
-  obras                obras[]
-  servicos_contratos   servicos_contratos[]
-  valores_contratos    valores_contratos[]
+  id                    Int                     @id(map: "TURMAS_pkey") @default(autoincrement())
+  turma                 String                  @db.VarChar(15)
+  turma_abrev           String?                 @db.VarChar(5)
+  deposito_atual        String?                 @db.VarChar(4)
+  turma_sap             String?                 @db.VarChar(9)
+  contrato              String?                 @db.VarChar(10)
+  email_referencia      String?                 @db.VarChar(50)
+  id_regional           Int
+  base_auxiliar_ov      base_auxiliar_ov[]
+  capacidade_execucao   capacidade_execucao[]
+  equipes               equipes[]
+  metas                 metas[]
+  notas_d5              notas_d5[]
+  novo_tabela_usuarios  novo_tabela_usuarios[]
+  obras                 obras[]
+  recursos_contingencia recursos_contingencia[]
+  servicos_contratos    servicos_contratos[]
+  valores_contratos     valores_contratos[]
 }
 
 model relatorio_viabilidade {
@@ -759,35 +760,21 @@ model novo_tabela_usuarios {
   recursos_contingencia      recursos_contingencia[]
   relatorio_execucao         relatorio_execucao[]
   restricoes_publicacoes     restricoes_publicacoes[]
-  recursos_contingencia      recursos_contingencia[]
 }
 
 model recursos_contingencia {
   id                    Int                  @id @default(autoincrement())
   dia_disponibilidade   DateTime             @db.Date
-  parceira              String               @db.VarChar(100)
   tipo_recurso_mao_obra String               @db.VarChar(100)
   quantidade_mao_obra   Int                  @default(0)
   tipo_recurso_equipe   String               @db.VarChar(100)
   quantidade_equipe     Int                  @default(0)
   disponibilizado_csd   String               @db.VarChar(100)
-  id_usuario            Int?
-  criado_em             DateTime?            @default(now()) @db.Timestamp(6)
-  usuario               novo_tabela_usuarios? @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_contingencia")
-}
-
-model recursos_contingencia {
-  id                    Int                   @id @default(autoincrement())
-  dia_disponibilidade   DateTime              @db.Date
-  parceira              String                @db.VarChar(100)
-  tipo_recurso_mao_obra String                @db.VarChar(100)
-  quantidade_mao_obra   Int                   @default(0)
-  tipo_recurso_equipe   String                @db.VarChar(100)
-  quantidade_equipe     Int                   @default(0)
-  disponibilizado_csd   String                @db.VarChar(100)
-  id_usuario            Int?
-  criado_em             DateTime?             @default(now()) @db.Timestamp(6)
-  novo_tabela_usuarios  novo_tabela_usuarios? @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_contingencia")
+  id_usuario            Int
+  criado_em             DateTime             @default(now()) @db.Timestamp(6)
+  id_parceira           Int
+  turmas                turmas               @relation(fields: [id_parceira], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
+  usuario               novo_tabela_usuarios @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_contingencia")
 }
 
 view exportacao_obras_executadas {
