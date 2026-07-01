@@ -10,15 +10,13 @@ import { useUser } from "@/contexts/userContext";
 import { userLoginSchema } from "@/validations/validationUserLogin";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Checkbox, TextField } from "@mui/material";
 
-import { ButtonComponent } from "../common/Button";
 import ErrorModal from "../common/ErrorModal";
 
 type UserLoginSchema = z.infer<typeof userLoginSchema>;
 
 export function FormLogin() {
-  const [showPassword, SetShowPassoword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -43,56 +41,74 @@ export function FormLogin() {
         setError(response.message);
         setIsModalOpen(true);
       }
-    } catch (error: any) {
+    } catch {
       setError("Ocorreu um erro durante o login.");
       setIsModalOpen(true);
     }
   }
+
   return (
     <form
       onSubmit={handleSubmit(handleUserLogin)}
-      className="w-full flex flex-col items-center"
+      className="flex flex-col gap-6"
     >
-      <div className="flex flex-col items-center mb-12 w-[90%] sm:w-80">
-        <div className="h-20 w-full">
-          <TextField
-            className="w-full mb-2"
-            label="Digite seu usuário"
-            {...register("user")}
-            error={!!errors.user}
-            helperText={errors.user?.message}
-          />
-        </div>
-
-        <div className="h-20 w-full">
-          <TextField
-            className="w-full mt-10 mb-2"
-            label="Digite sua senha"
-            {...register("password")}
-            type={showPassword ? "text" : "password"}
-            error={!!errors.password}
-            helperText={errors.password?.message}
-          />
-        </div>
+      <div>
+        <label className="block text-sm font-bold text-slate-700 mb-2">
+          Usuário
+        </label>
+        <input
+          type="text"
+          placeholder="seu.usuario"
+          {...register("user")}
+          className={`w-full px-4 py-3.5 rounded-lg border text-base text-slate-800 outline-none transition-colors placeholder:text-slate-400
+            ${errors.user ? "border-red-400 focus:border-red-500" : "border-slate-300 focus:border-emerald-500"}`}
+        />
+        {errors.user && (
+          <p className="text-xs text-red-500 mt-1">{errors.user.message}</p>
+        )}
       </div>
 
-      <div className="mb-20 w-[90%] sm:w-80 flex flex-col">
-        <div className="flex items-center self-end ml-32">
-          <Checkbox
-            className="text-zinc-700"
-            onChange={() => SetShowPassoword(!showPassword)}
-          />
-          <p className="text-zinc-700 text-nowrap">Exibir senha</p>
-        </div>
-        <ButtonComponent text="ENTRAR" type="submit" />
+      <div>
+        <label className="block text-sm font-bold text-slate-700 mb-2">
+          Senha
+        </label>
+        <input
+          type={showPassword ? "text" : "password"}
+          placeholder="••••••••"
+          {...register("password")}
+          className={`w-full px-4 py-3.5 rounded-lg border text-base text-slate-800 outline-none transition-colors placeholder:text-slate-400
+            ${errors.password ? "border-red-400 focus:border-red-500" : "border-slate-300 focus:border-emerald-500"}`}
+        />
+        {errors.password && (
+          <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>
+        )}
+      </div>
 
+      <div className="flex items-center justify-between">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showPassword}
+            onChange={() => setShowPassword(!showPassword)}
+            className="w-4 h-4 rounded border-slate-300 text-emerald-500 focus:ring-emerald-500 cursor-pointer"
+          />
+          <span className="text-sm text-slate-600">Exibir senha</span>
+        </label>
+        {/* 
         <Link
           href="/login/forget-password"
-          className="self-end mt-4 hover:text-[#53FF75]"
+          className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
         >
-          Esqueceu sua senha ?
-        </Link>
+          Esqueceu a senha?
+        </Link> */}
       </div>
+
+      <button
+        type="submit"
+        className="w-full py-3.5 rounded-full bg-emerald-500 text-white font-bold text-sm uppercase tracking-wider hover:bg-emerald-600 transition-colors mt-2"
+      >
+        ENTRAR
+      </button>
 
       {error && (
         <ErrorModal
