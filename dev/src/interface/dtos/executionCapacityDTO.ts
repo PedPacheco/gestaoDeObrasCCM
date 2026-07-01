@@ -19,12 +19,12 @@ export class ExecutionCapacityDTO {
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idRegional: number[];
+  idRegional?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idParceira: number[];
+  idParceira?: number[];
 
   @IsOptional()
   @IsArray()

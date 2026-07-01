@@ -1,20 +1,7 @@
 import { Prisma } from '@prisma/client';
+import { DashboardFilterDTO } from 'src/interface/dtos/contingencyDTO';
 
 export const CONTINGENCY_REPOSITORY = 'CONTINGENCY_REPOSITORY';
-
-export interface DashboardFilter {
-  dataInicial?: string;
-  dataFinal?: string;
-  idParceira?: number[];
-  maoObra?: string[];
-  equipe?: string[];
-  csd?: string[];
-}
-
-export interface NamedCount {
-  name: string;
-  value: number;
-}
 
 export interface RecentContingencyEntry {
   date: string;
@@ -22,25 +9,14 @@ export interface RecentContingencyEntry {
 }
 
 export interface ContingencyDashboard {
-  total: number;
-  totalMaoObra: number;
-  totalEquipe: number;
   porcentagemCedida: number | null;
-  capacidadeMes: number | null;
+  equipesEmergencia: any[];
+  capacidadeMes: CapacidadePorAnoMesRow[];
   recentDates: RecentContingencyEntry[];
-  parceira: NamedCount[];
-  maoObra: NamedCount[];
-  equipe: NamedCount[];
-  csd: NamedCount[];
-}
-
-// --- Tipos de fronteira repository <-> service (dados "crus", sem cálculo) ---
-
-export interface ContingencyAggregateSums {
-  totalMaoObra: number;
-  totalEquipe: number;
-  minDate: Date | null;
-  maxDate: Date | null;
+  parceira: any[];
+  maoObra: any[];
+  equipe: any[];
+  csd: any[];
 }
 
 export interface RecentContingencyRow {
@@ -53,6 +29,15 @@ export interface CapacidadePorAnoMesRow {
   ano: string;
   mes: number;
   capacidade: number;
+  valor: number;
+}
+
+export interface EquipeEmergenciaMesRow {
+  ano: number;
+  mes: number;
+  tipo: string;
+  quantidade: number;
+  valor: number;
 }
 
 export type ContingencyGroupField =
@@ -62,27 +47,21 @@ export type ContingencyGroupField =
 
 export interface IContingencyRepository {
   create(data: Prisma.recursos_contingenciaUncheckedCreateInput): Promise<void>;
-
-  count(filter?: DashboardFilter): Promise<number>;
-
-  aggregateSums(filter?: DashboardFilter): Promise<ContingencyAggregateSums>;
-
   findRecent(
-    filter: DashboardFilter | undefined,
-    take: number,
+    filter: DashboardFilterDTO | undefined,
   ): Promise<RecentContingencyRow[]>;
-
   groupByField(
     field: ContingencyGroupField,
-    filter?: DashboardFilter,
-  ): Promise<NamedCount[]>;
-
-  groupByParceira(filter?: DashboardFilter): Promise<NamedCount[]>;
-
-  // Dados crus de capacidade por ano/mês/turma, sem nenhuma lógica de
-  // dias úteis ou soma de período — isso é regra de negócio e fica no service.
+    filter?: DashboardFilterDTO,
+  ): Promise<any[]>;
+  groupByParceira(filter?: DashboardFilterDTO): Promise<any[]>;
+  groupByCsd(filter?: DashboardFilterDTO): Promise<any[]>;
   getCapacidadePorAnoMes(
-    anos: string[],
-    turmas: number[],
+    filter?: DashboardFilterDTO,
+    month?: number,
   ): Promise<CapacidadePorAnoMesRow[]>;
+  getEquipesEmergenciaComValor(
+    filter?: DashboardFilterDTO,
+    month?: number,
+  ): Promise<EquipeEmergenciaMesRow[]>;
 }

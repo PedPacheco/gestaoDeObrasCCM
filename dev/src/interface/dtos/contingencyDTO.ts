@@ -7,6 +7,7 @@ import {
   IsNotEmpty,
   IsNumber,
   IsOptional,
+  IsString,
   Min,
 } from 'class-validator';
 import {
@@ -80,15 +81,12 @@ export class CreateContingencyDTO {
 // Filtros do dashboard (query params). Valores multivalorados chegam
 // separados por vírgula (ex.: parceira=ENGELMIG,LIG) e são divididos no service.
 export class DashboardFilterDTO {
+  @IsString()
   @IsOptional()
-  @IsISO8601(
-    {},
-    { message: 'dataInicial deve ser uma data válida (YYYY-MM-DD)' },
-  )
   dataInicial?: string;
 
+  @IsString()
   @IsOptional()
-  @IsISO8601({}, { message: 'dataFinal deve ser uma data válida (YYYY-MM-DD)' })
   dataFinal?: string;
 
   @IsOptional()
@@ -99,15 +97,15 @@ export class DashboardFilterDTO {
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValueForArray(value))
-  tipo_recurso_mao_obra?: string[];
+  maoObra?: string[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValueForArray(value))
-  tipo_recurso_equipe?: string[];
+  equipe?: string[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValueForArray(value))
-  disponibilizado_csd?: string[];
+  csd?: string[];
 }
