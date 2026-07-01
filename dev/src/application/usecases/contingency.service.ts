@@ -1,7 +1,8 @@
+import moment from 'moment';
 import {
+  CapacidadePorAnoMesRow,
   CONTINGENCY_REPOSITORY,
   ContingencyDashboard,
-  DashboardFilter,
   IContingencyRepository,
 } from 'src/domain/repositories/IContingencyRepository';
 
@@ -12,11 +13,12 @@ import {
   DashboardFilterDTO,
 } from '../../interface/dtos/contingencyDTO';
 
-// Regras de negócio do dashboard de contingência
-const RECENT_DATES_LIMIT = 3;
-const MS_PER_DAY = 86400000;
-const BUSINESS_DAY_START = 1; // segunda-feira
-const BUSINESS_DAY_END = 5; // sexta-feira
+interface AggregatedEmergencyTeam {
+  year: number;
+  month: number;
+  quantity: number;
+  value: number;
+}
 
 @Injectable()
 export class ContingencyService {
@@ -41,155 +43,137 @@ export class ContingencyService {
   async getDashboard(
     query: DashboardFilterDTO = {},
   ): Promise<ContingencyDashboard> {
-    const filter: DashboardFilter = {
-      dataInicial: query.dataInicial,
-      dataFinal: query.dataFinal,
-      idParceira: query.idParceira,
-      maoObra: query.tipo_recurso_mao_obra,
-      equipe: query.tipo_recurso_equipe,
-      csd: query.disponibilizado_csd,
-    };
+    const filterMonth = this.resolveFilterMonth(query);
 
-    const [total, sums, recent, parceira, maoObra, equipe, csd] =
-      await Promise.all([
-        this.contingencyRepository.count(filter),
-        this.contingencyRepository.aggregateSums(filter),
-        this.contingencyRepository.findRecent(filter, RECENT_DATES_LIMIT),
-        this.contingencyRepository.groupByParceira(filter),
-        this.contingencyRepository.groupByField(
-          'tipo_recurso_mao_obra',
-          filter,
-        ),
-        this.contingencyRepository.groupByField('tipo_recurso_equipe', filter),
-        this.contingencyRepository.groupByField('disponibilizado_csd', filter),
-      ]);
+    const [
+      recent,
+      partner,
+      laborRows,
+      teamRows,
+      csd,
+      emergencyTeams,
+      executionCapacity,
+    ] = await Promise.all([
+      this.contingencyRepository.findRecent(query),
+      this.contingencyRepository.groupByParceira(query),
+      this.contingencyRepository.groupByField('tipo_recurso_mao_obra', query),
+      this.contingencyRepository.groupByField('tipo_recurso_equipe', query),
+      this.contingencyRepository.groupByCsd(query),
+      this.contingencyRepository.getEquipesEmergenciaComValor(
+        query,
+        filterMonth,
+      ),
+      this.contingencyRepository.getCapacidadePorAnoMes(query, filterMonth),
+    ]);
 
-    const totalEquipe = sums.totalEquipe;
-    const periodo = this.resolveEffectivePeriod(
-      filter,
-      sums.minDate,
-      sums.maxDate,
+    const aggregatedEmergencyTeams =
+      this.aggregateEmergencyTeams(emergencyTeams);
+
+    const yieldedPercentage = this.calculateYieldedPercentage(
+      aggregatedEmergencyTeams,
+      executionCapacity,
+      filterMonth,
     );
 
-    let porcentagemCedida: number | null = null;
-    let capacidadeMes: number | null = null;
-
-    if (periodo) {
-      capacidadeMes = await this.calcularCapacidadeMes(
-        periodo.start,
-        periodo.end,
-        filter.idParceira,
-      );
-      porcentagemCedida = this.calcularPorcentagemCedida(
-        totalEquipe,
-        capacidadeMes,
-      );
-    }
-
     return {
-      total,
-      totalMaoObra: sums.totalMaoObra,
-      totalEquipe,
-      porcentagemCedida,
-      capacidadeMes,
+      porcentagemCedida: yieldedPercentage,
+      capacidadeMes: executionCapacity,
+      equipesEmergencia: aggregatedEmergencyTeams,
       recentDates: recent.map((r) => ({
-        date: this.formatDate(r.dia_disponibilidade),
+        date: r.dia_disponibilidade.toISOString().slice(0, 10),
         nome: r.usuario?.nome ?? null,
       })),
-      parceira,
-      maoObra,
-      equipe,
+      parceira: partner,
+      maoObra: this.sumByName(laborRows, 'quantidade_mao_obra'),
+      equipe: this.sumByName(teamRows, 'quantidade_equipe'),
       csd,
     };
   }
 
-  /**
-   * Regra de negócio: o período efetivo do dashboard é o intervalo
-   * informado no filtro (dataInicial/dataFinal); na ausência de um dos
-   * extremos, usa-se o intervalo real das respostas existentes na base.
-   */
-  private resolveEffectivePeriod(
-    filter: DashboardFilter,
-    minDate: Date | null,
-    maxDate: Date | null,
-  ): { start: Date; end: Date } | null {
-    const start = filter.dataInicial ? new Date(filter.dataInicial) : minDate;
-    const end = filter.dataFinal ? new Date(filter.dataFinal) : maxDate;
-
-    if (!start || !end) return null;
-    return { start, end };
-  }
-
-  /**
-   * Regra de negócio: capacidade total de equipes (equipe-dias) no período,
-   * somando a capacidade diária do mês correspondente das parceiras
-   * selecionadas, contabilizada apenas em dias úteis (segunda a sexta).
-   */
-  private async calcularCapacidadeMes(
-    start: Date,
-    end: Date,
-    idParceira?: number[],
-  ): Promise<number> {
-    const turmas = [...new Set(idParceira)];
-    if (!turmas.length) return 0;
-
-    const startTs = this.toUtcDayTimestamp(start);
-    const endTs = this.toUtcDayTimestamp(end);
-    if (endTs < startTs) return 0;
-
-    const anos = this.anosNoIntervalo(start, end);
-    const capacidadeRows =
-      await this.contingencyRepository.getCapacidadePorAnoMes(anos, turmas);
-
-    const capacidadePorAnoMes = new Map<string, number>();
-    for (const row of capacidadeRows) {
-      capacidadePorAnoMes.set(`${row.ano}-${row.mes}`, Number(row.capacidade));
+  private resolveFilterMonth(filter?: DashboardFilterDTO): number {
+    if (!filter?.dataInicial || !filter?.dataFinal) {
+      return moment().month() + 1;
     }
 
-    let total = 0;
-    for (let ts = startTs; ts <= endTs; ts += MS_PER_DAY) {
-      const dia = new Date(ts);
-      const diaDaSemana = dia.getUTCDay(); // 0 dom .. 6 sáb
+    const start = moment(filter.dataInicial, 'DD/MM/YYYY');
+    const end = moment(filter.dataFinal, 'DD/MM/YYYY');
 
-      if (this.isDiaUtil(diaDaSemana)) {
-        const chave = `${dia.getUTCFullYear()}-${dia.getUTCMonth() + 1}`;
-        total += capacidadePorAnoMes.get(chave) ?? 0;
+    if (
+      start.isValid() &&
+      end.isValid() &&
+      start.month() === end.month() &&
+      start.year() === end.year()
+    ) {
+      return start.month() + 1;
+    }
+
+    return moment().month() + 1;
+  }
+
+  private aggregateEmergencyTeams(
+    rows: {
+      ano: number;
+      mes: number;
+      quantidade: number;
+      valor: number;
+    }[],
+  ): AggregatedEmergencyTeam[] {
+    const map = new Map<string, AggregatedEmergencyTeam>();
+
+    for (const { ano, mes, quantidade, valor } of rows) {
+      const key = `${ano}-${mes}`;
+      const existing = map.get(key);
+
+      if (existing) {
+        existing.quantity += quantidade;
+        existing.value += valor;
+      } else {
+        map.set(key, {
+          year: ano,
+          month: mes,
+          quantity: quantidade,
+          value: valor,
+        });
       }
     }
 
-    return total;
+    return Array.from(map.values());
   }
 
-  private calcularPorcentagemCedida(
-    totalEquipe: number,
-    capacidadeMes: number,
+  private calculateYieldedPercentage(
+    emergencyTeams: AggregatedEmergencyTeam[],
+    monthlyCapacity: CapacidadePorAnoMesRow[],
+    filterMonth: number,
   ): number | null {
-    return capacidadeMes > 0
-      ? Math.round((totalEquipe / capacidadeMes) * 100)
-      : null;
+    const capacity = monthlyCapacity.find((item) => item.mes === filterMonth);
+
+    const emergency = emergencyTeams.find((item) => item.month === filterMonth);
+
+    if (!capacity || !emergency) return null;
+
+    if (capacity.capacidade === 0) return null;
+
+    return Math.round((emergency.quantity / capacity.capacidade) * 100);
   }
 
-  private isDiaUtil(diaDaSemana: number): boolean {
-    return diaDaSemana >= BUSINESS_DAY_START && diaDaSemana <= BUSINESS_DAY_END;
-  }
+  private sumByName(
+    rows: {
+      name: string;
+      quantidade_mao_obra: number;
+      quantidade_equipe: number;
+      disponibilizado_csd: number;
+    }[],
+    sumField:
+      | 'quantidade_mao_obra'
+      | 'quantidade_equipe'
+      | 'disponibilizado_csd',
+  ): { name: string; value: number }[] {
+    const map = new Map<string, number>();
 
-  private toUtcDayTimestamp(date: Date): number {
-    return Date.UTC(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      date.getUTCDate(),
-    );
-  }
-
-  private anosNoIntervalo(start: Date, end: Date): string[] {
-    const anos = new Set<string>();
-    for (let ano = start.getUTCFullYear(); ano <= end.getUTCFullYear(); ano++) {
-      anos.add(String(ano));
+    for (const row of rows) {
+      map.set(row.name, (map.get(row.name) ?? 0) + (row[sumField] ?? 0));
     }
-    return [...anos];
-  }
 
-  private formatDate(date: Date): string {
-    return date.toISOString().slice(0, 10);
+    return Array.from(map, ([name, value]) => ({ name, value }));
   }
 }
