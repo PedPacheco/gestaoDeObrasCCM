@@ -1,12 +1,8 @@
 "use client";
 
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import { useState } from "react";
 
-import {
-  ContingenciaFilters as Filters,
-  getContingenciaDashboard,
-} from "@/actions/contingencia.action";
 import { ChevronUpIcon } from "@heroicons/react/20/solid";
 
 import { ContingenciaDashboard } from "./ContingenciaDashboard";
@@ -14,58 +10,73 @@ import { ContingenciaFilters } from "./ContingenciaFilters";
 import { ContingenciaForm } from "./ContingenciaForm";
 import { ContingencyDashboardInterface } from "@/app/(dashboard)/recursos-contingencia/page";
 import { FiltersInterface } from "@/types/filtersInterfaces";
+import { fetchData } from "@/actions/fetchData.action";
 
 interface MainContingenciaProps {
   optionsPartner: FiltersInterface;
   data: ContingencyDashboardInterface;
+  token: string;
 }
+
+export const DEFAULT_START = () => dayjs().startOf("month");
+export const DEFAULT_END = () => dayjs().endOf("month");
 
 export function MainContingencia({
   data: initialData,
   optionsPartner,
+  token,
 }: MainContingenciaProps) {
   const [data, setData] = useState<ContingencyDashboardInterface>(initialData);
   const [formOpen, setFormOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
 
   // Estado dos filtros
-  const [startDate, setStartDate] = useState<Dayjs | null>(null);
-  const [endDate, setEndDate] = useState<Dayjs | null>(null);
+  const [startDate, setStartDate] = useState<Dayjs | null>(DEFAULT_START);
+  const [endDate, setEndDate] = useState<Dayjs | null>(DEFAULT_END);
   const [partners, setPartners] = useState<string[]>([]);
   const [maoObra, setMaoObra] = useState<string[]>([]);
   const [equipe, setEquipe] = useState<string[]>([]);
   const [csd, setCsd] = useState<string[]>([]);
 
-  async function fetchDashboard(filters: Filters) {
+  async function fetchDashboard(filters: Record<string, string | string[]>) {
     setIsPending(true);
-    const res = await getContingenciaDashboard(filters);
+    const res = await fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/recursos-contingencia/dashboard`,
+      filters,
+      token,
+      { cache: "no-store" },
+    );
     if (res.success) setData(res.data);
     setIsPending(false);
   }
 
-  function currentFilters(): Filters {
-    return {
-      dataInicial: startDate?.format("YYYY-MM-DD"),
-      dataFinal: endDate?.format("YYYY-MM-DD"),
-      parceira: partners,
-      maoObra,
-      equipe,
-      csd,
-    };
-  }
-
   function applyFilters() {
-    fetchDashboard(currentFilters());
+    const params: Record<string, any> = {};
+
+    if (startDate) params.dataInicial = startDate.format("DD/MM/YYYY");
+    if (endDate) params.dataFinal = endDate.format("DD/MM/YYYY");
+    if (partners?.length) params.idParceira = partners;
+    if (maoObra?.length) params.maoObra = maoObra;
+    if (equipe?.length) params.equipe = equipe;
+    if (csd?.length) params.csd = csd;
+
+    fetchDashboard(params);
   }
 
   function clearFilters() {
-    setStartDate(null);
-    setEndDate(null);
+    setStartDate(DEFAULT_START);
+    setEndDate(DEFAULT_END);
     setPartners([]);
     setMaoObra([]);
     setEquipe([]);
     setCsd([]);
-    fetchDashboard({});
+
+    const params = {
+      dataInicial: DEFAULT_START().format("DD/MM/YYYY"),
+      dataFinal: DEFAULT_END().format("DD/MM/YYYY"),
+    };
+
+    fetchDashboard(params);
   }
 
   return (
@@ -116,11 +127,16 @@ export function MainContingencia({
         {formOpen && (
           <ContingenciaForm
             optionsPartner={optionsPartner}
-            onSaved={() => fetchDashboard(currentFilters())}
+            onSaved={() => applyFilters()}
           />
         )}
 
-        <ContingenciaDashboard optionsPartner={optionsPartner} data={data} />
+        <ContingenciaDashboard
+          optionsPartner={optionsPartner}
+          data={data}
+          endDate={endDate}
+          startDate={startDate}
+        />
       </div>
     </div>
   );

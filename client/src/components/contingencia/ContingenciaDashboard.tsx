@@ -1,20 +1,5 @@
 "use client";
 
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-
-import { ChartCard } from "@/components/dashboard/common/ChartCard";
 import { KpiCard } from "@/components/dashboard/common/KpiCard";
 import { RingCard } from "@/components/dashboard/common/RingCard";
 import {
@@ -26,86 +11,25 @@ import {
   ContingencyDashboardInterface,
   CountItem,
 } from "@/app/(dashboard)/recursos-contingencia/page";
-import { ChartTooltip } from "../dashboard/common/ChartTooltip";
 import { FiltersInterface } from "@/types/filtersInterfaces";
+import { FormatCurrency } from "@/utils/formatValue";
+import { Dayjs } from "dayjs";
+import { BarListCard } from "./barListCard";
 
 const KPI_GRADIENT = "bg-gradient-to-br from-[#182638] to-[#1c2f42]";
 const KPI_ACCENT = "#53FF75";
 
-const COLORS = [
-  "#3b82f6",
-  "#f59e0b",
-  "#10b981",
-  "#ef4444",
-  "#8b5cf6",
-  "#a16207",
-  "#ec4899",
-  "#94a3b8",
-  "#84cc16",
-];
-
 interface ContingenciaDashboardProps {
   optionsPartner: FiltersInterface;
   data: ContingencyDashboardInterface;
+  startDate: Dayjs | null;
+  endDate: Dayjs | null;
 }
 
 // Garante que todas as opções apareçam (mesmo com 0 respostas), na ordem oficial
-function zeroFill(
-  options: string[],
-  items: CountItem[],
-): { name: string; Quantidade: number }[] {
+function zeroFill(options: string[], items: CountItem[]): CountItem[] {
   const map = new Map(items.map((i) => [i.name, i.value]));
-  return options.map((name) => ({ name, Quantidade: map.get(name) ?? 0 }));
-}
-
-function BarSection({
-  data,
-}: {
-  data: { name: string; Quantidade: number }[];
-}) {
-  return (
-    <ResponsiveContainer width="100%" height={380}>
-      <BarChart data={data} margin={{ left: 0, right: 10, top: 4, bottom: 0 }}>
-        <defs>
-          <linearGradient id="gContBar" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#3b82f6" />
-            <stop offset="100%" stopColor="#1d4ed8" />
-          </linearGradient>
-        </defs>
-        <CartesianGrid
-          strokeDasharray="3 3"
-          stroke="#ffffff08"
-          vertical={false}
-        />
-        <XAxis
-          dataKey="name"
-          tick={{ fill: "#a1a1aa", fontSize: 11 }}
-          axisLine={false}
-          tickLine={false}
-          interval={0}
-          angle={-35}
-          textAnchor="end"
-          height={90}
-        />
-        <YAxis
-          tick={{ fill: "#a1a1aa", fontSize: 12 }}
-          axisLine={false}
-          tickLine={false}
-          allowDecimals={false}
-        />
-        <Tooltip
-          cursor={{ fill: "rgba(255,255,255,0.05)" }}
-          content={<ChartTooltip metricConfig="number" />}
-        />
-        <Bar
-          dataKey="Quantidade"
-          fill="url(#gContBar)"
-          radius={[3, 3, 0, 0]}
-          maxBarSize={22}
-        />
-      </BarChart>
-    </ResponsiveContainer>
-  );
+  return options.map((name) => ({ name, value: map.get(name) ?? 0 }));
 }
 
 export function ContingenciaDashboard({
@@ -125,15 +49,33 @@ export function ContingenciaDashboard({
     nome: d.nome,
   }));
 
-  console.log(parceira);
+  const acionamentoAtual = data.capacidadeMes.reduce(
+    (sum, c) => sum + (c.capacidade ?? 0),
+    0,
+  );
+
+  const capacidadeAtual = data.capacidadeMes.reduce(
+    (sum, c) => sum + (c.valor ?? 0),
+    0,
+  );
+
+  const totalValorEquipesEmergenciaAtual = data.equipesEmergencia.reduce(
+    (sum, c) => sum + (c.valor ?? 0),
+    0,
+  );
+
+  const totalCapacidadeEquipesEmergenciaAtual = data.equipesEmergencia.reduce(
+    (sum, c) => sum + (c.quantidade ?? 0),
+    0,
+  );
 
   return (
     <div className="flex flex-col gap-6">
       {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {/* Respostas mais recentes */}
         <div
-          className={`relative flex flex-col overflow-hidden rounded-2xl p-4 shadow-lg min-h-[120px] ${KPI_GRADIENT}`}
+          className={`relative flex flex-col overflow-hidden rounded-2xl p-4 shadow-lg h-[120px] ${KPI_GRADIENT}`}
         >
           <div
             className="absolute top-0 left-0 h-full w-1 rounded-l-2xl"
@@ -143,7 +85,7 @@ export function ContingenciaDashboard({
             <span className="text-white/60 text-xs uppercase tracking-widest font-medium">
               Respostas mais recentes
             </span>
-            <div className="flex flex-col gap-1 pt-2">
+            <div className="flex flex-col gap-1 pt-2 overflow-y-auto h-[80px]">
               {recentDates.length ? (
                 recentDates.map((d, i) => (
                   <div key={i} className="flex items-baseline gap-2">
@@ -164,65 +106,46 @@ export function ContingenciaDashboard({
 
         {/* Total mão de obra */}
         <KpiCard
-          label="Total Mão de Obra"
-          value={data.totalMaoObra}
+          label="Custo da Equipe com Emergência"
+          value={FormatCurrency(totalValorEquipesEmergenciaAtual)}
           gradient={KPI_GRADIENT}
           accent={KPI_ACCENT}
         />
 
-        {/* Total de Recursos (equipe) */}
-        {data.porcentagemCedida !== null ? (
-          <RingCard
-            label="Total de Recursos (M.O. técnica)"
-            subLabel="Equipes Cedidas / Capacidade Mês"
-            value={data.porcentagemCedida}
-            color={KPI_ACCENT}
-            sub={`${data.totalEquipe} / ${data.capacidadeMes ?? "—"}`}
-          />
-        ) : (
-          <KpiCard
-            label="Total de Recursos (M.O. técnica)"
-            value={data.totalEquipe}
-            gradient={KPI_GRADIENT}
-            accent={KPI_ACCENT}
-          />
-        )}
+        <KpiCard
+          label="Impacto no CCM"
+          value={FormatCurrency(
+            capacidadeAtual - totalValorEquipesEmergenciaAtual,
+          )}
+          gradient={KPI_GRADIENT}
+          accent={KPI_ACCENT}
+          sub={[
+            {
+              subLabel: "Capacidade Mês",
+              subValue: FormatCurrency(capacidadeAtual),
+            },
+            {
+              subLabel: "Emergência",
+              subValue: FormatCurrency(totalValorEquipesEmergenciaAtual),
+            },
+          ]}
+        />
+
+        <RingCard
+          label="Disponibilidade Recurso"
+          subLabel="Capacidade Mês / Qtd. Acionamentos"
+          value={100 - data.porcentagemCedida}
+          color={KPI_ACCENT}
+          sub={`${acionamentoAtual} / ${totalCapacidadeEquipesEmergenciaAtual}`}
+        />
       </div>
 
       {/* Gráficos */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-        <ChartCard title="Parceira">
-          <BarSection data={parceira} />
-        </ChartCard>
-
-        <ChartCard title="Tipo de recurso - Mão de Obra">
-          <ResponsiveContainer width="100%" height={380}>
-            <PieChart>
-              <Pie
-                data={data.maoObra}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-              >
-                {maoObra.map((entry, index) => (
-                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip content={<ChartTooltip metricConfig="number" />} />
-              <Legend wrapperStyle={{ fontSize: 14, color: "#d4d4d8" }} />
-            </PieChart>
-          </ResponsiveContainer>
-        </ChartCard>
-
-        <ChartCard title="Tipo de recurso - Por Equipe">
-          <BarSection data={equipe} />
-        </ChartCard>
-
-        <ChartCard title="Disponibilizado ao CSD">
-          <BarSection data={csd} />
-        </ChartCard>
+        <BarListCard title="Detalhe — Parceira" items={parceira} />
+        <BarListCard title="Tipo de Recurso - Mão de obra" items={maoObra} />
+        <BarListCard title="Tipo de Recurso - Por equipe" items={equipe} />
+        <BarListCard title="Disponibilizado ao CSD" items={csd} />
       </div>
     </div>
   );

@@ -1,11 +1,11 @@
-import { cookies } from "next/headers";
-
 import { fetchData } from "@/actions/fetchData.action";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
 import { MainContingencia } from "@/components/contingencia/MainContingencia";
 
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { fetchFilters } from "@/actions/fetchFilters.action";
+import dayjs from "dayjs";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
@@ -20,12 +20,20 @@ export interface RecentResponse {
 }
 
 export interface ContingencyDashboardInterface {
-  total: number;
   recentDates: RecentResponse[];
-  totalMaoObra: number;
-  totalEquipe: number;
-  porcentagemCedida: number | null;
-  capacidadeMes: number | null;
+  porcentagemCedida: number;
+  capacidadeMes: {
+    ano: string;
+    mes: number;
+    capacidade: number;
+    valor: number;
+  }[];
+  equipesEmergencia: {
+    ano: number;
+    mes: number;
+    quantidade: number;
+    valor: number;
+  }[];
   parceira: CountItem[];
   maoObra: CountItem[];
   equipe: CountItem[];
@@ -34,7 +42,6 @@ export interface ContingencyDashboardInterface {
 
 export default async function RecursosContingencia() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
 
   const [optionsPartner, dashboard] = await Promise.all([
     fetchFilters({
@@ -42,8 +49,11 @@ export default async function RecursosContingencia() {
     }),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/recursos-contingencia/dashboard`,
-      undefined,
-      token,
+      {
+        dataInicial: dayjs().startOf("month").format("DD/MM/YYYY"),
+        dataFinal: dayjs().endOf("month").format("DD/MM/YYYY"),
+      },
+      cookieStore.get("token")?.value,
       { cache: "no-store" },
     ),
   ]);
@@ -52,9 +62,15 @@ export default async function RecursosContingencia() {
     return <ErrorThrower message={dashboard.message} />;
   }
 
+  const { token, data } = dashboard;
+
   return (
     <EmotionCacheProvider>
-      <MainContingencia data={dashboard.data} optionsPartner={optionsPartner} />
+      <MainContingencia
+        data={data}
+        optionsPartner={optionsPartner}
+        token={token}
+      />
     </EmotionCacheProvider>
   );
 }
