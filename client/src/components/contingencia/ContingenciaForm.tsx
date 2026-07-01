@@ -24,7 +24,6 @@ import {
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { FiltersInterface } from "@/types/filtersInterfaces";
-import { SelectComponent } from "../common/Select";
 import { useUser } from "@/contexts/userContext";
 
 interface ContingenciaFormProps {

@@ -8,6 +8,7 @@ import {
   pctColorGripSchedule,
   pctColorRestrictionsElimination,
 } from "./advancePartner";
+import { EXCLUDE_PARCEIRAS } from "@/hooks/dashboard/advancePartner/useAdvancePartnerFilters";
 
 interface SparkPoint {
   semana: string;
@@ -210,6 +211,10 @@ export function SparklinesSection({
       );
   }, [sparklines, filtersPartner]);
 
+  const semanasArray = Object.entries(semanasMap).filter(
+    ([parceira]) => !EXCLUDE_PARCEIRAS.has(parceira),
+  );
+
   const cardSx = {
     background: "linear-gradient(to bottom right, #1e2f42, #192535)",
     borderRadius: "16px",
@@ -290,18 +295,15 @@ export function SparklinesSection({
             aproveitar o espaço horizontal disponível.
           */
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-0">
-            {sparklinesFull.map((row, i) => {
-              const semanas = semanasMap[row.parceira] ?? null;
-
+            {semanasArray.map(([parceira, semanas], i) => {
               const semDotColor =
                 semanas >= 8 ? "#53FF75" : semanas >= 6 ? "#eab308" : "#ef4444";
 
               const isLastOdd =
-                sparklinesFull.length % 2 !== 0 &&
-                i === sparklinesFull.length - 1;
+                semanasArray.length % 2 !== 0 && i === semanasArray.length - 1;
 
               return (
-                <div key={row.parceira}>
+                <div key={parceira}>
                   {/* Divider: só visível quando em coluna única (mobile e xl) */}
                   {i > 0 && (
                     <div
@@ -319,11 +321,11 @@ export function SparklinesSection({
                     <Stack direction="row" spacing={1.5} alignItems="center">
                       <Image
                         src={
-                          ["START VALE", "START MCR"].includes(row.parceira)
+                          ["START VALE", "START MCR"].includes(parceira)
                             ? "start-logo.png"
-                            : `${row.parceira.toLowerCase()}-logo.png`
+                            : `${parceira.toLowerCase()}-logo.png`
                         }
-                        alt={`Logo ${row.parceira}`}
+                        alt={`Logo ${parceira}`}
                         width={76}
                         height={60}
                       />
@@ -338,7 +340,7 @@ export function SparklinesSection({
                             lineHeight: 1.2,
                           }}
                         >
-                          {row.parceira}
+                          {parceira}
                         </Typography>
 
                         <Stack direction="row" spacing={1} alignItems="center">

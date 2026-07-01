@@ -128,26 +128,50 @@ table {
   border-spacing: 0;
 }
 
+/* ══════════════════════════════════════
+   Scrollbar — tema dark blue
+   ══════════════════════════════════════ */
+
+/* Largura / altura */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 
-/* Track */
+/* Track (fundo) */
 ::-webkit-scrollbar-track {
-  /* background: #1a2635; fundo escuro */
-  background: #ffffff;
+  background: #0f1923;
+  border-radius: 4px;
 }
 
-/* Handle */
+/* Handle (barra) */
 ::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 5px;
+  background: rgba(59, 130, 246, 0.35); /* azul acento com transparência */
+  border-radius: 4px;
+  transition: background 0.2s;
 }
 
-/* Handle on hover */
+/* Handle — hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: rgba(59, 130, 246, 0.6);
+}
+
+/* Handle — active (ao arrastar) */
+::-webkit-scrollbar-thumb:active {
+  background: rgba(59, 130, 246, 0.8);
+}
+
+/* Canto (quando há scroll horizontal + vertical) */
+::-webkit-scrollbar-corner {
+  background: #0f1923;
+}
+
+/* ══════════════════════════════════════
+   Firefox — suporte nativo
+   ══════════════════════════════════════ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 130, 246, 0.35) #0f1923;
 }
 
 #root,
