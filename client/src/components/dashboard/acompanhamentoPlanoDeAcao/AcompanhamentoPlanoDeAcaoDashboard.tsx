@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { PlusIcon, TrashIcon } from "@heroicons/react/20/solid";
 import { AuditData, AuditDataFromAPI, AuditStatus, camelToSnake, mapApiToAuditData } from "@/types/auditoria/auditoriaTypes";
@@ -211,7 +211,7 @@ export default function AcompanhamentoPlanoDeAcaoDashboard() {
   }
 
   return (
-    <div className="flex flex-col gap-8 w-full">
+    <div className="flex flex-col gap-2 w-full">
       {/* ── Barra de filtros — sticky, full-width ────────────────────── */}
       <div className="sticky top-0 z-40 border-b border-white/10 px-6 py-3 flex flex-wrap items-center gap-4" style={{ background: "#0a1628" }}>
         <h2 className="text-lg font-bold text-white mr-4 shrink-0">Acompanhamento Plano de Ação</h2>
@@ -297,7 +297,7 @@ export default function AcompanhamentoPlanoDeAcaoDashboard() {
         </button>
       </div>
 
-      <div className="px-6 flex flex-col gap-8">
+      <div className="px-6 flex flex-col gap-2">
 
       {/* ── Partner Selector Modal ───────────────────────────────────── */}
       {showPartnerSelector && (
@@ -352,7 +352,7 @@ export default function AcompanhamentoPlanoDeAcaoDashboard() {
               <thead>
                 {/* Título */}
                 <tr style={{ background: "#071220" }} className="border-b border-white/10">
-                  <th colSpan={11} className="px-4 py-3.5 text-sm font-black text-white uppercase tracking-[0.2em] text-center">
+                  <th colSpan={12} className="px-4 py-3.5 text-sm font-black text-white uppercase tracking-[0.2em] text-center">
                     PLANO DE AÇÃO - AUDITORIA DE SEGURANÇA - GAP ANALYSIS
                   </th>
                 </tr>
@@ -363,16 +363,18 @@ export default function AcompanhamentoPlanoDeAcaoDashboard() {
                   </th>
                   <th rowSpan={2} className="px-4 py-2 border-r border-white/8 min-w-[110px] text-center align-middle">Data do GAP</th>
                   <th rowSpan={2} className="px-4 py-2 border-r border-white/8 min-w-[100px] text-center align-middle">Score Final</th>
-                  <th colSpan={3} className="px-4 py-2 border-r border-white/8 text-center border-b border-white/8 text-emerald-400">Total de Itens</th>
-                  <th colSpan={2} className="px-4 py-2 border-r border-white/8 text-center border-b border-white/8 text-blue-400">Itens Pendentes</th>
+                  <th className="px-4 py-2 border-r border-white/8 text-center border-b border-white/8 text-emerald-400">Planejado</th>
+                  <th colSpan={3} className="px-4 py-2 border-r border-white/8 text-center border-b border-white/8 text-emerald-400">Executado</th>
+                  <th colSpan={2} className="px-4 py-2 border-r border-white/8 text-center border-b border-white/8 text-blue-400">Pendente</th>
                   <th rowSpan={2} className="px-4 py-2 border-r border-white/8 min-w-[130px] text-center align-middle">Status</th>
                   <th rowSpan={2} className="px-4 py-2 min-w-[280px] text-left align-middle">Observações</th>
                 </tr>
                 {/* Sub-colunas */}
                 <tr style={{ background: "#071220" }} className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                  <th className="px-3 py-2 border-r border-white/8 min-w-[80px] text-center text-emerald-400/80">Total</th>
-                  <th className="px-3 py-2 border-r border-white/8 min-w-[90px] text-center text-emerald-400/80">Executado</th>
-                  <th className="px-3 py-2 border-r border-white/8 min-w-[170px] text-center text-emerald-400/80">%</th>
+                  <th className="px-3 py-2 border-r border-white/8 min-w-[90px] text-center text-emerald-400/80">Qtd. Ações</th>
+                  <th className="px-3 py-2 border-r border-white/8 min-w-[90px] text-center text-emerald-400/80">No Prazo</th>
+                  <th className="px-3 py-2 border-r border-white/8 min-w-[90px] text-center text-emerald-400/80">Fora Prazo</th>
+                  <th className="px-3 py-2 border-r border-white/8 min-w-[150px] text-center text-emerald-400/80">Evolução</th>
                   <th className="px-3 py-2 border-r border-white/8 min-w-[100px] text-center text-blue-400/80">No Prazo</th>
                   <th className="px-3 py-2 border-r border-white/8 min-w-[110px] text-center text-blue-400/80">Fora do Prazo</th>
                 </tr>
@@ -381,9 +383,10 @@ export default function AcompanhamentoPlanoDeAcaoDashboard() {
               <tbody style={{ background: "#0f1d2e" }}>
                 {grouped.map((group, gIdx) =>
                   group.rows.map((row, rIdx) => {
-                    const total = parseInt(row.quantidadeDesviosPlanejados) || 0;
-                    const exec  = parseInt(row.quantidadeDesviosExecutados)  || 0;
-                    const pct   = total > 0 ? Math.round((exec / total) * 100) : null;
+                    const total  = parseInt(row.quantidadeDesviosPlanejados) || 0;
+                    const execNP = parseInt(row.quantidadeDesviosExecutados) || 0;
+                    const execFP = parseInt(row.executadosForaPrazo || "0") || 0;
+                    const pct    = total > 0 ? Math.round(((execNP + execFP) / total) * 100) : null;
                     const barColor =
                       pct === null ? "" :
                       pct >= 90   ? "bg-emerald-500" :
@@ -393,7 +396,7 @@ export default function AcompanhamentoPlanoDeAcaoDashboard() {
                     const isFirst        = rIdx === 0;
                     const isGroupBorder  = isFirst && gIdx > 0;
                     const groupBorderCls = isGroupBorder
-                      ? "border-t-2 border-white/20"
+                      ? "border-t-[3px] border-white"
                       : "border-t border-white/6";
 
                     return (
@@ -455,46 +458,73 @@ export default function AcompanhamentoPlanoDeAcaoDashboard() {
                           </span>
                         </td>
 
-                        {/* Total */}
-                        <td className={`px-4 py-2 border-r border-white/8 cursor-default ${groupBorderCls}`} style={{ background: "#0a1628" }}>
-                          <span className={`block text-sm text-center font-semibold ${row.quantidadeDesviosPlanejados ? "text-slate-200" : "text-white/20"}`}>
-                            {row.quantidadeDesviosPlanejados || "—"}
-                          </span>
+                        {/* Qtd. Ações (editável) */}
+                        <td className={`p-0 border-r border-white/8 ${groupBorderCls}`}>
+                          <input
+                            type="text"
+                            value={row.quantidadeDesviosPlanejados || ""}
+                            onChange={(e) => handleUpdate(row.id, "quantidadeDesviosPlanejados", e.target.value)}
+                            className="w-full h-11 px-2 text-sm border-none outline-none text-center font-semibold text-emerald-400 placeholder:text-white/20"
+                            style={{ background: "transparent" }}
+                          />
                         </td>
 
-                        {/* Executado */}
-                        <td className={`px-4 py-2 border-r border-white/8 cursor-default ${groupBorderCls}`} style={{ background: "#0a1628" }}>
-                          <span className={`block text-sm text-center font-semibold ${row.quantidadeDesviosExecutados ? "text-slate-200" : "text-white/20"}`}>
-                            {row.quantidadeDesviosExecutados || "—"}
-                          </span>
+                        {/* Exec No Prazo (editável) */}
+                        <td className={`p-0 border-r border-white/8 ${groupBorderCls}`}>
+                          <input
+                            type="text"
+                            value={row.quantidadeDesviosExecutados || ""}
+                            onChange={(e) => handleUpdate(row.id, "quantidadeDesviosExecutados", e.target.value)}
+                            className="w-full h-11 px-2 text-sm border-none outline-none text-center text-slate-300 placeholder:text-white/20"
+                            style={{ background: "transparent" }}
+                          />
                         </td>
 
-                        {/* % com barra */}
+                        {/* Exec Fora Prazo (editável) */}
+                        <td className={`p-0 border-r border-white/8 ${groupBorderCls}`}>
+                          <input
+                            type="text"
+                            value={row.executadosForaPrazo || ""}
+                            onChange={(e) => handleUpdate(row.id, "executadosForaPrazo", e.target.value)}
+                            className="w-full h-11 px-2 text-sm border-none outline-none text-center text-slate-300 placeholder:text-white/20"
+                            style={{ background: "transparent" }}
+                          />
+                        </td>
+
+                        {/* Evolução (travado) = (ExecNP + ExecFP) / Total */}
                         <td className={`px-3 py-2 border-r border-white/8 ${groupBorderCls}`} style={{ background: "#0a1628" }}>
-                          {pct !== null ? (
-                            <div className="flex items-center gap-2 min-w-[130px]">
-                              <span className="text-sm font-bold text-white w-9 text-right shrink-0">{pct}%</span>
-                              <div className="flex-1 h-3 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
-                                <div className={`h-full ${barColor} rounded-full transition-all`} style={{ width: `${pct}%` }} />
+                          {(() => {
+                            const evol = parseInt(row.evolucao || "0") || 0;
+                            const bc = evol >= 90 ? "bg-emerald-500" : evol >= 60 ? "bg-amber-400" : "bg-red-500";
+                            return evol > 0 || (total > 0 && (execNP + execFP) > 0) ? (
+                              <div className="flex items-center gap-2 min-w-[110px]">
+                                <span className="text-sm font-bold text-white w-9 text-right shrink-0">{evol}%</span>
+                                <div className="flex-1 h-3 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
+                                  <div className={`h-full ${bc} rounded-full transition-all`} style={{ width: `${Math.min(evol, 100)}%` }} />
+                                </div>
                               </div>
-                            </div>
-                          ) : (
-                            <span className="block text-center text-white/20 text-sm">—</span>
-                          )}
+                            ) : total > 0 ? (
+                              <div className="flex items-center gap-2 min-w-[110px]">
+                                <span className="text-sm font-bold text-white w-9 text-right shrink-0">0%</span>
+                                <div className="flex-1 h-3 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }} />
+                              </div>
+                            ) : (
+                              <span className="block text-center text-white/20 text-sm">—</span>
+                            );
+                          })()}
                         </td>
 
-                        {/* No Prazo (calculado) */}
+                        {/* Pend No Prazo (travado) */}
                         <td className={`p-0 border-r border-white/8 ${groupBorderCls}`} style={{ background: "#0a1628" }}>
                           <input
                             readOnly
                             value={row.itensPendentesNoPrazo || "0"}
-                            title="Calculado: Total − Executados − Fora do Prazo"
                             className="w-full h-11 px-2 text-sm border-none outline-none text-center font-bold text-blue-400 cursor-default"
                             style={{ background: "transparent" }}
                           />
                         </td>
 
-                        {/* Fora do Prazo (editável) */}
+                        {/* Pend Fora do Prazo (editável) */}
                         <td className={`p-0 border-r border-white/8 ${groupBorderCls}`}>
                           <input
                             type="text"
@@ -555,7 +585,7 @@ export default function AcompanhamentoPlanoDeAcaoDashboard() {
             <table className="w-full border-collapse">
               <thead>
                 <tr style={{ background: "#071220" }} className="border-b border-white/10">
-                  <th colSpan={11} className="px-4 py-3.5 text-xs font-black text-white uppercase tracking-[0.2em] text-center">
+                  <th colSpan={12} className="px-4 py-3.5 text-xs font-black text-white uppercase tracking-[0.2em] text-center">
                     RESUMO GERAL
                   </th>
                 </tr>
@@ -564,23 +594,23 @@ export default function AcompanhamentoPlanoDeAcaoDashboard() {
               {/* Resumo Geral */}
               <tfoot>
                 <tr className="border-t-2 border-emerald-500/40" style={{ background: "#071220" }}>
-                  <td colSpan={2} className="px-4 py-3 text-xs font-black uppercase tracking-widest whitespace-nowrap text-emerald-400">
+                  <td colSpan={2} className="px-4 py-3 border-r border-white text-xs font-black uppercase tracking-widest whitespace-nowrap text-emerald-400">
                     Resumo Geral
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-4 py-3 text-center border-r border-white">
                     <div className="text-lg font-black leading-none text-white">{summaryStats.total}</div>
                     <div className="text-[11px] uppercase tracking-widest text-slate-500 mt-0.5">Auditorias</div>
                   </td>
-                  <td className="px-4 py-3 text-center text-white/20 text-sm">—</td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-4 py-3 text-center text-white/20 text-sm border-r border-white">—</td>
+                  <td className="px-4 py-3 text-center border-r border-white">
                     <div className="text-lg font-black leading-none text-white">{summaryStats.sumItens}</div>
                     <div className="text-[11px] uppercase tracking-widest text-slate-500 mt-0.5">Total de Itens</div>
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-4 py-3 text-center border-r border-white">
                     <div className="text-lg font-black leading-none text-white">{summaryStats.sumExec}</div>
                     <div className="text-[11px] uppercase tracking-widest text-slate-500 mt-0.5">Itens Executados</div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 border-r border-white">
                     {(() => {
                       const p  = summaryStats.sumItens > 0 ? Math.round(summaryStats.sumExec / summaryStats.sumItens * 100) : 0;
                       const bc = p >= 90 ? "bg-emerald-500" : p >= 60 ? "bg-amber-400" : "bg-red-500";
@@ -597,15 +627,15 @@ export default function AcompanhamentoPlanoDeAcaoDashboard() {
                       );
                     })()}
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-4 py-3 text-center border-r border-white">
                     <div className="text-lg font-black leading-none text-blue-400">{summaryStats.sumNoPrazo}</div>
                     <div className="text-[11px] uppercase tracking-widest text-slate-500 mt-0.5">Pendentes No Prazo</div>
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-4 py-3 text-center border-r border-white">
                     <div className="text-lg font-black leading-none text-white">{summaryStats.sumForaPrazo}</div>
                     <div className="text-[11px] uppercase tracking-widest text-slate-500 mt-0.5">Pendentes Fora do Prazo</div>
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-4 py-3 text-center border-r border-white">
                     <div className="text-sm font-black text-amber-400 leading-none">{summaryStats.countEmAndamento}</div>
                     <div className="text-[11px] uppercase tracking-widest text-slate-500 mt-0.5">Em andamento</div>
                     <div className="text-sm font-black text-slate-400 leading-none mt-1.5">{summaryStats.countPendente}</div>
@@ -675,9 +705,9 @@ export default function AcompanhamentoPlanoDeAcaoDashboard() {
       {/* ══════════════════════════════════════════════════════════════
           TABELA 2 — Cards colapsáveis por empresa
       ══════════════════════════════════════════════════════════════ */}
-      <section className="flex flex-col gap-4">
+      <section className="flex flex-col gap-1">
         {groupedFiltered.map((group) => {
-          const isOpen = !!expandedCards[group.parceira];
+          const isOpen = expandedCards[group.parceira] !== false;
           const totalPlan = group.rows.reduce((s: number, r: AuditData) => s + (parseInt(r.quantidadeDesviosPlanejados) || 0), 0);
           const totalExecNP = group.rows.reduce((s: number, r: AuditData) => s + (parseInt(r.quantidadeDesviosExecutados) || 0), 0);
           const totalExecFP = group.rows.reduce((s: number, r: AuditData) => s + (parseInt(r.executadosForaPrazo || "0") || 0), 0);
@@ -729,17 +759,17 @@ export default function AcompanhamentoPlanoDeAcaoDashboard() {
               {/* ── Card body (expandido) ─── */}
               {isOpen && (
                 <div className="overflow-x-auto">
-                  <table className="border-collapse min-w-[2700px] w-full">
+                  <table className="border-collapse min-w-[2200px] w-full">
                     <thead style={{ background: "#071220" }}>
                       <tr className="border-b border-white/10 border-t border-white/10">
                         <th className="w-10 border-r border-white/8" style={{ background: "#071220" }} />
                         <th colSpan={5} className="px-3 py-2 text-xs uppercase font-black text-slate-400 border-r border-white/8 text-center tracking-widest">Fiscalização — GAP</th>
                         <th className="px-3 py-2 text-xs uppercase font-black text-slate-400 border-r border-white/8 text-center tracking-widest">Notas</th>
-                        <th colSpan={8} className="px-3 py-2 text-xs uppercase font-black text-emerald-400 border-r border-white/8 text-center tracking-widest">Acompanhamento das Etapas</th>
-                        <th className="w-[6px] p-0" style={{ background: "rgba(255,255,255,0.15)" }} />
-                        <th className="px-3 py-2 text-xs uppercase font-black text-emerald-400 border-r border-white/8 text-center tracking-widest border-b border-white/8">Planejado</th>
-                        <th colSpan={3} className="px-3 py-2 text-xs uppercase font-black text-emerald-400 border-r border-white/8 text-center tracking-widest border-b border-white/8">Executado</th>
-                        <th colSpan={2} className="px-3 py-2 text-xs uppercase font-black text-blue-400 text-center tracking-widest border-b border-white/8">Pendente</th>
+                        <th colSpan={10} className="px-3 py-2 text-xs uppercase font-black text-emerald-400 border-r border-white/8 text-center tracking-widest">Acompanhamento das Etapas</th>
+                        <th rowSpan={2} className="w-[6px] p-0" style={{ background: "rgba(255,255,255,0.15)" }} />
+                        <th rowSpan={2} className="px-3 py-2 text-sm font-bold text-slate-300 border-r border-white/8 text-center min-w-[130px] align-middle">Desvios Planejados</th>
+                        <th rowSpan={2} className="px-3 py-2 text-sm font-bold text-slate-300 border-r border-white/8 text-center min-w-[140px] align-middle">Status</th>
+                        <th rowSpan={2} className="px-3 py-2 text-sm font-bold text-slate-300 text-center min-w-[200px] align-middle">Observação</th>
                       </tr>
                       <tr className="border-b border-white/10" style={{ background: "#071220" }}>
                         <th className="w-10 border-r border-white/8 px-2 py-2" style={{ background: "#071220" }}>
@@ -761,13 +791,6 @@ export default function AcompanhamentoPlanoDeAcaoDashboard() {
                         <ColHeader title="Validação do novo Plano de Ação" sector="GO Contrato + GO Segurança" />
                         <ColHeader title="Lançamento dos desvios no SGS" sector="Segurança" />
                         <ColHeader title="Início acompanhamento das ações" sector="Dono de Área" />
-                        <th className="w-[6px] p-0" style={{ background: "rgba(255,255,255,0.15)" }} />
-                        <th className="px-3 py-2 text-sm font-bold text-emerald-300 border-r border-white/8 min-w-[110px] text-center">Qtd. Ações</th>
-                        <th className="px-3 py-2 text-sm font-bold text-emerald-300 border-r border-white/8 min-w-[100px] text-center">No Prazo</th>
-                        <th className="px-3 py-2 text-sm font-bold text-emerald-300 border-r border-white/8 min-w-[100px] text-center">Fora Prazo</th>
-                        <th className="px-3 py-2 text-sm font-bold text-emerald-300 border-r border-white/8 min-w-[100px] text-center">Evolução</th>
-                        <th className="px-3 py-2 text-sm font-bold text-blue-300 border-r border-white/8 min-w-[100px] text-center">No Prazo</th>
-                        <th className="px-3 py-2 text-sm font-bold text-blue-300 min-w-[100px] text-center">Fora Prazo</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -807,18 +830,30 @@ export default function AcompanhamentoPlanoDeAcaoDashboard() {
                           <Cell rowId={row.id} field="lancamentoDesviosSGS"  value={row.lancamentoDesviosSGS}  type="date" onChange={handleUpdate} />
                           <Cell rowId={row.id} field="inicioAcompanhamento"  value={row.inicioAcompanhamento}  type="date" onChange={handleUpdate} />
                           <td className="w-[6px] p-0" style={{ background: "rgba(255,255,255,0.15)" }} />
-                          <td className="p-0 border-r border-white/8" style={{ background: "#0a1628" }}>
-                            <div className="w-full h-11 px-3 flex items-center justify-center text-sm font-semibold text-slate-300">{row.quantidadeDesviosPlanejados || <span className="text-white/20">—</span>}</div>
+                          <Cell rowId={row.id} field="quantidadeDesviosPlanejados" value={row.quantidadeDesviosPlanejados} type="text" onChange={handleUpdate} align="center" />
+                          <td className="p-0 border-r border-white/8">
+                            <select
+                              value={row.status || ""}
+                              onChange={(e) => handleUpdate(row.id, "status", e.target.value)}
+                              className={`w-full h-11 px-3 text-sm font-semibold outline-none border-none cursor-pointer ${statusColorDark(row.status as AuditStatus | "")}`}
+                              style={{ background: "#1e2f42", colorScheme: "dark" }}
+                            >
+                              <option value="" style={{ background: "#1e2f42", color: "#94a3b8" }}>Selecione</option>
+                              <option value="Pendente" style={{ background: "#1e2f42", color: "#f87171" }}>Pendente</option>
+                              <option value="Em andamento" style={{ background: "#1e2f42", color: "#fbbf24" }}>Em andamento</option>
+                              <option value="Concluído" style={{ background: "#1e2f42", color: "#34d399" }}>Concluído</option>
+                            </select>
                           </td>
-                          <Cell rowId={row.id} field="quantidadeDesviosExecutados" value={row.quantidadeDesviosExecutados} type="text" onChange={handleUpdate} align="center" />
-                          <Cell rowId={row.id} field="executadosForaPrazo"   value={row.executadosForaPrazo}   type="text" onChange={handleUpdate} align="center" />
-                          <td className="p-0 border-r border-white/8" style={{ background: "#0a1628" }}>
-                            <div className="w-full h-11 px-3 flex items-center justify-center text-sm font-bold text-emerald-400">{row.evolucao ? `${row.evolucao}%` : <span className="text-white/20">—</span>}</div>
+                          <td className="p-0">
+                            <input
+                              type="text"
+                              value={row.observacao || ""}
+                              placeholder="Observações..."
+                              onChange={(e) => handleUpdate(row.id, "observacao", e.target.value)}
+                              className="w-full h-11 px-4 text-sm border-none outline-none text-slate-300 placeholder:text-white/20"
+                              style={{ background: "transparent" }}
+                            />
                           </td>
-                          <td className="p-0 border-r border-white/8" style={{ background: "#0a1628" }}>
-                            <div className="w-full h-11 px-3 flex items-center justify-center text-sm font-bold text-blue-400">{row.itensPendentesNoPrazo || "0"}</div>
-                          </td>
-                          <Cell rowId={row.id} field="itensPendentesForaDoPrazo" value={row.itensPendentesForaDoPrazo} type="text" onChange={handleUpdate} align="center" />
                         </tr>
                       ))}
                     </tbody>
@@ -923,6 +958,9 @@ interface CellProps {
 }
 
 function Cell({ rowId, field, value, type = "text", onChange, suffix, placeholder, align = "left" }: CellProps) {
+  if (type === "date") {
+    return <DatePickerCell rowId={rowId} field={field} value={value} onChange={onChange} />;
+  }
   return (
     <td className="p-0 border-r border-white/8 transition-colors">
       <div className="relative flex items-center">
@@ -940,6 +978,133 @@ function Cell({ rowId, field, value, type = "text", onChange, suffix, placeholde
           </span>
         )}
       </div>
+    </td>
+  );
+}
+
+const MONTH_NAMES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+const WEEKDAYS = ["D", "S", "T", "Q", "Q", "S", "S"];
+
+function DatePickerCell({ rowId, field, value, onChange }: { rowId: number; field: keyof AuditData; value?: string; onChange: (id: number, field: keyof AuditData, value: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const btnRef = React.useRef<HTMLButtonElement>(null);
+  const today = new Date();
+  const parsed = value ? new Date(value + "T00:00:00") : null;
+  const [viewYear, setViewYear] = useState(parsed ? parsed.getFullYear() : today.getFullYear());
+  const [viewMonth, setViewMonth] = useState(parsed ? parsed.getMonth() : today.getMonth());
+  const [popupPos, setPopupPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+
+  const displayValue = parsed
+    ? `${String(parsed.getDate()).padStart(2, "0")}/${String(parsed.getMonth() + 1).padStart(2, "0")}/${parsed.getFullYear()}`
+    : "";
+
+  const handleOpen = () => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setPopupPos({ top: rect.top - 4, left: rect.left });
+    }
+    setOpen(!open);
+  };
+
+  const handleSelect = (day: number) => {
+    const iso = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    onChange(rowId, field, iso);
+    setOpen(false);
+  };
+
+  const prevMonth = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setViewMonth(prev => {
+      if (prev === 0) { setViewYear(y => y - 1); return 11; }
+      return prev - 1;
+    });
+  };
+
+  const nextMonth = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setViewMonth(prev => {
+      if (prev === 11) { setViewYear(y => y + 1); return 0; }
+      return prev + 1;
+    });
+  };
+
+  const cells: (number | null)[] = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  const isSelected = (day: number) =>
+    parsed && parsed.getFullYear() === viewYear && parsed.getMonth() === viewMonth && parsed.getDate() === day;
+
+  const isToday = (day: number) =>
+    today.getFullYear() === viewYear && today.getMonth() === viewMonth && today.getDate() === day;
+
+  return (
+    <td className="p-0 border-r border-white/8 transition-colors">
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={handleOpen}
+        className="w-full h-11 px-3 text-sm text-left text-slate-300 flex items-center justify-between cursor-pointer"
+        style={{ background: "transparent" }}
+      >
+        <span className={displayValue ? "text-slate-300" : "text-white/20"}>{displayValue || "dd/mm/aaaa"}</span>
+        <svg className="w-3.5 h-3.5 text-white/30 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="fixed inset-0 z-[998]" onClick={() => setOpen(false)}>
+          <div className="fixed z-[999] rounded-lg border border-white/10 shadow-2xl p-3 w-[260px]" onClick={(e) => e.stopPropagation()} style={{ background: "#1e2f42", bottom: window.innerHeight - popupPos.top, left: popupPos.left }}>
+            {/* Header: mês/ano + setas */}
+            <div className="flex items-center justify-between mb-2">
+              <button type="button" onClick={prevMonth} className="w-7 h-7 flex items-center justify-center rounded hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <span className="text-sm font-bold text-white">{MONTH_NAMES[viewMonth]} {viewYear}</span>
+              <button type="button" onClick={nextMonth} className="w-7 h-7 flex items-center justify-center rounded hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+              </button>
+            </div>
+
+            {/* Dias da semana */}
+            <div className="grid grid-cols-7 mb-1">
+              {WEEKDAYS.map((d, i) => (
+                <div key={i} className="text-center text-[11px] font-bold text-slate-500 py-1">{d}</div>
+              ))}
+            </div>
+
+            {/* Dias do mês */}
+            <div className="grid grid-cols-7">
+              {cells.map((day, i) => (
+                <div key={i} className="flex items-center justify-center">
+                  {day ? (
+                    <button
+                      type="button"
+                      onClick={() => handleSelect(day)}
+                      className={`w-8 h-8 rounded-full text-xs font-semibold transition-colors
+                        ${isSelected(day) ? "bg-emerald-500 text-white" : isToday(day) ? "border border-emerald-500 text-emerald-400 hover:bg-emerald-500/20" : "text-slate-300 hover:bg-white/10"}`}
+                    >
+                      {day}
+                    </button>
+                  ) : (
+                    <div className="w-8 h-8" />
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Limpar + Hoje */}
+            <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/10">
+              <button type="button" onClick={() => { onChange(rowId, field, ""); setOpen(false); }} className="text-xs text-slate-400 hover:text-white transition-colors">Limpar</button>
+              <button type="button" onClick={() => { handleSelect(today.getDate()); setViewMonth(today.getMonth()); setViewYear(today.getFullYear()); }} className="text-xs text-emerald-400 hover:text-emerald-300 font-bold transition-colors">Hoje</button>
+            </div>
+          </div>
+        </div>
+      )}
     </td>
   );
 }
