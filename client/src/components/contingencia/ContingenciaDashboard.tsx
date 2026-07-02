@@ -72,7 +72,7 @@ export function ContingenciaDashboard({
   return (
     <div className="flex flex-col gap-6">
       {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {/* Respostas mais recentes */}
         <div
           className={`relative flex flex-col overflow-hidden rounded-2xl p-4 shadow-lg h-[120px] ${KPI_GRADIENT}`}
@@ -105,12 +105,12 @@ export function ContingenciaDashboard({
         </div>
 
         {/* Total mão de obra */}
-        <KpiCard
+        {/* <KpiCard
           label="Custo da Equipe com Emergência"
           value={FormatCurrency(totalValorEquipesEmergenciaAtual)}
           gradient={KPI_GRADIENT}
           accent={KPI_ACCENT}
-        />
+        /> */}
 
         <KpiCard
           label="Impacto no CCM"

@@ -14,10 +14,10 @@ import {
 } from '../../interface/dtos/contingencyDTO';
 
 interface AggregatedEmergencyTeam {
-  year: number;
-  month: number;
-  quantity: number;
-  value: number;
+  ano: number;
+  mes: number;
+  quantidade: number;
+  valor: number;
 }
 
 @Injectable()
@@ -75,6 +75,8 @@ export class ContingencyService {
       filterMonth,
     );
 
+    console.log(aggregatedEmergencyTeams);
+
     return {
       porcentagemCedida: yieldedPercentage,
       capacidadeMes: executionCapacity,
@@ -125,14 +127,14 @@ export class ContingencyService {
       const existing = map.get(key);
 
       if (existing) {
-        existing.quantity += quantidade;
-        existing.value += valor;
+        existing.quantidade += quantidade;
+        existing.valor += valor;
       } else {
         map.set(key, {
-          year: ano,
-          month: mes,
-          quantity: quantidade,
-          value: valor,
+          ano,
+          mes,
+          quantidade,
+          valor,
         });
       }
     }
@@ -147,13 +149,13 @@ export class ContingencyService {
   ): number | null {
     const capacity = monthlyCapacity.find((item) => item.mes === filterMonth);
 
-    const emergency = emergencyTeams.find((item) => item.month === filterMonth);
+    const emergency = emergencyTeams.find((item) => item.mes === filterMonth);
 
     if (!capacity || !emergency) return null;
 
     if (capacity.capacidade === 0) return null;
 
-    return Math.round((emergency.quantity / capacity.capacidade) * 100);
+    return Math.round((emergency.quantidade / capacity.capacidade) * 100);
   }
 
   private sumByName(

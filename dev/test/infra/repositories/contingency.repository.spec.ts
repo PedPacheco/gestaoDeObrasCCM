@@ -144,7 +144,7 @@ describe('ContingencyRepository', () => {
   describe('buildWhere (via count)', () => {
     it('should build a complete where clause when all filter fields are present', async () => {
       const filter = makeFilter();
-      await repository.count(filter);
+      await repository.groupByCsd(filter);
 
       expect(extractWhere(prisma.recursos_contingencia.count)).toStrictEqual(
         buildExpectedWhere(filter),
@@ -152,14 +152,14 @@ describe('ContingencyRepository', () => {
     });
 
     it('should return empty where when filter is undefined', async () => {
-      await repository.count(undefined);
+      await repository.groupByCsd(undefined);
       expect(extractWhere(prisma.recursos_contingencia.count)).toStrictEqual(
         {},
       );
     });
 
     it('should return empty where when filter is empty object', async () => {
-      await repository.count({});
+      await repository.groupByCsd({});
       expect(extractWhere(prisma.recursos_contingencia.count)).toStrictEqual(
         {},
       );
@@ -174,7 +174,7 @@ describe('ContingencyRepository', () => {
         csd: undefined,
       });
 
-      await repository.count(filter);
+      await repository.groupByCsd(filter);
 
       const where = extractWhere(prisma.recursos_contingencia.count);
       expect(where.dia_disponibilidade).toStrictEqual({
@@ -192,7 +192,7 @@ describe('ContingencyRepository', () => {
         csd: undefined,
       });
 
-      await repository.count(filter);
+      await repository.groupByCsd(filter);
 
       const where = extractWhere(prisma.recursos_contingencia.count);
       expect(where.dia_disponibilidade).toStrictEqual({
@@ -208,7 +208,7 @@ describe('ContingencyRepository', () => {
         csd: undefined,
       });
 
-      await repository.count(filter);
+      await repository.groupByCsd(filter);
 
       const where = extractWhere(prisma.recursos_contingencia.count);
       expect(where.dia_disponibilidade).toStrictEqual({
@@ -223,7 +223,7 @@ describe('ContingencyRepository', () => {
         dataFinal: undefined,
       });
 
-      await repository.count(filter);
+      await repository.groupByCsd(filter);
 
       const where = extractWhere(prisma.recursos_contingencia.count);
       expect(where).not.toHaveProperty('dia_disponibilidade');
@@ -231,7 +231,7 @@ describe('ContingencyRepository', () => {
 
     it('should skip idParceira when array is empty', async () => {
       const filter = makeFilter({ idParceira: [] });
-      await repository.count(filter);
+      await repository.groupByCsd(filter);
 
       const where = extractWhere(prisma.recursos_contingencia.count);
       expect(where).not.toHaveProperty('id_parceira');
@@ -239,7 +239,7 @@ describe('ContingencyRepository', () => {
 
     it('should skip maoObra when array is empty', async () => {
       const filter = makeFilter({ maoObra: [] });
-      await repository.count(filter);
+      await repository.groupByCsd(filter);
 
       const where = extractWhere(prisma.recursos_contingencia.count);
       expect(where).not.toHaveProperty('tipo_recurso_mao_obra');
@@ -247,7 +247,7 @@ describe('ContingencyRepository', () => {
 
     it('should skip equipe when array is empty', async () => {
       const filter = makeFilter({ equipe: [] });
-      await repository.count(filter);
+      await repository.groupByCsd(filter);
 
       const where = extractWhere(prisma.recursos_contingencia.count);
       expect(where).not.toHaveProperty('tipo_recurso_equipe');
@@ -255,7 +255,7 @@ describe('ContingencyRepository', () => {
 
     it('should skip csd when array is empty', async () => {
       const filter = makeFilter({ csd: [] });
-      await repository.count(filter);
+      await repository.groupByCsd(filter);
 
       const where = extractWhere(prisma.recursos_contingencia.count);
       expect(where).not.toHaveProperty('disponibilizado_csd');
@@ -263,7 +263,7 @@ describe('ContingencyRepository', () => {
 
     it('should handle individual filter fields in isolation', async () => {
       // Apenas idParceira
-      await repository.count(
+      await repository.groupByCsd(
         makeFilter({
           dataInicial: undefined,
           dataFinal: undefined,
@@ -308,112 +308,19 @@ describe('ContingencyRepository', () => {
   });
 
   // ═══════════════════════════════════════════════════════════════════════
-  // count
-  // ═══════════════════════════════════════════════════════════════════════
-
-  describe('count', () => {
-    it('should return the count from prisma', async () => {
-      prisma.recursos_contingencia.count.mockResolvedValueOnce(42);
-
-      const result = await repository.count(makeFilter());
-
-      expect(result).toBe(42);
-    });
-
-    it('should pass the built where clause to prisma', async () => {
-      const filter = makeFilter();
-      await repository.count(filter);
-
-      expect(prisma.recursos_contingencia.count).toHaveBeenCalledWith({
-        where: buildExpectedWhere(filter),
-      });
-    });
-
-    it('should propagate prisma exceptions', async () => {
-      const error = new Error('connection refused');
-      prisma.recursos_contingencia.count.mockRejectedValueOnce(error);
-
-      await expect(repository.count(makeFilter())).rejects.toThrow(error);
-    });
-  });
-
-  // ═══════════════════════════════════════════════════════════════════════
-  // aggregateSums
-  // ═══════════════════════════════════════════════════════════════════════
-
-  describe('aggregateSums', () => {
-    it('should call prisma.aggregate with correct fields and where', async () => {
-      const filter = makeFilter();
-      await repository.aggregateSums(filter);
-
-      expect(prisma.recursos_contingencia.aggregate).toHaveBeenCalledWith({
-        where: buildExpectedWhere(filter),
-        _sum: { quantidade_mao_obra: true, quantidade_equipe: true },
-        _min: { dia_disponibilidade: true },
-        _max: { dia_disponibilidade: true },
-      });
-    });
-
-    it('should map aggregate result to ContingencyAggregateSums', async () => {
-      const minDate = new Date('2025-06-01');
-      const maxDate = new Date('2025-06-30');
-
-      prisma.recursos_contingencia.aggregate.mockResolvedValueOnce({
-        _sum: { quantidade_mao_obra: 100, quantidade_equipe: 50 },
-        _min: { dia_disponibilidade: minDate },
-        _max: { dia_disponibilidade: maxDate },
-      });
-
-      const result = await repository.aggregateSums(makeFilter());
-
-      expect(result).toStrictEqual({
-        totalMaoObra: 100,
-        totalEquipe: 50,
-        minDate,
-        maxDate,
-      });
-    });
-
-    it('should default totalMaoObra to 0 when _sum is null', async () => {
-      prisma.recursos_contingencia.aggregate.mockResolvedValueOnce({
-        _sum: { quantidade_mao_obra: null, quantidade_equipe: null },
-        _min: { dia_disponibilidade: null },
-        _max: { dia_disponibilidade: null },
-      });
-
-      const result = await repository.aggregateSums(makeFilter());
-
-      expect(result.totalMaoObra).toBe(0);
-      expect(result.totalEquipe).toBe(0);
-      expect(result.minDate).toBeNull();
-      expect(result.maxDate).toBeNull();
-    });
-
-    it('should propagate prisma exceptions', async () => {
-      const error = new Error('aggregate failed');
-      prisma.recursos_contingencia.aggregate.mockRejectedValueOnce(error);
-
-      await expect(repository.aggregateSums(makeFilter())).rejects.toThrow(
-        error,
-      );
-    });
-  });
-
-  // ═══════════════════════════════════════════════════════════════════════
   // findRecent
   // ═══════════════════════════════════════════════════════════════════════
 
   describe('findRecent', () => {
     it('should call findMany with correct where, orderBy, take and select', async () => {
       const filter = makeFilter();
-      const take = 5;
 
-      await repository.findRecent(filter, take);
+      await repository.findRecent(filter);
 
       expect(prisma.recursos_contingencia.findMany).toHaveBeenCalledWith({
         where: buildExpectedWhere(filter),
         orderBy: { criado_em: 'desc' },
-        take,
+
         select: {
           dia_disponibilidade: true,
           usuario: { select: { nome: true } },
