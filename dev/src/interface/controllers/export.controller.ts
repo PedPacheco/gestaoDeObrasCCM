@@ -154,7 +154,7 @@ export class ExportController {
   }
 
   @Get('obras-executadas')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1, 9] }))
   async exportCompletedWorks(
     @Query() workFilters: GetWorksDTO,
     @Res() res: Response,
