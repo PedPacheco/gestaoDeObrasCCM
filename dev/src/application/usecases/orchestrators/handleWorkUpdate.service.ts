@@ -51,7 +51,7 @@ export class HandleWorkUpdateService {
       await this.updateWorkService.update(data, work.id, tx);
 
       if (work.id_status === 42 && data_empreitamento && tipo_ads) {
-        await this.statusFlowRepository.updateStatusWorks(1, work.id, tx);
+        await this.statusFlowRepository.updateStatusWorks(45, work.id, tx);
       }
     });
   }

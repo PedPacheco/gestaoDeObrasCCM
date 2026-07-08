@@ -56,7 +56,7 @@ export class WorksServicesService {
   private sumServiceQuantities(services: any[]): number {
     return services.reduce(
       (sum, service) =>
-        sum + ((service.qtde_plan ?? 0) + (service.qtde_adicional ?? 0)),
+        sum + ((service.viabilizado ?? 0) + (service.qtde_adicional ?? 0)),
       0,
     );
   }
@@ -110,6 +110,23 @@ export class WorksServicesService {
     }
 
     await this.worksServicesRepository.addServices(data);
+  }
+
+  async addMaterials(data: AddServicesDTO): Promise<void> {
+    const { idService, point, idWork } = data;
+
+    const materials =
+      await this.worksServicesRepository.getAllMaterialsOfWork(idWork);
+
+    const materialsMap = new Map(
+      materials.map((s) => [`${s.id_material}:${s.ponto}`, s]),
+    );
+
+    if (materialsMap.has(`${idService}:${point}`)) {
+      throw new BadRequestException('Esse material já existe nesse ponto.');
+    }
+
+    await this.worksServicesRepository.addMaterials(data);
   }
 
   async cancelServices(id: number): Promise<void> {

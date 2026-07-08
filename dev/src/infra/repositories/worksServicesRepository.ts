@@ -31,8 +31,23 @@ export class WorksServicesRepository implements IWorksServicesRepository {
         id_contrato_servico: true,
         ponto: true,
         operacao: true,
+        qtde_adicional: true,
+        viabilizado: true,
+      },
+      where: { id_obra: id },
+    });
+  }
+
+  async getAllMaterialsOfWork(id: number): Promise<any[]> {
+    return await this.prisma.servicos.findMany({
+      select: {
+        id: true,
+        id_material: true,
+        ponto: true,
+        operacao: true,
         qtde_plan: true,
         qtde_adicional: true,
+        viabilizado: true,
       },
       where: { id_obra: id },
     });
@@ -54,7 +69,9 @@ export class WorksServicesRepository implements IWorksServicesRepository {
         qtde_prog: true,
         qtde_real: true,
         qtde_adicional: true,
+        viabilizado: true,
         programacoes: { select: { data_prog: true } },
+        materiais: { select: { codigo: true, descricao: true, preco: true } },
         servicos_contratos: {
           select: {
             material: true,
@@ -98,6 +115,8 @@ export class WorksServicesRepository implements IWorksServicesRepository {
         qtde_prog: true,
         qtde_real: true,
         qtde_adicional: true,
+        viabilizado: true,
+        materiais: { select: { codigo: true, descricao: true, preco: true } },
         servicos_contratos: {
           select: {
             material: true,
@@ -133,6 +152,7 @@ export class WorksServicesRepository implements IWorksServicesRepository {
         id_servico: true,
         servicos: {
           select: {
+            materiais: { select: { descricao: true } },
             servicos_contratos: { select: { texto_breve: true } },
             ponto: true,
             operacao: true,
@@ -184,6 +204,10 @@ export class WorksServicesRepository implements IWorksServicesRepository {
         id_turma: idParceira,
       },
     });
+  }
+
+  async getMaterialsContract(): Promise<any[]> {
+    return await this.prisma.materiais.findMany();
   }
 
   async getTeamsServices(idParceira: number): Promise<any[]> {
@@ -295,7 +319,7 @@ export class WorksServicesRepository implements IWorksServicesRepository {
   }
 
   async addServices(data: AddServicesDTO): Promise<void> {
-    const { idService, idWork, operation, point, qtdePlan } = data;
+    const { idService, idWork, operation, point } = data;
 
     await this.prisma.servicos.create({
       data: {
@@ -303,7 +327,21 @@ export class WorksServicesRepository implements IWorksServicesRepository {
         id_contrato_servico: idService,
         operacao: operation,
         ponto: point,
-        qtde_plan: qtdePlan,
+        qtde_plan: 0,
+      },
+    });
+  }
+
+  async addMaterials(data: AddServicesDTO): Promise<void> {
+    const { idService, idWork, operation, point } = data;
+
+    await this.prisma.servicos.create({
+      data: {
+        id_obra: idWork,
+        id_material: idService,
+        operacao: operation,
+        ponto: point,
+        qtde_plan: 0,
       },
     });
   }

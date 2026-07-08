@@ -1,3 +1,5 @@
+import { Decimal } from '@prisma/client/runtime/library';
+
 export interface GetByIdParamsInterface {
   id: number;
   point?: string;
@@ -10,8 +12,8 @@ export interface GetAllServicesOfWorkInterface {
   id_contrato_servico: number;
   ponto: string;
   operacao: string;
-  qtde_plan: number;
   qtde_adicional: number;
+  viabilizado: number;
 }
 
 export interface GetSelectedServicesParamsInterface {
@@ -31,7 +33,9 @@ export interface GetServicesByWorkIdResponse {
   qtde_prog: number;
   qtde_real: number;
   qtde_adicional: number;
+  viabilizado: number;
   programacoes: { data_prog: Date };
+  materiais: { codigo: string; descricao: string; preco: Decimal };
   servicos_contratos: {
     material: string;
     texto_breve: string;
@@ -48,6 +52,8 @@ export interface GetServicesSelectedByWorkIdResponse {
   qtde_prog: number;
   qtde_real: number;
   qtde_adicional: number;
+  viabilizado: number;
+  materiais: { codigo: string; descricao: string; preco: Decimal };
   servicos_contratos: {
     material: string;
     texto_breve: string;
@@ -61,7 +67,8 @@ export interface GetServiceScheduleHistoryResponse {
   id: number;
   id_servico: number;
   servicos: {
-    servicos_contratos: { texto_breve: string };
+    materiais?: { descricao: string };
+    servicos_contratos?: { texto_breve: string };
     ponto: string;
     operacao: string;
   };

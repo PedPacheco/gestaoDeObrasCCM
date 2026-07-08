@@ -25,24 +25,37 @@ export class QueriesServicesService {
       throw new NotFoundException('Obra não encontrada');
     }
 
-    return services.map((service) => ({
-      id: service.id,
-      idObra: service.id_obra,
-      operacao: service.operacao,
-      ponto: service.ponto,
-      material: service.servicos_contratos.material,
-      textoBreve: service.servicos_contratos.texto_breve,
-      dataProgramada: service.programacoes?.data_prog,
-      qtdePlanejada: service.qtde_plan,
-      qtdeAdicional: service.qtde_adicional,
-      qtdeProgramada: service.qtde_prog,
-      qtdeRealizada: service.qtde_real,
-      preco: service.servicos_contratos.preco,
-      valorUnit:
-        service.servicos_contratos.preco *
-        (service.qtde_plan + service.qtde_adicional),
-      valorReal: service.servicos_contratos.preco * service.qtde_real,
-    }));
+    const response = services.map((service) => {
+      const preco =
+        service.servicos_contratos?.preco ??
+        service.materiais?.preco.toNumber();
+
+      const qtdeTotal = service.qtde_plan + service.qtde_adicional;
+
+      return {
+        id: service.id,
+        idObra: service.id_obra,
+        operacao: service.operacao,
+        ponto: service.ponto,
+        material:
+          service.servicos_contratos?.material ?? service.materiais?.codigo,
+        textoBreve:
+          service.servicos_contratos?.texto_breve ??
+          service.materiais?.descricao,
+        dataProgramada: service.programacoes?.data_prog,
+        qtdePlanejada: service.qtde_plan,
+        qtdeAdicional: service.qtde_adicional,
+        viabilizado: service.viabilizado,
+        qtdeProgramada: service.qtde_prog,
+        qtdeRealizada: service.qtde_real,
+        tipo: service.materiais?.codigo ? 'M' : 'S',
+        preco,
+        valorUnit: preco * qtdeTotal,
+        valorReal: preco * service.qtde_real,
+      };
+    });
+
+    return response;
   }
 
   async getSelectedServices(params: GetSelectedServicesParamsInterface) {
@@ -53,31 +66,60 @@ export class QueriesServicesService {
       throw new NotFoundException('Obra não encontrada');
     }
 
-    return services.map((service) => ({
-      id: service.id,
-      idObra: service.id_obra,
-      operacao: service.operacao,
-      ponto: service.ponto,
-      material: service.servicos_contratos.material,
-      textoBreve: service.servicos_contratos.texto_breve,
-      dataProgramada: service.programacoes.data_prog,
-      qtdePlanejada: service.qtde_plan,
-      qtdeProgramada: service.qtde_prog,
-      qtdeRealizada: service.qtde_real,
-      qtdeAdicional: service.qtde_adicional,
-      preco: service.servicos_contratos.preco,
-      equipe: service.equipes.equipe,
-      encarregado: service.equipes.encarregado,
-      perfil: service.equipes.perfil,
-      valorUnit: service.servicos_contratos.preco * service.qtde_prog,
-    }));
+    return services.map((service) => {
+      const preco =
+        service.servicos_contratos?.preco ??
+        service.materiais?.preco.toNumber();
+
+      return {
+        id: service.id,
+        idObra: service.id_obra,
+        operacao: service.operacao,
+        ponto: service.ponto,
+        material:
+          service.servicos_contratos?.material ?? service.materiais?.codigo,
+        textoBreve:
+          service.servicos_contratos?.texto_breve ??
+          service.materiais?.descricao,
+        dataProgramada: service.programacoes.data_prog,
+        qtdePlanejada: service.qtde_plan,
+        qtdeProgramada: service.qtde_prog,
+        qtdeRealizada: service.qtde_real,
+        qtdeAdicional: service.qtde_adicional,
+        viabilizado: service.viabilizado,
+        preco,
+        equipe: service.equipes.equipe,
+        encarregado: service.equipes.encarregado,
+        perfil: service.equipes.perfil,
+        valorUnit: service.servicos_contratos?.preco * service.qtde_prog,
+      };
+    });
   }
 
   async getServiceScheduleHistory(id: number) {
     const services =
       await this.worksServicesRepository.getServiceScheduleHistory(id);
 
-    return services;
+    return services.map((item) => {
+      const descricao =
+        item.servicos?.servicos_contratos?.texto_breve ??
+        item.servicos?.materiais?.descricao;
+
+      return {
+        id: item.id,
+        idProg: item.id_programacao,
+        idServico: item.id_servico,
+        operacao: item.servicos.operacao,
+        ponto: item.servicos.ponto,
+        descricao,
+        dataProgramada: item.programacoes?.data_prog,
+        qtdeProgramada: item.prog,
+        qtdePlanejada: item.plan,
+        qtdeAdicional: item.adicional,
+        qtdeRealizada: item.real,
+        equipe: item.equipes.equipe,
+      };
+    });
   }
 
   async getServicesFilters(id: number) {
@@ -100,6 +142,10 @@ export class QueriesServicesService {
       await this.worksServicesRepository.getServicesContracts(idParceira);
 
     return data;
+  }
+
+  async getMaterials() {
+    return await this.worksServicesRepository.getMaterialsContract();
   }
 
   async getTeamsServices(idWork: number) {

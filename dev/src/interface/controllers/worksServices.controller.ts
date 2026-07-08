@@ -33,6 +33,17 @@ export class ServicesController {
     private readonly finalizeServicesService: FinalizeServicesService,
   ) {}
 
+  @Get('materiais')
+  async getMaterials() {
+    const response = await this.queriesServicesService.getMaterials();
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Materiais retornados',
+      data: response,
+    };
+  }
+
   @Get(':id')
   async getServicesByWorkId(
     @Param('id', ParseIntPipe) id: number,
@@ -204,9 +215,19 @@ export class ServicesController {
     };
   }
 
-  @Post('adicionar')
+  @Post('servico')
   async addServices(@Body() data: AddServicesDTO) {
     await this.worksServicesService.addServices(data);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Serviços realizados com sucesso',
+    };
+  }
+
+  @Post('material')
+  async addMaterials(@Body() data: AddServicesDTO) {
+    await this.worksServicesService.addMaterials(data);
 
     return {
       statusCode: HttpStatus.OK,

@@ -1,4 +1,5 @@
 import {
+  IsInt,
   IsNumber,
   IsOptional,
   IsString,
@@ -45,10 +46,6 @@ export class AddServicesDTO {
 
   @IsString()
   operation: string;
-
-  @IsNumber()
-  @Type(() => Number)
-  qtdePlan: number;
 }
 
 export class PerformServicesDTO {
@@ -106,4 +103,12 @@ export class FinalizeServicesDTO {
   @ValidateNested()
   @Type(() => DataScheduleInFinalizeServiceDTO)
   data: DataScheduleInFinalizeServiceDTO;
+}
+
+export class ServiceMaterialItemDto {
+  @IsInt()
+  id: number;
+
+  @IsNumber()
+  viabilizado: number;
 }
