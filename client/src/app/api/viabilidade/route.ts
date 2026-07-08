@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { message: "Upload realizado com sucesso" },
+      { message: "Viabilidade realizado com sucesso" },
       { status: 201 },
     );
   } catch (error) {
