@@ -4,6 +4,9 @@ import {
   IFeasibilityRepository,
 } from 'src/domain/repositories/IFeasibilityRepository';
 import { FileService } from './file.service';
+import { Prisma } from '@prisma/client';
+import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
+import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
 
 @Injectable()
 export class FeasibilityService {
@@ -13,15 +16,12 @@ export class FeasibilityService {
     private readonly fileService: FileService,
   ) {}
 
-  async handleUpload(idWork: number, files: any[]) {
-    if (!files || files.length === 0) {
-      throw new BadRequestException('Nenhum arquivo foi enviado.');
-    }
-
-    if (!idWork) {
-      throw new BadRequestException('O ID da obra é obrigatório.');
-    }
-
+  async handleUpload(
+    idWork: number,
+    idUser: number,
+    files: any[],
+    tx: Prisma.TransactionClient,
+  ) {
     const exists = await this.feasibilityRepository.exists(idWork);
 
     if (exists && exists.length > 0) {
@@ -30,7 +30,14 @@ export class FeasibilityService {
       );
     }
 
-    await this.feasibilityRepository.saveFiles(idWork, files);
+    await this.feasibilityRepository.saveFiles(idWork, idUser, files, tx);
+  }
+
+  async makeItemsFeasible(
+    items: ServiceMaterialItemDto[],
+    tx: Prisma.TransactionClient,
+  ) {
+    await this.feasibilityRepository.makeItemsFeasible(items, tx);
   }
 
   async feasibilityExists(id: number) {
@@ -55,5 +62,24 @@ export class FeasibilityService {
     }
 
     await this.feasibilityRepository.deleteFiles(files[0].id_obra);
+  }
+
+  async getRejections(idWork: number) {
+    const response = await this.feasibilityRepository.getRejections(idWork);
+
+    return response.map((item) => ({
+      descricao: item.descricao,
+      motivo: item.motivo,
+      usuario: item.novo_tabela_usuarios.nome,
+      criado_em: item.criado_em,
+    }));
+  }
+
+  async reject(data: RejectFeasibilityDTO, tx: Prisma.TransactionClient) {
+    await this.feasibilityRepository.reject(data, tx);
+  }
+
+  async approve(idWork: number) {
+    await this.feasibilityRepository.approve(idWork);
   }
 }
