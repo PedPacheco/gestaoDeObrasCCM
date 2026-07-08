@@ -59,15 +59,15 @@ model base_auxiliar_ov {
   aux_referencia                                        String?     @db.VarChar(14)
   id                                                    BigInt      @id @default(autoincrement())
   tecnico_resp                                          String?     @db.VarChar(40)
-  circuitos                                             circuitos   @relation(fields: [aux_circuito], references: [id], onDelete: SetDefault, onUpdate: NoAction, map: "fk_aux_circuito")
-  municipios_base_auxiliar_ov_aux_municipioTomunicipios municipios  @relation("base_auxiliar_ov_aux_municipioTomunicipios", fields: [aux_municipio], references: [id], onDelete: SetDefault, onUpdate: NoAction, map: "fk_aux_municipio")
-  tipos                                                 tipos       @relation(fields: [aux_tipo_obra], references: [id], onDelete: SetDefault, onUpdate: NoAction, map: "fk_aux_tipo_obra")
-  turmas                                                turmas      @relation(fields: [aux_turma], references: [id], onDelete: SetDefault, onUpdate: NoAction, map: "fk_aux_turma")
+  circuitos                                             circuitos   @relation(fields: [aux_circuito], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_aux_circuito")
+  municipios_base_auxiliar_ov_aux_municipioTomunicipios municipios  @relation("base_auxiliar_ov_aux_municipioTomunicipios", fields: [aux_municipio], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_aux_municipio")
+  tipos                                                 tipos       @relation(fields: [aux_tipo_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_aux_tipo_obra")
+  turmas                                                turmas      @relation(fields: [aux_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_aux_turma")
   municipios                                            municipios? @relation(fields: [gpm], references: [mun], onDelete: NoAction, onUpdate: NoAction, map: "fk_municipios")
 }
 
 model capacidade_execucao {
-  id              Int       @id(map: "capacidade_execucao_nova_pkey") @default(autoincrement())
+  id              Int       @id @default(autoincrement())
   id_regional     Int
   id_turma        Int
   should_cost     Float?
@@ -92,7 +92,7 @@ model capacidade_execucao {
 }
 
 model circuitos {
-  id               Int                @id(map: "CIRCUITOS_pkey") @default(autoincrement())
+  id               Int                @id @default(autoincrement())
   circuito         String             @db.VarChar(12)
   circ_abrev       String             @db.VarChar(12)
   id_conjunto      Int
@@ -132,7 +132,7 @@ model cn52n {
 }
 
 model conjuntos {
-  id        Int         @id(map: "CONJUNTOS_pkey") @default(autoincrement())
+  id        Int         @id @default(autoincrement())
   conjunto  String      @db.VarChar(100)
   circuitos circuitos[]
 }
@@ -147,7 +147,7 @@ model conversao {
 }
 
 model empreendimento {
-  id             Int        @id(map: "EMPREENDIMENTO_pkey") @default(autoincrement())
+  id             Int        @id @default(autoincrement())
   empreendimento String?    @db.VarChar(50)
   id_grupo       Int
   id_regional    Int?
@@ -169,7 +169,7 @@ model equipes {
 }
 
 model grupos {
-  id             Int              @id(map: "GRUPOS_pkey") @default(autoincrement())
+  id             Int              @id @default(autoincrement())
   grupo          String           @db.VarChar(20)
   empreendimento empreendimento[]
   plano_capex    plano_capex[]
@@ -204,9 +204,9 @@ model metas {
 }
 
 model municipios {
-  id                                                          Int                @id(map: "MUNICIPIOS_pkey") @default(autoincrement())
+  id                                                          Int                @id @default(autoincrement())
   municipio                                                   String             @db.VarChar(22)
-  mun                                                         String             @unique(map: "unique_mun") @db.VarChar(3)
+  mun                                                         String             @unique @db.VarChar(3)
   codigo_sap                                                  String?            @db.VarChar(3)
   id_regional                                                 Int
   mun_minusculo                                               String?            @db.VarChar(22)
@@ -220,7 +220,7 @@ model municipios {
 }
 
 model obras {
-  id                        Int                        @id(map: "OBRAS_pkey") @default(autoincrement())
+  id                        Int                        @id @default(autoincrement())
   ovnota                    String                     @db.VarChar(12)
   pep                       String?                    @db.VarChar(8)
   diagrama                  String?                    @db.VarChar(12)
@@ -286,6 +286,7 @@ model obras {
   relatorio                 relatorio[]
   relatorio_execucao        relatorio_execucao[]
   relatorio_viabilidade     relatorio_viabilidade[]
+  reprovacoes_viabilidade   reprovacoes_viabilidade[]
   restricoes_publicacoes    restricoes_publicacoes[]
   servicos                  servicos[]
   suspensoes                suspensoes[]
@@ -293,7 +294,7 @@ model obras {
 }
 
 model programacoes {
-  id                              Int                     @id(map: "PROGRAMACOES_pkey") @default(autoincrement())
+  id                              Int                     @id @default(autoincrement())
   id_obra                         Int
   data_prog                       DateTime                @db.Date
   prog                            Int                     @default(0)
@@ -345,11 +346,11 @@ model programacoes {
   relatorio_execucao              relatorio_execucao[]
   servicos                        servicos[]
 
-  @@unique([id, id_obra, data_prog], map: "unique_programacoes")
+  @@unique([id, id_obra, data_prog], map: "programacoes_ID_IDOBRA_DATAPROG_key")
 }
 
 model programacoes_servicos {
-  id             Int          @id(map: "PROGRAMACOES_SERVICOS_pkey") @default(autoincrement())
+  id             Int          @id @default(autoincrement())
   id_servico     Int
   id_programacao Int
   plan           Float?
@@ -363,7 +364,7 @@ model programacoes_servicos {
 }
 
 model regionais {
-  id                   Int                    @id(map: "REGIONAIS_pkey") @default(autoincrement())
+  id                   Int                    @id @default(autoincrement())
   regional             String                 @db.VarChar(20)
   csd                  String?                @db.VarChar(4)
   gestor               String?                @db.VarChar(20)
@@ -382,14 +383,14 @@ model regionais {
 }
 
 model relatorio {
-  id         Int      @id(map: "RELATORIO_pkey") @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   id_obra    Int
   encontrado Boolean? @default(false)
   obras      obras    @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
 }
 
 model restricoes {
-  id                              Int                        @id(map: "RESTRICOES_pkey") @default(autoincrement())
+  id                              Int                        @id @default(autoincrement())
   restricao                       String?                    @db.VarChar(80)
   tipo_restricao                  String                     @db.VarChar(15)
   programacoes_restricao_execucao programacoes[]             @relation("programacoes_restricao_execucao")
@@ -400,51 +401,43 @@ model restricoes {
 }
 
 model servicos {
-  id                    Int                     @id(map: "SERVICOS_pkey") @default(autoincrement())
+  id                    Int                     @id @default(autoincrement())
   id_obra               Int
   ponto                 String?                 @db.VarChar(15)
   operacao              String?                 @db.VarChar(30)
   qtde_plan             Float?
   qtde_prog             Float?
   qtde_real             Float?
-  id_contrato_servico   Int
+  id_contrato_servico   Int?
   id_equipe             Int?
   id_programacao        Int?
   qtde_adicional        Float?
+  id_material           Int?
+  viabilizado           Float?
   programacoes_servicos programacoes_servicos[]
   equipes               equipes?                @relation(fields: [id_equipe], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipes")
+  materiais             materiais?              @relation(fields: [id_material], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_materiais")
   obras                 obras                   @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
-  servicos_contratos    servicos_contratos      @relation(fields: [id_contrato_servico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_servicos_contratos")
+  servicos_contratos    servicos_contratos?     @relation(fields: [id_contrato_servico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_servicos_contratos")
   programacoes          programacoes?           @relation(fields: [id_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_servicos_programacoes")
 }
 
-model servicos_adicionais {
-  id                  Int     @id @default(autoincrement())
-  id_obra             Int
-  id_contrato_servico Int
-  ponto               String? @db.VarChar(10)
-  operacao            String? @db.VarChar(30)
-  qtde_plan           Int?
-}
-
 model servicos_contratos {
-  id              Int        @id @default(autoincrement())
-  id_regional     Int
-  id_turma        Int
-  contrato_antigo String?    @db.VarChar(15)
-  contrato        String?    @db.VarChar(15)
-  material_antigo String?    @db.VarChar(15)
-  material        String?    @db.VarChar(15)
-  texto_breve     String?    @db.VarChar(100)
-  medida          String?    @db.VarChar(15)
-  preco           Float?
-  servicos        servicos[]
-  turmas          turmas     @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
-  regionais       regionais  @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
+  id          Int        @id @default(autoincrement())
+  id_regional Int
+  id_turma    Int
+  contrato    String?    @db.VarChar(15)
+  material    String?    @db.VarChar(15)
+  texto_breve String?    @db.VarChar(100)
+  medida      String?    @db.VarChar(15)
+  preco       Float?
+  servicos    servicos[]
+  turmas      turmas     @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
+  regionais   regionais  @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
 }
 
 model status {
-  id                   Int                    @id(map: "STATUS_pkey") @default(autoincrement())
+  id                   Int                    @id @default(autoincrement())
   status               String?                @db.VarChar(25)
   onde                 String?                @db.VarChar(20)
   notas_d5             notas_d5[]
@@ -453,14 +446,14 @@ model status {
 }
 
 model status_sap {
-  id         Int     @id(map: "STATUS SAP_pkey") @default(autoincrement())
+  id         Int     @id @default(autoincrement())
   codigo_sap String? @db.VarChar(2)
   status_sap String? @db.VarChar(50)
   obras      obras[]
 }
 
 model subgrupo {
-  id       Int     @id(map: "SUBGRUPO_pkey") @default(autoincrement())
+  id       Int     @id @default(autoincrement())
   subgrupo String  @db.VarChar(20)
   id_grupo Int
   grupos   grupos  @relation(fields: [id_grupo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_grupos")
@@ -468,7 +461,7 @@ model subgrupo {
 }
 
 model tecnicos {
-  id                    Int                     @id(map: "TECNICOS_pkey") @default(autoincrement())
+  id                    Int                     @id @default(autoincrement())
   tecnico               String?                 @db.VarChar(40)
   id_regional           Int
   empresa               String?                 @db.VarChar
@@ -478,7 +471,7 @@ model tecnicos {
 }
 
 model tipos {
-  id               Int                @id(map: "TIPOS_pkey") @default(autoincrement())
+  id               Int                @id @default(autoincrement())
   tipo_obra        String             @db.VarChar(30)
   tipo_abrev       String             @db.VarChar(15)
   descricao_sap    String?            @db.VarChar(40)
@@ -497,30 +490,34 @@ model tipos {
 }
 
 model turmas {
-  id                   Int                    @id(map: "TURMAS_pkey") @default(autoincrement())
-  turma                String                 @db.VarChar(15)
-  turma_abrev          String?                @db.VarChar(5)
-  deposito_atual       String?                @db.VarChar(4)
-  turma_sap            String?                @db.VarChar(9)
-  contrato             String?                @db.VarChar(10)
-  email_referencia     String?                @db.VarChar(50)
-  id_regional          Int
-  base_auxiliar_ov     base_auxiliar_ov[]
-  capacidade_execucao  capacidade_execucao[]
-  equipes              equipes[]
-  metas                metas[]
-  notas_d5             notas_d5[]
-  novo_tabela_usuarios novo_tabela_usuarios[]
-  obras                obras[]
-  servicos_contratos   servicos_contratos[]
-  valores_contratos    valores_contratos[]
+  id                    Int                     @id @default(autoincrement())
+  turma                 String                  @db.VarChar(15)
+  turma_abrev           String?                 @db.VarChar(5)
+  deposito_atual        String?                 @db.VarChar(4)
+  turma_sap             String?                 @db.VarChar(9)
+  contrato              String?                 @db.VarChar(10)
+  email_referencia      String?                 @db.VarChar(50)
+  id_regional           Int
+  base_auxiliar_ov      base_auxiliar_ov[]
+  capacidade_execucao   capacidade_execucao[]
+  equipes               equipes[]
+  gap_analysis          gap_analysis[]
+  metas                 metas[]
+  notas_d5              notas_d5[]
+  novo_tabela_usuarios  novo_tabela_usuarios[]
+  obras                 obras[]
+  recursos_contingencia recursos_contingencia[]
+  servicos_contratos    servicos_contratos[]
+  valores_contratos     valores_contratos[]
 }
 
 model relatorio_viabilidade {
-  id              Int    @id(map: "relatorio_viablidade_pkey") @default(autoincrement())
-  id_obra         Int
-  caminho_arquivo String @db.VarChar(180)
-  obras           obras  @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
+  id                   Int                  @id @default(autoincrement())
+  id_obra              Int
+  caminho_arquivo      String               @db.VarChar(180)
+  id_usuario           Int
+  obras                obras                @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
+  novo_tabela_usuarios novo_tabela_usuarios @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario")
 }
 
 model notas_d5 {
@@ -616,14 +613,6 @@ model status_programacao {
   programacoes       programacoes[]
 }
 
-model materiais_excluidos {
-  id                 Int     @id(map: "material_pkey") @default(autoincrement())
-  codigo_material    String? @db.VarChar(8)
-  descricao_material String? @db.VarChar(100)
-  centro             String? @db.VarChar(6)
-  contrato           String? @db.VarChar(25)
-}
-
 model programacoes_reprovacoes {
   id                     Int        @id @default(autoincrement())
   id_obra                Int
@@ -690,7 +679,7 @@ model plano_capex {
   grupos      grupos    @relation(fields: [id_grupo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_grupo")
   regionais   regionais @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regional")
 
-  @@index([id_grupo], map: "fki_fk_grupo")
+  @@index([id_grupo])
 }
 
 model forecast_snapshot {
@@ -718,8 +707,8 @@ model equipamentos {
   tensao_operacao_sec   Int?
   id_circuito           Int
   id_municipio          Int
-  circuitos             circuitos  @relation(fields: [id_circuito], references: [id], onUpdate: NoAction, map: "fk_circuitos")
-  municipios            municipios @relation(fields: [id_municipio], references: [id], onUpdate: NoAction, map: "fk_municipios")
+  circuitos             circuitos  @relation(fields: [id_circuito], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_circuitos")
+  municipios            municipios @relation(fields: [id_municipio], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_municipios")
 }
 
 model valores_contratos {
@@ -739,40 +728,92 @@ model areas {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model novo_tabela_usuarios {
-  id                         Int                      @id @default(autoincrement())
+  id                         Int                       @id @default(autoincrement())
   id_regional                Int
   id_turma                   Int
   id_area                    Int?
-  tipo_usuario               String                   @db.VarChar(20)
-  is_admin                   Boolean                  @default(false)
-  permissao_edicao           Boolean                  @default(false)
-  username                   String                   @unique @db.VarChar(30)
-  senha                      String                   @db.VarChar(255)
-  nome                       String                   @db.VarChar(100)
-  email                      String                   @db.VarChar(100)
-  ativo                      Boolean?                 @default(true)
-  areas                      areas?                   @relation(fields: [id_area], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_area")
-  turmas                     turmas                   @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
-  regionais                  regionais                @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regional")
+  tipo_usuario               String                    @db.VarChar(20)
+  is_admin                   Boolean                   @default(false)
+  permissao_edicao           Boolean                   @default(false)
+  username                   String                    @unique @db.VarChar(30)
+  senha                      String                    @db.VarChar(255)
+  nome                       String                    @db.VarChar(100)
+  email                      String                    @db.VarChar(100)
+  ativo                      Boolean?                  @default(true)
+  areas                      areas?                    @relation(fields: [id_area], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_area")
+  turmas                     turmas                    @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
+  regionais                  regionais                 @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regional")
   programacoes               programacoes[]
-  usuario_ultima_atualizacao programacoes[]           @relation("usuario_ultima_atualizacao")
+  usuario_ultima_atualizacao programacoes[]            @relation("usuario_ultima_atualizacao")
   recursos_contingencia      recursos_contingencia[]
   relatorio_execucao         relatorio_execucao[]
+  relatorio_viabilidade      relatorio_viabilidade[]
+  reprovacoes_viabilidade    reprovacoes_viabilidade[]
   restricoes_publicacoes     restricoes_publicacoes[]
 }
 
 model recursos_contingencia {
-  id                    Int                   @id @default(autoincrement())
-  dia_disponibilidade   DateTime              @db.Date
-  parceira              String                @db.VarChar(100)
-  tipo_recurso_mao_obra String                @db.VarChar(100)
-  quantidade_mao_obra   Int                   @default(0)
-  tipo_recurso_equipe   String                @db.VarChar(100)
-  quantidade_equipe     Int                   @default(0)
-  disponibilizado_csd   String                @db.VarChar(100)
-  id_usuario            Int?
-  criado_em             DateTime?             @default(now()) @db.Timestamp(6)
-  novo_tabela_usuarios  novo_tabela_usuarios? @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_contingencia")
+  id                    Int                  @id @default(autoincrement())
+  dia_disponibilidade   DateTime             @db.Date
+  tipo_recurso_mao_obra String?              @db.VarChar(100)
+  quantidade_mao_obra   Int                  @default(0)
+  tipo_recurso_equipe   String?              @db.VarChar(100)
+  quantidade_equipe     Int                  @default(0)
+  disponibilizado_csd   String               @db.VarChar(100)
+  id_usuario            Int
+  criado_em             DateTime             @default(now()) @db.Timestamp(6)
+  id_parceira           Int
+  turmas                turmas               @relation(fields: [id_parceira], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
+  novo_tabela_usuarios  novo_tabela_usuarios @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_contingencia")
+}
+
+model gap_analysis {
+  id                            Int       @id @default(autoincrement())
+  id_parceira                   Int
+  num_auditoria                 Int?
+  data_inicio                   DateTime? @db.Date
+  data_fim                      DateTime? @db.Date
+  gap_anterior                  Float?
+  gap_atual                     Float?
+  apresentacao_interna          DateTime? @db.Date
+  reuniao_apresentacao          DateTime? @db.Date
+  notificacao_gestao            DateTime? @db.Date
+  retorno_parceira              DateTime? @db.Date
+  validacao_plano_edp           DateTime? @db.Date
+  plano_validado                Boolean?
+  devolutiva_novo_plano         DateTime? @db.Date
+  validacao_novo_plano          DateTime? @db.Date
+  lancamento_desvios_sgs        DateTime? @db.Date
+  inicio_acompanhamento         DateTime? @db.Date
+  quantidade_desvios_planejados Int?
+  quantidade_desvios_executados Int?
+  executados_fora_prazo         Int?
+  itens_pendentes_fora_do_prazo Int?
+  observacao                    String?   @db.VarChar(250)
+  status                        String?   @db.VarChar(30)
+  criado_em                     DateTime? @default(now()) @db.Timestamp(6)
+  atualizado_em                 DateTime? @db.Timestamp(6)
+  turmas                        turmas    @relation(fields: [id_parceira], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
+}
+
+model materiais {
+  id        Int        @id @default(autoincrement())
+  codigo    String     @db.VarChar(15)
+  descricao String     @db.VarChar(200)
+  unidade   String     @db.VarChar(5)
+  preco     Decimal    @db.Decimal(10, 2)
+  servicos  servicos[]
+}
+
+model reprovacoes_viabilidade {
+  id                   Int                  @id @default(autoincrement())
+  id_obra              Int
+  motivo               String?              @db.VarChar(50)
+  descricao            String?
+  id_usuario           Int
+  criado_em            DateTime?            @default(now()) @db.Timestamp(6)
+  obras                obras                @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
+  novo_tabela_usuarios novo_tabela_usuarios @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuarios")
 }
 
 view exportacao_obras_executadas {
