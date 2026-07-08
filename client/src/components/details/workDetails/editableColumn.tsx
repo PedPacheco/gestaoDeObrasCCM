@@ -24,6 +24,8 @@ interface EditableColumnProps {
 
 const statusOrder = [
   "EM EMPREITAMENTO",
+  "AGUARDANDO VIABILIDADE",
+  "VIABILIDADE EM APROVAÇÃO",
   "AGUARDANDO PROGRAMAÇÃO",
   "AGUARDANDO VALIDAÇÃO EDP",
   "EM PROGRAMAÇÃO",

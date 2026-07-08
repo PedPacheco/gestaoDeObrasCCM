@@ -5,6 +5,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import {
+  ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -22,9 +23,11 @@ import { useUser } from "@/contexts/userContext";
 import { useFeedback } from "@/hooks/useFeedback";
 import {
   CheckCircleIcon,
+  ClockIcon,
   DocumentTextIcon,
   ExclamationCircleIcon,
   PencilIcon,
+  PencilSquareIcon,
   XMarkIcon,
 } from "@heroicons/react/20/solid";
 import {
@@ -37,7 +40,10 @@ import {
 
 import DataItem from "./dataItem";
 import { EditableColumn } from "./editableColumn";
-import { FeasibiltyUpload } from "./feasibilityImportModal";
+import {
+  FeasibilityWorkflowStatus,
+  getFeasibilityWorkflowStatus,
+} from "@/utils/feasibilityWorkflow";
 
 dayjs.extend(customParseFormat);
 
@@ -52,7 +58,6 @@ interface WorkDetailsProps {
   formattedData: FormattedData;
   idWork: number;
   options: any;
-  feasibilityExists: any[];
 }
 
 interface WorkData {
@@ -124,26 +129,19 @@ const RESTRICTED_STATUS_IDS = [3, 4, 42];
 const SUSPENDED_STATUS_ID = 4;
 
 function useModals() {
-  const [openModal, setOpenModal] = useState(false);
   const [openSuspensionModal, setOpenSuspensionModal] = useState(false);
-  const [openUploadModal, setOpenUploadModal] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [openConfirmModal, setOpenConfirmModal] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
 
   return {
     openModal,
     setOpenModal,
-    openConfirmModal,
-    setOpenConfirmModal,
-    toggleModal: useCallback(() => setOpenModal((prev) => !prev), []),
     openSuspensionModal,
     setOpenSuspensionModal,
     toggleSuspensionModal: useCallback(
       () => setOpenSuspensionModal((prev) => !prev),
       [],
     ),
-    openUploadModal,
-    setOpenUploadModal,
     drawerOpen,
     setDrawerOpen,
   };
@@ -164,12 +162,30 @@ export function WorkDetails({
   idWork,
   formattedData,
   options,
-  feasibilityExists,
 }: WorkDetailsProps) {
+  const workflowStatus = getFeasibilityWorkflowStatus(data.id_status);
+
+  const FEASIBILITY_ACTION_LABEL: Record<typeof workflowStatus, string> = {
+    adicao: "Importar Arquivos de Viabilidade",
+    aprovacao: "Acompanhar Aprovação",
+    aprovado: "Ver Viabilidade",
+  };
+
+  const FEASIBILITY_ACTION_COLOR: Record<typeof workflowStatus, string> = {
+    adicao: "",
+    aprovacao: "bg-amber-50 text-amber-600",
+    aprovado: "bg-green-50 text-green-700",
+  };
+
+  const FEASIBILITY_ACTION_ICON: Record<FeasibilityWorkflowStatus, ReactNode> =
+    {
+      adicao: <PencilSquareIcon className="h-4 w-4" />,
+      aprovacao: <ClockIcon className="h-4 w-4" />,
+      aprovado: <CheckCircleIcon className="h-4 w-4" />,
+    };
+
   const [isPending, startTransition] = useTransition();
   const [isMounted, setIsMounted] = useState(false);
-  const [hasFilesFeasibility, setHasFilesFeasibility] =
-    useState<boolean>(false);
   const [suspensionReason, setSuspensionReason] = useState("");
   const [changedFields, setChangedFields] =
     useState<Record<string, string | null>>();
@@ -209,9 +225,8 @@ export function WorkDetails({
   );
 
   useEffect(() => {
-    setHasFilesFeasibility(!!feasibilityExists?.length);
     setIsMounted(true);
-  }, [feasibilityExists]);
+  }, []);
 
   const handleDataChange = useCallback(
     (field: string, value: string) => {
@@ -286,38 +301,6 @@ export function WorkDetails({
     [modals, showError, showSuccess],
   );
 
-  const handleUploadSuccess = useCallback(() => {
-    setHasFilesFeasibility(true);
-    modals.setOpenUploadModal(false);
-
-    showSuccess("Arquivos enviados com sucesso!");
-    modals.setOpenModal(true);
-
-    router.refresh();
-  }, [modals, router, showSuccess]);
-
-  const handleFeasibilityFilesDelete = () => {
-    startTransition(async () => {
-      try {
-        const response = await deleteFeasibilityFiles(idWork);
-
-        if (!response.success) {
-          showError("Erro ao excluir viabilidade");
-          return;
-        }
-
-        showSuccess(response.message);
-        modals.setOpenModal(true);
-
-        router.refresh();
-      } catch (error: any) {
-        showError(error.message);
-      } finally {
-        modals.setOpenConfirmModal(false);
-      }
-    });
-  };
-
   if (hasRestrictedAccess(data.id_status, permissions?.tipo_usuario)) {
     return <ErrorThrower message="Nível de permissão insuficiente" />;
   }
@@ -336,48 +319,18 @@ export function WorkDetails({
             />
           )}
 
-          {!hasFilesFeasibility && isMounted ? (
-            <ButtonComponent
-              text="Importar Arquivos de Viabilidade"
-              styled="bg-blue-600 hover:bg-blue-700 px-6 py-7"
-              onClick={() => modals.setOpenUploadModal(true)}
-            />
-          ) : (
-            <div className="flex items-center gap-2 self-center border border-green-800 bg-green-50 dark:bg-green-900/20 px-4 py-3 rounded-md">
-              <CheckCircleIcon className="w-6 h-6 text-green-600" />
-              <p className="text-green-700 dark:text-green-400 font-semibold">
-                Viabilidade Importada
-              </p>
-
-              {feasibilityExists?.map((file: any, i: number) => {
-                const url = `${process.env.NEXT_PUBLIC_API_URL}/uploads/viabilidade/${file.caminho_arquivo}`;
-
-                return (
-                  <Tooltip key={i} title={`${file.caminho_arquivo}`}>
-                    <IconButton>
-                      <a
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-2xl hover:scale-110 transition-transform "
-                      >
-                        <DocumentTextIcon
-                          width={30}
-                          height={30}
-                          className="text-green-600"
-                        />
-                      </a>
-                    </IconButton>
-                  </Tooltip>
-                );
-              })}
-
-              <IconButton
-                onClick={() => modals.setOpenConfirmModal(true)}
-                className="w-10 h-10 text-zinc-600"
-              >
-                <XMarkIcon />
-              </IconButton>
+          {isMounted && (
+            <div className="gap-3 self-center rounded-md px-4">
+              <ButtonComponent
+                startIcon={FEASIBILITY_ACTION_ICON[workflowStatus]}
+                text={FEASIBILITY_ACTION_LABEL[workflowStatus]}
+                styled={FEASIBILITY_ACTION_COLOR[workflowStatus]}
+                onClick={() =>
+                  router.push(
+                    `/viabilidade/${idWork}?id_status=${data.id_status}`,
+                  )
+                }
+              />
             </div>
           )}
 
@@ -503,13 +456,6 @@ export function WorkDetails({
         isInsert={true}
       />
 
-      <FeasibiltyUpload
-        open={modals.openUploadModal}
-        onClose={() => modals.setOpenUploadModal(false)}
-        idWork={data.id}
-        onUploadSuccess={handleUploadSuccess}
-      />
-
       <ModalComponent
         title="Motivo da Suspensão"
         onClose={modals.toggleSuspensionModal}
@@ -545,35 +491,6 @@ export function WorkDetails({
             text="Confirmar"
             onClick={modals.toggleSuspensionModal}
           />
-        </div>
-      </ModalComponent>
-
-      <ModalComponent
-        title="Confirmar exclusão"
-        open={modals.openConfirmModal}
-        onClose={() => modals.setOpenConfirmModal(false)}
-      >
-        <div className="flex flex-col items-center gap-6">
-          <ExclamationCircleIcon
-            width={48}
-            height={48}
-            className="text-red-500"
-          />
-
-          <span className="text-center text-lg text-gray-700 dark:text-gray-200">
-            Tem certeza que deseja excluir esta viabilidade?
-            <br />
-            <strong>Essa ação não poderá ser desfeita.</strong>
-          </span>
-
-          <div className="flex gap-4">
-            <ButtonComponent
-              text="Confirmar Exclusão"
-              styled="min-w-32"
-              onClick={handleFeasibilityFilesDelete}
-              disabled={isPending}
-            />
-          </div>
         </div>
       </ModalComponent>
     </>
