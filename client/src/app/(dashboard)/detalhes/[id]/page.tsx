@@ -159,7 +159,6 @@ export default async function Details({ params }: DetailsParams) {
             idWork={Number(id)}
             formattedData={formattedData}
             options={options}
-            feasibilityExists={feasibilityExists.data}
           />
           {useNewFlow ? (
             <NewTabPanel {...tabPanelProps} />
