@@ -53,6 +53,7 @@ const serviceColumns = [
   { key: "operacao", label: "OPERAÇÃO" },
   { key: "ponto", label: "PONTO" },
   { key: "qtdePlanejada", label: "PLAN" },
+  { key: "viabilizado", label: "VIABILIZADO" },
   { key: "qtdeAdicional", label: "ADICIONAL" },
   { key: "qtdeRealizada", label: "REAL" },
   { key: "valorUnit", label: "VALOR UNIT" },
@@ -249,7 +250,7 @@ export function NewServicesAvaliable({
                         setSelectedServices(
                           filteredServicesData.map((s) => ({
                             ...s,
-                            prog: s.qtdePlanejada,
+                            prog: s.viabilizado,
                             additional: s.qtdeAdicional,
                           })),
                         );
@@ -292,7 +293,7 @@ export function NewServicesAvaliable({
                               ...selectedServices,
                               {
                                 ...row,
-                                prog: row.qtdePlanejada,
+                                prog: row.viabilizado,
                                 qtdeAdicional: row.qtdeAdicional,
                               },
                             ]);

@@ -10,27 +10,22 @@ import { useExecutionServiceForm } from "@/hooks/useExecutionServicesForm";
 import { useFeedback } from "@/hooks/useFeedback";
 import { useScheduleSubmit } from "@/hooks/details/useScheduleSubmit";
 import { schedulesSchema } from "@/validations/validationSchedules";
-import {
-  ArrowUpTrayIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  PlusIcon,
-  XMarkIcon,
-} from "@heroicons/react/20/solid";
-import { Button, Tab, Tabs } from "@mui/material";
+import { ArrowUpTrayIcon, XMarkIcon } from "@heroicons/react/20/solid";
+import { Button } from "@mui/material";
 
 import { NewScheduleSection } from "./scheduleSection/newScheduleSection";
 import { NewServicesAvaliable } from "./servicesSection/servicesAvaliable";
 import { ScheduleSidebar } from "./scheduleSidebar/scheduleSidebar";
 import { ScheduleTopbar } from "./scheduleTopbar";
-import {
-  AddServiceForm,
-  ServiceContract,
-} from "./servicesSection/addServiceForm";
+
 import { ScheduledServices } from "./servicesSection/scheduledServices/scheduledServices";
-import { ScheduleHistory } from "./servicesSection/scheduleHistory";
+import {
+  ScheduledServicesHistoryData,
+  ScheduleHistory,
+} from "./servicesSection/scheduleHistory";
 import { ButtonComponent } from "../common/Button";
 import { TabsServices } from "./TabsServices";
+import { AddServiceForm, ServiceContract } from "../common/addServiceForm";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -42,7 +37,7 @@ interface EditScheduleProps {
   scheduledServicesData: any[];
   serviceContractData: ServiceContract[];
   serviceTeams: any[];
-  scheduledServicesHistory: any[];
+  scheduledServicesHistory: ScheduledServicesHistoryData[];
   serviceFilters: any;
   options: any;
   idWork: number;

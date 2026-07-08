@@ -18,12 +18,14 @@ import { ValidationOfScheduledServices } from "./validationOfScheduledServices";
 import { ExecutionReportDialog } from "@/components/executionReport/executionReportDialog";
 import { ButtonComponent } from "@/components/common/Button";
 import { RestrictionsModal } from "../../scheduleSection/executionRestrictionModal";
+import { ConfirmRescheduleModal } from "./confirmReascheduled";
+import { ScheduledServicesHistoryData } from "../scheduleHistory";
 
 dayjs.extend(utc);
 
 interface ScheduledServicesProps {
   scheduledServicesData: any[];
-  scheduledServicesHistory: any[];
+  scheduledServicesHistory: ScheduledServicesHistoryData[];
   options: {
     restricao: Array<{ id: number; restricao: string; tipo_restricao: string }>;
   };
@@ -72,6 +74,8 @@ export function ScheduledServices({
     ScheduledServiceState[]
   >([]);
 
+  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+
   useEffect(() => {
     const mapped = scheduledServicesData.map((item) => ({
       id: item.id,
@@ -94,18 +98,18 @@ export function ScheduledServices({
 
   const executionIsPartial = useMemo(() => {
     const currentSchedule = scheduledServicesHistory.filter(
-      (s) => s.id_programacao === formData.idSchedule,
+      (s) => s.idProg === formData.idSchedule,
     );
 
-    return currentSchedule.some((s) => s.real === null || s.prog > s.real);
+    return currentSchedule.some(
+      (s) => s.qtdeRealizada === null || s.qtdeProgramada > s.qtdeRealizada,
+    );
   }, [scheduledServicesHistory, formData.idSchedule]);
 
   const isRealConsistentWithHistory = useMemo(() => {
     return scheduledServices.every((service) => {
       const history = scheduledServicesHistory.find(
-        (h) =>
-          h.id_servico === service.id &&
-          h.id_programacao === formData.idSchedule,
+        (h) => h.idServico === service.id && h.idProg === formData.idSchedule,
       );
 
       if (!history) return false;
@@ -113,7 +117,7 @@ export function ScheduledServices({
       const realValue =
         service.qtdeRealizada === null ? null : Number(service.qtdeRealizada);
 
-      return realValue === history.real;
+      return realValue === history.qtdeRealizada;
     });
   }, [scheduledServices, scheduledServicesHistory, formData.idSchedule]);
 
@@ -165,7 +169,7 @@ export function ScheduledServices({
     }
   };
 
-  const handleRescheduleServices = async () => {
+  const handleConfirmRescheduleServices = async () => {
     const toReschedule = scheduledServices
       .filter((s) => s.validationStatus === "reprogramar")
       .map((s) => ({ id: s.id }));
@@ -234,7 +238,7 @@ export function ScheduledServices({
           <ButtonComponent
             text="Reprogramar Serviços"
             styled="!h-8"
-            onClick={handleRescheduleServices}
+            onClick={() => setIsRescheduleModalOpen(true)}
             disabled={
               !canReschedule || isDisabled || scheduledServices.length === 0
             }
@@ -279,6 +283,12 @@ export function ScheduledServices({
         executionIsPartial={executionIsPartial}
         onSuccess={onSuccess}
         onModalOpen={setIsExecutionReportModalOpen}
+      />
+
+      <ConfirmRescheduleModal
+        open={isRescheduleModalOpen}
+        onClose={() => setIsRescheduleModalOpen(false)}
+        onConfirm={handleConfirmRescheduleServices}
       />
     </>
   );

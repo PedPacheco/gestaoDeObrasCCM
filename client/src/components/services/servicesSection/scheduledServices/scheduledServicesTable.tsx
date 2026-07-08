@@ -26,6 +26,7 @@ const SERVICE_COLUMNS = [
   { key: "encarregado", label: "ENCARREGADO" },
   { key: "dataProgramada", label: "DATA PROG" },
   { key: "qtdePlanejada", label: "PLAN", align: "right" as const },
+  { key: "viabilizado", label: "VIABILIZADO", align: "right" as const },
   { key: "qtdeAdicional", label: "ADICIONAL", align: "right" as const },
   { key: "qtdeProgramada", label: "PROG", align: "right" as const },
   { key: "qtdeRealizada", label: "REAL", align: "right" as const },

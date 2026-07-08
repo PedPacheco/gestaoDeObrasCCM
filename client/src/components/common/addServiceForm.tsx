@@ -14,8 +14,7 @@ import {
   Select,
   TextField,
 } from "@mui/material";
-
-import { ServicesContractSelect } from "./servicesContractSelect";
+import { ServicesContractSelect } from "../services/servicesSection/servicesContractSelect";
 
 export type ServiceContract = {
   id: number;
@@ -31,7 +30,6 @@ type AddServiceFormState = {
   idService: number | null;
   point: string;
   operation: string;
-  qtdePlan: number | null;
 };
 
 interface Props {
@@ -44,7 +42,6 @@ interface Props {
     idService: number;
     point: string;
     operation: string;
-    qtdePlan: number;
   }) => Promise<void>;
 }
 
@@ -59,7 +56,6 @@ export function AddServiceForm({
     idService: null,
     point: "",
     operation: "",
-    qtdePlan: null,
   });
 
   const [loading, setLoading] = useState(false);
@@ -92,7 +88,6 @@ export function AddServiceForm({
         idService: form.idService!,
         point: form.point,
         operation: form.operation,
-        qtdePlan: form.qtdePlan!,
       });
 
       // reset form
@@ -100,7 +95,6 @@ export function AddServiceForm({
         idService: null,
         point: "",
         operation: "",
-        qtdePlan: null,
       });
     } finally {
       setLoading(false);
@@ -110,68 +104,67 @@ export function AddServiceForm({
   return (
     <div className="space-y-4">
       {/* SERVICE SELECT */}
-      <FormControl fullWidth size="small">
-        <Autocomplete<ServiceContract>
-          options={serviceContractData}
-          getOptionLabel={(s) => s.texto_breve}
-          ListboxComponent={ServicesContractSelect}
-          renderOption={(props, s) => {
-            const { key, className, ...other } = props;
-            return (
-              <li
-                key={key}
-                {...other}
-                className={clsx(
-                  className,
-                  "!mx-2 !rounded-lg !border !border-gray-200 !p-3 transition-all hover:!bg-blue-50 hover:!border-blue-300",
-                )}
-              >
-                <div className="flex w-full flex-col">
-                  {/* Título */}
-                  <span className="text-sm font-semibold text-gray-800">
-                    {s.texto_breve}
-                  </span>
+      <div className="grid grid-cols-4 gap-4">
+        <FormControl fullWidth size="small" className="col-span-2">
+          <Autocomplete<ServiceContract>
+            options={serviceContractData}
+            getOptionLabel={(s) => s.texto_breve}
+            ListboxComponent={ServicesContractSelect}
+            renderOption={(props, s) => {
+              const { key, className, ...other } = props;
+              return (
+                <li
+                  key={key}
+                  {...other}
+                  className={clsx(
+                    className,
+                    "!mx-2 !rounded-lg !border !border-gray-200 !p-3 transition-all hover:!bg-blue-50 hover:!border-blue-300",
+                  )}
+                >
+                  <div className="flex w-full flex-col">
+                    {/* Título */}
+                    <span className="text-sm font-semibold text-gray-800">
+                      {s.texto_breve}
+                    </span>
 
-                  {/* Linha de detalhes */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
-                      💲 {FormatCurrency(Number(s.preco))}
-                    </span>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
-                      📄 {s.contrato}
-                    </span>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
-                      👥 {s.turmas.turma}
-                    </span>
+                    {/* Linha de detalhes */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                        💲 {FormatCurrency(Number(s.preco))}
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                        📄 {s.contrato}
+                      </span>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
+                        👥 {s.turmas.turma}
+                      </span>
+                    </div>
+
+                    {/* Info secundária */}
+                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                      <span>
+                        <strong className="text-gray-600">Material:</strong>{" "}
+                        {s.material}
+                      </span>
+                      <span className="text-gray-300">|</span>
+                      <span>
+                        <strong className="text-gray-600">Unidade:</strong>{" "}
+                        {s.medida}
+                      </span>
+                    </div>
                   </div>
+                </li>
+              );
+            }}
+            renderInput={(params) => (
+              <TextField {...params} label="Selecionar serviço" size="small" />
+            )}
+            onChange={(_, value) =>
+              updateField("idService", value ? value.id : null)
+            }
+          />
+        </FormControl>
 
-                  {/* Info secundária */}
-                  <div className="flex items-center gap-3 text-xs text-gray-500">
-                    <span>
-                      <strong className="text-gray-600">Material:</strong>{" "}
-                      {s.material}
-                    </span>
-                    <span className="text-gray-300">|</span>
-                    <span>
-                      <strong className="text-gray-600">Unidade:</strong>{" "}
-                      {s.medida}
-                    </span>
-                  </div>
-                </div>
-              </li>
-            );
-          }}
-          renderInput={(params) => (
-            <TextField {...params} label="Selecionar serviço" size="small" />
-          )}
-          onChange={(_, value) =>
-            updateField("idService", value ? value.id : null)
-          }
-        />
-      </FormControl>
-
-      {/* POINT + OPERATION */}
-      <div className="grid grid-cols-3 gap-4">
         <FormControl fullWidth size="small">
           <InputLabel>Ponto</InputLabel>
 
@@ -201,14 +194,6 @@ export function AddServiceForm({
             ))}
           </Select>
         </FormControl>
-
-        <TextField
-          label="Qtde Plan"
-          type="number"
-          size="small"
-          value={form.qtdePlan ?? ""}
-          onChange={(e) => updateField("qtdePlan", Number(e.target.value))}
-        />
       </div>
 
       {/* SUBMIT */}

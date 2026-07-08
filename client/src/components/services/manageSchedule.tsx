@@ -13,8 +13,10 @@ import { EditSchedule } from "./editSchedule";
 import { NewScheduleSection } from "./scheduleSection/newScheduleSection";
 import { ScheduleSidebar } from "./scheduleSidebar/scheduleSidebar";
 import { ScheduleTopbar } from "./scheduleTopbar";
-import { ServiceContract } from "./servicesSection/addServiceForm";
+
 import { NewServicesAvaliable } from "./servicesSection/servicesAvaliable";
+import { PlusIcon } from "@heroicons/react/20/solid";
+import { AddServiceForm, ServiceContract } from "../common/addServiceForm";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -61,6 +63,7 @@ export function NewManageSchedule({
   const [servicesAvaliable, setServicesAvaliable] = useState<any[]>(
     servicesData || [],
   );
+  const [isServiceFormOpen, setIsServiceFormOpen] = useState(false);
 
   const [isPending, startTransition] = useTransition();
 
@@ -185,19 +188,87 @@ export function NewManageSchedule({
             </div>
           </main>
 
-          <div className="min-h-0 flex-1 w-full overflow-hidden">
-            <ScheduleSidebar
-              selectedServices={selectedServices}
-              setSelectedServices={setSelectedServices}
-              clearScheduledServices={clearScheduledServices}
-              servicesData={servicesData}
-              setServicesData={setServicesAvaliable}
-              selectedCount={workflow.selectedCount}
-              canCreate={workflow.canCreate}
-              isPending={isPending}
-              onCancel={handleCancel}
-              onSubmit={handleSaveSchedule}
-            />
+          <div className="flex min-h-0 h-full flex-col overflow-hidden pr-4 pt-2">
+            <div className="mb-3 px-4 w-full shrink-0">
+              <button
+                onClick={() => setIsServiceFormOpen((prev) => !prev)}
+                className={`
+                  group flex w-full items-center justify-between
+                  rounded-xl border px-5 py-3
+                  text-sm font-semibold transition-all duration-200
+                  ${
+                    isServiceFormOpen
+                      ? "border-[#53FF75] text-[#53FF75]"
+                      : "border-gray-200 bg-white text-gray-700 shadow-sm hover:border-[#A4D65E]/50 hover:shadow-md"
+                  }
+                `}
+              >
+                <span className="flex items-center gap-2">
+                  <PlusIcon
+                    className={`
+                      w-5 h-5 transition-transform duration-300
+                      ${isServiceFormOpen ? "rotate-45 text-[#5A8A1E]" : "text-[#A4D65E]"}
+                    `}
+                  />
+                  Adicionar novo serviço
+                </span>
+
+                <span
+                  className={`
+                    text-xs font-normal transition-colors
+                    ${isServiceFormOpen ? "text-[#5A8A1E]/60" : "text-gray-400"}
+                  `}
+                >
+                  {isServiceFormOpen ? "Fechar" : "Expandir"}
+                </span>
+              </button>
+
+              <div
+                className={`
+                  overflow-hidden transition-all duration-300 ease-in-out
+                  ${
+                    isServiceFormOpen
+                      ? "mt-3 max-h-[600px] opacity-100"
+                      : "max-h-0 opacity-0"
+                  }
+                `}
+              >
+                <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm w-full">
+                  <AddServiceForm
+                    idWork={idWork}
+                    serviceContractData={serviceContractData}
+                    operations={serviceFilters.operations}
+                    points={serviceFilters.points}
+                    onSubmit={async (data) => {
+                      const { addService } = await import("@/actions/services");
+                      const response = await addService(data);
+                      if (!response.success) {
+                        showError(response.error);
+                        return;
+                      }
+                      showSuccess("Serviço adicionado", () => {
+                        startTransition(() => router.refresh());
+                      });
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="min-h-0 flex-1 w-full overflow-hidden">
+              <ScheduleSidebar
+                selectedServices={selectedServices}
+                setSelectedServices={setSelectedServices}
+                clearScheduledServices={clearScheduledServices}
+                servicesData={servicesData}
+                setServicesData={setServicesAvaliable}
+                selectedCount={workflow.selectedCount}
+                canCreate={workflow.canCreate}
+                isPending={isPending}
+                onCancel={handleCancel}
+                onSubmit={handleSaveSchedule}
+              />
+            </div>
           </div>
         </div>
       </div>

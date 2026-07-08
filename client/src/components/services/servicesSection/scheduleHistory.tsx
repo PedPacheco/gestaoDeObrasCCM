@@ -12,15 +12,29 @@ import {
   TableRow,
 } from "@mui/material";
 import { LoadingComponent } from "@/components/common/Loading";
-import { useState } from "react";
 import ConfirmationModalComponent from "@/components/common/confirmationModal";
 
 dayjs.extend(utc);
 
+export interface ScheduledServicesHistoryData {
+  id: number;
+  idProg: number;
+  idServico: number;
+  operacao: string;
+  ponto: string;
+  descricao: string;
+  dataProgramada: string;
+  qtdeProgramada: number;
+  qtdePlanejada: number;
+  qtdeAdicional: number;
+  qtdeRealizada: number;
+  equipe: string;
+}
+
 interface ScheduleHistoryProps {
   idSchedule: number | null;
   cancelServices: (id: number) => void;
-  scheduledServicesHistory: any[];
+  scheduledServicesHistory: ScheduledServicesHistoryData[];
   isDisabled: boolean;
   isPending: boolean;
   openConfirmationModal: boolean;
@@ -90,31 +104,31 @@ export function ScheduleHistory({
                 scheduledServicesHistory.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="text-nowrap max-h-5">
-                      {item.servicos.servicos_contratos.texto_breve}
+                      {item.descricao}
                     </TableCell>
                     <TableCell className="text-nowrap max-h-5">
-                      {item.equipes.equipe}
+                      {item.equipe}
                     </TableCell>
                     <TableCell className="text-nowrap max-h-5">
-                      {item.servicos.operacao}
+                      {item.operacao}
                     </TableCell>
                     <TableCell className="text-nowrap max-h-5">
-                      {item.servicos.ponto}
+                      {item.ponto}
                     </TableCell>
                     <TableCell className="text-nowrap max-h-5">
-                      {formatDate(item.programacoes.data_prog)}
+                      {formatDate(item.dataProgramada)}
                     </TableCell>
                     <TableCell className="text-nowrap max-h-5">
-                      {item.plan}
+                      {item.qtdePlanejada}
                     </TableCell>
                     <TableCell className="text-nowrap max-h-5">
-                      {item.adicional}
+                      {item.qtdeAdicional}
                     </TableCell>
                     <TableCell className="text-nowrap max-h-5">
-                      {item.prog}
+                      {item.qtdeProgramada}
                     </TableCell>
                     <TableCell className="text-nowrap max-h-5">
-                      {item.real}
+                      {item.qtdeRealizada}
                     </TableCell>
                   </TableRow>
                 ))
