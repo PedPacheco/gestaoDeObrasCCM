@@ -21,7 +21,7 @@ import {
   AreaViewGuard,
 } from 'src/core/guards/newPermission.guard';
 import { HandleFeasibilityService } from 'src/application/usecases/orchestrators/handleFeasibilityUpdate.service';
-import { ValidateFeasibilityItemsPipe } from 'src/core/pipes/validateFeasibilityItems';
+import { ValidateFeasibilityItemsPipe } from 'src/core/pipes/validateFeasibilityItems.pipe';
 import { ServiceMaterialItemDto } from '../dtos/workServicesDTO';
 import { RejectFeasibilityDTO } from '../dtos/feasibilityDTO';
 

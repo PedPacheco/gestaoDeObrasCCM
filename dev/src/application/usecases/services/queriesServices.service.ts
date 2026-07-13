@@ -91,7 +91,7 @@ export class QueriesServicesService {
         equipe: service.equipes.equipe,
         encarregado: service.equipes.encarregado,
         perfil: service.equipes.perfil,
-        valorUnit: service.servicos_contratos?.preco * service.qtde_prog,
+        valorUnit: preco * service.qtde_prog,
       };
     });
   }

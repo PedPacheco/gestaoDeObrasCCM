@@ -14,7 +14,17 @@ const mockRepository: jest.Mocked<IFeasibilityRepository> = {
   saveFiles: jest.fn(),
   findFiles: jest.fn(),
   deleteFiles: jest.fn(),
+  approve: jest.fn(),
+  getRejections: jest.fn(),
+  makeItemsFeasible: jest.fn(),
+  reject: jest.fn(),
 };
+
+// const mockTx = {
+//   relatorio_viabilidade: {
+//     createMany: jest.fn().mockResolvedValue({ count: 2 }),
+//   },
+// } as unknown as Prisma.TransactionClient;
 
 const mockFileService = {
   deleteFile: jest.fn(),
@@ -41,44 +51,6 @@ describe('FeasibilityService', () => {
     service = module.get<FeasibilityService>(FeasibilityService);
 
     jest.clearAllMocks();
-  });
-
-  // -------------------------------------------------------------------------
-  // handleUpload(idWork, files)
-  // -------------------------------------------------------------------------
-
-  it('deve lançar erro se nenhum arquivo for enviado', async () => {
-    await expect(service.handleUpload(1, [])).rejects.toThrow(
-      new BadRequestException('Nenhum arquivo foi enviado.'),
-    );
-  });
-
-  it('deve lançar erro se idWork não for enviado', async () => {
-    await expect(service.handleUpload(undefined as any, [{}])).rejects.toThrow(
-      new BadRequestException('O ID da obra é obrigatório.'),
-    );
-  });
-
-  it('deve lançar erro se já existirem arquivos importados', async () => {
-    mockRepository.exists.mockResolvedValue([{ id: 1 }]);
-
-    await expect(service.handleUpload(10, [{}])).rejects.toThrow(
-      new BadRequestException('Já existem arquivos importados para esta obra.'),
-    );
-
-    expect(mockRepository.exists).toHaveBeenCalledWith(10);
-  });
-
-  it('deve salvar os arquivos quando idWork é válido e não existem arquivos', async () => {
-    mockRepository.exists.mockResolvedValue([]);
-    mockRepository.saveFiles.mockResolvedValue(undefined);
-
-    await service.handleUpload(7, [{ nome: 'file1.pdf' }]);
-
-    expect(mockRepository.exists).toHaveBeenCalledWith(7);
-    expect(mockRepository.saveFiles).toHaveBeenCalledWith(7, [
-      { nome: 'file1.pdf' },
-    ]);
   });
 
   // -------------------------------------------------------------------------
@@ -134,5 +106,41 @@ describe('FeasibilityService', () => {
     );
 
     expect(mockRepository.deleteFiles).toHaveBeenCalledWith(2);
+  });
+
+  describe('getRejections', () => {
+    it('should return a list of rejections mapped with description, reason, user name, and creation date', async () => {
+      const data = [
+        {
+          descricao: 'Poste em falta',
+          motivo: 'Material em falta',
+          novo_tabela_usuarios: { nome: 'Pedro' },
+          criado_em: '2026-07-11',
+        },
+      ];
+
+      mockRepository.getRejections.mockResolvedValue(data);
+
+      const response = await service.getRejections(1);
+
+      expect(response).toEqual([
+        {
+          descricao: 'Poste em falta',
+          motivo: 'Material em falta',
+          criado_em: '2026-07-11',
+          usuario: 'Pedro',
+        },
+      ]);
+    });
+  });
+
+  describe('approve', () => {
+    it('should call method approve in repository', async () => {
+      mockRepository.approve.mockResolvedValue(undefined);
+
+      await service.approve(1);
+
+      expect(mockRepository.approve).toHaveBeenCalled();
+    });
   });
 });

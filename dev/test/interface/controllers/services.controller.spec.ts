@@ -22,6 +22,7 @@ describe('ServicesController', () => {
     applyAdditional: jest.fn(),
     cancelServices: jest.fn(),
     addServices: jest.fn(),
+    addMaterials: jest.fn(),
   };
 
   const mockQueriesService = {
@@ -31,6 +32,7 @@ describe('ServicesController', () => {
     getServicesFilters: jest.fn(),
     getServiceContracts: jest.fn(),
     getTeamsServices: jest.fn(),
+    getMaterials: jest.fn(),
   };
 
   const mockFinalizeServices = {
@@ -125,20 +127,32 @@ describe('ServicesController', () => {
         operation: mockOperation,
       });
     });
+  });
 
-    it('should return empty array when no services found', async () => {
-      const mockId = 999;
-      const mockResponse = [];
+  describe('getMaterials', () => {
+    it('should return materials', async () => {
+      const mockResponse = [
+        {
+          id: 1,
+          id_material: 1,
+          ponto: 'P1',
+          operacao: 'INSTALAÇAO',
+          qtde_plan: 1,
+          qtde_adicional: 1,
+          viabilizado: 1,
+        },
+      ];
 
-      mockQueriesService.getById.mockResolvedValue(mockResponse);
+      mockQueriesService.getMaterials.mockResolvedValue(mockResponse);
 
-      const result = await controller.getServicesByWorkId(mockId);
+      const result = await controller.getMaterials();
 
       expect(result).toEqual({
         statusCode: HttpStatus.OK,
-        message: 'Serviços da obra retornados',
-        data: [],
+        message: 'Materiais retornados',
+        data: mockResponse,
       });
+      expect(queriesService.getMaterials).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -490,6 +504,24 @@ describe('ServicesController', () => {
       await controller.addServices(mockParam);
 
       expect(mockWorksServicesService.addServices).toHaveBeenCalledWith(
+        mockParam,
+      );
+    });
+  });
+
+  describe('addMaterials', () => {
+    it('should call the method addMaterials service', async () => {
+      const mockParam = {
+        idWork: 1,
+        idService: 2,
+        point: 'P1',
+        operation: 'INSTALAÇÃO',
+        qtdePlan: 2,
+      };
+
+      await controller.addMaterials(mockParam);
+
+      expect(mockWorksServicesService.addMaterials).toHaveBeenCalledWith(
         mockParam,
       );
     });

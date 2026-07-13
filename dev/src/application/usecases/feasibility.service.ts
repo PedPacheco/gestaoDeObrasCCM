@@ -4,9 +4,6 @@ import {
   IFeasibilityRepository,
 } from 'src/domain/repositories/IFeasibilityRepository';
 import { FileService } from './file.service';
-import { Prisma } from '@prisma/client';
-import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
-import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
 
 @Injectable()
 export class FeasibilityService {
@@ -15,30 +12,6 @@ export class FeasibilityService {
     private readonly feasibilityRepository: IFeasibilityRepository,
     private readonly fileService: FileService,
   ) {}
-
-  async handleUpload(
-    idWork: number,
-    idUser: number,
-    files: any[],
-    tx: Prisma.TransactionClient,
-  ) {
-    const exists = await this.feasibilityRepository.exists(idWork);
-
-    if (exists && exists.length > 0) {
-      throw new BadRequestException(
-        'Já existem arquivos importados para esta obra.',
-      );
-    }
-
-    await this.feasibilityRepository.saveFiles(idWork, idUser, files, tx);
-  }
-
-  async makeItemsFeasible(
-    items: ServiceMaterialItemDto[],
-    tx: Prisma.TransactionClient,
-  ) {
-    await this.feasibilityRepository.makeItemsFeasible(items, tx);
-  }
 
   async feasibilityExists(id: number) {
     if (!id) {
@@ -73,10 +46,6 @@ export class FeasibilityService {
       usuario: item.novo_tabela_usuarios.nome,
       criado_em: item.criado_em,
     }));
-  }
-
-  async reject(data: RejectFeasibilityDTO, tx: Prisma.TransactionClient) {
-    await this.feasibilityRepository.reject(data, tx);
   }
 
   async approve(idWork: number) {

@@ -19,7 +19,9 @@ describe('WorksServicesService', () => {
     performServices: jest.fn(),
     reascheduleServices: jest.fn(),
     addServices: jest.fn(),
+    addMaterials: jest.fn(),
     getAllServicesOfWork: jest.fn(),
+    getAllMaterialsOfWork: jest.fn(),
     applyAdditional: jest.fn(),
   };
 
@@ -62,8 +64,8 @@ describe('WorksServicesService', () => {
       ];
 
       mockWorksServicesRepository.getAllServicesOfWork.mockResolvedValue([
-        { id: 1, qtde_plan: 3, qtde_adicional: null },
-        { id: 2, qtde_plan: 5, qtde_adicional: null },
+        { id: 1, viabilizado: 3, qtde_adicional: null },
+        { id: 2, viabilizado: 5, qtde_adicional: null },
       ]);
       mockWorksServicesRepository.getServiceScheduleHistory.mockResolvedValue(
         [],
@@ -141,7 +143,7 @@ describe('WorksServicesService', () => {
       ];
 
       mockWorksServicesRepository.getAllServicesOfWork.mockResolvedValue([
-        { id: 1, qtde_plan: 2, qtde_adicional: null },
+        { id: 1, viabilizado: 2, qtde_adicional: null },
       ]);
       mockWorksServicesRepository.getServiceScheduleHistory.mockResolvedValue([
         {
@@ -171,7 +173,7 @@ describe('WorksServicesService', () => {
       ];
 
       mockWorksServicesRepository.getAllServicesOfWork.mockResolvedValue([
-        { id: 1, qtde_plan: 2, qtde_additional: null },
+        { id: 1, viabilizado: 2, qtde_additional: null },
       ]);
       mockWorksServicesRepository.getServiceScheduleHistory.mockResolvedValue([
         {
@@ -317,11 +319,56 @@ describe('WorksServicesService', () => {
     });
   });
 
+  describe('addMaterials', () => {
+    it('should add material successfully', async () => {
+      const mockData = {
+        idWork: 1,
+        idService: 2,
+        point: 'P1',
+        operation: 'INSTALAÇÃO',
+        qtdePlan: 2,
+      };
+
+      mockWorksServicesRepository.getAllMaterialsOfWork.mockResolvedValue([]);
+
+      mockWorksServicesRepository.addMaterials.mockResolvedValue(undefined);
+
+      await service.addMaterials(mockData);
+
+      expect(repository.addMaterials).toHaveBeenCalledWith(mockData);
+      expect(repository.addMaterials).toHaveBeenCalledTimes(1);
+    });
+
+    it('should trigger an error id the service already exists at the specified location', async () => {
+      const mockData = {
+        idWork: 1,
+        idService: 2,
+        point: 'P1',
+        operation: 'INSTALAÇÃO',
+        qtdePlan: 2,
+      };
+
+      mockWorksServicesRepository.getAllMaterialsOfWork.mockResolvedValue([
+        {
+          id: 2,
+          id_material: 2,
+          ponto: 'P1',
+          operacao: 'INSTALACAO',
+          qtde_plan: 2,
+        },
+      ]);
+
+      await expect(service.addMaterials(mockData)).rejects.toThrow(
+        'Esse material já existe nesse ponto.',
+      );
+    });
+  });
+
   describe('calculateScheduledProgress', () => {
     it('should calculate progress correctly', async () => {
       const mockServices = [
-        { id: 1, qtde_plan: 10, qtde_adicional: null },
-        { id: 2, qtde_plan: 20, qtde_adicional: 2 },
+        { id: 1, viabilizado: 10, qtde_adicional: null },
+        { id: 2, viabilizado: 20, qtde_adicional: 2 },
       ];
 
       const mockSelectedServices = [
@@ -343,8 +390,8 @@ describe('WorksServicesService', () => {
 
     it('should return 0 when total plan is 0', async () => {
       const mockServices = [
-        { id: 1, qtde_plan: 0 },
-        { id: 2, qtde_plan: 0 },
+        { id: 1, viabilizado: 0 },
+        { id: 2, viabilizado: 0 },
       ];
 
       const mockSelectedServices = [{ prog: 10 }];
@@ -363,7 +410,7 @@ describe('WorksServicesService', () => {
 
     it('should handle services without qtde_plan', async () => {
       const mockServices = [
-        { id: 1, qtde_plan: 50 },
+        { id: 1, viabilizado: 50 },
         { id: 2 }, // sem qtde_plan
       ];
 

@@ -19,6 +19,7 @@ describe('WorksServicesRepository', () => {
       groupBy: jest.fn(),
       create: jest.fn(),
     },
+    materiais: { findMany: jest.fn() },
     programacoes_servicos: {
       findMany: jest.fn(),
       create: jest.fn(),
@@ -103,7 +104,9 @@ describe('WorksServicesRepository', () => {
           qtde_prog: true,
           qtde_real: true,
           qtde_adicional: true,
+          viabilizado: true,
           programacoes: { select: { data_prog: true } },
+          materiais: { select: { descricao: true, codigo: true, preco: true } },
           servicos_contratos: {
             select: {
               material: true,
@@ -285,6 +288,7 @@ describe('WorksServicesRepository', () => {
           qtde_prog: true,
           qtde_real: true,
           qtde_adicional: true,
+          viabilizado: true,
           servicos_contratos: {
             select: {
               material: true,
@@ -292,6 +296,7 @@ describe('WorksServicesRepository', () => {
               preco: true,
             },
           },
+          materiais: { select: { descricao: true, codigo: true, preco: true } },
           programacoes: { select: { data_prog: true } },
           equipes: {
             select: { equipe: true, encarregado: true, perfil: true },
@@ -418,6 +423,7 @@ describe('WorksServicesRepository', () => {
           id: true,
           servicos: {
             select: {
+              materiais: { select: { descricao: true } },
               servicos_contratos: { select: { texto_breve: true } },
               ponto: true,
               operacao: true,
@@ -634,6 +640,36 @@ describe('WorksServicesRepository', () => {
     });
   });
 
+  describe('getServicesContracts', () => {
+    const mockContractsResponse = [
+      {
+        texto_breve: 'Serviço 1',
+        material: 'Material 1',
+        preco: 100,
+        contrato: 'CONT-001',
+        medida: 'UN',
+      },
+      {
+        texto_breve: 'Serviço 2',
+        material: 'Material 2',
+        preco: 200,
+        contrato: 'CONT-002',
+        medida: 'M2',
+      },
+    ];
+
+    it('should return service contracts', async () => {
+      mockPrismaService.materiais.findMany.mockResolvedValue(
+        mockContractsResponse,
+      );
+
+      const result = await repository.getMaterialsContract();
+
+      expect(result).toEqual(mockContractsResponse);
+      expect(prisma.materiais.findMany).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('getTeamsServices', () => {
     const mockTeamsResponse = [
       {
@@ -711,8 +747,8 @@ describe('WorksServicesRepository', () => {
           id_contrato_servico: true,
           operacao: true,
           ponto: true,
-          qtde_plan: true,
           qtde_adicional: true,
+          viabilizado: true,
         },
         where: { id_obra: mockWorkId },
       });
@@ -733,8 +769,8 @@ describe('WorksServicesRepository', () => {
           id_contrato_servico: true,
           operacao: true,
           ponto: true,
-          qtde_plan: true,
           qtde_adicional: true,
+          viabilizado: true,
         },
         where: { id_obra: mockWorkId },
       });
@@ -749,6 +785,69 @@ describe('WorksServicesRepository', () => {
       await expect(repository.getAllServicesOfWork(mockWorkId)).rejects.toThrow(
         'Database connection error',
       );
+    });
+  });
+
+  describe('getAllMaterialsOfWork', () => {
+    it('should return all services of a work', async () => {
+      const mockWorkId = 1;
+      const mockServices = [
+        { id: 1, qtde_plan: 100 },
+        { id: 2, qtde_plan: 200 },
+        { id: 3, qtde_plan: 150 },
+      ];
+
+      mockPrismaService.servicos.findMany.mockResolvedValue(mockServices);
+
+      const result = await repository.getAllMaterialsOfWork(mockWorkId);
+
+      expect(result).toEqual(mockServices);
+      expect(prisma.servicos.findMany).toHaveBeenCalledWith({
+        select: {
+          id: true,
+          id_material: true,
+          ponto: true,
+          operacao: true,
+          qtde_plan: true,
+          qtde_adicional: true,
+          viabilizado: true,
+        },
+        where: { id_obra: mockWorkId },
+      });
+      expect(prisma.servicos.findMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return empty array when no services found', async () => {
+      const mockWorkId = 999;
+
+      mockPrismaService.servicos.findMany.mockResolvedValue([]);
+
+      const result = await repository.getAllMaterialsOfWork(mockWorkId);
+
+      expect(result).toEqual([]);
+      expect(prisma.servicos.findMany).toHaveBeenCalledWith({
+        select: {
+          id: true,
+          id_material: true,
+          ponto: true,
+          operacao: true,
+          qtde_plan: true,
+          qtde_adicional: true,
+          viabilizado: true,
+        },
+        where: { id_obra: mockWorkId },
+      });
+    });
+
+    it('should handle database errors', async () => {
+      const mockWorkId = 1;
+      const mockError = new Error('Database connection error');
+
+      mockPrismaService.servicos.findMany.mockRejectedValue(mockError);
+
+      await expect(
+        repository.getAllMaterialsOfWork(mockWorkId),
+      ).rejects.toThrow('Database connection error');
     });
   });
 
@@ -1511,7 +1610,6 @@ describe('WorksServicesRepository', () => {
         idService: 2,
         point: 'P1',
         operation: 'INSTALAÇÃO',
-        qtdePlan: 2,
       };
 
       await repository.addServices(mockData);
@@ -1522,7 +1620,30 @@ describe('WorksServicesRepository', () => {
           id_contrato_servico: 2,
           operacao: 'INSTALAÇÃO',
           ponto: 'P1',
-          qtde_plan: 2,
+          qtde_plan: 0,
+        },
+      });
+    });
+  });
+
+  describe('addService', () => {
+    it('should add service, where data correctly sent', async () => {
+      const mockData = {
+        idWork: 1,
+        idService: 2,
+        point: 'P1',
+        operation: 'INSTALAÇÃO',
+      };
+
+      await repository.addMaterials(mockData);
+
+      expect(mockPrismaService.servicos.create).toHaveBeenCalledWith({
+        data: {
+          id_obra: 1,
+          id_material: 2,
+          operacao: 'INSTALAÇÃO',
+          ponto: 'P1',
+          qtde_plan: 0,
         },
       });
     });

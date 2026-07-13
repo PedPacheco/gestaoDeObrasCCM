@@ -9,9 +9,47 @@ import {
 import {
   GetByIdParamsInterface,
   GetSelectedServicesParamsInterface,
+  GetServicesByWorkIdResponse,
+  GetServiceScheduleHistoryResponse,
 } from 'src/interface/types/servicesInterface';
 import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
 import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
+import { Decimal } from '@prisma/client/runtime/library';
+
+const mockHistory: GetServiceScheduleHistoryResponse[] = [
+  {
+    id: 1,
+    id_programacao: 1,
+    id_servico: 1,
+    programacoes: { data_prog: new Date('2024-01-01') },
+    adicional: 1,
+    equipes: { equipe: 'LM01' },
+    plan: 1,
+    prog: 1,
+    real: 1,
+    servicos: {
+      operacao: 'INSTALAÇÃO',
+      ponto: 'P1',
+      servicos_contratos: { texto_breve: 'POSTE' },
+    },
+  },
+  {
+    id: 2,
+    id_programacao: 1,
+    id_servico: 1,
+    programacoes: { data_prog: new Date('2024-01-01') },
+    adicional: 1,
+    equipes: { equipe: 'LM01' },
+    plan: 1,
+    prog: 1,
+    real: 1,
+    servicos: {
+      operacao: 'INSTALAÇÃO',
+      ponto: 'P1',
+      materiais: { descricao: 'POSTE' },
+    },
+  },
+];
 
 describe('WorksServicesService', () => {
   let service: QueriesServicesService;
@@ -25,6 +63,7 @@ describe('WorksServicesService', () => {
     getServicesFilters: jest.fn(),
     getServicesContracts: jest.fn(),
     getTeamsServices: jest.fn(),
+    getMaterialsContract: jest.fn(),
   };
 
   const mockGetWorkDetailsService = {
@@ -67,7 +106,7 @@ describe('WorksServicesService', () => {
       operation: 'Operação 1',
     };
 
-    const mockRepositoryResponse = [
+    const mockRepositoryResponse: GetServicesByWorkIdResponse[] = [
       {
         id: 1,
         id_obra: 100,
@@ -77,13 +116,15 @@ describe('WorksServicesService', () => {
         qtde_prog: 8,
         qtde_real: 5,
         qtde_adicional: null,
-        servicos_contratos: {
-          material: 'Material 1',
-          texto_breve: 'Serviço 1',
-          preco: 100,
-        },
+        servicos_contratos: undefined,
         programacoes: {
-          data_prog: '2024-01-01',
+          data_prog: new Date('2024-01-01'),
+        },
+        viabilizado: 0,
+        materiais: {
+          codigo: '12345',
+          descricao: 'POSTE',
+          preco: new Decimal(1.5),
         },
       },
       {
@@ -101,6 +142,8 @@ describe('WorksServicesService', () => {
           preco: 200,
         },
         programacoes: null,
+        viabilizado: 0,
+        materiais: undefined,
       },
     ];
 
@@ -117,16 +160,18 @@ describe('WorksServicesService', () => {
           idObra: 100,
           operacao: 'Operação 1',
           ponto: 'Ponto A',
-          material: 'Material 1',
-          textoBreve: 'Serviço 1',
-          dataProgramada: '2024-01-01',
+          material: '12345',
+          textoBreve: 'POSTE',
+          dataProgramada: new Date('2024-01-01'),
           qtdePlanejada: 10,
           qtdeProgramada: 8,
+          viabilizado: 0,
           qtdeRealizada: 5,
           qtdeAdicional: null,
-          preco: 100,
-          valorUnit: 1000,
-          valorReal: 500,
+          tipo: 'M',
+          preco: 1.5,
+          valorUnit: 15,
+          valorReal: 7.5,
         },
         {
           id: 2,
@@ -138,8 +183,10 @@ describe('WorksServicesService', () => {
           dataProgramada: undefined,
           qtdePlanejada: 2,
           qtdeProgramada: 3,
+          viabilizado: 0,
           qtdeRealizada: null,
           qtdeAdicional: 1,
+          tipo: 'S',
           preco: 200,
           valorUnit: 600,
           valorReal: 0,
@@ -261,10 +308,36 @@ describe('WorksServicesService', () => {
         qtde_prog: 8,
         qtde_real: 5,
         qtde_adicional: null,
+        viabilizado: 5,
         servicos_contratos: {
           material: 'Material 1',
           texto_breve: 'Serviço 1',
           preco: 100,
+        },
+        programacoes: {
+          data_prog: '2024-01-01',
+        },
+        equipes: {
+          equipe: 'LM 01',
+          encarregado: 'João Silva',
+          perfil: 'Pedreiro',
+        },
+      },
+      {
+        id: 2,
+        id_obra: 100,
+        operacao: 'Operação 1',
+        ponto: 'Ponto A',
+        qtde_plan: 10,
+        qtde_prog: 8,
+        qtde_real: 5,
+        qtde_adicional: null,
+        viabilizado: 5,
+        servicos_contratos: undefined,
+        materiais: {
+          codigo: '1234',
+          descricao: 'Poste',
+          preco: new Decimal(5),
         },
         programacoes: {
           data_prog: '2024-01-01',
@@ -297,11 +370,31 @@ describe('WorksServicesService', () => {
           qtdeProgramada: 8,
           qtdeRealizada: 5,
           qtdeAdicional: null,
+          viabilizado: 5,
           preco: 100,
           equipe: 'LM 01',
           encarregado: 'João Silva',
           perfil: 'Pedreiro',
           valorUnit: 800,
+        },
+        {
+          id: 2,
+          idObra: 100,
+          operacao: 'Operação 1',
+          ponto: 'Ponto A',
+          material: '1234',
+          textoBreve: 'Poste',
+          dataProgramada: '2024-01-01',
+          qtdePlanejada: 10,
+          qtdeProgramada: 8,
+          qtdeRealizada: 5,
+          qtdeAdicional: null,
+          viabilizado: 5,
+          preco: 5,
+          equipe: 'LM 01',
+          encarregado: 'João Silva',
+          perfil: 'Pedreiro',
+          valorUnit: 40,
         },
       ]);
       expect(repository.getSelectedServices).toHaveBeenCalledWith(mockParams);
@@ -365,18 +458,6 @@ describe('WorksServicesService', () => {
   describe('getServiceScheduleHistory', () => {
     it('should return schedule history successfully', async () => {
       const mockId = 1;
-      const mockHistory = [
-        {
-          id: 1,
-          data_prog: '2024-01-01',
-          status: 'completed',
-        },
-        {
-          id: 2,
-          data_prog: '2024-01-02',
-          status: 'pending',
-        },
-      ];
 
       mockWorksServicesRepository.getServiceScheduleHistory.mockResolvedValue(
         mockHistory,
@@ -384,7 +465,36 @@ describe('WorksServicesService', () => {
 
       const result = await service.getServiceScheduleHistory(mockId);
 
-      expect(result).toEqual(mockHistory);
+      expect(result).toEqual([
+        {
+          id: 1,
+          idProg: 1,
+          idServico: 1,
+          dataProgramada: new Date('2024-01-01'),
+          qtdeAdicional: 1,
+          qtdePlanejada: 1,
+          qtdeProgramada: 1,
+          qtdeRealizada: 1,
+          operacao: 'INSTALAÇÃO',
+          ponto: 'P1',
+          descricao: 'POSTE',
+          equipe: 'LM01',
+        },
+        {
+          id: 2,
+          idProg: 1,
+          idServico: 1,
+          dataProgramada: new Date('2024-01-01'),
+          equipe: 'LM01',
+          qtdeAdicional: 1,
+          qtdePlanejada: 1,
+          qtdeProgramada: 1,
+          qtdeRealizada: 1,
+          operacao: 'INSTALAÇÃO',
+          ponto: 'P1',
+          descricao: 'POSTE',
+        },
+      ]);
       expect(repository.getServiceScheduleHistory).toHaveBeenCalledWith(mockId);
       expect(repository.getServiceScheduleHistory).toHaveBeenCalledTimes(1);
     });
@@ -402,7 +512,6 @@ describe('WorksServicesService', () => {
 
     it('should handle different id values', async () => {
       const mockId = 42;
-      const mockHistory = [{ id: 1, data_prog: '2024-01-01' }];
 
       mockWorksServicesRepository.getServiceScheduleHistory.mockResolvedValue(
         mockHistory,
@@ -644,6 +753,16 @@ describe('WorksServicesService', () => {
       const result = await service.getTeamsServices(mockIdWork);
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('getMaterials', () => {
+    it('should call getMaterialsContract method', async () => {
+      mockWorksServicesRepository.getMaterialsContract.mockResolvedValue([]);
+
+      const response = await service.getMaterials();
+
+      expect(response).toEqual([]);
     });
   });
 });

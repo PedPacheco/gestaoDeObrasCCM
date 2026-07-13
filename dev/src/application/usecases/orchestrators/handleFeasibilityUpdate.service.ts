@@ -14,12 +14,18 @@ import {
 import { FeasibilityService } from '../feasibility.service';
 import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
 import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
+import {
+  FEASIBILITY_REPOSITORY,
+  IFeasibilityRepository,
+} from 'src/domain/repositories/IFeasibilityRepository';
 
 @Injectable()
 export class HandleFeasibilityService {
   constructor(
     @Inject(STATUS_FLOW_REPOSITORY)
     private readonly statusFlowRepository: IStatusFlowRepository,
+    @Inject(FEASIBILITY_REPOSITORY)
+    private readonly feasibilityRepository: IFeasibilityRepository,
     private readonly feasibilityService: FeasibilityService,
     private readonly prisma: PrismaService,
   ) {}
@@ -43,9 +49,9 @@ export class HandleFeasibilityService {
     }
 
     await this.prisma.$transaction(async (tx) => {
-      await this.feasibilityService.handleUpload(idWork, idUser, files, tx);
+      await this.feasibilityRepository.saveFiles(idWork, idUser, files, tx);
 
-      await this.feasibilityService.makeItemsFeasible(items, tx);
+      await this.feasibilityRepository.makeItemsFeasible(items, tx);
 
       await this.statusFlowRepository.updateStatusWorks(46, idWork, tx);
     });
@@ -53,7 +59,7 @@ export class HandleFeasibilityService {
 
   async reject(data: RejectFeasibilityDTO) {
     await this.prisma.$transaction(async (tx) => {
-      await this.feasibilityService.reject(data, tx);
+      await this.feasibilityRepository.reject(data, tx);
 
       await this.statusFlowRepository.updateStatusWorks(45, data.idWork, tx);
     });

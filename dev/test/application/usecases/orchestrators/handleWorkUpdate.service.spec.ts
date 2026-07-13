@@ -56,7 +56,7 @@ describe('HandleWorkUpdateService', () => {
 
   afterEach(jest.clearAllMocks);
 
-  describe('add', () => {
+  describe('update', () => {
     it('should add schedule and update work status within a transaction', async () => {
       const data: UpdateWorkDTO = {
         id_status: 2,
@@ -77,7 +77,7 @@ describe('HandleWorkUpdateService', () => {
         expect.any(Object),
       );
       expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
-        1,
+        45,
         1,
         expect.any(Object),
       );
