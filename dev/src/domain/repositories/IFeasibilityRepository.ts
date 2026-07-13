@@ -1,9 +1,11 @@
 import { Prisma } from '@prisma/client';
+import { StatusFeasibility } from 'src/application/usecases/feasibility.service';
 import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
 import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
 
 export interface IFeasibilityRepository {
   exists(idWork: number): Promise<any[]>;
+  getProjectDate(idWork: number): Promise<{ data_empreitamento: Date }>;
   getRejections(idWork: number): Promise<any[]>;
   saveFiles(
     idWork: number,
@@ -23,7 +25,7 @@ export interface IFeasibilityRepository {
     data: RejectFeasibilityDTO,
     tx: Prisma.TransactionClient,
   ): Promise<void>;
-  approve(idWork: number): Promise<void>;
+  approve(idWork: number, status: StatusFeasibility): Promise<void>;
 }
 
 export const FEASIBILITY_REPOSITORY = Symbol('FeasibilityRepository');

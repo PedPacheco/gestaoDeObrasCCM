@@ -84,8 +84,9 @@ export interface GetWorksDetailsResponse {
   capex_mat_plan: number | null;
   capex_mo_pend: number | null;
   capex_mo_plan: number | null;
-  tipo_ads: string | null;
   data_empreitamento: Date | null;
+  data_viabilidade: Date | null;
+  prazo_viabilidade: string;
   ano_plan: number | null;
   programacao_ponto_a_ponto: boolean | null;
   circuitos: { circuito: string; conjuntos: { conjunto: string | null } };

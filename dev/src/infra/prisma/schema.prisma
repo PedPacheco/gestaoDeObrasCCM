@@ -259,7 +259,6 @@ model obras {
   capex_mat_pend            Float?
   capex_mo_pend             Float?
   qtde_pend                 Float?
-  tipo_ads                  String?                    @db.VarChar(50)
   data_empreitamento        DateTime?                  @db.Date
   id_empreendimento         Int
   diagrama_antigo           String?                    @db.VarChar(12)

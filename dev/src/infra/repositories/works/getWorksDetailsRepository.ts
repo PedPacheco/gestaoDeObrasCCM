@@ -58,8 +58,9 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
         capex_mat_plan: true,
         capex_mo_pend: true,
         capex_mo_plan: true,
-        tipo_ads: true,
         data_empreitamento: true,
+        data_viabilidade: true,
+        prazo_viabilidade: true,
         ano_plan: true,
         programacao_ponto_a_ponto: true,
         circuitos: {

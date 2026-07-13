@@ -33,7 +33,7 @@ export const mockGetWorkDetailsRepositoryQueryResponse = {
   capex_mat_plan: 186326.1654099993,
   capex_mo_pend: 64982.8126,
   capex_mo_plan: 74310.44331999999,
-  tipo_ads: 'CONVENCIONAL',
+
   data_empreitamento: '2024-08-06T00:00:00.000Z',
   programacao_ponto_a_ponto: true,
   circuitos: {
@@ -180,7 +180,7 @@ export const mockGetWorkDetailsRepositoryResponse = {
   capex_mat_plan: 186326.1654099993,
   capex_mo_pend: 64982.8126,
   capex_mo_plan: 74310.44331999999,
-  tipo_ads: 'CONVENCIONAL',
+
   data_empreitamento: '2024-08-06T00:00:00.000Z',
   programacao_ponto_a_ponto: true,
   id_turma: 1,

@@ -19,6 +19,7 @@ describe('FeasibilityRepository', () => {
     },
     obras: {
       update: jest.fn(),
+      findUnique: jest.fn(),
     },
   };
 
@@ -29,7 +30,12 @@ describe('FeasibilityRepository', () => {
     },
   } as unknown as Prisma.TransactionClient;
 
+  const FIXED_DATE = new Date('2025-07-01T12:00:00Z');
+
   beforeEach(async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2025-07-01T12:00:00Z'));
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         FeasibilityRepository,
@@ -43,6 +49,10 @@ describe('FeasibilityRepository', () => {
     repository = module.get<FeasibilityRepository>(FeasibilityRepository);
 
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   describe('exists', () => {
@@ -227,6 +237,54 @@ describe('FeasibilityRepository', () => {
     });
   });
 
+  describe('getRejections', () => {
+    it('should call findMany method of reprovacoes_viabilidade table and return data', async () => {
+      const idWorkMock = 1;
+
+      const responseMock = [
+        {
+          descricao: 'Material pendente',
+          motivo: 'Poste em falta',
+          criado_em: new Date('2026-06-05'),
+          novo_tabela_usuarios: { nome: 'PEdro' },
+        },
+      ];
+
+      prismaMock.reprovacoes_viabilidade.findMany.mockResolvedValue(
+        responseMock,
+      );
+
+      const response = await repository.getRejections(idWorkMock);
+
+      expect(response).toEqual(responseMock);
+      expect(prismaMock.reprovacoes_viabilidade.findMany).toHaveBeenCalledWith({
+        where: { id_obra: 1 },
+        select: {
+          descricao: true,
+          motivo: true,
+          criado_em: true,
+          novo_tabela_usuarios: { select: { nome: true } },
+        },
+      });
+    });
+  });
+
+  describe('getProjectDate', () => {
+    it('should call findUnique method of obras table and return data', async () => {
+      const responseMock = { data_empreitamento: new Date('2026-06-06') };
+
+      prismaMock.obras.findUnique.mockResolvedValue(responseMock);
+
+      const response = await repository.getProjectDate(1);
+
+      expect(response).toEqual(responseMock);
+      expect(prismaMock.obras.findUnique).toHaveBeenCalledWith({
+        select: { data_empreitamento: true },
+        where: { id: 1 },
+      });
+    });
+  });
+
   describe('makeItemsFeasible', () => {
     it('should execute a raw UPDATE query using the transaction client', async () => {
       const itemMock = [
@@ -308,11 +366,15 @@ describe('FeasibilityRepository', () => {
 
   describe('approve', () => {
     it('should call approve method and approve the work correctly', async () => {
-      await repository.approve(1);
+      await repository.approve(1, 'DENTRO DO PRAZO');
 
       expect(prismaMock.obras.update).toHaveBeenCalledWith({
         where: { id: 1 },
-        data: { id_status: 1 },
+        data: {
+          id_status: 1,
+          prazo_viabilidade: 'DENTRO DO PRAZO',
+          data_viabilidade: FIXED_DATE,
+        },
       });
       expect(prismaMock.obras.update).toHaveBeenCalledTimes(1);
     });

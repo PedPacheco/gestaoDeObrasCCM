@@ -28,7 +28,7 @@ export class HandleWorkUpdateService {
 
   async update(data: UpdateWorkDTO, id: number, permission: boolean) {
     const work = await this.getDetailsWorkService.get(id);
-    const { data_empreitamento, tipo_ads } = data;
+    const { data_empreitamento } = data;
 
     if (work.id_status === 42 && permission) {
       throw new BadRequestException(
@@ -50,7 +50,7 @@ export class HandleWorkUpdateService {
 
       await this.updateWorkService.update(data, work.id, tx);
 
-      if (work.id_status === 42 && data_empreitamento && tipo_ads) {
+      if (work.id_status === 42 && data_empreitamento) {
         await this.statusFlowRepository.updateStatusWorks(45, work.id, tx);
       }
     });

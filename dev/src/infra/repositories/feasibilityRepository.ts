@@ -4,6 +4,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
 import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
+import { StatusFeasibility } from 'src/application/usecases/feasibility.service';
+import moment from 'moment';
 
 @Injectable()
 export class FeasibilityRepository implements IFeasibilityRepository {
@@ -28,6 +30,13 @@ export class FeasibilityRepository implements IFeasibilityRepository {
       },
     });
     return data;
+  }
+
+  async getProjectDate(idWork: number): Promise<{ data_empreitamento: Date }> {
+    return await this.prisma.obras.findUnique({
+      select: { data_empreitamento: true },
+      where: { id: idWork },
+    });
   }
 
   async getRejections(idWork: number): Promise<any[]> {
@@ -124,10 +133,14 @@ export class FeasibilityRepository implements IFeasibilityRepository {
     });
   }
 
-  async approve(idWork: number): Promise<void> {
+  async approve(idWork: number, status: StatusFeasibility): Promise<void> {
     await this.prisma.obras.update({
       where: { id: idWork },
-      data: { id_status: 1 },
+      data: {
+        id_status: 1,
+        data_viabilidade: moment.utc().toDate(),
+        prazo_viabilidade: status,
+      },
     });
   }
 }

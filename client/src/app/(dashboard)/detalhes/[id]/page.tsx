@@ -101,6 +101,9 @@ function processWorkData(data: any) {
     dataEmpreitamento: formatDate(
       data.data_empreitamento ? dayjs(data.data_empreitamento) : null,
     ),
+    dataViabilidade: formatDate(
+      data.data_viabilidade ? dayjs(data.data_viabilidade) : null,
+    ),
     backgroundColor: getBackgroundColor(data.grupo, data.ano_plan),
     executadoFormatted: formatPercentage(data.executado) || "",
   };

@@ -8,32 +8,29 @@ import {
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
-// Mocks
-const mockRepository: jest.Mocked<IFeasibilityRepository> = {
-  exists: jest.fn(),
-  saveFiles: jest.fn(),
-  findFiles: jest.fn(),
-  deleteFiles: jest.fn(),
-  approve: jest.fn(),
-  getRejections: jest.fn(),
-  makeItemsFeasible: jest.fn(),
-  reject: jest.fn(),
-};
-
-// const mockTx = {
-//   relatorio_viabilidade: {
-//     createMany: jest.fn().mockResolvedValue({ count: 2 }),
-//   },
-// } as unknown as Prisma.TransactionClient;
-
-const mockFileService = {
-  deleteFile: jest.fn(),
-};
-
 describe('FeasibilityService', () => {
   let service: FeasibilityService;
 
+  const mockRepository: jest.Mocked<IFeasibilityRepository> = {
+    exists: jest.fn(),
+    saveFiles: jest.fn(),
+    findFiles: jest.fn(),
+    deleteFiles: jest.fn(),
+    approve: jest.fn(),
+    getRejections: jest.fn(),
+    makeItemsFeasible: jest.fn(),
+    reject: jest.fn(),
+    getProjectDate: jest.fn(),
+  };
+
+  const mockFileService = {
+    deleteFile: jest.fn(),
+  };
+
   beforeEach(async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-07-06T12:00:00Z'));
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         FeasibilityService,
@@ -51,6 +48,10 @@ describe('FeasibilityService', () => {
     service = module.get<FeasibilityService>(FeasibilityService);
 
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   // -------------------------------------------------------------------------
@@ -135,12 +136,42 @@ describe('FeasibilityService', () => {
   });
 
   describe('approve', () => {
-    it('should call method approve in repository', async () => {
+    it('should call method approve in repository with on-schedule status', async () => {
       mockRepository.approve.mockResolvedValue(undefined);
+
+      mockRepository.getProjectDate.mockResolvedValue({
+        data_empreitamento: new Date('2026-07-01'),
+      });
 
       await service.approve(1);
 
       expect(mockRepository.approve).toHaveBeenCalled();
+      expect(mockRepository.approve).toHaveBeenCalledWith(1, 'DENTRO DO PRAZO');
+    });
+
+    it('should call method approve in repository with overdue status', async () => {
+      mockRepository.approve.mockResolvedValue(undefined);
+
+      mockRepository.getProjectDate.mockResolvedValue({
+        data_empreitamento: new Date('2026-06-28'),
+      });
+
+      await service.approve(1);
+
+      expect(mockRepository.approve).toHaveBeenCalled();
+      expect(mockRepository.approve).toHaveBeenCalledWith(1, 'FORA DO PRAZO');
+    });
+
+    it('should throw BadRequestException when the project has no contract date', async () => {
+      mockRepository.approve.mockResolvedValue(undefined);
+
+      mockRepository.getProjectDate.mockResolvedValue({
+        data_empreitamento: null,
+      });
+
+      await expect(service.approve(1)).rejects.toThrow(
+        'Obra sem data de empreitamento',
+      );
     });
   });
 });

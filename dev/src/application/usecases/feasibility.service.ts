@@ -1,9 +1,14 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import {
   FEASIBILITY_REPOSITORY,
   IFeasibilityRepository,
 } from 'src/domain/repositories/IFeasibilityRepository';
+import { countBusinessDays } from 'src/utils/parseTimeToDate';
+
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+
 import { FileService } from './file.service';
+
+export type StatusFeasibility = 'FORA DO PRAZO' | 'DENTRO DO PRAZO';
 
 @Injectable()
 export class FeasibilityService {
@@ -49,6 +54,28 @@ export class FeasibilityService {
   }
 
   async approve(idWork: number) {
-    await this.feasibilityRepository.approve(idWork);
+    let feasibilityTimeframeStatus: StatusFeasibility;
+
+    const { data_empreitamento } =
+      await this.feasibilityRepository.getProjectDate(idWork);
+
+    if (!data_empreitamento) {
+      throw new BadRequestException('Obra sem data de empreitamento');
+    }
+
+    const todayDate = new Date();
+
+    const businessDays = countBusinessDays(data_empreitamento, todayDate);
+
+    if (businessDays > 5) {
+      feasibilityTimeframeStatus = 'FORA DO PRAZO';
+    } else {
+      feasibilityTimeframeStatus = 'DENTRO DO PRAZO';
+    }
+
+    await this.feasibilityRepository.approve(
+      idWork,
+      feasibilityTimeframeStatus,
+    );
   }
 }

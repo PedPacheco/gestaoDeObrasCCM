@@ -194,6 +194,7 @@ export function FeasibiltyUpload({
   const stepSections = NAV_SECTIONS.filter(
     (section) => section.id !== "reprovacoes",
   );
+
   const completedCount = stepSections.filter(
     (section) => statusById[section.id] === "complete",
   ).length;

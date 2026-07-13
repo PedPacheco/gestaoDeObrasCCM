@@ -11,7 +11,6 @@ type ContractRow = {
   ovnota: string;
   ordemDiagrama: string;
   dataEmpreitamento: string;
-  tipoAds: string;
 };
 
 function excelSerialToDate(serial: number): Date {
@@ -76,7 +75,6 @@ export function ImportContractButton() {
             ovnota: row[1]?.toString() || "",
             ordemDiagrama: row[2]?.toString() || "",
             dataEmpreitamento: parseExcelDate(row[3]),
-            tipoAds: row[4]?.toString() || "",
           });
         }
 

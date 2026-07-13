@@ -13,7 +13,6 @@ import {
   useTransition,
 } from "react";
 
-import { deleteFeasibilityFiles } from "@/actions/feasibility";
 import { InsertPublicationRestrictions } from "@/actions/restrictions";
 import { UpdateWork } from "@/actions/works";
 import { ButtonComponent } from "@/components/common/Button";
@@ -22,13 +21,14 @@ import ModalComponent from "@/components/common/Modal";
 import { useUser } from "@/contexts/userContext";
 import { useFeedback } from "@/hooks/useFeedback";
 import {
+  FeasibilityWorkflowStatus,
+  getFeasibilityWorkflowStatus,
+} from "@/utils/feasibilityWorkflow";
+import {
   CheckCircleIcon,
   ClockIcon,
-  DocumentTextIcon,
-  ExclamationCircleIcon,
   PencilIcon,
   PencilSquareIcon,
-  XMarkIcon,
 } from "@heroicons/react/20/solid";
 import {
   IconButton,
@@ -40,10 +40,6 @@ import {
 
 import DataItem from "./dataItem";
 import { EditableColumn } from "./editableColumn";
-import {
-  FeasibilityWorkflowStatus,
-  getFeasibilityWorkflowStatus,
-} from "@/utils/feasibilityWorkflow";
 
 dayjs.extend(customParseFormat);
 
@@ -86,8 +82,9 @@ interface WorkData {
   id_turma: string;
   idRegional: number;
   status_ov_sap: string;
-  tipo_ads: string;
   observ_obra: string;
+  data_viabilidade: string;
+  prazo_viabilidade: string;
   id: string;
 }
 
@@ -96,6 +93,7 @@ interface FormattedData {
   prazo: string;
   prazoFinal: string;
   data_conclusao: string;
+  dataViabilidade: string;
   dataEmpreitamento: string;
   backgroundColor: string;
   executadoFormatted: string;
@@ -105,7 +103,6 @@ interface EditableData {
   data_empreitamento: string;
   id_status: number;
   id_turma: string;
-  tipo_ads: string;
   observ_obra: string;
 }
 
@@ -194,7 +191,6 @@ export function WorkDetails({
     data_empreitamento: formattedData.dataEmpreitamento,
     id_status: data.id_status,
     id_turma: data.id_turma,
-    tipo_ads: data.tipo_ads,
     observ_obra: data.observ_obra,
   });
 
@@ -426,6 +422,13 @@ export function WorkDetails({
               ) : null
             }
           />
+
+          <DataItem
+            label="Viabilidade"
+            value={formattedData.dataViabilidade}
+            status={data.prazo_viabilidade}
+          />
+
           <DataItem label="Empreendimento" value={data.empreendimento} />
         </div>
       </div>

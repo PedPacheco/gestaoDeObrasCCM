@@ -21,7 +21,6 @@ interface ContractRow {
   ovnota: string;
   ordemDiagrama: string;
   dataEmpreitamento: string;
-  tipoAds: string;
 }
 
 const columnMapping = [
@@ -102,9 +101,6 @@ export function ImportTableContracts() {
         </TableCell>
         <TableCell className="py-1 px-2 text-center text-lg">
           {formattedDate}
-        </TableCell>
-        <TableCell className="py-1 px-2 text-center text-lg">
-          {item.tipoAds}
         </TableCell>
         <TableCell className="py-1 px-2 text-center text-lg">
           <button

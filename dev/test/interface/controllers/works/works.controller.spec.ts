@@ -366,7 +366,6 @@ describe('WorksController', () => {
         id_turma: 1,
         id_status: 2,
         data_empreitamento: new Date('2024-01-01'),
-        tipo_ads: 'CONVENCIONAL',
       });
 
       const errors = await validate(dto);

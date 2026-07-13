@@ -44,7 +44,6 @@ describe('GetWorksDetailsRepository', () => {
     capex_mat_plan: 186326.1654099993,
     capex_mo_pend: 64982.8126,
     capex_mo_plan: 74310.44331999999,
-    tipo_ads: 'CONVENCIONAL',
     data_empreitamento: '2024-08-06T00:00:00.000Z',
     circuitos: {
       circuito: 'CAC-1302',
@@ -131,8 +130,9 @@ describe('GetWorksDetailsRepository', () => {
     capex_mat_plan: true,
     capex_mo_pend: true,
     capex_mo_plan: true,
-    tipo_ads: true,
     data_empreitamento: true,
+    data_viabilidade: true,
+    prazo_viabilidade: true,
     ano_plan: true,
     programacao_ponto_a_ponto: true,
     circuitos: {

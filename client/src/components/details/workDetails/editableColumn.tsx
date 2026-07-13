@@ -9,7 +9,6 @@ interface typeData {
   id_turma: string;
   id_status: number;
   data_empreitamento: string;
-  tipo_ads: string;
 }
 
 interface EditableColumnProps {
@@ -79,20 +78,6 @@ export const EditableColumn = ({
         value={data.data_empreitamento || ""}
         isEdit={true}
         onEdit={(value) => onHandleChange("data_empreitamento", value)}
-        disabled={havePermission}
-      />
-
-      <SelectComponent
-        label="Tipo ADS"
-        menuItems={[
-          { tipo: null },
-          { tipo: "CONVENCIONAL" },
-          { tipo: "PONTO A PONTO" },
-        ]}
-        selectedItem={data.tipo_ads || ""}
-        setSelectedItem={(value) => onHandleChange("tipo_ads", value)}
-        valueKey="tipo"
-        displayKey="tipo"
         disabled={havePermission}
       />
     </>

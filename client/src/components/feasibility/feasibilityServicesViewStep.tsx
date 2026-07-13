@@ -22,7 +22,7 @@ export interface FeasibilityServiceItem {
   operacao?: string;
   ponto?: string;
   qtdePlanejada: number;
-  viabilizado: number;
+  viabilizado: number | null;
 }
 
 interface FeasibilityServicesReviewStepProps {
@@ -70,7 +70,7 @@ export function FeasibilityServicesReviewStep({
         item.id === id
           ? {
               ...item,
-              viabilizado: value === "" ? 0 : Number(value),
+              viabilizado: value === "" ? null : Number(value),
             }
           : item,
       ),
@@ -213,9 +213,8 @@ export function FeasibilityServicesReviewStep({
                       <input
                         type="text"
                         inputMode="numeric"
-                        placeholder="0"
                         className={`w-24 rounded-md border px-2 py-1.5 text-right text-sm outline-none transition-colors focus:ring-2 ${getInputClassName(row)}`}
-                        value={row.viabilizado}
+                        value={row.viabilizado ?? ""}
                         onChange={(e) =>
                           updateViabilizado(row.id, e.target.value)
                         }
