@@ -59,14 +59,19 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
         capex_mo_pend: true,
         capex_mo_plan: true,
         data_empreitamento: true,
-        data_viabilidade: true,
-        prazo_viabilidade: true,
         ano_plan: true,
         programacao_ponto_a_ponto: true,
         circuitos: {
           select: {
             circuito: true,
             conjuntos: { select: { conjunto: true } },
+          },
+        },
+        relatorio_viabilidade: {
+          select: {
+            data_envio: true,
+            prazo_viabilidade: true,
+            aprovada: true,
           },
         },
         empreendimento: { select: { empreendimento: true } },

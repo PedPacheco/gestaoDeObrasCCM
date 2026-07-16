@@ -11,10 +11,10 @@ import moment from 'moment';
 export class FeasibilityRepository implements IFeasibilityRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async exists(idWork: number): Promise<any[]> {
+  async exists(idWork: number): Promise<any> {
     const value = idWork.toString();
 
-    const data = await this.prisma.relatorio_viabilidade.findMany({
+    return await this.prisma.relatorio_viabilidade.findFirst({
       where: {
         obras: {
           OR: [
@@ -29,7 +29,6 @@ export class FeasibilityRepository implements IFeasibilityRepository {
         },
       },
     });
-    return data;
   }
 
   async getProjectDate(idWork: number): Promise<{ data_empreitamento: Date }> {
@@ -39,9 +38,9 @@ export class FeasibilityRepository implements IFeasibilityRepository {
     });
   }
 
-  async getRejections(idWork: number): Promise<any[]> {
+  async getRejections(workId: number): Promise<any[]> {
     return await this.prisma.reprovacoes_viabilidade.findMany({
-      where: { id_obra: idWork },
+      where: { relatorio_viabilidade: { id_obra: workId } },
       select: {
         descricao: true,
         motivo: true,
@@ -74,46 +73,36 @@ export class FeasibilityRepository implements IFeasibilityRepository {
   async saveFiles(
     idWork: number,
     idUser: number,
-    files: Express.Multer.File[],
+    status: StatusFeasibility,
+    paths: string[],
     tx: Prisma.TransactionClient,
   ): Promise<void> {
-    const data = files.map((file) => ({
-      id_obra: idWork,
-      caminho_arquivo: file.filename,
-      id_usuario: idUser,
-    }));
-
-    await tx.relatorio_viabilidade.createMany({
-      data,
+    await tx.relatorio_viabilidade.upsert({
+      where: { id_obra: idWork },
+      create: {
+        id_obra: idWork,
+        caminhos_arquivos: paths,
+        id_usuario: idUser,
+        data_envio: moment.utc().toDate(),
+        prazo_viabilidade: status,
+      },
+      update: {
+        caminhos_arquivos: paths,
+        id_usuario: idUser,
+        data_envio: moment.utc().toDate(),
+        prazo_viabilidade: status,
+      },
     });
   }
 
   async findFiles(
     idWork: number,
-  ): Promise<{ id: number; caminho_arquivo: string; id_obra: number }[]> {
-    const value = idWork.toString();
-
-    return await this.prisma.relatorio_viabilidade.findMany({
+  ): Promise<{ id: number; caminhos_arquivos: string[] }> {
+    return await this.prisma.relatorio_viabilidade.findUnique({
       where: {
-        obras: {
-          OR: [
-            { id: value.length >= 10 ? undefined : idWork },
-            { ovnota: value },
-            { ordem_dci: value },
-            { ordem_dcd: value },
-            { ordem_dca: value },
-            { ordem_dcim: value },
-            { diagrama: value },
-          ],
-        },
+        id_obra: idWork,
       },
-      select: { id: true, caminho_arquivo: true, id_obra: true },
-    });
-  }
-
-  async deleteFiles(idWork: number): Promise<void> {
-    await this.prisma.relatorio_viabilidade.deleteMany({
-      where: { id_obra: idWork },
+      select: { id: true, caminhos_arquivos: true },
     });
   }
 
@@ -121,25 +110,37 @@ export class FeasibilityRepository implements IFeasibilityRepository {
     data: RejectFeasibilityDTO,
     tx: Prisma.TransactionClient,
   ): Promise<void> {
-    const { description, idWork, reason, idUser } = data;
+    const { description, feasibilityReportId, reason, userId } = data;
 
     await tx.reprovacoes_viabilidade.create({
       data: {
         descricao: description,
         motivo: reason,
-        id_obra: idWork,
-        id_usuario: idUser,
+        id_relatorio_viabilidade: feasibilityReportId,
+        id_usuario: userId,
+      },
+    });
+
+    await tx.relatorio_viabilidade.update({
+      where: { id: feasibilityReportId },
+      data: {
+        data_envio: null,
+        prazo_viabilidade: 'FALTA VIABILIDADE',
       },
     });
   }
 
-  async approve(idWork: number, status: StatusFeasibility): Promise<void> {
-    await this.prisma.obras.update({
-      where: { id: idWork },
+  async approve(
+    workId: number,
+    userId: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    await tx.relatorio_viabilidade.update({
+      where: { id_obra: workId },
       data: {
-        id_status: 1,
-        data_viabilidade: moment.utc().toDate(),
-        prazo_viabilidade: status,
+        data_aprovacao: moment.utc().toDate(),
+        aprovada: true,
+        id_usuario_aprovador: userId,
       },
     });
   }
