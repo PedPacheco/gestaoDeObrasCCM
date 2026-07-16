@@ -9,7 +9,8 @@ describe('FeasibilityRepository', () => {
 
   const prismaMock = {
     relatorio_viabilidade: {
-      findMany: jest.fn(),
+      findUnique: jest.fn(),
+      findFirst: jest.fn(),
       createMany: jest.fn(),
       deleteMany: jest.fn(),
     },
@@ -28,6 +29,7 @@ describe('FeasibilityRepository', () => {
     reprovacoes_viabilidade: {
       create: jest.fn(),
     },
+    relatorio_viabilidade: { update: jest.fn(), upsert: jest.fn() },
   } as unknown as Prisma.TransactionClient;
 
   const FIXED_DATE = new Date('2025-07-01T12:00:00Z');
@@ -59,11 +61,11 @@ describe('FeasibilityRepository', () => {
     it('deve retornar registros encontrados por idWork', async () => {
       const mockResult = [{ id: 1 }, { id: 2 }];
 
-      prismaMock.relatorio_viabilidade.findMany.mockResolvedValue(mockResult);
+      prismaMock.relatorio_viabilidade.findFirst.mockResolvedValue(mockResult);
 
       const result = await repository.exists(10);
 
-      expect(prismaMock.relatorio_viabilidade.findMany).toHaveBeenCalledWith({
+      expect(prismaMock.relatorio_viabilidade.findFirst).toHaveBeenCalledWith({
         where: {
           obras: {
             OR: [
@@ -85,11 +87,11 @@ describe('FeasibilityRepository', () => {
     it('deve retornar registros encontrados por ordens', async () => {
       const mockResult = [{ id: 1 }, { id: 2 }];
 
-      prismaMock.relatorio_viabilidade.findMany.mockResolvedValue(mockResult);
+      prismaMock.relatorio_viabilidade.findFirst.mockResolvedValue(mockResult);
 
       const result = await repository.exists(100000000000000);
 
-      expect(prismaMock.relatorio_viabilidade.findMany).toHaveBeenCalledWith({
+      expect(prismaMock.relatorio_viabilidade.findFirst).toHaveBeenCalledWith({
         where: {
           obras: {
             OR: [
@@ -111,24 +113,25 @@ describe('FeasibilityRepository', () => {
 
   describe('saveFiles', () => {
     it('deve salvar arquivos corretamente', async () => {
-      const files = [
-        { filename: 'a.pdf' } as Express.Multer.File,
-        { filename: 'b.pdf' } as Express.Multer.File,
-      ];
+      const files = ['a.pdf', 'b.pdf'];
 
-      const mockTx = {
-        relatorio_viabilidade: {
-          createMany: jest.fn().mockResolvedValue({ count: 2 }),
+      await repository.saveFiles(5, 1, 'DENTRO DO PRAZO', files, mockTx);
+
+      expect(mockTx.relatorio_viabilidade.upsert).toHaveBeenCalledWith({
+        where: { id_obra: 5 },
+        create: {
+          id_obra: 5,
+          caminhos_arquivos: files,
+          id_usuario: 1,
+          data_envio: FIXED_DATE,
+          prazo_viabilidade: 'DENTRO DO PRAZO',
         },
-      } as unknown as Prisma.TransactionClient;
-
-      await repository.saveFiles(5, 1, files, mockTx);
-
-      expect(mockTx.relatorio_viabilidade.createMany).toHaveBeenCalledWith({
-        data: [
-          { id_obra: 5, caminho_arquivo: 'a.pdf', id_usuario: 1 },
-          { id_obra: 5, caminho_arquivo: 'b.pdf', id_usuario: 1 },
-        ],
+        update: {
+          caminhos_arquivos: files,
+          id_usuario: 1,
+          data_envio: FIXED_DATE,
+          prazo_viabilidade: 'DENTRO DO PRAZO',
+        },
       });
     });
   });
@@ -140,68 +143,17 @@ describe('FeasibilityRepository', () => {
         { id: 2, caminho_arquivo: 'y.pdf' },
       ];
 
-      prismaMock.relatorio_viabilidade.findMany.mockResolvedValue(mockFiles);
+      prismaMock.relatorio_viabilidade.findUnique.mockResolvedValue(mockFiles);
 
       const result = await repository.findFiles(3);
 
-      expect(prismaMock.relatorio_viabilidade.findMany).toHaveBeenCalledWith({
+      expect(prismaMock.relatorio_viabilidade.findUnique).toHaveBeenCalledWith({
         where: {
-          obras: {
-            OR: [
-              { id: 3 },
-              { ovnota: '3' },
-              { ordem_dci: '3' },
-              { ordem_dcd: '3' },
-              { ordem_dca: '3' },
-              { ordem_dcim: '3' },
-              { diagrama: '3' },
-            ],
-          },
+          id_obra: 3,
         },
-        select: { id: true, caminho_arquivo: true, id_obra: true },
+        select: { id: true, caminhos_arquivos: true },
       });
       expect(result).toEqual(mockFiles);
-    });
-
-    it('deve buscar arquivos por ordem', async () => {
-      const mockFiles = [
-        { id: 1, caminho_arquivo: 'x.pdf' },
-        { id: 2, caminho_arquivo: 'y.pdf' },
-      ];
-
-      prismaMock.relatorio_viabilidade.findMany.mockResolvedValue(mockFiles);
-
-      const result = await repository.findFiles(100000000000);
-
-      expect(prismaMock.relatorio_viabilidade.findMany).toHaveBeenCalledWith({
-        where: {
-          obras: {
-            OR: [
-              { id: undefined },
-              { ovnota: '100000000000' },
-              { ordem_dci: '100000000000' },
-              { ordem_dcd: '100000000000' },
-              { ordem_dca: '100000000000' },
-              { ordem_dcim: '100000000000' },
-              { diagrama: '100000000000' },
-            ],
-          },
-        },
-        select: { id: true, caminho_arquivo: true, id_obra: true },
-      });
-      expect(result).toEqual(mockFiles);
-    });
-  });
-
-  describe('deleteFiles', () => {
-    it('deve deletar arquivos por idWork', async () => {
-      prismaMock.relatorio_viabilidade.deleteMany.mockResolvedValue(undefined);
-
-      await repository.deleteFiles(9);
-
-      expect(prismaMock.relatorio_viabilidade.deleteMany).toHaveBeenCalledWith({
-        where: { id_obra: 9 },
-      });
     });
   });
 
@@ -226,39 +178,7 @@ describe('FeasibilityRepository', () => {
 
       expect(response).toEqual(responseMock);
       expect(prismaMock.reprovacoes_viabilidade.findMany).toHaveBeenCalledWith({
-        where: { id_obra: 1 },
-        select: {
-          descricao: true,
-          motivo: true,
-          criado_em: true,
-          novo_tabela_usuarios: { select: { nome: true } },
-        },
-      });
-    });
-  });
-
-  describe('getRejections', () => {
-    it('should call findMany method of reprovacoes_viabilidade table and return data', async () => {
-      const idWorkMock = 1;
-
-      const responseMock = [
-        {
-          descricao: 'Material pendente',
-          motivo: 'Poste em falta',
-          criado_em: new Date('2026-06-05'),
-          novo_tabela_usuarios: { nome: 'PEdro' },
-        },
-      ];
-
-      prismaMock.reprovacoes_viabilidade.findMany.mockResolvedValue(
-        responseMock,
-      );
-
-      const response = await repository.getRejections(idWorkMock);
-
-      expect(response).toEqual(responseMock);
-      expect(prismaMock.reprovacoes_viabilidade.findMany).toHaveBeenCalledWith({
-        where: { id_obra: 1 },
+        where: { relatorio_viabilidade: { id_obra: 1 } },
         select: {
           descricao: true,
           motivo: true,
@@ -327,10 +247,11 @@ describe('FeasibilityRepository', () => {
   describe('reject', () => {
     it('should create a rejection record using the transaction client', async () => {
       const dataMock: RejectFeasibilityDTO = {
-        idWork: 1,
-        idUser: 5,
+        workId: 1,
+        userId: 5,
         reason: 'Material em falta',
         description: 'Sem poste',
+        feasibilityReportId: 2,
       };
 
       await repository.reject(dataMock, mockTx);
@@ -339,19 +260,29 @@ describe('FeasibilityRepository', () => {
         data: {
           descricao: dataMock.description,
           motivo: dataMock.reason,
-          id_obra: dataMock.idWork,
-          id_usuario: dataMock.idUser,
+          id_relatorio_viabilidade: dataMock.feasibilityReportId,
+          id_usuario: dataMock.userId,
         },
       });
       expect(mockTx.reprovacoes_viabilidade.create).toHaveBeenCalledTimes(1);
+
+      expect(mockTx.relatorio_viabilidade.update).toHaveBeenCalledWith({
+        where: { id: dataMock.feasibilityReportId },
+        data: {
+          data_envio: null,
+          prazo_viabilidade: 'FALTA VIABILIDADE',
+        },
+      });
+      expect(mockTx.relatorio_viabilidade.update).toHaveBeenCalledTimes(1);
     });
 
     it('should propagate the error when the transaction fails', async () => {
       const data: RejectFeasibilityDTO = {
         description: 'Any description',
         reason: 'Any reason',
-        idWork: 1,
-        idUser: 1,
+        workId: 1,
+        userId: 1,
+        feasibilityReportId: 2,
       } as RejectFeasibilityDTO;
 
       (
@@ -366,17 +297,17 @@ describe('FeasibilityRepository', () => {
 
   describe('approve', () => {
     it('should call approve method and approve the work correctly', async () => {
-      await repository.approve(1, 'DENTRO DO PRAZO');
+      await repository.approve(1, 2, mockTx);
 
-      expect(prismaMock.obras.update).toHaveBeenCalledWith({
-        where: { id: 1 },
+      expect(mockTx.relatorio_viabilidade.update).toHaveBeenCalledWith({
+        where: { id_obra: 1 },
         data: {
-          id_status: 1,
-          prazo_viabilidade: 'DENTRO DO PRAZO',
-          data_viabilidade: FIXED_DATE,
+          data_aprovacao: FIXED_DATE,
+          aprovada: true,
+          id_usuario_aprovador: 2,
         },
       });
-      expect(prismaMock.obras.update).toHaveBeenCalledTimes(1);
+      expect(mockTx.relatorio_viabilidade.update).toHaveBeenCalledTimes(1);
     });
   });
 });

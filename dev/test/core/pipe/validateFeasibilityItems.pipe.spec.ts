@@ -26,8 +26,10 @@ describe('ValidateFeasibilityItemsPipe', () => {
       );
     });
 
-    it('should throw BadRequestException for empty string', async () => {
-      await expect(pipe.transform('')).rejects.toThrow(BadRequestException);
+    it('should return undefined for empty string', async () => {
+      const response = await pipe.transform('');
+
+      expect(response).toBeUndefined();
     });
   });
 

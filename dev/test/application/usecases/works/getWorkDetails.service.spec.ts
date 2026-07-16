@@ -53,4 +53,21 @@ describe('GetWorkDetailsService', () => {
 
     expect(result).toEqual(mockGetWorkDetailsRepositoryResponse);
   });
+
+  it('should be return the work details with format correct without feasibility info', async () => {
+    const id = 244;
+
+    mockRepository.get.mockResolvedValue({
+      ...mockGetWorkDetailsRepositoryQueryResponse,
+      relatorio_viabilidade: undefined,
+    });
+
+    const result = await getWorkDetailsService.get(id);
+
+    expect(result).toEqual({
+      ...mockGetWorkDetailsRepositoryResponse,
+      prazo_viabilidade: 'FALTA VIABILIDADE',
+      viabilidade_aprovada: false,
+    });
+  });
 });

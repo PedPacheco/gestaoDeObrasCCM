@@ -1,38 +1,32 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { BadGatewayException, BadRequestException } from '@nestjs/common';
+import { FileService } from 'src/application/usecases/file.service';
+
 import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
+import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
+
+import { BadGatewayException, BadRequestException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 import {
   FEASIBILITY_REPOSITORY,
   IFeasibilityRepository,
 } from 'src/domain/repositories/IFeasibilityRepository';
+import { HandleFeasibilityService } from 'src/application/usecases/orchestrators/handleFeasibilityUpload.service';
 import {
-  STATUS_FLOW_REPOSITORY,
   IStatusFlowRepository,
+  STATUS_FLOW_REPOSITORY,
 } from 'src/domain/repositories/IStatusFlowRepository';
-import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
-import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
-import { HandleFeasibilityService } from 'src/application/usecases/orchestrators/handleFeasibilityUpdate.service';
-import { FeasibilityService } from 'src/application/usecases/feasibility.service';
+import moment from 'moment';
 
 describe('HandleFeasibilityService', () => {
   let service: HandleFeasibilityService;
   let feasibilityRepository: jest.Mocked<IFeasibilityRepository>;
   let statusFlowRepository: jest.Mocked<IStatusFlowRepository>;
 
-  const mockFeasibilityRepository: jest.Mocked<
-    Partial<IFeasibilityRepository>
-  > = {
-    saveFiles: jest.fn(),
-    makeItemsFeasible: jest.fn(),
-    reject: jest.fn(),
-  };
+  let mockFeasibilityRepository: jest.Mocked<Partial<IFeasibilityRepository>>;
 
-  const mockStatusFlowRepository: jest.Mocked<Partial<IStatusFlowRepository>> =
-    {
-      updateStatusWorks: jest.fn(),
-    };
+  let mockStatusFlowRepository: jest.Mocked<Partial<IStatusFlowRepository>>;
 
-  const mockFeasibilityService = {};
+  const mockFileServiceService = { deleteFile: jest.fn() };
 
   const mockPrisma = {
     $transaction: jest.fn((callback: (tx: any) => Promise<void>) => {
@@ -42,6 +36,22 @@ describe('HandleFeasibilityService', () => {
   };
 
   beforeEach(async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-06-20'));
+
+    mockFeasibilityRepository = {
+      saveFiles: jest.fn(),
+      makeItemsFeasible: jest.fn(),
+      getProjectDate: jest.fn(),
+      reject: jest.fn(),
+      approve: jest.fn(),
+      findFiles: jest.fn(),
+    };
+
+    mockStatusFlowRepository = {
+      updateStatusWorks: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         HandleFeasibilityService,
@@ -54,8 +64,8 @@ describe('HandleFeasibilityService', () => {
           useValue: mockStatusFlowRepository,
         },
         {
-          provide: FeasibilityService,
-          useValue: mockFeasibilityService,
+          provide: FileService,
+          useValue: mockFileServiceService,
         },
         {
           provide: PrismaService,
@@ -67,9 +77,7 @@ describe('HandleFeasibilityService', () => {
     service = module.get<HandleFeasibilityService>(HandleFeasibilityService);
     feasibilityRepository = module.get(FEASIBILITY_REPOSITORY);
     statusFlowRepository = module.get(STATUS_FLOW_REPOSITORY);
-  });
 
-  afterEach(() => {
     jest.clearAllMocks();
   });
 
@@ -94,114 +102,137 @@ describe('HandleFeasibilityService', () => {
       viabilizado: 10,
     }));
 
-  // ─── UPDATE ───────────────────────────────────────────────
-
-  describe('update', () => {
+  describe('upload', () => {
     const idWork = 1;
     const idUser = 42;
-
-    // ── Validation ────────────────────────────────────────
 
     describe('validation', () => {
       it('should throw BadGatewayException when idWork is 0 (falsy)', async () => {
         await expect(
-          service.update(0, idUser, [makeFile()], makeItems()),
+          service.upload(0, idUser, false, [makeFile()], [], makeItems()),
         ).rejects.toThrow(BadGatewayException);
       });
 
       it('should throw BadGatewayException when idWork is null', async () => {
         await expect(
-          service.update(null as any, idUser, [makeFile()], makeItems()),
+          service.upload(
+            null as any,
+            idUser,
+            false,
+            [makeFile()],
+            [],
+            makeItems(),
+          ),
         ).rejects.toThrow(BadGatewayException);
       });
 
       it('should throw BadGatewayException when idWork is undefined', async () => {
         await expect(
-          service.update(undefined as any, idUser, [makeFile()], makeItems()),
+          service.upload(
+            undefined as any,
+            idUser,
+            false,
+            [makeFile()],
+            [],
+            makeItems(),
+          ),
         ).rejects.toThrow(BadGatewayException);
-      });
-
-      it('should throw BadRequestException when files array is empty', async () => {
-        await expect(
-          service.update(idWork, idUser, [], makeItems()),
-        ).rejects.toThrow(BadRequestException);
-      });
-
-      it('should throw BadRequestException when files is null', async () => {
-        await expect(
-          service.update(idWork, idUser, null as any, makeItems()),
-        ).rejects.toThrow(BadRequestException);
-      });
-
-      it('should throw BadRequestException when files is undefined', async () => {
-        await expect(
-          service.update(idWork, idUser, undefined as any, makeItems()),
-        ).rejects.toThrow(BadRequestException);
       });
 
       it('should throw BadRequestException when items array is empty', async () => {
         await expect(
-          service.update(idWork, idUser, [makeFile()], []),
+          service.upload(idWork, idUser, true, [makeFile()], [], []),
         ).rejects.toThrow(BadRequestException);
       });
 
       it('should throw BadRequestException when items is null', async () => {
         await expect(
-          service.update(idWork, idUser, [makeFile()], null as any),
+          service.upload(idWork, idUser, true, [makeFile()], [], null as any),
         ).rejects.toThrow(BadRequestException);
       });
 
       it('should throw BadRequestException when items is undefined', async () => {
         await expect(
-          service.update(idWork, idUser, [makeFile()], undefined as any),
+          service.upload(
+            idWork,
+            idUser,
+            true,
+            [makeFile()],
+            [],
+            undefined as any,
+          ),
         ).rejects.toThrow(BadRequestException);
       });
     });
 
-    // ── Validation Messages ───────────────────────────────
-
     describe('validation messages', () => {
       it('should include correct message when idWork is missing', async () => {
+        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
+          data_empreitamento: moment('2026-06-10').toDate(),
+        });
+
         await expect(
-          service.update(0, idUser, [makeFile()], makeItems()),
+          service.upload(0, idUser, false, [makeFile()], [], makeItems()),
         ).rejects.toThrow('Obra não foi encontrada');
       });
 
-      it('should include correct message when files are missing', async () => {
-        await expect(
-          service.update(idWork, idUser, [], makeItems()),
-        ).rejects.toThrow('Nenhum arquivo foi enviado.');
-      });
-
       it('should include correct message when items are missing', async () => {
+        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
+          data_empreitamento: moment('2026-06-10').toDate(),
+        });
+
         await expect(
-          service.update(idWork, idUser, [makeFile()], []),
+          service.upload(idWork, idUser, true, [makeFile()], [], []),
         ).rejects.toThrow('Nenhum item foi enviado.');
       });
-    });
 
-    // ── Happy Path ────────────────────────────────────────
+      it('should include correct message when project date is missing', async () => {
+        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
+          data_empreitamento: undefined,
+        });
+
+        await expect(
+          service.upload(idWork, idUser, true, [makeFile()], [], makeItems()),
+        ).rejects.toThrow(
+          new BadRequestException('Obra sem data de empreitamento'),
+        );
+      });
+    });
 
     describe('happy path', () => {
       it('should execute all operations inside a transaction', async () => {
         const files = [makeFile()];
         const items = makeItems(2);
 
-        await service.update(idWork, idUser, files, items);
+        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
+          data_empreitamento: moment('2026-06-10').toDate(),
+        });
+
+        await service.upload(idWork, idUser, false, files, [], items);
 
         expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
       });
 
       it('should call saveFiles with correct parameters', async () => {
         const files = [makeFile('doc.pdf')];
-        const items = makeItems();
+        const items = makeItems(2);
 
-        await service.update(idWork, idUser, files, items);
+        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
+          data_empreitamento: moment('2026-06-18').toDate(),
+        });
+
+        mockFeasibilityRepository.findFiles.mockResolvedValue({
+          id: 1,
+          caminhos_arquivos: ['doc.pdf'],
+        });
+
+        await service.upload(idWork, idUser, true, files, ['doc.pdf'], items);
 
         expect(feasibilityRepository.saveFiles).toHaveBeenCalledWith(
           idWork,
           idUser,
-          files,
+          'DENTRO DO PRAZO',
+          ['doc.pdf'],
           expect.anything(), // tx
         );
       });
@@ -210,7 +241,11 @@ describe('HandleFeasibilityService', () => {
         const files = [makeFile()];
         const items = makeItems(3);
 
-        await service.update(idWork, idUser, files, items);
+        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
+          data_empreitamento: moment('2026-06-10').toDate(),
+        });
+
+        await service.upload(idWork, idUser, true, files, [], items);
 
         expect(feasibilityRepository.makeItemsFeasible).toHaveBeenCalledWith(
           items,
@@ -219,7 +254,18 @@ describe('HandleFeasibilityService', () => {
       });
 
       it('should update status to 46 (feasible)', async () => {
-        await service.update(idWork, idUser, [makeFile()], makeItems());
+        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
+          data_empreitamento: moment('2026-06-10').toDate(),
+        });
+
+        await service.upload(
+          idWork,
+          idUser,
+          true,
+          [makeFile()],
+          [],
+          makeItems(),
+        );
 
         expect(statusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
           46,
@@ -231,6 +277,10 @@ describe('HandleFeasibilityService', () => {
       it('should call repository methods in the correct order', async () => {
         const callOrder: string[] = [];
 
+        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
+          data_empreitamento: moment('2026-06-10').toDate(),
+        });
+
         feasibilityRepository.saveFiles.mockImplementation(async () => {
           callOrder.push('saveFiles');
         });
@@ -241,7 +291,14 @@ describe('HandleFeasibilityService', () => {
           callOrder.push('updateStatusWorks');
         });
 
-        await service.update(idWork, idUser, [makeFile()], makeItems());
+        await service.upload(
+          idWork,
+          idUser,
+          true,
+          [makeFile()],
+          [],
+          makeItems(),
+        );
 
         expect(callOrder).toEqual([
           'saveFiles',
@@ -253,18 +310,75 @@ describe('HandleFeasibilityService', () => {
       it('should handle multiple files correctly', async () => {
         const files = [makeFile('a.pdf'), makeFile('b.pdf'), makeFile('c.pdf')];
 
-        await service.update(idWork, idUser, files, makeItems());
+        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
+          data_empreitamento: moment('2026-06-10').toDate(),
+        });
+
+        await service.upload(idWork, idUser, false, files, [], []);
 
         expect(feasibilityRepository.saveFiles).toHaveBeenCalledWith(
           idWork,
           idUser,
-          files,
-          expect.anything(),
+          'FORA DO PRAZO',
+          ['a.pdf', 'b.pdf', 'c.pdf'],
+          {},
         );
       });
-    });
 
-    // ── Error Propagation ─────────────────────────────────
+      it('should delete files that were removed from feasibility', async () => {
+        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
+          data_empreitamento: moment('2026-06-10').toDate(),
+        });
+
+        mockFeasibilityRepository.findFiles.mockResolvedValue({
+          id: 1,
+          caminhos_arquivos: [
+            'old-file-1.pdf',
+            'old-file-2.pdf',
+            'keep-file.pdf',
+          ],
+        });
+
+        await service.upload(
+          idWork,
+          idUser,
+          false,
+          [],
+          ['keep-file.pdf'],
+          makeItems(),
+        );
+
+        expect(mockFileServiceService.deleteFile).toHaveBeenCalledTimes(2);
+
+        expect(mockFileServiceService.deleteFile).toHaveBeenCalledWith(
+          `${process.env.UPLOAD_DEST}/old-file-1.pdf`,
+        );
+
+        expect(mockFileServiceService.deleteFile).toHaveBeenCalledWith(
+          `${process.env.UPLOAD_DEST}/old-file-2.pdf`,
+        );
+      });
+
+      it('should attempt to delete all removed files even if one fails', async () => {
+        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
+          data_empreitamento: moment('2026-06-10').toDate(),
+        });
+
+        mockFeasibilityRepository.findFiles.mockResolvedValue({
+          id: 1,
+          caminhos_arquivos: ['file1.pdf', 'file2.pdf', 'file3.pdf'],
+        });
+
+        mockFileServiceService.deleteFile
+          .mockRejectedValueOnce(new Error('fail'))
+          .mockResolvedValueOnce(undefined)
+          .mockResolvedValueOnce(undefined);
+
+        await service.upload(idWork, idUser, false, [], [], makeItems());
+
+        expect(mockFileServiceService.deleteFile).toHaveBeenCalledTimes(3);
+      });
+    });
 
     describe('error propagation', () => {
       it('should propagate error when saveFiles fails', async () => {
@@ -272,8 +386,12 @@ describe('HandleFeasibilityService', () => {
           new Error('Storage unavailable'),
         );
 
+        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
+          data_empreitamento: moment('2026-06-10').toDate(),
+        });
+
         await expect(
-          service.update(idWork, idUser, [makeFile()], makeItems()),
+          service.upload(idWork, idUser, false, [makeFile()], [], makeItems()),
         ).rejects.toThrow('Storage unavailable');
       });
 
@@ -282,8 +400,12 @@ describe('HandleFeasibilityService', () => {
           new Error('Invalid item data'),
         );
 
+        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
+          data_empreitamento: moment('2026-06-10').toDate(),
+        });
+
         await expect(
-          service.update(idWork, idUser, [makeFile()], makeItems()),
+          service.upload(idWork, idUser, true, [makeFile()], [], makeItems()),
         ).rejects.toThrow('Invalid item data');
       });
 
@@ -292,8 +414,12 @@ describe('HandleFeasibilityService', () => {
           new Error('Status update failed'),
         );
 
+        mockFeasibilityRepository.getProjectDate.mockResolvedValue({
+          data_empreitamento: moment('2026-06-10').toDate(),
+        });
+
         await expect(
-          service.update(idWork, idUser, [makeFile()], makeItems()),
+          service.upload(idWork, idUser, true, [makeFile()], [], makeItems()),
         ).rejects.toThrow('Status update failed');
       });
 
@@ -303,7 +429,7 @@ describe('HandleFeasibilityService', () => {
         );
 
         await expect(
-          service.update(idWork, idUser, [makeFile()], makeItems()),
+          service.upload(idWork, idUser, true, [makeFile()], [], makeItems()),
         ).rejects.toThrow();
 
         expect(feasibilityRepository.makeItemsFeasible).not.toHaveBeenCalled();
@@ -315,7 +441,7 @@ describe('HandleFeasibilityService', () => {
         );
 
         await expect(
-          service.update(idWork, idUser, [makeFile()], makeItems()),
+          service.upload(idWork, idUser, false, [makeFile()], [], undefined),
         ).rejects.toThrow();
 
         expect(statusFlowRepository.updateStatusWorks).not.toHaveBeenCalled();
@@ -323,7 +449,7 @@ describe('HandleFeasibilityService', () => {
 
       it('should not call any repository method when validation fails', async () => {
         await expect(
-          service.update(0, idUser, [makeFile()], makeItems()),
+          service.upload(0, idUser, true, [makeFile()], [], makeItems()),
         ).rejects.toThrow();
 
         expect(mockPrisma.$transaction).not.toHaveBeenCalled();
@@ -334,17 +460,14 @@ describe('HandleFeasibilityService', () => {
     });
   });
 
-  // ─── REJECT ───────────────────────────────────────────────
-
   describe('reject', () => {
     const mockData: RejectFeasibilityDTO = {
-      idWork: 10,
+      workId: 10,
       reason: 'Budget exceeded',
       description: 'The estimated cost is above the approved limit',
-      idUser: 5,
+      userId: 5,
+      feasibilityReportId: 2,
     };
-
-    // ── Happy Path ────────────────────────────────────────
 
     describe('happy path', () => {
       it('should execute all operations inside a transaction', async () => {
@@ -367,7 +490,7 @@ describe('HandleFeasibilityService', () => {
 
         expect(statusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
           45,
-          mockData.idWork,
+          mockData.workId,
           expect.anything(),
         );
       });
@@ -387,8 +510,6 @@ describe('HandleFeasibilityService', () => {
         expect(callOrder).toEqual(['reject', 'updateStatusWorks']);
       });
     });
-
-    // ── Error Propagation ─────────────────────────────────
 
     describe('error propagation', () => {
       it('should propagate error when reject fails', async () => {
@@ -415,6 +536,75 @@ describe('HandleFeasibilityService', () => {
         feasibilityRepository.reject.mockRejectedValueOnce(new Error('fail'));
 
         await expect(service.reject(mockData)).rejects.toThrow();
+
+        expect(statusFlowRepository.updateStatusWorks).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('approve', () => {
+    describe('happy path', () => {
+      it('should execute all operations inside a transaction', async () => {
+        await service.approve(1, 2);
+
+        expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
+      });
+
+      it('should call feasibilityRepository.reject with correct data', async () => {
+        await service.approve(1, 2);
+
+        expect(feasibilityRepository.approve).toHaveBeenCalledWith(1, 2, {});
+      });
+
+      it('should update status to 45 (rejected)', async () => {
+        await service.approve(1, 2);
+
+        expect(statusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
+          1,
+          1,
+          expect.anything(),
+        );
+      });
+
+      it('should call approve before updateStatusWorks', async () => {
+        const callOrder: string[] = [];
+
+        feasibilityRepository.approve.mockImplementation(async () => {
+          callOrder.push('approve');
+        });
+        statusFlowRepository.updateStatusWorks.mockImplementation(async () => {
+          callOrder.push('updateStatusWorks');
+        });
+
+        await service.approve(1, 2);
+
+        expect(callOrder).toEqual(['approve', 'updateStatusWorks']);
+      });
+    });
+
+    describe('error propagation', () => {
+      it('should propagate error when approve fails', async () => {
+        feasibilityRepository.approve.mockRejectedValueOnce(
+          new Error('Database error'),
+        );
+
+        await expect(service.approve(1, 2)).rejects.toThrow('Database error');
+      });
+
+      it('should propagate error when updateStatusWorks fails', async () => {
+        statusFlowRepository.updateStatusWorks.mockRejectedValueOnce(
+          new Error('Status transition not allowed'),
+        );
+
+        await expect(service.approve(1, 2)).rejects.toThrow(
+          'Status transition not allowed',
+        );
+      });
+
+      it('should not call updateStatusWorks if approve fails', async () => {
+        feasibilityRepository.approve.mockRejectedValueOnce(new Error('fail'));
+
+        await expect(service.approve(1, 2)).rejects.toThrow();
 
         expect(statusFlowRepository.updateStatusWorks).not.toHaveBeenCalled();
       });

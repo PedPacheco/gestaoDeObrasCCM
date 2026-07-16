@@ -15,7 +15,6 @@ describe('FeasibilityService', () => {
     exists: jest.fn(),
     saveFiles: jest.fn(),
     findFiles: jest.fn(),
-    deleteFiles: jest.fn(),
     approve: jest.fn(),
     getRejections: jest.fn(),
     makeItemsFeasible: jest.fn(),
@@ -73,42 +72,6 @@ describe('FeasibilityService', () => {
     expect(result).toEqual([{ id: 10 }]);
   });
 
-  // -------------------------------------------------------------------------
-  // deleteFeasibilityFiles(idWork)
-  // -------------------------------------------------------------------------
-
-  it('deve lançar erro quando nenhum arquivo é encontrado para deletar', async () => {
-    mockRepository.findFiles.mockResolvedValue([]);
-
-    await expect(service.deleteFeasibilityFiles(1)).rejects.toThrow(
-      new BadRequestException('Nenhum arquivo encontrado para esta obra'),
-    );
-  });
-
-  it('deve remover os arquivos e depois deletar os registros', async () => {
-    mockRepository.findFiles.mockResolvedValue([
-      { id: 1, caminho_arquivo: '/tmp/a.pdf', id_obra: 2 },
-      { id: 2, caminho_arquivo: '/tmp/b.pdf', id_obra: 3 },
-    ]);
-
-    mockRepository.deleteFiles.mockResolvedValue(undefined);
-
-    await service.deleteFeasibilityFiles(5);
-
-    expect(mockRepository.findFiles).toHaveBeenCalledWith(5);
-    expect(mockFileService.deleteFile).toHaveBeenCalledTimes(2);
-    expect(mockFileService.deleteFile).toHaveBeenNthCalledWith(
-      1,
-      'undefined//tmp/a.pdf',
-    );
-    expect(mockFileService.deleteFile).toHaveBeenNthCalledWith(
-      2,
-      'undefined//tmp/b.pdf',
-    );
-
-    expect(mockRepository.deleteFiles).toHaveBeenCalledWith(2);
-  });
-
   describe('getRejections', () => {
     it('should return a list of rejections mapped with description, reason, user name, and creation date', async () => {
       const data = [
@@ -132,46 +95,6 @@ describe('FeasibilityService', () => {
           usuario: 'Pedro',
         },
       ]);
-    });
-  });
-
-  describe('approve', () => {
-    it('should call method approve in repository with on-schedule status', async () => {
-      mockRepository.approve.mockResolvedValue(undefined);
-
-      mockRepository.getProjectDate.mockResolvedValue({
-        data_empreitamento: new Date('2026-07-01'),
-      });
-
-      await service.approve(1);
-
-      expect(mockRepository.approve).toHaveBeenCalled();
-      expect(mockRepository.approve).toHaveBeenCalledWith(1, 'DENTRO DO PRAZO');
-    });
-
-    it('should call method approve in repository with overdue status', async () => {
-      mockRepository.approve.mockResolvedValue(undefined);
-
-      mockRepository.getProjectDate.mockResolvedValue({
-        data_empreitamento: new Date('2026-06-28'),
-      });
-
-      await service.approve(1);
-
-      expect(mockRepository.approve).toHaveBeenCalled();
-      expect(mockRepository.approve).toHaveBeenCalledWith(1, 'FORA DO PRAZO');
-    });
-
-    it('should throw BadRequestException when the project has no contract date', async () => {
-      mockRepository.approve.mockResolvedValue(undefined);
-
-      mockRepository.getProjectDate.mockResolvedValue({
-        data_empreitamento: null,
-      });
-
-      await expect(service.approve(1)).rejects.toThrow(
-        'Obra sem data de empreitamento',
-      );
     });
   });
 });
