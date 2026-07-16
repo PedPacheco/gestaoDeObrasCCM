@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Paper,
   Table,
@@ -14,6 +14,8 @@ import {
 } from "@heroicons/react/20/solid";
 
 import { ButtonComponent } from "@/components/common/Button";
+import { TableFilter } from "../services/servicesSection/servicesFilters";
+import { SERVICE_OPERATIONS } from "@/constants/services/services";
 
 export interface FeasibilityServiceItem {
   id: number;
@@ -28,7 +30,7 @@ export interface FeasibilityServiceItem {
 interface FeasibilityServicesReviewStepProps {
   reviewData: FeasibilityServiceItem[];
   onChangeReviewData: (data: FeasibilityServiceItem[]) => void;
-  /** Quando true, desabilita a edição das quantidades (fluxo em aprovação/aprovado) */
+  filters: { operations: any[]; points: any[] };
   readOnly?: boolean;
 }
 
@@ -42,14 +44,17 @@ const reviewColumns = [
 
 const QUANTITY_PATTERN = /^\d*$/;
 
+function isRowEmpty(row: FeasibilityServiceItem) {
+  return (
+    row.viabilizado === null ||
+    (row.viabilizado === 0 && row.qtdePlanejada === 0)
+  );
+}
+
 export function hasInvalidAdditionalQuantities(
   reviewData: FeasibilityServiceItem[],
 ): boolean {
-  return reviewData.some((item) => item.viabilizado === null);
-}
-
-function isRowEmpty(row: FeasibilityServiceItem) {
-  return row.viabilizado === null;
+  return reviewData.some((item) => isRowEmpty(item));
 }
 
 function isRowChanged(row: FeasibilityServiceItem) {
@@ -59,8 +64,32 @@ function isRowChanged(row: FeasibilityServiceItem) {
 export function FeasibilityServicesReviewStep({
   reviewData,
   onChangeReviewData,
+  filters,
   readOnly = false,
 }: FeasibilityServicesReviewStepProps) {
+  const [visibleIds, setVisibleIds] = useState<Set<number> | null>(null);
+
+  const filteredServicesData = useMemo(() => {
+    if (visibleIds === null) return reviewData;
+    return reviewData.filter((item) => visibleIds.has(item.id));
+  }, [reviewData, visibleIds]);
+
+  const { pendingCount, changedCount } = useMemo(() => {
+    let pending = 0;
+    let changed = 0;
+
+    reviewData.forEach((row) => {
+      if (isRowEmpty(row)) pending += 1;
+      else if (isRowChanged(row)) changed += 1;
+    });
+
+    return { pendingCount: pending, changedCount: changed };
+  }, [reviewData]);
+
+  const handleFilter = useCallback((filtered: FeasibilityServiceItem[]) => {
+    setVisibleIds(new Set(filtered.map((item) => item.id)));
+  }, []);
+
   const updateViabilizado = (id: number, value: string) => {
     if (readOnly) return;
     if (!QUANTITY_PATTERN.test(value)) return;
@@ -81,24 +110,13 @@ export function FeasibilityServicesReviewStep({
     if (readOnly) return;
 
     onChangeReviewData(
-      reviewData.map((item) => ({
-        ...item,
-        viabilizado: item.qtdePlanejada,
-      })),
+      reviewData.map((item) =>
+        item.qtdePlanejada === 0
+          ? item
+          : { ...item, viabilizado: item.qtdePlanejada },
+      ),
     );
   };
-
-  const { pendingCount, changedCount } = useMemo(() => {
-    let pending = 0;
-    let changed = 0;
-
-    reviewData.forEach((row) => {
-      if (isRowEmpty(row)) pending += 1;
-      else if (isRowChanged(row)) changed += 1;
-    });
-
-    return { pendingCount: pending, changedCount: changed };
-  }, [reviewData]);
 
   const getRowClassName = (row: FeasibilityServiceItem) => {
     if (isRowEmpty(row))
@@ -150,6 +168,34 @@ export function FeasibilityServicesReviewStep({
         </div>
       )}
 
+      <TableFilter
+        data={reviewData}
+        fields={[
+          {
+            label: "SERVIÇO",
+            field: "textoBreve",
+            options: Array.from(
+              new Set(reviewData.map((item) => item.textoBreve)),
+            ),
+          },
+          {
+            label: "OPERAÇÃO",
+            field: "operacao",
+            options: SERVICE_OPERATIONS,
+            width: "w-1/4",
+          },
+          {
+            label: "PONTO",
+            field: "ponto",
+            options: filters.points.filter((item) => {
+              return reviewData.some((service) => service.ponto === item);
+            }),
+            width: "w-44",
+          },
+        ]}
+        onFilter={handleFilter}
+      />
+
       <TableContainer
         component={Paper}
         variant="outlined"
@@ -188,8 +234,18 @@ export function FeasibilityServicesReviewStep({
                   Nenhum serviço encontrado.
                 </TableCell>
               </TableRow>
+            ) : filteredServicesData.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={reviewColumns.length + 1}
+                  align="center"
+                  className="!py-10 !text-zinc-400"
+                >
+                  Nenhum serviço corresponde aos filtros aplicados.
+                </TableCell>
+              </TableRow>
             ) : (
-              reviewData.map((row) => (
+              filteredServicesData.map((row) => (
                 <TableRow
                   key={row.id}
                   className={

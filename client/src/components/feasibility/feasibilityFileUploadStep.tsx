@@ -1,5 +1,5 @@
 import { useRouter } from "next/navigation";
-import { DragEvent, useRef, useState, useTransition } from "react";
+import { DragEvent, useEffect, useRef, useState, useTransition } from "react";
 
 import { deleteFeasibilityFiles } from "@/actions/feasibility";
 import { useFeedback } from "@/hooks/useFeedback";
@@ -19,8 +19,10 @@ interface FeasibilityFileUploadStepProps {
   files: DisplayFile[];
   uploading: boolean;
   dragActive: boolean;
+  termsAccepted: boolean;
   idWork: number;
   readOnly?: boolean;
+  onTermsAccepted: React.Dispatch<boolean>;
   onFilesSelected: (files: FileList | null) => void;
   onDrag: (e: DragEvent) => void;
   onDrop: (e: DragEvent) => void;
@@ -31,8 +33,10 @@ export function FeasibilityFileUploadStep({
   files,
   uploading,
   dragActive,
+  termsAccepted,
   readOnly = false,
   idWork,
+  onTermsAccepted,
   onFilesSelected,
   onDrag,
   onDrop,
@@ -50,6 +54,12 @@ export function FeasibilityFileUploadStep({
 
   const [selectedFile, setSelectedFile] = useState<DisplayFile | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (files.length === 0) {
+      onTermsAccepted(false);
+    }
+  }, [files, onTermsAccepted]);
 
   const handleDelete = () => {
     if (!selectedFile) return;
@@ -128,7 +138,6 @@ export function FeasibilityFileUploadStep({
           </p>
         </div>
       )}
-
       {/* Regras */}
       {!readOnly && (
         <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-xs text-zinc-400">
@@ -137,7 +146,6 @@ export function FeasibilityFileUploadStep({
           <span>● Tamanho máximo: 5 MB</span>
         </div>
       )}
-
       {/* Lista de arquivos */}
       {files.length > 0 ? (
         <div className={readOnly ? "space-y-2" : "mt-6 space-y-2"}>
@@ -221,7 +229,24 @@ export function FeasibilityFileUploadStep({
           Nenhum arquivo enviado.
         </p>
       ) : null}
+      {!readOnly && files.length > 0 && (
+        <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(e) => onTermsAccepted(e.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-zinc-300 text-[#3f7a17] focus:ring-[#3f7a17]"
+            />
 
+            <span className="text-sm text-zinc-700">
+              Declaro que estou anexando a Ficha de Viabilidade Técnica da Obra,
+              devidamente preenchida e com as informações necessárias para
+              programação e execução da obra.
+            </span>
+          </label>
+        </div>
+      )}
       <ModalComponent
         title="Confirmar exclusão"
         open={openConfirmModal}

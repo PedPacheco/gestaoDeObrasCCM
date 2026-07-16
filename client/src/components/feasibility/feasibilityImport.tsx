@@ -1,10 +1,11 @@
-// feasibilityImport.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import { approveFeasibility, rejectFeasibility } from "@/actions/feasibility";
 import { ButtonComponent } from "@/components/common/Button";
+import { useUser } from "@/contexts/userContext";
 import { useFeasibilityFileUpload } from "@/hooks/feasibility/useFeasibilityUpload";
 import { useFeedback } from "@/hooks/useFeedback";
 import {
@@ -21,42 +22,17 @@ import {
 
 import { AddServiceAccordion } from "./addServiceAccordion";
 import { CardSection } from "./cardSection";
-// import { approveFeasibility, rejectFeasibility } from "./feasibilityActions";
-// import { FeasibilityApprovalStep } from "./feasibilityApprovalStep";
-// import { FeasibilityFileUploadStep } from "./feasibilityFileUploadStep";
-// import { FeasibilityRejectionsHistory } from "./feasibilityRejectionsHistory";
+import { FeasibilityFileUploadStep } from "./feasibilityFileUploadStep";
+import { FeasibilityRejectionsHistory } from "./feasibilityRejectionsHistory";
+import { RejectFeasibilityModal } from "./feasibilityRejectModal";
 import {
   FeasibilityServiceItem,
   FeasibilityServicesReviewStep,
   hasInvalidAdditionalQuantities,
 } from "./feasibilityServicesViewStep";
-import { FeasibilityFileUploadStep } from "./feasibilityFileUploadStep";
-import { RejectFeasibilityModal } from "./feasibilityRejectModal";
-import { approveFeasibility, rejectFeasibility } from "@/actions/feasibility";
-import { FeasibilityRejectionsHistory } from "./feasibilityRejectionsHistory";
-import { useUser } from "@/contexts/userContext";
-
-// '45' = status de adição | '46' = status de aprovação | qualquer outro = aprovado
-type StatusWork = string;
-
-/**
- * Status do fluxo de viabilidade:
- * - adicao:    usuário está montando a viabilidade (upload + itens + revisão)
- * - aprovacao: viabilidade enviada, aguardando decisão de um aprovador
- * - aprovado:  viabilidade aprovada e viabilizada, somente leitura
- */
-export type FeasibilityWorkflowStatus = "adicao" | "aprovacao" | "aprovado";
-
-const STATUS_WORK_ADICAO = "45";
-const STATUS_WORK_APROVACAO = "46";
-
-function getWorkflowStatusFromStatusWork(
-  statusWork: StatusWork,
-): FeasibilityWorkflowStatus {
-  if (statusWork === STATUS_WORK_ADICAO) return "adicao";
-  if (statusWork === STATUS_WORK_APROVACAO) return "aprovacao";
-  return "aprovado";
-}
+import ModalComponent from "../common/Modal";
+import { FeasibilityWorkflowStatus } from "@/utils/feasibilityWorkflow";
+import { FeasibilityDataInterface } from "@/types/feasibility";
 
 export interface FeasibilityRejection {
   motivo: string;
@@ -67,13 +43,14 @@ export interface FeasibilityRejection {
 
 interface UploadViabilidadeProps {
   idWork: string;
-  servicesData: FeasibilityServiceItem[];
-  existingFiles: any[];
+  servicesData?: FeasibilityServiceItem[] | null;
+  feasibilityData: FeasibilityDataInterface;
   feasibilityRejectionsHistoryData: any[];
-  contracts: any[];
-  materials: any[];
+  contracts?: any[] | null;
+  materials?: any[] | null;
   filters: { operations: any[]; points: any[] };
-  statusWork: StatusWork;
+  workflowStatus: FeasibilityWorkflowStatus;
+  pointByPoint: boolean;
   isApprover?: boolean;
   rejections?: FeasibilityRejection[];
   token?: string;
@@ -105,10 +82,11 @@ export function FeasibiltyUpload({
   filters,
   contracts,
   materials,
-  statusWork,
+  workflowStatus,
+  pointByPoint,
   isApprover = false,
   feasibilityRejectionsHistoryData,
-  existingFiles,
+  feasibilityData,
 }: UploadViabilidadeProps) {
   const { showError, showSuccess } = useFeedback();
 
@@ -116,19 +94,18 @@ export function FeasibiltyUpload({
 
   const router = useRouter();
 
-  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
-
-  const workflowStatus = useMemo(
-    () => getWorkflowStatusFromStatusWork(statusWork),
-    [statusWork],
+  const [reviewData, setReviewData] = useState<FeasibilityServiceItem[]>(
+    servicesData ?? [],
   );
 
-  const [reviewData, setReviewData] =
-    useState<FeasibilityServiceItem[]>(servicesData);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isOpenApprovalModal, setIsOpenApprovalModal] = useState(false);
 
   const {
     displayFiles,
-    newFiles,
     uploading,
     dragActive,
     handleFiles,
@@ -136,10 +113,11 @@ export function FeasibiltyUpload({
     handleDrop,
     removeFile,
     handleUpload,
-  } = useFeasibilityFileUpload({ idWork, existingFiles: existingFiles ?? [] });
+  } = useFeasibilityFileUpload({
+    idWork,
+    existingFiles: feasibilityData?.caminhos_arquivos ?? [],
+  });
 
-  // Só é possível editar arquivos/itens/quantidades enquanto a viabilidade
-  // estiver no status de adição. Em aprovação e aprovado, tudo é somente leitura.
   const isEditable = workflowStatus === "adicao";
 
   const workflowBadge = WORKFLOW_LABELS[workflowStatus];
@@ -152,17 +130,18 @@ export function FeasibiltyUpload({
   const uploadStatus: SectionStatus =
     displayFiles.length > 0 ? "complete" : "pending";
 
-  const reviewStatus: SectionStatus =
-    reviewData.length === 0
+  const reviewStatus: SectionStatus | undefined = pointByPoint
+    ? reviewData.length === 0
       ? "pending"
       : pendingCount > 0
         ? "attention"
-        : "complete";
+        : "complete"
+    : undefined;
 
   const NAV_SECTIONS = useMemo(
     () => [
       { id: "upload", label: "Arquivos", icon: DocumentArrowUpIcon },
-      ...(isEditable
+      ...(isEditable && pointByPoint
         ? [
             {
               id: "itens-adicionais",
@@ -171,13 +150,21 @@ export function FeasibiltyUpload({
             },
           ]
         : []),
-      { id: "revisao", label: "Revisão", icon: ClipboardDocumentCheckIcon },
+      ...(pointByPoint
+        ? [
+            {
+              id: "revisao",
+              label: "Revisão",
+              icon: ClipboardDocumentCheckIcon,
+            },
+          ]
+        : []),
       ...(workflowStatus === "aprovacao"
         ? [{ id: "aprovacao", label: "Aprovação", icon: CheckBadgeIcon }]
         : []),
       { id: "reprovacoes", label: "Reprovações", icon: ArchiveBoxIcon },
     ],
-    [isEditable, workflowStatus],
+    [isEditable, pointByPoint, workflowStatus],
   );
 
   const statusById: Record<string, SectionStatus | undefined> = {
@@ -189,8 +176,6 @@ export function FeasibiltyUpload({
       feasibilityRejectionsHistoryData.length > 0 ? "attention" : undefined,
   };
 
-  // "Reprovações" é um histórico de consulta, não uma etapa do fluxo,
-  // então não entra na contagem de progresso.
   const stepSections = NAV_SECTIONS.filter(
     (section) => section.id !== "reprovacoes",
   );
@@ -200,23 +185,31 @@ export function FeasibiltyUpload({
   ).length;
 
   const handleSubmitForApproval = async () => {
-    if (newFiles.length === 0) {
+    if (displayFiles.length === 0) {
       showError("Selecione pelo menos um arquivo.");
       return;
     }
 
-    if (hasInvalidAdditionalQuantities(reviewData)) {
+    if (pointByPoint && hasInvalidAdditionalQuantities(reviewData)) {
       showError("Preencha uma quantidade válida para todos os itens.");
       return;
     }
 
-    try {
-      const data = reviewData.map((item) => ({
-        id: item.id,
-        viabilizado: item.viabilizado,
-      }));
+    if (!termsAccepted) {
+      showError("A declaração da ficha de viabilidade não foi preenchido");
+      return;
+    }
 
-      await handleUpload(data);
+    try {
+      const data =
+        pointByPoint && reviewData.length > 0
+          ? reviewData.map((item) => ({
+              id: item.id,
+              viabilizado: item.viabilizado,
+            }))
+          : undefined;
+
+      await handleUpload(pointByPoint, data);
     } catch (err) {
       showError(
         err instanceof Error
@@ -256,8 +249,9 @@ export function FeasibiltyUpload({
 
       const formattedData = {
         ...data,
-        idWork: Number(idWork),
-        idUser: user.id,
+        workId: Number(idWork),
+        feasibilityReportId: Number(feasibilityData.id),
+        userId: user.id,
       };
 
       const response = await rejectFeasibility({ idWork, data: formattedData });
@@ -388,8 +382,10 @@ export function FeasibiltyUpload({
               <FeasibilityFileUploadStep
                 files={displayFiles}
                 uploading={uploading}
+                termsAccepted={termsAccepted}
                 dragActive={dragActive}
                 readOnly={!isEditable}
+                onTermsAccepted={setTermsAccepted}
                 onFilesSelected={handleFiles}
                 onDrag={handleDrag}
                 onDrop={handleDrop}
@@ -398,7 +394,7 @@ export function FeasibiltyUpload({
               />
             </CardSection>
 
-            {isEditable && (
+            {isEditable && pointByPoint && contracts && materials && (
               <CardSection
                 id="itens-adicionais"
                 title="Itens Adicionais"
@@ -427,23 +423,26 @@ export function FeasibiltyUpload({
               </CardSection>
             )}
 
-            <CardSection
-              id="revisao"
-              title="Revisão da Viabilidade"
-              description={
-                isEditable
-                  ? "Confirme a quantidade viabilizada para cada item."
-                  : "Quantidade viabilizada para cada item."
-              }
-              icon={<ClipboardDocumentCheckIcon className="h-5 w-5" />}
-              status={reviewStatus}
-            >
-              <FeasibilityServicesReviewStep
-                reviewData={reviewData}
-                onChangeReviewData={setReviewData}
-                readOnly={!isEditable}
-              />
-            </CardSection>
+            {pointByPoint && (
+              <CardSection
+                id="revisao"
+                title="Revisão da Viabilidade"
+                description={
+                  isEditable
+                    ? "Confirme a quantidade viabilizada para cada item."
+                    : "Quantidade viabilizada para cada item."
+                }
+                icon={<ClipboardDocumentCheckIcon className="h-5 w-5" />}
+                status={reviewStatus}
+              >
+                <FeasibilityServicesReviewStep
+                  reviewData={reviewData}
+                  onChangeReviewData={setReviewData}
+                  filters={filters}
+                  readOnly={!isEditable}
+                />
+              </CardSection>
+            )}
 
             <CardSection
               id="reprovacoes"
@@ -478,7 +477,7 @@ export function FeasibiltyUpload({
             {/* Cancelar — sempre visível */}
             <ButtonComponent
               text="Cancelar"
-              onClick={() => router.back()}
+              onClick={() => router.push(`/detalhes/${idWork}`)}
               styled="min-w-56"
             />
 
@@ -486,8 +485,7 @@ export function FeasibiltyUpload({
             {workflowStatus === "adicao" && (
               <ButtonComponent
                 text={"Enviar para aprovação"}
-                onClick={handleSubmitForApproval}
-                // disabled={submittingApproval}
+                onClick={() => setIsOpen(true)}
                 styled="min-w-56"
               />
             )}
@@ -498,13 +496,14 @@ export function FeasibiltyUpload({
                 <ButtonComponent
                   text="Reprovar viabilidade"
                   onClick={() => setIsRejectModalOpen(true)}
+                  disabled={!isApprover}
                   styled="min-w-56"
                 />
 
                 <ButtonComponent
                   text={false ? "Aprovando..." : "Aprovar viabilidade"}
-                  onClick={handleApprove}
-                  // disabled={submittingApproval}
+                  onClick={() => setIsOpenApprovalModal(true)}
+                  disabled={!isApprover}
                   styled="min-w-56"
                 />
               </>
@@ -517,8 +516,53 @@ export function FeasibiltyUpload({
         open={isRejectModalOpen}
         onClose={() => setIsRejectModalOpen(false)}
         onConfirm={handleReject}
-        // submitting={submittingRejection}
       />
+
+      <ModalComponent
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        title="Confimar Viabilidade"
+      >
+        <p className="text-zinc-600 text-lg py-4">
+          Deseja enviar viabilidade da obra para etapa de aprovação ?
+        </p>
+
+        <div className="flex items-center justify-center gap-3 mt-2">
+          <ButtonComponent
+            onClick={() => setIsOpen(false)}
+            text="Cancelar"
+            // disabled={loading}
+          />
+          <ButtonComponent
+            onClick={handleSubmitForApproval}
+            text={"Confirmar"}
+            // disabled={loading}
+          />
+        </div>
+      </ModalComponent>
+
+      <ModalComponent
+        open={isOpenApprovalModal}
+        onClose={() => setIsOpenApprovalModal(false)}
+        title="Confimar Viabilidade"
+      >
+        <p className="text-zinc-600 text-lg py-4">
+          Deseja finalizar a etapa de viabilidade da obra ?
+        </p>
+
+        <div className="flex items-center justify-center gap-3 mt-2">
+          <ButtonComponent
+            onClick={() => setIsOpenApprovalModal(false)}
+            text="Cancelar"
+            // disabled={loading}
+          />
+          <ButtonComponent
+            onClick={handleApprove}
+            text={"Confirmar"}
+            // disabled={loading}
+          />
+        </div>
+      </ModalComponent>
     </div>
   );
 }
