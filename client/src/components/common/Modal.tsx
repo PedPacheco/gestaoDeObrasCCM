@@ -17,6 +17,7 @@ export default function ModalComponent({
   onClose,
   title,
   children,
+  closeButton = false,
 }: ModalProps) {
   return (
     <Modal
@@ -27,7 +28,7 @@ export default function ModalComponent({
       closeAfterTransition
     >
       <Box
-        className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 shadow-lg p-6 rounded-lg w-96 xl:w-9/12`}
+        className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 shadow-lg p-6 rounded-lg w-80 xl:w-8/12`}
       >
         {title && (
           <Typography
@@ -42,11 +43,13 @@ export default function ModalComponent({
         <div id="custom-modal-description" className="px-6 flex-1 text-center">
           {children}
         </div>
-        <ButtonComponent
-          onClick={onClose}
-          styled="mt-2 text-white py-2 px-4 rounded"
-          text="Fechar"
-        />
+        {closeButton && (
+          <ButtonComponent
+            onClick={onClose}
+            styled="mt-2 text-white py-2 px-4 rounded"
+            text="Fechar"
+          />
+        )}
       </Box>
     </Modal>
   );

@@ -145,7 +145,7 @@ export function AddMaterialForm({
               );
             }}
             renderInput={(params) => (
-              <TextField {...params} label="Selecionar serviço" size="small" />
+              <TextField {...params} label="Selecionar material" size="small" />
             )}
             onChange={(_, value) =>
               updateField("idService", value ? value.id : null)
@@ -185,7 +185,7 @@ export function AddMaterialForm({
       </div>
       {/* SUBMIT */}
       <ButtonComponent
-        text={loading ? "Adicionando..." : "Adicionar Serviço"}
+        text={loading ? "Adicionando..." : "Adicionar Material"}
         fullWidth
         styled="!h-9"
         disabled={loading}

@@ -3,7 +3,7 @@ import { Modal, Box, Typography, IconButton } from "@mui/material";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import { ButtonComponent } from "./Button";
 
-interface ConfirmationModalProps {
+interface ConfirmationScheduleModalProps {
   open: boolean;
   onClose: () => void;
   onConfirm: (id: number) => void;
@@ -13,7 +13,7 @@ interface ConfirmationModalProps {
   idSchedule: number;
 }
 
-export default function ConfirmationModalComponent({
+export default function ConfirmationScheduleModalComponent({
   open,
   onClose,
   onConfirm,
@@ -21,7 +21,7 @@ export default function ConfirmationModalComponent({
   message,
   closeButton = true,
   idSchedule,
-}: ConfirmationModalProps) {
+}: ConfirmationScheduleModalProps) {
   return (
     <Modal
       open={open}
