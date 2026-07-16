@@ -23,8 +23,8 @@ interface DetailsParams {
 
 const FETCH_OPTIONS = { cache: "no-store" } as const;
 
-const formatDate = (date: dayjs.Dayjs | null): string => {
-  return date ? date.utc().format("DD/MM/YYYY") : "";
+const formatDate = (date: dayjs.Dayjs): string => {
+  return date.utc().format("DD/MM/YYYY");
 };
 
 const calculateDeadline = (entrada: dayjs.Dayjs, prazo: number) => {
@@ -95,15 +95,15 @@ function processWorkData(data: any) {
     entrada: formatDate(entrada),
     prazo: prazo.toString(),
     prazoFinal: formatDate(prazoFinal),
-    data_conclusao: formatDate(
-      data.data_conclusao ? dayjs(data.data_conclusao) : null,
-    ),
-    dataEmpreitamento: formatDate(
-      data.data_empreitamento ? dayjs(data.data_empreitamento) : null,
-    ),
-    dataViabilidade: formatDate(
-      data.data_viabilidade ? dayjs(data.data_viabilidade) : null,
-    ),
+    data_conclusao: data.data_conclusao
+      ? formatDate(dayjs(data.data_conclusao))
+      : null,
+    dataEmpreitamento: data.data_empreitamento
+      ? formatDate(dayjs(data.data_empreitamento))
+      : null,
+    dataViabilidade: data.data_envio
+      ? formatDate(dayjs(data.data_envio))
+      : null,
     backgroundColor: getBackgroundColor(data.grupo, data.ano_plan),
     executadoFormatted: formatPercentage(data.executado) || "",
   };
@@ -124,7 +124,7 @@ export default async function Details({ params }: DetailsParams) {
     workData,
     executionReportData,
     rejectionsData,
-    feasibilityExists,
+    feasibilityData,
     publicationRestriction,
   ] = await fetchAllData(id, token);
 
@@ -149,7 +149,7 @@ export default async function Details({ params }: DetailsParams) {
     id,
     executionReportData: executionReportData.data,
     rejectionsData: rejectionsData.data,
-    feasibilityExists: feasibilityExists.data,
+    feasibilityData: feasibilityData.data,
     publicationRestrictionData: publicationRestriction.data,
   };
 
@@ -159,7 +159,7 @@ export default async function Details({ params }: DetailsParams) {
         <div className="w-full h-full flex flex-col">
           <WorkDetails
             data={data}
-            idWork={Number(id)}
+            idWork={data.id}
             formattedData={formattedData}
             options={options}
           />
