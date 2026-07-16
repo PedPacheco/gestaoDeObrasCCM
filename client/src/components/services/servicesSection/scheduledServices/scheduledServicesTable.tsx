@@ -15,6 +15,7 @@ import {
 import { ScheduledServiceState } from "./scheduledServices";
 import { TableFilter } from "../servicesFilters";
 import { FormatCurrency } from "@/utils/formatValue";
+import { SERVICE_OPERATIONS } from "@/constants/services/services";
 
 const SERVICE_COLUMNS = [
   { key: "material", label: "CÓDIGO" },
@@ -191,11 +192,7 @@ export function ScheduledServicesTable({
           {
             label: "OPERAÇÃO",
             field: "operacao",
-            options: operations.filter((item) => {
-              return scheduledServicesData.some(
-                (service) => service.operacao === item,
-              );
-            }),
+            options: SERVICE_OPERATIONS,
             width: "w-1/4",
           },
           {

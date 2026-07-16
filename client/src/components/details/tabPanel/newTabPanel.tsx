@@ -30,7 +30,7 @@ interface NewTabPanelProps {
   publicationRestrictionData: Record<string, any>[];
   options: any;
   id: string;
-  feasibilityExists: any[];
+  feasibilityData: any;
 }
 
 function CustomTabPanel({
@@ -60,7 +60,7 @@ export default function NewTabPanel({
   publicationRestrictionData,
   options,
   id,
-  feasibilityExists,
+  feasibilityData,
 }: NewTabPanelProps) {
   const { permissions } = useUser();
   const modalsRef = useRef<NewModalsManagerRef>(null);
@@ -159,7 +159,7 @@ export default function NewTabPanel({
             statusWork={data?.id_status}
             valueTab={value}
             handleChange={handleChange}
-            feasibilityExists={feasibilityExists}
+            feasibilityData={feasibilityData}
             canSeeTabs={canSeeTab}
           />
         </div>

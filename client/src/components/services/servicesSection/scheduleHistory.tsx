@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@mui/material";
 import { LoadingComponent } from "@/components/common/Loading";
-import ConfirmationModalComponent from "@/components/common/confirmationModal";
+import ConfirmationScheduleModalComponent from "@/components/common/confirmationScheduleModal";
 
 dayjs.extend(utc);
 
@@ -139,7 +139,7 @@ export function ScheduleHistory({
       </div>
 
       {idSchedule && (
-        <ConfirmationModalComponent
+        <ConfirmationScheduleModalComponent
           idSchedule={idSchedule}
           message="Você deseja realmente cancelar essa programação ?"
           onClose={() => setOpenConfirmationModal(false)}

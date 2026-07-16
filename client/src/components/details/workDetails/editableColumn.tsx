@@ -8,7 +8,7 @@ import { ReactNode } from "react";
 interface typeData {
   id_turma: string;
   id_status: number;
-  data_empreitamento: string;
+  data_empreitamento: string | null;
 }
 
 interface EditableColumnProps {

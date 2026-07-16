@@ -32,6 +32,7 @@ import { TableFilter } from "./servicesFilters";
 import { TeamModal } from "./teamsModal";
 import { useFeedback } from "@/hooks/useFeedback";
 import { ButtonComponent } from "@/components/common/Button";
+import { SERVICE_OPERATIONS } from "@/constants/services/services";
 
 interface ServicesAvaliableProps {
   servicesData: any[];
@@ -210,11 +211,7 @@ export function NewServicesAvaliable({
               {
                 label: "OPERAÇÃO",
                 field: "operacao",
-                options: operations.filter((item) => {
-                  return servicesData.some(
-                    (service) => service.operacao === item,
-                  );
-                }),
+                options: SERVICE_OPERATIONS,
                 width: "w-1/4",
               },
               {

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 interface DataItemProps {
   label?: string;
-  value: string;
+  value: string | null;
   status?: string;
   background?: string;
   isEdit?: boolean;

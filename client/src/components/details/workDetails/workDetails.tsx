@@ -85,6 +85,8 @@ interface WorkData {
   observ_obra: string;
   data_viabilidade: string;
   prazo_viabilidade: string;
+  viabilidade_aprovada: boolean;
+  programacao_ponto_a_ponto: boolean;
   id: string;
 }
 
@@ -92,15 +94,15 @@ interface FormattedData {
   entrada: string;
   prazo: string;
   prazoFinal: string;
-  data_conclusao: string;
-  dataViabilidade: string;
-  dataEmpreitamento: string;
+  data_conclusao: string | null;
+  dataViabilidade: string | null;
+  dataEmpreitamento: string | null;
   backgroundColor: string;
   executadoFormatted: string;
 }
 
 interface EditableData {
-  data_empreitamento: string;
+  data_empreitamento: string | null;
   id_status: number;
   id_turma: string;
   observ_obra: string;
@@ -160,7 +162,20 @@ export function WorkDetails({
   formattedData,
   options,
 }: WorkDetailsProps) {
-  const workflowStatus = getFeasibilityWorkflowStatus(data.id_status);
+  const { dataViabilidade } = formattedData;
+  const {
+    id_status,
+    prazo_viabilidade,
+    viabilidade_aprovada,
+    programacao_ponto_a_ponto,
+  } = data;
+
+  const workflowStatus = getFeasibilityWorkflowStatus(
+    id_status,
+    dataViabilidade,
+    prazo_viabilidade,
+    viabilidade_aprovada,
+  );
 
   const FEASIBILITY_ACTION_LABEL: Record<typeof workflowStatus, string> = {
     adicao: "Importar Arquivos de Viabilidade",
@@ -323,8 +338,12 @@ export function WorkDetails({
                 styled={FEASIBILITY_ACTION_COLOR[workflowStatus]}
                 onClick={() =>
                   router.push(
-                    `/viabilidade/${idWork}?id_status=${data.id_status}`,
+                    `/viabilidade/${idWork}?status=${workflowStatus}&ponto_a_ponto=${programacao_ponto_a_ponto}`,
                   )
+                }
+                disabled={
+                  !permissions?.permissao_edicao &&
+                  [42, 43, 45, 46].includes(id_status)
                 }
               />
             </div>
