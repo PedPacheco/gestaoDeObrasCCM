@@ -19,8 +19,14 @@ export class GetWorkDetailsService {
       throw new NotFoundException('Obra não encontrada');
     }
 
+    const { relatorio_viabilidade, ...workData } = work;
+
     const response = {
-      ...work,
+      ...workData,
+      data_envio: relatorio_viabilidade?.data_envio ?? null,
+      prazo_viabilidade:
+        relatorio_viabilidade?.prazo_viabilidade ?? 'FALTA VIABILIDADE',
+      viabilidade_aprovada: relatorio_viabilidade?.aprovada ?? false,
       circuitos: work.circuitos.circuito,
       conjunto: work.circuitos.conjuntos.conjunto,
       empreendimento: work.empreendimento.empreendimento,
@@ -30,7 +36,6 @@ export class GetWorkDetailsService {
       idRegional: work.municipios.regionais.id,
       programacoes: work.programacoes.map((programacao) => {
         const teams = TeamCounterService.calculate(programacao);
-
         return {
           id: programacao.id,
           criado_em: programacao.criado_em,

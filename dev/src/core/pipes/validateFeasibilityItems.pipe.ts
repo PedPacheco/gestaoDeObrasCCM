@@ -6,7 +6,11 @@ import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
 
 @Injectable()
 export class ValidateFeasibilityItemsPipe implements PipeTransform {
-  async transform(value: string) {
+  async transform(value?: string) {
+    if (!value) {
+      return undefined;
+    }
+
     let parsed: any[];
 
     try {

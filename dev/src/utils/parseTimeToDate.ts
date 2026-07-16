@@ -12,8 +12,6 @@ export function countBusinessDays(startDate: Date, endDate: Date): number {
   const start = moment.utc(startDate).startOf('day');
   const end = moment.utc(endDate).startOf('day');
 
-  console.log(start, end);
-
   let count = 0;
 
   const current = start.clone();
