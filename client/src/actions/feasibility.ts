@@ -6,8 +6,9 @@ import { cookies } from "next/headers";
 interface RejectFeasibilityData {
   reason: string;
   description: string;
-  idWork: number;
-  idUser: number;
+  feasibilityReportId: number;
+  userId: number;
+  workId: number;
 }
 
 interface RejectFeasibilityProps {
@@ -71,9 +72,10 @@ export async function rejectFeasibility({
     if (!response.ok) {
       throw new Error("Erro ao reprovar viabilidade");
     }
+
     const res = await response.json();
 
-    if (res.statusCode !== 200) {
+    if (res.statusCode !== 204) {
       return {
         success: false,
         error: res.message || "Erro ao excluir viabilidade",

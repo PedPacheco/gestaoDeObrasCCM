@@ -3,7 +3,7 @@
 import { DragEvent, useCallback, useState } from "react";
 import { useFeedback } from "@/hooks/useFeedback";
 import { useRouter } from "next/navigation";
-import { DisplayFile, ExistingFile } from "@/types/feasibility";
+import { DisplayFile, FeasibilityDataInterface } from "@/types/feasibility";
 import { existingToDisplay, fileToDisplay } from "@/utils/feasibilityWorkflow";
 
 const MAX_FILES = 3;
@@ -12,14 +12,13 @@ const ALLOWED_MIME_TYPES = ["application/pdf", "image/jpeg", "image/jpg"];
 
 interface UseFeasibilityFileUploadParams {
   idWork: string;
-  existingFiles: ExistingFile[];
+  existingFiles: string[];
 }
 
 interface UseFeasibilityFileUploadResult {
   /** Lista unificada para exibição */
   displayFiles: DisplayFile[];
   /** Apenas os File() novos (para envio no FormData) */
-  newFiles: File[];
   uploading: boolean;
   dragActive: boolean;
   /** True se existem apenas arquivos do backend (nenhum novo selecionado) */
@@ -27,7 +26,7 @@ interface UseFeasibilityFileUploadResult {
   handleDrag: (e: DragEvent) => void;
   handleDrop: (e: DragEvent) => void;
   removeFile: (index: number) => void;
-  handleUpload: (data: any) => Promise<any>;
+  handleUpload: (pointByPoint: boolean, data?: any) => Promise<any>;
   resetUploadState: () => void;
 }
 
@@ -45,9 +44,6 @@ export function useFeasibilityFileUpload({
   const router = useRouter();
 
   // Derivados
-  const newFiles = displayFiles
-    .filter((f) => f.raw !== undefined)
-    .map((f) => f.raw!);
 
   const validarArquivos = useCallback(
     (arquivosSelecionados: FileList | null): boolean => {
@@ -119,13 +115,28 @@ export function useFeasibilityFileUpload({
   }, [existingFiles]);
 
   const handleUpload = useCallback(
-    async (data: any) => {
+    async (pointByPoint: boolean, data?: any) => {
       setUploading(true);
 
       const formData = new FormData();
-      newFiles.forEach((file) => formData.append("files", file));
-      formData.append("idObra", idWork);
-      formData.append("items", JSON.stringify(data));
+
+      const newFiles = displayFiles.filter(
+        (file): file is DisplayFile & { raw: File } => !!file.raw,
+      );
+
+      const existingFilesToKeep = displayFiles
+        .filter((file) => !file.raw)
+        .map((file) => file.name);
+
+      newFiles.forEach((file) => {
+        formData.append("files", file.raw);
+      });
+
+      formData.append("existingFiles", JSON.stringify(existingFilesToKeep));
+
+      formData.append("workId", idWork);
+      formData.append("pointByPoint", String(pointByPoint));
+      if (pointByPoint) formData.append("items", JSON.stringify(data));
 
       try {
         const result = await fetch("/api/viabilidade", {
@@ -151,12 +162,11 @@ export function useFeasibilityFileUpload({
         setUploading(false);
       }
     },
-    [newFiles, idWork, showError, showSuccess, router],
+    [displayFiles, idWork, showSuccess, router, showError],
   );
 
   return {
     displayFiles,
-    newFiles,
     uploading,
     dragActive,
     handleFiles,

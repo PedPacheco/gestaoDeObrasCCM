@@ -39,7 +39,6 @@ export function useScheduleSidebar(
         ...new Set(
           resolvedServices
             .sort((a, b) => {
-              console.log(a.ponto, b.ponto);
               if (a.ponto < b.ponto) return -1;
               if (a.ponto > b.ponto) return 1;
 

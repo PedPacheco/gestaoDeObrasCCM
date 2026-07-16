@@ -1,13 +1,17 @@
-export interface ExistingFile {
+export interface FeasibilityDataInterface {
   id: number;
   id_obra: number;
-  caminho_arquivo: string;
   id_usuario: number;
+  caminhos_arquivos: string[];
+  aprovada: boolean;
+  data_envio: string | null;
+  data_aprovacao: string | null;
+  id_usuario_aprovador: number | null;
+  prazo_viabilidade: string;
 }
 
 export interface DisplayFile {
   name: string;
   size: number | null;
   raw?: File;
-  remoteId?: number;
 }

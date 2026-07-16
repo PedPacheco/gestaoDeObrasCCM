@@ -1,4 +1,4 @@
-import { DisplayFile, ExistingFile } from "@/types/feasibility";
+import { DisplayFile, FeasibilityDataInterface } from "@/types/feasibility";
 
 export type FeasibilityWorkflowStatus = "adicao" | "aprovacao" | "aprovado";
 
@@ -7,22 +7,30 @@ export const FEASIBILITY_STATUS_WORK_APROVACAO = "46";
 
 export function getFeasibilityWorkflowStatus(
   idStatus: string | number,
+  feasibilityDate: string | null,
+  feasibilityStatus: string | null,
+  feasibilityAproved: boolean,
 ): FeasibilityWorkflowStatus {
   const value = String(idStatus);
 
-  if (FEASIBILITY_STATUS_WORK_ADICAO.find((item) => item === value))
+  const feasibilityNotSent =
+    feasibilityDate === null && feasibilityStatus === "FALTA VIABILIDADE";
+
+  if (
+    FEASIBILITY_STATUS_WORK_ADICAO.find((item) => item === value) &&
+    feasibilityNotSent &&
+    !feasibilityAproved
+  )
     return "adicao";
-  if (value === FEASIBILITY_STATUS_WORK_APROVACAO) return "aprovacao";
+  if (!feasibilityNotSent && !feasibilityAproved) return "aprovacao";
+
   return "aprovado";
 }
 
-export function existingToDisplay(file: ExistingFile): DisplayFile {
-  const name = file.caminho_arquivo.split("/").pop() ?? file.caminho_arquivo;
-
+export function existingToDisplay(filename: string): DisplayFile {
   return {
-    name,
+    name: filename,
     size: null,
-    remoteId: file.id,
   };
 }
 
