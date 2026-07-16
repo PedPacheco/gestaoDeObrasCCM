@@ -47,8 +47,8 @@ SELECT
   conjuntos.conjunto,
   empreendimento.empreendimento,
   obras.data_empreitamento,
-  obras.data_viabilidade,
-  obras.prazo_viabilidade,
+  relatorio_viabilidade.data_envio,
+  relatorio_viabilidade.prazo_viabilidade,
   obras.ano_plan
 FROM
   (
@@ -59,22 +59,25 @@ FROM
             (
               (
                 (
-                  conjuntos
-                  JOIN circuitos ON ((circuitos.id_conjunto = conjuntos.id))
+                  (
+                    conjuntos
+                    JOIN circuitos ON ((circuitos.id_conjunto = conjuntos.id))
+                  )
+                  JOIN obras ON ((obras.id_circuito = circuitos.id))
                 )
-                JOIN obras ON ((obras.id_circuito = circuitos.id))
+                JOIN turmas ON ((turmas.id = obras.id_turma))
               )
-              JOIN turmas ON ((turmas.id = obras.id_turma))
+              JOIN municipios ON ((municipios.id = obras.id_gpm))
             )
-            JOIN municipios ON ((municipios.id = obras.id_gpm))
+            JOIN regionais ON ((regionais.id = municipios.id_regional))
           )
-          JOIN regionais ON ((regionais.id = municipios.id_regional))
+          JOIN STATUS ON ((STATUS.id = obras.id_status))
         )
-        JOIN STATUS ON ((STATUS.id = obras.id_status))
+        JOIN tipos ON ((tipos.id = obras.id_tipo))
       )
-      JOIN tipos ON ((tipos.id = obras.id_tipo))
+      JOIN empreendimento ON ((empreendimento.id = obras.id_empreendimento))
     )
-    JOIN empreendimento ON ((empreendimento.id = obras.id_empreendimento))
+    JOIN relatorio_viabilidade ON ((relatorio_viabilidade.id_obra = obras.id))
   )
 WHERE
   (
@@ -114,8 +117,8 @@ GROUP BY
   conjuntos.conjunto,
   empreendimento.empreendimento,
   obras.data_empreitamento,
-  obras.data_viabilidade,
-  obras.prazo_viabilidade,
+  relatorio_viabilidade.data_envio,
+  relatorio_viabilidade.prazo_viabilidade,
   obras.ano_plan
 ORDER BY
   obras.data_conclusao DESC,

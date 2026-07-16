@@ -267,8 +267,6 @@ model obras {
   ordem_dca_antigo          String?                    @db.VarChar(12)
   ordem_dcim_antigo         String?                    @db.VarChar(12)
   ano_plan                  Int?
-  data_viabilidade          DateTime?                  @db.Date
-  prazo_viabilidade         String?                    @default("FALTA VIABILIDADE") @db.VarChar(40)
   mo_pend                   Float?
   programacao_ponto_a_ponto Boolean?
   cn52n                     cn52n[]
@@ -284,8 +282,7 @@ model obras {
   programacoes_reprovacoes  programacoes_reprovacoes[]
   relatorio                 relatorio[]
   relatorio_execucao        relatorio_execucao[]
-  relatorio_viabilidade     relatorio_viabilidade[]
-  reprovacoes_viabilidade   reprovacoes_viabilidade[]
+  relatorio_viabilidade     relatorio_viabilidade?
   restricoes_publicacoes    restricoes_publicacoes[]
   servicos                  servicos[]
   suspensoes                suspensoes[]
@@ -511,12 +508,18 @@ model turmas {
 }
 
 model relatorio_viabilidade {
-  id                   Int                  @id @default(autoincrement())
-  id_obra              Int
-  caminho_arquivo      String               @db.VarChar(180)
-  id_usuario           Int
-  obras                obras                @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
-  novo_tabela_usuarios novo_tabela_usuarios @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario")
+  id                      Int                       @id @default(autoincrement())
+  id_obra                 Int                       @unique(map: "uq_relatorio_viabilidade_obra")
+  id_usuario              Int
+  caminhos_arquivos       String[]
+  aprovada                Boolean?                  @default(false)
+  data_envio              DateTime?                 @db.Timestamp(6)
+  data_aprovacao          DateTime?                 @db.Timestamp(6)
+  id_usuario_aprovador    Int?
+  prazo_viabilidade       String?                   @default("FALTA VIABILIDADE") @db.VarChar(25)
+  obras                   obras                     @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
+  novo_tabela_usuarios    novo_tabela_usuarios      @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario")
+  reprovacoes_viabilidade reprovacoes_viabilidade[]
 }
 
 model notas_d5 {
@@ -805,14 +808,14 @@ model materiais {
 }
 
 model reprovacoes_viabilidade {
-  id                   Int                  @id @default(autoincrement())
-  id_obra              Int
-  motivo               String?              @db.VarChar(50)
-  descricao            String?
-  id_usuario           Int
-  criado_em            DateTime?            @default(now()) @db.Timestamp(6)
-  obras                obras                @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
-  novo_tabela_usuarios novo_tabela_usuarios @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuarios")
+  id                       Int                   @id @default(autoincrement())
+  motivo                   String?               @db.VarChar(50)
+  descricao                String?
+  id_usuario               Int
+  criado_em                DateTime              @default(now()) @db.Timestamptz(6)
+  id_relatorio_viabilidade Int
+  relatorio_viabilidade    relatorio_viabilidade @relation(fields: [id_relatorio_viabilidade], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_relatorio_viabilidade")
+  novo_tabela_usuarios     novo_tabela_usuarios  @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuarios")
 }
 
 view exportacao_obras_executadas {
@@ -848,8 +851,8 @@ view exportacao_obras_executadas {
   conjunto           String?   @db.VarChar(100)
   empreendimento     String?   @db.VarChar(50)
   data_empreitamento DateTime? @db.Date
-  data_viabilidade   DateTime? @db.Date
-  prazo_viabilidade  String?   @db.VarChar(40)
+  data_envio         DateTime? @db.Timestamp(6)
+  prazo_viabilidade  String?   @db.VarChar(25)
   ano_plan           Int?
 }
 
@@ -1006,8 +1009,8 @@ view exportacao_obras_carteira {
   referencia              String?   @db.VarChar(14)
   data_empreitamento      DateTime? @db.Date
   empreendimento          String?   @db.VarChar(50)
-  data_viabilidade        DateTime? @db.Date
-  prazo_viabilidade       String?   @db.VarChar(40)
+  data_envio              DateTime? @db.Timestamp(6)
+  prazo_viabilidade       String?   @db.VarChar(25)
   ano_plan                Int?
 }
 
