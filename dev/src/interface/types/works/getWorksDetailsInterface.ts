@@ -85,11 +85,14 @@ export interface GetWorksDetailsResponse {
   capex_mo_pend: number | null;
   capex_mo_plan: number | null;
   data_empreitamento: Date | null;
-  data_viabilidade: Date | null;
-  prazo_viabilidade: string;
   ano_plan: number | null;
   programacao_ponto_a_ponto: boolean | null;
   circuitos: { circuito: string; conjuntos: { conjunto: string | null } };
+  relatorio_viabilidade?: {
+    data_envio: Date;
+    prazo_viabilidade: string;
+    aprovada: boolean;
+  } | null;
   empreendimento: { empreendimento: string | null };
   municipios: { municipio: string; regionais: { id: number } };
   tipos: { tipo_obra: string; id_grupo: number };

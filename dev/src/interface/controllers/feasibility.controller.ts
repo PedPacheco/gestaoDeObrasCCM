@@ -3,10 +3,10 @@ import { FeasibilityService } from 'src/application/usecases/feasibility.service
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpStatus,
   Param,
+  ParseBoolPipe,
   ParseIntPipe,
   Patch,
   Post,
@@ -20,7 +20,7 @@ import {
   AreaEditGuard,
   AreaViewGuard,
 } from 'src/core/guards/newPermission.guard';
-import { HandleFeasibilityService } from 'src/application/usecases/orchestrators/handleFeasibilityUpdate.service';
+import { HandleFeasibilityService } from 'src/application/usecases/orchestrators/handleFeasibilityUpload.service';
 import { ValidateFeasibilityItemsPipe } from 'src/core/pipes/validateFeasibilityItems.pipe';
 import { ServiceMaterialItemDto } from '../dtos/workServicesDTO';
 import { RejectFeasibilityDTO } from '../dtos/feasibilityDTO';
@@ -56,30 +56,33 @@ export class FeasibilityController {
     };
   }
 
-  @Delete('/:id')
-  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
-  async deleteFeasibilityFiles(@Param('id', ParseIntPipe) id: number) {
-    await this.feasibilityService.deleteFeasibilityFiles(id);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Viabilidade excluída com sucesso',
-    };
-  }
-
   @Post('upload')
   @UseInterceptors(FilesInterceptor('files'))
   @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   async upload(
-    @UploadedFiles() files: Express.Multer.File[],
-    @Body('idObra', ParseIntPipe) idWork: number,
-    @Body('items', ValidateFeasibilityItemsPipe)
-    items: ServiceMaterialItemDto[],
+    @UploadedFiles() files: Express.Multer.File[] = [],
+    @Body('workId', ParseIntPipe) workId: number,
+    @Body('pointByPoint', ParseBoolPipe) pointByPoint: boolean,
+    @Body('existingFiles') existingFiles: string,
     @Req() req: any,
+    @Body('items', ValidateFeasibilityItemsPipe)
+    items?: ServiceMaterialItemDto[],
   ) {
-    const idUser = req.user.sub;
+    const userId = req.user.sub;
 
-    await this.handleFeasibilityService.update(idWork, idUser, files, items);
+    const parsedExistingFiles =
+      existingFiles && existingFiles.trim().length > 0
+        ? JSON.parse(existingFiles)
+        : [];
+
+    await this.handleFeasibilityService.upload(
+      workId,
+      userId,
+      pointByPoint,
+      files,
+      parsedExistingFiles,
+      items,
+    );
 
     return {
       statusCode: HttpStatus.OK,
@@ -99,9 +102,14 @@ export class FeasibilityController {
   }
 
   @Patch('aprovar/:id')
-  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
-  async approveFeasibility(@Param('id', ParseIntPipe) id: number) {
-    await this.feasibilityService.approve(id);
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
+  async approveFeasibility(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: any,
+  ) {
+    const userId = req.user.sub;
+
+    await this.handleFeasibilityService.approve(id, userId);
 
     return {
       statusCode: HttpStatus.NO_CONTENT,

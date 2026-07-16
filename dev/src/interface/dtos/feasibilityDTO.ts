@@ -2,10 +2,13 @@ import { IsNumber, IsString } from 'class-validator';
 
 export class RejectFeasibilityDTO {
   @IsNumber()
-  idWork: number;
+  feasibilityReportId: number;
 
   @IsNumber()
-  idUser: number;
+  workId: number;
+
+  @IsNumber()
+  userId: number;
 
   @IsString()
   reason: string;
