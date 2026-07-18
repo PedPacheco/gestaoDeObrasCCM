@@ -36,6 +36,7 @@ interface ScheduledServicesProps {
   onError: (error: string) => void;
   onSuccess: (success: string, onClose?: () => void) => void;
   isDisabled: boolean;
+  todayIsOnOrAfterScheduleDate: boolean;
 }
 
 export interface ScheduledServiceState {
@@ -57,6 +58,7 @@ export function ScheduledServices({
   onError,
   onSuccess,
   isDisabled,
+  todayIsOnOrAfterScheduleDate,
 }: ScheduledServicesProps) {
   const router = useRouter();
 
@@ -198,6 +200,10 @@ export function ScheduledServices({
     }
   };
 
+  const canUseScheduleActions = useMemo(() => {
+    return isDisabled && todayIsOnOrAfterScheduleDate;
+  }, [isDisabled, todayIsOnOrAfterScheduleDate]);
+
   return (
     <>
       <Paper className="p-6 min-h-[460px]">
@@ -212,7 +218,7 @@ export function ScheduledServices({
             onClick={handleApplyPlannedToReal}
             disabled={
               !scheduledServices.some((s) => s.selected) ||
-              isDisabled ||
+              !isDisabled ||
               scheduledServices.length === 0
             }
           />
@@ -221,7 +227,7 @@ export function ScheduledServices({
             text="Realizar Serviços"
             styled="!h-8"
             onClick={handlePerformServices}
-            disabled={isDisabled || scheduledServices.length === 0}
+            disabled={!canUseScheduleActions || scheduledServices.length === 0}
           />
 
           <ButtonComponent
@@ -239,18 +245,14 @@ export function ScheduledServices({
             text="Reprogramar Serviços"
             styled="!h-8"
             onClick={() => setIsRescheduleModalOpen(true)}
-            disabled={
-              !canReschedule || isDisabled || scheduledServices.length === 0
-            }
+            disabled={!canUseScheduleActions || !canReschedule}
           />
 
           <ButtonComponent
             text="Finalizar Execução dos Serviços"
             styled="!h-8"
             onClick={handleFinalizeServices}
-            disabled={
-              !canFinalize || isDisabled || scheduledServices.length === 0
-            }
+            disabled={!canUseScheduleActions || !canFinalize}
           />
         </div>
 

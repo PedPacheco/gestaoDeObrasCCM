@@ -72,6 +72,8 @@ export class FinalizeServicesService {
       updateData.executionObservation,
     );
 
+    console.log(finalizationData);
+
     await this.executeFinalization(
       workId,
       finalizationData,

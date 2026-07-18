@@ -132,7 +132,7 @@ export default function NewTabPanel({
       scheduleData,
       data?.id,
       data.id_status,
-      data.status_programacao,
+      scheduleData.status_programacao,
     );
   };
 

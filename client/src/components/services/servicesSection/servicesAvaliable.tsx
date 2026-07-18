@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -6,6 +7,11 @@ import {
   useTransition,
 } from "react";
 
+import { applyAdditonalPlanServices } from "@/actions/services";
+import { ButtonComponent } from "@/components/common/Button";
+import { LoadingComponent } from "@/components/common/Loading";
+import { useFeedback } from "@/hooks/useFeedback";
+import { FormatCurrency } from "@/utils/formatValue";
 import {
   ArrowUpTrayIcon,
   PlusIcon,
@@ -24,22 +30,15 @@ import {
   TableRow,
   Typography,
 } from "@mui/material";
-import { useRouter } from "next/navigation";
-import { applyAdditonalPlanServices } from "@/actions/services";
-import { FormatCurrency } from "@/utils/formatValue";
-import { LoadingComponent } from "@/components/common/Loading";
+
 import { TableFilter } from "./servicesFilters";
 import { TeamModal } from "./teamsModal";
-import { useFeedback } from "@/hooks/useFeedback";
-import { ButtonComponent } from "@/components/common/Button";
-import { SERVICE_OPERATIONS } from "@/constants/services/services";
 
 interface ServicesAvaliableProps {
   servicesData: any[];
   setServicesData: Dispatch<SetStateAction<any[]>>;
   points: string[];
   operations: string[];
-  availableServices: any[];
   setScheduledServices: Dispatch<SetStateAction<any[]>>;
   isInsert: boolean;
   isDisabled: boolean;
@@ -51,6 +50,7 @@ interface ServicesAvaliableProps {
 const serviceColumns = [
   { key: "material", label: "CÓDIGO" },
   { key: "textoBreve", label: "SERVIÇO" },
+  { key: "tipo", label: "TIPO" },
   { key: "operacao", label: "OPERAÇÃO" },
   { key: "ponto", label: "PONTO" },
   { key: "qtdePlanejada", label: "PLAN" },
@@ -58,12 +58,12 @@ const serviceColumns = [
   { key: "qtdeAdicional", label: "ADICIONAL" },
   { key: "qtdeRealizada", label: "REAL" },
   { key: "valorUnit", label: "VALOR UNIT" },
+  { key: "valorTotal", label: "VALOR TOTAL" },
 ];
 
 export function NewServicesAvaliable({
   servicesData,
   setServicesData,
-  availableServices,
   operations,
   points,
   setScheduledServices,
@@ -202,16 +202,16 @@ export function NewServicesAvaliable({
               {
                 label: "SERVIÇO",
                 field: "textoBreve",
-                options: availableServices.filter((item) => {
-                  return servicesData.some(
-                    (service) => service.textoBreve === item,
-                  );
-                }),
+                options: Array.from(
+                  new Set(servicesData.map((item) => item.textoBreve)),
+                ),
               },
               {
                 label: "OPERAÇÃO",
                 field: "operacao",
-                options: SERVICE_OPERATIONS,
+                options: operations.filter((item) => {
+                  return servicesData.some((service) => service.ponto === item);
+                }),
                 width: "w-1/4",
               },
               {
@@ -247,7 +247,7 @@ export function NewServicesAvaliable({
                         setSelectedServices(
                           filteredServicesData.map((s) => ({
                             ...s,
-                            prog: s.viabilizado,
+                            prog: s.viabilizado + s.qtdeAdicional,
                             additional: s.qtdeAdicional,
                           })),
                         );
@@ -290,7 +290,7 @@ export function NewServicesAvaliable({
                               ...selectedServices,
                               {
                                 ...row,
-                                prog: row.viabilizado,
+                                prog: row.viabilizado + row.qtdeAdicional,
                                 qtdeAdicional: row.qtdeAdicional,
                               },
                             ]);
@@ -323,7 +323,7 @@ export function NewServicesAvaliable({
                         );
                       }
 
-                      if (col.key === "valorUnit") {
+                      if (["valorUnit", "valorTotal"].includes(col.key)) {
                         value = FormatCurrency(value);
                       }
 
@@ -346,7 +346,7 @@ export function NewServicesAvaliable({
             startIcon={<PlusIcon className="h-5 w-5 text-white" />}
             styled="!mr-4 rounded px-4 px-2 !text-sm "
             onClick={applyAdditional}
-            disabled={isDisabled || !isDisableAfterChangeData}
+            disabled={!isDisableAfterChangeData}
             text="Aplicar Adicional"
           />
 

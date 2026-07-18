@@ -26,6 +26,15 @@ export function ServiceCard({ service, onDelete }: ServiceCardProps) {
         </div>
 
         <div className="flex items-center gap-1.5">
+          <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
+            Tipo:
+          </span>
+          <span className="text-sm font-medium text-zinc-800">
+            {service.tipo}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5">
           <span className="text-xs font-semibold text-zinc-500 ">Ponto:</span>
           <span className="text-sm font-medium text-zinc-800">
             {service.ponto}
@@ -37,7 +46,7 @@ export function ServiceCard({ service, onDelete }: ServiceCardProps) {
             Valor:
           </span>
           <span className="text-sm font-semibold text-emerald-700 bg-emerald-50 px-2 rounded">
-            {FormatCurrency(service.valorUnit)}
+            {FormatCurrency(service.valorTotal)}
           </span>
         </div>
       </div>
@@ -55,9 +64,11 @@ export function ServiceCard({ service, onDelete }: ServiceCardProps) {
 
         <div className="flex items-center gap-1.5 shrink-0">
           <span className="text-xs font-semibold text-zinc-500 tracking-wide">
-            Plan:
+            Prog:
           </span>
-          <span className="text-sm font-medium text-zinc-800">420</span>
+          <span className="text-sm font-medium text-zinc-800">
+            {service.prog}
+          </span>
         </div>
       </div>
 

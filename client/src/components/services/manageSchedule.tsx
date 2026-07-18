@@ -17,6 +17,8 @@ import { ScheduleTopbar } from "./scheduleTopbar";
 import { NewServicesAvaliable } from "./servicesSection/servicesAvaliable";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import { AddServiceForm, ServiceContract } from "../common/addServiceForm";
+import { AddServiceAccordion } from "../feasibility/addServiceAccordion";
+import { SERVICE_OPERATIONS } from "@/constants/services/services";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -27,6 +29,7 @@ interface ManageScheduleProps {
   servicesData: any[];
   scheduledServicesData: any[];
   serviceContractData: ServiceContract[];
+  materialsData: any[];
   serviceTeams: any[];
   scheduledServicesHistory: any[];
   serviceFilters: any;
@@ -46,6 +49,7 @@ export function NewManageSchedule({
   scheduledServicesData,
   servicesData,
   serviceContractData,
+  materialsData,
   serviceFilters,
   serviceTeams,
   scheduledServicesHistory,
@@ -63,7 +67,6 @@ export function NewManageSchedule({
   const [servicesAvaliable, setServicesAvaliable] = useState<any[]>(
     servicesData || [],
   );
-  const [isServiceFormOpen, setIsServiceFormOpen] = useState(false);
 
   const [isPending, startTransition] = useTransition();
 
@@ -71,7 +74,7 @@ export function NewManageSchedule({
 
   const workflow = useScheduleWorkflow({ selectedServices: selectedServices });
 
-  const isDisabled = statusSchedule ? statusSchedule === "PROGRAMADO" : false;
+  const isDisabled = statusSchedule ? statusSchedule === "Programado" : false;
 
   const handleCancel = useCallback(() => {
     router.replace(`/detalhes/${idWork}`);
@@ -140,6 +143,7 @@ export function NewManageSchedule({
         servicesData={servicesData}
         scheduledServicesData={scheduledServicesData}
         serviceContractData={serviceContractData}
+        materialsData={materialsData}
         serviceTeams={serviceTeams}
         scheduledServicesHistory={scheduledServicesHistory}
         serviceFilters={serviceFilters}
@@ -174,7 +178,6 @@ export function NewManageSchedule({
                 <NewServicesAvaliable
                   servicesData={servicesAvaliable}
                   setServicesData={setServicesAvaliable}
-                  availableServices={serviceFilters.services}
                   operations={serviceFilters.operations}
                   points={serviceFilters.points}
                   setScheduledServices={setSelectedServices}
@@ -189,70 +192,24 @@ export function NewManageSchedule({
           </main>
 
           <div className="flex min-h-0 h-full flex-col overflow-hidden pr-4 pt-2">
-            <div className="mb-3 px-4 w-full shrink-0">
-              <button
-                onClick={() => setIsServiceFormOpen((prev) => !prev)}
-                className={`
-                  group flex w-full items-center justify-between
-                  rounded-xl border px-5 py-3
-                  text-sm font-semibold transition-all duration-200
-                  ${
-                    isServiceFormOpen
-                      ? "border-[#53FF75] text-[#53FF75]"
-                      : "border-gray-200 bg-white text-gray-700 shadow-sm hover:border-[#A4D65E]/50 hover:shadow-md"
-                  }
-                `}
-              >
-                <span className="flex items-center gap-2">
-                  <PlusIcon
-                    className={`
-                      w-5 h-5 transition-transform duration-300
-                      ${isServiceFormOpen ? "rotate-45 text-[#5A8A1E]" : "text-[#A4D65E]"}
-                    `}
-                  />
-                  Adicionar novo serviço
-                </span>
+            <div className="grid grid-cols-1 px-2 gap-2 mb-2">
+              <AddServiceAccordion
+                idWork={Number(idWork)}
+                title="Adicionar novo serviço"
+                contracts={serviceContractData}
+                operations={SERVICE_OPERATIONS}
+                points={serviceFilters.points}
+                type="serviço"
+              />
 
-                <span
-                  className={`
-                    text-xs font-normal transition-colors
-                    ${isServiceFormOpen ? "text-[#5A8A1E]/60" : "text-gray-400"}
-                  `}
-                >
-                  {isServiceFormOpen ? "Fechar" : "Expandir"}
-                </span>
-              </button>
-
-              <div
-                className={`
-                  overflow-hidden transition-all duration-300 ease-in-out
-                  ${
-                    isServiceFormOpen
-                      ? "mt-3 max-h-[600px] opacity-100"
-                      : "max-h-0 opacity-0"
-                  }
-                `}
-              >
-                <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm w-full">
-                  <AddServiceForm
-                    idWork={idWork}
-                    serviceContractData={serviceContractData}
-                    operations={serviceFilters.operations}
-                    points={serviceFilters.points}
-                    onSubmit={async (data) => {
-                      const { addService } = await import("@/actions/services");
-                      const response = await addService(data);
-                      if (!response.success) {
-                        showError(response.error);
-                        return;
-                      }
-                      showSuccess("Serviço adicionado", () => {
-                        startTransition(() => router.refresh());
-                      });
-                    }}
-                  />
-                </div>
-              </div>
+              <AddServiceAccordion
+                idWork={Number(idWork)}
+                title="Adicionar novo material"
+                contracts={materialsData}
+                operations={SERVICE_OPERATIONS}
+                points={serviceFilters.points}
+                type="material"
+              />
             </div>
 
             <div className="min-h-0 flex-1 w-full overflow-hidden">

@@ -61,7 +61,7 @@ export async function storeScheduleDataAction(
     maxAge: 60 * 30,
   });
 
-  cookieStore.set("statusSchedule", JSON.stringify(statusSchedule), {
+  cookieStore.set("statusSchedule", statusSchedule, {
     path: "/",
     maxAge: 60 * 30,
   });

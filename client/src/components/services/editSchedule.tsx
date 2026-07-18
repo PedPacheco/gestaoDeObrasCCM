@@ -25,7 +25,14 @@ import {
 } from "./servicesSection/scheduleHistory";
 import { ButtonComponent } from "../common/Button";
 import { TabsServices } from "./TabsServices";
-import { AddServiceForm, ServiceContract } from "../common/addServiceForm";
+import { ServiceContract } from "../common/addServiceForm";
+import { AddServiceAccordion } from "../feasibility/addServiceAccordion";
+import { SERVICE_OPERATIONS } from "@/constants/services/services";
+
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -36,6 +43,7 @@ interface EditScheduleProps {
   servicesData: any[];
   scheduledServicesData: any[];
   serviceContractData: ServiceContract[];
+  materialsData: any[];
   serviceTeams: any[];
   scheduledServicesHistory: ScheduledServicesHistoryData[];
   serviceFilters: any;
@@ -57,6 +65,7 @@ export function EditSchedule({
   scheduledServicesData,
   servicesData,
   serviceContractData,
+  materialsData,
   serviceFilters,
   serviceTeams,
   scheduledServicesHistory,
@@ -167,9 +176,14 @@ export function EditSchedule({
     setScheduledServices([]);
   };
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Render
-  // ─────────────────────────────────────────────────────────────────────────
+  const todayIsOnOrAfterScheduleDate = useMemo(() => {
+    if (!scheduleData?.data_prog) return false;
+
+    const today = dayjs.utc().startOf("day");
+    const scheduleDate = dayjs.utc(scheduleData.data_prog).startOf("day");
+
+    return today.isSame(scheduleDate) || today.isAfter(scheduleDate);
+  }, [scheduleData?.data_prog]);
 
   return (
     <div className="flex  w-full flex-col bg-gray-50 overflow-y-auto">
@@ -243,18 +257,18 @@ export function EditSchedule({
               onError={showError}
               onSuccess={showSuccess}
               isDisabled={isDisabled}
+              todayIsOnOrAfterScheduleDate={todayIsOnOrAfterScheduleDate}
             />
           )}
 
           {/* TAB: Adicionar serviços da lista disponível */}
           {activeTab === "available" && (
-            <div className="grid h-full max-h-[90vh] grid-cols-1 lg:grid-cols-[1fr_25%]">
+            <div className="grid h-full max-h-[90vh] grid-cols-1 lg:grid-cols-[1fr_35%]">
               {/* Conteúdo principal — scrollável */}
               <div className="min-h-0 overflow-y-auto p-5">
                 <NewServicesAvaliable
                   servicesData={servicesAvaliable}
                   setServicesData={setServicesAvaliable}
-                  availableServices={serviceFilters.services}
                   operations={serviceFilters.operations}
                   points={serviceFilters.points}
                   setScheduledServices={setScheduledServices}
@@ -268,40 +282,25 @@ export function EditSchedule({
 
               {/* Sidebar — 30% da largura, altura total */}
               <div className="flex min-h-0 h-full flex-col overflow-hidden pr-4 pt-5">
-                <div className="my-3 w-full shrink-0">
-                  <div className="mb-4">
-                    <h2 className="text-[14px] font-medium text-gray-800">
-                      Adicionar novo serviço
-                    </h2>
-                    <p className="mt-0.5 text-[12px] text-gray-500">
-                      Busque um serviço no contrato e defina ponto, operação e
-                      quantidade planejada.
-                    </p>
-                  </div>
+                <div className="grid grid-cols-1 px-2 gap-2 mb-2">
+                  <AddServiceAccordion
+                    idWork={Number(idWork)}
+                    title="Adicionar novo serviço"
+                    contracts={serviceContractData}
+                    operations={SERVICE_OPERATIONS}
+                    points={serviceFilters.points}
+                    type="serviço"
+                  />
 
-                  <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm w-full">
-                    <AddServiceForm
-                      idWork={idWork}
-                      serviceContractData={serviceContractData}
-                      operations={serviceFilters.operations}
-                      points={serviceFilters.points}
-                      onSubmit={async (data) => {
-                        const { addService } =
-                          await import("@/actions/services");
-                        const response = await addService(data);
-                        if (!response.success) {
-                          showError(response.error);
-                          return;
-                        }
-                        showSuccess("Serviço adicionado", () => {
-                          startTransition(() => router.refresh());
-                          setActiveTab("scheduled");
-                        });
-                      }}
-                    />
-                  </div>
+                  <AddServiceAccordion
+                    idWork={Number(idWork)}
+                    title="Adicionar novo material"
+                    contracts={materialsData}
+                    operations={SERVICE_OPERATIONS}
+                    points={serviceFilters.points}
+                    type="material"
+                  />
                 </div>
-
                 <div className="min-h-0 flex-1 w-full overflow-hidden">
                   <ScheduleSidebar
                     selectedServices={scheduledServices}

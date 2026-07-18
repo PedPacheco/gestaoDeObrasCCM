@@ -21,13 +21,14 @@ export interface ServiceEquipe {
 export interface ScheduledService {
   id: number | string;
   textoBreve: string;
+  tipo: string;
   operacao: string;
   ponto: string;
-  valorUnit: number;
+  valorTotal: number;
   equipe: string | ServiceEquipe;
-  idTeam?: unknown;
-  prog?: unknown;
-  additional?: unknown;
+  idTeam?: any;
+  prog?: any;
+  additional?: any;
 }
 
 export interface ScheduleSidebarProps {

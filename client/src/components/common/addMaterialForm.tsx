@@ -95,8 +95,8 @@ export function AddMaterialForm({
   return (
     <div className="space-y-4">
       {/* SERVICE SELECT */}
-      <div className="grid grid-cols-3 gap-4">
-        <FormControl fullWidth size="small">
+      <div className="grid grid-cols-4 gap-4">
+        <FormControl fullWidth size="small" className="col-span-2">
           <Autocomplete<MaterialData>
             options={materialData}
             getOptionLabel={(s) => s.descricao}
@@ -130,10 +130,6 @@ export function AddMaterialForm({
 
                     {/* Info secundária */}
                     <div className="flex items-center gap-3 text-xs text-gray-500">
-                      <span>
-                        <strong className="text-gray-600">Material:</strong>{" "}
-                        {s.descricao}
-                      </span>
                       <span className="text-gray-300">|</span>
                       <span>
                         <strong className="text-gray-600">Unidade:</strong>{" "}

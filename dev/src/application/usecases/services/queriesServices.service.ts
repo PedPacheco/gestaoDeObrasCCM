@@ -49,8 +49,8 @@ export class QueriesServicesService {
         qtdeProgramada: service.qtde_prog,
         qtdeRealizada: service.qtde_real,
         tipo: service.materiais?.codigo ? 'M' : 'S',
-        preco,
-        valorUnit: preco * qtdeTotal,
+        valorUnit: preco,
+        valorTotal: preco * qtdeTotal,
         valorReal: preco * service.qtde_real,
       };
     });
@@ -87,11 +87,11 @@ export class QueriesServicesService {
         qtdeRealizada: service.qtde_real,
         qtdeAdicional: service.qtde_adicional,
         viabilizado: service.viabilizado,
-        preco,
+        valorUnit: preco,
+        valorTotal: preco * service.qtde_prog,
         equipe: service.equipes.equipe,
         encarregado: service.equipes.encarregado,
         perfil: service.equipes.perfil,
-        valorUnit: preco * service.qtde_prog,
       };
     });
   }

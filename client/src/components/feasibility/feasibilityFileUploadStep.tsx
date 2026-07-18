@@ -65,36 +65,36 @@ export function FeasibilityFileUploadStep({
     if (!selectedFile) return;
 
     // Arquivo novo
-    if (selectedFile.remoteId === undefined) {
-      onRemoveFile(selectedIndex!);
 
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+    onRemoveFile(selectedIndex!);
 
-      setOpenConfirmModal(false);
-      return;
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
 
-    // Arquivo salvo
-    startTransition(async () => {
-      try {
-        const response = await deleteFeasibilityFiles(idWork);
+    setOpenConfirmModal(false);
+    router.refresh();
+    return;
 
-        if (!response.success) {
-          showError("Erro ao excluir viabilidade");
-          return;
-        }
+    // // Arquivo salvo
+    // startTransition(async () => {
+    //   try {
+    //     const response = await deleteFeasibilityFiles(idWork);
 
-        showSuccess(response.message);
+    //     if (!response.success) {
+    //       showError("Erro ao excluir viabilidade");
+    //       return;
+    //     }
 
-        router.refresh();
-      } catch (error: any) {
-        showError(error.message);
-      } finally {
-        setOpenConfirmModal(false);
-      }
-    });
+    //     showSuccess(response.message);
+
+    //     router.refresh();
+    //   } catch (error: any) {
+    //     showError(error.message);
+    //   } finally {
+    //     setOpenConfirmModal(false);
+    //   }
+    // });
   };
 
   return (
@@ -155,7 +155,7 @@ export function FeasibilityFileUploadStep({
           </p>
 
           {files.map((file, index) => {
-            const isExisting = file.remoteId !== undefined;
+            const isExisting = file.raw !== undefined;
 
             const url = `${process.env.NEXT_PUBLIC_API_URL}/uploads/viabilidade/${file.name}`;
 
@@ -168,7 +168,7 @@ export function FeasibilityFileUploadStep({
                 className="text-2xl hover:scale-110 transition-transform "
               >
                 <div
-                  key={file.remoteId ?? `new-${index}`}
+                  key={`new-${index}`}
                   className={`
                   flex items-center justify-between rounded-lg border px-4 py-2.5 shadow-sm
                   ${
@@ -247,6 +247,7 @@ export function FeasibilityFileUploadStep({
           </label>
         </div>
       )}
+
       <ModalComponent
         title="Confirmar exclusão"
         open={openConfirmModal}

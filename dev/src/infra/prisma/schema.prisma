@@ -399,8 +399,8 @@ model restricoes {
 model servicos {
   id                    Int                     @id @default(autoincrement())
   id_obra               Int
-  ponto                 String?                 @db.VarChar(15)
-  operacao              String?                 @db.VarChar(30)
+  ponto                 String                  @db.VarChar(15)
+  operacao              String                  @db.VarChar(30)
   qtde_plan             Float?
   qtde_prog             Float?
   qtde_real             Float?
@@ -410,6 +410,8 @@ model servicos {
   qtde_adicional        Float?
   id_material           Int?
   viabilizado           Float?
+  numero_operacao       String?                 @db.VarChar(10)
+  descricao_operacao    String?                 @db.VarChar(100)
   programacoes_servicos programacoes_servicos[]
   equipes               equipes?                @relation(fields: [id_equipe], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipes")
   materiais             materiais?              @relation(fields: [id_material], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_materiais")
@@ -573,40 +575,43 @@ model suspensoes {
 }
 
 model relatorio_execucao {
-  id                                   Int                  @id @default(autoincrement())
-  id_usuario                           Int
-  id_obra                              Int
-  id_programacao                       Int
-  supervisor                           String?              @db.VarChar(50)
-  liberado_ligacao_parcial             Boolean?
-  hora_inicio                          DateTime?            @db.Time(6)
-  hora_conclusao                       DateTime?            @db.Time(6)
-  contato_inicio                       String?              @db.VarChar(50)
-  contato_termino                      String?              @db.VarChar(50)
-  atraso                               Boolean?
-  justificativa_atraso                 String?              @db.VarChar(350)
-  possui_equipamentos_instalados       Boolean?
-  equipamentos_aplicados               String?
-  possui_equipamentos_retirados        Boolean?
-  equipamentos_retirados               String?
-  alteracoes_execucao                  Boolean?
-  observacoes_gerais                   String?
-  referencia_chave_provisoria          String?              @db.VarChar(25)
-  chave_provisoria_retirada            Boolean?
-  motivo                               String?              @db.VarChar(150)
-  chave_provisoria_instalada           Boolean?
-  potencia_equipamento_aplicado        String?
-  patrimonio_equipamento_aplicado      String?
-  potencia_equipamento_retirado        String?
-  patrimonio_equipamento_retirado      String?
-  instalacao_equipamento_aplicado      String?
-  instalacao_equipamento_retirado      String?
-  referencia_chave_provisoria_retirada String?              @db.VarChar(25)
-  caminho_arquivo                      String?              @db.VarChar(420)
-  criado_em                            DateTime?            @default(now()) @db.Timestamp(6)
-  obras                                obras                @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obra")
-  programacoes                         programacoes         @relation(fields: [id_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_programacao")
-  usuario                              novo_tabela_usuarios @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario")
+  id                                                                           Int                   @id @default(autoincrement())
+  id_usuario                                                                   Int
+  id_obra                                                                      Int
+  id_programacao                                                               Int
+  supervisor                                                                   String?               @db.VarChar(50)
+  liberado_ligacao_parcial                                                     Boolean?
+  hora_inicio                                                                  DateTime?             @db.Time(6)
+  hora_conclusao                                                               DateTime?             @db.Time(6)
+  contato_inicio                                                               String?               @db.VarChar(50)
+  contato_termino                                                              String?               @db.VarChar(50)
+  atraso                                                                       Boolean?
+  justificativa_atraso                                                         String?               @db.VarChar(350)
+  possui_equipamentos_instalados                                               Boolean?
+  equipamentos_aplicados                                                       String?
+  possui_equipamentos_retirados                                                Boolean?
+  equipamentos_retirados                                                       String?
+  alteracoes_execucao                                                          Boolean?
+  observacoes_gerais                                                           String?
+  referencia_chave_provisoria                                                  String?               @db.VarChar(25)
+  chave_provisoria_retirada                                                    Boolean?
+  motivo                                                                       String?               @db.VarChar(150)
+  chave_provisoria_instalada                                                   Boolean?
+  potencia_equipamento_aplicado                                                String?
+  patrimonio_equipamento_aplicado                                              String?
+  potencia_equipamento_retirado                                                String?
+  patrimonio_equipamento_retirado                                              String?
+  instalacao_equipamento_aplicado                                              String?
+  instalacao_equipamento_retirado                                              String?
+  referencia_chave_provisoria_retirada                                         String?               @db.VarChar(25)
+  caminho_arquivo                                                              String?               @db.VarChar(420)
+  criado_em                                                                    DateTime?             @default(now()) @db.Timestamp(6)
+  modificado_por                                                               Int?
+  modificado_em                                                                DateTime?             @default(now()) @db.Timestamp(6)
+  obras                                                                        obras                 @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obra")
+  programacoes                                                                 programacoes          @relation(fields: [id_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_programacao")
+  usuario                                                                      novo_tabela_usuarios  @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario")
+  novo_tabela_usuarios_relatorio_execucao_modificado_porTonovo_tabela_usuarios novo_tabela_usuarios? @relation("relatorio_execucao_modificado_porTonovo_tabela_usuarios", fields: [modificado_por], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_modificacao")
 }
 
 model status_programacao {
@@ -730,28 +735,29 @@ model areas {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model novo_tabela_usuarios {
-  id                         Int                       @id @default(autoincrement())
-  id_regional                Int
-  id_turma                   Int
-  id_area                    Int?
-  tipo_usuario               String                    @db.VarChar(20)
-  is_admin                   Boolean                   @default(false)
-  permissao_edicao           Boolean                   @default(false)
-  username                   String                    @unique @db.VarChar(30)
-  senha                      String                    @db.VarChar(255)
-  nome                       String                    @db.VarChar(100)
-  email                      String                    @db.VarChar(100)
-  ativo                      Boolean?                  @default(true)
-  areas                      areas?                    @relation(fields: [id_area], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_area")
-  turmas                     turmas                    @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
-  regionais                  regionais                 @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regional")
-  programacoes               programacoes[]
-  usuario_ultima_atualizacao programacoes[]            @relation("usuario_ultima_atualizacao")
-  recursos_contingencia      recursos_contingencia[]
-  relatorio_execucao         relatorio_execucao[]
-  relatorio_viabilidade      relatorio_viabilidade[]
-  reprovacoes_viabilidade    reprovacoes_viabilidade[]
-  restricoes_publicacoes     restricoes_publicacoes[]
+  id                                                                         Int                       @id @default(autoincrement())
+  id_regional                                                                Int
+  id_turma                                                                   Int
+  id_area                                                                    Int?
+  tipo_usuario                                                               String                    @db.VarChar(20)
+  is_admin                                                                   Boolean                   @default(false)
+  permissao_edicao                                                           Boolean                   @default(false)
+  username                                                                   String                    @unique @db.VarChar(30)
+  senha                                                                      String                    @db.VarChar(255)
+  nome                                                                       String                    @db.VarChar(100)
+  email                                                                      String                    @db.VarChar(100)
+  ativo                                                                      Boolean?                  @default(true)
+  areas                                                                      areas?                    @relation(fields: [id_area], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_area")
+  turmas                                                                     turmas                    @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
+  regionais                                                                  regionais                 @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regional")
+  programacoes                                                               programacoes[]
+  usuario_ultima_atualizacao                                                 programacoes[]            @relation("usuario_ultima_atualizacao")
+  recursos_contingencia                                                      recursos_contingencia[]
+  relatorio_execucao                                                         relatorio_execucao[]
+  relatorio_execucao_relatorio_execucao_modificado_porTonovo_tabela_usuarios relatorio_execucao[]      @relation("relatorio_execucao_modificado_porTonovo_tabela_usuarios")
+  relatorio_viabilidade                                                      relatorio_viabilidade[]
+  reprovacoes_viabilidade                                                    reprovacoes_viabilidade[]
+  restricoes_publicacoes                                                     restricoes_publicacoes[]
 }
 
 model recursos_contingencia {
