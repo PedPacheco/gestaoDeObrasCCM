@@ -169,8 +169,8 @@ describe('WorksServicesService', () => {
           qtdeRealizada: 5,
           qtdeAdicional: null,
           tipo: 'M',
-          preco: 1.5,
-          valorUnit: 15,
+          valorUnit: 1.5,
+          valorTotal: 15,
           valorReal: 7.5,
         },
         {
@@ -187,8 +187,8 @@ describe('WorksServicesService', () => {
           qtdeRealizada: null,
           qtdeAdicional: 1,
           tipo: 'S',
-          preco: 200,
-          valorUnit: 600,
+          valorUnit: 200,
+          valorTotal: 600,
           valorReal: 0,
         },
       ]);
@@ -267,7 +267,8 @@ describe('WorksServicesService', () => {
 
       const result = await service.getById(mockParams);
 
-      expect(result[0].valorUnit).toBe(10); // 50 * 25.5
+      expect(result[0].valorUnit).toBe(5); // 50 * 25.5
+      expect(result[0].valorTotal).toBe(10); // 50 * 25.5
       expect(result[0].valorReal).toBe(10); // 30 * 25.5
     });
 
@@ -371,11 +372,11 @@ describe('WorksServicesService', () => {
           qtdeRealizada: 5,
           qtdeAdicional: null,
           viabilizado: 5,
-          preco: 100,
           equipe: 'LM 01',
           encarregado: 'João Silva',
           perfil: 'Pedreiro',
-          valorUnit: 800,
+          valorUnit: 100,
+          valorTotal: 800,
         },
         {
           id: 2,
@@ -390,11 +391,11 @@ describe('WorksServicesService', () => {
           qtdeRealizada: 5,
           qtdeAdicional: null,
           viabilizado: 5,
-          preco: 5,
           equipe: 'LM 01',
           encarregado: 'João Silva',
           perfil: 'Pedreiro',
-          valorUnit: 40,
+          valorUnit: 5,
+          valorTotal: 40,
         },
       ]);
       expect(repository.getSelectedServices).toHaveBeenCalledWith(mockParams);
