@@ -9,6 +9,7 @@ import ErrorModal from "@/components/common/ErrorModal";
 import ModalComponent from "@/components/common/Modal";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { Button } from "@mui/material";
+import { useFeedback } from "@/hooks/useFeedback";
 
 const cookies = new Cookies();
 
@@ -19,7 +20,7 @@ interface DeleteButtonProps {
 
 export function DeleteButton({ storageKey, id }: DeleteButtonProps) {
   const router = useRouter();
-  const [error, setError] = useState<string | null>();
+  const { showError } = useFeedback();
   const [success, setSuccess] = useState("");
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [isPending, startTransition] = useTransition();
@@ -32,7 +33,7 @@ export function DeleteButton({ storageKey, id }: DeleteButtonProps) {
         const res = await DeleteWork(storageKey, id);
 
         if (!res.success) {
-          setError(res.error);
+          showError(res.error);
           return;
         }
 
@@ -45,7 +46,7 @@ export function DeleteButton({ storageKey, id }: DeleteButtonProps) {
 
         router.refresh();
       } catch (err: any) {
-        setError(err.message);
+        showError(err.message);
       }
     });
   };
@@ -63,15 +64,6 @@ export function DeleteButton({ storageKey, id }: DeleteButtonProps) {
       <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
         <span className=" font-semibold text-xl">{success}</span>
       </ModalComponent>
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </>
   );
 }

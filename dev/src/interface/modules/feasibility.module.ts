@@ -9,6 +9,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MulterModule } from '@nestjs/platform-express';
 
 import { FeasibilityController } from '../controllers/feasibility.controller';
+import { HandleFeasibilityService } from 'src/application/usecases/orchestrators/handleFeasibilityUpload.service';
+import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
+import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepository';
 
 @Module({
   imports: [
@@ -38,11 +41,13 @@ import { FeasibilityController } from '../controllers/feasibility.controller';
   controllers: [FeasibilityController],
   providers: [
     FileService,
+    HandleFeasibilityService,
     FeasibilityService,
     {
       provide: FEASIBILITY_REPOSITORY,
       useClass: FeasibilityRepository,
     },
+    { provide: STATUS_FLOW_REPOSITORY, useClass: StatusFlowRepository },
   ],
   exports: [],
 })

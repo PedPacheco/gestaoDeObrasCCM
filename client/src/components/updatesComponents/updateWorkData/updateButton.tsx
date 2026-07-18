@@ -1,15 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { Cookies } from "react-cookie";
 
 import { UpdateSap } from "@/actions/works";
 import { ButtonComponent } from "@/components/common/Button";
-import ErrorModal from "@/components/common/ErrorModal";
-import ModalComponent from "@/components/common/Modal";
+import { useFeedback } from "@/hooks/useFeedback";
 import { getButtonContent } from "@/utils/getButtonContent";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 const cookies = new Cookies();
 
@@ -20,11 +18,8 @@ interface UpdateButtonProps {
 export function UpdateButton({ storageKey }: UpdateButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>();
-  const [openModal, setOpenModal] = useState<boolean>(false);
-  const [success, setSuccess] = useState<string | null>();
 
-  const toggleModal = () => setOpenModal((prev) => !prev);
+  const { showError, showSuccess } = useFeedback();
 
   const handleSubmit = () => {
     startTransition(async () => {
@@ -78,19 +73,18 @@ export function UpdateButton({ storageKey }: UpdateButtonProps) {
         const res = await UpdateSap(data, key);
 
         if (!res.success) {
-          setError(res.error);
+          showError(res.error);
           return;
         }
 
         localStorage.removeItem(storageKey);
         cookies.remove(storageKey);
 
-        setSuccess(res.message);
-        setOpenModal(true);
+        showSuccess(res.message);
 
         router.refresh();
       } catch (err: any) {
-        setError(err.message);
+        showError(err.message);
       }
     });
   };
@@ -107,19 +101,6 @@ export function UpdateButton({ storageKey }: UpdateButtonProps) {
         )}
         disabled={isPending}
       />
-
-      <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
-        <span className=" font-semibold text-xl">{success}</span>
-      </ModalComponent>
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </>
   );
 }

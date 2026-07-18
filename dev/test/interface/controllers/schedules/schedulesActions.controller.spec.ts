@@ -8,15 +8,15 @@ import { UpdateSchedulesService } from 'src/application/usecases/schedule/update
 import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/schedule/validateAndConfirmSchedules.service';
 import { UsersService } from 'src/application/usecases/users.service';
 import { SchedulesActionsController } from 'src/interface/controllers/schedules/schedulesActions.controller';
-import {
-  SchedulesDataDTO,
-  UpdateSchedulesDataDTO,
-} from 'src/interface/dtos/scheduleDTO';
+import { SchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
-import { mockUpdateSchedulesController } from '../../../mocks/mockAddScheduleService';
+import {
+  mockNewUpdateSchedulesService,
+  mockUpdateSchedulesController,
+} from '../../../mocks/schedules/mockUpdateSchedules';
 import { ForecastSnapshotService } from 'src/application/usecases/forecastSnapshot.service';
 
 describe('ScheduleActionsController', () => {
@@ -34,8 +34,6 @@ describe('ScheduleActionsController', () => {
     },
   };
 
-  const mockFiles: Express.Multer.File[] = [];
-
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       controllers: [SchedulesActionsController],
@@ -45,7 +43,10 @@ describe('ScheduleActionsController', () => {
         { provide: DeleteSchedulesService, useValue: { delete: jest.fn() } },
         { provide: UsersService, useValue: { findUser: jest.fn() } },
         { provide: ExecutionReportService, useValue: { create: jest.fn() } },
-        { provide: HandleAddScheduleService, useValue: { add: jest.fn() } },
+        {
+          provide: HandleAddScheduleService,
+          useValue: { add: jest.fn(), newAdd: jest.fn() },
+        },
         {
           provide: ValidateConfirmAndRejectSchedulesService,
           useValue: {
@@ -56,7 +57,7 @@ describe('ScheduleActionsController', () => {
         },
         {
           provide: HandleSchedulesUpdateService,
-          useValue: { update: jest.fn() },
+          useValue: { newUpdate: jest.fn(), oldUpdate: jest.fn() },
         },
         {
           provide: ForecastSnapshotService,
@@ -85,6 +86,49 @@ describe('ScheduleActionsController', () => {
 
   it('Should be defined', () => {
     expect(SchedulesActionsController).toBeDefined();
+  });
+
+  it('Should call newAddSchedules and return message', async () => {
+    jest.spyOn(handleAddScheduleService, 'newAdd').mockResolvedValue(1);
+
+    const date = new Date('2025-06-10T00:00:00.000Z');
+
+    const result = await scheduleActionsController.newAddSchedules(
+      {
+        schedule: {
+          idWork: 3146044,
+          dataProg: date,
+          startTime: '08:00',
+          finishTime: '07:00',
+          serviceType: 'Inspeção Elétrica',
+          prog: 100,
+          idProgRestriction1: 1,
+          idProgRestriction2: 1,
+        },
+        services: [{ id: 1, idTeam: 1, prog: 1 }],
+      },
+      mockReq,
+    );
+
+    expect(result).toEqual({
+      data: 1,
+      statusCode: HttpStatus.CREATED,
+      message: 'Programação inserida com sucesso',
+    });
+    expect(handleAddScheduleService.newAdd).toHaveBeenCalledWith({
+      schedule: {
+        idWork: 3146044,
+        dataProg: date,
+        startTime: '08:00',
+        finishTime: '07:00',
+        serviceType: 'Inspeção Elétrica',
+        prog: 100,
+        idProgRestriction1: 1,
+        idProgRestriction2: 1,
+        idUser: 1,
+      },
+      services: [{ id: 1, idTeam: 1, prog: 1 }],
+    });
   });
 
   it('Should call addSchedules and return message', async () => {
@@ -123,13 +167,13 @@ describe('ScheduleActionsController', () => {
     });
   });
 
-  describe('UpdateSchedules', () => {
+  describe('oldUpdateSchedules', () => {
     it('Should call updateSchedules and return message', async () => {
-      jest.spyOn(handleSchedulesUpdateService, 'update').mockResolvedValue();
+      jest.spyOn(handleSchedulesUpdateService, 'oldUpdate').mockResolvedValue();
 
-      const result = await scheduleActionsController.updateSchedules(
+      const result = await scheduleActionsController.oldUpdateSchedules(
         1,
-        mockFiles,
+        [],
         mockUpdateSchedulesController,
         mockReq,
       );
@@ -138,7 +182,7 @@ describe('ScheduleActionsController', () => {
         statusCode: HttpStatus.NO_CONTENT,
         message: 'Atualização da programação feita com sucesso',
       });
-      expect(handleSchedulesUpdateService.update).toHaveBeenCalledWith(
+      expect(handleSchedulesUpdateService.oldUpdate).toHaveBeenCalledWith(
         {
           updateData: {
             id: 1,
@@ -156,11 +200,11 @@ describe('ScheduleActionsController', () => {
     });
 
     it('Should call update method and return correct data', async () => {
-      jest.spyOn(handleSchedulesUpdateService, 'update').mockResolvedValue();
+      jest.spyOn(handleSchedulesUpdateService, 'oldUpdate').mockResolvedValue();
 
-      const result = await scheduleActionsController.updateSchedules(
+      const result = await scheduleActionsController.oldUpdateSchedules(
         1,
-        mockFiles,
+        [],
         mockUpdateSchedulesController,
         { ...mockReq, insufficientPermission: undefined },
       );
@@ -169,7 +213,7 @@ describe('ScheduleActionsController', () => {
         statusCode: HttpStatus.NO_CONTENT,
         message: 'Atualização da programação feita com sucesso',
       });
-      expect(handleSchedulesUpdateService.update).toHaveBeenCalledWith(
+      expect(handleSchedulesUpdateService.oldUpdate).toHaveBeenCalledWith(
         {
           updateData: {
             id: 1,
@@ -183,6 +227,54 @@ describe('ScheduleActionsController', () => {
         },
         undefined,
         [],
+      );
+    });
+  });
+
+  describe('newUpdateSchedules', () => {
+    it('Should call updateSchedules and return message', async () => {
+      jest.spyOn(handleSchedulesUpdateService, 'newUpdate').mockResolvedValue();
+
+      const result = await scheduleActionsController.updateSchedules(
+        1,
+        mockNewUpdateSchedulesService,
+        mockReq,
+      );
+
+      expect(result).toEqual({
+        statusCode: HttpStatus.NO_CONTENT,
+        message: 'Atualização da programação feita com sucesso',
+      });
+      expect(handleSchedulesUpdateService.newUpdate).toHaveBeenCalledWith(
+        {
+          id: 1,
+          idUser: 1,
+          ...mockNewUpdateSchedulesService,
+        },
+        true,
+      );
+    });
+
+    it('Should call update method and return correct data', async () => {
+      jest.spyOn(handleSchedulesUpdateService, 'newUpdate').mockResolvedValue();
+
+      const result = await scheduleActionsController.updateSchedules(
+        1,
+        mockNewUpdateSchedulesService,
+        { ...mockReq, insufficientPermission: undefined },
+      );
+
+      expect(result).toEqual({
+        statusCode: HttpStatus.NO_CONTENT,
+        message: 'Atualização da programação feita com sucesso',
+      });
+      expect(handleSchedulesUpdateService.newUpdate).toHaveBeenCalledWith(
+        {
+          id: 1,
+          idUser: 1,
+          ...mockNewUpdateSchedulesService,
+        },
+        undefined,
       );
     });
   });
@@ -259,23 +351,6 @@ describe('ScheduleActionsController', () => {
   });
 
   describe('DTO Validation', () => {
-    it('should fail validation if exec is not a number', async () => {
-      const payload = {
-        idWork: 1,
-        dataProg: new Date(),
-        startTime: '08:00',
-        finishTime: '10:00',
-        prog: 50,
-        exec: null,
-        idUser: 1,
-      };
-
-      const dto = plainToInstance(SchedulesDataDTO, payload);
-      await validate(dto);
-
-      expect(dto.exec).toBeNull();
-    });
-
     it('should pass validation with correct values', async () => {
       const payload = {
         idWork: 1,
@@ -283,33 +358,12 @@ describe('ScheduleActionsController', () => {
         startTime: '08:00',
         finishTime: '10:00',
         prog: 50,
-        exec: 20,
         idProgRestriction1: 1,
         idProgRestriction2: 1,
         idUser: 1,
       };
 
       const dto = plainToInstance(SchedulesDataDTO, payload);
-      const errors = await validate(dto);
-
-      expect(errors.length).toBe(0);
-    });
-
-    it('should validate UpdateSchedulesDataDTO with nested SchedulesDataDTO', async () => {
-      const payload = {
-        updateData: {
-          idWork: 1,
-          dataProg: new Date(),
-          startTime: '08:00',
-          finishTime: '10:00',
-          prog: 50,
-          idProgRestriction1: 1,
-          idProgRestriction2: 1,
-          idUser: 1,
-        },
-      };
-
-      const dto = plainToInstance(UpdateSchedulesDataDTO, payload);
       const errors = await validate(dto);
 
       expect(errors.length).toBe(0);

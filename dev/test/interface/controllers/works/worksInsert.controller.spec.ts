@@ -4,11 +4,10 @@ import { WorksInsertController } from 'src/interface/controllers/works/worksInse
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-
 import {
   mockInsertNotesController,
   mockMarketWorks,
-} from '../../../mocks/mockWorksController';
+} from '../../../../test/mocks/mockWorksController';
 
 describe('WorksInsertController', () => {
   let worksController: WorksInsertController;

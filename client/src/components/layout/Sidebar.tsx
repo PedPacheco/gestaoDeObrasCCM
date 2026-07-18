@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { useUser } from "@/contexts/userContext";
-import { canAccessLink, getUserAccessLevel, links } from "@/utils/links";
+import { canAccessLink, links } from "@/utils/links";
 import {
   ChevronDownIcon,
   ChevronUpIcon,

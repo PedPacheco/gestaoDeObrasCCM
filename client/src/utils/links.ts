@@ -248,7 +248,7 @@ export const links: Link[] = [
     name: "Obras executadas",
     href: "/obras-executadas",
     allowedFor: ["interno_editor", "interno_viewer", "parceira"],
-    allowedAreas: [8, 1],
+    allowedAreas: [8, 1, 9],
   },
   {
     name: "Capacidade de execução",

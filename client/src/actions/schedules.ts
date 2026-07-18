@@ -91,6 +91,72 @@ export async function editSchedule(data: any, id: number, files?: File[]) {
   }
 }
 
+export async function newSaveSchedule(data: any) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  try {
+    const result = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/programacao/ponto-a-ponto`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      },
+    );
+
+    const res = await result.json();
+
+    if (res.statusCode !== 201) {
+      return {
+        success: false,
+        error: res.message || "Erro ao adicionar programação",
+      };
+    }
+
+    return { success: true, message: res.message, id: res.data };
+  } catch (error: any) {
+    return { success: false, message: error.message };
+  }
+}
+
+export async function newEditSchedule(data: any, id: number) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  try {
+    const result = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/programacao/${id}/ponto-a-ponto`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      },
+    );
+
+    const res = await result.json();
+
+    if (res.statusCode !== 204) {
+      return {
+        success: false,
+        error: res.message || "Erro ao editar programação",
+      };
+    }
+
+    revalidatePath(`/detalhes/${data.idWork}`);
+
+    return { success: true, message: res.message, id: data.id };
+  } catch (error: any) {
+    return { success: false, message: error.message };
+  }
+}
+
 export async function deleteSchedule(id: number, idWork: number) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;

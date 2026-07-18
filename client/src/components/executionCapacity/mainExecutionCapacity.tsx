@@ -17,13 +17,12 @@ import { fetchData } from "@/actions/fetchData.action";
 import { FiltersInterface } from "@/types/filtersInterfaces";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import { ButtonComponent } from "../common/Button";
-import ErrorModal from "../common/ErrorModal";
-import ModalComponent from "../common/Modal";
+
 import { FiltersExecutionCapacity } from "./filtersExecutionCapacity";
 import { FinancialValuesModal } from "./financialValuesModal";
+import { useFeedback } from "@/hooks/useFeedback";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -77,8 +76,7 @@ export function MainExecutionCapacity({
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [openFinancialModal, setOpenFinancialModal] = useState<boolean>(false); // fix: typo no setter
 
-  const [success, setSuccess] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { showError, showSuccess } = useFeedback();
 
   // Improvement #6: dependências granulares para evitar execuções desnecessárias
   useEffect(() => {
@@ -128,7 +126,7 @@ export function MainExecutionCapacity({
           });
 
           if (!response.success) {
-            setError(response.message);
+            showError(response.message);
             return;
           }
 
@@ -136,11 +134,11 @@ export function MainExecutionCapacity({
           setFinancialData(response.data.financialValues);
         } catch (error) {
           // Improvement #3: sem any no catch
-          if (error instanceof Error) setError(error.message);
+          if (error instanceof Error) showError(error.message);
         }
       });
     },
-    [token],
+    [showError, token],
   );
 
   const handleApplyFilters = useCallback(() => {
@@ -175,18 +173,18 @@ export function MainExecutionCapacity({
         const response = await UpdateExecutionCapacity(changedData);
 
         if (!response.success) {
-          setError(response.message);
+          showError(response.message);
           return;
         }
 
-        setSuccess(response.message);
+        showSuccess(response.message);
         setOpenModal(true);
       } catch (error) {
         // Improvement #3: sem any no catch
-        if (error instanceof Error) setError(error.message);
+        if (error instanceof Error) showError(error.message);
       }
     });
-  }, [changedData]);
+  }, [showError, showSuccess, changedData]);
 
   const toggleModal = useCallback(() => setOpenModal((prev) => !prev), []);
 
@@ -253,24 +251,11 @@ export function MainExecutionCapacity({
         </div>
       </div>
 
-      <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
-        <span className="font-semibold text-xl">{success}</span>
-      </ModalComponent>
-
       <FinancialValuesModal
         data={financialData}
         onClose={toggleFinancialModal}
         open={openFinancialModal}
       />
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </div>
   );
 }

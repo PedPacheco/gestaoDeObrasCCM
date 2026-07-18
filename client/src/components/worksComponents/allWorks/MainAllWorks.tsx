@@ -15,6 +15,7 @@ import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import MainAllWorksTable from "./allWorksTable";
 import { capitalize } from "@/utils/formatValue";
+import { useFeedback } from "@/hooks/useFeedback";
 
 interface allWorksType {
   regional: { id: string; regional: string }[];
@@ -38,7 +39,7 @@ export default function MainAllWorks({
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {},
   );
-  const [error, setError] = useState<string | null>();
+  const { showError } = useFeedback();
   const [page, setPage] = useState(0);
   const [isPending, startTransition] = useTransition();
 
@@ -70,7 +71,7 @@ export default function MainAllWorks({
 
         setFilteredData(response.data);
       } catch (error: any) {
-        setError(error.message);
+        showError(error.message);
       }
     });
   }
@@ -94,7 +95,7 @@ export default function MainAllWorks({
 
         setFilteredData(response.data);
       } catch (error: any) {
-        setError(error.message);
+        showError(error.message);
       }
     });
   }
@@ -159,15 +160,6 @@ export default function MainAllWorks({
         page={page}
         handleChangePage={handleChangePage}
       />
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </>
   );
 }

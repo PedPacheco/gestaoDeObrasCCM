@@ -1,3 +1,6 @@
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import { useCallback, useMemo, useState } from "react";
 import {
   Bar,
   CartesianGrid,
@@ -7,25 +10,24 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useCallback, useMemo, useState } from "react";
+
+import { XCircleIcon } from "@heroicons/react/24/solid";
+import {
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  IconButton,
+  Paper,
+  Typography,
+} from "@mui/material";
+
 import { ChartTooltip } from "../common/ChartTooltip";
 import { AderenciaRow, MotivoRow } from "./advancePartner";
-
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  IconButton,
-  Typography,
-  Box,
-  Chip,
-  Divider,
-  Paper,
-} from "@mui/material";
-import { XCircleIcon } from "@heroicons/react/24/solid";
-import dayjs from "dayjs";
 
 interface ModalObservacoesProps {
   open: boolean;
@@ -33,6 +35,8 @@ interface ModalObservacoesProps {
   registros: MotivoRow[];
   onClose: () => void;
 }
+
+dayjs.extend(utc);
 
 function ModalObservacoes({
   open,
@@ -210,7 +214,8 @@ function ModalObservacoes({
                     component="span"
                     sx={{ color: "#e4e4e7", fontWeight: 500 }}
                   >
-                    {dayjs(r.data_prog).format("DD/MM/YYYY").toString() ?? "—"}
+                    {dayjs(r.data_prog).utc().format("DD/MM/YYYY").toString() ??
+                      "—"}
                   </Box>
                 </Typography>
 
@@ -286,7 +291,6 @@ export function ChartReasonsReascheduling({
   aderencia,
   isPending,
 }: ChartReasonsReaschedulingProps) {
-  console.log(motivos);
   const [selectedMotivo, setSelectedMotivo] = useState<string | null>(null);
 
   const totalWorks = useMemo(
