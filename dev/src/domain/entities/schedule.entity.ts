@@ -6,8 +6,7 @@ export class Schedule {
     public readonly dataProg: Date,
     public readonly startTime: Date,
     public readonly finishTime: Date,
-    public readonly prog: number,
-    public readonly exec?: number,
+    public readonly prog?: number,
     public readonly id?: number,
     public readonly observation?: string,
     public readonly serviceType?: string,
@@ -15,13 +14,8 @@ export class Schedule {
     public readonly chi?: number,
     public readonly numDp?: string,
     public readonly temporaryKey: boolean = false,
-    public readonly lmTeam: number = 0,
-    public readonly regulTeam: number = 0,
-    public readonly lvTeam: number = 0,
     public readonly idTechnical: number = 1,
-    public readonly idExecutionRestriction: number = 1,
-    public readonly responsibility?: string,
-    public readonly executionObservation?: string,
+    public readonly observationExecution?: string,
     public readonly idProgRestriction1: number = 1,
     public readonly responsibilityProg?: string,
     public readonly responsibleName?: string,
@@ -73,7 +67,7 @@ export class Schedule {
       throw new BadRequestException('ID da obra é obrigatório');
     }
 
-    if (this.prog < 0 || this.prog > 100) {
+    if ((this.prog < 0 || this.prog > 100) && this.prog) {
       throw new BadRequestException('Programado deve estar entre 0 e 100');
     }
 
@@ -89,7 +83,6 @@ export class Schedule {
     dataProg: Date;
     startTime: Date;
     finishTime: Date;
-    prog: number;
     [key: string]: any;
   }): Schedule {
     return new Schedule(
@@ -98,7 +91,6 @@ export class Schedule {
       data.startTime,
       data.finishTime,
       data.prog,
-      data.exec,
       data.id,
       data.observation,
       data.serviceType,
@@ -106,13 +98,8 @@ export class Schedule {
       data.chi,
       data.numDp,
       data.temporaryKey,
-      data.lmTeam,
-      data.regulTeam,
-      data.lvTeam,
       data.idTechnical,
-      data.idExecutionRestriction,
-      data.responsibility,
-      data.executionObservation,
+      data.observationExecution,
       data.idProgRestriction1,
       data.responsibilityProg,
       data.responsibleName,

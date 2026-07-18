@@ -6,11 +6,14 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 export class AddSchedulesRepository implements IAddSchedulesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async addSchedules(data: any): Promise<any> {
+  async addSchedules(data: any): Promise<number> {
     try {
-      await this.prisma.programacoes.create({
+      const created = await this.prisma.programacoes.create({
         data,
+        select: { id: true },
       });
+
+      return created.id;
     } catch (error: any) {
       console.error('Erro ao inserir programacões:', error);
     }

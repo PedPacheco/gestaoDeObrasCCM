@@ -159,7 +159,6 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
         cn52n.elemento_pep,
         cn52n.def_proj,
         cn52n.material,
-        cn52n.elemento_pep,
         cn52n.cti,
         cn52n.preco,
         cn52n.qtd_necessaria,

@@ -19,6 +19,7 @@ import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 import EntryByDateTable from "./entryByDateTable";
+import { useFeedback } from "@/hooks/useFeedback";
 
 export interface MainEntryByDateFilters {
   regional: { id: string; regional: string }[];
@@ -35,7 +36,7 @@ export default function MainEntryByDate({
   token,
 }: MainInterface<MainEntryByDateFilters>) {
   const [filteredData, setFilteredData] = useState(data);
-  const [error, setError] = useState<string | null>();
+  const { showError } = useFeedback();
   const { clearFilters, filters, saveFilters } = useSaveFilters({
     pageKey: "entryByDateFilters",
     data: filtersData,
@@ -75,7 +76,7 @@ export default function MainEntryByDate({
 
         setFilteredData(response.data);
       } catch (error: any) {
-        setError(error.message);
+        showError(error.message);
       }
     });
   }
@@ -179,15 +180,6 @@ export default function MainEntryByDate({
       </div>
 
       <EntryByDateTable data={filteredData.works} columns={columns} />
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </>
   );
 }

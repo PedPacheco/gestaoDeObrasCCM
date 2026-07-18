@@ -60,6 +60,18 @@ vi.mock("@/utils/formatValue", () => ({
   ),
 }));
 
+vi.mock("@/hooks/useFeedback", () => ({
+  useFeedback: () => ({
+    showSuccess: vi.fn(),
+    showError: vi.fn(),
+  }),
+}));
+
+describe("Details Page", () => {
+  const mockId = "123";
+  const mockCookieStore = {
+    get: vi.fn(() => ({ value: "mock-token" })),
+  };
 // ============================================================
 // HELPERS
 // ============================================================
@@ -137,6 +149,25 @@ describe("Details Page", () => {
       setupMocks();
       await renderPage();
 
+<<<<<<< HEAD
+    expect(fetchData).toHaveBeenCalledWith(
+      "https://api.example.com/obras/123",
+      undefined,
+      "mock-token",
+      { cache: "no-store" },
+    );
+    expect(fetchData).toBeCalledTimes(4);
+    expect(fetchFilters).toHaveBeenCalledWith({
+      circuito: true,
+      empreendimento: true,
+      municipio: true,
+      tipo: true,
+      restricao: true,
+      tecnico: true,
+      parceira: true,
+      status: true,
+      tipoRestricao: ["EXECUÇÃO", "PROGRAMAÇÃO", "PUBLICAÇÃO"],
+=======
       expect(screen.getByTestId("emotion-cache")).toBeInTheDocument();
       expect(screen.getByTestId("work-details")).toBeInTheDocument();
       expect(screen.getByTestId("tab-panel")).toBeInTheDocument();
@@ -166,6 +197,7 @@ describe("Details Page", () => {
       expect(error).toBeInTheDocument();
       expect(error.textContent).toBe("Obra não encontrada");
       expect(screen.queryByTestId("work-details")).not.toBeInTheDocument();
+>>>>>>> 7119125a38dbd02133b8e606db209840d184654a
     });
   });
 
@@ -194,7 +226,15 @@ describe("Details Page", () => {
     it("deve usar dayjs() como fallback quando entrada é null", async () => {
       setupMocks({ entrada: null, prazo: 10 });
 
+<<<<<<< HEAD
+    const details = screen.getByTestId("work-details");
+    expect(details.getAttribute("data-background")).toBe(
+      "bg-green-600 text-zinc-100",
+    );
+  });
+=======
       await renderPage();
+>>>>>>> 7119125a38dbd02133b8e606db209840d184654a
 
       const wd = screen.getByTestId("work-details");
       const expectedEntrada = dayjs().utc().format("DD/MM/YYYY");
@@ -204,7 +244,15 @@ describe("Details Page", () => {
     it("deve retornar string vazia quando data_conclusao é null", async () => {
       setupMocks({ data_conclusao: null });
 
+<<<<<<< HEAD
+    const details = screen.getByTestId("work-details");
+    expect(details.getAttribute("data-background")).toBe(
+      "bg-red-600 text-zinc-100",
+    );
+  });
+=======
       await renderPage();
+>>>>>>> 7119125a38dbd02133b8e606db209840d184654a
 
       const wd = screen.getByTestId("work-details");
       expect(wd.dataset.conclusao).toBe("");

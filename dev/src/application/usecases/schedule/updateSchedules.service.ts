@@ -8,7 +8,6 @@ import { parseTimeToDate } from 'src/utils/parseTimeToDate';
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { ScheduleExecutionValidatorService } from './scheduleExecutionValidator.service';
 import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
 import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
 import {
@@ -25,35 +24,12 @@ export class UpdateSchedulesService {
     private readonly findScheduleByIdRepository: FindScheduleByIdRepository,
     @Inject(STATUS_FLOW_REPOSITORY)
     private readonly statusFlowRepository: IStatusFlowRepository,
-    private readonly executionValidator: ScheduleExecutionValidatorService,
   ) {}
 
   async update(data: UpdateSchedulesInterface, tx: Prisma.TransactionClient) {
     if (!data) {
       throw new BadRequestException(
         'Nenhuma programação fornecida para inserção.',
-      );
-    }
-
-    if (data.exec || data.exec === 0) {
-      const executionValues =
-        await this.updateSchedulesRepository.findExecutionOfSchedules(
-          data.id,
-          data.idWork,
-        );
-
-      const executed = executionValues.reduce(
-        (total, item) => ({
-          exec: total.exec + (item.exec || 0),
-          prog: total.prog + (item.prog || 0),
-        }),
-        { exec: 0, prog: 0 },
-      );
-
-      await this.executionValidator.validateExecutionAndUpdateStatus(
-        data,
-        executed,
-        tx,
       );
     }
 
@@ -78,24 +54,16 @@ export class UpdateSchedulesService {
 
     const formattedData = {
       id: schedule.id,
-      id_obra: schedule.idWork,
       data_prog: schedule.dataProg,
       prog: schedule.prog,
-      exec: schedule.exec,
       observacao_programacao: schedule.observation,
       equip_desligado: schedule.equipment,
       num_dp: schedule.numDp,
       hora_ini: schedule.startTime,
       hora_ter: schedule.finishTime,
-      equipe_linha_morta: schedule.lmTeam,
-      equipe_linha_viva: schedule.lvTeam,
-      equipe_regularizacao: schedule.regulTeam,
       chave_provisoria: schedule.temporaryKey,
       tipo_servico: schedule.serviceType,
       chi: schedule.chi,
-      nome_responsavel_execucao: schedule.responsibility,
-      id_restricao_execucao: schedule.idExecutionRestriction,
-      observacao_execucao: schedule.executionObservation,
       id_restricao_prog1: schedule.idProgRestriction1,
       responsabilidade1: schedule.responsibilityProg,
       nome_responsavel: schedule.responsibleName,
@@ -129,7 +97,7 @@ export class UpdateSchedulesService {
       return {
         success: true,
         scheduleId: schedule.id,
-        scheduledFinishTime: schedule.finishTime,
+        scheduleFinishTime: schedule.finishTime,
         idWork: schedule.idWork,
       };
     } catch (err: any) {

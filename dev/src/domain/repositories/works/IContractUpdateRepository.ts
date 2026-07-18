@@ -3,7 +3,6 @@ export interface ContractUpdateRepositoryInterface {
   ordemDiagrama: string;
   ordemField: string;
   dataEmpreitamento: Date;
-  tipoAds: string;
 }
 
 export interface IContractUpdateRepository {

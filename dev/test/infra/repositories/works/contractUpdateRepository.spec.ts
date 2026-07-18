@@ -16,14 +16,12 @@ describe('ContractUpdateRepository', () => {
       ordemDiagrama: '1800',
       ordemField: 'ordem_dcim',
       dataEmpreitamento: new Date('2025-09-02'),
-      tipoAds: 'CONVENCIONAL',
     },
     {
       ovnota: '2345',
       ordemDiagrama: '1700',
       ordemField: 'ordem_dci',
       dataEmpreitamento: new Date('2025-09-02'),
-      tipoAds: 'CONVENCIONAL',
     },
   ];
 
@@ -61,7 +59,6 @@ describe('ContractUpdateRepository', () => {
           },
           data: {
             data_empreitamento: work.dataEmpreitamento,
-            tipo_ads: work.tipoAds,
             id_status: 1,
           },
         });

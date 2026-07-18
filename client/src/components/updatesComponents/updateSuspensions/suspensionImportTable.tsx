@@ -4,17 +4,18 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { forwardRef, useEffect, useState } from "react";
 import { TableComponents, TableVirtuoso } from "react-virtuoso";
+
 import {
   MenuItem,
   Paper,
   Select,
+  SelectChangeEvent,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  SelectChangeEvent,
 } from "@mui/material";
 
 dayjs.extend(utc);
@@ -78,7 +79,7 @@ export function SuspensionImportTable() {
 
   function handleChange(index: number, value: string) {
     const updated = data.map((item, i) =>
-      i === index ? { ...item, motivo: value } : item
+      i === index ? { ...item, motivo: value } : item,
     );
     setData(updated);
     localStorage.setItem("suspensions", JSON.stringify(updated));

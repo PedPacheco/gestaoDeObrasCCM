@@ -45,7 +45,7 @@ describe('UpdateWorkService', () => {
         {
           id_status: 1,
           id_turma: 4,
-          tipo_ads: 'Convencional',
+
           data_empreitamento: new Date('05-17-2025'),
           observ_obra: 'Observação',
         },
@@ -57,7 +57,7 @@ describe('UpdateWorkService', () => {
         {
           id_status: 1,
           id_turma: 4,
-          tipo_ads: 'Convencional',
+
           data_empreitamento: new Date('05-17-2025'),
           observ_obra: 'Observação',
         },
@@ -71,7 +71,7 @@ describe('UpdateWorkService', () => {
         {
           id_status: 1,
           id_turma: 4,
-          tipo_ads: 'Convencional',
+
           data_empreitamento: new Date('05-17-2025'),
           observ_obra: '        ',
         },
@@ -83,7 +83,7 @@ describe('UpdateWorkService', () => {
         {
           id_status: 1,
           id_turma: 4,
-          tipo_ads: 'Convencional',
+
           data_empreitamento: new Date('05-17-2025'),
           observ_obra: null,
         },

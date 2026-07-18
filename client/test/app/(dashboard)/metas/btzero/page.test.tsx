@@ -62,7 +62,7 @@ describe("BT0 Page", () => {
   const mockRdaCookieValue = JSON.stringify({
     regional: ["Regional 1"],
     parceira: ["Parceira X"],
-    ano: ["2024"],
+    ano: ["2025"],
   });
 
   const mockCookieStore = {

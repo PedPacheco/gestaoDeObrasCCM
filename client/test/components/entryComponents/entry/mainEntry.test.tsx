@@ -122,6 +122,13 @@ vi.mock("@mui/x-date-pickers/AdapterDayjs", () => ({
   AdapterDayjs: vi.fn(),
 }));
 
+vi.mock("@/hooks/useFeedback", () => ({
+  useFeedback: () => ({
+    showSuccess: vi.fn(),
+    showError: vi.fn(),
+  }),
+}));
+
 vi.mock("dayjs", () => {
   const mockDayjs = vi.fn(() => ({
     format: vi.fn((format: string) => {

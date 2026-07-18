@@ -14,10 +14,10 @@ import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 
 import { ButtonComponent } from "../common/Button";
-import ErrorModal from "../common/ErrorModal";
 import { MultipleSelectComponent } from "../common/MultipleSelect";
 import GoalsTable from "./GoalsTable";
 import ModalTotalGoalValues from "./ModalTotalGoalValues";
+import { useFeedback } from "@/hooks/useFeedback";
 
 export type TypeGoals = "rda" | "recomposicao" | "bt0";
 
@@ -66,7 +66,9 @@ export default function MainGoals({
 
   const [filteredData, setFilteredData] = useState<GoalItem[]>(data);
   const [open, setOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const { showError } = useFeedback();
+
   const [isPending, startTransition] = useTransition();
 
   const [selectedYear, setSelectedYear] = useState<string[]>(
@@ -135,10 +137,10 @@ export default function MainGoals({
         );
         setFilteredData(response.data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Erro ao buscar dados");
+        showError(err instanceof Error ? err.message : "Erro ao buscar dados");
       }
     });
-  }, [buildParams, buildFormattedParams, saveFilters, token]);
+  }, [showError, buildParams, buildFormattedParams, saveFilters, token]);
 
   const handleCleaningFilters = useCallback(() => {
     setSelectedParceiras([]);
@@ -162,10 +164,12 @@ export default function MainGoals({
         );
         setFilteredData(response.data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Erro ao limpar filtros");
+        showError(
+          err instanceof Error ? err.message : "Erro ao limpar filtros",
+        );
       }
     });
-  }, [clearFilters, defaultYear, token, typeGoals]);
+  }, [showError, clearFilters, defaultYear, token, typeGoals]);
 
   const generateExcel = useCallback(async () => {
     if (!token) return;
@@ -185,11 +189,11 @@ export default function MainGoals({
       link.click();
       window.URL.revokeObjectURL(link.href);
     } catch (err) {
-      setError(
+      showError(
         err instanceof Error ? err.message : "Erro ao exportar planilha",
       );
     }
-  }, [buildFormattedParams, token]);
+  }, [showError, buildFormattedParams, token]);
 
   const conditionalFilter: Partial<Record<TypeGoals, React.ReactNode>> = {
     rda: (
@@ -317,15 +321,6 @@ export default function MainGoals({
         open={open}
         typeGoals={typeGoals}
       />
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </>
   );
 }

@@ -27,6 +27,7 @@
     "@mui/material": "^5.18.0",
     "@mui/x-date-pickers": "^7.29.4",
     "@tanstack/react-virtual": "^3.13.18",
+    "clsx": "^2.1.1",
     "dayjs": "^1.11.19",
     "exceljs": "^4.4.0",
     "jose": "^5.10.0",

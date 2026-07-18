@@ -23,7 +23,7 @@ function buildEndpoint(storageKey: string): string {
 export async function InsertAuxiliaryBaseMarket(
   data: unknown[] | NotesInterface,
   storageKey: string,
-  operation: string
+  operation: string,
 ): Promise<InsertResult> {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
@@ -47,7 +47,7 @@ export async function InsertAuxiliaryBaseMarket(
           data: data,
           operation: operation ?? undefined,
         }),
-      }
+      },
     );
 
     const result = await response.json();
@@ -86,7 +86,7 @@ export async function InsertCapex(data: any) {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
-      }
+      },
     );
 
     const res = await result.json();

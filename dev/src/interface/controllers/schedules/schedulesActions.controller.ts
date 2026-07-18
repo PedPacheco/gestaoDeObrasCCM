@@ -5,6 +5,8 @@ import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecas
 import { AreaEditGuard } from 'src/core/guards/newPermission.guard';
 import {
   ConfirmSchedulesDTO,
+  CreateScheduleWithServicesDTO,
+  NewSchedulesDataDTO,
   RejectScheduleDTO,
   SchedulesDataDTO,
   UpdateSchedulesDataDTO,
@@ -44,6 +46,31 @@ export class SchedulesActionsController {
     const data = { ...schedulesData, idUser };
 
     const id = await this.handleAddScheduleService.add(data);
+
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'Programação inserida com sucesso',
+      data: id,
+    };
+  }
+
+  @Post('ponto-a-ponto')
+  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
+  async newAddSchedules(
+    @Body() schedulesData: CreateScheduleWithServicesDTO,
+    @Req() req: any,
+  ) {
+    const idUser = req.user.sub;
+
+    const data = {
+      ...schedulesData,
+      schedule: {
+        ...schedulesData.schedule,
+        idUser,
+      },
+    };
+
+    const id = await this.handleAddScheduleService.newAdd(data);
 
     return {
       statusCode: HttpStatus.CREATED,
@@ -96,10 +123,35 @@ export class SchedulesActionsController {
     };
   }
 
+  @Patch(':id/ponto-a-ponto')
+  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
+  async updateSchedules(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() schedulesData: NewSchedulesDataDTO,
+    @Req() req: any,
+  ) {
+    let permission: boolean;
+
+    if (req.insufficientPermission !== undefined) {
+      permission = req.insufficientPermission;
+    }
+
+    const idUser = req.user.sub;
+
+    const data = { id, idUser, ...schedulesData };
+
+    await this.handleSchedulesUpdateService.newUpdate(data, permission);
+
+    return {
+      statusCode: HttpStatus.NO_CONTENT,
+      message: 'Atualização da programação feita com sucesso',
+    };
+  }
+
   @Patch(':id')
   @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   @UseInterceptors(FilesInterceptor('files'))
-  async updateSchedules(
+  async oldUpdateSchedules(
     @Param('id', ParseIntPipe) id: number,
     @UploadedFiles() files: Express.Multer.File[],
     @Body() schedulesData: UpdateSchedulesDataDTO,
@@ -123,7 +175,7 @@ export class SchedulesActionsController {
       }),
     };
 
-    await this.handleSchedulesUpdateService.update(data, permission, files);
+    await this.handleSchedulesUpdateService.oldUpdate(data, permission, files);
 
     return {
       statusCode: HttpStatus.NO_CONTENT,

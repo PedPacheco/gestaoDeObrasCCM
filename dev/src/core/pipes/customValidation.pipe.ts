@@ -1,17 +1,18 @@
-// custom-validation.pipe.ts
 import { ValidationPipe, ValidationPipeOptions } from '@nestjs/common';
 
 export class CustomValidationPipe extends ValidationPipe {
-  options: ValidationPipeOptions;
+  private readonly options: ValidationPipeOptions;
+
   constructor(options?: ValidationPipeOptions) {
     super(options);
+    this.options = options;
   }
 
   async transform(value: any, metadata: any) {
-    // Lista de DTOs que devem ignorar whitelist
     const noWhitelistDTOs = [
       'UpdateSchedulesDataDTO',
       'UpdateExecutionReportDTO',
+      'FinalizeServicesDTO',
     ];
 
     if (
@@ -19,10 +20,12 @@ export class CustomValidationPipe extends ValidationPipe {
       noWhitelistDTOs.includes(metadata.metatype.name)
     ) {
       const pipeWithoutWhitelist = new ValidationPipe({
-        ...this.options,
+        ...this.options, // ✅ agora existe
         whitelist: false,
+        transform: true,
         forbidNonWhitelisted: false,
       });
+
       return pipeWithoutWhitelist.transform(value, metadata);
     }
 

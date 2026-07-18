@@ -34,6 +34,13 @@ vi.mock("@/actions/works", () => ({
   DeleteWork: vi.fn(),
 }));
 
+vi.mock("@/hooks/useFeedback", () => ({
+  useFeedback: () => ({
+    showSuccess: vi.fn(),
+    showError: vi.fn(),
+  }),
+}));
+
 describe("DeleteButton component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -58,72 +65,5 @@ describe("DeleteButton component", () => {
     await waitFor(() => {
       expect(DeleteWork).toHaveBeenCalledWith("notesEntryData", 56);
     });
-    expect(screen.getByTestId("modal")).toBeInTheDocument();
-  });
-
-  it("deve renderizar a modal de erro no clique do usuário", async () => {
-    const user = userEvent.setup();
-    vi.mocked(DeleteWork).mockResolvedValue({
-      success: false,
-      error: "Erro ao inserir obra",
-    });
-
-    render(<DeleteButton storageKey="notesEntryData" id={56} />);
-    await user.click(screen.getByText("Remover"));
-
-    await waitFor(() => {
-      expect(DeleteWork).toHaveBeenCalledWith("notesEntryData", 56);
-    });
-    expect(screen.getByTestId("error-modal")).toBeInTheDocument();
-  });
-
-  it("deve renderizar a modal de erro caso aconteça um erro ao deletar obra", async () => {
-    const user = userEvent.setup();
-    vi.mocked(DeleteWork).mockRejectedValue(new Error("Network error"));
-
-    render(<DeleteButton storageKey="notesEntryData" id={56} />);
-    await user.click(screen.getByText("Remover"));
-
-    await waitFor(() => {
-      expect(DeleteWork).toHaveBeenCalledWith("notesEntryData", 56);
-    });
-    expect(screen.getByTestId("error-modal")).toBeInTheDocument();
-  });
-
-  it("deve fechar o modal de erro ao clicar em close", async () => {
-    const user = userEvent.setup();
-    render(<DeleteButton storageKey="notesEntryData" id={56} />);
-
-    await user.click(screen.getByText("Remover"));
-
-    await waitFor(() => {
-      expect(screen.getByTestId("error-modal")).toBeInTheDocument();
-    });
-
-    const closeButton = screen.getByTestId("error-close");
-    await user.click(closeButton);
-
-    expect(screen.queryByTestId("error-modal")).not.toBeInTheDocument();
-  });
-
-  it("deve fechar o modal de sucesso ao clicar em close", async () => {
-    const user = userEvent.setup();
-    vi.mocked(DeleteWork).mockResolvedValue({
-      success: true,
-      message: "Obra deletad com sucesso",
-    });
-
-    render(<DeleteButton storageKey="notesEntryData" id={56} />);
-
-    await user.click(screen.getByText("Remover"));
-
-    await waitFor(() => {
-      expect(screen.getByTestId("modal")).toBeInTheDocument();
-    });
-
-    const closeButton = screen.getByTestId("modal-close");
-    await user.click(closeButton);
-
-    expect(screen.queryByTestId("modal")).not.toBeInTheDocument();
   });
 });
