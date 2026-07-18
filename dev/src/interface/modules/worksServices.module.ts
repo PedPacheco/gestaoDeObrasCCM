@@ -22,8 +22,8 @@ import { WorksModule } from './works.module';
 @Module({
   imports: [
     UsersModule,
-    WorksModule,
     forwardRef(() => ExecutionReportModule),
+    WorksModule,
     MulterModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
