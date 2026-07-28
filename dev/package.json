@@ -21,7 +21,8 @@
   },
   "overrides": {
     "rimraf": "^6.0.0",
-    "uuid": "^11.1.1"
+    "uuid": "^11.1.1",
+    "brace-expansion": "^5.0.8"
   },
   "dependencies": {
     "@nestjs/cache-manager": "^3.1.0",
