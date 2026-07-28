@@ -16,7 +16,6 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
-import { EmailService } from './email.service';
 import { UsersService } from './users.service';
 import { loginInterfaceService } from 'src/interface/types/userInterface';
 
@@ -25,7 +24,6 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    private emailService: EmailService,
     @Inject(AUTH_REPOSITORY) private authRepository: IAuthRepository,
   ) {}
 
@@ -97,13 +95,6 @@ export class AuthService {
       });
 
       const created = await this.authRepository.register(user);
-
-      // await this.emailService.sendEmail(
-      //   '10009591@edp.com.br',
-      //   'Bem vindo ao sistema',
-      //   `Usuário: ${username}
-      // Senha: ${password}`,
-      // );
 
       return created;
     } catch (error) {
