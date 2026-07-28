@@ -4,11 +4,12 @@ import { cookies } from "next/headers";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import { WorkDetails } from "@/components/details/workDetails/workDetails";
-import { formatPercentage } from "@/utils/formatValue";
-import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
-import TabPanel from "@/components/details/tabPanel/TabPanel";
+import NewTabPanel from "@/components/details/tabPanel/newTabPanel";
+import { WorkDetails } from "@/components/details/workDetails/workDetails";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
+import { formatPercentage } from "@/utils/formatValue";
+import OldTabPanel from "@/components/details/tabPanel/oldTabPanel";
 
 dayjs.extend(utc);
 
@@ -22,8 +23,8 @@ interface DetailsParams {
 
 const FETCH_OPTIONS = { cache: "no-store" } as const;
 
-const formatDate = (date: dayjs.Dayjs | null): string => {
-  return date ? date.utc().format("DD/MM/YYYY") : "";
+const formatDate = (date: dayjs.Dayjs): string => {
+  return date.utc().format("DD/MM/YYYY");
 };
 
 const calculateDeadline = (entrada: dayjs.Dayjs, prazo: number) => {
@@ -94,12 +95,15 @@ function processWorkData(data: any) {
     entrada: formatDate(entrada),
     prazo: prazo.toString(),
     prazoFinal: formatDate(prazoFinal),
-    data_conclusao: formatDate(
-      data.data_conclusao ? dayjs(data.data_conclusao) : null,
-    ),
-    dataEmpreitamento: formatDate(
-      data.data_empreitamento ? dayjs(data.data_empreitamento) : null,
-    ),
+    data_conclusao: data.data_conclusao
+      ? formatDate(dayjs(data.data_conclusao))
+      : null,
+    dataEmpreitamento: data.data_empreitamento
+      ? formatDate(dayjs(data.data_empreitamento))
+      : null,
+    dataViabilidade: data.data_envio
+      ? formatDate(dayjs(data.data_envio))
+      : null,
     backgroundColor: getBackgroundColor(data.grupo, data.ano_plan),
     executadoFormatted: formatPercentage(data.executado) || "",
   };
@@ -110,13 +114,17 @@ export default async function Details({ params }: DetailsParams) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
+  const userInfo = cookieStore.get("userInfo")?.value;
+
+  const user = userInfo ? JSON.parse(userInfo) : null;
+
   // Buscar todos os dados em paralelo
   const [
     options,
     workData,
     executionReportData,
     rejectionsData,
-    feasibilityExists,
+    feasibilityData,
     publicationRestriction,
   ] = await fetchAllData(id, token);
 
@@ -128,26 +136,38 @@ export default async function Details({ params }: DetailsParams) {
   const { data } = workData;
   const formattedData = processWorkData(data);
 
+  const userPermissionToEdit =
+    (user.tipo_usuario === "PARCEIRO" && user.id_turma === 2) ||
+    (user.tipo_usuario === "INTERNO" && user.id_regional === 1) ||
+    user.is_admin;
+
+  const useNewFlow = data.programacao_ponto_a_ponto && userPermissionToEdit;
+
+  const tabPanelProps = {
+    workData: data,
+    options,
+    id,
+    executionReportData: executionReportData.data,
+    rejectionsData: rejectionsData.data,
+    feasibilityData: feasibilityData.data,
+    publicationRestrictionData: publicationRestriction.data,
+  };
+
   return (
     <EmotionCacheProvider>
       <div className="flex flex-col items-center w-full overflow-y-auto h-screen">
         <div className="w-full h-full flex flex-col">
           <WorkDetails
             data={data}
-            idWork={Number(id)}
+            idWork={data.id}
             formattedData={formattedData}
             options={options}
-            feasibilityExists={feasibilityExists.data}
           />
-          <TabPanel
-            workData={data}
-            options={options}
-            id={id}
-            executionReportData={executionReportData.data}
-            rejectionsData={rejectionsData.data}
-            feasibilityExists={feasibilityExists.data}
-            publicationRestrictionData={publicationRestriction.data}
-          />
+          {useNewFlow ? (
+            <NewTabPanel {...tabPanelProps} />
+          ) : (
+            <OldTabPanel {...tabPanelProps} />
+          )}
         </div>
       </div>
     </EmotionCacheProvider>

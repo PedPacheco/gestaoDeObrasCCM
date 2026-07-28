@@ -1,6 +1,11 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+<<<<<<< HEAD
+// Mock actions
+vi.mock("@/actions/services", () => ({
+  storeScheduleDataAction: vi.fn(),
+=======
 // ============================================================
 // vi.hoisted — variáveis acessíveis dentro dos vi.mock factories
 // ============================================================
@@ -46,6 +51,7 @@ const {
 
 vi.mock("@/contexts/userContext", () => ({
   useUser: vi.fn(() => ({ permissions: mockPermissions.current })),
+>>>>>>> 7119125a38dbd02133b8e606db209840d184654a
 }));
 
 vi.mock("@/hooks/details/useScheduleForm", () => ({
@@ -56,7 +62,125 @@ vi.mock("@/hooks/details/useScheduleForm", () => ({
   })),
 }));
 
+<<<<<<< HEAD
+// Mock panel items
+vi.mock("@/components/details/panelItems/workCostPanelItem", () => ({
+  default: ({ data }: any) => (
+    <div data-testid="work-cost-panel">Custos: {data?.name}</div>
+  ),
+}));
+
+vi.mock("@/components/details/panelItems/schedulePanelItem", () => ({
+  default: ({ data, onEdit, onDelete }: any) => (
+    <div data-testid="schedule-panel">
+      {data?.map((item: any, index: number) => (
+        <div key={index}>
+          <button
+            onClick={() => onEdit(item)}
+            data-testid={`edit-schedule-${index}`}
+          >
+            Editar
+          </button>
+          <button
+            onClick={() => onDelete(item.id)}
+            data-testid={`delete-schedule-${index}`}
+          >
+            Excluir
+          </button>
+        </div>
+      ))}
+    </div>
+  ),
+}));
+
+vi.mock(
+  "@/components/details/panelItems/RejectionsOfSchedulesPanelItem",
+  () => ({
+    default: ({ data, onEdit, onDelete }: any) => (
+      <div data-testid="rejections-panel">
+        {data?.map((item: any, index: number) => (
+          <div key={index}>
+            <button
+              onClick={() => onEdit(item)}
+              data-testid={`edit-schedule-${index}`}
+            >
+              Editar
+            </button>
+            <button
+              onClick={() => onDelete(item.id)}
+              data-testid={`delete-schedule-${index}`}
+            >
+              Excluir
+            </button>
+          </div>
+        ))}
+      </div>
+    ),
+  }),
+);
+
+vi.mock("@/components/details/panelItems/executionReportPanelItem", () => ({
+  default: ({ data, onEdit, onDelete }: any) => (
+    <div data-testid="execution-report-panel">
+      {data?.map((item: any, index: number) => (
+        <div key={index}>
+          <button
+            onClick={() => onEdit(item)}
+            data-testid={`edit-execution-${index}`}
+          >
+            Editar
+          </button>
+          <button
+            onClick={() => onDelete(item.id)}
+            data-testid={`delete-execution-${index}`}
+          >
+            Excluir
+          </button>
+        </div>
+      ))}
+    </div>
+  ),
+}));
+
+const showErrorMock = vi.fn();
+const showSuccessMock = vi.fn();
+const handleDialogMock = vi.fn();
+const handleExecutionDialogMock = vi.fn();
+const handleRejectedModalOpenMock = vi.fn();
+const openConfirmDeleteScheduleMock = vi.fn();
+const openConfirmDeleteExecutionMock = vi.fn();
+
+vi.mock("@/components/details/modals/detailsModals", () => ({
+  ModalsManager: vi.fn((props: any) => {
+    const { ref } = props;
+    if (ref) {
+      ref.current = {
+        showError: showErrorMock,
+        showSuccess: showSuccessMock,
+        handleDialog: handleDialogMock,
+        handleExecutionDialog: handleExecutionDialogMock,
+        handleRejectedModalOpen: handleRejectedModalOpenMock,
+        openConfirmDeleteSchedule: openConfirmDeleteScheduleMock,
+        openConfirmDeleteExecution: openConfirmDeleteExecutionMock,
+      };
+    }
+    return <div data-testid="modals-manager">ModalsManager</div>;
+  }),
+}));
+
+const mockHandleConfirm = vi.fn();
+const mockHandleDelete = vi.fn();
+const mockHandleExecutionReportDelete = vi.fn();
+const mockHandleValidated = vi.fn();
+const mockHandleReject = vi.fn();
+const mockSetConfirmedSchedule = vi.fn();
+const mockSetValidatedSchedule = vi.fn();
+const mockSetRejectedSchedule = vi.fn();
+
+vi.mock("@/hooks/useScheduleHandlers", () => ({
+=======
 vi.mock("@/hooks/details/useScheduleHandlers", () => ({
+>>>>>>> 7119125a38dbd02133b8e606db209840d184654a
   useScheduleHandlers: vi.fn(() => ({
     handleConfirm: mockHandleConfirm,
     handleDelete: mockHandleDelete,
@@ -92,6 +216,25 @@ vi.mock("@/components/details/modals/detailsModals", () => {
   };
 });
 
+<<<<<<< HEAD
+vi.mock("@/hooks/useFeedback", () => ({
+  useFeedback: () => ({
+    showSuccess: vi.fn(),
+    showError: vi.fn(),
+  }),
+}));
+
+describe("TabPanel Component", () => {
+  const mockWorkData = {
+    id: "1",
+    id_status: "1",
+    name: "Test Work",
+    programacoes: [
+      { id: 1, name: "Schedule 1", exec: "50" },
+      { id: 2, name: "Schedule 2", exec: undefined },
+    ],
+  };
+=======
 vi.mock("@/components/details/tabPanel/tabsActions", () => ({
   __esModule: true,
   default: (props: any) => (
@@ -115,6 +258,7 @@ vi.mock("@/components/details/tabPanel/tabsActions", () => ({
     </div>
   ),
 }));
+>>>>>>> 7119125a38dbd02133b8e606db209840d184654a
 
 vi.mock("@/components/details/panelItems/workCostPanelItem", () => ({
   __esModule: true,
@@ -123,6 +267,35 @@ vi.mock("@/components/details/panelItems/workCostPanelItem", () => ({
   ),
 }));
 
+<<<<<<< HEAD
+  const mockRejections = [
+    {
+      motivo: "",
+      data_prog: "",
+      hora_ini: "",
+      hora_ter: "",
+      prog: "",
+      descricao: "",
+      equip_desligado: "",
+      equipe_linha_morta: "",
+      equipe_linha_viva: "",
+      equipe_regularizacao: "",
+      tipo_servico: "",
+      observacao_programacao: "",
+    },
+  ];
+
+  const mockOptions = { option1: "value1" };
+
+  const defaultProps = {
+    workData: mockWorkData,
+    executionReportData: mockExecutionReportData,
+    options: mockOptions,
+    feasibilityExists: [],
+    rejectionsData: mockRejections,
+    id: "1",
+  };
+=======
 vi.mock("@/components/details/panelItems/schedulePanelItem", () => ({
   __esModule: true,
   default: ({ onEdit, onDelete }: any) => (
@@ -154,6 +327,7 @@ vi.mock("@/components/details/panelItems/executionReportPanelItem", () => ({
     </div>
   ),
 }));
+>>>>>>> 7119125a38dbd02133b8e606db209840d184654a
 
 vi.mock(
   "@/components/details/panelItems/rejectionsOfSchedulesPanelItem",
@@ -251,9 +425,13 @@ describe("TabPanel", () => {
     it("deve renderizar TabActions e ModalsManager", () => {
       renderComponent();
 
+<<<<<<< HEAD
+      expect(screen.getByTestId("work-cost-panel")).toBeInTheDocument();
+=======
       expect(screen.getByTestId("tab-actions")).toBeInTheDocument();
       expect(screen.getByTestId("modals-manager")).toBeInTheDocument();
     });
+>>>>>>> 7119125a38dbd02133b8e606db209840d184654a
 
     it("deve renderizar tabpanels com role e aria corretos", () => {
       renderComponent();
@@ -430,6 +608,10 @@ describe("TabPanel", () => {
       expect(screen.getByTestId("execution-report-panel")).toBeInTheDocument();
     });
 
+<<<<<<< HEAD
+      fireEvent.click(screen.getByText("Reprovações"));
+      expect(screen.getByTestId("rejections-panel")).toBeInTheDocument();
+=======
     it("deve mostrar PublicationRestrictionsPanel na tab 4", () => {
       renderComponent();
       fireEvent.click(screen.getByTestId("tab-4"));
@@ -440,6 +622,7 @@ describe("TabPanel", () => {
       renderComponent();
       fireEvent.click(screen.getByTestId("tab-5"));
       expect(screen.getByText("Em breve")).toBeInTheDocument();
+>>>>>>> 7119125a38dbd02133b8e606db209840d184654a
     });
 
     it("tabs inativas devem ter atributo hidden", () => {
@@ -660,6 +843,8 @@ describe("TabPanel", () => {
       expect(props.statusWork).toBe(9);
     });
   });
+<<<<<<< HEAD
+=======
 
   // ----------------------------------------------------------
   // useScheduleHandlers — setError / setSuccess
@@ -696,4 +881,5 @@ describe("TabPanel", () => {
       expect(call.options).toEqual(defaultProps.options);
     });
   });
+>>>>>>> a7a509c77690b8fb62bbf36bcdf7efbe0dee13c3
 });

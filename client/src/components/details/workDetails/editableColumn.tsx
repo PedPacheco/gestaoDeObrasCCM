@@ -8,8 +8,7 @@ import { ReactNode } from "react";
 interface typeData {
   id_turma: string;
   id_status: number;
-  data_empreitamento: string;
-  tipo_ads: string;
+  data_empreitamento: string | null;
 }
 
 interface EditableColumnProps {
@@ -24,6 +23,8 @@ interface EditableColumnProps {
 
 const statusOrder = [
   "EM EMPREITAMENTO",
+  "AGUARDANDO VIABILIDADE",
+  "VIABILIDADE EM APROVAÇÃO",
   "AGUARDANDO PROGRAMAÇÃO",
   "AGUARDANDO VALIDAÇÃO EDP",
   "EM PROGRAMAÇÃO",
@@ -77,20 +78,6 @@ export const EditableColumn = ({
         value={data.data_empreitamento || ""}
         isEdit={true}
         onEdit={(value) => onHandleChange("data_empreitamento", value)}
-        disabled={havePermission}
-      />
-
-      <SelectComponent
-        label="Tipo ADS"
-        menuItems={[
-          { tipo: null },
-          { tipo: "CONVENCIONAL" },
-          { tipo: "PONTO A PONTO" },
-        ]}
-        selectedItem={data.tipo_ads || ""}
-        setSelectedItem={(value) => onHandleChange("tipo_ads", value)}
-        valueKey="tipo"
-        displayKey="tipo"
         disabled={havePermission}
       />
     </>

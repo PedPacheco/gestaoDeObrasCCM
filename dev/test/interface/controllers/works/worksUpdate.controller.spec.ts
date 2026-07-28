@@ -77,7 +77,6 @@ describe('WorksUpdateController', () => {
         {
           id_turma: 1,
           id_status: 4,
-          tipo_ads: 'Convencional',
           data_empreitamento: new Date('05-17-2025'),
         },
         mockReq as CustomRequest,
@@ -92,7 +91,6 @@ describe('WorksUpdateController', () => {
         {
           id_turma: 1,
           id_status: 4,
-          tipo_ads: 'Convencional',
           data_empreitamento: new Date('05-17-2025'),
         },
         1,
@@ -110,7 +108,6 @@ describe('WorksUpdateController', () => {
         {
           ovnota: '3435',
           ordemDiagrama: '43435',
-          tipoAds: 'Convencional',
           dataEmpreitamento: new Date('05-17-2025'),
         },
       ]);
@@ -124,7 +121,6 @@ describe('WorksUpdateController', () => {
         {
           ovnota: '3435',
           ordemDiagrama: '43435',
-          tipoAds: 'Convencional',
           dataEmpreitamento: new Date('05-17-2025'),
         },
       ]);

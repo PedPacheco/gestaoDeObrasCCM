@@ -5,7 +5,7 @@ import { memo, SyntheticEvent } from "react";
 interface TabActionsProps {
   statusWork: number;
   permissions: any;
-  onNewSchedule: () => void;
+  onNewSchedule: (scheduleData: any) => Promise<void> | void;
   onValidate: () => void;
   onConfirm: () => void;
   onRejected: () => void;
@@ -14,7 +14,7 @@ interface TabActionsProps {
     event: SyntheticEvent<Element, Event>,
     newValue: number,
   ) => void;
-  feasibilityExists: any[];
+  feasibilityData: any;
   canSeeTabs: boolean;
 }
 
@@ -28,7 +28,7 @@ const TabActions = memo(
     onRejected,
     onNewSchedule,
     valueTab,
-    feasibilityExists,
+    feasibilityData,
     canSeeTabs,
   }: TabActionsProps) => {
     const canValidateOrConfirm =
@@ -64,7 +64,7 @@ const TabActions = memo(
                 disabled={
                   statusWork === 2 ||
                   statusWork === 3 ||
-                  feasibilityExists?.length === 0 ||
+                  !feasibilityData.aprovada ||
                   !permissions.permissao_edicao
                 }
                 text="Nova programação"

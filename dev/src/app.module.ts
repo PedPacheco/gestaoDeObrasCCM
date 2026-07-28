@@ -25,6 +25,7 @@ import { RestrictionsModule } from './interface/modules/restrictions.module';
 import { ScheduleModule } from './interface/modules/schedule.module';
 import { UsersModule } from './interface/modules/users.module';
 import { WorksModule } from './interface/modules/works.module';
+import { WorksServicesModule } from './interface/modules/worksServices.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { WorksModule } from './interface/modules/works.module';
     EntryModule,
     ExportModule,
     ScheduleModule,
+    WorksServicesModule,
     ExecutionReportModule,
     AuxiliaryBaseModule,
     ExecutionCapacityModule,

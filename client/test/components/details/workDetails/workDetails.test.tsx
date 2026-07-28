@@ -44,38 +44,35 @@ vi.mock("@/components/details/workDetails/dataItem", () => ({
   ),
 }));
 
-vi.mock("@mui/material", () => ({
-  IconButton: ({ children, onClick }: any) => (
-    <button onClick={onClick} data-testid="icon-button">
-      {children}
-    </button>
-  ),
-  FormControl: ({ children, className }: any) => (
-    <div data-testid="mui-form-control" className={className}>
-      {children}
-    </div>
-  ),
-  Tooltip: ({ children, title }: any) => <div title={title}>{children}</div>,
-  Select: ({ children, value, onChange, className }: any) => (
-    <select
-      value={value}
-      onChange={onChange}
-      className={className}
-      data-testid="mui-select"
-    >
-      {children}
-    </select>
-  ),
-  MenuItem: ({ children, value }: any) => (
-    <option value={value}>{children}</option>
-  ),
-}));
+vi.mock("@mui/material", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@mui/material")>();
+
+  return {
+    ...actual, // mantém Dialog, etc.
+    IconButton: ({ children, onClick }: any) => (
+      <button onClick={onClick} data-testid="icon-button">
+        {children}
+      </button>
+    ),
+    Tooltip: ({ children, title }: any) => <div title={title}>{children}</div>,
+    Select: ({ children, value, onChange }: any) => (
+      <select value={value} onChange={onChange} data-testid="mui-select">
+        {children}
+      </select>
+    ),
+    MenuItem: ({ children, value }: any) => (
+      <option value={value}>{children}</option>
+    ),
+  };
+});
 
 vi.mock("@heroicons/react/20/solid", () => ({
   ExclamationCircleIcon: () => <div data-testid="exclamation-icon" />,
   PencilIcon: () => <div data-testid="pencil-icon" />,
   CheckCircleIcon: () => <div data-testid="check-circle-icon" />,
   XMarkIcon: () => <div data-testid="x-mark-icon" />,
+  DocumentArrowUpIcon: () => <div data-testid="document-arrow-up-icon" />,
+  PhotoIcon: () => <div data-testid="photo-icon" />,
 }));
 
 vi.mock("@/components/details/modals/feasibilityImportModal", () => ({
@@ -105,25 +102,11 @@ vi.mock("@/components/common/Button", () => ({
   ),
 }));
 
-vi.mock("@/components/common/Modal", () => ({
-  default: ({ children, title, open, onClose }: any) =>
-    open ? (
-      <div data-testid="modal" role="dialog">
-        <h2>{title}</h2>
-        {children}
-        <button onClick={onClose}>Fechar</button>
-      </div>
-    ) : null,
-}));
-
-vi.mock("@/components/common/ErrorModal", () => ({
-  default: ({ message, open, onClose }: any) =>
-    open ? (
-      <div data-testid="error-modal" role="alert">
-        <p>{message}</p>
-        <button onClick={onClose}>Fechar</button>
-      </div>
-    ) : null,
+vi.mock("@/hooks/useFeedback", () => ({
+  useFeedback: () => ({
+    showSuccess: vi.fn(),
+    showError: vi.fn(),
+  }),
 }));
 
 vi.mock("@/components/common/ErrorThrower", () => ({
@@ -523,6 +506,8 @@ describe("WorkDetails", () => {
     });
   });
 
+<<<<<<< HEAD
+=======
   describe("Salvamento de alterações", () => {
     it("deve salvar alterações com sucesso", async () => {
       const user = userEvent.setup();
@@ -659,6 +644,7 @@ describe("WorkDetails", () => {
     });
   });
 
+>>>>>>> ff0c48d43746708e8adcb6973a96ca008fbb5109
   describe("Formatação de datas", () => {
     it("deve formatar data de empreitamento corretamente", async () => {
       const user = userEvent.setup();
@@ -705,6 +691,8 @@ describe("WorkDetails", () => {
     });
   });
 
+<<<<<<< HEAD
+=======
   describe("Modal de sucesso", () => {
     it("deve fechar modal de sucesso ao clicar em fechar", async () => {
       const user = userEvent.setup();
@@ -733,6 +721,7 @@ describe("WorkDetails", () => {
     });
   });
 
+>>>>>>> ff0c48d43746708e8adcb6973a96ca008fbb5109
   describe("Inserção de restrições de publicação", () => {
     it("deve salvar restrições de publicação com sucesso", async () => {
       mockInsertPublicationRestrictions.mockResolvedValue({

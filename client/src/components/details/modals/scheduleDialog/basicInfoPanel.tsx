@@ -1,6 +1,6 @@
 "use client";
 
-import { FormData } from "@/hooks/details/useScheduleForm";
+import { FormData } from "@/hooks/details/useOldScheduleForm";
 import { Grid, TextField } from "@mui/material";
 import dayjs from "dayjs";
 

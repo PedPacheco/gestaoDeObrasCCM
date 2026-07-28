@@ -11,7 +11,7 @@ import {
   mockAddSchedulesServiceDataWithoutIdWork,
   mockAddSchedulesServiceDataWithWrongProg,
   mockAddSchedulesServiceFormattedData,
-} from '../../../mocks/mockAddScheduleService';
+} from '../../../mocks/schedules/mockAddScheduleService';
 
 describe('AddSchedulesService', () => {
   let addSchedulesService: AddSchedulesService;

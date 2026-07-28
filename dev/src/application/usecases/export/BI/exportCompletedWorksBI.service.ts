@@ -56,6 +56,7 @@ export class ExportCompletedWorksBIService {
       { header: 'DATAEMPREITAMENTO', key: 'data_empreitamento', width: 20 },
       { header: 'DATAVIABILIDADE', key: 'data_viabilidade', width: 10 },
       { header: 'PRAZOVIABILIDADE', key: 'prazo_viabilidade', width: 20 },
+      { header: 'ANOPLAN', key: 'ano_plan', width: 10 },
     ];
 
     const batchSize = 1000;
