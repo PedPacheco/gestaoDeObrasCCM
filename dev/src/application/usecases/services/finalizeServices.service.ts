@@ -1,8 +1,4 @@
 import {
-  IWorksServicesRepository,
-  WORKS_SERVICE_REPOSITORY,
-} from 'src/domain/repositories/IWorksServiceRepository';
-import {
   IUpdateSchedulesRepository,
   UPDATE_SCHEDULES_REPOSITORY,
 } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
@@ -12,6 +8,15 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 
 import { ExecutionReportService } from '../executionReport.service';
 import { ScheduleExecutionValidatorService } from '../schedule/scheduleExecutionValidator.service';
+import {
+  IWorkServicesQueryRepository,
+  WORK_SERVICES_QUERY_REPOSITORY,
+} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import {
+  IWorkServicesExecutionRepository,
+  WORK_SERVICES_EXECUTION_REPOSITORY,
+} from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
+import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
 
 interface ScheduleTotals {
   prog: number;
@@ -35,13 +40,21 @@ export class FinalizeServicesService {
 
   constructor(
     private readonly prisma: PrismaService,
-    @Inject(WORKS_SERVICE_REPOSITORY)
-    private readonly worksServicesRepository: IWorksServicesRepository,
+    @Inject(WORK_SERVICES_EXECUTION_REPOSITORY)
+    private readonly worksServicesExecutionRepository: IWorkServicesExecutionRepository,
+    @Inject(WORK_SERVICES_QUERY_REPOSITORY)
+    private readonly workServicesQueryRepository: IWorkServicesQueryRepository,
     @Inject(UPDATE_SCHEDULES_REPOSITORY)
     private readonly updateSchedulesRepository: IUpdateSchedulesRepository,
     private readonly executionReportService: ExecutionReportService,
     private readonly executionValidator: ScheduleExecutionValidatorService,
   ) {}
+
+  async performServices(data: PerformServicesDTO[]): Promise<void> {
+    if (data.length === 0) return;
+
+    await this.worksServicesExecutionRepository.performServices(data);
+  }
 
   async finalizeServices(
     workId: number,
@@ -51,12 +64,18 @@ export class FinalizeServicesService {
     const { executionReportData, ...updateData } = data;
 
     const [services, history] = await Promise.all([
-      this.worksServicesRepository.getAllServicesOfWork(workId),
-      this.worksServicesRepository.getServiceScheduleHistory(workId),
+      this.workServicesQueryRepository.getAllServicesOfWork(workId),
+      this.workServicesQueryRepository.getServiceScheduleHistory(workId),
     ]);
 
     const totalPlanned = this.sumServiceQuantities(services);
+
     const scheduleTotals = this.calculateScheduleTotals(
+      history,
+      updateData.idSchedule,
+    );
+
+    const pendingExecServices = this.getPendingExecServices(
       history,
       updateData.idSchedule,
     );
@@ -72,18 +91,21 @@ export class FinalizeServicesService {
       updateData.executionObservation,
     );
 
-    console.log(finalizationData);
-
     await this.executeFinalization(
       workId,
       finalizationData,
+      pendingExecServices,
       executionReportData,
       files,
     );
   }
 
   private sumServiceQuantities(services: any[]): number {
-    return services.reduce((sum, service) => sum + (service.qtde_plan ?? 0), 0);
+    return services.reduce(
+      (sum, service) =>
+        sum + (service.viabilizado ?? 0) + (service.qtde_adicional ?? 0),
+      0,
+    );
   }
 
   private calculateScheduleTotals(
@@ -99,6 +121,15 @@ export class FinalizeServicesService {
         }),
         { prog: 0, exec: 0 },
       );
+  }
+
+  private getPendingExecServices(history: any[], scheduleId: number): number[] {
+    return history
+      .filter(
+        (service) =>
+          service.id_programacao === scheduleId && service.real == null,
+      )
+      .map((service) => service.id_servico);
   }
 
   private buildFinalizationData(
@@ -129,6 +160,7 @@ export class FinalizeServicesService {
   private async executeFinalization(
     workId: number,
     finalizationData: FinalizationData,
+    pendingExecServices: number[],
     executionReportData: any,
     files?: Express.Multer.File[],
   ): Promise<void> {
@@ -167,8 +199,9 @@ export class FinalizeServicesService {
           tx,
         );
 
-        await this.worksServicesRepository.finalizeServices(
+        await this.worksServicesExecutionRepository.finalizeServices(
           finalizationData,
+          pendingExecServices,
           tx,
         );
       } catch (error) {

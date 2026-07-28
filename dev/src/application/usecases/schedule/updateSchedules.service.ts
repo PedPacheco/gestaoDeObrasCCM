@@ -14,6 +14,7 @@ import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/repositories/IStatusFlowRepository';
+import { ScheduleExecutionValidatorService } from './scheduleExecutionValidator.service';
 
 @Injectable()
 export class UpdateSchedulesService {
@@ -24,12 +25,35 @@ export class UpdateSchedulesService {
     private readonly findScheduleByIdRepository: FindScheduleByIdRepository,
     @Inject(STATUS_FLOW_REPOSITORY)
     private readonly statusFlowRepository: IStatusFlowRepository,
+    private readonly executionValidator: ScheduleExecutionValidatorService,
   ) {}
 
   async update(data: UpdateSchedulesInterface, tx: Prisma.TransactionClient) {
     if (!data) {
       throw new BadRequestException(
         'Nenhuma programação fornecida para inserção.',
+      );
+    }
+
+    if (data.exec || data.exec === 0) {
+      const executionValues =
+        await this.updateSchedulesRepository.findExecutionOfSchedules(
+          data.id,
+          data.idWork,
+        );
+
+      const executed = executionValues.reduce(
+        (total, item) => ({
+          exec: total.exec + (item.exec || 0),
+          prog: total.prog + (item.prog || 0),
+        }),
+        { exec: 0, prog: 0 },
+      );
+
+      await this.executionValidator.validateExecutionAndUpdateStatus(
+        data,
+        executed,
+        tx,
       );
     }
 
@@ -56,6 +80,7 @@ export class UpdateSchedulesService {
       id: schedule.id,
       data_prog: schedule.dataProg,
       prog: schedule.prog,
+      exec: schedule.exec,
       observacao_programacao: schedule.observation,
       equip_desligado: schedule.equipment,
       num_dp: schedule.numDp,
@@ -64,6 +89,9 @@ export class UpdateSchedulesService {
       chave_provisoria: schedule.temporaryKey,
       tipo_servico: schedule.serviceType,
       chi: schedule.chi,
+      nome_responsavel_execucao: schedule.responsibility,
+      id_restricao_execucao: schedule.idExecutionRestriction,
+      observacao_execucao: schedule.executionObservation,
       id_restricao_prog1: schedule.idProgRestriction1,
       responsabilidade1: schedule.responsibilityProg,
       nome_responsavel: schedule.responsibleName,
