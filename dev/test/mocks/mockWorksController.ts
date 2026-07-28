@@ -137,6 +137,7 @@ export const mockResponseDetails = {
       equipe_linha_viva: 3,
       equipe_regularizacao: 0,
       tecnico: 'NÃO DEFINIDO',
+      id_restricao_execucao: 1,
       restricao: null,
       nome_responsavel_execucao: null,
       status_programacao: '3',

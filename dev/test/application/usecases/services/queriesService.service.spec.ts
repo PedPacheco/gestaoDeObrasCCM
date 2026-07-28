@@ -1,19 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
-
+import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
+import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
 import {
-  WORKS_SERVICE_REPOSITORY,
-  IWorksServicesRepository,
-} from 'src/domain/repositories/IWorksServiceRepository';
-
+  IWorkServicesQueryRepository,
+  WORK_SERVICES_QUERY_REPOSITORY,
+} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
 import {
   GetByIdParamsInterface,
   GetSelectedServicesParamsInterface,
   GetServicesByWorkIdResponse,
   GetServiceScheduleHistoryResponse,
 } from 'src/interface/types/servicesInterface';
-import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
-import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
+
+import { NotFoundException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 import { Decimal } from '@prisma/client/runtime/library';
 
 const mockHistory: GetServiceScheduleHistoryResponse[] = [
@@ -24,13 +23,15 @@ const mockHistory: GetServiceScheduleHistoryResponse[] = [
     programacoes: { data_prog: new Date('2024-01-01') },
     adicional: 1,
     equipes: { equipe: 'LM01' },
-    plan: 1,
     prog: 1,
     real: 1,
     servicos: {
       operacao: 'INSTALAÇÃO',
       ponto: 'P1',
       servicos_contratos: { texto_breve: 'POSTE' },
+      qtde_plan: 1,
+      viabilizado: 2,
+      materiais: undefined,
     },
   },
   {
@@ -40,20 +41,21 @@ const mockHistory: GetServiceScheduleHistoryResponse[] = [
     programacoes: { data_prog: new Date('2024-01-01') },
     adicional: 1,
     equipes: { equipe: 'LM01' },
-    plan: 1,
     prog: 1,
     real: 1,
     servicos: {
       operacao: 'INSTALAÇÃO',
       ponto: 'P1',
-      materiais: { descricao: 'POSTE' },
+      materiais: { descricao: 'POSTE - ODI' },
+      qtde_plan: 1,
+      viabilizado: 2,
     },
   },
 ];
 
 describe('WorksServicesService', () => {
   let service: QueriesServicesService;
-  let repository: IWorksServicesRepository;
+  let repository: IWorkServicesQueryRepository;
   let getWorkDetailsService: GetWorkDetailsService;
 
   const mockWorksServicesRepository = {
@@ -75,7 +77,7 @@ describe('WorksServicesService', () => {
       providers: [
         QueriesServicesService,
         {
-          provide: WORKS_SERVICE_REPOSITORY,
+          provide: WORK_SERVICES_QUERY_REPOSITORY,
           useValue: mockWorksServicesRepository,
         },
         {
@@ -86,7 +88,9 @@ describe('WorksServicesService', () => {
     }).compile();
 
     service = module.get<QueriesServicesService>(QueriesServicesService);
-    repository = module.get<IWorksServicesRepository>(WORKS_SERVICE_REPOSITORY);
+    repository = module.get<IWorkServicesQueryRepository>(
+      WORK_SERVICES_QUERY_REPOSITORY,
+    );
     getWorkDetailsService = module.get<GetWorkDetailsService>(
       GetWorkDetailsService,
     );
@@ -111,6 +115,8 @@ describe('WorksServicesService', () => {
         id: 1,
         id_obra: 100,
         operacao: 'Operação 1',
+        descricao_operacao: 'POSTE',
+        numero_operacao: '2000',
         ponto: 'Ponto A',
         qtde_plan: 10,
         qtde_prog: 8,
@@ -131,6 +137,8 @@ describe('WorksServicesService', () => {
         id: 2,
         id_obra: 100,
         operacao: 'Operação 2',
+        descricao_operacao: 'POSTE - ODI',
+        numero_operacao: '2000',
         ponto: 'Ponto B',
         qtde_plan: 2,
         qtde_prog: 3,
@@ -159,6 +167,8 @@ describe('WorksServicesService', () => {
           id: 1,
           idObra: 100,
           operacao: 'Operação 1',
+          descricao_operacao: 'POSTE',
+          numero_operacao: '2000',
           ponto: 'Ponto A',
           material: '12345',
           textoBreve: 'POSTE',
@@ -177,6 +187,8 @@ describe('WorksServicesService', () => {
           id: 2,
           idObra: 100,
           operacao: 'Operação 2',
+          descricao_operacao: 'POSTE - ODI',
+          numero_operacao: '2000',
           ponto: 'Ponto B',
           material: 'Material 2',
           textoBreve: 'Serviço 2',
@@ -476,6 +488,7 @@ describe('WorksServicesService', () => {
           qtdePlanejada: 1,
           qtdeProgramada: 1,
           qtdeRealizada: 1,
+          qtdeViabilizado: 2,
           operacao: 'INSTALAÇÃO',
           ponto: 'P1',
           descricao: 'POSTE',
@@ -491,9 +504,10 @@ describe('WorksServicesService', () => {
           qtdePlanejada: 1,
           qtdeProgramada: 1,
           qtdeRealizada: 1,
+          qtdeViabilizado: 2,
           operacao: 'INSTALAÇÃO',
           ponto: 'P1',
-          descricao: 'POSTE',
+          descricao: 'POSTE - ODI',
         },
       ]);
       expect(repository.getServiceScheduleHistory).toHaveBeenCalledWith(mockId);
@@ -521,79 +535,6 @@ describe('WorksServicesService', () => {
       await service.getServiceScheduleHistory(mockId);
 
       expect(repository.getServiceScheduleHistory).toHaveBeenCalledWith(42);
-    });
-  });
-
-  describe('getServicesFilters', () => {
-    it('should return formatted filters successfully', async () => {
-      const mockId = 1;
-      const mockFilters = {
-        services: [{ texto_breve: 'Serviço 1' }, { texto_breve: 'Serviço 2' }],
-        operations: [{ operacao: 'Operação 1' }, { operacao: 'Operação 2' }],
-        points: [{ ponto: 'Ponto A' }, { ponto: 'Ponto B' }],
-      };
-
-      mockWorksServicesRepository.getServicesFilters.mockResolvedValue(
-        mockFilters,
-      );
-
-      const result = await service.getServicesFilters(mockId);
-
-      expect(result).toEqual({
-        services: ['Serviço 1', 'Serviço 2'],
-        operations: ['Operação 1', 'Operação 2'],
-        points: ['Ponto A', 'Ponto B'],
-      });
-      expect(repository.getServicesFilters).toHaveBeenCalledWith(mockId);
-      expect(repository.getServicesFilters).toHaveBeenCalledTimes(1);
-    });
-
-    it('should return empty arrays when no filters found', async () => {
-      const mockId = 1;
-      const mockFilters = {
-        services: [],
-        operations: [],
-        points: [],
-      };
-
-      mockWorksServicesRepository.getServicesFilters.mockResolvedValue(
-        mockFilters,
-      );
-
-      const result = await service.getServicesFilters(mockId);
-
-      expect(result).toEqual({
-        services: [],
-        operations: [],
-        points: [],
-      });
-    });
-
-    it('should map filter values correctly', async () => {
-      const mockId = 1;
-      const mockFilters = {
-        services: [
-          { texto_breve: 'Pintura' },
-          { texto_breve: 'Alvenaria' },
-          { texto_breve: 'Elétrica' },
-        ],
-        operations: [
-          { operacao: 'Op1' },
-          { operacao: 'Op2' },
-          { operacao: 'Op3' },
-        ],
-        points: [{ ponto: 'P1' }, { ponto: 'P2' }],
-      };
-
-      mockWorksServicesRepository.getServicesFilters.mockResolvedValue(
-        mockFilters,
-      );
-
-      const result = await service.getServicesFilters(mockId);
-
-      expect(result.services).toHaveLength(3);
-      expect(result.operations).toHaveLength(3);
-      expect(result.points).toHaveLength(2);
     });
   });
 
