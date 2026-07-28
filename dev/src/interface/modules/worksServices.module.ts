@@ -3,11 +3,13 @@ import { FinalizeServicesService } from 'src/application/usecases/services/final
 import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
 import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
-import { WORKS_SERVICE_REPOSITORY } from 'src/domain/repositories/IWorksServiceRepository';
+import { WORK_SERVICES_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesRepository';
 import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
+import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
 import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updateSchedulesRepository';
 import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepository';
-import { WorksServicesRepository } from 'src/infra/repositories/worksServicesRepository';
+import { WorkServicesQueryRepository } from 'src/infra/repositories/worksServices/WorkServicesQueryRepository';
+import { WorkServicesRepository } from 'src/infra/repositories/worksServices/worksServicesRepository';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
 
 import { forwardRef, Module } from '@nestjs/common';
@@ -18,6 +20,8 @@ import { ServicesController } from '../controllers/worksServices.controller';
 import { ExecutionReportModule } from './executionReport.module';
 import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
+import { WORK_SERVICES_EXECUTION_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
+import { WorkServicesExeutionRepository } from 'src/infra/repositories/worksServices/workServicesExecutionRepository';
 
 @Module({
   imports: [
@@ -54,8 +58,16 @@ import { WorksModule } from './works.module';
     FinalizeServicesService,
     ScheduleExecutionValidatorService,
     {
-      provide: WORKS_SERVICE_REPOSITORY,
-      useClass: WorksServicesRepository,
+      provide: WORK_SERVICES_REPOSITORY,
+      useClass: WorkServicesRepository,
+    },
+    {
+      provide: WORK_SERVICES_QUERY_REPOSITORY,
+      useClass: WorkServicesQueryRepository,
+    },
+    {
+      provide: WORK_SERVICES_EXECUTION_REPOSITORY,
+      useClass: WorkServicesExeutionRepository,
     },
     {
       provide: UPDATE_SCHEDULES_REPOSITORY,

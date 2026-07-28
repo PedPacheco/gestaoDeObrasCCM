@@ -100,17 +100,6 @@ export class ServicesController {
     };
   }
 
-  @Get('filtros/:id')
-  async getServicesFilters(@Param('id', ParseIntPipe) id: number) {
-    const response = await this.queriesServicesService.getServicesFilters(id);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Valores dos filtros retornados',
-      data: response,
-    };
-  }
-
   @Get('contratos/:id')
   async getServiceContracts(@Param('id', ParseIntPipe) id: number) {
     const response = await this.queriesServicesService.getServiceContracts(id);
@@ -156,9 +145,12 @@ export class ServicesController {
     };
   }
 
-  @Patch('reprogramar')
-  async reascheduleServices(@Body() data: { id: number }[]) {
-    await this.worksServicesService.reascheduleServices(data);
+  @Patch('reprogramar/:id/:scheduleId')
+  async reascheduleServices(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('scheduleId', ParseIntPipe) scheduleId: number,
+  ) {
+    await this.worksServicesService.reascheduleServices(id, scheduleId);
 
     return {
       statusCode: HttpStatus.OK,
@@ -179,12 +171,12 @@ export class ServicesController {
     const data = {
       ...executionData.data,
       idUser,
-      ...(executionData.data.executionReport && {
-        executionReportData: {
-          ...executionData.data.executionReport,
-          idUser,
-        },
-      }),
+      executionReportData: executionData.data.executionReport
+        ? {
+            ...executionData.data.executionReport,
+            idUser,
+          }
+        : undefined,
     };
 
     await this.finalizeServicesService.finalizeServices(id, data, files);
@@ -197,7 +189,7 @@ export class ServicesController {
 
   @Patch('realizar')
   async performServices(@Body() data: PerformServicesDTO[]) {
-    await this.worksServicesService.performServices(data);
+    await this.finalizeServicesService.performServices(data);
 
     return {
       statusCode: HttpStatus.OK,

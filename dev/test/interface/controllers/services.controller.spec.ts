@@ -18,7 +18,6 @@ describe('ServicesController', () => {
   const mockWorksServicesService = {
     scheduleServices: jest.fn(),
     reascheduleServices: jest.fn(),
-    performServices: jest.fn(),
     applyAdditional: jest.fn(),
     cancelServices: jest.fn(),
     addServices: jest.fn(),
@@ -29,7 +28,6 @@ describe('ServicesController', () => {
     getById: jest.fn(),
     getSelectedServices: jest.fn(),
     getServiceScheduleHistory: jest.fn(),
-    getServicesFilters: jest.fn(),
     getServiceContracts: jest.fn(),
     getTeamsServices: jest.fn(),
     getMaterials: jest.fn(),
@@ -37,6 +35,7 @@ describe('ServicesController', () => {
 
   const mockFinalizeServices = {
     finalizeServices: jest.fn(),
+    performServices: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -265,28 +264,6 @@ describe('ServicesController', () => {
     });
   });
 
-  describe('getServicesFilters', () => {
-    it('should return available filters', async () => {
-      const mockId = 1;
-      const mockResponse = {
-        points: ['Ponto A', 'Ponto B'],
-        services: ['Serviço 1', 'Serviço 2'],
-        operations: ['Operação 1', 'Operação 2'],
-      };
-
-      mockQueriesService.getServicesFilters.mockResolvedValue(mockResponse);
-
-      const result = await controller.getServicesFilters(mockId);
-
-      expect(result).toEqual({
-        statusCode: HttpStatus.OK,
-        message: 'Valores dos filtros retornados',
-        data: mockResponse,
-      });
-      expect(queriesService.getServicesFilters).toHaveBeenCalledWith(mockId);
-    });
-  });
-
   describe('getServiceContracts', () => {
     it('should return service contracts', async () => {
       const mockId = 1;
@@ -481,12 +458,11 @@ describe('ServicesController', () => {
 
   describe('reascheduleServices', () => {
     it('should call the method reascheduleServices service', async () => {
-      const mockId = [{ id: 1 }, { id: 2 }];
-
-      await controller.reascheduleServices(mockId);
+      await controller.reascheduleServices(2, 1);
 
       expect(mockWorksServicesService.reascheduleServices).toHaveBeenCalledWith(
-        mockId,
+        2,
+        1,
       );
     });
   });
@@ -498,6 +474,8 @@ describe('ServicesController', () => {
         idService: 2,
         point: 'P1',
         operation: 'INSTALAÇÃO',
+        operationDescription: 'POSTE - ODI',
+        operationNumber: '2000',
         qtdePlan: 2,
       };
 
@@ -516,6 +494,8 @@ describe('ServicesController', () => {
         idService: 2,
         point: 'P1',
         operation: 'INSTALAÇÃO',
+        operationDescription: 'POSTE - ODI',
+        operationNumber: '2000',
         qtdePlan: 2,
       };
 
@@ -612,7 +592,7 @@ describe('ServicesController', () => {
 
       await controller.performServices(mockParams);
 
-      expect(mockWorksServicesService.performServices).toHaveBeenCalledWith(
+      expect(mockFinalizeServices.performServices).toHaveBeenCalledWith(
         mockParams,
       );
     });
