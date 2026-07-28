@@ -164,9 +164,8 @@ export async function finalizeServices(
 }
 
 export async function reascheduleServices(
-  data: {
-    id: number;
-  }[],
+  workId: number,
+  scheduleId: number | null,
 ): Promise<ActionResult> {
   const token = await getAuthToken();
 
@@ -174,14 +173,20 @@ export async function reascheduleServices(
     return { success: false, error: "Usuário não autenticado" };
   }
 
-  return apiRequest(`${process.env.NEXT_PUBLIC_API_URL}/servicos/reprogramar`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+  if (!scheduleId) {
+    throw new Error("Id da programação não foi enviado");
+  }
+
+  return apiRequest(
+    `${process.env.NEXT_PUBLIC_API_URL}/servicos/reprogramar/${workId}/${scheduleId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
     },
-    body: JSON.stringify(data),
-  });
+  );
 }
 
 export async function addService(data: {
@@ -189,6 +194,8 @@ export async function addService(data: {
   idService: number;
   point: string;
   operation: string;
+  operationNumber: string;
+  operationDescription: string;
 }): Promise<ActionResult> {
   const token = await getAuthToken();
 
@@ -211,6 +218,8 @@ export async function addMaterial(data: {
   idService: number;
   point: string;
   operation: string;
+  operationNumber: string;
+  operationDescription: string;
 }): Promise<ActionResult> {
   const token = await getAuthToken();
 

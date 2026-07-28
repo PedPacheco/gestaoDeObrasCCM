@@ -22,15 +22,16 @@ export interface FeasibilityServiceItem {
   material: string;
   textoBreve: string;
   operacao?: string;
-  ponto?: string;
+  numero_operacao: string;
+  descricao_operacao: string;
+  ponto: string;
   qtdePlanejada: number;
-  viabilizado: number | null;
+  viabilizado: string | null;
 }
 
 interface FeasibilityServicesReviewStepProps {
   reviewData: FeasibilityServiceItem[];
   onChangeReviewData: (data: FeasibilityServiceItem[]) => void;
-  filters: { operations: any[]; points: any[] };
   readOnly?: boolean;
 }
 
@@ -38,16 +39,18 @@ const reviewColumns = [
   { key: "material", label: "CÓDIGO" },
   { key: "textoBreve", label: "SERVIÇO" },
   { key: "operacao", label: "OPERAÇÃO" },
+  { key: "numero_operacao", label: "N° DA OPERAÇÃO" },
+  { key: "descricao_operacao", label: "DESCRIÇÃO DA OPERAÇÃO" },
   { key: "ponto", label: "PONTO" },
   { key: "qtdePlanejada", label: "QTD. PLANEJADA" },
 ] as const;
 
-const QUANTITY_PATTERN = /^\d*$/;
+const QUANTITY_PATTERN = /^\d*[.,]?\d*$/;
 
 function isRowEmpty(row: FeasibilityServiceItem) {
   return (
     row.viabilizado === null ||
-    (row.viabilizado === 0 && row.qtdePlanejada === 0)
+    (Number(row.viabilizado) === 0 && row.qtdePlanejada === 0)
   );
 }
 
@@ -58,13 +61,12 @@ export function hasInvalidAdditionalQuantities(
 }
 
 function isRowChanged(row: FeasibilityServiceItem) {
-  return !isRowEmpty(row) && row.viabilizado !== row.qtdePlanejada;
+  return !isRowEmpty(row) && Number(row.viabilizado) !== row.qtdePlanejada;
 }
 
 export function FeasibilityServicesReviewStep({
   reviewData,
   onChangeReviewData,
-  filters,
   readOnly = false,
 }: FeasibilityServicesReviewStepProps) {
   const [visibleIds, setVisibleIds] = useState<Set<number> | null>(null);
@@ -99,7 +101,7 @@ export function FeasibilityServicesReviewStep({
         item.id === id
           ? {
               ...item,
-              viabilizado: value === "" ? null : Number(value),
+              viabilizado: value === "" ? null : value,
             }
           : item,
       ),
@@ -113,7 +115,7 @@ export function FeasibilityServicesReviewStep({
       reviewData.map((item) =>
         item.qtdePlanejada === 0
           ? item
-          : { ...item, viabilizado: item.qtdePlanejada },
+          : { ...item, viabilizado: item.qtdePlanejada.toString() },
       ),
     );
   };
@@ -179,17 +181,22 @@ export function FeasibilityServicesReviewStep({
             ),
           },
           {
+            label: "FAMILIA",
+            field: "descricao_operacao",
+            options: Array.from(
+              new Set(reviewData.map((item) => item.descricao_operacao)),
+            ),
+          },
+          {
             label: "OPERAÇÃO",
             field: "operacao",
             options: SERVICE_OPERATIONS,
-            width: "w-1/4",
+            width: "w-60",
           },
           {
             label: "PONTO",
             field: "ponto",
-            options: filters.points.filter((item) => {
-              return reviewData.some((service) => service.ponto === item);
-            }),
+            options: Array.from(new Set(reviewData.map((item) => item.ponto))),
             width: "w-44",
           },
         ]}
@@ -268,7 +275,7 @@ export function FeasibilityServicesReviewStep({
                     ) : (
                       <input
                         type="text"
-                        inputMode="numeric"
+                        inputMode="decimal"
                         className={`w-24 rounded-md border px-2 py-1.5 text-right text-sm outline-none transition-colors focus:ring-2 ${getInputClassName(row)}`}
                         value={row.viabilizado ?? ""}
                         onChange={(e) =>

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useState, useTransition } from "react";
 
-import { newSaveSchedule, saveSchedule } from "@/actions/schedules";
+import { newSaveSchedule } from "@/actions/schedules";
 import { useScheduleForm } from "@/hooks/details/useScheduleForm";
 import { useScheduleWorkflow } from "@/hooks/details/useScheduleWorkflow";
 import { useFeedback } from "@/hooks/useFeedback";
@@ -15,10 +15,9 @@ import { ScheduleSidebar } from "./scheduleSidebar/scheduleSidebar";
 import { ScheduleTopbar } from "./scheduleTopbar";
 
 import { NewServicesAvaliable } from "./servicesSection/servicesAvaliable";
-import { PlusIcon } from "@heroicons/react/20/solid";
-import { AddServiceForm, ServiceContract } from "../common/addServiceForm";
-import { AddServiceAccordion } from "../feasibility/addServiceAccordion";
-import { SERVICE_OPERATIONS } from "@/constants/services/services";
+
+import { ServiceContract } from "../addServiceAccordion/addServiceForm";
+import { AddServiceAccordion } from "../addServiceAccordion/addServiceAccordion";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -32,7 +31,6 @@ interface ManageScheduleProps {
   materialsData: any[];
   serviceTeams: any[];
   scheduledServicesHistory: any[];
-  serviceFilters: any;
   isInsert: boolean;
   options: any;
   idWork: number;
@@ -50,7 +48,6 @@ export function NewManageSchedule({
   servicesData,
   serviceContractData,
   materialsData,
-  serviceFilters,
   serviceTeams,
   scheduledServicesHistory,
   isInsert,
@@ -146,12 +143,11 @@ export function NewManageSchedule({
         materialsData={materialsData}
         serviceTeams={serviceTeams}
         scheduledServicesHistory={scheduledServicesHistory}
-        serviceFilters={serviceFilters}
         options={options}
         idWork={idWork}
         idStatusWork={idStatusWork}
         idSchedule={idSchedule}
-        isDisabled={isDisabled}
+        statusSchedule={statusSchedule}
       />
     );
   }
@@ -178,12 +174,10 @@ export function NewManageSchedule({
                 <NewServicesAvaliable
                   servicesData={servicesAvaliable}
                   setServicesData={setServicesAvaliable}
-                  operations={serviceFilters.operations}
-                  points={serviceFilters.points}
                   setScheduledServices={setSelectedServices}
                   isInsert={isInsert}
                   teams={serviceTeams}
-                  isDisabled={isDisabled}
+                  statusSchedule={statusSchedule}
                   onError={showError}
                   onSuccess={showSuccess}
                 />
@@ -197,8 +191,7 @@ export function NewManageSchedule({
                 idWork={Number(idWork)}
                 title="Adicionar novo serviço"
                 contracts={serviceContractData}
-                operations={SERVICE_OPERATIONS}
-                points={serviceFilters.points}
+                services={servicesAvaliable}
                 type="serviço"
               />
 
@@ -206,8 +199,7 @@ export function NewManageSchedule({
                 idWork={Number(idWork)}
                 title="Adicionar novo material"
                 contracts={materialsData}
-                operations={SERVICE_OPERATIONS}
-                points={serviceFilters.points}
+                services={servicesAvaliable}
                 type="material"
               />
             </div>

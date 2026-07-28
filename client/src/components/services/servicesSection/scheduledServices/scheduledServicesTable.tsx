@@ -21,6 +21,8 @@ const SERVICE_COLUMNS = [
   { key: "material", label: "CÓDIGO" },
   { key: "textoBreve", label: "SERVIÇO" },
   { key: "operacao", label: "OPERAÇÃO" },
+  { key: "numero_operacao", label: "N° OPERAÇÃO" },
+  { key: "descricao_operacao", label: "DESCRIÇÃO OPERAÇÃO" },
   { key: "ponto", label: "PONTO" },
   { key: "equipe", label: "EQUIPE" },
   { key: "perfil", label: "PERFIL" },
@@ -32,6 +34,7 @@ const SERVICE_COLUMNS = [
   { key: "qtdeProgramada", label: "PROG", align: "right" as const },
   { key: "qtdeRealizada", label: "REAL", align: "right" as const },
   { key: "valorUnit", label: "VALOR UNIT", align: "right" as const },
+  { key: "valorTotal", label: "VALOR TOTAL", align: "right" as const },
   { key: "status", label: "STATUS" },
 ] as const;
 
@@ -40,9 +43,6 @@ interface ScheduleServicesTableProps {
   scheduledServices: ScheduledServiceState[];
   setScheduledServices: (service: any) => any;
   clearValidation: () => void;
-  points: string[];
-  operations: string[];
-  services: any[];
 }
 
 export function ScheduledServicesTable({
@@ -50,9 +50,6 @@ export function ScheduledServicesTable({
   scheduledServices,
   setScheduledServices,
   clearValidation,
-  operations,
-  points,
-  services,
 }: ScheduleServicesTableProps) {
   const [filteredServicesData, setFilteredServicesData] = useState<any[]>([]);
 
@@ -65,7 +62,7 @@ export function ScheduledServicesTable({
       return dayjs(value).utc().format("DD/MM/YYYY");
     }
 
-    if (key === "valorUnit") {
+    if (["valorUnit", "valorTotal"].includes(key)) {
       return FormatCurrency(value);
     }
 
@@ -183,11 +180,9 @@ export function ScheduledServicesTable({
           {
             label: "SERVIÇO",
             field: "textoBreve",
-            options: services.filter((item) => {
-              return scheduledServicesData.some(
-                (service) => service.textoBreve === item,
-              );
-            }),
+            options: Array.from(
+              new Set(scheduledServicesData.map((item) => item.textoBreve)),
+            ),
           },
           {
             label: "OPERAÇÃO",
@@ -198,11 +193,9 @@ export function ScheduledServicesTable({
           {
             label: "PONTO",
             field: "ponto",
-            options: points.filter((item) => {
-              return scheduledServicesData.some(
-                (service) => service.ponto === item,
-              );
-            }),
+            options: Array.from(
+              new Set(scheduledServicesData.map((item) => item.ponto)),
+            ),
             width: "w-44",
           },
         ]}

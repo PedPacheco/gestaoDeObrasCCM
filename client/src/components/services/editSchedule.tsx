@@ -25,8 +25,8 @@ import {
 } from "./servicesSection/scheduleHistory";
 import { ButtonComponent } from "../common/Button";
 import { TabsServices } from "./TabsServices";
-import { ServiceContract } from "../common/addServiceForm";
-import { AddServiceAccordion } from "../feasibility/addServiceAccordion";
+import { ServiceContract } from "../addServiceAccordion/addServiceForm";
+import { AddServiceAccordion } from "../addServiceAccordion/addServiceAccordion";
 import { SERVICE_OPERATIONS } from "@/constants/services/services";
 
 import dayjs from "dayjs";
@@ -46,12 +46,11 @@ interface EditScheduleProps {
   materialsData: any[];
   serviceTeams: any[];
   scheduledServicesHistory: ScheduledServicesHistoryData[];
-  serviceFilters: any;
   options: any;
   idWork: number;
   idStatusWork: number;
   idSchedule: number;
-  isDisabled: boolean;
+  statusSchedule?: string;
 }
 
 export type TabId = "scheduled" | "available" | "add" | "history";
@@ -66,14 +65,13 @@ export function EditSchedule({
   servicesData,
   serviceContractData,
   materialsData,
-  serviceFilters,
   serviceTeams,
   scheduledServicesHistory,
   options,
   idWork,
   idStatusWork,
   idSchedule,
-  isDisabled,
+  statusSchedule,
 }: EditScheduleProps) {
   const router = useRouter();
   const { showError, showSuccess } = useFeedback();
@@ -86,6 +84,8 @@ export function EditSchedule({
   const [servicesAvaliable, setServicesAvaliable] = useState<any[]>(
     servicesData || [],
   );
+
+  const isDisabled = statusSchedule ? statusSchedule === "Programado" : false;
 
   const scheduleForm = useScheduleForm({ data: scheduleData, options, idWork });
 
@@ -249,9 +249,6 @@ export function EditSchedule({
             <ScheduledServices
               scheduledServicesData={scheduledServicesData}
               scheduledServicesHistory={scheduledServicesHistory}
-              services={serviceFilters.services}
-              operations={serviceFilters.operations}
-              points={serviceFilters.points}
               options={options}
               executionForm={executionForm}
               onError={showError}
@@ -269,11 +266,9 @@ export function EditSchedule({
                 <NewServicesAvaliable
                   servicesData={servicesAvaliable}
                   setServicesData={setServicesAvaliable}
-                  operations={serviceFilters.operations}
-                  points={serviceFilters.points}
                   setScheduledServices={setScheduledServices}
                   isInsert={false}
-                  isDisabled={isDisabled}
+                  statusSchedule={statusSchedule}
                   teams={serviceTeams}
                   onError={showError}
                   onSuccess={showSuccess}
@@ -287,8 +282,8 @@ export function EditSchedule({
                     idWork={Number(idWork)}
                     title="Adicionar novo serviço"
                     contracts={serviceContractData}
-                    operations={SERVICE_OPERATIONS}
-                    points={serviceFilters.points}
+                    services={servicesAvaliable}
+                    // operations={SERVICE_OPERATIONS}
                     type="serviço"
                   />
 
@@ -296,8 +291,8 @@ export function EditSchedule({
                     idWork={Number(idWork)}
                     title="Adicionar novo material"
                     contracts={materialsData}
-                    operations={SERVICE_OPERATIONS}
-                    points={serviceFilters.points}
+                    services={servicesAvaliable}
+                    // operations={SERVICE_OPERATIONS}
                     type="material"
                   />
                 </div>

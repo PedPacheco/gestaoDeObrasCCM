@@ -58,7 +58,7 @@ export function OldMapScheduleToForm(
   );
 
   const restrictionFound = options.restricao.find(
-    (r: any) => r.restricao === schedule.restricao,
+    (r: any) => r.id === schedule.id_restricao_execucao,
   );
 
   return {
