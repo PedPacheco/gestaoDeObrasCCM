@@ -11,7 +11,6 @@ import { AdvancePartnerModule } from './interface/modules/advancePartner.module'
 import { AuthModule } from './interface/modules/auth.module';
 import { AuxiliaryBaseModule } from './interface/modules/auxiliaryBase.module';
 import { DashboardModule } from './interface/modules/dashboard.module';
-import { EmailModule } from './interface/modules/email.module';
 import { EntryModule } from './interface/modules/entry.module';
 import { EquipmentsModule } from './interface/modules/equipments.module';
 import { ErrorsReportModule } from './interface/modules/errorsReport.module';
@@ -37,7 +36,6 @@ import { WorksModule } from './interface/modules/works.module';
     PrismaModule,
     AuthModule,
     UsersModule,
-    EmailModule,
     GoalsModule,
     FiltersModule,
     FeasibilityModule,
