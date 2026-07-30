@@ -1,10 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { WorkServicesQueryRepository } from 'src/infra/repositories/worksServices/WorkServicesQueryRepository';
-import {
-  GetByIdParamsInterface,
-  GetSelectedServicesParamsInterface,
-} from 'src/interface/types/servicesInterface';
+import { GetSelectedServicesParamsInterface } from 'src/interface/types/servicesInterface';
 
 describe('WorkServicesQueryRepository', () => {
   let repository: WorkServicesQueryRepository;
@@ -58,13 +55,6 @@ describe('WorkServicesQueryRepository', () => {
   });
 
   describe('getServices', () => {
-    const mockParams: GetByIdParamsInterface = {
-      id: 1,
-      operation: 'Operação 1',
-      service: 'Serviço 1',
-      point: 'Ponto A',
-    };
-
     const mockServicesResponse = [
       {
         id: 1,
@@ -88,13 +78,15 @@ describe('WorkServicesQueryRepository', () => {
         mockServicesResponse,
       );
 
-      const result = await repository.getNotScheduledServices(mockParams);
+      const result = await repository.getNotScheduledServices(1);
 
       expect(result).toEqual(mockServicesResponse);
       expect(prisma.servicos.findMany).toHaveBeenCalledWith({
         select: {
           id: true,
           id_obra: true,
+          id_contrato_servico: true,
+          id_material: true,
           operacao: true,
           ponto: true,
           qtde_plan: true,
@@ -117,120 +109,23 @@ describe('WorkServicesQueryRepository', () => {
         where: {
           id_obra: 1,
           id_programacao: null,
-          operacao: 'Operação 1',
-          ponto: 'Ponto A',
-          servicos_contratos: {
-            texto_breve: { contains: 'Serviço 1', mode: 'insensitive' },
-          },
         },
       });
       expect(prisma.servicos.findMany).toHaveBeenCalledTimes(1);
     });
 
-    it('should return services without optional filters', async () => {
-      const paramsWithoutFilters: GetByIdParamsInterface = {
-        id: 1,
-      };
-
-      mockPrismaService.servicos.findMany.mockResolvedValue(
-        mockServicesResponse,
-      );
-
-      const result =
-        await repository.getNotScheduledServices(paramsWithoutFilters);
-
-      expect(result).toEqual(mockServicesResponse);
-      expect(prisma.servicos.findMany).toHaveBeenCalledWith({
-        select: expect.any(Object),
-        where: {
-          id_obra: 1,
-          id_programacao: null,
-        },
-      });
-    });
-
-    it('should return services with only operation filter', async () => {
-      const params: GetByIdParamsInterface = {
-        id: 1,
-        operation: 'Operação 1',
-      };
-
-      mockPrismaService.servicos.findMany.mockResolvedValue(
-        mockServicesResponse,
-      );
-
-      await repository.getNotScheduledServices(params);
-
-      expect(prisma.servicos.findMany).toHaveBeenCalledWith({
-        select: expect.any(Object),
-        where: {
-          id_obra: 1,
-          id_programacao: null,
-          operacao: 'Operação 1',
-        },
-      });
-    });
-
-    it('should return services with only point filter', async () => {
-      const params: GetByIdParamsInterface = {
-        id: 1,
-        point: 'Ponto A',
-      };
-
-      mockPrismaService.servicos.findMany.mockResolvedValue(
-        mockServicesResponse,
-      );
-
-      await repository.getNotScheduledServices(params);
-
-      expect(prisma.servicos.findMany).toHaveBeenCalledWith({
-        select: expect.any(Object),
-        where: {
-          id_obra: 1,
-          id_programacao: null,
-          ponto: 'Ponto A',
-        },
-      });
-    });
-
-    it('should return services with only service filter (case insensitive)', async () => {
-      const params: GetByIdParamsInterface = {
-        id: 1,
-        service: 'serviço',
-      };
-
-      mockPrismaService.servicos.findMany.mockResolvedValue(
-        mockServicesResponse,
-      );
-
-      await repository.getNotScheduledServices(params);
-
-      expect(prisma.servicos.findMany).toHaveBeenCalledWith({
-        select: expect.any(Object),
-        where: {
-          id_obra: 1,
-          id_programacao: null,
-          servicos_contratos: {
-            texto_breve: { contains: 'serviço', mode: 'insensitive' },
-          },
-        },
-      });
-    });
-
     it('should return empty array when no services found', async () => {
       mockPrismaService.servicos.findMany.mockResolvedValue([]);
 
-      const result = await repository.getNotScheduledServices(mockParams);
+      const result = await repository.getNotScheduledServices(1);
 
       expect(result).toEqual([]);
     });
 
     it('should only return services with null id_programacao', async () => {
-      const params: GetByIdParamsInterface = { id: 1 };
-
       mockPrismaService.servicos.findMany.mockResolvedValue([]);
 
-      await repository.getNotScheduledServices(params);
+      await repository.getNotScheduledServices(1);
 
       const callArgs = mockPrismaService.servicos.findMany.mock.calls[0][0];
       expect(callArgs.where.id_programacao).toBeNull();
@@ -241,15 +136,14 @@ describe('WorkServicesQueryRepository', () => {
     const mockParams: GetSelectedServicesParamsInterface = {
       id: 1,
       idProgramacao: 10,
-      operation: 'Operação 1',
-      service: 'Serviço 1',
-      point: 'Ponto A',
     };
 
     const mockSelectedServicesResponse = [
       {
         id: 1,
         id_obra: 1,
+        id_contrato_servico: 2,
+        id_material: null,
         operacao: 'Operação 1',
         ponto: 'Ponto A',
         qtde_plan: 10,
@@ -281,6 +175,8 @@ describe('WorkServicesQueryRepository', () => {
         select: {
           id: true,
           id_obra: true,
+          id_contrato_servico: true,
+          id_material: true,
           operacao: true,
           ponto: true,
           qtde_plan: true,
@@ -303,33 +199,6 @@ describe('WorkServicesQueryRepository', () => {
             select: { equipe: true, encarregado: true, perfil: true },
           },
         },
-        where: {
-          id_obra: 1,
-          id_programacao: 10,
-          operacao: 'Operação 1',
-          ponto: 'Ponto A',
-          servicos_contratos: {
-            texto_breve: { contains: 'Serviço 1', mode: 'insensitive' },
-          },
-        },
-      });
-    });
-
-    it('should return selected services without optional filters', async () => {
-      const paramsWithoutFilters: GetSelectedServicesParamsInterface = {
-        id: 1,
-        idProgramacao: 10,
-      };
-
-      mockPrismaService.servicos.findMany.mockResolvedValue(
-        mockSelectedServicesResponse,
-      );
-
-      const result = await repository.getSelectedServices(paramsWithoutFilters);
-
-      expect(result).toEqual(mockSelectedServicesResponse);
-      expect(prisma.servicos.findMany).toHaveBeenCalledWith({
-        select: expect.any(Object),
         where: {
           id_obra: 1,
           id_programacao: 10,
@@ -535,7 +404,7 @@ describe('WorkServicesQueryRepository', () => {
     });
   });
 
-  describe('getServicesContracts', () => {
+  describe('getMaterialsContract', () => {
     const mockContractsResponse = [
       {
         texto_breve: 'Serviço 1',
@@ -639,11 +508,27 @@ describe('WorkServicesQueryRepository', () => {
       expect(prisma.servicos.findMany).toHaveBeenCalledWith({
         select: {
           id: true,
+          id_obra: true,
           id_contrato_servico: true,
+          id_material: true,
           operacao: true,
           ponto: true,
+          qtde_plan: true,
+          qtde_prog: true,
+          qtde_real: true,
           qtde_adicional: true,
           viabilizado: true,
+          descricao_operacao: true,
+          numero_operacao: true,
+          programacoes: { select: { data_prog: true } },
+          materiais: { select: { codigo: true, descricao: true, preco: true } },
+          servicos_contratos: {
+            select: {
+              material: true,
+              texto_breve: true,
+              preco: true,
+            },
+          },
         },
         where: { id_obra: mockWorkId },
       });
@@ -661,11 +546,27 @@ describe('WorkServicesQueryRepository', () => {
       expect(prisma.servicos.findMany).toHaveBeenCalledWith({
         select: {
           id: true,
+          id_obra: true,
           id_contrato_servico: true,
+          id_material: true,
           operacao: true,
           ponto: true,
+          qtde_plan: true,
+          qtde_prog: true,
+          qtde_real: true,
           qtde_adicional: true,
           viabilizado: true,
+          descricao_operacao: true,
+          numero_operacao: true,
+          programacoes: { select: { data_prog: true } },
+          materiais: { select: { codigo: true, descricao: true, preco: true } },
+          servicos_contratos: {
+            select: {
+              material: true,
+              texto_breve: true,
+              preco: true,
+            },
+          },
         },
         where: { id_obra: mockWorkId },
       });
@@ -680,69 +581,6 @@ describe('WorkServicesQueryRepository', () => {
       await expect(repository.getAllServicesOfWork(mockWorkId)).rejects.toThrow(
         'Database connection error',
       );
-    });
-  });
-
-  describe('getAllMaterialsOfWork', () => {
-    it('should return all services of a work', async () => {
-      const mockWorkId = 1;
-      const mockServices = [
-        { id: 1, qtde_plan: 100 },
-        { id: 2, qtde_plan: 200 },
-        { id: 3, qtde_plan: 150 },
-      ];
-
-      mockPrismaService.servicos.findMany.mockResolvedValue(mockServices);
-
-      const result = await repository.getAllMaterialsOfWork(mockWorkId);
-
-      expect(result).toEqual(mockServices);
-      expect(prisma.servicos.findMany).toHaveBeenCalledWith({
-        select: {
-          id: true,
-          id_material: true,
-          ponto: true,
-          operacao: true,
-          qtde_plan: true,
-          qtde_adicional: true,
-          viabilizado: true,
-        },
-        where: { id_obra: mockWorkId },
-      });
-      expect(prisma.servicos.findMany).toHaveBeenCalledTimes(1);
-    });
-
-    it('should return empty array when no services found', async () => {
-      const mockWorkId = 999;
-
-      mockPrismaService.servicos.findMany.mockResolvedValue([]);
-
-      const result = await repository.getAllMaterialsOfWork(mockWorkId);
-
-      expect(result).toEqual([]);
-      expect(prisma.servicos.findMany).toHaveBeenCalledWith({
-        select: {
-          id: true,
-          id_material: true,
-          ponto: true,
-          operacao: true,
-          qtde_plan: true,
-          qtde_adicional: true,
-          viabilizado: true,
-        },
-        where: { id_obra: mockWorkId },
-      });
-    });
-
-    it('should handle database errors', async () => {
-      const mockWorkId = 1;
-      const mockError = new Error('Database connection error');
-
-      mockPrismaService.servicos.findMany.mockRejectedValue(mockError);
-
-      await expect(
-        repository.getAllMaterialsOfWork(mockWorkId),
-      ).rejects.toThrow('Database connection error');
     });
   });
 });

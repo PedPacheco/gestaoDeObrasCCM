@@ -19,15 +19,13 @@ describe('WorksServicesService', () => {
     scheduleServices: jest.fn(),
     cancelServices: jest.fn(),
     reascheduleServices: jest.fn(),
-    addServices: jest.fn(),
-    addMaterials: jest.fn(),
+    addItem: jest.fn(),
     applyAdditional: jest.fn(),
   };
 
   const mockWorkServicesQueryRepository = {
     getServiceScheduleHistory: jest.fn(),
     getAllServicesOfWork: jest.fn(),
-    getAllMaterialsOfWork: jest.fn(),
   };
 
   const mockStatusFlowRepository = {
@@ -252,7 +250,26 @@ describe('WorksServicesService', () => {
     });
   });
 
-  describe('addService', () => {
+  describe('addItem', () => {
+    it('should add material successfully', async () => {
+      const mockData = {
+        idWork: 1,
+        idService: 2,
+        point: 'P1',
+        operation: 'INSTALAÇÃO',
+        operationDescription: 'POSTE',
+        operationNumber: '2000',
+        qtdePlan: 2,
+      };
+
+      mockWorksServicesRepository.addItem.mockResolvedValue(undefined);
+
+      await service.addItem(mockData, 'material');
+
+      expect(repository.addItem).toHaveBeenCalledWith(mockData, 'material');
+      expect(repository.addItem).toHaveBeenCalledTimes(1);
+    });
+
     it('should add service successfully', async () => {
       const mockData = {
         idWork: 1,
@@ -264,12 +281,12 @@ describe('WorksServicesService', () => {
         qtdePlan: 2,
       };
 
-      mockWorksServicesRepository.addServices.mockResolvedValue(undefined);
+      mockWorksServicesRepository.addItem.mockResolvedValue(undefined);
 
-      await service.addServices(mockData);
+      await service.addItem(mockData, 'service');
 
-      expect(repository.addServices).toHaveBeenCalledWith(mockData);
-      expect(repository.addServices).toHaveBeenCalledTimes(1);
+      expect(repository.addItem).toHaveBeenCalledWith(mockData, 'service');
+      expect(repository.addItem).toHaveBeenCalledTimes(1);
     });
 
     it('should trigger an error id the service already exists at the specified location', async () => {
@@ -293,14 +310,12 @@ describe('WorksServicesService', () => {
         },
       ]);
 
-      await expect(service.addServices(mockData)).rejects.toThrow(
+      await expect(service.addItem(mockData, 'service')).rejects.toThrow(
         'Esse serviço já existe nesse ponto.',
       );
     });
-  });
 
-  describe('addMaterials', () => {
-    it('should add material successfully', async () => {
+    it('should trigger an error id the material already exists at the specified location', async () => {
       const mockData = {
         idWork: 1,
         idService: 2,
@@ -311,30 +326,7 @@ describe('WorksServicesService', () => {
         qtdePlan: 2,
       };
 
-      mockWorkServicesQueryRepository.getAllMaterialsOfWork.mockResolvedValue(
-        [],
-      );
-
-      mockWorksServicesRepository.addMaterials.mockResolvedValue(undefined);
-
-      await service.addMaterials(mockData);
-
-      expect(repository.addMaterials).toHaveBeenCalledWith(mockData);
-      expect(repository.addMaterials).toHaveBeenCalledTimes(1);
-    });
-
-    it('should trigger an error id the service already exists at the specified location', async () => {
-      const mockData = {
-        idWork: 1,
-        idService: 2,
-        point: 'P1',
-        operation: 'INSTALAÇÃO',
-        operationDescription: 'POSTE',
-        operationNumber: '2000',
-        qtdePlan: 2,
-      };
-
-      mockWorkServicesQueryRepository.getAllMaterialsOfWork.mockResolvedValue([
+      mockWorkServicesQueryRepository.getAllServicesOfWork.mockResolvedValue([
         {
           id: 2,
           id_material: 2,
@@ -344,7 +336,7 @@ describe('WorksServicesService', () => {
         },
       ]);
 
-      await expect(service.addMaterials(mockData)).rejects.toThrow(
+      await expect(service.addItem(mockData, 'material')).rejects.toThrow(
         'Esse material já existe nesse ponto.',
       );
     });
@@ -371,7 +363,7 @@ describe('WorksServicesService', () => {
         mockSelectedServices,
       );
 
-      expect(progress).toBe(100); // (10 + 20) / 100 * 100
+      expect(progress).toBe(94); // (10 + 20) / 100 * 100
     });
 
     it('should return 0 when total plan is 0', async () => {

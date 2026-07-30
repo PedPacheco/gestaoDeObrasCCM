@@ -491,8 +491,8 @@ describe('WorksServicesRepository', () => {
     });
   });
 
-  describe('addService', () => {
-    it('should add service, where data correctly sent', async () => {
+  describe('addItem', () => {
+    it('should add material, where data correctly sent', async () => {
       const mockData = {
         idWork: 1,
         idService: 2,
@@ -502,12 +502,13 @@ describe('WorksServicesRepository', () => {
         operationNumber: '2000',
       };
 
-      await repository.addServices(mockData);
+      await repository.addItem(mockData, 'material');
 
       expect(mockPrismaService.servicos.create).toHaveBeenCalledWith({
         data: {
           id_obra: 1,
-          id_contrato_servico: 2,
+          id_material: 2,
+          id_contrato_servico: null,
           operacao: 'INSTALAÇÃO',
           ponto: 'P1',
           descricao_operacao: 'POSTE - ODI',
@@ -516,9 +517,7 @@ describe('WorksServicesRepository', () => {
         },
       });
     });
-  });
 
-  describe('addService', () => {
     it('should add service, where data correctly sent', async () => {
       const mockData = {
         idWork: 1,
@@ -529,12 +528,13 @@ describe('WorksServicesRepository', () => {
         operationNumber: '2000',
       };
 
-      await repository.addMaterials(mockData);
+      await repository.addItem(mockData, 'service');
 
       expect(mockPrismaService.servicos.create).toHaveBeenCalledWith({
         data: {
           id_obra: 1,
-          id_material: 2,
+          id_material: null,
+          id_contrato_servico: 2,
           operacao: 'INSTALAÇÃO',
           ponto: 'P1',
           descricao_operacao: 'POSTE - ODI',

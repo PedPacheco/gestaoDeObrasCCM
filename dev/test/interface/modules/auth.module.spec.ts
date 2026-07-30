@@ -1,5 +1,4 @@
 import { AuthService } from 'src/application/usecases/auth.service';
-import { EmailService } from 'src/application/usecases/email.service';
 import { PrismaModule } from 'src/infra/prisma/prisma.module';
 import { AuthController } from 'src/interface/controllers/auth.controller';
 import { AuthModule } from 'src/interface/modules/auth.module';
@@ -37,10 +36,5 @@ describe('AuthModule', () => {
   it('should provide AuthController', () => {
     const authController = module.get<AuthController>(AuthController);
     expect(authController).toBeDefined();
-  });
-
-  it('should provide EmailService', () => {
-    const emailService = module.get<EmailService>(EmailService);
-    expect(emailService).toBeDefined();
   });
 });
