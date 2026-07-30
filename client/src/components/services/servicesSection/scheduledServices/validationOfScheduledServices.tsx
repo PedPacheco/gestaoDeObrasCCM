@@ -19,22 +19,25 @@ export function ValidationOfScheduledServices({
         <div className="flex items-center gap-2">
           <div className="w-5 h-5 rounded border border-black/10 bg-[#27ae60]"></div>
           <span>
-            <strong>Verde:</strong> Serviço completo (Real ≥ Planejado)
+            <strong>Verde:</strong> Serviço/Material completo - (Real ≥
+            Planejado)
           </span>
         </div>
 
         <div className="flex items-center gap-2">
           <div className="w-5 h-5 rounded border border-black/10 bg-[#e74c3c]"></div>
           <span>
-            <strong>Vermelho:</strong> Necessita reprogramação (0 &lt; Real &lt;
-            Planejado) Ou Realização não informada
+            <strong>Vermelho:</strong> Serviços/Materiais que necessitam de
+            reprogramação - (0 &lt; Real &lt; Planejado) Ou Realização não
+            informada
           </span>
         </div>
 
         <div className="flex items-center gap-2">
           <div className="w-5 h-5 rounded border border-black/10 bg-[#f39c12]"></div>
           <span>
-            <strong>Amarelo:</strong> Sem realização (Real = 0)
+            <strong>Amarelo:</strong> Serviços/Materiais que não serem mais
+            executados - (Real = 0)
           </span>
         </div>
       </div>
@@ -54,9 +57,6 @@ export function ValidationOfScheduledServices({
             <div className="text-3xl font-bold text-green-600">
               {validationSummary.completo}
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Realizados conforme planejado
-            </p>
           </div>
           <div className="bg-white p-4 rounded-md border-l-4 border-l-red-500 shadow-sm">
             <h4 className="text-xs uppercase text-gray-600 mb-2 tracking-wide">
@@ -65,9 +65,6 @@ export function ValidationOfScheduledServices({
             <div className="text-3xl font-bold text-red-600">
               {validationSummary.reprogramar}
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Parcialmente executados
-            </p>
           </div>
           <div className="bg-white p-4 rounded-md border-l-4 border-l-yellow-500 shadow-sm">
             <h4 className="text-xs uppercase text-gray-600 mb-2 tracking-wide">
@@ -76,7 +73,6 @@ export function ValidationOfScheduledServices({
             <div className="text-3xl font-bold text-yellow-600">
               {validationSummary.semRealizacao}
             </div>
-            <p className="text-xs text-gray-500 mt-2">Não executados</p>
           </div>
         </div>
       </div>

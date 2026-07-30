@@ -133,7 +133,7 @@ export function NewServicesAvaliable({
 
     if (
       selectedServices.find(
-        (item) => item.qtdePlanejada === 0 && item.qtdeAdicional === null,
+        (item) => item.viabilizado === 0 && item.qtdeAdicional === null,
       )
     ) {
       showError("Serviço selecionado sem valores para execução");
