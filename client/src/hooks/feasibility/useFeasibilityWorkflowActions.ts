@@ -38,7 +38,7 @@ export function useFeasibilityWorkflowActions({
   const router = useRouter();
 
   const handleSubmitForApproval = async () => {
-    if (hasFiles) {
+    if (!hasFiles) {
       showError("Selecione pelo menos um arquivo.");
       return;
     }

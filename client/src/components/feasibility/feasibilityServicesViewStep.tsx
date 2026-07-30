@@ -64,6 +64,10 @@ function isRowChanged(row: FeasibilityServiceItem) {
   return !isRowEmpty(row) && Number(row.viabilizado) !== row.qtdePlanejada;
 }
 
+function realizedAmountGreaterThanPlanned(row: FeasibilityServiceItem) {
+  return !isRowEmpty(row) && Number(row.viabilizado) > row.qtdePlanejada;
+}
+
 export function FeasibilityServicesReviewStep({
   reviewData,
   onChangeReviewData,
@@ -122,9 +126,11 @@ export function FeasibilityServicesReviewStep({
 
   const getRowClassName = (row: FeasibilityServiceItem) => {
     if (isRowEmpty(row))
-      return "border-l-4 border-l-red-400 bg-red-50/60 hover:bg-red-50 transition-colors";
-    if (isRowChanged(row))
-      return "border-l-4 border-l-amber-400 bg-amber-50/50 hover:bg-amber-50 transition-colors";
+      return "border-l-4 border-l-red-600 bg-red-100/80 hover:bg-red-100 transition-colors";
+    if (isRowChanged(row) && realizedAmountGreaterThanPlanned(row))
+      return "border-l-4 border-l-green-500 bg-green-100/70 hover:bg-green-100 transition-colors";
+    if (isRowChanged(row) && !realizedAmountGreaterThanPlanned(row))
+      return "border-l-4 border-l-amber-500 bg-amber-100/70 hover:bg-amber-100 transition-colors";
     return "border-l-4 border-l-transparent hover:bg-zinc-50 transition-colors";
   };
 
@@ -253,14 +259,7 @@ export function FeasibilityServicesReviewStep({
               </TableRow>
             ) : (
               filteredServicesData.map((row) => (
-                <TableRow
-                  key={row.id}
-                  className={
-                    readOnly
-                      ? "border-l-4 border-l-transparent hover:bg-zinc-50 transition-colors"
-                      : getRowClassName(row)
-                  }
-                >
+                <TableRow key={row.id} className={getRowClassName(row)}>
                   {reviewColumns.map((col) => (
                     <TableCell key={col.key}>
                       {row[col.key as keyof FeasibilityServiceItem]}
