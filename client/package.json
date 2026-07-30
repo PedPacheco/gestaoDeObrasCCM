@@ -17,7 +17,9 @@
     "glob": "^11.0.0",
     "rimraf": "^6.0.0",
     "postcss": "^8.5.10",
-    "uuid": "^11.1.1"
+    "uuid": "^11.1.1",
+    "sharp": "^0.35.0",
+    "esbuild": "^0.28.1"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

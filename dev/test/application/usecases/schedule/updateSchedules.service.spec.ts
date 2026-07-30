@@ -12,6 +12,7 @@ import {
   mockUpdateSchedulesServiceFormattedData,
   mockUpdateSchedulesServiceWithoutIdWork,
 } from '../../../mocks/schedules/mockUpdateSchedules';
+import { ScheduleExecutionValidatorService } from 'src/application/usecases/schedule/scheduleExecutionValidator.service';
 
 describe('UpdateSchedulesService', () => {
   let updateSchedulesService: UpdateSchedulesService;
@@ -25,6 +26,10 @@ describe('UpdateSchedulesService', () => {
   const mockRepository = {
     update: jest.fn(),
     findExecutionOfSchedules: jest.fn(),
+  };
+
+  const mockScheduleExecutionValidatorService = {
+    validateExecutionAndUpdateStatus: jest.fn(),
   };
 
   const mockStatusFlowRepository = {
@@ -47,6 +52,10 @@ describe('UpdateSchedulesService', () => {
           useValue: mockFindScheduleByIdRepository,
         },
         { provide: STATUS_FLOW_REPOSITORY, useValue: mockStatusFlowRepository },
+        {
+          provide: ScheduleExecutionValidatorService,
+          useValue: mockScheduleExecutionValidatorService,
+        },
       ],
     }).compile();
 
@@ -98,6 +107,32 @@ describe('UpdateSchedulesService', () => {
 
       expect(mockRepository.update).toHaveBeenCalledWith(
         mockUpdateSchedulesServiceFormattedData,
+        mockTransaction,
+      );
+      expect(
+        mockStatusFlowRepository.updateScheduleStatus,
+      ).toHaveBeenCalledWith(1, 1, mockTransaction);
+      expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
+        43,
+        3146044,
+        mockTransaction,
+      );
+    });
+
+    it('Should call method update and update status of work and status of schedule', async () => {
+      mockRepository.update.mockResolvedValue(undefined);
+      mockRepository.findExecutionOfSchedules.mockResolvedValue([80, 80]);
+      mockFindScheduleByIdRepository.findById.mockResolvedValue({
+        reprovada: true,
+        id_status_programacao: 7,
+      });
+
+      const mockData = { ...mockUpdateSchedulesService, prog: 20, exec: 20 };
+
+      await updateSchedulesService.update(mockData, mockTransaction);
+
+      expect(mockRepository.update).toHaveBeenCalledWith(
+        { ...mockUpdateSchedulesServiceFormattedData, prog: 20, exec: 20 },
         mockTransaction,
       );
       expect(

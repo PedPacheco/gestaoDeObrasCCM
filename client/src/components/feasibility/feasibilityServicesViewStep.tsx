@@ -22,15 +22,16 @@ export interface FeasibilityServiceItem {
   material: string;
   textoBreve: string;
   operacao?: string;
-  ponto?: string;
+  numero_operacao: string;
+  descricao_operacao: string;
+  ponto: string;
   qtdePlanejada: number;
-  viabilizado: number | null;
+  viabilizado: string | null;
 }
 
 interface FeasibilityServicesReviewStepProps {
   reviewData: FeasibilityServiceItem[];
   onChangeReviewData: (data: FeasibilityServiceItem[]) => void;
-  filters: { operations: any[]; points: any[] };
   readOnly?: boolean;
 }
 
@@ -38,16 +39,18 @@ const reviewColumns = [
   { key: "material", label: "CÓDIGO" },
   { key: "textoBreve", label: "SERVIÇO" },
   { key: "operacao", label: "OPERAÇÃO" },
+  { key: "numero_operacao", label: "N° DA OPERAÇÃO" },
+  { key: "descricao_operacao", label: "DESCRIÇÃO DA OPERAÇÃO" },
   { key: "ponto", label: "PONTO" },
   { key: "qtdePlanejada", label: "QTD. PLANEJADA" },
 ] as const;
 
-const QUANTITY_PATTERN = /^\d*$/;
+const QUANTITY_PATTERN = /^\d*[.,]?\d*$/;
 
 function isRowEmpty(row: FeasibilityServiceItem) {
   return (
     row.viabilizado === null ||
-    (row.viabilizado === 0 && row.qtdePlanejada === 0)
+    (Number(row.viabilizado) === 0 && row.qtdePlanejada === 0)
   );
 }
 
@@ -58,13 +61,16 @@ export function hasInvalidAdditionalQuantities(
 }
 
 function isRowChanged(row: FeasibilityServiceItem) {
-  return !isRowEmpty(row) && row.viabilizado !== row.qtdePlanejada;
+  return !isRowEmpty(row) && Number(row.viabilizado) !== row.qtdePlanejada;
+}
+
+function realizedAmountGreaterThanPlanned(row: FeasibilityServiceItem) {
+  return !isRowEmpty(row) && Number(row.viabilizado) > row.qtdePlanejada;
 }
 
 export function FeasibilityServicesReviewStep({
   reviewData,
   onChangeReviewData,
-  filters,
   readOnly = false,
 }: FeasibilityServicesReviewStepProps) {
   const [visibleIds, setVisibleIds] = useState<Set<number> | null>(null);
@@ -99,7 +105,7 @@ export function FeasibilityServicesReviewStep({
         item.id === id
           ? {
               ...item,
-              viabilizado: value === "" ? null : Number(value),
+              viabilizado: value === "" ? null : value,
             }
           : item,
       ),
@@ -113,16 +119,18 @@ export function FeasibilityServicesReviewStep({
       reviewData.map((item) =>
         item.qtdePlanejada === 0
           ? item
-          : { ...item, viabilizado: item.qtdePlanejada },
+          : { ...item, viabilizado: item.qtdePlanejada.toString() },
       ),
     );
   };
 
   const getRowClassName = (row: FeasibilityServiceItem) => {
     if (isRowEmpty(row))
-      return "border-l-4 border-l-red-400 bg-red-50/60 hover:bg-red-50 transition-colors";
-    if (isRowChanged(row))
-      return "border-l-4 border-l-amber-400 bg-amber-50/50 hover:bg-amber-50 transition-colors";
+      return "border-l-4 border-l-red-600 bg-red-100/80 hover:bg-red-100 transition-colors";
+    if (isRowChanged(row) && realizedAmountGreaterThanPlanned(row))
+      return "border-l-4 border-l-green-500 bg-green-100/70 hover:bg-green-100 transition-colors";
+    if (isRowChanged(row) && !realizedAmountGreaterThanPlanned(row))
+      return "border-l-4 border-l-amber-500 bg-amber-100/70 hover:bg-amber-100 transition-colors";
     return "border-l-4 border-l-transparent hover:bg-zinc-50 transition-colors";
   };
 
@@ -179,17 +187,22 @@ export function FeasibilityServicesReviewStep({
             ),
           },
           {
+            label: "FAMILIA",
+            field: "descricao_operacao",
+            options: Array.from(
+              new Set(reviewData.map((item) => item.descricao_operacao)),
+            ),
+          },
+          {
             label: "OPERAÇÃO",
             field: "operacao",
             options: SERVICE_OPERATIONS,
-            width: "w-1/4",
+            width: "w-60",
           },
           {
             label: "PONTO",
             field: "ponto",
-            options: filters.points.filter((item) => {
-              return reviewData.some((service) => service.ponto === item);
-            }),
+            options: Array.from(new Set(reviewData.map((item) => item.ponto))),
             width: "w-44",
           },
         ]}
@@ -246,14 +259,7 @@ export function FeasibilityServicesReviewStep({
               </TableRow>
             ) : (
               filteredServicesData.map((row) => (
-                <TableRow
-                  key={row.id}
-                  className={
-                    readOnly
-                      ? "border-l-4 border-l-transparent hover:bg-zinc-50 transition-colors"
-                      : getRowClassName(row)
-                  }
-                >
+                <TableRow key={row.id} className={getRowClassName(row)}>
                   {reviewColumns.map((col) => (
                     <TableCell key={col.key}>
                       {row[col.key as keyof FeasibilityServiceItem]}
@@ -268,7 +274,7 @@ export function FeasibilityServicesReviewStep({
                     ) : (
                       <input
                         type="text"
-                        inputMode="numeric"
+                        inputMode="decimal"
                         className={`w-24 rounded-md border px-2 py-1.5 text-right text-sm outline-none transition-colors focus:ring-2 ${getInputClassName(row)}`}
                         value={row.viabilizado ?? ""}
                         onChange={(e) =>

@@ -8,6 +8,7 @@ import {
   TableBody,
   TableCell,
   TableContainer,
+  TableFooter,
   TableHead,
   TableRow,
 } from "@mui/material";
@@ -21,6 +22,8 @@ const SERVICE_COLUMNS = [
   { key: "material", label: "CÓDIGO" },
   { key: "textoBreve", label: "SERVIÇO" },
   { key: "operacao", label: "OPERAÇÃO" },
+  { key: "numero_operacao", label: "N° OPERAÇÃO" },
+  { key: "descricao_operacao", label: "DESCRIÇÃO OPERAÇÃO" },
   { key: "ponto", label: "PONTO" },
   { key: "equipe", label: "EQUIPE" },
   { key: "perfil", label: "PERFIL" },
@@ -32,17 +35,27 @@ const SERVICE_COLUMNS = [
   { key: "qtdeProgramada", label: "PROG", align: "right" as const },
   { key: "qtdeRealizada", label: "REAL", align: "right" as const },
   { key: "valorUnit", label: "VALOR UNIT", align: "right" as const },
+  { key: "valorTotal", label: "VALOR TOTAL", align: "right" as const },
   { key: "status", label: "STATUS" },
 ] as const;
+
+const SUMMABLE_COLUMNS = new Set([
+  "qtdePlanejada",
+  "viabilizado",
+  "qtdeAdicional",
+  "qtdeProgramada",
+  "qtdeRealizada",
+  "valorUnit",
+  "valorTotal",
+]);
+
+const CURRENCY_COLUMNS = new Set(["valorUnit", "valorTotal"]);
 
 interface ScheduleServicesTableProps {
   scheduledServicesData: any[];
   scheduledServices: ScheduledServiceState[];
   setScheduledServices: (service: any) => any;
   clearValidation: () => void;
-  points: string[];
-  operations: string[];
-  services: any[];
 }
 
 export function ScheduledServicesTable({
@@ -50,9 +63,6 @@ export function ScheduledServicesTable({
   scheduledServices,
   setScheduledServices,
   clearValidation,
-  operations,
-  points,
-  services,
 }: ScheduleServicesTableProps) {
   const [filteredServicesData, setFilteredServicesData] = useState<any[]>([]);
 
@@ -65,12 +75,36 @@ export function ScheduledServicesTable({
       return dayjs(value).utc().format("DD/MM/YYYY");
     }
 
-    if (key === "valorUnit") {
+    if (["valorUnit", "valorTotal"].includes(key)) {
       return FormatCurrency(value);
     }
 
     return value;
   };
+
+  const totals = useMemo(() => {
+    const sums: Record<string, number> = {};
+
+    for (const col of SUMMABLE_COLUMNS) {
+      sums[col] = 0;
+    }
+
+    for (const row of filteredServicesData) {
+      const currentService = scheduledServices.find((s) => s.id === row.id);
+
+      for (const col of SUMMABLE_COLUMNS) {
+        if (col === "qtdeRealizada") {
+          // Usa o valor do state (editável pelo utilizador)
+          const val = Number(currentService?.qtdeRealizada) || 0;
+          sums[col] += val;
+        } else {
+          sums[col] += Number(row[col]) || 0;
+        }
+      }
+    }
+
+    return sums;
+  }, [filteredServicesData, scheduledServices]);
 
   const { allSelected, indeterminate } = useMemo(() => {
     const allChecked = scheduledServices.every((s) => s.selected);
@@ -183,32 +217,54 @@ export function ScheduledServicesTable({
           {
             label: "SERVIÇO",
             field: "textoBreve",
-            options: services.filter((item) => {
-              return scheduledServicesData.some(
-                (service) => service.textoBreve === item,
-              );
-            }),
+            options: Array.from(
+              new Set(scheduledServicesData.map((item) => item.textoBreve)),
+            ),
+          },
+          {
+            label: "FAMÍLIA",
+            field: "descricao_operacao",
+            options: Array.from(
+              new Set(
+                scheduledServicesData.map((item) => item.descricao_operacao),
+              ),
+            ),
+            width: "w-80",
+          },
+          {
+            label: "ENCARREGADO",
+            field: "encarregado",
+            options: Array.from(
+              new Set(scheduledServicesData.map((item) => item.encarregado)),
+            ),
+            width: "w-72",
           },
           {
             label: "OPERAÇÃO",
             field: "operacao",
             options: SERVICE_OPERATIONS,
-            width: "w-1/4",
+            width: "w-72",
+          },
+          {
+            label: "EQUIPE",
+            field: "perfil",
+            options: Array.from(
+              new Set(scheduledServicesData.map((item) => item.perfil)),
+            ),
+            width: "w-44",
           },
           {
             label: "PONTO",
             field: "ponto",
-            options: points.filter((item) => {
-              return scheduledServicesData.some(
-                (service) => service.ponto === item,
-              );
-            }),
+            options: Array.from(
+              new Set(scheduledServicesData.map((item) => item.ponto)),
+            ),
             width: "w-44",
           },
         ]}
         onFilter={setFilteredServicesData}
       />
-      <TableContainer component={Paper} sx={{ height: 460 }}>
+      <TableContainer component={Paper} sx={{ height: 620 }}>
         <Table stickyHeader size="small">
           <TableHead>
             <TableRow>
@@ -283,6 +339,41 @@ export function ScheduledServicesTable({
               );
             })}
           </TableBody>
+
+          <TableFooter>
+            <TableRow className="bg-zinc-100 sticky bottom-0 z-10">
+              {/* Célula do checkbox — vazia, mantém alinhamento */}
+              <TableCell className="border-l-4 border-l-transparent" />
+
+              {SERVICE_COLUMNS.map((col, index) => {
+                if (index === 0) {
+                  return (
+                    <TableCell
+                      key={index}
+                      className="text-nowrap text-sm font-bold text-zinc-700"
+                    >
+                      TOTAL
+                    </TableCell>
+                  );
+                }
+
+                if (SUMMABLE_COLUMNS.has(col.key)) {
+                  return (
+                    <TableCell
+                      key={index}
+                      className="text-nowrap text-sm font-bold text-zinc-700"
+                    >
+                      {CURRENCY_COLUMNS.has(col.key)
+                        ? FormatCurrency(totals[col.key])
+                        : totals[col.key].toLocaleString("pt-BR")}
+                    </TableCell>
+                  );
+                }
+
+                return <TableCell key={index} />;
+              })}
+            </TableRow>
+          </TableFooter>
         </Table>
       </TableContainer>
     </>

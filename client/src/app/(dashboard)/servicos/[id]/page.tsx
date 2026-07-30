@@ -25,7 +25,6 @@ export default async function ServicosPage({
     options,
     servicesData,
     scheduledServicesData,
-    serviceFilters,
     serviceContractData,
     serviceTeams,
     scheduledServicesHistory,
@@ -47,12 +46,6 @@ export default async function ServicosPage({
       }/servicos/selecionados/${id}?idProgramacao=${
         formData?.id ? formData.id : "1"
       }`,
-      undefined,
-      cookieStore.get("token")?.value,
-      { cache: "no-store" },
-    ),
-    fetchData(
-      `${process.env.NEXT_PUBLIC_API_URL}/servicos/filtros/${id}`,
       undefined,
       cookieStore.get("token")?.value,
       { cache: "no-store" },
@@ -91,7 +84,6 @@ export default async function ServicosPage({
         servicesData={servicesData.data}
         serviceContractData={serviceContractData.data}
         materialsData={materialsData.data}
-        serviceFilters={serviceFilters.data}
         scheduledServicesHistory={scheduledServicesHistory.data}
         serviceTeams={serviceTeams.data}
         isInsert={formData?.id ? false : true}

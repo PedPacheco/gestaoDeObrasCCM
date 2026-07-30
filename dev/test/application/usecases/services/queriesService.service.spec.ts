@@ -1,19 +1,17 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
-
+import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
+import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
 import {
-  WORKS_SERVICE_REPOSITORY,
-  IWorksServicesRepository,
-} from 'src/domain/repositories/IWorksServiceRepository';
-
+  IWorkServicesQueryRepository,
+  WORK_SERVICES_QUERY_REPOSITORY,
+} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
 import {
-  GetByIdParamsInterface,
   GetSelectedServicesParamsInterface,
   GetServicesByWorkIdResponse,
   GetServiceScheduleHistoryResponse,
 } from 'src/interface/types/servicesInterface';
-import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
-import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
+
+import { NotFoundException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 import { Decimal } from '@prisma/client/runtime/library';
 
 const mockHistory: GetServiceScheduleHistoryResponse[] = [
@@ -24,13 +22,15 @@ const mockHistory: GetServiceScheduleHistoryResponse[] = [
     programacoes: { data_prog: new Date('2024-01-01') },
     adicional: 1,
     equipes: { equipe: 'LM01' },
-    plan: 1,
     prog: 1,
     real: 1,
     servicos: {
       operacao: 'INSTALAÇÃO',
       ponto: 'P1',
       servicos_contratos: { texto_breve: 'POSTE' },
+      qtde_plan: 1,
+      viabilizado: 2,
+      materiais: undefined,
     },
   },
   {
@@ -40,23 +40,25 @@ const mockHistory: GetServiceScheduleHistoryResponse[] = [
     programacoes: { data_prog: new Date('2024-01-01') },
     adicional: 1,
     equipes: { equipe: 'LM01' },
-    plan: 1,
     prog: 1,
     real: 1,
     servicos: {
       operacao: 'INSTALAÇÃO',
       ponto: 'P1',
-      materiais: { descricao: 'POSTE' },
+      materiais: { descricao: 'POSTE - ODI' },
+      qtde_plan: 1,
+      viabilizado: 2,
     },
   },
 ];
 
 describe('WorksServicesService', () => {
   let service: QueriesServicesService;
-  let repository: IWorksServicesRepository;
+  let repository: IWorkServicesQueryRepository;
   let getWorkDetailsService: GetWorkDetailsService;
 
   const mockWorksServicesRepository = {
+    getAllServicesOfWork: jest.fn(),
     getNotScheduledServices: jest.fn(),
     getSelectedServices: jest.fn(),
     getServiceScheduleHistory: jest.fn(),
@@ -75,7 +77,7 @@ describe('WorksServicesService', () => {
       providers: [
         QueriesServicesService,
         {
-          provide: WORKS_SERVICE_REPOSITORY,
+          provide: WORK_SERVICES_QUERY_REPOSITORY,
           useValue: mockWorksServicesRepository,
         },
         {
@@ -86,7 +88,9 @@ describe('WorksServicesService', () => {
     }).compile();
 
     service = module.get<QueriesServicesService>(QueriesServicesService);
-    repository = module.get<IWorksServicesRepository>(WORKS_SERVICE_REPOSITORY);
+    repository = module.get<IWorkServicesQueryRepository>(
+      WORK_SERVICES_QUERY_REPOSITORY,
+    );
     getWorkDetailsService = module.get<GetWorkDetailsService>(
       GetWorkDetailsService,
     );
@@ -98,19 +102,16 @@ describe('WorksServicesService', () => {
     expect(service).toBeDefined();
   });
 
-  describe('getById', () => {
-    const mockParams: GetByIdParamsInterface = {
-      id: 1,
-      point: 'Ponto A',
-      service: 'Serviço 1',
-      operation: 'Operação 1',
-    };
-
+  describe('getAllItems', () => {
     const mockRepositoryResponse: GetServicesByWorkIdResponse[] = [
       {
         id: 1,
         id_obra: 100,
+        id_contrato_servico: 2,
+        id_material: null,
         operacao: 'Operação 1',
+        descricao_operacao: 'POSTE',
+        numero_operacao: '2000',
         ponto: 'Ponto A',
         qtde_plan: 10,
         qtde_prog: 8,
@@ -130,7 +131,166 @@ describe('WorksServicesService', () => {
       {
         id: 2,
         id_obra: 100,
+        id_contrato_servico: null,
+        id_material: 2,
         operacao: 'Operação 2',
+        descricao_operacao: 'POSTE - ODI',
+        numero_operacao: '2000',
+        ponto: 'Ponto B',
+        qtde_plan: 2,
+        qtde_prog: 3,
+        qtde_real: null,
+        qtde_adicional: 1,
+        servicos_contratos: {
+          material: 'Material 2',
+          texto_breve: 'Serviço 2',
+          preco: 200,
+        },
+        programacoes: null,
+        viabilizado: 0,
+        materiais: undefined,
+      },
+    ];
+
+    it('should return formatted services successfully', async () => {
+      mockWorksServicesRepository.getAllServicesOfWork.mockResolvedValue(
+        mockRepositoryResponse,
+      );
+
+      const result = await service.getAllItems(1);
+
+      expect(result).toEqual([
+        {
+          id: 1,
+          idObra: 100,
+          operacao: 'Operação 1',
+          descricao_operacao: 'POSTE',
+          numero_operacao: '2000',
+          ponto: 'Ponto A',
+          material: '12345',
+          textoBreve: 'POSTE',
+          dataProgramada: new Date('2024-01-01'),
+          qtdePlanejada: 10,
+          qtdeProgramada: 8,
+          viabilizado: 0,
+          qtdeRealizada: 5,
+          qtdeAdicional: null,
+          tipo: 'M',
+          valorUnit: 1.5,
+          valorTotal: 15,
+          valorReal: 7.5,
+        },
+        {
+          id: 2,
+          idObra: 100,
+          operacao: 'Operação 2',
+          descricao_operacao: 'POSTE - ODI',
+          numero_operacao: '2000',
+          ponto: 'Ponto B',
+          material: 'Material 2',
+          textoBreve: 'Serviço 2',
+          dataProgramada: undefined,
+          qtdePlanejada: 2,
+          qtdeProgramada: 3,
+          viabilizado: 0,
+          qtdeRealizada: null,
+          qtdeAdicional: 1,
+          tipo: 'S',
+          valorUnit: 200,
+          valorTotal: 600,
+          valorReal: 0,
+        },
+      ]);
+      expect(repository.getAllServicesOfWork).toHaveBeenCalledWith(1);
+      expect(repository.getAllServicesOfWork).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw NotFoundException when services is null', async () => {
+      mockWorksServicesRepository.getAllServicesOfWork.mockResolvedValue(null);
+
+      await expect(service.getAllItems(1)).rejects.toThrow(NotFoundException);
+      await expect(service.getAllItems(1)).rejects.toThrow(
+        'Obra não encontrada',
+      );
+    });
+
+    it('should throw NotFoundException when services is undefined', async () => {
+      mockWorksServicesRepository.getAllServicesOfWork.mockResolvedValue(
+        undefined,
+      );
+
+      await expect(service.getAllItems(1)).rejects.toThrow(NotFoundException);
+    });
+
+    it('should return empty array when no services found', async () => {
+      mockWorksServicesRepository.getAllServicesOfWork.mockResolvedValue([]);
+
+      const result = await service.getAllItems(1);
+
+      expect(result).toEqual([]);
+      expect(result).toHaveLength(0);
+    });
+
+    it('should calculate valorUnit and valorReal correctly', async () => {
+      const serviceWithCustomValues = [
+        {
+          ...mockRepositoryResponse[0],
+          qtde_plan: 2,
+          qtde_real: 2,
+          qtde_adicional: null,
+          servicos_contratos: {
+            ...mockRepositoryResponse[0].servicos_contratos,
+            preco: 5,
+          },
+        },
+      ];
+
+      mockWorksServicesRepository.getAllServicesOfWork.mockResolvedValue(
+        serviceWithCustomValues,
+      );
+
+      const result = await service.getAllItems(1);
+
+      expect(result[0].valorUnit).toBe(5); // 50 * 25.5
+      expect(result[0].valorTotal).toBe(10); // 50 * 25.5
+      expect(result[0].valorReal).toBe(10); // 30 * 25.5
+    });
+  });
+
+  describe('getNotScheduledServices', () => {
+    const mockRepositoryResponse: GetServicesByWorkIdResponse[] = [
+      {
+        id: 1,
+        id_obra: 100,
+        id_contrato_servico: 2,
+        id_material: null,
+        operacao: 'Operação 1',
+        descricao_operacao: 'POSTE',
+        numero_operacao: '2000',
+        ponto: 'Ponto A',
+        qtde_plan: 10,
+        qtde_prog: 8,
+        qtde_real: 5,
+        qtde_adicional: null,
+        servicos_contratos: undefined,
+        programacoes: {
+          data_prog: new Date('2024-01-01'),
+        },
+        viabilizado: 0,
+        materiais: {
+          codigo: '12345',
+          descricao: 'POSTE',
+          preco: new Decimal(1.5),
+        },
+      },
+      {
+        id: 2,
+        id_obra: 100,
+        id_contrato_servico: null,
+        id_material: 2,
+        operacao: 'Operação 2',
+        descricao_operacao: 'POSTE - ODI',
+        numero_operacao: '2000',
         ponto: 'Ponto B',
         qtde_plan: 2,
         qtde_prog: 3,
@@ -152,13 +312,15 @@ describe('WorksServicesService', () => {
         mockRepositoryResponse,
       );
 
-      const result = await service.getById(mockParams);
+      const result = await service.getNotScheduledServices(1);
 
       expect(result).toEqual([
         {
           id: 1,
           idObra: 100,
           operacao: 'Operação 1',
+          descricao_operacao: 'POSTE',
+          numero_operacao: '2000',
           ponto: 'Ponto A',
           material: '12345',
           textoBreve: 'POSTE',
@@ -177,6 +339,8 @@ describe('WorksServicesService', () => {
           id: 2,
           idObra: 100,
           operacao: 'Operação 2',
+          descricao_operacao: 'POSTE - ODI',
+          numero_operacao: '2000',
           ponto: 'Ponto B',
           material: 'Material 2',
           textoBreve: 'Serviço 2',
@@ -192,27 +356,8 @@ describe('WorksServicesService', () => {
           valorReal: 0,
         },
       ]);
-      expect(repository.getNotScheduledServices).toHaveBeenCalledWith(
-        mockParams,
-      );
+      expect(repository.getNotScheduledServices).toHaveBeenCalledWith(1);
       expect(repository.getNotScheduledServices).toHaveBeenCalledTimes(1);
-    });
-
-    it('should return services without optional filters', async () => {
-      const paramsWithoutFilters: GetByIdParamsInterface = {
-        id: 1,
-      };
-
-      mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue([
-        mockRepositoryResponse[0],
-      ]);
-
-      const result = await service.getById(paramsWithoutFilters);
-
-      expect(result).toHaveLength(1);
-      expect(repository.getNotScheduledServices).toHaveBeenCalledWith(
-        paramsWithoutFilters,
-      );
     });
 
     it('should throw NotFoundException when services is null', async () => {
@@ -220,10 +365,10 @@ describe('WorksServicesService', () => {
         null,
       );
 
-      await expect(service.getById(mockParams)).rejects.toThrow(
+      await expect(service.getNotScheduledServices(1)).rejects.toThrow(
         NotFoundException,
       );
-      await expect(service.getById(mockParams)).rejects.toThrow(
+      await expect(service.getNotScheduledServices(1)).rejects.toThrow(
         'Obra não encontrada',
       );
     });
@@ -233,7 +378,7 @@ describe('WorksServicesService', () => {
         undefined,
       );
 
-      await expect(service.getById(mockParams)).rejects.toThrow(
+      await expect(service.getNotScheduledServices(1)).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -241,7 +386,7 @@ describe('WorksServicesService', () => {
     it('should return empty array when no services found', async () => {
       mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue([]);
 
-      const result = await service.getById(mockParams);
+      const result = await service.getNotScheduledServices(1);
 
       expect(result).toEqual([]);
       expect(result).toHaveLength(0);
@@ -265,7 +410,7 @@ describe('WorksServicesService', () => {
         serviceWithCustomValues,
       );
 
-      const result = await service.getById(mockParams);
+      const result = await service.getNotScheduledServices(1);
 
       expect(result[0].valorUnit).toBe(5); // 50 * 25.5
       expect(result[0].valorTotal).toBe(10); // 50 * 25.5
@@ -284,7 +429,7 @@ describe('WorksServicesService', () => {
         serviceWithoutProgramacao,
       );
 
-      const result = await service.getById(mockParams);
+      const result = await service.getNotScheduledServices(1);
 
       expect(result[0].dataProgramada).toBeUndefined();
     });
@@ -294,9 +439,6 @@ describe('WorksServicesService', () => {
     const mockParams: GetSelectedServicesParamsInterface = {
       id: 1,
       idProgramacao: 10,
-      point: 'Ponto A',
-      service: 'Serviço 1',
-      operation: 'Operação 1',
     };
 
     const mockRepositoryResponse = [
@@ -476,6 +618,7 @@ describe('WorksServicesService', () => {
           qtdePlanejada: 1,
           qtdeProgramada: 1,
           qtdeRealizada: 1,
+          qtdeViabilizado: 2,
           operacao: 'INSTALAÇÃO',
           ponto: 'P1',
           descricao: 'POSTE',
@@ -491,9 +634,10 @@ describe('WorksServicesService', () => {
           qtdePlanejada: 1,
           qtdeProgramada: 1,
           qtdeRealizada: 1,
+          qtdeViabilizado: 2,
           operacao: 'INSTALAÇÃO',
           ponto: 'P1',
-          descricao: 'POSTE',
+          descricao: 'POSTE - ODI',
         },
       ]);
       expect(repository.getServiceScheduleHistory).toHaveBeenCalledWith(mockId);
@@ -521,79 +665,6 @@ describe('WorksServicesService', () => {
       await service.getServiceScheduleHistory(mockId);
 
       expect(repository.getServiceScheduleHistory).toHaveBeenCalledWith(42);
-    });
-  });
-
-  describe('getServicesFilters', () => {
-    it('should return formatted filters successfully', async () => {
-      const mockId = 1;
-      const mockFilters = {
-        services: [{ texto_breve: 'Serviço 1' }, { texto_breve: 'Serviço 2' }],
-        operations: [{ operacao: 'Operação 1' }, { operacao: 'Operação 2' }],
-        points: [{ ponto: 'Ponto A' }, { ponto: 'Ponto B' }],
-      };
-
-      mockWorksServicesRepository.getServicesFilters.mockResolvedValue(
-        mockFilters,
-      );
-
-      const result = await service.getServicesFilters(mockId);
-
-      expect(result).toEqual({
-        services: ['Serviço 1', 'Serviço 2'],
-        operations: ['Operação 1', 'Operação 2'],
-        points: ['Ponto A', 'Ponto B'],
-      });
-      expect(repository.getServicesFilters).toHaveBeenCalledWith(mockId);
-      expect(repository.getServicesFilters).toHaveBeenCalledTimes(1);
-    });
-
-    it('should return empty arrays when no filters found', async () => {
-      const mockId = 1;
-      const mockFilters = {
-        services: [],
-        operations: [],
-        points: [],
-      };
-
-      mockWorksServicesRepository.getServicesFilters.mockResolvedValue(
-        mockFilters,
-      );
-
-      const result = await service.getServicesFilters(mockId);
-
-      expect(result).toEqual({
-        services: [],
-        operations: [],
-        points: [],
-      });
-    });
-
-    it('should map filter values correctly', async () => {
-      const mockId = 1;
-      const mockFilters = {
-        services: [
-          { texto_breve: 'Pintura' },
-          { texto_breve: 'Alvenaria' },
-          { texto_breve: 'Elétrica' },
-        ],
-        operations: [
-          { operacao: 'Op1' },
-          { operacao: 'Op2' },
-          { operacao: 'Op3' },
-        ],
-        points: [{ ponto: 'P1' }, { ponto: 'P2' }],
-      };
-
-      mockWorksServicesRepository.getServicesFilters.mockResolvedValue(
-        mockFilters,
-      );
-
-      const result = await service.getServicesFilters(mockId);
-
-      expect(result.services).toHaveLength(3);
-      expect(result.operations).toHaveLength(3);
-      expect(result.points).toHaveLength(2);
     });
   });
 

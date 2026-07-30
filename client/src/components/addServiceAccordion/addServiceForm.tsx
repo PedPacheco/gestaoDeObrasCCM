@@ -15,6 +15,7 @@ import {
   TextField,
 } from "@mui/material";
 import { ServicesContractSelect } from "../services/servicesSection/servicesContractSelect";
+import { AddMaterialOrServiceFormState } from "./addServiceAccordion";
 
 export type ServiceContract = {
   id: number;
@@ -26,22 +27,20 @@ export type ServiceContract = {
   turmas: { turma: string };
 };
 
-type AddServiceFormState = {
-  idService: number | null;
-  point: string;
-  operation: string;
-};
-
 interface Props {
   idWork: number;
   serviceContractData: ServiceContract[];
   operations: string[];
   points: string[];
+  operationsNumber: string[];
+  operationsDescription: string[];
   onSubmit: (data: {
     idWork: number;
     idService: number;
     point: string;
     operation: string;
+    operationNumber: string;
+    operationDescription: string;
   }) => Promise<void>;
 }
 
@@ -50,12 +49,16 @@ export function AddServiceForm({
   serviceContractData,
   operations,
   points,
+  operationsNumber,
+  operationsDescription,
   onSubmit,
 }: Props) {
-  const [form, setForm] = useState<AddServiceFormState>({
+  const [form, setForm] = useState<AddMaterialOrServiceFormState>({
     idService: null,
     point: "",
     operation: "",
+    operationNumber: "",
+    operationDescription: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -64,9 +67,9 @@ export function AddServiceForm({
    * Atualiza estado de forma segura e imutável
    */
   const updateField = useCallback(
-    <K extends keyof AddServiceFormState>(
+    <K extends keyof AddMaterialOrServiceFormState>(
       field: K,
-      value: AddServiceFormState[K],
+      value: AddMaterialOrServiceFormState[K],
     ) => {
       setForm((prev) => ({
         ...prev,
@@ -88,6 +91,8 @@ export function AddServiceForm({
         idService: form.idService!,
         point: form.point,
         operation: form.operation,
+        operationNumber: form.operationNumber,
+        operationDescription: form.operationDescription,
       });
 
       // reset form
@@ -95,6 +100,8 @@ export function AddServiceForm({
         idService: null,
         point: "",
         operation: "",
+        operationNumber: "",
+        operationDescription: "",
       });
     } finally {
       setLoading(false);
@@ -190,6 +197,38 @@ export function AddServiceForm({
             {operations.map((op) => (
               <MenuItem key={op} value={op}>
                 {op}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <FormControl fullWidth size="small">
+          <InputLabel>N° Operação</InputLabel>
+          <Select
+            value={form.operationNumber}
+            onChange={(e) => updateField("operationNumber", e.target.value)}
+          >
+            {operationsNumber.map((opt) => (
+              <MenuItem key={opt} value={opt}>
+                {opt}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <FormControl fullWidth size="small">
+          <InputLabel>Descrição Operação</InputLabel>
+          <Select
+            value={form.operationDescription}
+            onChange={(e) =>
+              updateField("operationDescription", e.target.value)
+            }
+          >
+            {operationsDescription.map((opt) => (
+              <MenuItem key={opt} value={opt}>
+                {opt}
               </MenuItem>
             ))}
           </Select>

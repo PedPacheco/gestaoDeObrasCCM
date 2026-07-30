@@ -11,12 +11,14 @@ interface ConfirmRescheduleModalProps {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  isDisabled: boolean;
 }
 
 export function ConfirmRescheduleModal({
   open,
   onClose,
   onConfirm,
+  isDisabled,
 }: ConfirmRescheduleModalProps) {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -29,9 +31,19 @@ export function ConfirmRescheduleModal({
       </DialogContent>
 
       <DialogActions className="px-6 pb-4">
-        <ButtonComponent text="Cancelar" styled="!h-8" onClick={onClose} />
+        <ButtonComponent
+          text="Cancelar"
+          styled="!h-8"
+          onClick={onClose}
+          disabled={isDisabled}
+        />
 
-        <ButtonComponent text="Confirmar" styled="!h-8" onClick={onConfirm} />
+        <ButtonComponent
+          text={isDisabled ? "Reprogramando..." : "Confirmar"}
+          styled="!h-8"
+          onClick={onConfirm}
+          disabled={isDisabled}
+        />
       </DialogActions>
     </Dialog>
   );

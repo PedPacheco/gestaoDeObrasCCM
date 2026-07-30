@@ -15,12 +15,7 @@ import {
   TextField,
 } from "@mui/material";
 import { ServicesContractSelect } from "../services/servicesSection/servicesContractSelect";
-
-type AddMaterialFormState = {
-  idService: number | null;
-  point: string;
-  operation: string;
-};
+import { AddMaterialOrServiceFormState } from "./addServiceAccordion";
 
 interface MaterialData {
   id: number;
@@ -35,11 +30,15 @@ interface Props {
   materialData: MaterialData[];
   operations: string[];
   points: string[];
+  operationsNumber: string[];
+  operationsDescription: string[];
   onSubmit: (data: {
     idWork: number;
     idService: number;
     point: string;
     operation: string;
+    operationNumber: string;
+    operationDescription: string;
   }) => Promise<void>;
 }
 
@@ -48,20 +47,24 @@ export function AddMaterialForm({
   materialData,
   operations,
   points,
+  operationsDescription,
+  operationsNumber,
   onSubmit,
 }: Props) {
-  const [form, setForm] = useState<AddMaterialFormState>({
+  const [form, setForm] = useState<AddMaterialOrServiceFormState>({
     idService: null,
     point: "",
     operation: "",
+    operationNumber: "",
+    operationDescription: "",
   });
 
   const [loading, setLoading] = useState(false);
 
   const updateField = useCallback(
-    <K extends keyof AddMaterialFormState>(
+    <K extends keyof AddMaterialOrServiceFormState>(
       field: K,
-      value: AddMaterialFormState[K],
+      value: AddMaterialOrServiceFormState[K],
     ) => {
       setForm((prev) => ({
         ...prev,
@@ -80,6 +83,8 @@ export function AddMaterialForm({
         idService: form.idService!,
         point: form.point,
         operation: form.operation,
+        operationNumber: form.operationNumber,
+        operationDescription: form.operationDescription,
       });
 
       // reset form
@@ -87,11 +92,14 @@ export function AddMaterialForm({
         idService: null,
         point: "",
         operation: "",
+        operationNumber: "",
+        operationDescription: "",
       });
     } finally {
       setLoading(false);
     }
   };
+
   return (
     <div className="space-y-4">
       {/* SERVICE SELECT */}
@@ -101,6 +109,7 @@ export function AddMaterialForm({
             options={materialData}
             getOptionLabel={(s) => s.descricao}
             ListboxComponent={ServicesContractSelect}
+            value={materialData.find((m) => m.id === form.idService) ?? null}
             renderOption={(props, s) => {
               const { key, className, ...other } = props;
               return (
@@ -179,6 +188,39 @@ export function AddMaterialForm({
           </Select>
         </FormControl>
       </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <FormControl fullWidth size="small">
+          <InputLabel>N° Operação</InputLabel>
+          <Select
+            value={form.operationNumber}
+            onChange={(e) => updateField("operationNumber", e.target.value)}
+          >
+            {operationsNumber.map((opt) => (
+              <MenuItem key={opt} value={opt}>
+                {opt}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <FormControl fullWidth size="small">
+          <InputLabel>Descrição Operação</InputLabel>
+          <Select
+            value={form.operationDescription}
+            onChange={(e) =>
+              updateField("operationDescription", e.target.value)
+            }
+          >
+            {operationsDescription.map((opt) => (
+              <MenuItem key={opt} value={opt}>
+                {opt}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </div>
+
       {/* SUBMIT */}
       <ButtonComponent
         text={loading ? "Adicionando..." : "Adicionar Material"}

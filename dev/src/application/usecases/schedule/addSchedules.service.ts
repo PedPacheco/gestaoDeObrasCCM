@@ -51,7 +51,7 @@ export class AddSchedulesService {
       chave_provisoria: schedule.temporaryKey,
       tipo_servico: schedule.serviceType,
       chi: schedule.chi,
-      observacao_execucao: schedule.observationExecution,
+      observacao_execucao: schedule.executionObservation,
       observacao_programacao: schedule.observation,
       id_tecnico: schedule.idTechnical,
       id_usuario: schedule.idUser,

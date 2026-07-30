@@ -1,6 +1,5 @@
 import { compare, genSalt, hash } from 'bcrypt';
 import { AuthService } from 'src/application/usecases/auth.service';
-import { EmailService } from 'src/application/usecases/email.service';
 import { UsersService } from 'src/application/usecases/users.service';
 import { TipoUsuario, User } from 'src/domain/entities/user.entity';
 import { AUTH_REPOSITORY } from 'src/domain/repositories/IAuthRepository';
@@ -81,12 +80,6 @@ describe('AuthService', () => {
           },
         },
         {
-          provide: EmailService,
-          useValue: {
-            sendEmail: jest.fn(),
-          },
-        },
-        {
           provide: AUTH_REPOSITORY,
           useValue: mockAuthRepository,
         },
@@ -164,6 +157,16 @@ describe('AuthService', () => {
 
       await expect(authService.register(loginUser)).rejects.toThrow(
         new BadRequestException('Nome de usuário já está em uso.'),
+      );
+    });
+
+    it('should throw BadRequestExpection when password not sent', async () => {
+      jest.spyOn(usersService, 'findUser').mockResolvedValue(undefined);
+
+      await expect(
+        authService.register({ ...loginUser, senha: undefined }),
+      ).rejects.toThrow(
+        new BadRequestException('A senha do usuário tem que ser enviada.'),
       );
     });
 

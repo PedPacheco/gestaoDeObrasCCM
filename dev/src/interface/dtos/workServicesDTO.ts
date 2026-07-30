@@ -46,6 +46,12 @@ export class AddServicesDTO {
 
   @IsString()
   operation: string;
+
+  @IsString()
+  operationNumber: string;
+
+  @IsString()
+  operationDescription: string;
 }
 
 export class PerformServicesDTO {
@@ -109,6 +115,18 @@ export class ServiceMaterialItemDto {
   @IsInt()
   id: number;
 
+  @Transform(({ value }) => {
+    if (value === null || value === undefined || value === '') {
+      return value; // deixa @IsNumber acusar se for obrigatório
+    }
+
+    const normalized =
+      typeof value === 'string' ? value.replace(',', '.') : value;
+
+    const parsed = Number(normalized);
+
+    return Number.isNaN(parsed) ? value : parsed; // se não converter, deixa passar o valor original pro validador rejeitar
+  })
   @IsNumber()
   viabilizado: number;
 }

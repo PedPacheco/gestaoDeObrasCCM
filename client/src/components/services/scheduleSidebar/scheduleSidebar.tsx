@@ -26,9 +26,9 @@ export interface ScheduledService {
   ponto: string;
   valorTotal: number;
   equipe: string | ServiceEquipe;
-  idTeam?: any;
-  prog?: any;
-  additional?: any;
+  idTeam?: number;
+  prog?: number;
+  additional?: number | null;
 }
 
 export interface ScheduleSidebarProps {
@@ -209,6 +209,7 @@ export function ScheduleSidebar({
           variant="outlined"
           fullWidth
           startIcon={<XMarkIcon className="h-5 w-5" />}
+          disabled={isPending}
           onClick={onCancel}
           sx={{ textTransform: "none", fontSize: 14 }}
         >

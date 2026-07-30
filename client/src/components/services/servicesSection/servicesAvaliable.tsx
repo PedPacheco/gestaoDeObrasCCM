@@ -37,11 +37,9 @@ import { TeamModal } from "./teamsModal";
 interface ServicesAvaliableProps {
   servicesData: any[];
   setServicesData: Dispatch<SetStateAction<any[]>>;
-  points: string[];
-  operations: string[];
   setScheduledServices: Dispatch<SetStateAction<any[]>>;
   isInsert: boolean;
-  isDisabled: boolean;
+  statusSchedule?: string;
   teams: any[];
   onError: (error: string) => void;
   onSuccess: (success: string, onClose?: () => void) => void;
@@ -52,6 +50,8 @@ const serviceColumns = [
   { key: "textoBreve", label: "SERVIÇO" },
   { key: "tipo", label: "TIPO" },
   { key: "operacao", label: "OPERAÇÃO" },
+  { key: "numero_operacao", label: "N° DA OPERAÇÃO" },
+  { key: "descricao_operacao", label: "DESCRIÇÃO DA OPERAÇÃO" },
   { key: "ponto", label: "PONTO" },
   { key: "qtdePlanejada", label: "PLAN" },
   { key: "viabilizado", label: "VIABILIZADO" },
@@ -64,10 +64,8 @@ const serviceColumns = [
 export function NewServicesAvaliable({
   servicesData,
   setServicesData,
-  operations,
-  points,
   setScheduledServices,
-  isDisabled,
+  statusSchedule,
   teams,
   onError,
   onSuccess,
@@ -83,6 +81,10 @@ export function NewServicesAvaliable({
   const router = useRouter();
 
   const allSelected = selectedServices.length === filteredServicesData.length;
+
+  const isDisabled = statusSchedule
+    ? ["Concluído", "Cancelado", "Parcial"].includes(statusSchedule)
+    : false;
 
   useEffect(() => {
     setFilteredServicesData(servicesData);
@@ -126,6 +128,15 @@ export function NewServicesAvaliable({
   const handleAddClick = () => {
     if (selectedServices.length === 0) {
       showError("Nenhum serviço selecionado.");
+      return;
+    }
+
+    if (
+      selectedServices.find(
+        (item) => item.viabilizado === 0 && item.qtdeAdicional === null,
+      )
+    ) {
+      showError("Serviço selecionado sem valores para execução");
       return;
     }
 
@@ -207,20 +218,27 @@ export function NewServicesAvaliable({
                 ),
               },
               {
+                label: "FAMILIA",
+                field: "descricao_operacao",
+                options: Array.from(
+                  new Set(servicesData.map((item) => item.descricao_operacao)),
+                ),
+              },
+              {
                 label: "OPERAÇÃO",
                 field: "operacao",
-                options: operations.filter((item) => {
-                  return servicesData.some((service) => service.ponto === item);
-                }),
-                width: "w-1/4",
+                options: Array.from(
+                  new Set(servicesData.map((item) => item.operacao)),
+                ),
+                width: "w-1/6",
               },
               {
                 label: "PONTO",
                 field: "ponto",
-                options: points.filter((item) => {
-                  return servicesData.some((service) => service.ponto === item);
-                }),
-                width: "w-44",
+                options: Array.from(
+                  new Set(servicesData.map((item) => item.ponto)),
+                ),
+                width: "w-32",
               },
             ]}
             onFilter={setFilteredServicesData}
@@ -235,7 +253,15 @@ export function NewServicesAvaliable({
           <Table stickyHeader size="small">
             <TableHead>
               <TableRow>
-                <TableCell padding="checkbox">
+                <TableCell
+                  padding="checkbox"
+                  sx={{
+                    position: "sticky",
+                    left: 0,
+                    zIndex: 3, // maior que o stickyHeader padrão (z-index 2)
+                    backgroundColor: "background.paper",
+                  }}
+                >
                   <Checkbox
                     checked={allSelected}
                     indeterminate={
@@ -247,7 +273,7 @@ export function NewServicesAvaliable({
                         setSelectedServices(
                           filteredServicesData.map((s) => ({
                             ...s,
-                            prog: s.viabilizado + s.qtdeAdicional,
+                            prog: s.viabilizado + Number(s.qtdeAdicional),
                             additional: s.qtdeAdicional,
                           })),
                         );
@@ -279,7 +305,15 @@ export function NewServicesAvaliable({
                     selected={selectedServices.includes(index)}
                     className="cursor-pointer"
                   >
-                    <TableCell padding="checkbox">
+                    <TableCell
+                      padding="checkbox"
+                      sx={{
+                        position: "sticky",
+                        left: 0,
+                        zIndex: 1,
+                        backgroundColor: "background.paper",
+                      }}
+                    >
                       <Checkbox
                         checked={selectedServices.some(
                           (item: any) => item.id === row.id,
@@ -290,7 +324,8 @@ export function NewServicesAvaliable({
                               ...selectedServices,
                               {
                                 ...row,
-                                prog: row.viabilizado + row.qtdeAdicional,
+                                prog:
+                                  row.viabilizado + Number(row.qtdeAdicional),
                                 qtdeAdicional: row.qtdeAdicional,
                               },
                             ]);

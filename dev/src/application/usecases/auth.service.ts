@@ -5,7 +5,7 @@ import {
   IAuthRepository,
 } from 'src/domain/repositories/IAuthRepository';
 import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
-import { generateRandomPassword } from 'src/utils/generatePassword';
+// import { generateRandomPassword } from 'src/utils/generatePassword';
 
 import {
   BadRequestException,
@@ -83,7 +83,9 @@ export class AuthService {
       }
 
       if (!password) {
-        password = generateRandomPassword();
+        throw new BadRequestException(
+          'A senha do usuário tem que ser enviada.',
+        );
       }
 
       const salt = await genSalt();

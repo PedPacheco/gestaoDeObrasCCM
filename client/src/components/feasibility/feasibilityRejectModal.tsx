@@ -17,9 +17,9 @@ import { ButtonComponent } from "@/components/common/Button";
 
 const REJECTION_REASONS = [
   { value: "documentacao_incompleta", label: "Documentação incompleta" },
-  { value: "quantidade_divergente", label: "Quantidade divergente" },
+  // { value: "quantidade_divergente", label: "Quantidade divergente" },
   { value: "arquivo_ilegivel", label: "Arquivo ilegível ou corrompido" },
-  { value: "item_fora_escopo", label: "Item não previsto no escopo" },
+  // { value: "item_fora_escopo", label: "Item não previsto no escopo" },
   { value: "outro", label: "Outro" },
 ] as const;
 

@@ -1,4 +1,4 @@
-import { Transform, Type } from 'class-transformer';
+import { plainToInstance, Transform, Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -361,7 +361,7 @@ export class SchedulesDataDTO {
   prog: number;
 
   @IsOptional()
-  @IsNumber({}, { message: 'Progresso executado deve ser um número válido' })
+  @IsNumber()
   @Transform(({ value }) => {
     if (
       value === '' ||
@@ -504,9 +504,10 @@ export class CreateScheduleWithServicesDTO {
 }
 
 export class UpdateSchedulesDataDTO {
-  @Transform(({ value }) =>
-    typeof value === 'string' ? JSON.parse(value) : value,
-  )
+  @Transform(({ value }) => {
+    const parsed = typeof value === 'string' ? JSON.parse(value) : value;
+    return plainToInstance(SchedulesDataDTO, parsed);
+  })
   @ValidateNested()
   @Type(() => SchedulesDataDTO)
   updateData: SchedulesDataDTO;
