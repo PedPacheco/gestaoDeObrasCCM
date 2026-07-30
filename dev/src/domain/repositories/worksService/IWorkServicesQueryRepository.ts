@@ -1,6 +1,4 @@
 import {
-  GetAllServicesOfWorkInterface,
-  GetByIdParamsInterface,
   GetSelectedServicesParamsInterface,
   GetServicesByWorkIdResponse,
   GetServiceScheduleHistoryResponse,
@@ -8,20 +6,11 @@ import {
 } from 'src/interface/types/servicesInterface';
 
 export interface IWorkServicesQueryRepository {
-  getAllMaterialsOfWork(id: number): Promise<any[]>;
-  getAllServicesOfWork(id: number): Promise<GetAllServicesOfWorkInterface[]>;
-  getNotScheduledServices({
-    id,
-    operation,
-    point,
-    service,
-  }: GetByIdParamsInterface): Promise<GetServicesByWorkIdResponse[]>;
+  getAllServicesOfWork(id: number): Promise<GetServicesByWorkIdResponse[]>;
+  getNotScheduledServices(id: number): Promise<GetServicesByWorkIdResponse[]>;
   getSelectedServices({
     id,
     idProgramacao,
-    operation,
-    point,
-    service,
   }: GetSelectedServicesParamsInterface): Promise<
     GetServicesSelectedByWorkIdResponse[]
   >;

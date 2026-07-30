@@ -16,8 +16,7 @@ export interface IWorkServicesRepository {
     scheduleId: number,
   ): Promise<void>;
   cancelServices(id: number): Promise<void>;
-  addServices(data: AddServicesDTO): Promise<void>;
-  addMaterials(data: AddServicesDTO): Promise<void>;
+  addItem(data: AddServicesDTO, type: 'service' | 'material'): Promise<void>;
 }
 
 export const WORK_SERVICES_REPOSITORY = Symbol('WorkServicesRepository');

@@ -33,16 +33,18 @@ export class WorkServicesRepository implements IWorkServicesRepository {
           })),
         });
 
-        data.map(({ id, idSchedule, idTeam, prog, additional }) =>
-          tx.servicos.update({
-            where: { id },
-            data: {
-              id_programacao: idSchedule,
-              id_equipe: idTeam,
-              qtde_prog: prog,
-              qtde_adicional: additional,
-            },
-          }),
+        await Promise.all(
+          data.map(({ id, idSchedule, idTeam, prog, additional }) =>
+            tx.servicos.update({
+              where: { id },
+              data: {
+                id_programacao: idSchedule,
+                id_equipe: idTeam,
+                qtde_prog: prog,
+                qtde_adicional: additional,
+              },
+            }),
+          ),
         );
       },
       {
@@ -114,7 +116,10 @@ export class WorkServicesRepository implements IWorkServicesRepository {
     });
   }
 
-  async addServices(data: AddServicesDTO): Promise<void> {
+  async addItem(
+    data: AddServicesDTO,
+    type: 'service' | 'material',
+  ): Promise<void> {
     const {
       idService,
       idWork,
@@ -127,30 +132,8 @@ export class WorkServicesRepository implements IWorkServicesRepository {
     await this.prisma.servicos.create({
       data: {
         id_obra: idWork,
-        id_contrato_servico: idService,
-        operacao: operation,
-        ponto: point,
-        descricao_operacao: operationDescription,
-        numero_operacao: operationNumber,
-        qtde_plan: 0,
-      },
-    });
-  }
-
-  async addMaterials(data: AddServicesDTO): Promise<void> {
-    const {
-      idService,
-      idWork,
-      operation,
-      point,
-      operationDescription,
-      operationNumber,
-    } = data;
-
-    await this.prisma.servicos.create({
-      data: {
-        id_obra: idWork,
-        id_material: idService,
+        id_contrato_servico: type === 'service' ? idService : null,
+        id_material: type === 'material' ? idService : null,
         operacao: operation,
         ponto: point,
         descricao_operacao: operationDescription,
