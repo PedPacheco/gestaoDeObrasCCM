@@ -39,7 +39,7 @@ export default async function Page({ params, searchParams }: Props) {
   ] = await Promise.all([
     ponto_a_ponto
       ? fetchData(
-          `${process.env.NEXT_PUBLIC_API_URL}/servicos/${id}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/servicos/todos/${id}`,
           undefined,
           token,
           FETCH_OPTIONS,
