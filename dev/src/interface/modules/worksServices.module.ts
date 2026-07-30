@@ -8,7 +8,7 @@ import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IU
 import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
 import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updateSchedulesRepository';
 import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepository';
-import { WorkServicesQueryRepository } from 'src/infra/repositories/worksServices/WorkServicesQueryRepository';
+import { WorkServicesQueryRepository } from 'src/infra/repositories/worksServices/workServicesQueryRepository';
 import { WorkServicesRepository } from 'src/infra/repositories/worksServices/worksServicesRepository';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
 

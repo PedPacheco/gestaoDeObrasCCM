@@ -17,7 +17,6 @@ import { WorksServicesService } from 'src/application/usecases/services/worksSer
 import { EXECUTION_CAPACITY_REPOSITORY } from 'src/domain/repositories/IExecutionCapacityRepository';
 import { FORECAST_SNAPSHOT } from 'src/domain/repositories/IForecastSnapshotRepository';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
-import { WORK_SERVICES_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesRepository';
 import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IAddSchedulesRepository';
 import { DELETE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IDeleteSchedulesRepository';
 import { EXEC_MONITORING_REPOSITORY } from 'src/domain/repositories/schedule/IExecMonitoringRepository';
@@ -30,6 +29,7 @@ import { REJECTION_OF_SCHEDULES_REPOSITORY } from 'src/domain/repositories/sched
 import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
 import { VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IValidateSchedulesRepository';
 import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import { WORK_SERVICES_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesRepository';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 import {
   MONTHLY_SUMMARY_CALCULATOR,
@@ -54,7 +54,7 @@ import { RejectionsOfSchedulesRepository } from 'src/infra/repositories/schedule
 import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updateSchedulesRepository';
 import { ValidateAndConfirmSchedulesRepository } from 'src/infra/repositories/schedule/validateAndConfirmSchedulesRepository';
 import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepository';
-import { WorkServicesQueryRepository } from 'src/infra/repositories/worksServices/WorkServicesQueryRepository';
+import { WorkServicesQueryRepository } from 'src/infra/repositories/worksServices/workServicesQueryRepository';
 import { WorkServicesRepository } from 'src/infra/repositories/worksServices/worksServicesRepository';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
 
