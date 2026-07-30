@@ -45,18 +45,9 @@ export class ServicesController {
   }
 
   @Get(':id')
-  async getServicesByWorkId(
-    @Param('id', ParseIntPipe) id: number,
-    @Query('ponto') point?: string,
-    @Query('servico') service?: string,
-    @Query('operacao') operation?: string,
-  ) {
-    const response = await this.queriesServicesService.getById({
-      id,
-      point,
-      service,
-      operation,
-    });
+  async getNotScheduledServices(@Param('id', ParseIntPipe) id: number) {
+    const response =
+      await this.queriesServicesService.getNotScheduledServices(id);
 
     return {
       statusCode: HttpStatus.OK,
@@ -65,20 +56,25 @@ export class ServicesController {
     };
   }
 
+  @Get('todos/:id')
+  async getAllItems(@Param('id', ParseIntPipe) id: number) {
+    const response = await this.queriesServicesService.getAllItems(id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Todos os materiais e serviços da obra retornados',
+      data: response,
+    };
+  }
+
   @Get('selecionados/:id')
   async getScheduledServices(
     @Param('id', ParseIntPipe) id: number,
     @Query('idProgramacao', ParseIntPipe) idProgramacao: number,
-    @Query('ponto') point?: string,
-    @Query('servico') service?: string,
-    @Query('operacao') operation?: string,
   ) {
     const response = await this.queriesServicesService.getSelectedServices({
       id,
       idProgramacao,
-      point,
-      service,
-      operation,
     });
 
     return {
@@ -209,7 +205,7 @@ export class ServicesController {
 
   @Post('servico')
   async addServices(@Body() data: AddServicesDTO) {
-    await this.worksServicesService.addServices(data);
+    await this.worksServicesService.addItem(data, 'service');
 
     return {
       statusCode: HttpStatus.OK,
@@ -219,7 +215,7 @@ export class ServicesController {
 
   @Post('material')
   async addMaterials(@Body() data: AddServicesDTO) {
-    await this.worksServicesService.addMaterials(data);
+    await this.worksServicesService.addItem(data, 'material');
 
     return {
       statusCode: HttpStatus.OK,
