@@ -1,10 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   CapexProgressPayload,
   ProgressEmitter,
 } from 'src/application/shared/capex.types';
 import { UpdateCapexService } from 'src/application/usecases/works/updateCapex.service';
 import { CapexProcessingService } from './capexProcessing.service';
+import { AppLogger } from 'src/core/logger/logger.service';
 
 /**
  * CapexFullPipelineService — Fluxo único (importação + atualização).
@@ -26,11 +27,10 @@ import { CapexProcessingService } from './capexProcessing.service';
  */
 @Injectable()
 export class CapexFullPipelineService {
-  private readonly logger = new Logger(CapexFullPipelineService.name);
-
   constructor(
     private readonly capexProcessingService: CapexProcessingService,
     private readonly updateCapexService: UpdateCapexService,
+    private readonly logger: AppLogger,
   ) {}
 
   async run(

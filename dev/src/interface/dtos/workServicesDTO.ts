@@ -7,6 +7,7 @@ import {
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ExecutionReportDataDTO } from './executionReportDTO';
+import { DisableWhitelist } from 'src/shared/costants';
 
 export class ScheduleServicesDTO {
   @IsNumber()
@@ -102,6 +103,7 @@ class DataScheduleInFinalizeServiceDTO {
   executionReport?: ExecutionReportDataDTO;
 }
 
+@DisableWhitelist()
 export class FinalizeServicesDTO {
   @Transform(({ value }) =>
     typeof value === 'string' ? JSON.parse(value) : value,

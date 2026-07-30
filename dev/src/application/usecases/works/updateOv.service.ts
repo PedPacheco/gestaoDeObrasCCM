@@ -16,30 +16,26 @@ export class UpdateOvService {
   ) {}
 
   async update(data: InsertMarketWorksDTO[]) {
-    try {
-      if (!data?.length) {
-        throw new BadRequestException('Nenhum dado enviado.');
-      }
-
-      const uniquesWorks = Array.from(new Set(data.map((item) => item.obra)));
-
-      const existingOvs =
-        await this.findExistingWorksService.findExistingWorks(uniquesWorks);
-
-      const ovMap = new Map(existingOvs.map((ov) => [ov.ovnota, ov.id]));
-
-      const dataWithIds = data.reduce((acc, item) => {
-        const id = ovMap.get(item.obra);
-        if (id) {
-          const work = MarketWork.create({ ...item, id }).toPrismaUpdate();
-          acc.push(work);
-        }
-        return acc;
-      }, []);
-
-      await this.updateOvRepository.update(dataWithIds);
-    } catch (error) {
-      throw error;
+    if (!data?.length) {
+      throw new BadRequestException('Nenhum dado enviado.');
     }
+
+    const uniquesWorks = Array.from(new Set(data.map((item) => item.obra)));
+
+    const existingOvs =
+      await this.findExistingWorksService.findExistingWorks(uniquesWorks);
+
+    const ovMap = new Map(existingOvs.map((ov) => [ov.ovnota, ov.id]));
+
+    const dataWithIds = data.reduce((acc, item) => {
+      const id = ovMap.get(item.obra);
+      if (id) {
+        const work = MarketWork.create({ ...item, id }).toPrismaUpdate();
+        acc.push(work);
+      }
+      return acc;
+    }, []);
+
+    await this.updateOvRepository.update(dataWithIds);
   }
 }

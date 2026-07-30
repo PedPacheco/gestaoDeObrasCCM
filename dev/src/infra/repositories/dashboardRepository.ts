@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 import { IDashboardRepository } from 'src/domain/repositories/IDashboardRepository';
@@ -11,119 +11,74 @@ export class DashboardRepository implements IDashboardRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async countTotalWorks(filters: DashboardFiltersDTO) {
-    try {
-      return await this.prisma.obras.count({
-        where: DashboardFiltersBuilder.buildObrasWhere(filters),
-      });
-    } catch (error) {
-      console.error('Error counting total works', error);
-
-      throw new InternalServerErrorException('Erro ao buscar total de obras');
-    }
+    return await this.prisma.obras.count({
+      where: DashboardFiltersBuilder.buildObrasWhere(filters),
+    });
   }
 
   async countConcludedThisMonth(filters: DashboardFiltersDTO) {
-    try {
-      return await this.prisma.obras.count({
-        where: {
-          ...DashboardFiltersBuilder.buildObrasWhere(filters, 'data_conclusao'),
-        },
-      });
-    } catch (error) {
-      console.error('Error counting concluded works this month', error);
-
-      throw new InternalServerErrorException(
-        'Erro ao buscar obras concluídas no período',
-      );
-    }
+    return await this.prisma.obras.count({
+      where: {
+        ...DashboardFiltersBuilder.buildObrasWhere(filters, 'data_conclusao'),
+      },
+    });
   }
 
   async countWithoutSchedule(filters: DashboardFiltersDTO) {
-    try {
-      return await this.prisma.obras.count({
-        where: {
-          ...DashboardFiltersBuilder.buildObrasWhere(filters),
-          programacoes: {
-            none: {},
-          },
+    return await this.prisma.obras.count({
+      where: {
+        ...DashboardFiltersBuilder.buildObrasWhere(filters),
+        programacoes: {
+          none: {},
         },
-      });
-    } catch (error) {
-      console.error('Error counting works without schedule', error);
-
-      throw new InternalServerErrorException(
-        'Erro ao buscar obras sem programação',
-      );
-    }
+      },
+    });
   }
 
   async countTotalConcluded(filters: DashboardFiltersDTO) {
-    try {
-      return await this.prisma.obras.count({
-        where: {
-          ...DashboardFiltersBuilder.buildObrasWhere(filters, 'data_conclusao'),
-          data_conclusao: {
-            not: null,
-          },
+    return await this.prisma.obras.count({
+      where: {
+        ...DashboardFiltersBuilder.buildObrasWhere(filters, 'data_conclusao'),
+        data_conclusao: {
+          not: null,
         },
-      });
-    } catch (error) {
-      console.error('Error counting total concluded works', error);
-
-      throw new InternalServerErrorException(
-        'Erro ao buscar total de obras concluídas',
-      );
-    }
+      },
+    });
   }
 
   async countPortfolio(filters: DashboardFiltersDTO): Promise<number> {
-    try {
-      const result = await this.prisma.obras.aggregate({
-        where: {
-          ...DashboardFiltersBuilder.buildObrasWhere(filters),
-          programacoes: {
-            none: {},
-          },
+    const result = await this.prisma.obras.aggregate({
+      where: {
+        ...DashboardFiltersBuilder.buildObrasWhere(filters),
+        programacoes: {
+          none: {},
         },
-        _sum: {
-          mo_pend: true,
-        },
-      });
+      },
+      _sum: {
+        mo_pend: true,
+      },
+    });
 
-      return Number(result._sum.mo_pend ?? 0);
-    } catch (error) {
-      console.error('Error counting portfolio value', error);
-
-      throw new InternalServerErrorException(
-        'Erro ao buscar valor do portfólio',
-      );
-    }
+    return Number(result._sum.mo_pend ?? 0);
   }
 
   async countExecutedValue(filters: DashboardFiltersDTO): Promise<number> {
-    try {
-      const result = await this.prisma.obras.aggregate({
-        where: DashboardFiltersBuilder.buildObrasWhere(filters),
-        _sum: {
-          mo_planejada: true,
-        },
-      });
+    const result = await this.prisma.obras.aggregate({
+      where: DashboardFiltersBuilder.buildObrasWhere(filters),
+      _sum: {
+        mo_planejada: true,
+      },
+    });
 
-      return Number(result._sum.mo_planejada ?? 0);
-    } catch (error) {
-      console.error('Error counting executed value', error);
-
-      throw new InternalServerErrorException('Erro ao buscar valor executado');
-    }
+    return Number(result._sum.mo_planejada ?? 0);
   }
 
   async findWorksByStatus(filters: DashboardFiltersDTO) {
-    try {
-      const whereFilters = DashboardFiltersBuilder.buildSQLWhere(filters);
+    const whereFilters = DashboardFiltersBuilder.buildSQLWhere(filters);
 
-      return await this.prisma.$queryRaw<
-        { status: string; count: number }[]
-      >(Prisma.sql`
+    return await this.prisma.$queryRaw<
+      { status: string; count: number }[]
+    >(Prisma.sql`
         SELECT
           s.status,
           COUNT(o.id)::int AS count
@@ -139,24 +94,18 @@ export class DashboardRepository implements IDashboardRepository {
         GROUP BY s.id, s.status
         ORDER BY count DESC
       `);
-    } catch (error) {
-      console.error('Error finding works by status', error);
-
-      throw new InternalServerErrorException('Erro ao buscar obras por status');
-    }
   }
 
   async findWorksByRegional(filters: DashboardFiltersDTO) {
-    try {
-      const whereFilters = DashboardFiltersBuilder.buildSQLWhere(filters);
+    const whereFilters = DashboardFiltersBuilder.buildSQLWhere(filters);
 
-      return await this.prisma.$queryRaw<
-        {
-          regional: string;
-          total: number;
-          concluded: number;
-        }[]
-      >(Prisma.sql`
+    return await this.prisma.$queryRaw<
+      {
+        regional: string;
+        total: number;
+        concluded: number;
+      }[]
+    >(Prisma.sql`
         SELECT
           r.regional,
           COUNT(o.id)::int AS total,
@@ -179,29 +128,21 @@ export class DashboardRepository implements IDashboardRepository {
         GROUP BY r.id, r.regional
         ORDER BY total DESC
       `);
-    } catch (error) {
-      console.error('Error finding works by regional', error);
-
-      throw new InternalServerErrorException(
-        'Erro ao buscar obras por regional',
-      );
-    }
   }
 
   async findMonthlyTrend(filters: DashboardFiltersDTO) {
-    try {
-      const whereFilters = DashboardFiltersBuilder.buildSQLWhere(
-        filters,
-        'o.entrada',
-      );
+    const whereFilters = DashboardFiltersBuilder.buildSQLWhere(
+      filters,
+      'o.entrada',
+    );
 
-      return await this.prisma.$queryRaw<
-        {
-          month: string;
-          entered: number;
-          concluded: number;
-        }[]
-      >(Prisma.sql`
+    return await this.prisma.$queryRaw<
+      {
+        month: string;
+        entered: number;
+        concluded: number;
+      }[]
+    >(Prisma.sql`
         SELECT
           TO_CHAR(
             DATE_TRUNC('month', o.entrada),
@@ -225,20 +166,14 @@ export class DashboardRepository implements IDashboardRepository {
         GROUP BY DATE_TRUNC('month', o.entrada)
         ORDER BY DATE_TRUNC('month', o.entrada)
       `);
-    } catch (error) {
-      console.error('Error finding monthly trend', error);
-
-      throw new InternalServerErrorException('Erro ao buscar tendência mensal');
-    }
   }
 
   async findTopPartners(filters: DashboardFiltersDTO) {
-    try {
-      const whereFilters = DashboardFiltersBuilder.buildSQLWhere(filters);
+    const whereFilters = DashboardFiltersBuilder.buildSQLWhere(filters);
 
-      return await this.prisma.$queryRaw<
-        { partner: string; total: number }[]
-      >(Prisma.sql`
+    return await this.prisma.$queryRaw<
+      { partner: string; total: number }[]
+    >(Prisma.sql`
         SELECT
           t.turma AS partner,
           COUNT(o.id)::int AS total
@@ -255,29 +190,21 @@ export class DashboardRepository implements IDashboardRepository {
         ORDER BY total DESC
         LIMIT 5
       `);
-    } catch (error) {
-      console.error('Error finding top partners', error);
-
-      throw new InternalServerErrorException(
-        'Erro ao buscar principais parceiras',
-      );
-    }
   }
 
   async findRecentWorks(filters: DashboardFiltersDTO) {
-    try {
-      const whereFilters = DashboardFiltersBuilder.buildSQLWhere(filters);
+    const whereFilters = DashboardFiltersBuilder.buildSQLWhere(filters);
 
-      return await this.prisma.$queryRaw<
-        {
-          ovnota: string;
-          status: string;
-          partner: string;
-          municipio: string;
-          executado: number | null;
-          entrada: Date;
-        }[]
-      >(Prisma.sql`
+    return await this.prisma.$queryRaw<
+      {
+        ovnota: string;
+        status: string;
+        partner: string;
+        municipio: string;
+        executado: number | null;
+        entrada: Date;
+      }[]
+    >(Prisma.sql`
         SELECT
           o.ovnota,
           s.status,
@@ -299,24 +226,18 @@ export class DashboardRepository implements IDashboardRepository {
         ORDER BY o.id DESC
         LIMIT 10
       `);
-    } catch (error) {
-      console.error('Error finding recent works', error);
-
-      throw new InternalServerErrorException('Erro ao buscar obras recentes');
-    }
   }
 
   async findPartnerStatus(filters: DashboardFiltersDTO) {
-    try {
-      const whereFilters = DashboardFiltersBuilder.buildSQLWhere(filters);
+    const whereFilters = DashboardFiltersBuilder.buildSQLWhere(filters);
 
-      return await this.prisma.$queryRaw<
-        {
-          partner: string;
-          status: string;
-          count: number;
-        }[]
-      >(Prisma.sql`
+    return await this.prisma.$queryRaw<
+      {
+        partner: string;
+        status: string;
+        count: number;
+      }[]
+    >(Prisma.sql`
         SELECT
           t.turma AS partner,
           s.status,
@@ -340,12 +261,5 @@ export class DashboardRepository implements IDashboardRepository {
           t.turma,
           count DESC
       `);
-    } catch (error) {
-      console.error('Error finding partner status', error);
-
-      throw new InternalServerErrorException(
-        'Erro ao buscar status das parceiras',
-      );
-    }
   }
 }

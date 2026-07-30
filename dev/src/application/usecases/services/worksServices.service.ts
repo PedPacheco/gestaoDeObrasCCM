@@ -1,4 +1,8 @@
 import {
+  IWorkServicesQueryRepository,
+  WORK_SERVICES_QUERY_REPOSITORY,
+} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import {
   IWorkServicesRepository,
   WORK_SERVICES_REPOSITORY,
 } from 'src/domain/repositories/worksService/IWorkServicesRepository';
@@ -8,34 +12,15 @@ import {
   ScheduleServicesDTO,
 } from 'src/interface/dtos/workServicesDTO';
 
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import {
-  IStatusFlowRepository,
-  STATUS_FLOW_REPOSITORY,
-} from 'src/domain/repositories/IStatusFlowRepository';
-import {
-  IWorkServicesQueryRepository,
-  WORK_SERVICES_QUERY_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 
 @Injectable()
 export class WorksServicesService {
-  private readonly logger = new Logger(WorksServicesService.name);
-
   constructor(
-    private readonly prisma: PrismaService,
     @Inject(WORK_SERVICES_REPOSITORY)
     private readonly workServicesRepository: IWorkServicesRepository,
     @Inject(WORK_SERVICES_QUERY_REPOSITORY)
     private readonly workServicesQueryRepository: IWorkServicesQueryRepository,
-    @Inject(STATUS_FLOW_REPOSITORY)
-    private readonly statusFlowRepository: IStatusFlowRepository,
   ) {}
 
   async scheduleServices(
@@ -82,34 +67,6 @@ export class WorksServicesService {
     return Math.min(result, 100);
   }
 
-  async reascheduleServices(workId: number, scheduleId: number): Promise<void> {
-    const history =
-      await this.workServicesQueryRepository.getServiceScheduleHistory(workId);
-
-    const servicesToBeReascheduled = history
-      .filter(
-        (item) =>
-          (item.real < item.prog || !item.real) &&
-          item.id_programacao === scheduleId,
-      )
-      .map((item) => ({ id: item.id, id_servico: item.id_servico }));
-
-    await this.prisma.$transaction(async (tx) => {
-      try {
-        await this.workServicesRepository.reascheduleServices(
-          servicesToBeReascheduled,
-          scheduleId,
-        );
-
-        await this.statusFlowRepository.updateStatusWorks(36, workId, tx);
-        await this.statusFlowRepository.updateScheduleStatus(5, scheduleId, tx);
-      } catch (error: any) {
-        this.logger.error(error);
-        throw error;
-      }
-    });
-  }
-
   async cancelServices(id: number): Promise<void> {
     await this.workServicesRepository.cancelServices(id);
   }
@@ -143,6 +100,19 @@ export class WorksServicesService {
     }
 
     await this.workServicesRepository.addItem(data, type);
+  }
+
+  getServicesToReschedule(
+    history: any[],
+    scheduleId: number,
+  ): { id: number; id_servico: number }[] {
+    return history
+      .filter(
+        (item) =>
+          (item.real < item.prog || !item.real) &&
+          item.id_programacao === scheduleId,
+      )
+      .map((item) => ({ id: item.id, id_servico: item.id_servico }));
   }
 
   private sumServiceQuantities(services: any[]): number {

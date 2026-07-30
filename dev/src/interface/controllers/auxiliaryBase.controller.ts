@@ -27,6 +27,7 @@ import {
   AreaEditGuard,
   AreaViewGuard,
 } from 'src/core/guards/newPermission.guard';
+import { AppLogger } from 'src/core/logger/logger.service';
 
 const capexFileInterceptor = FileInterceptor('file', {
   storage: diskStorage({
@@ -53,6 +54,7 @@ export class AuxiliaryBaseController {
     private readonly auxiliaryBaseService: AuxiliaryBaseService,
     private readonly capexFullPipelineService: CapexFullPipelineService,
     private readonly capexGateway: CapexGateway,
+    private readonly logger: AppLogger,
   ) {}
 
   @Post('capex/pipeline')
@@ -64,7 +66,11 @@ export class AuxiliaryBaseController {
     this.capexFullPipelineService
       .run(file.path, jobId, this.capexGateway.createEmitter(jobId))
       .catch((err) =>
-        console.error(`[capex/pipeline] Erro no job ${jobId}:`, err.stack),
+        this.logger.error(
+          `[capex/pipeline] Erro no job ${jobId}`,
+
+          err instanceof Error ? err.stack : String(err),
+        ),
       );
 
     return {

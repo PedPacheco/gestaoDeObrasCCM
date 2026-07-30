@@ -10,7 +10,8 @@ import {
   IAuxiliaryBaseRepository,
 } from 'src/domain/repositories/IAuxiliaryBaseRepository';
 
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { AppLogger } from 'src/core/logger/logger.service';
 
 interface CapexItem {
   diagrama_rede: string;
@@ -34,8 +35,6 @@ export type ImportProgressState = CapexProgressPayload;
 
 @Injectable()
 export class CapexProcessingService {
-  private readonly logger = new Logger(CapexProcessingService.name);
-
   private readonly obraCache = new Map<string, number>();
   private readonly progressMap = new Map<string, ImportProgressState>();
 
@@ -56,6 +55,7 @@ export class CapexProcessingService {
   constructor(
     @Inject(AUXILIARY_BASE_REPOSITORY)
     private readonly repository: IAuxiliaryBaseRepository,
+    private readonly logger: AppLogger,
   ) {}
 
   async process(
