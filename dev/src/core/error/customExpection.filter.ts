@@ -45,6 +45,8 @@ export class CustomExceptionFilter implements ExceptionFilter {
               const [, field, errorMsg] = match;
               return `O campo ${field} ${errorMsg}`;
             }
+
+            return msg;
           });
         } else {
           message = rawMessage;
