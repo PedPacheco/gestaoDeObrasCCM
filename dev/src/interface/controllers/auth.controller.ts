@@ -22,6 +22,7 @@ import {
 import { Public } from '../../shared/costants';
 import { LoginUserDTO, LoginUserResponseDTO } from '../dtos/loginUserDto';
 import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
@@ -29,6 +30,7 @@ export class AuthController {
 
   @Public()
   @Post('login')
+  @Throttle({ default: { limit: 5, ttl: 120000 } })
   async login(
     @Body() { user, password }: LoginUserDTO,
     @Res({ passthrough: true }) res: Response,
