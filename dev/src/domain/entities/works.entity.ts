@@ -148,11 +148,11 @@ export class NoteWorks extends Work {
 
     updateData.ovnota = this.obra;
     updateData.mo_plan = this.moPlanejada;
+    updateData.id_tipo = this.idTipo;
     if (this.pep != null) updateData.pep = this.pep;
     if (this.equipeNumPedido != null)
       updateData.referencia = this.equipeNumPedido;
     if (this.idMunicipio != null) updateData.id_gpm = this.idMunicipio;
-    if (this.idTipo != null) updateData.id_tipo = this.idTipo;
     if (this.idCircuito != null) updateData.id_circuito = this.idCircuito;
     if (this.idParceira != null) updateData.id_turma = this.idParceira;
     if (this.dci != null && this.dci !== '') updateData.ordem_dci = this.dci;
