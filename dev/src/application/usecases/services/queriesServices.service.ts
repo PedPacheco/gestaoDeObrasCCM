@@ -1,9 +1,6 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
-import {
-  GetByIdParamsInterface,
-  GetSelectedServicesParamsInterface,
-} from 'src/interface/types/servicesInterface';
+import { GetSelectedServicesParamsInterface } from 'src/interface/types/servicesInterface';
 import { GetWorkDetailsService } from '../works/getWorkDetails.service';
 import {
   IWorkServicesQueryRepository,
@@ -18,9 +15,52 @@ export class QueriesServicesService {
     private readonly getWorkDetailsService: GetWorkDetailsService,
   ) {}
 
-  async getById(params: GetByIdParamsInterface) {
+  async getAllItems(id: number) {
     const services =
-      await this.workServicesQueryRepository.getNotScheduledServices(params);
+      await this.workServicesQueryRepository.getAllServicesOfWork(id);
+
+    if (!services) {
+      throw new NotFoundException('Obra não encontrada');
+    }
+
+    const response = services.map((service) => {
+      const preco =
+        service.servicos_contratos?.preco ??
+        service.materiais?.preco.toNumber();
+
+      const qtdeTotal = service.qtde_plan + service.qtde_adicional;
+
+      return {
+        id: service.id,
+        idObra: service.id_obra,
+        operacao: service.operacao,
+        ponto: service.ponto,
+        numero_operacao: service.numero_operacao,
+        descricao_operacao: service.descricao_operacao,
+        material:
+          service.servicos_contratos?.material ?? service.materiais?.codigo,
+        textoBreve:
+          service.servicos_contratos?.texto_breve ??
+          service.materiais?.descricao,
+        dataProgramada: service.programacoes?.data_prog,
+        qtdePlanejada: service.qtde_plan,
+        qtdeAdicional: service.qtde_adicional,
+        viabilizado: service.viabilizado,
+        qtdeProgramada: service.qtde_prog,
+        qtdeRealizada: service.qtde_real,
+        tipo: service.materiais?.codigo ? 'M' : 'S',
+        valorUnit: preco,
+        valorTotal: preco * qtdeTotal,
+        valorReal: preco * service.qtde_real,
+      };
+    });
+
+    return response;
+  }
+
+  async getNotScheduledServices(id: number) {
+    const services =
+      await this.workServicesQueryRepository.getNotScheduledServices(id);
 
     if (!services) {
       throw new NotFoundException('Obra não encontrada');

@@ -68,7 +68,9 @@ export class FinalizeServicesService {
       this.workServicesQueryRepository.getServiceScheduleHistory(workId),
     ]);
 
-    const totalPlanned = this.sumServiceQuantities(services);
+    const validServices = services.filter((item) => item.qtde_real !== 0);
+
+    const totalPlanned = this.sumServiceQuantities(validServices);
 
     const scheduleTotals = this.calculateScheduleTotals(
       history,
@@ -143,14 +145,14 @@ export class FinalizeServicesService {
     executionObservation: string,
   ): FinalizationData {
     const calculatePercentage = (value: number) =>
-      totalPlanned > 0 ? (value / totalPlanned) * 100 : 0;
+      Math.round(totalPlanned > 0 ? (value / totalPlanned) * 100 : 0);
 
     return {
       id: scheduleId,
       idWork: workId,
       dataProg: scheduleDate,
-      prog: calculatePercentage(totals.prog),
-      exec: calculatePercentage(totals.exec),
+      prog: Math.min(calculatePercentage(totals.prog)),
+      exec: Math.min(calculatePercentage(totals.exec)),
       idExecutionRestriction,
       responsibility,
       executionObservation,

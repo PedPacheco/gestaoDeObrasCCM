@@ -66,7 +66,9 @@ export class WorksServicesService {
     const services =
       await this.workServicesQueryRepository.getAllServicesOfWork(workId);
 
-    const totalPlan = this.sumServiceQuantities(services);
+    const validServices = services.filter((item) => item.qtde_real !== 0);
+
+    const totalPlan = this.sumServiceQuantities(validServices);
 
     const selectedPlan = servicesSelected.reduce(
       (sum, item) => sum + item.prog,
@@ -116,45 +118,37 @@ export class WorksServicesService {
     await this.workServicesRepository.applyAdditional(data);
   }
 
-  async addServices(data: AddServicesDTO): Promise<void> {
+  async addItem(
+    data: AddServicesDTO,
+    type: 'service' | 'material',
+  ): Promise<void> {
     const { idService, point, idWork } = data;
 
-    const services =
+    const items =
       await this.workServicesQueryRepository.getAllServicesOfWork(idWork);
 
-    const servicesMap = new Map(
-      services.map((s) => [`${s.id_contrato_servico}:${s.ponto}`, s]),
+    const itemsMap = new Map(
+      items.map((item) => [
+        `${
+          type === 'service' ? item.id_contrato_servico : item.id_material
+        }:${item.ponto}`,
+        item,
+      ]),
     );
 
-    if (servicesMap.has(`${idService}:${point}`)) {
-      throw new BadRequestException('Esse serviço já existe nesse ponto.');
+    if (itemsMap.has(`${idService}:${point}`)) {
+      throw new BadRequestException(
+        `Esse ${type === 'service' ? 'serviço' : 'material'} já existe nesse ponto.`,
+      );
     }
 
-    await this.workServicesRepository.addServices(data);
-  }
-
-  async addMaterials(data: AddServicesDTO): Promise<void> {
-    const { idService, point, idWork } = data;
-
-    console.log(data);
-
-    const materials =
-      await this.workServicesQueryRepository.getAllMaterialsOfWork(idWork);
-
-    const materialsMap = new Map(
-      materials.map((s) => [`${s.id_material}:${s.ponto}`, s]),
-    );
-
-    if (materialsMap.has(`${idService}:${point}`)) {
-      throw new BadRequestException('Esse material já existe nesse ponto.');
-    }
-
-    await this.workServicesRepository.addMaterials(data);
+    await this.workServicesRepository.addItem(data, type);
   }
 
   private sumServiceQuantities(services: any[]): number {
     return services.reduce(
-      (sum, service) => sum + (service.viabilizado ?? 0),
+      (sum, service) =>
+        sum + (service.viabilizado ?? 0) + (service.qtde_adicional ?? 0),
       0,
     );
   }
