@@ -35,6 +35,7 @@ describe('AuxiliaryBaseRepository', () => {
     municipios: { findMany: jest.fn() },
     tipos: { findMany: jest.fn() },
     circuitos: { findMany: jest.fn() },
+    $executeRaw: jest.fn(),
     $executeRawUnsafe: jest.fn(),
     $queryRawUnsafe: jest.fn(),
     $queryRaw: jest.fn(),
@@ -494,21 +495,49 @@ describe('AuxiliaryBaseRepository', () => {
   });
 
   describe('insertNote', () => {
-    it('should call the method insertNotes and insert data in the auxiliary base', async () => {
+    it('should call insertNotes and insert data in the auxiliary base', async () => {
       const result = await repository.insertNotes(mockInsertNotesRequest);
 
-      const clean = (str: string) => str.replace(/\s+/g, ' ').trim();
+      expect(mockPrisma.$executeRaw).toHaveBeenCalledTimes(1);
 
-      expect(clean(mockPrisma.$executeRawUnsafe.mock.calls[0][0])).toBe(
-        clean(
-          `SELECT construcao_sp.insert_base_auxiliar_bulk(ARRAY[( '16005338', 'B/000215-3', NULL, '190000025090', NULL, NULL, '0', 'CAR', 'RIO DO OURO - ETAPA 2 - DCD', '195ET005120739', true ),( '16004316', 'B/000215-7', '170000023493', '190000025094', '150000003441', NULL, '69', 'CAR', 'RIO DO OURO - ETAPA 2 - DCI', '195ET005120739', false )]::construcao_sp.base_auxiliar_input[])`,
-        ),
-      );
+      const sqlArg = mockPrisma.$executeRaw.mock.calls[0][0];
+
+      // Assert the parameterized values are correct
+      expect(sqlArg.values).toEqual([
+        '16005338',
+        'B/000215-3',
+        null,
+        '190000025090',
+        null,
+        null,
+        '0',
+        'CAR',
+        'RIO DO OURO - ETAPA 2 - DCD',
+        '195ET005120739',
+        true,
+        '16004316',
+        'B/000215-7',
+        '170000023493',
+        '190000025094',
+        '150000003441',
+        null,
+        '69',
+        'CAR',
+        'RIO DO OURO - ETAPA 2 - DCI',
+        '195ET005120739',
+        false,
+      ]);
+
+      // Assert the SQL template structure contains the expected fragments
+      const fullTemplate = sqlArg.strings.join('');
+      expect(fullTemplate).toContain('construcao_sp.insert_base_auxiliar_bulk');
+      expect(fullTemplate).toContain('::construcao_sp.base_auxiliar_input[]');
+
       expect(result).toEqual({ message: 'Dados inseridos com sucesso' });
     });
 
     it('should log error if createMany fails', async () => {
-      mockPrisma.$executeRawUnsafe.mockRejectedValueOnce(new Error('DB error'));
+      mockPrisma.$executeRaw.mockRejectedValueOnce(new Error('DB error'));
       await expect(repository.insertNotes([])).rejects.toThrow();
     });
   });

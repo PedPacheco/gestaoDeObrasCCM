@@ -5,19 +5,18 @@ import {
   IAuthRepository,
 } from 'src/domain/repositories/IAuthRepository';
 import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
-// import { generateRandomPassword } from 'src/utils/generatePassword';
+import { loginInterfaceService } from 'src/interface/types/userInterface';
 
+// import { generateRandomPassword } from 'src/utils/generatePassword';
 import {
   BadRequestException,
   Inject,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
 import { UsersService } from './users.service';
-import { loginInterfaceService } from 'src/interface/types/userInterface';
 
 @Injectable()
 export class AuthService {
@@ -33,8 +32,12 @@ export class AuthService {
   ): Promise<loginInterfaceService> {
     const result = await this.usersService.findUser(username);
 
+    const invalidCredentialsException = new UnauthorizedException(
+      'Usuário ou senha inválidos',
+    );
+
     if (!result) {
-      throw new NotFoundException('Usuário não encontrado');
+      throw invalidCredentialsException;
     }
 
     const user = new User(result);
@@ -42,7 +45,7 @@ export class AuthService {
     const isMatch = await compare(password, user.senha);
 
     if (!isMatch) {
-      throw new UnauthorizedException('Senha incorreta');
+      throw invalidCredentialsException;
     }
 
     const payload = {

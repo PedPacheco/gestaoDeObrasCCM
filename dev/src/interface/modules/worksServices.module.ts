@@ -43,6 +43,15 @@ import { WorkServicesExeutionRepository } from 'src/infra/repositories/worksServ
             'image/heic',
             'image/heif',
           ],
+          allowedExtensions: [
+            '.pdf',
+            '.jpg',
+            '.jpeg',
+            '.png',
+            '.tiff',
+            '.heic',
+            '.heif',
+          ],
           maxSize: 5 * 1024 * 1024,
           maxFiles: 3,
         });

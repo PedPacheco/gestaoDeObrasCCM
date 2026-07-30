@@ -6,11 +6,7 @@ import { AUTH_REPOSITORY } from 'src/domain/repositories/IAuthRepository';
 import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
 import { generateRandomPassword } from 'src/utils/generatePassword';
 
-import {
-  BadRequestException,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 
@@ -96,7 +92,7 @@ describe('AuthService', () => {
       jest.spyOn(usersService, 'findUser').mockResolvedValue(null);
 
       await expect(authService.login('7081545', 'pedro132')).rejects.toThrow(
-        new NotFoundException('Usuário não encontrado'),
+        new UnauthorizedException('Usuário ou senha inválidos'),
       );
     });
 
@@ -108,7 +104,9 @@ describe('AuthService', () => {
 
       await expect(
         authService.login('username', 'wrong_password'),
-      ).rejects.toThrow(new UnauthorizedException('Senha incorreta'));
+      ).rejects.toThrow(
+        new UnauthorizedException('Usuário ou senha inválidos'),
+      );
     });
 
     it('should throw BadRequestException if user is not active', async () => {

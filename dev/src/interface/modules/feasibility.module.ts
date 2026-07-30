@@ -30,6 +30,15 @@ import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepositor
             'image/heic',
             'image/heif',
           ],
+          allowedExtensions: [
+            '.pdf',
+            '.jpg',
+            '.jpeg',
+            '.png',
+            '.tiff',
+            '.heic',
+            '.heif',
+          ],
           maxSize: 5 * 1024 * 1024,
           maxFiles: 3,
         });
