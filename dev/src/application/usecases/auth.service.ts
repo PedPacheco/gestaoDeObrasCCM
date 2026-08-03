@@ -5,27 +5,24 @@ import {
   IAuthRepository,
 } from 'src/domain/repositories/IAuthRepository';
 import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
-import { generateRandomPassword } from 'src/utils/generatePassword';
+import { loginInterfaceService } from 'src/interface/types/userInterface';
 
+// import { generateRandomPassword } from 'src/utils/generatePassword';
 import {
   BadRequestException,
   Inject,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
-import { EmailService } from './email.service';
 import { UsersService } from './users.service';
-import { loginInterfaceService } from 'src/interface/types/userInterface';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    private emailService: EmailService,
     @Inject(AUTH_REPOSITORY) private authRepository: IAuthRepository,
   ) {}
 
@@ -35,8 +32,12 @@ export class AuthService {
   ): Promise<loginInterfaceService> {
     const result = await this.usersService.findUser(username);
 
+    const invalidCredentialsException = new UnauthorizedException(
+      'Usuário ou senha inválidos',
+    );
+
     if (!result) {
-      throw new NotFoundException('Usuário não encontrado');
+      throw invalidCredentialsException;
     }
 
     const user = new User(result);
@@ -44,7 +45,7 @@ export class AuthService {
     const isMatch = await compare(password, user.senha);
 
     if (!isMatch) {
-      throw new UnauthorizedException('Senha incorreta');
+      throw invalidCredentialsException;
     }
 
     const payload = {
@@ -85,7 +86,9 @@ export class AuthService {
       }
 
       if (!password) {
-        password = generateRandomPassword();
+        throw new BadRequestException(
+          'A senha do usuário tem que ser enviada.',
+        );
       }
 
       const salt = await genSalt();
@@ -97,13 +100,6 @@ export class AuthService {
       });
 
       const created = await this.authRepository.register(user);
-
-      // await this.emailService.sendEmail(
-      //   '10009591@edp.com.br',
-      //   'Bem vindo ao sistema',
-      //   `Usuário: ${username}
-      // Senha: ${password}`,
-      // );
 
       return created;
     } catch (error) {

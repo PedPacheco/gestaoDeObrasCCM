@@ -56,12 +56,11 @@ describe('HandleWorkUpdateService', () => {
 
   afterEach(jest.clearAllMocks);
 
-  describe('add', () => {
+  describe('update', () => {
     it('should add schedule and update work status within a transaction', async () => {
       const data: UpdateWorkDTO = {
         id_status: 2,
         id_turma: 4,
-        tipo_ads: 'Convencional',
         data_empreitamento: new Date('2025-06-09T00:00:00.000Z'),
       };
 
@@ -77,7 +76,7 @@ describe('HandleWorkUpdateService', () => {
         expect.any(Object),
       );
       expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
-        1,
+        45,
         1,
         expect.any(Object),
       );
@@ -87,7 +86,6 @@ describe('HandleWorkUpdateService', () => {
       const data: UpdateWorkDTO = {
         id_status: 42,
         id_turma: 4,
-        tipo_ads: null,
         data_empreitamento: null,
       };
 
@@ -108,7 +106,6 @@ describe('HandleWorkUpdateService', () => {
       const data: UpdateWorkDTO = {
         id_status: 42,
         id_turma: 4,
-        tipo_ads: 'Convencional',
         data_empreitamento: new Date('2025-06-09T00:00:00.000Z'),
       };
 
@@ -127,7 +124,6 @@ describe('HandleWorkUpdateService', () => {
       const data: UpdateWorkDTO = {
         id_status: 2,
         id_turma: 4,
-        tipo_ads: 'Convencional',
         data_empreitamento: new Date('2025-06-09T00:00:00.000Z'),
       };
 
@@ -144,7 +140,6 @@ describe('HandleWorkUpdateService', () => {
       const data: UpdateWorkDTO = {
         id_status: 4,
         id_turma: 4,
-        tipo_ads: 'Convencional',
         data_empreitamento: new Date('2025-06-09T00:00:00.000Z'),
         reasonSuspension: 'Obra suspensa',
       };

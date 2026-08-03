@@ -25,6 +25,7 @@ export interface Schedules {
   equipe_regularizacao: number | null;
   tecnicos: { tecnico: string | null };
   programacoes_restricao_execucao: { restricao: string | null };
+  programacoes_servicos: { equipes: { equipe: string } }[];
   nome_responsavel_execucao: string | null;
   confirmada: boolean;
   validada: boolean;
@@ -32,6 +33,7 @@ export interface Schedules {
   status_programacao: ScheduleStatus;
   observacao_restricao: string | null;
   observacao_execucao: string | null;
+  id_restricao_execucao: number;
   id_restricao_prog1: number;
   responsabilidade1: string | null;
   nome_responsavel: string | null;
@@ -83,10 +85,15 @@ export interface GetWorksDetailsResponse {
   capex_mat_plan: number | null;
   capex_mo_pend: number | null;
   capex_mo_plan: number | null;
-  tipo_ads: string | null;
   data_empreitamento: Date | null;
   ano_plan: number | null;
+  programacao_ponto_a_ponto: boolean | null;
   circuitos: { circuito: string; conjuntos: { conjunto: string | null } };
+  relatorio_viabilidade?: {
+    data_envio: Date;
+    prazo_viabilidade: string;
+    aprovada: boolean;
+  } | null;
   empreendimento: { empreendimento: string | null };
   municipios: { municipio: string; regionais: { id: number } };
   tipos: { tipo_obra: string; id_grupo: number };

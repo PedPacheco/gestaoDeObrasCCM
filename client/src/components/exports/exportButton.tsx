@@ -7,18 +7,14 @@ import { useState } from "react";
 
 import { exportExcel } from "@/actions/generateExcel.action";
 import { mountUrl } from "@/utils/mountUrl";
-import {
-  ArrowDownTrayIcon,
-  ExclamationCircleIcon,
-  XMarkIcon,
-} from "@heroicons/react/20/solid";
+import { ArrowDownTrayIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { Box, IconButton, Modal, Typography } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 import { ButtonComponent } from "../common/Button";
-import ErrorModal from "../common/ErrorModal";
 import { useUser } from "@/contexts/userContext";
+import { useFeedback } from "@/hooks/useFeedback";
 
 interface ExportButtonProps {
   text: string;
@@ -33,7 +29,7 @@ export function ExportButton({
   path,
   visible,
 }: ExportButtonProps) {
-  const [error, setError] = useState<string | null>();
+  const { showError } = useFeedback();
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [startDate, setStartDate] = useState<dayjs.Dayjs | null>(null);
   const [endDate, setEndDate] = useState<dayjs.Dayjs | null>(null);
@@ -80,7 +76,7 @@ export function ExportButton({
         setEndDate(null);
       }
     } catch (error: any) {
-      setError(`Erro ao gerar a planilha: ${error.message}`);
+      showError(`Erro ao gerar a planilha: ${error.message}`);
     }
   };
 
@@ -116,15 +112,6 @@ export function ExportButton({
               styled="min-w-48 !h-9"
             />
           </Box>
-
-          {error && (
-            <ErrorModal
-              open={true}
-              message={error}
-              onClose={() => setError(null)}
-              icon={<ExclamationCircleIcon width={48} height={48} />}
-            />
-          )}
 
           {openModal && (
             <Modal

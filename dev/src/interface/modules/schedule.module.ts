@@ -13,14 +13,14 @@ import { RejectionsOfSchedulesService } from 'src/application/usecases/schedule/
 import { ScheduleExecutionValidatorService } from 'src/application/usecases/schedule/scheduleExecutionValidator.service';
 import { UpdateSchedulesService } from 'src/application/usecases/schedule/updateSchedules.service';
 import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/schedule/validateAndConfirmSchedules.service';
-import { EXEC_MONITORING_REPOSITORY } from 'src/domain/repositories/schedule/IExecMonitoringRepository';
-import { ExecMonitoringRepository } from 'src/infra/repositories/schedule/execMonitoringRepository';
+import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
 import { EXECUTION_CAPACITY_REPOSITORY } from 'src/domain/repositories/IExecutionCapacityRepository';
+import { FORECAST_SNAPSHOT } from 'src/domain/repositories/IForecastSnapshotRepository';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
 import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IAddSchedulesRepository';
 import { DELETE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IDeleteSchedulesRepository';
+import { EXEC_MONITORING_REPOSITORY } from 'src/domain/repositories/schedule/IExecMonitoringRepository';
 import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
-import { FORECAST_SNAPSHOT } from 'src/domain/repositories/IForecastSnapshotRepository';
 import { GET_MONTHLY_SUMMARY_FORECAST_REPOSITORY } from 'src/domain/repositories/schedule/IGetMonthlySummaryForecastRepository';
 import { GET_MONTHLY_SUMMARY_REPOSITORY } from 'src/domain/repositories/schedule/IGetMonthlySummaryRepository';
 import { GET_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetScheduleValuesRepository';
@@ -28,6 +28,8 @@ import { GET_TOTAL_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/sc
 import { REJECTION_OF_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IRejectionsOfSchedules';
 import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
 import { VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IValidateSchedulesRepository';
+import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import { WORK_SERVICES_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesRepository';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 import {
   MONTHLY_SUMMARY_CALCULATOR,
@@ -37,9 +39,11 @@ import {
   MONTHLY_SUMMARY_FORECAST_CALCULATOR,
   MonthlySummaryForecastCalculator,
 } from 'src/domain/services/monthlySummaryForecastCalculator.service';
+import { TeamAggregationService } from 'src/domain/services/teamAggregator.service';
 import { ExecutionCapacityRepository } from 'src/infra/repositories/executionCapacityRepository';
 import { AddSchedulesRepository } from 'src/infra/repositories/schedule/addSchedulesRepository';
 import { DeleteSchedulesRepository } from 'src/infra/repositories/schedule/deleteSchedulesRepository';
+import { ExecMonitoringRepository } from 'src/infra/repositories/schedule/execMonitoringRepository';
 import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
 import { ForecastSnapshotRepository } from 'src/infra/repositories/schedule/forecastSnapshotRepository';
 import { GetMonthlySummaryForecastRepository } from 'src/infra/repositories/schedule/getMonthlySummaryForecastRepository';
@@ -50,6 +54,8 @@ import { RejectionsOfSchedulesRepository } from 'src/infra/repositories/schedule
 import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updateSchedulesRepository';
 import { ValidateAndConfirmSchedulesRepository } from 'src/infra/repositories/schedule/validateAndConfirmSchedulesRepository';
 import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepository';
+import { WorkServicesQueryRepository } from 'src/infra/repositories/worksServices/workServicesQueryRepository';
+import { WorkServicesRepository } from 'src/infra/repositories/worksServices/worksServicesRepository';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
 
 import { forwardRef, Module } from '@nestjs/common';
@@ -61,7 +67,6 @@ import { SchedulesActionsController } from '../controllers/schedules/schedulesAc
 import { ExecutionReportModule } from './executionReport.module';
 import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
-import { TeamAggregationService } from 'src/domain/services/teamAggregator.service';
 
 // import { UpdateRestrictionsService } from 'src/application/schedule/updateRestrictions.service';
 // import { UPDATE_RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateRestrictionsRepository';
@@ -87,6 +92,15 @@ import { TeamAggregationService } from 'src/domain/services/teamAggregator.servi
             'image/heic',
             'image/heif',
           ],
+          allowedExtensions: [
+            '.pdf',
+            '.jpg',
+            '.jpeg',
+            '.png',
+            '.tiff',
+            '.heic',
+            '.heif',
+          ],
           maxSize: 5 * 1024 * 1024,
           maxFiles: 3,
         });
@@ -109,6 +123,7 @@ import { TeamAggregationService } from 'src/domain/services/teamAggregator.servi
     ValidateConfirmAndRejectSchedulesService,
     ScheduleExecutionValidatorService,
     RejectionsOfSchedulesService,
+    WorksServicesService,
     DeadlineStatusService,
     GetMonthlySummaryForecastService,
     MonthlySummaryForecastCalculator,
@@ -116,6 +131,14 @@ import { TeamAggregationService } from 'src/domain/services/teamAggregator.servi
     MonthlySummaryMapper,
     MonthlySummaryService,
     // UpdateRestrictionsService,
+    {
+      provide: WORK_SERVICES_REPOSITORY,
+      useClass: WorkServicesRepository,
+    },
+    {
+      provide: WORK_SERVICES_QUERY_REPOSITORY,
+      useClass: WorkServicesQueryRepository,
+    },
     {
       provide: MONTHLY_SUMMARY_FORECAST_CALCULATOR,
       useClass: MonthlySummaryForecastCalculator,

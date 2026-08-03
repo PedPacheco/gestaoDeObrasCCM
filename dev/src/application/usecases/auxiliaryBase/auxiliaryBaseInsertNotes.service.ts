@@ -99,7 +99,7 @@ export class AuxiliaryNotesInsertService {
       );
 
       if (operation === 'insert') {
-        if (skipResult.noteExists || skipResult.orderExists) {
+        if (skipResult.noteExists && skipResult.orderExists) {
           skippedNotes.push(item.campo_ordenacao);
           continue;
         }

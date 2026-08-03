@@ -53,6 +53,11 @@ export class SuspensionWorkService {
 
     const dataWithIds = data.map((work) => {
       const id = ovMap.get(work.ovnota);
+
+      if (!ovMap.get(work.ovnota)) {
+        throw new BadRequestException(`Obra ${work.ovnota} não encontrada`);
+      }
+
       return { id_obra: id, motivo: work.motivo, data: new Date() };
     });
 

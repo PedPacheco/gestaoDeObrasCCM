@@ -7,18 +7,15 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useUser } from "@/contexts/userContext";
+import { useFeedback } from "@/hooks/useFeedback";
 import { userLoginSchema } from "@/validations/validationUserLogin";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-import ErrorModal from "../common/ErrorModal";
 
 type UserLoginSchema = z.infer<typeof userLoginSchema>;
 
 export function FormLogin() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showPassword, setShowPassoword] = useState(false);
+  const { showError } = useFeedback();
 
   const { login } = useUser();
   const router = useRouter();
@@ -38,19 +35,22 @@ export function FormLogin() {
       if (response.success) {
         router.push("/");
       } else {
-        setError(response.message);
-        setIsModalOpen(true);
+        showError(response.message);
       }
-    } catch {
-      setError("Ocorreu um erro durante o login.");
-      setIsModalOpen(true);
+    } catch (error: any) {
+      showError("Ocorreu um erro durante o login.");
     }
   }
 
   return (
-    <form onSubmit={handleSubmit(handleUserLogin)} className="flex flex-col gap-6">
+    <form
+      onSubmit={handleSubmit(handleUserLogin)}
+      className="flex flex-col gap-6"
+    >
       <div>
-        <label className="block text-sm font-bold text-slate-700 mb-2">Usuário</label>
+        <label className="block text-sm font-bold text-slate-700 mb-2">
+          Usuário
+        </label>
         <input
           type="text"
           placeholder="seu.usuario"
@@ -64,7 +64,9 @@ export function FormLogin() {
       </div>
 
       <div>
-        <label className="block text-sm font-bold text-slate-700 mb-2">Senha</label>
+        <label className="block text-sm font-bold text-slate-700 mb-2">
+          Senha
+        </label>
         <input
           type={showPassword ? "text" : "password"}
           placeholder="••••••••"
@@ -82,7 +84,7 @@ export function FormLogin() {
           <input
             type="checkbox"
             checked={showPassword}
-            onChange={() => setShowPassword(!showPassword)}
+            onChange={() => setShowPassoword(!showPassword)}
             className="w-4 h-4 rounded border-slate-300 text-emerald-500 focus:ring-emerald-500 cursor-pointer"
           />
           <span className="text-sm text-slate-600">Exibir senha</span>
@@ -94,22 +96,6 @@ export function FormLogin() {
           Esqueceu a senha?
         </Link>
       </div>
-
-      <button
-        type="submit"
-        className="w-full py-3.5 rounded-full bg-emerald-500 text-white font-bold text-sm uppercase tracking-wider hover:bg-emerald-600 transition-colors mt-2"
-      >
-        ENTRAR
-      </button>
-
-      {error && (
-        <ErrorModal
-          open={isModalOpen}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </form>
   );
 }

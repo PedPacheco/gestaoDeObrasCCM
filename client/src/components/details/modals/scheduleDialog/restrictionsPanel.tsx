@@ -3,7 +3,7 @@ import "dayjs/locale/pt-br";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 
-import { FormData } from "@/hooks/details/useScheduleForm";
+import { FormData } from "@/hooks/details/useOldScheduleForm";
 import {
   Box,
   FormControl,

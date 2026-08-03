@@ -8,13 +8,13 @@ import { parseTimeToDate } from 'src/utils/parseTimeToDate';
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { ScheduleExecutionValidatorService } from './scheduleExecutionValidator.service';
 import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
 import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
 import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/repositories/IStatusFlowRepository';
+import { ScheduleExecutionValidatorService } from './scheduleExecutionValidator.service';
 
 @Injectable()
 export class UpdateSchedulesService {
@@ -78,7 +78,6 @@ export class UpdateSchedulesService {
 
     const formattedData = {
       id: schedule.id,
-      id_obra: schedule.idWork,
       data_prog: schedule.dataProg,
       prog: schedule.prog,
       exec: schedule.exec,
@@ -87,9 +86,6 @@ export class UpdateSchedulesService {
       num_dp: schedule.numDp,
       hora_ini: schedule.startTime,
       hora_ter: schedule.finishTime,
-      equipe_linha_morta: schedule.lmTeam,
-      equipe_linha_viva: schedule.lvTeam,
-      equipe_regularizacao: schedule.regulTeam,
       chave_provisoria: schedule.temporaryKey,
       tipo_servico: schedule.serviceType,
       chi: schedule.chi,
@@ -129,7 +125,7 @@ export class UpdateSchedulesService {
       return {
         success: true,
         scheduleId: schedule.id,
-        scheduledFinishTime: schedule.finishTime,
+        scheduleFinishTime: schedule.finishTime,
         idWork: schedule.idWork,
       };
     } catch (err: any) {

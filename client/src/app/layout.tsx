@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import "@/globals.css";
 
-import { UserProvider } from "@/contexts/userContext";
+import { FeedbackProvider } from "@/contexts/feedbackContext";
 import { MapFilterProvider } from "@/contexts/mapFilterContext";
+import { UserProvider } from "@/contexts/userContext";
 
 export const metadata: Metadata = {
   title: "Gestão de obras CCM - São Paulo",
@@ -17,9 +18,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <body className="h-full">
-        <UserProvider>
-          <MapFilterProvider>{children}</MapFilterProvider>
-        </UserProvider>
+        <FeedbackProvider>
+          <UserProvider>
+            <MapFilterProvider>{children}</MapFilterProvider>
+          </UserProvider>
+        </FeedbackProvider>
       </body>
     </html>
   );

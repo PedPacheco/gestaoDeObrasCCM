@@ -1,18 +1,20 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
-
 import * as bodyParser from 'body-parser';
-import { NestExpressApplication } from '@nestjs/platform-express';
+import helmet from 'helmet';
 import { join } from 'path';
-import { LoggingInterceptor } from './core/interceptors/logging.interceptor';
 
-const rootUrl = process.env.ROOT_URL || 'localhost';
+import { ValidationPipe } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
+
+import { AppModule } from './app.module';
+import { LoggingInterceptor } from './core/interceptors/logging.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bufferLogs: true,
   });
+
+  app.use(helmet());
 
   app.use(bodyParser.json({ limit: '5mb' }));
   app.use(bodyParser.urlencoded({ limit: '5mb', extended: true }));
@@ -29,8 +31,13 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalInterceptors(new LoggingInterceptor());
 
+  const corsOrigins =
+    process.env.CORS_ORIGINS?.split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean) ?? [];
+
   app.enableCors({
-    origin: [`http://${rootUrl}`, `http://${rootUrl}:3000`],
+    origin: corsOrigins,
     credentials: true,
   });
   await app.listen(8080, '0.0.0.0');

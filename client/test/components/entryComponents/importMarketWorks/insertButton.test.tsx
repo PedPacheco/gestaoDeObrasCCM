@@ -48,6 +48,13 @@ vi.mock("next/navigation", () => ({
   })),
 }));
 
+vi.mock("@/hooks/useFeedback", () => ({
+  useFeedback: () => ({
+    showSuccess: vi.fn(),
+    showError: vi.fn(),
+  }),
+}));
+
 describe("InsertButton component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -198,87 +205,6 @@ describe("InsertButton component", () => {
     await waitFor(() => {
       expect(InsertWorks).toHaveBeenCalledWith([], "marketEntryData");
     });
-    expect(screen.queryByTestId("error-modal")).not.toBeInTheDocument();
-  });
-
-  it("deve renderizar a modal de erro ao insertWorks retornar um erro ao inserir obra", async () => {
-    const user = userEvent.setup();
-    vi.mocked(InsertWorks).mockResolvedValue({
-      success: false,
-      error: "Erro ao inserir obra",
-    });
-
-    const mockData = JSON.stringify([
-      {
-        obra: "OBRA-001",
-        entrada: "2025-08-26",
-        prazo: "2025-09-10",
-        referencia: "REF-123",
-        municipio: "São Paulo",
-        empreendimento: "Empreendimento A",
-        tipo: "Residencial",
-        parceira: "Turma X",
-        circuito: "Circuito 1",
-        tecnico: "João Silva",
-        anoplan: 2025,
-      },
-    ]);
-
-    const response = [
-      {
-        obra: "OBRA-001",
-        entrada: "2025-08-26",
-        prazo: "2025-09-10",
-        referencia: "REF-123",
-        aux_gpm: "São Paulo",
-        aux_empreendimento: "Empreendimento A",
-        aux_tipo: "Residencial",
-        aux_turma: "Turma X",
-        aux_circuito: "Circuito 1",
-        aux_tecnico: "João Silva",
-        anoplan: 2025,
-      },
-    ];
-
-    vi.spyOn(Storage.prototype, "getItem").mockImplementation((key: string) => {
-      if (key === "notesEntryData") return mockData;
-      return null;
-    });
-
-    render(<InsertMarketWorksButton storageKey="notesEntryData" />);
-    await user.click(screen.getByText("Inserir Notas"));
-
-    await waitFor(() => {
-      expect(InsertWorks).toHaveBeenCalledWith(response, "notesEntryData");
-    });
-    expect(screen.getByTestId("error-modal")).toBeInTheDocument();
-  });
-
-  it("deve renderizar a modal de erro caso aconteça um erro ao inserir obra", async () => {
-    const user = userEvent.setup();
-    vi.mocked(InsertWorks).mockRejectedValue(new Error("Network error"));
-
-    render(<InsertMarketWorksButton storageKey="notesEntryData" />);
-    await user.click(screen.getByText("Inserir Notas"));
-
-    await waitFor(() => {
-      expect(InsertWorks).toHaveBeenCalledWith([], "notesEntryData");
-    });
-    expect(screen.getByTestId("error-modal")).toBeInTheDocument();
-  });
-
-  it("deve fechar o modal de erro ao clicar em close", async () => {
-    const user = userEvent.setup();
-    render(<InsertMarketWorksButton storageKey="notesEntryData" />);
-
-    await user.click(screen.getByText("Inserir Notas"));
-    await waitFor(() => {
-      expect(screen.getByTestId("error-modal")).toBeInTheDocument();
-    });
-
-    const closeButton = screen.getByTestId("error-close");
-    await user.click(closeButton);
-
     expect(screen.queryByTestId("error-modal")).not.toBeInTheDocument();
   });
 });

@@ -12,6 +12,7 @@ import { groupNoteDate } from "@/utils/creationNoteBatches";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { DocumentArrowDownIcon } from "@heroicons/react/24/solid";
+import { useFeedback } from "@/hooks/useFeedback";
 
 interface ImportButtonUpdatesProps {
   storageKey: string;
@@ -25,11 +26,7 @@ export function ImportButtonUpdates({ storageKey }: ImportButtonUpdatesProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const [error, setError] = useState<string | null>(null);
-  const [openModal, setOpenModal] = useState<boolean>(false);
-  const [success, setSuccess] = useState<string | null>(null);
-
-  const toggleModal = () => setOpenModal((prev) => !prev);
+  const { showError, showSuccess } = useFeedback();
 
   const handleClick = () => {
     const inputRef =
@@ -43,7 +40,7 @@ export function ImportButtonUpdates({ storageKey }: ImportButtonUpdatesProps) {
   };
 
   const handleSingleFileChange = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -81,13 +78,12 @@ export function ImportButtonUpdates({ storageKey }: ImportButtonUpdatesProps) {
           throw new Error(res.message);
         }
 
-        setSuccess(res.message);
-        setOpenModal(true);
+        showSuccess(res.message);
         resetFileInputs();
 
         router.refresh();
       } catch (err: any) {
-        setError(err.message);
+        showError(err.message);
       }
     });
   };
@@ -125,7 +121,7 @@ export function ImportButtonUpdates({ storageKey }: ImportButtonUpdatesProps) {
         const res = await InsertAuxiliaryBaseMarket(
           groupData,
           storageKey,
-          "update"
+          "update",
         );
 
         if (res.insertedCount === 0) {
@@ -141,13 +137,12 @@ export function ImportButtonUpdates({ storageKey }: ImportButtonUpdatesProps) {
           message += `\nNotas ignoradas: ${skippedNotesArr.join(", ")}`;
         }
 
-        setSuccess(message);
-        setOpenModal(true);
+        showSuccess(message);
         resetFileInputs();
 
         router.refresh();
       } catch (err: any) {
-        setError(err.message);
+        showError(err.message);
       }
     });
   };
@@ -188,24 +183,11 @@ export function ImportButtonUpdates({ storageKey }: ImportButtonUpdatesProps) {
           isPending,
           storageKey === "marketUpdatesData"
             ? "Importar obras de mercado"
-            : "Importar Notas"
+            : "Importar Notas",
         )}
         disabled={isPending}
         styled="w-72"
       />
-
-      <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
-        <span className="font-semibold text-xl">{success}</span>
-      </ModalComponent>
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </>
   );
 }

@@ -58,13 +58,20 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
         capex_mat_plan: true,
         capex_mo_pend: true,
         capex_mo_plan: true,
-        tipo_ads: true,
         data_empreitamento: true,
         ano_plan: true,
+        programacao_ponto_a_ponto: true,
         circuitos: {
           select: {
             circuito: true,
             conjuntos: { select: { conjunto: true } },
+          },
+        },
+        relatorio_viabilidade: {
+          select: {
+            data_envio: true,
+            prazo_viabilidade: true,
+            aprovada: true,
           },
         },
         empreendimento: { select: { empreendimento: true } },
@@ -74,6 +81,7 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
         tipos: { select: { tipo_obra: true, id_grupo: true } },
         id_turma: true,
         id_status: true,
+        servicos: true,
         programacoes: {
           select: {
             id: true,
@@ -94,6 +102,9 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
             equipe_regularizacao: true,
             tecnicos: { select: { tecnico: true } },
             programacoes_restricao_execucao: { select: { restricao: true } },
+            programacoes_servicos: {
+              select: { equipes: { select: { equipe: true } } },
+            },
             nome_responsavel_execucao: true,
             confirmada: true,
             validada: true,
@@ -103,6 +114,7 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
             },
             observacao_restricao: true,
             observacao_execucao: true,
+            id_restricao_execucao: true,
             id_restricao_prog1: true,
             responsabilidade1: true,
             nome_responsavel: true,

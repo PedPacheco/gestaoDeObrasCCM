@@ -32,9 +32,11 @@ describe("ExportPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // cookies() agora pode ser mockado diretamente
     (cookiesModule.cookies as Mock).mockImplementation(() => ({
-      get: vi.fn().mockReturnValue({ value: "123" }),
+      get: vi.fn((name: string) => {
+        if (name === "token") return { value: "mock-token" };
+        return undefined;
+      }),
       set: vi.fn(),
       delete: vi.fn(),
     }));

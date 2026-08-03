@@ -291,7 +291,6 @@ export function ChartReasonsReascheduling({
   aderencia,
   isPending,
 }: ChartReasonsReaschedulingProps) {
-  console.log(motivos);
   const [selectedMotivo, setSelectedMotivo] = useState<string | null>(null);
 
   const totalWorks = useMemo(

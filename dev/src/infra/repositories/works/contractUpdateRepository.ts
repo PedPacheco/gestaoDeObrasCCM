@@ -21,8 +21,7 @@ export class ContractUpdateRepository implements IContractUpdateRepository {
             },
             data: {
               data_empreitamento: work.dataEmpreitamento,
-              tipo_ads: work.tipoAds,
-              id_status: 1,
+              id_status: 45,
             },
           });
         }),

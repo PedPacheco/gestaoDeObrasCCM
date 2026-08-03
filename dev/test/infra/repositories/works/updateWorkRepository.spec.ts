@@ -27,7 +27,6 @@ describe('UpdateWorkRepository', () => {
         {
           id_status: 1,
           id_turma: 2,
-          tipo_ads: 'Convencional',
           data_empreitamento: new Date('05-17-2025'),
         },
         3,
@@ -39,7 +38,6 @@ describe('UpdateWorkRepository', () => {
         data: {
           id_status: 1,
           id_turma: 2,
-          tipo_ads: 'Convencional',
           data_empreitamento: new Date('05-17-2025'),
         },
       });
@@ -57,7 +55,6 @@ describe('UpdateWorkRepository', () => {
           {
             id_status: 1,
             id_turma: 2,
-            tipo_ads: 'Convencional',
             data_empreitamento: new Date('05-17-2025'),
           },
           3,
