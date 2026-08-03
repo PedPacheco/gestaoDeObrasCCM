@@ -7,18 +7,15 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useUser } from "@/contexts/userContext";
+import { useFeedback } from "@/hooks/useFeedback";
 import { userLoginSchema } from "@/validations/validationUserLogin";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-import ErrorModal from "../common/ErrorModal";
 
 type UserLoginSchema = z.infer<typeof userLoginSchema>;
 
 export function FormLogin() {
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { showError } = useFeedback();
 
   const { login } = useUser();
   const router = useRouter();
@@ -38,12 +35,10 @@ export function FormLogin() {
       if (response.success) {
         router.push("/");
       } else {
-        setError(response.message);
-        setIsModalOpen(true);
+        showError(response.message);
       }
     } catch {
-      setError("Ocorreu um erro durante o login.");
-      setIsModalOpen(true);
+      showError("Ocorreu um erro durante o login.");
     }
   }
 
@@ -109,15 +104,6 @@ export function FormLogin() {
       >
         ENTRAR
       </button>
-
-      {error && (
-        <ErrorModal
-          open={isModalOpen}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </form>
   );
 }

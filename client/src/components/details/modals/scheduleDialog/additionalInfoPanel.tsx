@@ -1,4 +1,4 @@
-import { FormData } from "@/hooks/details/useScheduleForm";
+import { FormData } from "@/hooks/details/useOldScheduleForm";
 import {
   FormControl,
   FormHelperText,

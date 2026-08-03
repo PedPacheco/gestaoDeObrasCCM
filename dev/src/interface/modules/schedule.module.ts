@@ -13,10 +13,12 @@ import { RejectionsOfSchedulesService } from 'src/application/usecases/schedule/
 import { ScheduleExecutionValidatorService } from 'src/application/usecases/schedule/scheduleExecutionValidator.service';
 import { UpdateSchedulesService } from 'src/application/usecases/schedule/updateSchedules.service';
 import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/schedule/validateAndConfirmSchedules.service';
+import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
 import { EXEC_MONITORING_REPOSITORY } from 'src/domain/repositories/schedule/IExecMonitoringRepository';
 import { ExecMonitoringRepository } from 'src/infra/repositories/schedule/execMonitoringRepository';
 import { EXECUTION_CAPACITY_REPOSITORY } from 'src/domain/repositories/IExecutionCapacityRepository';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
+import { WORKS_SERVICE_REPOSITORY } from 'src/domain/repositories/IWorksServiceRepository';
 import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IAddSchedulesRepository';
 import { DELETE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IDeleteSchedulesRepository';
 import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
@@ -50,6 +52,7 @@ import { RejectionsOfSchedulesRepository } from 'src/infra/repositories/schedule
 import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updateSchedulesRepository';
 import { ValidateAndConfirmSchedulesRepository } from 'src/infra/repositories/schedule/validateAndConfirmSchedulesRepository';
 import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepository';
+import { WorksServicesRepository } from 'src/infra/repositories/worksServicesRepository';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
 
 import { forwardRef, Module } from '@nestjs/common';
@@ -109,6 +112,7 @@ import { TeamAggregationService } from 'src/domain/services/teamAggregator.servi
     ValidateConfirmAndRejectSchedulesService,
     ScheduleExecutionValidatorService,
     RejectionsOfSchedulesService,
+    WorksServicesService,
     DeadlineStatusService,
     GetMonthlySummaryForecastService,
     MonthlySummaryForecastCalculator,
@@ -116,6 +120,10 @@ import { TeamAggregationService } from 'src/domain/services/teamAggregator.servi
     MonthlySummaryMapper,
     MonthlySummaryService,
     // UpdateRestrictionsService,
+    {
+      provide: WORKS_SERVICE_REPOSITORY,
+      useClass: WorksServicesRepository,
+    },
     {
       provide: MONTHLY_SUMMARY_FORECAST_CALCULATOR,
       useClass: MonthlySummaryForecastCalculator,

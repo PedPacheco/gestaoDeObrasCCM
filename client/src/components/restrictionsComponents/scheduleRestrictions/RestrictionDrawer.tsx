@@ -51,6 +51,7 @@ const RESPONSIBLE_ENGINEERS = [
   { id: 66, name: "Henrique de Oliveira Batista", idParceira: 4 },
   { id: 80, name: "Marcos de Siqueira Mesquita", idParceira: 16 },
   { id: 80, name: "Marcos de Siqueira Mesquita", idParceira: 9 },
+  { id: 80, name: "Marcos de Siqueira Mesquita", idParceira: 3 },
   { id: 94, name: "Diego Melegari", idParceira: 7 },
   { id: 94, name: "Diego Melegari", idParceira: 9 },
   { id: 94, name: "Diego Melegari", idParceira: 17 },

@@ -1,21 +1,16 @@
 "use client";
 
 import ExcelJS from "exceljs";
-import { useRef, useState, useTransition } from "react";
+import { useRef, useTransition } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
-import ErrorModal from "@/components/common/ErrorModal";
-import ModalComponent from "@/components/common/Modal";
-import {
-  DocumentArrowDownIcon,
-  ExclamationCircleIcon,
-} from "@heroicons/react/20/solid";
+import { useFeedback } from "@/hooks/useFeedback";
+import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
 
 type ContractRow = {
   ovnota: string;
   ordemDiagrama: string;
   dataEmpreitamento: string;
-  tipoAds: string;
 };
 
 function excelSerialToDate(serial: number): Date {
@@ -53,9 +48,8 @@ export function ImportContractButton() {
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [error, setError] = useState<string | null>(null);
-  const [openModal, setOpenModal] = useState<boolean>(false);
-  const [success, setSuccess] = useState<string | null>(null);
+  const { showError, showSuccess } = useFeedback();
+
   const [isPending, startTransition] = useTransition();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,22 +75,17 @@ export function ImportContractButton() {
             ovnota: row[1]?.toString() || "",
             ordemDiagrama: row[2]?.toString() || "",
             dataEmpreitamento: parseExcelDate(row[3]),
-            tipoAds: row[4]?.toString() || "",
           });
         }
 
         localStorage.setItem("contracts", JSON.stringify(newData));
-        setSuccess("Empreitamento importado com sucesso!");
-        setOpenModal(true);
+        showSuccess("Empreitamento importado com sucesso!", () =>
+          window.location.reload(),
+        );
       } catch (err: any) {
-        setError(err.message);
+        showError(err.message);
       }
     });
-  };
-
-  const toggleModal = () => {
-    setOpenModal((prev) => !prev);
-    window.location.reload();
   };
 
   return (
@@ -125,19 +114,6 @@ export function ImportContractButton() {
         disabled={isPending}
         styled="w-72"
       />
-
-      <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
-        <span className="font-semibold text-xl">{success}</span>
-      </ModalComponent>
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </>
   );
 }

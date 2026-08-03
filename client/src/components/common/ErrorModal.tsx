@@ -24,7 +24,7 @@ export default function ErrorModal({
         className={`bg-white p-6 rounded-lg shadow-lg w-full lg:w-1/2 mx-auto flex flex-col items-center`}
       >
         {icon}
-        <Typography className="font-semibold text-2xl">Erro</Typography>
+        {/* <Typography className="font-semibold text-2xl">Erro</Typography> */}
         <Typography id="error-modal-description" className="mb-4">
           <span className="text-red-700 font-semibold text-lg text-center">
             {message}

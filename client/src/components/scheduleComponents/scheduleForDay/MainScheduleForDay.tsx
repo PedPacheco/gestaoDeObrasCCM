@@ -7,20 +7,18 @@ import { Cookies } from "react-cookie";
 import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
 import { TableWithPagination } from "@/components/common/TableWithPagination";
-import { useMapFilter } from "@/contexts/mapFilterContext";
 import { useUser } from "@/contexts/userContext";
-import { FiltersInterface } from "@/types/filtersInterfaces";
-import { MainInterface } from "@/types/mainInterface";
+import { useFeedback } from "@/hooks/useFeedback";
+import { useMapFilter } from "@/contexts/mapFilterContext";
+
 import { FormatCurrency } from "@/utils/formatValue";
 import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import ScheduleForDayFilters from "./ScheduleForDayFilters";
+import { MainInterface } from "@/types/mainInterface";
+import { FiltersInterface } from "@/types/filtersInterfaces";
 
-const ErrorModal = dynamic(() => import("@/components/common/ErrorModal"), {
-  ssr: false,
-});
 const ModalComponent = dynamic(() => import("@/components/common/Modal"), {
   ssr: false,
 });
@@ -33,12 +31,15 @@ export default function MainSchduleForDay({
   filtersData,
   token,
 }: MainInterface<any>) {
-  const [filteredData, setFilteredData] = useState(data);
   const { permissions } = useUser();
+
+  const { showError } = useFeedback();
   const { setOvnotas } = useMapFilter();
+
+  const [filteredData, setFilteredData] = useState(data);
   const [open, setOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
+
   const [isPending, startTransition] = useTransition();
   const [filteredFilters, setFilteredFilters] =
     useState<FiltersInterface>(filtersData);
@@ -79,10 +80,10 @@ export default function MainSchduleForDay({
           window.URL.revokeObjectURL(downloadUrl);
         }
       } catch (error: any) {
-        setError(`Erro ao gerar a planilha: ${error.message}`);
+        showError(`Erro ao gerar a planilha: ${error.message}`);
       }
     },
-    [token],
+    [showError, token],
   );
 
   const fetchSchedule = useCallback(
@@ -99,11 +100,11 @@ export default function MainSchduleForDay({
           setFilteredData(response.data);
           setOvnotas(response.data?.works);
         } catch (error: any) {
-          setError(error.message);
+          showError(error.message);
         }
       });
     },
-    [token, setOvnotas],
+    [showError, token, setOvnotas],
   );
 
   const handleChangePage = (event: unknown, newPage: number) => {
@@ -191,15 +192,6 @@ export default function MainSchduleForDay({
             })}
         </div>
       </ModalComponent>
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </div>
   );
 }

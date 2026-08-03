@@ -82,6 +82,13 @@ vi.mock("@/components/entryComponents/entryByDate/entryByDateTable", () => ({
   default: () => <div data-testid="table">Tabela Renderizada</div>,
 }));
 
+vi.mock("@/hooks/useFeedback", () => ({
+  useFeedback: () => ({
+    showSuccess: vi.fn(),
+    showError: vi.fn(),
+  }),
+}));
+
 // ---------------------------
 // Dados para os testes
 // ---------------------------

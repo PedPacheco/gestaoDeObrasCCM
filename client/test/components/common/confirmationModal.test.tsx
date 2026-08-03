@@ -1,4 +1,4 @@
-import ConfirmationModalComponent from "@/components/details/modals/confirmationModal";
+import ConfirmationModalComponent from "@/components/common/confirmationScheduleModal";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -16,7 +16,7 @@ describe("ErrorModal component", () => {
         onClose={mockOnClose}
         title="Teste Modal"
         closeButton={closeButton}
-      />
+      />,
     );
   };
 
@@ -26,10 +26,10 @@ describe("ErrorModal component", () => {
     expect(screen.getByText("Teste Modal")).toBeInTheDocument();
     expect(screen.getByText("Sucesso")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Cancelar/i })
+      screen.getByRole("button", { name: /Cancelar/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Confirmar/i })
+      screen.getByRole("button", { name: /Confirmar/i }),
     ).toBeInTheDocument();
   });
 

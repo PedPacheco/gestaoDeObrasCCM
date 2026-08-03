@@ -15,7 +15,10 @@ export class AddSchedulesService {
     private readonly addSchedulesRepository: IAddSchedulesRepository,
   ) {}
 
-  async add(data: SchedulesDataDTO, tx: Prisma.TransactionClient) {
+  async add(
+    data: SchedulesDataDTO,
+    tx: Prisma.TransactionClient,
+  ): Promise<number> {
     if (!data) {
       throw new BadRequestException(
         'Nenhuma programação fornecida para inserção.',
@@ -41,26 +44,20 @@ export class AddSchedulesService {
       id_obra: schedule.idWork,
       data_prog: schedule.dataProg,
       prog: schedule.prog,
-      exec: schedule.exec,
       equip_desligado: schedule.equipment,
       num_dp: schedule.numDp,
       hora_ini: schedule.startTime,
       hora_ter: schedule.finishTime,
-      equipe_linha_morta: schedule.lmTeam,
-      equipe_linha_viva: schedule.lvTeam,
-      equipe_regularizacao: schedule.regulTeam,
       chave_provisoria: schedule.temporaryKey,
       tipo_servico: schedule.serviceType,
       chi: schedule.chi,
-      nome_responsavel_execucao: schedule.responsibility,
-      id_restricao_execucao: schedule.idExecutionRestriction,
-      observacao_execucao: schedule.executionObservation,
+      observacao_execucao: schedule.observationExecution,
       observacao_programacao: schedule.observation,
       id_tecnico: schedule.idTechnical,
       id_usuario: schedule.idUser,
       id_usuario_ultima_atualizacao: schedule.idUser,
     };
 
-    await this.addSchedulesRepository.addSchedules(formattedData, tx);
+    return await this.addSchedulesRepository.addSchedules(formattedData, tx);
   }
 }

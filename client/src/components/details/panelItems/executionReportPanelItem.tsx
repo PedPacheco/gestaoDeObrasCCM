@@ -147,7 +147,7 @@ export default function ExecutionReportPanelItem({
                           transition: "opacity 0.2s ease-in-out",
                         }}
                       >
-                        <Tooltip title="Editar programação" placement="top">
+                        <Tooltip title="Editar Relatório" placement="top">
                           <IconButton
                             size="small"
                             color="primary"
@@ -163,7 +163,7 @@ export default function ExecutionReportPanelItem({
                           </IconButton>
                         </Tooltip>
 
-                        <Tooltip title="Excluir programação" placement="top">
+                        <Tooltip title="Excluir Relatório" placement="top">
                           <IconButton
                             size="small"
                             color="error"

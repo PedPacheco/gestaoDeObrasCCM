@@ -2,9 +2,9 @@ import { render, screen, fireEvent, act } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import React from "react";
 import {
-  ModalsManager,
-  ModalsManagerRef,
-} from "@/components/details/modals/detailsModals";
+  OldModalsManagerRef,
+  OldModalsManager,
+} from "@/components/details/modals/oldModalsManager";
 
 vi.mock("@/contexts/userContext", () => {
   return {

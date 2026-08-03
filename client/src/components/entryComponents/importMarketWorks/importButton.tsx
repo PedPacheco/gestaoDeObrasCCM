@@ -12,6 +12,7 @@ import { createBatches, groupNoteDate } from "@/utils/creationNoteBatches";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { DocumentArrowDownIcon } from "@heroicons/react/24/solid";
+import { useFeedback } from "@/hooks/useFeedback";
 
 interface ImportButtonProps {
   storageKey: string;
@@ -25,7 +26,7 @@ export function ImportButton({ storageKey }: ImportButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const [error, setError] = useState<string | null>(null);
+  const { showError } = useFeedback();
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -87,7 +88,7 @@ export function ImportButton({ storageKey }: ImportButtonProps) {
 
         router.refresh();
       } catch (err: any) {
-        setError(err.message);
+        showError(err.message);
       }
     });
   };
@@ -144,7 +145,7 @@ export function ImportButton({ storageKey }: ImportButtonProps) {
 
         router.refresh();
       } catch (err: any) {
-        setError(err.message);
+        showError(err.message);
       }
     });
   };
@@ -196,15 +197,6 @@ export function ImportButton({ storageKey }: ImportButtonProps) {
       <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
         <span className="font-semibold text-xl">{success}</span>
       </ModalComponent>
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </>
   );
 }

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 interface DataItemProps {
   label?: string;
-  value: string;
+  value: string | null;
   status?: string;
   background?: string;
   isEdit?: boolean;
@@ -42,7 +42,7 @@ export default function DataItem({
       }`}
     >
       {label && (
-        <p className="h-full w-40 flex items-center justify-start font-semibold p-1 text-center xl:text-lg border-r border-zinc-700 border-solid">
+        <p className="h-full w-40 flex items-center justify-start font-semibold p-1 text-center xl:text-lg">
           {label}
         </p>
       )}
