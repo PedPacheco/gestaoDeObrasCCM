@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ProgressEmitter } from 'src/application/shared/capex.types';
+import { AppLogger } from 'src/core/logger/logger.service';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
@@ -32,6 +33,7 @@ export class UpdateCapexService {
     private readonly auxiliaryBaseRepository: IAuxiliaryBaseRepository,
     @Inject(UPDATE_CAPEX_REPOSITORY)
     private readonly updateCapexRepository: IUpdateCapexRepository,
+    private readonly logger: AppLogger,
   ) {}
 
   /**
@@ -51,6 +53,8 @@ export class UpdateCapexService {
    *                    (compatibilidade com chamadas sem WS).
    */
   async update(onProgress?: ProgressEmitter): Promise<void> {
+    let totalMaterials = 0;
+
     try {
       // ─── Fase: loading ────────────────────────────────────────────
       onProgress?.({
@@ -62,6 +66,8 @@ export class UpdateCapexService {
 
       const materials =
         await this.auxiliaryBaseRepository.getAuxiliaryBaseCN52N();
+
+      totalMaterials = materials.length;
 
       onProgress?.({
         phase: 'loading',
@@ -115,13 +121,29 @@ export class UpdateCapexService {
         percentage: 100,
         message: 'Atualização finalizada',
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Erro desconhecido na atualização do CAPEX';
+
       onProgress?.({
         phase: 'error',
         processed: 0,
         percentage: 0,
-        message: error.message ?? 'Erro desconhecido na atualização do CAPEX',
+        message,
       });
+
+      this.logger.errorWithMetadata(
+        'Erro durante atualização do CAPEX',
+        {
+          totalMaterials: totalMaterials,
+          service: 'UpdateCapexService',
+        },
+        UpdateCapexService.name,
+        error instanceof Error ? error.stack : undefined,
+      );
+
       throw error;
     }
   }

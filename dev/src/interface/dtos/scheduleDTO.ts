@@ -13,6 +13,7 @@ import {
 import { convertParameterValue } from 'src/utils/convertParameterValue';
 import { ScheduleServicesDTO } from './workServicesDTO';
 import { ExecutionReportDataDTO } from './executionReportDTO';
+import { DisableWhitelist } from 'src/shared/costants';
 
 export class GetTotalValuesScheduleDTO {
   @IsOptional()
@@ -503,6 +504,7 @@ export class CreateScheduleWithServicesDTO {
   services: ScheduleServicesDTO[];
 }
 
+@DisableWhitelist()
 export class UpdateSchedulesDataDTO {
   @Transform(({ value }) => {
     const parsed = typeof value === 'string' ? JSON.parse(value) : value;

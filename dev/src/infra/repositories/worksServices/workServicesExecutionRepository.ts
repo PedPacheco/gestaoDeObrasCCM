@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 import { IWorkServicesExecutionRepository } from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
@@ -16,29 +16,21 @@ export class WorkServicesExeutionRepository implements IWorkServicesExecutionRep
   ): Promise<void> {
     const { id, prog, exec, idExecutionRestriction, responsibility } = data;
 
-    try {
-      await tx.programacoes.update({
-        where: { id },
-        data: {
-          prog: prog,
-          exec: exec,
-          id_restricao_execucao: idExecutionRestriction,
-          nome_responsavel: responsibility,
-        },
+    await tx.programacoes.update({
+      where: { id },
+      data: {
+        prog: prog,
+        exec: exec,
+        id_restricao_execucao: idExecutionRestriction,
+        nome_responsavel: responsibility,
+      },
+    });
+
+    if (pendingExecServicesData.length > 0) {
+      await tx.servicos.updateMany({
+        where: { id: { in: pendingExecServicesData } },
+        data: { id_programacao: null },
       });
-
-      if (pendingExecServicesData.length > 0) {
-        await tx.servicos.updateMany({
-          where: { id: { in: pendingExecServicesData } },
-          data: { id_programacao: null },
-        });
-      }
-    } catch (error: any) {
-      if (error.code === 'P2025') {
-        throw new NotFoundException(`Agendamento com ID ${id} não encontrado`);
-      }
-
-      throw error;
     }
   }
 

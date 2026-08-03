@@ -22,6 +22,8 @@ import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
 import { WORK_SERVICES_EXECUTION_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
 import { WorkServicesExeutionRepository } from 'src/infra/repositories/worksServices/workServicesExecutionRepository';
+import { HandleFinalizeServicesService } from 'src/application/usecases/orchestrators/handleFinalizeServices.service';
+import { HandleRescheduleServicesService } from 'src/application/usecases/orchestrators/handleRescheduleServices.service';
 
 @Module({
   imports: [
@@ -66,6 +68,8 @@ import { WorkServicesExeutionRepository } from 'src/infra/repositories/worksServ
     QueriesServicesService,
     FinalizeServicesService,
     ScheduleExecutionValidatorService,
+    HandleFinalizeServicesService,
+    HandleRescheduleServicesService,
     {
       provide: WORK_SERVICES_REPOSITORY,
       useClass: WorkServicesRepository,

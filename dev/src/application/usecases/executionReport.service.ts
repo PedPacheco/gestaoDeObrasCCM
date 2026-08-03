@@ -18,6 +18,7 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { FileService } from './file.service';
+import { AppLogger } from 'src/core/logger/logger.service';
 
 @Injectable()
 export class ExecutionReportService {
@@ -27,6 +28,7 @@ export class ExecutionReportService {
     @Inject(FIND_SCHEDULE_BY_ID_REPOSITORY)
     private readonly findScheduleByIdRepository: IFindScheduleByIdRepository,
     private readonly fileService: FileService,
+    private readonly logger: AppLogger,
   ) {}
 
   async findByWorkId(idWork: number) {
@@ -92,13 +94,17 @@ export class ExecutionReportService {
         tx,
       );
     } catch (error) {
-      if (files?.length) {
-        for (const file of files) {
-          this.fileService.deleteFile(
-            `${process.env.UPLOAD_AS_BUILD}/${file.path}`,
-          );
-        }
-      }
+      this.cleanupFiles(files);
+
+      this.logger.errorWithMetadata(
+        'Falha ao persistir relatório de execução',
+        {
+          method: 'create',
+          idSchedule: data.idSchedule,
+          error,
+        },
+      );
+
       throw error;
     }
   }
@@ -148,13 +154,14 @@ export class ExecutionReportService {
         scheduledFinishTime.hora_ter,
       );
     } catch (error: any) {
-      if (files?.length) {
-        for (const file of files) {
-          this.fileService.deleteFile(
-            `${process.env.UPLOAD_AS_BUILD}/${file.path}`,
-          );
-        }
-      }
+      this.cleanupFiles(files);
+
+      this.logger.error('Falha ao instanciar ExecutionReport para update', {
+        method: 'update',
+        idExecutionReport,
+        error,
+      });
+
       throw new BadRequestException(
         `Erro ao criar relatório: ${error.message}`,
       );
@@ -192,5 +199,15 @@ export class ExecutionReportService {
     }
 
     await this.executionReportRepository.delete(id, report.id_programacao);
+  }
+
+  private cleanupFiles(files?: Express.Multer.File[]): void {
+    if (!files?.length) return;
+
+    for (const file of files) {
+      this.fileService.deleteFile(
+        `${process.env.UPLOAD_AS_BUILD}/${file.path}`,
+      );
+    }
   }
 }

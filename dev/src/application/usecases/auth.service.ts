@@ -74,36 +74,30 @@ export class AuthService {
   }
 
   async register(registrationData: RegisterUserDTO): Promise<User> {
-    try {
-      const { username, senha } = registrationData;
+    const { username, senha } = registrationData;
 
-      const existingUser = await this.usersService.findUser(username);
+    const existingUser = await this.usersService.findUser(username);
 
-      let password = senha;
+    let password = senha;
 
-      if (existingUser) {
-        throw new BadRequestException('Nome de usuário já está em uso.');
-      }
-
-      if (!password) {
-        throw new BadRequestException(
-          'A senha do usuário tem que ser enviada.',
-        );
-      }
-
-      const salt = await genSalt();
-      const hashedPassword = await hash(password, salt);
-
-      const user = new User({
-        ...registrationData,
-        senha: hashedPassword,
-      });
-
-      const created = await this.authRepository.register(user);
-
-      return created;
-    } catch (error) {
-      throw error;
+    if (existingUser) {
+      throw new BadRequestException('Nome de usuário já está em uso.');
     }
+
+    if (!password) {
+      throw new BadRequestException('A senha do usuário tem que ser enviada.');
+    }
+
+    const salt = await genSalt();
+    const hashedPassword = await hash(password, salt);
+
+    const user = new User({
+      ...registrationData,
+      senha: hashedPassword,
+    });
+
+    const created = await this.authRepository.register(user);
+
+    return created;
   }
 }

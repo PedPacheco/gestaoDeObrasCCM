@@ -24,6 +24,8 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { FinalizeServicesService } from 'src/application/usecases/services/finalizeServices.service';
 import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
 import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
+import { HandleFinalizeServicesService } from 'src/application/usecases/orchestrators/handleFinalizeServices.service';
+import { HandleRescheduleServicesService } from 'src/application/usecases/orchestrators/handleRescheduleServices.service';
 
 @Controller('servicos')
 export class ServicesController {
@@ -31,6 +33,8 @@ export class ServicesController {
     private readonly worksServicesService: WorksServicesService,
     private readonly queriesServicesService: QueriesServicesService,
     private readonly finalizeServicesService: FinalizeServicesService,
+    private readonly handleFinalizeServicesService: HandleFinalizeServicesService,
+    private readonly handleRescheduleServicesService: HandleRescheduleServicesService,
   ) {}
 
   @Get('materiais')
@@ -146,7 +150,7 @@ export class ServicesController {
     @Param('id', ParseIntPipe) id: number,
     @Param('scheduleId', ParseIntPipe) scheduleId: number,
   ) {
-    await this.worksServicesService.reascheduleServices(id, scheduleId);
+    await this.handleRescheduleServicesService.execute(id, scheduleId);
 
     return {
       statusCode: HttpStatus.OK,
@@ -175,7 +179,7 @@ export class ServicesController {
         : undefined,
     };
 
-    await this.finalizeServicesService.finalizeServices(id, data, files);
+    await this.handleFinalizeServicesService.execute(id, data, files);
 
     return {
       statusCode: HttpStatus.OK,

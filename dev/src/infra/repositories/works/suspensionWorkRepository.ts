@@ -8,29 +8,21 @@ export class SuspensionWorkRepository implements ISuspensionWorkRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: SuspensionWorkRequestInterface): Promise<any> {
-    try {
-      await this.prisma.suspensoes.create({
-        data,
-      });
-    } catch (error) {
-      throw error;
-    }
+    await this.prisma.suspensoes.create({
+      data,
+    });
   }
 
   async createMultiple(data: SuspensionWorkRequestInterface[]): Promise<any> {
-    try {
-      await this.prisma.$transaction(async (tx) => {
-        await tx.suspensoes.createMany({
-          data,
-        });
-
-        await tx.obras.updateMany({
-          data: { id_status: 4 },
-          where: { id: { in: data.map((work) => work.id_obra) } },
-        });
+    await this.prisma.$transaction(async (tx) => {
+      await tx.suspensoes.createMany({
+        data,
       });
-    } catch (error) {
-      throw error;
-    }
+
+      await tx.obras.updateMany({
+        data: { id_status: 4 },
+        where: { id: { in: data.map((work) => work.id_obra) } },
+      });
+    });
   }
 }

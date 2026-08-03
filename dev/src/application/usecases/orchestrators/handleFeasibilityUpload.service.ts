@@ -21,6 +21,7 @@ import { StatusFeasibility } from '../feasibility.service';
 import { countBusinessDays } from 'src/utils/parseTimeToDate';
 import { FileService } from '../file.service';
 import { Prisma } from '@prisma/client';
+import { AppLogger } from 'src/core/logger/logger.service';
 
 @Injectable()
 export class HandleFeasibilityService {
@@ -31,6 +32,7 @@ export class HandleFeasibilityService {
     private readonly feasibilityRepository: IFeasibilityRepository,
     private readonly fileService: FileService,
     private readonly prisma: PrismaService,
+    private readonly logger: AppLogger,
   ) {}
 
   async upload(
@@ -146,7 +148,10 @@ export class HandleFeasibilityService {
         } catch (error) {
           // banco já commitado — logamos e seguimos.
           // um arquivo órfão em disco é preferível a uma transaction quebrada.
-          console.error(`Falha ao excluir arquivo ${file} do disco`, error);
+          this.logger.warn(
+            `Falha ao excluir arquivo ${file} do disco`,
+            error instanceof Error ? error.stack : String(error),
+          );
         }
       }),
     );

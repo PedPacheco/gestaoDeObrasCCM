@@ -1,26 +1,24 @@
 import { ValidationPipe, ValidationPipeOptions } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { DISABLE_WHITELIST_KEY } from 'src/shared/costants';
 
 export class CustomValidationPipe extends ValidationPipe {
-  private readonly options: ValidationPipeOptions;
-
-  constructor(options?: ValidationPipeOptions) {
-    super(options);
-    this.options = options;
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly validationOptions?: ValidationPipeOptions,
+  ) {
+    super(validationOptions);
   }
 
   async transform(value: any, metadata: any) {
-    const noWhitelistDTOs = [
-      'UpdateSchedulesDataDTO',
-      'UpdateExecutionReportDTO',
-      'FinalizeServicesDTO',
-    ];
+    const disableWhitelist = this.reflector.get<boolean>(
+      DISABLE_WHITELIST_KEY,
+      metadata?.metatype,
+    );
 
-    if (
-      metadata?.metatype?.name &&
-      noWhitelistDTOs.includes(metadata.metatype.name)
-    ) {
+    if (disableWhitelist) {
       const pipeWithoutWhitelist = new ValidationPipe({
-        ...this.options, // ✅ agora existe
+        ...this.validationOptions,
         whitelist: false,
         transform: true,
         forbidNonWhitelisted: false,
