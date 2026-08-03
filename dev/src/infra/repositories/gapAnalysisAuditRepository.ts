@@ -9,40 +9,33 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
-export class GapAnalysisAuditRepository
-  implements IGapAnalysisAuditRepository
-{
+export class GapAnalysisAuditRepository implements IGapAnalysisAuditRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(): Promise<gap_analysis_audits[]> {
-    return this.prisma.gap_analysis_audits.findMany({
+    return await this.prisma.gap_analysis.findMany({
       orderBy: [{ parceira: 'asc' }, { id: 'asc' }],
     });
   }
 
-  async create(
-    data: CreateGapAnalysisAuditData,
-  ): Promise<gap_analysis_audits> {
-    return this.prisma.gap_analysis_audits.create({ data });
+  async create(data: CreateGapAnalysisAuditData): Promise<any> {
+    return await this.prisma.gap_analysis.create({ data });
   }
 
   async createMany(
     data: CreateGapAnalysisAuditData[],
   ): Promise<{ count: number }> {
-    return this.prisma.gap_analysis_audits.createMany({ data });
+    return await this.prisma.gap_analysis.createMany({ data });
   }
 
-  async update(
-    id: number,
-    data: UpdateGapAnalysisAuditData,
-  ): Promise<gap_analysis_audits> {
-    return this.prisma.gap_analysis_audits.update({
+  async update(id: number, data: UpdateGapAnalysisAuditData): Promise<any[]> {
+    await this.prisma.gap_analysis.update({
       where: { id },
       data,
     });
   }
 
-  async delete(id: number): Promise<gap_analysis_audits> {
-    return this.prisma.gap_analysis_audits.delete({ where: { id } });
+  async delete(id: number): Promise<void> {
+    await this.prisma.gap_analysis.delete({ where: { id } });
   }
 }

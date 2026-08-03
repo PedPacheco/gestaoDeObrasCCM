@@ -1,7 +1,5 @@
-import { gap_analysis_audits } from '@prisma/client';
-
 export interface CreateGapAnalysisAuditData {
-  parceira: string;
+  id_parceira: string;
   num_auditoria?: string;
   data_inicio?: string;
   data_fim?: string;
@@ -26,7 +24,7 @@ export interface CreateGapAnalysisAuditData {
 }
 
 export interface UpdateGapAnalysisAuditData {
-  parceira?: string;
+  id_parceira?: string;
   num_auditoria?: string;
   data_inicio?: string;
   data_fim?: string;
@@ -51,14 +49,11 @@ export interface UpdateGapAnalysisAuditData {
 }
 
 export interface IGapAnalysisAuditRepository {
-  findAll(): Promise<gap_analysis_audits[]>;
-  create(data: CreateGapAnalysisAuditData): Promise<gap_analysis_audits>;
+  findAll(): Promise<any[]>;
+  create(data: CreateGapAnalysisAuditData): Promise<any>;
   createMany(data: CreateGapAnalysisAuditData[]): Promise<{ count: number }>;
-  update(
-    id: number,
-    data: UpdateGapAnalysisAuditData,
-  ): Promise<gap_analysis_audits>;
-  delete(id: number): Promise<gap_analysis_audits>;
+  update(id: number, data: UpdateGapAnalysisAuditData): Promise<any>;
+  delete(id: number): Promise<any>;
 }
 
 export const GAP_ANALYSIS_AUDIT_REPOSITORY = Symbol(
