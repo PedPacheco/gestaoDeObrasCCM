@@ -108,7 +108,6 @@ export interface DailySummaryTotals {
   totalTeams: number;
   totalQtdeRfpTeams: number;
   totalExecutionCapacityTeams: number;
-  totalWalletExec: number;
 
   totalFinancialGoal: number;
   totalDiaryGoal: number;
@@ -139,6 +138,7 @@ export interface GroupSummaryTotals {
   totalProgMarket: number;
   totalExecMarket: number;
   totalDiff: number;
+  totalWallet: number;
 }
 
 export interface DailySummaryResult {

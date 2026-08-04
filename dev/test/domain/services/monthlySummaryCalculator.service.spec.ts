@@ -404,6 +404,7 @@ describe('MonthlySummaryCalculator', () => {
           portfolioBt0: 0,
           portfolioRecom: 0,
           portfolioMarket: 0,
+          portfolioTotal: 0,
         },
         {
           totalMoPend: 0,
@@ -427,6 +428,7 @@ describe('MonthlySummaryCalculator', () => {
           portfolioBt0: 0,
           portfolioRecom: 0,
           portfolioMarket: 0,
+          portfolioTotal: 0,
         },
         {
           totalMoPend: 0,
@@ -450,6 +452,7 @@ describe('MonthlySummaryCalculator', () => {
           portfolioBt0: 0,
           portfolioRecom: 0,
           portfolioMarket: 0,
+          portfolioTotal: 0,
         },
         {
           totalMoPend: 0,
@@ -473,6 +476,7 @@ describe('MonthlySummaryCalculator', () => {
           portfolioBt0: 0,
           portfolioRecom: 0,
           portfolioMarket: 0,
+          portfolioTotal: 0,
         },
         {
           totalMoPend: 0,
@@ -496,6 +500,7 @@ describe('MonthlySummaryCalculator', () => {
           portfolioBt0: 0,
           portfolioRecom: 0,
           portfolioMarket: 0,
+          portfolioTotal: 0,
         },
         {
           totalMoPend: 0,
@@ -516,6 +521,7 @@ describe('MonthlySummaryCalculator', () => {
           portfolioBt0: 0,
           portfolioRecom: 0,
           portfolioMarket: 0,
+          portfolioTotal: 0,
         },
         {
           totalMoPend: 0,
@@ -535,6 +541,7 @@ describe('MonthlySummaryCalculator', () => {
           portfolioBt0: 0,
           portfolioRecom: 0,
           portfolioMarket: 0,
+          portfolioTotal: 0,
         },
         {
           totalMoPend: 0,
@@ -568,6 +575,7 @@ describe('MonthlySummaryCalculator', () => {
           portfolioBt0: 0,
           portfolioRecom: 0,
           portfolioMarket: 0,
+          portfolioTotal: 0,
         },
         {
           totalMoPend: 0,
@@ -603,6 +611,7 @@ describe('MonthlySummaryCalculator', () => {
           portfolioBt0: 0,
           portfolioRecom: 0,
           portfolioMarket: 500,
+          portfolioTotal: 0,
         },
         {
           totalMoPend: 0,
@@ -636,6 +645,7 @@ describe('MonthlySummaryCalculator', () => {
           portfolioBt0: 0,
           portfolioRecom: 700,
           portfolioMarket: 0,
+          portfolioTotal: 0,
         },
         {
           totalMoPend: 0,
@@ -669,6 +679,7 @@ describe('MonthlySummaryCalculator', () => {
           portfolioBt0: 0,
           portfolioRecom: 0,
           portfolioMarket: 0,
+          portfolioTotal: 0,
         },
         {
           totalMoPend: 0,
@@ -702,6 +713,7 @@ describe('MonthlySummaryCalculator', () => {
           portfolioBt0: 1200,
           portfolioRecom: 0,
           portfolioMarket: 0,
+          portfolioTotal: 0,
         },
         {
           totalMoPend: 0,
