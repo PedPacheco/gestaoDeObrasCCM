@@ -2,7 +2,11 @@ import {
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
 } from 'src/interface/dtos/restrictionsDTO';
-import { GetScheduleRestrictions } from 'src/interface/types/schedule/getScheduleRestrictionsInterface';
+import {
+  GetPublicationRestricionResponse,
+  GetPublicationRestrictionByWorkIdResponse,
+  GetScheduleRestrictionsResponse,
+} from '../types';
 
 export interface ProcessedRestrictionsFilters {
   dataInicial?: Date;
@@ -26,11 +30,13 @@ export interface ProcessedRestrictionsFilters {
 export interface IRestrictionsRepository {
   getScheduleRestrictions(
     filters: ProcessedRestrictionsFilters,
-  ): Promise<{ works: GetScheduleRestrictions[]; totals: any[] }>;
+  ): Promise<GetScheduleRestrictionsResponse>;
   getPublicationRestricion(
     filters: ProcessedRestrictionsFilters,
-  ): Promise<{ works: any[] }>;
-  getPublicationRestrictionByWorkId(id: number): Promise<any[]>;
+  ): Promise<GetPublicationRestricionResponse>;
+  getPublicationRestrictionByWorkId(
+    id: number,
+  ): Promise<GetPublicationRestrictionByWorkIdResponse[]>;
   insertPublicationRestriction(
     data: InsertPublicationRestrictionsDTO[],
   ): Promise<void>;

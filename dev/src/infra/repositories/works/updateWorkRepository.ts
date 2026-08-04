@@ -1,4 +1,4 @@
-import { IUpdateWorkRepository } from 'src/domain/repositories/works/IUpdateWorkRepository';
+import { IUpdateWorkRepository } from 'src/domain/contracts/works/IUpdateWorkRepository';
 import { UpdateWorkDTO } from 'src/interface/dtos/worksDto';
 
 import { Injectable } from '@nestjs/common';

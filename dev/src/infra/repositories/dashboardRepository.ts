@@ -1,7 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
-import { IDashboardRepository } from 'src/domain/repositories/IDashboardRepository';
+import { IDashboardRepository } from 'src/domain/contracts/IDashboardRepository';
+import {
+  findMonthlyTrendResponse,
+  FindPartnerStatus,
+  FindRecentWorks,
+  FindTopPartners,
+  FindWorksByRegional,
+  FindWorksByStatus,
+} from 'src/domain/types';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { DashboardFiltersDTO } from 'src/interface/dtos/dashboardDTO';
 import { DashboardFiltersBuilder } from 'src/utils/dashboardFilters.builder';
@@ -10,13 +18,13 @@ import { DashboardFiltersBuilder } from 'src/utils/dashboardFilters.builder';
 export class DashboardRepository implements IDashboardRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async countTotalWorks(filters: DashboardFiltersDTO) {
+  async countTotalWorks(filters: DashboardFiltersDTO): Promise<number> {
     return await this.prisma.obras.count({
       where: DashboardFiltersBuilder.buildObrasWhere(filters),
     });
   }
 
-  async countConcludedThisMonth(filters: DashboardFiltersDTO) {
+  async countConcludedThisMonth(filters: DashboardFiltersDTO): Promise<number> {
     return await this.prisma.obras.count({
       where: {
         ...DashboardFiltersBuilder.buildObrasWhere(filters, 'data_conclusao'),
@@ -24,7 +32,7 @@ export class DashboardRepository implements IDashboardRepository {
     });
   }
 
-  async countWithoutSchedule(filters: DashboardFiltersDTO) {
+  async countWithoutSchedule(filters: DashboardFiltersDTO): Promise<number> {
     return await this.prisma.obras.count({
       where: {
         ...DashboardFiltersBuilder.buildObrasWhere(filters),
@@ -35,7 +43,7 @@ export class DashboardRepository implements IDashboardRepository {
     });
   }
 
-  async countTotalConcluded(filters: DashboardFiltersDTO) {
+  async countTotalConcluded(filters: DashboardFiltersDTO): Promise<number> {
     return await this.prisma.obras.count({
       where: {
         ...DashboardFiltersBuilder.buildObrasWhere(filters, 'data_conclusao'),
@@ -73,7 +81,9 @@ export class DashboardRepository implements IDashboardRepository {
     return Number(result._sum.mo_planejada ?? 0);
   }
 
-  async findWorksByStatus(filters: DashboardFiltersDTO) {
+  async findWorksByStatus(
+    filters: DashboardFiltersDTO,
+  ): Promise<FindWorksByStatus[]> {
     const whereFilters = DashboardFiltersBuilder.buildSQLWhere(filters);
 
     return await this.prisma.$queryRaw<
@@ -99,13 +109,7 @@ export class DashboardRepository implements IDashboardRepository {
   async findWorksByRegional(filters: DashboardFiltersDTO) {
     const whereFilters = DashboardFiltersBuilder.buildSQLWhere(filters);
 
-    return await this.prisma.$queryRaw<
-      {
-        regional: string;
-        total: number;
-        concluded: number;
-      }[]
-    >(Prisma.sql`
+    return await this.prisma.$queryRaw<FindWorksByRegional[]>(Prisma.sql`
         SELECT
           r.regional,
           COUNT(o.id)::int AS total,
@@ -136,13 +140,7 @@ export class DashboardRepository implements IDashboardRepository {
       'o.entrada',
     );
 
-    return await this.prisma.$queryRaw<
-      {
-        month: string;
-        entered: number;
-        concluded: number;
-      }[]
-    >(Prisma.sql`
+    return await this.prisma.$queryRaw<findMonthlyTrendResponse[]>(Prisma.sql`
         SELECT
           TO_CHAR(
             DATE_TRUNC('month', o.entrada),
@@ -171,9 +169,7 @@ export class DashboardRepository implements IDashboardRepository {
   async findTopPartners(filters: DashboardFiltersDTO) {
     const whereFilters = DashboardFiltersBuilder.buildSQLWhere(filters);
 
-    return await this.prisma.$queryRaw<
-      { partner: string; total: number }[]
-    >(Prisma.sql`
+    return await this.prisma.$queryRaw<FindTopPartners[]>(Prisma.sql`
         SELECT
           t.turma AS partner,
           COUNT(o.id)::int AS total
@@ -195,16 +191,7 @@ export class DashboardRepository implements IDashboardRepository {
   async findRecentWorks(filters: DashboardFiltersDTO) {
     const whereFilters = DashboardFiltersBuilder.buildSQLWhere(filters);
 
-    return await this.prisma.$queryRaw<
-      {
-        ovnota: string;
-        status: string;
-        partner: string;
-        municipio: string;
-        executado: number | null;
-        entrada: Date;
-      }[]
-    >(Prisma.sql`
+    return await this.prisma.$queryRaw<FindRecentWorks[]>(Prisma.sql`
         SELECT
           o.ovnota,
           s.status,
@@ -231,13 +218,7 @@ export class DashboardRepository implements IDashboardRepository {
   async findPartnerStatus(filters: DashboardFiltersDTO) {
     const whereFilters = DashboardFiltersBuilder.buildSQLWhere(filters);
 
-    return await this.prisma.$queryRaw<
-      {
-        partner: string;
-        status: string;
-        count: number;
-      }[]
-    >(Prisma.sql`
+    return await this.prisma.$queryRaw<FindPartnerStatus[]>(Prisma.sql`
         SELECT
           t.turma AS partner,
           s.status,

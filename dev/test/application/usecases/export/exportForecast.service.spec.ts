@@ -5,7 +5,7 @@ import * as ExcelJS from 'exceljs';
 import {
   EXPORT_REPOSITORY,
   IExportRepository,
-} from 'src/domain/repositories/IExportRepository';
+} from 'src/domain/contracts/IExportRepository';
 import { ExportForecastService } from 'src/application/usecases/export/exportForecast.service';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 

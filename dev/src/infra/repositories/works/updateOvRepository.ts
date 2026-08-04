@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { MarketWork } from 'src/domain/entities/works.entity';
-import { IUpdateOvRepository } from 'src/domain/repositories/works/IUpdateOvRepository';
+import { IUpdateOvRepository } from 'src/domain/contracts/works/IUpdateOvRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 @Injectable()

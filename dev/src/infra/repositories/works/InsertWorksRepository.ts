@@ -3,7 +3,7 @@ import { MarketWork, NoteWorks } from 'src/domain/entities/works.entity';
 import {
   Groups,
   IInsertWorksRepository,
-} from 'src/domain/repositories/works/IInsertWorksRepository';
+} from 'src/domain/contracts/works/IInsertWorksRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 @Injectable()

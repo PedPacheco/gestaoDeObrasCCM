@@ -1,6 +1,6 @@
 import { Cache } from 'cache-manager';
 import { GetWorksInPortfolioService } from 'src/application/usecases/works/getWorksInPortfolio.service';
-import { GET_WORKS_IN_PORTFOLIO_REPOSITORY } from 'src/domain/repositories/works/IGetWorksInPortfolioRepository';
+import { GET_WORKS_IN_PORTFOLIO_REPOSITORY } from 'src/domain/contracts/works/IGetWorksInPortfolioRepository';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 
 import { CACHE_MANAGER } from '@nestjs/cache-manager';

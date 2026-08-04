@@ -5,7 +5,7 @@ import * as Exceljs from 'exceljs';
 import {
   EXPORT_REPOSITORY,
   IExportRepository,
-} from 'src/domain/repositories/IExportRepository';
+} from 'src/domain/contracts/IExportRepository';
 import { ExportRejectionsService } from 'src/application/usecases/export/exportRejections.service';
 
 jest.mock('exceljs');

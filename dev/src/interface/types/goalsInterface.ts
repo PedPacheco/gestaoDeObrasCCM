@@ -28,30 +28,6 @@ export interface Goals {
   dez: valuesGoals;
 }
 
-export interface goalsInterfaceRepository {
-  id_tipo: number;
-  id_parceira: number;
-  id_regional: number;
-  tipo_obra: string;
-  turma: string;
-  regional: string;
-  empreendimento?: string;
-  anocalc: number;
-  jan: number;
-  fev: number;
-  mar: number;
-  abr: number;
-  mai: number;
-  jun: number;
-  jul: number;
-  ago: number;
-  set: number;
-  out: number;
-  nov: number;
-  dez: number;
-  carteira: number;
-}
-
 export interface GoalsIntefaceController {
   statusCode: number;
   message: string;

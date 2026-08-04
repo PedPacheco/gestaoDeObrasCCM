@@ -6,7 +6,7 @@ import {
 import {
   GET_MONTHLY_SUMMARY_FORECAST_REPOSITORY,
   IGetMonthlySummaryForecastRepository,
-} from 'src/domain/repositories/schedule/IGetMonthlySummaryForecastRepository';
+} from 'src/domain/contracts/schedule/IGetMonthlySummaryForecastRepository';
 import {
   IMonthlySummaryForecastCalculator,
   MONTHLY_SUMMARY_FORECAST_CALCULATOR,
@@ -47,8 +47,7 @@ export class GetMonthlySummaryForecastService {
     ]);
 
     const financialCapacityByMonth: (
-      | MonthlyCapacityMetricsForecast
-      | undefined
+      MonthlyCapacityMetricsForecast | undefined
     )[] = new Array(12);
 
     const summaryMap = new Map<string, DailySummaryEntryForecast>();

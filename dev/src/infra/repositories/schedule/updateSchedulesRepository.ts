@@ -1,7 +1,7 @@
 import {
   IUpdateSchedulesRepository,
   returnExecution,
-} from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
+} from 'src/domain/contracts/schedule/IUpdateSchedulesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import { Injectable } from '@nestjs/common';

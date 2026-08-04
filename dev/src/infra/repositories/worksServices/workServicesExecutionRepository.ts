@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
-import { IWorkServicesExecutionRepository } from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
+import { IWorkServicesExecutionRepository } from 'src/domain/contracts/worksService/IWorkServicesExecutionRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
 

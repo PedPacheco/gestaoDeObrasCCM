@@ -1,32 +1,46 @@
-import { Injectable } from '@nestjs/common';
-import { IExportRepository } from 'src/domain/repositories/IExportRepository';
+import { IExportRepository } from 'src/domain/contracts/IExportRepository';
+import {
+  ExportExecutionReportResponse,
+  ExportCompletedWorksResponse,
+  ExportExecutionCapacityResponse,
+  ExportFinedWorkResponse,
+  ExportForecastResponse,
+  ExportOrdersResponse,
+  ExportRejectionsResponse,
+  ExportSchedulesResponse,
+  ExportSuspensionsRemovedResponse,
+  ExportSuspensionsResponse,
+  ExportWorksInPortfolioResponse,
+} from 'src/domain/types';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
+
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class ExportRepository implements IExportRepository {
   constructor(private prisma: PrismaService) {}
 
-  async exportWorksInPortfolio(): Promise<any> {
+  async exportWorksInPortfolio(): Promise<ExportWorksInPortfolioResponse[]> {
     return await this.prisma.exportacao_obras_carteira.findMany();
   }
 
-  async exportCompletedWorks(): Promise<any> {
+  async exportCompletedWorks(): Promise<ExportCompletedWorksResponse[]> {
     return await this.prisma.exportacao_obras_executadas.findMany();
   }
 
-  async exportSchedules(): Promise<any> {
+  async exportSchedules(): Promise<ExportSchedulesResponse[]> {
     return await this.prisma.exportacao_programacoes_obras.findMany();
   }
 
-  async exportExecutionCapacity(): Promise<any> {
+  async exportExecutionCapacity(): Promise<ExportExecutionCapacityResponse[]> {
     return await this.prisma.exportacao_capacidade_execucao.findMany();
   }
 
-  async exportForecast(): Promise<any> {
+  async exportForecast(): Promise<ExportForecastResponse[]> {
     return await this.prisma.exportacao_forecast.findMany();
   }
 
-  async exportRejections(): Promise<any> {
+  async exportRejections(): Promise<ExportRejectionsResponse[]> {
     return await this.prisma.programacoes_reprovacoes.findMany({
       select: {
         obras: { select: { ovnota: true } },
@@ -46,7 +60,7 @@ export class ExportRepository implements IExportRepository {
     });
   }
 
-  async exportSuspensions(): Promise<any> {
+  async exportSuspensions(): Promise<ExportSuspensionsResponse[]> {
     return await this.prisma.suspensoes.findMany({
       select: {
         obras: {
@@ -69,7 +83,9 @@ export class ExportRepository implements IExportRepository {
     });
   }
 
-  async exportSuspensionsRemoved(): Promise<any> {
+  async exportSuspensionsRemoved(): Promise<
+    ExportSuspensionsRemovedResponse[]
+  > {
     return await this.prisma.suspensoes_retiradas.findMany({
       select: {
         obras: {
@@ -91,7 +107,10 @@ export class ExportRepository implements IExportRepository {
     });
   }
 
-  async exportFinedWorks(startDate: Date, endDate: Date): Promise<any> {
+  async exportFinedWorks(
+    startDate: Date,
+    endDate: Date,
+  ): Promise<ExportFinedWorkResponse[]> {
     return await this.prisma.programacoes.findMany({
       where: {
         nome_responsavel_execucao: 'PARCEIRA',
@@ -126,7 +145,7 @@ export class ExportRepository implements IExportRepository {
     });
   }
 
-  async exportExecutionReport(): Promise<any> {
+  async exportExecutionReport(): Promise<ExportExecutionReportResponse[]> {
     return await this.prisma.relatorio_execucao.findMany({
       select: {
         id: true,
@@ -188,7 +207,7 @@ export class ExportRepository implements IExportRepository {
     });
   }
 
-  async exportOrders(): Promise<any> {
+  async exportOrders(): Promise<ExportOrdersResponse[]> {
     return await this.prisma.exportacao_ordens.findMany();
   }
 }

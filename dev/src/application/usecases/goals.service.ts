@@ -1,7 +1,7 @@
 import {
   GOALS_REPOSITORY,
   IGoalsRepository,
-} from 'src/domain/repositories/IGoalsRepository';
+} from 'src/domain/contracts/IGoalsRepository';
 import { GoalsDTO } from 'src/interface/dtos/goalsDto';
 import { Goals } from 'src/interface/types/goalsInterface';
 

@@ -9,12 +9,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import {
   FEASIBILITY_REPOSITORY,
   IFeasibilityRepository,
-} from 'src/domain/repositories/IFeasibilityRepository';
+} from 'src/domain/contracts/IFeasibilityRepository';
 import { HandleFeasibilityService } from 'src/application/usecases/orchestrators/handleFeasibilityUpload.service';
 import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
-} from 'src/domain/repositories/IStatusFlowRepository';
+} from 'src/domain/contracts/IStatusFlowRepository';
 import moment from 'moment';
 
 describe('HandleFeasibilityService', () => {

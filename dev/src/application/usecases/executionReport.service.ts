@@ -2,11 +2,11 @@ import { ExecutionReport } from 'src/domain/entities/executionReport.entity';
 import {
   EXECUTION_REPORT_REPOSITORY,
   IExecutionReportRepository,
-} from 'src/domain/repositories/IExecutionReportRepository';
+} from 'src/domain/contracts/IExecutionReportRepository';
 import {
   FIND_SCHEDULE_BY_ID_REPOSITORY,
   IFindScheduleByIdRepository,
-} from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
+} from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
 // import { ExecutionReportDataDTO } from 'src/interface/dtos/executionReportDTO';
 import { ExecutionReportServiceInterface } from 'src/interface/types/executionReportInterface';
 

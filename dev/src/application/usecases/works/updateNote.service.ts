@@ -2,11 +2,11 @@ import { NoteWorks } from 'src/domain/entities/works.entity';
 import {
   IInsertWorksRepository,
   INSERT_WORKS_REPOSITORY,
-} from 'src/domain/repositories/works/IInsertWorksRepository';
+} from 'src/domain/contracts/works/IInsertWorksRepository';
 import {
   IUpdateNoteRepository,
   UPDATE_NOTE_REPOSITORY,
-} from 'src/domain/repositories/works/IUpdateNoteRepository';
+} from 'src/domain/contracts/works/IUpdateNoteRepository';
 import { UpdateNotesDTO } from 'src/interface/dtos/worksDto';
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';

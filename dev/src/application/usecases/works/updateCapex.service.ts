@@ -4,11 +4,11 @@ import { AppLogger } from 'src/core/logger/logger.service';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
-} from 'src/domain/repositories/IAuxiliaryBaseRepository';
+} from 'src/domain/contracts/IAuxiliaryBaseRepository';
 import {
   IUpdateCapexRepository,
   UPDATE_CAPEX_REPOSITORY,
-} from 'src/domain/repositories/works/IUpdateCapexRepository';
+} from 'src/domain/contracts/works/IUpdateCapexRepository';
 import { GetAuxiliaryBaseMaterialsInterface } from 'src/interface/types/works/capexInterface';
 
 export interface CalculatedValue {

@@ -1,7 +1,7 @@
 import {
   GET_SCHEDULE_VALUES_REPOSITORY,
   IGetScheduleValuesRepository,
-} from 'src/domain/repositories/schedule/IGetScheduleValuesRepository';
+} from 'src/domain/contracts/schedule/IGetScheduleValuesRepository';
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
 

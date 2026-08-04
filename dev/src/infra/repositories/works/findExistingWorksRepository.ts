@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   filtersOrders,
   IFindExistingWorksRepository,
-} from 'src/domain/repositories/works/IFindExistingWorksRepository';
+} from 'src/domain/contracts/works/IFindExistingWorksRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 @Injectable()

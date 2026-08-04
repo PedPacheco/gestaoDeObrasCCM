@@ -3,7 +3,7 @@ import {
   filtersOrders,
   FIND_EXISITING_WORKS_REPOSITORY,
   IFindExistingWorksRepository,
-} from 'src/domain/repositories/works/IFindExistingWorksRepository';
+} from 'src/domain/contracts/works/IFindExistingWorksRepository';
 
 @Injectable()
 export class FindExistingWorksService {

@@ -1,13 +1,16 @@
+import { AppLogger } from 'src/core/logger/logger.service';
+import { IAuxiliaryBaseRepository } from 'src/domain/contracts/IAuxiliaryBaseRepository';
 import { MarketWork } from 'src/domain/entities/works.entity';
-import { IAuxiliaryBaseRepository } from 'src/domain/repositories/IAuxiliaryBaseRepository';
+import {
+  GetAuxiliaryBaseMaterialsResponse,
+  GetAuxiliaryBaseNotesResponse,
+} from 'src/domain/types';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { InsertBaseAuxiliaryMarketDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
+import { InsertNotesInterface } from 'src/interface/types/baseAuxiliaryInterface';
 
 import { Injectable } from '@nestjs/common';
-import { GetAuxiliaryBaseMaterialsInterface } from 'src/interface/types/works/capexInterface';
-import { InsertNotesInterface } from 'src/interface/types/baseAuxiliaryInterface';
 import { Prisma } from '@prisma/client';
-import { AppLogger } from 'src/core/logger/logger.service';
 
 @Injectable()
 export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
@@ -73,7 +76,9 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
 
   // ─── Métodos existentes (inalterados) ─────────────────────────────────────
 
-  async getAuxiliaryBaseNotes(idRegional?: number): Promise<any[]> {
+  async getAuxiliaryBaseNotes(
+    idRegional?: number,
+  ): Promise<GetAuxiliaryBaseNotesResponse[]> {
     return await this.prisma.base_auxiliar.findMany({
       where: { municipios: { id_regional: idRegional || undefined } },
       select: {
@@ -150,9 +155,9 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     );
   }
 
-  async getAuxiliaryBaseCN52N(): Promise<GetAuxiliaryBaseMaterialsInterface[]> {
+  async getAuxiliaryBaseCN52N(): Promise<GetAuxiliaryBaseMaterialsResponse[]> {
     const result = await this.prisma.$queryRawUnsafe<
-      GetAuxiliaryBaseMaterialsInterface[]
+      GetAuxiliaryBaseMaterialsResponse[]
     >(`
       SELECT 
         id_obra,
@@ -303,7 +308,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     });
   }
 
-  async insertNotes(data: InsertNotesInterface[]): Promise<any> {
+  async insertNotes(data: InsertNotesInterface[]): Promise<void> {
     const rows = data.map(
       (item) => Prisma.sql`
         ROW(
@@ -325,8 +330,6 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     const query = Prisma.sql`SELECT construcao_sp.insert_base_auxiliar_bulk(ARRAY[${Prisma.join(rows)}]::construcao_sp.base_auxiliar_input[])`;
 
     await this.prisma.$executeRaw(query);
-
-    return { message: 'Dados inseridos com sucesso' };
   }
 
   /**

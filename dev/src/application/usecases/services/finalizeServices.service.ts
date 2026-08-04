@@ -1,7 +1,7 @@
 import {
   IWorkServicesExecutionRepository,
   WORK_SERVICES_EXECUTION_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
+} from 'src/domain/contracts/worksService/IWorkServicesExecutionRepository';
 import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
 
 import { Inject, Injectable } from '@nestjs/common';

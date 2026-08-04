@@ -1,7 +1,7 @@
 import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
 import { ExportExecutionCapacityService } from 'src/application/usecases/export/exportExecutionCapacity.service';
-import { EXPORT_REPOSITORY } from 'src/domain/repositories/IExportRepository';
+import { EXPORT_REPOSITORY } from 'src/domain/contracts/IExportRepository';
 
 import { Test, TestingModule } from '@nestjs/testing';
 

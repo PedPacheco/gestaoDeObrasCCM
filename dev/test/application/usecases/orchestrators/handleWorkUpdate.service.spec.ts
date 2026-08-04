@@ -2,7 +2,7 @@ import { HandleWorkUpdateService } from 'src/application/usecases/orchestrators/
 import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
 import { SuspensionWorkService } from 'src/application/usecases/works/suspensionWork.service';
 import { UpdateWorkService } from 'src/application/usecases/works/updateWork.service';
-import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
+import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { UpdateWorkDTO } from 'src/interface/dtos/worksDto';
 

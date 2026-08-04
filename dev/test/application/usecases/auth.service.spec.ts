@@ -2,7 +2,7 @@ import { compare, genSalt, hash } from 'bcrypt';
 import { AuthService } from 'src/application/usecases/auth.service';
 import { UsersService } from 'src/application/usecases/users.service';
 import { TipoUsuario, User } from 'src/domain/entities/user.entity';
-import { AUTH_REPOSITORY } from 'src/domain/repositories/IAuthRepository';
+import { AUTH_REPOSITORY } from 'src/domain/contracts/IAuthRepository';
 import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
 import { generateRandomPassword } from 'src/utils/generatePassword';
 

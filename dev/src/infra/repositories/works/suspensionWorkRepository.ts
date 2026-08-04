@@ -1,5 +1,5 @@
 import { SuspensionWorkRequestInterface } from 'src/interface/types/works/suspensionInterface';
-import { ISuspensionWorkRepository } from './../../../domain/repositories/works/ISuspensionWorkRepository';
+import { ISuspensionWorkRepository } from '../../../domain/contracts/works/ISuspensionWorkRepository';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 

@@ -1,7 +1,7 @@
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
-} from 'src/domain/repositories/IAuxiliaryBaseRepository';
+} from 'src/domain/contracts/IAuxiliaryBaseRepository';
 import { InsertBaseAuxiliaryMarketDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
 import { OperationType } from 'src/interface/types/baseAuxiliaryInterface';
 

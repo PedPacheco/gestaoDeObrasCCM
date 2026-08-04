@@ -1,4 +1,4 @@
-import { IEntryRepository } from 'src/domain/repositories/IEntryRepository';
+import { IEntryRepository } from 'src/domain/contracts/IEntryRepository';
 import {
   GetEntryOfWorksByDayDTO,
   GetEntryOfWorksDTO,

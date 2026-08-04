@@ -2,7 +2,7 @@ import { MarketWork } from 'src/domain/entities/works.entity';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
-} from 'src/domain/repositories/IAuxiliaryBaseRepository';
+} from 'src/domain/contracts/IAuxiliaryBaseRepository';
 import {
   InsertBaseAuxiliaryMarketDTO,
   NotesDTO,

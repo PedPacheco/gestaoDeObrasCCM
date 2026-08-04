@@ -2,18 +2,18 @@ import { Schedule } from 'src/domain/entities/schedule.entity';
 import {
   IUpdateSchedulesRepository,
   UPDATE_SCHEDULES_REPOSITORY,
-} from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
+} from 'src/domain/contracts/schedule/IUpdateSchedulesRepository';
 import { UpdateSchedulesInterface } from 'src/interface/types/schedule/updateSchedulesInterface';
 import { parseTimeToDate } from 'src/utils/parseTimeToDate';
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
 import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
 import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
-} from 'src/domain/repositories/IStatusFlowRepository';
+} from 'src/domain/contracts/IStatusFlowRepository';
 import { ScheduleExecutionValidatorService } from './scheduleExecutionValidator.service';
 
 @Injectable()

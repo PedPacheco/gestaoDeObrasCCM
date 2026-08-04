@@ -1,7 +1,7 @@
 import {
   ERRORS_REPORT_REPOSITORY,
   IErrorsReportRepository,
-} from 'src/domain/repositories/IErrorsReportRepository';
+} from 'src/domain/contracts/IErrorsReportRepository';
 
 import { Inject, Injectable } from '@nestjs/common';
 

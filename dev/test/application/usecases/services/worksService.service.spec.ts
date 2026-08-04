@@ -1,12 +1,12 @@
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
-import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
-import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
+import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
 import {
   IWorkServicesRepository,
   WORK_SERVICES_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesRepository';
+} from 'src/domain/contracts/worksService/IWorkServicesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import { ScheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';

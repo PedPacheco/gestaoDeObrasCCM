@@ -4,7 +4,7 @@ import { AuxiliaryMarketInsertService } from 'src/application/usecases/auxiliary
 import { AuxiliaryNotesInsertService } from 'src/application/usecases/auxiliaryBase/auxiliaryBaseInsertNotes.service';
 import { CapexFullPipelineService } from 'src/application/usecases/auxiliaryBase/capex/capexFullPipeline.service';
 import { CapexProcessingService } from 'src/application/usecases/auxiliaryBase/capex/capexProcessing.service';
-import { AUXILIARY_BASE_REPOSITORY } from 'src/domain/repositories/IAuxiliaryBaseRepository';
+import { AUXILIARY_BASE_REPOSITORY } from 'src/domain/contracts/IAuxiliaryBaseRepository';
 import { AuxiliaryBaseRepository } from 'src/infra/repositories/auxiliaryBaseRepository';
 import { AuxiliaryBaseController } from '../controllers/auxiliaryBase.controller';
 import { CapexGatewayModule } from './capex-gateway.module';

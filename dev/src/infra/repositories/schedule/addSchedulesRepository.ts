@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IAddSchedulesRepository } from 'src/domain/repositories/schedule/IAddSchedulesRepository';
+import { IAddSchedulesRepository } from 'src/domain/contracts/schedule/IAddSchedulesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 @Injectable()

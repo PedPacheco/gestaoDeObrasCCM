@@ -3,7 +3,7 @@ import * as ExcelJS from 'exceljs';
 import moment from 'moment';
 import { Response } from 'express';
 import { ExportFinedWorksService } from 'src/application/usecases/export/exportFinedWorks.service';
-import { IExportRepository } from 'src/domain/repositories/IExportRepository';
+import { IExportRepository } from 'src/domain/contracts/IExportRepository';
 
 jest.mock('exceljs', () => {
   const addRowsMock = jest.fn();

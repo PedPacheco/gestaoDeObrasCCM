@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IWorkServicesRepository } from 'src/domain/repositories/worksService/IWorkServicesRepository';
+import { IWorkServicesRepository } from 'src/domain/contracts/worksService/IWorkServicesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {
   AddServicesDTO,

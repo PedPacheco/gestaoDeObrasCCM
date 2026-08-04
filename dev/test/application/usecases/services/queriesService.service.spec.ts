@@ -3,7 +3,7 @@ import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDet
 import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+} from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
 import {
   GetSelectedServicesParamsInterface,
   GetServicesByWorkIdResponse,

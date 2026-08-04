@@ -3,8 +3,8 @@ import { Prisma } from '@prisma/client';
 import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
-} from 'src/domain/repositories/IStatusFlowRepository';
-import { returnExecution } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
+} from 'src/domain/contracts/IStatusFlowRepository';
+import { returnExecution } from 'src/domain/contracts/schedule/IUpdateSchedulesRepository';
 
 interface ScheduleExecutionValidatorInterface {
   id: number;

@@ -1,6 +1,6 @@
 import { FeasibilityService } from 'src/application/usecases/feasibility.service';
 import { FileService } from 'src/application/usecases/file.service';
-import { FEASIBILITY_REPOSITORY } from 'src/domain/repositories/IFeasibilityRepository';
+import { FEASIBILITY_REPOSITORY } from 'src/domain/contracts/IFeasibilityRepository';
 import { FeasibilityRepository } from 'src/infra/repositories/feasibilityRepository';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
 
@@ -10,7 +10,7 @@ import { MulterModule } from '@nestjs/platform-express';
 
 import { FeasibilityController } from '../controllers/feasibility.controller';
 import { HandleFeasibilityService } from 'src/application/usecases/orchestrators/handleFeasibilityUpload.service';
-import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
+import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
 import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepository';
 
 @Module({

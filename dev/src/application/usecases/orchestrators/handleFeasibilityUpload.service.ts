@@ -1,7 +1,7 @@
 import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
-} from 'src/domain/repositories/IStatusFlowRepository';
+} from 'src/domain/contracts/IStatusFlowRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import {
@@ -16,7 +16,7 @@ import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
 import {
   FEASIBILITY_REPOSITORY,
   IFeasibilityRepository,
-} from 'src/domain/repositories/IFeasibilityRepository';
+} from 'src/domain/contracts/IFeasibilityRepository';
 import { StatusFeasibility } from '../feasibility.service';
 import { countBusinessDays } from 'src/utils/parseTimeToDate';
 import { FileService } from '../file.service';

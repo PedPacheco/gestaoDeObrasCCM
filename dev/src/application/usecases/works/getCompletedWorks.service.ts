@@ -1,7 +1,7 @@
 import {
   GET_COMPLETED_WORKS_REPOSITORY,
   IGetCompletedWorksRepository,
-} from 'src/domain/repositories/works/IGetCompletedWorksRepository';
+} from 'src/domain/contracts/works/IGetCompletedWorksRepository';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 import {
   totalsWorksInPortfolio,

@@ -6,11 +6,11 @@ import {
 import {
   EXECUTION_CAPACITY_REPOSITORY,
   IExecutionCapacityRepository,
-} from 'src/domain/repositories/IExecutionCapacityRepository';
+} from 'src/domain/contracts/IExecutionCapacityRepository';
 import {
   GET_MONTHLY_SUMMARY_REPOSITORY,
   IGetMonthlySummaryRepository,
-} from 'src/domain/repositories/schedule/IGetMonthlySummaryRepository';
+} from 'src/domain/contracts/schedule/IGetMonthlySummaryRepository';
 import {
   IMonthlySummaryCalculator,
   MONTHLY_SUMMARY_CALCULATOR,

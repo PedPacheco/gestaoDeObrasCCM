@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { IValidateConfirmAndRejectSchedulesRepository } from 'src/domain/repositories/schedule/IValidateSchedulesRepository';
+import { IValidateConfirmAndRejectSchedulesRepository } from 'src/domain/contracts/schedule/IValidateSchedulesRepository';
 import {
   ConfirmSchedulesDTO,
   ValidateSchedulesDTO,

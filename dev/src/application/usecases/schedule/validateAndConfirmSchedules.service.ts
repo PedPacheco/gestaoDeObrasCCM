@@ -1,12 +1,12 @@
 import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
-} from 'src/domain/repositories/IStatusFlowRepository';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
+} from 'src/domain/contracts/IStatusFlowRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
 import {
   IValidateConfirmAndRejectSchedulesRepository,
   VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY,
-} from 'src/domain/repositories/schedule/IValidateSchedulesRepository';
+} from 'src/domain/contracts/schedule/IValidateSchedulesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
 import {

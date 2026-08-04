@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   EQUIPMENT_REPOSITORY,
   IEquipmentRepository,
-} from 'src/domain/repositories/IEquipmentRepository';
+} from 'src/domain/contracts/repositories/IEquipmentRepository';
 import { GetEquipmentDTO } from 'src/interface/dtos/equipmentsDTO';
 
 @Injectable()

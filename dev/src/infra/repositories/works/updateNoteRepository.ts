@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { NoteWorks } from 'src/domain/entities/works.entity';
-import { IUpdateNoteRepository } from 'src/domain/repositories/works/IUpdateNoteRepository';
+import { IUpdateNoteRepository } from 'src/domain/contracts/works/IUpdateNoteRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 @Injectable()

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AdvancePartnerService } from 'src/application/usecases/advancePartner.service';
-import { ADVANCE_PARTNER_REPOSITORY } from 'src/domain/repositories/IAdvancePartnerRepository';
+import { ADVANCE_PARTNER_REPOSITORY } from 'src/domain/contracts/IAdvancePartnerRepository';
 
 describe('AdvancePartnerService', () => {
   let service: AdvancePartnerService;

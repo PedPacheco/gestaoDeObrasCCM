@@ -8,7 +8,7 @@ import {
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
-} from 'src/domain/repositories/IAuxiliaryBaseRepository';
+} from 'src/domain/contracts/IAuxiliaryBaseRepository';
 
 import { Inject, Injectable } from '@nestjs/common';
 import { AppLogger } from 'src/core/logger/logger.service';

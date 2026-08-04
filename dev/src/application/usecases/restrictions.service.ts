@@ -5,7 +5,7 @@ import {
   IRestrictionsRepository,
   ProcessedRestrictionsFilters,
   RESTRICTIONS_REPOSITORY,
-} from 'src/domain/repositories/IRestrictionsRepository';
+} from 'src/domain/contracts/IRestrictionsRepository';
 import {
   GetRestrictionsDTO,
   InsertPublicationRestrictionsDTO,

@@ -3,7 +3,7 @@ import { User } from 'src/domain/entities/user.entity';
 import {
   AUTH_REPOSITORY,
   IAuthRepository,
-} from 'src/domain/repositories/IAuthRepository';
+} from 'src/domain/contracts/IAuthRepository';
 import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
 import { loginInterfaceService } from 'src/interface/types/userInterface';
 

@@ -1,7 +1,7 @@
 import {
   GET_TOTAL_SCHEDULE_VALUES_REPOSITORY,
   IGetTotalScheduleValuesRepository,
-} from 'src/domain/repositories/schedule/IGetTotalValuesScheduleRepository';
+} from 'src/domain/contracts/schedule/IGetTotalValuesScheduleRepository';
 import { GetTotalValuesScheduleDTO } from 'src/interface/dtos/scheduleDTO';
 
 import { Inject, Injectable } from '@nestjs/common';

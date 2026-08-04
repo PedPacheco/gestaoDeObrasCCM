@@ -2,11 +2,11 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   IUpdateSchedulesRepository,
   UPDATE_SCHEDULES_REPOSITORY,
-} from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
+} from 'src/domain/contracts/schedule/IUpdateSchedulesRepository';
 import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+} from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { FinalizeServicesService } from '../services/finalizeServices.service';
 import { ExecutionReportService } from '../executionReport.service';

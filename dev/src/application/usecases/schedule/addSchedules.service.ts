@@ -4,7 +4,7 @@ import { Schedule } from 'src/domain/entities/schedule.entity';
 import {
   ADD_SCHEDULES_REPOSITORY,
   IAddSchedulesRepository,
-} from 'src/domain/repositories/schedule/IAddSchedulesRepository';
+} from 'src/domain/contracts/schedule/IAddSchedulesRepository';
 import { SchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
 import { parseTimeToDate } from 'src/utils/parseTimeToDate';
 

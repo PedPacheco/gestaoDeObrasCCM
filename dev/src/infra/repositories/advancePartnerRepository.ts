@@ -1,7 +1,7 @@
 import {
   IAdvancePartnerRepository,
   ProcessedEliminacaoFilters,
-} from 'src/domain/repositories/IAdvancePartnerRepository';
+} from 'src/domain/contracts/IAdvancePartnerRepository';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { Injectable } from '@nestjs/common';

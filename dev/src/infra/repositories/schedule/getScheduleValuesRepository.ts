@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { IGetScheduleValuesRepository } from 'src/domain/repositories/schedule/IGetScheduleValuesRepository';
+import { IGetScheduleValuesRepository } from 'src/domain/contracts/schedule/IGetScheduleValuesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 import {

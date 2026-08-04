@@ -4,7 +4,7 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import {
   IUpdateWorkRepository,
   UPDATE_WORK_REPOSITORY,
-} from 'src/domain/repositories/works/IUpdateWorkRepository';
+} from 'src/domain/contracts/works/IUpdateWorkRepository';
 import { Prisma } from '@prisma/client';
 
 @Injectable()

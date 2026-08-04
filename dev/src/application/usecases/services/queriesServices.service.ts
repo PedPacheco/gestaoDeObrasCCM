@@ -5,7 +5,7 @@ import { GetWorkDetailsService } from '../works/getWorkDetails.service';
 import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+} from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
 
 @Injectable()
 export class QueriesServicesService {

@@ -5,7 +5,7 @@ import { GetExecMonitoringDTO } from 'src/interface/dtos/scheduleDTO';
 import {
   ExecMonitoringRow,
   IExecMonitoringRepository,
-} from 'src/domain/repositories/schedule/IExecMonitoringRepository';
+} from 'src/domain/contracts/schedule/IExecMonitoringRepository';
 
 import { Injectable } from '@nestjs/common';
 

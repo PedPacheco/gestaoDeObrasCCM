@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IWorkServicesQueryRepository } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import { IWorkServicesQueryRepository } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
 
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 

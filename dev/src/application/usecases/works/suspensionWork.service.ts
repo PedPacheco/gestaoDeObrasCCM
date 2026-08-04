@@ -3,7 +3,7 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import {
   ISuspensionWorkRepository,
   SUSPENSION_WORK_REPOSITORY,
-} from 'src/domain/repositories/works/ISuspensionWorkRepository';
+} from 'src/domain/contracts/works/ISuspensionWorkRepository';
 import { SuspensionWorksDTO } from 'src/interface/dtos/worksDto';
 import { FindExistingWorksService } from './findExistingWorks.service';
 

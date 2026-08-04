@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   IRejectionOfSchedulesRepository,
   REJECTION_OF_SCHEDULES_REPOSITORY,
-} from 'src/domain/repositories/schedule/IRejectionsOfSchedules';
+} from 'src/domain/contracts/schedule/IRejectionsOfSchedules';
 
 @Injectable()
 export class RejectionsOfSchedulesService {

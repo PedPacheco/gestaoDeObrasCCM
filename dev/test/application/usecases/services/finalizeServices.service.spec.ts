@@ -1,9 +1,9 @@
 import { ExecutionReportService } from 'src/application/usecases/executionReport.service';
 import { ScheduleExecutionValidatorService } from 'src/application/usecases/schedule/scheduleExecutionValidator.service';
 import { FinalizeServicesService } from 'src/application/usecases/services/finalizeServices.service';
-import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
-import { WORK_SERVICES_EXECUTION_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
-import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/contracts/schedule/IUpdateSchedulesRepository';
+import { WORK_SERVICES_EXECUTION_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesExecutionRepository';
+import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import { Test, TestingModule } from '@nestjs/testing';

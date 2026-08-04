@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { IDeleteSchedulesRepository } from 'src/domain/repositories/schedule/IDeleteSchedulesRepository';
+import { IDeleteSchedulesRepository } from 'src/domain/contracts/schedule/IDeleteSchedulesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 @Injectable()

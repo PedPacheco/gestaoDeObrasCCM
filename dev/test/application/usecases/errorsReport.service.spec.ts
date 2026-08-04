@@ -2,7 +2,7 @@ import { ErrorsReportService } from 'src/application/usecases/errorsReport.servi
 import {
   ERRORS_REPORT_REPOSITORY,
   IErrorsReportRepository,
-} from 'src/domain/repositories/IErrorsReportRepository';
+} from 'src/domain/contracts/IErrorsReportRepository';
 
 import { Test, TestingModule } from '@nestjs/testing';
 

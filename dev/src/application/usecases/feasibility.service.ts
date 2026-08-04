@@ -1,7 +1,7 @@
 import {
   FEASIBILITY_REPOSITORY,
   IFeasibilityRepository,
-} from 'src/domain/repositories/IFeasibilityRepository';
+} from 'src/domain/contracts/IFeasibilityRepository';
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 

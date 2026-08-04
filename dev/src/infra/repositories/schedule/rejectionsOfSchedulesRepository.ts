@@ -2,7 +2,7 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import { Injectable } from '@nestjs/common';
 
-import { IRejectionOfSchedulesRepository } from 'src/domain/repositories/schedule/IRejectionsOfSchedules';
+import { IRejectionOfSchedulesRepository } from 'src/domain/contracts/schedule/IRejectionsOfSchedules';
 
 @Injectable()
 export class RejectionsOfSchedulesRepository implements IRejectionOfSchedulesRepository {

@@ -1,17 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { IExecutionCapacityRepository } from 'src/domain/repositories/IExecutionCapacityRepository';
+import { IExecutionCapacityRepository } from 'src/domain/contracts/IExecutionCapacityRepository';
 import { PrismaService } from '../prisma/prisma.service';
 
 import {
   ExecutionCapacityDTO,
   UpdateExecutionCapacityDTO,
 } from 'src/interface/dtos/executionCapacityDTO';
+import { GetFinancialValuesResponse, GetResponse } from 'src/domain/types';
 
 @Injectable()
 export class ExecutionCapacityRepository implements IExecutionCapacityRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async get(filters: ExecutionCapacityDTO): Promise<any> {
+  async get(filters: ExecutionCapacityDTO): Promise<GetResponse[]> {
     const { ano, equipe, idParceira, idRegional } = filters;
 
     return await this.prisma.capacidade_execucao.findMany({
@@ -56,7 +57,9 @@ export class ExecutionCapacityRepository implements IExecutionCapacityRepository
     });
   }
 
-  async getFinancialValue(filters: ExecutionCapacityDTO): Promise<any[]> {
+  async getFinancialValue(
+    filters: ExecutionCapacityDTO,
+  ): Promise<GetFinancialValuesResponse[]> {
     const { ano, equipe, idParceira, idRegional } = filters;
 
     return await this.prisma.capacidade_execucao.findMany({

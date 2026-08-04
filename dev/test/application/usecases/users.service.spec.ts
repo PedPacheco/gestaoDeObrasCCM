@@ -1,7 +1,7 @@
 import { genSalt, hash } from 'bcrypt';
 import { UsersService } from 'src/application/usecases/users.service';
 import { User } from 'src/domain/entities/user.entity';
-import { USER_REPOSITORY } from 'src/domain/repositories/IUserRepository';
+import { USER_REPOSITORY } from 'src/domain/contracts/IUserRepository';
 
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';

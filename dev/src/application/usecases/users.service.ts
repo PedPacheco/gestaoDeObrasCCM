@@ -3,7 +3,7 @@ import { TipoUsuario, User } from 'src/domain/entities/user.entity';
 import {
   IUserRepository,
   USER_REPOSITORY,
-} from 'src/domain/repositories/IUserRepository';
+} from 'src/domain/contracts/IUserRepository';
 
 import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';

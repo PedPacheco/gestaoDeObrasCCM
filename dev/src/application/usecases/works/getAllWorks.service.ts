@@ -1,7 +1,7 @@
 import {
   GET_ALL_WORKS_REPOSITORY,
   IGetAllWorksRepository,
-} from 'src/domain/repositories/works/IGetAllWorksRepository';
+} from 'src/domain/contracts/works/IGetAllWorksRepository';
 import { GetAllWorksDTO } from 'src/interface/dtos/worksDto';
 import { getALlWorksResponseService } from 'src/interface/types/works/getAllWorks';
 
