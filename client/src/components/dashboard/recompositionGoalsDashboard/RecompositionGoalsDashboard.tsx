@@ -32,10 +32,10 @@ import {
 } from "@/types/dashboard/recompositionGoals/goals";
 import { Transform } from "@/utils/transform";
 
+import { ChartsSection } from "./ChartSection";
 import { GoalsFilters } from "./GoalsFilters";
 import { GoalsTable } from "./GoalsTable";
 import { KpiSection } from "./KpiSection";
-import { ChartsSection } from "./ChartSection";
 
 interface Props {
   initialGoals: Goal[];
@@ -129,9 +129,11 @@ export default function RecompositionGoalsDashboard({
 
   const [year, setYear] = useState<Dayjs>(dayjs());
   const [anoPlan, setAnoPlan] = useState<Dayjs>(dayjs());
+
   const [selectedStartMonth, setSelectedStartMonth] = useState<number>(0);
   const [selectedEndMonth, setSelectedEndMonth] =
     useState<number>(currentMonth);
+
   const [selectedRegionais, setSelectedRegionais] = useState<string[]>(
     () => filters?.regional ?? [],
   );
@@ -141,6 +143,7 @@ export default function RecompositionGoalsDashboard({
   const [selectedTiposObra, setSelectedTiposObra] = useState<string[]>(
     () => filters?.tipo ?? [],
   );
+
   const [isPending, startTransition] = useTransition();
 
   const metrics = useDashboardMetrics(
