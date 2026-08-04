@@ -21,7 +21,10 @@ export async function fetchGapAnalysisAudits() {
     const res = await result.json();
 
     if (!result.ok) {
-      return { success: false, error: res.message || "Erro ao buscar auditorias" };
+      return {
+        success: false,
+        error: res.message || "Erro ao buscar auditorias",
+      };
     }
 
     return { success: true, data: res.data };
@@ -30,7 +33,7 @@ export async function fetchGapAnalysisAudits() {
   }
 }
 
-export async function createGapAnalysisAudit(data: { parceira: string }) {
+export async function createGapAnalysisAudit(data: { id_parceira: number }) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
@@ -47,7 +50,10 @@ export async function createGapAnalysisAudit(data: { parceira: string }) {
     const res = await result.json();
 
     if (!result.ok) {
-      return { success: false, error: res.message || "Erro ao criar auditoria" };
+      return {
+        success: false,
+        error: res.message || "Erro ao criar auditoria",
+      };
     }
 
     return { success: true, data: res.data };
@@ -76,7 +82,10 @@ export async function updateGapAnalysisAudit(
     const res = await result.json();
 
     if (!result.ok) {
-      return { success: false, error: res.message || "Erro ao atualizar auditoria" };
+      return {
+        success: false,
+        error: res.message || "Erro ao atualizar auditoria",
+      };
     }
 
     return { success: true, data: res.data };
@@ -101,7 +110,10 @@ export async function deleteGapAnalysisAudit(id: number) {
     const res = await result.json();
 
     if (!result.ok) {
-      return { success: false, error: res.message || "Erro ao excluir auditoria" };
+      return {
+        success: false,
+        error: res.message || "Erro ao excluir auditoria",
+      };
     }
 
     return { success: true, data: res.data };

@@ -23,6 +23,7 @@ export function ButtonComponent({
         lineHeight: { xs: "1rem", xl: "1.5rem" },
         color: "#E4E4E7",
         backgroundColor: "#212E3E",
+        transition: "color 0.2s ease, background-color 0.2s ease",
         "&:hover": {
           color: "#53FF75",
           backgroundColor: "#394658",

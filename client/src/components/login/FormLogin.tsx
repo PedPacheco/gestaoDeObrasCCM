@@ -10,6 +10,7 @@ import { useUser } from "@/contexts/userContext";
 import { useFeedback } from "@/hooks/useFeedback";
 import { userLoginSchema } from "@/validations/validationUserLogin";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ButtonComponent } from "../common/Button";
 
 type UserLoginSchema = z.infer<typeof userLoginSchema>;
 
@@ -53,7 +54,7 @@ export function FormLogin() {
         </label>
         <input
           type="text"
-          placeholder="seu.usuario"
+          placeholder="Seu usuário"
           {...register("user")}
           className={`w-full px-4 py-3.5 rounded-lg border text-base text-slate-800 outline-none transition-colors placeholder:text-slate-400
             ${errors.user ? "border-red-400 focus:border-red-500" : "border-slate-300 focus:border-emerald-500"}`}
@@ -89,6 +90,7 @@ export function FormLogin() {
           />
           <span className="text-sm text-slate-600">Exibir senha</span>
         </label>
+
         <Link
           href="/login/forget-password"
           className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
@@ -96,6 +98,8 @@ export function FormLogin() {
           Esqueceu a senha?
         </Link>
       </div>
+
+      <ButtonComponent text="ENTRAR" type="submit" />
     </form>
   );
 }

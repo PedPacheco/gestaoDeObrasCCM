@@ -1,6 +1,8 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 
+import { LoadingComponent } from "@/components/common/Loading";
+import ConfirmationScheduleModalComponent from "@/components/common/confirmationScheduleModal";
 import {
   Button,
   Paper,
@@ -11,8 +13,6 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import { LoadingComponent } from "@/components/common/Loading";
-import ConfirmationScheduleModalComponent from "@/components/common/confirmationScheduleModal";
 
 dayjs.extend(utc);
 
@@ -54,8 +54,6 @@ export function ScheduleHistory({
   const formatDate = (dateString: string) => {
     return dayjs(dateString).utc().format("DD/MM/YYYY");
   };
-
-  console.log(scheduledServicesHistory);
 
   return (
     <div className="bg-white shadow rounded-xl p-4 sm:p-6 min-h-[480px]">

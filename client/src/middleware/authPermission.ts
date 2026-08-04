@@ -1,12 +1,20 @@
-import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
+import { NextRequest, NextResponse } from "next/server";
 
 const secret = new TextEncoder().encode(
   process.env.JWT_SECRET || "your_jwt_secret",
 );
 
 export async function authMiddleware(request: NextRequest) {
-  if (request.nextUrl.pathname.startsWith("/_next")) {
+  const { pathname } = request.nextUrl;
+
+  // Rotas públicas — não exigem autenticação
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api/login") ||
+    pathname === "/login" ||
+    /\.(.*)$/.test(pathname)
+  ) {
     return NextResponse.next();
   }
 
@@ -28,5 +36,7 @@ export async function authMiddleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!login|login/.*).*)"],
+  matcher: [
+    "/((?!login|login/.*|api/login|_next/static|_next/image|favicon\\.ico|.*\\.png$|.*\\.jpg$|.*\\.jpeg$|.*\\.svg$|.*\\.gif$|.*\\.webp$|.*\\.ico$).*)",
+  ],
 };

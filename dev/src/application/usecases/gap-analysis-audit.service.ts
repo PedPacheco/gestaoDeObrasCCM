@@ -1,18 +1,18 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { gap_analysis_audits } from '@prisma/client';
+import { gap_analysis } from '@prisma/client';
 
 import {
-  CreateGapAnalysisAuditData,
   GAP_ANALYSIS_AUDIT_REPOSITORY,
+  GapAnalysisAuditData,
   IGapAnalysisAuditRepository,
-  UpdateGapAnalysisAuditData,
 } from 'src/domain/repositories/IGapAnalysisAuditRepository';
 
-export interface AuditWithComputed extends gap_analysis_audits {
+export interface AuditWithComputed extends gap_analysis {
+  parceira: string;
   data_gap: string;
-  score_final: string;
-  evolucao: string;
-  itens_pendentes_no_prazo: string;
+  score_final: number;
+  evolucao: number;
+  itens_pendentes_no_prazo: number;
 }
 
 @Injectable()
@@ -22,36 +22,34 @@ export class GapAnalysisAuditService {
     private readonly repo: IGapAnalysisAuditRepository,
   ) {}
 
-  private computeFields(audit: gap_analysis_audits): AuditWithComputed {
+  private computeFields(audit: any): AuditWithComputed {
     let dataGap = '';
+
     if (audit.data_fim) {
-      const parts = audit.data_fim.split('-');
-      if (parts.length >= 2) {
-        dataGap = `${parts[1]}/${parts[0]}`;
-      }
+      const month = String(audit.data_fim.getMonth() + 1).padStart(2, '0');
+      const year = audit.data_fim.getFullYear();
+
+      dataGap = `${month}/${year}`;
     }
 
-    const scoreFinal = audit.gap_atual || '';
+    const scoreFinal = audit.gap_atual || 0;
+    const total = audit.quantidade_desvios_planejados || 0;
+    const execNoPrazo = audit.quantidade_desvios_executados || 0;
+    const execForaPrazo = audit.executados_fora_prazo || 0;
+    const pendForaPrazo = audit.itens_pendentes_fora_do_prazo || 0;
 
-    const total =
-      parseInt(audit.quantidade_desvios_planejados || '0') || 0;
-    const execNoPrazo =
-      parseInt(audit.quantidade_desvios_executados || '0') || 0;
-    const execForaPrazo =
-      parseInt(audit.executados_fora_prazo || '0') || 0;
-    const pendForaPrazo =
-      parseInt(audit.itens_pendentes_fora_do_prazo || '0') || 0;
     const evolucao =
       total > 0
-        ? Math.round(((execNoPrazo + execForaPrazo) / total) * 100).toString()
-        : '';
+        ? Math.round(((execNoPrazo + execForaPrazo) / total) * 100)
+        : null;
     const noPrazo = Math.max(
       0,
       total - execNoPrazo - execForaPrazo - pendForaPrazo,
-    ).toString();
+    );
 
     return {
       ...audit,
+      parceira: audit.turmas.turma,
       data_gap: dataGap,
       score_final: scoreFinal,
       evolucao,
@@ -64,20 +62,18 @@ export class GapAnalysisAuditService {
     return audits.map((a) => this.computeFields(a));
   }
 
-  async create(data: CreateGapAnalysisAuditData): Promise<AuditWithComputed> {
+  async create(data: GapAnalysisAuditData): Promise<AuditWithComputed> {
     const audit = await this.repo.create(data);
     return this.computeFields(audit);
   }
 
-  async createMany(
-    data: CreateGapAnalysisAuditData[],
-  ): Promise<{ count: number }> {
+  async createMany(data: GapAnalysisAuditData[]): Promise<{ count: number }> {
     return this.repo.createMany(data);
   }
 
   async update(
     id: number,
-    data: UpdateGapAnalysisAuditData,
+    data: GapAnalysisAuditData,
   ): Promise<AuditWithComputed> {
     try {
       const audit = await this.repo.update(id, data);

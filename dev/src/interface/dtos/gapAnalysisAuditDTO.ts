@@ -1,182 +1,106 @@
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsBoolean,
+  IsDate,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   ValidateNested,
 } from 'class-validator';
 
-export class CreateGapAnalysisAuditDTO {
+export class GapAnalysisAuditDTO {
   @IsNotEmpty()
-  @IsString()
-  parceira: string;
+  @IsNumber()
+  id_parceira: number;
 
   @IsOptional()
-  @IsString()
-  num_auditoria?: string;
+  @IsNumber()
+  num_auditoria?: number;
 
   @IsOptional()
-  @IsString()
-  data_inicio?: string;
+  @IsDate()
+  @Type(() => Date)
+  data_inicio?: Date;
 
   @IsOptional()
-  @IsString()
-  data_fim?: string;
+  @IsDate()
+  @Type(() => Date)
+  data_fim?: Date;
 
   @IsOptional()
-  @IsString()
-  gap_anterior?: string;
+  @IsNumber()
+  gap_anterior?: number;
 
   @IsOptional()
-  @IsString()
-  gap_atual?: string;
+  @IsNumber()
+  gap_atual?: number;
 
   @IsOptional()
-  @IsString()
-  apresentacao_interna?: string;
+  @IsDate()
+  @Type(() => Date)
+  apresentacao_interna?: Date;
 
   @IsOptional()
-  @IsString()
-  reuniao_apresentacao?: string;
+  @IsDate()
+  @Type(() => Date)
+  reuniao_apresentacao?: Date;
 
   @IsOptional()
-  @IsString()
-  notificacao_gestao?: string;
+  @IsDate()
+  @Type(() => Date)
+  notificacao_gestao?: Date;
 
   @IsOptional()
-  @IsString()
-  retorno_parceira?: string;
+  @IsDate()
+  @Type(() => Date)
+  retorno_parceira?: Date;
 
   @IsOptional()
-  @IsString()
-  validacao_plano_edp?: string;
+  @IsDate()
+  @Type(() => Date)
+  validacao_plano_edp?: Date;
 
   @IsOptional()
-  @IsString()
-  plano_validado?: string;
+  @IsBoolean()
+  plano_validado?: boolean;
 
   @IsOptional()
-  @IsString()
-  devolutiva_novo_plano?: string;
+  @IsDate()
+  @Type(() => Date)
+  devolutiva_novo_plano?: Date;
 
   @IsOptional()
-  @IsString()
-  validacao_novo_plano?: string;
+  @IsDate()
+  @Type(() => Date)
+  validacao_novo_plano?: Date;
 
   @IsOptional()
-  @IsString()
-  lancamento_desvios_sgs?: string;
+  @IsDate()
+  @Type(() => Date)
+  lancamento_desvios_sgs?: Date;
 
   @IsOptional()
-  @IsString()
-  inicio_acompanhamento?: string;
+  @IsDate()
+  @Type(() => Date)
+  inicio_acompanhamento?: Date;
 
   @IsOptional()
-  @IsString()
-  quantidade_desvios_planejados?: string;
+  @IsNumber()
+  quantidade_desvios_planejados?: number;
 
   @IsOptional()
-  @IsString()
-  quantidade_desvios_executados?: string;
+  @IsNumber()
+  quantidade_desvios_executados?: number;
 
   @IsOptional()
-  @IsString()
-  executados_fora_prazo?: string;
+  @IsNumber()
+  executados_fora_prazo?: number;
 
   @IsOptional()
-  @IsString()
-  itens_pendentes_fora_do_prazo?: string;
-
-  @IsOptional()
-  @IsString()
-  observacao?: string;
-
-  @IsOptional()
-  @IsString()
-  status?: string;
-}
-
-export class UpdateGapAnalysisAuditDTO {
-  @IsOptional()
-  @IsString()
-  parceira?: string;
-
-  @IsOptional()
-  @IsString()
-  num_auditoria?: string;
-
-  @IsOptional()
-  @IsString()
-  data_inicio?: string;
-
-  @IsOptional()
-  @IsString()
-  data_fim?: string;
-
-  @IsOptional()
-  @IsString()
-  gap_anterior?: string;
-
-  @IsOptional()
-  @IsString()
-  gap_atual?: string;
-
-  @IsOptional()
-  @IsString()
-  apresentacao_interna?: string;
-
-  @IsOptional()
-  @IsString()
-  reuniao_apresentacao?: string;
-
-  @IsOptional()
-  @IsString()
-  notificacao_gestao?: string;
-
-  @IsOptional()
-  @IsString()
-  retorno_parceira?: string;
-
-  @IsOptional()
-  @IsString()
-  validacao_plano_edp?: string;
-
-  @IsOptional()
-  @IsString()
-  plano_validado?: string;
-
-  @IsOptional()
-  @IsString()
-  devolutiva_novo_plano?: string;
-
-  @IsOptional()
-  @IsString()
-  validacao_novo_plano?: string;
-
-  @IsOptional()
-  @IsString()
-  lancamento_desvios_sgs?: string;
-
-  @IsOptional()
-  @IsString()
-  inicio_acompanhamento?: string;
-
-  @IsOptional()
-  @IsString()
-  quantidade_desvios_planejados?: string;
-
-  @IsOptional()
-  @IsString()
-  quantidade_desvios_executados?: string;
-
-  @IsOptional()
-  @IsString()
-  executados_fora_prazo?: string;
-
-  @IsOptional()
-  @IsString()
-  itens_pendentes_fora_do_prazo?: string;
+  @IsNumber()
+  itens_pendentes_fora_do_prazo?: number;
 
   @IsOptional()
   @IsString()
@@ -190,6 +114,6 @@ export class UpdateGapAnalysisAuditDTO {
 export class CreateManyGapAnalysisAuditDTO {
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => CreateGapAnalysisAuditDTO)
-  items: CreateGapAnalysisAuditDTO[];
+  @Type(() => GapAnalysisAuditDTO)
+  items: GapAnalysisAuditDTO[];
 }

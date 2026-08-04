@@ -1,4 +1,3 @@
-import * as bodyParser from 'body-parser';
 import helmet from 'helmet';
 import { join } from 'path';
 
@@ -16,8 +15,8 @@ async function bootstrap() {
 
   app.use(helmet());
 
-  app.use(bodyParser.json({ limit: '5mb' }));
-  app.use(bodyParser.urlencoded({ limit: '5mb', extended: true }));
+  app.useBodyParser('json', { limit: '5mb' });
+  app.useBodyParser('urlencoded', { limit: '5mb', extended: true });
 
   app.useStaticAssets(join(process.env.UPLOAD_DEST!), {
     prefix: '/uploads/viabilidade',
@@ -40,6 +39,6 @@ async function bootstrap() {
     origin: corsOrigins,
     credentials: true,
   });
-  await app.listen(8080, '0.0.0.0');
+  await app.listen(8080);
 }
 bootstrap();

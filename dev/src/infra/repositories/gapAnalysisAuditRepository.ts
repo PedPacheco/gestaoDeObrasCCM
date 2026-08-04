@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { gap_analysis_audits } from '@prisma/client';
 
+import { gap_analysis } from '@prisma/client';
 import {
-  CreateGapAnalysisAuditData,
+  GapAnalysisAuditData,
   IGapAnalysisAuditRepository,
-  UpdateGapAnalysisAuditData,
 } from 'src/domain/repositories/IGapAnalysisAuditRepository';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -12,24 +11,24 @@ import { PrismaService } from '../prisma/prisma.service';
 export class GapAnalysisAuditRepository implements IGapAnalysisAuditRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(): Promise<gap_analysis_audits[]> {
+  async findAll(): Promise<any[]> {
     return await this.prisma.gap_analysis.findMany({
-      orderBy: [{ parceira: 'asc' }, { id: 'asc' }],
+      select: { turmas: { select: { turma: true } } },
+      orderBy: [{ id_parceira: 'asc' }, { id: 'asc' }],
     });
   }
 
-  async create(data: CreateGapAnalysisAuditData): Promise<any> {
+  async create(data: GapAnalysisAuditData): Promise<any> {
+    console.log(data);
     return await this.prisma.gap_analysis.create({ data });
   }
 
-  async createMany(
-    data: CreateGapAnalysisAuditData[],
-  ): Promise<{ count: number }> {
+  async createMany(data: GapAnalysisAuditData[]): Promise<{ count: number }> {
     return await this.prisma.gap_analysis.createMany({ data });
   }
 
-  async update(id: number, data: UpdateGapAnalysisAuditData): Promise<any[]> {
-    await this.prisma.gap_analysis.update({
+  async update(id: number, data: GapAnalysisAuditData): Promise<gap_analysis> {
+    return await this.prisma.gap_analysis.update({
       where: { id },
       data,
     });

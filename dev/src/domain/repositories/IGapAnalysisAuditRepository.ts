@@ -1,58 +1,35 @@
-export interface CreateGapAnalysisAuditData {
-  id_parceira: string;
-  num_auditoria?: string;
-  data_inicio?: string;
-  data_fim?: string;
-  gap_anterior?: string;
-  gap_atual?: string;
-  apresentacao_interna?: string;
-  reuniao_apresentacao?: string;
-  notificacao_gestao?: string;
-  retorno_parceira?: string;
-  validacao_plano_edp?: string;
-  plano_validado?: string;
-  devolutiva_novo_plano?: string;
-  validacao_novo_plano?: string;
-  lancamento_desvios_sgs?: string;
-  inicio_acompanhamento?: string;
-  quantidade_desvios_planejados?: string;
-  quantidade_desvios_executados?: string;
-  executados_fora_prazo?: string;
-  itens_pendentes_fora_do_prazo?: string;
-  observacao?: string;
-  status?: string;
-}
+import { gap_analysis } from '@prisma/client';
 
-export interface UpdateGapAnalysisAuditData {
-  id_parceira?: string;
-  num_auditoria?: string;
-  data_inicio?: string;
-  data_fim?: string;
-  gap_anterior?: string;
-  gap_atual?: string;
-  apresentacao_interna?: string;
-  reuniao_apresentacao?: string;
-  notificacao_gestao?: string;
-  retorno_parceira?: string;
-  validacao_plano_edp?: string;
-  plano_validado?: string;
-  devolutiva_novo_plano?: string;
-  validacao_novo_plano?: string;
-  lancamento_desvios_sgs?: string;
-  inicio_acompanhamento?: string;
-  quantidade_desvios_planejados?: string;
-  quantidade_desvios_executados?: string;
-  executados_fora_prazo?: string;
-  itens_pendentes_fora_do_prazo?: string;
+export interface GapAnalysisAuditData {
+  id_parceira: number;
+  num_auditoria?: number;
+  data_inicio?: Date;
+  data_fim?: Date;
+  gap_anterior?: number;
+  gap_atual?: number;
+  apresentacao_interna?: Date;
+  reuniao_apresentacao?: Date;
+  notificacao_gestao?: Date;
+  retorno_parceira?: Date;
+  validacao_plano_edp?: Date;
+  plano_validado?: boolean;
+  devolutiva_novo_plano?: Date;
+  validacao_novo_plano?: Date;
+  lancamento_desvios_sgs?: Date;
+  inicio_acompanhamento?: Date;
+  quantidade_desvios_planejados?: number;
+  quantidade_desvios_executados?: number;
+  executados_fora_prazo?: number;
+  itens_pendentes_fora_do_prazo?: number;
   observacao?: string;
   status?: string;
 }
 
 export interface IGapAnalysisAuditRepository {
   findAll(): Promise<any[]>;
-  create(data: CreateGapAnalysisAuditData): Promise<any>;
-  createMany(data: CreateGapAnalysisAuditData[]): Promise<{ count: number }>;
-  update(id: number, data: UpdateGapAnalysisAuditData): Promise<any>;
+  create(data: GapAnalysisAuditData): Promise<any>;
+  createMany(data: GapAnalysisAuditData[]): Promise<{ count: number }>;
+  update(id: number, data: GapAnalysisAuditData): Promise<gap_analysis>;
   delete(id: number): Promise<any>;
 }
 
