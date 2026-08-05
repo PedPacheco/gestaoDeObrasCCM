@@ -219,7 +219,6 @@ describe('MonthlySummaryMapper', () => {
         totalTeams: 0,
         totalExecutionCapacityTeams: 0,
         totalQtdeRfpTeams: 0,
-        totalWalletExec: 0,
         totalFinancialGoal: 0,
         totalDiaryGoal: 0,
         totalFinancialGoalWith8: 0,
@@ -251,6 +250,7 @@ describe('MonthlySummaryMapper', () => {
         totalProgRecom: 0,
         totalExecRecom: 0,
         totalDiff: 0,
+        totalWallet: 0,
       });
     });
 

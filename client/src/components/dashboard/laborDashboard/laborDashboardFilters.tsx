@@ -3,6 +3,7 @@ import { Dayjs } from "dayjs";
 import { DateFilter } from "@/components/common/DateFilter";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { FilterTag } from "../common/FilterTag";
+import { EXCLUDE_PARCEIRAS } from "../DashboardClient";
 
 interface FiltersData {
   regional?: Array<Record<string, any>>;
@@ -98,7 +99,12 @@ export function LaborDashboardFilters({
         <div className="min-w-[220px] flex-1">
           <MultipleSelectComponent
             label="Parceiras"
-            menuItems={filtersData.parceira ?? []}
+            menuItems={
+              filtersData.parceira?.filter(
+                (item) =>
+                  !EXCLUDE_PARCEIRAS.has(item.turma.toUpperCase().trim()),
+              ) ?? []
+            }
             selectedItem={selectedParceiras}
             setSelectedItem={setSelectedParceiras}
             valueKey="id"

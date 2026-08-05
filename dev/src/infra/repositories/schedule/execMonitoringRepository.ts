@@ -41,6 +41,7 @@ export class ExecMonitoringRepository implements IExecMonitoringRepository {
       INNER JOIN construcao_sp.regionais r ON r.id = m.id_regional
       INNER JOIN construcao_sp.turmas t ON t.id = o.id_turma
       WHERE p.id_status_programacao IN (4, 6)
+        AND t.id NOT IN (1, 6, 10, 11, 14, 15, 16)
         AND p.data_prog >= ${startDate}
         AND p.data_prog <= ${endDate}
     `;

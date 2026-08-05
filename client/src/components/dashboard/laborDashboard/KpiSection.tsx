@@ -59,7 +59,7 @@ export function KpiSection({
     const params = buildParams();
     const paramsWithStatus = {
       ...params,
-      idStatus: [1, 35, 36, 37, 42, 43],
+      idStatus: [1, 35, 36, 37, 42, 43, 45, 46],
     };
 
     openWithFiltersInNewTab(

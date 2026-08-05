@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 import AdvancePartnerDashboard from "./advancePartner/advancePartner";
-import ForecastDashboard from "./ForecastDashboard";
 import LaborDashboard from "./laborDashboard/laborDashboard";
 import MonitoringExecutionDashboard from "./monitoringExecutionDashboard/monitoringExecutionDashboard";
 import RecompositionGoalsDashboard from "./recompositionGoalsDashboard/RecompositionGoalsDashboard";
@@ -80,6 +79,16 @@ interface Props {
   filtersData: any;
 }
 
+export const EXCLUDE_PARCEIRAS = new Set([
+  "EDP",
+  "ELETROREDE",
+  "MONTELBRAS",
+  "COMPEL",
+  "ROTARY",
+  "NÃO DEFINIDO",
+  "NAO DEFINIDO",
+]);
+
 type Tab =
   | "geral"
   | "mao-de-obra"
@@ -146,7 +155,6 @@ export default function DashboardClient({
     { name: "Manserv", logo: "/manserv-logo.png" },
     { name: "OCA", logo: "/oca-logo.png" },
     { name: "Cosampa", logo: "/cosampa-logo.png" },
-    { name: "Compel", logo: "/compel-logo.png" },
     { name: "Baramaia", logo: "/baramaia-logo.png" },
   ];
 
@@ -184,7 +192,7 @@ export default function DashboardClient({
       {/* ── Tab Switcher ─────────────────────────────────────── */}
       <div
         ref={tabSwitcherRef}
-        className="sticky top-16 z-30 bg-white flex justify-between items-center gap-1 px-3 pt-3 pb-0 border-b border-white/5"
+        className="sticky top-16 z-[999] bg-white flex justify-between items-center gap-1 px-3 pt-3 pb-0 border-b border-white/5"
       >
         <div className="flex gap-1">
           {visibleTabs.map(({ key, label }) => (

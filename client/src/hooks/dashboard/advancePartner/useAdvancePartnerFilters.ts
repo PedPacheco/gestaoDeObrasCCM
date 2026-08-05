@@ -16,6 +16,7 @@ import {
 } from "@/components/dashboard/advancePartner/advancePartner";
 import dayjs, { Dayjs } from "dayjs";
 import { SparklineRow } from "@/components/dashboard/advancePartner/sparklinesSection";
+import { EXCLUDE_PARCEIRAS } from "@/components/dashboard/DashboardClient";
 
 interface UseAdvancePartnerFiltersProps {
   token: string;
@@ -35,25 +36,6 @@ export type MotivoTab = "Geral" | "Edp" | "Parceira" | "Terceiro";
 
 const DEFAULT_START = () => dayjs().startOf("month");
 const DEFAULT_END = () => dayjs().endOf("month");
-
-export const EXCLUDE_PARCEIRAS = new Set([
-  "EDP",
-  "ELETROREDE",
-  "MONTELBRAS",
-  "OCA",
-  "ROTARY",
-  "NÃO DEFINIDO",
-  "NAO DEFINIDO",
-]);
-
-function applyParceiraTransforms(rows: SparklineRow[]): SparklineRow[] {
-  return rows
-    .filter((r) => !EXCLUDE_PARCEIRAS.has(r.parceira.toUpperCase().trim()))
-    .map((r) => ({
-      ...r,
-      parceira: r.parceira.toUpperCase().trim() ?? r.parceira,
-    }));
-}
 
 export function useAdvancePartnerFilters({
   token,
@@ -134,8 +116,8 @@ export function useAdvancePartnerFilters({
 
   const [dailyGoal, setDailyGoal] = useState<number>(initialDailyGoal ?? 0);
 
-  const [sparklines, setSparklines] = useState<SparklineRow[]>(() =>
-    applyParceiraTransforms(initialSparklinesPartners ?? []),
+  const [sparklines, setSparklines] = useState<SparklineRow[]>(
+    initialSparklinesPartners ?? [],
   );
 
   const [semanasMap, setSemanasMap] = useState<Record<string, number>>(() => {
@@ -194,7 +176,7 @@ export function useAdvancePartnerFilters({
     }
 
     if (data.sparklines.success) {
-      setSparklines(applyParceiraTransforms(data.sparklines.data ?? []));
+      setSparklines(data.sparklines.data ?? []);
     }
 
     if (data.motivos.success) {

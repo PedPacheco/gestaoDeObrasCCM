@@ -10,6 +10,8 @@ import { Injectable } from '@nestjs/common';
 export class AdvancePartnerRepository implements IAdvancePartnerRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private readonly excludedPartners = [1, 6, 10, 11, 14, 15, 16];
+
   async getRestrictionsAdvancePartner(
     filters: ProcessedEliminacaoFilters,
   ): Promise<any[]> {
@@ -17,7 +19,9 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
       filters;
 
     // Filtro base: exclui REPROVADO e REPROG. PREVISTA — validado contra BI em 05/05/2026
-    let where = Prisma.sql`WHERE (status_programacao IS NULL OR UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROG. PREVISTA'))`;
+    let where = Prisma.sql`WHERE 
+    (status_programacao IS NULL OR UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROG. PREVISTA')) 
+    AND parceira NOT IN (SELECT turmaFROM construcao_sp.turmasWHERE id IN (${Prisma.join(this.excludedPartners)}))`;
 
     if (dataInicial && dataFinal)
       where = Prisma.sql`${where} AND data_prog BETWEEN ${dataInicial} AND ${dataFinal}`;
@@ -58,7 +62,7 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
     let where = Prisma.sql`WHERE
       UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROVADA')
       AND UPPER(TRIM(COALESCE(restricao_execucao, ''))) NOT IN ('REPROGRAMAÇÃO PREVISTA', 'REPROGRAMACAO PREVISTA', 'REPROG. PREVISTA')
-      AND prog IS NOT NULL AND prog > 0`;
+      AND prog IS NOT NULL AND prog > 0 AND parceira NOT IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(this.excludedPartners)}))`;
 
     if (dataInicial && dataFinal)
       where = Prisma.sql`${where} AND data_prog BETWEEN ${dataInicial} AND ${dataFinal}`;
@@ -111,6 +115,7 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
       AND restricao_execucao IS NOT NULL
       AND TRIM(restricao_execucao) != ''
       AND UPPER(TRIM(restricao_execucao)) NOT IN ('REPROG. PREVISTA', 'REPROGRAMAÇÃO PREVISTA', 'REPROGRAMACAO PREVISTA')
+      AND parceira NOT IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(this.excludedPartners)}))
     `;
 
     if (dataInicial && dataFinal)
@@ -144,7 +149,7 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
     let where = Prisma.sql`WHERE
       UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROVADA')
       AND UPPER(TRIM(COALESCE(restricao_execucao, ''))) NOT IN ('REPROGRAMAÇÃO PREVISTA', 'REPROGRAMACAO PREVISTA', 'REPROG. PREVISTA')
-      AND prog IS NOT NULL AND prog > 0`;
+      AND prog IS NOT NULL AND prog > 0 AND parceira NOT IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(this.excludedPartners)}))`;
 
     if (dataInicial && dataFinal)
       where = Prisma.sql`${where}
@@ -215,7 +220,8 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
     // Replica DAX: SEMANA PROGRAMADA = equipes_alocadas / (capacidade_mes * 5) >= 0.7
     // SEMANA PROGRAMADA AJUSTADA = apenas semanas >= semana_atual - 1 (forward-looking)
     let where = Prisma.sql`WHERE data_prog >= DATE_TRUNC('year', CURRENT_DATE)::date
-      AND (status_programacao IS NULL OR UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROG. PREVISTA'))`;
+      AND (status_programacao IS NULL OR UPPER(TRIM(status_programacao)) NOT IN ('REPROVADO', 'REPROG. PREVISTA'))
+      AND parceira NOT IN (SELECT turma FROM construcao_sp.turmas WHERE id IN (${Prisma.join(this.excludedPartners)}))`;
 
     if (idRegional?.length)
       where = Prisma.sql`${where} AND regional IN (SELECT regional FROM construcao_sp.regionais WHERE id IN (${Prisma.join(idRegional)}))`;
