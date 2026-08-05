@@ -125,24 +125,19 @@ export default function DashboardClient({
   const [activeTab, setActiveTab] = useState<Tab>("mao-de-obra");
 
   useEffect(() => {
-    if (isRestricted) {
-      setActiveTab("metas-recomposicao");
-    }
-  }, [isRestricted]);
+    const measure = () => {
+      if (tabSwitcherRef.current) {
+        setTabSwitcherHeight(tabSwitcherRef.current.offsetHeight);
+      }
+    };
 
-  useEffect(() => {
-    if (!tabSwitcherRef.current) return;
+    measure();
 
-    const observer = new ResizeObserver(([entry]) => {
-      setTabSwitcherHeight(entry.contentRect.height);
-    });
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [activeTab, isLoaded]);
 
-    observer.observe(tabSwitcherRef.current);
-
-    return () => observer.disconnect();
-  }, []);
-
-  const filtersTop = 76 + tabSwitcherHeight;
+  const filtersTop = 64 + tabSwitcherHeight;
 
   const partners = [
     { name: "Engelmig", logo: "/engelmig-logo.png" },
