@@ -129,7 +129,8 @@ export class FinalizeServicesService {
     return history
       .filter(
         (service) =>
-          service.id_programacao === scheduleId && service.real == null,
+          service.id_programacao === scheduleId &&
+          (service.real == null || service.prog > service.real),
       )
       .map((service) => service.id_servico);
   }
