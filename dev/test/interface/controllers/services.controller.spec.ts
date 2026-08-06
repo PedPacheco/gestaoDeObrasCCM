@@ -31,6 +31,7 @@ describe('ServicesController', () => {
     getTeamsServices: jest.fn(),
     getMaterials: jest.fn(),
     getAllItems: jest.fn(),
+    getServicePoints: jest.fn(),
   };
 
   const mockFinalizeServices = {
@@ -255,6 +256,24 @@ describe('ServicesController', () => {
     });
   });
 
+  describe('getServicePoints', () => {
+    it('should return Service Points', async () => {
+      const mockId = 1;
+      const mockResponse = ['P1', 'P2'];
+
+      mockQueriesService.getServicePoints.mockResolvedValue(mockResponse);
+
+      const result = await controller.getServicePoints(mockId);
+
+      expect(result).toEqual({
+        statusCode: HttpStatus.OK,
+        message: 'Pontos da obra retornado com sucesso',
+        data: mockResponse,
+      });
+      expect(queriesService.getServicePoints).toHaveBeenCalledWith(mockId);
+    });
+  });
+
   describe('applyAdditional', () => {
     it('should call service method correctly', async () => {
       const mockData = [{ id: 1, additional: 3 }];
@@ -419,7 +438,7 @@ describe('ServicesController', () => {
         operation: 'INSTALAÇÃO',
         operationDescription: 'POSTE - ODI',
         operationNumber: '2000',
-        qtdePlan: 2,
+        quantity: 2,
       };
 
       await controller.addServices(mockParam);
@@ -440,7 +459,7 @@ describe('ServicesController', () => {
         operation: 'INSTALAÇÃO',
         operationDescription: 'POSTE - ODI',
         operationNumber: '2000',
-        qtdePlan: 2,
+        quantity: 2,
       };
 
       await controller.addMaterials(mockParam);

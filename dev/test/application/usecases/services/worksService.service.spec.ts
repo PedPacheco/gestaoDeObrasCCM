@@ -259,7 +259,7 @@ describe('WorksServicesService', () => {
         operation: 'INSTALAÇÃO',
         operationDescription: 'POSTE',
         operationNumber: '2000',
-        qtdePlan: 2,
+        quantity: 2,
       };
 
       mockWorksServicesRepository.addItem.mockResolvedValue(undefined);
@@ -278,7 +278,7 @@ describe('WorksServicesService', () => {
         operation: 'INSTALAÇÃO',
         operationDescription: 'POSTE',
         operationNumber: '2000',
-        qtdePlan: 2,
+        quantity: 2,
       };
 
       mockWorksServicesRepository.addItem.mockResolvedValue(undefined);
@@ -297,7 +297,7 @@ describe('WorksServicesService', () => {
         operation: 'INSTALAÇÃO',
         operationDescription: 'POSTE',
         operationNumber: '2000',
-        qtdePlan: 2,
+        quantity: 2,
       };
 
       mockWorkServicesQueryRepository.getAllServicesOfWork.mockResolvedValue([
@@ -323,7 +323,7 @@ describe('WorksServicesService', () => {
         operation: 'INSTALAÇÃO',
         operationDescription: 'POSTE',
         operationNumber: '2000',
-        qtdePlan: 2,
+        quantity: 2,
       };
 
       mockWorkServicesQueryRepository.getAllServicesOfWork.mockResolvedValue([

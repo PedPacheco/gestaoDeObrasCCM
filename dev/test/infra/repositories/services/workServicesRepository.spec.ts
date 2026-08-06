@@ -500,6 +500,7 @@ describe('WorksServicesRepository', () => {
         operation: 'INSTALAÇÃO',
         operationDescription: 'POSTE - ODI',
         operationNumber: '2000',
+        quantity: 4,
       };
 
       await repository.addItem(mockData, 'material');
@@ -514,6 +515,7 @@ describe('WorksServicesRepository', () => {
           descricao_operacao: 'POSTE - ODI',
           numero_operacao: '2000',
           qtde_plan: 0,
+          qtde_adicional: 4,
         },
       });
     });
@@ -526,6 +528,7 @@ describe('WorksServicesRepository', () => {
         operation: 'INSTALAÇÃO',
         operationDescription: 'POSTE - ODI',
         operationNumber: '2000',
+        quantity: 2,
       };
 
       await repository.addItem(mockData, 'service');
@@ -540,6 +543,7 @@ describe('WorksServicesRepository', () => {
           descricao_operacao: 'POSTE - ODI',
           numero_operacao: '2000',
           qtde_plan: 0,
+          qtde_adicional: 2,
         },
       });
     });

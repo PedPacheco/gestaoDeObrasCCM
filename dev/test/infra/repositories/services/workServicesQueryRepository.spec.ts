@@ -109,6 +109,7 @@ describe('WorkServicesQueryRepository', () => {
         where: {
           id_obra: 1,
           id_programacao: null,
+          OR: [{ viabilizado: null }, { viabilizado: { not: 0 } }],
         },
       });
       expect(prisma.servicos.findMany).toHaveBeenCalledTimes(1);
@@ -581,6 +582,28 @@ describe('WorkServicesQueryRepository', () => {
       await expect(repository.getAllServicesOfWork(mockWorkId)).rejects.toThrow(
         'Database connection error',
       );
+    });
+  });
+
+  describe('getServicePoints', () => {
+    const mockPoints = ['P1', 'P2'];
+
+    it('should return teams services', async () => {
+      const mockId = 100;
+
+      mockPrismaService.servicos.groupBy.mockResolvedValue([
+        { id: 1, texto_breve: 'Poste', ponto: 'P1' },
+        { id: 2, texto_breve: 'Poste', ponto: 'P2' },
+      ]);
+
+      const result = await repository.getServicePoints(mockId);
+
+      expect(result).toEqual(mockPoints);
+      expect(prisma.servicos.groupBy).toHaveBeenCalledWith({
+        by: ['ponto'],
+        where: { id_obra: 100 },
+      });
+      expect(prisma.servicos.groupBy).toHaveBeenCalledTimes(1);
     });
   });
 });
