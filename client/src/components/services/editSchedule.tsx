@@ -51,6 +51,7 @@ interface EditScheduleProps {
   idStatusWork: number;
   idSchedule: number;
   statusSchedule?: string;
+  points: string[];
 }
 
 export type TabId = "scheduled" | "available" | "add" | "history";
@@ -72,6 +73,7 @@ export function EditSchedule({
   idStatusWork,
   idSchedule,
   statusSchedule,
+  points,
 }: EditScheduleProps) {
   const router = useRouter();
   const { showError, showSuccess } = useFeedback();
@@ -283,7 +285,7 @@ export function EditSchedule({
                     title="Adicionar novo serviço"
                     contracts={serviceContractData}
                     services={servicesAvaliable}
-                    // operations={SERVICE_OPERATIONS}
+                    points={points}
                     type="serviço"
                   />
 
@@ -292,7 +294,7 @@ export function EditSchedule({
                     title="Adicionar novo material"
                     contracts={materialsData}
                     services={servicesAvaliable}
-                    // operations={SERVICE_OPERATIONS}
+                    points={points}
                     type="material"
                   />
                 </div>
@@ -302,7 +304,6 @@ export function EditSchedule({
                     setSelectedServices={setScheduledServices}
                     clearScheduledServices={clearScheduledServices}
                     setServicesData={setServicesAvaliable}
-                    servicesData={servicesData}
                     selectedCount={workflow.selectedCount}
                     canCreate={workflow.canCreate}
                     isPending={isPending}

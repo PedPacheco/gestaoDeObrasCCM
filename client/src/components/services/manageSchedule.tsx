@@ -37,6 +37,7 @@ interface ManageScheduleProps {
   idStatusWork: number;
   idSchedule: number | null;
   statusSchedule?: string;
+  points: string[];
 }
 // ─────────────────────────────────────────────────────────────────────────────
 // Component
@@ -56,6 +57,7 @@ export function NewManageSchedule({
   idStatusWork,
   idSchedule,
   statusSchedule,
+  points,
 }: ManageScheduleProps) {
   const router = useRouter();
   const { showError, showSuccess } = useFeedback();
@@ -148,6 +150,7 @@ export function NewManageSchedule({
         idStatusWork={idStatusWork}
         idSchedule={idSchedule}
         statusSchedule={statusSchedule}
+        points={points}
       />
     );
   }
@@ -193,6 +196,7 @@ export function NewManageSchedule({
                 contracts={serviceContractData}
                 services={servicesAvaliable}
                 type="serviço"
+                points={points}
               />
 
               <AddServiceAccordion
@@ -201,6 +205,7 @@ export function NewManageSchedule({
                 contracts={materialsData}
                 services={servicesAvaliable}
                 type="material"
+                points={points}
               />
             </div>
 
@@ -209,7 +214,6 @@ export function NewManageSchedule({
                 selectedServices={selectedServices}
                 setSelectedServices={setSelectedServices}
                 clearScheduledServices={clearScheduledServices}
-                servicesData={servicesData}
                 setServicesData={setServicesAvaliable}
                 selectedCount={workflow.selectedCount}
                 canCreate={workflow.canCreate}
