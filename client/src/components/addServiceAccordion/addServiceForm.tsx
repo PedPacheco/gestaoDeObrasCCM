@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import { ServicesContractSelect } from "../services/servicesSection/servicesContractSelect";
 import { AddMaterialOrServiceFormState } from "./addServiceAccordion";
+import { SERVICE_OPERATIONS } from "@/constants/services/services";
 
 export type ServiceContract = {
   id: number;
@@ -30,7 +31,6 @@ export type ServiceContract = {
 interface Props {
   idWork: number;
   serviceContractData: ServiceContract[];
-  operations: string[];
   points: string[];
   operationsNumber: string[];
   operationsDescription: string[];
@@ -41,13 +41,13 @@ interface Props {
     operation: string;
     operationNumber: string;
     operationDescription: string;
+    quantity: number;
   }) => Promise<void>;
 }
 
 export function AddServiceForm({
   idWork,
   serviceContractData,
-  operations,
   points,
   operationsNumber,
   operationsDescription,
@@ -59,6 +59,7 @@ export function AddServiceForm({
     operation: "",
     operationNumber: "",
     operationDescription: "",
+    quantity: 0,
   });
 
   const [loading, setLoading] = useState(false);
@@ -93,6 +94,7 @@ export function AddServiceForm({
         operation: form.operation,
         operationNumber: form.operationNumber,
         operationDescription: form.operationDescription,
+        quantity: form.quantity,
       });
 
       // reset form
@@ -102,6 +104,7 @@ export function AddServiceForm({
         operation: "",
         operationNumber: "",
         operationDescription: "",
+        quantity: 0,
       });
     } finally {
       setLoading(false);
@@ -194,7 +197,7 @@ export function AddServiceForm({
             value={form.operation}
             onChange={(e) => updateField("operation", e.target.value)}
           >
-            {operations.map((op) => (
+            {SERVICE_OPERATIONS.map((op) => (
               <MenuItem key={op} value={op}>
                 {op}
               </MenuItem>
@@ -203,7 +206,7 @@ export function AddServiceForm({
         </FormControl>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <FormControl fullWidth size="small">
           <InputLabel>N° Operação</InputLabel>
           <Select
@@ -233,6 +236,15 @@ export function AddServiceForm({
             ))}
           </Select>
         </FormControl>
+
+        <TextField
+          fullWidth
+          size="small"
+          label="Quantidade"
+          type="number"
+          value={form.quantity}
+          onChange={(e) => updateField("quantity", Number(e.target.value))}
+        />
       </div>
 
       {/* SUBMIT */}

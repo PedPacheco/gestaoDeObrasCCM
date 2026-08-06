@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import { ServicesContractSelect } from "../services/servicesSection/servicesContractSelect";
 import { AddMaterialOrServiceFormState } from "./addServiceAccordion";
+import { SERVICE_OPERATIONS } from "@/constants/services/services";
 
 interface MaterialData {
   id: number;
@@ -28,7 +29,6 @@ interface MaterialData {
 interface Props {
   idWork: number;
   materialData: MaterialData[];
-  operations: string[];
   points: string[];
   operationsNumber: string[];
   operationsDescription: string[];
@@ -39,13 +39,13 @@ interface Props {
     operation: string;
     operationNumber: string;
     operationDescription: string;
+    quantity: number;
   }) => Promise<void>;
 }
 
 export function AddMaterialForm({
   idWork,
   materialData,
-  operations,
   points,
   operationsDescription,
   operationsNumber,
@@ -57,6 +57,7 @@ export function AddMaterialForm({
     operation: "",
     operationNumber: "",
     operationDescription: "",
+    quantity: 0,
   });
 
   const [loading, setLoading] = useState(false);
@@ -85,6 +86,7 @@ export function AddMaterialForm({
         operation: form.operation,
         operationNumber: form.operationNumber,
         operationDescription: form.operationDescription,
+        quantity: form.quantity,
       });
 
       // reset form
@@ -94,6 +96,7 @@ export function AddMaterialForm({
         operation: "",
         operationNumber: "",
         operationDescription: "",
+        quantity: 0,
       });
     } finally {
       setLoading(false);
@@ -180,7 +183,7 @@ export function AddMaterialForm({
             value={form.operation}
             onChange={(e) => updateField("operation", e.target.value)}
           >
-            {operations.map((op) => (
+            {SERVICE_OPERATIONS.map((op) => (
               <MenuItem key={op} value={op}>
                 {op}
               </MenuItem>
@@ -189,7 +192,7 @@ export function AddMaterialForm({
         </FormControl>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <FormControl fullWidth size="small">
           <InputLabel>N° Operação</InputLabel>
           <Select
@@ -219,6 +222,16 @@ export function AddMaterialForm({
             ))}
           </Select>
         </FormControl>
+
+        <TextField
+          fullWidth
+          label="Quantidade"
+          size="small"
+          type="number"
+          value={form.quantity}
+          onChange={(e) => updateField("quantity", Number(e.target.value))}
+          InputLabelProps={{ shrink: true }}
+        />
       </div>
 
       {/* SUBMIT */}
