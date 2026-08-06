@@ -21,7 +21,10 @@ import {
   Box,
   Button,
   Checkbox,
+  FormControl,
+  MenuItem,
   Paper,
+  Select,
   Table,
   TableBody,
   TableCell,
@@ -33,6 +36,9 @@ import {
 
 import { TableFilter } from "./servicesFilters";
 import { TeamModal } from "./teamsModal";
+import { useServicesFilters } from "@/hooks/services/useServicesFilters";
+import { MATERIAL_OR_SERVICE_OPTIONS } from "@/constants/services/services";
+import { rowTotal } from "@/components/dashboard/recompositionGoalsDashboard/RecompositionGoalsDashboard";
 
 interface ServicesAvaliableProps {
   servicesData: any[];
@@ -70,9 +76,10 @@ export function NewServicesAvaliable({
   onError,
   onSuccess,
 }: ServicesAvaliableProps) {
-  const [filteredServicesData, setFilteredServicesData] = useState<any[]>([]);
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
   const [openTeamsModal, setOpenTeamsModal] = useState(false);
+
+  const [editedServices, setEditedServices] = useState<any[]>([]);
 
   const [isPending, startTransition] = useTransition();
 
@@ -80,20 +87,28 @@ export function NewServicesAvaliable({
 
   const router = useRouter();
 
-  const allSelected = selectedServices.length === filteredServicesData.length;
-
   const isDisabled = statusSchedule
     ? ["Concluído", "Cancelado", "Parcial"].includes(statusSchedule)
     : false;
 
+  const {
+    materialOrService,
+    setMaterialOrService,
+    setTableFilters,
+    filterOptions,
+    applyFilters,
+  } = useServicesFilters(editedServices);
+
+  const filteredServicesData = applyFilters(editedServices);
+
   useEffect(() => {
-    setFilteredServicesData(servicesData);
+    setEditedServices(servicesData);
   }, [servicesData]);
 
   const updateServiceQuantity = (id: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
 
-    setFilteredServicesData((prev: any) =>
+    setEditedServices((prev: any) =>
       prev.map((item: any) =>
         item.id === id
           ? { ...item, qtdeAdicional: value === "" ? null : value }
@@ -179,6 +194,8 @@ export function NewServicesAvaliable({
     return original?.qtdeAdicional !== item.qtdeAdicional;
   });
 
+  const allSelected = selectedServices.length === filteredServicesData.length;
+
   return (
     <>
       <Paper className="flex h-full min-h-0 flex-col p-6">
@@ -208,40 +225,51 @@ export function NewServicesAvaliable({
         {/* Filtros */}
         <div className="shrink-0">
           <TableFilter
-            data={servicesData}
             fields={[
               {
-                label: "SERVIÇO",
+                label: "Serviço/Material",
                 field: "textoBreve",
-                options: Array.from(
-                  new Set(servicesData.map((item) => item.textoBreve)),
-                ),
+                options: filterOptions.textoBreve,
               },
               {
-                label: "FAMILIA",
+                label: "Família",
                 field: "descricao_operacao",
-                options: Array.from(
-                  new Set(servicesData.map((item) => item.descricao_operacao)),
-                ),
+                options: filterOptions.descricao_operacao,
               },
               {
-                label: "OPERAÇÃO",
+                label: "Operação",
                 field: "operacao",
-                options: Array.from(
-                  new Set(servicesData.map((item) => item.operacao)),
-                ),
+                options: filterOptions.operacao,
                 width: "w-1/6",
               },
               {
-                label: "PONTO",
+                label: "Ponto",
                 field: "ponto",
-                options: Array.from(
-                  new Set(servicesData.map((item) => item.ponto)),
-                ),
+                options: filterOptions.ponto,
                 width: "w-32",
               },
             ]}
-            onFilter={setFilteredServicesData}
+            onFilter={setTableFilters}
+            extraFilters={
+              <div className="min-w-[160px]">
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Tipo
+                </label>
+                <FormControl fullWidth size="small">
+                  <Select
+                    value={materialOrService}
+                    onChange={(e) => setMaterialOrService(e.target.value)}
+                    className="bg-white rounded-lg h-[38px]"
+                  >
+                    {MATERIAL_OR_SERVICE_OPTIONS.map((p) => (
+                      <MenuItem key={p} value={p}>
+                        {p}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </div>
+            }
           />
         </div>
 
@@ -273,7 +301,13 @@ export function NewServicesAvaliable({
                         setSelectedServices(
                           filteredServicesData.map((s) => ({
                             ...s,
-                            prog: s.viabilizado + Number(s.qtdeAdicional),
+                            prog:
+                              Math.round(
+                                (s.viabilizado +
+                                  Number(s.qtdeAdicional ?? 0) -
+                                  s.qtdeRealizada) *
+                                  1000,
+                              ) / 1000,
                             additional: s.qtdeAdicional,
                           })),
                         );
@@ -325,7 +359,12 @@ export function NewServicesAvaliable({
                               {
                                 ...row,
                                 prog:
-                                  row.viabilizado + Number(row.qtdeAdicional),
+                                  Math.round(
+                                    (row.viabilizado +
+                                      Number(row.qtdeAdicional ?? 0) -
+                                      row.qtdeRealizada) *
+                                      1000,
+                                  ) / 1000,
                                 qtdeAdicional: row.qtdeAdicional,
                               },
                             ]);

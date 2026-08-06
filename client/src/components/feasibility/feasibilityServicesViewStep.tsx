@@ -1,6 +1,9 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
+  FormControl,
+  MenuItem,
   Paper,
+  Select,
   Table,
   TableBody,
   TableCell,
@@ -15,7 +18,11 @@ import {
 
 import { ButtonComponent } from "@/components/common/Button";
 import { TableFilter } from "../services/servicesSection/servicesFilters";
-import { SERVICE_OPERATIONS } from "@/constants/services/services";
+import {
+  MATERIAL_OR_SERVICE_OPTIONS,
+  SERVICE_OPERATIONS,
+} from "@/constants/services/services";
+import { useServicesFilters } from "@/hooks/services/useServicesFilters";
 
 export interface FeasibilityServiceItem {
   id: number;
@@ -25,6 +32,7 @@ export interface FeasibilityServiceItem {
   numero_operacao: string;
   descricao_operacao: string;
   ponto: string;
+  tipo: string;
   qtdePlanejada: number;
   viabilizado: string | null;
 }
@@ -73,12 +81,15 @@ export function FeasibilityServicesReviewStep({
   onChangeReviewData,
   readOnly = false,
 }: FeasibilityServicesReviewStepProps) {
-  const [visibleIds, setVisibleIds] = useState<Set<number> | null>(null);
+  const {
+    materialOrService,
+    setMaterialOrService,
+    setTableFilters,
+    filterOptions,
+    applyFilters,
+  } = useServicesFilters(reviewData);
 
-  const filteredServicesData = useMemo(() => {
-    if (visibleIds === null) return reviewData;
-    return reviewData.filter((item) => visibleIds.has(item.id));
-  }, [reviewData, visibleIds]);
+  const filteredServicesData = applyFilters(reviewData);
 
   const { pendingCount, changedCount } = useMemo(() => {
     let pending = 0;
@@ -91,10 +102,6 @@ export function FeasibilityServicesReviewStep({
 
     return { pendingCount: pending, changedCount: changed };
   }, [reviewData]);
-
-  const handleFilter = useCallback((filtered: FeasibilityServiceItem[]) => {
-    setVisibleIds(new Set(filtered.map((item) => item.id)));
-  }, []);
 
   const updateViabilizado = (id: number, value: string) => {
     if (readOnly) return;
@@ -177,36 +184,51 @@ export function FeasibilityServicesReviewStep({
       )}
 
       <TableFilter
-        data={reviewData}
         fields={[
           {
-            label: "SERVIÇO",
+            label: "Serviço/Material",
             field: "textoBreve",
-            options: Array.from(
-              new Set(reviewData.map((item) => item.textoBreve)),
-            ),
+            options: filterOptions.textoBreve,
           },
           {
-            label: "FAMILIA",
+            label: "Família",
             field: "descricao_operacao",
-            options: Array.from(
-              new Set(reviewData.map((item) => item.descricao_operacao)),
-            ),
+            options: filterOptions.descricao_operacao,
           },
           {
-            label: "OPERAÇÃO",
+            label: "Operação",
             field: "operacao",
             options: SERVICE_OPERATIONS,
             width: "w-60",
           },
           {
-            label: "PONTO",
+            label: "Ponto",
             field: "ponto",
-            options: Array.from(new Set(reviewData.map((item) => item.ponto))),
+            options: filterOptions.ponto,
             width: "w-44",
           },
         ]}
-        onFilter={handleFilter}
+        onFilter={setTableFilters}
+        extraFilters={
+          <div className="min-w-[160px]">
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Tipo
+            </label>
+            <FormControl fullWidth size="small">
+              <Select
+                value={materialOrService}
+                onChange={(e) => setMaterialOrService(e.target.value)}
+                className="bg-white rounded-lg h-[38px]"
+              >
+                {MATERIAL_OR_SERVICE_OPTIONS.map((p) => (
+                  <MenuItem key={p} value={p}>
+                    {p}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
+        }
       />
 
       <TableContainer

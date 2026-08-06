@@ -3,7 +3,10 @@ import { useEffect, useMemo, useState } from "react";
 
 import {
   Checkbox,
+  FormControl,
+  MenuItem,
   Paper,
+  Select,
   Table,
   TableBody,
   TableCell,
@@ -16,7 +19,11 @@ import {
 import { ScheduledServiceState } from "./scheduledServices";
 import { TableFilter } from "../servicesFilters";
 import { FormatCurrency } from "@/utils/formatValue";
-import { SERVICE_OPERATIONS } from "@/constants/services/services";
+import {
+  MATERIAL_OR_SERVICE_OPTIONS,
+  SERVICE_OPERATIONS,
+} from "@/constants/services/services";
+import { useServicesFilters } from "@/hooks/services/useServicesFilters";
 
 const SERVICE_COLUMNS = [
   { key: "material", label: "CÓDIGO" },
@@ -64,11 +71,15 @@ export function ScheduledServicesTable({
   setScheduledServices,
   clearValidation,
 }: ScheduleServicesTableProps) {
-  const [filteredServicesData, setFilteredServicesData] = useState<any[]>([]);
+  const {
+    materialOrService,
+    setMaterialOrService,
+    setTableFilters,
+    filterOptions,
+    applyFilters,
+  } = useServicesFilters(scheduledServicesData);
 
-  useEffect(() => {
-    setFilteredServicesData(scheduledServicesData);
-  }, [scheduledServicesData]);
+  const filteredServicesData = applyFilters(scheduledServicesData);
 
   const formatCellValue = (key: string, value: any) => {
     if (key === "dataProgramada") {
@@ -116,7 +127,7 @@ export function ScheduledServicesTable({
   }, [scheduledServices]);
 
   const updateServiceQuantity = (id: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
+    if (!/^\d*([.]\d*)?$/.test(value)) return;
 
     setScheduledServices((prev: any) =>
       prev.map((item: ScheduledServiceState) =>
@@ -212,31 +223,22 @@ export function ScheduledServicesTable({
   return (
     <>
       <TableFilter
-        data={scheduledServicesData}
         fields={[
           {
-            label: "SERVIÇO",
+            label: "SERVIÇO/MATERIAL",
             field: "textoBreve",
-            options: Array.from(
-              new Set(scheduledServicesData.map((item) => item.textoBreve)),
-            ),
+            options: filterOptions.textoBreve,
           },
           {
             label: "FAMÍLIA",
             field: "descricao_operacao",
-            options: Array.from(
-              new Set(
-                scheduledServicesData.map((item) => item.descricao_operacao),
-              ),
-            ),
+            options: filterOptions.descricao_operacao,
             width: "w-80",
           },
           {
             label: "ENCARREGADO",
             field: "encarregado",
-            options: Array.from(
-              new Set(scheduledServicesData.map((item) => item.encarregado)),
-            ),
+            options: filterOptions.encarregado,
             width: "w-72",
           },
           {
@@ -248,22 +250,39 @@ export function ScheduledServicesTable({
           {
             label: "EQUIPE",
             field: "perfil",
-            options: Array.from(
-              new Set(scheduledServicesData.map((item) => item.perfil)),
-            ),
+            options: filterOptions.equipe,
             width: "w-44",
           },
           {
             label: "PONTO",
             field: "ponto",
-            options: Array.from(
-              new Set(scheduledServicesData.map((item) => item.ponto)),
-            ),
+            options: filterOptions.ponto,
             width: "w-44",
           },
         ]}
-        onFilter={setFilteredServicesData}
+        onFilter={setTableFilters}
+        extraFilters={
+          <div className="min-w-[160px]">
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Tipo
+            </label>
+            <FormControl fullWidth size="small">
+              <Select
+                value={materialOrService}
+                onChange={(e) => setMaterialOrService(e.target.value)}
+                className="bg-white rounded-lg h-[38px]"
+              >
+                {MATERIAL_OR_SERVICE_OPTIONS.map((p) => (
+                  <MenuItem key={p} value={p}>
+                    {p}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
+        }
       />
+
       <TableContainer component={Paper} sx={{ height: 620 }}>
         <Table stickyHeader size="small">
           <TableHead>
