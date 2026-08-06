@@ -55,8 +55,6 @@ export function ScheduleHistory({
     return dayjs(dateString).utc().format("DD/MM/YYYY");
   };
 
-  console.log(scheduledServicesHistory);
-
   return (
     <div className="bg-white shadow rounded-xl p-4 sm:p-6 min-h-[480px]">
       <div className="flex justify-between items-center mb-4">
@@ -68,7 +66,7 @@ export function ScheduleHistory({
           onClick={() => {
             setOpenConfirmationModal(true);
           }}
-          // disabled={!isDisabled}
+          disabled={!isDisabled}
         >
           CANCELAR
         </Button>
