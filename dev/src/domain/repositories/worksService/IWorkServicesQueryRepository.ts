@@ -20,6 +20,7 @@ export interface IWorkServicesQueryRepository {
   getServicesContracts(idParceira: number): Promise<any[]>;
   getMaterialsContract(): Promise<any[]>;
   getTeamsServices(idParceira: number): Promise<any[]>;
+  getServicePoints(id: number): Promise<string[]>;
 }
 
 export const WORK_SERVICES_QUERY_REPOSITORY = Symbol(

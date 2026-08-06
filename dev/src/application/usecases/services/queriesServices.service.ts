@@ -67,11 +67,16 @@ export class QueriesServicesService {
     }
 
     const response = services.map((service) => {
-      const preco =
-        service.servicos_contratos?.preco ??
-        service.materiais?.preco.toNumber();
+      const precoServico = service.servicos_contratos?.preco;
+      const precoMaterial = service.materiais?.preco;
 
-      const qtdeTotal = service.qtde_plan + service.qtde_adicional;
+      const preco = Number(precoServico ?? precoMaterial);
+
+      const viabilizado = service.viabilizado;
+      const qtdeAdicional = service.qtde_adicional ?? 0;
+      const qtdeRealizada = service.qtde_real ?? 0;
+
+      const qtdeTotal = viabilizado + qtdeAdicional - qtdeRealizada;
 
       return {
         id: service.id,
@@ -89,7 +94,6 @@ export class QueriesServicesService {
         qtdePlanejada: service.qtde_plan,
         qtdeAdicional: service.qtde_adicional,
         viabilizado: service.viabilizado,
-        qtdeProgramada: service.qtde_prog,
         qtdeRealizada: service.qtde_real,
         tipo: service.materiais?.codigo ? 'M' : 'S',
         valorUnit: preco,
@@ -192,5 +196,9 @@ export class QueriesServicesService {
       await this.workServicesQueryRepository.getTeamsServices(idParceira);
 
     return data;
+  }
+
+  async getServicePoints(id: number) {
+    return await this.workServicesQueryRepository.getServicePoints(id);
   }
 }

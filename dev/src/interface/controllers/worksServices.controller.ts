@@ -118,6 +118,17 @@ export class ServicesController {
     };
   }
 
+  @Get('pontos/:id')
+  async getServicePoints(@Param('id', ParseIntPipe) id: number) {
+    const response = await this.queriesServicesService.getServicePoints(id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Pontos da obra retornado com sucesso',
+      data: response,
+    };
+  }
+
   @Patch('cancelar/:id')
   async cancelScheduleService(@Param('id', ParseIntPipe) id: number) {
     await this.worksServicesService.cancelServices(id);
