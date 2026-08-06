@@ -11,7 +11,7 @@ import { type Dispatch, type SetStateAction } from "react";
 import { MultiSelectFilter } from "./multiSelectFilter";
 import { EmptyState } from "./emptyState";
 import { ServiceCard } from "./serviceCard";
-import { resolveService, useScheduleSidebar } from "@/hooks/useScheduleSidebar";
+import { useScheduleSidebar } from "@/hooks/services/useScheduleSidebar";
 
 export interface ServiceEquipe {
   equipe: string;
@@ -32,9 +32,8 @@ export interface ScheduledService {
 }
 
 export interface ScheduleSidebarProps {
-  selectedServices: (ScheduledService | number)[];
+  selectedServices: ScheduledService[];
   setSelectedServices: Dispatch<SetStateAction<(ScheduledService | number)[]>>;
-  servicesData: ScheduledService[];
   setServicesData: Dispatch<SetStateAction<ScheduledService[]>>;
   selectedCount: number;
   canCreate: boolean;
@@ -47,7 +46,6 @@ export interface ScheduleSidebarProps {
 export function ScheduleSidebar({
   selectedServices,
   setSelectedServices,
-  servicesData,
   setServicesData,
   selectedCount,
   canCreate,
@@ -66,14 +64,14 @@ export function ScheduleSidebar({
     handleChangePonto,
     handleChangeEquipe,
     clearFilters,
-  } = useScheduleSidebar(selectedServices, servicesData);
+  } = useScheduleSidebar(selectedServices);
+
 
   const handleDelete = (resolvedService: ScheduledService) => {
-    const originalIndex = selectedServices.findIndex((s) => {
-      const resolved = resolveService(s, servicesData);
+    const originalIndex = selectedServices.findIndex((service) => {
       return (
-        resolved.id === resolvedService.id &&
-        resolved.ponto === resolvedService.ponto
+        service.id === resolvedService.id &&
+        service.ponto === resolvedService.ponto
       );
     });
 

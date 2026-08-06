@@ -17,6 +17,7 @@ interface AddServiceAccordionProps {
   title: string;
   contracts: any[];
   services: any[];
+  points: string[];
   type: MaterialOrService;
 }
 
@@ -26,6 +27,7 @@ export type AddMaterialOrServiceFormState = {
   operation: string;
   operationNumber: string;
   operationDescription: string;
+  quantity: number;
 };
 
 function useUniqueValues<T>(data: T[], keys: (keyof T)[]) {
@@ -45,6 +47,7 @@ export function AddServiceAccordion({
   title,
   contracts,
   services,
+  points,
   type,
 }: AddServiceAccordionProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -117,8 +120,7 @@ export function AddServiceAccordion({
             <AddServiceForm
               idWork={idWork}
               serviceContractData={contracts}
-              operations={SERVICE_OPERATIONS}
-              points={filters.ponto}
+              points={points}
               operationsDescription={filters.descricao_operacao}
               operationsNumber={filters.numero_operacao}
               onSubmit={async (data) => {
@@ -137,8 +139,7 @@ export function AddServiceAccordion({
             <AddMaterialForm
               idWork={idWork}
               materialData={contracts}
-              operations={SERVICE_OPERATIONS}
-              points={filters.ponto}
+              points={points}
               operationsDescription={filters.descricao_operacao}
               operationsNumber={filters.numero_operacao}
               onSubmit={async (data) => {

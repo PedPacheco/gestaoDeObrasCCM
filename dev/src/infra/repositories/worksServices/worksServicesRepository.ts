@@ -127,6 +127,7 @@ export class WorkServicesRepository implements IWorkServicesRepository {
       point,
       operationDescription,
       operationNumber,
+      quantity,
     } = data;
 
     await this.prisma.servicos.create({
@@ -139,6 +140,7 @@ export class WorkServicesRepository implements IWorkServicesRepository {
         descricao_operacao: operationDescription,
         numero_operacao: operationNumber,
         qtde_plan: 0,
+        qtde_adicional: quantity,
       },
     });
   }

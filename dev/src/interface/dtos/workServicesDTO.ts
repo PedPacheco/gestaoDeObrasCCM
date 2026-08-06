@@ -52,6 +52,10 @@ export class AddServicesDTO {
 
   @IsString()
   operationDescription: string;
+
+  @IsNumber()
+  @Type(() => Number)
+  quantity: number;
 }
 
 export class PerformServicesDTO {

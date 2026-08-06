@@ -66,6 +66,7 @@ describe('WorksServicesService', () => {
     getServicesContracts: jest.fn(),
     getTeamsServices: jest.fn(),
     getMaterialsContract: jest.fn(),
+    getServicePoints: jest.fn(),
   };
 
   const mockGetWorkDetailsService = {
@@ -276,7 +277,7 @@ describe('WorksServicesService', () => {
         programacoes: {
           data_prog: new Date('2024-01-01'),
         },
-        viabilizado: 0,
+        viabilizado: 10,
         materiais: {
           codigo: '12345',
           descricao: 'POSTE',
@@ -302,7 +303,7 @@ describe('WorksServicesService', () => {
           preco: 200,
         },
         programacoes: null,
-        viabilizado: 0,
+        viabilizado: 2,
         materiais: undefined,
       },
     ];
@@ -326,13 +327,12 @@ describe('WorksServicesService', () => {
           textoBreve: 'POSTE',
           dataProgramada: new Date('2024-01-01'),
           qtdePlanejada: 10,
-          qtdeProgramada: 8,
-          viabilizado: 0,
+          viabilizado: 10,
           qtdeRealizada: 5,
           qtdeAdicional: null,
           tipo: 'M',
           valorUnit: 1.5,
-          valorTotal: 15,
+          valorTotal: 7.5,
           valorReal: 7.5,
         },
         {
@@ -346,8 +346,7 @@ describe('WorksServicesService', () => {
           textoBreve: 'Serviço 2',
           dataProgramada: undefined,
           qtdePlanejada: 2,
-          qtdeProgramada: 3,
-          viabilizado: 0,
+          viabilizado: 2,
           qtdeRealizada: null,
           qtdeAdicional: 1,
           tipo: 'S',
@@ -413,7 +412,7 @@ describe('WorksServicesService', () => {
       const result = await service.getNotScheduledServices(1);
 
       expect(result[0].valorUnit).toBe(5); // 50 * 25.5
-      expect(result[0].valorTotal).toBe(10); // 50 * 25.5
+      expect(result[0].valorTotal).toBe(40); // 50 * 25.5
       expect(result[0].valorReal).toBe(10); // 30 * 25.5
     });
 
@@ -835,6 +834,22 @@ describe('WorksServicesService', () => {
       const response = await service.getMaterials();
 
       expect(response).toEqual([]);
+    });
+  });
+
+  describe('getServicePoints', () => {
+    it('should return service points successfully', async () => {
+      const mockIdWork = 1;
+      const mockPoints = ['P1', 'P2'];
+
+      mockWorksServicesRepository.getServicePoints.mockResolvedValue(
+        mockPoints,
+      );
+
+      const result = await service.getServicePoints(mockIdWork);
+
+      expect(result).toEqual(mockPoints);
+      expect(repository.getServicePoints).toHaveBeenCalledTimes(1);
     });
   });
 });

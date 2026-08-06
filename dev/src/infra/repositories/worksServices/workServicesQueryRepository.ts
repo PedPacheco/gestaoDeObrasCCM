@@ -55,7 +55,11 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
   async getNotScheduledServices(
     id: number,
   ): Promise<GetServicesByWorkIdResponse[]> {
-    return this.findService({ id_obra: id, id_programacao: null });
+    return this.findService({
+      id_obra: id,
+      id_programacao: null,
+      OR: [{ viabilizado: null }, { viabilizado: { not: 0 } }],
+    });
   }
 
   async getSelectedServices({
@@ -137,5 +141,14 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
         id_turma: idParceira,
       },
     });
+  }
+
+  async getServicePoints(id: number): Promise<string[]> {
+    const result = await this.prisma.servicos.groupBy({
+      by: ['ponto'],
+      where: { id_obra: id },
+    });
+
+    return result.map((item) => item.ponto);
   }
 }
