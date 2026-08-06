@@ -10,7 +10,7 @@ import {
   reascheduleServices,
 } from "@/actions/services";
 import { UseExecutionServiceFormReturn } from "@/hooks/useExecutionServicesForm";
-import { usePersistentServiceValidation } from "@/hooks/usePersistentServiceValidation";
+import { usePersistentServiceValidation } from "@/hooks/services/usePersistentServiceValidation";
 import { Paper, Typography } from "@mui/material";
 
 import { ScheduledServicesTable } from "./scheduledServicesTable";
