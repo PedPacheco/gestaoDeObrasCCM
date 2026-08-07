@@ -109,8 +109,12 @@ describe('WorkServicesQueryRepository', () => {
         where: {
           id_obra: 1,
           id_programacao: null,
-          qtde_real: { not: 0 },
-          OR: [{ viabilizado: null }, { viabilizado: { not: 0 } }],
+          OR: [{ qtde_real: null }, { qtde_real: { not: 0 } }],
+          AND: [
+            {
+              OR: [{ viabilizado: null }, { viabilizado: { not: 0 } }],
+            },
+          ],
         },
       });
       expect(prisma.servicos.findMany).toHaveBeenCalledTimes(1);

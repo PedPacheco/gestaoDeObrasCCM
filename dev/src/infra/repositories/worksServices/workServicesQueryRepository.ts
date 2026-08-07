@@ -59,8 +59,12 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     return this.findService({
       id_obra: id,
       id_programacao: null,
-      qtde_real: { not: 0 },
-      OR: [{ viabilizado: null }, { viabilizado: { not: 0 } }],
+      OR: [{ qtde_real: null }, { qtde_real: { not: 0 } }],
+      AND: [
+        {
+          OR: [{ viabilizado: null }, { viabilizado: { not: 0 } }],
+        },
+      ],
     });
   }
 
