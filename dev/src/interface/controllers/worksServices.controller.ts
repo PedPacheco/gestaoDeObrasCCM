@@ -118,13 +118,13 @@ export class ServicesController {
     };
   }
 
-  @Get('pontos/:id')
-  async getServicePoints(@Param('id', ParseIntPipe) id: number) {
-    const response = await this.queriesServicesService.getServicePoints(id);
+  @Get('opcoes/:id')
+  async getServiceOptions(@Param('id', ParseIntPipe) id: number) {
+    const response = await this.queriesServicesService.getServiceOptions(id);
 
     return {
       statusCode: HttpStatus.OK,
-      message: 'Pontos da obra retornado com sucesso',
+      message: 'Opções retornados com sucesso',
       data: response,
     };
   }

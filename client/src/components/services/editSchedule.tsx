@@ -51,7 +51,11 @@ interface EditScheduleProps {
   idStatusWork: number;
   idSchedule: number;
   statusSchedule?: string;
-  points: string[];
+  optionsToAddItem: {
+    operation_description: string[];
+    operation_number: string[];
+    points: string[];
+  };
 }
 
 export type TabId = "scheduled" | "available" | "add" | "history";
@@ -73,7 +77,7 @@ export function EditSchedule({
   idStatusWork,
   idSchedule,
   statusSchedule,
-  points,
+  optionsToAddItem,
 }: EditScheduleProps) {
   const router = useRouter();
   const { showError, showSuccess } = useFeedback();
@@ -284,8 +288,7 @@ export function EditSchedule({
                     idWork={Number(idWork)}
                     title="Adicionar novo serviço"
                     contracts={serviceContractData}
-                    services={servicesAvaliable}
-                    points={points}
+                    options={optionsToAddItem}
                     type="serviço"
                   />
 
@@ -293,8 +296,7 @@ export function EditSchedule({
                     idWork={Number(idWork)}
                     title="Adicionar novo material"
                     contracts={materialsData}
-                    services={servicesAvaliable}
-                    points={points}
+                    options={optionsToAddItem}
                     type="material"
                   />
                 </div>

@@ -70,10 +70,9 @@ export class WorksServicesService {
 
     const totalPlan = this.sumServiceQuantities(validServices);
 
-    const selectedPlan = servicesSelected.reduce(
-      (sum, item) => sum + item.prog,
-      0,
-    );
+    const selectedPlan = servicesSelected
+      .filter((item) => item.qtde_real !== 0)
+      .reduce((sum, item) => sum + item.prog, 0);
 
     const result = Math.round(
       totalPlan > 0 ? (selectedPlan / totalPlan) * 100 : 0,
@@ -122,7 +121,7 @@ export class WorksServicesService {
     data: AddServicesDTO,
     type: 'service' | 'material',
   ): Promise<void> {
-    const { idService, point, idWork } = data;
+    const { idService, operationNumber, point, idWork } = data;
 
     const items =
       await this.workServicesQueryRepository.getAllServicesOfWork(idWork);
@@ -131,12 +130,12 @@ export class WorksServicesService {
       items.map((item) => [
         `${
           type === 'service' ? item.id_contrato_servico : item.id_material
-        }:${item.ponto}`,
+        }:${item.ponto}:${item.numero_operacao}`,
         item,
       ]),
     );
 
-    if (itemsMap.has(`${idService}:${point}`)) {
+    if (itemsMap.has(`${idService}:${point}:${operationNumber}`)) {
       throw new BadRequestException(
         `Esse ${type === 'service' ? 'serviço' : 'material'} já existe nesse ponto.`,
       );
@@ -178,11 +177,16 @@ export class WorksServicesService {
       await this.workServicesQueryRepository.getServiceScheduleHistory(workId);
 
     const scheduledServices = new Set(
-      history.map((item) => `${item.id_programacao}-${item.id_servico}`),
+      history.map(
+        (item) =>
+          `${item.id_programacao}-${item.id_servico}-${item.servicos.ponto}-${item.servicos.operacao}`,
+      ),
     );
 
     const hasDuplicate = data.some((service) =>
-      scheduledServices.has(`${service.idSchedule}-${service.id}`),
+      scheduledServices.has(
+        `${service.idSchedule}-${service.id}-${service.point}-${service.operation}`,
+      ),
     );
 
     if (hasDuplicate) {

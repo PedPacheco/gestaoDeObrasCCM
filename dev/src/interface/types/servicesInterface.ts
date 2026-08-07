@@ -78,3 +78,9 @@ export interface GetServiceScheduleHistoryResponse {
   real: number;
   adicional: number;
 }
+
+export interface GetServiceOptionsResponse {
+  operation_description: string[];
+  operation_number: string[];
+  points: string[];
+}

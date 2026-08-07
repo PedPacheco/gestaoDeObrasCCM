@@ -115,7 +115,9 @@ export class FinalizeServicesService {
     scheduleId: number,
   ): ScheduleTotals {
     return history
-      .filter((service) => service.id_programacao === scheduleId)
+      .filter(
+        (service) => service.id_programacao === scheduleId && service.real != 0,
+      )
       .reduce(
         (acc, service) => ({
           exec: acc.exec + (service.real ?? 0),

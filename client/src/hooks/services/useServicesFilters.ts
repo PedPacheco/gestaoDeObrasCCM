@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import { useMemo, useState } from "react";
 
 export type MaterialOrServiceFilter = "Todos" | "Material" | "Serviço";
@@ -18,7 +19,19 @@ export function useServicesFilters(sourceData: any[]) {
 
   const filterOptions = useMemo(() => {
     const buildOptions = (data: any[], field: string) =>
-      Array.from(new Set(data.map((item) => String(item[field]))));
+      Array.from(
+        new Set(
+          data.map((item) => {
+            const value = item[field];
+
+            if (field === "dataProgramada" && value) {
+              return dayjs(value).utc().format("DD/MM/YYYY");
+            }
+
+            return String(value);
+          }),
+        ),
+      );
 
     const dataByType =
       materialOrService === "Serviço"
@@ -29,11 +42,12 @@ export function useServicesFilters(sourceData: any[]) {
 
     return {
       textoBreve: buildOptions(dataByType, "textoBreve"),
-      descricao_operacao: buildOptions(sourceData, "descricao_operacao"),
+      descricaoOperacao: buildOptions(sourceData, "descricaoOperacao"),
       operacao: buildOptions(sourceData, "operacao"),
       ponto: buildOptions(sourceData, "ponto"),
       encarregado: buildOptions(sourceData, "encarregado"),
       equipe: buildOptions(sourceData, "perfil"),
+      dataProgramada: buildOptions(sourceData, "dataProgramada"),
     };
   }, [materialOrService, sourceData]);
 
@@ -50,7 +64,13 @@ export function useServicesFilters(sourceData: any[]) {
       return filtered.filter((item) =>
         Object.entries(tableFilters).every(([field, values]) => {
           if (values.length === 0) return true;
-          return values.includes(String(item[field as keyof any]));
+
+          const value =
+            field === "dataProgramada"
+              ? dayjs(item.dataProgramada).utc().format("DD/MM/YYYY")
+              : String(item[field as keyof typeof item]);
+
+          return values.includes(value);
         }),
       );
     };

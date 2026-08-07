@@ -33,7 +33,7 @@ export default async function Page({ params, searchParams }: Props) {
   const [
     servicesData,
     contracts,
-    points,
+    options,
     materials,
     feasibilityData,
     feasibilityRejectionsHistoryData,
@@ -56,7 +56,7 @@ export default async function Page({ params, searchParams }: Props) {
       : null,
     ponto_a_ponto
       ? fetchData(
-          `${process.env.NEXT_PUBLIC_API_URL}/servicos/pontos/${id}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/servicos/opcoes/${id}`,
           undefined,
           token,
           FETCH_OPTIONS,
@@ -96,7 +96,7 @@ export default async function Page({ params, searchParams }: Props) {
       servicesData={servicesData?.data ?? null}
       contracts={contracts?.data ?? null}
       materials={materials?.data ?? null}
-      points={points?.data ?? null}
+      options={options?.data ?? null}
       workflowStatus={status}
       feasibilityData={feasibilityData.data}
       pointByPoint={pointByPoint}

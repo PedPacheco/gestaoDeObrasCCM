@@ -35,8 +35,8 @@ export class QueriesServicesService {
         idObra: service.id_obra,
         operacao: service.operacao,
         ponto: service.ponto,
-        numero_operacao: service.numero_operacao,
-        descricao_operacao: service.descricao_operacao,
+        numeroOperacao: service.numero_operacao,
+        descricaoOperacao: service.descricao_operacao,
         material:
           service.servicos_contratos?.material ?? service.materiais?.codigo,
         textoBreve:
@@ -83,8 +83,8 @@ export class QueriesServicesService {
         idObra: service.id_obra,
         operacao: service.operacao,
         ponto: service.ponto,
-        numero_operacao: service.numero_operacao,
-        descricao_operacao: service.descricao_operacao,
+        numeroOperacao: service.numero_operacao,
+        descricaoOperacao: service.descricao_operacao,
         material:
           service.servicos_contratos?.material ?? service.materiais?.codigo,
         textoBreve:
@@ -136,6 +136,7 @@ export class QueriesServicesService {
         qtdeRealizada: service.qtde_real,
         qtdeAdicional: service.qtde_adicional,
         viabilizado: service.viabilizado,
+        tipo: service.materiais?.codigo ? 'M' : 'S',
         valorUnit: preco,
         valorTotal: preco * service.qtde_prog,
         equipe: service.equipes.equipe,
@@ -198,7 +199,7 @@ export class QueriesServicesService {
     return data;
   }
 
-  async getServicePoints(id: number) {
-    return await this.workServicesQueryRepository.getServicePoints(id);
+  async getServiceOptions(id: number) {
+    return await this.workServicesQueryRepository.getServiceOptions(id);
   }
 }

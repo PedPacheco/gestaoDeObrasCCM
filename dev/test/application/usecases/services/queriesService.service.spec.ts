@@ -66,7 +66,7 @@ describe('WorksServicesService', () => {
     getServicesContracts: jest.fn(),
     getTeamsServices: jest.fn(),
     getMaterialsContract: jest.fn(),
-    getServicePoints: jest.fn(),
+    getServiceOptions: jest.fn(),
   };
 
   const mockGetWorkDetailsService = {
@@ -165,8 +165,8 @@ describe('WorksServicesService', () => {
           id: 1,
           idObra: 100,
           operacao: 'Operação 1',
-          descricao_operacao: 'POSTE',
-          numero_operacao: '2000',
+          descricaoOperacao: 'POSTE',
+          numeroOperacao: '2000',
           ponto: 'Ponto A',
           material: '12345',
           textoBreve: 'POSTE',
@@ -185,8 +185,8 @@ describe('WorksServicesService', () => {
           id: 2,
           idObra: 100,
           operacao: 'Operação 2',
-          descricao_operacao: 'POSTE - ODI',
-          numero_operacao: '2000',
+          descricaoOperacao: 'POSTE - ODI',
+          numeroOperacao: '2000',
           ponto: 'Ponto B',
           material: 'Material 2',
           textoBreve: 'Serviço 2',
@@ -320,8 +320,8 @@ describe('WorksServicesService', () => {
           id: 1,
           idObra: 100,
           operacao: 'Operação 1',
-          descricao_operacao: 'POSTE',
-          numero_operacao: '2000',
+          descricaoOperacao: 'POSTE',
+          numeroOperacao: '2000',
           ponto: 'Ponto A',
           material: '12345',
           textoBreve: 'POSTE',
@@ -339,8 +339,8 @@ describe('WorksServicesService', () => {
           id: 2,
           idObra: 100,
           operacao: 'Operação 2',
-          descricao_operacao: 'POSTE - ODI',
-          numero_operacao: '2000',
+          descricaoOperacao: 'POSTE - ODI',
+          numeroOperacao: '2000',
           ponto: 'Ponto B',
           material: 'Material 2',
           textoBreve: 'Serviço 2',
@@ -451,6 +451,8 @@ describe('WorksServicesService', () => {
         qtde_real: 5,
         qtde_adicional: null,
         viabilizado: 5,
+        descricao_operacao: 'Poste',
+        numero_operacao: '2000',
         servicos_contratos: {
           material: 'Material 1',
           texto_breve: 'Serviço 1',
@@ -476,6 +478,8 @@ describe('WorksServicesService', () => {
         qtde_adicional: null,
         viabilizado: 5,
         servicos_contratos: undefined,
+        descricao_operacao: 'Poste',
+        numero_operacao: '2000',
         materiais: {
           codigo: '1234',
           descricao: 'Poste',
@@ -508,12 +512,15 @@ describe('WorksServicesService', () => {
           material: 'Material 1',
           textoBreve: 'Serviço 1',
           dataProgramada: '2024-01-01',
+          descricao_operacao: 'Poste',
+          numero_operacao: '2000',
           qtdePlanejada: 10,
           qtdeProgramada: 8,
           qtdeRealizada: 5,
           qtdeAdicional: null,
           viabilizado: 5,
           equipe: 'LM 01',
+          tipo: 'S',
           encarregado: 'João Silva',
           perfil: 'Pedreiro',
           valorUnit: 100,
@@ -526,6 +533,8 @@ describe('WorksServicesService', () => {
           ponto: 'Ponto A',
           material: '1234',
           textoBreve: 'Poste',
+          descricao_operacao: 'Poste',
+          numero_operacao: '2000',
           dataProgramada: '2024-01-01',
           qtdePlanejada: 10,
           qtdeProgramada: 8,
@@ -533,6 +542,7 @@ describe('WorksServicesService', () => {
           qtdeAdicional: null,
           viabilizado: 5,
           equipe: 'LM 01',
+          tipo: 'M',
           encarregado: 'João Silva',
           perfil: 'Pedreiro',
           valorUnit: 5,
@@ -837,19 +847,23 @@ describe('WorksServicesService', () => {
     });
   });
 
-  describe('getServicePoints', () => {
+  describe('get', () => {
     it('should return service points successfully', async () => {
       const mockIdWork = 1;
-      const mockPoints = ['P1', 'P2'];
+      const mockPoints = {
+        operation_description: ['Poste'],
+        operation_number: ['2000'],
+        points: ['P1'],
+      };
 
-      mockWorksServicesRepository.getServicePoints.mockResolvedValue(
+      mockWorksServicesRepository.getServiceOptions.mockResolvedValue(
         mockPoints,
       );
 
-      const result = await service.getServicePoints(mockIdWork);
+      const result = await service.getServiceOptions(mockIdWork);
 
       expect(result).toEqual(mockPoints);
-      expect(repository.getServicePoints).toHaveBeenCalledTimes(1);
+      expect(repository.getServiceOptions).toHaveBeenCalledTimes(1);
     });
   });
 });

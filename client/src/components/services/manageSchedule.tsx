@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 
 import { newSaveSchedule } from "@/actions/schedules";
 import { useScheduleForm } from "@/hooks/details/useScheduleForm";
@@ -9,15 +9,13 @@ import { useScheduleWorkflow } from "@/hooks/details/useScheduleWorkflow";
 import { useFeedback } from "@/hooks/useFeedback";
 import { schedulesSchema } from "@/validations/validationSchedules";
 
+import { AddServiceAccordion } from "../addServiceAccordion/addServiceAccordion";
+import { ServiceContract } from "../addServiceAccordion/addServiceForm";
 import { EditSchedule } from "./editSchedule";
 import { NewScheduleSection } from "./scheduleSection/newScheduleSection";
 import { ScheduleSidebar } from "./scheduleSidebar/scheduleSidebar";
 import { ScheduleTopbar } from "./scheduleTopbar";
-
 import { NewServicesAvaliable } from "./servicesSection/servicesAvaliable";
-
-import { ServiceContract } from "../addServiceAccordion/addServiceForm";
-import { AddServiceAccordion } from "../addServiceAccordion/addServiceAccordion";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -37,7 +35,11 @@ interface ManageScheduleProps {
   idStatusWork: number;
   idSchedule: number | null;
   statusSchedule?: string;
-  points: string[];
+  optionsToAddItem: {
+    operation_description: string[];
+    operation_number: string[];
+    points: string[];
+  };
 }
 // ─────────────────────────────────────────────────────────────────────────────
 // Component
@@ -57,7 +59,7 @@ export function NewManageSchedule({
   idStatusWork,
   idSchedule,
   statusSchedule,
-  points,
+  optionsToAddItem,
 }: ManageScheduleProps) {
   const router = useRouter();
   const { showError, showSuccess } = useFeedback();
@@ -66,6 +68,10 @@ export function NewManageSchedule({
   const [servicesAvaliable, setServicesAvaliable] = useState<any[]>(
     servicesData || [],
   );
+
+  useEffect(() => {
+    setServicesAvaliable(servicesData ?? []);
+  }, [servicesData]);
 
   const [isPending, startTransition] = useTransition();
 
@@ -96,6 +102,8 @@ export function NewManageSchedule({
     const formattedService = selectedServices.map((service) => ({
       id: service.id,
       idTeam: service.idTeam,
+      point: service.ponto,
+      operation: service.operacao,
       prog: service.prog,
       additional: service.qtdeAdicional,
     }));
@@ -150,7 +158,7 @@ export function NewManageSchedule({
         idStatusWork={idStatusWork}
         idSchedule={idSchedule}
         statusSchedule={statusSchedule}
-        points={points}
+        optionsToAddItem={optionsToAddItem}
       />
     );
   }
@@ -194,18 +202,16 @@ export function NewManageSchedule({
                 idWork={Number(idWork)}
                 title="Adicionar novo serviço"
                 contracts={serviceContractData}
-                services={servicesAvaliable}
                 type="serviço"
-                points={points}
+                options={optionsToAddItem}
               />
 
               <AddServiceAccordion
                 idWork={Number(idWork)}
                 title="Adicionar novo material"
                 contracts={materialsData}
-                services={servicesAvaliable}
                 type="material"
-                points={points}
+                options={optionsToAddItem}
               />
             </div>
 

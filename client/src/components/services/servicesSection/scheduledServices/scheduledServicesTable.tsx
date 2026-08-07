@@ -29,8 +29,8 @@ const SERVICE_COLUMNS = [
   { key: "material", label: "CÓDIGO" },
   { key: "textoBreve", label: "SERVIÇO" },
   { key: "operacao", label: "OPERAÇÃO" },
-  { key: "numero_operacao", label: "N° OPERAÇÃO" },
-  { key: "descricao_operacao", label: "DESCRIÇÃO OPERAÇÃO" },
+  { key: "numeroOperacao", label: "N° DA OPERAÇÃO" },
+  { key: "descricaoOperacao", label: "DESCRIÇÃO DA OPERAÇÃO" },
   { key: "ponto", label: "PONTO" },
   { key: "equipe", label: "EQUIPE" },
   { key: "perfil", label: "PERFIL" },
@@ -105,7 +105,6 @@ export function ScheduledServicesTable({
 
       for (const col of SUMMABLE_COLUMNS) {
         if (col === "qtdeRealizada") {
-          // Usa o valor do state (editável pelo utilizador)
           const val = Number(currentService?.qtdeRealizada) || 0;
           sums[col] += val;
         } else {
@@ -141,11 +140,12 @@ export function ScheduledServicesTable({
   };
 
   const toggleAllServices = (checked: boolean) => {
-    setScheduledServices((prev: any) =>
-      prev.map((item: ScheduledServiceState) => ({
-        ...item,
-        selected: checked,
-      })),
+    const visibleIds = new Set(filteredServicesData.map((item) => item.id));
+
+    setScheduledServices((prev: ScheduledServiceState[]) =>
+      prev.map((item) =>
+        visibleIds.has(item.id) ? { ...item, selected: checked } : item,
+      ),
     );
   };
 
@@ -205,15 +205,15 @@ export function ScheduledServicesTable({
     const classes = {
       completo: {
         border: "border-l-green-500 border-solid",
-        bg: "bg-green-200",
+        bg: "bg-green-100 hover:bg-green-200 transition-colors",
       },
       reprogramar: {
         border: "border-l-red-500 border-solid",
-        bg: "bg-red-200",
+        bg: "bg-red-100 hover:bg-red-200 transition-colors",
       },
       "sem-realizacao": {
         border: "border-l-yellow-500 border-solid",
-        bg: "bg-yellow-200",
+        bg: "bg-yellow-100 hover:bg-yellow-200 transition-colors",
       },
     };
 
@@ -225,36 +225,36 @@ export function ScheduledServicesTable({
       <TableFilter
         fields={[
           {
-            label: "SERVIÇO/MATERIAL",
+            label: "Serviço/Material",
             field: "textoBreve",
             options: filterOptions.textoBreve,
           },
           {
-            label: "FAMÍLIA",
-            field: "descricao_operacao",
-            options: filterOptions.descricao_operacao,
+            label: "Família",
+            field: "descricaoOperacao",
+            options: filterOptions.descricaoOperacao,
             width: "w-80",
           },
           {
-            label: "ENCARREGADO",
+            label: "Encarregado",
             field: "encarregado",
             options: filterOptions.encarregado,
             width: "w-72",
           },
           {
-            label: "OPERAÇÃO",
+            label: "Operação",
             field: "operacao",
             options: SERVICE_OPERATIONS,
             width: "w-72",
           },
           {
-            label: "EQUIPE",
+            label: "Equipe",
             field: "perfil",
             options: filterOptions.equipe,
             width: "w-44",
           },
           {
-            label: "PONTO",
+            label: "Ponto",
             field: "ponto",
             options: filterOptions.ponto,
             width: "w-44",
@@ -313,7 +313,7 @@ export function ScheduledServicesTable({
               const rowStyle = getRowClassName(currentService.validationStatus);
 
               return (
-                <TableRow key={row.id} hover className={rowStyle?.bg}>
+                <TableRow key={row.id} className={rowStyle?.bg}>
                   <TableCell
                     padding="checkbox"
                     className={`border-l-4 ${rowStyle?.border}`}

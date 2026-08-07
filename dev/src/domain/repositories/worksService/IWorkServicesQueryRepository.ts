@@ -2,6 +2,7 @@ import {
   GetSelectedServicesParamsInterface,
   GetServicesByWorkIdResponse,
   GetServiceScheduleHistoryResponse,
+  GetServiceOptionsResponse,
   GetServicesSelectedByWorkIdResponse,
 } from 'src/interface/types/servicesInterface';
 
@@ -20,7 +21,7 @@ export interface IWorkServicesQueryRepository {
   getServicesContracts(idParceira: number): Promise<any[]>;
   getMaterialsContract(): Promise<any[]>;
   getTeamsServices(idParceira: number): Promise<any[]>;
-  getServicePoints(id: number): Promise<string[]>;
+  getServiceOptions(id: number): Promise<GetServiceOptionsResponse>;
 }
 
 export const WORK_SERVICES_QUERY_REPOSITORY = Symbol(

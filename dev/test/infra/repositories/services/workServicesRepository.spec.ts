@@ -42,6 +42,8 @@ describe('WorksServicesRepository', () => {
         idTeam: 2,
         idSchedule: 1,
         prog: 2,
+        operation: 'instalação',
+        point: 'p1',
         additional: null,
       },
       {
@@ -49,6 +51,8 @@ describe('WorksServicesRepository', () => {
         idTeam: 2,
         idSchedule: 1,
         prog: 2,
+        operation: 'instalação',
+        point: 'p1',
         additional: 2,
       },
     ];
@@ -173,6 +177,8 @@ describe('WorksServicesRepository', () => {
           id: 1,
           idSchedule: undefined,
           idTeam: 10,
+          operation: 'instalação',
+          point: 'p1',
           prog: 2,
           additional: 2,
         },
