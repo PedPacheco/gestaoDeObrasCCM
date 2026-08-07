@@ -22,6 +22,12 @@ export class ScheduleServicesDTO {
   @IsOptional()
   idSchedule?: number;
 
+  @IsString()
+  operation: string;
+
+  @IsString()
+  point: string;
+
   @IsNumber()
   @Type(() => Number)
   prog: number;
@@ -69,7 +75,8 @@ export class PerformServicesDTO {
 
   @IsNumber()
   @Type(() => Number)
-  qtdeRealizada: number;
+  @IsOptional()
+  qtdeRealizada?: number;
 }
 
 export class ApplyAdditonalDTO {

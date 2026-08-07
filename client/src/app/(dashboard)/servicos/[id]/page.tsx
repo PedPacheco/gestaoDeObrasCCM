@@ -29,7 +29,7 @@ export default async function ServicosPage({
     serviceTeams,
     scheduledServicesHistory,
     materialsData,
-    points,
+    optionsToAddItem,
   ] = await Promise.all([
     fetchFilters({
       restricao: true,
@@ -76,7 +76,7 @@ export default async function ServicosPage({
       { cache: "no-store" },
     ),
     fetchData(
-      `${process.env.NEXT_PUBLIC_API_URL}/servicos/pontos/${id}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/servicos/opcoes/${id}`,
       undefined,
       cookieStore.get("token")?.value,
       { cache: "no-store" },
@@ -99,7 +99,7 @@ export default async function ServicosPage({
         idStatusWork={Number(idStatusWorkCookie)}
         idSchedule={Number(formData?.id)}
         statusSchedule={statusSchedule}
-        points={points.data}
+        optionsToAddItem={optionsToAddItem.data}
       />
     </EmotionCacheProvider>
   );

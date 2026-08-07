@@ -8,6 +8,7 @@ import { FormatCurrency } from "@/utils/formatValue";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import {
   Autocomplete,
+  createFilterOptions,
   FormControl,
   InputLabel,
   MenuItem,
@@ -53,6 +54,11 @@ export function AddServiceForm({
   operationsDescription,
   onSubmit,
 }: Props) {
+  const filterOptions = createFilterOptions<ServiceContract>({
+    stringify: (option) => `${option.texto_breve} ${option.material}`,
+  });
+  console.log(serviceContractData[0]);
+
   const [form, setForm] = useState<AddMaterialOrServiceFormState>({
     idService: null,
     point: "",
@@ -64,9 +70,6 @@ export function AddServiceForm({
 
   const [loading, setLoading] = useState(false);
 
-  /**
-   * Atualiza estado de forma segura e imutável
-   */
   const updateField = useCallback(
     <K extends keyof AddMaterialOrServiceFormState>(
       field: K,
@@ -80,9 +83,6 @@ export function AddServiceForm({
     [],
   );
 
-  /**
-   * Submit handler otimizado
-   */
   const handleSubmit = async () => {
     try {
       setLoading(true);
@@ -113,11 +113,11 @@ export function AddServiceForm({
 
   return (
     <div className="space-y-4">
-      {/* SERVICE SELECT */}
       <div className="grid grid-cols-4 gap-4">
         <FormControl fullWidth size="small" className="col-span-2">
           <Autocomplete<ServiceContract>
             options={serviceContractData}
+            filterOptions={filterOptions}
             getOptionLabel={(s) => s.texto_breve}
             ListboxComponent={ServicesContractSelect}
             renderOption={(props, s) => {

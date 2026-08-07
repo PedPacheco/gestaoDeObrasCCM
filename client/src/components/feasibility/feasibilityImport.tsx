@@ -45,7 +45,11 @@ interface UploadViabilidadeProps {
   feasibilityRejectionsHistoryData: FeasibilityRejection[];
   contracts?: any[] | null;
   materials?: any[] | null;
-  points?: string[] | null;
+  options: {
+    operation_description: string[];
+    operation_number: string[];
+    points: string[];
+  };
   isApprover?: boolean;
   workflowStatus: FeasibilityWorkflowStatus;
   pointByPoint: boolean;
@@ -59,7 +63,7 @@ export function FeasibiltyUpload({
   servicesData,
   contracts,
   materials,
-  points,
+  options,
   workflowStatus,
   pointByPoint,
   isApprover = false,
@@ -204,7 +208,7 @@ export function FeasibiltyUpload({
               />
             </CardSection>
 
-            {isEditable && pointByPoint && contracts && materials && points && (
+            {isEditable && pointByPoint && contracts && materials && (
               <CardSection
                 id="itens-adicionais"
                 title="Itens Adicionais"
@@ -216,8 +220,7 @@ export function FeasibiltyUpload({
                     idWork={Number(idWork)}
                     title="Adicionar novo serviço"
                     contracts={contracts}
-                    services={servicesData}
-                    points={points}
+                    options={options}
                     type="serviço"
                   />
 
@@ -225,8 +228,7 @@ export function FeasibiltyUpload({
                     idWork={Number(idWork)}
                     title="Adicionar novo material"
                     contracts={materials}
-                    services={servicesData}
-                    points={points}
+                    options={options}
                     type="material"
                   />
                 </div>

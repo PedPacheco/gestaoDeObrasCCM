@@ -56,8 +56,8 @@ const serviceColumns = [
   { key: "textoBreve", label: "SERVIÇO" },
   { key: "tipo", label: "TIPO" },
   { key: "operacao", label: "OPERAÇÃO" },
-  { key: "numero_operacao", label: "N° DA OPERAÇÃO" },
-  { key: "descricao_operacao", label: "DESCRIÇÃO DA OPERAÇÃO" },
+  { key: "numeroOperacao", label: "N° DA OPERAÇÃO" },
+  { key: "descricaoOperacao", label: "DESCRIÇÃO DA OPERAÇÃO" },
   { key: "ponto", label: "PONTO" },
   { key: "qtdePlanejada", label: "PLAN" },
   { key: "viabilizado", label: "VIABILIZADO" },
@@ -106,7 +106,7 @@ export function NewServicesAvaliable({
   }, [servicesData]);
 
   const updateServiceQuantity = (id: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
+    if (!/^\d*([.]\d*)?$/.test(value)) return;
 
     setEditedServices((prev: any) =>
       prev.map((item: any) =>
@@ -133,10 +133,13 @@ export function NewServicesAvaliable({
       return;
     }
 
-    startTransition(() => {});
-
     if (response.message) {
-      onSuccess(response.message, () => router.refresh());
+      onSuccess(response.message);
+
+      startTransition(() => {
+        router.refresh();
+      });
+      7;
     }
   };
 
@@ -233,8 +236,8 @@ export function NewServicesAvaliable({
               },
               {
                 label: "Família",
-                field: "descricao_operacao",
-                options: filterOptions.descricao_operacao,
+                field: "descricaoOperacao",
+                options: filterOptions.descricaoOperacao,
               },
               {
                 label: "Operação",

@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 import { useFeedback } from "@/hooks/useFeedback";
 import { AddServiceForm } from "@/components/addServiceAccordion/addServiceForm";
 import { AddMaterialForm } from "@/components/addServiceAccordion/addMaterialForm";
-import { SERVICE_OPERATIONS } from "@/constants/services/services";
 
 type MaterialOrService = "material" | "serviço";
 
@@ -16,8 +15,11 @@ interface AddServiceAccordionProps {
   idWork: number;
   title: string;
   contracts: any[];
-  services: any[];
-  points: string[];
+  options: {
+    operation_description: string[];
+    operation_number: string[];
+    points: string[];
+  };
   type: MaterialOrService;
 }
 
@@ -30,24 +32,11 @@ export type AddMaterialOrServiceFormState = {
   quantity: number;
 };
 
-function useUniqueValues<T>(data: T[], keys: (keyof T)[]) {
-  return useMemo(() => {
-    return keys.reduce(
-      (acc, key) => {
-        acc[key] = Array.from(new Set(data?.map((item) => item[key])));
-        return acc;
-      },
-      {} as Record<keyof T, T[keyof T][]>,
-    );
-  }, [data, keys]);
-}
-
 export function AddServiceAccordion({
   idWork,
   title,
   contracts,
-  services,
-  points,
+  options,
   type,
 }: AddServiceAccordionProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -63,12 +52,6 @@ export function AddServiceAccordion({
       });
     });
   };
-
-  const filters = useUniqueValues(services, [
-    "ponto",
-    "numero_operacao",
-    "descricao_operacao",
-  ]);
 
   return (
     <div className="h-fit">
@@ -120,9 +103,9 @@ export function AddServiceAccordion({
             <AddServiceForm
               idWork={idWork}
               serviceContractData={contracts}
-              points={points}
-              operationsDescription={filters.descricao_operacao}
-              operationsNumber={filters.numero_operacao}
+              points={options.points}
+              operationsDescription={options.operation_description}
+              operationsNumber={options.operation_number}
               onSubmit={async (data) => {
                 const { addService } = await import("@/actions/services");
                 const response = await addService(data);
@@ -139,9 +122,9 @@ export function AddServiceAccordion({
             <AddMaterialForm
               idWork={idWork}
               materialData={contracts}
-              points={points}
-              operationsDescription={filters.descricao_operacao}
-              operationsNumber={filters.numero_operacao}
+              points={options.points}
+              operationsDescription={options.operation_description}
+              operationsNumber={options.operation_number}
               onSubmit={async (data) => {
                 const { addMaterial } = await import("@/actions/services");
                 const response = await addMaterial(data);

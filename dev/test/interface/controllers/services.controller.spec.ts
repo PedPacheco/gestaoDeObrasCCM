@@ -31,7 +31,7 @@ describe('ServicesController', () => {
     getTeamsServices: jest.fn(),
     getMaterials: jest.fn(),
     getAllItems: jest.fn(),
-    getServicePoints: jest.fn(),
+    getServiceOptions: jest.fn(),
   };
 
   const mockFinalizeServices = {
@@ -259,18 +259,22 @@ describe('ServicesController', () => {
   describe('getServicePoints', () => {
     it('should return Service Points', async () => {
       const mockId = 1;
-      const mockResponse = ['P1', 'P2'];
+      const mockResponse = {
+        operation_description: ['Poste'],
+        operation_number: ['2000'],
+        points: ['P1'],
+      };
 
-      mockQueriesService.getServicePoints.mockResolvedValue(mockResponse);
+      mockQueriesService.getServiceOptions.mockResolvedValue(mockResponse);
 
-      const result = await controller.getServicePoints(mockId);
+      const result = await controller.getServiceOptions(mockId);
 
       expect(result).toEqual({
         statusCode: HttpStatus.OK,
-        message: 'Pontos da obra retornado com sucesso',
+        message: 'Opções retornados com sucesso',
         data: mockResponse,
       });
-      expect(queriesService.getServicePoints).toHaveBeenCalledWith(mockId);
+      expect(queriesService.getServiceOptions).toHaveBeenCalledWith(mockId);
     });
   });
 
@@ -297,11 +301,15 @@ describe('ServicesController', () => {
           id: 1,
           idTeam: 10,
           prog: 100,
+          operation: 'instalação',
+          point: 'p1',
         },
         {
           id: 2,
           idTeam: 20,
           prog: 200,
+          operation: 'instalação',
+          point: 'p1',
         },
       ];
 
@@ -327,11 +335,15 @@ describe('ServicesController', () => {
           idTeam: 10,
           idSchedule: 5,
           prog: 100,
+          operation: 'instalação',
+          point: 'p1',
         },
         {
           id: 2,
           idTeam: 20,
           prog: 200,
+          operation: 'instalação',
+          point: 'p1',
         },
       ];
 
@@ -356,6 +368,8 @@ describe('ServicesController', () => {
           id: 1,
           idTeam: 10,
           prog: 100,
+          operation: 'instalação',
+          point: 'p1',
         },
       ];
 
@@ -388,18 +402,24 @@ describe('ServicesController', () => {
           idTeam: 10,
           idSchedule: 5,
           prog: 100,
+          operation: 'instalação',
+          point: 'p1',
         },
         {
           id: 2,
           idTeam: 20,
           idSchedule: 6,
           prog: 200,
+          operation: 'instalação',
+          point: 'p1',
         },
         {
           id: 3,
           idTeam: 30,
           idSchedule: 7,
           prog: 300,
+          operation: 'instalação',
+          point: 'p1',
         },
       ];
 
@@ -627,6 +647,8 @@ describe('ServicesController', () => {
           id: 1,
           idTeam: 10,
           prog: 100,
+          operation: 'instalação',
+          point: 'p1',
         },
       ];
       const mockError = new Error('Schedule conflict');

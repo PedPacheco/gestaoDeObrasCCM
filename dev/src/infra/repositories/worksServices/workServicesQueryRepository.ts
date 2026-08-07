@@ -5,6 +5,7 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import {
   GetSelectedServicesParamsInterface,
+  GetServiceOptionsResponse,
   GetServicesByWorkIdResponse,
   GetServiceScheduleHistoryResponse,
   GetServicesSelectedByWorkIdResponse,
@@ -58,6 +59,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     return this.findService({
       id_obra: id,
       id_programacao: null,
+      qtde_real: { not: 0 },
       OR: [{ viabilizado: null }, { viabilizado: { not: 0 } }],
     });
   }
@@ -143,12 +145,26 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     });
   }
 
-  async getServicePoints(id: number): Promise<string[]> {
-    const result = await this.prisma.servicos.groupBy({
-      by: ['ponto'],
-      where: { id_obra: id },
-    });
+  async getServiceOptions(id: number): Promise<GetServiceOptionsResponse> {
+    const [description, number, points] = await Promise.all([
+      this.prisma.servicos.groupBy({
+        by: ['descricao_operacao'],
+        where: { id_obra: id },
+      }),
+      this.prisma.servicos.groupBy({
+        by: ['numero_operacao'],
+        where: { id_obra: id },
+      }),
+      this.prisma.servicos.groupBy({
+        by: ['ponto'],
+        where: { id_obra: id },
+      }),
+    ]);
 
-    return result.map((item) => item.ponto);
+    return {
+      operation_description: description.map((d) => d.descricao_operacao),
+      operation_number: number.map((n) => n.numero_operacao),
+      points: points.map((p) => p.ponto),
+    };
   }
 }

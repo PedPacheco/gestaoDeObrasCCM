@@ -109,6 +109,7 @@ describe('WorkServicesQueryRepository', () => {
         where: {
           id_obra: 1,
           id_programacao: null,
+          qtde_real: { not: 0 },
           OR: [{ viabilizado: null }, { viabilizado: { not: 0 } }],
         },
       });
@@ -585,25 +586,56 @@ describe('WorkServicesQueryRepository', () => {
     });
   });
 
-  describe('getServicePoints', () => {
-    const mockPoints = ['P1', 'P2'];
-
-    it('should return teams services', async () => {
+  describe('getServiceOptions', () => {
+    it('should return service options', async () => {
       const mockId = 100;
 
-      mockPrismaService.servicos.groupBy.mockResolvedValue([
-        { id: 1, texto_breve: 'Poste', ponto: 'P1' },
-        { id: 2, texto_breve: 'Poste', ponto: 'P2' },
-      ]);
+      const descriptionMock = [
+        { descricao_operacao: 'Instalação de poste' },
+        { descricao_operacao: 'Troca de cruzeta' },
+        { descricao_operacao: 'Poda de árvore' },
+      ];
 
-      const result = await repository.getServicePoints(mockId);
+      const numberMock = [
+        { numero_operacao: 'OP001' },
+        { numero_operacao: 'OP002' },
+        { numero_operacao: 'OP003' },
+      ];
 
-      expect(result).toEqual(mockPoints);
-      expect(prisma.servicos.groupBy).toHaveBeenCalledWith({
-        by: ['ponto'],
-        where: { id_obra: 100 },
+      const pointsMock = [{ ponto: 'A' }, { ponto: 'B' }, { ponto: 'C' }];
+
+      mockPrismaService.servicos.groupBy
+        .mockResolvedValueOnce(descriptionMock)
+        .mockResolvedValueOnce(numberMock)
+        .mockResolvedValueOnce(pointsMock);
+
+      const result = await repository.getServiceOptions(mockId);
+
+      // Resultado esperado deve corresponder aos mocks
+      expect(result).toEqual({
+        operation_description: [
+          'Instalação de poste',
+          'Troca de cruzeta',
+          'Poda de árvore',
+        ],
+        operation_number: ['OP001', 'OP002', 'OP003'],
+        points: ['A', 'B', 'C'],
       });
-      expect(prisma.servicos.groupBy).toHaveBeenCalledTimes(1);
+
+      // Verificar que as 3 chamadas foram feitas com os parâmetros correctos
+      expect(mockPrismaService.servicos.groupBy).toHaveBeenCalledTimes(3);
+      expect(mockPrismaService.servicos.groupBy).toHaveBeenCalledWith({
+        by: ['descricao_operacao'],
+        where: { id_obra: mockId },
+      });
+      expect(mockPrismaService.servicos.groupBy).toHaveBeenCalledWith({
+        by: ['numero_operacao'],
+        where: { id_obra: mockId },
+      });
+      expect(mockPrismaService.servicos.groupBy).toHaveBeenCalledWith({
+        by: ['ponto'],
+        where: { id_obra: mockId },
+      });
     });
   });
 });

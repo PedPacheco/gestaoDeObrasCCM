@@ -29,8 +29,8 @@ export interface FeasibilityServiceItem {
   material: string;
   textoBreve: string;
   operacao?: string;
-  numero_operacao: string;
-  descricao_operacao: string;
+  numeroOperacao: string;
+  descricaoOperacao: string;
   ponto: string;
   tipo: string;
   qtdePlanejada: number;
@@ -47,13 +47,13 @@ const reviewColumns = [
   { key: "material", label: "CÓDIGO" },
   { key: "textoBreve", label: "SERVIÇO" },
   { key: "operacao", label: "OPERAÇÃO" },
-  { key: "numero_operacao", label: "N° DA OPERAÇÃO" },
-  { key: "descricao_operacao", label: "DESCRIÇÃO DA OPERAÇÃO" },
+  { key: "numeroOperacao", label: "N° DA OPERAÇÃO" },
+  { key: "descricaoOperacao", label: "DESCRIÇÃO DA OPERAÇÃO" },
   { key: "ponto", label: "PONTO" },
   { key: "qtdePlanejada", label: "QTD. PLANEJADA" },
 ] as const;
 
-const QUANTITY_PATTERN = /^\d*[.,]?\d*$/;
+const QUANTITY_PATTERN = /^\d*[.]?\d*$/;
 
 function isRowEmpty(row: FeasibilityServiceItem) {
   return (
@@ -192,8 +192,8 @@ export function FeasibilityServicesReviewStep({
           },
           {
             label: "Família",
-            field: "descricao_operacao",
-            options: filterOptions.descricao_operacao,
+            field: "descricaoOperacao",
+            options: filterOptions.descricaoOperacao,
           },
           {
             label: "Operação",

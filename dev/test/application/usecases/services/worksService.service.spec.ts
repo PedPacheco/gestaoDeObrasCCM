@@ -84,12 +84,16 @@ describe('WorksServicesService', () => {
           id: 1,
           idTeam: 10,
           prog: 3,
+          operation: 'instalação',
+          point: 'p1',
           additional: null,
         },
         {
           id: 2,
           idTeam: 20,
           prog: 5,
+          operation: 'instalação',
+          point: 'p1',
           additional: null,
         },
       ];
@@ -305,7 +309,7 @@ describe('WorksServicesService', () => {
           id: 2,
           id_contrato_servico: 2,
           ponto: 'P1',
-          operacao: 'INSTALACAO',
+          numero_operacao: '2000',
           qtde_plan: 2,
         },
       ]);
@@ -331,7 +335,7 @@ describe('WorksServicesService', () => {
           id: 2,
           id_material: 2,
           ponto: 'P1',
-          operacao: 'INSTALACAO',
+          numero_operacao: '2000',
           qtde_plan: 2,
         },
       ]);
@@ -415,6 +419,8 @@ describe('WorksServicesService', () => {
           idTeam: 10,
           idSchedule: 5,
           prog: 2,
+          operation: 'instalação',
+          point: 'p1',
           additional: null,
         },
       ];
@@ -429,6 +435,10 @@ describe('WorksServicesService', () => {
             id_servico: 1,
             prog: 2,
             real: 0,
+            servicos: {
+              ponto: 'p1',
+              operacao: 'instalação',
+            },
           },
         ],
       );
@@ -453,6 +463,8 @@ describe('WorksServicesService', () => {
           idTeam: 10,
           idSchedule: 5,
           prog: 2,
+          operation: 'instalação',
+          point: 'p1',
           additional: null,
         },
         {
@@ -460,6 +472,8 @@ describe('WorksServicesService', () => {
           idTeam: 10,
           idSchedule: 3,
           prog: 2,
+          operation: 'instalação',
+          point: 'p1',
           additional: null,
         },
       ];
@@ -480,6 +494,8 @@ describe('WorksServicesService', () => {
           idTeam: 10,
           idSchedule: 5,
           prog: undefined,
+          operation: 'instalação',
+          point: 'p1',
           additional: null,
         },
       ];
@@ -497,6 +513,8 @@ describe('WorksServicesService', () => {
           id: 1,
           idSchedule: 5,
           idTeam: 10,
+          operation: 'instalação',
+          point: 'p1',
           prog: 2,
         },
       ];
