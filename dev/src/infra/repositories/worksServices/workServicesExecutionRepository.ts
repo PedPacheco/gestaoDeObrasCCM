@@ -14,7 +14,8 @@ export class WorkServicesExeutionRepository implements IWorkServicesExecutionRep
     pendingExecServicesData: number[],
     tx: Prisma.TransactionClient,
   ): Promise<void> {
-    const { id, prog, exec, idExecutionRestriction, responsibility } = data;
+    const { id, prog, exec, idExecutionRestriction, responsibility, userId } =
+      data;
 
     try {
       await tx.programacoes.update({
@@ -24,6 +25,7 @@ export class WorkServicesExeutionRepository implements IWorkServicesExecutionRep
           exec: exec,
           id_restricao_execucao: idExecutionRestriction,
           nome_responsavel: responsibility,
+          id_usuario_ultima_atualizacao: userId,
         },
       });
 

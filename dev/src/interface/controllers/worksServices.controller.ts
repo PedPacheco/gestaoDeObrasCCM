@@ -173,15 +173,15 @@ export class ServicesController {
     @UploadedFiles() files: Express.Multer.File[],
     @Req() req: any,
   ) {
-    const idUser = req.user.sub;
+    const userId = req.user.sub;
 
     const data = {
       ...executionData.data,
-      idUser,
+      userId,
       executionReportData: executionData.data.executionReport
         ? {
             ...executionData.data.executionReport,
-            idUser,
+            userId,
           }
         : undefined,
     };

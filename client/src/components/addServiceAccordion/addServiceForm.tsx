@@ -57,7 +57,6 @@ export function AddServiceForm({
   const filterOptions = createFilterOptions<ServiceContract>({
     stringify: (option) => `${option.texto_breve} ${option.material}`,
   });
-  console.log(serviceContractData[0]);
 
   const [form, setForm] = useState<AddMaterialOrServiceFormState>({
     idService: null,

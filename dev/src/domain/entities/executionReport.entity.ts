@@ -8,7 +8,7 @@ export class ExecutionReport {
 
   private constructor(
     private readonly idSchedule: number,
-    private readonly idUser: number,
+    private readonly userId: number,
     private readonly idWork: number,
     private readonly supervisor: string,
     private readonly partialConnectionReleased: boolean,
@@ -37,7 +37,7 @@ export class ExecutionReport {
   ): ExecutionReport {
     const instance = new ExecutionReport(
       data.idSchedule,
-      data.idUser,
+      data.userId,
       data.idWork,
       data.supervisor,
       data.partialConnectionReleased,
@@ -128,7 +128,7 @@ export class ExecutionReport {
     const removidos = this.formatEquipment(this.equipmentRemoved);
 
     return {
-      id_usuario: this.idUser,
+      id_usuario: this.userId,
       id_obra: this.idWork,
       id_programacao: this.idSchedule,
       supervisor: this.supervisor,

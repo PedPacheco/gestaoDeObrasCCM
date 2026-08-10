@@ -17,10 +17,11 @@ import {
   WORK_SERVICES_EXECUTION_REPOSITORY,
 } from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
 import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
+import { GetServicesByWorkIdResponse } from 'src/interface/types/servicesInterface';
 
 interface ScheduleTotals {
-  prog: number;
   exec: number;
+  prog: number;
 }
 
 interface FinalizationData {
@@ -32,6 +33,7 @@ interface FinalizationData {
   idExecutionRestriction: number;
   responsibility: string;
   executionObservation: string;
+  userId: number;
 }
 
 @Injectable()
@@ -61,7 +63,7 @@ export class FinalizeServicesService {
     data: any,
     files?: Express.Multer.File[],
   ): Promise<void> {
-    const { executionReportData, ...updateData } = data;
+    const { executionReportData, userId, ...updateData } = data;
 
     const [services, history] = await Promise.all([
       this.workServicesQueryRepository.getAllServicesOfWork(workId),
@@ -91,23 +93,31 @@ export class FinalizeServicesService {
       updateData.idExecutionRestriction,
       updateData.responsibility,
       updateData.executionObservation,
+      userId,
     );
 
     await this.executeFinalization(
       workId,
+      updateData.idSchedule,
       finalizationData,
       pendingExecServices,
       executionReportData,
+      totalPlanned,
+      history,
       files,
     );
   }
 
-  private sumServiceQuantities(services: any[]): number {
-    return services.reduce(
-      (sum, service) =>
-        sum + (service.viabilizado ?? 0) + (service.qtde_adicional ?? 0),
-      0,
-    );
+  private sumServiceQuantities(
+    services: GetServicesByWorkIdResponse[],
+  ): number {
+    return services
+      .filter((service) => service.qtde_real !== 0)
+      .reduce(
+        (sum, service) =>
+          sum + (service.viabilizado ?? 0) + (service.qtde_adicional ?? 0),
+        0,
+      );
   }
 
   private calculateScheduleTotals(
@@ -116,7 +126,8 @@ export class FinalizeServicesService {
   ): ScheduleTotals {
     return history
       .filter(
-        (service) => service.id_programacao === scheduleId && service.real != 0,
+        (service) =>
+          service.id_programacao === scheduleId && service.real !== 0,
       )
       .reduce(
         (acc, service) => ({
@@ -137,6 +148,16 @@ export class FinalizeServicesService {
       .map((service) => service.id_servico);
   }
 
+  private calculatePercentage(value: number, total: number): number {
+    if (total <= 0) {
+      return 0;
+    }
+
+    const percentage = (value / total) * 100;
+
+    return Number(percentage.toFixed(4));
+  }
+
   private buildFinalizationData(
     scheduleId: number,
     workId: number,
@@ -146,41 +167,48 @@ export class FinalizeServicesService {
     idExecutionRestriction: number,
     responsibility: string,
     executionObservation: string,
+    userId: number,
   ): FinalizationData {
-    const calculatePercentage = (value: number) =>
-      Math.round(totalPlanned > 0 ? (value / totalPlanned) * 100 : 0);
-
     return {
       id: scheduleId,
       idWork: workId,
       dataProg: scheduleDate,
-      prog: Math.min(calculatePercentage(totals.prog)),
-      exec: Math.min(calculatePercentage(totals.exec)),
+      prog: this.calculatePercentage(totals.prog, totalPlanned),
+      exec: this.calculatePercentage(totals.exec, totalPlanned),
       idExecutionRestriction,
       responsibility,
       executionObservation,
+      userId,
     };
+  }
+
+  private calculateExecutedFromQuantities(
+    history: any[],
+    totalPlanned: number,
+    currentScheduleId: number,
+  ): number {
+    const totalReal = history
+      .filter((item) => item.id_programacao !== currentScheduleId)
+      .reduce((sum, item) => sum + (item.real ?? 0), 0);
+
+    return Math.min(this.calculatePercentage(totalReal, totalPlanned), 100);
   }
 
   private async executeFinalization(
     workId: number,
+    scheduleId: number,
     finalizationData: FinalizationData,
     pendingExecServices: number[],
     executionReportData: any,
+    totalPlanned: number,
+    history: any[],
     files?: Express.Multer.File[],
   ): Promise<void> {
-    const executionValues =
-      await this.updateSchedulesRepository.findExecutionOfSchedules(
-        finalizationData.id,
-        workId,
-      );
-
-    const executed = executionValues.reduce(
-      (total, item) => ({
-        exec: total.exec + (item.exec ?? 0),
-        prog: total.prog + (item.prog ?? 0),
-      }),
-      { exec: 0, prog: 0 },
+    // Calcula o total executado a partir das quantidades brutas (não das % arredondadas)
+    const executed = this.calculateExecutedFromQuantities(
+      history,
+      totalPlanned,
+      scheduleId,
     );
 
     await this.prisma.$transaction(async (tx) => {

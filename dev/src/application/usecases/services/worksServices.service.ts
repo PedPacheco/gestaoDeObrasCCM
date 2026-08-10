@@ -41,44 +41,14 @@ export class WorksServicesService {
   async scheduleServices(
     workId: number,
     data: ScheduleServicesDTO[],
-    scheduleProg?: number,
   ): Promise<void> {
     const idSchedule = data[0]?.idSchedule;
 
-    const prog =
-      scheduleProg ?? (await this.calculateScheduledProgress(workId, data));
+    const prog = await this.calculateScheduledProgress(workId, data);
 
     await this.validateScheduleServices(workId, data, prog);
 
-    const progressValue = scheduleProg ? prog : { increment: prog };
-
-    await this.workServicesRepository.scheduleServices(
-      data,
-      progressValue,
-      idSchedule,
-    );
-  }
-
-  async calculateScheduledProgress(
-    workId: number,
-    servicesSelected: any[],
-  ): Promise<number> {
-    const services =
-      await this.workServicesQueryRepository.getAllServicesOfWork(workId);
-
-    const validServices = services.filter((item) => item.qtde_real !== 0);
-
-    const totalPlan = this.sumServiceQuantities(validServices);
-
-    const selectedPlan = servicesSelected
-      .filter((item) => item.qtde_real !== 0)
-      .reduce((sum, item) => sum + item.prog, 0);
-
-    const result = Math.round(
-      totalPlan > 0 ? (selectedPlan / totalPlan) * 100 : 0,
-    );
-
-    return Math.min(result, 100);
+    await this.workServicesRepository.scheduleServices(data, prog, idSchedule);
   }
 
   async reascheduleServices(workId: number, scheduleId: number): Promise<void> {
@@ -142,6 +112,37 @@ export class WorksServicesService {
     }
 
     await this.workServicesRepository.addItem(data, type);
+  }
+
+  private calculateProgress(scheduledPlan: number, totalPlan: number): number {
+    if (totalPlan <= 0) {
+      return 0;
+    }
+
+    if (Math.abs(totalPlan - scheduledPlan) < 0.0001) {
+      return 100;
+    }
+
+    return Number(((scheduledPlan / totalPlan) * 100).toFixed(2));
+  }
+
+  private async calculateScheduledProgress(
+    workId: number,
+    servicesSelected: ScheduleServicesDTO[],
+  ): Promise<number> {
+    const services =
+      await this.workServicesQueryRepository.getAllServicesOfWork(workId);
+
+    const validServices = services.filter((item) => item.qtde_real !== 0);
+
+    const totalPlan = this.sumServiceQuantities(validServices);
+
+    const scheduledPlan = servicesSelected.reduce(
+      (sum, item) => sum + item.prog,
+      0,
+    );
+
+    return this.calculateProgress(scheduledPlan, totalPlan);
   }
 
   private sumServiceQuantities(services: any[]): number {

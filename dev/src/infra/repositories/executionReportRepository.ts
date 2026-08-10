@@ -31,6 +31,11 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
         select: { exec: true, id_obra: true },
       });
 
+      await tx.programacoes_servicos.updateMany({
+        where: { id_programacao: idSchedule },
+        data: { real: null },
+      });
+
       await tx.programacoes.update({
         where: { id: idSchedule },
         data: {
@@ -39,12 +44,24 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
         },
       });
 
+      const result = await tx.programacoes.aggregate({
+        where: {
+          id_obra: schedule.id_obra,
+          exec: { not: null },
+        },
+        _sum: {
+          exec: true,
+        },
+      });
+
+      const newExecutado = Number(result._sum.exec ?? 0);
+
       await tx.obras.update({
         where: { id: schedule.id_obra },
         data: {
           id_status: 35,
           data_conclusao: null,
-          executado: { decrement: schedule.exec },
+          executado: newExecutado,
         },
       });
 

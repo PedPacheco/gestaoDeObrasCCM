@@ -50,7 +50,7 @@ export class UpdateSchedulesService {
         { exec: 0, prog: 0 },
       );
 
-      await this.executionValidator.validateExecutionAndUpdateStatus(
+      await this.executionValidator.oldValidateExecutionAndUpdateStatus(
         data,
         executed,
         tx,

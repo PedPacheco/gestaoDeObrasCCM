@@ -31,6 +31,8 @@ export function formatPercentage(value: number, locale: string = "pt-BR") {
 
   return new Intl.NumberFormat(locale, {
     style: "percent",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(correctValue);
 }
 

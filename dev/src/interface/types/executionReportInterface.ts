@@ -2,7 +2,7 @@ import { EquipmentItem } from '../dtos/executionReportDTO';
 
 export interface ExecutionReportServiceInterface {
   idSchedule: number;
-  idUser: number;
+  userId: number;
   idWork: number;
   supervisor: string;
   partialConnectionReleased: boolean;
