@@ -56,7 +56,7 @@ export class TeamAggregationService {
       (acc, item: any) => {
         const monthField = MONTH_FIELDS[initial.month()];
 
-        if (Number(item.ano) === moment().year()) {
+        if (Number(item.ano) === initial.year()) {
           acc.rfpTeams += item.qtd_equipes_rfp ?? 0;
 
           acc.executionCapacityTeams += item[monthField] ?? 0;
