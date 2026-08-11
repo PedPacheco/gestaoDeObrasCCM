@@ -115,10 +115,6 @@ export class WorksServicesService {
   }
 
   private calculateProgress(scheduledPlan: number, totalPlan: number): number {
-    if (totalPlan <= 0) {
-      return 0;
-    }
-
     if (Math.abs(totalPlan - scheduledPlan) < 0.0001) {
       return 100;
     }
@@ -133,9 +129,7 @@ export class WorksServicesService {
     const services =
       await this.workServicesQueryRepository.getAllServicesOfWork(workId);
 
-    const validServices = services.filter((item) => item.qtde_real !== 0);
-
-    const totalPlan = this.sumServiceQuantities(validServices);
+    const totalPlan = this.sumServiceQuantities(services);
 
     const scheduledPlan = servicesSelected.reduce(
       (sum, item) => sum + item.prog,
@@ -146,11 +140,13 @@ export class WorksServicesService {
   }
 
   private sumServiceQuantities(services: any[]): number {
-    return services.reduce(
-      (sum, service) =>
-        sum + (service.viabilizado ?? 0) + (service.qtde_adicional ?? 0),
-      0,
-    );
+    return services
+      .filter((item) => Number(item.qtde_real) !== 0)
+      .reduce(
+        (sum, service) =>
+          sum + (service.viabilizado ?? 0) + (service.qtde_adicional ?? 0),
+        0,
+      );
   }
 
   private async validateScheduleServices(

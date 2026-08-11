@@ -108,9 +108,25 @@ describe('WorkServicesQueryRepository', () => {
         },
         where: {
           id_obra: 1,
-          id_programacao: null,
-          qtde_real: { not: 0 },
-          OR: [{ viabilizado: null }, { viabilizado: { not: 0 } }],
+          id_programacao: {
+            equals: null,
+          },
+          AND: [
+            {
+              OR: [
+                {
+                  qtde_real: null,
+                },
+
+                {
+                  qtde_real: {
+                    not: 0,
+                  },
+                },
+              ],
+            },
+            { OR: [{ viabilizado: null }, { viabilizado: { not: 0 } }] },
+          ],
         },
       });
       expect(prisma.servicos.findMany).toHaveBeenCalledTimes(1);
@@ -122,15 +138,6 @@ describe('WorkServicesQueryRepository', () => {
       const result = await repository.getNotScheduledServices(1);
 
       expect(result).toEqual([]);
-    });
-
-    it('should only return services with null id_programacao', async () => {
-      mockPrismaService.servicos.findMany.mockResolvedValue([]);
-
-      await repository.getNotScheduledServices(1);
-
-      const callArgs = mockPrismaService.servicos.findMany.mock.calls[0][0];
-      expect(callArgs.where.id_programacao).toBeNull();
     });
   });
 

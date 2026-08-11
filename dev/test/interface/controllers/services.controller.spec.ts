@@ -552,14 +552,14 @@ describe('ServicesController', () => {
 
       const expectedExecutionReportData = {
         ...mockExecutionData.data.executionReport,
-        idUser: 99,
+        userId: 99,
       };
 
       expect(mockFinalizeServices.finalizeServices).toHaveBeenCalledWith(
         mockId,
         expect.objectContaining({
           idSchedule: 123,
-          idUser: 99,
+          userId: 99,
           executionReportData: expectedExecutionReportData,
         }),
         mockFiles,
@@ -578,7 +578,7 @@ describe('ServicesController', () => {
         mockId,
         expect.objectContaining({
           idSchedule: 1,
-          idUser: 99,
+          userId: 99,
           executionReportData: undefined,
         }),
         mockFiles,

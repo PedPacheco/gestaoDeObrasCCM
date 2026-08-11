@@ -31,18 +31,25 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
         select: { exec: true, id_obra: true },
       });
 
-      await tx.programacoes_servicos.updateMany({
-        where: { id_programacao: idSchedule },
-        data: { real: null },
-      });
+      await Promise.all([
+        tx.programacoes_servicos.updateMany({
+          where: { id_programacao: idSchedule },
+          data: { real: null },
+        }),
 
-      await tx.programacoes.update({
-        where: { id: idSchedule },
-        data: {
-          exec: null,
-          id_status_programacao: 3,
-        },
-      });
+        tx.servicos.updateMany({
+          where: { id_programacao: idSchedule },
+          data: { qtde_real: null },
+        }),
+
+        tx.programacoes.update({
+          where: { id: idSchedule },
+          data: {
+            exec: null,
+            id_status_programacao: 3,
+          },
+        }),
+      ]);
 
       const result = await tx.programacoes.aggregate({
         where: {

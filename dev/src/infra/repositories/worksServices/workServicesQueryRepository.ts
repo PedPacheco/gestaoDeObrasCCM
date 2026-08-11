@@ -58,9 +58,25 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
   ): Promise<GetServicesByWorkIdResponse[]> {
     return this.findService({
       id_obra: id,
-      id_programacao: null,
-      qtde_real: { not: 0 },
-      OR: [{ viabilizado: null }, { viabilizado: { not: 0 } }],
+      id_programacao: {
+        equals: null,
+      },
+      AND: [
+        {
+          OR: [
+            {
+              qtde_real: null,
+            },
+
+            {
+              qtde_real: {
+                not: 0,
+              },
+            },
+          ],
+        },
+        { OR: [{ viabilizado: null }, { viabilizado: { not: 0 } }] },
+      ],
     });
   }
 

@@ -21,13 +21,12 @@ export class ScheduleExecutionValidatorService {
     private readonly statusFlowRepository: IStatusFlowRepository,
   ) {}
 
-  private async processExecution(
+  async validateExecutionAndUpdateStatus(
     data: ScheduleExecutionValidatorInterface,
-    currentExecuted: number,
-    currentProg: number,
+    totals: returnExecution,
     tx: Prisma.TransactionClient,
   ) {
-    const newExecuted = currentExecuted + (data.exec ?? 0);
+    const newExecuted = totals.exec + (data.exec ?? 0);
 
     if (newExecuted > 100) {
       throw new BadRequestException(
@@ -39,7 +38,7 @@ export class ScheduleExecutionValidatorService {
       await this.statusFlowRepository.updateScheduleStatus(4, data.id, tx);
 
       if (newExecuted < 100) {
-        if (currentProg + newExecuted === 100) {
+        if (totals.prog + newExecuted === 100) {
           await this.statusFlowRepository.updateStatusWorks(
             35,
             data.idWork,
@@ -56,12 +55,10 @@ export class ScheduleExecutionValidatorService {
         });
       }
 
-      if (newExecuted === 100) {
-        await this.statusFlowRepository.updateStatusWorks(2, data.idWork, tx, {
-          data_conclusao: data.dataProg,
-          totalExecuted: newExecuted,
-        });
-      }
+      await this.statusFlowRepository.updateStatusWorks(2, data.idWork, tx, {
+        data_conclusao: data.dataProg,
+        totalExecuted: newExecuted,
+      });
     }
 
     if (data.exec === 0) {
@@ -77,26 +74,5 @@ export class ScheduleExecutionValidatorService {
         totalExecuted: newExecuted,
       });
     }
-  }
-
-  async validateExecutionAndUpdateStatus(
-    data: ScheduleExecutionValidatorInterface,
-    totalExecuted: number,
-    tx: Prisma.TransactionClient,
-  ) {
-    return this.processExecution(data, totalExecuted, data.prog, tx);
-  }
-
-  async oldValidateExecutionAndUpdateStatus(
-    data: ScheduleExecutionValidatorInterface,
-    totalExecuted: returnExecution,
-    tx: Prisma.TransactionClient,
-  ) {
-    return this.processExecution(
-      data,
-      totalExecuted.exec,
-      totalExecuted.prog,
-      tx,
-    );
   }
 }

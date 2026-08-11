@@ -192,6 +192,8 @@ export function ScheduledServices({
   const handleFinalizeServices = () => {
     clearValidation();
 
+    console.log(executionIsPartial, executionIsCanceled);
+
     if (executionIsPartial || executionIsCanceled) {
       setIsRestrictionsModalOpen(true);
     } else {

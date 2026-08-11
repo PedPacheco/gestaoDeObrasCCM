@@ -1,25 +1,21 @@
 import {
-  IUpdateSchedulesRepository,
-  UPDATE_SCHEDULES_REPOSITORY,
-} from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
+  IWorkServicesExecutionRepository,
+  WORK_SERVICES_EXECUTION_REPOSITORY,
+} from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
+import {
+  IWorkServicesQueryRepository,
+  WORK_SERVICES_QUERY_REPOSITORY,
+} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
+import { GetServicesByWorkIdResponse } from 'src/interface/types/servicesInterface';
 
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
 import { ExecutionReportService } from '../executionReport.service';
 import { ScheduleExecutionValidatorService } from '../schedule/scheduleExecutionValidator.service';
-import {
-  IWorkServicesQueryRepository,
-  WORK_SERVICES_QUERY_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
-import {
-  IWorkServicesExecutionRepository,
-  WORK_SERVICES_EXECUTION_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
-import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
-import { GetServicesByWorkIdResponse } from 'src/interface/types/servicesInterface';
 
-interface ScheduleTotals {
+interface ScheduleTotalsById {
   exec: number;
   prog: number;
 }
@@ -46,8 +42,6 @@ export class FinalizeServicesService {
     private readonly worksServicesExecutionRepository: IWorkServicesExecutionRepository,
     @Inject(WORK_SERVICES_QUERY_REPOSITORY)
     private readonly workServicesQueryRepository: IWorkServicesQueryRepository,
-    @Inject(UPDATE_SCHEDULES_REPOSITORY)
-    private readonly updateSchedulesRepository: IUpdateSchedulesRepository,
     private readonly executionReportService: ExecutionReportService,
     private readonly executionValidator: ScheduleExecutionValidatorService,
   ) {}
@@ -70,11 +64,9 @@ export class FinalizeServicesService {
       this.workServicesQueryRepository.getServiceScheduleHistory(workId),
     ]);
 
-    const validServices = services.filter((item) => item.qtde_real !== 0);
+    const totalPlanned = this.sumServiceQuantities(services);
 
-    const totalPlanned = this.sumServiceQuantities(validServices);
-
-    const scheduleTotals = this.calculateScheduleTotals(
+    const scheduleTotals = this.calculateScheduleTotalsById(
       history,
       updateData.idSchedule,
     );
@@ -120,10 +112,10 @@ export class FinalizeServicesService {
       );
   }
 
-  private calculateScheduleTotals(
+  private calculateScheduleTotalsById(
     history: any[],
     scheduleId: number,
-  ): ScheduleTotals {
+  ): ScheduleTotalsById {
     return history
       .filter(
         (service) =>
@@ -143,6 +135,7 @@ export class FinalizeServicesService {
       .filter(
         (service) =>
           service.id_programacao === scheduleId &&
+          service.real !== 0 &&
           (service.real == null || service.prog > service.real),
       )
       .map((service) => service.id_servico);
@@ -162,7 +155,7 @@ export class FinalizeServicesService {
     scheduleId: number,
     workId: number,
     scheduleDate: Date,
-    totals: ScheduleTotals,
+    scheduleTotalsById: ScheduleTotalsById,
     totalPlanned: number,
     idExecutionRestriction: number,
     responsibility: string,
@@ -173,8 +166,8 @@ export class FinalizeServicesService {
       id: scheduleId,
       idWork: workId,
       dataProg: scheduleDate,
-      prog: this.calculatePercentage(totals.prog, totalPlanned),
-      exec: this.calculatePercentage(totals.exec, totalPlanned),
+      prog: this.calculatePercentage(scheduleTotalsById.prog, totalPlanned),
+      exec: this.calculatePercentage(scheduleTotalsById.exec, totalPlanned),
       idExecutionRestriction,
       responsibility,
       executionObservation,
@@ -186,12 +179,26 @@ export class FinalizeServicesService {
     history: any[],
     totalPlanned: number,
     currentScheduleId: number,
-  ): number {
-    const totalReal = history
-      .filter((item) => item.id_programacao !== currentScheduleId)
-      .reduce((sum, item) => sum + (item.real ?? 0), 0);
+  ): ScheduleTotalsById {
+    const totals: ScheduleTotalsById = history
+      .filter(
+        (item) => item.id_programacao !== currentScheduleId && item.real !== 0,
+      )
+      .reduce(
+        (acc, item) => ({
+          totalReal: acc.totalReal + (item.real ?? 0),
+          totalProg: acc.totalProg + (item.prog ?? 0),
+        }),
+        {
+          totalReal: 0,
+          totalProg: 0,
+        },
+      );
 
-    return Math.min(this.calculatePercentage(totalReal, totalPlanned), 100);
+    return {
+      exec: Math.min(this.calculatePercentage(totals.exec, totalPlanned), 100),
+      prog: Math.min(this.calculatePercentage(totals.prog, totalPlanned), 100),
+    };
   }
 
   private async executeFinalization(
