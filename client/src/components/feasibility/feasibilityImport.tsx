@@ -219,7 +219,7 @@ export function FeasibiltyUpload({
                   <AddServiceAccordion
                     idWork={Number(idWork)}
                     title="Adicionar novo serviço"
-                    contracts={contracts}
+                    services={contracts}
                     options={options}
                     type="serviço"
                   />
@@ -227,9 +227,18 @@ export function FeasibiltyUpload({
                   <AddServiceAccordion
                     idWork={Number(idWork)}
                     title="Adicionar novo material"
-                    contracts={materials}
+                    materials={materials}
                     options={options}
                     type="material"
+                  />
+
+                  <AddServiceAccordion
+                    idWork={Number(idWork)}
+                    title="Adicionar nova família"
+                    services={contracts}
+                    materials={materials}
+                    type="familia"
+                    options={options}
                   />
                 </div>
               </CardSection>
