@@ -17,6 +17,7 @@ export interface IWorkServicesRepository {
   ): Promise<void>;
   cancelServices(id: number): Promise<void>;
   addItem(data: AddServicesDTO, type: 'service' | 'material'): Promise<void>;
+  delete(id: number): Promise<void>;
 }
 
 export const WORK_SERVICES_REPOSITORY = Symbol('WorkServicesRepository');

@@ -61,7 +61,7 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
         },
       });
 
-      const newExecutado = Number(result._sum.exec ?? 0);
+      const newExecutado = Number(result._sum.exec);
 
       await tx.obras.update({
         where: { id: schedule.id_obra },

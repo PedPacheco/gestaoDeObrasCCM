@@ -106,7 +106,14 @@ describe('ScheduleActionsController', () => {
           idProgRestriction2: 1,
         },
         services: [
-          { id: 1, idTeam: 1, operation: 'instalação', point: 'P1', prog: 1 },
+          {
+            id: 1,
+            idTeam: 1,
+            operation: 'instalação',
+            point: 'P1',
+            prog: 1,
+            type: 'M',
+          },
         ],
       },
       mockReq,
@@ -130,7 +137,14 @@ describe('ScheduleActionsController', () => {
         idUser: 1,
       },
       services: [
-        { id: 1, idTeam: 1, operation: 'instalação', point: 'P1', prog: 1 },
+        {
+          id: 1,
+          idTeam: 1,
+          operation: 'instalação',
+          point: 'P1',
+          prog: 1,
+          type: 'M',
+        },
       ],
     });
   });

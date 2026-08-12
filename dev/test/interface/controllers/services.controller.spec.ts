@@ -21,6 +21,7 @@ describe('ServicesController', () => {
     applyAdditional: jest.fn(),
     cancelServices: jest.fn(),
     addItem: jest.fn(),
+    delete: jest.fn(),
   };
 
   const mockQueriesService = {
@@ -303,6 +304,7 @@ describe('ServicesController', () => {
           prog: 100,
           operation: 'instalação',
           point: 'p1',
+          type: 'M',
         },
         {
           id: 2,
@@ -310,6 +312,7 @@ describe('ServicesController', () => {
           prog: 200,
           operation: 'instalação',
           point: 'p1',
+          type: 'S',
         },
       ];
 
@@ -337,6 +340,7 @@ describe('ServicesController', () => {
           prog: 100,
           operation: 'instalação',
           point: 'p1',
+          type: 'S',
         },
         {
           id: 2,
@@ -344,6 +348,7 @@ describe('ServicesController', () => {
           prog: 200,
           operation: 'instalação',
           point: 'p1',
+          type: 'M',
         },
       ];
 
@@ -370,6 +375,7 @@ describe('ServicesController', () => {
           prog: 100,
           operation: 'instalação',
           point: 'p1',
+          type: 'S',
         },
       ];
 
@@ -404,6 +410,7 @@ describe('ServicesController', () => {
           prog: 100,
           operation: 'instalação',
           point: 'p1',
+          type: 'M',
         },
         {
           id: 2,
@@ -412,6 +419,7 @@ describe('ServicesController', () => {
           prog: 200,
           operation: 'instalação',
           point: 'p1',
+          type: 'S',
         },
         {
           id: 3,
@@ -420,6 +428,7 @@ describe('ServicesController', () => {
           prog: 300,
           operation: 'instalação',
           point: 'p1',
+          type: 'S',
         },
       ];
 
@@ -486,6 +495,68 @@ describe('ServicesController', () => {
 
       expect(mockWorksServicesService.addItem).toHaveBeenCalledWith(
         mockParam,
+        'material',
+      );
+    });
+  });
+
+  describe('addFamily', () => {
+    it('should call the method addFamily with service', async () => {
+      const mockParam = {
+        idWork: 1,
+        idService: 2,
+        point: 'P1',
+        operation: 'INSTALAÇÃO',
+        operationDescription: 'POSTE - ODI',
+        quantity: 2,
+        type: 'S' as any,
+      };
+
+      const dataSent = {
+        idWork: 1,
+        idService: 2,
+        point: 'P1',
+        operation: 'INSTALAÇÃO',
+        operationNumber: null,
+        operationDescription: 'POSTE - ODI',
+        quantity: 2,
+        type: 'S',
+      };
+
+      await controller.addFamily(mockParam);
+
+      expect(mockWorksServicesService.addItem).toHaveBeenCalledWith(
+        dataSent,
+        'service',
+      );
+    });
+
+    it('should call the method addFamily with material', async () => {
+      const mockParam = {
+        idWork: 1,
+        idService: 2,
+        point: 'P1',
+        operation: 'INSTALAÇÃO',
+        operationDescription: 'POSTE - ODI',
+        quantity: 2,
+        type: 'M' as any,
+      };
+
+      const dataSent = {
+        idWork: 1,
+        idService: 2,
+        point: 'P1',
+        operation: 'INSTALAÇÃO',
+        operationNumber: null,
+        operationDescription: 'POSTE - ODI',
+        quantity: 2,
+        type: 'M',
+      };
+
+      await controller.addFamily(mockParam);
+
+      expect(mockWorksServicesService.addItem).toHaveBeenCalledWith(
+        dataSent,
         'material',
       );
     });
@@ -586,6 +657,20 @@ describe('ServicesController', () => {
     });
   });
 
+  describe('deleteMaterialAndService', () => {
+    it('Should call deleteSchedules and return message', async () => {
+      jest.spyOn(service, 'delete').mockResolvedValue();
+
+      const result = await controller.deleteMaterialAndService(1);
+
+      expect(result).toEqual({
+        statusCode: HttpStatus.OK,
+        message: 'Serviço/Material excluído com sucesso',
+      });
+      expect(service.delete).toHaveBeenCalledWith(1);
+    });
+  });
+
   describe('performServices', () => {
     it('should call the method performServices service', async () => {
       const mockParams = [
@@ -649,6 +734,7 @@ describe('ServicesController', () => {
           prog: 100,
           operation: 'instalação',
           point: 'p1',
+          type: 'M',
         },
       ];
       const mockError = new Error('Schedule conflict');

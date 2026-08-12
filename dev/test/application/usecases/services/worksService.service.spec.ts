@@ -21,6 +21,7 @@ describe('WorksServicesService', () => {
     reascheduleServices: jest.fn(),
     addItem: jest.fn(),
     applyAdditional: jest.fn(),
+    delete: jest.fn(),
   };
 
   const mockWorkServicesQueryRepository = {
@@ -87,6 +88,7 @@ describe('WorksServicesService', () => {
           operation: 'instalação',
           point: 'p1',
           additional: null,
+          type: 'S',
         },
         {
           id: 2,
@@ -95,6 +97,7 @@ describe('WorksServicesService', () => {
           operation: 'instalação',
           point: 'p1',
           additional: null,
+          type: 'M',
         },
       ];
 
@@ -112,7 +115,7 @@ describe('WorksServicesService', () => {
 
       expect(repository.scheduleServices).toHaveBeenCalledWith(
         mockScheduleData,
-        72.73,
+        27.27,
         undefined,
       );
       expect(repository.scheduleServices).toHaveBeenCalledTimes(1);
@@ -347,84 +350,21 @@ describe('WorksServicesService', () => {
     });
   });
 
-  // describe('calculateScheduledProgress', () => {
-  //   it('should calculate progress correctly', async () => {
-  //     const mockServices = [
-  //       { id: 1, viabilizado: 10, qtde_adicional: null },
-  //       { id: 2, viabilizado: 20, qtde_adicional: 2 },
-  //     ];
+  describe('delete', () => {
+    it('Should call method delete and throw BadRequestExpection if no id is sent', async () => {
+      await expect(service.delete(null)).rejects.toThrow(BadRequestException);
 
-  //     const mockSelectedServices = [
-  //       {
-  //         id: 1,
-  //         idTeam: 2,
-  //         operation: 'instalação',
-  //         point: 'p1',
-  //         prog: 10,
-  //         additional: null,
-  //       },
-  //       {
-  //         id: 1,
-  //         idTeam: 2,
-  //         operation: 'instalação',
-  //         point: 'p1',
-  //         prog: 20,
-  //         additional: 2,
-  //       },
-  //     ];
+      await expect(service.delete(null)).rejects.toThrow(
+        'Nenhum serviço/material fornecida para exclusão.',
+      );
+    });
 
-  //     mockWorkServicesQueryRepository.getAllServicesOfWork.mockResolvedValue(
-  //       mockServices,
-  //     );
+    it('should call method delete and call repository', async () => {
+      await service.delete(1);
 
-  //     const progress = await service.calculateScheduledProgress(
-  //       1,
-  //       mockSelectedServices,
-  //     );
-
-  //     expect(progress).toBe(94); // (10 + 20) / 100 * 100
-  //   });
-
-  //   it('should return 0 when total plan is 0', async () => {
-  //     const mockServices = [
-  //       { id: 1, viabilizado: 0 },
-  //       { id: 2, viabilizado: 0 },
-  //     ];
-
-  //     const mockSelectedServices = [{ prog: 10 }];
-
-  //     mockWorkServicesQueryRepository.getAllServicesOfWork.mockResolvedValue(
-  //       mockServices,
-  //     );
-
-  //     const progress = await service.calculateScheduledProgress(
-  //       1,
-  //       mockSelectedServices,
-  //     );
-
-  //     expect(progress).toBe(0);
-  //   });
-
-  //   it('should handle services without qtde_plan', async () => {
-  //     const mockServices = [
-  //       { id: 1, viabilizado: 50 },
-  //       { id: 2 }, // sem qtde_plan
-  //     ];
-
-  //     const mockSelectedServices = [{ prog: 25, additional: null }];
-
-  //     mockWorkServicesQueryRepository.getAllServicesOfWork.mockResolvedValue(
-  //       mockServices,
-  //     );
-
-  //     const progress = await service.calculateScheduledProgress(
-  //       1,
-  //       mockSelectedServices,
-  //     );
-
-  //     expect(progress).toBe(50); // 25 / 50 * 100
-  //   });
-  // });
+      expect(repository.delete).toHaveBeenCalledWith(1);
+    });
+  });
 
   describe('scheduleServices - validation', () => {
     it('should throw error when trying to schedule duplicate services', async () => {
@@ -437,6 +377,7 @@ describe('WorksServicesService', () => {
           operation: 'instalação',
           point: 'p1',
           additional: null,
+          type: 'S',
         },
       ];
 
@@ -481,6 +422,7 @@ describe('WorksServicesService', () => {
           operation: 'instalação',
           point: 'p1',
           additional: null,
+          type: 'M',
         },
         {
           id: 1,
@@ -490,6 +432,7 @@ describe('WorksServicesService', () => {
           operation: 'instalação',
           point: 'p1',
           additional: null,
+          type: 'S',
         },
       ];
 
@@ -512,6 +455,7 @@ describe('WorksServicesService', () => {
           operation: 'instalação',
           point: 'p1',
           additional: null,
+          type: 'M',
         },
       ];
 
@@ -531,6 +475,7 @@ describe('WorksServicesService', () => {
           operation: 'instalação',
           point: 'p1',
           prog: 2,
+          type: 'S',
         },
       ];
 

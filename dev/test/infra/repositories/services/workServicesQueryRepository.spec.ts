@@ -304,16 +304,20 @@ describe('WorkServicesQueryRepository', () => {
           id: true,
           servicos: {
             select: {
-              materiais: { select: { descricao: true } },
-              servicos_contratos: { select: { texto_breve: true } },
+              materiais: { select: { descricao: true, codigo: true } },
+              servicos_contratos: {
+                select: { texto_breve: true, material: true },
+              },
               ponto: true,
+              numero_operacao: true,
+              descricao_operacao: true,
               operacao: true,
               qtde_plan: true,
               viabilizado: true,
             },
           },
           programacoes: { select: { data_prog: true } },
-          equipes: { select: { equipe: true } },
+          equipes: { select: { equipe: true, perfil: true } },
           id_programacao: true,
           id_servico: true,
           prog: true,

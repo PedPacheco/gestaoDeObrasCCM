@@ -358,6 +358,36 @@ model programacoes_servicos {
   servicos       servicos     @relation(fields: [id_servico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_servicos")
 }
 
+model programacoes_d5 {
+  id                                                                                Int                  @id(map: "novo_tabela_programacoes_d5_pkey") @default(autoincrement())
+  id_nota_d5                                                                        Int
+  data_prog                                                                         DateTime             @db.Date
+  prog                                                                              Int
+  exec                                                                              Int?
+  observacao_programacao                                                            String?
+  num_dp                                                                            String?              @db.VarChar(25)
+  hora_ini                                                                          DateTime?            @db.Timestamptz(6)
+  hora_ter                                                                          DateTime?            @db.Timestamptz(6)
+  equipe_lv                                                                         Int?
+  equipe_lm                                                                         Int?
+  equipe_reg                                                                        Int?
+  chave_provisoria                                                                  Boolean?
+  tipo_servico                                                                      String?              @db.VarChar(30)
+  chi                                                                               Int?
+  id_tecnico                                                                        Int                  @default(1)
+  id_restricao                                                                      Int                  @default(1)
+  responsavel_restricao                                                             String?              @db.VarChar(50)
+  observacao_execucao                                                               String?
+  criado_em                                                                         DateTime?            @default(now()) @db.Timestamptz(6)
+  id_usuario_criador                                                                Int
+  id_usuario_modificador                                                            Int
+  notas_d5                                                                          notas_d5             @relation(fields: [id_nota_d5], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_nota_d5")
+  restricoes                                                                        restricoes           @relation(fields: [id_restricao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricao")
+  tecnicos                                                                          tecnicos             @relation(fields: [id_tecnico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tecnico")
+  usuario_criador                                                                   novo_tabela_usuarios @relation(fields: [id_usuario_criador], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_criador")
+  usuario_modificador                                                               novo_tabela_usuarios @relation("usuario_modificador", fields: [id_usuario_modificador], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_modificador")
+}
+
 model regionais {
   id                   Int                    @id @default(autoincrement())
   regional             String                 @db.VarChar(20)
@@ -393,6 +423,7 @@ model restricoes {
   programacoes_restricao_prog2    programacoes[]             @relation("programacoes_restricao_prog2")
   programacoes_reprovacoes        programacoes_reprovacoes[]
   restricoes_publicacoes          restricoes_publicacoes[]
+  programacoes_d5        programacoes_d5[]
 }
 
 model servicos {
@@ -437,7 +468,6 @@ model status {
   id                   Int                    @id @default(autoincrement())
   status               String?                @db.VarChar(25)
   onde                 String?                @db.VarChar(20)
-  notas_d5             notas_d5[]
   obras                obras[]
   suspensoes_retiradas suspensoes_retiradas[]
 }
@@ -463,7 +493,7 @@ model tecnicos {
   id_regional           Int
   empresa               String?                 @db.VarChar
   programacoes          programacoes[]
-  programacoes_notas_d5 programacoes_notas_d5[]
+  programacoes_notas_d5 programacoes_d5[]
   regionais             regionais               @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
 }
 
@@ -528,6 +558,7 @@ model notas_d5 {
   id_obra                Int?
   id_tipo                Int
   id_parceira            Int
+  id_status              Int
   id_municipio           Int
   id_usuario_modificador Int?
   local_instalacao       String?               @db.VarChar(50)
@@ -592,7 +623,7 @@ model relatorio_execucao {
   obras                                                                        obras                 @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obra")
   programacoes                                                                 programacoes          @relation(fields: [id_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_programacao")
   usuario                                                                      novo_tabela_usuarios  @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario")
-  novo_tabela_usuarios_relatorio_execucao_modificado_porTonovo_tabela_usuarios novo_tabela_usuarios? @relation("relatorio_execucao_modificado_porTonovo_tabela_usuarios", fields: [modificado_por], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_modificacao")
+  usuario_modificador                                                          novo_tabela_usuarios? @relation("usuario_modificador", fields: [modificado_por], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_modificacao")
 }
 
 model status_programacao {
@@ -735,10 +766,13 @@ model novo_tabela_usuarios {
   usuario_ultima_atualizacao                                                 programacoes[]            @relation("usuario_ultima_atualizacao")
   recursos_contingencia                                                      recursos_contingencia[]
   relatorio_execucao                                                         relatorio_execucao[]
-  relatorio_execucao_relatorio_execucao_modificado_porTonovo_tabela_usuarios relatorio_execucao[]      @relation("relatorio_execucao_modificado_porTonovo_tabela_usuarios")
+  usuario_modificador                                                        relatorio_execucao[]      @relation("usuario_modificador")
   relatorio_viabilidade                                                      relatorio_viabilidade[]
   reprovacoes_viabilidade                                                    reprovacoes_viabilidade[]
   restricoes_publicacoes                                                     restricoes_publicacoes[]
+  programacoes_d5                                                            programacoes_d5[]
+  programacoes_d5_modificadas                                                programacoes_d5[] @relation("usuario_modificador")
+  notas_d5                                                                   notas_d5[]
 }
 
 model recursos_contingencia {

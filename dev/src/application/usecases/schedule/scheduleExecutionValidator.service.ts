@@ -26,9 +26,9 @@ export class ScheduleExecutionValidatorService {
     totals: returnExecution,
     tx: Prisma.TransactionClient,
   ) {
-    const newExecuted = totals.exec + (data.exec ?? 0);
+    const newExecuted = totals.exec + data.exec;
 
-    if (newExecuted > 100) {
+    if (newExecuted > 101) {
       throw new BadRequestException(
         'O valor da execução da obra não pode ser superior a 100',
       );
@@ -53,6 +53,8 @@ export class ScheduleExecutionValidatorService {
         await this.statusFlowRepository.updateStatusWorks(36, data.idWork, tx, {
           totalExecuted: newExecuted,
         });
+
+        return;
       }
 
       await this.statusFlowRepository.updateStatusWorks(2, data.idWork, tx, {

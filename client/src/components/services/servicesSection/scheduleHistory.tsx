@@ -32,6 +32,8 @@ export interface ScheduledServicesHistoryData {
   operacao: string;
   ponto: string;
   descricao: string;
+  codigo: string;
+  tipo: string;
   dataProgramada: string;
   qtdeProgramada: number;
   qtdePlanejada: number | null;
@@ -116,7 +118,7 @@ export function ScheduleHistory({
             },
             {
               label: "Equipe",
-              field: "perfil",
+              field: "equipe",
               options: filterOptions.equipe,
               width: "w-44",
             },
@@ -126,7 +128,12 @@ export function ScheduleHistory({
               options: SERVICE_OPERATIONS,
               width: "w-72",
             },
-
+            {
+              label: "Ponto",
+              field: "ponto",
+              options: filterOptions.ponto,
+              width: "w-40",
+            },
             {
               label: "Data Programada",
               field: "dataProgramada",
@@ -163,16 +170,17 @@ export function ScheduleHistory({
           <Table size="small" className="text-sm" stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell>Serviço/Material</TableCell>
-                <TableCell>Equipe</TableCell>
-                <TableCell>Operação</TableCell>
-                <TableCell>Ponto</TableCell>
-                <TableCell>Data Programada</TableCell>
-                <TableCell>Plan</TableCell>
-                <TableCell>Viabiliazado</TableCell>
-                <TableCell>Adicional</TableCell>
-                <TableCell>Prog</TableCell>
-                <TableCell>Real</TableCell>
+                <TableCell>SERVIÇO/MATERIAL</TableCell>
+                <TableCell>CÓDIGO</TableCell>
+                <TableCell>EQUIPE</TableCell>
+                <TableCell>OPERAÇÃO</TableCell>
+                <TableCell>PONTO</TableCell>
+                <TableCell>DATA PROGRAMADA</TableCell>
+                <TableCell>PLAN</TableCell>
+                <TableCell>VIABILIZADO</TableCell>
+                <TableCell>ADICIONAL</TableCell>
+                <TableCell>PROG</TableCell>
+                <TableCell>REAL</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -198,7 +206,10 @@ export function ScheduleHistory({
                     )}
                   >
                     <TableCell className="text-nowrap max-h-5">
-                      {item.descricao}
+                      {item.textoBreve}
+                    </TableCell>
+                    <TableCell className="text-nowrap max-h-5">
+                      {item.codigo}
                     </TableCell>
                     <TableCell className="text-nowrap max-h-5">
                       {item.equipe}

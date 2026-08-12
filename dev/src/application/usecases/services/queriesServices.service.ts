@@ -123,8 +123,8 @@ export class QueriesServicesService {
         idObra: service.id_obra,
         operacao: service.operacao,
         ponto: service.ponto,
-        numero_operacao: service.numero_operacao,
-        descricao_operacao: service.descricao_operacao,
+        numeroOperacao: service.numero_operacao,
+        descricaoOperacao: service.descricao_operacao,
         material:
           service.servicos_contratos?.material ?? service.materiais?.codigo,
         textoBreve:
@@ -138,7 +138,8 @@ export class QueriesServicesService {
         viabilizado: service.viabilizado,
         tipo: service.materiais?.codigo ? 'M' : 'S',
         valorUnit: preco,
-        valorTotal: preco * service.qtde_prog,
+        valorProg: preco * service.qtde_prog,
+        valorReal: preco * service.qtde_real,
         equipe: service.equipes.equipe,
         encarregado: service.equipes.encarregado,
         perfil: service.equipes.perfil,
@@ -155,13 +156,21 @@ export class QueriesServicesService {
         item.servicos?.servicos_contratos?.texto_breve ??
         item.servicos?.materiais?.descricao;
 
+      const codigo =
+        item.servicos?.servicos_contratos?.material ??
+        item.servicos?.materiais?.codigo;
+
       return {
         id: item.id,
         idProg: item.id_programacao,
         idServico: item.id_servico,
         operacao: item.servicos.operacao,
+        numeroOperacao: item.servicos.numero_operacao,
+        descricaoOperacao: item.servicos.descricao_operacao,
         ponto: item.servicos.ponto,
-        descricao,
+        codigo,
+        textoBreve: descricao,
+        tipo: item.servicos?.materiais?.codigo ? 'M' : 'S',
         dataProgramada: item.programacoes?.data_prog,
         qtdeProgramada: item.prog,
         qtdePlanejada: item.servicos.qtde_plan,
@@ -169,6 +178,7 @@ export class QueriesServicesService {
         qtdeAdicional: item.adicional,
         qtdeRealizada: item.real,
         equipe: item.equipes.equipe,
+        perfil: item.equipes.perfil,
       };
     });
   }

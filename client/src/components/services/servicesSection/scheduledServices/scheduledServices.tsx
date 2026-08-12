@@ -96,7 +96,7 @@ export function ScheduledServices({
 
   const executionIsPartial = useMemo(() => {
     const currentSchedule = scheduledServicesHistory.filter(
-      (s) => s.idProg === formData.idSchedule,
+      (s) => s.idProg === formData.idSchedule && s.tipo === "S",
     );
 
     return currentSchedule.some(
@@ -191,8 +191,6 @@ export function ScheduledServices({
 
   const handleFinalizeServices = () => {
     clearValidation();
-
-    console.log(executionIsPartial, executionIsCanceled);
 
     if (executionIsPartial || executionIsCanceled) {
       setIsRestrictionsModalOpen(true);

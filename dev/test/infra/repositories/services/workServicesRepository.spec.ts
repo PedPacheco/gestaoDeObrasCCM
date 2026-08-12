@@ -1,7 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { WorkServicesRepository } from 'src/infra/repositories/worksServices/worksServicesRepository';
 import { ScheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
+
+import { Test, TestingModule } from '@nestjs/testing';
 
 describe('WorksServicesRepository', () => {
   let repository: WorkServicesRepository;
@@ -10,6 +11,7 @@ describe('WorksServicesRepository', () => {
   const mockPrismaService = {
     servicos: {
       create: jest.fn(),
+      delete: jest.fn(),
     },
     $transaction: jest.fn(),
   };
@@ -45,6 +47,7 @@ describe('WorksServicesRepository', () => {
         operation: 'instalação',
         point: 'p1',
         additional: null,
+        type: 'M',
       },
       {
         id: 2,
@@ -54,6 +57,7 @@ describe('WorksServicesRepository', () => {
         operation: 'instalação',
         point: 'p1',
         additional: 2,
+        type: 'S',
       },
     ];
 
@@ -181,6 +185,7 @@ describe('WorksServicesRepository', () => {
           point: 'p1',
           prog: 2,
           additional: 2,
+          type: 'S',
         },
       ];
 
@@ -581,6 +586,24 @@ describe('WorksServicesRepository', () => {
         where: { id: 1 },
       });
       expect(mockTx.servicos.updateMany).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('delete', () => {
+    it('Should call method delete and throw InternalExpection if id not found', async () => {
+      mockPrismaService.servicos.delete.mockRejectedValueOnce(
+        new Error('DB error'),
+      );
+
+      await expect(repository.delete(1)).rejects.toThrow('DB error');
+    });
+
+    it('Should call method delete with correct id', async () => {
+      await repository.delete(1);
+
+      expect(mockPrismaService.servicos.delete).toHaveBeenCalledWith({
+        where: { id: 1 },
+      });
     });
   });
 });

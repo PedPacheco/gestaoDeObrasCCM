@@ -144,4 +144,8 @@ export class WorkServicesRepository implements IWorkServicesRepository {
       },
     });
   }
+
+  async delete(id: number) {
+    await this.prisma.servicos.delete({ where: { id } });
+  }
 }

@@ -7,7 +7,7 @@ import {
   useTransition,
 } from "react";
 
-import { applyAdditonalPlanServices } from "@/actions/services";
+import { applyAdditonalPlanServices, deleteService } from "@/actions/services";
 import { ButtonComponent } from "@/components/common/Button";
 import { LoadingComponent } from "@/components/common/Loading";
 import { useFeedback } from "@/hooks/useFeedback";
@@ -22,6 +22,7 @@ import {
   Button,
   Checkbox,
   FormControl,
+  IconButton,
   MenuItem,
   Paper,
   Select,
@@ -31,6 +32,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
   Typography,
 } from "@mui/material";
 
@@ -38,7 +40,7 @@ import { TableFilter } from "./servicesFilters";
 import { TeamModal } from "./teamsModal";
 import { useServicesFilters } from "@/hooks/services/useServicesFilters";
 import { MATERIAL_OR_SERVICE_OPTIONS } from "@/constants/services/services";
-import { rowTotal } from "@/components/dashboard/recompositionGoalsDashboard/RecompositionGoalsDashboard";
+import ConfirmationScheduleModalComponent from "@/components/common/confirmationScheduleModal";
 
 interface ServicesAvaliableProps {
   servicesData: any[];
@@ -53,7 +55,7 @@ interface ServicesAvaliableProps {
 
 const serviceColumns = [
   { key: "material", label: "CÓDIGO" },
-  { key: "textoBreve", label: "SERVIÇO" },
+  { key: "textoBreve", label: "SERVIÇO/MATERIAL" },
   { key: "tipo", label: "TIPO" },
   { key: "operacao", label: "OPERAÇÃO" },
   { key: "numeroOperacao", label: "N° DA OPERAÇÃO" },
@@ -79,11 +81,17 @@ export function NewServicesAvaliable({
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
   const [openTeamsModal, setOpenTeamsModal] = useState(false);
 
+  const handleOpenDeleteModal = (item: any) => {
+    setItemToDelete(item);
+  };
+
+  const [itemToDelete, setItemToDelete] = useState<any | null>(null);
+
   const [editedServices, setEditedServices] = useState<any[]>([]);
 
   const [isPending, startTransition] = useTransition();
 
-  const { showError } = useFeedback();
+  const { showError, showSuccess } = useFeedback();
 
   const router = useRouter();
 
@@ -189,6 +197,22 @@ export function NewServicesAvaliable({
 
     setOpenTeamsModal(false);
     setSelectedServices([]); // opcional: limpa seleção após adicionar
+  };
+
+  const handleDeleteItem = async (id: number) => {
+    const response = await deleteService(id);
+
+    if (!response.success) {
+      showError(response.error);
+      return;
+    }
+
+    showSuccess(response?.message || "Item removido com sucesso", () => {
+      startTransition(() => {
+        router.refresh();
+        setItemToDelete(null);
+      });
+    });
   };
 
   const isDisableAfterChangeData = filteredServicesData.some((item) => {
@@ -320,6 +344,12 @@ export function NewServicesAvaliable({
                     }}
                   />
                 </TableCell>
+                <TableCell
+                  width={60}
+                  className="!text-xs !font-semibold !text-zinc-500"
+                >
+                  AÇÕES
+                </TableCell>
                 {serviceColumns.map((header, index) => (
                   <TableCell key={index} className="text-nowrap">
                     {header.label}
@@ -382,6 +412,24 @@ export function NewServicesAvaliable({
                       />
                     </TableCell>
 
+                    <TableCell>
+                      <Tooltip title="Excluir Serviço/Material" placement="top">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleOpenDeleteModal(row)}
+                          sx={{
+                            padding: "4px",
+                            "&:hover": {
+                              backgroundColor: "rgba(211, 47, 47, 0.08)",
+                            },
+                          }}
+                        >
+                          <TrashIcon width={24} height={24} />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+
                     {serviceColumns.map((col, index) => {
                       let value = row[col.key];
 
@@ -442,6 +490,17 @@ export function NewServicesAvaliable({
         onClose={() => setOpenTeamsModal(false)}
         onConfirm={handleTeamConfirm}
         teams={teams}
+      />
+
+      <ConfirmationScheduleModalComponent
+        open={Boolean(itemToDelete)}
+        onClose={() => setItemToDelete(null)}
+        onConfirm={handleDeleteItem}
+        idSchedule={itemToDelete?.id ?? 0}
+        title="Excluir serviço/material"
+        message={`Deseja realmente excluir "${
+          itemToDelete?.textoBreve ?? ""
+        }"? Esta ação não poderá ser desfeita.`}
       />
     </>
   );

@@ -15,16 +15,11 @@ import {
   TextField,
 } from "@mui/material";
 import { ServicesContractSelect } from "../services/servicesSection/servicesContractSelect";
-import { AddMaterialOrServiceFormState } from "./addServiceAccordion";
+import {
+  AddMaterialOrServiceFormState,
+  MaterialData,
+} from "./addServiceAccordion";
 import { SERVICE_OPERATIONS } from "@/constants/services/services";
-
-interface MaterialData {
-  id: number;
-  codigo: string;
-  descricao: string;
-  unidade: string;
-  preco: number;
-}
 
 interface Props {
   idWork: number;

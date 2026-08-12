@@ -89,6 +89,27 @@ describe('WorksServicesService', () => {
         id_servico: 1,
         prog: 30,
         real: 25,
+        servicos: {
+          materiais: null,
+          servicos_contratos: {
+            select: { texto_breve: 'POSTE', material: '1234' },
+          },
+        },
+        programacoes: {
+          data_prog: mockDate,
+        },
+      },
+      {
+        id_programacao: mockScheduleId,
+        id_servico: 1,
+        prog: null,
+        real: null,
+        servicos: {
+          materiais: null,
+          servicos_contratos: {
+            select: { texto_breve: 'POSTE', material: '1234' },
+          },
+        },
         programacoes: {
           data_prog: mockDate,
         },
@@ -98,6 +119,27 @@ describe('WorksServicesService', () => {
         id_servico: 2,
         prog: null,
         real: null,
+        servicos: {
+          materiais: { descricao: 'CABO', codigo: '2345' },
+          servicos_contratos: {
+            select: null,
+          },
+        },
+        programacoes: {
+          data_prog: mockDate,
+        },
+      },
+      {
+        id_programacao: 3,
+        id_servico: 2,
+        prog: null,
+        real: null,
+        servicos: {
+          materiais: null,
+          servicos_contratos: {
+            select: { texto_breve: 'POSTE', material: '1234' },
+          },
+        },
         programacoes: {
           data_prog: mockDate,
         },
@@ -107,6 +149,12 @@ describe('WorksServicesService', () => {
         id_servico: 5,
         prog: 2,
         real: 2,
+        servicos: {
+          materiais: null,
+          servicos_contratos: {
+            select: { texto_breve: 'POSTE', material: '1234' },
+          },
+        },
         programacoes: {
           data_prog: mockDate,
         },
@@ -116,6 +164,12 @@ describe('WorksServicesService', () => {
         id_servico: 6,
         prog: 2,
         real: 0,
+        servicos: {
+          materiais: null,
+          servicos_contratos: {
+            select: { texto_breve: 'POSTE', material: '1234' },
+          },
+        },
         programacoes: {
           data_prog: mockDate,
         },

@@ -16,18 +16,11 @@ import {
   TextField,
 } from "@mui/material";
 import { ServicesContractSelect } from "../services/servicesSection/servicesContractSelect";
-import { AddMaterialOrServiceFormState } from "./addServiceAccordion";
+import {
+  AddMaterialOrServiceFormState,
+  ServiceContract,
+} from "./addServiceAccordion";
 import { SERVICE_OPERATIONS } from "@/constants/services/services";
-
-export type ServiceContract = {
-  id: number;
-  texto_breve: string;
-  material: string;
-  preco: string;
-  contrato: string;
-  medida: string;
-  turmas: { turma: string };
-};
 
 interface Props {
   idWork: number;

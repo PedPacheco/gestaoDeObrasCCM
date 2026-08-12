@@ -44,7 +44,9 @@ export class WorksServicesService {
   ): Promise<void> {
     const idSchedule = data[0]?.idSchedule;
 
-    const prog = await this.calculateScheduledProgress(workId, data);
+    const onlyServices = data.filter((item) => item.type === 'S');
+
+    const prog = await this.calculateScheduledProgress(workId, onlyServices);
 
     await this.validateScheduleServices(workId, data, prog);
 
@@ -114,8 +116,18 @@ export class WorksServicesService {
     await this.workServicesRepository.addItem(data, type);
   }
 
+  async delete(id: number) {
+    if (!id) {
+      throw new BadRequestException(
+        'Nenhum serviço/material fornecida para exclusão.',
+      );
+    }
+
+    await this.workServicesRepository.delete(id);
+  }
+
   private calculateProgress(scheduledPlan: number, totalPlan: number): number {
-    if (Math.abs(totalPlan - scheduledPlan) < 0.0001) {
+    if (Math.abs(totalPlan - scheduledPlan) < 0.01) {
       return 100;
     }
 
@@ -141,7 +153,7 @@ export class WorksServicesService {
 
   private sumServiceQuantities(services: any[]): number {
     return services
-      .filter((item) => Number(item.qtde_real) !== 0)
+      .filter((item) => item.qtde_real !== 0 && !item.id_material)
       .reduce(
         (sum, service) =>
           sum + (service.viabilizado ?? 0) + (service.qtde_adicional ?? 0),

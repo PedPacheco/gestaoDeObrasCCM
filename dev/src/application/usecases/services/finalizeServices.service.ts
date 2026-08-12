@@ -8,7 +8,10 @@ import {
 } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
-import { GetServicesByWorkIdResponse } from 'src/interface/types/servicesInterface';
+import {
+  GetServicesByWorkIdResponse,
+  GetServiceScheduleHistoryResponse,
+} from 'src/interface/types/servicesInterface';
 
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
@@ -52,6 +55,10 @@ export class FinalizeServicesService {
     await this.worksServicesExecutionRepository.performServices(data);
   }
 
+  private isService(item: GetServiceScheduleHistoryResponse): boolean {
+    return item.servicos?.materiais === null;
+  }
+
   async finalizeServices(
     workId: number,
     data: any,
@@ -76,10 +83,14 @@ export class FinalizeServicesService {
       updateData.idSchedule,
     );
 
+    const dateProg = history.find(
+      (item) => item.id_programacao === updateData.idSchedule,
+    );
+
     const finalizationData = this.buildFinalizationData(
       updateData.idSchedule,
       workId,
-      history[0].programacoes.data_prog,
+      dateProg.programacoes.data_prog,
       scheduleTotals,
       totalPlanned,
       updateData.idExecutionRestriction,
@@ -104,7 +115,7 @@ export class FinalizeServicesService {
     services: GetServicesByWorkIdResponse[],
   ): number {
     return services
-      .filter((service) => service.qtde_real !== 0)
+      .filter((service) => service.qtde_real !== 0 && !service.id_material)
       .reduce(
         (sum, service) =>
           sum + (service.viabilizado ?? 0) + (service.qtde_adicional ?? 0),
@@ -119,7 +130,9 @@ export class FinalizeServicesService {
     return history
       .filter(
         (service) =>
-          service.id_programacao === scheduleId && service.real !== 0,
+          service.id_programacao === scheduleId &&
+          this.isService(service) &&
+          service.real !== 0,
       )
       .reduce(
         (acc, service) => ({
@@ -136,7 +149,7 @@ export class FinalizeServicesService {
         (service) =>
           service.id_programacao === scheduleId &&
           service.real !== 0 &&
-          (service.real == null || service.prog > service.real),
+          (service.real === null || service.prog > service.real),
       )
       .map((service) => service.id_servico);
   }
@@ -182,16 +195,19 @@ export class FinalizeServicesService {
   ): ScheduleTotalsById {
     const totals: ScheduleTotalsById = history
       .filter(
-        (item) => item.id_programacao !== currentScheduleId && item.real !== 0,
+        (item) =>
+          item.id_programacao !== currentScheduleId &&
+          item.real !== 0 &&
+          this.isService(item),
       )
       .reduce(
         (acc, item) => ({
-          totalReal: acc.totalReal + (item.real ?? 0),
-          totalProg: acc.totalProg + (item.prog ?? 0),
+          exec: acc.exec + (item.real ?? 0),
+          prog: acc.prog + (item.prog ?? 0),
         }),
         {
-          totalReal: 0,
-          totalProg: 0,
+          exec: 0,
+          prog: 0,
         },
       );
 

@@ -139,6 +139,7 @@ export function EditSchedule({
       idSchedule,
       prog: service.prog,
       additional: service.qtdeAdicional,
+      type: service.tipo,
     }));
 
     const response = await scheduleServices(idWork, formattedService);

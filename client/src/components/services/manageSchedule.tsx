@@ -9,8 +9,11 @@ import { useScheduleWorkflow } from "@/hooks/details/useScheduleWorkflow";
 import { useFeedback } from "@/hooks/useFeedback";
 import { schedulesSchema } from "@/validations/validationSchedules";
 
-import { AddServiceAccordion } from "../addServiceAccordion/addServiceAccordion";
-import { ServiceContract } from "../addServiceAccordion/addServiceForm";
+import {
+  AddServiceAccordion,
+  MaterialData,
+  ServiceContract,
+} from "../addServiceAccordion/addServiceAccordion";
 import { EditSchedule } from "./editSchedule";
 import { NewScheduleSection } from "./scheduleSection/newScheduleSection";
 import { ScheduleSidebar } from "./scheduleSidebar/scheduleSidebar";
@@ -26,7 +29,7 @@ interface ManageScheduleProps {
   servicesData: any[];
   scheduledServicesData: any[];
   serviceContractData: ServiceContract[];
-  materialsData: any[];
+  materialsData: MaterialData[];
   serviceTeams: any[];
   scheduledServicesHistory: any[];
   isInsert: boolean;
@@ -104,6 +107,7 @@ export function NewManageSchedule({
       idTeam: service.idTeam,
       point: service.ponto,
       operation: service.operacao,
+      type: service.tipo,
       prog: service.prog,
       additional: service.qtdeAdicional,
     }));
@@ -201,7 +205,7 @@ export function NewManageSchedule({
               <AddServiceAccordion
                 idWork={Number(idWork)}
                 title="Adicionar novo serviço"
-                contracts={serviceContractData}
+                services={serviceContractData}
                 type="serviço"
                 options={optionsToAddItem}
               />
@@ -209,8 +213,17 @@ export function NewManageSchedule({
               <AddServiceAccordion
                 idWork={Number(idWork)}
                 title="Adicionar novo material"
-                contracts={materialsData}
+                materials={materialsData}
                 type="material"
+                options={optionsToAddItem}
+              />
+
+              <AddServiceAccordion
+                idWork={Number(idWork)}
+                title="Adicionar nova família"
+                services={serviceContractData}
+                materials={materialsData}
+                type="familia"
                 options={optionsToAddItem}
               />
             </div>

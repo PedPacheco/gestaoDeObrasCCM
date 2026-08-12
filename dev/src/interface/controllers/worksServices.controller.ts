@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpStatus,
   Param,
@@ -13,6 +14,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import {
+  AddFamilyDTO,
   AddServicesDTO,
   ApplyAdditonalDTO,
   FinalizeServicesDTO,
@@ -231,6 +233,31 @@ export class ServicesController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Serviços realizados com sucesso',
+    };
+  }
+
+  @Post('familia')
+  async addFamily(@Body() data: AddFamilyDTO) {
+    const type = data.type === 'S' ? 'service' : 'material';
+
+    await this.worksServicesService.addItem(
+      { operationNumber: null, ...data },
+      type,
+    );
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Serviços realizados com sucesso',
+    };
+  }
+
+  @Delete('/:id')
+  async deleteMaterialAndService(@Param('id', ParseIntPipe) id: number) {
+    await this.worksServicesService.delete(id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Serviço/Material excluído com sucesso',
     };
   }
 }
