@@ -206,8 +206,11 @@ export class ServicesController {
   }
 
   @Patch('aplicar-adicional')
-  async applyAdditional(@Body() data: ApplyAdditonalDTO[]) {
-    await this.worksServicesService.applyAdditional(data);
+  async applyAdditional(
+    @Body() data: ApplyAdditonalDTO[],
+    @Query('workId', ParseIntPipe) workId: number,
+  ) {
+    await this.worksServicesService.applyAdditional(workId, data);
 
     return {
       statusCode: HttpStatus.OK,
@@ -248,8 +251,11 @@ export class ServicesController {
   }
 
   @Delete('/:id')
-  async deleteMaterialAndService(@Param('id', ParseIntPipe) id: number) {
-    await this.worksServicesService.delete(id);
+  async deleteMaterialAndService(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('workId', ParseIntPipe) workId: number,
+  ) {
+    await this.worksServicesService.delete(id, workId);
 
     return {
       statusCode: HttpStatus.OK,

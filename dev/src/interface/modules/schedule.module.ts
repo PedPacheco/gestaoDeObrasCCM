@@ -67,6 +67,7 @@ import { SchedulesActionsController } from '../controllers/schedules/schedulesAc
 import { ExecutionReportModule } from './executionReport.module';
 import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
+import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
 
 // import { UpdateRestrictionsService } from 'src/application/schedule/updateRestrictions.service';
 // import { UPDATE_RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateRestrictionsRepository';
@@ -130,6 +131,7 @@ import { WorksModule } from './works.module';
     MonthlySummaryForecastMapper,
     MonthlySummaryMapper,
     MonthlySummaryService,
+    ScheduleProgressCalculatorService,
     // UpdateRestrictionsService,
     {
       provide: WORK_SERVICES_REPOSITORY,

@@ -20,6 +20,7 @@ import { ServicesController } from '../controllers/worksServices.controller';
 import { ExecutionReportModule } from './executionReport.module';
 import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
+import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import { WorksModule } from './works.module';
     QueriesServicesService,
     FinalizeServicesService,
     ScheduleExecutionValidatorService,
+    ScheduleProgressCalculatorService,
     {
       provide: WORK_SERVICES_REPOSITORY,
       useClass: WorkServicesRepository,

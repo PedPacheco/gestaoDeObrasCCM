@@ -61,7 +61,8 @@ export class AddServicesDTO {
   idService: number;
 
   @IsEnum(ServiceType)
-  type: ServiceType;
+  @IsOptional()
+  type?: ServiceType;
 
   @IsString()
   point: string;

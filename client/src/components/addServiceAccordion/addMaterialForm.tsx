@@ -49,7 +49,6 @@ export function AddMaterialForm({
     idService: null,
     point: "",
     operation: "",
-
     operationDescription: "",
     quantity: 0,
   });

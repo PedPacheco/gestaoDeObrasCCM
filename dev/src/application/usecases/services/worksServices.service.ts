@@ -23,6 +23,8 @@ import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
 } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class WorksServicesService {
@@ -36,6 +38,7 @@ export class WorksServicesService {
     private readonly workServicesQueryRepository: IWorkServicesQueryRepository,
     @Inject(STATUS_FLOW_REPOSITORY)
     private readonly statusFlowRepository: IStatusFlowRepository,
+    private readonly scheduleProgressCalculator: ScheduleProgressCalculatorService,
   ) {}
 
   async scheduleServices(
@@ -85,8 +88,25 @@ export class WorksServicesService {
     await this.workServicesRepository.cancelServices(id);
   }
 
-  async applyAdditional(data: ApplyAdditonalDTO[]): Promise<void> {
-    await this.workServicesRepository.applyAdditional(data);
+  async applyAdditional(
+    workId: number,
+    data: ApplyAdditonalDTO[],
+  ): Promise<void> {
+    await this.prisma.$transaction(
+      async (tx) => {
+        try {
+          await this.workServicesRepository.applyAdditional(data, tx);
+          await this.recalculateAllSchedulesProgress(workId, tx);
+        } catch (error) {
+          this.logger.error(error);
+          throw error;
+        }
+      },
+      {
+        maxWait: 10000,
+        timeout: 30000,
+      },
+    );
   }
 
   async addItem(
@@ -113,17 +133,83 @@ export class WorksServicesService {
       );
     }
 
-    await this.workServicesRepository.addItem(data, type);
+    await this.prisma.$transaction(
+      async (tx) => {
+        try {
+          await this.workServicesRepository.addItem(data, type, tx);
+          await this.recalculateAllSchedulesProgress(idWork, tx);
+        } catch (error) {
+          this.logger.error(error);
+          throw error;
+        }
+      },
+      {
+        maxWait: 10000,
+        timeout: 30000,
+      },
+    );
   }
 
-  async delete(id: number) {
+  async delete(id: number, workId: number) {
     if (!id) {
       throw new BadRequestException(
         'Nenhum serviço/material fornecida para exclusão.',
       );
     }
 
-    await this.workServicesRepository.delete(id);
+    await this.prisma.$transaction(
+      async (tx) => {
+        try {
+          await this.workServicesRepository.delete(id, tx);
+          await this.recalculateAllSchedulesProgress(workId, tx);
+        } catch (error) {
+          this.logger.error(error);
+          throw error;
+        }
+      },
+      {
+        maxWait: 10000,
+        timeout: 30000,
+      },
+    );
+  }
+
+  private async recalculateAllSchedulesProgress(
+    workId: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    const [services, history] = await Promise.all([
+      this.workServicesQueryRepository.getAllServicesOfWork(workId, tx),
+      this.workServicesQueryRepository.getServiceScheduleHistory(workId, tx),
+    ]);
+
+    const totalPlanned = this.sumServiceQuantities(services);
+
+    const schedulesProgress =
+      this.scheduleProgressCalculator.calculateAllSchedulesProgress(
+        history,
+        totalPlanned,
+      );
+
+    const executed = history
+      .filter((item) => item.real !== 0 && item.servicos?.materiais === null)
+      .reduce((sum, item) => sum + (item.real ?? 0), 0);
+
+    const workProgress =
+      totalPlanned > 0
+        ? Number(((executed / totalPlanned) * 100).toFixed(4))
+        : 0;
+
+    await this.workServicesRepository.updateSchedulesProgress(
+      schedulesProgress,
+      tx,
+    );
+
+    await this.workServicesRepository.updateWorkExecuted(
+      workId,
+      workProgress,
+      tx,
+    );
   }
 
   private calculateProgress(scheduledPlan: number, totalPlan: number): number {

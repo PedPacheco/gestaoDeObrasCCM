@@ -127,6 +127,8 @@ export function AddServiceAccordion({
               operationsDescription={options.operation_description}
               onSubmit={async (data) => {
                 const { addService } = await import("@/actions/services");
+
+                console.log(data);
                 const response = await addService(data);
 
                 if (!response.success) {
