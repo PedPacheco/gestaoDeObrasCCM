@@ -421,6 +421,7 @@ model restricoes {
   programacoes_restricao_execucao programacoes[]             @relation("programacoes_restricao_execucao")
   programacoes_restricao_prog1    programacoes[]             @relation("programacoes_restricao_prog1")
   programacoes_restricao_prog2    programacoes[]             @relation("programacoes_restricao_prog2")
+  programacoes_d5                 programacoes_d5[]
   programacoes_reprovacoes        programacoes_reprovacoes[]
   restricoes_publicacoes          restricoes_publicacoes[]
   programacoes_d5        programacoes_d5[]
@@ -451,17 +452,18 @@ model servicos {
 }
 
 model servicos_contratos {
-  id          Int        @id @default(autoincrement())
-  id_regional Int
-  id_turma    Int
-  contrato    String?    @db.VarChar(15)
-  material    String?    @db.VarChar(15)
-  texto_breve String?    @db.VarChar(100)
-  medida      String?    @db.VarChar(15)
-  preco       Float?
-  servicos    servicos[]
-  turmas      turmas     @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
-  regionais   regionais  @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
+  id              Int        @id @default(autoincrement())
+  id_regional     Int
+  id_turma        Int
+  contrato        String?    @db.VarChar(15)
+  material        String?    @db.VarChar(15)
+  texto_breve     String?    @db.VarChar(100)
+  medida          String?    @db.VarChar(15)
+  preco           Float?
+  material_antigo String?    @db.VarChar(15)
+  servicos        servicos[]
+  turmas          turmas     @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
+  regionais       regionais  @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
 }
 
 model status {
@@ -837,6 +839,36 @@ model reprovacoes_viabilidade {
   id_relatorio_viabilidade Int
   relatorio_viabilidade    relatorio_viabilidade @relation(fields: [id_relatorio_viabilidade], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_relatorio_viabilidade")
   novo_tabela_usuarios     novo_tabela_usuarios  @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuarios")
+}
+
+model programacoes_d5 {
+  id                                                                                Int                  @id(map: "novo_tabela_programacoes_d5_pkey") @default(autoincrement())
+  id_nota_d5                                                                        Int
+  data_prog                                                                         DateTime             @db.Date
+  prog                                                                              Int
+  exec                                                                              Int?
+  observacao_programacao                                                            String?
+  num_dp                                                                            String?              @db.VarChar(25)
+  hora_ini                                                                          DateTime?            @db.Timestamptz(6)
+  hora_ter                                                                          DateTime?            @db.Timestamptz(6)
+  equipe_lv                                                                         Int?
+  equipe_lm                                                                         Int?
+  equipe_reg                                                                        Int?
+  chave_provisoria                                                                  Boolean?
+  tipo_servico                                                                      String?              @db.VarChar(30)
+  chi                                                                               Int?
+  id_tecnico                                                                        Int                  @default(1)
+  id_restricao                                                                      Int                  @default(1)
+  responsavel_restricao                                                             String?              @db.VarChar(50)
+  observacao_execucao                                                               String?
+  criado_em                                                                         DateTime?            @default(now()) @db.Timestamptz(6)
+  id_usuario_criador                                                                Int
+  id_usuario_modificador                                                            Int
+  notas_d5                                                                          notas_d5             @relation(fields: [id_nota_d5], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_nota_d5")
+  restricoes                                                                        restricoes           @relation(fields: [id_restricao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricao")
+  tecnicos                                                                          tecnicos             @relation(fields: [id_tecnico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tecnico")
+  novo_tabela_usuarios_programacoes_d5_id_usuario_criadorTonovo_tabela_usuarios     novo_tabela_usuarios @relation("programacoes_d5_id_usuario_criadorTonovo_tabela_usuarios", fields: [id_usuario_criador], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_criador")
+  novo_tabela_usuarios_programacoes_d5_id_usuario_modificadorTonovo_tabela_usuarios novo_tabela_usuarios @relation("programacoes_d5_id_usuario_modificadorTonovo_tabela_usuarios", fields: [id_usuario_modificador], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_modificador")
 }
 
 view exportacao_obras_executadas {

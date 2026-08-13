@@ -145,7 +145,7 @@ export function KpiSection({
               subLabel="Programado / Capacidade Mês / Contrato Mês"
               value={pctGoal108}
               color={pctColor(pctGoal108).bar}
-              sub={`${FormatCurrency(display.programado)} / ${FormatCurrency(totalGoal * 1.085)}  / ${FormatCurrency(display.valorContrato108)}`}
+              sub={`${FormatCurrency(display.programado)} / ${FormatCurrency(totalGoal)}  / ${FormatCurrency(display.valorContrato108)}`}
             />
           ),
         },
