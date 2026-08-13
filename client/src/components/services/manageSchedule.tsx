@@ -40,7 +40,6 @@ interface ManageScheduleProps {
   statusSchedule?: string;
   optionsToAddItem: {
     operation_description: string[];
-    operation_number: string[];
     points: string[];
   };
 }

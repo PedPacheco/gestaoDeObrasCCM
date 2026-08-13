@@ -166,13 +166,9 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
   }
 
   async getServiceOptions(id: number): Promise<GetServiceOptionsResponse> {
-    const [description, number, points] = await Promise.all([
+    const [description, points] = await Promise.all([
       this.prisma.servicos.groupBy({
         by: ['descricao_operacao'],
-        where: { id_obra: id },
-      }),
-      this.prisma.servicos.groupBy({
-        by: ['numero_operacao'],
         where: { id_obra: id },
       }),
       this.prisma.servicos.groupBy({
@@ -183,7 +179,6 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
 
     return {
       operation_description: description.map((d) => d.descricao_operacao),
-      operation_number: number.map((n) => n.numero_operacao),
       points: points.map((p) => p.ponto),
     };
   }

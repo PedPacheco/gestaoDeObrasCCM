@@ -170,8 +170,8 @@ export function ScheduleHistory({
           <Table size="small" className="text-sm" stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell>SERVIÇO/MATERIAL</TableCell>
                 <TableCell>CÓDIGO</TableCell>
+                <TableCell>SERVIÇO/MATERIAL</TableCell>
                 <TableCell>EQUIPE</TableCell>
                 <TableCell>OPERAÇÃO</TableCell>
                 <TableCell>PONTO</TableCell>
@@ -206,10 +206,10 @@ export function ScheduleHistory({
                     )}
                   >
                     <TableCell className="text-nowrap max-h-5">
-                      {item.textoBreve}
+                      {item.codigo}
                     </TableCell>
                     <TableCell className="text-nowrap max-h-5">
-                      {item.codigo}
+                      {item.textoBreve}
                     </TableCell>
                     <TableCell className="text-nowrap max-h-5">
                       {item.equipe}

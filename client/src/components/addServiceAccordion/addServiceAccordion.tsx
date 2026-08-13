@@ -38,7 +38,6 @@ interface AddServiceAccordionProps {
   materials?: MaterialData[];
   options: {
     operation_description: string[];
-    operation_number: string[];
     points: string[];
   };
   type: MaterialOrService;
@@ -48,7 +47,6 @@ export type AddMaterialOrServiceFormState = {
   idService: number | null;
   point: string;
   operation: string;
-  operationNumber: string;
   operationDescription: string;
   quantity: number;
 };
@@ -127,7 +125,6 @@ export function AddServiceAccordion({
               serviceContractData={services ?? []}
               points={options.points}
               operationsDescription={options.operation_description}
-              operationsNumber={options.operation_number}
               onSubmit={async (data) => {
                 const { addService } = await import("@/actions/services");
                 const response = await addService(data);
@@ -146,7 +143,6 @@ export function AddServiceAccordion({
               materialData={materials ?? []}
               points={options.points}
               operationsDescription={options.operation_description}
-              operationsNumber={options.operation_number}
               onSubmit={async (data) => {
                 const { addMaterial } = await import("@/actions/services");
                 const response = await addMaterial(data);

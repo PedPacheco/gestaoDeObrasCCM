@@ -126,7 +126,6 @@ export class WorkServicesRepository implements IWorkServicesRepository {
       operation,
       point,
       operationDescription,
-      operationNumber,
       quantity,
     } = data;
 
@@ -138,7 +137,6 @@ export class WorkServicesRepository implements IWorkServicesRepository {
         operacao: operation,
         ponto: point,
         descricao_operacao: operationDescription,
-        numero_operacao: operationNumber,
         qtde_plan: 0,
         qtde_adicional: quantity,
       },

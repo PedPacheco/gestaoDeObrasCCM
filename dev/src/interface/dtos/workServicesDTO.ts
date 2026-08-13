@@ -60,32 +60,6 @@ export class AddServicesDTO {
   @Type(() => Number)
   idService: number;
 
-  @IsString()
-  point: string;
-
-  @IsString()
-  operation: string;
-
-  @IsString()
-  operationNumber: string;
-
-  @IsString()
-  operationDescription: string;
-
-  @IsNumber()
-  @Type(() => Number)
-  quantity: number;
-}
-
-export class AddFamilyDTO {
-  @IsNumber()
-  @Type(() => Number)
-  idWork: number;
-
-  @IsNumber()
-  @Type(() => Number)
-  idService: number;
-
   @IsEnum(ServiceType)
   type: ServiceType;
 

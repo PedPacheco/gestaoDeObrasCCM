@@ -54,7 +54,6 @@ interface EditScheduleProps {
   statusSchedule?: string;
   optionsToAddItem: {
     operation_description: string[];
-    operation_number: string[];
     points: string[];
   };
 }
@@ -308,7 +307,7 @@ export function EditSchedule({
                     services={serviceContractData}
                     materials={materialsData}
                     type="familia"
-                    options={options}
+                    options={optionsToAddItem}
                   />
                 </div>
                 <div className="min-h-0 flex-1 w-full overflow-hidden">

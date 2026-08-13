@@ -14,7 +14,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import {
-  AddFamilyDTO,
   AddServicesDTO,
   ApplyAdditonalDTO,
   FinalizeServicesDTO,
@@ -237,13 +236,10 @@ export class ServicesController {
   }
 
   @Post('familia')
-  async addFamily(@Body() data: AddFamilyDTO) {
+  async addFamily(@Body() data: AddServicesDTO) {
     const type = data.type === 'S' ? 'service' : 'material';
 
-    await this.worksServicesService.addItem(
-      { operationNumber: null, ...data },
-      type,
-    );
+    await this.worksServicesService.addItem(data, type);
 
     return {
       statusCode: HttpStatus.OK,

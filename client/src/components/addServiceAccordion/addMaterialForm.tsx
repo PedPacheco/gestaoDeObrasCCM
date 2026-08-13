@@ -25,14 +25,13 @@ interface Props {
   idWork: number;
   materialData: MaterialData[];
   points: string[];
-  operationsNumber: string[];
   operationsDescription: string[];
   onSubmit: (data: {
     idWork: number;
     idService: number;
     point: string;
     operation: string;
-    operationNumber: string;
+
     operationDescription: string;
     quantity: number;
   }) => Promise<void>;
@@ -43,14 +42,14 @@ export function AddMaterialForm({
   materialData,
   points,
   operationsDescription,
-  operationsNumber,
+
   onSubmit,
 }: Props) {
   const [form, setForm] = useState<AddMaterialOrServiceFormState>({
     idService: null,
     point: "",
     operation: "",
-    operationNumber: "",
+
     operationDescription: "",
     quantity: 0,
   });
@@ -79,7 +78,6 @@ export function AddMaterialForm({
         idService: form.idService!,
         point: form.point,
         operation: form.operation,
-        operationNumber: form.operationNumber,
         operationDescription: form.operationDescription,
         quantity: form.quantity,
       });
@@ -89,7 +87,6 @@ export function AddMaterialForm({
         idService: null,
         point: "",
         operation: "",
-        operationNumber: "",
         operationDescription: "",
         quantity: 0,
       });
@@ -187,21 +184,7 @@ export function AddMaterialForm({
         </FormControl>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <FormControl fullWidth size="small">
-          <InputLabel>N° Operação</InputLabel>
-          <Select
-            value={form.operationNumber}
-            onChange={(e) => updateField("operationNumber", e.target.value)}
-          >
-            {operationsNumber.map((opt) => (
-              <MenuItem key={opt} value={opt}>
-                {opt}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
+      <div className="grid grid-cols-2 gap-4">
         <FormControl fullWidth size="small">
           <InputLabel>Descrição Operação</InputLabel>
           <Select

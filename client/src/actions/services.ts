@@ -195,7 +195,6 @@ export async function addService(data: {
   idService: number;
   point: string;
   operation: string;
-  operationNumber: string;
   operationDescription: string;
 }): Promise<ActionResult> {
   const token = await getAuthToken();
@@ -219,7 +218,6 @@ export async function addMaterial(data: {
   idService: number;
   point: string;
   operation: string;
-  operationNumber: string;
   operationDescription: string;
 }): Promise<ActionResult> {
   const token = await getAuthToken();

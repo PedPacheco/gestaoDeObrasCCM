@@ -106,7 +106,7 @@ export function ScheduledServices({
 
   const executionIsCanceled = useMemo(() => {
     const currentSchedule = scheduledServicesHistory.filter(
-      (s) => s.idProg === formData.idSchedule,
+      (s) => s.idProg === formData.idSchedule && s.tipo === "S",
     );
 
     return currentSchedule.every(

@@ -93,7 +93,7 @@ export class WorksServicesService {
     data: AddServicesDTO,
     type: 'service' | 'material',
   ): Promise<void> {
-    const { idService, operationNumber, point, idWork } = data;
+    const { idService, operationDescription, point, idWork } = data;
 
     const items =
       await this.workServicesQueryRepository.getAllServicesOfWork(idWork);
@@ -107,7 +107,7 @@ export class WorksServicesService {
       ]),
     );
 
-    if (itemsMap.has(`${idService}:${point}:${operationNumber}`)) {
+    if (itemsMap.has(`${idService}:${point}:${operationDescription}`)) {
       throw new BadRequestException(
         `Esse ${type === 'service' ? 'serviço' : 'material'} já existe nesse ponto.`,
       );
