@@ -34,6 +34,9 @@ export class GetWorkDetailsService {
       tipos: work.tipos.tipo_obra,
       grupo: work.tipos.id_grupo,
       idRegional: work.municipios.regionais.id,
+      totalProgramado: work.programacoes
+        .filter((item) => item.exec !== 0)
+        .reduce((acc, item) => acc + (item.prog ?? 0), 0),
       programacoes: work.programacoes.map((programacao) => {
         const teams = TeamCounterService.calculate(programacao);
         return {

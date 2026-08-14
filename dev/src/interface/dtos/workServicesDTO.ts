@@ -1,4 +1,6 @@
 import {
+  IsEnum,
+  IsIn,
   IsInt,
   IsNumber,
   IsOptional,
@@ -7,6 +9,11 @@ import {
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ExecutionReportDataDTO } from './executionReportDTO';
+
+enum ServiceType {
+  SERVICE = 'S',
+  MATERIAL = 'M',
+}
 
 export class ScheduleServicesDTO {
   @IsNumber()
@@ -21,6 +28,12 @@ export class ScheduleServicesDTO {
   @Type(() => Number)
   @IsOptional()
   idSchedule?: number;
+
+  @IsString()
+  @IsIn(['M', 'S'], {
+    message: "O tipo deve ser 'S' OU 'M'",
+  })
+  type: 'M' | 'S';
 
   @IsString()
   operation: string;
@@ -47,14 +60,15 @@ export class AddServicesDTO {
   @Type(() => Number)
   idService: number;
 
+  @IsEnum(ServiceType)
+  @IsOptional()
+  type?: ServiceType;
+
   @IsString()
   point: string;
 
   @IsString()
   operation: string;
-
-  @IsString()
-  operationNumber: string;
 
   @IsString()
   operationDescription: string;

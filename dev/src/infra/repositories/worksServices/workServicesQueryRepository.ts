@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { IWorkServicesQueryRepository } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
 
 import { PrismaService } from 'src/infra/prisma/prisma.service';
@@ -40,8 +41,10 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     },
   };
 
-  private async findService(where: any) {
-    return this.prisma.servicos.findMany({
+  private async findService(where: any, tx?: Prisma.TransactionClient) {
+    const client = tx ?? this.prisma;
+
+    return client.servicos.findMany({
       select: this.baseServicesSelect,
       where,
     });
@@ -49,8 +52,9 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
 
   async getAllServicesOfWork(
     id: number,
+    tx?: Prisma.TransactionClient,
   ): Promise<GetServicesByWorkIdResponse[]> {
-    return this.findService({ id_obra: id });
+    return this.findService({ id_obra: id }, tx);
   }
 
   async getNotScheduledServices(
@@ -58,12 +62,24 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
   ): Promise<GetServicesByWorkIdResponse[]> {
     return this.findService({
       id_obra: id,
-      id_programacao: null,
-      OR: [{ qtde_real: null }, { qtde_real: { not: 0 } }],
+      id_programacao: {
+        equals: null,
+      },
       AND: [
         {
-          OR: [{ viabilizado: null }, { viabilizado: { not: 0 } }],
+          OR: [
+            {
+              qtde_real: null,
+            },
+
+            {
+              qtde_real: {
+                not: 0,
+              },
+            },
+          ],
         },
+        { OR: [{ viabilizado: null }, { viabilizado: { not: 0 } }] },
       ],
     });
   }
@@ -88,24 +104,31 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
 
   async getServiceScheduleHistory(
     id: number,
+    tx?: Prisma.TransactionClient,
   ): Promise<GetServiceScheduleHistoryResponse[]> {
-    return await this.prisma.programacoes_servicos.findMany({
+    const client = tx ?? this.prisma;
+
+    return await client.programacoes_servicos.findMany({
       select: {
         id: true,
         id_servico: true,
         servicos: {
           select: {
-            materiais: { select: { descricao: true } },
-            servicos_contratos: { select: { texto_breve: true } },
+            materiais: { select: { descricao: true, codigo: true } },
+            servicos_contratos: {
+              select: { texto_breve: true, material: true },
+            },
             ponto: true,
             operacao: true,
             qtde_plan: true,
             viabilizado: true,
+            descricao_operacao: true,
+            numero_operacao: true,
           },
         },
         id_programacao: true,
         programacoes: { select: { data_prog: true } },
-        equipes: { select: { equipe: true } },
+        equipes: { select: { equipe: true, perfil: true } },
         prog: true,
         real: true,
         adicional: true,
@@ -150,13 +173,9 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
   }
 
   async getServiceOptions(id: number): Promise<GetServiceOptionsResponse> {
-    const [description, number, points] = await Promise.all([
+    const [description, points] = await Promise.all([
       this.prisma.servicos.groupBy({
         by: ['descricao_operacao'],
-        where: { id_obra: id },
-      }),
-      this.prisma.servicos.groupBy({
-        by: ['numero_operacao'],
         where: { id_obra: id },
       }),
       this.prisma.servicos.groupBy({
@@ -167,7 +186,6 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
 
     return {
       operation_description: description.map((d) => d.descricao_operacao),
-      operation_number: number.map((n) => n.numero_operacao),
       points: points.map((p) => p.ponto),
     };
   }

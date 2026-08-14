@@ -2,7 +2,7 @@ import { ExecutionReportDataDTO } from 'src/interface/dtos/executionReportDTO';
 
 export const mockExecutionReportService = {
   idSchedule: 1,
-  idUser: 1,
+  userId: 1,
   idWork: 1,
   supervisor: 'Erick',
   partialConnectionReleased: false,

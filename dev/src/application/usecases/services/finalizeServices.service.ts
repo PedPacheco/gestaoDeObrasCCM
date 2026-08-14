@@ -1,27 +1,25 @@
 import {
-  IUpdateSchedulesRepository,
-  UPDATE_SCHEDULES_REPOSITORY,
-} from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
+  IWorkServicesExecutionRepository,
+  WORK_SERVICES_EXECUTION_REPOSITORY,
+} from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
+import {
+  IWorkServicesQueryRepository,
+  WORK_SERVICES_QUERY_REPOSITORY,
+} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
+import { GetServicesByWorkIdResponse } from 'src/interface/types/servicesInterface';
 
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
 import { ExecutionReportService } from '../executionReport.service';
 import { ScheduleExecutionValidatorService } from '../schedule/scheduleExecutionValidator.service';
+import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
+import { Prisma } from '@prisma/client';
 import {
-  IWorkServicesQueryRepository,
-  WORK_SERVICES_QUERY_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
-import {
-  IWorkServicesExecutionRepository,
-  WORK_SERVICES_EXECUTION_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
-import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
-
-interface ScheduleTotals {
-  prog: number;
-  exec: number;
-}
+  IWorkServicesRepository,
+  WORK_SERVICES_REPOSITORY,
+} from 'src/domain/repositories/worksService/IWorkServicesRepository';
 
 interface FinalizationData {
   id: number;
@@ -32,6 +30,7 @@ interface FinalizationData {
   idExecutionRestriction: number;
   responsibility: string;
   executionObservation: string;
+  userId: number;
 }
 
 @Injectable()
@@ -42,12 +41,13 @@ export class FinalizeServicesService {
     private readonly prisma: PrismaService,
     @Inject(WORK_SERVICES_EXECUTION_REPOSITORY)
     private readonly worksServicesExecutionRepository: IWorkServicesExecutionRepository,
+    @Inject(WORK_SERVICES_REPOSITORY)
+    private readonly workServicesRepository: IWorkServicesRepository,
     @Inject(WORK_SERVICES_QUERY_REPOSITORY)
     private readonly workServicesQueryRepository: IWorkServicesQueryRepository,
-    @Inject(UPDATE_SCHEDULES_REPOSITORY)
-    private readonly updateSchedulesRepository: IUpdateSchedulesRepository,
     private readonly executionReportService: ExecutionReportService,
     private readonly executionValidator: ScheduleExecutionValidatorService,
+    private readonly scheduleProgressCalculator: ScheduleProgressCalculatorService,
   ) {}
 
   async performServices(data: PerformServicesDTO[]): Promise<void> {
@@ -61,69 +61,63 @@ export class FinalizeServicesService {
     data: any,
     files?: Express.Multer.File[],
   ): Promise<void> {
-    const { executionReportData, ...updateData } = data;
+    const { executionReportData, userId, ...updateData } = data;
 
     const [services, history] = await Promise.all([
       this.workServicesQueryRepository.getAllServicesOfWork(workId),
       this.workServicesQueryRepository.getServiceScheduleHistory(workId),
     ]);
 
-    const validServices = services.filter((item) => item.qtde_real !== 0);
+    const totalPlanned = this.sumServiceQuantities(services);
 
-    const totalPlanned = this.sumServiceQuantities(validServices);
-
-    const scheduleTotals = this.calculateScheduleTotals(
-      history,
-      updateData.idSchedule,
-    );
+    const scheduleTotals =
+      this.scheduleProgressCalculator.calculateScheduleProgress(
+        history,
+        totalPlanned,
+        updateData.idSchedule,
+      );
 
     const pendingExecServices = this.getPendingExecServices(
       history,
       updateData.idSchedule,
     );
 
+    const dateProg = history.find(
+      (item) => item.id_programacao === updateData.idSchedule,
+    );
+
     const finalizationData = this.buildFinalizationData(
       updateData.idSchedule,
       workId,
-      history[0].programacoes.data_prog,
+      dateProg.programacoes.data_prog,
       scheduleTotals,
-      totalPlanned,
       updateData.idExecutionRestriction,
       updateData.responsibility,
       updateData.executionObservation,
+      userId,
     );
 
     await this.executeFinalization(
       workId,
+      updateData.idSchedule,
       finalizationData,
       pendingExecServices,
       executionReportData,
+      totalPlanned,
+      history,
       files,
     );
   }
 
-  private sumServiceQuantities(services: any[]): number {
-    return services.reduce(
-      (sum, service) =>
-        sum + (service.viabilizado ?? 0) + (service.qtde_adicional ?? 0),
-      0,
-    );
-  }
-
-  private calculateScheduleTotals(
-    history: any[],
-    scheduleId: number,
-  ): ScheduleTotals {
-    return history
-      .filter(
-        (service) => service.id_programacao === scheduleId && service.real != 0,
-      )
+  private sumServiceQuantities(
+    services: GetServicesByWorkIdResponse[],
+  ): number {
+    return services
+      .filter((service) => service.qtde_real !== 0 && !service.id_material)
       .reduce(
-        (acc, service) => ({
-          exec: acc.exec + (service.real ?? 0),
-          prog: acc.prog + (service.prog ?? 0),
-        }),
-        { prog: 0, exec: 0 },
+        (sum, service) =>
+          sum + (service.viabilizado ?? 0) + (service.qtde_adicional ?? 0),
+        0,
       );
   }
 
@@ -132,7 +126,8 @@ export class FinalizeServicesService {
       .filter(
         (service) =>
           service.id_programacao === scheduleId &&
-          (service.real == null || service.prog > service.real),
+          service.real !== 0 &&
+          (service.real === null || service.prog > service.real),
       )
       .map((service) => service.id_servico);
   }
@@ -141,46 +136,41 @@ export class FinalizeServicesService {
     scheduleId: number,
     workId: number,
     scheduleDate: Date,
-    totals: ScheduleTotals,
-    totalPlanned: number,
+    scheduleTotals: { prog: number; exec: number },
     idExecutionRestriction: number,
     responsibility: string,
     executionObservation: string,
+    userId: number,
   ): FinalizationData {
-    const calculatePercentage = (value: number) =>
-      Math.round(totalPlanned > 0 ? (value / totalPlanned) * 100 : 0);
-
     return {
       id: scheduleId,
       idWork: workId,
       dataProg: scheduleDate,
-      prog: Math.min(calculatePercentage(totals.prog)),
-      exec: Math.min(calculatePercentage(totals.exec)),
+      prog: scheduleTotals.prog,
+      exec: scheduleTotals.exec,
       idExecutionRestriction,
       responsibility,
       executionObservation,
+      userId,
     };
   }
 
   private async executeFinalization(
     workId: number,
+    scheduleId: number,
     finalizationData: FinalizationData,
     pendingExecServices: number[],
     executionReportData: any,
+    totalPlanned: number,
+    history: any[],
     files?: Express.Multer.File[],
   ): Promise<void> {
-    const executionValues =
-      await this.updateSchedulesRepository.findExecutionOfSchedules(
-        finalizationData.id,
-        workId,
-      );
-
-    const executed = executionValues.reduce(
-      (total, item) => ({
-        exec: total.exec + (item.exec ?? 0),
-        prog: total.prog + (item.prog ?? 0),
-      }),
-      { exec: 0, prog: 0 },
+    // Calcula o total já executado nas DEMAIS programações (agregado,
+    // capado em 100) para validar a finalização da atual contra isso.
+    const executed = this.scheduleProgressCalculator.calculateAggregateProgress(
+      history,
+      totalPlanned,
+      scheduleId,
     );
 
     await this.prisma.$transaction(async (tx) => {
@@ -209,10 +199,41 @@ export class FinalizeServicesService {
           pendingExecServices,
           tx,
         );
+
+        // Finalizar pode zerar o `real` de algum serviço (setado antes,
+        // via performServices) — isso exclui o serviço do totalPlanned e
+        // invalida o prog/exec de TODAS as outras programações, não só
+        // a que está sendo finalizada agora. `history`/`totalPlanned` já
+        // refletem esse zeramento (foram lidos após o performServices).
+        await this.recalculateOtherSchedulesProgress(
+          history,
+          totalPlanned,
+          scheduleId,
+          tx,
+        );
       } catch (error) {
         this.logger.error(error);
         throw error;
       }
     });
+  }
+
+  // A programação atual já foi persistida por
+  // worksServicesExecutionRepository.finalizeServices logo acima — aqui só
+  // atualizamos as DEMAIS, em lote.
+  private async recalculateOtherSchedulesProgress(
+    history: any[],
+    totalPlanned: number,
+    currentScheduleId: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    const otherSchedulesProgress = this.scheduleProgressCalculator
+      .calculateAllSchedulesProgress(history, totalPlanned)
+      .filter((item) => item.idProgramacao !== currentScheduleId);
+
+    await this.workServicesRepository.updateSchedulesProgress(
+      otherSchedulesProgress,
+      tx,
+    );
   }
 }

@@ -25,9 +25,10 @@ import {
 } from "./servicesSection/scheduleHistory";
 import { ButtonComponent } from "../common/Button";
 import { TabsServices } from "./TabsServices";
-import { ServiceContract } from "../addServiceAccordion/addServiceForm";
-import { AddServiceAccordion } from "../addServiceAccordion/addServiceAccordion";
-import { SERVICE_OPERATIONS } from "@/constants/services/services";
+import {
+  AddServiceAccordion,
+  ServiceContract,
+} from "../addServiceAccordion/addServiceAccordion";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -53,7 +54,6 @@ interface EditScheduleProps {
   statusSchedule?: string;
   optionsToAddItem: {
     operation_description: string[];
-    operation_number: string[];
     points: string[];
   };
 }
@@ -139,6 +139,7 @@ export function EditSchedule({
       idSchedule,
       prog: service.prog,
       additional: service.qtdeAdicional,
+      type: service.tipo,
     }));
 
     const response = await scheduleServices(idWork, formattedService);
@@ -278,6 +279,7 @@ export function EditSchedule({
                   teams={serviceTeams}
                   onError={showError}
                   onSuccess={showSuccess}
+                  workId={idWork}
                 />
               </div>
 
@@ -287,7 +289,7 @@ export function EditSchedule({
                   <AddServiceAccordion
                     idWork={Number(idWork)}
                     title="Adicionar novo serviço"
-                    contracts={serviceContractData}
+                    services={serviceContractData}
                     options={optionsToAddItem}
                     type="serviço"
                   />
@@ -295,9 +297,18 @@ export function EditSchedule({
                   <AddServiceAccordion
                     idWork={Number(idWork)}
                     title="Adicionar novo material"
-                    contracts={materialsData}
+                    services={materialsData}
                     options={optionsToAddItem}
                     type="material"
+                  />
+
+                  <AddServiceAccordion
+                    idWork={Number(idWork)}
+                    title="Adicionar nova família"
+                    services={serviceContractData}
+                    materials={materialsData}
+                    type="familia"
+                    options={optionsToAddItem}
                   />
                 </div>
                 <div className="min-h-0 flex-1 w-full overflow-hidden">

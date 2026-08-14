@@ -21,28 +21,28 @@ SELECT
   obras.qtde_pend,
   (
     (
-      (obras.qtde_planejada) :: integer * programacoes.prog
-    ) / 100
+      ((obras.qtde_planejada) :: integer) :: double precision * programacoes.prog
+    ) / (100) :: double precision
   ) AS qtde_prog,
   obras.mo_planejada,
   (
     (
-      (obras.mo_planejada) :: integer * programacoes.prog
-    ) / 100
+      ((obras.mo_planejada) :: integer) :: double precision * programacoes.prog
+    ) / (100) :: double precision
   ) AS mo_prog,
   obras.capex_mat_plan,
   obras.capex_mat_pend,
   (
     (
-      (obras.capex_mat_plan) :: integer * programacoes.prog
-    ) / 100
+      ((obras.capex_mat_plan) :: integer) :: double precision * programacoes.prog
+    ) / (100) :: double precision
   ) AS mat_prog,
   obras.capex_mo_plan,
   obras.capex_mo_pend,
   (
     (
-      (obras.capex_mo_plan) :: integer * programacoes.prog
-    ) / 100
+      ((obras.capex_mo_plan) :: integer) :: double precision * programacoes.prog
+    ) / (100) :: double precision
   ) AS servico_prog,
   turmas.turma AS parceira,
   obras.executado,

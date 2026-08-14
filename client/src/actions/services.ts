@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -194,7 +195,6 @@ export async function addService(data: {
   idService: number;
   point: string;
   operation: string;
-  operationNumber: string;
   operationDescription: string;
 }): Promise<ActionResult> {
   const token = await getAuthToken();
@@ -218,7 +218,6 @@ export async function addMaterial(data: {
   idService: number;
   point: string;
   operation: string;
-  operationNumber: string;
   operationDescription: string;
 }): Promise<ActionResult> {
   const token = await getAuthToken();
@@ -228,6 +227,30 @@ export async function addMaterial(data: {
   }
 
   return apiRequest(`${process.env.NEXT_PUBLIC_API_URL}/servicos/material`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+}
+
+export async function addFamily(data: {
+  idWork: number;
+  idService: number;
+  point: string;
+  operation: string;
+  operationDescription: string;
+  type: "S" | "M";
+}): Promise<ActionResult> {
+  const token = await getAuthToken();
+
+  if (!token) {
+    return { success: false, error: "Usuário não autenticado" };
+  }
+
+  return apiRequest(`${process.env.NEXT_PUBLIC_API_URL}/servicos/familia`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -275,6 +298,30 @@ export async function cancelScheduleServices(
     `${process.env.NEXT_PUBLIC_API_URL}/servicos/cancelar/${id}`,
     {
       method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+}
+
+export async function deleteService(
+  id: number,
+  workId: number,
+): Promise<ActionResult> {
+  const token = await getAuthToken();
+
+  if (!token) {
+    return { success: false, error: "Usuário não autenticado" };
+  }
+
+  revalidatePath(`/viabilidade/${id}?status=adicao&ponto_a_ponto=true`);
+
+  return apiRequest(
+    `${process.env.NEXT_PUBLIC_API_URL}/servicos/${id}?workId=${workId}`,
+    {
+      method: "DELETE",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,

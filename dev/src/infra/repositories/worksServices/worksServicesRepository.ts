@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { IWorkServicesRepository } from 'src/domain/repositories/worksService/IWorkServicesRepository';
+import { Prisma } from '@prisma/client';
+import {
+  IWorkServicesRepository,
+  SchedulesProgressUpdate,
+} from 'src/domain/repositories/worksService/IWorkServicesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {
   AddServicesDTO,
@@ -103,22 +107,27 @@ export class WorkServicesRepository implements IWorkServicesRepository {
     });
   }
 
-  async applyAdditional(data: ApplyAdditonalDTO[]): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
-      await Promise.all(
-        data.map(({ additional, id }) =>
-          tx.servicos.updateMany({
-            data: { qtde_adicional: additional },
-            where: { id },
-          }),
-        ),
-      );
-    });
+  // Agora recebe `tx`: passou a ser chamado dentro da transação orquestrada
+  // pelo WorksServicesService (junto com o recálculo em massa de prog/exec).
+  async applyAdditional(
+    data: ApplyAdditonalDTO[],
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    await Promise.all(
+      data.map(({ additional, id }) =>
+        tx.servicos.updateMany({
+          data: { qtde_adicional: additional },
+          where: { id },
+        }),
+      ),
+    );
   }
 
+  // Idem: recebe `tx` para participar da mesma transação do recálculo em massa.
   async addItem(
     data: AddServicesDTO,
     type: 'service' | 'material',
+    tx: Prisma.TransactionClient,
   ): Promise<void> {
     const {
       idService,
@@ -126,11 +135,10 @@ export class WorkServicesRepository implements IWorkServicesRepository {
       operation,
       point,
       operationDescription,
-      operationNumber,
       quantity,
     } = data;
 
-    await this.prisma.servicos.create({
+    await tx.servicos.create({
       data: {
         id_obra: idWork,
         id_contrato_servico: type === 'service' ? idService : null,
@@ -138,10 +146,66 @@ export class WorkServicesRepository implements IWorkServicesRepository {
         operacao: operation,
         ponto: point,
         descricao_operacao: operationDescription,
-        numero_operacao: operationNumber,
         qtde_plan: 0,
         qtde_adicional: quantity,
       },
     });
+  }
+
+  // Novo: update em lote de prog/exec de várias programações de uma vez,
+  // via SQL raw (CASE WHEN), evitando N+1 de updates individuais.
+  async updateSchedulesProgress(
+    data: SchedulesProgressUpdate[],
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    if (data.length === 0) return;
+
+    const progCases = Prisma.join(
+      data.map((d) => Prisma.sql`WHEN ${d.idProgramacao} THEN ${d.prog}`),
+      ' ',
+    );
+    const execCases = Prisma.join(
+      data.map((d) =>
+        d.exec === null
+          ? Prisma.sql`
+          WHEN ${d.idProgramacao}
+          THEN NULL::DOUBLE PRECISION
+        `
+          : Prisma.sql`
+          WHEN ${d.idProgramacao}
+          THEN ${d.exec}
+        `,
+      ),
+      ' ',
+    );
+    const ids = Prisma.join(data.map((d) => d.idProgramacao));
+
+    await tx.$executeRaw`
+      UPDATE programacoes
+      SET prog = CASE id ${progCases} END,
+          exec = CASE id ${execCases} END
+      WHERE id IN (${ids})
+    `;
+  }
+
+  async updateWorkExecuted(
+    workId: number,
+    executed: number | null,
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    await tx.obras.update({
+      where: {
+        id: workId,
+      },
+      data: {
+        executado: executed,
+      },
+    });
+  }
+
+  // Recebe `tx`: passou a ser chamado dentro da transação orquestrada
+  // pelo WorksServicesService, junto com o recálculo em massa de prog/exec.
+  async delete(id: number, tx: Prisma.TransactionClient): Promise<void> {
+    await tx.servicos.delete({ where: { id } });
   }
 }

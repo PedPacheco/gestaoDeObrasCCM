@@ -27,7 +27,7 @@ import { useServicesFilters } from "@/hooks/services/useServicesFilters";
 
 const SERVICE_COLUMNS = [
   { key: "material", label: "CÓDIGO" },
-  { key: "textoBreve", label: "SERVIÇO" },
+  { key: "textoBreve", label: "SERVIÇO/MATERIAL" },
   { key: "operacao", label: "OPERAÇÃO" },
   { key: "numeroOperacao", label: "N° DA OPERAÇÃO" },
   { key: "descricaoOperacao", label: "DESCRIÇÃO DA OPERAÇÃO" },
@@ -42,7 +42,8 @@ const SERVICE_COLUMNS = [
   { key: "qtdeProgramada", label: "PROG", align: "right" as const },
   { key: "qtdeRealizada", label: "REAL", align: "right" as const },
   { key: "valorUnit", label: "VALOR UNIT", align: "right" as const },
-  { key: "valorTotal", label: "VALOR TOTAL", align: "right" as const },
+  { key: "valorProg", label: "VALOR PROG", align: "right" as const },
+  { key: "valorReal", label: "VALOR REAL", align: "right" as const },
   { key: "status", label: "STATUS" },
 ] as const;
 
@@ -53,10 +54,11 @@ const SUMMABLE_COLUMNS = new Set([
   "qtdeProgramada",
   "qtdeRealizada",
   "valorUnit",
-  "valorTotal",
+  "valorProg",
+  "valorReal",
 ]);
 
-const CURRENCY_COLUMNS = new Set(["valorUnit", "valorTotal"]);
+const CURRENCY_COLUMNS = new Set(["valorUnit", "valorReal", "valorProg"]);
 
 interface ScheduleServicesTableProps {
   scheduledServicesData: any[];
@@ -86,7 +88,7 @@ export function ScheduledServicesTable({
       return dayjs(value).utc().format("DD/MM/YYYY");
     }
 
-    if (["valorUnit", "valorTotal"].includes(key)) {
+    if (["valorUnit", "valorProg", "valorReal"].includes(key)) {
       return FormatCurrency(value);
     }
 
@@ -249,7 +251,7 @@ export function ScheduledServicesTable({
           },
           {
             label: "Equipe",
-            field: "perfil",
+            field: "equipe",
             options: filterOptions.equipe,
             width: "w-44",
           },

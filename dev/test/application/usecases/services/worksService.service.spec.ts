@@ -7,6 +7,7 @@ import {
   IWorkServicesRepository,
   WORK_SERVICES_REPOSITORY,
 } from 'src/domain/repositories/worksService/IWorkServicesRepository';
+import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import { ScheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
@@ -21,6 +22,9 @@ describe('WorksServicesService', () => {
     reascheduleServices: jest.fn(),
     addItem: jest.fn(),
     applyAdditional: jest.fn(),
+    delete: jest.fn(),
+    updateSchedulesProgress: jest.fn(),
+    updateWorkExecuted: jest.fn(),
   };
 
   const mockWorkServicesQueryRepository = {
@@ -41,6 +45,12 @@ describe('WorksServicesService', () => {
     warn: jest.fn(),
   };
 
+  const mockScheduleProgressCalculatorService = {
+    calculateScheduleProgress: jest.fn(),
+    calculateAllSchedulesProgress: jest.fn(),
+    calculateAggregateProgress: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -52,6 +62,10 @@ describe('WorksServicesService', () => {
         {
           provide: WORK_SERVICES_QUERY_REPOSITORY,
           useValue: mockWorkServicesQueryRepository,
+        },
+        {
+          provide: ScheduleProgressCalculatorService,
+          useValue: mockScheduleProgressCalculatorService,
         },
         {
           provide: STATUS_FLOW_REPOSITORY,
@@ -87,6 +101,7 @@ describe('WorksServicesService', () => {
           operation: 'instalação',
           point: 'p1',
           additional: null,
+          type: 'S',
         },
         {
           id: 2,
@@ -95,12 +110,14 @@ describe('WorksServicesService', () => {
           operation: 'instalação',
           point: 'p1',
           additional: null,
+          type: 'M',
         },
       ];
 
       mockWorkServicesQueryRepository.getAllServicesOfWork.mockResolvedValue([
         { id: 1, viabilizado: 3, qtde_adicional: null },
         { id: 2, viabilizado: 5, qtde_adicional: null },
+        { id: 2, viabilizado: null, qtde_adicional: 3 },
       ]);
       mockWorkServicesQueryRepository.getServiceScheduleHistory.mockResolvedValue(
         [],
@@ -111,7 +128,7 @@ describe('WorksServicesService', () => {
 
       expect(repository.scheduleServices).toHaveBeenCalledWith(
         mockScheduleData,
-        { increment: 100 },
+        { increment: 27.27 },
         undefined,
       );
       expect(repository.scheduleServices).toHaveBeenCalledTimes(1);
@@ -124,9 +141,9 @@ describe('WorksServicesService', () => {
 
       mockWorksServicesRepository.cancelServices.mockResolvedValue(undefined);
 
-      await service.applyAdditional(mockData);
+      await service.applyAdditional(3, mockData);
 
-      expect(repository.applyAdditional).toHaveBeenCalledWith(mockData);
+      expect(repository.applyAdditional).toHaveBeenCalledWith(mockData, {});
       expect(repository.applyAdditional).toHaveBeenCalledTimes(1);
     });
   });
@@ -266,11 +283,9 @@ describe('WorksServicesService', () => {
         quantity: 2,
       };
 
-      mockWorksServicesRepository.addItem.mockResolvedValue(undefined);
-
       await service.addItem(mockData, 'material');
 
-      expect(repository.addItem).toHaveBeenCalledWith(mockData, 'material');
+      expect(repository.addItem).toHaveBeenCalledWith(mockData, 'material', {});
       expect(repository.addItem).toHaveBeenCalledTimes(1);
     });
 
@@ -287,9 +302,13 @@ describe('WorksServicesService', () => {
 
       mockWorksServicesRepository.addItem.mockResolvedValue(undefined);
 
+      jest
+        .spyOn(service as any, 'recalculateAllSchedulesProgress')
+        .mockResolvedValue(undefined);
+
       await service.addItem(mockData, 'service');
 
-      expect(repository.addItem).toHaveBeenCalledWith(mockData, 'service');
+      expect(repository.addItem).toHaveBeenCalledWith(mockData, 'service', {});
       expect(repository.addItem).toHaveBeenCalledTimes(1);
     });
 
@@ -300,7 +319,6 @@ describe('WorksServicesService', () => {
         point: 'P1',
         operation: 'INSTALAÇÃO',
         operationDescription: 'POSTE',
-        operationNumber: '2000',
         quantity: 2,
       };
 
@@ -309,10 +327,14 @@ describe('WorksServicesService', () => {
           id: 2,
           id_contrato_servico: 2,
           ponto: 'P1',
-          numero_operacao: '2000',
+          descricao_operacao: 'POSTE',
           qtde_plan: 2,
         },
       ]);
+
+      jest
+        .spyOn(service as any, 'recalculateAllSchedulesProgress')
+        .mockResolvedValue(undefined);
 
       await expect(service.addItem(mockData, 'service')).rejects.toThrow(
         'Esse serviço já existe nesse ponto.',
@@ -326,7 +348,6 @@ describe('WorksServicesService', () => {
         point: 'P1',
         operation: 'INSTALAÇÃO',
         operationDescription: 'POSTE',
-        operationNumber: '2000',
         quantity: 2,
       };
 
@@ -335,10 +356,14 @@ describe('WorksServicesService', () => {
           id: 2,
           id_material: 2,
           ponto: 'P1',
-          numero_operacao: '2000',
+          descricao_operacao: 'POSTE',
           qtde_plan: 2,
         },
       ]);
+
+      jest
+        .spyOn(service as any, 'recalculateAllSchedulesProgress')
+        .mockResolvedValue(undefined);
 
       await expect(service.addItem(mockData, 'material')).rejects.toThrow(
         'Esse material já existe nesse ponto.',
@@ -346,68 +371,21 @@ describe('WorksServicesService', () => {
     });
   });
 
-  describe('calculateScheduledProgress', () => {
-    it('should calculate progress correctly', async () => {
-      const mockServices = [
-        { id: 1, viabilizado: 10, qtde_adicional: null },
-        { id: 2, viabilizado: 20, qtde_adicional: 2 },
-      ];
-
-      const mockSelectedServices = [
-        { prog: 10, additional: null },
-        { prog: 20, additional: 2 },
-      ];
-
-      mockWorkServicesQueryRepository.getAllServicesOfWork.mockResolvedValue(
-        mockServices,
+  describe('delete', () => {
+    it('Should call method delete and throw BadRequestExpection if no id is sent', async () => {
+      await expect(service.delete(null, 4)).rejects.toThrow(
+        BadRequestException,
       );
 
-      const progress = await service.calculateScheduledProgress(
-        1,
-        mockSelectedServices,
+      await expect(service.delete(null, 4)).rejects.toThrow(
+        'Nenhum serviço/material fornecida para exclusão.',
       );
-
-      expect(progress).toBe(94); // (10 + 20) / 100 * 100
     });
 
-    it('should return 0 when total plan is 0', async () => {
-      const mockServices = [
-        { id: 1, viabilizado: 0 },
-        { id: 2, viabilizado: 0 },
-      ];
+    it('should call method delete and call repository', async () => {
+      await service.delete(1, 4);
 
-      const mockSelectedServices = [{ prog: 10 }];
-
-      mockWorkServicesQueryRepository.getAllServicesOfWork.mockResolvedValue(
-        mockServices,
-      );
-
-      const progress = await service.calculateScheduledProgress(
-        1,
-        mockSelectedServices,
-      );
-
-      expect(progress).toBe(0);
-    });
-
-    it('should handle services without qtde_plan', async () => {
-      const mockServices = [
-        { id: 1, viabilizado: 50 },
-        { id: 2 }, // sem qtde_plan
-      ];
-
-      const mockSelectedServices = [{ prog: 25, additional: null }];
-
-      mockWorkServicesQueryRepository.getAllServicesOfWork.mockResolvedValue(
-        mockServices,
-      );
-
-      const progress = await service.calculateScheduledProgress(
-        1,
-        mockSelectedServices,
-      );
-
-      expect(progress).toBe(50); // 25 / 50 * 100
+      expect(repository.delete).toHaveBeenCalledWith(1, {});
     });
   });
 
@@ -422,6 +400,7 @@ describe('WorksServicesService', () => {
           operation: 'instalação',
           point: 'p1',
           additional: null,
+          type: 'S',
         },
       ];
 
@@ -466,6 +445,7 @@ describe('WorksServicesService', () => {
           operation: 'instalação',
           point: 'p1',
           additional: null,
+          type: 'M',
         },
         {
           id: 1,
@@ -475,6 +455,7 @@ describe('WorksServicesService', () => {
           operation: 'instalação',
           point: 'p1',
           additional: null,
+          type: 'S',
         },
       ];
 
@@ -497,6 +478,7 @@ describe('WorksServicesService', () => {
           operation: 'instalação',
           point: 'p1',
           additional: null,
+          type: 'M',
         },
       ];
 
@@ -516,6 +498,7 @@ describe('WorksServicesService', () => {
           operation: 'instalação',
           point: 'p1',
           prog: 2,
+          type: 'S',
         },
       ];
 
@@ -524,11 +507,11 @@ describe('WorksServicesService', () => {
       );
       mockWorksServicesRepository.scheduleServices.mockResolvedValue(undefined);
 
-      await service.scheduleServices(1, mockScheduleData, 50);
+      await service.scheduleServices(1, mockScheduleData);
 
       expect(repository.scheduleServices).toHaveBeenCalledWith(
         mockScheduleData,
-        50,
+        { increment: 100 },
         5,
       );
     });

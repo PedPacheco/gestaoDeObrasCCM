@@ -66,7 +66,6 @@ export function ScheduleSidebar({
     clearFilters,
   } = useScheduleSidebar(selectedServices);
 
-
   const handleDelete = (resolvedService: ScheduledService) => {
     const originalIndex = selectedServices.findIndex((service) => {
       return (

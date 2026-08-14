@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpStatus,
   Param,
@@ -173,15 +174,15 @@ export class ServicesController {
     @UploadedFiles() files: Express.Multer.File[],
     @Req() req: any,
   ) {
-    const idUser = req.user.sub;
+    const userId = req.user.sub;
 
     const data = {
       ...executionData.data,
-      idUser,
+      userId,
       executionReportData: executionData.data.executionReport
         ? {
             ...executionData.data.executionReport,
-            idUser,
+            userId,
           }
         : undefined,
     };
@@ -205,8 +206,11 @@ export class ServicesController {
   }
 
   @Patch('aplicar-adicional')
-  async applyAdditional(@Body() data: ApplyAdditonalDTO[]) {
-    await this.worksServicesService.applyAdditional(data);
+  async applyAdditional(
+    @Body() data: ApplyAdditonalDTO[],
+    @Query('workId', ParseIntPipe) workId: number,
+  ) {
+    await this.worksServicesService.applyAdditional(workId, data);
 
     return {
       statusCode: HttpStatus.OK,
@@ -231,6 +235,31 @@ export class ServicesController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Serviços realizados com sucesso',
+    };
+  }
+
+  @Post('familia')
+  async addFamily(@Body() data: AddServicesDTO) {
+    const type = data.type === 'S' ? 'service' : 'material';
+
+    await this.worksServicesService.addItem(data, type);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Serviços realizados com sucesso',
+    };
+  }
+
+  @Delete('/:id')
+  async deleteMaterialAndService(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('workId', ParseIntPipe) workId: number,
+  ) {
+    await this.worksServicesService.delete(id, workId);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Serviço/Material excluído com sucesso',
     };
   }
 }

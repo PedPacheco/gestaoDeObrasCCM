@@ -95,7 +95,7 @@ describe('GetScheduleValuesRepository', () => {
     const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim, 
     turma, status_ov_sap, executado, data_prog, prog, exec, mo_planejada::int*prog/100 AS mo_prog, mo_planejada::int*COALESCE(exec, 100)/100 AS mo_exec, capex_mat_pend, capex_mo_pend, tipo_obra, id_grupo,
     qtde_planejada, qtde_pend, num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status, 
-    id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2
+    id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2, encontrado
     FROM construcao_sp.obras
     INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
     INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
@@ -107,6 +107,7 @@ describe('GetScheduleValuesRepository', () => {
     INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
     INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
     INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
+    INNER JOIN construcao_sp.relatorio ON relatorio.id_obra = obras.id
     WHERE status.id NOT IN (3, 4) AND exec IS NULL ORDER BY data_prog, ovnota`;
 
     const result = await repository.getValues(filters);
@@ -147,7 +148,7 @@ describe('GetScheduleValuesRepository', () => {
     const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim, 
       turma, status_ov_sap, executado, data_prog, prog, exec, mo_planejada::int*prog/100 AS mo_prog, mo_planejada::int*COALESCE(exec, 100)/100 AS mo_exec, capex_mat_pend, capex_mo_pend, tipo_obra, id_grupo,
       qtde_planejada, qtde_pend, num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status, 
-      id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2
+      id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2, encontrado
       FROM construcao_sp.obras
       INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
       INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
@@ -159,6 +160,7 @@ describe('GetScheduleValuesRepository', () => {
       INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
       INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
       INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
+      INNER JOIN construcao_sp.relatorio ON relatorio.id_obra = obras.id
       WHERE status.id NOT IN (3, 4) AND programacoes.data_prog BETWEEN AND 
       AND municipios.id_regional IN () 
       AND municipios.id IN () 
@@ -233,7 +235,7 @@ describe('GetScheduleValuesRepository', () => {
     const expectedQuery = `SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim, 
     turma, status_ov_sap, executado, data_prog, prog, exec, mo_planejada::int*prog/100 AS mo_prog, mo_planejada::int*COALESCE(exec, 100)/100 AS mo_exec, capex_mat_pend, capex_mo_pend, tipo_obra, id_grupo,
     qtde_planejada, qtde_pend, num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, status_programacao, status, 
-    id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2
+    id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2, encontrado
     FROM construcao_sp.obras
     INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
     INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
@@ -245,6 +247,7 @@ describe('GetScheduleValuesRepository', () => {
     INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
     INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
     INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
+    INNER JOIN construcao_sp.relatorio ON relatorio.id_obra = obras.id
     WHERE status.id NOT IN (3, 4) AND exec IS NULL AND data_prog < CURRENT_DATE ORDER BY data_prog, ovnota LIMIT 200 OFFSET`;
 
     const result = await repository.getValues(filters);

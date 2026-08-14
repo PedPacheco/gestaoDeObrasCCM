@@ -1,6 +1,22 @@
-import { useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { startTransition, useMemo, useState } from "react";
+
+import { deleteService } from "@/actions/services";
+import { ButtonComponent } from "@/components/common/Button";
+import {
+  MATERIAL_OR_SERVICE_OPTIONS,
+  SERVICE_OPERATIONS,
+} from "@/constants/services/services";
+import { useServicesFilters } from "@/hooks/services/useServicesFilters";
+import { useFeedback } from "@/hooks/useFeedback";
+import {
+  ExclamationCircleIcon,
+  PencilSquareIcon,
+  TrashIcon,
+} from "@heroicons/react/20/solid";
 import {
   FormControl,
+  IconButton,
   MenuItem,
   Paper,
   Select,
@@ -10,19 +26,11 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
 } from "@mui/material";
-import {
-  ExclamationCircleIcon,
-  PencilSquareIcon,
-} from "@heroicons/react/20/solid";
 
-import { ButtonComponent } from "@/components/common/Button";
+import ConfirmationScheduleModalComponent from "../common/confirmationScheduleModal";
 import { TableFilter } from "../services/servicesSection/servicesFilters";
-import {
-  MATERIAL_OR_SERVICE_OPTIONS,
-  SERVICE_OPERATIONS,
-} from "@/constants/services/services";
-import { useServicesFilters } from "@/hooks/services/useServicesFilters";
 
 export interface FeasibilityServiceItem {
   id: number;
@@ -41,6 +49,7 @@ interface FeasibilityServicesReviewStepProps {
   reviewData: FeasibilityServiceItem[];
   onChangeReviewData: (data: FeasibilityServiceItem[]) => void;
   readOnly?: boolean;
+  workId: number;
 }
 
 const reviewColumns = [
@@ -80,7 +89,18 @@ export function FeasibilityServicesReviewStep({
   reviewData,
   onChangeReviewData,
   readOnly = false,
+  workId,
 }: FeasibilityServicesReviewStepProps) {
+  const router = useRouter();
+  const { showSuccess, showError } = useFeedback();
+
+  const handleOpenDeleteModal = (item: FeasibilityServiceItem) => {
+    setItemToDelete(item);
+  };
+
+  const [itemToDelete, setItemToDelete] =
+    useState<FeasibilityServiceItem | null>(null);
+
   const {
     materialOrService,
     setMaterialOrService,
@@ -102,6 +122,22 @@ export function FeasibilityServicesReviewStep({
 
     return { pendingCount: pending, changedCount: changed };
   }, [reviewData]);
+
+  const handleDeleteItem = async (id: number) => {
+    const response = await deleteService(id, workId);
+
+    if (!response.success) {
+      showError(response.error);
+      return;
+    }
+
+    showSuccess(response?.message || "Item removido com sucesso", () => {
+      startTransition(() => {
+        router.refresh();
+        setItemToDelete(null);
+      });
+    });
+  };
 
   const updateViabilizado = (id: number, value: string) => {
     if (readOnly) return;
@@ -243,6 +279,13 @@ export function FeasibilityServicesReviewStep({
         <Table stickyHeader size="small" sx={{ minWidth: 640 }}>
           <TableHead>
             <TableRow>
+              <TableCell
+                width={60}
+                className="!text-xs !font-semibold !text-zinc-500"
+              >
+                AÇÕES
+              </TableCell>
+
               {reviewColumns.map((header) => (
                 <TableCell
                   key={header.key}
@@ -272,7 +315,7 @@ export function FeasibilityServicesReviewStep({
             ) : filteredServicesData.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={reviewColumns.length + 1}
+                  colSpan={reviewColumns.length + 2}
                   align="center"
                   className="!py-10 !text-zinc-400"
                 >
@@ -282,6 +325,25 @@ export function FeasibilityServicesReviewStep({
             ) : (
               filteredServicesData.map((row) => (
                 <TableRow key={row.id} className={getRowClassName(row)}>
+                  <TableCell>
+                    {!readOnly && (
+                      <Tooltip title="Excluir Serviço/Material" placement="top">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleOpenDeleteModal(row)}
+                          sx={{
+                            padding: "4px",
+                            "&:hover": {
+                              backgroundColor: "rgba(211, 47, 47, 0.08)",
+                            },
+                          }}
+                        >
+                          <TrashIcon width={24} height={24} />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </TableCell>
                   {reviewColumns.map((col) => (
                     <TableCell key={col.key}>
                       {row[col.key as keyof FeasibilityServiceItem]}
@@ -311,6 +373,17 @@ export function FeasibilityServicesReviewStep({
           </TableBody>
         </Table>
       </TableContainer>
+
+      <ConfirmationScheduleModalComponent
+        open={Boolean(itemToDelete)}
+        onClose={() => setItemToDelete(null)}
+        onConfirm={handleDeleteItem}
+        idSchedule={itemToDelete?.id ?? 0}
+        title="Excluir serviço/material"
+        message={`Deseja realmente excluir "${
+          itemToDelete?.textoBreve ?? ""
+        }"? Esta ação não poderá ser desfeita.`}
+      />
     </>
   );
 }

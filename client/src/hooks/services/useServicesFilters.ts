@@ -46,8 +46,9 @@ export function useServicesFilters(sourceData: any[]) {
       operacao: buildOptions(sourceData, "operacao"),
       ponto: buildOptions(sourceData, "ponto"),
       encarregado: buildOptions(sourceData, "encarregado"),
-      equipe: buildOptions(sourceData, "perfil"),
+      perfil: buildOptions(sourceData, "perfil"),
       dataProgramada: buildOptions(sourceData, "dataProgramada"),
+      equipe: buildOptions(sourceData, "equipe"),
     };
   }, [materialOrService, sourceData]);
 
