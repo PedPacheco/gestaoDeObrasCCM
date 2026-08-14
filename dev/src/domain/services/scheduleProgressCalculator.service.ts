@@ -56,7 +56,7 @@ export class ScheduleProgressCalculatorService {
       };
 
       totalsByScheduleId.set(item.id_programacao, {
-        prog: current.prog + (item.prog ?? 0),
+        prog: current.prog + item.prog,
         exec: current.exec + (item.real ?? 0),
         hasExecution: current.hasExecution || item.real !== null,
       });
@@ -112,7 +112,7 @@ export class ScheduleProgressCalculatorService {
       .reduce(
         (acc, item) => ({
           exec: acc.exec + (item.real ?? 0),
-          prog: acc.prog + (item.prog ?? 0),
+          prog: acc.prog + item.prog,
         }),
         { exec: 0, prog: 0 },
       );

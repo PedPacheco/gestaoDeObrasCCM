@@ -44,8 +44,6 @@ export class HandleSchedulesUpdateService {
   ) {
     const { updateData, executionReportData } = data;
 
-    console.log(executionReportData);
-
     const work = await this.getDetailsWorkService.get(updateData.idWork);
 
     if ([2, 3, 4, 37, 42].includes(work.id_status) && permission) {

@@ -601,13 +601,13 @@ describe('WorksServicesRepository', () => {
         },
       };
 
-      await repository.addItem(mockData, 'material', mockTx as any);
+      await repository.addItem(mockData, 'service', mockTx as any);
 
       expect(mockTx.servicos.create).toHaveBeenCalledWith({
         data: {
           id_obra: 1,
-          id_contrato_servico: null,
-          id_material: 2,
+          id_contrato_servico: 2,
+          id_material: null,
           operacao: 'INSTALAÇÃO',
           ponto: 'P1',
           descricao_operacao: 'POSTE - ODI',

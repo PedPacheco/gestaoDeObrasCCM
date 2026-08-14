@@ -146,6 +146,18 @@ describe('WorksServicesService', () => {
       expect(repository.applyAdditional).toHaveBeenCalledWith(mockData, {});
       expect(repository.applyAdditional).toHaveBeenCalledTimes(1);
     });
+
+    it('should log error and rethrow when applyAdditional fails', async () => {
+      const error = new Error('apply error');
+
+      mockWorksServicesRepository.applyAdditional.mockRejectedValue(error);
+
+      await expect(
+        service.applyAdditional(1, [{ id: 1, additional: 2 }]),
+      ).rejects.toThrow('apply error');
+
+      expect(mockLogger.error).toHaveBeenCalledWith(error);
+    });
   });
 
   describe('cancelServices', () => {
@@ -369,6 +381,32 @@ describe('WorksServicesService', () => {
         'Esse material já existe nesse ponto.',
       );
     });
+
+    it('should log error and rethrow when addItem repository fails', async () => {
+      const error = new Error('repository error');
+
+      mockWorkServicesQueryRepository.getAllServicesOfWork.mockResolvedValue(
+        [],
+      );
+
+      mockWorksServicesRepository.addItem.mockRejectedValue(error);
+
+      await expect(
+        service.addItem(
+          {
+            idWork: 1,
+            idService: 2,
+            point: 'P1',
+            operation: 'INST',
+            operationDescription: 'POSTE',
+            quantity: 1,
+          },
+          'service',
+        ),
+      ).rejects.toThrow('repository error');
+
+      expect(mockLogger.error).toHaveBeenCalledWith(error);
+    });
   });
 
   describe('delete', () => {
@@ -386,6 +424,59 @@ describe('WorksServicesService', () => {
       await service.delete(1, 4);
 
       expect(repository.delete).toHaveBeenCalledWith(1, {});
+    });
+
+    it('should recalculate schedule progress after delete', async () => {
+      mockWorkServicesQueryRepository.getAllServicesOfWork.mockResolvedValue([
+        {
+          viabilizado: 10,
+          qtde_adicional: 5,
+          id_material: null,
+        },
+      ]);
+
+      mockWorkServicesQueryRepository.getServiceScheduleHistory.mockResolvedValue(
+        [
+          {
+            real: 3,
+            servicos: {
+              materiais: null,
+            },
+          },
+          {
+            real: null,
+            servicos: {
+              materiais: null,
+            },
+          },
+        ],
+      );
+
+      mockScheduleProgressCalculatorService.calculateAllSchedulesProgress.mockReturnValue(
+        [{ scheduleId: 1, progress: 20 }],
+      );
+
+      await service.delete(1, 4);
+
+      expect(
+        mockScheduleProgressCalculatorService.calculateAllSchedulesProgress,
+      ).toHaveBeenCalled();
+
+      expect(
+        mockWorksServicesRepository.updateSchedulesProgress,
+      ).toHaveBeenCalledWith([{ scheduleId: 1, progress: 20 }], {});
+
+      expect(mockWorksServicesRepository.updateWorkExecuted).toHaveBeenCalled();
+    });
+
+    it('should log error and rethrow when delete fails', async () => {
+      const error = new Error('delete error');
+
+      mockWorksServicesRepository.delete.mockRejectedValue(error);
+
+      await expect(service.delete(1, 4)).rejects.toThrow('delete error');
+
+      expect(mockLogger.error).toHaveBeenCalledWith(error);
     });
   });
 

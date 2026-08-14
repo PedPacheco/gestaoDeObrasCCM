@@ -26,7 +26,7 @@ export class ScheduleExecutionValidatorService {
     totals: returnExecution,
     tx: Prisma.TransactionClient,
   ) {
-    const newExecuted = Math.min((totals.exec ?? 0) + (data.exec ?? 0), 100);
+    const newExecuted = Math.min((totals.exec ?? 0) + data.exec, 100);
 
     if (data.prog <= data.exec) {
       await this.statusFlowRepository.updateScheduleStatus(4, data.id, tx);
