@@ -15,6 +15,11 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ExecutionReportService } from '../executionReport.service';
 import { ScheduleExecutionValidatorService } from '../schedule/scheduleExecutionValidator.service';
 import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
+import { Prisma } from '@prisma/client';
+import {
+  IWorkServicesRepository,
+  WORK_SERVICES_REPOSITORY,
+} from 'src/domain/repositories/worksService/IWorkServicesRepository';
 
 interface FinalizationData {
   id: number;
@@ -36,6 +41,8 @@ export class FinalizeServicesService {
     private readonly prisma: PrismaService,
     @Inject(WORK_SERVICES_EXECUTION_REPOSITORY)
     private readonly worksServicesExecutionRepository: IWorkServicesExecutionRepository,
+    @Inject(WORK_SERVICES_REPOSITORY)
+    private readonly workServicesRepository: IWorkServicesRepository,
     @Inject(WORK_SERVICES_QUERY_REPOSITORY)
     private readonly workServicesQueryRepository: IWorkServicesQueryRepository,
     private readonly executionReportService: ExecutionReportService,
@@ -192,10 +199,41 @@ export class FinalizeServicesService {
           pendingExecServices,
           tx,
         );
+
+        // Finalizar pode zerar o `real` de algum serviço (setado antes,
+        // via performServices) — isso exclui o serviço do totalPlanned e
+        // invalida o prog/exec de TODAS as outras programações, não só
+        // a que está sendo finalizada agora. `history`/`totalPlanned` já
+        // refletem esse zeramento (foram lidos após o performServices).
+        await this.recalculateOtherSchedulesProgress(
+          history,
+          totalPlanned,
+          scheduleId,
+          tx,
+        );
       } catch (error) {
         this.logger.error(error);
         throw error;
       }
     });
+  }
+
+  // A programação atual já foi persistida por
+  // worksServicesExecutionRepository.finalizeServices logo acima — aqui só
+  // atualizamos as DEMAIS, em lote.
+  private async recalculateOtherSchedulesProgress(
+    history: any[],
+    totalPlanned: number,
+    currentScheduleId: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    const otherSchedulesProgress = this.scheduleProgressCalculator
+      .calculateAllSchedulesProgress(history, totalPlanned)
+      .filter((item) => item.idProgramacao !== currentScheduleId);
+
+    await this.workServicesRepository.updateSchedulesProgress(
+      otherSchedulesProgress,
+      tx,
+    );
   }
 }

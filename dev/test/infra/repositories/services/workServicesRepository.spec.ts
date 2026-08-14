@@ -13,6 +13,9 @@ describe('WorksServicesRepository', () => {
       create: jest.fn(),
       delete: jest.fn(),
     },
+    obras: {
+      update: jest.fn(),
+    },
     $transaction: jest.fn(),
   };
 
@@ -203,6 +206,28 @@ describe('WorksServicesRepository', () => {
         ],
       });
     });
+
+    it('should update schedule progress', async () => {
+      await repository.scheduleServices(mockScheduleData, 80, 1);
+
+      expect(mockTx.programacoes.update).toHaveBeenCalledWith({
+        where: {
+          id: 1,
+        },
+        data: {
+          prog: 80,
+        },
+      });
+    });
+
+    it('should execute transaction with timeout options', async () => {
+      await repository.scheduleServices(mockScheduleData, 80, 1);
+
+      expect(prisma.$transaction).toHaveBeenCalledWith(expect.any(Function), {
+        maxWait: 10000,
+        timeout: 30000,
+      });
+    });
   });
 
   describe('reascheduleServices', () => {
@@ -330,6 +355,31 @@ describe('WorksServicesRepository', () => {
       expect(mockTx.servicos.updateMany).toHaveBeenCalledWith({
         data: { id_programacao: null },
         where: { id: { in: [999] } },
+      });
+    });
+
+    it('should map service ids correctly', async () => {
+      const mockData = [
+        { id_servico: 10 },
+        { id_servico: 20 },
+        { id_servico: 30 },
+      ];
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) =>
+        callback(mockTx),
+      );
+
+      await repository.reascheduleServices(mockData, 1);
+
+      expect(mockTx.servicos.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: {
+            in: [10, 20, 30],
+          },
+        },
+        data: {
+          id_programacao: null,
+        },
       });
     });
   });
@@ -510,13 +560,18 @@ describe('WorksServicesRepository', () => {
         point: 'P1',
         operation: 'INSTALAÇÃO',
         operationDescription: 'POSTE - ODI',
-        operationNumber: '2000',
         quantity: 4,
       };
 
-      await repository.addItem(mockData, 'material');
+      const mockTx = {
+        servicos: {
+          create: jest.fn().mockResolvedValue({}),
+        },
+      };
 
-      expect(mockPrismaService.servicos.create).toHaveBeenCalledWith({
+      await repository.addItem(mockData, 'material', mockTx as any);
+
+      expect(mockTx.servicos.create).toHaveBeenCalledWith({
         data: {
           id_obra: 1,
           id_material: 2,
@@ -524,7 +579,6 @@ describe('WorksServicesRepository', () => {
           operacao: 'INSTALAÇÃO',
           ponto: 'P1',
           descricao_operacao: 'POSTE - ODI',
-          numero_operacao: '2000',
           qtde_plan: 0,
           qtde_adicional: 4,
         },
@@ -538,21 +592,25 @@ describe('WorksServicesRepository', () => {
         point: 'P1',
         operation: 'INSTALAÇÃO',
         operationDescription: 'POSTE - ODI',
-        operationNumber: '2000',
         quantity: 2,
       };
 
-      await repository.addItem(mockData, 'service');
+      const mockTx = {
+        servicos: {
+          create: jest.fn().mockResolvedValue({}),
+        },
+      };
 
-      expect(mockPrismaService.servicos.create).toHaveBeenCalledWith({
+      await repository.addItem(mockData, 'material', mockTx as any);
+
+      expect(mockTx.servicos.create).toHaveBeenCalledWith({
         data: {
           id_obra: 1,
-          id_material: null,
-          id_contrato_servico: 2,
+          id_contrato_servico: null,
+          id_material: 2,
           operacao: 'INSTALAÇÃO',
           ponto: 'P1',
           descricao_operacao: 'POSTE - ODI',
-          numero_operacao: '2000',
           qtde_plan: 0,
           qtde_adicional: 2,
         },
@@ -579,7 +637,7 @@ describe('WorksServicesRepository', () => {
         return await callback(mockTx);
       });
 
-      await repository.applyAdditional(mockData);
+      await repository.applyAdditional(mockData, mockTx as any);
 
       expect(mockTx.servicos.updateMany).toHaveBeenCalledWith({
         data: { qtde_adicional: 2 },
@@ -587,23 +645,131 @@ describe('WorksServicesRepository', () => {
       });
       expect(mockTx.servicos.updateMany).toHaveBeenCalledTimes(1);
     });
+
+    it('should update multiple additionals', async () => {
+      const mockTx = {
+        servicos: {
+          updateMany: jest.fn().mockResolvedValue({}),
+        },
+      };
+
+      await repository.applyAdditional(
+        [
+          {
+            id: 1,
+            additional: 2,
+          },
+          {
+            id: 2,
+            additional: 5,
+          },
+        ],
+        mockTx as any,
+      );
+
+      expect(mockTx.servicos.updateMany).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('delete', () => {
-    it('Should call method delete and throw InternalExpection if id not found', async () => {
-      mockPrismaService.servicos.delete.mockRejectedValueOnce(
-        new Error('DB error'),
-      );
+    it('should throw when delete fails', async () => {
+      const mockTx = {
+        servicos: {
+          delete: jest.fn().mockRejectedValue(new Error('DB error')),
+        },
+      };
 
-      await expect(repository.delete(1)).rejects.toThrow('DB error');
+      await expect(repository.delete(1, mockTx as any)).rejects.toThrow(
+        'DB error',
+      );
     });
 
     it('Should call method delete with correct id', async () => {
-      await repository.delete(1);
+      const mockTx = {
+        servicos: {
+          delete: jest.fn(),
+        },
+      };
 
-      expect(mockPrismaService.servicos.delete).toHaveBeenCalledWith({
+      await repository.delete(1, mockTx as any);
+
+      expect(mockTx.servicos.delete).toHaveBeenCalledWith({
         where: { id: 1 },
       });
     });
+  });
+
+  describe('updateWorkExecuted', () => {
+    it('should update work executed percentage', async () => {
+      const mockTx = {
+        obras: {
+          update: jest.fn().mockResolvedValue({}),
+        },
+      };
+
+      await repository.updateWorkExecuted(10, 80, mockTx as any);
+
+      expect(mockTx.obras.update).toHaveBeenCalledWith({
+        where: {
+          id: 10,
+        },
+        data: {
+          executado: 80,
+        },
+      });
+    });
+
+    it('should allow executed null', async () => {
+      const mockTx = {
+        obras: {
+          update: jest.fn().mockResolvedValue({}),
+        },
+      };
+
+      await repository.updateWorkExecuted(10, null, mockTx as any);
+
+      expect(mockTx.obras.update).toHaveBeenCalledWith({
+        where: {
+          id: 10,
+        },
+        data: {
+          executado: null,
+        },
+      });
+    });
+  });
+
+  it('should return without executing query when data is empty', async () => {
+    const mockTx = {
+      $executeRaw: jest.fn(),
+    };
+
+    await repository.updateSchedulesProgress([], mockTx as any);
+
+    expect(mockTx.$executeRaw).not.toHaveBeenCalled();
+  });
+
+  it('should execute raw update', async () => {
+    const mockTx = {
+      $executeRaw: jest.fn().mockResolvedValue(undefined),
+    };
+
+    await repository.updateSchedulesProgress(
+      [
+        {
+          idProgramacao: 1,
+          prog: 50,
+          exec: 40,
+        },
+        {
+          idProgramacao: 2,
+          prog: 70,
+          exec: null,
+        },
+      ],
+      mockTx as any,
+    );
+
+    expect(mockTx.$executeRaw).toHaveBeenCalledTimes(1);
   });
 });

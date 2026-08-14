@@ -279,6 +279,7 @@ export function EditSchedule({
                   teams={serviceTeams}
                   onError={showError}
                   onSuccess={showSuccess}
+                  workId={idWork}
                 />
               </div>
 

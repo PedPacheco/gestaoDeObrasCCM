@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import {
   IStatusFlowRepository,
@@ -26,13 +26,7 @@ export class ScheduleExecutionValidatorService {
     totals: returnExecution,
     tx: Prisma.TransactionClient,
   ) {
-    const newExecuted = totals.exec + data.exec;
-
-    if (newExecuted > 101) {
-      throw new BadRequestException(
-        'O valor da execução da obra não pode ser superior a 100',
-      );
-    }
+    const newExecuted = Math.min((totals.exec ?? 0) + (data.exec ?? 0), 100);
 
     if (data.prog <= data.exec) {
       await this.statusFlowRepository.updateScheduleStatus(4, data.id, tx);

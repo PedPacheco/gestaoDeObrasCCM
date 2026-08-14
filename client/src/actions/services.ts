@@ -306,7 +306,10 @@ export async function cancelScheduleServices(
   );
 }
 
-export async function deleteService(id: number): Promise<ActionResult> {
+export async function deleteService(
+  id: number,
+  workId: number,
+): Promise<ActionResult> {
   const token = await getAuthToken();
 
   if (!token) {
@@ -315,11 +318,14 @@ export async function deleteService(id: number): Promise<ActionResult> {
 
   revalidatePath(`/viabilidade/${id}?status=adicao&ponto_a_ponto=true`);
 
-  return apiRequest(`${process.env.NEXT_PUBLIC_API_URL}/servicos/${id}`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+  return apiRequest(
+    `${process.env.NEXT_PUBLIC_API_URL}/servicos/${id}?workId=${workId}`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
     },
-  });
+  );
 }

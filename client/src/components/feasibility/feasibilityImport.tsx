@@ -260,6 +260,7 @@ export function FeasibiltyUpload({
                   reviewData={reviewData}
                   onChangeReviewData={setReviewData}
                   readOnly={!isEditable}
+                  workId={Number(idWork)}
                 />
               </CardSection>
             )}

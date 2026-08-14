@@ -285,13 +285,13 @@ describe('ServicesController', () => {
 
       mockWorksServicesService.applyAdditional.mockResolvedValue(undefined);
 
-      const result = await controller.applyAdditional(mockData);
+      const result = await controller.applyAdditional(mockData, 4);
 
       expect(result).toEqual({
         statusCode: HttpStatus.OK,
         message: 'Aplicado adicional no serviço',
       });
-      expect(service.applyAdditional).toHaveBeenCalledWith(mockData);
+      expect(service.applyAdditional).toHaveBeenCalledWith(4, mockData);
     });
   });
 
@@ -517,7 +517,6 @@ describe('ServicesController', () => {
         idService: 2,
         point: 'P1',
         operation: 'INSTALAÇÃO',
-        operationNumber: null,
         operationDescription: 'POSTE - ODI',
         quantity: 2,
         type: 'S',
@@ -547,7 +546,6 @@ describe('ServicesController', () => {
         idService: 2,
         point: 'P1',
         operation: 'INSTALAÇÃO',
-        operationNumber: null,
         operationDescription: 'POSTE - ODI',
         quantity: 2,
         type: 'M',
@@ -661,13 +659,13 @@ describe('ServicesController', () => {
     it('Should call deleteSchedules and return message', async () => {
       jest.spyOn(service, 'delete').mockResolvedValue();
 
-      const result = await controller.deleteMaterialAndService(1);
+      const result = await controller.deleteMaterialAndService(1, 4);
 
       expect(result).toEqual({
         statusCode: HttpStatus.OK,
         message: 'Serviço/Material excluído com sucesso',
       });
-      expect(service.delete).toHaveBeenCalledWith(1);
+      expect(service.delete).toHaveBeenCalledWith(1, 4);
     });
   });
 

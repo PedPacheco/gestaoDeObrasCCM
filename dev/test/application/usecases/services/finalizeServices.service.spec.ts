@@ -6,6 +6,8 @@ import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/repositories/worksSer
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
+import { WORK_SERVICES_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesRepository';
 
 describe('WorksServicesService', () => {
   let service: FinalizeServicesService;
@@ -32,6 +34,16 @@ describe('WorksServicesService', () => {
     $transaction: jest.fn(),
   };
 
+  const mockScheduleProgressCalculatorService = {
+    calculateScheduleProgress: jest.fn(),
+    calculateAllSchedulesProgress: jest.fn(),
+    calculateAggregateProgress: jest.fn(),
+  };
+
+  const mockWorkServiceRepository = {
+    updateSchedulesProgress: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -41,8 +53,16 @@ describe('WorksServicesService', () => {
           useValue: mockWorkServicesQueryRepository,
         },
         {
+          provide: WORK_SERVICES_REPOSITORY,
+          useValue: mockWorkServiceRepository,
+        },
+        {
           provide: WORK_SERVICES_EXECUTION_REPOSITORY,
           useValue: mockWorkServicesExecutionRepository,
+        },
+        {
+          provide: ScheduleProgressCalculatorService,
+          useValue: mockScheduleProgressCalculatorService,
         },
         {
           provide: ScheduleExecutionValidatorService,
@@ -190,6 +210,43 @@ describe('WorksServicesService', () => {
       mockExecutionValidator.validateExecutionAndUpdateStatus.mockResolvedValue(
         undefined,
       );
+      mockWorkServicesExecutionRepository.finalizeServices.mockResolvedValue(
+        undefined,
+      );
+      mockWorkServiceRepository.updateSchedulesProgress.mockResolvedValue(
+        undefined,
+      );
+      mockScheduleProgressCalculatorService.calculateScheduleProgress.mockReturnValue(
+        {
+          prog: 60,
+          exec: 50,
+        },
+      );
+      mockScheduleProgressCalculatorService.calculateAggregateProgress.mockReturnValue(
+        {
+          prog: 40,
+          exec: 35,
+        },
+      );
+      mockScheduleProgressCalculatorService.calculateAllSchedulesProgress.mockReturnValue(
+        [
+          {
+            idProgramacao: 3,
+            prog: 25,
+            exec: 20,
+          },
+          {
+            idProgramacao: 4,
+            prog: 60,
+            exec: 50,
+          },
+          {
+            idProgramacao: mockScheduleId,
+            prog: 80,
+            exec: 70,
+          },
+        ],
+      );
     });
 
     it('should finalize services successfully', async () => {
@@ -266,16 +323,121 @@ describe('WorksServicesService', () => {
 
     it('should handle zero total planned in finalization', async () => {
       mockWorkServicesQueryRepository.getAllServicesOfWork.mockResolvedValue([
-        { id: 1, qtde_plan: null },
+        {
+          id: 1,
+          qtde_plan: null,
+          qtde_real: null,
+          viabilizado: null,
+          id_material: null,
+        },
       ]);
+
+      mockScheduleProgressCalculatorService.calculateScheduleProgress.mockReturnValue(
+        {
+          prog: 0,
+          exec: 0,
+        },
+      );
+
+      mockScheduleProgressCalculatorService.calculateAggregateProgress.mockReturnValue(
+        {
+          prog: 0,
+          exec: 0,
+        },
+      );
 
       await service.finalizeServices(mockWorkId, mockData);
 
       expect(
         mockExecutionValidator.validateExecutionAndUpdateStatus,
       ).toHaveBeenCalledWith(
-        expect.any(Object),
-        { exec: 0, prog: 0 },
+        expect.objectContaining({
+          prog: 0,
+          exec: 0,
+        }),
+        {
+          prog: 0,
+          exec: 0,
+        },
+        mockPrisma,
+      );
+    });
+
+    it('should validate execution with aggregated progress', async () => {
+      await service.finalizeServices(mockWorkId, mockData);
+
+      expect(
+        mockExecutionValidator.validateExecutionAndUpdateStatus,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: mockScheduleId,
+          idWork: mockWorkId,
+          prog: 60,
+          exec: 50,
+        }),
+        {
+          prog: 40,
+          exec: 35,
+        },
+        mockPrisma,
+      );
+    });
+
+    it('should calculate aggregate progress before validation', async () => {
+      await service.finalizeServices(mockWorkId, mockData);
+
+      expect(
+        mockScheduleProgressCalculatorService.calculateAggregateProgress,
+      ).toHaveBeenCalledWith(mockHistory, 100, mockScheduleId);
+    });
+
+    it('should calculate schedule progress using calculator service', async () => {
+      await service.finalizeServices(mockWorkId, mockData);
+
+      expect(
+        mockScheduleProgressCalculatorService.calculateScheduleProgress,
+      ).toHaveBeenCalledWith(mockHistory, 100, mockScheduleId);
+    });
+
+    it('should recalculate progress of remaining schedules', async () => {
+      await service.finalizeServices(mockWorkId, mockData);
+
+      expect(
+        mockScheduleProgressCalculatorService.calculateAllSchedulesProgress,
+      ).toHaveBeenCalledWith(mockHistory, 100);
+
+      expect(
+        mockWorkServiceRepository.updateSchedulesProgress,
+      ).toHaveBeenCalledWith(
+        [
+          {
+            idProgramacao: 3,
+            prog: 25,
+            exec: 20,
+          },
+          {
+            idProgramacao: 4,
+            prog: 60,
+            exec: 50,
+          },
+        ],
+        mockPrisma,
+      );
+    });
+
+    it('should finalize services through repository', async () => {
+      await service.finalizeServices(mockWorkId, mockData);
+
+      expect(
+        mockWorkServicesExecutionRepository.finalizeServices,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: mockScheduleId,
+          idWork: mockWorkId,
+          prog: 60,
+          exec: 50,
+        }),
+        expect.any(Array),
         mockPrisma,
       );
     });

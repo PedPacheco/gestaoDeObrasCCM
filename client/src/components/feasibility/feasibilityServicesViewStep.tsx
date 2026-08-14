@@ -49,6 +49,7 @@ interface FeasibilityServicesReviewStepProps {
   reviewData: FeasibilityServiceItem[];
   onChangeReviewData: (data: FeasibilityServiceItem[]) => void;
   readOnly?: boolean;
+  workId: number;
 }
 
 const reviewColumns = [
@@ -88,6 +89,7 @@ export function FeasibilityServicesReviewStep({
   reviewData,
   onChangeReviewData,
   readOnly = false,
+  workId,
 }: FeasibilityServicesReviewStepProps) {
   const router = useRouter();
   const { showSuccess, showError } = useFeedback();
@@ -122,7 +124,7 @@ export function FeasibilityServicesReviewStep({
   }, [reviewData]);
 
   const handleDeleteItem = async (id: number) => {
-    const response = await deleteService(id);
+    const response = await deleteService(id, workId);
 
     if (!response.success) {
       showError(response.error);

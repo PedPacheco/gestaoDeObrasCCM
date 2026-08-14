@@ -194,6 +194,7 @@ export function NewManageSchedule({
                   statusSchedule={statusSchedule}
                   onError={showError}
                   onSuccess={showSuccess}
+                  workId={idWork}
                 />
               </div>
             </div>

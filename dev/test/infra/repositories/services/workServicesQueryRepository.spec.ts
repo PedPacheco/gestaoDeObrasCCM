@@ -607,17 +607,10 @@ describe('WorkServicesQueryRepository', () => {
         { descricao_operacao: 'Poda de árvore' },
       ];
 
-      const numberMock = [
-        { numero_operacao: 'OP001' },
-        { numero_operacao: 'OP002' },
-        { numero_operacao: 'OP003' },
-      ];
-
       const pointsMock = [{ ponto: 'A' }, { ponto: 'B' }, { ponto: 'C' }];
 
       mockPrismaService.servicos.groupBy
         .mockResolvedValueOnce(descriptionMock)
-        .mockResolvedValueOnce(numberMock)
         .mockResolvedValueOnce(pointsMock);
 
       const result = await repository.getServiceOptions(mockId);
@@ -629,18 +622,13 @@ describe('WorkServicesQueryRepository', () => {
           'Troca de cruzeta',
           'Poda de árvore',
         ],
-        operation_number: ['OP001', 'OP002', 'OP003'],
         points: ['A', 'B', 'C'],
       });
 
       // Verificar que as 3 chamadas foram feitas com os parâmetros correctos
-      expect(mockPrismaService.servicos.groupBy).toHaveBeenCalledTimes(3);
+      expect(mockPrismaService.servicos.groupBy).toHaveBeenCalledTimes(2);
       expect(mockPrismaService.servicos.groupBy).toHaveBeenCalledWith({
         by: ['descricao_operacao'],
-        where: { id_obra: mockId },
-      });
-      expect(mockPrismaService.servicos.groupBy).toHaveBeenCalledWith({
-        by: ['numero_operacao'],
         where: { id_obra: mockId },
       });
       expect(mockPrismaService.servicos.groupBy).toHaveBeenCalledWith({

@@ -7,6 +7,7 @@ import {
   IWorkServicesRepository,
   WORK_SERVICES_REPOSITORY,
 } from 'src/domain/repositories/worksService/IWorkServicesRepository';
+import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import { ScheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
@@ -22,6 +23,8 @@ describe('WorksServicesService', () => {
     addItem: jest.fn(),
     applyAdditional: jest.fn(),
     delete: jest.fn(),
+    updateSchedulesProgress: jest.fn(),
+    updateWorkExecuted: jest.fn(),
   };
 
   const mockWorkServicesQueryRepository = {
@@ -42,6 +45,12 @@ describe('WorksServicesService', () => {
     warn: jest.fn(),
   };
 
+  const mockScheduleProgressCalculatorService = {
+    calculateScheduleProgress: jest.fn(),
+    calculateAllSchedulesProgress: jest.fn(),
+    calculateAggregateProgress: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -53,6 +62,10 @@ describe('WorksServicesService', () => {
         {
           provide: WORK_SERVICES_QUERY_REPOSITORY,
           useValue: mockWorkServicesQueryRepository,
+        },
+        {
+          provide: ScheduleProgressCalculatorService,
+          useValue: mockScheduleProgressCalculatorService,
         },
         {
           provide: STATUS_FLOW_REPOSITORY,
@@ -115,7 +128,7 @@ describe('WorksServicesService', () => {
 
       expect(repository.scheduleServices).toHaveBeenCalledWith(
         mockScheduleData,
-        27.27,
+        { increment: 27.27 },
         undefined,
       );
       expect(repository.scheduleServices).toHaveBeenCalledTimes(1);
@@ -128,9 +141,9 @@ describe('WorksServicesService', () => {
 
       mockWorksServicesRepository.cancelServices.mockResolvedValue(undefined);
 
-      await service.applyAdditional(mockData);
+      await service.applyAdditional(3, mockData);
 
-      expect(repository.applyAdditional).toHaveBeenCalledWith(mockData);
+      expect(repository.applyAdditional).toHaveBeenCalledWith(mockData, {});
       expect(repository.applyAdditional).toHaveBeenCalledTimes(1);
     });
   });
@@ -270,11 +283,9 @@ describe('WorksServicesService', () => {
         quantity: 2,
       };
 
-      mockWorksServicesRepository.addItem.mockResolvedValue(undefined);
-
       await service.addItem(mockData, 'material');
 
-      expect(repository.addItem).toHaveBeenCalledWith(mockData, 'material');
+      expect(repository.addItem).toHaveBeenCalledWith(mockData, 'material', {});
       expect(repository.addItem).toHaveBeenCalledTimes(1);
     });
 
@@ -291,9 +302,13 @@ describe('WorksServicesService', () => {
 
       mockWorksServicesRepository.addItem.mockResolvedValue(undefined);
 
+      jest
+        .spyOn(service as any, 'recalculateAllSchedulesProgress')
+        .mockResolvedValue(undefined);
+
       await service.addItem(mockData, 'service');
 
-      expect(repository.addItem).toHaveBeenCalledWith(mockData, 'service');
+      expect(repository.addItem).toHaveBeenCalledWith(mockData, 'service', {});
       expect(repository.addItem).toHaveBeenCalledTimes(1);
     });
 
@@ -304,7 +319,6 @@ describe('WorksServicesService', () => {
         point: 'P1',
         operation: 'INSTALAÇÃO',
         operationDescription: 'POSTE',
-        operationNumber: '2000',
         quantity: 2,
       };
 
@@ -313,10 +327,14 @@ describe('WorksServicesService', () => {
           id: 2,
           id_contrato_servico: 2,
           ponto: 'P1',
-          numero_operacao: '2000',
+          descricao_operacao: 'POSTE',
           qtde_plan: 2,
         },
       ]);
+
+      jest
+        .spyOn(service as any, 'recalculateAllSchedulesProgress')
+        .mockResolvedValue(undefined);
 
       await expect(service.addItem(mockData, 'service')).rejects.toThrow(
         'Esse serviço já existe nesse ponto.',
@@ -330,7 +348,6 @@ describe('WorksServicesService', () => {
         point: 'P1',
         operation: 'INSTALAÇÃO',
         operationDescription: 'POSTE',
-        operationNumber: '2000',
         quantity: 2,
       };
 
@@ -339,10 +356,14 @@ describe('WorksServicesService', () => {
           id: 2,
           id_material: 2,
           ponto: 'P1',
-          numero_operacao: '2000',
+          descricao_operacao: 'POSTE',
           qtde_plan: 2,
         },
       ]);
+
+      jest
+        .spyOn(service as any, 'recalculateAllSchedulesProgress')
+        .mockResolvedValue(undefined);
 
       await expect(service.addItem(mockData, 'material')).rejects.toThrow(
         'Esse material já existe nesse ponto.',
@@ -352,17 +373,19 @@ describe('WorksServicesService', () => {
 
   describe('delete', () => {
     it('Should call method delete and throw BadRequestExpection if no id is sent', async () => {
-      await expect(service.delete(null)).rejects.toThrow(BadRequestException);
+      await expect(service.delete(null, 4)).rejects.toThrow(
+        BadRequestException,
+      );
 
-      await expect(service.delete(null)).rejects.toThrow(
+      await expect(service.delete(null, 4)).rejects.toThrow(
         'Nenhum serviço/material fornecida para exclusão.',
       );
     });
 
     it('should call method delete and call repository', async () => {
-      await service.delete(1);
+      await service.delete(1, 4);
 
-      expect(repository.delete).toHaveBeenCalledWith(1);
+      expect(repository.delete).toHaveBeenCalledWith(1, {});
     });
   });
 
@@ -488,7 +511,7 @@ describe('WorksServicesService', () => {
 
       expect(repository.scheduleServices).toHaveBeenCalledWith(
         mockScheduleData,
-        100,
+        { increment: 100 },
         5,
       );
     });

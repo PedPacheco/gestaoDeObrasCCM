@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { IWorkServicesQueryRepository } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
 
 import { PrismaService } from 'src/infra/prisma/prisma.service';
@@ -40,8 +41,10 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     },
   };
 
-  private async findService(where: any) {
-    return this.prisma.servicos.findMany({
+  private async findService(where: any, tx?: Prisma.TransactionClient) {
+    const client = tx ?? this.prisma;
+
+    return client.servicos.findMany({
       select: this.baseServicesSelect,
       where,
     });
@@ -49,8 +52,9 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
 
   async getAllServicesOfWork(
     id: number,
+    tx?: Prisma.TransactionClient,
   ): Promise<GetServicesByWorkIdResponse[]> {
-    return this.findService({ id_obra: id });
+    return this.findService({ id_obra: id }, tx);
   }
 
   async getNotScheduledServices(
@@ -100,8 +104,11 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
 
   async getServiceScheduleHistory(
     id: number,
+    tx?: Prisma.TransactionClient,
   ): Promise<GetServiceScheduleHistoryResponse[]> {
-    return await this.prisma.programacoes_servicos.findMany({
+    const client = tx ?? this.prisma;
+
+    return await client.programacoes_servicos.findMany({
       select: {
         id: true,
         id_servico: true,

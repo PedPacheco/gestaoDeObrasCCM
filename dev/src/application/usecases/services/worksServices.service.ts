@@ -53,7 +53,11 @@ export class WorksServicesService {
 
     await this.validateScheduleServices(workId, data, prog);
 
-    await this.workServicesRepository.scheduleServices(data, prog, idSchedule);
+    await this.workServicesRepository.scheduleServices(
+      data,
+      { increment: prog },
+      idSchedule,
+    );
   }
 
   async reascheduleServices(workId: number, scheduleId: number): Promise<void> {
@@ -122,7 +126,7 @@ export class WorksServicesService {
       items.map((item) => [
         `${
           type === 'service' ? item.id_contrato_servico : item.id_material
-        }:${item.ponto}:${item.numero_operacao}`,
+        }:${item.ponto}:${item.descricao_operacao}`,
         item,
       ]),
     );

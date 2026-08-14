@@ -51,6 +51,7 @@ interface ServicesAvaliableProps {
   teams: any[];
   onError: (error: string) => void;
   onSuccess: (success: string, onClose?: () => void) => void;
+  workId: number;
 }
 
 const serviceColumns = [
@@ -77,6 +78,7 @@ export function NewServicesAvaliable({
   teams,
   onError,
   onSuccess,
+  workId,
 }: ServicesAvaliableProps) {
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
   const [openTeamsModal, setOpenTeamsModal] = useState(false);
@@ -200,7 +202,7 @@ export function NewServicesAvaliable({
   };
 
   const handleDeleteItem = async (id: number) => {
-    const response = await deleteService(id);
+    const response = await deleteService(id, workId);
 
     if (!response.success) {
       showError(response.error);
