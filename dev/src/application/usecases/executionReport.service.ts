@@ -87,8 +87,6 @@ export class ExecutionReportService {
         scheduledFinishTime,
       );
 
-      console.log(executionReport.toPersistenceObject());
-
       await this.executionReportRepository.create(
         executionReport.toPersistenceObject() as Prisma.relatorio_execucaoUncheckedCreateInput,
         tx,
