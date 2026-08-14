@@ -62,6 +62,7 @@ describe('ExportWorksInPortfolio', () => {
         total_pend: 20,
         total_prog: 0,
         status_prazo: 'Atenção: 23 dias restantes',
+        encontrado: true,
       },
     ];
 

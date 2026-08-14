@@ -36,6 +36,7 @@ export interface worksInPortfolioInterface {
   turma: string;
   ano_plan: number;
   status_prazo: string;
+  encontrado: boolean;
 }
 
 export interface totalsWorksInPortfolio {

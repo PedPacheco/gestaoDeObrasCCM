@@ -205,6 +205,7 @@ export const mockWorksInPortfolio: worksInPortfolioResponseService = {
       empreendimento: '',
       ano_plan: 2025,
       status_prazo: 'Atenção: 23 dias restantes',
+      encontrado: true,
     },
   ],
   totals: {

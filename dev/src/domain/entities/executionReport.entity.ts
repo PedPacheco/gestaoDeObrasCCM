@@ -129,6 +129,7 @@ export class ExecutionReport {
 
     return {
       id_usuario: this.userId,
+      modificado_por: this.userId,
       id_obra: this.idWork,
       id_programacao: this.idSchedule,
       supervisor: this.supervisor,

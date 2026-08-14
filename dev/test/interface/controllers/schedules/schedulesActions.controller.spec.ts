@@ -204,11 +204,11 @@ describe('ScheduleActionsController', () => {
         {
           updateData: {
             id: 1,
-            idUser: 1,
+            userId: 1,
             ...mockUpdateSchedulesController.updateData,
           },
           executionReportData: {
-            idUser: 1,
+            userId: 1,
             ...mockUpdateSchedulesController.executionReportData,
           },
         },
@@ -235,11 +235,11 @@ describe('ScheduleActionsController', () => {
         {
           updateData: {
             id: 1,
-            idUser: 1,
+            userId: 1,
             ...mockUpdateSchedulesController.updateData,
           },
           executionReportData: {
-            idUser: 1,
+            userId: 1,
             ...mockUpdateSchedulesController.executionReportData,
           },
         },

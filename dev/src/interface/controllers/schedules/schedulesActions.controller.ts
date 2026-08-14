@@ -163,14 +163,14 @@ export class SchedulesActionsController {
       permission = req.insufficientPermission;
     }
 
-    const idUser = req.user.sub;
+    const userId = req.user.sub;
 
     const data = {
-      updateData: { id, idUser, ...schedulesData.updateData },
+      updateData: { id, userId, ...schedulesData.updateData },
       ...(schedulesData.executionReportData && {
         executionReportData: {
           ...schedulesData.executionReportData,
-          idUser,
+          userId,
         },
       }),
     };
