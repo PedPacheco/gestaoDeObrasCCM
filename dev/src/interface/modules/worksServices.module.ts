@@ -3,11 +3,13 @@ import { FinalizeServicesService } from 'src/application/usecases/services/final
 import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
 import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
-import { WORKS_SERVICE_REPOSITORY } from 'src/domain/repositories/IWorksServiceRepository';
-import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
-import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updateSchedulesRepository';
+import { WORK_SERVICES_EXECUTION_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
+import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import { WORK_SERVICES_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesRepository';
 import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepository';
-import { WorksServicesRepository } from 'src/infra/repositories/worksServicesRepository';
+import { WorkServicesExeutionRepository } from 'src/infra/repositories/worksServices/workServicesExecutionRepository';
+import { WorkServicesQueryRepository } from 'src/infra/repositories/worksServices/workServicesQueryRepository';
+import { WorkServicesRepository } from 'src/infra/repositories/worksServices/worksServicesRepository';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
 
 import { forwardRef, Module } from '@nestjs/common';
@@ -18,6 +20,7 @@ import { ServicesController } from '../controllers/worksServices.controller';
 import { ExecutionReportModule } from './executionReport.module';
 import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
+import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
 
 @Module({
   imports: [
@@ -39,6 +42,15 @@ import { WorksModule } from './works.module';
             'image/heic',
             'image/heif',
           ],
+          allowedExtensions: [
+            '.pdf',
+            '.jpg',
+            '.jpeg',
+            '.png',
+            '.tiff',
+            '.heic',
+            '.heif',
+          ],
           maxSize: 5 * 1024 * 1024,
           maxFiles: 3,
         });
@@ -53,13 +65,18 @@ import { WorksModule } from './works.module';
     QueriesServicesService,
     FinalizeServicesService,
     ScheduleExecutionValidatorService,
+    ScheduleProgressCalculatorService,
     {
-      provide: WORKS_SERVICE_REPOSITORY,
-      useClass: WorksServicesRepository,
+      provide: WORK_SERVICES_REPOSITORY,
+      useClass: WorkServicesRepository,
     },
     {
-      provide: UPDATE_SCHEDULES_REPOSITORY,
-      useClass: UpdateSchedulesRepository,
+      provide: WORK_SERVICES_QUERY_REPOSITORY,
+      useClass: WorkServicesQueryRepository,
+    },
+    {
+      provide: WORK_SERVICES_EXECUTION_REPOSITORY,
+      useClass: WorkServicesExeutionRepository,
     },
     { provide: STATUS_FLOW_REPOSITORY, useClass: StatusFlowRepository },
   ],

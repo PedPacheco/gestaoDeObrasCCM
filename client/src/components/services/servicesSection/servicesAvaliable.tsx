@@ -7,7 +7,7 @@ import {
   useTransition,
 } from "react";
 
-import { applyAdditonalPlanServices } from "@/actions/services";
+import { applyAdditonalPlanServices, deleteService } from "@/actions/services";
 import { ButtonComponent } from "@/components/common/Button";
 import { LoadingComponent } from "@/components/common/Loading";
 import { useFeedback } from "@/hooks/useFeedback";
@@ -21,37 +21,46 @@ import {
   Box,
   Button,
   Checkbox,
+  FormControl,
+  IconButton,
+  MenuItem,
   Paper,
+  Select,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
   Typography,
 } from "@mui/material";
 
 import { TableFilter } from "./servicesFilters";
 import { TeamModal } from "./teamsModal";
+import { useServicesFilters } from "@/hooks/services/useServicesFilters";
+import { MATERIAL_OR_SERVICE_OPTIONS } from "@/constants/services/services";
+import ConfirmationScheduleModalComponent from "@/components/common/confirmationScheduleModal";
 
 interface ServicesAvaliableProps {
   servicesData: any[];
   setServicesData: Dispatch<SetStateAction<any[]>>;
-  points: string[];
-  operations: string[];
   setScheduledServices: Dispatch<SetStateAction<any[]>>;
   isInsert: boolean;
-  isDisabled: boolean;
+  statusSchedule?: string;
   teams: any[];
   onError: (error: string) => void;
   onSuccess: (success: string, onClose?: () => void) => void;
+  workId: number;
 }
 
 const serviceColumns = [
   { key: "material", label: "CÓDIGO" },
-  { key: "textoBreve", label: "SERVIÇO" },
+  { key: "textoBreve", label: "SERVIÇO/MATERIAL" },
   { key: "tipo", label: "TIPO" },
   { key: "operacao", label: "OPERAÇÃO" },
+  { key: "numeroOperacao", label: "N° DA OPERAÇÃO" },
+  { key: "descricaoOperacao", label: "DESCRIÇÃO DA OPERAÇÃO" },
   { key: "ponto", label: "PONTO" },
   { key: "qtdePlanejada", label: "PLAN" },
   { key: "viabilizado", label: "VIABILIZADO" },
@@ -64,34 +73,52 @@ const serviceColumns = [
 export function NewServicesAvaliable({
   servicesData,
   setServicesData,
-  operations,
-  points,
   setScheduledServices,
-  isDisabled,
+  statusSchedule,
   teams,
   onError,
   onSuccess,
+  workId,
 }: ServicesAvaliableProps) {
-  const [filteredServicesData, setFilteredServicesData] = useState<any[]>([]);
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
   const [openTeamsModal, setOpenTeamsModal] = useState(false);
 
+  const handleOpenDeleteModal = (item: any) => {
+    setItemToDelete(item);
+  };
+
+  const [itemToDelete, setItemToDelete] = useState<any | null>(null);
+
+  const [editedServices, setEditedServices] = useState<any[]>([]);
+
   const [isPending, startTransition] = useTransition();
 
-  const { showError } = useFeedback();
+  const { showError, showSuccess } = useFeedback();
 
   const router = useRouter();
 
-  const allSelected = selectedServices.length === filteredServicesData.length;
+  const isDisabled = statusSchedule
+    ? ["Concluído", "Cancelado", "Parcial"].includes(statusSchedule)
+    : false;
+
+  const {
+    materialOrService,
+    setMaterialOrService,
+    setTableFilters,
+    filterOptions,
+    applyFilters,
+  } = useServicesFilters(editedServices);
+
+  const filteredServicesData = applyFilters(editedServices);
 
   useEffect(() => {
-    setFilteredServicesData(servicesData);
+    setEditedServices(servicesData);
   }, [servicesData]);
 
   const updateServiceQuantity = (id: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
+    if (!/^\d*([.]\d*)?$/.test(value)) return;
 
-    setFilteredServicesData((prev: any) =>
+    setEditedServices((prev: any) =>
       prev.map((item: any) =>
         item.id === id
           ? { ...item, qtdeAdicional: value === "" ? null : value }
@@ -116,16 +143,28 @@ export function NewServicesAvaliable({
       return;
     }
 
-    startTransition(() => {});
-
     if (response.message) {
-      onSuccess(response.message, () => router.refresh());
+      onSuccess(response.message);
+
+      startTransition(() => {
+        router.refresh();
+      });
+      7;
     }
   };
 
   const handleAddClick = () => {
     if (selectedServices.length === 0) {
       showError("Nenhum serviço selecionado.");
+      return;
+    }
+
+    if (
+      selectedServices.find(
+        (item) => item.viabilizado === 0 && item.qtdeAdicional === null,
+      )
+    ) {
+      showError("Serviço selecionado sem valores para execução");
       return;
     }
 
@@ -162,11 +201,29 @@ export function NewServicesAvaliable({
     setSelectedServices([]); // opcional: limpa seleção após adicionar
   };
 
+  const handleDeleteItem = async (id: number) => {
+    const response = await deleteService(id, workId);
+
+    if (!response.success) {
+      showError(response.error);
+      return;
+    }
+
+    showSuccess(response?.message || "Item removido com sucesso", () => {
+      startTransition(() => {
+        router.refresh();
+        setItemToDelete(null);
+      });
+    });
+  };
+
   const isDisableAfterChangeData = filteredServicesData.some((item) => {
     const original = servicesData.find((service) => service.id === item.id);
 
     return original?.qtdeAdicional !== item.qtdeAdicional;
   });
+
+  const allSelected = selectedServices.length === filteredServicesData.length;
 
   return (
     <>
@@ -197,33 +254,51 @@ export function NewServicesAvaliable({
         {/* Filtros */}
         <div className="shrink-0">
           <TableFilter
-            data={servicesData}
             fields={[
               {
-                label: "SERVIÇO",
+                label: "Serviço/Material",
                 field: "textoBreve",
-                options: Array.from(
-                  new Set(servicesData.map((item) => item.textoBreve)),
-                ),
+                options: filterOptions.textoBreve,
               },
               {
-                label: "OPERAÇÃO",
+                label: "Família",
+                field: "descricaoOperacao",
+                options: filterOptions.descricaoOperacao,
+              },
+              {
+                label: "Operação",
                 field: "operacao",
-                options: operations.filter((item) => {
-                  return servicesData.some((service) => service.ponto === item);
-                }),
-                width: "w-1/4",
+                options: filterOptions.operacao,
+                width: "w-1/6",
               },
               {
-                label: "PONTO",
+                label: "Ponto",
                 field: "ponto",
-                options: points.filter((item) => {
-                  return servicesData.some((service) => service.ponto === item);
-                }),
-                width: "w-44",
+                options: filterOptions.ponto,
+                width: "w-32",
               },
             ]}
-            onFilter={setFilteredServicesData}
+            onFilter={setTableFilters}
+            extraFilters={
+              <div className="min-w-[160px]">
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Tipo
+                </label>
+                <FormControl fullWidth size="small">
+                  <Select
+                    value={materialOrService}
+                    onChange={(e) => setMaterialOrService(e.target.value)}
+                    className="bg-white rounded-lg h-[38px]"
+                  >
+                    {MATERIAL_OR_SERVICE_OPTIONS.map((p) => (
+                      <MenuItem key={p} value={p}>
+                        {p}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </div>
+            }
           />
         </div>
 
@@ -235,7 +310,15 @@ export function NewServicesAvaliable({
           <Table stickyHeader size="small">
             <TableHead>
               <TableRow>
-                <TableCell padding="checkbox">
+                <TableCell
+                  padding="checkbox"
+                  sx={{
+                    position: "sticky",
+                    left: 0,
+                    zIndex: 3, // maior que o stickyHeader padrão (z-index 2)
+                    backgroundColor: "background.paper",
+                  }}
+                >
                   <Checkbox
                     checked={allSelected}
                     indeterminate={
@@ -247,7 +330,13 @@ export function NewServicesAvaliable({
                         setSelectedServices(
                           filteredServicesData.map((s) => ({
                             ...s,
-                            prog: s.viabilizado + s.qtdeAdicional,
+                            prog:
+                              Math.round(
+                                (s.viabilizado +
+                                  Number(s.qtdeAdicional ?? 0) -
+                                  s.qtdeRealizada) *
+                                  1000,
+                              ) / 1000,
                             additional: s.qtdeAdicional,
                           })),
                         );
@@ -256,6 +345,12 @@ export function NewServicesAvaliable({
                       }
                     }}
                   />
+                </TableCell>
+                <TableCell
+                  width={60}
+                  className="!text-xs !font-semibold !text-zinc-500"
+                >
+                  AÇÕES
                 </TableCell>
                 {serviceColumns.map((header, index) => (
                   <TableCell key={index} className="text-nowrap">
@@ -279,7 +374,15 @@ export function NewServicesAvaliable({
                     selected={selectedServices.includes(index)}
                     className="cursor-pointer"
                   >
-                    <TableCell padding="checkbox">
+                    <TableCell
+                      padding="checkbox"
+                      sx={{
+                        position: "sticky",
+                        left: 0,
+                        zIndex: 1,
+                        backgroundColor: "background.paper",
+                      }}
+                    >
                       <Checkbox
                         checked={selectedServices.some(
                           (item: any) => item.id === row.id,
@@ -290,7 +393,13 @@ export function NewServicesAvaliable({
                               ...selectedServices,
                               {
                                 ...row,
-                                prog: row.viabilizado + row.qtdeAdicional,
+                                prog:
+                                  Math.round(
+                                    (row.viabilizado +
+                                      Number(row.qtdeAdicional ?? 0) -
+                                      row.qtdeRealizada) *
+                                      1000,
+                                  ) / 1000,
                                 qtdeAdicional: row.qtdeAdicional,
                               },
                             ]);
@@ -303,6 +412,24 @@ export function NewServicesAvaliable({
                           }
                         }}
                       />
+                    </TableCell>
+
+                    <TableCell>
+                      <Tooltip title="Excluir Serviço/Material" placement="top">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleOpenDeleteModal(row)}
+                          sx={{
+                            padding: "4px",
+                            "&:hover": {
+                              backgroundColor: "rgba(211, 47, 47, 0.08)",
+                            },
+                          }}
+                        >
+                          <TrashIcon width={24} height={24} />
+                        </IconButton>
+                      </Tooltip>
                     </TableCell>
 
                     {serviceColumns.map((col, index) => {
@@ -365,6 +492,17 @@ export function NewServicesAvaliable({
         onClose={() => setOpenTeamsModal(false)}
         onConfirm={handleTeamConfirm}
         teams={teams}
+      />
+
+      <ConfirmationScheduleModalComponent
+        open={Boolean(itemToDelete)}
+        onClose={() => setItemToDelete(null)}
+        onConfirm={handleDeleteItem}
+        idSchedule={itemToDelete?.id ?? 0}
+        title="Excluir serviço/material"
+        message={`Deseja realmente excluir "${
+          itemToDelete?.textoBreve ?? ""
+        }"? Esta ação não poderá ser desfeita.`}
       />
     </>
   );

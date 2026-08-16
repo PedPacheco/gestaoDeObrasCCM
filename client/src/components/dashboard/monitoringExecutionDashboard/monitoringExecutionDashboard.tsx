@@ -84,7 +84,6 @@ export default function MonitoringExecutionDashboard({
     data: filtersData,
   });
 
-  // Dados exibidos (começa com o carregamento server-side; muda ao aplicar filtros)
   const [data, setData] = useState<Row[]>(initialData ?? []);
 
   const [startDate, setStartDate] = useState<Dayjs | null>(DEFAULT_START());
@@ -96,15 +95,11 @@ export default function MonitoringExecutionDashboard({
   const [selectedParceiras, setSelectedParceiras] = useState<string[]>(
     () => filters?.parceira ?? [],
   );
-  // const [selectedTechnician, setSelectedTechnician] = useState<string[]>(
-  //   () => filters?.tipo ?? [],
-  // );
 
   const buildParams = useCallback(
     (): Record<string, string[]> => ({
       idParceira: selectedParceiras,
       idRegional: selectedRegionais,
-      // idTecnico: selectedTechnician,
     }),
     [selectedParceiras, selectedRegionais],
   );
@@ -139,7 +134,6 @@ export default function MonitoringExecutionDashboard({
   const handleCleaningFilters = useCallback(() => {
     setSelectedParceiras([]);
     setSelectedRegionais([]);
-    // setSelectedTechnician([]);
     setStartDate(DEFAULT_START);
     setEndDate(DEFAULT_END);
     clearFilters();
@@ -171,12 +165,10 @@ export default function MonitoringExecutionDashboard({
         onApply={applyFilter}
         selectedParceiras={selectedParceiras}
         selectedRegionais={selectedRegionais}
-        // selectedTechnician={selectedTechnician}
         setEndDate={setEndDate}
         setStartDate={setStartDate}
         setSelectedParceiras={setSelectedParceiras}
         setSelectedRegionais={setSelectedRegionais}
-        // setSelectedTechnician={setSelectedTechnician}
         clearFilters={handleCleaningFilters}
         filtersTop={filtersTop}
       />

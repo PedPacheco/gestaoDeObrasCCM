@@ -556,6 +556,7 @@ describe('MonthlySummaryService', () => {
           portfolioBt0: 0,
           portfolioRecom: 0,
           portfolioMarket: 1000,
+          portfolioTotal: 1000,
         },
         expect.any(Object),
       );
@@ -581,6 +582,7 @@ describe('MonthlySummaryService', () => {
           portfolioBt0: 0,
           portfolioRecom: 0,
           portfolioMarket: 0,
+          portfolioTotal: 1000,
         },
         expect.any(Object),
       );
@@ -606,6 +608,7 @@ describe('MonthlySummaryService', () => {
           portfolioBt0: 1000,
           portfolioRecom: 0,
           portfolioMarket: 0,
+          portfolioTotal: 1000,
         },
         expect.any(Object),
       );

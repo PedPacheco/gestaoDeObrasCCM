@@ -45,7 +45,7 @@ export class FeasibilityController {
   }
 
   @Get('reprovacoes/:id')
-  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8] }))
   async getRejectionsHistory(@Param('id', ParseIntPipe) id: number) {
     const response = await this.feasibilityService.getRejections(id);
 

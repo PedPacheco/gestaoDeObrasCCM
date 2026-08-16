@@ -25,6 +25,7 @@ export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioReposi
       INNER JOIN construcao_sp.empreendimento ON obras.id_empreendimento = empreendimento.id
       INNER JOIN construcao_sp.conjuntos ON circuitos.id_conjunto = conjuntos.id
       INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
+      INNER JOIN construcao_sp.relatorio ON relatorio.id_obra = obras.id
     `;
   }
 
@@ -153,6 +154,7 @@ export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioReposi
         empreendimento,
         turma,
         ano_plan,
+        encontrado,
 
         COALESCE(SUM(prog) FILTER (WHERE exec IS NULL), 0)::int AS total_prog,
         SUM(exec)::int AS total_exec,
@@ -187,7 +189,7 @@ export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioReposi
         obras.id, obras.ovnota, diagrama, ordem_dci, ordem_dcim, ordem_dca, ordem_dcd,
         status_ov_sap, pep, mun, obras.id_status, prazo, abrev_regional, tipo_obra,
         tipos.id_grupo, qtde_planejada, qtde_pend, circuito, mo_planejada, status,
-        conjunto, empreendimento, turma, ano_plan, prog_count.contagem_ocorrencias
+        conjunto, empreendimento, turma, ano_plan, prog_count.contagem_ocorrencias, encontrado
       ORDER BY status DESC, entrada + prazo
     `;
 

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpStatus,
   Param,
@@ -45,18 +46,9 @@ export class ServicesController {
   }
 
   @Get(':id')
-  async getServicesByWorkId(
-    @Param('id', ParseIntPipe) id: number,
-    @Query('ponto') point?: string,
-    @Query('servico') service?: string,
-    @Query('operacao') operation?: string,
-  ) {
-    const response = await this.queriesServicesService.getById({
-      id,
-      point,
-      service,
-      operation,
-    });
+  async getNotScheduledServices(@Param('id', ParseIntPipe) id: number) {
+    const response =
+      await this.queriesServicesService.getNotScheduledServices(id);
 
     return {
       statusCode: HttpStatus.OK,
@@ -65,20 +57,25 @@ export class ServicesController {
     };
   }
 
+  @Get('todos/:id')
+  async getAllItems(@Param('id', ParseIntPipe) id: number) {
+    const response = await this.queriesServicesService.getAllItems(id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Todos os materiais e serviços da obra retornados',
+      data: response,
+    };
+  }
+
   @Get('selecionados/:id')
   async getScheduledServices(
     @Param('id', ParseIntPipe) id: number,
     @Query('idProgramacao', ParseIntPipe) idProgramacao: number,
-    @Query('ponto') point?: string,
-    @Query('servico') service?: string,
-    @Query('operacao') operation?: string,
   ) {
     const response = await this.queriesServicesService.getSelectedServices({
       id,
       idProgramacao,
-      point,
-      service,
-      operation,
     });
 
     return {
@@ -96,17 +93,6 @@ export class ServicesController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Histórico das programações retornados',
-      data: response,
-    };
-  }
-
-  @Get('filtros/:id')
-  async getServicesFilters(@Param('id', ParseIntPipe) id: number) {
-    const response = await this.queriesServicesService.getServicesFilters(id);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Valores dos filtros retornados',
       data: response,
     };
   }
@@ -129,6 +115,17 @@ export class ServicesController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Retornado equipes',
+      data: response,
+    };
+  }
+
+  @Get('opcoes/:id')
+  async getServiceOptions(@Param('id', ParseIntPipe) id: number) {
+    const response = await this.queriesServicesService.getServiceOptions(id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Opções retornados com sucesso',
       data: response,
     };
   }
@@ -156,9 +153,12 @@ export class ServicesController {
     };
   }
 
-  @Patch('reprogramar')
-  async reascheduleServices(@Body() data: { id: number }[]) {
-    await this.worksServicesService.reascheduleServices(data);
+  @Patch('reprogramar/:id/:scheduleId')
+  async reascheduleServices(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('scheduleId', ParseIntPipe) scheduleId: number,
+  ) {
+    await this.worksServicesService.reascheduleServices(id, scheduleId);
 
     return {
       statusCode: HttpStatus.OK,
@@ -174,17 +174,17 @@ export class ServicesController {
     @UploadedFiles() files: Express.Multer.File[],
     @Req() req: any,
   ) {
-    const idUser = req.user.sub;
+    const userId = req.user.sub;
 
     const data = {
       ...executionData.data,
-      idUser,
-      ...(executionData.data.executionReport && {
-        executionReportData: {
-          ...executionData.data.executionReport,
-          idUser,
-        },
-      }),
+      userId,
+      executionReportData: executionData.data.executionReport
+        ? {
+            ...executionData.data.executionReport,
+            userId,
+          }
+        : undefined,
     };
 
     await this.finalizeServicesService.finalizeServices(id, data, files);
@@ -197,7 +197,7 @@ export class ServicesController {
 
   @Patch('realizar')
   async performServices(@Body() data: PerformServicesDTO[]) {
-    await this.worksServicesService.performServices(data);
+    await this.finalizeServicesService.performServices(data);
 
     return {
       statusCode: HttpStatus.OK,
@@ -206,8 +206,11 @@ export class ServicesController {
   }
 
   @Patch('aplicar-adicional')
-  async applyAdditional(@Body() data: ApplyAdditonalDTO[]) {
-    await this.worksServicesService.applyAdditional(data);
+  async applyAdditional(
+    @Body() data: ApplyAdditonalDTO[],
+    @Query('workId', ParseIntPipe) workId: number,
+  ) {
+    await this.worksServicesService.applyAdditional(workId, data);
 
     return {
       statusCode: HttpStatus.OK,
@@ -217,7 +220,7 @@ export class ServicesController {
 
   @Post('servico')
   async addServices(@Body() data: AddServicesDTO) {
-    await this.worksServicesService.addServices(data);
+    await this.worksServicesService.addItem(data, 'service');
 
     return {
       statusCode: HttpStatus.OK,
@@ -227,11 +230,36 @@ export class ServicesController {
 
   @Post('material')
   async addMaterials(@Body() data: AddServicesDTO) {
-    await this.worksServicesService.addMaterials(data);
+    await this.worksServicesService.addItem(data, 'material');
 
     return {
       statusCode: HttpStatus.OK,
       message: 'Serviços realizados com sucesso',
+    };
+  }
+
+  @Post('familia')
+  async addFamily(@Body() data: AddServicesDTO) {
+    const type = data.type === 'S' ? 'service' : 'material';
+
+    await this.worksServicesService.addItem(data, type);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Serviços realizados com sucesso',
+    };
+  }
+
+  @Delete('/:id')
+  async deleteMaterialAndService(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('workId', ParseIntPipe) workId: number,
+  ) {
+    await this.worksServicesService.delete(id, workId);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Serviço/Material excluído com sucesso',
     };
   }
 }

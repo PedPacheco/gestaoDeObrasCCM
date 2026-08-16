@@ -7,6 +7,7 @@ import { extname } from 'path';
 export interface MulterConfig {
   destination: string;
   allowedMimeTypes: string[];
+  allowedExtensions: string[];
   maxSize: number;
   maxFiles: number;
 }

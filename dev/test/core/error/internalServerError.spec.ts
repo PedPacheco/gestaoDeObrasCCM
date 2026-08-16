@@ -330,6 +330,22 @@ describe('CustomExceptionFilter', () => {
         timestamp: expect.any(String),
       });
     });
+
+    it('should handle simple field validation messages', () => {
+      const exception = new HttpException(
+        { message: ['@@@'] },
+        HttpStatus.BAD_REQUEST,
+      );
+
+      filter.catch(exception, mockArgumentsHost);
+
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        statusCode: HttpStatus.BAD_REQUEST,
+        path: '/test-endpoint',
+        message: ['@@@'],
+        timestamp: expect.any(String),
+      });
+    });
   });
 
   describe('Non-HttpException handling', () => {

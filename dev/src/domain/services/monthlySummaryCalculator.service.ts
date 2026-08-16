@@ -194,7 +194,6 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
     );
 
     totals.totalWorks = portofolioData.qtdeWorks;
-    totals.totalWalletExec = portofolioData.portfolioExec;
 
     totals.totalQtdeRfpTeams = executionTeams.rfpTeams;
     totals.totalExecutionCapacityTeams = executionTeams.executionCapacityTeams;
@@ -209,6 +208,7 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
       portfolioBt0: number;
       portfolioRecom: number;
       portfolioMarket: number;
+      portfolioTotal: number;
     },
     uniqueWorksFinancial: { totalMoPlan: number; totalMoPend: number },
   ): GroupSummaryTotals {
@@ -247,6 +247,8 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
     totals.totalWalletMarket = portfolioData.portfolioMarket;
     totals.totalWalletRecom = portfolioData.portfolioRecom;
     totals.totalWalletRda = portfolioData.portfolioRda;
+
+    totals.totalWallet = portfolioData.portfolioTotal;
 
     totals.totalMoPlanByGrouping = totalMoPlan;
     totals.totalMoPendByGrouping = totalMoPend;

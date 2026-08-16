@@ -265,12 +265,23 @@ describe('ExecutionReportRepository', () => {
             id_obra: 1,
           }),
           update: jest.fn(),
+          aggregate: jest.fn().mockResolvedValue({
+            _sum: {
+              exec: 80,
+            },
+          }),
         },
         obras: {
           update: jest.fn(),
         },
         relatorio_execucao: {
           delete: jest.fn(),
+        },
+        programacoes_servicos: {
+          updateMany: jest.fn(),
+        },
+        servicos: {
+          updateMany: jest.fn(),
         },
       };
 
@@ -283,6 +294,16 @@ describe('ExecutionReportRepository', () => {
       expect(tx.programacoes.findUnique).toHaveBeenCalledWith({
         where: { id: 3 },
         select: { exec: true, id_obra: true },
+      });
+
+      expect(tx.programacoes_servicos.updateMany).toHaveBeenCalledWith({
+        where: { id_programacao: 3 },
+        data: { real: null },
+      });
+
+      expect(tx.servicos.updateMany).toHaveBeenCalledWith({
+        where: { id_programacao: 3 },
+        data: { qtde_real: null },
       });
 
       expect(tx.programacoes.update).toHaveBeenCalledWith({
@@ -298,7 +319,7 @@ describe('ExecutionReportRepository', () => {
         data: {
           id_status: 35,
           data_conclusao: null,
-          executado: { decrement: 20 },
+          executado: 80,
         },
       });
 

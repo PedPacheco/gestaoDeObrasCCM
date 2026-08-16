@@ -13,6 +13,7 @@ describe('createMulterConfig (Jest)', () => {
   const baseConfig = {
     destination: '/uploads',
     allowedMimeTypes: ['image/png', 'application/pdf'],
+    allowedExtensions: ['pdf', 'jpeg'],
     maxSize: 5 * 1024 * 1024,
     maxFiles: 3,
   };

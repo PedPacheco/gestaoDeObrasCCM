@@ -38,6 +38,7 @@ export interface GetScheduleValuesInterface {
   status_restricao2: string;
   restricao_aberta: boolean;
   status_prazo: string;
+  encontrado: boolean;
 }
 
 export interface totalsGetScheduleValues {

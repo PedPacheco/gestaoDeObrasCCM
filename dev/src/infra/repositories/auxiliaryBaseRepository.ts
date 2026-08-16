@@ -6,6 +6,7 @@ import { InsertBaseAuxiliaryMarketDTO } from 'src/interface/dtos/auxiliaryBaseDT
 import { Injectable, Logger } from '@nestjs/common';
 import { GetAuxiliaryBaseMaterialsInterface } from 'src/interface/types/works/capexInterface';
 import { InsertNotesInterface } from 'src/interface/types/baseAuxiliaryInterface';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
@@ -289,34 +290,29 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     }
   }
 
-  private formatValue(value: string | number | null | undefined): string {
-    if (value === null || value === undefined) return 'NULL';
-    return `'${value}'`;
-  }
-
   async insertNotes(data: InsertNotesInterface[]): Promise<any> {
     try {
-      const formattedPayload = data.map((d) => {
-        return `(
-          ${this.formatValue(d.campo_ordenacao)},
-          ${this.formatValue(d.pep)},
-          ${this.formatValue(d.ordem_dci)},
-          ${this.formatValue(d.ordem_dcd)},
-          ${this.formatValue(d.ordem_dca)},
-          ${this.formatValue(d.ordem_dcim)},
-          ${this.formatValue(d.conjunto)},
-          ${this.formatValue(d.grp_plnj_pm)},
-          ${this.formatValue(d.texto_breve)},
-          ${this.formatValue(d.denominacao)},
-          ${d.ehRda}
-        )`;
-      });
-
-      const fullArrayString = `ARRAY[${formattedPayload.join(',')}]::construcao_sp.base_auxiliar_input[]`;
-
-      await this.prisma.$executeRawUnsafe(
-        `SELECT construcao_sp.insert_base_auxiliar_bulk(${fullArrayString})`,
+      const rows = data.map(
+        (item) => Prisma.sql`
+        ROW(
+        ${item.campo_ordenacao},
+        ${item.pep},
+        ${item.ordem_dci},
+        ${item.ordem_dcd},
+        ${item.ordem_dca},
+        ${item.ordem_dcim},
+        ${item.conjunto},
+        ${item.grp_plnj_pm},
+        ${item.texto_breve},
+        ${item.denominacao},
+        ${item.ehRda}
+        )::construcao_sp.base_auxiliar_input
+        `,
       );
+
+      const query = Prisma.sql`SELECT construcao_sp.insert_base_auxiliar_bulk(ARRAY[${Prisma.join(rows)}]::construcao_sp.base_auxiliar_input[])`;
+
+      await this.prisma.$executeRaw(query);
 
       return { message: 'Dados inseridos com sucesso' };
     } catch (error) {

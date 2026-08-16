@@ -2,7 +2,7 @@ import { FormatCurrency } from "@/utils/formatValue";
 import { TrashIcon, UserGroupIcon } from "@heroicons/react/20/solid";
 import { Chip, Tooltip } from "@mui/material";
 import { ScheduledService } from "./scheduleSidebar";
-import { resolveEquipeLabel } from "@/hooks/useScheduleSidebar";
+import { resolveEquipeLabel } from "@/hooks/services/useScheduleSidebar";
 
 interface ServiceCardProps {
   service: ScheduledService;

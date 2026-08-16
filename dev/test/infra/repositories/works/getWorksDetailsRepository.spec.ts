@@ -169,6 +169,7 @@ describe('GetWorksDetailsRepository', () => {
         equipe_linha_viva: true,
         equipe_regularizacao: true,
         tecnicos: { select: { tecnico: true } },
+        id_restricao_execucao: true,
         programacoes_restricao_execucao: { select: { restricao: true } },
         programacoes_servicos: {
           select: { equipes: { select: { equipe: true } } },

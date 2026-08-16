@@ -1,25 +1,23 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import {
-  IWorksServicesRepository,
-  WORKS_SERVICE_REPOSITORY,
-} from 'src/domain/repositories/IWorksServiceRepository';
-import {
-  GetByIdParamsInterface,
-  GetSelectedServicesParamsInterface,
-} from 'src/interface/types/servicesInterface';
+
+import { GetSelectedServicesParamsInterface } from 'src/interface/types/servicesInterface';
 import { GetWorkDetailsService } from '../works/getWorkDetails.service';
+import {
+  IWorkServicesQueryRepository,
+  WORK_SERVICES_QUERY_REPOSITORY,
+} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
 
 @Injectable()
 export class QueriesServicesService {
   constructor(
-    @Inject(WORKS_SERVICE_REPOSITORY)
-    private readonly worksServicesRepository: IWorksServicesRepository,
+    @Inject(WORK_SERVICES_QUERY_REPOSITORY)
+    private readonly workServicesQueryRepository: IWorkServicesQueryRepository,
     private readonly getWorkDetailsService: GetWorkDetailsService,
   ) {}
 
-  async getById(params: GetByIdParamsInterface) {
+  async getAllItems(id: number) {
     const services =
-      await this.worksServicesRepository.getNotScheduledServices(params);
+      await this.workServicesQueryRepository.getAllServicesOfWork(id);
 
     if (!services) {
       throw new NotFoundException('Obra não encontrada');
@@ -37,6 +35,8 @@ export class QueriesServicesService {
         idObra: service.id_obra,
         operacao: service.operacao,
         ponto: service.ponto,
+        numeroOperacao: service.numero_operacao,
+        descricaoOperacao: service.descricao_operacao,
         material:
           service.servicos_contratos?.material ?? service.materiais?.codigo,
         textoBreve:
@@ -58,9 +58,56 @@ export class QueriesServicesService {
     return response;
   }
 
+  async getNotScheduledServices(id: number) {
+    const services =
+      await this.workServicesQueryRepository.getNotScheduledServices(id);
+
+    if (!services) {
+      throw new NotFoundException('Obra não encontrada');
+    }
+
+    const response = services.map((service) => {
+      const precoServico = service.servicos_contratos?.preco;
+      const precoMaterial = service.materiais?.preco;
+
+      const preco = Number(precoServico ?? precoMaterial);
+
+      const viabilizado = service.viabilizado;
+      const qtdeAdicional = service.qtde_adicional ?? 0;
+      const qtdeRealizada = service.qtde_real ?? 0;
+
+      const qtdeTotal = viabilizado + qtdeAdicional - qtdeRealizada;
+
+      return {
+        id: service.id,
+        idObra: service.id_obra,
+        operacao: service.operacao,
+        ponto: service.ponto,
+        numeroOperacao: service.numero_operacao,
+        descricaoOperacao: service.descricao_operacao,
+        material:
+          service.servicos_contratos?.material ?? service.materiais?.codigo,
+        textoBreve:
+          service.servicos_contratos?.texto_breve ??
+          service.materiais?.descricao,
+        dataProgramada: service.programacoes?.data_prog,
+        qtdePlanejada: service.qtde_plan,
+        qtdeAdicional: service.qtde_adicional,
+        viabilizado: service.viabilizado,
+        qtdeRealizada: service.qtde_real,
+        tipo: service.materiais?.codigo ? 'M' : 'S',
+        valorUnit: preco,
+        valorTotal: preco * qtdeTotal,
+        valorReal: preco * service.qtde_real,
+      };
+    });
+
+    return response;
+  }
+
   async getSelectedServices(params: GetSelectedServicesParamsInterface) {
     const services =
-      await this.worksServicesRepository.getSelectedServices(params);
+      await this.workServicesQueryRepository.getSelectedServices(params);
 
     if (!services) {
       throw new NotFoundException('Obra não encontrada');
@@ -76,6 +123,8 @@ export class QueriesServicesService {
         idObra: service.id_obra,
         operacao: service.operacao,
         ponto: service.ponto,
+        numeroOperacao: service.numero_operacao,
+        descricaoOperacao: service.descricao_operacao,
         material:
           service.servicos_contratos?.material ?? service.materiais?.codigo,
         textoBreve:
@@ -87,8 +136,10 @@ export class QueriesServicesService {
         qtdeRealizada: service.qtde_real,
         qtdeAdicional: service.qtde_adicional,
         viabilizado: service.viabilizado,
+        tipo: service.materiais?.codigo ? 'M' : 'S',
         valorUnit: preco,
-        valorTotal: preco * service.qtde_prog,
+        valorProg: preco * service.qtde_prog,
+        valorReal: preco * service.qtde_real,
         equipe: service.equipes.equipe,
         encarregado: service.equipes.encarregado,
         perfil: service.equipes.perfil,
@@ -98,39 +149,38 @@ export class QueriesServicesService {
 
   async getServiceScheduleHistory(id: number) {
     const services =
-      await this.worksServicesRepository.getServiceScheduleHistory(id);
+      await this.workServicesQueryRepository.getServiceScheduleHistory(id);
 
     return services.map((item) => {
       const descricao =
         item.servicos?.servicos_contratos?.texto_breve ??
         item.servicos?.materiais?.descricao;
 
+      const codigo =
+        item.servicos?.servicos_contratos?.material ??
+        item.servicos?.materiais?.codigo;
+
       return {
         id: item.id,
         idProg: item.id_programacao,
         idServico: item.id_servico,
         operacao: item.servicos.operacao,
+        numeroOperacao: item.servicos.numero_operacao,
+        descricaoOperacao: item.servicos.descricao_operacao,
         ponto: item.servicos.ponto,
-        descricao,
+        codigo,
+        textoBreve: descricao,
+        tipo: item.servicos?.materiais?.codigo ? 'M' : 'S',
         dataProgramada: item.programacoes?.data_prog,
         qtdeProgramada: item.prog,
-        qtdePlanejada: item.plan,
+        qtdePlanejada: item.servicos.qtde_plan,
+        qtdeViabilizado: item.servicos.viabilizado,
         qtdeAdicional: item.adicional,
         qtdeRealizada: item.real,
         equipe: item.equipes.equipe,
+        perfil: item.equipes.perfil,
       };
     });
-  }
-
-  async getServicesFilters(id: number) {
-    const { services, operations, points } =
-      await this.worksServicesRepository.getServicesFilters(id);
-
-    return {
-      services: services.map((s) => s.texto_breve),
-      operations: operations.map((o) => o.operacao),
-      points: points.map((p) => p.ponto),
-    };
   }
 
   async getServiceContracts(idWork: number) {
@@ -139,13 +189,13 @@ export class QueriesServicesService {
     const idParceira = work?.id_turma;
 
     const data =
-      await this.worksServicesRepository.getServicesContracts(idParceira);
+      await this.workServicesQueryRepository.getServicesContracts(idParceira);
 
     return data;
   }
 
   async getMaterials() {
-    return await this.worksServicesRepository.getMaterialsContract();
+    return await this.workServicesQueryRepository.getMaterialsContract();
   }
 
   async getTeamsServices(idWork: number) {
@@ -154,8 +204,12 @@ export class QueriesServicesService {
     const idParceira = work?.id_turma;
 
     const data =
-      await this.worksServicesRepository.getTeamsServices(idParceira);
+      await this.workServicesQueryRepository.getTeamsServices(idParceira);
 
     return data;
+  }
+
+  async getServiceOptions(id: number) {
+    return await this.workServicesQueryRepository.getServiceOptions(id);
   }
 }

@@ -114,6 +114,7 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
             },
             observacao_restricao: true,
             observacao_execucao: true,
+            id_restricao_execucao: true,
             id_restricao_prog1: true,
             responsabilidade1: true,
             nome_responsavel: true,

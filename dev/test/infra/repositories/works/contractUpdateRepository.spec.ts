@@ -59,7 +59,7 @@ describe('ContractUpdateRepository', () => {
           },
           data: {
             data_empreitamento: work.dataEmpreitamento,
-            id_status: 1,
+            id_status: 45,
           },
         });
       });

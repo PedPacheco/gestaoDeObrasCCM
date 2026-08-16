@@ -20,16 +20,12 @@ SELECT
   circuitos.circuito,
   obras.mo_planejada,
   (
-    (
-      obras.mo_planejada * (obras.executado) :: double precision
-    ) / (100) :: double precision
+    (obras.mo_planejada * obras.executado) / (100) :: double precision
   ) AS mo_exec,
   CASE
     WHEN (obras.id_status = 4) THEN (
       obras.mo_planejada - (
-        (
-          obras.mo_planejada * (obras.executado) :: double precision
-        ) / (100) :: double precision
+        (obras.mo_planejada * obras.executado) / (100) :: double precision
       )
     )
     ELSE (0) :: double precision
@@ -60,30 +56,30 @@ FROM
               (
                 (
                   (
-                    public.conjuntos
-                    JOIN public.circuitos ON ((circuitos.id_conjunto = conjuntos.id))
+                    conjuntos
+                    JOIN circuitos ON ((circuitos.id_conjunto = conjuntos.id))
                   )
-                  JOIN public.obras ON ((obras.id_circuito = circuitos.id))
+                  JOIN obras ON ((obras.id_circuito = circuitos.id))
                 )
-                JOIN public.turmas ON ((turmas.id = obras.id_turma))
+                JOIN turmas ON ((turmas.id = obras.id_turma))
               )
-              JOIN public.municipios ON ((municipios.id = obras.id_gpm))
+              JOIN municipios ON ((municipios.id = obras.id_gpm))
             )
-            JOIN public.regionais ON ((regionais.id = municipios.id_regional))
+            JOIN regionais ON ((regionais.id = municipios.id_regional))
           )
-          JOIN public.status ON ((STATUS.id = obras.id_status))
+          JOIN STATUS ON ((STATUS.id = obras.id_status))
         )
-        JOIN public.tipos ON ((tipos.id = obras.id_tipo))
+        JOIN tipos ON ((tipos.id = obras.id_tipo))
       )
-      JOIN public.empreendimento ON ((empreendimento.id = obras.id_empreendimento))
+      JOIN empreendimento ON ((empreendimento.id = obras.id_empreendimento))
     )
-    JOIN public.relatorio_viabilidade ON ((relatorio_viabilidade.id_obra = obras.id))
+    JOIN relatorio_viabilidade ON ((relatorio_viabilidade.id_obra = obras.id))
   )
 WHERE
   (
     (
       (obras.id_status = 2)
-      AND (obras.executado = 100)
+      AND (obras.executado = (100) :: double precision)
     )
     OR (obras.id_status = ANY (ARRAY [2, 3]))
   )

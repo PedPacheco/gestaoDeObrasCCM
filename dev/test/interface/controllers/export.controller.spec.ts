@@ -115,6 +115,7 @@ const mockScheduleData: GetScheduleValuesResponse = {
       restricao_aberta: false,
       status_prazo: 'Atenção: 32 dias restantes',
       status_ov_sap: 51,
+      encontrado: false,
     },
   ],
   totals: {
@@ -165,6 +166,7 @@ const mockWorksData: worksInPortfolioResponseService = {
       total_pend: 20,
       total_prog: 0,
       status_prazo: 'Atenção: 23 dias restantes',
+      encontrado: true,
     },
   ],
   totals: {

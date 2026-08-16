@@ -5,7 +5,7 @@ export function FormatCurrency(value: number) {
   return new Intl.NumberFormat("pt-br", {
     style: "currency",
     currency: "BRL",
-    maximumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(value);
 }
 
@@ -31,6 +31,8 @@ export function formatPercentage(value: number, locale: string = "pt-BR") {
 
   return new Intl.NumberFormat(locale, {
     style: "percent",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(correctValue);
 }
 

@@ -1,53 +1,73 @@
-import { useCallback, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { startTransition, useMemo, useState } from "react";
+
+import { deleteService } from "@/actions/services";
+import { ButtonComponent } from "@/components/common/Button";
 import {
+  MATERIAL_OR_SERVICE_OPTIONS,
+  SERVICE_OPERATIONS,
+} from "@/constants/services/services";
+import { useServicesFilters } from "@/hooks/services/useServicesFilters";
+import { useFeedback } from "@/hooks/useFeedback";
+import {
+  ExclamationCircleIcon,
+  PencilSquareIcon,
+  TrashIcon,
+} from "@heroicons/react/20/solid";
+import {
+  FormControl,
+  IconButton,
+  MenuItem,
   Paper,
+  Select,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
 } from "@mui/material";
-import {
-  ExclamationCircleIcon,
-  PencilSquareIcon,
-} from "@heroicons/react/20/solid";
 
-import { ButtonComponent } from "@/components/common/Button";
+import ConfirmationScheduleModalComponent from "../common/confirmationScheduleModal";
 import { TableFilter } from "../services/servicesSection/servicesFilters";
-import { SERVICE_OPERATIONS } from "@/constants/services/services";
 
 export interface FeasibilityServiceItem {
   id: number;
   material: string;
   textoBreve: string;
   operacao?: string;
-  ponto?: string;
+  numeroOperacao: string;
+  descricaoOperacao: string;
+  ponto: string;
+  tipo: string;
   qtdePlanejada: number;
-  viabilizado: number | null;
+  viabilizado: string | null;
 }
 
 interface FeasibilityServicesReviewStepProps {
   reviewData: FeasibilityServiceItem[];
   onChangeReviewData: (data: FeasibilityServiceItem[]) => void;
-  filters: { operations: any[]; points: any[] };
   readOnly?: boolean;
+  workId: number;
 }
 
 const reviewColumns = [
   { key: "material", label: "CÓDIGO" },
   { key: "textoBreve", label: "SERVIÇO" },
   { key: "operacao", label: "OPERAÇÃO" },
+  { key: "numeroOperacao", label: "N° DA OPERAÇÃO" },
+  { key: "descricaoOperacao", label: "DESCRIÇÃO DA OPERAÇÃO" },
   { key: "ponto", label: "PONTO" },
   { key: "qtdePlanejada", label: "QTD. PLANEJADA" },
 ] as const;
 
-const QUANTITY_PATTERN = /^\d*$/;
+const QUANTITY_PATTERN = /^\d*[.]?\d*$/;
 
 function isRowEmpty(row: FeasibilityServiceItem) {
   return (
     row.viabilizado === null ||
-    (row.viabilizado === 0 && row.qtdePlanejada === 0)
+    (Number(row.viabilizado) === 0 && row.qtdePlanejada === 0)
   );
 }
 
@@ -58,21 +78,38 @@ export function hasInvalidAdditionalQuantities(
 }
 
 function isRowChanged(row: FeasibilityServiceItem) {
-  return !isRowEmpty(row) && row.viabilizado !== row.qtdePlanejada;
+  return !isRowEmpty(row) && Number(row.viabilizado) !== row.qtdePlanejada;
+}
+
+function realizedAmountGreaterThanPlanned(row: FeasibilityServiceItem) {
+  return !isRowEmpty(row) && Number(row.viabilizado) > row.qtdePlanejada;
 }
 
 export function FeasibilityServicesReviewStep({
   reviewData,
   onChangeReviewData,
-  filters,
   readOnly = false,
+  workId,
 }: FeasibilityServicesReviewStepProps) {
-  const [visibleIds, setVisibleIds] = useState<Set<number> | null>(null);
+  const router = useRouter();
+  const { showSuccess, showError } = useFeedback();
 
-  const filteredServicesData = useMemo(() => {
-    if (visibleIds === null) return reviewData;
-    return reviewData.filter((item) => visibleIds.has(item.id));
-  }, [reviewData, visibleIds]);
+  const handleOpenDeleteModal = (item: FeasibilityServiceItem) => {
+    setItemToDelete(item);
+  };
+
+  const [itemToDelete, setItemToDelete] =
+    useState<FeasibilityServiceItem | null>(null);
+
+  const {
+    materialOrService,
+    setMaterialOrService,
+    setTableFilters,
+    filterOptions,
+    applyFilters,
+  } = useServicesFilters(reviewData);
+
+  const filteredServicesData = applyFilters(reviewData);
 
   const { pendingCount, changedCount } = useMemo(() => {
     let pending = 0;
@@ -86,9 +123,21 @@ export function FeasibilityServicesReviewStep({
     return { pendingCount: pending, changedCount: changed };
   }, [reviewData]);
 
-  const handleFilter = useCallback((filtered: FeasibilityServiceItem[]) => {
-    setVisibleIds(new Set(filtered.map((item) => item.id)));
-  }, []);
+  const handleDeleteItem = async (id: number) => {
+    const response = await deleteService(id, workId);
+
+    if (!response.success) {
+      showError(response.error);
+      return;
+    }
+
+    showSuccess(response?.message || "Item removido com sucesso", () => {
+      startTransition(() => {
+        router.refresh();
+        setItemToDelete(null);
+      });
+    });
+  };
 
   const updateViabilizado = (id: number, value: string) => {
     if (readOnly) return;
@@ -99,7 +148,7 @@ export function FeasibilityServicesReviewStep({
         item.id === id
           ? {
               ...item,
-              viabilizado: value === "" ? null : Number(value),
+              viabilizado: value === "" ? null : value,
             }
           : item,
       ),
@@ -113,16 +162,18 @@ export function FeasibilityServicesReviewStep({
       reviewData.map((item) =>
         item.qtdePlanejada === 0
           ? item
-          : { ...item, viabilizado: item.qtdePlanejada },
+          : { ...item, viabilizado: item.qtdePlanejada.toString() },
       ),
     );
   };
 
   const getRowClassName = (row: FeasibilityServiceItem) => {
     if (isRowEmpty(row))
-      return "border-l-4 border-l-red-400 bg-red-50/60 hover:bg-red-50 transition-colors";
-    if (isRowChanged(row))
-      return "border-l-4 border-l-amber-400 bg-amber-50/50 hover:bg-amber-50 transition-colors";
+      return "border-l-4 border-l-red-600 bg-red-100/80 hover:bg-red-100 transition-colors";
+    if (isRowChanged(row) && realizedAmountGreaterThanPlanned(row))
+      return "border-l-4 border-l-green-500 bg-green-100/70 hover:bg-green-100 transition-colors";
+    if (isRowChanged(row) && !realizedAmountGreaterThanPlanned(row))
+      return "border-l-4 border-l-amber-500 bg-amber-100/70 hover:bg-amber-100 transition-colors";
     return "border-l-4 border-l-transparent hover:bg-zinc-50 transition-colors";
   };
 
@@ -169,31 +220,51 @@ export function FeasibilityServicesReviewStep({
       )}
 
       <TableFilter
-        data={reviewData}
         fields={[
           {
-            label: "SERVIÇO",
+            label: "Serviço/Material",
             field: "textoBreve",
-            options: Array.from(
-              new Set(reviewData.map((item) => item.textoBreve)),
-            ),
+            options: filterOptions.textoBreve,
           },
           {
-            label: "OPERAÇÃO",
+            label: "Família",
+            field: "descricaoOperacao",
+            options: filterOptions.descricaoOperacao,
+          },
+          {
+            label: "Operação",
             field: "operacao",
             options: SERVICE_OPERATIONS,
-            width: "w-1/4",
+            width: "w-60",
           },
           {
-            label: "PONTO",
+            label: "Ponto",
             field: "ponto",
-            options: filters.points.filter((item) => {
-              return reviewData.some((service) => service.ponto === item);
-            }),
+            options: filterOptions.ponto,
             width: "w-44",
           },
         ]}
-        onFilter={handleFilter}
+        onFilter={setTableFilters}
+        extraFilters={
+          <div className="min-w-[160px]">
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Tipo
+            </label>
+            <FormControl fullWidth size="small">
+              <Select
+                value={materialOrService}
+                onChange={(e) => setMaterialOrService(e.target.value)}
+                className="bg-white rounded-lg h-[38px]"
+              >
+                {MATERIAL_OR_SERVICE_OPTIONS.map((p) => (
+                  <MenuItem key={p} value={p}>
+                    {p}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
+        }
       />
 
       <TableContainer
@@ -208,6 +279,13 @@ export function FeasibilityServicesReviewStep({
         <Table stickyHeader size="small" sx={{ minWidth: 640 }}>
           <TableHead>
             <TableRow>
+              <TableCell
+                width={60}
+                className="!text-xs !font-semibold !text-zinc-500"
+              >
+                AÇÕES
+              </TableCell>
+
               {reviewColumns.map((header) => (
                 <TableCell
                   key={header.key}
@@ -237,7 +315,7 @@ export function FeasibilityServicesReviewStep({
             ) : filteredServicesData.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={reviewColumns.length + 1}
+                  colSpan={reviewColumns.length + 2}
                   align="center"
                   className="!py-10 !text-zinc-400"
                 >
@@ -246,14 +324,26 @@ export function FeasibilityServicesReviewStep({
               </TableRow>
             ) : (
               filteredServicesData.map((row) => (
-                <TableRow
-                  key={row.id}
-                  className={
-                    readOnly
-                      ? "border-l-4 border-l-transparent hover:bg-zinc-50 transition-colors"
-                      : getRowClassName(row)
-                  }
-                >
+                <TableRow key={row.id} className={getRowClassName(row)}>
+                  <TableCell>
+                    {!readOnly && (
+                      <Tooltip title="Excluir Serviço/Material" placement="top">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleOpenDeleteModal(row)}
+                          sx={{
+                            padding: "4px",
+                            "&:hover": {
+                              backgroundColor: "rgba(211, 47, 47, 0.08)",
+                            },
+                          }}
+                        >
+                          <TrashIcon width={24} height={24} />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </TableCell>
                   {reviewColumns.map((col) => (
                     <TableCell key={col.key}>
                       {row[col.key as keyof FeasibilityServiceItem]}
@@ -268,7 +358,7 @@ export function FeasibilityServicesReviewStep({
                     ) : (
                       <input
                         type="text"
-                        inputMode="numeric"
+                        inputMode="decimal"
                         className={`w-24 rounded-md border px-2 py-1.5 text-right text-sm outline-none transition-colors focus:ring-2 ${getInputClassName(row)}`}
                         value={row.viabilizado ?? ""}
                         onChange={(e) =>
@@ -283,6 +373,17 @@ export function FeasibilityServicesReviewStep({
           </TableBody>
         </Table>
       </TableContainer>
+
+      <ConfirmationScheduleModalComponent
+        open={Boolean(itemToDelete)}
+        onClose={() => setItemToDelete(null)}
+        onConfirm={handleDeleteItem}
+        idSchedule={itemToDelete?.id ?? 0}
+        title="Excluir serviço/material"
+        message={`Deseja realmente excluir "${
+          itemToDelete?.textoBreve ?? ""
+        }"? Esta ação não poderá ser desfeita.`}
+      />
     </>
   );
 }

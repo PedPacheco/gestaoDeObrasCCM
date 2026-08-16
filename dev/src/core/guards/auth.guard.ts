@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { IS_PUBLIC_KEY, jwtConstants } from 'src/shared/costants';
+import { IS_PUBLIC_KEY } from 'src/shared/costants';
 
 import {
   CanActivate,
@@ -35,9 +35,7 @@ export class AuthGuard implements CanActivate {
     }
 
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: jwtConstants.secret,
-      });
+      const payload = await this.jwtService.verifyAsync(token);
 
       request['user'] = payload;
     } catch {

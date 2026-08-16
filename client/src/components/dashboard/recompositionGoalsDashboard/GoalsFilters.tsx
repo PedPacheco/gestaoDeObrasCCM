@@ -16,6 +16,7 @@ import {
 import { FiltersData } from "@/types/dashboard/recompositionGoals/goals";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { FilterTag } from "../common/FilterTag";
+import { EXCLUDE_PARCEIRAS } from "../DashboardClient";
 
 // ── Estilos reutilizáveis ─────────────────────────────────────────────────────
 
@@ -183,7 +184,12 @@ export function GoalsFilters({
           <div className="min-w-[160px] flex-1">
             <MultipleSelectComponent
               label="Parceiras"
-              menuItems={filtersData.parceira ?? []}
+              menuItems={
+                filtersData.parceira?.filter(
+                  (item) =>
+                    !EXCLUDE_PARCEIRAS.has(item.turma.toUpperCase().trim()),
+                ) ?? []
+              }
               selectedItem={selPartner}
               setSelectedItem={setSelPartner}
               valueKey="id"
