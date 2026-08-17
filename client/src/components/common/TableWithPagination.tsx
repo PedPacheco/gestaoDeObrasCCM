@@ -16,6 +16,10 @@ import {
   TablePagination,
   TableRow,
 } from "@mui/material";
+import {
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/react/20/solid";
 
 interface totalsInterface {
   total_obras: number;
@@ -127,6 +131,14 @@ export function TableWithPagination({
                         cellValue = cellValue ? "!!!" : "";
                       }
 
+                      if (column === "encontrado") {
+                        cellValue = item[column] ? (
+                          <CheckCircleIcon className="w-6 h-6 text-green-600 mx-auto" />
+                        ) : (
+                          <ExclamationTriangleIcon className="w-6 h-6 text-yellow-500 mx-auto" />
+                        );
+                      }
+
                       if (
                         typeof cellValue === "string" &&
                         isValidDateString(cellValue) &&
@@ -141,7 +153,9 @@ export function TableWithPagination({
                       }
 
                       const displayValue =
-                        typeof cellValue === "object" && cellValue !== null
+                        typeof cellValue === "object" &&
+                        cellValue !== null &&
+                        !("type" in cellValue)
                           ? Object.values(cellValue).join(", ")
                           : cellValue;
 

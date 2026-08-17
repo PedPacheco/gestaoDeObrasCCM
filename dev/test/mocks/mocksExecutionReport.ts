@@ -2,7 +2,7 @@ import { ExecutionReportDataDTO } from 'src/interface/dtos/executionReportDTO';
 
 export const mockExecutionReportService = {
   idSchedule: 1,
-  idUser: 1,
+  userId: 1,
   idWork: 1,
   supervisor: 'Erick',
   partialConnectionReleased: false,
@@ -67,6 +67,7 @@ export const mockUpdateExecutionReportDTO: ExecutionReportDataDTO = {
 
 export const mockExecutionReportPersistenceObject = {
   id_usuario: 1,
+  modificado_por: 1,
   id_obra: 2,
   id_programacao: 1,
   supervisor: 'João Silva',
@@ -122,6 +123,7 @@ export const mockExecutionReportServiceWithErrorProvisionalKeyReference = {
 
 export const mockExecutionReportRepository = {
   id_usuario: 1,
+  modificado_por: 1,
   id_obra: 1,
   id_programacao: 1,
   supervisor: 'Erick',

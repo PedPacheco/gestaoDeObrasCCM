@@ -41,6 +41,7 @@ export default async function ScheduleForDay() {
       status: true,
       statusProgramacao: true,
       statusSap: true,
+      tecnico: true,
     }),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/programacao/mensal`,
@@ -61,6 +62,7 @@ export default async function ScheduleForDay() {
     ovnota: "Nota/Ov",
     ordemdiagrama: "Ordem",
     restricao_aberta: "Restrição !!",
+    encontrado: "Ponto a Ponto",
     mun: "Mun",
     regional: "Regional",
     conjunto: "Conjunto",

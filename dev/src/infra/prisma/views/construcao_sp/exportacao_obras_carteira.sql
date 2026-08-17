@@ -23,16 +23,12 @@ SELECT
   circuitos.circuito,
   obras.mo_planejada,
   (
-    (
-      obras.mo_planejada * (obras.executado) :: double precision
-    ) / (100) :: double precision
+    (obras.mo_planejada * obras.executado) / (100) :: double precision
   ) AS mo_exec,
   CASE
     WHEN (obras.id_status = 4) THEN (
       obras.mo_planejada - (
-        (
-          obras.mo_planejada * (obras.executado) :: double precision
-        ) / (100) :: double precision
+        (obras.mo_planejada * obras.executado) / (100) :: double precision
       )
     )
     ELSE (0) :: double precision

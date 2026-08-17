@@ -35,8 +35,8 @@ export class QueriesServicesService {
         idObra: service.id_obra,
         operacao: service.operacao,
         ponto: service.ponto,
-        numero_operacao: service.numero_operacao,
-        descricao_operacao: service.descricao_operacao,
+        numeroOperacao: service.numero_operacao,
+        descricaoOperacao: service.descricao_operacao,
         material:
           service.servicos_contratos?.material ?? service.materiais?.codigo,
         textoBreve:
@@ -67,19 +67,24 @@ export class QueriesServicesService {
     }
 
     const response = services.map((service) => {
-      const preco =
-        service.servicos_contratos?.preco ??
-        service.materiais?.preco.toNumber();
+      const precoServico = service.servicos_contratos?.preco;
+      const precoMaterial = service.materiais?.preco;
 
-      const qtdeTotal = service.qtde_plan + service.qtde_adicional;
+      const preco = Number(precoServico ?? precoMaterial);
+
+      const viabilizado = service.viabilizado;
+      const qtdeAdicional = service.qtde_adicional ?? 0;
+      const qtdeRealizada = service.qtde_real ?? 0;
+
+      const qtdeTotal = viabilizado + qtdeAdicional - qtdeRealizada;
 
       return {
         id: service.id,
         idObra: service.id_obra,
         operacao: service.operacao,
         ponto: service.ponto,
-        numero_operacao: service.numero_operacao,
-        descricao_operacao: service.descricao_operacao,
+        numeroOperacao: service.numero_operacao,
+        descricaoOperacao: service.descricao_operacao,
         material:
           service.servicos_contratos?.material ?? service.materiais?.codigo,
         textoBreve:
@@ -89,7 +94,6 @@ export class QueriesServicesService {
         qtdePlanejada: service.qtde_plan,
         qtdeAdicional: service.qtde_adicional,
         viabilizado: service.viabilizado,
-        qtdeProgramada: service.qtde_prog,
         qtdeRealizada: service.qtde_real,
         tipo: service.materiais?.codigo ? 'M' : 'S',
         valorUnit: preco,
@@ -119,8 +123,8 @@ export class QueriesServicesService {
         idObra: service.id_obra,
         operacao: service.operacao,
         ponto: service.ponto,
-        numero_operacao: service.numero_operacao,
-        descricao_operacao: service.descricao_operacao,
+        numeroOperacao: service.numero_operacao,
+        descricaoOperacao: service.descricao_operacao,
         material:
           service.servicos_contratos?.material ?? service.materiais?.codigo,
         textoBreve:
@@ -132,8 +136,10 @@ export class QueriesServicesService {
         qtdeRealizada: service.qtde_real,
         qtdeAdicional: service.qtde_adicional,
         viabilizado: service.viabilizado,
+        tipo: service.materiais?.codigo ? 'M' : 'S',
         valorUnit: preco,
-        valorTotal: preco * service.qtde_prog,
+        valorProg: preco * service.qtde_prog,
+        valorReal: preco * service.qtde_real,
         equipe: service.equipes.equipe,
         encarregado: service.equipes.encarregado,
         perfil: service.equipes.perfil,
@@ -150,13 +156,21 @@ export class QueriesServicesService {
         item.servicos?.servicos_contratos?.texto_breve ??
         item.servicos?.materiais?.descricao;
 
+      const codigo =
+        item.servicos?.servicos_contratos?.material ??
+        item.servicos?.materiais?.codigo;
+
       return {
         id: item.id,
         idProg: item.id_programacao,
         idServico: item.id_servico,
         operacao: item.servicos.operacao,
+        numeroOperacao: item.servicos.numero_operacao,
+        descricaoOperacao: item.servicos.descricao_operacao,
         ponto: item.servicos.ponto,
-        descricao,
+        codigo,
+        textoBreve: descricao,
+        tipo: item.servicos?.materiais?.codigo ? 'M' : 'S',
         dataProgramada: item.programacoes?.data_prog,
         qtdeProgramada: item.prog,
         qtdePlanejada: item.servicos.qtde_plan,
@@ -164,6 +178,7 @@ export class QueriesServicesService {
         qtdeAdicional: item.adicional,
         qtdeRealizada: item.real,
         equipe: item.equipes.equipe,
+        perfil: item.equipes.perfil,
       };
     });
   }
@@ -192,5 +207,9 @@ export class QueriesServicesService {
       await this.workServicesQueryRepository.getTeamsServices(idParceira);
 
     return data;
+  }
+
+  async getServiceOptions(id: number) {
+    return await this.workServicesQueryRepository.getServiceOptions(id);
   }
 }

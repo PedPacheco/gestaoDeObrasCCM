@@ -2,12 +2,12 @@ import { ScheduleExecutionValidatorService } from 'src/application/usecases/sche
 import { FinalizeServicesService } from 'src/application/usecases/services/finalizeServices.service';
 import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
 import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
-import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
-import { WORK_SERVICES_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesRepository';
-import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/contracts/schedule/IUpdateSchedulesRepository';
-import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
-import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updateSchedulesRepository';
+import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
+import { WORK_SERVICES_EXECUTION_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
+import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import { WORK_SERVICES_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesRepository';
 import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepository';
+import { WorkServicesExeutionRepository } from 'src/infra/repositories/worksServices/workServicesExecutionRepository';
 import { WorkServicesQueryRepository } from 'src/infra/repositories/worksServices/workServicesQueryRepository';
 import { WorkServicesRepository } from 'src/infra/repositories/worksServices/worksServicesRepository';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
@@ -20,10 +20,7 @@ import { ServicesController } from '../controllers/worksServices.controller';
 import { ExecutionReportModule } from './executionReport.module';
 import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
-import { WORK_SERVICES_EXECUTION_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesExecutionRepository';
-import { WorkServicesExeutionRepository } from 'src/infra/repositories/worksServices/workServicesExecutionRepository';
-import { HandleFinalizeServicesService } from 'src/application/usecases/orchestrators/handleFinalizeServices.service';
-import { HandleRescheduleServicesService } from 'src/application/usecases/orchestrators/handleRescheduleServices.service';
+import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
 
 @Module({
   imports: [
@@ -68,8 +65,7 @@ import { HandleRescheduleServicesService } from 'src/application/usecases/orches
     QueriesServicesService,
     FinalizeServicesService,
     ScheduleExecutionValidatorService,
-    HandleFinalizeServicesService,
-    HandleRescheduleServicesService,
+    ScheduleProgressCalculatorService,
     {
       provide: WORK_SERVICES_REPOSITORY,
       useClass: WorkServicesRepository,
@@ -81,10 +77,6 @@ import { HandleRescheduleServicesService } from 'src/application/usecases/orches
     {
       provide: WORK_SERVICES_EXECUTION_REPOSITORY,
       useClass: WorkServicesExeutionRepository,
-    },
-    {
-      provide: UPDATE_SCHEDULES_REPOSITORY,
-      useClass: UpdateSchedulesRepository,
     },
     { provide: STATUS_FLOW_REPOSITORY, useClass: StatusFlowRepository },
   ],

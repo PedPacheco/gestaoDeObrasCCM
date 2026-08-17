@@ -25,9 +25,10 @@ import {
 } from "./servicesSection/scheduleHistory";
 import { ButtonComponent } from "../common/Button";
 import { TabsServices } from "./TabsServices";
-import { ServiceContract } from "../addServiceAccordion/addServiceForm";
-import { AddServiceAccordion } from "../addServiceAccordion/addServiceAccordion";
-import { SERVICE_OPERATIONS } from "@/constants/services/services";
+import {
+  AddServiceAccordion,
+  ServiceContract,
+} from "../addServiceAccordion/addServiceAccordion";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -51,6 +52,10 @@ interface EditScheduleProps {
   idStatusWork: number;
   idSchedule: number;
   statusSchedule?: string;
+  optionsToAddItem: {
+    operation_description: string[];
+    points: string[];
+  };
 }
 
 export type TabId = "scheduled" | "available" | "add" | "history";
@@ -72,6 +77,7 @@ export function EditSchedule({
   idStatusWork,
   idSchedule,
   statusSchedule,
+  optionsToAddItem,
 }: EditScheduleProps) {
   const router = useRouter();
   const { showError, showSuccess } = useFeedback();
@@ -133,6 +139,7 @@ export function EditSchedule({
       idSchedule,
       prog: service.prog,
       additional: service.qtdeAdicional,
+      type: service.tipo,
     }));
 
     const response = await scheduleServices(idWork, formattedService);
@@ -272,6 +279,7 @@ export function EditSchedule({
                   teams={serviceTeams}
                   onError={showError}
                   onSuccess={showSuccess}
+                  workId={idWork}
                 />
               </div>
 
@@ -281,19 +289,26 @@ export function EditSchedule({
                   <AddServiceAccordion
                     idWork={Number(idWork)}
                     title="Adicionar novo serviço"
-                    contracts={serviceContractData}
-                    services={servicesAvaliable}
-                    // operations={SERVICE_OPERATIONS}
+                    services={serviceContractData}
+                    options={optionsToAddItem}
                     type="serviço"
                   />
 
                   <AddServiceAccordion
                     idWork={Number(idWork)}
                     title="Adicionar novo material"
-                    contracts={materialsData}
-                    services={servicesAvaliable}
-                    // operations={SERVICE_OPERATIONS}
+                    services={materialsData}
+                    options={optionsToAddItem}
                     type="material"
+                  />
+
+                  <AddServiceAccordion
+                    idWork={Number(idWork)}
+                    title="Adicionar nova família"
+                    services={serviceContractData}
+                    materials={materialsData}
+                    type="familia"
+                    options={optionsToAddItem}
                   />
                 </div>
                 <div className="min-h-0 flex-1 w-full overflow-hidden">
@@ -302,7 +317,6 @@ export function EditSchedule({
                     setSelectedServices={setScheduledServices}
                     clearScheduledServices={clearScheduledServices}
                     setServicesData={setServicesAvaliable}
-                    servicesData={servicesData}
                     selectedCount={workflow.selectedCount}
                     canCreate={workflow.canCreate}
                     isPending={isPending}

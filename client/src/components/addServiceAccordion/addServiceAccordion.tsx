@@ -8,15 +8,38 @@ import { useRouter } from "next/navigation";
 import { useFeedback } from "@/hooks/useFeedback";
 import { AddServiceForm } from "@/components/addServiceAccordion/addServiceForm";
 import { AddMaterialForm } from "@/components/addServiceAccordion/addMaterialForm";
-import { SERVICE_OPERATIONS } from "@/constants/services/services";
+import { AddFamilyForm } from "./addFamilyForm";
+import { SERVICE_AND_MATERIAL_FAMILIES } from "@/constants/services/services";
 
-type MaterialOrService = "material" | "serviço";
+type MaterialOrService = "material" | "serviço" | "familia";
+
+export type ServiceContract = {
+  id: number;
+  texto_breve: string;
+  material: string;
+  preco: string;
+  contrato: string;
+  medida: string;
+  turmas: { turma: string };
+};
+
+export type MaterialData = {
+  id: number;
+  codigo: string;
+  descricao: string;
+  unidade: string;
+  preco: number;
+};
 
 interface AddServiceAccordionProps {
   idWork: number;
   title: string;
-  contracts: any[];
-  services: any[];
+  services?: ServiceContract[];
+  materials?: MaterialData[];
+  options: {
+    operation_description: string[];
+    points: string[];
+  };
   type: MaterialOrService;
 }
 
@@ -24,27 +47,16 @@ export type AddMaterialOrServiceFormState = {
   idService: number | null;
   point: string;
   operation: string;
-  operationNumber: string;
   operationDescription: string;
+  quantity: number;
 };
-
-function useUniqueValues<T>(data: T[], keys: (keyof T)[]) {
-  return useMemo(() => {
-    return keys.reduce(
-      (acc, key) => {
-        acc[key] = Array.from(new Set(data?.map((item) => item[key])));
-        return acc;
-      },
-      {} as Record<keyof T, T[keyof T][]>,
-    );
-  }, [data, keys]);
-}
 
 export function AddServiceAccordion({
   idWork,
   title,
-  contracts,
   services,
+  materials,
+  options,
   type,
 }: AddServiceAccordionProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -60,12 +72,6 @@ export function AddServiceAccordion({
       });
     });
   };
-
-  const filters = useUniqueValues(services, [
-    "ponto",
-    "numero_operacao",
-    "descricao_operacao",
-  ]);
 
   return (
     <div className="h-fit">
@@ -116,13 +122,13 @@ export function AddServiceAccordion({
           {type === "serviço" ? (
             <AddServiceForm
               idWork={idWork}
-              serviceContractData={contracts}
-              operations={SERVICE_OPERATIONS}
-              points={filters.ponto}
-              operationsDescription={filters.descricao_operacao}
-              operationsNumber={filters.numero_operacao}
+              serviceContractData={services ?? []}
+              points={options.points}
+              operationsDescription={options.operation_description}
               onSubmit={async (data) => {
                 const { addService } = await import("@/actions/services");
+
+                console.log(data);
                 const response = await addService(data);
 
                 if (!response.success) {
@@ -133,17 +139,34 @@ export function AddServiceAccordion({
                 handleSuccess("Serviço adicionado");
               }}
             />
-          ) : (
+          ) : type === "material" ? (
             <AddMaterialForm
               idWork={idWork}
-              materialData={contracts}
-              operations={SERVICE_OPERATIONS}
-              points={filters.ponto}
-              operationsDescription={filters.descricao_operacao}
-              operationsNumber={filters.numero_operacao}
+              materialData={materials ?? []}
+              points={options.points}
+              operationsDescription={options.operation_description}
               onSubmit={async (data) => {
                 const { addMaterial } = await import("@/actions/services");
                 const response = await addMaterial(data);
+
+                if (!response.success) {
+                  showError(response.error);
+                  return;
+                }
+
+                handleSuccess("Material adicionado");
+              }}
+            />
+          ) : (
+            <AddFamilyForm
+              idWork={idWork}
+              serviceContractData={services ?? []}
+              materialData={materials ?? []}
+              points={options.points}
+              operationsDescription={SERVICE_AND_MATERIAL_FAMILIES}
+              onSubmit={async (data) => {
+                const { addFamily } = await import("@/actions/services");
+                const response = await addFamily(data);
 
                 if (!response.success) {
                   showError(response.error);

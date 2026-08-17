@@ -64,17 +64,24 @@ export interface GetServiceScheduleHistoryResponse {
   id: number;
   id_servico: number;
   servicos: {
-    materiais?: { descricao: string };
-    servicos_contratos?: { texto_breve: string };
+    materiais?: { descricao: string; codigo: string };
+    servicos_contratos?: { texto_breve: string; material: string };
     ponto: string;
     operacao: string;
     qtde_plan: number;
     viabilizado: number;
+    numero_operacao: string;
+    descricao_operacao: string;
   };
   id_programacao: number;
   programacoes: { data_prog: Date };
-  equipes: { equipe: string };
+  equipes: { equipe: string; perfil: string };
   prog: number;
   real: number;
   adicional: number;
+}
+
+export interface GetServiceOptionsResponse {
+  operation_description: string[];
+  points: string[];
 }

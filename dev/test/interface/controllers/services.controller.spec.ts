@@ -21,6 +21,7 @@ describe('ServicesController', () => {
     applyAdditional: jest.fn(),
     cancelServices: jest.fn(),
     addItem: jest.fn(),
+    delete: jest.fn(),
   };
 
   const mockQueriesService = {
@@ -31,6 +32,7 @@ describe('ServicesController', () => {
     getTeamsServices: jest.fn(),
     getMaterials: jest.fn(),
     getAllItems: jest.fn(),
+    getServiceOptions: jest.fn(),
   };
 
   const mockFinalizeServices = {
@@ -255,19 +257,41 @@ describe('ServicesController', () => {
     });
   });
 
+  describe('getServicePoints', () => {
+    it('should return Service Points', async () => {
+      const mockId = 1;
+      const mockResponse = {
+        operation_description: ['Poste'],
+        operation_number: ['2000'],
+        points: ['P1'],
+      };
+
+      mockQueriesService.getServiceOptions.mockResolvedValue(mockResponse);
+
+      const result = await controller.getServiceOptions(mockId);
+
+      expect(result).toEqual({
+        statusCode: HttpStatus.OK,
+        message: 'Opções retornados com sucesso',
+        data: mockResponse,
+      });
+      expect(queriesService.getServiceOptions).toHaveBeenCalledWith(mockId);
+    });
+  });
+
   describe('applyAdditional', () => {
     it('should call service method correctly', async () => {
       const mockData = [{ id: 1, additional: 3 }];
 
       mockWorksServicesService.applyAdditional.mockResolvedValue(undefined);
 
-      const result = await controller.applyAdditional(mockData);
+      const result = await controller.applyAdditional(mockData, 4);
 
       expect(result).toEqual({
         statusCode: HttpStatus.OK,
         message: 'Aplicado adicional no serviço',
       });
-      expect(service.applyAdditional).toHaveBeenCalledWith(mockData);
+      expect(service.applyAdditional).toHaveBeenCalledWith(4, mockData);
     });
   });
 
@@ -278,11 +302,17 @@ describe('ServicesController', () => {
           id: 1,
           idTeam: 10,
           prog: 100,
+          operation: 'instalação',
+          point: 'p1',
+          type: 'M',
         },
         {
           id: 2,
           idTeam: 20,
           prog: 200,
+          operation: 'instalação',
+          point: 'p1',
+          type: 'S',
         },
       ];
 
@@ -308,11 +338,17 @@ describe('ServicesController', () => {
           idTeam: 10,
           idSchedule: 5,
           prog: 100,
+          operation: 'instalação',
+          point: 'p1',
+          type: 'S',
         },
         {
           id: 2,
           idTeam: 20,
           prog: 200,
+          operation: 'instalação',
+          point: 'p1',
+          type: 'M',
         },
       ];
 
@@ -337,6 +373,9 @@ describe('ServicesController', () => {
           id: 1,
           idTeam: 10,
           prog: 100,
+          operation: 'instalação',
+          point: 'p1',
+          type: 'S',
         },
       ];
 
@@ -369,18 +408,27 @@ describe('ServicesController', () => {
           idTeam: 10,
           idSchedule: 5,
           prog: 100,
+          operation: 'instalação',
+          point: 'p1',
+          type: 'M',
         },
         {
           id: 2,
           idTeam: 20,
           idSchedule: 6,
           prog: 200,
+          operation: 'instalação',
+          point: 'p1',
+          type: 'S',
         },
         {
           id: 3,
           idTeam: 30,
           idSchedule: 7,
           prog: 300,
+          operation: 'instalação',
+          point: 'p1',
+          type: 'S',
         },
       ];
 
@@ -419,7 +467,7 @@ describe('ServicesController', () => {
         operation: 'INSTALAÇÃO',
         operationDescription: 'POSTE - ODI',
         operationNumber: '2000',
-        qtdePlan: 2,
+        quantity: 2,
       };
 
       await controller.addServices(mockParam);
@@ -440,13 +488,73 @@ describe('ServicesController', () => {
         operation: 'INSTALAÇÃO',
         operationDescription: 'POSTE - ODI',
         operationNumber: '2000',
-        qtdePlan: 2,
+        quantity: 2,
       };
 
       await controller.addMaterials(mockParam);
 
       expect(mockWorksServicesService.addItem).toHaveBeenCalledWith(
         mockParam,
+        'material',
+      );
+    });
+  });
+
+  describe('addFamily', () => {
+    it('should call the method addFamily with service', async () => {
+      const mockParam = {
+        idWork: 1,
+        idService: 2,
+        point: 'P1',
+        operation: 'INSTALAÇÃO',
+        operationDescription: 'POSTE - ODI',
+        quantity: 2,
+        type: 'S' as any,
+      };
+
+      const dataSent = {
+        idWork: 1,
+        idService: 2,
+        point: 'P1',
+        operation: 'INSTALAÇÃO',
+        operationDescription: 'POSTE - ODI',
+        quantity: 2,
+        type: 'S',
+      };
+
+      await controller.addFamily(mockParam);
+
+      expect(mockWorksServicesService.addItem).toHaveBeenCalledWith(
+        dataSent,
+        'service',
+      );
+    });
+
+    it('should call the method addFamily with material', async () => {
+      const mockParam = {
+        idWork: 1,
+        idService: 2,
+        point: 'P1',
+        operation: 'INSTALAÇÃO',
+        operationDescription: 'POSTE - ODI',
+        quantity: 2,
+        type: 'M' as any,
+      };
+
+      const dataSent = {
+        idWork: 1,
+        idService: 2,
+        point: 'P1',
+        operation: 'INSTALAÇÃO',
+        operationDescription: 'POSTE - ODI',
+        quantity: 2,
+        type: 'M',
+      };
+
+      await controller.addFamily(mockParam);
+
+      expect(mockWorksServicesService.addItem).toHaveBeenCalledWith(
+        dataSent,
         'material',
       );
     });
@@ -513,14 +621,14 @@ describe('ServicesController', () => {
 
       const expectedExecutionReportData = {
         ...mockExecutionData.data.executionReport,
-        idUser: 99,
+        userId: 99,
       };
 
       expect(mockFinalizeServices.finalizeServices).toHaveBeenCalledWith(
         mockId,
         expect.objectContaining({
           idSchedule: 123,
-          idUser: 99,
+          userId: 99,
           executionReportData: expectedExecutionReportData,
         }),
         mockFiles,
@@ -539,11 +647,25 @@ describe('ServicesController', () => {
         mockId,
         expect.objectContaining({
           idSchedule: 1,
-          idUser: 99,
+          userId: 99,
           executionReportData: undefined,
         }),
         mockFiles,
       );
+    });
+  });
+
+  describe('deleteMaterialAndService', () => {
+    it('Should call deleteSchedules and return message', async () => {
+      jest.spyOn(service, 'delete').mockResolvedValue();
+
+      const result = await controller.deleteMaterialAndService(1, 4);
+
+      expect(result).toEqual({
+        statusCode: HttpStatus.OK,
+        message: 'Serviço/Material excluído com sucesso',
+      });
+      expect(service.delete).toHaveBeenCalledWith(1, 4);
     });
   });
 
@@ -608,6 +730,9 @@ describe('ServicesController', () => {
           id: 1,
           idTeam: 10,
           prog: 100,
+          operation: 'instalação',
+          point: 'p1',
+          type: 'M',
         },
       ];
       const mockError = new Error('Schedule conflict');

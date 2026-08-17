@@ -8,6 +8,7 @@ import { FormatCurrency } from "@/utils/formatValue";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import {
   Autocomplete,
+  createFilterOptions,
   FormControl,
   InputLabel,
   MenuItem,
@@ -15,57 +16,48 @@ import {
   TextField,
 } from "@mui/material";
 import { ServicesContractSelect } from "../services/servicesSection/servicesContractSelect";
-import { AddMaterialOrServiceFormState } from "./addServiceAccordion";
-
-export type ServiceContract = {
-  id: number;
-  texto_breve: string;
-  material: string;
-  preco: string;
-  contrato: string;
-  medida: string;
-  turmas: { turma: string };
-};
+import {
+  AddMaterialOrServiceFormState,
+  ServiceContract,
+} from "./addServiceAccordion";
+import { SERVICE_OPERATIONS } from "@/constants/services/services";
 
 interface Props {
   idWork: number;
   serviceContractData: ServiceContract[];
-  operations: string[];
   points: string[];
-  operationsNumber: string[];
   operationsDescription: string[];
   onSubmit: (data: {
     idWork: number;
     idService: number;
     point: string;
     operation: string;
-    operationNumber: string;
     operationDescription: string;
+    quantity: number;
   }) => Promise<void>;
 }
 
 export function AddServiceForm({
   idWork,
   serviceContractData,
-  operations,
   points,
-  operationsNumber,
   operationsDescription,
   onSubmit,
 }: Props) {
+  const filterOptions = createFilterOptions<ServiceContract>({
+    stringify: (option) => `${option.texto_breve} ${option.material}`,
+  });
+
   const [form, setForm] = useState<AddMaterialOrServiceFormState>({
     idService: null,
     point: "",
     operation: "",
-    operationNumber: "",
     operationDescription: "",
+    quantity: 0,
   });
 
   const [loading, setLoading] = useState(false);
 
-  /**
-   * Atualiza estado de forma segura e imutável
-   */
   const updateField = useCallback(
     <K extends keyof AddMaterialOrServiceFormState>(
       field: K,
@@ -79,9 +71,6 @@ export function AddServiceForm({
     [],
   );
 
-  /**
-   * Submit handler otimizado
-   */
   const handleSubmit = async () => {
     try {
       setLoading(true);
@@ -91,8 +80,8 @@ export function AddServiceForm({
         idService: form.idService!,
         point: form.point,
         operation: form.operation,
-        operationNumber: form.operationNumber,
         operationDescription: form.operationDescription,
+        quantity: form.quantity,
       });
 
       // reset form
@@ -100,8 +89,8 @@ export function AddServiceForm({
         idService: null,
         point: "",
         operation: "",
-        operationNumber: "",
         operationDescription: "",
+        quantity: 0,
       });
     } finally {
       setLoading(false);
@@ -110,11 +99,11 @@ export function AddServiceForm({
 
   return (
     <div className="space-y-4">
-      {/* SERVICE SELECT */}
       <div className="grid grid-cols-4 gap-4">
         <FormControl fullWidth size="small" className="col-span-2">
           <Autocomplete<ServiceContract>
             options={serviceContractData}
+            filterOptions={filterOptions}
             getOptionLabel={(s) => s.texto_breve}
             ListboxComponent={ServicesContractSelect}
             renderOption={(props, s) => {
@@ -194,7 +183,7 @@ export function AddServiceForm({
             value={form.operation}
             onChange={(e) => updateField("operation", e.target.value)}
           >
-            {operations.map((op) => (
+            {SERVICE_OPERATIONS.map((op) => (
               <MenuItem key={op} value={op}>
                 {op}
               </MenuItem>
@@ -204,20 +193,6 @@ export function AddServiceForm({
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <FormControl fullWidth size="small">
-          <InputLabel>N° Operação</InputLabel>
-          <Select
-            value={form.operationNumber}
-            onChange={(e) => updateField("operationNumber", e.target.value)}
-          >
-            {operationsNumber.map((opt) => (
-              <MenuItem key={opt} value={opt}>
-                {opt}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
         <FormControl fullWidth size="small">
           <InputLabel>Descrição Operação</InputLabel>
           <Select
@@ -233,6 +208,15 @@ export function AddServiceForm({
             ))}
           </Select>
         </FormControl>
+
+        <TextField
+          fullWidth
+          size="small"
+          label="Quantidade"
+          type="number"
+          value={form.quantity}
+          onChange={(e) => updateField("quantity", Number(e.target.value))}
+        />
       </div>
 
       {/* SUBMIT */}

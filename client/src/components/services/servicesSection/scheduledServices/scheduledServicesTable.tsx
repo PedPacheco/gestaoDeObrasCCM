@@ -3,7 +3,10 @@ import { useEffect, useMemo, useState } from "react";
 
 import {
   Checkbox,
+  FormControl,
+  MenuItem,
   Paper,
+  Select,
   Table,
   TableBody,
   TableCell,
@@ -16,14 +19,18 @@ import {
 import { ScheduledServiceState } from "./scheduledServices";
 import { TableFilter } from "../servicesFilters";
 import { FormatCurrency } from "@/utils/formatValue";
-import { SERVICE_OPERATIONS } from "@/constants/services/services";
+import {
+  MATERIAL_OR_SERVICE_OPTIONS,
+  SERVICE_OPERATIONS,
+} from "@/constants/services/services";
+import { useServicesFilters } from "@/hooks/services/useServicesFilters";
 
 const SERVICE_COLUMNS = [
   { key: "material", label: "CÓDIGO" },
-  { key: "textoBreve", label: "SERVIÇO" },
+  { key: "textoBreve", label: "SERVIÇO/MATERIAL" },
   { key: "operacao", label: "OPERAÇÃO" },
-  { key: "numero_operacao", label: "N° OPERAÇÃO" },
-  { key: "descricao_operacao", label: "DESCRIÇÃO OPERAÇÃO" },
+  { key: "numeroOperacao", label: "N° DA OPERAÇÃO" },
+  { key: "descricaoOperacao", label: "DESCRIÇÃO DA OPERAÇÃO" },
   { key: "ponto", label: "PONTO" },
   { key: "equipe", label: "EQUIPE" },
   { key: "perfil", label: "PERFIL" },
@@ -35,7 +42,8 @@ const SERVICE_COLUMNS = [
   { key: "qtdeProgramada", label: "PROG", align: "right" as const },
   { key: "qtdeRealizada", label: "REAL", align: "right" as const },
   { key: "valorUnit", label: "VALOR UNIT", align: "right" as const },
-  { key: "valorTotal", label: "VALOR TOTAL", align: "right" as const },
+  { key: "valorProg", label: "VALOR PROG", align: "right" as const },
+  { key: "valorReal", label: "VALOR REAL", align: "right" as const },
   { key: "status", label: "STATUS" },
 ] as const;
 
@@ -46,10 +54,11 @@ const SUMMABLE_COLUMNS = new Set([
   "qtdeProgramada",
   "qtdeRealizada",
   "valorUnit",
-  "valorTotal",
+  "valorProg",
+  "valorReal",
 ]);
 
-const CURRENCY_COLUMNS = new Set(["valorUnit", "valorTotal"]);
+const CURRENCY_COLUMNS = new Set(["valorUnit", "valorReal", "valorProg"]);
 
 interface ScheduleServicesTableProps {
   scheduledServicesData: any[];
@@ -64,18 +73,22 @@ export function ScheduledServicesTable({
   setScheduledServices,
   clearValidation,
 }: ScheduleServicesTableProps) {
-  const [filteredServicesData, setFilteredServicesData] = useState<any[]>([]);
+  const {
+    materialOrService,
+    setMaterialOrService,
+    setTableFilters,
+    filterOptions,
+    applyFilters,
+  } = useServicesFilters(scheduledServicesData);
 
-  useEffect(() => {
-    setFilteredServicesData(scheduledServicesData);
-  }, [scheduledServicesData]);
+  const filteredServicesData = applyFilters(scheduledServicesData);
 
   const formatCellValue = (key: string, value: any) => {
     if (key === "dataProgramada") {
       return dayjs(value).utc().format("DD/MM/YYYY");
     }
 
-    if (["valorUnit", "valorTotal"].includes(key)) {
+    if (["valorUnit", "valorProg", "valorReal"].includes(key)) {
       return FormatCurrency(value);
     }
 
@@ -94,7 +107,6 @@ export function ScheduledServicesTable({
 
       for (const col of SUMMABLE_COLUMNS) {
         if (col === "qtdeRealizada") {
-          // Usa o valor do state (editável pelo utilizador)
           const val = Number(currentService?.qtdeRealizada) || 0;
           sums[col] += val;
         } else {
@@ -116,7 +128,7 @@ export function ScheduledServicesTable({
   }, [scheduledServices]);
 
   const updateServiceQuantity = (id: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
+    if (!/^\d*([.]\d*)?$/.test(value)) return;
 
     setScheduledServices((prev: any) =>
       prev.map((item: ScheduledServiceState) =>
@@ -130,11 +142,12 @@ export function ScheduledServicesTable({
   };
 
   const toggleAllServices = (checked: boolean) => {
-    setScheduledServices((prev: any) =>
-      prev.map((item: ScheduledServiceState) => ({
-        ...item,
-        selected: checked,
-      })),
+    const visibleIds = new Set(filteredServicesData.map((item) => item.id));
+
+    setScheduledServices((prev: ScheduledServiceState[]) =>
+      prev.map((item) =>
+        visibleIds.has(item.id) ? { ...item, selected: checked } : item,
+      ),
     );
   };
 
@@ -194,15 +207,15 @@ export function ScheduledServicesTable({
     const classes = {
       completo: {
         border: "border-l-green-500 border-solid",
-        bg: "bg-green-200",
+        bg: "bg-green-100 hover:bg-green-200 transition-colors",
       },
       reprogramar: {
         border: "border-l-red-500 border-solid",
-        bg: "bg-red-200",
+        bg: "bg-red-100 hover:bg-red-200 transition-colors",
       },
       "sem-realizacao": {
         border: "border-l-yellow-500 border-solid",
-        bg: "bg-yellow-200",
+        bg: "bg-yellow-100 hover:bg-yellow-200 transition-colors",
       },
     };
 
@@ -212,58 +225,66 @@ export function ScheduledServicesTable({
   return (
     <>
       <TableFilter
-        data={scheduledServicesData}
         fields={[
           {
-            label: "SERVIÇO",
+            label: "Serviço/Material",
             field: "textoBreve",
-            options: Array.from(
-              new Set(scheduledServicesData.map((item) => item.textoBreve)),
-            ),
+            options: filterOptions.textoBreve,
           },
           {
-            label: "FAMÍLIA",
-            field: "descricao_operacao",
-            options: Array.from(
-              new Set(
-                scheduledServicesData.map((item) => item.descricao_operacao),
-              ),
-            ),
+            label: "Família",
+            field: "descricaoOperacao",
+            options: filterOptions.descricaoOperacao,
             width: "w-80",
           },
           {
-            label: "ENCARREGADO",
+            label: "Encarregado",
             field: "encarregado",
-            options: Array.from(
-              new Set(scheduledServicesData.map((item) => item.encarregado)),
-            ),
+            options: filterOptions.encarregado,
             width: "w-72",
           },
           {
-            label: "OPERAÇÃO",
+            label: "Operação",
             field: "operacao",
             options: SERVICE_OPERATIONS,
             width: "w-72",
           },
           {
-            label: "EQUIPE",
-            field: "perfil",
-            options: Array.from(
-              new Set(scheduledServicesData.map((item) => item.perfil)),
-            ),
+            label: "Equipe",
+            field: "equipe",
+            options: filterOptions.equipe,
             width: "w-44",
           },
           {
-            label: "PONTO",
+            label: "Ponto",
             field: "ponto",
-            options: Array.from(
-              new Set(scheduledServicesData.map((item) => item.ponto)),
-            ),
+            options: filterOptions.ponto,
             width: "w-44",
           },
         ]}
-        onFilter={setFilteredServicesData}
+        onFilter={setTableFilters}
+        extraFilters={
+          <div className="min-w-[160px]">
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Tipo
+            </label>
+            <FormControl fullWidth size="small">
+              <Select
+                value={materialOrService}
+                onChange={(e) => setMaterialOrService(e.target.value)}
+                className="bg-white rounded-lg h-[38px]"
+              >
+                {MATERIAL_OR_SERVICE_OPTIONS.map((p) => (
+                  <MenuItem key={p} value={p}>
+                    {p}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
+        }
       />
+
       <TableContainer component={Paper} sx={{ height: 620 }}>
         <Table stickyHeader size="small">
           <TableHead>
@@ -294,7 +315,7 @@ export function ScheduledServicesTable({
               const rowStyle = getRowClassName(currentService.validationStatus);
 
               return (
-                <TableRow key={row.id} hover className={rowStyle?.bg}>
+                <TableRow key={row.id} className={rowStyle?.bg}>
                   <TableCell
                     padding="checkbox"
                     className={`border-l-4 ${rowStyle?.border}`}

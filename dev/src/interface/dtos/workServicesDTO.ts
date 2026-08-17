@@ -1,4 +1,6 @@
 import {
+  IsEnum,
+  IsIn,
   IsInt,
   IsNumber,
   IsOptional,
@@ -8,6 +10,11 @@ import {
 import { Transform, Type } from 'class-transformer';
 import { ExecutionReportDataDTO } from './executionReportDTO';
 import { DisableWhitelist } from 'src/shared/costants';
+
+enum ServiceType {
+  SERVICE = 'S',
+  MATERIAL = 'M',
+}
 
 export class ScheduleServicesDTO {
   @IsNumber()
@@ -22,6 +29,18 @@ export class ScheduleServicesDTO {
   @Type(() => Number)
   @IsOptional()
   idSchedule?: number;
+
+  @IsString()
+  @IsIn(['M', 'S'], {
+    message: "O tipo deve ser 'S' OU 'M'",
+  })
+  type: 'M' | 'S';
+
+  @IsString()
+  operation: string;
+
+  @IsString()
+  point: string;
 
   @IsNumber()
   @Type(() => Number)
@@ -42,6 +61,10 @@ export class AddServicesDTO {
   @Type(() => Number)
   idService: number;
 
+  @IsEnum(ServiceType)
+  @IsOptional()
+  type?: ServiceType;
+
   @IsString()
   point: string;
 
@@ -49,10 +72,11 @@ export class AddServicesDTO {
   operation: string;
 
   @IsString()
-  operationNumber: string;
-
-  @IsString()
   operationDescription: string;
+
+  @IsNumber()
+  @Type(() => Number)
+  quantity: number;
 }
 
 export class PerformServicesDTO {
@@ -66,7 +90,8 @@ export class PerformServicesDTO {
 
   @IsNumber()
   @Type(() => Number)
-  qtdeRealizada: number;
+  @IsOptional()
+  qtdeRealizada?: number;
 }
 
 export class ApplyAdditonalDTO {

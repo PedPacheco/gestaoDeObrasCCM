@@ -28,7 +28,6 @@ describe('HandleAddScheduleService', () => {
   };
 
   const mockWorksServicesService = {
-    calculateScheduledProgress: jest.fn(),
     scheduleServices: jest.fn(),
   };
 
@@ -65,14 +64,12 @@ describe('HandleAddScheduleService', () => {
 
       mockPrisma.$transaction.mockImplementation(async (cb) => cb({}));
 
-      mockWorksServicesService.calculateScheduledProgress.mockResolvedValue(80);
-
       await service.newAdd(data);
 
       expect(mockAddSchedulesService.add).toHaveBeenCalledWith(
         {
           idWork: 123,
-          prog: 80,
+          prog: 0,
         },
         expect.any(Object),
       );

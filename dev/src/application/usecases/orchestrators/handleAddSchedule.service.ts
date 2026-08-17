@@ -36,14 +36,8 @@ export class HandleAddScheduleService {
     const { schedule, services } = data;
 
     return this.prisma.$transaction(async (tx) => {
-      const progress =
-        await this.worksServicesService.calculateScheduledProgress(
-          schedule.idWork,
-          services,
-        );
-
       const scheduleId = await this.addScheduleService.add(
-        { ...schedule, prog: progress },
+        { ...schedule, prog: 0 },
         tx,
       );
 
@@ -56,7 +50,6 @@ export class HandleAddScheduleService {
       await this.worksServicesService.scheduleServices(
         schedule.idWork,
         this.attachScheduleId(services, scheduleId),
-        progress,
       );
 
       return 1;

@@ -14,22 +14,19 @@ export class WorkServicesExeutionRepository implements IWorkServicesExecutionRep
     pendingExecServicesData: number[],
     tx: Prisma.TransactionClient,
   ): Promise<void> {
-    const { id, prog, exec, idExecutionRestriction, responsibility } = data;
+    const { id, prog, exec, idExecutionRestriction, responsibility, userId } =
+      data;
 
-    await tx.programacoes.update({
-      where: { id },
-      data: {
-        prog: prog,
-        exec: exec,
-        id_restricao_execucao: idExecutionRestriction,
-        nome_responsavel: responsibility,
-      },
-    });
-
-    if (pendingExecServicesData.length > 0) {
-      await tx.servicos.updateMany({
-        where: { id: { in: pendingExecServicesData } },
-        data: { id_programacao: null },
+    try {
+      await tx.programacoes.update({
+        where: { id },
+        data: {
+          prog: prog,
+          exec: exec,
+          id_restricao_execucao: idExecutionRestriction,
+          nome_responsavel: responsibility,
+          id_usuario_ultima_atualizacao: userId,
+        },
       });
     }
   }

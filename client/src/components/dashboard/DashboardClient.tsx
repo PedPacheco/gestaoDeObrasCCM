@@ -192,7 +192,7 @@ export default function DashboardClient({
       {/* ── Tab Switcher ─────────────────────────────────────── */}
       <div
         ref={tabSwitcherRef}
-        className="sticky top-16 z-[999] bg-white flex justify-between items-center gap-1 px-3 pt-3 pb-0 border-b border-white/5"
+        className="sticky top-16 z-30 bg-white flex justify-between items-center gap-1 px-3 pt-3 pb-0 border-b border-white/5"
       >
         <div className="flex gap-1">
           {visibleTabs.map(({ key, label }) => (

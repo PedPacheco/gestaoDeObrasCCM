@@ -108,7 +108,25 @@ describe('WorkServicesQueryRepository', () => {
         },
         where: {
           id_obra: 1,
-          id_programacao: null,
+          id_programacao: {
+            equals: null,
+          },
+          AND: [
+            {
+              OR: [
+                {
+                  qtde_real: null,
+                },
+
+                {
+                  qtde_real: {
+                    not: 0,
+                  },
+                },
+              ],
+            },
+            { OR: [{ viabilizado: null }, { viabilizado: { not: 0 } }] },
+          ],
         },
       });
       expect(prisma.servicos.findMany).toHaveBeenCalledTimes(1);
@@ -120,15 +138,6 @@ describe('WorkServicesQueryRepository', () => {
       const result = await repository.getNotScheduledServices(1);
 
       expect(result).toEqual([]);
-    });
-
-    it('should only return services with null id_programacao', async () => {
-      mockPrismaService.servicos.findMany.mockResolvedValue([]);
-
-      await repository.getNotScheduledServices(1);
-
-      const callArgs = mockPrismaService.servicos.findMany.mock.calls[0][0];
-      expect(callArgs.where.id_programacao).toBeNull();
     });
   });
 
@@ -295,16 +304,20 @@ describe('WorkServicesQueryRepository', () => {
           id: true,
           servicos: {
             select: {
-              materiais: { select: { descricao: true } },
-              servicos_contratos: { select: { texto_breve: true } },
+              materiais: { select: { descricao: true, codigo: true } },
+              servicos_contratos: {
+                select: { texto_breve: true, material: true },
+              },
               ponto: true,
+              numero_operacao: true,
+              descricao_operacao: true,
               operacao: true,
               qtde_plan: true,
               viabilizado: true,
             },
           },
           programacoes: { select: { data_prog: true } },
-          equipes: { select: { equipe: true } },
+          equipes: { select: { equipe: true, perfil: true } },
           id_programacao: true,
           id_servico: true,
           prog: true,
@@ -581,6 +594,47 @@ describe('WorkServicesQueryRepository', () => {
       await expect(repository.getAllServicesOfWork(mockWorkId)).rejects.toThrow(
         'Database connection error',
       );
+    });
+  });
+
+  describe('getServiceOptions', () => {
+    it('should return service options', async () => {
+      const mockId = 100;
+
+      const descriptionMock = [
+        { descricao_operacao: 'Instalação de poste' },
+        { descricao_operacao: 'Troca de cruzeta' },
+        { descricao_operacao: 'Poda de árvore' },
+      ];
+
+      const pointsMock = [{ ponto: 'A' }, { ponto: 'B' }, { ponto: 'C' }];
+
+      mockPrismaService.servicos.groupBy
+        .mockResolvedValueOnce(descriptionMock)
+        .mockResolvedValueOnce(pointsMock);
+
+      const result = await repository.getServiceOptions(mockId);
+
+      // Resultado esperado deve corresponder aos mocks
+      expect(result).toEqual({
+        operation_description: [
+          'Instalação de poste',
+          'Troca de cruzeta',
+          'Poda de árvore',
+        ],
+        points: ['A', 'B', 'C'],
+      });
+
+      // Verificar que as 3 chamadas foram feitas com os parâmetros correctos
+      expect(mockPrismaService.servicos.groupBy).toHaveBeenCalledTimes(2);
+      expect(mockPrismaService.servicos.groupBy).toHaveBeenCalledWith({
+        by: ['descricao_operacao'],
+        where: { id_obra: mockId },
+      });
+      expect(mockPrismaService.servicos.groupBy).toHaveBeenCalledWith({
+        by: ['ponto'],
+        where: { id_obra: mockId },
+      });
     });
   });
 });

@@ -3,7 +3,10 @@ import utc from "dayjs/plugin/utc";
 
 import {
   Button,
+  FormControl,
+  MenuItem,
   Paper,
+  Select,
   Table,
   TableBody,
   TableCell,
@@ -13,6 +16,12 @@ import {
 } from "@mui/material";
 import { LoadingComponent } from "@/components/common/Loading";
 import ConfirmationScheduleModalComponent from "@/components/common/confirmationScheduleModal";
+import { TableFilter } from "./servicesFilters";
+import { useServicesFilters } from "@/hooks/services/useServicesFilters";
+import {
+  MATERIAL_OR_SERVICE_OPTIONS,
+  SERVICE_OPERATIONS,
+} from "@/constants/services/services";
 
 dayjs.extend(utc);
 
@@ -23,6 +32,8 @@ export interface ScheduledServicesHistoryData {
   operacao: string;
   ponto: string;
   descricao: string;
+  codigo: string;
+  tipo: string;
   dataProgramada: string;
   qtdeProgramada: number;
   qtdePlanejada: number | null;
@@ -51,11 +62,34 @@ export function ScheduleHistory({
   openConfirmationModal,
   setOpenConfirmationModal,
 }: ScheduleHistoryProps) {
+  const {
+    materialOrService,
+    setMaterialOrService,
+    setTableFilters,
+    filterOptions,
+    applyFilters,
+  } = useServicesFilters(scheduledServicesHistory);
+
+  const filteredServicesData = applyFilters(scheduledServicesHistory);
+
   const formatDate = (dateString: string) => {
     return dayjs(dateString).utc().format("DD/MM/YYYY");
   };
 
-  console.log(scheduledServicesHistory);
+  const getRowClassName = (
+    qtdeRealizada: number | null,
+    qtdeProgramada: number,
+  ) => {
+    if (qtdeRealizada === 0) {
+      return "border-l-yellow-500 border-solid bg-yellow-100 hover:bg-yellow-200 transition-colors";
+    }
+
+    if (qtdeRealizada === null || qtdeRealizada < qtdeProgramada) {
+      return "border-l-red-500 border-solid bg-red-100 hover:bg-red-200 transition-colors";
+    }
+
+    return "border-l-green-500 border-solid bg-green-100 hover:bg-green-200 transition-colors";
+  };
 
   return (
     <div className="bg-white shadow rounded-xl p-4 sm:p-6 min-h-[480px]">
@@ -68,13 +102,67 @@ export function ScheduleHistory({
           onClick={() => {
             setOpenConfirmationModal(true);
           }}
-          // disabled={!isDisabled}
+          disabled={!isDisabled}
         >
           CANCELAR
         </Button>
       </div>
 
       <div className="overflow-x-auto">
+        <TableFilter
+          fields={[
+            {
+              label: "Serviço/Material",
+              field: "textoBreve",
+              options: filterOptions.textoBreve,
+            },
+            {
+              label: "Equipe",
+              field: "equipe",
+              options: filterOptions.equipe,
+              width: "w-44",
+            },
+            {
+              label: "Operação",
+              field: "operacao",
+              options: SERVICE_OPERATIONS,
+              width: "w-72",
+            },
+            {
+              label: "Ponto",
+              field: "ponto",
+              options: filterOptions.ponto,
+              width: "w-40",
+            },
+            {
+              label: "Data Programada",
+              field: "dataProgramada",
+              options: filterOptions.dataProgramada,
+              width: "w-44",
+            },
+          ]}
+          onFilter={setTableFilters}
+          extraFilters={
+            <div className="min-w-[160px]">
+              <label className="block text-sm font-medium text-gray-600 mb-1">
+                Tipo
+              </label>
+              <FormControl fullWidth size="small">
+                <Select
+                  value={materialOrService}
+                  onChange={(e) => setMaterialOrService(e.target.value)}
+                  className="bg-white rounded-lg h-[38px]"
+                >
+                  {MATERIAL_OR_SERVICE_OPTIONS.map((p) => (
+                    <MenuItem key={p} value={p}>
+                      {p}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </div>
+          }
+        />
         <TableContainer
           component={Paper}
           sx={{ height: 560, maxHeight: "100%" }}
@@ -82,7 +170,8 @@ export function ScheduleHistory({
           <Table size="small" className="text-sm" stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell>SERVIÇO</TableCell>
+                <TableCell>CÓDIGO</TableCell>
+                <TableCell>SERVIÇO/MATERIAL</TableCell>
                 <TableCell>EQUIPE</TableCell>
                 <TableCell>OPERAÇÃO</TableCell>
                 <TableCell>PONTO</TableCell>
@@ -101,17 +190,26 @@ export function ScheduleHistory({
                     <LoadingComponent color="text-black" />
                   </TableCell>
                 </TableRow>
-              ) : scheduledServicesHistory.length === 0 ? (
+              ) : filteredServicesData.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} align="center">
                     Nenhum histórico disponível
                   </TableCell>
                 </TableRow>
               ) : (
-                scheduledServicesHistory.map((item) => (
-                  <TableRow key={item.id}>
+                filteredServicesData.map((item) => (
+                  <TableRow
+                    key={item.id}
+                    className={getRowClassName(
+                      item.qtdeRealizada,
+                      item.qtdeProgramada,
+                    )}
+                  >
                     <TableCell className="text-nowrap max-h-5">
-                      {item.descricao}
+                      {item.codigo}
+                    </TableCell>
+                    <TableCell className="text-nowrap max-h-5">
+                      {item.textoBreve}
                     </TableCell>
                     <TableCell className="text-nowrap max-h-5">
                       {item.equipe}

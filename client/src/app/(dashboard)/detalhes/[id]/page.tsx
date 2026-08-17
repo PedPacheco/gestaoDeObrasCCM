@@ -106,6 +106,7 @@ function processWorkData(data: any) {
       : null,
     backgroundColor: getBackgroundColor(data.grupo, data.ano_plan),
     executadoFormatted: formatPercentage(data.executado) || "",
+    totalProgramado: formatPercentage(data.totalProgramado) || ""
   };
 }
 

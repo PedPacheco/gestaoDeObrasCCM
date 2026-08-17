@@ -20,16 +20,12 @@ SELECT
   circuitos.circuito,
   obras.mo_planejada,
   (
-    (
-      obras.mo_planejada * (obras.executado) :: double precision
-    ) / (100) :: double precision
+    (obras.mo_planejada * obras.executado) / (100) :: double precision
   ) AS mo_exec,
   CASE
     WHEN (obras.id_status = 4) THEN (
       obras.mo_planejada - (
-        (
-          obras.mo_planejada * (obras.executado) :: double precision
-        ) / (100) :: double precision
+        (obras.mo_planejada * obras.executado) / (100) :: double precision
       )
     )
     ELSE (0) :: double precision
@@ -83,7 +79,7 @@ WHERE
   (
     (
       (obras.id_status = 2)
-      AND (obras.executado = 100)
+      AND (obras.executado = (100) :: double precision)
     )
     OR (obras.id_status = ANY (ARRAY [2, 3]))
   )

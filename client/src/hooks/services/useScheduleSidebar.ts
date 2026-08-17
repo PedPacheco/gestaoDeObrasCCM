@@ -9,35 +9,17 @@ export function resolveEquipeLabel(equipe: ScheduledService["equipe"]): string {
   return typeof equipe === "object" ? equipe.equipe : equipe;
 }
 
-export function resolveService(
-  service: ScheduledService | number,
-  servicesData: ScheduledService[],
-): ScheduledService {
-  if (typeof service !== "number") return service;
-
-  return (
-    servicesData.find((item) => Number(item.id) === Number(service)) ??
-    ({ id: service } as ScheduledService)
-  );
-}
-
 export function useScheduleSidebar(
   selectedServices: ScheduleSidebarProps["selectedServices"],
-  servicesData: ScheduledService[],
 ) {
   const [filterPontos, setFilterPontos] = useState<string[]>([]);
   const [filterEquipes, setFilterEquipes] = useState<string[]>([]);
-
-  const resolvedServices = useMemo(
-    () => selectedServices.map((s) => resolveService(s, servicesData)),
-    [selectedServices, servicesData],
-  );
 
   const pontoOptions = useMemo(
     () =>
       [
         ...new Set(
-          resolvedServices
+          selectedServices
             .sort((a, b) => {
               if (a.ponto < b.ponto) return -1;
               if (a.ponto > b.ponto) return 1;
@@ -51,26 +33,26 @@ export function useScheduleSidebar(
             .filter(Boolean),
         ),
       ].sort(),
-    [resolvedServices],
+    [selectedServices],
   );
 
   const equipeOptions = useMemo(
     () =>
       [
         ...new Set(
-          resolvedServices
+          selectedServices
             .map((s) => resolveEquipeLabel(s.equipe))
             .filter(Boolean),
         ),
       ].sort(),
-    [resolvedServices],
+    [selectedServices],
   );
 
   const filteredServices = useMemo(() => {
     if (filterPontos.length === 0 && filterEquipes.length === 0)
-      return resolvedServices;
+      return selectedServices;
 
-    return resolvedServices.filter((service) => {
+    return selectedServices.filter((service) => {
       const matchPonto =
         filterPontos.length === 0 || filterPontos.includes(service.ponto);
       const matchEquipe =
@@ -78,7 +60,7 @@ export function useScheduleSidebar(
         filterEquipes.includes(resolveEquipeLabel(service.equipe));
       return matchPonto && matchEquipe;
     });
-  }, [resolvedServices, filterPontos, filterEquipes]);
+  }, [selectedServices, filterPontos, filterEquipes]);
 
   const hasActiveFilters = filterPontos.length > 0 || filterEquipes.length > 0;
 
@@ -104,7 +86,6 @@ export function useScheduleSidebar(
   };
 
   return {
-    resolvedServices,
     filteredServices,
     pontoOptions,
     equipeOptions,

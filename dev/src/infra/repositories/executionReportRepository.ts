@@ -36,20 +36,44 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
         select: { exec: true, id_obra: true },
       });
 
-      await tx.programacoes.update({
-        where: { id: idSchedule },
-        data: {
-          exec: null,
-          id_status_programacao: 3,
+      await Promise.all([
+        tx.programacoes_servicos.updateMany({
+          where: { id_programacao: idSchedule },
+          data: { real: null },
+        }),
+
+        tx.servicos.updateMany({
+          where: { id_programacao: idSchedule },
+          data: { qtde_real: null },
+        }),
+
+        tx.programacoes.update({
+          where: { id: idSchedule },
+          data: {
+            exec: null,
+            id_status_programacao: 3,
+          },
+        }),
+      ]);
+
+      const result = await tx.programacoes.aggregate({
+        where: {
+          id_obra: schedule.id_obra,
+          exec: { not: null },
+        },
+        _sum: {
+          exec: true,
         },
       });
+
+      const newExecutado = Number(result._sum.exec);
 
       await tx.obras.update({
         where: { id: schedule.id_obra },
         data: {
           id_status: 35,
           data_conclusao: null,
-          executado: { decrement: schedule.exec },
+          executado: newExecutado,
         },
       });
 

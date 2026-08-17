@@ -15,48 +15,42 @@ import {
   TextField,
 } from "@mui/material";
 import { ServicesContractSelect } from "../services/servicesSection/servicesContractSelect";
-import { AddMaterialOrServiceFormState } from "./addServiceAccordion";
-
-interface MaterialData {
-  id: number;
-  codigo: string;
-  descricao: string;
-  unidade: string;
-  preco: number;
-}
+import {
+  AddMaterialOrServiceFormState,
+  MaterialData,
+} from "./addServiceAccordion";
+import { SERVICE_OPERATIONS } from "@/constants/services/services";
 
 interface Props {
   idWork: number;
   materialData: MaterialData[];
-  operations: string[];
   points: string[];
-  operationsNumber: string[];
   operationsDescription: string[];
   onSubmit: (data: {
     idWork: number;
     idService: number;
     point: string;
     operation: string;
-    operationNumber: string;
+
     operationDescription: string;
+    quantity: number;
   }) => Promise<void>;
 }
 
 export function AddMaterialForm({
   idWork,
   materialData,
-  operations,
   points,
   operationsDescription,
-  operationsNumber,
+
   onSubmit,
 }: Props) {
   const [form, setForm] = useState<AddMaterialOrServiceFormState>({
     idService: null,
     point: "",
     operation: "",
-    operationNumber: "",
     operationDescription: "",
+    quantity: 0,
   });
 
   const [loading, setLoading] = useState(false);
@@ -83,8 +77,8 @@ export function AddMaterialForm({
         idService: form.idService!,
         point: form.point,
         operation: form.operation,
-        operationNumber: form.operationNumber,
         operationDescription: form.operationDescription,
+        quantity: form.quantity,
       });
 
       // reset form
@@ -92,8 +86,8 @@ export function AddMaterialForm({
         idService: null,
         point: "",
         operation: "",
-        operationNumber: "",
         operationDescription: "",
+        quantity: 0,
       });
     } finally {
       setLoading(false);
@@ -180,7 +174,7 @@ export function AddMaterialForm({
             value={form.operation}
             onChange={(e) => updateField("operation", e.target.value)}
           >
-            {operations.map((op) => (
+            {SERVICE_OPERATIONS.map((op) => (
               <MenuItem key={op} value={op}>
                 {op}
               </MenuItem>
@@ -190,20 +184,6 @@ export function AddMaterialForm({
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <FormControl fullWidth size="small">
-          <InputLabel>N° Operação</InputLabel>
-          <Select
-            value={form.operationNumber}
-            onChange={(e) => updateField("operationNumber", e.target.value)}
-          >
-            {operationsNumber.map((opt) => (
-              <MenuItem key={opt} value={opt}>
-                {opt}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
         <FormControl fullWidth size="small">
           <InputLabel>Descrição Operação</InputLabel>
           <Select
@@ -219,6 +199,16 @@ export function AddMaterialForm({
             ))}
           </Select>
         </FormControl>
+
+        <TextField
+          fullWidth
+          label="Quantidade"
+          size="small"
+          type="number"
+          value={form.quantity}
+          onChange={(e) => updateField("quantity", Number(e.target.value))}
+          InputLabelProps={{ shrink: true }}
+        />
       </div>
 
       {/* SUBMIT */}

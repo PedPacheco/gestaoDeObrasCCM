@@ -10,7 +10,7 @@ import {
   reascheduleServices,
 } from "@/actions/services";
 import { UseExecutionServiceFormReturn } from "@/hooks/useExecutionServicesForm";
-import { usePersistentServiceValidation } from "@/hooks/usePersistentServiceValidation";
+import { usePersistentServiceValidation } from "@/hooks/services/usePersistentServiceValidation";
 import { Paper, Typography } from "@mui/material";
 
 import { ScheduledServicesTable } from "./scheduledServicesTable";
@@ -96,7 +96,7 @@ export function ScheduledServices({
 
   const executionIsPartial = useMemo(() => {
     const currentSchedule = scheduledServicesHistory.filter(
-      (s) => s.idProg === formData.idSchedule,
+      (s) => s.idProg === formData.idSchedule && s.tipo === "S",
     );
 
     return currentSchedule.some(
@@ -106,7 +106,7 @@ export function ScheduledServices({
 
   const executionIsCanceled = useMemo(() => {
     const currentSchedule = scheduledServicesHistory.filter(
-      (s) => s.idProg === formData.idSchedule,
+      (s) => s.idProg === formData.idSchedule && s.tipo === "S",
     );
 
     return currentSchedule.every(
