@@ -47,7 +47,7 @@ interface ServicesAvaliableProps {
   setServicesData: Dispatch<SetStateAction<any[]>>;
   setScheduledServices: Dispatch<SetStateAction<any[]>>;
   isInsert: boolean;
-  statusSchedule?: string;
+  statusSchedule: string;
   teams: any[];
   onError: (error: string) => void;
   onSuccess: (success: string, onClose?: () => void) => void;
@@ -136,7 +136,7 @@ export function NewServicesAvaliable({
           : Number(service.qtdeAdicional),
     }));
 
-    const response = await applyAdditonalPlanServices(data);
+    const response = await applyAdditonalPlanServices(data, workId);
 
     if (!response.success) {
       onError(response.error);
@@ -233,22 +233,6 @@ export function NewServicesAvaliable({
           <Typography className="text-xl font-semibold text-gray-700">
             SERVIÇOS DISPONÍVEIS PARA PROGRAMAÇÃO
           </Typography>
-          <div className="flex gap-2">
-            <Button
-              variant="outlined"
-              startIcon={<TrashIcon className="h-5 w-5 text-gray-700" />}
-              className="border-blue-600 text-blue-600"
-            >
-              EXCLUIR SERVIÇOS
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<ArrowUpTrayIcon className="h-5 w-5 text-gray-700" />}
-              className="border-blue-600 text-blue-600"
-            >
-              IMPORTAR SERVIÇOS
-            </Button>
-          </div>
         </div>
 
         {/* Filtros */}
@@ -279,6 +263,7 @@ export function NewServicesAvaliable({
               },
             ]}
             onFilter={setTableFilters}
+            setMaterialOrService={setMaterialOrService}
             extraFilters={
               <div className="min-w-[160px]">
                 <label className="block text-sm font-medium text-gray-600 mb-1">

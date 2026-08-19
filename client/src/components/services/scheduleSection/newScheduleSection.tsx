@@ -14,8 +14,6 @@ import {
 import { RestrictionBlock } from "./restrictionsBlock";
 import { SectionHeader } from "./sectionHeader";
 import { UseScheduleFormReturn } from "@/hooks/details/useScheduleForm";
-import { DatePicker } from "@mui/x-date-pickers";
-import dayjs from "dayjs";
 
 interface ScheduleSectionProps {
   isInsert: boolean;
@@ -25,7 +23,7 @@ interface ScheduleSectionProps {
     restricao: Array<{ id: number; restricao: string; tipo_restricao: string }>;
   };
   statusWork: number;
-  scheduleStatus?: string;
+  scheduleStatus: string;
 }
 
 const SERVICE_TYPES = [

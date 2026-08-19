@@ -7,6 +7,7 @@ import { FormatCurrency } from "@/utils/formatValue";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import {
   Autocomplete,
+  createFilterOptions,
   FormControl,
   InputLabel,
   MenuItem,
@@ -21,6 +22,7 @@ type SelectOption = {
   tipo: "SERVICO" | "MATERIAL";
   descricao: string;
   preco: number;
+  codigo?: string;
   unidade?: string;
   contrato?: string;
   turma?: string;
@@ -59,6 +61,7 @@ interface Props {
     quantity: number;
     type: "M" | "S";
   }) => Promise<void>;
+  isDisabled: boolean;
 }
 
 export function AddFamilyForm({
@@ -68,12 +71,24 @@ export function AddFamilyForm({
   points,
   operationsDescription,
   onSubmit,
+  isDisabled,
 }: Props) {
+  const filterOptions = createFilterOptions<SelectOption>({
+    stringify: (option) => {
+      if (option.tipo === "SERVICO") {
+        return [option.descricao, option.codigo].filter(Boolean).join(" ");
+      }
+
+      return [option.descricao, option.codigo].filter(Boolean).join(" ");
+    },
+  });
+
   const options = useMemo<SelectOption[]>(() => {
     const services = serviceContractData.map((service) => ({
       id: service.id,
       tipo: "SERVICO" as const,
       descricao: service.texto_breve,
+      codigo: service.material,
       preco: Number(service.preco),
       unidade: service.medida,
       contrato: service.contrato,
@@ -86,6 +101,7 @@ export function AddFamilyForm({
       descricao: material.descricao,
       preco: material.preco,
       unidade: material.unidade,
+      codigo: material.codigo,
     }));
 
     return [...services, ...materials];
@@ -175,6 +191,7 @@ export function AddFamilyForm({
             groupBy={(option) =>
               option.tipo === "SERVICO" ? "Serviços" : "Materiais"
             }
+            filterOptions={filterOptions}
             getOptionLabel={(option) => option.descricao}
             getOptionKey={(option) => `${option.tipo}-${option.id}`}
             isOptionEqualToValue={(option, value) => option.id === value.id}
@@ -228,11 +245,14 @@ export function AddFamilyForm({
                       )}
                     </div>
 
-                    {option.unidade && (
+                    <div className="flex gap-3">
                       <span className="text-xs text-gray-500">
                         Unidade: {option.unidade}
                       </span>
-                    )}
+                      <span className="text-xs text-gray-500">
+                        Código: {option.codigo}
+                      </span>
+                    </div>
                   </div>
                 </li>
               );
@@ -310,7 +330,7 @@ export function AddFamilyForm({
         text={loading ? "Adicionando..." : "Adicionar Serviço"}
         fullWidth
         styled="!h-9"
-        disabled={loading || !isValid}
+        disabled={loading || !isValid || isDisabled}
         onClick={handleSubmit}
         startIcon={<PlusIcon className="w-5 h-5 mr-1" />}
       />

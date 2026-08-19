@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import {
+  ImportServiceItem,
   IWorkServicesRepository,
   SchedulesProgressUpdate,
 } from 'src/domain/repositories/worksService/IWorkServicesRepository';
@@ -50,33 +51,6 @@ export class WorkServicesRepository implements IWorkServicesRepository {
             }),
           ),
         );
-      },
-      {
-        maxWait: 10000,
-        timeout: 30000,
-      },
-    );
-  }
-
-  async reascheduleServices(
-    data: { id_servico: number }[],
-    scheduleId: number,
-  ): Promise<void> {
-    if (data.length === 0) return;
-
-    const serviceIds = data.map((item) => item.id_servico);
-
-    await this.prisma.$transaction(
-      async (tx) => {
-        await tx.servicos.updateMany({
-          where: { id: { in: serviceIds } },
-          data: { id_programacao: null },
-        });
-
-        await tx.programacoes.update({
-          where: { id: scheduleId },
-          data: { exec: 0 },
-        });
       },
       {
         maxWait: 10000,
@@ -207,5 +181,40 @@ export class WorkServicesRepository implements IWorkServicesRepository {
   // pelo WorksServicesService, junto com o recálculo em massa de prog/exec.
   async delete(id: number, tx: Prisma.TransactionClient): Promise<void> {
     await tx.servicos.delete({ where: { id } });
+  }
+
+  async deleteAll(workId: number): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.servicos.deleteMany({ where: { id_obra: workId } });
+      await tx.relatorio.delete({ where: { id_obra: workId } });
+    });
+  }
+
+  async bulkImportItems(
+    workId: number,
+    items: ImportServiceItem[],
+    tx: Prisma.TransactionClient,
+  ) {
+    if (items.length === 0) return;
+
+    await tx.servicos.createMany({
+      data: items.map((item) => ({
+        id_obra: workId,
+        id_contrato_servico: item.type === 'service' ? item.idService : null,
+        id_material: item.type === 'material' ? item.idService : null,
+        operacao: item.operation,
+        ponto: item.point,
+        numero_operacao: item.operationNumber,
+        descricao_operacao: item.operationDescription,
+        qtde_plan: item.plannedQuantity,
+        qtde_adicional: 0,
+      })),
+    });
+
+    await tx.relatorio.upsert({
+      where: { id_obra: workId },
+      create: { id_obra: workId, encontrado: true },
+      update: { encontrado: true },
+    });
   }
 }

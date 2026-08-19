@@ -263,6 +263,7 @@ export function ScheduledServicesTable({
           },
         ]}
         onFilter={setTableFilters}
+        setMaterialOrService={setMaterialOrService}
         extraFilters={
           <div className="min-w-[160px]">
             <label className="block text-sm font-medium text-gray-600 mb-1">
