@@ -1,7 +1,11 @@
 import { useRouter } from "next/navigation";
-import { startTransition, useMemo, useState } from "react";
+import { ChangeEvent, startTransition, useMemo, useRef, useState } from "react";
 
-import { deleteService } from "@/actions/services";
+import {
+  deleteAllServices,
+  deleteService,
+  importServicesSpreadsheet,
+} from "@/actions/services";
 import { ButtonComponent } from "@/components/common/Button";
 import {
   MATERIAL_OR_SERVICE_OPTIONS,
@@ -94,12 +98,58 @@ export function FeasibilityServicesReviewStep({
   const router = useRouter();
   const { showSuccess, showError } = useFeedback();
 
+  const [openDeleteAllModal, setOpenDeleteAllModal] = useState(false);
+  const [itemToDelete, setItemToDelete] =
+    useState<FeasibilityServiceItem | null>(null);
+
+  const handleOpenDeleteAllModal = () => {
+    setOpenDeleteAllModal(true);
+  };
+
   const handleOpenDeleteModal = (item: FeasibilityServiceItem) => {
     setItemToDelete(item);
   };
 
-  const [itemToDelete, setItemToDelete] =
-    useState<FeasibilityServiceItem | null>(null);
+  const [importing, setImporting] = useState(false);
+  const importInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImportClick = () => {
+    if (readOnly || importing) return;
+    importInputRef.current?.click();
+  };
+
+  const handleImportFileSelected = async (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    event.target.value = ""; // permite selecionar o mesmo arquivo novamente
+
+    if (!file) return;
+
+    setImporting(true);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await importServicesSpreadsheet(workId, formData);
+
+      if (!response.success) {
+        showError(response.error || "Erro ao importar planilha ponto a ponto");
+        return;
+      }
+
+      showSuccess("Serviços/materiais importados com sucesso", () => {
+        startTransition(() => {
+          router.refresh();
+        });
+      });
+    } catch (error: any) {
+      showError(error?.message || "Erro ao importar planilha ponto a ponto");
+    } finally {
+      setImporting(false);
+    }
+  };
 
   const {
     materialOrService,
@@ -137,6 +187,29 @@ export function FeasibilityServicesReviewStep({
         setItemToDelete(null);
       });
     });
+  };
+
+  const handleDeleteAllServices = async (id: number) => {
+    try {
+      const response = await deleteAllServices(id);
+
+      if (!response.success) {
+        showError(response.error);
+        return;
+      }
+
+      showSuccess(
+        response.message || "Serviços/materiais removidos com sucesso",
+        () => {
+          startTransition(() => {
+            setOpenDeleteAllModal(false);
+            router.refresh();
+          });
+        },
+      );
+    } catch (error: any) {
+      showError(error?.message || "Erro ao remover serviços/materiais da obra");
+    }
   };
 
   const updateViabilizado = (id: number, value: string) => {
@@ -211,10 +284,15 @@ export function FeasibilityServicesReviewStep({
       </div>
 
       {!readOnly && (
-        <div className="mb-3">
+        <div className="mb-3 flex gap-2">
           <ButtonComponent
             text="Preencher com quantidade planejada"
             onClick={fillAdditionalWithPlanned}
+          />
+
+          <ButtonComponent
+            text="Limpar importação"
+            onClick={handleOpenDeleteAllModal}
           />
         </div>
       )}
@@ -245,6 +323,7 @@ export function FeasibilityServicesReviewStep({
           },
         ]}
         onFilter={setTableFilters}
+        setMaterialOrService={setMaterialOrService}
         extraFilters={
           <div className="min-w-[160px]">
             <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -305,11 +384,37 @@ export function FeasibilityServicesReviewStep({
             {reviewData.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={reviewColumns.length + 1}
+                  colSpan={reviewColumns.length + 2}
                   align="center"
-                  className="!py-10 !text-zinc-400"
+                  className="!py-12"
                 >
-                  Nenhum serviço encontrado.
+                  <div className="flex flex-col items-center gap-3">
+                    <p className="text-sm text-zinc-400">
+                      Nenhum serviço/material cadastrado para esta obra.
+                    </p>
+
+                    {!readOnly && (
+                      <>
+                        <ButtonComponent
+                          text={
+                            importing
+                              ? "Importando..."
+                              : "Importar planilha ponto a ponto"
+                          }
+                          onClick={handleImportClick}
+                          disabled={importing}
+                        />
+
+                        <input
+                          ref={importInputRef}
+                          type="file"
+                          accept=".xlsx,.xls,.csv"
+                          className="hidden"
+                          onChange={handleImportFileSelected}
+                        />
+                      </>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ) : filteredServicesData.length === 0 ? (
@@ -383,6 +488,15 @@ export function FeasibilityServicesReviewStep({
         message={`Deseja realmente excluir "${
           itemToDelete?.textoBreve ?? ""
         }"? Esta ação não poderá ser desfeita.`}
+      />
+
+      <ConfirmationScheduleModalComponent
+        open={openDeleteAllModal}
+        onClose={() => setOpenDeleteAllModal(false)}
+        onConfirm={handleDeleteAllServices}
+        idSchedule={workId}
+        title="Excluir todos os serviços/materiais"
+        message="Deseja realmente excluir todos os serviços e materiais desta obra? Esta ação não poderá ser desfeita."
       />
     </>
   );

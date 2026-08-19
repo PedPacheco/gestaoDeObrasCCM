@@ -136,6 +136,7 @@ export default function ScheduleFormDialog({
             isInsert={isInsert}
             disabledFields={disabledFields}
             onInputChange={handleInputChange}
+            scheduleStatus={scheduleStatus}
           />
         </AccordionPanel>
 

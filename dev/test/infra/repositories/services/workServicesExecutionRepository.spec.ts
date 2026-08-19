@@ -29,6 +29,160 @@ describe('WorkServicesExecutionRepository', () => {
     jest.clearAllMocks();
   });
 
+  describe('reascheduleServices', () => {
+    const mockTx = {
+      servicos: {
+        updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+      },
+      programacoes: { update: jest.fn().mockResolvedValue({ count: 1 }) },
+    };
+
+    it('should update multiple services to remove programacao in a transaction', async () => {
+      const mockData = [
+        { id_servico: 1 },
+        { id_servico: 2 },
+        { id_servico: 3 },
+      ];
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockTx);
+      });
+
+      await repository.reascheduleServices(mockData, 1);
+
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(mockTx.servicos.updateMany).toHaveBeenCalledTimes(1);
+      expect(mockTx.programacoes.update).toHaveBeenCalledTimes(1);
+    });
+
+    it('should set id_programacao to null for each service', async () => {
+      const mockData = [{ id_servico: 1 }];
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockTx);
+      });
+
+      await repository.reascheduleServices(mockData, 1);
+
+      expect(mockTx.servicos.updateMany).toHaveBeenCalledWith({
+        data: { id_programacao: null },
+        where: { id: { in: [1] } },
+      });
+      expect(mockTx.programacoes.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { exec: 0 },
+      });
+    });
+
+    it('should process multiple services correctly', async () => {
+      const mockData = [
+        { id_servico: 1 },
+        { id_servico: 2 },
+        { id_servico: 3 },
+      ];
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockTx);
+      });
+
+      await repository.reascheduleServices(mockData, 1);
+
+      expect(mockTx.servicos.updateMany).toHaveBeenNthCalledWith(1, {
+        data: { id_programacao: null },
+        where: { id: { in: [1, 2, 3] } },
+      });
+      expect(mockTx.programacoes.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { exec: 0 },
+      });
+    });
+
+    it('should handle empty data array', async () => {
+      const mockData = [];
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockTx);
+      });
+
+      await repository.reascheduleServices(mockData, 1);
+
+      expect(mockTx.servicos.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('should rollback transaction on error', async () => {
+      const mockData = [{ id_servico: 1 }, { id_servico: 2 }];
+      const mockError = new Error('Update failed');
+
+      const mockTx = {
+        servicos: {
+          updateMany: jest.fn().mockResolvedValue({ count: 2 }),
+        },
+        programacoes: {
+          update: jest.fn().mockRejectedValue(mockError),
+        },
+      };
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockTx);
+      });
+
+      await expect(repository.reascheduleServices(mockData, 1)).rejects.toThrow(
+        'Update failed',
+      );
+
+      expect(mockTx.servicos.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: [1, 2] } },
+        data: { id_programacao: null },
+      });
+
+      expect(mockTx.programacoes.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { exec: 0 },
+      });
+    });
+
+    it('should handle single service reschedule', async () => {
+      const mockData = [{ id_servico: 999 }];
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        return await callback(mockTx);
+      });
+
+      await repository.reascheduleServices(mockData, 1);
+
+      expect(mockTx.servicos.updateMany).toHaveBeenCalledTimes(1);
+      expect(mockTx.servicos.updateMany).toHaveBeenCalledWith({
+        data: { id_programacao: null },
+        where: { id: { in: [999] } },
+      });
+    });
+
+    it('should map service ids correctly', async () => {
+      const mockData = [
+        { id_servico: 10 },
+        { id_servico: 20 },
+        { id_servico: 30 },
+      ];
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) =>
+        callback(mockTx),
+      );
+
+      await repository.reascheduleServices(mockData, 1);
+
+      expect(mockTx.servicos.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: {
+            in: [10, 20, 30],
+          },
+        },
+        data: {
+          id_programacao: null,
+        },
+      });
+    });
+  });
+
   describe('finalizeServices', () => {
     it('should update programacao with finalization data', async () => {
       const mockData = {

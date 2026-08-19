@@ -44,6 +44,33 @@ export class WorkServicesExeutionRepository implements IWorkServicesExecutionRep
     }
   }
 
+  async reascheduleServices(
+    data: { id_servico: number }[],
+    scheduleId: number,
+  ): Promise<void> {
+    if (data.length === 0) return;
+
+    const serviceIds = data.map((item) => item.id_servico);
+
+    await this.prisma.$transaction(
+      async (tx) => {
+        await tx.servicos.updateMany({
+          where: { id: { in: serviceIds } },
+          data: { id_programacao: null },
+        });
+
+        await tx.programacoes.update({
+          where: { id: scheduleId },
+          data: { exec: 0 },
+        });
+      },
+      {
+        maxWait: 10000,
+        timeout: 30000,
+      },
+    );
+  }
+
   async performServices(data: PerformServicesDTO[]): Promise<void> {
     const BATCH_SIZE = 50;
 
