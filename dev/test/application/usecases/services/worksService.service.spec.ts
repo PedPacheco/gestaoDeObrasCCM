@@ -1,12 +1,11 @@
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
-import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowRepository';
 import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
 import {
   IWorkServicesRepository,
   WORK_SERVICES_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesRepository';
+} from 'src/domain/contracts/worksService/IWorkServicesRepository';
 import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
@@ -23,6 +22,7 @@ describe('WorksServicesService', () => {
     addItem: jest.fn(),
     applyAdditional: jest.fn(),
     delete: jest.fn(),
+    deleteAll: jest.fn(),
     updateSchedulesProgress: jest.fn(),
     updateWorkExecuted: jest.fn(),
   };
@@ -30,11 +30,6 @@ describe('WorksServicesService', () => {
   const mockWorkServicesQueryRepository = {
     getServiceScheduleHistory: jest.fn(),
     getAllServicesOfWork: jest.fn(),
-  };
-
-  const mockStatusFlowRepository = {
-    updateScheduleStatus: jest.fn(),
-    updateStatusWorks: jest.fn(),
   };
 
   const mockPrisma = { $transaction: jest.fn() };
@@ -66,10 +61,6 @@ describe('WorksServicesService', () => {
         {
           provide: ScheduleProgressCalculatorService,
           useValue: mockScheduleProgressCalculatorService,
-        },
-        {
-          provide: STATUS_FLOW_REPOSITORY,
-          useValue: mockStatusFlowRepository,
         },
         { provide: PrismaService, useValue: mockPrisma },
       ],
@@ -181,105 +172,6 @@ describe('WorksServicesService', () => {
       await expect(service.cancelServices(mockId)).rejects.toThrow(
         'Schedule not found',
       );
-    });
-  });
-
-  describe('reascheduleServices', () => {
-    it('should reschedule services successfully', async () => {
-      mockWorkServicesQueryRepository.getServiceScheduleHistory.mockResolvedValue(
-        [
-          {
-            id: 1,
-            id_servico: 1,
-            servicos: {
-              materiais: { descricao: 'POSTE' },
-              servicos_contratos: { texto_breve: undefined },
-              ponto: 'P1',
-              operacao: 'INSTALAÇÃO',
-              qtde_plan: 1,
-              viabilizado: 2,
-            },
-            id_programacao: 1,
-            programacoes: { data_prog: '' },
-            equipes: { equipe: 'LM01' },
-            prog: 2,
-            real: 1,
-            adicional: null,
-          },
-          {
-            id: 2,
-            id_servico: 2,
-            servicos: {
-              materiais: { descricao: 'POSTE' },
-              servicos_contratos: { texto_breve: undefined },
-              ponto: 'P1',
-              operacao: 'INSTALAÇÃO',
-              qtde_plan: 1,
-              viabilizado: 2,
-            },
-            id_programacao: 1,
-            programacoes: { data_prog: '' },
-            equipes: { equipe: 'LM01' },
-            prog: 2,
-            real: undefined,
-            adicional: null,
-          },
-        ],
-      );
-
-      await service.reascheduleServices(2, 1);
-
-      expect(repository.reascheduleServices).toHaveBeenCalledWith(
-        [
-          { id: 1, id_servico: 1 },
-          { id: 2, id_servico: 2 },
-        ],
-
-        1,
-      );
-      expect(repository.reascheduleServices).toHaveBeenCalledTimes(1);
-    });
-
-    it('should log error and rethrow when repository fails', async () => {
-      const error = new Error('Database connection failed');
-
-      mockWorkServicesQueryRepository.getServiceScheduleHistory.mockResolvedValue(
-        [
-          {
-            id: 1,
-            id_servico: 1,
-            servicos: {
-              materiais: { descricao: 'POSTE' },
-              servicos_contratos: { texto_breve: undefined },
-              ponto: 'P1',
-              operacao: 'INSTALAÇÃO',
-              qtde_plan: 1,
-              viabilizado: 2,
-            },
-            id_programacao: 1,
-            programacoes: { data_prog: '' },
-            equipes: { equipe: 'LM01' },
-            prog: 2,
-            real: 1,
-            adicional: null,
-          },
-        ],
-      );
-
-      // Simula falha no repositório
-      mockPrisma.$transaction.mockImplementation(async (cb) => cb({}));
-
-      // ✅ Simula falha no repositório
-      mockWorksServicesRepository.reascheduleServices.mockRejectedValue(error);
-
-      // 1. Verifica que o erro é re-lançado
-      await expect(service.reascheduleServices(2, 1)).rejects.toThrow(
-        'Database connection failed',
-      );
-
-      // 2. Verifica que o logger.error foi chamado com o erro
-      expect(mockLogger.error).toHaveBeenCalledWith(error);
-      expect(mockLogger.error).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -477,6 +369,14 @@ describe('WorksServicesService', () => {
       await expect(service.delete(1, 4)).rejects.toThrow('delete error');
 
       expect(mockLogger.error).toHaveBeenCalledWith(error);
+    });
+  });
+
+  describe('deleteAlll', () => {
+    it('should call method delete and call repository', async () => {
+      await service.deleteAll(1);
+
+      expect(repository.deleteAll).toHaveBeenCalledWith(1);
     });
   });
 

@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { gap_analysis_audits } from '@prisma/client';
 
+import { PrismaService } from '../prisma/prisma.service';
 import {
   CreateGapAnalysisAuditData,
   IGapAnalysisAuditRepository,
   UpdateGapAnalysisAuditData,
-} from 'src/domain/repositories/IGapAnalysisAuditRepository';
-import { PrismaService } from '../prisma/prisma.service';
+} from 'src/domain/contracts/IGapAnalysisAuditRepository';
 
 @Injectable()
 export class GapAnalysisAuditRepository implements IGapAnalysisAuditRepository {

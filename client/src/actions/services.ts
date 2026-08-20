@@ -3,46 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-
-type ActionResult =
-  | { success: true; message?: string }
-  | { success: false; error: string };
-
-async function getAuthToken(): Promise<string | undefined> {
-  const cookieStore = await cookies();
-  return cookieStore.get("token")?.value;
-}
-
-async function apiRequest<T = any>(
-  url: string,
-  options: RequestInit,
-): Promise<ActionResult> {
-  try {
-    const res = await fetch(url, options);
-
-    // 204 → sem conteúdo
-    if (res.status === 204) {
-      return { success: true };
-    }
-
-    const body = await res.json();
-
-    if (!res.ok) {
-      return {
-        success: false,
-        error: body?.message || "Erro inesperado na requisição",
-      };
-    }
-
-    return { success: true, message: body?.message };
-  } catch (error: any) {
-    console.error("API error:", error);
-    return {
-      success: false,
-      error: error.message || "Erro de comunicação com o servidor",
-    };
-  }
-}
+import {
+  ActionResult,
+  serverApiRequest,
+  serverMultipartRequest,
+} from "./serverApi";
 
 export async function storeScheduleDataAction(
   data: unknown,
@@ -74,23 +39,10 @@ export async function scheduleServices(
   id: number,
   data: unknown,
 ): Promise<ActionResult> {
-  const token = await getAuthToken();
-
-  if (!token) {
-    return { success: false, error: "Usuário não autenticado" };
-  }
-
-  return apiRequest(
-    `${process.env.NEXT_PUBLIC_API_URL}/servicos/programar/${id}`,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    },
-  );
+  return serverApiRequest(`/servicos/programar/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
 }
 
 export async function performScheduleServices(
@@ -99,95 +51,45 @@ export async function performScheduleServices(
     qtdeRealizada: number | null;
   }[],
 ): Promise<ActionResult> {
-  const token = await getAuthToken();
-
-  if (!token) {
-    return { success: false, error: "Usuário não autenticado" };
-  }
-
-  return apiRequest(`${process.env.NEXT_PUBLIC_API_URL}/servicos/realizar`, {
+  return serverApiRequest("/servicos/realizar", {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(data),
   });
 }
 
 export async function finalizeServices(
-  data: any,
+  data: unknown,
   idWork: number,
   files?: File[],
 ) {
-  const token = await getAuthToken();
+  const formData = new FormData();
 
-  if (!token) {
-    return { success: false, error: "Usuário não autenticado" };
-  }
+  formData.append("data", JSON.stringify(data));
 
-  try {
-    let body: BodyInit;
-    let headers: HeadersInit = {
-      Authorization: `Bearer ${token}`,
-    };
+  files?.forEach((file) => {
+    formData.append("files", file);
+  });
 
-    if (files && files.length > 0) {
-      const formData = new FormData();
-
-      formData.append("data", JSON.stringify(data));
-
-      files?.forEach((file) => {
-        formData.append("files", file);
-      });
-
-      body = formData;
-    } else {
-      headers["Content-Type"] = "application/json";
-      body = JSON.stringify(data);
-    }
-
-    return apiRequest(
-      `${process.env.NEXT_PUBLIC_API_URL}/servicos/finalizar/${idWork}`,
-      {
-        method: "PATCH",
-        headers,
-        body,
-      },
-    );
-  } catch (error: any) {
-    console.error("API error:", error);
-    return {
-      success: false,
-      error: error.message || "Erro ao converter arquivos",
-    };
-  }
+  return await serverMultipartRequest(
+    `/servicos/finalizar/${idWork}`,
+    formData,
+    {
+      method: "PATCH",
+    },
+  );
 }
 
 export async function reascheduleServices(
   workId: number,
   scheduleId: number | null,
 ): Promise<ActionResult> {
-  const token = await getAuthToken();
-
-  if (!token) {
-    return { success: false, error: "Usuário não autenticado" };
-  }
-
   if (!scheduleId) {
     throw new Error("Id da programação não foi enviado");
   }
 
-  return apiRequest(
-    `${process.env.NEXT_PUBLIC_API_URL}/servicos/reprogramar/${workId}/${scheduleId}`,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  );
+  return serverApiRequest(`/servicos/reprogramar/${workId}/${scheduleId}`, {
+    method: "PATCH",
+  });
 }
 
 export async function addService(data: {
@@ -197,18 +99,8 @@ export async function addService(data: {
   operation: string;
   operationDescription: string;
 }): Promise<ActionResult> {
-  const token = await getAuthToken();
-
-  if (!token) {
-    return { success: false, error: "Usuário não autenticado" };
-  }
-
-  return apiRequest(`${process.env.NEXT_PUBLIC_API_URL}/servicos/servico`, {
+  return serverApiRequest("/servicos/servico", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(data),
   });
 }
@@ -220,18 +112,8 @@ export async function addMaterial(data: {
   operation: string;
   operationDescription: string;
 }): Promise<ActionResult> {
-  const token = await getAuthToken();
-
-  if (!token) {
-    return { success: false, error: "Usuário não autenticado" };
-  }
-
-  return apiRequest(`${process.env.NEXT_PUBLIC_API_URL}/servicos/material`, {
+  return serverApiRequest("/servicos/material", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(data),
   });
 }
@@ -244,18 +126,8 @@ export async function addFamily(data: {
   operationDescription: string;
   type: "S" | "M";
 }): Promise<ActionResult> {
-  const token = await getAuthToken();
-
-  if (!token) {
-    return { success: false, error: "Usuário não autenticado" };
-  }
-
-  return apiRequest(`${process.env.NEXT_PUBLIC_API_URL}/servicos/familia`, {
+  return serverApiRequest("/servicos/familia", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(data),
   });
 }
@@ -265,67 +137,56 @@ export async function applyAdditonalPlanServices(
     id: number;
     additional: number | null;
   }[],
+  workId: number,
 ): Promise<ActionResult> {
-  const token = await getAuthToken();
-
-  if (!token) {
-    return { success: false, error: "Usuário não autenticado" };
-  }
-
-  return apiRequest(
-    `${process.env.NEXT_PUBLIC_API_URL}/servicos/aplicar-adicional`,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    },
-  );
+  return serverApiRequest(`/servicos/aplicar-adicional/${workId}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
 }
 
 export async function cancelScheduleServices(
   id: number,
 ): Promise<ActionResult> {
-  const token = await getAuthToken();
-
-  if (!token) {
-    return { success: false, error: "Usuário não autenticado" };
-  }
-
-  return apiRequest(
-    `${process.env.NEXT_PUBLIC_API_URL}/servicos/cancelar/${id}`,
-    {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  );
+  return serverApiRequest(`/servicos/cancelar/${id}`, {
+    method: "PATCH",
+  });
 }
 
 export async function deleteService(
   id: number,
   workId: number,
 ): Promise<ActionResult> {
-  const token = await getAuthToken();
+  revalidatePath(`/viabilidade/${id}`);
 
-  if (!token) {
-    return { success: false, error: "Usuário não autenticado" };
-  }
+  return serverApiRequest(`/servicos/${id}?workId=${workId}`, {
+    method: "DELETE",
+  });
+}
 
-  revalidatePath(`/viabilidade/${id}?status=adicao&ponto_a_ponto=true`);
+export async function deleteAllServices(workId: number): Promise<ActionResult> {
+  revalidatePath(`/viabilidade/${workId}`);
 
-  return apiRequest(
-    `${process.env.NEXT_PUBLIC_API_URL}/servicos/${id}?workId=${workId}`,
+  return serverApiRequest(`/servicos/todos/${workId}`, {
+    method: "DELETE",
+  });
+}
+
+export async function importServicesSpreadsheet(
+  workId: number,
+  formData: FormData,
+) {
+  const result = await serverMultipartRequest(
+    `/servicos/importar/${workId}`,
+    formData,
     {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      method: "POST",
     },
   );
+
+  if (result.success) {
+    revalidatePath(`/viabilidade/${workId}`);
+  }
+
+  return result;
 }

@@ -8,18 +8,19 @@ import { FormatCurrency } from "@/utils/formatValue";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import {
   Autocomplete,
+  createFilterOptions,
   FormControl,
   InputLabel,
   MenuItem,
   Select,
   TextField,
 } from "@mui/material";
-import { ServicesContractSelect } from "../services/servicesSection/servicesContractSelect";
 import {
   AddMaterialOrServiceFormState,
   MaterialData,
 } from "./addServiceAccordion";
 import { SERVICE_OPERATIONS } from "@/constants/services/services";
+import { ServicesContractSelect } from "./servicesContractSelect";
 
 interface Props {
   idWork: number;
@@ -31,10 +32,10 @@ interface Props {
     idService: number;
     point: string;
     operation: string;
-
     operationDescription: string;
     quantity: number;
   }) => Promise<void>;
+  isDisabled: boolean;
 }
 
 export function AddMaterialForm({
@@ -42,9 +43,13 @@ export function AddMaterialForm({
   materialData,
   points,
   operationsDescription,
-
+  isDisabled,
   onSubmit,
 }: Props) {
+  const filterOptions = createFilterOptions<MaterialData>({
+    stringify: (option) => `${option.descricao} ${option.codigo}`,
+  });
+
   const [form, setForm] = useState<AddMaterialOrServiceFormState>({
     idService: null,
     point: "",
@@ -68,7 +73,16 @@ export function AddMaterialForm({
     [],
   );
 
+  const isValid =
+    form.idService !== null &&
+    form.point !== "" &&
+    form.operation !== "" &&
+    form.operationDescription !== "" &&
+    form.quantity > 0;
+
   const handleSubmit = async () => {
+    if (!isValid || form.idService === null) return;
+
     try {
       setLoading(true);
 
@@ -102,6 +116,7 @@ export function AddMaterialForm({
           <Autocomplete<MaterialData>
             options={materialData}
             getOptionLabel={(s) => s.descricao}
+            filterOptions={filterOptions}
             ListboxComponent={ServicesContractSelect}
             value={materialData.find((m) => m.id === form.idService) ?? null}
             renderOption={(props, s) => {
@@ -216,7 +231,7 @@ export function AddMaterialForm({
         text={loading ? "Adicionando..." : "Adicionar Material"}
         fullWidth
         styled="!h-9"
-        disabled={loading}
+        disabled={loading || !isValid || isDisabled}
         onClick={handleSubmit}
         startIcon={<PlusIcon className="w-5 h-5 mr-1" />}
       />

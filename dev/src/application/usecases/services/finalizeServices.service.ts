@@ -1,25 +1,29 @@
-import {
-  IWorkServicesExecutionRepository,
-  WORK_SERVICES_EXECUTION_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
-import {
-  IWorkServicesQueryRepository,
-  WORK_SERVICES_QUERY_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
 import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
 import { GetServicesByWorkIdResponse } from 'src/interface/types/servicesInterface';
 
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
 import { ExecutionReportService } from '../executionReport.service';
 import { ScheduleExecutionValidatorService } from '../schedule/scheduleExecutionValidator.service';
-import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
-import { Prisma } from '@prisma/client';
+import {
+  IWorkServicesExecutionRepository,
+  WORK_SERVICES_EXECUTION_REPOSITORY,
+} from 'src/domain/contracts/worksService/IWorkServicesExecutionRepository';
 import {
   IWorkServicesRepository,
   WORK_SERVICES_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesRepository';
+} from 'src/domain/contracts/worksService/IWorkServicesRepository';
+import {
+  IWorkServicesQueryRepository,
+  WORK_SERVICES_QUERY_REPOSITORY,
+} from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
+import {
+  IStatusFlowRepository,
+  STATUS_FLOW_REPOSITORY,
+} from 'src/domain/contracts/IStatusFlowRepository';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 interface FinalizationData {
   id: number;
@@ -42,15 +46,46 @@ export class FinalizeServicesService {
     private readonly workServicesRepository: IWorkServicesRepository,
     @Inject(WORK_SERVICES_QUERY_REPOSITORY)
     private readonly workServicesQueryRepository: IWorkServicesQueryRepository,
+    @Inject(STATUS_FLOW_REPOSITORY)
+    private readonly statusFlowRepository: IStatusFlowRepository,
     private readonly executionReportService: ExecutionReportService,
     private readonly executionValidator: ScheduleExecutionValidatorService,
     private readonly scheduleProgressCalculator: ScheduleProgressCalculatorService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async performServices(data: PerformServicesDTO[]): Promise<void> {
     if (data.length === 0) return;
 
     await this.worksServicesExecutionRepository.performServices(data);
+  }
+
+  async reascheduleServices(workId: number, scheduleId: number): Promise<void> {
+    const history =
+      await this.workServicesQueryRepository.getServiceScheduleHistory(workId);
+
+    const servicesToBeReascheduled = history
+      .filter(
+        (item) =>
+          (item.real < item.prog || !item.real) &&
+          item.id_programacao === scheduleId,
+      )
+      .map((item) => ({ id: item.id, id_servico: item.id_servico }));
+
+    await this.prisma.$transaction(async (tx) => {
+      try {
+        await this.worksServicesExecutionRepository.reascheduleServices(
+          servicesToBeReascheduled,
+          scheduleId,
+        );
+
+        await this.statusFlowRepository.updateStatusWorks(36, workId, tx);
+        await this.statusFlowRepository.updateScheduleStatus(5, scheduleId, tx);
+      } catch (error: any) {
+        this.logger.error(error);
+        throw error;
+      }
+    });
   }
 
   async finalizeServices(

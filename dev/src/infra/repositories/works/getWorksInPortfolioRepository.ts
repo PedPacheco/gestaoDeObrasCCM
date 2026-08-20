@@ -25,7 +25,7 @@ export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioReposi
       INNER JOIN construcao_sp.empreendimento ON obras.id_empreendimento = empreendimento.id
       INNER JOIN construcao_sp.conjuntos ON circuitos.id_conjunto = conjuntos.id
       INNER JOIN construcao_sp.regionais ON municipios.id_regional = regionais.id
-      INNER JOIN construcao_sp.relatorio ON relatorio.id_obra = obras.id
+      LEFT JOIN construcao_sp.relatorio ON relatorio.id_obra = obras.id
     `;
   }
 

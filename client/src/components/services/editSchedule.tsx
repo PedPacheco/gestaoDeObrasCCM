@@ -51,7 +51,7 @@ interface EditScheduleProps {
   idWork: number;
   idStatusWork: number;
   idSchedule: number;
-  statusSchedule?: string;
+  statusSchedule: string;
   optionsToAddItem: {
     operation_description: string[];
     points: string[];
@@ -90,8 +90,6 @@ export function EditSchedule({
   const [servicesAvaliable, setServicesAvaliable] = useState<any[]>(
     servicesData || [],
   );
-
-  const isDisabled = statusSchedule ? statusSchedule === "Programado" : false;
 
   const scheduleForm = useScheduleForm({ data: scheduleData, options, idWork });
 
@@ -204,6 +202,7 @@ export function EditSchedule({
             options={options}
             scheduleForm={scheduleForm}
             statusWork={idStatusWork}
+            scheduleStatus={statusSchedule}
           />
         </div>
 
@@ -260,7 +259,7 @@ export function EditSchedule({
               executionForm={executionForm}
               onError={showError}
               onSuccess={showSuccess}
-              isDisabled={isDisabled}
+              statusSchedule={statusSchedule}
               todayIsOnOrAfterScheduleDate={todayIsOnOrAfterScheduleDate}
             />
           )}
@@ -292,14 +291,16 @@ export function EditSchedule({
                     services={serviceContractData}
                     options={optionsToAddItem}
                     type="serviço"
+                    idStatusWork={idStatusWork}
                   />
 
                   <AddServiceAccordion
                     idWork={Number(idWork)}
                     title="Adicionar novo material"
-                    services={materialsData}
+                    materials={materialsData}
                     options={optionsToAddItem}
                     type="material"
+                    idStatusWork={idStatusWork}
                   />
 
                   <AddServiceAccordion
@@ -309,6 +310,7 @@ export function EditSchedule({
                     materials={materialsData}
                     type="familia"
                     options={optionsToAddItem}
+                    idStatusWork={idStatusWork}
                   />
                 </div>
                 <div className="min-h-0 flex-1 w-full overflow-hidden">
@@ -353,7 +355,7 @@ export function EditSchedule({
               }}
               idSchedule={idSchedule}
               scheduledServicesHistory={scheduledServicesHistory}
-              isDisabled={isDisabled}
+              statusSchedule={statusSchedule}
               isPending={isPending}
               openConfirmationModal={openConfirmationModal}
               setOpenConfirmationModal={setOpenConfirmationModal}

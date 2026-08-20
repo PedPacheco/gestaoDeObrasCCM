@@ -382,7 +382,7 @@ model regionais {
 
 model relatorio {
   id         Int      @id(map: "RELATORIO_pkey") @default(autoincrement())
-  id_obra    Int
+  id_obra    Int      @unique
   encontrado Boolean? @default(false)
   obras      obras    @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
 }

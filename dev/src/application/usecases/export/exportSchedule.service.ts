@@ -43,6 +43,11 @@ export class ExportScheduleService {
         key: 'equipe_regularizacao',
         width: 10,
       },
+      {
+        header: 'Técnico Responsável',
+        key: 'tecnico',
+        width: 10,
+      },
     ];
 
     const batchSize = 1000;
