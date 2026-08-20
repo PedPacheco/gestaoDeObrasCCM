@@ -202,12 +202,11 @@ export function FeasibiltyUpload({
                 uploading={uploading}
                 termsAccepted={termsAccepted}
                 dragActive={dragActive}
-                readOnly={!isEditable}
+                workflowStatus={workflowStatus}
                 onTermsAccepted={setTermsAccepted}
                 onFilesSelected={handleFiles}
                 onDrag={handleDrag}
                 onDrop={handleDrop}
-                idWork={Number(idWork)}
                 onRemoveFile={removeFile}
               />
             </CardSection>

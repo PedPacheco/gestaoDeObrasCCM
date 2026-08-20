@@ -20,12 +20,19 @@ export class WorkServicesRepository implements IWorkServicesRepository {
     data: ScheduleServicesDTO[],
     totalProg: number | { increment: number },
     idSchedule: number,
+    idStatusSchedule?: number,
   ): Promise<void> {
     await this.prisma.$transaction(
       async (tx) => {
         await tx.programacoes.update({
-          data: { prog: totalProg },
           where: { id: idSchedule },
+          data: {
+            prog: totalProg,
+            ...(idStatusSchedule !== undefined && {
+              id_status_programacao: idStatusSchedule,
+              reprovada: false,
+            }),
+          },
         });
 
         await tx.programacoes_servicos.createMany({

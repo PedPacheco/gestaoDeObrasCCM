@@ -3,12 +3,14 @@
 import { DragEvent, useCallback, useState } from "react";
 import { useFeedback } from "@/hooks/useFeedback";
 import { useRouter } from "next/navigation";
-import { DisplayFile, FeasibilityDataInterface } from "@/types/feasibility";
+import { DisplayFile } from "@/types/feasibility";
 import { existingToDisplay, fileToDisplay } from "@/utils/feasibilityWorkflow";
 
-const MAX_FILES = 3;
+const MAX_FILES = 5;
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_MIME_TYPES = ["application/pdf", "image/jpeg", "image/jpg"];
+
+type UploadMode = "UPLOAD" | "APPROVE";
 
 interface UseFeasibilityFileUploadParams {
   idWork: string;
@@ -26,7 +28,11 @@ interface UseFeasibilityFileUploadResult {
   handleDrag: (e: DragEvent) => void;
   handleDrop: (e: DragEvent) => void;
   removeFile: (index: number) => void;
-  handleUpload: (pointByPoint: boolean, data?: any) => Promise<any>;
+  handleUpload: (
+    mode: UploadMode,
+    pointByPoint: boolean,
+    data?: any,
+  ) => Promise<any>;
   resetUploadState: () => void;
 }
 
@@ -115,8 +121,10 @@ export function useFeasibilityFileUpload({
   }, [existingFiles]);
 
   const handleUpload = useCallback(
-    async (pointByPoint: boolean, data?: any) => {
+    async (mode: "UPLOAD" | "APPROVE", pointByPoint?: boolean, data?: any) => {
       setUploading(true);
+
+      console.log(mode);
 
       const formData = new FormData();
 
@@ -124,45 +132,62 @@ export function useFeasibilityFileUpload({
         (file): file is DisplayFile & { raw: File } => !!file.raw,
       );
 
-      const existingFilesToKeep = displayFiles
-        .filter((file) => !file.raw)
-        .map((file) => file.name);
-
       newFiles.forEach((file) => {
         formData.append("files", file.raw);
       });
 
-      formData.append("existingFiles", JSON.stringify(existingFilesToKeep));
+      if (mode === "UPLOAD") {
+        const existingFilesToKeep = displayFiles
+          .filter((file) => !file.raw)
+          .map((file) => file.name);
 
-      formData.append("workId", idWork);
-      formData.append("pointByPoint", String(pointByPoint));
-      if (pointByPoint) formData.append("items", JSON.stringify(data));
+        formData.append("existingFiles", JSON.stringify(existingFilesToKeep));
+
+        formData.append("workId", idWork);
+        formData.append("pointByPoint", String(pointByPoint));
+
+        if (pointByPoint) {
+          formData.append("items", JSON.stringify(data));
+        }
+      }
 
       try {
-        const result = await fetch("/api/viabilidade", {
-          method: "POST",
-          body: formData,
-        });
+        const result = await fetch(
+          mode === "UPLOAD"
+            ? "/api/viabilidade"
+            : `/api/viabilidade/aprovar/${idWork}`,
+          {
+            method: mode === "UPLOAD" ? "POST" : "PATCH",
+            body: formData,
+          },
+        );
 
         if (!result.ok) {
           const errorData = await result.json();
           throw new Error(errorData.message);
         }
 
-        showSuccess("Arquivos enviados com sucesso!", () => {
-          router.push(`/detalhes/${idWork}`);
-        });
+        showSuccess(
+          mode === "UPLOAD"
+            ? "Arquivos enviados com sucesso!"
+            : "Viabilidade aprovada com sucesso!",
+          () => {
+            router.push(`/detalhes/${idWork}`);
+          },
+        );
       } catch (err) {
         showError(
           err instanceof Error
             ? err.message
-            : "Erro ao fazer upload dos arquivos",
+            : mode === "UPLOAD"
+              ? "Erro ao fazer upload dos arquivos"
+              : "Erro ao aprovar viabilidade",
         );
       } finally {
         setUploading(false);
       }
     },
-    [displayFiles, idWork, showSuccess, router, showError],
+    [displayFiles, idWork, router, showError, showSuccess],
   );
 
   return {

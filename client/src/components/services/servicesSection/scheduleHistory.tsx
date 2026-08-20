@@ -22,6 +22,7 @@ import {
   MATERIAL_OR_SERVICE_OPTIONS,
   SERVICE_OPERATIONS,
 } from "@/constants/services/services";
+import { useUser } from "@/contexts/userContext";
 
 dayjs.extend(utc);
 
@@ -70,6 +71,8 @@ export function ScheduleHistory({
     applyFilters,
   } = useServicesFilters(scheduledServicesHistory);
 
+  const { permissions } = useUser();
+
   const filteredServicesData = applyFilters(scheduledServicesHistory);
 
   const formatDate = (dateString: string) => {
@@ -102,9 +105,10 @@ export function ScheduleHistory({
           onClick={() => {
             setOpenConfirmationModal(true);
           }}
-          disabled={["Programado", "Concluído", "Parcial"].includes(
-            statusSchedule,
-          )}
+          disabled={
+            ["Programado", "Concluído", "Parcial"].includes(statusSchedule) ||
+            permissions?.tipo_usuario === "PARCEIRA"
+          }
         >
           CANCELAR
         </Button>

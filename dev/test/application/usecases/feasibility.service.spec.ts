@@ -17,6 +17,7 @@ describe('FeasibilityService', () => {
     findFiles: jest.fn(),
     approve: jest.fn(),
     getRejections: jest.fn(),
+    updateFiles: jest.fn(),
     makeItemsFeasible: jest.fn(),
     reject: jest.fn(),
     getProjectDate: jest.fn(),

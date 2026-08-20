@@ -97,8 +97,21 @@ export class HandleFeasibilityService {
     });
   }
 
-  async approve(workId: number, userId: number) {
+  async approve(workId: number, userId: number, files: Express.Multer.File[]) {
     await this.prisma.$transaction(async (tx) => {
+      if (files.length > 0) {
+        const currentRecord =
+          await this.feasibilityRepository.findFiles(workId);
+
+        const currentFiles = currentRecord?.caminhos_arquivos ?? [];
+
+        const newFiles = files.map((file) => file.filename);
+
+        const paths = [...new Set([...currentFiles, ...newFiles])];
+
+        await this.feasibilityRepository.updateFiles(workId, paths, tx);
+      }
+
       await this.feasibilityRepository.approve(workId, userId, tx);
 
       await this.statusFlowRepository.updateStatusWorks(1, workId, tx);

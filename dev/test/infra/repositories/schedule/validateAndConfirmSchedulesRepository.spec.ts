@@ -131,6 +131,8 @@ describe('ValidateAndConfirmSchedulesRepository', () => {
         data: {
           reprovada: data.reject,
           id_status_programacao: 7,
+          confirmada: false,
+          validada: false,
         },
       });
     });
