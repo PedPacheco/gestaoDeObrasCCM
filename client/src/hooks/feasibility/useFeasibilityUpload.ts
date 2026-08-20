@@ -124,8 +124,6 @@ export function useFeasibilityFileUpload({
     async (mode: "UPLOAD" | "APPROVE", pointByPoint?: boolean, data?: any) => {
       setUploading(true);
 
-      console.log(mode);
-
       const formData = new FormData();
 
       const newFiles = displayFiles.filter(

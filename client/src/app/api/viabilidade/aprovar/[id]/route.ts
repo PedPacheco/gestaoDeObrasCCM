@@ -8,8 +8,6 @@ export async function PATCH(
   try {
     const formData = await request.formData();
 
-    console.log("entrou");
-
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
