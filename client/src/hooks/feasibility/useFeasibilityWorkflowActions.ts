@@ -6,7 +6,7 @@ import {
   FeasibilityServiceItem,
   hasInvalidAdditionalQuantities,
 } from "@/components/feasibility/feasibilityServicesViewStep";
-import { approveFeasibility, rejectFeasibility } from "@/actions/feasibility";
+import { rejectFeasibility } from "@/actions/feasibility";
 
 interface useFeasibilityWorkflowActionsProps {
   idWork: string;
@@ -67,7 +67,7 @@ export function useFeasibilityWorkflowActions({
             }))
           : undefined;
 
-        await handleUpload(pointByPoint, data);
+        await handleUpload("UPLOAD", pointByPoint, data);
       } catch (err) {
         showError(
           err instanceof Error
@@ -80,21 +80,7 @@ export function useFeasibilityWorkflowActions({
 
   const handleApprove = () => {
     startTransition(async () => {
-      try {
-        const response = await approveFeasibility(Number(idWork));
-
-        if (!response.success) {
-          showError(response.message);
-          return;
-        }
-
-        showSuccess(response.message);
-        router.push(`/detalhes/${idWork}`);
-      } catch (err) {
-        showError(
-          err instanceof Error ? err.message : "Erro ao aprovar viabilidade",
-        );
-      }
+      await handleUpload("APPROVE");
     });
   };
 

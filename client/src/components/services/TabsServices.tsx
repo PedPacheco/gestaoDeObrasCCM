@@ -2,6 +2,7 @@ import { CheckCircleIcon, PlusIcon } from "@heroicons/react/20/solid";
 import { Tab, Tabs } from "@mui/material";
 import { ClockIcon } from "@mui/x-date-pickers";
 import { TabId } from "./editSchedule";
+import { useUser } from "@/contexts/userContext";
 
 interface TabConfig {
   id: TabId;
@@ -16,6 +17,7 @@ interface TabsServicesProps {
   scheduledServicesHistoryLength: number;
   activeTab: TabId;
   setActiveTab: React.Dispatch<React.SetStateAction<TabId>>;
+  isVisibleTab: boolean;
 }
 
 export function TabsServices({
@@ -24,7 +26,10 @@ export function TabsServices({
   scheduledServicesHistoryLength,
   scheduledServicesLength,
   servicesDataLength,
+  isVisibleTab,
 }: TabsServicesProps) {
+  const { permissions } = useUser();
+
   const tabs: TabConfig[] = [
     {
       id: "scheduled",
@@ -45,6 +50,10 @@ export function TabsServices({
       badge: scheduledServicesHistoryLength,
     },
   ];
+
+  const visibleTabs = !isVisibleTab
+    ? tabs.filter((tab) => tab.id !== "available")
+    : tabs;
 
   return (
     <div className="sticky top-0 z-20 border-b border-gray-200 bg-white px-6">
@@ -73,7 +82,7 @@ export function TabsServices({
           },
         }}
       >
-        {tabs.map((tab) => (
+        {visibleTabs.map((tab) => (
           <Tab
             key={tab.id}
             value={tab.id}

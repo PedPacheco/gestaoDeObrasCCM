@@ -21,6 +21,10 @@ import {
 } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
 import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
 import { Prisma } from '@prisma/client';
+import {
+  FIND_SCHEDULE_BY_ID_REPOSITORY,
+  IFindScheduleByIdRepository,
+} from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
 
 @Injectable()
 export class WorksServicesService {
@@ -32,7 +36,8 @@ export class WorksServicesService {
     private readonly workServicesRepository: IWorkServicesRepository,
     @Inject(WORK_SERVICES_QUERY_REPOSITORY)
     private readonly workServicesQueryRepository: IWorkServicesQueryRepository,
-
+    @Inject(FIND_SCHEDULE_BY_ID_REPOSITORY)
+    private readonly schedulesRepository: IFindScheduleByIdRepository,
     private readonly scheduleProgressCalculator: ScheduleProgressCalculatorService,
   ) {}
 
@@ -42,16 +47,22 @@ export class WorksServicesService {
   ): Promise<void> {
     const idSchedule = data[0]?.idSchedule;
 
+    const { id_status_programacao } =
+      await this.schedulesRepository.findById(idSchedule);
+
     const onlyServices = data.filter((item) => item.type === 'S');
 
     const prog = await this.calculateScheduledProgress(workId, onlyServices);
 
     await this.validateScheduleServices(workId, data, prog);
 
+    const newStatus = id_status_programacao === 7 ? 1 : undefined;
+
     await this.workServicesRepository.scheduleServices(
       data,
       { increment: prog },
       idSchedule,
+      newStatus,
     );
   }
 

@@ -36,6 +36,7 @@ export interface IWorkServicesRepository {
     data: ScheduleServicesDTO[],
     prog: number | { increment: number },
     idSchedule: number,
+    idStatusSchedule?: number,
   ): Promise<void>;
   applyAdditional(
     data: ApplyAdditonalDTO[],

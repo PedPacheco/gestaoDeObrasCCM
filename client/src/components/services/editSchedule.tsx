@@ -32,6 +32,7 @@ import {
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { useUser } from "@/contexts/userContext";
 
 dayjs.extend(utc);
 
@@ -80,8 +81,12 @@ export function EditSchedule({
   optionsToAddItem,
 }: EditScheduleProps) {
   const router = useRouter();
+
   const { showError, showSuccess } = useFeedback();
+
   const [isPending, startTransition] = useTransition();
+
+  const { permissions } = useUser();
 
   const [activeTab, setActiveTab] = useState<TabId>("scheduled");
   const [scheduledServices, setScheduledServices] = useState<any[]>([]);
@@ -190,6 +195,11 @@ export function EditSchedule({
     return today.isSame(scheduleDate) || today.isAfter(scheduleDate);
   }, [scheduleData?.data_prog]);
 
+  const isVisibleTab =
+    permissions?.tipo_usuario === "INTERNO" ||
+    (permissions?.tipo_usuario === "PARCEIRA" &&
+      statusSchedule === "Reprovado");
+
   return (
     <div className="flex  w-full flex-col bg-gray-50 overflow-y-auto">
       <ScheduleTopbar title="Editar Programação" idWork={idWork} />
@@ -240,6 +250,7 @@ export function EditSchedule({
           scheduledServicesHistoryLength={scheduledServicesHistory.length}
           scheduledServicesLength={scheduledServicesData.length}
           servicesDataLength={servicesData.length}
+          isVisibleTab={isVisibleTab}
         />
 
         {/* ── Tab panels ────────────────────────────────────────── */}
