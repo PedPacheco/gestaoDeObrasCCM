@@ -43,6 +43,11 @@ export function useFeasibilityWorkflowActions({
       return;
     }
 
+    if (pointByPoint && reviewData.length === 0) {
+      showError("Necessário importação do relatório ponto a ponto");
+      return;
+    }
+
     if (pointByPoint && hasInvalidAdditionalQuantities(reviewData)) {
       showError("Preencha uma quantidade válida para todos os itens.");
       return;
@@ -55,13 +60,12 @@ export function useFeasibilityWorkflowActions({
 
     startTransition(async () => {
       try {
-        const data =
-          pointByPoint && reviewData.length > 0
-            ? reviewData.map((item) => ({
-                id: item.id,
-                viabilizado: item.viabilizado,
-              }))
-            : undefined;
+        const data = pointByPoint
+          ? reviewData.map((item) => ({
+              id: item.id,
+              viabilizado: item.viabilizado,
+            }))
+          : undefined;
 
         await handleUpload(pointByPoint, data);
       } catch (err) {

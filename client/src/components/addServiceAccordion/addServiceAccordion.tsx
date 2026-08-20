@@ -1,7 +1,7 @@
 // components/services/AddServiceAccordion.tsx
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import { useRouter } from "next/navigation";
 
@@ -41,6 +41,7 @@ interface AddServiceAccordionProps {
     points: string[];
   };
   type: MaterialOrService;
+  idStatusWork?: number;
 }
 
 export type AddMaterialOrServiceFormState = {
@@ -58,11 +59,17 @@ export function AddServiceAccordion({
   materials,
   options,
   type,
+  idStatusWork,
 }: AddServiceAccordionProps) {
   const [isOpen, setIsOpen] = useState(false);
+
   const [isPending, startTransition] = useTransition();
+
   const { showError, showSuccess } = useFeedback();
+
   const router = useRouter();
+
+  const isDisabled = idStatusWork ? [2, 3, 4].includes(idStatusWork) : false;
 
   const handleSuccess = (message: string) => {
     showSuccess(message, () => {
@@ -125,10 +132,10 @@ export function AddServiceAccordion({
               serviceContractData={services ?? []}
               points={options.points}
               operationsDescription={options.operation_description}
+              isDisabled={isDisabled}
               onSubmit={async (data) => {
                 const { addService } = await import("@/actions/services");
 
-                console.log(data);
                 const response = await addService(data);
 
                 if (!response.success) {
@@ -145,6 +152,7 @@ export function AddServiceAccordion({
               materialData={materials ?? []}
               points={options.points}
               operationsDescription={options.operation_description}
+              isDisabled={isDisabled}
               onSubmit={async (data) => {
                 const { addMaterial } = await import("@/actions/services");
                 const response = await addMaterial(data);
@@ -164,6 +172,7 @@ export function AddServiceAccordion({
               materialData={materials ?? []}
               points={options.points}
               operationsDescription={SERVICE_AND_MATERIAL_FAMILIES}
+              isDisabled={isDisabled}
               onSubmit={async (data) => {
                 const { addFamily } = await import("@/actions/services");
                 const response = await addFamily(data);

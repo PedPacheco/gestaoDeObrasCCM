@@ -1,8 +1,10 @@
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { NewManageSchedule } from "@/components/services/manageSchedule";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
-import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -98,7 +100,7 @@ export default async function ServicosPage({
         idWork={Number(id)}
         idStatusWork={Number(idStatusWorkCookie)}
         idSchedule={Number(formData?.id)}
-        statusSchedule={statusSchedule}
+        statusSchedule={statusSchedule || ""}
         optionsToAddItem={optionsToAddItem.data}
       />
     </EmotionCacheProvider>

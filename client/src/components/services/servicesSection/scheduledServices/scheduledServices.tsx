@@ -32,7 +32,7 @@ interface ScheduledServicesProps {
   executionForm: UseExecutionServiceFormReturn;
   onError: (error: string) => void;
   onSuccess: (success: string, onClose?: () => void) => void;
-  isDisabled: boolean;
+  statusSchedule: string;
   todayIsOnOrAfterScheduleDate: boolean;
 }
 
@@ -51,7 +51,7 @@ export function ScheduledServices({
   executionForm,
   onError,
   onSuccess,
-  isDisabled,
+  statusSchedule,
   todayIsOnOrAfterScheduleDate,
 }: ScheduledServicesProps) {
   const router = useRouter();
@@ -136,6 +136,8 @@ export function ScheduledServices({
       scheduledServices.every((s) => s.validationStatus),
     [isValidated, scheduledServices],
   );
+
+  const isDisabled = statusSchedule === "Programado";
 
   const handleApplyPlannedToReal = () => {
     setScheduledServices((prev) =>

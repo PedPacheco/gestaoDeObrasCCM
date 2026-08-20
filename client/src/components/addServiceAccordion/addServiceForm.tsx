@@ -15,12 +15,12 @@ import {
   Select,
   TextField,
 } from "@mui/material";
-import { ServicesContractSelect } from "../services/servicesSection/servicesContractSelect";
 import {
   AddMaterialOrServiceFormState,
   ServiceContract,
 } from "./addServiceAccordion";
 import { SERVICE_OPERATIONS } from "@/constants/services/services";
+import { ServicesContractSelect } from "./servicesContractSelect";
 
 interface Props {
   idWork: number;
@@ -35,6 +35,7 @@ interface Props {
     operationDescription: string;
     quantity: number;
   }) => Promise<void>;
+  isDisabled: boolean;
 }
 
 export function AddServiceForm({
@@ -43,6 +44,7 @@ export function AddServiceForm({
   points,
   operationsDescription,
   onSubmit,
+  isDisabled,
 }: Props) {
   const filterOptions = createFilterOptions<ServiceContract>({
     stringify: (option) => `${option.texto_breve} ${option.material}`,
@@ -71,7 +73,16 @@ export function AddServiceForm({
     [],
   );
 
+  const isValid =
+    form.idService !== null &&
+    form.point !== "" &&
+    form.operation !== "" &&
+    form.operationDescription !== "" &&
+    form.quantity > 0;
+
   const handleSubmit = async () => {
+    if (!isValid || form.idService === null) return;
+
     try {
       setLoading(true);
 
@@ -224,7 +235,7 @@ export function AddServiceForm({
         text={loading ? "Adicionando..." : "Adicionar Serviço"}
         fullWidth
         styled="!h-9"
-        disabled={loading}
+        disabled={loading || !isValid || isDisabled}
         onClick={handleSubmit}
         startIcon={<PlusIcon className="w-5 h-5 mr-1" />}
       />

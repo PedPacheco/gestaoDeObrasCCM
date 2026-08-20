@@ -19,6 +19,7 @@ interface TableFilterProps<T> {
   fields: FilterField<T>[];
   onFilter: (filters: Record<string, string[]>) => void;
   extraFilters?: React.ReactNode;
+  setMaterialOrService: (type: string) => void;
 }
 
 // ─── Componente de Dropdown Multi-Select ─────────────────────────────
@@ -66,6 +67,7 @@ export function TableFilter<T>({
   fields,
   onFilter,
   extraFilters,
+  setMaterialOrService,
 }: TableFilterProps<T>) {
   const [filters, setFilters] = useState<Record<string, string[]>>({});
 
@@ -79,8 +81,9 @@ export function TableFilter<T>({
 
   const clearFilter = useCallback(() => {
     setFilters({});
+    setMaterialOrService("Todos");
     onFilter({});
-  }, [onFilter]);
+  }, [onFilter, setMaterialOrService]);
 
   return (
     <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 mb-3 shadow-sm">
