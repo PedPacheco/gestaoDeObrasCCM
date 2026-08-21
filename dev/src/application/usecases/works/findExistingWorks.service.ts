@@ -18,6 +18,14 @@ export class FindExistingWorksService {
     return await this.findExistingWorksRepository.findExistingWorks(works);
   }
 
+  async findExistingWorksOnSuspension(
+    works: { ovnota: string; ordemDiagrama: string }[],
+  ): Promise<{ id: number; ovnota: string }[]> {
+    return await this.findExistingWorksRepository.findExistingWorksOnSuspension(
+      works,
+    );
+  }
+
   async findExistingNotes(filters: any[]): Promise<
     {
       id: number;

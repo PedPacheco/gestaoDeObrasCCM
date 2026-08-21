@@ -10,6 +10,7 @@ describe('FindExistingWorksService', () => {
     findExistingWorks: jest.fn(),
     findExistingNotes: jest.fn(),
     findExistingOrders: jest.fn(),
+    findExistingWorksOnSuspension: jest.fn(),
   };
 
   const mockExistingNotes = [
@@ -45,6 +46,21 @@ describe('FindExistingWorksService', () => {
       ]);
 
       expect(result).toEqual(['12355366']);
+    });
+  });
+
+  describe('findExistingOnSuspension', () => {
+    it('should call method findExistingOnSuspension and return the existing market works data', async () => {
+      mockRepository.findExistingWorksOnSuspension.mockResolvedValue([
+        { id: 1, ovnota: '12355366' },
+      ]);
+
+      const result =
+        await findExistingWorksService.findExistingWorksOnSuspension([
+          { ovnota: '12355366', ordemDiagrama: '19000000' },
+        ]);
+
+      expect(result).toEqual([{ id: 1, ovnota: '12355366' }]);
     });
   });
 
