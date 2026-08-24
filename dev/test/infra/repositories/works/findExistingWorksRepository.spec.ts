@@ -101,6 +101,67 @@ describe('FindExistingWorksRepository', () => {
     });
   });
 
+  describe('findExistingWorksOnSuspension', () => {
+    it('Should return formatted data of existing works on suspesion', async () => {
+      mockPrisma.obras.findMany.mockResolvedValue([
+        { id: 1, ovnota: '123253543' },
+      ]);
+
+      const result = await repository.findExistingWorksOnSuspension([
+        { ovnota: '123253543', ordemDiagrama: '19000000' },
+      ]);
+
+      expect(mockPrisma.obras.findMany).toHaveBeenCalledWith({
+        where: {
+          OR: [
+            {
+              AND: [
+                { ovnota: '123253543' },
+                {
+                  OR: [
+                    { ordem_dci: '19000000' },
+                    { ordem_dca: '19000000' },
+                    { ordem_dcd: '19000000' },
+                    { ordem_dcim: '19000000' },
+                    { diagrama: '19000000' },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        select: { id: true, ovnota: true },
+      });
+      expect(result).toEqual([{ id: 1, ovnota: '123253543' }]);
+    });
+
+    it('Should return empty array if no data sent to the repository', async () => {
+      const result = await repository.findExistingWorksOnSuspension([]);
+
+      expect(mockPrisma.obras.findMany).toHaveBeenCalledTimes(0);
+      expect(result).toEqual([]);
+    });
+
+    it('should throw an error and log it if prisma fails', async () => {
+      const error = new Error('Prisma failure');
+
+      mockPrisma.obras.findMany.mockRejectedValue(error);
+
+      const loggerSpy = jest.spyOn(repository['logger'], 'error');
+
+      await expect(
+        repository.findExistingWorksOnSuspension([
+          { ovnota: '123253543', ordemDiagrama: '19000000' },
+        ]),
+      ).rejects.toThrow(error);
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        'Erro ao buscar obra de mercado:',
+        error.stack,
+      );
+    });
+  });
+
   describe('findExistingNotes', () => {
     it('Should return formatted data of existing notes', async () => {
       mockPrisma.obras.findMany.mockResolvedValue(mockResponse);

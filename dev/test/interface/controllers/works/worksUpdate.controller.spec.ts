@@ -167,7 +167,7 @@ describe('WorksUpdateController', () => {
         .mockResolvedValue();
 
       const result = await worksController.SuspensionWorks([
-        { ovnota: '234', motivo: 'obra suspensa' },
+        { ovnota: '234', ordemDiagrama: '190000', motivo: 'obra suspensa' },
       ]);
 
       const expectedResponse = {
@@ -177,7 +177,9 @@ describe('WorksUpdateController', () => {
 
       expect(
         suspensionWorksService.createMultipleSuspensions,
-      ).toHaveBeenCalledWith([{ ovnota: '234', motivo: 'obra suspensa' }]);
+      ).toHaveBeenCalledWith([
+        { ovnota: '234', ordemDiagrama: '190000', motivo: 'obra suspensa' },
+      ]);
       expect(result).toEqual(expectedResponse);
     });
   });
