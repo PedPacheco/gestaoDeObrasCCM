@@ -8,7 +8,7 @@ import { FiltersDto } from 'src/interface/dtos/filtersDto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
 
-type FilterCondition = number | number[];
+type FilterCondition = string | number | number[];
 
 @Injectable()
 export class FiltersService {

@@ -1,14 +1,14 @@
 import {
-  GetContractValueResponse,
   GetPortfolioSummaryResponse,
+  GetMonthlySummaryResponse,
+  GetContractValueResponse,
 } from 'src/domain/types';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
-import { GetMonthlySummaryInterface } from 'src/interface/types/schedule/monthlySummaryInterface';
 
 export interface IGetMonthlySummaryRepository {
   getSummary(
     filters: GetMonthlySummaryDTO,
-  ): Promise<GetMonthlySummaryInterface[]>;
+  ): Promise<GetMonthlySummaryResponse[]>;
   getPortfolioSummary(
     filters: GetMonthlySummaryDTO,
   ): Promise<GetPortfolioSummaryResponse[]>;

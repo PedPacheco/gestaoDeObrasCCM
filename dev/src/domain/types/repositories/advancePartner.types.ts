@@ -25,16 +25,17 @@ export type GetReaschedulingReasonsResponse = {
 };
 
 export type GetSparklinesByPartnerAderenciaResponse = {
+  total: number;
   parceira: string;
   semana: string;
   executada: number;
 };
 
 export type GetSparklinesByPartnerEliminacaoResponse = {
+  total: number;
   parceira: string;
   semana: string;
-  ovnota: string;
-  has_restricao: boolean;
+  sem_restricao: boolean;
 };
 
 export type GetWeeksByPartnerResponse = {

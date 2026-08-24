@@ -5,6 +5,28 @@
 // importar sem violar a hierarquia de dependências.
 // ============================================================
 
+export type CapexItem = {
+  diagrama_rede: string;
+  def_proj: string;
+  material: string;
+  texto_breve: string;
+  centro: string;
+  dep: string;
+  cti: string;
+  elemento_pep: string;
+  und: string;
+  preco: number;
+  qtd_necessaria: number;
+  qtd_retirada: number;
+  qtd_recebida: number;
+  qtd_falta: number;
+  reserva: string;
+};
+
+export type CapexInsertItem = CapexItem & {
+  id_obra: number;
+};
+
 export type CapexPhase =
   | 'reading' // Lendo e parseando o xlsx via stream
   | 'processing' // Inserindo registros na tabela cn52n em batches

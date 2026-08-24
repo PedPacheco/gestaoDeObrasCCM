@@ -1,8 +1,8 @@
+import { InsertAuxiliaryMarketInput } from 'src/application/types';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
 } from 'src/domain/contracts/IAuxiliaryBaseRepository';
-import { InsertBaseAuxiliaryMarketDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
 import { OperationType } from 'src/interface/types/baseAuxiliaryInterface';
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
@@ -18,7 +18,7 @@ export class AuxiliaryMarketInsertService {
   ) {}
 
   async execute(
-    data: InsertBaseAuxiliaryMarketDTO[],
+    data: InsertAuxiliaryMarketInput[],
     operation: OperationType,
   ): Promise<void> {
     if (!data?.length) {
@@ -61,14 +61,14 @@ export class AuxiliaryMarketInsertService {
     }
   }
 
-  private extractUniqueWorks(data: InsertBaseAuxiliaryMarketDTO[]): string[] {
+  private extractUniqueWorks(data: InsertAuxiliaryMarketInput[]): string[] {
     return Array.from(new Set(data.map((item) => item.obra)));
   }
 
   private filterNewData(
-    data: InsertBaseAuxiliaryMarketDTO[],
-    existingOvs: any[],
-  ): InsertBaseAuxiliaryMarketDTO[] {
+    data: InsertAuxiliaryMarketInput[],
+    existingOvs: { ovnota: string }[],
+  ): InsertAuxiliaryMarketInput[] {
     const existingOvsSet = new Set(existingOvs.map((ov) => ov.ovnota));
     return data.filter((item) => !existingOvsSet.has(item.obra));
   }

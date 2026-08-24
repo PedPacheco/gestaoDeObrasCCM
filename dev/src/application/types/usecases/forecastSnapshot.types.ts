@@ -1,3 +1,9 @@
+import {
+  ForecastDailyTotalsResponse,
+  ForecastGroupTotalsResponse,
+  ForecastSnapshotFilters,
+} from 'src/domain/types';
+
 type FormattedForecastSnapshotDailyItem = {
   dataProg: string | Date;
   qtdeWorks: number;
@@ -22,7 +28,7 @@ type FormattedForecastSnapshotDailyItem = {
 };
 
 export type FormattedForecastSnapshotDaily = {
-  totals: number;
+  totals: ForecastDailyTotalsResponse;
   summary: FormattedForecastSnapshotDailyItem[];
 };
 
@@ -46,6 +52,20 @@ export type FormattedForecastSnapshotGroupItem = {
 };
 
 export type FormattedForecastSnapshotGroup = {
-  totals: number;
+  totals: ForecastGroupTotalsResponse;
   summary: FormattedForecastSnapshotGroupItem[];
+};
+
+export type GetForecastSnapshotOutput = {
+  id: number;
+  geradoEm: Date;
+  nomeArquivo: string;
+  diario: FormattedForecastSnapshotDaily;
+  grupo: FormattedForecastSnapshotGroup;
+};
+
+export type GetAllForecastSnapshotsOutput = {
+  id: number;
+  nomeArquivo: string;
+  filtros: ForecastSnapshotFilters;
 };

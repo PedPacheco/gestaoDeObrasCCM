@@ -13,6 +13,8 @@ import {
 } from 'src/domain/services/monthlySummaryForecastCalculator.service';
 import { TeamAggregationService } from 'src/domain/services/teamAggregator.service';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
+
+import { Inject, Injectable } from '@nestjs/common';
 import {
   DailySummaryEntryForecast,
   DailySummaryForecastResult,
@@ -21,9 +23,7 @@ import {
   MonthlyCapacityMetricsForecast,
   UniqueWorksFinancialForecast,
   WorkItemFinancialsForecast,
-} from 'src/interface/types/schedule/monthlySummaryForecastInterface';
-
-import { Inject, Injectable } from '@nestjs/common';
+} from 'src/application/types';
 
 @Injectable()
 export class GetMonthlySummaryForecastService {

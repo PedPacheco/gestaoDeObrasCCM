@@ -3,14 +3,16 @@ import {
   GetEntryOfWorksDTO,
 } from 'src/interface/dtos/entryDto';
 
-import { EntryDayResponse } from '../types';
+import { EntryDayResponse, ValuesFromEntryResponse } from '../types';
 
 export interface IEntryRepository {
-  getValuesFromEntry(filters: GetEntryOfWorksDTO): Promise<EntryDayResponse[]>;
   getEntryOfWorksByDay(
     filters: GetEntryOfWorksByDayDTO,
     dateRange: Record<string, Date>,
   ): Promise<EntryDayResponse[]>;
+  getValuesFromEntry(
+    filters: GetEntryOfWorksDTO,
+  ): Promise<ValuesFromEntryResponse[]>;
 }
 
 export const ENTRY_REPOSITORY = Symbol('EntryRepository');

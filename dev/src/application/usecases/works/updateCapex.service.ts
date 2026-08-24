@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { ProgressEmitter } from 'src/application/shared/capex.types';
+import { ProgressEmitter } from 'src/application/types';
+
 import { AppLogger } from 'src/core/logger/logger.service';
 import {
   AUXILIARY_BASE_REPOSITORY,

@@ -5,7 +5,7 @@ import {
   DailySummaryEntry,
   GroupTeamSummaryEntry,
   MonthlyCapacityMetrics,
-} from 'src/interface/types/schedule/monthlySummaryInterface';
+} from 'src/application/types/usecases/schedule/monthlySummary.types';
 
 // ─── Module mocks ─────────────────────────────────────────────────────────────
 

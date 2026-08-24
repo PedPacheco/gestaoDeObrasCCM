@@ -1,43 +1,43 @@
-export type ForecastSnapshotDailyItem = {
+type ForecastSnapshotDailyItem = {
   dataProg: string | Date;
-  qtdeWorks: number | bigint;
-  teams: number | bigint;
-  financialGoal: number | bigint;
-  diaryGoal: number | bigint;
-  serviceMoProg: number | bigint;
-  serviceMoPlan: number | bigint;
-  serviceMoPend: number | bigint;
-  serviceMoExec: number | bigint;
-  serviceMoForecast: number | bigint;
-  materialMoProg: number | bigint;
-  materialMoPlan: number | bigint;
-  materialMoPend: number | bigint;
-  materialMoExec: number | bigint;
-  materialMoForecast: number | bigint;
+  qtdeWorks: number;
+  teams: number;
+  financialGoal: number;
+  diaryGoal: number;
+  serviceMoProg: number;
+  serviceMoPlan: number;
+  serviceMoPend: number;
+  serviceMoExec: number;
+  serviceMoForecast: number;
+  materialMoProg: number;
+  materialMoPlan: number;
+  materialMoPend: number;
+  materialMoExec: number;
+  materialMoForecast: number;
   isServicePendLowerThanProg: boolean;
   isMaterialPendLowerThanProg: boolean;
-  forecastTotal: number | bigint;
-  execTotal: number | bigint;
-  diff: number | bigint;
+  forecastTotal: number;
+  execTotal: number;
+  diff: number;
 };
 
-export type ForecastSnapshotGroupItem = {
+type ForecastSnapshotGroupItem = {
   grupo: string;
   turma: string;
-  qtdeWorks: number | bigint;
-  totalServiceMoProg: number | bigint;
-  totalServiceMoPlan: number | bigint;
-  totalServiceMoPend: number | bigint;
-  totalServiceMoPrev: number | bigint;
-  totalServiceMoExec: number | bigint;
-  totalMaterialMoProg: number | bigint;
-  totalMaterialMoPlan: number | bigint;
-  totalMaterialMoPend: number | bigint;
-  totalMaterialMoPrev: number | bigint;
-  totalMaterialMoExec: number | bigint;
-  totalForecast: number | bigint;
-  totalExec: number | bigint;
-  diff: number | bigint;
+  qtdeWorks: number;
+  totalServiceMoProg: number;
+  totalServiceMoPlan: number;
+  totalServiceMoPend: number;
+  totalServiceMoPrev: number;
+  totalServiceMoExec: number;
+  totalMaterialMoProg: number;
+  totalMaterialMoPlan: number;
+  totalMaterialMoPend: number;
+  totalMaterialMoPrev: number;
+  totalMaterialMoExec: number;
+  totalForecast: number;
+  totalExec: number;
+  diff: number;
 };
 
 export type ForecastSnapshotFilters = {
@@ -45,12 +45,55 @@ export type ForecastSnapshotFilters = {
   dataFinal: Date;
 };
 
+export type ForecastDailyTotalsResponse = {
+  totalDiff: number;
+  totalExec: number;
+  totalTeams: number;
+  totalForecast: number;
+  totalDiaryGoal: number;
+  totalQtdeObras: number;
+  totalFinancialGoal: number;
+  totalServiceMoExec: number;
+  totalServiceMoPend: number;
+  totalServiceMoPlan: number;
+  totalServiceMoProg: number;
+  totalMaterialMoExec: number;
+  totalMaterialMoPend: number;
+  totalMaterialMoPlan: number;
+  totalMaterialMoProg: number;
+  totalServiceMoForecast: number;
+  totalMaterialMoForecast: number;
+};
+
+export type ForecastGroupTotalsResponse = {
+  totalDiff: number;
+  totalWorks: number;
+  totalServiceMoExecByGrouping: number;
+  totalServiceMoPendByGrouping: number;
+  totalServiceMoPlanByGrouping: number;
+  totalServiceMoProgByGrouping: number;
+  totalMaterialMoExecByGrouping: number;
+  totalMaterialMoPendByGrouping: number;
+  totalMaterialMoPlanByGrouping: number;
+  totalMaterialMoProgByGrouping: number;
+};
+
+export type ForecastSnapshotDailyData = {
+  totals: ForecastDailyTotalsResponse;
+  summary: ForecastSnapshotDailyItem[];
+};
+
+export type ForecastSnapshotGroupData = {
+  totals: ForecastGroupTotalsResponse;
+  summary: ForecastSnapshotGroupItem[];
+};
+
 export type ForecastSnapshotGetResponse = {
   id: number;
   gerado_em: Date;
   filtros: ForecastSnapshotFilters;
-  diario: { totals: number; summary: ForecastSnapshotDailyItem[] };
-  grupo: { totals: number; summary: ForecastSnapshotGroupItem[] };
+  diario: ForecastSnapshotDailyData;
+  grupo: ForecastSnapshotGroupData;
 };
 
 export type ForecastSnapshotGetAllResponse = {

@@ -4,8 +4,10 @@ import {
   IForecastSnapshotRepository,
 } from 'src/domain/contracts/IForecastSnapshotRepository';
 import {
-  ForecastSnapshotDailyItem,
-  ForecastSnapshotGroupItem,
+  ForecastDailyTotalsResponse,
+  ForecastGroupTotalsResponse,
+  ForecastSnapshotDailyData,
+  ForecastSnapshotGroupData,
 } from 'src/domain/types';
 import { CreateForecastSnapshotDTO } from 'src/interface/dtos/forecastSnapshotDTO';
 
@@ -14,7 +16,42 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   FormattedForecastSnapshotDaily,
   FormattedForecastSnapshotGroup,
+  GetAllForecastSnapshotsOutput,
+  GetForecastSnapshotOutput,
 } from '../types';
+
+const emptyDailyTotals: ForecastDailyTotalsResponse = {
+  totalDiff: 0,
+  totalExec: 0,
+  totalTeams: 0,
+  totalForecast: 0,
+  totalDiaryGoal: 0,
+  totalQtdeObras: 0,
+  totalFinancialGoal: 0,
+  totalServiceMoExec: 0,
+  totalServiceMoPend: 0,
+  totalServiceMoPlan: 0,
+  totalServiceMoProg: 0,
+  totalMaterialMoExec: 0,
+  totalMaterialMoPend: 0,
+  totalMaterialMoPlan: 0,
+  totalMaterialMoProg: 0,
+  totalServiceMoForecast: 0,
+  totalMaterialMoForecast: 0,
+};
+
+const emptyGroupTotals: ForecastGroupTotalsResponse = {
+  totalDiff: 0,
+  totalWorks: 0,
+  totalServiceMoExecByGrouping: 0,
+  totalServiceMoPendByGrouping: 0,
+  totalServiceMoPlanByGrouping: 0,
+  totalServiceMoProgByGrouping: 0,
+  totalMaterialMoExecByGrouping: 0,
+  totalMaterialMoPendByGrouping: 0,
+  totalMaterialMoPlanByGrouping: 0,
+  totalMaterialMoProgByGrouping: 0,
+};
 
 @Injectable()
 export class ForecastSnapshotService {
@@ -35,7 +72,7 @@ export class ForecastSnapshotService {
     await this.repository.create(data);
   }
 
-  async get(params: number) {
+  async get(params: number): Promise<GetForecastSnapshotOutput> {
     const snapshot = await this.repository.get(params);
 
     const { filtros, diario, grupo, gerado_em, id } = snapshot;
@@ -51,7 +88,10 @@ export class ForecastSnapshotService {
     return snapshotFormatted;
   }
 
-  async getAll(filters?: { startDate?: string; endDate?: string }) {
+  async getAll(filters?: {
+    startDate?: string;
+    endDate?: string;
+  }): Promise<GetAllForecastSnapshotsOutput[]> {
     const where: { gerado_em?: { lte: Date; gte: Date } } = {};
 
     if (filters?.startDate || filters?.endDate) {
@@ -82,13 +122,12 @@ export class ForecastSnapshotService {
     await this.repository.delete(id);
   }
 
-  private formatDaily(data: {
-    totals: number;
-    summary: ForecastSnapshotDailyItem[];
-  }): FormattedForecastSnapshotDaily {
+  private formatDaily(
+    data: ForecastSnapshotDailyData,
+  ): FormattedForecastSnapshotDaily {
     if (!Array.isArray(data.summary)) {
       return {
-        totals: 0,
+        totals: emptyDailyTotals,
         summary: [],
       };
     }
@@ -129,11 +168,11 @@ export class ForecastSnapshotService {
     return formattedData;
   }
 
-  private formatGroup(data: {
-    totals: number;
-    summary: ForecastSnapshotGroupItem[];
-  }): FormattedForecastSnapshotGroup {
-    if (!Array.isArray(data.summary)) return { totals: 0, summary: [] };
+  private formatGroup(
+    data: ForecastSnapshotGroupData,
+  ): FormattedForecastSnapshotGroup {
+    if (!Array.isArray(data.summary))
+      return { totals: emptyGroupTotals, summary: [] };
 
     const formattedData = {
       totals: data.totals,

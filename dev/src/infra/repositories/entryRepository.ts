@@ -3,12 +3,10 @@ import {
   GetEntryOfWorksByDayDTO,
   GetEntryOfWorksDTO,
 } from 'src/interface/dtos/entryDto';
-import {
-  EntryDayResponse,
-  entryResponse,
-} from 'src/interface/types/entryInterface';
+
 import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
+import { EntryDayResponse, ValuesFromEntryResponse } from 'src/domain/types';
 
 @Injectable()
 export class EntryRespository implements IEntryRepository {
@@ -53,9 +51,10 @@ export class EntryRespository implements IEntryRepository {
         prazo: true,
         qtde_planejada: true,
         mo_planejada: true,
+        mo_pend: true,
         observ_obra: true,
         tipos: {
-          select: { tipo_obra: true },
+          select: { tipo_obra: true, grupos: { select: { grupo: true } } },
         },
         turmas: {
           select: { turma: true },
@@ -70,7 +69,7 @@ export class EntryRespository implements IEntryRepository {
 
   async getValuesFromEntry(
     filters: GetEntryOfWorksDTO,
-  ): Promise<entryResponse[]> {
+  ): Promise<ValuesFromEntryResponse[]> {
     const {
       idGrupo,
       idMunicipio,

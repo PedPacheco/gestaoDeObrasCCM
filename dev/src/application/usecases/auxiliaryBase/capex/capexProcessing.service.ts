@@ -2,34 +2,18 @@ import * as ExcelJS from 'exceljs';
 import { promises as fs } from 'fs';
 import pLimit from 'p-limit';
 import {
+  CapexInsertItem,
+  CapexItem,
   CapexProgressPayload,
   ProgressEmitter,
-} from 'src/application/shared/capex.types';
+} from 'src/application/types';
+import { AppLogger } from 'src/core/logger/logger.service';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
 } from 'src/domain/contracts/IAuxiliaryBaseRepository';
 
 import { Inject, Injectable } from '@nestjs/common';
-import { AppLogger } from 'src/core/logger/logger.service';
-
-interface CapexItem {
-  diagrama_rede: string;
-  def_proj: any;
-  material: string;
-  texto_breve: any;
-  centro: any;
-  dep: any;
-  cti: any;
-  elemento_pep: any;
-  und: any;
-  preco: any;
-  qtd_necessaria: any;
-  qtd_retirada: any;
-  qtd_recebida: any;
-  qtd_falta: any;
-  reserva: any;
-}
 
 export type ImportProgressState = CapexProgressPayload;
 
@@ -93,7 +77,7 @@ export class CapexProcessingService {
 
           total++;
 
-          const values = row.values as any[];
+          const values = row.values;
 
           batch.push({
             diagrama_rede: values[2] ? String(values[2]) : null,
@@ -164,19 +148,22 @@ export class CapexProcessingService {
       });
 
       this.scheduleCleanup(jobId);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err =
+        error instanceof Error ? error : new Error('Erro durante a importação');
+
       const errPayload: CapexProgressPayload = {
         phase: 'error',
         processed: 0,
         percentage: 0,
-        message: error.message ?? 'Erro durante a importação',
+        message: err.message ?? 'Erro durante a importação',
       };
 
       this.progressMap.set(jobId, errPayload);
       onProgress?.(errPayload);
 
-      this.logger.error(`Erro no processamento do job ${jobId}`, error.stack);
-      throw error;
+      this.logger.error(`Erro no processamento do job ${jobId}`, err.stack);
+      throw err;
     } finally {
       await fs
         .unlink(filePath)
@@ -204,7 +191,7 @@ export class CapexProcessingService {
       });
     }
 
-    const validItems: any[] = [];
+    const validItems: CapexInsertItem[] = [];
     const ignoredItems: CapexItem[] = [];
 
     for (const item of batch) {

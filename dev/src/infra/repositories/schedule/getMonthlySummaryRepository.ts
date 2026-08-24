@@ -1,15 +1,15 @@
 import moment from 'moment';
+import {
+  GetContractValueResponse,
+  GetMonthlySummaryResponse,
+  GetPortfolioSummaryResponse,
+} from 'src/domain/types';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
-import { GetMonthlySummaryInterface } from 'src/interface/types/schedule/monthlySummaryInterface';
 
 import { Injectable } from '@nestjs/common';
 
 import { IGetMonthlySummaryRepository } from '../../../domain/contracts/schedule/IGetMonthlySummaryRepository';
-import {
-  GetContractValueResponse,
-  GetPortfolioSummaryResponse,
-} from 'src/domain/types';
 
 @Injectable()
 export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository {
@@ -17,7 +17,7 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
 
   async getSummary(
     filters: GetMonthlySummaryDTO,
-  ): Promise<GetMonthlySummaryInterface[]> {
+  ): Promise<GetMonthlySummaryResponse[]> {
     const { dataFinal, dataInicial, idRegional, idParceira, idTipo, idGrupo } =
       filters;
 

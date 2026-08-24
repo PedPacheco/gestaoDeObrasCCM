@@ -2,12 +2,13 @@ import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
 
 import { Injectable } from '@nestjs/common';
+import { GoalGroupedResponse } from 'src/application/types';
 
 @Injectable()
 export class ExportGoalsService {
   constructor() {}
 
-  async export(goalsData: any[], response: Response) {
+  async export(goalsData: GoalGroupedResponse[], response: Response) {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Metas');
 
@@ -46,7 +47,7 @@ export class ExportGoalsService {
     worksheet.columns = [...fixedColumns, ...monthColumns];
 
     const rows = goalsData.map((item) => {
-      const row: Record<string, any> = {
+      const row: Record<string, string | number | undefined> = {
         tipo_obra: item.tipo_obra,
         turma: item.turma,
         regional: item.regional,

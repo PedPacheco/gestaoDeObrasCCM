@@ -1,11 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import {
-  CapexProgressPayload,
-  ProgressEmitter,
-} from 'src/application/shared/capex.types';
+
 import { UpdateCapexService } from 'src/application/usecases/works/updateCapex.service';
 import { CapexProcessingService } from './capexProcessing.service';
 import { AppLogger } from 'src/core/logger/logger.service';
+import { CapexProgressPayload, ProgressEmitter } from 'src/application/types';
 
 /**
  * CapexFullPipelineService — Fluxo único (importação + atualização).
@@ -59,14 +57,17 @@ export class CapexFullPipelineService {
           error: { min: 0, max: 0 },
         }),
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err =
+        error instanceof Error ? error : new Error('Erro durante a importação');
+
       this.logger.error(
         `Erro no pipeline completo de CAPEX (job ${jobId})`,
-        error.stack,
+        err.stack,
       );
       // O erro já foi emitido pelo serviço interno via seu próprio emitter.
       // Re-throw para o caller (controller) poder logar/tratar.
-      throw error;
+      throw err;
     }
   }
 

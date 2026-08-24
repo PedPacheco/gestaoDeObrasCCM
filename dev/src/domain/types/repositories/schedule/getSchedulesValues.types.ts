@@ -1,4 +1,4 @@
-export interface GetScheduleValuesInterface {
+export type GetScheduleValuesResponseItem = {
   id: number;
   ovnota: string;
   ordemdiagrama: string;
@@ -39,21 +39,16 @@ export interface GetScheduleValuesInterface {
   restricao_aberta: boolean;
   status_prazo: string;
   encontrado: boolean;
-}
+};
 
-export interface totalsGetScheduleValues {
+export type GetScheduleValuesTotals = {
   total_obras: number;
   total_mo_planejada: number;
   total_mo_exec: number;
   total_qtde_planejada: number;
-}
+};
 
-export interface GetScheduleValuesResponseRepository {
-  works: GetScheduleValuesInterface[];
-  resultTotals: totalsGetScheduleValues[];
-}
-
-export interface GetScheduleValuesResponse {
-  works: GetScheduleValuesInterface[];
-  totals: totalsGetScheduleValues;
-}
+export type GetScheduleValuesRepositoryResponse = {
+  works: GetScheduleValuesResponseItem[];
+  resultTotals: GetScheduleValuesTotals[];
+};

@@ -3,10 +3,10 @@ import {
   IGetScheduleValuesRepository,
 } from 'src/domain/contracts/schedule/IGetScheduleValuesRepository';
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
-import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
 
 import { Inject, Injectable } from '@nestjs/common';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
+import { GetScheduleValuesOutput } from 'src/application/types';
 
 @Injectable()
 export class GetScheduleValuesService {
@@ -18,7 +18,7 @@ export class GetScheduleValuesService {
 
   async getValues(
     filters: GetScheduleValuesDTO,
-  ): Promise<GetScheduleValuesResponse> {
+  ): Promise<GetScheduleValuesOutput> {
     const { works, resultTotals } =
       await this.getScheduleValuesRepository.getValues(filters);
 
@@ -48,7 +48,7 @@ export class GetScheduleValuesService {
       };
     });
 
-    const response: GetScheduleValuesResponse = {
+    const response: GetScheduleValuesOutput = {
       works: worksWithRestrictionVerification,
       totals: totalsWithExecMedia,
     };

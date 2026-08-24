@@ -1,5 +1,3 @@
-import { Partners, Types } from '../common/commonInterface';
-
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
 export enum MonthKey {
@@ -21,6 +19,18 @@ export enum MonthKey {
 
 export const WORKING_DAYS_PER_MONTH = 22 as const;
 export const FINANCIAL_OVERHEAD_FACTOR = 1.08 as const;
+export const SUMMARY_DATE_FORMAT = 'DD/MM/YYYY' as const;
+
+/**
+ * Identificadores de grupo de tipo de obra (tipos.id_grupo).
+ * Extraído para evitar números mágicos espalhados pelos serviços.
+ */
+export const GRUPO_ID = {
+  MARKET: 1,
+  RECOM: 2,
+  RDA: 3,
+  BT0: 4,
+} as const;
 
 export const MONTH_INDEX_TO_KEY: Readonly<Record<number, MonthKey>> = {
   0: MonthKey.JAN,
@@ -81,25 +91,13 @@ export interface GroupTeamSummaryEntry {
   diff: number;
 }
 
-export interface GetMonthlySummaryInterface {
-  obras: {
-    ovnota: string;
-    ordem_dci: string;
-    ordem_dca: string;
-    ordem_dcd: string;
-    ordem_dcim: string;
-    mo_planejada: number | null;
-    mo_pend: number | null;
-    id_turma?: number;
-    turmas: Partners;
-    tipos: Types;
-  };
-  prog: number;
-  exec: number;
-  data_prog: Date;
-  equipe_linha_morta: number;
-  equipe_linha_viva: number;
-  equipe_regularizacao: number;
+/**
+ * Valores financeiros de uma obra (mão de obra planejada/pendente),
+ * já normalizados (sem null) para uso nos cálculos do domínio.
+ */
+export interface WorkFinancials {
+  readonly moPlan: number;
+  readonly moPend: number;
 }
 
 export interface DailySummaryTotals {

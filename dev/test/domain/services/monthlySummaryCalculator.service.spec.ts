@@ -7,7 +7,7 @@ import {
   DailySummaryEntry,
   GroupTeamSummaryEntry,
   WORKING_DAYS_PER_MONTH,
-} from 'src/interface/types/schedule/monthlySummaryInterface';
+} from 'src/application/types/usecases/schedule/monthlySummary.types';
 
 // ─── Helpers de fixture ───────────────────────────────────────────────────────
 

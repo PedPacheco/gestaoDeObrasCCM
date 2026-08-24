@@ -17,13 +17,13 @@ import {
 import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
-import { GetServicesByWorkIdResponse } from 'src/interface/types/servicesInterface';
 
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 import { ExecutionReportService } from '../executionReport.service';
 import { ScheduleExecutionValidatorService } from '../schedule/scheduleExecutionValidator.service';
+import { GetServicesByWorkIdResponse } from 'src/domain/types';
 
 interface FinalizationData {
   id: number;

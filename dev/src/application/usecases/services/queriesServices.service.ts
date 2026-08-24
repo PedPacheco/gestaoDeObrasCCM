@@ -1,11 +1,11 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
-import { GetSelectedServicesParamsInterface } from 'src/interface/types/servicesInterface';
 import { GetWorkDetailsService } from '../works/getWorkDetails.service';
 import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
 } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
+import { GetSelectedServicesParamsRequest } from 'src/domain/types';
 
 @Injectable()
 export class QueriesServicesService {
@@ -105,7 +105,7 @@ export class QueriesServicesService {
     return response;
   }
 
-  async getSelectedServices(params: GetSelectedServicesParamsInterface) {
+  async getSelectedServices(params: GetSelectedServicesParamsRequest) {
     const services =
       await this.workServicesQueryRepository.getSelectedServices(params);
 

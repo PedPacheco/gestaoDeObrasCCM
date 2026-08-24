@@ -2,12 +2,12 @@ import moment from 'moment';
 import { IGetMonthlySummaryForecastRepository } from 'src/domain/contracts/schedule/IGetMonthlySummaryForecastRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
-import {
-  GetCapexPlanInterface,
-  GetMonthlySummaryForecastInterface,
-} from 'src/interface/types/schedule/monthlySummaryForecastInterface';
 
 import { Injectable } from '@nestjs/common';
+import {
+  GetCapexPlanResponse,
+  GetMonthlySummaryForecastResponse,
+} from 'src/domain/types';
 
 @Injectable()
 export class GetMonthlySummaryForecastRepository implements IGetMonthlySummaryForecastRepository {
@@ -15,7 +15,7 @@ export class GetMonthlySummaryForecastRepository implements IGetMonthlySummaryFo
 
   async getSummary(
     filters: GetMonthlySummaryDTO,
-  ): Promise<GetMonthlySummaryForecastInterface[]> {
+  ): Promise<GetMonthlySummaryForecastResponse[]> {
     const { dataInicial, dataFinal, idRegional, idParceira, idTipo, idGrupo } =
       filters;
 
@@ -75,7 +75,7 @@ export class GetMonthlySummaryForecastRepository implements IGetMonthlySummaryFo
   async getCapexPlan(
     filters: GetMonthlySummaryDTO,
     yearPlan: number,
-  ): Promise<GetCapexPlanInterface[]> {
+  ): Promise<GetCapexPlanResponse[]> {
     return await this.prisma.plano_capex.findMany({
       where: {
         id_regional:

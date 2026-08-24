@@ -17,15 +17,15 @@ import {
 } from 'src/domain/services/monthlySummaryCalculator.service';
 import { TeamAggregationService } from 'src/domain/services/teamAggregator.service';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
+
+import { Inject, Injectable } from '@nestjs/common';
 import {
   DailySummaryEntry,
   DailySummaryResult,
   GroupSummaryResult,
   GroupTeamSummaryEntry,
   MonthlyCapacityMetrics,
-} from 'src/interface/types/schedule/monthlySummaryInterface';
-
-import { Inject, Injectable } from '@nestjs/common';
+} from 'src/application/types';
 
 @Injectable()
 export class MonthlySummaryService {
@@ -60,7 +60,7 @@ export class MonthlySummaryService {
 
     const contractValueByMonth = contractValue.reduce(
       (acc, item) => {
-        const value = item.valor_contrato / item.meses;
+        const value = Number(item.valor_contrato) / item.meses;
 
         acc.monthlyValue += value;
 

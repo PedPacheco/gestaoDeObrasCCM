@@ -5,11 +5,11 @@ import { CreateForecastSnapshotDTO } from 'src/interface/dtos/forecastSnapshotDT
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import {
-  ForecastSnapshotDailyItem,
+  ForecastSnapshotDailyData,
   ForecastSnapshotFilters,
   ForecastSnapshotGetAllResponse,
   ForecastSnapshotGetResponse,
-  ForecastSnapshotGroupItem,
+  ForecastSnapshotGroupData,
 } from 'src/domain/types';
 
 @Injectable()
@@ -40,8 +40,8 @@ export class ForecastSnapshotRepository implements IForecastSnapshotRepository {
     return {
       ...snapshot,
       filtros: snapshot.filtros as unknown as ForecastSnapshotFilters,
-      diario: snapshot.diario as unknown as ForecastSnapshotDailyItem,
-      grupo: snapshot.grupo as unknown as ForecastSnapshotGroupItem,
+      diario: snapshot.diario as ForecastSnapshotDailyData,
+      grupo: snapshot.grupo as ForecastSnapshotGroupData,
     };
   }
 

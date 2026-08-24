@@ -15,10 +15,9 @@ export class FiltersController {
     @Query() query: FiltersDto,
     @Req() req: Request,
   ): Promise<any> {
-    const filters = await this.filtersService.getFilters(
-      query,
-      req.query.idRegional,
-    );
+    const condition = String(req.query.idRegional);
+
+    const filters = await this.filtersService.getFilters(query, condition);
 
     return filters;
   }

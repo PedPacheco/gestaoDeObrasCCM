@@ -1,8 +1,8 @@
+import { NotesInput } from 'src/application/types';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
 } from 'src/domain/contracts/IAuxiliaryBaseRepository';
-import { NotesDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
 import { OperationType } from 'src/interface/types/baseAuxiliaryInterface';
 
 import { Inject, Injectable } from '@nestjs/common';
@@ -15,7 +15,7 @@ interface InsertNotesResult {
 }
 
 interface ValidationResult {
-  validatedData: NotesDTO[];
+  validatedData: NotesInput[];
   skippedNotes: string[];
 }
 
@@ -28,7 +28,7 @@ export class AuxiliaryNotesInsertService {
   ) {}
 
   async execute(
-    data: NotesDTO[],
+    data: NotesInput[],
     operation: OperationType,
   ): Promise<InsertNotesResult> {
     if (!data?.length) {
@@ -69,10 +69,10 @@ export class AuxiliaryNotesInsertService {
   }
 
   private async validateAndFilterExistingData(
-    data: NotesDTO[],
+    data: NotesInput[],
     operation: OperationType,
   ): Promise<ValidationResult> {
-    const validatedData: NotesDTO[] = [];
+    const validatedData: NotesInput[] = [];
     const skippedNotes: string[] = [];
 
     const orderingFields = data.map((item) => item.campo_ordenacao.toString());
@@ -117,7 +117,7 @@ export class AuxiliaryNotesInsertService {
   }
 
   private shouldSkipItem(
-    notesData: any,
+    notesData: NotesInput,
     existingNotesSet: Set<string>,
     existingOrdersSet: Set<string>,
   ): { noteExists: boolean; orderExists: boolean } {
