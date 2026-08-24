@@ -20,7 +20,9 @@ describe('SuspensionWorkService', () => {
         SuspensionWorkService,
         {
           provide: FindExistingWorksService,
-          useValue: { findExistingWorks: jest.fn() },
+          useValue: {
+            findExistingWorksOnSuspension: jest.fn(),
+          },
         },
         { provide: SUSPENSION_WORK_REPOSITORY, useValue: mockRepository },
       ],
@@ -69,10 +71,12 @@ describe('SuspensionWorkService', () => {
 
     it('should call method create of suspensionWorkRepository with correct data', async () => {
       jest
-        .spyOn(findExistingWorksService, 'findExistingWorks')
+        .spyOn(findExistingWorksService, 'findExistingWorksOnSuspension')
         .mockResolvedValue([{ id: 1, ovnota: '2134' }]);
 
-      const data = [{ ovnota: '2134', motivo: 'Obra suspensa' }];
+      const data = [
+        { ovnota: '2134', ordemDiagrama: '190000', motivo: 'Obra suspensa' },
+      ];
 
       await suspensionWorkService.createMultipleSuspensions(data);
 
@@ -83,10 +87,10 @@ describe('SuspensionWorkService', () => {
 
     it('should throw error if reason of suspension not sent', async () => {
       jest
-        .spyOn(findExistingWorksService, 'findExistingWorks')
+        .spyOn(findExistingWorksService, 'findExistingWorksOnSuspension')
         .mockResolvedValue([{ id: 1, ovnota: '2134' }]);
 
-      const data = [{ ovnota: '2134', motivo: '' }];
+      const data = [{ ovnota: '2134', ordemDiagrama: '190000', motivo: '' }];
 
       await expect(
         suspensionWorkService.createMultipleSuspensions(data),
@@ -101,10 +105,12 @@ describe('SuspensionWorkService', () => {
 
     it('should throw error if reason of suspension not sent', async () => {
       jest
-        .spyOn(findExistingWorksService, 'findExistingWorks')
+        .spyOn(findExistingWorksService, 'findExistingWorksOnSuspension')
         .mockResolvedValue([{ id: 1, ovnota: '2134' }]);
 
-      const data = [{ ovnota: '21355', motivo: 'ano do plano' }];
+      const data = [
+        { ovnota: '21355', ordemDiagrama: '190000', motivo: 'ano do plano' },
+      ];
 
       await expect(
         suspensionWorkService.createMultipleSuspensions(data),

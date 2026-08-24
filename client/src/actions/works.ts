@@ -214,7 +214,13 @@ export async function InsertContract(data: any) {
   }
 }
 
-export async function SuspensionsWorks(data: any) {
+export async function SuspensionsWorks(
+  data: {
+    ovnota: string;
+    ordemDiagrama: string;
+    motivo: string;
+  }[],
+) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 

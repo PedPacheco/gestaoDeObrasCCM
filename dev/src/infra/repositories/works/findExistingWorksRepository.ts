@@ -22,6 +22,39 @@ export class FindExistingWorksRepository implements IFindExistingWorksRepository
     return existing.map((work) => ({ id: work.id, ovnota: work.ovnota }));
   }
 
+  async findExistingWorksOnSuspension(
+    works: { ovnota: string; ordemDiagrama: string }[],
+  ): Promise<{ id: number; ovnota: string }[]> {
+    try {
+      if (works.length === 0) return [];
+
+      const existing = await this.prisma.obras.findMany({
+        where: {
+          OR: works.map((w) => ({
+            AND: [
+              { ovnota: w.ovnota },
+              {
+                OR: [
+                  { ordem_dci: w.ordemDiagrama },
+                  { ordem_dca: w.ordemDiagrama },
+                  { ordem_dcd: w.ordemDiagrama },
+                  { ordem_dcim: w.ordemDiagrama },
+                  { diagrama: w.ordemDiagrama },
+                ],
+              },
+            ],
+          })),
+        },
+        select: { id: true, ovnota: true },
+      });
+
+      return existing.map((work) => ({ id: work.id, ovnota: work.ovnota }));
+    } catch (error: any) {
+      this.logger.error(`Erro ao buscar obra de mercado:`, error.stack);
+      throw error;
+    }
+  }
+
   async findExistingNotes(filters: any[]): Promise<
     {
       id: number;

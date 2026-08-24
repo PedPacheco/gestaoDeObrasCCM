@@ -7,6 +7,9 @@ export interface filtersOrders {
 
 export interface IFindExistingWorksRepository {
   findExistingWorks(works: string[]): Promise<{ id: number; ovnota: string }[]>;
+  findExistingWorksOnSuspension(
+    works: { ovnota: string; ordemDiagrama: string }[],
+  ): Promise<{ id: number; ovnota: string }[]>;
   findExistingNotes(filters: any[]): Promise<
     {
       id: number;
