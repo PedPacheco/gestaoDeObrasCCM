@@ -1,4 +1,8 @@
 import {
+  FIND_SCHEDULE_BY_ID_REPOSITORY,
+  IFindScheduleByIdRepository,
+} from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
+import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
 } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
@@ -6,6 +10,8 @@ import {
   IWorkServicesRepository,
   WORK_SERVICES_REPOSITORY,
 } from 'src/domain/contracts/worksService/IWorkServicesRepository';
+import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {
   AddServicesDTO,
   ApplyAdditonalDTO,
@@ -18,22 +24,20 @@ import {
   Injectable,
   Logger,
 } from '@nestjs/common';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import {
-  IWorkServicesQueryRepository,
-  WORK_SERVICES_QUERY_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
-import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class WorksServicesService {
+  private readonly logger = new Logger(WorksServicesService.name);
+
   constructor(
+    private readonly prisma: PrismaService,
     @Inject(WORK_SERVICES_REPOSITORY)
     private readonly workServicesRepository: IWorkServicesRepository,
     @Inject(WORK_SERVICES_QUERY_REPOSITORY)
     private readonly workServicesQueryRepository: IWorkServicesQueryRepository,
-
+    @Inject(FIND_SCHEDULE_BY_ID_REPOSITORY)
+    private readonly schedulesRepository: IFindScheduleByIdRepository,
     private readonly scheduleProgressCalculator: ScheduleProgressCalculatorService,
   ) {}
 
@@ -43,16 +47,22 @@ export class WorksServicesService {
   ): Promise<void> {
     const idSchedule = data[0]?.idSchedule;
 
+    const { id_status_programacao } =
+      await this.schedulesRepository.findById(idSchedule);
+
     const onlyServices = data.filter((item) => item.type === 'S');
 
     const prog = await this.calculateScheduledProgress(workId, onlyServices);
 
     await this.validateScheduleServices(workId, data, prog);
 
+    const newStatus = id_status_programacao === 7 ? 1 : undefined;
+
     await this.workServicesRepository.scheduleServices(
       data,
       { increment: prog },
       idSchedule,
+      newStatus,
     );
   }
 
@@ -211,19 +221,6 @@ export class WorksServicesService {
     );
 
     return this.calculateProgress(scheduledPlan, totalPlan);
-  }
-
-  getServicesToReschedule(
-    history: any[],
-    scheduleId: number,
-  ): { id: number; id_servico: number }[] {
-    return history
-      .filter(
-        (item) =>
-          (item.real < item.prog || !item.real) &&
-          item.id_programacao === scheduleId,
-      )
-      .map((item) => ({ id: item.id, id_servico: item.id_servico }));
   }
 
   private sumServiceQuantities(services: any[]): number {

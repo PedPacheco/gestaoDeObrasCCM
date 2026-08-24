@@ -24,7 +24,7 @@ export class ExportReportToPubliationService {
       id: item.id,
 
       // usuario
-      nome_usuario: item.usuario?.nome_usuario ?? null,
+      nome_usuario: item.usuario?.nome ?? null,
 
       // obras
       ovnota: item.obras?.ovnota ?? null,

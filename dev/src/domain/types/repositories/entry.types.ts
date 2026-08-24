@@ -1,33 +1,17 @@
-interface Grupo {
-  grupo: string;
-}
-
-interface Tipos {
+type TiposEntryDay = {
   tipo_obra: string;
-  grupos: Grupo;
-}
+  grupos: { grupo: string };
+};
 
-export interface entryResponse {
-  ovnota: string;
-  mo_pend: number | null;
-  mo_planejada: number;
-  entrada: Date;
-  tipos: Tipos;
-}
-
-interface TiposEntryDay {
-  tipo_obra: string;
-}
-
-interface TurmasEntryDay {
+type TurmasEntryDay = {
   turma: string;
-}
+};
 
-interface MunicipiosEntryDay {
+type MunicipiosEntryDay = {
   mun: string;
-}
+};
 
-export interface EntryDayResponse {
+export type EntryDayResponse = {
   id: number;
   ovnota: string;
   pep: string;
@@ -40,13 +24,14 @@ export interface EntryDayResponse {
   prazo: number;
   qtde_planejada: number;
   mo_planejada: number;
+  mo_pend: number;
   observ_obra: string | null;
   tipos: TiposEntryDay;
   turmas: TurmasEntryDay;
   municipios: MunicipiosEntryDay;
-}
+};
 
-export interface ReturnGetValuesFromEntry {
+export type ReturnGetValuesFromEntry = {
   tipo: string;
   grupo: string;
   total_entrada: number;
@@ -75,4 +60,4 @@ export interface ReturnGetValuesFromEntry {
   nov_entrada_qtde: number;
   dez_entrada: number;
   dez_entrada_qtde: number;
-}
+};

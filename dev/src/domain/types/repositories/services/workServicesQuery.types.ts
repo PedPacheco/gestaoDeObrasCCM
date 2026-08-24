@@ -1,21 +1,11 @@
 import { Decimal } from '@prisma/client/runtime/library';
 
-export interface GetAllServicesOfWorkInterface {
-  id: number;
-  id_contrato_servico: number;
-  ponto: string;
-  operacao: string;
-  qtde_adicional: number;
-  viabilizado: number;
-  qtde_real: number;
-}
-
-export interface GetSelectedServicesParamsInterface {
+export type GetSelectedServicesParamsRequest = {
   id: number;
   idProgramacao: number;
-}
+};
 
-export interface GetServicesByWorkIdResponse {
+export type GetServicesByWorkIdResponse = {
   id: number;
   id_obra: number;
   id_contrato_servico: number;
@@ -36,9 +26,9 @@ export interface GetServicesByWorkIdResponse {
     texto_breve: string;
     preco: number;
   };
-}
+};
 
-export interface GetServicesSelectedByWorkIdResponse {
+export type GetServicesSelectedByWorkIdResponse = {
   id: number;
   id_obra: number;
   operacao: string;
@@ -58,9 +48,9 @@ export interface GetServicesSelectedByWorkIdResponse {
   };
   programacoes: { data_prog: Date };
   equipes: { equipe: string; encarregado: string; perfil: string };
-}
+};
 
-export interface GetServiceScheduleHistoryResponse {
+export type GetServiceScheduleHistoryResponse = {
   id: number;
   id_servico: number;
   servicos: {
@@ -79,9 +69,34 @@ export interface GetServiceScheduleHistoryResponse {
   prog: number;
   real: number;
   adicional: number;
-}
+};
 
-export interface GetServiceOptionsResponse {
+export type GetServiceOptionsResponse = {
   operation_description: string[];
   points: string[];
-}
+};
+
+export type GetServicesContractsResponse = {
+  id: number;
+  texto_breve: string;
+  material: string;
+  preco: number;
+  contrato: string;
+  medida: string;
+  turmas: { turma: string };
+};
+
+export type GetMaterialsContractsResponse = {
+  id: number;
+  codigo: string;
+  descricao: string;
+  unidade: string;
+  preco: Decimal;
+};
+
+export type GetTeamsServicesResponse = {
+  id: number;
+  equipe: string;
+  encarregado: string;
+  perfil: string;
+};

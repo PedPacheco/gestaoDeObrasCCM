@@ -1,18 +1,17 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { gap_analysis_audits } from '@prisma/client';
-
+import { gap_analysis } from '@prisma/client';
 import {
   CreateGapAnalysisAuditData,
   GAP_ANALYSIS_AUDIT_REPOSITORY,
   IGapAnalysisAuditRepository,
   UpdateGapAnalysisAuditData,
-} from 'src/domain/repositories/IGapAnalysisAuditRepository';
+} from 'src/domain/contracts/IGapAnalysisAuditRepository';
 
-export interface AuditWithComputed extends gap_analysis_audits {
+export interface AuditWithComputed extends gap_analysis {
   data_gap: string;
-  score_final: string;
+  score_final: number;
   evolucao: string;
-  itens_pendentes_no_prazo: string;
+  itens_pendentes_no_prazo: number;
 }
 
 @Injectable()
@@ -22,25 +21,22 @@ export class GapAnalysisAuditService {
     private readonly repo: IGapAnalysisAuditRepository,
   ) {}
 
-  private computeFields(audit: gap_analysis_audits): AuditWithComputed {
+  private computeFields(audit: gap_analysis): AuditWithComputed {
     let dataGap = '';
-    if (audit.data_fim) {
-      const parts = audit.data_fim.split('-');
-      if (parts.length >= 2) {
-        dataGap = `${parts[1]}/${parts[0]}`;
-      }
+
+    if (audit.data_fim instanceof Date) {
+      const month = String(audit.data_fim.getMonth() + 1).padStart(2, '0');
+      const year = audit.data_fim.getFullYear();
+
+      dataGap = `${month}/${year}`;
     }
 
-    const scoreFinal = audit.gap_atual || '';
+    const scoreFinal = audit.gap_atual || 0;
 
-    const total =
-      parseInt(audit.quantidade_desvios_planejados || '0') || 0;
-    const execNoPrazo =
-      parseInt(audit.quantidade_desvios_executados || '0') || 0;
-    const execForaPrazo =
-      parseInt(audit.executados_fora_prazo || '0') || 0;
-    const pendForaPrazo =
-      parseInt(audit.itens_pendentes_fora_do_prazo || '0') || 0;
+    const total = audit.quantidade_desvios_planejados || 0;
+    const execNoPrazo = audit.quantidade_desvios_executados || 0;
+    const execForaPrazo = audit.executados_fora_prazo || 0;
+    const pendForaPrazo = audit.itens_pendentes_fora_do_prazo || 0;
     const evolucao =
       total > 0
         ? Math.round(((execNoPrazo + execForaPrazo) / total) * 100).toString()
@@ -48,7 +44,7 @@ export class GapAnalysisAuditService {
     const noPrazo = Math.max(
       0,
       total - execNoPrazo - execForaPrazo - pendForaPrazo,
-    ).toString();
+    );
 
     return {
       ...audit,

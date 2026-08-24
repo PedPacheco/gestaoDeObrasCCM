@@ -2,13 +2,11 @@ import {
   GetEntryOfWorksByDayDTO,
   GetEntryOfWorksDTO,
 } from 'src/interface/dtos/entryDto';
-import {
-  EntryDayResponse,
-  entryResponse,
-} from 'src/interface/types/entryInterface';
+
+import { EntryDayResponse } from '../types';
 
 export interface IEntryRepository {
-  getValuesFromEntry(filters: GetEntryOfWorksDTO): Promise<entryResponse[]>;
+  getValuesFromEntry(filters: GetEntryOfWorksDTO): Promise<EntryDayResponse[]>;
   getEntryOfWorksByDay(
     filters: GetEntryOfWorksByDayDTO,
     dateRange: Record<string, Date>,

@@ -1,4 +1,6 @@
+import moment from 'moment';
 import { FileService } from 'src/application/usecases/file.service';
+import { HandleFeasibilityService } from 'src/application/usecases/orchestrators/handleFeasibilityUpload.service';
 
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
@@ -7,15 +9,13 @@ import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
 import { BadGatewayException, BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
-  FEASIBILITY_REPOSITORY,
-  IFeasibilityRepository,
-} from 'src/domain/contracts/IFeasibilityRepository';
-import { HandleFeasibilityService } from 'src/application/usecases/orchestrators/handleFeasibilityUpload.service';
-import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/contracts/IStatusFlowRepository';
-import moment from 'moment';
+import {
+  FEASIBILITY_REPOSITORY,
+  IFeasibilityRepository,
+} from 'src/domain/contracts/IFeasibilityRepository';
 
 describe('HandleFeasibilityService', () => {
   let service: HandleFeasibilityService;
@@ -44,6 +44,7 @@ describe('HandleFeasibilityService', () => {
       makeItemsFeasible: jest.fn(),
       getProjectDate: jest.fn(),
       reject: jest.fn(),
+      updateFiles: jest.fn(),
       approve: jest.fn(),
       findFiles: jest.fn(),
     };
@@ -545,19 +546,29 @@ describe('HandleFeasibilityService', () => {
   describe('approve', () => {
     describe('happy path', () => {
       it('should execute all operations inside a transaction', async () => {
-        await service.approve(1, 2);
+        await service.approve(1, 2, []);
 
         expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
       });
 
-      it('should call feasibilityRepository.reject with correct data', async () => {
-        await service.approve(1, 2);
+      it('should call feasibilityRepository.approve with correct data', async () => {
+        mockFeasibilityRepository.findFiles.mockResolvedValue({
+          id: 1,
+          caminhos_arquivos: undefined,
+        });
 
+        await service.approve(1, 2, [makeFile()]);
+
+        expect(mockFeasibilityRepository.updateFiles).toHaveBeenCalledWith(
+          1,
+          ['report.pdf'],
+          {},
+        );
         expect(feasibilityRepository.approve).toHaveBeenCalledWith(1, 2, {});
       });
 
       it('should update status to 45 (rejected)', async () => {
-        await service.approve(1, 2);
+        await service.approve(1, 2, []);
 
         expect(statusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
           1,
@@ -576,9 +587,27 @@ describe('HandleFeasibilityService', () => {
           callOrder.push('updateStatusWorks');
         });
 
-        await service.approve(1, 2);
+        await service.approve(1, 2, []);
 
         expect(callOrder).toEqual(['approve', 'updateStatusWorks']);
+      });
+
+      it('should call updateFiles if new file is sent', async () => {
+        const files = [makeFile()];
+
+        mockFeasibilityRepository.findFiles.mockResolvedValue({
+          id: 1,
+          caminhos_arquivos: ['doc.pdf'],
+        });
+
+        await service.approve(1, 2, files);
+
+        expect(mockFeasibilityRepository.findFiles).toHaveBeenCalledTimes(1);
+        expect(mockFeasibilityRepository.updateFiles).toHaveBeenCalledWith(
+          1,
+          ['doc.pdf', 'report.pdf'],
+          {},
+        );
       });
     });
 
@@ -588,7 +617,9 @@ describe('HandleFeasibilityService', () => {
           new Error('Database error'),
         );
 
-        await expect(service.approve(1, 2)).rejects.toThrow('Database error');
+        await expect(service.approve(1, 2, [])).rejects.toThrow(
+          'Database error',
+        );
       });
 
       it('should propagate error when updateStatusWorks fails', async () => {
@@ -596,7 +627,7 @@ describe('HandleFeasibilityService', () => {
           new Error('Status transition not allowed'),
         );
 
-        await expect(service.approve(1, 2)).rejects.toThrow(
+        await expect(service.approve(1, 2, [])).rejects.toThrow(
           'Status transition not allowed',
         );
       });
@@ -604,7 +635,7 @@ describe('HandleFeasibilityService', () => {
       it('should not call updateStatusWorks if approve fails', async () => {
         feasibilityRepository.approve.mockRejectedValueOnce(new Error('fail'));
 
-        await expect(service.approve(1, 2)).rejects.toThrow();
+        await expect(service.approve(1, 2, [])).rejects.toThrow();
 
         expect(statusFlowRepository.updateStatusWorks).not.toHaveBeenCalled();
       });

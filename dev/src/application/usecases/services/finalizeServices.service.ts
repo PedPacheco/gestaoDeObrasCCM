@@ -1,29 +1,29 @@
-import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
-import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
-import { GetServicesByWorkIdResponse } from 'src/interface/types/servicesInterface';
-
-import { Inject, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-
-import { ExecutionReportService } from '../executionReport.service';
-import { ScheduleExecutionValidatorService } from '../schedule/scheduleExecutionValidator.service';
+import {
+  IStatusFlowRepository,
+  STATUS_FLOW_REPOSITORY,
+} from 'src/domain/contracts/IStatusFlowRepository';
 import {
   IWorkServicesExecutionRepository,
   WORK_SERVICES_EXECUTION_REPOSITORY,
 } from 'src/domain/contracts/worksService/IWorkServicesExecutionRepository';
 import {
-  IWorkServicesRepository,
-  WORK_SERVICES_REPOSITORY,
-} from 'src/domain/contracts/worksService/IWorkServicesRepository';
-import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
 } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
 import {
-  IStatusFlowRepository,
-  STATUS_FLOW_REPOSITORY,
-} from 'src/domain/contracts/IStatusFlowRepository';
+  IWorkServicesRepository,
+  WORK_SERVICES_REPOSITORY,
+} from 'src/domain/contracts/worksService/IWorkServicesRepository';
+import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
+import { GetServicesByWorkIdResponse } from 'src/interface/types/servicesInterface';
+
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+
+import { ExecutionReportService } from '../executionReport.service';
+import { ScheduleExecutionValidatorService } from '../schedule/scheduleExecutionValidator.service';
 
 interface FinalizationData {
   id: number;
@@ -39,7 +39,10 @@ interface FinalizationData {
 
 @Injectable()
 export class FinalizeServicesService {
+  private readonly logger = new Logger(FinalizeServicesService.name);
+
   constructor(
+    private readonly prisma: PrismaService,
     @Inject(WORK_SERVICES_EXECUTION_REPOSITORY)
     private readonly worksServicesExecutionRepository: IWorkServicesExecutionRepository,
     @Inject(WORK_SERVICES_REPOSITORY)
@@ -51,7 +54,6 @@ export class FinalizeServicesService {
     private readonly executionReportService: ExecutionReportService,
     private readonly executionValidator: ScheduleExecutionValidatorService,
     private readonly scheduleProgressCalculator: ScheduleProgressCalculatorService,
-    private readonly prisma: PrismaService,
   ) {}
 
   async performServices(data: PerformServicesDTO[]): Promise<void> {
@@ -89,9 +91,9 @@ export class FinalizeServicesService {
   }
 
   async finalizeServices(
-    data: FinalizationData,
-    pendingIds: number[],
-    tx: any,
+    workId: number,
+    data: any,
+    files?: Express.Multer.File[],
   ): Promise<void> {
     const { executionReportData, userId, ...updateData } = data;
 
@@ -153,7 +155,7 @@ export class FinalizeServicesService {
       );
   }
 
-  getPendingExecServices(history: any[], scheduleId: number): number[] {
+  private getPendingExecServices(history: any[], scheduleId: number): number[] {
     return history
       .filter(
         (service) =>

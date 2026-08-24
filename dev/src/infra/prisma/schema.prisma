@@ -512,19 +512,18 @@ model turmas {
 }
 
 model relatorio_viabilidade {
-  id                                                                                    Int                       @id(map: "relatorio_viabilidade_novo_pkey") @default(autoincrement())
-  id_obra                                                                               Int                       @unique(map: "uq_relatorio_viabilidade_obra")
-  caminhos_arquivos                                                                     String[]
-  id_usuario                                                                            Int
-  aprovada                                                                              Boolean?
-  data_aprovacao                                                                        DateTime?                 @db.Timestamptz(6)
-  data_envio                                                                            DateTime?                 @db.Timestamptz(6)
-  id_usuario_aprovador                                                                  Int?
-  prazo_viabilidade                                                                     String?                   @db.VarChar
-  obras                                                                                 obras                     @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
-  novo_tabela_usuarios                                                                  novo_tabela_usuarios      @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario")
-  novo_tabela_usuarios_relatorio_viabilidade_id_usuario_aprovadorTonovo_tabela_usuarios novo_tabela_usuarios?     @relation("relatorio_viabilidade_id_usuario_aprovadorTonovo_tabela_usuarios", fields: [id_usuario_aprovador], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_aprovador")
-  reprovacoes_viabilidade                                                               reprovacoes_viabilidade[]
+  id                      Int                       @id @default(autoincrement())
+  id_obra                 Int                       @unique(map: "uq_relatorio_viabilidade_obra")
+  id_usuario              Int
+  caminhos_arquivos       String[]
+  aprovada                Boolean?                  @default(false)
+  data_envio              DateTime?                 @db.Timestamp(6)
+  data_aprovacao          DateTime?                 @db.Timestamp(6)
+  id_usuario_aprovador    Int?
+  prazo_viabilidade       String?                   @default("FALTA VIABILIDADE") @db.VarChar(25)
+  obras                   obras                     @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
+  novo_tabela_usuarios    novo_tabela_usuarios      @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario")
+  reprovacoes_viabilidade reprovacoes_viabilidade[]
 }
 
 model notas_d5 {
@@ -670,7 +669,7 @@ model plano_capex {
   grupos      grupos    @relation(fields: [id_grupo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_grupo")
   regionais   regionais @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regional")
 
-  @@index([id_grupo], map: "fki_fk_grupo")
+  @@index([id_grupo])
 }
 
 model forecast_snapshot {
@@ -789,6 +788,7 @@ model gap_analysis {
   criado_em                     DateTime? @default(now()) @db.Timestamp(6)
   atualizado_em                 DateTime? @db.Timestamp(6)
 }
+
 
 model materiais {
   id        Int        @id

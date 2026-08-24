@@ -1,8 +1,6 @@
 import { useRouter } from "next/navigation";
 import { DragEvent, useEffect, useRef, useState, useTransition } from "react";
 
-import { deleteFeasibilityFiles } from "@/actions/feasibility";
-import { useFeedback } from "@/hooks/useFeedback";
 import { DisplayFile } from "@/types/feasibility";
 import {
   DocumentArrowUpIcon,
@@ -14,14 +12,14 @@ import {
 
 import { ButtonComponent } from "../common/Button";
 import ModalComponent from "../common/Modal";
+import { useUser } from "@/contexts/userContext";
 
 interface FeasibilityFileUploadStepProps {
   files: DisplayFile[];
   uploading: boolean;
   dragActive: boolean;
   termsAccepted: boolean;
-  idWork: number;
-  readOnly?: boolean;
+  workflowStatus: string;
   onTermsAccepted: React.Dispatch<boolean>;
   onFilesSelected: (files: FileList | null) => void;
   onDrag: (e: DragEvent) => void;
@@ -34,8 +32,7 @@ export function FeasibilityFileUploadStep({
   uploading,
   dragActive,
   termsAccepted,
-  readOnly = false,
-  idWork,
+  workflowStatus,
   onTermsAccepted,
   onFilesSelected,
   onDrag,
@@ -44,9 +41,9 @@ export function FeasibilityFileUploadStep({
 }: FeasibilityFileUploadStepProps) {
   const router = useRouter();
 
-  const { showSuccess, showError } = useFeedback();
+  const { permissions } = useUser();
 
-  const [isPending, startTransition] = useTransition();
+  const [isPending] = useTransition();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -75,32 +72,20 @@ export function FeasibilityFileUploadStep({
     setOpenConfirmModal(false);
     router.refresh();
     return;
-
-    // // Arquivo salvo
-    // startTransition(async () => {
-    //   try {
-    //     const response = await deleteFeasibilityFiles(idWork);
-
-    //     if (!response.success) {
-    //       showError("Erro ao excluir viabilidade");
-    //       return;
-    //     }
-
-    //     showSuccess(response.message);
-
-    //     router.refresh();
-    //   } catch (error: any) {
-    //     showError(error.message);
-    //   } finally {
-    //     setOpenConfirmModal(false);
-    //   }
-    // });
   };
+
+  const isEditableForPartner = workflowStatus === "adicao";
+
+  const isEditableForEnabler =
+    ["adicao", "aprovacao"].includes(workflowStatus) &&
+    permissions?.tipo_usuario === "INTERNO";
+
+  const readOnly = isEditableForEnabler || isEditableForPartner;
 
   return (
     <>
       {/* Dropzone */}
-      {!readOnly && (
+      {readOnly && (
         <div
           onDragEnter={onDrag}
           onDragOver={onDrag}
@@ -139,9 +124,9 @@ export function FeasibilityFileUploadStep({
         </div>
       )}
       {/* Regras */}
-      {!readOnly && (
+      {readOnly && (
         <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-xs text-zinc-400">
-          <span>● Máximo de 3 arquivos</span>
+          <span>● Máximo de 5 arquivos</span>
           <span>● Formatos: PDF ou JPEG</span>
           <span>● Tamanho máximo: 5 MB</span>
         </div>
@@ -202,7 +187,7 @@ export function FeasibilityFileUploadStep({
                     )}
                   </div>
 
-                  {!readOnly && (
+                  {isEditableForPartner && (
                     <button
                       onClick={(e) => {
                         e.preventDefault();
@@ -229,7 +214,7 @@ export function FeasibilityFileUploadStep({
           Nenhum arquivo enviado.
         </p>
       ) : null}
-      {!readOnly && files.length > 0 && (
+      {isEditableForPartner && files.length > 0 && (
         <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4">
           <label className="flex items-start gap-3 cursor-pointer">
             <input

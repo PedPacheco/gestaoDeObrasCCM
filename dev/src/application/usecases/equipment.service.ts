@@ -1,8 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import {
   EQUIPMENT_REPOSITORY,
   IEquipmentRepository,
-} from 'src/domain/contracts/repositories/IEquipmentRepository';
+} from 'src/domain/contracts/IEquipmentRepository';
+
 import { GetEquipmentDTO } from 'src/interface/dtos/equipmentsDTO';
 
 @Injectable()
@@ -21,7 +23,7 @@ export class EquipmentService {
       .flatMap((q) => q.ordemDiagrama?.split(',') ?? [])
       .filter(Boolean);
 
-    const where: any = {};
+    const where: Prisma.obrasWhereInput = {};
 
     if (hasReference) {
       where.referencia = {

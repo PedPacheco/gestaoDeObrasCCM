@@ -7,7 +7,6 @@ import {
   FIND_SCHEDULE_BY_ID_REPOSITORY,
   IFindScheduleByIdRepository,
 } from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
-// import { ExecutionReportDataDTO } from 'src/interface/dtos/executionReportDTO';
 import { ExecutionReportServiceInterface } from 'src/interface/types/executionReportInterface';
 
 import {
@@ -19,6 +18,7 @@ import {
 import { Prisma } from '@prisma/client';
 import { FileService } from './file.service';
 import { AppLogger } from 'src/core/logger/logger.service';
+import { UpdateExecutionReportInput } from '../types';
 
 @Injectable()
 export class ExecutionReportService {
@@ -39,7 +39,7 @@ export class ExecutionReportService {
     const result = await this.executionReportRepository.findByWorkId(idWork);
 
     const formatted = result.map((item) => ({
-      nome_usuario: item.usuario?.nome_usuario,
+      nome_usuario: item.usuario?.nome,
       ovnota: item.obras?.ovnota,
       ordem_dci: item.obras?.ordem_dci,
       tipo_obra: item.obras?.tipos?.tipo_obra,
@@ -111,7 +111,7 @@ export class ExecutionReportService {
 
   async update(
     idExecutionReport: number,
-    data: any,
+    data: UpdateExecutionReportInput,
     files?: Express.Multer.File[],
   ) {
     if (!data) {
@@ -153,7 +153,8 @@ export class ExecutionReportService {
         updatedData,
         scheduledFinishTime.hora_ter,
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { message: string };
       this.cleanupFiles(files);
 
       this.logger.error('Falha ao instanciar ExecutionReport para update', {
@@ -162,9 +163,7 @@ export class ExecutionReportService {
         error,
       });
 
-      throw new BadRequestException(
-        `Erro ao criar relatório: ${error.message}`,
-      );
+      throw new BadRequestException(`Erro ao criar relatório: ${err.message}`);
     }
 
     await this.executionReportRepository.update(

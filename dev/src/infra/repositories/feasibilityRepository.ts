@@ -97,6 +97,21 @@ export class FeasibilityRepository implements IFeasibilityRepository {
     });
   }
 
+  async updateFiles(
+    workId: number,
+    paths: string[],
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    await tx.relatorio_viabilidade.update({
+      where: {
+        id_obra: workId,
+      },
+      data: {
+        caminhos_arquivos: paths,
+      },
+    });
+  }
+
   async findFiles(
     idWork: number,
   ): Promise<{ id: number; caminhos_arquivos: string[] }> {

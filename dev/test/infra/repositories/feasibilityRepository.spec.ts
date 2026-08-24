@@ -13,6 +13,7 @@ describe('FeasibilityRepository', () => {
       findFirst: jest.fn(),
       createMany: jest.fn(),
       deleteMany: jest.fn(),
+      update: jest.fn(),
     },
     reprovacoes_viabilidade: {
       findMany: jest.fn(),
@@ -308,6 +309,19 @@ describe('FeasibilityRepository', () => {
         },
       });
       expect(mockTx.relatorio_viabilidade.update).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('updateFiles', () => {
+    it('Should call the file update method and update the `relatorio_viabilidade` table with the new paths.', async () => {
+      await repository.updateFiles(1, ['doc.pdf', 'word.pdf'], mockTx);
+
+      expect(mockTx.relatorio_viabilidade.update).toHaveBeenCalledWith({
+        where: { id_obra: 1 },
+        data: {
+          caminhos_arquivos: ['doc.pdf', 'word.pdf'],
+        },
+      });
     });
   });
 });

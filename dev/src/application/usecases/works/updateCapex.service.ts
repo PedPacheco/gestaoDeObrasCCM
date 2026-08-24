@@ -9,7 +9,7 @@ import {
   IUpdateCapexRepository,
   UPDATE_CAPEX_REPOSITORY,
 } from 'src/domain/contracts/works/IUpdateCapexRepository';
-import { GetAuxiliaryBaseMaterialsInterface } from 'src/interface/types/works/capexInterface';
+// import { GetAuxiliaryBaseMaterialsInterface } from 'src/interface/types/works/capexInterface';
 
 export interface CalculatedValue {
   id: number;
@@ -150,9 +150,7 @@ export class UpdateCapexService {
 
   // ─── Helpers privados ──────────────────────────────────────────────
 
-  private extractAllMaterials(
-    validatedData: GetAuxiliaryBaseMaterialsInterface[],
-  ) {
+  private extractAllMaterials(validatedData: any[]) {
     return validatedData.map((item) => ({
       material: item.material,
       pep_ref: item.def_proj,
@@ -160,7 +158,7 @@ export class UpdateCapexService {
   }
 
   private calculateCapexValues(
-    materialData: GetAuxiliaryBaseMaterialsInterface[],
+    materialData: any[],
     fatorMap: Map<string, number>,
     deletedMaterials: any[],
   ): CalculatedValue[] {

@@ -63,8 +63,13 @@ export class ValidateAndConfirmSchedulesRepository implements IValidateConfirmAn
       where: { id: data.id },
       data: {
         reprovada: data.reject,
+        confirmada: false,
+        validada: false,
         id_status_programacao: 7,
       },
     });
+  }
+  catch(error) {
+    throw error;
   }
 }

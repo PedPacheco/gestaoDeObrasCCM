@@ -15,6 +15,11 @@ export interface IFeasibilityRepository {
     paths: string[],
     tx: Prisma.TransactionClient,
   ): Promise<void>;
+  updateFiles(
+    workId: number,
+    paths: string[],
+    tx: Prisma.TransactionClient,
+  ): Promise<void>;
   makeItemsFeasible(
     items: ServiceMaterialItemDto[],
     tx: Prisma.TransactionClient,

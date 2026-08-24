@@ -7,9 +7,9 @@ import {
   GetEntryOfWorksByDayDTO,
   GetEntryOfWorksDTO,
 } from 'src/interface/dtos/entryDto';
-import { ReturnGetValuesFromEntry } from 'src/interface/types/entryInterface';
 
 import { Inject, Injectable } from '@nestjs/common';
+import { EntryDayResponse, ReturnGetValuesFromEntry } from 'src/domain/types';
 
 @Injectable()
 export class EntryService {
@@ -90,7 +90,7 @@ export class EntryService {
     let total_mo_planejada = 0;
     let total_qtde_planejada = 0;
 
-    const updatedWorks = result.map((item: any) => {
+    const updatedWorks = result.map((item: EntryDayResponse) => {
       total_obras++;
       total_mo_planejada += item.mo_planejada;
       total_qtde_planejada += item.qtde_planejada;

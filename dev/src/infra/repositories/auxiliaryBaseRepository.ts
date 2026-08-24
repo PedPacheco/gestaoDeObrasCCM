@@ -51,20 +51,27 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     for (let attempt = 1; attempt <= this.MAX_RETRIES; attempt++) {
       try {
         return await operation();
-      } catch (error: any) {
-        const msg: string = (error?.message ?? '').toLowerCase();
-        const code: string = error?.code ?? '';
+      } catch (error: unknown) {
+        const err = error as {
+          message?: string;
+          code?: string;
+        };
+
+        const msg = (err.message ?? '').toLowerCase();
+        const code = err.code ?? '';
 
         const isConnectionError =
           CONNECTION_ERROR_CODES.has(code) ||
           CONNECTION_ERROR_MESSAGES.some((m) => msg.includes(m));
 
         if (isConnectionError && attempt < this.MAX_RETRIES) {
-          const delayMs = 300 * 2 ** (attempt - 1); // 300ms, 600ms, 1200ms…
+          const delayMs = 300 * 2 ** (attempt - 1);
+
           this.logger.warn(
-            `Operação Tentativa ${attempt}/${this.MAX_RETRIES} falhou (${error.message}). ` +
+            `Operação Tentativa ${attempt}/${this.MAX_RETRIES} falhou (${err.message}). ` +
               `Aguardando ${delayMs}ms antes de tentar novamente.`,
           );
+
           await new Promise((res) => setTimeout(res, delayMs));
           continue;
         }
@@ -245,18 +252,18 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     return map;
   }
 
-  async delete(tableToDelete: string, id?: number): Promise<any> {
+  async delete(tableToDelete: string, id?: number): Promise<void> {
     if (tableToDelete === 'baseOv') {
       if (id) {
-        return await this.prisma.base_auxiliar_ov.delete({ where: { id } });
+        await this.prisma.base_auxiliar_ov.delete({ where: { id } });
       }
-      return await this.prisma.base_auxiliar_ov.deleteMany();
+      await this.prisma.base_auxiliar_ov.deleteMany();
     }
 
     if (id) {
-      return await this.prisma.base_auxiliar.delete({ where: { id } });
+      await this.prisma.base_auxiliar.delete({ where: { id } });
     } else {
-      return await this.prisma.base_auxiliar.deleteMany();
+      await this.prisma.base_auxiliar.deleteMany();
     }
   }
 

@@ -47,11 +47,11 @@ export class ExecutionReportController {
     @Body() data: UpdateExecutionReportDTO,
     @UploadedFiles() files?: Express.Multer.File[],
   ): Promise<any> {
-    const { id: idUser } = req.user;
+    const { id: userId } = req.user;
 
     await this.executionReportService.update(
       idExecutionReport,
-      { ...data.executionReportData, idUser },
+      { ...data.executionReportData, userId },
       files,
     );
 

@@ -88,6 +88,7 @@ export type FindByWorkIdResponse = {
 
 export type FindByIdResponse = {
   id: number;
+  id_obra: number;
   id_programacao: number;
   caminho_arquivo: string;
 };

@@ -1,12 +1,20 @@
+import moment from 'moment';
 import {
   FORECAST_SNAPSHOT,
   IForecastSnapshotRepository,
 } from 'src/domain/contracts/IForecastSnapshotRepository';
+import {
+  ForecastSnapshotDailyItem,
+  ForecastSnapshotGroupItem,
+} from 'src/domain/types';
 import { CreateForecastSnapshotDTO } from 'src/interface/dtos/forecastSnapshotDTO';
 
-import moment from 'moment';
-
 import { Inject, Injectable } from '@nestjs/common';
+
+import {
+  FormattedForecastSnapshotDaily,
+  FormattedForecastSnapshotGroup,
+} from '../types';
 
 @Injectable()
 export class ForecastSnapshotService {
@@ -44,7 +52,7 @@ export class ForecastSnapshotService {
   }
 
   async getAll(filters?: { startDate?: string; endDate?: string }) {
-    const where: any = {};
+    const where: { gerado_em?: { lte: Date; gte: Date } } = {};
 
     if (filters?.startDate || filters?.endDate) {
       where.gerado_em = {
@@ -74,8 +82,16 @@ export class ForecastSnapshotService {
     await this.repository.delete(id);
   }
 
-  private formatDaily(data: any): any {
-    if (!Array.isArray(data.summary)) return [];
+  private formatDaily(data: {
+    totals: number;
+    summary: ForecastSnapshotDailyItem[];
+  }): FormattedForecastSnapshotDaily {
+    if (!Array.isArray(data.summary)) {
+      return {
+        totals: 0,
+        summary: [],
+      };
+    }
 
     const formattedData = {
       totals: data.totals,
@@ -113,8 +129,11 @@ export class ForecastSnapshotService {
     return formattedData;
   }
 
-  private formatGroup(data: any): any {
-    if (!Array.isArray(data.summary)) return [];
+  private formatGroup(data: {
+    totals: number;
+    summary: ForecastSnapshotGroupItem[];
+  }): FormattedForecastSnapshotGroup {
+    if (!Array.isArray(data.summary)) return { totals: 0, summary: [] };
 
     const formattedData = {
       totals: data.totals,

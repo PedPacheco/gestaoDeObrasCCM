@@ -8,7 +8,7 @@ export interface IUpdateCapexRepository {
    * @param onProgress  Callback opcional para reportar progresso (gravação)
    */
   update(data: CalculatedValue[], onProgress?: ProgressEmitter): Promise<void>;
-  getDeletedMaterials(): Promise<any>;
+  getDeletedMaterials(): Promise<{ material: string }[]>;
 }
 
 export const UPDATE_CAPEX_REPOSITORY = Symbol('UpdateCapexRepository');

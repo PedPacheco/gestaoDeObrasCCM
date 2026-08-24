@@ -3,12 +3,13 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 
 import { IRejectionOfSchedulesRepository } from 'src/domain/contracts/schedule/IRejectionsOfSchedules';
+import { RejectionOfSchedulesGetResponse } from 'src/domain/types';
 
 @Injectable()
 export class RejectionsOfSchedulesRepository implements IRejectionOfSchedulesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async get(idWork): Promise<any[]> {
+  async get(idWork): Promise<RejectionOfSchedulesGetResponse[]> {
     const value = idWork.toString();
 
     return await this.prisma.programacoes_reprovacoes.findMany({

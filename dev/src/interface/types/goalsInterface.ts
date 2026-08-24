@@ -1,35 +1,7 @@
-interface valuesGoals {
-  meta: number;
-  prog: number;
-  real: number;
-}
-
-export interface Goals {
-  id_tipo: number;
-  id_parceira: number;
-  id_regional: number;
-  tipo_obra: string;
-  turma: string;
-  regional: string;
-  empreendimento?: string;
-  anocalc: number;
-  carteira: number;
-  jan: valuesGoals;
-  fev: valuesGoals;
-  mar: valuesGoals;
-  abr: valuesGoals;
-  mai: valuesGoals;
-  jun: valuesGoals;
-  jul: valuesGoals;
-  ago: valuesGoals;
-  set: valuesGoals;
-  out: valuesGoals;
-  nov: valuesGoals;
-  dez: valuesGoals;
-}
+import { GoalGroupedResponse } from 'src/application/types';
 
 export interface GoalsIntefaceController {
   statusCode: number;
   message: string;
-  data: Goals[];
+  data: GoalGroupedResponse[];
 }

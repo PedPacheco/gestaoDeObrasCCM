@@ -2,10 +2,12 @@ import {
   GOALS_REPOSITORY,
   IGoalsRepository,
 } from 'src/domain/contracts/IGoalsRepository';
+import { GetGoalsResponse } from 'src/domain/types';
 import { GoalsDTO } from 'src/interface/dtos/goalsDto';
-import { Goals } from 'src/interface/types/goalsInterface';
 
 import { Inject, Injectable } from '@nestjs/common';
+
+import { GoalGroupedResponse } from '../types';
 
 @Injectable()
 export class GoalsService {
@@ -14,13 +16,16 @@ export class GoalsService {
     @Inject(GOALS_REPOSITORY) private goalsRepository: IGoalsRepository,
   ) {}
 
-  async getGoals(filters: GoalsDTO): Promise<Goals[]> {
+  async getGoals(filters: GoalsDTO): Promise<GoalGroupedResponse[]> {
     const result = await this.goalsRepository.getGoals(filters);
     const response = this.transformData(result, filters.btzero);
     return response;
   }
 
-  private transformData(data: any[], btzero: boolean): any[] {
+  private transformData(
+    data: GetGoalsResponse[],
+    btzero: boolean,
+  ): GoalGroupedResponse[] {
     const months = [
       'jan',
       'fev',
@@ -36,7 +41,7 @@ export class GoalsService {
       'dez',
     ];
 
-    const grouped: Record<string, any> = {};
+    const grouped: Record<string, GoalGroupedResponse> = {};
 
     for (const item of data) {
       const { id_parceira, id_regional } = item;
@@ -55,11 +60,21 @@ export class GoalsService {
           turma: item.turma,
           regional: item.regional,
           anocalc: item.anocalc,
-
-          // inicializa carteira com zero para somar depois
           carteira: 0,
-
           empreendimento: item.empreendimento ?? undefined,
+
+          jan: { meta: 0, prog: 0, real: 0 },
+          fev: { meta: 0, prog: 0, real: 0 },
+          mar: { meta: 0, prog: 0, real: 0 },
+          abr: { meta: 0, prog: 0, real: 0 },
+          mai: { meta: 0, prog: 0, real: 0 },
+          jun: { meta: 0, prog: 0, real: 0 },
+          jul: { meta: 0, prog: 0, real: 0 },
+          ago: { meta: 0, prog: 0, real: 0 },
+          set: { meta: 0, prog: 0, real: 0 },
+          out: { meta: 0, prog: 0, real: 0 },
+          nov: { meta: 0, prog: 0, real: 0 },
+          dez: { meta: 0, prog: 0, real: 0 },
         };
 
         // meses zerados

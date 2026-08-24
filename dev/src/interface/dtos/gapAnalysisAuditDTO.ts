@@ -1,7 +1,9 @@
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsBoolean,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   ValidateNested,
@@ -9,12 +11,12 @@ import {
 
 export class CreateGapAnalysisAuditDTO {
   @IsNotEmpty()
-  @IsString()
-  parceira: string;
+  @IsNumber()
+  id_parceira: number;
 
   @IsOptional()
-  @IsString()
-  num_auditoria?: string;
+  @IsNumber()
+  num_auditoria?: number;
 
   @IsOptional()
   @IsString()
@@ -25,12 +27,12 @@ export class CreateGapAnalysisAuditDTO {
   data_fim?: string;
 
   @IsOptional()
-  @IsString()
-  gap_anterior?: string;
+  @IsNumber()
+  gap_anterior?: number;
 
   @IsOptional()
-  @IsString()
-  gap_atual?: string;
+  @IsNumber()
+  gap_atual?: number;
 
   @IsOptional()
   @IsString()
@@ -53,8 +55,8 @@ export class CreateGapAnalysisAuditDTO {
   validacao_plano_edp?: string;
 
   @IsOptional()
-  @IsString()
-  plano_validado?: string;
+  @IsBoolean()
+  plano_validado?: boolean;
 
   @IsOptional()
   @IsString()
@@ -73,20 +75,20 @@ export class CreateGapAnalysisAuditDTO {
   inicio_acompanhamento?: string;
 
   @IsOptional()
-  @IsString()
-  quantidade_desvios_planejados?: string;
+  @IsNumber()
+  quantidade_desvios_planejados?: number;
 
   @IsOptional()
-  @IsString()
-  quantidade_desvios_executados?: string;
+  @IsNumber()
+  quantidade_desvios_executados?: number;
 
   @IsOptional()
-  @IsString()
-  executados_fora_prazo?: string;
+  @IsNumber()
+  executados_fora_prazo?: number;
 
   @IsOptional()
-  @IsString()
-  itens_pendentes_fora_do_prazo?: string;
+  @IsNumber()
+  itens_pendentes_fora_do_prazo?: number;
 
   @IsOptional()
   @IsString()
@@ -98,13 +100,13 @@ export class CreateGapAnalysisAuditDTO {
 }
 
 export class UpdateGapAnalysisAuditDTO {
-  @IsOptional()
-  @IsString()
-  parceira?: string;
+  @IsNotEmpty()
+  @IsNumber()
+  id_parceira: number;
 
   @IsOptional()
-  @IsString()
-  num_auditoria?: string;
+  @IsNumber()
+  num_auditoria?: number;
 
   @IsOptional()
   @IsString()
@@ -115,12 +117,12 @@ export class UpdateGapAnalysisAuditDTO {
   data_fim?: string;
 
   @IsOptional()
-  @IsString()
-  gap_anterior?: string;
+  @IsNumber()
+  gap_anterior?: number;
 
   @IsOptional()
-  @IsString()
-  gap_atual?: string;
+  @IsNumber()
+  gap_atual?: number;
 
   @IsOptional()
   @IsString()
@@ -143,8 +145,8 @@ export class UpdateGapAnalysisAuditDTO {
   validacao_plano_edp?: string;
 
   @IsOptional()
-  @IsString()
-  plano_validado?: string;
+  @IsBoolean()
+  plano_validado?: boolean;
 
   @IsOptional()
   @IsString()
@@ -163,20 +165,20 @@ export class UpdateGapAnalysisAuditDTO {
   inicio_acompanhamento?: string;
 
   @IsOptional()
-  @IsString()
-  quantidade_desvios_planejados?: string;
+  @IsNumber()
+  quantidade_desvios_planejados?: number;
 
   @IsOptional()
-  @IsString()
-  quantidade_desvios_executados?: string;
+  @IsNumber()
+  quantidade_desvios_executados?: number;
 
   @IsOptional()
-  @IsString()
-  executados_fora_prazo?: string;
+  @IsNumber()
+  executados_fora_prazo?: number;
 
   @IsOptional()
-  @IsString()
-  itens_pendentes_fora_do_prazo?: string;
+  @IsNumber()
+  itens_pendentes_fora_do_prazo?: number;
 
   @IsOptional()
   @IsString()

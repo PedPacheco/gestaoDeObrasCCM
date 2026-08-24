@@ -7,13 +7,13 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 export class SuspensionWorkRepository implements ISuspensionWorkRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: SuspensionWorkRequestInterface): Promise<any> {
+  async create(data: SuspensionWorkRequestInterface): Promise<void> {
     await this.prisma.suspensoes.create({
       data,
     });
   }
 
-  async createMultiple(data: SuspensionWorkRequestInterface[]): Promise<any> {
+  async createMultiple(data: SuspensionWorkRequestInterface[]): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       await tx.suspensoes.createMany({
         data,

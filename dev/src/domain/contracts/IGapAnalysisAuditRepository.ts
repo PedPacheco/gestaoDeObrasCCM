@@ -1,49 +1,49 @@
 export interface CreateGapAnalysisAuditData {
-  id_parceira: string;
-  num_auditoria?: string;
+  id_parceira: number;
+  num_auditoria?: number;
   data_inicio?: string;
   data_fim?: string;
-  gap_anterior?: string;
-  gap_atual?: string;
+  gap_anterior?: number;
+  gap_atual?: number;
   apresentacao_interna?: string;
   reuniao_apresentacao?: string;
   notificacao_gestao?: string;
   retorno_parceira?: string;
   validacao_plano_edp?: string;
-  plano_validado?: string;
+  plano_validado?: boolean;
   devolutiva_novo_plano?: string;
   validacao_novo_plano?: string;
   lancamento_desvios_sgs?: string;
   inicio_acompanhamento?: string;
-  quantidade_desvios_planejados?: string;
-  quantidade_desvios_executados?: string;
-  executados_fora_prazo?: string;
-  itens_pendentes_fora_do_prazo?: string;
+  quantidade_desvios_planejados?: number;
+  quantidade_desvios_executados?: number;
+  executados_fora_prazo?: number;
+  itens_pendentes_fora_do_prazo?: number;
   observacao?: string;
   status?: string;
 }
 
 export interface UpdateGapAnalysisAuditData {
-  id_parceira?: string;
-  num_auditoria?: string;
+  id_parceira: number;
+  num_auditoria?: number;
   data_inicio?: string;
   data_fim?: string;
-  gap_anterior?: string;
-  gap_atual?: string;
+  gap_anterior?: number;
+  gap_atual?: number;
   apresentacao_interna?: string;
   reuniao_apresentacao?: string;
   notificacao_gestao?: string;
   retorno_parceira?: string;
   validacao_plano_edp?: string;
-  plano_validado?: string;
+  plano_validado?: boolean;
   devolutiva_novo_plano?: string;
   validacao_novo_plano?: string;
   lancamento_desvios_sgs?: string;
   inicio_acompanhamento?: string;
-  quantidade_desvios_planejados?: string;
-  quantidade_desvios_executados?: string;
-  executados_fora_prazo?: string;
-  itens_pendentes_fora_do_prazo?: string;
+  quantidade_desvios_planejados?: number;
+  quantidade_desvios_executados?: number;
+  executados_fora_prazo?: number;
+  itens_pendentes_fora_do_prazo?: number;
   observacao?: string;
   status?: string;
 }

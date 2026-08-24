@@ -1,6 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
 import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
 import {
   IWorkServicesRepository,
@@ -46,10 +47,18 @@ describe('WorksServicesService', () => {
     calculateAggregateProgress: jest.fn(),
   };
 
+  const mockFindScheduleIdRepository = {
+    findById: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         WorksServicesService,
+        {
+          provide: FIND_SCHEDULE_BY_ID_REPOSITORY,
+          useValue: mockFindScheduleIdRepository,
+        },
         {
           provide: WORK_SERVICES_REPOSITORY,
           useValue: mockWorksServicesRepository,
@@ -114,6 +123,9 @@ describe('WorksServicesService', () => {
         [],
       );
       mockWorksServicesRepository.scheduleServices.mockResolvedValue(undefined);
+      mockFindScheduleIdRepository.findById.mockResolvedValue({
+        id_status_programacao: 7,
+      });
 
       await service.scheduleServices(1, mockScheduleData);
 
@@ -121,6 +133,7 @@ describe('WorksServicesService', () => {
         mockScheduleData,
         { increment: 27.27 },
         undefined,
+        1,
       );
       expect(repository.scheduleServices).toHaveBeenCalledTimes(1);
     });
@@ -413,6 +426,10 @@ describe('WorksServicesService', () => {
         ],
       );
 
+      mockFindScheduleIdRepository.findById.mockResolvedValue({
+        id_status_programacao: 3,
+      });
+
       await expect(
         service.scheduleServices(1, mockScheduleData),
       ).rejects.toThrow(
@@ -450,6 +467,10 @@ describe('WorksServicesService', () => {
         },
       ];
 
+      mockFindScheduleIdRepository.findById.mockResolvedValue({
+        id_status_programacao: 3,
+      });
+
       await expect(
         service.scheduleServices(1, mockScheduleData),
       ).rejects.toThrow(
@@ -472,6 +493,10 @@ describe('WorksServicesService', () => {
           type: 'M',
         },
       ];
+
+      mockFindScheduleIdRepository.findById.mockResolvedValue({
+        id_status_programacao: 3,
+      });
 
       await expect(
         service.scheduleServices(1, mockScheduleData),
@@ -497,6 +522,9 @@ describe('WorksServicesService', () => {
         [],
       );
       mockWorksServicesRepository.scheduleServices.mockResolvedValue(undefined);
+      mockFindScheduleIdRepository.findById.mockResolvedValue({
+        id_status_programacao: 3,
+      });
 
       await service.scheduleServices(1, mockScheduleData);
 
@@ -504,6 +532,7 @@ describe('WorksServicesService', () => {
         mockScheduleData,
         { increment: 100 },
         5,
+        undefined,
       );
     });
   });

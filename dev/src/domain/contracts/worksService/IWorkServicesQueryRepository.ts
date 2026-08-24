@@ -1,11 +1,14 @@
 import { Prisma } from '@prisma/client';
 import {
-  GetSelectedServicesParamsInterface,
+  GetMaterialsContractsResponse,
+  GetSelectedServicesParamsRequest,
+  GetServiceOptionsResponse,
   GetServicesByWorkIdResponse,
   GetServiceScheduleHistoryResponse,
-  GetServiceOptionsResponse,
+  GetServicesContractsResponse,
   GetServicesSelectedByWorkIdResponse,
-} from 'src/interface/types/servicesInterface';
+  GetTeamsServicesResponse,
+} from 'src/domain/types';
 
 export interface IWorkServicesQueryRepository {
   getAllServicesOfWork(
@@ -16,16 +19,18 @@ export interface IWorkServicesQueryRepository {
   getSelectedServices({
     id,
     idProgramacao,
-  }: GetSelectedServicesParamsInterface): Promise<
+  }: GetSelectedServicesParamsRequest): Promise<
     GetServicesSelectedByWorkIdResponse[]
   >;
   getServiceScheduleHistory(
     id: number,
     tx?: Prisma.TransactionClient,
   ): Promise<GetServiceScheduleHistoryResponse[]>;
-  getServicesContracts(idParceira: number): Promise<any[]>;
-  getMaterialsContract(): Promise<any[]>;
-  getTeamsServices(idParceira: number): Promise<any[]>;
+  getServicesContracts(
+    idParceira: number,
+  ): Promise<GetServicesContractsResponse[]>;
+  getMaterialsContract(): Promise<GetMaterialsContractsResponse[]>;
+  getTeamsServices(idParceira: number): Promise<GetTeamsServicesResponse[]>;
   getServiceOptions(id: number): Promise<GetServiceOptionsResponse>;
 }
 

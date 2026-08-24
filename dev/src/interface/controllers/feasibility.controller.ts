@@ -102,14 +102,16 @@ export class FeasibilityController {
   }
 
   @Patch('aprovar/:id')
+  @UseInterceptors(FilesInterceptor('files'))
   @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async approveFeasibility(
     @Param('id', ParseIntPipe) id: number,
+    @UploadedFiles() files: Express.Multer.File[] = [],
     @Req() req: any,
   ) {
     const userId = req.user.sub;
 
-    await this.handleFeasibilityService.approve(id, userId);
+    await this.handleFeasibilityService.approve(id, userId, files);
 
     return {
       statusCode: HttpStatus.NO_CONTENT,

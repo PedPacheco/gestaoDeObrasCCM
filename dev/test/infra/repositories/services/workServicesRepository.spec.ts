@@ -209,7 +209,7 @@ describe('WorksServicesRepository', () => {
     });
 
     it('should update schedule progress', async () => {
-      await repository.scheduleServices(mockScheduleData, 80, 1);
+      await repository.scheduleServices(mockScheduleData, 80, 1, 1);
 
       expect(mockTx.programacoes.update).toHaveBeenCalledWith({
         where: {
@@ -217,6 +217,8 @@ describe('WorksServicesRepository', () => {
         },
         data: {
           prog: 80,
+          id_status_programacao: 1,
+          reprovada: false,
         },
       });
     });

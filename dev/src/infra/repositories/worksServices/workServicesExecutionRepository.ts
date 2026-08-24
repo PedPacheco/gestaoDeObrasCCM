@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-
 import { IWorkServicesExecutionRepository } from 'src/domain/contracts/worksService/IWorkServicesExecutionRepository';
+
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
 
@@ -28,6 +28,19 @@ export class WorkServicesExeutionRepository implements IWorkServicesExecutionRep
           id_usuario_ultima_atualizacao: userId,
         },
       });
+
+      if (pendingExecServicesData.length > 0) {
+        await tx.servicos.updateMany({
+          where: { id: { in: pendingExecServicesData } },
+          data: { id_programacao: null },
+        });
+      }
+    } catch (error: any) {
+      if (error.code === 'P2025') {
+        throw new NotFoundException(`Agendamento com ID ${id} não encontrado`);
+      }
+
+      throw error;
     }
   }
 

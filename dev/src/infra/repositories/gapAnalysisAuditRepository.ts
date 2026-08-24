@@ -6,14 +6,15 @@ import {
   IGapAnalysisAuditRepository,
   UpdateGapAnalysisAuditData,
 } from 'src/domain/contracts/IGapAnalysisAuditRepository';
+import { gap_analysis } from '@prisma/client';
 
 @Injectable()
 export class GapAnalysisAuditRepository implements IGapAnalysisAuditRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(): Promise<gap_analysis_audits[]> {
+  async findAll(): Promise<gap_analysis[]> {
     return await this.prisma.gap_analysis.findMany({
-      orderBy: [{ parceira: 'asc' }, { id: 'asc' }],
+      orderBy: [{ id_parceira: 'asc' }, { id: 'asc' }],
     });
   }
 
@@ -27,7 +28,7 @@ export class GapAnalysisAuditRepository implements IGapAnalysisAuditRepository {
     return await this.prisma.gap_analysis.createMany({ data });
   }
 
-  async update(id: number, data: UpdateGapAnalysisAuditData): Promise<any[]> {
+  async update(id: number, data: UpdateGapAnalysisAuditData): Promise<void> {
     await this.prisma.gap_analysis.update({
       where: { id },
       data,

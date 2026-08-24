@@ -14,6 +14,7 @@ import { Inject, Injectable } from '@nestjs/common';
 
 import { AuxiliaryMarketInsertService } from './auxiliaryBaseInsertMarket.service';
 import { AuxiliaryNotesInsertService } from './auxiliaryBaseInsertNotes.service';
+import { GetMarketResponse } from 'src/application/types';
 
 export interface DataAuxiliaryNotes {
   notesData: NotesDTO[];
@@ -58,7 +59,7 @@ export class AuxiliaryBaseService {
     }));
   }
 
-  async getMarket(idRegional?: number): Promise<any> {
+  async getMarket(idRegional?: number): Promise<GetMarketResponse[]> {
     const works =
       await this.auxiliaryBaseRepository.getAuxiliaryBaseMarket(idRegional);
 

@@ -4,6 +4,7 @@ import {
 } from 'src/domain/contracts/IErrorsReportRepository';
 
 import { Inject, Injectable } from '@nestjs/common';
+import { FindRepeatedWorksResponse } from '../types';
 
 @Injectable()
 export class ErrorsReportService {
@@ -135,7 +136,7 @@ export class ErrorsReportService {
     const data =
       await this.errorsReportRepository.findRepeatedWorks(idRegional);
 
-    const map = new Map<string, any[]>();
+    const map = new Map<string, FindRepeatedWorksResponse[]>();
 
     for (const work of data) {
       const key = [

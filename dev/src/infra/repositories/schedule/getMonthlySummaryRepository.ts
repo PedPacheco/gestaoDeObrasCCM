@@ -6,6 +6,10 @@ import { GetMonthlySummaryInterface } from 'src/interface/types/schedule/monthly
 import { Injectable } from '@nestjs/common';
 
 import { IGetMonthlySummaryRepository } from '../../../domain/contracts/schedule/IGetMonthlySummaryRepository';
+import {
+  GetContractValueResponse,
+  GetPortfolioSummaryResponse,
+} from 'src/domain/types';
 
 @Injectable()
 export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository {
@@ -71,7 +75,9 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
     });
   }
 
-  async getPortfolioSummary(filters: any): Promise<any[]> {
+  async getPortfolioSummary(
+    filters: any,
+  ): Promise<GetPortfolioSummaryResponse[]> {
     const { idRegional, idParceira, idTipo, idGrupo } = filters;
 
     return await this.prisma.obras.findMany({
@@ -108,7 +114,9 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
     });
   }
 
-  async getContractValue(filters: GetMonthlySummaryDTO): Promise<any[]> {
+  async getContractValue(
+    filters: GetMonthlySummaryDTO,
+  ): Promise<GetContractValueResponse[]> {
     const { idRegional, idParceira } = filters;
 
     return await this.prisma.valores_contratos.findMany({

@@ -11,7 +11,6 @@ import { PrismaModule } from './infra/prisma/prisma.module';
 import { AdvancePartnerModule } from './interface/modules/advancePartner.module';
 import { AuthModule } from './interface/modules/auth.module';
 import { AuxiliaryBaseModule } from './interface/modules/auxiliaryBase.module';
-import { DashboardModule } from './interface/modules/dashboard.module';
 import { EntryModule } from './interface/modules/entry.module';
 import { EquipmentsModule } from './interface/modules/equipments.module';
 import { ErrorsReportModule } from './interface/modules/errorsReport.module';
@@ -52,7 +51,6 @@ import { WorksServicesModule } from './interface/modules/worksServices.module';
     ExecutionCapacityModule,
     ErrorsReportModule,
     RestrictionsModule,
-    DashboardModule,
     EquipmentsModule,
     ForecastModule,
     AdvancePartnerModule,

@@ -19,7 +19,7 @@ export class UpdateCapexRepository implements IUpdateCapexRepository {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async getDeletedMaterials(): Promise<any> {
+  async getDeletedMaterials(): Promise<{ material: string }[]> {
     return this.prisma.servicos_contratos.findMany({
       select: { material: true },
       distinct: ['material'],
