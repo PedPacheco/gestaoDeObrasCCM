@@ -391,6 +391,7 @@ model restricoes {
   id                              Int                        @id(map: "RESTRICOES_pkey") @default(autoincrement())
   restricao                       String?                    @db.VarChar(80)
   tipo_restricao                  String                     @db.VarChar(15)
+  responsabilidade                String?                    @db.VarChar(15)
   programacoes_restricao_execucao programacoes[]             @relation("programacoes_restricao_execucao")
   programacoes_restricao_prog1    programacoes[]             @relation("programacoes_restricao_prog1")
   programacoes_restricao_prog2    programacoes[]             @relation("programacoes_restricao_prog2")

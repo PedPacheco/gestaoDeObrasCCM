@@ -152,7 +152,7 @@ export class FiltersService {
       result['restricao'] = await this.getCachedData('restricao', () =>
         this.filtersRepository.getData(
           'restricoes',
-          ['id', 'restricao', 'tipo_restricao'],
+          ['id', 'restricao', 'tipo_restricao', 'responsabilidade'],
           {
             tipo_restricao: { in: tipoRestricao },
           },
