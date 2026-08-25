@@ -1,9 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { WorkSuspensionInput } from 'src/application/types';
 import {
   filtersOrders,
   FIND_EXISITING_WORKS_REPOSITORY,
   IFindExistingWorksRepository,
 } from 'src/domain/contracts/works/IFindExistingWorksRepository';
+import { ExistingNoteResponse, ExistingWorkResponse } from 'src/domain/types';
 
 @Injectable()
 export class FindExistingWorksService {
@@ -12,34 +14,25 @@ export class FindExistingWorksService {
     private readonly findExistingWorksRepository: IFindExistingWorksRepository,
   ) {}
 
-  async findExistingWorks(
-    works: string[],
-  ): Promise<{ id: number; ovnota: string }[]> {
+  async findExistingWorks(works: string[]): Promise<ExistingWorkResponse[]> {
     return await this.findExistingWorksRepository.findExistingWorks(works);
   }
 
   async findExistingWorksOnSuspension(
-    works: { ovnota: string; ordemDiagrama: string }[],
-  ): Promise<{ id: number; ovnota: string }[]> {
+    works: WorkSuspensionInput[],
+  ): Promise<ExistingWorkResponse[]> {
     return await this.findExistingWorksRepository.findExistingWorksOnSuspension(
       works,
     );
   }
 
-  async findExistingNotes(filters: any[]): Promise<
-    {
-      id: number;
-      ovnota: string;
-      ordemDci: string;
-      ordemDcd: string;
-      ordemDca: string;
-      ordemDcim: string;
-    }[]
-  > {
+  async findExistingNotes(
+    filters: { ovnota: string }[],
+  ): Promise<ExistingNoteResponse[]> {
     return await this.findExistingWorksRepository.findExistingNotes(filters);
   }
 
-  async findExistingOrders(orders: filtersOrders[]) {
+  async findExistingOrders(orders: filtersOrders[]): Promise<string[]> {
     return await this.findExistingWorksRepository.findExistingOrders(orders);
   }
 }

@@ -1,11 +1,25 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-
-import { GetWorkDetailsService } from '../works/getWorkDetails.service';
+import {
+  GetAllItemsOutput,
+  GetNotScheduledServicesOutput,
+  GetSelectedServicesOutput,
+  GetServiceScheduleHistoryOutput,
+  ItemType,
+} from 'src/application/types';
 import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
 } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
-import { GetSelectedServicesParamsRequest } from 'src/domain/types';
+import {
+  GetMaterialsContractsResponse,
+  GetSelectedServicesParamsRequest,
+  GetServiceOptionsResponse,
+  GetServicesContractsResponse,
+  GetTeamsServicesResponse,
+} from 'src/domain/types';
+
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+
+import { GetWorkDetailsService } from '../works/getWorkDetails.service';
 
 @Injectable()
 export class QueriesServicesService {
@@ -15,7 +29,7 @@ export class QueriesServicesService {
     private readonly getWorkDetailsService: GetWorkDetailsService,
   ) {}
 
-  async getAllItems(id: number) {
+  async getAllItems(id: number): Promise<GetAllItemsOutput[]> {
     const services =
       await this.workServicesQueryRepository.getAllServicesOfWork(id);
 
@@ -29,6 +43,8 @@ export class QueriesServicesService {
         service.materiais?.preco.toNumber();
 
       const qtdeTotal = service.qtde_plan + service.qtde_adicional;
+
+      const tipo: ItemType = service.materiais?.codigo ? 'M' : 'S';
 
       return {
         id: service.id,
@@ -48,7 +64,7 @@ export class QueriesServicesService {
         viabilizado: service.viabilizado,
         qtdeProgramada: service.qtde_prog,
         qtdeRealizada: service.qtde_real,
-        tipo: service.materiais?.codigo ? 'M' : 'S',
+        tipo,
         valorUnit: preco,
         valorTotal: preco * qtdeTotal,
         valorReal: preco * service.qtde_real,
@@ -58,7 +74,9 @@ export class QueriesServicesService {
     return response;
   }
 
-  async getNotScheduledServices(id: number) {
+  async getNotScheduledServices(
+    id: number,
+  ): Promise<GetNotScheduledServicesOutput[]> {
     const services =
       await this.workServicesQueryRepository.getNotScheduledServices(id);
 
@@ -78,6 +96,8 @@ export class QueriesServicesService {
 
       const qtdeTotal = viabilizado + qtdeAdicional - qtdeRealizada;
 
+      const tipo: ItemType = service.materiais?.codigo ? 'M' : 'S';
+
       return {
         id: service.id,
         idObra: service.id_obra,
@@ -95,7 +115,7 @@ export class QueriesServicesService {
         qtdeAdicional: service.qtde_adicional,
         viabilizado: service.viabilizado,
         qtdeRealizada: service.qtde_real,
-        tipo: service.materiais?.codigo ? 'M' : 'S',
+        tipo,
         valorUnit: preco,
         valorTotal: preco * qtdeTotal,
         valorReal: preco * service.qtde_real,
@@ -105,7 +125,9 @@ export class QueriesServicesService {
     return response;
   }
 
-  async getSelectedServices(params: GetSelectedServicesParamsRequest) {
+  async getSelectedServices(
+    params: GetSelectedServicesParamsRequest,
+  ): Promise<GetSelectedServicesOutput[]> {
     const services =
       await this.workServicesQueryRepository.getSelectedServices(params);
 
@@ -117,6 +139,8 @@ export class QueriesServicesService {
       const preco =
         service.servicos_contratos?.preco ??
         service.materiais?.preco.toNumber();
+
+      const tipo: ItemType = service.materiais?.codigo ? 'M' : 'S';
 
       return {
         id: service.id,
@@ -136,7 +160,7 @@ export class QueriesServicesService {
         qtdeRealizada: service.qtde_real,
         qtdeAdicional: service.qtde_adicional,
         viabilizado: service.viabilizado,
-        tipo: service.materiais?.codigo ? 'M' : 'S',
+        tipo,
         valorUnit: preco,
         valorProg: preco * service.qtde_prog,
         valorReal: preco * service.qtde_real,
@@ -147,7 +171,9 @@ export class QueriesServicesService {
     });
   }
 
-  async getServiceScheduleHistory(id: number) {
+  async getServiceScheduleHistory(
+    id: number,
+  ): Promise<GetServiceScheduleHistoryOutput[]> {
     const services =
       await this.workServicesQueryRepository.getServiceScheduleHistory(id);
 
@@ -183,7 +209,9 @@ export class QueriesServicesService {
     });
   }
 
-  async getServiceContracts(idWork: number) {
+  async getServiceContracts(
+    idWork: number,
+  ): Promise<GetServicesContractsResponse[]> {
     const work = await this.getWorkDetailsService.get(idWork);
 
     const idParceira = work?.id_turma;
@@ -194,11 +222,11 @@ export class QueriesServicesService {
     return data;
   }
 
-  async getMaterials() {
+  async getMaterials(): Promise<GetMaterialsContractsResponse[]> {
     return await this.workServicesQueryRepository.getMaterialsContract();
   }
 
-  async getTeamsServices(idWork: number) {
+  async getTeamsServices(idWork: number): Promise<GetTeamsServicesResponse[]> {
     const work = await this.getWorkDetailsService.get(idWork);
 
     const idParceira = work?.id_turma;
@@ -209,7 +237,7 @@ export class QueriesServicesService {
     return data;
   }
 
-  async getServiceOptions(id: number) {
+  async getServiceOptions(id: number): Promise<GetServiceOptionsResponse> {
     return await this.workServicesQueryRepository.getServiceOptions(id);
   }
 }

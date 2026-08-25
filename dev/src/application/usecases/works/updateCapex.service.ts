@@ -1,5 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { ProgressEmitter } from 'src/application/types';
+import {
+  CalculatedValue,
+  DeletedMaterial,
+  MaterialFactorReference,
+  ProgressEmitter,
+} from 'src/application/types';
 
 import { AppLogger } from 'src/core/logger/logger.service';
 import {
@@ -10,20 +15,7 @@ import {
   IUpdateCapexRepository,
   UPDATE_CAPEX_REPOSITORY,
 } from 'src/domain/contracts/works/IUpdateCapexRepository';
-// import { GetAuxiliaryBaseMaterialsInterface } from 'src/interface/types/works/capexInterface';
-
-export interface CalculatedValue {
-  id: number;
-  qtde_calc: number;
-  qtde_pend: number;
-  mo_calc: number;
-  mo_exec: number;
-  mo_pend: number;
-  capex_mo_plan: number;
-  capex_mat_plan: number;
-  capex_mo_pend: number;
-  capex_mat_pend: number;
-}
+import { GetAuxiliaryBaseMaterialsResponse } from 'src/domain/types';
 
 @Injectable()
 export class UpdateCapexService {
@@ -151,7 +143,9 @@ export class UpdateCapexService {
 
   // ─── Helpers privados ──────────────────────────────────────────────
 
-  private extractAllMaterials(validatedData: any[]) {
+  private extractAllMaterials(
+    validatedData: GetAuxiliaryBaseMaterialsResponse[],
+  ): MaterialFactorReference[] {
     return validatedData.map((item) => ({
       material: item.material,
       pep_ref: item.def_proj,
@@ -159,9 +153,9 @@ export class UpdateCapexService {
   }
 
   private calculateCapexValues(
-    materialData: any[],
+    materialData: GetAuxiliaryBaseMaterialsResponse[],
     fatorMap: Map<string, number>,
-    deletedMaterials: any[],
+    deletedMaterials: DeletedMaterial[],
   ): CalculatedValue[] {
     const deletedSet = new Set<string>(
       deletedMaterials.map((item) => item.material?.trim()).filter(Boolean),

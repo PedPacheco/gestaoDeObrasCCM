@@ -131,11 +131,11 @@ export class ExportController {
     @Req() req: CustomRequest,
   ) {
     const appliedFilters = this.applyFilters(filters, req);
-    const { works } =
+    const response =
       await this.getScheduleValuesService.getValues(appliedFilters);
     this.setXlsxHeaders(res, 'Exportação Programação');
 
-    return this.exportScheduleService.export(works, res);
+    return this.exportScheduleService.export(response, res);
   }
 
   @Get('obras-carteira')

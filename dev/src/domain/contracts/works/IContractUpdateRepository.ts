@@ -1,12 +1,7 @@
-export interface ContractUpdateRepositoryInterface {
-  ovnota: string;
-  ordemDiagrama: string;
-  ordemField: string;
-  dataEmpreitamento: Date;
-}
+import { ContractUpdateRepositoryInput } from 'src/domain/types';
 
 export interface IContractUpdateRepository {
-  update(data: ContractUpdateRepositoryInterface[]): Promise<void>;
+  update(data: ContractUpdateRepositoryInput[]): Promise<void>;
 }
 
 export const CONTRACT_UPDATE_REPOSITORY = Symbol('ContractUpdateRepository');

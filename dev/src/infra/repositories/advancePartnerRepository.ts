@@ -1,10 +1,5 @@
-import {
-  IAdvancePartnerRepository,
-  ProcessedEliminacaoFilters,
-} from 'src/domain/contracts/IAdvancePartnerRepository';
-import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
-import { Injectable } from '@nestjs/common';
+import { GetRestrictionsAdvancePartnerInput } from 'src/application/types';
+import { IAdvancePartnerRepository } from 'src/domain/contracts/IAdvancePartnerRepository';
 import {
   GetGripPartnerResponse,
   GetReaschedulingReasonsResponse,
@@ -14,6 +9,11 @@ import {
   GetWeeksByPartnerResponse,
 } from 'src/domain/types';
 
+import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+
+import { PrismaService } from '../prisma/prisma.service';
+
 @Injectable()
 export class AdvancePartnerRepository implements IAdvancePartnerRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -21,7 +21,7 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
   private readonly excludedPartners = [1, 6, 10, 11, 14, 15, 16];
 
   async getRestrictionsAdvancePartner(
-    filters: ProcessedEliminacaoFilters,
+    filters: GetRestrictionsAdvancePartnerInput,
   ): Promise<GetRestrictionsAdvancePartnerResponse[]> {
     const { dataInicial, dataFinal, idRegional, idParceira, responsabilidade } =
       filters;
@@ -64,7 +64,7 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
   }
 
   async getGripPartner(
-    filters: ProcessedEliminacaoFilters,
+    filters: GetRestrictionsAdvancePartnerInput,
   ): Promise<GetGripPartnerResponse[]> {
     const { dataInicial, dataFinal, idRegional, idParceira, responsabilidade } =
       filters;
@@ -114,7 +114,7 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
   }
 
   async getReaschedulingReasons(
-    filters: ProcessedEliminacaoFilters,
+    filters: GetRestrictionsAdvancePartnerInput,
   ): Promise<GetReaschedulingReasonsResponse[]> {
     const { dataInicial, dataFinal, idRegional, idParceira, responsabilidade } =
       filters;
@@ -150,7 +150,9 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
     return this.prisma.$queryRaw<GetReaschedulingReasonsResponse[]>(query);
   }
 
-  async getSparklinesByPartner(filters: ProcessedEliminacaoFilters): Promise<{
+  async getSparklinesByPartner(
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<{
     aderencia: GetSparklinesByPartnerAderenciaResponse[];
     eliminacao: GetSparklinesByPartnerEliminacaoResponse[];
   }> {
@@ -230,7 +232,7 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
   }
 
   async getWeeksByPartner(
-    filters: ProcessedEliminacaoFilters,
+    filters: GetRestrictionsAdvancePartnerInput,
   ): Promise<GetWeeksByPartnerResponse[]> {
     const { idRegional, idParceira } = filters;
 

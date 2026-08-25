@@ -3,7 +3,6 @@ import {
   IUpdateSchedulesRepository,
   UPDATE_SCHEDULES_REPOSITORY,
 } from 'src/domain/contracts/schedule/IUpdateSchedulesRepository';
-import { UpdateSchedulesInterface } from 'src/interface/types/schedule/updateSchedulesInterface';
 import { parseTimeToDate } from 'src/utils/parseTimeToDate';
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
@@ -15,6 +14,7 @@ import {
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/contracts/IStatusFlowRepository';
 import { ScheduleExecutionValidatorService } from './scheduleExecutionValidator.service';
+import { UpdateScheduleInput } from 'src/application/types/usecases/schedule/updateSchedules.types';
 
 @Injectable()
 export class UpdateSchedulesService {
@@ -28,7 +28,7 @@ export class UpdateSchedulesService {
     private readonly executionValidator: ScheduleExecutionValidatorService,
   ) {}
 
-  async update(data: UpdateSchedulesInterface, tx: Prisma.TransactionClient) {
+  async update(data: UpdateScheduleInput, tx: Prisma.TransactionClient) {
     if (!data) {
       throw new BadRequestException(
         'Nenhuma programação fornecida para inserção.',
@@ -70,9 +70,11 @@ export class UpdateSchedulesService {
         dataProg: new Date(data.dataProg),
         reject: reprovada,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { message: string };
+
       throw new BadRequestException(
-        `Erro ao criar programação: ${error.message}`,
+        `Erro ao criar programação: ${err.message}`,
       );
     }
 
@@ -131,7 +133,9 @@ export class UpdateSchedulesService {
         scheduleFinishTime: schedule.finishTime,
         idWork: schedule.idWork,
       };
-    } catch (err: any) {
+    } catch (error: unknown) {
+      const err = error as { message: string };
+
       throw new BadRequestException(`Erro ao criar relatório: ${err.message}`);
     }
   }

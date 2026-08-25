@@ -1,3 +1,4 @@
+import { GetRestrictionsAdvancePartnerInput } from 'src/application/types';
 import {
   GetGripPartnerResponse,
   GetReaschedulingReasonsResponse,
@@ -7,30 +8,22 @@ import {
   GetWeeksByPartnerResponse,
 } from '../types';
 
-export interface ProcessedEliminacaoFilters {
-  dataInicial?: Date;
-  dataFinal?: Date;
-  idRegional?: number[];
-  idParceira?: number[];
-  responsabilidade?: string;
-}
-
 export interface IAdvancePartnerRepository {
   getRestrictionsAdvancePartner(
-    filters: ProcessedEliminacaoFilters,
+    filters: GetRestrictionsAdvancePartnerInput,
   ): Promise<GetRestrictionsAdvancePartnerResponse[]>;
   getGripPartner(
-    filters: ProcessedEliminacaoFilters,
+    filters: GetRestrictionsAdvancePartnerInput,
   ): Promise<GetGripPartnerResponse[]>;
   getReaschedulingReasons(
-    filters: ProcessedEliminacaoFilters,
+    filters: GetRestrictionsAdvancePartnerInput,
   ): Promise<GetReaschedulingReasonsResponse[]>;
-  getSparklinesByPartner(filters: ProcessedEliminacaoFilters): Promise<{
+  getSparklinesByPartner(filters: GetRestrictionsAdvancePartnerInput): Promise<{
     aderencia: GetSparklinesByPartnerAderenciaResponse[];
     eliminacao: GetSparklinesByPartnerEliminacaoResponse[];
   }>;
   getWeeksByPartner(
-    filters: ProcessedEliminacaoFilters,
+    filters: GetRestrictionsAdvancePartnerInput,
   ): Promise<GetWeeksByPartnerResponse[]>;
 }
 

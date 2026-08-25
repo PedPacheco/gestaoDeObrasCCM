@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { AppLogger } from 'src/core/logger/logger.service';
 import {
   filtersOrders,
   IFindExistingWorksRepository,
@@ -7,7 +8,10 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 @Injectable()
 export class FindExistingWorksRepository implements IFindExistingWorksRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: AppLogger,
+  ) {}
 
   async findExistingWorks(
     works: string[],

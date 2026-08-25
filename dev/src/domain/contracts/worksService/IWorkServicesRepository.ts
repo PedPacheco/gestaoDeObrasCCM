@@ -1,50 +1,26 @@
-import { Prisma } from '@prisma/client';
 import {
-  AddServicesDTO,
-  ApplyAdditonalDTO,
-  ScheduleServicesDTO,
-} from 'src/interface/dtos/workServicesDTO';
+  AddServiceInput,
+  ApplyAdditionalInput,
+  ScheduleServicesInput,
+} from 'src/application/types';
+import { ImportServiceItem, SchedulesProgressUpdate } from 'src/domain/types';
 
-export interface SchedulesProgressUpdate {
-  idProgramacao: number;
-  prog: number;
-  exec: number;
-}
-
-export interface ParsedSpreadsheetItem {
-  point: string | null;
-  operation: string | null;
-  operationNumber: string | null;
-  materialCode: string | null;
-  plannedQuantity: number;
-  type: 'service' | 'material';
-  operationDescription: string | null;
-}
-
-export interface ImportServiceItem {
-  idService: number;
-  type: 'service' | 'material';
-  operation?: string;
-  point: string;
-  operationNumber: string;
-  operationDescription: string;
-  plannedQuantity: number;
-}
+import { Prisma } from '@prisma/client';
 
 export interface IWorkServicesRepository {
   scheduleServices(
-    data: ScheduleServicesDTO[],
+    data: ScheduleServicesInput[],
     prog: number | { increment: number },
     idSchedule: number,
     idStatusSchedule?: number,
   ): Promise<void>;
   applyAdditional(
-    data: ApplyAdditonalDTO[],
+    data: ApplyAdditionalInput[],
     tx: Prisma.TransactionClient,
   ): Promise<void>;
   cancelServices(id: number): Promise<void>;
   addItem(
-    data: AddServicesDTO,
+    data: AddServiceInput,
     type: 'service' | 'material',
     tx: Prisma.TransactionClient,
   ): Promise<void>;

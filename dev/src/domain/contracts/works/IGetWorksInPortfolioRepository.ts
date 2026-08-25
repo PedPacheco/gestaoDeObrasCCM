@@ -1,10 +1,10 @@
-import { GetWorksDTO } from 'src/interface/dtos/worksDto';
-import { worksInPortfolioResponseRepository } from 'src/interface/types/works/getWorksInPortfolioInterface';
+import { WorkFiltersInput } from 'src/application/types';
+import { WorkSummaryRepositoryResponse } from 'src/domain/types';
 
 export interface IGetWorksInPortfolioRepository {
   getWorksInPortfolio(
-    filters: GetWorksDTO,
-  ): Promise<worksInPortfolioResponseRepository>;
+    filters: WorkFiltersInput,
+  ): Promise<WorkSummaryRepositoryResponse>;
 }
 
 export const GET_WORKS_IN_PORTFOLIO_REPOSITORY = Symbol('GetWorksInPortfolio');

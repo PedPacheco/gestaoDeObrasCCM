@@ -1,15 +1,15 @@
 import { IUpdateWorkRepository } from 'src/domain/contracts/works/IUpdateWorkRepository';
-import { UpdateWorkDTO } from 'src/interface/dtos/worksDto';
 
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { UpdateWorkInput } from 'src/application/types';
 
 @Injectable()
 export class UpdateWorkRepository implements IUpdateWorkRepository {
   constructor() {}
 
   async update(
-    data: UpdateWorkDTO,
+    data: UpdateWorkInput,
     id: number,
     tx: Prisma.TransactionClient,
   ): Promise<void> {

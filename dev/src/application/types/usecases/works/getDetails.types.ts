@@ -1,12 +1,4 @@
-interface ScheduleStatus {
-  status_programacao: string;
-}
-
-interface User {
-  nome: string;
-}
-
-export interface Schedules {
+export type WorkDetailsScheduleOutput = {
   id: number;
   criado_em: Date;
   data_prog: Date;
@@ -20,20 +12,19 @@ export interface Schedules {
   chi: number | null;
   num_dp: string | null;
   chave_provisoria: boolean | null;
-  equipe_linha_morta: number | null;
-  equipe_linha_viva: number | null;
-  equipe_regularizacao: number | null;
-  tecnicos: { tecnico: string | null };
-  programacoes_restricao_execucao: { restricao: string | null };
-  programacoes_servicos: { equipes: { equipe: string } }[];
+  equipe_linha_morta: number;
+  equipe_linha_viva: number;
+  equipe_regularizacao: number;
+  tecnico: string | null;
+  restricao: string | null;
+  id_restricao_execucao: number;
   nome_responsavel_execucao: string | null;
-  confirmada: boolean;
+  status_programacao: string;
   validada: boolean;
+  confirmada: boolean;
   reprovada: boolean;
-  status_programacao: ScheduleStatus;
   observacao_restricao: string | null;
   observacao_execucao: string | null;
-  id_restricao_execucao: number;
   id_restricao_prog1: number;
   responsabilidade1: string | null;
   nome_responsavel: string | null;
@@ -46,11 +37,11 @@ export interface Schedules {
   area_responsavel2: string | null;
   status_restricao2: string | null;
   data_resolucao2: Date | null;
-  usuario: User | null;
-  usuario_ultima_atualizacao?: User | null;
-}
+  criado_por: string | null;
+  editado_por: string | null;
+};
 
-export interface GetWorksDetailsResponse {
+export type WorkDetailsOutput = {
   id: number;
   ovnota: string;
   pep: string | null;
@@ -73,6 +64,7 @@ export interface GetWorksDetailsResponse {
   status_usuario_190: string | null;
   entrada: Date | null;
   prazo: number | null;
+  executado: number | null;
   data_conclusao: Date | null;
   observ_obra: string | null;
   qtde_planejada: number | null;
@@ -88,16 +80,18 @@ export interface GetWorksDetailsResponse {
   data_empreitamento: Date | null;
   ano_plan: number | null;
   programacao_ponto_a_ponto: boolean | null;
-  circuitos: { circuito: string; conjuntos: { conjunto: string | null } };
-  relatorio_viabilidade?: {
-    data_envio: Date;
-    prazo_viabilidade: string;
-    aprovada: boolean;
-  } | null;
-  empreendimento: { empreendimento: string | null };
-  municipios: { municipio: string; regionais: { id: number } };
-  tipos: { tipo_obra: string; id_grupo: number };
   id_turma: number;
   id_status: number;
-  programacoes: Schedules[];
-}
+  circuitos: string;
+  conjunto: string | null;
+  empreendimento: string | null;
+  municipios: string;
+  tipos: string;
+  grupo: number;
+  idRegional: number;
+  data_envio: Date | null;
+  prazo_viabilidade: string;
+  viabilidade_aprovada: boolean;
+  totalProgramado: number;
+  programacoes: WorkDetailsScheduleOutput[];
+};

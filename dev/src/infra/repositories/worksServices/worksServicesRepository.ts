@@ -1,10 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import {
-  ImportServiceItem,
-  IWorkServicesRepository,
-  SchedulesProgressUpdate,
-} from 'src/domain/contracts/worksService/IWorkServicesRepository';
+import { IWorkServicesRepository } from 'src/domain/contracts/worksService/IWorkServicesRepository';
+import { ImportServiceItem, SchedulesProgressUpdate } from 'src/domain/types';
 
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {

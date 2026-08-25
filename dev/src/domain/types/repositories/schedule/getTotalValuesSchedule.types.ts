@@ -1,4 +1,4 @@
-export interface GetTotalValuesScheduleResponse {
+export type GetTotalValuesScheduleResponse = {
   turma: string;
   jan_prog: number;
   jan_exec: number;
@@ -27,4 +27,4 @@ export interface GetTotalValuesScheduleResponse {
   total_prog: number;
   total_exec: number;
   ano: number;
-}
+};

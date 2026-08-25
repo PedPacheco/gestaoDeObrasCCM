@@ -7,7 +7,6 @@ import {
   FIND_SCHEDULE_BY_ID_REPOSITORY,
   IFindScheduleByIdRepository,
 } from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
-import { ExecutionReportServiceInterface } from 'src/interface/types/executionReportInterface';
 
 import {
   BadRequestException,
@@ -18,7 +17,10 @@ import {
 import { Prisma } from '@prisma/client';
 import { FileService } from './file.service';
 import { AppLogger } from 'src/core/logger/logger.service';
-import { UpdateExecutionReportInput } from '../types';
+import {
+  CreateExecutionReportInput,
+  UpdateExecutionReportInput,
+} from '../types';
 
 @Injectable()
 export class ExecutionReportService {
@@ -63,7 +65,7 @@ export class ExecutionReportService {
   }
 
   async create(
-    data: ExecutionReportServiceInterface,
+    data: CreateExecutionReportInput,
     scheduledFinishTime: Date,
     files: Express.Multer.File[],
     tx: Prisma.TransactionClient,

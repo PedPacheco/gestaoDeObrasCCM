@@ -3,12 +3,16 @@ import { Response } from 'express';
 
 import { Injectable } from '@nestjs/common';
 import moment from 'moment';
+import { GetPulicationRestricitionOutput } from 'src/application/types';
 
 @Injectable()
 export class ExportPublicationRestrictionService {
   constructor() {}
 
-  async export(publicationRestrictionData: any, response: Response) {
+  async export(
+    publicationRestrictionData: GetPulicationRestricitionOutput,
+    response: Response,
+  ) {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Restrições Publicação');
 

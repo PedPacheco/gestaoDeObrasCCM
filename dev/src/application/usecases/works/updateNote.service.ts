@@ -7,11 +7,15 @@ import {
   IUpdateNoteRepository,
   UPDATE_NOTE_REPOSITORY,
 } from 'src/domain/contracts/works/IUpdateNoteRepository';
-import { UpdateNotesDTO } from 'src/interface/dtos/worksDto';
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 
 import { FindExistingWorksService } from './findExistingWorks.service';
+import {
+  ExistingNote,
+  UpdateNotesInput,
+  WorkOrderKey,
+} from 'src/application/types';
 
 @Injectable()
 export class UpdateNoteService {
@@ -23,12 +27,12 @@ export class UpdateNoteService {
     private readonly findExistingWorksService: FindExistingWorksService,
   ) {}
 
-  async update(data: UpdateNotesDTO[]) {
+  async update(data: UpdateNotesInput[]): Promise<void> {
     if (!data?.length) {
       throw new BadRequestException('Nenhum dado enviado.');
     }
 
-    const normalizeKey = (work: any) =>
+    const normalizeKey = (work: WorkOrderKey) =>
       [
         work.ovnota,
         work.ordem_dci ?? '',
@@ -76,7 +80,7 @@ export class UpdateNoteService {
 
       const simpleKey = work.obra;
 
-      let matchedWork: any = null;
+      let matchedWork: ExistingNote = null;
 
       if (work.ordem_dcim) {
         matchedWork = Array.from(existingMap.values()).find(

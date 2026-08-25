@@ -1,4 +1,4 @@
-export interface UpdateSchedulesInterface {
+export type UpdateScheduleInput = {
   id: number;
   idWork: number;
   dataProg: Date;
@@ -18,4 +18,4 @@ export interface UpdateSchedulesInterface {
   idExecutionRestriction?: number;
   responsibility?: string;
   observation?: string;
-}
+};

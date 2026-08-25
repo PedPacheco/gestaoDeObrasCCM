@@ -15,27 +15,23 @@ import {
   WORK_SERVICES_REPOSITORY,
 } from 'src/domain/contracts/worksService/IWorkServicesRepository';
 import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
+import {
+  GetServicesByWorkIdResponse,
+  GetServiceScheduleHistoryResponse,
+} from 'src/domain/types';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
 
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 import { ExecutionReportService } from '../executionReport.service';
 import { ScheduleExecutionValidatorService } from '../schedule/scheduleExecutionValidator.service';
-import { GetServicesByWorkIdResponse } from 'src/domain/types';
-
-interface FinalizationData {
-  id: number;
-  idWork: number;
-  dataProg: Date;
-  prog: number;
-  exec: number;
-  idExecutionRestriction: number;
-  responsibility: string;
-  executionObservation: string;
-  userId: number;
-}
+import {
+  ExecutionReportDataInput,
+  FinalizeServicesData,
+  FinalizeServicesInput,
+  PerformServicesInput,
+} from 'src/application/types';
 
 @Injectable()
 export class FinalizeServicesService {
@@ -56,7 +52,7 @@ export class FinalizeServicesService {
     private readonly scheduleProgressCalculator: ScheduleProgressCalculatorService,
   ) {}
 
-  async performServices(data: PerformServicesDTO[]): Promise<void> {
+  async performServices(data: PerformServicesInput[]): Promise<void> {
     if (data.length === 0) return;
 
     await this.worksServicesExecutionRepository.performServices(data);
@@ -83,16 +79,18 @@ export class FinalizeServicesService {
 
         await this.statusFlowRepository.updateStatusWorks(36, workId, tx);
         await this.statusFlowRepository.updateScheduleStatus(5, scheduleId, tx);
-      } catch (error: any) {
-        this.logger.error(error);
-        throw error;
+      } catch (error: unknown) {
+        const err = error as { message: string };
+
+        this.logger.error(err);
+        throw err;
       }
     });
   }
 
   async finalizeServices(
     workId: number,
-    data: any,
+    data: FinalizeServicesInput,
     files?: Express.Multer.File[],
   ): Promise<void> {
     const { executionReportData, userId, ...updateData } = data;
@@ -155,7 +153,10 @@ export class FinalizeServicesService {
       );
   }
 
-  private getPendingExecServices(history: any[], scheduleId: number): number[] {
+  private getPendingExecServices(
+    history: GetServiceScheduleHistoryResponse[],
+    scheduleId: number,
+  ): number[] {
     return history
       .filter(
         (service) =>
@@ -175,7 +176,7 @@ export class FinalizeServicesService {
     responsibility: string,
     executionObservation: string,
     userId: number,
-  ): FinalizationData {
+  ): FinalizeServicesData {
     return {
       id: scheduleId,
       idWork: workId,
@@ -192,11 +193,11 @@ export class FinalizeServicesService {
   private async executeFinalization(
     workId: number,
     scheduleId: number,
-    finalizationData: FinalizationData,
+    finalizationData: FinalizeServicesData,
     pendingExecServices: number[],
-    executionReportData: any,
+    executionReportData: ExecutionReportDataInput,
     totalPlanned: number,
-    history: any[],
+    history: GetServiceScheduleHistoryResponse[],
     files?: Express.Multer.File[],
   ): Promise<void> {
     // Calcula o total já executado nas DEMAIS programações (agregado,
@@ -256,7 +257,7 @@ export class FinalizeServicesService {
   // worksServicesExecutionRepository.finalizeServices logo acima — aqui só
   // atualizamos as DEMAIS, em lote.
   private async recalculateOtherSchedulesProgress(
-    history: any[],
+    history: GetServiceScheduleHistoryResponse[],
     totalPlanned: number,
     currentScheduleId: number,
     tx: Prisma.TransactionClient,

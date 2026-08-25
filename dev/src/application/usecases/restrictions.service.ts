@@ -11,6 +11,7 @@ import {
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
 } from 'src/interface/dtos/restrictionsDTO';
+import { GetPulicationRestricitionOutput } from '../types';
 
 @Injectable()
 export class RestrictionsService {
@@ -60,7 +61,9 @@ export class RestrictionsService {
     return { works: result.works, totals };
   }
 
-  async getPublicationRestriction(filters: GetRestrictionsDTO) {
+  async getPublicationRestriction(
+    filters: GetRestrictionsDTO,
+  ): Promise<GetPulicationRestricitionOutput> {
     const processedFilters = this.parseFilters(filters);
 
     const result =

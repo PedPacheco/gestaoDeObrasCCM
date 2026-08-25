@@ -1,14 +1,19 @@
-import { NotesDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
+import {
+  CapexInsertItem,
+  InsertAuxiliaryMarketInput,
+  NoteInsertInput,
+} from 'src/application/types';
+
+import { MarketWork } from '../entities/works.entity';
 import {
   GetAuxiliaryBaseMaterialsResponse,
   GetAuxiliaryBaseNotesResponse,
 } from '../types';
-import { MarketWork } from '../entities/works.entity';
 
 export interface IAuxiliaryBaseRepository {
-  insertNotes(data: NotesDTO[]): Promise<void>;
-  insertMarket(data: any[]): Promise<void>;
-  insertCapex(data: any[]): Promise<void>;
+  insertNotes(data: NoteInsertInput[]): Promise<void>;
+  insertMarket(data: InsertAuxiliaryMarketInput[]): Promise<void>;
+  insertCapex(data: CapexInsertItem[]): Promise<void>;
   delete(tableToDelete: string, id?: number): Promise<void>;
   truncateCN52N(): Promise<void>;
   getFator(

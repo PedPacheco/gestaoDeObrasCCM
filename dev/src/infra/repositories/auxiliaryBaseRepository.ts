@@ -1,3 +1,8 @@
+import {
+  CapexInsertItem,
+  InsertAuxiliaryMarketInput,
+  NoteInsertInput,
+} from 'src/application/types';
 import { AppLogger } from 'src/core/logger/logger.service';
 import { IAuxiliaryBaseRepository } from 'src/domain/contracts/IAuxiliaryBaseRepository';
 import { MarketWork } from 'src/domain/entities/works.entity';
@@ -6,8 +11,6 @@ import {
   GetAuxiliaryBaseNotesResponse,
 } from 'src/domain/types';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { InsertBaseAuxiliaryMarketDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
-import { InsertNotesInterface } from 'src/interface/types/baseAuxiliaryInterface';
 
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
@@ -267,7 +270,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     }
   }
 
-  async insertMarket(data: InsertBaseAuxiliaryMarketDTO[]): Promise<void> {
+  async insertMarket(data: InsertAuxiliaryMarketInput[]): Promise<void> {
     const [municipios, tipos, circuitos] = await Promise.all([
       this.prisma.municipios.findMany({ select: { id: true, mun: true } }),
       this.prisma.tipos.findMany({
@@ -315,7 +318,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     });
   }
 
-  async insertNotes(data: InsertNotesInterface[]): Promise<void> {
+  async insertNotes(data: NoteInsertInput[]): Promise<void> {
     const rows = data.map(
       (item) => Prisma.sql`
         ROW(
@@ -351,7 +354,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
    * Cada mini-batch roda com retry + backoff exponencial para absorver
    * quedas de conexão transitórias sem derrubar o job inteiro.
    */
-  async insertCapex(data: any[]): Promise<void> {
+  async insertCapex(data: CapexInsertItem[]): Promise<void> {
     for (let i = 0; i < data.length; i += this.INSERT_BATCH_SIZE) {
       const batch = data.slice(i, i + this.INSERT_BATCH_SIZE);
 

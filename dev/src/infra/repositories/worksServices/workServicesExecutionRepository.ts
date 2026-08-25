@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { FinalizeServicesData } from 'src/application/types';
 import { IWorkServicesExecutionRepository } from 'src/domain/contracts/worksService/IWorkServicesExecutionRepository';
 
 import { PrismaService } from 'src/infra/prisma/prisma.service';
@@ -10,7 +11,7 @@ export class WorkServicesExeutionRepository implements IWorkServicesExecutionRep
   constructor(private readonly prisma: PrismaService) {}
 
   async finalizeServices(
-    data: any,
+    data: FinalizeServicesData,
     pendingExecServicesData: number[],
     tx: Prisma.TransactionClient,
   ): Promise<void> {
@@ -35,8 +36,10 @@ export class WorkServicesExeutionRepository implements IWorkServicesExecutionRep
           data: { id_programacao: null },
         });
       }
-    } catch (error: any) {
-      if (error.code === 'P2025') {
+    } catch (error: unknown) {
+      const err = error as { code: string; message: string };
+
+      if (err.code === 'P2025') {
         throw new NotFoundException(`Agendamento com ID ${id} não encontrado`);
       }
 

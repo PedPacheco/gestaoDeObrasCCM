@@ -18,6 +18,8 @@ export type GetScheduleValuesResponseItem = {
   observprog: string | null;
   mo_prog: number;
   mo_exec: number;
+  capex_mat_pend: number;
+  capex_mo_pend: number;
   mat_prog: number;
   num_dp: string | null;
   hora_ini: string;

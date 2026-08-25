@@ -1,8 +1,33 @@
-type EquipmentItem = {
+export type EquipmentItem = {
   equipment: string;
   power: string;
   patrimony: string;
   installation: string;
+};
+
+export type CreateExecutionReportInput = {
+  idSchedule: number;
+  userId: number;
+  idWork: number;
+  supervisor: string;
+  partialConnectionReleased: boolean;
+  startTime: string;
+  finishTime: string;
+  startContact: string;
+  endContact: string;
+  delayJustification: string;
+  hasEquipmentInstalled: boolean;
+  appliedEquipment: EquipmentItem[];
+  hasEquipmentRemoved: boolean;
+  equipmentRemoved: EquipmentItem[];
+  changesExecution: boolean;
+  generalObservation: string;
+  reason: string;
+  provisionalKeyInstalled: boolean;
+  provisionalKeyReference: string;
+  provisionalKeyReferenceWithdrawn?: string;
+  provisionalKeyWithdrawn?: boolean;
+  files?: string;
 };
 
 export type UpdateExecutionReportInput = {

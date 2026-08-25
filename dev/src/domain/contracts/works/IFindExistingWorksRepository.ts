@@ -1,3 +1,5 @@
+import { ExistingNoteResponse, ExistingWorkResponse } from 'src/domain/types';
+
 export interface filtersOrders {
   ordem_dci: string | null;
   ordem_dcd: string | null;
@@ -6,20 +8,13 @@ export interface filtersOrders {
 }
 
 export interface IFindExistingWorksRepository {
-  findExistingWorks(works: string[]): Promise<{ id: number; ovnota: string }[]>;
+  findExistingWorks(works: string[]): Promise<ExistingWorkResponse[]>;
   findExistingWorksOnSuspension(
     works: { ovnota: string; ordemDiagrama: string }[],
-  ): Promise<{ id: number; ovnota: string }[]>;
-  findExistingNotes(filters: any[]): Promise<
-    {
-      id: number;
-      ovnota: string;
-      ordemDci: string;
-      ordemDcd: string;
-      ordemDca: string;
-      ordemDcim: string;
-    }[]
-  >;
+  ): Promise<ExistingWorkResponse[]>;
+  findExistingNotes(
+    filters: { ovnota: string }[],
+  ): Promise<ExistingNoteResponse[]>;
   findExistingOrders(orders: filtersOrders[]): Promise<string[]>;
 }
 

@@ -18,11 +18,6 @@ export interface ProcessedRestrictionsFilters {
   idTipo?: number[];
   idParceira?: number[];
   idRestricao?: number[];
-  /**
-   * undefined → sem filtro de execução (ambos ou nenhum status selecionado)
-   * true      → apenas registros executados (status 'done')
-   * false     → apenas registros pendentes (status 'pending')
-   */
   filterExecutado?: boolean;
   page?: number;
 }

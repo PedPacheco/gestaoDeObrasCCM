@@ -1,9 +1,9 @@
 import { Prisma } from '@prisma/client';
-import { UpdateWorkDTO } from 'src/interface/dtos/worksDto';
+import { UpdateWorkInput } from 'src/application/types';
 
 export interface IUpdateWorkRepository {
   update(
-    data: UpdateWorkDTO,
+    data: UpdateWorkInput,
     id: number,
     tx: Prisma.TransactionClient,
   ): Promise<void>;

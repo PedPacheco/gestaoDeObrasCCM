@@ -1,23 +1,19 @@
-import { NotesInput } from 'src/application/types';
+import {
+  InsertNotesOutput,
+  NoteInsertInput,
+  NotesInput,
+  OperationType,
+  SkipItemResult,
+  ValidationResult,
+} from 'src/application/types';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
 } from 'src/domain/contracts/IAuxiliaryBaseRepository';
-import { OperationType } from 'src/interface/types/baseAuxiliaryInterface';
 
 import { Inject, Injectable } from '@nestjs/common';
 
 import { FindExistingWorksService } from '../works/findExistingWorks.service';
-
-interface InsertNotesResult {
-  insertedCount: number;
-  skippedNotes: string[];
-}
-
-interface ValidationResult {
-  validatedData: NotesInput[];
-  skippedNotes: string[];
-}
 
 @Injectable()
 export class AuxiliaryNotesInsertService {
@@ -30,7 +26,7 @@ export class AuxiliaryNotesInsertService {
   async execute(
     data: NotesInput[],
     operation: OperationType,
-  ): Promise<InsertNotesResult> {
+  ): Promise<InsertNotesOutput> {
     if (!data?.length) {
       return { insertedCount: 0, skippedNotes: [] };
     }
@@ -49,16 +45,18 @@ export class AuxiliaryNotesInsertService {
       };
     }
 
-    const notesData = validationResult.validatedData.map((item) => {
-      if (item.conjunto === '37') {
-        return {
-          ...item,
-          conjunto: '0',
-          ehRda: true,
-        };
-      }
-      return { ...item, ehRda: false };
-    });
+    const notesData: NoteInsertInput[] = validationResult.validatedData.map(
+      (item) => {
+        if (item.conjunto === '37') {
+          return {
+            ...item,
+            conjunto: '0',
+            ehRda: true,
+          };
+        }
+        return { ...item, ehRda: false };
+      },
+    );
 
     await this.auxiliaryBaseRepository.insertNotes(notesData);
 
@@ -120,7 +118,7 @@ export class AuxiliaryNotesInsertService {
     notesData: NotesInput,
     existingNotesSet: Set<string>,
     existingOrdersSet: Set<string>,
-  ): { noteExists: boolean; orderExists: boolean } {
+  ): SkipItemResult {
     const noteExists = existingNotesSet.has(notesData.campo_ordenacao);
 
     const orders = [

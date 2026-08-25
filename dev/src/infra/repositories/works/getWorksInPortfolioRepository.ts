@@ -1,11 +1,12 @@
+import { WorkFiltersInput } from 'src/application/types';
 import { IGetWorksInPortfolioRepository } from 'src/domain/contracts/works/IGetWorksInPortfolioRepository';
+import {
+  WorkSummary,
+  WorkSummaryRepositoryResponse,
+  WorkTotals,
+} from 'src/domain/types';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
-import {
-  totalsWorksInPortfolio,
-  worksInPortfolioInterface,
-  worksInPortfolioResponseRepository,
-} from 'src/interface/types/works/getWorksInPortfolioInterface';
 
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
@@ -116,8 +117,8 @@ export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioReposi
   }
 
   async getWorksInPortfolio(
-    filters: GetWorksDTO,
-  ): Promise<worksInPortfolioResponseRepository> {
+    filters: WorkFiltersInput,
+  ): Promise<WorkSummaryRepositoryResponse> {
     const { page } = filters;
 
     let base = this.buildBaseQuery();
@@ -133,6 +134,7 @@ export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioReposi
         ordem_dcd,
         ordem_dcim,
         status_ov_sap,
+        executado,
         pep,
         mun,
         obras.id_status,
@@ -198,8 +200,8 @@ export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioReposi
     }
 
     const [works, totals] = await Promise.all([
-      this.prisma.$queryRaw<worksInPortfolioInterface[]>(query),
-      this.prisma.$queryRaw<totalsWorksInPortfolio[]>(countQuery),
+      this.prisma.$queryRaw<WorkSummary[]>(query),
+      this.prisma.$queryRaw<WorkTotals>(countQuery),
     ]);
 
     return { works, totals };

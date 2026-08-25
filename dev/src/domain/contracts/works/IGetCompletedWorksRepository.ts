@@ -1,10 +1,10 @@
-import { GetWorksDTO } from 'src/interface/dtos/worksDto';
-import { worksInPortfolioResponseRepository } from 'src/interface/types/works/getWorksInPortfolioInterface';
+import { WorkFiltersInput } from 'src/application/types';
+import { CompletedWorksRepositoryResponse } from 'src/domain/types';
 
 export interface IGetCompletedWorksRepository {
   getCompletedWorks(
-    filters: GetWorksDTO,
-  ): Promise<worksInPortfolioResponseRepository>;
+    filters: WorkFiltersInput,
+  ): Promise<CompletedWorksRepositoryResponse>;
 }
 
 export const GET_COMPLETED_WORKS_REPOSITORY = Symbol(

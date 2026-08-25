@@ -3,13 +3,13 @@ import {
   AuxiliaryBaseNotesResponse,
   InsertAuxiliaryMarketInput,
   NotesInput,
+  OperationType,
 } from 'src/application/types';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
 } from 'src/domain/contracts/IAuxiliaryBaseRepository';
 import { MarketWork } from 'src/domain/entities/works.entity';
-import { OperationType } from 'src/interface/types/baseAuxiliaryInterface';
 
 import { Inject, Injectable } from '@nestjs/common';
 

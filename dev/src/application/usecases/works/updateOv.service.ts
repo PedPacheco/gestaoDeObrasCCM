@@ -5,7 +5,7 @@ import {
   UPDATE_OV_REPOSITORY,
 } from 'src/domain/contracts/works/IUpdateOvRepository';
 import { MarketWork } from 'src/domain/entities/works.entity';
-import { InsertMarketWorksDTO } from 'src/interface/dtos/worksDto';
+import { UpdateMarketWorksInput } from 'src/application/types';
 
 @Injectable()
 export class UpdateOvService {
@@ -15,7 +15,7 @@ export class UpdateOvService {
     private readonly findExistingWorksService: FindExistingWorksService,
   ) {}
 
-  async update(data: InsertMarketWorksDTO[]) {
+  async update(data: UpdateMarketWorksInput[]): Promise<void> {
     if (!data?.length) {
       throw new BadRequestException('Nenhum dado enviado.');
     }

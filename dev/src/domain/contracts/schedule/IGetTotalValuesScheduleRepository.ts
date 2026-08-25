@@ -1,9 +1,9 @@
-import { GetTotalValuesScheduleDTO } from 'src/interface/dtos/scheduleDTO';
-import { GetTotalValuesScheduleResponse } from 'src/interface/types/schedule/getTotalValuesScheduleInterface';
+import { GetTotalValuesSchedulesInput } from 'src/application/types';
+import { GetTotalValuesScheduleResponse } from 'src/domain/types/repositories/schedule/getTotalValuesSchedule.types';
 
 export interface IGetTotalScheduleValuesRepository {
   getTotalValues(
-    filters: GetTotalValuesScheduleDTO,
+    filters: GetTotalValuesSchedulesInput,
   ): Promise<GetTotalValuesScheduleResponse[]>;
 }
 

@@ -1,11 +1,19 @@
-import { Inject, Injectable } from '@nestjs/common';
 import moment from 'moment';
 import {
   ADVANCE_PARTNER_REPOSITORY,
   IAdvancePartnerRepository,
-  ProcessedEliminacaoFilters,
 } from 'src/domain/contracts/IAdvancePartnerRepository';
-import { GetRestrictionsAdvancePartnerDTO } from 'src/interface/dtos/restrictionsDTO';
+import { GetReaschedulingReasonsResponse } from 'src/domain/types';
+
+import { Inject, Injectable } from '@nestjs/common';
+
+import {
+  GetRestrictionsAdvancePartnerInput,
+  GripPartnerOutput,
+  RestrictionsAdvancePartnerOutput,
+  SparklinePartnerOutput,
+  WeeksByPartnerOutput,
+} from '../types';
 
 @Injectable()
 export class AdvancePartnerService {
@@ -15,17 +23,17 @@ export class AdvancePartnerService {
   ) {}
 
   private parseEliminationFilters(
-    filters: GetRestrictionsAdvancePartnerDTO,
-  ): ProcessedEliminacaoFilters {
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): GetRestrictionsAdvancePartnerInput {
     const { dataInicial, dataFinal, idRegional, idParceira, responsabilidade } =
       filters;
 
     return {
       dataInicial: dataInicial
-        ? moment(dataInicial, 'DD/MM/YYYY').toDate()
+        ? moment(dataInicial, 'DD/MM/YYYY').toString()
         : undefined,
       dataFinal: dataFinal
-        ? moment(dataFinal, 'DD/MM/YYYY').toDate()
+        ? moment(dataFinal, 'DD/MM/YYYY').toString()
         : undefined,
       idRegional,
       idParceira,
@@ -34,8 +42,8 @@ export class AdvancePartnerService {
   }
 
   async getRestrictionsAdvancePartner(
-    filters: GetRestrictionsAdvancePartnerDTO,
-  ) {
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<RestrictionsAdvancePartnerOutput[]> {
     const processedFilters = this.parseEliminationFilters(filters);
     const rows =
       await this.advancePartnerRepository.getRestrictionsAdvancePartner(
@@ -55,7 +63,9 @@ export class AdvancePartnerService {
     });
   }
 
-  async getGripPartner(filters: GetRestrictionsAdvancePartnerDTO) {
+  async getGripPartner(
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<GripPartnerOutput[]> {
     const processedFilters = this.parseEliminationFilters(filters);
     const rows =
       await this.advancePartnerRepository.getGripPartner(processedFilters);
@@ -78,7 +88,9 @@ export class AdvancePartnerService {
     });
   }
 
-  async getReaschedulingReasons(filters: GetRestrictionsAdvancePartnerDTO) {
+  async getReaschedulingReasons(
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<GetReaschedulingReasonsResponse[]> {
     const processedFilters = this.parseEliminationFilters(filters);
 
     return await this.advancePartnerRepository.getReaschedulingReasons(
@@ -86,7 +98,9 @@ export class AdvancePartnerService {
     );
   }
 
-  async getSparklinesByPartner(filters: GetRestrictionsAdvancePartnerDTO) {
+  async getSparklinesByPartner(
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<SparklinePartnerOutput[]> {
     const processedFilters = this.parseEliminationFilters(filters);
 
     const { aderencia, eliminacao } =
@@ -136,10 +150,14 @@ export class AdvancePartnerService {
     }));
   }
 
-  async getWeeksByPartner(filters: GetRestrictionsAdvancePartnerDTO) {
+  async getWeeksByPartner(
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<WeeksByPartnerOutput[]> {
     const processedFilters = this.parseEliminationFilters(filters);
+
     const rows =
       await this.advancePartnerRepository.getWeeksByPartner(processedFilters);
+
     return rows.map((r) => ({
       parceira: r.parceira,
       semanas: Number(r.semanas),

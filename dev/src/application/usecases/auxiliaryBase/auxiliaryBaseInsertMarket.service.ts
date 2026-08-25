@@ -1,9 +1,11 @@
-import { InsertAuxiliaryMarketInput } from 'src/application/types';
+import {
+  InsertAuxiliaryMarketInput,
+  OperationType,
+} from 'src/application/types';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
 } from 'src/domain/contracts/IAuxiliaryBaseRepository';
-import { OperationType } from 'src/interface/types/baseAuxiliaryInterface';
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 

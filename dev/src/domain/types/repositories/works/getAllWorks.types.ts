@@ -1,4 +1,4 @@
-export interface GetAllWorksInterface {
+export type GetAllWorksItem = {
   id: number;
   ovnota: string;
   ordemdiagrama: string;
@@ -33,14 +33,11 @@ export interface GetAllWorksInterface {
   status: string;
   observ_obra: string | null;
   referencia: string | null;
-}
+};
 
-export interface getALlWorksResponseRepository {
-  works: GetAllWorksInterface[];
-  total: { total_obras: number }[];
-}
-
-export interface getALlWorksResponseService {
-  works: GetAllWorksInterface[];
-  totalRecords: number;
-}
+export type GetAllWorksRepositoryResponse = {
+  works: GetAllWorksItem[];
+  total: {
+    total_obras: number;
+  }[];
+};

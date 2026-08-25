@@ -5,8 +5,8 @@ import {
   ADD_SCHEDULES_REPOSITORY,
   IAddSchedulesRepository,
 } from 'src/domain/contracts/schedule/IAddSchedulesRepository';
-import { SchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
 import { parseTimeToDate } from 'src/utils/parseTimeToDate';
+import { AddScheduleInput } from 'src/application/types';
 
 @Injectable()
 export class AddSchedulesService {
@@ -16,7 +16,7 @@ export class AddSchedulesService {
   ) {}
 
   async add(
-    data: SchedulesDataDTO,
+    data: AddScheduleInput,
     tx: Prisma.TransactionClient,
   ): Promise<number> {
     if (!data) {
@@ -34,9 +34,11 @@ export class AddSchedulesService {
         finishTime: parseTimeToDate(data.finishTime),
         dataProg: new Date(data.dataProg),
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { message: string };
+
       throw new BadRequestException(
-        `Erro ao criar programação: ${error.message}`,
+        `Erro ao criar programação: ${err.message}`,
       );
     }
 

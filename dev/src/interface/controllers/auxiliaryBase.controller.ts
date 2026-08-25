@@ -19,7 +19,6 @@ import {
   InsertBaseAuxiliaryMarketDTO,
   NotesDTO,
 } from '../dtos/auxiliaryBaseDTO';
-import { OperationType } from '../types/baseAuxiliaryInterface';
 import { diskStorage } from 'multer';
 import { randomUUID } from 'crypto';
 import { CapexGateway } from '../gateway/capex/capex.gateway';
@@ -28,6 +27,7 @@ import {
   AreaViewGuard,
 } from 'src/core/guards/newPermission.guard';
 import { AppLogger } from 'src/core/logger/logger.service';
+import { OperationType } from 'src/application/types';
 
 const capexFileInterceptor = FileInterceptor('file', {
   storage: diskStorage({

@@ -1,4 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { WorkDetailsOutput } from 'src/application/types';
 import {
   GET_WORKS_DETAILS_REPOSITORY,
   IGetWorksDetailsRepository,
@@ -12,7 +13,7 @@ export class GetWorkDetailsService {
     private readonly getWorksDetailsRepository: IGetWorksDetailsRepository,
   ) {}
 
-  async get(id: number) {
+  async get(id: number): Promise<WorkDetailsOutput> {
     const work = await this.getWorksDetailsRepository.get(id);
 
     if (!work) {

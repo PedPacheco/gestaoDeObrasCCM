@@ -1,3 +1,5 @@
+export type OperationType = 'insert' | 'update';
+
 export type AuxiliaryBaseMarketResponse = {
   id: number;
   obra: string | null;
@@ -59,6 +61,10 @@ export type NotesInput = {
   denominacao: string;
 };
 
+export type NoteInsertInput = NotesInput & {
+  ehRda: boolean;
+};
+
 export type InsertAuxiliaryMarketInput = {
   obra: string;
   pep: string;
@@ -74,4 +80,26 @@ export type InsertAuxiliaryMarketInput = {
   equipeNumPedido: string;
   moCliente: number;
   moEmpresa: number;
+};
+
+export type InsertNotesOutput = {
+  insertedCount: number;
+  skippedNotes: string[];
+};
+
+export type ValidationResult = {
+  validatedData: NotesInput[];
+  skippedNotes: string[];
+};
+
+export type SkipItemResult = {
+  noteExists: boolean;
+  orderExists: boolean;
+};
+
+export type ExistingOrderInput = {
+  ordem_dci?: string;
+  ordem_dcd?: string;
+  ordem_dca?: string;
+  ordem_dcim?: string;
 };
