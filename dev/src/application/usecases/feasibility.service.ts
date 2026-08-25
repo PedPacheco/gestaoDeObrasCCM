@@ -4,8 +4,8 @@ import {
 } from 'src/domain/contracts/IFeasibilityRepository';
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-
-export type StatusFeasibility = 'FORA DO PRAZO' | 'DENTRO DO PRAZO';
+import { ExistsResponse } from 'src/domain/types';
+import { FeasibilityRejectionOutput } from '../types';
 
 @Injectable()
 export class FeasibilityService {
@@ -14,7 +14,7 @@ export class FeasibilityService {
     private readonly feasibilityRepository: IFeasibilityRepository,
   ) {}
 
-  async feasibilityExists(id: number) {
+  async feasibilityExists(id: number): Promise<ExistsResponse> {
     if (!id) {
       throw new BadRequestException('Obra não foi enviada');
     }
@@ -22,7 +22,7 @@ export class FeasibilityService {
     return await this.feasibilityRepository.exists(id);
   }
 
-  async getRejections(workId: number) {
+  async getRejections(workId: number): Promise<FeasibilityRejectionOutput[]> {
     const response = await this.feasibilityRepository.getRejections(workId);
 
     return response.map((item) => ({

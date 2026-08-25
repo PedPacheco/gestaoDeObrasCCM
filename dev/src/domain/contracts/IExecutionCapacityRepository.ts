@@ -1,15 +1,15 @@
 import {
-  ExecutionCapacityDTO,
-  UpdateExecutionCapacityDTO,
-} from '../../interface/dtos/executionCapacityDTO';
+  ExecutionCapacityInput,
+  UpdateExecutionCapacityInput,
+} from 'src/application/types';
 import { GetFinancialValuesResponse, GetResponse } from '../types';
 
 export interface IExecutionCapacityRepository {
-  get(filters: ExecutionCapacityDTO): Promise<GetResponse[]>;
+  get(filters: ExecutionCapacityInput): Promise<GetResponse[]>;
   getFinancialValue(
-    filters: ExecutionCapacityDTO,
+    filters: ExecutionCapacityInput,
   ): Promise<GetFinancialValuesResponse[]>;
-  update(data: UpdateExecutionCapacityDTO[]): Promise<void>;
+  update(data: UpdateExecutionCapacityInput[]): Promise<void>;
 }
 
 export const EXECUTION_CAPACITY_REPOSITORY = Symbol(

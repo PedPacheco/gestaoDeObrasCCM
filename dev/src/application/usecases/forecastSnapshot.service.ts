@@ -9,11 +9,11 @@ import {
   ForecastSnapshotDailyData,
   ForecastSnapshotGroupData,
 } from 'src/domain/types';
-import { CreateForecastSnapshotDTO } from 'src/interface/dtos/forecastSnapshotDTO';
 
 import { Inject, Injectable } from '@nestjs/common';
 
 import {
+  CreateForecastSnapshotInput,
   FormattedForecastSnapshotDaily,
   FormattedForecastSnapshotGroup,
   GetAllForecastSnapshotsOutput,
@@ -60,7 +60,7 @@ export class ForecastSnapshotService {
     private readonly repository: IForecastSnapshotRepository,
   ) {}
 
-  async execute(data: CreateForecastSnapshotDTO) {
+  async execute(data: CreateForecastSnapshotInput) {
     if (!data.diario?.summary.length) {
       throw new Error('Snapshot diário não pode estar vazio');
     }

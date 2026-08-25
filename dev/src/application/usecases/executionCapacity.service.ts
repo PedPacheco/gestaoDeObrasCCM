@@ -2,12 +2,15 @@ import {
   EXECUTION_CAPACITY_REPOSITORY,
   IExecutionCapacityRepository,
 } from 'src/domain/contracts/IExecutionCapacityRepository';
-import {
-  ExecutionCapacityDTO,
-  UpdateExecutionCapacityDTO,
-} from 'src/interface/dtos/executionCapacityDTO';
 
 import { Inject, Injectable } from '@nestjs/common';
+
+import {
+  ExecutionCapacityFinancialValueOutput,
+  ExecutionCapacityInput,
+  ExecutionCapacityOutput,
+  UpdateExecutionCapacityInput,
+} from '../types';
 
 @Injectable()
 export class ExecutionCapacityService {
@@ -16,7 +19,9 @@ export class ExecutionCapacityService {
     private readonly executionCapacityRepository: IExecutionCapacityRepository,
   ) {}
 
-  async get(filters: ExecutionCapacityDTO) {
+  async get(
+    filters: ExecutionCapacityInput,
+  ): Promise<ExecutionCapacityOutput[]> {
     const data = await this.executionCapacityRepository.get(filters);
 
     const formattedData = data.map(({ regionais, turmas, ...rest }) => ({
@@ -28,7 +33,9 @@ export class ExecutionCapacityService {
     return formattedData;
   }
 
-  async getFinancialValue(filters: ExecutionCapacityDTO) {
+  async getFinancialValue(
+    filters: ExecutionCapacityInput,
+  ): Promise<ExecutionCapacityFinancialValueOutput[]> {
     const data =
       await this.executionCapacityRepository.getFinancialValue(filters);
 
@@ -76,7 +83,7 @@ export class ExecutionCapacityService {
     return Object.values(financialValues);
   }
 
-  async update(data: UpdateExecutionCapacityDTO[]) {
+  async update(data: UpdateExecutionCapacityInput[]) {
     await this.executionCapacityRepository.update(data);
   }
 }

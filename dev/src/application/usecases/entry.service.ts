@@ -3,44 +3,16 @@ import {
   ENTRY_REPOSITORY,
   IEntryRepository,
 } from 'src/domain/contracts/IEntryRepository';
-import {
-  GetEntryOfWorksByDayDTO,
-  GetEntryOfWorksDTO,
-} from 'src/interface/dtos/entryDto';
-
-import { Inject, Injectable } from '@nestjs/common';
 import { EntryDayResponse } from 'src/domain/types';
 
-export type ReturnGetValuesFromEntry = {
-  tipo: string;
-  grupo: string;
-  total_entrada: number;
-  total_entrada_qtde: number;
-  jan_entrada: number;
-  jan_entrada_qtde: number;
-  fev_entrada: number;
-  fev_entrada_qtde: number;
-  mar_entrada: number;
-  mar_entrada_qtde: number;
-  abr_entrada: number;
-  abr_entrada_qtde: number;
-  mai_entrada: number;
-  mai_entrada_qtde: number;
-  jun_entrada: number;
-  jun_entrada_qtde: number;
-  jul_entrada: number;
-  jul_entrada_qtde: number;
-  ago_entrada: number;
-  ago_entrada_qtde: number;
-  set_entrada: number;
-  set_entrada_qtde: number;
-  out_entrada: number;
-  out_entrada_qtde: number;
-  nov_entrada: number;
-  nov_entrada_qtde: number;
-  dez_entrada: number;
-  dez_entrada_qtde: number;
-};
+import { Inject, Injectable } from '@nestjs/common';
+
+import {
+  GetEntryOfWorksByDayInput,
+  GetEntryOfWorksByDayOutput,
+  GetEntryOfWorksInput,
+  GetValuesFromEntryOutput,
+} from '../types';
 
 @Injectable()
 export class EntryService {
@@ -49,8 +21,8 @@ export class EntryService {
   ) {}
 
   async getValuesFromEntry(
-    filters: GetEntryOfWorksDTO,
-  ): Promise<ReturnGetValuesFromEntry[]> {
+    filters: GetEntryOfWorksInput,
+  ): Promise<GetValuesFromEntryOutput[]> {
     const obras = await this.entryRepository.getValuesFromEntry(filters);
 
     const monthAbbreviations: { [key: number]: string } = {
@@ -104,7 +76,9 @@ export class EntryService {
     return Object.values(result);
   }
 
-  async getEntryOfWorksByDay(filters: GetEntryOfWorksByDayDTO) {
+  async getEntryOfWorksByDay(
+    filters: GetEntryOfWorksByDayInput,
+  ): Promise<GetEntryOfWorksByDayOutput> {
     const { dataFinal, dataInicial } = filters;
 
     const dateRange = {
@@ -144,9 +118,9 @@ export class EntryService {
         qtde_planejada: item.qtde_planejada,
         mo_planejada: item.mo_planejada,
         observ_obra: item.observ_obra,
-        tipos: item.tipos,
-        turmas: item.turmas,
-        municipios: item.municipios,
+        tipos: item.tipos.tipo_obra,
+        turmas: item.turmas.turma,
+        municipios: item.municipios.mun,
       };
     });
 

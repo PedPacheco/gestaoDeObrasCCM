@@ -3,12 +3,10 @@ import {
   FILTERS_REPOSITORY,
   IFiltersRepository,
 } from 'src/domain/contracts/IFiltersRepository';
-import { FiltersDto } from 'src/interface/dtos/filtersDto';
 
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
-
-type FilterCondition = string | number | number[];
+import { FilterCondition, GetFiltersInput, GetFiltersOutput } from '../types';
 
 @Injectable()
 export class FiltersService {
@@ -35,9 +33,9 @@ export class FiltersService {
       statusProgramacao,
       tipoRestricao,
       statusSap,
-    }: FiltersDto,
+    }: GetFiltersInput,
     condition?: FilterCondition,
-  ) {
+  ): Promise<GetFiltersOutput> {
     const result = {};
 
     if (regional) {

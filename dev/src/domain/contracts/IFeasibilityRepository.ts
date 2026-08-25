@@ -1,7 +1,11 @@
-import { Prisma } from '@prisma/client';
-import { StatusFeasibility } from 'src/application/usecases/feasibility.service';
-import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
+import {
+  RejectFeasibilityInput,
+  StatusFeasibility,
+} from 'src/application/types/usecases/feasibility.types';
 import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
+
+import { Prisma } from '@prisma/client';
+
 import { ExistsResponse, GetRejectionsResponse } from '../types';
 
 export interface IFeasibilityRepository {
@@ -28,7 +32,7 @@ export interface IFeasibilityRepository {
     idWork: number,
   ): Promise<{ id: number; caminhos_arquivos: string[] }>;
   reject(
-    data: RejectFeasibilityDTO,
+    data: RejectFeasibilityInput,
     tx: Prisma.TransactionClient,
   ): Promise<void>;
   approve(

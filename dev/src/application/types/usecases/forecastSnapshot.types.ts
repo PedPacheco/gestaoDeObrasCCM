@@ -1,7 +1,9 @@
 import {
   ForecastDailyTotalsResponse,
   ForecastGroupTotalsResponse,
+  ForecastSnapshotDailyData,
   ForecastSnapshotFilters,
+  ForecastSnapshotGroupData,
 } from 'src/domain/types';
 
 type FormattedForecastSnapshotDailyItem = {
@@ -68,4 +70,10 @@ export type GetAllForecastSnapshotsOutput = {
   id: number;
   nomeArquivo: string;
   filtros: ForecastSnapshotFilters;
+};
+
+export type CreateForecastSnapshotInput = {
+  diario: ForecastSnapshotDailyData;
+  grupo: ForecastSnapshotGroupData;
+  filtros?: ForecastSnapshotFilters;
 };

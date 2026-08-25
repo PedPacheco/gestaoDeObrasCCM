@@ -1,19 +1,20 @@
-import { IEntryRepository } from 'src/domain/contracts/IEntryRepository';
 import {
-  GetEntryOfWorksByDayDTO,
-  GetEntryOfWorksDTO,
-} from 'src/interface/dtos/entryDto';
+  GetEntryOfWorksByDayInput,
+  GetEntryOfWorksInput,
+} from 'src/application/types';
+import { IEntryRepository } from 'src/domain/contracts/IEntryRepository';
+import { EntryDayResponse, ValuesFromEntryResponse } from 'src/domain/types';
+
+import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service';
-import { Injectable } from '@nestjs/common';
-import { EntryDayResponse, ValuesFromEntryResponse } from 'src/domain/types';
 
 @Injectable()
 export class EntryRespository implements IEntryRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async getEntryOfWorksByDay(
-    filters: GetEntryOfWorksByDayDTO,
+    filters: GetEntryOfWorksByDayInput,
     dateRange: Record<string, Date>,
   ): Promise<EntryDayResponse[]> {
     const { idGrupo, idMunicipio, idParceira, idRegional, idTipo } = filters;
@@ -68,7 +69,7 @@ export class EntryRespository implements IEntryRepository {
   }
 
   async getValuesFromEntry(
-    filters: GetEntryOfWorksDTO,
+    filters: GetEntryOfWorksInput,
   ): Promise<ValuesFromEntryResponse[]> {
     const {
       idGrupo,

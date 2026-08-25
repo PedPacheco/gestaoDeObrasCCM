@@ -4,7 +4,15 @@ import {
 } from 'src/domain/contracts/IErrorsReportRepository';
 
 import { Inject, Injectable } from '@nestjs/common';
-import { FindRepeatedWorksResponse } from '../types';
+import {
+  DivergentConclusionOutput,
+  ExecutionDifferentialOutput,
+  FindRepeatedWorksResponse,
+  ScheduleErrorOutput,
+  UndefinedItemOutput,
+  WorkWithoutYearPlanOutput,
+  ZeroCapexOutput,
+} from '../types';
 
 @Injectable()
 export class ErrorsReportService {
@@ -13,7 +21,9 @@ export class ErrorsReportService {
     private readonly errorsReportRepository: IErrorsReportRepository,
   ) {}
 
-  async findUndefinedItems(idRegional?: number) {
+  async findUndefinedItems(
+    idRegional?: number,
+  ): Promise<UndefinedItemOutput[]> {
     const data =
       await this.errorsReportRepository.findUndefinedItems(idRegional);
 
@@ -31,7 +41,7 @@ export class ErrorsReportService {
     return formattedData;
   }
 
-  async findScheduleError(idRegional?: number) {
+  async findScheduleError(idRegional?: number): Promise<ScheduleErrorOutput[]> {
     const data =
       await this.errorsReportRepository.findScheduleError(idRegional);
 
@@ -56,7 +66,7 @@ export class ErrorsReportService {
       .filter((obra) => obra.total !== 100);
   }
 
-  async findZeroCapex(idRegional?: number) {
+  async findZeroCapex(idRegional?: number): Promise<ZeroCapexOutput[]> {
     const data = await this.errorsReportRepository.findZeroCapex(idRegional);
 
     return data.map((work) => ({
@@ -75,7 +85,9 @@ export class ErrorsReportService {
     }));
   }
 
-  async findExecutionDifferential(idRegional?: number) {
+  async findExecutionDifferential(
+    idRegional?: number,
+  ): Promise<ExecutionDifferentialOutput[]> {
     const data =
       await this.errorsReportRepository.findExecutionDifferential(idRegional);
 
@@ -96,7 +108,9 @@ export class ErrorsReportService {
       .filter((work) => work.executado !== work.somaExec);
   }
 
-  async findDivergentConclusion(idRegional?: number) {
+  async findDivergentConclusion(
+    idRegional?: number,
+  ): Promise<DivergentConclusionOutput[]> {
     const data =
       await this.errorsReportRepository.findDivergentConclusion(idRegional);
 
@@ -114,7 +128,9 @@ export class ErrorsReportService {
       );
   }
 
-  async findWorksWithoutYearPlan(idRegional?: number) {
+  async findWorksWithoutYearPlan(
+    idRegional?: number,
+  ): Promise<WorkWithoutYearPlanOutput[]> {
     const data =
       await this.errorsReportRepository.findWorksWithoutYearPlan(idRegional);
 

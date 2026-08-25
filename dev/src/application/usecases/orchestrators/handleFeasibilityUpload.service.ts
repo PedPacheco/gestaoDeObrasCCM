@@ -1,8 +1,19 @@
 import {
+  RejectFeasibilityInput,
+  StatusFeasibility,
+} from 'src/application/types';
+import { AppLogger } from 'src/core/logger/logger.service';
+import {
+  FEASIBILITY_REPOSITORY,
+  IFeasibilityRepository,
+} from 'src/domain/contracts/IFeasibilityRepository';
+import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/contracts/IStatusFlowRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
+import { countBusinessDays } from 'src/utils/parseTimeToDate';
 
 import {
   BadGatewayException,
@@ -10,18 +21,9 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
-
-import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
-import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
-import {
-  FEASIBILITY_REPOSITORY,
-  IFeasibilityRepository,
-} from 'src/domain/contracts/IFeasibilityRepository';
-import { StatusFeasibility } from '../feasibility.service';
-import { countBusinessDays } from 'src/utils/parseTimeToDate';
-import { FileService } from '../file.service';
 import { Prisma } from '@prisma/client';
-import { AppLogger } from 'src/core/logger/logger.service';
+
+import { FileService } from '../file.service';
 
 @Injectable()
 export class HandleFeasibilityService {
@@ -91,7 +93,7 @@ export class HandleFeasibilityService {
     await this.deletePhysicalFiles(filesToRemove);
   }
 
-  async reject(data: RejectFeasibilityDTO) {
+  async reject(data: RejectFeasibilityInput) {
     await this.prisma.$transaction(async (tx) => {
       await this.feasibilityRepository.reject(data, tx);
 
