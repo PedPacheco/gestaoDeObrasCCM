@@ -6,21 +6,29 @@ import dayjs from "dayjs";
 import { useState } from "react";
 
 import { exportExcel } from "@/actions/generateExcel.action";
+import { useUser } from "@/contexts/userContext";
 import { mountUrl } from "@/utils/mountUrl";
-import { ArrowDownTrayIcon, XMarkIcon } from "@heroicons/react/20/solid";
-import { Box, IconButton, Modal, Typography } from "@mui/material";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { Box, Typography } from "@mui/material";
 
 import { ButtonComponent } from "../common/Button";
-import { useUser } from "@/contexts/userContext";
-import { useFeedback } from "@/hooks/useFeedback";
+import {
+  ExportFiltersModal,
+  ServicesExportFilter,
+} from "./servicesExportFilter";
+
+export type ExportFileType = "excel" | "pdf";
 
 interface ExportButtonProps {
   text: string;
   token: string | undefined;
   path: string;
   visible: boolean;
+  type?: ExportFileType;
+  options: {
+    parceira: Array<{ id: number; turma: string }>;
+    equipes: Array<{ id: number; equipe: string; id_turma: number }>;
+  };
+  filterType?: "none" | "dateRange" | "services";
 }
 
 export function ExportButton({
@@ -28,56 +36,45 @@ export function ExportButton({
   token,
   path,
   visible,
+  type,
+  filterType,
+  options,
 }: ExportButtonProps) {
-  const { showError } = useFeedback();
   const [openModal, setOpenModal] = useState<boolean>(false);
-  const [startDate, setStartDate] = useState<dayjs.Dayjs | null>(null);
-  const [endDate, setEndDate] = useState<dayjs.Dayjs | null>(null);
 
   const { permissions } = useUser();
 
-  const generateExcel = async () => {
-    const params =
-      startDate && endDate
-        ? {
-            startDate: startDate.format("YYYY-MM-DD"),
-            endDate: endDate.format("YYYY-MM-DD"),
-          }
-        : undefined;
+  const generateFile = async (
+    filters?: Record<string, string | number | number[]>,
+  ) => {
+    if (!token) {
+      throw new Error("Sessão expirada");
+    }
 
     const url = mountUrl(
       `${process.env.NEXT_PUBLIC_API_URL}/exportacao/${path}`,
-      params,
+      filters,
     );
 
-    try {
-      if (!token) {
-        throw new Error("Sessão do usuário expirada");
-      }
+    const blob = await exportExcel(url, token);
 
-      const blob = await exportExcel(url, token);
+    const downloadUrl = URL.createObjectURL(blob);
 
-      const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
 
-      const link = document.createElement("a");
+    link.href = downloadUrl;
 
-      link.href = downloadUrl;
-      link.download = `${text}.xlsx`;
+    console.log(type);
 
-      document.body.append(link);
-      link.click();
+    link.download = `${text}.${type === "pdf" ? "pdf" : "xlsx"}`;
 
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
+    document.body.appendChild(link);
 
-      if (startDate && endDate) {
-        setOpenModal(false);
-        setStartDate(null);
-        setEndDate(null);
-      }
-    } catch (error: any) {
-      showError(`Erro ao gerar a planilha: ${error.message}`);
-    }
+    link.click();
+
+    link.remove();
+
+    URL.revokeObjectURL(downloadUrl);
   };
 
   return (
@@ -104,94 +101,31 @@ export function ExportButton({
               {text}
             </Typography>
             <ButtonComponent
-              text="Exportar"
-              onClick={() =>
-                path === "obras-multas" ? setOpenModal(true) : generateExcel()
-              }
-              startIcon={<ArrowDownTrayIcon width={20} height={20} />}
-              styled="min-w-48 !h-9"
+              text={type === "pdf" ? "Exportar PDF" : "Exportar"}
+              onClick={() => {
+                if (filterType === "none") {
+                  generateFile();
+                  return;
+                }
+
+                setOpenModal(true);
+              }}
             />
           </Box>
-
-          {openModal && (
-            <Modal
+          {filterType === "services" && (
+            <ExportFiltersModal
               open={openModal}
-              onClose={() => setOpenModal(!openModal)}
-              aria-labelledby="confirmation-modal-title"
-              aria-describedby="confirmation-modal-description"
-              closeAfterTransition
+              onClose={() => setOpenModal(false)}
             >
-              <Box className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 shadow-lg p-6 rounded-lg w-10/12 md:w-1/2">
-                <IconButton
-                  onClick={() => setOpenModal(!openModal)}
-                  className="absolute top-2 right-2 text-gray-600 dark:text-gray-300"
-                >
-                  <XMarkIcon />
-                </IconButton>
+              <ServicesExportFilter
+                onConfirm={async (filters) => {
+                  await generateFile(filters);
 
-                <Typography
-                  id="confirmation-modal-title"
-                  variant="h6"
-                  component="h2"
-                  className="text-center mb-4 font-bold text-2xl"
-                >
-                  Selecione o período da extração
-                </Typography>
-
-                <div className="flex flex-col justify-center items-center">
-                  <div className="mb-4 w-72 lg:w-96">
-                    <LocalizationProvider
-                      dateAdapter={AdapterDayjs}
-                      adapterLocale="pt-br"
-                    >
-                      <DatePicker
-                        views={["day"]}
-                        format={"DD/MM/YYYY"}
-                        value={startDate}
-                        onChange={(value) =>
-                          value ? setStartDate(value) : dayjs()
-                        }
-                        slotProps={{
-                          textField: { size: "small", fullWidth: true },
-                        }}
-                      />
-                    </LocalizationProvider>
-                  </div>
-
-                  <div className="mb-4 w-72 lg:w-96">
-                    <LocalizationProvider
-                      dateAdapter={AdapterDayjs}
-                      adapterLocale="pt-br"
-                    >
-                      <DatePicker
-                        views={["day"]}
-                        format={"DD/MM/YYYY"}
-                        value={endDate}
-                        onChange={(value) =>
-                          value ? setEndDate(value) : dayjs()
-                        }
-                        slotProps={{
-                          textField: { size: "small", fullWidth: true },
-                        }}
-                      />
-                    </LocalizationProvider>
-                  </div>
-                </div>
-
-                <div className="flex justify-center gap-4">
-                  <ButtonComponent
-                    onClick={() => setOpenModal(!openModal)}
-                    text="Cancelar"
-                    styled=" py-2 px-4 rounded"
-                  />
-                  <ButtonComponent
-                    onClick={generateExcel}
-                    text="Confirmar"
-                    styled="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
-                  />
-                </div>
-              </Box>
-            </Modal>
+                  setOpenModal(false);
+                }}
+                options={options}
+              />
+            </ExportFiltersModal>
           )}
         </>
       )}

@@ -9,6 +9,8 @@ export async function exportExcel(url: string, token: string) {
     cache: "no-cache",
   });
 
+  console.log(response);
+
   if (!response.ok) {
     const errorResponse = await response.json();
     const errorMessage = errorResponse?.message;

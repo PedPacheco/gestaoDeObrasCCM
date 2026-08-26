@@ -100,6 +100,6 @@ import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/find
     },
     { provide: STATUS_FLOW_REPOSITORY, useClass: StatusFlowRepository },
   ],
-  exports: [WorksServicesService],
+  exports: [WorksServicesService, QueriesServicesService],
 })
 export class WorksServicesModule {}

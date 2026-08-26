@@ -10,6 +10,7 @@ import {
   GetServicesByWorkIdResponse,
   GetServiceScheduleHistoryResponse,
   GetServicesSelectedByWorkIdResponse,
+  WorkToExportResponse,
 } from 'src/interface/types/servicesInterface';
 
 @Injectable()
@@ -134,6 +135,141 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
         adicional: true,
       },
       where: { programacoes: { id_obra: id } },
+    });
+  }
+
+  async getServicesToExportation(params: {
+    dataFinal: string;
+    dataInicial: string;
+    idParceira: number;
+    idEquipe: number[];
+  }): Promise<WorkToExportResponse[]> {
+    const servicesFilter = {
+      id_programacao: {
+        not: null,
+      },
+      ...(params.idEquipe.length > 0
+        ? {
+            id_equipe: {
+              in: params.idEquipe,
+            },
+          }
+        : {
+            id_equipe: {
+              not: null,
+            },
+          }),
+    };
+
+    return this.prisma.obras.findMany({
+      where: {
+        id_turma: params.idParceira,
+        programacao_ponto_a_ponto: true,
+        servicos: {
+          some: servicesFilter,
+        },
+        programacoes: {
+          some: {
+            data_prog: {
+              gte: new Date(params.dataInicial),
+              lte: new Date(params.dataFinal),
+            },
+          },
+        },
+      },
+
+      select: {
+        ovnota: true,
+        diagrama: true,
+        referencia: true,
+        ordem_dci: true,
+        ordem_dca: true,
+        ordem_dcd: true,
+        ordem_dcim: true,
+        tipos: {
+          select: {
+            tipo_obra: true,
+          },
+        },
+        municipios: {
+          select: {
+            municipio: true,
+          },
+        },
+        turmas: {
+          select: {
+            turma: true,
+          },
+        },
+        empreendimento: {
+          select: {
+            empreendimento: true,
+          },
+        },
+        circuitos: {
+          select: {
+            circuito: true,
+            conjuntos: {
+              select: {
+                conjunto: true,
+              },
+            },
+          },
+        },
+        programacoes: {
+          where: {
+            data_prog: {
+              gte: new Date(params.dataInicial),
+              lte: new Date(params.dataFinal),
+            },
+          },
+          select: {
+            id: true,
+            data_prog: true,
+            prog: true,
+            exec: true,
+            hora_ini: true,
+            hora_ter: true,
+            tipo_servico: true,
+            observacao_programacao: true,
+            equip_desligado: true,
+            chi: true,
+            num_dp: true,
+            chave_provisoria: true,
+            equipe_linha_morta: true,
+            equipe_linha_viva: true,
+            equipe_regularizacao: true,
+          },
+        },
+        servicos: {
+          where: servicesFilter,
+          select: {
+            id_programacao: true,
+            id_equipe: true,
+            operacao: true,
+            ponto: true,
+            viabilizado: true,
+            qtde_adicional: true,
+            equipes: {
+              select: {
+                equipe: true,
+              },
+            },
+            materiais: {
+              select: {
+                codigo: true,
+                descricao: true,
+              },
+            },
+            servicos_contratos: {
+              select: {
+                material: true,
+                texto_breve: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 

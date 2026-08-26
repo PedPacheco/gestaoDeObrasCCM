@@ -1,5 +1,13 @@
 import { Response } from 'express';
-import { Controller, Get, Query, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  NotFoundException,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 
 // Guards
 import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
@@ -45,6 +53,9 @@ import { GetRestrictionsDTO } from '../dtos/restrictionsDTO';
 import { RestrictionsService } from 'src/application/usecases/restrictions.service';
 import { ExportPublicationRestrictionService } from 'src/application/usecases/export/exportPublicationRestriction.service';
 import { ExportReportToPubliationService } from 'src/application/usecases/export/exportReportToPublication.service';
+import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
+import { ExportServicesInputDto } from '../dtos/workServicesDTO';
+import { ExportServicesService } from 'src/application/usecases/export/exportServices.service';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -77,6 +88,9 @@ export class ExportController {
     // Restrictions
     private readonly restrictionsService: RestrictionsService,
 
+    // Services
+    private readonly queiresServicesService: QueriesServicesService,
+
     // Export - Standard
     private readonly exportScheduleService: ExportScheduleService,
     private readonly exportWorksInPortfolioService: ExportWorksInPortfolioService,
@@ -93,6 +107,7 @@ export class ExportController {
     private readonly exportOrdersService: ExportOrdersService,
     private readonly exportPublicationRestrictionService: ExportPublicationRestrictionService,
     private readonly exportReportToPublicationService: ExportReportToPubliationService,
+    private readonly exportServicesService: ExportServicesService,
 
     // Export - BI
     private readonly exportWorksInPortfolioBIService: ExportWorksInPortfolioBI,
@@ -117,6 +132,14 @@ export class ExportController {
   private setXlsxHeaders(res: Response, filename: string): void {
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Content-Type', XLSX_CONTENT_TYPE);
+  }
+
+  private setPdfHeaders(res: Response, fileName: string) {
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${fileName}.pdf"`,
+    );
   }
 
   // ─────────────────────────────────────────────
@@ -242,6 +265,31 @@ export class ExportController {
       publicationRestrictionData,
       res,
     );
+  }
+
+  @Get('servicos')
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
+  async exportServices(
+    @Query() filters: ExportServicesInputDto,
+    @Res() res: Response,
+    @Req() req: CustomRequest,
+  ) {
+    const appliedFilters = this.applyFilters(filters, req);
+    const servicesData =
+      await this.queiresServicesService.getServicesToExportation(
+        appliedFilters,
+      );
+
+    if (!servicesData.length) {
+      throw new NotFoundException(
+        'Nenhuma obra encontrada para os filtros informados.',
+      );
+    }
+
+    console.log(servicesData);
+
+    this.setPdfHeaders(res, 'Exportacao_Servicos');
+    return this.exportServicesService.export(servicesData, res);
   }
 
   // ─────────────────────────────────────────────

@@ -29,9 +29,9 @@ export class SpreadsheetParserService {
     OPERATION: 4, // row[3]  → Operação
     OPERATION_NUM: 5, // row[4]  → Número da Operação
     MATERIAL_CODE: 6, // row[5]  → Código Material
-    OPERATION_DESC: 7, // row[13] → Descrição da Operação
     PLANNED_QTY: 9, // row[8]  → Qtde Planejada
     TYPE: 11, // row[10] → Tipo (S/M)
+    OPERATION_DESC: 14, // row[13] → Descrição da Operação
   } as const;
 
   async parse(buffer: Buffer, mimetype: string): Promise<ParseResult> {

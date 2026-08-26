@@ -1,4 +1,6 @@
 import {
+  IsArray,
+  IsDateString,
   IsEnum,
   IsIn,
   IsInt,
@@ -9,6 +11,7 @@ import {
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ExecutionReportDataDTO } from './executionReportDTO';
+import { convertParameterValue } from 'src/utils/convertParameterValue';
 
 enum ServiceType {
   SERVICE = 'S',
@@ -154,4 +157,21 @@ export class ServiceMaterialItemDto {
   })
   @IsNumber()
   viabilizado: number;
+}
+
+export class ExportServicesInputDto {
+  @IsDateString()
+  dataInicial: string;
+
+  @IsDateString()
+  dataFinal: string;
+
+  @IsNumber()
+  @Type(() => Number)
+  idParceira: number;
+
+  @IsArray()
+  @IsOptional()
+  @Transform(({ value }) => convertParameterValue(value))
+  idEquipe?: number[];
 }

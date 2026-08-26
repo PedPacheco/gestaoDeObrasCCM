@@ -85,3 +85,73 @@ export interface GetServiceOptionsResponse {
   operation_description: string[];
   points: string[];
 }
+
+export type ServiceToExport = {
+  id_programacao: number;
+  id_equipe: number;
+  operacao: string;
+  ponto: string;
+  viabilizado: number | null;
+  qtde_adicional: number | null;
+  equipes: {
+    equipe: string | null;
+  } | null;
+
+  materiais: {
+    codigo: string | null;
+    descricao: string | null;
+  } | null;
+
+  servicos_contratos: {
+    material: string | null;
+    texto_breve: string | null;
+  } | null;
+};
+
+export type WorkProgrammingToExport = {
+  id: number;
+  data_prog: Date;
+  prog: number;
+  exec: number | null;
+  hora_ini: Date | null;
+  hora_ter: Date | null;
+  tipo_servico: string | null;
+  observacao_programacao: string | null;
+  equip_desligado: string | null;
+  chi: number | null;
+  num_dp: string | null;
+  chave_provisoria: boolean | null;
+  equipe_linha_morta: number | null;
+  equipe_linha_viva: number | null;
+  equipe_regularizacao: number | null;
+};
+
+export type WorkToExportResponse = {
+  ovnota: string;
+  diagrama: string | null;
+  referencia: string | null;
+  ordem_dci: string | null;
+  ordem_dca: string | null;
+  ordem_dcd: string | null;
+  ordem_dcim: string | null;
+  tipos: {
+    tipo_obra: string;
+  };
+  municipios: {
+    municipio: string;
+  };
+  turmas: {
+    turma: string;
+  };
+  empreendimento: {
+    empreendimento: string | null;
+  };
+  circuitos: {
+    circuito: string;
+    conjuntos: {
+      conjunto: string;
+    };
+  };
+  programacoes: WorkProgrammingToExport[];
+  servicos: ServiceToExport[];
+};
