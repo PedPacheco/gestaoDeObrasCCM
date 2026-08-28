@@ -1,12 +1,12 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-
-import { GetSelectedServicesParamsInterface } from 'src/interface/types/servicesInterface';
-import { GetWorkDetailsService } from '../works/getWorkDetails.service';
 import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
 } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
-import { ExportServicesOutput } from '../export/exportServices.service';
+import { GetSelectedServicesParamsInterface } from 'src/interface/types/servicesInterface';
+
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+
+import { GetWorkDetailsService } from '../works/getWorkDetails.service';
 
 @Injectable()
 export class QueriesServicesService {
@@ -193,105 +193,6 @@ export class QueriesServicesService {
       await this.workServicesQueryRepository.getServicesContracts(idParceira);
 
     return data;
-  }
-
-  async getServicesToExportation(params: {
-    dataFinal: string;
-    dataInicial: string;
-    idParceira: number;
-    idEquipe?: number[];
-  }): Promise<ExportServicesOutput[]> {
-    const response =
-      await this.workServicesQueryRepository.getServicesToExportation({
-        ...params,
-        idEquipe: params.idEquipe ?? [],
-      });
-
-    const documentsMap = new Map<string, any>();
-
-    for (const obra of response) {
-      const programacoesMap = new Map(
-        obra.programacoes.map((programacao) => [programacao.id, programacao]),
-      );
-
-      for (const servico of obra.servicos) {
-        if (!servico.id_programacao || !servico.id_equipe) {
-          continue;
-        }
-
-        const programacao = programacoesMap.get(servico.id_programacao);
-
-        if (!programacao) {
-          continue;
-        }
-
-        const key = `${obra.ovnota}-${programacao.id}-${servico.id_equipe}`;
-
-        let document = documentsMap.get(key);
-
-        if (!document) {
-          document = {
-            ovnota: obra.ovnota,
-            ordemDiagrama:
-              obra.diagrama ??
-              obra.ordem_dci ??
-              obra.ordem_dca ??
-              obra.ordem_dcd ??
-              obra.ordem_dcim,
-            referencia: obra.referencia,
-            tipo_obra: obra.tipos.tipo_obra,
-            municipio: obra.municipios.municipio,
-            circuito: obra.circuitos.circuito,
-            conjunto: obra.circuitos.conjuntos.conjunto,
-            parceira: obra.turmas.turma,
-            empreendimento: obra.empreendimento.empreendimento,
-
-            programacao: {
-              data_prog: programacao.data_prog,
-              prog: programacao.prog,
-              exec: programacao.exec,
-              hora_ini: programacao.hora_ini,
-              hora_ter: programacao.hora_ter,
-              tipo_servico: programacao.tipo_servico,
-              observacao_programacao: programacao.observacao_programacao,
-              equip_desligado: programacao.equip_desligado,
-              chi: programacao.chi,
-              num_dp: programacao.num_dp,
-              chave_provisoria: programacao.chave_provisoria,
-              equipe_linha_morta: programacao.equipe_linha_morta,
-              equipe_linha_viva: programacao.equipe_linha_viva,
-              equipe_regularizacao: programacao.equipe_regularizacao,
-            },
-
-            servicos: [],
-          };
-
-          documentsMap.set(key, document);
-        }
-
-        const codigo =
-          servico.servicos_contratos?.material ??
-          servico.materiais?.codigo ??
-          '-';
-
-        const descricao =
-          servico.servicos_contratos?.texto_breve ??
-          servico.materiais?.descricao ??
-          '-';
-
-        document.servicos.push({
-          equipe: servico.equipes?.equipe ?? null,
-          operacao: servico.operacao,
-          ponto: servico.ponto,
-          prog: (servico.qtde_adicional ?? 0) + (servico.viabilizado ?? 0),
-          real: null,
-          codigo,
-          descricao,
-        });
-      }
-    }
-
-    return Array.from(documentsMap.values());
   }
 
   async getMaterials() {

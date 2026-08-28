@@ -415,7 +415,7 @@ model servicos {
   id_material           Int?
   viabilizado           Float?
   numero_operacao       String?                 @db.VarChar(10)
-  descricao_operacao    String                  @db.VarChar(100)
+  descricao_operacao    String?                  @db.VarChar(100)
   programacoes_servicos programacoes_servicos[]
   equipes               equipes?                @relation(fields: [id_equipe], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipes")
   materiais             materiais?              @relation(fields: [id_material], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_materiais")

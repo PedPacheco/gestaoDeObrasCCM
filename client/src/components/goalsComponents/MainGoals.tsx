@@ -180,9 +180,15 @@ export default function MainGoals({
     );
 
     try {
-      const blob = await exportExcel(url, token);
+      const response = await exportExcel(url, token);
+
+      if (!response.success) {
+        showError(response.message);
+        return;
+      }
+
       const link = Object.assign(document.createElement("a"), {
-        href: window.URL.createObjectURL(blob),
+        href: window.URL.createObjectURL(response.data),
         download: "Exportacao Metas.xlsx",
       });
 

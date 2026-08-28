@@ -27,7 +27,7 @@ export interface IWorkServicesQueryRepository {
   getServicesToExportation(params: {
     dataFinal: string;
     dataInicial: string;
-    idParceira: number;
+    idParceira: number[];
     idEquipe?: number[];
   }): Promise<WorkToExportResponse[]>;
   getServicesContracts(idParceira: number): Promise<any[]>;

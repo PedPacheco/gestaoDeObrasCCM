@@ -50,6 +50,59 @@ export class FeasibilityRepository implements IFeasibilityRepository {
     });
   }
 
+  async exportFeasibility(
+    startDate: string,
+    endDate: string,
+    idPartner?: number[],
+  ): Promise<any[]> {
+    return this.prisma.obras.findMany({
+      where: {
+        programacao_ponto_a_ponto: true,
+        relatorio_viabilidade: {
+          prazo_viabilidade: { not: 'PRAZO VIABILIDADE' },
+          data_envio: {
+            gte: new Date(startDate),
+            lte: new Date(endDate),
+          },
+        },
+        ...(idPartner.length > 0 ? { id_turma: { in: idPartner } } : {}),
+      },
+      select: {
+        ovnota: true,
+        diagrama: true,
+        ordem_dci: true,
+        ordem_dca: true,
+        ordem_dcd: true,
+        ordem_dcim: true,
+        relatorio_viabilidade: { select: { data_envio: true } },
+        servicos: {
+          select: {
+            operacao: true,
+            ponto: true,
+            qtde_plan: true,
+            viabilizado: true,
+            descricao_operacao: true,
+            numero_operacao: true,
+            materiais: {
+              select: {
+                codigo: true,
+                descricao: true,
+                preco: true,
+              },
+            },
+            servicos_contratos: {
+              select: {
+                material: true,
+                texto_breve: true,
+                preco: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   async makeItemsFeasible(
     items: ServiceMaterialItemDto[],
     tx: Prisma.TransactionClient,

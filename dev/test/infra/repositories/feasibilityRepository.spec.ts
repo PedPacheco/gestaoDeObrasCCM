@@ -22,6 +22,7 @@ describe('FeasibilityRepository', () => {
     obras: {
       update: jest.fn(),
       findUnique: jest.fn(),
+      findMany: jest.fn(),
     },
   };
 
@@ -203,6 +204,162 @@ describe('FeasibilityRepository', () => {
         select: { data_empreitamento: true },
         where: { id: 1 },
       });
+    });
+  });
+
+  describe('exportFeasibility', () => {
+    it('should export feasibility data without partner filter', async () => {
+      const responseMock = [
+        {
+          ovnota: 'OV001',
+          diagrama: 'DG001',
+        },
+      ];
+
+      prismaMock.obras.findMany.mockResolvedValue(responseMock);
+
+      const result = await repository.exportFeasibility(
+        '2026-01-01',
+        '2026-01-31',
+        [],
+      );
+
+      expect(result).toEqual(responseMock);
+
+      expect(prismaMock.obras.findMany).toHaveBeenCalledWith({
+        where: {
+          programacao_ponto_a_ponto: true,
+          relatorio_viabilidade: {
+            prazo_viabilidade: {
+              not: 'PRAZO VIABILIDADE',
+            },
+            data_envio: {
+              gte: new Date('2026-01-01'),
+              lte: new Date('2026-01-31'),
+            },
+          },
+        },
+        select: {
+          ovnota: true,
+          diagrama: true,
+          ordem_dci: true,
+          ordem_dca: true,
+          ordem_dcd: true,
+          ordem_dcim: true,
+          relatorio_viabilidade: {
+            select: {
+              data_envio: true,
+            },
+          },
+          servicos: {
+            select: {
+              operacao: true,
+              ponto: true,
+              qtde_plan: true,
+              viabilizado: true,
+              descricao_operacao: true,
+              numero_operacao: true,
+              materiais: {
+                select: {
+                  codigo: true,
+                  descricao: true,
+                  preco: true,
+                },
+              },
+              servicos_contratos: {
+                select: {
+                  material: true,
+                  texto_breve: true,
+                  preco: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    });
+
+    it('should export feasibility data filtering partners', async () => {
+      prismaMock.obras.findMany.mockResolvedValue([]);
+
+      await repository.exportFeasibility('2026-01-01', '2026-01-31', [1, 2, 3]);
+
+      expect(prismaMock.obras.findMany).toHaveBeenCalledWith({
+        where: {
+          programacao_ponto_a_ponto: true,
+          relatorio_viabilidade: {
+            prazo_viabilidade: {
+              not: 'PRAZO VIABILIDADE',
+            },
+            data_envio: {
+              gte: new Date('2026-01-01'),
+              lte: new Date('2026-01-31'),
+            },
+          },
+          id_turma: {
+            in: [1, 2, 3],
+          },
+        },
+        select: {
+          ovnota: true,
+          diagrama: true,
+          ordem_dci: true,
+          ordem_dca: true,
+          ordem_dcd: true,
+          ordem_dcim: true,
+          relatorio_viabilidade: {
+            select: {
+              data_envio: true,
+            },
+          },
+          servicos: {
+            select: {
+              operacao: true,
+              ponto: true,
+              qtde_plan: true,
+              viabilizado: true,
+              descricao_operacao: true,
+              numero_operacao: true,
+              materiais: {
+                select: {
+                  codigo: true,
+                  descricao: true,
+                  preco: true,
+                },
+              },
+              servicos_contratos: {
+                select: {
+                  material: true,
+                  texto_breve: true,
+                  preco: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    });
+
+    it('should return empty array when no feasibility records are found', async () => {
+      prismaMock.obras.findMany.mockResolvedValue([]);
+
+      const result = await repository.exportFeasibility(
+        '2026-01-01',
+        '2026-01-31',
+        [],
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('should propagate prisma errors', async () => {
+      prismaMock.obras.findMany.mockRejectedValueOnce(
+        new Error('Database error'),
+      );
+
+      await expect(
+        repository.exportFeasibility('2026-01-01', '2026-01-31', []),
+      ).rejects.toThrow('Database error');
     });
   });
 

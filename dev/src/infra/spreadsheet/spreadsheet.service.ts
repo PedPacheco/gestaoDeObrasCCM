@@ -165,17 +165,19 @@ export class SpreadsheetParserService {
     const headerRow = worksheet.getRow(3);
 
     const expectedColumns = [
-      { col: this.COL.POINT, value: 'PONTO' },
-      { col: this.COL.OPERATION, value: 'OPERAÇÃO' },
-      { col: this.COL.MATERIAL_CODE, value: 'CÓDIGO' },
-      { col: this.COL.TYPE, value: 'TIPO' },
-      { col: this.COL.OPERATION_DESC, value: 'DESCRIÇÃO' },
+      { col: this.COL.POINT, value: 'ponto' },
+      { col: this.COL.OPERATION, value: 'operação' },
+      { col: this.COL.OPERATION_NUM, value: 'nº da operação' },
+      { col: this.COL.MATERIAL_CODE, value: 'código material' },
+      { col: this.COL.PLANNED_QTY, value: 'qtde. planejada' },
+      { col: this.COL.TYPE, value: 'tipo' },
+      { col: this.COL.OPERATION_DESC, value: 'descrição operação' },
     ];
 
     const invalidColumns = expectedColumns.filter(({ col, value }) => {
       const cellValue = String(headerRow.getCell(col).value ?? '')
         .trim()
-        .toUpperCase();
+        .toLowerCase();
 
       return !cellValue.includes(value);
     });

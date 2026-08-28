@@ -1,7 +1,24 @@
 "use server";
 
-export async function exportExcel(url: string, token: string) {
-  const response = await fetch(url, {
+type ExportSuccess = {
+  success: true;
+  data: Blob;
+  token: string;
+};
+
+type ExportError = {
+  success: false;
+  message: string;
+  token: string;
+};
+
+type ExportResponse = ExportSuccess | ExportError;
+
+export async function exportExcel(
+  url: string,
+  token: string,
+): Promise<ExportResponse> {
+  const res = await fetch(url, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -9,13 +26,21 @@ export async function exportExcel(url: string, token: string) {
     cache: "no-cache",
   });
 
-  console.log(response);
+  if (res.status === 401 || res.status === 404) {
+    const json = await res.json();
 
-  if (!response.ok) {
-    const errorResponse = await response.json();
-    const errorMessage = errorResponse?.message;
-    throw new Error(errorMessage);
+    return {
+      success: false,
+      message: json.message,
+      token,
+    };
   }
 
-  return await response.blob();
+  const blob = await res.blob();
+
+  return {
+    success: true,
+    data: blob,
+    token,
+  };
 }

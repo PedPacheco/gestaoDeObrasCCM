@@ -35,13 +35,13 @@ export default async function ExportPage() {
       name: "programação ponto a ponto",
       path: "servicos",
       visible: true,
-      type: "pdf",
       filterType: "services",
     },
     {
       name: "obras a serem multadas",
       path: "obras-multas",
       visible: false,
+      filterType: "dateRange",
     },
     {
       name: "relatórios de execução",
@@ -58,7 +58,12 @@ export default async function ExportPage() {
       path: "suspensoes",
       visible: false,
     },
-    { name: "viabilidade", path: "viabilidade", visible: true },
+    {
+      name: "viabilidade",
+      path: "viabilidade",
+      visible: true,
+      filterType: "dateRange",
+    },
     { name: "Forecast", path: "forecast", visible: false },
     {
       name: "Programações Reprovadas",
@@ -125,7 +130,6 @@ export default async function ExportPage() {
                 token={token}
                 visible={option.visible}
                 options={options}
-                type={option.type}
                 filterType={option.filterType}
               />
             ))}

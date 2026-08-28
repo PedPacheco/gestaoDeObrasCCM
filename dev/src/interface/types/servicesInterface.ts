@@ -100,11 +100,13 @@ export type ServiceToExport = {
   materiais: {
     codigo: string | null;
     descricao: string | null;
+    preco: Decimal;
   } | null;
 
   servicos_contratos: {
     material: string | null;
     texto_breve: string | null;
+    preco: number;
   } | null;
 };
 
@@ -112,18 +114,11 @@ export type WorkProgrammingToExport = {
   id: number;
   data_prog: Date;
   prog: number;
-  exec: number | null;
-  hora_ini: Date | null;
-  hora_ter: Date | null;
   tipo_servico: string | null;
   observacao_programacao: string | null;
-  equip_desligado: string | null;
   chi: number | null;
   num_dp: string | null;
   chave_provisoria: boolean | null;
-  equipe_linha_morta: number | null;
-  equipe_linha_viva: number | null;
-  equipe_regularizacao: number | null;
 };
 
 export type WorkToExportResponse = {
@@ -154,4 +149,28 @@ export type WorkToExportResponse = {
   };
   programacoes: WorkProgrammingToExport[];
   servicos: ServiceToExport[];
+};
+
+export type ExportServicesExcelOutput = {
+  ovnota: string;
+  ordemDiagrama: string | null;
+  referencia: string | null;
+  tipoObra: string;
+  municipio: string;
+  circuito: string;
+  conjunto: string;
+  parceira: string;
+  empreendimento: string;
+
+  dataProg: Date | null;
+  prog: number | null;
+
+  equipe: string | null;
+  operacao: string | null;
+  ponto: string | null;
+  preco: number;
+  codigo: string;
+  descricao: string;
+
+  quantidadeProgramada: number;
 };

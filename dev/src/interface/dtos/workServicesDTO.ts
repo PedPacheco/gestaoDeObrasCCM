@@ -18,6 +18,11 @@ enum ServiceType {
   MATERIAL = 'M',
 }
 
+export enum ExportFileType {
+  PDF = 'pdf',
+  EXCEL = 'excel',
+}
+
 export class ScheduleServicesDTO {
   @IsNumber()
   @Type(() => Number)
@@ -166,12 +171,15 @@ export class ExportServicesInputDto {
   @IsDateString()
   dataFinal: string;
 
-  @IsNumber()
-  @Type(() => Number)
-  idParceira: number;
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idParceira: number[];
 
   @IsArray()
   @IsOptional()
   @Transform(({ value }) => convertParameterValue(value))
   idEquipe?: number[];
+
+  @IsEnum(ExportFileType)
+  fileType: ExportFileType;
 }

@@ -141,9 +141,10 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
   async getServicesToExportation(params: {
     dataFinal: string;
     dataInicial: string;
-    idParceira: number;
+    idParceira: number[];
     idEquipe: number[];
   }): Promise<WorkToExportResponse[]> {
+    console.log(params.idParceira);
     const servicesFilter = {
       id_programacao: {
         not: null,
@@ -163,7 +164,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
 
     return this.prisma.obras.findMany({
       where: {
-        id_turma: params.idParceira,
+        id_turma: { in: params.idParceira },
         programacao_ponto_a_ponto: true,
         servicos: {
           some: servicesFilter,
@@ -227,18 +228,11 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
             id: true,
             data_prog: true,
             prog: true,
-            exec: true,
-            hora_ini: true,
-            hora_ter: true,
             tipo_servico: true,
             observacao_programacao: true,
-            equip_desligado: true,
             chi: true,
             num_dp: true,
             chave_provisoria: true,
-            equipe_linha_morta: true,
-            equipe_linha_viva: true,
-            equipe_regularizacao: true,
           },
         },
         servicos: {
@@ -259,12 +253,14 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
               select: {
                 codigo: true,
                 descricao: true,
+                preco: true,
               },
             },
             servicos_contratos: {
               select: {
                 material: true,
                 texto_breve: true,
+                preco: true,
               },
             },
           },

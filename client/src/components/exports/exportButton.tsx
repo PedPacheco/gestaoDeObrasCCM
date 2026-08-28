@@ -12,18 +12,18 @@ import { Box, Typography } from "@mui/material";
 
 import { ButtonComponent } from "../common/Button";
 import {
+  ExportFileType,
   ExportFiltersModal,
   ServicesExportFilter,
 } from "./servicesExportFilter";
-
-export type ExportFileType = "excel" | "pdf";
+import { useFeedback } from "@/hooks/useFeedback";
+import { DateRangerFilter } from "./dateRangerFilter";
 
 interface ExportButtonProps {
   text: string;
   token: string | undefined;
   path: string;
   visible: boolean;
-  type?: ExportFileType;
   options: {
     parceira: Array<{ id: number; turma: string }>;
     equipes: Array<{ id: number; equipe: string; id_turma: number }>;
@@ -36,45 +36,58 @@ export function ExportButton({
   token,
   path,
   visible,
-  type,
   filterType,
   options,
 }: ExportButtonProps) {
+  const { showError } = useFeedback();
+
   const [openModal, setOpenModal] = useState<boolean>(false);
+  const [dateRangeModal, setDateRangeModal] = useState<boolean>(false);
+
+  const [loading, setLoading] = useState(false);
 
   const { permissions } = useUser();
 
   const generateFile = async (
-    filters?: Record<string, string | number | number[]>,
+    filters?: Record<string, string | number | number[] | ExportFileType>,
   ) => {
     if (!token) {
       throw new Error("Sessão expirada");
     }
 
-    const url = mountUrl(
-      `${process.env.NEXT_PUBLIC_API_URL}/exportacao/${path}`,
-      filters,
-    );
+    try {
+      setLoading(true);
 
-    const blob = await exportExcel(url, token);
+      const url = mountUrl(
+        `${process.env.NEXT_PUBLIC_API_URL}/exportacao/${path}`,
+        filters,
+      );
 
-    const downloadUrl = URL.createObjectURL(blob);
+      const response = await exportExcel(url, token);
 
-    const link = document.createElement("a");
+      if (!response.success) {
+        showError(response.message);
+        return;
+      }
 
-    link.href = downloadUrl;
+      const downloadUrl = URL.createObjectURL(response.data);
 
-    console.log(type);
+      const link = document.createElement("a");
 
-    link.download = `${text}.${type === "pdf" ? "pdf" : "xlsx"}`;
+      link.href = downloadUrl;
 
-    document.body.appendChild(link);
+      link.download = `${text}.${filters?.fileType === "pdf" ? "pdf" : "xlsx"}`;
 
-    link.click();
+      document.body.appendChild(link);
 
-    link.remove();
+      link.click();
 
-    URL.revokeObjectURL(downloadUrl);
+      link.remove();
+
+      URL.revokeObjectURL(downloadUrl);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -101,14 +114,21 @@ export function ExportButton({
               {text}
             </Typography>
             <ButtonComponent
-              text={type === "pdf" ? "Exportar PDF" : "Exportar"}
+              text="Exportar"
               onClick={() => {
                 if (filterType === "none") {
                   generateFile();
                   return;
                 }
 
-                setOpenModal(true);
+                if (filterType === "services") {
+                  setOpenModal(true);
+                  return;
+                }
+
+                if (filterType === "dateRange") {
+                  setDateRangeModal(true);
+                }
               }}
             />
           </Box>
@@ -124,8 +144,25 @@ export function ExportButton({
                   setOpenModal(false);
                 }}
                 options={options}
+                loading={loading}
               />
             </ExportFiltersModal>
+          )}
+
+          {filterType === "dateRange" && (
+            <DateRangerFilter
+              openModal={dateRangeModal}
+              setOpenModal={setDateRangeModal}
+              generateExcel={async ({ startDate, endDate, idPartner }) => {
+                await generateFile({
+                  startDate,
+                  endDate,
+                  idPartner,
+                });
+              }}
+              options={options}
+              loading={loading}
+            />
           )}
         </>
       )}

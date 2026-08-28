@@ -27,6 +27,7 @@ import { ServicesExecutionController } from '../controllers/services/servicesExe
 import { ServicesQueryController } from '../controllers/services/servicesQuery.controller';
 import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
 import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
+import { ExportServicesService } from 'src/application/usecases/services/exportServices.service';
 
 @Module({
   imports: [
@@ -82,6 +83,7 @@ import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/find
     ScheduleProgressCalculatorService,
     ImportServicesSpreadsheetService,
     SpreadsheetParserService,
+    ExportServicesService,
     {
       provide: FIND_SCHEDULE_BY_ID_REPOSITORY,
       useClass: FindScheduleByIdRepository,
@@ -100,6 +102,10 @@ import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/find
     },
     { provide: STATUS_FLOW_REPOSITORY, useClass: StatusFlowRepository },
   ],
-  exports: [WorksServicesService, QueriesServicesService],
+  exports: [
+    WorksServicesService,
+    QueriesServicesService,
+    ExportServicesService,
+  ],
 })
 export class WorksServicesModule {}
