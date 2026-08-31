@@ -1,11 +1,12 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-
-import { GetSelectedServicesParamsInterface } from 'src/interface/types/servicesInterface';
-import { GetWorkDetailsService } from '../works/getWorkDetails.service';
 import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
 } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import { GetSelectedServicesParamsInterface } from 'src/interface/types/servicesInterface';
+
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+
+import { GetWorkDetailsService } from '../works/getWorkDetails.service';
 
 @Injectable()
 export class QueriesServicesService {

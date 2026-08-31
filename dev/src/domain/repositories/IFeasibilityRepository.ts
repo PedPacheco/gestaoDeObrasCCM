@@ -7,6 +7,11 @@ export interface IFeasibilityRepository {
   exists(idWork: number): Promise<any>;
   getProjectDate(idWork: number): Promise<{ data_empreitamento: Date }>;
   getRejections(workId: number): Promise<any[]>;
+  exportFeasibility(
+    startDate: string,
+    endDate: string,
+    idPartner?: number[],
+  ): Promise<any[]>;
   saveFiles(
     idWork: number,
     idUser: number,

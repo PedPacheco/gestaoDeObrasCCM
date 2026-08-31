@@ -33,6 +33,7 @@ export class FiltersService {
       statusProgramacao,
       tipoRestricao,
       statusSap,
+      equipes,
     }: FiltersDto,
     condition?: any,
   ) {
@@ -111,6 +112,12 @@ export class FiltersService {
     if (conjunto) {
       result['conjunto'] = await this.getCachedData('conjunto', () =>
         this.filtersRepository.getData('conjuntos', ['id', 'conjunto']),
+      );
+    }
+
+    if (equipes) {
+      result['equipes'] = await this.getCachedData('equipes', () =>
+        this.filtersRepository.getData('equipes', ['id', 'equipe', 'id_turma']),
       );
     }
 

@@ -78,7 +78,7 @@ export const EditableColumn = ({
         value={data.data_empreitamento || ""}
         isEdit={true}
         onEdit={(value) => onHandleChange("data_empreitamento", value)}
-        disabled={havePermission}
+        disabled={data.id_status !== 42}
       />
     </>
   );
