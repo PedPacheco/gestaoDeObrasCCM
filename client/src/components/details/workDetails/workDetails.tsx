@@ -147,10 +147,16 @@ function useModals() {
   };
 }
 
-function formatDateForSubmit(value: string): string | null {
-  if (!value) return null;
+function formatDateForSubmit(value?: string): string {
+  if (!value) {
+    return dayjs().format("YYYY-MM-DD");
+  }
+
   const parsed = dayjs(value, "DD/MM/YYYY", true);
-  return parsed.isValid() ? parsed.format("YYYY-MM-DD") : value;
+
+  return parsed.isValid()
+    ? parsed.format("YYYY-MM-DD")
+    : dayjs().format("YYYY-MM-DD");
 }
 
 function hasRestrictedAccess(statusId: number, permission?: string): boolean {

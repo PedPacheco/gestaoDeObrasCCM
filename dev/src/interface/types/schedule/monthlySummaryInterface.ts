@@ -2,20 +2,19 @@ import { Partners, Types } from '../common/commonInterface';
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
-export enum MonthKey {
-  JAN = 'jan',
-  FEV = 'fev',
-  MAR = 'mar',
-  ABR = 'abr',
-  MAI = 'mai',
-  JUN = 'jun',
-  JUL = 'jul',
-  AGO = 'ago',
-  SET = 'set',
-  OUT = 'out',
-  NOV = 'nov',
-  DEZ = 'dez',
-}
+export type MonthKey =
+  | 'jan'
+  | 'fev'
+  | 'mar'
+  | 'abr'
+  | 'mai'
+  | 'jun'
+  | 'jul'
+  | 'ago'
+  | 'set'
+  | 'out'
+  | 'nov'
+  | 'dez';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -23,27 +22,27 @@ export const WORKING_DAYS_PER_MONTH = 22 as const;
 export const FINANCIAL_OVERHEAD_FACTOR = 1.08 as const;
 
 export const MONTH_INDEX_TO_KEY: Readonly<Record<number, MonthKey>> = {
-  0: MonthKey.JAN,
-  1: MonthKey.FEV,
-  2: MonthKey.MAR,
-  3: MonthKey.ABR,
-  4: MonthKey.MAI,
-  5: MonthKey.JUN,
-  6: MonthKey.JUL,
-  7: MonthKey.AGO,
-  8: MonthKey.SET,
-  9: MonthKey.OUT,
-  10: MonthKey.NOV,
-  11: MonthKey.DEZ,
+  0: 'jan',
+  1: 'fev',
+  2: 'mar',
+  3: 'abr',
+  4: 'mai',
+  5: 'jun',
+  6: 'jul',
+  7: 'ago',
+  8: 'set',
+  9: 'out',
+  10: 'nov',
+  11: 'dez',
 };
 
 // ─── Domain Types ─────────────────────────────────────────────────────────────
 
 export interface MonthlyCapacityMetrics {
-  readonly dailyFinancialGoal: number;
-  readonly dailyFinancialGoalWithOverhead: number;
-  readonly totalFinancial: number;
-  readonly totalFinancialWith8: number;
+  dailyFinancialGoal: number;
+  dailyFinancialGoalWithOverhead: number;
+  totalFinancial: number;
+  totalFinancialWith8: number;
 }
 
 export interface WorkOrderMetrics {
@@ -108,10 +107,9 @@ export interface DailySummaryTotals {
   totalTeams: number;
   totalQtdeRfpTeams: number;
   totalExecutionCapacityTeams: number;
-
+  totalFinancialGoalWith8: number;
   totalFinancialGoal: number;
   totalDiaryGoal: number;
-  totalFinancialGoalWith8: number;
   totalDiaryGoalWith8: number;
   totalMoProg: number;
   totalMoExec: number;
