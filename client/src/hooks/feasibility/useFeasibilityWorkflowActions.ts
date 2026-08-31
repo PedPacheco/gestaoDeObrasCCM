@@ -6,7 +6,7 @@ import {
   FeasibilityServiceItem,
   hasInvalidAdditionalQuantities,
 } from "@/components/feasibility/feasibilityServicesViewStep";
-import { approveFeasibility, rejectFeasibility } from "@/actions/feasibility";
+import { rejectFeasibility } from "@/actions/feasibility";
 
 interface useFeasibilityWorkflowActionsProps {
   idWork: string;
@@ -43,6 +43,11 @@ export function useFeasibilityWorkflowActions({
       return;
     }
 
+    if (pointByPoint && reviewData.length === 0) {
+      showError("Necessário importação do relatório ponto a ponto");
+      return;
+    }
+
     if (pointByPoint && hasInvalidAdditionalQuantities(reviewData)) {
       showError("Preencha uma quantidade válida para todos os itens.");
       return;
@@ -55,15 +60,14 @@ export function useFeasibilityWorkflowActions({
 
     startTransition(async () => {
       try {
-        const data =
-          pointByPoint && reviewData.length > 0
-            ? reviewData.map((item) => ({
-                id: item.id,
-                viabilizado: item.viabilizado,
-              }))
-            : undefined;
+        const data = pointByPoint
+          ? reviewData.map((item) => ({
+              id: item.id,
+              viabilizado: item.viabilizado,
+            }))
+          : undefined;
 
-        await handleUpload(pointByPoint, data);
+        await handleUpload("UPLOAD", pointByPoint, data);
       } catch (err) {
         showError(
           err instanceof Error
@@ -76,21 +80,7 @@ export function useFeasibilityWorkflowActions({
 
   const handleApprove = () => {
     startTransition(async () => {
-      try {
-        const response = await approveFeasibility(Number(idWork));
-
-        if (!response.success) {
-          showError(response.message);
-          return;
-        }
-
-        showSuccess(response.message);
-        router.push(`/detalhes/${idWork}`);
-      } catch (err) {
-        showError(
-          err instanceof Error ? err.message : "Erro ao aprovar viabilidade",
-        );
-      }
+      await handleUpload("APPROVE");
     });
   };
 

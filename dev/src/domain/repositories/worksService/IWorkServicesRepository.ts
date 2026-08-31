@@ -11,19 +11,36 @@ export interface SchedulesProgressUpdate {
   exec: number;
 }
 
+export interface ParsedSpreadsheetItem {
+  point: string | null;
+  operation: string | null;
+  operationNumber: string | null;
+  materialCode: string | null;
+  plannedQuantity: number;
+  type: 'service' | 'material';
+  operationDescription: string | null;
+}
+
+export interface ImportServiceItem {
+  idService: number;
+  type: 'service' | 'material';
+  operation?: string;
+  point: string;
+  operationNumber: string;
+  operationDescription: string;
+  plannedQuantity: number;
+}
+
 export interface IWorkServicesRepository {
   scheduleServices(
     data: ScheduleServicesDTO[],
     prog: number | { increment: number },
     idSchedule: number,
+    idStatusSchedule?: number,
   ): Promise<void>;
   applyAdditional(
     data: ApplyAdditonalDTO[],
     tx: Prisma.TransactionClient,
-  ): Promise<void>;
-  reascheduleServices(
-    data: { id: number; id_servico: number }[],
-    scheduleId: number,
   ): Promise<void>;
   cancelServices(id: number): Promise<void>;
   addItem(
@@ -41,6 +58,12 @@ export interface IWorkServicesRepository {
     tx: Prisma.TransactionClient,
   ): Promise<void>;
   delete(id: number, tx: Prisma.TransactionClient): Promise<void>;
+  deleteAll(workId: number): Promise<void>;
+  bulkImportItems(
+    workId: number,
+    items: ImportServiceItem[],
+    tx: Prisma.TransactionClient,
+  );
 }
 
 export const WORK_SERVICES_REPOSITORY = Symbol('WorkServicesRepository');

@@ -7,6 +7,10 @@ export interface IWorkServicesExecutionRepository {
     pendingExecServicesData: number[],
     tx: Prisma.TransactionClient,
   ): Promise<void>;
+  reascheduleServices(
+    data: { id: number; id_servico: number }[],
+    scheduleId: number,
+  ): Promise<void>;
   performServices(data: PerformServicesDTO[]): Promise<void>;
 }
 

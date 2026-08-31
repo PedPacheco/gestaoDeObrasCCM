@@ -199,7 +199,7 @@ export function useAdvancePartnerFilters({
       const summary = data.resumoMensal.data?.firstSummary?.summary ?? [];
 
       setDailyGoal(
-        data.resumoMensal.data?.firstSummary?.summary?.[0]?.financialGoal ?? 0,
+        data.resumoMensal.data?.firstSummary?.totals.totalFinancialGoal ?? 0,
       );
 
       setTaxaExec({

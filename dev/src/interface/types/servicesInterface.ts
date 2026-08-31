@@ -85,3 +85,92 @@ export interface GetServiceOptionsResponse {
   operation_description: string[];
   points: string[];
 }
+
+export type ServiceToExport = {
+  id_programacao: number;
+  id_equipe: number;
+  operacao: string;
+  ponto: string;
+  viabilizado: number | null;
+  qtde_adicional: number | null;
+  equipes: {
+    equipe: string | null;
+  } | null;
+
+  materiais: {
+    codigo: string | null;
+    descricao: string | null;
+    preco: Decimal;
+  } | null;
+
+  servicos_contratos: {
+    material: string | null;
+    texto_breve: string | null;
+    preco: number;
+  } | null;
+};
+
+export type WorkProgrammingToExport = {
+  id: number;
+  data_prog: Date;
+  prog: number;
+  tipo_servico: string | null;
+  observacao_programacao: string | null;
+  chi: number | null;
+  num_dp: string | null;
+  chave_provisoria: boolean | null;
+};
+
+export type WorkToExportResponse = {
+  ovnota: string;
+  diagrama: string | null;
+  referencia: string | null;
+  ordem_dci: string | null;
+  ordem_dca: string | null;
+  ordem_dcd: string | null;
+  ordem_dcim: string | null;
+  tipos: {
+    tipo_obra: string;
+  };
+  municipios: {
+    municipio: string;
+  };
+  turmas: {
+    turma: string;
+  };
+  empreendimento: {
+    empreendimento: string | null;
+  };
+  circuitos: {
+    circuito: string;
+    conjuntos: {
+      conjunto: string;
+    };
+  };
+  programacoes: WorkProgrammingToExport[];
+  servicos: ServiceToExport[];
+};
+
+export type ExportServicesExcelOutput = {
+  ovnota: string;
+  ordemDiagrama: string | null;
+  referencia: string | null;
+  tipoObra: string;
+  municipio: string;
+  circuito: string;
+  conjunto: string;
+  parceira: string;
+  empreendimento: string;
+
+  dataProg: Date | null;
+  prog: number | null;
+
+  equipe: string | null;
+  operacao: string | null;
+  ponto: string | null;
+  preco: number;
+  codigo: string;
+  descricao: string;
+
+  quantidadeProgramada: number;
+};

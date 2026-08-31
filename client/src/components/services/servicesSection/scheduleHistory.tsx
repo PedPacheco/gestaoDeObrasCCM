@@ -22,6 +22,7 @@ import {
   MATERIAL_OR_SERVICE_OPTIONS,
   SERVICE_OPERATIONS,
 } from "@/constants/services/services";
+import { useUser } from "@/contexts/userContext";
 
 dayjs.extend(utc);
 
@@ -47,7 +48,7 @@ interface ScheduleHistoryProps {
   idSchedule: number | null;
   cancelServices: (id: number) => void;
   scheduledServicesHistory: ScheduledServicesHistoryData[];
-  isDisabled: boolean;
+  statusSchedule: string;
   isPending: boolean;
   openConfirmationModal: boolean;
   setOpenConfirmationModal: (confirmation: boolean) => void;
@@ -57,7 +58,7 @@ export function ScheduleHistory({
   cancelServices,
   idSchedule,
   scheduledServicesHistory,
-  isDisabled,
+  statusSchedule,
   isPending,
   openConfirmationModal,
   setOpenConfirmationModal,
@@ -69,6 +70,8 @@ export function ScheduleHistory({
     filterOptions,
     applyFilters,
   } = useServicesFilters(scheduledServicesHistory);
+
+  const { permissions } = useUser();
 
   const filteredServicesData = applyFilters(scheduledServicesHistory);
 
@@ -102,7 +105,10 @@ export function ScheduleHistory({
           onClick={() => {
             setOpenConfirmationModal(true);
           }}
-          disabled={!isDisabled}
+          disabled={
+            ["Programado", "Concluído", "Parcial"].includes(statusSchedule) ||
+            permissions?.tipo_usuario === "PARCEIRA"
+          }
         >
           CANCELAR
         </Button>
@@ -142,6 +148,7 @@ export function ScheduleHistory({
             },
           ]}
           onFilter={setTableFilters}
+          setMaterialOrService={setMaterialOrService}
           extraFilters={
             <div className="min-w-[160px]">
               <label className="block text-sm font-medium text-gray-600 mb-1">

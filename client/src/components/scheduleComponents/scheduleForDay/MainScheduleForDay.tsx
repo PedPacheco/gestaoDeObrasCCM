@@ -67,9 +67,14 @@ export default function MainSchduleForDay({
 
       try {
         if (token) {
-          const blob = await exportExcel(url, token);
+          const response = await exportExcel(url, token);
 
-          const downloadUrl = window.URL.createObjectURL(blob);
+          if (!response.success) {
+            showError(response.message);
+            return;
+          }
+
+          const downloadUrl = window.URL.createObjectURL(response.data);
           const link = document.createElement("a");
           link.href = downloadUrl;
           link.download = "Exportação Programação.xlsx";

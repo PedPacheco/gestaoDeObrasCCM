@@ -3,6 +3,7 @@ import { WorkServicesRepository } from 'src/infra/repositories/worksServices/wor
 import { ScheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { ImportServiceItem } from 'src/domain/repositories/worksService/IWorkServicesRepository';
 
 describe('WorksServicesRepository', () => {
   let repository: WorkServicesRepository;
@@ -208,7 +209,7 @@ describe('WorksServicesRepository', () => {
     });
 
     it('should update schedule progress', async () => {
-      await repository.scheduleServices(mockScheduleData, 80, 1);
+      await repository.scheduleServices(mockScheduleData, 80, 1, 1);
 
       expect(mockTx.programacoes.update).toHaveBeenCalledWith({
         where: {
@@ -216,6 +217,8 @@ describe('WorksServicesRepository', () => {
         },
         data: {
           prog: 80,
+          id_status_programacao: 1,
+          reprovada: false,
         },
       });
     });
@@ -226,160 +229,6 @@ describe('WorksServicesRepository', () => {
       expect(prisma.$transaction).toHaveBeenCalledWith(expect.any(Function), {
         maxWait: 10000,
         timeout: 30000,
-      });
-    });
-  });
-
-  describe('reascheduleServices', () => {
-    const mockTx = {
-      servicos: {
-        updateMany: jest.fn().mockResolvedValue({ count: 1 }),
-      },
-      programacoes: { update: jest.fn().mockResolvedValue({ count: 1 }) },
-    };
-
-    it('should update multiple services to remove programacao in a transaction', async () => {
-      const mockData = [
-        { id_servico: 1 },
-        { id_servico: 2 },
-        { id_servico: 3 },
-      ];
-
-      mockPrismaService.$transaction.mockImplementation(async (callback) => {
-        return await callback(mockTx);
-      });
-
-      await repository.reascheduleServices(mockData, 1);
-
-      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
-      expect(mockTx.servicos.updateMany).toHaveBeenCalledTimes(1);
-      expect(mockTx.programacoes.update).toHaveBeenCalledTimes(1);
-    });
-
-    it('should set id_programacao to null for each service', async () => {
-      const mockData = [{ id_servico: 1 }];
-
-      mockPrismaService.$transaction.mockImplementation(async (callback) => {
-        return await callback(mockTx);
-      });
-
-      await repository.reascheduleServices(mockData, 1);
-
-      expect(mockTx.servicos.updateMany).toHaveBeenCalledWith({
-        data: { id_programacao: null },
-        where: { id: { in: [1] } },
-      });
-      expect(mockTx.programacoes.update).toHaveBeenCalledWith({
-        where: { id: 1 },
-        data: { exec: 0 },
-      });
-    });
-
-    it('should process multiple services correctly', async () => {
-      const mockData = [
-        { id_servico: 1 },
-        { id_servico: 2 },
-        { id_servico: 3 },
-      ];
-
-      mockPrismaService.$transaction.mockImplementation(async (callback) => {
-        return await callback(mockTx);
-      });
-
-      await repository.reascheduleServices(mockData, 1);
-
-      expect(mockTx.servicos.updateMany).toHaveBeenNthCalledWith(1, {
-        data: { id_programacao: null },
-        where: { id: { in: [1, 2, 3] } },
-      });
-      expect(mockTx.programacoes.update).toHaveBeenCalledWith({
-        where: { id: 1 },
-        data: { exec: 0 },
-      });
-    });
-
-    it('should handle empty data array', async () => {
-      const mockData = [];
-
-      mockPrismaService.$transaction.mockImplementation(async (callback) => {
-        return await callback(mockTx);
-      });
-
-      await repository.reascheduleServices(mockData, 1);
-
-      expect(mockTx.servicos.updateMany).not.toHaveBeenCalled();
-    });
-
-    it('should rollback transaction on error', async () => {
-      const mockData = [{ id_servico: 1 }, { id_servico: 2 }];
-      const mockError = new Error('Update failed');
-
-      const mockTx = {
-        servicos: {
-          updateMany: jest.fn().mockResolvedValue({ count: 2 }),
-        },
-        programacoes: {
-          update: jest.fn().mockRejectedValue(mockError),
-        },
-      };
-
-      mockPrismaService.$transaction.mockImplementation(async (callback) => {
-        return await callback(mockTx);
-      });
-
-      await expect(repository.reascheduleServices(mockData, 1)).rejects.toThrow(
-        'Update failed',
-      );
-
-      expect(mockTx.servicos.updateMany).toHaveBeenCalledWith({
-        where: { id: { in: [1, 2] } },
-        data: { id_programacao: null },
-      });
-
-      expect(mockTx.programacoes.update).toHaveBeenCalledWith({
-        where: { id: 1 },
-        data: { exec: 0 },
-      });
-    });
-
-    it('should handle single service reschedule', async () => {
-      const mockData = [{ id_servico: 999 }];
-
-      mockPrismaService.$transaction.mockImplementation(async (callback) => {
-        return await callback(mockTx);
-      });
-
-      await repository.reascheduleServices(mockData, 1);
-
-      expect(mockTx.servicos.updateMany).toHaveBeenCalledTimes(1);
-      expect(mockTx.servicos.updateMany).toHaveBeenCalledWith({
-        data: { id_programacao: null },
-        where: { id: { in: [999] } },
-      });
-    });
-
-    it('should map service ids correctly', async () => {
-      const mockData = [
-        { id_servico: 10 },
-        { id_servico: 20 },
-        { id_servico: 30 },
-      ];
-
-      mockPrismaService.$transaction.mockImplementation(async (callback) =>
-        callback(mockTx),
-      );
-
-      await repository.reascheduleServices(mockData, 1);
-
-      expect(mockTx.servicos.updateMany).toHaveBeenCalledWith({
-        where: {
-          id: {
-            in: [10, 20, 30],
-          },
-        },
-        data: {
-          id_programacao: null,
-        },
       });
     });
   });
@@ -699,6 +548,52 @@ describe('WorksServicesRepository', () => {
     });
   });
 
+  describe('deleteAll', () => {
+    it('should delete servicos and relatorio within a transaction', async () => {
+      const mockTx = {
+        servicos: { deleteMany: jest.fn().mockResolvedValue({ count: 3 }) },
+        relatorio: { delete: jest.fn() },
+      };
+
+      // Faz o prisma.$transaction executar o callback com o mockTx
+      mockPrismaService.$transaction.mockImplementation(async (cb) =>
+        cb(mockTx),
+      );
+
+      await repository.deleteAll(1);
+
+      expect(mockTx.servicos.deleteMany).toHaveBeenCalledWith({
+        where: { id_obra: 1 },
+      });
+      expect(mockTx.relatorio.delete).toHaveBeenCalledWith({
+        where: { id_obra: 1 },
+      });
+    });
+
+    it('should throw when the transaction fails', async () => {
+      mockPrismaService.$transaction.mockRejectedValue(new Error('DB error'));
+
+      await expect(repository.deleteAll(1)).rejects.toThrow('DB error');
+    });
+
+    it('should propagate error when servicos.deleteMany fails', async () => {
+      const mockTx = {
+        servicos: {
+          deleteMany: jest.fn().mockRejectedValue(new Error('FK constraint')),
+        },
+        relatorio: { delete: jest.fn() },
+      };
+
+      mockPrismaService.$transaction.mockImplementation(async (cb) =>
+        cb(mockTx),
+      );
+
+      await expect(repository.deleteAll(1)).rejects.toThrow('FK constraint');
+      // relatorio não deve ter sido chamado se servicos falhou antes
+      expect(mockTx.relatorio.delete).not.toHaveBeenCalled();
+    });
+  });
+
   describe('updateWorkExecuted', () => {
     it('should update work executed percentage', async () => {
       const mockTx = {
@@ -736,6 +631,194 @@ describe('WorksServicesRepository', () => {
           executado: null,
         },
       });
+    });
+  });
+
+  describe('bulkImportItems', () => {
+    let mockTx: any;
+
+    beforeEach(() => {
+      mockTx = {
+        servicos: {
+          createMany: jest.fn().mockResolvedValue({ count: 2 }),
+        },
+        relatorio: {
+          upsert: jest.fn().mockResolvedValue({}),
+        },
+      };
+    });
+
+    it('should return without executing queries when items is empty', async () => {
+      await repository.bulkImportItems(1, [], mockTx);
+
+      expect(mockTx.servicos.createMany).not.toHaveBeenCalled();
+      expect(mockTx.relatorio.upsert).not.toHaveBeenCalled();
+    });
+
+    it('should create many service items', async () => {
+      const items: ImportServiceItem[] = [
+        {
+          idService: 10,
+          type: 'service',
+          operation: 'INSTALAÇÃO',
+          point: 'P1',
+          operationNumber: '001',
+          operationDescription: 'POSTE',
+          plannedQuantity: 5,
+        },
+      ];
+
+      await repository.bulkImportItems(1, items, mockTx);
+
+      expect(mockTx.servicos.createMany).toHaveBeenCalledWith({
+        data: [
+          {
+            id_obra: 1,
+            id_contrato_servico: 10,
+            id_material: null,
+            operacao: 'INSTALAÇÃO',
+            ponto: 'P1',
+            numero_operacao: '001',
+            descricao_operacao: 'POSTE',
+            qtde_plan: 5,
+            qtde_adicional: 0,
+          },
+        ],
+      });
+    });
+
+    it('should create many material items', async () => {
+      const items: ImportServiceItem[] = [
+        {
+          idService: 20,
+          type: 'material',
+          operation: 'LANÇAMENTO',
+          point: 'P2',
+          operationNumber: '002',
+          operationDescription: 'CABO',
+          plannedQuantity: 8,
+        },
+      ];
+
+      await repository.bulkImportItems(5, items, mockTx);
+
+      expect(mockTx.servicos.createMany).toHaveBeenCalledWith({
+        data: [
+          {
+            id_obra: 5,
+            id_contrato_servico: null,
+            id_material: 20,
+            operacao: 'LANÇAMENTO',
+            ponto: 'P2',
+            numero_operacao: '002',
+            descricao_operacao: 'CABO',
+            qtde_plan: 8,
+            qtde_adicional: 0,
+          },
+        ],
+      });
+    });
+
+    it('should create report using upsert', async () => {
+      const items: ImportServiceItem[] = [
+        {
+          idService: 10,
+          type: 'service',
+          operation: 'INSTALAÇÃO',
+          point: 'P1',
+          operationNumber: '001',
+          operationDescription: 'POSTE',
+          plannedQuantity: 5,
+        },
+      ];
+
+      await repository.bulkImportItems(1, items, mockTx);
+
+      expect(mockTx.relatorio.upsert).toHaveBeenCalledWith({
+        where: { id_obra: 1 },
+        create: {
+          id_obra: 1,
+          encontrado: true,
+        },
+        update: {
+          encontrado: true,
+        },
+      });
+    });
+
+    it('should process multiple items in createMany', async () => {
+      const items: ImportServiceItem[] = [
+        {
+          idService: 10,
+          type: 'service',
+          operation: 'INSTALAÇÃO',
+          point: 'P1',
+          operationNumber: '001',
+          operationDescription: 'POSTE',
+          plannedQuantity: 5,
+        },
+        {
+          idService: 20,
+          type: 'material',
+          operation: 'LANÇAMENTO',
+          point: 'P2',
+          operationNumber: '002',
+          operationDescription: 'CABO',
+          plannedQuantity: 8,
+        },
+      ];
+
+      await repository.bulkImportItems(1, items, mockTx);
+
+      expect(mockTx.servicos.createMany).toHaveBeenCalledTimes(1);
+
+      expect(mockTx.servicos.createMany.mock.calls[0][0].data).toHaveLength(2);
+    });
+
+    it('should propagate createMany errors', async () => {
+      const error = new Error('Database error');
+
+      mockTx.servicos.createMany.mockRejectedValue(error);
+
+      const items: ImportServiceItem[] = [
+        {
+          idService: 10,
+          type: 'service',
+          operation: 'INSTALAÇÃO',
+          point: 'P1',
+          operationNumber: '001',
+          operationDescription: 'POSTE',
+          plannedQuantity: 5,
+        },
+      ];
+
+      await expect(
+        repository.bulkImportItems(1, items, mockTx),
+      ).rejects.toThrow('Database error');
+
+      expect(mockTx.relatorio.upsert).not.toHaveBeenCalled();
+    });
+
+    it('should propagate upsert errors', async () => {
+      const error = new Error('Upsert error');
+
+      mockTx.relatorio.upsert.mockRejectedValue(error);
+
+      const items: ImportServiceItem[] = [
+        {
+          idService: 10,
+          type: 'service',
+          operation: 'INSTALAÇÃO',
+          point: 'P1',
+          operationNumber: '001',
+          operationDescription: 'POSTE',
+          plannedQuantity: 5,
+        },
+      ];
+
+      await expect(
+        repository.bulkImportItems(1, items, mockTx),
+      ).rejects.toThrow('Upsert error');
     });
   });
 

@@ -16,15 +16,15 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {
-  IStatusFlowRepository,
-  STATUS_FLOW_REPOSITORY,
-} from 'src/domain/repositories/IStatusFlowRepository';
-import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
 } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
 import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
 import { Prisma } from '@prisma/client';
+import {
+  FIND_SCHEDULE_BY_ID_REPOSITORY,
+  IFindScheduleByIdRepository,
+} from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
 
 @Injectable()
 export class WorksServicesService {
@@ -36,8 +36,8 @@ export class WorksServicesService {
     private readonly workServicesRepository: IWorkServicesRepository,
     @Inject(WORK_SERVICES_QUERY_REPOSITORY)
     private readonly workServicesQueryRepository: IWorkServicesQueryRepository,
-    @Inject(STATUS_FLOW_REPOSITORY)
-    private readonly statusFlowRepository: IStatusFlowRepository,
+    @Inject(FIND_SCHEDULE_BY_ID_REPOSITORY)
+    private readonly schedulesRepository: IFindScheduleByIdRepository,
     private readonly scheduleProgressCalculator: ScheduleProgressCalculatorService,
   ) {}
 
@@ -47,45 +47,23 @@ export class WorksServicesService {
   ): Promise<void> {
     const idSchedule = data[0]?.idSchedule;
 
+    const { id_status_programacao } =
+      await this.schedulesRepository.findById(idSchedule);
+
     const onlyServices = data.filter((item) => item.type === 'S');
 
     const prog = await this.calculateScheduledProgress(workId, onlyServices);
 
     await this.validateScheduleServices(workId, data, prog);
 
+    const newStatus = id_status_programacao === 7 ? 1 : undefined;
+
     await this.workServicesRepository.scheduleServices(
       data,
       { increment: prog },
       idSchedule,
+      newStatus,
     );
-  }
-
-  async reascheduleServices(workId: number, scheduleId: number): Promise<void> {
-    const history =
-      await this.workServicesQueryRepository.getServiceScheduleHistory(workId);
-
-    const servicesToBeReascheduled = history
-      .filter(
-        (item) =>
-          (item.real < item.prog || !item.real) &&
-          item.id_programacao === scheduleId,
-      )
-      .map((item) => ({ id: item.id, id_servico: item.id_servico }));
-
-    await this.prisma.$transaction(async (tx) => {
-      try {
-        await this.workServicesRepository.reascheduleServices(
-          servicesToBeReascheduled,
-          scheduleId,
-        );
-
-        await this.statusFlowRepository.updateStatusWorks(36, workId, tx);
-        await this.statusFlowRepository.updateScheduleStatus(5, scheduleId, tx);
-      } catch (error: any) {
-        this.logger.error(error);
-        throw error;
-      }
-    });
   }
 
   async cancelServices(id: number): Promise<void> {
@@ -176,6 +154,10 @@ export class WorksServicesService {
         timeout: 30000,
       },
     );
+  }
+
+  async deleteAll(workId: number) {
+    await this.workServicesRepository.deleteAll(workId);
   }
 
   private async recalculateAllSchedulesProgress(

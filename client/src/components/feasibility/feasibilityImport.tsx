@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
 import { useFeasibilityNavigation } from "@/hooks/feasibility/useFeasibilityNavigation";
@@ -75,6 +75,10 @@ export function FeasibiltyUpload({
   const [reviewData, setReviewData] = useState<FeasibilityServiceItem[]>(
     servicesData ?? [],
   );
+
+  useEffect(() => {
+    setReviewData(servicesData ?? []);
+  }, [servicesData]);
 
   const [termsAccepted, setTermsAccepted] = useState(false);
 
@@ -198,12 +202,11 @@ export function FeasibiltyUpload({
                 uploading={uploading}
                 termsAccepted={termsAccepted}
                 dragActive={dragActive}
-                readOnly={!isEditable}
+                workflowStatus={workflowStatus}
                 onTermsAccepted={setTermsAccepted}
                 onFilesSelected={handleFiles}
                 onDrag={handleDrag}
                 onDrop={handleDrop}
-                idWork={Number(idWork)}
                 onRemoveFile={removeFile}
               />
             </CardSection>

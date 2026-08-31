@@ -15,6 +15,7 @@ describe('WorkServicesQueryRepository', () => {
       groupBy: jest.fn(),
       create: jest.fn(),
     },
+    obras: { findMany: jest.fn() },
     materiais: { findMany: jest.fn() },
     programacoes_servicos: {
       findMany: jest.fn(),
@@ -635,6 +636,139 @@ describe('WorkServicesQueryRepository', () => {
         by: ['ponto'],
         where: { id_obra: mockId },
       });
+    });
+  });
+
+  describe('getServicesToExportation', () => {
+    it('should use id_equipe not null filter when idEquipe is empty', async () => {
+      mockPrismaService.obras.findMany.mockResolvedValue([]);
+
+      await repository.getServicesToExportation({
+        dataInicial: '2026-01-01',
+        dataFinal: '2026-01-31',
+        idParceira: [2],
+        idEquipe: [],
+      });
+
+      expect(mockPrismaService.obras.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            id_turma: { in: [2] },
+            servicos: {
+              some: {
+                id_programacao: {
+                  not: null,
+                },
+                id_equipe: {
+                  not: null,
+                },
+              },
+            },
+          }),
+        }),
+      );
+    });
+
+    it('should use id_equipe in filter when idEquipe is informed', async () => {
+      mockPrismaService.obras.findMany.mockResolvedValue([]);
+
+      await repository.getServicesToExportation({
+        dataInicial: '2026-01-01',
+        dataFinal: '2026-01-31',
+        idParceira: [2],
+        idEquipe: [2, 3, 4],
+      });
+
+      expect(mockPrismaService.obras.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            id_turma: { in: [2] },
+            servicos: {
+              some: {
+                id_programacao: {
+                  not: null,
+                },
+                id_equipe: {
+                  in: [2, 3, 4],
+                },
+              },
+            },
+          }),
+        }),
+      );
+    });
+
+    it('should apply date filter to programacoes', async () => {
+      mockPrismaService.obras.findMany.mockResolvedValue([]);
+
+      await repository.getServicesToExportation({
+        dataInicial: '2026-01-01',
+        dataFinal: '2026-01-31',
+        idParceira: [2],
+        idEquipe: [],
+      });
+
+      expect(mockPrismaService.obras.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            programacoes: {
+              some: {
+                data_prog: {
+                  gte: new Date('2026-01-01'),
+                  lte: new Date('2026-01-31'),
+                },
+              },
+            },
+          }),
+        }),
+      );
+    });
+
+    it('should return repository data', async () => {
+      const responseMock = [
+        {
+          ovnota: 'OV001',
+        },
+      ];
+
+      mockPrismaService.obras.findMany.mockResolvedValue(responseMock);
+
+      const result = await repository.getServicesToExportation({
+        dataInicial: '2026-01-01',
+        dataFinal: '2026-01-31',
+        idParceira: [2],
+        idEquipe: [],
+      });
+
+      expect(result).toEqual(responseMock);
+    });
+
+    it('should return empty array when no data is found', async () => {
+      mockPrismaService.obras.findMany.mockResolvedValue([]);
+
+      const result = await repository.getServicesToExportation({
+        dataInicial: '2026-01-01',
+        dataFinal: '2026-01-31',
+        idParceira: [2],
+        idEquipe: [],
+      });
+
+      expect(result).toEqual([]);
+    });
+
+    it('should propagate prisma errors', async () => {
+      mockPrismaService.obras.findMany.mockRejectedValueOnce(
+        new Error('Database error'),
+      );
+
+      await expect(
+        repository.getServicesToExportation({
+          dataInicial: '2026-01-01',
+          dataFinal: '2026-01-31',
+          idParceira: [2],
+          idEquipe: [],
+        }),
+      ).rejects.toThrow('Database error');
     });
   });
 });

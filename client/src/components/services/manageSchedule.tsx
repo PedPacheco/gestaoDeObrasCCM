@@ -20,10 +20,6 @@ import { ScheduleSidebar } from "./scheduleSidebar/scheduleSidebar";
 import { ScheduleTopbar } from "./scheduleTopbar";
 import { NewServicesAvaliable } from "./servicesSection/servicesAvaliable";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
-
 interface ManageScheduleProps {
   scheduleData: any;
   servicesData: any[];
@@ -37,15 +33,12 @@ interface ManageScheduleProps {
   idWork: number;
   idStatusWork: number;
   idSchedule: number | null;
-  statusSchedule?: string;
+  statusSchedule: string;
   optionsToAddItem: {
     operation_description: string[];
     points: string[];
   };
 }
-// ─────────────────────────────────────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────────────────────────────────────
 
 export function NewManageSchedule({
   scheduleData,
@@ -80,8 +73,6 @@ export function NewManageSchedule({
   const scheduleForm = useScheduleForm({ data: scheduleData, options, idWork });
 
   const workflow = useScheduleWorkflow({ selectedServices: selectedServices });
-
-  const isDisabled = statusSchedule ? statusSchedule === "Programado" : false;
 
   const handleCancel = useCallback(() => {
     router.replace(`/detalhes/${idWork}`);
@@ -208,6 +199,7 @@ export function NewManageSchedule({
                 services={serviceContractData}
                 type="serviço"
                 options={optionsToAddItem}
+                idStatusWork={idStatusWork}
               />
 
               <AddServiceAccordion
@@ -216,6 +208,7 @@ export function NewManageSchedule({
                 materials={materialsData}
                 type="material"
                 options={optionsToAddItem}
+                idStatusWork={idStatusWork}
               />
 
               <AddServiceAccordion
@@ -225,6 +218,7 @@ export function NewManageSchedule({
                 materials={materialsData}
                 type="familia"
                 options={optionsToAddItem}
+                idStatusWork={idStatusWork}
               />
             </div>
 

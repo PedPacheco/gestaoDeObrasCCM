@@ -107,7 +107,7 @@ describe('GetScheduleValuesRepository', () => {
     INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
     INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
     INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
-    INNER JOIN construcao_sp.relatorio ON relatorio.id_obra = obras.id
+    LEFT JOIN construcao_sp.relatorio ON relatorio.id_obra = obras.id
     WHERE status.id NOT IN (3, 4) AND exec IS NULL ORDER BY data_prog, ovnota`;
 
     const result = await repository.getValues(filters);
@@ -160,7 +160,7 @@ describe('GetScheduleValuesRepository', () => {
       INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
       INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
       INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
-      INNER JOIN construcao_sp.relatorio ON relatorio.id_obra = obras.id
+      LEFT JOIN construcao_sp.relatorio ON relatorio.id_obra = obras.id
       WHERE status.id NOT IN (3, 4) AND programacoes.data_prog BETWEEN AND 
       AND municipios.id_regional IN () 
       AND municipios.id IN () 
@@ -247,7 +247,7 @@ describe('GetScheduleValuesRepository', () => {
     INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
     INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
     INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
-    INNER JOIN construcao_sp.relatorio ON relatorio.id_obra = obras.id
+    LEFT JOIN construcao_sp.relatorio ON relatorio.id_obra = obras.id
     WHERE status.id NOT IN (3, 4) AND exec IS NULL AND data_prog < CURRENT_DATE ORDER BY data_prog, ovnota LIMIT 200 OFFSET`;
 
     const result = await repository.getValues(filters);

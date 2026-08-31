@@ -382,7 +382,7 @@ model regionais {
 
 model relatorio {
   id         Int      @id(map: "RELATORIO_pkey") @default(autoincrement())
-  id_obra    Int
+  id_obra    Int      @unique
   encontrado Boolean? @default(false)
   obras      obras    @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
 }
@@ -391,6 +391,7 @@ model restricoes {
   id                              Int                        @id(map: "RESTRICOES_pkey") @default(autoincrement())
   restricao                       String?                    @db.VarChar(80)
   tipo_restricao                  String                     @db.VarChar(15)
+  responsabilidade                String?                    @db.VarChar(15)
   programacoes_restricao_execucao programacoes[]             @relation("programacoes_restricao_execucao")
   programacoes_restricao_prog1    programacoes[]             @relation("programacoes_restricao_prog1")
   programacoes_restricao_prog2    programacoes[]             @relation("programacoes_restricao_prog2")
@@ -414,7 +415,7 @@ model servicos {
   id_material           Int?
   viabilizado           Float?
   numero_operacao       String?                 @db.VarChar(10)
-  descricao_operacao    String                  @db.VarChar(100)
+  descricao_operacao    String?                  @db.VarChar(100)
   programacoes_servicos programacoes_servicos[]
   equipes               equipes?                @relation(fields: [id_equipe], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipes")
   materiais             materiais?              @relation(fields: [id_material], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_materiais")

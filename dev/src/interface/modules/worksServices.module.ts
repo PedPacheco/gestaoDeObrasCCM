@@ -16,11 +16,18 @@ import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MulterModule } from '@nestjs/platform-express';
 
-import { ServicesController } from '../controllers/worksServices.controller';
+import { ServicesController } from '../controllers/services/worksServices.controller';
 import { ExecutionReportModule } from './executionReport.module';
 import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
 import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
+import { ImportServicesSpreadsheetService } from 'src/application/usecases/services/importServicesSpreadsheet.service';
+import { SpreadsheetParserService } from 'src/infra/spreadsheet/spreadsheet.service';
+import { ServicesExecutionController } from '../controllers/services/servicesExecution.controller';
+import { ServicesQueryController } from '../controllers/services/servicesQuery.controller';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
+import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
+import { ExportServicesService } from 'src/application/usecases/services/exportServices.service';
 
 @Module({
   imports: [
@@ -41,6 +48,8 @@ import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleP
             'image/png',
             'image/heic',
             'image/heif',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.ms-excel',
           ],
           allowedExtensions: [
             '.pdf',
@@ -50,6 +59,8 @@ import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleP
             '.tiff',
             '.heic',
             '.heif',
+            '.xlsx',
+            '.xls',
           ],
           maxSize: 5 * 1024 * 1024,
           maxFiles: 3,
@@ -59,13 +70,24 @@ import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleP
       },
     }),
   ],
-  controllers: [ServicesController],
+  controllers: [
+    ServicesController,
+    ServicesExecutionController,
+    ServicesQueryController,
+  ],
   providers: [
     WorksServicesService,
     QueriesServicesService,
     FinalizeServicesService,
     ScheduleExecutionValidatorService,
     ScheduleProgressCalculatorService,
+    ImportServicesSpreadsheetService,
+    SpreadsheetParserService,
+    ExportServicesService,
+    {
+      provide: FIND_SCHEDULE_BY_ID_REPOSITORY,
+      useClass: FindScheduleByIdRepository,
+    },
     {
       provide: WORK_SERVICES_REPOSITORY,
       useClass: WorkServicesRepository,
@@ -80,6 +102,10 @@ import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleP
     },
     { provide: STATUS_FLOW_REPOSITORY, useClass: StatusFlowRepository },
   ],
-  exports: [WorksServicesService],
+  exports: [
+    WorksServicesService,
+    QueriesServicesService,
+    ExportServicesService,
+  ],
 })
 export class WorksServicesModule {}

@@ -171,6 +171,9 @@ export class SuspensionWorksDTO {
   ovnota: string;
 
   @IsString()
+  ordemDiagrama: string;
+
+  @IsString()
   motivo: string;
 }
 

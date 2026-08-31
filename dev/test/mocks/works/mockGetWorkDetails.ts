@@ -128,7 +128,7 @@ export const mockGetWorkDetailsRepositoryQueryResponse = {
       hora_ter: '1970-01-01T16:30:00.000Z',
       tipo_servico: 'OBRA COM DESLIGAMENTO',
       prog: 30,
-      exec: 20,
+      exec: null,
       equip_desligado: 'DESLIGAMENTO PROGRAMADO',
       chi: 1,
       num_dp: 'DP-998877',
@@ -202,7 +202,7 @@ export const mockGetWorkDetailsRepositoryResponse = {
   municipios: 'MONTEIRO LOBATO',
   tipos: 'SPACER CABLE',
   grupo: 2,
-  totalProgramado: 100,
+  totalProgramado: 95,
   programacoes: [
     {
       id: undefined,
@@ -296,7 +296,7 @@ export const mockGetWorkDetailsRepositoryResponse = {
       hora_ter: '1970-01-01T16:30:00.000Z',
       tipo_servico: 'OBRA COM DESLIGAMENTO',
       prog: 30,
-      exec: 20,
+      exec: null,
       observacao_programacao: undefined,
       equip_desligado: 'DESLIGAMENTO PROGRAMADO',
       chi: 1,
