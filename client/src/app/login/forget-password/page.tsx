@@ -1,6 +1,7 @@
 "use client";
 
 import { ButtonComponent } from "@/components/common/Button";
+import { useFeedback } from "@/hooks/useFeedback";
 import { ArrowLeftIcon } from "@heroicons/react/20/solid";
 import { TextField } from "@mui/material";
 import Link from "next/link";
@@ -8,6 +9,8 @@ import { FormEvent, useState } from "react";
 
 export default function ForgetPassword() {
   const [username, SetUsername] = useState("");
+
+  const { showError, showSuccess } = useFeedback();
 
   async function handleSendEmail(event: FormEvent) {
     event.preventDefault();
@@ -27,17 +30,17 @@ export default function ForgetPassword() {
           body: JSON.stringify({
             username,
           }),
-        }
+        },
       );
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("Error:", errorData);
+        showError("Erro na requisição");
       } else {
-        console.log("Success!");
+        showSuccess("Success!");
       }
     } catch (error) {
-      console.error("Network Error:", error);
+      showError("Falha no servidor");
     }
   }
 

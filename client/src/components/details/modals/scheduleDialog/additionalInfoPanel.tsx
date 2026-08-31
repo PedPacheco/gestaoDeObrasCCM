@@ -54,8 +54,6 @@ export function AdditionalInfoPanel({
     Boolean(restrictionResponsibility) ||
     (restrictionIsDisabled && permission === "PARCEIRA");
 
-  console.log(responsibilityDisabled, restrictionResponsibility);
-
   const responsibilityValue =
     restrictionResponsibility ?? formData.responsibility ?? "";
 
