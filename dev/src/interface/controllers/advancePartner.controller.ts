@@ -1,14 +1,26 @@
+import { AdvancePartnerService } from 'src/application/usecases/advancePartner/advancePartner.service';
+import { GetAdvancePartnerIndicatorsService } from 'src/application/usecases/advancePartner/getAdvancePartnerIndicators.service';
 import {
+  AreaEditGuard,
+  AreaViewGuard,
+} from 'src/core/guards/newPermission.guard';
+
+import {
+  Body,
   Controller,
   Get,
   HttpStatus,
+  Post,
   Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
+
 import { GetRestrictionsAdvancePartnerDTO } from '../dtos/restrictionsDTO';
-import { AdvancePartnerService } from 'src/application/usecases/advancePartner.service';
-import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
+import {
+  CreateAdvancePartnerMonitoringDTO,
+  IndicatorsDTO,
+} from '../dtos/advancePartnerDTO';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -17,7 +29,10 @@ interface CustomRequest extends Request {
 
 @Controller('avanca-parceira')
 export class AdvancePartnerController {
-  constructor(private readonly service: AdvancePartnerService) {}
+  constructor(
+    private readonly service: AdvancePartnerService,
+    private readonly getIndicatorsService: GetAdvancePartnerIndicatorsService,
+  ) {}
 
   private applyFilters<
     T extends {
@@ -111,6 +126,29 @@ export class AdvancePartnerController {
       statusCode: HttpStatus.OK,
       message: 'Semanas programadas por parceira retornadas com sucesso',
       data,
+    };
+  }
+
+  @Get('indicadores')
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
+  async getIndicators(@Query() params: IndicatorsDTO) {
+    const data = await this.getIndicatorsService.execute(params);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Indicadores do Avança Parceira retornados com sucesso',
+      data,
+    };
+  }
+
+  @Post()
+  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
+  async insertIndicators(@Body() data: CreateAdvancePartnerMonitoringDTO) {
+    await this.service.insertIndicators(data);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Indicadores inseridos com sucesso',
     };
   }
 }

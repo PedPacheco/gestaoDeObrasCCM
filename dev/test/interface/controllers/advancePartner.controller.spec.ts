@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AdvancePartnerService } from 'src/application/usecases/advancePartner.service';
+import { AdvancePartnerService } from 'src/application/usecases/advancePartner/advancePartner.service';
 import { UsersService } from 'src/application/usecases/users.service';
 import { AdvancePartnerController } from 'src/interface/controllers/advancePartner.controller';
 

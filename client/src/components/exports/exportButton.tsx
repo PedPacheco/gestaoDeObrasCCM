@@ -28,7 +28,7 @@ interface ExportButtonProps {
     parceira: Array<{ id: number; turma: string }>;
     equipes: Array<{ id: number; equipe: string; id_turma: number }>;
   };
-  filterType?: "none" | "dateRange" | "services";
+  filterType?: "dateRange" | "services";
 }
 
 export function ExportButton({
@@ -116,7 +116,7 @@ export function ExportButton({
             <ButtonComponent
               text="Exportar"
               onClick={() => {
-                if (filterType === "none") {
+                if (!filterType) {
                   generateFile();
                   return;
                 }

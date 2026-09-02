@@ -103,6 +103,16 @@ async function fetchEliminacaoRestricao(token: string) {
   return res.success ? (res.data ?? []) : [];
 }
 
+async function fetchIndicadoresAvança(token: string) {
+  const res = await fetchData(
+    `${API}/avanca-parceira/indicadores`,
+    undefined,
+    token,
+    NO_CACHE,
+  );
+  return res.success ? (res.data ?? []) : [];
+}
+
 async function fetchAderenciaParceira(token: string) {
   const { inicio, fim } = getCurrentWeekData();
   const res = await fetchData(
@@ -243,6 +253,7 @@ export default async function Home() {
     semanasParceira,
     motivosReprogramacao,
     maodeObraAvanca,
+    indicadoresAvanca,
     filtersData,
   ] = await Promise.all([
     fetchMaodeObra(token, "labor"),
@@ -256,6 +267,7 @@ export default async function Home() {
     fetchSemanasParceira(token),
     fetchMotivosReprogramacao(token),
     fetchMaodeObra(token, "partner"),
+    fetchIndicadoresAvança(token),
     fetchFilters({
       regional: true,
       parceira: true,
@@ -287,6 +299,7 @@ export default async function Home() {
             initialSparklinesPartners={sparklinesParceira}
             initialLaborMoveForwardPartner={maodeObraAvanca.data}
             initialDailyGoalMoveForwardPartner={maodeObraAvanca.metaDiaria}
+            initialIndicators={indicadoresAvanca}
             filtersData={filtersData}
           />
         </main>

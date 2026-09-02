@@ -5,6 +5,7 @@ import {
   IAdvancePartnerRepository,
   ProcessedEliminacaoFilters,
 } from 'src/domain/repositories/IAdvancePartnerRepository';
+import { CreateAdvancePartnerMonitoringDTO } from 'src/interface/dtos/advancePartnerDTO';
 import { GetRestrictionsAdvancePartnerDTO } from 'src/interface/dtos/restrictionsDTO';
 
 @Injectable()
@@ -144,5 +145,9 @@ export class AdvancePartnerService {
       parceira: r.parceira,
       semanas: Number(r.semanas),
     }));
+  }
+
+  async insertIndicators(data: CreateAdvancePartnerMonitoringDTO) {
+    await this.advancePartnerRepository.insertIndicators(data);
   }
 }

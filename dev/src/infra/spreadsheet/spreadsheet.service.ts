@@ -21,7 +21,7 @@ export class SpreadsheetParserService {
   readonly dataStartRow = 4;
 
   // Mínimo de colunas esperadas (equivalente ao len(row) > 10)
-  private readonly MIN_COLUMNS = 11;
+  private readonly MIN_COLUMNS = 14;
 
   // Colunas (1-based, como no ExcelJS)
   private readonly COL = {
@@ -171,7 +171,7 @@ export class SpreadsheetParserService {
       { col: this.COL.MATERIAL_CODE, value: 'código material' },
       { col: this.COL.PLANNED_QTY, value: 'qtde. planejada' },
       { col: this.COL.TYPE, value: 'tipo' },
-      { col: this.COL.OPERATION_DESC, value: 'descrição operação' },
+      { col: this.COL.OPERATION_DESC, value: 'descrição da operação' },
     ];
 
     const invalidColumns = expectedColumns.filter(({ col, value }) => {

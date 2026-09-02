@@ -3,8 +3,16 @@ import {
   ProcessedEliminacaoFilters,
 } from 'src/domain/repositories/IAdvancePartnerRepository';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
+import {
+  avanca_parceiro_indicadores,
+  avanca_parceiro_monitoramento,
+  Prisma,
+} from '@prisma/client';
 import { Injectable } from '@nestjs/common';
+import {
+  CreateAdvancePartnerMonitoringDTO,
+  IndicatorsDTO,
+} from 'src/interface/dtos/advancePartnerDTO';
 
 @Injectable()
 export class AdvancePartnerRepository implements IAdvancePartnerRepository {
@@ -303,5 +311,91 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
     `;
 
     return this.prisma.$queryRaw<any[]>(query);
+  }
+
+  async getIndicatorsAdvancePartner(): Promise<avanca_parceiro_indicadores> {
+    return await this.prisma.avanca_parceiro_indicadores.findFirst({
+      orderBy: { id: 'desc' },
+    });
+  }
+
+  async getLatestMonitoringAdvancePartner(
+    params: IndicatorsDTO,
+  ): Promise<avanca_parceiro_monitoramento[]> {
+    return this.prisma.avanca_parceiro_monitoramento.findMany({
+      where: {
+        criado_em: { gte: params.dataInicial, lte: params.dataFinal },
+        ...(params.idParceira?.length > 0
+          ? {
+              id_parceira: {
+                in: params.idParceira,
+              },
+            }
+          : {}),
+      },
+    });
+  }
+
+  async insertIndicators(
+    data: CreateAdvancePartnerMonitoringDTO,
+  ): Promise<void> {
+    await this.prisma.avanca_parceiro_monitoramento.upsert({
+      where: {
+        id_parceira_mes_referencia: {
+          id_parceira: data.idParceira,
+          mes_referencia: data.mesReferencia,
+        },
+      },
+      update: {
+        proc_num_semanas_prog: data.procNumSemanasProg,
+        proc_aderencia_elim_restr: data.procAderenciaElimRestr,
+        proc_aderencia_prog: data.procAderenciaProg,
+        prazo_aderencia_exec: data.prazoAderenciaExec,
+        prazo_multas: data.prazoMultas,
+        prazo_backlog_vencidas: data.prazoBacklogVencidas,
+        retr_tempo_resol_d5: data.retrTempoResolD5,
+        retr_backlog_d5_qtd: data.retrBacklogD5Qtd,
+        retr_backlog_d5_valor: data.retrBacklogD5Valor,
+        retr_taxa: data.retrTaxa,
+        wpa_ociosidade: data.wpaOciosidade,
+        wpa_tms_saida_base: data.wpaTmsSaidaBase,
+        wpa_ocupacao: data.wpaOcupacao,
+        wpa_aderencia_disp: data.wpaAderenciaDisp,
+        cli_entrada_reclamacoes: data.cliEntradaReclamacoes,
+        cli_reclamacoes_fora_prazo: data.cliReclamacoesForaPrazo,
+        cli_procedencia_reclamacoes: data.cliProcedenciaReclamacoes,
+        proc_reflexao: data.procReflexao,
+        prazo_reflexao: data.prazoReflexao,
+        retr_reflexao: data.retrReflexao,
+        wpa_reflexao: data.wpaReflexao,
+        cli_reflexao: data.cliReflexao,
+      },
+      create: {
+        id_parceira: data.idParceira,
+        mes_referencia: data.mesReferencia,
+        proc_num_semanas_prog: data.procNumSemanasProg,
+        proc_aderencia_elim_restr: data.procAderenciaElimRestr,
+        proc_aderencia_prog: data.procAderenciaProg,
+        prazo_aderencia_exec: data.prazoAderenciaExec,
+        prazo_multas: data.prazoMultas,
+        prazo_backlog_vencidas: data.prazoBacklogVencidas,
+        retr_tempo_resol_d5: data.retrTempoResolD5,
+        retr_backlog_d5_qtd: data.retrBacklogD5Qtd,
+        retr_backlog_d5_valor: data.retrBacklogD5Valor,
+        retr_taxa: data.retrTaxa,
+        wpa_ociosidade: data.wpaOciosidade,
+        wpa_tms_saida_base: data.wpaTmsSaidaBase,
+        wpa_ocupacao: data.wpaOcupacao,
+        wpa_aderencia_disp: data.wpaAderenciaDisp,
+        cli_entrada_reclamacoes: data.cliEntradaReclamacoes,
+        cli_reclamacoes_fora_prazo: data.cliReclamacoesForaPrazo,
+        cli_procedencia_reclamacoes: data.cliProcedenciaReclamacoes,
+        proc_reflexao: data.procReflexao,
+        prazo_reflexao: data.prazoReflexao,
+        retr_reflexao: data.retrReflexao,
+        wpa_reflexao: data.wpaReflexao,
+        cli_reflexao: data.cliReflexao,
+      },
+    });
   }
 }

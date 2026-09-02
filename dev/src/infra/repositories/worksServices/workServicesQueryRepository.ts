@@ -144,7 +144,6 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     idParceira: number[];
     idEquipe: number[];
   }): Promise<WorkToExportResponse[]> {
-    console.log(params.idParceira);
     const servicesFilter = {
       id_programacao: {
         not: null,

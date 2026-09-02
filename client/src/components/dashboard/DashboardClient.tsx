@@ -3,7 +3,9 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
-import AdvancePartnerDashboard from "./advancePartner/advancePartner";
+import AdvancePartnerDashboard, {
+  AdvancePartnerPillar,
+} from "./advancePartner/advancePartner";
 import LaborDashboard from "./laborDashboard/laborDashboard";
 import MonitoringExecutionDashboard from "./monitoringExecutionDashboard/monitoringExecutionDashboard";
 import RecompositionGoalsDashboard from "./recompositionGoalsDashboard/RecompositionGoalsDashboard";
@@ -76,6 +78,7 @@ interface Props {
   initialReasonsReascheduling: any[];
   initialLaborMoveForwardPartner: any;
   initialDailyGoalMoveForwardPartner: number;
+  initialIndicators: AdvancePartnerPillar[];
   filtersData: any;
 }
 
@@ -122,6 +125,7 @@ export default function DashboardClient({
   initialSparklinesPartners,
   initialLaborMoveForwardPartner,
   initialDailyGoalMoveForwardPartner,
+  initialIndicators,
   filtersData,
 }: Props) {
   const { permissions } = useUser();
@@ -257,6 +261,7 @@ export default function DashboardClient({
           initialSummary={initialLaborMoveForwardPartner}
           initialReasonsReascheduling={initialReasonsReascheduling}
           initialDailyGoal={initialDailyGoalMoveForwardPartner}
+          initialIndicators={initialIndicators}
           filtersData={goalsFilters}
           filtersTop={filtersTop}
           token={token}

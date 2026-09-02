@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AdvancePartnerService } from 'src/application/usecases/advancePartner.service';
+import { AdvancePartnerService } from 'src/application/usecases/advancePartner/advancePartner.service';
 import { ADVANCE_PARTNER_REPOSITORY } from 'src/domain/repositories/IAdvancePartnerRepository';
 
 describe('AdvancePartnerService', () => {

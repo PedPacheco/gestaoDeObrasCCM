@@ -5,6 +5,8 @@ import { KpiSection } from "./kpiSection";
 import { SparklinesSection } from "./sparklinesSection";
 import { ChartReasonsReascheduling } from "./chartReasonsReascheduling";
 import { useAdvancePartnerFilters } from "@/hooks/dashboard/advancePartner/useAdvancePartnerFilters";
+import { AdvancePartnerIndicatorsSection } from "./indicators/components/advancePartnerIndicator";
+import { AdvancePartnerIndicator } from "./indicators/components/indicatorItem";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -36,20 +38,25 @@ export interface MotivoRow {
   observacao_execucao?: string | null;
 }
 
+export interface AdvancePartnerPillar {
+  pillar: string;
+  reflection?: string;
+  indicators: AdvancePartnerIndicator[];
+}
+
 interface Props {
   initialEliminacao: EliminacaoRow[];
   initialAderencia: AderenciaRow[];
   initialSparklinesPartners: any[];
   initialPartnerWeeks: any[];
   initialReasonsReascheduling: any[];
+  initialIndicators: AdvancePartnerPillar[];
   initialSummary: any;
   initialDailyGoal: number;
   filtersData: any;
   token: string;
   filtersTop: number;
 }
-
-// ── Helpers ────────────────────────────────────────────────────────────────
 
 export function pctExact(num: number, den: number) {
   if (den === 0) return 0;
@@ -112,6 +119,7 @@ export default function AdvancePartnerDashboard({
   initialReasonsReascheduling,
   initialSparklinesPartners,
   initialDailyGoal,
+  initialIndicators,
   filtersData,
   filtersTop,
   token,
@@ -120,6 +128,7 @@ export default function AdvancePartnerDashboard({
     aderencia,
     applyFilters,
     eliminacao,
+    indicadores,
     startDate,
     endDate,
     finalWeek,
@@ -153,6 +162,7 @@ export default function AdvancePartnerDashboard({
     initialSparklinesPartners,
     initialSummary,
     initialDailyGoal,
+    initialIndicators,
   });
 
   return (
@@ -209,6 +219,10 @@ export default function AdvancePartnerDashboard({
           aderencia={aderencia}
           isPending={isPending}
         />
+      </div>
+
+      <div className="w-full px-4 sm:px-5">
+        <AdvancePartnerIndicatorsSection indicators={indicadores} />
       </div>
     </div>
   );

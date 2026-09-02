@@ -10,13 +10,13 @@ import { Transform } from "@/utils/transform";
 import { findCurrentWeek, WEEKS } from "@/utils/weeks";
 import {
   AderenciaRow,
+  AdvancePartnerPillar,
   EliminacaoRow,
   MotivoRow,
   pctExact,
 } from "@/components/dashboard/advancePartner/advancePartner";
 import dayjs, { Dayjs } from "dayjs";
 import { SparklineRow } from "@/components/dashboard/advancePartner/sparklinesSection";
-import { EXCLUDE_PARCEIRAS } from "@/components/dashboard/DashboardClient";
 
 interface UseAdvancePartnerFiltersProps {
   token: string;
@@ -26,6 +26,7 @@ interface UseAdvancePartnerFiltersProps {
   initialSparklinesPartners: SparklineRow[];
   initialPartnerWeeks: any[];
   initialReasonsReascheduling: MotivoRow[];
+  initialIndicators: AdvancePartnerPillar[];
   initialSummary: any;
   initialDailyGoal: number;
 }
@@ -47,6 +48,7 @@ export function useAdvancePartnerFilters({
   initialSparklinesPartners,
   initialSummary,
   initialDailyGoal,
+  initialIndicators,
 }: UseAdvancePartnerFiltersProps) {
   const [isPending, startTransition] = useTransition();
 
@@ -116,6 +118,10 @@ export function useAdvancePartnerFilters({
 
   const [dailyGoal, setDailyGoal] = useState<number>(initialDailyGoal ?? 0);
 
+  const [indicadores, setIndicadores] = useState<AdvancePartnerPillar[]>(
+    initialIndicators || [],
+  );
+
   const [sparklines, setSparklines] = useState<SparklineRow[]>(
     initialSparklinesPartners ?? [],
   );
@@ -183,6 +189,10 @@ export function useAdvancePartnerFilters({
       setMotivos(data.motivos.data ?? []);
     }
 
+    if (data.indicadores.success) {
+      setIndicadores(data.indicadores.data ?? []);
+    }
+
     if (data.semanas.success) {
       const map: Record<string, number> = {};
 
@@ -232,6 +242,7 @@ export function useAdvancePartnerFilters({
         motivosRes,
         resumoMensalRes,
         semanasRes,
+        indicadoresRes,
       ] = await Promise.all([
         fetchData(
           `${process.env.NEXT_PUBLIC_API_URL}/avanca-parceira`,
@@ -267,10 +278,15 @@ export function useAdvancePartnerFilters({
           token,
           { cache: "no-store" },
         ),
-
         fetchData(
           `${process.env.NEXT_PUBLIC_API_URL}/avanca-parceira/semanas-parceira`,
           motivosParams,
+          token,
+          { cache: "no-store" },
+        ),
+        await fetchData(
+          `${process.env.NEXT_PUBLIC_API_URL}/avanca-parceira/indicadores`,
+          undefined,
           token,
           { cache: "no-store" },
         ),
@@ -283,6 +299,7 @@ export function useAdvancePartnerFilters({
         motivos: motivosRes,
         resumoMensal: resumoMensalRes,
         semanas: semanasRes,
+        indicadores: indicadoresRes,
       };
     },
     [token, motivoTab],
@@ -371,5 +388,6 @@ export function useAdvancePartnerFilters({
     dailyGoal,
     applyFilters,
     resetFilters,
+    indicadores,
   };
 }
