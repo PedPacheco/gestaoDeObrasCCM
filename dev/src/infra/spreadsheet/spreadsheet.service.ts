@@ -171,7 +171,7 @@ export class SpreadsheetParserService {
       { col: this.COL.MATERIAL_CODE, value: 'código material' },
       { col: this.COL.PLANNED_QTY, value: 'qtde. planejada' },
       { col: this.COL.TYPE, value: 'tipo' },
-      { col: this.COL.OPERATION_DESC, value: 'descrição operação' },
+      { col: this.COL.OPERATION_DESC, value: 'descrição da operação' },
     ];
 
     const invalidColumns = expectedColumns.filter(({ col, value }) => {
