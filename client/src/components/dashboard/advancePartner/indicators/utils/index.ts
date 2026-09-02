@@ -42,8 +42,6 @@ export function formatCompactCurrency(
 ) {
   const abs = Math.abs(value);
 
-  console.log(withoutCurrency, value);
-
   let formatted: string;
 
   if (abs >= 1_000_000) {
@@ -100,4 +98,54 @@ export function formatDelta(
   }
 
   return `${value > 0 ? "+" : ""}${value.toFixed(1).replace(".", ",")}`;
+}
+
+export function getPlaceholder(format: IndicatorFormat) {
+  switch (format) {
+    case "currency":
+      return "R$ 9.999,00";
+
+    case "percentage":
+      return "99,99%";
+
+    default:
+      return "0";
+  }
+}
+
+export function getNumericFormatProps(format: IndicatorFormat) {
+  switch (format) {
+    case "currency":
+      return {
+        thousandSeparator: ".",
+        decimalSeparator: ",",
+        decimalScale: 2,
+        prefix: "R$ ",
+      };
+
+    case "percentage":
+      return {
+        thousandSeparator: ".",
+        decimalSeparator: ",",
+        decimalScale: 2,
+        suffix: "%",
+        allowNegative: false,
+        isAllowed: ({ floatValue }: { floatValue?: number }) => {
+          return (
+            floatValue === undefined || (floatValue >= 0 && floatValue <= 100)
+          );
+        },
+      };
+
+    case "days":
+    case "minutes":
+    case "number":
+    default:
+      return {
+        thousandSeparator: ".",
+        decimalSeparator: ",", // Evita o conflito com thousandSeparator
+        decimalScale: 0,
+        allowNegative: false,
+      };
+  }
 }

@@ -1,8 +1,12 @@
 "use client";
 
 import { Fragment, useEffect, useMemo, useState } from "react";
+import { NumericFormat } from "react-number-format";
+
 import { XMarkIcon } from "@heroicons/react/20/solid";
+
 import { AdvancePartnerPillar } from "../../advancePartner";
+import { getNumericFormatProps, getPlaceholder } from "../utils";
 
 interface PartnerOption {
   id: number;
@@ -167,7 +171,7 @@ export function AdvancePartnerEntryModal({
           </button>
         </div>
 
-        <div className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-2">
+        <div className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-2 mx-4">
           <div>
             <label className="mb-1 block text-base font-medium text-zinc-300">
               Parceira
@@ -204,7 +208,7 @@ export function AdvancePartnerEntryModal({
               }
               className="w-full rounded-md border border-zinc-700 bg-zinc-900/60 px-3 py-2 text-base text-zinc-100 outline-none focus:border-blue-500"
             >
-              <option value="">Selecionar (usar mês atual)</option>
+              <option value="">Selecionar</option>
               {[
                 "Janeiro",
                 "Fevereiro",
@@ -264,27 +268,22 @@ export function AdvancePartnerEntryModal({
                     >
                       {indicator.name}
                     </label>
-                    <input
-                      id={`${activePillarData.pillar}-${indicator.name}`}
-                      type="text"
-                      step="any"
-                      inputMode="decimal"
+                    <NumericFormat
+                      {...getNumericFormatProps(indicator.format)}
                       value={
-                        formValues[activePillarData.pillar]?.values[
+                        formValues.pillars[activePillarData.pillar]?.values[
                           indicator.name
                         ] ?? ""
                       }
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/[^0-9,.]/g, "");
-
+                      onValueChange={(values) =>
                         handleValueChange(
                           activePillarData.pillar,
                           indicator.name,
-                          value,
-                        );
-                      }}
-                      placeholder="Valor atual"
-                      className="no-spinner w-32 rounded-md border border-zinc-700 bg-zinc-900/60 px-2 py-1.5 text-right text-base text-white outline-none focus:border-blue-500"
+                          values.value,
+                        )
+                      }
+                      placeholder={getPlaceholder(indicator.format)}
+                      className="w-32 rounded-md border border-zinc-700 bg-zinc-900/60 px-2 py-1.5 text-right text-base text-white outline-none focus:border-blue-500"
                     />
                   </div>
                 ))}
@@ -300,7 +299,10 @@ export function AdvancePartnerEntryModal({
                 <textarea
                   id={`${activePillarData.pillar}-reflection`}
                   rows={3}
-                  value={formValues[activePillarData.pillar]?.reflection ?? ""}
+                  value={
+                    formValues.pillars[activePillarData.pillar]?.reflection ??
+                    ""
+                  }
                   onChange={(e) =>
                     handleReflectionChange(
                       activePillarData.pillar,

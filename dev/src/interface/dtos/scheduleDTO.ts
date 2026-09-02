@@ -92,6 +92,11 @@ export class GetScheduleValuesDTO {
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
+  idTecnico?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
   idStatusProgramacao?: number[];
 
   @IsOptional()
