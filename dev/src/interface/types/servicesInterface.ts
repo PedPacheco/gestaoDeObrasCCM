@@ -101,12 +101,14 @@ export type ServiceToExport = {
     codigo: string | null;
     descricao: string | null;
     preco: Decimal;
+    unidade: string;
   } | null;
 
   servicos_contratos: {
     material: string | null;
     texto_breve: string | null;
     preco: number;
+    medida: string;
   } | null;
 };
 
@@ -119,6 +121,12 @@ export type WorkProgrammingToExport = {
   chi: number | null;
   num_dp: string | null;
   chave_provisoria: boolean | null;
+  hora_ter: Date;
+  hora_ini: Date;
+  equipe_linha_morta: number;
+  equipe_linha_viva: number;
+  equipe_regularizacao: number;
+  tecnicos: { tecnico: string };
 };
 
 export type WorkToExportResponse = {
@@ -129,6 +137,7 @@ export type WorkToExportResponse = {
   ordem_dca: string | null;
   ordem_dcd: string | null;
   ordem_dcim: string | null;
+  executado: number | null;
   tipos: {
     tipo_obra: string;
   };
@@ -160,17 +169,26 @@ export type ExportServicesExcelOutput = {
   circuito: string;
   conjunto: string;
   parceira: string;
+  executado: number;
   empreendimento: string;
-
   dataProg: Date | null;
   prog: number | null;
-
+  observacaoProgramacao: string | null;
+  numDp: string;
+  horaIni: Date;
+  horaTer: Date;
+  equipeLv: number;
+  equipeLm: number;
+  equipeRegul: number;
+  tecnicoResponsavel: string;
   equipe: string | null;
   operacao: string | null;
   ponto: string | null;
   preco: number;
+  valorTotal: number;
+  tipo: string;
+  unidade: string;
   codigo: string;
   descricao: string;
-
   quantidadeProgramada: number;
 };

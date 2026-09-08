@@ -16,6 +16,7 @@ import SchedulePanelItem from "../panelItems/schedulePanelItem";
 import WorkCostPanelItem from "../panelItems/workCostPanelItem";
 import TabActions from "./tabsActions";
 import PublicationRestrictionsPanelItem from "../panelItems/publicationRestrictionsPanelItem";
+import { ServicesPanelItem } from "../panelItems/servicesPanelItem";
 
 interface CustomTabPanelProps {
   children?: React.ReactNode;
@@ -209,7 +210,7 @@ export default function NewTabPanel({
 
             {canSeeTab && (
               <CustomTabPanel value={value} index={5}>
-                Em breve
+                <ServicesPanelItem services={workData.servicos} />
               </CustomTabPanel>
             )}
           </Suspense>

@@ -32,8 +32,8 @@ import { ExportServicesService } from 'src/application/usecases/services/exportS
 @Module({
   imports: [
     UsersModule,
+    forwardRef(() => WorksModule),
     forwardRef(() => ExecutionReportModule),
-    WorksModule,
     MulterModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

@@ -51,6 +51,12 @@ const exportRepositoryResponse = [
         chi: 1,
         num_dp: '123',
         chave_provisoria: true,
+        hora_ini: true,
+        hora_ter: true,
+        equipe_linha_morta: true,
+        equipe_linha_viva: true,
+        equipe_regularizacao: true,
+        tecnicos: { tecnico: 'Luiz' },
       },
     ],
 

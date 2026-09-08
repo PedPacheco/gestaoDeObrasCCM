@@ -7,11 +7,7 @@ export interface IFeasibilityRepository {
   exists(idWork: number): Promise<any>;
   getProjectDate(idWork: number): Promise<{ data_empreitamento: Date }>;
   getRejections(workId: number): Promise<any[]>;
-  exportFeasibility(
-    startDate: string,
-    endDate: string,
-    idPartner?: number[],
-  ): Promise<any[]>;
+  exportFeasibility(idStatus: number, idPartner?: number[]): Promise<any[]>;
   saveFiles(
     idWork: number,
     idUser: number,
@@ -22,15 +18,18 @@ export interface IFeasibilityRepository {
   updateFiles(
     workId: number,
     paths: string[],
+    type: 'technical' | 'complementary',
     tx: Prisma.TransactionClient,
   ): Promise<void>;
   makeItemsFeasible(
     items: ServiceMaterialItemDto[],
     tx: Prisma.TransactionClient,
   ): Promise<void>;
-  findFiles(
-    idWork: number,
-  ): Promise<{ id: number; caminhos_arquivos: string[] }>;
+  findFiles(idWork: number): Promise<{
+    id: number;
+    caminhos_arquivos: string[];
+    arquivos_complementares: string[];
+  }>;
   reject(
     data: RejectFeasibilityDTO,
     tx: Prisma.TransactionClient,

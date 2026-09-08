@@ -144,11 +144,26 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     idParceira: number[];
     idEquipe: number[];
   }): Promise<WorkToExportResponse[]> {
-    console.log(params.idParceira);
     const servicesFilter = {
       id_programacao: {
         not: null,
       },
+      AND: [
+        {
+          OR: [
+            {
+              qtde_real: null,
+            },
+
+            {
+              qtde_real: {
+                not: 0,
+              },
+            },
+          ],
+        },
+        { OR: [{ viabilizado: null }, { viabilizado: { not: 0 } }] },
+      ],
       ...(params.idEquipe.length > 0
         ? {
             id_equipe: {
@@ -187,6 +202,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
         ordem_dca: true,
         ordem_dcd: true,
         ordem_dcim: true,
+        executado: true,
         tipos: {
           select: {
             tipo_obra: true,
@@ -233,6 +249,12 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
             chi: true,
             num_dp: true,
             chave_provisoria: true,
+            hora_ini: true,
+            hora_ter: true,
+            equipe_linha_morta: true,
+            equipe_linha_viva: true,
+            equipe_regularizacao: true,
+            tecnicos: { select: { tecnico: true } },
           },
         },
         servicos: {
@@ -254,6 +276,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
                 codigo: true,
                 descricao: true,
                 preco: true,
+                unidade: true,
               },
             },
             servicos_contratos: {
@@ -261,6 +284,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
                 material: true,
                 texto_breve: true,
                 preco: true,
+                medida: true,
               },
             },
           },

@@ -6,14 +6,18 @@ import { GetSelectedServicesParamsInterface } from 'src/interface/types/services
 
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 
-import { GetWorkDetailsService } from '../works/getWorkDetails.service';
+import {
+  GET_WORKS_DETAILS_REPOSITORY,
+  IGetWorksDetailsRepository,
+} from 'src/domain/repositories/works/IGetWorksDetailsRepository';
 
 @Injectable()
 export class QueriesServicesService {
   constructor(
     @Inject(WORK_SERVICES_QUERY_REPOSITORY)
     private readonly workServicesQueryRepository: IWorkServicesQueryRepository,
-    private readonly getWorkDetailsService: GetWorkDetailsService,
+    @Inject(GET_WORKS_DETAILS_REPOSITORY)
+    private readonly getWorksDetailsRepository: IGetWorksDetailsRepository,
   ) {}
 
   async getAllItems(id: number) {
@@ -185,7 +189,7 @@ export class QueriesServicesService {
   }
 
   async getServiceContracts(idWork: number) {
-    const work = await this.getWorkDetailsService.get(idWork);
+    const work = await this.getWorksDetailsRepository.get(idWork);
 
     const idParceira = work?.id_turma;
 
@@ -200,7 +204,7 @@ export class QueriesServicesService {
   }
 
   async getTeamsServices(idWork: number) {
-    const work = await this.getWorkDetailsService.get(idWork);
+    const work = await this.getWorksDetailsRepository.get(idWork);
 
     const idParceira = work?.id_turma;
 

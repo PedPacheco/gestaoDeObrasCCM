@@ -69,15 +69,11 @@ import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
 import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
 
-// import { UpdateRestrictionsService } from 'src/application/schedule/updateRestrictions.service';
-// import { UPDATE_RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateRestrictionsRepository';
-// import { UpdateRestrictionsRepository } from 'src/infra/repositories/schedule/updateRestrictionsRepository';
-
 @Module({
   imports: [
     UsersModule,
+    forwardRef(() => WorksModule),
     forwardRef(() => ExecutionReportModule),
-    WorksModule,
     MulterModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

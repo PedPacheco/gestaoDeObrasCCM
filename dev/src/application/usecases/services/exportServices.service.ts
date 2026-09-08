@@ -9,7 +9,6 @@ import {
   WorkToExportResponse,
 } from 'src/interface/types/servicesInterface';
 import { ExportFileType } from 'src/interface/dtos/workServicesDTO';
-
 @Injectable()
 export class ExportServicesService {
   constructor(
@@ -175,6 +174,16 @@ export class ExportServicesService {
           servico.servicos_contratos?.preco ??
           servico.materiais?.preco.toNumber();
 
+        const quantidadeProgramada =
+          (servico.qtde_adicional ?? 0) + (servico.viabilizado ?? 0);
+
+        const valorTotal = preco * quantidadeProgramada;
+
+        const tipo = servico.materiais?.codigo ? 'M' : 'S';
+
+        const unidade =
+          servico.materiais?.unidade ?? servico.servicos_contratos?.medida;
+
         excelData.push({
           ovnota: obra.ovnota,
           ordemDiagrama:
@@ -183,28 +192,34 @@ export class ExportServicesService {
             obra.ordem_dca ??
             obra.ordem_dcd ??
             obra.ordem_dcim,
-
           referencia: obra.referencia,
           tipoObra: obra.tipos.tipo_obra,
           municipio: obra.municipios.municipio,
           circuito: obra.circuitos.circuito,
           conjunto: obra.circuitos.conjuntos.conjunto,
+          executado: obra.executado,
           parceira: obra.turmas.turma,
           empreendimento: obra.empreendimento.empreendimento,
-
           dataProg: programacao?.data_prog ?? null,
           prog: programacao?.prog ?? null,
-
+          observacaoProgramacao: programacao?.observacao_programacao ?? null,
+          numDp: programacao?.num_dp ?? null,
+          horaIni: programacao?.hora_ini ?? null,
+          horaTer: programacao?.hora_ter ?? null,
+          equipeLv: programacao?.equipe_linha_viva ?? 0,
+          equipeLm: programacao?.equipe_linha_morta ?? 0,
+          equipeRegul: programacao?.equipe_regularizacao ?? 0,
+          tecnicoResponsavel: programacao?.tecnicos.tecnico,
           equipe: servico.equipes?.equipe ?? null,
           operacao: servico.operacao,
           ponto: servico.ponto,
           preco,
-
+          tipo,
+          unidade,
           codigo,
           descricao,
-
-          quantidadeProgramada:
-            (servico.qtde_adicional ?? 0) + (servico.viabilizado ?? 0),
+          valorTotal,
+          quantidadeProgramada,
         });
       }
     }

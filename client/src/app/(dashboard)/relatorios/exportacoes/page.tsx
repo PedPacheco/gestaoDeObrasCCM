@@ -38,12 +38,6 @@ export default async function ExportPage() {
       filterType: "services",
     },
     {
-      name: "obras a serem multadas",
-      path: "obras-multas",
-      visible: false,
-      filterType: "dateRange",
-    },
-    {
       name: "relatórios de execução",
       path: "relatorio-execucao",
       visible: false,
@@ -59,10 +53,16 @@ export default async function ExportPage() {
       visible: false,
     },
     {
-      name: "viabilidade",
-      path: "viabilidade",
+      name: "viabilidades em aprovação",
+      path: "viabilidade/aguardando-aprovacao",
       visible: true,
-      filterType: "dateRange",
+      filterType: "partner",
+    },
+    {
+      name: "viabilidades pendentes",
+      path: "viabilidade/aguardando-viabilidade",
+      visible: true,
+      filterType: "partner",
     },
     { name: "Forecast", path: "forecast", visible: false },
     {

@@ -17,7 +17,7 @@ import {
   ServicesExportFilter,
 } from "./servicesExportFilter";
 import { useFeedback } from "@/hooks/useFeedback";
-import { DateRangerFilter } from "./dateRangerFilter";
+import { PartnerFilter } from "./partnerFilter";
 
 interface ExportButtonProps {
   text: string;
@@ -28,7 +28,7 @@ interface ExportButtonProps {
     parceira: Array<{ id: number; turma: string }>;
     equipes: Array<{ id: number; equipe: string; id_turma: number }>;
   };
-  filterType?: "none" | "dateRange" | "services";
+  filterType?: "none" | "partner" | "services";
 }
 
 export function ExportButton({
@@ -126,7 +126,7 @@ export function ExportButton({
                   return;
                 }
 
-                if (filterType === "dateRange") {
+                if (filterType === "partner") {
                   setDateRangeModal(true);
                 }
               }}
@@ -149,14 +149,12 @@ export function ExportButton({
             </ExportFiltersModal>
           )}
 
-          {filterType === "dateRange" && (
-            <DateRangerFilter
+          {filterType === "partner" && (
+            <PartnerFilter
               openModal={dateRangeModal}
               setOpenModal={setDateRangeModal}
-              generateExcel={async ({ startDate, endDate, idPartner }) => {
+              generateExcel={async ({ idPartner }) => {
                 await generateFile({
-                  startDate,
-                  endDate,
                   idPartner,
                 });
               }}

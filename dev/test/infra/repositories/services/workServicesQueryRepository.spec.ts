@@ -659,6 +659,22 @@ describe('WorkServicesQueryRepository', () => {
                 id_programacao: {
                   not: null,
                 },
+                AND: [
+                  {
+                    OR: [
+                      {
+                        qtde_real: null,
+                      },
+
+                      {
+                        qtde_real: {
+                          not: 0,
+                        },
+                      },
+                    ],
+                  },
+                  { OR: [{ viabilizado: null }, { viabilizado: { not: 0 } }] },
+                ],
                 id_equipe: {
                   not: null,
                 },
@@ -682,16 +698,33 @@ describe('WorkServicesQueryRepository', () => {
       expect(mockPrismaService.obras.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
+            programacao_ponto_a_ponto: true,
             id_turma: { in: [2] },
             servicos: {
-              some: {
+              some: expect.objectContaining({
                 id_programacao: {
                   not: null,
                 },
+                AND: [
+                  {
+                    OR: [
+                      {
+                        qtde_real: null,
+                      },
+
+                      {
+                        qtde_real: {
+                          not: 0,
+                        },
+                      },
+                    ],
+                  },
+                  { OR: [{ viabilizado: null }, { viabilizado: { not: 0 } }] },
+                ],
                 id_equipe: {
                   in: [2, 3, 4],
                 },
-              },
+              }),
             },
           }),
         }),
@@ -711,6 +744,7 @@ describe('WorkServicesQueryRepository', () => {
       expect(mockPrismaService.obras.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
+            programacao_ponto_a_ponto: true,
             programacoes: {
               some: {
                 data_prog: {

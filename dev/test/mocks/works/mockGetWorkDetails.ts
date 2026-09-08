@@ -203,6 +203,17 @@ export const mockGetWorkDetailsRepositoryResponse = {
   tipos: 'SPACER CABLE',
   grupo: 2,
   totalProgramado: 95,
+  moExecutadoPontoAPonto: 0,
+  moPendentePontoAPonto: 8,
+  moPlanejadaPontoAPonto: 8,
+  servicos: [
+    {
+      qtdeAdicional: null,
+      viabilizado: 4,
+      qtdeRealizada: null,
+      valorUnit: 2,
+    },
+  ],
   programacoes: [
     {
       id: undefined,

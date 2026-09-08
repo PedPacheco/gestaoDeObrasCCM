@@ -1,5 +1,5 @@
 import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
-import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
+
 import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
@@ -13,6 +13,10 @@ import {
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Decimal } from '@prisma/client/runtime/library';
+import {
+  GET_WORKS_DETAILS_REPOSITORY,
+  IGetWorksDetailsRepository,
+} from 'src/domain/repositories/works/IGetWorksDetailsRepository';
 
 const mockHistory: GetServiceScheduleHistoryResponse[] = [
   {
@@ -59,7 +63,7 @@ const mockHistory: GetServiceScheduleHistoryResponse[] = [
 describe('WorksServicesService', () => {
   let service: QueriesServicesService;
   let repository: IWorkServicesQueryRepository;
-  let getWorkDetailsService: GetWorkDetailsService;
+  let getWorkDetailsService: IGetWorksDetailsRepository;
 
   const mockWorksServicesRepository = {
     getAllServicesOfWork: jest.fn(),
@@ -73,7 +77,7 @@ describe('WorksServicesService', () => {
     getServiceOptions: jest.fn(),
   };
 
-  const mockGetWorkDetailsService = {
+  const mockGetWorksDetailsRepository = {
     get: jest.fn(),
   };
 
@@ -86,8 +90,8 @@ describe('WorksServicesService', () => {
           useValue: mockWorksServicesRepository,
         },
         {
-          provide: GetWorkDetailsService,
-          useValue: mockGetWorkDetailsService,
+          provide: GET_WORKS_DETAILS_REPOSITORY,
+          useValue: mockGetWorksDetailsRepository,
         },
       ],
     }).compile();
@@ -96,8 +100,8 @@ describe('WorksServicesService', () => {
     repository = module.get<IWorkServicesQueryRepository>(
       WORK_SERVICES_QUERY_REPOSITORY,
     );
-    getWorkDetailsService = module.get<GetWorkDetailsService>(
-      GetWorkDetailsService,
+    getWorkDetailsService = module.get<IGetWorksDetailsRepository>(
+      GET_WORKS_DETAILS_REPOSITORY,
     );
 
     jest.clearAllMocks();
@@ -714,7 +718,7 @@ describe('WorksServicesService', () => {
         },
       ];
 
-      mockGetWorkDetailsService.get.mockResolvedValue(mockWork);
+      mockGetWorksDetailsRepository.get.mockResolvedValue(mockWork);
       mockWorksServicesRepository.getServicesContracts.mockResolvedValue(
         mockContracts,
       );
@@ -737,7 +741,7 @@ describe('WorksServicesService', () => {
         id_turma: null,
       };
 
-      mockGetWorkDetailsService.get.mockResolvedValue(mockWork);
+      mockGetWorksDetailsRepository.get.mockResolvedValue(mockWork);
       mockWorksServicesRepository.getServicesContracts.mockResolvedValue([]);
 
       const result = await service.getServiceContracts(mockIdWork);
@@ -749,7 +753,7 @@ describe('WorksServicesService', () => {
     it('should handle work not found', async () => {
       const mockIdWork = 999;
 
-      mockGetWorkDetailsService.get.mockResolvedValue(null);
+      mockGetWorksDetailsRepository.get.mockResolvedValue(null);
       mockWorksServicesRepository.getServicesContracts.mockResolvedValue([]);
 
       const result = await service.getServiceContracts(mockIdWork);
@@ -766,7 +770,7 @@ describe('WorksServicesService', () => {
         id_turma: mockIdParceira,
       };
 
-      mockGetWorkDetailsService.get.mockResolvedValue(mockWork);
+      mockGetWorksDetailsRepository.get.mockResolvedValue(mockWork);
       mockWorksServicesRepository.getServicesContracts.mockResolvedValue([]);
 
       const result = await service.getServiceContracts(mockIdWork);
@@ -796,7 +800,7 @@ describe('WorksServicesService', () => {
         },
       ];
 
-      mockGetWorkDetailsService.get.mockResolvedValue(mockWork);
+      mockGetWorksDetailsRepository.get.mockResolvedValue(mockWork);
       mockWorksServicesRepository.getTeamsServices.mockResolvedValue(mockTeams);
 
       const result = await service.getTeamsServices(mockIdWork);
@@ -815,7 +819,7 @@ describe('WorksServicesService', () => {
         id_turma: null,
       };
 
-      mockGetWorkDetailsService.get.mockResolvedValue(mockWork);
+      mockGetWorksDetailsRepository.get.mockResolvedValue(mockWork);
       mockWorksServicesRepository.getTeamsServices.mockResolvedValue([]);
 
       const result = await service.getTeamsServices(mockIdWork);
@@ -827,7 +831,7 @@ describe('WorksServicesService', () => {
     it('should handle work not found', async () => {
       const mockIdWork = 999;
 
-      mockGetWorkDetailsService.get.mockResolvedValue(null);
+      mockGetWorksDetailsRepository.get.mockResolvedValue(null);
       mockWorksServicesRepository.getTeamsServices.mockResolvedValue([]);
 
       const result = await service.getTeamsServices(mockIdWork);
@@ -844,7 +848,7 @@ describe('WorksServicesService', () => {
         id_turma: mockIdParceira,
       };
 
-      mockGetWorkDetailsService.get.mockResolvedValue(mockWork);
+      mockGetWorksDetailsRepository.get.mockResolvedValue(mockWork);
       mockWorksServicesRepository.getTeamsServices.mockResolvedValue([]);
 
       const result = await service.getTeamsServices(mockIdWork);

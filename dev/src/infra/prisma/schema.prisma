@@ -522,6 +522,7 @@ model relatorio_viabilidade {
   data_aprovacao          DateTime?                 @db.Timestamp(6)
   id_usuario_aprovador    Int?
   prazo_viabilidade       String?                   @default("FALTA VIABILIDADE") @db.VarChar(25)
+  arquivos_complementares String[]
   obras                   obras                     @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
   novo_tabela_usuarios    novo_tabela_usuarios      @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario")
   reprovacoes_viabilidade reprovacoes_viabilidade[]
