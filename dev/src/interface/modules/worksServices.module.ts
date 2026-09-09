@@ -28,11 +28,13 @@ import { ServicesQueryController } from '../controllers/services/servicesQuery.c
 import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
 import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
 import { ExportServicesService } from 'src/application/usecases/services/exportServices.service';
+import { ScheduleModule } from './schedule.module';
 
 @Module({
   imports: [
     UsersModule,
     forwardRef(() => WorksModule),
+    forwardRef(() => ScheduleModule),
     forwardRef(() => ExecutionReportModule),
     MulterModule.registerAsync({
       imports: [ConfigModule],

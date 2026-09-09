@@ -28,8 +28,6 @@ export function useReviewStorage(
 
     const stored = JSON.parse(raw) as Record<number, string | null>;
 
-    console.log(stored);
-
     const restored = reviewData.map((item) => ({
       ...item,
       viabilizado: stored[item.id] ?? item.viabilizado,
@@ -38,7 +36,7 @@ export function useReviewStorage(
     restoredRef.current = workId;
 
     onRestore(restored);
-  }, [reviewData.length, workId]);
+  }, [onRestore, reviewData, reviewData.length, workId]);
 
   const saveData = (data: FeasibilityServiceItem[]) => {
     const storage = data.reduce<Record<number, string | null>>((acc, item) => {

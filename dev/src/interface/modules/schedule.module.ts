@@ -68,11 +68,13 @@ import { ExecutionReportModule } from './executionReport.module';
 import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
 import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
+import { WorksServicesModule } from './worksServices.module';
 
 @Module({
   imports: [
     UsersModule,
     forwardRef(() => WorksModule),
+    forwardRef(() => WorksServicesModule),
     forwardRef(() => ExecutionReportModule),
     MulterModule.registerAsync({
       imports: [ConfigModule],

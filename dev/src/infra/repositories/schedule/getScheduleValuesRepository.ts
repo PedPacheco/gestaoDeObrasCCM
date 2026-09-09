@@ -91,24 +91,24 @@ export class GetScheduleValuesRepository implements IGetScheduleValuesRepository
     filters: GetScheduleValuesDTO,
   ): Promise<GetScheduleValuesResponseRepository> {
     const { page } = filters;
-    const baseQuery = Prisma.sql`FROM construcao_sp.obras
-        INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
-        INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
-        INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
-        INNER JOIN construcao_sp.status ON status.id = obras.id_status
-        INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm
-        INNER JOIN construcao_sp.regionais ON regionais.id = municipios.id_regional
-        INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo
-        INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
-        INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
-        INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
-        LEFT JOIN construcao_sp.relatorio ON relatorio.id_obra = obras.id
+    const baseQuery = Prisma.sql`FROM public.obras
+        INNER JOIN public.circuitos ON circuitos.id = obras.id_circuito
+        INNER JOIN public.conjuntos ON conjuntos.id = circuitos.id_conjunto
+        INNER JOIN public.programacoes ON programacoes.id_obra = obras.id
+        INNER JOIN public.status ON status.id = obras.id_status
+        INNER JOIN public.municipios ON municipios.id = obras.id_gpm
+        INNER JOIN public.regionais ON regionais.id = municipios.id_regional
+        INNER JOIN public.tipos ON tipos.id = obras.id_tipo
+        INNER JOIN public.turmas ON turmas.id = obras.id_turma
+        INNER JOIN public.tecnicos ON tecnicos.id = programacoes.id_tecnico
+        INNER JOIN public.status_programacao ON status_programacao.id = programacoes.id_status_programacao
+        LEFT JOIN public.relatorio ON relatorio.id_obra = obras.id
         WHERE status.id NOT IN (3, 4)`;
 
     let query = Prisma.sql`SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim, 
-        turma, status_ov_sap, executado, data_prog, prog, exec, mo_planejada::int*prog/100 AS mo_prog, mo_planejada::int*COALESCE(exec, 100)/100 AS mo_exec, capex_mat_pend, capex_mo_pend, tipo_obra, 
+        turma, status_ov_sap, executado, data_prog, prog, exec, mo_planejada::int*prog/100 AS mo_prog, mo_planejada::int*exec/100 AS mo_exec, capex_mat_pend, capex_mo_pend, tipo_obra, 
         id_grupo, qtde_planejada, qtde_pend, num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, 
-        status_programacao, status, id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2, encontrado
+        status_programacao, status, id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2, encontrado, programacoes.id as id_programacao
         ${baseQuery}`;
 
     let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras, SUM(mo_planejada*prog::numeric/100) as total_mo_planejada, SUM(mo_planejada*executado/100) as total_mo_exec, 

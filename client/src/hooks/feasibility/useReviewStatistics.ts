@@ -1,4 +1,4 @@
-import { FeasibilityServiceItem } from "@/components/feasibility/feasbilityServices/feasibilityServicesViewStep";
+import { FeasibilityServiceItem } from "@/components/feasibility/feasbilityServices/feasibilityServicesReviewStep";
 import { useMemo } from "react";
 
 export type RowStatus = "pending" | "greater" | "less" | "equal";

@@ -72,7 +72,7 @@ export function useFeasibilityWorkflowActions({
             }))
           : undefined;
 
-        await handleUpload("UPLOAD", pointByPoint, data);
+        await handleUpload(pointByPoint, data);
       } catch (err) {
         showError(
           err instanceof Error

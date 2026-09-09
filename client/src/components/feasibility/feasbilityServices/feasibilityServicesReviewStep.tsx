@@ -118,7 +118,7 @@ export function FeasibilityServicesReviewStep({
 
       saveData(updatedData);
     },
-    [reviewData, onChangeReviewData],
+    [reviewData, onChangeReviewData, saveData],
   );
 
   const fillAdditionalWithPlanned = useCallback(() => {
@@ -133,9 +133,7 @@ export function FeasibilityServicesReviewStep({
 
     saveData(updatedData);
     onChangeReviewData(updatedData);
-  }, [reviewData, onChangeReviewData]);
-
-  console.log(reviewData);
+  }, [reviewData, saveData, onChangeReviewData]);
 
   return (
     <>

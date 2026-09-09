@@ -47,7 +47,7 @@ export default function WorkCostPanelItem({ data }: Record<string, any>) {
 
       <div className="flex flex-col items-center">
         <p className="text-lg mb-4 font-semibold text-center w-full">
-          Valores de CAPEX
+          Valores Mão de Obra
         </p>
         <div className="flex flex-col md:flex-row items-center justify-center w-full">
           <div className="flex flex-col mr-4">
