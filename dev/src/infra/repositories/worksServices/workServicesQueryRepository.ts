@@ -138,6 +138,38 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     });
   }
 
+  async getServiceScheduleHistoryByIdSchedule(ids: number[]) {
+    return await this.prisma.programacoes_servicos.findMany({
+      select: {
+        id: true,
+        id_servico: true,
+        servicos: {
+          select: {
+            materiais: {
+              select: { descricao: true, codigo: true, preco: true },
+            },
+            servicos_contratos: {
+              select: { texto_breve: true, material: true, preco: true },
+            },
+            ponto: true,
+            operacao: true,
+            qtde_plan: true,
+            viabilizado: true,
+            descricao_operacao: true,
+            numero_operacao: true,
+          },
+        },
+        id_programacao: true,
+        programacoes: { select: { data_prog: true } },
+        equipes: { select: { equipe: true, perfil: true } },
+        prog: true,
+        real: true,
+        adicional: true,
+      },
+      where: { id_programacao: { in: ids } },
+    });
+  }
+
   async getServicesToExportation(params: {
     dataFinal: string;
     dataInicial: string;
