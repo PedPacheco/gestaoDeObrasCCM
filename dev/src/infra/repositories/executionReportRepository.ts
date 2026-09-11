@@ -31,6 +31,14 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
         select: { exec: true, id_obra: true },
       });
 
+      const servicosAfetados = await tx.programacoes_servicos.findMany({
+        where: { id_programacao: idSchedule },
+        select: { id_servico: true },
+        distinct: ['id_servico'],
+      });
+
+      const serviceIds = servicosAfetados.map((s) => s.id_servico);
+
       await Promise.all([
         tx.programacoes_servicos.updateMany({
           where: { id_programacao: idSchedule },
@@ -38,7 +46,7 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
         }),
 
         tx.servicos.updateMany({
-          where: { id_programacao: idSchedule },
+          where: { id: { in: serviceIds } },
           data: { qtde_real: null },
         }),
 

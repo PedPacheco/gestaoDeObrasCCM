@@ -24,7 +24,7 @@ export class GetScheduleValuesService {
     const { works, resultTotals } =
       await this.getScheduleValuesRepository.getValues(filters);
 
-    const totals = this.buildTotals(resultTotals[0]);
+    const totals = this.buildTotals(resultTotals);
 
     const totalExec =
       totals.total_obras > 0

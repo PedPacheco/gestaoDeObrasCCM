@@ -20,8 +20,11 @@ export default async function ServicosPage({
   const rawCookie = cookieStore.get("form-data")?.value;
   const idStatusWorkCookie = cookieStore.get("idStatusWork")?.value;
   const statusSchedule = cookieStore.get("statusSchedule")?.value;
+  const ordemDcim = cookieStore.get("ordemDcim")?.value;
 
   const formData = rawCookie ? JSON.parse(rawCookie) : null;
+
+  const hasOrdemDcim = !!ordemDcim && ordemDcim.trim() !== "";
 
   const [
     options,
@@ -102,6 +105,7 @@ export default async function ServicosPage({
         idSchedule={Number(formData?.id)}
         statusSchedule={statusSchedule || ""}
         optionsToAddItem={optionsToAddItem.data}
+        hasOrdemDcim={hasOrdemDcim}
       />
     </EmotionCacheProvider>
   );

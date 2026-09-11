@@ -134,6 +134,7 @@ export default function NewTabPanel({
       data?.id,
       data.id_status,
       scheduleData.status_programacao,
+      workData.ordem_dcim,
     );
   };
 

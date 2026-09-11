@@ -147,15 +147,16 @@ export class FeasibilityRepository implements IFeasibilityRepository {
     type: 'technical' | 'complementary',
     tx: Prisma.TransactionClient,
   ): Promise<void> {
+    const data =
+      type === 'technical'
+        ? { caminhos_arquivos: paths }
+        : { arquivos_complementares: paths };
+
     await tx.relatorio_viabilidade.update({
       where: {
         id_obra: workId,
       },
-      data: {
-        ...(type === 'technical'
-          ? { caminhos_arquivos: paths }
-          : { arquivos_complementares: paths }),
-      },
+      data,
     });
   }
 

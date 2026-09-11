@@ -31,7 +31,6 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     viabilizado: true,
     descricao_operacao: true,
     numero_operacao: true,
-    programacoes: { select: { data_prog: true } },
     materiais: { select: { codigo: true, descricao: true, preco: true } },
     servicos_contratos: {
       select: {
@@ -55,7 +54,24 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     id: number,
     tx?: Prisma.TransactionClient,
   ): Promise<GetServicesByWorkIdResponse[]> {
-    return this.findService({ id_obra: id }, tx);
+    const value = id.toString();
+
+    return this.findService(
+      {
+        obras: {
+          OR: [
+            { id: value.length >= 10 ? undefined : id },
+            { ovnota: value },
+            { ordem_dci: value },
+            { ordem_dcd: value },
+            { ordem_dca: value },
+            { ordem_dcim: value },
+            { diagrama: value },
+          ],
+        },
+      },
+      tx,
+    );
   }
 
   async getNotScheduledServices(
@@ -63,16 +79,12 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
   ): Promise<GetServicesByWorkIdResponse[]> {
     return this.findService({
       id_obra: id,
-      id_programacao: {
-        equals: null,
-      },
       AND: [
         {
           OR: [
             {
               qtde_real: null,
             },
-
             {
               qtde_real: {
                 not: 0,
@@ -91,14 +103,40 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
   }: GetSelectedServicesParamsInterface): Promise<
     GetServicesSelectedByWorkIdResponse[]
   > {
-    return await this.prisma.servicos.findMany({
-      select: {
-        ...this.baseServicesSelect,
-        equipes: { select: { equipe: true, encarregado: true, perfil: true } },
-      },
+    return this.prisma.programacoes_servicos.findMany({
       where: {
-        id_obra: id,
         id_programacao: idProgramacao,
+        servicos: { id_obra: id },
+      },
+      select: {
+        id_programacao: true,
+        prog: true,
+        real: true,
+        adicional: true,
+        equipes: {
+          select: { equipe: true, encarregado: true, perfil: true },
+        },
+        programacoes: {
+          select: { data_prog: true },
+        },
+        servicos: {
+          select: {
+            id: true,
+            id_obra: true,
+            operacao: true,
+            ponto: true,
+            qtde_plan: true,
+            viabilizado: true,
+            descricao_operacao: true,
+            numero_operacao: true,
+            materiais: {
+              select: { codigo: true, descricao: true, preco: true },
+            },
+            servicos_contratos: {
+              select: { material: true, texto_breve: true, preco: true },
+            },
+          },
+        },
       },
     });
   }
@@ -115,7 +153,9 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
         id_servico: true,
         servicos: {
           select: {
-            materiais: { select: { descricao: true, codigo: true } },
+            materiais: {
+              select: { descricao: true, codigo: true },
+            },
             servicos_contratos: {
               select: { texto_breve: true, material: true },
             },
@@ -176,56 +216,37 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     idParceira: number[];
     idEquipe: number[];
   }): Promise<WorkToExportResponse[]> {
-    const servicesFilter = {
-      id_programacao: {
-        not: null,
-      },
-      AND: [
-        {
-          OR: [
-            {
-              qtde_real: null,
-            },
+    const dateFilter = {
+      gte: new Date(params.dataInicial),
+      lte: new Date(params.dataFinal),
+    };
 
-            {
-              qtde_real: {
-                not: 0,
-              },
-            },
-          ],
-        },
-        { OR: [{ viabilizado: null }, { viabilizado: { not: 0 } }] },
-      ],
+    const programacoesServicosFilter: Prisma.programacoes_servicosWhereInput = {
+      programacoes: { data_prog: dateFilter, exec: null },
       ...(params.idEquipe.length > 0
-        ? {
-            id_equipe: {
-              in: params.idEquipe,
-            },
-          }
-        : {
-            id_equipe: {
-              not: null,
-            },
-          }),
+        ? { id_equipe: { in: params.idEquipe } }
+        : {}),
     };
 
     return this.prisma.obras.findMany({
       where: {
         id_turma: { in: params.idParceira },
         programacao_ponto_a_ponto: true,
-        servicos: {
-          some: servicesFilter,
-        },
         programacoes: {
+          some: { data_prog: dateFilter, exec: null },
+        },
+        servicos: {
           some: {
-            data_prog: {
-              gte: new Date(params.dataInicial),
-              lte: new Date(params.dataFinal),
+            OR: [
+              { viabilizado: { not: null, gt: 0 } },
+              { qtde_adicional: { not: null, gt: 0 } },
+            ],
+            programacoes_servicos: {
+              some: programacoesServicosFilter,
             },
           },
         },
       },
-
       select: {
         ovnota: true,
         diagrama: true,
@@ -236,42 +257,27 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
         ordem_dcim: true,
         executado: true,
         tipos: {
-          select: {
-            tipo_obra: true,
-          },
+          select: { tipo_obra: true },
         },
         municipios: {
-          select: {
-            municipio: true,
-          },
+          select: { municipio: true },
         },
         turmas: {
-          select: {
-            turma: true,
-          },
+          select: { turma: true },
         },
         empreendimento: {
-          select: {
-            empreendimento: true,
-          },
+          select: { empreendimento: true },
         },
         circuitos: {
           select: {
             circuito: true,
             conjuntos: {
-              select: {
-                conjunto: true,
-              },
+              select: { conjunto: true },
             },
           },
         },
         programacoes: {
-          where: {
-            data_prog: {
-              gte: new Date(params.dataInicial),
-              lte: new Date(params.dataFinal),
-            },
-          },
+          where: { data_prog: dateFilter },
           select: {
             id: true,
             data_prog: true,
@@ -290,19 +296,20 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
           },
         },
         servicos: {
-          where: servicesFilter,
+          where: {
+            OR: [
+              { viabilizado: { not: null, gt: 0 } },
+              { qtde_adicional: { not: null, gt: 0 } },
+            ],
+            programacoes_servicos: {
+              some: programacoesServicosFilter,
+            },
+          },
           select: {
-            id_programacao: true,
-            id_equipe: true,
             operacao: true,
             ponto: true,
             viabilizado: true,
             qtde_adicional: true,
-            equipes: {
-              select: {
-                equipe: true,
-              },
-            },
             materiais: {
               select: {
                 codigo: true,
@@ -317,6 +324,17 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
                 texto_breve: true,
                 preco: true,
                 medida: true,
+              },
+            },
+            programacoes_servicos: {
+              where: programacoesServicosFilter,
+              select: {
+                id_programacao: true,
+                prog: true,
+                real: true,
+                equipes: {
+                  select: { equipe: true },
+                },
               },
             },
           },

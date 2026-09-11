@@ -27,7 +27,12 @@ interface ScheduledServicesProps {
   scheduledServicesData: any[];
   scheduledServicesHistory: ScheduledServicesHistoryData[];
   options: {
-    restricao: Array<{ id: number; restricao: string; tipo_restricao: string }>;
+    restricao: Array<{
+      id: number;
+      restricao: string;
+      tipo_restricao: string;
+      responsabilidade: string;
+    }>;
   };
   executionForm: UseExecutionServiceFormReturn;
   onError: (error: string) => void;
@@ -154,6 +159,7 @@ export function ScheduledServices({
   const handlePerformServices = () => {
     const formatted = scheduledServices.map((item) => ({
       id: item.id,
+      idSchedule: formData.idSchedule,
       qtdeRealizada: item.qtdeRealizada ? Number(item.qtdeRealizada) : null,
     }));
 

@@ -130,6 +130,9 @@ const mockScheduleData: GetScheduleValuesResponse = {
       status_prazo: 'Atenção: 32 dias restantes',
       status_ov_sap: 51,
       encontrado: false,
+      id_programacao: 5,
+      moExecutadoPontoAPonto: 2000,
+      moPlanejadaPontoAPonto: 2000,
     },
   ],
   totals: {

@@ -9,6 +9,8 @@ import {
   WorkToExportResponse,
 } from 'src/interface/types/servicesInterface';
 import { ExportFileType } from 'src/interface/dtos/workServicesDTO';
+import { serviceTypeLabel } from 'src/utils/serviceType.utils';
+
 @Injectable()
 export class ExportServicesService {
   constructor(
@@ -47,74 +49,71 @@ export class ExportServicesService {
       );
 
       for (const servico of obra.servicos) {
-        if (!servico.id_programacao || !servico.id_equipe) {
-          continue;
+        // Itera sobre cada programação do serviço
+        for (const ps of servico.programacoes_servicos) {
+          const programacao = programacoesMap.get(ps.id_programacao);
+          const equipeNome = ps.equipes?.equipe;
+
+          if (!programacao || !equipeNome) continue;
+          const key = `${obra.ovnota}-${ps.id_programacao}-${equipeNome}`;
+
+          let document = documentsMap.get(key);
+
+          if (!document) {
+            document = {
+              ovnota: obra.ovnota,
+              ordemDiagrama:
+                obra.diagrama ??
+                obra.ordem_dci ??
+                obra.ordem_dca ??
+                obra.ordem_dcd ??
+                obra.ordem_dcim,
+              referencia: obra.referencia,
+              tipo_obra: obra.tipos?.tipo_obra,
+              municipio: obra.municipios?.municipio,
+              circuito: obra.circuitos?.circuito,
+              conjunto: obra.circuitos?.conjuntos?.conjunto,
+              parceira: obra.turmas?.turma,
+              empreendimento: obra.empreendimento?.empreendimento,
+              programacao: {
+                data_prog: programacao.data_prog,
+                prog: programacao.prog,
+                tipo_servico: programacao.tipo_servico,
+                observacao_programacao: programacao.observacao_programacao,
+                chi: programacao.chi,
+                num_dp: programacao.num_dp,
+                chave_provisoria: programacao.chave_provisoria,
+              },
+              servicos: [],
+            };
+
+            documentsMap.set(key, document);
+          }
+
+          const codigo =
+            servico.servicos_contratos?.material ??
+            servico.materiais?.codigo ??
+            '-';
+
+          const descricao =
+            servico.servicos_contratos?.texto_breve ??
+            servico.materiais?.descricao ??
+            '-';
+
+          document.servicos.push({
+            equipe: equipeNome,
+            operacao: servico.operacao,
+            ponto: servico.ponto,
+            prog: ps.prog,
+            real: ps.real,
+            codigo,
+            descricao,
+          });
         }
-
-        const programacao = programacoesMap.get(servico.id_programacao);
-
-        if (!programacao) {
-          continue;
-        }
-
-        const key = `${obra.ovnota}-${programacao.id}-${servico.id_equipe}`;
-
-        let document = documentsMap.get(key);
-
-        if (!document) {
-          document = {
-            ovnota: obra.ovnota,
-            ordemDiagrama:
-              obra.diagrama ??
-              obra.ordem_dci ??
-              obra.ordem_dca ??
-              obra.ordem_dcd ??
-              obra.ordem_dcim,
-            referencia: obra.referencia,
-            tipo_obra: obra.tipos.tipo_obra,
-            municipio: obra.municipios.municipio,
-            circuito: obra.circuitos.circuito,
-            conjunto: obra.circuitos.conjuntos.conjunto,
-            parceira: obra.turmas.turma,
-            empreendimento: obra.empreendimento.empreendimento,
-            programacao: {
-              data_prog: programacao.data_prog,
-              prog: programacao.prog,
-              tipo_servico: programacao.tipo_servico,
-              observacao_programacao: programacao.observacao_programacao,
-              chi: programacao.chi,
-              num_dp: programacao.num_dp,
-              chave_provisoria: programacao.chave_provisoria,
-            },
-
-            servicos: [],
-          };
-
-          documentsMap.set(key, document);
-        }
-
-        const codigo =
-          servico.servicos_contratos?.material ??
-          servico.materiais?.codigo ??
-          '-';
-
-        const descricao =
-          servico.servicos_contratos?.texto_breve ??
-          servico.materiais?.descricao ??
-          '-';
-
-        document.servicos.push({
-          equipe: servico.equipes?.equipe,
-          operacao: servico.operacao,
-          ponto: servico.ponto,
-          prog: (servico.qtde_adicional ?? 0) + (servico.viabilizado ?? 0),
-          real: null,
-          codigo,
-          descricao,
-        });
       }
     }
 
+    // Ordenação dos serviços dentro de cada documento
     for (const document of documentsMap.values()) {
       document.servicos.sort((a, b) => {
         const pontoA = a.ponto;
@@ -128,15 +127,11 @@ export class ExportServicesService {
 
         const tipoCompare = tipoA.localeCompare(tipoB);
 
-        if (tipoCompare !== 0) {
-          return tipoCompare;
-        }
+        if (tipoCompare !== 0) return tipoCompare;
 
         const numeroCompare = Number(numeroA) - Number(numeroB);
 
-        if (numeroCompare !== 0) {
-          return numeroCompare;
-        }
+        if (numeroCompare !== 0) return numeroCompare;
 
         return a.operacao.localeCompare(b.operacao);
       });
@@ -156,71 +151,71 @@ export class ExportServicesService {
       );
 
       for (const servico of obra.servicos) {
-        const programacao = servico.id_programacao
-          ? programacoesMap.get(servico.id_programacao)
-          : null;
+        for (const ps of servico.programacoes_servicos) {
+          const programacao = programacoesMap.get(ps.id_programacao);
 
-        const codigo =
-          servico.servicos_contratos?.material ??
-          servico.materiais?.codigo ??
-          '-';
+          const codigo =
+            servico.servicos_contratos?.material ??
+            servico.materiais?.codigo ??
+            '-';
 
-        const descricao =
-          servico.servicos_contratos?.texto_breve ??
-          servico.materiais?.descricao ??
-          '-';
+          const descricao =
+            servico.servicos_contratos?.texto_breve ??
+            servico.materiais?.descricao ??
+            '-';
 
-        const preco =
-          servico.servicos_contratos?.preco ??
-          servico.materiais?.preco.toNumber();
+          const preco = Number(
+            servico.servicos_contratos?.preco ?? servico.materiais?.preco ?? 0,
+          );
 
-        const quantidadeProgramada =
-          (servico.qtde_adicional ?? 0) + (servico.viabilizado ?? 0);
+          const total =
+            (servico.qtde_adicional ?? 0) + (servico.viabilizado ?? 0);
 
-        const valorTotal = preco * quantidadeProgramada;
+          const valorTotal = preco * total;
 
-        const tipo = servico.materiais?.codigo ? 'M' : 'S';
+          const tipo = serviceTypeLabel(servico);
 
-        const unidade =
-          servico.materiais?.unidade ?? servico.servicos_contratos?.medida;
+          const unidade =
+            servico.materiais?.unidade ?? servico.servicos_contratos?.medida;
 
-        excelData.push({
-          ovnota: obra.ovnota,
-          ordemDiagrama:
-            obra.diagrama ??
-            obra.ordem_dci ??
-            obra.ordem_dca ??
-            obra.ordem_dcd ??
-            obra.ordem_dcim,
-          referencia: obra.referencia,
-          tipoObra: obra.tipos.tipo_obra,
-          municipio: obra.municipios.municipio,
-          circuito: obra.circuitos.circuito,
-          conjunto: obra.circuitos.conjuntos.conjunto,
-          executado: obra.executado,
-          parceira: obra.turmas.turma,
-          empreendimento: obra.empreendimento.empreendimento,
-          dataProg: programacao?.data_prog ?? null,
-          prog: programacao?.prog ?? null,
-          observacaoProgramacao: programacao?.observacao_programacao ?? null,
-          numDp: programacao?.num_dp ?? null,
-          horaIni: programacao?.hora_ini ?? null,
-          horaTer: programacao?.hora_ter ?? null,
-          equipeLv: programacao?.equipe_linha_viva ?? 0,
-          equipeLm: programacao?.equipe_linha_morta ?? 0,
-          equipeRegul: programacao?.equipe_regularizacao ?? 0,
-          tecnicoResponsavel: programacao?.tecnicos.tecnico,
-          equipe: servico.equipes?.equipe ?? null,
-          operacao: servico.operacao,
-          ponto: servico.ponto,
-          preco,
-          tipo,
-          unidade,
-          codigo,
-          descricao,
-          valorTotal,
-          quantidadeProgramada,
-        });
+          excelData.push({
+            ovnota: obra.ovnota,
+            ordemDiagrama:
+              obra.diagrama ??
+              obra.ordem_dci ??
+              obra.ordem_dca ??
+              obra.ordem_dcd ??
+              obra.ordem_dcim,
+            referencia: obra.referencia,
+            tipoObra: obra.tipos?.tipo_obra,
+            municipio: obra.municipios?.municipio,
+            circuito: obra.circuitos?.circuito,
+            conjunto: obra.circuitos?.conjuntos?.conjunto,
+            executado: obra.executado,
+            parceira: obra.turmas?.turma,
+            empreendimento: obra.empreendimento?.empreendimento,
+            dataProg: programacao?.data_prog ?? null,
+            prog: programacao?.prog ?? null,
+            observacaoProgramacao: programacao?.observacao_programacao ?? null,
+            numDp: programacao?.num_dp ?? null,
+            horaIni: programacao?.hora_ini ?? null,
+            horaTer: programacao?.hora_ter ?? null,
+            equipeLv: programacao?.equipe_linha_viva ?? 0,
+            equipeLm: programacao?.equipe_linha_morta ?? 0,
+            equipeRegul: programacao?.equipe_regularizacao ?? 0,
+            tecnicoResponsavel: programacao?.tecnicos?.tecnico,
+            equipe: ps.equipes?.equipe ?? null,
+            operacao: servico.operacao,
+            ponto: servico.ponto,
+            preco,
+            tipo,
+            unidade,
+            codigo,
+            descricao,
+            valorTotal,
+            quantidadeProgramada: ps.prog ?? 0,
+          });
+        }
       }
     }
 

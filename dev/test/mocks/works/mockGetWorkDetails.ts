@@ -81,7 +81,7 @@ export const mockGetWorkDetailsRepositoryQueryResponse = {
       programacoes_servicos: [
         { equipes: { equipe: 'LM 02' } },
         { equipes: { equipe: 'LV 01' } },
-        { equipes: { equipe: 'REG 01' } },
+        { equipes: { equipe: 'NR 01' } },
       ],
       id_restricao_execucao: 1,
       nome_responsavel_execucao: null,

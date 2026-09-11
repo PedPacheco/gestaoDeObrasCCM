@@ -44,19 +44,28 @@ export class WorkServicesRepository implements IWorkServicesRepository {
             adicional: additional,
           })),
         });
-
         await Promise.all(
-          data.map(({ id, idSchedule, idTeam, prog, additional }) =>
-            tx.servicos.update({
+          data.map(async ({ id, additional }) => {
+            // Buscar todos os programacoes_servicos deste serviço
+            const programacoes = await tx.programacoes_servicos.findMany({
+              where: { id_servico: id },
+              select: { real: true, prog: true },
+            });
+
+            // Somar: real se existir, senão prog
+            const qtdeProg = programacoes.reduce(
+              (acc, item) => acc + (item.real ?? item.prog ?? 0),
+              0,
+            );
+
+            return tx.servicos.update({
               where: { id },
               data: {
-                id_programacao: idSchedule,
-                id_equipe: idTeam,
-                qtde_prog: prog,
+                qtde_prog: qtdeProg,
                 qtde_adicional: additional,
               },
-            }),
-          ),
+            });
+          }),
         );
       },
       {
@@ -68,23 +77,37 @@ export class WorkServicesRepository implements IWorkServicesRepository {
 
   async cancelServices(id: number): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
+      const servicosAfetados = await tx.programacoes_servicos.findMany({
+        where: { id_programacao: id },
+        select: { id_servico: true, prog: true },
+      });
+
+      // 2. Subtrair o prog de cada serviço
+      const progPorServico = servicosAfetados.reduce(
+        (acc, { id_servico, prog }) => {
+          acc.set(id_servico, (acc.get(id_servico) ?? 0) + (prog ?? 0));
+          return acc;
+        },
+        new Map<number, number>(),
+      );
+
+      await Promise.all(
+        [...progPorServico.entries()].map(([idServico, progRemovido]) =>
+          tx.servicos.update({
+            where: { id: idServico },
+            data: {
+              qtde_prog: { decrement: progRemovido },
+            },
+          }),
+        ),
+      );
+
       await tx.programacoes_servicos.deleteMany({
         where: { id_programacao: id },
       });
 
-      await tx.servicos.updateMany({
-        data: {
-          id_programacao: null,
-          qtde_real: null,
-          qtde_prog: null,
-        },
-        where: { id_programacao: id },
-      });
-
-      await tx.programacoes.update({
-        data: { prog: 0 },
-        where: { id },
-      });
+      // 4. Zerar o prog da programação
+      await tx.programacoes.update({ data: { prog: 0 }, where: { id } });
     });
   }
 
@@ -190,11 +213,12 @@ export class WorkServicesRepository implements IWorkServicesRepository {
     await tx.servicos.delete({ where: { id } });
   }
 
-  async deleteAll(workId: number): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
-      await tx.servicos.deleteMany({ where: { id_obra: workId } });
-      await tx.relatorio.delete({ where: { id_obra: workId } });
-    });
+  // Recebe `tx`: passou a ser chamado dentro da transação orquestrada pelo
+  // WorksServicesService, junto com o recálculo em massa de prog/exec —
+  // mesmo motivo da correção aplicada em reascheduleServices.
+  async deleteAll(workId: number, tx: Prisma.TransactionClient): Promise<void> {
+    await tx.servicos.deleteMany({ where: { id_obra: workId } });
+    await tx.relatorio.delete({ where: { id_obra: workId } });
   }
 
   async bulkImportItems(

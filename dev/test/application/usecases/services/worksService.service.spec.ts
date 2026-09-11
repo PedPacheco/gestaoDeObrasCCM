@@ -389,7 +389,7 @@ describe('WorksServicesService', () => {
     it('should call method delete and call repository', async () => {
       await service.deleteAll(1);
 
-      expect(repository.deleteAll).toHaveBeenCalledWith(1);
+      expect(repository.deleteAll).toHaveBeenCalledWith(1, {});
     });
   });
 
@@ -486,7 +486,7 @@ describe('WorksServicesService', () => {
           id: 1,
           idTeam: 10,
           idSchedule: 5,
-          prog: undefined,
+          prog: 10,
           operation: 'instalação',
           point: 'p1',
           additional: null,
@@ -494,12 +494,18 @@ describe('WorksServicesService', () => {
         },
       ];
 
-      mockFindScheduleIdRepository.findById.mockResolvedValue({
-        id_status_programacao: 3,
-      });
+      mockWorkServicesQueryRepository.getServiceScheduleHistory.mockResolvedValue(
+        [],
+      );
 
       await expect(
-        service.scheduleServices(1, mockScheduleData),
+        service['validateScheduleServices'](1, mockScheduleData, undefined),
+      ).rejects.toThrow(
+        new BadRequestException('Valor do programado tem que ser enviado'),
+      );
+
+      await expect(
+        service['validateScheduleServices'](1, mockScheduleData, null),
       ).rejects.toThrow(
         new BadRequestException('Valor do programado tem que ser enviado'),
       );

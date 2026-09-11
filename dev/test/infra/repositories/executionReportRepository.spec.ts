@@ -279,6 +279,7 @@ describe('ExecutionReportRepository', () => {
         },
         programacoes_servicos: {
           updateMany: jest.fn(),
+          findMany: jest.fn().mockResolvedValue([{ id_servico: 2 }]),
         },
         servicos: {
           updateMany: jest.fn(),
@@ -302,7 +303,7 @@ describe('ExecutionReportRepository', () => {
       });
 
       expect(tx.servicos.updateMany).toHaveBeenCalledWith({
-        where: { id_programacao: 3 },
+        where: { id: { in: [2] } },
         data: { qtde_real: null },
       });
 

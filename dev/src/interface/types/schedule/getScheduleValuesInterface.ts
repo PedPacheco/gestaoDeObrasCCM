@@ -53,7 +53,7 @@ export interface totalsGetScheduleValues {
 
 export interface GetScheduleValuesResponseRepository {
   works: GetScheduleValuesInterface[];
-  resultTotals: totalsGetScheduleValues[];
+  resultTotals: totalsGetScheduleValues;
 }
 
 export interface GetScheduleValuesResponse {

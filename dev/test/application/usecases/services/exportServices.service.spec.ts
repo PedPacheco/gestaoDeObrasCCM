@@ -2,45 +2,42 @@ import { ExportServicesPdfOutput } from 'src/application/usecases/export/service
 import { ExportServicesService } from 'src/application/usecases/services/exportServices.service';
 import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
 import { ExportFileType } from 'src/interface/dtos/workServicesDTO';
-import { ExportServicesExcelOutput } from 'src/interface/types/servicesInterface';
+import {
+  ExportServicesExcelOutput,
+  WorkToExportResponse,
+} from 'src/interface/types/servicesInterface';
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { Decimal } from '@prisma/client/runtime/library';
 
-const exportRepositoryResponse = [
+const exportRepositoryResponse: WorkToExportResponse[] = [
   {
     ovnota: 'OV001',
     diagrama: 'D001',
+    referencia: 'REF001',
     ordem_dci: null,
     ordem_dca: null,
     ordem_dcd: null,
     ordem_dcim: null,
-
-    referencia: 'REF001',
-
+    executado: null,
     tipos: {
       tipo_obra: 'Construção',
     },
-
     municipios: {
       municipio: 'São Paulo',
     },
-
+    turmas: {
+      turma: 'Parceira A',
+    },
+    empreendimento: {
+      empreendimento: 'Empreendimento Teste',
+    },
     circuitos: {
       circuito: 'CIR001',
       conjuntos: {
         conjunto: 'CONJ001',
       },
     },
-
-    turmas: {
-      turma: 'Parceira A',
-    },
-
-    empreendimento: {
-      empreendimento: 'Empreendimento Teste',
-    },
-
     programacoes: [
       {
         id: 1,
@@ -51,37 +48,37 @@ const exportRepositoryResponse = [
         chi: 1,
         num_dp: '123',
         chave_provisoria: true,
-        hora_ini: true,
-        hora_ter: true,
-        equipe_linha_morta: true,
-        equipe_linha_viva: true,
-        equipe_regularizacao: true,
+        hora_ini: new Date('2026-01-01T08:00:00'),
+        hora_ter: new Date('2026-01-01T17:00:00'),
+        equipe_linha_morta: 1,
+        equipe_linha_viva: 2,
+        equipe_regularizacao: 1,
         tecnicos: { tecnico: 'Luiz' },
       },
     ],
-
     servicos: [
       {
-        id_programacao: 1,
-        id_equipe: 10,
-
         operacao: 'Operação A',
         ponto: 'A1',
-
-        qtde_adicional: 2,
         viabilizado: 3,
-
-        equipes: {
-          equipe: 'Equipe A',
-        },
-
+        qtde_adicional: 2,
+        materiais: null,
         servicos_contratos: {
           material: 'MAT001',
           texto_breve: 'SERVICO A',
           preco: 100,
+          medida: 'UN',
         },
-
-        materiais: null,
+        programacoes_servicos: [
+          {
+            id_programacao: 1,
+            prog: 80,
+            real: 50,
+            equipes: {
+              equipe: 'Equipe A',
+            },
+          },
+        ],
       },
     ],
   },
@@ -177,29 +174,6 @@ describe('ExportServicesService', () => {
       );
     });
 
-    it('should ignore service without programacao', async () => {
-      mockWorksServicesRepository.getServicesToExportation.mockResolvedValue([
-        {
-          ...exportRepositoryResponse[0],
-          servicos: [
-            {
-              ...exportRepositoryResponse[0].servicos[0],
-              id_programacao: null,
-            },
-          ],
-        },
-      ]);
-
-      const result = await service.getServicesToExportation({
-        dataInicial: '2026-01-01',
-        dataFinal: '2026-01-31',
-        idParceira: [1],
-        fileType: 'pdf' as ExportFileType,
-      });
-
-      expect(result).toEqual([]);
-    });
-
     it('should ignore service without team', async () => {
       mockWorksServicesRepository.getServicesToExportation.mockResolvedValue([
         {
@@ -207,7 +181,13 @@ describe('ExportServicesService', () => {
           servicos: [
             {
               ...exportRepositoryResponse[0].servicos[0],
-              id_equipe: null,
+              programacoes_servicos: [
+                {
+                  ...exportRepositoryResponse[0].servicos[0]
+                    .programacoes_servicos[0],
+                  equipes: null,
+                },
+              ],
             },
           ],
         },
@@ -230,7 +210,13 @@ describe('ExportServicesService', () => {
           servicos: [
             {
               ...exportRepositoryResponse[0].servicos[0],
-              id_programacao: 999,
+              programacoes_servicos: [
+                {
+                  ...exportRepositoryResponse[0].servicos[0]
+                    .programacoes_servicos[0],
+                  id_programacao: 999,
+                },
+              ],
             },
           ],
         },
@@ -508,7 +494,13 @@ describe('ExportServicesService', () => {
           servicos: [
             {
               ...exportRepositoryResponse[0].servicos[0],
-              id_programacao: null,
+              programacoes_servicos: [
+                {
+                  ...exportRepositoryResponse[0].servicos[0]
+                    .programacoes_servicos[0],
+                  id_programacao: null,
+                },
+              ],
             },
           ],
         },
@@ -564,8 +556,13 @@ describe('ExportServicesService', () => {
           servicos: [
             {
               ...exportRepositoryResponse[0].servicos[0],
-              qtde_adicional: null,
-              viabilizado: null,
+              programacoes_servicos: [
+                {
+                  ...exportRepositoryResponse[0].servicos[0]
+                    .programacoes_servicos[0],
+                  prog: null,
+                },
+              ],
             },
           ],
         },
@@ -581,32 +578,6 @@ describe('ExportServicesService', () => {
       const excelResult = result as ExportServicesExcelOutput[];
 
       expect(excelResult[0].quantidadeProgramada).toBe(0);
-    });
-
-    it('should use zero when quantity fields are null', async () => {
-      mockWorksServicesRepository.getServicesToExportation.mockResolvedValue([
-        {
-          ...exportRepositoryResponse[0],
-          servicos: [
-            {
-              ...exportRepositoryResponse[0].servicos[0],
-              qtde_adicional: null,
-              viabilizado: null,
-            },
-          ],
-        },
-      ]);
-
-      const result = await service.getServicesToExportation({
-        dataInicial: '',
-        dataFinal: '',
-        idParceira: [1],
-        fileType: 'pdf' as ExportFileType,
-      });
-
-      const excelResult = result as ExportServicesPdfOutput[];
-
-      expect(excelResult[0].servicos[0].prog).toBe(0);
     });
 
     it('should use material price when contract service is null', async () => {
@@ -703,8 +674,13 @@ describe('ExportServicesService', () => {
           programacoes: [],
           servicos: [
             {
-              ...exportRepositoryResponse[0].servicos[0],
-              id_programacao: 999,
+              programacoes_servicos: [
+                {
+                  ...exportRepositoryResponse[0].servicos[0]
+                    .programacoes_servicos[0],
+                  id_programacao: 999,
+                },
+              ],
             },
           ],
         },
@@ -730,7 +706,13 @@ describe('ExportServicesService', () => {
           servicos: [
             {
               ...exportRepositoryResponse[0].servicos[0],
-              equipes: null,
+              programacoes_servicos: [
+                {
+                  ...exportRepositoryResponse[0].servicos[0]
+                    .programacoes_servicos[0],
+                  equipes: null,
+                },
+              ],
             },
           ],
         },
