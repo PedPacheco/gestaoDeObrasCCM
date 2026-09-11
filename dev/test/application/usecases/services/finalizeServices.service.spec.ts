@@ -9,6 +9,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
 import { WORK_SERVICES_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesRepository';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
+import { Prisma } from '@prisma/client';
 
 describe('WorksServicesService', () => {
   let service: FinalizeServicesService;
@@ -137,8 +138,10 @@ describe('WorksServicesService', () => {
         ],
       );
 
+      const mockTx = {} as unknown as Prisma.TransactionClient;
+
       mockPrisma.$transaction.mockImplementation(async (callback) =>
-        callback(mockPrisma),
+        callback(mockTx),
       );
 
       await service.reascheduleServices(2, 1);
@@ -150,8 +153,8 @@ describe('WorksServicesService', () => {
           { id: 1, id_servico: 1 },
           { id: 2, id_servico: 2 },
         ],
-
         1,
+        mockTx,
       );
     });
 
@@ -557,7 +560,6 @@ describe('WorksServicesService', () => {
           prog: 60,
           exec: 50,
         }),
-        expect.any(Array),
         mockPrisma,
       );
     });

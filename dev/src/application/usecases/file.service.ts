@@ -1,19 +1,26 @@
+import { access, unlink } from 'fs/promises';
 import { Injectable, Logger } from '@nestjs/common';
-import { existsSync, unlinkSync } from 'fs';
 
 @Injectable()
 export class FileService {
   private readonly logger = new Logger(FileService.name);
 
-  deleteFile(path: string): void {
+  async deleteFile(path: string): Promise<void> {
     try {
-      if (existsSync(path)) {
-        unlinkSync(path);
-        this.logger.log(`Arquivo removido: ${path}`);
-      } else {
-        this.logger.warn(`Arquivo não encontrado: ${path}`);
-      }
+      await access(path);
+      await unlink(path);
+
+      this.logger.log(`Arquivo removido: ${path}`);
     } catch (error) {
+      if (
+        error instanceof Error &&
+        'code' in error &&
+        (error as NodeJS.ErrnoException).code === 'ENOENT'
+      ) {
+        this.logger.warn(`Arquivo não encontrado: ${path}`);
+        return;
+      }
+
       this.logger.error(
         `Erro ao remover arquivo ${path}`,
         error instanceof Error ? error.stack : undefined,

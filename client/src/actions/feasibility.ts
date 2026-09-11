@@ -56,3 +56,40 @@ export async function rejectFeasibility({
     return { success: false, message: error.message };
   }
 }
+
+export async function approveFeasibility(workId: string) {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
+
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/viabilidade/aprovar/${workId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error("Erro ao aprovar viabilidade");
+    }
+
+    const res = await response.json();
+
+    if (res.statusCode !== 204) {
+      return {
+        success: false,
+        error: res.message || "Erro ao aprovar viabilidade",
+      };
+    }
+
+    revalidatePath(`/detalhes/${workId}`);
+
+    return { success: true, message: res.message };
+  } catch (error: any) {
+    return { success: false, message: error.message };
+  }
+}

@@ -7,6 +7,7 @@ import {
   mockGetWorkDetailsRepositoryQueryResponse,
   mockGetWorkDetailsRepositoryResponse,
 } from '../../../mocks/works/mockGetWorkDetails';
+import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
 
 describe('GetWorkDetailsService', () => {
   let getWorkDetailsService: GetWorkDetailsService;
@@ -15,11 +16,22 @@ describe('GetWorkDetailsService', () => {
     get: jest.fn(),
   };
 
+  const mockQueriesServicesService = {
+    getAllItems: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
         GetWorkDetailsService,
-        { provide: GET_WORKS_DETAILS_REPOSITORY, useValue: mockRepository },
+        {
+          provide: GET_WORKS_DETAILS_REPOSITORY,
+          useValue: mockRepository,
+        },
+        {
+          provide: QueriesServicesService,
+          useValue: mockQueriesServicesService,
+        },
       ],
     }).compile();
 
@@ -34,6 +46,7 @@ describe('GetWorkDetailsService', () => {
 
   it('should be return undefined when searching for id if the id value is greater than or equal to 12', async () => {
     const id = 4552432432432;
+    mockQueriesServicesService.getAllItems.mockResolvedValue([]);
 
     mockRepository.get.mockResolvedValue(null);
 
@@ -44,6 +57,14 @@ describe('GetWorkDetailsService', () => {
 
   it('should be return the work details with format correct', async () => {
     const id = 244;
+    mockQueriesServicesService.getAllItems.mockResolvedValue([
+      {
+        viabilizado: 4,
+        qtdeAdicional: null,
+        qtdeRealizada: null,
+        valorUnit: 2,
+      },
+    ]);
 
     mockRepository.get.mockResolvedValue(
       mockGetWorkDetailsRepositoryQueryResponse,
@@ -56,6 +77,14 @@ describe('GetWorkDetailsService', () => {
 
   it('should be return the work details with format correct without feasibility info', async () => {
     const id = 244;
+    mockQueriesServicesService.getAllItems.mockResolvedValue([
+      {
+        viabilizado: 4,
+        qtdeAdicional: null,
+        qtdeRealizada: null,
+        valorUnit: 2,
+      },
+    ]);
 
     mockRepository.get.mockResolvedValue({
       ...mockGetWorkDetailsRepositoryQueryResponse,

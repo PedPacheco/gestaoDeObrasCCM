@@ -130,6 +130,9 @@ const mockScheduleData: GetScheduleValuesResponse = {
       status_prazo: 'Atenção: 32 dias restantes',
       status_ov_sap: 51,
       encontrado: false,
+      id_programacao: 5,
+      moExecutadoPontoAPonto: 2000,
+      moPlanejadaPontoAPonto: 2000,
     },
   ],
   totals: {
@@ -351,7 +354,10 @@ describe('ExportController', () => {
         },
         {
           provide: FeasibilityService,
-          useValue: { exportFeasibility: jest.fn() },
+          useValue: {
+            exportFeasibilityPendingApproval: jest.fn(),
+            exportFeasibilityPending: jest.fn(),
+          },
         },
         {
           provide: ExportServicesService,
@@ -415,7 +421,13 @@ describe('ExportController', () => {
           provide: ExportExcelServicesService,
           useValue: { export: jest.fn() },
         },
-        { provide: ExportFeasibilityService, useValue: { export: jest.fn() } },
+        {
+          provide: ExportFeasibilityService,
+          useValue: {
+            exportFeasibilityPendingApproval: jest.fn(),
+            exportFeasibilityPending: jest.fn(),
+          },
+        },
       ],
     })
       .overrideGuard(AreaViewGuard)
@@ -953,31 +965,53 @@ describe('ExportController', () => {
     });
   });
 
-  describe('exportPublicationRestrictions (GET /metas)', () => {
+  describe('exportFeasibilityPendingApproval (GET /viabilidade/aguardando-aprovacao)', () => {
     const filters = {
-      startDate: '20/05/2026',
-      endDate: '22/05/2026',
       idPartner: [2],
     } as any;
 
     it('should fetch feasibility, set xlsx headers and delegate to export service', async () => {
       const res = makeMockResponse() as unknown as Response;
 
-      feasibilityService.exportFeasibility.mockResolvedValue([]);
-      exportFeasibilityService.export.mockResolvedValue(undefined);
+      feasibilityService.exportFeasibilityPendingApproval.mockResolvedValue([]);
 
-      await controller.exportFeasibility(res, filters);
+      await controller.exportFeasibilityPendingApproval(res, filters);
 
-      expect(feasibilityService.exportFeasibility).toHaveBeenCalledWith(
-        '20/05/2026',
-        '22/05/2026',
-        [2],
-      );
+      expect(
+        feasibilityService.exportFeasibilityPendingApproval,
+      ).toHaveBeenCalledWith([2]);
       assertXlsxHeaders(
         res as unknown as ReturnType<typeof makeMockResponse>,
-        'Exportação Viabilidade',
+        'Exportação Viabilidade Aguardando Aprovação',
       );
-      expect(exportFeasibilityService.export).toHaveBeenCalledWith([], res);
+      expect(
+        exportFeasibilityService.exportFeasibilityPendingApproval,
+      ).toHaveBeenCalledWith([], res);
+    });
+  });
+
+  describe('exportFeasibilityPending (GET /viabilidade/aguardando-viabilidade)', () => {
+    const filters = {
+      idPartner: [2],
+    } as any;
+
+    it('should fetch feasibility, set xlsx headers and delegate to export service', async () => {
+      const res = makeMockResponse() as unknown as Response;
+
+      feasibilityService.exportFeasibilityPending.mockResolvedValue([]);
+
+      await controller.exportFeasibilityPending(res, filters);
+
+      expect(feasibilityService.exportFeasibilityPending).toHaveBeenCalledWith([
+        2,
+      ]);
+      assertXlsxHeaders(
+        res as unknown as ReturnType<typeof makeMockResponse>,
+        'Exportação Viabilidade Pendente',
+      );
+      expect(
+        exportFeasibilityService.exportFeasibilityPending,
+      ).toHaveBeenCalledWith([], res);
     });
   });
 
