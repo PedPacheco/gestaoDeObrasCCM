@@ -297,7 +297,7 @@ describe('MonthlySummaryCalculator', () => {
           totalFinancialGoal: 0,
           totalFinancialGoalWith8: 0,
         },
-        { portfolioExec: 0, portfolioSap: 0, qtdeWorks: 0 },
+        { portfolioExec: 0, qtdeWorks: 0 },
         {
           rfpTeams: 0,
           executionCapacityTeams: 0,
@@ -319,7 +319,7 @@ describe('MonthlySummaryCalculator', () => {
           totalFinancialGoal: 2000,
           totalFinancialGoalWith8: 2500,
         },
-        { portfolioExec: 0, portfolioSap: 0, qtdeWorks: 0 },
+        { portfolioExec: 0, qtdeWorks: 0 },
         {
           rfpTeams: 0,
           executionCapacityTeams: 0,
@@ -344,7 +344,7 @@ describe('MonthlySummaryCalculator', () => {
           totalFinancialGoal: 2000,
           totalFinancialGoalWith8: 2500,
         },
-        { portfolioExec: 0, portfolioSap: 0, qtdeWorks: 0 },
+        { portfolioExec: 0, qtdeWorks: 0 },
         {
           rfpTeams: 0,
           executionCapacityTeams: 0,
@@ -363,7 +363,7 @@ describe('MonthlySummaryCalculator', () => {
           totalFinancialGoal: 0,
           totalFinancialGoalWith8: 0,
         },
-        { portfolioExec: 0, portfolioSap: 0, qtdeWorks: 0 },
+        { portfolioExec: 0, qtdeWorks: 0 },
         {
           rfpTeams: 0,
           executionCapacityTeams: 0,
@@ -382,7 +382,7 @@ describe('MonthlySummaryCalculator', () => {
           totalFinancialGoal: 2000,
           totalFinancialGoalWith8: 2500,
         },
-        { portfolioExec: 0, portfolioSap: 0, qtdeWorks: 0 },
+        { portfolioExec: 0, qtdeWorks: 0 },
         {
           rfpTeams: 0,
           executionCapacityTeams: 0,

@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from '@prisma/client';
+import { FinalizeServicesData } from 'src/application/types';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { WorkServicesExeutionRepository } from 'src/infra/repositories/worksServices/workServicesExecutionRepository';
 
@@ -217,8 +218,11 @@ describe('WorkServicesExecutionRepository', () => {
 
   describe('finalizeServices', () => {
     it('should update programacao with finalization data', async () => {
-      const mockData = {
+      const mockData: FinalizeServicesData = {
         id: 1,
+        idWork: 2,
+        dataProg: new Date('2026-05-17'),
+        executionObservation: 'Teste',
         prog: 80,
         exec: 75,
         idExecutionRestriction: 2,
@@ -249,8 +253,11 @@ describe('WorkServicesExecutionRepository', () => {
     });
 
     it('should throw NotFoundException when schedule not found', async () => {
-      const mockData = {
+      const mockData: FinalizeServicesData = {
         id: 999,
+        idWork: 2,
+        dataProg: new Date('2026-05-17'),
+        executionObservation: 'Teste',
         prog: 80,
         exec: 75,
         idExecutionRestriction: 2,
@@ -270,8 +277,11 @@ describe('WorkServicesExecutionRepository', () => {
     });
 
     it('should propagate other errors', async () => {
-      const mockData = {
+      const mockData: FinalizeServicesData = {
         id: 1,
+        idWork: 2,
+        dataProg: new Date('2026-05-17'),
+        executionObservation: 'Teste',
         prog: 80,
         exec: 75,
         idExecutionRestriction: 2,
@@ -292,8 +302,11 @@ describe('WorkServicesExecutionRepository', () => {
     });
 
     it('should handle finalization with zero values', async () => {
-      const mockData = {
+      const mockData: FinalizeServicesData = {
         id: 1,
+        idWork: 2,
+        dataProg: new Date('2026-05-17'),
+        executionObservation: 'Teste',
         prog: 0,
         exec: 0,
         idExecutionRestriction: 1,

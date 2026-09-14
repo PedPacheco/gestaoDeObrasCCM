@@ -1,6 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
 import moment from 'moment';
-
 import {
   IRestrictionsRepository,
   ProcessedRestrictionsFilters,
@@ -11,7 +9,13 @@ import {
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
 } from 'src/interface/dtos/restrictionsDTO';
-import { GetPulicationRestricitionOutput } from '../types';
+
+import { Inject, Injectable } from '@nestjs/common';
+
+import {
+  GetPulicationRestricitionOutput,
+  GetScheduleRestricionOutput,
+} from '../types';
 
 @Injectable()
 export class RestrictionsService {
@@ -48,7 +52,9 @@ export class RestrictionsService {
     };
   }
 
-  async getScheduleRestricion(filters: GetRestrictionsDTO) {
+  async getScheduleRestricion(
+    filters: GetRestrictionsDTO,
+  ): Promise<GetScheduleRestricionOutput> {
     const processedFilters = this.parseFilters(filters);
 
     const result =
@@ -56,7 +62,7 @@ export class RestrictionsService {
         processedFilters,
       );
 
-    const totals = { total_obras: Number(result.totals[0].total_obras) };
+    const totals = { total_obras: Number(result.totals.total_obras) };
 
     return { works: result.works, totals };
   }

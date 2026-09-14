@@ -166,9 +166,9 @@ export class RestrictionsRepository implements IRestrictionsRepository {
     query = Prisma.sql`${query} ORDER BY programacoes.data_prog, obras.ovnota`;
     query = Prisma.sql`${query} LIMIT ${limit} OFFSET ${offset}`;
 
-    const [works, totals] = await Promise.all([
+    const [works, [totals]] = await Promise.all([
       this.prisma.$queryRaw<ScheduleRestrictions[]>(query),
-      this.prisma.$queryRaw<ScheduleRestrictionsTotalsResponse>(countQuery),
+      this.prisma.$queryRaw<ScheduleRestrictionsTotalsResponse[]>(countQuery),
     ]);
 
     return { works, totals };

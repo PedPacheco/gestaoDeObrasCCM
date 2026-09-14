@@ -45,6 +45,14 @@ describe('RestrictionsRepository', () => {
 
     repository = module.get<RestrictionsRepository>(RestrictionsRepository);
     prismaService = module.get(PrismaService);
+
+    prismaService.$queryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([
+      {
+        total_obras: 0,
+        total_restricoes: 0,
+        percentual_restricoes: 0,
+      },
+    ]);
   });
 
   afterEach(() => {

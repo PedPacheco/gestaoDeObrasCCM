@@ -1,4 +1,4 @@
-import { CapexPhase } from 'src/application/shared/capex.types';
+import { CapexPhase } from 'src/application/types';
 import { CapexGateway } from 'src/interface/gateway/capex/capex.gateway';
 
 describe('CapexGateway', () => {

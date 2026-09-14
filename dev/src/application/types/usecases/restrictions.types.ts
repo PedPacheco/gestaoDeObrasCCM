@@ -1,3 +1,5 @@
+import { ScheduleRestrictions } from 'src/domain/types';
+
 export type GetPulicationRestricitionOutput = {
   works: {
     id: number;
@@ -25,4 +27,11 @@ export type GetPulicationRestricitionOutput = {
     observacao_construcao: string | null;
     nome: string;
   }[];
+};
+
+export type GetScheduleRestricionOutput = {
+  works: ScheduleRestrictions[];
+  totals: {
+    total_obras: number;
+  };
 };

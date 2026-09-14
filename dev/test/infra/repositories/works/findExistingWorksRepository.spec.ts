@@ -4,6 +4,7 @@ import { FindExistingWorksRepository } from 'src/infra/repositories/works/findEx
 
 describe('FindExistingWorksRepository', () => {
   let repository: FindExistingWorksRepository;
+
   const mockPrisma = {
     obras: { findMany: jest.fn() },
   };
@@ -46,6 +47,10 @@ describe('FindExistingWorksRepository', () => {
     },
   ];
 
+  const mockLogger = {
+    error: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -53,6 +58,8 @@ describe('FindExistingWorksRepository', () => {
         { provide: PrismaService, useValue: mockPrisma },
       ],
     }).compile();
+
+    (repository as any).logger = mockLogger;
 
     repository = module.get<FindExistingWorksRepository>(
       FindExistingWorksRepository,

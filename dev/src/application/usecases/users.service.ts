@@ -5,13 +5,11 @@ import {
 } from 'src/domain/contracts/IUserRepository';
 
 import { Inject, Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UsersService {
   constructor(
     @Inject(USER_REPOSITORY) private userRepository: IUserRepository,
-    private jwtService: JwtService,
   ) {}
 
   async findUser(username: string): Promise<User | null> {

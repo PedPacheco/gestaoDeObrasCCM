@@ -1,5 +1,7 @@
 import * as ExcelJS from 'exceljs';
+import { GetPulicationRestricitionOutput } from 'src/application/types';
 import { ExportPublicationRestrictionService } from 'src/application/usecases/export/exportPublicationRestriction.service';
+import { mockGetPublicationRestrictionResponse } from '../../../mocks/mockRestrictions';
 
 // mocks compartilhados (fora do jest.mock)
 const addRowsMock = jest.fn();
@@ -57,7 +59,8 @@ describe('ExportPublicationRestrictionService', () => {
           data_resolucao: new Date('2026-04-17T00:00:00'),
         },
       ],
-    };
+    } as unknown as GetPulicationRestricitionOutput;
+
     await service.export(data, mockResponse);
 
     expect(ExcelJS.Workbook).toHaveBeenCalled();
@@ -85,11 +88,17 @@ describe('ExportPublicationRestrictionService', () => {
   // ============================================================
 
   it('should split data into batches of 1000', async () => {
-    const works = Array.from({ length: 2500 }, (_, i) => ({
-      ovnota: String(i),
-    }));
+    const works: GetPulicationRestricitionOutput = {
+      works: Array.from(
+        { length: 2500 },
+        (_, i) =>
+          ({
+            ovnota: String(i),
+          }) as unknown as GetPulicationRestricitionOutput['works'][number],
+      ),
+    };
 
-    await service.export({ works }, mockResponse);
+    await service.export(works, mockResponse);
 
     expect(addRowsMock).toHaveBeenCalledTimes(3);
 
@@ -117,7 +126,7 @@ describe('ExportPublicationRestrictionService', () => {
     writeMock.mockRejectedValueOnce(new Error('write error'));
 
     await expect(
-      service.export({ works: [{ ovnota: '1' }] }, mockResponse),
+      service.export(mockGetPublicationRestrictionResponse, mockResponse),
     ).rejects.toThrow('write error');
   });
 
