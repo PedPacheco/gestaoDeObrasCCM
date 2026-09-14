@@ -26,17 +26,17 @@ import {
   GetServiceScheduleHistoryResponse,
 } from 'src/domain/types';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import {
-  isMaterial,
-  ScheduleStatus,
-  WorkStatus,
-} from 'src/utils/serviceType.utils';
 
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 import { ExecutionReportService } from '../executionReport.service';
 import { ScheduleExecutionValidatorService } from '../schedule/scheduleExecutionValidator.service';
+import {
+  isMaterial,
+  ScheduleStatus,
+  WorkStatus,
+} from 'src/utils/serviceType.utils';
 
 @Injectable()
 export class FinalizeServicesService {

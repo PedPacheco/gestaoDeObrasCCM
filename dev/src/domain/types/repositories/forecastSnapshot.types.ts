@@ -41,8 +41,8 @@ type ForecastSnapshotGroupItem = {
 };
 
 export type ForecastSnapshotFilters = {
-  dataInicial: Date;
-  dataFinal: Date;
+  dataInicial?: string;
+  dataFinal?: string;
 };
 
 export type ForecastDailyTotalsResponse = {
