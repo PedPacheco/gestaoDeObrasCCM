@@ -2,12 +2,13 @@ import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
 
 import { Injectable } from '@nestjs/common';
+import { GetScheduleValuesOutput } from 'src/application/types';
 
 @Injectable()
 export class ExportScheduleService {
   constructor() {}
 
-  async export(scheduleData: any, response: Response) {
+  async export(scheduleData: GetScheduleValuesOutput, response: Response) {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Programação');
 
@@ -52,8 +53,8 @@ export class ExportScheduleService {
 
     const batchSize = 1000;
 
-    for (let i = 0; i < scheduleData.length; i += batchSize) {
-      const batch = scheduleData.slice(i, i + batchSize);
+    for (let i = 0; i < scheduleData.works.length; i += batchSize) {
+      const batch = scheduleData.works.slice(i, i + batchSize);
       worksheet.addRows(batch);
     }
 

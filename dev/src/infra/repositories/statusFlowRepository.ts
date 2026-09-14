@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { IStatusFlowRepository } from 'src/domain/repositories/IStatusFlowRepository';
+import { IStatusFlowRepository } from 'src/domain/contracts/IStatusFlowRepository';
 
 @Injectable()
 export class StatusFlowRepository implements IStatusFlowRepository {
@@ -23,21 +23,17 @@ export class StatusFlowRepository implements IStatusFlowRepository {
     tx: Prisma.TransactionClient,
     options?: { data_conclusao?: Date; totalExecuted?: number },
   ): Promise<void> {
-    try {
-      await tx.obras.update({
-        where: { id },
-        data: {
-          id_status: idStatus,
-          ...(options?.data_conclusao !== undefined && {
-            data_conclusao: options.data_conclusao,
-          }),
-          ...(options?.totalExecuted !== undefined && {
-            executado: options.totalExecuted,
-          }),
-        },
-      });
-    } catch (error) {
-      throw error;
-    }
+    await tx.obras.update({
+      where: { id },
+      data: {
+        id_status: idStatus,
+        ...(options?.data_conclusao !== undefined && {
+          data_conclusao: options.data_conclusao,
+        }),
+        ...(options?.totalExecuted !== undefined && {
+          executado: options.totalExecuted,
+        }),
+      },
+    });
   }
 }

@@ -1,6 +1,6 @@
 import { ExecutionReportService } from 'src/application/usecases/executionReport.service';
 import { FileService } from 'src/application/usecases/file.service';
-import { EXECUTION_REPORT_REPOSITORY } from 'src/domain/repositories/IExecutionReportRepository';
+import { EXECUTION_REPORT_REPOSITORY } from 'src/domain/contracts/IExecutionReportRepository';
 import { ExecutionReportRepository } from 'src/infra/repositories/executionReportRepository';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
 

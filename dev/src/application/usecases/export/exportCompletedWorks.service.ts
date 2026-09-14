@@ -1,14 +1,17 @@
 import * as Exceljs from 'exceljs';
 import { Response } from 'express';
-import { worksInPortfolioResponseService } from 'src/interface/types/works/getWorksInPortfolioInterface';
 
 import { Injectable } from '@nestjs/common';
+import { CompletedWorksRepositoryResponse } from 'src/domain/types';
 
 @Injectable()
 export class ExportCompletedWorksService {
   constructor() {}
 
-  async export(worksData: worksInPortfolioResponseService, response: Response) {
+  async export(
+    worksData: CompletedWorksRepositoryResponse,
+    response: Response,
+  ) {
     const workbook = new Exceljs.Workbook();
     const worksheet = workbook.addWorksheet('Obras executadas');
 

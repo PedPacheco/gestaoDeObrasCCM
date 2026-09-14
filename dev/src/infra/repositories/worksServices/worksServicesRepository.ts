@@ -1,23 +1,21 @@
+import {
+  AddServiceInput,
+  ApplyAdditionalInput,
+  ScheduleServicesInput,
+} from 'src/application/types';
+import { IWorkServicesRepository } from 'src/domain/contracts/worksService/IWorkServicesRepository';
+import { ImportServiceItem, SchedulesProgressUpdate } from 'src/domain/types';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import {
-  ImportServiceItem,
-  IWorkServicesRepository,
-  SchedulesProgressUpdate,
-} from 'src/domain/repositories/worksService/IWorkServicesRepository';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import {
-  AddServicesDTO,
-  ApplyAdditonalDTO,
-  ScheduleServicesDTO,
-} from 'src/interface/dtos/workServicesDTO';
 
 @Injectable()
 export class WorkServicesRepository implements IWorkServicesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async scheduleServices(
-    data: ScheduleServicesDTO[],
+    data: ScheduleServicesInput[],
     totalProg: number | { increment: number },
     idSchedule: number,
     idStatusSchedule?: number,
@@ -114,7 +112,7 @@ export class WorkServicesRepository implements IWorkServicesRepository {
   // Agora recebe `tx`: passou a ser chamado dentro da transação orquestrada
   // pelo WorksServicesService (junto com o recálculo em massa de prog/exec).
   async applyAdditional(
-    data: ApplyAdditonalDTO[],
+    data: ApplyAdditionalInput[],
     tx: Prisma.TransactionClient,
   ): Promise<void> {
     await Promise.all(
@@ -129,7 +127,7 @@ export class WorkServicesRepository implements IWorkServicesRepository {
 
   // Idem: recebe `tx` para participar da mesma transação do recálculo em massa.
   async addItem(
-    data: AddServicesDTO,
+    data: AddServiceInput,
     type: 'service' | 'material',
     tx: Prisma.TransactionClient,
   ): Promise<void> {

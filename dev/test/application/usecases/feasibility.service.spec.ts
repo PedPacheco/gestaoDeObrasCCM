@@ -3,7 +3,7 @@ import { FileService } from 'src/application/usecases/file.service';
 import {
   FEASIBILITY_REPOSITORY,
   IFeasibilityRepository,
-} from 'src/domain/repositories/IFeasibilityRepository';
+} from 'src/domain/contracts/IFeasibilityRepository';
 
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';

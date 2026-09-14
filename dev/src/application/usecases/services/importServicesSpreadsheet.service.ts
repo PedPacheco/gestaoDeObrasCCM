@@ -5,28 +5,19 @@ import {
   Logger,
 } from '@nestjs/common';
 
-import {
-  ImportServiceItem,
-  ParsedSpreadsheetItem,
-  IWorkServicesRepository,
-  WORK_SERVICES_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { SpreadsheetParserService } from 'src/infra/spreadsheet/spreadsheet.service';
 import { QueriesServicesService } from './queriesServices.service';
-
-export interface ImportResult {
-  imported: number;
-  skipped: number;
-  errors: {
-    row: number;
-    message: string;
-  }[];
-  skippedRows: {
-    row: number;
-    reason: string;
-  }[];
-}
+import {
+  IWorkServicesRepository,
+  WORK_SERVICES_REPOSITORY,
+} from 'src/domain/contracts/worksService/IWorkServicesRepository';
+import {
+  CatalogMapsOutput,
+  ImportResult,
+  ValidateAndResolveItemsResult,
+} from 'src/application/types';
+import { ImportServiceItem, ParsedSpreadsheetItem } from 'src/domain/types';
 
 @Injectable()
 export class ImportServicesSpreadsheetService {
@@ -106,7 +97,7 @@ export class ImportServicesSpreadsheetService {
   private buildCatalogMaps(
     services: { id: number; material: string | null }[],
     materials: { id: number; codigo: string | null }[],
-  ) {
+  ): CatalogMapsOutput {
     const serviceCatalog = new Map<string, number>();
     const materialCatalog = new Map<string, number>();
 
@@ -129,7 +120,7 @@ export class ImportServicesSpreadsheetService {
     items: ParsedSpreadsheetItem[],
     serviceCatalog: Map<string, number>,
     materialCatalog: Map<string, number>,
-  ) {
+  ): ValidateAndResolveItemsResult {
     const valid: ImportServiceItem[] = [];
     const errors: { row: number; message: string }[] = [];
     const seenInFile = new Set<string>();

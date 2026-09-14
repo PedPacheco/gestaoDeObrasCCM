@@ -12,8 +12,8 @@ import {
   DailySummaryEntryForecast,
   GroupForecastSummaryTotals,
   GroupTeamSummaryEntryForecast,
-} from 'src/interface/types/schedule/monthlySummaryForecastInterface';
-import { DailySummaryEntry } from 'src/interface/types/schedule/monthlySummaryInterface';
+} from 'src/application/types/usecases/schedule/monthlySummaryForecast.types';
+import { DailySummaryEntry } from 'src/application/types/usecases/schedule/monthlySummary.types';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';

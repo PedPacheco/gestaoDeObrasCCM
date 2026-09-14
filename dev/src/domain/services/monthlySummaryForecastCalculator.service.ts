@@ -2,6 +2,13 @@ import {
   createInitialTotals,
   createInitialTotalsByGrouping,
 } from 'src/application/mappers/monthlySummaryForecastMapper';
+
+import {
+  MONTH_INDEX_TO_KEY,
+  WORKING_DAYS_PER_MONTH,
+} from 'src/application/types/usecases/schedule/monthlySummary.types';
+
+import { Injectable } from '@nestjs/common';
 import {
   DailyForecastSummaryTotals,
   DailySummaryEntryForecast,
@@ -10,13 +17,7 @@ import {
   MonthlyCapacityMetricsForecast,
   UniqueWorksFinancialForecast,
   WorkOrderMetricsForecast,
-} from 'src/interface/types/schedule/monthlySummaryForecastInterface';
-import {
-  MONTH_INDEX_TO_KEY,
-  WORKING_DAYS_PER_MONTH,
-} from 'src/interface/types/schedule/monthlySummaryInterface';
-
-import { Injectable } from '@nestjs/common';
+} from 'src/application/types';
 
 export type MonthKey =
   | 'jan'

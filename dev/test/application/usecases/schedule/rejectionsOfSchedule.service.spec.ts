@@ -1,4 +1,4 @@
-import { REJECTION_OF_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IRejectionsOfSchedules';
+import { REJECTION_OF_SCHEDULES_REPOSITORY } from 'src/domain/contracts/schedule/IRejectionsOfSchedules';
 
 import { Test } from '@nestjs/testing';
 import { RejectionsOfSchedulesService } from 'src/application/usecases/schedule/rejectionOfSchedules.service';

@@ -2,13 +2,11 @@ import { ExecutionReport } from 'src/domain/entities/executionReport.entity';
 import {
   EXECUTION_REPORT_REPOSITORY,
   IExecutionReportRepository,
-} from 'src/domain/repositories/IExecutionReportRepository';
+} from 'src/domain/contracts/IExecutionReportRepository';
 import {
   FIND_SCHEDULE_BY_ID_REPOSITORY,
   IFindScheduleByIdRepository,
-} from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
-// import { ExecutionReportDataDTO } from 'src/interface/dtos/executionReportDTO';
-import { ExecutionReportServiceInterface } from 'src/interface/types/executionReportInterface';
+} from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
 
 import {
   BadRequestException,
@@ -18,6 +16,11 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { FileService } from './file.service';
+import { AppLogger } from 'src/core/logger/logger.service';
+import {
+  CreateExecutionReportInput,
+  UpdateExecutionReportInput,
+} from '../types';
 
 @Injectable()
 export class ExecutionReportService {
@@ -27,6 +30,7 @@ export class ExecutionReportService {
     @Inject(FIND_SCHEDULE_BY_ID_REPOSITORY)
     private readonly findScheduleByIdRepository: IFindScheduleByIdRepository,
     private readonly fileService: FileService,
+    private readonly logger: AppLogger,
   ) {}
 
   async findByWorkId(idWork: number) {
@@ -37,7 +41,7 @@ export class ExecutionReportService {
     const result = await this.executionReportRepository.findByWorkId(idWork);
 
     const formatted = result.map((item) => ({
-      nome_usuario: item.usuario?.nome_usuario,
+      nome_usuario: item.usuario?.nome,
       ovnota: item.obras?.ovnota,
       ordem_dci: item.obras?.ordem_dci,
       tipo_obra: item.obras?.tipos?.tipo_obra,
@@ -61,7 +65,7 @@ export class ExecutionReportService {
   }
 
   async create(
-    data: ExecutionReportServiceInterface,
+    data: CreateExecutionReportInput,
     scheduledFinishTime: Date,
     files: Express.Multer.File[],
     tx: Prisma.TransactionClient,
@@ -92,20 +96,24 @@ export class ExecutionReportService {
         tx,
       );
     } catch (error) {
-      if (files?.length) {
-        for (const file of files) {
-          this.fileService.deleteFile(
-            `${process.env.UPLOAD_AS_BUILD}/${file.path}`,
-          );
-        }
-      }
+      this.cleanupFiles(files);
+
+      this.logger.errorWithMetadata(
+        'Falha ao persistir relatório de execução',
+        {
+          method: 'create',
+          idSchedule: data.idSchedule,
+          error,
+        },
+      );
+
       throw error;
     }
   }
 
   async update(
     idExecutionReport: number,
-    data: any,
+    data: UpdateExecutionReportInput,
     files?: Express.Multer.File[],
   ) {
     if (!data) {
@@ -147,17 +155,17 @@ export class ExecutionReportService {
         updatedData,
         scheduledFinishTime.hora_ter,
       );
-    } catch (error: any) {
-      if (files?.length) {
-        for (const file of files) {
-          this.fileService.deleteFile(
-            `${process.env.UPLOAD_AS_BUILD}/${file.path}`,
-          );
-        }
-      }
-      throw new BadRequestException(
-        `Erro ao criar relatório: ${error.message}`,
-      );
+    } catch (error: unknown) {
+      const err = error as { message: string };
+      this.cleanupFiles(files);
+
+      this.logger.error('Falha ao instanciar ExecutionReport para update', {
+        method: 'update',
+        idExecutionReport,
+        error,
+      });
+
+      throw new BadRequestException(`Erro ao criar relatório: ${err.message}`);
     }
 
     await this.executionReportRepository.update(
@@ -192,5 +200,15 @@ export class ExecutionReportService {
     }
 
     await this.executionReportRepository.delete(id, report.id_programacao);
+  }
+
+  private cleanupFiles(files?: Express.Multer.File[]): void {
+    if (!files?.length) return;
+
+    for (const file of files) {
+      this.fileService.deleteFile(
+        `${process.env.UPLOAD_AS_BUILD}/${file.path}`,
+      );
+    }
   }
 }

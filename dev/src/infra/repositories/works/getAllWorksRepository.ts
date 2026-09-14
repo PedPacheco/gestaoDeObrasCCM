@@ -1,13 +1,14 @@
-import { IGetAllWorksRepository } from 'src/domain/repositories/works/IGetAllWorksRepository';
+import { IGetAllWorksRepository } from 'src/domain/contracts/works/IGetAllWorksRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetAllWorksDTO } from 'src/interface/dtos/worksDto';
 
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import {
-  GetAllWorksInterface,
-  getALlWorksResponseRepository,
-} from 'src/interface/types/works/getAllWorks';
+  GetAllWorksItem,
+  GetAllWorksRepositoryResponse,
+} from 'src/domain/types';
+import { GetAllWorksInput } from 'src/application/types';
 
 @Injectable()
 export class GetAllWorksRepository implements IGetAllWorksRepository {
@@ -56,8 +57,8 @@ export class GetAllWorksRepository implements IGetAllWorksRepository {
   }
 
   async getAllWorks(
-    filters: GetAllWorksDTO,
-  ): Promise<getALlWorksResponseRepository> {
+    filters: GetAllWorksInput,
+  ): Promise<GetAllWorksRepositoryResponse> {
     const { page } = filters;
 
     const baseQuery = Prisma.sql`FROM construcao_sp.obras 
@@ -85,7 +86,7 @@ export class GetAllWorksRepository implements IGetAllWorksRepository {
     }
 
     const [works, total] = await Promise.all([
-      this.prisma.$queryRaw<GetAllWorksInterface[]>(query),
+      this.prisma.$queryRaw<GetAllWorksItem[]>(query),
       this.prisma.$queryRaw<{ total_obras: number }[]>(queryCount),
     ]);
 

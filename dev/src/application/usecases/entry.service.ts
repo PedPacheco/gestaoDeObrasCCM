@@ -2,14 +2,17 @@ import moment from 'moment';
 import {
   ENTRY_REPOSITORY,
   IEntryRepository,
-} from 'src/domain/repositories/IEntryRepository';
-import {
-  GetEntryOfWorksByDayDTO,
-  GetEntryOfWorksDTO,
-} from 'src/interface/dtos/entryDto';
-import { ReturnGetValuesFromEntry } from 'src/interface/types/entryInterface';
+} from 'src/domain/contracts/IEntryRepository';
+import { EntryDayResponse } from 'src/domain/types';
 
 import { Inject, Injectable } from '@nestjs/common';
+
+import {
+  GetEntryOfWorksByDayInput,
+  GetEntryOfWorksByDayOutput,
+  GetEntryOfWorksInput,
+  GetValuesFromEntryOutput,
+} from '../types';
 
 @Injectable()
 export class EntryService {
@@ -18,8 +21,8 @@ export class EntryService {
   ) {}
 
   async getValuesFromEntry(
-    filters: GetEntryOfWorksDTO,
-  ): Promise<ReturnGetValuesFromEntry[]> {
+    filters: GetEntryOfWorksInput,
+  ): Promise<GetValuesFromEntryOutput[]> {
     const obras = await this.entryRepository.getValuesFromEntry(filters);
 
     const monthAbbreviations: { [key: number]: string } = {
@@ -73,7 +76,9 @@ export class EntryService {
     return Object.values(result);
   }
 
-  async getEntryOfWorksByDay(filters: GetEntryOfWorksByDayDTO) {
+  async getEntryOfWorksByDay(
+    filters: GetEntryOfWorksByDayInput,
+  ): Promise<GetEntryOfWorksByDayOutput> {
     const { dataFinal, dataInicial } = filters;
 
     const dateRange = {
@@ -90,7 +95,7 @@ export class EntryService {
     let total_mo_planejada = 0;
     let total_qtde_planejada = 0;
 
-    const updatedWorks = result.map((item: any) => {
+    const updatedWorks = result.map((item: EntryDayResponse) => {
       total_obras++;
       total_mo_planejada += item.mo_planejada;
       total_qtde_planejada += item.qtde_planejada;
@@ -113,9 +118,9 @@ export class EntryService {
         qtde_planejada: item.qtde_planejada,
         mo_planejada: item.mo_planejada,
         observ_obra: item.observ_obra,
-        tipos: item.tipos,
-        turmas: item.turmas,
-        municipios: item.municipios,
+        tipos: item.tipos.tipo_obra,
+        turmas: item.turmas.turma,
+        municipios: item.municipios.mun,
       };
     });
 

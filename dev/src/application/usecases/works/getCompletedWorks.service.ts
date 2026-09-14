@@ -1,15 +1,15 @@
 import {
   GET_COMPLETED_WORKS_REPOSITORY,
   IGetCompletedWorksRepository,
-} from 'src/domain/repositories/works/IGetCompletedWorksRepository';
-import { GetWorksDTO } from 'src/interface/dtos/worksDto';
-import {
-  totalsWorksInPortfolio,
-  worksInPortfolioResponseService,
-} from 'src/interface/types/works/getWorksInPortfolioInterface';
+} from 'src/domain/contracts/works/IGetCompletedWorksRepository';
 
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
+import { WorkFiltersInput } from 'src/application/types';
+import {
+  CompletedWorksRepositoryResponse,
+  CompletedWorkTotals,
+} from 'src/domain/types';
 
 @Injectable()
 export class GetCompletedWorksService {
@@ -19,10 +19,10 @@ export class GetCompletedWorksService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async getCompletedWorks(filters: GetWorksDTO) {
+  async getCompletedWorks(filters: WorkFiltersInput) {
     const cacheKey = `completedWorks-${JSON.stringify(filters)}`;
 
-    const responseData: worksInPortfolioResponseService =
+    const responseData: CompletedWorksRepositoryResponse =
       await this.cacheManager.get(cacheKey);
 
     if (responseData) {
@@ -32,7 +32,7 @@ export class GetCompletedWorksService {
     const { works, totals } =
       await this.getCompletedWorksRepository.getCompletedWorks(filters);
 
-    const totalsFormatted: totalsWorksInPortfolio = {
+    const totalsFormatted: CompletedWorkTotals = {
       total_obras: Number(totals[0].total_obras),
       total_mo_planejada: totals[0].total_mo_planejada || 0,
       total_mo_exec: totals[0].total_mo_exec || 0,
@@ -40,7 +40,7 @@ export class GetCompletedWorksService {
       total_qtde_pend: totals[0].total_qtde_pend || 0,
     };
 
-    const response: worksInPortfolioResponseService = {
+    const response: CompletedWorksRepositoryResponse = {
       works,
       totals: totalsFormatted,
     };

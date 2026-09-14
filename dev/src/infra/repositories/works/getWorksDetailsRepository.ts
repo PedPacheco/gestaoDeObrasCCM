@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { IGetWorksDetailsRepository } from 'src/domain/repositories/works/IGetWorksDetailsRepository';
+import { IGetWorksDetailsRepository } from 'src/domain/contracts/works/IGetWorksDetailsRepository';
+import { WorkDetailsRepositoryResponse } from 'src/domain/types';
+
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { GetWorksDetailsResponse } from 'src/interface/types/works/getWorksDetailsInterface';
 
 @Injectable()
 export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async get(id: number): Promise<GetWorksDetailsResponse> {
+  async get(id: number): Promise<WorkDetailsRepositoryResponse> {
     const value = id.toString();
 
     return await this.prisma.obras.findFirst({

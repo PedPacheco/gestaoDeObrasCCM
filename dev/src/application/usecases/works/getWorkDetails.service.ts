@@ -1,10 +1,11 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { TeamCounterService } from 'src/domain/services/teamCounter.service';
+import { QueriesServicesService } from '../services/queriesServices.service';
 import {
   GET_WORKS_DETAILS_REPOSITORY,
   IGetWorksDetailsRepository,
-} from 'src/domain/repositories/works/IGetWorksDetailsRepository';
-import { TeamCounterService } from 'src/domain/services/teamCounter.service';
-import { QueriesServicesService } from '../services/queriesServices.service';
+} from 'src/domain/contracts/works/IGetWorksDetailsRepository';
+import { WorkDetailsOutput } from 'src/application/types';
 
 @Injectable()
 export class GetWorkDetailsService {
@@ -14,7 +15,7 @@ export class GetWorkDetailsService {
     private readonly workServicesQueryService: QueriesServicesService,
   ) {}
 
-  async get(id: number) {
+  async get(id: number): Promise<WorkDetailsOutput> {
     const [work, services] = await Promise.all([
       await this.getWorksDetailsRepository.get(id),
       await this.workServicesQueryService.getAllItems(id),
@@ -45,7 +46,7 @@ export class GetWorkDetailsService {
       },
     );
 
-    const response = {
+    const response: WorkDetailsOutput = {
       ...workData,
       data_envio: relatorio_viabilidade?.data_envio ?? null,
       prazo_viabilidade:

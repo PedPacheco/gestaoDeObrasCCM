@@ -1,6 +1,10 @@
-import { IEquipmentRepository } from 'src/domain/repositories/IEquipmentRepository';
+import { IEquipmentRepository } from 'src/domain/contracts/IEquipmentRepository';
 import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
+import {
+  FindEquipmentByCodeResponse,
+  FindWithoutLocationRawResponse,
+} from 'src/domain/types';
 
 @Injectable()
 export class EquipmentRepository implements IEquipmentRepository {
@@ -32,7 +36,9 @@ export class EquipmentRepository implements IEquipmentRepository {
     return this.prisma.obras.count({ where });
   }
 
-  async findEquipmentByCode(codigos: string[]) {
+  async findEquipmentByCode(
+    codigos: string[],
+  ): Promise<FindEquipmentByCodeResponse[]> {
     return this.prisma.equipamentos.findMany({
       where: { codigo_instalacao: { in: codigos } },
       select: {
@@ -44,7 +50,9 @@ export class EquipmentRepository implements IEquipmentRepository {
     });
   }
 
-  async findWithoutLocationRaw(where: any) {
+  async findWithoutLocationRaw(
+    where: any,
+  ): Promise<FindWithoutLocationRawResponse[]> {
     return this.prisma.obras.findMany({
       where,
       select: {

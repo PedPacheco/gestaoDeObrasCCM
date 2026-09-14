@@ -1,16 +1,19 @@
+import {
+  FinalizeServicesData,
+  PerformServicesInput,
+} from 'src/application/types';
+import { IWorkServicesExecutionRepository } from 'src/domain/contracts/worksService/IWorkServicesExecutionRepository';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-
-import { IWorkServicesExecutionRepository } from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
 
 @Injectable()
 export class WorkServicesExeutionRepository implements IWorkServicesExecutionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async finalizeServices(
-    data: any,
+    data: FinalizeServicesData,
     tx: Prisma.TransactionClient,
   ): Promise<void> {
     const { id, prog, exec, idExecutionRestriction, responsibility, userId } =
@@ -60,7 +63,7 @@ export class WorkServicesExeutionRepository implements IWorkServicesExecutionRep
     });
   }
 
-  async performServices(data: PerformServicesDTO[]): Promise<void> {
+  async performServices(data: PerformServicesInput[]): Promise<void> {
     const BATCH_SIZE = 50;
 
     await this.prisma.$transaction(

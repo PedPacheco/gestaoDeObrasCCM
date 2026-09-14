@@ -2,7 +2,7 @@ import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
 
 import { Injectable } from '@nestjs/common';
-import { ExportServicesExcelOutput } from 'src/interface/types/servicesInterface';
+import { ExportServicesExcelOutput } from 'src/domain/types';
 
 @Injectable()
 export class ExportExcelServicesService {

@@ -1,23 +1,20 @@
-import { MarketWork } from 'src/domain/entities/works.entity';
+import {
+  AuxiliaryBaseMarketResponse,
+  AuxiliaryBaseNotesResponse,
+  InsertAuxiliaryMarketInput,
+  NotesInput,
+  OperationType,
+} from 'src/application/types';
 import {
   AUXILIARY_BASE_REPOSITORY,
   IAuxiliaryBaseRepository,
-} from 'src/domain/repositories/IAuxiliaryBaseRepository';
-import {
-  InsertBaseAuxiliaryMarketDTO,
-  NotesDTO,
-} from 'src/interface/dtos/auxiliaryBaseDTO';
-import { OperationType } from 'src/interface/types/baseAuxiliaryInterface';
-import { InsertNotes } from 'src/interface/types/works/insertNotesInterface';
+} from 'src/domain/contracts/IAuxiliaryBaseRepository';
+import { MarketWork } from 'src/domain/entities/works.entity';
 
 import { Inject, Injectable } from '@nestjs/common';
 
 import { AuxiliaryMarketInsertService } from './auxiliaryBaseInsertMarket.service';
 import { AuxiliaryNotesInsertService } from './auxiliaryBaseInsertNotes.service';
-
-export interface DataAuxiliaryNotes {
-  notesData: NotesDTO[];
-}
 
 @Injectable()
 export class AuxiliaryBaseService {
@@ -28,7 +25,7 @@ export class AuxiliaryBaseService {
     private readonly auxiliaryMarketInsertService: AuxiliaryMarketInsertService,
   ) {}
 
-  async getNotes(idRegional?: number): Promise<InsertNotes[]> {
+  async getNotes(idRegional?: number): Promise<AuxiliaryBaseNotesResponse[]> {
     const notes =
       await this.auxiliaryBaseRepository.getAuxiliaryBaseNotes(idRegional);
 
@@ -58,7 +55,7 @@ export class AuxiliaryBaseService {
     }));
   }
 
-  async getMarket(idRegional?: number): Promise<any> {
+  async getMarket(idRegional?: number): Promise<AuxiliaryBaseMarketResponse[]> {
     const works =
       await this.auxiliaryBaseRepository.getAuxiliaryBaseMarket(idRegional);
 
@@ -92,7 +89,7 @@ export class AuxiliaryBaseService {
   }
 
   async insertAuxiliaryBaseNotes(
-    data: NotesDTO[],
+    data: NotesInput[],
     operation: OperationType,
   ): Promise<{
     insertedCount: number;
@@ -102,7 +99,7 @@ export class AuxiliaryBaseService {
   }
 
   async insertAuxiliaryBaseMarket(
-    data: InsertBaseAuxiliaryMarketDTO[],
+    data: InsertAuxiliaryMarketInput[],
     operation: OperationType,
   ) {
     return this.auxiliaryMarketInsertService.execute(data, operation);

@@ -1,17 +1,22 @@
+import {
+  CapexInsertItem,
+  InsertAuxiliaryMarketInput,
+  NoteInsertInput,
+} from 'src/application/types';
+import { AppLogger } from 'src/core/logger/logger.service';
+import { IAuxiliaryBaseRepository } from 'src/domain/contracts/IAuxiliaryBaseRepository';
 import { MarketWork } from 'src/domain/entities/works.entity';
-import { IAuxiliaryBaseRepository } from 'src/domain/repositories/IAuxiliaryBaseRepository';
+import {
+  GetAuxiliaryBaseMaterialsResponse,
+  GetAuxiliaryBaseNotesResponse,
+} from 'src/domain/types';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { InsertBaseAuxiliaryMarketDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
 
-import { Injectable, Logger } from '@nestjs/common';
-import { GetAuxiliaryBaseMaterialsInterface } from 'src/interface/types/works/capexInterface';
-import { InsertNotesInterface } from 'src/interface/types/baseAuxiliaryInterface';
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
-  private readonly logger = new Logger(AuxiliaryBaseRepository.name);
-
   // Máximo de registros por chamada de createMany.
   // 200 é conservador porque o createMany gera um único INSERT com todos
   // os valores inline — muito mais pesado em bytes do que um UPDATE.
@@ -20,7 +25,10 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
   // Tentativas em caso de queda de conexão transitória.
   private readonly MAX_RETRIES = 3;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: AppLogger,
+  ) {}
 
   // ─── Retry helper ─────────────────────────────────────────────────────────
 
@@ -46,20 +54,27 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     for (let attempt = 1; attempt <= this.MAX_RETRIES; attempt++) {
       try {
         return await operation();
-      } catch (error: any) {
-        const msg: string = (error?.message ?? '').toLowerCase();
-        const code: string = error?.code ?? '';
+      } catch (error: unknown) {
+        const err = error as {
+          message?: string;
+          code?: string;
+        };
+
+        const msg = (err.message ?? '').toLowerCase();
+        const code = err.code ?? '';
 
         const isConnectionError =
           CONNECTION_ERROR_CODES.has(code) ||
           CONNECTION_ERROR_MESSAGES.some((m) => msg.includes(m));
 
         if (isConnectionError && attempt < this.MAX_RETRIES) {
-          const delayMs = 300 * 2 ** (attempt - 1); // 300ms, 600ms, 1200ms…
+          const delayMs = 300 * 2 ** (attempt - 1);
+
           this.logger.warn(
-            `Operação Tentativa ${attempt}/${this.MAX_RETRIES} falhou (${error.message}). ` +
+            `Operação Tentativa ${attempt}/${this.MAX_RETRIES} falhou (${err.message}). ` +
               `Aguardando ${delayMs}ms antes de tentar novamente.`,
           );
+
           await new Promise((res) => setTimeout(res, delayMs));
           continue;
         }
@@ -71,7 +86,9 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
 
   // ─── Métodos existentes (inalterados) ─────────────────────────────────────
 
-  async getAuxiliaryBaseNotes(idRegional?: number): Promise<any[]> {
+  async getAuxiliaryBaseNotes(
+    idRegional?: number,
+  ): Promise<GetAuxiliaryBaseNotesResponse[]> {
     return await this.prisma.base_auxiliar.findMany({
       where: { municipios: { id_regional: idRegional || undefined } },
       select: {
@@ -148,11 +165,10 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     );
   }
 
-  async getAuxiliaryBaseCN52N(): Promise<GetAuxiliaryBaseMaterialsInterface[]> {
-    try {
-      const result = await this.prisma.$queryRawUnsafe<
-        GetAuxiliaryBaseMaterialsInterface[]
-      >(`
+  async getAuxiliaryBaseCN52N(): Promise<GetAuxiliaryBaseMaterialsResponse[]> {
+    const result = await this.prisma.$queryRawUnsafe<
+      GetAuxiliaryBaseMaterialsResponse[]
+    >(`
       SELECT 
         id_obra,
         obras.ovnota,
@@ -171,10 +187,7 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
       INNER JOIN construcao_sp.obras ON obras.id = cn52n.id_obra
     `);
 
-      return result;
-    } catch (error) {
-      throw error;
-    }
+    return result;
   }
 
   async getFator(
@@ -214,138 +227,6 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     return fatorMap;
   }
 
-  async delete(tableToDelete: string, id?: number): Promise<any> {
-    try {
-      if (tableToDelete === 'baseOv') {
-        if (id) {
-          return await this.prisma.base_auxiliar_ov.delete({ where: { id } });
-        }
-        return await this.prisma.base_auxiliar_ov.deleteMany();
-      }
-
-      if (id) {
-        return await this.prisma.base_auxiliar.delete({ where: { id } });
-      } else {
-        return await this.prisma.base_auxiliar.deleteMany();
-      }
-    } catch (error: any) {
-      this.logger.error('Erro ao excluir obra: ', error.stack);
-      throw error;
-    }
-  }
-
-  async insertMarket(data: InsertBaseAuxiliaryMarketDTO[]): Promise<void> {
-    try {
-      const [municipios, tipos, circuitos] = await Promise.all([
-        this.prisma.municipios.findMany({ select: { id: true, mun: true } }),
-        this.prisma.tipos.findMany({
-          select: { id: true, descricao_sap: true },
-        }),
-        this.prisma.circuitos.findMany({
-          select: { id: true, circuito: true },
-        }),
-      ]);
-
-      const municipioMap = new Map(municipios.map((m) => [m.mun, m.id]));
-      const tipoMap = new Map(tipos.map((t) => [t.descricao_sap, t.id]));
-      const circuitoMap = new Map(circuitos.map((c) => [c.circuito, c.id]));
-
-      const marketWorks = data.map((item) => {
-        const aux_municipio = municipioMap.get(item.gpm) ?? 1;
-        const aux_tipo_obra = tipoMap.get(item.tipo) ?? 1;
-        const aux_circuito = circuitoMap.get(item.circuito) ?? 1;
-
-        return {
-          obra: item.obra,
-          pep: item.pep,
-          diagrama: item.diagrama,
-          gpm: item.gpm,
-          tipo: item.tipo,
-          circuito: item.circuito,
-          prazo_texto: item.prazoTexto,
-          status_ov: Number(item.statusOv),
-          status_diagrama: item.statusDiagrama,
-          status_pep: item.statusPep,
-          equip_num_pedido: item.equipeNumPedido,
-          mo_cliente: item.moCliente,
-          mo_empresa: item.moEmpresa,
-          entrada: new Date(item.entrada),
-          aux_municipio,
-          aux_tipo_obra,
-          aux_circuito,
-          aux_turma: 1,
-        };
-      });
-
-      await this.prisma.base_auxiliar_ov.createMany({
-        data: marketWorks,
-        skipDuplicates: true,
-      });
-    } catch (error: any) {
-      this.logger.error(
-        'Erro ao inserir dados da base auxiliar OV:',
-        error.stack,
-      );
-      throw new Error('Falha ao inserir dados da base auxiliar OV');
-    }
-  }
-
-  async insertNotes(data: InsertNotesInterface[]): Promise<any> {
-    try {
-      const rows = data.map(
-        (item) => Prisma.sql`
-        ROW(
-        ${item.campo_ordenacao},
-        ${item.pep},
-        ${item.ordem_dci},
-        ${item.ordem_dcd},
-        ${item.ordem_dca},
-        ${item.ordem_dcim},
-        ${item.conjunto},
-        ${item.grp_plnj_pm},
-        ${item.texto_breve},
-        ${item.denominacao},
-        ${item.ehRda}
-        )::construcao_sp.base_auxiliar_input
-        `,
-      );
-
-      const query = Prisma.sql`SELECT construcao_sp.insert_base_auxiliar_bulk(ARRAY[${Prisma.join(rows)}]::construcao_sp.base_auxiliar_input[])`;
-
-      await this.prisma.$executeRaw(query);
-
-      return { message: 'Dados inseridos com sucesso' };
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  /**
-   * Insere registros na tabela cn52n em mini-batches de INSERT_BATCH_SIZE.
-   *
-   * Por que não um único createMany?
-   * O Prisma/SQL Server transforma createMany em um único INSERT com todos
-   * os valores inline. Com 1 000 registros e ~15 colunas cada, o statement
-   * pode facilmente ultrapassar os limites de pacote/timeout do servidor,
-   * causando "Server has closed the connection".
-   *
-   * Cada mini-batch roda com retry + backoff exponencial para absorver
-   * quedas de conexão transitórias sem derrubar o job inteiro.
-   */
-  async insertCapex(data: any[]): Promise<void> {
-    for (let i = 0; i < data.length; i += this.INSERT_BATCH_SIZE) {
-      const batch = data.slice(i, i + this.INSERT_BATCH_SIZE);
-
-      await this.withRetry(() =>
-        this.prisma.cn52n.createMany({ data: batch, skipDuplicates: true }),
-      );
-    }
-  }
-
-  async truncateCN52N(): Promise<void> {
-    await this.prisma.$executeRawUnsafe(`TRUNCATE TABLE cn52n`);
-  }
-
   async getObraIdsByDiagramas(
     diagramas: string[],
   ): Promise<Map<string, number>> {
@@ -372,5 +253,118 @@ export class AuxiliaryBaseRepository implements IAuxiliaryBaseRepository {
     });
 
     return map;
+  }
+
+  async delete(tableToDelete: string, id?: number): Promise<void> {
+    if (tableToDelete === 'baseOv') {
+      if (id) {
+        await this.prisma.base_auxiliar_ov.delete({ where: { id } });
+      }
+      await this.prisma.base_auxiliar_ov.deleteMany();
+    }
+
+    if (id) {
+      await this.prisma.base_auxiliar.delete({ where: { id } });
+    } else {
+      await this.prisma.base_auxiliar.deleteMany();
+    }
+  }
+
+  async insertMarket(data: InsertAuxiliaryMarketInput[]): Promise<void> {
+    const [municipios, tipos, circuitos] = await Promise.all([
+      this.prisma.municipios.findMany({ select: { id: true, mun: true } }),
+      this.prisma.tipos.findMany({
+        select: { id: true, descricao_sap: true },
+      }),
+      this.prisma.circuitos.findMany({
+        select: { id: true, circuito: true },
+      }),
+    ]);
+
+    const municipioMap = new Map(municipios.map((m) => [m.mun, m.id]));
+    const tipoMap = new Map(tipos.map((t) => [t.descricao_sap, t.id]));
+    const circuitoMap = new Map(circuitos.map((c) => [c.circuito, c.id]));
+
+    const marketWorks = data.map((item) => {
+      const aux_municipio = municipioMap.get(item.gpm) ?? 1;
+      const aux_tipo_obra = tipoMap.get(item.tipo) ?? 1;
+      const aux_circuito = circuitoMap.get(item.circuito) ?? 1;
+
+      return {
+        obra: item.obra,
+        pep: item.pep,
+        diagrama: item.diagrama,
+        gpm: item.gpm,
+        tipo: item.tipo,
+        circuito: item.circuito,
+        prazo_texto: item.prazoTexto,
+        status_ov: Number(item.statusOv),
+        status_diagrama: item.statusDiagrama,
+        status_pep: item.statusPep,
+        equip_num_pedido: item.equipeNumPedido,
+        mo_cliente: item.moCliente,
+        mo_empresa: item.moEmpresa,
+        entrada: new Date(item.entrada),
+        aux_municipio,
+        aux_tipo_obra,
+        aux_circuito,
+        aux_turma: 1,
+      };
+    });
+
+    await this.prisma.base_auxiliar_ov.createMany({
+      data: marketWorks,
+      skipDuplicates: true,
+    });
+  }
+
+  async insertNotes(data: NoteInsertInput[]): Promise<void> {
+    const rows = data.map(
+      (item) => Prisma.sql`
+        ROW(
+        ${item.campo_ordenacao},
+        ${item.pep},
+        ${item.ordem_dci},
+        ${item.ordem_dcd},
+        ${item.ordem_dca},
+        ${item.ordem_dcim},
+        ${item.conjunto},
+        ${item.grp_plnj_pm},
+        ${item.texto_breve},
+        ${item.denominacao},
+        ${item.ehRda}
+        )::construcao_sp.base_auxiliar_input
+        `,
+    );
+
+    const query = Prisma.sql`SELECT construcao_sp.insert_base_auxiliar_bulk(ARRAY[${Prisma.join(rows)}]::construcao_sp.base_auxiliar_input[])`;
+
+    await this.prisma.$executeRaw(query);
+  }
+
+  /**
+   * Insere registros na tabela cn52n em mini-batches de INSERT_BATCH_SIZE.
+   *
+   * Por que não um único createMany?
+   * O Prisma/SQL Server transforma createMany em um único INSERT com todos
+   * os valores inline. Com 1 000 registros e ~15 colunas cada, o statement
+   * pode facilmente ultrapassar os limites de pacote/timeout do servidor,
+   * causando "Server has closed the connection".
+   *
+   * Cada mini-batch roda com retry + backoff exponencial para absorver
+   * quedas de conexão transitórias sem derrubar o job inteiro.
+   */
+  async insertCapex(data: CapexInsertItem[]): Promise<void> {
+    for (let i = 0; i < data.length; i += this.INSERT_BATCH_SIZE) {
+      const batch = data.slice(i, i + this.INSERT_BATCH_SIZE);
+
+      await this.withRetry(() =>
+        this.prisma.cn52n.createMany({ data: batch, skipDuplicates: true }),
+      );
+    }
+  }
+
+  async truncateCN52N(): Promise<void> {
+    await this.prisma.$executeRawUnsafe(`TRUNCATE TABLE cn52n`);
   }
 }

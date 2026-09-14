@@ -1,9 +1,16 @@
-import { IForecastSnapshotRepository } from 'src/domain/repositories/IForecastSnapshotRepository';
+import { IForecastSnapshotRepository } from 'src/domain/contracts/IForecastSnapshotRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { CreateForecastSnapshotDTO } from 'src/interface/dtos/forecastSnapshotDTO';
 
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import {
+  ForecastSnapshotDailyData,
+  ForecastSnapshotFilters,
+  ForecastSnapshotGetAllResponse,
+  ForecastSnapshotGetResponse,
+  ForecastSnapshotGroupData,
+} from 'src/domain/types';
 
 @Injectable()
 export class ForecastSnapshotRepository implements IForecastSnapshotRepository {
@@ -25,14 +32,23 @@ export class ForecastSnapshotRepository implements IForecastSnapshotRepository {
     });
   }
 
-  async get(id: number): Promise<any> {
-    return await this.prisma.forecast_snapshot.findUnique({
+  async get(id: number): Promise<ForecastSnapshotGetResponse> {
+    const snapshot = await this.prisma.forecast_snapshot.findUnique({
       where: { id },
     });
+
+    return {
+      ...snapshot,
+      filtros: snapshot.filtros as unknown as ForecastSnapshotFilters,
+      diario: snapshot.diario as ForecastSnapshotDailyData,
+      grupo: snapshot.grupo as ForecastSnapshotGroupData,
+    };
   }
 
-  async getAll(where: any): Promise<any> {
-    return await this.prisma.forecast_snapshot.findMany({
+  async getAll(where: {
+    gerado_em?: { lte: Date; gte: Date };
+  }): Promise<ForecastSnapshotGetAllResponse[]> {
+    const snapshots = await this.prisma.forecast_snapshot.findMany({
       where,
       select: {
         id: true,
@@ -40,5 +56,11 @@ export class ForecastSnapshotRepository implements IForecastSnapshotRepository {
         filtros: true,
       },
     });
+
+    return snapshots.map((snapshot) => ({
+      id: snapshot.id,
+      gerado_em: snapshot.gerado_em,
+      filtros: snapshot.filtros as unknown as ForecastSnapshotFilters,
+    }));
   }
 }

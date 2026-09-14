@@ -1,13 +1,25 @@
-import {
-  GET_SCHEDULE_VALUES_REPOSITORY,
-  IGetScheduleValuesRepository,
-} from 'src/domain/repositories/schedule/IGetScheduleValuesRepository';
-import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
-import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
-
 import { Inject, Injectable } from '@nestjs/common';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 import { QueriesServicesService } from '../services/queriesServices.service';
+import {
+  GET_SCHEDULE_VALUES_REPOSITORY,
+  IGetScheduleValuesRepository,
+} from 'src/domain/contracts/schedule/IGetScheduleValuesRepository';
+
+import {
+  CalculateCostPointByPointScheduleOutput,
+  GetScheduleValuesFormattedTotals,
+  GetScheduleValuesInput,
+  GetScheduleValuesOutput,
+  GetServiceScheduleHistoryByIdScheduleOutput,
+  ScheduleForecastInput,
+  ScheduleForecastOutput,
+  ScheduleRestrictionData,
+} from 'src/application/types';
+import {
+  GetScheduleValuesResponseItem,
+  GetScheduleValuesTotals,
+} from 'src/domain/types';
 
 @Injectable()
 export class GetScheduleValuesService {
@@ -19,8 +31,8 @@ export class GetScheduleValuesService {
   ) {}
 
   async getValues(
-    filters: GetScheduleValuesDTO,
-  ): Promise<GetScheduleValuesResponse> {
+    filters: GetScheduleValuesInput,
+  ): Promise<GetScheduleValuesOutput> {
     const { works, resultTotals } =
       await this.getScheduleValuesRepository.getValues(filters);
 
@@ -62,7 +74,7 @@ export class GetScheduleValuesService {
       };
     });
 
-    const response: GetScheduleValuesResponse = {
+    const response: GetScheduleValuesOutput = {
       works: worksWithRestrictionVerification,
       totals: totalsWithExecMedia,
     };
@@ -70,7 +82,9 @@ export class GetScheduleValuesService {
     return response;
   }
 
-  private calculateForecast(work: any) {
+  private calculateForecast(
+    work: ScheduleForecastInput,
+  ): ScheduleForecastOutput {
     const { prog, exec, executado, capex_mat_pend, capex_mo_pend } = work;
 
     const progRate = prog / 100;
@@ -94,7 +108,9 @@ export class GetScheduleValuesService {
     };
   }
 
-  private buildTotals(rawTotals: any) {
+  private buildTotals(
+    rawTotals: GetScheduleValuesTotals,
+  ): GetScheduleValuesFormattedTotals {
     if (!rawTotals) {
       return {
         total_obras: 0,
@@ -112,11 +128,11 @@ export class GetScheduleValuesService {
     };
   }
 
-  private calculateTotalExec(works: any[]) {
+  private calculateTotalExec(works: GetScheduleValuesResponseItem[]): number {
     return works.reduce((acc, work) => acc + work.exec, 0);
   }
 
-  private hasOpenRestriction(work: any): boolean {
+  private hasOpenRestriction(work: ScheduleRestrictionData): boolean {
     const {
       id_restricao_prog1,
       id_restricao_prog2,
@@ -146,7 +162,9 @@ export class GetScheduleValuesService {
     return restriction1Open || restriction2Open;
   }
 
-  private calculateCostPointByPointSchedule(data: any[]) {
+  private calculateCostPointByPointSchedule(
+    data: GetServiceScheduleHistoryByIdScheduleOutput[],
+  ): CalculateCostPointByPointScheduleOutput {
     return data.reduce(
       (acc, service) => {
         acc.planejado += service.qtdeProgramada * service.preco;
@@ -161,8 +179,13 @@ export class GetScheduleValuesService {
     );
   }
 
-  private groupByWorkId(services: any[]) {
-    const map = new Map<number, any>();
+  private groupByWorkId(
+    services: GetServiceScheduleHistoryByIdScheduleOutput[],
+  ) {
+    const map = new Map<
+      number,
+      GetServiceScheduleHistoryByIdScheduleOutput[]
+    >();
 
     for (const item of services) {
       const workId = item.idProg;

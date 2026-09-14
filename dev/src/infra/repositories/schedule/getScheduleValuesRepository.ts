@@ -1,21 +1,22 @@
 import moment from 'moment';
-import { IGetScheduleValuesRepository } from 'src/domain/repositories/schedule/IGetScheduleValuesRepository';
+
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
-import {
-  GetScheduleValuesInterface,
-  GetScheduleValuesResponseRepository,
-  totalsGetScheduleValues,
-} from 'src/interface/types/schedule/getScheduleValuesInterface';
 
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { IGetScheduleValuesRepository } from 'src/domain/contracts/schedule/IGetScheduleValuesRepository';
+import {
+  GetScheduleValuesResponseItem,
+  GetScheduleValuesTotals,
+  GetScheduleValuesRepositoryResponse,
+  GetScheduleFilters,
+} from 'src/domain/types';
 
 @Injectable()
 export class GetScheduleValuesRepository implements IGetScheduleValuesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  private applyFilters(query: Prisma.Sql, filters: GetScheduleValuesDTO) {
+  private applyFilters(query: Prisma.Sql, filters: GetScheduleFilters) {
     const {
       executado,
       idGrupo,
@@ -88,8 +89,8 @@ export class GetScheduleValuesRepository implements IGetScheduleValuesRepository
   }
 
   async getValues(
-    filters: GetScheduleValuesDTO,
-  ): Promise<GetScheduleValuesResponseRepository> {
+    filters: GetScheduleFilters,
+  ): Promise<GetScheduleValuesRepositoryResponse> {
     const { page } = filters;
     const baseQuery = Prisma.sql`FROM construcao_sp.obras
         INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
@@ -124,8 +125,8 @@ export class GetScheduleValuesRepository implements IGetScheduleValuesRepository
     }
 
     const [works, [resultTotals]] = await Promise.all([
-      this.prisma.$queryRaw<GetScheduleValuesInterface[]>(query),
-      this.prisma.$queryRaw<totalsGetScheduleValues[]>(countQuery),
+      this.prisma.$queryRaw<GetScheduleValuesResponseItem[]>(query),
+      this.prisma.$queryRaw<GetScheduleValuesTotals[]>(countQuery),
     ]);
 
     return { works, resultTotals };

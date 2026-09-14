@@ -3,7 +3,7 @@ import { Response } from 'express';
 import { ExportOrdersService } from 'src/application/usecases/export/exportOrders.service';
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { EXPORT_REPOSITORY } from 'src/domain/repositories/IExportRepository';
+import { EXPORT_REPOSITORY } from 'src/domain/contracts/IExportRepository';
 
 jest.mock('exceljs');
 

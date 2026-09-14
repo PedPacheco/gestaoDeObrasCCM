@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
+import { CreateExecutionReportInput } from 'src/application/types';
 import { EquipmentItem } from 'src/interface/dtos/executionReportDTO';
-import { ExecutionReportServiceInterface } from 'src/interface/types/executionReportInterface';
 import { parseTimeToDate } from 'src/utils/parseTimeToDate';
 
 export class ExecutionReport {
@@ -32,7 +32,7 @@ export class ExecutionReport {
   ) {}
 
   static create(
-    data: ExecutionReportServiceInterface,
+    data: CreateExecutionReportInput,
     scheduledFinishTime: Date,
   ): ExecutionReport {
     const instance = new ExecutionReport(

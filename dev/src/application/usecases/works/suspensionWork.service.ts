@@ -3,7 +3,7 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import {
   ISuspensionWorkRepository,
   SUSPENSION_WORK_REPOSITORY,
-} from 'src/domain/repositories/works/ISuspensionWorkRepository';
+} from 'src/domain/contracts/works/ISuspensionWorkRepository';
 import { SuspensionWorksDTO } from 'src/interface/dtos/worksDto';
 import { FindExistingWorksService } from './findExistingWorks.service';
 
@@ -15,7 +15,7 @@ export class SuspensionWorkService {
     private readonly findExistingWorksService: FindExistingWorksService,
   ) {}
 
-  async createSuspension(workId: number, reason: string) {
+  async createSuspension(workId: number, reason: string): Promise<void> {
     if (!reason?.trim()) {
       throw new BadRequestException('Motivo da suspensão é obrigatório');
     }
@@ -29,7 +29,7 @@ export class SuspensionWorkService {
     await this.suspensionWorkRepository.create(data);
   }
 
-  async createMultipleSuspensions(data: SuspensionWorksDTO[]) {
+  async createMultipleSuspensions(data: SuspensionWorksDTO[]): Promise<void> {
     if (!Array.isArray(data) || data.length === 0) {
       throw new BadRequestException('Nenhuma obra enviada para ser suspensa');
     }

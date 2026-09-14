@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IErrorsReportRepository } from 'src/domain/repositories/IErrorsReportRepository';
+import { IErrorsReportRepository } from 'src/domain/contracts/IErrorsReportRepository';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   DivergentConclusionResponse,
@@ -9,7 +9,7 @@ import {
   UndefinedItemsResponse,
   WorksWithoutYearPlanResponse,
   ZeroCapexResponse,
-} from 'src/interface/types/errorsReportInterface';
+} from 'src/domain/types';
 
 @Injectable()
 export class ErrorsReportRepository implements IErrorsReportRepository {
@@ -158,30 +158,26 @@ export class ErrorsReportRepository implements IErrorsReportRepository {
   async findRepeatedWorks(
     idRegional?: number,
   ): Promise<RepeatedWorksResponse[]> {
-    try {
-      return await this.prisma.obras.findMany({
-        select: {
-          id: true,
-          ovnota: true,
-          ordem_dci: true,
-          ordem_dca: true,
-          ordem_dcd: true,
-          ordem_dcim: true,
-          diagrama: true,
-        },
-        where: {
-          OR: [
-            { NOT: { diagrama: null } },
-            { NOT: { ordem_dci: null } },
-            { NOT: { ordem_dca: null } },
-            { NOT: { ordem_dcd: null } },
-            { NOT: { ordem_dcim: null } },
-          ],
-          ...(idRegional ? { municipios: { id_regional: idRegional } } : {}),
-        },
-      });
-    } catch (error: any) {
-      throw error;
-    }
+    return await this.prisma.obras.findMany({
+      select: {
+        id: true,
+        ovnota: true,
+        ordem_dci: true,
+        ordem_dca: true,
+        ordem_dcd: true,
+        ordem_dcim: true,
+        diagrama: true,
+      },
+      where: {
+        OR: [
+          { NOT: { diagrama: null } },
+          { NOT: { ordem_dci: null } },
+          { NOT: { ordem_dca: null } },
+          { NOT: { ordem_dcd: null } },
+          { NOT: { ordem_dcim: null } },
+        ],
+        ...(idRegional ? { municipios: { id_regional: idRegional } } : {}),
+      },
+    });
   }
 }

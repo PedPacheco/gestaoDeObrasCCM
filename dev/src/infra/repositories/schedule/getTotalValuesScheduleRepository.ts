@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { IGetTotalScheduleValuesRepository } from 'src/domain/repositories/schedule/IGetTotalValuesScheduleRepository';
+import { IGetTotalScheduleValuesRepository } from 'src/domain/contracts/schedule/IGetTotalValuesScheduleRepository';
+import { GetTotalValuesScheduleResponse } from 'src/domain/types/repositories/schedule/getTotalValuesSchedule.types';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetTotalValuesScheduleDTO } from 'src/interface/dtos/scheduleDTO';
-import { GetTotalValuesScheduleResponse } from 'src/interface/types/schedule/getTotalValuesScheduleInterface';
+
+import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class GetTotalValueScheduleRepository implements IGetTotalScheduleValuesRepository {

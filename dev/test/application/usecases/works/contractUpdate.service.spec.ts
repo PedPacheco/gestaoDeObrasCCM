@@ -1,5 +1,5 @@
 import { ContractUpdateService } from 'src/application/usecases/works/contractUpdate.service';
-import { CONTRACT_UPDATE_REPOSITORY } from 'src/domain/repositories/works/IContractUpdateRepository';
+import { CONTRACT_UPDATE_REPOSITORY } from 'src/domain/contracts/works/IContractUpdateRepository';
 
 import { Test, TestingModule } from '@nestjs/testing';
 

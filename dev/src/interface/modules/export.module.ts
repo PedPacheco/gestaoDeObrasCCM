@@ -1,7 +1,7 @@
 import { ExportExecutionCapacityService } from '../../application/usecases/export/exportExecutionCapacity.service';
 import { ExportCompletedWorksBIService } from 'src/application/usecases/export/BI/exportCompletedWorksBI.service';
 import { ExportWorksInPortfolioBI } from 'src/application/usecases/export/BI/exportWorkInPortfolioBI.service';
-import { EXPORT_REPOSITORY } from 'src/domain/repositories/IExportRepository';
+import { EXPORT_REPOSITORY } from 'src/domain/contracts/IExportRepository';
 import { ExportRepository } from 'src/infra/repositories/exportRepository';
 
 import { Module } from '@nestjs/common';

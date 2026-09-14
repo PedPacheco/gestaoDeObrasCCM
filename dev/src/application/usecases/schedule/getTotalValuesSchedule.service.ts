@@ -1,8 +1,11 @@
 import {
+  GetTotalValuesScheduleOutput,
+  GetTotalValuesSchedulesInput,
+} from 'src/application/types';
+import {
   GET_TOTAL_SCHEDULE_VALUES_REPOSITORY,
   IGetTotalScheduleValuesRepository,
-} from 'src/domain/repositories/schedule/IGetTotalValuesScheduleRepository';
-import { GetTotalValuesScheduleDTO } from 'src/interface/dtos/scheduleDTO';
+} from 'src/domain/contracts/schedule/IGetTotalValuesScheduleRepository';
 
 import { Inject, Injectable } from '@nestjs/common';
 
@@ -13,7 +16,9 @@ export class GetTotalValuesScheduleService {
     private readonly getTotalScheduleValuesRepository: IGetTotalScheduleValuesRepository,
   ) {}
 
-  async getTotalValues(filters: GetTotalValuesScheduleDTO) {
+  async getTotalValues(
+    filters: GetTotalValuesSchedulesInput,
+  ): Promise<GetTotalValuesScheduleOutput[]> {
     const response =
       await this.getTotalScheduleValuesRepository.getTotalValues(filters);
 

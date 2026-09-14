@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { RestrictionController } from '../controllers/restrictions.controller';
-import { RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/IRestrictionsRepository';
+import { RESTRICTIONS_REPOSITORY } from 'src/domain/contracts/IRestrictionsRepository';
 import { RestrictionsRepository } from 'src/infra/repositories/restrictionsRepository';
 import { UsersModule } from './users.module';
 import { RestrictionsService } from 'src/application/usecases/restrictions.service';

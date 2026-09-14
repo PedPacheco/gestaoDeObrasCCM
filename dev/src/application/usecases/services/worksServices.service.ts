@@ -1,12 +1,24 @@
 import {
+  AddServiceInput,
+  ApplyAdditionalInput,
+  ScheduleServicesInput,
+} from 'src/application/types';
+import {
+  FIND_SCHEDULE_BY_ID_REPOSITORY,
+  IFindScheduleByIdRepository,
+} from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
+import {
+  IWorkServicesQueryRepository,
+  WORK_SERVICES_QUERY_REPOSITORY,
+} from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
+import {
   IWorkServicesRepository,
   WORK_SERVICES_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesRepository';
-import {
-  AddServicesDTO,
-  ApplyAdditonalDTO,
-  ScheduleServicesDTO,
-} from 'src/interface/dtos/workServicesDTO';
+} from 'src/domain/contracts/worksService/IWorkServicesRepository';
+import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
+import { GetServicesByWorkIdResponse } from 'src/domain/types';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { isMaterial, ScheduleStatus } from 'src/utils/serviceType.utils';
 
 import {
   BadRequestException,
@@ -14,18 +26,7 @@ import {
   Injectable,
   Logger,
 } from '@nestjs/common';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import {
-  IWorkServicesQueryRepository,
-  WORK_SERVICES_QUERY_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
-import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
 import { Prisma } from '@prisma/client';
-import {
-  FIND_SCHEDULE_BY_ID_REPOSITORY,
-  IFindScheduleByIdRepository,
-} from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
-import { isMaterial, ScheduleStatus } from 'src/utils/serviceType.utils';
 
 @Injectable()
 export class WorksServicesService {
@@ -44,7 +45,7 @@ export class WorksServicesService {
 
   async scheduleServices(
     workId: number,
-    data: ScheduleServicesDTO[],
+    data: ScheduleServicesInput[],
   ): Promise<void> {
     if (data.length === 0) {
       throw new BadRequestException('Programação não enviada.');
@@ -80,7 +81,7 @@ export class WorksServicesService {
 
   async applyAdditional(
     workId: number,
-    data: ApplyAdditonalDTO[],
+    data: ApplyAdditionalInput[],
   ): Promise<void> {
     await this.prisma.$transaction(
       async (tx) => {
@@ -100,7 +101,7 @@ export class WorksServicesService {
   }
 
   async addItem(
-    data: AddServicesDTO,
+    data: AddServiceInput,
     type: 'service' | 'material',
   ): Promise<void> {
     const { idService, operationDescription, point, idWork } = data;
@@ -234,7 +235,7 @@ export class WorksServicesService {
 
   private async calculateScheduledProgress(
     workId: number,
-    servicesSelected: ScheduleServicesDTO[],
+    servicesSelected: ScheduleServicesInput[],
   ): Promise<number> {
     const services =
       await this.workServicesQueryRepository.getAllServicesOfWork(workId);
@@ -249,7 +250,9 @@ export class WorksServicesService {
     return this.calculateProgress(scheduledPlan, totalPlan);
   }
 
-  private sumServiceQuantities(services: any[]): number {
+  private sumServiceQuantities(
+    services: GetServicesByWorkIdResponse[],
+  ): number {
     return services
       .filter((item) => item.qtde_real !== 0 && !isMaterial(item))
       .reduce(
@@ -261,7 +264,7 @@ export class WorksServicesService {
 
   private async validateScheduleServices(
     workId: number,
-    data: ScheduleServicesDTO[],
+    data: ScheduleServicesInput[],
     progress?: number,
   ): Promise<void> {
     const scheduleIds = new Set(data.map((item) => item.idSchedule));

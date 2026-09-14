@@ -1,10 +1,10 @@
-import { UpdateWorkDTO } from 'src/interface/dtos/worksDto';
-
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { UpdateWorkInput } from 'src/application/types';
 import {
   IUpdateWorkRepository,
   UPDATE_WORK_REPOSITORY,
-} from 'src/domain/repositories/works/IUpdateWorkRepository';
+} from 'src/domain/contracts/works/IUpdateWorkRepository';
+
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
@@ -14,7 +14,11 @@ export class UpdateWorkService {
     private readonly updateWorkRepository: IUpdateWorkRepository,
   ) {}
 
-  async update(data: UpdateWorkDTO, id: number, tx: Prisma.TransactionClient) {
+  async update(
+    data: UpdateWorkInput,
+    id: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
     if (!data) {
       throw new BadRequestException(
         'Valores não inseridos para edição da obra.',

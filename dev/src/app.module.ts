@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_PIPE, Reflector } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 import { CustomExceptionFilter } from './core/error/customExpection.filter';
 import { AuthGuard } from './core/guards/auth.guard';
@@ -10,7 +11,6 @@ import { PrismaModule } from './infra/prisma/prisma.module';
 import { AdvancePartnerModule } from './interface/modules/advancePartner.module';
 import { AuthModule } from './interface/modules/auth.module';
 import { AuxiliaryBaseModule } from './interface/modules/auxiliaryBase.module';
-import { DashboardModule } from './interface/modules/dashboard.module';
 import { EntryModule } from './interface/modules/entry.module';
 import { EquipmentsModule } from './interface/modules/equipments.module';
 import { ErrorsReportModule } from './interface/modules/errorsReport.module';
@@ -21,12 +21,12 @@ import { FeasibilityModule } from './interface/modules/feasibility.module';
 import { FiltersModule } from './interface/modules/filters.module';
 import { ForecastModule } from './interface/modules/forecast.module';
 import { GoalsModule } from './interface/modules/goals.module';
+import { LoggerModule } from './interface/modules/logger.module';
 import { RestrictionsModule } from './interface/modules/restrictions.module';
 import { ScheduleModule } from './interface/modules/schedule.module';
 import { UsersModule } from './interface/modules/users.module';
 import { WorksModule } from './interface/modules/works.module';
 import { WorksServicesModule } from './interface/modules/worksServices.module';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -51,10 +51,10 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
     ExecutionCapacityModule,
     ErrorsReportModule,
     RestrictionsModule,
-    DashboardModule,
     EquipmentsModule,
     ForecastModule,
     AdvancePartnerModule,
+    LoggerModule,
     JwtModule.registerAsync({
       global: true,
       inject: [ConfigService],
@@ -82,11 +82,13 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
     },
     {
       provide: APP_PIPE,
-      useValue: new CustomValidationPipe({
-        transform: true,
-        whitelist: true,
-        forbidNonWhitelisted: true,
-      }),
+      useFactory: (reflector: Reflector) =>
+        new CustomValidationPipe(reflector, {
+          transform: true,
+          whitelist: true,
+          forbidNonWhitelisted: true,
+        }),
+      inject: [Reflector],
     },
   ],
 })

@@ -1,3 +1,4 @@
+import { Injectable } from '@nestjs/common';
 import {
   DailySummaryEntry,
   DailySummaryTotals,
@@ -5,9 +6,7 @@ import {
   GroupTeamSummaryEntry,
   MonthlyCapacityMetrics,
   WorkOrderMetrics,
-} from 'src/interface/types/schedule/monthlySummaryInterface';
-
-import { Injectable } from '@nestjs/common';
+} from '../types';
 
 @Injectable()
 export class MonthlySummaryMapper {

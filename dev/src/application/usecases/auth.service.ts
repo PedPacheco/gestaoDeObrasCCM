@@ -1,13 +1,10 @@
 import { compare, genSalt, hash } from 'bcrypt';
-import { User } from 'src/domain/entities/user.entity';
 import {
   AUTH_REPOSITORY,
   IAuthRepository,
-} from 'src/domain/repositories/IAuthRepository';
-import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
-import { loginInterfaceService } from 'src/interface/types/userInterface';
+} from 'src/domain/contracts/IAuthRepository';
+import { User } from 'src/domain/entities/user.entity';
 
-// import { generateRandomPassword } from 'src/utils/generatePassword';
 import {
   BadRequestException,
   Inject,
@@ -17,6 +14,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 
 import { UsersService } from './users.service';
+import { AuthLoginInput, AuthLoginOutput, RegisterUserInput } from '../types';
 
 @Injectable()
 export class AuthService {
@@ -26,10 +24,10 @@ export class AuthService {
     @Inject(AUTH_REPOSITORY) private authRepository: IAuthRepository,
   ) {}
 
-  async login(
-    username: string,
-    password: string,
-  ): Promise<loginInterfaceService> {
+  async login({
+    username,
+    password,
+  }: AuthLoginInput): Promise<AuthLoginOutput> {
     const result = await this.usersService.findUser(username);
 
     const invalidCredentialsException = new UnauthorizedException(
@@ -73,37 +71,31 @@ export class AuthService {
     };
   }
 
-  async register(registrationData: RegisterUserDTO): Promise<User> {
-    try {
-      const { username, senha } = registrationData;
+  async register(registrationData: RegisterUserInput): Promise<User> {
+    const { username, senha } = registrationData;
 
-      const existingUser = await this.usersService.findUser(username);
+    const existingUser = await this.usersService.findUser(username);
 
-      let password = senha;
+    let password = senha;
 
-      if (existingUser) {
-        throw new BadRequestException('Nome de usuário já está em uso.');
-      }
-
-      if (!password) {
-        throw new BadRequestException(
-          'A senha do usuário tem que ser enviada.',
-        );
-      }
-
-      const salt = await genSalt();
-      const hashedPassword = await hash(password, salt);
-
-      const user = new User({
-        ...registrationData,
-        senha: hashedPassword,
-      });
-
-      const created = await this.authRepository.register(user);
-
-      return created;
-    } catch (error) {
-      throw error;
+    if (existingUser) {
+      throw new BadRequestException('Nome de usuário já está em uso.');
     }
+
+    if (!password) {
+      throw new BadRequestException('A senha do usuário tem que ser enviada.');
+    }
+
+    const salt = await genSalt();
+    const hashedPassword = await hash(password, salt);
+
+    const user = new User({
+      ...registrationData,
+      senha: hashedPassword,
+    });
+
+    const created = await this.authRepository.register(user);
+
+    return created;
   }
 }

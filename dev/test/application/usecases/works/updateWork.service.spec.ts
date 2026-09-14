@@ -1,5 +1,5 @@
 import { UpdateWorkService } from 'src/application/usecases/works/updateWork.service';
-import { UPDATE_WORK_REPOSITORY } from 'src/domain/repositories/works/IUpdateWorkRepository';
+import { UPDATE_WORK_REPOSITORY } from 'src/domain/contracts/works/IUpdateWorkRepository';
 
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';

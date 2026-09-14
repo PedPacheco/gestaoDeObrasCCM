@@ -12,6 +12,8 @@
 // — então este helper aceita ambas as formas e usa a mais confiável
 // disponível (a FK, quando presente), caindo para a relação como fallback.
 
+import { ItemType } from 'src/application/types';
+
 // NOTA: local sugerido — src/domain/constants/scheduleAndWorkStatus.constants.ts
 // (ajustar o caminho/nome de acordo com a convenção real do projeto; os nomes
 // abaixo são inferidos a partir do uso atual e devem ser confirmados/renomeados
@@ -29,8 +31,6 @@ export interface ServiceTypeFields {
 export function isMaterial(entity: ServiceTypeFields | null): boolean {
   if (!entity) return false;
 
-  console.log(entity);
-
   if (entity.id_material !== undefined) {
     return entity.id_material !== null;
   }
@@ -41,7 +41,7 @@ export function isMaterial(entity: ServiceTypeFields | null): boolean {
 /** Rótulo usado nas respostas/relatórios: 'M' para material, 'S' para serviço. */
 export function serviceTypeLabel(
   entity: ServiceTypeFields | null | undefined,
-): 'M' | 'S' {
+): ItemType {
   return isMaterial(entity) ? 'M' : 'S';
 }
 

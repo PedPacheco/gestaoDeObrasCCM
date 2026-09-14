@@ -1,19 +1,21 @@
+import { ScheduleMapper } from 'src/application/mappers/scheduleMapper';
+import {
+  ConfirmSchedulesInput,
+  RejectScheduleInput,
+  ValidateSchedulesInput,
+} from 'src/application/types';
 import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
-} from 'src/domain/repositories/IStatusFlowRepository';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
+} from 'src/domain/contracts/IStatusFlowRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
 import {
   IValidateConfirmAndRejectSchedulesRepository,
   VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY,
-} from 'src/domain/repositories/schedule/IValidateSchedulesRepository';
+} from 'src/domain/contracts/schedule/IValidateSchedulesRepository';
+import { Schedule } from 'src/domain/entities/schedule.entity';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
-import {
-  ConfirmSchedulesDTO,
-  RejectScheduleDTO,
-  ValidateSchedulesDTO,
-} from 'src/interface/dtos/scheduleDTO';
 
 import {
   BadRequestException,
@@ -21,8 +23,6 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { ScheduleMapper } from 'src/application/mappers/scheduleMapper';
-import { Schedule } from 'src/domain/entities/schedule.entity';
 
 @Injectable()
 export class ValidateConfirmAndRejectSchedulesService {
@@ -36,7 +36,7 @@ export class ValidateConfirmAndRejectSchedulesService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async validate(data: ValidateSchedulesDTO[]) {
+  async validate(data: ValidateSchedulesInput[]) {
     if (!data || data.length === 0) {
       throw new BadRequestException(
         'Nenhuma programação foi enviada para ser validada',
@@ -56,12 +56,14 @@ export class ValidateConfirmAndRejectSchedulesService {
         await this.validateAndConfirmSchedulesRepository.validate(data, tx);
         await this.statusFlowRepository.updateStatusWorks(37, work.id_obra, tx);
       });
-    } catch (error: any) {
-      throw new InternalServerErrorException(error);
+    } catch (error: unknown) {
+      const err = error as { message: string };
+
+      throw new InternalServerErrorException(err);
     }
   }
 
-  async confirm(data: ConfirmSchedulesDTO[]) {
+  async confirm(data: ConfirmSchedulesInput[]) {
     const confirmedSchedules = data.filter((item) => item.confirm);
 
     if (confirmedSchedules.length === 0) {
@@ -78,9 +80,11 @@ export class ValidateConfirmAndRejectSchedulesService {
 
     try {
       schedules = works.map((work) => ScheduleMapper.toDomain(work));
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { message: string };
+
       throw new BadRequestException(
-        `Erro ao criar programação: ${error.message}`,
+        `Erro ao criar programação: ${err.message}`,
       );
     }
 
@@ -101,12 +105,14 @@ export class ValidateConfirmAndRejectSchedulesService {
           tx,
         );
       });
-    } catch (error: any) {
-      throw new InternalServerErrorException(error);
+    } catch (error: unknown) {
+      const err = error as { message: string };
+
+      throw new InternalServerErrorException(err);
     }
   }
 
-  async reject(data: RejectScheduleDTO[]) {
+  async reject(data: RejectScheduleInput[]) {
     if (!data.length) return;
 
     await this.prisma.$transaction(async (tx) => {

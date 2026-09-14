@@ -1,16 +1,17 @@
 import {
+  GetWorksInPortfolioOutput,
+  GetWorksInPortfolioTotals,
+  WorkFiltersInput,
+} from 'src/application/types';
+import {
   GET_WORKS_IN_PORTFOLIO_REPOSITORY,
   IGetWorksInPortfolioRepository,
-} from 'src/domain/repositories/works/IGetWorksInPortfolioRepository';
-import { GetWorksDTO } from 'src/interface/dtos/worksDto';
-import {
-  totalsWorksInPortfolio,
-  worksInPortfolioResponseService,
-} from 'src/interface/types/works/getWorksInPortfolioInterface';
+} from 'src/domain/contracts/works/IGetWorksInPortfolioRepository';
+import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
-import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
+import { WorkTotals } from 'src/domain/types';
 
 @Injectable()
 export class GetWorksInPortfolioService {
@@ -22,11 +23,11 @@ export class GetWorksInPortfolioService {
   ) {}
 
   async getWorksInPortfolio(
-    filters: GetWorksDTO,
-  ): Promise<worksInPortfolioResponseService> {
+    filters: WorkFiltersInput,
+  ): Promise<GetWorksInPortfolioOutput> {
     const cacheKey = `worksInPortfolio-${JSON.stringify(filters)}`;
 
-    const responseData: worksInPortfolioResponseService =
+    const responseData: GetWorksInPortfolioOutput =
       await this.cacheManager.get(cacheKey);
 
     if (responseData) {
@@ -45,7 +46,7 @@ export class GetWorksInPortfolioService {
       };
     });
 
-    const response: worksInPortfolioResponseService = {
+    const response: GetWorksInPortfolioOutput = {
       works: worksWithDeadlineStatus,
       totals: totalsFormatted,
     };
@@ -55,7 +56,7 @@ export class GetWorksInPortfolioService {
     return response;
   }
 
-  private buildTotals(totals: any): totalsWorksInPortfolio {
+  private buildTotals(totals: WorkTotals): GetWorksInPortfolioTotals {
     return {
       total_obras: Number(totals[0].total_obras),
       total_mo_planejada: totals[0].total_mo_planejada || 0,

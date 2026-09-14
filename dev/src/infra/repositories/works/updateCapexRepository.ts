@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ProgressEmitter } from 'src/application/shared/capex.types';
-import { CalculatedValue } from 'src/application/usecases/works/updateCapex.service';
-import { IUpdateCapexRepository } from 'src/domain/repositories/works/IUpdateCapexRepository';
+import { CalculatedValue, ProgressEmitter } from 'src/application/types';
+import { IUpdateCapexRepository } from 'src/domain/contracts/works/IUpdateCapexRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
+
+import { Injectable, Logger } from '@nestjs/common';
 
 @Injectable()
 export class UpdateCapexRepository implements IUpdateCapexRepository {
@@ -19,7 +19,7 @@ export class UpdateCapexRepository implements IUpdateCapexRepository {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async getDeletedMaterials(): Promise<any> {
+  async getDeletedMaterials(): Promise<{ material: string }[]> {
     return this.prisma.servicos_contratos.findMany({
       select: { material: true },
       distinct: ['material'],
@@ -30,54 +30,49 @@ export class UpdateCapexRepository implements IUpdateCapexRepository {
     data: CalculatedValue[],
     onProgress?: ProgressEmitter,
   ): Promise<void> {
-    try {
-      const total = data.length;
-      let done = 0;
+    const total = data.length;
+    let done = 0;
 
-      for (let i = 0; i < data.length; i += this.BATCH_SIZE) {
-        const batch = data.slice(i, i + this.BATCH_SIZE);
+    for (let i = 0; i < data.length; i += this.BATCH_SIZE) {
+      const batch = data.slice(i, i + this.BATCH_SIZE);
 
-        for (let j = 0; j < batch.length; j += this.CONCURRENCY) {
-          const chunk = batch.slice(j, j + this.CONCURRENCY);
+      for (let j = 0; j < batch.length; j += this.CONCURRENCY) {
+        const chunk = batch.slice(j, j + this.CONCURRENCY);
 
-          await Promise.all(
-            chunk.map((item) =>
-              this.prisma.obras.update({
-                where: { id: item.id },
-                data: {
-                  capex_mat_pend: item.capex_mat_pend,
-                  capex_mat_plan: item.capex_mat_plan,
-                  capex_mo_pend: item.capex_mo_pend,
-                  capex_mo_plan: item.capex_mo_plan,
-                  mo_planejada: item.mo_calc,
-                  mo_final: item.mo_exec,
-                  mo_pend: item.mo_pend,
-                  qtde_planejada: item.qtde_calc,
-                  qtde_pend: item.qtde_pend,
-                },
-              }),
-            ),
-          );
+        await Promise.all(
+          chunk.map((item) =>
+            this.prisma.obras.update({
+              where: { id: item.id },
+              data: {
+                capex_mat_pend: item.capex_mat_pend,
+                capex_mat_plan: item.capex_mat_plan,
+                capex_mo_pend: item.capex_mo_pend,
+                capex_mo_plan: item.capex_mo_plan,
+                mo_planejada: item.mo_calc,
+                mo_final: item.mo_exec,
+                mo_pend: item.mo_pend,
+                qtde_planejada: item.qtde_calc,
+                qtde_pend: item.qtde_pend,
+              },
+            }),
+          ),
+        );
 
-          // 🔥 Atualiza progresso por chunk (não por item)
-          done += chunk.length;
+        // 🔥 Atualiza progresso por chunk (não por item)
+        done += chunk.length;
 
-          onProgress?.({
-            phase: 'updating',
-            processed: done,
-            percentage: this.calcPercentage(done, total),
-            message: 'Atualizando capex das obras',
-          });
-        }
+        onProgress?.({
+          phase: 'updating',
+          processed: done,
+          percentage: this.calcPercentage(done, total),
+          message: 'Atualizando capex das obras',
+        });
       }
-
-      // Limpa a tabela auxiliar após todos os batches com sucesso.
-      // Feito fora das transações de update para não misturar responsabilidades.
-      await this.prisma.cn52n.deleteMany();
-    } catch (error: any) {
-      this.logger.error('Erro ao atualizar capex nas obras', error.stack);
-      throw error;
     }
+
+    // Limpa a tabela auxiliar após todos os batches com sucesso.
+    // Feito fora das transações de update para não misturar responsabilidades.
+    await this.prisma.cn52n.deleteMany();
   }
 
   /**

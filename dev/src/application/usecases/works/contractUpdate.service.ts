@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { ContractUpdateInput } from 'src/application/types';
 import {
   CONTRACT_UPDATE_REPOSITORY,
   IContractUpdateRepository,
-} from 'src/domain/repositories/works/IContractUpdateRepository';
-import { ContractUpdateDTO } from 'src/interface/dtos/worksDto';
+} from 'src/domain/contracts/works/IContractUpdateRepository';
 
 @Injectable()
 export class ContractUpdateService {
@@ -12,7 +12,7 @@ export class ContractUpdateService {
     private readonly contractUpdateRepository: IContractUpdateRepository,
   ) {}
 
-  async update(data: ContractUpdateDTO[]) {
+  async update(data: ContractUpdateInput[]) {
     const workWithOrderType = data.map((work) => {
       const { ordemDiagrama } = work;
 
@@ -33,6 +33,6 @@ export class ContractUpdateService {
       };
     });
 
-    return await this.contractUpdateRepository.update(workWithOrderType);
+    await this.contractUpdateRepository.update(workWithOrderType);
   }
 }

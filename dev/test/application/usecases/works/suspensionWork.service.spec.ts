@@ -1,6 +1,6 @@
 import { FindExistingWorksService } from 'src/application/usecases/works/findExistingWorks.service';
 import { SuspensionWorkService } from 'src/application/usecases/works/suspensionWork.service';
-import { SUSPENSION_WORK_REPOSITORY } from 'src/domain/repositories/works/ISuspensionWorkRepository';
+import { SUSPENSION_WORK_REPOSITORY } from 'src/domain/contracts/works/ISuspensionWorkRepository';
 
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';

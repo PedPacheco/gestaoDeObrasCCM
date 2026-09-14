@@ -2,6 +2,8 @@ import {
   createInitialTotals,
   createInitialTotalsByGrouping,
 } from 'src/application/mappers/monthlySummaryMapper';
+
+import { Injectable } from '@nestjs/common';
 import {
   DailySummaryEntry,
   DailySummaryTotals,
@@ -13,9 +15,7 @@ import {
   MonthlyCapacityMetrics,
   WORKING_DAYS_PER_MONTH,
   WorkOrderMetrics,
-} from 'src/interface/types/schedule/monthlySummaryInterface';
-
-import { Injectable } from '@nestjs/common';
+} from 'src/application/types';
 
 export interface IMonthlySummaryCalculator {
   aggregateFinancialCapacityByMonth(
@@ -46,7 +46,10 @@ export interface IMonthlySummaryCalculator {
       totalFinancialGoal: number;
       totalFinancialGoalWith8: number;
     },
-    portofolioData: { portfolioSap: number; portfolioExec: number },
+    portofolioData: {
+      qtdeWorks: number;
+      portfolioExec: number;
+    },
     executionTeams: {
       rfpTeams: number | null;
       executionCapacityTeams: number | null;
@@ -145,7 +148,6 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
     },
     portofolioData: {
       qtdeWorks: number;
-      portfolioSap: number;
       portfolioExec: number;
     },
     executionTeams: {

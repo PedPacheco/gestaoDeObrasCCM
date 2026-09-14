@@ -1,12 +1,13 @@
 import { Cache } from 'cache-manager';
-import {
-  FILTERS_REPOSITORY,
-  IFiltersRepository,
-} from 'src/domain/repositories/IFiltersRepository';
-import { FiltersDto } from 'src/interface/dtos/filtersDto';
+
+import { FilterCondition, GetFiltersInput, GetFiltersOutput } from '../types';
 
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable } from '@nestjs/common';
+import {
+  FILTERS_REPOSITORY,
+  IFiltersRepository,
+} from 'src/domain/contracts/IFiltersRepository';
 
 @Injectable()
 export class FiltersService {
@@ -34,9 +35,9 @@ export class FiltersService {
       tipoRestricao,
       statusSap,
       equipes,
-    }: FiltersDto,
-    condition?: any,
-  ) {
+    }: GetFiltersInput,
+    condition?: FilterCondition,
+  ): Promise<GetFiltersOutput> {
     const result = {};
 
     if (regional) {

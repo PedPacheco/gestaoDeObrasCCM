@@ -1,10 +1,9 @@
-import { MarketWork, NoteWorks } from 'src/domain/entities/works.entity';
+import { InsertMarketWorkInput, InsertNoteInput } from 'src/application/types';
 import {
   IInsertWorksRepository,
   INSERT_WORKS_REPOSITORY,
-} from 'src/domain/repositories/works/IInsertWorksRepository';
-import { InsertMarketWorksDTO } from 'src/interface/dtos/worksDto';
-import { NotesEntriesInterface } from 'src/interface/types/works/insertNotesInterface';
+} from 'src/domain/contracts/works/IInsertWorksRepository';
+import { MarketWork, NoteWorks } from 'src/domain/entities/works.entity';
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 
@@ -20,12 +19,12 @@ export class InsertWorksService {
     private readonly auxiliaryBaseService: AuxiliaryBaseService,
   ) {}
 
-  async insertMarketWorks(params: InsertMarketWorksDTO[]): Promise<{
+  async insertMarketWorks(params: InsertMarketWorkInput[]): Promise<{
     message: string;
-    insertedCount: any;
+    insertedCount: InsertMarketWorkInput[];
     skipped: string[];
   }> {
-    const works = params.map((work: InsertMarketWorksDTO) => {
+    const works = params.map((work: InsertMarketWorkInput) => {
       const marketWork = MarketWork.create(work);
 
       return {
@@ -64,7 +63,7 @@ export class InsertWorksService {
     };
   }
 
-  async insertNotes(noteEntries: NotesEntriesInterface[]) {
+  async insertNotes(noteEntries: InsertNoteInput[]) {
     const [data, groups] = await Promise.all([
       this.auxiliaryBaseService.getNotes(),
       this.insertWorksRepository.getGroup(),

@@ -1,6 +1,6 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { Workbook, Worksheet, Row } from 'exceljs';
-import { ParsedSpreadsheetItem } from 'src/domain/repositories/worksService/IWorkServicesRepository';
+import { ParsedSpreadsheetItem } from 'src/domain/types';
 
 export interface ParseResult {
   items: ParsedSpreadsheetItem[];

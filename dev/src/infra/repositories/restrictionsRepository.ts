@@ -4,13 +4,21 @@ import { Prisma } from '@prisma/client';
 import {
   IRestrictionsRepository,
   ProcessedRestrictionsFilters,
-} from 'src/domain/repositories/IRestrictionsRepository';
+} from 'src/domain/contracts/IRestrictionsRepository';
 import { PrismaService } from '../prisma/prisma.service';
-import { GetScheduleRestrictions } from 'src/interface/types/schedule/getScheduleRestrictionsInterface';
+
 import {
   InsertPublicationRestrictionsDTO,
   UpdatePublicationRestrictionsDTO,
 } from 'src/interface/dtos/restrictionsDTO';
+import {
+  GetPublicationRestricionResponse,
+  GetPublicationRestrictionByWorkIdResponse,
+  GetScheduleRestrictionsResponse,
+  PublicationRestriction,
+  ScheduleRestrictions,
+  ScheduleRestrictionsTotalsResponse,
+} from 'src/domain/types';
 
 @Injectable()
 export class RestrictionsRepository implements IRestrictionsRepository {
@@ -95,7 +103,7 @@ export class RestrictionsRepository implements IRestrictionsRepository {
 
   async getScheduleRestrictions(
     filters: ProcessedRestrictionsFilters,
-  ): Promise<{ works: GetScheduleRestrictions[]; totals: any[] }> {
+  ): Promise<GetScheduleRestrictionsResponse> {
     const { page = 0 } = filters;
     const limit = 200;
     const offset = page * limit;
@@ -159,8 +167,8 @@ export class RestrictionsRepository implements IRestrictionsRepository {
     query = Prisma.sql`${query} LIMIT ${limit} OFFSET ${offset}`;
 
     const [works, totals] = await Promise.all([
-      this.prisma.$queryRaw<GetScheduleRestrictions[]>(query),
-      this.prisma.$queryRaw<any[]>(countQuery),
+      this.prisma.$queryRaw<ScheduleRestrictions[]>(query),
+      this.prisma.$queryRaw<ScheduleRestrictionsTotalsResponse>(countQuery),
     ]);
 
     return { works, totals };
@@ -168,7 +176,7 @@ export class RestrictionsRepository implements IRestrictionsRepository {
 
   async getPublicationRestricion(
     filters: ProcessedRestrictionsFilters,
-  ): Promise<{ works: any[] }> {
+  ): Promise<GetPublicationRestricionResponse> {
     const baseQuery = Prisma.sql`
       FROM construcao_sp.obras
       INNER JOIN construcao_sp.municipios 
@@ -222,12 +230,14 @@ export class RestrictionsRepository implements IRestrictionsRepository {
     query = this.applyFilters(query, filters, 'publication');
     query = Prisma.sql`${query} ORDER BY obras.data_conclusao DESC`;
 
-    const works = await this.prisma.$queryRaw<any[]>(query);
+    const works = await this.prisma.$queryRaw<PublicationRestriction[]>(query);
 
     return { works };
   }
 
-  async getPublicationRestrictionByWorkId(id: number): Promise<any[]> {
+  async getPublicationRestrictionByWorkId(
+    id: number,
+  ): Promise<GetPublicationRestrictionByWorkIdResponse[]> {
     const value = id.toString();
 
     return await this.prisma.restricoes_publicacoes.findMany({

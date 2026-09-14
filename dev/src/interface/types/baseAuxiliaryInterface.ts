@@ -1,5 +1,3 @@
-export type OperationType = 'insert' | 'update';
-
 export interface InsertNotesInterface {
   campo_ordenacao: string;
   pep: string;

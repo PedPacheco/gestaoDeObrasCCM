@@ -1,15 +1,17 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  IWorkServicesQueryRepository,
-  WORK_SERVICES_QUERY_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+
 import { ExportServicesPdfOutput } from '../export/services/exportPdfServices.service';
+
+import { ExportFileType } from 'src/interface/dtos/workServicesDTO';
+import { serviceTypeLabel } from 'src/utils/serviceType.utils';
 import {
   ExportServicesExcelOutput,
   WorkToExportResponse,
-} from 'src/interface/types/servicesInterface';
-import { ExportFileType } from 'src/interface/dtos/workServicesDTO';
-import { serviceTypeLabel } from 'src/utils/serviceType.utils';
+} from 'src/domain/types';
+import {
+  IWorkServicesQueryRepository,
+  WORK_SERVICES_QUERY_REPOSITORY,
+} from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
 
 @Injectable()
 export class ExportServicesService {

@@ -59,11 +59,11 @@ import {
   ExportServicesPdfOutput,
 } from 'src/application/usecases/export/services/exportPdfServices.service';
 import { ExportExcelServicesService } from 'src/application/usecases/export/services/exportExcelServices.service';
-import { ExportServicesExcelOutput } from '../types/servicesInterface';
 import { FeasibilityService } from 'src/application/usecases/feasibility.service';
 import { ExportFeasibilityService } from 'src/application/usecases/export/exportFeasibility.service';
 import { ExportFeasibilityInputDto } from '../dtos/feasibilityDTO';
 import { ExportServicesService } from 'src/application/usecases/services/exportServices.service';
+import { ExportServicesExcelOutput } from 'src/domain/types';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -167,11 +167,11 @@ export class ExportController {
     @Req() req: CustomRequest,
   ) {
     const appliedFilters = this.applyFilters(filters, req);
-    const { works } =
+    const response =
       await this.getScheduleValuesService.getValues(appliedFilters);
     this.setXlsxHeaders(res, 'Exportação Programação');
 
-    return this.exportScheduleService.export(works, res);
+    return this.exportScheduleService.export(response, res);
   }
 
   @Get('obras-carteira')

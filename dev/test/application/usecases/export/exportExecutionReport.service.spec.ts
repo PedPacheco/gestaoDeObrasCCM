@@ -1,7 +1,7 @@
 import * as ExcelJS from 'exceljs';
 import { Response } from 'express';
 import { ExportExecutionReportService } from 'src/application/usecases/export/exportExecutionReport.service';
-import { EXPORT_REPOSITORY } from 'src/domain/repositories/IExportRepository';
+import { EXPORT_REPOSITORY } from 'src/domain/contracts/IExportRepository';
 import {
   mockFindByWorkIdResponse,
   mockFindByWorkIdResponseFormatted,

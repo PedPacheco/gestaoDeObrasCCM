@@ -1,5 +1,5 @@
 import { User } from 'src/domain/entities/user.entity';
-import { IAuthRepository } from 'src/domain/repositories/IAuthRepository';
+import { IAuthRepository } from 'src/domain/contracts/IAuthRepository';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';

@@ -2,15 +2,21 @@ import { ConsoleLogger, Injectable } from '@nestjs/common';
 
 @Injectable()
 export class AppLogger extends ConsoleLogger {
-  error(message: any, stack?: string, context?: string) {
+  errorWithMetadata(
+    message: string,
+    metadata?: Record<string, unknown>,
+    context?: string,
+    trace?: string,
+  ) {
     super.error(
       JSON.stringify({
         level: 'error',
         message,
-        stack,
+        metadata,
         context,
         timestamp: new Date().toISOString(),
       }),
+      trace,
     );
   }
 }

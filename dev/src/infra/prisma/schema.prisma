@@ -785,6 +785,7 @@ model gap_analysis {
   atualizado_em                 DateTime? @db.Timestamp(6)
 }
 
+
 model materiais {
   id        Int        @id
   codigo    String?    @db.VarChar(15)

@@ -9,7 +9,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { CapexProgressPayload } from 'src/application/shared/capex.types';
+import { CapexProgressPayload } from 'src/application/types';
 
 export interface CapexProgressEvent extends CapexProgressPayload {
   jobId: string;

@@ -1,7 +1,12 @@
-import { IExecutionReportRepository } from 'src/domain/repositories/IExecutionReportRepository';
+import { IExecutionReportRepository } from 'src/domain/contracts/IExecutionReportRepository';
 import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import {
+  FindByIdResponse,
+  FindByScheduleResponse,
+  FindByWorkIdResponse,
+} from 'src/domain/types';
 
 @Injectable()
 export class ExecutionReportRepository implements IExecutionReportRepository {
@@ -89,13 +94,13 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
   async findByScheduleId(
     idSchedule: number,
     tx: Prisma.TransactionClient,
-  ): Promise<any> {
+  ): Promise<FindByScheduleResponse> {
     return await tx.relatorio_execucao.findFirst({
       where: { id_programacao: idSchedule },
     });
   }
 
-  async findByWorkId(idWork: number): Promise<any> {
+  async findByWorkId(idWork: number): Promise<FindByWorkIdResponse[]> {
     const value = idWork.toString();
 
     return await this.prisma.relatorio_execucao.findMany({
@@ -166,9 +171,14 @@ export class ExecutionReportRepository implements IExecutionReportRepository {
     });
   }
 
-  async findById(idExecutionReport: number): Promise<any> {
+  async findById(idExecutionReport: number): Promise<FindByIdResponse> {
     return await this.prisma.relatorio_execucao.findFirst({
-      select: { id: true, id_programacao: true, caminho_arquivo: true },
+      select: {
+        id: true,
+        id_obra: true,
+        id_programacao: true,
+        caminho_arquivo: true,
+      },
       where: { id: idExecutionReport },
     });
   }

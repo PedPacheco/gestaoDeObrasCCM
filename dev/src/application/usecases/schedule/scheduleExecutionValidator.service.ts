@@ -3,8 +3,8 @@ import { Prisma } from '@prisma/client';
 import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
-} from 'src/domain/repositories/IStatusFlowRepository';
-import { returnExecution } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
+} from 'src/domain/contracts/IStatusFlowRepository';
+import { ScheduleExecutionData } from 'src/domain/types';
 
 interface ScheduleExecutionValidatorInterface {
   id: number;
@@ -23,7 +23,7 @@ export class ScheduleExecutionValidatorService {
 
   async validateExecutionAndUpdateStatus(
     data: ScheduleExecutionValidatorInterface,
-    totals: returnExecution,
+    totals: ScheduleExecutionData,
     tx: Prisma.TransactionClient,
   ) {
     const newExecuted = Math.min((totals.exec ?? 0) + data.exec, 100);

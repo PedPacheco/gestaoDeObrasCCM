@@ -1,9 +1,13 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  GetExecMonitoringInput,
+  GetExecMonitoringOutput,
+} from 'src/application/types';
 import {
   EXEC_MONITORING_REPOSITORY,
   IExecMonitoringRepository,
-} from 'src/domain/repositories/schedule/IExecMonitoringRepository';
-import { GetExecMonitoringDTO } from 'src/interface/dtos/scheduleDTO';
+} from 'src/domain/contracts/schedule/IExecMonitoringRepository';
+
+import { Inject, Injectable } from '@nestjs/common';
 
 @Injectable()
 export class ExecMonitoringService {
@@ -12,7 +16,9 @@ export class ExecMonitoringService {
     private readonly repository: IExecMonitoringRepository,
   ) {}
 
-  async getData(filters: GetExecMonitoringDTO) {
+  async getData(
+    filters: GetExecMonitoringInput,
+  ): Promise<GetExecMonitoringOutput[]> {
     const rows = await this.repository.getData(filters);
 
     return rows.map((r) => ({

@@ -2,7 +2,6 @@ import * as bodyParser from 'body-parser';
 import helmet from 'helmet';
 import { join } from 'path';
 
-import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
@@ -28,7 +27,6 @@ async function bootstrap() {
     prefix: '/uploads/as_build',
   });
 
-  app.useGlobalPipes(new ValidationPipe());
   app.useGlobalInterceptors(new LoggingInterceptor());
 
   const corsOrigins =

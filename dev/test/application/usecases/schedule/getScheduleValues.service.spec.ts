@@ -1,5 +1,5 @@
 import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
-import { GET_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetScheduleValuesRepository';
+import { GET_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/contracts/schedule/IGetScheduleValuesRepository';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 

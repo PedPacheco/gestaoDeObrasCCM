@@ -1,4 +1,4 @@
-import { IFiltersRepository } from 'src/domain/repositories/IFiltersRepository';
+import { IFiltersRepository } from 'src/domain/contracts/IFiltersRepository';
 import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 
@@ -6,11 +6,11 @@ import { Injectable } from '@nestjs/common';
 export class FiltersRepository implements IFiltersRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getData(
+  async getData<T>(
     table: string,
     selectFields: string[],
-    conditions?: Record<string, any>,
-  ): Promise<any[]> {
+    conditions?: Record<string, unknown>,
+  ): Promise<T[]> {
     const orderField = selectFields[1];
 
     return await this.prisma[table].findMany({

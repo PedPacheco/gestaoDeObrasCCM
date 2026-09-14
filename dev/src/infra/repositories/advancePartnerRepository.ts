@@ -1,10 +1,18 @@
+import { GetRestrictionsAdvancePartnerInput } from 'src/application/types';
+import { IAdvancePartnerRepository } from 'src/domain/contracts/IAdvancePartnerRepository';
 import {
-  IAdvancePartnerRepository,
-  ProcessedEliminacaoFilters,
-} from 'src/domain/repositories/IAdvancePartnerRepository';
-import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
+  GetGripPartnerResponse,
+  GetReaschedulingReasonsResponse,
+  GetRestrictionsAdvancePartnerResponse,
+  GetSparklinesByPartnerAderenciaResponse,
+  GetSparklinesByPartnerEliminacaoResponse,
+  GetWeeksByPartnerResponse,
+} from 'src/domain/types';
+
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AdvancePartnerRepository implements IAdvancePartnerRepository {
@@ -13,8 +21,8 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
   private readonly excludedPartners = [1, 6, 10, 11, 14, 15, 16];
 
   async getRestrictionsAdvancePartner(
-    filters: ProcessedEliminacaoFilters,
-  ): Promise<any[]> {
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<GetRestrictionsAdvancePartnerResponse[]> {
     const { dataInicial, dataFinal, idRegional, idParceira, responsabilidade } =
       filters;
 
@@ -50,10 +58,14 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
       ORDER BY MIN(data_prog)
     `;
 
-    return this.prisma.$queryRaw<any[]>(query);
+    return this.prisma.$queryRaw<GetRestrictionsAdvancePartnerResponse[]>(
+      query,
+    );
   }
 
-  async getGripPartner(filters: ProcessedEliminacaoFilters): Promise<any[]> {
+  async getGripPartner(
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<GetGripPartnerResponse[]> {
     const { dataInicial, dataFinal, idRegional, idParceira, responsabilidade } =
       filters;
 
@@ -98,12 +110,12 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
       ORDER BY MIN(data_ref)
     `;
 
-    return this.prisma.$queryRaw<any[]>(query);
+    return this.prisma.$queryRaw<GetGripPartnerResponse[]>(query);
   }
 
   async getReaschedulingReasons(
-    filters: ProcessedEliminacaoFilters,
-  ): Promise<any[]> {
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<GetReaschedulingReasonsResponse[]> {
     const { dataInicial, dataFinal, idRegional, idParceira, responsabilidade } =
       filters;
 
@@ -135,12 +147,15 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
       ORDER BY ovnota
     `;
 
-    return this.prisma.$queryRaw<any[]>(query);
+    return this.prisma.$queryRaw<GetReaschedulingReasonsResponse[]>(query);
   }
 
   async getSparklinesByPartner(
-    filters: ProcessedEliminacaoFilters,
-  ): Promise<{ aderencia: any[]; eliminacao: any[] }> {
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<{
+    aderencia: GetSparklinesByPartnerAderenciaResponse[];
+    eliminacao: GetSparklinesByPartnerEliminacaoResponse[];
+  }> {
     const { dataInicial, dataFinal, idRegional, idParceira, responsabilidade } =
       filters;
 
@@ -207,14 +222,18 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
     `;
 
     const [aderencia, eliminacao] = await Promise.all([
-      this.prisma.$queryRaw<any[]>(adQuery),
-      this.prisma.$queryRaw<any[]>(elQuery),
+      this.prisma.$queryRaw<GetSparklinesByPartnerAderenciaResponse[]>(adQuery),
+      this.prisma.$queryRaw<GetSparklinesByPartnerEliminacaoResponse[]>(
+        elQuery,
+      ),
     ]);
 
     return { aderencia, eliminacao };
   }
 
-  async getWeeksByPartner(filters: ProcessedEliminacaoFilters): Promise<any[]> {
+  async getWeeksByPartner(
+    filters: GetRestrictionsAdvancePartnerInput,
+  ): Promise<GetWeeksByPartnerResponse[]> {
     const { idRegional, idParceira } = filters;
 
     // Replica DAX: SEMANA PROGRAMADA = equipes_alocadas / (capacidade_mes * 5) >= 0.7
@@ -302,6 +321,6 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
       ORDER BY parceira
     `;
 
-    return this.prisma.$queryRaw<any[]>(query);
+    return this.prisma.$queryRaw<GetWeeksByPartnerResponse[]>(query);
   }
 }

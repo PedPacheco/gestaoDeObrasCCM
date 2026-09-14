@@ -1,21 +1,21 @@
-import { IGetCompletedWorksRepository } from 'src/domain/repositories/works/IGetCompletedWorksRepository';
+import { IGetCompletedWorksRepository } from 'src/domain/contracts/works/IGetCompletedWorksRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { GetWorksDTO } from 'src/interface/dtos/worksDto';
-import {
-  totalsWorksInPortfolio,
-  worksInPortfolioInterface,
-  worksInPortfolioResponseRepository,
-} from 'src/interface/types/works/getWorksInPortfolioInterface';
 
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import moment from 'moment';
+import {
+  CompletedWorkItem,
+  CompletedWorksRepositoryResponse,
+  CompletedWorkTotals,
+} from 'src/domain/types';
+import { WorkFiltersInput } from 'src/application/types';
 
 @Injectable()
 export class GetCompletedWorksRepository implements IGetCompletedWorksRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  private applyFilters(query: Prisma.Sql, filters: GetWorksDTO) {
+  private applyFilters(query: Prisma.Sql, filters: WorkFiltersInput) {
     const {
       idCircuito,
       idConjunto,
@@ -86,8 +86,8 @@ export class GetCompletedWorksRepository implements IGetCompletedWorksRepository
   }
 
   async getCompletedWorks(
-    filters: GetWorksDTO,
-  ): Promise<worksInPortfolioResponseRepository> {
+    filters: WorkFiltersInput,
+  ): Promise<CompletedWorksRepositoryResponse> {
     const { page } = filters;
 
     const baseQuery = Prisma.sql`FROM construcao_sp.obras
@@ -118,8 +118,8 @@ export class GetCompletedWorksRepository implements IGetCompletedWorksRepository
     }
 
     const [works, totals] = await Promise.all([
-      this.prisma.$queryRaw<worksInPortfolioInterface[]>(query),
-      this.prisma.$queryRaw<totalsWorksInPortfolio[]>(countQuery),
+      this.prisma.$queryRaw<CompletedWorkItem[]>(query),
+      this.prisma.$queryRaw<CompletedWorkTotals>(countQuery),
     ]);
 
     return { works, totals };

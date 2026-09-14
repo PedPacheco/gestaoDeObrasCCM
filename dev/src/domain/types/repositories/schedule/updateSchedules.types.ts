@@ -1,0 +1,41 @@
+export type ScheduleExecutionData = {
+  exec: number;
+  prog: number;
+};
+
+export type UpdateScheduleRepositoryInput = {
+  id: number;
+  data_prog: Date;
+  prog: number;
+  exec?: number;
+  observacao_programacao?: string;
+  equip_desligado?: string;
+  num_dp?: string;
+  hora_ini: Date;
+  hora_ter: Date;
+  chave_provisoria?: boolean;
+  tipo_servico?: string;
+  chi?: number;
+  nome_responsavel_execucao?: string;
+  equipe_linha_morta?: number;
+  equipe_linha_viva?: number;
+  equipe_regularizacao?: number;
+  id_restricao_execucao?: number;
+  observacao_execucao?: string;
+  id_restricao_prog1?: number;
+  responsabilidade1?: string;
+  nome_responsavel?: string;
+  area_responsavel1?: string;
+  status_restricao1?: string;
+  data_resolucao1?: Date;
+  id_restricao_prog2?: number;
+  responsabilidade2?: string;
+  nome_responsavel2?: string;
+  area_responsavel2?: string;
+  status_restricao2?: string;
+  data_resolucao2?: Date;
+  id_tecnico?: number;
+  observacao_restricao?: string;
+  reprovada: boolean;
+  id_usuario_ultima_atualizacao?: number;
+};

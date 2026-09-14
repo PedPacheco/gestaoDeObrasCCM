@@ -1,11 +1,15 @@
 import moment from 'moment';
+import {
+  GetContractValueResponse,
+  GetMonthlySummaryResponse,
+  GetPortfolioSummaryResponse,
+} from 'src/domain/types';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
-import { GetMonthlySummaryInterface } from 'src/interface/types/schedule/monthlySummaryInterface';
 
 import { Injectable } from '@nestjs/common';
 
-import { IGetMonthlySummaryRepository } from '../../../domain/repositories/schedule/IGetMonthlySummaryRepository';
+import { IGetMonthlySummaryRepository } from '../../../domain/contracts/schedule/IGetMonthlySummaryRepository';
 
 @Injectable()
 export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository {
@@ -13,7 +17,7 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
 
   async getSummary(
     filters: GetMonthlySummaryDTO,
-  ): Promise<GetMonthlySummaryInterface[]> {
+  ): Promise<GetMonthlySummaryResponse[]> {
     const { dataFinal, dataInicial, idRegional, idParceira, idTipo, idGrupo } =
       filters;
 
@@ -71,7 +75,9 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
     });
   }
 
-  async getPortfolioSummary(filters: any): Promise<any[]> {
+  async getPortfolioSummary(
+    filters: any,
+  ): Promise<GetPortfolioSummaryResponse[]> {
     const { idRegional, idParceira, idTipo, idGrupo } = filters;
 
     return await this.prisma.obras.findMany({
@@ -108,7 +114,9 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
     });
   }
 
-  async getContractValue(filters: GetMonthlySummaryDTO): Promise<any[]> {
+  async getContractValue(
+    filters: GetMonthlySummaryDTO,
+  ): Promise<GetContractValueResponse[]> {
     const { idRegional, idParceira } = filters;
 
     return await this.prisma.valores_contratos.findMany({

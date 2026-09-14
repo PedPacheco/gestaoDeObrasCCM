@@ -1,23 +1,31 @@
 import {
+  ExecutionReportDataInput,
+  FinalizeServicesData,
+  FinalizeServicesInput,
+  PerformServicesInput,
+} from 'src/application/types';
+import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
-} from 'src/domain/repositories/IStatusFlowRepository';
+} from 'src/domain/contracts/IStatusFlowRepository';
 import {
   IWorkServicesExecutionRepository,
   WORK_SERVICES_EXECUTION_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
+} from 'src/domain/contracts/worksService/IWorkServicesExecutionRepository';
 import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+} from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
 import {
   IWorkServicesRepository,
   WORK_SERVICES_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesRepository';
+} from 'src/domain/contracts/worksService/IWorkServicesRepository';
 import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
+import {
+  GetServicesByWorkIdResponse,
+  GetServiceScheduleHistoryResponse,
+} from 'src/domain/types';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
-import { GetServicesByWorkIdResponse } from 'src/interface/types/servicesInterface';
 
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
@@ -29,18 +37,6 @@ import {
   ScheduleStatus,
   WorkStatus,
 } from 'src/utils/serviceType.utils';
-
-interface FinalizationData {
-  id: number;
-  idWork: number;
-  dataProg: Date;
-  prog: number;
-  exec: number;
-  idExecutionRestriction: number;
-  responsibility: string;
-  executionObservation: string;
-  userId: number;
-}
 
 @Injectable()
 export class FinalizeServicesService {
@@ -61,7 +57,7 @@ export class FinalizeServicesService {
     private readonly scheduleProgressCalculator: ScheduleProgressCalculatorService,
   ) {}
 
-  async performServices(data: PerformServicesDTO[]): Promise<void> {
+  async performServices(data: PerformServicesInput[]): Promise<void> {
     if (data.length === 0) return;
 
     await this.worksServicesExecutionRepository.performServices(data);
@@ -106,7 +102,7 @@ export class FinalizeServicesService {
 
   async finalizeServices(
     workId: number,
-    data: any,
+    data: FinalizeServicesInput,
     files?: Express.Multer.File[],
   ): Promise<void> {
     const { executionReportData, userId, ...updateData } = data;
@@ -178,7 +174,7 @@ export class FinalizeServicesService {
     responsibility: string,
     executionObservation: string,
     userId: number,
-  ): FinalizationData {
+  ): FinalizeServicesData {
     return {
       id: scheduleId,
       idWork: workId,
@@ -195,10 +191,10 @@ export class FinalizeServicesService {
   private async executeFinalization(
     workId: number,
     scheduleId: number,
-    finalizationData: FinalizationData,
-    executionReportData: any,
+    finalizationData: FinalizeServicesData,
+    executionReportData: ExecutionReportDataInput,
     totalPlanned: number,
-    history: any[],
+    history: GetServiceScheduleHistoryResponse[],
     files?: Express.Multer.File[],
   ): Promise<void> {
     // Calcula o total já executado nas DEMAIS programações (agregado,
@@ -257,7 +253,7 @@ export class FinalizeServicesService {
   // worksServicesExecutionRepository.finalizeServices logo acima — aqui só
   // atualizamos as DEMAIS, em lote.
   private async recalculateOtherSchedulesProgress(
-    history: any[],
+    history: GetServiceScheduleHistoryResponse[],
     totalPlanned: number,
     currentScheduleId: number,
     tx: Prisma.TransactionClient,
