@@ -1,4 +1,10 @@
 import {
+  ExecutionReportDataInput,
+  FinalizeServicesData,
+  FinalizeServicesInput,
+  PerformServicesInput,
+} from 'src/application/types';
+import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/contracts/IStatusFlowRepository';
@@ -20,18 +26,17 @@ import {
   GetServiceScheduleHistoryResponse,
 } from 'src/domain/types';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
+import {
+  isMaterial,
+  ScheduleStatus,
+  WorkStatus,
+} from 'src/utils/serviceType.utils';
 
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 import { ExecutionReportService } from '../executionReport.service';
 import { ScheduleExecutionValidatorService } from '../schedule/scheduleExecutionValidator.service';
-import {
-  ExecutionReportDataInput,
-  FinalizeServicesData,
-  FinalizeServicesInput,
-  PerformServicesInput,
-} from 'src/application/types';
 
 @Injectable()
 export class FinalizeServicesService {
@@ -75,15 +80,22 @@ export class FinalizeServicesService {
         await this.worksServicesExecutionRepository.reascheduleServices(
           servicesToBeReascheduled,
           scheduleId,
+          tx,
         );
 
-        await this.statusFlowRepository.updateStatusWorks(36, workId, tx);
-        await this.statusFlowRepository.updateScheduleStatus(5, scheduleId, tx);
-      } catch (error: unknown) {
-        const err = error as { message: string };
-
-        this.logger.error(err);
-        throw err;
+        await this.statusFlowRepository.updateStatusWorks(
+          WorkStatus.SERVICOS_REAGENDADOS,
+          workId,
+          tx,
+        );
+        await this.statusFlowRepository.updateScheduleStatus(
+          ScheduleStatus.REAGENDADA,
+          scheduleId,
+          tx,
+        );
+      } catch (error: any) {
+        this.logger.error(error);
+        throw error;
       }
     });
   }
@@ -109,14 +121,15 @@ export class FinalizeServicesService {
         updateData.idSchedule,
       );
 
-    const pendingExecServices = this.getPendingExecServices(
-      history,
-      updateData.idSchedule,
-    );
-
     const dateProg = history.find(
       (item) => item.id_programacao === updateData.idSchedule,
     );
+
+    if (!dateProg) {
+      throw new NotFoundException(
+        `Nenhum histórico encontrado para a programação ${updateData.idSchedule} nesta obra.`,
+      );
+    }
 
     const finalizationData = this.buildFinalizationData(
       updateData.idSchedule,
@@ -133,7 +146,6 @@ export class FinalizeServicesService {
       workId,
       updateData.idSchedule,
       finalizationData,
-      pendingExecServices,
       executionReportData,
       totalPlanned,
       history,
@@ -145,26 +157,12 @@ export class FinalizeServicesService {
     services: GetServicesByWorkIdResponse[],
   ): number {
     return services
-      .filter((service) => service.qtde_real !== 0 && !service.id_material)
+      .filter((service) => service.qtde_real !== 0 && !isMaterial(service))
       .reduce(
         (sum, service) =>
           sum + (service.viabilizado ?? 0) + (service.qtde_adicional ?? 0),
         0,
       );
-  }
-
-  private getPendingExecServices(
-    history: GetServiceScheduleHistoryResponse[],
-    scheduleId: number,
-  ): number[] {
-    return history
-      .filter(
-        (service) =>
-          service.id_programacao === scheduleId &&
-          service.real !== 0 &&
-          (service.real === null || service.prog > service.real),
-      )
-      .map((service) => service.id_servico);
   }
 
   private buildFinalizationData(
@@ -194,7 +192,6 @@ export class FinalizeServicesService {
     workId: number,
     scheduleId: number,
     finalizationData: FinalizeServicesData,
-    pendingExecServices: number[],
     executionReportData: ExecutionReportDataInput,
     totalPlanned: number,
     history: GetServiceScheduleHistoryResponse[],
@@ -231,7 +228,6 @@ export class FinalizeServicesService {
 
         await this.worksServicesExecutionRepository.finalizeServices(
           finalizationData,
-          pendingExecServices,
           tx,
         );
 

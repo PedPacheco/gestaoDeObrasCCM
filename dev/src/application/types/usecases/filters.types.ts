@@ -17,6 +17,7 @@ export type GetFiltersInput = {
   tipoRestricao?: string[];
   tecnico?: boolean;
   statusSap?: boolean;
+  equipes?: boolean;
 };
 
 export type SelectOption = {

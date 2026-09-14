@@ -18,6 +18,7 @@ import {
 import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
 import { GetServicesByWorkIdResponse } from 'src/domain/types';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { isMaterial, ScheduleStatus } from 'src/utils/serviceType.utils';
 
 import {
   BadRequestException,
@@ -46,6 +47,10 @@ export class WorksServicesService {
     workId: number,
     data: ScheduleServicesInput[],
   ): Promise<void> {
+    if (data.length === 0) {
+      throw new BadRequestException('Programação não enviada.');
+    }
+
     const idSchedule = data[0]?.idSchedule;
 
     const { id_status_programacao } =
@@ -57,7 +62,10 @@ export class WorksServicesService {
 
     await this.validateScheduleServices(workId, data, prog);
 
-    const newStatus = id_status_programacao === 7 ? 1 : undefined;
+    const newStatus =
+      id_status_programacao === ScheduleStatus.PENDENTE_REVISAO
+        ? ScheduleStatus.APROVADA
+        : undefined;
 
     await this.workServicesRepository.scheduleServices(
       data,
@@ -158,7 +166,21 @@ export class WorksServicesService {
   }
 
   async deleteAll(workId: number) {
-    await this.workServicesRepository.deleteAll(workId);
+    await this.prisma.$transaction(
+      async (tx) => {
+        try {
+          await this.workServicesRepository.deleteAll(workId, tx);
+          await this.recalculateAllSchedulesProgress(workId, tx);
+        } catch (error) {
+          this.logger.error(error);
+          throw error;
+        }
+      },
+      {
+        maxWait: 10000,
+        timeout: 30000,
+      },
+    );
   }
 
   private async recalculateAllSchedulesProgress(
@@ -179,7 +201,7 @@ export class WorksServicesService {
       );
 
     const executed = history
-      .filter((item) => item.real !== 0 && item.servicos?.materiais === null)
+      .filter((item) => item.real !== 0 && !isMaterial(item.servicos))
       .reduce((sum, item) => sum + (item.real ?? 0), 0);
 
     const workProgress =
@@ -200,6 +222,10 @@ export class WorksServicesService {
   }
 
   private calculateProgress(scheduledPlan: number, totalPlan: number): number {
+    if (totalPlan === 0) {
+      return 0;
+    }
+
     if (Math.abs(totalPlan - scheduledPlan) < 0.01) {
       return 100;
     }
@@ -228,7 +254,7 @@ export class WorksServicesService {
     services: GetServicesByWorkIdResponse[],
   ): number {
     return services
-      .filter((item) => item.qtde_real !== 0 && !item.id_material)
+      .filter((item) => item.qtde_real !== 0 && !isMaterial(item))
       .reduce(
         (sum, service) =>
           sum + (service.viabilizado ?? 0) + (service.qtde_adicional ?? 0),
@@ -241,10 +267,6 @@ export class WorksServicesService {
     data: ScheduleServicesInput[],
     progress?: number,
   ): Promise<void> {
-    if (data.length === 0) {
-      throw new BadRequestException('Programação não enviada.');
-    }
-
     const scheduleIds = new Set(data.map((item) => item.idSchedule));
 
     if (scheduleIds.size !== 1) {
@@ -253,24 +275,22 @@ export class WorksServicesService {
       );
     }
 
-    if (!progress) {
+    if (!progress && progress !== 0) {
       throw new BadRequestException('Valor do programado tem que ser enviado');
     }
 
     const history =
       await this.workServicesQueryRepository.getServiceScheduleHistory(workId);
 
+    // idSchedule + id_servico já identifica unicamente o vínculo — ponto e
+    // operação são atributos fixos do próprio serviço, não variam por linha
+    // do histórico, então não precisam entrar na chave de deduplicação.
     const scheduledServices = new Set(
-      history.map(
-        (item) =>
-          `${item.id_programacao}-${item.id_servico}-${item.servicos.ponto}-${item.servicos.operacao}`,
-      ),
+      history.map((item) => `${item.id_programacao}-${item.id_servico}`),
     );
 
     const hasDuplicate = data.some((service) =>
-      scheduledServices.has(
-        `${service.idSchedule}-${service.id}-${service.point}-${service.operation}`,
-      ),
+      scheduledServices.has(`${service.idSchedule}-${service.id}`),
     );
 
     if (hasDuplicate) {

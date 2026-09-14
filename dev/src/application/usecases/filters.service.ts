@@ -1,12 +1,13 @@
 import { Cache } from 'cache-manager';
+
+import { FilterCondition, GetFiltersInput, GetFiltersOutput } from '../types';
+
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   FILTERS_REPOSITORY,
   IFiltersRepository,
 } from 'src/domain/contracts/IFiltersRepository';
-
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Inject, Injectable } from '@nestjs/common';
-import { FilterCondition, GetFiltersInput, GetFiltersOutput } from '../types';
 
 @Injectable()
 export class FiltersService {
@@ -33,6 +34,7 @@ export class FiltersService {
       statusProgramacao,
       tipoRestricao,
       statusSap,
+      equipes,
     }: GetFiltersInput,
     condition?: FilterCondition,
   ): Promise<GetFiltersOutput> {
@@ -111,6 +113,12 @@ export class FiltersService {
     if (conjunto) {
       result['conjunto'] = await this.getCachedData('conjunto', () =>
         this.filtersRepository.getData('conjuntos', ['id', 'conjunto']),
+      );
+    }
+
+    if (equipes) {
+      result['equipes'] = await this.getCachedData('equipes', () =>
+        this.filtersRepository.getData('equipes', ['id', 'equipe', 'id_turma']),
       );
     }
 

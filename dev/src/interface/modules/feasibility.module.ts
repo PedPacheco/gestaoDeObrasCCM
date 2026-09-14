@@ -58,6 +58,6 @@ import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepositor
     },
     { provide: STATUS_FLOW_REPOSITORY, useClass: StatusFlowRepository },
   ],
-  exports: [],
+  exports: [FeasibilityService],
 })
 export class FeasibilityModule {}

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { IGetWorksDetailsRepository } from 'src/domain/contracts/works/IGetWorksDetailsRepository';
 import { WorkDetailsRepositoryResponse } from 'src/domain/types';
+
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 @Injectable()
@@ -81,7 +82,6 @@ export class GetWorksDetailsRepository implements IGetWorksDetailsRepository {
         tipos: { select: { tipo_obra: true, id_grupo: true } },
         id_turma: true,
         id_status: true,
-        servicos: true,
         programacoes: {
           select: {
             id: true,

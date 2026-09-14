@@ -39,6 +39,11 @@ export type ScheduleForecastOutput = {
   forecastTotal: number;
 };
 
+export type CalculateCostPointByPointScheduleOutput = {
+  planejado: number;
+  executado: number;
+};
+
 export type ScheduleRestrictionData = {
   id_restricao_prog1: number;
   id_restricao_prog2: number;

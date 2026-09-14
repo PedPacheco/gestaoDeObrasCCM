@@ -1,3 +1,5 @@
+import { GetAllItemsOutput } from '../services/queriesServices.types';
+
 export type WorkDetailsScheduleOutput = {
   id: number;
   criado_em: Date;
@@ -72,6 +74,9 @@ export type WorkDetailsOutput = {
   mo_planejada: number | null;
   mo_pend: number | null;
   mo_final: number | null;
+  moPlanejadaPontoAPonto: number;
+  moExecutadoPontoAPonto: number;
+  moPendentePontoAPonto: number;
   referencia: string | null;
   capex_mat_pend: number | null;
   capex_mat_plan: number | null;
@@ -93,5 +98,6 @@ export type WorkDetailsOutput = {
   prazo_viabilidade: string;
   viabilidade_aprovada: boolean;
   totalProgramado: number;
+  servicos: GetAllItemsOutput[];
   programacoes: WorkDetailsScheduleOutput[];
 };

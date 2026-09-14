@@ -28,6 +28,11 @@ import { ExportOrdersService } from 'src/application/usecases/export/exportOrder
 import { RestrictionsModule } from './restrictions.module';
 import { ExportPublicationRestrictionService } from 'src/application/usecases/export/exportPublicationRestriction.service';
 import { ExportReportToPubliationService } from 'src/application/usecases/export/exportReportToPublication.service';
+import { ExportPdfServicesService } from 'src/application/usecases/export/services/exportPdfServices.service';
+import { WorksServicesModule } from './worksServices.module';
+import { ExportExcelServicesService } from 'src/application/usecases/export/services/exportExcelServices.service';
+import { ExportFeasibilityService } from 'src/application/usecases/export/exportFeasibility.service';
+import { FeasibilityModule } from './feasibility.module';
 
 @Module({
   imports: [
@@ -36,6 +41,8 @@ import { ExportReportToPubliationService } from 'src/application/usecases/export
     UsersModule,
     GoalsModule,
     RestrictionsModule,
+    WorksServicesModule,
+    FeasibilityModule,
   ],
   controllers: [ExportController],
   providers: [
@@ -58,6 +65,9 @@ import { ExportReportToPubliationService } from 'src/application/usecases/export
     ExportOrdersService,
     ExportPublicationRestrictionService,
     ExportReportToPubliationService,
+    ExportPdfServicesService,
+    ExportExcelServicesService,
+    ExportFeasibilityService,
     {
       provide: EXPORT_REPOSITORY,
       useClass: ExportRepository,

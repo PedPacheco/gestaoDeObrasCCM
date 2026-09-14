@@ -2,7 +2,6 @@ import { ScheduleExecutionValidatorService } from 'src/application/usecases/sche
 import { FinalizeServicesService } from 'src/application/usecases/services/finalizeServices.service';
 import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
 import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
-
 import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepository';
 import { WorkServicesExeutionRepository } from 'src/infra/repositories/worksServices/workServicesExecutionRepository';
 import { WorkServicesQueryRepository } from 'src/infra/repositories/worksServices/workServicesQueryRepository';
@@ -23,6 +22,8 @@ import { SpreadsheetParserService } from 'src/infra/spreadsheet/spreadsheet.serv
 import { ServicesExecutionController } from '../controllers/services/servicesExecution.controller';
 import { ServicesQueryController } from '../controllers/services/servicesQuery.controller';
 import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
+import { ExportServicesService } from 'src/application/usecases/services/exportServices.service';
+import { ScheduleModule } from './schedule.module';
 import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/contracts/schedule/IFindScheduleByIdRepository';
 import { WORK_SERVICES_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesRepository';
 import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/contracts/worksService/IWorkServicesQueryRepository';
@@ -32,8 +33,9 @@ import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowReposito
 @Module({
   imports: [
     UsersModule,
+    forwardRef(() => WorksModule),
+    forwardRef(() => ScheduleModule),
     forwardRef(() => ExecutionReportModule),
-    WorksModule,
     MulterModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -83,6 +85,7 @@ import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowReposito
     ScheduleProgressCalculatorService,
     ImportServicesSpreadsheetService,
     SpreadsheetParserService,
+    ExportServicesService,
     {
       provide: FIND_SCHEDULE_BY_ID_REPOSITORY,
       useClass: FindScheduleByIdRepository,
@@ -101,6 +104,10 @@ import { STATUS_FLOW_REPOSITORY } from 'src/domain/contracts/IStatusFlowReposito
     },
     { provide: STATUS_FLOW_REPOSITORY, useClass: StatusFlowRepository },
   ],
-  exports: [WorksServicesService],
+  exports: [
+    WorksServicesService,
+    QueriesServicesService,
+    ExportServicesService,
+  ],
 })
 export class WorksServicesModule {}

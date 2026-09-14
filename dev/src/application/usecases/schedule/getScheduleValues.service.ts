@@ -1,22 +1,25 @@
+import { Inject, Injectable } from '@nestjs/common';
+import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
+import { QueriesServicesService } from '../services/queriesServices.service';
 import {
+  GET_SCHEDULE_VALUES_REPOSITORY,
+  IGetScheduleValuesRepository,
+} from 'src/domain/contracts/schedule/IGetScheduleValuesRepository';
+
+import {
+  CalculateCostPointByPointScheduleOutput,
   GetScheduleValuesFormattedTotals,
   GetScheduleValuesInput,
   GetScheduleValuesOutput,
+  GetServiceScheduleHistoryByIdScheduleOutput,
   ScheduleForecastInput,
   ScheduleForecastOutput,
   ScheduleRestrictionData,
 } from 'src/application/types';
 import {
-  GET_SCHEDULE_VALUES_REPOSITORY,
-  IGetScheduleValuesRepository,
-} from 'src/domain/contracts/schedule/IGetScheduleValuesRepository';
-import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
-import {
   GetScheduleValuesResponseItem,
   GetScheduleValuesTotals,
 } from 'src/domain/types';
-
-import { Inject, Injectable } from '@nestjs/common';
 
 @Injectable()
 export class GetScheduleValuesService {
@@ -24,6 +27,7 @@ export class GetScheduleValuesService {
     @Inject(GET_SCHEDULE_VALUES_REPOSITORY)
     private readonly getScheduleValuesRepository: IGetScheduleValuesRepository,
     private readonly deadlineStatusService: DeadlineStatusService,
+    private readonly workServicesQueryService: QueriesServicesService,
   ) {}
 
   async getValues(
@@ -32,7 +36,7 @@ export class GetScheduleValuesService {
     const { works, resultTotals } =
       await this.getScheduleValuesRepository.getValues(filters);
 
-    const totals = this.buildTotals(resultTotals[0]);
+    const totals = this.buildTotals(resultTotals);
 
     const totalExec =
       totals.total_obras > 0
@@ -44,13 +48,25 @@ export class GetScheduleValuesService {
       total_exec: totalExec,
     };
 
+    const allServices =
+      await this.workServicesQueryService.getServiceScheduleHistoryByIdSchedule(
+        works.map((w) => w.id_programacao),
+      );
+
+    const servicesByWorkId = this.groupByWorkId(allServices);
+
     const worksWithRestrictionVerification = works.map((work) => {
+      const services = servicesByWorkId.get(work.id_programacao) ?? [];
+
       const forecast = this.calculateForecast(work);
+      const costPointByPoint = this.calculateCostPointByPointSchedule(services);
 
       return {
         ...work,
         restricao_aberta: this.hasOpenRestriction(work),
         status_prazo: this.deadlineStatusService.calculate(work),
+        moPlanejadaPontoAPonto: costPointByPoint.planejado,
+        moExecutadoPontoAPonto: costPointByPoint.executado,
 
         mo_forecast: forecast.serviceCapexForecast,
         mat_forecast: forecast.materialCapexForecast,
@@ -95,11 +111,20 @@ export class GetScheduleValuesService {
   private buildTotals(
     rawTotals: GetScheduleValuesTotals,
   ): GetScheduleValuesFormattedTotals {
+    if (!rawTotals) {
+      return {
+        total_obras: 0,
+        total_mo_planejada: 0,
+        total_mo_exec: 0,
+        total_qtde_planejada: 0,
+      };
+    }
+
     return {
       total_obras: Number(rawTotals.total_obras),
-      total_mo_planejada: rawTotals.total_mo_planejada || 0,
-      total_mo_exec: rawTotals.total_mo_exec || 0,
-      total_qtde_planejada: rawTotals.total_qtde_planejada || 0,
+      total_mo_planejada: rawTotals.total_mo_planejada,
+      total_mo_exec: rawTotals.total_mo_exec,
+      total_qtde_planejada: rawTotals.total_qtde_planejada,
     };
   }
 
@@ -135,5 +160,43 @@ export class GetScheduleValuesService {
       hasRestriction2 && isUnresolved2 && hasNoResolutionDate2;
 
     return restriction1Open || restriction2Open;
+  }
+
+  private calculateCostPointByPointSchedule(
+    data: GetServiceScheduleHistoryByIdScheduleOutput[],
+  ): CalculateCostPointByPointScheduleOutput {
+    return data.reduce(
+      (acc, service) => {
+        acc.planejado += service.qtdeProgramada * service.preco;
+        acc.executado += service.qtdeRealizada * service.preco;
+
+        return acc;
+      },
+      {
+        planejado: 0,
+        executado: 0,
+      },
+    );
+  }
+
+  private groupByWorkId(
+    services: GetServiceScheduleHistoryByIdScheduleOutput[],
+  ) {
+    const map = new Map<
+      number,
+      GetServiceScheduleHistoryByIdScheduleOutput[]
+    >();
+
+    for (const item of services) {
+      const workId = item.idProg;
+
+      if (!map.has(workId)) {
+        map.set(workId, []);
+      }
+
+      map.get(workId)!.push(item);
+    }
+
+    return map;
   }
 }

@@ -1,9 +1,11 @@
-import { GetScheduleValuesRepositoryResponse } from 'src/domain/types';
-import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
+import {
+  GetScheduleFilters,
+  GetScheduleValuesRepositoryResponse,
+} from 'src/domain/types';
 
 export interface IGetScheduleValuesRepository {
   getValues(
-    filters: GetScheduleValuesDTO,
+    filters: GetScheduleFilters,
   ): Promise<GetScheduleValuesRepositoryResponse>;
 }
 

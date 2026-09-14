@@ -1,20 +1,25 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { WorkDetailsOutput } from 'src/application/types';
+import { TeamCounterService } from 'src/domain/services/teamCounter.service';
+import { QueriesServicesService } from '../services/queriesServices.service';
 import {
   GET_WORKS_DETAILS_REPOSITORY,
   IGetWorksDetailsRepository,
 } from 'src/domain/contracts/works/IGetWorksDetailsRepository';
-import { TeamCounterService } from 'src/domain/services/teamCounter.service';
+import { WorkDetailsOutput } from 'src/application/types';
 
 @Injectable()
 export class GetWorkDetailsService {
   constructor(
     @Inject(GET_WORKS_DETAILS_REPOSITORY)
     private readonly getWorksDetailsRepository: IGetWorksDetailsRepository,
+    private readonly workServicesQueryService: QueriesServicesService,
   ) {}
 
   async get(id: number): Promise<WorkDetailsOutput> {
-    const work = await this.getWorksDetailsRepository.get(id);
+    const [work, services] = await Promise.all([
+      await this.getWorksDetailsRepository.get(id),
+      await this.workServicesQueryService.getAllItems(id),
+    ]);
 
     if (!work) {
       throw new NotFoundException('Obra não encontrada');
@@ -22,7 +27,26 @@ export class GetWorkDetailsService {
 
     const { relatorio_viabilidade, ...workData } = work;
 
-    const response = {
+    const maoDeObra = services.reduce(
+      (acc, service) => {
+        const planejado =
+          (service.viabilizado + service.qtdeAdicional) * service.valorUnit;
+        const executado = service.qtdeRealizada * service.valorUnit;
+
+        acc.planejado += planejado;
+        acc.executado += executado;
+        acc.pendente += planejado - executado;
+
+        return acc;
+      },
+      {
+        planejado: 0,
+        executado: 0,
+        pendente: 0,
+      },
+    );
+
+    const response: WorkDetailsOutput = {
       ...workData,
       data_envio: relatorio_viabilidade?.data_envio ?? null,
       prazo_viabilidade:
@@ -41,6 +65,10 @@ export class GetWorkDetailsService {
 
         return acc + valor;
       }, 0),
+      moPlanejadaPontoAPonto: maoDeObra.planejado,
+      moExecutadoPontoAPonto: maoDeObra.executado,
+      moPendentePontoAPonto: maoDeObra.pendente,
+      servicos: services,
       programacoes: work.programacoes.map((programacao) => {
         const teams = TeamCounterService.calculate(programacao);
         return {

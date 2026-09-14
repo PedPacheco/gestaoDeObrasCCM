@@ -38,6 +38,6 @@ async function bootstrap() {
     origin: corsOrigins,
     credentials: true,
   });
-  await app.listen(8080, '0.0.0.0');
+  await app.listen(process.env.PORT, '0.0.0.0');
 }
 bootstrap();

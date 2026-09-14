@@ -81,7 +81,7 @@ export const mockGetWorkDetailsRepositoryQueryResponse = {
       programacoes_servicos: [
         { equipes: { equipe: 'LM 02' } },
         { equipes: { equipe: 'LV 01' } },
-        { equipes: { equipe: 'REG 01' } },
+        { equipes: { equipe: 'NR 01' } },
       ],
       id_restricao_execucao: 1,
       nome_responsavel_execucao: null,
@@ -203,6 +203,17 @@ export const mockGetWorkDetailsRepositoryResponse = {
   tipos: 'SPACER CABLE',
   grupo: 2,
   totalProgramado: 95,
+  moExecutadoPontoAPonto: 0,
+  moPendentePontoAPonto: 8,
+  moPlanejadaPontoAPonto: 8,
+  servicos: [
+    {
+      qtdeAdicional: null,
+      viabilizado: 4,
+      qtdeRealizada: null,
+      valorUnit: 2,
+    },
+  ],
   programacoes: [
     {
       id: undefined,

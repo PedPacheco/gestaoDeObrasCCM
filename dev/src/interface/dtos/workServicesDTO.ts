@@ -1,4 +1,6 @@
 import {
+  IsArray,
+  IsDateString,
   IsEnum,
   IsIn,
   IsInt,
@@ -9,11 +11,16 @@ import {
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ExecutionReportDataDTO } from './executionReportDTO';
-import { DisableWhitelist } from 'src/shared/costants';
+import { convertParameterValue } from 'src/utils/convertParameterValue';
 
 enum ServiceType {
   SERVICE = 'S',
   MATERIAL = 'M',
+}
+
+export enum ExportFileType {
+  PDF = 'pdf',
+  EXCEL = 'excel',
 }
 
 export class ScheduleServicesDTO {
@@ -128,7 +135,6 @@ class DataScheduleInFinalizeServiceDTO {
   executionReport?: ExecutionReportDataDTO;
 }
 
-@DisableWhitelist()
 export class FinalizeServicesDTO {
   @Transform(({ value }) =>
     typeof value === 'string' ? JSON.parse(value) : value,
@@ -156,4 +162,24 @@ export class ServiceMaterialItemDto {
   })
   @IsNumber()
   viabilizado: number;
+}
+
+export class ExportServicesInputDto {
+  @IsDateString()
+  dataInicial: string;
+
+  @IsDateString()
+  dataFinal: string;
+
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idParceira: number[];
+
+  @IsArray()
+  @IsOptional()
+  @Transform(({ value }) => convertParameterValue(value))
+  idEquipe?: number[];
+
+  @IsEnum(ExportFileType)
+  fileType: ExportFileType;
 }

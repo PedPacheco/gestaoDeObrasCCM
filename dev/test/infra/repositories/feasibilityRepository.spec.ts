@@ -22,6 +22,7 @@ describe('FeasibilityRepository', () => {
     obras: {
       update: jest.fn(),
       findUnique: jest.fn(),
+      findMany: jest.fn(),
     },
   };
 
@@ -152,7 +153,11 @@ describe('FeasibilityRepository', () => {
         where: {
           id_obra: 3,
         },
-        select: { id: true, caminhos_arquivos: true },
+        select: {
+          id: true,
+          caminhos_arquivos: true,
+          arquivos_complementares: true,
+        },
       });
       expect(result).toEqual(mockFiles);
     });
@@ -203,6 +208,138 @@ describe('FeasibilityRepository', () => {
         select: { data_empreitamento: true },
         where: { id: 1 },
       });
+    });
+  });
+
+  describe('exportFeasibility', () => {
+    it('should export feasibility data without partner filter', async () => {
+      const responseMock = [
+        {
+          ovnota: 'OV001',
+          diagrama: 'DG001',
+        },
+      ];
+
+      prismaMock.obras.findMany.mockResolvedValue(responseMock);
+
+      const result = await repository.exportFeasibility(45, []);
+
+      expect(result).toEqual(responseMock);
+
+      expect(prismaMock.obras.findMany).toHaveBeenCalledWith({
+        where: {
+          id_status: 45,
+          programacao_ponto_a_ponto: true,
+        },
+        select: {
+          ovnota: true,
+          diagrama: true,
+          ordem_dci: true,
+          ordem_dca: true,
+          ordem_dcd: true,
+          ordem_dcim: true,
+          relatorio_viabilidade: {
+            select: {
+              data_envio: true,
+            },
+          },
+          servicos: {
+            select: {
+              operacao: true,
+              ponto: true,
+              qtde_plan: true,
+              viabilizado: true,
+              descricao_operacao: true,
+              numero_operacao: true,
+              materiais: {
+                select: {
+                  codigo: true,
+                  descricao: true,
+                  preco: true,
+                },
+              },
+              servicos_contratos: {
+                select: {
+                  material: true,
+                  texto_breve: true,
+                  preco: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    });
+
+    it('should export feasibility data filtering partners', async () => {
+      prismaMock.obras.findMany.mockResolvedValue([]);
+
+      await repository.exportFeasibility(46, [1, 2, 3]);
+
+      expect(prismaMock.obras.findMany).toHaveBeenCalledWith({
+        where: {
+          id_status: 46,
+          programacao_ponto_a_ponto: true,
+          id_turma: {
+            in: [1, 2, 3],
+          },
+        },
+        select: {
+          ovnota: true,
+          diagrama: true,
+          ordem_dci: true,
+          ordem_dca: true,
+          ordem_dcd: true,
+          ordem_dcim: true,
+          relatorio_viabilidade: {
+            select: {
+              data_envio: true,
+            },
+          },
+          servicos: {
+            select: {
+              operacao: true,
+              ponto: true,
+              qtde_plan: true,
+              viabilizado: true,
+              descricao_operacao: true,
+              numero_operacao: true,
+              materiais: {
+                select: {
+                  codigo: true,
+                  descricao: true,
+                  preco: true,
+                },
+              },
+              servicos_contratos: {
+                select: {
+                  material: true,
+                  texto_breve: true,
+                  preco: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    });
+
+    it('should return empty array when no feasibility records are found', async () => {
+      prismaMock.obras.findMany.mockResolvedValue([]);
+
+      const result = await repository.exportFeasibility(45, []);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should propagate prisma errors', async () => {
+      prismaMock.obras.findMany.mockRejectedValueOnce(
+        new Error('Database error'),
+      );
+
+      await expect(repository.exportFeasibility(45, [])).rejects.toThrow(
+        'Database error',
+      );
     });
   });
 
@@ -314,12 +451,33 @@ describe('FeasibilityRepository', () => {
 
   describe('updateFiles', () => {
     it('Should call the file update method and update the `relatorio_viabilidade` table with the new paths.', async () => {
-      await repository.updateFiles(1, ['doc.pdf', 'word.pdf'], mockTx);
+      await repository.updateFiles(
+        1,
+        ['doc.pdf', 'word.pdf'],
+        'technical',
+        mockTx,
+      );
 
       expect(mockTx.relatorio_viabilidade.update).toHaveBeenCalledWith({
         where: { id_obra: 1 },
         data: {
           caminhos_arquivos: ['doc.pdf', 'word.pdf'],
+        },
+      });
+    });
+
+    it('Should call the file update method and update the `relatorio_viabilidade` table with the new complementary paths.', async () => {
+      await repository.updateFiles(
+        1,
+        ['doc.pdf', 'word.pdf'],
+        'complementary',
+        mockTx,
+      );
+
+      expect(mockTx.relatorio_viabilidade.update).toHaveBeenCalledWith({
+        where: { id_obra: 1 },
+        data: {
+          arquivos_complementares: ['doc.pdf', 'word.pdf'],
         },
       });
     });

@@ -1,21 +1,22 @@
 import moment from 'moment';
-import { IGetScheduleValuesRepository } from 'src/domain/contracts/schedule/IGetScheduleValuesRepository';
+
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { IGetScheduleValuesRepository } from 'src/domain/contracts/schedule/IGetScheduleValuesRepository';
 import {
-  GetScheduleValuesRepositoryResponse,
   GetScheduleValuesResponseItem,
   GetScheduleValuesTotals,
+  GetScheduleValuesRepositoryResponse,
+  GetScheduleFilters,
 } from 'src/domain/types';
 
 @Injectable()
 export class GetScheduleValuesRepository implements IGetScheduleValuesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  private applyFilters(query: Prisma.Sql, filters: GetScheduleValuesDTO) {
+  private applyFilters(query: Prisma.Sql, filters: GetScheduleFilters) {
     const {
       executado,
       idGrupo,
@@ -88,7 +89,7 @@ export class GetScheduleValuesRepository implements IGetScheduleValuesRepository
   }
 
   async getValues(
-    filters: GetScheduleValuesDTO,
+    filters: GetScheduleFilters,
   ): Promise<GetScheduleValuesRepositoryResponse> {
     const { page } = filters;
     const baseQuery = Prisma.sql`FROM construcao_sp.obras
@@ -106,9 +107,9 @@ export class GetScheduleValuesRepository implements IGetScheduleValuesRepository
         WHERE status.id NOT IN (3, 4)`;
 
     let query = Prisma.sql`SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim, 
-        turma, status_ov_sap, executado, data_prog, prog, exec, mo_planejada::int*prog/100 AS mo_prog, mo_planejada::int*COALESCE(exec, 100)/100 AS mo_exec, capex_mat_pend, capex_mo_pend, tipo_obra, 
+        turma, status_ov_sap, executado, data_prog, prog, exec, mo_planejada::int*prog/100 AS mo_prog, mo_planejada::int*exec/100 AS mo_exec, capex_mat_pend, capex_mo_pend, tipo_obra, 
         id_grupo, qtde_planejada, qtde_pend, num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, 
-        status_programacao, status, id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2, encontrado
+        status_programacao, status, id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2, encontrado, programacoes.id as id_programacao
         ${baseQuery}`;
 
     let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras, SUM(mo_planejada*prog::numeric/100) as total_mo_planejada, SUM(mo_planejada*executado/100) as total_mo_exec, 
@@ -123,7 +124,7 @@ export class GetScheduleValuesRepository implements IGetScheduleValuesRepository
       query = Prisma.sql`${query} LIMIT 200 OFFSET ${page * 200}`;
     }
 
-    const [works, resultTotals] = await Promise.all([
+    const [works, [resultTotals]] = await Promise.all([
       this.prisma.$queryRaw<GetScheduleValuesResponseItem[]>(query),
       this.prisma.$queryRaw<GetScheduleValuesTotals[]>(countQuery),
     ]);

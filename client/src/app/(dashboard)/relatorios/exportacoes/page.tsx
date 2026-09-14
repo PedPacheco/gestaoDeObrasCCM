@@ -1,3 +1,4 @@
+import { fetchFilters } from "@/actions/fetchFilters.action";
 import WrapperExportButton from "@/components/exports/wrapperExportButton";
 import { Box, Card, CardContent, Typography } from "@mui/material";
 import { cookies } from "next/headers";
@@ -9,42 +10,63 @@ export default async function ExportPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
+  const options = await fetchFilters({
+    parceira: true,
+    equipes: true,
+  });
+
   const exportOptions = [
     {
-      name: "EXPORTAÇÃO DADOS OBRAS EM CARTEIRA",
+      name: "dados obras em carteira",
       path: "obras-carteira-bi",
       visible: true,
     },
     {
-      name: "EXPORTACAO DADOS OBRAS EXECUTADAS",
+      name: "dados obras executadas",
       path: "obras-executadas-bi",
       visible: true,
     },
     {
-      name: "EXPORTACAO DAS PROGRAMACOES E RESTRICOES",
+      name: "programações e restrições",
       path: "programacoes-bi",
       visible: true,
     },
     {
-      name: "Exportar obras a serem multadas",
-      path: "obras-multas",
-      visible: false,
+      name: "programação ponto a ponto",
+      path: "servicos",
+      visible: true,
+      filterType: "services",
     },
     {
-      name: "Exportar relatórios de execução",
+      name: "relatórios de execução",
       path: "relatorio-execucao",
       visible: false,
     },
     {
-      name: "Exportar capacidade de execução",
+      name: "capacidade de execução",
       path: "capacidade-execucao",
       visible: true,
     },
-    { name: "Exportar dados suspensões", path: "suspensoes", visible: false },
-    { name: "Exportar viabilidade", path: "viabilidade", visible: true },
-    { name: "Exportar Forecast", path: "forecast", visible: false },
     {
-      name: "Exportar Programações Reprovadas",
+      name: "dados suspensões",
+      path: "suspensoes",
+      visible: false,
+    },
+    {
+      name: "viabilidades em aprovação",
+      path: "viabilidade/aguardando-aprovacao",
+      visible: true,
+      filterType: "partner",
+    },
+    {
+      name: "viabilidades pendentes",
+      path: "viabilidade/aguardando-viabilidade",
+      visible: true,
+      filterType: "partner",
+    },
+    { name: "Forecast", path: "forecast", visible: false },
+    {
+      name: "Programações Reprovadas",
       path: "reprovacoes",
       visible: false,
     },
@@ -107,6 +129,8 @@ export default async function ExportPage() {
                 path={option.path}
                 token={token}
                 visible={option.visible}
+                options={options}
+                filterType={option.filterType}
               />
             ))}
           </Box>

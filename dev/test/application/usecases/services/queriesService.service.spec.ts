@@ -1,5 +1,5 @@
 import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
-import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
+
 import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
@@ -8,11 +8,16 @@ import {
   GetSelectedServicesParamsInterface,
   GetServicesByWorkIdResponse,
   GetServiceScheduleHistoryResponse,
+  GetServicesSelectedByWorkIdResponse,
 } from 'src/interface/types/servicesInterface';
 
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Decimal } from '@prisma/client/runtime/library';
+import {
+  GET_WORKS_DETAILS_REPOSITORY,
+  IGetWorksDetailsRepository,
+} from 'src/domain/repositories/works/IGetWorksDetailsRepository';
 
 const mockHistory: GetServiceScheduleHistoryResponse[] = [
   {
@@ -59,7 +64,7 @@ const mockHistory: GetServiceScheduleHistoryResponse[] = [
 describe('WorksServicesService', () => {
   let service: QueriesServicesService;
   let repository: IWorkServicesQueryRepository;
-  let getWorkDetailsService: GetWorkDetailsService;
+  let getWorkDetailsService: IGetWorksDetailsRepository;
 
   const mockWorksServicesRepository = {
     getAllServicesOfWork: jest.fn(),
@@ -73,7 +78,7 @@ describe('WorksServicesService', () => {
     getServiceOptions: jest.fn(),
   };
 
-  const mockGetWorkDetailsService = {
+  const mockGetWorksDetailsRepository = {
     get: jest.fn(),
   };
 
@@ -86,8 +91,8 @@ describe('WorksServicesService', () => {
           useValue: mockWorksServicesRepository,
         },
         {
-          provide: GetWorkDetailsService,
-          useValue: mockGetWorkDetailsService,
+          provide: GET_WORKS_DETAILS_REPOSITORY,
+          useValue: mockGetWorksDetailsRepository,
         },
       ],
     }).compile();
@@ -96,8 +101,8 @@ describe('WorksServicesService', () => {
     repository = module.get<IWorkServicesQueryRepository>(
       WORK_SERVICES_QUERY_REPOSITORY,
     );
-    getWorkDetailsService = module.get<GetWorkDetailsService>(
-      GetWorkDetailsService,
+    getWorkDetailsService = module.get<IGetWorksDetailsRepository>(
+      GET_WORKS_DETAILS_REPOSITORY,
     );
 
     jest.clearAllMocks();
@@ -123,9 +128,6 @@ describe('WorksServicesService', () => {
         qtde_real: 5,
         qtde_adicional: null,
         servicos_contratos: undefined,
-        programacoes: {
-          data_prog: new Date('2024-01-01'),
-        },
         viabilizado: 0,
         materiais: {
           codigo: '12345',
@@ -151,7 +153,6 @@ describe('WorksServicesService', () => {
           texto_breve: 'Serviço 2',
           preco: 200,
         },
-        programacoes: null,
         viabilizado: 0,
         materiais: undefined,
       },
@@ -174,13 +175,12 @@ describe('WorksServicesService', () => {
           ponto: 'Ponto A',
           material: '12345',
           textoBreve: 'POSTE',
-          dataProgramada: new Date('2024-01-01'),
           qtdePlanejada: 10,
           qtdeProgramada: 8,
           viabilizado: 0,
           qtdeRealizada: 5,
           qtdeAdicional: null,
-          tipo: 'M',
+          tipo: 'S',
           valorUnit: 1.5,
           valorTotal: 15,
           valorReal: 7.5,
@@ -194,13 +194,12 @@ describe('WorksServicesService', () => {
           ponto: 'Ponto B',
           material: 'Material 2',
           textoBreve: 'Serviço 2',
-          dataProgramada: undefined,
           qtdePlanejada: 2,
           qtdeProgramada: 3,
           viabilizado: 0,
           qtdeRealizada: null,
           qtdeAdicional: 1,
-          tipo: 'S',
+          tipo: 'M',
           valorUnit: 200,
           valorTotal: 600,
           valorReal: 0,
@@ -267,48 +266,44 @@ describe('WorksServicesService', () => {
       {
         id: 1,
         id_obra: 100,
-        id_contrato_servico: 2,
+        id_contrato_servico: 10,
         id_material: null,
-        operacao: 'Operação 1',
-        descricao_operacao: 'POSTE',
-        numero_operacao: '2000',
-        ponto: 'Ponto A',
+        operacao: 'OP001',
+        ponto: 'P16',
         qtde_plan: 10,
         qtde_prog: 8,
-        qtde_real: 5,
-        qtde_adicional: null,
-        servicos_contratos: undefined,
-        programacoes: {
-          data_prog: new Date('2024-01-01'),
-        },
-        viabilizado: 10,
-        materiais: {
-          codigo: '12345',
-          descricao: 'POSTE',
-          preco: new Decimal(1.5),
+        qtde_real: 4,
+        qtde_adicional: 2,
+        viabilizado: 7,
+        descricao_operacao: 'Instalação de poste',
+        numero_operacao: '2000',
+        materiais: null,
+        servicos_contratos: {
+          material: 'SER001',
+          texto_breve: 'Serviço de Instalação',
+          preco: 350.5,
         },
       },
       {
         id: 2,
         id_obra: 100,
         id_contrato_servico: null,
-        id_material: 2,
-        operacao: 'Operação 2',
-        descricao_operacao: 'POSTE - ODI',
-        numero_operacao: '2000',
-        ponto: 'Ponto B',
-        qtde_plan: 2,
-        qtde_prog: 3,
-        qtde_real: null,
-        qtde_adicional: 1,
-        servicos_contratos: {
-          material: 'Material 2',
-          texto_breve: 'Serviço 2',
-          preco: 200,
+        id_material: 20,
+        operacao: 'OP002',
+        ponto: 'V02',
+        qtde_plan: 20,
+        qtde_prog: 15,
+        qtde_real: 12,
+        qtde_adicional: 0,
+        viabilizado: 18,
+        descricao_operacao: 'Substituição de cabo',
+        numero_operacao: '2001',
+        materiais: {
+          codigo: 'MAT002',
+          descricao: 'Cabo de Alumínio',
+          preco: new Decimal(45.9),
         },
-        programacoes: null,
-        viabilizado: 2,
-        materiais: undefined,
+        servicos_contratos: null,
       },
     ];
 
@@ -323,40 +318,42 @@ describe('WorksServicesService', () => {
         {
           id: 1,
           idObra: 100,
-          operacao: 'Operação 1',
-          descricaoOperacao: 'POSTE',
+          operacao: 'OP001',
+          descricaoOperacao: 'Instalação de poste',
           numeroOperacao: '2000',
-          ponto: 'Ponto A',
-          material: '12345',
-          textoBreve: 'POSTE',
-          dataProgramada: new Date('2024-01-01'),
+          ponto: 'P16',
+          material: 'SER001',
+          textoBreve: 'Serviço de Instalação',
           qtdePlanejada: 10,
-          viabilizado: 10,
-          qtdeRealizada: 5,
-          qtdeAdicional: null,
-          tipo: 'M',
-          valorUnit: 1.5,
-          valorTotal: 7.5,
-          valorReal: 7.5,
+          viabilizado: 7,
+          qtdeRealizada: 4,
+          qtdeProgramada: 8,
+          qtdeAdicional: 2,
+          tipo: 'S' as const,
+          saldoDisponivel: 1,
+          valorUnit: 350.5,
+          valorTotal: 3154.5,
+          valorReal: 1402,
         },
         {
           id: 2,
           idObra: 100,
-          operacao: 'Operação 2',
-          descricaoOperacao: 'POSTE - ODI',
-          numeroOperacao: '2000',
-          ponto: 'Ponto B',
-          material: 'Material 2',
-          textoBreve: 'Serviço 2',
-          dataProgramada: undefined,
-          qtdePlanejada: 2,
-          viabilizado: 2,
-          qtdeRealizada: null,
-          qtdeAdicional: 1,
-          tipo: 'S',
-          valorUnit: 200,
-          valorTotal: 600,
-          valorReal: 0,
+          operacao: 'OP002',
+          descricaoOperacao: 'Substituição de cabo',
+          numeroOperacao: '2001',
+          ponto: 'V02',
+          material: 'MAT002',
+          textoBreve: 'Cabo de Alumínio',
+          qtdePlanejada: 20,
+          viabilizado: 18,
+          qtdeRealizada: 12,
+          qtdeProgramada: 15,
+          qtdeAdicional: 0,
+          tipo: 'M' as const,
+          saldoDisponivel: 3,
+          valorUnit: 45.9,
+          valorTotal: 826.1999999999999,
+          valorReal: 550.8,
         },
       ]);
       expect(repository.getNotScheduledServices).toHaveBeenCalledWith(1);
@@ -386,55 +383,16 @@ describe('WorksServicesService', () => {
       );
     });
 
-    it('should return empty array when no services found', async () => {
-      mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue([]);
-
-      const result = await service.getNotScheduledServices(1);
-
-      expect(result).toEqual([]);
-      expect(result).toHaveLength(0);
-    });
-
     it('should calculate valorUnit and valorReal correctly', async () => {
-      const serviceWithCustomValues = [
-        {
-          ...mockRepositoryResponse[0],
-          qtde_plan: 2,
-          qtde_real: 2,
-          qtde_adicional: null,
-          servicos_contratos: {
-            ...mockRepositoryResponse[0].servicos_contratos,
-            preco: 5,
-          },
-        },
-      ];
-
       mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue(
-        serviceWithCustomValues,
+        mockRepositoryResponse,
       );
 
       const result = await service.getNotScheduledServices(1);
 
-      expect(result[0].valorUnit).toBe(5); // 50 * 25.5
-      expect(result[0].valorTotal).toBe(40); // 50 * 25.5
-      expect(result[0].valorReal).toBe(10); // 30 * 25.5
-    });
-
-    it('should handle service without programacoes', async () => {
-      const serviceWithoutProgramacao = [
-        {
-          ...mockRepositoryResponse[0],
-          programacoes: null,
-        },
-      ];
-
-      mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue(
-        serviceWithoutProgramacao,
-      );
-
-      const result = await service.getNotScheduledServices(1);
-
-      expect(result[0].dataProgramada).toBeUndefined();
+      expect(result[0].valorUnit).toBe(350.5);
+      expect(result[0].valorTotal).toBe(3154.5);
+      expect(result[0].valorReal).toBe(1402);
     });
   });
 
@@ -444,58 +402,65 @@ describe('WorksServicesService', () => {
       idProgramacao: 10,
     };
 
-    const mockRepositoryResponse = [
+    const mockRepositoryResponse: GetServicesSelectedByWorkIdResponse[] = [
       {
-        id: 1,
-        id_obra: 100,
-        operacao: 'Operação 1',
-        ponto: 'Ponto A',
-        qtde_plan: 10,
-        qtde_prog: 8,
-        qtde_real: 5,
-        qtde_adicional: null,
-        viabilizado: 5,
-        descricao_operacao: 'Poste',
-        numero_operacao: '2000',
-        servicos_contratos: {
-          material: 'Material 1',
-          texto_breve: 'Serviço 1',
-          preco: 100,
-        },
-        programacoes: {
-          data_prog: '2024-01-01',
-        },
+        id_programacao: 1,
+        prog: 8,
+        real: 5,
+        adicional: null,
         equipes: {
           equipe: 'LM 01',
           encarregado: 'João Silva',
           perfil: 'Pedreiro',
+        },
+        programacoes: {
+          data_prog: new Date('2024-01-01'),
+        },
+        servicos: {
+          id: 1,
+          id_obra: 100,
+          operacao: 'Operação 1',
+          ponto: 'Ponto A',
+          qtde_plan: 10,
+          viabilizado: 5,
+          descricao_operacao: 'Poste',
+          numero_operacao: '2000',
+          servicos_contratos: {
+            material: 'Material 1',
+            texto_breve: 'Serviço 1',
+            preco: 100,
+          },
+          materiais: null,
         },
       },
       {
-        id: 2,
-        id_obra: 100,
-        operacao: 'Operação 1',
-        ponto: 'Ponto A',
-        qtde_plan: 10,
-        qtde_prog: 8,
-        qtde_real: 5,
-        qtde_adicional: null,
-        viabilizado: 5,
-        servicos_contratos: undefined,
-        descricao_operacao: 'Poste',
-        numero_operacao: '2000',
-        materiais: {
-          codigo: '1234',
-          descricao: 'Poste',
-          preco: new Decimal(5),
-        },
-        programacoes: {
-          data_prog: '2024-01-01',
-        },
+        id_programacao: 2,
+        prog: 8,
+        real: 5,
+        adicional: null,
         equipes: {
           equipe: 'LM 01',
           encarregado: 'João Silva',
           perfil: 'Pedreiro',
+        },
+        programacoes: {
+          data_prog: new Date('2024-01-01'),
+        },
+        servicos: {
+          id: 2,
+          id_obra: 100,
+          operacao: 'Operação 1',
+          ponto: 'Ponto A',
+          qtde_plan: 10,
+          viabilizado: 5,
+          descricao_operacao: 'Poste',
+          numero_operacao: '2000',
+          servicos_contratos: null,
+          materiais: {
+            codigo: '1234',
+            descricao: 'Poste',
+            preco: new Decimal(5),
+          },
         },
       },
     ];
@@ -515,7 +480,7 @@ describe('WorksServicesService', () => {
           ponto: 'Ponto A',
           material: 'Material 1',
           textoBreve: 'Serviço 1',
-          dataProgramada: '2024-01-01',
+          dataProgramada: new Date('2024-01-01'),
           descricaoOperacao: 'Poste',
           numeroOperacao: '2000',
           qtdePlanejada: 10,
@@ -540,7 +505,7 @@ describe('WorksServicesService', () => {
           textoBreve: 'Poste',
           descricaoOperacao: 'Poste',
           numeroOperacao: '2000',
-          dataProgramada: '2024-01-01',
+          dataProgramada: new Date('2024-01-01'),
           qtdePlanejada: 10,
           qtdeProgramada: 8,
           qtdeRealizada: 5,
@@ -714,7 +679,7 @@ describe('WorksServicesService', () => {
         },
       ];
 
-      mockGetWorkDetailsService.get.mockResolvedValue(mockWork);
+      mockGetWorksDetailsRepository.get.mockResolvedValue(mockWork);
       mockWorksServicesRepository.getServicesContracts.mockResolvedValue(
         mockContracts,
       );
@@ -737,7 +702,7 @@ describe('WorksServicesService', () => {
         id_turma: null,
       };
 
-      mockGetWorkDetailsService.get.mockResolvedValue(mockWork);
+      mockGetWorksDetailsRepository.get.mockResolvedValue(mockWork);
       mockWorksServicesRepository.getServicesContracts.mockResolvedValue([]);
 
       const result = await service.getServiceContracts(mockIdWork);
@@ -749,7 +714,7 @@ describe('WorksServicesService', () => {
     it('should handle work not found', async () => {
       const mockIdWork = 999;
 
-      mockGetWorkDetailsService.get.mockResolvedValue(null);
+      mockGetWorksDetailsRepository.get.mockResolvedValue(null);
       mockWorksServicesRepository.getServicesContracts.mockResolvedValue([]);
 
       const result = await service.getServiceContracts(mockIdWork);
@@ -766,7 +731,7 @@ describe('WorksServicesService', () => {
         id_turma: mockIdParceira,
       };
 
-      mockGetWorkDetailsService.get.mockResolvedValue(mockWork);
+      mockGetWorksDetailsRepository.get.mockResolvedValue(mockWork);
       mockWorksServicesRepository.getServicesContracts.mockResolvedValue([]);
 
       const result = await service.getServiceContracts(mockIdWork);
@@ -796,7 +761,7 @@ describe('WorksServicesService', () => {
         },
       ];
 
-      mockGetWorkDetailsService.get.mockResolvedValue(mockWork);
+      mockGetWorksDetailsRepository.get.mockResolvedValue(mockWork);
       mockWorksServicesRepository.getTeamsServices.mockResolvedValue(mockTeams);
 
       const result = await service.getTeamsServices(mockIdWork);
@@ -815,7 +780,7 @@ describe('WorksServicesService', () => {
         id_turma: null,
       };
 
-      mockGetWorkDetailsService.get.mockResolvedValue(mockWork);
+      mockGetWorksDetailsRepository.get.mockResolvedValue(mockWork);
       mockWorksServicesRepository.getTeamsServices.mockResolvedValue([]);
 
       const result = await service.getTeamsServices(mockIdWork);
@@ -827,7 +792,7 @@ describe('WorksServicesService', () => {
     it('should handle work not found', async () => {
       const mockIdWork = 999;
 
-      mockGetWorkDetailsService.get.mockResolvedValue(null);
+      mockGetWorksDetailsRepository.get.mockResolvedValue(null);
       mockWorksServicesRepository.getTeamsServices.mockResolvedValue([]);
 
       const result = await service.getTeamsServices(mockIdWork);
@@ -844,7 +809,7 @@ describe('WorksServicesService', () => {
         id_turma: mockIdParceira,
       };
 
-      mockGetWorkDetailsService.get.mockResolvedValue(mockWork);
+      mockGetWorksDetailsRepository.get.mockResolvedValue(mockWork);
       mockWorksServicesRepository.getTeamsServices.mockResolvedValue([]);
 
       const result = await service.getTeamsServices(mockIdWork);

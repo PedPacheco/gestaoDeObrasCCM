@@ -45,9 +45,15 @@ import { WorksInsertController } from '../controllers/works/worksInsert.controll
 import { WorksUpdateController } from '../controllers/works/worksUpdate.controller';
 import { AuxiliaryBaseModule } from './auxiliaryBase.module';
 import { UsersModule } from './users.module';
+import { WorksServicesModule } from './worksServices.module';
 
 @Module({
-  imports: [CacheModule, UsersModule, forwardRef(() => AuxiliaryBaseModule)],
+  imports: [
+    CacheModule,
+    UsersModule,
+    forwardRef(() => WorksServicesModule),
+    forwardRef(() => AuxiliaryBaseModule),
+  ],
   controllers: [WorksController, WorksUpdateController, WorksInsertController],
   providers: [
     FindExistingWorksService,
@@ -91,6 +97,7 @@ import { UsersModule } from './users.module';
     { provide: SUSPENSION_WORK_REPOSITORY, useClass: SuspensionWorkRepository },
   ],
   exports: [
+    GET_WORKS_DETAILS_REPOSITORY,
     GetWorksInPortfolioService,
     GetCompletedWorksService,
     FindExistingWorksService,

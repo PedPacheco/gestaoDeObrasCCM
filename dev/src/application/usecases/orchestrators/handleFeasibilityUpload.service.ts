@@ -2,7 +2,6 @@ import {
   RejectFeasibilityInput,
   StatusFeasibility,
 } from 'src/application/types';
-import { AppLogger } from 'src/core/logger/logger.service';
 import {
   FEASIBILITY_REPOSITORY,
   IFeasibilityRepository,
@@ -34,7 +33,6 @@ export class HandleFeasibilityService {
     private readonly feasibilityRepository: IFeasibilityRepository,
     private readonly fileService: FileService,
     private readonly prisma: PrismaService,
-    private readonly logger: AppLogger,
   ) {}
 
   async upload(
@@ -78,8 +76,9 @@ export class HandleFeasibilityService {
         idUser,
         files,
         existingFiles,
-        feasibilityTimeframeStatus,
+        'tecnhical',
         tx,
+        feasibilityTimeframeStatus,
       );
 
       if (pointByPoint)
@@ -93,6 +92,30 @@ export class HandleFeasibilityService {
     await this.deletePhysicalFiles(filesToRemove);
   }
 
+  async uploadComplementaryFiles(
+    idWork: number,
+    idUser: number,
+    files: Express.Multer.File[],
+    existingFiles: string[],
+  ) {
+    if (!idWork) {
+      throw new BadGatewayException('Obra não foi encontrada');
+    }
+
+    const filesToRemove = await this.prisma.$transaction(async (tx) => {
+      return await this.syncFiles(
+        idWork,
+        idUser,
+        files,
+        existingFiles,
+        'complementary',
+        tx,
+      );
+    });
+
+    await this.deletePhysicalFiles(filesToRemove);
+  }
+
   async reject(data: RejectFeasibilityInput) {
     await this.prisma.$transaction(async (tx) => {
       await this.feasibilityRepository.reject(data, tx);
@@ -101,21 +124,8 @@ export class HandleFeasibilityService {
     });
   }
 
-  async approve(workId: number, userId: number, files: Express.Multer.File[]) {
+  async approve(workId: number, userId: number) {
     await this.prisma.$transaction(async (tx) => {
-      if (files.length > 0) {
-        const currentRecord =
-          await this.feasibilityRepository.findFiles(workId);
-
-        const currentFiles = currentRecord?.caminhos_arquivos ?? [];
-
-        const newFiles = files.map((file) => file.filename);
-
-        const paths = [...new Set([...currentFiles, ...newFiles])];
-
-        await this.feasibilityRepository.updateFiles(workId, paths, tx);
-      }
-
       await this.feasibilityRepository.approve(workId, userId, tx);
 
       await this.statusFlowRepository.updateStatusWorks(1, workId, tx);
@@ -127,12 +137,16 @@ export class HandleFeasibilityService {
     idUser: number,
     uploadedFiles: Express.Multer.File[],
     existingFiles: string[],
-    status: StatusFeasibility,
+    type: 'complementary' | 'tecnhical',
     tx: Prisma.TransactionClient,
+    status?: StatusFeasibility,
   ) {
     const currentRecord = await this.feasibilityRepository.findFiles(idWork);
 
-    const currentFiles = currentRecord?.caminhos_arquivos ?? [];
+    const currentFiles =
+      type === 'tecnhical'
+        ? (currentRecord?.caminhos_arquivos ?? [])
+        : (currentRecord?.arquivos_complementares ?? []);
 
     const removedFiles = currentFiles.filter(
       (file) => !existingFiles.includes(file),
@@ -142,13 +156,19 @@ export class HandleFeasibilityService {
 
     const paths = [...new Set([...existingFiles, ...newFiles])];
 
-    await this.feasibilityRepository.saveFiles(
-      idWork,
-      idUser,
-      status,
-      paths,
-      tx,
-    );
+    if (type === 'tecnhical') {
+      await this.feasibilityRepository.saveFiles(
+        idWork,
+        idUser,
+        status,
+        paths,
+        tx,
+      );
+
+      return removedFiles;
+    }
+
+    await this.feasibilityRepository.updateFiles(idWork, paths, type, tx);
 
     return removedFiles;
   }
@@ -161,12 +181,7 @@ export class HandleFeasibilityService {
             `${process.env.UPLOAD_DEST}/${file}`,
           );
         } catch (error) {
-          // banco já commitado — logamos e seguimos.
-          // um arquivo órfão em disco é preferível a uma transaction quebrada.
-          this.logger.warn(
-            `Falha ao excluir arquivo ${file} do disco`,
-            error instanceof Error ? error.stack : String(error),
-          );
+          console.error(`Falha ao excluir arquivo ${file} do disco`, error);
         }
       }),
     );

@@ -3,12 +3,6 @@ import {
   FORECAST_SNAPSHOT,
   IForecastSnapshotRepository,
 } from 'src/domain/contracts/IForecastSnapshotRepository';
-import {
-  ForecastDailyTotalsResponse,
-  ForecastGroupTotalsResponse,
-  ForecastSnapshotDailyData,
-  ForecastSnapshotGroupData,
-} from 'src/domain/types';
 
 import { Inject, Injectable } from '@nestjs/common';
 
@@ -19,6 +13,12 @@ import {
   GetAllForecastSnapshotsOutput,
   GetForecastSnapshotOutput,
 } from '../types';
+import {
+  ForecastDailyTotalsResponse,
+  ForecastGroupTotalsResponse,
+  ForecastSnapshotDailyData,
+  ForecastSnapshotGroupData,
+} from 'src/domain/types';
 
 const emptyDailyTotals: ForecastDailyTotalsResponse = {
   totalDiff: 0,

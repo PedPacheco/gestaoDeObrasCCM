@@ -4,10 +4,11 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
 import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
-import { StatusFeasibility } from 'src/application/usecases/feasibility.service';
+
 import moment from 'moment';
 import { IFeasibilityRepository } from 'src/domain/contracts/IFeasibilityRepository';
 import { ExistsResponse, GetRejectionsResponse } from 'src/domain/types';
+import { StatusFeasibility } from 'src/application/types';
 
 @Injectable()
 export class FeasibilityRepository implements IFeasibilityRepository {
@@ -48,6 +49,52 @@ export class FeasibilityRepository implements IFeasibilityRepository {
         motivo: true,
         criado_em: true,
         novo_tabela_usuarios: { select: { nome: true } },
+      },
+    });
+  }
+
+  async exportFeasibility(
+    idStatus: number,
+    idPartner?: number[],
+  ): Promise<any[]> {
+    return this.prisma.obras.findMany({
+      where: {
+        programacao_ponto_a_ponto: true,
+        id_status: idStatus,
+        ...(idPartner.length > 0 ? { id_turma: { in: idPartner } } : {}),
+      },
+      select: {
+        ovnota: true,
+        diagrama: true,
+        ordem_dci: true,
+        ordem_dca: true,
+        ordem_dcd: true,
+        ordem_dcim: true,
+        relatorio_viabilidade: { select: { data_envio: true } },
+        servicos: {
+          select: {
+            operacao: true,
+            ponto: true,
+            qtde_plan: true,
+            viabilizado: true,
+            descricao_operacao: true,
+            numero_operacao: true,
+            materiais: {
+              select: {
+                codigo: true,
+                descricao: true,
+                preco: true,
+              },
+            },
+            servicos_contratos: {
+              select: {
+                material: true,
+                texto_breve: true,
+                preco: true,
+              },
+            },
+          },
+        },
       },
     });
   }
@@ -100,26 +147,36 @@ export class FeasibilityRepository implements IFeasibilityRepository {
   async updateFiles(
     workId: number,
     paths: string[],
+    type: 'technical' | 'complementary',
     tx: Prisma.TransactionClient,
   ): Promise<void> {
+    const data =
+      type === 'technical'
+        ? { caminhos_arquivos: paths }
+        : { arquivos_complementares: paths };
+
     await tx.relatorio_viabilidade.update({
       where: {
         id_obra: workId,
       },
-      data: {
-        caminhos_arquivos: paths,
-      },
+      data,
     });
   }
 
-  async findFiles(
-    idWork: number,
-  ): Promise<{ id: number; caminhos_arquivos: string[] }> {
+  async findFiles(idWork: number): Promise<{
+    id: number;
+    caminhos_arquivos: string[];
+    arquivos_complementares: string[];
+  }> {
     return await this.prisma.relatorio_viabilidade.findUnique({
       where: {
         id_obra: idWork,
       },
-      select: { id: true, caminhos_arquivos: true },
+      select: {
+        id: true,
+        caminhos_arquivos: true,
+        arquivos_complementares: true,
+      },
     });
   }
 

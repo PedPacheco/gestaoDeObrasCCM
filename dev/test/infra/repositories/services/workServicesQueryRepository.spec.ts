@@ -15,6 +15,7 @@ describe('WorkServicesQueryRepository', () => {
       groupBy: jest.fn(),
       create: jest.fn(),
     },
+    obras: { findMany: jest.fn() },
     materiais: { findMany: jest.fn() },
     programacoes_servicos: {
       findMany: jest.fn(),
@@ -96,8 +97,7 @@ describe('WorkServicesQueryRepository', () => {
           viabilizado: true,
           descricao_operacao: true,
           numero_operacao: true,
-          programacoes: { select: { data_prog: true } },
-          materiais: { select: { descricao: true, codigo: true, preco: true } },
+          materiais: { select: { codigo: true, descricao: true, preco: true } },
           servicos_contratos: {
             select: {
               material: true,
@@ -108,9 +108,6 @@ describe('WorkServicesQueryRepository', () => {
         },
         where: {
           id_obra: 1,
-          id_programacao: {
-            equals: null,
-          },
           AND: [
             {
               OR: [
@@ -149,110 +146,106 @@ describe('WorkServicesQueryRepository', () => {
 
     const mockSelectedServicesResponse = [
       {
-        id: 1,
-        id_obra: 1,
-        id_contrato_servico: 2,
-        id_material: null,
-        operacao: 'Operação 1',
-        ponto: 'Ponto A',
-        qtde_plan: 10,
-        qtde_prog: 8,
-        qtde_real: 5,
-        servicos_contratos: {
-          material: 'Material 1',
-          texto_breve: 'Serviço 1',
-          preco: 100,
-        },
-        programacoes: { data_prog: '2024-01-01' },
+        id_programacao: 10,
+        prog: 8,
+        real: 5,
+        adicional: null,
         equipes: {
           equipe: 'Equipe A',
           encarregado: 'João Silva',
           perfil: 'Pedreiro',
         },
+        programacoes: { data_prog: '2024-01-01' },
+        servicos: {
+          id: 1,
+          id_obra: 1,
+          operacao: 'Operação 1',
+          ponto: 'Ponto A',
+          qtde_plan: 10,
+          viabilizado: 1,
+          descricao_operacao: 'Instalação',
+          numero_operacao: '001',
+          materiais: { codigo: 'M1', descricao: 'Material 1', preco: 100 },
+          servicos_contratos: {
+            material: 'Material 1',
+            texto_breve: 'Serviço 1',
+            preco: 100,
+          },
+        },
       },
     ];
 
     it('should return selected services with all filters', async () => {
-      mockPrismaService.servicos.findMany.mockResolvedValue(
+      mockPrismaService.programacoes_servicos.findMany.mockResolvedValue(
         mockSelectedServicesResponse,
       );
 
       const result = await repository.getSelectedServices(mockParams);
 
       expect(result).toEqual(mockSelectedServicesResponse);
-      expect(prisma.servicos.findMany).toHaveBeenCalledWith({
+      expect(prisma.programacoes_servicos.findMany).toHaveBeenCalledWith({
+        where: {
+          id_programacao: 10,
+          servicos: { id_obra: 1 },
+        },
         select: {
-          id: true,
-          id_obra: true,
-          id_contrato_servico: true,
-          id_material: true,
-          operacao: true,
-          ponto: true,
-          qtde_plan: true,
-          qtde_prog: true,
-          qtde_real: true,
-          qtde_adicional: true,
-          viabilizado: true,
-          descricao_operacao: true,
-          numero_operacao: true,
-          servicos_contratos: {
-            select: {
-              material: true,
-              texto_breve: true,
-              preco: true,
-            },
-          },
-          materiais: { select: { descricao: true, codigo: true, preco: true } },
-          programacoes: { select: { data_prog: true } },
+          id_programacao: true,
+          prog: true,
+          real: true,
+          adicional: true,
           equipes: {
             select: { equipe: true, encarregado: true, perfil: true },
           },
-        },
-        where: {
-          id_obra: 1,
-          id_programacao: 10,
+          programacoes: {
+            select: { data_prog: true },
+          },
+          servicos: {
+            select: {
+              id: true,
+              id_obra: true,
+              operacao: true,
+              ponto: true,
+              qtde_plan: true,
+              viabilizado: true,
+              descricao_operacao: true,
+              numero_operacao: true,
+              materiais: {
+                select: { codigo: true, descricao: true, preco: true },
+              },
+              servicos_contratos: {
+                select: { material: true, texto_breve: true, preco: true },
+              },
+            },
+          },
         },
       });
-    });
-
-    it('should include equipes data in select', async () => {
-      const params: GetSelectedServicesParamsInterface = {
-        id: 1,
-        idProgramacao: 10,
-      };
-
-      mockPrismaService.servicos.findMany.mockResolvedValue(
-        mockSelectedServicesResponse,
-      );
-
-      await repository.getSelectedServices(params);
-
-      const callArgs = mockPrismaService.servicos.findMany.mock.calls[0][0];
-      expect(callArgs.select.equipes).toEqual({
-        select: { equipe: true, encarregado: true, perfil: true },
-      });
+      expect(prisma.programacoes_servicos.findMany).toHaveBeenCalledTimes(1);
     });
 
     it('should return empty array when no selected services found', async () => {
-      mockPrismaService.servicos.findMany.mockResolvedValue([]);
+      mockPrismaService.programacoes_servicos.findMany.mockResolvedValue([]);
 
       const result = await repository.getSelectedServices(mockParams);
 
       expect(result).toEqual([]);
     });
 
-    it('should filter by idProgramacao', async () => {
+    it('should filter by idProgramacao and the work id', async () => {
       const params: GetSelectedServicesParamsInterface = {
-        id: 1,
+        id: 5,
         idProgramacao: 99,
       };
 
-      mockPrismaService.servicos.findMany.mockResolvedValue([]);
+      mockPrismaService.programacoes_servicos.findMany.mockResolvedValue([]);
 
       await repository.getSelectedServices(params);
 
-      const callArgs = mockPrismaService.servicos.findMany.mock.calls[0][0];
-      expect(callArgs.where.id_programacao).toBe(99);
+      const callArgs =
+        mockPrismaService.programacoes_servicos.findMany.mock.calls[0][0];
+      expect(callArgs.where).toEqual({
+        id_programacao: 99,
+        servicos: { id_obra: 5 },
+      });
     });
   });
 
@@ -347,6 +340,110 @@ describe('WorkServicesQueryRepository', () => {
       const callArgs =
         mockPrismaService.programacoes_servicos.findMany.mock.calls[0][0];
       expect(callArgs.where.programacoes.id_obra).toBe(42);
+    });
+
+    it('should query within the provided transaction when tx is informed', async () => {
+      const mockTx = {
+        programacoes_servicos: {
+          findMany: jest.fn().mockResolvedValue([]),
+        },
+      };
+
+      await repository.getServiceScheduleHistory(1, mockTx as any);
+
+      expect(mockTx.programacoes_servicos.findMany).toHaveBeenCalledTimes(1);
+      expect(prisma.programacoes_servicos.findMany).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getServiceScheduleHistoryByIdSchedule', () => {
+    const mockHistoryResponse = [
+      {
+        id: 1,
+        id_servico: 10,
+        servicos: {
+          materiais: { descricao: 'Material 1', codigo: 'M1', preco: 100 },
+          servicos_contratos: {
+            texto_breve: 'Serviço 1',
+            material: 'Material 1',
+            preco: 100,
+          },
+          ponto: 'Ponto A',
+          operacao: 'Operação 1',
+          qtde_plan: 2,
+          viabilizado: 3,
+          descricao_operacao: 'Instalação',
+          numero_operacao: '001',
+        },
+        id_programacao: 5,
+        programacoes: { data_prog: '2024-01-01' },
+        equipes: { equipe: 'LM 02', perfil: 'Eletricista' },
+        prog: 3,
+        real: 3,
+        adicional: 2,
+      },
+    ];
+
+    it('should return service schedule history filtered by schedule ids', async () => {
+      const mockIds = [1, 2, 3];
+      mockPrismaService.programacoes_servicos.findMany.mockResolvedValue(
+        mockHistoryResponse,
+      );
+
+      const result =
+        await repository.getServiceScheduleHistoryByIdSchedule(mockIds);
+
+      expect(result).toEqual(mockHistoryResponse);
+      expect(prisma.programacoes_servicos.findMany).toHaveBeenCalledWith({
+        select: {
+          id: true,
+          id_servico: true,
+          servicos: {
+            select: {
+              materiais: {
+                select: { descricao: true, codigo: true, preco: true },
+              },
+              servicos_contratos: {
+                select: { texto_breve: true, material: true, preco: true },
+              },
+              ponto: true,
+              operacao: true,
+              qtde_plan: true,
+              viabilizado: true,
+              descricao_operacao: true,
+              numero_operacao: true,
+            },
+          },
+          id_programacao: true,
+          programacoes: { select: { data_prog: true } },
+          equipes: { select: { equipe: true, perfil: true } },
+          prog: true,
+          real: true,
+          adicional: true,
+        },
+        where: { id_programacao: { in: mockIds } },
+      });
+      expect(prisma.programacoes_servicos.findMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return empty array when no history found for the given ids', async () => {
+      mockPrismaService.programacoes_servicos.findMany.mockResolvedValue([]);
+
+      const result = await repository.getServiceScheduleHistoryByIdSchedule([
+        999,
+      ]);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should filter by the given schedule ids', async () => {
+      mockPrismaService.programacoes_servicos.findMany.mockResolvedValue([]);
+
+      await repository.getServiceScheduleHistoryByIdSchedule([7, 8]);
+
+      const callArgs =
+        mockPrismaService.programacoes_servicos.findMany.mock.calls[0][0];
+      expect(callArgs.where).toEqual({ id_programacao: { in: [7, 8] } });
     });
   });
 
@@ -505,7 +602,31 @@ describe('WorkServicesQueryRepository', () => {
   });
 
   describe('getAllServicesOfWork', () => {
-    it('should return all services of a work', async () => {
+    const baseSelect = {
+      id: true,
+      id_obra: true,
+      id_contrato_servico: true,
+      id_material: true,
+      operacao: true,
+      ponto: true,
+      qtde_plan: true,
+      qtde_prog: true,
+      qtde_real: true,
+      qtde_adicional: true,
+      viabilizado: true,
+      descricao_operacao: true,
+      numero_operacao: true,
+      materiais: { select: { codigo: true, descricao: true, preco: true } },
+      servicos_contratos: {
+        select: {
+          material: true,
+          texto_breve: true,
+          preco: true,
+        },
+      },
+    };
+
+    it('should query by numeric id (and other order identifiers) when id has fewer than 10 digits', async () => {
       const mockWorkId = 1;
       const mockServices = [
         { id: 1, qtde_plan: 100 },
@@ -519,33 +640,60 @@ describe('WorkServicesQueryRepository', () => {
 
       expect(result).toEqual(mockServices);
       expect(prisma.servicos.findMany).toHaveBeenCalledWith({
-        select: {
-          id: true,
-          id_obra: true,
-          id_contrato_servico: true,
-          id_material: true,
-          operacao: true,
-          ponto: true,
-          qtde_plan: true,
-          qtde_prog: true,
-          qtde_real: true,
-          qtde_adicional: true,
-          viabilizado: true,
-          descricao_operacao: true,
-          numero_operacao: true,
-          programacoes: { select: { data_prog: true } },
-          materiais: { select: { codigo: true, descricao: true, preco: true } },
-          servicos_contratos: {
-            select: {
-              material: true,
-              texto_breve: true,
-              preco: true,
-            },
+        select: baseSelect,
+        where: {
+          obras: {
+            OR: [
+              { id: 1 },
+              { ovnota: '1' },
+              { ordem_dci: '1' },
+              { ordem_dcd: '1' },
+              { ordem_dca: '1' },
+              { ordem_dcim: '1' },
+              { diagrama: '1' },
+            ],
           },
         },
-        where: { id_obra: mockWorkId },
       });
       expect(prisma.servicos.findMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not filter by numeric id when id has 10 or more digits', async () => {
+      const mockWorkId = 1234567890;
+
+      mockPrismaService.servicos.findMany.mockResolvedValue([]);
+
+      await repository.getAllServicesOfWork(mockWorkId);
+
+      expect(prisma.servicos.findMany).toHaveBeenCalledWith({
+        select: baseSelect,
+        where: {
+          obras: {
+            OR: [
+              { id: undefined },
+              { ovnota: '1234567890' },
+              { ordem_dci: '1234567890' },
+              { ordem_dcd: '1234567890' },
+              { ordem_dca: '1234567890' },
+              { ordem_dcim: '1234567890' },
+              { diagrama: '1234567890' },
+            ],
+          },
+        },
+      });
+    });
+
+    it('should query within the provided transaction when tx is informed', async () => {
+      const mockTx = {
+        servicos: {
+          findMany: jest.fn().mockResolvedValue([]),
+        },
+      };
+
+      await repository.getAllServicesOfWork(1, mockTx as any);
+
+      expect(mockTx.servicos.findMany).toHaveBeenCalledTimes(1);
+      expect(prisma.servicos.findMany).not.toHaveBeenCalled();
     });
 
     it('should return empty array when no services found', async () => {
@@ -556,33 +704,6 @@ describe('WorkServicesQueryRepository', () => {
       const result = await repository.getAllServicesOfWork(mockWorkId);
 
       expect(result).toEqual([]);
-      expect(prisma.servicos.findMany).toHaveBeenCalledWith({
-        select: {
-          id: true,
-          id_obra: true,
-          id_contrato_servico: true,
-          id_material: true,
-          operacao: true,
-          ponto: true,
-          qtde_plan: true,
-          qtde_prog: true,
-          qtde_real: true,
-          qtde_adicional: true,
-          viabilizado: true,
-          descricao_operacao: true,
-          numero_operacao: true,
-          programacoes: { select: { data_prog: true } },
-          materiais: { select: { codigo: true, descricao: true, preco: true } },
-          servicos_contratos: {
-            select: {
-              material: true,
-              texto_breve: true,
-              preco: true,
-            },
-          },
-        },
-        where: { id_obra: mockWorkId },
-      });
     });
 
     it('should handle database errors', async () => {
@@ -635,6 +756,192 @@ describe('WorkServicesQueryRepository', () => {
         by: ['ponto'],
         where: { id_obra: mockId },
       });
+    });
+  });
+
+  describe('getServicesToExportation', () => {
+    it('should build the programacoesServicosFilter without id_equipe when idEquipe is empty', async () => {
+      mockPrismaService.obras.findMany.mockResolvedValue([]);
+
+      await repository.getServicesToExportation({
+        dataInicial: '2026-01-01',
+        dataFinal: '2026-01-31',
+        idParceira: [2],
+        idEquipe: [],
+      });
+
+      const dateFilter = {
+        gte: new Date('2026-01-01'),
+        lte: new Date('2026-01-31'),
+      };
+
+      expect(mockPrismaService.obras.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            id_turma: { in: [2] },
+            programacao_ponto_a_ponto: true,
+            servicos: {
+              some: {
+                OR: [
+                  { viabilizado: { not: null, gt: 0 } },
+                  { qtde_adicional: { not: null, gt: 0 } },
+                ],
+                programacoes_servicos: {
+                  some: {
+                    programacoes: { data_prog: dateFilter, exec: null },
+                  },
+                },
+              },
+            },
+          }),
+        }),
+      );
+    });
+
+    it('should include id_equipe in the programacoesServicosFilter when idEquipe is informed', async () => {
+      mockPrismaService.obras.findMany.mockResolvedValue([]);
+
+      await repository.getServicesToExportation({
+        dataInicial: '2026-01-01',
+        dataFinal: '2026-01-31',
+        idParceira: [2],
+        idEquipe: [2, 3, 4],
+      });
+
+      const dateFilter = {
+        gte: new Date('2026-01-01'),
+        lte: new Date('2026-01-31'),
+      };
+
+      expect(mockPrismaService.obras.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            programacao_ponto_a_ponto: true,
+            id_turma: { in: [2] },
+            servicos: {
+              some: {
+                OR: [
+                  { viabilizado: { not: null, gt: 0 } },
+                  { qtde_adicional: { not: null, gt: 0 } },
+                ],
+                programacoes_servicos: {
+                  some: {
+                    programacoes: { data_prog: dateFilter, exec: null },
+                    id_equipe: { in: [2, 3, 4] },
+                  },
+                },
+              },
+            },
+          }),
+        }),
+      );
+    });
+
+    it('should apply date filter to programacoes', async () => {
+      mockPrismaService.obras.findMany.mockResolvedValue([]);
+
+      await repository.getServicesToExportation({
+        dataInicial: '2026-01-01',
+        dataFinal: '2026-01-31',
+        idParceira: [2],
+        idEquipe: [],
+      });
+
+      expect(mockPrismaService.obras.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            programacao_ponto_a_ponto: true,
+            programacoes: {
+              some: {
+                data_prog: {
+                  gte: new Date('2026-01-01'),
+                  lte: new Date('2026-01-31'),
+                },
+                exec: null,
+              },
+            },
+          }),
+        }),
+      );
+    });
+
+    it('should reuse the same programacoesServicosFilter in the nested servicos select', async () => {
+      mockPrismaService.obras.findMany.mockResolvedValue([]);
+
+      await repository.getServicesToExportation({
+        dataInicial: '2026-01-01',
+        dataFinal: '2026-01-31',
+        idParceira: [2],
+        idEquipe: [2, 3],
+      });
+
+      const dateFilter = {
+        gte: new Date('2026-01-01'),
+        lte: new Date('2026-01-31'),
+      };
+      const expectedFilter = {
+        programacoes: { data_prog: dateFilter, exec: null },
+        id_equipe: { in: [2, 3] },
+      };
+
+      const callArgs = mockPrismaService.obras.findMany.mock.calls[0][0];
+
+      expect(callArgs.where.servicos.some.programacoes_servicos.some).toEqual(
+        expectedFilter,
+      );
+      expect(callArgs.select.servicos.where.programacoes_servicos.some).toEqual(
+        expectedFilter,
+      );
+      expect(
+        callArgs.select.servicos.select.programacoes_servicos.where,
+      ).toEqual(expectedFilter);
+    });
+
+    it('should return repository data', async () => {
+      const responseMock = [
+        {
+          ovnota: 'OV001',
+        },
+      ];
+
+      mockPrismaService.obras.findMany.mockResolvedValue(responseMock);
+
+      const result = await repository.getServicesToExportation({
+        dataInicial: '2026-01-01',
+        dataFinal: '2026-01-31',
+        idParceira: [2],
+        idEquipe: [],
+      });
+
+      expect(result).toEqual(responseMock);
+    });
+
+    it('should return empty array when no data is found', async () => {
+      mockPrismaService.obras.findMany.mockResolvedValue([]);
+
+      const result = await repository.getServicesToExportation({
+        dataInicial: '2026-01-01',
+        dataFinal: '2026-01-31',
+        idParceira: [2],
+        idEquipe: [],
+      });
+
+      expect(result).toEqual([]);
+    });
+
+    it('should propagate prisma errors', async () => {
+      mockPrismaService.obras.findMany.mockRejectedValueOnce(
+        new Error('Database error'),
+      );
+
+      await expect(
+        repository.getServicesToExportation({
+          dataInicial: '2026-01-01',
+          dataFinal: '2026-01-31',
+          idParceira: [2],
+          idEquipe: [],
+        }),
+      ).rejects.toThrow('Database error');
     });
   });
 });

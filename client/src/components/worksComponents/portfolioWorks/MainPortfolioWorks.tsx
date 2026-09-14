@@ -88,9 +88,14 @@ export default function PortfolioWorks({
       );
 
       try {
-        const blob = await exportExcel(exportUrl, token);
+        const response = await exportExcel(exportUrl, token);
 
-        const downloadUrl = window.URL.createObjectURL(blob);
+        if (!response.success) {
+          showError(response.message);
+          return;
+        }
+
+        const downloadUrl = window.URL.createObjectURL(response.data);
         const link = document.createElement("a");
         link.href = downloadUrl;
         link.download =

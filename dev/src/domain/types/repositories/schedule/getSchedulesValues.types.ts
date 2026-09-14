@@ -1,3 +1,20 @@
+export type GetScheduleFilters = {
+  dataInicial?: string;
+  dataFinal?: string;
+  idRegional?: number[];
+  idMunicipio?: number[];
+  idGrupo?: number[];
+  idTipo?: number[];
+  idParceira?: number[];
+  idStatus?: number[];
+  idStatusProgramacao?: number[];
+  idStatusSap?: number[];
+  ovnota?: string;
+  page?: number;
+  executado: boolean;
+  pendente: boolean;
+};
+
 export type GetScheduleValuesResponseItem = {
   id: number;
   ovnota: string;
@@ -18,6 +35,8 @@ export type GetScheduleValuesResponseItem = {
   observprog: string | null;
   mo_prog: number;
   mo_exec: number;
+  moPlanejadaPontoAPonto: number;
+  moExecutadoPontoAPonto: number;
   capex_mat_pend: number;
   capex_mo_pend: number;
   mat_prog: number;
@@ -41,6 +60,7 @@ export type GetScheduleValuesResponseItem = {
   restricao_aberta: boolean;
   status_prazo: string;
   encontrado: boolean;
+  id_programacao: number;
 };
 
 export type GetScheduleValuesTotals = {
@@ -52,5 +72,5 @@ export type GetScheduleValuesTotals = {
 
 export type GetScheduleValuesRepositoryResponse = {
   works: GetScheduleValuesResponseItem[];
-  resultTotals: GetScheduleValuesTotals[];
+  resultTotals: GetScheduleValuesTotals;
 };

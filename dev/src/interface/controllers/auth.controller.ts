@@ -30,12 +30,12 @@ export class AuthController {
 
   @Public()
   @Post('login')
-  @Throttle({ default: { limit: 5, ttl: 120000 } })
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   async login(
     @Body() { user, password }: LoginUserDTO,
     @Res({ passthrough: true }) res: Response,
   ): Promise<loginInterfaceController> {
-    const data = await this.authService.login(user, password);
+    const data = await this.authService.login({ username: user, password });
 
     res.cookie('token', data.access_token, {
       httpOnly: false,

@@ -11,24 +11,11 @@ import {
   GroupSummaryTotals,
   GroupTeamSummaryEntry,
   MONTH_INDEX_TO_KEY,
+  MonthKey,
   MonthlyCapacityMetrics,
   WORKING_DAYS_PER_MONTH,
   WorkOrderMetrics,
 } from 'src/application/types';
-
-export type MonthKey =
-  | 'jan'
-  | 'fev'
-  | 'mar'
-  | 'abr'
-  | 'mai'
-  | 'jun'
-  | 'jul'
-  | 'ago'
-  | 'set'
-  | 'out'
-  | 'nov'
-  | 'dez';
 
 export interface IMonthlySummaryCalculator {
   aggregateFinancialCapacityByMonth(

@@ -68,16 +68,14 @@ import { ExecutionReportModule } from './executionReport.module';
 import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
 import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
-
-// import { UpdateRestrictionsService } from 'src/application/schedule/updateRestrictions.service';
-// import { UPDATE_RESTRICTIONS_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateRestrictionsRepository';
-// import { UpdateRestrictionsRepository } from 'src/infra/repositories/schedule/updateRestrictionsRepository';
+import { WorksServicesModule } from './worksServices.module';
 
 @Module({
   imports: [
     UsersModule,
+    forwardRef(() => WorksModule),
+    forwardRef(() => WorksServicesModule),
     forwardRef(() => ExecutionReportModule),
-    WorksModule,
     MulterModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
