@@ -66,7 +66,15 @@ function Sparkline({
 
   return (
     <ResponsiveContainer width="100%" height={72}>
-      <LineChart data={data} margin={{ top: 20, right: 4, left: 4, bottom: 2 }}>
+      <LineChart
+        data={data}
+        margin={{
+          top: 20,
+          right: 8,
+          left: 8,
+          bottom: 2,
+        }}
+      >
         <Line
           type="monotone"
           dataKey="pct"
@@ -83,31 +91,43 @@ function Sparkline({
 
 function SparklineSemanaLegend({ semanas }: { semanas: string[] }) {
   if (!semanas.length) return null;
+
   const lastIndex = semanas.length - 1;
 
   return (
-    <Box display="flex" justifyContent="space-between" px="4px">
-      {semanas.map((semana, i) => {
-        let textAlign: "left" | "center" | "right";
+    <Box
+      sx={{
+        position: "relative",
+        height: "24px",
+        mx: `8px`,
+      }}
+    >
+      {semanas.map((semana, index) => {
+        const isSingleWeek = semanas.length === 1;
+        const isFirst = index === 0;
+        const isLast = index === lastIndex;
 
-        if (semanas.length === 1) {
-          textAlign = "center";
-        } else if (i === lastIndex) {
-          textAlign = "right";
-        } else if (i === 0) {
-          textAlign = "left";
-        } else {
-          textAlign = "center";
-        }
+        const position = isSingleWeek ? 50 : (index / lastIndex) * 100;
+
+        const transform = isSingleWeek
+          ? "translateX(-50%)"
+          : isFirst
+            ? "translateX(0)"
+            : isLast
+              ? "translateX(-100%)"
+              : "translateX(-50%)";
 
         return (
           <Typography
-            key={i}
-            className="text-base text-zinc-100"
+            key={`${semana}-${index}`}
             sx={{
+              position: "absolute",
+              left: `${position}%`,
+              transform,
+              color: "#f4f4f5",
+              fontSize: "1rem",
               fontWeight: 500,
-              textAlign,
-              flex: 1,
+              lineHeight: 1.2,
               whiteSpace: "nowrap",
             }}
           >

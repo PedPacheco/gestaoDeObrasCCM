@@ -31,7 +31,7 @@ export class QueriesServicesService {
 
     const response = services.map((service) => {
       const preco = Number(
-        service.servicos_contratos?.preco ?? service.materiais?.preco ?? 0,
+        service.servicos_contratos?.preco ?? service.materiais?.preco,
       );
 
       const qtdeTotal = service.qtde_plan + service.qtde_adicional;
@@ -80,7 +80,7 @@ export class QueriesServicesService {
 
       const precoServico = service.servicos_contratos?.preco;
       const precoMaterial = service.materiais?.preco;
-      const preco = Number(precoServico ?? precoMaterial ?? 0);
+      const preco = Number(precoServico ?? precoMaterial);
 
       const saldoDisponivel = total - Math.max(totalReal, totalProg);
 
@@ -124,7 +124,7 @@ export class QueriesServicesService {
       const service = item.servicos;
 
       const preco = Number(
-        service.servicos_contratos?.preco ?? service.materiais?.preco ?? 0,
+        service.servicos_contratos?.preco ?? service.materiais?.preco,
       );
 
       return {

@@ -19,29 +19,25 @@
 
 export interface ServiceTypeFields {
   id_material?: number | null;
-  materiais?: { codigo?: string | null } | null;
+  materiais?: { codigo?: string | null; descricao?: string } | null;
 }
 
 /**
  * Retorna `true` quando o item representa um material, `false` quando
  * representa um serviço (contrato de serviço).
  */
-export function isMaterial(entity: ServiceTypeFields | null): boolean {
-  if (!entity) return false;
-
-  console.log(entity);
-
+export function isMaterial(entity: ServiceTypeFields): boolean {
+  // Prioriza a FK quando disponível
   if (entity.id_material !== undefined) {
     return entity.id_material !== null;
   }
 
+  // Fallback para a relação carregada
   return Boolean(entity.materiais?.codigo);
 }
 
 /** Rótulo usado nas respostas/relatórios: 'M' para material, 'S' para serviço. */
-export function serviceTypeLabel(
-  entity: ServiceTypeFields | null | undefined,
-): 'M' | 'S' {
+export function serviceTypeLabel(entity: ServiceTypeFields): 'M' | 'S' {
   return isMaterial(entity) ? 'M' : 'S';
 }
 

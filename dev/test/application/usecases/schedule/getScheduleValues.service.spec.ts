@@ -220,6 +220,42 @@ describe('GetScheduleValues', () => {
     });
   });
 
+  it('should return with not services', async () => {
+    mockRepository.getValues.mockResolvedValueOnce({
+      works: mockQueryResponse.map((item) => ({ ...item, servicos: null })),
+      resultTotals: mockCount,
+    });
+
+    // Return empty array so calculateCostPointByPointSchedule receives []
+    mockQueriesServicesService.getServiceScheduleHistoryByIdSchedule.mockResolvedValue(
+      [],
+    );
+
+    const result = await service.getValues({} as any);
+
+    expect(result).toEqual({
+      works: expect.any(Array),
+      totals: {
+        total_exec: 0,
+        total_mo_exec: 0,
+        total_mo_planejada: 3262.21,
+        total_obras: 1,
+        total_qtde_planejada: 1,
+      },
+    });
+
+    result.works.forEach((work) => {
+      expect(work).toEqual(
+        expect.objectContaining({
+          moPlanejadaPontoAPonto: 0,
+          moExecutadoPontoAPonto: 0,
+        }),
+      );
+    });
+
+    expect(mockRepository.getValues).toHaveBeenCalledTimes(1);
+  });
+
   /**
    * ========================
    *  RESTRICTIONS TESTS
