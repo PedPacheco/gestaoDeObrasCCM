@@ -141,6 +141,12 @@ export const links: Link[] = [
         allowedFor: ["interno_editor", "interno_viewer"],
         allowedAreas: [8, 1],
       },
+      {
+        name: "Importação Execução EDP",
+        href: "/entrada/importacao-execucao-edp",
+        allowedFor: ["interno_editor", "interno_viewer"],
+        allowedAreas: [8, 1],
+      },
     ],
   },
   {
@@ -234,6 +240,12 @@ export const links: Link[] = [
         name: "Equipes para Contingência",
         href: "/recursos-contingencia",
         allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+      },
+      {
+        name: "Reclamações e Ouvidoria",
+        href: "/restricoes/reclamacoes-ouvidoria",
+        allowedFor: ["interno_editor", "interno_viewer"],
+        allowedAreas: [8, 1, 7],
       },
     ],
   },

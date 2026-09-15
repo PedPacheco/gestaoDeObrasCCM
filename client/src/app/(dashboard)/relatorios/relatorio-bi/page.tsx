@@ -15,6 +15,7 @@ const categories = [
       { name: "Dono de Área", path: "https://app.powerbi.com/groups/me/reports/ecba28d6-7cd7-4e7d-93a3-8fa9e1721a47/ReportSectioncf3acd87e138dbe95798?ctid=bf86fbdb-f8c2-440e-923c-05a60dc2bc9b&experience=power-bi", visible: true },
       { name: "IDSP", path: "https://app.powerbi.com/groups/me/reports/bbf29767-901a-455a-a195-496707fb2b1d/ReportSectione1123600e23295a15c91?ctid=bf86fbdb-f8c2-440e-923c-05a60dc2bc9b&experience=power-bi", visible: true },
       { name: "Relatório GAP ANALYSIS", path: "/relatorios/gap-analysis", visible: true },
+      { name: "SIGO - Gestão de Núcleos", path: "/relatorios/sigo-nucleos", visible: true },
     ],
   },
   {
@@ -39,7 +40,7 @@ const categories = [
     accent: "#8b5cf6",
     items: [
       { name: "Capex DSPT", path: "https://app.powerbi.com/groups/me/apps/2a7a60bb-a7cd-4376-b59a-662f2e8c478b/reports/05471fc0-7c31-43e1-9afe-2562ee498d81/ReportSection7623530240a29221ca51?experience=power-bi", visible: true },
-      { name: "Controle SMC", path: "https://app.powerbi.com/groups/me/apps/cf6dceda-2355-4078-9a15-d1fd15fc4688/reports/decbfee6-e20b-4fca-bc6d-a0585270e1cb/ReportSection?ctid=bf86fbdb-f8c2-440e-923c-05a60dc2bc9b&experience=power-bi", visible: true },
+      { name: "Controle SMC", path: "/relatorios/controle-smc", visible: true },
       { name: "Árteri", path: "https://smc.arteri.com.br/login", visible: true },
       { name: "EFEN's / TA's", path: "https://apps.powerapps.com/play/e/default-bf86fbdb-f8c2-440e-923c-05a60dc2bc9b/a/7767095b-9129-4a8c-aeff-c595a862ed6d?tenantId=bf86fbdb-f8c2-440e-923c-05a60dc2bc9b&&sourcetime=1747049457490", visible: true },
     ],
