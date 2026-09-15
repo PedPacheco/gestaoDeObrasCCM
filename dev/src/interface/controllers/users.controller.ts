@@ -33,24 +33,12 @@ import { UserSafeResponseDTO } from '../dtos/userSafeResponseDto';
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  @Put('/change-password')
-  @UseGuards(AreaViewGuard())
-  async changePassword(
-    @Body() { token, newPassword }: ChangePasswordDTO,
-  ): Promise<userChangePasswordController> {
-    const user = await this.usersService.updatePassword(token, newPassword);
-
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Senha alterada com sucesso',
-      data: plainToInstance(changePasswordResponseDTO, user),
-    };
-  }
-
   @Get()
   @UseGuards(AdminPanelGuard())
   async list(): Promise<userListInterfaceController> {
     const users = await this.usersService.listUsers();
+
+    console.log(users);
 
     return {
       statusCode: HttpStatus.OK,
@@ -76,6 +64,20 @@ export class UsersController {
       data: plainToInstance(UserSafeResponseDTO, user, {
         excludeExtraneousValues: true,
       }),
+    };
+  }
+
+  @Put('/change-password')
+  @UseGuards(AreaViewGuard())
+  async changePassword(
+    @Body() { token, newPassword }: ChangePasswordDTO,
+  ): Promise<userChangePasswordController> {
+    const user = await this.usersService.updatePassword(token, newPassword);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Senha alterada com sucesso',
+      data: plainToInstance(changePasswordResponseDTO, user),
     };
   }
 

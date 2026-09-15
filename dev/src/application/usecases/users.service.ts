@@ -61,8 +61,15 @@ export class UsersService {
     }
   }
 
-  async listUsers(): Promise<novo_tabela_usuarios[]> {
-    return await this.userRepository.findAll();
+  async listUsers(): Promise<any[]> {
+    const users = await this.userRepository.findAll();
+
+    return users.map(({ turmas, regionais, areas, ...rest }) => ({
+      ...rest,
+      parceira: turmas?.turma,
+      regional: regionais?.regional,
+      area: areas?.nome,
+    }));
   }
 
   async createUser(dto: RegisterUserDTO): Promise<novo_tabela_usuarios> {
@@ -95,7 +102,9 @@ export class UsersService {
     }
 
     if (target.id === requesterId) {
-      throw new BadRequestException('Você não pode desativar sua própria conta');
+      throw new BadRequestException(
+        'Você não pode desativar sua própria conta',
+      );
     }
 
     return await this.userRepository.softDelete(id);

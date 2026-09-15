@@ -17,6 +17,10 @@ interface UserFormModalProps {
   isMutating: boolean;
   onClose: () => void;
   onSubmit: (payload: CreateAdminUserPayload) => void;
+  filters: {
+    regionais?: { id: number; regional: string }[];
+    parceiras?: { id: number; turma: string }[];
+  };
 }
 
 export function UserFormModal({
@@ -24,6 +28,7 @@ export function UserFormModal({
   isMutating,
   onClose,
   onSubmit,
+  filters,
 }: UserFormModalProps) {
   const {
     register,
@@ -157,7 +162,11 @@ export function UserFormModal({
         />
 
         <div className="flex justify-center gap-4 mt-2">
-          <ButtonComponent text="Cancelar" onClick={handleClose} type="button" />
+          <ButtonComponent
+            text="Cancelar"
+            onClick={handleClose}
+            type="button"
+          />
           <ButtonComponent
             text={isMutating ? "Salvando..." : "Salvar"}
             type="submit"

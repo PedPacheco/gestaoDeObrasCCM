@@ -12,6 +12,9 @@ export interface AdminUser {
   id_turma: number;
   id_area: number | null;
   ativo: boolean;
+  parceira: string;
+  regional: string;
+  area: string;
 }
 
 export interface CreateAdminUserPayload {

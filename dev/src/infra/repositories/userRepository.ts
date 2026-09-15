@@ -25,8 +25,25 @@ export class UserRepository implements IUserRepository {
     return user;
   }
 
-  async findAll(): Promise<novo_tabela_usuarios[]> {
-    return await this.prisma.novo_tabela_usuarios.findMany();
+  async findAll(): Promise<any[]> {
+    return await this.prisma.novo_tabela_usuarios.findMany({
+      select: {
+        id: true,
+        id_regional: true,
+        id_turma: true,
+        id_area: true,
+        email: true,
+        nome: true,
+        permissao_edicao: true,
+        tipo_usuario: true,
+        username: true,
+        ativo: true,
+        is_admin: true,
+        regionais: { select: { regional: true } },
+        turmas: { select: { turma: true } },
+        areas: { select: { nome: true } },
+      },
+    });
   }
 
   async findByIdRaw(id: number): Promise<novo_tabela_usuarios | null> {
