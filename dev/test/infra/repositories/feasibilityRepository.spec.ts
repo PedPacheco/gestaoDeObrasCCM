@@ -13,6 +13,7 @@ describe('FeasibilityRepository', () => {
       findFirst: jest.fn(),
       createMany: jest.fn(),
       deleteMany: jest.fn(),
+      update: jest.fn(),
     },
     reprovacoes_viabilidade: {
       findMany: jest.fn(),
@@ -21,6 +22,7 @@ describe('FeasibilityRepository', () => {
     obras: {
       update: jest.fn(),
       findUnique: jest.fn(),
+      findMany: jest.fn(),
     },
   };
 
@@ -205,6 +207,162 @@ describe('FeasibilityRepository', () => {
     });
   });
 
+  describe('exportFeasibility', () => {
+    it('should export feasibility data without partner filter', async () => {
+      const responseMock = [
+        {
+          ovnota: 'OV001',
+          diagrama: 'DG001',
+        },
+      ];
+
+      prismaMock.obras.findMany.mockResolvedValue(responseMock);
+
+      const result = await repository.exportFeasibility(
+        '2026-01-01',
+        '2026-01-31',
+        [],
+      );
+
+      expect(result).toEqual(responseMock);
+
+      expect(prismaMock.obras.findMany).toHaveBeenCalledWith({
+        where: {
+          programacao_ponto_a_ponto: true,
+          relatorio_viabilidade: {
+            prazo_viabilidade: {
+              not: 'PRAZO VIABILIDADE',
+            },
+            data_envio: {
+              gte: new Date('2026-01-01'),
+              lte: new Date('2026-01-31'),
+            },
+          },
+        },
+        select: {
+          ovnota: true,
+          diagrama: true,
+          ordem_dci: true,
+          ordem_dca: true,
+          ordem_dcd: true,
+          ordem_dcim: true,
+          relatorio_viabilidade: {
+            select: {
+              data_envio: true,
+            },
+          },
+          servicos: {
+            select: {
+              operacao: true,
+              ponto: true,
+              qtde_plan: true,
+              viabilizado: true,
+              descricao_operacao: true,
+              numero_operacao: true,
+              materiais: {
+                select: {
+                  codigo: true,
+                  descricao: true,
+                  preco: true,
+                },
+              },
+              servicos_contratos: {
+                select: {
+                  material: true,
+                  texto_breve: true,
+                  preco: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    });
+
+    it('should export feasibility data filtering partners', async () => {
+      prismaMock.obras.findMany.mockResolvedValue([]);
+
+      await repository.exportFeasibility('2026-01-01', '2026-01-31', [1, 2, 3]);
+
+      expect(prismaMock.obras.findMany).toHaveBeenCalledWith({
+        where: {
+          programacao_ponto_a_ponto: true,
+          relatorio_viabilidade: {
+            prazo_viabilidade: {
+              not: 'PRAZO VIABILIDADE',
+            },
+            data_envio: {
+              gte: new Date('2026-01-01'),
+              lte: new Date('2026-01-31'),
+            },
+          },
+          id_turma: {
+            in: [1, 2, 3],
+          },
+        },
+        select: {
+          ovnota: true,
+          diagrama: true,
+          ordem_dci: true,
+          ordem_dca: true,
+          ordem_dcd: true,
+          ordem_dcim: true,
+          relatorio_viabilidade: {
+            select: {
+              data_envio: true,
+            },
+          },
+          servicos: {
+            select: {
+              operacao: true,
+              ponto: true,
+              qtde_plan: true,
+              viabilizado: true,
+              descricao_operacao: true,
+              numero_operacao: true,
+              materiais: {
+                select: {
+                  codigo: true,
+                  descricao: true,
+                  preco: true,
+                },
+              },
+              servicos_contratos: {
+                select: {
+                  material: true,
+                  texto_breve: true,
+                  preco: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    });
+
+    it('should return empty array when no feasibility records are found', async () => {
+      prismaMock.obras.findMany.mockResolvedValue([]);
+
+      const result = await repository.exportFeasibility(
+        '2026-01-01',
+        '2026-01-31',
+        [],
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('should propagate prisma errors', async () => {
+      prismaMock.obras.findMany.mockRejectedValueOnce(
+        new Error('Database error'),
+      );
+
+      await expect(
+        repository.exportFeasibility('2026-01-01', '2026-01-31', []),
+      ).rejects.toThrow('Database error');
+    });
+  });
+
   describe('makeItemsFeasible', () => {
     it('should execute a raw UPDATE query using the transaction client', async () => {
       const itemMock = [
@@ -308,6 +466,19 @@ describe('FeasibilityRepository', () => {
         },
       });
       expect(mockTx.relatorio_viabilidade.update).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('updateFiles', () => {
+    it('Should call the file update method and update the `relatorio_viabilidade` table with the new paths.', async () => {
+      await repository.updateFiles(1, ['doc.pdf', 'word.pdf'], mockTx);
+
+      expect(mockTx.relatorio_viabilidade.update).toHaveBeenCalledWith({
+        where: { id_obra: 1 },
+        data: {
+          caminhos_arquivos: ['doc.pdf', 'word.pdf'],
+        },
+      });
     });
   });
 });

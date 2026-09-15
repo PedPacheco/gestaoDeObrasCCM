@@ -44,6 +44,16 @@ import {
   AreaEditGuard,
   AreaViewGuard,
 } from 'src/core/guards/newPermission.guard';
+import { FeasibilityService } from 'src/application/usecases/feasibility.service';
+import {
+  ExportPdfServicesService,
+  ExportServicesPdfOutput,
+} from 'src/application/usecases/export/services/exportPdfServices.service';
+import { ExportExcelServicesService } from 'src/application/usecases/export/services/exportExcelServices.service';
+import { ExportFeasibilityService } from 'src/application/usecases/export/exportFeasibility.service';
+import { ExportServicesExcelOutput } from 'src/interface/types/servicesInterface';
+import { NotFoundException } from '@nestjs/common';
+import { ExportServicesService } from 'src/application/usecases/services/exportServices.service';
 
 // ─────────────────────────────────────────────
 // Constants
@@ -64,9 +74,13 @@ function makeMockResponse(): jest.Mocked<Pick<Response, 'setHeader' | 'send'>> {
 }
 
 function makeReq(
-  overrides: { idParceira?: number; insufficientPermission?: boolean } = {},
+  overrides: {
+    idParceira?: number;
+    insufficientPermission?: boolean;
+    user?: { tipo_usuario?: string };
+  } = {},
 ) {
-  return { ...overrides } as unknown as Request;
+  return { ...overrides, user: overrides.user } as unknown as Request;
 }
 
 // ─────────────────────────────────────────────
@@ -115,6 +129,7 @@ const mockScheduleData: GetScheduleValuesResponse = {
       restricao_aberta: false,
       status_prazo: 'Atenção: 32 dias restantes',
       status_ov_sap: 51,
+      encontrado: false,
     },
   ],
   totals: {
@@ -165,6 +180,7 @@ const mockWorksData: worksInPortfolioResponseService = {
       total_pend: 20,
       total_prog: 0,
       status_prazo: 'Atenção: 23 dias restantes',
+      encontrado: true,
     },
   ],
   totals: {
@@ -249,6 +265,20 @@ function assertXlsxHeaders(
   expect(res.setHeader).toHaveBeenCalledTimes(2);
 }
 
+function assertPdfHeaders(
+  res: ReturnType<typeof makeMockResponse>,
+  filename: string,
+) {
+  expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'application/pdf');
+
+  expect(res.setHeader).toHaveBeenCalledWith(
+    'Content-Disposition',
+    `attachment; filename="${filename}.pdf"`,
+  );
+
+  expect(res.setHeader).toHaveBeenCalledTimes(2);
+}
+
 // ─────────────────────────────────────────────
 // Suite
 // ─────────────────────────────────────────────
@@ -263,6 +293,8 @@ describe('ExportController', () => {
   let monthlyMOSummaryService: jest.Mocked<MonthlySummaryService>;
   let monthlyForecastSummaryService: jest.Mocked<GetMonthlySummaryForecastService>;
   let goalsService: jest.Mocked<GoalsService>;
+  let feasibilityService: jest.Mocked<FeasibilityService>;
+  let exportServicesService: jest.Mocked<ExportServicesService>;
   let restrictionService: jest.Mocked<RestrictionsService>;
   let exportScheduleService: jest.Mocked<ExportScheduleService>;
   let exportWorksInPortfolioService: jest.Mocked<ExportWorksInPortfolioService>;
@@ -282,6 +314,9 @@ describe('ExportController', () => {
   let exportOrdersService: jest.Mocked<ExportOrdersService>;
   let exportPublicationRestrictionService: jest.Mocked<ExportPublicationRestrictionService>;
   let exportReportToPubliationService: jest.Mocked<ExportReportToPubliationService>;
+  let exportPdfServicesService: jest.Mocked<ExportPdfServicesService>;
+  let exportExcelServicesService: jest.Mocked<ExportExcelServicesService>;
+  let exportFeasibilityService: jest.Mocked<ExportFeasibilityService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -313,6 +348,14 @@ describe('ExportController', () => {
         {
           provide: RestrictionsService,
           useValue: { getPublicationRestriction: jest.fn() },
+        },
+        {
+          provide: FeasibilityService,
+          useValue: { exportFeasibility: jest.fn() },
+        },
+        {
+          provide: ExportServicesService,
+          useValue: { getServicesToExportation: jest.fn() },
         },
         // Export - Standard
         { provide: ExportScheduleService, useValue: { export: jest.fn() } },
@@ -364,6 +407,15 @@ describe('ExportController', () => {
           provide: ExportReportToPubliationService,
           useValue: { export: jest.fn() },
         },
+        {
+          provide: ExportPdfServicesService,
+          useValue: { export: jest.fn() },
+        },
+        {
+          provide: ExportExcelServicesService,
+          useValue: { export: jest.fn() },
+        },
+        { provide: ExportFeasibilityService, useValue: { export: jest.fn() } },
       ],
     })
       .overrideGuard(AreaViewGuard)
@@ -383,6 +435,8 @@ describe('ExportController', () => {
     );
     goalsService = module.get(GoalsService);
     restrictionService = module.get(RestrictionsService);
+    feasibilityService = module.get(FeasibilityService);
+    exportServicesService = module.get(ExportServicesService);
     exportScheduleService = module.get(ExportScheduleService);
     exportWorksInPortfolioService = module.get(ExportWorksInPortfolioService);
     exportCompletedWorksService = module.get(ExportCompletedWorksService);
@@ -407,6 +461,9 @@ describe('ExportController', () => {
     exportReportToPubliationService = module.get(
       ExportReportToPubliationService,
     );
+    exportPdfServicesService = module.get(ExportPdfServicesService);
+    exportExcelServicesService = module.get(ExportExcelServicesService);
+    exportFeasibilityService = module.get(ExportFeasibilityService);
   });
 
   afterEach(() => jest.clearAllMocks());
@@ -784,6 +841,143 @@ describe('ExportController', () => {
       await controller.exportGoals(filters, res, req);
 
       expect(goalsService.getGoals).toHaveBeenCalledWith(filters);
+    });
+  });
+
+  describe('exportServices', () => {
+    const filters = {
+      dataInicial: '20/05/2026',
+      dataFinal: '22/05/2026',
+      idParceira: 2,
+      idEquipe: ['LV01'],
+      fileType: 'pdf',
+    } as any;
+
+    it('should fetch export services, set pdf headers and delegate to export service', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      const req = makeReq({ idParceira: 5 });
+
+      exportServicesService.getServicesToExportation.mockResolvedValue([
+        {} as ExportServicesPdfOutput,
+      ]);
+      exportPdfServicesService.export.mockResolvedValue(undefined);
+
+      await controller.exportServices(filters, res, req);
+
+      expect(
+        exportServicesService.getServicesToExportation,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          idParceira: 5,
+          dataInicial: '20/05/2026',
+          dataFinal: '22/05/2026',
+          idEquipe: ['LV01'],
+          fileType: 'pdf',
+        }),
+      );
+      assertPdfHeaders(
+        res as unknown as ReturnType<typeof makeMockResponse>,
+        'Exportacao Serviços e Materiais',
+      );
+      expect(exportPdfServicesService.export).toHaveBeenCalledWith(
+        [{} as ExportServicesPdfOutput],
+        res,
+      );
+    });
+
+    it('should fetch export services, set xlsx headers and delegate to export service', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      const req = makeReq({
+        idParceira: 5,
+        user: {
+          tipo_usuario: 'INTERNO',
+        },
+      });
+
+      exportServicesService.getServicesToExportation.mockResolvedValue([
+        {} as ExportServicesExcelOutput,
+      ]);
+      exportExcelServicesService.export.mockResolvedValue(undefined);
+
+      await controller.exportServices(
+        { ...filters, fileType: 'excel' },
+        res,
+        req,
+      );
+
+      expect(
+        exportServicesService.getServicesToExportation,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          idParceira: 5,
+          dataInicial: '20/05/2026',
+          dataFinal: '22/05/2026',
+          idEquipe: ['LV01'],
+          fileType: 'excel',
+        }),
+      );
+      assertXlsxHeaders(
+        res as unknown as ReturnType<typeof makeMockResponse>,
+        'Exportacao Serviços e Materiais',
+      );
+      expect(exportExcelServicesService.export).toHaveBeenCalledWith(
+        [{} as ExportServicesExcelOutput],
+        res,
+        true,
+      );
+    });
+
+    it('should throw error if not return data', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      const req = makeReq({
+        idParceira: 5,
+        user: {
+          tipo_usuario: 'INTERNO',
+        },
+      });
+
+      exportServicesService.getServicesToExportation.mockResolvedValue([]);
+
+      await expect(
+        controller.exportServices(
+          { ...filters, fileType: 'excel' },
+
+          res,
+
+          req,
+        ),
+      ).rejects.toThrow(NotFoundException);
+
+      expect(exportExcelServicesService.export).not.toHaveBeenCalled();
+      expect(res.setHeader).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('exportPublicationRestrictions (GET /metas)', () => {
+    const filters = {
+      startDate: '20/05/2026',
+      endDate: '22/05/2026',
+      idPartner: [2],
+    } as any;
+
+    it('should fetch feasibility, set xlsx headers and delegate to export service', async () => {
+      const res = makeMockResponse() as unknown as Response;
+
+      feasibilityService.exportFeasibility.mockResolvedValue([]);
+      exportFeasibilityService.export.mockResolvedValue(undefined);
+
+      await controller.exportFeasibility(res, filters);
+
+      expect(feasibilityService.exportFeasibility).toHaveBeenCalledWith(
+        '20/05/2026',
+        '22/05/2026',
+        [2],
+      );
+      assertXlsxHeaders(
+        res as unknown as ReturnType<typeof makeMockResponse>,
+        'Exportação Viabilidade',
+      );
+      expect(exportFeasibilityService.export).toHaveBeenCalledWith([], res);
     });
   });
 

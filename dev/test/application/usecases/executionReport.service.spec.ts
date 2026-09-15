@@ -335,7 +335,7 @@ describe('ExecutionReportService', () => {
 
       await service.update(
         1,
-        { ...mockUpdateExecutionReportDTO, idUser: 1 },
+        { ...mockUpdateExecutionReportDTO, userId: 1 },
         mockExistsFiles,
       );
 
@@ -357,7 +357,7 @@ describe('ExecutionReportService', () => {
 
       await service.update(
         1,
-        { ...mockUpdateExecutionReportDTO, idUser: 1 },
+        { ...mockUpdateExecutionReportDTO, userId: 1 },
         mockExistsFiles,
       );
 

@@ -197,34 +197,34 @@ export class MonthlySummaryService {
     const portfolioTotal = portfolioData.reduce(
       (acc, item) => {
         const moPlanejada = item.mo_planejada ?? 0;
+        const remainingPlannedLabor =
+          moPlanejada - (moPlanejada * (item.executado ?? 0)) / 100;
 
         return {
+          portfolioTotal: acc.portfolioTotal + remainingPlannedLabor,
           portfolioRda:
             item.tipos.id_grupo === 3
-              ? acc.portfolioRda +
-                (moPlanejada - (moPlanejada * (item.executado ?? 0)) / 100)
+              ? acc.portfolioRda + remainingPlannedLabor
               : acc.portfolioRda,
 
           portfolioBt0:
             item.tipos.id_grupo === 4
-              ? acc.portfolioBt0 +
-                (moPlanejada - (moPlanejada * (item.executado ?? 0)) / 100)
+              ? acc.portfolioBt0 + remainingPlannedLabor
               : acc.portfolioBt0,
 
           portfolioRecom:
             item.tipos.id_grupo === 2
-              ? acc.portfolioRecom +
-                (moPlanejada - (moPlanejada * (item.executado ?? 0)) / 100)
+              ? acc.portfolioRecom + remainingPlannedLabor
               : acc.portfolioRecom,
 
           portfolioMarket:
             item.tipos.id_grupo === 1
-              ? acc.portfolioMarket +
-                (moPlanejada - (moPlanejada * (item.executado ?? 0)) / 100)
+              ? acc.portfolioMarket + remainingPlannedLabor
               : acc.portfolioMarket,
         };
       },
       {
+        portfolioTotal: 0,
         portfolioRda: 0,
         portfolioBt0: 0,
         portfolioRecom: 0,

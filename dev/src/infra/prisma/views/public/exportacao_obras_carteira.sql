@@ -23,16 +23,12 @@ SELECT
   circuitos.circuito,
   obras.mo_planejada,
   (
-    (
-      obras.mo_planejada * (obras.executado) :: double precision
-    ) / (100) :: double precision
+    (obras.mo_planejada * obras.executado) / (100) :: double precision
   ) AS mo_exec,
   CASE
     WHEN (obras.id_status = 4) THEN (
       obras.mo_planejada - (
-        (
-          obras.mo_planejada * (obras.executado) :: double precision
-        ) / (100) :: double precision
+        (obras.mo_planejada * obras.executado) / (100) :: double precision
       )
     )
     ELSE (0) :: double precision
@@ -54,7 +50,7 @@ SELECT
     SELECT
       count(*) AS count
     FROM
-      public.programacoes p
+      programacoes p
     WHERE
       (p.id_obra = obras.id)
   ) AS contagem_de_ocorrencias,
@@ -86,28 +82,28 @@ FROM
                   (
                     (
                       (
-                        public.obras
-                        LEFT JOIN public.datas_de_programacao dp ON ((obras.id = dp.id))
+                        obras
+                        LEFT JOIN datas_de_programacao dp ON ((obras.id = dp.id))
                       )
-                      JOIN public.municipios ON ((municipios.id = obras.id_gpm))
+                      JOIN municipios ON ((municipios.id = obras.id_gpm))
                     )
-                    JOIN public.status ON ((STATUS.id = obras.id_status))
+                    JOIN STATUS ON ((STATUS.id = obras.id_status))
                   )
-                  JOIN public.tipos ON ((tipos.id = obras.id_tipo))
+                  JOIN tipos ON ((tipos.id = obras.id_tipo))
                 )
-                JOIN public.grupos ON ((grupos.id = tipos.id_grupo))
+                JOIN grupos ON ((grupos.id = tipos.id_grupo))
               )
-              JOIN public.circuitos ON ((circuitos.id = obras.id_circuito))
+              JOIN circuitos ON ((circuitos.id = obras.id_circuito))
             )
-            JOIN public.conjuntos ON ((conjuntos.id = circuitos.id_conjunto))
+            JOIN conjuntos ON ((conjuntos.id = circuitos.id_conjunto))
           )
-          JOIN public.turmas ON ((turmas.id = obras.id_turma))
+          JOIN turmas ON ((turmas.id = obras.id_turma))
         )
-        JOIN public.regionais ON ((regionais.id = municipios.id_regional))
+        JOIN regionais ON ((regionais.id = municipios.id_regional))
       )
-      JOIN public.relatorio_viabilidade ON ((relatorio_viabilidade.id_obra = obras.id))
+      LEFT JOIN relatorio_viabilidade ON ((relatorio_viabilidade.id_obra = obras.id))
     )
-    LEFT JOIN public.empreendimento ON ((empreendimento.id = obras.id_empreendimento))
+    LEFT JOIN empreendimento ON ((empreendimento.id = obras.id_empreendimento))
   )
 WHERE
   (obras.data_conclusao IS NULL)

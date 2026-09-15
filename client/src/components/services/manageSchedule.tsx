@@ -1,48 +1,44 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 
-import { newSaveSchedule, saveSchedule } from "@/actions/schedules";
+import { newSaveSchedule } from "@/actions/schedules";
 import { useScheduleForm } from "@/hooks/details/useScheduleForm";
 import { useScheduleWorkflow } from "@/hooks/details/useScheduleWorkflow";
 import { useFeedback } from "@/hooks/useFeedback";
 import { schedulesSchema } from "@/validations/validationSchedules";
 
+import {
+  AddServiceAccordion,
+  MaterialData,
+  ServiceContract,
+} from "../addServiceAccordion/addServiceAccordion";
 import { EditSchedule } from "./editSchedule";
 import { NewScheduleSection } from "./scheduleSection/newScheduleSection";
 import { ScheduleSidebar } from "./scheduleSidebar/scheduleSidebar";
 import { ScheduleTopbar } from "./scheduleTopbar";
-
 import { NewServicesAvaliable } from "./servicesSection/servicesAvaliable";
-import { PlusIcon } from "@heroicons/react/20/solid";
-import { AddServiceForm, ServiceContract } from "../common/addServiceForm";
-import { AddServiceAccordion } from "../feasibility/addServiceAccordion";
-import { SERVICE_OPERATIONS } from "@/constants/services/services";
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
 
 interface ManageScheduleProps {
   scheduleData: any;
   servicesData: any[];
   scheduledServicesData: any[];
   serviceContractData: ServiceContract[];
-  materialsData: any[];
+  materialsData: MaterialData[];
   serviceTeams: any[];
   scheduledServicesHistory: any[];
-  serviceFilters: any;
   isInsert: boolean;
   options: any;
   idWork: number;
   idStatusWork: number;
   idSchedule: number | null;
-  statusSchedule?: string;
+  statusSchedule: string;
+  optionsToAddItem: {
+    operation_description: string[];
+    points: string[];
+  };
 }
-// ─────────────────────────────────────────────────────────────────────────────
-// Component
-// ─────────────────────────────────────────────────────────────────────────────
 
 export function NewManageSchedule({
   scheduleData,
@@ -50,7 +46,6 @@ export function NewManageSchedule({
   servicesData,
   serviceContractData,
   materialsData,
-  serviceFilters,
   serviceTeams,
   scheduledServicesHistory,
   isInsert,
@@ -59,6 +54,7 @@ export function NewManageSchedule({
   idStatusWork,
   idSchedule,
   statusSchedule,
+  optionsToAddItem,
 }: ManageScheduleProps) {
   const router = useRouter();
   const { showError, showSuccess } = useFeedback();
@@ -68,13 +64,15 @@ export function NewManageSchedule({
     servicesData || [],
   );
 
+  useEffect(() => {
+    setServicesAvaliable(servicesData ?? []);
+  }, [servicesData]);
+
   const [isPending, startTransition] = useTransition();
 
   const scheduleForm = useScheduleForm({ data: scheduleData, options, idWork });
 
   const workflow = useScheduleWorkflow({ selectedServices: selectedServices });
-
-  const isDisabled = statusSchedule ? statusSchedule === "Programado" : false;
 
   const handleCancel = useCallback(() => {
     router.replace(`/detalhes/${idWork}`);
@@ -97,6 +95,9 @@ export function NewManageSchedule({
     const formattedService = selectedServices.map((service) => ({
       id: service.id,
       idTeam: service.idTeam,
+      point: service.ponto,
+      operation: service.operacao,
+      type: service.tipo,
       prog: service.prog,
       additional: service.qtdeAdicional,
     }));
@@ -146,12 +147,12 @@ export function NewManageSchedule({
         materialsData={materialsData}
         serviceTeams={serviceTeams}
         scheduledServicesHistory={scheduledServicesHistory}
-        serviceFilters={serviceFilters}
         options={options}
         idWork={idWork}
         idStatusWork={idStatusWork}
         idSchedule={idSchedule}
-        isDisabled={isDisabled}
+        statusSchedule={statusSchedule}
+        optionsToAddItem={optionsToAddItem}
       />
     );
   }
@@ -178,14 +179,13 @@ export function NewManageSchedule({
                 <NewServicesAvaliable
                   servicesData={servicesAvaliable}
                   setServicesData={setServicesAvaliable}
-                  operations={serviceFilters.operations}
-                  points={serviceFilters.points}
                   setScheduledServices={setSelectedServices}
                   isInsert={isInsert}
                   teams={serviceTeams}
-                  isDisabled={isDisabled}
+                  statusSchedule={statusSchedule}
                   onError={showError}
                   onSuccess={showSuccess}
+                  workId={idWork}
                 />
               </div>
             </div>
@@ -196,19 +196,29 @@ export function NewManageSchedule({
               <AddServiceAccordion
                 idWork={Number(idWork)}
                 title="Adicionar novo serviço"
-                contracts={serviceContractData}
-                operations={SERVICE_OPERATIONS}
-                points={serviceFilters.points}
+                services={serviceContractData}
                 type="serviço"
+                options={optionsToAddItem}
+                idStatusWork={idStatusWork}
               />
 
               <AddServiceAccordion
                 idWork={Number(idWork)}
                 title="Adicionar novo material"
-                contracts={materialsData}
-                operations={SERVICE_OPERATIONS}
-                points={serviceFilters.points}
+                materials={materialsData}
                 type="material"
+                options={optionsToAddItem}
+                idStatusWork={idStatusWork}
+              />
+
+              <AddServiceAccordion
+                idWork={Number(idWork)}
+                title="Adicionar nova família"
+                services={serviceContractData}
+                materials={materialsData}
+                type="familia"
+                options={optionsToAddItem}
+                idStatusWork={idStatusWork}
               />
             </div>
 
@@ -217,7 +227,6 @@ export function NewManageSchedule({
                 selectedServices={selectedServices}
                 setSelectedServices={setSelectedServices}
                 clearScheduledServices={clearScheduledServices}
-                servicesData={servicesData}
                 setServicesData={setServicesAvaliable}
                 selectedCount={workflow.selectedCount}
                 canCreate={workflow.canCreate}

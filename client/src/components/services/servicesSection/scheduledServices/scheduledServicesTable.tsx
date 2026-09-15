@@ -3,11 +3,15 @@ import { useEffect, useMemo, useState } from "react";
 
 import {
   Checkbox,
+  FormControl,
+  MenuItem,
   Paper,
+  Select,
   Table,
   TableBody,
   TableCell,
   TableContainer,
+  TableFooter,
   TableHead,
   TableRow,
 } from "@mui/material";
@@ -15,12 +19,18 @@ import {
 import { ScheduledServiceState } from "./scheduledServices";
 import { TableFilter } from "../servicesFilters";
 import { FormatCurrency } from "@/utils/formatValue";
-import { SERVICE_OPERATIONS } from "@/constants/services/services";
+import {
+  MATERIAL_OR_SERVICE_OPTIONS,
+  SERVICE_OPERATIONS,
+} from "@/constants/services/services";
+import { useServicesFilters } from "@/hooks/services/useServicesFilters";
 
 const SERVICE_COLUMNS = [
   { key: "material", label: "CÓDIGO" },
-  { key: "textoBreve", label: "SERVIÇO" },
+  { key: "textoBreve", label: "SERVIÇO/MATERIAL" },
   { key: "operacao", label: "OPERAÇÃO" },
+  { key: "numeroOperacao", label: "N° DA OPERAÇÃO" },
+  { key: "descricaoOperacao", label: "DESCRIÇÃO DA OPERAÇÃO" },
   { key: "ponto", label: "PONTO" },
   { key: "equipe", label: "EQUIPE" },
   { key: "perfil", label: "PERFIL" },
@@ -32,17 +42,29 @@ const SERVICE_COLUMNS = [
   { key: "qtdeProgramada", label: "PROG", align: "right" as const },
   { key: "qtdeRealizada", label: "REAL", align: "right" as const },
   { key: "valorUnit", label: "VALOR UNIT", align: "right" as const },
+  { key: "valorProg", label: "VALOR PROG", align: "right" as const },
+  { key: "valorReal", label: "VALOR REAL", align: "right" as const },
   { key: "status", label: "STATUS" },
 ] as const;
+
+const SUMMABLE_COLUMNS = new Set([
+  "qtdePlanejada",
+  "viabilizado",
+  "qtdeAdicional",
+  "qtdeProgramada",
+  "qtdeRealizada",
+  "valorUnit",
+  "valorProg",
+  "valorReal",
+]);
+
+const CURRENCY_COLUMNS = new Set(["valorUnit", "valorReal", "valorProg"]);
 
 interface ScheduleServicesTableProps {
   scheduledServicesData: any[];
   scheduledServices: ScheduledServiceState[];
   setScheduledServices: (service: any) => any;
   clearValidation: () => void;
-  points: string[];
-  operations: string[];
-  services: any[];
 }
 
 export function ScheduledServicesTable({
@@ -50,27 +72,51 @@ export function ScheduledServicesTable({
   scheduledServices,
   setScheduledServices,
   clearValidation,
-  operations,
-  points,
-  services,
 }: ScheduleServicesTableProps) {
-  const [filteredServicesData, setFilteredServicesData] = useState<any[]>([]);
+  const {
+    materialOrService,
+    setMaterialOrService,
+    setTableFilters,
+    filterOptions,
+    applyFilters,
+  } = useServicesFilters(scheduledServicesData);
 
-  useEffect(() => {
-    setFilteredServicesData(scheduledServicesData);
-  }, [scheduledServicesData]);
+  const filteredServicesData = applyFilters(scheduledServicesData);
 
   const formatCellValue = (key: string, value: any) => {
     if (key === "dataProgramada") {
       return dayjs(value).utc().format("DD/MM/YYYY");
     }
 
-    if (key === "valorUnit") {
+    if (["valorUnit", "valorProg", "valorReal"].includes(key)) {
       return FormatCurrency(value);
     }
 
     return value;
   };
+
+  const totals = useMemo(() => {
+    const sums: Record<string, number> = {};
+
+    for (const col of SUMMABLE_COLUMNS) {
+      sums[col] = 0;
+    }
+
+    for (const row of filteredServicesData) {
+      const currentService = scheduledServices.find((s) => s.id === row.id);
+
+      for (const col of SUMMABLE_COLUMNS) {
+        if (col === "qtdeRealizada") {
+          const val = Number(currentService?.qtdeRealizada) || 0;
+          sums[col] += val;
+        } else {
+          sums[col] += Number(row[col]) || 0;
+        }
+      }
+    }
+
+    return sums;
+  }, [filteredServicesData, scheduledServices]);
 
   const { allSelected, indeterminate } = useMemo(() => {
     const allChecked = scheduledServices.every((s) => s.selected);
@@ -82,7 +128,7 @@ export function ScheduledServicesTable({
   }, [scheduledServices]);
 
   const updateServiceQuantity = (id: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
+    if (!/^\d*([.]\d*)?$/.test(value)) return;
 
     setScheduledServices((prev: any) =>
       prev.map((item: ScheduledServiceState) =>
@@ -96,11 +142,12 @@ export function ScheduledServicesTable({
   };
 
   const toggleAllServices = (checked: boolean) => {
-    setScheduledServices((prev: any) =>
-      prev.map((item: ScheduledServiceState) => ({
-        ...item,
-        selected: checked,
-      })),
+    const visibleIds = new Set(filteredServicesData.map((item) => item.id));
+
+    setScheduledServices((prev: ScheduledServiceState[]) =>
+      prev.map((item) =>
+        visibleIds.has(item.id) ? { ...item, selected: checked } : item,
+      ),
     );
   };
 
@@ -160,15 +207,15 @@ export function ScheduledServicesTable({
     const classes = {
       completo: {
         border: "border-l-green-500 border-solid",
-        bg: "bg-green-200",
+        bg: "bg-green-100 hover:bg-green-200 transition-colors",
       },
       reprogramar: {
         border: "border-l-red-500 border-solid",
-        bg: "bg-red-200",
+        bg: "bg-red-100 hover:bg-red-200 transition-colors",
       },
       "sem-realizacao": {
         border: "border-l-yellow-500 border-solid",
-        bg: "bg-yellow-200",
+        bg: "bg-yellow-100 hover:bg-yellow-200 transition-colors",
       },
     };
 
@@ -178,37 +225,68 @@ export function ScheduledServicesTable({
   return (
     <>
       <TableFilter
-        data={scheduledServicesData}
         fields={[
           {
-            label: "SERVIÇO",
+            label: "Serviço/Material",
             field: "textoBreve",
-            options: services.filter((item) => {
-              return scheduledServicesData.some(
-                (service) => service.textoBreve === item,
-              );
-            }),
+            options: filterOptions.textoBreve,
           },
           {
-            label: "OPERAÇÃO",
+            label: "Família",
+            field: "descricaoOperacao",
+            options: filterOptions.descricaoOperacao,
+            width: "w-80",
+          },
+          {
+            label: "Encarregado",
+            field: "encarregado",
+            options: filterOptions.encarregado,
+            width: "w-72",
+          },
+          {
+            label: "Operação",
             field: "operacao",
             options: SERVICE_OPERATIONS,
-            width: "w-1/4",
+            width: "w-72",
           },
           {
-            label: "PONTO",
+            label: "Equipe",
+            field: "equipe",
+            options: filterOptions.equipe,
+            width: "w-44",
+          },
+          {
+            label: "Ponto",
             field: "ponto",
-            options: points.filter((item) => {
-              return scheduledServicesData.some(
-                (service) => service.ponto === item,
-              );
-            }),
+            options: filterOptions.ponto,
             width: "w-44",
           },
         ]}
-        onFilter={setFilteredServicesData}
+        onFilter={setTableFilters}
+        setMaterialOrService={setMaterialOrService}
+        extraFilters={
+          <div className="min-w-[160px]">
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Tipo
+            </label>
+            <FormControl fullWidth size="small">
+              <Select
+                value={materialOrService}
+                onChange={(e) => setMaterialOrService(e.target.value)}
+                className="bg-white rounded-lg h-[38px]"
+              >
+                {MATERIAL_OR_SERVICE_OPTIONS.map((p) => (
+                  <MenuItem key={p} value={p}>
+                    {p}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
+        }
       />
-      <TableContainer component={Paper} sx={{ height: 460 }}>
+
+      <TableContainer component={Paper} sx={{ height: 620 }}>
         <Table stickyHeader size="small">
           <TableHead>
             <TableRow>
@@ -238,7 +316,7 @@ export function ScheduledServicesTable({
               const rowStyle = getRowClassName(currentService.validationStatus);
 
               return (
-                <TableRow key={row.id} hover className={rowStyle?.bg}>
+                <TableRow key={row.id} className={rowStyle?.bg}>
                   <TableCell
                     padding="checkbox"
                     className={`border-l-4 ${rowStyle?.border}`}
@@ -283,6 +361,41 @@ export function ScheduledServicesTable({
               );
             })}
           </TableBody>
+
+          <TableFooter>
+            <TableRow className="bg-zinc-100 sticky bottom-0 z-10">
+              {/* Célula do checkbox — vazia, mantém alinhamento */}
+              <TableCell className="border-l-4 border-l-transparent" />
+
+              {SERVICE_COLUMNS.map((col, index) => {
+                if (index === 0) {
+                  return (
+                    <TableCell
+                      key={index}
+                      className="text-nowrap text-sm font-bold text-zinc-700"
+                    >
+                      TOTAL
+                    </TableCell>
+                  );
+                }
+
+                if (SUMMABLE_COLUMNS.has(col.key)) {
+                  return (
+                    <TableCell
+                      key={index}
+                      className="text-nowrap text-sm font-bold text-zinc-700"
+                    >
+                      {CURRENCY_COLUMNS.has(col.key)
+                        ? FormatCurrency(totals[col.key])
+                        : totals[col.key].toLocaleString("pt-BR")}
+                    </TableCell>
+                  );
+                }
+
+                return <TableCell key={index} />;
+              })}
+            </TableRow>
+          </TableFooter>
         </Table>
       </TableContainer>
     </>

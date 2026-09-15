@@ -22,6 +22,7 @@ import { exportExcel } from "@/actions/generateExcel.action";
 import { mountUrl } from "@/utils/mountUrl";
 import { saveForecastSnapshot } from "@/actions/schedules";
 import { useUser } from "@/contexts/userContext";
+import { useFeedback } from "@/hooks/useFeedback";
 
 export interface Filters {
   regional: { id: string; regional: string }[];
@@ -92,6 +93,7 @@ export function MainMonthlyForecastSummarySchedule({
   filtersData,
   token,
 }: MainMonthlySummaryScheduleProps) {
+  const { showError } = useFeedback();
   const { dataFirst, dataSecond, error, setError, isPending, fetch } =
     useMonthlyForecastSummary(dataFirstSummary, dataSecondSummary, token);
 
@@ -128,9 +130,14 @@ export function MainMonthlyForecastSummarySchedule({
 
     try {
       if (token) {
-        const blob = await exportExcel(url, token);
+        const response = await exportExcel(url, token);
 
-        const downloadUrl = window.URL.createObjectURL(blob);
+        if (!response.success) {
+          showError(response.message);
+          return;
+        }
+
+        const downloadUrl = window.URL.createObjectURL(response.data);
         const link = document.createElement("a");
         link.href = downloadUrl;
         link.download = "Exportação Resumo Mensal - Forecast.xlsx";

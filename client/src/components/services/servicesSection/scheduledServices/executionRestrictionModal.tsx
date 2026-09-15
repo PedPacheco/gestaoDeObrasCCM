@@ -21,18 +21,24 @@ interface RestrictionsModalProps {
   open: boolean;
   onClose: () => void;
   onSave: () => void;
+  onReascheduled: () => void;
   options: {
     restricao: Array<{ id: number; restricao: string; tipo_restricao: string }>;
   };
   executionForm: UseExecutionServiceFormReturn;
+  executionIsPartial: boolean;
+  executionIsCanceled: boolean;
 }
 
 export function RestrictionsModal({
   open,
   onClose,
   onSave,
+  onReascheduled,
   options,
   executionForm,
+  executionIsCanceled,
+  executionIsPartial,
 }: RestrictionsModalProps) {
   const {
     formErrors,
@@ -49,7 +55,12 @@ export function RestrictionsModal({
   const EXECUTION_RESPONSIBILITIES = ["", "Edp", "Parceira", "Terceiro"];
 
   const handleSave = () => {
-    onSave();
+    if (executionIsPartial && !executionIsCanceled) {
+      onSave();
+    } else {
+      onReascheduled();
+    }
+
     onClose();
   };
 

@@ -47,8 +47,7 @@ export class GetMonthlySummaryForecastService {
     ]);
 
     const financialCapacityByMonth: (
-      | MonthlyCapacityMetricsForecast
-      | undefined
+      MonthlyCapacityMetricsForecast | undefined
     )[] = new Array(12);
 
     const summaryMap = new Map<string, DailySummaryEntryForecast>();

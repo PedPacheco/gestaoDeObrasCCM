@@ -25,12 +25,14 @@ import {
 } from "./servicesSection/scheduleHistory";
 import { ButtonComponent } from "../common/Button";
 import { TabsServices } from "./TabsServices";
-import { ServiceContract } from "../common/addServiceForm";
-import { AddServiceAccordion } from "../feasibility/addServiceAccordion";
-import { SERVICE_OPERATIONS } from "@/constants/services/services";
+import {
+  AddServiceAccordion,
+  ServiceContract,
+} from "../addServiceAccordion/addServiceAccordion";
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { useUser } from "@/contexts/userContext";
 
 dayjs.extend(utc);
 
@@ -46,12 +48,15 @@ interface EditScheduleProps {
   materialsData: any[];
   serviceTeams: any[];
   scheduledServicesHistory: ScheduledServicesHistoryData[];
-  serviceFilters: any;
   options: any;
   idWork: number;
   idStatusWork: number;
   idSchedule: number;
-  isDisabled: boolean;
+  statusSchedule: string;
+  optionsToAddItem: {
+    operation_description: string[];
+    points: string[];
+  };
 }
 
 export type TabId = "scheduled" | "available" | "add" | "history";
@@ -66,18 +71,22 @@ export function EditSchedule({
   servicesData,
   serviceContractData,
   materialsData,
-  serviceFilters,
   serviceTeams,
   scheduledServicesHistory,
   options,
   idWork,
   idStatusWork,
   idSchedule,
-  isDisabled,
+  statusSchedule,
+  optionsToAddItem,
 }: EditScheduleProps) {
   const router = useRouter();
+
   const { showError, showSuccess } = useFeedback();
+
   const [isPending, startTransition] = useTransition();
+
+  const { permissions } = useUser();
 
   const [activeTab, setActiveTab] = useState<TabId>("scheduled");
   const [scheduledServices, setScheduledServices] = useState<any[]>([]);
@@ -133,6 +142,7 @@ export function EditSchedule({
       idSchedule,
       prog: service.prog,
       additional: service.qtdeAdicional,
+      type: service.tipo,
     }));
 
     const response = await scheduleServices(idWork, formattedService);
@@ -185,6 +195,11 @@ export function EditSchedule({
     return today.isSame(scheduleDate) || today.isAfter(scheduleDate);
   }, [scheduleData?.data_prog]);
 
+  const isVisibleTab =
+    permissions?.tipo_usuario === "INTERNO" ||
+    (permissions?.tipo_usuario === "PARCEIRA" &&
+      statusSchedule === "Reprovado");
+
   return (
     <div className="flex  w-full flex-col bg-gray-50 overflow-y-auto">
       <ScheduleTopbar title="Editar Programação" idWork={idWork} />
@@ -197,6 +212,7 @@ export function EditSchedule({
             options={options}
             scheduleForm={scheduleForm}
             statusWork={idStatusWork}
+            scheduleStatus={statusSchedule}
           />
         </div>
 
@@ -234,6 +250,7 @@ export function EditSchedule({
           scheduledServicesHistoryLength={scheduledServicesHistory.length}
           scheduledServicesLength={scheduledServicesData.length}
           servicesDataLength={servicesData.length}
+          isVisibleTab={isVisibleTab}
         />
 
         {/* ── Tab panels ────────────────────────────────────────── */}
@@ -249,14 +266,11 @@ export function EditSchedule({
             <ScheduledServices
               scheduledServicesData={scheduledServicesData}
               scheduledServicesHistory={scheduledServicesHistory}
-              services={serviceFilters.services}
-              operations={serviceFilters.operations}
-              points={serviceFilters.points}
               options={options}
               executionForm={executionForm}
               onError={showError}
               onSuccess={showSuccess}
-              isDisabled={isDisabled}
+              statusSchedule={statusSchedule}
               todayIsOnOrAfterScheduleDate={todayIsOnOrAfterScheduleDate}
             />
           )}
@@ -269,14 +283,13 @@ export function EditSchedule({
                 <NewServicesAvaliable
                   servicesData={servicesAvaliable}
                   setServicesData={setServicesAvaliable}
-                  operations={serviceFilters.operations}
-                  points={serviceFilters.points}
                   setScheduledServices={setScheduledServices}
                   isInsert={false}
-                  isDisabled={isDisabled}
+                  statusSchedule={statusSchedule}
                   teams={serviceTeams}
                   onError={showError}
                   onSuccess={showSuccess}
+                  workId={idWork}
                 />
               </div>
 
@@ -286,19 +299,29 @@ export function EditSchedule({
                   <AddServiceAccordion
                     idWork={Number(idWork)}
                     title="Adicionar novo serviço"
-                    contracts={serviceContractData}
-                    operations={SERVICE_OPERATIONS}
-                    points={serviceFilters.points}
+                    services={serviceContractData}
+                    options={optionsToAddItem}
                     type="serviço"
+                    idStatusWork={idStatusWork}
                   />
 
                   <AddServiceAccordion
                     idWork={Number(idWork)}
                     title="Adicionar novo material"
-                    contracts={materialsData}
-                    operations={SERVICE_OPERATIONS}
-                    points={serviceFilters.points}
+                    materials={materialsData}
+                    options={optionsToAddItem}
                     type="material"
+                    idStatusWork={idStatusWork}
+                  />
+
+                  <AddServiceAccordion
+                    idWork={Number(idWork)}
+                    title="Adicionar nova família"
+                    services={serviceContractData}
+                    materials={materialsData}
+                    type="familia"
+                    options={optionsToAddItem}
+                    idStatusWork={idStatusWork}
                   />
                 </div>
                 <div className="min-h-0 flex-1 w-full overflow-hidden">
@@ -307,7 +330,6 @@ export function EditSchedule({
                     setSelectedServices={setScheduledServices}
                     clearScheduledServices={clearScheduledServices}
                     setServicesData={setServicesAvaliable}
-                    servicesData={servicesData}
                     selectedCount={workflow.selectedCount}
                     canCreate={workflow.canCreate}
                     isPending={isPending}
@@ -344,7 +366,7 @@ export function EditSchedule({
               }}
               idSchedule={idSchedule}
               scheduledServicesHistory={scheduledServicesHistory}
-              isDisabled={isDisabled}
+              statusSchedule={statusSchedule}
               isPending={isPending}
               openConfirmationModal={openConfirmationModal}
               setOpenConfirmationModal={setOpenConfirmationModal}

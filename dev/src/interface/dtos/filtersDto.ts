@@ -111,4 +111,11 @@ export class FiltersDto {
     value === 'true' ? true : value === 'false' ? false : value,
   )
   statusSap?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) =>
+    value === 'true' ? true : value === 'false' ? false : value,
+  )
+  equipes?: boolean;
 }

@@ -6,11 +6,10 @@ import { AuthRepository } from 'src/infra/repositories/authRepository';
 import { Module } from '@nestjs/common';
 
 import { AuthController } from '../controllers/auth.controller';
-import { EmailModule } from './email.module';
 import { UsersModule } from './users.module';
 
 @Module({
-  imports: [UsersModule, EmailModule, CacheModule],
+  imports: [UsersModule, CacheModule],
   controllers: [AuthController],
   providers: [
     AuthService,

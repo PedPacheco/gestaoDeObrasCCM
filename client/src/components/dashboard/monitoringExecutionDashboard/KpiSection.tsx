@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { KpiCard } from "../common/KpiCard";
 import { Row } from "./monitoringExecutionDashboard";
 import { formatPercentage } from "@/utils/formatValue";
+import { EXCLUDE_PARCEIRAS } from "../DashboardClient";
 
 export function KpiSectionMonitoringExecution({ data }: { data: Row[] }) {
   const totals = useMemo(() => {

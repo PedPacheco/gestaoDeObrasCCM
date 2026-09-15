@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 
 import { ScheduleFormDialogProps } from "./dialog";
+import { useEffect } from "react";
 
 interface AdditionalInfoPanelProps {
   formData: FormData;
@@ -22,31 +23,57 @@ interface AdditionalInfoPanelProps {
 
 const EXECUTION_RESPONSIBILITIES = ["", "Edp", "Parceira", "Terceiro"];
 
-export const AdditionalInfoPanel: React.FC<AdditionalInfoPanelProps> = ({
+export function AdditionalInfoPanel({
   formData,
   formErrors,
   options,
   onInputChange,
   disabledFields,
   permission,
-}) => {
-  const errorRestriction = formErrors["idExecutionRestriction"];
-  const errorResponsibility = formErrors["responsibility"];
-  const errorObservation = formErrors["executionObservation"];
+}: AdditionalInfoPanelProps) {
+  const errorRestriction = formErrors.idExecutionRestriction;
+  const errorResponsibility = formErrors.responsibility;
+  const errorObservation = formErrors.executionObservation;
 
   const exec =
     formData.exec === "null" || formData.exec === null || formData.exec === ""
       ? null
       : Number(formData.exec);
 
+  const selectedRestriction = options.restricao.find(
+    (item) => item.id === formData.idExecutionRestriction,
+  );
+
+  const restrictionResponsibility =
+    selectedRestriction?.responsabilidade ?? null;
+
   const restrictionIsDisabled =
     exec === null || (formData.prog != null && exec >= formData.prog);
 
+  const responsibilityDisabled =
+    Boolean(restrictionResponsibility) ||
+    (restrictionIsDisabled && permission === "PARCEIRA");
+
+  const responsibilityValue =
+    restrictionResponsibility ?? formData.responsibility ?? "";
+
+  useEffect(() => {
+    if (!restrictionResponsibility) return;
+
+    onInputChange("responsibility")({
+      target: {
+        value: restrictionResponsibility,
+      },
+    });
+  }, [restrictionResponsibility, onInputChange]);
+
   return (
     <Grid container spacing={2}>
+      {/* Técnico */}
       <Grid item xs={12} sm={6}>
         <FormControl fullWidth>
           <InputLabel>Técnico Responsável</InputLabel>
+
           <Select
             value={formData.idTechnical}
             onChange={onInputChange("idTechnical")}
@@ -62,15 +89,16 @@ export const AdditionalInfoPanel: React.FC<AdditionalInfoPanelProps> = ({
         </FormControl>
       </Grid>
 
+      {/* Restrição */}
       <Grid item xs={12} sm={6}>
         <FormControl fullWidth error={!!errorRestriction}>
           <InputLabel>Restrição de Execução</InputLabel>
+
           <Select
             value={formData.idExecutionRestriction}
             onChange={onInputChange("idExecutionRestriction")}
             label="Restrição de Execução"
             disabled={restrictionIsDisabled && permission === "PARCEIRA"}
-            error={!!errorRestriction}
           >
             {options.restricao
               .filter((item) => item.tipo_restricao === "EXECUÇÃO")
@@ -80,23 +108,23 @@ export const AdditionalInfoPanel: React.FC<AdditionalInfoPanelProps> = ({
                 </MenuItem>
               ))}
           </Select>
-          {formErrors["idExecutionRestriction"] && (
-            <FormHelperText>
-              {formErrors["idExecutionRestriction"]}
-            </FormHelperText>
+
+          {errorRestriction && (
+            <FormHelperText>{errorRestriction}</FormHelperText>
           )}
         </FormControl>
       </Grid>
 
+      {/* Responsabilidade */}
       <Grid item xs={12} sm={6}>
         <FormControl fullWidth error={!!errorResponsibility}>
           <InputLabel>Responsabilidade Execução</InputLabel>
+
           <Select
-            value={formData.responsibility}
+            value={responsibilityValue}
             onChange={onInputChange("responsibility")}
             label="Responsabilidade Execução"
-            disabled={restrictionIsDisabled && permission === "PARCEIRA"}
-            error={!!errorResponsibility}
+            disabled={responsibilityDisabled}
           >
             {EXECUTION_RESPONSIBILITIES.map((responsibility) => (
               <MenuItem key={responsibility} value={responsibility}>
@@ -104,12 +132,14 @@ export const AdditionalInfoPanel: React.FC<AdditionalInfoPanelProps> = ({
               </MenuItem>
             ))}
           </Select>
-          {formErrors["responsibility"] && (
-            <FormHelperText>{formErrors["responsibility"]}</FormHelperText>
+
+          {errorResponsibility && (
+            <FormHelperText>{errorResponsibility}</FormHelperText>
           )}
         </FormControl>
       </Grid>
 
+      {/* Observação */}
       <Grid item xs={12} sm={6}>
         <TextField
           fullWidth
@@ -123,4 +153,4 @@ export const AdditionalInfoPanel: React.FC<AdditionalInfoPanelProps> = ({
       </Grid>
     </Grid>
   );
-};
+}

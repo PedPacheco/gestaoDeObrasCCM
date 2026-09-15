@@ -117,6 +117,8 @@ export const mockResponseDetails = {
   municipios: 'MONTEIRO LOBATO',
   tipos: 'SPACER CABLE',
   grupo: 2,
+  encontrado: true,
+  totalProgramado: 45,
   programacoes: [
     {
       id: 1,
@@ -137,6 +139,7 @@ export const mockResponseDetails = {
       equipe_linha_viva: 3,
       equipe_regularizacao: 0,
       tecnico: 'NÃO DEFINIDO',
+      id_restricao_execucao: 1,
       restricao: null,
       nome_responsavel_execucao: null,
       status_programacao: '3',
@@ -202,6 +205,7 @@ export const mockWorksInPortfolio: worksInPortfolioResponseService = {
       empreendimento: '',
       ano_plan: 2025,
       status_prazo: 'Atenção: 23 dias restantes',
+      encontrado: true,
     },
   ],
   totals: {

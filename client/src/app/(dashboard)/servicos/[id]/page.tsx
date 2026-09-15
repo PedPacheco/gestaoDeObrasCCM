@@ -1,8 +1,10 @@
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { NewManageSchedule } from "@/components/services/manageSchedule";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
-import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -25,11 +27,11 @@ export default async function ServicosPage({
     options,
     servicesData,
     scheduledServicesData,
-    serviceFilters,
     serviceContractData,
     serviceTeams,
     scheduledServicesHistory,
     materialsData,
+    optionsToAddItem,
   ] = await Promise.all([
     fetchFilters({
       restricao: true,
@@ -47,12 +49,6 @@ export default async function ServicosPage({
       }/servicos/selecionados/${id}?idProgramacao=${
         formData?.id ? formData.id : "1"
       }`,
-      undefined,
-      cookieStore.get("token")?.value,
-      { cache: "no-store" },
-    ),
-    fetchData(
-      `${process.env.NEXT_PUBLIC_API_URL}/servicos/filtros/${id}`,
       undefined,
       cookieStore.get("token")?.value,
       { cache: "no-store" },
@@ -81,6 +77,12 @@ export default async function ServicosPage({
       cookieStore.get("token")?.value,
       { cache: "no-store" },
     ),
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/servicos/opcoes/${id}`,
+      undefined,
+      cookieStore.get("token")?.value,
+      { cache: "no-store" },
+    ),
   ]);
 
   return (
@@ -91,7 +93,6 @@ export default async function ServicosPage({
         servicesData={servicesData.data}
         serviceContractData={serviceContractData.data}
         materialsData={materialsData.data}
-        serviceFilters={serviceFilters.data}
         scheduledServicesHistory={scheduledServicesHistory.data}
         serviceTeams={serviceTeams.data}
         isInsert={formData?.id ? false : true}
@@ -99,7 +100,8 @@ export default async function ServicosPage({
         idWork={Number(id)}
         idStatusWork={Number(idStatusWorkCookie)}
         idSchedule={Number(formData?.id)}
-        statusSchedule={statusSchedule}
+        statusSchedule={statusSchedule || ""}
+        optionsToAddItem={optionsToAddItem.data}
       />
     </EmotionCacheProvider>
   );

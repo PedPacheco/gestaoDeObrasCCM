@@ -1,4 +1,6 @@
-import { IsNumber, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsArray, IsDateString, IsNumber, IsString } from 'class-validator';
+import { convertParameterValue } from 'src/utils/convertParameterValue';
 
 export class RejectFeasibilityDTO {
   @IsNumber()
@@ -15,4 +17,16 @@ export class RejectFeasibilityDTO {
 
   @IsString()
   description: string;
+}
+
+export class ExportFeasibilityInputDto {
+  @IsDateString()
+  startDate: string;
+
+  @IsDateString()
+  endDate: string;
+
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idPartner: number[];
 }

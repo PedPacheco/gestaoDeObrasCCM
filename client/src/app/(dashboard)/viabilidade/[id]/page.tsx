@@ -32,23 +32,15 @@ export default async function Page({ params, searchParams }: Props) {
 
   const [
     servicesData,
-    filters,
     contracts,
+    options,
     materials,
     feasibilityData,
     feasibilityRejectionsHistoryData,
   ] = await Promise.all([
     ponto_a_ponto
       ? fetchData(
-          `${process.env.NEXT_PUBLIC_API_URL}/servicos/${id}`,
-          undefined,
-          token,
-          FETCH_OPTIONS,
-        )
-      : null,
-    ponto_a_ponto
-      ? fetchData(
-          `${process.env.NEXT_PUBLIC_API_URL}/servicos/filtros/${id}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/servicos/todos/${id}`,
           undefined,
           token,
           FETCH_OPTIONS,
@@ -57,6 +49,14 @@ export default async function Page({ params, searchParams }: Props) {
     ponto_a_ponto
       ? fetchData(
           `${process.env.NEXT_PUBLIC_API_URL}/servicos/contratos/${id}`,
+          undefined,
+          token,
+          FETCH_OPTIONS,
+        )
+      : null,
+    ponto_a_ponto
+      ? fetchData(
+          `${process.env.NEXT_PUBLIC_API_URL}/servicos/opcoes/${id}`,
           undefined,
           token,
           FETCH_OPTIONS,
@@ -96,7 +96,7 @@ export default async function Page({ params, searchParams }: Props) {
       servicesData={servicesData?.data ?? null}
       contracts={contracts?.data ?? null}
       materials={materials?.data ?? null}
-      filters={filters?.data ?? null}
+      options={options?.data ?? null}
       workflowStatus={status}
       feasibilityData={feasibilityData.data}
       pointByPoint={pointByPoint}

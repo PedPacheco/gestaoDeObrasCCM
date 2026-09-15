@@ -332,12 +332,27 @@ describe('FeasibilityController', () => {
     it('deve chamar o método approveFeasibility corretamente', async () => {
       mockHandleFeasibility.approve.mockResolvedValue(undefined);
 
-      const result = await controller.approveFeasibility(1, mockReq);
+      const mockFiles: Express.Multer.File[] = [];
+
+      const result = await controller.approveFeasibility(1, mockFiles, mockReq);
 
       expect(result).toEqual({
         statusCode: HttpStatus.NO_CONTENT,
         message: 'Viabilidade aprovada com sucesso',
       });
+      expect(mockHandleFeasibility.approve).toHaveBeenCalledTimes(1);
+    });
+
+    it('deve chamar o método approveFeasibility corretamente sem os arquivos enviados', async () => {
+      mockHandleFeasibility.approve.mockResolvedValue(undefined);
+
+      const result = await controller.approveFeasibility(1, undefined, mockReq);
+
+      expect(result).toEqual({
+        statusCode: HttpStatus.NO_CONTENT,
+        message: 'Viabilidade aprovada com sucesso',
+      });
+      expect(mockHandleFeasibility.approve).toHaveBeenCalledWith(1, '2345', []);
       expect(mockHandleFeasibility.approve).toHaveBeenCalledTimes(1);
     });
   });

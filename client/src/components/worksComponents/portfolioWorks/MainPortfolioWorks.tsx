@@ -14,20 +14,16 @@ import { Cookies } from "react-cookie";
 import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
 import { TableWithPagination } from "@/components/common/TableWithPagination";
-import { useUser } from "@/contexts/userContext";
 import { useMapFilter } from "@/contexts/mapFilterContext";
+import { useUser } from "@/contexts/userContext";
+import { useFeedback } from "@/hooks/useFeedback";
 import { FiltersInterface } from "@/types/filtersInterfaces";
 import { FormatCurrency } from "@/utils/formatValue";
 import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import PortfolioWorksFilters from "./PortfolioWorksFilters";
-import { useFeedback } from "@/hooks/useFeedback";
 
-const ErrorModal = dynamic(() => import("@/components/common/ErrorModal"), {
-  ssr: false,
-});
 const ModalComponent = dynamic(() => import("@/components/common/Modal"), {
   ssr: false,
 });
@@ -92,9 +88,14 @@ export default function PortfolioWorks({
       );
 
       try {
-        const blob = await exportExcel(exportUrl, token);
+        const response = await exportExcel(exportUrl, token);
 
-        const downloadUrl = window.URL.createObjectURL(blob);
+        if (!response.success) {
+          showError(response.message);
+          return;
+        }
+
+        const downloadUrl = window.URL.createObjectURL(response.data);
         const link = document.createElement("a");
         link.href = downloadUrl;
         link.download =

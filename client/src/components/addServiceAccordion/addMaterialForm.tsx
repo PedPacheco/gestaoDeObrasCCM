@@ -8,65 +8,62 @@ import { FormatCurrency } from "@/utils/formatValue";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import {
   Autocomplete,
+  createFilterOptions,
   FormControl,
   InputLabel,
   MenuItem,
   Select,
   TextField,
 } from "@mui/material";
-import { ServicesContractSelect } from "../services/servicesSection/servicesContractSelect";
-
-export type ServiceContract = {
-  id: number;
-  texto_breve: string;
-  material: string;
-  preco: string;
-  contrato: string;
-  medida: string;
-  turmas: { turma: string };
-};
-
-type AddServiceFormState = {
-  idService: number | null;
-  point: string;
-  operation: string;
-};
+import {
+  AddMaterialOrServiceFormState,
+  MaterialData,
+} from "./addServiceAccordion";
+import { SERVICE_OPERATIONS } from "@/constants/services/services";
+import { ServicesContractSelect } from "./servicesContractSelect";
 
 interface Props {
   idWork: number;
-  serviceContractData: ServiceContract[];
-  operations: string[];
+  materialData: MaterialData[];
   points: string[];
+  operationsDescription: string[];
   onSubmit: (data: {
     idWork: number;
     idService: number;
     point: string;
     operation: string;
+    operationDescription: string;
+    quantity: number;
   }) => Promise<void>;
+  isDisabled: boolean;
 }
 
-export function AddServiceForm({
+export function AddMaterialForm({
   idWork,
-  serviceContractData,
-  operations,
+  materialData,
   points,
+  operationsDescription,
+  isDisabled,
   onSubmit,
 }: Props) {
-  const [form, setForm] = useState<AddServiceFormState>({
+  const filterOptions = createFilterOptions<MaterialData>({
+    stringify: (option) => `${option.descricao} ${option.codigo}`,
+  });
+
+  const [form, setForm] = useState<AddMaterialOrServiceFormState>({
     idService: null,
     point: "",
     operation: "",
+    operationDescription: "",
+    quantity: 0,
   });
 
   const [loading, setLoading] = useState(false);
 
-  /**
-   * Atualiza estado de forma segura e imutável
-   */
   const updateField = useCallback(
-    <K extends keyof AddServiceFormState>(
+    <K extends keyof AddMaterialOrServiceFormState>(
       field: K,
-      value: AddServiceFormState[K],
+      value: AddMaterialOrServiceFormState[K],
     ) => {
       setForm((prev) => ({
         ...prev,
@@ -76,10 +73,16 @@ export function AddServiceForm({
     [],
   );
 
-  /**
-   * Submit handler otimizado
-   */
+  const isValid =
+    form.idService !== null &&
+    form.point !== "" &&
+    form.operation !== "" &&
+    form.operationDescription !== "" &&
+    form.quantity > 0;
+
   const handleSubmit = async () => {
+    if (!isValid || form.idService === null) return;
+
     try {
       setLoading(true);
 
@@ -88,6 +91,8 @@ export function AddServiceForm({
         idService: form.idService!,
         point: form.point,
         operation: form.operation,
+        operationDescription: form.operationDescription,
+        quantity: form.quantity,
       });
 
       // reset form
@@ -95,6 +100,8 @@ export function AddServiceForm({
         idService: null,
         point: "",
         operation: "",
+        operationDescription: "",
+        quantity: 0,
       });
     } finally {
       setLoading(false);
@@ -106,10 +113,12 @@ export function AddServiceForm({
       {/* SERVICE SELECT */}
       <div className="grid grid-cols-4 gap-4">
         <FormControl fullWidth size="small" className="col-span-2">
-          <Autocomplete<ServiceContract>
-            options={serviceContractData}
-            getOptionLabel={(s) => s.texto_breve}
+          <Autocomplete<MaterialData>
+            options={materialData}
+            getOptionLabel={(s) => s.descricao}
+            filterOptions={filterOptions}
             ListboxComponent={ServicesContractSelect}
+            value={materialData.find((m) => m.id === form.idService) ?? null}
             renderOption={(props, s) => {
               const { key, className, ...other } = props;
               return (
@@ -124,7 +133,7 @@ export function AddServiceForm({
                   <div className="flex w-full flex-col">
                     {/* Título */}
                     <span className="text-sm font-semibold text-gray-800">
-                      {s.texto_breve}
+                      {s.descricao}
                     </span>
 
                     {/* Linha de detalhes */}
@@ -133,23 +142,16 @@ export function AddServiceForm({
                         💲 {FormatCurrency(Number(s.preco))}
                       </span>
                       <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
-                        📄 {s.contrato}
-                      </span>
-                      <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
-                        👥 {s.turmas.turma}
+                        📄 {s.codigo}
                       </span>
                     </div>
 
                     {/* Info secundária */}
                     <div className="flex items-center gap-3 text-xs text-gray-500">
-                      <span>
-                        <strong className="text-gray-600">Material:</strong>{" "}
-                        {s.material}
-                      </span>
                       <span className="text-gray-300">|</span>
                       <span>
                         <strong className="text-gray-600">Unidade:</strong>{" "}
-                        {s.medida}
+                        {s.unidade}
                       </span>
                     </div>
                   </div>
@@ -157,7 +159,7 @@ export function AddServiceForm({
               );
             }}
             renderInput={(params) => (
-              <TextField {...params} label="Selecionar serviço" size="small" />
+              <TextField {...params} label="Selecionar material" size="small" />
             )}
             onChange={(_, value) =>
               updateField("idService", value ? value.id : null)
@@ -187,7 +189,7 @@ export function AddServiceForm({
             value={form.operation}
             onChange={(e) => updateField("operation", e.target.value)}
           >
-            {operations.map((op) => (
+            {SERVICE_OPERATIONS.map((op) => (
               <MenuItem key={op} value={op}>
                 {op}
               </MenuItem>
@@ -196,12 +198,40 @@ export function AddServiceForm({
         </FormControl>
       </div>
 
+      <div className="grid grid-cols-2 gap-4">
+        <FormControl fullWidth size="small">
+          <InputLabel>Descrição Operação</InputLabel>
+          <Select
+            value={form.operationDescription}
+            onChange={(e) =>
+              updateField("operationDescription", e.target.value)
+            }
+          >
+            {operationsDescription.map((opt) => (
+              <MenuItem key={opt} value={opt}>
+                {opt}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <TextField
+          fullWidth
+          label="Quantidade"
+          size="small"
+          type="number"
+          value={form.quantity}
+          onChange={(e) => updateField("quantity", Number(e.target.value))}
+          InputLabelProps={{ shrink: true }}
+        />
+      </div>
+
       {/* SUBMIT */}
       <ButtonComponent
-        text={loading ? "Adicionando..." : "Adicionar Serviço"}
+        text={loading ? "Adicionando..." : "Adicionar Material"}
         fullWidth
         styled="!h-9"
-        disabled={loading}
+        disabled={loading || !isValid || isDisabled}
         onClick={handleSubmit}
         startIcon={<PlusIcon className="w-5 h-5 mr-1" />}
       />

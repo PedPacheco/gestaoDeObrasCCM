@@ -12,7 +12,6 @@ import { AuthModule } from './interface/modules/auth.module';
 import { AuxiliaryBaseModule } from './interface/modules/auxiliaryBase.module';
 import { ContingencyModule } from './interface/modules/contingency.module';
 import { DashboardModule } from './interface/modules/dashboard.module';
-import { EmailModule } from './interface/modules/email.module';
 import { EntryModule } from './interface/modules/entry.module';
 import { EquipmentsModule } from './interface/modules/equipments.module';
 import { ErrorsReportModule } from './interface/modules/errorsReport.module';
@@ -28,6 +27,7 @@ import { ScheduleModule } from './interface/modules/schedule.module';
 import { UsersModule } from './interface/modules/users.module';
 import { WorksModule } from './interface/modules/works.module';
 import { WorksServicesModule } from './interface/modules/worksServices.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -35,11 +35,11 @@ import { WorksServicesModule } from './interface/modules/worksServices.module';
       isGlobal: true,
       envFilePath: './.env',
     }),
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
     WorksModule,
     PrismaModule,
     AuthModule,
     UsersModule,
-    EmailModule,
     GoalsModule,
     FiltersModule,
     FeasibilityModule,
@@ -70,6 +70,10 @@ import { WorksServicesModule } from './interface/modules/worksServices.module';
     }),
   ],
   providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
     {
       provide: APP_GUARD,
       useClass: AuthGuard,

@@ -1,4 +1,8 @@
 import {
+  IsArray,
+  IsDateString,
+  IsEnum,
+  IsIn,
   IsInt,
   IsNumber,
   IsOptional,
@@ -7,6 +11,17 @@ import {
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ExecutionReportDataDTO } from './executionReportDTO';
+import { convertParameterValue } from 'src/utils/convertParameterValue';
+
+enum ServiceType {
+  SERVICE = 'S',
+  MATERIAL = 'M',
+}
+
+export enum ExportFileType {
+  PDF = 'pdf',
+  EXCEL = 'excel',
+}
 
 export class ScheduleServicesDTO {
   @IsNumber()
@@ -21,6 +36,18 @@ export class ScheduleServicesDTO {
   @Type(() => Number)
   @IsOptional()
   idSchedule?: number;
+
+  @IsString()
+  @IsIn(['M', 'S'], {
+    message: "O tipo deve ser 'S' OU 'M'",
+  })
+  type: 'M' | 'S';
+
+  @IsString()
+  operation: string;
+
+  @IsString()
+  point: string;
 
   @IsNumber()
   @Type(() => Number)
@@ -41,11 +68,22 @@ export class AddServicesDTO {
   @Type(() => Number)
   idService: number;
 
+  @IsEnum(ServiceType)
+  @IsOptional()
+  type?: ServiceType;
+
   @IsString()
   point: string;
 
   @IsString()
   operation: string;
+
+  @IsString()
+  operationDescription: string;
+
+  @IsNumber()
+  @Type(() => Number)
+  quantity: number;
 }
 
 export class PerformServicesDTO {
@@ -59,7 +97,8 @@ export class PerformServicesDTO {
 
   @IsNumber()
   @Type(() => Number)
-  qtdeRealizada: number;
+  @IsOptional()
+  qtdeRealizada?: number;
 }
 
 export class ApplyAdditonalDTO {
@@ -109,6 +148,38 @@ export class ServiceMaterialItemDto {
   @IsInt()
   id: number;
 
+  @Transform(({ value }) => {
+    if (value === null || value === undefined || value === '') {
+      return value; // deixa @IsNumber acusar se for obrigatório
+    }
+
+    const normalized =
+      typeof value === 'string' ? value.replace(',', '.') : value;
+
+    const parsed = Number(normalized);
+
+    return Number.isNaN(parsed) ? value : parsed; // se não converter, deixa passar o valor original pro validador rejeitar
+  })
   @IsNumber()
   viabilizado: number;
+}
+
+export class ExportServicesInputDto {
+  @IsDateString()
+  dataInicial: string;
+
+  @IsDateString()
+  dataFinal: string;
+
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idParceira: number[];
+
+  @IsArray()
+  @IsOptional()
+  @Transform(({ value }) => convertParameterValue(value))
+  idEquipe?: number[];
+
+  @IsEnum(ExportFileType)
+  fileType: ExportFileType;
 }

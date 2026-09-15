@@ -34,6 +34,12 @@ export class GetWorkDetailsService {
       tipos: work.tipos.tipo_obra,
       grupo: work.tipos.id_grupo,
       idRegional: work.municipios.regionais.id,
+      totalProgramado: work.programacoes.reduce((acc, item) => {
+        const valor =
+          item.exec !== null && item.exec !== 0 ? item.exec : item.prog;
+
+        return acc + valor;
+      }, 0),
       programacoes: work.programacoes.map((programacao) => {
         const teams = TeamCounterService.calculate(programacao);
         return {
@@ -55,6 +61,7 @@ export class GetWorkDetailsService {
           equipe_regularizacao: teams.equipe_regularizacao,
           tecnico: programacao.tecnicos?.tecnico,
           restricao: programacao.programacoes_restricao_execucao?.restricao,
+          id_restricao_execucao: programacao.id_restricao_execucao,
           nome_responsavel_execucao: programacao.nome_responsavel_execucao,
           status_programacao: programacao.status_programacao.status_programacao,
           validada: programacao.validada,

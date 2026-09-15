@@ -3,23 +3,23 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 
 import {
   performScheduleServices,
   reascheduleServices,
 } from "@/actions/services";
 import { UseExecutionServiceFormReturn } from "@/hooks/useExecutionServicesForm";
-import { usePersistentServiceValidation } from "@/hooks/usePersistentServiceValidation";
+import { usePersistentServiceValidation } from "@/hooks/services/usePersistentServiceValidation";
 import { Paper, Typography } from "@mui/material";
 
 import { ScheduledServicesTable } from "./scheduledServicesTable";
 import { ValidationOfScheduledServices } from "./validationOfScheduledServices";
 import { ExecutionReportDialog } from "@/components/executionReport/executionReportDialog";
 import { ButtonComponent } from "@/components/common/Button";
-import { RestrictionsModal } from "../../scheduleSection/executionRestrictionModal";
-import { ConfirmRescheduleModal } from "./confirmReascheduled";
+import { RestrictionsModal } from "./executionRestrictionModal";
 import { ScheduledServicesHistoryData } from "../scheduleHistory";
+import { ConfirmRescheduleModal } from "./confirmReascheduled";
 
 dayjs.extend(utc);
 
@@ -29,13 +29,10 @@ interface ScheduledServicesProps {
   options: {
     restricao: Array<{ id: number; restricao: string; tipo_restricao: string }>;
   };
-  points: string[];
-  operations: string[];
-  services: any[];
   executionForm: UseExecutionServiceFormReturn;
   onError: (error: string) => void;
   onSuccess: (success: string, onClose?: () => void) => void;
-  isDisabled: boolean;
+  statusSchedule: string;
   todayIsOnOrAfterScheduleDate: boolean;
 }
 
@@ -50,17 +47,16 @@ export interface ScheduledServiceState {
 export function ScheduledServices({
   scheduledServicesData,
   scheduledServicesHistory,
-  operations,
-  points,
-  services,
   options,
   executionForm,
   onError,
   onSuccess,
-  isDisabled,
+  statusSchedule,
   todayIsOnOrAfterScheduleDate,
 }: ScheduledServicesProps) {
   const router = useRouter();
+
+  const [isPending, startTransition] = useTransition();
 
   const formData = executionForm.buildPayload();
 
@@ -100,10 +96,20 @@ export function ScheduledServices({
 
   const executionIsPartial = useMemo(() => {
     const currentSchedule = scheduledServicesHistory.filter(
-      (s) => s.idProg === formData.idSchedule,
+      (s) => s.idProg === formData.idSchedule && s.tipo === "S",
     );
 
     return currentSchedule.some(
+      (s) => s.qtdeRealizada === null || s.qtdeProgramada > s.qtdeRealizada,
+    );
+  }, [scheduledServicesHistory, formData.idSchedule]);
+
+  const executionIsCanceled = useMemo(() => {
+    const currentSchedule = scheduledServicesHistory.filter(
+      (s) => s.idProg === formData.idSchedule && s.tipo === "S",
+    );
+
+    return currentSchedule.every(
       (s) => s.qtdeRealizada === null || s.qtdeProgramada > s.qtdeRealizada,
     );
   }, [scheduledServicesHistory, formData.idSchedule]);
@@ -126,20 +132,12 @@ export function ScheduledServices({
   const canFinalize = useMemo(
     () =>
       isValidated &&
-      scheduledServices.every(
-        (s) =>
-          s.validationStatus === "completo" ||
-          s.validationStatus === "sem-realizacao",
-      ),
+      scheduledServices.length > 0 &&
+      scheduledServices.every((s) => s.validationStatus),
     [isValidated, scheduledServices],
   );
 
-  const canReschedule = useMemo(
-    () =>
-      isValidated &&
-      scheduledServices.some((s) => s.validationStatus === "reprogramar"),
-    [isValidated, scheduledServices],
-  );
+  const isDisabled = statusSchedule === "Programado";
 
   const handleApplyPlannedToReal = () => {
     setScheduledServices((prev) =>
@@ -153,47 +151,50 @@ export function ScheduledServices({
     clearValidation();
   };
 
-  const handlePerformServices = async () => {
+  const handlePerformServices = () => {
     const formatted = scheduledServices.map((item) => ({
       id: item.id,
       qtdeRealizada: item.qtdeRealizada ? Number(item.qtdeRealizada) : null,
     }));
 
-    const result = await performScheduleServices(formatted);
+    startTransition(async () => {
+      const result = await performScheduleServices(formatted);
 
-    if (!result.success) {
-      onError(result.error);
-      return;
-    }
+      if (!result.success) {
+        onError(result.error);
+        return;
+      }
 
-    if (result.message) {
-      onSuccess(result.message, () => router.refresh());
-    }
+      if (result.message) {
+        onSuccess(result.message, () => router.refresh());
+      }
+    });
   };
 
-  const handleConfirmRescheduleServices = async () => {
-    const toReschedule = scheduledServices
-      .filter((s) => s.validationStatus === "reprogramar")
-      .map((s) => ({ id: s.id }));
+  const handleWithReascheduled = () => {
+    setIsRescheduleModalOpen(false);
 
-    if (!toReschedule.length) return;
+    startTransition(async () => {
+      const result = await reascheduleServices(
+        formData.idWork,
+        formData.idSchedule,
+      );
 
-    const result = await reascheduleServices(toReschedule);
+      if (!result.success) {
+        onError(result.error);
+        return;
+      }
 
-    if (!result.success) {
-      onError(result.error);
-      return;
-    }
-
-    if (result.message) {
-      onSuccess(result.message, () => router.refresh());
-    }
+      if (result.message) {
+        onSuccess(result.message, () => router.back());
+      }
+    });
   };
 
   const handleFinalizeServices = () => {
     clearValidation();
 
-    if (executionIsPartial) {
+    if (executionIsPartial || executionIsCanceled) {
       setIsRestrictionsModalOpen(true);
     } else {
       setIsExecutionReportModalOpen(true);
@@ -217,6 +218,7 @@ export function ScheduledServices({
             styled="!h-8"
             onClick={handleApplyPlannedToReal}
             disabled={
+              isPending ||
               !scheduledServices.some((s) => s.selected) ||
               !isDisabled ||
               scheduledServices.length === 0
@@ -227,7 +229,11 @@ export function ScheduledServices({
             text="Realizar Serviços"
             styled="!h-8"
             onClick={handlePerformServices}
-            disabled={!canUseScheduleActions || scheduledServices.length === 0}
+            disabled={
+              isPending ||
+              !canUseScheduleActions ||
+              scheduledServices.length === 0
+            }
           />
 
           <ButtonComponent
@@ -237,22 +243,17 @@ export function ScheduledServices({
               setScheduledServices(validateServices(scheduledServices));
             }}
             disabled={
-              !isRealConsistentWithHistory || scheduledServices.length === 0
+              isPending ||
+              !isRealConsistentWithHistory ||
+              scheduledServices.length === 0
             }
-          />
-
-          <ButtonComponent
-            text="Reprogramar Serviços"
-            styled="!h-8"
-            onClick={() => setIsRescheduleModalOpen(true)}
-            disabled={!canUseScheduleActions || !canReschedule}
           />
 
           <ButtonComponent
             text="Finalizar Execução dos Serviços"
             styled="!h-8"
             onClick={handleFinalizeServices}
-            disabled={!canUseScheduleActions || !canFinalize}
+            disabled={isPending || !canUseScheduleActions || !canFinalize}
           />
         </div>
 
@@ -261,9 +262,6 @@ export function ScheduledServices({
           scheduledServices={scheduledServices}
           scheduledServicesData={scheduledServicesData}
           clearValidation={() => clearValidation()}
-          operations={operations}
-          points={points}
-          services={services}
         />
 
         <ValidationOfScheduledServices validationSummary={validationSummary} />
@@ -273,8 +271,11 @@ export function ScheduledServices({
         open={isRestrictionsModalOpen}
         onClose={() => setIsRestrictionsModalOpen(false)}
         onSave={() => setIsExecutionReportModalOpen(true)}
+        onReascheduled={() => setIsRescheduleModalOpen(true)}
         options={options}
         executionForm={executionForm}
+        executionIsCanceled={executionIsCanceled}
+        executionIsPartial={executionIsPartial}
       />
 
       <ExecutionReportDialog
@@ -290,7 +291,8 @@ export function ScheduledServices({
       <ConfirmRescheduleModal
         open={isRescheduleModalOpen}
         onClose={() => setIsRescheduleModalOpen(false)}
-        onConfirm={handleConfirmRescheduleServices}
+        isDisabled={isPending}
+        onConfirm={handleWithReascheduled}
       />
     </>
   );

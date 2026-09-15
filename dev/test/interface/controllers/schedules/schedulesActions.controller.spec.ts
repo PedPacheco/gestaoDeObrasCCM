@@ -105,7 +105,16 @@ describe('ScheduleActionsController', () => {
           idProgRestriction1: 1,
           idProgRestriction2: 1,
         },
-        services: [{ id: 1, idTeam: 1, prog: 1 }],
+        services: [
+          {
+            id: 1,
+            idTeam: 1,
+            operation: 'instalação',
+            point: 'P1',
+            prog: 1,
+            type: 'M',
+          },
+        ],
       },
       mockReq,
     );
@@ -127,7 +136,16 @@ describe('ScheduleActionsController', () => {
         idProgRestriction2: 1,
         idUser: 1,
       },
-      services: [{ id: 1, idTeam: 1, prog: 1 }],
+      services: [
+        {
+          id: 1,
+          idTeam: 1,
+          operation: 'instalação',
+          point: 'P1',
+          prog: 1,
+          type: 'M',
+        },
+      ],
     });
   });
 
@@ -186,11 +204,11 @@ describe('ScheduleActionsController', () => {
         {
           updateData: {
             id: 1,
-            idUser: 1,
+            userId: 1,
             ...mockUpdateSchedulesController.updateData,
           },
           executionReportData: {
-            idUser: 1,
+            userId: 1,
             ...mockUpdateSchedulesController.executionReportData,
           },
         },
@@ -217,11 +235,11 @@ describe('ScheduleActionsController', () => {
         {
           updateData: {
             id: 1,
-            idUser: 1,
+            userId: 1,
             ...mockUpdateSchedulesController.updateData,
           },
           executionReportData: {
-            idUser: 1,
+            userId: 1,
             ...mockUpdateSchedulesController.executionReportData,
           },
         },

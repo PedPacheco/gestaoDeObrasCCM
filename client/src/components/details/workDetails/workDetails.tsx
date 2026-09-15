@@ -38,7 +38,7 @@ import {
   Tooltip,
 } from "@mui/material";
 
-import DataItem from "./dataItem";
+import DataItem, { SummaryDataItem } from "./dataItem";
 import { EditableColumn } from "./editableColumn";
 
 dayjs.extend(customParseFormat);
@@ -99,6 +99,7 @@ interface FormattedData {
   dataEmpreitamento: string | null;
   backgroundColor: string;
   executadoFormatted: string;
+  totalProgramado: string;
 }
 
 interface EditableData {
@@ -146,10 +147,16 @@ function useModals() {
   };
 }
 
-function formatDateForSubmit(value: string): string | null {
-  if (!value) return null;
+function formatDateForSubmit(value?: string): string {
+  if (!value) {
+    return dayjs().format("YYYY-MM-DD");
+  }
+
   const parsed = dayjs(value, "DD/MM/YYYY", true);
-  return parsed.isValid() ? parsed.format("YYYY-MM-DD") : value;
+
+  return parsed.isValid()
+    ? parsed.format("YYYY-MM-DD")
+    : dayjs().format("YYYY-MM-DD");
 }
 
 function hasRestrictedAccess(statusId: number, permission?: string): boolean {
@@ -401,10 +408,23 @@ export function WorkDetails({
           <DataItem label="Entrada" value={formattedData.entrada} />
           <DataItem label="Prazo" value={formattedData.prazo} />
           <DataItem label="Data prazo final" value={formattedData.prazoFinal} />
-          <DataItem
-            label="Executado"
-            value={formattedData.executadoFormatted}
-          />
+
+          <div className="max-w-96 w-[342px] xl:w-full xl:max-w-[90%] flex gap-2 mb-3">
+            <div className="flex-1">
+              <SummaryDataItem
+                label="Programado"
+                value={formattedData.totalProgramado}
+              />
+            </div>
+
+            <div className="flex-1">
+              <SummaryDataItem
+                label="Executado"
+                value={formattedData.executadoFormatted}
+              />
+            </div>
+          </div>
+
           <DataItem
             label="Data conclusão"
             value={formattedData.data_conclusao}

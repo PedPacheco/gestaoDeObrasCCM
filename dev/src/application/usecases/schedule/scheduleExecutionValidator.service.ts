@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import {
   IStatusFlowRepository,
@@ -23,53 +23,51 @@ export class ScheduleExecutionValidatorService {
 
   async validateExecutionAndUpdateStatus(
     data: ScheduleExecutionValidatorInterface,
-    totalExecuted: returnExecution,
+    totals: returnExecution,
     tx: Prisma.TransactionClient,
   ) {
-    if (totalExecuted.exec + data.exec > 100) {
-      throw new BadRequestException(
-        'O valor da execução da obra não pode ser superior a 100',
-      );
-    }
+    const newExecuted = Math.min((totals.exec ?? 0) + data.exec, 100);
 
     if (data.prog <= data.exec) {
       await this.statusFlowRepository.updateScheduleStatus(4, data.id, tx);
 
-      if (totalExecuted.exec + data.exec < 100) {
-        if (totalExecuted.prog + totalExecuted.exec + data.exec === 100) {
+      if (newExecuted < 100) {
+        if (totals.prog + newExecuted === 100) {
           await this.statusFlowRepository.updateStatusWorks(
             35,
             data.idWork,
             tx,
             {
-              totalExecuted: totalExecuted.exec + data.exec,
+              totalExecuted: newExecuted,
             },
           );
           return;
         }
 
         await this.statusFlowRepository.updateStatusWorks(36, data.idWork, tx, {
-          totalExecuted: totalExecuted.exec + data.exec,
+          totalExecuted: newExecuted,
         });
+
+        return;
       }
 
-      if (totalExecuted.exec + data.exec === 100) {
-        await this.statusFlowRepository.updateStatusWorks(2, data.idWork, tx, {
-          data_conclusao: data.dataProg,
-          totalExecuted: totalExecuted.exec + data.exec,
-        });
-      }
+      await this.statusFlowRepository.updateStatusWorks(2, data.idWork, tx, {
+        data_conclusao: data.dataProg,
+        totalExecuted: newExecuted,
+      });
     }
 
     if (data.exec === 0) {
       await this.statusFlowRepository.updateScheduleStatus(5, data.id, tx);
+
       await this.statusFlowRepository.updateStatusWorks(36, data.idWork, tx);
     }
 
     if (data.exec > 0 && data.prog > data.exec) {
       await this.statusFlowRepository.updateScheduleStatus(6, data.id, tx);
+
       await this.statusFlowRepository.updateStatusWorks(36, data.idWork, tx, {
-        totalExecuted: totalExecuted.exec + data.exec,
+        totalExecuted: newExecuted,
       });
     }
   }

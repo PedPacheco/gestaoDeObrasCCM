@@ -11,6 +11,7 @@ import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
 type SuspensionRow = {
   ovnota: string;
   motivo: string;
+  ordemDiagrama: string;
 };
 
 export function ImportSuspensionsButton() {
@@ -41,9 +42,12 @@ export function ImportSuspensionsButton() {
           if (!Array.isArray(row)) continue;
 
           const ovnota = row[1]?.toString().trim();
-          const motivo = row[2]?.toString().trim();
+          const ordemDiagrama = row[2]?.toString().trim();
+          const motivo = row[3]?.toString().trim();
 
           if (!ovnota) break;
+          if (!ordemDiagrama)
+            throw new Error(`Informa a ordem ou diagrama da obra ${ovnota}`);
           if (!motivo)
             throw new Error(
               `O motivo da supensão da obra ${ovnota} não foi enviado`,
@@ -52,6 +56,7 @@ export function ImportSuspensionsButton() {
           newData.push({
             ovnota,
             motivo,
+            ordemDiagrama,
           });
         }
 
