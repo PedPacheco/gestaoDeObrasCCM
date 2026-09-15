@@ -1,3 +1,4 @@
+import { User } from 'src/domain/entities/user.entity';
 import { IUserRepository } from 'src/domain/repositories/IUserRepository';
 // import { userInterface } from 'src/interface/types/userInterface';
 
@@ -22,5 +23,52 @@ export class UserRepository implements IUserRepository {
     });
 
     return user;
+  }
+
+  async findAll(): Promise<novo_tabela_usuarios[]> {
+    return await this.prisma.novo_tabela_usuarios.findMany();
+  }
+
+  async findByIdRaw(id: number): Promise<novo_tabela_usuarios | null> {
+    return await this.prisma.novo_tabela_usuarios.findUnique({
+      where: { id },
+    });
+  }
+
+  async create(data: User): Promise<novo_tabela_usuarios> {
+    const {
+      email,
+      id_regional,
+      id_turma,
+      id_area,
+      is_admin,
+      nome,
+      permissao_edicao,
+      senha,
+      tipo_usuario,
+      username,
+    } = data;
+
+    return await this.prisma.novo_tabela_usuarios.create({
+      data: {
+        username,
+        senha,
+        permissao_edicao,
+        id_area,
+        is_admin,
+        id_regional,
+        id_turma,
+        email,
+        nome,
+        tipo_usuario,
+      },
+    });
+  }
+
+  async softDelete(id: number): Promise<novo_tabela_usuarios> {
+    return await this.prisma.novo_tabela_usuarios.update({
+      where: { id },
+      data: { ativo: false },
+    });
   }
 }
