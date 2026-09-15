@@ -10,6 +10,7 @@ import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleP
 import { WORK_SERVICES_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesRepository';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
 import { Prisma } from '@prisma/client';
+import { NotFoundException } from '@nestjs/common';
 
 describe('WorksServicesService', () => {
   let service: FinalizeServicesService;
@@ -561,6 +562,41 @@ describe('WorksServicesService', () => {
           exec: 50,
         }),
         mockPrisma,
+      );
+    });
+
+    it('should throw NotFoundException when schedule history is not found', async () => {
+      mockWorkServicesQueryRepository.getServiceScheduleHistory.mockResolvedValue(
+        [
+          {
+            id_programacao: 999,
+            id_servico: 1,
+            prog: 30,
+            real: 25,
+            servicos: {
+              materiais: null,
+              servicos_contratos: {
+                select: {
+                  texto_breve: 'POSTE',
+                  material: '1234',
+                },
+              },
+            },
+            programacoes: {
+              data_prog: mockDate,
+            },
+          },
+        ],
+      );
+
+      await expect(
+        service.finalizeServices(mockWorkId, mockData),
+      ).rejects.toThrow(NotFoundException);
+
+      await expect(
+        service.finalizeServices(mockWorkId, mockData),
+      ).rejects.toThrow(
+        `Nenhum histórico encontrado para a programação ${mockScheduleId} nesta obra.`,
       );
     });
   });

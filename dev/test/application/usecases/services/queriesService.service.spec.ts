@@ -71,6 +71,7 @@ describe('WorksServicesService', () => {
     getNotScheduledServices: jest.fn(),
     getSelectedServices: jest.fn(),
     getServiceScheduleHistory: jest.fn(),
+    getServiceScheduleHistoryByIdSchedule: jest.fn(),
     getServicesFilters: jest.fn(),
     getServicesContracts: jest.fn(),
     getTeamsServices: jest.fn(),
@@ -394,6 +395,24 @@ describe('WorksServicesService', () => {
       expect(result[0].valorTotal).toBe(3154.5);
       expect(result[0].valorReal).toBe(1402);
     });
+
+    it('should calculate when quantities are null', async () => {
+      mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue(
+        mockRepositoryResponse.map((item) => ({
+          ...item,
+          qtde_prog: null,
+          qtde_real: null,
+          qtde_adicional: null,
+          viabilizado: null,
+        })),
+      );
+
+      const result = await service.getNotScheduledServices(1);
+
+      expect(result).toEqual([]);
+      expect(repository.getNotScheduledServices).toHaveBeenCalledWith(1);
+      expect(repository.getNotScheduledServices).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('getSelectedServices', () => {
@@ -522,6 +541,67 @@ describe('WorksServicesService', () => {
       ]);
       expect(repository.getSelectedServices).toHaveBeenCalledWith(mockParams);
       expect(repository.getSelectedServices).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return formatted selected services successfully', async () => {
+      mockWorksServicesRepository.getSelectedServices.mockResolvedValue(
+        mockRepositoryResponse.map((item) => ({
+          ...item,
+          prog: null,
+          real: null,
+        })),
+      );
+
+      const result = await service.getSelectedServices(mockParams);
+
+      expect(result).toEqual([
+        {
+          id: 1,
+          idObra: 100,
+          operacao: 'Operação 1',
+          ponto: 'Ponto A',
+          material: 'Material 1',
+          textoBreve: 'Serviço 1',
+          dataProgramada: new Date('2024-01-01'),
+          descricaoOperacao: 'Poste',
+          numeroOperacao: '2000',
+          qtdePlanejada: 10,
+          qtdeProgramada: null,
+          qtdeRealizada: null,
+          qtdeAdicional: null,
+          viabilizado: 5,
+          equipe: 'LM 01',
+          tipo: 'S',
+          encarregado: 'João Silva',
+          perfil: 'Pedreiro',
+          valorUnit: 100,
+          valorReal: 0,
+          valorProg: 0,
+        },
+        {
+          id: 2,
+          idObra: 100,
+          operacao: 'Operação 1',
+          ponto: 'Ponto A',
+          material: '1234',
+          textoBreve: 'Poste',
+          descricaoOperacao: 'Poste',
+          numeroOperacao: '2000',
+          dataProgramada: new Date('2024-01-01'),
+          qtdePlanejada: 10,
+          qtdeProgramada: null,
+          qtdeRealizada: null,
+          qtdeAdicional: null,
+          viabilizado: 5,
+          equipe: 'LM 01',
+          tipo: 'M',
+          encarregado: 'João Silva',
+          perfil: 'Pedreiro',
+          valorUnit: 5,
+          valorProg: 0,
+          valorReal: 0,
+        },
+      ]);
     });
 
     it('should return multiple selected services', async () => {
@@ -655,6 +735,98 @@ describe('WorksServicesService', () => {
       await service.getServiceScheduleHistory(mockId);
 
       expect(repository.getServiceScheduleHistory).toHaveBeenCalledWith(42);
+    });
+  });
+
+  describe('getServiceScheduleHistoryByIdSchedule', () => {
+    it('should return schedule history successfully', async () => {
+      const mockId = 1;
+
+      mockWorksServicesRepository.getServiceScheduleHistoryByIdSchedule.mockResolvedValue(
+        mockHistory.map((item) => ({ ...item, preco: 0 })),
+      );
+
+      const result = await service.getServiceScheduleHistoryByIdSchedule([
+        mockId,
+      ]);
+
+      expect(result).toEqual([
+        {
+          id: 1,
+          idProg: 1,
+          idServico: 1,
+          dataProgramada: new Date('2024-01-01'),
+          textoBreve: 'POSTE',
+          tipo: 'S',
+          descricaoOperacao: 'POSTE',
+          numeroOperacao: '1000',
+          perfil: 'B1',
+          codigo: '2345',
+          qtdeAdicional: 1,
+          qtdePlanejada: 1,
+          qtdeProgramada: 1,
+          qtdeRealizada: 1,
+          qtdeViabilizado: 2,
+          operacao: 'INSTALAÇÃO',
+          ponto: 'P1',
+          equipe: 'LM01',
+          preco: 0,
+        },
+        {
+          id: 2,
+          idProg: 1,
+          idServico: 1,
+          dataProgramada: new Date('2024-01-01'),
+          textoBreve: 'POSTE - ODI',
+          tipo: 'M',
+          descricaoOperacao: 'POSTE',
+          numeroOperacao: '2300',
+          perfil: 'B4',
+          codigo: '12344',
+          equipe: 'LM01',
+          qtdeAdicional: 1,
+          qtdePlanejada: 1,
+          qtdeProgramada: 1,
+          qtdeRealizada: 1,
+          qtdeViabilizado: 2,
+          operacao: 'INSTALAÇÃO',
+          ponto: 'P1',
+          preco: 0,
+        },
+      ]);
+      expect(
+        repository.getServiceScheduleHistoryByIdSchedule,
+      ).toHaveBeenCalledWith([mockId]);
+      expect(
+        repository.getServiceScheduleHistoryByIdSchedule,
+      ).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return empty array when no history found', async () => {
+      const mockId = 999;
+      mockWorksServicesRepository.getServiceScheduleHistoryByIdSchedule.mockResolvedValue(
+        [],
+      );
+
+      const result = await service.getServiceScheduleHistoryByIdSchedule([
+        mockId,
+      ]);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should handle different id values', async () => {
+      const mockId = 42;
+
+      mockWorksServicesRepository.getServiceScheduleHistoryByIdSchedule.mockResolvedValue(
+        mockHistory,
+      );
+
+      await service.getServiceScheduleHistoryByIdSchedule([mockId]);
+
+      expect(
+        repository.getServiceScheduleHistoryByIdSchedule,
+      ).toHaveBeenCalledWith([42]);
     });
   });
 

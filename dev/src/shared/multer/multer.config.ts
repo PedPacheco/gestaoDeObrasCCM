@@ -13,7 +13,7 @@ export interface MulterConfig {
 }
 
 export function createMulterConfig(config: MulterConfig): MulterOptions {
-  if (!config.destination) {
+  if (!config?.destination) {
     throw new Error('Multer destination was not provided');
   }
 

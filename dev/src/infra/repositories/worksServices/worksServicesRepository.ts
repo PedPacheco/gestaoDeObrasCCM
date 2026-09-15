@@ -151,7 +151,7 @@ export class WorkServicesRepository implements IWorkServicesRepository {
         ponto: point,
         descricao_operacao: operationDescription,
         qtde_plan: 0,
-        qtde_adicional: quantity,
+        viabilizado: quantity,
       },
     });
   }

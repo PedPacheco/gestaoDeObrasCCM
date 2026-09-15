@@ -141,6 +141,7 @@ export function FeasibiltyUpload({
       reviewData,
       termsAccepted,
       handleUpload: technicalUpload.handleUpload,
+      handleUploadComplementaryFiles: complementaryUpload.handleUpload,
       onRejectSettled: () => setOpenModal(null),
     });
 

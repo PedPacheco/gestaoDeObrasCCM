@@ -171,6 +171,7 @@ export function NewServicesAvaliable({
     }
 
     if (hasOrdemDcim) {
+      console.log(hasOrdemDcim);
       setOpenServiceQuantityBt0Modal(true);
 
       return;
