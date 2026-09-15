@@ -8,7 +8,7 @@ import {
   pctColorGripSchedule,
   pctColorRestrictionsElimination,
 } from "./advancePartner";
-import { EXCLUDE_PARCEIRAS } from "@/hooks/dashboard/advancePartner/useAdvancePartnerFilters";
+import { EXCLUDE_PARCEIRAS } from "@/components/dashboard/DashboardClient";
 
 interface SparkPoint {
   semana: string;

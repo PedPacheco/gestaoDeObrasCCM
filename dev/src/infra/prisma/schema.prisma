@@ -221,7 +221,7 @@ model municipios {
 }
 
 model obras {
-  id                        Int                        @id @default(autoincrement())
+  id                        Int                        @id(map: "OBRAS_pkey") @default(autoincrement())
   ovnota                    String                     @db.VarChar(12)
   pep                       String?                    @db.VarChar(8)
   diagrama                  String?                    @db.VarChar(12)

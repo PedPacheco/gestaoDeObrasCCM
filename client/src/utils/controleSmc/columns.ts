@@ -1,0 +1,101 @@
+import { ControleSmcColumn, NucleoSmcRow } from "@/types/controleSmc";
+
+// Nome da aba de dados na planilha "Controle SMC - COMPET (Atualizando).xlsx".
+export const SHEET_NAME = "Núcleos SMS - Geral";
+
+// Ordem e cabeçalhos espelham exatamente a aba de origem — a leitura e a
+// exportação usam esta mesma lista para não divergir do arquivo real.
+export const CONTROLE_SMC_COLUMNS: ControleSmcColumn[] = [
+  { key: "regional", header: "Regional", group: "geral", type: "text", editor: "select", width: 160 },
+  { key: "municipio", header: "Município", group: "geral", type: "text", editor: "text", width: 170 },
+  { key: "nucleo", header: "Núcleo", group: "geral", type: "text", editor: "text", width: 200 },
+  { key: "tipoRede", header: "Tipo de rede", group: "geral", type: "text", editor: "select", width: 130 },
+  { key: "tecnologia", header: "Tecnologia", group: "geral", type: "text", editor: "select", width: 130 },
+  { key: "statusNucleo", header: "Status do núcleo", group: "status", type: "text", editor: "select", width: 180 },
+  { key: "dataEntregaPerdas", header: "Data entrega a Perdas", group: "status", type: "date", editor: "text", width: 150 },
+  { key: "respEntrega", header: "Resp. pela entrega", group: "status", type: "text", editor: "text", width: 170 },
+  { key: "parceiraSigo", header: "Parceira SIGO", group: "parceiras", type: "text", editor: "select", width: 150 },
+  { key: "parceiraResponsavel", header: "Parceira responsável", group: "parceiras", type: "text", editor: "select", width: 170 },
+  { key: "ucsPlanejadasPriorizador", header: "UCs Planejadas Priorizador", group: "geral", type: "number", editor: "number", width: 160, align: "right" },
+  { key: "ucsPlanejadasConstrucaoMtBt", header: "Ucs Planejadas Construção MT/BT", group: "geral", type: "number", editor: "number", width: 170, align: "right" },
+  { key: "ligacoesExecutadasCampo", header: "Ligações  (Executadas campo)", group: "ligacoes", type: "number", editor: "number", width: 170, align: "right" },
+  { key: "ligacoesNotasBaixadas", header: "Ligações (Notas baixadas)", group: "ligacoes", type: "number", editor: "number", width: 170, align: "right" },
+  { key: "meioAmbienteStatus", header: "Meio Ambiente", group: "restricoes", type: "text", editor: "select", width: 150 },
+  { key: "meioAmbienteRestricaoClientes", header: "Quant. Restrição (clientes)", group: "restricoes", type: "number", editor: "number", width: 160, align: "right" },
+  { key: "poderPublicoStatus", header: "Poder Público", group: "restricoes", type: "text", editor: "select", width: 170 },
+  { key: "poderPublicoRestricaoClientes", header: "Quant. Restrição (clientes)", group: "restricoes", type: "number", editor: "number", width: 160, align: "right" },
+  { key: "chiStatus", header: "CHI", group: "restricoes", type: "text", editor: "select", width: 130 },
+  { key: "chiRestricaoClientes", header: "Quant. Restrição (CHI)", group: "restricoes", type: "text", editor: "text", width: 170 },
+  { key: "conjunto", header: "Conjunto", group: "conjunto", type: "text", editor: "select", width: 180 },
+  { key: "chiNecessario", header: "CHI Necessário", group: "conjunto", type: "text", editor: "text", width: 140 },
+  { key: "chiDisponivelBtZero", header: "CHI Disponível BTZero", group: "conjunto", type: "text", editor: "text", width: 150 },
+  { key: "chiLimiteBtzero", header: "CHI Limite Btzero", group: "conjunto", type: "number", editor: "number", width: 150, align: "right" },
+  { key: "chiConsumidoBtzero", header: "CHI Consumido Btzero", group: "conjunto", type: "number", editor: "number", width: 160, align: "right" },
+  { key: "oportunidadeChi", header: "Oportunidade de CHI", group: "conjunto", type: "text", editor: "select", width: 170 },
+  { key: "statusAndamentoConstrucao", header: "Status de andamento Construção %", group: "progresso", type: "percent", editor: "number", width: 180, align: "right" },
+  { key: "prazoConclusaoConstrucao", header: "Prazo conclusão Construção (data)", group: "progresso", type: "date", editor: "text", width: 160 },
+  { key: "statusAndamentoRegularizacao", header: "Status de andamento Regularização %", group: "progresso", type: "percent", editor: "number", width: 185, align: "right" },
+  { key: "prazoConclusaoRegularizacao", header: "Prazo conclusão Regularização (data)", group: "progresso", type: "date", editor: "text", width: 160 },
+  { key: "statusAndamentoDesativacao", header: "Status de andamento  Desativação %", group: "progresso", type: "percent", editor: "number", width: 180, align: "right" },
+  { key: "prazoConclusaoDesativacao", header: "Prazo conclusão Desativação(data)", group: "progresso", type: "date", editor: "text", width: 160 },
+  { key: "prioridadeFinalizacao", header: "Prioridade de finalização", group: "progresso", type: "text", editor: "select", width: 160 },
+  { key: "envioPendenciaRelatorioFinal", header: "Envio de pendência relatório final (data)", group: "pendencias", type: "date", editor: "text", width: 180 },
+  { key: "prazoConclusaoPendenciasRelatorioFinal", header: "Prazo de conclusão das pendências relatório final (data)", group: "pendencias", type: "date", editor: "text", width: 185 },
+  { key: "observacoesGerais", header: "Observações gerais", group: "pendencias", type: "text", editor: "textarea", width: 260 },
+];
+
+export const GROUP_STYLES: Record<
+  ControleSmcColumn["group"],
+  { text: string; bg: string }
+> = {
+  geral: { text: "text-emerald-400", bg: "" },
+  status: { text: "text-amber-400", bg: "bg-amber-500/5" },
+  parceiras: { text: "text-slate-300", bg: "" },
+  ligacoes: { text: "text-blue-400", bg: "bg-blue-500/5" },
+  restricoes: { text: "text-rose-400", bg: "bg-rose-500/5" },
+  conjunto: { text: "text-violet-400", bg: "bg-violet-500/5" },
+  progresso: { text: "text-slate-300", bg: "" },
+  pendencias: { text: "text-blue-400/80", bg: "bg-blue-500/5" },
+};
+
+export function emptyNucleoSmcRow(): NucleoSmcRow {
+  return {
+    id: "",
+    regional: "",
+    municipio: "",
+    nucleo: "",
+    tipoRede: "",
+    tecnologia: "",
+    statusNucleo: "",
+    dataEntregaPerdas: "",
+    respEntrega: "",
+    parceiraSigo: "",
+    parceiraResponsavel: "",
+    ucsPlanejadasPriorizador: null,
+    ucsPlanejadasConstrucaoMtBt: null,
+    ligacoesExecutadasCampo: null,
+    ligacoesNotasBaixadas: null,
+    meioAmbienteStatus: "",
+    meioAmbienteRestricaoClientes: null,
+    poderPublicoStatus: "",
+    poderPublicoRestricaoClientes: null,
+    chiStatus: "",
+    chiRestricaoClientes: "",
+    conjunto: "",
+    chiNecessario: "",
+    chiDisponivelBtZero: "",
+    chiLimiteBtzero: null,
+    chiConsumidoBtzero: null,
+    oportunidadeChi: "",
+    statusAndamentoConstrucao: null,
+    prazoConclusaoConstrucao: "",
+    statusAndamentoRegularizacao: null,
+    prazoConclusaoRegularizacao: "",
+    statusAndamentoDesativacao: null,
+    prazoConclusaoDesativacao: "",
+    prioridadeFinalizacao: "",
+    envioPendenciaRelatorioFinal: "",
+    prazoConclusaoPendenciasRelatorioFinal: "",
+    observacoesGerais: "",
+  };
+}
