@@ -1,0 +1,947 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { WorkServicesQueryRepository } from 'src/infra/repositories/worksServices/workServicesQueryRepository';
+import { GetSelectedServicesParamsInterface } from 'src/interface/types/servicesInterface';
+
+describe('WorkServicesQueryRepository', () => {
+  let repository: WorkServicesQueryRepository;
+  let prisma: PrismaService;
+
+  const mockPrismaService = {
+    servicos: {
+      findMany: jest.fn(),
+      update: jest.fn(),
+      updateMany: jest.fn(),
+      groupBy: jest.fn(),
+      create: jest.fn(),
+    },
+    obras: { findMany: jest.fn() },
+    materiais: { findMany: jest.fn() },
+    programacoes_servicos: {
+      findMany: jest.fn(),
+      create: jest.fn(),
+      deleteMany: jest.fn(),
+      updateMany: jest.fn(),
+    },
+    servicos_contratos: {
+      groupBy: jest.fn(),
+      findMany: jest.fn(),
+    },
+    equipes: {
+      findMany: jest.fn(),
+    },
+    programacoes: {
+      update: jest.fn(),
+    },
+    $transaction: jest.fn(),
+  };
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        WorkServicesQueryRepository,
+        {
+          provide: PrismaService,
+          useValue: mockPrismaService,
+        },
+      ],
+    }).compile();
+
+    repository = module.get<WorkServicesQueryRepository>(
+      WorkServicesQueryRepository,
+    );
+    prisma = module.get<PrismaService>(PrismaService);
+
+    jest.clearAllMocks();
+  });
+
+  describe('getServices', () => {
+    const mockServicesResponse = [
+      {
+        id: 1,
+        id_obra: 1,
+        operacao: 'Operação 1',
+        ponto: 'Ponto A',
+        qtde_plan: 10,
+        qtde_prog: 8,
+        qtde_real: 5,
+        programacoes: { data_prog: '2024-01-01' },
+        servicos_contratos: {
+          material: 'Material 1',
+          texto_breve: 'Serviço 1',
+          preco: 100,
+        },
+      },
+    ];
+
+    it('should return services with all filters', async () => {
+      mockPrismaService.servicos.findMany.mockResolvedValue(
+        mockServicesResponse,
+      );
+
+      const result = await repository.getNotScheduledServices(1);
+
+      expect(result).toEqual(mockServicesResponse);
+      expect(prisma.servicos.findMany).toHaveBeenCalledWith({
+        select: {
+          id: true,
+          id_obra: true,
+          id_contrato_servico: true,
+          id_material: true,
+          operacao: true,
+          ponto: true,
+          qtde_plan: true,
+          qtde_prog: true,
+          qtde_real: true,
+          qtde_adicional: true,
+          viabilizado: true,
+          descricao_operacao: true,
+          numero_operacao: true,
+          materiais: { select: { codigo: true, descricao: true, preco: true } },
+          servicos_contratos: {
+            select: {
+              material: true,
+              texto_breve: true,
+              preco: true,
+            },
+          },
+        },
+        where: {
+          id_obra: 1,
+          AND: [
+            {
+              OR: [
+                {
+                  qtde_real: null,
+                },
+
+                {
+                  qtde_real: {
+                    not: 0,
+                  },
+                },
+              ],
+            },
+            { OR: [{ viabilizado: null }, { viabilizado: { not: 0 } }] },
+          ],
+        },
+      });
+      expect(prisma.servicos.findMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return empty array when no services found', async () => {
+      mockPrismaService.servicos.findMany.mockResolvedValue([]);
+
+      const result = await repository.getNotScheduledServices(1);
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('getSelectedServices', () => {
+    const mockParams: GetSelectedServicesParamsInterface = {
+      id: 1,
+      idProgramacao: 10,
+    };
+
+    const mockSelectedServicesResponse = [
+      {
+        id_programacao: 10,
+        prog: 8,
+        real: 5,
+        adicional: null,
+        equipes: {
+          equipe: 'Equipe A',
+          encarregado: 'João Silva',
+          perfil: 'Pedreiro',
+        },
+        programacoes: { data_prog: '2024-01-01' },
+        servicos: {
+          id: 1,
+          id_obra: 1,
+          operacao: 'Operação 1',
+          ponto: 'Ponto A',
+          qtde_plan: 10,
+          viabilizado: 1,
+          descricao_operacao: 'Instalação',
+          numero_operacao: '001',
+          materiais: { codigo: 'M1', descricao: 'Material 1', preco: 100 },
+          servicos_contratos: {
+            material: 'Material 1',
+            texto_breve: 'Serviço 1',
+            preco: 100,
+          },
+        },
+      },
+    ];
+
+    it('should return selected services with all filters', async () => {
+      mockPrismaService.programacoes_servicos.findMany.mockResolvedValue(
+        mockSelectedServicesResponse,
+      );
+
+      const result = await repository.getSelectedServices(mockParams);
+
+      expect(result).toEqual(mockSelectedServicesResponse);
+      expect(prisma.programacoes_servicos.findMany).toHaveBeenCalledWith({
+        where: {
+          id_programacao: 10,
+          servicos: { id_obra: 1 },
+        },
+        select: {
+          id_programacao: true,
+          prog: true,
+          real: true,
+          adicional: true,
+          equipes: {
+            select: { equipe: true, encarregado: true, perfil: true },
+          },
+          programacoes: {
+            select: { data_prog: true },
+          },
+          servicos: {
+            select: {
+              id: true,
+              id_obra: true,
+              operacao: true,
+              ponto: true,
+              qtde_plan: true,
+              viabilizado: true,
+              descricao_operacao: true,
+              numero_operacao: true,
+              materiais: {
+                select: { codigo: true, descricao: true, preco: true },
+              },
+              servicos_contratos: {
+                select: { material: true, texto_breve: true, preco: true },
+              },
+            },
+          },
+        },
+      });
+      expect(prisma.programacoes_servicos.findMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return empty array when no selected services found', async () => {
+      mockPrismaService.programacoes_servicos.findMany.mockResolvedValue([]);
+
+      const result = await repository.getSelectedServices(mockParams);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should filter by idProgramacao and the work id', async () => {
+      const params: GetSelectedServicesParamsInterface = {
+        id: 5,
+        idProgramacao: 99,
+      };
+
+      mockPrismaService.programacoes_servicos.findMany.mockResolvedValue([]);
+
+      await repository.getSelectedServices(params);
+
+      const callArgs =
+        mockPrismaService.programacoes_servicos.findMany.mock.calls[0][0];
+      expect(callArgs.where).toEqual({
+        id_programacao: 99,
+        servicos: { id_obra: 5 },
+      });
+    });
+  });
+
+  describe('getServiceScheduleHistory', () => {
+    const mockHistoryResponse = [
+      {
+        id: 1,
+        servicos: {
+          servicos_contratos: { texto_breve: 'Serviço 1' },
+          ponto: 'Ponto A',
+          operacao: 'Operação 1',
+          qtde_plan: 2,
+          viabilizado: 3,
+        },
+        programacoes: { data_prog: '2024-01-01' },
+        equipes: { equipe: 'LM 02' },
+        prog: 3,
+        real: 3,
+        adicional: 2,
+      },
+      {
+        id: 2,
+        servicos: {
+          servicos_contratos: { texto_breve: 'Serviço 2' },
+          ponto: 'Ponto B',
+          operacao: 'Operação 2',
+          qtde_plan: 2,
+          viabilizado: 3,
+        },
+        programacoes: { data_prog: '2024-01-02' },
+        equipes: { equipe: 'LM 01' },
+        prog: 2,
+        real: null,
+        adicional: null,
+      },
+    ];
+
+    it('should return service schedule history', async () => {
+      const mockId = 1;
+      mockPrismaService.programacoes_servicos.findMany.mockResolvedValue(
+        mockHistoryResponse,
+      );
+
+      const result = await repository.getServiceScheduleHistory(mockId);
+
+      expect(result).toEqual(mockHistoryResponse);
+      expect(prisma.programacoes_servicos.findMany).toHaveBeenCalledWith({
+        select: {
+          id: true,
+          servicos: {
+            select: {
+              materiais: { select: { descricao: true, codigo: true } },
+              servicos_contratos: {
+                select: { texto_breve: true, material: true },
+              },
+              ponto: true,
+              numero_operacao: true,
+              descricao_operacao: true,
+              operacao: true,
+              qtde_plan: true,
+              viabilizado: true,
+            },
+          },
+          programacoes: { select: { data_prog: true } },
+          equipes: { select: { equipe: true, perfil: true } },
+          id_programacao: true,
+          id_servico: true,
+          prog: true,
+          real: true,
+          adicional: true,
+        },
+        where: { programacoes: { id_obra: 1 } },
+      });
+      expect(prisma.programacoes_servicos.findMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return empty array when no history found', async () => {
+      const mockId = 999;
+      mockPrismaService.programacoes_servicos.findMany.mockResolvedValue([]);
+
+      const result = await repository.getServiceScheduleHistory(mockId);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should filter by id_obra in programacoes', async () => {
+      const mockId = 42;
+      mockPrismaService.programacoes_servicos.findMany.mockResolvedValue([]);
+
+      await repository.getServiceScheduleHistory(mockId);
+
+      const callArgs =
+        mockPrismaService.programacoes_servicos.findMany.mock.calls[0][0];
+      expect(callArgs.where.programacoes.id_obra).toBe(42);
+    });
+
+    it('should query within the provided transaction when tx is informed', async () => {
+      const mockTx = {
+        programacoes_servicos: {
+          findMany: jest.fn().mockResolvedValue([]),
+        },
+      };
+
+      await repository.getServiceScheduleHistory(1, mockTx as any);
+
+      expect(mockTx.programacoes_servicos.findMany).toHaveBeenCalledTimes(1);
+      expect(prisma.programacoes_servicos.findMany).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getServiceScheduleHistoryByIdSchedule', () => {
+    const mockHistoryResponse = [
+      {
+        id: 1,
+        id_servico: 10,
+        servicos: {
+          materiais: { descricao: 'Material 1', codigo: 'M1', preco: 100 },
+          servicos_contratos: {
+            texto_breve: 'Serviço 1',
+            material: 'Material 1',
+            preco: 100,
+          },
+          ponto: 'Ponto A',
+          operacao: 'Operação 1',
+          qtde_plan: 2,
+          viabilizado: 3,
+          descricao_operacao: 'Instalação',
+          numero_operacao: '001',
+        },
+        id_programacao: 5,
+        programacoes: { data_prog: '2024-01-01' },
+        equipes: { equipe: 'LM 02', perfil: 'Eletricista' },
+        prog: 3,
+        real: 3,
+        adicional: 2,
+      },
+    ];
+
+    it('should return service schedule history filtered by schedule ids', async () => {
+      const mockIds = [1, 2, 3];
+      mockPrismaService.programacoes_servicos.findMany.mockResolvedValue(
+        mockHistoryResponse,
+      );
+
+      const result =
+        await repository.getServiceScheduleHistoryByIdSchedule(mockIds);
+
+      expect(result).toEqual(mockHistoryResponse);
+      expect(prisma.programacoes_servicos.findMany).toHaveBeenCalledWith({
+        select: {
+          id: true,
+          id_servico: true,
+          servicos: {
+            select: {
+              materiais: {
+                select: { descricao: true, codigo: true, preco: true },
+              },
+              servicos_contratos: {
+                select: { texto_breve: true, material: true, preco: true },
+              },
+              ponto: true,
+              operacao: true,
+              qtde_plan: true,
+              viabilizado: true,
+              descricao_operacao: true,
+              numero_operacao: true,
+            },
+          },
+          id_programacao: true,
+          programacoes: { select: { data_prog: true } },
+          equipes: { select: { equipe: true, perfil: true } },
+          prog: true,
+          real: true,
+          adicional: true,
+        },
+        where: { id_programacao: { in: mockIds } },
+      });
+      expect(prisma.programacoes_servicos.findMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return empty array when no history found for the given ids', async () => {
+      mockPrismaService.programacoes_servicos.findMany.mockResolvedValue([]);
+
+      const result = await repository.getServiceScheduleHistoryByIdSchedule([
+        999,
+      ]);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should filter by the given schedule ids', async () => {
+      mockPrismaService.programacoes_servicos.findMany.mockResolvedValue([]);
+
+      await repository.getServiceScheduleHistoryByIdSchedule([7, 8]);
+
+      const callArgs =
+        mockPrismaService.programacoes_servicos.findMany.mock.calls[0][0];
+      expect(callArgs.where).toEqual({ id_programacao: { in: [7, 8] } });
+    });
+  });
+
+  describe('getServicesContracts', () => {
+    const mockContractsResponse = [
+      {
+        texto_breve: 'Serviço 1',
+        material: 'Material 1',
+        preco: 100,
+        contrato: 'CONT-001',
+        medida: 'UN',
+        turmas: { turma: 'Turma A' },
+      },
+      {
+        texto_breve: 'Serviço 2',
+        material: 'Material 2',
+        preco: 200,
+        contrato: 'CONT-002',
+        medida: 'M2',
+        turmas: { turma: 'Turma B' },
+      },
+    ];
+
+    it('should return service contracts', async () => {
+      const mockIdParceira = 100;
+      mockPrismaService.servicos_contratos.findMany.mockResolvedValue(
+        mockContractsResponse,
+      );
+
+      const result = await repository.getServicesContracts(mockIdParceira);
+
+      expect(result).toEqual(mockContractsResponse);
+      expect(prisma.servicos_contratos.findMany).toHaveBeenCalledWith({
+        select: {
+          id: true,
+          texto_breve: true,
+          material: true,
+          preco: true,
+          contrato: true,
+          medida: true,
+          turmas: { select: { turma: true } },
+        },
+        where: {
+          id_turma: 100,
+        },
+      });
+      expect(prisma.servicos_contratos.findMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return empty array when no contracts found', async () => {
+      const mockIdParceira = 999;
+      mockPrismaService.servicos_contratos.findMany.mockResolvedValue([]);
+
+      const result = await repository.getServicesContracts(mockIdParceira);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should filter by id_turma', async () => {
+      const mockIdParceira = 42;
+      mockPrismaService.servicos_contratos.findMany.mockResolvedValue([]);
+
+      await repository.getServicesContracts(mockIdParceira);
+
+      const callArgs =
+        mockPrismaService.servicos_contratos.findMany.mock.calls[0][0];
+      expect(callArgs.where.id_turma).toBe(42);
+    });
+  });
+
+  describe('getMaterialsContract', () => {
+    const mockContractsResponse = [
+      {
+        texto_breve: 'Serviço 1',
+        material: 'Material 1',
+        preco: 100,
+        contrato: 'CONT-001',
+        medida: 'UN',
+      },
+      {
+        texto_breve: 'Serviço 2',
+        material: 'Material 2',
+        preco: 200,
+        contrato: 'CONT-002',
+        medida: 'M2',
+      },
+    ];
+
+    it('should return service contracts', async () => {
+      mockPrismaService.materiais.findMany.mockResolvedValue(
+        mockContractsResponse,
+      );
+
+      const result = await repository.getMaterialsContract();
+
+      expect(result).toEqual(mockContractsResponse);
+      expect(prisma.materiais.findMany).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getTeamsServices', () => {
+    const mockTeamsResponse = [
+      {
+        id: 1,
+        equipe: 'Equipe A',
+        encarregado: 'João Silva',
+        perfil: 'Pedreiro',
+      },
+      {
+        id: 2,
+        equipe: 'Equipe B',
+        encarregado: 'Maria Santos',
+        perfil: 'Eletricista',
+      },
+    ];
+
+    it('should return teams services', async () => {
+      const mockIdParceira = 100;
+      mockPrismaService.equipes.findMany.mockResolvedValue(mockTeamsResponse);
+
+      const result = await repository.getTeamsServices(mockIdParceira);
+
+      expect(result).toEqual(mockTeamsResponse);
+      expect(prisma.equipes.findMany).toHaveBeenCalledWith({
+        select: {
+          id: true,
+          equipe: true,
+          encarregado: true,
+          perfil: true,
+        },
+        where: {
+          id_turma: 100,
+        },
+      });
+      expect(prisma.equipes.findMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return empty array when no teams found', async () => {
+      const mockIdParceira = 999;
+      mockPrismaService.equipes.findMany.mockResolvedValue([]);
+
+      const result = await repository.getTeamsServices(mockIdParceira);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should always use id_turma whinch was sent with parameter', async () => {
+      const mockIdParceira = 100;
+      mockPrismaService.equipes.findMany.mockResolvedValue([]);
+
+      await repository.getTeamsServices(mockIdParceira);
+
+      const callArgs = mockPrismaService.equipes.findMany.mock.calls[0][0];
+      expect(callArgs.where.id_turma).toBe(100);
+    });
+  });
+
+  describe('getAllServicesOfWork', () => {
+    const baseSelect = {
+      id: true,
+      id_obra: true,
+      id_contrato_servico: true,
+      id_material: true,
+      operacao: true,
+      ponto: true,
+      qtde_plan: true,
+      qtde_prog: true,
+      qtde_real: true,
+      qtde_adicional: true,
+      viabilizado: true,
+      descricao_operacao: true,
+      numero_operacao: true,
+      materiais: { select: { codigo: true, descricao: true, preco: true } },
+      servicos_contratos: {
+        select: {
+          material: true,
+          texto_breve: true,
+          preco: true,
+        },
+      },
+    };
+
+    it('should query by numeric id (and other order identifiers) when id has fewer than 10 digits', async () => {
+      const mockWorkId = 1;
+      const mockServices = [
+        { id: 1, qtde_plan: 100 },
+        { id: 2, qtde_plan: 200 },
+        { id: 3, qtde_plan: 150 },
+      ];
+
+      mockPrismaService.servicos.findMany.mockResolvedValue(mockServices);
+
+      const result = await repository.getAllServicesOfWork(mockWorkId);
+
+      expect(result).toEqual(mockServices);
+      expect(prisma.servicos.findMany).toHaveBeenCalledWith({
+        select: baseSelect,
+        where: {
+          obras: {
+            OR: [
+              { id: 1 },
+              { ovnota: '1' },
+              { ordem_dci: '1' },
+              { ordem_dcd: '1' },
+              { ordem_dca: '1' },
+              { ordem_dcim: '1' },
+              { diagrama: '1' },
+            ],
+          },
+        },
+      });
+      expect(prisma.servicos.findMany).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not filter by numeric id when id has 10 or more digits', async () => {
+      const mockWorkId = 1234567890;
+
+      mockPrismaService.servicos.findMany.mockResolvedValue([]);
+
+      await repository.getAllServicesOfWork(mockWorkId);
+
+      expect(prisma.servicos.findMany).toHaveBeenCalledWith({
+        select: baseSelect,
+        where: {
+          obras: {
+            OR: [
+              { id: undefined },
+              { ovnota: '1234567890' },
+              { ordem_dci: '1234567890' },
+              { ordem_dcd: '1234567890' },
+              { ordem_dca: '1234567890' },
+              { ordem_dcim: '1234567890' },
+              { diagrama: '1234567890' },
+            ],
+          },
+        },
+      });
+    });
+
+    it('should query within the provided transaction when tx is informed', async () => {
+      const mockTx = {
+        servicos: {
+          findMany: jest.fn().mockResolvedValue([]),
+        },
+      };
+
+      await repository.getAllServicesOfWork(1, mockTx as any);
+
+      expect(mockTx.servicos.findMany).toHaveBeenCalledTimes(1);
+      expect(prisma.servicos.findMany).not.toHaveBeenCalled();
+    });
+
+    it('should return empty array when no services found', async () => {
+      const mockWorkId = 999;
+
+      mockPrismaService.servicos.findMany.mockResolvedValue([]);
+
+      const result = await repository.getAllServicesOfWork(mockWorkId);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should handle database errors', async () => {
+      const mockWorkId = 1;
+      const mockError = new Error('Database connection error');
+
+      mockPrismaService.servicos.findMany.mockRejectedValue(mockError);
+
+      await expect(repository.getAllServicesOfWork(mockWorkId)).rejects.toThrow(
+        'Database connection error',
+      );
+    });
+  });
+
+  describe('getServiceOptions', () => {
+    it('should return service options', async () => {
+      const mockId = 100;
+
+      const descriptionMock = [
+        { descricao_operacao: 'Instalação de poste' },
+        { descricao_operacao: 'Troca de cruzeta' },
+        { descricao_operacao: 'Poda de árvore' },
+      ];
+
+      const pointsMock = [{ ponto: 'A' }, { ponto: 'B' }, { ponto: 'C' }];
+
+      mockPrismaService.servicos.groupBy
+        .mockResolvedValueOnce(descriptionMock)
+        .mockResolvedValueOnce(pointsMock);
+
+      const result = await repository.getServiceOptions(mockId);
+
+      // Resultado esperado deve corresponder aos mocks
+      expect(result).toEqual({
+        operation_description: [
+          'Instalação de poste',
+          'Troca de cruzeta',
+          'Poda de árvore',
+        ],
+        points: ['A', 'B', 'C'],
+      });
+
+      // Verificar que as 3 chamadas foram feitas com os parâmetros correctos
+      expect(mockPrismaService.servicos.groupBy).toHaveBeenCalledTimes(2);
+      expect(mockPrismaService.servicos.groupBy).toHaveBeenCalledWith({
+        by: ['descricao_operacao'],
+        where: { id_obra: mockId },
+      });
+      expect(mockPrismaService.servicos.groupBy).toHaveBeenCalledWith({
+        by: ['ponto'],
+        where: { id_obra: mockId },
+      });
+    });
+  });
+
+  describe('getServicesToExportation', () => {
+    it('should build the programacoesServicosFilter without id_equipe when idEquipe is empty', async () => {
+      mockPrismaService.obras.findMany.mockResolvedValue([]);
+
+      await repository.getServicesToExportation({
+        dataInicial: '2026-01-01',
+        dataFinal: '2026-01-31',
+        idParceira: [2],
+        idEquipe: [],
+      });
+
+      const dateFilter = {
+        gte: new Date('2026-01-01'),
+        lte: new Date('2026-01-31'),
+      };
+
+      expect(mockPrismaService.obras.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            id_turma: { in: [2] },
+            programacao_ponto_a_ponto: true,
+            servicos: {
+              some: {
+                OR: [
+                  { viabilizado: { not: null, gt: 0 } },
+                  { qtde_adicional: { not: null, gt: 0 } },
+                ],
+                programacoes_servicos: {
+                  some: {
+                    programacoes: { data_prog: dateFilter, exec: null },
+                  },
+                },
+              },
+            },
+          }),
+        }),
+      );
+    });
+
+    it('should include id_equipe in the programacoesServicosFilter when idEquipe is informed', async () => {
+      mockPrismaService.obras.findMany.mockResolvedValue([]);
+
+      await repository.getServicesToExportation({
+        dataInicial: '2026-01-01',
+        dataFinal: '2026-01-31',
+        idParceira: [2],
+        idEquipe: [2, 3, 4],
+      });
+
+      const dateFilter = {
+        gte: new Date('2026-01-01'),
+        lte: new Date('2026-01-31'),
+      };
+
+      expect(mockPrismaService.obras.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            programacao_ponto_a_ponto: true,
+            id_turma: { in: [2] },
+            servicos: {
+              some: {
+                OR: [
+                  { viabilizado: { not: null, gt: 0 } },
+                  { qtde_adicional: { not: null, gt: 0 } },
+                ],
+                programacoes_servicos: {
+                  some: {
+                    programacoes: { data_prog: dateFilter, exec: null },
+                    id_equipe: { in: [2, 3, 4] },
+                  },
+                },
+              },
+            },
+          }),
+        }),
+      );
+    });
+
+    it('should apply date filter to programacoes', async () => {
+      mockPrismaService.obras.findMany.mockResolvedValue([]);
+
+      await repository.getServicesToExportation({
+        dataInicial: '2026-01-01',
+        dataFinal: '2026-01-31',
+        idParceira: [2],
+        idEquipe: [],
+      });
+
+      expect(mockPrismaService.obras.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            programacao_ponto_a_ponto: true,
+            programacoes: {
+              some: {
+                data_prog: {
+                  gte: new Date('2026-01-01'),
+                  lte: new Date('2026-01-31'),
+                },
+                exec: null,
+              },
+            },
+          }),
+        }),
+      );
+    });
+
+    it('should reuse the same programacoesServicosFilter in the nested servicos select', async () => {
+      mockPrismaService.obras.findMany.mockResolvedValue([]);
+
+      await repository.getServicesToExportation({
+        dataInicial: '2026-01-01',
+        dataFinal: '2026-01-31',
+        idParceira: [2],
+        idEquipe: [2, 3],
+      });
+
+      const dateFilter = {
+        gte: new Date('2026-01-01'),
+        lte: new Date('2026-01-31'),
+      };
+      const expectedFilter = {
+        programacoes: { data_prog: dateFilter, exec: null },
+        id_equipe: { in: [2, 3] },
+      };
+
+      const callArgs = mockPrismaService.obras.findMany.mock.calls[0][0];
+
+      expect(callArgs.where.servicos.some.programacoes_servicos.some).toEqual(
+        expectedFilter,
+      );
+      expect(callArgs.select.servicos.where.programacoes_servicos.some).toEqual(
+        expectedFilter,
+      );
+      expect(
+        callArgs.select.servicos.select.programacoes_servicos.where,
+      ).toEqual(expectedFilter);
+    });
+
+    it('should return repository data', async () => {
+      const responseMock = [
+        {
+          ovnota: 'OV001',
+        },
+      ];
+
+      mockPrismaService.obras.findMany.mockResolvedValue(responseMock);
+
+      const result = await repository.getServicesToExportation({
+        dataInicial: '2026-01-01',
+        dataFinal: '2026-01-31',
+        idParceira: [2],
+        idEquipe: [],
+      });
+
+      expect(result).toEqual(responseMock);
+    });
+
+    it('should return empty array when no data is found', async () => {
+      mockPrismaService.obras.findMany.mockResolvedValue([]);
+
+      const result = await repository.getServicesToExportation({
+        dataInicial: '2026-01-01',
+        dataFinal: '2026-01-31',
+        idParceira: [2],
+        idEquipe: [],
+      });
+
+      expect(result).toEqual([]);
+    });
+
+    it('should propagate prisma errors', async () => {
+      mockPrismaService.obras.findMany.mockRejectedValueOnce(
+        new Error('Database error'),
+      );
+
+      await expect(
+        repository.getServicesToExportation({
+          dataInicial: '2026-01-01',
+          dataFinal: '2026-01-31',
+          idParceira: [2],
+          idEquipe: [],
+        }),
+      ).rejects.toThrow('Database error');
+    });
+  });
+});

@@ -1,11 +1,11 @@
-import { ExecutionReportData } from "@/components/details/modals/executionReportDialog/executionReportDialog";
-import { FormData } from "@/hooks/details/useScheduleForm";
+import { OldExecutionReportData } from "@/components/details/modals/oldExecutionReportDialog/oldExecutionReportDialog";
+import { FormData } from "@/hooks/details/useOldScheduleForm";
 
 export function FormatCurrency(value: number) {
   return new Intl.NumberFormat("pt-br", {
     style: "currency",
     currency: "BRL",
-    maximumFractionDigits: 0,
+    maximumFractionDigits: 2,
   }).format(value);
 }
 
@@ -23,10 +23,16 @@ export function formatPercentage(value: number, locale: string = "pt-BR") {
     return null;
   }
 
+  if (value > 0 && value < 1) {
+    value = 1;
+  }
+
   const correctValue = value / 100;
 
   return new Intl.NumberFormat(locale, {
     style: "percent",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(correctValue);
 }
 
@@ -56,11 +62,11 @@ export function formatDateToInput(value: string | Date | undefined): string {
 }
 
 export function resolveExecutionReportContext(
-  data: FormData | ExecutionReportData,
-): { data: ExecutionReportData; prefix: "" | "executionReport." } {
+  data: FormData | OldExecutionReportData,
+): { data: OldExecutionReportData; prefix: "" | "executionReport." } {
   const isExecutionReportData = (
-    d: FormData | ExecutionReportData,
-  ): d is ExecutionReportData => !("executionReport" in d);
+    d: FormData | OldExecutionReportData,
+  ): d is OldExecutionReportData => !("executionReport" in d);
 
   if (isExecutionReportData(data)) {
     return {

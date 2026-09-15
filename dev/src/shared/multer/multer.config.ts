@@ -7,11 +7,16 @@ import { extname } from 'path';
 export interface MulterConfig {
   destination: string;
   allowedMimeTypes: string[];
+  allowedExtensions: string[];
   maxSize: number;
   maxFiles: number;
 }
 
 export function createMulterConfig(config: MulterConfig): MulterOptions {
+  if (!config?.destination) {
+    throw new Error('Multer destination was not provided');
+  }
+
   if (!existsSync(config.destination)) {
     mkdirSync(config.destination, { recursive: true });
   }

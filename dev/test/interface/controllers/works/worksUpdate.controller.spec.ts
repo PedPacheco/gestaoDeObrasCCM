@@ -77,7 +77,6 @@ describe('WorksUpdateController', () => {
         {
           id_turma: 1,
           id_status: 4,
-          tipo_ads: 'Convencional',
           data_empreitamento: new Date('05-17-2025'),
         },
         mockReq as CustomRequest,
@@ -92,7 +91,6 @@ describe('WorksUpdateController', () => {
         {
           id_turma: 1,
           id_status: 4,
-          tipo_ads: 'Convencional',
           data_empreitamento: new Date('05-17-2025'),
         },
         1,
@@ -110,7 +108,6 @@ describe('WorksUpdateController', () => {
         {
           ovnota: '3435',
           ordemDiagrama: '43435',
-          tipoAds: 'Convencional',
           dataEmpreitamento: new Date('05-17-2025'),
         },
       ]);
@@ -124,7 +121,6 @@ describe('WorksUpdateController', () => {
         {
           ovnota: '3435',
           ordemDiagrama: '43435',
-          tipoAds: 'Convencional',
           dataEmpreitamento: new Date('05-17-2025'),
         },
       ]);
@@ -171,7 +167,7 @@ describe('WorksUpdateController', () => {
         .mockResolvedValue();
 
       const result = await worksController.SuspensionWorks([
-        { ovnota: '234', motivo: 'obra suspensa' },
+        { ovnota: '234', ordemDiagrama: '190000', motivo: 'obra suspensa' },
       ]);
 
       const expectedResponse = {
@@ -181,7 +177,9 @@ describe('WorksUpdateController', () => {
 
       expect(
         suspensionWorksService.createMultipleSuspensions,
-      ).toHaveBeenCalledWith([{ ovnota: '234', motivo: 'obra suspensa' }]);
+      ).toHaveBeenCalledWith([
+        { ovnota: '234', ordemDiagrama: '190000', motivo: 'obra suspensa' },
+      ]);
       expect(result).toEqual(expectedResponse);
     });
   });

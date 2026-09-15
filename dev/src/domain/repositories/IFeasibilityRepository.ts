@@ -1,10 +1,44 @@
+import { Prisma } from '@prisma/client';
+import { StatusFeasibility } from 'src/application/usecases/feasibility.service';
+import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
+import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
+
 export interface IFeasibilityRepository {
-  exists(idWork: number): Promise<any[]>;
-  saveFiles(idWork: number, files: Express.Multer.File[]): Promise<void>;
-  findFiles(
+  exists(idWork: number): Promise<any>;
+  getProjectDate(idWork: number): Promise<{ data_empreitamento: Date }>;
+  getRejections(workId: number): Promise<any[]>;
+  exportFeasibility(idStatus: number, idPartner?: number[]): Promise<any[]>;
+  saveFiles(
     idWork: number,
-  ): Promise<{ id: number; caminho_arquivo: string; id_obra: number }[]>;
-  deleteFiles(idWork: number): Promise<void>;
+    idUser: number,
+    status: StatusFeasibility,
+    paths: string[],
+    tx: Prisma.TransactionClient,
+  ): Promise<void>;
+  updateFiles(
+    workId: number,
+    paths: string[],
+    type: 'technical' | 'complementary',
+    tx: Prisma.TransactionClient,
+  ): Promise<void>;
+  makeItemsFeasible(
+    items: ServiceMaterialItemDto[],
+    tx: Prisma.TransactionClient,
+  ): Promise<void>;
+  findFiles(idWork: number): Promise<{
+    id: number;
+    caminhos_arquivos: string[];
+    arquivos_complementares: string[];
+  }>;
+  reject(
+    data: RejectFeasibilityDTO,
+    tx: Prisma.TransactionClient,
+  ): Promise<void>;
+  approve(
+    workId: number,
+    userId: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<void>;
 }
 
 export const FEASIBILITY_REPOSITORY = Symbol('FeasibilityRepository');

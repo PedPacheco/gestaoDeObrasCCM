@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { AddSchedulesRepository } from 'src/infra/repositories/schedule/addSchedulesRepository';
-import { mockAddSchedulesServiceFormattedData } from '../../../../test/mocks/mockAddScheduleService';
+import { mockAddSchedulesServiceFormattedData } from '../../../mocks/schedules/mockAddScheduleService';
 
 describe('AddSchedulesRepository', () => {
   let repository: AddSchedulesRepository;
@@ -31,6 +31,7 @@ describe('AddSchedulesRepository', () => {
 
       expect(mockPrisma.programacoes.create).toHaveBeenCalledWith({
         data: mockAddSchedulesServiceFormattedData,
+        select: { id: true },
       });
     });
 

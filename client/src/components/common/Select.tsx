@@ -41,13 +41,13 @@ export function SelectComponent({
       }`}
     >
       {label && (
-        <p className="h-full w-40 flex items-center justify-start font-semibold p-2 text-center xl:text-lg border-r border-zinc-700 border-solid">
+        <p className="h-full w-40 flex items-center justify-start font-semibold p-2 text-center xl:text-lg">
           {label}
         </p>
       )}
 
       <FormControl
-        className="flex-1  h-full min-w-36 justify-center"
+        className="flex-1 h-full min-w-36 justify-center"
         size="small"
       >
         <Select
@@ -64,6 +64,9 @@ export function SelectComponent({
                 opacity: 1,
                 WebkitTextFillColor: "inherit",
               },
+            "& .MuiOutlinedInput-notchedOutline": {
+              border: "none",
+            },
           }}
           inputProps={{
             className: `text-center text-sm xl:text-xl p-2 pr-0 ${

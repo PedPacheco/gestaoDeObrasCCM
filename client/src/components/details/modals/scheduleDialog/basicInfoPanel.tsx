@@ -1,6 +1,6 @@
 "use client";
 
-import { FormData } from "@/hooks/details/useScheduleForm";
+import { FormData } from "@/hooks/details/useOldScheduleForm";
 import { Grid, TextField } from "@mui/material";
 import dayjs from "dayjs";
 
@@ -10,6 +10,7 @@ interface BasicInfoPanelProps {
   isInsert: boolean;
   onInputChange: (field: keyof FormData) => (event: any) => void;
   disabledFields: () => boolean | undefined;
+  scheduleStatus: string;
 }
 
 export const BasicInfoPanel: React.FC<BasicInfoPanelProps> = ({
@@ -18,6 +19,7 @@ export const BasicInfoPanel: React.FC<BasicInfoPanelProps> = ({
   isInsert,
   onInputChange,
   disabledFields,
+  scheduleStatus,
 }) => {
   return (
     <Grid container spacing={3}>
@@ -92,7 +94,10 @@ export const BasicInfoPanel: React.FC<BasicInfoPanelProps> = ({
             error={!!formErrors.exec}
             helperText={formErrors.exec}
             InputLabelProps={{ shrink: true }}
-            disabled={dayjs().isBefore(dayjs(formData.dataProg))}
+            disabled={
+              dayjs().isBefore(dayjs(formData.dataProg)) &&
+              scheduleStatus === "Programado"
+            }
           />
         </Grid>
       )}

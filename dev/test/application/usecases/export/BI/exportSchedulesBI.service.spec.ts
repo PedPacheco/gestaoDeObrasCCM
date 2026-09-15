@@ -78,7 +78,9 @@ describe('ExportSchedulesBIService', () => {
     await service.export(mockResponse);
 
     expect(ExcelJS.Workbook).toHaveBeenCalledTimes(1);
-    expect(workBookMock.addWorksheet).toHaveBeenCalledWith('Programação');
+    expect(workBookMock.addWorksheet).toHaveBeenCalledWith(
+      'EXTRACAO DAS PROGRAMACOES E RES',
+    );
     expect(addRowsMock).toHaveBeenCalledWith(MockScheduleData);
     expect(workBookMock.xlsx.write).toHaveBeenCalledWith(mockResponse);
   });

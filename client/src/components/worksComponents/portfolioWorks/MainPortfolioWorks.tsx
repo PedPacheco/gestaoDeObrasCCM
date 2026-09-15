@@ -14,19 +14,16 @@ import { Cookies } from "react-cookie";
 import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
 import { TableWithPagination } from "@/components/common/TableWithPagination";
-import { useUser } from "@/contexts/userContext";
 import { useMapFilter } from "@/contexts/mapFilterContext";
+import { useUser } from "@/contexts/userContext";
+import { useFeedback } from "@/hooks/useFeedback";
 import { FiltersInterface } from "@/types/filtersInterfaces";
 import { FormatCurrency } from "@/utils/formatValue";
 import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import PortfolioWorksFilters from "./PortfolioWorksFilters";
 
-const ErrorModal = dynamic(() => import("@/components/common/ErrorModal"), {
-  ssr: false,
-});
 const ModalComponent = dynamic(() => import("@/components/common/Modal"), {
   ssr: false,
 });
@@ -52,13 +49,17 @@ export default function PortfolioWorks({
   totalValues,
   url,
 }: MainPortfolioWorksProps) {
-  const [filteredData, setFilteredData] = useState(data);
   const { permissions } = useUser();
+
+  const { showError } = useFeedback();
+
+  const [filteredData, setFilteredData] = useState(data);
   const { setOvnotas } = useMapFilter();
   const [open, setOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(0);
+
   const pathname = usePathname();
+
   const [isPending, startTransition] = useTransition();
   const [filteredFilters, setFilteredFilters] =
     useState<FiltersInterface>(filtersData);
@@ -87,9 +88,14 @@ export default function PortfolioWorks({
       );
 
       try {
-        const blob = await exportExcel(exportUrl, token);
+        const response = await exportExcel(exportUrl, token);
 
-        const downloadUrl = window.URL.createObjectURL(blob);
+        if (!response.success) {
+          showError(response.message);
+          return;
+        }
+
+        const downloadUrl = window.URL.createObjectURL(response.data);
         const link = document.createElement("a");
         link.href = downloadUrl;
         link.download =
@@ -102,10 +108,10 @@ export default function PortfolioWorks({
         document.body.removeChild(link);
         window.URL.revokeObjectURL(downloadUrl);
       } catch (error: any) {
-        setError(`Erro ao gerar a planilha: ${error.message}`);
+        showError(`Erro ao gerar a planilha: ${error.message}`);
       }
     },
-    [pathname, token],
+    [pathname, showError, token],
   );
 
   const fetchWorks = useCallback(
@@ -122,11 +128,11 @@ export default function PortfolioWorks({
           setFilteredData(response.data);
           setOvnotas(response.data?.works ?? []);
         } catch (error: any) {
-          setError(error.message);
+          showError(error.message);
         }
       });
     },
-    [token, url, setOvnotas],
+    [showError, token, url, setOvnotas],
   );
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -163,6 +169,7 @@ export default function PortfolioWorks({
         sliceEndIndex={6}
         handleChangePage={handleChangePage}
         page={page}
+        getRowKey={(item) => item.id}
       />
 
       <ModalComponent open={open} onClose={toggleModal} title="Valores totais">
@@ -205,15 +212,6 @@ export default function PortfolioWorks({
             })}
         </div>
       </ModalComponent>
-
-      {error && (
-        <ErrorModal
-          open
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </div>
   );
 }

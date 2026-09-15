@@ -1,28 +1,24 @@
 "use client";
 
 import ExcelJS from "exceljs";
-import { useRef, useState, useTransition } from "react";
+import { useRef, useTransition } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
-import ErrorModal from "@/components/common/ErrorModal";
-import ModalComponent from "@/components/common/Modal";
-import {
-  DocumentArrowDownIcon,
-  ExclamationCircleIcon,
-} from "@heroicons/react/20/solid";
+
+import { useFeedback } from "@/hooks/useFeedback";
+import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
 
 type SuspensionRow = {
   ovnota: string;
   motivo: string;
+  ordemDiagrama: string;
 };
 
 export function ImportSuspensionsButton() {
   const formRef = useRef<HTMLFormElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [error, setError] = useState<string | null>(null);
-  const [openModal, setOpenModal] = useState<boolean>(false);
-  const [success, setSuccess] = useState<string | null>(null);
+  const { showError, showSuccess } = useFeedback();
   const [isPending, startTransition] = useTransition();
 
   const resetFileInputs = () => {
@@ -46,34 +42,34 @@ export function ImportSuspensionsButton() {
           if (!Array.isArray(row)) continue;
 
           const ovnota = row[1]?.toString().trim();
-          const motivo = row[2]?.toString().trim();
+          const ordemDiagrama = row[2]?.toString().trim();
+          const motivo = row[3]?.toString().trim();
 
           if (!ovnota) break;
+          if (!ordemDiagrama)
+            throw new Error(`Informa a ordem ou diagrama da obra ${ovnota}`);
           if (!motivo)
             throw new Error(
-              `O motivo da supensão da obra ${ovnota} não foi enviado`
+              `O motivo da supensão da obra ${ovnota} não foi enviado`,
             );
 
           newData.push({
             ovnota,
             motivo,
+            ordemDiagrama,
           });
         }
 
         localStorage.setItem("suspensions", JSON.stringify(newData));
-        setSuccess("Suspensões importado com sucesso!");
-        setOpenModal(true);
+        showSuccess("Suspensões importado com sucesso!", () => {
+          window.location.reload();
+        });
         resetFileInputs();
       } catch (err: any) {
         resetFileInputs();
-        setError(err.message);
+        showError(err.message);
       }
     });
-  };
-
-  const toggleModal = () => {
-    setOpenModal((prev) => !prev);
-    window.location.reload();
   };
 
   return (
@@ -101,19 +97,6 @@ export function ImportSuspensionsButton() {
         text="Importar Motivos das Suspensões"
         disabled={isPending}
       />
-
-      <ModalComponent title="Sucesso" onClose={toggleModal} open={openModal}>
-        <span className="font-semibold text-xl">{success}</span>
-      </ModalComponent>
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </>
   );
 }

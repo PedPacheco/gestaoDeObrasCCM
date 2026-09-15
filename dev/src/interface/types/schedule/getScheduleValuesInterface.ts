@@ -18,6 +18,8 @@ export interface GetScheduleValuesInterface {
   observprog: string | null;
   mo_prog: number;
   mo_exec: number;
+  moPlanejadaPontoAPonto: number;
+  moExecutadoPontoAPonto: number;
   mat_prog: number;
   num_dp: string | null;
   hora_ini: string;
@@ -38,6 +40,8 @@ export interface GetScheduleValuesInterface {
   status_restricao2: string;
   restricao_aberta: boolean;
   status_prazo: string;
+  encontrado: boolean;
+  id_programacao: number;
 }
 
 export interface totalsGetScheduleValues {
@@ -49,7 +53,7 @@ export interface totalsGetScheduleValues {
 
 export interface GetScheduleValuesResponseRepository {
   works: GetScheduleValuesInterface[];
-  resultTotals: totalsGetScheduleValues[];
+  resultTotals: totalsGetScheduleValues;
 }
 
 export interface GetScheduleValuesResponse {

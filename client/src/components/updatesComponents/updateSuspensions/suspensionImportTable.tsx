@@ -4,23 +4,25 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { forwardRef, useEffect, useState } from "react";
 import { TableComponents, TableVirtuoso } from "react-virtuoso";
+
 import {
   MenuItem,
   Paper,
   Select,
+  SelectChangeEvent,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  SelectChangeEvent,
 } from "@mui/material";
 
 dayjs.extend(utc);
 
 interface SuspensionRow {
   ovnota: string;
+  ordemDiagrama: string;
   motivo: string;
 }
 
@@ -40,7 +42,12 @@ const suspensionOptions = [
   "Transferida para CSD",
 ];
 
-const columnMapping = ["Ov/Nota", "Motivos das Suspensões", "Ações"];
+const columnMapping = [
+  "Ov/Nota",
+  "Ordem/Diagrama",
+  "Motivos das Suspensões",
+  "Ações",
+];
 
 const VirtuosoTableComponents: TableComponents = {
   Scroller: forwardRef<HTMLDivElement>(function scroller(props, ref) {
@@ -78,7 +85,7 @@ export function SuspensionImportTable() {
 
   function handleChange(index: number, value: string) {
     const updated = data.map((item, i) =>
-      i === index ? { ...item, motivo: value } : item
+      i === index ? { ...item, motivo: value } : item,
     );
     setData(updated);
     localStorage.setItem("suspensions", JSON.stringify(updated));
@@ -106,6 +113,10 @@ export function SuspensionImportTable() {
       <>
         <TableCell className="py-1 px-2 text-center text-lg">
           {item.ovnota}
+        </TableCell>
+
+        <TableCell className="py-1 px-2 text-center text-lg">
+          {item.ordemDiagrama}
         </TableCell>
 
         <TableCell className="py-1 px-2 text-center text-lg w-full">

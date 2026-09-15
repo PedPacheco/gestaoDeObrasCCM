@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
+import { useFeedback } from "@/hooks/useFeedback";
 import ErrorModal from "@/components/common/ErrorModal";
 import ModalComponent from "@/components/common/Modal";
 import { useCapexSocket } from "@/hooks/updateCapex/useCapexSocket";
@@ -38,6 +39,7 @@ export function CapexPipelineButton({ token }: { token?: string }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
+  const { showError, showSuccess } = useFeedback();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [openModal, setOpenModal] = useState(false);
@@ -112,7 +114,7 @@ export function CapexPipelineButton({ token }: { token?: string }) {
         setJobId(data.jobId);
         setOpenModal(true);
       } catch (err: any) {
-        setError(err.message);
+        showError(err.message);
       } finally {
         // Limpa o input para permitir reenvio do mesmo arquivo
         if (fileInputRef.current) fileInputRef.current.value = "";

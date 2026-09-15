@@ -1,37 +1,18 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import {
   FEASIBILITY_REPOSITORY,
   IFeasibilityRepository,
 } from 'src/domain/repositories/IFeasibilityRepository';
-import { FileService } from './file.service';
+
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+
+export type StatusFeasibility = 'FORA DO PRAZO' | 'DENTRO DO PRAZO';
 
 @Injectable()
 export class FeasibilityService {
   constructor(
     @Inject(FEASIBILITY_REPOSITORY)
     private readonly feasibilityRepository: IFeasibilityRepository,
-    private readonly fileService: FileService,
   ) {}
-
-  async handleUpload(idWork: number, files: any[]) {
-    if (!files || files.length === 0) {
-      throw new BadRequestException('Nenhum arquivo foi enviado.');
-    }
-
-    if (!idWork) {
-      throw new BadRequestException('O ID da obra é obrigatório.');
-    }
-
-    const exists = await this.feasibilityRepository.exists(idWork);
-
-    if (exists && exists.length > 0) {
-      throw new BadRequestException(
-        'Já existem arquivos importados para esta obra.',
-      );
-    }
-
-    await this.feasibilityRepository.saveFiles(idWork, files);
-  }
 
   async feasibilityExists(id: number) {
     if (!id) {
@@ -41,19 +22,102 @@ export class FeasibilityService {
     return await this.feasibilityRepository.exists(id);
   }
 
-  async deleteFeasibilityFiles(idWork: number) {
-    const files = await this.feasibilityRepository.findFiles(idWork);
+  async getRejections(workId: number) {
+    const response = await this.feasibilityRepository.getRejections(workId);
 
-    if (!files.length) {
-      throw new BadRequestException('Nenhum arquivo encontrado para esta obra');
-    }
+    return response.map((item) => ({
+      descricao: item.descricao,
+      motivo: item.motivo,
+      usuario: item.novo_tabela_usuarios.nome,
+      criado_em: item.criado_em,
+    }));
+  }
 
-    for (const file of files) {
-      this.fileService.deleteFile(
-        `${process.env.UPLOAD_DEST}/${file.caminho_arquivo}`,
-      );
-    }
+  async exportFeasibilityPendingApproval(idPartner?: number[]) {
+    const data = await this.feasibilityRepository.exportFeasibility(
+      46,
+      idPartner,
+    );
 
-    await this.feasibilityRepository.deleteFiles(files[0].id_obra);
+    return data.flatMap((obra) =>
+      obra.servicos.map((service) => {
+        const preco =
+          service.servicos_contratos?.preco ??
+          service.materiais?.preco.toNumber() ??
+          0;
+
+        const qtdeTotal =
+          (service.qtde_plan ?? 0) + (service.qtde_adicional ?? 0);
+
+        return {
+          ovnota: obra.ovnota,
+          ordemDiagrama:
+            obra.diagrama ??
+            obra.ordem_dci ??
+            obra.ordem_dca ??
+            obra.ordem_dcd ??
+            obra.ordem_dcim,
+          data_envio: obra.relatorio_viabilidade.data_envio,
+          operacao: service.operacao,
+          ponto: service.ponto,
+          numeroOperacao: service.numero_operacao,
+          descricaoOperacao: service.descricao_operacao,
+          material:
+            service.servicos_contratos?.material ?? service.materiais?.codigo,
+          textoBreve:
+            service.servicos_contratos?.texto_breve ??
+            service.materiais?.descricao,
+          qtdePlanejada: service.qtde_plan,
+          viabilizado: service.viabilizado,
+          tipo: service.materiais?.codigo ? 'M' : 'S',
+          valorUnit: preco,
+          valorTotal: preco * qtdeTotal,
+          diferença: service.qtde_plan - service.viabilizado,
+          alterado: service.viabilizado !== service.qtde_plan ? 'Sim' : 'Não',
+        };
+      }),
+    );
+  }
+
+  async exportFeasibilityPending(idPartner?: number[]) {
+    const data = await this.feasibilityRepository.exportFeasibility(
+      45,
+      idPartner,
+    );
+
+    return data.flatMap((obra) =>
+      obra.servicos.map((service) => {
+        const preco =
+          service.servicos_contratos?.preco ??
+          service.materiais?.preco.toNumber() ??
+          0;
+
+        const qtdeTotal =
+          (service.qtde_plan ?? 0) + (service.qtde_adicional ?? 0);
+
+        return {
+          ovnota: obra.ovnota,
+          ordemDiagrama:
+            obra.diagrama ??
+            obra.ordem_dci ??
+            obra.ordem_dca ??
+            obra.ordem_dcd ??
+            obra.ordem_dcim,
+          operacao: service.operacao,
+          ponto: service.ponto,
+          numeroOperacao: service.numero_operacao,
+          descricaoOperacao: service.descricao_operacao,
+          material:
+            service.servicos_contratos?.material ?? service.materiais?.codigo,
+          textoBreve:
+            service.servicos_contratos?.texto_breve ??
+            service.materiais?.descricao,
+          qtdePlanejada: service.qtde_plan,
+          tipo: service.materiais?.codigo ? 'M' : 'S',
+          valorUnit: preco,
+          valorTotal: preco * qtdeTotal,
+        };
+      }),
+    );
   }
 }

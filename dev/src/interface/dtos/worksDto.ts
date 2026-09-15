@@ -3,7 +3,6 @@ import {
   IsArray,
   IsBoolean,
   IsDate,
-  IsIn,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -146,11 +145,6 @@ export class UpdateWorkDTO {
 
   @IsString()
   @IsOptional()
-  @IsIn([null, 'CONVENCIONAL', 'PONTO A PONTO'])
-  tipo_ads?: string;
-
-  @IsString()
-  @IsOptional()
   observ_obra?: string;
 
   @IsString()
@@ -170,15 +164,14 @@ export class ContractUpdateDTO {
   @IsDate()
   @Type(() => Date)
   dataEmpreitamento: Date;
-
-  @IsString()
-  @IsIn(['CONVENCIONAL', 'PONTO A PONTO'])
-  tipoAds: string;
 }
 
 export class SuspensionWorksDTO {
   @IsString()
   ovnota: string;
+
+  @IsString()
+  ordemDiagrama: string;
 
   @IsString()
   motivo: string;

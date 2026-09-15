@@ -72,6 +72,7 @@ export default async function WorksInPortfolio() {
     qtde_planejada: "Qtde plan",
     qtde_pend: "Qtde pend",
     contagem_ocorrencias: "!",
+    encontrado: "Ponto a Ponto",
     total_prog: "Total Programado",
     total_exec: "Total Executado",
     total_pend: "Total Pendente",

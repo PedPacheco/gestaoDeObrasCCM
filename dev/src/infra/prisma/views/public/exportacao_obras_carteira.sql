@@ -23,16 +23,12 @@ SELECT
   circuitos.circuito,
   obras.mo_planejada,
   (
-    (
-      obras.mo_planejada * (obras.executado) :: double precision
-    ) / (100) :: double precision
+    (obras.mo_planejada * obras.executado) / (100) :: double precision
   ) AS mo_exec,
   CASE
     WHEN (obras.id_status = 4) THEN (
       obras.mo_planejada - (
-        (
-          obras.mo_planejada * (obras.executado) :: double precision
-        ) / (100) :: double precision
+        (obras.mo_planejada * obras.executado) / (100) :: double precision
       )
     )
     ELSE (0) :: double precision
@@ -71,8 +67,8 @@ SELECT
   obras.referencia,
   obras.data_empreitamento,
   empreendimento.empreendimento,
-  obras.data_viabilidade,
-  obras.prazo_viabilidade,
+  relatorio_viabilidade.data_envio,
+  relatorio_viabilidade.prazo_viabilidade,
   obras.ano_plan
 FROM
   (
@@ -85,24 +81,27 @@ FROM
                 (
                   (
                     (
-                      obras
-                      LEFT JOIN datas_de_programacao dp ON ((obras.id = dp.id))
+                      (
+                        obras
+                        LEFT JOIN datas_de_programacao dp ON ((obras.id = dp.id))
+                      )
+                      JOIN municipios ON ((municipios.id = obras.id_gpm))
                     )
-                    JOIN municipios ON ((municipios.id = obras.id_gpm))
+                    JOIN STATUS ON ((STATUS.id = obras.id_status))
                   )
-                  JOIN STATUS ON ((STATUS.id = obras.id_status))
+                  JOIN tipos ON ((tipos.id = obras.id_tipo))
                 )
-                JOIN tipos ON ((tipos.id = obras.id_tipo))
+                JOIN grupos ON ((grupos.id = tipos.id_grupo))
               )
-              JOIN grupos ON ((grupos.id = tipos.id_grupo))
+              JOIN circuitos ON ((circuitos.id = obras.id_circuito))
             )
-            JOIN circuitos ON ((circuitos.id = obras.id_circuito))
+            JOIN conjuntos ON ((conjuntos.id = circuitos.id_conjunto))
           )
-          JOIN conjuntos ON ((conjuntos.id = circuitos.id_conjunto))
+          JOIN turmas ON ((turmas.id = obras.id_turma))
         )
-        JOIN turmas ON ((turmas.id = obras.id_turma))
+        JOIN regionais ON ((regionais.id = municipios.id_regional))
       )
-      JOIN regionais ON ((regionais.id = municipios.id_regional))
+      LEFT JOIN relatorio_viabilidade ON ((relatorio_viabilidade.id_obra = obras.id))
     )
     LEFT JOIN empreendimento ON ((empreendimento.id = obras.id_empreendimento))
   )
@@ -151,8 +150,8 @@ GROUP BY
   obras.referencia,
   obras.data_empreitamento,
   empreendimento.empreendimento,
-  obras.data_viabilidade,
-  obras.prazo_viabilidade,
+  relatorio_viabilidade.data_envio,
+  relatorio_viabilidade.prazo_viabilidade,
   obras.ano_plan
 ORDER BY
   CASE

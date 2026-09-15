@@ -16,6 +16,10 @@ import {
   TablePagination,
   TableRow,
 } from "@mui/material";
+import {
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/react/20/solid";
 
 interface totalsInterface {
   total_obras: number;
@@ -33,6 +37,7 @@ interface TableComponentProps {
   sliceEndIndex?: number;
   page: number;
   handleChangePage: (event: unknown, newPage: number) => void;
+  getRowKey?: (item: any) => string | number;
 }
 
 dayjs.extend(utc);
@@ -44,6 +49,7 @@ export function TableWithPagination({
   sliceEndIndex,
   handleChangePage,
   page,
+  getRowKey,
 }: TableComponentProps) {
   const router = useRouter();
 
@@ -77,8 +83,8 @@ export function TableWithPagination({
             </TableHead>
 
             <TableBody>
-              {data.map((item: any, index: number) => (
-                <TableRow key={index}>
+              {data.map((item: any, index: any) => (
+                <TableRow key={getRowKey ? getRowKey(item) : index}>
                   {Object.keys(columns)
                     .slice(1, sliceEndIndex ? -sliceEndIndex : undefined)
                     .map((column) => {
@@ -103,6 +109,8 @@ export function TableWithPagination({
                           "mo_pend",
                           "mo_exec",
                           "mo_planejada",
+                          "moPlanejadaPontoAPonto",
+                          "moExecutadoPontoAPonto",
                         ].includes(column)
                       ) {
                         cellValue = FormatCurrency(cellValue);
@@ -125,6 +133,14 @@ export function TableWithPagination({
                         cellValue = cellValue ? "!!!" : "";
                       }
 
+                      if (column === "encontrado") {
+                        cellValue = item[column] ? (
+                          <CheckCircleIcon className="w-6 h-6 text-green-600 mx-auto" />
+                        ) : (
+                          <ExclamationTriangleIcon className="w-6 h-6 text-yellow-500 mx-auto" />
+                        );
+                      }
+
                       if (
                         typeof cellValue === "string" &&
                         isValidDateString(cellValue) &&
@@ -139,7 +155,9 @@ export function TableWithPagination({
                       }
 
                       const displayValue =
-                        typeof cellValue === "object" && cellValue !== null
+                        typeof cellValue === "object" &&
+                        cellValue !== null &&
+                        !("type" in cellValue)
                           ? Object.values(cellValue).join(", ")
                           : cellValue;
 

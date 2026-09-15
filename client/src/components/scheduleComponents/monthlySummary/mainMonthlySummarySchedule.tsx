@@ -10,6 +10,7 @@ import { ButtonComponent } from "@/components/common/Button";
 import { DateFilter } from "@/components/common/DateFilter";
 import ErrorModal from "@/components/common/ErrorModal";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
+import { useFeedback } from "@/hooks/useFeedback";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
@@ -102,6 +103,8 @@ export function MainMonthlySummarySchedule({
     data: filtersData,
   });
 
+  const { showError } = useFeedback();
+
   useEffect(() => {
     if (!filters) return;
     setSelectedItems(filters.selectedItems);
@@ -121,9 +124,14 @@ export function MainMonthlySummarySchedule({
 
     try {
       if (token) {
-        const blob = await exportExcel(url, token);
+        const response = await exportExcel(url, token);
 
-        const downloadUrl = window.URL.createObjectURL(blob);
+        if (!response.success) {
+          showError(response.message);
+          return;
+        }
+
+        const downloadUrl = window.URL.createObjectURL(response.data);
         const link = document.createElement("a");
         link.href = downloadUrl;
         link.download = "Exportação Resumo Mensal - Mão de Obra.xlsx";
@@ -230,15 +238,6 @@ export function MainMonthlySummarySchedule({
           isFirstSummary={false}
         />
       </div>
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </>
   );
 }

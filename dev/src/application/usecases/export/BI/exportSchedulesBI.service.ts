@@ -17,7 +17,7 @@ export class ExportSchedulesBIService {
     const data = await this.exportRepository.exportSchedules();
 
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Programação');
+    const worksheet = workbook.addWorksheet('EXTRACAO DAS PROGRAMACOES E RES');
 
     worksheet.columns = [
       { header: 'OVNOTA', key: 'ovnota', width: 10 },

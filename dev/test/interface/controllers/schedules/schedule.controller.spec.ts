@@ -70,6 +70,10 @@ describe('ScheduleController', () => {
         restricao_aberta: false,
         status_prazo: 'Atenção: 32 dias restantes',
         status_ov_sap: 51,
+        encontrado: false,
+        id_programacao: 5,
+        moExecutadoPontoAPonto: 5456,
+        moPlanejadaPontoAPonto: 6000,
       },
     ],
     totals: {

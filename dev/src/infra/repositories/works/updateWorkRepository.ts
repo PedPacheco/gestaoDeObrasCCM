@@ -14,15 +14,13 @@ export class UpdateWorkRepository implements IUpdateWorkRepository {
     id: number,
     tx: Prisma.TransactionClient,
   ): Promise<void> {
-    const { id_status, id_turma, tipo_ads, data_empreitamento, observ_obra } =
-      data;
+    const { id_status, id_turma, data_empreitamento, observ_obra } = data;
     try {
       await tx.obras.update({
         where: { id },
         data: {
           id_status,
           id_turma,
-          tipo_ads,
           data_empreitamento,
           observ_obra,
         },

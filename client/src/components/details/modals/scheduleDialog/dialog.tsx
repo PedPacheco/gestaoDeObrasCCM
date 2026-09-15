@@ -1,10 +1,11 @@
 import { useState } from "react";
 
 import ErrorModal from "@/components/common/ErrorModal";
+import { AccordionPanel } from "@/components/executionReport/accordionPanel";
 import { useUser } from "@/contexts/userContext";
-import { useScheduleForm } from "@/hooks/details/useScheduleForm";
-import { useScheduleSubmit } from "@/hooks/useScheduleSubmit";
-import { schedulesSchema } from "@/validations/validationSchedules";
+import { useOldScheduleForm } from "@/hooks/details/useOldScheduleForm";
+import { useOldScheduleSubmit } from "@/hooks/details/useOldScheduleSubmit";
+import { OldSchedulesSchema } from "@/validations/oldValidationSchedules";
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import {
   Box,
@@ -19,14 +20,13 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 import { ButtonComponent } from "../../../common/Button";
-import { AccordionPanel } from "../../accordionPanel";
 import { AdditionalInfoPanel } from "./additionalInfoPanel";
 import { BasicInfoPanel } from "./basicInfoPanel";
 import { RestrictionsPanel } from "./restrictionsPanel";
 import { ServiceEquipmentPanel } from "./serviceEquipmentPanel";
 import { TeamsPanel } from "./teamsPanel";
 
-export type ScheduleFormHookReturn = ReturnType<typeof useScheduleForm>;
+export type ScheduleFormHookReturn = ReturnType<typeof useOldScheduleForm>;
 
 export interface ScheduleFormDialogProps {
   open: boolean;
@@ -39,7 +39,7 @@ export interface ScheduleFormDialogProps {
   onExecutionDialogOpen: (open: boolean) => void;
   options: {
     tecnico: Array<{ id: number; tecnico: string }>;
-    restricao: Array<{ id: number; restricao: string; tipo_restricao: string }>;
+    restricao: Array<{ id: number; restricao: string; tipo_restricao: string; responsabilidade: string }>;
   };
   scheduleForm: ScheduleFormHookReturn;
   statusWork: number;
@@ -74,7 +74,7 @@ export default function ScheduleFormDialog({
     initialExecValue,
   } = scheduleForm;
 
-  const { handleSubmit, isPending } = useScheduleSubmit({
+  const { handleSubmit, isPending } = useOldScheduleSubmit({
     formData,
     executionReportData,
     idWork,
@@ -136,6 +136,7 @@ export default function ScheduleFormDialog({
             isInsert={isInsert}
             disabledFields={disabledFields}
             onInputChange={handleInputChange}
+            scheduleStatus={scheduleStatus}
           />
         </AccordionPanel>
 
@@ -214,7 +215,7 @@ export default function ScheduleFormDialog({
           styled="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
           onClick={() => {
             const validationResult =
-              schedulesSchema(isInsert).safeParse(formData);
+              OldSchedulesSchema(isInsert).safeParse(formData);
 
             if (!validationResult.success) {
               const fieldErrors: Record<string, string> = {};

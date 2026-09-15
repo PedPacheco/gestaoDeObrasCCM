@@ -59,7 +59,7 @@ export function KpiSection({
     const params = buildParams();
     const paramsWithStatus = {
       ...params,
-      idStatus: [1, 35, 36, 37, 42, 43],
+      idStatus: [1, 35, 36, 37, 42, 43, 45, 46],
     };
 
     openWithFiltersInNewTab(
@@ -145,7 +145,7 @@ export function KpiSection({
               subLabel="Programado / Capacidade Mês / Contrato Mês"
               value={pctGoal108}
               color={pctColor(pctGoal108).bar}
-              sub={`${FormatCurrency(display.programado)} / ${FormatCurrency(totalGoal * 1.085)}  / ${FormatCurrency(display.valorContrato108)}`}
+              sub={`${FormatCurrency(display.programado)} / ${FormatCurrency(totalGoal)}  / ${FormatCurrency(display.valorContrato108)}`}
             />
           ),
         },

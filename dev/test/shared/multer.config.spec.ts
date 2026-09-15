@@ -2,7 +2,10 @@ import { BadRequestException } from '@nestjs/common';
 import { extname } from 'path';
 
 import * as fs from 'fs';
-import { createMulterConfig } from 'src/shared/multer/multer.config';
+import {
+  createMulterConfig,
+  MulterConfig,
+} from 'src/shared/multer/multer.config';
 
 jest.mock('fs');
 
@@ -13,6 +16,7 @@ describe('createMulterConfig (Jest)', () => {
   const baseConfig = {
     destination: '/uploads',
     allowedMimeTypes: ['image/png', 'application/pdf'],
+    allowedExtensions: ['pdf', 'jpeg'],
     maxSize: 5 * 1024 * 1024,
     maxFiles: 3,
   };
@@ -27,6 +31,12 @@ describe('createMulterConfig (Jest)', () => {
     createMulterConfig(baseConfig);
 
     expect(mkdirSync).toHaveBeenCalledWith('/uploads', { recursive: true });
+  });
+
+  it('should throw error if config.destination not sent', () => {
+    expect(() =>
+      createMulterConfig(undefined as unknown as MulterConfig),
+    ).toThrow('Multer destination was not provided');
   });
 
   it('should NOT create directory if it already exists', () => {

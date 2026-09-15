@@ -3,17 +3,18 @@
 import { useUser } from "@/contexts/userContext";
 import DataItem from "./dataItem";
 import { SelectComponent } from "@/components/common/Select";
-import { ReactNode } from "react";
+import { ReactNode, useMemo } from "react";
 
 interface typeData {
   id_turma: string;
   id_status: number;
-  data_empreitamento: string;
-  tipo_ads: string;
+  data_empreitamento: string | null;
 }
 
 interface EditableColumnProps {
   data: typeData;
+  feasibilityApprove: boolean;
+  feasibilitySubmissionDate: Date | null;
   options: {
     parceira: { id: number; turma: string }[];
     status: { id: number; status: string }[];
@@ -24,6 +25,8 @@ interface EditableColumnProps {
 
 const statusOrder = [
   "EM EMPREITAMENTO",
+  "AGUARDANDO VIABILIDADE",
+  "VIABILIDADE EM APROVAÇÃO",
   "AGUARDANDO PROGRAMAÇÃO",
   "AGUARDANDO VALIDAÇÃO EDP",
   "EM PROGRAMAÇÃO",
@@ -36,18 +39,35 @@ const statusOrder = [
 
 export const EditableColumn = ({
   data,
+  feasibilitySubmissionDate,
+  feasibilityApprove,
   options,
   onHandleChange,
   EditSuspension,
 }: EditableColumnProps) => {
   const { permissions } = useUser();
 
-  const sortedStatus = options.status.sort(
-    (a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status),
-  );
+  const getFilteredAndSortedStatus = useMemo(() => {
+    const filtered =
+      data.data_empreitamento === null
+        ? options.status
+        : options.status.filter((item) => item.id !== 42);
+
+    return filtered.sort(
+      (a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status),
+    );
+  }, [data.data_empreitamento, options.status]);
 
   const havePermission =
     permissions?.tipo_usuario === "PARCEIRA" || !permissions?.permissao_edicao;
+
+  const disableWhenStatusisAwaitingFeasibility =
+    !feasibilitySubmissionDate && data.id_status === 45;
+
+  const disableWhenStatusIsPendingApproval =
+    data.id_status === 46 &&
+    Boolean(feasibilitySubmissionDate) &&
+    !feasibilityApprove;
 
   return (
     <>
@@ -63,12 +83,16 @@ export const EditableColumn = ({
 
       <SelectComponent
         label="Status da Obra"
-        menuItems={sortedStatus}
+        menuItems={getFilteredAndSortedStatus}
         selectedItem={data.id_status?.toString() || "1"}
         setSelectedItem={(value) => onHandleChange("id_status", value)}
         valueKey="id"
         displayKey="status"
-        disabled={havePermission}
+        disabled={
+          havePermission ||
+          disableWhenStatusisAwaitingFeasibility ||
+          disableWhenStatusIsPendingApproval
+        }
         editButton={EditSuspension}
       />
 
@@ -77,21 +101,7 @@ export const EditableColumn = ({
         value={data.data_empreitamento || ""}
         isEdit={true}
         onEdit={(value) => onHandleChange("data_empreitamento", value)}
-        disabled={havePermission}
-      />
-
-      <SelectComponent
-        label="Tipo ADS"
-        menuItems={[
-          { tipo: null },
-          { tipo: "CONVENCIONAL" },
-          { tipo: "PONTO A PONTO" },
-        ]}
-        selectedItem={data.tipo_ads || ""}
-        setSelectedItem={(value) => onHandleChange("tipo_ads", value)}
-        valueKey="tipo"
-        displayKey="tipo"
-        disabled={havePermission}
+        disabled={data.id_status !== 42}
       />
     </>
   );

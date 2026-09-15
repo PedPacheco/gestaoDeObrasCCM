@@ -1,0 +1,579 @@
+import { BadRequestException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { WorksServicesService } from 'src/application/usecases/services/worksServices.service';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
+import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import {
+  IWorkServicesRepository,
+  WORK_SERVICES_REPOSITORY,
+} from 'src/domain/repositories/worksService/IWorkServicesRepository';
+import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+
+import { ScheduleServicesDTO } from 'src/interface/dtos/workServicesDTO';
+
+describe('WorksServicesService', () => {
+  let service: WorksServicesService;
+  let repository: IWorkServicesRepository;
+
+  const mockWorksServicesRepository = {
+    scheduleServices: jest.fn(),
+    cancelServices: jest.fn(),
+    reascheduleServices: jest.fn(),
+    addItem: jest.fn(),
+    applyAdditional: jest.fn(),
+    delete: jest.fn(),
+    deleteAll: jest.fn(),
+    updateSchedulesProgress: jest.fn(),
+    updateWorkExecuted: jest.fn(),
+  };
+
+  const mockWorkServicesQueryRepository = {
+    getServiceScheduleHistory: jest.fn(),
+    getAllServicesOfWork: jest.fn(),
+  };
+
+  const mockPrisma = { $transaction: jest.fn() };
+
+  const mockLogger = {
+    error: jest.fn(),
+    log: jest.fn(),
+    warn: jest.fn(),
+  };
+
+  const mockScheduleProgressCalculatorService = {
+    calculateScheduleProgress: jest.fn(),
+    calculateAllSchedulesProgress: jest.fn(),
+    calculateAggregateProgress: jest.fn(),
+  };
+
+  const mockFindScheduleIdRepository = {
+    findById: jest.fn(),
+  };
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        WorksServicesService,
+        {
+          provide: FIND_SCHEDULE_BY_ID_REPOSITORY,
+          useValue: mockFindScheduleIdRepository,
+        },
+        {
+          provide: WORK_SERVICES_REPOSITORY,
+          useValue: mockWorksServicesRepository,
+        },
+        {
+          provide: WORK_SERVICES_QUERY_REPOSITORY,
+          useValue: mockWorkServicesQueryRepository,
+        },
+        {
+          provide: ScheduleProgressCalculatorService,
+          useValue: mockScheduleProgressCalculatorService,
+        },
+        { provide: PrismaService, useValue: mockPrisma },
+      ],
+    }).compile();
+
+    service = module.get<WorksServicesService>(WorksServicesService);
+    repository = module.get<IWorkServicesRepository>(WORK_SERVICES_REPOSITORY);
+
+    (service as any).logger = mockLogger;
+
+    jest.clearAllMocks();
+
+    mockPrisma.$transaction.mockImplementation(async (callback) =>
+      callback({}),
+    );
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+
+  describe('scheduleServices', () => {
+    const mockScheduleData: ScheduleServicesDTO[] = [
+      {
+        id: 1,
+        idTeam: 10,
+        prog: 3,
+        operation: 'instalação',
+        point: 'p1',
+        additional: null,
+        type: 'S',
+      },
+      {
+        id: 2,
+        idTeam: 20,
+        prog: 5,
+        operation: 'instalação',
+        point: 'p1',
+        additional: null,
+        type: 'M',
+      },
+    ];
+
+    it('should schedule services successfully', async () => {
+      mockWorkServicesQueryRepository.getAllServicesOfWork.mockResolvedValue([
+        { id: 1, viabilizado: 3, qtde_adicional: null },
+        { id: 2, viabilizado: 5, qtde_adicional: null },
+        { id: 2, viabilizado: null, qtde_adicional: 3 },
+      ]);
+      mockWorkServicesQueryRepository.getServiceScheduleHistory.mockResolvedValue(
+        [],
+      );
+      mockWorksServicesRepository.scheduleServices.mockResolvedValue(undefined);
+      mockFindScheduleIdRepository.findById.mockResolvedValue({
+        id_status_programacao: 7,
+      });
+
+      await service.scheduleServices(1, mockScheduleData);
+
+      expect(repository.scheduleServices).toHaveBeenCalledWith(
+        mockScheduleData,
+        { increment: 27.27 },
+        undefined,
+        1,
+      );
+      expect(repository.scheduleServices).toHaveBeenCalledTimes(1);
+    });
+
+    it('should schedule services successfully', async () => {
+      mockWorkServicesQueryRepository.getAllServicesOfWork.mockResolvedValue([
+        { id: 1, viabilizado: null, qtde_adicional: null },
+        { id: 2, viabilizado: null, qtde_adicional: null },
+        { id: 2, viabilizado: null, qtde_adicional: null },
+      ]);
+      mockWorkServicesQueryRepository.getServiceScheduleHistory.mockResolvedValue(
+        [],
+      );
+      mockWorksServicesRepository.scheduleServices.mockResolvedValue(undefined);
+      mockFindScheduleIdRepository.findById.mockResolvedValue({
+        id_status_programacao: 7,
+      });
+
+      await service.scheduleServices(1, mockScheduleData);
+
+      expect(repository.scheduleServices).toHaveBeenCalledWith(
+        mockScheduleData,
+        { increment: 0 },
+        undefined,
+        1,
+      );
+      expect(repository.scheduleServices).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('applyAdditonal', () => {
+    it('should call method of apply additional successfully', async () => {
+      const mockData = [{ id: 2, additional: 2 }];
+
+      mockWorksServicesRepository.cancelServices.mockResolvedValue(undefined);
+
+      await service.applyAdditional(3, mockData);
+
+      expect(repository.applyAdditional).toHaveBeenCalledWith(mockData, {});
+      expect(repository.applyAdditional).toHaveBeenCalledTimes(1);
+    });
+
+    it('should log error and rethrow when applyAdditional fails', async () => {
+      const error = new Error('apply error');
+
+      mockWorksServicesRepository.applyAdditional.mockRejectedValue(error);
+
+      await expect(
+        service.applyAdditional(1, [{ id: 1, additional: 2 }]),
+      ).rejects.toThrow('apply error');
+
+      expect(mockLogger.error).toHaveBeenCalledWith(error);
+    });
+  });
+
+  describe('cancelServices', () => {
+    it('should cancel schedule successfully', async () => {
+      const mockId = 1;
+
+      mockWorksServicesRepository.cancelServices.mockResolvedValue(undefined);
+
+      await service.cancelServices(mockId);
+
+      expect(repository.cancelServices).toHaveBeenCalledWith(mockId);
+      expect(repository.cancelServices).toHaveBeenCalledTimes(1);
+    });
+
+    it('should propagate repository errors on cancel', async () => {
+      const mockId = 1;
+      const mockError = new Error('Schedule not found');
+
+      mockWorksServicesRepository.cancelServices.mockRejectedValue(mockError);
+
+      await expect(service.cancelServices(mockId)).rejects.toThrow(
+        'Schedule not found',
+      );
+    });
+  });
+
+  describe('addItem', () => {
+    it('should add material successfully', async () => {
+      const mockData = {
+        idWork: 1,
+        idService: 2,
+        point: 'P1',
+        operation: 'INSTALAÇÃO',
+        operationDescription: 'POSTE',
+        operationNumber: '2000',
+        quantity: 2,
+      };
+
+      await service.addItem(mockData, 'material');
+
+      expect(repository.addItem).toHaveBeenCalledWith(mockData, 'material', {});
+      expect(repository.addItem).toHaveBeenCalledTimes(1);
+    });
+
+    it('should add service successfully', async () => {
+      const mockData = {
+        idWork: 1,
+        idService: 2,
+        point: 'P1',
+        operation: 'INSTALAÇÃO',
+        operationDescription: 'POSTE',
+        operationNumber: '2000',
+        quantity: 2,
+      };
+
+      mockWorksServicesRepository.addItem.mockResolvedValue(undefined);
+
+      jest
+        .spyOn(service as any, 'recalculateAllSchedulesProgress')
+        .mockResolvedValue(undefined);
+
+      await service.addItem(mockData, 'service');
+
+      expect(repository.addItem).toHaveBeenCalledWith(mockData, 'service', {});
+      expect(repository.addItem).toHaveBeenCalledTimes(1);
+    });
+
+    it('should trigger an error id the service already exists at the specified location', async () => {
+      const mockData = {
+        idWork: 1,
+        idService: 2,
+        point: 'P1',
+        operation: 'INSTALAÇÃO',
+        operationDescription: 'POSTE',
+        quantity: 2,
+      };
+
+      mockWorkServicesQueryRepository.getAllServicesOfWork.mockResolvedValue([
+        {
+          id: 2,
+          id_contrato_servico: 2,
+          ponto: 'P1',
+          descricao_operacao: 'POSTE',
+          qtde_plan: 2,
+        },
+      ]);
+
+      jest
+        .spyOn(service as any, 'recalculateAllSchedulesProgress')
+        .mockResolvedValue(undefined);
+
+      await expect(service.addItem(mockData, 'service')).rejects.toThrow(
+        'Esse serviço já existe nesse ponto.',
+      );
+    });
+
+    it('should trigger an error id the material already exists at the specified location', async () => {
+      const mockData = {
+        idWork: 1,
+        idService: 2,
+        point: 'P1',
+        operation: 'INSTALAÇÃO',
+        operationDescription: 'POSTE',
+        quantity: 2,
+      };
+
+      mockWorkServicesQueryRepository.getAllServicesOfWork.mockResolvedValue([
+        {
+          id: 2,
+          id_material: 2,
+          ponto: 'P1',
+          descricao_operacao: 'POSTE',
+          qtde_plan: 2,
+        },
+      ]);
+
+      jest
+        .spyOn(service as any, 'recalculateAllSchedulesProgress')
+        .mockResolvedValue(undefined);
+
+      await expect(service.addItem(mockData, 'material')).rejects.toThrow(
+        'Esse material já existe nesse ponto.',
+      );
+    });
+
+    it('should log error and rethrow when addItem repository fails', async () => {
+      const error = new Error('repository error');
+
+      mockWorkServicesQueryRepository.getAllServicesOfWork.mockResolvedValue(
+        [],
+      );
+
+      mockWorksServicesRepository.addItem.mockRejectedValue(error);
+
+      await expect(
+        service.addItem(
+          {
+            idWork: 1,
+            idService: 2,
+            point: 'P1',
+            operation: 'INST',
+            operationDescription: 'POSTE',
+            quantity: 1,
+          },
+          'service',
+        ),
+      ).rejects.toThrow('repository error');
+
+      expect(mockLogger.error).toHaveBeenCalledWith(error);
+    });
+  });
+
+  describe('delete', () => {
+    it('Should call method delete and throw BadRequestExpection if no id is sent', async () => {
+      await expect(service.delete(null, 4)).rejects.toThrow(
+        BadRequestException,
+      );
+
+      await expect(service.delete(null, 4)).rejects.toThrow(
+        'Nenhum serviço/material fornecida para exclusão.',
+      );
+    });
+
+    it('should call method delete and call repository', async () => {
+      await service.delete(1, 4);
+
+      expect(repository.delete).toHaveBeenCalledWith(1, {});
+    });
+
+    it('should recalculate schedule progress after delete', async () => {
+      mockWorkServicesQueryRepository.getAllServicesOfWork.mockResolvedValue([
+        {
+          viabilizado: 10,
+          qtde_adicional: 5,
+          id_material: null,
+        },
+      ]);
+
+      mockWorkServicesQueryRepository.getServiceScheduleHistory.mockResolvedValue(
+        [
+          {
+            real: 3,
+            servicos: {
+              materiais: null,
+            },
+          },
+          {
+            real: null,
+            servicos: {
+              materiais: null,
+            },
+          },
+        ],
+      );
+
+      mockScheduleProgressCalculatorService.calculateAllSchedulesProgress.mockReturnValue(
+        [{ scheduleId: 1, progress: 20 }],
+      );
+
+      await service.delete(1, 4);
+
+      expect(
+        mockScheduleProgressCalculatorService.calculateAllSchedulesProgress,
+      ).toHaveBeenCalled();
+
+      expect(
+        mockWorksServicesRepository.updateSchedulesProgress,
+      ).toHaveBeenCalledWith([{ scheduleId: 1, progress: 20 }], {});
+
+      expect(mockWorksServicesRepository.updateWorkExecuted).toHaveBeenCalled();
+    });
+
+    it('should log error and rethrow when delete fails', async () => {
+      const error = new Error('delete error');
+
+      mockWorksServicesRepository.delete.mockRejectedValue(error);
+
+      await expect(service.delete(1, 4)).rejects.toThrow('delete error');
+
+      expect(mockLogger.error).toHaveBeenCalledWith(error);
+    });
+  });
+
+  describe('deleteAll', () => {
+    it('should call method delete and call repository', async () => {
+      await service.deleteAll(1);
+
+      expect(mockWorksServicesRepository.deleteAll).toHaveBeenCalledWith(1, {});
+    });
+
+    it('should log error and rethrow when deleteAll fails', async () => {
+      const error = new Error('Delete failed');
+      mockWorksServicesRepository.deleteAll.mockRejectedValueOnce(error);
+
+      await expect(service.deleteAll(1)).rejects.toThrow('Delete failed');
+
+      expect(mockLogger.error).toHaveBeenCalledWith(error);
+    });
+  });
+
+  describe('scheduleServices - validation', () => {
+    it('should throw error when trying to schedule duplicate services', async () => {
+      const mockScheduleData: ScheduleServicesDTO[] = [
+        {
+          id: 1,
+          idTeam: 10,
+          idSchedule: 5,
+          prog: 2,
+          operation: 'instalação',
+          point: 'p1',
+          additional: null,
+          type: 'S',
+        },
+      ];
+
+      mockWorkServicesQueryRepository.getAllServicesOfWork.mockResolvedValue([
+        { id: 1, viabilizado: 2, qtde_adicional: null },
+      ]);
+      mockWorkServicesQueryRepository.getServiceScheduleHistory.mockResolvedValue(
+        [
+          {
+            id_programacao: 5,
+            id_servico: 1,
+            prog: 2,
+            real: 0,
+            servicos: {
+              ponto: 'p1',
+              operacao: 'instalação',
+            },
+          },
+        ],
+      );
+
+      mockFindScheduleIdRepository.findById.mockResolvedValue({
+        id_status_programacao: 3,
+      });
+
+      await expect(
+        service.scheduleServices(1, mockScheduleData),
+      ).rejects.toThrow(
+        'Esse serviço já foi programado, nessa programação atual!!',
+      );
+    });
+
+    it('should throw error when data not sent', async () => {
+      await expect(service.scheduleServices(1, [])).rejects.toThrow(
+        new BadRequestException('Programação não enviada.'),
+      );
+    });
+
+    it('should throw error when data sent with id different ids', async () => {
+      const mockScheduleData: ScheduleServicesDTO[] = [
+        {
+          id: 1,
+          idTeam: 10,
+          idSchedule: 5,
+          prog: 2,
+          operation: 'instalação',
+          point: 'p1',
+          additional: null,
+          type: 'M',
+        },
+        {
+          id: 1,
+          idTeam: 10,
+          idSchedule: 3,
+          prog: 2,
+          operation: 'instalação',
+          point: 'p1',
+          additional: null,
+          type: 'S',
+        },
+      ];
+
+      mockFindScheduleIdRepository.findById.mockResolvedValue({
+        id_status_programacao: 3,
+      });
+
+      await expect(
+        service.scheduleServices(1, mockScheduleData),
+      ).rejects.toThrow(
+        new BadRequestException(
+          'Todos os serviços devem pertencer à mesma programação.',
+        ),
+      );
+    });
+
+    it('should throw error when progress is undefined or null', async () => {
+      const mockScheduleData: ScheduleServicesDTO[] = [
+        {
+          id: 1,
+          idTeam: 10,
+          idSchedule: 5,
+          prog: 10,
+          operation: 'instalação',
+          point: 'p1',
+          additional: null,
+          type: 'M',
+        },
+      ];
+
+      mockWorkServicesQueryRepository.getServiceScheduleHistory.mockResolvedValue(
+        [],
+      );
+
+      await expect(
+        service['validateScheduleServices'](1, mockScheduleData, undefined),
+      ).rejects.toThrow(
+        new BadRequestException('Valor do programado tem que ser enviado'),
+      );
+
+      await expect(
+        service['validateScheduleServices'](1, mockScheduleData, null),
+      ).rejects.toThrow(
+        new BadRequestException('Valor do programado tem que ser enviado'),
+      );
+    });
+
+    it('should use scheduleProg parameter when provided', async () => {
+      const mockScheduleData: ScheduleServicesDTO[] = [
+        {
+          id: 1,
+          idSchedule: 5,
+          idTeam: 10,
+          operation: 'instalação',
+          point: 'p1',
+          prog: 2,
+          type: 'S',
+        },
+      ];
+
+      mockWorkServicesQueryRepository.getServiceScheduleHistory.mockResolvedValue(
+        [],
+      );
+      mockWorksServicesRepository.scheduleServices.mockResolvedValue(undefined);
+      mockFindScheduleIdRepository.findById.mockResolvedValue({
+        id_status_programacao: 3,
+      });
+
+      await service.scheduleServices(1, mockScheduleData);
+
+      expect(repository.scheduleServices).toHaveBeenCalledWith(
+        mockScheduleData,
+        { increment: 100 },
+        5,
+        undefined,
+      );
+    });
+  });
+});

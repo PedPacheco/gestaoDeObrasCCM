@@ -4,19 +4,33 @@ import { FeasibilityController } from 'src/interface/controllers/feasibility.con
 import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
+import { HandleFeasibilityService } from 'src/application/usecases/orchestrators/handleFeasibilityUpload.service';
+import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
 
 describe('FeasibilityController', () => {
   let controller: FeasibilityController;
   let service: FeasibilityService;
+  let handleFeasibility: HandleFeasibilityService;
 
   const mockFeasibilityService = {
     feasibilityExists: jest.fn(),
-    deleteFeasibilityFiles: jest.fn(),
     handleUpload: jest.fn(),
+    getRejections: jest.fn(),
+  };
+
+  const mockHandleFeasibility = {
+    upload: jest.fn(),
+    uploadComplementaryFiles: jest.fn(),
+    reject: jest.fn(),
+    approve: jest.fn(),
   };
 
   const mockPermissionGuard = {
     canActivate: jest.fn(() => true),
+  };
+
+  const mockReq = {
+    user: { sub: '2345' },
   };
 
   beforeEach(async () => {
@@ -27,6 +41,7 @@ describe('FeasibilityController', () => {
           provide: FeasibilityService,
           useValue: mockFeasibilityService,
         },
+        { provide: HandleFeasibilityService, useValue: mockHandleFeasibility },
       ],
     })
       .overrideGuard(AreaViewGuard())
@@ -35,6 +50,9 @@ describe('FeasibilityController', () => {
 
     controller = module.get<FeasibilityController>(FeasibilityController);
     service = module.get<FeasibilityService>(FeasibilityService);
+    handleFeasibility = module.get<HandleFeasibilityService>(
+      HandleFeasibilityService,
+    );
   });
 
   afterEach(() => {
@@ -109,50 +127,27 @@ describe('FeasibilityController', () => {
     });
   });
 
-  describe('deleteFeasibilityFiles', () => {
-    it('deve deletar arquivos de viabilidade com sucesso', async () => {
-      const mockId = 1;
+  describe('getRejectionsHistory', () => {
+    it('getRejectionsHistory', async () => {
+      const data = [
+        {
+          descricao: 'Poste em falta',
+          motivo: 'Material em falta',
+          criado_em: '2026-05-01',
+          usuario: 'Pedro',
+        },
+      ];
 
-      mockFeasibilityService.deleteFeasibilityFiles.mockResolvedValue(
-        undefined,
-      );
+      mockFeasibilityService.getRejections.mockResolvedValue(data);
 
-      const result = await controller.deleteFeasibilityFiles(mockId);
+      const response = await controller.getRejectionsHistory(1);
 
-      expect(result).toEqual({
+      expect(response).toEqual({
         statusCode: HttpStatus.OK,
-        message: 'Viabilidade excluída com sucesso',
+        message: 'Reprovações retornados com sucesso',
+        data,
       });
-      expect(service.deleteFeasibilityFiles).toHaveBeenCalledWith(mockId);
-      expect(service.deleteFeasibilityFiles).toHaveBeenCalledTimes(1);
-    });
-
-    it('deve lançar erro quando service falhar ao deletar', async () => {
-      const mockId = 1;
-      const mockError = new Error('Failed to delete files');
-
-      mockFeasibilityService.deleteFeasibilityFiles.mockRejectedValue(
-        mockError,
-      );
-
-      await expect(controller.deleteFeasibilityFiles(mockId)).rejects.toThrow(
-        'Failed to delete files',
-      );
-      expect(service.deleteFeasibilityFiles).toHaveBeenCalledWith(mockId);
-    });
-
-    it('deve aceitar diferentes IDs válidos', async () => {
-      const testIds = [1, 100, 9999];
-
-      for (const id of testIds) {
-        mockFeasibilityService.deleteFeasibilityFiles.mockResolvedValue(
-          undefined,
-        );
-
-        await controller.deleteFeasibilityFiles(id);
-
-        expect(service.deleteFeasibilityFiles).toHaveBeenCalledWith(id);
-      }
+      expect(service.getRejections).toHaveBeenCalledWith(1);
     });
   });
 
@@ -185,23 +180,35 @@ describe('FeasibilityController', () => {
         },
       ];
 
+      const mockExistingFiles = JSON.stringify(['a.pdf', 'b.pdf']);
+
       const mockIdWork = 123;
       const mockResponse = {
-        statusCode: HttpStatus.CREATED,
-        message: 'Upload realizado com sucesso',
-        data: {
-          uploadedFiles: 2,
-          files: ['file1.pdf', 'file2.pdf'],
-        },
+        statusCode: HttpStatus.OK,
+        message: 'Viabilidade realizada com sucesso',
       };
 
-      mockFeasibilityService.handleUpload.mockResolvedValue(mockResponse);
+      mockHandleFeasibility.upload.mockResolvedValue(mockResponse);
 
-      const result = await controller.upload(mockFiles, mockIdWork);
+      const result = await controller.upload(
+        mockFiles,
+        mockIdWork,
+        false,
+        mockExistingFiles,
+        mockReq,
+        [{ id: 1, viabilizado: 1 }],
+      );
 
       expect(result).toEqual(mockResponse);
-      expect(service.handleUpload).toHaveBeenCalledWith(mockIdWork, mockFiles);
-      expect(service.handleUpload).toHaveBeenCalledTimes(1);
+      expect(handleFeasibility.upload).toHaveBeenCalledWith(
+        mockIdWork,
+        '2345',
+        false,
+        mockFiles,
+        JSON.parse(mockExistingFiles),
+        [{ id: 1, viabilizado: 1 }],
+      );
+      expect(handleFeasibility.upload).toHaveBeenCalledTimes(1);
     });
 
     it('deve fazer upload de um único arquivo', async () => {
@@ -220,46 +227,108 @@ describe('FeasibilityController', () => {
         },
       ];
 
+      const mockExistingFiles = JSON.stringify(['a.pdf', 'b.pdf']);
+
       const mockIdWork = 456;
       const mockResponse = {
-        statusCode: HttpStatus.CREATED,
-        message: 'Upload realizado com sucesso',
-        data: { uploadedFiles: 1 },
+        statusCode: HttpStatus.OK,
+        message: 'Viabilidade realizada com sucesso',
       };
 
-      mockFeasibilityService.handleUpload.mockResolvedValue(mockResponse);
+      mockHandleFeasibility.upload.mockResolvedValue(mockResponse);
 
-      const result = await controller.upload(mockFile, mockIdWork);
-
-      expect(result).toEqual(mockResponse);
-      expect(service.handleUpload).toHaveBeenCalledWith(mockIdWork, mockFile);
-    });
-
-    it('deve lidar com array vazio de arquivos', async () => {
-      const mockFiles: Express.Multer.File[] = [];
-      const mockIdWork = 789;
-      const mockResponse = {
-        statusCode: HttpStatus.BAD_REQUEST,
-        message: 'Nenhum arquivo enviado',
-      };
-
-      mockFeasibilityService.handleUpload.mockResolvedValue(mockResponse);
-
-      const result = await controller.upload(mockFiles, mockIdWork);
+      const result = await controller.upload(
+        mockFile,
+        mockIdWork,
+        false,
+        mockExistingFiles,
+        mockReq,
+        [{ id: 1, viabilizado: 1 }],
+      );
 
       expect(result).toEqual(mockResponse);
-      expect(service.handleUpload).toHaveBeenCalledWith(mockIdWork, mockFiles);
+      expect(handleFeasibility.upload).toHaveBeenCalledWith(
+        mockIdWork,
+        '2345',
+        false,
+        mockFile,
+        JSON.parse(mockExistingFiles),
+        [{ id: 1, viabilizado: 1 }],
+      );
     });
 
     it('deve lançar erro quando upload falhar', async () => {
+      const mockIdWork = 123;
+      const mockError = new Error('Upload failed');
+
+      mockHandleFeasibility.upload.mockRejectedValue(mockError);
+
+      await expect(
+        controller.upload(undefined, mockIdWork, false, '', mockReq, [
+          { id: 1, viabilizado: 1 },
+        ]),
+      ).rejects.toThrow('Upload failed');
+      expect(handleFeasibility.upload).toHaveBeenCalledWith(
+        mockIdWork,
+        '2345',
+        false,
+        [],
+        [],
+        [{ id: 1, viabilizado: 1 }],
+      );
+    });
+
+    it('deve converter idObra string para número', async () => {
+      const mockFiles: Express.Multer.File[] = [];
+      const mockIdWork = 999;
+
+      mockHandleFeasibility.upload.mockResolvedValue({});
+
+      const mockExistingFiles = JSON.stringify(['a.pdf', 'b.pdf']);
+
+      await controller.upload(
+        mockFiles,
+        mockIdWork,
+        false,
+        mockExistingFiles,
+        mockReq,
+        [{ id: 1, viabilizado: 1 }],
+      );
+
+      expect(handleFeasibility.upload).toHaveBeenCalledWith(
+        999,
+        '2345',
+        false,
+        mockFiles,
+        JSON.parse(mockExistingFiles),
+        [{ id: 1, viabilizado: 1 }],
+      );
+      expect(typeof mockIdWork).toBe('number');
+    });
+  });
+
+  describe('uploadComplementaryFiles', () => {
+    it('deve fazer upload de arquivos com sucesso', async () => {
       const mockFiles: Express.Multer.File[] = [
         {
           fieldname: 'files',
-          originalname: 'error.pdf',
+          originalname: 'test1.pdf',
           encoding: '7bit',
           mimetype: 'application/pdf',
           size: 1024,
-          buffer: Buffer.from('error'),
+          buffer: Buffer.from('test'),
+          stream: null,
+          destination: '',
+          filename: '',
+          path: '',
+        },
+        {
+          fieldname: 'files',
+          originalname: 'test2.pdf',
+          encoding: '7bit',
+          mimetype: 'application/pdf',
+          size: 2048,
+          buffer: Buffer.from('test2'),
           stream: null,
           destination: '',
           filename: '',
@@ -267,36 +336,189 @@ describe('FeasibilityController', () => {
         },
       ];
 
+      const mockExistingFiles = JSON.stringify(['a.pdf', 'b.pdf']);
+
+      const mockIdWork = 123;
+      const mockResponse = {
+        statusCode: HttpStatus.OK,
+        message: 'Arquivos complementares inseridos com sucesso',
+      };
+
+      mockHandleFeasibility.uploadComplementaryFiles.mockResolvedValue(
+        mockResponse,
+      );
+
+      const result = await controller.uploadComplementaryFiles(
+        mockFiles,
+        mockIdWork,
+        mockExistingFiles,
+        mockReq,
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(handleFeasibility.uploadComplementaryFiles).toHaveBeenCalledWith(
+        mockIdWork,
+        '2345',
+        mockFiles,
+        JSON.parse(mockExistingFiles),
+      );
+      expect(handleFeasibility.uploadComplementaryFiles).toHaveBeenCalledTimes(
+        1,
+      );
+    });
+
+    it('deve fazer upload de um único arquivo', async () => {
+      const mockFile: Express.Multer.File[] = [
+        {
+          fieldname: 'files',
+          originalname: 'single.pdf',
+          encoding: '7bit',
+          mimetype: 'application/pdf',
+          size: 512,
+          buffer: Buffer.from('single file'),
+          stream: null,
+          destination: '',
+          filename: '',
+          path: '',
+        },
+      ];
+
+      const mockExistingFiles = JSON.stringify(['a.pdf', 'b.pdf']);
+
+      const mockIdWork = 456;
+      const mockResponse = {
+        statusCode: HttpStatus.OK,
+        message: 'Arquivos complementares inseridos com sucesso',
+      };
+
+      mockHandleFeasibility.uploadComplementaryFiles.mockResolvedValue(
+        mockResponse,
+      );
+
+      const result = await controller.uploadComplementaryFiles(
+        mockFile,
+        mockIdWork,
+        mockExistingFiles,
+        mockReq,
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(handleFeasibility.uploadComplementaryFiles).toHaveBeenCalledWith(
+        mockIdWork,
+        '2345',
+        mockFile,
+        JSON.parse(mockExistingFiles),
+      );
+    });
+
+    it('deve lançar erro quando upload falhar', async () => {
       const mockIdWork = 123;
       const mockError = new Error('Upload failed');
 
-      mockFeasibilityService.handleUpload.mockRejectedValue(mockError);
-
-      await expect(controller.upload(mockFiles, mockIdWork)).rejects.toThrow(
-        'Upload failed',
+      mockHandleFeasibility.uploadComplementaryFiles.mockRejectedValue(
+        mockError,
       );
-      expect(service.handleUpload).toHaveBeenCalledWith(mockIdWork, mockFiles);
+
+      await expect(
+        controller.uploadComplementaryFiles(undefined, mockIdWork, '', mockReq),
+      ).rejects.toThrow('Upload failed');
+      expect(handleFeasibility.uploadComplementaryFiles).toHaveBeenCalledWith(
+        mockIdWork,
+        '2345',
+        [],
+        [],
+      );
     });
 
     it('deve converter idObra string para número', async () => {
       const mockFiles: Express.Multer.File[] = [];
       const mockIdWork = 999;
 
-      mockFeasibilityService.handleUpload.mockResolvedValue({});
+      mockHandleFeasibility.uploadComplementaryFiles.mockResolvedValue({});
 
-      await controller.upload(mockFiles, mockIdWork);
+      const mockExistingFiles = JSON.stringify(['a.pdf', 'b.pdf']);
 
-      expect(service.handleUpload).toHaveBeenCalledWith(999, mockFiles);
+      await controller.uploadComplementaryFiles(
+        mockFiles,
+        mockIdWork,
+        mockExistingFiles,
+        mockReq,
+      );
+
+      expect(handleFeasibility.uploadComplementaryFiles).toHaveBeenCalledWith(
+        999,
+        '2345',
+        mockFiles,
+        JSON.parse(mockExistingFiles),
+      );
       expect(typeof mockIdWork).toBe('number');
+    });
+  });
+
+  describe('rejectFeasibility', () => {
+    it('deve chamar o método rejectFeasiblity corretamente', async () => {
+      const data: RejectFeasibilityDTO = {
+        workId: 1,
+        description: 'Poste em falta',
+        userId: 1,
+        reason: 'Faltando material',
+        feasibilityReportId: 2,
+      };
+
+      mockHandleFeasibility.reject.mockResolvedValue(undefined);
+
+      const result = await controller.rejectFeasibility(data);
+
+      expect(result).toEqual({
+        statusCode: HttpStatus.NO_CONTENT,
+        message: 'Viabilidade reprovada com sucesso',
+      });
+      expect(handleFeasibility.reject).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('approveFeasibility', () => {
+    it('deve chamar o método approveFeasibility corretamente', async () => {
+      mockHandleFeasibility.approve.mockResolvedValue(undefined);
+
+      const result = await controller.approveFeasibility(1, mockReq);
+
+      expect(result).toEqual({
+        statusCode: HttpStatus.NO_CONTENT,
+        message: 'Viabilidade aprovada com sucesso',
+      });
+      expect(mockHandleFeasibility.approve).toHaveBeenCalledTimes(1);
+    });
+
+    it('deve chamar o método approveFeasibility corretamente sem os arquivos enviados', async () => {
+      mockHandleFeasibility.approve.mockResolvedValue(undefined);
+
+      const result = await controller.approveFeasibility(1, mockReq);
+
+      expect(result).toEqual({
+        statusCode: HttpStatus.NO_CONTENT,
+        message: 'Viabilidade aprovada com sucesso',
+      });
+      expect(mockHandleFeasibility.approve).toHaveBeenCalledWith(1, '2345');
+      expect(mockHandleFeasibility.approve).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('Integração de Guards e Interceptors', () => {
     it('deve permitir acesso quando guard retorna true', async () => {
       mockPermissionGuard.canActivate.mockReturnValue(true);
-      mockFeasibilityService.handleUpload.mockResolvedValue({});
+      mockHandleFeasibility.upload.mockResolvedValue({});
 
-      const result = await controller.upload([], 1);
+      const mockExistingFiles = JSON.stringify(['a.pdf', 'b.pdf']);
+
+      const result = await controller.upload(
+        [],
+        1,
+        false,
+        mockExistingFiles,
+        mockReq,
+        [{ id: 1, viabilizado: 1 }],
+      );
 
       expect(result).toBeDefined();
     });
@@ -329,13 +551,24 @@ describe('FeasibilityController', () => {
           path: '',
         }));
 
-      mockFeasibilityService.handleUpload.mockResolvedValue({
+      mockHandleFeasibility.upload.mockResolvedValue({
         uploadedFiles: 5,
       });
 
-      await controller.upload(mockFiles, 1);
+      const mockExistingFiles = JSON.stringify(['a.pdf', 'b.pdf']);
 
-      expect(service.handleUpload).toHaveBeenCalledWith(1, mockFiles);
+      await controller.upload(mockFiles, 1, false, mockExistingFiles, mockReq, [
+        { id: 1, viabilizado: 1 },
+      ]);
+
+      expect(handleFeasibility.upload).toHaveBeenCalledWith(
+        1,
+        '2345',
+        false,
+        mockFiles,
+        JSON.parse(mockExistingFiles),
+        [{ id: 1, viabilizado: 1 }],
+      );
       expect(mockFiles).toHaveLength(5);
     });
   });

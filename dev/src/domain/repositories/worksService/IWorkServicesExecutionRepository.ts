@@ -1,0 +1,16 @@
+import { Prisma } from '@prisma/client';
+import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
+
+export interface IWorkServicesExecutionRepository {
+  finalizeServices(data: any, tx: Prisma.TransactionClient): Promise<void>;
+  reascheduleServices(
+    data: { id: number; id_servico: number }[],
+    scheduleId: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<void>;
+  performServices(data: PerformServicesDTO[]): Promise<void>;
+}
+
+export const WORK_SERVICES_EXECUTION_REPOSITORY = Symbol(
+  'WorkServicesExecutionRepository',
+);

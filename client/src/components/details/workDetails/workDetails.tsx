@@ -2,24 +2,33 @@
 
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import {
+  ReactNode,
   useCallback,
   useEffect,
   useMemo,
   useState,
   useTransition,
 } from "react";
-import dynamic from "next/dynamic";
 
+import { InsertPublicationRestrictions } from "@/actions/restrictions";
+import { UpdateWork } from "@/actions/works";
 import { ButtonComponent } from "@/components/common/Button";
-import ErrorModal from "@/components/common/ErrorModal";
+import { ErrorThrower } from "@/components/common/ErrorThrower";
 import ModalComponent from "@/components/common/Modal";
+import { useUser } from "@/contexts/userContext";
+import { useFeedback } from "@/hooks/useFeedback";
+import {
+  FeasibilityWorkflowStatus,
+  getFeasibilityWorkflowStatus,
+} from "@/utils/feasibilityWorkflow";
 import {
   CheckCircleIcon,
-  DocumentTextIcon,
-  ExclamationCircleIcon,
+  ClockIcon,
   PencilIcon,
-  XMarkIcon,
+  PencilSquareIcon,
 } from "@heroicons/react/20/solid";
 import {
   IconButton,
@@ -29,15 +38,9 @@ import {
   Tooltip,
 } from "@mui/material";
 
-import DataItem from "./dataItem";
+import DataItem, { SummaryDataItem } from "./dataItem";
 import { EditableColumn } from "./editableColumn";
-import { UpdateWork } from "@/actions/works";
-import { InsertPublicationRestrictions } from "@/actions/restrictions";
-import { useUser } from "@/contexts/userContext";
-import { ErrorThrower } from "@/components/common/ErrorThrower";
-import { FeasibiltyUpload } from "../modals/feasibilityImportModal";
-import { useRouter } from "next/navigation";
-import { deleteFeasibilityFiles } from "@/actions/feasibility";
+
 dayjs.extend(customParseFormat);
 
 const RestrictionDrawer = dynamic(
@@ -51,7 +54,6 @@ interface WorkDetailsProps {
   formattedData: FormattedData;
   idWork: number;
   options: any;
-  feasibilityExists: any[];
 }
 
 interface WorkData {
@@ -80,8 +82,11 @@ interface WorkData {
   id_turma: string;
   idRegional: number;
   status_ov_sap: string;
-  tipo_ads: string;
   observ_obra: string;
+  data_envio: Date | null;
+  prazo_viabilidade: string;
+  viabilidade_aprovada: boolean;
+  programacao_ponto_a_ponto: boolean;
   id: string;
 }
 
@@ -89,17 +94,18 @@ interface FormattedData {
   entrada: string;
   prazo: string;
   prazoFinal: string;
-  data_conclusao: string;
-  dataEmpreitamento: string;
+  data_conclusao: string | null;
+  dataViabilidade: string | null;
+  dataEmpreitamento: string | null;
   backgroundColor: string;
   executadoFormatted: string;
+  totalProgramado: string;
 }
 
 interface EditableData {
-  data_empreitamento: string;
+  data_empreitamento: string | null;
   id_status: number;
   id_turma: string;
-  tipo_ads: string;
   observ_obra: string;
 }
 
@@ -123,42 +129,34 @@ const RESTRICTED_STATUS_IDS = [3, 4, 42];
 const SUSPENDED_STATUS_ID = 4;
 
 function useModals() {
-  const [openModal, setOpenModal] = useState(false);
   const [openSuspensionModal, setOpenSuspensionModal] = useState(false);
-  const [openUploadModal, setOpenUploadModal] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [openConfirmModal, setOpenConfirmModal] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
 
   return {
     openModal,
     setOpenModal,
-    openConfirmModal,
-    setOpenConfirmModal,
-    toggleModal: useCallback(() => setOpenModal((prev) => !prev), []),
     openSuspensionModal,
     setOpenSuspensionModal,
     toggleSuspensionModal: useCallback(
       () => setOpenSuspensionModal((prev) => !prev),
       [],
     ),
-    openUploadModal,
-    setOpenUploadModal,
     drawerOpen,
     setDrawerOpen,
   };
 }
 
-function useNotifications() {
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+function formatDateForSubmit(value?: string): string {
+  if (!value) {
+    return dayjs().format("YYYY-MM-DD");
+  }
 
-  return { error, setError, success, setSuccess };
-}
-
-function formatDateForSubmit(value: string): string | null {
-  if (!value) return null;
   const parsed = dayjs(value, "DD/MM/YYYY", true);
-  return parsed.isValid() ? parsed.format("YYYY-MM-DD") : value;
+
+  return parsed.isValid()
+    ? parsed.format("YYYY-MM-DD")
+    : dayjs().format("YYYY-MM-DD");
 }
 
 function hasRestrictedAccess(statusId: number, permission?: string): boolean {
@@ -170,12 +168,43 @@ export function WorkDetails({
   idWork,
   formattedData,
   options,
-  feasibilityExists,
 }: WorkDetailsProps) {
+  const { dataViabilidade } = formattedData;
+  const {
+    id_status,
+    prazo_viabilidade,
+    viabilidade_aprovada,
+    programacao_ponto_a_ponto,
+  } = data;
+
+  const workflowStatus = getFeasibilityWorkflowStatus(
+    id_status,
+    dataViabilidade,
+    prazo_viabilidade,
+    viabilidade_aprovada,
+  );
+
+  const FEASIBILITY_ACTION_LABEL: Record<typeof workflowStatus, string> = {
+    adicao: "Importar Arquivos de Viabilidade",
+    aprovacao: "Acompanhar Aprovação",
+    aprovado: "Ver Viabilidade",
+  };
+
+  const FEASIBILITY_ACTION_COLOR: Record<typeof workflowStatus, string> = {
+    adicao: "",
+    aprovacao: "bg-amber-50 text-amber-600",
+    aprovado: "bg-green-50 text-green-700",
+  };
+
+  const FEASIBILITY_ACTION_ICON: Record<FeasibilityWorkflowStatus, ReactNode> =
+    {
+      adicao: <PencilSquareIcon className="h-4 w-4" />,
+      aprovacao: <ClockIcon className="h-4 w-4" />,
+      aprovado: <CheckCircleIcon className="h-4 w-4" />,
+    };
+
   const [isPending, startTransition] = useTransition();
   const [isMounted, setIsMounted] = useState(false);
-  const [hasFilesFeasibility, setHasFilesFeasibility] =
-    useState<boolean>(false);
   const [suspensionReason, setSuspensionReason] = useState("");
   const [changedFields, setChangedFields] =
     useState<Record<string, string | null>>();
@@ -184,7 +213,6 @@ export function WorkDetails({
     data_empreitamento: formattedData.dataEmpreitamento,
     id_status: data.id_status,
     id_turma: data.id_turma,
-    tipo_ads: data.tipo_ads,
     observ_obra: data.observ_obra,
   });
 
@@ -192,7 +220,7 @@ export function WorkDetails({
 
   const { permissions } = useUser();
   const modals = useModals();
-  const { error, setError, success, setSuccess } = useNotifications();
+  const { showError, showSuccess } = useFeedback();
 
   const publicationRestrictions = useMemo(
     () =>
@@ -215,9 +243,8 @@ export function WorkDetails({
   );
 
   useEffect(() => {
-    setHasFilesFeasibility(!!feasibilityExists?.length);
     setIsMounted(true);
-  }, [feasibilityExists]);
+  }, []);
 
   const handleDataChange = useCallback(
     (field: string, value: string) => {
@@ -248,15 +275,15 @@ export function WorkDetails({
         const response = await UpdateWork(payload, idWork);
 
         if (!response.success) {
-          setError(response.error || "Erro ao salvar alterações");
+          showError(response.error || "Erro ao salvar alterações");
           return;
         }
 
         setChangedFields(undefined);
-        setSuccess(response.message);
+        showSuccess(response.message);
         modals.setOpenModal(true);
       } catch {
-        setError("Erro de conexão. Tente novamente.");
+        showError("Erro de conexão. Tente novamente.");
       }
     });
   }, [
@@ -265,8 +292,8 @@ export function WorkDetails({
     suspensionReason,
     idWork,
     modals,
-    setError,
-    setSuccess,
+    showError,
+    showSuccess,
   ]);
 
   const handleSavePublicationRestriction = useCallback(
@@ -278,51 +305,19 @@ export function WorkDetails({
           const response = await InsertPublicationRestrictions(restrictions);
 
           if (!response.success) {
-            setError(response.error || "Erro ao salvar alterações");
+            showError(response.error || "Erro ao salvar alterações");
             return;
           }
 
-          setSuccess(response.message);
+          showSuccess(response.message);
           modals.setOpenModal(true);
         } catch (err: any) {
-          setError(err.message);
+          showError(err.message);
         }
       });
     },
-    [modals, setError, setSuccess],
+    [modals, showError, showSuccess],
   );
-
-  const handleUploadSuccess = useCallback(() => {
-    setHasFilesFeasibility(true);
-    modals.setOpenUploadModal(false);
-
-    setSuccess("Arquivos enviados com sucesso!");
-    modals.setOpenModal(true);
-
-    router.refresh();
-  }, [modals, router, setSuccess]);
-
-  const handleFeasibilityFilesDelete = () => {
-    startTransition(async () => {
-      try {
-        const response = await deleteFeasibilityFiles(idWork);
-
-        if (!response.success) {
-          setError("Erro ao excluir viabilidade");
-          return;
-        }
-
-        setSuccess(response.message);
-        modals.setOpenModal(true);
-
-        router.refresh();
-      } catch (error: any) {
-        setError(error.message);
-      } finally {
-        modals.setOpenConfirmModal(false);
-      }
-    });
-  };
 
   if (hasRestrictedAccess(data.id_status, permissions?.tipo_usuario)) {
     return <ErrorThrower message="Nível de permissão insuficiente" />;
@@ -342,48 +337,22 @@ export function WorkDetails({
             />
           )}
 
-          {!hasFilesFeasibility && isMounted ? (
-            <ButtonComponent
-              text="Importar Arquivos de Viabilidade"
-              styled="bg-blue-600 hover:bg-blue-700 px-6 py-7"
-              onClick={() => modals.setOpenUploadModal(true)}
-            />
-          ) : (
-            <div className="flex items-center gap-2 self-center border border-green-800 bg-green-50 dark:bg-green-900/20 px-4 py-3 rounded-md">
-              <CheckCircleIcon className="w-6 h-6 text-green-600" />
-              <p className="text-green-700 dark:text-green-400 font-semibold">
-                Viabilidade Importada
-              </p>
-
-              {feasibilityExists?.map((file: any, i: number) => {
-                const url = `${process.env.NEXT_PUBLIC_API_URL}/uploads/viabilidade/${file.caminho_arquivo}`;
-
-                return (
-                  <Tooltip key={i} title={`${file.caminho_arquivo}`}>
-                    <IconButton>
-                      <a
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-2xl hover:scale-110 transition-transform "
-                      >
-                        <DocumentTextIcon
-                          width={30}
-                          height={30}
-                          className="text-green-600"
-                        />
-                      </a>
-                    </IconButton>
-                  </Tooltip>
-                );
-              })}
-
-              <IconButton
-                onClick={() => modals.setOpenConfirmModal(true)}
-                className="w-10 h-10 text-zinc-600"
-              >
-                <XMarkIcon />
-              </IconButton>
+          {isMounted && (
+            <div className="gap-3 self-center rounded-md px-4">
+              <ButtonComponent
+                startIcon={FEASIBILITY_ACTION_ICON[workflowStatus]}
+                text={FEASIBILITY_ACTION_LABEL[workflowStatus]}
+                styled={FEASIBILITY_ACTION_COLOR[workflowStatus]}
+                onClick={() =>
+                  router.push(
+                    `/viabilidade/${idWork}?status=${workflowStatus}&ponto_a_ponto=${programacao_ponto_a_ponto}`,
+                  )
+                }
+                disabled={
+                  !permissions?.permissao_edicao &&
+                  [42, 43, 45, 46].includes(id_status)
+                }
+              />
             </div>
           )}
 
@@ -439,10 +408,23 @@ export function WorkDetails({
           <DataItem label="Entrada" value={formattedData.entrada} />
           <DataItem label="Prazo" value={formattedData.prazo} />
           <DataItem label="Data prazo final" value={formattedData.prazoFinal} />
-          <DataItem
-            label="Executado"
-            value={formattedData.executadoFormatted}
-          />
+
+          <div className="max-w-96 w-[342px] xl:w-full xl:max-w-[90%] flex gap-2 mb-3">
+            <div className="flex-1">
+              <SummaryDataItem
+                label="Programado"
+                value={formattedData.totalProgramado}
+              />
+            </div>
+
+            <div className="flex-1">
+              <SummaryDataItem
+                label="Executado"
+                value={formattedData.executadoFormatted}
+              />
+            </div>
+          </div>
+
           <DataItem
             label="Data conclusão"
             value={formattedData.data_conclusao}
@@ -458,6 +440,8 @@ export function WorkDetails({
           <DataItem label="Status Sap" value={data.status_ov_sap} />
           <EditableColumn
             data={editableData}
+            feasibilitySubmissionDate={data.data_envio}
+            feasibilityApprove={data.viabilidade_aprovada}
             options={options}
             onHandleChange={handleDataChange}
             EditSuspension={
@@ -479,6 +463,13 @@ export function WorkDetails({
               ) : null
             }
           />
+
+          <DataItem
+            label="Viabilidade"
+            value={formattedData.dataViabilidade}
+            status={data.prazo_viabilidade}
+          />
+
           <DataItem label="Empreendimento" value={data.empreendimento} />
         </div>
       </div>
@@ -508,23 +499,6 @@ export function WorkDetails({
         idParceira={Number(data.id_turma)}
         isInsert={true}
       />
-
-      <FeasibiltyUpload
-        open={modals.openUploadModal}
-        onClose={() => modals.setOpenUploadModal(false)}
-        idWork={data.id}
-        onUploadSuccess={handleUploadSuccess}
-      />
-
-      <ModalComponent
-        title="Sucesso"
-        onClose={modals.toggleModal}
-        open={modals.openModal}
-      >
-        <span className="text-center text-lg text-gray-700 dark:text-gray-200 mb-6">
-          {success}
-        </span>
-      </ModalComponent>
 
       <ModalComponent
         title="Motivo da Suspensão"
@@ -563,44 +537,6 @@ export function WorkDetails({
           />
         </div>
       </ModalComponent>
-
-      <ModalComponent
-        title="Confirmar exclusão"
-        open={modals.openConfirmModal}
-        onClose={() => modals.setOpenConfirmModal(false)}
-      >
-        <div className="flex flex-col items-center gap-6">
-          <ExclamationCircleIcon
-            width={48}
-            height={48}
-            className="text-red-500"
-          />
-
-          <span className="text-center text-lg text-gray-700 dark:text-gray-200">
-            Tem certeza que deseja excluir esta viabilidade?
-            <br />
-            <strong>Essa ação não poderá ser desfeita.</strong>
-          </span>
-
-          <div className="flex gap-4">
-            <ButtonComponent
-              text="Confirmar Exclusão"
-              styled="min-w-32"
-              onClick={handleFeasibilityFilesDelete}
-              disabled={isPending}
-            />
-          </div>
-        </div>
-      </ModalComponent>
-
-      {error && (
-        <ErrorModal
-          open={true}
-          message={error}
-          onClose={() => setError(null)}
-          icon={<ExclamationCircleIcon width={48} height={48} />}
-        />
-      )}
     </>
   );
 }

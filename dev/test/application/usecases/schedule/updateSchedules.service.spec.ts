@@ -1,4 +1,3 @@
-import { ScheduleExecutionValidatorService } from 'src/application/usecases/schedule/scheduleExecutionValidator.service';
 import { UpdateSchedulesService } from 'src/application/usecases/schedule/updateSchedules.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
 import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
@@ -12,7 +11,8 @@ import {
   mockUpdateSchedulesService,
   mockUpdateSchedulesServiceFormattedData,
   mockUpdateSchedulesServiceWithoutIdWork,
-} from '../../../mocks/mockAddScheduleService';
+} from '../../../mocks/schedules/mockUpdateSchedules';
+import { ScheduleExecutionValidatorService } from 'src/application/usecases/schedule/scheduleExecutionValidator.service';
 
 describe('UpdateSchedulesService', () => {
   let updateSchedulesService: UpdateSchedulesService;
@@ -28,13 +28,13 @@ describe('UpdateSchedulesService', () => {
     findExecutionOfSchedules: jest.fn(),
   };
 
+  const mockScheduleExecutionValidatorService = {
+    validateExecutionAndUpdateStatus: jest.fn(),
+  };
+
   const mockStatusFlowRepository = {
     updateStatusWorks: jest.fn(),
     updateScheduleStatus: jest.fn(),
-  };
-
-  const mockExecutionValidator = {
-    validateExecutionAndUpdateStatus: jest.fn(),
   };
 
   const mockFindScheduleByIdRepository = {
@@ -45,10 +45,6 @@ describe('UpdateSchedulesService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UpdateSchedulesService,
-        {
-          provide: ScheduleExecutionValidatorService,
-          useValue: mockExecutionValidator,
-        },
         { provide: UPDATE_SCHEDULES_REPOSITORY, useValue: mockRepository },
         { provide: STATUS_FLOW_REPOSITORY, useValue: mockStatusFlowRepository },
         {
@@ -56,6 +52,10 @@ describe('UpdateSchedulesService', () => {
           useValue: mockFindScheduleByIdRepository,
         },
         { provide: STATUS_FLOW_REPOSITORY, useValue: mockStatusFlowRepository },
+        {
+          provide: ScheduleExecutionValidatorService,
+          useValue: mockScheduleExecutionValidatorService,
+        },
       ],
     }).compile();
 
@@ -119,23 +119,28 @@ describe('UpdateSchedulesService', () => {
       );
     });
 
-    it('Should call method findExecutionOfSchedules and validateExecutionAndUpdateStatus', async () => {
-      mockRepository.findExecutionOfSchedules.mockResolvedValue([80, 0]);
+    it('Should call method update and update status of work and status of schedule', async () => {
+      mockRepository.update.mockResolvedValue(undefined);
+      mockRepository.findExecutionOfSchedules.mockResolvedValue([80, 80]);
+      mockFindScheduleByIdRepository.findById.mockResolvedValue({
+        reprovada: true,
+        id_status_programacao: 7,
+      });
 
-      await updateSchedulesService.update(
-        { ...mockUpdateSchedulesService, exec: 20 },
+      const mockData = { ...mockUpdateSchedulesService, prog: 20, exec: 20 };
+
+      await updateSchedulesService.update(mockData, mockTransaction);
+
+      expect(mockRepository.update).toHaveBeenCalledWith(
+        { ...mockUpdateSchedulesServiceFormattedData, prog: 20, exec: 20 },
         mockTransaction,
       );
-
-      expect(mockRepository.findExecutionOfSchedules).toHaveBeenCalledWith(
-        1,
-        3146044,
-      );
       expect(
-        mockExecutionValidator.validateExecutionAndUpdateStatus,
-      ).toHaveBeenCalledWith(
-        { ...mockUpdateSchedulesService, exec: 20 },
-        { prog: 0, exec: 0 },
+        mockStatusFlowRepository.updateScheduleStatus,
+      ).toHaveBeenCalledWith(1, 1, mockTransaction);
+      expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
+        43,
+        3146044,
         mockTransaction,
       );
     });
