@@ -581,7 +581,7 @@ describe('WorksServicesRepository', () => {
           ponto: 'P1',
           descricao_operacao: 'POSTE - ODI',
           qtde_plan: 0,
-          qtde_adicional: 4,
+          viabilizado: 4,
         },
       });
     });
@@ -613,7 +613,7 @@ describe('WorksServicesRepository', () => {
           ponto: 'P1',
           descricao_operacao: 'POSTE - ODI',
           qtde_plan: 0,
-          qtde_adicional: 2,
+          viabilizado: 2,
         },
       });
     });
