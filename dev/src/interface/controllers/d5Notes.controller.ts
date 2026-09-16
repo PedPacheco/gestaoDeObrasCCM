@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
 import { D5NotesService } from 'src/application/usecases/d5Notes.service';
+import { D5NotesFiltersDTO } from '../dtos/d5NotesDTO';
 
 @Controller('notas-d5')
 export class D5NotesController {
@@ -16,7 +17,7 @@ export class D5NotesController {
 
   @Get()
   @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
-  async getAll(@Query() filters: any) {
+  async getAll(@Query() filters: D5NotesFiltersDTO) {
     const response = await this.d5NotesService.get(filters);
 
     return {

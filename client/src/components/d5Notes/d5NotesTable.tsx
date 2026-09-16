@@ -12,29 +12,16 @@ import {
   TableBody,
   TableCell,
   TableContainer,
+  TableFooter,
   TableHead,
   TablePagination,
   TableRow,
 } from "@mui/material";
-import {
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-} from "@heroicons/react/20/solid";
-
-interface totalsInterface {
-  total_obras: number;
-  total_mo_planejada: number;
-  total_mo_exec: number;
-  total_mo_suspensa: number;
-  total_qtde_planejada: number;
-  total_qtde_pend: number;
-}
 
 interface TableComponentProps {
   columns: any;
   data: any[];
-  totals: totalsInterface;
-  sliceEndIndex?: number;
+  totals: { totalNotas: number; totalMoPlanejado: number };
   page: number;
   handleChangePage: (event: unknown, newPage: number) => void;
   getRowKey?: (item: any) => string | number;
@@ -42,11 +29,10 @@ interface TableComponentProps {
 
 dayjs.extend(utc);
 
-export function TableWithPagination({
+export function D5NotesTable({
   data,
   totals,
   columns,
-  sliceEndIndex,
   handleChangePage,
   page,
   getRowKey,
@@ -63,14 +49,14 @@ export function TableWithPagination({
             <TableHead>
               <TableRow>
                 {Object.keys(columns)
-                  .slice(1, sliceEndIndex ? -sliceEndIndex : undefined)
+                  .slice(1)
                   .map((month) => (
                     <TableCell
                       key={month}
                       className={`py-1 px-2 text-center text-zinc-700 font-semibold text-xl bg-[#53FF75] 
                       min-w-28 whitespace-nowrap
                       ${
-                        month === "ovnota" || month === "nota_d5"
+                        month === "nota_d5"
                           ? "sticky left-0 z-20"
                           : "sticky left-0 z-10"
                       }
@@ -86,11 +72,10 @@ export function TableWithPagination({
               {data.map((item: any, index: any) => (
                 <TableRow key={getRowKey ? getRowKey(item) : index}>
                   {Object.keys(columns)
-                    .slice(1, sliceEndIndex ? -sliceEndIndex : undefined)
+                    .slice(1)
                     .map((column) => {
                       let cellValue = item[column];
                       let decimal: string[] = [];
-                      let bgColorClass = "";
 
                       if (typeof cellValue === "number") {
                         decimal = cellValue.toString().split(".");
@@ -99,46 +84,8 @@ export function TableWithPagination({
                         }
                       }
 
-                      if (
-                        [
-                          "mo_prog",
-                          "mat_prog",
-                          "mo_forecast",
-                          "mat_forecast",
-                          "forecast_total",
-                          "mo_pend",
-                          "mo_exec",
-                          "mo_planejada",
-                          "moPlanejadaPontoAPonto",
-                          "moExecutadoPontoAPonto",
-                        ].includes(column)
-                      ) {
+                      if (column === "mo_planejada") {
                         cellValue = FormatCurrency(cellValue);
-                      }
-
-                      if (
-                        [
-                          "prog",
-                          "exec",
-                          "executado",
-                          "total_prog",
-                          "total_exec",
-                          "total_pend",
-                        ].includes(column)
-                      ) {
-                        cellValue = formatPercentage(cellValue);
-                      }
-
-                      if (column === "restricao_aberta") {
-                        cellValue = cellValue ? "!!!" : "";
-                      }
-
-                      if (column === "encontrado") {
-                        cellValue = item[column] ? (
-                          <CheckCircleIcon className="w-6 h-6 text-green-600 mx-auto" />
-                        ) : (
-                          <ExclamationTriangleIcon className="w-6 h-6 text-yellow-500 mx-auto" />
-                        );
                       }
 
                       if (
@@ -161,36 +108,17 @@ export function TableWithPagination({
                           ? Object.values(cellValue).join(", ")
                           : cellValue;
 
-                      if (column === "status_prazo") {
-                        if (displayValue?.includes("No prazo"))
-                          bgColorClass = "bg-green-200 text-green-800";
-                        else if (displayValue?.includes("Atenção"))
-                          bgColorClass = "bg-yellow-200 text-yellow-800";
-                        else if (displayValue?.includes("Urgente"))
-                          bgColorClass = "bg-yellow-300 text-yellow-900";
-                        else if (displayValue?.includes("Crítico"))
-                          bgColorClass = "bg-red-300 text-red-900";
-                        else if (displayValue?.includes("Prazo vencido"))
-                          bgColorClass = "bg-black text-white";
-                      }
-
                       return (
                         <TableCell
                           key={column}
-                          onClick={() => router.push(`/detalhes/${item.id}`)}
+                          onClick={() => router.push(`nota-d5/${item.id}`)}
                           className={`
                           py-1 px-2 text-center text-base whitespace-nowrap min-w-36 hover:cursor-pointer
                           ${
-                            column === "ovnota"
+                            column === "nota_d5"
                               ? "sticky left-0 bg-white z-10"
                               : ""
                           }
-                          ${
-                            column === "restricao_aberta"
-                              ? "text-red-500 text-lg"
-                              : ""
-                          }
-                          ${column === "status_prazo" ? bgColorClass : ""}
                         `}
                         >
                           {displayValue}
@@ -205,18 +133,32 @@ export function TableWithPagination({
       </div>
 
       {/* Paginação fixa sem bloquear scroll horizontal */}
-      <div className="bg-white z-30 border-t">
+      <div className="bg-white z-30 border-t flex items-center justify-between px-2">
+        <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-1 text-lg text-zinc-700 font-semibold">
+            <span>Total de Notas:</span>
+            <span>{totals.totalNotas}</span>
+          </div>
+
+          <span className="text-zinc-300">|</span>
+
+          <div className="flex items-center gap-1 text-lg text-zinc-700 font-semibold">
+            <span>MO Planejado:</span>
+            <span>{FormatCurrency(totals.totalMoPlanejado)}</span>
+          </div>
+        </div>
+
         <TablePagination
           component="div"
-          count={totals.total_obras}
+          count={totals.totalNotas}
           page={page}
           rowsPerPage={200}
           rowsPerPageOptions={[]}
           onPageChange={handleChangePage}
           showFirstButton
           showLastButton
-          labelDisplayedRows={({ from, to, count, page }) => {
-            const totalPages = Math.ceil(count / 200);
+          labelDisplayedRows={({ page }) => {
+            const totalPages = Math.ceil(totals.totalNotas / 200);
             return `Página ${page + 1} de ${totalPages}`;
           }}
           sx={{

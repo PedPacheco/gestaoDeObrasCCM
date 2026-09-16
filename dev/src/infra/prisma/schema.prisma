@@ -537,6 +537,8 @@ model notas_d5 {
   tme_abertura           Int?
   tme_executado          Int?
   validacao_anual        Boolean?
+  mo_planejada           Decimal?              @db.Decimal(10, 2)
+  nota_d5                String                @db.VarChar(25)
   municipios             municipios            @relation(fields: [id_municipio], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_municipio")
   obras                  obras?                @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obra")
   turmas                 turmas                @relation(fields: [id_parceira], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
