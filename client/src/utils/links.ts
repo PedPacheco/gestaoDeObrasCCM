@@ -89,6 +89,18 @@ export const links: Link[] = [
         allowedFor: ["interno_editor", "interno_viewer"],
         allowedAreas: [8, 1],
       },
+      // {
+      //   name: "Controle SMC",
+      //   href: "/relatorios/controle-smc",
+      //   allowedFor: ["interno_editor", "interno_viewer"],
+      //   allowedAreas: [8, 1, 7],
+      // },
+      // {
+      //   name: "Sigo nucleos",
+      //   href: "/relatorios/sigo-nucleos",
+      //   allowedFor: ["interno_editor", "interno_viewer"],
+      //   allowedAreas: [8, 1, 7],
+      // },
     ],
   },
   {
@@ -148,12 +160,12 @@ export const links: Link[] = [
         allowedFor: ["interno_editor", "interno_viewer"],
         allowedAreas: [8, 1],
       },
-      {
-        name: "Importação Execução EDP",
-        href: "/entrada/importacao-execucao-edp",
-        allowedFor: ["interno_editor", "interno_viewer"],
-        allowedAreas: [8, 1],
-      },
+      // {
+      //   name: "Importação Execução EDP",
+      //   href: "/entrada/importacao-execucao-edp",
+      //   allowedFor: ["interno_editor", "interno_viewer"],
+      //   allowedAreas: [8, 1],
+      // },
     ],
   },
   {

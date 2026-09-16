@@ -21,7 +21,7 @@ export interface ContingencyDashboard {
 
 export interface RecentContingencyRow {
   dia_disponibilidade: Date;
-  usuario: { nome: string } | null;
+  novo_tabela_usuarios: { nome: string } | null;
   turmas: { turma: string } | null;
 }
 
@@ -41,9 +41,7 @@ export interface EquipeEmergenciaMesRow {
 }
 
 export type ContingencyGroupField =
-  | 'tipo_recurso_mao_obra'
-  | 'tipo_recurso_equipe'
-  | 'disponibilizado_csd';
+  'tipo_recurso_mao_obra' | 'tipo_recurso_equipe' | 'disponibilizado_csd';
 
 export interface IContingencyRepository {
   create(data: Prisma.recursos_contingenciaUncheckedCreateInput): Promise<void>;

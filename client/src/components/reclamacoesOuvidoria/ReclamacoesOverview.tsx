@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { X } from "lucide-react";
 
 import { KpiCard } from "@/components/dashboard/common/KpiCard";
 import { RingCard } from "@/components/dashboard/common/RingCard";
@@ -9,8 +8,15 @@ import { ReclamacaoRow, ResultadoBucket } from "@/types/reclamacoesOuvidoria";
 import { ReclamacoesMetrics } from "@/utils/reclamacoesOuvidoria/metrics";
 import { FormatCurrency, NUM } from "@/utils/formatValue";
 
-import { ReclamacoesAcumuladoChart, ReclamacoesEmpreiteiraTrends } from "./ReclamacoesAcumulado";
-import { ReclamacoesCenarioAtualChart, ReclamacoesMotivosTable } from "./ReclamacoesCenarioAtual";
+import {
+  ReclamacoesAcumuladoChart,
+  ReclamacoesEmpreiteiraTrends,
+} from "./ReclamacoesAcumulado";
+import {
+  ReclamacoesCenarioAtualChart,
+  ReclamacoesMotivosTable,
+} from "./ReclamacoesCenarioAtual";
+import { XMarkIcon } from "@heroicons/react/20/solid";
 
 const KPI_GRADIENT = "bg-gradient-to-br from-[#182638] to-[#1c2f42]";
 const GREEN = "#53FF75";
@@ -73,11 +79,18 @@ function ReclamacoesResultadoCard({
 
   return (
     <div className="relative rounded-2xl p-4 flex flex-col gap-3 overflow-hidden shadow-lg bg-gradient-to-br from-[#182638] to-[#1c2f42]">
-      <div className="absolute top-0 left-0 w-1 h-full rounded-l-2xl" style={{ background: GREEN }} />
+      <div
+        className="absolute top-0 left-0 w-1 h-full rounded-l-2xl"
+        style={{ background: GREEN }}
+      />
 
       <div className="pl-3 flex flex-col">
-        <span className="text-white/60 text-xs uppercase tracking-widest font-medium">Reclamações</span>
-        <span className="font-black text-3xl text-white leading-none pt-2">{NUM(total)}</span>
+        <span className="text-white/60 text-xs uppercase tracking-widest font-medium">
+          Reclamações
+        </span>
+        <span className="font-black text-3xl text-white leading-none pt-2">
+          {NUM(total)}
+        </span>
       </div>
 
       <div className="pl-3 flex gap-2">
@@ -87,7 +100,8 @@ function ReclamacoesResultadoCard({
           className={pillCls("procedente")}
           style={{
             background: selected === "procedente" ? RED : "#0f1e2e",
-            borderColor: selected === "procedente" ? RED : "rgba(255,255,255,0.1)",
+            borderColor:
+              selected === "procedente" ? RED : "rgba(255,255,255,0.1)",
           }}
         >
           <span>Procedente</span>
@@ -100,7 +114,8 @@ function ReclamacoesResultadoCard({
           className={pillCls("improcedente")}
           style={{
             background: selected === "improcedente" ? GREEN : "#0f1e2e",
-            borderColor: selected === "improcedente" ? GREEN : "rgba(255,255,255,0.1)",
+            borderColor:
+              selected === "improcedente" ? GREEN : "rgba(255,255,255,0.1)",
           }}
         >
           <span>Improcedente</span>
@@ -118,7 +133,9 @@ export function ReclamacoesOverview({
   metrics: ReclamacoesMetrics;
   rows: ReclamacaoRow[];
 }) {
-  const [selectedBucket, setSelectedBucket] = useState<ResultadoBucket | null>(null);
+  const [selectedBucket, setSelectedBucket] = useState<ResultadoBucket | null>(
+    null,
+  );
 
   const handleToggle = (bucket: "procedente" | "improcedente") => {
     setSelectedBucket((current) => (current === bucket ? null : bucket));
@@ -133,7 +150,10 @@ export function ReclamacoesOverview({
 
   return (
     <div className="flex flex-col gap-6">
-      <KpiGroup title="Visão geral" gridClassName="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <KpiGroup
+        title="Visão geral"
+        gridClassName="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
+      >
         <ReclamacoesResultadoCard
           total={metrics.total}
           procedentes={metrics.procedentes}
@@ -150,11 +170,17 @@ export function ReclamacoesOverview({
           sub={[
             {
               subLabel: "Dentro do Prazo",
-              subValue: metrics.pendentesDentroPrazo > 0 ? NUM(metrics.pendentesDentroPrazo) : "-",
+              subValue:
+                metrics.pendentesDentroPrazo > 0
+                  ? NUM(metrics.pendentesDentroPrazo)
+                  : "-",
             },
             {
               subLabel: "Fora do prazo",
-              subValue: metrics.pendentesForaPrazo > 0 ? NUM(metrics.pendentesForaPrazo) : "-",
+              subValue:
+                metrics.pendentesForaPrazo > 0
+                  ? NUM(metrics.pendentesForaPrazo)
+                  : "-",
             },
             { subLabel: "Concluídas", subValue: NUM(metrics.concluidas) },
           ]}
@@ -165,7 +191,9 @@ export function ReclamacoesOverview({
           value={FormatCurrency(metrics.valorMultasTotal)}
           gradient={KPI_GRADIENT}
           accent={VIOLET}
-          sub={[{ subLabel: "Qtd. com multa", subValue: NUM(metrics.qtdComMulta) }]}
+          sub={[
+            { subLabel: "Qtd. com multa", subValue: NUM(metrics.qtdComMulta) },
+          ]}
         />
 
         <RingCard
@@ -197,13 +225,17 @@ export function ReclamacoesOverview({
         >
           <div className="flex items-center justify-between mb-4">
             <span className="text-white font-bold text-sm uppercase tracking-wide">
-              Notas — {selectedBucket === "procedente" ? "Procedentes" : "Improcedentes"} ({NUM(notasSelecionadas.length)})
+              Notas —{" "}
+              {selectedBucket === "procedente"
+                ? "Procedentes"
+                : "Improcedentes"}{" "}
+              ({NUM(notasSelecionadas.length)})
             </span>
             <button
               onClick={() => setSelectedBucket(null)}
               className="text-slate-400 hover:text-white flex items-center gap-1 text-xs"
             >
-              <X className="w-4 h-4" />
+              <XMarkIcon className="w-4 h-4" />
               Fechar
             </button>
           </div>
@@ -220,9 +252,15 @@ export function ReclamacoesOverview({
                   className="rounded-lg border border-white/10 px-3 py-2 text-xs"
                   style={{ background: "#1e2f42" }}
                 >
-                  <div className="font-bold text-white truncate">{row.nota}</div>
-                  <div className="text-zinc-400 truncate">{row.empreiteira}</div>
-                  <div className="text-zinc-500 truncate">{row.municipio || "—"}</div>
+                  <div className="font-bold text-white truncate">
+                    {row.nota}
+                  </div>
+                  <div className="text-zinc-400 truncate">
+                    {row.empreiteira}
+                  </div>
+                  <div className="text-zinc-500 truncate">
+                    {row.municipio || "—"}
+                  </div>
                 </div>
               ))}
             </div>

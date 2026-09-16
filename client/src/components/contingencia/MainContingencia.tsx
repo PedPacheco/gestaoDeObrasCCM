@@ -8,7 +8,7 @@ import { ChevronUpIcon } from "@heroicons/react/20/solid";
 import { ContingenciaDashboard } from "./ContingenciaDashboard";
 import { ContingenciaFilters } from "./ContingenciaFilters";
 import { ContingenciaForm } from "./ContingenciaForm";
-import { ContingencyDashboardInterface } from "@/app/(dashboard)/recursos-contingencia/page";
+import { ContingencyDashboardInterface } from "@/app/(dashboard)/restricoes/recursos-contingencia/page";
 import { FiltersInterface } from "@/types/filtersInterfaces";
 import { fetchData } from "@/actions/fetchData.action";
 

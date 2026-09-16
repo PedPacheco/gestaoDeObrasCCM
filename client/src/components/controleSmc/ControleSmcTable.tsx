@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowUpDown, ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react";
 
 import { NucleoSmcRow, ControleSmcColumn } from "@/types/controleSmc";
-import { CONTROLE_SMC_COLUMNS, GROUP_STYLES } from "@/utils/controleSmc/columns";
+import {
+  CONTROLE_SMC_COLUMNS,
+  GROUP_STYLES,
+} from "@/utils/controleSmc/columns";
 import { NUM } from "@/utils/formatValue";
 
 const SURFACE_HEAD = "#071220";
@@ -18,16 +20,28 @@ function percentColor(value: number) {
   return "text-rose-400";
 }
 
-function formatCellValue(row: NucleoSmcRow, column: ControleSmcColumn): React.ReactNode {
+function formatCellValue(
+  row: NucleoSmcRow,
+  column: ControleSmcColumn,
+): React.ReactNode {
   const value = row[column.key];
 
   if (column.type === "number") {
-    return typeof value === "number" ? NUM(value) : <span className="text-white/25">—</span>;
+    return typeof value === "number" ? (
+      NUM(value)
+    ) : (
+      <span className="text-white/25">—</span>
+    );
   }
 
   if (column.type === "percent") {
-    if (typeof value !== "number") return <span className="text-white/25">—</span>;
-    return <span className={`font-mono font-bold ${percentColor(value)}`}>{NUM(value)}%</span>;
+    if (typeof value !== "number")
+      return <span className="text-white/25">—</span>;
+    return (
+      <span className={`font-mono font-bold ${percentColor(value)}`}>
+        {NUM(value)}%
+      </span>
+    );
   }
 
   const text = typeof value === "string" ? value.trim() : "";
@@ -60,7 +74,10 @@ export function ControleSmcTable({
 
   const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
-  const pageRows = rows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const pageRows = rows.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
 
   return (
     <div
@@ -74,7 +91,10 @@ export function ControleSmcTable({
               className="border-b border-white/10 font-bold uppercase tracking-wide text-[11px] select-none"
               style={{ background: SURFACE_HEAD }}
             >
-              <th className="w-16 border-r border-white/8 px-2 py-3 text-center text-white/30" style={{ background: SURFACE_HEAD }}>
+              <th
+                className="w-16 border-r border-white/8 px-2 py-3 text-center text-white/30"
+                style={{ background: SURFACE_HEAD }}
+              >
                 Ações
               </th>
 
@@ -87,11 +107,14 @@ export function ControleSmcTable({
                     className={`px-3 py-3 hover:bg-white/5 cursor-pointer border-r border-white/8 ${style.bg} ${style.text} ${column.align === "right" ? "text-right" : ""}`}
                     style={{ width: column.width, minWidth: column.width }}
                   >
-                    <div className={`flex items-center gap-1 ${column.align === "right" ? "justify-end" : ""}`}>
+                    <div
+                      className={`flex items-center gap-1 ${column.align === "right" ? "justify-end" : ""}`}
+                    >
                       {column.header}
-                      {sortField === column.key ? (
+                      {/* sortField === column.key ? (
                         <ArrowUpDown className="w-3.5 h-3.5" />
-                      ) : null}
+                      ) : */}
+                      {null}
                     </div>
                   </th>
                 );
@@ -112,14 +135,14 @@ export function ControleSmcTable({
                       title="Editar núcleo"
                       className="w-6 h-6 flex items-center justify-center rounded text-slate-500 hover:text-blue-400 hover:bg-white/5 transition-colors"
                     >
-                      <Pencil className="w-3.5 h-3.5" />
+                      {/* <Pencil className="w-3.5 h-3.5" /> */}
                     </button>
                     <button
                       onClick={() => onDeleteRow(row)}
                       title="Excluir núcleo"
                       className="w-6 h-6 flex items-center justify-center rounded text-slate-500 hover:text-rose-400 hover:bg-white/5 transition-colors"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      {/* <Trash2 className="w-3.5 h-3.5" /> */}
                     </button>
                   </div>
                 </td>
@@ -128,8 +151,16 @@ export function ControleSmcTable({
                   <td
                     key={column.key}
                     className={`px-3 py-1.5 border-r border-white/8 text-slate-200 truncate ${column.align === "right" ? "text-right" : ""}`}
-                    style={{ width: column.width, minWidth: column.width, maxWidth: column.width }}
-                    title={typeof row[column.key] === "string" ? (row[column.key] as string) : undefined}
+                    style={{
+                      width: column.width,
+                      minWidth: column.width,
+                      maxWidth: column.width,
+                    }}
+                    title={
+                      typeof row[column.key] === "string"
+                        ? (row[column.key] as string)
+                        : undefined
+                    }
                   >
                     {formatCellValue(row, column)}
                   </td>
@@ -139,7 +170,10 @@ export function ControleSmcTable({
 
             {pageRows.length === 0 && (
               <tr>
-                <td colSpan={CONTROLE_SMC_COLUMNS.length + 1} className="px-3 py-10 text-center text-slate-500">
+                <td
+                  colSpan={CONTROLE_SMC_COLUMNS.length + 1}
+                  className="px-3 py-10 text-center text-slate-500"
+                >
                   Nenhum núcleo para os filtros selecionados.
                 </td>
               </tr>
@@ -154,7 +188,8 @@ export function ControleSmcTable({
           style={{ background: SURFACE_HEAD }}
         >
           <span>
-            {rows.length} núcleo{rows.length === 1 ? "" : "s"} · página {currentPage} de {totalPages}
+            {rows.length} núcleo{rows.length === 1 ? "" : "s"} · página{" "}
+            {currentPage} de {totalPages}
           </span>
           <div className="flex items-center gap-1.5">
             <button
@@ -162,14 +197,14 @@ export function ControleSmcTable({
               disabled={currentPage === 1}
               className="w-7 h-7 flex items-center justify-center rounded-md border border-white/10 disabled:opacity-30 hover:bg-white/5 transition-colors"
             >
-              <ChevronLeft className="w-4 h-4" />
+              {/* <ChevronLeft className="w-4 h-4" /> */}
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
               className="w-7 h-7 flex items-center justify-center rounded-md border border-white/10 disabled:opacity-30 hover:bg-white/5 transition-colors"
             >
-              <ChevronRight className="w-4 h-4" />
+              {/* <ChevronRight className="w-4 h-4" /> */}
             </button>
           </div>
         </div>

@@ -83,7 +83,7 @@ export class ContingencyService {
       equipesEmergencia: aggregatedEmergencyTeams,
       recentDates: recent.map((r) => ({
         date: r.dia_disponibilidade.toISOString().slice(0, 10),
-        nome: r.usuario?.nome ?? null,
+        nome: r.novo_tabela_usuarios?.nome ?? null,
       })),
       parceira: partner,
       maoObra: this.sumByName(laborRows, 'quantidade_mao_obra'),
@@ -166,9 +166,7 @@ export class ContingencyService {
       disponibilizado_csd: number;
     }[],
     sumField:
-      | 'quantidade_mao_obra'
-      | 'quantidade_equipe'
-      | 'disponibilizado_csd',
+      'quantidade_mao_obra' | 'quantidade_equipe' | 'disponibilizado_csd',
   ): { name: string; value: number }[] {
     const map = new Map<string, number>();
 

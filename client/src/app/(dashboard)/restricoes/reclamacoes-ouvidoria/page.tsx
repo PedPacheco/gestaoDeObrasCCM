@@ -1,4 +1,4 @@
-import MainReclamacoes from "@/components/dashboard/reclamacoesOuvidoria/MainReclamacoes";
+import MainReclamacoes from "@/components/reclamacoesOuvidoria/MainReclamacoes";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 
 export const dynamic = "force-dynamic";

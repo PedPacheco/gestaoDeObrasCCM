@@ -1,4 +1,4 @@
-import { CountItem } from "@/app/(dashboard)/recursos-contingencia/page";
+import { CountItem } from "@/app/(dashboard)/restricoes/recursos-contingencia/page";
 import { NUM } from "@/utils/formatValue";
 import { memo } from "react";
 

@@ -1,4 +1,4 @@
-import MainControleSmc from "@/components/dashboard/controleSmc/MainControleSmc";
+import MainControleSmc from "@/components/controleSmc/MainControleSmc";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 
 export const dynamic = "force-dynamic";

@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
 
 import { ControleSmcColumnGroup, NucleoSmcRow } from "@/types/controleSmc";
 import { CONTROLE_SMC_COLUMNS } from "@/utils/controleSmc/columns";
+import { XMarkIcon } from "@heroicons/react/20/solid";
 
 const SURFACE_CARD = "#0f1d2e";
 const SURFACE_INPUT = "#1e2f42";
@@ -91,14 +91,16 @@ export function ControleSmcRowDrawer({
               {isNew ? "Novo núcleo" : values.nucleo || "Editar núcleo"}
             </h2>
             <p className="text-zinc-500 text-xs">
-              {isNew ? "Cadastro manual" : `${values.regional} · ${values.municipio}`}
+              {isNew
+                ? "Cadastro manual"
+                : `${values.regional} · ${values.municipio}`}
             </p>
           </div>
           <button
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <XMarkIcon className="w-5 h-5" />
           </button>
         </div>
 
@@ -110,14 +112,21 @@ export function ControleSmcRowDrawer({
               </span>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {CONTROLE_SMC_COLUMNS.filter((column) => column.group === group).map((column) => {
+                {CONTROLE_SMC_COLUMNS.filter(
+                  (column) => column.group === group,
+                ).map((column) => {
                   const listId = `smc-options-${column.key}`;
                   const rawValue = values[column.key];
 
                   if (column.editor === "textarea") {
                     return (
-                      <div key={column.key} className="sm:col-span-2 flex flex-col gap-1">
-                        <label className="text-xs text-zinc-400">{column.header}</label>
+                      <div
+                        key={column.key}
+                        className="sm:col-span-2 flex flex-col gap-1"
+                      >
+                        <label className="text-xs text-zinc-400">
+                          {column.header}
+                        </label>
                         <textarea
                           value={(rawValue as string) ?? ""}
                           onChange={(e) => setField(column.key, e.target.value)}
@@ -138,9 +147,18 @@ export function ControleSmcRowDrawer({
                         </label>
                         <input
                           type="number"
-                          value={rawValue === null || rawValue === undefined ? "" : (rawValue as number)}
+                          value={
+                            rawValue === null || rawValue === undefined
+                              ? ""
+                              : (rawValue as number)
+                          }
                           onChange={(e) =>
-                            setField(column.key, e.target.value === "" ? null : Number(e.target.value))
+                            setField(
+                              column.key,
+                              e.target.value === ""
+                                ? null
+                                : Number(e.target.value),
+                            )
                           }
                           className={`${inputCls} font-mono`}
                           style={{ background: SURFACE_INPUT }}
@@ -153,7 +171,9 @@ export function ControleSmcRowDrawer({
                     const options = optionsByField[column.key] ?? [];
                     return (
                       <div key={column.key} className="flex flex-col gap-1">
-                        <label className="text-xs text-zinc-400">{column.header}</label>
+                        <label className="text-xs text-zinc-400">
+                          {column.header}
+                        </label>
                         <input
                           list={listId}
                           value={(rawValue as string) ?? ""}
@@ -172,7 +192,9 @@ export function ControleSmcRowDrawer({
 
                   return (
                     <div key={column.key} className="flex flex-col gap-1">
-                      <label className="text-xs text-zinc-400">{column.header}</label>
+                      <label className="text-xs text-zinc-400">
+                        {column.header}
+                      </label>
                       <input
                         type="text"
                         value={(rawValue as string) ?? ""}
@@ -189,7 +211,9 @@ export function ControleSmcRowDrawer({
         </div>
 
         {error && (
-          <div className="px-6 pb-2 text-xs font-semibold text-rose-400">{error}</div>
+          <div className="px-6 pb-2 text-xs font-semibold text-rose-400">
+            {error}
+          </div>
         )}
 
         <div className="sticky bottom-0 flex items-center justify-between gap-3 px-6 py-4 border-t border-white/10 bg-inherit">
