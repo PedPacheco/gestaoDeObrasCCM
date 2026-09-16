@@ -5,6 +5,8 @@ import {
   createAdminUser,
   deactivateAdminUser,
   getAdminUsers,
+  reactivateAdminUser,
+  toggleAdminUserPermission,
 } from "@/actions/adminUsers";
 import { AdminUser, CreateAdminUserPayload } from "@/types/adminUsers";
 
@@ -56,6 +58,32 @@ export function useAdminUsers(initialUsers: AdminUser[] = []) {
     return result;
   }
 
+  async function reactivateUser(id: number) {
+    setIsMutating(true);
+
+    const result = await reactivateAdminUser(id);
+
+    if (result.success) {
+      await refreshUsers();
+    }
+
+    setIsMutating(false);
+    return result;
+  }
+
+  async function togglePermission(id: number) {
+    setIsMutating(true);
+
+    const result = await toggleAdminUserPermission(id);
+
+    if (result.success) {
+      await refreshUsers();
+    }
+
+    setIsMutating(false);
+    return result;
+  }
+
   return {
     users,
     isLoading,
@@ -63,5 +91,7 @@ export function useAdminUsers(initialUsers: AdminUser[] = []) {
     error,
     createUser,
     deactivateUser,
+    reactivateUser,
+    togglePermission,
   };
 }

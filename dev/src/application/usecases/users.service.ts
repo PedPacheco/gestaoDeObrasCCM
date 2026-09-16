@@ -109,4 +109,31 @@ export class UsersService {
 
     return await this.userRepository.softDelete(id);
   }
+
+  async reactivateUser(id: number): Promise<novo_tabela_usuarios> {
+    const target = await this.userRepository.findByIdRaw(id);
+
+    if (!target) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    if (target.ativo) {
+      throw new BadRequestException('Usuário já está ativo');
+    }
+
+    return await this.userRepository.reactivate(id);
+  }
+
+  async togglePermissaoEdicao(id: number): Promise<novo_tabela_usuarios> {
+    const target = await this.userRepository.findByIdRaw(id);
+
+    if (!target) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    return await this.userRepository.updatePermissaoEdicao(
+      id,
+      !target.permissao_edicao,
+    );
+  }
 }

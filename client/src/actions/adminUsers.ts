@@ -23,3 +23,19 @@ export async function deactivateAdminUser(
     method: "DELETE",
   });
 }
+
+export async function reactivateAdminUser(
+  id: number,
+): Promise<ActionResult<AdminUser>> {
+  return serverApiRequest(`/user/${id}/reactivate`, {
+    method: "PATCH",
+  });
+}
+
+export async function toggleAdminUserPermission(
+  id: number,
+): Promise<ActionResult<AdminUser>> {
+  return serverApiRequest(`/user/${id}/permission`, {
+    method: "PATCH",
+  });
+}

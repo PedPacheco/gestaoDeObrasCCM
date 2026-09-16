@@ -88,4 +88,21 @@ export class UserRepository implements IUserRepository {
       data: { ativo: false },
     });
   }
+
+  async reactivate(id: number): Promise<novo_tabela_usuarios> {
+    return await this.prisma.novo_tabela_usuarios.update({
+      where: { id },
+      data: { ativo: true },
+    });
+  }
+
+  async updatePermissaoEdicao(
+    id: number,
+    permissao_edicao: boolean,
+  ): Promise<novo_tabela_usuarios> {
+    return await this.prisma.novo_tabela_usuarios.update({
+      where: { id },
+      data: { permissao_edicao },
+    });
+  }
 }

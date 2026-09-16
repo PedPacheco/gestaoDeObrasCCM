@@ -65,6 +65,18 @@ export interface userDeactivateInterfaceController {
   data: UserSafeResponseDTO;
 }
 
+export interface userReactivateInterfaceController {
+  statusCode: number;
+  message: string;
+  data: UserSafeResponseDTO;
+}
+
+export interface userTogglePermissionInterfaceController {
+  statusCode: number;
+  message: string;
+  data: UserSafeResponseDTO;
+}
+
 export interface loginInterfaceController {
   statusCode: number;
   message: string;

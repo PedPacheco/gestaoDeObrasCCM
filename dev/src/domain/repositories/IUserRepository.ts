@@ -9,6 +9,11 @@ export interface IUserRepository {
   findByIdRaw(id: number): Promise<novo_tabela_usuarios | null>;
   create(user: User): Promise<novo_tabela_usuarios>;
   softDelete(id: number): Promise<novo_tabela_usuarios>;
+  reactivate(id: number): Promise<novo_tabela_usuarios>;
+  updatePermissaoEdicao(
+    id: number,
+    permissao_edicao: boolean,
+  ): Promise<novo_tabela_usuarios>;
 }
 
 export const USER_REPOSITORY = Symbol('UserRepository');

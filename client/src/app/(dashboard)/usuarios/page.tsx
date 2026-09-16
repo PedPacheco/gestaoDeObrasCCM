@@ -18,11 +18,9 @@ export default async function AdministrarLoginPage() {
 
   return (
     <div className="flex flex-col w-4/5 py-6 gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Administrar login</h1>
+      <h1 className="text-2xl font-bold">Controle de Usuários</h1>
 
-        <AdminUsersMain initialUsers={usersData.data} filters={filters} />
-      </div>
+      <AdminUsersMain initialUsers={usersData.data} filters={filters} />
     </div>
   );
 }

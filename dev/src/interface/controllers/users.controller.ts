@@ -5,6 +5,8 @@ import {
   userListInterfaceController,
   userAdminCreateInterfaceController,
   userDeactivateInterfaceController,
+  userReactivateInterfaceController,
+  userTogglePermissionInterfaceController,
 } from 'src/interface/types/userInterface';
 
 import {
@@ -14,6 +16,7 @@ import {
   Get,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Put,
   Req,
@@ -37,8 +40,6 @@ export class UsersController {
   @UseGuards(AdminPanelGuard())
   async list(): Promise<userListInterfaceController> {
     const users = await this.usersService.listUsers();
-
-    console.log(users);
 
     return {
       statusCode: HttpStatus.OK,
@@ -92,6 +93,38 @@ export class UsersController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Usuário desativado com sucesso',
+      data: plainToInstance(UserSafeResponseDTO, user, {
+        excludeExtraneousValues: true,
+      }),
+    };
+  }
+
+  @Patch('/:id/reactivate')
+  @UseGuards(AdminPanelGuard())
+  async reactivate(
+    @Param('id') id: string,
+  ): Promise<userReactivateInterfaceController> {
+    const user = await this.usersService.reactivateUser(+id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Usuário reativado com sucesso',
+      data: plainToInstance(UserSafeResponseDTO, user, {
+        excludeExtraneousValues: true,
+      }),
+    };
+  }
+
+  @Patch('/:id/permission')
+  @UseGuards(AdminPanelGuard())
+  async togglePermission(
+    @Param('id') id: string,
+  ): Promise<userTogglePermissionInterfaceController> {
+    const user = await this.usersService.togglePermissaoEdicao(+id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Permissão do usuário atualizada com sucesso',
       data: plainToInstance(UserSafeResponseDTO, user, {
         excludeExtraneousValues: true,
       }),
