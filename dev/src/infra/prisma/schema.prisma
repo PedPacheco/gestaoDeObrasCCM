@@ -167,7 +167,6 @@ model equipes {
   perfil                String?                 @db.VarChar(10)
   turmas                turmas                  @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_turmas")
   programacoes_servicos programacoes_servicos[]
-  servicos              servicos[]
 }
 
 model grupos {
@@ -342,7 +341,6 @@ model programacoes {
   usuario_ultima_atualizacao      novo_tabela_usuarios?   @relation("usuario_ultima_atualizacao", fields: [id_usuario_ultima_atualizacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_ultima_alteracao")
   programacoes_servicos           programacoes_servicos[]
   relatorio_execucao              relatorio_execucao[]
-  servicos                        servicos[]
 
   @@unique([id, id_obra, data_prog], map: "programacoes_ID_IDOBRA_DATAPROG_key")
 }
@@ -409,19 +407,15 @@ model servicos {
   qtde_prog             Float?
   qtde_real             Float?
   id_contrato_servico   Int?
-  id_equipe             Int?
-  id_programacao        Int?
   qtde_adicional        Float?
   id_material           Int?
   viabilizado           Float?
   numero_operacao       String?                 @db.VarChar(10)
   descricao_operacao    String?                 @db.VarChar(100)
   programacoes_servicos programacoes_servicos[]
-  equipes               equipes?                @relation(fields: [id_equipe], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipes")
   materiais             materiais?              @relation(fields: [id_material], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_materiais")
   obras                 obras                   @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
   servicos_contratos    servicos_contratos?     @relation(fields: [id_contrato_servico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_servicos_contratos")
-  programacoes          programacoes?           @relation(fields: [id_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_servicos_programacoes")
 }
 
 model servicos_contratos {
@@ -503,7 +497,6 @@ model turmas {
   base_auxiliar_ov      base_auxiliar_ov[]
   capacidade_execucao   capacidade_execucao[]
   equipes               equipes[]
-  gap_analysis          gap_analysis[]
   metas                 metas[]
   notas_d5              notas_d5[]
   novo_tabela_usuarios  novo_tabela_usuarios[]
@@ -523,6 +516,7 @@ model relatorio_viabilidade {
   data_aprovacao          DateTime?                 @db.Timestamp(6)
   id_usuario_aprovador    Int?
   prazo_viabilidade       String?                   @default("FALTA VIABILIDADE") @db.VarChar(25)
+  arquivos_complementares String[]
   obras                   obras                     @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
   novo_tabela_usuarios    novo_tabela_usuarios      @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario")
   reprovacoes_viabilidade reprovacoes_viabilidade[]
@@ -603,14 +597,6 @@ model status_programacao {
   id                 Int            @id @default(autoincrement())
   status_programacao String         @db.VarChar(30)
   programacoes       programacoes[]
-}
-
-model materiais_excluidos {
-  id                 Int     @id @default(autoincrement())
-  codigo_material    String? @db.VarChar(8)
-  descricao_material String? @db.VarChar(100)
-  centro             String? @db.VarChar(6)
-  contrato           String? @db.VarChar(25)
 }
 
 model programacoes_reprovacoes {
@@ -768,7 +754,7 @@ model recursos_contingencia {
   criado_em             DateTime             @default(now()) @db.Timestamp(6)
   id_parceira           Int
   turmas                turmas               @relation(fields: [id_parceira], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
-  usuario               novo_tabela_usuarios @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_contingencia")
+  novo_tabela_usuarios  novo_tabela_usuarios @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_contingencia")
 }
 
 model gap_analysis {
@@ -797,7 +783,6 @@ model gap_analysis {
   status                        String?   @db.VarChar(30)
   criado_em                     DateTime? @default(now()) @db.Timestamp(6)
   atualizado_em                 DateTime? @db.Timestamp(6)
-  turmas                        turmas    @relation(fields: [id_parceira], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
 }
 
 model materiais {

@@ -20,6 +20,7 @@ describe('FeasibilityController', () => {
 
   const mockHandleFeasibility = {
     upload: jest.fn(),
+    uploadComplementaryFiles: jest.fn(),
     reject: jest.fn(),
     approve: jest.fn(),
   };
@@ -306,6 +307,154 @@ describe('FeasibilityController', () => {
     });
   });
 
+  describe('uploadComplementaryFiles', () => {
+    it('deve fazer upload de arquivos com sucesso', async () => {
+      const mockFiles: Express.Multer.File[] = [
+        {
+          fieldname: 'files',
+          originalname: 'test1.pdf',
+          encoding: '7bit',
+          mimetype: 'application/pdf',
+          size: 1024,
+          buffer: Buffer.from('test'),
+          stream: null,
+          destination: '',
+          filename: '',
+          path: '',
+        },
+        {
+          fieldname: 'files',
+          originalname: 'test2.pdf',
+          encoding: '7bit',
+          mimetype: 'application/pdf',
+          size: 2048,
+          buffer: Buffer.from('test2'),
+          stream: null,
+          destination: '',
+          filename: '',
+          path: '',
+        },
+      ];
+
+      const mockExistingFiles = JSON.stringify(['a.pdf', 'b.pdf']);
+
+      const mockIdWork = 123;
+      const mockResponse = {
+        statusCode: HttpStatus.OK,
+        message: 'Arquivos complementares inseridos com sucesso',
+      };
+
+      mockHandleFeasibility.uploadComplementaryFiles.mockResolvedValue(
+        mockResponse,
+      );
+
+      const result = await controller.uploadComplementaryFiles(
+        mockFiles,
+        mockIdWork,
+        mockExistingFiles,
+        mockReq,
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(handleFeasibility.uploadComplementaryFiles).toHaveBeenCalledWith(
+        mockIdWork,
+        '2345',
+        mockFiles,
+        JSON.parse(mockExistingFiles),
+      );
+      expect(handleFeasibility.uploadComplementaryFiles).toHaveBeenCalledTimes(
+        1,
+      );
+    });
+
+    it('deve fazer upload de um único arquivo', async () => {
+      const mockFile: Express.Multer.File[] = [
+        {
+          fieldname: 'files',
+          originalname: 'single.pdf',
+          encoding: '7bit',
+          mimetype: 'application/pdf',
+          size: 512,
+          buffer: Buffer.from('single file'),
+          stream: null,
+          destination: '',
+          filename: '',
+          path: '',
+        },
+      ];
+
+      const mockExistingFiles = JSON.stringify(['a.pdf', 'b.pdf']);
+
+      const mockIdWork = 456;
+      const mockResponse = {
+        statusCode: HttpStatus.OK,
+        message: 'Arquivos complementares inseridos com sucesso',
+      };
+
+      mockHandleFeasibility.uploadComplementaryFiles.mockResolvedValue(
+        mockResponse,
+      );
+
+      const result = await controller.uploadComplementaryFiles(
+        mockFile,
+        mockIdWork,
+        mockExistingFiles,
+        mockReq,
+      );
+
+      expect(result).toEqual(mockResponse);
+      expect(handleFeasibility.uploadComplementaryFiles).toHaveBeenCalledWith(
+        mockIdWork,
+        '2345',
+        mockFile,
+        JSON.parse(mockExistingFiles),
+      );
+    });
+
+    it('deve lançar erro quando upload falhar', async () => {
+      const mockIdWork = 123;
+      const mockError = new Error('Upload failed');
+
+      mockHandleFeasibility.uploadComplementaryFiles.mockRejectedValue(
+        mockError,
+      );
+
+      await expect(
+        controller.uploadComplementaryFiles(undefined, mockIdWork, '', mockReq),
+      ).rejects.toThrow('Upload failed');
+      expect(handleFeasibility.uploadComplementaryFiles).toHaveBeenCalledWith(
+        mockIdWork,
+        '2345',
+        [],
+        [],
+      );
+    });
+
+    it('deve converter idObra string para número', async () => {
+      const mockFiles: Express.Multer.File[] = [];
+      const mockIdWork = 999;
+
+      mockHandleFeasibility.uploadComplementaryFiles.mockResolvedValue({});
+
+      const mockExistingFiles = JSON.stringify(['a.pdf', 'b.pdf']);
+
+      await controller.uploadComplementaryFiles(
+        mockFiles,
+        mockIdWork,
+        mockExistingFiles,
+        mockReq,
+      );
+
+      expect(handleFeasibility.uploadComplementaryFiles).toHaveBeenCalledWith(
+        999,
+        '2345',
+        mockFiles,
+        JSON.parse(mockExistingFiles),
+      );
+      expect(typeof mockIdWork).toBe('number');
+    });
+  });
+
   describe('rejectFeasibility', () => {
     it('deve chamar o método rejectFeasiblity corretamente', async () => {
       const data: RejectFeasibilityDTO = {
@@ -332,9 +481,7 @@ describe('FeasibilityController', () => {
     it('deve chamar o método approveFeasibility corretamente', async () => {
       mockHandleFeasibility.approve.mockResolvedValue(undefined);
 
-      const mockFiles: Express.Multer.File[] = [];
-
-      const result = await controller.approveFeasibility(1, mockFiles, mockReq);
+      const result = await controller.approveFeasibility(1, mockReq);
 
       expect(result).toEqual({
         statusCode: HttpStatus.NO_CONTENT,
@@ -346,13 +493,13 @@ describe('FeasibilityController', () => {
     it('deve chamar o método approveFeasibility corretamente sem os arquivos enviados', async () => {
       mockHandleFeasibility.approve.mockResolvedValue(undefined);
 
-      const result = await controller.approveFeasibility(1, undefined, mockReq);
+      const result = await controller.approveFeasibility(1, mockReq);
 
       expect(result).toEqual({
         statusCode: HttpStatus.NO_CONTENT,
         message: 'Viabilidade aprovada com sucesso',
       });
-      expect(mockHandleFeasibility.approve).toHaveBeenCalledWith(1, '2345', []);
+      expect(mockHandleFeasibility.approve).toHaveBeenCalledWith(1, '2345');
       expect(mockHandleFeasibility.approve).toHaveBeenCalledTimes(1);
     });
   });

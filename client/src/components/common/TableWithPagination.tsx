@@ -109,6 +109,8 @@ export function TableWithPagination({
                           "mo_pend",
                           "mo_exec",
                           "mo_planejada",
+                          "moPlanejadaPontoAPonto",
+                          "moExecutadoPontoAPonto",
                         ].includes(column)
                       ) {
                         cellValue = FormatCurrency(cellValue);

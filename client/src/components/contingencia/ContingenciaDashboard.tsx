@@ -10,7 +10,7 @@ import {
 import {
   ContingencyDashboardInterface,
   CountItem,
-} from "@/app/(dashboard)/recursos-contingencia/page";
+} from "@/app/(dashboard)/restricoes/recursos-contingencia/page";
 import { FiltersInterface } from "@/types/filtersInterfaces";
 import { FormatCurrency } from "@/utils/formatValue";
 import { Dayjs } from "dayjs";

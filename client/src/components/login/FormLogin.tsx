@@ -102,12 +102,24 @@ export function FormLogin() {
           disabled={loading}
         />
 
+        <div className="flex items-center justify-between">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showPassword}
+              // onChange={() => setShowPassword(!showPassword)}
+              className="w-4 h-4 rounded border-slate-300 text-emerald-500 focus:ring-emerald-500 cursor-pointer"
+            />
+            <span className="text-sm text-slate-600">Exibir senha</span>
+          </label>
+          {/* 
         <Link
           href="/login/forget-password"
           className="self-end mt-4 hover:text-[#53FF75]"
         >
-          Esqueceu sua senha ?
-        </Link>
+          Esqueceu a senha?
+        </Link> */}
+        </div>
       </div>
     </form>
   );

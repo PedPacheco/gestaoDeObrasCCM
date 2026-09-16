@@ -1,3 +1,5 @@
+import { Decimal } from '@prisma/client/runtime/library';
+
 interface ScheduleStatus {
   status_programacao: string;
 }
@@ -50,6 +52,25 @@ export interface Schedules {
   usuario_ultima_atualizacao?: User | null;
 }
 
+export interface ServicesType {
+  id: number;
+  qtde_real: number;
+  viabilizado: number;
+  qtde_adicional: number;
+  materiais: {
+    codigo: string | null;
+    descricao: string | null;
+    preco: Decimal;
+    unidade: string;
+  } | null;
+  servicos_contratos: {
+    material: string | null;
+    texto_breve: string | null;
+    preco: number;
+    medida: string;
+  } | null;
+}
+
 export interface GetWorksDetailsResponse {
   id: number;
   ovnota: string;
@@ -100,4 +121,5 @@ export interface GetWorksDetailsResponse {
   id_turma: number;
   id_status: number;
   programacoes: Schedules[];
+  // servicos: ServicesType[];
 }

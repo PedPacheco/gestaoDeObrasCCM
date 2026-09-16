@@ -92,28 +92,28 @@ describe('WorksServicesService', () => {
   });
 
   describe('scheduleServices', () => {
-    it('should schedule services successfully', async () => {
-      const mockScheduleData: ScheduleServicesDTO[] = [
-        {
-          id: 1,
-          idTeam: 10,
-          prog: 3,
-          operation: 'instalação',
-          point: 'p1',
-          additional: null,
-          type: 'S',
-        },
-        {
-          id: 2,
-          idTeam: 20,
-          prog: 5,
-          operation: 'instalação',
-          point: 'p1',
-          additional: null,
-          type: 'M',
-        },
-      ];
+    const mockScheduleData: ScheduleServicesDTO[] = [
+      {
+        id: 1,
+        idTeam: 10,
+        prog: 3,
+        operation: 'instalação',
+        point: 'p1',
+        additional: null,
+        type: 'S',
+      },
+      {
+        id: 2,
+        idTeam: 20,
+        prog: 5,
+        operation: 'instalação',
+        point: 'p1',
+        additional: null,
+        type: 'M',
+      },
+    ];
 
+    it('should schedule services successfully', async () => {
       mockWorkServicesQueryRepository.getAllServicesOfWork.mockResolvedValue([
         { id: 1, viabilizado: 3, qtde_adicional: null },
         { id: 2, viabilizado: 5, qtde_adicional: null },
@@ -132,6 +132,31 @@ describe('WorksServicesService', () => {
       expect(repository.scheduleServices).toHaveBeenCalledWith(
         mockScheduleData,
         { increment: 27.27 },
+        undefined,
+        1,
+      );
+      expect(repository.scheduleServices).toHaveBeenCalledTimes(1);
+    });
+
+    it('should schedule services successfully', async () => {
+      mockWorkServicesQueryRepository.getAllServicesOfWork.mockResolvedValue([
+        { id: 1, viabilizado: null, qtde_adicional: null },
+        { id: 2, viabilizado: null, qtde_adicional: null },
+        { id: 2, viabilizado: null, qtde_adicional: null },
+      ]);
+      mockWorkServicesQueryRepository.getServiceScheduleHistory.mockResolvedValue(
+        [],
+      );
+      mockWorksServicesRepository.scheduleServices.mockResolvedValue(undefined);
+      mockFindScheduleIdRepository.findById.mockResolvedValue({
+        id_status_programacao: 7,
+      });
+
+      await service.scheduleServices(1, mockScheduleData);
+
+      expect(repository.scheduleServices).toHaveBeenCalledWith(
+        mockScheduleData,
+        { increment: 0 },
         undefined,
         1,
       );
@@ -385,11 +410,20 @@ describe('WorksServicesService', () => {
     });
   });
 
-  describe('deleteAlll', () => {
+  describe('deleteAll', () => {
     it('should call method delete and call repository', async () => {
       await service.deleteAll(1);
 
-      expect(repository.deleteAll).toHaveBeenCalledWith(1);
+      expect(mockWorksServicesRepository.deleteAll).toHaveBeenCalledWith(1, {});
+    });
+
+    it('should log error and rethrow when deleteAll fails', async () => {
+      const error = new Error('Delete failed');
+      mockWorksServicesRepository.deleteAll.mockRejectedValueOnce(error);
+
+      await expect(service.deleteAll(1)).rejects.toThrow('Delete failed');
+
+      expect(mockLogger.error).toHaveBeenCalledWith(error);
     });
   });
 
@@ -486,7 +520,7 @@ describe('WorksServicesService', () => {
           id: 1,
           idTeam: 10,
           idSchedule: 5,
-          prog: undefined,
+          prog: 10,
           operation: 'instalação',
           point: 'p1',
           additional: null,
@@ -494,12 +528,18 @@ describe('WorksServicesService', () => {
         },
       ];
 
-      mockFindScheduleIdRepository.findById.mockResolvedValue({
-        id_status_programacao: 3,
-      });
+      mockWorkServicesQueryRepository.getServiceScheduleHistory.mockResolvedValue(
+        [],
+      );
 
       await expect(
-        service.scheduleServices(1, mockScheduleData),
+        service['validateScheduleServices'](1, mockScheduleData, undefined),
+      ).rejects.toThrow(
+        new BadRequestException('Valor do programado tem que ser enviado'),
+      );
+
+      await expect(
+        service['validateScheduleServices'](1, mockScheduleData, null),
       ).rejects.toThrow(
         new BadRequestException('Valor do programado tem que ser enviado'),
       );

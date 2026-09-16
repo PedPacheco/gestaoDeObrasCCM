@@ -33,14 +33,9 @@ export class FeasibilityService {
     }));
   }
 
-  async exportFeasibility(
-    startDate: string,
-    endDate: string,
-    idPartner?: number[],
-  ) {
+  async exportFeasibilityPendingApproval(idPartner?: number[]) {
     const data = await this.feasibilityRepository.exportFeasibility(
-      startDate,
-      endDate,
+      46,
       idPartner,
     );
 
@@ -79,6 +74,48 @@ export class FeasibilityService {
           valorTotal: preco * qtdeTotal,
           diferença: service.qtde_plan - service.viabilizado,
           alterado: service.viabilizado !== service.qtde_plan ? 'Sim' : 'Não',
+        };
+      }),
+    );
+  }
+
+  async exportFeasibilityPending(idPartner?: number[]) {
+    const data = await this.feasibilityRepository.exportFeasibility(
+      45,
+      idPartner,
+    );
+
+    return data.flatMap((obra) =>
+      obra.servicos.map((service) => {
+        const preco =
+          service.servicos_contratos?.preco ??
+          service.materiais?.preco.toNumber() ??
+          0;
+
+        const qtdeTotal =
+          (service.qtde_plan ?? 0) + (service.qtde_adicional ?? 0);
+
+        return {
+          ovnota: obra.ovnota,
+          ordemDiagrama:
+            obra.diagrama ??
+            obra.ordem_dci ??
+            obra.ordem_dca ??
+            obra.ordem_dcd ??
+            obra.ordem_dcim,
+          operacao: service.operacao,
+          ponto: service.ponto,
+          numeroOperacao: service.numero_operacao,
+          descricaoOperacao: service.descricao_operacao,
+          material:
+            service.servicos_contratos?.material ?? service.materiais?.codigo,
+          textoBreve:
+            service.servicos_contratos?.texto_breve ??
+            service.materiais?.descricao,
+          qtdePlanejada: service.qtde_plan,
+          tipo: service.materiais?.codigo ? 'M' : 'S',
+          valorUnit: preco,
+          valorTotal: preco * qtdeTotal,
         };
       }),
     );

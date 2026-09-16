@@ -12,11 +12,7 @@ import { ButtonComponent } from "@/components/common/Button";
 import { LoadingComponent } from "@/components/common/Loading";
 import { useFeedback } from "@/hooks/useFeedback";
 import { FormatCurrency } from "@/utils/formatValue";
-import {
-  ArrowUpTrayIcon,
-  PlusIcon,
-  TrashIcon,
-} from "@heroicons/react/20/solid";
+import { PlusIcon, TrashIcon } from "@heroicons/react/20/solid";
 import {
   Box,
   Button,
@@ -41,6 +37,7 @@ import { TeamModal } from "./teamsModal";
 import { useServicesFilters } from "@/hooks/services/useServicesFilters";
 import { MATERIAL_OR_SERVICE_OPTIONS } from "@/constants/services/services";
 import ConfirmationScheduleModalComponent from "@/components/common/confirmationScheduleModal";
+import { ServiceQuantityToBt0Modal } from "./serviceQuantityToBt0Modal";
 
 interface ServicesAvaliableProps {
   servicesData: any[];
@@ -52,6 +49,7 @@ interface ServicesAvaliableProps {
   onError: (error: string) => void;
   onSuccess: (success: string, onClose?: () => void) => void;
   workId: number;
+  hasOrdemDcim: boolean;
 }
 
 const serviceColumns = [
@@ -65,6 +63,7 @@ const serviceColumns = [
   { key: "qtdePlanejada", label: "PLAN" },
   { key: "viabilizado", label: "VIABILIZADO" },
   { key: "qtdeAdicional", label: "ADICIONAL" },
+  { key: "saldoDisponivel", label: "DISPONÍVEL" },
   { key: "qtdeRealizada", label: "REAL" },
   { key: "valorUnit", label: "VALOR UNIT" },
   { key: "valorTotal", label: "VALOR TOTAL" },
@@ -79,9 +78,12 @@ export function NewServicesAvaliable({
   onError,
   onSuccess,
   workId,
+  hasOrdemDcim,
 }: ServicesAvaliableProps) {
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
   const [openTeamsModal, setOpenTeamsModal] = useState(false);
+  const [openServiceQuantityBt0Modal, setOpenServiceQuantityBt0Modal] =
+    useState(false);
 
   const handleOpenDeleteModal = (item: any) => {
     setItemToDelete(item);
@@ -165,6 +167,13 @@ export function NewServicesAvaliable({
       )
     ) {
       showError("Serviço selecionado sem valores para execução");
+      return;
+    }
+
+    if (hasOrdemDcim) {
+      console.log(hasOrdemDcim);
+      setOpenServiceQuantityBt0Modal(true);
+
       return;
     }
 
@@ -315,13 +324,7 @@ export function NewServicesAvaliable({
                         setSelectedServices(
                           filteredServicesData.map((s) => ({
                             ...s,
-                            prog:
-                              Math.round(
-                                (s.viabilizado +
-                                  Number(s.qtdeAdicional ?? 0) -
-                                  s.qtdeRealizada) *
-                                  1000,
-                              ) / 1000,
+                            prog: Math.round(s.saldoDisponivel * 1000) / 1000,
                             additional: s.qtdeAdicional,
                           })),
                         );
@@ -379,12 +382,7 @@ export function NewServicesAvaliable({
                               {
                                 ...row,
                                 prog:
-                                  Math.round(
-                                    (row.viabilizado +
-                                      Number(row.qtdeAdicional ?? 0) -
-                                      row.qtdeRealizada) *
-                                      1000,
-                                  ) / 1000,
+                                  Math.round(row.saldoDisponivel * 1000) / 1000,
                                 qtdeAdicional: row.qtdeAdicional,
                               },
                             ]);
@@ -471,6 +469,17 @@ export function NewServicesAvaliable({
           />
         </Box>
       </Paper>
+
+      <ServiceQuantityToBt0Modal
+        onClose={() => setOpenServiceQuantityBt0Modal(false)}
+        onConfirm={() => {
+          setOpenServiceQuantityBt0Modal(false);
+          setOpenTeamsModal(true);
+        }}
+        open={openServiceQuantityBt0Modal}
+        selectedServices={selectedServices}
+        onQuantityChange={setSelectedServices}
+      />
 
       <TeamModal
         open={openTeamsModal}

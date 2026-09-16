@@ -72,6 +72,8 @@ export function usePersistentServiceValidation(idSchedule?: number | null) {
 
       const newStatuses: Record<number, ValidationStatus> = {};
 
+      console.log(services);
+
       const updatedServices = services.map((service) => {
         const real = service.qtdeRealizada?.toString();
         const plan = service.prog;

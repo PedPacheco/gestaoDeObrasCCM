@@ -31,7 +31,7 @@ export class ContingencyRepository implements IContingencyRepository {
       orderBy: { criado_em: 'desc' },
       select: {
         dia_disponibilidade: true,
-        usuario: { select: { nome: true } },
+        novo_tabela_usuarios: { select: { nome: true } },
         turmas: { select: { turma: true } },
       },
     });

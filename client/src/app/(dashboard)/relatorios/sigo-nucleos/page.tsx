@@ -1,8 +1,8 @@
-import SigoNucleosDashboard from "@/components/dashboard/sigoNucleos/SigoNucleosDashboard";
+import SigoNucleosDashboard from "@/components/sigoNucleos/SigoNucleosDashboard";
 
 export const dynamic = "force-dynamic";
 
-export default function SigoNucleosPage() {
+export default async function SigoNucleosPage() {
   return (
     <div className="h-full w-full overflow-y-auto">
       <SigoNucleosDashboard />

@@ -24,6 +24,7 @@ export interface IWorkServicesQueryRepository {
     id: number,
     tx?: Prisma.TransactionClient,
   ): Promise<GetServiceScheduleHistoryResponse[]>;
+  getServiceScheduleHistoryByIdSchedule(ids: number[]): Promise<any[]>;
   getServicesToExportation(params: {
     dataFinal: string;
     dataInicial: string;
