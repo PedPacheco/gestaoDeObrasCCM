@@ -8,6 +8,7 @@ import { UpdateWorkDTO } from 'src/interface/dtos/worksDto';
 
 import { BadGatewayException, BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import moment from 'moment';
 
 describe('HandleWorkUpdateService', () => {
   let service: HandleWorkUpdateService;
@@ -52,9 +53,14 @@ describe('HandleWorkUpdateService', () => {
     }).compile();
 
     service = module.get<HandleWorkUpdateService>(HandleWorkUpdateService);
+
+    jest.useFakeTimers().setSystemTime(new Date('2026-09-16T12:00:00.000Z'));
   });
 
-  afterEach(jest.clearAllMocks);
+  afterEach(() => {
+    jest.clearAllMocks();
+    jest.useRealTimers();
+  });
 
   describe('update', () => {
     it('should add schedule and update work status within a transaction', async () => {
@@ -75,6 +81,41 @@ describe('HandleWorkUpdateService', () => {
         1,
         expect.any(Object),
       );
+      expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
+        45,
+        1,
+        expect.any(Object),
+      );
+    });
+
+    it('should set data_empreitamento with current UTC date when not provided and status is 42', async () => {
+      const data: UpdateWorkDTO = {
+        id_status: 45,
+        id_turma: 4,
+      };
+
+      mockGetDetailsService.get.mockResolvedValue({
+        id_status: 42,
+        id: 1,
+        data_empreitamento: null,
+      });
+
+      mockPrisma.$transaction.mockImplementation(async (cb) => cb({}));
+
+      const expectedDate = moment.utc().startOf('day').toDate();
+
+      await service.update(data, 1, false);
+
+      expect(data.data_empreitamento).toEqual(expectedDate);
+
+      expect(mockUpdateWorkService.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data_empreitamento: expectedDate,
+        }),
+        1,
+        expect.any(Object),
+      );
+
       expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
         45,
         1,

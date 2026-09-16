@@ -3,7 +3,7 @@
 import { useUser } from "@/contexts/userContext";
 import DataItem from "./dataItem";
 import { SelectComponent } from "@/components/common/Select";
-import { ReactNode } from "react";
+import { ReactNode, useMemo } from "react";
 
 interface typeData {
   id_turma: string;
@@ -13,6 +13,8 @@ interface typeData {
 
 interface EditableColumnProps {
   data: typeData;
+  feasibilityApprove: boolean;
+  feasibilitySubmissionDate: Date | null;
   options: {
     parceira: { id: number; turma: string }[];
     status: { id: number; status: string }[];
@@ -37,18 +39,35 @@ const statusOrder = [
 
 export const EditableColumn = ({
   data,
+  feasibilitySubmissionDate,
+  feasibilityApprove,
   options,
   onHandleChange,
   EditSuspension,
 }: EditableColumnProps) => {
   const { permissions } = useUser();
 
-  const sortedStatus = options.status.sort(
-    (a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status),
-  );
+  const getFilteredAndSortedStatus = useMemo(() => {
+    const filtered =
+      data.id_status === 42 && data.data_empreitamento === null
+        ? options.status.filter((item) => [42, 45, 4, 3].includes(item.id))
+        : options.status.filter((item) => item.id !== 42);
+
+    return filtered.sort(
+      (a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status),
+    );
+  }, [data.data_empreitamento, options.status]);
 
   const havePermission =
     permissions?.tipo_usuario === "PARCEIRA" || !permissions?.permissao_edicao;
+
+  const disableWhenStatusisAwaitingFeasibility =
+    !feasibilitySubmissionDate && data.id_status === 45;
+
+  const disableWhenStatusIsPendingApproval =
+    data.id_status === 46 &&
+    Boolean(feasibilitySubmissionDate) &&
+    !feasibilityApprove;
 
   return (
     <>
@@ -64,12 +83,16 @@ export const EditableColumn = ({
 
       <SelectComponent
         label="Status da Obra"
-        menuItems={sortedStatus}
+        menuItems={getFilteredAndSortedStatus}
         selectedItem={data.id_status?.toString() || "1"}
         setSelectedItem={(value) => onHandleChange("id_status", value)}
         valueKey="id"
         displayKey="status"
-        disabled={havePermission}
+        disabled={
+          havePermission ||
+          disableWhenStatusisAwaitingFeasibility ||
+          disableWhenStatusIsPendingApproval
+        }
         editButton={EditSuspension}
       />
 

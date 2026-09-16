@@ -8,36 +8,26 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import dayjs from "dayjs";
 import { ButtonComponent } from "../common/Button";
 import { useState } from "react";
 
-interface DateRangerFilterProps {
+interface PartnerFilterProps {
   openModal: boolean;
   setOpenModal: (value: boolean) => void;
-  generateExcel: (filters: {
-    startDate: string;
-    endDate: string;
-    idPartner: number[];
-  }) => Promise<void>;
+  generateExcel: (filters: { idPartner: number[] }) => Promise<void>;
   options: {
     parceira: Array<{ id: number; turma: string }>;
   };
   loading: boolean;
 }
 
-export function DateRangerFilter({
+export function PartnerFilter({
   openModal,
   setOpenModal,
   generateExcel,
   options,
   loading,
-}: DateRangerFilterProps) {
-  const [startDate, setStartDate] = useState<dayjs.Dayjs | null>(null);
-  const [endDate, setEndDate] = useState<dayjs.Dayjs | null>(null);
-
+}: PartnerFilterProps) {
   const [selectedPartners, setSelectedPartners] = useState<
     { id: number; turma: string }[]
   >([]);
@@ -57,40 +47,6 @@ export function DateRangerFilter({
         >
           <XMarkIcon />
         </IconButton>
-
-        <Box>
-          <Typography variant="subtitle2" className="mb-2 text-gray-600">
-            Período
-          </Typography>
-
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-            <LocalizationProvider
-              dateAdapter={AdapterDayjs}
-              adapterLocale="pt-br"
-            >
-              <DatePicker
-                label="Data Inicial"
-                value={startDate}
-                format="DD/MM/YYYY"
-                onChange={setStartDate}
-                slotProps={{ textField: { fullWidth: true } }}
-              />
-            </LocalizationProvider>
-
-            <LocalizationProvider
-              dateAdapter={AdapterDayjs}
-              adapterLocale="pt-br"
-            >
-              <DatePicker
-                label="Data Final"
-                value={endDate}
-                format="DD/MM/YYYY"
-                onChange={setEndDate}
-                slotProps={{ textField: { fullWidth: true } }}
-              />
-            </LocalizationProvider>
-          </Stack>
-        </Box>
 
         <Box className="mb-2">
           <Typography variant="subtitle2" className="mb-2 text-gray-600">
@@ -119,13 +75,7 @@ export function DateRangerFilter({
           />
           <ButtonComponent
             onClick={() => {
-              if (!startDate || !endDate) {
-                return;
-              }
-
               generateExcel({
-                startDate: startDate.format("YYYY-MM-DD"),
-                endDate: endDate.format("YYYY-MM-DD"),
                 idPartner: selectedPartners.map((partner) => partner.id),
               });
 
