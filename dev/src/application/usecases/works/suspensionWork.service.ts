@@ -35,7 +35,10 @@ export class SuspensionWorkService {
     }
 
     const invalid = data.find(
-      (item) => !item.ovnota?.trim() || !item.motivo?.trim(),
+      (item) =>
+        !item.ovnota?.trim() ||
+        !item.motivo?.trim() ||
+        !item.ordemDiagrama?.trim(),
     );
 
     if (invalid) {
@@ -44,10 +47,19 @@ export class SuspensionWorkService {
       );
     }
 
-    const uniquesWorks = Array.from(new Set(data.map((item) => item.ovnota)));
+    const uniquesWorks = Array.from(
+      new Set(
+        data.map((item) => ({
+          ovnota: item.ovnota,
+          ordemDiagrama: item.ordemDiagrama,
+        })),
+      ),
+    );
 
     const existingOvs =
-      await this.findExistingWorksService.findExistingWorks(uniquesWorks);
+      await this.findExistingWorksService.findExistingWorksOnSuspension(
+        uniquesWorks,
+      );
 
     const ovMap = new Map(existingOvs.map((ov) => [ov.ovnota, ov.id]));
 

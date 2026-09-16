@@ -188,7 +188,8 @@ async function fetchMaodeObra(token: string, dashboard: "labor" | "partner") {
 
   const firstSummary = res.data?.firstSummary ?? {};
   const secondSummary = res.data?.secondSummary ?? [];
-  const metaDiaria: number = firstSummary.summary?.[0]?.financialGoal ?? 0;
+
+  const metaDiaria: number = firstSummary.totals?.totalFinancialGoal ?? 0;
 
   return { data: firstSummary, data2: secondSummary, metaDiaria };
 }

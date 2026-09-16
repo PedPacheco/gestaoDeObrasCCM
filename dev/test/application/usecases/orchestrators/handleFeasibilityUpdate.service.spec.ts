@@ -1,21 +1,20 @@
+import moment from 'moment';
 import { FileService } from 'src/application/usecases/file.service';
-
+import { HandleFeasibilityService } from 'src/application/usecases/orchestrators/handleFeasibilityUpload.service';
+import {
+  FEASIBILITY_REPOSITORY,
+  IFeasibilityRepository,
+} from 'src/domain/repositories/IFeasibilityRepository';
+import {
+  IStatusFlowRepository,
+  STATUS_FLOW_REPOSITORY,
+} from 'src/domain/repositories/IStatusFlowRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
 import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
 
 import { BadGatewayException, BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  FEASIBILITY_REPOSITORY,
-  IFeasibilityRepository,
-} from 'src/domain/repositories/IFeasibilityRepository';
-import { HandleFeasibilityService } from 'src/application/usecases/orchestrators/handleFeasibilityUpload.service';
-import {
-  IStatusFlowRepository,
-  STATUS_FLOW_REPOSITORY,
-} from 'src/domain/repositories/IStatusFlowRepository';
-import moment from 'moment';
 
 describe('HandleFeasibilityService', () => {
   let service: HandleFeasibilityService;
@@ -44,6 +43,7 @@ describe('HandleFeasibilityService', () => {
       makeItemsFeasible: jest.fn(),
       getProjectDate: jest.fn(),
       reject: jest.fn(),
+      updateFiles: jest.fn(),
       approve: jest.fn(),
       findFiles: jest.fn(),
     };
@@ -224,6 +224,7 @@ describe('HandleFeasibilityService', () => {
         mockFeasibilityRepository.findFiles.mockResolvedValue({
           id: 1,
           caminhos_arquivos: ['doc.pdf'],
+          arquivos_complementares: null,
         });
 
         await service.upload(idWork, idUser, true, files, ['doc.pdf'], items);
@@ -337,6 +338,7 @@ describe('HandleFeasibilityService', () => {
             'old-file-2.pdf',
             'keep-file.pdf',
           ],
+          arquivos_complementares: null,
         });
 
         await service.upload(
@@ -367,6 +369,7 @@ describe('HandleFeasibilityService', () => {
         mockFeasibilityRepository.findFiles.mockResolvedValue({
           id: 1,
           caminhos_arquivos: ['file1.pdf', 'file2.pdf', 'file3.pdf'],
+          arquivos_complementares: null,
         });
 
         mockFileServiceService.deleteFile
@@ -460,6 +463,75 @@ describe('HandleFeasibilityService', () => {
     });
   });
 
+  describe('uploadComplementaryFiles', () => {
+    const idWork = 1;
+    const idUser = 42;
+
+    it('should throw when idWork is invalid', async () => {
+      await expect(
+        service.uploadComplementaryFiles(0, idUser, [makeFile()], []),
+      ).rejects.toThrow('Obra não foi encontrada');
+
+      expect(mockPrisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('should update complementary files merging existing and uploaded files', async () => {
+      mockFeasibilityRepository.findFiles.mockResolvedValue({
+        id: 1,
+        caminhos_arquivos: [],
+        arquivos_complementares: null,
+      });
+
+      await service.uploadComplementaryFiles(
+        idWork,
+        idUser,
+        [makeFile('new.pdf')],
+        [],
+      );
+
+      expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
+
+      expect(feasibilityRepository.findFiles).toHaveBeenCalledWith(idWork);
+
+      expect(feasibilityRepository.updateFiles).toHaveBeenCalledWith(
+        idWork,
+        ['new.pdf'],
+        'complementary',
+        expect.anything(),
+      );
+    });
+
+    it('should delete removed files', async () => {
+      mockFeasibilityRepository.findFiles.mockResolvedValue({
+        id: 1,
+        caminhos_arquivos: [],
+        arquivos_complementares: ['remove-1.pdf', 'remove-2.pdf'],
+      });
+
+      await service.uploadComplementaryFiles(idWork, idUser, [], ['keep.pdf']);
+
+      expect(mockFileServiceService.deleteFile).toHaveBeenCalledTimes(2);
+
+      expect(mockFileServiceService.deleteFile).toHaveBeenCalledWith(
+        `${process.env.UPLOAD_DEST}/remove-1.pdf`,
+      );
+
+      expect(mockFileServiceService.deleteFile).toHaveBeenCalledWith(
+        `${process.env.UPLOAD_DEST}/remove-2.pdf`,
+      );
+    });
+
+    it('should propagate repository errors', async () => {
+      feasibilityRepository.findFiles.mockRejectedValueOnce(
+        new Error('Database error'),
+      );
+
+      await expect(
+        service.uploadComplementaryFiles(idWork, idUser, [], []),
+      ).rejects.toThrow('Database error');
+    });
+  });
+
   describe('reject', () => {
     const mockData: RejectFeasibilityDTO = {
       workId: 10,
@@ -550,7 +622,13 @@ describe('HandleFeasibilityService', () => {
         expect(mockPrisma.$transaction).toHaveBeenCalledTimes(1);
       });
 
-      it('should call feasibilityRepository.reject with correct data', async () => {
+      it('should call feasibilityRepository.approve with correct data', async () => {
+        mockFeasibilityRepository.findFiles.mockResolvedValue({
+          id: 1,
+          caminhos_arquivos: undefined,
+          arquivos_complementares: undefined,
+        });
+
         await service.approve(1, 2);
 
         expect(feasibilityRepository.approve).toHaveBeenCalledWith(1, 2, {});

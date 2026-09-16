@@ -39,7 +39,7 @@ export interface ScheduleFormDialogProps {
   onExecutionDialogOpen: (open: boolean) => void;
   options: {
     tecnico: Array<{ id: number; tecnico: string }>;
-    restricao: Array<{ id: number; restricao: string; tipo_restricao: string }>;
+    restricao: Array<{ id: number; restricao: string; tipo_restricao: string; responsabilidade: string }>;
   };
   scheduleForm: ScheduleFormHookReturn;
   statusWork: number;

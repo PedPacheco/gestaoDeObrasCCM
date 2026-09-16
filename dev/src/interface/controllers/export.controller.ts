@@ -1,5 +1,13 @@
 import { Response } from 'express';
-import { Controller, Get, Query, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  NotFoundException,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 
 // Guards
 import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
@@ -45,6 +53,17 @@ import { GetRestrictionsDTO } from '../dtos/restrictionsDTO';
 import { RestrictionsService } from 'src/application/usecases/restrictions.service';
 import { ExportPublicationRestrictionService } from 'src/application/usecases/export/exportPublicationRestriction.service';
 import { ExportReportToPubliationService } from 'src/application/usecases/export/exportReportToPublication.service';
+import { ExportServicesInputDto } from '../dtos/workServicesDTO';
+import {
+  ExportPdfServicesService,
+  ExportServicesPdfOutput,
+} from 'src/application/usecases/export/services/exportPdfServices.service';
+import { ExportExcelServicesService } from 'src/application/usecases/export/services/exportExcelServices.service';
+import { ExportServicesExcelOutput } from '../types/servicesInterface';
+import { FeasibilityService } from 'src/application/usecases/feasibility.service';
+import { ExportFeasibilityService } from 'src/application/usecases/export/exportFeasibility.service';
+import { ExportFeasibilityInputDto } from '../dtos/feasibilityDTO';
+import { ExportServicesService } from 'src/application/usecases/services/exportServices.service';
 
 interface CustomRequest extends Request {
   idParceira?: number;
@@ -77,6 +96,12 @@ export class ExportController {
     // Restrictions
     private readonly restrictionsService: RestrictionsService,
 
+    // Services
+    private readonly exportServicesService: ExportServicesService,
+
+    // Feasibility
+    private readonly feasibilityService: FeasibilityService,
+
     // Export - Standard
     private readonly exportScheduleService: ExportScheduleService,
     private readonly exportWorksInPortfolioService: ExportWorksInPortfolioService,
@@ -93,6 +118,9 @@ export class ExportController {
     private readonly exportOrdersService: ExportOrdersService,
     private readonly exportPublicationRestrictionService: ExportPublicationRestrictionService,
     private readonly exportReportToPublicationService: ExportReportToPubliationService,
+    private readonly exportPdfServicesService: ExportPdfServicesService,
+    private readonly exportExcelServicesService: ExportExcelServicesService,
+    private readonly exportFeasibilityService: ExportFeasibilityService,
 
     // Export - BI
     private readonly exportWorksInPortfolioBIService: ExportWorksInPortfolioBI,
@@ -117,6 +145,14 @@ export class ExportController {
   private setXlsxHeaders(res: Response, filename: string): void {
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Content-Type', XLSX_CONTENT_TYPE);
+  }
+
+  private setPdfHeaders(res: Response, fileName: string) {
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${fileName}.pdf"`,
+    );
   }
 
   // ─────────────────────────────────────────────
@@ -242,6 +278,73 @@ export class ExportController {
       publicationRestrictionData,
       res,
     );
+  }
+
+  @Get('servicos')
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
+  async exportServices(
+    @Query() filters: ExportServicesInputDto,
+    @Res() res: Response,
+    @Req() req: any,
+  ) {
+    const appliedFilters = this.applyFilters(filters, req);
+
+    const servicesData =
+      await this.exportServicesService.getServicesToExportation(appliedFilters);
+
+    if (!servicesData.length) {
+      throw new NotFoundException(
+        'Nenhuma obra encontrada para os filtros informados.',
+      );
+    }
+
+    if (filters.fileType === 'pdf') {
+      this.setPdfHeaders(res, 'Exportacao Serviços e Materiais');
+      return this.exportPdfServicesService.export(
+        servicesData as ExportServicesPdfOutput[],
+        res,
+      );
+    }
+
+    this.setXlsxHeaders(res, 'Exportacao Serviços e Materiais');
+    return this.exportExcelServicesService.export(
+      servicesData as ExportServicesExcelOutput[],
+      res,
+      req.user.tipo_usuario === 'INTERNO',
+    );
+  }
+
+  @Get('viabilidade/aguardando-aprovacao')
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
+  async exportFeasibilityPendingApproval(
+    @Res() res: Response,
+    @Query() query: ExportFeasibilityInputDto,
+  ) {
+    const { idPartner } = query;
+
+    const data =
+      await this.feasibilityService.exportFeasibilityPendingApproval(idPartner);
+
+    this.setXlsxHeaders(res, 'Exportação Viabilidade Aguardando Aprovação');
+    return this.exportFeasibilityService.exportFeasibilityPendingApproval(
+      data,
+      res,
+    );
+  }
+
+  @Get('viabilidade/aguardando-viabilidade')
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
+  async exportFeasibilityPending(
+    @Res() res: Response,
+    @Query() query: ExportFeasibilityInputDto,
+  ) {
+    const { idPartner } = query;
+
+    const data =
+      await this.feasibilityService.exportFeasibilityPending(idPartner);
+
+    this.setXlsxHeaders(res, 'Exportação Viabilidade Pendente');
+    return this.exportFeasibilityService.exportFeasibilityPending(data, res);
   }
 
   // ─────────────────────────────────────────────

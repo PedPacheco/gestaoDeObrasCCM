@@ -9,6 +9,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
 import { WORK_SERVICES_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesRepository';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
+import { Prisma } from '@prisma/client';
+import { NotFoundException } from '@nestjs/common';
 
 describe('WorksServicesService', () => {
   let service: FinalizeServicesService;
@@ -137,8 +139,10 @@ describe('WorksServicesService', () => {
         ],
       );
 
+      const mockTx = {} as unknown as Prisma.TransactionClient;
+
       mockPrisma.$transaction.mockImplementation(async (callback) =>
-        callback(mockPrisma),
+        callback(mockTx),
       );
 
       await service.reascheduleServices(2, 1);
@@ -150,8 +154,8 @@ describe('WorksServicesService', () => {
           { id: 1, id_servico: 1 },
           { id: 2, id_servico: 2 },
         ],
-
         1,
+        mockTx,
       );
     });
 
@@ -557,8 +561,42 @@ describe('WorksServicesService', () => {
           prog: 60,
           exec: 50,
         }),
-        expect.any(Array),
         mockPrisma,
+      );
+    });
+
+    it('should throw NotFoundException when schedule history is not found', async () => {
+      mockWorkServicesQueryRepository.getServiceScheduleHistory.mockResolvedValue(
+        [
+          {
+            id_programacao: 999,
+            id_servico: 1,
+            prog: 30,
+            real: 25,
+            servicos: {
+              materiais: null,
+              servicos_contratos: {
+                select: {
+                  texto_breve: 'POSTE',
+                  material: '1234',
+                },
+              },
+            },
+            programacoes: {
+              data_prog: mockDate,
+            },
+          },
+        ],
+      );
+
+      await expect(
+        service.finalizeServices(mockWorkId, mockData),
+      ).rejects.toThrow(NotFoundException);
+
+      await expect(
+        service.finalizeServices(mockWorkId, mockData),
+      ).rejects.toThrow(
+        `Nenhum histórico encontrado para a programação ${mockScheduleId} nesta obra.`,
       );
     });
   });

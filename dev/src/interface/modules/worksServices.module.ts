@@ -25,12 +25,17 @@ import { ImportServicesSpreadsheetService } from 'src/application/usecases/servi
 import { SpreadsheetParserService } from 'src/infra/spreadsheet/spreadsheet.service';
 import { ServicesExecutionController } from '../controllers/services/servicesExecution.controller';
 import { ServicesQueryController } from '../controllers/services/servicesQuery.controller';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
+import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
+import { ExportServicesService } from 'src/application/usecases/services/exportServices.service';
+import { ScheduleModule } from './schedule.module';
 
 @Module({
   imports: [
     UsersModule,
+    forwardRef(() => WorksModule),
+    forwardRef(() => ScheduleModule),
     forwardRef(() => ExecutionReportModule),
-    WorksModule,
     MulterModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -80,6 +85,11 @@ import { ServicesQueryController } from '../controllers/services/servicesQuery.c
     ScheduleProgressCalculatorService,
     ImportServicesSpreadsheetService,
     SpreadsheetParserService,
+    ExportServicesService,
+    {
+      provide: FIND_SCHEDULE_BY_ID_REPOSITORY,
+      useClass: FindScheduleByIdRepository,
+    },
     {
       provide: WORK_SERVICES_REPOSITORY,
       useClass: WorkServicesRepository,
@@ -94,6 +104,10 @@ import { ServicesQueryController } from '../controllers/services/servicesQuery.c
     },
     { provide: STATUS_FLOW_REPOSITORY, useClass: StatusFlowRepository },
   ],
-  exports: [WorksServicesService],
+  exports: [
+    WorksServicesService,
+    QueriesServicesService,
+    ExportServicesService,
+  ],
 })
 export class WorksServicesModule {}

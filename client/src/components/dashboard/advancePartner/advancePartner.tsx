@@ -190,7 +190,7 @@ export default function AdvancePartnerDashboard({
         eliminacao={eliminacao}
         taxaExec={taxaExec}
         reasonsReascheduling={motivos}
-        dailyGoal={dailyGoal * 22}
+        dailyGoal={dailyGoal}
       />
 
       {/* ── Sparklines: 3 cards — Empresas | Eliminação | Aderência ── */}

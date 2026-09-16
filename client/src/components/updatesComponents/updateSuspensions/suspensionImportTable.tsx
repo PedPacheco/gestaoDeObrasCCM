@@ -22,6 +22,7 @@ dayjs.extend(utc);
 
 interface SuspensionRow {
   ovnota: string;
+  ordemDiagrama: string;
   motivo: string;
 }
 
@@ -41,7 +42,12 @@ const suspensionOptions = [
   "Transferida para CSD",
 ];
 
-const columnMapping = ["Ov/Nota", "Motivos das Suspensões", "Ações"];
+const columnMapping = [
+  "Ov/Nota",
+  "Ordem/Diagrama",
+  "Motivos das Suspensões",
+  "Ações",
+];
 
 const VirtuosoTableComponents: TableComponents = {
   Scroller: forwardRef<HTMLDivElement>(function scroller(props, ref) {
@@ -107,6 +113,10 @@ export function SuspensionImportTable() {
       <>
         <TableCell className="py-1 px-2 text-center text-lg">
           {item.ovnota}
+        </TableCell>
+
+        <TableCell className="py-1 px-2 text-center text-lg">
+          {item.ordemDiagrama}
         </TableCell>
 
         <TableCell className="py-1 px-2 text-center text-lg w-full">

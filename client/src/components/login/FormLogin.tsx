@@ -13,11 +13,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Checkbox, TextField } from "@mui/material";
 
 import { ButtonComponent } from "../common/Button";
+import { ArrowPathIcon } from "@heroicons/react/20/solid";
 
 type UserLoginSchema = z.infer<typeof userLoginSchema>;
 
 export function FormLogin() {
   const [showPassword, SetShowPassoword] = useState(false);
+
+  const [loading, setLoading] = useState(false);
+
   const { showError } = useFeedback();
 
   const { login } = useUser();
@@ -33,6 +37,7 @@ export function FormLogin() {
 
   async function handleUserLogin({ user, password }: UserLoginSchema) {
     try {
+      setLoading(true);
       const response = await login(user, password);
 
       if (response.success) {
@@ -42,6 +47,8 @@ export function FormLogin() {
       }
     } catch (error: any) {
       showError("Ocorreu um erro durante o login.");
+    } finally {
+      setLoading(false);
     }
   }
   return (
@@ -80,7 +87,20 @@ export function FormLogin() {
           />
           <p className="text-zinc-700 text-nowrap">Exibir senha</p>
         </div>
-        <ButtonComponent text="ENTRAR" type="submit" />
+        <ButtonComponent
+          text={
+            loading ? (
+              <div className="flex items-center gap-2">
+                <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                Carregando...
+              </div>
+            ) : (
+              "Entrar"
+            )
+          }
+          type="submit"
+          disabled={loading}
+        />
 
         <Link
           href="/login/forget-password"

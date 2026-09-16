@@ -256,4 +256,9 @@ export const links: Link[] = [
     allowedFor: ["interno_editor", "interno_viewer", "parceira"],
     allowedAreas: [8, 1],
   },
+  {
+    name: "Usuários",
+    href: "/usuarios",
+    allowedFor: ["admin"],
+  },
 ];

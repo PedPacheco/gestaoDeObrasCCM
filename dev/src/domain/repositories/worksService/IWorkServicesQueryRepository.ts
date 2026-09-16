@@ -5,6 +5,7 @@ import {
   GetServiceScheduleHistoryResponse,
   GetServiceOptionsResponse,
   GetServicesSelectedByWorkIdResponse,
+  WorkToExportResponse,
 } from 'src/interface/types/servicesInterface';
 
 export interface IWorkServicesQueryRepository {
@@ -23,6 +24,13 @@ export interface IWorkServicesQueryRepository {
     id: number,
     tx?: Prisma.TransactionClient,
   ): Promise<GetServiceScheduleHistoryResponse[]>;
+  getServiceScheduleHistoryByIdSchedule(ids: number[]): Promise<any[]>;
+  getServicesToExportation(params: {
+    dataFinal: string;
+    dataInicial: string;
+    idParceira: number[];
+    idEquipe?: number[];
+  }): Promise<WorkToExportResponse[]>;
   getServicesContracts(idParceira: number): Promise<any[]>;
   getMaterialsContract(): Promise<any[]>;
   getTeamsServices(idParceira: number): Promise<any[]>;

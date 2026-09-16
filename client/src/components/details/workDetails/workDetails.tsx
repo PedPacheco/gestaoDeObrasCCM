@@ -83,7 +83,7 @@ interface WorkData {
   idRegional: number;
   status_ov_sap: string;
   observ_obra: string;
-  data_viabilidade: string;
+  data_envio: Date | null;
   prazo_viabilidade: string;
   viabilidade_aprovada: boolean;
   programacao_ponto_a_ponto: boolean;
@@ -147,10 +147,16 @@ function useModals() {
   };
 }
 
-function formatDateForSubmit(value: string): string | null {
-  if (!value) return null;
+function formatDateForSubmit(value?: string): string {
+  if (!value) {
+    return dayjs().format("YYYY-MM-DD");
+  }
+
   const parsed = dayjs(value, "DD/MM/YYYY", true);
-  return parsed.isValid() ? parsed.format("YYYY-MM-DD") : value;
+
+  return parsed.isValid()
+    ? parsed.format("YYYY-MM-DD")
+    : dayjs().format("YYYY-MM-DD");
 }
 
 function hasRestrictedAccess(statusId: number, permission?: string): boolean {
@@ -434,6 +440,8 @@ export function WorkDetails({
           <DataItem label="Status Sap" value={data.status_ov_sap} />
           <EditableColumn
             data={editableData}
+            feasibilitySubmissionDate={data.data_envio}
+            feasibilityApprove={data.viabilidade_aprovada}
             options={options}
             onHandleChange={handleDataChange}
             EditSuspension={

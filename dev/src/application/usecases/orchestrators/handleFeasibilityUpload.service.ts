@@ -1,8 +1,15 @@
 import {
+  FEASIBILITY_REPOSITORY,
+  IFeasibilityRepository,
+} from 'src/domain/repositories/IFeasibilityRepository';
+import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/repositories/IStatusFlowRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
+import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
+import { countBusinessDays } from 'src/utils/parseTimeToDate';
 
 import {
   BadGatewayException,
@@ -10,17 +17,10 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
-
-import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
-import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
-import {
-  FEASIBILITY_REPOSITORY,
-  IFeasibilityRepository,
-} from 'src/domain/repositories/IFeasibilityRepository';
-import { StatusFeasibility } from '../feasibility.service';
-import { countBusinessDays } from 'src/utils/parseTimeToDate';
-import { FileService } from '../file.service';
 import { Prisma } from '@prisma/client';
+
+import { StatusFeasibility } from '../feasibility.service';
+import { FileService } from '../file.service';
 
 @Injectable()
 export class HandleFeasibilityService {
@@ -74,8 +74,9 @@ export class HandleFeasibilityService {
         idUser,
         files,
         existingFiles,
-        feasibilityTimeframeStatus,
+        'tecnhical',
         tx,
+        feasibilityTimeframeStatus,
       );
 
       if (pointByPoint)
@@ -84,6 +85,30 @@ export class HandleFeasibilityService {
       await this.statusFlowRepository.updateStatusWorks(46, idWork, tx);
 
       return removedFiles;
+    });
+
+    await this.deletePhysicalFiles(filesToRemove);
+  }
+
+  async uploadComplementaryFiles(
+    idWork: number,
+    idUser: number,
+    files: Express.Multer.File[],
+    existingFiles: string[],
+  ) {
+    if (!idWork) {
+      throw new BadGatewayException('Obra não foi encontrada');
+    }
+
+    const filesToRemove = await this.prisma.$transaction(async (tx) => {
+      return await this.syncFiles(
+        idWork,
+        idUser,
+        files,
+        existingFiles,
+        'complementary',
+        tx,
+      );
     });
 
     await this.deletePhysicalFiles(filesToRemove);
@@ -110,12 +135,16 @@ export class HandleFeasibilityService {
     idUser: number,
     uploadedFiles: Express.Multer.File[],
     existingFiles: string[],
-    status: StatusFeasibility,
+    type: 'complementary' | 'tecnhical',
     tx: Prisma.TransactionClient,
+    status?: StatusFeasibility,
   ) {
     const currentRecord = await this.feasibilityRepository.findFiles(idWork);
 
-    const currentFiles = currentRecord?.caminhos_arquivos ?? [];
+    const currentFiles =
+      type === 'tecnhical'
+        ? (currentRecord?.caminhos_arquivos ?? [])
+        : (currentRecord?.arquivos_complementares ?? []);
 
     const removedFiles = currentFiles.filter(
       (file) => !existingFiles.includes(file),
@@ -125,13 +154,19 @@ export class HandleFeasibilityService {
 
     const paths = [...new Set([...existingFiles, ...newFiles])];
 
-    await this.feasibilityRepository.saveFiles(
-      idWork,
-      idUser,
-      status,
-      paths,
-      tx,
-    );
+    if (type === 'tecnhical') {
+      await this.feasibilityRepository.saveFiles(
+        idWork,
+        idUser,
+        status,
+        paths,
+        tx,
+      );
+
+      return removedFiles;
+    }
+
+    await this.feasibilityRepository.updateFiles(idWork, paths, type, tx);
 
     return removedFiles;
   }
@@ -144,8 +179,6 @@ export class HandleFeasibilityService {
             `${process.env.UPLOAD_DEST}/${file}`,
           );
         } catch (error) {
-          // banco já commitado — logamos e seguimos.
-          // um arquivo órfão em disco é preferível a uma transaction quebrada.
           console.error(`Falha ao excluir arquivo ${file} do disco`, error);
         }
       }),

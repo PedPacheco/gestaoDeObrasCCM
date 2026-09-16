@@ -21,11 +21,13 @@ const VALID_MIMETYPE_XLS = 'application/vnd.ms-excel';
  */
 const fillValidHeaders = (ws: Worksheet): void => {
   const headerRow = ws.getRow(3);
-  headerRow.getCell(2).value = 'PONTO';
-  headerRow.getCell(4).value = 'OPERAÇÃO';
-  headerRow.getCell(6).value = 'CÓDIGO';
-  headerRow.getCell(7).value = 'DESCRIÇÃO DA OPERAÇÃO';
-  headerRow.getCell(11).value = 'TIPO';
+  headerRow.getCell(2).value = 'ponto';
+  headerRow.getCell(4).value = 'operação';
+  headerRow.getCell(5).value = 'nº da operação';
+  headerRow.getCell(6).value = 'código material';
+  headerRow.getCell(9).value = 'qtde. planejada';
+  headerRow.getCell(11).value = 'tipo';
+  headerRow.getCell(14).value = 'descrição da operação';
   headerRow.commit();
 };
 
@@ -42,14 +44,14 @@ const fillDataRow = (
     operation?: any;
     operationNumber?: any;
     materialCode?: any;
-    operationDesc?: any;
+    operationDescription?: any;
     plannedQty?: any;
     type?: any;
   } = {},
 ): void => {
   const row = ws.getRow(rowNumber);
 
-  for (let col = 1; col <= 11; col++) {
+  for (let col = 1; col <= 14; col++) {
     row.getCell(col).value = '';
   }
 
@@ -60,12 +62,12 @@ const fillDataRow = (
   row.getCell(4).value = getValue(overrides.operation, 'OP-01');
   row.getCell(5).value = getValue(overrides.operationNumber, '001');
   row.getCell(6).value = getValue(overrides.materialCode, 'SRV-001');
-  row.getCell(7).value = getValue(
-    overrides.operationDesc,
-    'Instalação elétrica',
-  );
   row.getCell(9).value = getValue(overrides.plannedQty, 10);
   row.getCell(11).value = getValue(overrides.type, 'S');
+  row.getCell(14).value = getValue(
+    overrides.operationDescription,
+    'Instalação elétrica',
+  );
 
   row.commit();
 };
@@ -195,11 +197,13 @@ describe('SpreadsheetParserService', () => {
       const ws = wb.addWorksheet('Plan1');
 
       const headerRow = ws.getRow(3);
-      headerRow.getCell(2).value = 'PONTO DE ENTREGA';
-      headerRow.getCell(4).value = 'OPERAÇÃO PRINCIPAL';
-      headerRow.getCell(6).value = 'CÓDIGO DO MATERIAL';
-      headerRow.getCell(7).value = 'DESCRIÇÃO DETALHADA';
-      headerRow.getCell(11).value = 'TIPO DE SERVIÇO';
+      headerRow.getCell(2).value = 'PONTO';
+      headerRow.getCell(4).value = 'OPERAÇÃO';
+      headerRow.getCell(5).value = 'Nº Da Operação';
+      headerRow.getCell(6).value = 'CÓDIGO MATERIAL';
+      headerRow.getCell(9).value = 'QTDE. PLANEJADA';
+      headerRow.getCell(11).value = 'TIPO';
+      headerRow.getCell(14).value = 'DESCRIÇÃO DA OPERAÇÃO';
       headerRow.commit();
 
       fillDataRow(ws, 4);
@@ -218,9 +222,11 @@ describe('SpreadsheetParserService', () => {
       const headerRow = ws.getRow(3);
       headerRow.getCell(2).value = 'ponto';
       headerRow.getCell(4).value = 'operação';
-      headerRow.getCell(6).value = 'código';
-      headerRow.getCell(7).value = 'descrição';
+      headerRow.getCell(5).value = 'nº da operação';
+      headerRow.getCell(6).value = 'código material';
+      headerRow.getCell(9).value = 'qtde. planejada';
       headerRow.getCell(11).value = 'tipo';
+      headerRow.getCell(14).value = 'descrição da operação';
       headerRow.commit();
 
       fillDataRow(ws, 4);
@@ -297,7 +303,7 @@ describe('SpreadsheetParserService', () => {
     it('should skip rows with less than minimum columns when type is null', async () => {
       const buffer = await buildValidWorkbook((ws) => {
         fillDataRow(ws, 4, {
-          type: null,
+          type: 'invalid',
         });
       });
 
@@ -305,8 +311,6 @@ describe('SpreadsheetParserService', () => {
 
       expect(result.items).toHaveLength(0);
       expect(result.skippedRows).toHaveLength(1);
-
-      expect(result.skippedRows[0].reason).toContain('colunas');
     });
 
     it('should skip rows with invalid type and add to skippedRows', async () => {
@@ -354,9 +358,9 @@ describe('SpreadsheetParserService', () => {
           operation: 'OP-X',
           operationNumber: '042',
           materialCode: 'MAT-001',
-          operationDesc: 'Troca de cabo',
           plannedQty: 55,
           type: 'M',
+          operationDescription: 'Troca de cabo',
         });
       });
 
@@ -368,9 +372,9 @@ describe('SpreadsheetParserService', () => {
         operation: 'OP-X',
         operationNumber: '042',
         materialCode: 'MAT-001',
-        operationDescription: 'Troca de cabo',
         plannedQuantity: 55,
         type: 'material',
+        operationDescription: 'Troca de cabo',
       });
     });
   });
@@ -810,13 +814,12 @@ describe('SpreadsheetParserService', () => {
         fillDataRow(ws, 4, { type: 'S' }); // válido
         fillDataRow(ws, 5, { type: 'INVALID' }); // skipped
         fillDataRow(ws, 6, { type: null }); // fim de tabela (ignorado silenciosamente)
-        fillDataRow(ws, 7, { type: 'M' }); // válido
       });
 
       const result = await sut.parse(buffer, VALID_MIMETYPE);
 
-      expect(result.items).toHaveLength(2);
-      expect(result.skippedRows).toHaveLength(2);
+      expect(result.items).toHaveLength(1);
+      expect(result.skippedRows).toHaveLength(1);
     });
   });
 

@@ -2,11 +2,16 @@ import { useTransition } from "react";
 import { useFeedback } from "../useFeedback";
 import { useUser } from "@/contexts/userContext";
 import { useRouter } from "next/navigation";
-import {
-  FeasibilityServiceItem,
-  hasInvalidAdditionalQuantities,
-} from "@/components/feasibility/feasibilityServicesViewStep";
+
 import { approveFeasibility, rejectFeasibility } from "@/actions/feasibility";
+import { FeasibilityServiceItem } from "@/components/feasibility/feasbilityServices/feasibilityServicesReviewStep";
+import { isRowEmpty } from "@/components/feasibility/feasbilityServices/reviewTable";
+
+export function hasInvalidAdditionalQuantities(
+  reviewData: FeasibilityServiceItem[],
+): boolean {
+  return reviewData.some((item) => isRowEmpty(item));
+}
 
 interface useFeasibilityWorkflowActionsProps {
   idWork: string;
@@ -16,12 +21,14 @@ interface useFeasibilityWorkflowActionsProps {
   reviewData: FeasibilityServiceItem[];
   termsAccepted: boolean;
   handleUpload: any;
+  handleUploadComplementaryFiles: any;
   onRejectSettled: () => void;
 }
 
 export function useFeasibilityWorkflowActions({
   feasibilityReportId,
   handleUpload,
+  handleUploadComplementaryFiles,
   hasFiles,
   idWork,
   onRejectSettled,
@@ -81,7 +88,9 @@ export function useFeasibilityWorkflowActions({
   const handleApprove = () => {
     startTransition(async () => {
       try {
-        const response = await approveFeasibility(Number(idWork));
+        await handleUploadComplementaryFiles();
+
+        const response = await approveFeasibility(idWork);
 
         if (!response.success) {
           showError(response.message);
@@ -92,7 +101,7 @@ export function useFeasibilityWorkflowActions({
         router.push(`/detalhes/${idWork}`);
       } catch (err) {
         showError(
-          err instanceof Error ? err.message : "Erro ao aprovar viabilidade",
+          err instanceof Error ? err.message : "Erro ao reprovar viabilidade",
         );
       }
     });

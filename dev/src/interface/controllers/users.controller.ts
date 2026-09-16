@@ -1,18 +1,71 @@
 import { plainToInstance } from 'class-transformer';
 import { UsersService } from 'src/application/usecases/users.service';
-import { userChangePasswordController } from 'src/interface/types/userInterface';
+import {
+  userChangePasswordController,
+  userListInterfaceController,
+  userAdminCreateInterfaceController,
+  userDeactivateInterfaceController,
+} from 'src/interface/types/userInterface';
 
-import { Body, Controller, HttpStatus, Put, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpStatus,
+  Param,
+  Post,
+  Put,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 
 import {
   ChangePasswordDTO,
   changePasswordResponseDTO,
 } from '../dtos/changePasswordDto';
 import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
+import { AdminPanelGuard } from 'src/core/guards/adminPanelGuard';
+import { RegisterUserDTO } from '../dtos/registerUserDto';
+import { UserSafeResponseDTO } from '../dtos/userSafeResponseDto';
 
 @Controller('user')
 export class UsersController {
   constructor(private usersService: UsersService) {}
+
+  @Get()
+  @UseGuards(AdminPanelGuard())
+  async list(): Promise<userListInterfaceController> {
+    const users = await this.usersService.listUsers();
+
+    console.log(users);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Usuários listados com sucesso',
+      data: users.map((user) =>
+        plainToInstance(UserSafeResponseDTO, user, {
+          excludeExtraneousValues: true,
+        }),
+      ),
+    };
+  }
+
+  @Post()
+  @UseGuards(AdminPanelGuard())
+  async create(
+    @Body() dto: RegisterUserDTO,
+  ): Promise<userAdminCreateInterfaceController> {
+    const user = await this.usersService.createUser(dto);
+
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'Usuário cadastrado com sucesso',
+      data: plainToInstance(UserSafeResponseDTO, user, {
+        excludeExtraneousValues: true,
+      }),
+    };
+  }
 
   @Put('/change-password')
   @UseGuards(AreaViewGuard())
@@ -25,6 +78,23 @@ export class UsersController {
       statusCode: HttpStatus.OK,
       message: 'Senha alterada com sucesso',
       data: plainToInstance(changePasswordResponseDTO, user),
+    };
+  }
+
+  @Delete('/:id')
+  @UseGuards(AdminPanelGuard())
+  async deactivate(
+    @Param('id') id: string,
+    @Req() req: any,
+  ): Promise<userDeactivateInterfaceController> {
+    const user = await this.usersService.deactivateUser(+id, req.user.sub);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Usuário desativado com sucesso',
+      data: plainToInstance(UserSafeResponseDTO, user, {
+        excludeExtraneousValues: true,
+      }),
     };
   }
 }

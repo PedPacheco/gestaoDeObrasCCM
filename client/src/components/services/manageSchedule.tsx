@@ -38,6 +38,7 @@ interface ManageScheduleProps {
     operation_description: string[];
     points: string[];
   };
+  hasOrdemDcim: boolean;
 }
 
 export function NewManageSchedule({
@@ -55,6 +56,7 @@ export function NewManageSchedule({
   idSchedule,
   statusSchedule,
   optionsToAddItem,
+  hasOrdemDcim,
 }: ManageScheduleProps) {
   const router = useRouter();
   const { showError, showSuccess } = useFeedback();
@@ -153,6 +155,7 @@ export function NewManageSchedule({
         idSchedule={idSchedule}
         statusSchedule={statusSchedule}
         optionsToAddItem={optionsToAddItem}
+        hasOrdemDcim={hasOrdemDcim}
       />
     );
   }
@@ -186,6 +189,7 @@ export function NewManageSchedule({
                   onError={showError}
                   onSuccess={showSuccess}
                   workId={idWork}
+                  hasOrdemDcim={hasOrdemDcim}
                 />
               </div>
             </div>

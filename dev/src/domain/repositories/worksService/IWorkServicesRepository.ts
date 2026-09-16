@@ -36,6 +36,7 @@ export interface IWorkServicesRepository {
     data: ScheduleServicesDTO[],
     prog: number | { increment: number },
     idSchedule: number,
+    idStatusSchedule?: number,
   ): Promise<void>;
   applyAdditional(
     data: ApplyAdditonalDTO[],
@@ -57,7 +58,7 @@ export interface IWorkServicesRepository {
     tx: Prisma.TransactionClient,
   ): Promise<void>;
   delete(id: number, tx: Prisma.TransactionClient): Promise<void>;
-  deleteAll(workId: number): Promise<void>;
+  deleteAll(workId: number, tx: Prisma.TransactionClient): Promise<void>;
   bulkImportItems(
     workId: number,
     items: ImportServiceItem[],

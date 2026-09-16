@@ -106,7 +106,7 @@ function processWorkData(data: any) {
       : null,
     backgroundColor: getBackgroundColor(data.grupo, data.ano_plan),
     executadoFormatted: formatPercentage(data.executado) || "",
-    totalProgramado: formatPercentage(data.totalProgramado) || ""
+    totalProgramado: formatPercentage(data.totalProgramado) || "",
   };
 }
 
@@ -114,10 +114,6 @@ export default async function Details({ params }: DetailsParams) {
   const { id } = await params;
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
-
-  const userInfo = cookieStore.get("userInfo")?.value;
-
-  const user = userInfo ? JSON.parse(userInfo) : null;
 
   // Buscar todos os dados em paralelo
   const [
@@ -136,13 +132,6 @@ export default async function Details({ params }: DetailsParams) {
 
   const { data } = workData;
   const formattedData = processWorkData(data);
-
-  const userPermissionToEdit =
-    (user.tipo_usuario === "PARCEIRO" && user.id_turma === 2) ||
-    (user.tipo_usuario === "INTERNO" && user.id_regional === 1) ||
-    user.is_admin;
-
-  const useNewFlow = data.programacao_ponto_a_ponto && userPermissionToEdit;
 
   const tabPanelProps = {
     workData: data,
@@ -164,7 +153,7 @@ export default async function Details({ params }: DetailsParams) {
             formattedData={formattedData}
             options={options}
           />
-          {useNewFlow ? (
+          {data.programacao_ponto_a_ponto ? (
             <NewTabPanel {...tabPanelProps} />
           ) : (
             <OldTabPanel {...tabPanelProps} />
