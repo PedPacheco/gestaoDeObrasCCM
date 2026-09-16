@@ -5,7 +5,7 @@ import { User } from 'src/domain/entities/user.entity';
 export interface IUserRepository {
   findUser(username: string): Promise<novo_tabela_usuarios | null>;
   updatePassword(numberId: number, newPassword: string): Promise<any>;
-  findAll(): Promise<novo_tabela_usuarios[]>;
+  findAll(): Promise<any[]>;
   findByIdRaw(id: number): Promise<novo_tabela_usuarios | null>;
   create(user: User): Promise<novo_tabela_usuarios>;
   softDelete(id: number): Promise<novo_tabela_usuarios>;

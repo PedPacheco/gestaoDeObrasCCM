@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   createAdminUser,
   deactivateAdminUser,
@@ -8,13 +8,14 @@ import {
 } from "@/actions/adminUsers";
 import { AdminUser, CreateAdminUserPayload } from "@/types/adminUsers";
 
-export function useAdminUsers() {
-  const [users, setUsers] = useState<AdminUser[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export function useAdminUsers(initialUsers: AdminUser[] = []) {
+  const [users, setUsers] = useState<AdminUser[]>(initialUsers);
+  const [isLoading, setIsLoading] = useState(false); // dados já vieram do servidor
   const [error, setError] = useState<string | null>(null);
   const [isMutating, setIsMutating] = useState(false);
 
-  const loadUsers = useCallback(async () => {
+  // Usado apenas para revalidar após mutações
+  const refreshUsers = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -22,18 +23,12 @@ export function useAdminUsers() {
 
     if (!result.success) {
       setError(result.error);
-      setUsers([]);
-      setIsLoading(false);
-      return;
+    } else {
+      setUsers(result.data ?? []);
     }
 
-    setUsers(result.data ?? []);
     setIsLoading(false);
   }, []);
-
-  useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
 
   async function createUser(payload: CreateAdminUserPayload) {
     setIsMutating(true);
@@ -41,7 +36,7 @@ export function useAdminUsers() {
     const result = await createAdminUser(payload);
 
     if (result.success) {
-      await loadUsers();
+      await refreshUsers();
     }
 
     setIsMutating(false);
@@ -54,7 +49,7 @@ export function useAdminUsers() {
     const result = await deactivateAdminUser(id);
 
     if (result.success) {
-      await loadUsers();
+      await refreshUsers();
     }
 
     setIsMutating(false);

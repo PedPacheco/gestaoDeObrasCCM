@@ -115,10 +115,6 @@ export default async function Details({ params }: DetailsParams) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
-  const userInfo = cookieStore.get("userInfo")?.value;
-
-  const user = userInfo ? JSON.parse(userInfo) : null;
-
   // Buscar todos os dados em paralelo
   const [
     options,
