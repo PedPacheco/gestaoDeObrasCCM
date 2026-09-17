@@ -12,7 +12,7 @@ import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import { OldExecutionReportDialog } from "./oldExecutionReportDialog/oldExecutionReportDialog";
 import ScheduleFormDialog from "./scheduleDialog/dialog";
-import ConfirmationScheduleModalComponent from "@/components/common/confirmationScheduleModal";
+import ConfirmationModalComponent from "@/components/common/confirmationModal";
 import FailureModalComponent from "@/components/common/failureModal";
 
 interface OldModalsManagerProps {
@@ -136,8 +136,8 @@ export const OldModalsManager = forwardRef<
           </span>
         </ModalComponent>
 
-        <ConfirmationScheduleModalComponent
-          idSchedule={idSchedule}
+        <ConfirmationModalComponent
+          actionId={idSchedule}
           message="Você deseja realmente excluir essa programação ?"
           onClose={() => setOpenConfirmationModal(false)}
           onConfirm={handleConfirmDelete}
@@ -153,8 +153,8 @@ export const OldModalsManager = forwardRef<
           handleReject={handleReject}
         />
 
-        <ConfirmationScheduleModalComponent
-          idSchedule={idSchedule}
+        <ConfirmationModalComponent
+          actionId={idSchedule}
           message="Você deseja realmente excluir esse relatório ?"
           onClose={() => setOpenConfirmationModalExecution(false)}
           onConfirm={handleConfirmExecutionDelete}

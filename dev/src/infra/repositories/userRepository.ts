@@ -1,10 +1,19 @@
 import { User } from 'src/domain/entities/user.entity';
-import { IUserRepository } from 'src/domain/repositories/IUserRepository';
-// import { userInterface } from 'src/interface/types/userInterface';
+import {
+  IUserRepository,
+  UserStatusUpdate,
+  UserWithRelations,
+} from 'src/domain/repositories/IUserRepository';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { novo_tabela_usuarios } from '@prisma/client';
+
+const userRelationsInclude = {
+  regionais: { select: { regional: true } },
+  turmas: { select: { turma: true } },
+  areas: { select: { nome: true } },
+};
 
 @Injectable()
 export class UserRepository implements IUserRepository {
@@ -25,7 +34,7 @@ export class UserRepository implements IUserRepository {
     return user;
   }
 
-  async findAll(): Promise<any[]> {
+  async findAll(): Promise<UserWithRelations[]> {
     return await this.prisma.novo_tabela_usuarios.findMany({
       select: {
         id: true,
@@ -39,6 +48,7 @@ export class UserRepository implements IUserRepository {
         username: true,
         ativo: true,
         is_admin: true,
+        ultimo_acesso: true,
         regionais: { select: { regional: true } },
         turmas: { select: { turma: true } },
         areas: { select: { nome: true } },
@@ -52,7 +62,7 @@ export class UserRepository implements IUserRepository {
     });
   }
 
-  async create(data: User): Promise<novo_tabela_usuarios> {
+  async create(data: User): Promise<UserWithRelations> {
     const {
       email,
       id_regional,
@@ -64,6 +74,7 @@ export class UserRepository implements IUserRepository {
       senha,
       tipo_usuario,
       username,
+      ultimo_acesso,
     } = data;
 
     return await this.prisma.novo_tabela_usuarios.create({
@@ -78,14 +89,34 @@ export class UserRepository implements IUserRepository {
         email,
         nome,
         tipo_usuario,
+        ultimo_acesso,
       },
+      include: userRelationsInclude,
     });
   }
 
-  async softDelete(id: number): Promise<novo_tabela_usuarios> {
+  async updateStatus(
+    id: number,
+    data: UserStatusUpdate,
+  ): Promise<UserWithRelations> {
     return await this.prisma.novo_tabela_usuarios.update({
       where: { id },
-      data: { ativo: false },
+      data,
+      include: userRelationsInclude,
     });
+  }
+
+  async deactivateInactiveUsers(cutoffDate: Date): Promise<number> {
+    const result = await this.prisma.novo_tabela_usuarios.updateMany({
+      where: {
+        ativo: true,
+        ultimo_acesso: { lt: cutoffDate },
+      },
+      data: {
+        ativo: false,
+      },
+    });
+
+    return result.count;
   }
 }

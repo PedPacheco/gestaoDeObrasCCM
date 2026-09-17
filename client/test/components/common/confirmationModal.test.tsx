@@ -1,4 +1,4 @@
-import ConfirmationModalComponent from "@/components/common/confirmationScheduleModal";
+import ConfirmationModalComponent from "@/components/common/confirmationModal";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 

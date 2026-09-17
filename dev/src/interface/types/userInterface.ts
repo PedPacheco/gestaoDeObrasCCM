@@ -59,7 +59,7 @@ export interface userAdminCreateInterfaceController {
   data: UserSafeResponseDTO;
 }
 
-export interface userDeactivateInterfaceController {
+export interface userStatusChangeInterfaceController {
   statusCode: number;
   message: string;
   data: UserSafeResponseDTO;

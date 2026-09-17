@@ -3,25 +3,25 @@ import { Modal, Box, Typography, IconButton } from "@mui/material";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import { ButtonComponent } from "./Button";
 
-interface ConfirmationScheduleModalProps {
+interface ConfirmationModalComponentProps {
   open: boolean;
   onClose: () => void;
   onConfirm: (id: number) => void;
   title?: string;
   message: string;
   closeButton?: boolean;
-  idSchedule: number;
+  actionId: number;
 }
 
-export default function ConfirmationScheduleModalComponent({
+export default function ConfirmationModalComponent({
   open,
   onClose,
   onConfirm,
   title,
   message,
   closeButton = true,
-  idSchedule,
-}: ConfirmationScheduleModalProps) {
+  actionId,
+}: ConfirmationModalComponentProps) {
   return (
     <Modal
       open={open}
@@ -63,7 +63,7 @@ export default function ConfirmationScheduleModalComponent({
             styled=" py-2 px-4 rounded"
           />
           <ButtonComponent
-            onClick={() => onConfirm(idSchedule)}
+            onClick={() => onConfirm(actionId)}
             text="Confirmar"
             styled="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
           />

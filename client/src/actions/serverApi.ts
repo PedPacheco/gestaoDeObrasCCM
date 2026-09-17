@@ -44,10 +44,10 @@ async function apiRequest<T>(
   }
 }
 
-export async function serverApiRequest(
+export async function serverApiRequest<T = unknown>(
   endpoint: string,
   options: RequestInit = {},
-) {
+): Promise<ActionResult<T>> {
   const token = (await cookies()).get("token")?.value;
 
   if (!token) {

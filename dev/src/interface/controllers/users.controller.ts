@@ -4,7 +4,7 @@ import {
   userChangePasswordController,
   userListInterfaceController,
   userAdminCreateInterfaceController,
-  userDeactivateInterfaceController,
+  userStatusChangeInterfaceController,
 } from 'src/interface/types/userInterface';
 
 import {
@@ -14,6 +14,8 @@ import {
   Get,
   HttpStatus,
   Param,
+  ParseIntPipe,
+  Patch,
   Post,
   Put,
   Req,
@@ -28,8 +30,8 @@ import {
   AreaEditGuard,
   AreaViewGuard,
 } from 'src/core/guards/newPermission.guard';
-
 import { RegisterUserDTO } from '../dtos/registerUserDto';
+import { UpdateUserPermissionDTO } from '../dtos/updateUserPermissionDto';
 import { UserSafeResponseDTO } from '../dtos/userSafeResponseDto';
 
 @Controller('user')
@@ -85,14 +87,67 @@ export class UsersController {
   @Delete('/:id')
   @UseGuards(AreaEditGuard({ adminOnly: true }))
   async deactivate(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Req() req: any,
-  ): Promise<userDeactivateInterfaceController> {
-    const user = await this.usersService.deactivateUser(+id, req.user.sub);
+  ): Promise<userStatusChangeInterfaceController> {
+    const user = await this.usersService.deactivateUser(id, req.user.sub);
 
     return {
       statusCode: HttpStatus.OK,
       message: 'Usuário desativado com sucesso',
+      data: plainToInstance(UserSafeResponseDTO, user, {
+        excludeExtraneousValues: true,
+      }),
+    };
+  }
+
+  @Patch('/:id/reactivate')
+  @UseGuards(AreaEditGuard({ adminOnly: true }))
+  async reactivate(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<userStatusChangeInterfaceController> {
+    const user = await this.usersService.reactivateUser(id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Usuário reativado com sucesso',
+      data: plainToInstance(UserSafeResponseDTO, user, {
+        excludeExtraneousValues: true,
+      }),
+    };
+  }
+
+  @Patch('/:id/permission')
+  @UseGuards(AreaEditGuard({ adminOnly: true }))
+  async updatePermission(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() { permissao_edicao }: UpdateUserPermissionDTO,
+  ): Promise<userStatusChangeInterfaceController> {
+    const user = await this.usersService.changeUserPermission(
+      id,
+      permissao_edicao,
+    );
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Permissão do usuário atualizada com sucesso',
+      data: plainToInstance(UserSafeResponseDTO, user, {
+        excludeExtraneousValues: true,
+      }),
+    };
+  }
+
+  @Patch('/:id/archive')
+  @UseGuards(AreaEditGuard({ adminOnly: true }))
+  async archive(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: any,
+  ): Promise<userStatusChangeInterfaceController> {
+    const user = await this.usersService.archiveUser(id, req.user.sub);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Usuário excluído com sucesso',
       data: plainToInstance(UserSafeResponseDTO, user, {
         excludeExtraneousValues: true,
       }),

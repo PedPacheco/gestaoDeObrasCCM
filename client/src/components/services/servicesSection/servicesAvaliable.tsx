@@ -36,7 +36,7 @@ import { TableFilter } from "./servicesFilters";
 import { TeamModal } from "./teamsModal";
 import { useServicesFilters } from "@/hooks/services/useServicesFilters";
 import { MATERIAL_OR_SERVICE_OPTIONS } from "@/constants/services/services";
-import ConfirmationScheduleModalComponent from "@/components/common/confirmationScheduleModal";
+import ConfirmationModalComponent from "@/components/common/confirmationModal";
 import { ServiceQuantityToBt0Modal } from "./serviceQuantityToBt0Modal";
 
 interface ServicesAvaliableProps {
@@ -488,11 +488,11 @@ export function NewServicesAvaliable({
         teams={teams}
       />
 
-      <ConfirmationScheduleModalComponent
+      <ConfirmationModalComponent
         open={Boolean(itemToDelete)}
         onClose={() => setItemToDelete(null)}
         onConfirm={handleDeleteItem}
-        idSchedule={itemToDelete?.id ?? 0}
+        actionId={itemToDelete?.id ?? 0}
         title="Excluir serviço/material"
         message={`Deseja realmente excluir "${
           itemToDelete?.textoBreve ?? ""

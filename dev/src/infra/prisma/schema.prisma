@@ -726,6 +726,7 @@ model novo_tabela_usuarios {
   nome                        String                    @db.VarChar(100)
   email                       String                    @db.VarChar(100)
   ativo                       Boolean?                  @default(true)
+  ultimo_acesso               DateTime?
   areas                       areas?                    @relation(fields: [id_area], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_area")
   turmas                      turmas                    @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
   regionais                   regionais                 @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regional")

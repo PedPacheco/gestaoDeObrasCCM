@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@mui/material";
 import { LoadingComponent } from "@/components/common/Loading";
-import ConfirmationScheduleModalComponent from "@/components/common/confirmationScheduleModal";
+import ConfirmationModalComponent from "@/components/common/confirmationModal";
 import { TableFilter } from "./servicesFilters";
 import { useServicesFilters } from "@/hooks/services/useServicesFilters";
 import {
@@ -254,8 +254,8 @@ export function ScheduleHistory({
       </div>
 
       {idSchedule && (
-        <ConfirmationScheduleModalComponent
-          idSchedule={idSchedule}
+        <ConfirmationModalComponent
+          actionId={idSchedule}
           message="Você deseja realmente cancelar essa programação ?"
           onClose={() => setOpenConfirmationModal(false)}
           onConfirm={cancelServices}

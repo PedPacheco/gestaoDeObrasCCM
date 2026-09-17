@@ -1,4 +1,4 @@
-import ConfirmationScheduleModalComponent from "@/components/common/confirmationScheduleModal";
+import ConfirmationModalComponent from "@/components/common/confirmationModal";
 
 interface ReviewModalsProps {
   itemToDelete: {
@@ -24,22 +24,22 @@ export function ReviewModals({
 }: ReviewModalsProps) {
   return (
     <>
-      <ConfirmationScheduleModalComponent
+      <ConfirmationModalComponent
         open={Boolean(itemToDelete)}
         onClose={onCloseDeleteItem}
         onConfirm={onDeleteItem}
-        idSchedule={itemToDelete?.id ?? 0}
+        actionId={itemToDelete?.id ?? 0}
         title="Excluir serviço/material"
         message={`Deseja realmente excluir "${
           itemToDelete?.textoBreve ?? ""
         }"? Esta ação não poderá ser desfeita.`}
       />
 
-      <ConfirmationScheduleModalComponent
+      <ConfirmationModalComponent
         open={openDeleteAllModal}
         onClose={onCloseDeleteAll}
         onConfirm={onDeleteAll}
-        idSchedule={workId}
+        actionId={workId}
         title="Excluir todos os serviços/materiais"
         message="Deseja realmente excluir todos os serviços e materiais desta obra? Esta ação não poderá ser desfeita."
       />

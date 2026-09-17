@@ -9,7 +9,7 @@ import {
 import { UseExecutionServiceFormReturn } from "@/hooks/useExecutionServicesForm";
 import { useFeedback } from "@/hooks/useFeedback";
 
-import ConfirmationScheduleModalComponent from "../common/confirmationScheduleModal";
+import ConfirmationModalComponent from "../common/confirmationModal";
 import FailureModalComponent from "../common/failureModal";
 import { ExecutionReportDialog } from "../executionReport/executionReportDialog";
 
@@ -99,8 +99,8 @@ export const NewModalsManager = forwardRef<
 
     return (
       <>
-        <ConfirmationScheduleModalComponent
-          idSchedule={idSchedule}
+        <ConfirmationModalComponent
+          actionId={idSchedule}
           message="Você deseja realmente excluir essa programação ?"
           onClose={() => setOpenConfirmationModal(false)}
           onConfirm={handleConfirmDelete}
@@ -116,8 +116,8 @@ export const NewModalsManager = forwardRef<
           handleReject={handleReject}
         />
 
-        <ConfirmationScheduleModalComponent
-          idSchedule={idSchedule}
+        <ConfirmationModalComponent
+          actionId={idSchedule}
           message="Você deseja realmente excluir esse relatório ?"
           onClose={() => setOpenConfirmationModalExecution(false)}
           onConfirm={handleConfirmExecutionDelete}

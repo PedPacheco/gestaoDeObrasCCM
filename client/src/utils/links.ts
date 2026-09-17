@@ -257,7 +257,7 @@ export const links: Link[] = [
     allowedAreas: [8, 1],
   },
   {
-    name: "Usuários",
+    name: "Controle de Usuários",
     href: "/usuarios",
     allowedFor: ["admin"],
   },

@@ -26,7 +26,7 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
   const [isClient, setIsClient] = useState<boolean>(false);
 
   const router = useRouter();
-  const { permissions } = useUser();
+  const { permissions, logout } = useUser();
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -164,16 +164,26 @@ export function Sidebar({ open, changeOpen, pathname }: SidebarProps) {
         </nav>
       </div>
 
-      {/* 🔻 FOOTER FIXO (LOGO) */}
-      <div className="flex justify-center items-center pb-4 pr-6 border-t border-[#2f3c4f]">
-        <Image
-          src="/logo-sigo.png"
-          alt="Edp Logo"
-          width={180}
-          height={140}
-          className="object-contain"
-          priority
-        />
+      {/* 🔻 FOOTER FIXO (SAIR + LOGO) */}
+      <div className="flex flex-col border-t border-[#2f3c4f]">
+        <button
+          type="button"
+          onClick={logout}
+          className="w-full p-3 text-left text-sm font-medium text-zinc-200 hover:bg-[#1a2635] hover:text-[#53FF75]"
+        >
+          Sair
+        </button>
+
+        <div className="flex justify-center items-center pb-4 pr-6">
+          <Image
+            src="/logo-sigo.png"
+            alt="Edp Logo"
+            width={180}
+            height={140}
+            className="object-contain"
+            priority
+          />
+        </div>
       </div>
     </div>
   );
