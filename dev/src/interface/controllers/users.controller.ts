@@ -4,9 +4,7 @@ import {
   userChangePasswordController,
   userListInterfaceController,
   userAdminCreateInterfaceController,
-  userDeactivateInterfaceController,
-  userReactivateInterfaceController,
-  userTogglePermissionInterfaceController,
+  userStatusChangeInterfaceController,
 } from 'src/interface/types/userInterface';
 
 import {
@@ -16,6 +14,7 @@ import {
   Get,
   HttpStatus,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Put,
@@ -27,9 +26,12 @@ import {
   ChangePasswordDTO,
   changePasswordResponseDTO,
 } from '../dtos/changePasswordDto';
-import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
-import { AdminPanelGuard } from 'src/core/guards/adminPanelGuard';
+import {
+  AreaEditGuard,
+  AreaViewGuard,
+} from 'src/core/guards/newPermission.guard';
 import { RegisterUserDTO } from '../dtos/registerUserDto';
+import { UpdateUserPermissionDTO } from '../dtos/updateUserPermissionDto';
 import { UserSafeResponseDTO } from '../dtos/userSafeResponseDto';
 
 @Controller('user')
@@ -37,7 +39,7 @@ export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @Get()
-  @UseGuards(AdminPanelGuard())
+  @UseGuards(AreaViewGuard({ adminOnly: true }))
   async list(): Promise<userListInterfaceController> {
     const users = await this.usersService.listUsers();
 
@@ -53,7 +55,7 @@ export class UsersController {
   }
 
   @Post()
-  @UseGuards(AdminPanelGuard())
+  @UseGuards(AreaEditGuard({ adminOnly: true }))
   async create(
     @Body() dto: RegisterUserDTO,
   ): Promise<userAdminCreateInterfaceController> {
@@ -83,12 +85,12 @@ export class UsersController {
   }
 
   @Delete('/:id')
-  @UseGuards(AdminPanelGuard())
+  @UseGuards(AreaEditGuard({ adminOnly: true }))
   async deactivate(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Req() req: any,
-  ): Promise<userDeactivateInterfaceController> {
-    const user = await this.usersService.deactivateUser(+id, req.user.sub);
+  ): Promise<userStatusChangeInterfaceController> {
+    const user = await this.usersService.deactivateUser(id, req.user.sub);
 
     return {
       statusCode: HttpStatus.OK,
@@ -100,11 +102,11 @@ export class UsersController {
   }
 
   @Patch('/:id/reactivate')
-  @UseGuards(AdminPanelGuard())
+  @UseGuards(AreaEditGuard({ adminOnly: true }))
   async reactivate(
-    @Param('id') id: string,
-  ): Promise<userReactivateInterfaceController> {
-    const user = await this.usersService.reactivateUser(+id);
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<userStatusChangeInterfaceController> {
+    const user = await this.usersService.reactivateUser(id);
 
     return {
       statusCode: HttpStatus.OK,
@@ -116,15 +118,36 @@ export class UsersController {
   }
 
   @Patch('/:id/permission')
-  @UseGuards(AdminPanelGuard())
-  async togglePermission(
-    @Param('id') id: string,
-  ): Promise<userTogglePermissionInterfaceController> {
-    const user = await this.usersService.togglePermissaoEdicao(+id);
+  @UseGuards(AreaEditGuard({ adminOnly: true }))
+  async updatePermission(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() { permissao_edicao }: UpdateUserPermissionDTO,
+  ): Promise<userStatusChangeInterfaceController> {
+    const user = await this.usersService.changeUserPermission(
+      id,
+      permissao_edicao,
+    );
 
     return {
       statusCode: HttpStatus.OK,
       message: 'Permissão do usuário atualizada com sucesso',
+      data: plainToInstance(UserSafeResponseDTO, user, {
+        excludeExtraneousValues: true,
+      }),
+    };
+  }
+
+  @Patch('/:id/archive')
+  @UseGuards(AreaEditGuard({ adminOnly: true }))
+  async archive(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: any,
+  ): Promise<userStatusChangeInterfaceController> {
+    const user = await this.usersService.archiveUser(id, req.user.sub);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Usuário excluído com sucesso',
       data: plainToInstance(UserSafeResponseDTO, user, {
         excludeExtraneousValues: true,
       }),

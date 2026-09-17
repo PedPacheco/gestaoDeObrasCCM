@@ -32,10 +32,20 @@ export async function reactivateAdminUser(
   });
 }
 
-export async function toggleAdminUserPermission(
+export async function updateAdminUserPermission(
   id: number,
+  permissaoEdicao: boolean,
 ): Promise<ActionResult<AdminUser>> {
   return serverApiRequest(`/user/${id}/permission`, {
+    method: "PATCH",
+    body: JSON.stringify({ permissao_edicao: permissaoEdicao }),
+  });
+}
+
+export async function archiveAdminUser(
+  id: number,
+): Promise<ActionResult<AdminUser>> {
+  return serverApiRequest(`/user/${id}/archive`, {
     method: "PATCH",
   });
 }

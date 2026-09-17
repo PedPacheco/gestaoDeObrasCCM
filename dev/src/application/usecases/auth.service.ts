@@ -30,23 +30,33 @@ export class AuthService {
     username: string,
     password: string,
   ): Promise<loginInterfaceService> {
-    const result = await this.usersService.findUser(username);
+    const user = await this.usersService.findUser(username);
 
     const invalidCredentialsException = new UnauthorizedException(
       'Usuário ou senha inválidos',
     );
 
-    if (!result) {
+    if (!user) {
       throw invalidCredentialsException;
     }
 
-    const user = new User(result);
+    user.ensureCanLogin();
 
     const isMatch = await compare(password, user.senha);
 
     if (!isMatch) {
       throw invalidCredentialsException;
     }
+
+    if (user.exceededInactivityLimit()) {
+      await this.usersService.deactivateUserForInactivity(user);
+
+      throw new BadRequestException(
+        'Conta desativada por falta de acesso há mais de 60 dias. Procure um administrador.',
+      );
+    }
+
+    await this.usersService.registerLoginAccess(user);
 
     const payload = {
       sub: user.id,
@@ -98,6 +108,8 @@ export class AuthService {
         ...registrationData,
         senha: hashedPassword,
       });
+
+      user.registerAccess();
 
       const created = await this.authRepository.register(user);
 

@@ -1,38 +1,39 @@
 "use client";
 
+import { ReactNode } from "react";
+
 import ModalComponent from "@/components/common/Modal";
 import { ButtonComponent } from "@/components/common/Button";
 import { AdminUser } from "@/types/adminUsers";
 
-interface DeactivateConfirmDialogProps {
+interface ConfirmActionDialogProps {
   user: AdminUser | null;
+  title: string;
+  message: ReactNode;
+  confirmText: string;
   isMutating: boolean;
   onCancel: () => void;
   onConfirm: (user: AdminUser) => void;
 }
 
-export function DeactivateConfirmDialog({
+export function ConfirmActionDialog({
   user,
+  title,
+  message,
+  confirmText,
   isMutating,
   onCancel,
   onConfirm,
-}: DeactivateConfirmDialogProps) {
+}: ConfirmActionDialogProps) {
   return (
-    <ModalComponent
-      open={!!user}
-      onClose={onCancel}
-      title="Desativar usuário"
-    >
+    <ModalComponent open={!!user} onClose={onCancel} title={title}>
       <div className="flex flex-col items-center gap-6 pb-4">
-        <p>
-          Tem certeza que deseja desativar o usuário{" "}
-          <strong>{user?.username}</strong>?
-        </p>
+        {message}
 
         <div className="flex gap-4">
           <ButtonComponent text="Cancelar" onClick={onCancel} />
           <ButtonComponent
-            text="Desativar"
+            text={confirmText}
             disabled={isMutating}
             onClick={() => user && onConfirm(user)}
           />

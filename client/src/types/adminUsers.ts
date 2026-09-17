@@ -15,6 +15,8 @@ export interface AdminUser {
   parceira: string;
   regional: string;
   area: string;
+  ultimo_acesso: string | null;
+  desativado_por_inatividade: boolean;
 }
 
 export interface CreateAdminUserPayload {
@@ -28,4 +30,24 @@ export interface CreateAdminUserPayload {
   id_regional: number;
   id_turma: number;
   id_area?: number;
+}
+
+export type AdminUserStatusFilter =
+  | "Todos"
+  | "Ativos"
+  | "Desativados"
+  | "Desativados por inatividade";
+
+export const ADMIN_USER_STATUS_OPTIONS: AdminUserStatusFilter[] = [
+  "Todos",
+  "Ativos",
+  "Desativados",
+  "Desativados por inatividade",
+];
+
+export interface AdminUsersAppliedFilters {
+  nome: string;
+  regionais: string[];
+  parceiras: string[];
+  status: AdminUserStatusFilter;
 }

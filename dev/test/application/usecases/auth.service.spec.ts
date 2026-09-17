@@ -66,6 +66,8 @@ describe('AuthService', () => {
           useValue: {
             findUser: jest.fn(),
             registerUser: jest.fn(),
+            registerLoginAccess: jest.fn(),
+            deactivateUserForInactivity: jest.fn(),
           },
         },
         {
@@ -110,14 +112,45 @@ describe('AuthService', () => {
     });
 
     it('should throw BadRequestException if user is not active', async () => {
-      jest.spyOn(usersService, 'findUser').mockResolvedValue({
-        ...loginUser,
-        ativo: false,
-      } as User);
+      jest
+        .spyOn(usersService, 'findUser')
+        .mockResolvedValue(new User({ ...loginUser, ativo: false }));
 
       await expect(authService.login('username', 'teste123')).rejects.toThrow(
         new BadRequestException('Usuário está inativo no sistema'),
       );
+    });
+
+    it('should throw BadRequestException if user was deleted (excluido)', async () => {
+      jest
+        .spyOn(usersService, 'findUser')
+        .mockResolvedValue(new User({ ...loginUser, excluido: true }));
+
+      await expect(authService.login('username', 'teste123')).rejects.toThrow(
+        new BadRequestException('Usuário está inativo no sistema'),
+      );
+    });
+
+    it('should deactivate the user and refuse login after 60 days without access', async () => {
+      const oldAccess = new Date();
+      oldAccess.setDate(oldAccess.getDate() - 61);
+
+      jest.spyOn(usersService, 'findUser').mockResolvedValue(
+        new User({
+          ...loginUser,
+          ultimo_acesso: oldAccess,
+        }),
+      );
+      (compare as jest.Mock).mockResolvedValue(true);
+
+      await expect(authService.login('username', 'teste123')).rejects.toThrow(
+        new BadRequestException(
+          'Conta desativada por falta de acesso há mais de 60 dias. Procure um administrador.',
+        ),
+      );
+
+      expect(usersService.deactivateUserForInactivity).toHaveBeenCalledTimes(1);
+      expect(usersService.registerLoginAccess).not.toHaveBeenCalled();
     });
 
     it('should return user and access_token if login is successful', async () => {
@@ -144,6 +177,7 @@ describe('AuthService', () => {
         email: loginUser.email,
         access_token: access_token,
       });
+      expect(usersService.registerLoginAccess).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -209,6 +243,9 @@ describe('AuthService', () => {
         id_area: null,
         tipo_usuario: 'PARCEIRA',
         ativo: true,
+        desativado_por_inatividade: false,
+        excluido: false,
+        ultimo_acesso: expect.any(Date),
       });
     });
 

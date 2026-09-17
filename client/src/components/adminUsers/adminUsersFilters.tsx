@@ -1,46 +1,43 @@
 "use client";
 
-import { InputAdornment, TextField } from "@mui/material";
+import {
+  InputAdornment,
+  MenuItem,
+  TextField,
+} from "@mui/material";
 import { MagnifyingGlassCircleIcon } from "@heroicons/react/20/solid";
 
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { ButtonComponent } from "@/components/common/Button";
+import { UseAdminUsersFiltersReturn } from "@/hooks/adminUsers/useAdminUsersFilters";
+import { ADMIN_USER_STATUS_OPTIONS } from "@/types/adminUsers";
+import { FiltersInterface } from "@/types/filtersInterfaces";
 
-export interface UserFiltersState {
-  nome: string;
-  regionais: string[];
-  parceiras: string[];
+interface AdminUsersFiltersProps {
+  filters: FiltersInterface;
+  filterState: UseAdminUsersFiltersReturn;
 }
 
-interface UserFiltersProps {
-  nome: string;
-  setNome: (value: string) => void;
-  selectedRegionais: string[];
-  setSelectedRegionais: (value: string[]) => void;
-  selectedParceiras: string[];
-  setSelectedParceiras: (value: string[]) => void;
-  filters: {
-    regionais?: { id: number; regional: string }[];
-    parceiras?: { id: number; turma: string }[];
-  };
-  onApply: () => void;
-  onClear: () => void;
-}
-
-export function UserFilters({
-  nome,
-  setNome,
-  selectedRegionais,
-  setSelectedRegionais,
-  selectedParceiras,
-  setSelectedParceiras,
+export function AdminUsersFilters({
   filters,
-  onApply,
-  onClear,
-}: UserFiltersProps) {
+  filterState,
+}: AdminUsersFiltersProps) {
+  const {
+    nome,
+    setNome,
+    selectedRegionais,
+    setSelectedRegionais,
+    selectedParceiras,
+    setSelectedParceiras,
+    status,
+    setStatus,
+    applyFilters,
+    clearFilters,
+  } = filterState;
+
   return (
     <div className="flex flex-col gap-2 w-full">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <TextField
           className="w-full"
           size="small"
@@ -58,7 +55,7 @@ export function UserFilters({
 
         <MultipleSelectComponent
           label="Regional"
-          menuItems={filters.regionais ?? []}
+          menuItems={filters.regional ?? []}
           selectedItem={selectedRegionais}
           setSelectedItem={setSelectedRegionais}
           valueKey="regional"
@@ -67,22 +64,39 @@ export function UserFilters({
 
         <MultipleSelectComponent
           label="Parceira"
-          menuItems={filters.parceiras ?? []}
+          menuItems={filters.parceira ?? []}
           selectedItem={selectedParceiras}
           setSelectedItem={setSelectedParceiras}
           valueKey="turma"
           displayKey="turma"
         />
+
+        <TextField
+          className="w-full lg:ml-4"
+          size="small"
+          select
+          label="Status"
+          value={status}
+          onChange={(event) =>
+            setStatus(event.target.value as typeof status)
+          }
+        >
+          {ADMIN_USER_STATUS_OPTIONS.map((option) => (
+            <MenuItem key={option} value={option}>
+              {option}
+            </MenuItem>
+          ))}
+        </TextField>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 w-full">
         <ButtonComponent
-          onClick={onApply}
+          onClick={applyFilters}
           text="Aplicar filtros"
           styled="w-full mb-2 md:w-3/4 md:mb-0 mx-auto"
         />
         <ButtonComponent
-          onClick={onClear}
+          onClick={clearFilters}
           text="Limpar filtros"
           styled="w-full mb-2 md:w-3/4 md:mb-0 mx-auto"
         />

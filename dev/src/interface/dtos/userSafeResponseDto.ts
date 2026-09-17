@@ -37,11 +37,17 @@ export class UserSafeResponseDTO {
   ativo: boolean;
 
   @Expose()
-  regional: number;
+  ultimo_acesso: Date | null;
 
   @Expose()
-  parceira: number;
+  desativado_por_inatividade: boolean;
 
   @Expose()
-  area: number | null;
+  regional: string;
+
+  @Expose()
+  parceira: string;
+
+  @Expose()
+  area: string | null;
 }

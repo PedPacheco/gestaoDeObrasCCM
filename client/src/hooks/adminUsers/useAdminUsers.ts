@@ -2,12 +2,14 @@
 
 import { useCallback, useState } from "react";
 import {
+  archiveAdminUser,
   createAdminUser,
   deactivateAdminUser,
   getAdminUsers,
   reactivateAdminUser,
-  toggleAdminUserPermission,
+  updateAdminUserPermission,
 } from "@/actions/adminUsers";
+import { ActionResult } from "@/actions/serverApi";
 import { AdminUser, CreateAdminUserPayload } from "@/types/adminUsers";
 
 export function useAdminUsers(initialUsers: AdminUser[] = []) {
@@ -16,7 +18,26 @@ export function useAdminUsers(initialUsers: AdminUser[] = []) {
   const [error, setError] = useState<string | null>(null);
   const [isMutating, setIsMutating] = useState(false);
 
-  // Usado apenas para revalidar após mutações
+  async function runMutation<T>(mutation: () => Promise<T>): Promise<T> {
+    setIsMutating(true);
+
+    try {
+      return await mutation();
+    } finally {
+      setIsMutating(false);
+    }
+  }
+
+  function replaceUser(updated: AdminUser) {
+    setUsers((prev) =>
+      prev.map((user) => (user.id === updated.id ? updated : user)),
+    );
+  }
+
+  function removeUser(id: number) {
+    setUsers((prev) => prev.filter((user) => user.id !== id));
+  }
+
   const refreshUsers = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -33,55 +54,63 @@ export function useAdminUsers(initialUsers: AdminUser[] = []) {
   }, []);
 
   async function createUser(payload: CreateAdminUserPayload) {
-    setIsMutating(true);
+    return runMutation(async () => {
+      const result = await createAdminUser(payload);
 
-    const result = await createAdminUser(payload);
+      if (result.success) {
+        await refreshUsers();
+      }
 
-    if (result.success) {
-      await refreshUsers();
-    }
-
-    setIsMutating(false);
-    return result;
+      return result;
+    });
   }
 
   async function deactivateUser(id: number) {
-    setIsMutating(true);
+    return runMutation(async () => {
+      const result = await deactivateAdminUser(id);
 
-    const result = await deactivateAdminUser(id);
+      if (result.success && result.data) {
+        replaceUser(result.data);
+      }
 
-    if (result.success) {
-      await refreshUsers();
-    }
-
-    setIsMutating(false);
-    return result;
+      return result;
+    });
   }
 
   async function reactivateUser(id: number) {
-    setIsMutating(true);
+    return runMutation(async () => {
+      const result = await reactivateAdminUser(id);
 
-    const result = await reactivateAdminUser(id);
+      if (result.success && result.data) {
+        replaceUser(result.data);
+      }
 
-    if (result.success) {
-      await refreshUsers();
-    }
-
-    setIsMutating(false);
-    return result;
+      return result;
+    });
   }
 
-  async function togglePermission(id: number) {
-    setIsMutating(true);
+  async function updatePermission(id: number, permissaoEdicao: boolean) {
+    return runMutation(async () => {
+      const result = await updateAdminUserPermission(id, permissaoEdicao);
 
-    const result = await toggleAdminUserPermission(id);
+      if (result.success && result.data) {
+        replaceUser(result.data);
+      }
 
-    if (result.success) {
-      await refreshUsers();
-    }
+      return result;
+    });
+  }
 
-    setIsMutating(false);
-    return result;
+  async function archiveUser(id: number): Promise<ActionResult<AdminUser>> {
+    return runMutation(async () => {
+      const result = await archiveAdminUser(id);
+
+      if (result.success) {
+        removeUser(id);
+      }
+
+      return result;
+    });
   }
 
   return {
@@ -92,6 +121,7 @@ export function useAdminUsers(initialUsers: AdminUser[] = []) {
     createUser,
     deactivateUser,
     reactivateUser,
-    togglePermission,
+    updatePermission,
+    archiveUser,
   };
 }

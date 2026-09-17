@@ -20,6 +20,7 @@ export class AuthRepository implements IAuthRepository {
       senha,
       tipo_usuario,
       username,
+      ultimo_acesso,
     } = data;
     const { id } = await this.prisma.novo_tabela_usuarios.create({
       data: {
@@ -33,6 +34,7 @@ export class AuthRepository implements IAuthRepository {
         email,
         nome,
         tipo_usuario,
+        ultimo_acesso,
       },
     });
 

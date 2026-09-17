@@ -11,16 +11,14 @@ import {
   createAdminUserSchema,
 } from "@/validations/validationAdminUser";
 import { CreateAdminUserPayload } from "@/types/adminUsers";
+import { FiltersInterface } from "@/types/filtersInterfaces";
 
 interface UserFormModalProps {
   open: boolean;
   isMutating: boolean;
   onClose: () => void;
   onSubmit: (payload: CreateAdminUserPayload) => void;
-  filters: {
-    regionais?: { id: number; regional: string }[];
-    parceiras?: { id: number; turma: string }[];
-  };
+  filters: FiltersInterface;
 }
 
 export function UserFormModal({
@@ -103,20 +101,48 @@ export function UserFormModal({
           )}
         />
 
-        <TextField
-          label="Regional"
-          type="number"
-          {...register("id_regional", { valueAsNumber: true })}
-          error={!!errors.id_regional}
-          helperText={errors.id_regional?.message}
+        <Controller
+          name="id_regional"
+          control={control}
+          render={({ field }) => (
+            <TextField
+              {...field}
+              select
+              label="Regional"
+              value={field.value ?? ""}
+              onChange={(event) => field.onChange(Number(event.target.value))}
+              error={!!errors.id_regional}
+              helperText={errors.id_regional?.message}
+            >
+              {(filters.regional ?? []).map((item) => (
+                <MenuItem key={item.id} value={Number(item.id)}>
+                  {item.regional}
+                </MenuItem>
+              ))}
+            </TextField>
+          )}
         />
 
-        <TextField
-          label="Turma"
-          type="number"
-          {...register("id_turma", { valueAsNumber: true })}
-          error={!!errors.id_turma}
-          helperText={errors.id_turma?.message}
+        <Controller
+          name="id_turma"
+          control={control}
+          render={({ field }) => (
+            <TextField
+              {...field}
+              select
+              label="Turma / Parceira"
+              value={field.value ?? ""}
+              onChange={(event) => field.onChange(Number(event.target.value))}
+              error={!!errors.id_turma}
+              helperText={errors.id_turma?.message}
+            >
+              {(filters.parceira ?? []).map((item) => (
+                <MenuItem key={item.id} value={Number(item.id)}>
+                  {item.turma}
+                </MenuItem>
+              ))}
+            </TextField>
+          )}
         />
 
         {tipoUsuario === "INTERNO" && (

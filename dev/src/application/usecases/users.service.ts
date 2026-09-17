@@ -5,6 +5,7 @@ import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
 import {
   IUserRepository,
   USER_REPOSITORY,
+  UserWithRelations,
 } from 'src/domain/repositories/IUserRepository';
 
 import {
@@ -23,6 +24,24 @@ export class UsersService {
     private jwtService: JwtService,
   ) {}
 
+  private toEntity(raw: novo_tabela_usuarios): User {
+    return new User({
+      ...raw,
+      tipo_usuario: raw.tipo_usuario as TipoUsuario,
+    });
+  }
+
+  private toSafeUser(record: UserWithRelations) {
+    const { turmas, regionais, areas, ...rest } = record;
+
+    return {
+      ...rest,
+      parceira: turmas?.turma ?? null,
+      regional: regionais?.regional ?? null,
+      area: areas?.nome ?? null,
+    };
+  }
+
   async findUser(username: string): Promise<User | null> {
     const response = await this.userRepository.findUser(username);
 
@@ -30,12 +49,7 @@ export class UsersService {
       return null;
     }
 
-    const user = new User({
-      ...response,
-      tipo_usuario: response.tipo_usuario as TipoUsuario,
-    });
-
-    return user;
+    return this.toEntity(response);
   }
 
   async updatePassword(token: string, newPassword: string): Promise<User> {
@@ -43,6 +57,16 @@ export class UsersService {
       const { id } = await this.jwtService.verify(token);
 
       const numberId: number = +id;
+
+      const raw = await this.userRepository.findByIdRaw(numberId);
+
+      if (!raw) {
+        throw new UnauthorizedException('Token inválido ou expirado');
+      }
+
+      const user = this.toEntity(raw);
+
+      user.ensureCanLogin();
 
       const saltRounds = await genSalt();
       const hashedPassword = await hash(newPassword, saltRounds);
@@ -52,9 +76,7 @@ export class UsersService {
         hashedPassword,
       );
 
-      const user = new User(response);
-
-      return user;
+      return this.toEntity(response);
     } catch (error: any) {
       console.log(error);
       throw new UnauthorizedException('Token inválido ou expirado');
@@ -64,15 +86,10 @@ export class UsersService {
   async listUsers(): Promise<any[]> {
     const users = await this.userRepository.findAll();
 
-    return users.map(({ turmas, regionais, areas, ...rest }) => ({
-      ...rest,
-      parceira: turmas?.turma,
-      regional: regionais?.regional,
-      area: areas?.nome,
-    }));
+    return users.map((user) => this.toSafeUser(user));
   }
 
-  async createUser(dto: RegisterUserDTO): Promise<novo_tabela_usuarios> {
+  async createUser(dto: RegisterUserDTO): Promise<any> {
     const existingUser = await this.userRepository.findUser(dto.username);
 
     if (existingUser) {
@@ -87,53 +104,108 @@ export class UsersService {
     const hashedPassword = await hash(dto.senha, salt);
 
     const user = new User({ ...dto, senha: hashedPassword });
+    user.registerAccess();
 
-    return await this.userRepository.create(user);
+    const created = await this.userRepository.create(user);
+
+    return this.toSafeUser(created);
   }
 
-  async deactivateUser(
+  async deactivateUser(id: number, requesterId: number): Promise<any> {
+    const raw = await this.userRepository.findByIdRaw(id);
+
+    if (!raw) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    const user = this.toEntity(raw);
+    user.deactivate(requesterId);
+
+    const updated = await this.userRepository.updateStatus(id, {
+      ativo: user.ativo,
+    });
+
+    return this.toSafeUser(updated);
+  }
+
+  async reactivateUser(id: number): Promise<any> {
+    const raw = await this.userRepository.findByIdRaw(id);
+
+    if (!raw) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    const user = this.toEntity(raw);
+    user.reactivate();
+
+    const updated = await this.userRepository.updateStatus(id, {
+      ativo: user.ativo,
+      desativado_por_inatividade: user.desativado_por_inatividade,
+      ultimo_acesso: user.ultimo_acesso,
+    });
+
+    return this.toSafeUser(updated);
+  }
+
+  async changeUserPermission(
     id: number,
-    requesterId: number,
-  ): Promise<novo_tabela_usuarios> {
-    const target = await this.userRepository.findByIdRaw(id);
+    permissaoEdicao: boolean,
+  ): Promise<any> {
+    const raw = await this.userRepository.findByIdRaw(id);
 
-    if (!target) {
+    if (!raw) {
       throw new NotFoundException('Usuário não encontrado');
     }
 
-    if (target.id === requesterId) {
-      throw new BadRequestException(
-        'Você não pode desativar sua própria conta',
-      );
-    }
+    const user = this.toEntity(raw);
+    user.changeEditPermission(permissaoEdicao);
 
-    return await this.userRepository.softDelete(id);
+    const updated = await this.userRepository.updateStatus(id, {
+      permissao_edicao: user.permissao_edicao,
+    });
+
+    return this.toSafeUser(updated);
   }
 
-  async reactivateUser(id: number): Promise<novo_tabela_usuarios> {
-    const target = await this.userRepository.findByIdRaw(id);
+  async archiveUser(id: number, requesterId: number): Promise<any> {
+    const raw = await this.userRepository.findByIdRaw(id);
 
-    if (!target) {
+    if (!raw) {
       throw new NotFoundException('Usuário não encontrado');
     }
 
-    if (target.ativo) {
-      throw new BadRequestException('Usuário já está ativo');
-    }
+    const user = this.toEntity(raw);
+    user.archive(requesterId);
 
-    return await this.userRepository.reactivate(id);
+    const updated = await this.userRepository.updateStatus(id, {
+      ativo: user.ativo,
+      excluido: user.excluido,
+      data_exclusao: user.data_exclusao,
+    });
+
+    return this.toSafeUser(updated);
   }
 
-  async togglePermissaoEdicao(id: number): Promise<novo_tabela_usuarios> {
-    const target = await this.userRepository.findByIdRaw(id);
+  async registerLoginAccess(user: User): Promise<void> {
+    user.registerAccess();
 
-    if (!target) {
-      throw new NotFoundException('Usuário não encontrado');
-    }
+    await this.userRepository.updateStatus(user.id as number, {
+      ultimo_acesso: user.ultimo_acesso,
+    });
+  }
 
-    return await this.userRepository.updatePermissaoEdicao(
-      id,
-      !target.permissao_edicao,
+  async deactivateUserForInactivity(user: User): Promise<void> {
+    user.deactivateForInactivity();
+
+    await this.userRepository.updateStatus(user.id as number, {
+      ativo: user.ativo,
+      desativado_por_inatividade: user.desativado_por_inatividade,
+    });
+  }
+
+  async deactivateInactiveUsers(): Promise<number> {
+    return this.userRepository.deactivateInactiveUsers(
+      User.inactivityCutoffDate(),
     );
   }
 }

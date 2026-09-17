@@ -3,39 +3,31 @@
 import { useState } from "react";
 
 import { useFeedback } from "@/hooks/useFeedback";
+import { useUser } from "@/contexts/userContext";
 import { useAdminUsers } from "@/hooks/adminUsers/useAdminUsers";
-import { UsersTable } from "@/components/adminUsers/UsersTable";
-import { UserFormModal } from "@/components/adminUsers/UserFormModal";
-import { UserFilters } from "@/components/adminUsers/UserFilters";
-import { DeactivateConfirmDialog } from "@/components/adminUsers/DeactivateConfirmDialog";
+import { useAdminUsersFilters } from "@/hooks/adminUsers/useAdminUsersFilters";
+import { UsersTable } from "@/components/adminUsers/usersTable";
+import { UserFormModal } from "@/components/adminUsers/userFormModal";
+import { AdminUsersFilters } from "@/components/adminUsers/adminUsersFilters";
+import { ConfirmActionDialog } from "@/components/adminUsers/confirmActionDialog";
 import { ButtonComponent } from "@/components/common/Button";
 import { AdminUser, CreateAdminUserPayload } from "@/types/adminUsers";
+import { FiltersInterface } from "@/types/filtersInterfaces";
 
 interface AdminUsersMainProps {
   initialUsers: AdminUser[];
-  filters: {
-    regionais?: { id: number; regional: string }[];
-    parceiras?: { id: number; turma: string }[];
-  };
+  filters: FiltersInterface;
 }
 
 export function AdminUsersMain({ initialUsers, filters }: AdminUsersMainProps) {
   const { showSuccess, showError } = useFeedback();
+  const { user: currentUser } = useUser();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [userToDeactivate, setUserToDeactivate] = useState<AdminUser | null>(
     null,
   );
-
-  const [nome, setNome] = useState("");
-  const [selectedRegionais, setSelectedRegionais] = useState<string[]>([]);
-  const [selectedParceiras, setSelectedParceiras] = useState<string[]>([]);
-
-  const [appliedFilters, setAppliedFilters] = useState({
-    nome: "",
-    regionais: [] as string[],
-    parceiras: [] as string[],
-  });
+  const [userToArchive, setUserToArchive] = useState<AdminUser | null>(null);
 
   const {
     users,
@@ -45,8 +37,11 @@ export function AdminUsersMain({ initialUsers, filters }: AdminUsersMainProps) {
     createUser,
     deactivateUser,
     reactivateUser,
-    togglePermission,
+    updatePermission,
+    archiveUser,
   } = useAdminUsers(initialUsers);
+
+  const filterState = useAdminUsersFilters(users);
 
   async function handleCreateUser(payload: CreateAdminUserPayload) {
     const result = await createUser(payload);
@@ -80,8 +75,11 @@ export function AdminUsersMain({ initialUsers, filters }: AdminUsersMainProps) {
     }
   }
 
-  async function handleTogglePermission(target: AdminUser) {
-    const result = await togglePermission(target.id);
+  async function handleTogglePermission(
+    target: AdminUser,
+    permissaoEdicao: boolean,
+  ) {
+    const result = await updatePermission(target.id, permissaoEdicao);
 
     if (result.success) {
       showSuccess("Permissão do usuário atualizada com sucesso");
@@ -90,37 +88,16 @@ export function AdminUsersMain({ initialUsers, filters }: AdminUsersMainProps) {
     }
   }
 
-  function handleApplyFilters() {
-    setAppliedFilters({
-      nome,
-      regionais: selectedRegionais,
-      parceiras: selectedParceiras,
-    });
+  async function handleArchiveUser(target: AdminUser) {
+    const result = await archiveUser(target.id);
+    setUserToArchive(null);
+
+    if (result.success) {
+      showSuccess("Usuário excluído com sucesso");
+    } else {
+      showError(result.error);
+    }
   }
-
-  function handleClearFilters() {
-    setNome("");
-    setSelectedRegionais([]);
-    setSelectedParceiras([]);
-    setAppliedFilters({ nome: "", regionais: [], parceiras: [] });
-  }
-
-  const filteredUsers = users.filter((user) => {
-    const matchesNome = appliedFilters.nome
-      ? user.nome.toLowerCase().includes(appliedFilters.nome.toLowerCase()) ||
-        user.username.toLowerCase().includes(appliedFilters.nome.toLowerCase())
-      : true;
-
-    const matchesRegional = appliedFilters.regionais.length
-      ? appliedFilters.regionais.includes(user.regional)
-      : true;
-
-    const matchesParceira = appliedFilters.parceiras.length
-      ? appliedFilters.parceiras.includes(user.parceira)
-      : true;
-
-    return matchesNome && matchesRegional && matchesParceira;
-  });
 
   return (
     <div className="flex flex-col gap-4 w-full">
@@ -131,26 +108,18 @@ export function AdminUsersMain({ initialUsers, filters }: AdminUsersMainProps) {
         />
       </div>
 
-      <UserFilters
-        nome={nome}
-        setNome={setNome}
-        selectedRegionais={selectedRegionais}
-        setSelectedRegionais={setSelectedRegionais}
-        selectedParceiras={selectedParceiras}
-        setSelectedParceiras={setSelectedParceiras}
-        filters={filters}
-        onApply={handleApplyFilters}
-        onClear={handleClearFilters}
-      />
+      <AdminUsersFilters filters={filters} filterState={filterState} />
 
       {error && <p className="text-red-600">{error}</p>}
 
       <UsersTable
-        users={filteredUsers}
+        users={filterState.filteredUsers}
         isLoading={isLoading}
         isMutating={isMutating}
+        currentUserId={currentUser?.id}
         onDeactivate={setUserToDeactivate}
         onReactivate={handleReactivateUser}
+        onArchive={setUserToArchive}
         onTogglePermission={handleTogglePermission}
       />
 
@@ -162,11 +131,36 @@ export function AdminUsersMain({ initialUsers, filters }: AdminUsersMainProps) {
         onSubmit={handleCreateUser}
       />
 
-      <DeactivateConfirmDialog
+      <ConfirmActionDialog
         user={userToDeactivate}
+        title="Desativar usuário"
+        message={
+          <p>
+            Tem certeza que deseja desativar o usuário{" "}
+            <strong>{userToDeactivate?.username}</strong>?
+          </p>
+        }
+        confirmText="Desativar"
         isMutating={isMutating}
         onCancel={() => setUserToDeactivate(null)}
         onConfirm={handleDeactivateUser}
+      />
+
+      <ConfirmActionDialog
+        user={userToArchive}
+        title="Excluir usuário"
+        message={
+          <p>
+            Tem certeza que deseja excluir o usuário{" "}
+            <strong>{userToArchive?.username}</strong>? Use esta ação apenas
+            para usuários que saíram da empresa — depois de excluída, a conta
+            não poderá mais fazer login.
+          </p>
+        }
+        confirmText="Excluir"
+        isMutating={isMutating}
+        onCancel={() => setUserToArchive(null)}
+        onConfirm={handleArchiveUser}
       />
     </div>
   );

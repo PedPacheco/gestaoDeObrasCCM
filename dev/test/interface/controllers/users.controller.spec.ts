@@ -20,7 +20,18 @@ describe('UsersControllers', () => {
     const moduleRef: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
       providers: [
-        { provide: UsersService, useValue: { updatePassword: jest.fn() } },
+        {
+          provide: UsersService,
+          useValue: {
+            updatePassword: jest.fn(),
+            listUsers: jest.fn(),
+            createUser: jest.fn(),
+            deactivateUser: jest.fn(),
+            reactivateUser: jest.fn(),
+            changeUserPermission: jest.fn(),
+            archiveUser: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -55,5 +66,53 @@ describe('UsersControllers', () => {
       params.token,
       params.newPassword,
     );
+  });
+
+  it('should call UsersService.deactivateUser with the requester id and parsed target id', async () => {
+    const safeUser = { id: 2, ativo: false };
+    jest.spyOn(usersService, 'deactivateUser').mockResolvedValue(safeUser);
+
+    const response = await usersController.deactivate(2, {
+      user: { sub: 1 },
+    } as any);
+
+    expect(usersService.deactivateUser).toHaveBeenCalledWith(2, 1);
+    expect(response.statusCode).toBe(HttpStatus.OK);
+  });
+
+  it('should call UsersService.reactivateUser with the parsed id', async () => {
+    const safeUser = { id: 2, ativo: true };
+    jest.spyOn(usersService, 'reactivateUser').mockResolvedValue(safeUser);
+
+    const response = await usersController.reactivate(2);
+
+    expect(usersService.reactivateUser).toHaveBeenCalledWith(2);
+    expect(response.statusCode).toBe(HttpStatus.OK);
+  });
+
+  it('should call UsersService.changeUserPermission with the id and the body value', async () => {
+    const safeUser = { id: 2, permissao_edicao: true };
+    jest
+      .spyOn(usersService, 'changeUserPermission')
+      .mockResolvedValue(safeUser);
+
+    const response = await usersController.updatePermission(2, {
+      permissao_edicao: true,
+    });
+
+    expect(usersService.changeUserPermission).toHaveBeenCalledWith(2, true);
+    expect(response.statusCode).toBe(HttpStatus.OK);
+  });
+
+  it('should call UsersService.archiveUser with the requester id and parsed target id', async () => {
+    const safeUser = { id: 2, excluido: true };
+    jest.spyOn(usersService, 'archiveUser').mockResolvedValue(safeUser);
+
+    const response = await usersController.archive(2, {
+      user: { sub: 1 },
+    } as any);
+
+    expect(usersService.archiveUser).toHaveBeenCalledWith(2, 1);
+    expect(response.statusCode).toBe(HttpStatus.OK);
   });
 });
