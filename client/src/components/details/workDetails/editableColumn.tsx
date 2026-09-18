@@ -49,8 +49,8 @@ export const EditableColumn = ({
 
   const getFilteredAndSortedStatus = useMemo(() => {
     const filtered =
-      data.data_empreitamento === null
-        ? options.status
+      data.id_status === 42 && data.data_empreitamento === null
+        ? options.status.filter((item) => [42, 45, 4, 3].includes(item.id))
         : options.status.filter((item) => item.id !== 42);
 
     return filtered.sort(

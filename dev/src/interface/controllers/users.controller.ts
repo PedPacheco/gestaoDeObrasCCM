@@ -24,8 +24,11 @@ import {
   ChangePasswordDTO,
   changePasswordResponseDTO,
 } from '../dtos/changePasswordDto';
-import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
-import { AdminPanelGuard } from 'src/core/guards/adminPanelGuard';
+import {
+  AreaEditGuard,
+  AreaViewGuard,
+} from 'src/core/guards/newPermission.guard';
+
 import { RegisterUserDTO } from '../dtos/registerUserDto';
 import { UserSafeResponseDTO } from '../dtos/userSafeResponseDto';
 
@@ -34,11 +37,9 @@ export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @Get()
-  @UseGuards(AdminPanelGuard())
+  @UseGuards(AreaViewGuard({ adminOnly: true }))
   async list(): Promise<userListInterfaceController> {
     const users = await this.usersService.listUsers();
-
-    console.log(users);
 
     return {
       statusCode: HttpStatus.OK,
@@ -52,7 +53,7 @@ export class UsersController {
   }
 
   @Post()
-  @UseGuards(AdminPanelGuard())
+  @UseGuards(AreaEditGuard({ adminOnly: true }))
   async create(
     @Body() dto: RegisterUserDTO,
   ): Promise<userAdminCreateInterfaceController> {
@@ -68,7 +69,7 @@ export class UsersController {
   }
 
   @Put('/change-password')
-  @UseGuards(AreaViewGuard())
+  @UseGuards(AreaEditGuard({ adminOnly: true }))
   async changePassword(
     @Body() { token, newPassword }: ChangePasswordDTO,
   ): Promise<userChangePasswordController> {
@@ -82,7 +83,7 @@ export class UsersController {
   }
 
   @Delete('/:id')
-  @UseGuards(AdminPanelGuard())
+  @UseGuards(AreaEditGuard({ adminOnly: true }))
   async deactivate(
     @Param('id') id: string,
     @Req() req: any,

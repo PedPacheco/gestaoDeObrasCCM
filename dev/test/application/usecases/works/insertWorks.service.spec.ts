@@ -95,6 +95,7 @@ describe('InsertWorksService', () => {
           moPlanejada: 7500,
           prazo: index === 0 ? 30 : 0,
           observacao: undefined,
+          pontoAPonto: index === 0 ? false : true,
         })),
       );
       expect(result).toEqual({
@@ -105,6 +106,7 @@ describe('InsertWorksService', () => {
           moPlanejada: 7500,
           prazo: index === 0 ? 30 : 0,
           observacao: undefined,
+          pontoAPonto: index === 0 ? false : true,
         })),
         skipped: ['14245356'],
       });

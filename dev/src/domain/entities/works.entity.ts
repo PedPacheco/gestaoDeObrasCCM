@@ -1,6 +1,8 @@
 import { BadRequestException } from '@nestjs/common';
 
 export class Work {
+  public readonly pontoAPonto: boolean;
+
   constructor(
     public readonly obra: string,
     public readonly pep: string,
@@ -10,7 +12,13 @@ export class Work {
     public readonly idParceira: number,
     public readonly idCircuito: number,
     public readonly id?: number,
-  ) {}
+  ) {
+    this.pontoAPonto = this.isPontoAPonto();
+  }
+
+  private isPontoAPonto(): boolean {
+    return this.idParceira === 3;
+  }
 }
 
 export class MarketWork extends Work {
