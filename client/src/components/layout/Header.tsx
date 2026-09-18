@@ -5,12 +5,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-import { Bars3Icon } from "@heroicons/react/20/solid";
+import { ArrowRightOnRectangleIcon, Bars3Icon } from "@heroicons/react/20/solid";
 
+import { useUser } from "@/contexts/userContext";
 import { Sidebar } from "./Sidebar";
 
 export function Header() {
   const [open, setOpen] = useState<boolean>(false);
+  const { user, logout } = useUser();
   const pathname = usePathname();
 
   function changeOpen() {
@@ -34,7 +36,20 @@ export function Header() {
           />
         </div>
 
-        <div className="p-2 lg:pr-6">
+        <div className="flex items-center gap-4 p-2 lg:pr-6">
+          {user && (
+            <span className="hidden text-sm font-medium text-zinc-200 md:block">
+              {user.nome_usuario || user.username}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={logout}
+            className="flex items-center gap-1 rounded-md border border-zinc-400/60 px-3 py-1.5 text-sm font-semibold text-zinc-200 hover:border-[#53FF75] hover:text-[#53FF75]"
+          >
+            <ArrowRightOnRectangleIcon className="h-5 w-5" aria-hidden="true" />
+            Sair
+          </button>
           <Link href="/">
             <Image src="/edpLogo.png" alt="Edp Logo" width={120} height={92} />
           </Link>

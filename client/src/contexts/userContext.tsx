@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Cookies } from "react-cookie";
 import { jwtDecode } from "jwt-decode";
 
@@ -46,8 +45,6 @@ const UserContext = createContext<UserContextType | null>(null);
 const cookies = new Cookies();
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-
   const [user, setUser] = useState<UserData | null>(null);
   const [permissions, setPermissions] = useState<JwtPayload | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -101,7 +98,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   /** 🔹 Logout */
   function logout() {
     clearAuth();
-    router.replace("/login");
+    window.location.replace("/login");
   }
 
   function clearAuth() {
