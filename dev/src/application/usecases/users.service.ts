@@ -160,4 +160,10 @@ export class UsersService {
       ativo: user.ativo,
     });
   }
+
+  async deactivateInactiveUsers(): Promise<number> {
+    return await this.userRepository.deactivateInactiveUsers(
+      User.inactivityCutoffDate(),
+    );
+  }
 }

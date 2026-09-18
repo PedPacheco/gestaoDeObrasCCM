@@ -34,6 +34,7 @@ export interface IUserRepository {
   updatePassword(numberId: number, newPassword: string): Promise<any>;
   updateUser(id: number, data: EditableUserData): Promise<void>;
   registerAccess(id: number, ultimo_acesso: Date): Promise<void>;
+  deactivateInactiveUsers(cutoffDate: Date): Promise<number>;
 }
 
 export const USER_REPOSITORY = Symbol('UserRepository');

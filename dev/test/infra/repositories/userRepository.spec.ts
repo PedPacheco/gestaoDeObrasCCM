@@ -11,6 +11,7 @@ describe('UserRepository', () => {
     novo_tabela_usuarios: {
       findFirst: jest.fn(),
       update: jest.fn(),
+      updateMany: jest.fn(),
     },
   };
 
@@ -88,6 +89,29 @@ describe('UserRepository', () => {
       expect(prismaService.novo_tabela_usuarios.update).toHaveBeenCalledWith({
         where: { id: numberId },
         data: { senha: newPassword },
+      });
+    });
+  });
+
+  describe('deactivateInactiveUsers', () => {
+    it('should deactivate users inactive since before the cutoff date and return the count', async () => {
+      const cutoffDate = new Date('2026-07-20T00:00:00.000Z');
+
+      prismaMock.novo_tabela_usuarios.updateMany.mockResolvedValue({
+        count: 3,
+      });
+
+      const result = await userRepository.deactivateInactiveUsers(cutoffDate);
+
+      expect(result).toBe(3);
+      expect(
+        prismaService.novo_tabela_usuarios.updateMany,
+      ).toHaveBeenCalledWith({
+        where: {
+          ativo: true,
+          ultimo_acesso: { lt: cutoffDate },
+        },
+        data: { ativo: false },
       });
     });
   });

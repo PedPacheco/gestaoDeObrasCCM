@@ -128,4 +128,16 @@ export class UserRepository implements IUserRepository {
       data: { ultimo_acesso },
     });
   }
+
+  async deactivateInactiveUsers(cutoffDate: Date): Promise<number> {
+    const result = await this.prisma.novo_tabela_usuarios.updateMany({
+      where: {
+        ativo: true,
+        ultimo_acesso: { lt: cutoffDate },
+      },
+      data: { ativo: false },
+    });
+
+    return result.count;
+  }
 }

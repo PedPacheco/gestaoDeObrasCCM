@@ -26,6 +26,7 @@ const mockUserRepository = {
   updateStatus: jest.fn(),
   updateUser: jest.fn(),
   updatePassword: jest.fn(),
+  deactivateInactiveUsers: jest.fn(),
 };
 
 const mockJwtService = {
@@ -385,6 +386,26 @@ describe('UsersService', () => {
         regional: 'Regional X',
         area: 'Área Y',
       });
+    });
+  });
+
+  describe('deactivateInactiveUsers', () => {
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should deactivate users inactive since the cutoff date and return the count', async () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2026-09-18T12:00:00.000Z'));
+
+      mockUserRepository.deactivateInactiveUsers.mockResolvedValue(5);
+
+      const result = await usersService.deactivateInactiveUsers();
+
+      expect(result).toBe(5);
+      expect(mockUserRepository.deactivateInactiveUsers).toHaveBeenCalledWith(
+        User.inactivityCutoffDate(),
+      );
     });
   });
 });
