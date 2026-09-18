@@ -1,14 +1,12 @@
-import { compare, genSalt, hash } from 'bcrypt';
+import { compare } from 'bcrypt';
 import { AuthService } from 'src/application/usecases/auth.service';
 import { UsersService } from 'src/application/usecases/users.service';
 import { TipoUsuario, User } from 'src/domain/entities/user.entity';
-import { AUTH_REPOSITORY } from 'src/domain/repositories/IAuthRepository';
-import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
-import { generateRandomPassword } from 'src/utils/generatePassword';
 
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
+import moment from 'moment';
 
 jest.mock('bcrypt', () => ({
   compare: jest.fn(),
@@ -16,47 +14,36 @@ jest.mock('bcrypt', () => ({
   genSalt: jest.fn(),
 }));
 
-const mockAuthRepository = {
-  register: jest.fn(),
-};
-
 jest.mock('src/utils/generatePassword');
-
-const registerUser: RegisterUserDTO = {
-  username: 'username',
-  senha: 'teste123',
-  nome: 'test',
-  email: 'teste@gmail.com',
-  id_regional: 1,
-  id_turma: 2,
-  id_area: 8,
-  is_admin: true,
-  tipo_usuario: TipoUsuario.INTERNO,
-  permissao_edicao: true,
-};
-
-const loginUser = {
-  id: 1,
-  username: 'username',
-  senha: 'teste123',
-  nome: 'test',
-  email: 'teste@gmail.com',
-  id_regional: 1,
-  id_turma: 2,
-  id_area: 8,
-  is_admin: true,
-  tipo_usuario: TipoUsuario.INTERNO,
-  permissao_edicao: true,
-  ativo: true,
-};
 
 describe('AuthService', () => {
   let authService: AuthService;
   let usersService: UsersService;
   let jwtService: JwtService;
 
+  const fixedDate = new Date('2026-09-18T12:00:00.000Z');
+
+  const loginUser = {
+    id: 1,
+    username: 'username',
+    senha: 'teste123',
+    nome: 'test',
+    email: 'teste@gmail.com',
+    id_regional: 1,
+    id_turma: 2,
+    id_area: 8,
+    is_admin: true,
+    tipo_usuario: TipoUsuario.INTERNO,
+    permissao_edicao: true,
+    ativo: true,
+    ultimo_acesso: fixedDate,
+  };
+
   beforeEach(async () => {
     jest.resetAllMocks();
+    jest.useFakeTimers();
+    jest.setSystemTime(fixedDate);
+    jest.spyOn(moment, 'utc').mockReturnValue(moment(fixedDate));
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -77,16 +64,17 @@ describe('AuthService', () => {
             sign: jest.fn(),
           },
         },
-        {
-          provide: AUTH_REPOSITORY,
-          useValue: mockAuthRepository,
-        },
       ],
     }).compile();
 
     authService = module.get<AuthService>(AuthService);
     usersService = module.get<UsersService>(UsersService);
     jwtService = module.get<JwtService>(JwtService);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
   describe('login', () => {
@@ -121,18 +109,8 @@ describe('AuthService', () => {
       );
     });
 
-    it('should throw BadRequestException if user was deleted (excluido)', async () => {
-      jest
-        .spyOn(usersService, 'findUser')
-        .mockResolvedValue(new User({ ...loginUser, excluido: true }));
-
-      await expect(authService.login('username', 'teste123')).rejects.toThrow(
-        new BadRequestException('Usuário está inativo no sistema'),
-      );
-    });
-
     it('should deactivate the user and refuse login after 60 days without access', async () => {
-      const oldAccess = new Date();
+      const oldAccess = new Date(fixedDate);
       oldAccess.setDate(oldAccess.getDate() - 61);
 
       jest.spyOn(usersService, 'findUser').mockResolvedValue(
@@ -148,9 +126,6 @@ describe('AuthService', () => {
           'Conta desativada por falta de acesso há mais de 60 dias. Procure um administrador.',
         ),
       );
-
-      expect(usersService.deactivateUserForInactivity).toHaveBeenCalledTimes(1);
-      expect(usersService.registerLoginAccess).not.toHaveBeenCalled();
     });
 
     it('should return user and access_token if login is successful', async () => {
@@ -178,99 +153,6 @@ describe('AuthService', () => {
         access_token: access_token,
       });
       expect(usersService.registerLoginAccess).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('register', () => {
-    it('should throw BadRequestExpection when user already exists', async () => {
-      jest
-        .spyOn(usersService, 'findUser')
-        .mockResolvedValue(new User(loginUser));
-
-      await expect(authService.register(loginUser)).rejects.toThrow(
-        new BadRequestException('Nome de usuário já está em uso.'),
-      );
-    });
-
-    it('should throw BadRequestExpection when password not sent', async () => {
-      jest.spyOn(usersService, 'findUser').mockResolvedValue(undefined);
-
-      await expect(
-        authService.register({ ...loginUser, senha: undefined }),
-      ).rejects.toThrow(
-        new BadRequestException('A senha do usuário tem que ser enviada.'),
-      );
-    });
-
-    it('should throw BadRequestExpection the internal user does not have a defined area.', async () => {
-      jest.spyOn(usersService, 'findUser').mockResolvedValue(null);
-
-      await expect(
-        authService.register({ ...registerUser, id_area: undefined }),
-      ).rejects.toThrow(
-        new BadRequestException(
-          'Usuários internos devem possuir uma área vinculada.',
-        ),
-      );
-    });
-
-    it('should be set the partner user area to null', async () => {
-      const salt = 10;
-      const hashedPassword = 'hashPassword';
-
-      jest.spyOn(usersService, 'findUser').mockResolvedValue(
-        new User({
-          ...registerUser,
-          tipo_usuario: TipoUsuario.PARCEIRA,
-          ativo: true,
-        }),
-      );
-
-      jest.spyOn(usersService, 'findUser').mockResolvedValue(null);
-
-      (genSalt as jest.Mock).mockResolvedValue(salt);
-      (hash as jest.Mock).mockResolvedValue(hashedPassword);
-
-      await authService.register({
-        ...registerUser,
-        senha: hashedPassword,
-        tipo_usuario: TipoUsuario.PARCEIRA,
-      });
-
-      expect(mockAuthRepository.register).toHaveBeenCalledWith({
-        ...registerUser,
-        senha: hashedPassword,
-        id_area: null,
-        tipo_usuario: 'PARCEIRA',
-        ativo: true,
-        desativado_por_inatividade: false,
-        excluido: false,
-        ultimo_acesso: expect.any(Date),
-      });
-    });
-
-    it('should create user and return user', async () => {
-      const salt = 10;
-      const hashedPassword = 'hashPassword';
-
-      jest.spyOn(usersService, 'findUser').mockResolvedValue(null);
-
-      (genSalt as jest.Mock).mockResolvedValue(salt);
-      (hash as jest.Mock).mockResolvedValue(hashedPassword);
-
-      const user = new User({
-        ...registerUser,
-        senha: hashedPassword,
-        ativo: true,
-      });
-
-      jest.spyOn(usersService, 'findUser').mockResolvedValue(null);
-      mockAuthRepository.register.mockResolvedValue(user);
-      (generateRandomPassword as jest.Mock).mockReturnValue('hashPassword');
-
-      const result = await authService.register(registerUser);
-
-      expect(result).toEqual(user);
     });
   });
 });

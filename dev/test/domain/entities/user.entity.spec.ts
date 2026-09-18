@@ -60,8 +60,6 @@ describe('User entity', () => {
       });
 
       expect(user.ativo).toBe(true);
-      expect(user.desativado_por_inatividade).toBe(false);
-      expect(user.excluido).toBe(false);
     });
 
     it('should not throw when building an entity for an inactive user', () => {
@@ -89,18 +87,6 @@ describe('User entity', () => {
       );
     });
 
-    it('should throw when the user is excluido', () => {
-      const user = new User({
-        ...baseUser,
-        tipo_usuario: TipoUsuario.PARCEIRA,
-        excluido: true,
-      });
-
-      expect(() => user.ensureCanLogin()).toThrow(
-        new BadRequestException('Usuário está inativo no sistema'),
-      );
-    });
-
     it('should not throw for an active, non excluido user', () => {
       const user = new User({
         ...baseUser,
@@ -108,97 +94,6 @@ describe('User entity', () => {
       });
 
       expect(() => user.ensureCanLogin()).not.toThrow();
-    });
-  });
-
-  describe('deactivate', () => {
-    it('should refuse self-deactivation', () => {
-      const user = new User({
-        ...baseUser,
-        tipo_usuario: TipoUsuario.PARCEIRA,
-      });
-
-      expect(() => user.deactivate(1)).toThrow(
-        new BadRequestException('Você não pode desativar sua própria conta'),
-      );
-    });
-
-    it('should deactivate when requested by another user', () => {
-      const user = new User({
-        ...baseUser,
-        tipo_usuario: TipoUsuario.PARCEIRA,
-      });
-
-      user.deactivate(2);
-
-      expect(user.ativo).toBe(false);
-    });
-  });
-
-  describe('reactivate', () => {
-    it('should throw if the user is already active', () => {
-      const user = new User({
-        ...baseUser,
-        tipo_usuario: TipoUsuario.PARCEIRA,
-      });
-
-      expect(() => user.reactivate()).toThrow(
-        new BadRequestException('Usuário já está ativo'),
-      );
-    });
-
-    it('should reactivate, clear desativado_por_inatividade and register access', () => {
-      const user = new User({
-        ...baseUser,
-        tipo_usuario: TipoUsuario.PARCEIRA,
-        ativo: false,
-        desativado_por_inatividade: true,
-      });
-
-      user.reactivate();
-
-      expect(user.ativo).toBe(true);
-      expect(user.desativado_por_inatividade).toBe(false);
-      expect(user.ultimo_acesso).toBeInstanceOf(Date);
-    });
-  });
-
-  describe('changeEditPermission', () => {
-    it('should update permissao_edicao to the given value', () => {
-      const user = new User({
-        ...baseUser,
-        tipo_usuario: TipoUsuario.PARCEIRA,
-        permissao_edicao: false,
-      });
-
-      user.changeEditPermission(true);
-
-      expect(user.permissao_edicao).toBe(true);
-    });
-  });
-
-  describe('archive', () => {
-    it('should refuse self-exclusion', () => {
-      const user = new User({
-        ...baseUser,
-        tipo_usuario: TipoUsuario.PARCEIRA,
-      });
-
-      expect(() => user.archive(1)).toThrow(BadRequestException);
-    });
-
-    it('should mark the user as excluido and ativo=false without removing the id', () => {
-      const user = new User({
-        ...baseUser,
-        tipo_usuario: TipoUsuario.PARCEIRA,
-      });
-
-      user.archive(2);
-
-      expect(user.excluido).toBe(true);
-      expect(user.ativo).toBe(false);
-      expect(user.data_exclusao).toBeInstanceOf(Date);
-      expect(user.id).toBe(1);
     });
   });
 
@@ -263,7 +158,6 @@ describe('User entity', () => {
       user.deactivateForInactivity();
 
       expect(user.ativo).toBe(false);
-      expect(user.desativado_por_inatividade).toBe(true);
     });
   });
 });

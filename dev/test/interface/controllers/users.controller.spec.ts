@@ -9,6 +9,7 @@ import {
 
 import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { UpdateUserDTO } from 'src/interface/dtos/userDTO';
 
 describe('UsersControllers', () => {
   let usersController: UsersController;
@@ -26,10 +27,8 @@ describe('UsersControllers', () => {
             updatePassword: jest.fn(),
             listUsers: jest.fn(),
             createUser: jest.fn(),
-            deactivateUser: jest.fn(),
-            reactivateUser: jest.fn(),
-            changeUserPermission: jest.fn(),
-            archiveUser: jest.fn(),
+            updateStatus: jest.fn(),
+            updateUser: jest.fn(),
           },
         },
       ],
@@ -68,51 +67,27 @@ describe('UsersControllers', () => {
     );
   });
 
-  it('should call UsersService.deactivateUser with the requester id and parsed target id', async () => {
-    const safeUser = { id: 2, ativo: false };
-    jest.spyOn(usersService, 'deactivateUser').mockResolvedValue(safeUser);
-
-    const response = await usersController.deactivate(2, {
-      user: { sub: 1 },
-    } as any);
-
-    expect(usersService.deactivateUser).toHaveBeenCalledWith(2, 1);
-    expect(response.statusCode).toBe(HttpStatus.OK);
-  });
-
   it('should call UsersService.reactivateUser with the parsed id', async () => {
     const safeUser = { id: 2, ativo: true };
-    jest.spyOn(usersService, 'reactivateUser').mockResolvedValue(safeUser);
+    jest.spyOn(usersService, 'updateStatus').mockResolvedValue(safeUser);
 
-    const response = await usersController.reactivate(2);
+    const response = await usersController.updateStatus(2);
 
-    expect(usersService.reactivateUser).toHaveBeenCalledWith(2);
+    expect(usersService.updateStatus).toHaveBeenCalledWith(2);
     expect(response.statusCode).toBe(HttpStatus.OK);
   });
 
-  it('should call UsersService.changeUserPermission with the id and the body value', async () => {
-    const safeUser = { id: 2, permissao_edicao: true };
-    jest
-      .spyOn(usersService, 'changeUserPermission')
-      .mockResolvedValue(safeUser);
-
-    const response = await usersController.updatePermission(2, {
+  it('should call UsersService.updateUser with the id and the body value', async () => {
+    const safeUser: UpdateUserDTO = {
+      id_regional: 2,
+      id_turma: 3,
+      is_admin: false,
       permissao_edicao: true,
-    });
+    } as UpdateUserDTO;
 
-    expect(usersService.changeUserPermission).toHaveBeenCalledWith(2, true);
-    expect(response.statusCode).toBe(HttpStatus.OK);
-  });
+    const response = await usersController.updateUser(2, safeUser);
 
-  it('should call UsersService.archiveUser with the requester id and parsed target id', async () => {
-    const safeUser = { id: 2, excluido: true };
-    jest.spyOn(usersService, 'archiveUser').mockResolvedValue(safeUser);
-
-    const response = await usersController.archive(2, {
-      user: { sub: 1 },
-    } as any);
-
-    expect(usersService.archiveUser).toHaveBeenCalledWith(2, 1);
+    expect(usersService.updateUser).toHaveBeenCalledWith(2, safeUser);
     expect(response.statusCode).toBe(HttpStatus.OK);
   });
 });

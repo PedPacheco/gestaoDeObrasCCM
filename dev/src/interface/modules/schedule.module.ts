@@ -209,4 +209,4 @@ import { WorksServicesModule } from './worksServices.module';
     FIND_SCHEDULE_BY_ID_REPOSITORY,
   ],
 })
-export class ScheduleModule {}
+export class ScheduleOfWorksModule {}

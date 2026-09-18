@@ -1,12 +1,12 @@
 import { genSalt, hash } from 'bcrypt';
-import { novo_tabela_usuarios } from '@prisma/client';
 import { TipoUsuario, User } from 'src/domain/entities/user.entity';
-import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
 import {
   IUserRepository,
   USER_REPOSITORY,
   UserWithRelations,
 } from 'src/domain/repositories/IUserRepository';
+import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
+import { UpdateUserDTO } from 'src/interface/dtos/userDTO';
 
 import {
   BadRequestException,
@@ -16,6 +16,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { novo_tabela_usuarios } from '@prisma/client';
+import moment from 'moment';
 
 @Injectable()
 export class UsersService {
@@ -52,6 +54,65 @@ export class UsersService {
     return this.toEntity(response);
   }
 
+  async listUsers(): Promise<any[]> {
+    const users = await this.userRepository.findAll();
+
+    return users.map((user) => this.toSafeUser(user));
+  }
+
+  async createUser(dto: RegisterUserDTO): Promise<any> {
+    const existingUser = await this.userRepository.findUser(dto.username);
+
+    if (existingUser) {
+      throw new BadRequestException('Nome de usuário já está em uso.');
+    }
+
+    if (!dto.senha) {
+      throw new BadRequestException('A senha do usuário tem que ser enviada.');
+    }
+
+    const salt = await genSalt();
+    const hashedPassword = await hash(dto.senha, salt);
+
+    const user = new User({ ...dto, senha: hashedPassword });
+    user.registerAccess();
+
+    const created = await this.userRepository.create(user);
+
+    return this.toSafeUser(created);
+  }
+
+  async updateStatus(id: number): Promise<any> {
+    const raw = await this.userRepository.findByIdRaw(id);
+
+    if (!raw) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    const user = this.toEntity(raw);
+    const isActivating = !user.ativo;
+
+    const updated = await this.userRepository.updateStatus(id, {
+      ativo: isActivating,
+      ultimo_acesso: isActivating ? moment.utc().toDate() : user.ultimo_acesso,
+    });
+
+    return this.toSafeUser(updated);
+  }
+
+  async updateUser(id: number, data: UpdateUserDTO): Promise<any> {
+    const raw = await this.userRepository.findByIdRaw(id);
+
+    if (!raw) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    const existingUser = this.toEntity(raw);
+    const updatedUser = existingUser.applyUpdate(data);
+
+    await this.userRepository.updateUser(id, updatedUser);
+  }
+
   async updatePassword(token: string, newPassword: string): Promise<User> {
     try {
       const { id } = await this.jwtService.verify(token);
@@ -83,112 +144,13 @@ export class UsersService {
     }
   }
 
-  async listUsers(): Promise<any[]> {
-    const users = await this.userRepository.findAll();
-
-    return users.map((user) => this.toSafeUser(user));
-  }
-
-  async createUser(dto: RegisterUserDTO): Promise<any> {
-    const existingUser = await this.userRepository.findUser(dto.username);
-
-    if (existingUser) {
-      throw new BadRequestException('Nome de usuário já está em uso.');
-    }
-
-    if (!dto.senha) {
-      throw new BadRequestException('A senha do usuário tem que ser enviada.');
-    }
-
-    const salt = await genSalt();
-    const hashedPassword = await hash(dto.senha, salt);
-
-    const user = new User({ ...dto, senha: hashedPassword });
-    user.registerAccess();
-
-    const created = await this.userRepository.create(user);
-
-    return this.toSafeUser(created);
-  }
-
-  async deactivateUser(id: number, requesterId: number): Promise<any> {
-    const raw = await this.userRepository.findByIdRaw(id);
-
-    if (!raw) {
-      throw new NotFoundException('Usuário não encontrado');
-    }
-
-    const user = this.toEntity(raw);
-    user.deactivate(requesterId);
-
-    const updated = await this.userRepository.updateStatus(id, {
-      ativo: user.ativo,
-    });
-
-    return this.toSafeUser(updated);
-  }
-
-  async reactivateUser(id: number): Promise<any> {
-    const raw = await this.userRepository.findByIdRaw(id);
-
-    if (!raw) {
-      throw new NotFoundException('Usuário não encontrado');
-    }
-
-    const user = this.toEntity(raw);
-    user.reactivate();
-
-    const updated = await this.userRepository.updateStatus(id, {
-      ativo: user.ativo,
-      ultimo_acesso: user.ultimo_acesso,
-    });
-
-    return this.toSafeUser(updated);
-  }
-
-  async changeUserPermission(
-    id: number,
-    permissaoEdicao: boolean,
-  ): Promise<any> {
-    const raw = await this.userRepository.findByIdRaw(id);
-
-    if (!raw) {
-      throw new NotFoundException('Usuário não encontrado');
-    }
-
-    const user = this.toEntity(raw);
-    user.changeEditPermission(permissaoEdicao);
-
-    const updated = await this.userRepository.updateStatus(id, {
-      permissao_edicao: user.permissao_edicao,
-    });
-
-    return this.toSafeUser(updated);
-  }
-
-  async archiveUser(id: number, requesterId: number): Promise<any> {
-    const raw = await this.userRepository.findByIdRaw(id);
-
-    if (!raw) {
-      throw new NotFoundException('Usuário não encontrado');
-    }
-
-    const user = this.toEntity(raw);
-    user.archive(requesterId);
-
-    const updated = await this.userRepository.updateStatus(id, {
-      ativo: user.ativo,
-    });
-
-    return this.toSafeUser(updated);
-  }
-
   async registerLoginAccess(user: User): Promise<void> {
     user.registerAccess();
 
-    await this.userRepository.updateStatus(user.id as number, {
-      ultimo_acesso: user.ultimo_acesso,
-    });
+    await this.userRepository.registerAccess(
+      user.id as number,
+      user.ultimo_acesso,
+    );
   }
 
   async deactivateUserForInactivity(user: User): Promise<void> {
@@ -197,11 +159,5 @@ export class UsersService {
     await this.userRepository.updateStatus(user.id as number, {
       ativo: user.ativo,
     });
-  }
-
-  async deactivateInactiveUsers(): Promise<number> {
-    return this.userRepository.deactivateInactiveUsers(
-      User.inactivityCutoffDate(),
-    );
   }
 }

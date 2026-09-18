@@ -1,9 +1,8 @@
 import { Response } from 'express';
 import { AuthService } from 'src/application/usecases/auth.service';
-import { TipoUsuario, User } from 'src/domain/entities/user.entity';
+import { TipoUsuario } from 'src/domain/entities/user.entity';
 import { AuthController } from 'src/interface/controllers/auth.controller';
 import { LoginUserDTO } from 'src/interface/dtos/loginUserDto';
-import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
 
 import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -114,72 +113,6 @@ describe('AuthController', () => {
         .mockRejectedValue(new Error('Erro ao processar a solicitação'));
 
       await expect(authController.login(loginDto, res)).rejects.toThrow(
-        'Erro ao processar a solicitação',
-      );
-    });
-  });
-
-  describe('Register', () => {
-    it('should call AuthService.register and return the result', async () => {
-      const mockResponse = new User({
-        id: 1,
-        username: 'teste123',
-        id_regional: 1,
-        id_turma: 1,
-        id_area: 8,
-        is_admin: true,
-        nome: 'Teste',
-        tipo_usuario: TipoUsuario.INTERNO,
-        permissao_edicao: true,
-        email: 'teste@gmail.com',
-        ativo: true,
-      });
-
-      const registerUserDTO: RegisterUserDTO = {
-        username: 'teste123',
-        id_regional: 1,
-        id_turma: 1,
-        id_area: 8,
-        is_admin: true,
-        nome: 'Teste',
-        tipo_usuario: TipoUsuario.PARCEIRA,
-        permissao_edicao: true,
-        email: 'teste@gmail.com',
-      };
-
-      jest.spyOn(authService, 'register').mockResolvedValue(mockResponse);
-
-      const result = await authController.register(registerUserDTO);
-
-      expect(result).toEqual({
-        statusCode: HttpStatus.CREATED,
-        message: 'Usuário cadastrado com sucesso',
-        data: {
-          id: mockResponse.id,
-          username: mockResponse.username,
-        },
-      });
-      expect(authService.register).toHaveBeenCalledWith(registerUserDTO);
-    });
-
-    it('should return internal server error if authService.register return error', async () => {
-      const registerUserDTO: RegisterUserDTO = {
-        username: 'teste123',
-        id_regional: 1,
-        id_turma: 1,
-        id_area: 8,
-        is_admin: true,
-        nome: 'Teste',
-        tipo_usuario: TipoUsuario.INTERNO,
-        permissao_edicao: true,
-        email: 'teste@gmail.com',
-      };
-
-      jest
-        .spyOn(authService, 'register')
-        .mockRejectedValue(new Error('Erro ao processar a solicitação'));
-
-      await expect(authController.register(registerUserDTO)).rejects.toThrow(
         'Erro ao processar a solicitação',
       );
     });

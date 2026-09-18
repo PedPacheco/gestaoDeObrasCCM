@@ -1,5 +1,5 @@
 import { novo_tabela_usuarios } from '@prisma/client';
-import { User } from 'src/domain/entities/user.entity';
+import { EditableUserData, User } from 'src/domain/entities/user.entity';
 
 export type UserWithRelations = Pick<
   novo_tabela_usuarios,
@@ -27,12 +27,13 @@ export type UserStatusUpdate = Partial<
 
 export interface IUserRepository {
   findUser(username: string): Promise<novo_tabela_usuarios | null>;
-  updatePassword(numberId: number, newPassword: string): Promise<any>;
   findAll(): Promise<UserWithRelations[]>;
   findByIdRaw(id: number): Promise<novo_tabela_usuarios | null>;
   create(user: User): Promise<UserWithRelations>;
   updateStatus(id: number, data: UserStatusUpdate): Promise<UserWithRelations>;
-  deactivateInactiveUsers(cutoffDate: Date): Promise<number>;
+  updatePassword(numberId: number, newPassword: string): Promise<any>;
+  updateUser(id: number, data: EditableUserData): Promise<void>;
+  registerAccess(id: number, ultimo_acesso: Date): Promise<void>;
 }
 
 export const USER_REPOSITORY = Symbol('UserRepository');

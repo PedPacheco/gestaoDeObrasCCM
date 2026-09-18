@@ -4,12 +4,14 @@ import { TipoUsuario, User } from 'src/domain/entities/user.entity';
 import { USER_REPOSITORY } from 'src/domain/repositories/IUserRepository';
 
 import {
-  BadRequestException,
   NotFoundException,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
+import { UpdateUserDTO } from 'src/interface/dtos/userDTO';
+import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
 
 jest.mock('bcrypt', () => ({
   hash: jest.fn(),
@@ -18,12 +20,12 @@ jest.mock('bcrypt', () => ({
 
 const mockUserRepository = {
   findUser: jest.fn(),
-  updatePassword: jest.fn(),
   findAll: jest.fn(),
   findByIdRaw: jest.fn(),
   create: jest.fn(),
   updateStatus: jest.fn(),
-  deactivateInactiveUsers: jest.fn(),
+  updateUser: jest.fn(),
+  updatePassword: jest.fn(),
 };
 
 const mockJwtService = {
@@ -34,6 +36,8 @@ const mockJwtService = {
 describe('UsersService', () => {
   let usersService: UsersService;
   let jwtService: JwtService;
+
+  const fixedDate = new Date('2026-09-18T12:00:00.000Z');
 
   const mockUser = {
     id: 1,
@@ -48,10 +52,7 @@ describe('UsersService', () => {
     id_turma: 1,
     id_area: 8,
     ativo: true,
-    ultimo_acesso: new Date(),
-    desativado_por_inatividade: false,
-    excluido: false,
-    data_exclusao: null,
+    ultimo_acesso: fixedDate,
   };
 
   beforeEach(async () => {
@@ -169,156 +170,221 @@ describe('UsersService', () => {
     });
   });
 
-  describe('deactivateUser', () => {
-    it('should throw NotFoundException if user does not exist', async () => {
-      mockUserRepository.findByIdRaw.mockResolvedValue(null);
-
-      await expect(usersService.deactivateUser(1, 2)).rejects.toThrow(
-        new NotFoundException('Usuário não encontrado'),
-      );
-    });
-
-    it('should refuse self-deactivation', async () => {
-      mockUserRepository.findByIdRaw.mockResolvedValue(mockUser);
-
-      await expect(usersService.deactivateUser(1, 1)).rejects.toThrow(
-        new BadRequestException('Você não pode desativar sua própria conta'),
-      );
-      expect(mockUserRepository.updateStatus).not.toHaveBeenCalled();
-    });
-
-    it('should deactivate the user through the repository', async () => {
-      mockUserRepository.findByIdRaw.mockResolvedValue(mockUser);
+  describe('updateStatus', () => {
+    it('should deactivate an active user', async () => {
+      const activeUser = { ...mockUser, ativo: true };
+      mockUserRepository.findByIdRaw.mockResolvedValue(activeUser);
       mockUserRepository.updateStatus.mockResolvedValue({
-        ...mockUser,
+        ...activeUser,
         ativo: false,
       });
 
-      const result = await usersService.deactivateUser(1, 2);
+      const result = await usersService.updateStatus(1);
 
       expect(mockUserRepository.updateStatus).toHaveBeenCalledWith(1, {
         ativo: false,
+        ultimo_acesso: activeUser.ultimo_acesso,
       });
       expect(result.ativo).toBe(false);
     });
-  });
 
-  describe('reactivateUser', () => {
-    it('should throw NotFoundException if user does not exist', async () => {
-      mockUserRepository.findByIdRaw.mockResolvedValue(null);
+    it('should activate an inactive user', async () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2026-09-18T12:00:00.000Z'));
 
-      await expect(usersService.reactivateUser(1)).rejects.toThrow(
-        new NotFoundException('Usuário não encontrado'),
-      );
-    });
-
-    it('should throw BadRequestException if user is already active', async () => {
-      mockUserRepository.findByIdRaw.mockResolvedValue(mockUser);
-
-      await expect(usersService.reactivateUser(1)).rejects.toThrow(
-        new BadRequestException('Usuário já está ativo'),
-      );
-    });
-
-    it('should reactivate an inactive user, clearing desativado_por_inatividade', async () => {
-      const inactiveUser = {
-        ...mockUser,
-        ativo: false,
-        desativado_por_inatividade: true,
-      };
+      const inactiveUser = { ...mockUser, ativo: false };
       mockUserRepository.findByIdRaw.mockResolvedValue(inactiveUser);
       mockUserRepository.updateStatus.mockResolvedValue({
         ...inactiveUser,
         ativo: true,
-        desativado_por_inatividade: false,
       });
 
-      await usersService.reactivateUser(1);
-
-      expect(mockUserRepository.updateStatus).toHaveBeenCalledWith(
-        1,
-        expect.objectContaining({
-          ativo: true,
-          desativado_por_inatividade: false,
-          ultimo_acesso: expect.any(Date),
-        }),
-      );
-    });
-  });
-
-  describe('changeUserPermission', () => {
-    it('should throw NotFoundException if user does not exist', async () => {
-      mockUserRepository.findByIdRaw.mockResolvedValue(null);
-
-      await expect(usersService.changeUserPermission(1, true)).rejects.toThrow(
-        new NotFoundException('Usuário não encontrado'),
-      );
-    });
-
-    it('should update permissao_edicao with the value received', async () => {
-      mockUserRepository.findByIdRaw.mockResolvedValue(mockUser);
-      mockUserRepository.updateStatus.mockResolvedValue({
-        ...mockUser,
-        permissao_edicao: true,
-      });
-
-      await usersService.changeUserPermission(1, true);
+      const result = await usersService.updateStatus(1);
 
       expect(mockUserRepository.updateStatus).toHaveBeenCalledWith(1, {
-        permissao_edicao: true,
+        ativo: true,
+        ultimo_acesso: inactiveUser.ultimo_acesso,
       });
+      expect(result.ativo).toBe(true);
     });
-  });
 
-  describe('archiveUser', () => {
     it('should throw NotFoundException if user does not exist', async () => {
       mockUserRepository.findByIdRaw.mockResolvedValue(null);
 
-      await expect(usersService.archiveUser(1, 2)).rejects.toThrow(
+      await expect(usersService.updateStatus(999)).rejects.toThrow(
+        new NotFoundException('Usuário não encontrado'),
+      );
+    });
+  });
+
+  describe('updateUser', () => {
+    it('should throw NotFoundException if user does not exist', async () => {
+      mockUserRepository.findByIdRaw.mockResolvedValue(null);
+
+      const updateUser: UpdateUserDTO = {
+        id_regional: 2,
+        id_turma: 3,
+        is_admin: false,
+        permissao_edicao: true,
+      } as UpdateUserDTO;
+
+      await expect(usersService.updateUser(1, updateUser)).rejects.toThrow(
         new NotFoundException('Usuário não encontrado'),
       );
     });
 
-    it('should refuse self-exclusion', async () => {
+    it('should update user with the value received', async () => {
       mockUserRepository.findByIdRaw.mockResolvedValue(mockUser);
 
-      await expect(usersService.archiveUser(1, 1)).rejects.toThrow(
-        BadRequestException,
-      );
-      expect(mockUserRepository.updateStatus).not.toHaveBeenCalled();
-    });
+      const updateUser: UpdateUserDTO = {
+        id_regional: 2,
+        id_turma: 3,
+        is_admin: false,
+        permissao_edicao: true,
+      } as UpdateUserDTO;
 
-    it('should mark the user as excluido without deleting the row', async () => {
-      mockUserRepository.findByIdRaw.mockResolvedValue(mockUser);
-      mockUserRepository.updateStatus.mockResolvedValue({
-        ...mockUser,
-        excluido: true,
-        ativo: false,
-      });
+      await usersService.updateUser(1, updateUser);
 
-      await usersService.archiveUser(1, 2);
+      const userToUpdateMock = {
+        id: 1,
+        username: 'teste123',
+        senha: 'hashPassword',
+        nome: undefined,
+        email: undefined,
+        tipo_usuario: undefined,
+        is_admin: false,
+        id_regional: 2,
+        id_turma: 3,
+        permissao_edicao: true,
+        id_area: undefined,
+        ativo: true,
+        ultimo_acesso: fixedDate,
+      };
 
-      expect(mockUserRepository.updateStatus).toHaveBeenCalledWith(
+      expect(mockUserRepository.updateUser).toHaveBeenCalledWith(
         1,
-        expect.objectContaining({
-          ativo: false,
-          excluido: true,
-          data_exclusao: expect.any(Date),
-        }),
+        userToUpdateMock,
       );
     });
   });
 
-  describe('deactivateInactiveUsers', () => {
-    it('should call the repository with the inactivity cutoff date', async () => {
-      mockUserRepository.deactivateInactiveUsers.mockResolvedValue(3);
+  describe('register', () => {
+    const registerUser: RegisterUserDTO = {
+      username: 'username',
+      senha: 'teste123',
+      nome: 'test',
+      email: 'teste@gmail.com',
+      id_regional: 1,
+      id_turma: 2,
+      id_area: 8,
+      is_admin: true,
+      tipo_usuario: TipoUsuario.INTERNO,
+      permissao_edicao: true,
+    };
 
-      const result = await usersService.deactivateInactiveUsers();
+    it('should throw BadRequestException when user already exists', async () => {
+      mockUserRepository.findUser.mockResolvedValue(mockUser);
 
-      expect(result).toBe(3);
-      expect(mockUserRepository.deactivateInactiveUsers).toHaveBeenCalledWith(
-        expect.any(Date),
+      await expect(usersService.createUser(registerUser)).rejects.toThrow(
+        new BadRequestException('Nome de usuário já está em uso.'),
       );
+    });
+
+    it('should throw BadRequestExpection when password not sent', async () => {
+      jest.spyOn(usersService, 'findUser').mockResolvedValue(undefined);
+
+      await expect(
+        usersService.createUser({ ...mockUser, senha: undefined }),
+      ).rejects.toThrow(
+        new BadRequestException('A senha do usuário tem que ser enviada.'),
+      );
+    });
+
+    it('should throw BadRequestExpection the internal user does not have a defined area.', async () => {
+      jest.spyOn(usersService, 'findUser').mockResolvedValue(null);
+
+      await expect(
+        usersService.createUser({ ...registerUser, id_area: undefined }),
+      ).rejects.toThrow(
+        new BadRequestException(
+          'Usuários internos devem possuir uma área vinculada.',
+        ),
+      );
+    });
+
+    it('should be set the partner user area to null', async () => {
+      const hashedPassword = 'hashPassword';
+
+      mockUserRepository.findUser.mockResolvedValue(null);
+      (genSalt as jest.Mock).mockResolvedValue(10);
+      (hash as jest.Mock).mockResolvedValue(hashedPassword);
+
+      mockUserRepository.create.mockResolvedValue({
+        ...registerUser,
+        id: 1,
+        senha: hashedPassword,
+        id_area: null,
+        tipo_usuario: TipoUsuario.PARCEIRA,
+        ativo: true,
+        ultimo_acesso: fixedDate,
+        turmas: { turma: null },
+        regionais: { regional: null },
+        areas: null,
+      });
+
+      await usersService.createUser({
+        ...registerUser,
+        tipo_usuario: TipoUsuario.PARCEIRA,
+      });
+
+      expect(mockUserRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id_area: null,
+          tipo_usuario: TipoUsuario.PARCEIRA,
+          ativo: true,
+          ultimo_acesso: fixedDate,
+        }),
+      );
+    });
+
+    it('should create user and return user', async () => {
+      const hashedPassword = 'hashPassword';
+
+      mockUserRepository.findUser.mockResolvedValue(null);
+      (genSalt as jest.Mock).mockResolvedValue(10);
+      (hash as jest.Mock).mockResolvedValue(hashedPassword);
+
+      mockUserRepository.create.mockResolvedValue({
+        ...registerUser,
+        id: 1,
+        senha: hashedPassword,
+        ativo: true,
+        ultimo_acesso: fixedDate,
+        turmas: { turma: 'Turma A' },
+        regionais: { regional: 'Regional X' },
+        areas: { nome: 'Área Y' },
+      });
+
+      const result = await usersService.createUser(registerUser);
+
+      expect(result).toEqual({
+        id: 1,
+        username: registerUser.username,
+        senha: hashedPassword,
+        nome: registerUser.nome,
+        email: registerUser.email,
+        tipo_usuario: registerUser.tipo_usuario,
+        is_admin: registerUser.is_admin,
+        permissao_edicao: registerUser.permissao_edicao,
+        id_regional: registerUser.id_regional,
+        id_turma: registerUser.id_turma,
+        id_area: registerUser.id_area,
+        ativo: true,
+        ultimo_acesso: fixedDate,
+        parceira: 'Turma A',
+        regional: 'Regional X',
+        area: 'Área Y',
+      });
     });
   });
 });

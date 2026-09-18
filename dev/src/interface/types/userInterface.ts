@@ -1,5 +1,5 @@
 import { TipoUsuario } from 'src/domain/entities/user.entity';
-import { UserSafeResponseDTO } from 'src/interface/dtos/userSafeResponseDto';
+import { UserSafeResponseDTO } from '../dtos/userDTO';
 
 export interface userInterface {
   id: number;

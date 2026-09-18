@@ -1,4 +1,4 @@
-import { User } from 'src/domain/entities/user.entity';
+import { EditableUserData, User } from 'src/domain/entities/user.entity';
 import {
   IUserRepository,
   UserStatusUpdate,
@@ -25,13 +25,10 @@ export class UserRepository implements IUserRepository {
     });
   }
 
-  async updatePassword(numberId: number, newPassword: string): Promise<any> {
-    const user = await this.prisma.novo_tabela_usuarios.update({
-      where: { id: numberId },
-      data: { senha: newPassword },
+  async findByIdRaw(id: number): Promise<novo_tabela_usuarios | null> {
+    return await this.prisma.novo_tabela_usuarios.findUnique({
+      where: { id },
     });
-
-    return user;
   }
 
   async findAll(): Promise<UserWithRelations[]> {
@@ -53,12 +50,6 @@ export class UserRepository implements IUserRepository {
         turmas: { select: { turma: true } },
         areas: { select: { nome: true } },
       },
-    });
-  }
-
-  async findByIdRaw(id: number): Promise<novo_tabela_usuarios | null> {
-    return await this.prisma.novo_tabela_usuarios.findUnique({
-      where: { id },
     });
   }
 
@@ -95,6 +86,22 @@ export class UserRepository implements IUserRepository {
     });
   }
 
+  async updateUser(id: number, data: EditableUserData): Promise<void> {
+    await this.prisma.novo_tabela_usuarios.update({
+      where: { id },
+      data: {
+        nome: data.nome,
+        email: data.email,
+        tipo_usuario: data.tipo_usuario,
+        is_admin: data.is_admin,
+        permissao_edicao: data.permissao_edicao,
+        id_regional: data.id_regional,
+        id_turma: data.id_turma,
+        id_area: data.id_area ?? null,
+      },
+    });
+  }
+
   async updateStatus(
     id: number,
     data: UserStatusUpdate,
@@ -106,17 +113,19 @@ export class UserRepository implements IUserRepository {
     });
   }
 
-  async deactivateInactiveUsers(cutoffDate: Date): Promise<number> {
-    const result = await this.prisma.novo_tabela_usuarios.updateMany({
-      where: {
-        ativo: true,
-        ultimo_acesso: { lt: cutoffDate },
-      },
-      data: {
-        ativo: false,
-      },
+  async updatePassword(numberId: number, newPassword: string): Promise<any> {
+    const user = await this.prisma.novo_tabela_usuarios.update({
+      where: { id: numberId },
+      data: { senha: newPassword },
     });
 
-    return result.count;
+    return user;
+  }
+
+  async registerAccess(id: number, ultimo_acesso: Date): Promise<void> {
+    await this.prisma.novo_tabela_usuarios.update({
+      where: { id },
+      data: { ultimo_acesso },
+    });
   }
 }

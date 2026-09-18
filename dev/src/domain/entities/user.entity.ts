@@ -1,8 +1,20 @@
 import { BadRequestException } from '@nestjs/common';
+import moment from 'moment';
 
 export enum TipoUsuario {
   INTERNO = 'INTERNO',
   PARCEIRA = 'PARCEIRA',
+}
+
+export interface EditableUserData {
+  nome: string;
+  email: string;
+  tipo_usuario: TipoUsuario;
+  is_admin: boolean;
+  permissao_edicao: boolean;
+  id_regional: number;
+  id_turma: number;
+  id_area?: number | null;
 }
 
 export class User {
@@ -20,7 +32,7 @@ export class User {
   id_turma: number;
   id_area?: number | null;
   ativo: boolean;
-  ultimo_acesso?: Date | null;
+  ultimo_acesso: Date;
 
   constructor(data: Partial<User>) {
     Object.assign(this, data);
@@ -48,45 +60,28 @@ export class User {
     return cutoff;
   }
 
+  applyUpdate(data: EditableUserData): User {
+    return new User({
+      ...this,
+      nome: data.nome,
+      email: data.email,
+      tipo_usuario: data.tipo_usuario,
+      is_admin: data.is_admin,
+      permissao_edicao: data.permissao_edicao,
+      id_regional: data.id_regional,
+      id_turma: data.id_turma,
+      id_area: data.id_area,
+    });
+  }
+
   ensureCanLogin(): void {
     if (!this.ativo) {
       throw new BadRequestException('Usuário está inativo no sistema');
     }
   }
 
-  deactivate(requesterId: number): void {
-    if (this.id === requesterId) {
-      throw new BadRequestException(
-        'Você não pode desativar sua própria conta',
-      );
-    }
-
-    this.ativo = false;
-  }
-
-  reactivate(): void {
-    if (this.ativo) {
-      throw new BadRequestException('Usuário já está ativo');
-    }
-
-    this.ativo = true;
-    this.ultimo_acesso = new Date();
-  }
-
-  changeEditPermission(value: boolean): void {
-    this.permissao_edicao = value;
-  }
-
-  archive(requesterId: number): void {
-    if (this.id === requesterId) {
-      throw new BadRequestException('Você não pode excluir sua própria conta');
-    }
-
-    this.ativo = false;
-  }
-
   registerAccess(): void {
-    this.ultimo_acesso = new Date();
+    this.ultimo_acesso = moment.utc().toDate();
   }
 
   exceededInactivityLimit(): boolean {

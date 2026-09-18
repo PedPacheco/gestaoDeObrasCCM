@@ -22,14 +22,16 @@ import { FiltersModule } from './interface/modules/filters.module';
 import { ForecastModule } from './interface/modules/forecast.module';
 import { GoalsModule } from './interface/modules/goals.module';
 import { RestrictionsModule } from './interface/modules/restrictions.module';
-import { ScheduleModule } from './interface/modules/schedule.module';
+import { ScheduleOfWorksModule } from './interface/modules/schedule.module';
 import { UsersModule } from './interface/modules/users.module';
 import { WorksModule } from './interface/modules/works.module';
 import { WorksServicesModule } from './interface/modules/worksServices.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: './.env',
@@ -44,7 +46,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
     FeasibilityModule,
     EntryModule,
     ExportModule,
-    ScheduleModule,
+    ScheduleOfWorksModule,
     WorksServicesModule,
     ExecutionReportModule,
     AuxiliaryBaseModule,

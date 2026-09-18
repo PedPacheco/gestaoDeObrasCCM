@@ -1,16 +1,9 @@
-import { compare, genSalt, hash } from 'bcrypt';
-import { User } from 'src/domain/entities/user.entity';
-import {
-  AUTH_REPOSITORY,
-  IAuthRepository,
-} from 'src/domain/repositories/IAuthRepository';
-import { RegisterUserDTO } from 'src/interface/dtos/registerUserDto';
+import { compare } from 'bcrypt';
+
 import { loginInterfaceService } from 'src/interface/types/userInterface';
 
-// import { generateRandomPassword } from 'src/utils/generatePassword';
 import {
   BadRequestException,
-  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -23,7 +16,6 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    @Inject(AUTH_REPOSITORY) private authRepository: IAuthRepository,
   ) {}
 
   async login(
@@ -49,13 +41,10 @@ export class AuthService {
     }
 
     if (user.exceededInactivityLimit()) {
-      await this.usersService.deactivateUserForInactivity(user);
-
       throw new BadRequestException(
         'Conta desativada por falta de acesso há mais de 60 dias. Procure um administrador.',
       );
     }
-
     await this.usersService.registerLoginAccess(user);
 
     const payload = {
@@ -66,6 +55,7 @@ export class AuthService {
       permissao_edicao: user.permissao_edicao,
       id_turma: user.id_turma,
       id_area: user.id_area,
+      ultimo_acesso: user.ultimo_acesso,
     };
 
     return {
@@ -81,41 +71,5 @@ export class AuthService {
       id_area: user.id_area,
       access_token: await this.jwtService.signAsync(payload),
     };
-  }
-
-  async register(registrationData: RegisterUserDTO): Promise<User> {
-    try {
-      const { username, senha } = registrationData;
-
-      const existingUser = await this.usersService.findUser(username);
-
-      let password = senha;
-
-      if (existingUser) {
-        throw new BadRequestException('Nome de usuário já está em uso.');
-      }
-
-      if (!password) {
-        throw new BadRequestException(
-          'A senha do usuário tem que ser enviada.',
-        );
-      }
-
-      const salt = await genSalt();
-      const hashedPassword = await hash(password, salt);
-
-      const user = new User({
-        ...registrationData,
-        senha: hashedPassword,
-      });
-
-      user.registerAccess();
-
-      const created = await this.authRepository.register(user);
-
-      return created;
-    } catch (error) {
-      throw error;
-    }
   }
 }
