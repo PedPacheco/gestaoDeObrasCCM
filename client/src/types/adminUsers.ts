@@ -1,6 +1,6 @@
 export type TipoUsuarioAdmin = "INTERNO" | "PARCEIRA";
 
-export type UserActionType = "edit" | "deactivate" | "reactivate" | "archive";
+export type UserActionType = "edit" | "deactivate" | "reactivate";
 
 export interface AdminUser {
   id: number;

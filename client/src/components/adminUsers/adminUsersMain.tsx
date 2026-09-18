@@ -37,8 +37,7 @@ export function AdminUsersMain({ initialUsers, filters }: AdminUsersMainProps) {
     createUser,
     updateUser,
     setUserStatus,
-    removeUser,
-  } = useAdminUsers(initialUsers);
+  } =useAdminUsers(initialUsers);
 
   const filterState = useAdminUsersFilters(users);
 
@@ -82,7 +81,7 @@ export function AdminUsersMain({ initialUsers, filters }: AdminUsersMainProps) {
   async function handleConfirmDeactivate() {
     if (!user) return;
 
-    const result = await setUserStatus(user.id, false);
+    const result = await setUserStatus(user.id);
     closeModal();
 
     if (result.success) {
@@ -93,23 +92,10 @@ export function AdminUsersMain({ initialUsers, filters }: AdminUsersMainProps) {
   }
 
   async function handleReactivate(target: AdminUser) {
-    const result = await setUserStatus(target.id, true);
+    const result = await setUserStatus(target.id);
 
     if (result.success) {
       showSuccess("Usuário reativado com sucesso");
-    } else {
-      showError(result.error);
-    }
-  }
-
-  async function handleConfirmArchive() {
-    if (!user) return;
-
-    const result = await removeUser(user.id);
-    closeModal();
-
-    if (result.success) {
-      showSuccess("Usuário excluído com sucesso");
     } else {
       showError(result.error);
     }
@@ -134,6 +120,10 @@ export function AdminUsersMain({ initialUsers, filters }: AdminUsersMainProps) {
 
       {error && <p className="text-red-600">{error}</p>}
 
+      <p className="w-[95%] mb-2 text-sm text-zinc-600">
+        Usuários sem acesso há mais de 60 dias são desativados automaticamente.
+      </p>
+
       <div className="w-[95%]">
         <UsersTable
           users={filterState.filteredUsers}
@@ -157,20 +147,12 @@ export function AdminUsersMain({ initialUsers, filters }: AdminUsersMainProps) {
       <ConfirmationModalComponent
         actionId={user?.id ?? 0}
         title="Desativar usuário"
-        message={`Tem certeza que deseja desativar o usuário ${user?.username}?`}
+        message={`Tem certeza que deseja desativar o usuário ${user?.username}? Ele perderá o acesso ao SIGO, mas os dados que já inseriu no sistema continuam normalmente e ele poderá ser reativado depois.`}
         onConfirm={handleConfirmDeactivate}
         onClose={closeModal}
         open={modalMode === "deactivate"}
       />
 
-      <ConfirmationModalComponent
-        actionId={user?.id ?? 0}
-        title="Excluir usuário"
-        message={`Tem certeza que deseja excluir o usuário ${user?.username}? Use esta ação apenas para usuários que saíram da empresa — depois de excluída, a conta não poderá mais fazer login.`}
-        onConfirm={handleConfirmArchive}
-        onClose={closeModal}
-        open={modalMode === "archive"}
-      />
     </>
   );
 }

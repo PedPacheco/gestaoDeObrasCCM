@@ -3,10 +3,8 @@
 import { useCallback, useState } from "react";
 import {
   createUserAction,
-  deactivateUserAction,
   getUsers,
-  reactivateUserAction,
-  removeUserAction,
+  toggleUserActiveAction,
   updateUserAction,
 } from "@/actions/adminUsers";
 import { ActionResult } from "@/actions/serverApi";
@@ -47,6 +45,12 @@ export function useAdminUsers(initialUsers: AdminUser[] = []) {
   ): Promise<ActionResult<AdminUser>> {
     return runMutation(async () => {
       const result = await createUserAction(payload);
+
+      if (result.success && result.data) {
+        const createdUser = result.data;
+        setUsers((prev) => [...prev, createdUser]);
+      }
+
       return result;
     });
   }
@@ -57,28 +61,28 @@ export function useAdminUsers(initialUsers: AdminUser[] = []) {
   ): Promise<ActionResult<AdminUser>> {
     return runMutation(async () => {
       const result = await updateUserAction(id, payload);
+
+      if (result.success) {
+        await refreshUsers();
+      }
+
       return result;
     });
   }
 
-  // deactivate/reactivate colapsados numa única função parametrizada
-  async function setUserStatus(
-    id: number,
-    active: boolean,
-  ): Promise<ActionResult<AdminUser>> {
+  async function setUserStatus(id: number): Promise<ActionResult<AdminUser>> {
     return runMutation(async () => {
-      const result = active
-        ? await deactivateUserAction(id)
-        : await reactivateUserAction(id);
-      return result;
-    });
-  }
+      const result = await toggleUserActiveAction(id);
 
-  async function removeUser(id: number): Promise<ActionResult<AdminUser>> {
-    return runMutation(async () => {
-      const result = await removeUserAction(id);
+      if (result.success && result.data) {
+        const updatedUser = result.data;
+        setUsers((prev) =>
+          prev.map((existing) =>
+            existing.id === updatedUser.id ? updatedUser : existing,
+          ),
+        );
+      }
 
-      setIsMutating(false);
       return result;
     });
   }
@@ -92,6 +96,5 @@ export function useAdminUsers(initialUsers: AdminUser[] = []) {
     createUser,
     updateUser,
     setUserStatus,
-    removeUser,
   };
 }
