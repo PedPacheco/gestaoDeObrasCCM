@@ -437,6 +437,7 @@ model status {
   status               String?                @db.VarChar(25)
   onde                 String?                @db.VarChar(20)
   obras                obras[]
+  notas_d5             notas_d5[]
   suspensoes_retiradas suspensoes_retiradas[]
 }
 
@@ -533,16 +534,18 @@ model notas_d5 {
   criado_em              DateTime              @db.Date
   conclusao_nota         DateTime?             @db.Date
   prazo                  DateTime              @db.Date
-  status                 String                @db.VarChar(10)
+  status_sap             String                @db.VarChar(10)
   tme_abertura           Int?
   tme_executado          Int?
   validacao_anual        Boolean?
   mo_planejada           Decimal?              @db.Decimal(10, 2)
   nota_d5                String                @db.VarChar(25)
+  id_status              Int                   @default(1)
   municipios             municipios            @relation(fields: [id_municipio], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_municipio")
   obras                  obras?                @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obra")
   turmas                 turmas                @relation(fields: [id_parceira], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
   tipos                  tipos                 @relation(fields: [id_tipo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tipo")
+  status                 status                @relation(fields: [id_status], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_status")
   novo_tabela_usuarios   novo_tabela_usuarios? @relation(fields: [id_usuario_modificador], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_modificador")
   programacoes_d5        programacoes_d5[]
 }

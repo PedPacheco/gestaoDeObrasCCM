@@ -1,4 +1,4 @@
-import { AddSchedulesService } from 'src/application/usecases/schedule/addSchedules.service';
+import { AddSchedulesService } from 'src/application/usecases/works/schedule/addSchedules.service';
 import { ADD_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IAddSchedulesRepository';
 
 import { BadRequestException } from '@nestjs/common';

@@ -6,7 +6,7 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import { Inject, Injectable } from '@nestjs/common';
 
-import { AddSchedulesService } from '../schedule/addSchedules.service';
+import { AddSchedulesService } from '../works/schedule/addSchedules.service';
 import { WorksServicesService } from '../services/worksServices.service';
 import {
   CreateScheduleWithServicesDTO,

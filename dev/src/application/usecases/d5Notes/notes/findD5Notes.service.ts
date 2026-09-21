@@ -1,14 +1,14 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   D5_NOTES_REPOSITORY,
   D5NotePagination,
   ID5NotesRepository,
-} from 'src/domain/repositories/ID5notesRepository';
+} from 'src/domain/repositories/d5Notes/ID5notesRepository';
 import { D5NotesFiltersDTO } from 'src/interface/dtos/d5NotesDTO';
-import { D5NoteResult } from 'src/interface/types/d5notes/types';
+import { FindD5NotesQueryResult } from 'src/interface/types/d5notes/types';
 
 @Injectable()
-export class D5NotesService {
+export class FindD5NotesService {
   constructor(
     @Inject(D5_NOTES_REPOSITORY)
     private readonly d5NotesRepository: ID5NotesRepository,
@@ -27,6 +27,7 @@ export class D5NotesService {
         municipios,
         tipos,
         turmas,
+        status,
         novo_tabela_usuarios,
         ...rest
       }) => ({
@@ -42,30 +43,12 @@ export class D5NotesService {
         regional: municipios.regionais.regional,
         parceira: turmas.turma,
         tipoObra: tipos.tipo_obra,
+        status: status.status,
         usuarioModificador: novo_tabela_usuarios?.nome ?? null,
       }),
     );
 
     return { d5Notes: d5NotesFormatted, totals };
-  }
-
-  async getById(id: number) {
-    if (!id) {
-      throw new BadRequestException('Obra não foi enviada');
-    }
-
-    const { obras, municipios, tipos, turmas, novo_tabela_usuarios, ...rest } =
-      await this.d5NotesRepository.getById(id);
-
-    return {
-      ...rest,
-      obra: obras?.ovnota ?? null,
-      municipio: municipios.mun_minusculo,
-      regional: municipios.regionais.regional,
-      parceira: turmas.turma,
-      tipoObra: tipos.tipo_obra,
-      usuarioModificador: novo_tabela_usuarios?.nome ?? null,
-    };
   }
 
   private buildWhereClause(filters: D5NotesFiltersDTO) {
@@ -106,7 +89,7 @@ export class D5NotesService {
     };
   }
 
-  private calculateTotals(data: D5NoteResult[]) {
+  private calculateTotals(data: FindD5NotesQueryResult[]) {
     return data.reduce(
       (acc, item) => {
         acc.totalNotas += 1;

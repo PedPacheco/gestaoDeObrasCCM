@@ -111,7 +111,7 @@ export function D5NotesTable({
                       return (
                         <TableCell
                           key={column}
-                          onClick={() => router.push(`nota-d5/${item.id}`)}
+                          onClick={() => router.push(`notas-d5/${item.id}`)}
                           className={`
                           py-1 px-2 text-center text-base whitespace-nowrap min-w-36 hover:cursor-pointer
                           ${

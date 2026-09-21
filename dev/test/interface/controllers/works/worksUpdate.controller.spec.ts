@@ -1,9 +1,9 @@
 import { HandleWorkUpdateService } from 'src/application/usecases/orchestrators/handleWorkUpdate.service';
 import { UsersService } from 'src/application/usecases/users.service';
-import { ContractUpdateService } from 'src/application/usecases/works/contractUpdate.service';
-import { SuspensionWorkService } from 'src/application/usecases/works/suspensionWork.service';
-import { UpdateNoteService } from 'src/application/usecases/works/updateNote.service';
-import { UpdateOvService } from 'src/application/usecases/works/updateOv.service';
+import { ContractUpdateService } from 'src/application/usecases/works/management/contractUpdate.service';
+import { SuspensionWorkService } from 'src/application/usecases/works/management/suspensionWork.service';
+import { UpdateNoteService } from 'src/application/usecases/works/management/updateNote.service';
+import { UpdateOvService } from 'src/application/usecases/works/management/updateOv.service';
 import { WorksUpdateController } from 'src/interface/controllers/works/worksUpdate.controller';
 
 import { HttpStatus } from '@nestjs/common';

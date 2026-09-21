@@ -2,9 +2,12 @@ import { Injectable } from '@nestjs/common';
 import {
   D5NotePagination,
   ID5NotesRepository,
-} from 'src/domain/repositories/ID5notesRepository';
-import { PrismaService } from '../prisma/prisma.service';
-import { D5NoteResult } from 'src/interface/types/d5notes/types';
+} from 'src/domain/repositories/d5Notes/ID5notesRepository';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import {
+  D5NoteByIdQueryResult,
+  FindD5NotesQueryResult,
+} from 'src/interface/types/d5notes/types';
 
 @Injectable()
 export class D5NotesRepository implements ID5NotesRepository {
@@ -13,16 +16,16 @@ export class D5NotesRepository implements ID5NotesRepository {
   async get(
     where: Record<string, any>,
     pagination?: D5NotePagination,
-  ): Promise<D5NoteResult[]> {
+  ): Promise<FindD5NotesQueryResult[]> {
     return await this.prisma.notas_d5.findMany({
       where,
-      // ...pagination,
+      ...pagination,
       select: {
         id: true,
         local_instalacao: true,
         criado_em: true,
         conclusao_nota: true,
-        status: true,
+        status_sap: true,
         tme_executado: true,
         tme_abertura: true,
         validacao_anual: true,
@@ -44,6 +47,7 @@ export class D5NotesRepository implements ID5NotesRepository {
             regionais: { select: { regional: true } },
           },
         },
+        status: { select: { status: true } },
         tipos: { select: { tipo_obra: true } },
         turmas: { select: { turma: true } },
         novo_tabela_usuarios: { select: { nome: true } },
@@ -51,7 +55,7 @@ export class D5NotesRepository implements ID5NotesRepository {
     });
   }
 
-  async getById(id: number): Promise<D5NoteResult> {
+  async getById(id: number): Promise<D5NoteByIdQueryResult> {
     try {
       return await this.prisma.notas_d5.findUnique({
         where: { id },
@@ -60,7 +64,7 @@ export class D5NotesRepository implements ID5NotesRepository {
           local_instalacao: true,
           criado_em: true,
           conclusao_nota: true,
-          status: true,
+          status_sap: true,
           tme_executado: true,
           tme_abertura: true,
           validacao_anual: true,
@@ -82,9 +86,11 @@ export class D5NotesRepository implements ID5NotesRepository {
               regionais: { select: { regional: true } },
             },
           },
+          status: { select: { status: true } },
           tipos: { select: { tipo_obra: true } },
           turmas: { select: { turma: true } },
           novo_tabela_usuarios: { select: { nome: true } },
+          programacoes_d5: { select: { prog: true, exec: true } },
         },
       });
     } catch (error) {

@@ -21,8 +21,8 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { ScheduleMapper } from 'src/application/mappers/scheduleMapper';
-import { Schedule } from 'src/domain/entities/schedule.entity';
+import { WorkSchedule } from 'src/domain/entities/schedules/workSchedule.entity';
+import { WorkScheduleMapper } from 'src/application/mappers/scheduleMapper';
 
 @Injectable()
 export class ValidateConfirmAndRejectSchedulesService {
@@ -74,10 +74,10 @@ export class ValidateConfirmAndRejectSchedulesService {
       ),
     );
 
-    let schedules: Schedule[];
+    let schedules: WorkSchedule[];
 
     try {
-      schedules = works.map((work) => ScheduleMapper.toDomain(work));
+      schedules = works.map((work) => WorkScheduleMapper.toDomain(work));
     } catch (error: any) {
       throw new BadRequestException(
         `Erro ao criar programação: ${error.message}`,

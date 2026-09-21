@@ -8,7 +8,7 @@ import { NotesEntriesInterface } from 'src/interface/types/works/insertNotesInte
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 
-import { AuxiliaryBaseService } from '../auxiliaryBase/auxiliaryBase.service';
+import { AuxiliaryBaseService } from '../../auxiliaryBase/auxiliaryBase.service';
 import { FindExistingWorksService } from './findExistingWorks.service';
 
 @Injectable()

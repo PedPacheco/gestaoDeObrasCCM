@@ -1,10 +1,8 @@
-import { Schedule } from 'src/domain/entities/schedule.entity';
 import {
   IUpdateSchedulesRepository,
   UPDATE_SCHEDULES_REPOSITORY,
 } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
 import { UpdateSchedulesInterface } from 'src/interface/types/schedule/updateSchedulesInterface';
-import { parseTimeToDate } from 'src/utils/parseTimeToDate';
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
@@ -15,6 +13,8 @@ import {
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/repositories/IStatusFlowRepository';
 import { ScheduleExecutionValidatorService } from './scheduleExecutionValidator.service';
+import { WorkSchedule } from 'src/domain/entities/schedules/workSchedule.entity';
+import { WorkScheduleMapper } from 'src/application/mappers/scheduleMapper';
 
 @Injectable()
 export class UpdateSchedulesService {
@@ -60,58 +60,11 @@ export class UpdateSchedulesService {
     const { reprovada, id_status_programacao } =
       await this.findScheduleByIdRepository.findById(data.id);
 
-    let schedule: Schedule;
+    const schedule = WorkSchedule.create(
+      WorkScheduleMapper.fromUpdateInput(data, { rejected: reprovada }),
+    );
 
-    try {
-      schedule = Schedule.create({
-        ...data,
-        startTime: parseTimeToDate(data.startTime),
-        finishTime: parseTimeToDate(data.finishTime),
-        dataProg: new Date(data.dataProg),
-        reject: reprovada,
-      });
-    } catch (error: any) {
-      throw new BadRequestException(
-        `Erro ao criar programação: ${error.message}`,
-      );
-    }
-
-    const formattedData = {
-      id: schedule.id,
-      data_prog: schedule.dataProg,
-      prog: schedule.prog,
-      exec: schedule.exec,
-      observacao_programacao: schedule.observation,
-      equip_desligado: schedule.equipment,
-      num_dp: schedule.numDp,
-      hora_ini: schedule.startTime,
-      hora_ter: schedule.finishTime,
-      chave_provisoria: schedule.temporaryKey,
-      tipo_servico: schedule.serviceType,
-      chi: schedule.chi,
-      nome_responsavel_execucao: schedule.responsibility,
-      equipe_linha_morta: schedule.lmTeam,
-      equipe_linha_viva: schedule.lvTeam,
-      equipe_regularizacao: schedule.regulTeam,
-      id_restricao_execucao: schedule.idExecutionRestriction,
-      observacao_execucao: schedule.executionObservation,
-      id_restricao_prog1: schedule.idProgRestriction1,
-      responsabilidade1: schedule.responsibilityProg,
-      nome_responsavel: schedule.responsibleName,
-      area_responsavel1: schedule.responsibleArea,
-      status_restricao1: schedule.restrictionStatus,
-      data_resolucao1: schedule.resolutionDate,
-      id_restricao_prog2: schedule.idProgRestriction2,
-      responsabilidade2: schedule.responsibilityProg2,
-      nome_responsavel2: schedule.responsibleName2,
-      area_responsavel2: schedule.responsibleArea2,
-      status_restricao2: schedule.restrictionStatus2,
-      data_resolucao2: schedule.resolutionDate2,
-      id_tecnico: schedule.idTechnical,
-      observacao_restricao: schedule.observationRestriction,
-      reprovada: false,
-      id_usuario_ultima_atualizacao: schedule.idUser,
-    };
+    const formattedData = WorkScheduleMapper.toPersistenceUpdate(schedule);
 
     if (reprovada === true) {
       formattedData.reprovada = false;

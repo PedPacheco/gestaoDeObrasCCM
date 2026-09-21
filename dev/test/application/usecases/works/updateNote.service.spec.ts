@@ -1,5 +1,5 @@
-import { FindExistingWorksService } from 'src/application/usecases/works/findExistingWorks.service';
-import { UpdateNoteService } from 'src/application/usecases/works/updateNote.service';
+import { FindExistingWorksService } from 'src/application/usecases/works/management/findExistingWorks.service';
+import { UpdateNoteService } from 'src/application/usecases/works/management/updateNote.service';
 import { INSERT_WORKS_REPOSITORY } from 'src/domain/repositories/works/IInsertWorksRepository';
 import { UPDATE_NOTE_REPOSITORY } from 'src/domain/repositories/works/IUpdateNoteRepository';
 

@@ -7,7 +7,7 @@ import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getSched
 
 import { Inject, Injectable } from '@nestjs/common';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
-import { QueriesServicesService } from '../services/queriesServices.service';
+import { QueriesServicesService } from '../../services/queriesServices.service';
 
 @Injectable()
 export class GetScheduleValuesService {

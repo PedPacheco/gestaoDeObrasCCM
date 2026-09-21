@@ -1,4 +1,4 @@
-import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
+import { GetMonthlySummaryForecastService } from 'src/application/usecases/works/schedule/getMonthlySummaryForecast.service';
 
 describe('GetMonthlySummaryForecastService', () => {
   let service: GetMonthlySummaryForecastService;

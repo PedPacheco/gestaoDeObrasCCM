@@ -6,8 +6,8 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 
-import { UpdateSchedulesService } from '../schedule/updateSchedules.service';
-import { GetWorkDetailsService } from '../works/getWorkDetails.service';
+import { UpdateSchedulesService } from '../works/schedule/updateSchedules.service';
+import { GetWorkDetailsService } from '../works/management/getWorkDetails.service';
 import { ExecutionReportService } from '../executionReport.service';
 
 @Injectable()

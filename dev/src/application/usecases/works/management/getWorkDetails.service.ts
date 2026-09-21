@@ -4,7 +4,7 @@ import {
   IGetWorksDetailsRepository,
 } from 'src/domain/repositories/works/IGetWorksDetailsRepository';
 import { TeamCounterService } from 'src/domain/services/teamCounter.service';
-import { QueriesServicesService } from '../services/queriesServices.service';
+import { QueriesServicesService } from '../../services/queriesServices.service';
 
 @Injectable()
 export class GetWorkDetailsService {

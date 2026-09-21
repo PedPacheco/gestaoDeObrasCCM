@@ -6,6 +6,7 @@ import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { Transform } from "@/utils/transform";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
 import D5NotesMain from "@/components/d5Notes/d5NotesMain";
+import { D5NotesTabPanel } from "@/components/d5Notes/details/tabPanelD5Note";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

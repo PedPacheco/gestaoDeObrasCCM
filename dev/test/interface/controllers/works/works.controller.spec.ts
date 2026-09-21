@@ -1,10 +1,10 @@
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { UsersService } from 'src/application/usecases/users.service';
-import { GetAllWorksService } from 'src/application/usecases/works/getAllWorks.service';
-import { GetCompletedWorksService } from 'src/application/usecases/works/getCompletedWorks.service';
-import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
-import { GetWorksInPortfolioService } from 'src/application/usecases/works/getWorksInPortfolio.service';
+import { GetAllWorksService } from 'src/application/usecases/works/management/getAllWorks.service';
+import { GetCompletedWorksService } from 'src/application/usecases/works/management/getCompletedWorks.service';
+import { GetWorkDetailsService } from 'src/application/usecases/works/management/getWorkDetails.service';
+import { GetWorksInPortfolioService } from 'src/application/usecases/works/management/getWorksInPortfolio.service';
 import { WorksController } from 'src/interface/controllers/works/works.controller';
 import {
   GetAllWorksDTO,

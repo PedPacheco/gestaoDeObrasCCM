@@ -10,10 +10,10 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { GetWorksInPortfolioService } from 'src/application/usecases/works/getWorksInPortfolio.service';
-import { GetAllWorksService } from 'src/application/usecases/works/getAllWorks.service';
-import { GetCompletedWorksService } from 'src/application/usecases/works/getCompletedWorks.service';
-import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
+import { GetWorksInPortfolioService } from 'src/application/usecases/works/management/getWorksInPortfolio.service';
+import { GetAllWorksService } from 'src/application/usecases/works/management/getAllWorks.service';
+import { GetCompletedWorksService } from 'src/application/usecases/works/management/getCompletedWorks.service';
+import { GetWorkDetailsService } from 'src/application/usecases/works/management/getWorkDetails.service';
 import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
 
 interface CustomRequest extends Request {
