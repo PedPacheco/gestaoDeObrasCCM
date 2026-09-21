@@ -4,8 +4,14 @@ import {
   D5ScheduleProps,
 } from 'src/domain/entities/schedules/D5NotesSchedule.entity';
 
-import { CreateProgramacaoD5Dto } from 'src/interface/dtos/d5NotesDTO';
-import { D5NoteScheduleCreateData } from 'src/interface/types/d5notes/types';
+import {
+  CreateProgramacaoD5Dto,
+  UpdateScheduleD5Dto,
+} from 'src/interface/dtos/d5NotesDTO';
+import {
+  D5NoteScheduleCreateData,
+  D5NoteScheduleUpdateData,
+} from 'src/interface/types/d5notes/types';
 
 export class D5NoteScheduleMapper {
   /** DTO da API (snake_case) → props de domínio. */
@@ -27,6 +33,43 @@ export class D5NoteScheduleMapper {
 
     return {
       ...common,
+      dataProg,
+      startTime: D5NoteScheduleMapper.parseOptionalDate(
+        startTime,
+        'Hora de início',
+      ),
+      finishTime: D5NoteScheduleMapper.parseOptionalDate(
+        endTime,
+        'Hora de término',
+      ),
+      idTechnical: technicalId,
+      idExecutionRestriction: restrictionId,
+      responsibility: restrictionResponsible,
+    };
+  }
+
+  static fromUpdateInput(
+    id: number,
+    dto: UpdateScheduleD5Dto,
+  ): D5ScheduleProps {
+    const {
+      scheduledDate,
+      startTime,
+      endTime,
+      technicalId,
+      restrictionId,
+      restrictionResponsible,
+      ...common
+    } = dto;
+
+    const dataProg = new Date(scheduledDate);
+    if (isNaN(dataProg.getTime())) {
+      throw new BadRequestException('Data de programação inválida');
+    }
+
+    return {
+      ...common,
+      id,
       dataProg,
       startTime: D5NoteScheduleMapper.parseOptionalDate(
         startTime,
@@ -64,6 +107,29 @@ export class D5NoteScheduleMapper {
       id_restricao: entity.idExecutionRestriction,
       responsavel_restricao: entity.responsibility,
       id_usuario_criador: entity.creatorUserId,
+      id_usuario_modificador: entity.modifyingUserId,
+    };
+  }
+
+  static toPersistenceUpdate(entity: D5NoteSchedule): D5NoteScheduleUpdateData {
+    return {
+      data_prog: entity.dataProg,
+      prog: entity.prog,
+      exec: entity.exec,
+      hora_ini: entity.startTime,
+      hora_ter: entity.finishTime,
+      observacao_programacao: entity.observation,
+      observacao_execucao: entity.executionObservation,
+      num_dp: entity.numDp,
+      tipo_servico: entity.serviceType,
+      chi: entity.chi,
+      equipe_lv: entity.lvTeam,
+      equipe_lm: entity.lmTeam,
+      equipe_reg: entity.regulTeam,
+      chave_provisoria: entity.temporaryKey,
+      id_tecnico: entity.idTechnical,
+      id_restricao: entity.idExecutionRestriction,
+      responsavel_restricao: entity.responsibility,
       id_usuario_modificador: entity.modifyingUserId,
     };
   }

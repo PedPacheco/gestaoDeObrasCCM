@@ -1,13 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import { D5ScheduleProps } from 'src/domain/entities/schedules/D5NotesSchedule.entity';
 import { D5NotePagination } from 'src/domain/repositories/d5Notes/ID5notesRepository';
 import { ID5NotesSchedulesRepository } from 'src/domain/repositories/d5Notes/ID5NotesSchedulesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {
   D5NoteScheduleCreateData,
+  D5NoteScheduleUpdateData,
   SchedulesD5NotesByIdQueryResult,
   SchedulesD5NotesQueryResult,
 } from 'src/interface/types/d5notes/types';
+
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class D5NotesSchedulesRepository implements ID5NotesSchedulesRepository {
@@ -114,5 +115,10 @@ export class D5NotesSchedulesRepository implements ID5NotesSchedulesRepository {
     });
   }
 
-  async update(id: number, data: any): Promise<void> {}
+  async update(id: number, data: D5NoteScheduleUpdateData): Promise<void> {
+    await this.prisma.programacoes_d5.update({
+      where: { id },
+      data,
+    });
+  }
 }

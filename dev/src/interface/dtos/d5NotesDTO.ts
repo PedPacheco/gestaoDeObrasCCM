@@ -10,6 +10,7 @@ import {
   MaxLength,
 } from 'class-validator';
 import { convertParameterValue } from 'src/utils/convertParameterValue';
+import { OmitType } from '@nestjs/mapped-types';
 
 export class D5NotesFiltersDTO {
   @IsOptional()
@@ -118,6 +119,13 @@ export class CreateProgramacaoD5Dto {
   @IsInt()
   creatorUserId: number;
 
+  @IsInt()
+  modifyingUserId: number;
+}
+
+export class UpdateScheduleD5Dto extends OmitType(CreateProgramacaoD5Dto, [
+  'creatorUserId',
+] as const) {
   @IsInt()
   modifyingUserId: number;
 }

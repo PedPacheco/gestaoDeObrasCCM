@@ -179,3 +179,8 @@ export type D5NoteScheduleCreateData = {
   id_usuario_criador: number;
   id_usuario_modificador: number;
 };
+
+export type D5NoteScheduleUpdateData = Omit<
+  D5NoteScheduleCreateData,
+  'id_nota_d5' | 'id_usuario_criador'
+>;

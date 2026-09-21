@@ -1,5 +1,6 @@
 import {
   D5NoteScheduleCreateData,
+  D5NoteScheduleUpdateData,
   SchedulesD5NotesByIdQueryResult,
   SchedulesD5NotesQueryResult,
 } from 'src/interface/types/d5notes/types';
@@ -15,7 +16,7 @@ export interface ID5NotesSchedulesRepository {
   ): Promise<SchedulesD5NotesQueryResult[]>;
   getByD5NoteId(id: number): Promise<SchedulesD5NotesByIdQueryResult[]>;
   create(data: D5NoteScheduleCreateData): Promise<void>;
-  update(id: number, data: any): Promise<void>;
+  update(id: number, data: D5NoteScheduleUpdateData): Promise<void>;
   delete(id: number): Promise<void>;
 }
 

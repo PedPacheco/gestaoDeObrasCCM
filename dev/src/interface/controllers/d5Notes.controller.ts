@@ -6,15 +6,20 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
 import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
 import { FindD5NotesService } from 'src/application/usecases/d5Notes/notes/findD5Notes.service';
-import { CreateProgramacaoD5Dto, D5NotesFiltersDTO } from '../dtos/d5NotesDTO';
+import {
+  CreateProgramacaoD5Dto,
+  D5NotesFiltersDTO,
+  UpdateScheduleD5Dto,
+} from '../dtos/d5NotesDTO';
 import { FindD5NoteByIdService } from 'src/application/usecases/d5Notes/notes/findD5NotesById.service';
 import { FindD5SchedulesService } from 'src/application/usecases/d5Notes/schedules/findD5SchedulesById.service';
-import { CreateD5NoteScheduleService } from 'src/application/usecases/d5Notes/schedules/createD5NoteSchedule.service';
+import { ManageD5NoteScheduleService } from 'src/application/usecases/d5Notes/schedules/manageD5NoteSchedule.service';
 
 @Controller('notas-d5')
 export class D5NotesController {
@@ -22,7 +27,7 @@ export class D5NotesController {
     private findD5NotesService: FindD5NotesService,
     private findD5NoteByIdService: FindD5NoteByIdService,
     private findD5NotesSchedules: FindD5SchedulesService,
-    private createD5NoteScheduleService: CreateD5NoteScheduleService,
+    private manageD5NoteScheduleService: ManageD5NoteScheduleService,
   ) {}
 
   @Get()
@@ -62,11 +67,24 @@ export class D5NotesController {
   @Post('/programacoes')
   @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async createD5NoteSchedule(@Body() data: CreateProgramacaoD5Dto) {
-    const response = await this.createD5NoteScheduleService.create(data);
+    await this.manageD5NoteScheduleService.create(data);
+
     return {
       statusCode: HttpStatus.OK,
-      message: 'Programações da Nota D5 retornado com sucesso',
-      data: response,
+      message: 'Programação para Nota D5 criada com sucesso',
+    };
+  }
+
+  @Put('/programacoes/:id')
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
+  async updateD5NotesSchedule(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: UpdateScheduleD5Dto,
+  ) {
+    await this.manageD5NoteScheduleService.update(id, data);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Programação atualizada com sucesso',
     };
   }
 }

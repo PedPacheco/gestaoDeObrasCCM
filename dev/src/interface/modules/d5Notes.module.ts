@@ -9,7 +9,7 @@ import { D5NotesRepository } from 'src/infra/repositories/d5Notes/d5NotesReposit
 import { D5_NOTES_SCHEDULES_REPOSITORY } from 'src/domain/repositories/d5Notes/ID5NotesSchedulesRepository';
 import { D5NotesSchedulesRepository } from 'src/infra/repositories/d5Notes/d5NotesSchedulesRepository';
 import { FindD5SchedulesService } from 'src/application/usecases/d5Notes/schedules/findD5SchedulesById.service';
-import { CreateD5NoteScheduleService } from 'src/application/usecases/d5Notes/schedules/createD5NoteSchedule.service';
+import { ManageD5NoteScheduleService } from 'src/application/usecases/d5Notes/schedules/manageD5NoteSchedule.service';
 
 @Module({
   imports: [UsersModule],
@@ -18,7 +18,7 @@ import { CreateD5NoteScheduleService } from 'src/application/usecases/d5Notes/sc
     FindD5NotesService,
     FindD5NoteByIdService,
     FindD5SchedulesService,
-    CreateD5NoteScheduleService,
+    ManageD5NoteScheduleService,
     { provide: D5_NOTES_REPOSITORY, useClass: D5NotesRepository },
     {
       provide: D5_NOTES_SCHEDULES_REPOSITORY,

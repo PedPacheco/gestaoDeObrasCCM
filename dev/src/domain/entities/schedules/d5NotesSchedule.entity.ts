@@ -3,13 +3,13 @@ import { BaseSchedule, BaseScheduleProps } from './baseSchedule.entity';
 
 export interface D5ScheduleProps extends BaseScheduleProps {
   d5NoteId: number;
-  creatorUserId: number;
+  creatorUserId?: number;
   modifyingUserId: number;
 }
 
 export class D5NoteSchedule extends BaseSchedule {
   readonly d5NoteId: number;
-  readonly creatorUserId: number;
+  readonly creatorUserId?: number;
   readonly modifyingUserId: number;
 
   private static readonly MAX_NUM_DP = 25;
@@ -30,7 +30,7 @@ export class D5NoteSchedule extends BaseSchedule {
     if (!this.d5NoteId || this.d5NoteId <= 0) {
       throw new BadRequestException('ID da nota D5 é obrigatório');
     }
-    if (!this.creatorUserId || this.creatorUserId <= 0) {
+    if (this.id == null && (!this.creatorUserId || this.creatorUserId <= 0)) {
       throw new BadRequestException('Utilizador criador é obrigatório');
     }
     if (!this.modifyingUserId || this.modifyingUserId <= 0) {

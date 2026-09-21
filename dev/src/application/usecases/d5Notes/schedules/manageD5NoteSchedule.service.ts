@@ -5,10 +5,13 @@ import {
   D5_NOTES_SCHEDULES_REPOSITORY,
   ID5NotesSchedulesRepository,
 } from 'src/domain/repositories/d5Notes/ID5NotesSchedulesRepository';
-import { CreateProgramacaoD5Dto } from 'src/interface/dtos/d5NotesDTO';
+import {
+  CreateProgramacaoD5Dto,
+  UpdateScheduleD5Dto,
+} from 'src/interface/dtos/d5NotesDTO';
 
 @Injectable()
-export class CreateD5NoteScheduleService {
+export class ManageD5NoteScheduleService {
   constructor(
     @Inject(D5_NOTES_SCHEDULES_REPOSITORY)
     private d5NotesScheduleRepository: ID5NotesSchedulesRepository,
@@ -28,5 +31,21 @@ export class CreateD5NoteScheduleService {
     const formattedData = D5NoteScheduleMapper.toPersistenceCreate(schedule);
 
     return await this.d5NotesScheduleRepository.create(formattedData);
+  }
+
+  async update(id: number, data: UpdateScheduleD5Dto) {
+    if (!data) {
+      throw new BadRequestException(
+        'Nenhuma programação fornecida para inserção.',
+      );
+    }
+
+    const schedule = D5NoteSchedule.create(
+      D5NoteScheduleMapper.fromUpdateInput(id, data),
+    );
+
+    const formattedData = D5NoteScheduleMapper.toPersistenceUpdate(schedule);
+
+    return await this.d5NotesScheduleRepository.update(id, formattedData);
   }
 }
