@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { useMemo } from "react";
-import { Line, LineChart, ResponsiveContainer } from "recharts";
+import { Line, LineChart, ResponsiveContainer, Tooltip } from "recharts";
 
 import { Box, Card, Divider, Stack, Typography } from "@mui/material";
 
@@ -66,7 +66,15 @@ function Sparkline({
 
   return (
     <ResponsiveContainer width="100%" height={72}>
-      <LineChart data={data} margin={{ top: 20, right: 4, left: 4, bottom: 2 }}>
+      <LineChart
+        data={data}
+        margin={{
+          top: 20,
+          right: 8,
+          left: 8,
+          bottom: 2,
+        }}
+      >
         <Line
           type="monotone"
           dataKey="pct"
@@ -78,6 +86,56 @@ function Sparkline({
         />
       </LineChart>
     </ResponsiveContainer>
+  );
+}
+
+function SparklineSemanaLegend({ semanas }: { semanas: string[] }) {
+  if (!semanas.length) return null;
+
+  const lastIndex = semanas.length - 1;
+
+  return (
+    <Box
+      sx={{
+        position: "relative",
+        height: "24px",
+        mx: `8px`,
+      }}
+    >
+      {semanas.map((semana, index) => {
+        const isSingleWeek = semanas.length === 1;
+        const isFirst = index === 0;
+        const isLast = index === lastIndex;
+
+        const position = isSingleWeek ? 50 : (index / lastIndex) * 100;
+
+        const transform = isSingleWeek
+          ? "translateX(-50%)"
+          : isFirst
+            ? "translateX(0)"
+            : isLast
+              ? "translateX(-100%)"
+              : "translateX(-50%)";
+
+        return (
+          <Typography
+            key={`${semana}-${index}`}
+            sx={{
+              position: "absolute",
+              left: `${position}%`,
+              transform,
+              color: "#f4f4f5",
+              fontSize: "1rem",
+              fontWeight: 500,
+              lineHeight: 1.2,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {semana}
+          </Typography>
+        );
+      })}
+    </Box>
   );
 }
 
@@ -107,6 +165,12 @@ function SparklineCard({
       "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
   };
 
+  // Extrai as semanas da primeira linha que tenha dados
+  const semanas: string[] =
+    rows.length > 0 && rows[0][dataKey].length > 0
+      ? rows[0][dataKey].map((p) => p.semana)
+      : [];
+
   return (
     <Card sx={cardSx} className={colSpan}>
       <Box mb={4}>
@@ -126,7 +190,7 @@ function SparklineCard({
         </Typography>
         <Typography
           sx={{
-            color: "#53FF75", // usa o verde do tema
+            color: "#53FF75",
             fontSize: "0.9rem",
             fontWeight: 700,
             mt: 0.5,
@@ -159,34 +223,40 @@ function SparklineCard({
           </Typography>
         </Box>
       ) : (
-        <Stack
-          divider={
-            <Divider
-              sx={{
-                borderColor: "rgba(255,255,255,0.15)",
-                borderBottomWidth: "4px",
-              }}
-            />
-          }
-        >
-          {rows.map((row) => (
-            <Box
-              key={row.parceira}
-              display="flex"
-              alignItems="center"
-              height={72}
-            >
-              <Sparkline
-                data={row[dataKey]}
-                pctColor={
-                  dataKey === "aderencia"
-                    ? pctColorGripSchedule
-                    : pctColorRestrictionsElimination
-                }
+        <>
+          {/* ── Linhas do sparkline ── */}
+          <Stack
+            divider={
+              <Divider
+                sx={{
+                  borderColor: "rgba(255,255,255,0.15)",
+                  borderBottomWidth: "4px",
+                }}
               />
-            </Box>
-          ))}
-        </Stack>
+            }
+          >
+            {rows.map((row) => (
+              <Box
+                key={row.parceira}
+                display="flex"
+                alignItems="center"
+                height={72}
+              >
+                <Sparkline
+                  data={row[dataKey]}
+                  pctColor={
+                    dataKey === "aderencia"
+                      ? pctColorGripSchedule
+                      : pctColorRestrictionsElimination
+                  }
+                />
+              </Box>
+            ))}
+          </Stack>
+
+          {/* ── Legenda das semanas (fixa, abaixo de todas as linhas) ── */}
+          <SparklineSemanaLegend semanas={semanas} />
+        </>
       )}
     </Card>
   );

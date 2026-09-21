@@ -52,7 +52,7 @@ const TabActions = memo(
           <Tab value={3} label="Relatórios execuções" className="xl:text-lg" />
           <Tab value={4} label="Restrições Publicação" className="xl:text-lg" />
           {canSeeTabs && (
-            <Tab value={5} label="Serviços" className="xl:text-lg" />
+            <Tab value={5} label="Serviços/Materiais" className="xl:text-lg" />
           )}
         </Tabs>
 

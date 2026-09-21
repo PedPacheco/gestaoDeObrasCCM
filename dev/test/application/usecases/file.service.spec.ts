@@ -1,13 +1,13 @@
 // Importar mocks
-import { existsSync, unlinkSync } from 'fs';
+import { access, unlink } from 'fs/promises';
 import { FileService } from 'src/application/usecases/file.service';
 
 import { Test, TestingModule } from '@nestjs/testing';
 
 // Mock do módulo 'fs'
-jest.mock('fs', () => ({
-  existsSync: jest.fn(),
-  unlinkSync: jest.fn(),
+jest.mock('fs/promises', () => ({
+  access: jest.fn(),
+  unlink: jest.fn(),
 }));
 
 describe('FileService', () => {
@@ -41,35 +41,41 @@ describe('FileService', () => {
     jest.clearAllMocks();
   });
 
-  it('deve remover o arquivo quando ele existir', () => {
-    (existsSync as jest.Mock).mockReturnValue(true);
+  it('deve remover o arquivo quando ele existir', async () => {
+    (access as jest.Mock).mockResolvedValue(true);
 
-    service.deleteFile(filePath);
+    await service.deleteFile(filePath);
 
-    expect(existsSync).toHaveBeenCalledWith(filePath);
-    expect(unlinkSync).toHaveBeenCalledWith(filePath);
+    expect(access).toHaveBeenCalledWith(filePath);
+    expect(unlink).toHaveBeenCalledWith(filePath);
     expect(loggerLogSpy).toHaveBeenCalledWith(`Arquivo removido: ${filePath}`);
   });
 
-  it('não deve remover o arquivo quando ele não existir', () => {
-    (existsSync as jest.Mock).mockReturnValue(false);
+  it('não deve remover o arquivo quando ele não existir', async () => {
+    const enoentError = new Error(
+      'ENOENT: no such file or directory',
+    ) as NodeJS.ErrnoException;
+    enoentError.code = 'ENOENT'; // ← essencial para o serviço reconhecer
 
-    service.deleteFile(filePath);
+    (access as jest.Mock).mockRejectedValue(enoentError); // ← access rejeita
 
-    expect(existsSync).toHaveBeenCalledWith(filePath);
-    expect(unlinkSync).not.toHaveBeenCalled();
+    await service.deleteFile(filePath);
+
+    expect(access).toHaveBeenCalledWith(filePath);
+    expect(unlink).not.toHaveBeenCalled();
     expect(loggerWarnSpy).toHaveBeenCalledWith(
       `Arquivo não encontrado: ${filePath}`,
     );
+    expect(loggerErrorSpy).not.toHaveBeenCalled();
   });
 
-  it('deve registrar erro quando unlinkSync lançar exceção', () => {
-    (existsSync as jest.Mock).mockReturnValue(true);
-    (unlinkSync as jest.Mock).mockImplementation(() => {
+  it('deve registrar erro quando unlink lançar exceção', async () => {
+    (access as jest.Mock).mockResolvedValue(true);
+    (unlink as jest.Mock).mockImplementation(() => {
       throw new Error('Erro ao deletar');
     });
 
-    service.deleteFile(filePath);
+    await service.deleteFile(filePath);
 
     expect(loggerErrorSpy).toHaveBeenCalled();
     expect(loggerErrorSpy.mock.calls[0][0]).toBe(
@@ -78,15 +84,15 @@ describe('FileService', () => {
     expect(loggerErrorSpy.mock.calls[0][1]).toContain('Error: Erro ao deletar');
   });
 
-  it('deve registrar erro quando unlinkSync lançar exceção', () => {
-    (existsSync as jest.Mock).mockReturnValue(true);
+  it('deve registrar erro quando unlink lançar exceção', async () => {
+    (access as jest.Mock).mockResolvedValue(true);
     const customError = { message: 'Falha' };
 
-    (unlinkSync as jest.Mock).mockImplementation(() => {
+    (unlink as jest.Mock).mockImplementation(() => {
       throw customError;
     });
 
-    service.deleteFile(filePath);
+    await service.deleteFile(filePath);
 
     expect(loggerErrorSpy).toHaveBeenCalled();
     expect(loggerErrorSpy.mock.calls[0][0]).toBe(

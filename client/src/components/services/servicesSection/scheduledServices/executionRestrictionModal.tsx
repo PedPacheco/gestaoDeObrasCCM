@@ -16,6 +16,7 @@ import {
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { UseExecutionServiceFormReturn } from "@/hooks/useExecutionServicesForm";
 import { schedulesSchemaV2 } from "@/validations/validationExecutionServices";
+import { useEffect } from "react";
 
 interface RestrictionsModalProps {
   open: boolean;
@@ -23,7 +24,12 @@ interface RestrictionsModalProps {
   onSave: () => void;
   onReascheduled: () => void;
   options: {
-    restricao: Array<{ id: number; restricao: string; tipo_restricao: string }>;
+    restricao: Array<{
+      id: number;
+      restricao: string;
+      tipo_restricao: string;
+      responsabilidade: string;
+    }>;
   };
   executionForm: UseExecutionServiceFormReturn;
   executionIsPartial: boolean;
@@ -63,6 +69,35 @@ export function RestrictionsModal({
 
     onClose();
   };
+
+  const selectedRestriction = options.restricao.find(
+    (item) => item.id === editableData.idExecutionRestriction,
+  );
+
+  const restrictionResponsibility =
+    selectedRestriction?.responsabilidade ?? null;
+
+  const responsibilityValue =
+    restrictionResponsibility ?? editableData.responsibility ?? "";
+
+  useEffect(() => {
+    if (
+      !restrictionResponsibility ||
+      editableData.responsibility === restrictionResponsibility
+    ) {
+      return;
+    }
+
+    handleEditableChange("responsibility")({
+      target: {
+        value: restrictionResponsibility,
+      },
+    });
+  }, [
+    restrictionResponsibility,
+    editableData.responsibility,
+    handleEditableChange,
+  ]);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -113,10 +148,11 @@ export function RestrictionsModal({
             <FormControl fullWidth error={!!errorResponsibility}>
               <InputLabel>Responsabilidade</InputLabel>
               <Select
-                value={editableData.responsibility}
+                value={responsibilityValue}
                 label="Responsabilidade"
                 onChange={handleEditableChange("responsibility")}
                 error={!!errorResponsibility}
+                disabled={!!restrictionResponsibility}
               >
                 {EXECUTION_RESPONSIBILITIES.map((resp) => (
                   <MenuItem key={resp} value={resp}>

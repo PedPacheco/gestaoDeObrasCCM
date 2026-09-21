@@ -15,6 +15,8 @@ import { GetWorkDetailsService } from '../works/getWorkDetails.service';
 import { UpdateWorkService } from '../works/updateWork.service';
 import { SuspensionWorkService } from '../works/suspensionWork.service';
 
+import moment from 'moment';
+
 @Injectable()
 export class HandleWorkUpdateService {
   constructor(
@@ -28,7 +30,6 @@ export class HandleWorkUpdateService {
 
   async update(data: UpdateWorkDTO, id: number, permission: boolean) {
     const work = await this.getDetailsWorkService.get(id);
-    const { data_empreitamento } = data;
 
     if (work.id_status === 42 && permission) {
       throw new BadRequestException(
@@ -39,6 +40,16 @@ export class HandleWorkUpdateService {
     if (!work.id) {
       throw new BadGatewayException('Obra não foi encontrada');
     }
+
+    if (
+      !data.data_empreitamento &&
+      !work.data_empreitamento &&
+      work.id_status === 42
+    ) {
+      data.data_empreitamento = moment.utc().startOf('day').toDate();
+    }
+
+    const { data_empreitamento } = data;
 
     await this.prisma.$transaction(async (tx) => {
       if (data.id_status === 4) {

@@ -167,7 +167,6 @@ model equipes {
   perfil                String?                 @db.VarChar(10)
   turmas                turmas                  @relation(fields: [id_turma], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_turmas")
   programacoes_servicos programacoes_servicos[]
-  servicos              servicos[]
 }
 
 model grupos {
@@ -342,7 +341,6 @@ model programacoes {
   usuario_ultima_atualizacao      novo_tabela_usuarios?   @relation("usuario_ultima_atualizacao", fields: [id_usuario_ultima_atualizacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_ultima_alteracao")
   programacoes_servicos           programacoes_servicos[]
   relatorio_execucao              relatorio_execucao[]
-  servicos                        servicos[]
 
   @@unique([id, id_obra, data_prog], map: "unique_programacoes")
 }
@@ -409,19 +407,15 @@ model servicos {
   qtde_prog             Float?
   qtde_real             Float?
   id_contrato_servico   Int?
-  id_equipe             Int?
-  id_programacao        Int?
   qtde_adicional        Float?
   id_material           Int?
   viabilizado           Float?
   numero_operacao       String?                 @db.VarChar(10)
   descricao_operacao    String?                 @db.VarChar(100)
   programacoes_servicos programacoes_servicos[]
-  equipes               equipes?                @relation(fields: [id_equipe], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipes")
   materiais             materiais?              @relation(fields: [id_material], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_materiais")
   obras                 obras                   @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
   servicos_contratos    servicos_contratos?     @relation(fields: [id_contrato_servico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_servicos_contratos")
-  programacoes          programacoes?           @relation(fields: [id_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_servicos_programacoes")
 }
 
 model servicos_contratos {
@@ -522,6 +516,7 @@ model relatorio_viabilidade {
   data_aprovacao          DateTime?                 @db.Timestamp(6)
   id_usuario_aprovador    Int?
   prazo_viabilidade       String?                   @default("FALTA VIABILIDADE") @db.VarChar(25)
+  arquivos_complementares String[]
   obras                   obras                     @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obras")
   novo_tabela_usuarios    novo_tabela_usuarios      @relation(fields: [id_usuario], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario")
   reprovacoes_viabilidade reprovacoes_viabilidade[]

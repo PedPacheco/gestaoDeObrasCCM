@@ -314,22 +314,37 @@ export class ExportController {
     );
   }
 
-  @Get('viabilidade')
+  @Get('viabilidade/aguardando-aprovacao')
   @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
-  async exportFeasibility(
+  async exportFeasibilityPendingApproval(
     @Res() res: Response,
     @Query() query: ExportFeasibilityInputDto,
   ) {
-    const { endDate, idPartner, startDate } = query;
+    const { idPartner } = query;
 
-    const data = await this.feasibilityService.exportFeasibility(
-      startDate,
-      endDate,
-      idPartner,
+    const data =
+      await this.feasibilityService.exportFeasibilityPendingApproval(idPartner);
+
+    this.setXlsxHeaders(res, 'Exportação Viabilidade Aguardando Aprovação');
+    return this.exportFeasibilityService.exportFeasibilityPendingApproval(
+      data,
+      res,
     );
+  }
 
-    this.setXlsxHeaders(res, 'Exportação Viabilidade');
-    return this.exportFeasibilityService.export(data, res);
+  @Get('viabilidade/aguardando-viabilidade')
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
+  async exportFeasibilityPending(
+    @Res() res: Response,
+    @Query() query: ExportFeasibilityInputDto,
+  ) {
+    const { idPartner } = query;
+
+    const data =
+      await this.feasibilityService.exportFeasibilityPending(idPartner);
+
+    this.setXlsxHeaders(res, 'Exportação Viabilidade Pendente');
+    return this.exportFeasibilityService.exportFeasibilityPending(data, res);
   }
 
   // ─────────────────────────────────────────────
