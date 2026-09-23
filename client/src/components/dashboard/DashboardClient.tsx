@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
-import AdvancePartnerDashboard from "./advancePartner/advancePartner";
+import AdvancePartnerDashboard from "./AvancaParceiro/DashAvancaParceiro/advancePartner";
 import LaborDashboard from "./laborDashboard/laborDashboard";
 import MonitoringExecutionDashboard from "./monitoringExecutionDashboard/monitoringExecutionDashboard";
 import RecompositionGoalsDashboard from "./recompositionGoalsDashboard/RecompositionGoalsDashboard";

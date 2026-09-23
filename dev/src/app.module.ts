@@ -59,7 +59,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
       global: true,
       inject: [ConfigService],
       useFactory: async (config: ConfigService) => {
-        const secret = config.get<string>('JWT_SECRECT');
+        const secret = config.get<string>('JWT_SECRET');
         return {
           secret,
           signOptions: { expiresIn: '6h' },

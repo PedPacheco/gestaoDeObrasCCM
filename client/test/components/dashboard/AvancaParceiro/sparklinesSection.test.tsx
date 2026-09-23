@@ -1,4 +1,4 @@
-import { SparklinesSection } from "@/components/dashboard/advancePartner/sparklinesSection";
+import { SparklinesSection } from "@/components/dashboard/AvancaParceiro/DashAvancaParceiro/sparklinesSection";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, beforeEach, vi } from "vitest";
 

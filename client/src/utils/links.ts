@@ -230,6 +230,12 @@ export const links: Link[] = [
         allowedFor: ["interno_editor", "interno_viewer", "parceira"],
         allowedAreas: [8, 1, 7],
       },
+      {
+        name: "Reclamações e Ouvidoria",
+        href: "/restricoes/reclamacoes-ouvidoria",
+        allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+        allowedAreas: [8, 1, 7],
+      },
     ],
   },
   {

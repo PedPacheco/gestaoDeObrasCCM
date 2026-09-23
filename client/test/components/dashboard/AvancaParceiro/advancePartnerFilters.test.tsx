@@ -1,6 +1,6 @@
 // AdvancePartnerFilters.spec.tsx
 
-import { AdvancePartnerFilters } from "@/components/dashboard/advancePartner/advancePartnerFilters";
+import { AdvancePartnerFilters } from "@/components/dashboard/AvancaParceiro/DashAvancaParceiro/advancePartnerFilters";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 

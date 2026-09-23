@@ -26,7 +26,7 @@ import {
   Typography,
 } from "@mui/material";
 
-import { ChartTooltip } from "../common/ChartTooltip";
+import { ChartTooltip } from "../../common/ChartTooltip";
 import { AderenciaRow, MotivoRow } from "./advancePartner";
 
 interface ModalObservacoesProps {
