@@ -8,9 +8,9 @@ import { ButtonComponent } from "@/components/common/Button";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
 import D5DataItem, {
   SummaryD5DataItem,
-} from "@/components/d5Notes/details/dataItemD5";
-import { EditableColumnD5 } from "@/components/d5Notes/details/editableColumn";
-import { D5NotesTabPanel } from "@/components/d5Notes/details/tabPanelD5Note";
+} from "@/components/details/d5NotesDetails/dataItemD5";
+import { EditableColumnD5 } from "@/components/details/d5NotesDetails/editableColumn";
+import { D5NotesPanel } from "@/components/details/d5NotesDetails/d5NotesPanel";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { FormatCurrency, formatPercentage } from "@/utils/formatValue";
 
@@ -22,16 +22,13 @@ interface DetailsParams {
   params: Promise<{ id: string }>;
 }
 
-const formatDate = (date: dayjs.Dayjs): string => {
-  return date.utc().format("DD/MM/YYYY");
-};
-
 function processD5Data(data: any) {
   return {
-    criadoEm: formatDate(dayjs(data.criado_em)),
+    criadoEm: dayjs(data.criado_em).utc().format("DD/MM/YYYY"),
     dataConclusao: data.conclusao_nota
-      ? formatDate(dayjs(data.conclusao_nota))
+      ? dayjs(data.conclusao_nota).utc().format("DD/MM/YYYY")
       : null,
+    dataPrazo: dayjs(data.prazo).utc().format("DD/MM/YYYY"),
     moPlanejada: FormatCurrency(data.mo_planejada) || "",
     totalExecutado: formatPercentage(data.totalExecutado) || 0,
     totalProgramado: formatPercentage(data.totalProgramado) || 0,
@@ -85,7 +82,7 @@ export default async function DetailsD5({ params }: DetailsParams) {
 
   return (
     <EmotionCacheProvider>
-      <main className="flex h-dvh w-full min-w-0 flex-col overflow-hidden">
+      <main className="flex h-screen w-full min-w-0 flex-col overflow-y-auto">
         {/* Cabeçalho */}
         <header className="flex shrink-0 items-center justify-between px-4 py-4 md:px-8">
           <h1 className="text-xl font-extrabold md:text-2xl">
@@ -120,26 +117,29 @@ export default async function DetailsD5({ params }: DetailsParams) {
           {/* Coluna 3 */}
           <div className={COLUMN_CLASSNAME}>
             <D5DataItem label="Regional" value={data.regional} />
-            <D5DataItem label="Entrada" value={formattedData.criadoEm} />
-            <D5DataItem label="Prazo Contratual (7D)" value={data.prazo} />
+            <D5DataItem label="TME abertura" value={data.tme_abertura} />
+            <D5DataItem label="TME executado" value={data.tme_executado} />
           </div>
 
           {/* Coluna 4 */}
           <div className={COLUMN_CLASSNAME}>
             <D5DataItem
-              label="Data conclusão"
+              label="Data de entrada"
+              value={formattedData.criadoEm}
+            />
+            <D5DataItem
+              label="Prazo Contratual (7D corridos)"
+              value={formattedData.dataPrazo}
+            />
+            <D5DataItem
+              label="Data de conclusão"
               value={formattedData.dataConclusao}
             />
-            <D5DataItem label="TME abertura" value={data.tme_abertura} />
-            <D5DataItem label="TME executado" value={data.tme_executado} />
           </div>
 
           {/* Coluna 5 */}
           <div className={COLUMN_CLASSNAME}>
-            <D5DataItem
-              label="MO planejada"
-              value={formattedData.moPlanejada}
-            />
+            <D5DataItem label="MO Retida" value={formattedData.moPlanejada} />
 
             <D5DataItem label="Validação anual" value={data.validacao_anual} />
 
@@ -170,7 +170,7 @@ export default async function DetailsD5({ params }: DetailsParams) {
           </div>
 
           {/* Observação */}
-          <div className="col-span-full mx-2 mb-4 flex min-h-[96px] min-w-0 items-stretch rounded-md border border-solid border-zinc-700 md:mx-4">
+          <div className="col-span-full mx-2 mb-4 flex min-h-[66px] min-w-0 items-stretch rounded-md border border-solid border-zinc-700 md:mx-4">
             <label
               htmlFor="observacao"
               className="
@@ -198,7 +198,7 @@ export default async function DetailsD5({ params }: DetailsParams) {
               name="observacao"
               rows={3}
               className="
-                min-h-[94px]
+                h-16
                 min-w-0
                 flex-1
                 resize-y
@@ -215,8 +215,12 @@ export default async function DetailsD5({ params }: DetailsParams) {
         </section>
 
         {/* Tabs e tabela */}
-        <section className="flex xl:h-[80%] max-h-[620px] overflow-y-auto min-w-0 flex-1 px-2 pb-6 md:px-4">
-          <D5NotesTabPanel schedulesData={schedulesData} />
+        <section className="flex xl:h-[80%] max-h-[620px] min-w-0 flex-1 mb-6 px-7 pb-6">
+          <D5NotesPanel
+            schedulesData={schedulesData}
+            options={filters}
+            d5NoteId={Number(id)}
+          />
         </section>
       </main>
     </EmotionCacheProvider>

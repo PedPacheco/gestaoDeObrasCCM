@@ -10,25 +10,25 @@ import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { FiltersInterface } from "@/types/filtersInterfaces";
 import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
+import dayjs, { Dayjs } from "dayjs";
 import { Transform } from "@/utils/transform";
+import { DateFilter } from "@/components/common/DateFilter";
 
-interface D5NotesFiltersProps {
+interface D5NotesSchedulesFiltersProps {
   data: FiltersInterface;
   url: string;
   searchFilteredData: (
     params: Record<string, string | string[] | boolean>,
   ) => void;
-  page: number;
   isPending: boolean;
 }
 
-export default function D5NotesFilters({
+export default function D5NotesSchedulesFilters({
   data,
   url,
   isPending,
-  page,
   searchFilteredData,
-}: D5NotesFiltersProps) {
+}: D5NotesSchedulesFiltersProps) {
   const applyFilters = useCallback(
     (data: FiltersInterface, filtersObject: any) => {
       let newData = { ...data };
@@ -62,6 +62,8 @@ export default function D5NotesFilters({
     applyFilters,
   });
 
+  const [startDate, setStartDate] = useState<Dayjs | null>(null);
+  const [endDate, setEndDate] = useState<Dayjs | null>(null);
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {},
   );
@@ -69,32 +71,41 @@ export default function D5NotesFilters({
   useEffect(() => {
     if (!filters) return;
 
+    setStartDate(filters?.startDate ? dayjs(filters.startDate) : null);
+    setEndDate(filters?.endDate ? dayjs(filters.endDate) : null);
     setSelectedItems(filters.selectedItems || {});
   }, [filters, url]);
 
   function handleApplyFilters() {
-    saveFilters(selectedItems);
+    const newSelectedItems = {
+      ...Transform(selectedItems),
+      dataInicial: startDate ? startDate.format("DD/MM/YYYY") : "",
+      dataFinal: endDate ? endDate.format("DD/MM/YYYY") : "",
+      page: "0",
+    };
 
-    searchFilteredData({ ...Transform(selectedItems), page: page.toString() });
+    saveFilters(newSelectedItems);
+    searchFilteredData(newSelectedItems);
   }
 
   function handleCleanigFilters() {
     setSelectedItems({});
 
     clearFilters();
-
-    searchFilteredData({
-      page: "0",
-    });
+    searchFilteredData({ page: "0" });
   }
-
-  // function handleGenerateExcel() {
-  //   generateExcel(selectedItems);
-  // }
 
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-3 2xl:grid-cols-6 w-full">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:flex xl:flex-row xl:justify-between xl:items-center">
+        <DateFilter
+          endDate={endDate}
+          startDate={startDate}
+          setEndDate={setEndDate}
+          setStartDate={setStartDate}
+          size="w-full"
+        />
+
         {Object.entries(filteredData).map(([key, value], index) => {
           const hasValues = Array.isArray(value) && value.length > 0;
 
@@ -136,20 +147,6 @@ export default function D5NotesFilters({
           text={getButtonContent(isPending, "Limpar filtros")}
           styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
         />
-
-        {/* <ButtonComponent
-          onClick={openModal}
-          text="Ver valores totais"
-          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
-        /> */}
-        {/* <ButtonComponent
-          onClick={handleGenerateExcel}
-          text="Exportar"
-          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
-          startIcon={
-            <DocumentArrowDownIcon width={25} height={25} className="mr-2" />
-          }
-        /> */}
       </div>
     </>
   );

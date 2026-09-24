@@ -10,7 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 
-import { ButtonComponent } from "../../../common/Button";
+import { ButtonComponent } from "../../../../common/Button";
 import { ScheduleFormHookReturn } from "../scheduleDialog/dialog";
 import { AdditionalExecutionInfoPanel } from "./additionalExecutionInfoPanel";
 import { ExecutionEquipmentPanel } from "./EquipmentPanel";

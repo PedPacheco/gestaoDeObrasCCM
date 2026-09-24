@@ -1,18 +1,20 @@
+import dayjs from "dayjs";
 import { cookies } from "next/headers";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
+import MainSchduleForDay from "@/components/scheduleComponents/scheduleForDay/MainScheduleForDay";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { Transform } from "@/utils/transform";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
-import D5NotesMain from "@/components/d5Notes/d5NotesMain";
+import D5NotesSchedulesMain from "@/components/scheduleComponents/d5NotesSchedules/d5NotesSchedules";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default async function D5NotesPage() {
+export default async function ScheduleForDay() {
   const cookieStore = await cookies();
-  const cookieParams = cookieStore.get("d5NotesFilters")?.value;
+  const cookieParams = cookieStore.get("schedulesD5NotesFilters")?.value;
 
   let params = cookieParams ? JSON.parse(cookieParams) : undefined;
 
@@ -21,7 +23,7 @@ export default async function D5NotesPage() {
     page: "0",
   };
 
-  const [filters, worksData] = await Promise.all([
+  const [filters, scheduleData] = await Promise.all([
     fetchFilters({
       regional: true,
       parceira: true,
@@ -31,43 +33,63 @@ export default async function D5NotesPage() {
       status: true,
     }),
     fetchData(
-      `${process.env.NEXT_PUBLIC_API_URL}/notas-d5`,
+      `${process.env.NEXT_PUBLIC_API_URL}/notas-d5/programacoes`,
       filtersValues,
       cookieStore.get("token")?.value,
       { cache: "no-store" },
     ),
   ]);
 
-  if (!worksData.success) {
-    return <ErrorThrower message={worksData.message} />;
+  if (!scheduleData.success) {
+    return <ErrorThrower message={scheduleData.message} />;
   }
 
-  const { data, token } = worksData;
+  const { data, token } = scheduleData;
 
   const columnMapping = {
-    id: "ID",
+    // Nota D5
+    notaD5Id: "ID",
     nota_d5: "Nota D5",
-    obra: "Ov/Nota",
-    ordemDiagrama: "Ordem/Diagrama",
+    ovnota: "Ov/Nota",
+    diagrama: "Ordem/Diagrama",
     regional: "Regional",
-    municipio: "Municipio",
-    parceira: "Parceira",
-    tipoObra: "Tipo",
+    municipio: "Município",
+    turma: "Parceira",
+    tipo_obra: "Tipo",
+    local_instalacao: "Local de Instalação",
     criado_em: "Criado em",
     conclusao_nota: "Data de conclusão",
     status: "Status da Nota",
+    status_sap: "Status SAP",
+    responsavel: "Responsável",
     tme_abertura: "TME Abertura",
     tme_executado: "TME Executado",
     validacao_anual: "Validação Anual",
     mo_planejada: "MO Plan",
+
+    // Programação
+    data_prog: "Data da Programação",
+    hora_ini: "Hora de Início",
+    hora_ter: "Hora de Término",
+    prog: "Prog",
+    exec: "Exec",
+    tipo_servico: "Tipo de Serviço",
+    num_dp: "Nº DP",
+    chi: "CHI",
+    equipe_lm: "Equipa LM",
+    equipe_lv: "Equipa LV",
+    equipe_reg: "Equipa Reg",
+    chave_provisoria: "Chave Provisória",
+    tecnico: "Técnico",
+    observacao_programacao: "Observação da Programação",
   };
 
   return (
     <EmotionCacheProvider>
-      <D5NotesMain
+      <D5NotesSchedulesMain
         data={data.d5Notes}
         token={token}
-        cookie="d5NotesFilters"
+        cookie="d5NotesSchedulesFilters"
         columns={columnMapping}
         filtersData={filters}
         totals={data.totals}

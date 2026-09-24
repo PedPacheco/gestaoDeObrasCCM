@@ -30,6 +30,8 @@ export interface SelectProps {
   placeholder?: string;
 }
 
+const STATUS_NOT_AVALIABLE = [46, 45, 43, 42];
+
 export function D5SelectComponent({
   label,
   menuItems = [],
@@ -150,7 +152,7 @@ export const EditableColumnD5 = ({
 
       <D5SelectComponent
         label="Status D5 (SIGO)"
-        menuItems={options.status}
+        menuItems={options.status.filter((item: any) => !STATUS_NOT_AVALIABLE.includes(item.id))}
         selectedItem={data.status}
         setSelectedItem={(value) => onHandleChange?.("status", value)}
         valueKey="status"

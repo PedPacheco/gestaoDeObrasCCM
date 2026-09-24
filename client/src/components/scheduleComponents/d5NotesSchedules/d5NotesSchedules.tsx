@@ -1,8 +1,6 @@
 "use client";
 
-import dynamic from "next/dynamic";
-
-import { useCallback, useMemo, useState, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
 import { Cookies } from "react-cookie";
 
 import { fetchData } from "@/actions/fetchData.action";
@@ -10,8 +8,8 @@ import { fetchData } from "@/actions/fetchData.action";
 import { useFeedback } from "@/hooks/useFeedback";
 
 import { Transform } from "@/utils/transform";
-import D5NotesFilters from "./d5NotesFilters";
-import { D5NotesTable } from "./d5NotesTable";
+import { D5NotesTable } from "@/components/d5Notes/d5NotesTable";
+import D5NotesSchedulesFilters from "./d5NotesSchedulesFilters";
 
 interface MainPortfolioWorksProps {
   data: any;
@@ -19,12 +17,12 @@ interface MainPortfolioWorksProps {
   token: string;
   cookie: string;
   columns: Record<string, string>;
-  totals: { total: number; totalMoPlanejada: number };
+  totals: { total: number };
 }
 
 const cookies = new Cookies();
 
-export default function D5NotesMain({
+export default function D5NotesSchedulesMain({
   data,
   token,
   columns,
@@ -36,55 +34,16 @@ export default function D5NotesMain({
 
   const [filteredData, setFilteredData] = useState(data);
   const [filteredTotals, setFilteredTotals] = useState(totals);
-  // const [open, setOpen] = useState(false);
   const [page, setPage] = useState(0);
 
   const [isPending, startTransition] = useTransition();
-
-  // const toggleModal = () => setOpen((prev) => !prev);
-
-  // const generateExcel = useCallback(
-  //   async (params: Record<string, string>) => {
-  //     const { page, ...formattedParams } = params;
-
-  //     const exportUrl = mountUrl(
-  //       `${process.env.NEXT_PUBLIC_API_URL}/exportacao${pathname}`,
-  //       formattedParams,
-  //     );
-
-  //     try {
-  //       const response = await exportExcel(exportUrl, token);
-
-  //       if (!response.success) {
-  //         showError(response.message);
-  //         return;
-  //       }
-
-  //       const downloadUrl = window.URL.createObjectURL(response.data);
-  //       const link = document.createElement("a");
-  //       link.href = downloadUrl;
-  //       link.download =
-  //         pathname === "/obras-executadas"
-  //           ? "Exportação obras executadas"
-  //           : "Exportação obras em carteira";
-
-  //       document.body.append(link);
-  //       link.click();
-  //       document.body.removeChild(link);
-  //       window.URL.revokeObjectURL(downloadUrl);
-  //     } catch (error: any) {
-  //       showError(`Erro ao gerar a planilha: ${error.message}`);
-  //     }
-  //   },
-  //   [pathname, showError, token],
-  // );
 
   const fetchWorks = useCallback(
     (params: Record<string, string | string[] | boolean>) => {
       startTransition(async () => {
         try {
           const response = await fetchData(
-            `${process.env.NEXT_PUBLIC_API_URL}/notas-d5`,
+            `${process.env.NEXT_PUBLIC_API_URL}/notas-d5/programacoes`,
             params,
             token,
             { cache: "no-store" },
@@ -114,10 +73,9 @@ export default function D5NotesMain({
   return (
     <div className="flex w-full flex-col items-center overflow-y-auto">
       <div className="my-6 w-11/12">
-        <D5NotesFilters
+        <D5NotesSchedulesFilters
           data={filtersData}
           url={cookie}
-          page={page}
           searchFilteredData={fetchWorks}
           isPending={isPending}
         />
@@ -126,7 +84,7 @@ export default function D5NotesMain({
       <D5NotesTable
         data={filteredData ?? []}
         totals={filteredTotals}
-        variant="notas"
+        variant="programacoes"
         columns={columns}
         handleChangePage={handleChangePage}
         page={page}

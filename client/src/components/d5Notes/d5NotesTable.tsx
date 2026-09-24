@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { useRouter } from "next/navigation";
 
-import { FormatCurrency, formatPercentage } from "@/utils/formatValue";
+import { FormatCurrency } from "@/utils/formatValue";
 import { isValidDateString } from "@/utils/validDate";
 import {
   Paper,
@@ -12,16 +12,21 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-  TableFooter,
   TableHead,
   TablePagination,
   TableRow,
 } from "@mui/material";
 
+type D5TableVariant = "notas" | "programacoes";
+
 interface TableComponentProps {
-  columns: any;
+  columns: Record<string, string>;
   data: any[];
-  totals: { totalNotas: number; totalMoPlanejado: number };
+  variant: D5TableVariant;
+  totals: {
+    total: number; // total de linhas (notas OU programações)
+    totalMoPlanejada?: number; // opcional
+  };
   page: number;
   handleChangePage: (event: unknown, newPage: number) => void;
   getRowKey?: (item: any) => string | number;
@@ -33,11 +38,18 @@ export function D5NotesTable({
   data,
   totals,
   columns,
+  variant,
   handleChangePage,
   page,
   getRowKey,
 }: TableComponentProps) {
   const router = useRouter();
+
+  const totalLabel =
+    variant === "notas" ? "Total de Notas:" : "Total de Programações:";
+
+  const totalCount = totals.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalCount / 200));
 
   return (
     <Paper className="mb-6 w-[95%] min-h-96 h-[720px] lg:h-[560px] xl:h-[90%] max-h-[880px] lg:max-h-[680px] xl:max-h-[90%] flex flex-col">
@@ -111,7 +123,7 @@ export function D5NotesTable({
                       return (
                         <TableCell
                           key={column}
-                          onClick={() => router.push(`notas-d5/${item.id}`)}
+                          onClick={() => router.push(`/notas-d5/${item.id}`)}
                           className={`
                           py-1 px-2 text-center text-base whitespace-nowrap min-w-36 hover:cursor-pointer
                           ${
@@ -136,21 +148,25 @@ export function D5NotesTable({
       <div className="bg-white z-30 border-t flex items-center justify-between px-2">
         <div className="flex items-center gap-2 text-sm">
           <div className="flex items-center gap-1 text-lg text-zinc-700 font-semibold">
-            <span>Total de Notas:</span>
-            <span>{totals.totalNotas}</span>
+            <span>{totalLabel}</span>
+            <span>{totalCount}</span>
           </div>
 
-          <span className="text-zinc-300">|</span>
+          {totals.totalMoPlanejada && (
+            <>
+              <span className="text-zinc-300">|</span>
 
-          <div className="flex items-center gap-1 text-lg text-zinc-700 font-semibold">
-            <span>MO Planejado:</span>
-            <span>{FormatCurrency(totals.totalMoPlanejado)}</span>
-          </div>
+              <div className="flex items-center gap-1 text-lg text-zinc-700 font-semibold">
+                <span>MO Planejado:</span>
+                <span>{FormatCurrency(totals.totalMoPlanejada)}</span>
+              </div>
+            </>
+          )}
         </div>
 
         <TablePagination
           component="div"
-          count={totals.totalNotas}
+          count={totalCount}
           page={page}
           rowsPerPage={200}
           rowsPerPageOptions={[]}
@@ -158,7 +174,6 @@ export function D5NotesTable({
           showFirstButton
           showLastButton
           labelDisplayedRows={({ page }) => {
-            const totalPages = Math.ceil(totals.totalNotas / 200);
             return `Página ${page + 1} de ${totalPages}`;
           }}
           sx={{

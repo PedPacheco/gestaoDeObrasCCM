@@ -19,7 +19,7 @@ import {
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
-import { ButtonComponent } from "../../../common/Button";
+import { ButtonComponent } from "../../../../common/Button";
 import { AdditionalInfoPanel } from "./additionalInfoPanel";
 import { BasicInfoPanel } from "./basicInfoPanel";
 import { RestrictionsPanel } from "./restrictionsPanel";
@@ -39,7 +39,12 @@ export interface ScheduleFormDialogProps {
   onExecutionDialogOpen: (open: boolean) => void;
   options: {
     tecnico: Array<{ id: number; tecnico: string }>;
-    restricao: Array<{ id: number; restricao: string; tipo_restricao: string; responsabilidade: string }>;
+    restricao: Array<{
+      id: number;
+      restricao: string;
+      tipo_restricao: string;
+      responsabilidade: string;
+    }>;
   };
   scheduleForm: ScheduleFormHookReturn;
   statusWork: number;
