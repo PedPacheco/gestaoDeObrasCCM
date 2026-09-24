@@ -9,6 +9,7 @@ import { useFeedback } from "@/hooks/useFeedback";
 
 import D5ScheduleFormDialog from "./modal/d5ScheduleFormDialog";
 import SchedulesD5NotePanelItem from "./schedulesD5NotePanelItem";
+import { useRouter } from "next/navigation";
 
 // Ajuste o caminho acima conforme a localização real do seu hook.
 
@@ -68,6 +69,8 @@ export function D5NotesPanel({
 }: D5NotesPanelProps) {
   const { showError, showSuccess } = useFeedback();
 
+  const router = useRouter();
+
   const [openDeletionModal, setOpenDeletionModal] = useState(false);
   const [selectedScheduleId, setSelectedScheduleId] = useState<number | null>(
     null,
@@ -100,13 +103,14 @@ export function D5NotesPanel({
         return;
       }
 
-      setOpenDeletionModal(false);
-      setSelectedScheduleId(null);
+      handleCloseDeletionModal();
       showSuccess(result.message ?? "Programação eliminada com sucesso.");
+      router.refresh();
     });
   }, [selectedScheduleId, d5NoteId, showError, showSuccess]);
 
   const handleCloseDeletionModal = useCallback(() => {
+    console.log("entrou");
     setOpenDeletionModal(false);
     setSelectedScheduleId(null);
   }, []);

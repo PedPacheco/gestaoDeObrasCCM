@@ -114,21 +114,6 @@ export const BasicInfoPanelD5: React.FC<BasicInfoPanelD5Props> = ({
           disabled={disabled}
         />
       </Grid>
-
-      <Grid item xs={12}>
-        <TextField
-          fullWidth
-          multiline
-          rows={2}
-          label="Observação da Execução"
-          value={formData.executionObservation}
-          onChange={onInputChange("executionObservation")}
-          error={!!formErrors.executionObservation}
-          helperText={formErrors.executionObservation}
-          InputLabelProps={{ shrink: true }}
-          disabled={disabled}
-        />
-      </Grid>
     </Grid>
   );
 };

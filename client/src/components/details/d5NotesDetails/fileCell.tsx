@@ -1,21 +1,20 @@
 "use client";
 
 import { DocumentCheckIcon } from "@heroicons/react/20/solid";
-import { Box, IconButton, TableCell, Tooltip } from "@mui/material";
-
-function getFileName(path: string): string {
-  return path.split(/[\\/]/).pop() ?? path;
-}
+import { IconButton, TableCell, Tooltip } from "@mui/material";
 
 interface FilesCellProps {
   paths: string[];
   onOpenFile?: (path: string) => void;
 }
 
+function getFileName(path: string): string {
+  return path.split(/[\\/]/).pop() ?? path;
+}
+
 export function FilesCell({ paths, onOpenFile }: FilesCellProps) {
-  if (paths.length === 0) {
-    return <span className="text-zinc-400">-</span>;
-  }
+  const cellClass =
+    "border-r border-solid border-zinc-700 px-2 py-2 text-center text-sm font-medium md:text-base xl:text-lg";
 
   const handleClick = (path: string) => {
     if (onOpenFile) {
@@ -25,8 +24,16 @@ export function FilesCell({ paths, onOpenFile }: FilesCellProps) {
     window.open(path, "_blank", "noopener,noreferrer");
   };
 
+  if (paths.length === 0) {
+    return (
+      <TableCell className={cellClass}>
+        <span className="text-zinc-400">-</span>
+      </TableCell>
+    );
+  }
+
   return (
-    <TableCell className="border-r border-solid border-zinc-700 px-2 py-2 text-center text-sm font-medium md:text-base xl:text-lg">
+    <TableCell className={cellClass}>
       {paths.map((path, index) => (
         <Tooltip
           key={`${path}-${index}`}
