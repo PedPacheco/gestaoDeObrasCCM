@@ -1,6 +1,6 @@
 import { AuxiliaryBaseService } from 'src/application/usecases/auxiliaryBase/auxiliaryBase.service';
-import { FindExistingWorksService } from 'src/application/usecases/works/findExistingWorks.service';
-import { InsertWorksService } from 'src/application/usecases/works/InsertWorks.service';
+import { FindExistingWorksService } from 'src/application/usecases/works/management/findExistingWorks.service';
+import { InsertWorksService } from 'src/application/usecases/works/management/insertWorks.service';
 import { INSERT_WORKS_REPOSITORY } from 'src/domain/repositories/works/IInsertWorksRepository';
 
 import { BadRequestException } from '@nestjs/common';

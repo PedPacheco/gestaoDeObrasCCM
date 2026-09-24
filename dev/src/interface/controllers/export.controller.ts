@@ -20,13 +20,13 @@ import {
 import { GetWorksDTO } from 'src/interface/dtos/worksDto';
 
 // Services - Schedule
-import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
-import { MonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
-import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
+import { GetScheduleValuesService } from 'src/application/usecases/works/schedule/getScheduleValues.service';
+import { MonthlySummaryService } from 'src/application/usecases/works/schedule/getMonthlySummary.service';
+import { GetMonthlySummaryForecastService } from 'src/application/usecases/works/schedule/getMonthlySummaryForecast.service';
 
 // Services - Works
-import { GetWorksInPortfolioService } from 'src/application/usecases/works/getWorksInPortfolio.service';
-import { GetCompletedWorksService } from 'src/application/usecases/works/getCompletedWorks.service';
+import { GetWorksInPortfolioService } from 'src/application/usecases/works/management/getWorksInPortfolio.service';
+import { GetCompletedWorksService } from 'src/application/usecases/works/management/getCompletedWorks.service';
 
 // Services - Export (Standard)
 import { ExportScheduleService } from 'src/application/usecases/export/exportSchedule.service';

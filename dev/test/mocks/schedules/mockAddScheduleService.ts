@@ -28,7 +28,7 @@ export const mockAddSchedulesServiceDataWithoutIdWork = {
   idWork: undefined,
   dataProg: new Date('2025-06-10T00:00:00.000Z'),
   startTime: '08:00',
-  finishTime: '07:00',
+  finishTime: '09:00',
   serviceType: 'Inspeção Elétrica',
   prog: 100,
   idProgRestriction1: 1,

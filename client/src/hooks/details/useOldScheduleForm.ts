@@ -3,14 +3,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
 
-import { ScheduleFormDialogProps } from "@/components/details/modals/scheduleDialog/dialog";
+import { ScheduleFormDialogProps } from "@/components/details/workDetails/modals/scheduleDialog/dialog";
 import {
   OldMapScheduleToForm,
   transformExecutionReport,
 } from "@/utils/transform";
-import { OldExecutionReportData } from "@/components/details/modals/oldExecutionReportDialog/oldExecutionReportDialog";
+import { OldExecutionReportData } from "@/components/details/workDetails/modals/oldExecutionReportDialog/oldExecutionReportDialog";
 import { OldValidationSchedulesSchema } from "@/validations/oldValidationSchedules";
-import { EquipmentData } from "@/components/details/modals/oldExecutionReportDialog/EquipmentPanel";
+import { EquipmentData } from "@/components/details/workDetails/modals/oldExecutionReportDialog/EquipmentPanel";
 
 export const staticValidationSchema = OldValidationSchedulesSchema(null, true);
 export type FormData = z.infer<typeof staticValidationSchema>;

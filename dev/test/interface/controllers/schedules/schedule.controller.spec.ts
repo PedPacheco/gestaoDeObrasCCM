@@ -1,8 +1,8 @@
-import { MonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
-import { GetMonthlySummaryForecastService } from 'src/application/usecases/schedule/getMonthlySummaryForecast.service';
-import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
-import { GetTotalValuesScheduleService } from 'src/application/usecases/schedule/getTotalValuesSchedule.service';
-import { RejectionsOfSchedulesService } from 'src/application/usecases/schedule/rejectionOfSchedules.service';
+import { MonthlySummaryService } from 'src/application/usecases/works/schedule/getMonthlySummary.service';
+import { GetMonthlySummaryForecastService } from 'src/application/usecases/works/schedule/getMonthlySummaryForecast.service';
+import { GetScheduleValuesService } from 'src/application/usecases/works/schedule/getScheduleValues.service';
+import { GetTotalValuesScheduleService } from 'src/application/usecases/works/schedule/getTotalValuesSchedule.service';
+import { RejectionsOfSchedulesService } from 'src/application/usecases/works/schedule/rejectionOfSchedules.service';
 import { UsersService } from 'src/application/usecases/users.service';
 import { ScheduleController } from 'src/interface/controllers/schedules/schedule.controller';
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
@@ -17,7 +17,7 @@ import { DailySummaryEntry } from 'src/interface/types/schedule/monthlySummaryIn
 
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { ExecMonitoringService } from 'src/application/usecases/schedule/execMonitoring.service';
+import { ExecMonitoringService } from 'src/application/usecases/works/schedule/execMonitoring.service';
 
 describe('ScheduleController', () => {
   let scheduleController: ScheduleController;
@@ -165,6 +165,7 @@ describe('ScheduleController', () => {
       idGrupo: [1],
       idTipo: [1],
       idCircuito: [1],
+      idTecnico: [1],
       ano: 2024,
     };
 
@@ -253,6 +254,7 @@ describe('ScheduleController', () => {
       idParceira: [1],
       idStatus: [1],
       idStatusProgramacao: [1],
+      idTecnico: [1],
       executado: false,
       pendente: false,
       page: 0,

@@ -45,6 +45,11 @@ export class GetTotalValuesScheduleDTO {
   @Transform(({ value }) => convertParameterValue(value))
   idCircuito: number[];
 
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idTecnico: number[];
+
   @IsNumber()
   @Type(() => Number)
   ano: number;
@@ -98,6 +103,11 @@ export class GetScheduleValuesDTO {
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
   idStatusSap?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idTecnico: number[];
 
   @IsOptional()
   @IsString()

@@ -210,6 +210,12 @@ export const links: Link[] = [
         allowedFor: ["interno_editor", "interno_viewer", "parceira"],
         allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7, 9],
       },
+      {
+        name: "Programações notas D5",
+        href: "/programacao/notas-d5",
+        allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+        allowedAreas: [8, 1, 9],
+      },
     ],
   },
   {
@@ -249,6 +255,12 @@ export const links: Link[] = [
     href: "/obras-executadas",
     allowedFor: ["interno_editor", "interno_viewer", "parceira"],
     allowedAreas: [8, 1, 9],
+  },
+  {
+    name: "Notas D5",
+    href: "/notas-d5",
+    allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+    allowedAreas: [8, 1],
   },
   {
     name: "Capacidade de execução",

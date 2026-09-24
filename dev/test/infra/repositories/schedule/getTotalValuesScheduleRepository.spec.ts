@@ -93,6 +93,7 @@ describe('GetTotalValuesSchedule', () => {
         idMunicipio: undefined,
         idCircuito: undefined,
         idGrupo: undefined,
+        idTecnico: undefined,
         ano: undefined,
       };
 
@@ -119,6 +120,7 @@ describe('GetTotalValuesSchedule', () => {
         idMunicipio: [1],
         idCircuito: [1],
         idGrupo: [1],
+        idTecnico: [1],
         ano: 2024,
       };
 

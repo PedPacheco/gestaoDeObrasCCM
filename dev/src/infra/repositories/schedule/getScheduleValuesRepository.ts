@@ -30,6 +30,7 @@ export class GetScheduleValuesRepository implements IGetScheduleValuesRepository
       ovnota,
       pendente,
       idStatusSap,
+      idTecnico,
     } = filters;
 
     if (dataInicial && dataFinal) {
@@ -64,6 +65,10 @@ export class GetScheduleValuesRepository implements IGetScheduleValuesRepository
 
     if (idStatusProgramacao && idStatusProgramacao.length > 0) {
       query = Prisma.sql`${query} AND status_programacao.id IN (${Prisma.join(idStatusProgramacao)})`;
+    }
+
+    if (idTecnico && idTecnico.length > 0) {
+      query = Prisma.sql`${query} AND tecnicos.id IN (${Prisma.join(idTecnico)})`;
     }
 
     if (ovnota) {

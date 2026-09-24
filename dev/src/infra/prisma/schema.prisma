@@ -437,6 +437,7 @@ model status {
   status               String?                @db.VarChar(25)
   onde                 String?                @db.VarChar(20)
   obras                obras[]
+  notas_d5             notas_d5[]
   suspensoes_retiradas suspensoes_retiradas[]
 }
 
@@ -533,14 +534,18 @@ model notas_d5 {
   criado_em              DateTime              @db.Date
   conclusao_nota         DateTime?             @db.Date
   prazo                  DateTime              @db.Date
-  status                 String                @db.VarChar(10)
+  status_sap             String                @db.VarChar(10)
   tme_abertura           Int?
   tme_executado          Int?
   validacao_anual        Boolean?
+  mo_planejada           Decimal?              @db.Decimal(10, 2)
+  nota_d5                String                @db.VarChar(25)
+  id_status              Int                   @default(1)
   municipios             municipios            @relation(fields: [id_municipio], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_municipio")
   obras                  obras?                @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_obra")
   turmas                 turmas                @relation(fields: [id_parceira], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceira")
   tipos                  tipos                 @relation(fields: [id_tipo], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tipo")
+  status                 status                @relation(fields: [id_status], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_status")
   novo_tabela_usuarios   novo_tabela_usuarios? @relation(fields: [id_usuario_modificador], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usuario_modificador")
   programacoes_d5        programacoes_d5[]
 }
@@ -813,8 +818,8 @@ model programacoes_d5 {
   exec                   Int?
   observacao_programacao String?
   num_dp                 String?              @db.VarChar(25)
-  hora_ini               DateTime?            @db.Timestamptz(6)
-  hora_ter               DateTime?            @db.Timestamptz(6)
+  hora_ini               DateTime?            @db.Time(6)
+  hora_ter               DateTime?            @db.Time(6)
   equipe_lv              Int?
   equipe_lm              Int?
   equipe_reg             Int?
@@ -828,6 +833,7 @@ model programacoes_d5 {
   criado_em              DateTime?            @default(now()) @db.Timestamptz(6)
   id_usuario_criador     Int
   id_usuario_modificador Int
+  caminhos_arquivos      String[]
   notas_d5               notas_d5             @relation(fields: [id_nota_d5], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_nota_d5")
   restricoes             restricoes           @relation(fields: [id_restricao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_restricao")
   tecnicos               tecnicos             @relation(fields: [id_tecnico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tecnico")

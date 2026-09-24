@@ -1,4 +1,4 @@
-import { OldExecutionReportData } from "@/components/details/modals/oldExecutionReportDialog/oldExecutionReportDialog";
+import { OldExecutionReportData } from "@/components/details/workDetails/modals/oldExecutionReportDialog/oldExecutionReportDialog";
 import { FormData } from "@/hooks/details/useOldScheduleForm";
 
 export function FormatCurrency(value: number) {

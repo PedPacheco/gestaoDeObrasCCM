@@ -23,7 +23,7 @@ import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 import { ExecutionReportService } from '../executionReport.service';
-import { ScheduleExecutionValidatorService } from '../schedule/scheduleExecutionValidator.service';
+import { ScheduleExecutionValidatorService } from '../works/schedule/scheduleExecutionValidator.service';
 import {
   isMaterial,
   ScheduleStatus,

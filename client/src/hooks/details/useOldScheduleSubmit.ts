@@ -3,7 +3,7 @@ import { Cookies } from "react-cookie";
 
 import { editExecutionReport } from "@/actions/executionReport.action";
 import { editSchedule, saveSchedule } from "@/actions/schedules";
-import { OldExecutionReportData } from "@/components/details/modals/oldExecutionReportDialog/oldExecutionReportDialog";
+import { OldExecutionReportData } from "@/components/details/workDetails/modals/oldExecutionReportDialog/oldExecutionReportDialog";
 import { FormData } from "./useOldScheduleForm";
 
 const cookies = new Cookies();
