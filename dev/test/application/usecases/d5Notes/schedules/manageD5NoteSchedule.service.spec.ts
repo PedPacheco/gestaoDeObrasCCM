@@ -1,18 +1,17 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
 import { join } from 'path';
-
 import { D5NoteScheduleMapper } from 'src/application/mappers/d5NotesScheduleMapper';
 import { ManageD5NoteScheduleService } from 'src/application/usecases/d5Notes/schedules/manageD5NoteSchedule.service';
 import { FileService } from 'src/application/usecases/file.service';
-import { D5NoteSchedule } from 'src/domain/entities/schedules/D5NotesSchedule.entity';
+import { D5NoteSchedule } from 'src/domain/entities/schedules/d5NotesSchedule.entity';
 import { D5_NOTES_SCHEDULES_REPOSITORY } from 'src/domain/repositories/d5Notes/ID5NotesSchedulesRepository';
 import { resolveFileDiff } from 'src/domain/services/resolveFileDiff.service';
-
 import {
   CreateProgramacaoD5Dto,
   UpdateScheduleD5Dto,
 } from 'src/interface/dtos/d5NotesDTO';
+
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 
 // ---------------------------------------------------------------------------
 // Mocks de colaboradores

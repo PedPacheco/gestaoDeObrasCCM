@@ -1,12 +1,12 @@
-import { BadRequestException } from '@nestjs/common';
-
-import { D5NoteSchedule } from 'src/domain/entities/schedules/D5NotesSchedule.entity';
-import { parseTimeToDate } from 'src/utils/parseTimeToDate';
+import { D5NoteScheduleMapper } from 'src/application/mappers/d5NotesScheduleMapper';
+import { D5NoteSchedule } from 'src/domain/entities/schedules/d5NotesSchedule.entity';
 import {
   CreateProgramacaoD5Dto,
   UpdateScheduleD5Dto,
 } from 'src/interface/dtos/d5NotesDTO';
-import { D5NoteScheduleMapper } from 'src/application/mappers/d5NotesScheduleMapper';
+import { parseTimeToDate } from 'src/utils/parseTimeToDate';
+
+import { BadRequestException } from '@nestjs/common';
 
 // ---------------------------------------------------------------------------
 // Mocks de colaboradores

@@ -2,7 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import {
   D5NoteSchedule,
   D5ScheduleProps,
-} from 'src/domain/entities/schedules/D5NotesSchedule.entity';
+} from 'src/domain/entities/schedules/d5NotesSchedule.entity';
 
 // ---------------------------------------------------------------------------
 // Factory: props mínimas válidas, sobreponíveis por teste
