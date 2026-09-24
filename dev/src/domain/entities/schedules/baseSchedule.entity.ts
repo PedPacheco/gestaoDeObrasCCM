@@ -51,6 +51,8 @@ export abstract class BaseSchedule {
   readonly idExecutionRestriction: number;
   readonly responsibility?: string;
 
+  private static readonly MAX_NUM_DP = 8;
+
   protected constructor(props: BaseScheduleProps) {
     this.dataProg = props.dataProg;
     this.prog = props.prog;
@@ -116,6 +118,12 @@ export abstract class BaseSchedule {
     ) {
       throw new BadRequestException(
         'Horário de fim deve ser posterior ao início',
+      );
+    }
+
+    if (this.numDp && this.numDp.length > BaseSchedule.MAX_NUM_DP) {
+      throw new BadRequestException(
+        `Número do DP deve ter no máximo ${BaseSchedule.MAX_NUM_DP} caracteres`,
       );
     }
 

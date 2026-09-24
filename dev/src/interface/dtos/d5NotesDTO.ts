@@ -97,8 +97,20 @@ export class CreateProgramacaoD5Dto {
   prog: number;
 
   @IsOptional()
-  @IsInt()
-  @Type(() => Number)
+  @IsNumber()
+  @Transform(({ value }) => {
+    if (
+      value === '' ||
+      value === null ||
+      value === undefined ||
+      value === 'null'
+    ) {
+      return null;
+    }
+
+    const parsed = Number(value);
+    return parsed;
+  })
   exec?: number;
 
   @IsOptional()

@@ -19,7 +19,6 @@ export class D5NoteSchedule extends BaseSchedule {
   readonly modifyingUserId: number;
   readonly filePaths?: string[];
 
-  private static readonly MAX_NUM_DP = 25;
   private static readonly MAX_RESPONSIBILITY = 50;
   private static readonly MAX_FILES = 5;
 
@@ -38,8 +37,7 @@ export class D5NoteSchedule extends BaseSchedule {
   }
 
   private get hasExecution(): boolean {
-    console.log(this.exec);
-    return this.exec !== null && this.exec !== undefined;
+    return this.exec !== null && this.exec > 0;
   }
 
   protected validateSpecific(): void {
@@ -65,12 +63,6 @@ export class D5NoteSchedule extends BaseSchedule {
       );
     }
 
-    if (this.numDp && this.numDp.length > D5NoteSchedule.MAX_NUM_DP) {
-      throw new BadRequestException(
-        `Número do DP deve ter no máximo ${D5NoteSchedule.MAX_NUM_DP} caracteres`,
-      );
-    }
-
     if (
       this.responsibility &&
       this.responsibility.length > D5NoteSchedule.MAX_RESPONSIBILITY
@@ -82,19 +74,33 @@ export class D5NoteSchedule extends BaseSchedule {
   }
 
   private validateExecutionFields(): void {
-    if (this.hasExecution) {
+    if (!this.hasExecution) {
+      if (this.filePaths.length > 0) {
+        throw new BadRequestException(
+          'Só é possível anexar ficheiros após informar a execução',
+        );
+      }
+      if (this.executionObservation) {
+        throw new BadRequestException(
+          'A observação de execução só pode ser preenchida após informar a execução',
+        );
+      }
       return;
     }
 
-    if (this.filePaths.length > 0) {
+    // Com execução, ambos passam a ser obrigatórios
+    if (this.filePaths.length === 0) {
       throw new BadRequestException(
-        'Só é possível anexar ficheiros após informar a execução',
+        'É obrigatório anexar ao menos um ficheiro quando há execução',
       );
     }
 
-    if (this.executionObservation) {
+    if (
+      !this.executionObservation ||
+      this.executionObservation.trim().length === 0
+    ) {
       throw new BadRequestException(
-        'A observação de execução só pode ser preenchida após informar a execução',
+        'A observação de execução é obrigatória quando há execução',
       );
     }
   }

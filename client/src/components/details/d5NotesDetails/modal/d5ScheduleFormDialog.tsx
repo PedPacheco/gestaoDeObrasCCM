@@ -26,6 +26,7 @@ import { ServiceEquipmentPanelD5 } from "./serviceEquipmentPanelD5";
 import { TeamsPanelD5 } from "./teamsPanelD5";
 import { AdditionalInfoPanelD5 } from "./additionalInfoPanelD5";
 import { ExecutionInfoPanelD5 } from "./executionInfoPanelD5";
+import { useRouter } from "next/navigation";
 
 const MAX_FILES = 5;
 
@@ -77,6 +78,8 @@ export default function D5ScheduleFormDialog({
   onSuccess,
 }: Props) {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+
   const isInsert = !schedule?.id;
 
   const {
@@ -92,12 +95,19 @@ export default function D5ScheduleFormDialog({
     setKeptFiles,
     setNewFiles,
     buildFormData,
+    buildJsonPayload,
   } = useD5ScheduleForm({ schedule, options });
 
   /* ---------------- Validação ---------------- */
 
   const validate = (): boolean => {
-    const result = D5ScheduleSchema.safeParse({ ...formData, d5NoteId });
+    const totalFiles = keptFiles.length + newFiles.length;
+
+    const result = D5ScheduleSchema.safeParse({
+      ...formData,
+      d5NoteId,
+      totalFiles,
+    });
 
     const errors: Record<string, string> = {};
 
@@ -108,27 +118,9 @@ export default function D5ScheduleFormDialog({
       }
     }
 
-    // regras de anexos — dependem de estado fora do formData
-    const totalFiles = keptFiles.length + newFiles.length;
-    const hasExecution = formData.exec !== "" && Number(formData.exec) > 0;
-
-    if (!hasExecution && totalFiles > 0) {
-      errors.files = "Anexos só são permitidos após informar a execução";
-    }
-
-    if (!hasExecution && formData.executionObservation) {
-      errors.executionObservation =
-        "Preencha a execução antes de descrever as atividades";
-    }
-
-    if (totalFiles > MAX_FILES) {
-      errors.files = `Máximo de ${MAX_FILES} arquivos por programação`;
-    }
-
     setFormErrors(errors);
 
     const firstField = Object.keys(errors)[0];
-
     if (firstField) {
       const panel = PANEL_BY_FIELD[firstField] ?? "panel1";
       handleAccordionChange(panel)(null, true);
@@ -144,14 +136,14 @@ export default function D5ScheduleFormDialog({
   const handleSave = () => {
     if (!validate()) return;
 
-    const payload = buildFormData();
-
-    if (isInsert) {
-      payload.append("d5NoteId", String(d5NoteId));
-    }
-
     startTransition(async () => {
-      const response = await upsertD5ScheduleAction(schedule?.id, payload);
+      const payload = isInsert ? buildJsonPayload() : buildFormData();
+
+      const response = await upsertD5ScheduleAction(
+        schedule?.id,
+        d5NoteId,
+        payload,
+      );
 
       if (response.success) {
         onSuccess(
@@ -159,6 +151,9 @@ export default function D5ScheduleFormDialog({
             ? "Programação criada com sucesso"
             : "Programação atualizada com sucesso",
         );
+
+        router.refresh();
+
         onClose();
       } else {
         onError(response.message ?? "Erro ao salvar programação");

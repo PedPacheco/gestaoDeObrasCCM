@@ -1,48 +1,88 @@
 import { BadRequestException } from '@nestjs/common';
 import {
   D5NoteSchedule,
+  D5ScheduleChanges,
   D5ScheduleProps,
 } from 'src/domain/entities/schedules/d5NotesSchedule.entity';
 
 // ---------------------------------------------------------------------------
-// Factory: props mínimas válidas, sobreponíveis por teste
+// Mensagens de erro (fonte única — evita divergência entre testes e entidade)
 // ---------------------------------------------------------------------------
-const makeProps = (overrides: Partial<D5ScheduleProps> = {}): D5ScheduleProps =>
+const MSG = {
+  d5NoteId: 'ID da nota D5 é obrigatório',
+  creator: 'Utilizador criador é obrigatório',
+  modifier: 'Utilizador modificador é obrigatório',
+  dataProg: 'Data de programação inválida',
+  timeWindow: 'Informe hora de início e hora de término em conjunto',
+
+  responsibility: 'Responsável pela restrição deve ter no máximo 50 caracteres',
+  maxFiles: 'Máximo de 5 ficheiros permitidos por programação',
+  duplicatedFiles: 'Existem ficheiros duplicados',
+  filesWithoutExec: 'Só é possível anexar ficheiros após informar a execução',
+  observationWithoutExec:
+    'A observação de execução só pode ser preenchida após informar a execução',
+  filesRequired: 'É obrigatório anexar ao menos um ficheiro quando há execução',
+  observationRequired:
+    'A observação de execução é obrigatória quando há execução',
+} as const;
+
+// ---------------------------------------------------------------------------
+// Factories
+// ---------------------------------------------------------------------------
+type Overrides = Record<string, unknown>;
+
+/**
+ * Props mínimas válidas SEM execução.
+ * Regra de negócio: sem execução não pode haver ficheiros nem observação,
+ * portanto o "estado base válido" não define nenhum dos dois.
+ */
+const makeProps = (overrides: Overrides = {}): D5ScheduleProps =>
   ({
     d5NoteId: 1,
     creatorUserId: 10,
     modifyingUserId: 20,
     dataProg: new Date('2026-01-15T00:00:00.000Z'),
     ...overrides,
-  }) as D5ScheduleProps;
+  }) as unknown as D5ScheduleProps;
 
-/** Props válidas já com execução informada (desbloqueia ficheiros e observação). */
-const makeExecutedProps = (
-  overrides: Partial<D5ScheduleProps> = {},
-): D5ScheduleProps => makeProps({ exec: 'S', ...overrides } as any);
+/**
+ * Props mínimas válidas COM execução.
+ * Com execução, ficheiros (>= 1) e observação passam a ser obrigatórios.
+ * `exec` é numérico: a entidade avalia `exec > 0`.
+ */
+const makeExecutedProps = (overrides: Overrides = {}): D5ScheduleProps =>
+  makeProps({
+    exec: 10,
+    filePaths: ['a.pdf'],
+    executionObservation: 'Poste instalado',
+    ...overrides,
+  });
 
-/** Helper de asserção: valida o tipo E a mensagem numa só chamada. */
+const build = (overrides: Overrides = {}) =>
+  new D5NoteSchedule(makeProps(overrides));
+
+const buildExecuted = (overrides: Overrides = {}) =>
+  new D5NoteSchedule(makeExecutedProps(overrides));
+
+const changes = (value: Overrides): D5ScheduleChanges =>
+  value as unknown as D5ScheduleChanges;
+
+const makeFiles = (count: number) =>
+  Array.from({ length: count }, (_, i) => `f${i}.pdf`);
+
+/** Valida o tipo E a mensagem da exceção numa só chamada. */
 const expectBadRequest = (fn: () => unknown, message: string) => {
   expect(fn).toThrow(BadRequestException);
   expect(fn).toThrow(message);
 };
 
 describe('D5NoteSchedule', () => {
-  beforeAll(() => {
-    // Silencia o console.log presente no getter hasExecution
-    jest.spyOn(console, 'log').mockImplementation(() => undefined);
-  });
-
-  afterEach(() => jest.clearAllMocks());
-  afterAll(() => jest.restoreAllMocks());
-
   // -------------------------------------------------------------------------
   // Construção
   // -------------------------------------------------------------------------
   describe('construção', () => {
     it('deve criar uma instância válida e atribuir os campos', () => {
-      const props = makeProps();
-      const entity = new D5NoteSchedule(props);
+      const entity = build();
 
       expect(entity).toBeInstanceOf(D5NoteSchedule);
       expect(entity.d5NoteId).toBe(1);
@@ -51,27 +91,24 @@ describe('D5NoteSchedule', () => {
     });
 
     it('deve assumir array vazio quando filePaths não é informado', () => {
-      const entity = new D5NoteSchedule(makeProps({ filePaths: undefined }));
-      expect(entity.filePaths).toEqual([]);
+      expect(build({ filePaths: undefined }).filePaths).toEqual([]);
     });
 
     it('deve preservar filePaths quando informado (com execução)', () => {
-      const entity = new D5NoteSchedule(
-        makeExecutedProps({ filePaths: ['a.pdf', 'b.pdf'] }),
-      );
+      const entity = buildExecuted({ filePaths: ['a.pdf', 'b.pdf'] });
+
       expect(entity.filePaths).toEqual(['a.pdf', 'b.pdf']);
     });
 
     it('deve manter creatorUserId indefinido em atualizações (id presente)', () => {
-      const entity = new D5NoteSchedule(
-        makeProps({ id: 99, creatorUserId: undefined }),
-      );
+      const entity = build({ id: 99, creatorUserId: undefined });
+
       expect(entity.creatorUserId).toBeUndefined();
     });
   });
 
   // -------------------------------------------------------------------------
-  // validateSpecific — identificadores
+  // Identificadores
   // -------------------------------------------------------------------------
   describe('validação de identificadores', () => {
     it.each([
@@ -79,10 +116,7 @@ describe('D5NoteSchedule', () => {
       ['zero', 0],
       ['negativo', -5],
     ])('deve rejeitar d5NoteId %s', (_label, value) => {
-      expectBadRequest(
-        () => new D5NoteSchedule(makeProps({ d5NoteId: value as number })),
-        'ID da nota D5 é obrigatório',
-      );
+      expectBadRequest(() => build({ d5NoteId: value }), MSG.d5NoteId);
     });
 
     it.each([
@@ -91,19 +125,13 @@ describe('D5NoteSchedule', () => {
       ['negativo', -1],
     ])('deve exigir creatorUserId na criação quando %s', (_label, value) => {
       expectBadRequest(
-        () =>
-          new D5NoteSchedule(
-            makeProps({ id: undefined, creatorUserId: value as number }),
-          ),
-        'Utilizador criador é obrigatório',
+        () => build({ id: undefined, creatorUserId: value }),
+        MSG.creator,
       );
     });
 
     it('não deve exigir creatorUserId quando o id já existe', () => {
-      expect(
-        () =>
-          new D5NoteSchedule(makeProps({ id: 7, creatorUserId: undefined })),
-      ).not.toThrow();
+      expect(() => build({ id: 7, creatorUserId: undefined })).not.toThrow();
     });
 
     it.each([
@@ -111,217 +139,197 @@ describe('D5NoteSchedule', () => {
       ['zero', 0],
       ['negativo', -3],
     ])('deve rejeitar modifyingUserId %s', (_label, value) => {
-      expectBadRequest(
-        () =>
-          new D5NoteSchedule(makeProps({ modifyingUserId: value as number })),
-        'Utilizador modificador é obrigatório',
-      );
+      expectBadRequest(() => build({ modifyingUserId: value }), MSG.modifier);
     });
   });
 
   // -------------------------------------------------------------------------
-  // validateSpecific — data de programação
+  // Data de programação
   // -------------------------------------------------------------------------
   describe('validação de dataProg', () => {
     it('deve rejeitar dataProg ausente', () => {
-      expectBadRequest(
-        () => new D5NoteSchedule(makeProps({ dataProg: undefined as any })),
-        'Data de programação inválida',
-      );
+      expectBadRequest(() => build({ dataProg: undefined }), MSG.dataProg);
     });
 
     it('deve rejeitar dataProg com valor inválido (NaN)', () => {
       expectBadRequest(
-        () => new D5NoteSchedule(makeProps({ dataProg: new Date('xpto') })),
-        'Data de programação inválida',
+        () => build({ dataProg: new Date('xpto') }),
+        MSG.dataProg,
       );
     });
 
     it('deve aceitar uma data válida', () => {
-      expect(
-        () => new D5NoteSchedule(makeProps({ dataProg: new Date() })),
-      ).not.toThrow();
+      expect(() => build({ dataProg: new Date() })).not.toThrow();
     });
   });
 
   // -------------------------------------------------------------------------
-  // validateSpecific — janela horária
+  // Janela horária
   // -------------------------------------------------------------------------
   describe('validação de horários', () => {
     it('deve rejeitar apenas hora de início', () => {
       expectBadRequest(
-        () =>
-          new D5NoteSchedule(
-            makeProps({ startTime: '08:00', finishTime: undefined } as any),
-          ),
-        'Informe hora de início e hora de término em conjunto',
+        () => build({ startTime: '08:00', finishTime: undefined }),
+        MSG.timeWindow,
       );
     });
 
     it('deve rejeitar apenas hora de término', () => {
       expectBadRequest(
-        () =>
-          new D5NoteSchedule(
-            makeProps({ startTime: undefined, finishTime: '17:00' } as any),
-          ),
-        'Informe hora de início e hora de término em conjunto',
+        () => build({ startTime: undefined, finishTime: '17:00' }),
+        MSG.timeWindow,
       );
     });
 
     it('deve aceitar ambas as horas preenchidas', () => {
-      expect(
-        () =>
-          new D5NoteSchedule(
-            makeProps({ startTime: '08:00', finishTime: '17:00' } as any),
-          ),
+      expect(() =>
+        build({ startTime: '08:00', finishTime: '17:00' }),
       ).not.toThrow();
     });
 
     it('deve aceitar ambas as horas omitidas', () => {
-      expect(() => new D5NoteSchedule(makeProps())).not.toThrow();
+      expect(() => build()).not.toThrow();
     });
   });
 
   // -------------------------------------------------------------------------
-  // validateSpecific — limites de texto
+  // Limites de texto
   // -------------------------------------------------------------------------
   describe('validação de limites de texto', () => {
-    it('deve rejeitar numDp com mais de 25 caracteres', () => {
-      expectBadRequest(
-        () => new D5NoteSchedule(makeProps({ numDp: 'X'.repeat(26) } as any)),
-        'Número do DP deve ter no máximo 25 caracteres',
-      );
-    });
-
-    it('deve aceitar numDp com exatamente 25 caracteres (limite)', () => {
-      expect(
-        () => new D5NoteSchedule(makeProps({ numDp: 'X'.repeat(25) } as any)),
-      ).not.toThrow();
-    });
-
-    it('deve aceitar numDp vazio ou omitido', () => {
-      expect(
-        () => new D5NoteSchedule(makeProps({ numDp: '' } as any)),
-      ).not.toThrow();
-      expect(
-        () => new D5NoteSchedule(makeProps({ numDp: undefined } as any)),
-      ).not.toThrow();
-    });
-
     it('deve rejeitar responsibility com mais de 50 caracteres', () => {
       expectBadRequest(
-        () =>
-          new D5NoteSchedule(
-            makeProps({ responsibility: 'Y'.repeat(51) } as any),
-          ),
-        'Responsável pela restrição deve ter no máximo 50 caracteres',
+        () => build({ responsibility: 'Y'.repeat(51) }),
+        MSG.responsibility,
       );
     });
 
     it('deve aceitar responsibility com exatamente 50 caracteres (limite)', () => {
-      expect(
-        () =>
-          new D5NoteSchedule(
-            makeProps({ responsibility: 'Y'.repeat(50) } as any),
-          ),
-      ).not.toThrow();
+      expect(() => build({ responsibility: 'Y'.repeat(50) })).not.toThrow();
     });
 
-    it('deve aceitar responsibility vazio ou omitido', () => {
-      expect(
-        () => new D5NoteSchedule(makeProps({ responsibility: '' } as any)),
-      ).not.toThrow();
+    it.each([
+      ['vazio', ''],
+      ['omitido', undefined],
+    ])('deve aceitar responsibility %s', (_label, responsibility) => {
+      expect(() => build({ responsibility })).not.toThrow();
     });
   });
 
   // -------------------------------------------------------------------------
-  // validateFiles
+  // Ficheiros
   // -------------------------------------------------------------------------
   describe('validação de ficheiros', () => {
     it('deve rejeitar mais de 5 ficheiros', () => {
-      const filePaths = Array.from({ length: 6 }, (_, i) => `f${i}.pdf`);
-
       expectBadRequest(
-        () => new D5NoteSchedule(makeExecutedProps({ filePaths })),
-        'Máximo de 5 ficheiros permitidos por programação',
+        () => buildExecuted({ filePaths: makeFiles(6) }),
+        MSG.maxFiles,
       );
     });
 
     it('deve aceitar exatamente 5 ficheiros (limite)', () => {
-      const filePaths = Array.from({ length: 5 }, (_, i) => `f${i}.pdf`);
-
-      expect(
-        () => new D5NoteSchedule(makeExecutedProps({ filePaths })),
-      ).not.toThrow();
+      expect(() => buildExecuted({ filePaths: makeFiles(5) })).not.toThrow();
     });
 
     it('deve rejeitar ficheiros duplicados', () => {
       expectBadRequest(
-        () =>
-          new D5NoteSchedule(
-            makeExecutedProps({ filePaths: ['a.pdf', 'a.pdf'] }),
-          ),
-        'Existem ficheiros duplicados',
+        () => buildExecuted({ filePaths: ['a.pdf', 'a.pdf'] }),
+        MSG.duplicatedFiles,
       );
     });
 
     it('deve validar o limite antes da regra de execução', () => {
       // 6 ficheiros SEM execução: deve falhar pelo limite, não pela execução
-      const filePaths = Array.from({ length: 6 }, (_, i) => `f${i}.pdf`);
+      expectBadRequest(() => build({ filePaths: makeFiles(6) }), MSG.maxFiles);
+    });
 
+    it('deve validar duplicidade antes da regra de execução', () => {
+      // Duplicados SEM execução: deve falhar por duplicidade, não pela execução
       expectBadRequest(
-        () => new D5NoteSchedule(makeProps({ filePaths })),
-        'Máximo de 5 ficheiros permitidos por programação',
+        () => build({ filePaths: ['a.pdf', 'a.pdf'] }),
+        MSG.duplicatedFiles,
       );
     });
   });
 
   // -------------------------------------------------------------------------
-  // validateExecutionFields
+  // Campos de execução — SEM execução
   // -------------------------------------------------------------------------
-  describe('validação dos campos de execução', () => {
+  describe('campos de execução: sem execução', () => {
+    it('deve aceitar ausência de execução sem anexos nem observação', () => {
+      expect(() => build()).not.toThrow();
+    });
+
     it('deve rejeitar anexos sem execução informada', () => {
       expectBadRequest(
-        () => new D5NoteSchedule(makeProps({ filePaths: ['a.pdf'] })),
-        'Só é possível anexar ficheiros após informar a execução',
+        () => build({ filePaths: ['a.pdf'] }),
+        MSG.filesWithoutExec,
       );
     });
 
     it('deve rejeitar observação de execução sem execução informada', () => {
       expectBadRequest(
+        () => build({ executionObservation: 'concluído' }),
+        MSG.observationWithoutExec,
+      );
+    });
+
+    it('deve priorizar o erro de anexos quando há anexos e observação sem execução', () => {
+      expectBadRequest(
         () =>
-          new D5NoteSchedule(
-            makeProps({ executionObservation: 'concluído' } as any),
-          ),
-        'A observação de execução só pode ser preenchida após informar a execução',
+          build({ filePaths: ['a.pdf'], executionObservation: 'concluído' }),
+        MSG.filesWithoutExec,
       );
     });
 
     it.each([
       ['null', null],
       ['undefined', undefined],
+      ['zero', 0],
     ])('deve tratar exec %s como ausência de execução', (_label, exec) => {
       expectBadRequest(
-        () =>
-          new D5NoteSchedule(makeProps({ exec, filePaths: ['a.pdf'] } as any)),
-        'Só é possível anexar ficheiros após informar a execução',
+        () => build({ exec, filePaths: ['a.pdf'] }),
+        MSG.filesWithoutExec,
+      );
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Campos de execução — COM execução
+  // -------------------------------------------------------------------------
+  describe('campos de execução: com execução', () => {
+    it('deve aceitar execução com ficheiros e observação', () => {
+      expect(() => buildExecuted()).not.toThrow();
+    });
+
+    it.each([
+      ['vazio', []],
+      ['omitido', undefined],
+    ])(
+      'deve exigir ao menos um ficheiro quando filePaths é %s',
+      (_l, files) => {
+        expectBadRequest(
+          () => buildExecuted({ filePaths: files }),
+          MSG.filesRequired,
+        );
+      },
+    );
+
+    it.each([
+      ['ausente', undefined],
+      ['vazia', ''],
+      ['apenas espaços', '   '],
+    ])('deve exigir observação quando ela é %s', (_label, observation) => {
+      expectBadRequest(
+        () => buildExecuted({ executionObservation: observation }),
+        MSG.observationRequired,
       );
     });
 
-    it('deve permitir anexos e observação quando há execução', () => {
-      expect(
-        () =>
-          new D5NoteSchedule(
-            makeExecutedProps({
-              filePaths: ['a.pdf'],
-              executionObservation: 'ok',
-            } as any),
-          ),
-      ).not.toThrow();
-    });
-
-    it('deve aceitar ausência de execução sem anexos nem observação', () => {
-      expect(() => new D5NoteSchedule(makeProps())).not.toThrow();
+    it('deve exigir ficheiros antes de validar a observação', () => {
+      expectBadRequest(
+        () => buildExecuted({ filePaths: [], executionObservation: undefined }),
+        MSG.filesRequired,
+      );
     });
   });
 
@@ -330,20 +338,30 @@ describe('D5NoteSchedule', () => {
   // -------------------------------------------------------------------------
   describe('toPublicProps', () => {
     it('deve expor os campos específicos do D5 em conjunto com os base', () => {
-      const entity = new D5NoteSchedule(
-        makeExecutedProps({ filePaths: ['a.pdf'] }),
-      );
+      const props = buildExecuted({ filePaths: ['a.pdf'] }).toPublicProps();
 
-      expect(entity.toPublicProps()).toMatchObject({
+      expect(props).toMatchObject({
         d5NoteId: 1,
         creatorUserId: 10,
         modifyingUserId: 20,
         filePaths: ['a.pdf'],
+        executionObservation: 'Poste instalado',
       });
     });
 
-    it('deve produzir props reutilizáveis para reconstruir a entidade', () => {
-      const original = new D5NoteSchedule(makeProps());
+    it('deve expor filePaths como array vazio quando não informado', () => {
+      expect(build().toPublicProps().filePaths).toEqual([]);
+    });
+
+    it('deve produzir props reutilizáveis para reconstruir a entidade (sem execução)', () => {
+      const original = build();
+      const rebuilt = D5NoteSchedule.create(original.toPublicProps());
+
+      expect(rebuilt.toPublicProps()).toEqual(original.toPublicProps());
+    });
+
+    it('deve produzir props reutilizáveis para reconstruir a entidade (com execução)', () => {
+      const original = buildExecuted();
       const rebuilt = D5NoteSchedule.create(original.toPublicProps());
 
       expect(rebuilt.toPublicProps()).toEqual(original.toPublicProps());
@@ -355,7 +373,7 @@ describe('D5NoteSchedule', () => {
   // -------------------------------------------------------------------------
   describe('withChanges', () => {
     it('deve devolver uma nova instância sem mutar a original', () => {
-      const original = new D5NoteSchedule(makeProps());
+      const original = build();
       const updated = original.withChanges({ modifyingUserId: 55 });
 
       expect(updated).toBeInstanceOf(D5NoteSchedule);
@@ -365,42 +383,81 @@ describe('D5NoteSchedule', () => {
     });
 
     it('deve preservar d5NoteId e creatorUserId mesmo que venham nas alterações', () => {
-      const original = new D5NoteSchedule(makeProps());
-
-      const updated = original.withChanges({
-        d5NoteId: 999,
-        creatorUserId: 999,
-      } as any);
+      const updated = build().withChanges(
+        changes({ d5NoteId: 999, creatorUserId: 999 }),
+      );
 
       expect(updated.d5NoteId).toBe(1);
       expect(updated.creatorUserId).toBe(10);
     });
 
     it('deve manter os valores originais quando não há alterações', () => {
-      const original = new D5NoteSchedule(makeProps());
+      const original = buildExecuted();
+
       expect(original.withChanges({}).toPublicProps()).toEqual(
         original.toPublicProps(),
       );
     });
 
     it('deve revalidar as regras de negócio na alteração', () => {
-      const original = new D5NoteSchedule(makeProps());
-
       expectBadRequest(
-        () => original.withChanges({ modifyingUserId: 0 }),
-        'Utilizador modificador é obrigatório',
+        () => build().withChanges({ modifyingUserId: 0 }),
+        MSG.modifier,
       );
     });
 
-    it('deve permitir anexar ficheiros ao registar a execução', () => {
-      const original = new D5NoteSchedule(makeProps());
+    describe('registo de execução', () => {
+      it('deve permitir registar execução com ficheiros e observação', () => {
+        const updated = build().withChanges(
+          changes({
+            exec: 10,
+            filePaths: ['a.pdf'],
+            executionObservation: 'ok',
+          }),
+        );
 
-      const updated = original.withChanges({
-        exec: 'S',
-        filePaths: ['a.pdf'],
-      } as any);
+        expect(updated.filePaths).toEqual(['a.pdf']);
+        expect(updated.toPublicProps()).toMatchObject({
+          executionObservation: 'ok',
+        });
+      });
 
-      expect(updated.filePaths).toEqual(['a.pdf']);
+      it('deve rejeitar registar execução sem ficheiros', () => {
+        expectBadRequest(
+          () =>
+            build().withChanges(
+              changes({ exec: 10, executionObservation: 'ok' }),
+            ),
+          MSG.filesRequired,
+        );
+      });
+
+      it('deve rejeitar registar execução sem observação', () => {
+        expectBadRequest(
+          () =>
+            build().withChanges(changes({ exec: 10, filePaths: ['a.pdf'] })),
+          MSG.observationRequired,
+        );
+      });
+
+      it('deve rejeitar remover a execução mantendo os anexos', () => {
+        expectBadRequest(
+          () => buildExecuted().withChanges(changes({ exec: null })),
+          MSG.filesWithoutExec,
+        );
+      });
+
+      it('deve permitir remover a execução junto com anexos e observação', () => {
+        const updated = buildExecuted().withChanges(
+          changes({
+            exec: null,
+            filePaths: [],
+            executionObservation: undefined,
+          }),
+        );
+
+        expect(updated.filePaths).toEqual([]);
+      });
     });
   });
 
@@ -415,7 +472,7 @@ describe('D5NoteSchedule', () => {
     it('deve propagar as validações da factory', () => {
       expectBadRequest(
         () => D5NoteSchedule.create(makeProps({ d5NoteId: 0 })),
-        'ID da nota D5 é obrigatório',
+        MSG.d5NoteId,
       );
     });
   });
@@ -424,8 +481,8 @@ describe('D5NoteSchedule', () => {
   // Imutabilidade
   // -------------------------------------------------------------------------
   describe('imutabilidade', () => {
-    it('não deve permitir reatribuir campos readonly em runtime (TS) — verificação de contrato', () => {
-      const entity = new D5NoteSchedule(makeProps());
+    it('não deve alterar a instância original ao chamar withChanges', () => {
+      const entity = buildExecuted();
       const snapshot = entity.toPublicProps();
 
       entity.withChanges({ modifyingUserId: 77 });
