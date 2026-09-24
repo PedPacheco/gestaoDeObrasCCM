@@ -7,7 +7,7 @@ import { mapD5ScheduleToForm } from "@/utils/transform";
 export interface D5FormData {
   scheduledDate: string;
   prog: string | number;
-  exec: string | number;
+  exec: string | number | null;
   startTime: string;
   endTime: string;
   numDp: string;
@@ -64,7 +64,7 @@ function getInitialFormData(): D5FormData {
   return {
     scheduledDate: dayjs().format("YYYY-MM-DD"),
     prog: 0,
-    exec: "",
+    exec: null,
     startTime: "08:00",
     endTime: "09:00",
     numDp: "",
@@ -209,6 +209,35 @@ export function useD5ScheduleForm({ schedule, options }: Props) {
     return payload;
   };
 
+  const buildJsonPayload = () => {
+    const payload: Record<string, unknown> = {
+      scheduledDate: formData.scheduledDate, // "YYYY-MM-DD" é ISO 8601 válido
+      prog: Number(formData.prog),
+      startTime: formData.startTime,
+      endTime: formData.endTime,
+      temporaryKey: Boolean(formData.temporaryKey),
+      technicalId: Number(formData.technicalId),
+      restrictionId: Number(formData.restrictionId),
+    };
+
+    if (formData.chi !== "") payload.chi = Number(formData.chi);
+    if (formData.lmTeam !== "") payload.lmTeam = Number(formData.lmTeam);
+    if (formData.lvTeam !== "") payload.lvTeam = Number(formData.lvTeam);
+    if (formData.regulTeam !== "")
+      payload.regulTeam = Number(formData.regulTeam);
+    if (formData.numDp) payload.numDp = formData.numDp;
+    if (formData.serviceType) payload.serviceType = formData.serviceType;
+    if (formData.restrictionResponsible) {
+      payload.restrictionResponsible = formData.restrictionResponsible;
+    }
+    if (formData.observation) payload.observation = formData.observation;
+    if (formData.executionObservation) {
+      payload.executionObservation = formData.executionObservation;
+    }
+
+    return payload;
+  };
+
   return {
     expanded,
     formData,
@@ -226,5 +255,6 @@ export function useD5ScheduleForm({ schedule, options }: Props) {
     filesChanged,
 
     buildFormData,
+    buildJsonPayload,
   };
 }
