@@ -5,6 +5,7 @@ import {
   D5NoteScheduleCreateData,
   D5NoteScheduleUpdateData,
   SchedulesD5NotesByIdQueryResult,
+  SchedulesD5NotesByNoteIdQueryResult,
   SchedulesD5NotesQueryResult,
 } from 'src/interface/types/d5notes/types';
 
@@ -12,6 +13,22 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class D5NotesSchedulesRepository implements ID5NotesSchedulesRepository {
+  private readonly baseScheduleSelect = {
+    data_prog: true,
+    hora_ini: true,
+    hora_ter: true,
+    prog: true,
+    exec: true,
+    equipe_lm: true,
+    equipe_lv: true,
+    equipe_reg: true,
+    chave_provisoria: true,
+    chi: true,
+    num_dp: true,
+    tipo_servico: true,
+    observacao_programacao: true,
+  } as const;
+
   constructor(private readonly prisma: PrismaService) {}
 
   async get(
@@ -20,21 +37,10 @@ export class D5NotesSchedulesRepository implements ID5NotesSchedulesRepository {
   ): Promise<SchedulesD5NotesQueryResult[]> {
     return await this.prisma.programacoes_d5.findMany({
       where,
-      ...pagination,
+      take: pagination?.take,
+      skip: pagination?.skip,
       select: {
-        data_prog: true,
-        hora_ini: true,
-        hora_ter: true,
-        prog: true,
-        exec: true,
-        equipe_lm: true,
-        equipe_lv: true,
-        equipe_reg: true,
-        chave_provisoria: true,
-        chi: true,
-        num_dp: true,
-        tipo_servico: true,
-        observacao_programacao: true,
+        ...this.baseScheduleSelect,
         tecnicos: { select: { tecnico: true } },
         notas_d5: {
           select: {
@@ -74,33 +80,54 @@ export class D5NotesSchedulesRepository implements ID5NotesSchedulesRepository {
     });
   }
 
-  async getByD5NoteId(id: number): Promise<SchedulesD5NotesByIdQueryResult[]> {
+  async getById(id: number): Promise<SchedulesD5NotesByIdQueryResult | null> {
+    return await this.prisma.programacoes_d5.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        id_nota_d5: true,
+        ...this.baseScheduleSelect,
+        observacao_execucao: true,
+        responsavel_restricao: true,
+        id_usuario_criador: true,
+        id_usuario_modificador: true,
+        id_restricao: true,
+        id_tecnico: true,
+        caminhos_arquivos: true,
+      },
+    });
+  }
+
+  async getByD5NoteId(
+    id: number,
+  ): Promise<SchedulesD5NotesByNoteIdQueryResult[]> {
     return await this.prisma.programacoes_d5.findMany({
       where: { id_nota_d5: id },
       select: {
         id: true,
-        data_prog: true,
-        hora_ini: true,
-        hora_ter: true,
-        prog: true,
-        exec: true,
-        equipe_lm: true,
-        equipe_lv: true,
-        equipe_reg: true,
-        chave_provisoria: true,
-        chi: true,
-        num_dp: true,
-        tipo_servico: true,
-        observacao_programacao: true,
-        tecnicos: { select: { tecnico: true } },
+        id_nota_d5: true,
+        ...this.baseScheduleSelect,
+        tecnicos: { select: { id: true, tecnico: true } },
         criado_em: true,
         observacao_execucao: true,
         responsavel_restricao: true,
-        restricoes: { select: { restricao: true } },
+        restricoes: { select: { id: true, restricao: true } },
         usuario_criador: { select: { nome: true } },
         usuario_modificador: { select: { nome: true } },
+        caminhos_arquivos: true,
       },
     });
+  }
+
+  async getTotals(where: Record<string, any>): Promise<{ total: number }> {
+    const result = await this.prisma.programacoes_d5.aggregate({
+      where,
+      _count: { _all: true },
+    });
+
+    return {
+      total: result._count._all,
+    };
   }
 
   async create(data: D5NoteScheduleCreateData): Promise<void> {

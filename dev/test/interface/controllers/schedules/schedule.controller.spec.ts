@@ -165,6 +165,7 @@ describe('ScheduleController', () => {
       idGrupo: [1],
       idTipo: [1],
       idCircuito: [1],
+      idTecnico: [1],
       ano: 2024,
     };
 
@@ -253,6 +254,7 @@ describe('ScheduleController', () => {
       idParceira: [1],
       idStatus: [1],
       idStatusProgramacao: [1],
+      idTecnico: [1],
       executado: false,
       pendente: false,
       page: 0,

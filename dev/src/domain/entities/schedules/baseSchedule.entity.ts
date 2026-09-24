@@ -131,7 +131,7 @@ export abstract class BaseSchedule {
   }
 
   /** Regra de confirmação: DP obrigatório com 8 dígitos. */
-  public validatedSchedulingConfirmation(): void {
+  public validateDpNumber(): void {
     if (!this.checkTypeOfService()) return;
 
     const dp = this.numDp?.trim();

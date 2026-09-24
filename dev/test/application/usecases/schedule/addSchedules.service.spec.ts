@@ -73,7 +73,7 @@ describe('AddSchedulesService', () => {
           mockAddSchedulesServiceDataWithoutIdWork,
           mockTx,
         ),
-      ).rejects.toThrow('Erro ao criar programação: ID da obra é obrigatório');
+      ).rejects.toThrow('ID da obra é obrigatório');
     });
 
     it('Should call method add and throw error with this text: Programado deve estar entre 0 e 100', async () => {
@@ -89,9 +89,7 @@ describe('AddSchedulesService', () => {
           mockAddSchedulesServiceDataWithWrongProg,
           mockTx,
         ),
-      ).rejects.toThrow(
-        'Erro ao criar programação: Programado deve estar entre 0 e 100',
-      );
+      ).rejects.toThrow('Programado deve estar entre 0 e 100');
     });
 
     it('Should call method add and throw error with this text: Horário de fim deve ser posterior ao início', async () => {
@@ -107,9 +105,7 @@ describe('AddSchedulesService', () => {
           mockAddSchedulesServiceDataNotTimeValid,
           mockTx,
         ),
-      ).rejects.toThrow(
-        'Erro ao criar programação: Horário de fim deve ser posterior ao início',
-      );
+      ).rejects.toThrow('Horário de fim deve ser posterior ao início');
     });
   });
 });

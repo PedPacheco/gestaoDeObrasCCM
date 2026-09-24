@@ -78,8 +78,9 @@ export type D5NoteByIdQueryResult = Prisma.notas_d5GetPayload<{
   select: typeof d5NoteByIdSelect;
 }>;
 
-export type SchedulesD5NotesByIdQueryResult = {
+export type SchedulesD5NotesByNoteIdQueryResult = {
   id: number;
+  id_nota_d5: number;
   criado_em: Date;
   data_prog: Date;
   hora_ini: Date;
@@ -97,9 +98,10 @@ export type SchedulesD5NotesByIdQueryResult = {
   observacao_programacao: string | null;
   usuario_criador: { nome: string } | null;
   usuario_modificador: { nome: string } | null;
-  restricoes: { restricao: string };
-  tecnicos: { tecnico: string };
+  restricoes: { id: number; restricao: string };
+  tecnicos: { id: number; tecnico: string };
   responsavel_restricao: string | null;
+  caminhos_arquivos: string[];
 };
 
 export type SchedulesD5NotesQueryResult = {
@@ -157,6 +159,31 @@ export type SchedulesD5NotesQueryResult = {
   };
 };
 
+export type SchedulesD5NotesByIdQueryResult = {
+  id: number;
+  id_nota_d5: number;
+  data_prog: Date;
+  hora_ini: Date;
+  hora_ter: Date;
+  prog: number;
+  exec: number;
+  equipe_lm: number;
+  equipe_lv: number;
+  equipe_reg: number;
+  chave_provisoria: boolean;
+  chi: number;
+  num_dp: string | null;
+  tipo_servico: string | null;
+  observacao_execucao: string | null;
+  observacao_programacao: string | null;
+  responsavel_restricao: string | null;
+  id_usuario_criador: number;
+  id_usuario_modificador: number;
+  id_restricao: number;
+  id_tecnico: number;
+  caminhos_arquivos: string[];
+};
+
 export type D5NoteScheduleCreateData = {
   id_nota_d5: number;
   data_prog: Date;
@@ -183,4 +210,78 @@ export type D5NoteScheduleCreateData = {
 export type D5NoteScheduleUpdateData = Omit<
   D5NoteScheduleCreateData,
   'id_nota_d5' | 'id_usuario_criador'
->;
+> & {
+  caminhos_arquivos: string[];
+};
+
+export type D5NoteScheduleListItem = {
+  // Programação
+  data_prog: Date;
+  hora_ini: Date | null;
+  hora_ter: Date | null;
+  prog: number;
+  exec: number | null;
+  equipe_lm: number;
+  equipe_lv: number;
+  equipe_reg: number;
+  chave_provisoria: boolean;
+  chi: number;
+  num_dp: string | null;
+  tipo_servico: string | null;
+  observacao_programacao: string | null;
+
+  // Técnico
+  tecnico: string | null;
+
+  // Nota D5
+  id: number;
+  nota_d5: string;
+  local_instalacao: string | null;
+  criado_em: Date;
+  conclusao_nota: Date | null;
+  status_sap: string;
+  tme_executado: number | null;
+  tme_abertura: number | null;
+  validacao_anual: boolean | null;
+  mo_planejada: number;
+
+  // Relações da nota
+  municipio: string;
+  regional: string;
+  tipo_obra: string;
+  turma: string;
+  status: string;
+  responsavel: string | null;
+
+  // Obras
+  ovnota: string | null;
+  ordemDiagrama: string | null;
+};
+
+export type D5NoteScheduleResponse = {
+  id: number;
+  id_nota_d5: number;
+  criado_em: Date;
+  data_prog: Date;
+  hora_ini: Date;
+  hora_ter: Date;
+  prog: number;
+  exec: number;
+  equipe_lm: number;
+  equipe_lv: number;
+  equipe_reg: number;
+  chave_provisoria: boolean;
+  chi: number;
+  num_dp: string | null;
+  tipo_servico: string | null;
+  observacao_execucao: string | null;
+  observacao_programacao: string | null;
+  usuarioModificador: string | null;
+  usuarioCriador: string | null;
+  idTecnico: number;
+  tecnico: string;
+  idRestricao: number;
+  restricao: string;
+  responsavel_restricao: string | null;
+  caminhos_arquivos: string[];
+};

@@ -129,6 +129,7 @@ describe('GetTotalValuesScheduleService', () => {
       idMunicipio: [1],
       idCircuito: [1],
       idGrupo: [1],
+      idTecnico: [1],
       ano: 2024,
     };
 

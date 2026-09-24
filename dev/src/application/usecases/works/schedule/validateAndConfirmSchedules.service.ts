@@ -85,7 +85,7 @@ export class ValidateConfirmAndRejectSchedulesService {
     }
 
     for (const schedule of schedules) {
-      schedule.validatedSchedulingConfirmation();
+      schedule.validateDpNumber();
     }
 
     try {

@@ -1,5 +1,6 @@
 // application/mappers/work-schedule.mapper.ts
 import { BadRequestException } from '@nestjs/common';
+import moment from 'moment';
 import {
   WorkSchedule,
   WorkScheduleProps,
@@ -19,9 +20,9 @@ export class WorkScheduleMapper {
     return WorkSchedule.create({
       id: row.id,
       idWork: row.id_obra,
-      dataProg: new Date(row.data_prog),
-      startTime: new Date(row.hora_ini),
-      finishTime: new Date(row.hora_ter),
+      dataProg: moment(row.data_prog).toDate(),
+      startTime: moment(row.hora_ini).toDate(),
+      finishTime: moment(row.hora_ter).toDate(),
       prog: row.prog,
       exec: row.exec ?? undefined,
 

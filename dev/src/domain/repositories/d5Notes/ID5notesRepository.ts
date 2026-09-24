@@ -22,7 +22,10 @@ export interface ID5NotesRepository {
     filters: D5NotesFiltersDTO,
     pagination?: D5NotePagination,
   ): Promise<FindD5NotesQueryResult[]>;
-  getById(id: number): Promise<D5NoteByIdQueryResult>;
+  getTotals(
+    where: Record<string, any>,
+  ): Promise<{ total: number; totalMoPlanejada: number }>;
+  getById(id: number): Promise<D5NoteByIdQueryResult | null>;
 }
 
 export const D5_NOTES_REPOSITORY = Symbol('ID5NotesRepository');

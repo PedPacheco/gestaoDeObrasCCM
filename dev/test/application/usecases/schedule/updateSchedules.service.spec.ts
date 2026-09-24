@@ -158,7 +158,7 @@ describe('UpdateSchedulesService', () => {
           mockUpdateSchedulesServiceWithoutIdWork,
           mockTransaction,
         ),
-      ).rejects.toThrow('Erro ao criar programação: ID da obra é obrigatório');
+      ).rejects.toThrow('ID da obra é obrigatório');
     });
 
     it('should throw BadRequestException if repository.update fails', async () => {
