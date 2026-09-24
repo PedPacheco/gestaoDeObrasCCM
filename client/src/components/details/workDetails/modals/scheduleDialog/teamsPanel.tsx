@@ -5,6 +5,7 @@ interface TeamsPanelProps {
   formData: FormData;
   formErrors: Record<string, string>;
   onInputChange: (field: keyof FormData) => (event: any) => void;
+  disabledFields: () => boolean;
 }
 
 export const TeamsPanel: React.FC<TeamsPanelProps> = ({
