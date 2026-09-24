@@ -68,12 +68,8 @@ import { ExportServicesService } from 'src/application/usecases/services/exportS
 interface CustomRequest extends Request {
   idParceira?: number;
   insufficientPermission?: boolean;
+  user: any;
 }
-
-type FiltersWithPermission = {
-  idParceira?: number | number[];
-  insufficientPermission?: boolean;
-};
 
 const XLSX_CONTENT_TYPE =
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
@@ -132,13 +128,18 @@ export class ExportController {
   // Private helpers
   // ─────────────────────────────────────────────
 
-  private applyFilters<T extends FiltersWithPermission>(
-    filters: T,
-    req: CustomRequest,
-  ): T {
-    if (req.idParceira) filters.idParceira = req.idParceira;
-    if (req.insufficientPermission !== undefined)
-      filters.insufficientPermission = req.insufficientPermission;
+  private applyFilters<
+    T extends {
+      idParceira?: number | number[];
+      insufficientPermission?: boolean;
+    },
+  >(filters: T, req: CustomRequest): T {
+    if (req.idParceira) {
+      filters.idParceira = req.idParceira;
+    }
+    if (req.user.tipo_usuario === 'PARCEIRA') {
+      filters.insufficientPermission = true;
+    }
     return filters;
   }
 

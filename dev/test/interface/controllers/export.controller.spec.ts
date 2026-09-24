@@ -73,14 +73,26 @@ function makeMockResponse(): jest.Mocked<Pick<Response, 'setHeader' | 'send'>> {
   } as unknown as jest.Mocked<Pick<Response, 'setHeader' | 'send'>>;
 }
 
+interface CustomRequest extends Request {
+  idParceira?: number;
+  user: any;
+}
+
+/**
+ * O applyFilters lê `req.user.tipo_usuario`, então `user` nunca pode ser
+ * undefined. Por padrão o usuário é INTERNO; para simular parceira use
+ * `makeReq({ user: { tipo_usuario: 'PARCEIRA' } })`.
+ */
 function makeReq(
   overrides: {
     idParceira?: number;
-    insufficientPermission?: boolean;
     user?: { tipo_usuario?: string };
   } = {},
-) {
-  return { ...overrides, user: overrides.user } as unknown as Request;
+): CustomRequest {
+  return {
+    idParceira: overrides.idParceira,
+    user: { tipo_usuario: 'INTERNO', ...overrides.user },
+  } as unknown as CustomRequest;
 }
 
 // ─────────────────────────────────────────────
@@ -493,32 +505,44 @@ describe('ExportController', () => {
   // ─────────────────────────────────────────────
 
   describe('applyFilters (via exportWorksInPortfolio)', () => {
-    it('should inject idParceira from req into filters when present', async () => {
-      const res = makeMockResponse() as unknown as Response;
-      const filters = { page: 1 } as any;
-      const req = makeReq({ idParceira: 42 });
+    let res: Response;
 
+    beforeEach(() => {
+      res = makeMockResponse() as unknown as Response;
       getWorksInPortfolioService.getWorksInPortfolio.mockResolvedValue(
         mockWorksData,
       );
       exportWorksInPortfolioService.export.mockResolvedValue(undefined);
+    });
+
+    const getAppliedFilters = () =>
+      getWorksInPortfolioService.getWorksInPortfolio.mock.calls[0][0];
+
+    it('should inject idParceira from req into filters when present', async () => {
+      const filters = { page: 1 } as any;
+      const req = makeReq({ idParceira: 42 });
 
       await controller.exportWorksInPortfolio(filters, res, req);
 
       expect(
         getWorksInPortfolioService.getWorksInPortfolio,
-      ).toHaveBeenCalledWith(expect.objectContaining({ idParceira: 42 }));
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 1, idParceira: 42 }),
+      );
     });
 
-    it('should inject insufficientPermission from req into filters when defined', async () => {
-      const res = makeMockResponse() as unknown as Response;
+    it('should NOT inject idParceira when req has no idParceira', async () => {
       const filters = { page: 1 } as any;
-      const req = makeReq({ insufficientPermission: true });
+      const req = makeReq();
 
-      getWorksInPortfolioService.getWorksInPortfolio.mockResolvedValue(
-        mockWorksData,
-      );
-      exportWorksInPortfolioService.export.mockResolvedValue(undefined);
+      await controller.exportWorksInPortfolio(filters, res, req);
+
+      expect(getAppliedFilters()).not.toHaveProperty('idParceira');
+    });
+
+    it('should set insufficientPermission to true when user is PARCEIRA', async () => {
+      const filters = { page: 1 } as any;
+      const req = makeReq({ user: { tipo_usuario: 'PARCEIRA' } });
 
       await controller.exportWorksInPortfolio(filters, res, req);
 
@@ -529,23 +553,43 @@ describe('ExportController', () => {
       );
     });
 
-    it('should NOT mutate filters when req has no idParceira or insufficientPermission', async () => {
-      const res = makeMockResponse() as unknown as Response;
+    it('should NOT set insufficientPermission when user is INTERNO', async () => {
       const filters = { page: 1 } as any;
-      const req = makeReq();
+      const req = makeReq({ user: { tipo_usuario: 'INTERNO' } });
 
-      getWorksInPortfolioService.getWorksInPortfolio.mockResolvedValue(
-        mockWorksData,
-      );
-      exportWorksInPortfolioService.export.mockResolvedValue(undefined);
+      await controller.exportWorksInPortfolio(filters, res, req);
+
+      expect(getAppliedFilters()).not.toHaveProperty('insufficientPermission');
+    });
+
+    it('should ignore a legacy req.insufficientPermission (only user.tipo_usuario matters)', async () => {
+      const filters = { page: 1 } as any;
+      const req = {
+        ...makeReq({ user: { tipo_usuario: 'INTERNO' } }),
+        insufficientPermission: true,
+      } as unknown as CustomRequest;
+
+      await controller.exportWorksInPortfolio(filters, res, req);
+
+      expect(getAppliedFilters()).not.toHaveProperty('insufficientPermission');
+    });
+
+    it('should apply both idParceira and insufficientPermission for a PARCEIRA user with idParceira', async () => {
+      const filters = { page: 1 } as any;
+      const req = makeReq({
+        idParceira: 7,
+        user: { tipo_usuario: 'PARCEIRA' },
+      });
 
       await controller.exportWorksInPortfolio(filters, res, req);
 
       expect(
         getWorksInPortfolioService.getWorksInPortfolio,
-      ).toHaveBeenCalledWith(
-        expect.not.objectContaining({ idParceira: expect.anything() }),
-      );
+      ).toHaveBeenCalledWith({
+        page: 1,
+        idParceira: 7,
+        insufficientPermission: true,
+      });
     });
   });
 
@@ -600,7 +644,7 @@ describe('ExportController', () => {
 
     it('should fetch portfolio works, set xlsx headers and delegate to export service', async () => {
       const res = makeMockResponse() as unknown as Response;
-      const req = makeReq({ idParceira: 1, insufficientPermission: false });
+      const req = makeReq({ idParceira: 1 });
 
       getWorksInPortfolioService.getWorksInPortfolio.mockResolvedValue(
         mockWorksData,
@@ -611,12 +655,7 @@ describe('ExportController', () => {
 
       expect(
         getWorksInPortfolioService.getWorksInPortfolio,
-      ).toHaveBeenCalledWith(
-        expect.objectContaining({
-          idParceira: 1,
-          insufficientPermission: false,
-        }),
-      );
+      ).toHaveBeenCalledWith(expect.objectContaining({ idParceira: 1 }));
       assertXlsxHeaders(
         res as unknown as ReturnType<typeof makeMockResponse>,
         'Exportação obras em carteira',
@@ -633,7 +672,10 @@ describe('ExportController', () => {
 
     it('should fetch completed works, set xlsx headers and delegate to export service', async () => {
       const res = makeMockResponse() as unknown as Response;
-      const req = makeReq({ idParceira: 5, insufficientPermission: true });
+      const req = makeReq({
+        idParceira: 5,
+        user: { tipo_usuario: 'PARCEIRA' },
+      });
 
       getCompletedWorksService.getCompletedWorks.mockResolvedValue(
         mockWorksData,
@@ -680,7 +722,10 @@ describe('ExportController', () => {
 
     it('should fetch goals, set xlsx headers and delegate to export service', async () => {
       const res = makeMockResponse() as unknown as Response;
-      const req = makeReq({ idParceira: 5, insufficientPermission: true });
+      const req = makeReq({
+        idParceira: 5,
+        user: { tipo_usuario: 'PARCEIRA' },
+      });
 
       goalsService.getGoals.mockResolvedValue(mockGoalsData);
       exportGoalsService.export.mockResolvedValue(undefined);
@@ -811,12 +856,15 @@ describe('ExportController', () => {
     });
   });
 
-  describe('exportPublicationRestrictions (GET /metas)', () => {
+  describe('exportPublicationRestrictions (GET /publicacoes)', () => {
     const filters = { idRegional: [2] } as any;
 
     it('should fetch publication restrictions, set xlsx headers and delegate to export service', async () => {
       const res = makeMockResponse() as unknown as Response;
-      const req = makeReq({ idParceira: 5, insufficientPermission: true });
+      const req = makeReq({
+        idParceira: 5,
+        user: { tipo_usuario: 'PARCEIRA' },
+      });
 
       restrictionService.getPublicationRestriction.mockResolvedValue({
         works: [],
@@ -847,12 +895,16 @@ describe('ExportController', () => {
       const res = makeMockResponse() as unknown as Response;
       const req = makeReq();
 
-      goalsService.getGoals.mockResolvedValue(mockGoalsData);
-      exportGoalsService.export.mockResolvedValue(undefined);
+      restrictionService.getPublicationRestriction.mockResolvedValue({
+        works: [],
+      });
+      exportPublicationRestrictionService.export.mockResolvedValue(undefined);
 
-      await controller.exportGoals(filters, res, req);
+      await controller.exportPublicationRestrictions(filters, res, req);
 
-      expect(goalsService.getGoals).toHaveBeenCalledWith(filters);
+      expect(restrictionService.getPublicationRestriction).toHaveBeenCalledWith(
+        filters,
+      );
     });
   });
 
@@ -936,6 +988,39 @@ describe('ExportController', () => {
         [{} as ExportServicesExcelOutput],
         res,
         true,
+      );
+    });
+
+    it('should export excel with isInternal=false and insufficientPermission for a PARCEIRA user', async () => {
+      const res = makeMockResponse() as unknown as Response;
+      const req = makeReq({
+        idParceira: 5,
+        user: { tipo_usuario: 'PARCEIRA' },
+      });
+
+      exportServicesService.getServicesToExportation.mockResolvedValue([
+        {} as ExportServicesExcelOutput,
+      ]);
+      exportExcelServicesService.export.mockResolvedValue(undefined);
+
+      await controller.exportServices(
+        { ...filters, fileType: 'excel' },
+        res,
+        req,
+      );
+
+      expect(
+        exportServicesService.getServicesToExportation,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          idParceira: 5,
+          insufficientPermission: true,
+        }),
+      );
+      expect(exportExcelServicesService.export).toHaveBeenCalledWith(
+        [{} as ExportServicesExcelOutput],
+        res,
+        false,
       );
     });
 
