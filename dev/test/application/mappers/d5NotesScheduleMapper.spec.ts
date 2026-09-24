@@ -11,7 +11,7 @@ import { BadRequestException } from '@nestjs/common';
 // ---------------------------------------------------------------------------
 // Mocks de colaboradores
 // ---------------------------------------------------------------------------
-jest.mock('src/domain/entities/schedules/D5NotesSchedule.entity', () => ({
+jest.mock('src/domain/entities/schedules/d5NotesSchedule.entity', () => ({
   D5NoteSchedule: { create: jest.fn() },
 }));
 
