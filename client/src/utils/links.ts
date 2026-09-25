@@ -230,9 +230,23 @@ export const links: Link[] = [
         allowedFor: ["interno_editor", "interno_viewer", "parceira"],
         allowedAreas: [8, 1, 7],
       },
+    ],
+  },
+  {
+    name: "Avança Parceiro",
+    href: null,
+    allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+    allowedAreas: [8, 1, 7],
+    submenu: [
+      {
+        name: "Dashboard",
+        href: "/avanca-parceiro/dashboard",
+        allowedFor: ["interno_editor", "interno_viewer"],
+        allowedAreas: [8, 1],
+      },
       {
         name: "Reclamações e Ouvidoria",
-        href: "/restricoes/reclamacoes-ouvidoria",
+        href: "/avanca-parceiro/reclamacoes-ouvidoria",
         allowedFor: ["interno_editor", "interno_viewer", "parceira"],
         allowedAreas: [8, 1, 7],
       },

@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
-import AdvancePartnerDashboard from "./AvancaParceiro/DashAvancaParceiro/advancePartner";
 import LaborDashboard from "./laborDashboard/laborDashboard";
 import MonitoringExecutionDashboard from "./monitoringExecutionDashboard/monitoringExecutionDashboard";
 import RecompositionGoalsDashboard from "./recompositionGoalsDashboard/RecompositionGoalsDashboard";
@@ -69,13 +68,6 @@ interface Props {
   initialMetasRecomposicao: any[];
   goalsFilters: any;
   initialExecMonitoring: any[];
-  initialEliminacaoRestricao: any[];
-  initialAderenciaParceira: any[];
-  initialSparklinesPartners: any[];
-  initialPartnerWeeks: any[];
-  initialReasonsReascheduling: any[];
-  initialLaborMoveForwardPartner: any;
-  initialDailyGoalMoveForwardPartner: number;
   filtersData: any;
 }
 
@@ -94,8 +86,7 @@ type Tab =
   | "mao-de-obra"
   | "forecast"
   | "metas-recomposicao"
-  | "acompanhamento-execucao"
-  | "avanca-parceiro";
+  | "acompanhamento-execucao";
 
 export function pctColor(pct: number) {
   if (pct >= 100) {
@@ -115,13 +106,6 @@ export default function DashboardClient({
   initialMetasRecomposicao,
   goalsFilters,
   initialExecMonitoring,
-  initialEliminacaoRestricao,
-  initialAderenciaParceira,
-  initialPartnerWeeks,
-  initialReasonsReascheduling,
-  initialSparklinesPartners,
-  initialLaborMoveForwardPartner,
-  initialDailyGoalMoveForwardPartner,
   filtersData,
 }: Props) {
   const { permissions } = useUser();
@@ -167,7 +151,6 @@ export default function DashboardClient({
     { key: "mao-de-obra", label: "Resumo — Mão de Obra Parceira" },
     { key: "metas-recomposicao", label: "Metas Recomposição" },
     { key: "acompanhamento-execucao", label: "Acompanhamento da Execução" },
-    { key: "avanca-parceiro", label: "Avança Parceiro" },
   ];
 
   const visibleTabs = isRestricted
@@ -247,19 +230,6 @@ export default function DashboardClient({
           filtersData={goalsFilters}
           token={token}
           filtersTop={filtersTop}
-        />
-      ) : safeTab === "avanca-parceiro" ? (
-        <AdvancePartnerDashboard
-          initialEliminacao={initialEliminacaoRestricao}
-          initialAderencia={initialAderenciaParceira}
-          initialSparklinesPartners={initialSparklinesPartners}
-          initialPartnerWeeks={initialPartnerWeeks}
-          initialSummary={initialLaborMoveForwardPartner}
-          initialReasonsReascheduling={initialReasonsReascheduling}
-          initialDailyGoal={initialDailyGoalMoveForwardPartner}
-          filtersData={goalsFilters}
-          filtersTop={filtersTop}
-          token={token}
         />
       ) : (
         <LaborDashboard
