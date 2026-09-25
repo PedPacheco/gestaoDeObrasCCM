@@ -13,9 +13,9 @@ import {
   EliminacaoRow,
   MotivoRow,
   pctExact,
-} from "@/components/dashboard/advancePartner/advancePartner";
+} from "@/components/dashboard/AvancaParceiro/DashAvancaParceiro/advancePartner";
 import dayjs, { Dayjs } from "dayjs";
-import { SparklineRow } from "@/components/dashboard/advancePartner/sparklinesSection";
+import { SparklineRow } from "@/components/dashboard/AvancaParceiro/DashAvancaParceiro/sparklinesSection";
 import { EXCLUDE_PARCEIRAS } from "@/components/dashboard/DashboardClient";
 
 interface UseAdvancePartnerFiltersProps {

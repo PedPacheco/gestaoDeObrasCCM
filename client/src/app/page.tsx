@@ -5,7 +5,7 @@ import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import DashboardClient from "@/components/dashboard/DashboardClient";
 import { Header } from "@/components/layout/Header";
-import { getCurrentMonthRange, getCurrentWeekData } from "@/utils/weeks";
+import { getCurrentMonthRange } from "@/utils/weeks";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -60,60 +60,6 @@ function checkDashboardAccess(user: UserInfo | null): boolean {
 
 // ── Todos os fetches (mantidos como estão) ──────────────────
 
-async function fetchSparklinesParceira(token: string) {
-  const { inicio, fim } = getCurrentWeekData();
-  const res = await fetchData(
-    `${API}/avanca-parceira/sparklines-parceira`,
-    { dataInicial: inicio, dataFinal: fim },
-    token,
-    NO_CACHE,
-  );
-  return res.success ? (res.data ?? []) : [];
-}
-
-async function fetchMotivosReprogramacao(token: string) {
-  const { inicio, fim } = getCurrentWeekData();
-  const res = await fetchData(
-    `${API}/avanca-parceira/motivos-reprogramacao`,
-    { dataInicial: inicio, dataFinal: fim },
-    token,
-    NO_CACHE,
-  );
-  return res.success ? (res.data ?? []) : [];
-}
-
-async function fetchSemanasParceira(token: string) {
-  const res = await fetchData(
-    `${API}/avanca-parceira/semanas-parceira`,
-    {},
-    token,
-    NO_CACHE,
-  );
-  return res.success ? (res.data ?? []) : [];
-}
-
-async function fetchEliminacaoRestricao(token: string) {
-  const { inicio, fim } = getCurrentWeekData();
-  const res = await fetchData(
-    `${API}/avanca-parceira`,
-    { dataInicial: inicio, dataFinal: fim },
-    token,
-    NO_CACHE,
-  );
-  return res.success ? (res.data ?? []) : [];
-}
-
-async function fetchAderenciaParceira(token: string) {
-  const { inicio, fim } = getCurrentWeekData();
-  const res = await fetchData(
-    `${API}/avanca-parceira/aderencia-parceira`,
-    { dataInicial: inicio, dataFinal: fim },
-    token,
-    NO_CACHE,
-  );
-  return res.success ? (res.data ?? []) : [];
-}
-
 async function fetchMetasRecomposicao(token: string) {
   const year = new Date().getFullYear();
   const res = await fetchData(
@@ -163,14 +109,10 @@ async function fetchForecast(token: string) {
   };
 }
 
-async function fetchMaodeObra(token: string, dashboard: "labor" | "partner") {
+async function fetchMaodeObra(token: string) {
   const { dataInicial, dataFinal } = getCurrentMonthRange();
-  const { inicio, fim } = getCurrentWeekData();
 
-  const params =
-    dashboard === "labor"
-      ? { dataInicial, dataFinal }
-      : { dataInicial: inicio, dataFinal: fim };
+  const params = { dataInicial, dataFinal };
 
   const fallback = {
     data: { summary: [], totals: {} },
@@ -231,39 +173,21 @@ export default async function Home() {
   }
 
   // ✅ Se TEM permissão → buscar dados normalmente
-  const [
-    maodeObra,
-    forecast,
-    metasRecomposicao,
-    goalsFilters,
-    execMonitoring,
-    eliminacaoRestricao,
-    aderenciaParceira,
-    sparklinesParceira,
-    semanasParceira,
-    motivosReprogramacao,
-    maodeObraAvanca,
-    filtersData,
-  ] = await Promise.all([
-    fetchMaodeObra(token, "labor"),
-    fetchForecast(token),
-    fetchMetasRecomposicao(token),
-    fetchGoalsFilters(token),
-    fetchExecMonitoring(token),
-    fetchEliminacaoRestricao(token),
-    fetchAderenciaParceira(token),
-    fetchSparklinesParceira(token),
-    fetchSemanasParceira(token),
-    fetchMotivosReprogramacao(token),
-    fetchMaodeObra(token, "partner"),
-    fetchFilters({
-      regional: true,
-      parceira: true,
-      tipo: true,
-      municipio: true,
-      grupo: true,
-    }),
-  ]);
+  const [maodeObra, forecast, metasRecomposicao, goalsFilters, execMonitoring, filtersData] =
+    await Promise.all([
+      fetchMaodeObra(token),
+      fetchForecast(token),
+      fetchMetasRecomposicao(token),
+      fetchGoalsFilters(token),
+      fetchExecMonitoring(token),
+      fetchFilters({
+        regional: true,
+        parceira: true,
+        tipo: true,
+        municipio: true,
+        grupo: true,
+      }),
+    ]);
 
   return (
     <div className="relative z-0 flex min-h-screen">
@@ -280,13 +204,6 @@ export default async function Home() {
             initialMetasRecomposicao={metasRecomposicao}
             goalsFilters={goalsFilters}
             initialExecMonitoring={execMonitoring}
-            initialEliminacaoRestricao={eliminacaoRestricao}
-            initialAderenciaParceira={aderenciaParceira}
-            initialPartnerWeeks={semanasParceira}
-            initialReasonsReascheduling={motivosReprogramacao}
-            initialSparklinesPartners={sparklinesParceira}
-            initialLaborMoveForwardPartner={maodeObraAvanca.data}
-            initialDailyGoalMoveForwardPartner={maodeObraAvanca.metaDiaria}
             filtersData={filtersData}
           />
         </main>

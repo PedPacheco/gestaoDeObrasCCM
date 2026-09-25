@@ -77,7 +77,7 @@ vi.mock(
   }),
 );
 
-vi.mock("@/components/dashboard/advancePartner/advancePartner", () => ({
+vi.mock("@/components/dashboard/AvancaParceiro/DashAvancaParceiro/advancePartner", () => ({
   default: (props: any) => (
     <div
       data-testid="advance-partner-dashboard"

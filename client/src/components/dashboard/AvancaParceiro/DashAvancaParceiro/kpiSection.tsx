@@ -1,5 +1,5 @@
 import { FormatCurrency, NUM } from "@/utils/formatValue";
-import { KpiCard } from "../common/KpiCard";
+import { KpiCard } from "../../common/KpiCard";
 import { useMemo } from "react";
 import {
   AderenciaRow,
@@ -9,8 +9,8 @@ import {
   pctColorRestrictionsElimination,
   pctExact,
 } from "./advancePartner";
-import { RingCard } from "../common/RingCard";
-import { pctColor } from "../DashboardClient";
+import { RingCard } from "../../common/RingCard";
+import { pctColor } from "../../DashboardClient";
 
 interface KpiSectionProps {
   eliminacao: EliminacaoRow[];

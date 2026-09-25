@@ -7,7 +7,7 @@ import {
 import { WEEKS } from "@/utils/weeks";
 import { Dayjs } from "dayjs";
 import { useEffect, useRef, useState } from "react";
-import { EXCLUDE_PARCEIRAS } from "../DashboardClient";
+import { EXCLUDE_PARCEIRAS } from "../../DashboardClient";
 
 interface FiltersData {
   regional?: Array<Record<string, any>>;

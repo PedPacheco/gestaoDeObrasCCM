@@ -1,9 +1,9 @@
-// test/components/dashboard/advancePartner/kpiSection.test.tsx
+// test/components/dashboard/AvancaParceiro/kpiSection.test.tsx
 
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { KpiSection } from "@/components/dashboard/advancePartner/kpiSection";
+import { KpiSection } from "@/components/dashboard/AvancaParceiro/DashAvancaParceiro/kpiSection";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // HOISTED MOCKS (somente UI / IO)

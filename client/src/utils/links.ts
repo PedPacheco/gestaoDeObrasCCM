@@ -239,6 +239,26 @@ export const links: Link[] = [
     ],
   },
   {
+    name: "Avança Parceiro",
+    href: null,
+    allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+    allowedAreas: [8, 1, 7],
+    submenu: [
+      {
+        name: "Dashboard",
+        href: "/avanca-parceiro/dashboard",
+        allowedFor: ["interno_editor", "interno_viewer"],
+        allowedAreas: [8, 1],
+      },
+      {
+        name: "Reclamações e Ouvidoria",
+        href: "/avanca-parceiro/reclamacoes-ouvidoria",
+        allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+        allowedAreas: [8, 1, 7],
+      },
+    ],
+  },
+  {
     name: "Mapa de obras",
     href: "/mapa-obras",
     allowedFor: ["interno_editor", "interno_viewer", "parceira"],

@@ -61,7 +61,7 @@ import { D5NotesModule } from './interface/modules/d5Notes.module';
       global: true,
       inject: [ConfigService],
       useFactory: async (config: ConfigService) => {
-        const secret = config.get<string>('JWT_SECRECT');
+        const secret = config.get<string>('JWT_SECRET');
         return {
           secret,
           signOptions: { expiresIn: '6h' },

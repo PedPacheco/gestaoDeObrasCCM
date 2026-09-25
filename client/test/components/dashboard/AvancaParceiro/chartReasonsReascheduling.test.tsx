@@ -1,9 +1,9 @@
-// test/components/dashboard/advancePartner/chartReasonsReascheduling.test.tsx
+// test/components/dashboard/AvancaParceiro/chartReasonsReascheduling.test.tsx
 
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ChartReasonsReascheduling } from "@/components/dashboard/advancePartner/chartReasonsReascheduling";
+import { ChartReasonsReascheduling } from "@/components/dashboard/AvancaParceiro/DashAvancaParceiro/chartReasonsReascheduling";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // HOISTED MOCKS

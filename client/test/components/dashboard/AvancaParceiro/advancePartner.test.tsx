@@ -1,8 +1,8 @@
-// test/components/dashboard/advancePartner/advancePartner.test.tsx
+// test/components/dashboard/AvancaParceiro/advancePartner.test.tsx
 
 import AdvancePartnerDashboard, {
   pctExact,
-} from "@/components/dashboard/advancePartner/advancePartner";
+} from "@/components/dashboard/AvancaParceiro/DashAvancaParceiro/advancePartner";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -62,7 +62,7 @@ vi.mock("@/hooks/dashboard/advancePartner/useAdvancePartnerFilters", () => ({
 // MOCKS DOS COMPONENTES FILHOS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-vi.mock("@/components/dashboard/advancePartner/advancePartnerFilters", () => ({
+vi.mock("@/components/dashboard/AvancaParceiro/DashAvancaParceiro/advancePartnerFilters", () => ({
   AdvancePartnerFilters: (props: any) => {
     mockAdvancePartnerFilters(props);
 
@@ -107,7 +107,7 @@ vi.mock("@/components/dashboard/advancePartner/advancePartnerFilters", () => ({
   },
 }));
 
-vi.mock("@/components/dashboard/advancePartner/kpiSection", () => ({
+vi.mock("@/components/dashboard/AvancaParceiro/DashAvancaParceiro/kpiSection", () => ({
   KpiSection: (props: any) => {
     mockKpiSection(props);
 
@@ -115,7 +115,7 @@ vi.mock("@/components/dashboard/advancePartner/kpiSection", () => ({
   },
 }));
 
-vi.mock("@/components/dashboard/advancePartner/sparklinesSection", () => ({
+vi.mock("@/components/dashboard/AvancaParceiro/sparklinesSection", () => ({
   SparklinesSection: (props: any) => {
     mockSparklinesSection(props);
 
@@ -126,7 +126,7 @@ vi.mock("@/components/dashboard/advancePartner/sparklinesSection", () => ({
 }));
 
 vi.mock(
-  "@/components/dashboard/advancePartner/chartReasonsReascheduling",
+  "@/components/dashboard/AvancaParceiro/DashAvancaParceiro/chartReasonsReascheduling",
   () => ({
     ChartReasonsReascheduling: (props: any) => {
       mockChartReasonsReascheduling(props);
