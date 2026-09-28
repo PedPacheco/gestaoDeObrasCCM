@@ -1,10 +1,13 @@
 import { DailySummary, GroupSummary } from "@/types/dashboard/labor/labor";
+import dayjs, { Dayjs } from "dayjs";
 import { useMemo } from "react";
 
 interface Props {
   dailyData: DailySummary;
   groupData: GroupSummary;
   dailyGoal: number;
+  startDate: Dayjs; // período aplicado
+  endDate: Dayjs; // período aplicado
 }
 
 export function isWeekend(dateStr: string) {
@@ -13,9 +16,37 @@ export function isWeekend(dateStr: string) {
   return dow === 0 || dow === 6;
 }
 
-export function useLaborMetrics({ dailyData, groupData, dailyGoal }: Props) {
+function countBusinessDays(start: Dayjs, end: Dayjs): number {
+  let count = 0;
+  let current = start.startOf("day");
+
+  while (!current.isAfter(end, "day")) {
+    const weekday = current.day();
+    if (weekday !== 0 && weekday !== 6) count++;
+    current = current.add(1, "day");
+  }
+
+  return count;
+}
+
+export function useLaborMetrics({
+  dailyData,
+  groupData,
+  dailyGoal,
+  endDate,
+  startDate,
+}: Props) {
+  const startKey = startDate.format("YYYY-MM-DD");
+  const endKey = endDate.format("YYYY-MM-DD");
+
   return useMemo(() => {
     const totalGoal = dailyGoal * 22;
+
+    // Linha 2: total do mês distribuído nos dias úteis do período filtrado
+    const businessDays = countBusinessDays(dayjs(startKey), dayjs(endKey));
+
+    const periodGoalPerDay =
+      businessDays > 0 ? dailyData.totals.totalMoProg / businessDays : 0;
 
     const display = {
       programacoes: dailyData.totals.totalSchedules,
@@ -55,6 +86,7 @@ export function useLaborMetrics({ dailyData, groupData, dailyGoal }: Props) {
       Programado: Math.round(item.totalMoProg),
       Executado: Math.round(item.totalMoExec),
       Meta: Math.round(dailyGoal),
+      "Meta Período": periodGoalPerDay,
       "% Meta":
         dailyGoal > 0 ? +((item.totalMoProg / dailyGoal) * 100).toFixed(1) : 0,
       weekend: isWeekend(item.dataProg),
@@ -103,6 +135,7 @@ export function useLaborMetrics({ dailyData, groupData, dailyGoal }: Props) {
     return {
       display,
       totalGoal,
+      periodGoalPerDay,
       executionRate,
       pctGoal100,
       pctGoal108,

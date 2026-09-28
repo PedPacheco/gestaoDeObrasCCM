@@ -41,6 +41,32 @@ export function ChartTooltip({
       {/* 🔥 SEPARADOR */}
       <div className="border-t border-white/10 my-2" />
 
+      {data?.["Meta"] != null && (
+        <div className="flex items-center gap-2 py-0.5">
+          <span
+            className="w-2 h-2 rounded-full shrink-0"
+            style={{ background: "#f59e0b" }}
+          />
+          <span className="text-zinc-400">Meta:</span>
+          <span className="font-bold text-white">
+            {FormatCurrency(data["Meta"])}
+          </span>
+        </div>
+      )}
+
+      {data?.["Meta Período"] != null && (
+        <div className="flex items-center gap-2 py-0.5">
+          <span
+            className="w-2 h-2 rounded-full shrink-0"
+            style={{ background: "#f43f5e" }}
+          />
+          <span className="text-zinc-400">Meta:</span>
+          <span className="font-bold text-white">
+            {FormatCurrency(data["Meta Período"])}
+          </span>
+        </div>
+      )}
+
       {/* 🔥 ITEM EXTRA (não precisa existir no gráfico) */}
       {data?.["Diferença Acum."] != null && (
         <div className="flex items-center gap-2 py-0.5">

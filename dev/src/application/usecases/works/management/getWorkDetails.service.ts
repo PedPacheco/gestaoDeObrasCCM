@@ -59,8 +59,7 @@ export class GetWorkDetailsService {
       grupo: work.tipos.id_grupo,
       idRegional: work.municipios.regionais.id,
       totalProgramado: work.programacoes.reduce((acc, item) => {
-        const valor =
-          item.exec !== null && item.exec !== 0 ? item.exec : item.prog;
+        const valor = item.exec !== null ? item.exec : item.prog;
 
         return acc + valor;
       }, 0),

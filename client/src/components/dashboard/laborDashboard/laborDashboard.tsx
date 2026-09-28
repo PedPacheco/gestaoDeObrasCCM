@@ -9,6 +9,7 @@ import {
   CartesianGrid,
   ComposedChart,
   Legend,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -27,6 +28,7 @@ import { DailySummaryTable } from "./DailySummaryTable";
 import { GroupSummaryTable } from "./GroupSummaryTable";
 import { KpiSection } from "./KpiSection";
 import { LaborDashboardFilters } from "./laborDashboardFilters";
+import { FormatCurrency } from "@/utils/formatValue";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -104,9 +106,18 @@ export default function LaborDashboard({
       totalDiff: 0,
     },
   });
+
   const [metaDiaria, setMetaDiaria] = useState<number>(initialMetaDiaria ?? 0);
   const [startDate, setStartDate] = useState<Dayjs | null>(DEFAULT_START());
   const [endDate, setEndDate] = useState<Dayjs | null>(DEFAULT_END());
+
+  const [appliedRange, setAppliedRange] = useState<{
+    start: Dayjs;
+    end: Dayjs;
+  }>({
+    start: DEFAULT_START(),
+    end: DEFAULT_END(),
+  });
 
   const [isFiltered, setIsFiltered] = useState<boolean>(false);
 
@@ -131,10 +142,13 @@ export default function LaborDashboard({
     pctGoal108,
     executionRate,
     topPartnerData,
+    periodGoalPerDay,
   } = useLaborMetrics({
     dailyData: data,
     groupData: data2,
     dailyGoal: metaDiaria,
+    startDate: appliedRange.start,
+    endDate: appliedRange.end,
   });
 
   const buildParams = useCallback(
@@ -163,6 +177,11 @@ export default function LaborDashboard({
     saveFilters(params);
 
     startTransition(async () => {
+      setAppliedRange({
+        start: startDate ?? DEFAULT_START(),
+        end: endDate ?? DEFAULT_END(),
+      });
+
       const response = await fetchData(
         `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal`,
         params,
@@ -185,6 +204,7 @@ export default function LaborDashboard({
     setStartDate(DEFAULT_START);
     setEndDate(DEFAULT_END);
     setIsFiltered(false);
+    setAppliedRange({ start: DEFAULT_START(), end: DEFAULT_END() });
     clearFilters();
 
     const params = {
@@ -281,6 +301,13 @@ export default function LaborDashboard({
                   axisLine={false}
                   tickLine={false}
                   tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
+                  domain={[
+                    0,
+                    (dataMax: number) =>
+                      Math.ceil(
+                        Math.max(dataMax, metaDiaria, periodGoalPerDay) * 1.1,
+                      ),
+                  ]}
                 />
                 <Tooltip content={<ChartTooltip metricConfig="currency" />} />
                 <Legend
@@ -304,6 +331,40 @@ export default function LaborDashboard({
                   radius={[3, 3, 0, 0]}
                   maxBarSize={10}
                 />
+
+                {/* Linha 1: meta mensal fixa (retornada pelo backend) */}
+                {metaDiaria > 0 && (
+                  <ReferenceLine
+                    y={metaDiaria}
+                    stroke="#f59e0b"
+                    strokeDasharray="6 4"
+                    strokeWidth={1.5}
+                    ifOverflow="extendDomain"
+                    label={{
+                      value: `Meta Diária Fixa: ${FormatCurrency(metaDiaria)}`,
+                      position: "insideTopRight",
+                      fill: "#f59e0b",
+                      fontSize: 11,
+                    }}
+                  />
+                )}
+
+                {/* Linha 2: meta considerando só o período filtrado */}
+                {periodGoalPerDay > 0 && (
+                  <ReferenceLine
+                    y={periodGoalPerDay}
+                    stroke="#f43f5e"
+                    strokeDasharray="2 3"
+                    strokeWidth={1.5}
+                    ifOverflow="extendDomain"
+                    label={{
+                      value: `Meta Diário período: ${FormatCurrency(periodGoalPerDay)}`,
+                      position: "insideBottomRight",
+                      fill: "#f43f5e",
+                      fontSize: 11,
+                    }}
+                  />
+                )}
               </ComposedChart>
             </ResponsiveContainer>
           </ChartCard>
