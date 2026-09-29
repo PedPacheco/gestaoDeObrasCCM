@@ -17,7 +17,7 @@ import { Transform } from "@/utils/transform";
 
 import ScheduleForDayFilters from "./ScheduleForDayFilters";
 import { MainInterface } from "@/types/mainInterface";
-import { FiltersInterface } from "@/types/filtersInterfaces";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 
 const ModalComponent = dynamic(() => import("@/components/common/Modal"), {
   ssr: false,

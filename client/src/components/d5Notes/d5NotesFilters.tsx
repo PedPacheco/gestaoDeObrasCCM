@@ -1,16 +1,136 @@
 "use client";
 
-import "dayjs/locale/pt-br";
+import { useEffect, useState } from "react";
+import dayjs from "dayjs";
 
-import { useCallback, useEffect, useState } from "react";
-
-import { ButtonComponent } from "@/components/common/Button";
-import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { FiltersInterface } from "@/types/filtersInterfaces";
-import { capitalize } from "@/utils/formatValue";
-import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
+import { GenericFilterBar } from "@/components/common/genericFilterBar";
+import {
+  ExtraFilterValue,
+  FilterFieldConfig,
+  FiltersInterface,
+} from "@/types/genericFilterSchema";
+
+const STATUS_D5_SAP_OPTIONS = ["Concluído", "Pendente"] as const;
+
+// Schema declarativo: substitui ~150 linhas de JSX repetido por uma lista de
+// configuração. `filterKey` é explícito para cada select em vez de inferido
+// a partir da ordem das chaves do objeto retornado pela API (ver comentário
+// em genericFilterSchema.ts).
+// valueKey é "id" em todos os filtros (é a primeira chave de cada item em
+// FiltersInterface); displayKey varia por filtro — note que "parceira" usa
+// "turma" e "tipo" usa "tipo_obra", não o nome do próprio filtro.
+const D5_FILTER_SCHEMA: FilterFieldConfig[] = [
+  {
+    type: "select",
+    dataKey: "regional",
+    filterKey: "idRegional",
+    valueKey: "id",
+    displayKey: "regional",
+  },
+  {
+    type: "select",
+    dataKey: "parceira",
+    filterKey: "idParceira",
+    valueKey: "id",
+    displayKey: "turma",
+  },
+  {
+    type: "select",
+    dataKey: "tipo",
+    filterKey: "idTipo",
+    valueKey: "id",
+    displayKey: "tipo_obra",
+  },
+  {
+    type: "select",
+    dataKey: "municipio",
+    filterKey: "idMunicipio",
+    valueKey: "id",
+    displayKey: "municipio",
+  },
+  {
+    type: "select",
+    dataKey: "grupo",
+    filterKey: "idGrupo",
+    valueKey: "id",
+    displayKey: "grupo",
+  },
+  {
+    type: "select",
+    dataKey: "status",
+    filterKey: "idStatus",
+    valueKey: "id",
+    displayKey: "status",
+  },
+  {
+    type: "select",
+    dataKey: "notaD5",
+    filterKey: "idNotaD5",
+    valueKey: "id",
+    displayKey: "nota_d5",
+    virtualized: true,
+  },
+  {
+    type: "options",
+    key: "statusD5Sap",
+    label: "Status D5 (SAP)",
+    options: STATUS_D5_SAP_OPTIONS,
+  },
+  { type: "dateRange", key: "dataCriacao", label: "Criação" },
+  {
+    type: "dateRange",
+    key: "dataConclusao",
+    label: "Conclusão",
+    // Antes: apenas `disabled` no input, mas o valor permanecia no state e
+    // era enviado ao backend junto com statusD5Sap="Pendente". Agora o
+    // GenericFilterBar limpa o valor automaticamente quando isto é true.
+    disabledWhen: (extraValues) => extraValues.statusD5Sap === "Pendente",
+  },
+];
+
+function deriveD5Options(
+  data: Record<string, any[] | undefined>,
+  selectedItems: Record<string, string[]>,
+) {
+  const next = { ...data };
+
+  const idGrupos = selectedItems.idGrupo?.map(Number);
+  if (idGrupos?.length) {
+    next.tipo = next.tipo?.filter((item) => idGrupos.includes(item.id_grupo));
+  }
+
+  const idRegionais = selectedItems.idRegional?.map(Number);
+  if (idRegionais?.length) {
+    next.municipio = next.municipio?.filter((item) =>
+      idRegionais.includes(item.id_regional),
+    );
+  }
+
+  return next;
+}
+
+// Função de módulo (não inline no componente) para manter referência
+// estável entre renders. `useSaveFilters` coloca `applyFilters` na
+// dependência de um `useEffect` interno que chama `setFilteredData` — uma
+// função nova a cada render faz esse efeito disparar de novo a cada render,
+// que gera outro render, num loop infinito ("Maximum update depth exceeded").
+function applyD5Filters(
+  data: FiltersInterface,
+  filtersObject: Record<string, any>,
+) {
+  return deriveD5Options(data, filtersObject.selectedItems ?? {});
+}
+
+const EMPTY_EXTRA_VALUES: Record<string, ExtraFilterValue> = {
+  dataCriacaoInicial: null,
+  dataCriacaoFinal: null,
+  dataConclusaoInicial: null,
+  dataConclusaoFinal: null,
+  statusD5Sap: "",
+  notaD5: "",
+};
 
 interface D5NotesFiltersProps {
   data: FiltersInterface;
@@ -26,131 +146,112 @@ export default function D5NotesFilters({
   data,
   url,
   isPending,
-  page,
   searchFilteredData,
 }: D5NotesFiltersProps) {
-  const applyFilters = useCallback(
-    (data: FiltersInterface, filtersObject: any) => {
-      let newData = { ...data };
-
-      const { selectedItems } = filtersObject;
-
-      if (selectedItems?.idGrupo?.length > 0) {
-        const idGrupos = selectedItems.idGrupo?.map(Number);
-
-        newData.tipo = newData.tipo?.filter((item) =>
-          idGrupos.includes(item.id_grupo),
-        );
-      }
-
-      if (selectedItems?.idRegional?.length > 0) {
-        const idRegionais = selectedItems.idRegional?.map(Number);
-
-        newData.municipio = newData.municipio?.filter((item) =>
-          idRegionais.includes(item.id_regional),
-        );
-      }
-
-      return newData;
-    },
-    [],
-  );
-
+  // Funciona sem casts porque `FiltersInterface` agora tem uma index
+  // signature compatível com `Record<string, any[] | undefined>`
+  // (ver ajuste sugerido em @/types/filtersInterfaces.ts).
   const { clearFilters, filters, saveFilters, filteredData } = useSaveFilters({
     pageKey: url,
     data,
-    applyFilters,
+    applyFilters: applyD5Filters,
   });
 
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {},
   );
+  const [extraValues, setExtraValues] =
+    useState<Record<string, ExtraFilterValue>>(EMPTY_EXTRA_VALUES);
 
   useEffect(() => {
     if (!filters) return;
 
     setSelectedItems(filters.selectedItems || {});
+
+    const saved = filters.extraFilters;
+    if (saved) {
+      setExtraValues({
+        dataCriacaoInicial: saved.dataCriacaoInicial
+          ? dayjs(saved.dataCriacaoInicial)
+          : null,
+        dataCriacaoFinal: saved.dataCriacaoFinal
+          ? dayjs(saved.dataCriacaoFinal)
+          : null,
+        dataConclusaoInicial: saved.dataConclusaoInicial
+          ? dayjs(saved.dataConclusaoInicial)
+          : null,
+        dataConclusaoFinal: saved.dataConclusaoFinal
+          ? dayjs(saved.dataConclusaoFinal)
+          : null,
+        statusD5Sap: saved.statusD5Sap ?? "",
+        notaD5: saved.notaD5 ?? "",
+      });
+    }
   }, [filters, url]);
 
-  function handleApplyFilters() {
-    saveFilters(selectedItems);
+  function buildExtraParams() {
+    const params: Record<string, string> = {};
 
-    searchFilteredData({ ...Transform(selectedItems), page: page.toString() });
+    const dateKeys = [
+      "dataCriacaoInicial",
+      "dataCriacaoFinal",
+      "dataConclusaoInicial",
+      "dataConclusaoFinal",
+    ] as const;
+
+    dateKeys.forEach((key) => {
+      const value = extraValues[key];
+      if (dayjs.isDayjs(value) && value.isValid()) {
+        params[key] = value.format("YYYY-MM-DD");
+      }
+    });
+
+    if (extraValues.statusD5Sap) {
+      params.statusD5Sap = extraValues.statusD5Sap as string;
+    }
+
+    const notaD5 = (extraValues.notaD5 as string)?.trim();
+    if (notaD5) {
+      params.notaD5 = notaD5;
+    }
+
+    return params;
   }
 
-  function handleCleanigFilters() {
-    setSelectedItems({});
+  function handleApplyFilters() {
+    const extraParams = buildExtraParams();
+    saveFilters(selectedItems, extraParams);
 
-    clearFilters();
+    console.log(extraParams, selectedItems);
 
     searchFilteredData({
+      ...Transform(selectedItems),
+      ...extraParams,
+      // Sempre volta para a primeira página ao aplicar um novo filtro —
+      // evita cair numa página que não existe mais no resultado filtrado.
       page: "0",
     });
   }
 
-  // function handleGenerateExcel() {
-  //   generateExcel(selectedItems);
-  // }
+  function handleClearFilters() {
+    setSelectedItems({});
+    setExtraValues(EMPTY_EXTRA_VALUES);
+    clearFilters();
+    searchFilteredData({ page: "0" });
+  }
 
   return (
-    <>
-      <div className="grid grid-cols-1 lg:grid-cols-3 2xl:grid-cols-6 w-full">
-        {Object.entries(filteredData).map(([key, value], index) => {
-          const hasValues = Array.isArray(value) && value.length > 0;
-
-          const valueKey = hasValues ? Object.keys(value[0])[0] : undefined;
-          const displayKey = hasValues ? Object.keys(value[0])[1] : undefined;
-
-          const filterValue = `${valueKey}${
-            key.charAt(0).toUpperCase() + key.slice(1)
-          }`;
-
-          return (
-            <div key={index} className="w-full lg:w-5/6 mx-auto">
-              <MultipleSelectComponent
-                label={capitalize(key)}
-                menuItems={value || []}
-                selectedItem={selectedItems[filterValue]}
-                setSelectedItem={(selectedValue) => {
-                  setSelectedItems((prev) => ({
-                    ...prev,
-                    [filterValue]: selectedValue,
-                  }));
-                }}
-                valueKey={valueKey}
-                displayKey={displayKey}
-              />
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 w-full">
-        <ButtonComponent
-          onClick={handleApplyFilters}
-          text={getButtonContent(isPending, "Aplicar filtros")}
-          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
-        />
-        <ButtonComponent
-          onClick={handleCleanigFilters}
-          text={getButtonContent(isPending, "Limpar filtros")}
-          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
-        />
-
-        {/* <ButtonComponent
-          onClick={openModal}
-          text="Ver valores totais"
-          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
-        /> */}
-        {/* <ButtonComponent
-          onClick={handleGenerateExcel}
-          text="Exportar"
-          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
-          startIcon={
-            <DocumentArrowDownIcon width={25} height={25} className="mr-2" />
-          }
-        /> */}
-      </div>
-    </>
+    <GenericFilterBar
+      schema={D5_FILTER_SCHEMA}
+      data={filteredData}
+      deriveOptions={deriveD5Options}
+      selectedItems={selectedItems}
+      onSelectedItemsChange={setSelectedItems}
+      extraValues={extraValues}
+      onExtraValuesChange={setExtraValues}
+      isPending={isPending}
+      onApply={handleApplyFilters}
+      onClear={handleClearFilters}
+    />
   );
 }

@@ -13,6 +13,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
 import { FileService } from 'src/application/usecases/file.service';
+import { ManageD5NoteService } from 'src/application/usecases/d5Notes/notes/manageD5Note.service';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { FileService } from 'src/application/usecases/file.service';
     FindD5NotesService,
     FindD5SchedulesService,
     ManageD5NoteScheduleService,
+    ManageD5NoteService,
     FileService,
     { provide: D5_NOTES_REPOSITORY, useClass: D5NotesRepository },
     {

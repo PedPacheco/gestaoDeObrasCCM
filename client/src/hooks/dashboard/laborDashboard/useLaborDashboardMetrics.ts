@@ -10,23 +10,35 @@ interface Props {
   endDate: Dayjs; // período aplicado
 }
 
+function parseBrDate(dateStr: string): Dayjs {
+  const [d, m, y] = dateStr.split("/");
+  return dayjs(new Date(+y, +m - 1, +d));
+}
+
 export function isWeekend(dateStr: string) {
   const [d, m, y] = dateStr.split("/");
   const dow = new Date(+y, +m - 1, +d).getDay();
   return dow === 0 || dow === 6;
 }
 
-function countBusinessDays(start: Dayjs, end: Dayjs): number {
-  let count = 0;
-  let current = start.startOf("day");
+function countDaysWithProgramming(
+  summary: DailySummary["summary"],
+  start: Dayjs,
+  end: Dayjs,
+): number {
+  const uniqueDays = new Set<string>();
 
-  while (!current.isAfter(end, "day")) {
-    const weekday = current.day();
-    if (weekday !== 0 && weekday !== 6) count++;
-    current = current.add(1, "day");
-  }
+  summary.forEach((item) => {
+    if (!item.totalMoProg || item.totalMoProg <= 0) return;
 
-  return count;
+    const date = parseBrDate(item.dataProg);
+
+    if (date.isBefore(start, "day") || date.isAfter(end, "day")) return;
+
+    uniqueDays.add(date.format("YYYY-MM-DD"));
+  });
+
+  return uniqueDays.size;
 }
 
 export function useLaborMetrics({
@@ -36,17 +48,18 @@ export function useLaborMetrics({
   endDate,
   startDate,
 }: Props) {
-  const startKey = startDate.format("YYYY-MM-DD");
-  const endKey = endDate.format("YYYY-MM-DD");
-
   return useMemo(() => {
     const totalGoal = dailyGoal * 22;
 
     // Linha 2: total do mês distribuído nos dias úteis do período filtrado
-    const businessDays = countBusinessDays(dayjs(startKey), dayjs(endKey));
+    const effectiveDays = countDaysWithProgramming(
+      dailyData.summary,
+      startDate,
+      endDate,
+    );
 
     const periodGoalPerDay =
-      businessDays > 0 ? dailyData.totals.totalMoProg / businessDays : 0;
+      effectiveDays > 0 ? dailyData.totals.totalMoProg / effectiveDays : 0;
 
     const display = {
       programacoes: dailyData.totals.totalSchedules,
@@ -86,7 +99,7 @@ export function useLaborMetrics({
       Programado: Math.round(item.totalMoProg),
       Executado: Math.round(item.totalMoExec),
       Meta: Math.round(dailyGoal),
-      "Meta Período": periodGoalPerDay,
+      "Média Diária Programado": periodGoalPerDay,
       "% Meta":
         dailyGoal > 0 ? +((item.totalMoProg / dailyGoal) * 100).toFixed(1) : 0,
       weekend: isWeekend(item.dataProg),

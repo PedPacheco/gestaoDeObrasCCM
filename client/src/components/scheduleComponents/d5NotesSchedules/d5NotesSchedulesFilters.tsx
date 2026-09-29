@@ -7,12 +7,12 @@ import { useCallback, useEffect, useState } from "react";
 import { ButtonComponent } from "@/components/common/Button";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { FiltersInterface } from "@/types/filtersInterfaces";
 import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import dayjs, { Dayjs } from "dayjs";
 import { Transform } from "@/utils/transform";
 import { DateFilter } from "@/components/common/DateFilter";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 
 interface D5NotesSchedulesFiltersProps {
   data: FiltersInterface;

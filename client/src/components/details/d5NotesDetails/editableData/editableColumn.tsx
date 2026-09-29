@@ -4,7 +4,8 @@ import { useUser } from "@/contexts/userContext";
 
 import { ReactNode, useEffect, useId, useState } from "react";
 import { FormControl, MenuItem, Select, Tooltip } from "@mui/material";
-import D5DataItem, { FieldShell } from "./dataItemD5";
+import D5DataItem, { FieldShell } from "../dataItemD5";
+import { useD5NoteEdit } from "@/hooks/useD5Edit";
 
 export interface NoteD5EditableData {
   id_parceira: string;
@@ -14,8 +15,10 @@ export interface NoteD5EditableData {
 
 interface EditableColumnD5Props {
   data: NoteD5EditableData;
-  options: Record<string, any>;
-  onHandleChange?: (field: keyof NoteD5EditableData, value: string) => void;
+  options: {
+    parceira: { id: number; turma: string }[];
+    status: { id: number; status: string }[];
+  };
 }
 
 export interface SelectProps {
@@ -44,6 +47,7 @@ export function D5SelectComponent({
   placeholder = "Selecione…",
 }: SelectProps) {
   const [mounted, setMounted] = useState(false);
+
   const labelId = useId();
 
   useEffect(() => setMounted(true), []);
@@ -128,36 +132,31 @@ export function D5SelectComponent({
   );
 }
 
-export const EditableColumnD5 = ({
-  data,
-  options,
-  onHandleChange,
-}: EditableColumnD5Props) => {
-  const { permissions } = useUser();
-
-  const isReadOnly =
-    permissions?.tipo_usuario === "PARCEIRA" || !permissions?.permissao_edicao;
+export const EditableColumnD5 = ({ data, options }: EditableColumnD5Props) => {
+  const { form, setField, readOnly } = useD5NoteEdit();
 
   return (
     <>
       <D5SelectComponent
         label="Parceira"
         menuItems={options.parceira}
-        selectedItem={data.id_parceira}
-        setSelectedItem={(value) => onHandleChange?.("id_parceira", value)}
+        selectedItem={form.id_parceira}
+        setSelectedItem={(value) => setField?.("id_parceira", value)}
         valueKey="id"
         displayKey="turma"
-        disabled={isReadOnly}
+        disabled={readOnly}
       />
 
       <D5SelectComponent
         label="Status D5 (SIGO)"
-        menuItems={options.status.filter((item: any) => !STATUS_NOT_AVALIABLE.includes(item.id))}
-        selectedItem={data.status}
-        setSelectedItem={(value) => onHandleChange?.("status", value)}
-        valueKey="status"
+        menuItems={options.status.filter(
+          (item: any) => !STATUS_NOT_AVALIABLE.includes(item.id),
+        )}
+        selectedItem={form.id_status}
+        setSelectedItem={(value) => setField?.("id_status", value)}
+        valueKey="id"
         displayKey="status"
-        disabled={isReadOnly}
+        disabled={readOnly}
       />
 
       <D5DataItem label="Status D5 (SAP)" value={data.status_sap} />

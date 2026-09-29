@@ -4,16 +4,16 @@ import { useCallback, useState, useTransition } from "react";
 import { Cookies } from "react-cookie";
 
 import { fetchData } from "@/actions/fetchData.action";
-
-import { useFeedback } from "@/hooks/useFeedback";
-
-import { Transform } from "@/utils/transform";
 import { D5NotesTable } from "@/components/d5Notes/d5NotesTable";
+import { useFeedback } from "@/hooks/useFeedback";
+import { FiltersInterface } from "@/types/genericFilterSchema";
+import { Transform } from "@/utils/transform";
+
 import D5NotesSchedulesFilters from "./d5NotesSchedulesFilters";
 
 interface MainPortfolioWorksProps {
   data: any;
-  filtersData: any;
+  filtersData: FiltersInterface;
   token: string;
   cookie: string;
   columns: Record<string, string>;

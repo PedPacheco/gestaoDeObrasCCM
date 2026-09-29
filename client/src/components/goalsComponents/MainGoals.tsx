@@ -6,7 +6,6 @@ import { useCallback, useMemo, useState, useTransition } from "react";
 import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { FiltersInterface } from "@/types/filtersInterfaces";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
@@ -18,6 +17,7 @@ import { MultipleSelectComponent } from "../common/MultipleSelect";
 import GoalsTable from "./GoalsTable";
 import ModalTotalGoalValues from "./ModalTotalGoalValues";
 import { useFeedback } from "@/hooks/useFeedback";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 
 export type TypeGoals = "rda" | "recomposicao" | "bt0";
 

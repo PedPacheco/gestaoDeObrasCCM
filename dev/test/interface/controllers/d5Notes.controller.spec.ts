@@ -49,11 +49,6 @@ describe('D5NotesController', () => {
     delete: jest.fn(),
   };
 
-  beforeAll(() => {
-    // Silencia o console.log existente no getAll sem perder a asserção
-    jest.spyOn(console, 'log').mockImplementation(() => undefined);
-  });
-
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [D5NotesController],
@@ -91,7 +86,6 @@ describe('D5NotesController', () => {
 
       expect(findD5NotesService.get).toHaveBeenCalledTimes(1);
       expect(findD5NotesService.get).toHaveBeenCalledWith(filters);
-      expect(console.log).toHaveBeenCalledWith(data);
       expect(result).toEqual({
         statusCode: HttpStatus.OK,
         message: 'Notas D5 retornadas com sucesso',

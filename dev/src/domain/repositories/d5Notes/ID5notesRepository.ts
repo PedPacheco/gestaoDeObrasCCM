@@ -1,4 +1,7 @@
-import { D5NotesFiltersDTO } from 'src/interface/dtos/d5NotesDTO';
+import {
+  D5NotesFiltersDTO,
+  UpdateD5NoteDTO,
+} from 'src/interface/dtos/d5NotesDTO';
 import {
   D5NoteByIdQueryResult,
   FindD5NotesQueryResult,
@@ -26,6 +29,11 @@ export interface ID5NotesRepository {
     where: Record<string, any>,
   ): Promise<{ total: number; totalMoPlanejada: number }>;
   getById(id: number): Promise<D5NoteByIdQueryResult | null>;
+  update(
+    id: number,
+    data: UpdateD5NoteDTO,
+    modifyingUserId: number,
+  ): Promise<void>;
 }
 
 export const D5_NOTES_REPOSITORY = Symbol('ID5NotesRepository');

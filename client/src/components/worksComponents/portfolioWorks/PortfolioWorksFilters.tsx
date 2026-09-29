@@ -8,7 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ButtonComponent } from "@/components/common/Button";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { FiltersInterface } from "@/types/filtersInterfaces";
+
 import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
@@ -18,6 +18,7 @@ import {
 } from "@heroicons/react/20/solid";
 import { InputAdornment, TextField } from "@mui/material";
 import { DateFilter } from "@/components/common/DateFilter";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 
 interface PortfolioWorksFiltersProps {
   data: FiltersInterface;

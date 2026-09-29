@@ -8,13 +8,14 @@ import { useCallback, useEffect, useState } from "react";
 import { ButtonComponent } from "@/components/common/Button";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { FiltersInterface } from "@/types/filtersInterfaces";
+
 import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
 import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
 import { Checkbox, TextField } from "@mui/material";
 import { DateFilter } from "@/components/common/DateFilter";
+import { FilterOption, FiltersInterface } from "@/types/genericFilterSchema";
 
 interface ScheduleByDateFiltersProps {
   data: FiltersInterface;
@@ -150,6 +151,10 @@ export default function ScheduleForDayFilters({
         />
 
         {Object.entries(filteredData)
+          .filter(
+            (entry): entry is [string, FilterOption[]] =>
+              Array.isArray(entry[1]) && entry[1].length > 0,
+          )
           .slice(0, 8)
           .map(([key, value], index) => {
             const valueKey = Object.keys(value[0])[0];
