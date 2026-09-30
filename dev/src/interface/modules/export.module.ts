@@ -9,7 +9,6 @@ import { Module } from '@nestjs/common';
 import { ExportCompletedWorksService } from '../../application/usecases/export/exportCompletedWorks.service';
 import { ExportScheduleService } from '../../application/usecases/export/exportSchedule.service';
 import { ExportWorksInPortfolioService } from '../../application/usecases/export/exportWorksInPortfolio.service';
-import { ExportController } from '../controllers/export.controller';
 import { ScheduleModule } from './schedule.module';
 import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
@@ -33,6 +32,15 @@ import { WorksServicesModule } from './worksServices.module';
 import { ExportExcelServicesService } from 'src/application/usecases/export/services/exportExcelServices.service';
 import { ExportFeasibilityService } from 'src/application/usecases/export/exportFeasibility.service';
 import { FeasibilityModule } from './feasibility.module';
+import { ExportWorksController } from '../controllers/export/exportWorks.controller';
+import { ExportScheduleController } from '../controllers/export/exportSchedule.controller';
+import { ExportPublicationsController } from '../controllers/export/exportPublication.controller';
+import { ExportServicesController } from '../controllers/export/exportServices.controller';
+import { ExportFeasibilityController } from '../controllers/export/exportFeasibility.controller';
+import { ExportBIController } from '../controllers/export/exportBi.controller';
+import { ExportD5NotesService } from 'src/application/usecases/export/exportD5Notes.service';
+import { D5NotesModule } from './d5Notes.module';
+import { ExportD5NotesController } from '../controllers/export/exportD5.controller';
 
 @Module({
   imports: [
@@ -43,8 +51,17 @@ import { FeasibilityModule } from './feasibility.module';
     RestrictionsModule,
     WorksServicesModule,
     FeasibilityModule,
+    D5NotesModule,
   ],
-  controllers: [ExportController],
+  controllers: [
+    ExportWorksController,
+    ExportScheduleController,
+    ExportPublicationsController,
+    ExportServicesController,
+    ExportFeasibilityController,
+    ExportBIController,
+    ExportD5NotesController,
+  ],
   providers: [
     ExportScheduleService,
     ExportWorksInPortfolioService,
@@ -68,6 +85,7 @@ import { FeasibilityModule } from './feasibility.module';
     ExportPdfServicesService,
     ExportExcelServicesService,
     ExportFeasibilityService,
+    ExportD5NotesService,
     {
       provide: EXPORT_REPOSITORY,
       useClass: ExportRepository,

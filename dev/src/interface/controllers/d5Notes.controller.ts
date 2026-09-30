@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Put,
   Query,
@@ -23,11 +24,13 @@ import {
   CreateProgramacaoD5Dto,
   D5NotesFiltersDTO,
   D5NotesSchedulesFiltersDTO,
+  UpdateD5NoteDTO,
   UpdateScheduleD5Dto,
 } from '../dtos/d5NotesDTO';
 import { FindD5SchedulesService } from 'src/application/usecases/d5Notes/schedules/findD5Schedules.service';
 import { ManageD5NoteScheduleService } from 'src/application/usecases/d5Notes/schedules/manageD5NoteSchedule.service';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { ManageD5NoteService } from 'src/application/usecases/d5Notes/notes/manageD5Note.service';
 
 @Controller('notas-d5')
 export class D5NotesController {
@@ -35,14 +38,13 @@ export class D5NotesController {
     private findD5NotesService: FindD5NotesService,
     private findD5NotesSchedules: FindD5SchedulesService,
     private manageD5NoteScheduleService: ManageD5NoteScheduleService,
+    private manageD5NoteService: ManageD5NoteService,
   ) {}
 
   @Get()
   @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async getAll(@Query() filters: D5NotesFiltersDTO) {
     const response = await this.findD5NotesService.get(filters);
-
-    console.log(response);
 
     return {
       statusCode: HttpStatus.OK,
@@ -67,6 +69,7 @@ export class D5NotesController {
   @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async getById(@Param('id', ParseIntPipe) id: number) {
     const response = await this.findD5NotesService.getById(id);
+
     return {
       statusCode: HttpStatus.OK,
       message: 'Detalhes da nota D5 retornado com sucesso',
@@ -96,8 +99,23 @@ export class D5NotesController {
     };
   }
 
+  @Patch(':id')
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
+  async updateD5Notes(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: UpdateD5NoteDTO,
+    @Req() req: any,
+  ) {
+    await this.manageD5NoteService.update(id, data, req.user.sub);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Nota D5 atualizada com sucesso',
+    };
+  }
+
   @Put('/programacoes/:id')
-  @UseGuards(AreaEditGuard({ allowedAreas: [8, 1] }))
+  @UseGuards(AreaEditGuard({ allowedAreas: [8] }))
   @UseInterceptors(FilesInterceptor('files', 5))
   async updateD5NotesSchedule(
     @Param('id', ParseIntPipe) id: number,
@@ -119,7 +137,7 @@ export class D5NotesController {
   }
 
   @Delete('/programacoes/:id')
-  @UseGuards(AreaEditGuard({ allowedAreas: [8, 1] }))
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async deleteSchedule(@Param('id', ParseIntPipe) id: number) {
     await this.manageD5NoteScheduleService.delete(id);
 

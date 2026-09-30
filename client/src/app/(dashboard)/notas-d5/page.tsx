@@ -29,6 +29,7 @@ export default async function D5NotesPage() {
       municipio: true,
       grupo: true,
       status: true,
+      notaD5: true,
     }),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/notas-d5`,
@@ -55,11 +56,11 @@ export default async function D5NotesPage() {
     tipoObra: "Tipo",
     criado_em: "Criado em",
     conclusao_nota: "Data de conclusão",
-    status: "Status da Nota",
-    tme_abertura: "TME Abertura",
-    tme_executado: "TME Executado",
-    validacao_anual: "Validação Anual",
-    mo_planejada: "MO Plan",
+    status: "Status D5 (SIGO)",
+    status_sap: "Status D5 (SAP)",
+    tmAberto: "TM - Aberto",
+    tmExecucao: "TM - Execução",
+    moRetida: "MO Retida",
   };
 
   return (

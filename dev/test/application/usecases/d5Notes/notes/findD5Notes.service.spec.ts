@@ -1,5 +1,5 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import moment from 'moment';
+import moment, { Moment } from 'moment';
 import { FindD5NotesService } from 'src/application/usecases/d5Notes/notes/findD5Notes.service';
 
 import { D5NotesFiltersDTO } from 'src/interface/dtos/d5NotesDTO';
@@ -10,6 +10,7 @@ import { D5NotesFiltersDTO } from 'src/interface/dtos/d5NotesDTO';
 const makeRow = (overrides: Record<string, any> = {}) => ({
   id: 1,
   criado_em: new Date('2026-01-01T00:00:00.000Z'),
+  conclusao_nota: null,
   obras: { ovnota: 'OV-123', diagrama: 'DIAG-1' },
   municipios: {
     mun_minusculo: 'Cascais',
@@ -49,6 +50,12 @@ describe('FindD5NotesService', () => {
 
   const calculateCost = (data: { prog: number; exec: number }[]) =>
     (service as any).calculateCostPointByPointSchedule(data);
+
+  const calculateTM = (initialDate: Moment, executionDate: Moment | null) =>
+    (service as any).calculateTM(initialDate, executionDate);
+
+  const buildDateRange = (label: string, inicio?: string, fim?: string) =>
+    (service as any).buildDateRange(label, inicio, fim);
 
   beforeEach(() => {
     service = new FindD5NotesService(repository as any);
@@ -271,6 +278,22 @@ describe('FindD5NotesService', () => {
       });
     });
 
+    it('deve calcular o TM de execução quando a nota está concluída', async () => {
+      repository.getById.mockResolvedValue(
+        makeDetail({
+          criado_em: new Date('2026-01-01T00:00:00.000Z'),
+          conclusao_nota: new Date('2026-01-06T18:45:00.000Z'),
+        }),
+      );
+
+      const result = await service.getById(1);
+
+      expect(result).toMatchObject({
+        tmExecucao: 6,
+        tmAberto: null,
+      });
+    });
+
     it('deve remover as relações cruas do detalhe', async () => {
       const result = await service.getById(1);
 
@@ -421,6 +444,62 @@ describe('FindD5NotesService', () => {
       },
     );
 
+    it('deve montar o período de criado_em a partir do filtro', () => {
+      const where = buildWhere(
+        makeFilters({
+          dataCriacaoInicial: '2026-10-01',
+          dataCriacaoFinal: '2026-10-10',
+        }),
+      );
+
+      expect(where).toMatchObject({
+        criado_em: {
+          gte: moment('2026-10-01').startOf('day').toDate(),
+          lt: moment('2026-10-10').startOf('day').add(1, 'day').toDate(),
+        },
+      });
+    });
+
+    it('deve montar o período de conclusao_nota a partir do filtro', () => {
+      const where = buildWhere(
+        makeFilters({
+          dataConclusaoInicial: '2026-10-01',
+          dataConclusaoFinal: '2026-10-10',
+        }),
+      );
+
+      expect(where).toMatchObject({
+        conclusao_nota: {
+          gte: moment('2026-10-01').startOf('day').toDate(),
+          lt: moment('2026-10-10').startOf('day').add(1, 'day').toDate(),
+        },
+      });
+    });
+
+    it('deve montar o período de status_sap a partir do filtro', () => {
+      const where = buildWhere(
+        makeFilters({
+          statusD5Sap: 'Concluído',
+        }),
+      );
+
+      expect(where).toMatchObject({
+        status_sap: 'Concluído',
+      });
+    });
+
+    it('deve montar o período de nota_d5 a partir do filtro', () => {
+      const where = buildWhere(
+        makeFilters({
+          idNotaD5: [1, 2, 3],
+        }),
+      );
+
+      expect(where).toMatchObject({
+        nota_d5: { in: [1, 2, 3] },
+      });
+    });
+
     it('deve combinar todos os filtros em simultâneo', () => {
       expect(
         buildWhere(
@@ -460,6 +539,99 @@ describe('FindD5NotesService', () => {
 
     it('deve tratar a página 0 como válida', () => {
       expect(buildPagination(0)).toEqual({ skip: 0, take: 200 });
+    });
+  });
+
+  // =========================================================================
+  // calculateTM
+  // =========================================================================
+  describe('calculateTM', () => {
+    beforeEach(() => {
+      jest.useFakeTimers().setSystemTime(new Date('2026-10-08T15:30:00'));
+    });
+
+    afterEach(() => jest.useRealTimers());
+    it('Deve retornar o TM aberto corretamente e o TM execucao como nulo', () => {
+      const mockInitialDate = moment('2026-09-30');
+      const mockExecutionDate = null;
+
+      expect(calculateTM(mockInitialDate, mockExecutionDate)).toEqual({
+        tmAberto: 8,
+        tmExecucao: null,
+      });
+    });
+
+    it('Deve retornar o TM execucao corretamente e o TM aberto como nulo', () => {
+      const mockInitialDate = moment('2026-09-23');
+      const mockExecutionDate = moment('2026-09-30');
+
+      expect(calculateTM(mockInitialDate, mockExecutionDate)).toEqual({
+        tmAberto: null,
+        tmExecucao: 7,
+      });
+    });
+  });
+
+  // =========================================================================
+  // buildDateRange
+  // =========================================================================
+  describe('buildDateRange', () => {
+    it('deve devolver undefined quando não há datas', () => {
+      expect(buildDateRange('criação')).toBeUndefined();
+      expect(buildDateRange(undefined, undefined)).toBeUndefined();
+    });
+
+    it('deve devolver apenas gte quando só há data inicial', () => {
+      expect(buildDateRange('criação', '2026-10-01')).toEqual({
+        gte: moment('2026-10-01').startOf('day').toDate(),
+      });
+    });
+
+    it('deve devolver apenas lt quando só há data final', () => {
+      expect(buildDateRange('criação', undefined, '2026-10-10')).toEqual({
+        lt: moment('2026-10-11').startOf('day').toDate(),
+      });
+    });
+
+    it('deve devolver o intervalo completo quando há ambas as datas', () => {
+      expect(buildDateRange('criação', '2026-10-01', '2026-10-10')).toEqual({
+        gte: moment('2026-10-01').startOf('day').toDate(),
+        lt: moment('2026-10-11').startOf('day').toDate(),
+      });
+    });
+
+    it('deve incluir o dia final por inteiro', () => {
+      const range = buildDateRange('criação', undefined, '2026-10-10');
+      expect(range.lt.getTime()).toBeGreaterThan(
+        new Date('2026-10-10T23:59:59.999').getTime(),
+      );
+    });
+
+    it('deve normalizar a hora da data inicial', () => {
+      expect(buildDateRange('criação', '2026-10-01T18:45:00')).toEqual({
+        gte: moment('2026-10-01').startOf('day').toDate(),
+      });
+    });
+
+    it('deve aceitar intervalo de um único dia', () => {
+      expect(buildDateRange('criação', '2026-10-01', '2026-10-01')).toEqual({
+        gte: moment('2026-10-01').startOf('day').toDate(),
+        lt: moment('2026-10-02').startOf('day').toDate(),
+      });
+    });
+
+    it('deve lançar BadRequest quando a data inicial é posterior à final', () => {
+      expect(() =>
+        buildDateRange('criação', '2026-10-10', '2026-10-01'),
+      ).toThrow(BadRequestException);
+    });
+
+    it('deve usar o label na mensagem de erro', () => {
+      expect(() =>
+        buildDateRange('conclusão', '2026-10-10', '2026-10-01'),
+      ).toThrow(
+        'A data inicial de conclusão não pode ser posterior à data final',
+      );
     });
   });
 });

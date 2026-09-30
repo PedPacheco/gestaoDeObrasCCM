@@ -47,22 +47,22 @@ export function ChartTooltip({
             className="w-2 h-2 rounded-full shrink-0"
             style={{ background: "#f59e0b" }}
           />
-          <span className="text-zinc-400">Meta:</span>
+          <span className="text-zinc-400">Meta Diária:</span>
           <span className="font-bold text-white">
             {FormatCurrency(data["Meta"])}
           </span>
         </div>
       )}
 
-      {data?.["Meta Período"] != null && (
+      {data?.["Média Diária Programado"] != null && (
         <div className="flex items-center gap-2 py-0.5">
           <span
             className="w-2 h-2 rounded-full shrink-0"
             style={{ background: "#f43f5e" }}
           />
-          <span className="text-zinc-400">Meta:</span>
+          <span className="text-zinc-400">Média Diária Programado:</span>
           <span className="font-bold text-white">
-            {FormatCurrency(data["Meta Período"])}
+            {FormatCurrency(data["Média Diária Programado"])}
           </span>
         </div>
       )}

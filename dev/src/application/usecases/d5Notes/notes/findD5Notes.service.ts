@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import moment from 'moment';
+import moment, { Moment } from 'moment';
 import {
   D5_NOTES_REPOSITORY,
   D5NotePagination,
@@ -39,6 +39,7 @@ export class FindD5NotesService {
         ...rest
       }) => ({
         ...rest,
+        moRetida: Number(rest.mo_planejada),
         ordemDiagrama:
           obras?.diagrama ??
           obras?.ordem_dci ??
@@ -83,6 +84,11 @@ export class FindD5NotesService {
     const { totalExecutado, totalProgramado } =
       this.calculateCostPointByPointSchedule(programacoes_d5);
 
+    const { tmAberto, tmExecucao } = this.calculateTM(
+      moment(rest.criado_em).startOf('day'),
+      rest.conclusao_nota ? moment(rest.conclusao_nota).startOf('day') : null,
+    );
+
     return {
       ...rest,
       obra: obras?.ovnota ?? null,
@@ -97,12 +103,17 @@ export class FindD5NotesService {
       parceira: turmas.turma,
       tipoObra: tipos.tipo_obra,
       status: status.status,
+      tmAberto,
+      tmExecucao,
       usuarioModificador: novo_tabela_usuarios?.nome ?? null,
       totalProgramado,
       totalExecutado,
+      observacao: rest.descricao,
       prazo: moment(rest.criado_em).add(7, 'days').toDate(),
     };
   }
+
+  /* ---------------- Funções auxiliares ---------------- */
 
   private calculateCostPointByPointSchedule(
     data: { prog: number; exec: number }[],
@@ -120,6 +131,26 @@ export class FindD5NotesService {
       },
     );
   }
+
+  private calculateTM(
+    initialDate: Moment,
+    executionDate: Moment | null,
+  ): { tmAberto: number | null; tmExecucao: number | null } {
+    let tmExecuted: number | null = null;
+    let tmOpen: number | null = null;
+
+    if (executionDate) {
+      tmExecuted = executionDate.diff(initialDate, 'days');
+
+      return { tmAberto: tmOpen, tmExecucao: tmExecuted };
+    }
+
+    tmOpen = moment().startOf('day').diff(initialDate, 'days');
+
+    return { tmAberto: tmOpen, tmExecucao: tmExecuted };
+  }
+
+  /* ---------------- Funções para orquestração dos filtros ---------------- */
 
   private buildWhereClause(filters: D5NotesFiltersDTO) {
     const where: any = {};
@@ -147,6 +178,36 @@ export class FindD5NotesService {
       where.id_parceira = { in: filters.idParceira };
     }
 
+    // --- Período da data de criação ---
+    const criadoEm = this.buildDateRange(
+      'criação',
+      filters.dataCriacaoInicial,
+      filters.dataCriacaoFinal,
+    );
+    if (criadoEm) {
+      where.criado_em = criadoEm;
+    }
+
+    // --- Período da data de conclusão ---
+    const conclusaoNota = this.buildDateRange(
+      'conclusão',
+      filters.dataConclusaoInicial,
+      filters.dataConclusaoFinal,
+    );
+
+    if (conclusaoNota) {
+      where.conclusao_nota = conclusaoNota;
+    }
+
+    // --- Status SAP ---
+    if (filters.statusD5Sap) {
+      where.status_sap = filters.statusD5Sap;
+    }
+
+    if (filters.idNotaD5?.length) {
+      where.nota_d5 = { in: filters.idNotaD5 };
+    }
+
     return where;
   }
 
@@ -157,5 +218,28 @@ export class FindD5NotesService {
       skip: page * 200,
       take: 200,
     };
+  }
+
+  private buildDateRange(label: string, inicio?: string, fim?: string) {
+    if (!inicio && !fim) return undefined;
+
+    const range: { gte?: Date; lt?: Date } = {};
+
+    if (inicio) {
+      range.gte = moment(inicio).startOf('day').toDate();
+    }
+
+    if (fim) {
+      // lt no dia seguinte garante que o dia final é incluído por inteiro
+      range.lt = moment(fim).startOf('day').add(1, 'day').toDate();
+    }
+
+    if (range.gte && range.lt && range.gte >= range.lt) {
+      throw new BadRequestException(
+        `A data inicial de ${label} não pode ser posterior à data final`,
+      );
+    }
+
+    return range;
   }
 }

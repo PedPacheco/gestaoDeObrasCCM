@@ -4,6 +4,7 @@ import {
   IsBoolean,
   IsDateString,
   IsInt,
+  IsIn,
   IsNumber,
   IsOptional,
   IsString,
@@ -18,30 +19,58 @@ export class D5NotesFiltersDTO {
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idRegional: number[];
+  idRegional?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idMunicipio: number[];
+  idMunicipio?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idGrupo: number[];
+  idGrupo?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idTipo: number[];
+  idTipo?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idParceira: number[];
+  idParceira?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idNotaD5?: number[];
+
+  @IsDateString()
+  @IsOptional()
+  dataCriacaoInicial?: string;
+
+  @IsDateString()
+  @IsOptional()
+  dataCriacaoFinal?: string;
+
+  @IsDateString()
+  @IsOptional()
+  dataConclusaoInicial?: string;
+
+  @IsDateString()
+  @IsOptional()
+  dataConclusaoFinal?: string;
+
+  @IsOptional()
+  @IsIn(['Concluído', 'Pendente'], {
+    message: 'o Status enviado deve ser "Concluído" ou "Pendente"',
+  })
+  statusD5Sap?: 'Concluído' | 'Pendente';
 
   @IsNumber()
   @Type(() => Number)
+  @IsOptional()
   page?: number;
 }
 
@@ -57,31 +86,45 @@ export class D5NotesSchedulesFiltersDTO {
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idRegional: number[];
+  idRegional?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idMunicipio: number[];
+  idMunicipio?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idGrupo: number[];
+  idGrupo?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idTipo: number[];
+  idTipo?: number[];
 
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
-  idParceira: number[];
+  idParceira?: number[];
 
   @IsNumber()
   @Type(() => Number)
   page?: number;
+}
+
+export class UpdateD5NoteDTO {
+  @IsNumber()
+  @IsOptional()
+  partnerId?: number;
+
+  @IsNumber()
+  @IsOptional()
+  statusId?: number;
+
+  @IsString()
+  @IsOptional()
+  observation?: string;
 }
 
 export class CreateProgramacaoD5Dto {

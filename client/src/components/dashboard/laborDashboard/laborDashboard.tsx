@@ -111,14 +111,6 @@ export default function LaborDashboard({
   const [startDate, setStartDate] = useState<Dayjs | null>(DEFAULT_START());
   const [endDate, setEndDate] = useState<Dayjs | null>(DEFAULT_END());
 
-  const [appliedRange, setAppliedRange] = useState<{
-    start: Dayjs;
-    end: Dayjs;
-  }>({
-    start: DEFAULT_START(),
-    end: DEFAULT_END(),
-  });
-
   const [isFiltered, setIsFiltered] = useState<boolean>(false);
 
   const [selectedRegionais, setSelectedRegionais] = useState<string[]>(
@@ -147,8 +139,8 @@ export default function LaborDashboard({
     dailyData: data,
     groupData: data2,
     dailyGoal: metaDiaria,
-    startDate: appliedRange.start,
-    endDate: appliedRange.end,
+    startDate: startDate ?? DEFAULT_START(),
+    endDate: endDate ?? DEFAULT_END(),
   });
 
   const buildParams = useCallback(
@@ -177,11 +169,6 @@ export default function LaborDashboard({
     saveFilters(params);
 
     startTransition(async () => {
-      setAppliedRange({
-        start: startDate ?? DEFAULT_START(),
-        end: endDate ?? DEFAULT_END(),
-      });
-
       const response = await fetchData(
         `${process.env.NEXT_PUBLIC_API_URL}/programacao/resumo-mensal`,
         params,
@@ -204,7 +191,6 @@ export default function LaborDashboard({
     setStartDate(DEFAULT_START);
     setEndDate(DEFAULT_END);
     setIsFiltered(false);
-    setAppliedRange({ start: DEFAULT_START(), end: DEFAULT_END() });
     clearFilters();
 
     const params = {
@@ -291,13 +277,13 @@ export default function LaborDashboard({
                 />
                 <XAxis
                   dataKey="dia"
-                  tick={{ fill: "#a1a1aa", fontSize: 11 }}
+                  tick={{ fill: "#a1a1aa", fontSize: 14 }}
                   axisLine={false}
                   tickLine={false}
                   interval={1}
                 />
                 <YAxis
-                  tick={{ fill: "#a1a1aa", fontSize: 12 }}
+                  tick={{ fill: "#a1a1aa", fontSize: 14 }}
                   axisLine={false}
                   tickLine={false}
                   tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
@@ -344,7 +330,7 @@ export default function LaborDashboard({
                       value: `Meta Diária Fixa: ${FormatCurrency(metaDiaria)}`,
                       position: "insideTopRight",
                       fill: "#f59e0b",
-                      fontSize: 11,
+                      fontSize: 14,
                     }}
                   />
                 )}
@@ -361,7 +347,7 @@ export default function LaborDashboard({
                       value: `Meta Diário período: ${FormatCurrency(periodGoalPerDay)}`,
                       position: "insideBottomRight",
                       fill: "#f43f5e",
-                      fontSize: 11,
+                      fontSize: 14,
                     }}
                   />
                 )}

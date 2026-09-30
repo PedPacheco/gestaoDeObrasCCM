@@ -1,4 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
+import moment, { Moment } from 'moment';
 import {
   D5NoteSchedule,
   D5ScheduleProps,
@@ -177,6 +178,13 @@ export class D5NoteScheduleMapper {
     const { tecnicos, notas_d5, ...schedule } = row;
     const obras = notas_d5.obras;
 
+    const { tmAberto, tmExecucao } = this.calculateTM(
+      moment(notas_d5.criado_em).startOf('day'),
+      notas_d5.conclusao_nota
+        ? moment(notas_d5.conclusao_nota).startOf('day')
+        : null,
+    );
+
     return {
       ...schedule,
       tecnico: tecnicos?.tecnico ?? null,
@@ -186,10 +194,9 @@ export class D5NoteScheduleMapper {
       criado_em: notas_d5.criado_em,
       conclusao_nota: notas_d5.conclusao_nota,
       status_sap: notas_d5.status_sap,
-      tme_executado: notas_d5.tme_executado,
-      tme_abertura: notas_d5.tme_abertura,
-      validacao_anual: notas_d5.validacao_anual,
-      mo_planejada: notas_d5.mo_planejada?.toNumber() ?? 0,
+      tmExecucao,
+      tmAberto,
+      moRetida: notas_d5.mo_planejada?.toNumber() ?? 0,
       municipio: notas_d5.municipios.mun_minusculo,
       regional: notas_d5.municipios.regionais.regional,
       tipo_obra: notas_d5.tipos.tipo_obra,
@@ -210,7 +217,7 @@ export class D5NoteScheduleMapper {
   static toListItems(
     rows: SchedulesD5NotesQueryResult[],
   ): D5NoteScheduleListItem[] {
-    return rows.map(D5NoteScheduleMapper.toListItem);
+    return rows.map((row) => D5NoteScheduleMapper.toListItem(row));
   }
 
   /* ---------------- Auxiliares ---------------- */
@@ -256,5 +263,23 @@ export class D5NoteScheduleMapper {
       responsavel_restricao: entity.responsibility,
       caminhos_arquivos: entity.filePaths,
     };
+  }
+
+  private static calculateTM(
+    initialDate: Moment,
+    executionDate: Moment | null,
+  ): { tmAberto: number | null; tmExecucao: number | null } {
+    let tmExecuted: number | null = null;
+    let tmOpen: number | null = null;
+
+    if (executionDate) {
+      tmExecuted = executionDate.diff(initialDate, 'days');
+
+      return { tmAberto: tmOpen, tmExecucao: tmExecuted };
+    }
+
+    tmOpen = moment().startOf('day').diff(initialDate, 'days');
+
+    return { tmAberto: tmOpen, tmExecucao: tmExecuted };
   }
 }

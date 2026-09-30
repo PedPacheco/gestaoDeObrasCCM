@@ -7,8 +7,6 @@ export type FindD5NotesQueryResult = {
   criado_em: Date;
   conclusao_nota: Date | null;
   status_sap: string;
-  tme_executado: number | null;
-  tme_abertura: number | null;
   validacao_anual: boolean | null;
   mo_planejada: Decimal;
   nota_d5: string;
@@ -42,15 +40,16 @@ export type FindD5NotesQueryResult = {
 
 export const d5NoteByIdSelect = {
   id: true,
+  id_parceira: true,
+  id_status: true,
   local_instalacao: true,
   criado_em: true,
   conclusao_nota: true,
   status_sap: true,
-  tme_executado: true,
-  tme_abertura: true,
   validacao_anual: true,
   mo_planejada: true,
   nota_d5: true,
+  descricao: true,
   obras: {
     select: {
       ovnota: true,
@@ -125,9 +124,6 @@ export type SchedulesD5NotesQueryResult = {
     criado_em: Date;
     conclusao_nota: Date | null;
     status_sap: string;
-    tme_executado: number | null;
-    tme_abertura: number | null;
-    validacao_anual: boolean | null;
     mo_planejada: Decimal;
     nota_d5: string;
     obras: {
@@ -240,10 +236,9 @@ export type D5NoteScheduleListItem = {
   criado_em: Date;
   conclusao_nota: Date | null;
   status_sap: string;
-  tme_executado: number | null;
-  tme_abertura: number | null;
-  validacao_anual: boolean | null;
-  mo_planejada: number;
+  tmExecucao: number | null;
+  tmAberto: number | null;
+  moRetida: number;
 
   // Relações da nota
   municipio: string;

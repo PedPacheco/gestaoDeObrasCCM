@@ -1,6 +1,7 @@
 // actions/d5Notes.ts
 "use server";
 
+import { UpdateD5NotePayload } from "@/contexts/d5NoteEditContext";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 
@@ -107,6 +108,53 @@ export async function deleteD5NoteSchedule(id: number, d5NoteId: number) {
     return { success: true, message: res.message };
   } catch (error: any) {
     return { success: false, message: error.message };
+  }
+}
+
+export async function updateD5NoteAction(
+  id: number,
+  data: UpdateD5NotePayload,
+) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  if (!token) {
+    return {
+      success: false,
+      message: "Sessão expirada. Faça login novamente.",
+    };
+  }
+
+  const url = `${process.env.NEXT_PUBLIC_API_URL}/notas-d5/${id}`;
+
+  try {
+    const response = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: result.message
+          ? result.message
+          : (result.message ?? "Erro ao salvar Nota D5"),
+      };
+    }
+
+    revalidatePath(`/notas-d5/${id}`);
+    return { success: true };
+  } catch {
+    return {
+      success: false,
+      message: "Não foi possível comunicar com o servidor.",
+    };
   }
 }
 

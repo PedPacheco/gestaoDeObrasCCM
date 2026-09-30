@@ -59,13 +59,12 @@ export default async function ScheduleForDay() {
     local_instalacao: "Local de Instalação",
     criado_em: "Criado em",
     conclusao_nota: "Data de conclusão",
-    status: "Status da Nota",
-    status_sap: "Status SAP",
+    status: "Status D5 (SIGO)",
+    status_sap: "Status D5 (SAP)",
     responsavel: "Responsável",
-    tme_abertura: "TME Abertura",
-    tme_executado: "TME Executado",
-    validacao_anual: "Validação Anual",
-    mo_planejada: "MO Plan",
+    tmAberto: "TM - Aberto",
+    tmExecucao: "TM - Execução",
+    moRetida: "MO Retida",
 
     // Programação
     data_prog: "Data da Programação",

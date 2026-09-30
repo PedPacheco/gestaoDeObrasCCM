@@ -49,9 +49,6 @@ export class D5NotesSchedulesRepository implements ID5NotesSchedulesRepository {
             criado_em: true,
             conclusao_nota: true,
             status_sap: true,
-            tme_executado: true,
-            tme_abertura: true,
-            validacao_anual: true,
             mo_planejada: true,
             nota_d5: true,
             obras: {

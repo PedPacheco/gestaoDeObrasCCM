@@ -4,33 +4,23 @@ import { useEffect, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { ButtonComponent } from "@/components/common/Button";
-import ErrorModal from "@/components/common/ErrorModal";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
-import { useMapFilter } from "@/contexts/mapFilterContext";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { MainInterface } from "@/types/mainInterface";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import MainAllWorksTable from "./allWorksTable";
 import { capitalize } from "@/utils/formatValue";
 import { useFeedback } from "@/hooks/useFeedback";
-
-interface allWorksType {
-  regional: { id: string; regional: string }[];
-  parceira: { id: string; turma: string }[];
-  tipo: { id: string; tipo_obra: string; id_grupo: number }[];
-  municipio: { id: string; municipio: string; id_regional: number }[];
-  grupo: { id: string; grupo: string }[];
-}
+import { FilterOption, FiltersInterface } from "@/types/genericFilterSchema";
 
 export default function MainAllWorks({
   data,
   filtersData,
   columns,
   token,
-}: MainInterface<allWorksType>) {
+}: MainInterface<FiltersInterface>) {
   const [filteredData, setFilteredData] = useState(data);
   const { clearFilters, filters, saveFilters } = useSaveFilters({
     pageKey: "allWorksFilters",
@@ -110,31 +100,36 @@ export default function MainAllWorks({
     <>
       <div className="my-6 w-4/5 flex flex-col">
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center">
-          {Object.entries(filtersData).map(([key, value], index) => {
-            const valueKey = Object.keys(value[0])[0];
-            const displayKey = Object.keys(value[0])[1];
+          {Object.entries(filtersData)
+            .filter(
+              (entry): entry is [string, FilterOption[]] =>
+                Array.isArray(entry[1]) && entry[1].length > 0,
+            )
+            .map(([key, value], index) => {
+              const valueKey = Object.keys(value[0])[0];
+              const displayKey = Object.keys(value[0])[1];
 
-            const filterValue = `${valueKey}${
-              key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()
-            }`;
+              const filterValue = `${valueKey}${
+                key.charAt(0).toUpperCase() + key.slice(1).toLowerCase()
+              }`;
 
-            return (
-              <MultipleSelectComponent
-                label={capitalize(key)}
-                menuItems={value || []}
-                selectedItem={selectedItems[filterValue]}
-                setSelectedItem={(selectedValue) => {
-                  setSelectedItems((prev) => ({
-                    ...prev,
-                    [filterValue]: selectedValue,
-                  }));
-                }}
-                valueKey={valueKey}
-                displayKey={displayKey}
-                key={index}
-              />
-            );
-          })}
+              return (
+                <MultipleSelectComponent
+                  label={capitalize(key)}
+                  menuItems={value || []}
+                  selectedItem={selectedItems[filterValue]}
+                  setSelectedItem={(selectedValue) => {
+                    setSelectedItems((prev) => ({
+                      ...prev,
+                      [filterValue]: selectedValue,
+                    }));
+                  }}
+                  valueKey={valueKey}
+                  displayKey={displayKey}
+                  key={index}
+                />
+              );
+            })}
         </div>
 
         <div className=" flex flex-col md:flex-row justify-between items-center xl:justify-around">

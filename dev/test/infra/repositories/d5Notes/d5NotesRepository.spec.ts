@@ -11,8 +11,6 @@ const makeNote = (overrides: Record<string, any> = {}) => ({
   criado_em: new Date('2026-01-01T00:00:00.000Z'),
   conclusao_nota: null,
   status_sap: 'ABERTA',
-  tme_executado: 1,
-  tme_abertura: 2,
   validacao_anual: true,
   mo_planejada: { toNumber: () => 12.5 },
   obras: { ovnota: 'OV-1', diagrama: 'DIAG-1' },
@@ -39,8 +37,6 @@ const SCALAR_FIELDS = [
   'criado_em',
   'conclusao_nota',
   'status_sap',
-  'tme_executado',
-  'tme_abertura',
   'validacao_anual',
   'mo_planejada',
   'nota_d5',
@@ -63,6 +59,7 @@ describe('D5NotesRepository', () => {
     findMany: jest.fn(),
     findUnique: jest.fn(),
     aggregate: jest.fn(),
+    update: jest.fn(),
   };
 
   const prisma = { notas_d5: notasD5 } as unknown as PrismaService;
@@ -76,6 +73,7 @@ describe('D5NotesRepository', () => {
     notasD5.findMany.mockResolvedValue([]);
     notasD5.findUnique.mockResolvedValue(null);
     notasD5.aggregate.mockResolvedValue(makeAggregate(null, 150.3));
+    notasD5.update.mockResolvedValue([]);
   });
 
   afterEach(() => jest.resetAllMocks());
@@ -376,7 +374,7 @@ describe('D5NotesRepository', () => {
         await repository.getById(1);
 
         expect(Object.keys(args().select)).toHaveLength(
-          Object.keys(baseSelect()).length + 1,
+          Object.keys(baseSelect()).length + 4,
         );
       });
 
@@ -405,6 +403,85 @@ describe('D5NotesRepository', () => {
       await expect(repository.getById(1)).rejects.toMatchObject({
         code: 'P2025',
       });
+    });
+  });
+
+  describe('update', () => {
+    const USER_ID = 99;
+
+    beforeEach(() => {
+      notasD5.update.mockResolvedValue({ id: 1 });
+    });
+
+    it('deve mapear os campos do DTO para as colunas da tabela', async () => {
+      await repository.update(
+        1,
+        { partnerId: 3, statusId: 7, observation: 'texto' },
+        USER_ID,
+      );
+
+      expect(notasD5.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: {
+          id_parceira: 3,
+          id_status: 7,
+          descricao: 'texto',
+          id_usuario_modificador: USER_ID,
+        },
+      });
+    });
+
+    it('deve sempre registar o utilizador modificador', async () => {
+      await repository.update(1, { observation: 'só observação' }, USER_ID);
+
+      expect(notasD5.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ id_usuario_modificador: USER_ID }),
+        }),
+      );
+    });
+
+    it.each([
+      ['apenas parceira', { partnerId: 3 }, { id_parceira: 3 }],
+      ['apenas status', { statusId: 7 }, { id_status: 7 }],
+      ['apenas observação', { observation: 'obs' }, { descricao: 'obs' }],
+    ])('deve mapear %s', async (_label, dto, expected) => {
+      await repository.update(1, dto, USER_ID);
+
+      expect(notasD5.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining(expected) }),
+      );
+    });
+
+    it('deve deixar undefined os campos ausentes, para o Prisma os ignorar', async () => {
+      await repository.update(1, { statusId: 7 }, USER_ID);
+
+      const { data } = notasD5.update.mock.calls[0][0];
+      expect(data.id_parceira).toBeUndefined();
+      expect(data.descricao).toBeUndefined();
+    });
+
+    it('deve usar o id recebido na cláusula where', async () => {
+      await repository.update(42, { statusId: 7 }, USER_ID);
+
+      expect(notasD5.update).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: 42 } }),
+      );
+    });
+
+    it('deve resolver sem devolver valor', async () => {
+      await expect(
+        repository.update(1, { statusId: 7 }, USER_ID),
+      ).resolves.toBeUndefined();
+    });
+
+    it('deve propagar erros do Prisma', async () => {
+      const error = new Error('P2025');
+      notasD5.update.mockRejectedValue(error);
+
+      await expect(repository.update(1, { statusId: 7 }, USER_ID)).rejects.toBe(
+        error,
+      );
     });
   });
 

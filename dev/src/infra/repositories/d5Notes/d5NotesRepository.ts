@@ -4,6 +4,7 @@ import {
   ID5NotesRepository,
 } from 'src/domain/repositories/d5Notes/ID5notesRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { UpdateD5NoteDTO } from 'src/interface/dtos/d5NotesDTO';
 import {
   D5NoteByIdQueryResult,
   FindD5NotesQueryResult,
@@ -17,8 +18,6 @@ export class D5NotesRepository implements ID5NotesRepository {
     criado_em: true,
     conclusao_nota: true,
     status_sap: true,
-    tme_executado: true,
-    tme_abertura: true,
     validacao_anual: true,
     mo_planejada: true,
     nota_d5: true,
@@ -78,7 +77,26 @@ export class D5NotesRepository implements ID5NotesRepository {
       where: { id },
       select: {
         ...this.baseServicesSelect,
+        id_parceira: true,
+        id_status: true,
+        descricao: true,
         programacoes_d5: { select: { prog: true, exec: true } },
+      },
+    });
+  }
+
+  async update(
+    id: number,
+    data: UpdateD5NoteDTO,
+    modifyingUserId: number,
+  ): Promise<void> {
+    await this.prisma.notas_d5.update({
+      where: { id },
+      data: {
+        id_parceira: data.partnerId,
+        id_status: data.statusId,
+        descricao: data.observation,
+        id_usuario_modificador: modifyingUserId,
       },
     });
   }
