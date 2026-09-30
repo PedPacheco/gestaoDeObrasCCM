@@ -38,20 +38,15 @@ export default function D5NotesMain({
 
   const [filteredData, setFilteredData] = useState(data);
   const [filteredTotals, setFilteredTotals] = useState(totals);
-  // const [open, setOpen] = useState(false);
   const [page, setPage] = useState(0);
 
   const [isPending, startTransition] = useTransition();
 
-  // const toggleModal = () => setOpen((prev) => !prev);
-
   const generateExcel = useCallback(
-    async (params: Record<string, string>) => {
-      const { page, ...formattedParams } = params;
-
+    async (params: Record<string, string | string[] | boolean>) => {
       const exportUrl = mountUrl(
         `${process.env.NEXT_PUBLIC_API_URL}/exportacao/notas-d5`,
-        formattedParams,
+        params,
       );
 
       try {
@@ -113,17 +108,14 @@ export default function D5NotesMain({
   return (
     <div className="flex w-full flex-col items-center overflow-y-auto">
       <div className="flex items-start gap-4 mx-auto w-11/12 py-6">
-        <div className="flex-1 min-w-0">
-          <D5NotesFilters
-            data={filtersData}
-            url={cookie}
-            page={page}
-            searchFilteredData={fetchWorks}
-            isPending={isPending}
-          />
-        </div>
-
-        <ButtonComponent text="Exportar Notas D5" />
+        <D5NotesFilters
+          data={filtersData}
+          url={cookie}
+          page={page}
+          searchFilteredData={fetchWorks}
+          generateExcel={generateExcel}
+          isPending={isPending}
+        />
       </div>
 
       <D5NotesTable

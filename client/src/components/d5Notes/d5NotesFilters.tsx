@@ -11,6 +11,7 @@ import {
   FilterFieldConfig,
   FiltersInterface,
 } from "@/types/genericFilterSchema";
+import { ButtonComponent } from "../common/Button";
 
 const STATUS_D5_SAP_OPTIONS = ["Concluído", "Pendente"] as const;
 
@@ -138,6 +139,7 @@ interface D5NotesFiltersProps {
   searchFilteredData: (
     params: Record<string, string | string[] | boolean>,
   ) => void;
+  generateExcel: (params: Record<string, string | string[] | boolean>) => void;
   page: number;
   isPending: boolean;
 }
@@ -146,6 +148,7 @@ export default function D5NotesFilters({
   data,
   url,
   isPending,
+  generateExcel,
   searchFilteredData,
 }: D5NotesFiltersProps) {
   // Funciona sem casts porque `FiltersInterface` agora tem uma index
@@ -240,18 +243,33 @@ export default function D5NotesFilters({
     searchFilteredData({ page: "0" });
   }
 
+  function handleGenerateExcel() {
+    const extraParams = buildExtraParams();
+
+    generateExcel({
+      ...Transform(selectedItems),
+      ...extraParams,
+    });
+  }
+
   return (
-    <GenericFilterBar
-      schema={D5_FILTER_SCHEMA}
-      data={filteredData}
-      deriveOptions={deriveD5Options}
-      selectedItems={selectedItems}
-      onSelectedItemsChange={setSelectedItems}
-      extraValues={extraValues}
-      onExtraValuesChange={setExtraValues}
-      isPending={isPending}
-      onApply={handleApplyFilters}
-      onClear={handleClearFilters}
-    />
+    <div className="flex w-full">
+      <div className="flex-1 min-w-0 mr-4">
+        <GenericFilterBar
+          schema={D5_FILTER_SCHEMA}
+          data={filteredData}
+          deriveOptions={deriveD5Options}
+          selectedItems={selectedItems}
+          onSelectedItemsChange={setSelectedItems}
+          extraValues={extraValues}
+          onExtraValuesChange={setExtraValues}
+          isPending={isPending}
+          onApply={handleApplyFilters}
+          onClear={handleClearFilters}
+        />
+      </div>
+
+      <ButtonComponent text="Exportar Notas D5" onClick={handleGenerateExcel} />
+    </div>
   );
 }

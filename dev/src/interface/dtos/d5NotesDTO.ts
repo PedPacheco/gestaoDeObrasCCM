@@ -70,6 +70,7 @@ export class D5NotesFiltersDTO {
 
   @IsNumber()
   @Type(() => Number)
+  @IsOptional()
   page?: number;
 }
 

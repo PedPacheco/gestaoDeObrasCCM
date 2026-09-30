@@ -63,5 +63,6 @@ import { ManageD5NoteService } from 'src/application/usecases/d5Notes/notes/mana
       useClass: D5NotesSchedulesRepository,
     },
   ],
+  exports: [FindD5NotesService],
 })
 export class D5NotesModule {}
