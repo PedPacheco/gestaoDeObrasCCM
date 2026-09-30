@@ -1,5 +1,5 @@
 import { ProgressEmitter } from 'src/application/shared/capex.types';
-import { CalculatedValue } from 'src/application/usecases/works/updateCapex.service';
+import { CalculatedValue } from 'src/application/usecases/works/management/updateCapex.service';
 
 export interface IUpdateCapexRepository {
   /**

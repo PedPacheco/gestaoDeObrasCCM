@@ -25,21 +25,18 @@ import { useCallback, useMemo, useState, useTransition } from "react";
 import { fetchData } from "@/actions/fetchData.action";
 import { useDashboardMetrics } from "@/hooks/dashboard/recompositionGoalsDashboard/useRecompositionGoalsMetrics";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-import {
-  FiltersData,
-  Goal,
-  MonthKey,
-} from "@/types/dashboard/recompositionGoals/goals";
+import { Goal, MonthKey } from "@/types/dashboard/recompositionGoals/goals";
 import { Transform } from "@/utils/transform";
 
 import { GoalsFilters } from "./GoalsFilters";
 import { GoalsTable } from "./GoalsTable";
 import { KpiSection } from "./KpiSection";
 import { ChartsSection } from "./ChartSection";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 
 interface Props {
   initialGoals: Goal[];
-  filtersData: FiltersData;
+  filtersData: FiltersInterface;
   token: string;
   filtersTop: number;
 }

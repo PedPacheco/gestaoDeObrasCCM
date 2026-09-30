@@ -5,35 +5,25 @@ import { useEffect, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { ButtonComponent } from "@/components/common/Button";
-import ErrorModal from "@/components/common/ErrorModal";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
+import { useFeedback } from "@/hooks/useFeedback";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 import { MainInterface } from "@/types/mainInterface";
+import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 import EntryTable from "./EntryTable";
-import { capitalize } from "@/utils/formatValue";
-import { useFeedback } from "@/hooks/useFeedback";
-
-export interface EntryFiltersType {
-  regional: { id: string; regional: string }[];
-  parceira: { id: string; turma: string }[];
-  tipo: { id: string; tipo_obra: string; id_grupo: number }[];
-  municipio: { id: string; municipio: string; id_regional: number }[];
-  grupo: { id: string; grupo: string }[];
-  circuito: { id: string; circuito: string }[];
-}
 
 export default function MainEntry({
   data,
   filtersData,
   columns,
   token,
-}: MainInterface<EntryFiltersType>) {
+}: MainInterface<FiltersInterface>) {
   const [filteredData, setFilteredData] = useState(data);
   const { showError } = useFeedback();
   const { clearFilters, filters, saveFilters } = useSaveFilters({

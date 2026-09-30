@@ -13,10 +13,10 @@ import {
   SelectChangeEvent,
 } from "@mui/material";
 
-import { FiltersData } from "@/types/dashboard/recompositionGoals/goals";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { FilterTag } from "../common/FilterTag";
 import { EXCLUDE_PARCEIRAS } from "../DashboardClient";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 
 // ── Estilos reutilizáveis ─────────────────────────────────────────────────────
 
@@ -72,9 +72,9 @@ const MONTH_OPTIONS = [
 ];
 
 interface GoalsFiltersProps {
-  filtersData: FiltersData;
+  filtersData: FiltersInterface;
   filtersTop: number;
-  tiposRecomp: FiltersData["tipo"];
+  tiposRecomp: FiltersInterface["tipo"];
 
   year: Dayjs;
   yearPlan: Dayjs;
@@ -247,23 +247,22 @@ export function GoalsFilters({
         </div>
       </div>
 
-      {/* Tags de filtros ativos */}
       {hasActiveFilters && (
         <div className="flex gap-1.5 flex-wrap pt-2 mt-3 border-t border-white/5">
           {selRegional.map((id) => {
-            const r = filtersData.regional.find((x) => x.id === id);
+            const r = filtersData.regional?.find((x) => x.id === id);
             return r ? (
               <FilterTag key={id} label={r.regional} variant="blue" />
             ) : null;
           })}
 
           {selPartner.map((id) => {
-            const p = filtersData.parceira.find((x) => x.id === id);
+            const p = filtersData.parceira?.find((x) => x.id === id);
             return p ? <FilterTag key={id} label={p.turma} /> : null;
           })}
 
           {selType.map((id) => {
-            const t = tiposRecomp.find((x) => x.id === id);
+            const t = tiposRecomp?.find((x) => x.id === id);
             return t ? <FilterTag key={id} label={t.tipo_obra} /> : null;
           })}
         </div>

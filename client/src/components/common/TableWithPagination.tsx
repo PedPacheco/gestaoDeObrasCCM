@@ -70,7 +70,7 @@ export function TableWithPagination({
                       className={`py-1 px-2 text-center text-zinc-700 font-semibold text-xl bg-[#53FF75] 
                       min-w-28 whitespace-nowrap
                       ${
-                        month === "ovnota"
+                        month === "ovnota" || month === "nota_d5"
                           ? "sticky left-0 z-20"
                           : "sticky left-0 z-10"
                       }

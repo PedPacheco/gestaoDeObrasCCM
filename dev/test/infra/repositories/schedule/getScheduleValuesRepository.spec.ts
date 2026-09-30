@@ -85,6 +85,7 @@ describe('GetScheduleValuesRepository', () => {
       idParceira: undefined,
       idRegional: undefined,
       idTipo: undefined,
+      idTecnico: undefined,
       ovnota: undefined,
     };
 
@@ -137,6 +138,7 @@ describe('GetScheduleValuesRepository', () => {
       idParceira: [1],
       idRegional: [1],
       idTipo: [1],
+      idTecnico: [1],
       idStatusSap: [51],
       ovnota: '1324',
     };
@@ -169,6 +171,7 @@ describe('GetScheduleValuesRepository', () => {
       AND tipos.id_grupo IN () 
       AND status.id IN () 
       AND status_programacao.id IN () 
+      AND tecnicos.id IN ()
       AND obras.ovnota = 
       AND obras.status_ov_sap IN () AND tipos.id_grupo = 1
       AND exec IS NOT NULL 
@@ -205,6 +208,7 @@ describe('GetScheduleValuesRepository', () => {
       1,
       1,
       1,
+      1,
       '1324',
       51,
       0,
@@ -225,6 +229,7 @@ describe('GetScheduleValuesRepository', () => {
       idTipo: undefined,
       ovnota: undefined,
       idStatus: undefined,
+      idTecnico: undefined,
       idStatusProgramacao: undefined,
     };
 

@@ -11,6 +11,12 @@ interface DateFilterProps {
   setStartDate: (date: dayjs.Dayjs | null) => void;
   endDate: dayjs.Dayjs | null;
   setEndDate: (date: dayjs.Dayjs | null) => void;
+  /** Novo, opcional — default mantém o texto original "Data Inicial" */
+  startLabel?: string;
+  /** Novo, opcional — default mantém o texto original "Data Final" */
+  endLabel?: string;
+  /** Novo, opcional — desabilita os dois campos (ex.: range não se aplica ao filtro atual) */
+  disabled?: boolean;
   size?: string;
   spacing?: string;
   backgroundColor?: string;
@@ -23,6 +29,9 @@ export function DateFilter({
   setStartDate,
   endDate,
   setEndDate,
+  startLabel = "Data Inicial",
+  endLabel = "Data Final",
+  disabled,
   size,
   spacing,
   backgroundColor,
@@ -44,31 +53,34 @@ export function DateFilter({
     },
   };
 
+  // As duas datas antes eram totalmente independentes (dava pra escolher
+  // "final" antes de "inicial"). Consolidei também os dois
+  // LocalizationProvider num só — mesmo resultado, uma instância a menos.
   return (
-    <>
-      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-br">
-        <Box className={`mb-2 ${size} ${spacing}`}>
-          <DatePicker
-            label="Data Inicial"
-            value={startDate}
-            onChange={(newDate) => setStartDate(newDate)}
-            format="DD/MM/YYYY"
-            slotProps={{ textField: textFieldStyles }}
-          />
-        </Box>
-      </LocalizationProvider>
+    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-br">
+      <Box className={`mb-2 ${size} ${spacing}`}>
+        <DatePicker
+          label={startLabel}
+          value={startDate}
+          onChange={(newDate) => setStartDate(newDate)}
+          format="DD/MM/YYYY"
+          maxDate={endDate ?? undefined}
+          disabled={disabled}
+          slotProps={{ textField: textFieldStyles }}
+        />
+      </Box>
 
-      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-br">
-        <Box className={`mb-2 ${size} ${spacing}`}>
-          <DatePicker
-            label="Data Final"
-            value={endDate}
-            format="DD/MM/YYYY"
-            onChange={(newDate) => setEndDate(newDate)}
-            slotProps={{ textField: textFieldStyles }}
-          />
-        </Box>
-      </LocalizationProvider>
-    </>
+      <Box className={`mb-2 ${size} ${spacing}`}>
+        <DatePicker
+          label={endLabel}
+          value={endDate}
+          format="DD/MM/YYYY"
+          onChange={(newDate) => setEndDate(newDate)}
+          minDate={startDate ?? undefined}
+          disabled={disabled}
+          slotProps={{ textField: textFieldStyles }}
+        />
+      </Box>
+    </LocalizationProvider>
   );
 }

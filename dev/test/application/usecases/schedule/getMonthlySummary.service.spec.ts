@@ -1,5 +1,5 @@
 import { createUniqueWorksFinancial } from 'src/application/mappers/monthlySummaryMapper';
-import { MonthlySummaryService } from 'src/application/usecases/schedule/getMonthlySummary.service';
+import { MonthlySummaryService } from 'src/application/usecases/works/schedule/getMonthlySummary.service';
 import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
 import {
   DailySummaryEntry,

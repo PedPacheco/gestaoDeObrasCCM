@@ -9,6 +9,7 @@ import {
   CartesianGrid,
   ComposedChart,
   Legend,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -27,6 +28,8 @@ import { DailySummaryTable } from "./DailySummaryTable";
 import { GroupSummaryTable } from "./GroupSummaryTable";
 import { KpiSection } from "./KpiSection";
 import { LaborDashboardFilters } from "./laborDashboardFilters";
+import { FormatCurrency } from "@/utils/formatValue";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -35,7 +38,7 @@ interface Props {
   initialData2: GroupSummary;
   token: string;
   initialMetaDiaria: number;
-  filtersData: any;
+  filtersData: FiltersInterface;
   filtersTop: number;
 }
 
@@ -104,6 +107,7 @@ export default function LaborDashboard({
       totalDiff: 0,
     },
   });
+
   const [metaDiaria, setMetaDiaria] = useState<number>(initialMetaDiaria ?? 0);
   const [startDate, setStartDate] = useState<Dayjs | null>(DEFAULT_START());
   const [endDate, setEndDate] = useState<Dayjs | null>(DEFAULT_END());
@@ -131,10 +135,13 @@ export default function LaborDashboard({
     pctGoal108,
     executionRate,
     topPartnerData,
+    periodGoalPerDay,
   } = useLaborMetrics({
     dailyData: data,
     groupData: data2,
     dailyGoal: metaDiaria,
+    startDate: startDate ?? DEFAULT_START(),
+    endDate: endDate ?? DEFAULT_END(),
   });
 
   const buildParams = useCallback(
@@ -271,16 +278,23 @@ export default function LaborDashboard({
                 />
                 <XAxis
                   dataKey="dia"
-                  tick={{ fill: "#a1a1aa", fontSize: 11 }}
+                  tick={{ fill: "#a1a1aa", fontSize: 14 }}
                   axisLine={false}
                   tickLine={false}
                   interval={1}
                 />
                 <YAxis
-                  tick={{ fill: "#a1a1aa", fontSize: 12 }}
+                  tick={{ fill: "#a1a1aa", fontSize: 14 }}
                   axisLine={false}
                   tickLine={false}
                   tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
+                  domain={[
+                    0,
+                    (dataMax: number) =>
+                      Math.ceil(
+                        Math.max(dataMax, metaDiaria, periodGoalPerDay) * 1.1,
+                      ),
+                  ]}
                 />
                 <Tooltip content={<ChartTooltip metricConfig="currency" />} />
                 <Legend
@@ -304,6 +318,40 @@ export default function LaborDashboard({
                   radius={[3, 3, 0, 0]}
                   maxBarSize={10}
                 />
+
+                {/* Linha 1: meta mensal fixa (retornada pelo backend) */}
+                {metaDiaria > 0 && (
+                  <ReferenceLine
+                    y={metaDiaria}
+                    stroke="#f59e0b"
+                    strokeDasharray="6 4"
+                    strokeWidth={1.5}
+                    ifOverflow="extendDomain"
+                    label={{
+                      value: `Meta Diária Fixa: ${FormatCurrency(metaDiaria)}`,
+                      position: "insideTopRight",
+                      fill: "#f59e0b",
+                      fontSize: 14,
+                    }}
+                  />
+                )}
+
+                {/* Linha 2: meta considerando só o período filtrado */}
+                {periodGoalPerDay > 0 && (
+                  <ReferenceLine
+                    y={periodGoalPerDay}
+                    stroke="#f43f5e"
+                    strokeDasharray="2 3"
+                    strokeWidth={1.5}
+                    ifOverflow="extendDomain"
+                    label={{
+                      value: `Meta Diário período: ${FormatCurrency(periodGoalPerDay)}`,
+                      position: "insideBottomRight",
+                      fill: "#f43f5e",
+                      fontSize: 14,
+                    }}
+                  />
+                )}
               </ComposedChart>
             </ResponsiveContainer>
           </ChartCard>

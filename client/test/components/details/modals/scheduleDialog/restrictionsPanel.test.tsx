@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import dayjs from "dayjs";
-import { RestrictionsPanel } from "@/components/details/modals/scheduleDialog/restrictionsPanel";
+import { RestrictionsPanel } from "@/components/details/workDetails/modals/scheduleDialog/restrictionsPanel";
 
 // ✅ Mock do DatePicker fiel (respeita disabled e propaga valor)
 vi.mock("@mui/x-date-pickers", () => ({

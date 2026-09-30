@@ -1,4 +1,4 @@
-import { ExecMonitoringService } from 'src/application/usecases/schedule/execMonitoring.service';
+import { ExecMonitoringService } from 'src/application/usecases/works/schedule/execMonitoring.service';
 import { EXEC_MONITORING_REPOSITORY } from 'src/domain/repositories/schedule/IExecMonitoringRepository';
 
 import { Test } from '@nestjs/testing';

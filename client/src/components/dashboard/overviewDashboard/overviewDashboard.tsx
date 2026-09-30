@@ -23,6 +23,7 @@ import { useCallback, useState, useTransition } from "react";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { fetchData } from "@/actions/fetchData.action";
 import { Transform } from "@/utils/transform";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 
 const FALLBACK_COLORS = [
   "#53FF75",
@@ -77,7 +78,7 @@ function formatMonth(m: string) {
 
 interface OverviewDashboardProps {
   initialData: DataDashboardInterface;
-  filtersData: any;
+  filtersData: FiltersInterface;
   token: string;
 }
 

@@ -119,6 +119,7 @@ async function fetchMaodeObra(token: string) {
     data2: [],
     metaDiaria: 0,
   };
+
   const res = await fetchData(
     `${API}/programacao/resumo-mensal`,
     params,
@@ -131,7 +132,7 @@ async function fetchMaodeObra(token: string) {
   const firstSummary = res.data?.firstSummary ?? {};
   const secondSummary = res.data?.secondSummary ?? [];
 
-  const metaDiaria: number = firstSummary.totals?.totalFinancialGoal ?? 0;
+  const metaDiaria: number = firstSummary?.summary[0]?.financialGoal ?? 0;
 
   return { data: firstSummary, data2: secondSummary, metaDiaria };
 }

@@ -23,18 +23,12 @@ import { mountUrl } from "@/utils/mountUrl";
 import { saveForecastSnapshot } from "@/actions/schedules";
 import { useUser } from "@/contexts/userContext";
 import { useFeedback } from "@/hooks/useFeedback";
-
-export interface Filters {
-  regional: { id: string; regional: string }[];
-  parceira: { id: string; turma: string }[];
-  tipo: { id: string; tipo_obra: string; id_grupo: number }[];
-  grupo: { id: string; grupo: string }[];
-}
+import { FiltersInterface } from "@/types/genericFilterSchema";
 
 interface MainMonthlySummaryScheduleProps {
   dataFirstSummary: any;
   dataSecondSummary: any;
-  filtersData: Filters;
+  filtersData: FiltersInterface;
   columnsFirstSummary: MonthlySummaryTableColumn[];
   columnsSecondSummary: MonthlySummaryTableColumn[];
   token: string;
@@ -231,9 +225,16 @@ export function MainMonthlyForecastSummarySchedule({
             setStartDate={setStartDate}
             size="w-1/2 first:pr-4"
           />
-          {Object.entries(filtersData).map(([key, value], index) =>
-            renderFilterSelect(key, value, index),
-          )}
+          {Object.entries(filtersData)
+            .filter(
+              (
+                entry,
+              ): entry is [string, { [key: string]: any; id: string }[]] =>
+                Array.isArray(entry[1]) && entry[1].length > 0,
+            )
+            .map(([key, value], index) =>
+              renderFilterSelect(key, value, index),
+            )}
         </div>
 
         <div className="flex flex-col md:flex-row justify-between items-center xl:justify-around">

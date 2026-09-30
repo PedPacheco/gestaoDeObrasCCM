@@ -1,10 +1,18 @@
 import { DailySummary, GroupSummary } from "@/types/dashboard/labor/labor";
+import dayjs, { Dayjs } from "dayjs";
 import { useMemo } from "react";
 
 interface Props {
   dailyData: DailySummary;
   groupData: GroupSummary;
   dailyGoal: number;
+  startDate: Dayjs; // período aplicado
+  endDate: Dayjs; // período aplicado
+}
+
+function parseBrDate(dateStr: string): Dayjs {
+  const [d, m, y] = dateStr.split("/");
+  return dayjs(new Date(+y, +m - 1, +d));
 }
 
 export function isWeekend(dateStr: string) {
@@ -13,9 +21,45 @@ export function isWeekend(dateStr: string) {
   return dow === 0 || dow === 6;
 }
 
-export function useLaborMetrics({ dailyData, groupData, dailyGoal }: Props) {
+function countDaysWithProgramming(
+  summary: DailySummary["summary"],
+  start: Dayjs,
+  end: Dayjs,
+): number {
+  const uniqueDays = new Set<string>();
+
+  summary.forEach((item) => {
+    if (!item.totalMoProg || item.totalMoProg <= 0) return;
+
+    const date = parseBrDate(item.dataProg);
+
+    if (date.isBefore(start, "day") || date.isAfter(end, "day")) return;
+
+    uniqueDays.add(date.format("YYYY-MM-DD"));
+  });
+
+  return uniqueDays.size;
+}
+
+export function useLaborMetrics({
+  dailyData,
+  groupData,
+  dailyGoal,
+  endDate,
+  startDate,
+}: Props) {
   return useMemo(() => {
     const totalGoal = dailyGoal * 22;
+
+    // Linha 2: total do mês distribuído nos dias úteis do período filtrado
+    const effectiveDays = countDaysWithProgramming(
+      dailyData.summary,
+      startDate,
+      endDate,
+    );
+
+    const periodGoalPerDay =
+      effectiveDays > 0 ? dailyData.totals.totalMoProg / effectiveDays : 0;
 
     const display = {
       programacoes: dailyData.totals.totalSchedules,
@@ -55,6 +99,7 @@ export function useLaborMetrics({ dailyData, groupData, dailyGoal }: Props) {
       Programado: Math.round(item.totalMoProg),
       Executado: Math.round(item.totalMoExec),
       Meta: Math.round(dailyGoal),
+      "Média Diária Programado": periodGoalPerDay,
       "% Meta":
         dailyGoal > 0 ? +((item.totalMoProg / dailyGoal) * 100).toFixed(1) : 0,
       weekend: isWeekend(item.dataProg),
@@ -103,6 +148,7 @@ export function useLaborMetrics({ dailyData, groupData, dailyGoal }: Props) {
     return {
       display,
       totalGoal,
+      periodGoalPerDay,
       executionRate,
       pctGoal100,
       pctGoal108,

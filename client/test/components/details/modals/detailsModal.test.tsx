@@ -4,7 +4,7 @@ import React from "react";
 import {
   OldModalsManagerRef,
   OldModalsManager,
-} from "@/components/details/modals/oldModalsManager";
+} from "@/components/details/workDetails/modals/oldModalsManager";
 
 vi.mock("@/contexts/userContext", () => {
   return {

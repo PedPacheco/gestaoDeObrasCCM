@@ -2,11 +2,11 @@ import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import ScheduleFormDialog from "@/components/details/modals/scheduleDialog/dialog";
+import ScheduleFormDialog from "@/components/details/workDetails/modals/scheduleDialog/dialog";
 import * as UserContextModule from "@/contexts/userContext";
 import { useScheduleSubmit } from "@/hooks/details/useScheduleSubmit";
 import * as schemasModule from "@/validations/validationSchedules";
-import { ExecutionReportData } from "@/components/details/modals/oldExecutionReportDialog/oldExecutionReportDialog";
+import { ExecutionReportData } from "@/components/details/workDetails/modals/oldExecutionReportDialog/oldExecutionReportDialog";
 import { mockFormData } from "../../../../mocks/mockFormData";
 
 // ---------- Mocks ----------

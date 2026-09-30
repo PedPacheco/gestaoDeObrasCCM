@@ -1,4 +1,4 @@
-import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
+import { GetScheduleValuesService } from 'src/application/usecases/works/schedule/getScheduleValues.service';
 import { GET_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetScheduleValuesRepository';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
@@ -168,6 +168,7 @@ describe('GetScheduleValues', () => {
       idParceira: [1],
       idRegional: [1],
       idTipo: [1],
+      idTecnico: [1],
       ovnota: '1343',
     };
 

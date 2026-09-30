@@ -1,4 +1,4 @@
-import { UpdateSchedulesService } from 'src/application/usecases/schedule/updateSchedules.service';
+import { UpdateSchedulesService } from 'src/application/usecases/works/schedule/updateSchedules.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
 import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
 import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
@@ -12,7 +12,7 @@ import {
   mockUpdateSchedulesServiceFormattedData,
   mockUpdateSchedulesServiceWithoutIdWork,
 } from '../../../mocks/schedules/mockUpdateSchedules';
-import { ScheduleExecutionValidatorService } from 'src/application/usecases/schedule/scheduleExecutionValidator.service';
+import { ScheduleExecutionValidatorService } from 'src/application/usecases/works/schedule/scheduleExecutionValidator.service';
 
 describe('UpdateSchedulesService', () => {
   let updateSchedulesService: UpdateSchedulesService;
@@ -158,7 +158,7 @@ describe('UpdateSchedulesService', () => {
           mockUpdateSchedulesServiceWithoutIdWork,
           mockTransaction,
         ),
-      ).rejects.toThrow('Erro ao criar programação: ID da obra é obrigatório');
+      ).rejects.toThrow('ID da obra é obrigatório');
     });
 
     it('should throw BadRequestException if repository.update fails', async () => {

@@ -12,6 +12,7 @@ import { MonitoredMonthlyTable } from "./monitoredMonthlyTable";
 import { MonitoringExecutionFilters } from "./monitoringExecutionFilters";
 import { MonitoredByRegional } from "./monitoredByRegional";
 import { MonitoredByPartner } from "./monitoredByPartner";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 
 // Percentual mínimo de obras acompanhadas exigido por mês/regional
 export const META_PCT = 30;
@@ -29,7 +30,7 @@ export interface Row {
 
 interface Props {
   initialData: Row[]; // dados carregados no server (sem filtros — ano inteiro)
-  filtersData: any; // opções disponíveis para os dropdowns
+  filtersData: FiltersInterface; // opções disponíveis para os dropdowns
   token: string; // JWT para autenticação nas chamadas client-side
   filtersTop: number;
 }
