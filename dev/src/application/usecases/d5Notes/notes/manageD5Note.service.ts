@@ -23,15 +23,13 @@ export class ManageD5NoteService {
       throw new BadRequestException('Nenhum campo fornecido para atualização.');
     }
 
+    const existing = await this.d5NotesRepository.getById(id);
+
+    if (!existing) {
+      throw new NotFoundException('Nota D5 não encontrada.');
+    }
+
     try {
-      const existing = await this.d5NotesRepository.getById(id);
-
-      if (!existing) {
-        throw new NotFoundException('Programação não encontrada.');
-      }
-
-      console.log(data);
-
       await this.d5NotesRepository.update(id, data, modifyingUserId);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
