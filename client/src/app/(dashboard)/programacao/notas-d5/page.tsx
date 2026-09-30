@@ -64,7 +64,7 @@ export default async function ScheduleForDay() {
     responsavel: "Responsável",
     tmAberto: "TM - Aberto",
     tmExecucao: "TM - Execução",
-    mo_planejada: "MO Retida",
+    moRetida: "MO Retida",
 
     // Programação
     data_prog: "Data da Programação",

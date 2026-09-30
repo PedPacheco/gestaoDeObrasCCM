@@ -196,7 +196,7 @@ export class D5NoteScheduleMapper {
       status_sap: notas_d5.status_sap,
       tmExecucao,
       tmAberto,
-      mo_planejada: notas_d5.mo_planejada?.toNumber() ?? 0,
+      moRetida: notas_d5.mo_planejada?.toNumber() ?? 0,
       municipio: notas_d5.municipios.mun_minusculo,
       regional: notas_d5.municipios.regionais.regional,
       tipo_obra: notas_d5.tipos.tipo_obra,
@@ -217,7 +217,7 @@ export class D5NoteScheduleMapper {
   static toListItems(
     rows: SchedulesD5NotesQueryResult[],
   ): D5NoteScheduleListItem[] {
-    return rows.map(D5NoteScheduleMapper.toListItem);
+    return rows.map((row) => D5NoteScheduleMapper.toListItem(row));
   }
 
   /* ---------------- Auxiliares ---------------- */

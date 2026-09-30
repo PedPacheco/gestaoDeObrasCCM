@@ -60,7 +60,7 @@ export default async function D5NotesPage() {
     status_sap: "Status D5 (SAP)",
     tmAberto: "TM - Aberto",
     tmExecucao: "TM - Execução",
-    mo_planejada: "MO Retida",
+    moRetida: "MO Retida",
   };
 
   return (

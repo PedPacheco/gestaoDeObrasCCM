@@ -238,7 +238,7 @@ export type D5NoteScheduleListItem = {
   status_sap: string;
   tmExecucao: number | null;
   tmAberto: number | null;
-  mo_planejada: number;
+  moRetida: number;
 
   // Relações da nota
   municipio: string;

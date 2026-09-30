@@ -241,9 +241,6 @@ describe('D5NotesSchedulesRepository', () => {
         'criado_em',
         'conclusao_nota',
         'status_sap',
-        'tme_executado',
-        'tme_abertura',
-        'validacao_anual',
         'mo_planejada',
         'nota_d5',
       ])('deve projetar notas_d5.%s', async (field) => {

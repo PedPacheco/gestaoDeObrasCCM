@@ -32,7 +32,7 @@ function processD5Data(data: any) {
       ? dayjs(data.conclusao_nota).utc().format("DD/MM/YYYY")
       : null,
     dataPrazo: dayjs(data.prazo).utc().format("DD/MM/YYYY"),
-    moPlanejada: FormatCurrency(data.mo_planejada) || "",
+    moRetida: FormatCurrency(data.moRetida) || "",
     totalExecutado: formatPercentage(data.totalExecutado) || 0,
     totalProgramado: formatPercentage(data.totalProgramado) || 0,
   };
@@ -139,7 +139,7 @@ export default async function DetailsD5({ params }: DetailsParams) {
 
             {/* Coluna 5 */}
             <div className={COLUMN_CLASSNAME}>
-              <D5DataItem label="MO Retida" value={formattedData.moPlanejada} />
+              <D5DataItem label="MO Retida" value={formattedData.moRetida} />
 
               <D5DataItem
                 label="Validação anual"

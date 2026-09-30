@@ -39,6 +39,7 @@ export class FindD5NotesService {
         ...rest
       }) => ({
         ...rest,
+        moRetida: Number(rest.mo_planejada),
         ordemDiagrama:
           obras?.diagrama ??
           obras?.ordem_dci ??
@@ -179,9 +180,9 @@ export class FindD5NotesService {
 
     // --- Período da data de criação ---
     const criadoEm = this.buildDateRange(
+      'criação',
       filters.dataCriacaoInicial,
       filters.dataCriacaoFinal,
-      'criação',
     );
     if (criadoEm) {
       where.criado_em = criadoEm;
@@ -189,10 +190,11 @@ export class FindD5NotesService {
 
     // --- Período da data de conclusão ---
     const conclusaoNota = this.buildDateRange(
+      'conclusão',
       filters.dataConclusaoInicial,
       filters.dataConclusaoFinal,
-      'conclusão',
     );
+
     if (conclusaoNota) {
       where.conclusao_nota = conclusaoNota;
     }
@@ -218,7 +220,7 @@ export class FindD5NotesService {
     };
   }
 
-  private buildDateRange(inicio?: string, fim?: string, label = 'data') {
+  private buildDateRange(label: string, inicio?: string, fim?: string) {
     if (!inicio && !fim) return undefined;
 
     const range: { gte?: Date; lt?: Date } = {};

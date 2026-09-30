@@ -7,6 +7,7 @@ import {
 import { parseTimeToDate } from 'src/utils/parseTimeToDate';
 
 import { BadRequestException } from '@nestjs/common';
+import moment, { Moment } from 'moment';
 
 // ---------------------------------------------------------------------------
 // Mocks de colaboradores
@@ -145,8 +146,6 @@ const makeListRow = (overrides: Record<string, any> = {}) => {
       criado_em: CURRENT_DATE,
       conclusao_nota: null,
       status_sap: 'ABERTA',
-      tme_executado: 1,
-      tme_abertura: 2,
       validacao_anual: true,
       mo_planejada: { toNumber: () => 12.5 },
       municipios: {
@@ -173,16 +172,23 @@ const stripUndefined = (obj: Record<string, any>) =>
 const toCommonColumns = (e: D5NoteSchedule) =>
   (D5NoteScheduleMapper as any).toCommonColumns(e);
 
+const calculateTM = (initialDate: Moment, executionDate: Moment | null) =>
+  (D5NoteScheduleMapper as any).calculateTM(initialDate, executionDate);
+
 describe('D5NoteScheduleMapper', () => {
   beforeEach(() => {
     parseTime.mockImplementation(
       (value: any) =>
         (value ? new Date(`2026-02-10T${value}:00.000Z`) : undefined) as any,
     );
+    jest.useFakeTimers().setSystemTime(new Date('2026-10-07T15:30:00'));
     entity.create.mockReturnValue({ built: true } as any);
   });
 
-  afterEach(() => jest.resetAllMocks());
+  afterEach(() => {
+    jest.resetAllMocks();
+    jest.useRealTimers();
+  });
 
   // =========================================================================
   // fromCreateInput
@@ -688,7 +694,23 @@ describe('D5NoteScheduleMapper', () => {
         responsavel: 'Ana',
         ovnota: 'OV-1',
         ordemDiagrama: 'DIAG-1',
-        mo_planejada: 12.5,
+        moRetida: 12.5,
+      });
+    });
+
+    it('deve calcular o TM de execução quando a nota está concluída', async () => {
+      const result = D5NoteScheduleMapper.toListItem(
+        makeListRow({
+          notas_d5: {
+            criado_em: new Date('2026-01-01T00:00:00.000Z'),
+            conclusao_nota: new Date('2026-01-06T18:45:00.000Z'),
+          },
+        }) as any,
+      );
+
+      expect(result).toMatchObject({
+        tmExecucao: 6,
+        tmAberto: null,
       });
     });
 
@@ -716,7 +738,7 @@ describe('D5NoteScheduleMapper', () => {
         }) as any,
       );
 
-      expect(result.mo_planejada).toBe(99.9);
+      expect(result.moRetida).toBe(99.9);
     });
 
     it.each([
@@ -727,7 +749,7 @@ describe('D5NoteScheduleMapper', () => {
         makeListRow({ notas_d5: { mo_planejada: value } }) as any,
       );
 
-      expect(result.mo_planejada).toBe(0);
+      expect(result.moRetida).toBe(0);
     });
 
     it.each([
@@ -911,6 +933,28 @@ describe('D5NoteScheduleMapper', () => {
 
       expect(columns.exec).toBeUndefined();
       expect(columns.chi).toBeUndefined();
+    });
+  });
+
+  describe('calculateTM', () => {
+    it('Deve retornar o TM aberto corretamente e o TM execucao como nulo', () => {
+      const mockInitialDate = moment('2026-09-30');
+      const mockExecutionDate = null;
+
+      expect(calculateTM(mockInitialDate, mockExecutionDate)).toEqual({
+        tmAberto: 7,
+        tmExecucao: null,
+      });
+    });
+
+    it('Deve retornar o TM execucao corretamente e o TM aberto como nulo', () => {
+      const mockInitialDate = moment('2026-09-23');
+      const mockExecutionDate = moment('2026-09-30');
+
+      expect(calculateTM(mockInitialDate, mockExecutionDate)).toEqual({
+        tmAberto: null,
+        tmExecucao: 7,
+      });
     });
   });
 });

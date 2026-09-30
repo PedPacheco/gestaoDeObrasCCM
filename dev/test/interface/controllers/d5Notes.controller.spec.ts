@@ -2,6 +2,7 @@ import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { FindD5NotesService } from 'src/application/usecases/d5Notes/notes/findD5Notes.service';
+import { ManageD5NoteService } from 'src/application/usecases/d5Notes/notes/manageD5Note.service';
 import { FindD5SchedulesService } from 'src/application/usecases/d5Notes/schedules/findD5Schedules.service';
 import { ManageD5NoteScheduleService } from 'src/application/usecases/d5Notes/schedules/manageD5NoteSchedule.service';
 import { D5NotesController } from 'src/interface/controllers/d5Notes.controller';
@@ -49,6 +50,10 @@ describe('D5NotesController', () => {
     delete: jest.fn(),
   };
 
+  const mockManageD5NoteScheduleService = {
+    update: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [D5NotesController],
@@ -58,6 +63,10 @@ describe('D5NotesController', () => {
         {
           provide: ManageD5NoteScheduleService,
           useValue: manageD5NoteScheduleService,
+        },
+        {
+          provide: ManageD5NoteService,
+          useValue: mockManageD5NoteScheduleService,
         },
       ],
     }).compile();
@@ -296,6 +305,28 @@ describe('D5NotesController', () => {
       manageD5NoteScheduleService.delete.mockRejectedValue(error);
 
       await expect(controller.deleteSchedule(3)).rejects.toThrow(error);
+    });
+  });
+
+  describe('updateD5Note', () => {
+    it('deve eliminar a programação e retornar NO_CONTENT', async () => {
+      mockManageD5NoteScheduleService.update.mockResolvedValue(undefined);
+
+      const result = await controller.updateD5Notes(
+        1,
+        { partnerId: 1 },
+        { user: { sub: 1 } },
+      );
+
+      expect(mockManageD5NoteScheduleService.update).toHaveBeenCalledWith(
+        1,
+        { partnerId: 1 },
+        1,
+      );
+      expect(result).toEqual({
+        statusCode: HttpStatus.OK,
+        message: 'Nota D5 atualizada com sucesso',
+      });
     });
   });
 });
