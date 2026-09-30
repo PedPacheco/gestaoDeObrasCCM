@@ -7,34 +7,25 @@ import { useEffect, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { ButtonComponent } from "@/components/common/Button";
-import ErrorModal from "@/components/common/ErrorModal";
 import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { MainInterface } from "@/types/mainInterface";
 import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 import EntryByDateTable from "./entryByDateTable";
 import { useFeedback } from "@/hooks/useFeedback";
-
-export interface MainEntryByDateFilters {
-  regional: { id: string; regional: string }[];
-  parceira: { id: string; turma: string }[];
-  tipo: { id: string; tipo_obra: string; id_grupo: number }[];
-  municipio: { id: string; municipio: string; id_regional: number }[];
-  grupo: { id: string; grupo: string }[];
-}
+import { FiltersInterface } from "@/types/genericFilterSchema";
 
 export default function MainEntryByDate({
   data,
   filtersData,
   columns,
   token,
-}: MainInterface<MainEntryByDateFilters>) {
+}: MainInterface<FiltersInterface>) {
   const [filteredData, setFilteredData] = useState(data);
   const { showError } = useFeedback();
   const { clearFilters, filters, saveFilters } = useSaveFilters({

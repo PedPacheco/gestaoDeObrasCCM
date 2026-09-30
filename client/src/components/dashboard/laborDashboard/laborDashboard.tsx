@@ -29,6 +29,7 @@ import { GroupSummaryTable } from "./GroupSummaryTable";
 import { KpiSection } from "./KpiSection";
 import { LaborDashboardFilters } from "./laborDashboardFilters";
 import { FormatCurrency } from "@/utils/formatValue";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -37,7 +38,7 @@ interface Props {
   initialData2: GroupSummary;
   token: string;
   initialMetaDiaria: number;
-  filtersData: any;
+  filtersData: FiltersInterface;
   filtersTop: number;
 }
 
