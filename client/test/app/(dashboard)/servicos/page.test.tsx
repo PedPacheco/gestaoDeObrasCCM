@@ -6,7 +6,7 @@ import type { ManageSchedule } from "@/components/services/manageSchedule";
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { cookies } from "next/headers";
-import ServicosPage from "@/app/(dashboard)/servicos/[id]/page";
+import ServicosPage from "@/app/(dashboard)/(with-breadcrumbs)/servicos/[id]/page";
 
 import {
   programacaoServicosMock,

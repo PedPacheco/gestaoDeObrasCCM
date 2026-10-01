@@ -3,7 +3,7 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { KpiSection } from "@/components/dashboard/AvancaParceiro/DashAvancaParceiro/kpiSection";
+import { KpiSection } from "@/components/advancePartner/adherenceToSchedule/kpiSection";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // HOISTED MOCKS (somente UI / IO)

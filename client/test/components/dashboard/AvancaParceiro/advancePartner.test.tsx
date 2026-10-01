@@ -2,7 +2,7 @@
 
 import AdvancePartnerDashboard, {
   pctExact,
-} from "@/components/dashboard/AvancaParceiro/DashAvancaParceiro/advancePartner";
+} from "@/components/advancePartner/adherenceToSchedule/adherenceToSchedule";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -62,58 +62,64 @@ vi.mock("@/hooks/dashboard/advancePartner/useAdvancePartnerFilters", () => ({
 // MOCKS DOS COMPONENTES FILHOS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-vi.mock("@/components/dashboard/AvancaParceiro/DashAvancaParceiro/advancePartnerFilters", () => ({
-  AdvancePartnerFilters: (props: any) => {
-    mockAdvancePartnerFilters(props);
+vi.mock(
+  "@/components/dashboard/AvancaParceiro/DashAvancaParceiro/advancePartnerFilters",
+  () => ({
+    AdvancePartnerFilters: (props: any) => {
+      mockAdvancePartnerFilters(props);
 
-    return (
-      <section data-testid="advance-partner-filters">
-        <button onClick={props.applyFilters}>Aplicar filtros</button>
-        <button onClick={props.clearFilters}>Limpar filtros</button>
+      return (
+        <section data-testid="advance-partner-filters">
+          <button onClick={props.applyFilters}>Aplicar filtros</button>
+          <button onClick={props.clearFilters}>Limpar filtros</button>
 
-        <button onClick={() => props.setStartDate("2026-01-01")}>
-          Set startDate
-        </button>
+          <button onClick={() => props.setStartDate("2026-01-01")}>
+            Set startDate
+          </button>
 
-        <button onClick={() => props.setEndDate("2026-01-31")}>
-          Set endDate
-        </button>
+          <button onClick={() => props.setEndDate("2026-01-31")}>
+            Set endDate
+          </button>
 
-        <button onClick={() => props.setInitialWeek("2026-W01")}>
-          Set initialWeek
-        </button>
+          <button onClick={() => props.setInitialWeek("2026-W01")}>
+            Set initialWeek
+          </button>
 
-        <button onClick={() => props.setFinalWeek("2026-W05")}>
-          Set finalWeek
-        </button>
+          <button onClick={() => props.setFinalWeek("2026-W05")}>
+            Set finalWeek
+          </button>
 
-        <button onClick={() => props.setSelectedParceira("Parceira X")}>
-          Set parceira
-        </button>
+          <button onClick={() => props.setSelectedParceira("Parceira X")}>
+            Set parceira
+          </button>
 
-        <button onClick={() => props.setSelectedRegional("Regional Y")}>
-          Set regional
-        </button>
+          <button onClick={() => props.setSelectedRegional("Regional Y")}>
+            Set regional
+          </button>
 
-        <button onClick={() => props.setMotivoTab("responsavel")}>
-          Set motivoTab
-        </button>
+          <button onClick={() => props.setMotivoTab("responsavel")}>
+            Set motivoTab
+          </button>
 
-        <button onClick={() => props.setFilterMode("semana")}>
-          Set filterMode
-        </button>
-      </section>
-    );
-  },
-}));
+          <button onClick={() => props.setFilterMode("semana")}>
+            Set filterMode
+          </button>
+        </section>
+      );
+    },
+  }),
+);
 
-vi.mock("@/components/dashboard/AvancaParceiro/DashAvancaParceiro/kpiSection", () => ({
-  KpiSection: (props: any) => {
-    mockKpiSection(props);
+vi.mock(
+  "@/components/dashboard/AvancaParceiro/DashAvancaParceiro/kpiSection",
+  () => ({
+    KpiSection: (props: any) => {
+      mockKpiSection(props);
 
-    return <section data-testid="kpi-section">KpiSection</section>;
-  },
-}));
+      return <section data-testid="kpi-section">KpiSection</section>;
+    },
+  }),
+);
 
 vi.mock("@/components/dashboard/AvancaParceiro/sparklinesSection", () => ({
   SparklinesSection: (props: any) => {

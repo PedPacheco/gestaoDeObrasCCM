@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { render } from "@testing-library/react";
-import Contract from "@/app/(dashboard)/atualizacoes/empreitamento/page";
+import Contract from "@/app/(dashboard)/(with-breadcrumbs)/atualizacoes/empreitamento/page";
 
 vi.mock(
   "@/components/updatesComponents/updateContract/updateContractButton",
@@ -10,7 +10,7 @@ vi.mock(
     UpdateContractButton: vi.fn(() => (
       <div data-testid="update-contract-button" />
     )),
-  })
+  }),
 );
 
 vi.mock(
@@ -20,7 +20,7 @@ vi.mock(
     ImportContractButton: vi.fn(() => (
       <div data-testid="import-contract-button" />
     )),
-  })
+  }),
 );
 
 vi.mock(
@@ -30,7 +30,7 @@ vi.mock(
     ImportTableContracts: vi.fn(() => (
       <div data-testid="import-table-contracts" />
     )),
-  })
+  }),
 );
 
 describe("ContractUpdate Page", () => {

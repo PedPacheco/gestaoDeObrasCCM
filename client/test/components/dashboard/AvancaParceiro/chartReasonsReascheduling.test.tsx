@@ -3,7 +3,7 @@
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ChartReasonsReascheduling } from "@/components/dashboard/AvancaParceiro/DashAvancaParceiro/chartReasonsReascheduling";
+import { ChartReasonsReascheduling } from "@/components/advancePartner/adherenceToSchedule/chartReasonsReascheduling";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // HOISTED MOCKS

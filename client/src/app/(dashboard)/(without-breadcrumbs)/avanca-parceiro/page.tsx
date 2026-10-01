@@ -1,9 +1,10 @@
 import { cookies } from "next/headers";
 
 import { fetchData } from "@/actions/fetchData.action";
+
+import { getCurrentWeekData } from "@/utils/weeks";
+import AdvancePartnerDashboard from "@/components/advancePartner/advancePartnerDashboard";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import AdvancePartnerDashboard from "@/components/dashboard/AvancaParceiro/DashAvancaParceiro/advancePartner";
-import { getCurrentMonthRange, getCurrentWeekData } from "@/utils/weeks";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -65,17 +66,6 @@ async function fetchAderenciaParceira(token: string) {
   return res.success ? (res.data ?? []) : [];
 }
 
-async function fetchGoalsFilters(token: string) {
-  const empty = { regional: [], parceira: [], tipo: [], tecnico: [] };
-  const res = await fetchData(
-    `${API}/filters`,
-    { regional: true, parceira: true, tipo: true, tecnico: true },
-    token,
-    NO_CACHE,
-  );
-  return res.success ? (res.data ?? empty) : empty;
-}
-
 async function fetchMaodeObraAvanca(token: string) {
   const { inicio, fim } = getCurrentWeekData();
   const fallback = { data: { summary: [], totals: {} }, metaDiaria: 0 };
@@ -105,7 +95,7 @@ export default async function AdvancePartnerDashboardPage() {
     semanasParceira,
     motivosReprogramacao,
     maodeObraAvanca,
-    goalsFilters,
+    filters,
   ] = await Promise.all([
     fetchEliminacaoRestricao(token),
     fetchAderenciaParceira(token),
@@ -113,21 +103,26 @@ export default async function AdvancePartnerDashboardPage() {
     fetchSemanasParceira(token),
     fetchMotivosReprogramacao(token),
     fetchMaodeObraAvanca(token),
-    fetchGoalsFilters(token),
+    fetchFilters({
+      regional: true,
+      parceira: true,
+      tipo: true,
+      municipio: true,
+      grupo: true,
+    }),
   ]);
 
   return (
-    <div className="h-full w-full overflow-y-auto">
+    <div className="flex flex-col min-h-full">
       <AdvancePartnerDashboard
-        initialEliminacao={eliminacaoRestricao}
         initialAderencia={aderenciaParceira}
-        initialSparklinesPartners={sparklinesParceira}
-        initialPartnerWeeks={semanasParceira}
-        initialSummary={maodeObraAvanca.data}
-        initialReasonsReascheduling={motivosReprogramacao}
         initialDailyGoal={maodeObraAvanca.metaDiaria}
-        filtersData={goalsFilters}
-        filtersTop={0}
+        initialEliminacao={eliminacaoRestricao}
+        initialPartnerWeeks={semanasParceira}
+        initialReasonsReascheduling={motivosReprogramacao}
+        initialSparklinesPartners={sparklinesParceira}
+        initialSummary={maodeObraAvanca.data}
+        filtersData={filters}
         token={token}
       />
     </div>

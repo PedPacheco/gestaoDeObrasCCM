@@ -174,26 +174,33 @@ export default async function Home() {
   }
 
   // ✅ Se TEM permissão → buscar dados normalmente
-  const [maodeObra, forecast, metasRecomposicao, goalsFilters, execMonitoring, filtersData] =
-    await Promise.all([
-      fetchMaodeObra(token),
-      fetchForecast(token),
-      fetchMetasRecomposicao(token),
-      fetchGoalsFilters(token),
-      fetchExecMonitoring(token),
-      fetchFilters({
-        regional: true,
-        parceira: true,
-        tipo: true,
-        municipio: true,
-        grupo: true,
-      }),
-    ]);
+  const [
+    maodeObra,
+    forecast,
+    metasRecomposicao,
+    goalsFilters,
+    execMonitoring,
+    filtersData,
+  ] = await Promise.all([
+    fetchMaodeObra(token),
+    fetchForecast(token),
+    fetchMetasRecomposicao(token),
+    fetchGoalsFilters(token),
+    fetchExecMonitoring(token),
+    fetchFilters({
+      regional: true,
+      parceira: true,
+      tipo: true,
+      municipio: true,
+      grupo: true,
+    }),
+  ]);
 
   return (
     <div className="relative z-0 flex min-h-screen">
       <div className="flex flex-1 flex-col h-screen overflow-y-auto transition-all duration-300 ease-in-out">
         <Header />
+
         <main className="flex-1">
           <DashboardClient
             token={token}

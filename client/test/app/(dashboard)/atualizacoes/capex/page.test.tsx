@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import CapexUpdates from "@/app/(dashboard)/atualizacoes/capex/page";
+import CapexUpdates from "@/app/(dashboard)/(with-breadcrumbs)/atualizacoes/capex/page";
 import { render, screen } from "@testing-library/react";
 
 // Mock do next/headers para evitar o erro de "cookies outside request scope"

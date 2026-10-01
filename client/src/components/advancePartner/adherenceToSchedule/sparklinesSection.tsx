@@ -7,7 +7,7 @@ import { Box, Card, Divider, Stack, Typography } from "@mui/material";
 import {
   pctColorGripSchedule,
   pctColorRestrictionsElimination,
-} from "./advancePartner";
+} from "./adherenceToSchedule";
 
 interface SparkPoint {
   semana: string;
