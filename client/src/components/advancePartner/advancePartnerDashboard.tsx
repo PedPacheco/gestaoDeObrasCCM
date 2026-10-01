@@ -3,11 +3,14 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
-import LaborDashboard from "./laborDashboard/laborDashboard";
-import MonitoringExecutionDashboard from "./monitoringExecutionDashboard/monitoringExecutionDashboard";
-import RecompositionGoalsDashboard from "./recompositionGoalsDashboard/RecompositionGoalsDashboard";
 import { useUser } from "@/contexts/userContext";
 import { LoadingComponent } from "../common/Loading";
+import MainReclamacoes from "./reclamacoesOuvidoria/mainComplaintsAndOmbudsmansOffice";
+import AdherenceToScheduleDashboard, {
+  AderenciaRow,
+  EliminacaoRow,
+} from "./adherenceToSchedule/adherenceToSchedule";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 
 // ... (manter todas as interfaces existentes: Kpis, ByStatus, ByRegional, etc.)
 
@@ -59,16 +62,15 @@ export interface DataDashboardInterface {
 }
 
 interface Props {
+  initialEliminacao: EliminacaoRow[];
+  initialAderencia: AderenciaRow[];
+  initialSparklinesPartners: any[];
+  initialPartnerWeeks: any[];
+  initialReasonsReascheduling: any[];
+  initialSummary: any;
+  initialDailyGoal: number;
   token: string;
-  initialMaodeObra: any;
-  initialMaodeObra2: any;
-  initialMetaDiaria: number;
-  initialForecastFirst: any;
-  initialForecastSecond: any;
-  initialMetasRecomposicao: any[];
-  goalsFilters: any;
-  initialExecMonitoring: any[];
-  filtersData: any;
+  filtersData: FiltersInterface;
 }
 
 export const EXCLUDE_PARCEIRAS = new Set([
@@ -81,12 +83,7 @@ export const EXCLUDE_PARCEIRAS = new Set([
   "NAO DEFINIDO",
 ]);
 
-type Tab =
-  | "geral"
-  | "mao-de-obra"
-  | "forecast"
-  | "metas-recomposicao"
-  | "acompanhamento-execucao";
+type Tab = "aderencia-programacao" | "reclamacoes-ouvidoria";
 
 export function pctColor(pct: number) {
   if (pct >= 100) {
@@ -98,30 +95,24 @@ export function pctColor(pct: number) {
   return { bg: "#450a0a", text: "#f87171", bar: "#ef4444" };
 }
 
-export default function DashboardClient({
+export default function AdvancePartnerDashboard({
   token,
-  initialMaodeObra,
-  initialMaodeObra2,
-  initialMetaDiaria,
-  initialMetasRecomposicao,
-  goalsFilters,
-  initialExecMonitoring,
+  initialAderencia,
+  initialDailyGoal,
+  initialEliminacao,
+  initialSummary,
+  initialPartnerWeeks,
+  initialReasonsReascheduling,
+  initialSparklinesPartners,
   filtersData,
 }: Props) {
   const { permissions } = useUser();
 
-  const isRestricted = permissions?.id_area === 9;
   const isLoaded = permissions !== null && permissions !== undefined;
 
   const tabSwitcherRef = useRef<HTMLDivElement>(null);
   const [tabSwitcherHeight, setTabSwitcherHeight] = useState(0);
-  const [activeTab, setActiveTab] = useState<Tab>("mao-de-obra");
-
-  useEffect(() => {
-    if (isRestricted) {
-      setActiveTab("metas-recomposicao");
-    }
-  }, [isRestricted]);
+  const [activeTab, setActiveTab] = useState<Tab>("aderencia-programacao");
 
   useEffect(() => {
     if (!tabSwitcherRef.current) return;
@@ -148,16 +139,10 @@ export default function DashboardClient({
   ];
 
   const allTabs: { key: Tab; label: string }[] = [
-    { key: "mao-de-obra", label: "Resumo — Mão de Obra Parceira" },
-    { key: "metas-recomposicao", label: "Metas Recomposição" },
-    { key: "acompanhamento-execucao", label: "Acompanhamento da Execução" },
+    { key: "aderencia-programacao", label: "Aderência à Programação" },
+    { key: "reclamacoes-ouvidoria", label: "Reclamações e Ouvidorias" },
+    // { key: "acompanhamento-execucao", label: "Acompanhamento da Execução" },
   ];
-
-  const visibleTabs = isRestricted
-    ? allTabs.filter((tab) => tab.key === "metas-recomposicao")
-    : allTabs;
-
-  const safeTab = isRestricted ? "metas-recomposicao" : activeTab;
 
   if (!isLoaded) {
     return (
@@ -176,14 +161,14 @@ export default function DashboardClient({
   }
 
   return (
-    <div className="flex flex-col min-h-full">
+    <>
       {/* ── Tab Switcher ─────────────────────────────────────── */}
       <div
         ref={tabSwitcherRef}
         className="sticky top-16 z-30 bg-white flex justify-between items-center gap-1 px-3 pt-3 pb-0 border-b border-white/5"
       >
         <div className="flex gap-1">
-          {visibleTabs.map(({ key, label }) => (
+          {allTabs.map(({ key, label }) => (
             <button
               key={key}
               onClick={() => setActiveTab(key)}
@@ -217,30 +202,22 @@ export default function DashboardClient({
       </div>
 
       {/* ── Tab Content ──────────────────────────────────────── */}
-      {safeTab === "metas-recomposicao" ? (
-        <RecompositionGoalsDashboard
-          initialGoals={initialMetasRecomposicao}
-          filtersData={goalsFilters}
-          token={token}
-          filtersTop={filtersTop}
-        />
-      ) : safeTab === "acompanhamento-execucao" ? (
-        <MonitoringExecutionDashboard
-          initialData={initialExecMonitoring}
-          filtersData={goalsFilters}
-          token={token}
-          filtersTop={filtersTop}
-        />
+      {activeTab === "reclamacoes-ouvidoria" ? (
+        <MainReclamacoes filtersData={filtersData} />
       ) : (
-        <LaborDashboard
-          initialData={initialMaodeObra}
-          initialData2={initialMaodeObra2}
-          token={token}
-          initialMetaDiaria={initialMetaDiaria}
+        <AdherenceToScheduleDashboard
+          initialEliminacao={initialEliminacao}
+          initialAderencia={initialAderencia}
+          initialSparklinesPartners={initialSparklinesPartners}
+          initialPartnerWeeks={initialPartnerWeeks}
+          initialDailyGoal={initialDailyGoal}
+          initialReasonsReascheduling={initialReasonsReascheduling}
+          initialSummary={initialSummary}
           filtersData={filtersData}
           filtersTop={filtersTop}
+          token={token}
         />
       )}
-    </div>
+    </>
   );
 }

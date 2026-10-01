@@ -3,7 +3,7 @@ import { ImportTableContracts } from "@/components/updatesComponents/updateContr
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { Box, Paper } from "@mui/material";
 
-import { ImportContractButton } from "../../../../components/updatesComponents/updateContract/importContractButton";
+import { ImportContractButton } from "../../../../../components/updatesComponents/updateContract/importContractButton";
 
 export const dynamic = "force-dynamic";
 

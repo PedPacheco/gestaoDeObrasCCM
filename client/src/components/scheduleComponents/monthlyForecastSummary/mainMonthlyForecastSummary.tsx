@@ -6,7 +6,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
-import { MonthlySummaryTableColumn } from "@/app/(dashboard)/programacao/resumo-mensal/page";
+import { MonthlySummaryTableColumn } from "@/app/(dashboard)/(with-breadcrumbs)/programacao/resumo-mensal/page";
 import { ButtonComponent } from "@/components/common/Button";
 import { DateFilter } from "@/components/common/DateFilter";
 import ErrorModal from "@/components/common/ErrorModal";

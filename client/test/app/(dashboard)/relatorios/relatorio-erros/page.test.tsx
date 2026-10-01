@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 
 import * as cookiesModule from "next/headers";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import ErrorsReportPage from "@/app/(dashboard)/relatorios/relatorio-erros/page";
+import ErrorsReportPage from "@/app/(dashboard)/(with-breadcrumbs)/relatorios/relatorio-erros/page";
 
 vi.mock("next/headers", () => ({
   cookies: vi.fn(),

@@ -3,7 +3,7 @@ import * as cookiesModule from "next/headers";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { render, screen } from "@testing-library/react";
 import { fetchData } from "@/actions/fetchData.action";
-import MarketUpdates from "@/app/(dashboard)/atualizacoes/mercado/page";
+import MarketUpdates from "@/app/(dashboard)/(with-breadcrumbs)/atualizacoes/mercado/page";
 
 vi.mock("@/actions/fetchData.action", () => ({
   fetchData: vi.fn(),
@@ -24,7 +24,7 @@ vi.mock(
     ImportButtonUpdates: vi.fn(() => (
       <div data-testid="import-update-button" />
     )),
-  })
+  }),
 );
 
 vi.mock("@/components/updatesComponents/updateWorkData/updateButton", () => ({
@@ -48,9 +48,9 @@ vi.mock(
         >
           tableWorksMarket Component
         </div>
-      )
+      ),
     ),
-  })
+  }),
 );
 
 describe("Update Market Page", () => {
@@ -85,7 +85,9 @@ describe("Update Market Page", () => {
 
   it("deve usar dados do cookie quando marketUpdatesData existir", async () => {
     mockCookieStore.get.mockImplementation((key) =>
-      key === "marketUpdatesData" ? { value: "teste" } : { value: "mock-token" }
+      key === "marketUpdatesData"
+        ? { value: "teste" }
+        : { value: "mock-token" },
     );
 
     render(await MarketUpdates());
@@ -97,7 +99,7 @@ describe("Update Market Page", () => {
     expect(JSON.parse(table.getAttribute("data-data") || "[]")).toEqual([]);
 
     expect(
-      JSON.parse(table.getAttribute("data-selectOptionsByColumn") || "[]")
+      JSON.parse(table.getAttribute("data-selectOptionsByColumn") || "[]"),
     ).toEqual(mockFilters);
   });
 
@@ -109,7 +111,7 @@ describe("Update Market Page", () => {
     };
 
     mockCookieStore.get.mockImplementation((key) =>
-      key === "marketUpdatesData" ? undefined : { value: "mock-token" }
+      key === "marketUpdatesData" ? undefined : { value: "mock-token" },
     );
 
     vi.mocked(fetchData).mockResolvedValueOnce(mockAPIData);
@@ -120,16 +122,16 @@ describe("Update Market Page", () => {
       "https://api.example.com/base-auxiliar/mercado",
       undefined,
       "mock-token",
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
 
     const table = screen.getByTestId("table-market-works");
 
     expect(JSON.parse(table.getAttribute("data-data") || "[]")).toEqual(
-      mockAPIData.data
+      mockAPIData.data,
     );
     expect(
-      JSON.parse(table.getAttribute("data-selectOptionsByColumn") || "[]")
+      JSON.parse(table.getAttribute("data-selectOptionsByColumn") || "[]"),
     ).toEqual(mockFilters);
   });
 });

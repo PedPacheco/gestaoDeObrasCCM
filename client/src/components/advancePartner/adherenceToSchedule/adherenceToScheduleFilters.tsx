@@ -3,11 +3,11 @@ import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
 import {
   FilterMode,
   MotivoTab,
-} from "@/hooks/dashboard/advancePartner/useAdvancePartnerFilters";
+} from "@/hooks/advancePartner/useAdvancePartnerFilters";
 import { WEEKS } from "@/utils/weeks";
 import { Dayjs } from "dayjs";
 import { useEffect, useRef, useState } from "react";
-import { EXCLUDE_PARCEIRAS } from "../DashboardClient";
+import { EXCLUDE_PARCEIRAS } from "../../dashboard/DashboardClient";
 
 interface FiltersData {
   regional?: Array<Record<string, any>>;

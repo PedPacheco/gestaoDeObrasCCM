@@ -3,7 +3,7 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as moduleCookies from "next/headers";
 import { render } from "@testing-library/react";
-import EntryForDate from "@/app/(dashboard)/entrada/por-data/page";
+import EntryForDate from "@/app/(dashboard)/(with-breadcrumbs)/entrada/por-data/page";
 import { Transform } from "@/utils/transform";
 import dayjs from "dayjs";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
@@ -26,7 +26,7 @@ vi.mock("@/utils/transform", () => ({
       Object.entries(filters).map(([key, value]) => [
         key,
         Array.isArray(value) && value.length > 0 ? value.join(",") : "",
-      ])
+      ]),
     );
   }),
 }));
@@ -130,7 +130,7 @@ describe("EntryForDate", () => {
         dataFinal: "18/05/2025",
       },
       mockToken,
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
   });
 
@@ -149,7 +149,7 @@ describe("EntryForDate", () => {
         dataInicial: "16/05/2025",
       },
       mockToken,
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
   });
 

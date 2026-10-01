@@ -10,12 +10,21 @@ import { useUser } from "@/contexts/userContext";
 import { useFeedback } from "@/hooks/useFeedback";
 import { userLoginSchema } from "@/validations/validationUserLogin";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Checkbox, TextField } from "@mui/material";
+import { Button, Checkbox, TextField } from "@mui/material";
 
-import { ButtonComponent } from "../common/Button";
 import { ArrowPathIcon } from "@heroicons/react/20/solid";
 
 type UserLoginSchema = z.infer<typeof userLoginSchema>;
+
+const inputSx = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "10px",
+    backgroundColor: "#EEF4FB",
+    "& fieldset": { borderColor: "#D5DFEC" },
+    "&:hover fieldset": { borderColor: "#B4C4D9" },
+    "&.Mui-focused fieldset": { borderColor: "#16B97D" },
+  },
+};
 
 export function FormLogin() {
   const [showPassword, SetShowPassoword] = useState(false);
@@ -54,61 +63,87 @@ export function FormLogin() {
   return (
     <form
       onSubmit={handleSubmit(handleUserLogin)}
-      className="w-full flex flex-col items-center"
+      className="w-full flex flex-col"
     >
-      <div className="flex flex-col items-center mb-12 w-[90%] sm:w-80">
-        <div className="h-20 w-full">
+      <div className="flex flex-col gap-5">
+        <div>
+          <label
+            htmlFor="login-user"
+            className="mb-2 block font-bold text-[#212E3E]"
+          >
+            Usuário
+          </label>
           <TextField
-            className="w-full mb-2"
-            label="Digite seu usuário"
+            id="login-user"
+            fullWidth
+            placeholder="Digite seu usuário"
             {...register("user")}
             error={!!errors.user}
             helperText={errors.user?.message}
+            sx={inputSx}
           />
         </div>
 
-        <div className="h-20 w-full">
+        <div>
+          <label
+            htmlFor="login-password"
+            className="mb-2 block font-bold text-[#212E3E]"
+          >
+            Senha
+          </label>
           <TextField
-            className="w-full mt-10 mb-2"
-            label="Digite sua senha"
+            id="login-password"
+            fullWidth
+            placeholder="Digite sua senha"
             {...register("password")}
             type={showPassword ? "text" : "password"}
             error={!!errors.password}
             helperText={errors.password?.message}
+            sx={inputSx}
           />
         </div>
       </div>
 
-      <div className="mb-20 w-[90%] sm:w-80 flex flex-col">
-        <div className="flex items-center self-end ml-32">
+      <div className="mt-3 mb-6 flex items-center justify-between">
+        <label className="flex items-center cursor-pointer">
           <Checkbox
             className="text-zinc-700"
             onChange={() => SetShowPassoword(!showPassword)}
           />
-          <p className="text-zinc-700 text-nowrap">Exibir senha</p>
-        </div>
-        <ButtonComponent
-          text={
-            loading ? (
-              <div className="flex items-center gap-2">
-                <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                Carregando...
-              </div>
-            ) : (
-              "Entrar"
-            )
-          }
-          type="submit"
-          disabled={loading}
-        />
+          <span className="text-zinc-700 text-nowrap">Exibir senha</span>
+        </label>
 
         <Link
           href="/login/forget-password"
-          className="self-end mt-4 hover:text-[#53FF75]"
+          className="font-medium text-[#16B97D] hover:underline"
         >
-          Esqueceu sua senha ?
+          Esqueceu a senha?
         </Link>
       </div>
+
+      <Button
+        type="submit"
+        disabled={loading}
+        fullWidth
+        sx={{
+          height: 48,
+          borderRadius: "10px",
+          fontWeight: 700,
+          color: "#FFFFFF",
+          backgroundColor: "#16B97D",
+          "&:hover": { backgroundColor: "#12a06b" },
+          "&.Mui-disabled": { color: "#FFFFFF", opacity: 0.7 },
+        }}
+      >
+        {loading ? (
+          <div className="flex items-center gap-2">
+            <ArrowPathIcon className="h-4 w-4 animate-spin" />
+            Carregando...
+          </div>
+        ) : (
+          "ENTRAR"
+        )}
+      </Button>
     </form>
   );
 }
