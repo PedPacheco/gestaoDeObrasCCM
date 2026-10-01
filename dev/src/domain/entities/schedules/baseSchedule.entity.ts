@@ -138,8 +138,20 @@ export abstract class BaseSchedule {
     return this.serviceType.toUpperCase().includes('DP');
   }
 
+  protected validateDpFormat(): void {
+    const dp = this.numDp?.trim();
+
+    if (!dp) return;
+
+    if (!/^\d{8}$/.test(dp)) {
+      throw new BadRequestException(
+        'Número do DP deve conter exatamente 8 dígitos',
+      );
+    }
+  }
+
   /** Regra de confirmação: DP obrigatório com 8 dígitos. */
-  public validateDpNumber(): void {
+  public requireDpNumber(): void {
     if (!this.checkTypeOfService()) return;
 
     const dp = this.numDp?.trim();

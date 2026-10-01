@@ -42,7 +42,10 @@ export class ManageD5NoteScheduleService {
 
     const formattedData = D5NoteScheduleMapper.toPersistenceCreate(schedule);
 
-    return await this.d5NotesScheduleRepository.create(formattedData);
+    return await this.d5NotesScheduleRepository.create(
+      formattedData.id_nota_d5,
+      formattedData,
+    );
   }
 
   async update(
@@ -86,9 +89,10 @@ export class ManageD5NoteScheduleService {
         }),
       );
 
-      await this.d5NotesScheduleRepository.update(
+      await this.d5NotesScheduleRepository.updateAndSyncWorkStatus(
         id,
         D5NoteScheduleMapper.toPersistenceUpdate(schedule),
+        current.d5NoteId,
       );
 
       committed = true;

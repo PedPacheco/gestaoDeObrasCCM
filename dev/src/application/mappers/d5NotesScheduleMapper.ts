@@ -185,8 +185,11 @@ export class D5NoteScheduleMapper {
         : null,
     );
 
+    const precisaDp = this.requiresDP(schedule.num_dp, schedule.tipo_servico);
+
     return {
       ...schedule,
+      precisaDp,
       tecnico: tecnicos?.tecnico ?? null,
       id: notas_d5.id,
       nota_d5: notas_d5.nota_d5,
@@ -281,5 +284,19 @@ export class D5NoteScheduleMapper {
     tmOpen = moment().startOf('day').diff(initialDate, 'days');
 
     return { tmAberto: tmOpen, tmExecucao: tmExecuted };
+  }
+
+  private static requiresDP(numDp?: string, serviceType?: string) {
+    if (!serviceType) return false;
+
+    const serviceTypeRequireDp = ['DP', 'LV', 'Regularização', 'RD'];
+
+    const require = serviceTypeRequireDp.includes(serviceType.toUpperCase());
+
+    if (require && !numDp?.trim()) {
+      return true;
+    }
+
+    return false;
   }
 }

@@ -225,6 +225,7 @@ export type D5NoteScheduleListItem = {
   num_dp: string | null;
   tipo_servico: string | null;
   observacao_programacao: string | null;
+  precisaDp: boolean;
 
   // Técnico
   tecnico: string | null;
