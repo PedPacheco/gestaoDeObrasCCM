@@ -1,7 +1,7 @@
 import { Dayjs } from "dayjs";
 
-import { DateFilter } from "@/components/common/DateFilter";
-import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
+import { DateFilter } from "@/components/common/filter/DateFilter";
+import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
 import { FilterTag } from "../common/FilterTag";
 import { EXCLUDE_PARCEIRAS } from "../DashboardClient";
 

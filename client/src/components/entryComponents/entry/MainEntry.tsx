@@ -5,7 +5,7 @@ import { useEffect, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { ButtonComponent } from "@/components/common/Button";
-import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
+import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
 import { useFeedback } from "@/hooks/useFeedback";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { FiltersInterface } from "@/types/genericFilterSchema";

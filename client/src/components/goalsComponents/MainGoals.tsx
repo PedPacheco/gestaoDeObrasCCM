@@ -13,7 +13,7 @@ import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 
 import { ButtonComponent } from "../common/Button";
-import { MultipleSelectComponent } from "../common/MultipleSelect";
+import { MultipleSelectComponent } from "../common/filter/MultipleSelect";
 import GoalsTable from "./GoalsTable";
 import ModalTotalGoalValues from "./ModalTotalGoalValues";
 import { useFeedback } from "@/hooks/useFeedback";
