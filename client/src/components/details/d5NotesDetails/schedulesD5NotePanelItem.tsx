@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import type { schedulesDataType } from "./d5NotesPanel";
 import { PencilIcon, TrashIcon } from "@heroicons/react/20/solid";
-import { ReactNode, useState } from "react";
+import { useState } from "react";
 import { useUser } from "@/contexts/userContext";
 import { FilesCell } from "./fileCell";
 
