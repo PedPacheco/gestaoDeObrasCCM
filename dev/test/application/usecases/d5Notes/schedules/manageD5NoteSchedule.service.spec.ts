@@ -516,7 +516,6 @@ describe('ManageD5NoteScheduleService', () => {
     ): RejectD5ScheduleDTO =>
       ({
         id,
-        reject: true,
         reason: `motivo ${id}`,
         description: `descrição ${id}`,
         ...overrides,
@@ -539,19 +538,6 @@ describe('ManageD5NoteScheduleService', () => {
     it('deve sair sem I/O quando a lista é vazia', async () => {
       await expect(
         service.reject(D5_NOTE_ID, [], REJECTING_USER),
-      ).resolves.toBeUndefined();
-
-      expect(repository.getByD5NoteId).not.toHaveBeenCalled();
-      expect(repository.rejectMany).not.toHaveBeenCalled();
-    });
-
-    it('deve sair sem I/O quando nenhum item está marcado para reprovar', async () => {
-      await expect(
-        service.reject(
-          D5_NOTE_ID,
-          [makeItem(1, { reject: false }), makeItem(2, { reject: false })],
-          REJECTING_USER,
-        ),
       ).resolves.toBeUndefined();
 
       expect(repository.getByD5NoteId).not.toHaveBeenCalled();
@@ -604,35 +590,6 @@ describe('ManageD5NoteScheduleService', () => {
           { id_nota_d5: D5_NOTE_ID, snapshotOf: 1 },
           { id_nota_d5: D5_NOTE_ID, snapshotOf: 3 },
         ],
-      );
-    });
-
-    it('deve ignorar os itens não marcados para reprovar', async () => {
-      await service.reject(
-        D5_NOTE_ID,
-        [makeItem(1), makeItem(2, { reject: false }), makeItem(3)],
-        REJECTING_USER,
-      );
-
-      expect(mapper.toRejectionSnapshot).toHaveBeenCalledTimes(2);
-      expect(repository.rejectMany).toHaveBeenCalledWith(
-        [1, 3],
-        expect.any(Array),
-      );
-    });
-
-    it('não deve tratar como inexistente um id não marcado para reprovar', async () => {
-      await expect(
-        service.reject(
-          D5_NOTE_ID,
-          [makeItem(1), makeItem(999, { reject: false })],
-          REJECTING_USER,
-        ),
-      ).resolves.toBeUndefined();
-
-      expect(repository.rejectMany).toHaveBeenCalledWith(
-        [1],
-        expect.any(Array),
       );
     });
 

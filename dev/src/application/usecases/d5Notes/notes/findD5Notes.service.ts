@@ -85,8 +85,10 @@ export class FindD5NotesService {
       this.calculateCostPointByPointSchedule(programacoes_d5);
 
     const { tmAberto, tmExecucao } = this.calculateTM(
-      moment(rest.criado_em).startOf('day'),
-      rest.conclusao_nota ? moment(rest.conclusao_nota).startOf('day') : null,
+      moment.utc(rest.criado_em).startOf('day'),
+      rest.conclusao_nota
+        ? moment.utc(rest.conclusao_nota).startOf('day')
+        : null,
     );
 
     return {
@@ -145,7 +147,7 @@ export class FindD5NotesService {
       return { tmAberto: tmOpen, tmExecucao: tmExecuted };
     }
 
-    tmOpen = moment().startOf('day').diff(initialDate, 'days');
+    tmOpen = moment.utc().startOf('day').diff(initialDate, 'days');
 
     return { tmAberto: tmOpen, tmExecucao: tmExecuted };
   }

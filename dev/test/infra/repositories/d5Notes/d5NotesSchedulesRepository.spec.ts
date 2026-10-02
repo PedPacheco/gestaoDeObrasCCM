@@ -756,7 +756,7 @@ describe('D5NotesSchedulesRepository', () => {
 
         expect(programacoesD5.update).toHaveBeenCalledWith({
           where: { id: SCHEDULE_ID },
-          data,
+          data: { reprovada: false, ...data },
         });
       });
 
@@ -778,7 +778,7 @@ describe('D5NotesSchedulesRepository', () => {
 
         expect(programacoesD5.update).toHaveBeenCalledWith({
           where: { id: SCHEDULE_ID },
-          data: {},
+          data: { reprovada: false },
         });
       });
 
