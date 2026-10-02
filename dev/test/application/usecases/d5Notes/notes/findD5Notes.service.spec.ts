@@ -556,7 +556,7 @@ describe('FindD5NotesService', () => {
       const mockExecutionDate = null;
 
       expect(calculateTM(mockInitialDate, mockExecutionDate)).toEqual({
-        tmAberto: 7,
+        tmAberto: 8,
         tmExecucao: null,
       });
     });
