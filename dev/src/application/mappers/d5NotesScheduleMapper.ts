@@ -301,19 +301,23 @@ export class D5NoteScheduleMapper {
   private static calculateTM(
     initialDate: Moment,
     executionDate: Moment | null,
-  ): { tmAberto: number | null; tmExecucao: number | null } {
-    let tmExecuted: number | null = null;
-    let tmOpen: number | null = null;
+  ) {
+    const start = moment.utc(initialDate).startOf('day');
 
     if (executionDate) {
-      tmExecuted = executionDate.diff(initialDate, 'days');
-
-      return { tmAberto: tmOpen, tmExecucao: tmExecuted };
+      return {
+        tmAberto: null,
+        tmExecucao: moment
+          .utc(executionDate)
+          .startOf('day')
+          .diff(start, 'days'),
+      };
     }
 
-    tmOpen = moment.utc().startOf('day').diff(initialDate, 'days');
-
-    return { tmAberto: tmOpen, tmExecucao: tmExecuted };
+    return {
+      tmAberto: moment.utc().startOf('day').diff(start, 'days'),
+      tmExecucao: null,
+    };
   }
 
   private static requiresDP(numDp?: string, serviceType?: string) {

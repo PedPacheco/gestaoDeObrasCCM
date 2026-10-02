@@ -1148,7 +1148,7 @@ describe('D5NoteScheduleMapper', () => {
       const mockExecutionDate = null;
 
       expect(calculateTM(mockInitialDate, mockExecutionDate)).toEqual({
-        tmAberto: 6,
+        tmAberto: 7,
         tmExecucao: null,
       });
     });
