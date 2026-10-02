@@ -209,9 +209,9 @@ export class D5NoteScheduleMapper {
     const obras = notas_d5.obras;
 
     const { tmAberto, tmExecucao } = this.calculateTM(
-      moment(notas_d5.criado_em).startOf('day'),
+      moment.utc(notas_d5.criado_em).startOf('day'),
       notas_d5.conclusao_nota
-        ? moment(notas_d5.conclusao_nota).startOf('day')
+        ? moment.utc(notas_d5.conclusao_nota).startOf('day')
         : null,
     );
 
@@ -311,7 +311,7 @@ export class D5NoteScheduleMapper {
       return { tmAberto: tmOpen, tmExecucao: tmExecuted };
     }
 
-    tmOpen = moment().startOf('day').diff(initialDate, 'days');
+    tmOpen = moment.utc().startOf('day').diff(initialDate, 'days');
 
     return { tmAberto: tmOpen, tmExecucao: tmExecuted };
   }

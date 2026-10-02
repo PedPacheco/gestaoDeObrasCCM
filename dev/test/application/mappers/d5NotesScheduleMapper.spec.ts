@@ -876,7 +876,7 @@ describe('D5NoteScheduleMapper', () => {
       );
 
       expect(result).toMatchObject({
-        tmExecucao: 6,
+        tmExecucao: 5,
         tmAberto: null,
       });
     });
@@ -1148,7 +1148,7 @@ describe('D5NoteScheduleMapper', () => {
       const mockExecutionDate = null;
 
       expect(calculateTM(mockInitialDate, mockExecutionDate)).toEqual({
-        tmAberto: 7,
+        tmAberto: 6,
         tmExecucao: null,
       });
     });
