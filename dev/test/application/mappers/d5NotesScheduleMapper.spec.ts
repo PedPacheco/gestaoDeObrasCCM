@@ -162,6 +162,32 @@ const makeListRow = (overrides: Record<string, any> = {}) => {
   };
 };
 
+/**
+ * Programação de origem para toRejectionSnapshot. Inclui campos que NÃO
+ * fazem parte do snapshot (id, exec, id_tecnico, caminhos_arquivos) para
+ * garantir que não vazam para o resultado.
+ */
+const makeRejectionSource = (overrides: Record<string, any> = {}) => ({
+  id: 1,
+  id_nota_d5: 10,
+  data_prog: CURRENT_DATE,
+  prog: 50,
+  exec: 40,
+  hora_ini: CURRENT_START,
+  hora_ter: CURRENT_FINISH,
+  equipe_lm: 2,
+  equipe_lv: 1,
+  equipe_reg: 3,
+  chave_provisoria: false,
+  chi: 5,
+  num_dp: '12345678',
+  tipo_servico: 'DP',
+  observacao_programacao: 'obs',
+  id_tecnico: 4,
+  caminhos_arquivos: ['a.pdf'],
+  ...overrides,
+});
+
 // Acesso aos auxiliares privados
 const parseScheduledDate = (value?: string) =>
   (D5NoteScheduleMapper as any).parseScheduledDate(value);
@@ -174,6 +200,9 @@ const toCommonColumns = (e: D5NoteSchedule) =>
 
 const calculateTM = (initialDate: Moment, executionDate: Moment | null) =>
   (D5NoteScheduleMapper as any).calculateTM(initialDate, executionDate);
+
+const requiresDP = (numDp?: string | null, serviceType?: string | null) =>
+  (D5NoteScheduleMapper as any).requiresDP(numDp, serviceType);
 
 describe('D5NoteScheduleMapper', () => {
   beforeEach(() => {
@@ -585,6 +614,144 @@ describe('D5NoteScheduleMapper', () => {
   });
 
   // =========================================================================
+  // toRejectionSnapshot
+  // =========================================================================
+  describe('toRejectionSnapshot', () => {
+    const context = {
+      reason: 'Falta de material',
+      description: 'Equipa sem material para executar o serviço',
+      rejectingUserId: 33,
+    };
+
+    it('deve traduzir a programação e o contexto para o snapshot de reprovação', () => {
+      const snapshot = D5NoteScheduleMapper.toRejectionSnapshot(
+        makeRejectionSource() as any,
+        context,
+      );
+
+      expect(snapshot).toEqual({
+        id_nota_d5: 10,
+        motivo: 'Falta de material',
+        descricao: 'Equipa sem material para executar o serviço',
+        data_prog: CURRENT_DATE,
+        prog: 50,
+        hora_ini: CURRENT_START,
+        hora_ter: CURRENT_FINISH,
+        equipe_lm: 2,
+        equipe_lv: 1,
+        equipe_reg: 3,
+        chave_provisoria: false,
+        chi: 5,
+        num_dp: '12345678',
+        tipo_servico: 'DP',
+        observacao_programacao: 'obs',
+        id_usuario_reprovador: 33,
+      });
+    });
+
+    it('deve obter motivo, descrição e reprovador do contexto, não da programação', () => {
+      const snapshot = D5NoteScheduleMapper.toRejectionSnapshot(
+        makeRejectionSource({
+          motivo: 'da programação',
+          descricao: 'da programação',
+          id_usuario_reprovador: 999,
+        }) as any,
+        context,
+      );
+
+      expect(snapshot.motivo).toBe('Falta de material');
+      expect(snapshot.descricao).toBe(
+        'Equipa sem material para executar o serviço',
+      );
+      expect(snapshot.id_usuario_reprovador).toBe(33);
+    });
+
+    it('deve manter o id_nota_d5 da programação', () => {
+      const snapshot = D5NoteScheduleMapper.toRejectionSnapshot(
+        makeRejectionSource({ id_nota_d5: 77 }) as any,
+        context,
+      );
+
+      expect(snapshot.id_nota_d5).toBe(77);
+    });
+
+    it('não deve vazar campos da programação que estão fora do snapshot', () => {
+      const snapshot = D5NoteScheduleMapper.toRejectionSnapshot(
+        makeRejectionSource() as any,
+        context,
+      );
+
+      expect(snapshot).not.toHaveProperty('id');
+      expect(snapshot).not.toHaveProperty('exec');
+      expect(snapshot).not.toHaveProperty('id_tecnico');
+      expect(snapshot).not.toHaveProperty('caminhos_arquivos');
+    });
+
+    it('deve expor exatamente as colunas esperadas do snapshot', () => {
+      const snapshot = D5NoteScheduleMapper.toRejectionSnapshot(
+        makeRejectionSource() as any,
+        context,
+      );
+
+      expect(Object.keys(snapshot).sort()).toEqual(
+        [
+          'id_nota_d5',
+          'motivo',
+          'descricao',
+          'data_prog',
+          'prog',
+          'hora_ini',
+          'hora_ter',
+          'equipe_lm',
+          'equipe_lv',
+          'equipe_reg',
+          'chave_provisoria',
+          'chi',
+          'num_dp',
+          'tipo_servico',
+          'observacao_programacao',
+          'id_usuario_reprovador',
+        ].sort(),
+      );
+    });
+
+    it('deve propagar valores null e undefined dos campos opcionais', () => {
+      const snapshot = D5NoteScheduleMapper.toRejectionSnapshot(
+        makeRejectionSource({
+          num_dp: null,
+          observacao_programacao: null,
+          chi: undefined,
+        }) as any,
+        context,
+      );
+
+      expect(snapshot.num_dp).toBeNull();
+      expect(snapshot.observacao_programacao).toBeNull();
+      expect(snapshot.chi).toBeUndefined();
+    });
+
+    it('não deve mutar a programação nem o contexto de entrada', () => {
+      const source = Object.freeze(makeRejectionSource());
+      const frozenContext = Object.freeze({ ...context });
+
+      expect(() =>
+        D5NoteScheduleMapper.toRejectionSnapshot(source as any, frozenContext),
+      ).not.toThrow();
+      expect(source).toEqual(makeRejectionSource());
+    });
+
+    it('deve devolver um novo objeto a cada chamada', () => {
+      const source = makeRejectionSource() as any;
+
+      const first = D5NoteScheduleMapper.toRejectionSnapshot(source, context);
+      const second = D5NoteScheduleMapper.toRejectionSnapshot(source, context);
+
+      expect(first).not.toBe(second);
+      expect(first).toEqual(second);
+    });
+  });
+
+  // =========================================================================
   // toResponse / toResponseList
   // =========================================================================
   describe('toResponse', () => {
@@ -709,7 +876,7 @@ describe('D5NoteScheduleMapper', () => {
       );
 
       expect(result).toMatchObject({
-        tmExecucao: 6,
+        tmExecucao: 5,
         tmAberto: null,
       });
     });
@@ -818,6 +985,45 @@ describe('D5NoteScheduleMapper', () => {
 
         expect(result.ovnota).toBeNull();
         expect(result.ordemDiagrama).toBeNull();
+      });
+    });
+
+    describe('precisaDp', () => {
+      it.each<[string, Record<string, any>, boolean]>([
+        [
+          'true quando o serviço exige DP e num_dp está ausente',
+          { tipo_servico: 'DP', num_dp: null },
+          true,
+        ],
+        [
+          'false quando o serviço exige DP e num_dp está preenchido',
+          { tipo_servico: 'DP', num_dp: '12345678' },
+          false,
+        ],
+        [
+          'false quando o serviço não exige DP',
+          { tipo_servico: 'Manutenção', num_dp: null },
+          false,
+        ],
+        [
+          'false quando tipo_servico está ausente',
+          { tipo_servico: null, num_dp: null },
+          false,
+        ],
+      ])('deve devolver %s', (_l, overrides, expected) => {
+        const result = D5NoteScheduleMapper.toListItem(
+          makeListRow(overrides) as any,
+        );
+
+        expect(result.precisaDp).toBe(expected);
+      });
+
+      it('deve manter num_dp e tipo_servico no item da lista', () => {
+        const result = D5NoteScheduleMapper.toListItem(
+          makeListRow({ tipo_servico: 'LV', num_dp: '999' }) as any,
+        ) as any;
+
+        expect(result).toMatchObject({ tipo_servico: 'LV', num_dp: '999' });
       });
     });
   });
@@ -956,5 +1162,63 @@ describe('D5NoteScheduleMapper', () => {
         tmExecucao: 7,
       });
     });
+  });
+
+  describe('requiresDP', () => {
+    it.each([
+      ['undefined', undefined],
+      ['null', null],
+      ['string vazia', ''],
+    ])('deve devolver false quando serviceType é %s', (_l, serviceType) => {
+      expect(requiresDP(undefined, serviceType)).toBe(false);
+      expect(requiresDP('12345678', serviceType)).toBe(false);
+    });
+
+    it.each(['DP', 'LV', 'RD'])(
+      'deve devolver true quando %s exige DP e numDp está ausente',
+      (serviceType) => {
+        expect(requiresDP(undefined, serviceType)).toBe(true);
+      },
+    );
+
+    it.each(['dp', 'lv', 'rd', 'Dp'])(
+      'deve ignorar maiúsculas/minúsculas em "%s"',
+      (serviceType) => {
+        expect(requiresDP(undefined, serviceType)).toBe(true);
+      },
+    );
+
+    // O código compara serviceType.toUpperCase() com a lista que contém
+    // 'Regularização' (caixa mista), logo este caso nunca coincide hoje.
+    it.each(['Regularização', 'regularização', 'REGULARIZAÇÃO'])(
+      'deve devolver true quando "%s" exige DP e numDp está ausente',
+      (serviceType) => {
+        expect(requiresDP(undefined, serviceType)).toBe(true);
+      },
+    );
+
+    it.each([
+      ['undefined', undefined],
+      ['null', null],
+      ['string vazia', ''],
+      ['apenas espaços', '   '],
+    ])('deve devolver true quando numDp é %s', (_l, numDp) => {
+      expect(requiresDP(numDp, 'DP')).toBe(true);
+    });
+
+    it('deve devolver false quando numDp está preenchido', () => {
+      expect(requiresDP('12345678', 'DP')).toBe(false);
+    });
+
+    it('deve considerar preenchido um numDp com espaços ao redor', () => {
+      expect(requiresDP('  123  ', 'LV')).toBe(false);
+    });
+
+    it.each(['Manutenção', 'Poda', 'OUTRO'])(
+      'deve devolver false quando %s não exige DP, mesmo sem numDp',
+      (serviceType) => {
+        expect(requiresDP(undefined, serviceType)).toBe(false);
+      },
+    );
   });
 });

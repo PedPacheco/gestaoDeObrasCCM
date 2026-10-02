@@ -85,8 +85,10 @@ export class FindD5NotesService {
       this.calculateCostPointByPointSchedule(programacoes_d5);
 
     const { tmAberto, tmExecucao } = this.calculateTM(
-      moment(rest.criado_em).startOf('day'),
-      rest.conclusao_nota ? moment(rest.conclusao_nota).startOf('day') : null,
+      moment.utc(rest.criado_em).startOf('day'),
+      rest.conclusao_nota
+        ? moment.utc(rest.conclusao_nota).startOf('day')
+        : null,
     );
 
     return {
@@ -132,22 +134,23 @@ export class FindD5NotesService {
     );
   }
 
-  private calculateTM(
-    initialDate: Moment,
-    executionDate: Moment | null,
-  ): { tmAberto: number | null; tmExecucao: number | null } {
-    let tmExecuted: number | null = null;
-    let tmOpen: number | null = null;
+  private calculateTM(initialDate: Moment, executionDate: Moment | null) {
+    const start = moment.utc(initialDate).startOf('day');
 
     if (executionDate) {
-      tmExecuted = executionDate.diff(initialDate, 'days');
-
-      return { tmAberto: tmOpen, tmExecucao: tmExecuted };
+      return {
+        tmAberto: null,
+        tmExecucao: moment
+          .utc(executionDate)
+          .startOf('day')
+          .diff(start, 'days'),
+      };
     }
 
-    tmOpen = moment().startOf('day').diff(initialDate, 'days');
-
-    return { tmAberto: tmOpen, tmExecucao: tmExecuted };
+    return {
+      tmAberto: moment.utc().startOf('day').diff(start, 'days'),
+      tmExecucao: null,
+    };
   }
 
   /* ---------------- Funções para orquestração dos filtros ---------------- */

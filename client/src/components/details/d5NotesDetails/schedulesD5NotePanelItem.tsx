@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import {
   Box,
+  Checkbox,
   IconButton,
   Paper,
   Table,
@@ -16,7 +17,7 @@ import {
 } from "@mui/material";
 import type { schedulesDataType } from "./d5NotesPanel";
 import { PencilIcon, TrashIcon } from "@heroicons/react/20/solid";
-import { ReactNode, useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { useUser } from "@/contexts/userContext";
 import { FilesCell } from "./fileCell";
 
@@ -43,6 +44,10 @@ const columnConfig: ColumnConfig[] = [
   {
     key: "usuarioModificador",
     label: "Editado por",
+  },
+  {
+    key: "reprovada",
+    label: "Reprovada",
   },
   {
     key: "data_prog",
@@ -164,12 +169,16 @@ interface SchedulesD5NotePanelItemProps {
   data: schedulesDataType[];
   onEdit?: (data: any) => void;
   onDelete: (confirm: number) => void;
+  schedulesToBeRejected: Set<number>;
+  setSchedulesToBeRejected: Dispatch<SetStateAction<Set<number>>>;
 }
 
 export default function SchedulesD5NotePanelItem({
   data,
   onDelete,
   onEdit,
+  schedulesToBeRejected,
+  setSchedulesToBeRejected,
 }: SchedulesD5NotePanelItemProps) {
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
 
@@ -185,6 +194,18 @@ export default function SchedulesD5NotePanelItem({
     if (onDelete) {
       onDelete(id);
     }
+  };
+
+  const toggleRejection = (id: number, selected: boolean) => {
+    setSchedulesToBeRejected((prev) => {
+      const next = new Set(prev);
+      if (selected) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+      return next;
+    });
   };
 
   const canAccessScheduleActions = (
@@ -308,7 +329,22 @@ export default function SchedulesD5NotePanelItem({
                     }
                   `}
                 >
-                  {formatCellValue(item[column.key], column.key)}
+                  {column.key === "reprovada" ? (
+                    <Checkbox
+                      checked={
+                        item.reprovada || schedulesToBeRejected.has(item.id)
+                      }
+                      disabled={item.reprovada}
+                      onChange={(event) =>
+                        toggleRejection(item.id, event.target.checked)
+                      }
+                      inputProps={{
+                        "aria-label": `Reprovar programação ${item.id}`,
+                      }}
+                    />
+                  ) : (
+                    formatCellValue(item[column.key], column.key)
+                  )}
                 </TableCell>
               ))}
             </TableRow>

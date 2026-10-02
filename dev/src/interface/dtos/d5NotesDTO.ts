@@ -15,6 +15,11 @@ import { convertParameterValue } from 'src/utils/convertParameterValue';
 import { OmitType, PartialType } from '@nestjs/mapped-types';
 import { BadRequestException } from '@nestjs/common';
 
+const emptyToNull = (value: unknown): string | null =>
+  value === '' || value === null || value === undefined || value === 'null'
+    ? null
+    : (value as string);
+
 export class D5NotesFiltersDTO {
   @IsOptional()
   @IsArray()
@@ -158,11 +163,13 @@ export class CreateProgramacaoD5Dto {
 
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => emptyToNull(value))
   observation?: string;
 
   @IsOptional()
   @IsString()
   @MaxLength(25)
+  @Transform(({ value }) => emptyToNull(value))
   numDp?: string;
 
   @IsString()
@@ -224,10 +231,12 @@ export class CreateProgramacaoD5Dto {
   @IsOptional()
   @IsString()
   @MaxLength(50)
+  @Transform(({ value }) => emptyToNull(value))
   restrictionResponsible?: string;
 
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => emptyToNull(value))
   executionObservation?: string;
 
   @IsInt()
@@ -272,4 +281,15 @@ export class UpdateScheduleD5Dto extends PartialType(
     }
   })
   keptFiles?: string[];
+}
+
+export class RejectD5ScheduleDTO {
+  @IsNumber()
+  id: number;
+
+  @IsString()
+  reason: string;
+
+  @IsString()
+  description: string;
 }

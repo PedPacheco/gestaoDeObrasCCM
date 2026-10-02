@@ -1,6 +1,7 @@
 import {
   D5NoteScheduleCreateData,
   D5NoteScheduleUpdateData,
+  D5ScheduleRejectionData,
   SchedulesD5NotesByIdQueryResult,
   SchedulesD5NotesByNoteIdQueryResult,
   SchedulesD5NotesQueryResult,
@@ -18,9 +19,14 @@ export interface ID5NotesSchedulesRepository {
   getById(id: number): Promise<SchedulesD5NotesByIdQueryResult | null>;
   getTotals(where: Record<string, any>): Promise<{ total: number }>;
   getByD5NoteId(id: number): Promise<SchedulesD5NotesByNoteIdQueryResult[]>;
-  create(data: D5NoteScheduleCreateData): Promise<void>;
-  update(id: number, data: D5NoteScheduleUpdateData): Promise<void>;
+  create(id: number, data: D5NoteScheduleCreateData): Promise<void>;
+  updateAndSyncWorkStatus(
+    id: number,
+    data: D5NoteScheduleUpdateData,
+    d5NoteId: number,
+  ): Promise<void>;
   delete(id: number): Promise<void>;
+  rejectMany(ids: number[], data: D5ScheduleRejectionData[]): Promise<void>;
 }
 
 export const D5_NOTES_SCHEDULES_REPOSITORY = Symbol(

@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 
-import { deleteD5NoteSchedule } from "@/actions/d5Notes";
+import { deleteD5NoteSchedule, RejectedD5Schedules } from "@/actions/d5Notes";
 import { ButtonComponent } from "@/components/common/Button";
 import ConfirmationScheduleModalComponent from "@/components/common/confirmationScheduleModal";
 import { useFeedback } from "@/hooks/useFeedback";
@@ -10,6 +10,7 @@ import { useFeedback } from "@/hooks/useFeedback";
 import D5ScheduleFormDialog from "./modal/d5ScheduleFormDialog";
 import SchedulesD5NotePanelItem from "./schedulesD5NotePanelItem";
 import { useRouter } from "next/navigation";
+import RejectSchedulesModal from "./rejectSchedulesModal";
 
 // Ajuste o caminho acima conforme a localização real do seu hook.
 
@@ -39,6 +40,13 @@ export type schedulesDataType = {
   idTecnico: number;
   idRestricao: number;
   caminhos_arquivos: string[];
+  reprovada: boolean;
+};
+
+export type RejectD5SchedulePayload = {
+  id: number;
+  reason: string;
+  description: string;
 };
 
 type ScheduleOption = {
@@ -46,7 +54,7 @@ type ScheduleOption = {
   tecnico: string;
 };
 
-type RestrictionOption = {
+export type RestrictionOption = {
   id: number;
   restricao: string;
   tipo_restricao: string;
@@ -71,17 +79,30 @@ export function D5NotesPanel({
 
   const router = useRouter();
 
+  const [isPending, startTransition] = useTransition();
+
+  const [openRejectionModal, setOpenRejectionModal] = useState(false);
   const [openDeletionModal, setOpenDeletionModal] = useState(false);
+  const [openScheduleForm, setOpenScheduleForm] = useState(false);
+
   const [selectedScheduleId, setSelectedScheduleId] = useState<number | null>(
     null,
   );
 
-  const [openScheduleForm, setOpenScheduleForm] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<
     schedulesDataType | undefined
   >(undefined);
 
-  const [isPending, startTransition] = useTransition();
+  const [schedulesToBeRejected, setSchedulesToBeRejected] = useState<
+    Set<number>
+  >(new Set());
+
+  useEffect(() => {
+    setSchedulesToBeRejected(new Set());
+  }, [schedulesData]);
+
+  const selectedCount = schedulesToBeRejected.size;
+  const hasSelection = selectedCount > 0;
 
   const handleDeleteSchedule = useCallback((idSchedule: number) => {
     setSelectedScheduleId(idSchedule);
@@ -110,14 +131,15 @@ export function D5NotesPanel({
   }, [selectedScheduleId, d5NoteId, showError, showSuccess]);
 
   const handleCloseDeletionModal = useCallback(() => {
-    console.log("entrou");
     setOpenDeletionModal(false);
     setSelectedScheduleId(null);
   }, []);
 
-  /**
-   * Abre o formulário no modo de edição.
-   */
+  const handleCloseScheduleForm = useCallback(() => {
+    setOpenScheduleForm(false);
+    setSelectedSchedule(undefined);
+  }, []);
+
   const handleEditSchedule = useCallback(
     (idSchedule: number) => {
       const schedule = schedulesData.find((item) => item.id === idSchedule);
@@ -133,25 +155,31 @@ export function D5NotesPanel({
     [schedulesData, showError],
   );
 
-  /**
-   * Abre o formulário no modo de inserção.
-   */
   const handleNewSchedule = useCallback(() => {
     setSelectedSchedule(undefined);
     setOpenScheduleForm(true);
   }, []);
 
-  const handleCloseScheduleForm = useCallback(() => {
-    setOpenScheduleForm(false);
-    setSelectedSchedule(undefined);
-  }, []);
+  const handleOpenRejectionModal = () => {
+    if (!hasSelection) {
+      showError("Selecione pelo menos uma programação para reprovar.");
+      return;
+    }
+    setOpenRejectionModal(true);
+  };
 
   return (
     <>
       <div className="flex h-[620px] min-w-0 flex-1 flex-col shadow-lg">
         {/* Cabeçalho */}
-        <div className="shrink-0 border-b border-solid border-zinc-300">
-          <div className="flex items-center justify-end px-2 py-2 md:px-4">
+        <div className="flex justify-end items-center gap-2 shrink-0 border-b border-solid border-zinc-300">
+          <div className="px-2 py-2">
+            <ButtonComponent
+              onClick={handleOpenRejectionModal}
+              text="Reprovar programações"
+            />
+          </div>
+          <div className="px-2 py-2">
             <ButtonComponent
               onClick={handleNewSchedule}
               text="Nova programação"
@@ -165,9 +193,29 @@ export function D5NotesPanel({
             data={schedulesData}
             onDelete={handleDeleteSchedule}
             onEdit={handleEditSchedule}
+            schedulesToBeRejected={schedulesToBeRejected}
+            setSchedulesToBeRejected={setSchedulesToBeRejected}
           />
         </div>
       </div>
+
+      <RejectSchedulesModal
+        open={openRejectionModal}
+        onClose={() => setOpenRejectionModal(false)}
+        options={options.restricao}
+        selectedIds={schedulesToBeRejected}
+        onConfirm={async (payload) => {
+          const response = await RejectedD5Schedules(d5NoteId, payload);
+
+          if (!response.success) {
+            showError(response.error);
+          }
+
+          showSuccess("Programações reprovadas com sucesso.");
+          setSchedulesToBeRejected(new Set());
+          startTransition(() => router.refresh());
+        }}
+      />
 
       {/* Modal de confirmação da eliminação */}
       {selectedScheduleId !== null && (

@@ -5,13 +5,12 @@ import dayjs from "dayjs";
 
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 import { Transform } from "@/utils/transform";
-import { GenericFilterBar } from "@/components/common/genericFilterBar";
+import { GenericFilterBar } from "@/components/common/filter/genericFilterBar";
 import {
   ExtraFilterValue,
   FilterFieldConfig,
   FiltersInterface,
 } from "@/types/genericFilterSchema";
-import { ButtonComponent } from "../common/Button";
 
 const STATUS_D5_SAP_OPTIONS = ["Concluído", "Pendente"] as const;
 
@@ -225,8 +224,6 @@ export default function D5NotesFilters({
     const extraParams = buildExtraParams();
     saveFilters(selectedItems, extraParams);
 
-    console.log(extraParams, selectedItems);
-
     searchFilteredData({
       ...Transform(selectedItems),
       ...extraParams,
@@ -254,7 +251,7 @@ export default function D5NotesFilters({
 
   return (
     <div className="flex w-full">
-      <div className="flex-1 min-w-0 mr-4">
+      <div className="flex-1">
         <GenericFilterBar
           schema={D5_FILTER_SCHEMA}
           data={filteredData}
@@ -266,10 +263,10 @@ export default function D5NotesFilters({
           isPending={isPending}
           onApply={handleApplyFilters}
           onClear={handleClearFilters}
+          hasExport={true}
+          handleGenerateExcel={handleGenerateExcel}
         />
       </div>
-
-      <ButtonComponent text="Exportar Notas D5" onClick={handleGenerateExcel} />
     </div>
   );
 }

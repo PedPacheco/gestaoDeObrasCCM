@@ -165,13 +165,24 @@ export function useD5ScheduleForm({ schedule, options }: Props) {
     payload.append("scheduledDate", formData.scheduledDate);
     payload.append("prog", String(formData.prog));
 
-    if (formData.exec !== "") {
-      payload.append("exec", String(formData.exec));
-    }
+    payload.append(
+      "exec",
+      formData.exec === "" || formData.exec == null
+        ? ""
+        : String(formData.exec),
+    );
 
     if (formData.startTime) payload.append("startTime", formData.startTime);
     if (formData.endTime) payload.append("endTime", formData.endTime);
-    if (formData.numDp) payload.append("numDp", formData.numDp);
+
+    payload.append("numDp", formData.numDp ?? "");
+    payload.append(
+      "restrictionResponsible",
+      formData.restrictionResponsible ?? "",
+    );
+    payload.append("observation", formData.observation ?? "");
+    payload.append("executionObservation", formData.executionObservation ?? "");
+
     if (formData.serviceType)
       payload.append("serviceType", formData.serviceType);
     if (formData.chi !== "") payload.append("chi", String(formData.chi));
@@ -186,18 +197,6 @@ export function useD5ScheduleForm({ schedule, options }: Props) {
     payload.append("temporaryKey", String(formData.temporaryKey));
     payload.append("technicalId", String(formData.technicalId));
     payload.append("restrictionId", String(formData.restrictionId));
-
-    if (formData.restrictionResponsible) {
-      payload.append("restrictionResponsible", formData.restrictionResponsible);
-    }
-
-    if (formData.observation) {
-      payload.append("observation", formData.observation);
-    }
-
-    if (formData.executionObservation) {
-      payload.append("executionObservation", formData.executionObservation);
-    }
 
     // campo omitido = não mexer nos anexos
     if (filesChanged) {

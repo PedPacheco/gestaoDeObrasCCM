@@ -6,7 +6,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { useCallback, useEffect, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
-import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
+import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
 
 import { capitalize } from "@/utils/formatValue";
@@ -17,7 +17,7 @@ import {
   MagnifyingGlassCircleIcon,
 } from "@heroicons/react/20/solid";
 import { InputAdornment, TextField } from "@mui/material";
-import { DateFilter } from "@/components/common/DateFilter";
+import { DateFilter } from "@/components/common/filter/DateFilter";
 import { FiltersInterface } from "@/types/genericFilterSchema";
 
 interface PortfolioWorksFiltersProps {

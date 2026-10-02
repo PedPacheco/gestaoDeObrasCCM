@@ -33,7 +33,7 @@ export class D5NoteSchedule extends BaseSchedule {
     this.validate();
     this.validateFiles();
     this.validateExecutionFields();
-    this.validateDpNumber();
+    this.validateDpFormat();
   }
 
   private get hasExecution(): boolean {
@@ -87,6 +87,8 @@ export class D5NoteSchedule extends BaseSchedule {
       }
       return;
     }
+
+    this.requireDpNumber();
 
     // Com execução, ambos passam a ser obrigatórios
     if (this.filePaths.length === 0) {

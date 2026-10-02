@@ -13,7 +13,7 @@ import {
   SelectChangeEvent,
 } from "@mui/material";
 
-import { MultipleSelectComponent } from "@/components/common/MultipleSelect";
+import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
 import { FilterTag } from "../common/FilterTag";
 import { EXCLUDE_PARCEIRAS } from "../DashboardClient";
 import { FiltersInterface } from "@/types/genericFilterSchema";

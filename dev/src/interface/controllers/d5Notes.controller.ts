@@ -24,6 +24,7 @@ import {
   CreateProgramacaoD5Dto,
   D5NotesFiltersDTO,
   D5NotesSchedulesFiltersDTO,
+  RejectD5ScheduleDTO,
   UpdateD5NoteDTO,
   UpdateScheduleD5Dto,
 } from '../dtos/d5NotesDTO';
@@ -144,6 +145,21 @@ export class D5NotesController {
     return {
       statusCode: HttpStatus.NO_CONTENT,
       message: 'Relatório excluído com sucesso',
+    };
+  }
+
+  @Patch('/reprovar/:id')
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
+  async rejectD5Schedules(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: RejectD5ScheduleDTO[],
+    @Req() req: any,
+  ) {
+    await this.manageD5NoteScheduleService.reject(id, data, req.user.sub);
+
+    return {
+      statusCode: HttpStatus.NO_CONTENT,
+      message: 'Programação reprovada com sucesso',
     };
   }
 }
