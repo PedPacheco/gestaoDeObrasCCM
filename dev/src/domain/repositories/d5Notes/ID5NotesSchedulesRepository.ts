@@ -1,6 +1,7 @@
 import {
   D5NoteScheduleCreateData,
   D5NoteScheduleUpdateData,
+  D5ScheduleRejectionData,
   SchedulesD5NotesByIdQueryResult,
   SchedulesD5NotesByNoteIdQueryResult,
   SchedulesD5NotesQueryResult,
@@ -25,6 +26,7 @@ export interface ID5NotesSchedulesRepository {
     d5NoteId: number,
   ): Promise<void>;
   delete(id: number): Promise<void>;
+  rejectMany(ids: number[], data: D5ScheduleRejectionData[]): Promise<void>;
 }
 
 export const D5_NOTES_SCHEDULES_REPOSITORY = Symbol(

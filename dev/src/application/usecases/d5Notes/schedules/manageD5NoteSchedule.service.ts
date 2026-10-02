@@ -13,6 +13,7 @@ import {
 import { resolveFileDiff } from 'src/domain/services/resolveFileDiff.service';
 import {
   CreateProgramacaoD5Dto,
+  RejectD5ScheduleDTO,
   UpdateScheduleD5Dto,
 } from 'src/interface/dtos/d5NotesDTO';
 import { FileService } from '../../file.service';
@@ -143,5 +144,40 @@ export class ManageD5NoteScheduleService {
       filePaths.map((path) => join(process.env.UPLOAD_AS_BUILD, path)),
       process.env.UPLOAD_AS_BUILD,
     );
+  }
+
+  async reject(
+    d5NoteId: number,
+    data: RejectD5ScheduleDTO[],
+    rejectingUserId: number,
+  ): Promise<void> {
+    if (!data.length) return;
+
+    const existingSchedules =
+      await this.d5NotesScheduleRepository.getByD5NoteId(d5NoteId);
+
+    const byId = new Map(existingSchedules.map((s) => [s.id, s]));
+
+    const missingIds = data
+      .map((item) => item.id)
+      .filter((id) => !byId.has(id));
+
+    if (missingIds.length) {
+      throw new NotFoundException(
+        `Programações não encontradas para esta nota D5: ${missingIds.join(', ')}`,
+      );
+    }
+
+    const ids = data.map((item) => item.id);
+
+    const rejections = data.map((item) =>
+      D5NoteScheduleMapper.toRejectionSnapshot(byId.get(item.id)!, {
+        reason: item.reason,
+        description: item.description,
+        rejectingUserId,
+      }),
+    );
+
+    await this.d5NotesScheduleRepository.rejectMany(ids, rejections);
   }
 }

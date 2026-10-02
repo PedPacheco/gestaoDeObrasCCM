@@ -4,6 +4,7 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {
   D5NoteScheduleCreateData,
   D5NoteScheduleUpdateData,
+  D5ScheduleRejectionData,
   SchedulesD5NotesByIdQueryResult,
   SchedulesD5NotesByNoteIdQueryResult,
   SchedulesD5NotesQueryResult,
@@ -112,6 +113,7 @@ export class D5NotesSchedulesRepository implements ID5NotesSchedulesRepository {
         usuario_criador: { select: { nome: true } },
         usuario_modificador: { select: { nome: true } },
         caminhos_arquivos: true,
+        reprovada: true,
       },
     });
   }
@@ -154,7 +156,7 @@ export class D5NotesSchedulesRepository implements ID5NotesSchedulesRepository {
     await this.prisma.$transaction(async (tx) => {
       await tx.programacoes_d5.update({
         where: { id },
-        data,
+        data: { reprovada: false, ...data },
       });
 
       // recalcula já com o valor gravado
@@ -174,6 +176,22 @@ export class D5NotesSchedulesRepository implements ID5NotesSchedulesRepository {
           },
         });
       }
+    });
+  }
+
+  async rejectMany(
+    ids: number[],
+    rejections: D5ScheduleRejectionData[],
+  ): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.programacoes_d5_reprovacoes.createMany({
+        data: rejections,
+      });
+
+      await tx.programacoes_d5.updateMany({
+        where: { id: { in: ids } },
+        data: { reprovada: true },
+      });
     });
   }
 }

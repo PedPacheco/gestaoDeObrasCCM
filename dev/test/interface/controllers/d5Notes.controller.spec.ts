@@ -10,6 +10,7 @@ import {
   CreateProgramacaoD5Dto,
   D5NotesFiltersDTO,
   D5NotesSchedulesFiltersDTO,
+  RejectD5ScheduleDTO,
   UpdateScheduleD5Dto,
 } from 'src/interface/dtos/d5NotesDTO';
 
@@ -48,6 +49,7 @@ describe('D5NotesController', () => {
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    reject: jest.fn(),
   };
 
   const mockManageD5NoteScheduleService = {
@@ -308,6 +310,9 @@ describe('D5NotesController', () => {
     });
   });
 
+  // -------------------------------------------------------------------------
+  // PATHC /:id
+  // -------------------------------------------------------------------------
   describe('updateD5Note', () => {
     it('deve eliminar a programação e retornar NO_CONTENT', async () => {
       mockManageD5NoteScheduleService.update.mockResolvedValue(undefined);
@@ -327,6 +332,43 @@ describe('D5NotesController', () => {
         statusCode: HttpStatus.OK,
         message: 'Nota D5 atualizada com sucesso',
       });
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // PATCH /reprovar/:id
+  // -------------------------------------------------------------------------
+  describe('rejectD5Schedules', () => {
+    const dto = [
+      { reason: 'horário' },
+      { reason: 'data' },
+    ] as unknown as RejectD5ScheduleDTO[];
+
+    const req = { user: { sub: 'user-123' } };
+
+    it('deve eliminar a programação e retornar NO_CONTENT', async () => {
+      manageD5NoteScheduleService.reject.mockResolvedValue(undefined);
+
+      const result = await controller.rejectD5Schedules(3, dto, req);
+
+      expect(manageD5NoteScheduleService.reject).toHaveBeenCalledWith(
+        3,
+        dto,
+        'user-123',
+      );
+      expect(result).toEqual({
+        statusCode: HttpStatus.NO_CONTENT,
+        message: 'Programação reprovada com sucesso',
+      });
+    });
+
+    it('deve propagar erros de eliminação', async () => {
+      const error = new Error('não foi possível excluir');
+      manageD5NoteScheduleService.reject.mockRejectedValue(error);
+
+      await expect(controller.rejectD5Schedules(3, dto, req)).rejects.toThrow(
+        error,
+      );
     });
   });
 });

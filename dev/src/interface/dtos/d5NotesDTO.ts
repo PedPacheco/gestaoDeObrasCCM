@@ -282,3 +282,14 @@ export class UpdateScheduleD5Dto extends PartialType(
   })
   keptFiles?: string[];
 }
+
+export class RejectD5ScheduleDTO {
+  @IsNumber()
+  id: number;
+
+  @IsString()
+  reason: string;
+
+  @IsString()
+  description: string;
+}

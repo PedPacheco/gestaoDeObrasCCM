@@ -168,3 +168,44 @@ function getUserIdFromToken(token: string): number | null {
     return null;
   }
 }
+
+export async function RejectedD5Schedules(
+  idWork: number,
+  data: {
+    id: number;
+    reason: string;
+    description: string;
+  }[],
+) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
+  try {
+    const result = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/notas-d5/reprovar/${idWork}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      },
+    );
+
+    const res = await result.json();
+
+    if (res.statusCode !== 204) {
+      return {
+        success: false,
+        error: res.message || "Erro ao reprovar programações",
+      };
+    }
+
+    revalidatePath(`/notas-d5/${idWork}`);
+
+    return { success: true, message: res.message };
+  } catch (error: any) {
+    return { success: false, message: error.message };
+  }
+}

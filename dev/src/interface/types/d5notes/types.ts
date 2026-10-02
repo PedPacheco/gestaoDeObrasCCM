@@ -101,6 +101,7 @@ export type SchedulesD5NotesByNoteIdQueryResult = {
   tecnicos: { id: number; tecnico: string };
   responsavel_restricao: string | null;
   caminhos_arquivos: string[];
+  reprovada: boolean;
 };
 
 export type SchedulesD5NotesQueryResult = {
@@ -280,4 +281,41 @@ export type D5NoteScheduleResponse = {
   restricao: string;
   responsavel_restricao: string | null;
   caminhos_arquivos: string[];
+  reprovada: boolean;
 };
+
+export type D5ScheduleRejectionData = {
+  id_nota_d5: number;
+  motivo: string;
+  descricao: string;
+  data_prog: Date;
+  prog: number;
+  hora_ini: Date;
+  hora_ter: Date;
+  equipe_lm: number;
+  equipe_lv: number;
+  equipe_reg: number;
+  chave_provisoria: boolean;
+  chi: number;
+  num_dp: string;
+  tipo_servico: string;
+  observacao_programacao: string;
+  id_usuario_reprovador: number;
+};
+
+export type D5ScheduleRejectionSource = Pick<
+  SchedulesD5NotesByIdQueryResult,
+  | 'id_nota_d5'
+  | 'data_prog'
+  | 'prog'
+  | 'hora_ini'
+  | 'hora_ter'
+  | 'equipe_lm'
+  | 'equipe_lv'
+  | 'equipe_reg'
+  | 'chave_provisoria'
+  | 'chi'
+  | 'num_dp'
+  | 'tipo_servico'
+  | 'observacao_programacao'
+>;

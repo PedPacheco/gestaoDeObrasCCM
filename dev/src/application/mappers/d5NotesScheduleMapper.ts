@@ -14,6 +14,8 @@ import {
   D5NoteScheduleListItem,
   D5NoteScheduleResponse,
   D5NoteScheduleUpdateData,
+  D5ScheduleRejectionData,
+  D5ScheduleRejectionSource,
   SchedulesD5NotesByIdQueryResult,
   SchedulesD5NotesByNoteIdQueryResult,
   SchedulesD5NotesQueryResult,
@@ -141,6 +143,34 @@ export class D5NoteScheduleMapper {
     return {
       ...D5NoteScheduleMapper.toCommonColumns(entity),
       id_usuario_modificador: entity.modifyingUserId,
+    };
+  }
+
+  static toRejectionSnapshot(
+    schedule: D5ScheduleRejectionSource,
+    context: {
+      reason: string;
+      description: string;
+      rejectingUserId: number;
+    },
+  ): D5ScheduleRejectionData {
+    return {
+      id_nota_d5: schedule.id_nota_d5,
+      motivo: context.reason,
+      descricao: context.description,
+      data_prog: schedule.data_prog,
+      prog: schedule.prog,
+      hora_ini: schedule.hora_ini,
+      hora_ter: schedule.hora_ter,
+      equipe_lm: schedule.equipe_lm,
+      equipe_lv: schedule.equipe_lv,
+      equipe_reg: schedule.equipe_reg,
+      chave_provisoria: schedule.chave_provisoria,
+      chi: schedule.chi,
+      num_dp: schedule.num_dp,
+      tipo_servico: schedule.tipo_servico,
+      observacao_programacao: schedule.observacao_programacao,
+      id_usuario_reprovador: context.rejectingUserId,
     };
   }
 
@@ -289,7 +319,7 @@ export class D5NoteScheduleMapper {
   private static requiresDP(numDp?: string, serviceType?: string) {
     if (!serviceType) return false;
 
-    const serviceTypeRequireDp = ['DP', 'LV', 'Regularização', 'RD'];
+    const serviceTypeRequireDp = ['DP', 'LV', 'REGULARIZAÇÃO', 'RD'];
 
     const require = serviceTypeRequireDp.includes(serviceType.toUpperCase());
 
