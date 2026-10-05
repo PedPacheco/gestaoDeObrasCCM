@@ -253,6 +253,7 @@ describe('WorkServicesQueryRepository', () => {
     const mockHistoryResponse = [
       {
         id: 1,
+
         servicos: {
           servicos_contratos: { texto_breve: 'Serviço 1' },
           ponto: 'Ponto A',
@@ -295,6 +296,8 @@ describe('WorkServicesQueryRepository', () => {
       expect(prisma.programacoes_servicos.findMany).toHaveBeenCalledWith({
         select: {
           id: true,
+          id_servico: true,
+          id_equipe: true,
           servicos: {
             select: {
               materiais: { select: { descricao: true, codigo: true } },
@@ -312,7 +315,6 @@ describe('WorkServicesQueryRepository', () => {
           programacoes: { select: { data_prog: true } },
           equipes: { select: { equipe: true, perfil: true } },
           id_programacao: true,
-          id_servico: true,
           prog: true,
           real: true,
           adicional: true,
