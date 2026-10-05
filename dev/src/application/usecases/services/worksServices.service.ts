@@ -283,11 +283,15 @@ export class WorksServicesService {
     // operação são atributos fixos do próprio serviço, não variam por linha
     // do histórico, então não precisam entrar na chave de deduplicação.
     const scheduledServices = new Set(
-      history.map((item) => `${item.id_programacao}-${item.id_servico}`),
+      history.map(
+        (item) => `${item.id_programacao}-${item.id_servico}-${item.id_equipe}`,
+      ),
     );
 
     const hasDuplicate = data.some((service) =>
-      scheduledServices.has(`${service.idSchedule}-${service.id}`),
+      scheduledServices.has(
+        `${service.idSchedule}-${service.id}-${service.idTeam}`,
+      ),
     );
 
     if (hasDuplicate) {

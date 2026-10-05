@@ -75,6 +75,7 @@ export interface GetServicesSelectedByWorkIdResponse {
 export interface GetServiceScheduleHistoryResponse {
   id: number;
   id_servico: number;
+  id_equipe: number;
   servicos: {
     materiais?: { descricao: string; codigo: string };
     servicos_contratos?: {
