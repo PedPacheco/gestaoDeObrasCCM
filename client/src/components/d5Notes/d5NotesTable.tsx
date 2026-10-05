@@ -16,6 +16,10 @@ import {
   TablePagination,
   TableRow,
 } from "@mui/material";
+import {
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/react/20/solid";
 
 type D5TableVariant = "notas" | "programacoes";
 
@@ -82,7 +86,7 @@ export function D5NotesTable({
 
             <TableBody>
               {data.map((item: any, index: any) => (
-                <TableRow key={getRowKey ? getRowKey(item) : index}>
+                <TableRow key={index}>
                   {Object.keys(columns)
                     .slice(1)
                     .map((column) => {
@@ -98,6 +102,14 @@ export function D5NotesTable({
 
                       if (column === "mo_planejada") {
                         cellValue = FormatCurrency(cellValue);
+                      }
+
+                      if (column === "precisaDp") {
+                        cellValue = item[column] ? (
+                          <ExclamationTriangleIcon className="w-8 h-8 text-yellow-500 mx-auto" />
+                        ) : (
+                          <CheckCircleIcon className="w-8 h-8 text-green-600 mx-auto" />
+                        );
                       }
 
                       if (
@@ -157,7 +169,7 @@ export function D5NotesTable({
               <span className="text-zinc-300">|</span>
 
               <div className="flex items-center gap-1 text-lg text-zinc-700 font-semibold">
-                <span>MO Planejado:</span>
+                <span>Total MO Retida:</span>
                 <span>{FormatCurrency(totals.totalMoPlanejada)}</span>
               </div>
             </>

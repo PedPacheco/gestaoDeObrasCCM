@@ -32,6 +32,42 @@ const makeUpdateData = (overrides: Record<string, any> = {}) => ({
   ...overrides,
 });
 
+const makeRejectionData = (overrides: Record<string, any> = {}) => ({
+  motivo: 'Data incorreta',
+  descricao: 'Data de programação errada',
+  data_prog: new Date('2026-09-10'),
+  prog: 100,
+  ...overrides,
+});
+
+const makeRejectionList = (
+  spec: number | Array<Record<string, any>> = 2,
+  shared: Record<string, any> = {},
+) => {
+  const items = typeof spec === 'number' ? Array(spec).fill({}) : spec;
+
+  return items.map((overrides, index) =>
+    makeRejectionData({
+      id_nota_d5: 10 + index,
+      id_usuario_reprovador: 7,
+      ...shared,
+      ...overrides,
+    }),
+  );
+};
+
+const makeRejectionIds = (count = 2, start = 1) =>
+  Array.from({ length: count }, (_, index) => start + index);
+
+/** Soma de exec usada no recálculo do estado da obra. */
+const makeExecSum = (total: number | null) => ({ _sum: { exec: total } });
+
+/** Default que satisfaz ambos os usos de aggregate. */
+const makeAggregateDefault = () => ({
+  _count: { _all: 0 },
+  _sum: { exec: 0 },
+});
+
 /** Sem valor por omissão: permite testar 0 explicitamente. */
 const makeAggregate = (count: number) => ({ _count: { _all: count } });
 
@@ -70,25 +106,55 @@ describe('D5NotesSchedulesRepository', () => {
     aggregate: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+    updateMany: jest.fn(),
     delete: jest.fn(),
+  };
+
+  const notasD5 = {
+    update: jest.fn(),
+  };
+
+  const programacoesD5Reprovacoes = {
+    createMany: jest.fn(),
+  };
+
+  /** Cliente transacional entregue ao callback de $transaction. */
+  const tx = {
+    programacoes_d5: programacoesD5,
+    programacoes_d5_reprovacoes: programacoesD5Reprovacoes,
+    notas_d5: notasD5,
   };
 
   const prisma = {
     programacoes_d5: programacoesD5,
+    notas_d5: notasD5,
+    programacoes_d5_reprovacoes: programacoesD5Reprovacoes,
+    $transaction: jest.fn((cb: (client: typeof tx) => Promise<unknown>) =>
+      cb(tx),
+    ),
   } as unknown as PrismaService;
 
   /** Acesso à projeção partilhada, para validar o contrato. */
   const baseSelect = () => (repository as any).baseScheduleSelect;
+
+  const mockExecSum = (total: number | null) =>
+    programacoesD5.aggregate.mockResolvedValue(makeExecSum(total));
 
   beforeEach(() => {
     repository = new D5NotesSchedulesRepository(prisma);
 
     programacoesD5.findMany.mockResolvedValue([]);
     programacoesD5.findUnique.mockResolvedValue(null);
-    programacoesD5.aggregate.mockResolvedValue(makeAggregate(0));
+    programacoesD5.aggregate.mockResolvedValue(makeAggregateDefault());
     programacoesD5.create.mockResolvedValue(undefined);
     programacoesD5.update.mockResolvedValue(undefined);
+    programacoesD5.updateMany.mockResolvedValue(undefined);
+    programacoesD5Reprovacoes.createMany.mockResolvedValue(undefined);
     programacoesD5.delete.mockResolvedValue(undefined);
+    notasD5.update.mockResolvedValue(undefined);
+    (prisma as any).$transaction.mockImplementation(
+      (cb: (client: typeof tx) => Promise<unknown>) => cb(tx),
+    );
   });
 
   afterEach(() => jest.resetAllMocks());
@@ -545,95 +611,309 @@ describe('D5NotesSchedulesRepository', () => {
   // create
   // =========================================================================
   describe('create', () => {
-    it('deve criar a programação com os dados recebidos', async () => {
-      const data = makeCreateData();
+    const D5_NOTE_ID = 10;
 
-      await repository.create(data as any);
+    const run = (
+      id = D5_NOTE_ID,
+      data: Record<string, any> = makeCreateData(),
+    ) => repository.create(id, data as any);
 
-      expect(programacoesD5.create).toHaveBeenCalledWith({ data });
+    describe('criação da programação', () => {
+      it('deve criar a programação com os dados recebidos', async () => {
+        const data = makeCreateData();
+
+        await run(D5_NOTE_ID, data);
+
+        expect(programacoesD5.create).toHaveBeenCalledWith({ data });
+      });
+
+      it('não deve modificar o objeto recebido', async () => {
+        const data = makeCreateData();
+        const snapshot = { ...data };
+
+        await run(D5_NOTE_ID, data);
+
+        expect(data).toEqual(snapshot);
+      });
+
+      it('não deve projetar colunas no retorno (void)', async () => {
+        await run();
+
+        expect(programacoesD5.create.mock.calls[0][0]).not.toHaveProperty(
+          'select',
+        );
+      });
+
+      it('deve descartar o retorno do Prisma', async () => {
+        programacoesD5.create.mockResolvedValue({ id: 99 });
+
+        expect(await run()).toBeUndefined();
+      });
     });
 
-    it('não deve modificar o objeto recebido', async () => {
-      const data = makeCreateData();
-      const snapshot = { ...data };
+    describe('sincronização do estado da nota', () => {
+      it('deve marcar a nota como em programação', async () => {
+        await run();
 
-      await repository.create(data as any);
+        expect(notasD5.update).toHaveBeenCalledWith({
+          where: { id: D5_NOTE_ID },
+          data: { id_status: 35 },
+        });
+      });
 
-      expect(data).toEqual(snapshot);
+      it('não deve alterar o status_sap da nota', async () => {
+        await run();
+
+        expect(notasD5.update.mock.calls[0][0].data).not.toHaveProperty(
+          'status_sap',
+        );
+      });
+
+      it('deve usar o id recebido para localizar a nota', async () => {
+        await run(77);
+
+        expect(notasD5.update).toHaveBeenCalledWith(
+          expect.objectContaining({ where: { id: 77 } }),
+        );
+      });
+
+      it('deve atualizar a nota antes de criar a programação', async () => {
+        const order: string[] = [];
+        notasD5.update.mockImplementation(async () => {
+          order.push('nota');
+        });
+        programacoesD5.create.mockImplementation(async () => {
+          order.push('programacao');
+        });
+
+        await run();
+
+        expect(order).toEqual(['nota', 'programacao']);
+      });
     });
 
-    it('não deve projetar colunas no retorno (void)', async () => {
-      await repository.create(makeCreateData() as any);
+    describe('transação', () => {
+      it('deve executar ambas as operações numa única transação', async () => {
+        await run();
 
-      expect(programacoesD5.create.mock.calls[0][0]).not.toHaveProperty(
-        'select',
-      );
+        expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+        expect(notasD5.update).toHaveBeenCalledTimes(1);
+        expect(programacoesD5.create).toHaveBeenCalledTimes(1);
+      });
+
+      it('não deve recalcular o total executado', async () => {
+        await run();
+
+        expect(programacoesD5.aggregate).not.toHaveBeenCalled();
+      });
     });
 
-    it('deve descartar o retorno do Prisma', async () => {
-      programacoesD5.create.mockResolvedValue({ id: 99 });
+    describe('propagação de erros', () => {
+      it('deve propagar violações de chave estrangeira', async () => {
+        const error = Object.assign(new Error('FK'), { code: 'P2003' });
+        programacoesD5.create.mockRejectedValue(error);
 
-      expect(await repository.create(makeCreateData() as any)).toBeUndefined();
-    });
+        await expect(run()).rejects.toBe(error);
+      });
 
-    it('deve propagar violações de chave estrangeira', async () => {
-      const error = Object.assign(new Error('FK'), { code: 'P2003' });
-      programacoesD5.create.mockRejectedValue(error);
+      it('deve propagar P2025 quando a nota D5 não existe', async () => {
+        const error = Object.assign(new Error('nota inexistente'), {
+          code: 'P2025',
+        });
+        notasD5.update.mockRejectedValue(error);
 
-      await expect(repository.create(makeCreateData() as any)).rejects.toBe(
-        error,
-      );
+        await expect(run(999)).rejects.toMatchObject({ code: 'P2025' });
+      });
+
+      it('não deve criar a programação quando a nota falha', async () => {
+        notasD5.update.mockRejectedValue(new Error('falha na nota'));
+
+        await expect(run()).rejects.toThrow('falha na nota');
+
+        expect(programacoesD5.create).not.toHaveBeenCalled();
+      });
     });
   });
 
   // =========================================================================
   // update
   // =========================================================================
-  describe('update', () => {
-    it('deve atualizar a programação indicada', async () => {
-      const data = makeUpdateData();
+  describe('updateAndSyncWorkStatus', () => {
+    const SCHEDULE_ID = 5;
+    const D5_NOTE_ID = 10;
 
-      await repository.update(5, data as any);
+    const run = (
+      id = SCHEDULE_ID,
+      data: Record<string, any> = makeUpdateData(),
+      noteId = D5_NOTE_ID,
+    ) => repository.updateAndSyncWorkStatus(id, data as any, noteId);
 
-      expect(programacoesD5.update).toHaveBeenCalledWith({
-        where: { id: 5 },
-        data,
+    describe('atualização da programação', () => {
+      it('deve atualizar a programação indicada', async () => {
+        const data = makeUpdateData();
+
+        await run(SCHEDULE_ID, data);
+
+        expect(programacoesD5.update).toHaveBeenCalledWith({
+          where: { id: SCHEDULE_ID },
+          data: { reprovada: false, ...data },
+        });
+      });
+
+      it('não deve modificar o objeto recebido', async () => {
+        const data = makeUpdateData();
+        const snapshot = { ...data };
+
+        await run(SCHEDULE_ID, data);
+
+        expect(data).toEqual(snapshot);
+      });
+
+      it('deve resolver sem valor de retorno', async () => {
+        await expect(run()).resolves.toBeUndefined();
+      });
+
+      it('deve aceitar um objeto de alterações vazio', async () => {
+        await run(SCHEDULE_ID, {});
+
+        expect(programacoesD5.update).toHaveBeenCalledWith({
+          where: { id: SCHEDULE_ID },
+          data: { reprovada: false },
+        });
+      });
+
+      it('deve executar todas as operações numa única transação', async () => {
+        mockExecSum(100);
+
+        await run();
+
+        expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+        expect(programacoesD5.update).toHaveBeenCalledTimes(1);
+        expect(notasD5.update).toHaveBeenCalledTimes(1);
       });
     });
 
-    it('não deve modificar o objeto recebido', async () => {
-      const data = makeUpdateData();
-      const snapshot = { ...data };
+    describe('recálculo do total executado', () => {
+      it('deve somar o exec de todas as programações da nota', async () => {
+        await run();
 
-      await repository.update(5, data as any);
+        expect(programacoesD5.aggregate).toHaveBeenCalledWith({
+          where: { id_nota_d5: D5_NOTE_ID },
+          _sum: { exec: true },
+        });
+      });
 
-      expect(data).toEqual(snapshot);
-    });
+      it('deve agregar apenas após gravar a atualização', async () => {
+        const order: string[] = [];
+        programacoesD5.update.mockImplementation(async () => {
+          order.push('update');
+        });
+        programacoesD5.aggregate.mockImplementation(async () => {
+          order.push('aggregate');
+          return makeExecSum(0);
+        });
 
-    it('deve resolver sem valor de retorno', async () => {
-      await expect(
-        repository.update(5, makeUpdateData() as any),
-      ).resolves.toBeUndefined();
-    });
+        await run();
 
-    it('deve aceitar um objeto de alterações vazio', async () => {
-      await repository.update(5, {} as any);
+        expect(order).toEqual(['update', 'aggregate']);
+      });
 
-      expect(programacoesD5.update).toHaveBeenCalledWith({
-        where: { id: 5 },
-        data: {},
+      it('deve usar o d5NoteId recebido e não o id da programação', async () => {
+        await run(SCHEDULE_ID, makeUpdateData(), 99);
+
+        expect(programacoesD5.aggregate).toHaveBeenCalledWith(
+          expect.objectContaining({ where: { id_nota_d5: 99 } }),
+        );
       });
     });
 
-    it('deve propagar P2025 quando o registo não existe', async () => {
-      const error = Object.assign(new Error('não encontrado'), {
-        code: 'P2025',
-      });
-      programacoesD5.update.mockRejectedValue(error);
+    describe('sincronização do estado da nota', () => {
+      it.each([
+        ['nulo', null],
+        ['zero', 0],
+        ['abaixo do limiar', 99],
+        ['imediatamente abaixo', 99.99],
+      ])('não deve concluir a nota com total %s', async (_label, total) => {
+        mockExecSum(total);
 
-      await expect(
-        repository.update(999, makeUpdateData() as any),
-      ).rejects.toMatchObject({ code: 'P2025' });
+        await run();
+
+        expect(notasD5.update).not.toHaveBeenCalled();
+      });
+
+      it.each([
+        ['exatamente no limiar', 100],
+        ['acima do limiar', 150],
+      ])('deve concluir a nota com total %s', async (_label, total) => {
+        mockExecSum(total);
+
+        await run();
+
+        expect(notasD5.update).toHaveBeenCalledWith({
+          where: { id: D5_NOTE_ID },
+          data: { id_status: 2, status_sap: 'Concluído' },
+        });
+      });
+
+      it('deve tratar _sum.exec ausente como zero', async () => {
+        programacoesD5.aggregate.mockResolvedValue({ _sum: {} });
+
+        await run();
+
+        expect(notasD5.update).not.toHaveBeenCalled();
+      });
+
+      it('deve concluir a nota indicada pelo d5NoteId', async () => {
+        mockExecSum(100);
+
+        await run(SCHEDULE_ID, makeUpdateData(), 42);
+
+        expect(notasD5.update).toHaveBeenCalledWith(
+          expect.objectContaining({ where: { id: 42 } }),
+        );
+      });
+    });
+
+    describe('propagação de erros', () => {
+      it('deve propagar P2025 quando a programação não existe', async () => {
+        const error = Object.assign(new Error('não encontrado'), {
+          code: 'P2025',
+        });
+        programacoesD5.update.mockRejectedValue(error);
+
+        await expect(run(999)).rejects.toMatchObject({ code: 'P2025' });
+      });
+
+      it('não deve agregar nem concluir quando a atualização falha', async () => {
+        programacoesD5.update.mockRejectedValue(new Error('falha na gravação'));
+
+        await expect(run()).rejects.toThrow('falha na gravação');
+
+        expect(programacoesD5.aggregate).not.toHaveBeenCalled();
+        expect(notasD5.update).not.toHaveBeenCalled();
+      });
+
+      it('não deve concluir a nota quando a agregação falha', async () => {
+        programacoesD5.aggregate.mockRejectedValue(
+          new Error('falha no cálculo'),
+        );
+
+        await expect(run()).rejects.toThrow('falha no cálculo');
+
+        expect(notasD5.update).not.toHaveBeenCalled();
+      });
+
+      it('deve propagar P2025 quando a nota D5 não existe', async () => {
+        mockExecSum(100);
+        const error = Object.assign(new Error('nota inexistente'), {
+          code: 'P2025',
+        });
+        notasD5.update.mockRejectedValue(error);
+
+        await expect(
+          run(SCHEDULE_ID, makeUpdateData(), 999),
+        ).rejects.toMatchObject({ code: 'P2025' });
+      });
     });
   });
 
@@ -665,6 +945,174 @@ describe('D5NotesSchedulesRepository', () => {
 
       await expect(repository.delete(999)).rejects.toMatchObject({
         code: 'P2025',
+      });
+    });
+  });
+
+  // =========================================================================
+  // reject
+  // =========================================================================
+  describe('rejectMany', () => {
+    const run = (
+      ids: number[] = makeRejectionIds(),
+      rejections: Record<string, any>[] = makeRejectionList(),
+    ) => repository.rejectMany(ids, rejections as any);
+
+    describe('registo das reprovações', () => {
+      it('deve inserir todas as reprovações recebidas', async () => {
+        const rejections = makeRejectionList(3);
+
+        await run(makeRejectionIds(3), rejections);
+
+        expect(programacoesD5Reprovacoes.createMany).toHaveBeenCalledWith({
+          data: rejections,
+        });
+      });
+
+      it('não deve modificar a lista recebida', async () => {
+        const rejections = makeRejectionList(2);
+        const snapshot = rejections.map((r) => ({ ...r }));
+
+        await run(makeRejectionIds(2), rejections);
+
+        expect(rejections).toEqual(snapshot);
+      });
+
+      it('não deve projetar colunas no retorno (void)', async () => {
+        await run();
+
+        expect(
+          programacoesD5Reprovacoes.createMany.mock.calls[0][0],
+        ).not.toHaveProperty('select');
+      });
+
+      it('deve descartar o retorno do Prisma', async () => {
+        programacoesD5Reprovacoes.createMany.mockResolvedValue({ count: 3 });
+        programacoesD5.updateMany.mockResolvedValue({ count: 3 });
+
+        expect(await run()).toBeUndefined();
+      });
+
+      it('deve preservar a ordem dos registos', async () => {
+        const rejections = makeRejectionList([
+          { motivo: 'Primeiro' },
+          { motivo: 'Segundo' },
+        ]);
+
+        await run(makeRejectionIds(2), rejections);
+
+        const sent = programacoesD5Reprovacoes.createMany.mock.calls[0][0].data;
+        expect(sent.map((r: any) => r.motivo)).toEqual(['Primeiro', 'Segundo']);
+      });
+    });
+
+    describe('marcação das programações', () => {
+      it('deve marcar como reprovadas apenas os ids indicados', async () => {
+        await run([3, 7, 11]);
+
+        expect(programacoesD5.updateMany).toHaveBeenCalledWith({
+          where: { id: { in: [3, 7, 11] } },
+          data: { reprovada: true },
+        });
+      });
+
+      it('não deve alterar outros campos além de reprovada', async () => {
+        await run();
+
+        expect(
+          Object.keys(programacoesD5.updateMany.mock.calls[0][0].data),
+        ).toEqual(['reprovada']);
+      });
+
+      it('deve inserir as reprovações antes de marcar as programações', async () => {
+        const order: string[] = [];
+        programacoesD5Reprovacoes.createMany.mockImplementation(async () => {
+          order.push('reprovacoes');
+          return { count: 0 };
+        });
+        programacoesD5.updateMany.mockImplementation(async () => {
+          order.push('programacoes');
+          return { count: 0 };
+        });
+
+        await run();
+
+        expect(order).toEqual(['reprovacoes', 'programacoes']);
+      });
+    });
+
+    describe('transação', () => {
+      it('deve executar ambas as operações numa única transação', async () => {
+        await run();
+
+        expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+        expect(programacoesD5Reprovacoes.createMany).toHaveBeenCalledTimes(1);
+        expect(programacoesD5.updateMany).toHaveBeenCalledTimes(1);
+      });
+
+      it('não deve recalcular o total executado', async () => {
+        await run();
+
+        expect(programacoesD5.aggregate).not.toHaveBeenCalled();
+      });
+
+      it('não deve alterar o estado da nota D5', async () => {
+        await run();
+
+        expect(notasD5.update).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('casos limite', () => {
+      it('deve resolver sem valor de retorno', async () => {
+        await expect(run()).resolves.toBeUndefined();
+      });
+
+      it('deve aceitar listas vazias', async () => {
+        await run([], []);
+
+        expect(programacoesD5Reprovacoes.createMany).toHaveBeenCalledWith({
+          data: [],
+        });
+        expect(programacoesD5.updateMany).toHaveBeenCalledWith({
+          where: { id: { in: [] } },
+          data: { reprovada: true },
+        });
+      });
+
+      it('deve repassar ids duplicados sem os normalizar', async () => {
+        await run([5, 5, 8]);
+
+        expect(programacoesD5.updateMany).toHaveBeenCalledWith(
+          expect.objectContaining({ where: { id: { in: [5, 5, 8] } } }),
+        );
+      });
+    });
+
+    describe('propagação de erros', () => {
+      it('deve propagar violações de chave estrangeira', async () => {
+        const error = Object.assign(new Error('FK'), { code: 'P2003' });
+        programacoesD5Reprovacoes.createMany.mockRejectedValue(error);
+
+        await expect(run()).rejects.toBe(error);
+      });
+
+      it('não deve marcar as programações quando a inserção falha', async () => {
+        programacoesD5Reprovacoes.createMany.mockRejectedValue(
+          new Error('falha na inserção'),
+        );
+
+        await expect(run()).rejects.toThrow('falha na inserção');
+
+        expect(programacoesD5.updateMany).not.toHaveBeenCalled();
+      });
+
+      it('deve propagar erros da marcação', async () => {
+        programacoesD5.updateMany.mockRejectedValue(
+          new Error('falha na marcação'),
+        );
+
+        await expect(run()).rejects.toThrow('falha na marcação');
       });
     });
   });
@@ -719,7 +1167,7 @@ describe('D5NotesSchedulesRepository', () => {
       'getByD5NoteId',
       'getTotals',
       'create',
-      'update',
+      'updateAndSyncWorkStatus',
       'delete',
     ])('deve implementar o método %s', (method) => {
       expect(typeof (repository as any)[method]).toBe('function');

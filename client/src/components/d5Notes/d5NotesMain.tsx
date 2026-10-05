@@ -107,7 +107,7 @@ export default function D5NotesMain({
 
   return (
     <div className="flex w-full flex-col items-center overflow-y-auto">
-      <div className="flex items-start gap-4 mx-auto w-11/12 py-6">
+      <div className="flex items-start gap-4 mx-auto w-[95%] py-6">
         <D5NotesFilters
           data={filtersData}
           url={cookie}

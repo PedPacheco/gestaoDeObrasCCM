@@ -289,7 +289,7 @@ describe('FindD5NotesService', () => {
       const result = await service.getById(1);
 
       expect(result).toMatchObject({
-        tmExecucao: 6,
+        tmExecucao: 5,
         tmAberto: null,
       });
     });

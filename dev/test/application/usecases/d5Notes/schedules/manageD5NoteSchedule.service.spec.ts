@@ -7,6 +7,7 @@ import { D5_NOTES_SCHEDULES_REPOSITORY } from 'src/domain/repositories/d5Notes/I
 import { resolveFileDiff } from 'src/domain/services/resolveFileDiff.service';
 import {
   CreateProgramacaoD5Dto,
+  RejectD5ScheduleDTO,
   UpdateScheduleD5Dto,
 } from 'src/interface/dtos/d5NotesDTO';
 
@@ -23,6 +24,7 @@ jest.mock('src/application/mappers/d5NotesScheduleMapper', () => ({
     toDomain: jest.fn(),
     toPersistenceCreate: jest.fn(),
     toPersistenceUpdate: jest.fn(),
+    toRejectionSnapshot: jest.fn(),
   },
 }));
 
@@ -69,8 +71,10 @@ describe('ManageD5NoteScheduleService', () => {
   const repository = {
     create: jest.fn(),
     getById: jest.fn(),
-    update: jest.fn(),
+    updateAndSyncWorkStatus: jest.fn(),
     delete: jest.fn(),
+    getByD5NoteId: jest.fn(),
+    rejectMany: jest.fn(),
   };
 
   const fileService = { deleteMany: jest.fn() };
@@ -136,7 +140,7 @@ describe('ManageD5NoteScheduleService', () => {
       expect(mapper.fromCreateInput).toHaveBeenCalledWith(dto);
       expect(entity.create).toHaveBeenCalledWith(domainProps);
       expect(mapper.toPersistenceCreate).toHaveBeenCalledWith(built);
-      expect(repository.create).toHaveBeenCalledWith(persistence);
+      expect(repository.create).toHaveBeenCalledWith(10, persistence);
       expect(result).toBe(created);
     });
 
@@ -192,7 +196,7 @@ describe('ManageD5NoteScheduleService', () => {
       mapper.fromUpdateInput.mockReturnValue({} as any);
       entity.create.mockReturnValue({ id: 1 } as any);
       mapper.toPersistenceUpdate.mockReturnValue({ obs: 'x' } as any);
-      repository.update.mockResolvedValue(undefined);
+      repository.updateAndSyncWorkStatus.mockResolvedValue(undefined);
 
       return { existing, current };
     };
@@ -230,7 +234,13 @@ describe('ManageD5NoteScheduleService', () => {
         filePaths: ['antigo.pdf', 'novo.pdf'],
         current,
       });
-      expect(repository.update).toHaveBeenCalledWith(1, { obs: 'x' });
+      expect(repository.updateAndSyncWorkStatus).toHaveBeenCalledWith(
+        1,
+        {
+          obs: 'x',
+        },
+        10,
+      );
       expect(fileService.deleteMany).toHaveBeenCalledTimes(1);
       expect(fileService.deleteMany).toHaveBeenCalledWith(
         [join(UPLOAD_DIR, 'obsoleto.pdf')],
@@ -280,7 +290,7 @@ describe('ManageD5NoteScheduleService', () => {
           ['/tmp/abs/novo.pdf'],
           UPLOAD_DIR,
         );
-        expect(repository.update).not.toHaveBeenCalled();
+        expect(repository.updateAndSyncWorkStatus).not.toHaveBeenCalled();
         expect(loggerErrorSpy).not.toHaveBeenCalled();
       });
 
@@ -308,7 +318,7 @@ describe('ManageD5NoteScheduleService', () => {
           'Existem ficheiros duplicados',
         );
 
-        expect(repository.update).not.toHaveBeenCalled();
+        expect(repository.updateAndSyncWorkStatus).not.toHaveBeenCalled();
         expect(fileService.deleteMany).toHaveBeenCalledWith(
           ['/tmp/dup.pdf'],
           UPLOAD_DIR,
@@ -317,7 +327,9 @@ describe('ManageD5NoteScheduleService', () => {
 
       it('deve fazer rollback quando a escrita no repositório falha', async () => {
         arrangeHappyPath();
-        repository.update.mockRejectedValue(new Error('constraint violada'));
+        repository.updateAndSyncWorkStatus.mockRejectedValue(
+          new Error('constraint violada'),
+        );
         const files = [makeFile('b.pdf', '/tmp/b.pdf')];
 
         await expect(service.update(1, dto, files, 20)).rejects.toThrow(
@@ -340,7 +352,7 @@ describe('ManageD5NoteScheduleService', () => {
         );
 
         // a escrita foi confirmada: os ficheiros novos têm de permanecer em disco
-        expect(repository.update).toHaveBeenCalledTimes(1);
+        expect(repository.updateAndSyncWorkStatus).toHaveBeenCalledTimes(1);
         expect(fileService.deleteMany).toHaveBeenCalledTimes(1);
         expect(fileService.deleteMany).not.toHaveBeenCalledWith(
           ['/tmp/c.pdf'],
@@ -362,7 +374,7 @@ describe('ManageD5NoteScheduleService', () => {
           ['/tmp/d.pdf'],
           UPLOAD_DIR,
         );
-        expect(repository.update).not.toHaveBeenCalled();
+        expect(repository.updateAndSyncWorkStatus).not.toHaveBeenCalled();
       });
 
       it('deve registar em log a falha de limpeza com a stack do erro', async () => {
@@ -486,6 +498,205 @@ describe('ManageD5NoteScheduleService', () => {
       repository.delete.mockResolvedValue(undefined);
 
       await expect(service.delete(5)).resolves.toBeUndefined();
+    });
+  });
+
+  // =========================================================================
+  // reject
+  // =========================================================================
+  describe('reject', () => {
+    const D5_NOTE_ID = 10;
+    const REJECTING_USER = 33;
+
+    const makeSchedule = (id: number) => ({ id, id_nota_d5: D5_NOTE_ID });
+
+    const makeItem = (
+      id: number,
+      overrides: Partial<RejectD5ScheduleDTO> = {},
+    ): RejectD5ScheduleDTO =>
+      ({
+        id,
+        reason: `motivo ${id}`,
+        description: `descrição ${id}`,
+        ...overrides,
+      }) as RejectD5ScheduleDTO;
+
+    beforeEach(() => {
+      repository.getByD5NoteId.mockResolvedValue([
+        makeSchedule(1),
+        makeSchedule(2),
+        makeSchedule(3),
+      ]);
+      repository.rejectMany.mockResolvedValue(undefined);
+      mapper.toRejectionSnapshot.mockImplementation(
+        (schedule: any) =>
+          ({ id_nota_d5: schedule.id_nota_d5, snapshotOf: schedule.id }) as any,
+      );
+    });
+
+    // --- saídas antecipadas ---
+    it('deve sair sem I/O quando a lista é vazia', async () => {
+      await expect(
+        service.reject(D5_NOTE_ID, [], REJECTING_USER),
+      ).resolves.toBeUndefined();
+
+      expect(repository.getByD5NoteId).not.toHaveBeenCalled();
+      expect(repository.rejectMany).not.toHaveBeenCalled();
+    });
+
+    // --- caminho feliz ---
+    it('deve buscar as programações da nota D5 informada', async () => {
+      await service.reject(D5_NOTE_ID, [makeItem(1)], REJECTING_USER);
+
+      expect(repository.getByD5NoteId).toHaveBeenCalledTimes(1);
+      expect(repository.getByD5NoteId).toHaveBeenCalledWith(D5_NOTE_ID);
+    });
+
+    it('deve gerar um snapshot por item usando a programação, o motivo e o reprovador', async () => {
+      const s1 = makeSchedule(1);
+      const s2 = makeSchedule(2);
+      repository.getByD5NoteId.mockResolvedValue([s1, s2]);
+
+      await service.reject(
+        D5_NOTE_ID,
+        [makeItem(1), makeItem(2)],
+        REJECTING_USER,
+      );
+
+      expect(mapper.toRejectionSnapshot).toHaveBeenCalledTimes(2);
+      expect(mapper.toRejectionSnapshot).toHaveBeenNthCalledWith(1, s1, {
+        reason: 'motivo 1',
+        description: 'descrição 1',
+        rejectingUserId: REJECTING_USER,
+      });
+      expect(mapper.toRejectionSnapshot).toHaveBeenNthCalledWith(2, s2, {
+        reason: 'motivo 2',
+        description: 'descrição 2',
+        rejectingUserId: REJECTING_USER,
+      });
+    });
+
+    it('deve persistir os ids e os snapshots através do rejectMany', async () => {
+      await service.reject(
+        D5_NOTE_ID,
+        [makeItem(1), makeItem(3)],
+        REJECTING_USER,
+      );
+
+      expect(repository.rejectMany).toHaveBeenCalledTimes(1);
+      expect(repository.rejectMany).toHaveBeenCalledWith(
+        [1, 3],
+        [
+          { id_nota_d5: D5_NOTE_ID, snapshotOf: 1 },
+          { id_nota_d5: D5_NOTE_ID, snapshotOf: 3 },
+        ],
+      );
+    });
+
+    it('deve manter a ordem do payload, e não a ordem devolvida pelo repositório', async () => {
+      await service.reject(
+        D5_NOTE_ID,
+        [makeItem(3), makeItem(1), makeItem(2)],
+        REJECTING_USER,
+      );
+
+      expect(repository.rejectMany).toHaveBeenCalledWith(
+        [3, 1, 2],
+        [
+          { id_nota_d5: D5_NOTE_ID, snapshotOf: 3 },
+          { id_nota_d5: D5_NOTE_ID, snapshotOf: 1 },
+          { id_nota_d5: D5_NOTE_ID, snapshotOf: 2 },
+        ],
+      );
+    });
+
+    it('deve resolver sem retorno em caso de sucesso', async () => {
+      await expect(
+        service.reject(D5_NOTE_ID, [makeItem(1)], REJECTING_USER),
+      ).resolves.toBeUndefined();
+    });
+
+    it('não deve tocar no sistema de ficheiros', async () => {
+      await service.reject(D5_NOTE_ID, [makeItem(1)], REJECTING_USER);
+
+      expect(fileService.deleteMany).not.toHaveBeenCalled();
+    });
+
+    // --- validação de existência ---
+    it('deve lançar NotFound listando os ids que não pertencem à nota D5', async () => {
+      const call = service.reject(
+        D5_NOTE_ID,
+        [makeItem(1), makeItem(98), makeItem(99)],
+        REJECTING_USER,
+      );
+
+      await expect(call).rejects.toThrow(NotFoundException);
+      await expect(
+        service.reject(
+          D5_NOTE_ID,
+          [makeItem(1), makeItem(98), makeItem(99)],
+          REJECTING_USER,
+        ),
+      ).rejects.toThrow(
+        'Programações não encontradas para esta nota D5: 98, 99',
+      );
+    });
+
+    it('deve tratar como inexistente uma programação de outra nota D5', async () => {
+      // o repositório só devolve as da nota 10; o id 500 pertence a outra
+      await expect(
+        service.reject(D5_NOTE_ID, [makeItem(500)], REJECTING_USER),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('deve lançar NotFound quando a nota não tem nenhuma programação', async () => {
+      repository.getByD5NoteId.mockResolvedValue([]);
+
+      await expect(
+        service.reject(D5_NOTE_ID, [makeItem(1)], REJECTING_USER),
+      ).rejects.toThrow('Programações não encontradas para esta nota D5: 1');
+    });
+
+    it('deve ser atómico: um id inexistente impede a reprovação de todos', async () => {
+      await expect(
+        service.reject(
+          D5_NOTE_ID,
+          [makeItem(1), makeItem(2), makeItem(99)],
+          REJECTING_USER,
+        ),
+      ).rejects.toThrow(NotFoundException);
+
+      expect(mapper.toRejectionSnapshot).not.toHaveBeenCalled();
+      expect(repository.rejectMany).not.toHaveBeenCalled();
+    });
+
+    // --- propagação de erros ---
+    it('deve propagar falhas ao buscar as programações', async () => {
+      repository.getByD5NoteId.mockRejectedValue(new Error('timeout'));
+
+      await expect(
+        service.reject(D5_NOTE_ID, [makeItem(1)], REJECTING_USER),
+      ).rejects.toThrow('timeout');
+      expect(repository.rejectMany).not.toHaveBeenCalled();
+    });
+
+    it('deve propagar falhas do mapper sem chamar o rejectMany', async () => {
+      mapper.toRejectionSnapshot.mockImplementation(() => {
+        throw new Error('snapshot inválido');
+      });
+
+      await expect(
+        service.reject(D5_NOTE_ID, [makeItem(1)], REJECTING_USER),
+      ).rejects.toThrow('snapshot inválido');
+      expect(repository.rejectMany).not.toHaveBeenCalled();
+    });
+
+    it('deve propagar falhas do rejectMany', async () => {
+      repository.rejectMany.mockRejectedValue(new Error('transação falhou'));
+
+      await expect(
+        service.reject(D5_NOTE_ID, [makeItem(1)], REJECTING_USER),
+      ).rejects.toThrow('transação falhou');
     });
   });
 });

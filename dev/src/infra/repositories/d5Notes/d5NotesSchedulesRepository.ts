@@ -4,6 +4,7 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {
   D5NoteScheduleCreateData,
   D5NoteScheduleUpdateData,
+  D5ScheduleRejectionData,
   SchedulesD5NotesByIdQueryResult,
   SchedulesD5NotesByNoteIdQueryResult,
   SchedulesD5NotesQueryResult,
@@ -112,6 +113,7 @@ export class D5NotesSchedulesRepository implements ID5NotesSchedulesRepository {
         usuario_criador: { select: { nome: true } },
         usuario_modificador: { select: { nome: true } },
         caminhos_arquivos: true,
+        reprovada: true,
       },
     });
   }
@@ -127,9 +129,16 @@ export class D5NotesSchedulesRepository implements ID5NotesSchedulesRepository {
     };
   }
 
-  async create(data: D5NoteScheduleCreateData): Promise<void> {
-    await this.prisma.programacoes_d5.create({
-      data,
+  async create(id: number, data: D5NoteScheduleCreateData): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.notas_d5.update({
+        where: { id },
+        data: { id_status: 35 },
+      });
+
+      await tx.programacoes_d5.create({
+        data,
+      });
     });
   }
 
@@ -139,10 +148,50 @@ export class D5NotesSchedulesRepository implements ID5NotesSchedulesRepository {
     });
   }
 
-  async update(id: number, data: D5NoteScheduleUpdateData): Promise<void> {
-    await this.prisma.programacoes_d5.update({
-      where: { id },
-      data,
+  async updateAndSyncWorkStatus(
+    id: number,
+    data: D5NoteScheduleUpdateData,
+    d5NoteId: number,
+  ): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.programacoes_d5.update({
+        where: { id },
+        data: { reprovada: false, ...data },
+      });
+
+      // recalcula já com o valor gravado
+      const result = await tx.programacoes_d5.aggregate({
+        where: { id_nota_d5: d5NoteId },
+        _sum: { exec: true },
+      });
+
+      const totalExec = Number(result._sum.exec ?? 0);
+
+      if (totalExec >= 100) {
+        await tx.notas_d5.update({
+          where: { id: d5NoteId },
+          data: {
+            id_status: 2,
+            status_sap: 'Concluído',
+          },
+        });
+      }
+    });
+  }
+
+  async rejectMany(
+    ids: number[],
+    rejections: D5ScheduleRejectionData[],
+  ): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.programacoes_d5_reprovacoes.createMany({
+        data: rejections,
+      });
+
+      await tx.programacoes_d5.updateMany({
+        where: { id: { in: ids } },
+        data: { reprovada: true },
+      });
     });
   }
 }

@@ -33,7 +33,7 @@ export interface SelectProps {
   placeholder?: string;
 }
 
-const STATUS_NOT_AVALIABLE = [46, 45, 43, 42];
+const STATUS_NOT_AVALIABLE = [46, 45, 43, 42, 3, 4, 36, 37];
 
 export function D5SelectComponent({
   label,

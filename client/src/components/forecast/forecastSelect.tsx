@@ -16,7 +16,7 @@ import {
 
 import { ButtonComponent } from "../common/Button";
 import { useUser } from "@/contexts/userContext";
-import { DateFilter } from "../common/DateFilter";
+import { DateFilter } from "../common/filter/DateFilter";
 
 type Snapshot = {
   id: number;

@@ -34,7 +34,7 @@ export class ExportFeasibilityController {
   }
 
   @Get('aguardando-viabilidade')
-  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1], blockPartner: true }))
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async exportFeasibilityPending(
     @Res() res: Response,
     @Query() query: ExportFeasibilityInputDto,
