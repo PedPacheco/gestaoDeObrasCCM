@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useUser } from "@/contexts/userContext";
 import { LoadingComponent } from "../common/Loading";
-import MainReclamacoes from "./reclamacoesOuvidoria/mainComplaintsAndOmbudsmansOffice";
+import MainReclamacoes from "./complaintsAndOmbudsmansOffice/mainComplaintsAndOmbudsmansOffice";
 import AdherenceToScheduleDashboard, {
   AderenciaRow,
   EliminacaoRow,
