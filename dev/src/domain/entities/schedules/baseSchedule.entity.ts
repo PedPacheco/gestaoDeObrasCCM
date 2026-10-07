@@ -136,9 +136,9 @@ export abstract class BaseSchedule {
   protected checkTypeOfService(): boolean {
     if (!this.serviceType) return false;
 
-    const serviceTypeRequireDp = ['DP', 'LV', 'Regularização', 'RD'];
+    const serviceTypeRequireDp = ['dp', 'lv', 'regularização', 'rd'];
 
-    return serviceTypeRequireDp.includes(this.serviceType);
+    return serviceTypeRequireDp.includes(this.serviceType.toLowerCase());
   }
 
   protected validateDpFormat(): void {
