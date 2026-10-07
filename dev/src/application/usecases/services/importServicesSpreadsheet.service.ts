@@ -104,7 +104,11 @@ export class ImportServicesSpreadsheetService {
   }
 
   private buildCatalogMaps(
-    services: { id: number; material: string | null }[],
+    services: {
+      id: number;
+      material: string | null;
+      material_antigo: string | null;
+    }[],
     materials: { id: number; codigo: string | null }[],
   ) {
     const serviceCatalog = new Map<string, number>();
@@ -113,6 +117,13 @@ export class ImportServicesSpreadsheetService {
     services.forEach((service) => {
       if (service.material) {
         serviceCatalog.set(service.material, service.id);
+      }
+
+      if (
+        service.material_antigo &&
+        !serviceCatalog.has(service.material_antigo)
+      ) {
+        serviceCatalog.set(service.material_antigo, service.id);
       }
     });
 
@@ -152,6 +163,7 @@ export class ImportServicesSpreadsheetService {
 
       const catalog =
         item.type === 'service' ? serviceCatalog : materialCatalog;
+
       const resolvedId = catalog.get(item.materialCode);
 
       if (!resolvedId) {

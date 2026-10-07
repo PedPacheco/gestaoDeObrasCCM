@@ -572,7 +572,7 @@ describe('WorkServicesExecutionRepository', () => {
       });
 
       expect(mockTx.servicos.update).toHaveBeenCalledWith({
-        data: { qtde_prog: 0, qtde_real: 0 },
+        data: { qtde_prog: 0, qtde_real: null },
         where: { id: 1 },
       });
     });

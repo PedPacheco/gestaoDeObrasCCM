@@ -98,7 +98,7 @@ export class WorkServicesExeutionRepository implements IWorkServicesExecutionRep
               // Real da programação atual — soma dos DTOs deste serviço
               const realAtual = batch
                 .filter((item) => item.id === idServico)
-                .reduce((acc, item) => acc + (item.qtdeRealizada ?? 0), 0);
+                .reduce((acc, item) => acc + item.qtdeRealizada, 0);
 
               // Buscar TODOS os registos — para qtde_real
               const totalAgg = await tx.programacoes_servicos.aggregate({
