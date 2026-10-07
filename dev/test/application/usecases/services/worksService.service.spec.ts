@@ -432,7 +432,7 @@ describe('WorksServicesService', () => {
       const mockScheduleData: ScheduleServicesDTO[] = [
         {
           id: 1,
-          idTeam: 10,
+          idTeam: 1,
           idSchedule: 5,
           prog: 2,
           operation: 'instalação',
@@ -450,6 +450,7 @@ describe('WorksServicesService', () => {
           {
             id_programacao: 5,
             id_servico: 1,
+            id_equipe: 1,
             prog: 2,
             real: 0,
             servicos: {

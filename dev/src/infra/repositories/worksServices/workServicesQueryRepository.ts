@@ -151,6 +151,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
       select: {
         id: true,
         id_servico: true,
+        id_equipe: true,
         servicos: {
           select: {
             materiais: {
