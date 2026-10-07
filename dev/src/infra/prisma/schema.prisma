@@ -840,7 +840,7 @@ model reprovacoes_viabilidade {
 
 model programacoes_d5 {
   id                     Int                  @id(map: "novo_tabela_programacoes_d5_pkey") @default(autoincrement())
-  id_nota_d5             Int
+  id_nota_d5             Int                  @unique(map: "uq_programacoes_d5_nota_d5")
   data_prog              DateTime             @db.Date
   prog                   Int
   exec                   Int?
