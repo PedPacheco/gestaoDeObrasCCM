@@ -1,16 +1,19 @@
 "use client";
 
-import { ReclamacaoRow, ResultadoBucket } from "@/types/reclamacoesOuvidoria";
 import { NUM } from "@/utils/formatValue";
-import { GREEN, RED } from "./mainComplaintsAndOmbudsmansOffice";
 import { Dispatch, SetStateAction, useMemo } from "react";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import { Collapse, Fade } from "@mui/material";
+import { NoteSummary, ResultadoBucket } from "@/types/reclamacoesOuvidoria";
+import { GREEN, RED } from "./mainComplaintsAndOmbudsmansOffice";
 
 interface ComplaintResultsProps {
   selectedBucket: ResultadoBucket | null;
   setSelectedBucket: Dispatch<SetStateAction<ResultadoBucket | null>>;
-  rows: ReclamacaoRow[];
+  rows: {
+    procedente: NoteSummary[];
+    improcedente: NoteSummary[];
+  };
 }
 
 export function ComplaintResults({
@@ -18,12 +21,7 @@ export function ComplaintResults({
   setSelectedBucket,
   rows,
 }: ComplaintResultsProps) {
-  const notasSelecionadas = useMemo(() => {
-    if (!selectedBucket) return [];
-    return rows
-      .filter((row) => row.resultadoBucket === selectedBucket)
-      .sort((a, b) => a.nota.localeCompare(b.nota));
-  }, [rows, selectedBucket]);
+  const notasSelecionadas = selectedBucket ? rows[selectedBucket] : [];
 
   return (
     <Collapse in={!!selectedBucket} timeout={300} unmountOnExit>
@@ -36,7 +34,7 @@ export function ComplaintResults({
           </span>
           <button
             onClick={() => setSelectedBucket(null)}
-            className="text-slate-400 hover:text-white flex items-center gap-1 text-xs"
+            className="text-slate-400 hover:text-white flex items-center gap-1 text-sm"
           >
             <XMarkIcon className="w-4 h-4" />
             Fechar
@@ -57,7 +55,7 @@ export function ComplaintResults({
                 style={{ transitionDelay: `${Math.min(i * 20, 300)}ms` }}
               >
                 <div
-                  className="rounded-lg border border-white/10 px-3 py-2 text-xs"
+                  className="rounded-lg border border-white/10 px-3 py-2 text-sm"
                   style={{ background: "#1e2f42" }}
                 >
                   <div className="font-bold text-white truncate">

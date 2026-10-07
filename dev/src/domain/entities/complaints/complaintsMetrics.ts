@@ -53,6 +53,7 @@ export interface NoteSummary {
 }
 
 export interface ComplaintsMetrics {
+  // ---- KPIs ----
   total: number;
   empreiteirasCount: number;
   regionaisCount: number;
@@ -72,6 +73,7 @@ export interface ComplaintsMetrics {
   reclamacoes: number; // additive
   ouvidorias: number; // additive
 
+  // ---- Distributions ----
   statusCounts: NameValue[];
   regionalCounts: NameValue[];
   empreiteiraCounts: NameValue[];
@@ -79,6 +81,8 @@ export interface ComplaintsMetrics {
   resultadoCounts: NameValue[];
   prazoCounts: NameValue[];
   tipoRegistroCounts: NameValue[]; // additive
+
+  // ---- Time series and breakdowns ----
   acumuladoPorMes: MonthlyBacklog[];
   empreiteiraTrends: ContractorTrend[];
   cenarioAtual: CurrentScenarioItem[];
@@ -88,42 +92,3 @@ export interface ComplaintsMetrics {
     improcedente: NoteSummary[];
   };
 }
-
-export type ComplaintsResult =
-  | { ok: true; data: ComplaintsMetrics }
-  | { ok: false; error: string };
-
-export type ResultadoBucket = "procedente" | "improcedente";
-
-export const EMPTY_METRICS: ComplaintsMetrics = {
-  total: 0,
-  empreiteirasCount: 0,
-  regionaisCount: 0,
-  pendentes: 0,
-  pendentesDentroPrazo: 0,
-  pendentesForaPrazo: 0,
-  pendentesSemVencimento: 0,
-  concluidas: 0,
-  taxaConclusao: 0,
-  foraDoPrazo: 0,
-  dentroDoPrazo: 0,
-  semVencimento: 0,
-  pctDentroDoPrazo: 0,
-  procedentes: 0,
-  improcedentes: 0,
-  pctProcedencia: 0,
-  reclamacoes: 0,
-  ouvidorias: 0,
-  statusCounts: [],
-  regionalCounts: [],
-  empreiteiraCounts: [],
-  tipoCounts: [],
-  resultadoCounts: [],
-  prazoCounts: [],
-  tipoRegistroCounts: [],
-  acumuladoPorMes: [],
-  empreiteiraTrends: [],
-  cenarioAtual: [],
-  motivosPendentes: [],
-  notasPorResultado: { procedente: [], improcedente: [] },
-};

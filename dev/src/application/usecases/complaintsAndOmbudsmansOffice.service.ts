@@ -1,9 +1,19 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { ComplaintsMetrics } from 'src/domain/entities/complaints/complaintsMetrics';
 import {
   COMPLAINTS_AND_OMBUDSMANS_OFFICE_REPOSITORY,
   IComplaintsAndOmbudsmansOfficeRepository,
 } from 'src/domain/repositories/IComplaintsAndOmbudsmansOfficeRepository';
+import { buildComplaintsMetrics } from 'src/domain/services/complaintsMetrics.calculator';
+
 import { ComplaintsAndOmbudsmansOfficeDTO } from 'src/interface/dtos/complaintsAndOmbudsmansOfficeDTO';
+
+// "Today" in the business timezone: toISOString() is UTC and would roll over to the next
+// day after 9pm in Brasília, changing which pending items count as overdue.
+export const todayIsoInSaoPaulo = (now: Date) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(
+    now,
+  ); // YYYY-MM-DD
 
 @Injectable()
 export class ComplaintsAndOmbudsmansOfficeService {
@@ -12,47 +22,12 @@ export class ComplaintsAndOmbudsmansOfficeService {
     private readonly repository: IComplaintsAndOmbudsmansOfficeRepository,
   ) {}
 
-  async getMetrics(filters: ComplaintsAndOmbudsmansOfficeDTO): Promise<any> {
-    const where = this.buildWhere(filters);
-
-    const response = await this.repository.getMetrics(where);
-
-    console.log(response);
-
-    // const rows = await this.reclamacoes.findAll({
-    //   parceiraIds: query.parceiras,
-    //   municipioIds: query.municipios,
-    //   busca: query.busca,
-    // });
-    // return buildReclamacoesMetrics(rows, todayIsoInSaoPaulo(now));
-  }
-
-  private buildWhere(filters: ComplaintsAndOmbudsmansOfficeDTO) {
-    const where: any = {};
-
-    if (filters.idRegional?.length) {
-      where.municipios = {
-        ...where.municipios,
-        id_regional: { in: filters.idRegional },
-      };
-    }
-
-    if (filters.idMunicipio?.length) {
-      where.id_municipio = { in: filters.idMunicipio };
-    }
-
-    if (filters.idTipo?.length) {
-      where.id_tipo = { in: filters.idTipo };
-    }
-
-    if (filters.idParceira?.length) {
-      where.id_parceira = { in: filters.idParceira };
-    }
-
-    // if (filters.ovn?.length) {
-    //   where.nota_d5 = { in: filters.idNotaD5 };
-    // }
-
-    return where;
+  async getMetrics(
+    filters: ComplaintsAndOmbudsmansOfficeDTO,
+    now = new Date(),
+  ): Promise<ComplaintsMetrics> {
+    // The DTO is structurally compatible with ComplaintsFilter.
+    const complaints = await this.repository.findAll(filters);
+    return buildComplaintsMetrics(complaints, todayIsoInSaoPaulo(now));
   }
 }

@@ -11,8 +11,7 @@ import AdherenceToScheduleDashboard, {
   EliminacaoRow,
 } from "./adherenceToSchedule/adherenceToSchedule";
 import { FiltersInterface } from "@/types/genericFilterSchema";
-
-// ... (manter todas as interfaces existentes: Kpis, ByStatus, ByRegional, etc.)
+import { ComplaintsResult } from "@/types/reclamacoesOuvidoria";
 
 export interface Kpis {
   total: number;
@@ -67,6 +66,7 @@ interface Props {
   initialSparklinesPartners: any[];
   initialPartnerWeeks: any[];
   initialReasonsReascheduling: any[];
+  complaintsPromise: Promise<ComplaintsResult>;
   initialSummary: any;
   initialDailyGoal: number;
   token: string;
@@ -104,6 +104,7 @@ export default function AdvancePartnerDashboard({
   initialPartnerWeeks,
   initialReasonsReascheduling,
   initialSparklinesPartners,
+  complaintsPromise,
   filtersData,
 }: Props) {
   const { permissions } = useUser();
@@ -203,7 +204,11 @@ export default function AdvancePartnerDashboard({
 
       {/* ── Tab Content ──────────────────────────────────────── */}
       {activeTab === "reclamacoes-ouvidoria" ? (
-        <MainReclamacoes filtersData={filtersData} />
+        <MainReclamacoes
+          filtersData={filtersData}
+          complaintsPromise={complaintsPromise}
+          token={token}
+        />
       ) : (
         <AdherenceToScheduleDashboard
           initialEliminacao={initialEliminacao}

@@ -5,6 +5,10 @@ import { fetchData } from "@/actions/fetchData.action";
 import { getCurrentWeekData } from "@/utils/weeks";
 import AdvancePartnerDashboard from "@/components/advancePartner/advancePartnerDashboard";
 import { fetchFilters } from "@/actions/fetchFilters.action";
+import {
+  ComplaintsMetrics,
+  ComplaintsResult,
+} from "@/types/reclamacoesOuvidoria";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -84,6 +88,31 @@ async function fetchMaodeObraAvanca(token: string) {
   return { data: firstSummary, metaDiaria };
 }
 
+export async function loadComplaintsMetrics(
+  token: string,
+): Promise<ComplaintsResult> {
+  const DEFAULT_ERROR = "Não foi possível carregar os dados de reclamações.";
+
+  try {
+    const res = await fetchData<ComplaintsMetrics>(
+      `${API}/reclamacoes-ouvidoria`,
+      undefined,
+      token,
+      NO_CACHE,
+    );
+
+    if (!res.success) {
+      console.error("[reclamacoes] erro ao carregar métricas:", res.message);
+      return { ok: false, error: DEFAULT_ERROR };
+    }
+
+    return { ok: true, data: res.data };
+  } catch (error) {
+    console.error("[reclamacoes] falha no pedido:", error);
+    return { ok: false, error: DEFAULT_ERROR };
+  }
+}
+
 export default async function AdvancePartnerDashboardPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value ?? "";
@@ -109,8 +138,11 @@ export default async function AdvancePartnerDashboardPage() {
       tipo: true,
       municipio: true,
       grupo: true,
+      ovnota: true,
     }),
   ]);
+
+  const complaintsPromise = loadComplaintsMetrics(token);
 
   return (
     <div className="flex flex-col min-h-full">
@@ -122,6 +154,7 @@ export default async function AdvancePartnerDashboardPage() {
         initialReasonsReascheduling={motivosReprogramacao}
         initialSparklinesPartners={sparklinesParceira}
         initialSummary={maodeObraAvanca.data}
+        complaintsPromise={complaintsPromise}
         filtersData={filters}
         token={token}
       />

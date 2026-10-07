@@ -14,10 +14,6 @@ import {
 
 import { ChartCard } from "@/components/dashboard/common/ChartCard";
 import { ExecutionTooltip } from "@/components/entryComponents/edpExecution/ExecutionTooltip";
-import {
-  EmpreiteiraTrend,
-  MonthAcumulado,
-} from "@/utils/reclamacoesOuvidoria/metrics";
 import { NUM } from "@/utils/formatValue";
 
 const BLUE = "#3b82f6";
@@ -55,7 +51,7 @@ export function ReclamacoesAcumuladoChart({
             />
             <Legend
               formatter={(value) => (
-                <span className="text-zinc-300 text-xs">{value}</span>
+                <span className="text-zinc-300 text-sm">{value}</span>
               )}
             />
             <Bar
@@ -97,7 +93,7 @@ export function ReclamacoesAcumuladoChart({
 function MiniTrendChart({ trend }: { trend: EmpreiteiraTrend }) {
   return (
     <div className="bg-gradient-to-br from-[#1a2d42] to-[#182333] rounded-2xl p-4 border border-white/8 shadow-xl">
-      <span className="text-white font-bold text-xs uppercase tracking-wide">
+      <span className="text-white font-bold uppercase tracking-wide">
         {trend.empreiteira}
       </span>
       <div className="h-[150px] mt-2">
