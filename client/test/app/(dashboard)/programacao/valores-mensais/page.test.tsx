@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { render, screen } from "@testing-library/react";
-import Schedule from "@/app/(dashboard)/programacao/valores-mensais/page";
+import Schedule from "@/app/(dashboard)/(with-breadcrumbs)/programacao/valores-mensais/page";
 import { Transform } from "@/utils/transform";
 import dayjs from "dayjs";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
@@ -32,7 +32,7 @@ vi.mock("@/utils/transform", () => ({
       Object.entries(filters).map(([key, value]) => [
         key,
         Array.isArray(value) && value.length > 0 ? value.join(",") : "",
-      ])
+      ]),
     );
   }),
 }));
@@ -119,7 +119,7 @@ describe("Schedule page", () => {
     expect(fetchData).toHaveBeenCalledWith(
       "https://api.example.com/programacao",
       { tipo: "Tipo 1", parceira: "Parceira 1", ano: "2025" },
-      mockToken
+      mockToken,
     );
   });
 
@@ -131,11 +131,11 @@ describe("Schedule page", () => {
     expect(mainSchedule).toBeInTheDocument();
 
     expect(JSON.parse(mainSchedule.getAttribute("data-data") || "[]")).toEqual(
-      mockData
+      mockData,
     );
     expect(mainSchedule.getAttribute("data-token")).toBe("mock-token");
     expect(
-      JSON.parse(mainSchedule.getAttribute("data-filtersData") || "")
+      JSON.parse(mainSchedule.getAttribute("data-filtersData") || ""),
     ).toEqual(mockFilters);
   });
 
@@ -150,7 +150,7 @@ describe("Schedule page", () => {
     expect(fetchData).toHaveBeenCalledWith(
       "https://api.example.com/programacao",
       { ano: "2025" },
-      mockToken
+      mockToken,
     );
   });
 

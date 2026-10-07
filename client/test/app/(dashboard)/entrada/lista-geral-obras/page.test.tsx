@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import AllWorks from "@/app/(dashboard)/entrada/lista-geral-obras/page";
+import AllWorks from "@/app/(dashboard)/(with-breadcrumbs)/entrada/lista-geral-obras/page";
 import { Transform } from "@/utils/transform";
 import { render, screen } from "@testing-library/react";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
@@ -46,7 +46,7 @@ vi.mock("@/utils/transform", () => ({
       Object.entries(filters).map(([key, value]) => [
         key,
         Array.isArray(value) && value.length > 0 ? value.join(",") : "",
-      ])
+      ]),
     );
   }),
 }));
@@ -117,7 +117,7 @@ describe("All works page", () => {
       "https://api.example.com/obras",
       { regional: "Regional A", parceira: "Parceira 1", page: "0" },
       mockToken,
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
   });
 
@@ -133,7 +133,7 @@ describe("All works page", () => {
       "https://api.example.com/obras",
       { page: "0" },
       mockToken,
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
   });
 
@@ -157,10 +157,10 @@ describe("All works page", () => {
     expect(mainAllWorks).toBeInTheDocument();
 
     expect(JSON.parse(mainAllWorks.getAttribute("data-data") || "[]")).toEqual(
-      mockData.works
+      mockData.works,
     );
     expect(
-      JSON.parse(mainAllWorks.getAttribute("data-filters") || "{}")
+      JSON.parse(mainAllWorks.getAttribute("data-filters") || "{}"),
     ).toEqual(mockFilters);
     expect(mainAllWorks.getAttribute("data-token")).toBe(mockToken);
 
@@ -190,7 +190,7 @@ describe("All works page", () => {
     };
 
     expect(
-      JSON.parse(mainAllWorks.getAttribute("data-columns") || "{}")
+      JSON.parse(mainAllWorks.getAttribute("data-columns") || "{}"),
     ).toEqual(expectedColumns);
   });
 

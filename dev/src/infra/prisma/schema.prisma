@@ -205,19 +205,20 @@ model metas {
 }
 
 model municipios {
-  id                                                          Int                @id(map: "MUNICIPIOS_pkey") @default(autoincrement())
-  municipio                                                   String             @db.VarChar(22)
-  mun                                                         String             @unique(map: "unique_mun") @db.VarChar(3)
-  codigo_sap                                                  String?            @db.VarChar(3)
+  id                                                          Int                     @id(map: "MUNICIPIOS_pkey") @default(autoincrement())
+  municipio                                                   String                  @db.VarChar(22)
+  mun                                                         String                  @unique(map: "unique_mun") @db.VarChar(3)
+  codigo_sap                                                  String?                 @db.VarChar(3)
   id_regional                                                 Int
-  mun_minusculo                                               String?            @db.VarChar(22)
+  mun_minusculo                                               String?                 @db.VarChar(22)
   base_auxiliar                                               base_auxiliar[]
-  base_auxiliar_ov_base_auxiliar_ov_aux_municipioTomunicipios base_auxiliar_ov[] @relation("base_auxiliar_ov_aux_municipioTomunicipios")
+  base_auxiliar_ov_base_auxiliar_ov_aux_municipioTomunicipios base_auxiliar_ov[]      @relation("base_auxiliar_ov_aux_municipioTomunicipios")
   base_auxiliar_ov                                            base_auxiliar_ov[]
   equipamentos                                                equipamentos[]
-  regionais                                                   regionais          @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
+  regionais                                                   regionais               @relation(fields: [id_regional], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_regionais")
   notas_d5                                                    notas_d5[]
   obras                                                       obras[]
+  reclamacoesOuvidorias                                       reclamacoes_ouvidoria[]
 }
 
 model obras {
@@ -288,6 +289,7 @@ model obras {
   servicos                  servicos[]
   suspensoes                suspensoes[]
   suspensoes_retiradas      suspensoes_retiradas[]
+  reclamacoesOuvidorias     reclamacoes_ouvidoria[]
 }
 
 model programacoes {
@@ -357,6 +359,36 @@ model programacoes_servicos {
   equipes        equipes      @relation(fields: [id_equipe], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipes")
   programacoes   programacoes @relation(fields: [id_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_programacoes")
   servicos       servicos     @relation(fields: [id_servico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_servicos")
+}
+
+model reclamacoes_ouvidoria {
+  id                      Int        @id @default(autoincrement())
+  id_parceira             Int
+  id_obra                 Int?
+  id_municipio            Int
+  nota                    String     @db.VarChar(15)
+  concluido_pot           String     @db.VarChar(20)
+  status                  String     @db.VarChar(20)
+  canal_entrada           String     @db.VarChar(50)
+  observacao              String?
+  aguardando_acao         String?    @db.VarChar(75)
+  data_analise            DateTime?  @db.Timestamp(6)
+  data_abertura           DateTime?  @db.Timestamp(6)
+  data_vencimento         DateTime?  @db.Timestamp(6)
+  data_conclusao          DateTime?  @db.Timestamp(6)
+  data_medida             DateTime?  @db.Timestamp(6)
+  data_veri               DateTime?  @db.Timestamp(6)
+  data_cobranca           DateTime?  @db.Timestamp(6)
+  data_retorno            DateTime?  @db.Timestamp(6)
+  status_prazo            String?    @db.VarChar(20)
+  tipo_reclamacao         String?    @db.VarChar(75)
+  causa_raiz              String?    @db.VarChar(150)
+  procedente_improcedente String?    @db.VarChar(30)
+  medida                  Int?
+  reclamacao_ou_ouvidoria String?    @db.VarChar(20)
+  municipios              municipios @relation(fields: [id_municipio], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_municipio")
+  turmas                  turmas     @relation(fields: [id_parceira], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_parceiras")
+  obras                   obras?     @relation(fields: [id_obra], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_tipos")
 }
 
 model regionais {
@@ -505,6 +537,7 @@ model turmas {
   recursos_contingencia recursos_contingencia[]
   servicos_contratos    servicos_contratos[]
   valores_contratos     valores_contratos[]
+  reclamacoesOuvidorias reclamacoes_ouvidoria[]
 }
 
 model relatorio_viabilidade {

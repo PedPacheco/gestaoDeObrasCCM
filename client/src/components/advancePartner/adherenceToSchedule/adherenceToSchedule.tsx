@@ -1,10 +1,11 @@
 "use client";
 
-import { AdvancePartnerFilters } from "./advancePartnerFilters";
+import { AdvancePartnerFilters } from "./adherenceToScheduleFilters";
 import { KpiSection } from "./kpiSection";
 import { SparklinesSection } from "./sparklinesSection";
 import { ChartReasonsReascheduling } from "./chartReasonsReascheduling";
-import { useAdvancePartnerFilters } from "@/hooks/dashboard/advancePartner/useAdvancePartnerFilters";
+import { useAdherenceToScheduleFilters } from "@/hooks/advancePartner/useAdvancePartnerFilters";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -104,7 +105,7 @@ export function pctColorRestrictionsElimination(pct: number) {
   };
 }
 
-export default function AdvancePartnerDashboard({
+export default function AdherenceToScheduleDashboard({
   initialEliminacao,
   initialAderencia,
   initialPartnerWeeks,
@@ -143,7 +144,7 @@ export default function AdvancePartnerDashboard({
     dailyGoal,
     filterMode,
     setFilterMode,
-  } = useAdvancePartnerFilters({
+  } = useAdherenceToScheduleFilters({
     token,
     filtersData,
     initialEliminacao,

@@ -53,6 +53,12 @@ export const links: Link[] = [
     allowedAreas: [8, 1, 9],
   },
   {
+    name: "Avança Parceiro",
+    href: "/avanca-parceiro",
+    allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+    allowedAreas: [8, 1],
+  },
+  {
     name: "Relatórios",
     href: null,
     allowedFor: ["interno_editor", "interno_viewer", "parceira"],
@@ -238,6 +244,7 @@ export const links: Link[] = [
       },
     ],
   },
+
   {
     name: "Mapa de obras",
     href: "/mapa-obras",

@@ -40,7 +40,7 @@ vi.mock("@/theme/emotionCache", () => ({
 
 import { cookies } from "next/headers";
 import { fetchData } from "@/actions/fetchData.action";
-import ForecastReportPage from "@/app/(dashboard)/relatorios/forecast/page";
+import ForecastReportPage from "@/app/(dashboard)/(with-breadcrumbs)/relatorios/forecast/page";
 
 const mockCookies = cookies as unknown as ReturnType<typeof vi.fn>;
 const mockFetch = fetchData as unknown as ReturnType<typeof vi.fn>;
