@@ -350,6 +350,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
         id: true,
         texto_breve: true,
         material: true,
+        material_antigo: true,
         preco: true,
         contrato: true,
         medida: true,

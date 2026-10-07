@@ -411,7 +411,20 @@ describe('WorksServicesService', () => {
 
       const result = await service.getNotScheduledServices(1);
 
-      expect(result).toEqual([]);
+      expect(result).toHaveLength(mockRepositoryResponse.length);
+      result.forEach((item) => {
+        expect(item).toEqual(
+          expect.objectContaining({
+            qtdeProgramada: null,
+            qtdeRealizada: null,
+            qtdeAdicional: null,
+            viabilizado: null,
+            saldoDisponivel: 0,
+            valorReal: 0,
+            valorTotal: 0,
+          }),
+        );
+      });
       expect(repository.getNotScheduledServices).toHaveBeenCalledWith(1);
       expect(repository.getNotScheduledServices).toHaveBeenCalledTimes(1);
     });
