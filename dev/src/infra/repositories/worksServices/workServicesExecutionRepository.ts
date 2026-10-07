@@ -123,7 +123,7 @@ export class WorkServicesExeutionRepository implements IWorkServicesExecutionRep
                 where: { id: idServico },
                 data: {
                   qtde_prog: qtdeProg,
-                  qtde_real: totalAgg._sum.real ?? 0,
+                  qtde_real: totalAgg._sum.real,
                 },
               });
             }),

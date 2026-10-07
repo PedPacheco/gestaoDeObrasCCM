@@ -73,8 +73,8 @@ export class QueriesServicesService {
 
     return services.reduce((acc, service) => {
       const total = (service.viabilizado ?? 0) + (service.qtde_adicional ?? 0);
-      const totalReal = service.qtde_real ?? 0;
-      const totalProg = service.qtde_prog ?? 0;
+      const totalReal = service.qtde_real;
+      const totalProg = service.qtde_prog;
 
       if (totalReal === total || totalProg === total) return acc;
 
