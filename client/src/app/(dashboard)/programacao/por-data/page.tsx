@@ -95,8 +95,10 @@ export default async function ScheduleForDay() {
     equipe_regularizacao: "Equipe Reg",
     tecnico: "Técnico Responsável",
     total_obras: "Total de obras",
-    total_mo_planejada: "Total MO planejada",
-    total_mo_exec: "Total MO Executado",
+    total_mo_planejada: "Total MO(SAP) Programado",
+    total_mo_exec: "Total MO(SAP) Executado",
+    total_ponto_a_ponto_programado: "Total MO(Ponto a ponto) Programado",
+    total_ponto_a_ponto_executado: "Total MO(Ponto a ponto) Executado",
     total_qtde_planejada: "Total QTDE planejada",
   };
 
