@@ -20,12 +20,19 @@ import { GetMonthlySummaryDTO } from 'src/interface/dtos/scheduleDTO';
 import {
   DailySummaryEntry,
   DailySummaryResult,
+  GetMonthlySummaryInterface,
   GroupSummaryResult,
   GroupTeamSummaryEntry,
   MonthlyCapacityMetrics,
+  WorkOrderMetrics,
 } from 'src/interface/types/schedule/monthlySummaryInterface';
 
 import { Inject, Injectable } from '@nestjs/common';
+import { QueriesServicesService } from '../../services/queriesServices.service';
+import {
+  PointByPointCost,
+  PointByPointCostService,
+} from 'src/domain/services/pointByPointCost.service';
 
 @Injectable()
 export class MonthlySummaryService {
@@ -38,6 +45,8 @@ export class MonthlySummaryService {
     private readonly executionCapacityRepository: IExecutionCapacityRepository,
     private readonly summaryMapper: MonthlySummaryMapper,
     private readonly teamsAggregatorService: TeamAggregationService,
+    private readonly workServicesQueryService: QueriesServicesService,
+    private readonly pointByPointCostService: PointByPointCostService,
   ) {}
 
   async getSummary(filters: GetMonthlySummaryDTO): Promise<DailySummaryResult> {
@@ -54,6 +63,8 @@ export class MonthlySummaryService {
           idRegional: filters.idRegional,
         }),
       ]);
+
+    const pointByPointCosts = await this.loadPointByPointCosts(data);
 
     const financialCapacityByMonth: (MonthlyCapacityMetrics | undefined)[] =
       Array.from({ length: 12 }, () => undefined);
@@ -123,15 +134,10 @@ export class MonthlySummaryService {
       }
 
       const entry = summaryMap.get(formattedDate)!;
-      const financials = this.extractFinancials(record.obras);
 
-      const exec = record.exec ?? 0;
-
-      const workOrderMetrics = this.calculator.calculateWorkOrderMetrics(
-        financials.moPlan,
-        financials.moPend,
-        record.prog,
-        exec,
+      const workOrderMetrics = this.resolveWorkOrderMetrics(
+        record,
+        pointByPointCosts,
       );
 
       const goalContribution = this.calculator.calculateGoalPercentage(
@@ -189,6 +195,8 @@ export class MonthlySummaryService {
       await this.monthlySummaryRepository.getSummary(filters),
       await this.monthlySummaryRepository.getPortfolioSummary(filters),
     ]);
+
+    const pointByPointCosts = await this.loadPointByPointCosts(data);
 
     const summaryMap = new Map<string, GroupTeamSummaryEntry>();
     const uniqueWorksFinancial = createUniqueWorksFinancial();
@@ -264,18 +272,12 @@ export class MonthlySummaryService {
       const entry = summaryMap.get(groupKey)!;
       const financials = this.extractFinancials(record.obras);
 
-      const workOrderMetrics = this.calculator.calculateWorkOrderMetrics(
-        financials.moPlan,
-        financials.moPend,
-        record.prog,
-        record.exec,
+      const workOrderMetrics = this.resolveWorkOrderMetrics(
+        record,
+        pointByPointCosts,
       );
 
-      const prevMetrics = this.calculator.calculateMoPrev(
-        financials.moPlan,
-        record.exec,
-        record.prog,
-      );
+      const prevMetrics = this.resolveMoPrev(record, pointByPointCosts);
 
       const workKey = this.buildWorkKey(
         ovnota,
@@ -325,6 +327,72 @@ export class MonthlySummaryService {
       moPlan: obras.mo_planejada,
       moPend: obras.mo_pend,
     };
+  }
+
+  private async loadPointByPointCosts(
+    data: GetMonthlySummaryInterface[],
+  ): Promise<Map<number, PointByPointCost>> {
+    const costs = new Map<number, PointByPointCost>();
+
+    const scheduleIds = data
+      .filter((record) => record.obras.programacao_ponto_a_ponto)
+      .map((record) => record.id);
+
+    if (scheduleIds.length === 0) return costs;
+
+    const services =
+      await this.workServicesQueryService.getServiceScheduleHistoryByIdSchedule(
+        scheduleIds,
+      );
+
+    const servicesBySchedule =
+      this.pointByPointCostService.groupByScheduleId(services);
+
+    for (const [idProg, items] of servicesBySchedule) {
+      costs.set(idProg, this.pointByPointCostService.calculate(items));
+    }
+
+    return costs;
+  }
+
+  private resolveWorkOrderMetrics(
+    record: GetMonthlySummaryInterface,
+    pointByPointCosts: Map<number, PointByPointCost>,
+  ): WorkOrderMetrics {
+    const financials = this.extractFinancials(record.obras);
+
+    if (record.obras.programacao_ponto_a_ponto) {
+      return this.calculator.calculatePointByPointMetrics(
+        financials.moPlan,
+        financials.moPend,
+        pointByPointCosts.get(record.id) ?? { planejado: 0, executado: 0 },
+      );
+    }
+
+    return this.calculator.calculateWorkOrderMetrics(
+      financials.moPlan,
+      financials.moPend,
+      record.prog,
+      record.exec ?? 0,
+    );
+  }
+
+  private resolveMoPrev(
+    record: GetMonthlySummaryInterface,
+    pointByPointCosts: Map<number, PointByPointCost>,
+  ): { moPrev: number } {
+    if (record.obras.programacao_ponto_a_ponto) {
+      return this.calculator.calculatePointByPointMoPrev(
+        record.exec,
+        pointByPointCosts.get(record.id) ?? { planejado: 0, executado: 0 },
+      );
+    }
+
+    return this.calculator.calculateMoPrev(
+      record.obras.mo_planejada,
+      record.exec,
+      record.prog,
+    );
   }
 
   private buildWorkKey(

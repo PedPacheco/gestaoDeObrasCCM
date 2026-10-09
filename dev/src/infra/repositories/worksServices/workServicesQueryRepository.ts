@@ -223,7 +223,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     };
 
     const programacoesServicosFilter: Prisma.programacoes_servicosWhereInput = {
-      programacoes: { data_prog: dateFilter, exec: null },
+      programacoes: { data_prog: dateFilter },
       ...(params.idEquipe.length > 0
         ? { id_equipe: { in: params.idEquipe } }
         : {}),
@@ -234,7 +234,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
         id_turma: { in: params.idParceira },
         programacao_ponto_a_ponto: true,
         programacoes: {
-          some: { data_prog: dateFilter, exec: null },
+          some: { data_prog: dateFilter },
         },
         servicos: {
           some: {

@@ -5,7 +5,7 @@ import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 import {
   GetScheduleValuesInterface,
   GetScheduleValuesResponseRepository,
-  totalsGetScheduleValues,
+  TotalsGetScheduleValuesRepository,
 } from 'src/interface/types/schedule/getScheduleValuesInterface';
 
 import { Injectable } from '@nestjs/common';
@@ -130,7 +130,7 @@ export class GetScheduleValuesRepository implements IGetScheduleValuesRepository
 
     const [works, [resultTotals]] = await Promise.all([
       this.prisma.$queryRaw<GetScheduleValuesInterface[]>(query),
-      this.prisma.$queryRaw<totalsGetScheduleValues[]>(countQuery),
+      this.prisma.$queryRaw<TotalsGetScheduleValuesRepository[]>(countQuery),
     ]);
 
     return { works, resultTotals };

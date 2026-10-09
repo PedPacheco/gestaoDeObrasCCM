@@ -43,6 +43,7 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
         },
       },
       select: {
+        id: true,
         data_prog: true,
         prog: true,
         exec: true,
@@ -60,6 +61,7 @@ export class GetMonthlySummaryRepository implements IGetMonthlySummaryRepository
             mo_pend: true,
             executado: true,
             id_turma: true,
+            programacao_ponto_a_ponto: true,
             turmas: { select: { turma: true } },
             tipos: {
               select: { id_grupo: true, grupos: { select: { grupo: true } } },

@@ -92,7 +92,9 @@ export interface GetMonthlySummaryInterface {
     id_turma?: number;
     turmas: Partners;
     tipos: Types;
+    programacao_ponto_a_ponto: boolean;
   };
+  id: number;
   prog: number;
   exec: number;
   data_prog: Date;
