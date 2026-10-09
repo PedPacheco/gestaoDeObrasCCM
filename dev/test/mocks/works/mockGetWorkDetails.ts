@@ -212,6 +212,14 @@ export const mockGetWorkDetailsRepositoryResponse = {
       viabilizado: 4,
       qtdeRealizada: null,
       valorUnit: 2,
+      tipo: 'S',
+    },
+    {
+      qtdeAdicional: null,
+      viabilizado: 4,
+      qtdeRealizada: null,
+      valorUnit: 2,
+      tipo: 'M',
     },
   ],
   programacoes: [

@@ -131,6 +131,7 @@ describe('GetMonthlySummary', () => {
           },
         },
         select: {
+          id: true,
           data_prog: true,
           prog: true,
           exec: true,
@@ -148,6 +149,7 @@ describe('GetMonthlySummary', () => {
               mo_pend: true,
               executado: true,
               id_turma: true,
+              programacao_ponto_a_ponto: true,
               turmas: { select: { turma: true } },
               tipos: {
                 select: { grupos: { select: { grupo: true } }, id_grupo: true },
@@ -181,6 +183,7 @@ describe('GetMonthlySummary', () => {
           },
         },
         select: {
+          id: true,
           data_prog: true,
           prog: true,
           exec: true,
@@ -198,6 +201,7 @@ describe('GetMonthlySummary', () => {
               mo_pend: true,
               executado: true,
               id_turma: true,
+              programacao_ponto_a_ponto: true,
               turmas: { select: { turma: true } },
               tipos: {
                 select: { grupos: { select: { grupo: true } }, id_grupo: true },

@@ -6,6 +6,7 @@ import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 import { Test } from '@nestjs/testing';
 import { obras } from '@prisma/client';
 import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
+import { PointByPointCostService } from 'src/domain/services/pointByPointCost.service';
 
 describe('GetScheduleValues', () => {
   let service: GetScheduleValuesService;
@@ -137,6 +138,7 @@ describe('GetScheduleValues', () => {
       providers: [
         GetScheduleValuesService,
         DeadlineStatusService,
+        PointByPointCostService,
         {
           provide: QueriesServicesService,
           useValue: mockQueriesServicesService,
@@ -190,6 +192,8 @@ describe('GetScheduleValues', () => {
         total_mo_exec: 0,
         total_mo_planejada: 3262.21,
         total_obras: 1,
+        total_ponto_a_ponto_executado: 0,
+        total_ponto_a_ponto_programado: 0,
         total_qtde_planejada: 1,
       },
     });
@@ -216,6 +220,8 @@ describe('GetScheduleValues', () => {
         total_exec: 0,
         total_mo_planejada: 0,
         total_mo_exec: 0,
+        total_ponto_a_ponto_executado: 0,
+        total_ponto_a_ponto_programado: 0,
         total_qtde_planejada: 0,
       },
     });
@@ -241,6 +247,8 @@ describe('GetScheduleValues', () => {
         total_mo_exec: 0,
         total_mo_planejada: 3262.21,
         total_obras: 1,
+        total_ponto_a_ponto_programado: 0,
+        total_ponto_a_ponto_executado: 0,
         total_qtde_planejada: 1,
       },
     });

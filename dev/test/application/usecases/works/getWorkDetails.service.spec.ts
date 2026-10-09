@@ -63,6 +63,14 @@ describe('GetWorkDetailsService', () => {
         qtdeAdicional: null,
         qtdeRealizada: null,
         valorUnit: 2,
+        tipo: 'S',
+      },
+      {
+        viabilizado: 4,
+        qtdeAdicional: null,
+        qtdeRealizada: null,
+        valorUnit: 2,
+        tipo: 'M',
       },
     ]);
 
@@ -83,6 +91,14 @@ describe('GetWorkDetailsService', () => {
         qtdeAdicional: null,
         qtdeRealizada: null,
         valorUnit: 2,
+        tipo: 'S',
+      },
+      {
+        viabilizado: 4,
+        qtdeAdicional: null,
+        qtdeRealizada: null,
+        valorUnit: 2,
+        tipo: 'M',
       },
     ]);
 

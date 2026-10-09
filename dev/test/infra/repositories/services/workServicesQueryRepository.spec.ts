@@ -791,7 +791,7 @@ describe('WorkServicesQueryRepository', () => {
                 ],
                 programacoes_servicos: {
                   some: {
-                    programacoes: { data_prog: dateFilter, exec: null },
+                    programacoes: { data_prog: dateFilter },
                   },
                 },
               },
@@ -829,7 +829,7 @@ describe('WorkServicesQueryRepository', () => {
                 ],
                 programacoes_servicos: {
                   some: {
-                    programacoes: { data_prog: dateFilter, exec: null },
+                    programacoes: { data_prog: dateFilter },
                     id_equipe: { in: [2, 3, 4] },
                   },
                 },
@@ -860,7 +860,6 @@ describe('WorkServicesQueryRepository', () => {
                   gte: new Date('2026-01-01'),
                   lte: new Date('2026-01-31'),
                 },
-                exec: null,
               },
             },
           }),
@@ -883,7 +882,7 @@ describe('WorkServicesQueryRepository', () => {
         lte: new Date('2026-01-31'),
       };
       const expectedFilter = {
-        programacoes: { data_prog: dateFilter, exec: null },
+        programacoes: { data_prog: dateFilter },
         id_equipe: { in: [2, 3] },
       };
 

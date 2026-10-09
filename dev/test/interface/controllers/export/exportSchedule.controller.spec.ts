@@ -125,7 +125,10 @@ export const mockScheduleData: GetScheduleValuesResponse = {
     total_obras: 1,
     total_mo_planejada: 3262.21,
     total_mo_exec: 0,
+    total_ponto_a_ponto_programado: 0,
+    total_ponto_a_ponto_executado: 0,
     total_qtde_planejada: 1,
+    total_exec: 0,
   },
 };
 

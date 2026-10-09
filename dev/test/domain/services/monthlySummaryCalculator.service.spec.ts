@@ -1,54 +1,61 @@
-import {
-  createInitialTotals,
-  createInitialTotalsByGrouping,
-} from 'src/application/mappers/monthlySummaryMapper';
 import { MonthlySummaryCalculator } from 'src/domain/services/monthlySummaryCalculator.service';
 import {
-  DailySummaryEntry,
-  GroupTeamSummaryEntry,
+  FINANCIAL_OVERHEAD_FACTOR,
+  MONTH_INDEX_TO_KEY,
   WORKING_DAYS_PER_MONTH,
 } from 'src/interface/types/schedule/monthlySummaryInterface';
 
-// ─── Helpers de fixture ───────────────────────────────────────────────────────
-
-function makeDailyEntry(
-  overrides: Partial<DailySummaryEntry> = {},
-): DailySummaryEntry {
-  return {
-    dataProg: '01/01/2024',
-    qtdeSchedules: 0,
-    teamsTotal: 0,
-    financialGoal: 0,
-    financialGoalWith8: 0,
-    diaryGoal: 0,
-    diaryGoalWith8: 0,
-    totalMoPlan: 0,
+// O mapper é mockado para que estes testes não dependam do formato inicial real
+// dos totais: cada chamada devolve um objeto novo e zerado.
+jest.mock('src/application/mappers/monthlySummaryMapper', () => ({
+  createInitialTotals: () => ({
+    totalSchedules: 0,
+    totalTeams: 0,
     totalMoProg: 0,
     totalMoExec: 0,
-    diff: 0,
-    ...overrides,
-  };
-}
+    totalFinancialGoal: 0,
+    totalFinancialGoalWith8: 0,
+    totalDiaryGoal: 0,
+    totalDiaryGoalWith8: 0,
+    totalDiff: 0,
+    totalWorks: 0,
+    totalQtdeRfpTeams: null,
+    totalExecutionCapacityTeams: null,
+  }),
+  createInitialTotalsByGrouping: () => ({
+    totalSchedules: 0,
+    totalMoProgByGrouping: 0,
+    totalMoExecByGrouping: 0,
+    totalMoPrevByGrouping: 0,
+    totalProgMarket: 0,
+    totalExecMarket: 0,
+    totalProgRecom: 0,
+    totalExecRecom: 0,
+    totalProgRda: 0,
+    totalExecRda: 0,
+    totalProgBt0: 0,
+    totalExecBt0: 0,
+    totalWalletBt0: 0,
+    totalWalletMarket: 0,
+    totalWalletRecom: 0,
+    totalWalletRda: 0,
+    totalWallet: 0,
+    totalMoPlanByGrouping: 0,
+    totalMoPendByGrouping: 0,
+    totalDiff: 0,
+  }),
+}));
 
-function makeGroupEntry(
-  overrides: Partial<GroupTeamSummaryEntry> = {},
-): GroupTeamSummaryEntry {
-  return {
-    grupo: 'G1',
-    turma: 'T1',
-    qtdeSchedules: 0,
-    totalMoPlan: 0,
-    totalMoProg: 0,
-    totalMoExec: 0,
-    totalMoPend: 0,
-    totalMoPrev: 0,
-    diff: 0,
-    idGrupo: 1,
-    ...overrides,
-  };
-}
-
-// ─── Suite ────────────────────────────────────────────────────────────────────
+const capacityEntry = (
+  monthIndex: number,
+  teams: unknown,
+  shouldCost: unknown,
+  extra: Record<string, unknown> = {},
+) => ({
+  [MONTH_INDEX_TO_KEY[monthIndex]]: teams,
+  should_cost: shouldCost,
+  ...extra,
+});
 
 describe('MonthlySummaryCalculator', () => {
   let calculator: MonthlySummaryCalculator;
@@ -57,673 +64,488 @@ describe('MonthlySummaryCalculator', () => {
     calculator = new MonthlySummaryCalculator();
   });
 
-  // ─── aggregateFinancialCapacityByMonth ──────────────────────────────────────
-
   describe('aggregateFinancialCapacityByMonth', () => {
-    it('should return zero when executionCapacity is empty', () => {
+    it('soma equipes x should_cost de todas as entradas do mês', () => {
+      const result = calculator.aggregateFinancialCapacityByMonth(
+        [capacityEntry(0, 2, 1000), capacityEntry(0, 3, 500)],
+        0,
+      );
+
+      expect(result.totalFinancial).toBe(3500);
+    });
+
+    it('deriva meta diária, meta com overhead e total com 8,5%', () => {
+      const result = calculator.aggregateFinancialCapacityByMonth(
+        [capacityEntry(0, 2, 1000)],
+        0,
+      );
+
+      const daily = 2000 / WORKING_DAYS_PER_MONTH;
+      expect(result.dailyFinancialGoal).toBeCloseTo(daily, 6);
+      expect(result.dailyFinancialGoalWithOverhead).toBeCloseTo(
+        daily * FINANCIAL_OVERHEAD_FACTOR,
+        6,
+      );
+      expect(result.totalFinancialWith8).toBeCloseTo(2000 * 1.085, 6);
+    });
+
+    it('usa somente a coluna do mês pedido', () => {
+      const entry = {
+        [MONTH_INDEX_TO_KEY[0]]: 2,
+        [MONTH_INDEX_TO_KEY[1]]: 5,
+        should_cost: 100,
+      };
+
+      expect(
+        calculator.aggregateFinancialCapacityByMonth([entry], 0).totalFinancial,
+      ).toBe(200);
+      expect(
+        calculator.aggregateFinancialCapacityByMonth([entry], 1).totalFinancial,
+      ).toBe(500);
+    });
+
+    it.each(Array.from({ length: 12 }, (_, i) => i))(
+      'lê a coluna correta para o mês de índice %i',
+      (monthIndex) => {
+        const result = calculator.aggregateFinancialCapacityByMonth(
+          [capacityEntry(monthIndex, 1, 10)],
+          monthIndex,
+        );
+
+        expect(result.totalFinancial).toBe(10);
+      },
+    );
+
+    it('considera zero equipes quando a coluna do mês não existe', () => {
+      const result = calculator.aggregateFinancialCapacityByMonth(
+        [{ should_cost: 1000 }],
+        3,
+      );
+
+      expect(result.totalFinancial).toBe(0);
+    });
+
+    it('considera should_cost nulo/indefinido como zero', () => {
+      const result = calculator.aggregateFinancialCapacityByMonth(
+        [capacityEntry(0, 2, null), capacityEntry(0, 2, undefined)],
+        0,
+      );
+
+      expect(result.totalFinancial).toBe(0);
+    });
+
+    it('converte valores numéricos em string', () => {
+      const result = calculator.aggregateFinancialCapacityByMonth(
+        [capacityEntry(0, '2', '1000')],
+        0,
+      );
+
+      expect(result.totalFinancial).toBe(2000);
+    });
+
+    it('lista vazia gera tudo zerado e overhead zero', () => {
       const result = calculator.aggregateFinancialCapacityByMonth([], 0);
 
-      expect(result.dailyFinancialGoal).toBe(0);
-      expect(result.dailyFinancialGoalWithOverhead).toBe(0);
+      expect(result).toEqual({
+        dailyFinancialGoal: 0,
+        dailyFinancialGoalWithOverhead: 0,
+        totalFinancial: 0,
+        totalFinancialWith8: 0,
+      });
     });
 
-    it('should calculate totalFinancial as teams * should_cost', () => {
-      const capacity = [
-        { jan: 2, should_cost: 100 },
-        { jan: null, should_cost: 200 },
-      ];
+    it('não aplica overhead quando a meta diária não é positiva', () => {
+      const result = calculator.aggregateFinancialCapacityByMonth(
+        [capacityEntry(0, -1, 1000)],
+        0,
+      );
 
-      const result = calculator.aggregateFinancialCapacityByMonth(capacity, 0);
-
-      // total = (2*100) + (3*200) = 200 + 600 = 800
-      const expectedDaily = 200 / WORKING_DAYS_PER_MONTH;
-
-      expect(result.dailyFinancialGoal).toBeCloseTo(expectedDaily, 10);
-    });
-
-    it('should fallback to 0 when fields are missing', () => {
-      const capacity = [{ fev: 10 }]; // sem should_cost
-
-      const result = calculator.aggregateFinancialCapacityByMonth(capacity, 1);
-
-      expect(result.dailyFinancialGoal).toBe(0);
-    });
-
-    it('should apply overhead only when dailyFinancialGoal > 0', () => {
-      const capacity = [{ mar: 2, should_cost: 100 }];
-
-      const result = calculator.aggregateFinancialCapacityByMonth(capacity, 2);
-
-      expect(result.dailyFinancialGoalWithOverhead).toBeGreaterThan(0);
-    });
-
-    it('should not apply overhead when totalFinancial is 0', () => {
-      const capacity = [{ mar: 0, should_cost: 100 }];
-
-      const result = calculator.aggregateFinancialCapacityByMonth(capacity, 2);
-
+      expect(result.dailyFinancialGoal).toBeLessThan(0);
       expect(result.dailyFinancialGoalWithOverhead).toBe(0);
     });
   });
-
-  // ─── calculateWorkOrderMetrics ──────────────────────────────────────────────
 
   describe('calculateWorkOrderMetrics', () => {
-    it('should compute moProg and moExec proportionally to prog and exec percentages', () => {
-      const result = calculator.calculateWorkOrderMetrics(2000, 100, 50, 50);
-
-      expect(result.moProg).toBe(1000);
-      expect(result.moExec).toBe(1000);
+    it('calcula programado e executado a partir dos percentuais', () => {
+      expect(calculator.calculateWorkOrderMetrics(1000, 400, 50, 25)).toEqual({
+        moPlan: 1000,
+        moPend: 400,
+        moProg: 500,
+        moExec: 250,
+      });
     });
 
-    it('should return moProg=0 and moExec=0 when prog and exec are both 0', () => {
-      const result = calculator.calculateWorkOrderMetrics(5000, 0, 0, 0);
+    it('prog e exec zerados geram zero', () => {
+      const result = calculator.calculateWorkOrderMetrics(1000, 400, 0, 0);
 
       expect(result.moProg).toBe(0);
       expect(result.moExec).toBe(0);
     });
 
-    it('should return moProg=0 and moExec=0 when moPlan is 0 regardless of percentages', () => {
-      const result = calculator.calculateWorkOrderMetrics(0, 100, 100, 100);
+    it('100% devolve o valor planejado', () => {
+      const result = calculator.calculateWorkOrderMetrics(800, 0, 100, 100);
 
-      expect(result.moProg).toBe(0);
-      expect(result.moExec).toBe(0);
+      expect(result.moProg).toBe(800);
+      expect(result.moExec).toBe(800);
     });
 
-    it('should compute fractional values correctly for partial percentages', () => {
-      const result = calculator.calculateWorkOrderMetrics(3000, 50, 25, 25);
+    it('repassa moPlan e moPend sem alteração', () => {
+      const result = calculator.calculateWorkOrderMetrics(
+        123.45,
+        67.89,
+        10,
+        10,
+      );
 
-      expect(result.moProg).toBeCloseTo(750, 10);
-      expect(result.moExec).toBeCloseTo(750, 10);
-    });
-
-    it('should allow exec to exceed prog — no upper-bound enforcement', () => {
-      const result = calculator.calculateWorkOrderMetrics(1000, 50, 100, 80);
-
-      expect(result.moProg).toBeCloseTo(1000, 10);
-      expect(result.moExec).toBeCloseTo(800, 10);
-    });
-
-    it('should return an object with both moProg and moExec properties', () => {
-      const result = calculator.calculateWorkOrderMetrics(1000, 100, 100, 100);
-
-      expect(result).toHaveProperty('moProg');
-      expect(result).toHaveProperty('moExec');
+      expect(result.moPlan).toBe(123.45);
+      expect(result.moPend).toBe(67.89);
     });
   });
 
-  // ─── calculateGoalPercentage ────────────────────────────────────────────────
+  describe('calculatePointByPointMetrics', () => {
+    it('usa o custo ponto a ponto como programado e executado', () => {
+      const result = calculator.calculatePointByPointMetrics(1000, 400, {
+        planejado: 250,
+        executado: 100,
+      });
+
+      expect(result).toEqual({
+        moPlan: 1000,
+        moPend: 400,
+        moProg: 250,
+        moExec: 100,
+      });
+    });
+
+    it('ignora mo_planejada para programado/executado', () => {
+      const withBigPlan = calculator.calculatePointByPointMetrics(
+        1_000_000,
+        0,
+        { planejado: 10, executado: 5 },
+      );
+      const withSmallPlan = calculator.calculatePointByPointMetrics(1, 0, {
+        planejado: 10,
+        executado: 5,
+      });
+
+      expect(withBigPlan.moProg).toBe(withSmallPlan.moProg);
+      expect(withBigPlan.moExec).toBe(withSmallPlan.moExec);
+    });
+
+    it('custo zerado gera programado e executado zero', () => {
+      const result = calculator.calculatePointByPointMetrics(1000, 400, {
+        planejado: 0,
+        executado: 0,
+      });
+
+      expect(result.moProg).toBe(0);
+      expect(result.moExec).toBe(0);
+    });
+
+    it('retorna o mesmo formato do cálculo padrão', () => {
+      const standard = calculator.calculateWorkOrderMetrics(1, 1, 1, 1);
+      const pointByPoint = calculator.calculatePointByPointMetrics(1, 1, {
+        planejado: 1,
+        executado: 1,
+      });
+
+      expect(Object.keys(pointByPoint).sort()).toEqual(
+        Object.keys(standard).sort(),
+      );
+    });
+  });
 
   describe('calculateGoalPercentage', () => {
-    it('should return (value / goal) * 100 when goal is greater than 0', () => {
-      expect(calculator.calculateGoalPercentage(500, 1000)).toBeCloseTo(50, 10);
+    it('calcula o percentual da meta', () => {
+      expect(calculator.calculateGoalPercentage(50, 200)).toBe(25);
     });
 
-    it('should return 100 when value equals goal', () => {
-      expect(calculator.calculateGoalPercentage(1000, 1000)).toBe(100);
+    it('permite passar de 100%', () => {
+      expect(calculator.calculateGoalPercentage(300, 200)).toBe(150);
     });
 
-    it('should return 0 when goal is 0 — guard against division by zero', () => {
-      expect(calculator.calculateGoalPercentage(500, 0)).toBe(0);
+    it('meta zero retorna 0', () => {
+      expect(calculator.calculateGoalPercentage(50, 0)).toBe(0);
     });
 
-    it('should return 0 when both value and goal are 0', () => {
-      expect(calculator.calculateGoalPercentage(0, 0)).toBe(0);
+    it('meta negativa retorna 0', () => {
+      expect(calculator.calculateGoalPercentage(50, -10)).toBe(0);
     });
 
-    it('should return 0 when value is 0 and goal is positive', () => {
-      expect(calculator.calculateGoalPercentage(0, 1000)).toBe(0);
-    });
-
-    it('should handle values greater than goal (over 100%)', () => {
-      expect(calculator.calculateGoalPercentage(1500, 1000)).toBeCloseTo(
-        150,
-        10,
-      );
-    });
-
-    it('should handle fractional values correctly', () => {
-      expect(calculator.calculateGoalPercentage(1, 3)).toBeCloseTo(
-        (1 / 3) * 100,
-        10,
-      );
-    });
-
-    it('should not trigger the guard when goal is a small positive number', () => {
-      expect(calculator.calculateGoalPercentage(0.001, 0.001)).toBeCloseTo(
-        100,
-        10,
-      );
+    it('valor zero retorna 0', () => {
+      expect(calculator.calculateGoalPercentage(0, 100)).toBe(0);
     });
   });
-
-  // ─── calculateMoPrev ────────────────────────────────────────────────────────
 
   describe('calculateMoPrev', () => {
-    it('should return an object with moPrev property', () => {
-      const result = calculator.calculateMoPrev(2000, 50, 100);
-
-      expect(result).toHaveProperty('moPrev');
+    it('usa o prog quando exec é nulo', () => {
+      expect(calculator.calculateMoPrev(1000, null, 40)).toEqual({
+        moPrev: 400,
+      });
     });
 
-    it('should use exec when exec is a non-null number', () => {
-      const { moPrev } = calculator.calculateMoPrev(2000, 50, 100);
-
-      expect(moPrev).toBeCloseTo(1000, 10);
+    it('usa o exec quando informado', () => {
+      expect(calculator.calculateMoPrev(1000, 80, 40)).toEqual({ moPrev: 800 });
     });
 
-    it('should fall back to prog when exec is null', () => {
-      const { moPrev } = calculator.calculateMoPrev(2000, null, 80);
-
-      expect(moPrev).toBeCloseTo(1600, 10);
-    });
-
-    it('should treat exec=0 as a valid value and not fall back to prog', () => {
-      const { moPrev } = calculator.calculateMoPrev(2000, 0, 100);
-
-      expect(moPrev).toBe(0);
-    });
-
-    it('should return moPrev=0 when baseMoPlan is 0 regardless of exec or prog', () => {
-      expect(calculator.calculateMoPrev(0, 50, 100).moPrev).toBe(0);
-      expect(calculator.calculateMoPrev(0, null, 100).moPrev).toBe(0);
-    });
-
-    it('should return baseMoPlan when exec is 100', () => {
-      expect(calculator.calculateMoPrev(3000, 100, 50).moPrev).toBe(3000);
-    });
-
-    it('should return baseMoPlan when exec is null and prog is 100', () => {
-      expect(calculator.calculateMoPrev(3000, null, 100).moPrev).toBe(3000);
-    });
-
-    it('should handle fractional percentages correctly', () => {
-      expect(calculator.calculateMoPrev(1000, 33, 0).moPrev).toBeCloseTo(
-        330,
-        10,
-      );
-    });
-
-    it('should return moPrev=0 when exec is null and prog is 0', () => {
-      expect(calculator.calculateMoPrev(5000, null, 0).moPrev).toBe(0);
+    it('exec igual a 0 é considerado executado (não cai no prog)', () => {
+      expect(calculator.calculateMoPrev(1000, 0, 40)).toEqual({ moPrev: 0 });
     });
   });
 
-  // ─── calculateExecutionRate ─────────────────────────────────────────────────
+  describe('calculatePointByPointMoPrev', () => {
+    const cost = { planejado: 300, executado: 120 };
+
+    it('usa o planejado quando exec é nulo', () => {
+      expect(calculator.calculatePointByPointMoPrev(null, cost)).toEqual({
+        moPrev: 300,
+      });
+    });
+
+    it('usa o executado quando exec foi informado', () => {
+      expect(calculator.calculatePointByPointMoPrev(80, cost)).toEqual({
+        moPrev: 120,
+      });
+    });
+
+    it('exec igual a 0 é considerado executado (usa o executado)', () => {
+      expect(calculator.calculatePointByPointMoPrev(0, cost)).toEqual({
+        moPrev: 120,
+      });
+    });
+  });
 
   describe('calculateExecutionRate', () => {
-    it('should return (moExec / moProg) * 100 when moProg is greater than 0', () => {
-      expect(calculator.calculateExecutionRate(1000, 500)).toBeCloseTo(50, 10);
+    it('calcula executado / programado em percentual', () => {
+      expect(calculator.calculateExecutionRate(200, 50)).toBe(25);
     });
 
-    it('should return 100 when moExec equals moProg', () => {
-      expect(calculator.calculateExecutionRate(1000, 1000)).toBe(100);
+    it('programado zero retorna 0', () => {
+      expect(calculator.calculateExecutionRate(0, 50)).toBe(0);
     });
 
-    it('should return 0 when moProg is 0 and moExec is positive (guard applied)', () => {
-      expect(calculator.calculateExecutionRate(0, 500)).toBe(0);
+    it('executado zero retorna 0', () => {
+      expect(calculator.calculateExecutionRate(100, 0)).toBe(0);
     });
 
-    it('should return 0 when both moProg and moExec are 0 (guard applied)', () => {
-      expect(calculator.calculateExecutionRate(0, 0)).toBe(0);
-    });
-
-    it('should return 0 when moExec is 0 and moProg is positive', () => {
-      expect(calculator.calculateExecutionRate(1000, 0)).toBe(0);
-    });
-
-    it('should handle execution exceeding programmed (over 100%)', () => {
-      expect(calculator.calculateExecutionRate(1000, 1500)).toBeCloseTo(
-        150,
-        10,
-      );
-    });
-
-    it('should compute fractional rates correctly', () => {
-      expect(calculator.calculateExecutionRate(3, 1)).toBeCloseTo(
-        (1 / 3) * 100,
-        10,
-      );
+    it('permite passar de 100%', () => {
+      expect(calculator.calculateExecutionRate(100, 150)).toBe(150);
     });
   });
-
-  // ─── aggregateDailySummaryTotals ────────────────────────────────────────────
 
   describe('aggregateDailySummaryTotals', () => {
-    it('should return zeroed totals when data is empty', () => {
-      const result = calculator.aggregateDailySummaryTotals(
+    const rows = [
+      { qtdeSchedules: 2, teamsTotal: 3, totalMoProg: 500, totalMoExec: 250 },
+      { qtdeSchedules: 1, teamsTotal: 4, totalMoProg: 300, totalMoExec: 300 },
+    ] as any[];
+    const capacity = {
+      totalFinancialGoal: 2000,
+      totalFinancialGoalWith8: 2170,
+    };
+    const portfolio = { qtdeWorks: 7, portfolioSap: 0, portfolioExec: 0 };
+    const teams = { rfpTeams: 5, executionCapacityTeams: 9 };
+
+    it('soma agendamentos, equipes, programado e executado', () => {
+      const totals = calculator.aggregateDailySummaryTotals(
+        rows,
+        capacity,
+        portfolio,
+        teams,
+      );
+
+      expect(totals.totalSchedules).toBe(3);
+      expect(totals.totalTeams).toBe(7);
+      expect(totals.totalMoProg).toBe(800);
+      expect(totals.totalMoExec).toBe(550);
+    });
+
+    it('repassa as metas financeiras', () => {
+      const totals = calculator.aggregateDailySummaryTotals(
+        rows,
+        capacity,
+        portfolio,
+        teams,
+      );
+
+      expect(totals.totalFinancialGoal).toBe(2000);
+      expect(totals.totalFinancialGoalWith8).toBe(2170);
+    });
+
+    it('calcula o percentual diário como programado total / meta', () => {
+      const totals = calculator.aggregateDailySummaryTotals(
+        rows,
+        capacity,
+        portfolio,
+        teams,
+      );
+
+      expect(totals.totalDiaryGoal).toBeCloseTo((800 / 2000) * 100, 6);
+      expect(totals.totalDiaryGoalWith8).toBeCloseTo((800 / 2170) * 100, 6);
+    });
+
+    it('meta zerada gera percentual diário 0', () => {
+      const totals = calculator.aggregateDailySummaryTotals(
+        rows,
+        { totalFinancialGoal: 0, totalFinancialGoalWith8: 0 },
+        portfolio,
+        teams,
+      );
+
+      expect(totals.totalDiaryGoal).toBe(0);
+      expect(totals.totalDiaryGoalWith8).toBe(0);
+    });
+
+    it('calcula a taxa de execução total', () => {
+      const totals = calculator.aggregateDailySummaryTotals(
+        rows,
+        capacity,
+        portfolio,
+        teams,
+      );
+
+      expect(totals.totalDiff).toBeCloseTo((550 / 800) * 100, 6);
+    });
+
+    it('usa a quantidade de obras da carteira e as equipes de capacidade', () => {
+      const totals = calculator.aggregateDailySummaryTotals(
+        rows,
+        capacity,
+        portfolio,
+        teams,
+      );
+
+      expect(totals.totalWorks).toBe(7);
+      expect(totals.totalQtdeRfpTeams).toBe(5);
+      expect(totals.totalExecutionCapacityTeams).toBe(9);
+    });
+
+    it('mantém equipes nulas quando não há capacidade cadastrada', () => {
+      const totals = calculator.aggregateDailySummaryTotals(
+        rows,
+        capacity,
+        portfolio,
+        { rfpTeams: null, executionCapacityTeams: null },
+      );
+
+      expect(totals.totalQtdeRfpTeams).toBeNull();
+      expect(totals.totalExecutionCapacityTeams).toBeNull();
+    });
+
+    it('sem linhas, mantém totais zerados', () => {
+      const totals = calculator.aggregateDailySummaryTotals(
         [],
-        {
-          totalFinancialGoal: 0,
-          totalFinancialGoalWith8: 0,
-        },
-        { portfolioExec: 0, portfolioSap: 0, qtdeWorks: 0 },
-        {
-          rfpTeams: 0,
-          executionCapacityTeams: 0,
-        },
+        { totalFinancialGoal: 0, totalFinancialGoalWith8: 0 },
+        { ...portfolio, qtdeWorks: 0 },
+        teams,
       );
 
-      expect(result).toEqual(createInitialTotals());
-    });
-
-    it('should accumulate financial goals correctly', () => {
-      const data = [
-        makeDailyEntry({ financialGoal: 1000, financialGoalWith8: 1080 }),
-        makeDailyEntry({ financialGoal: 500, financialGoalWith8: 540 }),
-      ];
-
-      const result = calculator.aggregateDailySummaryTotals(
-        data,
-        {
-          totalFinancialGoal: 2000,
-          totalFinancialGoalWith8: 2500,
-        },
-        { portfolioExec: 0, portfolioSap: 0, qtdeWorks: 0 },
-        {
-          rfpTeams: 0,
-          executionCapacityTeams: 0,
-        },
-      );
-
-      expect(result.totalFinancialGoal).toBe(2000);
-      expect(result.totalFinancialGoalWith8).toBe(2500);
-    });
-
-    it('should calculate totalDiaryGoal correctly', () => {
-      const data = [
-        makeDailyEntry({
-          financialGoal: 1000,
-          totalMoProg: 500,
-        }),
-      ];
-
-      const result = calculator.aggregateDailySummaryTotals(
-        data,
-        {
-          totalFinancialGoal: 2000,
-          totalFinancialGoalWith8: 2500,
-        },
-        { portfolioExec: 0, portfolioSap: 0, qtdeWorks: 0 },
-        {
-          rfpTeams: 0,
-          executionCapacityTeams: 0,
-        },
-      );
-
-      expect(result.totalDiaryGoal).toBeCloseTo(25, 10);
-    });
-
-    it('should return 0 for totalDiaryGoal when financialGoal is 0', () => {
-      const data = [makeDailyEntry({ totalMoProg: 500 })];
-
-      const result = calculator.aggregateDailySummaryTotals(
-        data,
-        {
-          totalFinancialGoal: 0,
-          totalFinancialGoalWith8: 0,
-        },
-        { portfolioExec: 0, portfolioSap: 0, qtdeWorks: 0 },
-        {
-          rfpTeams: 0,
-          executionCapacityTeams: 0,
-        },
-      );
-
-      expect(result.totalDiaryGoal).toBe(0);
-    });
-
-    it('should calculate totalDiff correctly', () => {
-      const data = [makeDailyEntry({ totalMoProg: 1000, totalMoExec: 800 })];
-
-      const result = calculator.aggregateDailySummaryTotals(
-        data,
-        {
-          totalFinancialGoal: 2000,
-          totalFinancialGoalWith8: 2500,
-        },
-        { portfolioExec: 0, portfolioSap: 0, qtdeWorks: 0 },
-        {
-          rfpTeams: 0,
-          executionCapacityTeams: 0,
-        },
-      );
-
-      expect(result.totalDiff).toBeCloseTo(80, 10);
+      expect(totals.totalSchedules).toBe(0);
+      expect(totals.totalMoProg).toBe(0);
+      expect(totals.totalDiff).toBe(0);
+      expect(totals.totalWorks).toBe(0);
     });
   });
 
-  // ─── aggregateGroupTotals ───────────────────────────────────────────────────
-
   describe('aggregateGroupTotals', () => {
-    it('should return zeroed totals when summaryData is empty', () => {
-      const result = calculator.aggregateGroupTotals(
-        [],
-        {
-          portfolioRda: 0,
-          portfolioBt0: 0,
-          portfolioRecom: 0,
-          portfolioMarket: 0,
-          portfolioTotal: 0,
-        },
-        {
-          totalMoPend: 0,
-          totalMoPlan: 0,
-        },
+    const makeRow = (idGrupo: number, prog: number, exec: number, prev = 0) =>
+      ({
+        idGrupo,
+        qtdeSchedules: 1,
+        totalMoProg: prog,
+        totalMoExec: exec,
+        totalMoPrev: prev,
+      }) as any;
+
+    const portfolio = {
+      portfolioRda: 20,
+      portfolioBt0: 30,
+      portfolioRecom: 40,
+      portfolioMarket: 50,
+      portfolioTotal: 140,
+    };
+    const unique = { totalMoPlan: 5000, totalMoPend: 2000 };
+
+    it('soma os totais gerais por agrupamento', () => {
+      const totals = calculator.aggregateGroupTotals(
+        [makeRow(1, 100, 50, 80), makeRow(3, 200, 100, 150)],
+        portfolio,
+        unique,
       );
 
-      expect(result).toMatchObject(createInitialTotalsByGrouping());
+      expect(totals.totalSchedules).toBe(2);
+      expect(totals.totalMoProgByGrouping).toBe(300);
+      expect(totals.totalMoExecByGrouping).toBe(150);
+      expect(totals.totalMoPrevByGrouping).toBe(230);
     });
 
-    it('should accumulate totalWorks from row.qtdeWorks', () => {
-      const data = [
-        makeGroupEntry({ qtdeSchedules: 3 }),
-        makeGroupEntry({ qtdeSchedules: 7 }),
-      ];
-
-      const result = calculator.aggregateGroupTotals(
-        data,
-        {
-          portfolioRda: 0,
-          portfolioBt0: 0,
-          portfolioRecom: 0,
-          portfolioMarket: 0,
-          portfolioTotal: 0,
-        },
-        {
-          totalMoPend: 0,
-          totalMoPlan: 0,
-        },
+    it('separa programado e executado por grupo (1=Mercado, 2=Recom, 3=RDA, 4=BT0)', () => {
+      const totals = calculator.aggregateGroupTotals(
+        [
+          makeRow(1, 10, 1),
+          makeRow(2, 20, 2),
+          makeRow(3, 30, 3),
+          makeRow(4, 40, 4),
+          makeRow(1, 100, 10),
+        ],
+        portfolio,
+        unique,
       );
 
-      expect(result.totalSchedules).toBe(10);
+      expect(totals.totalProgMarket).toBe(110);
+      expect(totals.totalExecMarket).toBe(11);
+      expect(totals.totalProgRecom).toBe(20);
+      expect(totals.totalExecRecom).toBe(2);
+      expect(totals.totalProgRda).toBe(30);
+      expect(totals.totalExecRda).toBe(3);
+      expect(totals.totalProgBt0).toBe(40);
+      expect(totals.totalExecBt0).toBe(4);
     });
 
-    it('should accumulate totalMoProgByGrouping from row.totalMoProg', () => {
-      const data = [
-        makeGroupEntry({ totalMoProg: 400 }),
-        makeGroupEntry({ totalMoProg: 600 }),
-      ];
-
-      const result = calculator.aggregateGroupTotals(
-        data,
-        {
-          portfolioRda: 0,
-          portfolioBt0: 0,
-          portfolioRecom: 0,
-          portfolioMarket: 0,
-          portfolioTotal: 0,
-        },
-        {
-          totalMoPend: 0,
-          totalMoPlan: 0,
-        },
+    it('grupos desconhecidos entram só nos totais gerais', () => {
+      const totals = calculator.aggregateGroupTotals(
+        [makeRow(99, 100, 50)],
+        portfolio,
+        unique,
       );
 
-      expect(result.totalMoProgByGrouping).toBe(1000);
+      expect(totals.totalMoProgByGrouping).toBe(100);
+      expect(totals.totalProgMarket).toBe(0);
+      expect(totals.totalProgRecom).toBe(0);
+      expect(totals.totalProgRda).toBe(0);
+      expect(totals.totalProgBt0).toBe(0);
     });
 
-    it('should accumulate totalMoExecByGrouping from row.totalMoExec', () => {
-      const data = [
-        makeGroupEntry({ totalMoExec: 200 }),
-        makeGroupEntry({ totalMoExec: 300 }),
-      ];
+    it('preenche a carteira por grupo e o total', () => {
+      const totals = calculator.aggregateGroupTotals([], portfolio, unique);
 
-      const result = calculator.aggregateGroupTotals(
-        data,
-        {
-          portfolioRda: 0,
-          portfolioBt0: 0,
-          portfolioRecom: 0,
-          portfolioMarket: 0,
-          portfolioTotal: 0,
-        },
-        {
-          totalMoPend: 0,
-          totalMoPlan: 0,
-        },
-      );
-
-      expect(result.totalMoExecByGrouping).toBe(500);
+      expect(totals.totalWalletRda).toBe(20);
+      expect(totals.totalWalletBt0).toBe(30);
+      expect(totals.totalWalletRecom).toBe(40);
+      expect(totals.totalWalletMarket).toBe(50);
+      expect(totals.totalWallet).toBe(140);
     });
 
-    it('should accumulate totalMoPrevByGrouping from row.totalMoPrev', () => {
-      const data = [
-        makeGroupEntry({ totalMoPrev: 150 }),
-        makeGroupEntry({ totalMoPrev: 250 }),
-      ];
+    it('usa os valores de obras únicas para planejado e pendente', () => {
+      const totals = calculator.aggregateGroupTotals([], portfolio, unique);
 
-      const result = calculator.aggregateGroupTotals(
-        data,
-        {
-          portfolioRda: 0,
-          portfolioBt0: 0,
-          portfolioRecom: 0,
-          portfolioMarket: 0,
-          portfolioTotal: 0,
-        },
-        {
-          totalMoPend: 0,
-          totalMoPlan: 0,
-        },
-      );
-
-      expect(result.totalMoPrevByGrouping).toBe(400);
+      expect(totals.totalMoPlanByGrouping).toBe(5000);
+      expect(totals.totalMoPendByGrouping).toBe(2000);
     });
 
-    it('should compute totalDiff as calculateExecutionRate(totalMoProgByGrouping, totalMoExecByGrouping)', () => {
-      const data = [makeGroupEntry({ totalMoProg: 1000, totalMoExec: 600 })];
-
-      const result = calculator.aggregateGroupTotals(
-        data,
-        {
-          portfolioRda: 0,
-          portfolioBt0: 0,
-          portfolioRecom: 0,
-          portfolioMarket: 0,
-          portfolioTotal: 0,
-        },
-        {
-          totalMoPend: 0,
-          totalMoPlan: 0,
-        },
+    it('calcula a taxa de execução total', () => {
+      const totals = calculator.aggregateGroupTotals(
+        [makeRow(1, 200, 50)],
+        portfolio,
+        unique,
       );
 
-      // (600 / 1000) * 100 = 60
-      expect(result.totalDiff).toBeCloseTo(60, 10);
+      expect(totals.totalDiff).toBe(25);
     });
 
-    it('should return 0 for totalDiff when totalMoProgByGrouping is 0', () => {
-      const result = calculator.aggregateGroupTotals(
-        [],
-        {
-          portfolioRda: 0,
-          portfolioBt0: 0,
-          portfolioRecom: 0,
-          portfolioMarket: 0,
-          portfolioTotal: 0,
-        },
-        {
-          totalMoPend: 0,
-          totalMoPlan: 0,
-        },
-      );
+    it('sem linhas, taxa de execução é 0', () => {
+      const totals = calculator.aggregateGroupTotals([], portfolio, unique);
 
-      expect(result.totalDiff).toBe(0);
-    });
-
-    it('should handle multiple rows accumulating all fields correctly', () => {
-      const data = [
-        makeGroupEntry({
-          qtdeSchedules: 2,
-          totalMoProg: 500,
-          totalMoExec: 400,
-          totalMoPrev: 450,
-        }),
-        makeGroupEntry({
-          qtdeSchedules: 3,
-          totalMoProg: 500,
-          totalMoExec: 300,
-          totalMoPrev: 350,
-        }),
-      ];
-
-      const result = calculator.aggregateGroupTotals(
-        data,
-        {
-          portfolioRda: 0,
-          portfolioBt0: 0,
-          portfolioRecom: 0,
-          portfolioMarket: 0,
-          portfolioTotal: 0,
-        },
-        {
-          totalMoPend: 0,
-          totalMoPlan: 0,
-        },
-      );
-
-      expect(result.totalSchedules).toBe(5);
-      expect(result.totalMoProgByGrouping).toBe(1000);
-      expect(result.totalMoExecByGrouping).toBe(700);
-      expect(result.totalMoPrevByGrouping).toBe(800);
-      expect(result.totalDiff).toBeCloseTo(70, 10);
-    });
-
-    it('should accumulate Market grouping totals when idGrupo is 1', () => {
-      const data = [
-        makeGroupEntry({
-          idGrupo: 1,
-          totalMoProg: 100,
-          totalMoExec: 80,
-        }),
-        makeGroupEntry({
-          idGrupo: 1,
-          totalMoProg: 200,
-          totalMoExec: 150,
-        }),
-      ];
-
-      const result = calculator.aggregateGroupTotals(
-        data,
-        {
-          portfolioRda: 0,
-          portfolioBt0: 0,
-          portfolioRecom: 0,
-          portfolioMarket: 500,
-          portfolioTotal: 0,
-        },
-        {
-          totalMoPend: 0,
-          totalMoPlan: 0,
-        },
-      );
-
-      expect(result.totalProgMarket).toBe(300);
-      expect(result.totalExecMarket).toBe(230);
-      expect(result.totalWalletMarket).toBe(500);
-    });
-
-    it('should accumulate Recom grouping totals when idGrupo is 2', () => {
-      const data = [
-        makeGroupEntry({
-          idGrupo: 2,
-          totalMoProg: 300,
-          totalMoExec: 250,
-        }),
-        makeGroupEntry({
-          idGrupo: 2,
-          totalMoProg: 100,
-          totalMoExec: 50,
-        }),
-      ];
-
-      const result = calculator.aggregateGroupTotals(
-        data,
-        {
-          portfolioRda: 0,
-          portfolioBt0: 0,
-          portfolioRecom: 700,
-          portfolioMarket: 0,
-          portfolioTotal: 0,
-        },
-        {
-          totalMoPend: 0,
-          totalMoPlan: 0,
-        },
-      );
-
-      expect(result.totalProgRecom).toBe(400);
-      expect(result.totalExecRecom).toBe(300);
-      expect(result.totalWalletRecom).toBe(700);
-    });
-
-    it('should accumulate RDA grouping totals when idGrupo is 3', () => {
-      const data = [
-        makeGroupEntry({
-          idGrupo: 3,
-          totalMoProg: 500,
-          totalMoExec: 400,
-        }),
-        makeGroupEntry({
-          idGrupo: 3,
-          totalMoProg: 250,
-          totalMoExec: 200,
-        }),
-      ];
-
-      const result = calculator.aggregateGroupTotals(
-        data,
-        {
-          portfolioRda: 900,
-          portfolioBt0: 0,
-          portfolioRecom: 0,
-          portfolioMarket: 0,
-          portfolioTotal: 0,
-        },
-        {
-          totalMoPend: 0,
-          totalMoPlan: 0,
-        },
-      );
-
-      expect(result.totalProgRda).toBe(750);
-      expect(result.totalExecRda).toBe(600);
-      expect(result.totalWalletRda).toBe(900);
-    });
-
-    it('should accumulate BT0 grouping totals when idGrupo is 4', () => {
-      const data = [
-        makeGroupEntry({
-          idGrupo: 4,
-          totalMoProg: 800,
-          totalMoExec: 600,
-        }),
-        makeGroupEntry({
-          idGrupo: 4,
-          totalMoProg: 200,
-          totalMoExec: 100,
-        }),
-      ];
-
-      const result = calculator.aggregateGroupTotals(
-        data,
-        {
-          portfolioRda: 0,
-          portfolioBt0: 1200,
-          portfolioRecom: 0,
-          portfolioMarket: 0,
-          portfolioTotal: 0,
-        },
-        {
-          totalMoPend: 0,
-          totalMoPlan: 0,
-        },
-      );
-
-      expect(result.totalProgBt0).toBe(1000);
-      expect(result.totalExecBt0).toBe(700);
-      expect(result.totalWalletBt0).toBe(1200);
+      expect(totals.totalDiff).toBe(0);
     });
   });
 });
