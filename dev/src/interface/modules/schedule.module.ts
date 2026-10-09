@@ -69,6 +69,7 @@ import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
 import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
 import { WorksServicesModule } from './worksServices.module';
+import { PointByPointCostService } from 'src/domain/services/pointByPointCost.service';
 
 @Module({
   imports: [
@@ -130,6 +131,7 @@ import { WorksServicesModule } from './worksServices.module';
     MonthlySummaryMapper,
     MonthlySummaryService,
     ScheduleProgressCalculatorService,
+    PointByPointCostService,
     // UpdateRestrictionsService,
     {
       provide: WORK_SERVICES_REPOSITORY,
