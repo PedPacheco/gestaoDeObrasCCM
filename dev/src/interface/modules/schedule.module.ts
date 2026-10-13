@@ -29,7 +29,6 @@ import { REJECTION_OF_SCHEDULES_REPOSITORY } from 'src/domain/repositories/sched
 import { UPDATE_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
 import { VALIDATE_CONFIRM_AND_REJECT_SCHEDULES_REPOSITORY } from 'src/domain/repositories/schedule/IValidateSchedulesRepository';
 import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
-import { WORK_SERVICES_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesRepository';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 import {
   MONTHLY_SUMMARY_CALCULATOR,
@@ -55,7 +54,6 @@ import { UpdateSchedulesRepository } from 'src/infra/repositories/schedule/updat
 import { ValidateAndConfirmSchedulesRepository } from 'src/infra/repositories/schedule/validateAndConfirmSchedulesRepository';
 import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepository';
 import { WorkServicesQueryRepository } from 'src/infra/repositories/worksServices/workServicesQueryRepository';
-import { WorkServicesRepository } from 'src/infra/repositories/worksServices/worksServicesRepository';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
 
 import { forwardRef, Module } from '@nestjs/common';
@@ -67,9 +65,9 @@ import { SchedulesActionsController } from '../controllers/schedules/schedulesAc
 import { ExecutionReportModule } from './executionReport.module';
 import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
-import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
 import { WorksServicesModule } from './worksServices.module';
 import { PointByPointCostService } from 'src/domain/services/pointByPointCost.service';
+import { ProgressRecalculationModule } from './progressRecalculation.module';
 
 @Module({
   imports: [
@@ -77,6 +75,7 @@ import { PointByPointCostService } from 'src/domain/services/pointByPointCost.se
     forwardRef(() => WorksModule),
     forwardRef(() => WorksServicesModule),
     forwardRef(() => ExecutionReportModule),
+    ProgressRecalculationModule,
     MulterModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -130,13 +129,8 @@ import { PointByPointCostService } from 'src/domain/services/pointByPointCost.se
     MonthlySummaryForecastMapper,
     MonthlySummaryMapper,
     MonthlySummaryService,
-    ScheduleProgressCalculatorService,
     PointByPointCostService,
     // UpdateRestrictionsService,
-    {
-      provide: WORK_SERVICES_REPOSITORY,
-      useClass: WorkServicesRepository,
-    },
     {
       provide: WORK_SERVICES_QUERY_REPOSITORY,
       useClass: WorkServicesQueryRepository,

@@ -5,11 +5,9 @@ import { WorksServicesService } from 'src/application/usecases/services/worksSer
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
 import { WORK_SERVICES_EXECUTION_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
 import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
-import { WORK_SERVICES_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesRepository';
 import { StatusFlowRepository } from 'src/infra/repositories/statusFlowRepository';
 import { WorkServicesExeutionRepository } from 'src/infra/repositories/worksServices/workServicesExecutionRepository';
 import { WorkServicesQueryRepository } from 'src/infra/repositories/worksServices/workServicesQueryRepository';
-import { WorkServicesRepository } from 'src/infra/repositories/worksServices/worksServicesRepository';
 import { createMulterConfig } from 'src/shared/multer/multer.config';
 
 import { forwardRef, Module } from '@nestjs/common';
@@ -20,7 +18,6 @@ import { ServicesController } from '../controllers/services/worksServices.contro
 import { ExecutionReportModule } from './executionReport.module';
 import { UsersModule } from './users.module';
 import { WorksModule } from './works.module';
-import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
 import { ImportServicesSpreadsheetService } from 'src/application/usecases/services/importServicesSpreadsheet.service';
 import { SpreadsheetParserService } from 'src/infra/spreadsheet/spreadsheet.service';
 import { ServicesExecutionController } from '../controllers/services/servicesExecution.controller';
@@ -29,6 +26,7 @@ import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule
 import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
 import { ExportServicesService } from 'src/application/usecases/services/exportServices.service';
 import { ScheduleModule } from './schedule.module';
+import { ProgressRecalculationModule } from './progressRecalculation.module';
 
 @Module({
   imports: [
@@ -36,6 +34,7 @@ import { ScheduleModule } from './schedule.module';
     forwardRef(() => WorksModule),
     forwardRef(() => ScheduleModule),
     forwardRef(() => ExecutionReportModule),
+    ProgressRecalculationModule,
     MulterModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -82,17 +81,12 @@ import { ScheduleModule } from './schedule.module';
     QueriesServicesService,
     FinalizeServicesService,
     ScheduleExecutionValidatorService,
-    ScheduleProgressCalculatorService,
     ImportServicesSpreadsheetService,
     SpreadsheetParserService,
     ExportServicesService,
     {
       provide: FIND_SCHEDULE_BY_ID_REPOSITORY,
       useClass: FindScheduleByIdRepository,
-    },
-    {
-      provide: WORK_SERVICES_REPOSITORY,
-      useClass: WorkServicesRepository,
     },
     {
       provide: WORK_SERVICES_QUERY_REPOSITORY,

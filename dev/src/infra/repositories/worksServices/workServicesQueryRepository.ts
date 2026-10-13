@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { IWorkServicesQueryRepository } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import {
+  IWorkServicesQueryRepository,
+  ServiceForScheduling,
+} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
 
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
@@ -72,6 +75,26 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
       },
       tx,
     );
+  }
+
+  async findServicesForScheduling(
+    ids: number[],
+    tx: Prisma.TransactionClient,
+  ): Promise<ServiceForScheduling[]> {
+    return tx.servicos.findMany({
+      where: { id: { in: ids } },
+      select: {
+        id: true,
+        id_obra: true,
+        id_material: true,
+        viabilizado: true,
+        qtde_adicional: true,
+        qtde_real: true,
+        ponto: true,
+        operacao: true,
+        descricao_operacao: true,
+      },
+    });
   }
 
   async getNotScheduledServices(

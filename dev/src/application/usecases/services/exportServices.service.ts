@@ -9,7 +9,7 @@ import {
   WorkToExportResponse,
 } from 'src/interface/types/servicesInterface';
 import { ExportFileType } from 'src/interface/dtos/workServicesDTO';
-import { serviceTypeLabel } from 'src/utils/serviceType.utils';
+import { serviceTypeLabel } from 'src/utils/pointByPoint/serviceType.utils';
 
 @Injectable()
 export class ExportServicesService {

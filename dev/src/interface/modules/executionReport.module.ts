@@ -10,10 +10,12 @@ import { MulterModule } from '@nestjs/platform-express';
 
 import { ExecutionReportController } from '../controllers/executionReport.controller';
 import { ScheduleModule } from './schedule.module';
+import { ProgressRecalculationModule } from './progressRecalculation.module';
 
 @Module({
   imports: [
     forwardRef(() => ScheduleModule),
+    ProgressRecalculationModule,
     MulterModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { programacoes } from '@prisma/client';
+import { Prisma, programacoes } from '@prisma/client';
 import { IFindScheduleByIdRepository } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
@@ -7,8 +7,13 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 export class FindScheduleByIdRepository implements IFindScheduleByIdRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findById(id: number): Promise<programacoes> {
-    return await this.prisma.programacoes.findFirst({
+  async findById(
+    id: number,
+    tx?: Prisma.TransactionClient,
+  ): Promise<programacoes> {
+    const client = tx ?? this.prisma;
+
+    return await client.programacoes.findFirst({
       where: { id },
     });
   }

@@ -49,7 +49,7 @@ export class ServicesController {
     @Param('id', ParseIntPipe) id: number,
     @Body() data: ScheduleServicesDTO[],
   ) {
-    await this.worksServicesService.scheduleServices(id, data);
+    await this.worksServicesService.scheduleServices(id, data, null);
 
     return {
       statusCode: HttpStatus.OK,
