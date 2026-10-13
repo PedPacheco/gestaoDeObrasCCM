@@ -18,22 +18,17 @@ export function capitalize(text: string): string {
 export const NUM = (v: number) =>
   (v ?? 0).toLocaleString("pt-BR", { maximumFractionDigits: 1 });
 
-export function formatPercentage(value: number, locale: string = "pt-BR") {
-  if (value === null) {
-    return null;
-  }
-
-  if (value > 0 && value < 1) {
-    value = 1;
-  }
-
-  const correctValue = value / 100;
+export function formatPercentage(
+  value: number | null | undefined,
+  locale = "pt-BR",
+) {
+  if (value == null) return null;
 
   return new Intl.NumberFormat(locale, {
     style: "percent",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(correctValue);
+  }).format(value / 100);
 }
 
 export function formatToHHMM(value: string | Date | undefined): string {

@@ -349,7 +349,6 @@ model programacoes_servicos {
   id             Int          @id(map: "PROGRAMACOES_SERVICOS_pkey") @default(autoincrement())
   id_servico     Int
   id_programacao Int
-  plan           Float?
   prog           Float?
   real           Float?
   id_equipe      Int

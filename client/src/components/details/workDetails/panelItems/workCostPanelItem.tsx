@@ -97,12 +97,14 @@ export default function WorkCostPanelItem({ data }: Record<string, any>) {
             </div>
             <div className="flex items-center justify-between mb-3 h-12 border border-zinc-700 border-solid px-2 rounded-md bg-zinc-200">
               <p className="flex-1 font-medium min-w-32 px-2 lg:min-w-36 text-center">
-                {data.mo_pend !== undefined ? FormatCurrency(data.mo_pend) : ""}
+                {data.mo_final !== undefined
+                  ? FormatCurrency(data.mo_final)
+                  : ""}
               </p>
             </div>
             <div className="flex items-center justify-between mb-3 h-12 border border-zinc-700 border-solid px-2 rounded-md bg-zinc-200">
               <p className="flex-1 font-medium min-w-32 px-2 lg:min-w-36 text-center">
-                {FormatCurrency(data.capex_mat_plan + data.capex_mo_plan)}
+                {FormatCurrency(data.mo_pend)}
               </p>
             </div>
           </div>

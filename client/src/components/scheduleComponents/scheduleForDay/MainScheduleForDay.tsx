@@ -157,10 +157,15 @@ export default function MainSchduleForDay({
         handleChangePage={handleChangePage}
       />
 
-      <ModalComponent open={open} onClose={toggleModal} title="Valores totais">
-        <div className="flex flex-col items-center justify-center xl:flex-row w-full">
+      <ModalComponent
+        open={open}
+        onClose={toggleModal}
+        title="Valores totais"
+        className="w-[95vw] max-w-[95vw]"
+      >
+        <div className="flex flex-wrap justify-center gap-3 w-full">
           {Object.entries(columns)
-            .slice(30)
+            .slice(36)
             .map(([column, value]) => {
               const item = filteredData.totals;
               let valueFormatted = item[column];
@@ -170,24 +175,23 @@ export default function MainSchduleForDay({
                   "total_mo_planejada",
                   "total_mo_exec",
                   "total_mo_suspensa",
+                  "total_ponto_a_ponto_programado",
+                  "total_ponto_a_ponto_executado",
                 ].includes(column)
               ) {
                 valueFormatted = FormatCurrency(item[column]);
               }
 
               return (
-                <div
-                  key={column}
-                  className="flex flex-row py-2 xl:py-0 xl:mx-2"
-                >
-                  <span className="p-1 bg-[#212E3E] text-zinc-200 flex items-center">
+                <div key={column} className="flex flex-row shrink-0">
+                  <span className="px-2 py-1 bg-[#212E3E] text-zinc-200 flex items-center whitespace-nowrap">
                     <p>{value}</p>
                   </span>
-                  <div className="p-2 border border-solid flex justify-center items-center">
+                  <div className="px-3 py-2 border border-solid flex justify-center items-center whitespace-nowrap">
                     <p>
                       {typeof valueFormatted === "number"
                         ? Number(valueFormatted.toFixed(2)).toLocaleString(
-                            "pt-br",
+                            "pt-BR",
                           )
                         : valueFormatted}
                     </p>
