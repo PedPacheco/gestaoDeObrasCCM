@@ -8,6 +8,7 @@ import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getSched
 import { Inject, Injectable } from '@nestjs/common';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 import { QueriesServicesService } from '../../services/queriesServices.service';
+import { PointByPointCostService } from 'src/domain/services/pointByPointCost.service';
 
 @Injectable()
 export class GetScheduleValuesService {
@@ -16,6 +17,7 @@ export class GetScheduleValuesService {
     private readonly getScheduleValuesRepository: IGetScheduleValuesRepository,
     private readonly deadlineStatusService: DeadlineStatusService,
     private readonly workServicesQueryService: QueriesServicesService,
+    private readonly pointByPointCostService: PointByPointCostService,
   ) {}
 
   async getValues(
@@ -31,23 +33,19 @@ export class GetScheduleValuesService {
         ? this.calculateTotalExec(works) / totals.total_obras
         : 0;
 
-    const totalsWithExecMedia = {
-      ...totals,
-      total_exec: totalExec,
-    };
-
     const allServices =
       await this.workServicesQueryService.getServiceScheduleHistoryByIdSchedule(
         works.map((w) => w.id_programacao),
       );
 
-    const servicesByWorkId = this.groupByWorkId(allServices);
+    const servicesByWorkId =
+      this.pointByPointCostService.groupByScheduleId(allServices);
 
     const worksWithRestrictionVerification = works.map((work) => {
       const services = servicesByWorkId.get(work.id_programacao) ?? [];
 
       const forecast = this.calculateForecast(work);
-      const costPointByPoint = this.calculateCostPointByPointSchedule(services);
+      const costPointByPoint = this.pointByPointCostService.calculate(services);
 
       return {
         ...work,
@@ -62,9 +60,18 @@ export class GetScheduleValuesService {
       };
     });
 
+    const pointByPointTotals = this.calculatePointByPointTotals(
+      worksWithRestrictionVerification,
+    );
+
     const response: GetScheduleValuesResponse = {
       works: worksWithRestrictionVerification,
-      totals: totalsWithExecMedia,
+      totals: {
+        ...totals,
+        total_exec: totalExec,
+        total_ponto_a_ponto_programado: pointByPointTotals.planejado,
+        total_ponto_a_ponto_executado: pointByPointTotals.executado,
+      },
     };
 
     return response;
@@ -112,6 +119,27 @@ export class GetScheduleValuesService {
     };
   }
 
+  private calculatePointByPointTotals(
+    works: {
+      moPlanejadaPontoAPonto?: number;
+      moExecutadoPontoAPonto?: number;
+    }[],
+  ) {
+    const totals = works.reduce(
+      (acc, work) => {
+        acc.planejado += Number(work.moPlanejadaPontoAPonto) || 0;
+        acc.executado += Number(work.moExecutadoPontoAPonto) || 0;
+        return acc;
+      },
+      { planejado: 0, executado: 0 },
+    );
+
+    return {
+      planejado: Math.round(totals.planejado * 100) / 100,
+      executado: Math.round(totals.executado * 100) / 100,
+    };
+  }
+
   private calculateTotalExec(works: any[]) {
     return works.reduce((acc, work) => acc + work.exec, 0);
   }
@@ -144,36 +172,5 @@ export class GetScheduleValuesService {
       hasRestriction2 && isUnresolved2 && hasNoResolutionDate2;
 
     return restriction1Open || restriction2Open;
-  }
-
-  private calculateCostPointByPointSchedule(data: any[]) {
-    return data.reduce(
-      (acc, service) => {
-        acc.planejado += service.qtdeProgramada * service.preco;
-        acc.executado += service.qtdeRealizada * service.preco;
-
-        return acc;
-      },
-      {
-        planejado: 0,
-        executado: 0,
-      },
-    );
-  }
-
-  private groupByWorkId(services: any[]) {
-    const map = new Map<number, any>();
-
-    for (const item of services) {
-      const workId = item.idProg;
-
-      if (!map.has(workId)) {
-        map.set(workId, []);
-      }
-
-      map.get(workId)!.push(item);
-    }
-
-    return map;
   }
 }

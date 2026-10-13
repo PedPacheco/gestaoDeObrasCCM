@@ -1,15 +1,27 @@
 import { Prisma } from '@prisma/client';
 import {
+  ScheduleItem,
+  ServiceTotals,
+  WorkItem,
+} from 'src/domain/services/pointByPointRules.service';
+
+import {
   AddServicesDTO,
   ApplyAdditonalDTO,
   ScheduleServicesDTO,
 } from 'src/interface/dtos/workServicesDTO';
 
-export interface SchedulesProgressUpdate {
-  idProgramacao: number;
+export interface ScheduleTotalsById {
   prog: number;
-  exec: number;
+  exec: number | null;
 }
+
+export interface ScheduleProgress extends ScheduleTotalsById {
+  idProgramacao: number;
+}
+
+/** Mantido por compatibilidade: tem o mesmo formato que ScheduleProgress. */
+export type SchedulesProgressUpdate = ScheduleProgress;
 
 export interface ParsedSpreadsheetItem {
   point: string | null;
@@ -32,29 +44,48 @@ export interface ImportServiceItem {
 }
 
 export interface IWorkServicesRepository {
-  scheduleServices(
-    data: ScheduleServicesDTO[],
-    prog: number | { increment: number },
+  // ─── Programação de itens ───────────────────────────────────────────
+  /** Atualiza o estado da programação e limpa o flag de reprovada. */
+  updateScheduleStatus(
     idSchedule: number,
-    idStatusSchedule?: number,
+    idStatus: number,
+    tx: Prisma.TransactionClient,
   ): Promise<void>;
+  createScheduleItems(
+    idSchedule: number,
+    data: ScheduleServicesDTO[],
+    tx: Prisma.TransactionClient,
+  ): Promise<void>;
+  /** Grava o qtde_adicional de cada serviço (update: falha se o serviço não existir). */
+  updateServicesAdditional(
+    data: { id: number; additional: number }[],
+    tx: Prisma.TransactionClient,
+  ): Promise<void>;
+
+  // ─── Cancelamento ───────────────────────────────────────────────────
+  findScheduleStatus(
+    id: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<{ id_obra: number; id_status_programacao: number | null } | null>;
+  findScheduleItemsExecution(
+    id: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<{ id_servico: number; real: number | null }[]>;
+  deleteScheduleItems(id: number, tx: Prisma.TransactionClient): Promise<void>;
+  /** Repõe prog = 0 e exec = null na programação. */
+  resetScheduleProgress(
+    id: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<void>;
+
+  // ─── Itens da obra ──────────────────────────────────────────────────
   applyAdditional(
     data: ApplyAdditonalDTO[],
     tx: Prisma.TransactionClient,
   ): Promise<void>;
-  cancelServices(id: number): Promise<void>;
   addItem(
     data: AddServicesDTO,
     type: 'service' | 'material',
-    tx: Prisma.TransactionClient,
-  ): Promise<void>;
-  updateSchedulesProgress(
-    data: SchedulesProgressUpdate[],
-    tx: Prisma.TransactionClient,
-  ): Promise<void>;
-  updateWorkExecuted(
-    workId: number,
-    executed: number | null,
     tx: Prisma.TransactionClient,
   ): Promise<void>;
   delete(id: number, tx: Prisma.TransactionClient): Promise<void>;
@@ -63,7 +94,43 @@ export interface IWorkServicesRepository {
     workId: number,
     items: ImportServiceItem[],
     tx: Prisma.TransactionClient,
-  );
+  ): Promise<void>;
+
+  // ─── Recálculo: leituras ────────────────────────────────────────────
+  findScheduleItemsByServiceIds(
+    serviceIds: number[],
+    tx: Prisma.TransactionClient,
+  ): Promise<ScheduleItem[]>;
+  findScheduleItemsByWork(
+    workId: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<ScheduleItem[]>;
+  findWorkItems(
+    workId: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<WorkItem[]>;
+  findWorkStatus(
+    workId: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<number | null>;
+
+  // ─── Recálculo: escritas ────────────────────────────────────────────
+  updateServiceTotals(
+    totals: ServiceTotals[],
+    tx: Prisma.TransactionClient,
+  ): Promise<void>;
+  /** UPDATE em lote de prog/exec de várias programações (SQL raw, sem N+1). */
+  updateSchedulesProgress(
+    data: SchedulesProgressUpdate[],
+    tx: Prisma.TransactionClient,
+  ): Promise<void>;
+  /** Grava o executado da obra. Com demote = true, tira a obra de "concluída" (regra 3). */
+  updateWorkProgress(
+    workId: number,
+    executed: number,
+    demote: boolean,
+    tx: Prisma.TransactionClient,
+  ): Promise<void>;
 }
 
 export const WORK_SERVICES_REPOSITORY = Symbol('WorkServicesRepository');

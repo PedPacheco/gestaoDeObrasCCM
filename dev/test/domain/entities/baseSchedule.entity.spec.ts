@@ -235,8 +235,13 @@ describe('BaseSchedule', () => {
       ['omitido', undefined, false],
       ['vazio', '', false],
       ['sem DP', 'MANUTENCAO', false],
-      ['com DP', 'DP', true],
-      ['com dp em minúsculas', 'servico dp', true],
+      ['DP', 'DP', true],
+      ['dp em minúsculas', 'dp', true],
+      ['LV', 'LV', true],
+      ['RD', 'rd', true],
+      ['Regularização', 'Regularização', true],
+      ['REGULARIZAÇÃO em maiúsculas', 'REGULARIZAÇÃO', true],
+      ['texto que apenas contém dp', 'servico dp', false],
     ])('serviceType %s', (_label, serviceType, expected) => {
       expect(build({ serviceType }).exposeCheckTypeOfService()).toBe(expected);
     });

@@ -46,18 +46,40 @@ export function serviceTypeLabel(entity: ServiceTypeFields): 'M' | 'S' {
  * `id_status_programacao` / `updateScheduleStatus`.
  */
 export enum ScheduleStatus {
+  /** Programação aberta/aprovada. scheduleServices define 1 ao sair de PENDENTE_REVISAO. */
+  APROVADA = 1,
+  VALIDADA = 2,
+  CONFIRMADA = 3,
+  /** Executada: exec >= prog. */
+  EXECUTADA = 4,
+  /** Nada foi executado (exec = 0) — itens liberados para nova programação. */
+  REAGENDADA = 5,
+  /** Executada parcialmente (0 < exec < prog). */
+  PARCIAL = 6,
   /** Estava com status 7: reprovada/pendente, some ao entrar novo agendamento. */
   PENDENTE_REVISAO = 7,
-  /** scheduleServices define 1 quando sai do status PENDENTE_REVISAO. */
-  APROVADA = 1,
-  /** Usado por reascheduleServices ao reabrir uma programação. */
-  REAGENDADA = 5,
 }
 
 /**
  * Status da tabela `obras`, referenciados por `updateStatusWorks`.
  */
 export enum WorkStatus {
-  /** Usado por reascheduleServices quando serviços voltam a ficar em aberto. */
+  /** Viabilidade aprovada (aguardando programação). */
+  VIABILIDADE_APROVADA = 1,
+  CONCLUIDA = 2,
+  /** Programações confirmadas / tudo programado. */
+  CONFIRMADA = 35,
+  /** Serviços reagendados / execução pendente ou parcial. */
   SERVICOS_REAGENDADOS = 36,
+  VALIDADA = 37,
+  PROGRAMADA = 43,
 }
+
+export const FINALIZED_SCHEDULE_STATUSES: number[] = [
+  ScheduleStatus.EXECUTADA,
+  ScheduleStatus.REAGENDADA,
+  ScheduleStatus.PARCIAL,
+];
+
+/** Id da parceira que trabalha com programação ponto a ponto. */
+export const PONTO_A_PONTO_PARTNER_ID = 3;

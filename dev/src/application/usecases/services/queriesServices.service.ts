@@ -10,7 +10,7 @@ import {
   GET_WORKS_DETAILS_REPOSITORY,
   IGetWorksDetailsRepository,
 } from 'src/domain/repositories/works/IGetWorksDetailsRepository';
-import { serviceTypeLabel } from 'src/utils/serviceType.utils';
+import { serviceTypeLabel } from 'src/utils/pointByPoint/serviceType.utils';
 
 @Injectable()
 export class QueriesServicesService {

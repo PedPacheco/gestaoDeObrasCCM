@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { MarketWork } from 'src/domain/entities/works.entity';
 import { IUpdateOvRepository } from 'src/domain/repositories/works/IUpdateOvRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { resolvePointByPointMode } from './pointByPointMode.helper';
 
 @Injectable()
 export class UpdateOvRepository implements IUpdateOvRepository {
@@ -10,6 +11,16 @@ export class UpdateOvRepository implements IUpdateOvRepository {
 
   async update(data: Partial<MarketWork>[]): Promise<void> {
     try {
+      // O flag de ponto a ponto acompanha a parceira (regra 5).
+      const modes = new Map<number, boolean | undefined>();
+
+      for (const item of data as any[]) {
+        modes.set(
+          item.id,
+          await resolvePointByPointMode(this.prisma, item.id, item.id_turma),
+        );
+      }
+
       await this.prisma.$transaction(
         data.map((item: any) => {
           const {

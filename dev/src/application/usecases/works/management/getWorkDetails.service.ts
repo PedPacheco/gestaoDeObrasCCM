@@ -28,6 +28,8 @@ export class GetWorkDetailsService {
 
     const maoDeObra = services.reduce(
       (acc, service) => {
+        if (service.tipo === 'M') return acc;
+
         const planejado =
           (service.viabilizado + service.qtdeAdicional) * service.valorUnit;
         const executado = service.qtdeRealizada * service.valorUnit;

@@ -16,6 +16,7 @@ import {
 } from 'src/interface/types/schedule/monthlySummaryInterface';
 
 import { Injectable } from '@nestjs/common';
+import { PointByPointCost } from './pointByPointCost.service';
 
 export interface IMonthlySummaryCalculator {
   aggregateFinancialCapacityByMonth(
@@ -30,12 +31,23 @@ export interface IMonthlySummaryCalculator {
     exec: number,
   ): WorkOrderMetrics;
 
+  calculatePointByPointMetrics(
+    moPlan: number,
+    moPend: number,
+    cost: PointByPointCost,
+  ): WorkOrderMetrics;
+
   calculateGoalPercentage(value: number, goal: number): number;
 
   calculateMoPrev(
     baseMoPlan: number,
     exec: number | null,
     prog: number,
+  ): { moPrev: number };
+
+  calculatePointByPointMoPrev(
+    exec: number | null,
+    cost: PointByPointCost,
   ): { moPrev: number };
 
   calculateExecutionRate(moProg: number, moExec: number): number;
@@ -115,6 +127,19 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
     };
   }
 
+  calculatePointByPointMetrics(
+    moPlan: number,
+    moPend: number,
+    cost: PointByPointCost,
+  ): WorkOrderMetrics {
+    return {
+      moPlan,
+      moPend,
+      moProg: cost.planejado,
+      moExec: cost.executado,
+    };
+  }
+
   calculateGoalPercentage(value: number, goal: number): number {
     return goal > 0 ? (value / goal) * 100 : 0;
   }
@@ -128,6 +153,15 @@ export class MonthlySummaryCalculator implements IMonthlySummaryCalculator {
 
     return {
       moPrev: baseMoPlan * effectiveRate,
+    };
+  }
+
+  calculatePointByPointMoPrev(
+    exec: number | null,
+    cost: PointByPointCost,
+  ): { moPrev: number } {
+    return {
+      moPrev: exec != null ? cost.executado : cost.planejado,
     };
   }
 

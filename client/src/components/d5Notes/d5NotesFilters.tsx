@@ -11,7 +11,6 @@ import {
   FilterFieldConfig,
   FiltersInterface,
 } from "@/types/genericFilterSchema";
-
 const STATUS_D5_SAP_OPTIONS = ["Concluído", "Pendente"] as const;
 
 // Schema declarativo: substitui ~150 linhas de JSX repetido por uma lista de

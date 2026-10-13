@@ -216,6 +216,7 @@ describe('ImportServicesSpreadsheetService', () => {
       spreadsheetParser.parse.mockResolvedValue({
         items: [
           makeParsedItem({ materialCode: 'SRV-001' }),
+          makeParsedItem({ materialCode: 'SRV-003' }),
           makeParsedItem({ materialCode: 'INVALID' }),
           makeParsedItem({ point: '', materialCode: 'SRV-001' }),
         ],
@@ -223,13 +224,14 @@ describe('ImportServicesSpreadsheetService', () => {
       });
 
       queriesServices.getServiceContracts.mockResolvedValue([
-        { id: 100, material: 'SRV-001' },
+        { id: 100, material_antigo: null, material: 'SRV-001' },
+        { id: 101, material_antigo: 'SRV-003', material: null },
       ]);
       queriesServices.getMaterials.mockResolvedValue([]);
 
       const result = await sut.importFromSpreadsheet(workId, makeFile());
 
-      expect(result.imported).toBe(1);
+      expect(result.imported).toBe(2);
       // 2 errors (INVALID code + empty point) + 1 skippedRow
       expect(result.skipped).toBe(3);
       expect(result.errors).toHaveLength(2);
