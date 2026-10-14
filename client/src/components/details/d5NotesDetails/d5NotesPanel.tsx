@@ -128,7 +128,8 @@ export function D5NotesPanel({
       showSuccess(result.message ?? "Programação eliminada com sucesso.");
       router.refresh();
     });
-  }, [selectedScheduleId, d5NoteId, showError, showSuccess]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedScheduleId, d5NoteId, showSuccess, router, showError]);
 
   const handleCloseDeletionModal = useCallback(() => {
     setOpenDeletionModal(false);

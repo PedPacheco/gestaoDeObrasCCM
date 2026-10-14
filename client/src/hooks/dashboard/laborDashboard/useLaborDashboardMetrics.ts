@@ -155,5 +155,6 @@ export function useLaborMetrics({
       barByDay,
       topPartnerData,
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dailyData, groupData, dailyGoal]);
 }
