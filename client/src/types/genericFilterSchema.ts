@@ -36,7 +36,14 @@ export type FilterFieldConfig =
   | SelectFilterConfig
   | DateRangeFilterConfig
   | TextFilterConfig
-  | OptionsFilterConfig;
+  | OptionsFilterConfig
+  | CheckboxFilterConfig;
+
+export interface CheckboxFilterConfig {
+  type: "checkbox";
+  key: string;
+  label: string;
+}
 
 export interface SelectFilterConfig {
   type: "select";

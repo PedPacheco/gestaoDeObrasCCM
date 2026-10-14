@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
@@ -59,7 +59,7 @@ export default function MainGoals({
   const year = currentYear ?? dayjs().year();
   const defaultYear = year.toString();
 
-  const { clearFilters, filters, saveFilters } = useSaveFilters({
+  const { clearFilters, filters, saveFilters } = useOldSaveFilters({
     pageKey: PAGE_KEY[typeGoals],
     data: filtersData,
   });

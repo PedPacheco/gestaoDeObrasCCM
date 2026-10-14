@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
 import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
 import { Transform } from "@/utils/transform";
 import {
   Checkbox,
@@ -44,7 +44,7 @@ export default function RestrictionFilters({
   isPublication,
   generateExcel,
 }: any) {
-  const { clearFilters, filters, saveFilters } = useSaveFilters({
+  const { clearFilters, filters, saveFilters } = useOldSaveFilters({
     pageKey: keyFilters,
     data: data,
   });

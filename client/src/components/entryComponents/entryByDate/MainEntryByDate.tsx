@@ -8,7 +8,7 @@ import { useEffect, useState, useTransition } from "react";
 import { fetchData } from "@/actions/fetchData.action";
 import { ButtonComponent } from "@/components/common/Button";
 import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
 import { MainInterface } from "@/types/mainInterface";
 import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
@@ -28,7 +28,7 @@ export default function MainEntryByDate({
 }: MainInterface<FiltersInterface>) {
   const [filteredData, setFilteredData] = useState(data);
   const { showError } = useFeedback();
-  const { clearFilters, filters, saveFilters } = useSaveFilters({
+  const { clearFilters, filters, saveFilters } = useOldSaveFilters({
     pageKey: "entryByDateFilters",
     data: filtersData,
   });

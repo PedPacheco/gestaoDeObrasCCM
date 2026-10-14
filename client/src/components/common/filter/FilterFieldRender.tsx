@@ -1,9 +1,11 @@
 import {
+  CheckboxFilterConfig,
   DateRangeFilterConfig,
   ExtraFilterValue,
   FilterFieldConfig,
   OptionsFilterConfig,
   SelectFilterConfig,
+  TextFilterConfig,
 } from "@/types/genericFilterSchema";
 import { FilterOptionsData } from "./genericFilterBar";
 import { MultipleSelectComponent } from "./MultipleSelect";
@@ -12,7 +14,14 @@ import { capitalize } from "@/utils/formatValue";
 import { Dayjs } from "dayjs";
 import { useEffect } from "react";
 import { DateFilter } from "./DateFilter";
-import { MenuItem, TextField } from "@mui/material";
+import {
+  Checkbox,
+  FormControlLabel,
+  InputAdornment,
+  MenuItem,
+  TextField,
+} from "@mui/material";
+import { MagnifyingGlassCircleIcon } from "@heroicons/react/20/solid";
 
 interface FieldRendererProps {
   field: FilterFieldConfig;
@@ -60,6 +69,22 @@ export function FilterFieldRenderer({
           onExtraValueChange={onExtraValueChange}
         />
       );
+    case "text":
+      return (
+        <TextFilterField
+          field={field}
+          extraValues={extraValues}
+          onExtraValueChange={onExtraValueChange}
+        />
+      );
+    case "checkbox":
+      return (
+        <CheckboxFilterField
+          field={field}
+          extraValues={extraValues}
+          onExtraValueChange={onExtraValueChange}
+        />
+      );
   }
 }
 
@@ -82,7 +107,7 @@ function SelectField({
     : MultipleSelectComponent;
 
   return (
-    <div className="w-full lg:w-5/6 mx-auto">
+    <div className="w-full mx-auto">
       <Component
         label={label}
         menuItems={items}
@@ -137,7 +162,7 @@ function DateRangeField({
       startLabel={`${field.label} (de)`}
       endLabel={`${field.label} (até)`}
       disabled={disabled}
-      size="w-full lg:w-5/6 mx-auto"
+      size="w-full mx-auto"
     />
   );
 }
@@ -153,7 +178,7 @@ function OptionsFilterField({
 }) {
   const value = (extraValues[field.key] as string) ?? "";
   return (
-    <div className="w-full lg:w-5/6 mx-auto">
+    <div className="w-full mx-auto">
       <TextField
         select
         fullWidth
@@ -170,5 +195,68 @@ function OptionsFilterField({
         ))}
       </TextField>
     </div>
+  );
+}
+
+function TextFilterField({
+  field,
+  extraValues,
+  onExtraValueChange,
+}: {
+  field: TextFilterConfig;
+  extraValues: Record<string, ExtraFilterValue>;
+  onExtraValueChange: (key: string, value: ExtraFilterValue) => void;
+}) {
+  const value = (extraValues[field.key] as string) ?? "";
+  return (
+    <div className="w-full mx-auto">
+      <TextField
+        fullWidth
+        size="small"
+        label={field.label}
+        value={value}
+        // MUI v5. Na v6+ prefira slotProps={{ htmlInput: { inputMode: ... } }}
+        inputProps={{
+          inputMode: field.inputMode,
+        }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <MagnifyingGlassCircleIcon height={16} width={16} />
+            </InputAdornment>
+          ),
+        }}
+        onChange={(e) =>
+          onExtraValueChange(
+            field.key,
+            field.sanitize ? field.sanitize(e.target.value) : e.target.value,
+          )
+        }
+      />
+    </div>
+  );
+}
+
+function CheckboxFilterField({
+  field,
+  extraValues,
+  onExtraValueChange,
+}: {
+  field: CheckboxFilterConfig;
+  extraValues: Record<string, ExtraFilterValue>;
+  onExtraValueChange: (key: string, value: ExtraFilterValue) => void;
+}) {
+  return (
+    <FormControlLabel
+      label={field.label}
+      control={
+        <Checkbox
+          checked={extraValues[field.key] === "true"}
+          onChange={(e) =>
+            onExtraValueChange(field.key, e.target.checked ? "true" : "")
+          }
+        />
+      }
+    />
   );
 }

@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
 import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
 import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import dayjs, { Dayjs } from "dayjs";
@@ -56,11 +56,12 @@ export default function D5NotesSchedulesFilters({
     [],
   );
 
-  const { clearFilters, filters, saveFilters, filteredData } = useSaveFilters({
-    pageKey: url,
-    data,
-    applyFilters,
-  });
+  const { clearFilters, filters, saveFilters, filteredData } =
+    useOldSaveFilters({
+      pageKey: url,
+      data,
+      applyFilters,
+    });
 
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);

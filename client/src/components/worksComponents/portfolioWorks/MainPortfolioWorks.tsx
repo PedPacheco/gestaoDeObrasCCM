@@ -166,7 +166,7 @@ export default function PortfolioWorks({
         data={filteredData?.works ?? []}
         totals={totals}
         columns={columns}
-        sliceEndIndex={6}
+        sliceEndIndex={7}
         handleChangePage={handleChangePage}
         page={page}
         getRowKey={(item) => item.id}

@@ -7,7 +7,7 @@ import { fetchData } from "@/actions/fetchData.action";
 import { ButtonComponent } from "@/components/common/Button";
 import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
 import { useFeedback } from "@/hooks/useFeedback";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
 import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
@@ -25,7 +25,7 @@ export default function MainSchedule({
   token,
 }: MainInterface<FiltersInterface>) {
   const [filteredData, setFilteredData] = useState(data);
-  const { clearFilters, filters, saveFilters } = useSaveFilters({
+  const { clearFilters, filters, saveFilters } = useOldSaveFilters({
     pageKey: "scheduleFilters",
     data: filtersData,
   });

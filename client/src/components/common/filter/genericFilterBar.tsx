@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import dayjs from "dayjs";
 import {
   Accordion,
@@ -47,6 +47,7 @@ interface GenericFilterBarProps {
   defaultExpanded?: boolean;
   hasExport: boolean;
   handleGenerateExcel?: () => void;
+  extraActions?: ReactNode;
 }
 
 export function GenericFilterBar({
@@ -64,6 +65,7 @@ export function GenericFilterBar({
   handleGenerateExcel,
   hasExport,
   defaultExpanded = true,
+  extraActions,
 }: GenericFilterBarProps) {
   const [expanded, setExpanded] = useState(defaultExpanded);
 
@@ -116,6 +118,22 @@ export function GenericFilterBar({
     }
   }
 
+  const gridFields = schema.filter((field) => field.type !== "checkbox");
+  const checkboxFields = schema.filter((field) => field.type === "checkbox");
+
+  const renderField = (field: FilterFieldConfig) => (
+    <FilterFieldRenderer
+      key={field.type === "select" ? field.filterKey : field.key}
+      field={field}
+      data={optionsData}
+      selectedItems={selectedItems}
+      extraValues={extraValues}
+      extraValuesAsStrings={extraValuesAsStrings}
+      onSelectedItemChange={updateSelectedItem}
+      onExtraValueChange={updateExtraValue}
+    />
+  );
+
   return (
     <Accordion
       expanded={expanded}
@@ -133,19 +151,14 @@ export function GenericFilterBar({
 
       <AccordionDetails>
         <div className="grid grid-cols-1 lg:grid-cols-3 2xl:grid-cols-6 gap-4 w-full">
-          {schema.map((field) => (
-            <FilterFieldRenderer
-              key={field.type === "select" ? field.filterKey : field.key}
-              field={field}
-              data={optionsData}
-              selectedItems={selectedItems}
-              extraValues={extraValues}
-              extraValuesAsStrings={extraValuesAsStrings}
-              onSelectedItemChange={updateSelectedItem}
-              onExtraValueChange={updateExtraValue}
-            />
-          ))}
+          {gridFields.map(renderField)}
         </div>
+
+        {/* {checkboxFields.length > 0 && (
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-1 mt-3">
+            {checkboxFields.map(renderField)}
+          </div>
+        )} */}
 
         {activeChips.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-4">
@@ -163,22 +176,29 @@ export function GenericFilterBar({
         {/* ButtonComponent já define cor/hover/altura fixos via `sx` — não
             sobrescrevemos isso aqui, só posicionamos e dimensionamos via
             flex, seguindo o padrão visual do resto do projeto. */}
-        <div className="flex justify-end gap-2 mt-4">
-          {hasExport && (
-            <ButtonComponent
-              text="Exportar dados"
-              onClick={handleGenerateExcel}
-            />
-          )}
 
-          <ButtonComponent
-            onClick={onClear}
-            text={getButtonContent(isPending, "Limpar filtros")}
-          />
-          <ButtonComponent
-            onClick={onApply}
-            text={getButtonContent(isPending, "Aplicar filtros")}
-          />
+        <div className="flex flex-wrap items-center justify-between gap-2 mt-4">
+          <div className="flex flex-wrap items-center gap-x-6">
+            {checkboxFields.map(renderField)}
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            {extraActions}
+            {hasExport && (
+              <ButtonComponent
+                text="Exportar dados"
+                onClick={handleGenerateExcel}
+              />
+            )}
+
+            <ButtonComponent
+              onClick={onClear}
+              text={getButtonContent(isPending, "Limpar filtros")}
+            />
+            <ButtonComponent
+              onClick={onApply}
+              text={getButtonContent(isPending, "Aplicar filtros")}
+            />
+          </div>
         </div>
       </AccordionDetails>
     </Accordion>

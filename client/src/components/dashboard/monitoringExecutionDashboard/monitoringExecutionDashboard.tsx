@@ -4,7 +4,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { useCallback, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
 import { Transform } from "@/utils/transform";
 
 import { KpiSectionMonitoringExecution } from "./KpiSection";
@@ -80,7 +80,7 @@ export default function MonitoringExecutionDashboard({
 }: Props) {
   const [isPending, startTransition] = useTransition();
 
-  const { clearFilters, filters, saveFilters } = useSaveFilters({
+  const { clearFilters, filters, saveFilters } = useOldSaveFilters({
     pageKey: "monitoringExecutionFilters",
     data: filtersData,
   });

@@ -302,6 +302,8 @@ export class AdvancePartnerRepository implements IAdvancePartnerRepository {
       ORDER BY parceira
     `;
 
+    console.log(query);
+
     return this.prisma.$queryRaw<any[]>(query);
   }
 }
