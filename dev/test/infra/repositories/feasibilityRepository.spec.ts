@@ -153,7 +153,11 @@ describe('FeasibilityRepository', () => {
         where: {
           id_obra: 3,
         },
-        select: { id: true, caminhos_arquivos: true },
+        select: {
+          id: true,
+          caminhos_arquivos: true,
+          arquivos_complementares: true,
+        },
       });
       expect(result).toEqual(mockFiles);
     });
@@ -218,26 +222,14 @@ describe('FeasibilityRepository', () => {
 
       prismaMock.obras.findMany.mockResolvedValue(responseMock);
 
-      const result = await repository.exportFeasibility(
-        '2026-01-01',
-        '2026-01-31',
-        [],
-      );
+      const result = await repository.exportFeasibility(45, []);
 
       expect(result).toEqual(responseMock);
 
       expect(prismaMock.obras.findMany).toHaveBeenCalledWith({
         where: {
+          id_status: 45,
           programacao_ponto_a_ponto: true,
-          relatorio_viabilidade: {
-            prazo_viabilidade: {
-              not: 'PRAZO VIABILIDADE',
-            },
-            data_envio: {
-              gte: new Date('2026-01-01'),
-              lte: new Date('2026-01-31'),
-            },
-          },
         },
         select: {
           ovnota: true,
@@ -282,20 +274,12 @@ describe('FeasibilityRepository', () => {
     it('should export feasibility data filtering partners', async () => {
       prismaMock.obras.findMany.mockResolvedValue([]);
 
-      await repository.exportFeasibility('2026-01-01', '2026-01-31', [1, 2, 3]);
+      await repository.exportFeasibility(46, [1, 2, 3]);
 
       expect(prismaMock.obras.findMany).toHaveBeenCalledWith({
         where: {
+          id_status: 46,
           programacao_ponto_a_ponto: true,
-          relatorio_viabilidade: {
-            prazo_viabilidade: {
-              not: 'PRAZO VIABILIDADE',
-            },
-            data_envio: {
-              gte: new Date('2026-01-01'),
-              lte: new Date('2026-01-31'),
-            },
-          },
           id_turma: {
             in: [1, 2, 3],
           },
@@ -343,11 +327,7 @@ describe('FeasibilityRepository', () => {
     it('should return empty array when no feasibility records are found', async () => {
       prismaMock.obras.findMany.mockResolvedValue([]);
 
-      const result = await repository.exportFeasibility(
-        '2026-01-01',
-        '2026-01-31',
-        [],
-      );
+      const result = await repository.exportFeasibility(45, []);
 
       expect(result).toEqual([]);
     });
@@ -357,9 +337,9 @@ describe('FeasibilityRepository', () => {
         new Error('Database error'),
       );
 
-      await expect(
-        repository.exportFeasibility('2026-01-01', '2026-01-31', []),
-      ).rejects.toThrow('Database error');
+      await expect(repository.exportFeasibility(45, [])).rejects.toThrow(
+        'Database error',
+      );
     });
   });
 
@@ -471,12 +451,33 @@ describe('FeasibilityRepository', () => {
 
   describe('updateFiles', () => {
     it('Should call the file update method and update the `relatorio_viabilidade` table with the new paths.', async () => {
-      await repository.updateFiles(1, ['doc.pdf', 'word.pdf'], mockTx);
+      await repository.updateFiles(
+        1,
+        ['doc.pdf', 'word.pdf'],
+        'technical',
+        mockTx,
+      );
 
       expect(mockTx.relatorio_viabilidade.update).toHaveBeenCalledWith({
         where: { id_obra: 1 },
         data: {
           caminhos_arquivos: ['doc.pdf', 'word.pdf'],
+        },
+      });
+    });
+
+    it('Should call the file update method and update the `relatorio_viabilidade` table with the new complementary paths.', async () => {
+      await repository.updateFiles(
+        1,
+        ['doc.pdf', 'word.pdf'],
+        'complementary',
+        mockTx,
+      );
+
+      expect(mockTx.relatorio_viabilidade.update).toHaveBeenCalledWith({
+        where: { id_obra: 1 },
+        data: {
+          arquivos_complementares: ['doc.pdf', 'word.pdf'],
         },
       });
     });

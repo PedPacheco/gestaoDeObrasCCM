@@ -13,6 +13,10 @@ export interface MulterConfig {
 }
 
 export function createMulterConfig(config: MulterConfig): MulterOptions {
+  if (!config?.destination) {
+    throw new Error('Multer destination was not provided');
+  }
+
   if (!existsSync(config.destination)) {
     mkdirSync(config.destination, { recursive: true });
   }

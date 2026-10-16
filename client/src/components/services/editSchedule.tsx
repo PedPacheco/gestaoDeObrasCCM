@@ -57,6 +57,7 @@ interface EditScheduleProps {
     operation_description: string[];
     points: string[];
   };
+  hasOrdemDcim: boolean;
 }
 
 export type TabId = "scheduled" | "available" | "add" | "history";
@@ -79,6 +80,7 @@ export function EditSchedule({
   idSchedule,
   statusSchedule,
   optionsToAddItem,
+  hasOrdemDcim,
 }: EditScheduleProps) {
   const router = useRouter();
 
@@ -290,6 +292,7 @@ export function EditSchedule({
                   onError={showError}
                   onSuccess={showSuccess}
                   workId={idWork}
+                  hasOrdemDcim={hasOrdemDcim}
                 />
               </div>
 

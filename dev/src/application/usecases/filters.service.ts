@@ -34,6 +34,7 @@ export class FiltersService {
       tipoRestricao,
       statusSap,
       equipes,
+      notaD5,
     }: FiltersDto,
     condition?: any,
   ) {
@@ -125,6 +126,14 @@ export class FiltersService {
       result['ovnota'] = await this.getCachedData('ovnota', () =>
         this.filtersRepository.getData('obras', ['id', 'ovnota'], {
           data_conclusao: null,
+          municipios: { id_regional: condition },
+        }),
+      );
+    }
+
+    if (notaD5) {
+      result['notaD5'] = await this.getCachedData('notaD5', () =>
+        this.filtersRepository.getData('notas_d5', ['id', 'nota_d5'], {
           municipios: { id_regional: condition },
         }),
       );

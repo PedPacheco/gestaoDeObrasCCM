@@ -1,8 +1,15 @@
 import {
-  IStatusFlowRepository,
-  STATUS_FLOW_REPOSITORY,
-} from 'src/domain/repositories/IStatusFlowRepository';
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { ProgressRecalculationService } from './progressRecalculation.service';
 import {
+  FinalizationData,
   IWorkServicesExecutionRepository,
   WORK_SERVICES_EXECUTION_REPOSITORY,
 } from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
@@ -11,31 +18,34 @@ import {
   WORK_SERVICES_QUERY_REPOSITORY,
 } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
 import {
-  IWorkServicesRepository,
-  WORK_SERVICES_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesRepository';
-import { ScheduleProgressCalculatorService } from 'src/domain/services/scheduleProgressCalculator.service';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
+  IStatusFlowRepository,
+  STATUS_FLOW_REPOSITORY,
+} from 'src/domain/repositories/IStatusFlowRepository';
+import {
+  FIND_SCHEDULE_BY_ID_REPOSITORY,
+  IFindScheduleByIdRepository,
+} from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
+import { ExecutionReportService } from '../executionReport.service';
+import { ScheduleExecutionValidatorService } from '../works/schedule/scheduleExecutionValidator.service';
 import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
+import {
+  calculateAggregateProgress,
+  calculateScheduleProgress,
+  fromHistoryRow,
+  planReschedule,
+  ScheduleItem,
+} from 'src/domain/services/pointByPointRules.service';
+import {
+  FINALIZED_SCHEDULE_STATUSES,
+  isMaterial,
+  ScheduleStatus,
+  WorkStatus,
+} from 'src/utils/pointByPoint/serviceType.utils';
+import { Prisma } from '@prisma/client';
 import { GetServicesByWorkIdResponse } from 'src/interface/types/servicesInterface';
 
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-
-import { ExecutionReportService } from '../executionReport.service';
-import { ScheduleExecutionValidatorService } from '../schedule/scheduleExecutionValidator.service';
-
-interface FinalizationData {
-  id: number;
-  idWork: number;
-  dataProg: Date;
-  prog: number;
-  exec: number;
-  idExecutionRestriction: number;
-  responsibility: string;
-  executionObservation: string;
-  userId: number;
-}
+const EXECUTION_BATCH_SIZE = 50; // ALTERADO: veio do repositório
+const FINALIZE_TX_OPTIONS = { maxWait: 10000, timeout: 30000 };
 
 @Injectable()
 export class FinalizeServicesService {
@@ -43,127 +53,281 @@ export class FinalizeServicesService {
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly progress: ProgressRecalculationService, // ALTERADO
     @Inject(WORK_SERVICES_EXECUTION_REPOSITORY)
     private readonly worksServicesExecutionRepository: IWorkServicesExecutionRepository,
-    @Inject(WORK_SERVICES_REPOSITORY)
-    private readonly workServicesRepository: IWorkServicesRepository,
     @Inject(WORK_SERVICES_QUERY_REPOSITORY)
     private readonly workServicesQueryRepository: IWorkServicesQueryRepository,
     @Inject(STATUS_FLOW_REPOSITORY)
     private readonly statusFlowRepository: IStatusFlowRepository,
+    @Inject(FIND_SCHEDULE_BY_ID_REPOSITORY)
+    private readonly findScheduleByIdRepository: IFindScheduleByIdRepository,
     private readonly executionReportService: ExecutionReportService,
     private readonly executionValidator: ScheduleExecutionValidatorService,
-    private readonly scheduleProgressCalculator: ScheduleProgressCalculatorService,
+    // REMOVIDOS: workServicesRepository e scheduleProgressCalculator
   ) {}
 
   async performServices(data: PerformServicesDTO[]): Promise<void> {
     if (data.length === 0) return;
 
-    await this.worksServicesExecutionRepository.performServices(data);
+    this.validatePerformPayload(data);
+
+    await this.prisma.$transaction(
+      (tx) => this.registerExecutions(data, tx), // ALTERADO
+      FINALIZE_TX_OPTIONS,
+    );
   }
 
+  /**
+   * Reagenda os itens pendentes de uma programação SEM perder o executado
+   * (regras 1 e 2). A programação fica PARCIAL se mantiver execução; caso
+   * contrário, fica REAGENDADA.
+   */
   async reascheduleServices(workId: number, scheduleId: number): Promise<void> {
-    const history =
-      await this.workServicesQueryRepository.getServiceScheduleHistory(workId);
-
-    const servicesToBeReascheduled = history
-      .filter(
-        (item) =>
-          (item.real < item.prog || !item.real) &&
-          item.id_programacao === scheduleId,
-      )
-      .map((item) => ({ id: item.id, id_servico: item.id_servico }));
-
     await this.prisma.$transaction(async (tx) => {
       try {
-        await this.worksServicesExecutionRepository.reascheduleServices(
-          servicesToBeReascheduled,
+        // ALTERADO: a orquestração saiu do repositório
+        const schedule =
+          await this.worksServicesExecutionRepository.findScheduleWork(
+            scheduleId,
+            tx,
+          );
+
+        if (!schedule) {
+          throw new NotFoundException(
+            `Programação ${scheduleId} não encontrada.`,
+          );
+        }
+
+        if (schedule.id_obra !== workId) {
+          throw new BadRequestException(
+            'A programação informada não pertence a esta obra.',
+          );
+        }
+
+        const rows =
+          await this.worksServicesExecutionRepository.findScheduleItems(
+            scheduleId,
+            tx,
+          );
+        const plan = planReschedule(rows);
+
+        if (!plan.hasPendingItems) {
+          throw new BadRequestException(
+            'Não há itens pendentes para reagendar nesta programação.',
+          );
+        }
+
+        if (plan.releasedRowIds.length > 0) {
+          await this.worksServicesExecutionRepository.deleteScheduleItemsByIds(
+            plan.releasedRowIds,
+            tx,
+          );
+        }
+
+        // Sem nenhuma linha restante, a programação não aparece no recálculo.
+        if (plan.emptiesSchedule) {
+          await this.worksServicesExecutionRepository.zeroScheduleProgress(
+            scheduleId,
+            tx,
+          );
+        }
+
+        await this.progress.recomputeAll(
+          plan.affectedServiceIds,
+          schedule.id_obra,
+          tx,
+        );
+        // fim ALTERADO
+
+        await this.statusFlowRepository.updateScheduleStatus(
+          plan.hasExecution
+            ? ScheduleStatus.PARCIAL
+            : ScheduleStatus.REAGENDADA,
           scheduleId,
+          tx,
         );
 
-        await this.statusFlowRepository.updateStatusWorks(36, workId, tx);
-        await this.statusFlowRepository.updateScheduleStatus(5, scheduleId, tx);
+        await this.statusFlowRepository.updateStatusWorks(
+          WorkStatus.SERVICOS_REAGENDADOS,
+          workId,
+          tx,
+        );
       } catch (error: any) {
         this.logger.error(error);
         throw error;
       }
-    });
+    }, FINALIZE_TX_OPTIONS);
   }
 
+  /**
+   * Finaliza a programação numa ÚNICA transação: executado dos itens (quando
+   * vem em `executions`), relatório de execução, estado e recálculo de todas
+   * as programações da obra. Se algum passo falhar, nada é gravado.
+   */
   async finalizeServices(
     workId: number,
     data: any,
     files?: Express.Multer.File[],
   ): Promise<void> {
-    const { executionReportData, userId, ...updateData } = data;
+    const { executionReportData, executions, userId, ...updateData } = data;
 
-    const [services, history] = await Promise.all([
-      this.workServicesQueryRepository.getAllServicesOfWork(workId),
-      this.workServicesQueryRepository.getServiceScheduleHistory(workId),
-    ]);
+    await this.prisma.$transaction(async (tx) => {
+      try {
+        if (executions?.length) {
+          await this.registerExecutions(executions, tx); // ALTERADO
+        }
 
-    const totalPlanned = this.sumServiceQuantities(services);
+        await this.assertScheduleCanBeFinalized(updateData.idSchedule, tx);
 
-    const scheduleTotals =
-      this.scheduleProgressCalculator.calculateScheduleProgress(
-        history,
-        totalPlanned,
-        updateData.idSchedule,
-      );
+        // Lidos DEPOIS de o executado ser gravado, dentro da transação.
+        const [services, history] = await Promise.all([
+          this.workServicesQueryRepository.getAllServicesOfWork(workId, tx),
+          this.workServicesQueryRepository.getServiceScheduleHistory(
+            workId,
+            tx,
+          ),
+        ]);
 
-    const pendingExecServices = this.getPendingExecServices(
-      history,
-      updateData.idSchedule,
-    );
+        const totalPlanned = this.sumServiceQuantities(services);
+        const scheduleItems = history.map(fromHistoryRow); // ALTERADO
 
-    const dateProg = history.find(
-      (item) => item.id_programacao === updateData.idSchedule,
-    );
+        const scheduleTotals = calculateScheduleProgress(
+          // ALTERADO
+          scheduleItems,
+          totalPlanned,
+          updateData.idSchedule,
+        );
 
-    const finalizationData = this.buildFinalizationData(
-      updateData.idSchedule,
-      workId,
-      dateProg.programacoes.data_prog,
-      scheduleTotals,
-      updateData.idExecutionRestriction,
-      updateData.responsibility,
-      updateData.executionObservation,
-      userId,
-    );
+        const dateProg = history.find(
+          (item) => item.id_programacao === updateData.idSchedule,
+        );
 
-    await this.executeFinalization(
-      workId,
-      updateData.idSchedule,
-      finalizationData,
-      pendingExecServices,
-      executionReportData,
-      totalPlanned,
-      history,
-      files,
-    );
+        if (!dateProg) {
+          throw new NotFoundException(
+            `Nenhum histórico encontrado para a programação ${updateData.idSchedule} nesta obra.`,
+          );
+        }
+
+        const finalizationData = this.buildFinalizationData(
+          updateData.idSchedule,
+          workId,
+          dateProg.programacoes.data_prog,
+          scheduleTotals,
+          updateData.idExecutionRestriction,
+          updateData.responsibility,
+          updateData.executionObservation,
+          userId,
+        );
+
+        await this.executeFinalization(
+          workId,
+          finalizationData,
+          executionReportData,
+          totalPlanned,
+          scheduleItems, // ALTERADO
+          tx,
+          files,
+        );
+      } catch (error) {
+        this.logger.error(error);
+        throw error;
+      }
+    }, FINALIZE_TX_OPTIONS);
   }
 
+  // ─── Privados ───────────────────────────────────────────────────────
+
+  /**
+   * ALTERADO: veio do repositório. Grava o realizado em lotes e recalcula os
+   * totalizadores dos serviços pela fonte única.
+   */
+  private async registerExecutions(
+    data: PerformServicesDTO[],
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    for (let i = 0; i < data.length; i += EXECUTION_BATCH_SIZE) {
+      const batch = data.slice(i, i + EXECUTION_BATCH_SIZE);
+
+      // 1. Resolve a linha exata (serviço + programação) de cada item e
+      //    valida que a programação ainda aceita execução.
+      const resolved = await Promise.all(
+        batch.map(async ({ id, idSchedule, qtdeRealizada }) => {
+          const rows =
+            await this.worksServicesExecutionRepository.findExecutionTargets(
+              id,
+              idSchedule,
+              tx,
+            );
+
+          if (rows.length === 0) {
+            throw new BadRequestException(
+              `O item ${id} não está programado na programação ${idSchedule}.`,
+            );
+          }
+
+          if (rows.length > 1) {
+            throw new BadRequestException(
+              `O item ${id} está programado para mais de uma equipe na programação ${idSchedule}: informe a equipe (idTeam).`,
+            );
+          }
+
+          if (
+            FINALIZED_SCHEDULE_STATUSES.includes(
+              rows[0].programacoes.id_status_programacao,
+            )
+          ) {
+            throw new ConflictException(
+              `A programação ${idSchedule} já foi finalizada. Desfaça a finalização para alterar o executado.`,
+            );
+          }
+
+          return { rowId: rows[0].id, serviceId: id, real: qtdeRealizada };
+        }),
+      );
+
+      // 2. Grava o realizado.
+      await this.worksServicesExecutionRepository.updateItemsReal(resolved, tx);
+
+      // 3. Recalcula os totalizadores pela fonte única.
+      await this.progress.recomputeServiceTotals(
+        resolved.map(({ serviceId }) => serviceId),
+        tx,
+      );
+    }
+  }
+
+  private async assertScheduleCanBeFinalized(
+    scheduleId: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    const schedule = await this.findScheduleByIdRepository.findById(
+      scheduleId,
+      tx,
+    );
+
+    if (!schedule) {
+      throw new NotFoundException(`Programação ${scheduleId} não encontrada.`);
+    }
+
+    if (FINALIZED_SCHEDULE_STATUSES.includes(schedule.id_status_programacao)) {
+      throw new ConflictException(
+        'Programação já finalizada. Desfaça a finalização para finalizar novamente.',
+      );
+    }
+  }
+
+  // ALTERADO: as regras 1 e 4 vivem no domínio; aqui fica só o mapeamento.
   private sumServiceQuantities(
     services: GetServicesByWorkIdResponse[],
   ): number {
     return services
-      .filter((service) => service.qtde_real !== 0 && !service.id_material)
+      .filter((service) => service.qtde_real !== 0 && !isMaterial(service))
       .reduce(
         (sum, service) =>
           sum + (service.viabilizado ?? 0) + (service.qtde_adicional ?? 0),
         0,
       );
-  }
-
-  private getPendingExecServices(history: any[], scheduleId: number): number[] {
-    return history
-      .filter(
-        (service) =>
-          service.id_programacao === scheduleId &&
-          service.real !== 0 &&
-          (service.real === null || service.prog > service.real),
-      )
-      .map((service) => service.id_servico);
   }
 
   private buildFinalizationData(
@@ -191,83 +355,88 @@ export class FinalizeServicesService {
 
   private async executeFinalization(
     workId: number,
-    scheduleId: number,
     finalizationData: FinalizationData,
-    pendingExecServices: number[],
     executionReportData: any,
     totalPlanned: number,
-    history: any[],
+    scheduleItems: ScheduleItem[], // ALTERADO
+    tx: Prisma.TransactionClient,
     files?: Express.Multer.File[],
   ): Promise<void> {
-    // Calcula o total já executado nas DEMAIS programações (agregado,
-    // capado em 100) para validar a finalização da atual contra isso.
-    const executed = this.scheduleProgressCalculator.calculateAggregateProgress(
-      history,
+    // Total já executado nas DEMAIS programações (agregado, limitado a 100),
+    // para validar a finalização da atual.
+    const executed = calculateAggregateProgress(
+      scheduleItems,
       totalPlanned,
-      scheduleId,
-    );
+      finalizationData.id,
+    ); // ALTERADO
 
-    await this.prisma.$transaction(async (tx) => {
-      try {
-        if (Object.keys(executionReportData).length > 0) {
-          await this.executionReportService.create(
-            {
-              idSchedule: finalizationData.id,
-              idWork: workId,
-              ...executionReportData,
-            },
-            finalizationData.dataProg,
-            files,
-            tx,
-          );
-        }
+    // O relatório é opcional: sem `executionReport` no payload não há nada a criar.
+    if (executionReportData && Object.keys(executionReportData).length > 0) {
+      await this.executionReportService.create(
+        {
+          idSchedule: finalizationData.id,
+          idWork: workId,
+          ...executionReportData,
+        },
+        finalizationData.dataProg,
+        files,
+        tx,
+      );
+    }
 
-        await this.executionValidator.validateExecutionAndUpdateStatus(
-          finalizationData,
-          executed,
-          tx,
-        );
-
-        await this.worksServicesExecutionRepository.finalizeServices(
-          finalizationData,
-          pendingExecServices,
-          tx,
-        );
-
-        // Finalizar pode zerar o `real` de algum serviço (setado antes,
-        // via performServices) — isso exclui o serviço do totalPlanned e
-        // invalida o prog/exec de TODAS as outras programações, não só
-        // a que está sendo finalizada agora. `history`/`totalPlanned` já
-        // refletem esse zeramento (foram lidos após o performServices).
-        await this.recalculateOtherSchedulesProgress(
-          history,
-          totalPlanned,
-          scheduleId,
-          tx,
-        );
-      } catch (error) {
-        this.logger.error(error);
-        throw error;
-      }
-    });
-  }
-
-  // A programação atual já foi persistida por
-  // worksServicesExecutionRepository.finalizeServices logo acima — aqui só
-  // atualizamos as DEMAIS, em lote.
-  private async recalculateOtherSchedulesProgress(
-    history: any[],
-    totalPlanned: number,
-    currentScheduleId: number,
-    tx: Prisma.TransactionClient,
-  ): Promise<void> {
-    const otherSchedulesProgress = this.scheduleProgressCalculator
-      .calculateAllSchedulesProgress(history, totalPlanned)
-      .filter((item) => item.idProgramacao !== currentScheduleId);
-
-    await this.workServicesRepository.updateSchedulesProgress(
-      otherSchedulesProgress,
+    await this.executionValidator.validatePointByPointExecution(
+      finalizationData,
+      executed,
       tx,
     );
+
+    // ALTERADO: a NotFoundException saiu do repositório.
+    const updated =
+      await this.worksServicesExecutionRepository.finalizeServices(
+        finalizationData,
+        tx,
+      );
+    if (!updated) {
+      throw new NotFoundException(
+        `Agendamento com ID ${finalizationData.id} não encontrado`,
+      );
+    }
+
+    // Fonte única: recalcula prog/exec de TODAS as programações e o executado da obra.
+    await this.progress.recomputeWorkProgress(workId, tx); // ALTERADO
+  }
+
+  private validatePerformPayload(data: PerformServicesDTO[]): void {
+    if (!Array.isArray(data)) {
+      throw new BadRequestException('Lista de serviços realizados inválida.');
+    }
+
+    const seen = new Set<string>();
+
+    for (const item of data) {
+      if (!Number.isFinite(item?.id) || !Number.isFinite(item?.idSchedule)) {
+        throw new BadRequestException(
+          'Serviço e programação devem ser informados.',
+        );
+      }
+
+      // real = 0 é válido: significa item DESCARTADO (regra 1).
+      if (!Number.isFinite(item.qtdeRealizada) || item.qtdeRealizada < 0) {
+        console.log(item.qtdeRealizada);
+        throw new BadRequestException(
+          'A quantidade realizada deve ser um número maior ou igual a zero.',
+        );
+      }
+
+      const key = `${item.idSchedule}-${item.id}`;
+
+      if (seen.has(key)) {
+        throw new BadRequestException(
+          `O item ${item.id} foi enviado mais de uma vez na programação ${item.idSchedule}.`,
+        );
+      }
+
+      seen.add(key);
+    }
   }
 }

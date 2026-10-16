@@ -7,6 +7,11 @@ import {
   mockExecutionReportPersistenceObject,
   mockExecutionReportRepository,
 } from '../../../test/mocks/mocksExecutionReport';
+import { Prisma } from '@prisma/client';
+import {
+  ScheduleStatus,
+  WorkStatus,
+} from 'src/utils/pointByPoint/serviceType.utils';
 
 describe('ExecutionReportRepository', () => {
   let repository: ExecutionReportRepository;
@@ -28,6 +33,22 @@ describe('ExecutionReportRepository', () => {
     relatorio_execucao: {
       create: jest.fn(),
       findFirst: jest.fn(),
+      delete: jest.fn(), // deleteReport
+    },
+    programacoes: {
+      findUnique: jest.fn(), // findScheduleWorkMode
+      update: jest.fn(), // resetScheduleExecution
+      aggregate: jest.fn(), // sumWorkSchedulesExec
+    },
+    programacoes_servicos: {
+      findMany: jest.fn(), // findScheduledServiceIds
+      updateMany: jest.fn(), // resetScheduleExecution
+    },
+    servicos: {
+      updateMany: jest.fn(), // clearServicesReal
+    },
+    obras: {
+      update: jest.fn(), // updateWorkStatusAfterReset
     },
   } as any;
 
@@ -256,76 +277,366 @@ describe('ExecutionReportRepository', () => {
     });
   });
 
-  describe('delete', () => {
-    it('Should call delete method and delete item', async () => {
-      const tx = {
-        programacoes: {
-          findUnique: jest.fn().mockResolvedValue({
-            exec: 20,
-            id_obra: 1,
-          }),
-          update: jest.fn(),
-          aggregate: jest.fn().mockResolvedValue({
-            _sum: {
-              exec: 80,
-            },
-          }),
-        },
-        obras: {
-          update: jest.fn(),
-        },
-        relatorio_execucao: {
-          delete: jest.fn(),
-        },
-        programacoes_servicos: {
-          updateMany: jest.fn(),
-        },
-        servicos: {
-          updateMany: jest.fn(),
-        },
+  describe('deleteReport', () => {
+    const buildTx = () => ({
+      relatorio_execucao: {
+        delete: jest.fn().mockResolvedValue({ id: 1 }),
+      },
+    });
+
+    it('should delete the report using the transaction client', async () => {
+      const tx = buildTx();
+
+      await repository.deleteReport(
+        1,
+        tx as unknown as Prisma.TransactionClient,
+      );
+
+      expect(tx.relatorio_execucao.delete).toHaveBeenCalledTimes(1);
+      expect(tx.relatorio_execucao.delete).toHaveBeenCalledWith({
+        where: { id: 1 },
+      });
+      // o repositório não abre transação própria
+      expect(mockPrisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('should propagate errors from prisma', async () => {
+      const tx = buildTx();
+      tx.relatorio_execucao.delete.mockRejectedValueOnce(
+        new Error('Record not found'),
+      );
+
+      await expect(
+        repository.deleteReport(1, tx as unknown as Prisma.TransactionClient),
+      ).rejects.toThrow('Record not found');
+    });
+  });
+
+  // ─── Fluxo de exclusão do relatório ──────────────────────────────────
+  describe('findScheduleWorkMode', () => {
+    it('should find the schedule with its work id and work mode', async () => {
+      const schedule = {
+        id_obra: 10,
+        obras: { programacao_ponto_a_ponto: true },
       };
+      mockTransaction.programacoes.findUnique.mockResolvedValueOnce(schedule);
 
-      mockPrisma.$transaction.mockImplementation(async (cb) => {
-        return cb(tx);
-      });
+      const result = await repository.findScheduleWorkMode(3, mockTransaction);
 
-      await repository.delete(1, 3);
-
-      expect(tx.programacoes.findUnique).toHaveBeenCalledWith({
+      expect(mockTransaction.programacoes.findUnique).toHaveBeenCalledTimes(1);
+      expect(mockTransaction.programacoes.findUnique).toHaveBeenCalledWith({
         where: { id: 3 },
-        select: { exec: true, id_obra: true },
+        select: {
+          id_obra: true,
+          obras: { select: { programacao_ponto_a_ponto: true } },
+        },
       });
+      expect(result).toEqual(schedule);
+    });
 
-      expect(tx.programacoes_servicos.updateMany).toHaveBeenCalledWith({
+    it('should return null when the schedule does not exist', async () => {
+      mockTransaction.programacoes.findUnique.mockResolvedValueOnce(null);
+
+      await expect(
+        repository.findScheduleWorkMode(999, mockTransaction),
+      ).resolves.toBeNull();
+    });
+
+    it('should propagate prisma errors', async () => {
+      mockTransaction.programacoes.findUnique.mockRejectedValueOnce(
+        new Error('db down'),
+      );
+
+      await expect(
+        repository.findScheduleWorkMode(3, mockTransaction),
+      ).rejects.toThrow('db down');
+    });
+  });
+
+  describe('findScheduledServiceIds', () => {
+    it('should query distinct service ids of the schedule', async () => {
+      mockTransaction.programacoes_servicos.findMany.mockResolvedValueOnce([]);
+
+      await repository.findScheduledServiceIds(3, mockTransaction);
+
+      expect(
+        mockTransaction.programacoes_servicos.findMany,
+      ).toHaveBeenCalledWith({
+        where: { id_programacao: 3 },
+        select: { id_servico: true },
+        distinct: ['id_servico'],
+      });
+    });
+
+    it('should map the rows to a list of ids, keeping the order', async () => {
+      mockTransaction.programacoes_servicos.findMany.mockResolvedValueOnce([
+        { id_servico: 5 },
+        { id_servico: 2 },
+        { id_servico: 9 },
+      ]);
+
+      const result = await repository.findScheduledServiceIds(
+        3,
+        mockTransaction,
+      );
+
+      expect(result).toEqual([5, 2, 9]);
+    });
+
+    it('should return an empty array when the schedule has no items', async () => {
+      mockTransaction.programacoes_servicos.findMany.mockResolvedValueOnce([]);
+
+      await expect(
+        repository.findScheduledServiceIds(3, mockTransaction),
+      ).resolves.toEqual([]);
+    });
+  });
+
+  describe('resetScheduleExecution', () => {
+    it('should clear real of every schedule item', async () => {
+      await repository.resetScheduleExecution(
+        3,
+        ScheduleStatus.CONFIRMADA,
+        mockTransaction,
+      );
+
+      expect(
+        mockTransaction.programacoes_servicos.updateMany,
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        mockTransaction.programacoes_servicos.updateMany,
+      ).toHaveBeenCalledWith({
         where: { id_programacao: 3 },
         data: { real: null },
       });
+    });
 
-      expect(tx.servicos.updateMany).toHaveBeenCalledWith({
-        where: { id_programacao: 3 },
+    it('should clear exec and set the given status on the schedule', async () => {
+      await repository.resetScheduleExecution(
+        3,
+        ScheduleStatus.CONFIRMADA,
+        mockTransaction,
+      );
+
+      expect(mockTransaction.programacoes.update).toHaveBeenCalledTimes(1);
+      expect(mockTransaction.programacoes.update).toHaveBeenCalledWith({
+        where: { id: 3 },
+        data: { exec: null, id_status_programacao: ScheduleStatus.CONFIRMADA },
+      });
+    });
+
+    it('should use the status received as parameter (not a fixed value)', async () => {
+      await repository.resetScheduleExecution(
+        3,
+        ScheduleStatus.REAGENDADA,
+        mockTransaction,
+      );
+
+      const [{ data }] = mockTransaction.programacoes.update.mock.calls[0];
+      expect(data.id_status_programacao).toBe(ScheduleStatus.REAGENDADA);
+    });
+
+    it('should use only the transaction client', async () => {
+      await repository.resetScheduleExecution(
+        3,
+        ScheduleStatus.CONFIRMADA,
+        mockTransaction,
+      );
+
+      expect(mockPrisma.programacoes.update).not.toHaveBeenCalled();
+      expect(mockPrisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('should resolve with undefined', async () => {
+      await expect(
+        repository.resetScheduleExecution(
+          3,
+          ScheduleStatus.CONFIRMADA,
+          mockTransaction,
+        ),
+      ).resolves.toBeUndefined();
+    });
+
+    it('should reject if the schedule update fails (both calls are fired by Promise.all)', async () => {
+      mockTransaction.programacoes.update.mockRejectedValueOnce(
+        Object.assign(new Error('not found'), { code: 'P2025' }),
+      );
+
+      await expect(
+        repository.resetScheduleExecution(
+          3,
+          ScheduleStatus.CONFIRMADA,
+          mockTransaction,
+        ),
+      ).rejects.toThrow('not found');
+      expect(
+        mockTransaction.programacoes_servicos.updateMany,
+      ).toHaveBeenCalled();
+    });
+
+    it('should reject if the items update fails', async () => {
+      mockTransaction.programacoes_servicos.updateMany.mockRejectedValueOnce(
+        new Error('db down'),
+      );
+
+      await expect(
+        repository.resetScheduleExecution(
+          3,
+          ScheduleStatus.CONFIRMADA,
+          mockTransaction,
+        ),
+      ).rejects.toThrow('db down');
+    });
+  });
+
+  describe('clearServicesReal', () => {
+    it('should set qtde_real to null for the given services', async () => {
+      await repository.clearServicesReal([2, 5], mockTransaction);
+
+      expect(mockTransaction.servicos.updateMany).toHaveBeenCalledTimes(1);
+      expect(mockTransaction.servicos.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: [2, 5] } },
         data: { qtde_real: null },
       });
+    });
 
-      expect(tx.programacoes.update).toHaveBeenCalledWith({
-        where: { id: 3 },
-        data: {
-          exec: null,
-          id_status_programacao: 3,
-        },
+    it('should still query with an empty list (current behaviour)', async () => {
+      await repository.clearServicesReal([], mockTransaction);
+
+      expect(mockTransaction.servicos.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: [] } },
+        data: { qtde_real: null },
+      });
+    });
+
+    it('should propagate prisma errors', async () => {
+      mockTransaction.servicos.updateMany.mockRejectedValueOnce(
+        new Error('db down'),
+      );
+
+      await expect(
+        repository.clearServicesReal([2], mockTransaction),
+      ).rejects.toThrow('db down');
+    });
+  });
+
+  describe('sumWorkSchedulesExec', () => {
+    it('should aggregate exec of the work schedules ignoring null exec', async () => {
+      mockTransaction.programacoes.aggregate.mockResolvedValueOnce({
+        _sum: { exec: 80 },
       });
 
-      expect(tx.obras.update).toHaveBeenCalledWith({
-        where: { id: 1 },
+      await repository.sumWorkSchedulesExec(10, mockTransaction);
+
+      expect(mockTransaction.programacoes.aggregate).toHaveBeenCalledWith({
+        where: { id_obra: 10, exec: { not: null } },
+        _sum: { exec: true },
+      });
+    });
+
+    it.each([
+      [80, 80],
+      [12.5, 12.5],
+      [0, 0],
+    ])('should return the sum (%p → %p)', async (sum, expected) => {
+      mockTransaction.programacoes.aggregate.mockResolvedValueOnce({
+        _sum: { exec: sum },
+      });
+
+      await expect(
+        repository.sumWorkSchedulesExec(10, mockTransaction),
+      ).resolves.toBe(expected);
+    });
+
+    it('should return 0 when no schedule has exec (_sum.exec = null)', async () => {
+      mockTransaction.programacoes.aggregate.mockResolvedValueOnce({
+        _sum: { exec: null },
+      });
+
+      await expect(
+        repository.sumWorkSchedulesExec(10, mockTransaction),
+      ).resolves.toBe(0);
+    });
+
+    it('should propagate prisma errors', async () => {
+      mockTransaction.programacoes.aggregate.mockRejectedValueOnce(
+        new Error('db down'),
+      );
+
+      await expect(
+        repository.sumWorkSchedulesExec(10, mockTransaction),
+      ).rejects.toThrow('db down');
+    });
+  });
+
+  describe('updateWorkStatusAfterReset', () => {
+    it('should set status, clear conclusion date and set executed', async () => {
+      await repository.updateWorkStatusAfterReset(
+        10,
+        { status: WorkStatus.CONFIRMADA, executed: 80 },
+        mockTransaction,
+      );
+
+      expect(mockTransaction.obras.update).toHaveBeenCalledTimes(1);
+      expect(mockTransaction.obras.update).toHaveBeenCalledWith({
+        where: { id: 10 },
         data: {
-          id_status: 35,
+          id_status: WorkStatus.CONFIRMADA,
           data_conclusao: null,
           executado: 80,
         },
       });
+    });
 
-      expect(tx.relatorio_execucao.delete).toHaveBeenCalledWith({
-        where: { id: 1 },
+    it('should not write executado when executed is not sent (point-by-point flow)', async () => {
+      await repository.updateWorkStatusAfterReset(
+        10,
+        { status: WorkStatus.CONFIRMADA },
+        mockTransaction,
+      );
+
+      const [{ data }] = mockTransaction.obras.update.mock.calls[0];
+      expect(data).toEqual({
+        id_status: WorkStatus.CONFIRMADA,
+        data_conclusao: null,
       });
+      expect(data).not.toHaveProperty('executado');
+    });
+
+    it('should write executado = 0 (0 is not treated as missing)', async () => {
+      await repository.updateWorkStatusAfterReset(
+        10,
+        { status: WorkStatus.CONFIRMADA, executed: 0 },
+        mockTransaction,
+      );
+
+      const [{ data }] = mockTransaction.obras.update.mock.calls[0];
+      expect(data.executado).toBe(0);
+    });
+
+    it('should always clear data_conclusao', async () => {
+      await repository.updateWorkStatusAfterReset(
+        10,
+        { status: WorkStatus.SERVICOS_REAGENDADOS, executed: 50 },
+        mockTransaction,
+      );
+
+      const [{ data }] = mockTransaction.obras.update.mock.calls[0];
+      expect(data.data_conclusao).toBeNull();
+      expect(data.id_status).toBe(WorkStatus.SERVICOS_REAGENDADOS);
+    });
+
+    it('should propagate P2025 when the work does not exist', async () => {
+      const error = Object.assign(new Error('not found'), { code: 'P2025' });
+      mockTransaction.obras.update.mockRejectedValueOnce(error);
+
+      await expect(
+        repository.updateWorkStatusAfterReset(
+          10,
+          { status: WorkStatus.CONFIRMADA },
+          mockTransaction,
+        ),
+      ).rejects.toBe(error);
     });
   });
 });

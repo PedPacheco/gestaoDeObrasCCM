@@ -55,13 +55,13 @@ export const links: Link[] = [
   {
     name: "Relatórios",
     href: null,
-    allowedFor: ["interno_editor", "interno_viewer"],
+    allowedFor: ["interno_editor", "interno_viewer", "parceira"],
     allowedAreas: [8, 1, 7],
     submenu: [
       {
         name: "Exportações",
         href: "/relatorios/exportacoes",
-        allowedFor: ["interno_editor", "interno_viewer"],
+        allowedFor: ["interno_editor", "interno_viewer", "parceira"],
         allowedAreas: [8, 1, 7],
       },
       {
@@ -210,6 +210,12 @@ export const links: Link[] = [
         allowedFor: ["interno_editor", "interno_viewer", "parceira"],
         allowedAreas: [8, 1, 2, 3, 4, 5, 6, 7, 9],
       },
+      {
+        name: "Programações notas D5",
+        href: "/programacao/notas-d5",
+        allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+        allowedAreas: [8, 1, 9],
+      },
     ],
   },
   {
@@ -251,9 +257,20 @@ export const links: Link[] = [
     allowedAreas: [8, 1, 9],
   },
   {
+    name: "Notas D5",
+    href: "/notas-d5",
+    allowedFor: ["interno_editor", "interno_viewer", "parceira"],
+    allowedAreas: [8, 1],
+  },
+  {
     name: "Capacidade de execução",
     href: "/capacidade-execucao",
     allowedFor: ["interno_editor", "interno_viewer", "parceira"],
     allowedAreas: [8, 1],
+  },
+  {
+    name: "Usuários",
+    href: "/usuarios",
+    allowedFor: ["admin"],
   },
 ];

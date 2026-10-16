@@ -1,0 +1,1392 @@
+import { D5NoteScheduleMapper } from 'src/application/mappers/d5NotesScheduleMapper';
+import { D5NoteSchedule } from 'src/domain/entities/schedules/d5NotesSchedule.entity';
+import {
+  CreateProgramacaoD5Dto,
+  UpdateScheduleD5Dto,
+} from 'src/interface/dtos/d5NotesDTO';
+import { parseTimeToDate } from 'src/utils/parseTimeToDate';
+
+import { BadRequestException } from '@nestjs/common';
+import moment, { Moment } from 'moment';
+import { FindRejectionsByD5NotesQueryResult } from 'src/interface/types/d5notes/types';
+
+// ---------------------------------------------------------------------------
+// Mocks de colaboradores
+// ---------------------------------------------------------------------------
+jest.mock('src/domain/entities/schedules/d5NotesSchedule.entity', () => ({
+  D5NoteSchedule: { create: jest.fn() },
+}));
+
+jest.mock('src/utils/parseTimeToDate', () => ({
+  parseTimeToDate: jest.fn(),
+}));
+
+const entity = D5NoteSchedule as jest.Mocked<typeof D5NoteSchedule>;
+const parseTime = parseTimeToDate as jest.MockedFunction<
+  typeof parseTimeToDate
+>;
+
+// ---------------------------------------------------------------------------
+// Factories
+// ---------------------------------------------------------------------------
+const CURRENT_DATE = new Date('2026-02-10T00:00:00.000Z');
+const CURRENT_START = new Date('2026-02-10T08:00:00.000Z');
+const CURRENT_FINISH = new Date('2026-02-10T17:00:00.000Z');
+
+const makeCurrent = (overrides: Record<string, any> = {}) => {
+  const publicProps = {
+    id: 1,
+    d5NoteId: 10,
+    creatorUserId: 7,
+    modifyingUserId: 7,
+    filePaths: ['antigo.pdf'],
+    dataProg: CURRENT_DATE,
+    prog: 50,
+    exec: 40,
+    observation: 'obs atual',
+    ...overrides,
+  };
+
+  return {
+    ...publicProps,
+    startTime: CURRENT_START,
+    finishTime: CURRENT_FINISH,
+    idTechnical: 3,
+    idExecutionRestriction: 2,
+    responsibility: 'Equipa atual',
+    toPublicProps: jest.fn().mockReturnValue(publicProps),
+  } as unknown as D5NoteSchedule;
+};
+
+const makeContext = (overrides: Record<string, any> = {}) => ({
+  id: 1,
+  d5NoteId: 10,
+  creatorUserId: 7,
+  modifyingUserId: 20,
+  filePaths: ['antigo.pdf', 'novo.pdf'],
+  current: makeCurrent(),
+  ...overrides,
+});
+
+/** Linha de persistência para toDomain. */
+const makeRow = (overrides: Record<string, any> = {}) => ({
+  id: 1,
+  id_nota_d5: 10,
+  id_usuario_criador: 7,
+  id_usuario_modificador: 20,
+  caminhos_arquivos: ['a.pdf'],
+  data_prog: CURRENT_DATE,
+  prog: 50,
+  exec: 40,
+  hora_ini: CURRENT_START,
+  hora_ter: CURRENT_FINISH,
+  observacao_programacao: 'obs',
+  observacao_execucao: 'exec obs',
+  num_dp: '12345678',
+  tipo_servico: 'DP',
+  chi: 5,
+  equipe_lv: 1,
+  equipe_lm: 2,
+  equipe_reg: 3,
+  chave_provisoria: false,
+  id_tecnico: 4,
+  id_restricao: 6,
+  responsavel_restricao: 'Equipa A',
+  ...overrides,
+});
+
+/** Entidade já construída, para os mapeamentos de persistência. */
+const makeEntity = (overrides: Record<string, any> = {}) =>
+  ({
+    d5NoteId: 10,
+    creatorUserId: 7,
+    modifyingUserId: 20,
+    filePaths: ['a.pdf'],
+    dataProg: CURRENT_DATE,
+    prog: 50,
+    exec: 40,
+    startTime: CURRENT_START,
+    finishTime: CURRENT_FINISH,
+    observation: 'obs',
+    executionObservation: 'exec obs',
+    numDp: '12345678',
+    serviceType: 'DP',
+    chi: 5,
+    lvTeam: 1,
+    lmTeam: 2,
+    regulTeam: 3,
+    temporaryKey: false,
+    idTechnical: 4,
+    idExecutionRestriction: 6,
+    responsibility: 'Equipa A',
+    ...overrides,
+  }) as unknown as D5NoteSchedule;
+
+const makeResponseRow = (overrides: Record<string, any> = {}) => ({
+  id: 1,
+  prog: 50,
+  tecnicos: { id: 4, tecnico: 'João' },
+  restricoes: { id: 6, restricao: 'Chuva' },
+  usuario_criador: { nome: 'Ana' },
+  usuario_modificador: { nome: 'Bruno' },
+  ...overrides,
+});
+
+const makeListRow = (overrides: Record<string, any> = {}) => {
+  const { notas_d5: notasOverrides, ...topLevelOverrides } = overrides;
+
+  return {
+    id_prog: 99,
+    prog: 50,
+    tecnicos: { tecnico: 'João' },
+    ...topLevelOverrides,
+    notas_d5: {
+      id: 10,
+      nota_d5: 'D5-001',
+      local_instalacao: 'LI-1',
+      criado_em: CURRENT_DATE,
+      conclusao_nota: null,
+      status_sap: 'ABERTA',
+      validacao_anual: true,
+      mo_planejada: { toNumber: () => 12.5 },
+      municipios: {
+        mun_minusculo: 'Cascais',
+        regionais: { regional: 'Sul' },
+      },
+      tipos: { tipo_obra: 'Ampliação' },
+      turmas: { turma: 'Parceira A' },
+      status: { status: 'Em curso' },
+      novo_tabela_usuarios: { nome: 'Ana' },
+      obras: { ovnota: 'OV-1', diagrama: 'DIAG-1' },
+      ...notasOverrides,
+    },
+  };
+};
+
+/**
+ * Programação de origem para toRejectionSnapshot. Inclui campos que NÃO
+ * fazem parte do snapshot (id, exec, id_tecnico, caminhos_arquivos) para
+ * garantir que não vazam para o resultado.
+ */
+const makeRejectionSource = (overrides: Record<string, any> = {}) => ({
+  id: 1,
+  id_nota_d5: 10,
+  data_prog: CURRENT_DATE,
+  prog: 50,
+  exec: 40,
+  hora_ini: CURRENT_START,
+  hora_ter: CURRENT_FINISH,
+  equipe_lm: 2,
+  equipe_lv: 1,
+  equipe_reg: 3,
+  chave_provisoria: false,
+  chi: 5,
+  num_dp: '12345678',
+  tipo_servico: 'DP',
+  observacao_programacao: 'obs',
+  id_tecnico: 4,
+  caminhos_arquivos: ['a.pdf'],
+  ...overrides,
+});
+
+const makeRejectionRow = (
+  overrides: Partial<FindRejectionsByD5NotesQueryResult> = {},
+): FindRejectionsByD5NotesQueryResult => ({
+  id: 1,
+  data_reprovacao: new Date('2026-10-16T13:45:00.000Z'),
+  data_prog: new Date('2026-10-20T00:00:00.000Z'),
+  hora_ini: new Date('1970-01-01T08:00:00.000Z'), // @db.Time
+  hora_ter: new Date('1970-01-01T17:00:00.000Z'),
+  prog: 50,
+  descricao: 'Falta de material em obra',
+  tipo_servico: 'Manutenção',
+  chave_provisoria: false,
+  chi: 12,
+  num_dp: '12345678',
+  observacao_programacao: 'Observação de teste',
+  equipe_lm: 2,
+  equipe_lv: 1,
+  equipe_reg: 0,
+  restricoes: { restricao: 'Falta de material' },
+  novo_tabela_usuarios: { nome: 'João Silva' },
+  ...overrides,
+});
+
+// Acesso aos auxiliares privados
+const parseScheduledDate = (value?: string) =>
+  (D5NoteScheduleMapper as any).parseScheduledDate(value);
+
+const stripUndefined = (obj: Record<string, any>) =>
+  (D5NoteScheduleMapper as any).stripUndefined(obj);
+
+const toCommonColumns = (e: D5NoteSchedule) =>
+  (D5NoteScheduleMapper as any).toCommonColumns(e);
+
+const calculateTM = (initialDate: Moment, executionDate: Moment | null) =>
+  (D5NoteScheduleMapper as any).calculateTM(initialDate, executionDate);
+
+const requiresDP = (numDp?: string | null, serviceType?: string | null) =>
+  (D5NoteScheduleMapper as any).requiresDP(numDp, serviceType);
+
+describe('D5NoteScheduleMapper', () => {
+  beforeEach(() => {
+    parseTime.mockImplementation(
+      (value: any) =>
+        (value ? new Date(`2026-02-10T${value}:00.000Z`) : undefined) as any,
+    );
+    jest.useFakeTimers().setSystemTime(new Date('2026-10-07T15:30:00'));
+    entity.create.mockReturnValue({ built: true } as any);
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+    jest.useRealTimers();
+  });
+
+  // =========================================================================
+  // fromCreateInput
+  // =========================================================================
+  describe('fromCreateInput', () => {
+    const dto = {
+      scheduledDate: '2026-02-10',
+      startTime: '08:00',
+      endTime: '17:00',
+      technicalId: 4,
+      restrictionId: 6,
+      restrictionResponsible: 'Equipa A',
+      prog: 50,
+      observation: 'obs',
+    } as unknown as CreateProgramacaoD5Dto;
+
+    it('deve renomear os campos do DTO para o vocabulário de domínio', () => {
+      const props = D5NoteScheduleMapper.fromCreateInput(dto);
+
+      expect(props).toMatchObject({
+        idTechnical: 4,
+        idExecutionRestriction: 6,
+        responsibility: 'Equipa A',
+        prog: 50,
+        observation: 'obs',
+      });
+    });
+
+    it('não deve propagar as chaves originais do DTO', () => {
+      const props = D5NoteScheduleMapper.fromCreateInput(dto) as any;
+
+      expect(props).not.toHaveProperty('scheduledDate');
+      expect(props).not.toHaveProperty('startTime.raw');
+      expect(props).not.toHaveProperty('technicalId');
+      expect(props).not.toHaveProperty('restrictionId');
+      expect(props).not.toHaveProperty('restrictionResponsible');
+      expect(props).not.toHaveProperty('endTime');
+    });
+
+    it('deve converter os horários através do parseTimeToDate', () => {
+      D5NoteScheduleMapper.fromCreateInput(dto);
+
+      expect(parseTime).toHaveBeenCalledWith('08:00');
+      expect(parseTime).toHaveBeenCalledWith('17:00');
+      expect(parseTime).toHaveBeenCalledTimes(2);
+    });
+
+    it('deve inicializar filePaths vazio (upload só no update)', () => {
+      expect(D5NoteScheduleMapper.fromCreateInput(dto).filePaths).toEqual([]);
+    });
+
+    it('deve converter scheduledDate para Date', () => {
+      const props = D5NoteScheduleMapper.fromCreateInput(dto);
+
+      expect(props.dataProg).toBeInstanceOf(Date);
+      expect(props.dataProg.toISOString()).toBe('2026-02-10T00:00:00.000Z');
+    });
+
+    it('deve devolver dataProg undefined quando a data é omitida', () => {
+      const props = D5NoteScheduleMapper.fromCreateInput({
+        ...dto,
+        scheduledDate: undefined,
+      } as any);
+
+      expect(props.dataProg).toBeUndefined();
+    });
+
+    it('deve rejeitar uma data inválida', () => {
+      expect(() =>
+        D5NoteScheduleMapper.fromCreateInput({
+          ...dto,
+          scheduledDate: 'data-invalida',
+        } as any),
+      ).toThrow(BadRequestException);
+    });
+
+    it('deve preservar os campos comuns não renomeados', () => {
+      const props = D5NoteScheduleMapper.fromCreateInput({
+        ...dto,
+        chi: 9,
+        numDp: '12345678',
+      } as any);
+
+      expect(props).toMatchObject({ chi: 9, numDp: '12345678' });
+    });
+  });
+
+  // =========================================================================
+  // fromUpdateInput
+  // =========================================================================
+  describe('fromUpdateInput', () => {
+    const dto = {} as unknown as UpdateScheduleD5Dto;
+
+    it('deve partir das props atuais da entidade', () => {
+      const context = makeContext();
+
+      const props = D5NoteScheduleMapper.fromUpdateInput(dto, context);
+
+      expect(context.current.toPublicProps).toHaveBeenCalledTimes(1);
+      expect(props).toMatchObject({ prog: 50, observation: 'obs atual' });
+    });
+
+    it('deve impor os valores do contexto sobre o DTO', () => {
+      const props = D5NoteScheduleMapper.fromUpdateInput(
+        { id: 999, d5NoteId: 999, filePaths: ['x'] } as any,
+        makeContext(),
+      );
+
+      expect(props).toMatchObject({
+        id: 1,
+        d5NoteId: 10,
+        creatorUserId: 7,
+        modifyingUserId: 20,
+        filePaths: ['antigo.pdf', 'novo.pdf'],
+      });
+    });
+
+    it('deve descartar keptFiles (resolvido pelo caso de uso)', () => {
+      const props = D5NoteScheduleMapper.fromUpdateInput(
+        { keptFiles: ['a.pdf'] } as any,
+        makeContext(),
+      );
+
+      expect(props).not.toHaveProperty('keptFiles');
+    });
+
+    it('deve ignorar as chaves undefined do DTO (stripUndefined)', () => {
+      const props = D5NoteScheduleMapper.fromUpdateInput(
+        { observation: undefined, prog: undefined } as any,
+        makeContext(),
+      );
+
+      // valores atuais preservados
+      expect(props.observation).toBe('obs atual');
+      expect(props.prog).toBe(50);
+    });
+
+    it('deve aplicar os valores informados no DTO', () => {
+      const props = D5NoteScheduleMapper.fromUpdateInput(
+        { observation: 'nova obs', prog: 80 } as any,
+        makeContext(),
+      );
+
+      expect(props).toMatchObject({ observation: 'nova obs', prog: 80 });
+    });
+
+    it('deve permitir limpar um campo com null', () => {
+      const props = D5NoteScheduleMapper.fromUpdateInput(
+        { observation: null } as any,
+        makeContext(),
+      );
+
+      // null não é undefined: sobrevive ao stripUndefined
+      expect(props.observation).toBeNull();
+    });
+
+    describe('dataProg', () => {
+      it('deve usar a nova data quando informada', () => {
+        const props = D5NoteScheduleMapper.fromUpdateInput(
+          { scheduledDate: '2026-03-01' } as any,
+          makeContext(),
+        );
+
+        expect(props.dataProg.toISOString()).toBe('2026-03-01T00:00:00.000Z');
+      });
+
+      it('deve manter a data atual quando omitida', () => {
+        const props = D5NoteScheduleMapper.fromUpdateInput(dto, makeContext());
+
+        expect(props.dataProg).toBe(CURRENT_DATE);
+      });
+
+      it('deve rejeitar uma data inválida', () => {
+        expect(() =>
+          D5NoteScheduleMapper.fromUpdateInput(
+            { scheduledDate: 'xpto' } as any,
+            makeContext(),
+          ),
+        ).toThrow('Data de programação inválida');
+      });
+    });
+
+    describe('horários', () => {
+      it('deve converter startTime quando informado', () => {
+        const props = D5NoteScheduleMapper.fromUpdateInput(
+          { startTime: '09:00' } as any,
+          makeContext(),
+        );
+
+        expect(parseTime).toHaveBeenCalledWith('09:00');
+        expect(props.startTime).toEqual(new Date('2026-02-10T09:00:00.000Z'));
+      });
+
+      it('deve manter o startTime atual quando omitido', () => {
+        const props = D5NoteScheduleMapper.fromUpdateInput(dto, makeContext());
+
+        expect(props.startTime).toBe(CURRENT_START);
+        expect(parseTime).not.toHaveBeenCalled();
+      });
+
+      it('deve converter endTime quando informado', () => {
+        const props = D5NoteScheduleMapper.fromUpdateInput(
+          { endTime: '18:00' } as any,
+          makeContext(),
+        );
+
+        expect(props.finishTime).toEqual(new Date('2026-02-10T18:00:00.000Z'));
+      });
+
+      it('deve manter o finishTime atual quando omitido', () => {
+        expect(
+          D5NoteScheduleMapper.fromUpdateInput(dto, makeContext()).finishTime,
+        ).toBe(CURRENT_FINISH);
+      });
+
+      it('deve permitir limpar um horário com null', () => {
+        parseTime.mockReturnValue(null as any);
+
+        const props = D5NoteScheduleMapper.fromUpdateInput(
+          { startTime: null } as any,
+          makeContext(),
+        );
+
+        // null !== undefined: entra no parse
+        expect(parseTime).toHaveBeenCalledWith(null);
+        expect(props.startTime).toBeNull();
+      });
+    });
+
+    describe('fallbacks de técnico e restrição', () => {
+      it.each([
+        ['technicalId', 'idTechnical', 9, 3],
+        ['restrictionId', 'idExecutionRestriction', 8, 2],
+      ])(
+        'deve usar %s quando informado e o valor atual quando não',
+        (dtoKey, propKey, novo, atual) => {
+          const comValor = D5NoteScheduleMapper.fromUpdateInput(
+            { [dtoKey]: novo } as any,
+            makeContext(),
+          );
+          const semValor = D5NoteScheduleMapper.fromUpdateInput(
+            dto,
+            makeContext(),
+          );
+
+          expect((comValor as any)[propKey]).toBe(novo);
+          expect((semValor as any)[propKey]).toBe(atual);
+        },
+      );
+
+      it('deve usar restrictionResponsible quando informado', () => {
+        const props = D5NoteScheduleMapper.fromUpdateInput(
+          { restrictionResponsible: 'Nova equipa' } as any,
+          makeContext(),
+        );
+
+        expect(props.responsibility).toBe('Nova equipa');
+      });
+
+      it('deve manter o responsável atual quando omitido', () => {
+        expect(
+          D5NoteScheduleMapper.fromUpdateInput(dto, makeContext())
+            .responsibility,
+        ).toBe('Equipa atual');
+      });
+
+      it('deve substituir valores null pelos atuais (operador ??)', () => {
+        const props = D5NoteScheduleMapper.fromUpdateInput(
+          { technicalId: null, restrictionResponsible: null } as any,
+          makeContext(),
+        );
+
+        expect(props.idTechnical).toBe(3);
+        expect(props.responsibility).toBe('Equipa atual');
+      });
+    });
+
+    it('deve preservar creatorUserId undefined vindo do contexto', () => {
+      const props = D5NoteScheduleMapper.fromUpdateInput(
+        dto,
+        makeContext({ creatorUserId: undefined }),
+      );
+
+      expect(props.creatorUserId).toBeUndefined();
+    });
+  });
+
+  // =========================================================================
+  // toDomain
+  // =========================================================================
+  describe('toDomain', () => {
+    it('deve traduzir as colunas para o vocabulário de domínio', () => {
+      D5NoteScheduleMapper.toDomain(makeRow() as any);
+
+      expect(entity.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 1,
+          d5NoteId: 10,
+          creatorUserId: 7,
+          modifyingUserId: 20,
+          filePaths: ['a.pdf'],
+          dataProg: CURRENT_DATE,
+          prog: 50,
+          exec: 40,
+          startTime: CURRENT_START,
+          finishTime: CURRENT_FINISH,
+          observation: 'obs',
+          executionObservation: 'exec obs',
+          numDp: '12345678',
+          serviceType: 'DP',
+          chi: 5,
+          lvTeam: 1,
+          lmTeam: 2,
+          regulTeam: 3,
+          temporaryKey: false,
+          idTechnical: 4,
+          idExecutionRestriction: 6,
+          responsibility: 'Equipa A',
+        }),
+      );
+    });
+
+    it('deve devolver a entidade construída', () => {
+      const built = { id: 1 } as any;
+      entity.create.mockReturnValue(built);
+
+      expect(D5NoteScheduleMapper.toDomain(makeRow() as any)).toBe(built);
+    });
+
+    it.each([
+      ['null', null],
+      ['undefined', undefined],
+    ])('deve converter caminhos_arquivos %s em array vazio', (_l, value) => {
+      D5NoteScheduleMapper.toDomain(
+        makeRow({ caminhos_arquivos: value }) as any,
+      );
+
+      expect(entity.create).toHaveBeenCalledWith(
+        expect.objectContaining({ filePaths: [] }),
+      );
+    });
+
+    it('deve propagar os erros de validação da entidade', () => {
+      entity.create.mockImplementation(() => {
+        throw new BadRequestException('inválido');
+      });
+
+      expect(() => D5NoteScheduleMapper.toDomain(makeRow() as any)).toThrow(
+        'inválido',
+      );
+    });
+  });
+
+  // =========================================================================
+  // toPersistenceCreate / toPersistenceUpdate
+  // =========================================================================
+  describe('toPersistenceCreate', () => {
+    it('deve incluir a nota, o criador e o modificador', () => {
+      const data = D5NoteScheduleMapper.toPersistenceCreate(makeEntity());
+
+      expect(data).toMatchObject({
+        id_nota_d5: 10,
+        id_usuario_criador: 7,
+        id_usuario_modificador: 20,
+        data_prog: CURRENT_DATE,
+        prog: 50,
+        caminhos_arquivos: ['a.pdf'],
+      });
+    });
+
+    it('deve incluir todas as colunas comuns', () => {
+      const data = D5NoteScheduleMapper.toPersistenceCreate(makeEntity());
+
+      expect(Object.keys(data)).toEqual(
+        expect.arrayContaining(Object.keys(toCommonColumns(makeEntity()))),
+      );
+    });
+  });
+
+  describe('toPersistenceUpdate', () => {
+    it('não deve incluir a nota nem o criador (imutáveis)', () => {
+      const data = D5NoteScheduleMapper.toPersistenceUpdate(makeEntity());
+
+      expect(data).not.toHaveProperty('id_nota_d5');
+      expect(data).not.toHaveProperty('id_usuario_criador');
+      expect(data).toMatchObject({ id_usuario_modificador: 20 });
+    });
+
+    it('deve incluir as colunas comuns', () => {
+      expect(
+        D5NoteScheduleMapper.toPersistenceUpdate(makeEntity()),
+      ).toMatchObject(toCommonColumns(makeEntity()));
+    });
+  });
+
+  // =========================================================================
+  // toRejectionSnapshot
+  // =========================================================================
+  describe('toRejectionSnapshot', () => {
+    const context = {
+      reason: 'Falta de material',
+      description: 'Equipa sem material para executar o serviço',
+      rejectingUserId: 33,
+    };
+
+    it('deve traduzir a programação e o contexto para o snapshot de reprovação', () => {
+      const snapshot = D5NoteScheduleMapper.toRejectionSnapshot(
+        makeRejectionSource() as any,
+        context,
+      );
+
+      expect(snapshot).toEqual({
+        id_nota_d5: 10,
+        motivo: 'Falta de material',
+        descricao: 'Equipa sem material para executar o serviço',
+        data_prog: CURRENT_DATE,
+        prog: 50,
+        hora_ini: CURRENT_START,
+        hora_ter: CURRENT_FINISH,
+        equipe_lm: 2,
+        equipe_lv: 1,
+        equipe_reg: 3,
+        chave_provisoria: false,
+        chi: 5,
+        num_dp: '12345678',
+        tipo_servico: 'DP',
+        observacao_programacao: 'obs',
+        id_usuario_reprovador: 33,
+      });
+    });
+
+    it('deve obter motivo, descrição e reprovador do contexto, não da programação', () => {
+      const snapshot = D5NoteScheduleMapper.toRejectionSnapshot(
+        makeRejectionSource({
+          motivo: 'da programação',
+          descricao: 'da programação',
+          id_usuario_reprovador: 999,
+        }) as any,
+        context,
+      );
+
+      expect(snapshot.motivo).toBe('Falta de material');
+      expect(snapshot.descricao).toBe(
+        'Equipa sem material para executar o serviço',
+      );
+      expect(snapshot.id_usuario_reprovador).toBe(33);
+    });
+
+    it('deve manter o id_nota_d5 da programação', () => {
+      const snapshot = D5NoteScheduleMapper.toRejectionSnapshot(
+        makeRejectionSource({ id_nota_d5: 77 }) as any,
+        context,
+      );
+
+      expect(snapshot.id_nota_d5).toBe(77);
+    });
+
+    it('não deve vazar campos da programação que estão fora do snapshot', () => {
+      const snapshot = D5NoteScheduleMapper.toRejectionSnapshot(
+        makeRejectionSource() as any,
+        context,
+      );
+
+      expect(snapshot).not.toHaveProperty('id');
+      expect(snapshot).not.toHaveProperty('exec');
+      expect(snapshot).not.toHaveProperty('id_tecnico');
+      expect(snapshot).not.toHaveProperty('caminhos_arquivos');
+    });
+
+    it('deve expor exatamente as colunas esperadas do snapshot', () => {
+      const snapshot = D5NoteScheduleMapper.toRejectionSnapshot(
+        makeRejectionSource() as any,
+        context,
+      );
+
+      expect(Object.keys(snapshot).sort()).toEqual(
+        [
+          'id_nota_d5',
+          'motivo',
+          'descricao',
+          'data_prog',
+          'prog',
+          'hora_ini',
+          'hora_ter',
+          'equipe_lm',
+          'equipe_lv',
+          'equipe_reg',
+          'chave_provisoria',
+          'chi',
+          'num_dp',
+          'tipo_servico',
+          'observacao_programacao',
+          'id_usuario_reprovador',
+        ].sort(),
+      );
+    });
+
+    it('deve propagar valores null e undefined dos campos opcionais', () => {
+      const snapshot = D5NoteScheduleMapper.toRejectionSnapshot(
+        makeRejectionSource({
+          num_dp: null,
+          observacao_programacao: null,
+          chi: undefined,
+        }) as any,
+        context,
+      );
+
+      expect(snapshot.num_dp).toBeNull();
+      expect(snapshot.observacao_programacao).toBeNull();
+      expect(snapshot.chi).toBeUndefined();
+    });
+
+    it('não deve mutar a programação nem o contexto de entrada', () => {
+      const source = Object.freeze(makeRejectionSource());
+      const frozenContext = Object.freeze({ ...context });
+
+      expect(() =>
+        D5NoteScheduleMapper.toRejectionSnapshot(source as any, frozenContext),
+      ).not.toThrow();
+      expect(source).toEqual(makeRejectionSource());
+    });
+
+    it('deve devolver um novo objeto a cada chamada', () => {
+      const source = makeRejectionSource() as any;
+
+      const first = D5NoteScheduleMapper.toRejectionSnapshot(source, context);
+      const second = D5NoteScheduleMapper.toRejectionSnapshot(source, context);
+
+      expect(first).not.toBe(second);
+      expect(first).toEqual(second);
+    });
+  });
+
+  // =========================================================================
+  // toResponse / toResponseList
+  // =========================================================================
+  describe('toResponse', () => {
+    it('deve achatar as relações da linha', () => {
+      const result = D5NoteScheduleMapper.toResponse(makeResponseRow() as any);
+
+      expect(result).toMatchObject({
+        id: 1,
+        idTecnico: 4,
+        tecnico: 'João',
+        idRestricao: 6,
+        restricao: 'Chuva',
+        usuarioCriador: 'Ana',
+        usuarioModificador: 'Bruno',
+      });
+    });
+
+    it('deve remover as relações cruas do payload', () => {
+      const result = D5NoteScheduleMapper.toResponse(
+        makeResponseRow() as any,
+      ) as any;
+
+      expect(result).not.toHaveProperty('tecnicos');
+      expect(result).not.toHaveProperty('restricoes');
+      expect(result).not.toHaveProperty('usuario_criador');
+      expect(result).not.toHaveProperty('usuario_modificador');
+    });
+
+    it('deve devolver null para todas as relações ausentes', () => {
+      const result = D5NoteScheduleMapper.toResponse(
+        makeResponseRow({
+          tecnicos: null,
+          restricoes: null,
+          usuario_criador: null,
+          usuario_modificador: null,
+        }) as any,
+      );
+
+      expect(result).toMatchObject({
+        idTecnico: null,
+        tecnico: null,
+        idRestricao: null,
+        restricao: null,
+        usuarioCriador: null,
+        usuarioModificador: null,
+      });
+    });
+
+    it('deve devolver null quando a relação existe mas o campo é null', () => {
+      const result = D5NoteScheduleMapper.toResponse(
+        makeResponseRow({
+          tecnicos: { id: null, tecnico: null },
+          usuario_criador: { nome: null },
+        }) as any,
+      );
+
+      expect(result.idTecnico).toBeNull();
+      expect(result.tecnico).toBeNull();
+      expect(result.usuarioCriador).toBeNull();
+    });
+  });
+
+  describe('toResponseList', () => {
+    it('deve mapear todas as linhas', () => {
+      const result = D5NoteScheduleMapper.toResponseList([
+        makeResponseRow({ id: 1 }),
+        makeResponseRow({ id: 2 }),
+      ] as any);
+
+      expect(result).toHaveLength(2);
+      expect(result.map((r: any) => r.id)).toEqual([1, 2]);
+    });
+
+    it('deve devolver lista vazia para entrada vazia', () => {
+      expect(D5NoteScheduleMapper.toResponseList([])).toEqual([]);
+    });
+
+    it('não deve passar o índice como segundo argumento ao mapper', () => {
+      // toResponse recebe (row, index, array) via map — garante aridade segura
+      const spy = jest.spyOn(D5NoteScheduleMapper, 'toResponse');
+
+      D5NoteScheduleMapper.toResponseList([makeResponseRow()] as any);
+
+      expect(spy.mock.calls[0][0]).toMatchObject({ id: 1 });
+      spy.mockRestore();
+    });
+  });
+
+  // =========================================================================
+  // toListItem / toListItems
+  // =========================================================================
+  describe('toListItem', () => {
+    it('deve achatar a nota e as suas relações', () => {
+      const result = D5NoteScheduleMapper.toListItem(makeListRow() as any);
+
+      expect(result).toMatchObject({
+        id: 10,
+        nota_d5: 'D5-001',
+        local_instalacao: 'LI-1',
+        status_sap: 'ABERTA',
+        tecnico: 'João',
+        municipio: 'Cascais',
+        regional: 'Sul',
+        tipo_obra: 'Ampliação',
+        turma: 'Parceira A',
+        status: 'Em curso',
+        responsavel: 'Ana',
+        ovnota: 'OV-1',
+        ordemDiagrama: 'DIAG-1',
+        moRetida: 12.5,
+      });
+    });
+
+    it('deve calcular o TM de execução quando a nota está concluída', async () => {
+      const result = D5NoteScheduleMapper.toListItem(
+        makeListRow({
+          notas_d5: {
+            criado_em: new Date('2026-01-01T00:00:00.000Z'),
+            conclusao_nota: new Date('2026-01-06T18:45:00.000Z'),
+          },
+        }) as any,
+      );
+
+      expect(result).toMatchObject({
+        tmExecucao: 5,
+        tmAberto: null,
+      });
+    });
+
+    it('deve remover as relações cruas', () => {
+      const result = D5NoteScheduleMapper.toListItem(
+        makeListRow() as any,
+      ) as any;
+
+      expect(result).not.toHaveProperty('tecnicos');
+      expect(result).not.toHaveProperty('notas_d5');
+    });
+
+    it('deve sobrepor o id da programação pelo id da nota', () => {
+      const result = D5NoteScheduleMapper.toListItem(
+        makeListRow({ id: 555 }) as any,
+      );
+
+      expect(result.id).toBe(10);
+    });
+
+    it('deve converter mo_planejada de Decimal para number', () => {
+      const result = D5NoteScheduleMapper.toListItem(
+        makeListRow({
+          notas_d5: { mo_planejada: { toNumber: () => 99.9 } },
+        }) as any,
+      );
+
+      expect(result.moRetida).toBe(99.9);
+    });
+
+    it.each([
+      ['null', null],
+      ['undefined', undefined],
+    ])('deve devolver 0 quando mo_planejada é %s', (_l, value) => {
+      const result = D5NoteScheduleMapper.toListItem(
+        makeListRow({ notas_d5: { mo_planejada: value } }) as any,
+      );
+
+      expect(result.moRetida).toBe(0);
+    });
+
+    it.each([
+      ['tecnicos', 'tecnico', { tecnicos: null }],
+      [
+        'novo_tabela_usuarios',
+        'responsavel',
+        {
+          notas_d5: { novo_tabela_usuarios: null },
+        },
+      ],
+    ])('deve devolver null quando %s é ausente', (_l, key, overrides) => {
+      const result = D5NoteScheduleMapper.toListItem(
+        makeListRow(overrides as any) as any,
+      ) as any;
+
+      expect(result[key]).toBeNull();
+    });
+
+    describe('ordemDiagrama', () => {
+      const cases: Array<[string, Record<string, any>, unknown]> = [
+        ['diagrama', { diagrama: 'D', ordem_dci: 'I' }, 'D'],
+        ['ordem_dci', { diagrama: null, ordem_dci: 'I' }, 'I'],
+        ['ordem_dca', { diagrama: null, ordem_dci: null, ordem_dca: 'A' }, 'A'],
+        [
+          'ordem_dcd',
+          { diagrama: null, ordem_dci: null, ordem_dca: null, ordem_dcd: 'DD' },
+          'DD',
+        ],
+        [
+          'ordem_dcim',
+          {
+            diagrama: null,
+            ordem_dci: null,
+            ordem_dca: null,
+            ordem_dcd: null,
+            ordem_dcim: 'IM',
+          },
+          'IM',
+        ],
+        [
+          'null quando todas ausentes',
+          {
+            diagrama: null,
+            ordem_dci: null,
+            ordem_dca: null,
+            ordem_dcd: null,
+            ordem_dcim: null,
+          },
+          null,
+        ],
+      ];
+
+      it.each(cases)('deve resolver para %s', (_l, obras, expected) => {
+        const result = D5NoteScheduleMapper.toListItem(
+          makeListRow({ notas_d5: { obras } }) as any,
+        );
+
+        expect(result.ordemDiagrama).toBe(expected);
+      });
+
+      it('deve devolver null em ambos os campos quando obras é null', () => {
+        const result = D5NoteScheduleMapper.toListItem(
+          makeListRow({ notas_d5: { obras: null } }) as any,
+        );
+
+        expect(result.ovnota).toBeNull();
+        expect(result.ordemDiagrama).toBeNull();
+      });
+    });
+
+    describe('precisaDp', () => {
+      it.each<[string, Record<string, any>, boolean]>([
+        [
+          'true quando o serviço exige DP e num_dp está ausente',
+          { tipo_servico: 'DP', num_dp: null },
+          true,
+        ],
+        [
+          'false quando o serviço exige DP e num_dp está preenchido',
+          { tipo_servico: 'DP', num_dp: '12345678' },
+          false,
+        ],
+        [
+          'false quando o serviço não exige DP',
+          { tipo_servico: 'Manutenção', num_dp: null },
+          false,
+        ],
+        [
+          'false quando tipo_servico está ausente',
+          { tipo_servico: null, num_dp: null },
+          false,
+        ],
+      ])('deve devolver %s', (_l, overrides, expected) => {
+        const result = D5NoteScheduleMapper.toListItem(
+          makeListRow(overrides) as any,
+        );
+
+        expect(result.precisaDp).toBe(expected);
+      });
+
+      it('deve manter num_dp e tipo_servico no item da lista', () => {
+        const result = D5NoteScheduleMapper.toListItem(
+          makeListRow({ tipo_servico: 'LV', num_dp: '999' }) as any,
+        ) as any;
+
+        expect(result).toMatchObject({ tipo_servico: 'LV', num_dp: '999' });
+      });
+    });
+  });
+
+  describe('toListItems', () => {
+    it('deve mapear todas as linhas', () => {
+      const result = D5NoteScheduleMapper.toListItems([
+        makeListRow(),
+        makeListRow(),
+      ] as any);
+
+      expect(result).toHaveLength(2);
+    });
+
+    it('deve devolver lista vazia para entrada vazia', () => {
+      expect(D5NoteScheduleMapper.toListItems([])).toEqual([]);
+    });
+  });
+
+  // =========================================================================
+  // toListItem / toListItems
+  // =========================================================================
+  describe('toRejectionResponse', () => {
+    it('deve mapear todos os campos para o formato da API', () => {
+      expect(
+        D5NoteScheduleMapper.toRejectionResponse(makeRejectionRow()),
+      ).toEqual({
+        id: 1,
+        dataReprovacao: new Date('2026-10-16T13:45:00.000Z'),
+        dataProgramacao: new Date('2026-10-20T00:00:00.000Z'),
+        horaInicio: new Date('1970-01-01T08:00:00.000Z'),
+        horaTermino: new Date('1970-01-01T17:00:00.000Z'),
+        programacao: 50,
+        descricao: 'Falta de material em obra',
+        tipoServico: 'Manutenção',
+        chaveProvisoria: false,
+        chi: 12,
+        numDp: '12345678',
+        observacaoProgramacao: 'Observação de teste',
+        equipeLm: 2,
+        equipeLv: 1,
+        equipeReg: 0,
+        restricao: 'Falta de material',
+        reprovadoPor: 'João Silva',
+      });
+    });
+
+    it('deve achatar as relações da reprovação', () => {
+      const result = D5NoteScheduleMapper.toRejectionResponse(
+        makeRejectionRow({
+          id: 10,
+          restricoes: { restricao: 'Falta de material' },
+          novo_tabela_usuarios: { nome: 'João' },
+        }),
+      );
+
+      expect(result).toMatchObject({
+        id: 10,
+        restricao: 'Falta de material',
+        reprovadoPor: 'João',
+      });
+      expect(result).not.toHaveProperty('restricoes');
+      expect(result).not.toHaveProperty('novo_tabela_usuarios');
+    });
+
+    it('não deve expor nomes de colunas da base de dados', () => {
+      const result =
+        D5NoteScheduleMapper.toRejectionResponse(makeRejectionRow());
+
+      [
+        'data_reprovacao',
+        'data_prog',
+        'hora_ini',
+        'tipo_servico',
+        'num_dp',
+        'equipe_lm',
+      ].forEach((column) => expect(result).not.toHaveProperty(column));
+    });
+
+    describe('chi', () => {
+      it('deve converter o valor para number', () => {
+        const { chi } = D5NoteScheduleMapper.toRejectionResponse(
+          makeRejectionRow({ chi: '7.25' as any }), // simula Decimal/string vindo do Prisma
+        );
+
+        expect(chi).toBe(7.25);
+      });
+
+      it('deve manter zero (não confundir com nulo)', () => {
+        expect(
+          D5NoteScheduleMapper.toRejectionResponse(makeRejectionRow({ chi: 0 }))
+            .chi,
+        ).toBe(0);
+      });
+
+      it.each([
+        ['null', null],
+        ['undefined', undefined],
+      ])('deve devolver null quando chi é %s', (_label, value) => {
+        expect(
+          D5NoteScheduleMapper.toRejectionResponse(
+            makeRejectionRow({ chi: value as any }),
+          ).chi,
+        ).toBeNull();
+      });
+    });
+
+    describe('reprovadoPor', () => {
+      it('deve devolver null quando não há utilizador associado', () => {
+        expect(
+          D5NoteScheduleMapper.toRejectionResponse(
+            makeRejectionRow({ novo_tabela_usuarios: null }),
+          ).reprovadoPor,
+        ).toBeNull();
+      });
+
+      it('deve devolver null quando o utilizador não tem nome', () => {
+        expect(
+          D5NoteScheduleMapper.toRejectionResponse(
+            makeRejectionRow({ novo_tabela_usuarios: { nome: null } as any }),
+          ).reprovadoPor,
+        ).toBeNull();
+      });
+    });
+
+    it('deve repassar campos nulos sem os alterar', () => {
+      const result = D5NoteScheduleMapper.toRejectionResponse(
+        makeRejectionRow({ descricao: null, num_dp: null, hora_ini: null }),
+      );
+
+      expect(result).toMatchObject({
+        descricao: null,
+        numDp: null,
+        horaInicio: null,
+      });
+    });
+  });
+
+  describe('toRejectionsResponseList', () => {
+    it('deve devolver lista vazia para entrada vazia', () => {
+      expect(D5NoteScheduleMapper.toRejectionsResponseList([])).toEqual([]);
+    });
+
+    it('deve mapear todas as linhas preservando a ordem', () => {
+      const result = D5NoteScheduleMapper.toRejectionsResponseList([
+        makeRejectionRow({ id: 9 }),
+        makeRejectionRow({ id: 3 }),
+      ]);
+
+      expect(result.map((r) => r.id)).toEqual([9, 3]);
+    });
+
+    it('deve delegar em toRejectionResponse para cada linha', () => {
+      const spy = jest.spyOn(D5NoteScheduleMapper, 'toRejectionResponse');
+      const rows = [makeRejectionRow({ id: 1 }), makeRejectionRow({ id: 2 })];
+
+      D5NoteScheduleMapper.toRejectionsResponseList(rows);
+
+      expect(spy).toHaveBeenCalledTimes(2);
+      rows.forEach((row, i) => expect(spy.mock.calls[i][0]).toBe(row));
+    });
+  });
+
+  // =========================================================================
+  // Auxiliares privados
+  // =========================================================================
+  describe('parseScheduledDate', () => {
+    it.each([
+      ['undefined', undefined],
+      ['string vazia', ''],
+      ['null', null],
+    ])('deve devolver undefined para %s', (_l, value) => {
+      expect(parseScheduledDate(value)).toBeUndefined();
+    });
+
+    it('deve converter uma data ISO válida', () => {
+      expect(parseScheduledDate('2026-02-10').toISOString()).toBe(
+        '2026-02-10T00:00:00.000Z',
+      );
+    });
+
+    it('deve aceitar data com hora', () => {
+      expect(parseScheduledDate('2026-02-10T13:45:00.000Z')).toBeInstanceOf(
+        Date,
+      );
+    });
+
+    it.each(['data-invalida', '2026-13-45', 'abc'])(
+      'deve rejeitar o valor inválido "%s"',
+      (value) => {
+        expect(() => parseScheduledDate(value)).toThrow(BadRequestException);
+        expect(() => parseScheduledDate(value)).toThrow(
+          'Data de programação inválida',
+        );
+      },
+    );
+  });
+
+  describe('stripUndefined', () => {
+    it('deve remover apenas as chaves undefined', () => {
+      expect(
+        stripUndefined({ a: 1, b: undefined, c: null, d: 0, e: '' }),
+      ).toEqual({ a: 1, c: null, d: 0, e: '' });
+    });
+
+    it('deve devolver objeto vazio quando tudo é undefined', () => {
+      expect(stripUndefined({ a: undefined, b: undefined })).toEqual({});
+    });
+
+    it('deve devolver objeto vazio para entrada vazia', () => {
+      expect(stripUndefined({})).toEqual({});
+    });
+
+    it('deve preservar valores falsy relevantes', () => {
+      expect(stripUndefined({ a: false, b: 0, c: '' })).toEqual({
+        a: false,
+        b: 0,
+        c: '',
+      });
+    });
+
+    it('deve devolver um novo objeto', () => {
+      const origem = { a: 1 };
+
+      expect(stripUndefined(origem)).not.toBe(origem);
+    });
+  });
+
+  describe('toCommonColumns', () => {
+    it('deve traduzir todos os campos de domínio para colunas', () => {
+      expect(toCommonColumns(makeEntity())).toEqual({
+        data_prog: CURRENT_DATE,
+        prog: 50,
+        exec: 40,
+        hora_ini: CURRENT_START,
+        hora_ter: CURRENT_FINISH,
+        observacao_programacao: 'obs',
+        observacao_execucao: 'exec obs',
+        num_dp: '12345678',
+        tipo_servico: 'DP',
+        chi: 5,
+        equipe_lv: 1,
+        equipe_lm: 2,
+        equipe_reg: 3,
+        chave_provisoria: false,
+        id_tecnico: 4,
+        id_restricao: 6,
+        responsavel_restricao: 'Equipa A',
+        caminhos_arquivos: ['a.pdf'],
+      });
+    });
+
+    it('deve propagar undefined dos campos opcionais', () => {
+      const columns = toCommonColumns(
+        makeEntity({ exec: undefined, chi: undefined }),
+      );
+
+      expect(columns.exec).toBeUndefined();
+      expect(columns.chi).toBeUndefined();
+    });
+  });
+
+  describe('calculateTM', () => {
+    it('Deve retornar o TM aberto corretamente e o TM execucao como nulo', () => {
+      const mockInitialDate = moment('2026-09-30');
+      const mockExecutionDate = null;
+
+      expect(calculateTM(mockInitialDate, mockExecutionDate)).toEqual({
+        tmAberto: 7,
+        tmExecucao: null,
+      });
+    });
+
+    it('Deve retornar o TM execucao corretamente e o TM aberto como nulo', () => {
+      const mockInitialDate = moment('2026-09-23');
+      const mockExecutionDate = moment('2026-09-30');
+
+      expect(calculateTM(mockInitialDate, mockExecutionDate)).toEqual({
+        tmAberto: null,
+        tmExecucao: 7,
+      });
+    });
+  });
+
+  describe('requiresDP', () => {
+    it.each([
+      ['undefined', undefined],
+      ['null', null],
+      ['string vazia', ''],
+    ])('deve devolver false quando serviceType é %s', (_l, serviceType) => {
+      expect(requiresDP(undefined, serviceType)).toBe(false);
+      expect(requiresDP('12345678', serviceType)).toBe(false);
+    });
+
+    it.each(['DP', 'LV', 'RD'])(
+      'deve devolver true quando %s exige DP e numDp está ausente',
+      (serviceType) => {
+        expect(requiresDP(undefined, serviceType)).toBe(true);
+      },
+    );
+
+    it.each(['dp', 'lv', 'rd', 'Dp'])(
+      'deve ignorar maiúsculas/minúsculas em "%s"',
+      (serviceType) => {
+        expect(requiresDP(undefined, serviceType)).toBe(true);
+      },
+    );
+
+    // O código compara serviceType.toUpperCase() com a lista que contém
+    // 'Regularização' (caixa mista), logo este caso nunca coincide hoje.
+    it.each(['Regularização', 'regularização', 'REGULARIZAÇÃO'])(
+      'deve devolver true quando "%s" exige DP e numDp está ausente',
+      (serviceType) => {
+        expect(requiresDP(undefined, serviceType)).toBe(true);
+      },
+    );
+
+    it.each([
+      ['undefined', undefined],
+      ['null', null],
+      ['string vazia', ''],
+      ['apenas espaços', '   '],
+    ])('deve devolver true quando numDp é %s', (_l, numDp) => {
+      expect(requiresDP(numDp, 'DP')).toBe(true);
+    });
+
+    it('deve devolver false quando numDp está preenchido', () => {
+      expect(requiresDP('12345678', 'DP')).toBe(false);
+    });
+
+    it('deve considerar preenchido um numDp com espaços ao redor', () => {
+      expect(requiresDP('  123  ', 'LV')).toBe(false);
+    });
+
+    it.each(['Manutenção', 'Poda', 'OUTRO'])(
+      'deve devolver false quando %s não exige DP, mesmo sem numDp',
+      (serviceType) => {
+        expect(requiresDP(undefined, serviceType)).toBe(false);
+      },
+    );
+  });
+});

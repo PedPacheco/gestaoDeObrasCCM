@@ -5,9 +5,11 @@ import {
   Param,
   ParseIntPipe,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 
 import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
+import { AreaViewGuard } from 'src/core/guards/newPermission.guard';
 
 @Controller('servicos')
 export class ServicesQueryController {
@@ -16,6 +18,7 @@ export class ServicesQueryController {
   ) {}
 
   @Get('materiais')
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async getMaterials() {
     const response = await this.queriesServicesService.getMaterials();
 
@@ -27,6 +30,7 @@ export class ServicesQueryController {
   }
 
   @Get(':id')
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async getNotScheduledServices(@Param('id', ParseIntPipe) id: number) {
     const response =
       await this.queriesServicesService.getNotScheduledServices(id);
@@ -39,6 +43,7 @@ export class ServicesQueryController {
   }
 
   @Get('todos/:id')
+  @UseGuards(AreaViewGuard())
   async getAllItems(@Param('id', ParseIntPipe) id: number) {
     const response = await this.queriesServicesService.getAllItems(id);
 
@@ -50,6 +55,7 @@ export class ServicesQueryController {
   }
 
   @Get('selecionados/:id')
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async getScheduledServices(
     @Param('id', ParseIntPipe) id: number,
     @Query('idProgramacao', ParseIntPipe) idProgramacao: number,
@@ -67,6 +73,7 @@ export class ServicesQueryController {
   }
 
   @Get('historico/:id')
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async getServicesScheduleHistory(@Param('id', ParseIntPipe) id: number) {
     const response =
       await this.queriesServicesService.getServiceScheduleHistory(id);
@@ -79,6 +86,7 @@ export class ServicesQueryController {
   }
 
   @Get('contratos/:id')
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async getServiceContracts(@Param('id', ParseIntPipe) id: number) {
     const response = await this.queriesServicesService.getServiceContracts(id);
 
@@ -90,6 +98,7 @@ export class ServicesQueryController {
   }
 
   @Get('equipes/:id')
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async getTeamsServices(@Param('id', ParseIntPipe) id: number) {
     const response = await this.queriesServicesService.getTeamsServices(id);
 
@@ -101,6 +110,7 @@ export class ServicesQueryController {
   }
 
   @Get('opcoes/:id')
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
   async getServiceOptions(@Param('id', ParseIntPipe) id: number) {
     const response = await this.queriesServicesService.getServiceOptions(id);
 

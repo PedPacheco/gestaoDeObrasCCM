@@ -27,7 +27,7 @@ const fillValidHeaders = (ws: Worksheet): void => {
   headerRow.getCell(6).value = 'código material';
   headerRow.getCell(9).value = 'qtde. planejada';
   headerRow.getCell(11).value = 'tipo';
-  headerRow.getCell(14).value = 'descrição operação';
+  headerRow.getCell(14).value = 'descrição da operação';
   headerRow.commit();
 };
 
@@ -203,7 +203,7 @@ describe('SpreadsheetParserService', () => {
       headerRow.getCell(6).value = 'CÓDIGO MATERIAL';
       headerRow.getCell(9).value = 'QTDE. PLANEJADA';
       headerRow.getCell(11).value = 'TIPO';
-      headerRow.getCell(14).value = 'DESCRIÇÃO OPERAÇÃO';
+      headerRow.getCell(14).value = 'DESCRIÇÃO DA OPERAÇÃO';
       headerRow.commit();
 
       fillDataRow(ws, 4);
@@ -226,7 +226,7 @@ describe('SpreadsheetParserService', () => {
       headerRow.getCell(6).value = 'código material';
       headerRow.getCell(9).value = 'qtde. planejada';
       headerRow.getCell(11).value = 'tipo';
-      headerRow.getCell(14).value = 'descrição operação';
+      headerRow.getCell(14).value = 'descrição da operação';
       headerRow.commit();
 
       fillDataRow(ws, 4);

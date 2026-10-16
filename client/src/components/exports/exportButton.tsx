@@ -2,7 +2,6 @@
 
 import "dayjs/locale/pt-br";
 
-import dayjs from "dayjs";
 import { useState } from "react";
 
 import { exportExcel } from "@/actions/generateExcel.action";
@@ -10,14 +9,14 @@ import { useUser } from "@/contexts/userContext";
 import { mountUrl } from "@/utils/mountUrl";
 import { Box, Typography } from "@mui/material";
 
+import { useFeedback } from "@/hooks/useFeedback";
 import { ButtonComponent } from "../common/Button";
+import { PartnerFilter } from "./partnerFilter";
 import {
   ExportFileType,
   ExportFiltersModal,
   ServicesExportFilter,
 } from "./servicesExportFilter";
-import { useFeedback } from "@/hooks/useFeedback";
-import { DateRangerFilter } from "./dateRangerFilter";
 
 interface ExportButtonProps {
   text: string;
@@ -28,7 +27,7 @@ interface ExportButtonProps {
     parceira: Array<{ id: number; turma: string }>;
     equipes: Array<{ id: number; equipe: string; id_turma: number }>;
   };
-  filterType?: "dateRange" | "services";
+  filterType?: "none" | "partner" | "services";
 }
 
 export function ExportButton({
@@ -126,7 +125,7 @@ export function ExportButton({
                   return;
                 }
 
-                if (filterType === "dateRange") {
+                if (filterType === "partner") {
                   setDateRangeModal(true);
                 }
               }}
@@ -149,14 +148,12 @@ export function ExportButton({
             </ExportFiltersModal>
           )}
 
-          {filterType === "dateRange" && (
-            <DateRangerFilter
+          {filterType === "partner" && (
+            <PartnerFilter
               openModal={dateRangeModal}
               setOpenModal={setDateRangeModal}
-              generateExcel={async ({ startDate, endDate, idPartner }) => {
+              generateExcel={async ({ idPartner }) => {
                 await generateFile({
-                  startDate,
-                  endDate,
                   idPartner,
                 });
               }}

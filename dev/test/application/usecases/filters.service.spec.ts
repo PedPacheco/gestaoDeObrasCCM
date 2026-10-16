@@ -111,6 +111,12 @@ describe('FiltersService', () => {
       data: [{ id: 1, ovnota: 'Ovnota 2' }],
     },
     {
+      name: 'notaD5',
+      dto: { notaD5: true },
+      cacheKey: 'notaD5',
+      data: [{ id: 1, nota_d5: 'Nota 1' }],
+    },
+    {
       name: 'empreendimento',
       dto: { empreendimento: true },
       cacheKey: 'empreendimento',

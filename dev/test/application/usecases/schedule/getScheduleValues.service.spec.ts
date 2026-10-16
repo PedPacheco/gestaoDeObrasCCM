@@ -1,10 +1,12 @@
-import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
+import { GetScheduleValuesService } from 'src/application/usecases/works/schedule/getScheduleValues.service';
 import { GET_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetScheduleValuesRepository';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 
 import { Test } from '@nestjs/testing';
 import { obras } from '@prisma/client';
+import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
+import { PointByPointCostService } from 'src/domain/services/pointByPointCost.service';
 
 describe('GetScheduleValues', () => {
   let service: GetScheduleValuesService;
@@ -40,17 +42,82 @@ describe('GetScheduleValues', () => {
     } as unknown as obras,
   ];
 
-  const mockCount = [
+  const mockServiceScheduleHistory = [
     {
-      total_obras: 1,
-      total_mo_planejada: 3262.21,
-      total_mo_exec: 0,
-      total_qtde_planejada: 1,
+      id: 1,
+      id_programacao: 100,
+      id_servico: 200,
+      adicional: 2,
+      real: 8,
+      prog: 10,
+      servicos: {
+        operacao: 'OP01',
+        numero_operacao: '001',
+        descricao_operacao: 'Instalação de poste',
+        ponto: 'P16',
+        qtde_plan: 12,
+        viabilizado: 10,
+        servicos_contratos: {
+          texto_breve: 'Serviço de instalação',
+          material: 'SER001',
+          preco: 150.5,
+        },
+        materiais: null,
+      },
+      programacoes: {
+        data_prog: new Date('2026-09-10'),
+      },
+      equipes: {
+        equipe: 'Equipe A',
+        perfil: 'Eletricista',
+      },
+    },
+    {
+      id: 2,
+      id_programacao: 101,
+      id_servico: 201,
+      adicional: 1,
+      real: 5,
+      prog: 6,
+      servicos: {
+        operacao: 'OP02',
+        numero_operacao: '002',
+        descricao_operacao: 'Fornecimento de material',
+        ponto: 'V02',
+        qtde_plan: 8,
+        viabilizado: 6,
+        servicos_contratos: null,
+        materiais: {
+          codigo: 'MAT001',
+          descricao: 'Cabo de Alumínio',
+          preco: {
+            toNumber: jest.fn().mockReturnValue(45.9),
+          },
+        },
+      },
+      programacoes: {
+        data_prog: new Date('2026-09-11'),
+      },
+      equipes: {
+        equipe: 'Equipe B',
+        perfil: 'Técnico',
+      },
     },
   ];
 
+  const mockCount = {
+    total_obras: 1,
+    total_mo_planejada: 3262.21,
+    total_mo_exec: 0,
+    total_qtde_planejada: 1,
+  };
+
   const mockRepository = {
     getValues: jest.fn(),
+  };
+
+  const mockQueriesServicesService = {
+    getServiceScheduleHistoryByIdSchedule: jest.fn(),
   };
 
   /**
@@ -71,6 +138,11 @@ describe('GetScheduleValues', () => {
       providers: [
         GetScheduleValuesService,
         DeadlineStatusService,
+        PointByPointCostService,
+        {
+          provide: QueriesServicesService,
+          useValue: mockQueriesServicesService,
+        },
         { provide: GET_SCHEDULE_VALUES_REPOSITORY, useValue: mockRepository },
       ],
     }).compile();
@@ -98,6 +170,7 @@ describe('GetScheduleValues', () => {
       idParceira: [1],
       idRegional: [1],
       idTipo: [1],
+      idTecnico: [1],
       ovnota: '1343',
     };
 
@@ -106,11 +179,23 @@ describe('GetScheduleValues', () => {
       resultTotals: mockCount,
     });
 
+    mockQueriesServicesService.getServiceScheduleHistoryByIdSchedule.mockResolvedValue(
+      mockServiceScheduleHistory,
+    );
+
     const result = await service.getValues(filters);
 
     expect(result).toEqual({
       works: expect.any(Array),
-      totals: { ...mockCount[0], total_exec: 0 },
+      totals: {
+        total_exec: 0,
+        total_mo_exec: 0,
+        total_mo_planejada: 3262.21,
+        total_obras: 1,
+        total_ponto_a_ponto_executado: 0,
+        total_ponto_a_ponto_programado: 0,
+        total_qtde_planejada: 1,
+      },
     });
 
     expect(mockRepository.getValues).toHaveBeenCalledTimes(1);
@@ -119,28 +204,68 @@ describe('GetScheduleValues', () => {
   it('should correctly format empty data', async () => {
     mockRepository.getValues.mockResolvedValueOnce({
       works: [],
-      resultTotals: [
-        {
-          total_obras: 0,
-          total_mo_planejada: null,
-          total_mo_exec: null,
-          total_qtde_planejada: null,
-        },
-      ],
+      resultTotals: null,
     });
+
+    mockQueriesServicesService.getServiceScheduleHistoryByIdSchedule.mockResolvedValue(
+      mockServiceScheduleHistory,
+    );
 
     const result = await service.getValues({} as any);
 
     expect(result).toEqual({
       works: [],
       totals: {
-        total_exec: 0,
         total_obras: 0,
+        total_exec: 0,
         total_mo_planejada: 0,
         total_mo_exec: 0,
+        total_ponto_a_ponto_executado: 0,
+        total_ponto_a_ponto_programado: 0,
         total_qtde_planejada: 0,
+        total_equipe_linha_morta: 0,
+        total_equipe_linha_viva: 0,
+        total_equipe_regularizacao: 0,
       },
     });
+  });
+
+  it('should return with not services', async () => {
+    mockRepository.getValues.mockResolvedValueOnce({
+      works: mockQueryResponse.map((item) => ({ ...item, servicos: null })),
+      resultTotals: mockCount,
+    });
+
+    // Return empty array so calculateCostPointByPointSchedule receives []
+    mockQueriesServicesService.getServiceScheduleHistoryByIdSchedule.mockResolvedValue(
+      [],
+    );
+
+    const result = await service.getValues({} as any);
+
+    expect(result).toEqual({
+      works: expect.any(Array),
+      totals: {
+        total_exec: 0,
+        total_mo_exec: 0,
+        total_mo_planejada: 3262.21,
+        total_obras: 1,
+        total_ponto_a_ponto_programado: 0,
+        total_ponto_a_ponto_executado: 0,
+        total_qtde_planejada: 1,
+      },
+    });
+
+    result.works.forEach((work) => {
+      expect(work).toEqual(
+        expect.objectContaining({
+          moPlanejadaPontoAPonto: 0,
+          moExecutadoPontoAPonto: 0,
+        }),
+      );
+    });
+
+    expect(mockRepository.getValues).toHaveBeenCalledTimes(1);
   });
 
   /**
@@ -173,6 +298,7 @@ describe('GetScheduleValues', () => {
     const result = await service.getValues({} as any);
     expect(result.works[0].restricao_aberta).toBe(false);
   });
+
   it('should set restricao_aberta = false when restriction IDs != 1 and statuses are resolved and dates exist', async () => {
     const mockWork = {
       id: 1,
@@ -197,6 +323,7 @@ describe('GetScheduleValues', () => {
     const result = await service.getValues({} as any);
     expect(result.works[0].restricao_aberta).toBe(false);
   });
+
   it('should set restricao_aberta = true when restriction IDs != 1 but status_restricao1 resolved and data_resolucao1 exist', async () => {
     const mockWork = {
       id: 1,
@@ -218,6 +345,7 @@ describe('GetScheduleValues', () => {
     const result = await service.getValues({} as any);
     expect(result.works[0].restricao_aberta).toBe(true);
   });
+
   it('should set restricao_aberta = true when restriction IDs != 1 but status_restricao2 resolved and data_resolucao2 exist', async () => {
     const mockWork = {
       id: 1,
@@ -259,6 +387,10 @@ describe('GetScheduleValues', () => {
       resultTotals: mockCount,
     });
 
+    mockQueriesServicesService.getServiceScheduleHistoryByIdSchedule.mockResolvedValue(
+      mockServiceScheduleHistory,
+    );
+
     const { works } = await service.getValues({} as any);
     const result = works[0] as any;
 
@@ -278,6 +410,10 @@ describe('GetScheduleValues', () => {
       works: [mockWork],
       resultTotals: mockCount,
     });
+
+    mockQueriesServicesService.getServiceScheduleHistoryByIdSchedule.mockResolvedValue(
+      mockServiceScheduleHistory,
+    );
 
     const { works } = await service.getValues({} as any);
     const result = works[0] as any;
@@ -300,6 +436,10 @@ describe('GetScheduleValues', () => {
       resultTotals: mockCount,
     });
 
+    mockQueriesServicesService.getServiceScheduleHistoryByIdSchedule.mockResolvedValue(
+      mockServiceScheduleHistory,
+    );
+
     const { works } = await service.getValues({} as any);
     const result = works[0] as any;
 
@@ -318,6 +458,10 @@ describe('GetScheduleValues', () => {
       works: [mockWork],
       resultTotals: mockCount,
     });
+
+    mockQueriesServicesService.getServiceScheduleHistoryByIdSchedule.mockResolvedValue(
+      mockServiceScheduleHistory,
+    );
 
     const { works } = await service.getValues({} as any);
     const result = works[0] as any;
@@ -338,6 +482,10 @@ describe('GetScheduleValues', () => {
       resultTotals: mockCount,
     });
 
+    mockQueriesServicesService.getServiceScheduleHistoryByIdSchedule.mockResolvedValue(
+      mockServiceScheduleHistory,
+    );
+
     const { works } = await service.getValues({} as any);
     const result = works[0] as any;
 
@@ -354,6 +502,10 @@ describe('GetScheduleValues', () => {
       works: [mockWork],
       resultTotals: mockCount,
     });
+
+    mockQueriesServicesService.getServiceScheduleHistoryByIdSchedule.mockResolvedValue(
+      mockServiceScheduleHistory,
+    );
 
     const { works } = await service.getValues({} as any);
     const result = works[0] as any;

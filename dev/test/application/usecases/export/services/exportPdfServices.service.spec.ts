@@ -48,12 +48,20 @@ jest.mock('fs', () => ({
   readFileSync: jest.fn(),
 }));
 
-jest.mock('moment', () => ({
-  __esModule: true,
-  default: jest.fn(() => ({
+jest.mock('moment', () => {
+  const mockMoment: any = jest.fn(() => ({
     format: jest.fn(() => '10/08/2026'),
-  })),
-}));
+  }));
+
+  mockMoment.utc = jest.fn(() => ({
+    format: jest.fn(() => '10/08/2026'),
+  }));
+
+  return {
+    __esModule: true,
+    default: mockMoment,
+  };
+});
 
 describe('ExportPdfServicesService', () => {
   let service: ExportPdfServicesService;

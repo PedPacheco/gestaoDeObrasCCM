@@ -33,7 +33,7 @@ interface totalsInterface {
 interface TableComponentProps {
   columns: any;
   data: any[];
-  totals: totalsInterface;
+  totals: totalsInterface | null;
   sliceEndIndex?: number;
   page: number;
   handleChangePage: (event: unknown, newPage: number) => void;
@@ -70,7 +70,7 @@ export function TableWithPagination({
                       className={`py-1 px-2 text-center text-zinc-700 font-semibold text-xl bg-[#53FF75] 
                       min-w-28 whitespace-nowrap
                       ${
-                        month === "ovnota"
+                        month === "ovnota" || month === "nota_d5"
                           ? "sticky left-0 z-20"
                           : "sticky left-0 z-10"
                       }
@@ -109,6 +109,8 @@ export function TableWithPagination({
                           "mo_pend",
                           "mo_exec",
                           "mo_planejada",
+                          "moPlanejadaPontoAPonto",
+                          "moExecutadoPontoAPonto",
                         ].includes(column)
                       ) {
                         cellValue = FormatCurrency(cellValue);
@@ -206,7 +208,7 @@ export function TableWithPagination({
       <div className="bg-white z-30 border-t">
         <TablePagination
           component="div"
-          count={totals.total_obras}
+          count={totals?.total_obras || 1}
           page={page}
           rowsPerPage={200}
           rowsPerPageOptions={[]}

@@ -27,7 +27,7 @@ export class TeamCounterService {
 
       if (equipeUpper.includes('LM')) lmSet.add(equipeUpper);
       if (equipeUpper.includes('LV')) lvSet.add(equipeUpper);
-      if (equipeUpper.includes('REG')) regSet.add(equipeUpper);
+      if (equipeUpper.includes('NR')) regSet.add(equipeUpper);
     }
 
     return {

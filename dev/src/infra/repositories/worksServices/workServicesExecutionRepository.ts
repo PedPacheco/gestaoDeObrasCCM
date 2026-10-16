@@ -1,112 +1,113 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-
-import { IWorkServicesExecutionRepository } from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
+import {
+  FinalizationData,
+  IWorkServicesExecutionRepository,
+} from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
+import { ScheduleExecutionRow } from 'src/domain/services/pointByPointRules.service';
 
 @Injectable()
 export class WorkServicesExeutionRepository implements IWorkServicesExecutionRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  // ─── Finalização ────────────────────────────────────────────────────
 
   async finalizeServices(
-    data: any,
-    pendingExecServicesData: number[],
+    data: FinalizationData,
     tx: Prisma.TransactionClient,
-  ): Promise<void> {
-    const { id, prog, exec, idExecutionRestriction, responsibility, userId } =
-      data;
+  ): Promise<boolean> {
+    const {
+      id,
+      prog,
+      exec,
+      idExecutionRestriction,
+      responsibility,
+      executionObservation,
+      userId,
+    } = data;
 
     try {
       await tx.programacoes.update({
         where: { id },
         data: {
-          prog: prog,
-          exec: exec,
+          prog,
+          exec,
           id_restricao_execucao: idExecutionRestriction,
-          nome_responsavel: responsibility,
+          // O responsável e a observação da EXECUÇÃO têm colunas próprias;
+          // `nome_responsavel` é o da restrição de programação.
+          nome_responsavel_execucao: responsibility,
+          observacao_execucao: executionObservation,
           id_usuario_ultima_atualizacao: userId,
         },
       });
-
-      if (pendingExecServicesData.length > 0) {
-        await tx.servicos.updateMany({
-          where: { id: { in: pendingExecServicesData } },
-          data: { id_programacao: null },
-        });
-      }
+      return true;
     } catch (error: any) {
-      if (error.code === 'P2025') {
-        throw new NotFoundException(`Agendamento com ID ${id} não encontrado`);
-      }
-
+      if (error.code === 'P2025') return false;
       throw error;
     }
   }
 
-  async reascheduleServices(
-    data: { id_servico: number }[],
-    scheduleId: number,
-  ): Promise<void> {
-    if (data.length === 0) return;
+  // ─── Reagendamento ──────────────────────────────────────────────────
 
-    const serviceIds = data.map((item) => item.id_servico);
-
-    await this.prisma.$transaction(
-      async (tx) => {
-        await tx.servicos.updateMany({
-          where: { id: { in: serviceIds } },
-          data: { id_programacao: null },
-        });
-
-        await tx.programacoes.update({
-          where: { id: scheduleId },
-          data: { exec: 0 },
-        });
-      },
-      {
-        maxWait: 10000,
-        timeout: 30000,
-      },
-    );
+  findScheduleWork(scheduleId: number, tx: Prisma.TransactionClient) {
+    return tx.programacoes.findUnique({
+      where: { id: scheduleId },
+      select: { id_obra: true },
+    });
   }
 
-  async performServices(data: PerformServicesDTO[]): Promise<void> {
-    const BATCH_SIZE = 50;
+  findScheduleItems(
+    scheduleId: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<ScheduleExecutionRow[]> {
+    return tx.programacoes_servicos.findMany({
+      where: { id_programacao: scheduleId },
+      select: { id: true, id_servico: true, prog: true, real: true },
+    });
+  }
 
-    await this.prisma.$transaction(
-      async (tx) => {
-        for (let i = 0; i < data.length; i += BATCH_SIZE) {
-          const batch = data.slice(i, i + BATCH_SIZE);
+  async deleteScheduleItemsByIds(
+    ids: number[],
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    await tx.programacoes_servicos.deleteMany({ where: { id: { in: ids } } });
+  }
 
-          await Promise.all(
-            batch.flatMap(({ id, qtdeRealizada, idSchedule }) => [
-              tx.programacoes_servicos.updateMany({
-                data: {
-                  real: qtdeRealizada,
-                },
-                where: {
-                  id_servico: id,
-                  id_programacao: idSchedule,
-                },
-              }),
+  async zeroScheduleProgress(
+    scheduleId: number,
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    await tx.programacoes.update({
+      where: { id: scheduleId },
+      data: { prog: 0, exec: 0 },
+    });
+  }
 
-              tx.servicos.update({
-                data: {
-                  qtde_real: qtdeRealizada,
-                },
-                where: {
-                  id,
-                },
-              }),
-            ]),
-          );
-        }
+  // ─── Execução ───────────────────────────────────────────────────────
+
+  findExecutionTargets(
+    serviceId: number,
+    scheduleId: number,
+    tx: Prisma.TransactionClient,
+  ) {
+    return tx.programacoes_servicos.findMany({
+      where: { id_servico: serviceId, id_programacao: scheduleId },
+      select: {
+        id: true,
+        programacoes: { select: { id_status_programacao: true } },
       },
-      {
-        maxWait: 10000,
-        timeout: 30000,
-      },
+    });
+  }
+
+  async updateItemsReal(
+    items: { rowId: number; real: number }[],
+    tx: Prisma.TransactionClient,
+  ): Promise<void> {
+    await Promise.all(
+      items.map(({ rowId, real }) =>
+        tx.programacoes_servicos.update({
+          where: { id: rowId },
+          data: { real },
+        }),
+      ),
     );
   }
 }

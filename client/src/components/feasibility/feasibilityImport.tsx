@@ -1,11 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
 import { useFeasibilityNavigation } from "@/hooks/feasibility/useFeasibilityNavigation";
-import { useFeasibilityFileUpload } from "@/hooks/feasibility/useFeasibilityUpload";
+import { useTechnicalFilesUpload } from "@/hooks/feasibility/useTechnicalFilesUpload";
 import { useFeasibilityWorkflowActions } from "@/hooks/feasibility/useFeasibilityWorkflowActions";
 import { FeasibilityDataInterface } from "@/types/feasibility";
 import { FeasibilityWorkflowStatus } from "@/utils/feasibilityWorkflow";
@@ -22,14 +22,17 @@ import { AddServiceAccordion } from "../addServiceAccordion/addServiceAccordion"
 import ModalComponent from "../common/Modal";
 import { CardSection } from "./cardSection";
 import { FeasibilityActionsFooter } from "./feasibilityActionsFooter";
-import { FeasibilityFileUploadStep } from "./feasibilityFileUploadStep";
+import { FeasibilityFileUploadStep } from "./feasibilityFilesUpload/feasibilityFileUploadStep";
 import { FeasibilityHeader } from "./feasibilityHeader";
 import { FeasibilityRejectionsHistory } from "./feasibilityRejectionsHistory";
 import { RejectFeasibilityModal } from "./feasibilityRejectModal";
+
+import { useComplementaryFilesUpload } from "@/hooks/feasibility/useComplementaryFilesUpload";
 import {
   FeasibilityServiceItem,
   FeasibilityServicesReviewStep,
-} from "./feasibilityServicesViewStep";
+} from "./feasbilityServices/feasibilityServicesReviewStep";
+import { getStorageKey } from "@/hooks/feasibility/useReviewStorage";
 
 export interface FeasibilityRejection {
   motivo: string;
@@ -72,30 +75,33 @@ export function FeasibiltyUpload({
 }: UploadViabilidadeProps) {
   const router = useRouter();
 
-  const [reviewData, setReviewData] = useState<FeasibilityServiceItem[]>(
-    servicesData ?? [],
-  );
+  const [reviewData, setReviewData] = useState<FeasibilityServiceItem[]>(() => {
+    if (typeof window === "undefined") {
+      return servicesData;
+    }
 
-  useEffect(() => {
-    setReviewData(servicesData ?? []);
-  }, [servicesData]);
+    const stored = JSON.parse(
+      localStorage.getItem(getStorageKey(Number(idWork))) ?? "{}",
+    );
+
+    return servicesData.map((item) => ({
+      ...item,
+      viabilizado: stored[item.id] ?? item.viabilizado,
+    }));
+  });
 
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   const [openModal, setOpenModal] = useState<FeasibilityModalKind>(null);
 
-  const {
-    displayFiles,
-    uploading,
-    dragActive,
-    handleFiles,
-    handleDrag,
-    handleDrop,
-    removeFile,
-    handleUpload,
-  } = useFeasibilityFileUpload({
+  const technicalUpload = useTechnicalFilesUpload({
     idWork,
     existingFiles: feasibilityData?.caminhos_arquivos ?? [],
+  });
+
+  const complementaryUpload = useComplementaryFilesUpload({
+    idWork,
+    existingFiles: feasibilityData?.arquivos_complementares ?? [],
   });
 
   const isEditable = workflowStatus === "adicao";
@@ -106,7 +112,7 @@ export function FeasibiltyUpload({
   );
 
   const uploadStatus: SectionStatus =
-    displayFiles.length > 0 ? "complete" : "pending";
+    technicalUpload.displayFiles.length > 0 ? "complete" : "pending";
 
   const reviewStatus: SectionStatus | undefined = pointByPoint
     ? reviewData.length === 0
@@ -130,11 +136,12 @@ export function FeasibiltyUpload({
     useFeasibilityWorkflowActions({
       idWork,
       feasibilityReportId: Number(feasibilityData.id),
-      hasFiles: displayFiles.length > 0,
+      hasFiles: technicalUpload.displayFiles.length > 0,
       pointByPoint,
       reviewData,
       termsAccepted,
-      handleUpload,
+      handleUpload: technicalUpload.handleUpload,
+      handleUploadComplementaryFiles: complementaryUpload.handleUpload,
       onRejectSettled: () => setOpenModal(null),
     });
 
@@ -198,16 +205,11 @@ export function FeasibiltyUpload({
               status={uploadStatus}
             >
               <FeasibilityFileUploadStep
-                files={displayFiles}
-                uploading={uploading}
                 termsAccepted={termsAccepted}
-                dragActive={dragActive}
                 workflowStatus={workflowStatus}
                 onTermsAccepted={setTermsAccepted}
-                onFilesSelected={handleFiles}
-                onDrag={handleDrag}
-                onDrop={handleDrop}
-                onRemoveFile={removeFile}
+                complementaryFilesUpload={complementaryUpload}
+                technicalFilesUpload={technicalUpload}
               />
             </CardSection>
 

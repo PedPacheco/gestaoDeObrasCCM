@@ -14,6 +14,7 @@ export async function storeScheduleDataAction(
   idWork: string,
   idStatusWork: unknown,
   statusSchedule: string,
+  ordemDcim?: string,
 ) {
   const cookieStore = await cookies();
 
@@ -28,6 +29,11 @@ export async function storeScheduleDataAction(
   });
 
   cookieStore.set("statusSchedule", statusSchedule, {
+    path: "/",
+    maxAge: 60 * 30,
+  });
+
+  cookieStore.set("ordemDcim", JSON.stringify(ordemDcim), {
     path: "/",
     maxAge: 60 * 30,
   });

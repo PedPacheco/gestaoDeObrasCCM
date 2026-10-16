@@ -1,4 +1,5 @@
 import { TipoUsuario } from 'src/domain/entities/user.entity';
+import { UserSafeResponseDTO } from 'src/interface/dtos/userSafeResponseDto';
 
 export interface userInterface {
   id: number;
@@ -44,6 +45,24 @@ export interface loginInterfaceService {
   id_turma: number;
   id_area: number;
   tipo_usuario: TipoUsuario;
+}
+
+export interface userListInterfaceController {
+  statusCode: number;
+  message: string;
+  data: UserSafeResponseDTO[];
+}
+
+export interface userAdminCreateInterfaceController {
+  statusCode: number;
+  message: string;
+  data: UserSafeResponseDTO;
+}
+
+export interface userDeactivateInterfaceController {
+  statusCode: number;
+  message: string;
+  data: UserSafeResponseDTO;
 }
 
 export interface loginInterfaceController {

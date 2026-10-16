@@ -3,12 +3,12 @@
 import dayjs from "dayjs";
 import { Dispatch, SetStateAction } from "react";
 
-import { FiltersInterface } from "@/types/filtersInterfaces";
 import { capitalize } from "@/utils/formatValue";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { useUser } from "@/contexts/userContext";
+import { FilterOption, FiltersInterface } from "@/types/genericFilterSchema";
 
 type SelectItem = string | number;
 
@@ -38,23 +38,24 @@ export function FiltersExecutionCapacity({
   // ✅ Regra de permissão
   const isPartialView = permissions?.tipo_usuario === "PARCEIRA";
 
-  // ✅ Filtra antes de renderizar (melhor prática)
-  const filteredEntries = Object.entries(filtersData).filter(([_, value]) => {
-    if (!value || value.length === 0) return false;
+  // ✅ Um único filtro, com type predicate -> elimina o "possibly undefined"
+  const filteredEntries = Object.entries(filtersData).filter(
+    (entry): entry is [string, FilterOption[]] => {
+      const [, value] = entry;
+      if (!Array.isArray(value) || value.length === 0) return false;
 
-    const displayKey = Object.keys(value[0])[1];
+      const displayKey = Object.keys(value[0])[1];
 
-    // 👉 remove "turma" se for visão parcial
-    if (displayKey === "turma" && isPartialView) {
-      return false;
-    }
+      // 👉 remove "turma" se for visão parcial
+      if (displayKey === "turma" && isPartialView) return false;
 
-    return true;
-  });
+      return true;
+    },
+  );
 
   // ✅ Detecta se turma ainda existe (pra layout)
   const hasTurmaVisible = filteredEntries.some(
-    ([_, value]) => Object.keys(value[0])[1] === "turma",
+    ([, value]) => Object.keys(value[0])[1] === "turma",
   );
 
   return (

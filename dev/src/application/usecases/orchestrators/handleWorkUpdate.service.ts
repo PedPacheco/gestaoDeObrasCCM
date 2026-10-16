@@ -11,9 +11,11 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { GetWorkDetailsService } from '../works/getWorkDetails.service';
-import { UpdateWorkService } from '../works/updateWork.service';
-import { SuspensionWorkService } from '../works/suspensionWork.service';
+import { GetWorkDetailsService } from '../works/management/getWorkDetails.service';
+import { UpdateWorkService } from '../works/management/updateWork.service';
+import { SuspensionWorkService } from '../works/management/suspensionWork.service';
+
+import moment from 'moment';
 
 @Injectable()
 export class HandleWorkUpdateService {
@@ -28,7 +30,6 @@ export class HandleWorkUpdateService {
 
   async update(data: UpdateWorkDTO, id: number, permission: boolean) {
     const work = await this.getDetailsWorkService.get(id);
-    const { data_empreitamento } = data;
 
     if (work.id_status === 42 && permission) {
       throw new BadRequestException(
@@ -40,19 +41,31 @@ export class HandleWorkUpdateService {
       throw new BadGatewayException('Obra não foi encontrada');
     }
 
-    await this.prisma.$transaction(async (tx) => {
+    if (
+      !data.data_empreitamento &&
+      !work.data_empreitamento &&
+      work.id_status === 42
+    ) {
+      data.data_empreitamento = moment.utc().startOf('day').toDate();
+    }
+
+    return this.prisma.$transaction(async (tx) => {
       if (data.id_status === 4) {
         await this.suspensionWorkService.createSuspension(
           work.id,
           data.reasonSuspension,
         );
+
+        return this.updateWorkService.update(data, work.id, tx);
       }
 
-      await this.updateWorkService.update(data, work.id, tx);
-
-      if (work.id_status === 42 && data_empreitamento) {
+      if (work.id_status === 42 && data.data_empreitamento) {
         await this.statusFlowRepository.updateStatusWorks(45, work.id, tx);
+
+        return this.updateWorkService.update(data, work.id, tx);
       }
+
+      return this.updateWorkService.update(data, work.id, tx);
     });
   }
 }

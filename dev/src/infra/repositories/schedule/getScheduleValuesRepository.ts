@@ -5,7 +5,7 @@ import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 import {
   GetScheduleValuesInterface,
   GetScheduleValuesResponseRepository,
-  totalsGetScheduleValues,
+  TotalsGetScheduleValuesRepository,
 } from 'src/interface/types/schedule/getScheduleValuesInterface';
 
 import { Injectable } from '@nestjs/common';
@@ -14,6 +14,40 @@ import { Prisma } from '@prisma/client';
 @Injectable()
 export class GetScheduleValuesRepository implements IGetScheduleValuesRepository {
   constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * Equipas por programação:
+   * - obras ponto a ponto: equipas distintas em programacoes_servicos (LM / LV / NR)
+   * - restantes obras: campos da tabela programacoes
+   * Devolve sempre uma linha por programação (agregação sem GROUP BY).
+   */
+  private EQUIPES_JOIN = Prisma.sql`
+  LEFT JOIN LATERAL (
+    SELECT
+      CASE WHEN obras.programacao_ponto_a_ponto
+           THEN COUNT(DISTINCT ps.id_equipe) FILTER (WHERE t.tipo = 'LM')
+           ELSE COALESCE(programacoes.equipe_linha_morta, 0)
+      END::int AS equipe_linha_morta,
+      CASE WHEN obras.programacao_ponto_a_ponto
+           THEN COUNT(DISTINCT ps.id_equipe) FILTER (WHERE t.tipo = 'LV')
+           ELSE COALESCE(programacoes.equipe_linha_viva, 0)
+      END::int AS equipe_linha_viva,
+      CASE WHEN obras.programacao_ponto_a_ponto
+           THEN COUNT(DISTINCT ps.id_equipe) FILTER (WHERE t.tipo = 'NR')
+           ELSE COALESCE(programacoes.equipe_regularizacao, 0)
+      END::int AS equipe_regularizacao
+    FROM construcao_sp.programacoes_servicos ps
+    JOIN construcao_sp.equipes e ON e.id = ps.id_equipe
+    CROSS JOIN LATERAL (
+      SELECT CASE
+               WHEN UPPER(e.equipe) LIKE '%LM%' THEN 'LM'
+               WHEN UPPER(e.equipe) LIKE '%LV%' THEN 'LV'
+               WHEN UPPER(e.equipe) LIKE '%NR%' THEN 'NR'
+             END AS tipo
+    ) t
+    WHERE ps.id_programacao = programacoes.id
+      AND obras.programacao_ponto_a_ponto  -- não lê os serviços das obras que não são ponto a ponto
+  ) eq ON TRUE`;
 
   private applyFilters(query: Prisma.Sql, filters: GetScheduleValuesDTO) {
     const {
@@ -31,6 +65,7 @@ export class GetScheduleValuesRepository implements IGetScheduleValuesRepository
       ovnota,
       pendente,
       idStatusSap,
+      idTecnico,
     } = filters;
 
     if (dataInicial && dataFinal) {
@@ -108,15 +143,17 @@ export class GetScheduleValuesRepository implements IGetScheduleValuesRepository
         INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
         INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
         LEFT JOIN construcao_sp.relatorio ON relatorio.id_obra = obras.id
+        ${this.EQUIPES_JOIN}
         WHERE status.id NOT IN (3, 4)`;
 
     let query = Prisma.sql`SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim, 
-        turma, status_ov_sap, executado, data_prog, prog, exec, mo_planejada::int*prog/100 AS mo_prog, mo_planejada::int*COALESCE(exec, 100)/100 AS mo_exec, capex_mat_pend, capex_mo_pend, tipo_obra, 
-        id_grupo, qtde_planejada, qtde_pend, num_dp, hora_ini, hora_ter, equipe_linha_morta, equipe_linha_viva, equipe_regularizacao, tecnico, conjunto, circuito, 
-        status_programacao, status, id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2, encontrado
+        turma, status_ov_sap, executado, data_prog, prog, exec, mo_planejada::int*prog/100 AS mo_prog, mo_planejada::int*exec/100 AS mo_exec, capex_mat_pend, capex_mo_pend, tipo_obra, 
+        id_grupo, qtde_planejada, qtde_pend, num_dp, hora_ini, hora_ter, eq.equipe_linha_morta, eq.equipe_linha_viva, eq.equipe_regularizacao, tecnico, conjunto, circuito, 
+        status_programacao, status, id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2, encontrado, programacoes.id as id_programacao
         ${baseQuery}`;
 
-    let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras, SUM(mo_planejada*prog::numeric/100) as total_mo_planejada, SUM(mo_planejada*executado/100) as total_mo_exec, 
+    let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras, SUM(mo_planejada*prog::numeric/100) as total_mo_planejada, SUM(mo_planejada*executado/100) as total_mo_exec,
+        SUM(eq.equipe_linha_morta)::int AS total_equipe_linha_morta,SUM(eq.equipe_linha_viva)::int AS total_equipe_linha_viva, SUM(eq.equipe_regularizacao)::int AS total_equipe_regularizacao,
         SUM(qtde_planejada * (prog::numeric/100)) as total_qtde_planejada ${baseQuery}`;
 
     query = this.applyFilters(query, filters);
@@ -128,9 +165,9 @@ export class GetScheduleValuesRepository implements IGetScheduleValuesRepository
       query = Prisma.sql`${query} LIMIT 200 OFFSET ${page * 200}`;
     }
 
-    const [works, resultTotals] = await Promise.all([
+    const [works, [resultTotals]] = await Promise.all([
       this.prisma.$queryRaw<GetScheduleValuesInterface[]>(query),
-      this.prisma.$queryRaw<totalsGetScheduleValues[]>(countQuery),
+      this.prisma.$queryRaw<TotalsGetScheduleValuesRepository[]>(countQuery),
     ]);
 
     return { works, resultTotals };

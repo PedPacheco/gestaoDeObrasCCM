@@ -27,7 +27,8 @@ jobs:
 
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
+      UPLOAD_AS_BUILD: /tmp/upload-as-build
+      UPLOAD_AS_DEST: /tmp/upload-dest
     steps:
       - name: Check out code
         uses: actions/checkout@v4

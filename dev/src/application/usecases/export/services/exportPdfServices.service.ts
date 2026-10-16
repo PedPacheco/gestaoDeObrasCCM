@@ -136,7 +136,7 @@ export class ExportPdfServicesService {
       {
         label: 'DATA PROGRAMADA',
         value: data.programacao?.data_prog
-          ? moment(data.programacao.data_prog).format('DD/MM/YYYY')
+          ? moment.utc(data.programacao.data_prog).format('DD/MM/YYYY')
           : '-',
       },
       { label: 'EQUIPE', value: equipe },

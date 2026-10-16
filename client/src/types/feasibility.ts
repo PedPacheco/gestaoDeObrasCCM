@@ -3,6 +3,7 @@ export interface FeasibilityDataInterface {
   id_obra: number;
   id_usuario: number;
   caminhos_arquivos: string[];
+  arquivos_complementares: string[];
   aprovada: boolean;
   data_envio: string | null;
   data_aprovacao: string | null;

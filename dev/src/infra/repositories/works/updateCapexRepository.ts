@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ProgressEmitter } from 'src/application/shared/capex.types';
-import { CalculatedValue } from 'src/application/usecases/works/updateCapex.service';
+import { CalculatedValue } from 'src/application/usecases/works/management/updateCapex.service';
 import { IUpdateCapexRepository } from 'src/domain/repositories/works/IUpdateCapexRepository';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 

@@ -20,9 +20,10 @@ import { KpiSectionOverviem } from "./KpiSection";
 import { OverviewDashboardFilters } from "./overviewDashboardFilters";
 import dayjs, { Dayjs } from "dayjs";
 import { useCallback, useState, useTransition } from "react";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
 import { fetchData } from "@/actions/fetchData.action";
 import { Transform } from "@/utils/transform";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 
 const FALLBACK_COLORS = [
   "#53FF75",
@@ -77,7 +78,7 @@ function formatMonth(m: string) {
 
 interface OverviewDashboardProps {
   initialData: DataDashboardInterface;
-  filtersData: any;
+  filtersData: FiltersInterface;
   token: string;
 }
 
@@ -91,7 +92,7 @@ export function OverviewDashboard({
 }: OverviewDashboardProps) {
   const [isPending, startTransition] = useTransition();
 
-  const { clearFilters, filters, saveFilters } = useSaveFilters({
+  const { clearFilters, filters, saveFilters } = useOldSaveFilters({
     pageKey: "OverviewDashboardFilters",
     data: filtersData,
   });

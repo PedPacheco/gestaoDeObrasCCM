@@ -28,6 +28,7 @@ export class InsertWorksRepository implements IInsertWorksRepository {
           id_circuito: work.idCircuito || 1,
           status_ov_sap: work.statusOv,
           id_empreendimento: 1,
+          programacao_ponto_a_ponto: work.pontoAPonto,
         };
       });
 
@@ -62,6 +63,7 @@ export class InsertWorksRepository implements IInsertWorksRepository {
           id_turma: work.idParceira || 1,
           id_circuito: work.idCircuito || 1,
           ano_plan: work.anoPlan,
+          programacao_ponto_a_ponto: work.pontoAPonto,
         };
       });
 

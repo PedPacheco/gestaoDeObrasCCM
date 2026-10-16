@@ -90,6 +90,35 @@ export class FeasibilityController {
     };
   }
 
+  @Patch('upload')
+  @UseInterceptors(FilesInterceptor('files'))
+  @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
+  async uploadComplementaryFiles(
+    @UploadedFiles() files: Express.Multer.File[] = [],
+    @Body('workId', ParseIntPipe) workId: number,
+    @Body('existingFiles') existingFiles: string,
+    @Req() req: any,
+  ) {
+    const userId = req.user.sub;
+
+    const parsedExistingFiles =
+      existingFiles && existingFiles.trim().length > 0
+        ? JSON.parse(existingFiles)
+        : [];
+
+    await this.handleFeasibilityService.uploadComplementaryFiles(
+      workId,
+      userId,
+      files,
+      parsedExistingFiles,
+    );
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Arquivos complementares inseridos com sucesso',
+    };
+  }
+
   @Post('reprovar')
   @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async rejectFeasibility(@Body() data: RejectFeasibilityDTO) {
@@ -102,16 +131,14 @@ export class FeasibilityController {
   }
 
   @Patch('aprovar/:id')
-  @UseInterceptors(FilesInterceptor('files'))
   @UseGuards(AreaEditGuard({ allowedAreas: [8], blockPartner: true }))
   async approveFeasibility(
     @Param('id', ParseIntPipe) id: number,
-    @UploadedFiles() files: Express.Multer.File[] = [],
     @Req() req: any,
   ) {
     const userId = req.user.sub;
 
-    await this.handleFeasibilityService.approve(id, userId, files);
+    await this.handleFeasibilityService.approve(id, userId);
 
     return {
       statusCode: HttpStatus.NO_CONTENT,
