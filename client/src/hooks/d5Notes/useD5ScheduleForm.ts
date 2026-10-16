@@ -22,6 +22,7 @@ export interface D5FormData {
   restrictionResponsible: string;
   observation: string;
   executionObservation: string;
+  rejected: boolean;
 }
 
 export interface D5ScheduleData {
@@ -45,6 +46,7 @@ export interface D5ScheduleData {
   observacao_programacao: string | null;
   observacao_execucao: string | null;
   caminhos_arquivos: string[];
+  reprovada: boolean;
 }
 
 interface Props {
@@ -79,6 +81,7 @@ function getInitialFormData(): D5FormData {
     restrictionResponsible: "",
     observation: "",
     executionObservation: "",
+    rejected: false,
   };
 }
 
@@ -197,6 +200,7 @@ export function useD5ScheduleForm({ schedule, options }: Props) {
     payload.append("temporaryKey", String(formData.temporaryKey));
     payload.append("technicalId", String(formData.technicalId));
     payload.append("restrictionId", String(formData.restrictionId));
+    payload.append("rejected", String(formData.rejected));
 
     // campo omitido = não mexer nos anexos
     if (filesChanged) {

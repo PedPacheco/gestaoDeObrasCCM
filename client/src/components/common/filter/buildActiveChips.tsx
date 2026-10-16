@@ -9,7 +9,7 @@ import { Dayjs } from "dayjs";
 export interface ActiveChip {
   id: string;
   filterKey: string;
-  kind: "select" | "dateRange" | "options";
+  kind: "select" | "dateRange" | "options" | "text" | "checkbox";
   rawValue?: string;
   label: string;
 }
@@ -69,6 +69,29 @@ export function buildActiveChips(
           filterKey: field.key,
           kind: field.type,
           label: `${field.label}: ${value}`,
+        });
+      }
+    }
+
+    if (field.type === "text") {
+      const value = ((extraValues[field.key] as string) ?? "").trim();
+      if (value) {
+        chips.push({
+          id: field.key,
+          filterKey: field.key,
+          kind: "text",
+          label: `${field.label}: ${value}`,
+        });
+      }
+    }
+
+    if (field.type === "checkbox") {
+      if (extraValues[field.key] === "true") {
+        chips.push({
+          id: field.key,
+          filterKey: field.key,
+          kind: "checkbox",
+          label: field.label,
         });
       }
     }

@@ -63,12 +63,28 @@ export class D5NoteSchedule extends BaseSchedule {
       );
     }
 
+    if (!this.serviceType) {
+      throw new BadRequestException('O tipo do serviço deve ser informado!');
+    }
+
     if (
       this.responsibility &&
       this.responsibility.length > D5NoteSchedule.MAX_RESPONSIBILITY
     ) {
       throw new BadRequestException(
         `Responsável pela restrição deve ter no máximo ${D5NoteSchedule.MAX_RESPONSIBILITY} caracteres`,
+      );
+    }
+
+    this.validateTeams();
+  }
+
+  private validateTeams(): void {
+    const teams = [this.lmTeam, this.lvTeam, this.regulTeam];
+
+    if (teams.every((t) => !t)) {
+      throw new BadRequestException(
+        'Informe pelo menos uma equipe(LM, LV ou Regularização)',
       );
     }
   }

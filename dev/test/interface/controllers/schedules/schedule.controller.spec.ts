@@ -1,9 +1,9 @@
+import { UsersService } from 'src/application/usecases/users.service';
 import { MonthlySummaryService } from 'src/application/usecases/works/schedule/getMonthlySummary.service';
 import { GetMonthlySummaryForecastService } from 'src/application/usecases/works/schedule/getMonthlySummaryForecast.service';
 import { GetScheduleValuesService } from 'src/application/usecases/works/schedule/getScheduleValues.service';
 import { GetTotalValuesScheduleService } from 'src/application/usecases/works/schedule/getTotalValuesSchedule.service';
 import { RejectionsOfSchedulesService } from 'src/application/usecases/works/schedule/rejectionOfSchedules.service';
-import { UsersService } from 'src/application/usecases/users.service';
 import { ScheduleController } from 'src/interface/controllers/schedules/schedule.controller';
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 import { GetScheduleValuesResponse } from 'src/interface/types/schedule/getScheduleValuesInterface';
@@ -83,6 +83,9 @@ describe('ScheduleController', () => {
       total_ponto_a_ponto_executado: 0,
       total_ponto_a_ponto_programado: 0,
       total_qtde_planejada: 1,
+      total_equipe_linha_morta: 0,
+      total_equipe_linha_viva: 0,
+      total_equipe_regularizacao: 0,
       total_exec: 0,
     },
   };

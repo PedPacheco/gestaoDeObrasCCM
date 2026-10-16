@@ -2,20 +2,139 @@
 
 import "dayjs/locale/pt-br";
 
-import dayjs, { Dayjs } from "dayjs";
-import { useCallback, useEffect, useState } from "react";
+import dayjs from "dayjs";
+import { useEffect, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
-import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
+import { GenericFilterBar } from "@/components/common/filter/genericFilterBar";
 import { useSaveFilters } from "@/hooks/useSaveFilters";
-
-import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
-import { DocumentArrowDownIcon } from "@heroicons/react/20/solid";
-import { Checkbox, TextField } from "@mui/material";
-import { DateFilter } from "@/components/common/filter/DateFilter";
-import { FilterOption, FiltersInterface } from "@/types/genericFilterSchema";
+import {
+  ExtraFilterValue,
+  FilterFieldConfig,
+  FiltersInterface,
+} from "@/types/genericFilterSchema";
+
+// ATENÇÃO: antes, as chaves/labels dos selects eram inferidas da ordem das
+// chaves do objeto da API (valueKey = 1ª chave, displayKey = 2ª, e
+// filterKey = `${valueKey}${Capitalize(key)}`). Agora são explícitas.
+// Confira se displayKey/filterKey batem com o que a API retorna nesta tela.
+const SCHEDULE_FILTER_SCHEMA: FilterFieldConfig[] = [
+  { type: "dateRange", key: "data", label: "Data" }, // gera dataInicial / dataFinal
+  {
+    type: "select",
+    dataKey: "regional",
+    filterKey: "idRegional",
+    valueKey: "id",
+    displayKey: "regional",
+  },
+  {
+    type: "select",
+    dataKey: "parceira",
+    filterKey: "idParceira",
+    valueKey: "id",
+    displayKey: "turma",
+  },
+  {
+    type: "select",
+    dataKey: "tipo",
+    filterKey: "idTipo",
+    valueKey: "id",
+    displayKey: "tipo_obra",
+  },
+  {
+    type: "select",
+    dataKey: "municipio",
+    filterKey: "idMunicipio",
+    valueKey: "id",
+    displayKey: "municipio",
+  },
+  {
+    type: "select",
+    dataKey: "grupo",
+    filterKey: "idGrupo",
+    valueKey: "id",
+    displayKey: "grupo",
+  },
+  {
+    type: "select",
+    dataKey: "status",
+    filterKey: "idStatus",
+    valueKey: "id",
+    displayKey: "status",
+  },
+  {
+    type: "select",
+    dataKey: "statusSap",
+    filterKey: "idStatusSap",
+    valueKey: "id",
+    displayKey: "codigo_sap",
+  },
+  {
+    type: "select",
+    dataKey: "circuito",
+    filterKey: "idCircuito",
+    valueKey: "id",
+    displayKey: "circuito",
+  },
+  {
+    type: "select",
+    dataKey: "empreendimento",
+    filterKey: "idEmpreendimento",
+    valueKey: "id",
+    displayKey: "empreendimento",
+  },
+  {
+    type: "select",
+    dataKey: "conjunto",
+    filterKey: "idConjunto",
+    valueKey: "id",
+    displayKey: "conjunto",
+  },
+  { type: "text", key: "ovnota", label: "Ov/nota" },
+  { type: "checkbox", key: "executado", label: "Executadas" },
+  { type: "checkbox", key: "pendente", label: "Pendentes" },
+];
+
+// Mesma regra de dependência do D5 (Grupo → Tipo, Regional → Município).
+// Se quiser, extraia para um util compartilhado e reaproveite nas duas telas.
+function deriveScheduleOptions(
+  data: Record<string, any[] | undefined>,
+  selectedItems: Record<string, string[]>,
+) {
+  const next = { ...data };
+
+  const idGrupos = selectedItems.idGrupo?.map(Number);
+  if (idGrupos?.length) {
+    next.tipo = next.tipo?.filter((item) => idGrupos.includes(item.id_grupo));
+  }
+
+  const idRegionais = selectedItems.idRegional?.map(Number);
+  if (idRegionais?.length) {
+    next.municipio = next.municipio?.filter((item) =>
+      idRegionais.includes(item.id_regional),
+    );
+  }
+
+  return next;
+}
+
+// Função de módulo: referência estável (evita loop no useEffect do useSaveFilters).
+function applyScheduleFilters(
+  data: FiltersInterface,
+  filtersObject: Record<string, any>,
+) {
+  return deriveScheduleOptions(data, filtersObject.selectedItems ?? {});
+}
+
+const EMPTY_EXTRA_VALUES: Record<string, ExtraFilterValue> = {
+  dataInicial: null,
+  dataFinal: null,
+  ovnota: "",
+  executado: "",
+  pendente: "",
+};
 
 interface ScheduleByDateFiltersProps {
   data: FiltersInterface;
@@ -34,102 +153,82 @@ export default function ScheduleForDayFilters({
   setPage,
   searchFilteredData,
 }: ScheduleByDateFiltersProps) {
-  const applyFilters = useCallback((data: FiltersInterface, filters: any) => {
-    let newData = { ...data };
-
-    const { selectedItems } = filters;
-
-    if (selectedItems?.idGrupo?.length > 0) {
-      const idGrupos = selectedItems.idGrupo?.map(Number);
-
-      newData.tipo = newData.tipo?.filter((item) =>
-        idGrupos.includes(item.id_grupo),
-      );
-    }
-
-    if (selectedItems?.idRegional?.length > 0) {
-      const idRegionais = selectedItems.idRegional?.map(Number);
-
-      newData.municipio = newData.municipio?.filter((item) =>
-        idRegionais.includes(item.id_regional),
-      );
-    }
-
-    return newData;
-  }, []);
-
   const { clearFilters, filters, saveFilters, filteredData } = useSaveFilters({
     pageKey: "scheduleForDayFilters",
     data,
-    applyFilters,
+    applyFilters: applyScheduleFilters,
   });
+
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {},
   );
-
-  const [startDate, setStartDate] = useState<Dayjs | null>(null);
-  const [endDate, setEndDate] = useState<Dayjs | null>(null);
-  const [ovnota, setOvnota] = useState<string>("");
-  const [executed, setExecuted] = useState<boolean>(false);
-  const [pending, setPending] = useState<boolean>(false);
+  const [extraValues, setExtraValues] =
+    useState<Record<string, ExtraFilterValue>>(EMPTY_EXTRA_VALUES);
 
   useEffect(() => {
-    if (filters) {
-      setSelectedItems(filters.selectedItems || {});
-      setExecuted(filters.executed || false);
-      setPending(filters.pending || false);
-      setOvnota(filters.ovnota || "");
-      setStartDate(filters?.startDate ? dayjs(filters.startDate) : null);
-      setEndDate(filters?.endDate ? dayjs(filters.endDate) : null);
+    if (!filters) return;
+
+    setSelectedItems(filters.selectedItems || {});
+
+    const saved = filters.extraFilters;
+    if (saved) {
+      setExtraValues({
+        dataInicial: saved.dataInicial ? dayjs(saved.dataInicial) : null,
+        dataFinal: saved.dataFinal ? dayjs(saved.dataFinal) : null,
+        ovnota: saved.ovnota ?? "",
+        executado: saved.executado ?? "",
+        pendente: saved.pendente ?? "",
+      });
     }
   }, [filters]);
 
-  function handleGenerateExcel() {
-    const newSelectedItems = {
-      ...Transform(selectedItems),
-      executado: executed.toString(),
-      pendente: pending.toString(),
-      dataInicial: startDate ? startDate.format("DD/MM/YYYY") : null,
-      dataFinal: endDate ? endDate.format("DD/MM/YYYY") : null,
-      ovnota: ovnota,
-    };
+  // O que vai pro cookie: datas em ISO (para o dayjs reler) e TODAS as chaves,
+  // mesmo vazias — o saveFilters faz merge com o cookie anterior, então uma
+  // chave omitida manteria o valor antigo.
+  function buildSavedExtras() {
+    const toIso = (value: ExtraFilterValue) =>
+      dayjs.isDayjs(value) && value.isValid() ? value.format("YYYY-MM-DD") : "";
 
-    generateExcel(newSelectedItems);
+    return {
+      dataInicial: toIso(extraValues.dataInicial),
+      dataFinal: toIso(extraValues.dataFinal),
+      ovnota: (extraValues.ovnota as string) ?? "",
+      executado: (extraValues.executado as string) ?? "",
+      pendente: (extraValues.pendente as string) ?? "",
+    };
+  }
+
+  // O que vai pra API: datas em DD/MM/YYYY e booleanos como "true"/"false".
+  // `emptyDate` preserva o comportamento antigo ("" na busca, null no Excel).
+  function buildApiParams(emptyDate: "" | null) {
+    const toBr = (value: ExtraFilterValue) =>
+      dayjs.isDayjs(value) && value.isValid()
+        ? value.format("DD/MM/YYYY")
+        : emptyDate;
+
+    return {
+      executado: (extraValues.executado === "true").toString(),
+      pendente: (extraValues.pendente === "true").toString(),
+      dataInicial: toBr(extraValues.dataInicial),
+      dataFinal: toBr(extraValues.dataFinal),
+      ovnota: (extraValues.ovnota as string) ?? "",
+    };
   }
 
   function handleApplyFilters() {
-    saveFilters({
-      selectedItems,
-      executed,
-      startDate,
-      endDate,
-      ovnota,
-      pending,
-    });
+    saveFilters(selectedItems, buildSavedExtras());
 
-    const newSelectedItems = {
+    searchFilteredData({
       ...Transform(selectedItems),
-      executado: executed.toString(),
-      pendente: pending.toString(),
-      dataInicial: startDate ? startDate.format("DD/MM/YYYY") : "",
-      dataFinal: endDate ? endDate.format("DD/MM/YYYY") : "",
+      ...buildApiParams(""),
       page: "0",
-      ovnota: ovnota,
-    };
-
-    searchFilteredData(newSelectedItems);
+    });
   }
 
-  function handleCleanigFilters() {
+  function handleClearFilters() {
     setSelectedItems({});
-    setExecuted(false);
-    setPending(false);
-    setStartDate(null);
-    setEndDate(null);
-    setOvnota("");
-
+    setExtraValues(EMPTY_EXTRA_VALUES);
     clearFilters();
-
     setPage(0);
 
     searchFilteredData({
@@ -139,103 +238,34 @@ export default function ScheduleForDayFilters({
     });
   }
 
+  function handleGenerateExcel() {
+    generateExcel({
+      ...Transform(selectedItems),
+      ...buildApiParams(null),
+    });
+  }
+
   return (
-    <>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:flex xl:flex-row xl:justify-between xl:items-center">
-        <DateFilter
-          endDate={endDate}
-          startDate={startDate}
-          setEndDate={setEndDate}
-          setStartDate={setStartDate}
-          size="w-full"
-        />
-
-        {Object.entries(filteredData)
-          .filter(
-            (entry): entry is [string, FilterOption[]] =>
-              Array.isArray(entry[1]) && entry[1].length > 0,
-          )
-          .slice(0, 8)
-          .map(([key, value], index) => {
-            const valueKey = Object.keys(value[0])[0];
-            const displayKey = Object.keys(value[0])[1];
-
-            const filterValue = `${valueKey}${
-              key.charAt(0).toUpperCase() + key.slice(1)
-            }`;
-
-            return (
-              <MultipleSelectComponent
-                label={capitalize(displayKey)}
-                menuItems={value || []}
-                selectedItem={selectedItems[filterValue]}
-                setSelectedItem={(selectedValue) => {
-                  setSelectedItems((prev: any) => ({
-                    ...prev,
-                    [filterValue]: selectedValue,
-                  }));
-                }}
-                valueKey={valueKey}
-                displayKey={displayKey}
-                key={index}
-              />
-            );
-          })}
-
-        <TextField
-          className="mb-2 lg:ml-4 w-full"
-          size="small"
-          label="Ov/nota"
-          value={ovnota}
-          onChange={(event) => setOvnota(event.target.value)}
-        />
-
-        <div className="col-span-full flex flex-row justify-between items-center px-10 xl:px-0 xl:justify-normal xl:items-start xl:flex-col ">
-          <div className="flex flex-row items-center">
-            <Checkbox
-              onChange={() => setExecuted(!executed)}
-              checked={executed}
-            />
-            <p className="text-nowrap font-medium text-lg">Executadas</p>
-          </div>
-
-          <div className="flex flex-row items-center lg:mb-2">
-            <Checkbox onChange={() => setPending(!pending)} checked={pending} />
-            <p className="text-nowrap font-medium text-lg">Pendentes</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 w-full">
-        <ButtonComponent
-          onClick={handleApplyFilters}
-          text={getButtonContent(isPending, "Aplicar filtros")}
-          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
-          disabled={isPending}
-        />
-        <ButtonComponent
-          onClick={handleCleanigFilters}
-          text={getButtonContent(isPending, "Limpar filtros")}
-          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
-          disabled={isPending}
-        />
-
+    <GenericFilterBar
+      schema={SCHEDULE_FILTER_SCHEMA}
+      data={filteredData}
+      deriveOptions={deriveScheduleOptions}
+      selectedItems={selectedItems}
+      onSelectedItemsChange={setSelectedItems}
+      extraValues={extraValues}
+      onExtraValuesChange={setExtraValues}
+      isPending={isPending}
+      onApply={handleApplyFilters}
+      onClear={handleClearFilters}
+      hasExport={true}
+      handleGenerateExcel={handleGenerateExcel}
+      extraActions={
         <ButtonComponent
           onClick={openModal}
           text={getButtonContent(isPending, "Ver valores totais")}
-          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
           disabled={isPending}
         />
-        <ButtonComponent
-          onClick={handleGenerateExcel}
-          text={getButtonContent(isPending, "Exportar")}
-          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
-          startIcon={
-            <DocumentArrowDownIcon width={25} height={25} className="mr-2" />
-          }
-          disabled={isPending}
-        />
-      </div>
-    </>
+      }
+    />
   );
 }

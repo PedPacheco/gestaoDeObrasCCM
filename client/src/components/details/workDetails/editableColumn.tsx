@@ -56,7 +56,7 @@ export const EditableColumn = ({
     return filtered.sort(
       (a, b) => statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status),
     );
-  }, [data.data_empreitamento, options.status]);
+  }, [data.data_empreitamento, data.id_status, options.status]);
 
   const havePermission =
     permissions?.tipo_usuario === "PARCEIRA" || !permissions?.permissao_edicao;

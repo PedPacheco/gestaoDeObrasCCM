@@ -150,8 +150,8 @@ export default function MainSchduleForDay({
 
       <TableWithPagination
         columns={columns}
-        totals={filteredData.totals}
-        data={filteredData.works}
+        totals={filteredData.totals || null}
+        data={filteredData.works || []}
         sliceEndIndex={4}
         page={page}
         handleChangePage={handleChangePage}

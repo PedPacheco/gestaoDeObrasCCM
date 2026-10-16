@@ -10,7 +10,7 @@ import { ButtonComponent } from "@/components/common/Button";
 import { DateFilter } from "@/components/common/filter/DateFilter";
 import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
 import { useFeedback } from "@/hooks/useFeedback";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
 import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
@@ -91,7 +91,7 @@ export function MainMonthlySummarySchedule({
     {},
   );
 
-  const { clearFilters, filters, saveFilters } = useSaveFilters({
+  const { clearFilters, filters, saveFilters } = useOldSaveFilters({
     pageKey: "monthlySummaryScheduleFilters",
     data: filtersData,
   });

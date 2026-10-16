@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import dayjs from "dayjs";
+import { useEffect, useMemo, useState } from "react";
 
-import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { Transform } from "@/utils/transform";
 import { GenericFilterBar } from "@/components/common/filter/genericFilterBar";
+import { STATUS_NOT_AVAILABLE } from "@/constants/statusNotAvaliable";
+import { useSaveFilters } from "@/hooks/useSaveFilters";
 import {
   ExtraFilterValue,
   FilterFieldConfig,
   FiltersInterface,
 } from "@/types/genericFilterSchema";
+import { Transform } from "@/utils/transform";
 const STATUS_D5_SAP_OPTIONS = ["Concluído", "Pendente"] as const;
 
 // Schema declarativo: substitui ~150 linhas de JSX repetido por uma lista de
@@ -149,12 +150,22 @@ export default function D5NotesFilters({
   generateExcel,
   searchFilteredData,
 }: D5NotesFiltersProps) {
+  const formattedFilters = useMemo<FiltersInterface>(
+    () => ({
+      ...data,
+      status: data.status?.filter(
+        (item) => !STATUS_NOT_AVAILABLE.has(Number(item.id)),
+      ),
+    }),
+    [data],
+  );
+
   // Funciona sem casts porque `FiltersInterface` agora tem uma index
   // signature compatível com `Record<string, any[] | undefined>`
   // (ver ajuste sugerido em @/types/filtersInterfaces.ts).
   const { clearFilters, filters, saveFilters, filteredData } = useSaveFilters({
     pageKey: url,
-    data,
+    data: formattedFilters,
     applyFilters: applyD5Filters,
   });
 

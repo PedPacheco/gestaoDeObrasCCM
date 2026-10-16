@@ -18,7 +18,7 @@ import {
 
 import { fetchData } from "@/actions/fetchData.action";
 import { useLaborMetrics } from "@/hooks/dashboard/laborDashboard/useLaborDashboardMetrics";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
 import { DailySummary, GroupSummary } from "@/types/dashboard/labor/labor";
 import { Transform } from "@/utils/transform";
 
@@ -57,7 +57,7 @@ export default function LaborDashboard({
 }: Props) {
   const [isPending, startTransition] = useTransition();
 
-  const { clearFilters, filters, saveFilters } = useSaveFilters({
+  const { clearFilters, filters, saveFilters } = useOldSaveFilters({
     pageKey: "laborDashboardFilters",
     data: filtersData,
   });

@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { D5NotesSchedulesRepository } from 'src/infra/repositories/d5Notes/d5NotesSchedulesRepository';
 
@@ -68,8 +69,18 @@ const makeAggregateDefault = () => ({
   _sum: { exec: 0 },
 });
 
-/** Sem valor por omissão: permite testar 0 explicitamente. */
-const makeAggregate = (count: number) => ({ _count: { _all: count } });
+const makeNoteRow = (
+  overrides: Partial<{
+    id: number;
+    mo_planejada: Prisma.Decimal | number | null;
+    programacoes_d5: { prog: number | null }[];
+  }> = {},
+) => ({
+  id: 1,
+  mo_planejada: 1000,
+  programacoes_d5: [{ prog: 50 }],
+  ...overrides,
+});
 
 /** Chaves esperadas na projeção partilhada. */
 const BASE_SELECT_KEYS = [
@@ -112,6 +123,7 @@ describe('D5NotesSchedulesRepository', () => {
 
   const notasD5 = {
     update: jest.fn(),
+    findMany: jest.fn(),
   };
 
   const programacoesD5Reprovacoes = {
@@ -152,6 +164,7 @@ describe('D5NotesSchedulesRepository', () => {
     programacoesD5Reprovacoes.createMany.mockResolvedValue(undefined);
     programacoesD5.delete.mockResolvedValue(undefined);
     notasD5.update.mockResolvedValue(undefined);
+    notasD5.findMany.mockResolvedValue([]);
     (prisma as any).$transaction.mockImplementation(
       (cb: (client: typeof tx) => Promise<unknown>) => cb(tx),
     );
@@ -557,53 +570,133 @@ describe('D5NotesSchedulesRepository', () => {
   // getTotals
   // =========================================================================
   describe('getTotals', () => {
-    it('deve devolver a contagem sob a chave total', async () => {
-      programacoesD5.aggregate.mockResolvedValue(makeAggregate(12));
+    describe('consulta', () => {
+      it('deve consultar as notas com pelo menos uma programação que cumpre o filtro', async () => {
+        const where = { id_municipio: { in: [1] } };
 
-      expect(await repository.getTotals({})).toEqual({ total: 12 });
-    });
+        await repository.getTotals(where);
 
-    it('deve devolver zero quando não há registos', async () => {
-      programacoesD5.aggregate.mockResolvedValue(makeAggregate(0));
+        expect(notasD5.findMany.mock.calls[0][0].where).toEqual({
+          programacoes_d5: { some: where },
+        });
+      });
 
-      expect(await repository.getTotals({})).toEqual({ total: 0 });
-    });
+      it('deve aplicar o mesmo filtro às programações incluídas', async () => {
+        const where = { id_municipio: { in: [1] } };
 
-    it('deve repassar a cláusula where', async () => {
-      const where = { id_municipio: { in: [1] } };
+        await repository.getTotals(where);
 
-      await repository.getTotals(where);
+        const args = notasD5.findMany.mock.calls[0][0];
+        expect(args.where.programacoes_d5.some).toBe(where);
+        expect(args.select.programacoes_d5.where).toBe(where);
+      });
 
-      expect(programacoesD5.aggregate.mock.calls[0][0].where).toBe(where);
-    });
+      it('deve pedir apenas id, mo_planejada e prog', async () => {
+        await repository.getTotals({});
 
-    it('deve pedir apenas a contagem total', async () => {
-      await repository.getTotals({});
-
-      expect(programacoesD5.aggregate).toHaveBeenCalledWith({
-        where: {},
-        _count: { _all: true },
+        expect(notasD5.findMany).toHaveBeenCalledWith({
+          where: { programacoes_d5: { some: {} } },
+          select: {
+            id: true,
+            mo_planejada: true,
+            programacoes_d5: { where: {}, select: { prog: true } },
+          },
+        });
       });
     });
 
-    it('não deve agregar somas nem projetar colunas', async () => {
-      await repository.getTotals({});
+    describe('mapeamento', () => {
+      it('deve devolver a MO e as percentagens programadas de cada nota', async () => {
+        notasD5.findMany.mockResolvedValue([
+          makeNoteRow({
+            id: 2,
+            mo_planejada: 5245,
+            programacoes_d5: [{ prog: 50 }, { prog: 50 }],
+          }),
+        ]);
 
-      const callArgs = programacoesD5.aggregate.mock.calls[0][0];
-      expect(callArgs).not.toHaveProperty('_sum');
-      expect(callArgs).not.toHaveProperty('select');
+        expect(await repository.getTotals({})).toEqual([
+          { noteId: 2, moRetida: 5245, progs: [50, 50] },
+        ]);
+      });
+
+      it('deve converter mo_planejada do tipo Decimal para number', async () => {
+        notasD5.findMany.mockResolvedValue([
+          makeNoteRow({ mo_planejada: new Prisma.Decimal('5245.50') }),
+        ]);
+
+        const [note] = await repository.getTotals({});
+
+        expect(note.moRetida).toBe(5245.5);
+        expect(typeof note.moRetida).toBe('number');
+      });
+
+      it('deve usar zero quando mo_planejada é nula', async () => {
+        notasD5.findMany.mockResolvedValue([
+          makeNoteRow({ mo_planejada: null }),
+        ]);
+
+        const [note] = await repository.getTotals({});
+
+        expect(note.moRetida).toBe(0);
+      });
+
+      it('deve usar zero quando prog é nulo', async () => {
+        notasD5.findMany.mockResolvedValue([
+          makeNoteRow({ programacoes_d5: [{ prog: null }, { prog: 30 }] }),
+        ]);
+
+        const [note] = await repository.getTotals({});
+
+        expect(note.progs).toEqual([0, 30]);
+      });
+
+      it('deve devolver progs vazio quando a nota não tem programações incluídas', async () => {
+        notasD5.findMany.mockResolvedValue([
+          makeNoteRow({ programacoes_d5: [] }),
+        ]);
+
+        const [note] = await repository.getTotals({});
+
+        expect(note.progs).toEqual([]);
+      });
+
+      it('deve preservar a ordem das notas', async () => {
+        notasD5.findMany.mockResolvedValue([
+          makeNoteRow({ id: 9 }),
+          makeNoteRow({ id: 3 }),
+        ]);
+
+        const result = await repository.getTotals({});
+
+        expect(result.map((n) => n.noteId)).toEqual([9, 3]);
+      });
+
+      it('deve devolver apenas as chaves noteId, moRetida e progs', async () => {
+        notasD5.findMany.mockResolvedValue([makeNoteRow()]);
+
+        const [note] = await repository.getTotals({});
+
+        expect(Object.keys(note).sort()).toEqual([
+          'moRetida',
+          'noteId',
+          'progs',
+        ]);
+      });
     });
 
-    it('deve devolver exatamente uma chave', async () => {
-      programacoesD5.aggregate.mockResolvedValue(makeAggregate(5));
+    describe('casos limite', () => {
+      it('deve devolver uma lista vazia quando não há notas', async () => {
+        notasD5.findMany.mockResolvedValue([]);
 
-      expect(Object.keys(await repository.getTotals({}))).toEqual(['total']);
-    });
+        expect(await repository.getTotals({})).toEqual([]);
+      });
 
-    it('deve propagar erros do Prisma', async () => {
-      programacoesD5.aggregate.mockRejectedValue(new Error('falha'));
+      it('deve propagar erros do Prisma', async () => {
+        notasD5.findMany.mockRejectedValue(new Error('falha'));
 
-      await expect(repository.getTotals({})).rejects.toThrow('falha');
+        await expect(repository.getTotals({})).rejects.toThrow('falha');
+      });
     });
   });
 
@@ -700,12 +793,6 @@ describe('D5NotesSchedulesRepository', () => {
         expect(notasD5.update).toHaveBeenCalledTimes(1);
         expect(programacoesD5.create).toHaveBeenCalledTimes(1);
       });
-
-      it('não deve recalcular o total executado', async () => {
-        await run();
-
-        expect(programacoesD5.aggregate).not.toHaveBeenCalled();
-      });
     });
 
     describe('propagação de erros', () => {
@@ -746,7 +833,7 @@ describe('D5NotesSchedulesRepository', () => {
       id = SCHEDULE_ID,
       data: Record<string, any> = makeUpdateData(),
       noteId = D5_NOTE_ID,
-    ) => repository.updateAndSyncWorkStatus(id, data as any, noteId);
+    ) => repository.updateAndSyncWorkStatus(id, data as any, noteId, false);
 
     describe('atualização da programação', () => {
       it('deve atualizar a programação indicada', async () => {
@@ -956,7 +1043,7 @@ describe('D5NotesSchedulesRepository', () => {
     const run = (
       ids: number[] = makeRejectionIds(),
       rejections: Record<string, any>[] = makeRejectionList(),
-    ) => repository.rejectMany(ids, rejections as any);
+    ) => repository.rejectMany(ids, rejections as any, 5);
 
     describe('registo das reprovações', () => {
       it('deve inserir todas as reprovações recebidas', async () => {
@@ -1006,6 +1093,45 @@ describe('D5NotesSchedulesRepository', () => {
       });
     });
 
+    describe('estado da nota D5', () => {
+      it('deve repor o estado da nota indicada para 1', async () => {
+        await run();
+
+        expect(notasD5.update).toHaveBeenCalledWith({
+          where: { id: 5 },
+          data: { id_status: 1 },
+        });
+      });
+
+      it('não deve alterar outros campos da nota além de id_status', async () => {
+        await run();
+
+        expect(Object.keys(notasD5.update.mock.calls[0][0].data)).toEqual([
+          'id_status',
+        ]);
+      });
+
+      it('deve atualizar a nota apenas depois de inserir e marcar', async () => {
+        const order: string[] = [];
+        programacoesD5Reprovacoes.createMany.mockImplementation(async () => {
+          order.push('reprovacoes');
+          return { count: 0 };
+        });
+        programacoesD5.updateMany.mockImplementation(async () => {
+          order.push('programacoes');
+          return { count: 0 };
+        });
+        notasD5.update.mockImplementation(async () => {
+          order.push('nota');
+          return {};
+        });
+
+        await run();
+
+        expect(order).toEqual(['reprovacoes', 'programacoes', 'nota']);
+      });
+    });
+
     describe('marcação das programações', () => {
       it('deve marcar como reprovadas apenas os ids indicados', async () => {
         await run([3, 7, 11]);
@@ -1042,24 +1168,13 @@ describe('D5NotesSchedulesRepository', () => {
     });
 
     describe('transação', () => {
-      it('deve executar ambas as operações numa única transação', async () => {
+      it('deve executar as três operações numa única transação', async () => {
         await run();
 
         expect(prisma.$transaction).toHaveBeenCalledTimes(1);
         expect(programacoesD5Reprovacoes.createMany).toHaveBeenCalledTimes(1);
         expect(programacoesD5.updateMany).toHaveBeenCalledTimes(1);
-      });
-
-      it('não deve recalcular o total executado', async () => {
-        await run();
-
-        expect(programacoesD5.aggregate).not.toHaveBeenCalled();
-      });
-
-      it('não deve alterar o estado da nota D5', async () => {
-        await run();
-
-        expect(notasD5.update).not.toHaveBeenCalled();
+        expect(notasD5.update).toHaveBeenCalledTimes(1);
       });
     });
 

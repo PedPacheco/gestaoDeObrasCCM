@@ -1,10 +1,12 @@
+import { BadRequestException } from '@nestjs/common';
+import { OmitType, PartialType } from '@nestjs/mapped-types';
 import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
   IsDateString,
-  IsInt,
   IsIn,
+  IsInt,
   IsNumber,
   IsOptional,
   IsString,
@@ -12,13 +14,18 @@ import {
   MaxLength,
 } from 'class-validator';
 import { convertParameterValue } from 'src/utils/convertParameterValue';
-import { OmitType, PartialType } from '@nestjs/mapped-types';
-import { BadRequestException } from '@nestjs/common';
 
 const emptyToNull = (value: unknown): string | null =>
   value === '' || value === null || value === undefined || value === 'null'
     ? null
     : (value as string);
+
+function toBoolean({ value }: { value: unknown }) {
+  if (value === 'true' || value === true) return true;
+  if (value === 'false' || value === false) return false;
+  if (value === '' || value === null || value === undefined) return undefined;
+  return value; // qualquer outro valor é rejeitado pelo @IsBoolean
+}
 
 export class D5NotesFiltersDTO {
   @IsOptional()
@@ -112,6 +119,21 @@ export class D5NotesSchedulesFiltersDTO {
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
   idParceira?: number[];
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(toBoolean)
+  executado?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(toBoolean)
+  pendente?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(toBoolean)
+  reprovada?: boolean;
 
   @IsNumber()
   @Type(() => Number)
@@ -281,6 +303,11 @@ export class UpdateScheduleD5Dto extends PartialType(
     }
   })
   keptFiles?: string[];
+
+  @IsOptional()
+  @Transform(toBoolean)
+  @IsBoolean()
+  rejected?: boolean;
 }
 
 export class RejectD5ScheduleDTO {

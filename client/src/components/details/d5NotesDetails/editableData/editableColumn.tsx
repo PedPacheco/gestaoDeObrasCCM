@@ -1,11 +1,10 @@
 "use client";
 
-import { useUser } from "@/contexts/userContext";
-
-import { ReactNode, useEffect, useId, useState } from "react";
-import { FormControl, MenuItem, Select, Tooltip } from "@mui/material";
-import D5DataItem, { FieldShell } from "../dataItemD5";
+import { STATUS_NOT_AVAILABLE } from "@/constants/statusNotAvaliable";
 import { useD5NoteEdit } from "@/hooks/useD5Edit";
+import { FormControl, MenuItem, Select, Tooltip } from "@mui/material";
+import { ReactNode, useEffect, useId, useState } from "react";
+import D5DataItem, { FieldShell } from "../dataItemD5";
 
 export interface NoteD5EditableData {
   id_parceira: string;
@@ -32,8 +31,6 @@ export interface SelectProps {
   editButton?: ReactNode;
   placeholder?: string;
 }
-
-const STATUS_NOT_AVALIABLE = [46, 45, 43, 42, 3, 4, 36, 37];
 
 export function D5SelectComponent({
   label,
@@ -150,7 +147,7 @@ export const EditableColumnD5 = ({ data, options }: EditableColumnD5Props) => {
       <D5SelectComponent
         label="Status D5 (SIGO)"
         menuItems={options.status.filter(
-          (item: any) => !STATUS_NOT_AVALIABLE.includes(item.id),
+          (item: any) => !STATUS_NOT_AVAILABLE.has(Number(item.id)),
         )}
         selectedItem={form.id_status}
         setSelectedItem={(value) => setField?.("id_status", value)}

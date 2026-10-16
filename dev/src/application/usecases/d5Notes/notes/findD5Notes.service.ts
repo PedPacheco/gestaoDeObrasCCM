@@ -107,6 +107,7 @@ export class FindD5NotesService {
       status: status.status,
       tmAberto,
       tmExecucao,
+      moRetida: rest.mo_planejada,
       usuarioModificador: novo_tabela_usuarios?.nome ?? null,
       totalProgramado,
       totalExecutado,

@@ -24,7 +24,7 @@ import { useCallback, useMemo, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { useDashboardMetrics } from "@/hooks/dashboard/recompositionGoalsDashboard/useRecompositionGoalsMetrics";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
 import { Goal, MonthKey } from "@/types/dashboard/recompositionGoals/goals";
 import { Transform } from "@/utils/transform";
 
@@ -117,7 +117,7 @@ export default function RecompositionGoalsDashboard({
   const currentMonth = dayjs().month();
   const now = dayjs();
 
-  const { clearFilters, filters, saveFilters } = useSaveFilters({
+  const { clearFilters, filters, saveFilters } = useOldSaveFilters({
     pageKey: "recompositionGoalsDashboardFilters",
     data: filtersData,
   });

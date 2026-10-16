@@ -5,7 +5,7 @@ import { useEffect, useState, useTransition } from "react";
 import { fetchData } from "@/actions/fetchData.action";
 import { ButtonComponent } from "@/components/common/Button";
 import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
 import { MainInterface } from "@/types/mainInterface";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
@@ -22,7 +22,7 @@ export default function MainAllWorks({
   token,
 }: MainInterface<FiltersInterface>) {
   const [filteredData, setFilteredData] = useState(data);
-  const { clearFilters, filters, saveFilters } = useSaveFilters({
+  const { clearFilters, filters, saveFilters } = useOldSaveFilters({
     pageKey: "allWorksFilters",
     data: filtersData,
   });

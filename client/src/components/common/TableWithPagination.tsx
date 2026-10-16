@@ -33,7 +33,7 @@ interface totalsInterface {
 interface TableComponentProps {
   columns: any;
   data: any[];
-  totals: totalsInterface;
+  totals: totalsInterface | null;
   sliceEndIndex?: number;
   page: number;
   handleChangePage: (event: unknown, newPage: number) => void;
@@ -208,7 +208,7 @@ export function TableWithPagination({
       <div className="bg-white z-30 border-t">
         <TablePagination
           component="div"
-          count={totals.total_obras}
+          count={totals?.total_obras || 1}
           page={page}
           rowsPerPage={200}
           rowsPerPageOptions={[]}

@@ -10,7 +10,7 @@ export function SaveD5NoteButton() {
 
   return (
     <ButtonComponent
-      text={isSaving ? "A guardar..." : "Salvar alterações"}
+      text={isSaving ? "Salvando..." : "Salvar alterações"}
       disabled={!dirty || isSaving}
       onClick={save}
       styled="px-4 py-3 md:px-6 md:py-4"

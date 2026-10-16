@@ -51,6 +51,9 @@ export interface TotalsGetScheduleValues {
   total_ponto_a_ponto_programado: number;
   total_ponto_a_ponto_executado: number;
   total_qtde_planejada: number;
+  total_equipe_linha_morta: number;
+  total_equipe_linha_viva: number;
+  total_equipe_regularizacao: number;
   total_exec: number;
 }
 
@@ -59,6 +62,9 @@ export interface TotalsGetScheduleValuesRepository {
   total_mo_planejada: number;
   total_mo_exec: number;
   total_qtde_planejada: number;
+  total_equipe_linha_morta: number;
+  total_equipe_linha_viva: number;
+  total_equipe_regularizacao: number;
 }
 
 export interface GetScheduleValuesResponseRepository {

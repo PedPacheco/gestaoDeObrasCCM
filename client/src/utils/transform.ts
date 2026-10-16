@@ -129,7 +129,7 @@ export function mapD5ScheduleToForm(
     restrictionId: restrictionFound.id ?? 1,
     restrictionResponsible: schedule.responsavel_restricao ?? "",
     executionObservation: schedule.observacao_execucao ?? "",
-    
+    rejected: schedule.reprovada ?? false,
   };
 }
 
