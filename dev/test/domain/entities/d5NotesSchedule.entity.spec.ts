@@ -15,10 +15,12 @@ const MSG = {
   dataProg: 'Data de programação inválida',
   timeWindow: 'Informe hora de início e hora de término em conjunto',
 
+  serviceType: 'O tipo do serviço deve ser informado!',
   responsibility: 'Responsável pela restrição deve ter no máximo 50 caracteres',
   maxFiles: 'Máximo de 5 ficheiros permitidos por programação',
   duplicatedFiles: 'Existem ficheiros duplicados',
   filesWithoutExec: 'Só é possível anexar ficheiros após informar a execução',
+  teams: 'Informe pelo menos uma equipe(LM, LV ou Regularização',
   observationWithoutExec:
     'A observação de execução só pode ser preenchida após informar a execução',
   filesRequired: 'É obrigatório anexar ao menos um ficheiro quando há execução',
@@ -42,6 +44,8 @@ const makeProps = (overrides: Overrides = {}): D5ScheduleProps =>
     creatorUserId: 10,
     modifyingUserId: 20,
     dataProg: new Date('2026-01-15T00:00:00.000Z'),
+    serviceType: 'OBRA LIVRE',
+    lmTeam: 1,
     ...overrides,
   }) as unknown as D5ScheduleProps;
 
@@ -216,6 +220,18 @@ describe('D5NoteSchedule', () => {
   });
 
   // -------------------------------------------------------------------------
+  // Tipo do serviço
+  // -------------------------------------------------------------------------
+  describe('validação do tipo do serviço', () => {
+    it('deve rejeitar serviceType ausente', () => {
+      expectBadRequest(
+        () => build({ serviceType: undefined }),
+        MSG.serviceType,
+      );
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // Ficheiros
   // -------------------------------------------------------------------------
   describe('validação de ficheiros', () => {
@@ -247,6 +263,18 @@ describe('D5NoteSchedule', () => {
       expectBadRequest(
         () => build({ filePaths: ['a.pdf', 'a.pdf'] }),
         MSG.duplicatedFiles,
+      );
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Equipes
+  // -------------------------------------------------------------------------
+  describe('validação das equipes', () => {
+    it('deve rejeitar teams ausente', () => {
+      expectBadRequest(
+        () => build({ lmTeam: null, lvTeam: null, regulTeam: null }),
+        MSG.teams,
       );
     });
   });
