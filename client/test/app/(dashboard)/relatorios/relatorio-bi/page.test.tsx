@@ -20,7 +20,7 @@ vi.mock("@/components/exports/buttonForBILink", () => ({
 }));
 
 import { ButtonForBILink } from "@/components/exports/buttonForBILink";
-import BiReports from "@/app/(dashboard)/relatorios/relatorio-bi/page";
+import BiReports from "@/app/(dashboard)/(with-breadcrumbs)/relatorios/relatorio-bi/page";
 const mockButtonForBILink = vi.mocked(ButtonForBILink);
 
 // ============================================================

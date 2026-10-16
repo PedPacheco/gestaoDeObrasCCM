@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import WorksInPortfolio from "@/app/(dashboard)/obras-carteira/page";
+import WorksInPortfolio from "@/app/(dashboard)/(with-breadcrumbs)/obras-carteira/page";
 import { Transform } from "@/utils/transform";
 import { render } from "@testing-library/react";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
@@ -43,9 +43,9 @@ vi.mock(
         >
           Main Portofolio works
         </div>
-      )
+      ),
     ),
-  })
+  }),
 );
 
 vi.mock("@/utils/transform", () => ({
@@ -54,7 +54,7 @@ vi.mock("@/utils/transform", () => ({
       Object.entries(filters).map(([key, value]) => [
         key,
         Array.isArray(value) && value.length > 0 ? value.join(",") : "",
-      ])
+      ]),
     );
   }),
 }));
@@ -137,7 +137,7 @@ describe("Works in portfolio page", () => {
         page: "0",
       },
       mockToken,
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
   });
 
@@ -155,7 +155,7 @@ describe("Works in portfolio page", () => {
         page: "0",
       },
       mockToken,
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
   });
 

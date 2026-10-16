@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, Suspense, lazy } from "react";
-import { TabItem } from "@/app/(dashboard)/relatorios/relatorio-erros/page";
+import { TabItem } from "@/app/(dashboard)/(with-breadcrumbs)/relatorios/relatorio-erros/page";
 import { useErrorsReportData } from "@/components/reportErrors/hooks/useErrorsReportData";
 
 import {

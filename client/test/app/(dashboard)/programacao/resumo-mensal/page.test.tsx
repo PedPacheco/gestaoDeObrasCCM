@@ -5,7 +5,7 @@ import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { render, screen } from "@testing-library/react";
 import { Transform } from "@/utils/transform";
-import MonthlySummary from "@/app/(dashboard)/programacao/resumo-mensal/page";
+import MonthlySummary from "@/app/(dashboard)/(with-breadcrumbs)/programacao/resumo-mensal/page";
 
 vi.mock("@/actions/fetchData.action", () => ({
   fetchData: vi.fn(),

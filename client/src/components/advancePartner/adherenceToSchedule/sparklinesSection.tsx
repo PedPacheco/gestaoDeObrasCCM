@@ -7,7 +7,7 @@ import { Box, Card, Divider, Stack, Typography } from "@mui/material";
 import {
   pctColorGripSchedule,
   pctColorRestrictionsElimination,
-} from "./advancePartner";
+} from "./adherenceToSchedule";
 
 interface SparkPoint {
   semana: string;
@@ -390,8 +390,8 @@ export function SparklinesSection({
                       <Image
                         src={
                           ["START VALE", "START MCR"].includes(row.parceira)
-                            ? "start-logo.png"
-                            : `${row.parceira.toLowerCase()}-logo.png`
+                            ? "/start-logo.png"
+                            : `/${row.parceira.toLowerCase()}-logo.png`
                         }
                         alt={`Logo ${row.parceira}`}
                         width={76}

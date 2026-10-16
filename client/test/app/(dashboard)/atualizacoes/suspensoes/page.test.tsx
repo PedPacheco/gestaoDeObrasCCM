@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { render } from "@testing-library/react";
-import SuspensionUpdates from "@/app/(dashboard)/atualizacoes/suspensoes/page";
+import SuspensionUpdates from "@/app/(dashboard)/(with-breadcrumbs)/atualizacoes/suspensoes/page";
 
 vi.mock(
   "@/components/updatesComponents/updateSuspensions/deleteWorkSuspensions",
@@ -10,7 +10,7 @@ vi.mock(
     DeleteSuspensionsButton: vi.fn(() => (
       <div data-testid="delete-suspension-button" />
     )),
-  })
+  }),
 );
 
 vi.mock(
@@ -20,7 +20,7 @@ vi.mock(
     ImportSuspensionsButton: vi.fn(() => (
       <div data-testid="import-suspension-button" />
     )),
-  })
+  }),
 );
 
 vi.mock(
@@ -30,7 +30,7 @@ vi.mock(
     SuspensionImportTable: vi.fn(() => (
       <div data-testid="suspension-import-table" />
     )),
-  })
+  }),
 );
 
 vi.mock(
@@ -40,7 +40,7 @@ vi.mock(
     UpdateSuspensionsButton: vi.fn(() => (
       <div data-testid="update-suspension-button" />
     )),
-  })
+  }),
 );
 
 describe("ContractUpdate Page", () => {

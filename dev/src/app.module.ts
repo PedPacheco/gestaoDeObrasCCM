@@ -28,6 +28,7 @@ import { WorksModule } from './interface/modules/works.module';
 import { WorksServicesModule } from './interface/modules/worksServices.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { D5NotesModule } from './interface/modules/d5Notes.module';
+import { complaintsAndOmbudsmansOfficeModule } from './interface/modules/complaintsAndOmbudsmansOffice.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { D5NotesModule } from './interface/modules/d5Notes.module';
     ForecastModule,
     AdvancePartnerModule,
     D5NotesModule,
+    complaintsAndOmbudsmansOfficeModule,
     JwtModule.registerAsync({
       global: true,
       inject: [ConfigService],

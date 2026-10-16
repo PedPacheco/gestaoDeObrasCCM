@@ -6,7 +6,7 @@ import { fetchFilters } from "@/actions/fetchFilters.action";
 import { render, screen } from "@testing-library/react";
 import { Transform } from "@/utils/transform";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
-import PublicationRestriction from "@/app/(dashboard)/restricoes/publicacoes/page";
+import PublicationRestriction from "@/app/(dashboard)/(with-breadcrumbs)/restricoes/publicacoes/page";
 
 vi.mock("@/actions/fetchData.action", () => ({
   fetchData: vi.fn(),

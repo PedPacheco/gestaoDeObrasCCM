@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import Entry from "@/app/(dashboard)/entrada/page";
+import Entry from "@/app/(dashboard)/(with-breadcrumbs)/entrada/page";
 import { Transform } from "@/utils/transform";
 import { render, screen } from "@testing-library/react";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
@@ -24,7 +24,7 @@ vi.mock("@/utils/transform", () => ({
       Object.entries(filters).map(([key, value]) => [
         key,
         Array.isArray(value) && value.length > 0 ? value.join(",") : "",
-      ])
+      ]),
     );
   }),
 }));
@@ -126,7 +126,7 @@ describe("Entry Page", () => {
         parceira: "Parceira 1",
         ano: "2023",
       },
-      mockToken
+      mockToken,
     );
   });
 
@@ -144,7 +144,7 @@ describe("Entry Page", () => {
     expect(fetchData).toHaveBeenCalledWith(
       "https://api.example.com/entrada",
       { ano: currentYear },
-      mockToken
+      mockToken,
     );
   });
 
@@ -169,10 +169,10 @@ describe("Entry Page", () => {
 
     // Verifica os dados passados para o componente
     expect(JSON.parse(mainEntry.getAttribute("data-data") || "[]")).toEqual(
-      mockData
+      mockData,
     );
     expect(JSON.parse(mainEntry.getAttribute("data-filters") || "{}")).toEqual(
-      mockFilters
+      mockFilters,
     );
     expect(mainEntry.getAttribute("data-token")).toBe(mockToken);
 
@@ -195,7 +195,7 @@ describe("Entry Page", () => {
     };
 
     expect(JSON.parse(mainEntry.getAttribute("data-columns") || "{}")).toEqual(
-      expectedColumns
+      expectedColumns,
     );
   });
 

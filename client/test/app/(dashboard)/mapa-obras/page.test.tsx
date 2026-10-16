@@ -3,7 +3,7 @@
 import MapaObrasPage, {
   dynamic,
   revalidate,
-} from "@/app/(dashboard)/mapa-obras/page";
+} from "@/app/(dashboard)/(with-breadcrumbs)/mapa-obras/page";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { render } from "@testing-library/react";
-import ExecutionCapacity from "@/app/(dashboard)/capacidade-execucao/page";
+import ExecutionCapacity from "@/app/(dashboard)/(with-breadcrumbs)/capacidade-execucao/page";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
 
 vi.mock("@/actions/fetchData.action", () => ({

@@ -13,12 +13,11 @@ import {
   EliminacaoRow,
   MotivoRow,
   pctExact,
-} from "@/components/dashboard/advancePartner/advancePartner";
+} from "@/components/advancePartner/adherenceToSchedule/adherenceToSchedule";
 import dayjs, { Dayjs } from "dayjs";
-import { SparklineRow } from "@/components/dashboard/advancePartner/sparklinesSection";
-import { EXCLUDE_PARCEIRAS } from "@/components/dashboard/DashboardClient";
+import { SparklineRow } from "@/components/advancePartner/adherenceToSchedule/sparklinesSection";
 
-interface UseAdvancePartnerFiltersProps {
+interface UseAdherenceToScheduleFiltersProps {
   token: string;
   filtersData: any;
   initialEliminacao: EliminacaoRow[];
@@ -37,7 +36,7 @@ export type MotivoTab = "Geral" | "Edp" | "Parceira" | "Terceiro";
 const DEFAULT_START = () => dayjs().startOf("month");
 const DEFAULT_END = () => dayjs().endOf("month");
 
-export function useAdvancePartnerFilters({
+export function useAdherenceToScheduleFilters({
   token,
   filtersData,
   initialEliminacao,
@@ -47,7 +46,7 @@ export function useAdvancePartnerFilters({
   initialSparklinesPartners,
   initialSummary,
   initialDailyGoal,
-}: UseAdvancePartnerFiltersProps) {
+}: UseAdherenceToScheduleFiltersProps) {
   const [isPending, startTransition] = useTransition();
 
   const currentWeek = useMemo(() => findCurrentWeek(), []);

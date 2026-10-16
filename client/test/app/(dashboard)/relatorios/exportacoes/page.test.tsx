@@ -1,7 +1,7 @@
 import * as cookiesModule from "next/headers";
 import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 
-import ExportPage from "@/app/(dashboard)/relatorios/exportacoes/page";
+import ExportPage from "@/app/(dashboard)/(with-breadcrumbs)/relatorios/exportacoes/page";
 import { render } from "@testing-library/react";
 import WrapperExportButton from "@/components/exports/wrapperExportButton";
 

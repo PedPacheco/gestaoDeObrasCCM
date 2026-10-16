@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import ScheduleForDay from "@/app/(dashboard)/programacao/por-data/page";
+import ScheduleForDay from "@/app/(dashboard)/(with-breadcrumbs)/programacao/por-data/page";
 import { Transform } from "@/utils/transform";
 import { render, screen } from "@testing-library/react";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
@@ -32,7 +32,7 @@ vi.mock("@/utils/transform", () => ({
       Object.entries(filters).map(([key, value]) => [
         key,
         Array.isArray(value) && value.length > 0 ? value.join(",") : "",
-      ])
+      ]),
     );
   }),
 }));
@@ -52,7 +52,7 @@ vi.mock(
         Main Schedule For Day
       </div>
     )),
-  })
+  }),
 );
 
 describe("Schedule For Day Page", () => {
@@ -137,7 +137,7 @@ describe("Schedule For Day Page", () => {
         ovnota: "1253",
       },
       mockToken,
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
   });
 
@@ -171,7 +171,7 @@ describe("Schedule For Day Page", () => {
         ovnota: "1234",
       },
       mockToken,
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
   });
 
@@ -194,7 +194,7 @@ describe("Schedule For Day Page", () => {
         page: "0",
       },
       mockToken,
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
   });
 
@@ -206,10 +206,10 @@ describe("Schedule For Day Page", () => {
     expect(scheduleForDay).toBeInTheDocument();
 
     expect(
-      JSON.parse(scheduleForDay.getAttribute("data-data") || "[]")
+      JSON.parse(scheduleForDay.getAttribute("data-data") || "[]"),
     ).toEqual(mockData);
     expect(
-      JSON.parse(scheduleForDay.getAttribute("data-filtersData") || "[]")
+      JSON.parse(scheduleForDay.getAttribute("data-filtersData") || "[]"),
     ).toEqual(mockFilters);
     expect(scheduleForDay.getAttribute("data-token")).toBe(mockToken);
   });

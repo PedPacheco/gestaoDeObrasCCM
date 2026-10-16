@@ -3,7 +3,7 @@ import * as cookiesModule from "next/headers";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { render, screen } from "@testing-library/react";
 import { fetchData } from "@/actions/fetchData.action";
-import NotesUpdates from "@/app/(dashboard)/atualizacoes/notas/page";
+import NotesUpdates from "@/app/(dashboard)/(with-breadcrumbs)/atualizacoes/notas/page";
 
 vi.mock("@/actions/fetchData.action", () => ({
   fetchData: vi.fn(),
@@ -24,7 +24,7 @@ vi.mock(
     ImportButtonUpdates: vi.fn(() => (
       <div data-testid="import-update-button" />
     )),
-  })
+  }),
 );
 
 vi.mock("@/components/updatesComponents/updateWorkData/updateButton", () => ({
@@ -48,9 +48,9 @@ vi.mock(
         >
           tableWorksMarket Component
         </div>
-      )
+      ),
     ),
-  })
+  }),
 );
 
 describe("NotesUpdates Page", () => {
@@ -85,7 +85,7 @@ describe("NotesUpdates Page", () => {
 
   it("deve usar dados do cookie quando NotesUpdates existir", async () => {
     mockCookieStore.get.mockImplementation((key) =>
-      key === "notesUpdatesData" ? { value: "teste" } : { value: "mock-token" }
+      key === "notesUpdatesData" ? { value: "teste" } : { value: "mock-token" },
     );
 
     render(await NotesUpdates());
@@ -97,7 +97,7 @@ describe("NotesUpdates Page", () => {
     expect(JSON.parse(table.getAttribute("data-data") || "[]")).toEqual([]);
 
     expect(
-      JSON.parse(table.getAttribute("data-selectOptionsByColumn") || "[]")
+      JSON.parse(table.getAttribute("data-selectOptionsByColumn") || "[]"),
     ).toEqual(mockFilters);
   });
 
@@ -109,7 +109,7 @@ describe("NotesUpdates Page", () => {
     };
 
     mockCookieStore.get.mockImplementation((key) =>
-      key === "notesUpdatesData" ? undefined : { value: "mock-token" }
+      key === "notesUpdatesData" ? undefined : { value: "mock-token" },
     );
 
     vi.mocked(fetchData).mockResolvedValueOnce(mockAPIData);
@@ -120,16 +120,16 @@ describe("NotesUpdates Page", () => {
       "https://api.example.com/base-auxiliar/notas",
       undefined,
       "mock-token",
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
 
     const table = screen.getByTestId("table-notes-works");
 
     expect(JSON.parse(table.getAttribute("data-data") || "[]")).toEqual(
-      mockAPIData.data
+      mockAPIData.data,
     );
     expect(
-      JSON.parse(table.getAttribute("data-selectOptionsByColumn") || "[]")
+      JSON.parse(table.getAttribute("data-selectOptionsByColumn") || "[]"),
     ).toEqual(mockFilters);
   });
 });

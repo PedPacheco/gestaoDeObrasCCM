@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as cookiesModule from "next/headers";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { render, screen } from "@testing-library/react";
-import MarketEntry from "@/app/(dashboard)/entrada/mercado/page";
+import MarketEntry from "@/app/(dashboard)/(with-breadcrumbs)/entrada/mercado/page";
 import { fetchData } from "@/actions/fetchData.action";
 
 vi.mock("@/actions/fetchData.action", () => ({
@@ -48,9 +48,9 @@ vi.mock(
         >
           tableWorksMarket Component
         </div>
-      )
+      ),
     ),
-  })
+  }),
 );
 
 describe("MarketEntry Page", () => {
@@ -77,7 +77,7 @@ describe("MarketEntry Page", () => {
 
   it("deve usar dados do cookie quando marketEntryData existir", async () => {
     mockCookieStore.get.mockImplementation((key) =>
-      key === "marketEntrydata" ? { value: "teste" } : { value: "mock-token" }
+      key === "marketEntrydata" ? { value: "teste" } : { value: "mock-token" },
     );
 
     render(await MarketEntry());
@@ -89,7 +89,7 @@ describe("MarketEntry Page", () => {
     expect(JSON.parse(table.getAttribute("data-data") || "[]")).toEqual([]);
 
     expect(
-      JSON.parse(table.getAttribute("data-selectOptionsByColumn") || "[]")
+      JSON.parse(table.getAttribute("data-selectOptionsByColumn") || "[]"),
     ).toEqual(mockFilters);
   });
 
@@ -101,7 +101,7 @@ describe("MarketEntry Page", () => {
     };
 
     mockCookieStore.get.mockImplementation((key) =>
-      key === "marketEntryData" ? undefined : { value: "mock-token" }
+      key === "marketEntryData" ? undefined : { value: "mock-token" },
     );
 
     vi.mocked(fetchData).mockResolvedValueOnce(mockAPIData);
@@ -112,16 +112,16 @@ describe("MarketEntry Page", () => {
       "https://api.example.com/base-auxiliar/mercado",
       undefined,
       "mock-token",
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
 
     const table = screen.getByTestId("table-market-works");
 
     expect(JSON.parse(table.getAttribute("data-data") || "[]")).toEqual(
-      mockAPIData.data
+      mockAPIData.data,
     );
     expect(
-      JSON.parse(table.getAttribute("data-selectOptionsByColumn") || "[]")
+      JSON.parse(table.getAttribute("data-selectOptionsByColumn") || "[]"),
     ).toEqual(mockFilters);
   });
 });

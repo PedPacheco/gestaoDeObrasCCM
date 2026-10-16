@@ -1,4 +1,4 @@
-import Details from "@/app/(dashboard)/detalhes/[id]/page"; // ajuste o path conforme necessário
+import Details from "@/app/(dashboard)/(with-breadcrumbs)/detalhes/[id]/page"; // ajuste o path conforme necessário
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { render, screen } from "@testing-library/react";

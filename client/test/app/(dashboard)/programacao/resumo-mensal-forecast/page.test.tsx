@@ -47,7 +47,7 @@ import { cookies } from "next/headers";
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
 import { Transform } from "@/utils/transform";
-import MonthlyForecastSummary from "@/app/(dashboard)/programacao/resumo-mensal-forecast/page";
+import MonthlyForecastSummary from "@/app/(dashboard)/(with-breadcrumbs)/programacao/resumo-mensal-forecast/page";
 
 const mockCookies = cookies as unknown as ReturnType<typeof vi.fn>;
 const mockFetchData = fetchData as unknown as ReturnType<typeof vi.fn>;
