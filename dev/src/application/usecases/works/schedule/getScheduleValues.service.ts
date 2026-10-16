@@ -108,6 +108,9 @@ export class GetScheduleValuesService {
         total_mo_planejada: 0,
         total_mo_exec: 0,
         total_qtde_planejada: 0,
+        total_equipe_regularizacao: 0,
+        total_equipe_linha_viva: 0,
+        total_equipe_linha_morta: 0,
       };
     }
 
@@ -116,6 +119,9 @@ export class GetScheduleValuesService {
       total_mo_planejada: rawTotals.total_mo_planejada,
       total_mo_exec: rawTotals.total_mo_exec,
       total_qtde_planejada: rawTotals.total_qtde_planejada,
+      total_equipe_regularizacao: rawTotals.total_equipe_regularizacao,
+      total_equipe_linha_viva: rawTotals.total_equipe_linha_viva,
+      total_equipe_linha_morta: rawTotals.total_equipe_linha_morta,
     };
   }
 
