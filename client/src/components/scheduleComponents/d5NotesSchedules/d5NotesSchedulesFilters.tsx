@@ -2,23 +2,109 @@
 
 import "dayjs/locale/pt-br";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { ButtonComponent } from "@/components/common/Button";
-import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
-import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
-import { capitalize } from "@/utils/formatValue";
-import { getButtonContent } from "@/utils/getButtonContent";
-import dayjs, { Dayjs } from "dayjs";
+import { GenericFilterBar } from "@/components/common/filter/genericFilterBar";
+import { STATUS_NOT_AVAILABLE } from "@/constants/statusNotAvaliable";
+import { useSaveFilters } from "@/hooks/useSaveFilters";
+import {
+  ExtraFilterValue,
+  FilterFieldConfig,
+  FiltersInterface,
+} from "@/types/genericFilterSchema";
 import { Transform } from "@/utils/transform";
-import { DateFilter } from "@/components/common/filter/DateFilter";
-import { FiltersInterface } from "@/types/genericFilterSchema";
+import dayjs from "dayjs";
+
+const SCHEDULE_FILTER_SCHEMA: FilterFieldConfig[] = [
+  { type: "dateRange", key: "data", label: "Data" }, // gera dataInicial / dataFinal
+  {
+    type: "select",
+    dataKey: "regional",
+    filterKey: "idRegional",
+    valueKey: "id",
+    displayKey: "regional",
+  },
+  {
+    type: "select",
+    dataKey: "parceira",
+    filterKey: "idParceira",
+    valueKey: "id",
+    displayKey: "turma",
+  },
+  {
+    type: "select",
+    dataKey: "tipo",
+    filterKey: "idTipo",
+    valueKey: "id",
+    displayKey: "tipo_obra",
+  },
+  {
+    type: "select",
+    dataKey: "municipio",
+    filterKey: "idMunicipio",
+    valueKey: "id",
+    displayKey: "municipio",
+  },
+  {
+    type: "select",
+    dataKey: "grupo",
+    filterKey: "idGrupo",
+    valueKey: "id",
+    displayKey: "grupo",
+  },
+  {
+    type: "select",
+    dataKey: "status",
+    filterKey: "idStatus",
+    valueKey: "id",
+    displayKey: "status",
+  },
+  { type: "checkbox", key: "executado", label: "Executadas" },
+  { type: "checkbox", key: "pendente", label: "Pendentes" },
+  { type: "checkbox", key: "reprovada", label: "Reprovadas" },
+];
+
+function deriveScheduleOptions(
+  data: Record<string, any[] | undefined>,
+  selectedItems: Record<string, string[]>,
+) {
+  const next = { ...data };
+
+  const idGrupos = selectedItems.idGrupo?.map(Number);
+  if (idGrupos?.length) {
+    next.tipo = next.tipo?.filter((item) => idGrupos.includes(item.id_grupo));
+  }
+
+  const idRegionais = selectedItems.idRegional?.map(Number);
+  if (idRegionais?.length) {
+    next.municipio = next.municipio?.filter((item) =>
+      idRegionais.includes(item.id_regional),
+    );
+  }
+
+  return next;
+}
+
+function applyScheduleFilters(
+  data: FiltersInterface,
+  filtersObject: Record<string, any>,
+) {
+  return deriveScheduleOptions(data, filtersObject.selectedItems ?? {});
+}
+
+const EMPTY_EXTRA_VALUES: Record<string, ExtraFilterValue> = {
+  dataInicial: null,
+  dataFinal: null,
+  executado: "",
+  pendente: "",
+  reprovada: "",
+};
 
 interface D5NotesSchedulesFiltersProps {
   data: FiltersInterface;
   url: string;
   searchFilteredData: (
-    params: Record<string, string | string[] | boolean>,
+    params: Record<string, string[] | string | boolean | null>,
   ) => void;
   isPending: boolean;
 }
@@ -29,126 +115,109 @@ export default function D5NotesSchedulesFilters({
   isPending,
   searchFilteredData,
 }: D5NotesSchedulesFiltersProps) {
-  const applyFilters = useCallback(
-    (data: FiltersInterface, filtersObject: any) => {
-      let newData = { ...data };
-
-      const { selectedItems } = filtersObject;
-
-      if (selectedItems?.idGrupo?.length > 0) {
-        const idGrupos = selectedItems.idGrupo?.map(Number);
-
-        newData.tipo = newData.tipo?.filter((item) =>
-          idGrupos.includes(item.id_grupo),
-        );
-      }
-
-      if (selectedItems?.idRegional?.length > 0) {
-        const idRegionais = selectedItems.idRegional?.map(Number);
-
-        newData.municipio = newData.municipio?.filter((item) =>
-          idRegionais.includes(item.id_regional),
-        );
-      }
-
-      return newData;
-    },
-    [],
+  const formattedFilters = useMemo<FiltersInterface>(
+    () => ({
+      ...data,
+      status: data.status?.filter(
+        (item) => !STATUS_NOT_AVAILABLE.has(Number(item.id)),
+      ),
+    }),
+    [data],
   );
 
-  const { clearFilters, filters, saveFilters, filteredData } =
-    useOldSaveFilters({
-      pageKey: url,
-      data,
-      applyFilters,
-    });
+  const { clearFilters, filters, saveFilters, filteredData } = useSaveFilters({
+    pageKey: url,
+    data: formattedFilters,
+    applyFilters: applyScheduleFilters,
+  });
 
-  const [startDate, setStartDate] = useState<Dayjs | null>(null);
-  const [endDate, setEndDate] = useState<Dayjs | null>(null);
   const [selectedItems, setSelectedItems] = useState<Record<string, string[]>>(
     {},
   );
+  const [extraValues, setExtraValues] =
+    useState<Record<string, ExtraFilterValue>>(EMPTY_EXTRA_VALUES);
 
   useEffect(() => {
     if (!filters) return;
 
-    setStartDate(filters?.startDate ? dayjs(filters.startDate) : null);
-    setEndDate(filters?.endDate ? dayjs(filters.endDate) : null);
     setSelectedItems(filters.selectedItems || {});
-  }, [filters, url]);
 
-  function handleApplyFilters() {
-    const newSelectedItems = {
-      ...Transform(selectedItems),
-      dataInicial: startDate ? startDate.format("DD/MM/YYYY") : "",
-      dataFinal: endDate ? endDate.format("DD/MM/YYYY") : "",
-      page: "0",
+    const saved = filters.extraFilters;
+    if (saved) {
+      setExtraValues({
+        dataInicial: saved.dataInicial ? dayjs(saved.dataInicial) : null,
+        dataFinal: saved.dataFinal ? dayjs(saved.dataFinal) : null,
+        executado: saved.executado ?? "",
+        pendente: saved.pendente ?? "",
+        reprovada: saved.reprovada || "",
+      });
+    }
+  }, [filters]);
+
+  function buildSavedExtras() {
+    const toIso = (value: ExtraFilterValue) =>
+      dayjs.isDayjs(value) && value.isValid() ? value.format("YYYY-MM-DD") : "";
+
+    return {
+      dataInicial: toIso(extraValues.dataInicial),
+      dataFinal: toIso(extraValues.dataFinal),
+      executado: (extraValues.executado as string) ?? "",
+      pendente: (extraValues.pendente as string) ?? "",
+      reprovada: (extraValues.reprovada as string) ?? "",
     };
-
-    saveFilters(newSelectedItems);
-    searchFilteredData(newSelectedItems);
   }
 
-  function handleCleanigFilters() {
-    setSelectedItems({});
+  function buildApiParams(emptyDate: "" | null) {
+    const toBr = (value: ExtraFilterValue) =>
+      dayjs.isDayjs(value) && value.isValid()
+        ? value.format("DD/MM/YYYY")
+        : emptyDate;
 
+    return {
+      executado: (extraValues.executado === "true").toString(),
+      pendente: (extraValues.pendente === "true").toString(),
+      reprovada: (extraValues.reprovada === "true").toString(),
+      dataInicial: toBr(extraValues.dataInicial),
+      dataFinal: toBr(extraValues.dataFinal),
+    };
+  }
+
+  function handleApplyFilters() {
+    saveFilters(selectedItems, buildSavedExtras());
+
+    searchFilteredData({
+      ...Transform(selectedItems),
+      ...buildApiParams(""),
+      page: "0",
+    });
+  }
+
+  function handleClearFilters() {
+    setSelectedItems({});
+    setExtraValues(EMPTY_EXTRA_VALUES);
     clearFilters();
-    searchFilteredData({ page: "0" });
+
+    searchFilteredData({
+      executado: false,
+      pendente: false,
+      reprovada: false,
+      page: "0",
+    });
   }
 
   return (
-    <>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:flex xl:flex-row xl:justify-between xl:items-center">
-        <DateFilter
-          endDate={endDate}
-          startDate={startDate}
-          setEndDate={setEndDate}
-          setStartDate={setStartDate}
-          size="w-full"
-        />
-
-        {Object.entries(filteredData).map(([key, value], index) => {
-          const hasValues = Array.isArray(value) && value.length > 0;
-
-          const valueKey = hasValues ? Object.keys(value[0])[0] : undefined;
-          const displayKey = hasValues ? Object.keys(value[0])[1] : undefined;
-
-          const filterValue = `${valueKey}${
-            key.charAt(0).toUpperCase() + key.slice(1)
-          }`;
-
-          return (
-            <div key={index} className="w-full lg:w-5/6 mx-auto">
-              <MultipleSelectComponent
-                label={capitalize(key)}
-                menuItems={value || []}
-                selectedItem={selectedItems[filterValue]}
-                setSelectedItem={(selectedValue) => {
-                  setSelectedItems((prev) => ({
-                    ...prev,
-                    [filterValue]: selectedValue,
-                  }));
-                }}
-                valueKey={valueKey}
-                displayKey={displayKey}
-              />
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 w-full">
-        <ButtonComponent
-          onClick={handleApplyFilters}
-          text={getButtonContent(isPending, "Aplicar filtros")}
-          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
-        />
-        <ButtonComponent
-          onClick={handleCleanigFilters}
-          text={getButtonContent(isPending, "Limpar filtros")}
-          styled="w-full mb-2 lg:w-3/4 lg:mb-0 mx-auto"
-        />
-      </div>
-    </>
+    <GenericFilterBar
+      schema={SCHEDULE_FILTER_SCHEMA}
+      data={filteredData}
+      deriveOptions={deriveScheduleOptions}
+      selectedItems={selectedItems}
+      onSelectedItemsChange={setSelectedItems}
+      extraValues={extraValues}
+      onExtraValuesChange={setExtraValues}
+      isPending={isPending}
+      onApply={handleApplyFilters}
+      onClear={handleClearFilters}
+      hasExport={true}
+    />
   );
 }

@@ -7,6 +7,10 @@ import { useRouter } from "next/navigation";
 import { FormatCurrency } from "@/utils/formatValue";
 import { isValidDateString } from "@/utils/validDate";
 import {
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+} from "@heroicons/react/20/solid";
+import {
   Paper,
   Table,
   TableBody,
@@ -16,10 +20,6 @@ import {
   TablePagination,
   TableRow,
 } from "@mui/material";
-import {
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
-} from "@heroicons/react/20/solid";
 
 type D5TableVariant = "notas" | "programacoes";
 
@@ -29,7 +29,8 @@ interface TableComponentProps {
   variant: D5TableVariant;
   totals: {
     total: number; // total de linhas (notas OU programações)
-    totalMoPlanejada?: number; // opcional
+    totalMoRetida: number;
+    totalMoProgramada?: number;
   };
   page: number;
   handleChangePage: (event: unknown, newPage: number) => void;
@@ -54,6 +55,8 @@ export function D5NotesTable({
 
   const totalCount = totals.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalCount / 200));
+
+  console.log(totals);
 
   return (
     <Paper className="mb-6 w-[95%] min-h-96 h-[720px] lg:h-[560px] xl:h-[90%] max-h-[880px] lg:max-h-[680px] xl:max-h-[90%] flex flex-col">
@@ -100,7 +103,7 @@ export function D5NotesTable({
                         }
                       }
 
-                      if (column === "mo_planejada") {
+                      if (column === "moRetida") {
                         cellValue = FormatCurrency(cellValue);
                       }
 
@@ -164,13 +167,20 @@ export function D5NotesTable({
             <span>{totalCount}</span>
           </div>
 
-          {totals.totalMoPlanejada && (
+          <span className="text-zinc-300">|</span>
+
+          <div className="flex items-center gap-1 text-lg text-zinc-700 font-semibold">
+            <span>Total MO Retida:</span>
+            <span>{FormatCurrency(totals.totalMoRetida)}</span>
+          </div>
+
+          {totals.totalMoProgramada != null && (
             <>
               <span className="text-zinc-300">|</span>
 
               <div className="flex items-center gap-1 text-lg text-zinc-700 font-semibold">
-                <span>Total MO Retida:</span>
-                <span>{FormatCurrency(totals.totalMoPlanejada)}</span>
+                <span>Total MO Retida Programada:</span>
+                <span>{FormatCurrency(totals.totalMoProgramada)}</span>
               </div>
             </>
           )}

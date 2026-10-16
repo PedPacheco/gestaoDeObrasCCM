@@ -4,16 +4,13 @@ import { useCallback, useState, useTransition } from "react";
 import { Cookies } from "react-cookie";
 
 import { fetchData } from "@/actions/fetchData.action";
-
+import { exportExcel } from "@/actions/generateExcel.action";
 import { useFeedback } from "@/hooks/useFeedback";
-
+import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
+
 import D5NotesFilters from "./d5NotesFilters";
 import { D5NotesTable } from "./d5NotesTable";
-import { Typography } from "@mui/material";
-import { ButtonComponent } from "../common/Button";
-import { mountUrl } from "@/utils/mountUrl";
-import { exportExcel } from "@/actions/generateExcel.action";
 
 interface MainPortfolioWorksProps {
   data: any;
@@ -21,7 +18,7 @@ interface MainPortfolioWorksProps {
   token: string;
   cookie: string;
   columns: Record<string, string>;
-  totals: { total: number; totalMoPlanejada: number };
+  totals: { total: number; totalMoRetida: number };
 }
 
 const cookies = new Cookies();

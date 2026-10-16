@@ -26,6 +26,8 @@ export interface BaseScheduleProps {
   idTechnical?: number;
   idExecutionRestriction?: number;
   responsibility?: string;
+
+  rejected: boolean;
 }
 
 export abstract class BaseSchedule {
@@ -51,6 +53,8 @@ export abstract class BaseSchedule {
   readonly idExecutionRestriction: number;
   readonly responsibility?: string;
 
+  readonly rejected: boolean;
+
   private static readonly MAX_NUM_DP = 8;
 
   protected constructor(props: BaseScheduleProps) {
@@ -75,6 +79,8 @@ export abstract class BaseSchedule {
     this.idTechnical = props.idTechnical ?? 1;
     this.idExecutionRestriction = props.idExecutionRestriction ?? 1;
     this.responsibility = props.responsibility;
+
+    this.rejected = props.rejected ?? false;
     // ⚠️ validate() NÃO é chamado aqui — só na subclasse
   }
 
@@ -98,6 +104,7 @@ export abstract class BaseSchedule {
       idTechnical: this.idTechnical,
       idExecutionRestriction: this.idExecutionRestriction,
       responsibility: this.responsibility,
+      rejected: this.rejected,
     };
   }
 

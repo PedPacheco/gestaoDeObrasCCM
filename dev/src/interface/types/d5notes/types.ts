@@ -179,6 +179,7 @@ export type SchedulesD5NotesByIdQueryResult = {
   id_restricao: number;
   id_tecnico: number;
   caminhos_arquivos: string[];
+  reprovada: boolean;
 };
 
 export type D5NoteScheduleCreateData = {
@@ -319,3 +320,50 @@ export type D5ScheduleRejectionSource = Pick<
   | 'tipo_servico'
   | 'observacao_programacao'
 >;
+
+export type FindRejectionsByD5NotesQueryResult = {
+  id: number;
+  data_reprovacao: Date;
+  data_prog: Date;
+  hora_ini: Date;
+  hora_ter: Date;
+  prog: number;
+  descricao: string;
+  equipe_lm: number;
+  equipe_lv: number;
+  equipe_reg: number;
+  tipo_servico: string;
+  chave_provisoria: boolean;
+  chi: number;
+  num_dp: string;
+  observacao_programacao: string;
+  restricoes: { restricao: string };
+  novo_tabela_usuarios: { nome: string };
+};
+
+// dto/d5-rejection-response.dto.ts
+export type D5RejectionResponseListItem = {
+  id: number;
+  dataReprovacao: Date | null;
+  dataProgramacao: Date | null;
+  horaInicio: Date | null;
+  horaTermino: Date | null;
+  programacao: number | null;
+  descricao: string | null;
+  tipoServico: string | null;
+  chaveProvisoria: boolean | null;
+  chi: number | null;
+  numDp: string | null;
+  observacaoProgramacao: string | null;
+  equipeLm: number | null;
+  equipeLv: number | null;
+  equipeReg: number | null;
+  restricao: string;
+  reprovadoPor: string | null;
+};
+
+export type NoteScheduledWork = {
+  noteId: number;
+  moRetida: number;
+  progs: number[]; // % programada de cada programação da nota que cumpre o filtro
+};

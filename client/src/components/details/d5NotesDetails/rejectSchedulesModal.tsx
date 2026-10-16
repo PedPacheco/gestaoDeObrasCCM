@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { ButtonComponent } from "@/components/common/Button";
+import { RestrictionOption } from "@/types/d5Notes";
 import {
   Box,
   FormControl,
@@ -9,8 +10,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { ButtonComponent } from "@/components/common/Button";
-import { RestrictionOption } from "./d5NotesPanel";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 export interface RejectD5SchedulePayload {
   id: number;
@@ -181,7 +181,7 @@ export default function RejectSchedulesModal({
           />
           <ButtonComponent
             onClick={handleConfirm}
-            text={submitting ? "A reprovar..." : "Confirmar"}
+            text={submitting ? "Salvando..." : "Confirmar"}
             disabled={!isFormValid || submitting}
             styled="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded disabled:opacity-50"
           />

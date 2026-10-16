@@ -4,18 +4,17 @@ import { cookies } from "next/headers";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import { ButtonComponent } from "@/components/common/Button";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
+import { D5NotesPanel } from "@/components/details/d5NotesDetails/d5NotesPanel";
 import D5DataItem, {
   SummaryD5DataItem,
 } from "@/components/details/d5NotesDetails/dataItemD5";
+import { D5NoteObservation } from "@/components/details/d5NotesDetails/editableData/d5NoteObservation";
 import { EditableColumnD5 } from "@/components/details/d5NotesDetails/editableData/editableColumn";
-import { D5NotesPanel } from "@/components/details/d5NotesDetails/d5NotesPanel";
+import { SaveD5NoteButton } from "@/components/details/d5NotesDetails/editableData/saveD5NoteButton";
+import { D5NoteEditProvider } from "@/contexts/d5NoteEditContext";
 import { EmotionCacheProvider } from "@/theme/emotionCache";
 import { FormatCurrency, formatPercentage } from "@/utils/formatValue";
-import { D5NoteObservation } from "@/components/details/d5NotesDetails/editableData/d5NoteObservation";
-import { D5NoteEditProvider } from "@/contexts/d5NoteEditContext";
-import { SaveD5NoteButton } from "@/components/details/d5NotesDetails/editableData/saveD5NoteButton";
 
 dayjs.extend(utc);
 
@@ -32,7 +31,7 @@ function processD5Data(data: any) {
       ? dayjs(data.conclusao_nota).utc().format("DD/MM/YYYY")
       : null,
     dataPrazo: dayjs(data.prazo).utc().format("DD/MM/YYYY"),
-    moRetida: FormatCurrency(data.moRetida) || "",
+    moRetida: FormatCurrency(data.moRetida) || 0,
     totalExecutado: formatPercentage(data.totalExecutado) || 0,
     totalProgramado: formatPercentage(data.totalProgramado) || 0,
   };
@@ -44,7 +43,7 @@ export default async function DetailsD5({ params }: DetailsParams) {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
-  const [filters, d5Note, d5NotesSchedules] = await Promise.all([
+  const [filters, d5Note, d5NotesSchedules, rejections] = await Promise.all([
     fetchFilters({
       restricao: true,
       tipoRestricao: ["EXECUÇÃO", "PROGRAMAÇÃO", "PUBLICAÇÃO", "REPROVADO"],
@@ -66,6 +65,13 @@ export default async function DetailsD5({ params }: DetailsParams) {
       token,
       { cache: "no-store" },
     ),
+
+    fetchData(
+      `${process.env.NEXT_PUBLIC_API_URL}/notas-d5/reprovacoes/${id}`,
+      undefined,
+      token,
+      { cache: "no-store" },
+    ),
   ]);
 
   if (!d5Note.success) {
@@ -78,6 +84,8 @@ export default async function DetailsD5({ params }: DetailsParams) {
   const schedulesData = d5NotesSchedules.success
     ? (d5NotesSchedules.data ?? [])
     : [];
+
+  const rejectionsData = rejections.success ? (rejections.data ?? []) : [];
 
   return (
     <D5NoteEditProvider d5NoteId={Number(id)} initial={data}>

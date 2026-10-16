@@ -7,6 +7,7 @@ import {
   ID5NotesSchedulesRepository,
 } from 'src/domain/repositories/d5Notes/ID5NotesSchedulesRepository';
 import { D5NotesSchedulesFiltersDTO } from 'src/interface/dtos/d5NotesDTO';
+import { NoteScheduledWork } from 'src/interface/types/d5notes/types';
 
 @Injectable()
 export class FindD5SchedulesService {
@@ -19,12 +20,15 @@ export class FindD5SchedulesService {
     const where = this.buildWhereClause(filters);
     const pagination = this.buildPagination(filters.page);
 
-    const [rows, totals] = await Promise.all([
+    const [rows, notes] = await Promise.all([
       this.d5SchedulesRepository.get(where, pagination),
       this.d5SchedulesRepository.getTotals(where),
     ]);
 
-    return { d5Notes: D5NoteScheduleMapper.toListItems(rows), totals };
+    return {
+      d5Notes: D5NoteScheduleMapper.toListItems(rows),
+      totals: this.buildTotals(notes),
+    };
   }
 
   async findByD5NoteId(id: number) {
@@ -33,43 +37,77 @@ export class FindD5SchedulesService {
     return D5NoteScheduleMapper.toResponseList(data);
   }
 
-  private buildWhereClause(filters: D5NotesSchedulesFiltersDTO) {
-    const where: any = {};
+  async findRejectionsByD5Note(id: number) {
+    const data = await this.d5SchedulesRepository.findRejections(id);
 
-    if (filters.dataFinal && filters.dataInicial) {
-      where.data_prog = {
-        gte: moment
-          .utc(filters.dataInicial, 'DD/MM/YYYY')
-          .startOf('day')
-          .toDate(),
-        lte: moment.utc(filters.dataFinal, 'DD/MM/YYYY').endOf('day').toDate(),
-      };
+    return D5NoteScheduleMapper.toRejectionsResponseList(data);
+  }
+
+  private buildWhereClause(filters: D5NotesSchedulesFiltersDTO): any {
+    // Junta as condições em AND para que nenhum filtro substitua outro
+    const and: any[] = [];
+
+    // Início do dia de hoje, na data local, guardado como meia-noite UTC
+    const hoje = moment.utc(moment().format('YYYY-MM-DD')).toDate();
+
+    // --- Período ---
+    if (filters.dataInicial && filters.dataFinal) {
+      and.push({
+        data_prog: {
+          gte: moment
+            .utc(filters.dataInicial, 'DD/MM/YYYY')
+            .startOf('day')
+            .toDate(),
+          lte: moment
+            .utc(filters.dataFinal, 'DD/MM/YYYY')
+            .endOf('day')
+            .toDate(),
+        },
+      });
     }
 
+    // --- Filtros de lista ---
     if (filters.idRegional?.length) {
-      where.municipios = {
-        ...where.municipios,
-        id_regional: { in: filters.idRegional },
-      };
+      and.push({ municipios: { id_regional: { in: filters.idRegional } } });
     }
-
     if (filters.idMunicipio?.length) {
-      where.id_municipio = { in: filters.idMunicipio };
+      and.push({ id_municipio: { in: filters.idMunicipio } });
     }
-
     if (filters.idGrupo?.length) {
-      where.id_turma = { in: filters.idGrupo };
+      and.push({ id_turma: { in: filters.idGrupo } });
     }
-
     if (filters.idTipo?.length) {
-      where.id_tipo = { in: filters.idTipo };
+      and.push({ id_tipo: { in: filters.idTipo } });
     }
-
     if (filters.idParceira?.length) {
-      where.id_parceira = { in: filters.idParceira };
+      and.push({ id_parceira: { in: filters.idParceira } });
     }
 
-    return where;
+    // --- Filtros de estado ---
+    const temFiltroDeEstado =
+      filters.pendente || filters.executado || filters.reprovada;
+
+    if (!temFiltroDeEstado) {
+      // Por defeito: obras programadas, ou seja, sem execução, a partir de hoje e não reprovadas
+      and.push(
+        { exec: null },
+        { data_prog: { gte: hoje } },
+        { OR: [{ reprovada: false }, { reprovada: null }] },
+      );
+    } else {
+      if (filters.reprovada) {
+        and.push({ reprovada: true });
+      }
+      if (filters.executado) {
+        and.push({ exec: { not: null } });
+      }
+      if (filters.pendente) {
+        // Pendente: a data já passou e a obra continua sem execução
+        and.push({ exec: null }, { data_prog: { lt: hoje } });
+      }
+    }
+
+    return { AND: and };
   }
 
   private buildPagination(page?: number): D5NotePagination {
@@ -79,5 +117,19 @@ export class FindD5SchedulesService {
       skip: page * 200,
       take: 200,
     };
+  }
+
+  private buildTotals(data: NoteScheduledWork[]) {
+    return data.reduce(
+      (acc, note) => {
+        const sum = note.progs.reduce((acc, p) => acc + p, 0);
+
+        acc.total += note.progs.length;
+        acc.totalMoRetida += note.moRetida;
+        acc.totalMoProgramada += note.moRetida * (Math.min(sum, 100) / 100);
+        return acc;
+      },
+      { total: 0, totalMoRetida: 0, totalMoProgramada: 0 },
+    );
   }
 }

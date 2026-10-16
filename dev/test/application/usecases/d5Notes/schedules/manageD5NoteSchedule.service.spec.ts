@@ -61,6 +61,7 @@ const makeCurrent = (overrides: Record<string, unknown> = {}) =>
   ({
     d5NoteId: 10,
     creatorUserId: 7,
+    rejected: false,
     ...overrides,
   }) as unknown as D5NoteSchedule;
 
@@ -98,7 +99,7 @@ describe('ManageD5NoteScheduleService', () => {
     fileService.deleteMany.mockResolvedValue(undefined);
   });
 
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => jest.resetAllMocks());
   afterAll(() => jest.restoreAllMocks());
 
   it('deve estar definido', () => {
@@ -174,6 +175,7 @@ describe('ManageD5NoteScheduleService', () => {
   describe('update', () => {
     const dto = {
       keptFiles: ['antigo.pdf'],
+      rejected: false,
     } as unknown as UpdateScheduleD5Dto;
 
     /** Prepara o caminho feliz completo. */
@@ -182,10 +184,12 @@ describe('ManageD5NoteScheduleService', () => {
         existing?: Record<string, unknown>;
         finalPaths?: string[];
         toRemove?: string[];
+        rejected?: boolean;
       } = {},
     ) => {
       const existing = overrides.existing ?? makeExisting();
       const current = makeCurrent();
+      const schedule = { id: 1, rejected: overrides.rejected ?? false };
 
       repository.getById.mockResolvedValue(existing);
       mapper.toDomain.mockReturnValue(current);
@@ -194,11 +198,11 @@ describe('ManageD5NoteScheduleService', () => {
         toRemove: overrides.toRemove ?? ['obsoleto.pdf'],
       } as any);
       mapper.fromUpdateInput.mockReturnValue({} as any);
-      entity.create.mockReturnValue({ id: 1 } as any);
+      entity.create.mockReturnValue(schedule as any);
       mapper.toPersistenceUpdate.mockReturnValue({ obs: 'x' } as any);
       repository.updateAndSyncWorkStatus.mockResolvedValue(undefined);
 
-      return { existing, current };
+      return { existing, current, schedule };
     };
 
     it.each([
@@ -240,6 +244,7 @@ describe('ManageD5NoteScheduleService', () => {
           obs: 'x',
         },
         10,
+        false,
       );
       expect(fileService.deleteMany).toHaveBeenCalledTimes(1);
       expect(fileService.deleteMany).toHaveBeenCalledWith(
@@ -590,6 +595,7 @@ describe('ManageD5NoteScheduleService', () => {
           { id_nota_d5: D5_NOTE_ID, snapshotOf: 1 },
           { id_nota_d5: D5_NOTE_ID, snapshotOf: 3 },
         ],
+        10,
       );
     });
 
@@ -607,6 +613,7 @@ describe('ManageD5NoteScheduleService', () => {
           { id_nota_d5: D5_NOTE_ID, snapshotOf: 1 },
           { id_nota_d5: D5_NOTE_ID, snapshotOf: 2 },
         ],
+        10,
       );
     });
 

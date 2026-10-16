@@ -43,6 +43,7 @@ describe('D5NotesController', () => {
   const findD5SchedulesService = {
     findD5NotesSchedules: jest.fn(),
     findByD5NoteId: jest.fn(),
+    findRejectionsByD5Note: jest.fn(),
   };
 
   const manageD5NoteScheduleService = {
@@ -184,6 +185,31 @@ describe('D5NotesController', () => {
       expect(result).toEqual({
         statusCode: HttpStatus.OK,
         message: 'Programações da Nota D5 retornado com sucesso',
+        data,
+      });
+    });
+
+    it('deve propagar erros do serviço', async () => {
+      const error = new Error('erro inesperado');
+      findD5SchedulesService.findByD5NoteId.mockRejectedValue(error);
+
+      await expect(controller.getSchedulesByD5NoteId(7)).rejects.toThrow(error);
+    });
+  });
+
+  describe('getSchedulesByD5NoteId', () => {
+    it('deve retornar as reprovações da nota informada', async () => {
+      const data = [{ id: 1, notaId: 7 }];
+      findD5SchedulesService.findRejectionsByD5Note.mockResolvedValue(data);
+
+      const result = await controller.getRejections(7);
+
+      expect(
+        findD5SchedulesService.findRejectionsByD5Note,
+      ).toHaveBeenCalledWith(7);
+      expect(result).toEqual({
+        statusCode: HttpStatus.OK,
+        message: 'Reprovações da nota D5 retornadas com sucesso',
         data,
       });
     });

@@ -1,295 +1,415 @@
 import { D5NoteScheduleMapper } from 'src/application/mappers/d5NotesScheduleMapper';
 import { FindD5SchedulesService } from 'src/application/usecases/d5Notes/schedules/findD5Schedules.service';
+import { ID5NotesSchedulesRepository } from 'src/domain/repositories/d5Notes/ID5NotesSchedulesRepository';
 import { D5NotesSchedulesFiltersDTO } from 'src/interface/dtos/d5NotesDTO';
 
-// ---------------------------------------------------------------------------
-// Mock do mapper — o serviço apenas delega a transformação
-// ---------------------------------------------------------------------------
-jest.mock('src/application/mappers/d5NotesScheduleMapper', () => ({
-  D5NoteScheduleMapper: {
-    toListItems: jest.fn(),
-    toResponseList: jest.fn(),
-  },
-}));
+// Noon UTC: yields the same calendar day in virtually any timezone
+const FIXED_NOW = new Date('2026-10-16T12:00:00.000Z');
+const TODAY = new Date('2026-10-16T00:00:00.000Z');
 
-const mapper = D5NoteScheduleMapper as jest.Mocked<typeof D5NoteScheduleMapper>;
+const DEFAULT_STATE_CONDITIONS = [
+  { exec: null },
+  { data_prog: { gte: TODAY } },
+  { OR: [{ reprovada: false }, { reprovada: null }] },
+];
+const DEFAULT_WHERE = { AND: DEFAULT_STATE_CONDITIONS };
 
 const makeFilters = (
   overrides: Partial<D5NotesSchedulesFiltersDTO> = {},
 ): D5NotesSchedulesFiltersDTO =>
   ({ ...overrides }) as D5NotesSchedulesFiltersDTO;
 
-describe('FindD5SchedulesService', () => {
-  let service: FindD5SchedulesService;
-
-  const repository = {
+const makeRepository = () =>
+  ({
     get: jest.fn(),
     getTotals: jest.fn(),
     getByD5NoteId: jest.fn(),
-  };
+    findRejections: jest.fn(),
+  }) as unknown as jest.Mocked<ID5NotesSchedulesRepository>;
 
-  /** Acesso tipado aos métodos privados, para os testar isoladamente. */
-  const buildWhere = (filters: D5NotesSchedulesFiltersDTO) =>
-    (service as any).buildWhereClause(filters);
+describe('FindD5SchedulesService', () => {
+  let service: FindD5SchedulesService;
+  let repository: jest.Mocked<ID5NotesSchedulesRepository>;
+  let toListItems: jest.SpyInstance;
+  let toResponseList: jest.SpyInstance;
+  let toRejectionsResponseList: jest.SpyInstance;
 
-  const buildPagination = (page?: number) =>
-    (service as any).buildPagination(page);
+  const whereFromGet = () => repository.get.mock.calls[0][0];
 
   beforeEach(() => {
-    service = new FindD5SchedulesService(repository as any);
+    jest.useFakeTimers({
+      now: FIXED_NOW,
+      doNotFake: ['nextTick', 'setImmediate', 'queueMicrotask'],
+    });
 
+    repository = makeRepository();
     repository.get.mockResolvedValue([]);
-    repository.getTotals.mockResolvedValue({});
+    repository.getTotals.mockResolvedValue([]);
     repository.getByD5NoteId.mockResolvedValue([]);
-    mapper.toListItems.mockReturnValue([] as any);
-    mapper.toResponseList.mockReturnValue([] as any);
+    repository.findRejections.mockResolvedValue([]);
+
+    toListItems = jest
+      .spyOn(D5NoteScheduleMapper, 'toListItems')
+      .mockReturnValue([] as any);
+    toResponseList = jest
+      .spyOn(D5NoteScheduleMapper, 'toResponseList')
+      .mockReturnValue([] as any);
+    toRejectionsResponseList = jest
+      .spyOn(D5NoteScheduleMapper, 'toRejectionsResponseList')
+      .mockReturnValue([] as any);
+
+    service = new FindD5SchedulesService(repository);
   });
 
-  afterEach(() => jest.resetAllMocks());
-
-  it('deve estar definido', () => {
-    expect(service).toBeDefined();
+  afterEach(() => {
+    jest.restoreAllMocks(); // restores the original mapper methods
+    jest.useRealTimers();
   });
 
-  // =========================================================================
-  // findD5NotesSchedules
-  // =========================================================================
+  // ---------------------------------------------------------------------------
   describe('findD5NotesSchedules', () => {
-    it('deve consultar dados e totais e devolver o payload mapeado', async () => {
+    it('should query data and totals and return the mapped payload', async () => {
       const rows = [{ id: 1 }, { id: 2 }];
-      const totals = { total: 2, executadas: 1 };
+      const notes = [{ noteId: 2, moRetida: 5245, progs: [50, 50] }];
       const mapped = [{ id: 1, mapped: true }];
 
-      repository.get.mockResolvedValue(rows);
-      repository.getTotals.mockResolvedValue(totals);
-      mapper.toListItems.mockReturnValue(mapped as any);
+      repository.get.mockResolvedValue(rows as any);
+      repository.getTotals.mockResolvedValue(notes as any);
+      toListItems.mockReturnValue(mapped);
 
       const result = await service.findD5NotesSchedules(makeFilters());
 
-      expect(repository.get).toHaveBeenCalledWith({}, undefined);
-      expect(repository.getTotals).toHaveBeenCalledWith({});
-      expect(mapper.toListItems).toHaveBeenCalledWith(rows);
-      expect(result).toEqual({ d5Notes: mapped, totals });
+      expect(repository.get).toHaveBeenCalledWith(DEFAULT_WHERE, undefined);
+      expect(repository.getTotals).toHaveBeenCalledWith(DEFAULT_WHERE);
+      expect(toListItems).toHaveBeenCalledWith(rows);
+      expect(result).toEqual({
+        d5Notes: mapped,
+        totals: { total: 2, totalMoRetida: 5245, totalMoProgramada: 5245 },
+      });
     });
 
-    it('deve usar a mesma cláusula where nas duas consultas', async () => {
+    it('should use the same where clause in both queries', async () => {
       await service.findD5NotesSchedules(makeFilters({ idGrupo: [3] }));
 
-      const whereFromGet = repository.get.mock.calls[0][0];
-      const whereFromTotals = repository.getTotals.mock.calls[0][0];
-
-      expect(whereFromGet).toEqual(whereFromTotals);
-      expect(whereFromGet).toEqual({ id_turma: { in: [3] } });
+      expect(repository.get.mock.calls[0][0]).toEqual(
+        repository.getTotals.mock.calls[0][0],
+      );
     });
 
-    it('deve executar as consultas em paralelo', async () => {
-      const ordem: string[] = [];
-      repository.get.mockImplementation(async () => {
-        ordem.push('get:inicio');
-        await new Promise((r) => setTimeout(r, 10));
-        ordem.push('get:fim');
-        return [];
+    it('should run both queries in parallel', async () => {
+      const order: string[] = [];
+      let resolveGet!: (value: unknown[]) => void;
+
+      repository.get.mockImplementation(() => {
+        order.push('get:start');
+        return new Promise<any>((resolve) => (resolveGet = resolve)).then(
+          (v) => {
+            order.push('get:end');
+            return v;
+          },
+        );
       });
       repository.getTotals.mockImplementation(async () => {
-        ordem.push('totals:inicio');
-        return {};
+        order.push('totals:start');
+        return [];
       });
 
+      const promise = service.findD5NotesSchedules(makeFilters());
+      expect(order).toEqual(['get:start', 'totals:start']);
+
+      resolveGet([]);
+      await promise;
+
+      expect(order).toEqual(['get:start', 'totals:start', 'get:end']);
+    });
+
+    it('should propagate errors from the data query', async () => {
+      repository.get.mockRejectedValue(new Error('query failed'));
+
+      await expect(service.findD5NotesSchedules(makeFilters())).rejects.toThrow(
+        'query failed',
+      );
+    });
+
+    it('should propagate errors from the totals query', async () => {
+      repository.getTotals.mockRejectedValue(new Error('totals failed'));
+
+      await expect(service.findD5NotesSchedules(makeFilters())).rejects.toThrow(
+        'totals failed',
+      );
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  describe('where clause - state filters', () => {
+    it('should apply the default filter (scheduled from today onwards) when no state filter is given', async () => {
       await service.findD5NotesSchedules(makeFilters());
 
-      // totals arranca antes de get terminar => Promise.all
-      expect(ordem).toEqual(['get:inicio', 'totals:inicio', 'get:fim']);
+      expect(whereFromGet()).toEqual(DEFAULT_WHERE);
     });
 
-    it('deve propagar a paginação quando a página é informada', async () => {
-      await service.findD5NotesSchedules(makeFilters({ page: 2 }));
+    it('should filter only rejected schedules', async () => {
+      await service.findD5NotesSchedules(makeFilters({ reprovada: true }));
 
-      expect(repository.get).toHaveBeenCalledWith({}, { skip: 400, take: 200 });
+      expect(whereFromGet()).toEqual({ AND: [{ reprovada: true }] });
     });
 
-    it('deve propagar erros da consulta de dados', async () => {
-      repository.get.mockRejectedValue(new Error('falha na consulta'));
+    it('should filter only executed schedules', async () => {
+      await service.findD5NotesSchedules(makeFilters({ executado: true }));
 
-      await expect(service.findD5NotesSchedules(makeFilters())).rejects.toThrow(
-        'falha na consulta',
+      expect(whereFromGet()).toEqual({ AND: [{ exec: { not: null } }] });
+    });
+
+    it('should filter only pending schedules (past date and not executed)', async () => {
+      await service.findD5NotesSchedules(makeFilters({ pendente: true }));
+
+      expect(whereFromGet()).toEqual({
+        AND: [{ exec: null }, { data_prog: { lt: TODAY } }],
+      });
+    });
+
+    it('should combine all state filters', async () => {
+      await service.findD5NotesSchedules(
+        makeFilters({ reprovada: true, executado: true, pendente: true }),
       );
+
+      expect(whereFromGet()).toEqual({
+        AND: [
+          { reprovada: true },
+          { exec: { not: null } },
+          { exec: null },
+          { data_prog: { lt: TODAY } },
+        ],
+      });
     });
 
-    it('deve propagar erros da consulta de totais', async () => {
-      repository.getTotals.mockRejectedValue(new Error('falha nos totais'));
+    it('should compute "today" from the current date', async () => {
+      jest.setSystemTime(new Date('2026-12-31T12:00:00.000Z'));
 
-      await expect(service.findD5NotesSchedules(makeFilters())).rejects.toThrow(
-        'falha nos totais',
-      );
+      await service.findD5NotesSchedules(makeFilters({ pendente: true }));
+
+      expect(whereFromGet().AND).toContainEqual({
+        data_prog: { lt: new Date('2026-12-31T00:00:00.000Z') },
+      });
     });
   });
 
-  // =========================================================================
-  // findByD5NoteId
-  // =========================================================================
-  describe('findByD5NoteId', () => {
-    it('deve devolver as programações mapeadas da nota', async () => {
-      const rows = [{ id: 1 }];
-      const mapped = [{ id: 1, mapped: true }];
-
-      repository.getByD5NoteId.mockResolvedValue(rows);
-      mapper.toResponseList.mockReturnValue(mapped as any);
-
-      const result = await service.findByD5NoteId(10);
-
-      expect(repository.getByD5NoteId).toHaveBeenCalledWith(10);
-      expect(mapper.toResponseList).toHaveBeenCalledWith(rows);
-      expect(result).toBe(mapped);
-    });
-
-    it('deve delegar ao mapper mesmo sem resultados', async () => {
-      repository.getByD5NoteId.mockResolvedValue([]);
-
-      await service.findByD5NoteId(10);
-
-      expect(mapper.toResponseList).toHaveBeenCalledWith([]);
-    });
-
-    it('deve propagar erros do repositório', async () => {
-      repository.getByD5NoteId.mockRejectedValue(new Error('indisponível'));
-
-      await expect(service.findByD5NoteId(10)).rejects.toThrow('indisponível');
-    });
-  });
-
-  // =========================================================================
-  // buildWhereClause
-  // =========================================================================
-  describe('buildWhereClause', () => {
-    it('deve devolver objeto vazio sem filtros', () => {
-      expect(buildWhere(makeFilters())).toEqual({});
-    });
-
-    describe('intervalo de datas', () => {
-      it('deve converter o intervalo para UTC com início e fim de dia', () => {
-        const where = buildWhere(
-          makeFilters({
-            dataInicial: '01/01/2026',
-            dataFinal: '31/01/2026',
-          } as any),
-        );
-
-        expect(where.data_prog.gte.toISOString()).toBe(
-          '2026-01-01T00:00:00.000Z',
-        );
-        expect(where.data_prog.lte.toISOString()).toBe(
-          '2026-01-31T23:59:59.999Z',
-        );
-      });
-
-      it.each([
-        ['apenas dataInicial', { dataInicial: '01/01/2026' }],
-        ['apenas dataFinal', { dataFinal: '31/01/2026' }],
-      ])('deve ignorar o intervalo com %s', (_label, filters) => {
-        expect(
-          buildWhere(makeFilters(filters as any)).data_prog,
-        ).toBeUndefined();
-      });
-
-      it('deve aceitar intervalo de um único dia', () => {
-        const where = buildWhere(
-          makeFilters({
-            dataInicial: '15/03/2026',
-            dataFinal: '15/03/2026',
-          } as any),
-        );
-
-        expect(where.data_prog.gte.toISOString()).toBe(
-          '2026-03-15T00:00:00.000Z',
-        );
-        expect(where.data_prog.lte.toISOString()).toBe(
-          '2026-03-15T23:59:59.999Z',
-        );
-      });
-    });
-
-    describe('filtros de lista', () => {
-      it('deve aninhar idRegional sob municipios', () => {
-        expect(buildWhere(makeFilters({ idRegional: [1, 2] } as any))).toEqual({
-          municipios: { id_regional: { in: [1, 2] } },
-        });
-      });
-
-      it.each([
-        ['idMunicipio', 'id_municipio'],
-        ['idGrupo', 'id_turma'],
-        ['idTipo', 'id_tipo'],
-        ['idParceira', 'id_parceira'],
-      ])('deve mapear %s para %s', (filterKey, columnKey) => {
-        const where = buildWhere(makeFilters({ [filterKey]: [5] } as any));
-        expect(where[columnKey]).toEqual({ in: [5] });
-      });
-
-      it.each(['idRegional', 'idMunicipio', 'idGrupo', 'idTipo', 'idParceira'])(
-        'deve ignorar %s quando é um array vazio',
-        (filterKey) => {
-          expect(buildWhere(makeFilters({ [filterKey]: [] } as any))).toEqual(
-            {},
-          );
-        },
-      );
-
-      it.each(['idRegional', 'idMunicipio', 'idGrupo', 'idTipo', 'idParceira'])(
-        'deve ignorar %s quando é undefined (optional chaining)',
-        (key) => {
-          expect(buildWhere(makeFilters({ [key]: undefined } as any))).toEqual(
-            {},
-          );
-        },
-      );
-    });
-
-    it('deve combinar todos os filtros em simultâneo', () => {
-      const where = buildWhere(
+  // ---------------------------------------------------------------------------
+  describe('where clause - date range', () => {
+    it('should apply the date range when both dates are provided', async () => {
+      await service.findD5NotesSchedules(
         makeFilters({
-          dataInicial: '01/01/2026',
-          dataFinal: '31/01/2026',
+          dataInicial: '01/10/2026',
+          dataFinal: '31/10/2026',
+        } as any),
+      );
+
+      expect(whereFromGet()).toEqual({
+        AND: [
+          {
+            data_prog: {
+              gte: new Date('2026-10-01T00:00:00.000Z'),
+              lte: new Date('2026-10-31T23:59:59.999Z'),
+            },
+          },
+          ...DEFAULT_STATE_CONDITIONS,
+        ],
+      });
+    });
+
+    it.each([
+      ['only the start date', { dataInicial: '01/10/2026' }],
+      ['only the end date', { dataFinal: '31/10/2026' }],
+    ])('should not apply the date range when given %s', async (_, filters) => {
+      await service.findD5NotesSchedules(makeFilters(filters as any));
+
+      expect(whereFromGet()).toEqual(DEFAULT_WHERE);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  describe('where clause - list filters', () => {
+    it.each([
+      ['idRegional', { municipios: { id_regional: { in: [1, 2] } } }],
+      ['idMunicipio', { id_municipio: { in: [1, 2] } }],
+      ['idGrupo', { id_turma: { in: [1, 2] } }],
+      ['idTipo', { id_tipo: { in: [1, 2] } }],
+      ['idParceira', { id_parceira: { in: [1, 2] } }],
+    ])('should apply the %s filter', async (filter, condition) => {
+      await service.findD5NotesSchedules(makeFilters({ [filter]: [1, 2] }));
+
+      expect(whereFromGet()).toEqual({
+        AND: [condition, ...DEFAULT_STATE_CONDITIONS],
+      });
+    });
+
+    it.each(['idRegional', 'idMunicipio', 'idGrupo', 'idTipo', 'idParceira'])(
+      'should ignore the %s filter when the list is empty',
+      async (filter) => {
+        await service.findD5NotesSchedules(makeFilters({ [filter]: [] }));
+
+        expect(whereFromGet()).toEqual(DEFAULT_WHERE);
+      },
+    );
+
+    it('should combine all filters in the expected order', async () => {
+      await service.findD5NotesSchedules(
+        makeFilters({
+          dataInicial: '01/10/2026',
+          dataFinal: '31/10/2026',
           idRegional: [1],
           idMunicipio: [2],
           idGrupo: [3],
           idTipo: [4],
           idParceira: [5],
+          reprovada: true,
         } as any),
       );
 
-      expect(where).toMatchObject({
-        municipios: { id_regional: { in: [1] } },
-        id_municipio: { in: [2] },
-        id_turma: { in: [3] },
-        id_tipo: { in: [4] },
-        id_parceira: { in: [5] },
+      expect(whereFromGet()).toEqual({
+        AND: [
+          {
+            data_prog: {
+              gte: new Date('2026-10-01T00:00:00.000Z'),
+              lte: new Date('2026-10-31T23:59:59.999Z'),
+            },
+          },
+          { municipios: { id_regional: { in: [1] } } },
+          { id_municipio: { in: [2] } },
+          { id_turma: { in: [3] } },
+          { id_tipo: { in: [4] } },
+          { id_parceira: { in: [5] } },
+          { reprovada: true },
+        ],
       });
-      expect(where.data_prog).toBeDefined();
-    });
-
-    it('deve produzir um novo objeto a cada chamada', () => {
-      expect(buildWhere(makeFilters())).not.toBe(buildWhere(makeFilters()));
     });
   });
 
-  // =========================================================================
-  // buildPagination
-  // =========================================================================
-  describe('buildPagination', () => {
-    it('deve devolver undefined quando a página não é informada', () => {
-      expect(buildPagination(undefined)).toBeUndefined();
+  // ---------------------------------------------------------------------------
+  describe('pagination', () => {
+    it('should not paginate when no page is provided', async () => {
+      await service.findD5NotesSchedules(makeFilters());
+
+      expect(repository.get).toHaveBeenCalledWith(DEFAULT_WHERE, undefined);
     });
 
     it.each([
       [0, { skip: 0, take: 200 }],
-      [1, { skip: 200, take: 200 }],
-      [5, { skip: 1000, take: 200 }],
-    ])('deve calcular o offset da página %i', (page, expected) => {
-      expect(buildPagination(page as number)).toEqual(expected);
+      [2, { skip: 400, take: 200 }],
+    ])('should build pagination %o for page %i', async (page, pagination) => {
+      await service.findD5NotesSchedules(makeFilters({ page }));
+
+      expect(repository.get).toHaveBeenCalledWith(DEFAULT_WHERE, pagination);
     });
 
-    it('deve tratar a página 0 como válida (não confundir com undefined)', () => {
-      expect(buildPagination(0)).not.toBeUndefined();
+    it('should not paginate the totals query', async () => {
+      await service.findD5NotesSchedules(makeFilters({ page: 2 }));
+
+      expect(repository.getTotals).toHaveBeenCalledWith(DEFAULT_WHERE);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  describe('totals', () => {
+    const totalsFor = async (notes: unknown[]) => {
+      repository.getTotals.mockResolvedValue(notes as any);
+      const { totals } = await service.findD5NotesSchedules(makeFilters());
+      return totals;
+    };
+
+    it('should return zeros when there are no notes', async () => {
+      expect(await totalsFor([])).toEqual({
+        total: 0,
+        totalMoRetida: 0,
+        totalMoProgramada: 0,
+      });
+    });
+
+    it('should compute the scheduled workforce proportionally to the scheduled percentage', async () => {
+      expect(
+        await totalsFor([{ noteId: 1, moRetida: 1000, progs: [25] }]),
+      ).toEqual({
+        total: 1,
+        totalMoRetida: 1000,
+        totalMoProgramada: 250,
+      });
+    });
+
+    it('should sum the percentages of multiple schedules of the same note', async () => {
+      expect(
+        await totalsFor([{ noteId: 1, moRetida: 1000, progs: [25, 25] }]),
+      ).toEqual({
+        total: 2,
+        totalMoRetida: 1000,
+        totalMoProgramada: 500,
+      });
+    });
+
+    it('should cap the scheduled workforce at 100% of the retained workforce', async () => {
+      expect(
+        await totalsFor([
+          { noteId: 1, moRetida: 1000, progs: [80, 50] }, // 130% -> capped at 100%
+          { noteId: 2, moRetida: 500, progs: [50] },
+        ]),
+      ).toEqual({ total: 3, totalMoRetida: 1500, totalMoProgramada: 1250 });
+    });
+
+    it('should include the retained workforce of notes without schedules', async () => {
+      expect(
+        await totalsFor([{ noteId: 1, moRetida: 800, progs: [] }]),
+      ).toEqual({
+        total: 0,
+        totalMoRetida: 800,
+        totalMoProgramada: 0,
+      });
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  describe('findByD5NoteId', () => {
+    it('should fetch the note schedules and return the mapped result', async () => {
+      const data = [{ id: 10 }];
+      const mapped = [{ id: 10, mapped: true }];
+      repository.getByD5NoteId.mockResolvedValue(data as any);
+      toResponseList.mockReturnValue(mapped);
+
+      const result = await service.findByD5NoteId(7);
+
+      expect(repository.getByD5NoteId).toHaveBeenCalledWith(7);
+      expect(toResponseList).toHaveBeenCalledWith(data);
+      expect(result).toBe(mapped);
+    });
+
+    it('should propagate repository errors without calling the mapper', async () => {
+      repository.getByD5NoteId.mockRejectedValue(new Error('failure'));
+
+      await expect(service.findByD5NoteId(7)).rejects.toThrow('failure');
+      expect(toResponseList).not.toHaveBeenCalled();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  describe('findRejectionsByD5Note', () => {
+    it('should fetch the note rejections and return the mapped result', async () => {
+      const data = [{ id: 20 }];
+      const mapped = [{ id: 20, reprovadoPor: 'John Doe' }];
+      repository.findRejections.mockResolvedValue(data as any);
+      toRejectionsResponseList.mockReturnValue(mapped);
+
+      const result = await service.findRejectionsByD5Note(7);
+
+      expect(repository.findRejections).toHaveBeenCalledWith(7);
+      expect(toRejectionsResponseList).toHaveBeenCalledWith(data);
+      expect(result).toBe(mapped);
+    });
+
+    it('should propagate repository errors without calling the mapper', async () => {
+      repository.findRejections.mockRejectedValue(new Error('failure'));
+
+      await expect(service.findRejectionsByD5Note(7)).rejects.toThrow(
+        'failure',
+      );
+      expect(toRejectionsResponseList).not.toHaveBeenCalled();
     });
   });
 });

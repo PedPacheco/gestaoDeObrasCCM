@@ -17,7 +17,7 @@ interface MainPortfolioWorksProps {
   token: string;
   cookie: string;
   columns: Record<string, string>;
-  totals: { total: number };
+  totals: { total: number; totalMoRetida: number };
 }
 
 const cookies = new Cookies();
@@ -39,8 +39,9 @@ export default function D5NotesSchedulesMain({
   const [isPending, startTransition] = useTransition();
 
   const fetchWorks = useCallback(
-    (params: Record<string, string | string[] | boolean>) => {
+    (params: Record<string, string | string[] | boolean | null>) => {
       startTransition(async () => {
+        console.log(params);
         try {
           const response = await fetchData(
             `${process.env.NEXT_PUBLIC_API_URL}/notas-d5/programacoes`,

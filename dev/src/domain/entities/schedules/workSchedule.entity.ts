@@ -10,7 +10,6 @@ export interface WorkScheduleProps extends BaseScheduleProps {
 
   equipment?: string;
   idScheduleStatus?: number;
-  rejected?: boolean;
   observationRestriction?: string;
   idUser?: number;
 
@@ -39,7 +38,6 @@ export class WorkSchedule extends BaseSchedule {
   readonly idWork: number;
   readonly equipment?: string;
   readonly idScheduleStatus: number;
-  readonly rejected: boolean;
   readonly observationRestriction?: string;
   readonly idUser?: number;
 
@@ -63,7 +61,7 @@ export class WorkSchedule extends BaseSchedule {
     this.idWork = props.idWork;
     this.equipment = props.equipment;
     this.idScheduleStatus = props.idScheduleStatus ?? 1;
-    this.rejected = props.rejected ?? false;
+
     this.observationRestriction = props.observationRestriction;
     this.idUser = props.idUser;
 

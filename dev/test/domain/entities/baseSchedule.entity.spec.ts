@@ -43,6 +43,7 @@ const makeProps = (
 ): BaseScheduleProps => ({
   dataProg: new Date('2026-01-15T00:00:00.000Z'),
   prog: 50,
+  rejected: false,
   ...overrides,
 });
 
@@ -247,62 +248,6 @@ describe('BaseSchedule', () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // validateDpNumber
-  // -------------------------------------------------------------------------
-  // describe('validateDpNumber', () => {
-  //   it.each([
-  //     ['omitido', undefined],
-  //     ['sem DP', 'MANUTENCAO'],
-  //   ])('não deve exigir número do DP quando serviceType é %s', (_l, type) => {
-  //     const entity = build({ serviceType: type, numDp: undefined });
-
-  //     expect(() => entity.validateDpNumber()).not.toThrow();
-  //   });
-
-  //   it.each([
-  //     ['omitido', undefined],
-  //     ['vazio', ''],
-  //     ['apenas espaços', '   '],
-  //     ['zero', '0'],
-  //   ])('deve exigir número quando serviço é DP e numDp é %s', (_l, numDp) => {
-  //     const entity = build({ serviceType: 'DP', numDp });
-
-  //     expectBadRequest(
-  //       () => entity.validateDpNumber(),
-  //       'Falta inserir número do DP',
-  //     );
-  //   });
-
-  //   it.each([
-  //     ['menos de 8 dígitos', '1234567'],
-  //     ['com letras', 'ABCDEFGH'],
-  //   ])('deve rejeitar numDp %s', (_label, numDp) => {
-  //     const entity = build({ serviceType: 'DP', numDp });
-
-  //     expectBadRequest(
-  //       () => entity.validateDpNumber(),
-  //       'Número do DP deve conter exatamente 8 dígitos',
-  //     );
-  //   });
-
-  //   it('deve aceitar numDp com exatamente 8 dígitos', () => {
-  //     const entity = build({ serviceType: 'DP', numDp: '12345678' });
-
-  //     expect(() => entity.validateDpNumber()).not.toThrow();
-  //   });
-
-  //   it('deve aplicar trim antes de comparar com "0"', () => {
-  //     // 8 caracteres (dentro do limite de validate()), mas "0" após o trim
-  //     const entity = build({ serviceType: 'DP', numDp: '   0    ' });
-
-  //     expectBadRequest(
-  //       () => entity.validateDpNumber(),
-  //       'Falta inserir número do DP',
-  //     );
-  //   });
-  // });
-
   describe('validateDpFormat', () => {
     it.each([
       ['omitido', undefined],
@@ -422,6 +367,7 @@ describe('BaseSchedule', () => {
         idTechnical: 1,
         idExecutionRestriction: 1,
         responsibility: undefined,
+        rejected: false,
       });
     });
 

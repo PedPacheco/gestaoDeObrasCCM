@@ -243,7 +243,7 @@ describe('D5NotesRepository', () => {
 
       expect(await repository.getTotals({})).toEqual({
         total: 7,
-        totalMoPlanejada: 250.75,
+        totalMoRetida: 250.75,
       });
     });
 
@@ -282,7 +282,7 @@ describe('D5NotesRepository', () => {
 
         expect(await repository.getTotals({})).toEqual({
           total: 0,
-          totalMoPlanejada: 0,
+          totalMoRetida: 0,
         });
       },
     );
@@ -291,22 +291,22 @@ describe('D5NotesRepository', () => {
       const decimal = { toString: () => '99.99', valueOf: () => 99.99 };
       notasD5.aggregate.mockResolvedValue(makeAggregate(1, decimal));
 
-      expect((await repository.getTotals({})).totalMoPlanejada).toBe(99.99);
+      expect((await repository.getTotals({})).totalMoRetida).toBe(99.99);
     });
 
     it('deve preservar a soma zero sem a confundir com ausência', async () => {
       notasD5.aggregate.mockResolvedValue(makeAggregate(5, 0));
 
-      expect((await repository.getTotals({})).totalMoPlanejada).toBe(0);
+      expect((await repository.getTotals({})).totalMoRetida).toBe(0);
     });
 
     it('deve devolver sempre um number, não um Decimal', async () => {
       notasD5.aggregate.mockResolvedValue(makeAggregate(1, '123.45'));
 
-      const { totalMoPlanejada } = await repository.getTotals({});
+      const { totalMoRetida } = await repository.getTotals({});
 
-      expect(typeof totalMoPlanejada).toBe('number');
-      expect(totalMoPlanejada).toBe(123.45);
+      expect(typeof totalMoRetida).toBe('number');
+      expect(totalMoRetida).toBe(123.45);
     });
 
     it('deve propagar erros do Prisma', async () => {

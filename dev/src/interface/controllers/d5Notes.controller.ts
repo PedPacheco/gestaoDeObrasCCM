@@ -15,11 +15,15 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { FindD5NotesService } from 'src/application/usecases/d5Notes/notes/findD5Notes.service';
+import { ManageD5NoteService } from 'src/application/usecases/d5Notes/notes/manageD5Note.service';
+import { FindD5SchedulesService } from 'src/application/usecases/d5Notes/schedules/findD5Schedules.service';
+import { ManageD5NoteScheduleService } from 'src/application/usecases/d5Notes/schedules/manageD5NoteSchedule.service';
 import {
   AreaEditGuard,
   AreaViewGuard,
 } from 'src/core/guards/newPermission.guard';
-import { FindD5NotesService } from 'src/application/usecases/d5Notes/notes/findD5Notes.service';
 import {
   CreateProgramacaoD5Dto,
   D5NotesFiltersDTO,
@@ -28,10 +32,6 @@ import {
   UpdateD5NoteDTO,
   UpdateScheduleD5Dto,
 } from '../dtos/d5NotesDTO';
-import { FindD5SchedulesService } from 'src/application/usecases/d5Notes/schedules/findD5Schedules.service';
-import { ManageD5NoteScheduleService } from 'src/application/usecases/d5Notes/schedules/manageD5NoteSchedule.service';
-import { FilesInterceptor } from '@nestjs/platform-express';
-import { ManageD5NoteService } from 'src/application/usecases/d5Notes/notes/manageD5Note.service';
 
 @Controller('notas-d5')
 export class D5NotesController {
@@ -59,9 +59,22 @@ export class D5NotesController {
   async getSchedules(@Query() filters: D5NotesSchedulesFiltersDTO) {
     const response =
       await this.findD5NotesSchedules.findD5NotesSchedules(filters);
+
     return {
       statusCode: HttpStatus.OK,
       message: 'Programações da Nota D5 retornado com sucesso',
+      data: response,
+    };
+  }
+
+  @Get('/reprovacoes/:id')
+  @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
+  async getRejections(@Param('id', ParseIntPipe) id: number) {
+    const response = await this.findD5NotesSchedules.findRejectionsByD5Note(id);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Reprovações da nota D5 retornadas com sucesso',
       data: response,
     };
   }

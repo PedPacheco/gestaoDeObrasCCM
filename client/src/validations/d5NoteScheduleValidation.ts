@@ -40,6 +40,7 @@ export const D5ScheduleSchema = z
     observation: z.string().optional().nullable(),
     executionObservation: z.string().optional().nullable(),
     totalFiles: z.number().default(0),
+    rejected: z.boolean().optional(),
   })
   .superRefine((d, ctx) => {
     if (!!d.startTime !== !!d.endTime) {

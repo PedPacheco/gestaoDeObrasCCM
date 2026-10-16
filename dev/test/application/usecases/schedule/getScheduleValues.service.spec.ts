@@ -223,6 +223,9 @@ describe('GetScheduleValues', () => {
         total_ponto_a_ponto_executado: 0,
         total_ponto_a_ponto_programado: 0,
         total_qtde_planejada: 0,
+        total_equipe_linha_morta: 0,
+        total_equipe_linha_viva: 0,
+        total_equipe_regularizacao: 0,
       },
     });
   });
