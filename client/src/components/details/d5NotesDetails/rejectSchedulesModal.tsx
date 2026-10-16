@@ -1,4 +1,5 @@
 import { ButtonComponent } from "@/components/common/Button";
+import { RestrictionOption } from "@/types/d5Notes";
 import {
   Box,
   FormControl,
@@ -10,7 +11,6 @@ import {
   Typography,
 } from "@mui/material";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { RestrictionOption } from "./d5NotesPanel";
 
 export interface RejectD5SchedulePayload {
   id: number;
