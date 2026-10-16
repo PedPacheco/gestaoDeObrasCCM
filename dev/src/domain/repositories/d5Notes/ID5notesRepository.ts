@@ -27,7 +27,7 @@ export interface ID5NotesRepository {
   ): Promise<FindD5NotesQueryResult[]>;
   getTotals(
     where: Record<string, any>,
-  ): Promise<{ total: number; totalMoPlanejada: number }>;
+  ): Promise<{ total: number; totalMoRetida: number }>;
   getById(id: number): Promise<D5NoteByIdQueryResult | null>;
   update(
     id: number,

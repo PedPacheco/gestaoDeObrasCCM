@@ -59,7 +59,7 @@ export class D5NotesRepository implements ID5NotesRepository {
 
   async getTotals(
     where: Record<string, any>,
-  ): Promise<{ total: number; totalMoPlanejada: number }> {
+  ): Promise<{ total: number; totalMoRetida: number }> {
     const result = await this.prisma.notas_d5.aggregate({
       where,
       _count: { _all: true },
@@ -68,7 +68,7 @@ export class D5NotesRepository implements ID5NotesRepository {
 
     return {
       total: result._count._all,
-      totalMoPlanejada: Number(result._sum.mo_planejada ?? 0),
+      totalMoRetida: Number(result._sum.mo_planejada ?? 0),
     };
   }
 
