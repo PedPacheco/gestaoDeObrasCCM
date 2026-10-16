@@ -94,6 +94,7 @@ export class ManageD5NoteScheduleService {
         id,
         D5NoteScheduleMapper.toPersistenceUpdate(schedule),
         current.d5NoteId,
+        schedule.rejected,
       );
 
       committed = true;
@@ -178,6 +179,6 @@ export class ManageD5NoteScheduleService {
       }),
     );
 
-    await this.d5NotesScheduleRepository.rejectMany(ids, rejections);
+    await this.d5NotesScheduleRepository.rejectMany(ids, rejections, d5NoteId);
   }
 }

@@ -14,8 +14,10 @@ import {
   D5NoteScheduleListItem,
   D5NoteScheduleResponse,
   D5NoteScheduleUpdateData,
+  D5RejectionResponseListItem,
   D5ScheduleRejectionData,
   D5ScheduleRejectionSource,
+  FindRejectionsByD5NotesQueryResult,
   SchedulesD5NotesByIdQueryResult,
   SchedulesD5NotesByNoteIdQueryResult,
   SchedulesD5NotesQueryResult,
@@ -53,6 +55,7 @@ export class D5NoteScheduleMapper {
       idTechnical: technicalId,
       idExecutionRestriction: restrictionId,
       responsibility: restrictionResponsible,
+      rejected: false,
       filePaths: [],
     };
   }
@@ -68,6 +71,7 @@ export class D5NoteScheduleMapper {
       technicalId,
       restrictionId,
       restrictionResponsible,
+      rejected,
       keptFiles: _resolvedByUseCase,
       ...common
     } = dto;
@@ -96,6 +100,7 @@ export class D5NoteScheduleMapper {
       idTechnical: technicalId ?? current.idTechnical,
       idExecutionRestriction: restrictionId ?? current.idExecutionRestriction,
       responsibility: restrictionResponsible ?? current.responsibility,
+      rejected: rejected ?? false,
     };
   }
 
@@ -125,6 +130,7 @@ export class D5NoteScheduleMapper {
       idTechnical: row.id_tecnico,
       idExecutionRestriction: row.id_restricao,
       responsibility: row.responsavel_restricao,
+      rejected: row.reprovada,
     });
   }
 
@@ -251,6 +257,36 @@ export class D5NoteScheduleMapper {
     rows: SchedulesD5NotesQueryResult[],
   ): D5NoteScheduleListItem[] {
     return rows.map((row) => D5NoteScheduleMapper.toListItem(row));
+  }
+
+  static toRejectionResponse(
+    row: FindRejectionsByD5NotesQueryResult,
+  ): D5RejectionResponseListItem {
+    return {
+      id: row.id,
+      dataReprovacao: row.data_reprovacao,
+      dataProgramacao: row.data_prog,
+      horaInicio: row.hora_ini,
+      horaTermino: row.hora_ter,
+      programacao: row.prog,
+      descricao: row.descricao,
+      tipoServico: row.tipo_servico,
+      chaveProvisoria: row.chave_provisoria,
+      chi: row.chi != null ? Number(row.chi) : null,
+      numDp: row.num_dp,
+      observacaoProgramacao: row.observacao_programacao,
+      equipeLm: row.equipe_lm,
+      equipeLv: row.equipe_lv,
+      equipeReg: row.equipe_reg,
+      restricao: row.restricoes.restricao,
+      reprovadoPor: row.novo_tabela_usuarios?.nome ?? null,
+    };
+  }
+
+  static toRejectionsResponseList(
+    rows: FindRejectionsByD5NotesQueryResult[],
+  ): D5RejectionResponseListItem[] {
+    return rows.map((row) => D5NoteScheduleMapper.toRejectionResponse(row));
   }
 
   /* ---------------- Auxiliares ---------------- */

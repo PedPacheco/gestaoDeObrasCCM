@@ -5,6 +5,8 @@ import {
   D5NoteScheduleCreateData,
   D5NoteScheduleUpdateData,
   D5ScheduleRejectionData,
+  FindRejectionsByD5NotesQueryResult,
+  NoteScheduledWork,
   SchedulesD5NotesByIdQueryResult,
   SchedulesD5NotesByNoteIdQueryResult,
   SchedulesD5NotesQueryResult,
@@ -92,6 +94,7 @@ export class D5NotesSchedulesRepository implements ID5NotesSchedulesRepository {
         id_restricao: true,
         id_tecnico: true,
         caminhos_arquivos: true,
+        reprovada: true,
       },
     });
   }
@@ -118,15 +121,51 @@ export class D5NotesSchedulesRepository implements ID5NotesSchedulesRepository {
     });
   }
 
-  async getTotals(where: Record<string, any>): Promise<{ total: number }> {
-    const result = await this.prisma.programacoes_d5.aggregate({
-      where,
-      _count: { _all: true },
+  async findRejections(
+    id: number,
+  ): Promise<FindRejectionsByD5NotesQueryResult[]> {
+    return await this.prisma.programacoes_d5_reprovacoes.findMany({
+      where: { id_nota_d5: id },
+      select: {
+        id: true,
+        data_reprovacao: true,
+        data_prog: true,
+        hora_ini: true,
+        hora_ter: true,
+        prog: true,
+        descricao: true,
+        equipe_lm: true,
+        equipe_lv: true,
+        equipe_reg: true,
+        tipo_servico: true,
+        chave_provisoria: true,
+        chi: true,
+        num_dp: true,
+        observacao_programacao: true,
+        restricoes: { select: { restricao: true } },
+        novo_tabela_usuarios: { select: { nome: true } },
+      },
+    });
+  }
+
+  async getTotals(where: Record<string, any>): Promise<NoteScheduledWork[]> {
+    const d5Notes = await this.prisma.notas_d5.findMany({
+      where: { programacoes_d5: { some: where } },
+      select: {
+        id: true,
+        mo_planejada: true,
+        programacoes_d5: {
+          where,
+          select: { prog: true },
+        },
+      },
     });
 
-    return {
-      total: result._count._all,
-    };
+    return d5Notes.map((note) => ({
+      noteId: note.id,
+      moRetida: Number(note.mo_planejada ?? 0),
+      progs: note.programacoes_d5.map((p) => Number(p.prog ?? 0)),
+    }));
   }
 
   async create(id: number, data: D5NoteScheduleCreateData): Promise<void> {
@@ -152,6 +191,7 @@ export class D5NotesSchedulesRepository implements ID5NotesSchedulesRepository {
     id: number,
     data: D5NoteScheduleUpdateData,
     d5NoteId: number,
+    isRejectedD5Note: boolean,
   ): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       await tx.programacoes_d5.update({
@@ -176,12 +216,22 @@ export class D5NotesSchedulesRepository implements ID5NotesSchedulesRepository {
           },
         });
       }
+
+      if (isRejectedD5Note) {
+        await tx.notas_d5.update({
+          where: { id: d5NoteId },
+          data: {
+            id_status: 35,
+          },
+        });
+      }
     });
   }
 
   async rejectMany(
     ids: number[],
     rejections: D5ScheduleRejectionData[],
+    d5NoteId: number,
   ): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       await tx.programacoes_d5_reprovacoes.createMany({
@@ -191,6 +241,11 @@ export class D5NotesSchedulesRepository implements ID5NotesSchedulesRepository {
       await tx.programacoes_d5.updateMany({
         where: { id: { in: ids } },
         data: { reprovada: true },
+      });
+
+      await tx.notas_d5.update({
+        where: { id: d5NoteId },
+        data: { id_status: 1 },
       });
     });
   }

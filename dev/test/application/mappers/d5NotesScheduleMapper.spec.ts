@@ -8,6 +8,7 @@ import { parseTimeToDate } from 'src/utils/parseTimeToDate';
 
 import { BadRequestException } from '@nestjs/common';
 import moment, { Moment } from 'moment';
+import { FindRejectionsByD5NotesQueryResult } from 'src/interface/types/d5notes/types';
 
 // ---------------------------------------------------------------------------
 // Mocks de colaboradores
@@ -185,6 +186,29 @@ const makeRejectionSource = (overrides: Record<string, any> = {}) => ({
   observacao_programacao: 'obs',
   id_tecnico: 4,
   caminhos_arquivos: ['a.pdf'],
+  ...overrides,
+});
+
+const makeRejectionRow = (
+  overrides: Partial<FindRejectionsByD5NotesQueryResult> = {},
+): FindRejectionsByD5NotesQueryResult => ({
+  id: 1,
+  data_reprovacao: new Date('2026-10-16T13:45:00.000Z'),
+  data_prog: new Date('2026-10-20T00:00:00.000Z'),
+  hora_ini: new Date('1970-01-01T08:00:00.000Z'), // @db.Time
+  hora_ter: new Date('1970-01-01T17:00:00.000Z'),
+  prog: 50,
+  descricao: 'Falta de material em obra',
+  tipo_servico: 'Manutenção',
+  chave_provisoria: false,
+  chi: 12,
+  num_dp: '12345678',
+  observacao_programacao: 'Observação de teste',
+  equipe_lm: 2,
+  equipe_lv: 1,
+  equipe_reg: 0,
+  restricoes: { restricao: 'Falta de material' },
+  novo_tabela_usuarios: { nome: 'João Silva' },
   ...overrides,
 });
 
@@ -1040,6 +1064,150 @@ describe('D5NoteScheduleMapper', () => {
 
     it('deve devolver lista vazia para entrada vazia', () => {
       expect(D5NoteScheduleMapper.toListItems([])).toEqual([]);
+    });
+  });
+
+  // =========================================================================
+  // toListItem / toListItems
+  // =========================================================================
+  describe('toRejectionResponse', () => {
+    it('deve mapear todos os campos para o formato da API', () => {
+      expect(
+        D5NoteScheduleMapper.toRejectionResponse(makeRejectionRow()),
+      ).toEqual({
+        id: 1,
+        dataReprovacao: new Date('2026-10-16T13:45:00.000Z'),
+        dataProgramacao: new Date('2026-10-20T00:00:00.000Z'),
+        horaInicio: new Date('1970-01-01T08:00:00.000Z'),
+        horaTermino: new Date('1970-01-01T17:00:00.000Z'),
+        programacao: 50,
+        descricao: 'Falta de material em obra',
+        tipoServico: 'Manutenção',
+        chaveProvisoria: false,
+        chi: 12,
+        numDp: '12345678',
+        observacaoProgramacao: 'Observação de teste',
+        equipeLm: 2,
+        equipeLv: 1,
+        equipeReg: 0,
+        restricao: 'Falta de material',
+        reprovadoPor: 'João Silva',
+      });
+    });
+
+    it('deve achatar as relações da reprovação', () => {
+      const result = D5NoteScheduleMapper.toRejectionResponse(
+        makeRejectionRow({
+          id: 10,
+          restricoes: { restricao: 'Falta de material' },
+          novo_tabela_usuarios: { nome: 'João' },
+        }),
+      );
+
+      expect(result).toMatchObject({
+        id: 10,
+        restricao: 'Falta de material',
+        reprovadoPor: 'João',
+      });
+      expect(result).not.toHaveProperty('restricoes');
+      expect(result).not.toHaveProperty('novo_tabela_usuarios');
+    });
+
+    it('não deve expor nomes de colunas da base de dados', () => {
+      const result =
+        D5NoteScheduleMapper.toRejectionResponse(makeRejectionRow());
+
+      [
+        'data_reprovacao',
+        'data_prog',
+        'hora_ini',
+        'tipo_servico',
+        'num_dp',
+        'equipe_lm',
+      ].forEach((column) => expect(result).not.toHaveProperty(column));
+    });
+
+    describe('chi', () => {
+      it('deve converter o valor para number', () => {
+        const { chi } = D5NoteScheduleMapper.toRejectionResponse(
+          makeRejectionRow({ chi: '7.25' as any }), // simula Decimal/string vindo do Prisma
+        );
+
+        expect(chi).toBe(7.25);
+      });
+
+      it('deve manter zero (não confundir com nulo)', () => {
+        expect(
+          D5NoteScheduleMapper.toRejectionResponse(makeRejectionRow({ chi: 0 }))
+            .chi,
+        ).toBe(0);
+      });
+
+      it.each([
+        ['null', null],
+        ['undefined', undefined],
+      ])('deve devolver null quando chi é %s', (_label, value) => {
+        expect(
+          D5NoteScheduleMapper.toRejectionResponse(
+            makeRejectionRow({ chi: value as any }),
+          ).chi,
+        ).toBeNull();
+      });
+    });
+
+    describe('reprovadoPor', () => {
+      it('deve devolver null quando não há utilizador associado', () => {
+        expect(
+          D5NoteScheduleMapper.toRejectionResponse(
+            makeRejectionRow({ novo_tabela_usuarios: null }),
+          ).reprovadoPor,
+        ).toBeNull();
+      });
+
+      it('deve devolver null quando o utilizador não tem nome', () => {
+        expect(
+          D5NoteScheduleMapper.toRejectionResponse(
+            makeRejectionRow({ novo_tabela_usuarios: { nome: null } as any }),
+          ).reprovadoPor,
+        ).toBeNull();
+      });
+    });
+
+    it('deve repassar campos nulos sem os alterar', () => {
+      const result = D5NoteScheduleMapper.toRejectionResponse(
+        makeRejectionRow({ descricao: null, num_dp: null, hora_ini: null }),
+      );
+
+      expect(result).toMatchObject({
+        descricao: null,
+        numDp: null,
+        horaInicio: null,
+      });
+    });
+  });
+
+  describe('toRejectionsResponseList', () => {
+    it('deve devolver lista vazia para entrada vazia', () => {
+      expect(D5NoteScheduleMapper.toRejectionsResponseList([])).toEqual([]);
+    });
+
+    it('deve mapear todas as linhas preservando a ordem', () => {
+      const result = D5NoteScheduleMapper.toRejectionsResponseList([
+        makeRejectionRow({ id: 9 }),
+        makeRejectionRow({ id: 3 }),
+      ]);
+
+      expect(result.map((r) => r.id)).toEqual([9, 3]);
+    });
+
+    it('deve delegar em toRejectionResponse para cada linha', () => {
+      const spy = jest.spyOn(D5NoteScheduleMapper, 'toRejectionResponse');
+      const rows = [makeRejectionRow({ id: 1 }), makeRejectionRow({ id: 2 })];
+
+      D5NoteScheduleMapper.toRejectionsResponseList(rows);
+
+      expect(spy).toHaveBeenCalledTimes(2);
+      rows.forEach((row, i) => expect(spy.mock.calls[i][0]).toBe(row));
     });
   });
 
