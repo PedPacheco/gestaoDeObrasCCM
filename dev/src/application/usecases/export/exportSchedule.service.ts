@@ -28,7 +28,7 @@ export class ExportScheduleService {
       { header: 'Qtde planejada', key: 'qtde_planejada', width: 15 },
       { header: 'Qtde pendente', key: 'qtde_pend', width: 15 }, // novo
       {
-        header: 'MO planejada',
+        header: 'MO Programada (SAP)',
         key: 'mo_prog',
         width: 20,
         style: { numFmt: '"R$" #,##0.00' },
