@@ -7,17 +7,17 @@ import { Cookies } from "react-cookie";
 import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
 import { TableWithPagination } from "@/components/common/TableWithPagination";
+import { useMapFilter } from "@/contexts/mapFilterContext";
 import { useUser } from "@/contexts/userContext";
 import { useFeedback } from "@/hooks/useFeedback";
-import { useMapFilter } from "@/contexts/mapFilterContext";
 
 import { FormatCurrency } from "@/utils/formatValue";
 import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
 
-import ScheduleForDayFilters from "./ScheduleForDayFilters";
-import { MainInterface } from "@/types/mainInterface";
 import { FiltersInterface } from "@/types/genericFilterSchema";
+import { MainInterface } from "@/types/mainInterface";
+import ScheduleForDayFilters from "./ScheduleForDayFilters";
 
 const ModalComponent = dynamic(() => import("@/components/common/Modal"), {
   ssr: false,
@@ -152,7 +152,7 @@ export default function MainSchduleForDay({
         columns={columns}
         totals={filteredData.totals || null}
         data={filteredData.works || []}
-        sliceEndIndex={4}
+        sliceEndIndex={9}
         page={page}
         handleChangePage={handleChangePage}
       />

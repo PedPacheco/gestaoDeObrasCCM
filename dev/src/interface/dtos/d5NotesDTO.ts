@@ -41,6 +41,11 @@ export class D5NotesFiltersDTO {
   @IsOptional()
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
+  idStatus?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
   idGrupo?: number[];
 
   @IsOptional()

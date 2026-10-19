@@ -166,6 +166,10 @@ export class FindD5NotesService {
       };
     }
 
+    if (filters.idStatus?.length) {
+      where.id_status = { in: filters.idStatus };
+    }
+
     if (filters.idMunicipio?.length) {
       where.id_municipio = { in: filters.idMunicipio };
     }
@@ -209,7 +213,7 @@ export class FindD5NotesService {
     }
 
     if (filters.idNotaD5?.length) {
-      where.nota_d5 = { in: filters.idNotaD5 };
+      where.id = { in: filters.idNotaD5 };
     }
 
     return where;
