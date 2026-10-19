@@ -4,7 +4,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { join } from 'path';
 import { D5NoteScheduleMapper } from 'src/application/mappers/d5NotesScheduleMapper';
+import { AppLogger } from 'src/core/logger/logger.service';
 import { D5NoteSchedule } from 'src/domain/entities/schedules/d5NotesSchedule.entity';
 import {
   D5_NOTES_SCHEDULES_REPOSITORY,
@@ -17,8 +19,6 @@ import {
   UpdateScheduleD5Dto,
 } from 'src/interface/dtos/d5NotesDTO';
 import { FileService } from '../../file.service';
-import { join } from 'path';
-import { AppLogger } from 'src/core/logger/logger.service';
 
 @Injectable()
 export class ManageD5NoteScheduleService {
@@ -173,7 +173,7 @@ export class ManageD5NoteScheduleService {
 
     const rejections = data.map((item) =>
       D5NoteScheduleMapper.toRejectionSnapshot(byId.get(item.id)!, {
-        reason: item.reason,
+        restrictionId: item.restrictionId,
         description: item.description,
         rejectingUserId,
       }),

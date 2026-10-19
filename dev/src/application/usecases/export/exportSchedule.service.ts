@@ -20,7 +20,6 @@ export class ExportScheduleService {
       { header: 'Regional', key: 'regional', width: 15 }, // novo
       { header: 'Conjunto', key: 'conjunto', width: 20 },
       { header: 'Circuito', key: 'circuito', width: 15 },
-      { header: 'Entrada', key: 'entrada', width: 15 },
       { header: 'Prazo final', key: 'prazo_fim', width: 15 },
       { header: 'Status prazo', key: 'status_prazo', width: 30 }, // novo
       { header: 'Status SAP', key: 'status_ov_sap', width: 10 }, // novo
@@ -28,7 +27,7 @@ export class ExportScheduleService {
       { header: 'Qtde planejada', key: 'qtde_planejada', width: 15 },
       { header: 'Qtde pendente', key: 'qtde_pend', width: 15 }, // novo
       {
-        header: 'MO planejada',
+        header: 'MO Programada (SAP)',
         key: 'mo_prog',
         width: 20,
         style: { numFmt: '"R$" #,##0.00' },

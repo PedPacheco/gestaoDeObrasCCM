@@ -173,7 +173,7 @@ export async function RejectedD5Schedules(
   idWork: number,
   data: {
     id: number;
-    reason: string;
+    restrictionId: number;
     description: string;
   }[],
 ) {

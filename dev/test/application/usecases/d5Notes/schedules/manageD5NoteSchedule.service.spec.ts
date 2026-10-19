@@ -521,7 +521,7 @@ describe('ManageD5NoteScheduleService', () => {
     ): RejectD5ScheduleDTO =>
       ({
         id,
-        reason: `motivo ${id}`,
+        restrictionId: 85,
         description: `descrição ${id}`,
         ...overrides,
       }) as RejectD5ScheduleDTO;
@@ -570,12 +570,12 @@ describe('ManageD5NoteScheduleService', () => {
 
       expect(mapper.toRejectionSnapshot).toHaveBeenCalledTimes(2);
       expect(mapper.toRejectionSnapshot).toHaveBeenNthCalledWith(1, s1, {
-        reason: 'motivo 1',
+        restrictionId: 85,
         description: 'descrição 1',
         rejectingUserId: REJECTING_USER,
       });
       expect(mapper.toRejectionSnapshot).toHaveBeenNthCalledWith(2, s2, {
-        reason: 'motivo 2',
+        restrictionId: 85,
         description: 'descrição 2',
         rejectingUserId: REJECTING_USER,
       });

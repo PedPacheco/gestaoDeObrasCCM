@@ -287,7 +287,6 @@ export type D5NoteScheduleResponse = {
 
 export type D5ScheduleRejectionData = {
   id_nota_d5: number;
-  motivo: string;
   descricao: string;
   data_prog: Date;
   prog: number;
@@ -302,6 +301,7 @@ export type D5ScheduleRejectionData = {
   tipo_servico: string;
   observacao_programacao: string;
   id_usuario_reprovador: number;
+  id_restricao: number;
 };
 
 export type D5ScheduleRejectionSource = Pick<

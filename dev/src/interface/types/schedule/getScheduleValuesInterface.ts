@@ -20,7 +20,6 @@ export interface GetScheduleValuesInterface {
   mo_exec: number;
   moPlanejadaPontoAPonto: number;
   moExecutadoPontoAPonto: number;
-  mat_prog: number;
   num_dp: string | null;
   hora_ini: string;
   hora_ter: string;
