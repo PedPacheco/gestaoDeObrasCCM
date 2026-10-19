@@ -642,7 +642,7 @@ describe('D5NoteScheduleMapper', () => {
   // =========================================================================
   describe('toRejectionSnapshot', () => {
     const context = {
-      reason: 'Falta de material',
+      restrictionId: 85,
       description: 'Equipa sem material para executar o serviço',
       rejectingUserId: 33,
     };
@@ -655,7 +655,6 @@ describe('D5NoteScheduleMapper', () => {
 
       expect(snapshot).toEqual({
         id_nota_d5: 10,
-        motivo: 'Falta de material',
         descricao: 'Equipa sem material para executar o serviço',
         data_prog: CURRENT_DATE,
         prog: 50,
@@ -670,20 +669,21 @@ describe('D5NoteScheduleMapper', () => {
         tipo_servico: 'DP',
         observacao_programacao: 'obs',
         id_usuario_reprovador: 33,
+        id_restricao: 85,
       });
     });
 
     it('deve obter motivo, descrição e reprovador do contexto, não da programação', () => {
       const snapshot = D5NoteScheduleMapper.toRejectionSnapshot(
         makeRejectionSource({
-          motivo: 'da programação',
           descricao: 'da programação',
+          id_restricao: 85,
           id_usuario_reprovador: 999,
         }) as any,
         context,
       );
 
-      expect(snapshot.motivo).toBe('Falta de material');
+      expect(snapshot.id_restricao).toBe(85);
       expect(snapshot.descricao).toBe(
         'Equipa sem material para executar o serviço',
       );
@@ -720,7 +720,6 @@ describe('D5NoteScheduleMapper', () => {
       expect(Object.keys(snapshot).sort()).toEqual(
         [
           'id_nota_d5',
-          'motivo',
           'descricao',
           'data_prog',
           'prog',
@@ -735,6 +734,7 @@ describe('D5NoteScheduleMapper', () => {
           'tipo_servico',
           'observacao_programacao',
           'id_usuario_reprovador',
+          'id_restricao',
         ].sort(),
       );
     });

@@ -14,7 +14,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 export interface RejectD5SchedulePayload {
   id: number;
-  reason: string;
+  restrictionId: number;
   description: string;
 }
 
@@ -27,6 +27,7 @@ interface RejectSchedulesModalProps {
   onConfirm: (data: RejectD5SchedulePayload[]) => Promise<void> | void;
 }
 
+const DEFAULT_RESTRICTION_ID = 1;
 const MAX_DESCRIPTION = 500;
 
 export default function RejectSchedulesModal({
@@ -36,15 +37,21 @@ export default function RejectSchedulesModal({
   selectedIds,
   onConfirm,
 }: RejectSchedulesModalProps) {
-  const [reason, setReason] = useState("");
+  const [reason, setReason] = useState<number>(DEFAULT_RESTRICTION_ID);
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({ reason: false, description: false });
 
   const selectedCount = selectedIds.size;
+  const hasReason = reason !== DEFAULT_RESTRICTION_ID;
+
+  const optionsFailure = options.filter(
+    (restriction: any) =>
+      restriction.tipo_restricao === "REPROVADO" || restriction.id === 1,
+  );
 
   const resetForm = useCallback(() => {
-    setReason("");
+    setReason(DEFAULT_RESTRICTION_ID);
     setDescription("");
     setErrors({ reason: false, description: false });
   }, []);
@@ -61,25 +68,24 @@ export default function RejectSchedulesModal({
   }, [onClose, resetForm, submitting]);
 
   const isFormValid = useMemo(
-    () =>
-      reason.trim() !== "" && description.trim() !== "" && selectedCount > 0,
-    [reason, description, selectedCount],
+    () => hasReason && description.trim() !== "" && selectedCount > 0,
+    [hasReason, description, selectedCount],
   );
 
   const handleConfirm = useCallback(async () => {
     const newErrors = {
-      reason: reason.trim() === "",
+      reason: !hasReason,
       description: description.trim() === "",
     };
     setErrors(newErrors);
 
-    if (Object.values(newErrors).some(Boolean)) return;
+    if (newErrors.reason || newErrors.description) return;
     if (selectedCount === 0 || submitting) return;
 
     const payload: RejectD5SchedulePayload[] = Array.from(selectedIds).map(
       (id) => ({
         id,
-        reason: reason.trim(),
+        restrictionId: reason,
         description: description.trim(),
       }),
     );
@@ -93,14 +99,15 @@ export default function RejectSchedulesModal({
       setSubmitting(false);
     }
   }, [
-    selectedIds,
-    selectedCount,
-    onConfirm,
-    reason,
+    hasReason,
     description,
+    selectedCount,
+    submitting,
+    selectedIds,
+    reason,
+    onConfirm,
     resetForm,
     onClose,
-    submitting,
   ]);
 
   return (
@@ -128,17 +135,22 @@ export default function RejectSchedulesModal({
             <Select
               value={reason}
               onChange={(event) => {
-                setReason(event.target.value);
+                setReason(Number(event.target.value));
                 setErrors((prev) => ({ ...prev, reason: false }));
               }}
               label="Motivo da reprovação"
             >
-              {options.map((item) => (
-                <MenuItem key={item.id} value={item.restricao}>
+              <MenuItem value={DEFAULT_RESTRICTION_ID} disabled>
+                <em>Selecione um motivo</em>
+              </MenuItem>
+
+              {optionsFailure.map((item) => (
+                <MenuItem key={item.id} value={item.id}>
                   {item.restricao}
                 </MenuItem>
               ))}
             </Select>
+
             {errors.reason && (
               <Typography color="error" variant="caption">
                 Motivo é obrigatório
