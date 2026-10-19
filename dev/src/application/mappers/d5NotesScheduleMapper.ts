@@ -155,14 +155,13 @@ export class D5NoteScheduleMapper {
   static toRejectionSnapshot(
     schedule: D5ScheduleRejectionSource,
     context: {
-      reason: string;
+      restrictionId: number;
       description: string;
       rejectingUserId: number;
     },
   ): D5ScheduleRejectionData {
     return {
       id_nota_d5: schedule.id_nota_d5,
-      motivo: context.reason,
       descricao: context.description,
       data_prog: schedule.data_prog,
       prog: schedule.prog,
@@ -177,6 +176,7 @@ export class D5NoteScheduleMapper {
       tipo_servico: schedule.tipo_servico,
       observacao_programacao: schedule.observacao_programacao,
       id_usuario_reprovador: context.rejectingUserId,
+      id_restricao: context.restrictionId,
     };
   }
 

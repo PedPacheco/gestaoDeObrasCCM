@@ -128,6 +128,7 @@ describe('D5NotesSchedulesRepository', () => {
 
   const programacoesD5Reprovacoes = {
     createMany: jest.fn(),
+    findMany: jest.fn(),
   };
 
   /** Cliente transacional entregue ao callback de $transaction. */
@@ -700,6 +701,63 @@ describe('D5NotesSchedulesRepository', () => {
     });
   });
 
+  describe('findRejections', () => {
+    describe('consulta', () => {
+      it('deve consultar as reprovações de determinada Nota D5', async () => {
+        const D5_NOTE_ID = 5;
+
+        await repository.findRejections(D5_NOTE_ID);
+
+        expect(
+          programacoesD5Reprovacoes.findMany.mock.calls[0][0].where,
+        ).toEqual({ id_nota_d5: 5 });
+      });
+
+      it('deve buscar os campos e relacionamentos corretos para retorno dos dados', async () => {
+        await repository.findRejections(5);
+
+        expect(programacoesD5Reprovacoes.findMany).toHaveBeenCalledWith({
+          where: { id_nota_d5: 5 },
+          select: {
+            id: true,
+            data_reprovacao: true,
+            data_prog: true,
+            hora_ini: true,
+            hora_ter: true,
+            prog: true,
+            descricao: true,
+            equipe_lm: true,
+            equipe_lv: true,
+            equipe_reg: true,
+            tipo_servico: true,
+            chave_provisoria: true,
+            chi: true,
+            num_dp: true,
+            observacao_programacao: true,
+            restricoes: { select: { restricao: true } },
+            novo_tabela_usuarios: { select: { nome: true } },
+          },
+        });
+      });
+    });
+
+    describe('casos limite', () => {
+      it('deve devolver uma lista vazia quando não há notas', async () => {
+        programacoesD5Reprovacoes.findMany.mockResolvedValue([]);
+
+        expect(await repository.findRejections(1)).toEqual([]);
+      });
+
+      it('deve propagar erros do Prisma', async () => {
+        programacoesD5Reprovacoes.findMany.mockRejectedValue(
+          new Error('falha'),
+        );
+
+        await expect(repository.findRejections(1)).rejects.toThrow('falha');
+      });
+    });
+  });
+
   // =========================================================================
   // create
   // =========================================================================
@@ -833,7 +891,14 @@ describe('D5NotesSchedulesRepository', () => {
       id = SCHEDULE_ID,
       data: Record<string, any> = makeUpdateData(),
       noteId = D5_NOTE_ID,
-    ) => repository.updateAndSyncWorkStatus(id, data as any, noteId, false);
+      isRejectedD5Note = false,
+    ) =>
+      repository.updateAndSyncWorkStatus(
+        id,
+        data as any,
+        noteId,
+        isRejectedD5Note,
+      );
 
     describe('atualização da programação', () => {
       it('deve atualizar a programação indicada', async () => {
@@ -871,12 +936,13 @@ describe('D5NotesSchedulesRepository', () => {
 
       it('deve executar todas as operações numa única transação', async () => {
         mockExecSum(100);
+        const data = makeUpdateData();
 
-        await run();
+        await run(SCHEDULE_ID, data, D5_NOTE_ID, true);
 
         expect(prisma.$transaction).toHaveBeenCalledTimes(1);
         expect(programacoesD5.update).toHaveBeenCalledTimes(1);
-        expect(notasD5.update).toHaveBeenCalledTimes(1);
+        expect(notasD5.update).toHaveBeenCalledTimes(2);
       });
     });
 
@@ -938,7 +1004,7 @@ describe('D5NotesSchedulesRepository', () => {
 
         expect(notasD5.update).toHaveBeenCalledWith({
           where: { id: D5_NOTE_ID },
-          data: { id_status: 2, status_sap: 'Concluído' },
+          data: { id_status: 2 },
         });
       });
 

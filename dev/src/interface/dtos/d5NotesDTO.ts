@@ -314,8 +314,8 @@ export class RejectD5ScheduleDTO {
   @IsNumber()
   id: number;
 
-  @IsString()
-  reason: string;
+  @IsNumber()
+  restrictionId: number;
 
   @IsString()
   description: string;

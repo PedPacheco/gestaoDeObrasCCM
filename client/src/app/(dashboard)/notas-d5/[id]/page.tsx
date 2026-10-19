@@ -184,6 +184,7 @@ export default async function DetailsD5({ params }: DetailsParams) {
           <section className="flex xl:h-[80%] max-h-[620px] min-w-0 flex-1 mb-6 px-7 pb-6">
             <D5NotesPanel
               schedulesData={schedulesData}
+              rejectionsData={rejectionsData}
               options={filters}
               d5NoteId={Number(id)}
             />

@@ -1,18 +1,13 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  useTransition,
-} from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 
 import { deleteD5NoteSchedule, RejectedD5Schedules } from "@/actions/d5Notes";
 import ConfirmationScheduleModalComponent from "@/components/common/confirmationScheduleModal";
 import { useFeedback } from "@/hooks/useFeedback";
 
 import {
+  D5NotesRejectionsDataType,
   RestrictionOption,
   schedulesDataType,
   TechnicianOption,
@@ -20,11 +15,13 @@ import {
 import { useRouter } from "next/navigation";
 import D5TabActions, { TAB_REJECTED, TAB_SCHEDULES } from "./d5TabsActions";
 import D5ScheduleFormDialog from "./modal/d5ScheduleFormDialog";
+import RejectionsD5NotePanelItem from "./rejectionsD5NotePanelItem";
 import RejectSchedulesModal from "./rejectSchedulesModal";
 import SchedulesD5NotePanelItem from "./schedulesD5NotePanelItem";
 
 interface D5NotesPanelProps {
   schedulesData: schedulesDataType[];
+  rejectionsData: D5NotesRejectionsDataType[];
   d5NoteId: number;
   options: {
     tecnico: TechnicianOption[];
@@ -36,6 +33,7 @@ const TAB_STORAGE_KEY = "d5NotesPanelTab";
 
 export function D5NotesPanel({
   schedulesData,
+  rejectionsData,
   d5NoteId,
   options,
 }: D5NotesPanelProps) {
@@ -72,19 +70,6 @@ export function D5NotesPanel({
   useEffect(() => {
     setSchedulesToBeRejected(new Set());
   }, [schedulesData]);
-
-  // Dados de cada aba
-  const approvedSchedules = useMemo(
-    () => schedulesData.filter((item) => !item.reprovada),
-    [schedulesData],
-  );
-  const rejectedSchedules = useMemo(
-    () => schedulesData.filter((item) => item.reprovada),
-    [schedulesData],
-  );
-
-  const tableData =
-    tabValue === TAB_SCHEDULES ? approvedSchedules : rejectedSchedules;
 
   const hasSelection = schedulesToBeRejected.size > 0;
 
@@ -179,8 +164,8 @@ export function D5NotesPanel({
           handleChange={handleChangeTab}
           onNewSchedule={handleNewSchedule}
           onRejectSchedules={handleOpenRejectionModal}
-          schedulesCount={approvedSchedules.length}
-          rejectedCount={rejectedSchedules.length}
+          schedulesCount={schedulesData.length}
+          rejectedCount={rejectionsData.length}
         />
 
         {/* Tabela */}
@@ -188,14 +173,17 @@ export function D5NotesPanel({
           role="tabpanel"
           className="relative min-h-0 min-w-0 flex-1 overflow-hidden"
         >
-          <SchedulesD5NotePanelItem
-            key={tabValue}
-            data={tableData}
-            onDelete={handleDeleteSchedule}
-            onEdit={handleEditSchedule}
-            schedulesToBeRejected={schedulesToBeRejected}
-            setSchedulesToBeRejected={setSchedulesToBeRejected}
-          />
+          {tabValue === TAB_SCHEDULES ? (
+            <SchedulesD5NotePanelItem
+              data={schedulesData}
+              onDelete={handleDeleteSchedule}
+              onEdit={handleEditSchedule}
+              schedulesToBeRejected={schedulesToBeRejected}
+              setSchedulesToBeRejected={setSchedulesToBeRejected}
+            />
+          ) : (
+            <RejectionsD5NotePanelItem data={rejectionsData} />
+          )}
         </div>
       </div>
 
