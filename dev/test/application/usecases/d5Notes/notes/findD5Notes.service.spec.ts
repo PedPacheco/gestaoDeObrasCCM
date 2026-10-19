@@ -420,6 +420,7 @@ describe('FindD5NotesService', () => {
     it.each([
       ['idMunicipio', 'id_municipio'],
       ['idGrupo', 'id_turma'],
+      ['idStatus', 'id_status'],
       ['idTipo', 'id_tipo'],
       ['idParceira', 'id_parceira'],
     ])('deve mapear %s para %s', (filterKey, columnKey) => {
@@ -428,21 +429,27 @@ describe('FindD5NotesService', () => {
       ).toEqual({ in: [7] });
     });
 
-    it.each(['idRegional', 'idMunicipio', 'idGrupo', 'idTipo', 'idParceira'])(
-      'deve ignorar %s quando é array vazio',
-      (key) => {
-        expect(buildWhere(makeFilters({ [key]: [] } as any))).toEqual({});
-      },
-    );
+    it.each([
+      'idRegional',
+      'idMunicipio',
+      'idGrupo',
+      'idTipo',
+      'idParceira',
+      'idStatus',
+    ])('deve ignorar %s quando é array vazio', (key) => {
+      expect(buildWhere(makeFilters({ [key]: [] } as any))).toEqual({});
+    });
 
-    it.each(['idRegional', 'idMunicipio', 'idGrupo', 'idTipo', 'idParceira'])(
-      'deve ignorar %s quando é undefined',
-      (key) => {
-        expect(buildWhere(makeFilters({ [key]: undefined } as any))).toEqual(
-          {},
-        );
-      },
-    );
+    it.each([
+      'idRegional',
+      'idMunicipio',
+      'idGrupo',
+      'idTipo',
+      'idParceira',
+      'idStatus',
+    ])('deve ignorar %s quando é undefined', (key) => {
+      expect(buildWhere(makeFilters({ [key]: undefined } as any))).toEqual({});
+    });
 
     it('deve montar o período de criado_em a partir do filtro', () => {
       const where = buildWhere(
@@ -496,7 +503,7 @@ describe('FindD5NotesService', () => {
       );
 
       expect(where).toMatchObject({
-        nota_d5: { in: [1, 2, 3] },
+        id: { in: [1, 2, 3] },
       });
     });
 
@@ -509,6 +516,7 @@ describe('FindD5NotesService', () => {
             idGrupo: [3],
             idTipo: [4],
             idParceira: [5],
+            idStatus: [4],
           } as any),
         ),
       ).toEqual({
@@ -517,6 +525,7 @@ describe('FindD5NotesService', () => {
         id_turma: { in: [3] },
         id_tipo: { in: [4] },
         id_parceira: { in: [5] },
+        id_status: { in: [4] },
       });
     });
   });
