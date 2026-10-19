@@ -1,7 +1,13 @@
-import { Autocomplete, Checkbox, styled, TextField } from "@mui/material";
-import React from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import { FilterOption } from "@/types/genericFilterSchema";
+import {
+  alpha,
+  Autocomplete,
+  Checkbox,
+  styled,
+  TextField,
+} from "@mui/material";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import React from "react";
 
 type ListboxProps = React.ComponentProps<"ul">;
 
@@ -15,7 +21,7 @@ const StyledListbox = styled("ul")({
   maxHeight: LISTBOX_MAX_HEIGHT,
   overflow: "auto",
   position: "relative",
-  backgroundColor: "#fff",
+  backgroundColor: "inherit",
 });
 
 export const VirtualizedListbox = React.forwardRef<
@@ -78,6 +84,15 @@ export const VirtualizedListbox = React.forwardRef<
   );
 });
 
+const safeAlpha = (color: string | undefined, value: number) => {
+  if (!color) return undefined;
+  try {
+    return alpha(color, value);
+  } catch {
+    return undefined;
+  }
+};
+
 interface VirtualizedMultiSelectProps {
   label: string;
   menuItems: FilterOption[];
@@ -85,6 +100,8 @@ interface VirtualizedMultiSelectProps {
   setSelectedItem: (value: string[]) => void;
   valueKey: string;
   displayKey: string;
+  backgroundColor?: string;
+  textColor?: string;
 }
 
 export function VirtualizedMultiSelect({
@@ -94,11 +111,52 @@ export function VirtualizedMultiSelect({
   setSelectedItem,
   valueKey,
   displayKey,
+  backgroundColor,
+  textColor,
 }: VirtualizedMultiSelectProps) {
   const selectedOptions = React.useMemo(
     () =>
       menuItems.filter((item) => selectedItem.includes(String(item[valueKey]))),
     [menuItems, selectedItem, valueKey],
+  );
+
+  const hoverColor = safeAlpha(textColor, 0.08);
+  const subtleColor = safeAlpha(textColor, 0.6) ?? textColor;
+
+  // Estilos do campo (input, label, borda, chips e ícones)
+  const inputSx = React.useMemo(
+    () => ({
+      "& .MuiOutlinedInput-root": {
+        backgroundColor,
+        color: textColor,
+        "& .MuiOutlinedInput-notchedOutline": { borderColor: subtleColor },
+        "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: textColor },
+      },
+      "& .MuiInputLabel-root": { color: subtleColor },
+      "& .MuiInputLabel-root.Mui-focused": { color: textColor },
+      "& .MuiSvgIcon-root": { color: textColor }, // seta e botão de limpar
+      "& .MuiChip-root": {
+        color: textColor,
+        backgroundColor: hoverColor,
+        "& .MuiChip-deleteIcon": { color: subtleColor },
+      },
+      "& .MuiAutocomplete-tag": { color: textColor }, // texto "+N" do limitTags
+    }),
+    [backgroundColor, textColor, subtleColor, hoverColor],
+  );
+
+  // Estilos do menu (Paper + opções)
+  const paperSx = React.useMemo(
+    () => ({
+      backgroundColor,
+      color: textColor,
+      "& .MuiAutocomplete-option.Mui-focused": { backgroundColor: hoverColor },
+      "& .MuiAutocomplete-noOptions, & .MuiAutocomplete-loading": {
+        color: subtleColor,
+      },
+      "& .MuiCheckbox-root": { color: subtleColor },
+    }),
+    [backgroundColor, textColor, subtleColor, hoverColor],
   );
 
   return (
@@ -116,7 +174,10 @@ export function VirtualizedMultiSelect({
         setSelectedItem(value.map((item) => String(item[valueKey])))
       }
       ListboxComponent={VirtualizedListbox}
-      renderInput={(params) => <TextField {...params} label={label} />}
+      slotProps={{ paper: { sx: paperSx } }}
+      renderInput={(params) => (
+        <TextField {...params} label={label} sx={inputSx} />
+      )}
       renderOption={(props, option, { selected }) => {
         const { key, ...optionProps } = props as any;
         return (
