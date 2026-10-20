@@ -114,7 +114,6 @@ describe('FinalizeServicesService', () => {
   const mockExecutionValidator = { validatePointByPointExecution: jest.fn() };
 
   let loggerErrorSpy: jest.SpyInstance;
-  let consoleLogSpy: jest.SpyInstance;
 
   /** Por omissão: cada item tem exatamente 1 linha numa programação aberta */
   const targetFor = (id: number, status = OPEN_STATUS) => [
@@ -154,7 +153,6 @@ describe('FinalizeServicesService', () => {
     service = module.get(FinalizeServicesService);
 
     loggerErrorSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation();
-    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(); // console.log do validatePerformPayload
 
     mockExecutionRepository.findExecutionTargets.mockImplementation(
       async (id: number) => targetFor(id),
@@ -167,7 +165,6 @@ describe('FinalizeServicesService', () => {
   afterEach(() => {
     jest.clearAllMocks();
     loggerErrorSpy.mockRestore();
-    consoleLogSpy.mockRestore();
   });
 
   it('should be defined', () => {

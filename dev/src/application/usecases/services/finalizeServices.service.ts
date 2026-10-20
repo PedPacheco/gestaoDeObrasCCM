@@ -6,8 +6,15 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { ProgressRecalculationService } from './progressRecalculation.service';
+import { Prisma } from '@prisma/client';
+import {
+  IStatusFlowRepository,
+  STATUS_FLOW_REPOSITORY,
+} from 'src/domain/repositories/IStatusFlowRepository';
+import {
+  FIND_SCHEDULE_BY_ID_REPOSITORY,
+  IFindScheduleByIdRepository,
+} from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
 import {
   FinalizationData,
   IWorkServicesExecutionRepository,
@@ -18,31 +25,24 @@ import {
   WORK_SERVICES_QUERY_REPOSITORY,
 } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
 import {
-  IStatusFlowRepository,
-  STATUS_FLOW_REPOSITORY,
-} from 'src/domain/repositories/IStatusFlowRepository';
-import {
-  FIND_SCHEDULE_BY_ID_REPOSITORY,
-  IFindScheduleByIdRepository,
-} from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
-import { ExecutionReportService } from '../executionReport.service';
-import { ScheduleExecutionValidatorService } from '../works/schedule/scheduleExecutionValidator.service';
-import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
-import {
   calculateAggregateProgress,
   calculateScheduleProgress,
   fromHistoryRow,
   planReschedule,
   ScheduleItem,
 } from 'src/domain/services/pointByPointRules.service';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import { PerformServicesDTO } from 'src/interface/dtos/workServicesDTO';
+import { GetServicesByWorkIdResponse } from 'src/interface/types/servicesInterface';
 import {
   FINALIZED_SCHEDULE_STATUSES,
   isMaterial,
   ScheduleStatus,
   WorkStatus,
 } from 'src/utils/pointByPoint/serviceType.utils';
-import { Prisma } from '@prisma/client';
-import { GetServicesByWorkIdResponse } from 'src/interface/types/servicesInterface';
+import { ExecutionReportService } from '../executionReport.service';
+import { ScheduleExecutionValidatorService } from '../works/schedule/scheduleExecutionValidator.service';
+import { ProgressRecalculationService } from './progressRecalculation.service';
 
 const EXECUTION_BATCH_SIZE = 50; // ALTERADO: veio do repositório
 const FINALIZE_TX_OPTIONS = { maxWait: 10000, timeout: 30000 };
@@ -422,7 +422,6 @@ export class FinalizeServicesService {
 
       // real = 0 é válido: significa item DESCARTADO (regra 1).
       if (!Number.isFinite(item.qtdeRealizada) || item.qtdeRealizada < 0) {
-        console.log(item.qtdeRealizada);
         throw new BadRequestException(
           'A quantidade realizada deve ser um número maior ou igual a zero.',
         );
