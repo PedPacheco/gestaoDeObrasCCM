@@ -5,7 +5,7 @@
 import { useCallback, useMemo, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
 import { Transform } from "@/utils/transform";
 import { findCurrentWeek, WEEKS } from "@/utils/weeks";
 import {
@@ -52,7 +52,7 @@ export function useAdvancePartnerFilters({
 
   const currentWeek = useMemo(() => findCurrentWeek(), []);
 
-  const { clearFilters, filters, saveFilters } = useSaveFilters({
+  const { clearFilters, filters, saveFilters } = useOldSaveFilters({
     pageKey: "MoveForwardPartnerFilters",
     data: filtersData,
   });

@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { IWorkServicesQueryRepository } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import {
+  IWorkServicesQueryRepository,
+  ServiceForScheduling,
+} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
 
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
@@ -72,6 +75,26 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
       },
       tx,
     );
+  }
+
+  async findServicesForScheduling(
+    ids: number[],
+    tx: Prisma.TransactionClient,
+  ): Promise<ServiceForScheduling[]> {
+    return tx.servicos.findMany({
+      where: { id: { in: ids } },
+      select: {
+        id: true,
+        id_obra: true,
+        id_material: true,
+        viabilizado: true,
+        qtde_adicional: true,
+        qtde_real: true,
+        ponto: true,
+        operacao: true,
+        descricao_operacao: true,
+      },
+    });
   }
 
   async getNotScheduledServices(
@@ -151,6 +174,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
       select: {
         id: true,
         id_servico: true,
+        id_equipe: true,
         servicos: {
           select: {
             materiais: {
@@ -222,7 +246,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
     };
 
     const programacoesServicosFilter: Prisma.programacoes_servicosWhereInput = {
-      programacoes: { data_prog: dateFilter, exec: null },
+      programacoes: { data_prog: dateFilter },
       ...(params.idEquipe.length > 0
         ? { id_equipe: { in: params.idEquipe } }
         : {}),
@@ -233,13 +257,13 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
         id_turma: { in: params.idParceira },
         programacao_ponto_a_ponto: true,
         programacoes: {
-          some: { data_prog: dateFilter, exec: null },
+          some: { data_prog: dateFilter },
         },
         servicos: {
           some: {
             OR: [
               { viabilizado: { not: null, gt: 0 } },
-              { qtde_adicional: { not: null, gt: 0 } },
+              // { qtde_adicional: { not: null, gt: 0 } },
             ],
             programacoes_servicos: {
               some: programacoesServicosFilter,
@@ -299,7 +323,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
           where: {
             OR: [
               { viabilizado: { not: null, gt: 0 } },
-              { qtde_adicional: { not: null, gt: 0 } },
+              // { qtde_adicional: { not: null, gt: 0 } },
             ],
             programacoes_servicos: {
               some: programacoesServicosFilter,
@@ -349,6 +373,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
         id: true,
         texto_breve: true,
         material: true,
+        material_antigo: true,
         preco: true,
         contrato: true,
         medida: true,

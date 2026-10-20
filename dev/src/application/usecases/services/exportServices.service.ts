@@ -3,13 +3,13 @@ import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
 } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
-import { ExportServicesPdfOutput } from '../export/services/exportPdfServices.service';
+import { ExportFileType } from 'src/interface/dtos/workServicesDTO';
 import {
   ExportServicesExcelOutput,
   WorkToExportResponse,
 } from 'src/interface/types/servicesInterface';
-import { ExportFileType } from 'src/interface/dtos/workServicesDTO';
-import { serviceTypeLabel } from 'src/utils/serviceType.utils';
+import { serviceTypeLabel } from 'src/utils/pointByPoint/serviceType.utils';
+import { ExportServicesPdfOutput } from '../export/services/exportPdfServices.service';
 
 @Injectable()
 export class ExportServicesService {
@@ -173,6 +173,8 @@ export class ExportServicesService {
 
           const valorTotal = preco * total;
 
+          const valorTotalExecutado = preco * ps.real;
+
           const tipo = serviceTypeLabel(servico);
 
           const unidade =
@@ -213,7 +215,9 @@ export class ExportServicesService {
             codigo,
             descricao,
             valorTotal,
+            valorTotalExecutado,
             quantidadeProgramada: ps.prog ?? 0,
+            quantidadeExecutada: ps.real,
           });
         }
       }

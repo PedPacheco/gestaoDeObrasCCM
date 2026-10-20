@@ -1,5 +1,5 @@
 import { AuxiliaryMarketInsertService } from 'src/application/usecases/auxiliaryBase/auxiliaryBaseInsertMarket.service';
-import { FindExistingWorksService } from 'src/application/usecases/works/findExistingWorks.service';
+import { FindExistingWorksService } from 'src/application/usecases/works/management/findExistingWorks.service';
 import { AUXILIARY_BASE_REPOSITORY } from 'src/domain/repositories/IAuxiliaryBaseRepository';
 
 import { BadRequestException } from '@nestjs/common';

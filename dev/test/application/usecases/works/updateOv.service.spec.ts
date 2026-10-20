@@ -1,5 +1,5 @@
-import { FindExistingWorksService } from 'src/application/usecases/works/findExistingWorks.service';
-import { UpdateOvService } from 'src/application/usecases/works/updateOv.service';
+import { FindExistingWorksService } from 'src/application/usecases/works/management/findExistingWorks.service';
+import { UpdateOvService } from 'src/application/usecases/works/management/updateOv.service';
 import { UPDATE_OV_REPOSITORY } from 'src/domain/repositories/works/IUpdateOvRepository';
 
 import { BadRequestException } from '@nestjs/common';

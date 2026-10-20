@@ -7,7 +7,7 @@ import { OperationType } from 'src/interface/types/baseAuxiliaryInterface';
 
 import { Inject, Injectable } from '@nestjs/common';
 
-import { FindExistingWorksService } from '../works/findExistingWorks.service';
+import { FindExistingWorksService } from '../works/management/findExistingWorks.service';
 
 interface InsertNotesResult {
   insertedCount: number;

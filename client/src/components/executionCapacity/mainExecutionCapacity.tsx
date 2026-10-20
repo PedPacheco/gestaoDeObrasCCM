@@ -14,7 +14,6 @@ import {
 
 import { UpdateExecutionCapacity } from "@/actions/executionCapacity";
 import { fetchData } from "@/actions/fetchData.action";
-import { FiltersInterface } from "@/types/filtersInterfaces";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
 
@@ -23,6 +22,7 @@ import { ButtonComponent } from "../common/Button";
 import { FiltersExecutionCapacity } from "./filtersExecutionCapacity";
 import { FinancialValuesModal } from "./financialValuesModal";
 import { useFeedback } from "@/hooks/useFeedback";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

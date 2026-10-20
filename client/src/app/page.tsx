@@ -14,7 +14,7 @@ const API = process.env.NEXT_PUBLIC_API_URL!;
 const NO_CACHE = { cache: "no-store" as const };
 
 // ── Áreas com permissão de acesso ao dashboard ──────────────
-const ALLOWED_AREAS = [1, 8, 9];
+const ALLOWED_AREAS = [1, 8];
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Função para extrair dados do utilizador dos cookies
@@ -177,6 +177,7 @@ async function fetchMaodeObra(token: string, dashboard: "labor" | "partner") {
     data2: [],
     metaDiaria: 0,
   };
+
   const res = await fetchData(
     `${API}/programacao/resumo-mensal`,
     params,
@@ -189,7 +190,7 @@ async function fetchMaodeObra(token: string, dashboard: "labor" | "partner") {
   const firstSummary = res.data?.firstSummary ?? {};
   const secondSummary = res.data?.secondSummary ?? [];
 
-  const metaDiaria: number = firstSummary.totals?.totalFinancialGoal ?? 0;
+  const metaDiaria: number = firstSummary?.summary[0]?.financialGoal ?? 0;
 
   return { data: firstSummary, data2: secondSummary, metaDiaria };
 }

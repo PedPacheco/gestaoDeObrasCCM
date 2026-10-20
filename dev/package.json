@@ -30,6 +30,7 @@
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.1.14",
     "@nestjs/jwt": "^11.0.2",
+    "@nestjs/mapped-types": "2.1.1",
     "@nestjs/microservices": "^11.1.14",
     "@nestjs/platform-express": "^11.1.14",
     "@nestjs/platform-socket.io": "^11.1.19",
@@ -94,7 +95,10 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "src/**/*.(t|j)s"
+      "src/**/*.(t|j)s",
+      "!src/**/types/**",
+      "!src/**/*.dto.ts",
+      "!src/**/*.interface.ts"
     ],
     "coverageDirectory": "<rootDir>/coverage",
     "testEnvironment": "node",

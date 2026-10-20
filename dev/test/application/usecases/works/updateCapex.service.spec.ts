@@ -1,4 +1,4 @@
-import { UpdateCapexService } from 'src/application/usecases/works/updateCapex.service';
+import { UpdateCapexService } from 'src/application/usecases/works/management/updateCapex.service';
 
 describe('UpdateCapexService', () => {
   let service: UpdateCapexService;

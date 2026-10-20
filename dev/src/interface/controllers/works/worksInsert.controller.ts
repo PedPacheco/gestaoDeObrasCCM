@@ -4,7 +4,7 @@ import {
 } from 'src/interface/dtos/worksDto';
 
 import { Body, Controller, HttpStatus, Post, UseGuards } from '@nestjs/common';
-import { InsertWorksService } from 'src/application/usecases/works/InsertWorks.service';
+import { InsertWorksService } from 'src/application/usecases/works/management/insertWorks.service';
 import { AreaEditGuard } from 'src/core/guards/newPermission.guard';
 
 @Controller('obras')

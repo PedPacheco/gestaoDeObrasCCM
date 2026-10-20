@@ -1,4 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
+import { PONTO_A_PONTO_PARTNER_ID } from 'src/utils/pointByPoint/serviceType.utils';
 
 export class Work {
   public readonly pontoAPonto: boolean;
@@ -17,7 +18,7 @@ export class Work {
   }
 
   private isPontoAPonto(): boolean {
-    return this.idParceira === 3;
+    return this.idParceira === PONTO_A_PONTO_PARTNER_ID;
   }
 }
 

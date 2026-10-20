@@ -20,7 +20,6 @@ export interface GetScheduleValuesInterface {
   mo_exec: number;
   moPlanejadaPontoAPonto: number;
   moExecutadoPontoAPonto: number;
-  mat_prog: number;
   num_dp: string | null;
   hora_ini: string;
   hora_ter: string;
@@ -44,19 +43,35 @@ export interface GetScheduleValuesInterface {
   id_programacao: number;
 }
 
-export interface totalsGetScheduleValues {
+export interface TotalsGetScheduleValues {
+  total_obras: number;
+  total_mo_planejada: number;
+  total_mo_exec: number;
+  total_ponto_a_ponto_programado: number;
+  total_ponto_a_ponto_executado: number;
+  total_qtde_planejada: number;
+  total_equipe_linha_morta: number;
+  total_equipe_linha_viva: number;
+  total_equipe_regularizacao: number;
+  total_exec: number;
+}
+
+export interface TotalsGetScheduleValuesRepository {
   total_obras: number;
   total_mo_planejada: number;
   total_mo_exec: number;
   total_qtde_planejada: number;
+  total_equipe_linha_morta: number;
+  total_equipe_linha_viva: number;
+  total_equipe_regularizacao: number;
 }
 
 export interface GetScheduleValuesResponseRepository {
   works: GetScheduleValuesInterface[];
-  resultTotals: totalsGetScheduleValues;
+  resultTotals: TotalsGetScheduleValuesRepository;
 }
 
 export interface GetScheduleValuesResponse {
   works: GetScheduleValuesInterface[];
-  totals: totalsGetScheduleValues;
+  totals: TotalsGetScheduleValues;
 }

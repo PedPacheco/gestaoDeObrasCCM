@@ -24,6 +24,7 @@ const mockHistory: GetServiceScheduleHistoryResponse[] = [
     id: 1,
     id_programacao: 1,
     id_servico: 1,
+    id_equipe: 2,
     programacoes: { data_prog: new Date('2024-01-01') },
     adicional: 1,
     equipes: { equipe: 'LM01', perfil: 'B1' },
@@ -44,6 +45,7 @@ const mockHistory: GetServiceScheduleHistoryResponse[] = [
     id: 2,
     id_programacao: 1,
     id_servico: 1,
+    id_equipe: 2,
     programacoes: { data_prog: new Date('2024-01-01') },
     adicional: 1,
     equipes: { equipe: 'LM01', perfil: 'B4' },
@@ -308,6 +310,8 @@ describe('WorksServicesService', () => {
       },
     ];
 
+    const TOTAL_SERVICE_1 = 9;
+
     it('should return formatted services successfully', async () => {
       mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue(
         mockRepositoryResponse,
@@ -409,10 +413,62 @@ describe('WorksServicesService', () => {
 
       const result = await service.getNotScheduledServices(1);
 
-      expect(result).toEqual([]);
+      expect(result).toHaveLength(mockRepositoryResponse.length);
+      result.forEach((item) => {
+        expect(item).toEqual(
+          expect.objectContaining({
+            qtdeProgramada: null,
+            qtdeRealizada: null,
+            qtdeAdicional: null,
+            viabilizado: null,
+            saldoDisponivel: 0,
+            valorReal: 0,
+            valorTotal: 0,
+          }),
+        );
+      });
       expect(repository.getNotScheduledServices).toHaveBeenCalledWith(1);
       expect(repository.getNotScheduledServices).toHaveBeenCalledTimes(1);
     });
+
+    it.each([
+      ['qtde_real equals total', { qtde_real: TOTAL_SERVICE_1 }],
+      ['qtde_prog equals total', { qtde_prog: TOTAL_SERVICE_1 }],
+      [
+        'both qtde_real and qtde_prog equal total',
+        { qtde_real: TOTAL_SERVICE_1, qtde_prog: TOTAL_SERVICE_1 },
+      ],
+    ])('should skip the service when %s', async (_, overrides) => {
+      mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue([
+        { ...mockRepositoryResponse[0], ...overrides },
+        mockRepositoryResponse[1],
+      ]);
+
+      const result = await service.getNotScheduledServices(1);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe(2);
+      expect(result.find((item) => item.id === 1)).toBeUndefined();
+    });
+
+    it('should return an empty array when all services are fully scheduled or executed', async () => {
+      mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue([
+        { ...mockRepositoryResponse[0], qtde_real: 9 }, // 7 + 2
+        { ...mockRepositoryResponse[1], qtde_prog: 18 }, // 18 + 0
+      ]);
+
+      const result = await service.getNotScheduledServices(1);
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  it('should throw NotFoundException when services is an empty array', async () => {
+    mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue([]);
+
+    await expect(service.getNotScheduledServices(1)).rejects.toThrow(
+      new NotFoundException('Obra não encontrada'),
+    );
   });
 
   describe('getSelectedServices', () => {

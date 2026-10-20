@@ -20,6 +20,12 @@ import {
   mockFindByWorkIdResponse,
   mockUpdateExecutionReportDTO,
 } from '../../mocks/mocksExecutionReport';
+import { ProgressRecalculationService } from 'src/application/usecases/services/progressRecalculation.service';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import {
+  ScheduleStatus,
+  WorkStatus,
+} from 'src/utils/pointByPoint/serviceType.utils';
 
 describe('ExecutionReportService', () => {
   let service: ExecutionReportService;
@@ -30,11 +36,21 @@ describe('ExecutionReportService', () => {
     findByScheduleId: jest.fn(),
     findByWorkId: jest.fn(),
     findById: jest.fn(),
-    delete: jest.fn(),
+    findScheduleWorkMode: jest.fn(),
+    findScheduledServiceIds: jest.fn(),
+    resetScheduleExecution: jest.fn(),
+    clearServicesReal: jest.fn(),
+    sumWorkSchedulesExec: jest.fn(),
+    updateWorkStatusAfterReset: jest.fn(),
+    deleteReport: jest.fn(),
   };
 
   const mockFindScheduleRepository = {
     findById: jest.fn(),
+  };
+
+  const mockProgressCalculationService = {
+    recomputeAll: jest.fn(),
   };
 
   const mockFileService = {
@@ -64,14 +80,26 @@ describe('ExecutionReportService', () => {
     },
   } as unknown as Prisma.TransactionClient;
 
+  const mockPrismaService = {
+    $transaction: jest.fn(
+      (cb: (tx: Prisma.TransactionClient) => Promise<unknown>) =>
+        cb(mockTransaction),
+    ),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ExecutionReportService,
+        { provide: PrismaService, useValue: mockPrismaService },
         { provide: EXECUTION_REPORT_REPOSITORY, useValue: mockRepository },
         {
           provide: FIND_SCHEDULE_BY_ID_REPOSITORY,
           useValue: mockFindScheduleRepository,
+        },
+        {
+          provide: ProgressRecalculationService,
+          useValue: mockProgressCalculationService,
         },
         { provide: FileService, useValue: mockFileService },
       ],
@@ -370,25 +398,216 @@ describe('ExecutionReportService', () => {
   });
 
   describe('delete', () => {
-    it('should call delete method and throw error if id not sent', async () => {
-      await expect(service.delete(null)).rejects.toThrow(BadRequestException);
+    const REPORT_ID = 1;
+    const SCHEDULE_ID = 3;
+    const WORK_ID = 10;
+    const SERVICE_IDS = [100, 101];
+    const UPLOAD_DIR = '/uploads/asbuild';
+    const originalUploadDir = process.env.UPLOAD_AS_BUILD;
+
+    const mockReport = {
+      id: REPORT_ID,
+      id_programacao: SCHEDULE_ID,
+      caminho_arquivo: 'teste1.pdf;teste2.pdf',
+    };
+
+    const buildSchedule = (pontoAPonto: boolean) => ({
+      id_obra: WORK_ID,
+      obras: { programacao_ponto_a_ponto: pontoAPonto },
     });
 
-    it('should call delete method and throw error if not find schedule', async () => {
+    beforeAll(() => {
+      process.env.UPLOAD_AS_BUILD = UPLOAD_DIR;
+    });
+
+    afterAll(() => {
+      process.env.UPLOAD_AS_BUILD = originalUploadDir;
+    });
+
+    beforeEach(() => {
+      // valores por omissão: cenário feliz, fluxo normal
+      mockRepository.findById.mockResolvedValue(mockReport);
+      mockRepository.findScheduleWorkMode.mockResolvedValue(
+        buildSchedule(false),
+      );
+      mockRepository.findScheduledServiceIds.mockResolvedValue(SERVICE_IDS);
+      mockRepository.sumWorkSchedulesExec.mockResolvedValue(42);
+    });
+
+    // ─── Validações ──────────────────────────────────────────────────
+
+    it('should throw BadRequestException if id is not sent', async () => {
+      await expect(service.delete(null)).rejects.toThrow(BadRequestException);
+
+      expect(mockRepository.findById).not.toHaveBeenCalled();
+      expect(mockPrismaService.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException if report is not found', async () => {
       mockRepository.findById.mockResolvedValue(null);
 
-      await expect(service.delete(1)).rejects.toThrow(NotFoundException);
+      await expect(service.delete(REPORT_ID)).rejects.toThrow(
+        NotFoundException,
+      );
+
+      expect(mockFileService.deleteFile).not.toHaveBeenCalled();
+      expect(mockPrismaService.$transaction).not.toHaveBeenCalled();
     });
 
-    it('Should call delete method and call repository', async () => {
-      mockRepository.findById.mockResolvedValue({
-        id_programacao: 3,
-        caminho_arquivo: 'teste.pdf',
+    // ─── Ficheiros ───────────────────────────────────────────────────
+
+    it('should delete every file listed in caminho_arquivo', async () => {
+      await service.delete(REPORT_ID);
+
+      expect(mockFileService.deleteFile).toHaveBeenCalledTimes(2);
+      expect(mockFileService.deleteFile).toHaveBeenNthCalledWith(
+        1,
+        `${UPLOAD_DIR}/teste1.pdf`,
+      );
+      expect(mockFileService.deleteFile).toHaveBeenNthCalledWith(
+        2,
+        `${UPLOAD_DIR}/teste2.pdf`,
+      );
+    });
+
+    // ─── Transação ───────────────────────────────────────────────────
+
+    it('should run the reset inside a prisma transaction', async () => {
+      await service.delete(REPORT_ID);
+
+      expect(mockPrismaService.$transaction).toHaveBeenCalledTimes(1);
+      expect(mockRepository.findScheduleWorkMode).toHaveBeenCalledWith(
+        SCHEDULE_ID,
+        mockTransaction,
+      );
+      expect(mockRepository.findScheduledServiceIds).toHaveBeenCalledWith(
+        SCHEDULE_ID,
+        mockTransaction,
+      );
+      expect(mockRepository.resetScheduleExecution).toHaveBeenCalledWith(
+        SCHEDULE_ID,
+        ScheduleStatus.CONFIRMADA,
+        mockTransaction,
+      );
+      expect(mockRepository.deleteReport).toHaveBeenCalledWith(
+        REPORT_ID,
+        mockTransaction,
+      );
+    });
+
+    it('should throw NotFoundException if schedule is not found and not delete the report', async () => {
+      mockRepository.findScheduleWorkMode.mockResolvedValue(null);
+
+      await expect(service.delete(REPORT_ID)).rejects.toThrow(
+        new NotFoundException(
+          `Programação com ID ${SCHEDULE_ID} não encontrada`,
+        ),
+      );
+
+      expect(mockRepository.resetScheduleExecution).not.toHaveBeenCalled();
+      expect(mockRepository.updateWorkStatusAfterReset).not.toHaveBeenCalled();
+      expect(mockRepository.deleteReport).not.toHaveBeenCalled();
+    });
+
+    it('should delete the report only after resetting the execution', async () => {
+      await service.delete(REPORT_ID);
+
+      const resetOrder =
+        mockRepository.resetScheduleExecution.mock.invocationCallOrder[0];
+      const updateOrder =
+        mockRepository.updateWorkStatusAfterReset.mock.invocationCallOrder[0];
+      const deleteOrder =
+        mockRepository.deleteReport.mock.invocationCallOrder[0];
+
+      expect(resetOrder).toBeLessThan(deleteOrder);
+      expect(updateOrder).toBeLessThan(deleteOrder);
+    });
+
+    // ─── Fluxo ponto a ponto ─────────────────────────────────────────
+
+    describe('when work is ponto a ponto', () => {
+      beforeEach(() => {
+        mockRepository.findScheduleWorkMode.mockResolvedValue(
+          buildSchedule(true),
+        );
       });
 
-      await service.delete(1);
+      it('should recompute progress and set work status to CONFIRMADA without executed', async () => {
+        await service.delete(REPORT_ID);
 
-      expect(mockRepository.delete).toHaveBeenCalledWith(1, 3);
+        expect(
+          mockProgressCalculationService.recomputeAll,
+        ).toHaveBeenCalledWith(SERVICE_IDS, WORK_ID, mockTransaction);
+        expect(mockRepository.updateWorkStatusAfterReset).toHaveBeenCalledWith(
+          WORK_ID,
+          { status: WorkStatus.CONFIRMADA },
+          mockTransaction,
+        );
+        expect(mockRepository.clearServicesReal).not.toHaveBeenCalled();
+        expect(mockRepository.sumWorkSchedulesExec).not.toHaveBeenCalled();
+        expect(mockRepository.deleteReport).toHaveBeenCalledWith(
+          REPORT_ID,
+          mockTransaction,
+        );
+      });
+
+      it('should propagate error from recomputeAll and not delete the report', async () => {
+        mockProgressCalculationService.recomputeAll.mockRejectedValueOnce(
+          new Error('recompute failed'),
+        );
+
+        await expect(service.delete(REPORT_ID)).rejects.toThrow(
+          'recompute failed',
+        );
+
+        expect(
+          mockRepository.updateWorkStatusAfterReset,
+        ).not.toHaveBeenCalled();
+        expect(mockRepository.deleteReport).not.toHaveBeenCalled();
+      });
+    });
+
+    // ─── Fluxo normal ────────────────────────────────────────────────
+
+    describe('when work is NOT ponto a ponto', () => {
+      it('should clear services real, sum executed and update work status', async () => {
+        await service.delete(REPORT_ID);
+
+        expect(mockRepository.clearServicesReal).toHaveBeenCalledWith(
+          SERVICE_IDS,
+          mockTransaction,
+        );
+        expect(mockRepository.sumWorkSchedulesExec).toHaveBeenCalledWith(
+          WORK_ID,
+          mockTransaction,
+        );
+        expect(mockRepository.updateWorkStatusAfterReset).toHaveBeenCalledWith(
+          WORK_ID,
+          { status: WorkStatus.CONFIRMADA, executed: 42 },
+          mockTransaction,
+        );
+        expect(
+          mockProgressCalculationService.recomputeAll,
+        ).not.toHaveBeenCalled();
+        expect(mockRepository.deleteReport).toHaveBeenCalledWith(
+          REPORT_ID,
+          mockTransaction,
+        );
+      });
+
+      it('should follow the normal flow when schedule has no obras relation', async () => {
+        mockRepository.findScheduleWorkMode.mockResolvedValue({
+          id_obra: WORK_ID,
+          obras: null,
+        });
+
+        await service.delete(REPORT_ID);
+
+        expect(mockRepository.clearServicesReal).toHaveBeenCalled();
+        expect(
+          mockProgressCalculationService.recomputeAll,
+        ).not.toHaveBeenCalled();
+      });
     });
   });
 });

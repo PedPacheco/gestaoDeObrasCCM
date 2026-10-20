@@ -100,6 +100,7 @@ describe('ServicesController', () => {
       expect(service.scheduleServices).toHaveBeenCalledWith(
         1,
         mockScheduleData,
+        null,
       );
       expect(service.scheduleServices).toHaveBeenCalledTimes(1);
     });
@@ -136,6 +137,7 @@ describe('ServicesController', () => {
       expect(service.scheduleServices).toHaveBeenCalledWith(
         1,
         mockScheduleData,
+        null,
       );
       expect(service.scheduleServices).toHaveBeenCalledTimes(1);
     });
@@ -160,6 +162,7 @@ describe('ServicesController', () => {
       expect(service.scheduleServices).toHaveBeenCalledWith(
         1,
         mockScheduleData,
+        null,
       );
     });
 
@@ -171,7 +174,7 @@ describe('ServicesController', () => {
       const result = await controller.scheduleServices(1, mockScheduleData);
 
       expect(result.statusCode).toBe(HttpStatus.OK);
-      expect(service.scheduleServices).toHaveBeenCalledWith(1, []);
+      expect(service.scheduleServices).toHaveBeenCalledWith(1, [], null);
     });
 
     it('should schedule services with all fields populated', async () => {
@@ -216,6 +219,7 @@ describe('ServicesController', () => {
       expect(service.scheduleServices).toHaveBeenCalledWith(
         1,
         mockScheduleData,
+        null,
       );
     });
   });

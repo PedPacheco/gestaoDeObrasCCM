@@ -1,4 +1,4 @@
-import { GetWorkDetailsService } from 'src/application/usecases/works/getWorkDetails.service';
+import { GetWorkDetailsService } from 'src/application/usecases/works/management/getWorkDetails.service';
 import { GET_WORKS_DETAILS_REPOSITORY } from 'src/domain/repositories/works/IGetWorksDetailsRepository';
 
 import { NotFoundException } from '@nestjs/common';
@@ -63,6 +63,14 @@ describe('GetWorkDetailsService', () => {
         qtdeAdicional: null,
         qtdeRealizada: null,
         valorUnit: 2,
+        tipo: 'S',
+      },
+      {
+        viabilizado: 4,
+        qtdeAdicional: null,
+        qtdeRealizada: null,
+        valorUnit: 2,
+        tipo: 'M',
       },
     ]);
 
@@ -83,6 +91,14 @@ describe('GetWorkDetailsService', () => {
         qtdeAdicional: null,
         qtdeRealizada: null,
         valorUnit: 2,
+        tipo: 'S',
+      },
+      {
+        viabilizado: 4,
+        qtdeAdicional: null,
+        qtdeRealizada: null,
+        valorUnit: 2,
+        tipo: 'M',
       },
     ]);
 

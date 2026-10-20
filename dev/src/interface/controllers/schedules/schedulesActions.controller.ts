@@ -1,7 +1,7 @@
 import { HandleAddScheduleService } from 'src/application/usecases/orchestrators/handleAddSchedule.service';
 import { HandleSchedulesUpdateService } from 'src/application/usecases/orchestrators/handleSchedulesUpdate.service';
-import { DeleteSchedulesService } from 'src/application/usecases/schedule/deleteSchedules.service';
-import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/schedule/validateAndConfirmSchedules.service';
+import { DeleteSchedulesService } from 'src/application/usecases/works/schedule/deleteSchedules.service';
+import { ValidateConfirmAndRejectSchedulesService } from 'src/application/usecases/works/schedule/validateAndConfirmSchedules.service';
 import { AreaEditGuard } from 'src/core/guards/newPermission.guard';
 import {
   ConfirmSchedulesDTO,

@@ -75,6 +75,7 @@ export interface GetServicesSelectedByWorkIdResponse {
 export interface GetServiceScheduleHistoryResponse {
   id: number;
   id_servico: number;
+  id_equipe: number;
   servicos: {
     materiais?: { descricao: string; codigo: string };
     servicos_contratos?: {
@@ -204,9 +205,11 @@ export type ExportServicesExcelOutput = {
   ponto: string | null;
   preco: number;
   valorTotal: number;
+  valorTotalExecutado: number;
   tipo: string;
   unidade: string;
   codigo: string;
   descricao: string;
   quantidadeProgramada: number;
+  quantidadeExecutada: number;
 };

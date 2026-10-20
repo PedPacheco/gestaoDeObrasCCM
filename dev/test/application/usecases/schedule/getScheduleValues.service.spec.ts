@@ -1,4 +1,4 @@
-import { GetScheduleValuesService } from 'src/application/usecases/schedule/getScheduleValues.service';
+import { GetScheduleValuesService } from 'src/application/usecases/works/schedule/getScheduleValues.service';
 import { GET_SCHEDULE_VALUES_REPOSITORY } from 'src/domain/repositories/schedule/IGetScheduleValuesRepository';
 import { DeadlineStatusService } from 'src/domain/services/deadlineStatus.service';
 import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
@@ -6,6 +6,7 @@ import { GetScheduleValuesDTO } from 'src/interface/dtos/scheduleDTO';
 import { Test } from '@nestjs/testing';
 import { obras } from '@prisma/client';
 import { QueriesServicesService } from 'src/application/usecases/services/queriesServices.service';
+import { PointByPointCostService } from 'src/domain/services/pointByPointCost.service';
 
 describe('GetScheduleValues', () => {
   let service: GetScheduleValuesService;
@@ -137,6 +138,7 @@ describe('GetScheduleValues', () => {
       providers: [
         GetScheduleValuesService,
         DeadlineStatusService,
+        PointByPointCostService,
         {
           provide: QueriesServicesService,
           useValue: mockQueriesServicesService,
@@ -168,6 +170,7 @@ describe('GetScheduleValues', () => {
       idParceira: [1],
       idRegional: [1],
       idTipo: [1],
+      idTecnico: [1],
       ovnota: '1343',
     };
 
@@ -189,6 +192,8 @@ describe('GetScheduleValues', () => {
         total_mo_exec: 0,
         total_mo_planejada: 3262.21,
         total_obras: 1,
+        total_ponto_a_ponto_executado: 0,
+        total_ponto_a_ponto_programado: 0,
         total_qtde_planejada: 1,
       },
     });
@@ -215,7 +220,12 @@ describe('GetScheduleValues', () => {
         total_exec: 0,
         total_mo_planejada: 0,
         total_mo_exec: 0,
+        total_ponto_a_ponto_executado: 0,
+        total_ponto_a_ponto_programado: 0,
         total_qtde_planejada: 0,
+        total_equipe_linha_morta: 0,
+        total_equipe_linha_viva: 0,
+        total_equipe_regularizacao: 0,
       },
     });
   });
@@ -240,6 +250,8 @@ describe('GetScheduleValues', () => {
         total_mo_exec: 0,
         total_mo_planejada: 3262.21,
         total_obras: 1,
+        total_ponto_a_ponto_programado: 0,
+        total_ponto_a_ponto_executado: 0,
         total_qtde_planejada: 1,
       },
     });

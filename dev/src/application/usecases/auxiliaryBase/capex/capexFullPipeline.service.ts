@@ -3,7 +3,7 @@ import {
   CapexProgressPayload,
   ProgressEmitter,
 } from 'src/application/shared/capex.types';
-import { UpdateCapexService } from 'src/application/usecases/works/updateCapex.service';
+import { UpdateCapexService } from 'src/application/usecases/works/management/updateCapex.service';
 import { CapexProcessingService } from './capexProcessing.service';
 
 /**

@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import { DateFilter } from "@/components/common/DateFilter";
+import { DateFilter } from "@/components/common/filter/DateFilter";
 import dayjs from "dayjs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

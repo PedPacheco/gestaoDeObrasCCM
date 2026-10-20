@@ -21,7 +21,7 @@ export class FindExistingWorksRepository implements IFindExistingWorksRepository
       });
 
       return existing.map((work) => ({ id: work.id, ovnota: work.ovnota }));
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Erro ao buscar obra de mercado:`, error.stack);
       throw error;
     }
@@ -93,7 +93,7 @@ export class FindExistingWorksRepository implements IFindExistingWorksRepository
         ordemDca: work.ordem_dca,
         ordemDcim: work.ordem_dcim,
       }));
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Erro ao buscar obra de mercado:`, error.stack);
       throw error;
     }
@@ -144,7 +144,7 @@ export class FindExistingWorksRepository implements IFindExistingWorksRepository
           ord.ordem_dcim,
         ])
         .filter(Boolean);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Erro ao buscar ordens`, error.stack);
       throw error;
     }

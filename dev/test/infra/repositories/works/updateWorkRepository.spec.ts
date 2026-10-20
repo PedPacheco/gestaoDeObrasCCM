@@ -8,6 +8,7 @@ describe('UpdateWorkRepository', () => {
   const mockTx = {
     obras: {
       update: jest.fn(), // ou o método que você espera
+      findUnique: jest.fn(),
     },
   } as unknown as Prisma.TransactionClient;
 
