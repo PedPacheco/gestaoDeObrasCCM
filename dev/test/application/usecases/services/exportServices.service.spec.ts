@@ -54,6 +54,7 @@ const exportRepositoryResponse: WorkToExportResponse[] = [
         equipe_linha_viva: 2,
         equipe_regularizacao: 1,
         tecnicos: { tecnico: 'Luiz' },
+        status_programacao: { status_programacao: 'Em validação' },
       },
     ],
     servicos: [

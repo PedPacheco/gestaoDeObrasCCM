@@ -42,6 +42,7 @@ export const exportServicesExcelMock: ExportServicesExcelOutput[] = [
     valorTotalExecutado: 0,
     tipo: 'M',
     unidade: '',
+    statusProgramacao: 'Reprovado',
   },
   {
     ovnota: 'OV654321',
@@ -76,6 +77,7 @@ export const exportServicesExcelMock: ExportServicesExcelOutput[] = [
     valorTotalExecutado: 0,
     tipo: 'S',
     unidade: '',
+    statusProgramacao: 'Programado',
   },
 ];
 
