@@ -130,30 +130,39 @@ export class GetScheduleValuesRepository implements IGetScheduleValuesRepository
     filters: GetScheduleValuesDTO,
   ): Promise<GetScheduleValuesResponseRepository> {
     const { page } = filters;
+
     const baseQuery = Prisma.sql`FROM construcao_sp.obras
-        INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
-        INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
-        INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
-        INNER JOIN construcao_sp.status ON status.id = obras.id_status
-        INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm
-        INNER JOIN construcao_sp.regionais ON regionais.id = municipios.id_regional
-        INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo
-        INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
-        INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
-        INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
-        LEFT JOIN construcao_sp.relatorio ON relatorio.id_obra = obras.id
-        ${this.EQUIPES_JOIN}
-        WHERE status.id NOT IN (3, 4)`;
+    INNER JOIN construcao_sp.circuitos ON circuitos.id = obras.id_circuito
+    INNER JOIN construcao_sp.conjuntos ON conjuntos.id = circuitos.id_conjunto
+    INNER JOIN construcao_sp.programacoes ON programacoes.id_obra = obras.id
+    INNER JOIN construcao_sp.status ON status.id = obras.id_status
+    INNER JOIN construcao_sp.municipios ON municipios.id = obras.id_gpm
+    INNER JOIN construcao_sp.regionais ON regionais.id = municipios.id_regional
+    INNER JOIN construcao_sp.tipos ON tipos.id = obras.id_tipo
+    INNER JOIN construcao_sp.turmas ON turmas.id = obras.id_turma
+    INNER JOIN construcao_sp.tecnicos ON tecnicos.id = programacoes.id_tecnico
+    INNER JOIN construcao_sp.status_programacao ON status_programacao.id = programacoes.id_status_programacao
+    LEFT JOIN construcao_sp.relatorio ON relatorio.id_obra = obras.id
+    ${this.EQUIPES_JOIN}
+    WHERE status.id NOT IN (3, 4)`;
 
-    let query = Prisma.sql`SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim, 
-        turma, status_ov_sap, executado, data_prog, prog, exec, mo_planejada::int*prog/100 AS mo_prog, mo_planejada::int*exec/100 AS mo_exec, capex_mat_pend, capex_mo_pend, tipo_obra, 
-        id_grupo, qtde_planejada, qtde_pend, num_dp, hora_ini, hora_ter, eq.equipe_linha_morta, eq.equipe_linha_viva, eq.equipe_regularizacao, tecnico, conjunto, circuito, 
-        status_programacao, status, id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2, encontrado, programacoes.id as id_programacao
-        ${baseQuery}`;
+    let query = Prisma.sql`SELECT obras.id, ovnota, COALESCE(diagrama, ordem_dci, ordem_dcim, ordem_dcd, ordem_dca) AS ordemdiagrama, diagrama, mun, regional, entrada + prazo AS prazo_fim,
+    turma, status_ov_sap, executado, data_prog, prog, exec,
+    CASE WHEN obras.programacao_ponto_a_ponto THEN 0 ELSE mo_planejada::int*prog/100 END AS mo_prog,
+    CASE WHEN obras.programacao_ponto_a_ponto THEN 0 ELSE mo_planejada::int*exec/100 END AS mo_exec,
+    capex_mat_pend, capex_mo_pend, tipo_obra,
+    id_grupo, qtde_planejada, qtde_pend, num_dp, hora_ini, hora_ter, eq.equipe_linha_morta, eq.equipe_linha_viva, eq.equipe_regularizacao, tecnico, conjunto, circuito,
+    status_programacao, status, id_restricao_prog1, id_restricao_prog2, data_resolucao1, data_resolucao2, status_restricao1, status_restricao2, encontrado, programacoes.id as id_programacao
+    ${baseQuery}`;
 
-    let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras, SUM(mo_planejada*prog::numeric/100) as total_mo_planejada, SUM(mo_planejada*executado/100) as total_mo_exec,
-        SUM(eq.equipe_linha_morta)::int AS total_equipe_linha_morta,SUM(eq.equipe_linha_viva)::int AS total_equipe_linha_viva, SUM(eq.equipe_regularizacao)::int AS total_equipe_regularizacao,
-        SUM(qtde_planejada * (prog::numeric/100)) as total_qtde_planejada ${baseQuery}`;
+    let countQuery = Prisma.sql`SELECT COUNT(*) as total_obras,
+    SUM(CASE WHEN obras.programacao_ponto_a_ponto THEN 0 ELSE mo_planejada*prog::numeric/100 END) as total_mo_planejada,
+    SUM(CASE WHEN obras.programacao_ponto_a_ponto THEN 0 ELSE mo_planejada*executado/100 END) as total_mo_exec,
+    SUM(eq.equipe_linha_morta)::int AS total_equipe_linha_morta,
+    SUM(eq.equipe_linha_viva)::int AS total_equipe_linha_viva,
+    SUM(eq.equipe_regularizacao)::int AS total_equipe_regularizacao,
+    SUM(qtde_planejada * (prog::numeric/100)) as total_qtde_planejada
+    ${baseQuery}`;
 
     query = this.applyFilters(query, filters);
     countQuery = this.applyFilters(countQuery, filters);
