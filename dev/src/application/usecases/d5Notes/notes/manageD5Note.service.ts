@@ -1,15 +1,17 @@
 import {
+  D5_NOTES_REPOSITORY,
+  ID5NotesRepository,
+} from 'src/domain/repositories/d5Notes/ID5notesRepository';
+import { UpdateD5NoteDTO } from 'src/interface/dtos/d5NotesDTO';
+
+import {
   BadRequestException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import {
-  D5_NOTES_REPOSITORY,
-  ID5NotesRepository,
-} from 'src/domain/repositories/d5Notes/ID5notesRepository';
-import { UpdateD5NoteDTO } from 'src/interface/dtos/d5NotesDTO';
+
+import { Prisma } from 'src/generated/prisma/client';
 
 @Injectable()
 export class ManageD5NoteService {

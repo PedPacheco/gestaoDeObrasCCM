@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
 import { ScheduleExecutionValidatorService } from 'src/application/usecases/works/schedule/scheduleExecutionValidator.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
+import { Prisma } from 'src/generated/prisma/client';
 import { PROGRESS_EPSILON } from 'src/utils/pointByPoint/progress.utils';
 import {
   ScheduleStatus,

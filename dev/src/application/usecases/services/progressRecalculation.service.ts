@@ -1,5 +1,3 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import {
   IWorkServicesRepository,
   WORK_SERVICES_REPOSITORY,
@@ -9,6 +7,9 @@ import {
   calculateWorkProgress,
   WorkProgress,
 } from 'src/domain/services/pointByPointRules.service';
+import { Prisma } from 'src/generated/prisma/client';
+
+import { Inject, Injectable } from '@nestjs/common';
 
 export type WorkProgressResult = Omit<WorkProgress, 'demoteConclusion'>;
 

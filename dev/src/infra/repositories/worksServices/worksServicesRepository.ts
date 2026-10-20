@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import {
   ImportServiceItem,
   IWorkServicesRepository,
@@ -16,6 +15,7 @@ import {
   ApplyAdditonalDTO,
   ScheduleServicesDTO,
 } from 'src/interface/dtos/workServicesDTO';
+import { Prisma } from '../../../generated/prisma/client';
 
 const SCHEDULE_ITEM_SELECT = {
   id_programacao: true,

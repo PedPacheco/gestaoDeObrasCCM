@@ -2,7 +2,7 @@ import { IUpdateWorkRepository } from 'src/domain/repositories/works/IUpdateWork
 import { UpdateWorkDTO } from 'src/interface/dtos/worksDto';
 
 import { Injectable, Logger } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
 import { resolvePointByPointMode } from './pointByPointMode.helper';
 
 @Injectable()

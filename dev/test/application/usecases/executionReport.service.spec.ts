@@ -7,8 +7,14 @@ import { Readable } from 'stream';
 
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
 
+import { ProgressRecalculationService } from 'src/application/usecases/services/progressRecalculation.service';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import {
+  ScheduleStatus,
+  WorkStatus,
+} from 'src/utils/pointByPoint/serviceType.utils';
 import {
   mockExecutionReportPersistenceObject,
   mockExecutionReportRepository,
@@ -20,12 +26,6 @@ import {
   mockFindByWorkIdResponse,
   mockUpdateExecutionReportDTO,
 } from '../../mocks/mocksExecutionReport';
-import { ProgressRecalculationService } from 'src/application/usecases/services/progressRecalculation.service';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import {
-  ScheduleStatus,
-  WorkStatus,
-} from 'src/utils/pointByPoint/serviceType.utils';
 
 describe('ExecutionReportService', () => {
   let service: ExecutionReportService;

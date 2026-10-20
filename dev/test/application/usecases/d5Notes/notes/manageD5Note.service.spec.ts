@@ -1,7 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { ManageD5NoteService } from 'src/application/usecases/d5Notes/notes/manageD5Note.service';
 import { ID5NotesRepository } from 'src/domain/repositories/d5Notes/ID5notesRepository';
+import { Prisma } from 'src/generated/prisma/client';
 import { UpdateD5NoteDTO } from 'src/interface/dtos/d5NotesDTO';
 
 const makePrismaError = (code: string) =>

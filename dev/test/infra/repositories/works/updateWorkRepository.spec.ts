@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
 import { UpdateWorkRepository } from 'src/infra/repositories/works/updateWorkRepository';
 
 describe('UpdateWorkRepository', () => {

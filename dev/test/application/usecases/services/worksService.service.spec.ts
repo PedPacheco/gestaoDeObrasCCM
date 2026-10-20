@@ -1,32 +1,32 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import {
   BadRequestException,
   ConflictException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Test, TestingModule } from '@nestjs/testing';
+import { Prisma } from 'src/generated/prisma/client';
 
-import { WorksServicesService } from 'src/application/usecases/services/worksServices.service'; // ajuste
 import { ProgressRecalculationService } from 'src/application/usecases/services/progressRecalculation.service'; // ajuste
+import { WorksServicesService } from 'src/application/usecases/services/worksServices.service'; // ajuste
 
-import {
-  FINALIZED_SCHEDULE_STATUSES,
-  ScheduleStatus,
-  WorkStatus,
-} from 'src/utils/pointByPoint/serviceType.utils';
-import { PROGRESS_EPSILON } from 'src/utils/pointByPoint/progress.utils';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
-import { WORK_SERVICES_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesRepository';
-import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
-import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
+import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
+import { WORK_SERVICES_QUERY_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import { WORK_SERVICES_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesRepository';
+import { hasLockedExecution } from 'src/domain/services/pointByPointRules.service';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {
   AddServicesDTO,
   ApplyAdditonalDTO,
   ScheduleServicesDTO,
 } from 'src/interface/dtos/workServicesDTO';
-import { hasLockedExecution } from 'src/domain/services/pointByPointRules.service';
+import { PROGRESS_EPSILON } from 'src/utils/pointByPoint/progress.utils';
+import {
+  FINALIZED_SCHEDULE_STATUSES,
+  ScheduleStatus,
+  WorkStatus,
+} from 'src/utils/pointByPoint/serviceType.utils';
 
 jest.mock('src/domain/services/pointByPointRules.service', () => ({
   ...jest.requireActual('src/domain/services/pointByPointRules.service'),

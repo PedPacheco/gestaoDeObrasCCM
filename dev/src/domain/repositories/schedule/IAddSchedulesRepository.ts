@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
 
 export interface IAddSchedulesRepository {
   addSchedules(data: any, tx: Prisma.TransactionClient): Promise<number>;

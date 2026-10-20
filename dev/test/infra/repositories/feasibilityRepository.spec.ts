@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { FeasibilityRepository } from 'src/infra/repositories/feasibilityRepository';
 import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';

@@ -5,7 +5,7 @@ import {
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
 
 @Injectable()
 export class UpdateSchedulesRepository implements IUpdateSchedulesRepository {

@@ -1,41 +1,43 @@
 import {
+  IStatusFlowRepository,
+  STATUS_FLOW_REPOSITORY,
+} from 'src/domain/repositories/IStatusFlowRepository';
+import {
+  FIND_SCHEDULE_BY_ID_REPOSITORY,
+  IFindScheduleByIdRepository,
+} from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
+import {
+  IWorkServicesQueryRepository,
+  WORK_SERVICES_QUERY_REPOSITORY,
+} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
+import {
+  IWorkServicesRepository,
+  WORK_SERVICES_REPOSITORY,
+} from 'src/domain/repositories/worksService/IWorkServicesRepository';
+import { hasLockedExecution } from 'src/domain/services/pointByPointRules.service';
+import { Prisma } from 'src/generated/prisma/client';
+import { PrismaService } from 'src/infra/prisma/prisma.service';
+import {
+  AddServicesDTO,
+  ApplyAdditonalDTO,
+  ScheduleServicesDTO,
+} from 'src/interface/dtos/workServicesDTO';
+import { PROGRESS_EPSILON } from 'src/utils/pointByPoint/progress.utils';
+import {
+  FINALIZED_SCHEDULE_STATUSES,
+  ScheduleStatus,
+  WorkStatus,
+} from 'src/utils/pointByPoint/serviceType.utils';
+
+import {
   BadRequestException,
   ConflictException,
   Inject,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/infra/prisma/prisma.service';
+
 import { ProgressRecalculationService } from './progressRecalculation.service';
-import {
-  IWorkServicesRepository,
-  WORK_SERVICES_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesRepository';
-import {
-  IWorkServicesQueryRepository,
-  WORK_SERVICES_QUERY_REPOSITORY,
-} from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
-import {
-  FIND_SCHEDULE_BY_ID_REPOSITORY,
-  IFindScheduleByIdRepository,
-} from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
-import {
-  IStatusFlowRepository,
-  STATUS_FLOW_REPOSITORY,
-} from 'src/domain/repositories/IStatusFlowRepository';
-import {
-  AddServicesDTO,
-  ApplyAdditonalDTO,
-  ScheduleServicesDTO,
-} from 'src/interface/dtos/workServicesDTO';
-import { Prisma } from '@prisma/client';
-import { hasLockedExecution } from 'src/domain/services/pointByPointRules.service';
-import {
-  FINALIZED_SCHEDULE_STATUSES,
-  ScheduleStatus,
-  WorkStatus,
-} from 'src/utils/pointByPoint/serviceType.utils';
-import { PROGRESS_EPSILON } from 'src/utils/pointByPoint/progress.utils';
 
 const TX_OPTIONS = { maxWait: 10000, timeout: 30000 };
 

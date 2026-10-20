@@ -2,7 +2,12 @@ import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/repositories/IStatusFlowRepository';
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
+import {
+  CreateScheduleWithServicesDTO,
+  SchedulesDataDTO,
+} from 'src/interface/dtos/scheduleDTO';
 
 import {
   ConflictException,
@@ -11,13 +16,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { AddSchedulesService } from '../works/schedule/addSchedules.service';
 import { WorksServicesService } from '../services/worksServices.service';
-import {
-  CreateScheduleWithServicesDTO,
-  SchedulesDataDTO,
-} from 'src/interface/dtos/scheduleDTO';
-import { Prisma } from '@prisma/client';
+import { AddSchedulesService } from '../works/schedule/addSchedules.service';
 
 const SCHEDULE_STATUS_ID = 43;
 @Injectable()

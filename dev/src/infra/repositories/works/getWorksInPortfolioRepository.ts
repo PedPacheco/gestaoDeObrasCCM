@@ -8,7 +8,7 @@ import {
 } from 'src/interface/types/works/getWorksInPortfolioInterface';
 
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
 
 @Injectable()
 export class GetWorksInPortfolioRepository implements IGetWorksInPortfolioRepository {

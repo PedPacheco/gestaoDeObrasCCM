@@ -6,6 +6,7 @@ import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/repositories/IStatusFlowRepository';
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
 import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
@@ -17,7 +18,6 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 
 import { StatusFeasibility } from '../feasibility.service';
 import { FileService } from '../file.service';

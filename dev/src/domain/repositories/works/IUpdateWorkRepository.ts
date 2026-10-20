@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
 import { UpdateWorkDTO } from 'src/interface/dtos/worksDto';
 
 export interface IUpdateWorkRepository {

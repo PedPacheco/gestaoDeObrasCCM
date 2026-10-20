@@ -18,7 +18,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
 
 // ─── Constantes e helpers ────────────────────────────────────────────
 const OPEN_STATUS = ScheduleStatus.CONFIRMADA; // qualquer status NÃO finalizado

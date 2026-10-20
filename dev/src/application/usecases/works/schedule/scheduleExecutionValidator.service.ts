@@ -1,10 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+
 import {
   IStatusFlowRepository,
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/repositories/IStatusFlowRepository';
 import { returnExecution } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
+import { Prisma } from 'src/generated/prisma/client';
 import {
   isApproximately,
   isAtLeast,

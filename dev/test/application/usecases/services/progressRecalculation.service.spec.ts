@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
 import { ProgressRecalculationService } from 'src/application/usecases/services/progressRecalculation.service'; // ajuste
 import { WORK_SERVICES_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesRepository';
 import {
@@ -8,6 +7,7 @@ import {
   calculateServiceTotals,
   calculateWorkProgress,
 } from 'src/domain/services/pointByPointRules.service';
+import { Prisma } from 'src/generated/prisma/client';
 import { WorkStatus } from 'src/utils/pointByPoint/serviceType.utils';
 
 // ─── Constantes e fixtures ───────────────────────────────────────────

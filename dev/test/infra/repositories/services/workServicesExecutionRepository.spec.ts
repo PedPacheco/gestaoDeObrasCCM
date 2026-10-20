@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
 import { FinalizationData } from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
+import { Prisma } from 'src/generated/prisma/client';
 import { WorkServicesExeutionRepository } from 'src/infra/repositories/worksServices/workServicesExecutionRepository';
 
 // ─── Helpers ─────────────────────────────────────────────────────────

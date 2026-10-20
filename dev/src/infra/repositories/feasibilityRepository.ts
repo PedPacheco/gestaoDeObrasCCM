@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { IFeasibilityRepository } from 'src/domain/repositories/IFeasibilityRepository';
-import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
-import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
-import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
-import { StatusFeasibility } from 'src/application/usecases/feasibility.service';
 import moment from 'moment';
+import { StatusFeasibility } from 'src/application/usecases/feasibility.service';
+import { IFeasibilityRepository } from 'src/domain/repositories/IFeasibilityRepository';
+import { Prisma } from 'src/generated/prisma/client';
+import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
+import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class FeasibilityRepository implements IFeasibilityRepository {

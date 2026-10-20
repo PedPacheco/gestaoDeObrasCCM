@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { IGetTotalScheduleValuesRepository } from 'src/domain/repositories/schedule/IGetTotalValuesScheduleRepository';
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetTotalValuesScheduleDTO } from 'src/interface/dtos/scheduleDTO';
 import { GetTotalValuesScheduleResponse } from 'src/interface/types/schedule/getTotalValuesScheduleInterface';

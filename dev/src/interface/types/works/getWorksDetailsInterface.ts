@@ -1,4 +1,4 @@
-import { Decimal } from '@prisma/client/runtime/library';
+import { Prisma } from 'src/generated/prisma/client';
 
 interface ScheduleStatus {
   status_programacao: string;
@@ -60,7 +60,7 @@ export interface ServicesType {
   materiais: {
     codigo: string | null;
     descricao: string | null;
-    preco: Decimal;
+    preco: Prisma.Decimal;
     unidade: string;
   } | null;
   servicos_contratos: {

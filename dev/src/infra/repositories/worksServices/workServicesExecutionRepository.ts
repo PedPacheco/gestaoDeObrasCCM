@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import {
   FinalizationData,
   IWorkServicesExecutionRepository,
 } from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
 import { ScheduleExecutionRow } from 'src/domain/services/pointByPointRules.service';
+import { Prisma } from '../../../generated/prisma/client';
 
 @Injectable()
 export class WorkServicesExeutionRepository implements IWorkServicesExecutionRepository {

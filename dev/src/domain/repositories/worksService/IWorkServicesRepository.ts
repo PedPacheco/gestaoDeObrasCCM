@@ -1,9 +1,9 @@
-import { Prisma } from '@prisma/client';
 import {
   ScheduleItem,
   ServiceTotals,
   WorkItem,
 } from 'src/domain/services/pointByPointRules.service';
+import { Prisma } from 'src/generated/prisma/client';
 
 import {
   AddServicesDTO,

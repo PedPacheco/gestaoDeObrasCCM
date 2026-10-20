@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
 import {
   ImportServiceItem,
   SchedulesProgressUpdate,
@@ -8,6 +7,7 @@ import {
   DEMOTED_WORK_STATUS,
   ServiceTotals,
 } from 'src/domain/services/pointByPointRules.service';
+import { Prisma } from 'src/generated/prisma/client';
 import { WorkServicesRepository } from 'src/infra/repositories/worksServices/worksServicesRepository';
 import {
   AddServicesDTO,

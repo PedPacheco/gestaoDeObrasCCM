@@ -1,11 +1,12 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+
 import { WorkScheduleMapper } from 'src/application/mappers/scheduleMapper';
 import { WorkSchedule } from 'src/domain/entities/schedules/workSchedule.entity';
 import {
   ADD_SCHEDULES_REPOSITORY,
   IAddSchedulesRepository,
 } from 'src/domain/repositories/schedule/IAddSchedulesRepository';
+import { Prisma } from 'src/generated/prisma/client';
 import { SchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
 
 @Injectable()

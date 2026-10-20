@@ -3,15 +3,15 @@ import { ExecutionReportRepository } from 'src/infra/repositories/executionRepor
 
 import { Test, TestingModule } from '@nestjs/testing';
 
-import {
-  mockExecutionReportPersistenceObject,
-  mockExecutionReportRepository,
-} from '../../../test/mocks/mocksExecutionReport';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
 import {
   ScheduleStatus,
   WorkStatus,
 } from 'src/utils/pointByPoint/serviceType.utils';
+import {
+  mockExecutionReportPersistenceObject,
+  mockExecutionReportRepository,
+} from '../../../test/mocks/mocksExecutionReport';
 
 describe('ExecutionReportRepository', () => {
   let repository: ExecutionReportRepository;

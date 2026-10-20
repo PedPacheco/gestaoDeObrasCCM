@@ -5,7 +5,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Prisma } from '@prisma/client';
 import { ExecutionReportService } from 'src/application/usecases/executionReport.service';
 import { FinalizeServicesService } from 'src/application/usecases/services/finalizeServices.service';
 import { ProgressRecalculationService } from 'src/application/usecases/services/progressRecalculation.service';
@@ -20,6 +19,7 @@ import {
   fromHistoryRow,
   planReschedule,
 } from 'src/domain/services/pointByPointRules.service';
+import { Prisma } from 'src/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {
   FINALIZED_SCHEDULE_STATUSES,
