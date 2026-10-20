@@ -194,7 +194,7 @@ export class ExportServicesService {
             parceira: obra.turmas?.turma,
             empreendimento: obra.empreendimento?.empreendimento,
             statusProgramacao:
-              programacao.status_programacao.status_programacao,
+              programacao?.status_programacao.status_programacao ?? null,
             dataProg: programacao?.data_prog ?? null,
             prog: programacao?.prog ?? null,
             observacaoProgramacao: programacao?.observacao_programacao ?? null,
