@@ -113,6 +113,11 @@ export class ExportExcelServicesService {
           key: 'quantidadeProgramada',
           width: 22,
         },
+        {
+          header: 'Quantidade Executada',
+          key: 'quantidadeExecutada',
+          width: 22,
+        },
 
         ...(permission
           ? [
@@ -127,6 +132,14 @@ export class ExportExcelServicesService {
               {
                 header: 'Valor Total',
                 key: 'valorTotal',
+                width: 15,
+                style: {
+                  numFmt: '"R$" #,##0.00',
+                },
+              },
+              {
+                header: 'Valor Total Executado',
+                key: 'valorTotalExecutado',
                 width: 15,
                 style: {
                   numFmt: '"R$" #,##0.00',

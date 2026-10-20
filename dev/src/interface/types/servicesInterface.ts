@@ -205,9 +205,11 @@ export type ExportServicesExcelOutput = {
   ponto: string | null;
   preco: number;
   valorTotal: number;
+  valorTotalExecutado: number;
   tipo: string;
   unidade: string;
   codigo: string;
   descricao: string;
   quantidadeProgramada: number;
+  quantidadeExecutada: number;
 };
