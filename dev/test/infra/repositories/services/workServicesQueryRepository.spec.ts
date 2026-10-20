@@ -786,10 +786,7 @@ describe('WorkServicesQueryRepository', () => {
             programacao_ponto_a_ponto: true,
             servicos: {
               some: {
-                OR: [
-                  { viabilizado: { not: null, gt: 0 } },
-                  { qtde_adicional: { not: null, gt: 0 } },
-                ],
+                OR: [{ viabilizado: { not: null, gt: 0 } }],
                 programacoes_servicos: {
                   some: {
                     programacoes: { data_prog: dateFilter },
@@ -824,10 +821,7 @@ describe('WorkServicesQueryRepository', () => {
             id_turma: { in: [2] },
             servicos: {
               some: {
-                OR: [
-                  { viabilizado: { not: null, gt: 0 } },
-                  { qtde_adicional: { not: null, gt: 0 } },
-                ],
+                OR: [{ viabilizado: { not: null, gt: 0 } }],
                 programacoes_servicos: {
                   some: {
                     programacoes: { data_prog: dateFilter },

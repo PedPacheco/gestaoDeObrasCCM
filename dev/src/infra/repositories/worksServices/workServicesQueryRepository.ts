@@ -263,7 +263,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
           some: {
             OR: [
               { viabilizado: { not: null, gt: 0 } },
-              { qtde_adicional: { not: null, gt: 0 } },
+              // { qtde_adicional: { not: null, gt: 0 } },
             ],
             programacoes_servicos: {
               some: programacoesServicosFilter,
@@ -323,7 +323,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
           where: {
             OR: [
               { viabilizado: { not: null, gt: 0 } },
-              { qtde_adicional: { not: null, gt: 0 } },
+              // { qtde_adicional: { not: null, gt: 0 } },
             ],
             programacoes_servicos: {
               some: programacoesServicosFilter,
