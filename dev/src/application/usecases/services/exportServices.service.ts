@@ -193,6 +193,8 @@ export class ExportServicesService {
             executado: obra.executado,
             parceira: obra.turmas?.turma,
             empreendimento: obra.empreendimento?.empreendimento,
+            statusProgramacao:
+              programacao.status_programacao.status_programacao,
             dataProg: programacao?.data_prog ?? null,
             prog: programacao?.prog ?? null,
             observacaoProgramacao: programacao?.observacao_programacao ?? null,

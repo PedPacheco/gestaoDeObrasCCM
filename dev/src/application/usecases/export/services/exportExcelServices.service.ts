@@ -26,15 +26,17 @@ export class ExportExcelServicesService {
         { header: 'Circuito', key: 'circuito', width: 15 },
         { header: 'Conjunto', key: 'conjunto', width: 15 },
         { header: 'Parceira', key: 'parceira', width: 20 },
-
         {
           header: 'Executado',
           key: 'executado',
           width: 12,
         },
-
         { header: 'Empreendimento', key: 'empreendimento', width: 25 },
-
+        {
+          header: 'Status da Programação',
+          key: 'statusProgramacao',
+          width: 30,
+        },
         {
           header: 'Data Programada',
           key: 'dataProg',
@@ -43,21 +45,17 @@ export class ExportExcelServicesService {
             numFmt: 'dd/mm/yyyy',
           },
         },
-
         { header: 'Prog.', key: 'prog', width: 10 },
-
         {
           header: 'Observação Programação',
           key: 'observacaoProgramacao',
           width: 40,
         },
-
         {
           header: 'Nº DP',
           key: 'numDp',
           width: 15,
         },
-
         {
           header: 'Hora Início',
           key: 'horaIni',
@@ -66,7 +64,6 @@ export class ExportExcelServicesService {
             numFmt: 'hh:mm',
           },
         },
-
         {
           header: 'Hora Término',
           key: 'horaTer',
@@ -75,31 +72,26 @@ export class ExportExcelServicesService {
             numFmt: 'hh:mm',
           },
         },
-
         {
           header: 'Equipe LV',
           key: 'equipeLv',
           width: 12,
         },
-
         {
           header: 'Equipe LM',
           key: 'equipeLm',
           width: 12,
         },
-
         {
           header: 'Equipe Regul.',
           key: 'equipeRegul',
           width: 14,
         },
-
         {
           header: 'Técnico Responsável',
           key: 'tecnicoResponsavel',
           width: 30,
         },
-
         { header: 'Equipe', key: 'equipe', width: 20 },
         { header: 'Operação', key: 'operacao', width: 20 },
         { header: 'Ponto', key: 'ponto', width: 15 },
@@ -107,7 +99,6 @@ export class ExportExcelServicesService {
         { header: 'Descrição', key: 'descricao', width: 60 },
         { header: 'Tipo', key: 'tipo', width: 15 },
         { header: 'Unidade', key: 'unidade', width: 15 },
-
         {
           header: 'Quantidade Programada',
           key: 'quantidadeProgramada',

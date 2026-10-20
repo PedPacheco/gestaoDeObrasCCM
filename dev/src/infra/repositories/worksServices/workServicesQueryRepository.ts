@@ -317,6 +317,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
             equipe_linha_viva: true,
             equipe_regularizacao: true,
             tecnicos: { select: { tecnico: true } },
+            status_programacao: { select: { status_programacao: true } },
           },
         },
         servicos: {

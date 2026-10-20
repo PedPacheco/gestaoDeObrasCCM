@@ -146,6 +146,7 @@ export type WorkProgrammingToExport = {
   equipe_linha_viva: number;
   equipe_regularizacao: number;
   tecnicos: { tecnico: string };
+  status_programacao: { status_programacao: string };
 };
 
 export type WorkToExportResponse = {
@@ -190,6 +191,7 @@ export type ExportServicesExcelOutput = {
   parceira: string;
   executado: number;
   empreendimento: string;
+  statusProgramacao: string;
   dataProg: Date | null;
   prog: number | null;
   observacaoProgramacao: string | null;
