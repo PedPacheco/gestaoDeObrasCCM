@@ -168,10 +168,7 @@ export class ExportServicesService {
             servico.servicos_contratos?.preco ?? servico.materiais?.preco ?? 0,
           );
 
-          const total =
-            (servico.qtde_adicional ?? 0) + (servico.viabilizado ?? 0);
-
-          const valorTotal = preco * total;
+          const valorTotal = preco * ps.prog;
 
           const valorTotalExecutado = preco * ps.real;
 
