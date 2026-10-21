@@ -4,14 +4,14 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 import { useUser } from "@/contexts/userContext";
+import { PARTNERS } from "@/lib/dashboard/constants";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 import { LoadingComponent } from "../common/Loading";
-import MainReclamacoes from "./complaintsAndOmbudsmansOffice/mainComplaintsAndOmbudsmansOffice";
 import AdherenceToScheduleDashboard, {
   AderenciaRow,
   EliminacaoRow,
 } from "./adherenceToSchedule/adherenceToSchedule";
-import { FiltersInterface } from "@/types/genericFilterSchema";
-import { ComplaintsResult } from "@/types/reclamacoesOuvidoria";
+import MainComplaintsAndOmbudsmansOffice from "./complaintsAndOmbudsmansOffice/mainComplaintsAndOmbudsmansOffice";
 
 export interface Kpis {
   total: number;
@@ -66,34 +66,13 @@ interface Props {
   initialSparklinesPartners: any[];
   initialPartnerWeeks: any[];
   initialReasonsReascheduling: any[];
-  complaintsPromise: Promise<ComplaintsResult>;
   initialSummary: any;
   initialDailyGoal: number;
   token: string;
   filtersData: FiltersInterface;
 }
 
-export const EXCLUDE_PARCEIRAS = new Set([
-  "EDP",
-  "ELETROREDE",
-  "MONTELBRAS",
-  "COMPEL",
-  "ROTARY",
-  "NÃO DEFINIDO",
-  "NAO DEFINIDO",
-]);
-
 type Tab = "aderencia-programacao" | "reclamacoes-ouvidoria";
-
-export function pctColor(pct: number) {
-  if (pct >= 100) {
-    return { bg: "#053715", text: "#53FF75", bar: "#53FF75" };
-  }
-  if (pct >= 89 && pct < 100) {
-    return { bg: "#451a03", text: "#facc15", bar: "#facc15" };
-  }
-  return { bg: "#450a0a", text: "#f87171", bar: "#ef4444" };
-}
 
 export default function AdvancePartnerDashboard({
   token,
@@ -104,7 +83,6 @@ export default function AdvancePartnerDashboard({
   initialPartnerWeeks,
   initialReasonsReascheduling,
   initialSparklinesPartners,
-  complaintsPromise,
   filtersData,
 }: Props) {
   const { permissions } = useUser();
@@ -114,6 +92,13 @@ export default function AdvancePartnerDashboard({
   const tabSwitcherRef = useRef<HTMLDivElement>(null);
   const [tabSwitcherHeight, setTabSwitcherHeight] = useState(0);
   const [activeTab, setActiveTab] = useState<Tab>("aderencia-programacao");
+
+  const [complaintsVisited, setComplaintsVisited] = useState<boolean>(false);
+
+  const selectTab = (tab: Tab) => {
+    setActiveTab(tab);
+    if (tab === "reclamacoes-ouvidoria") setComplaintsVisited(true);
+  };
 
   useEffect(() => {
     if (!tabSwitcherRef.current) return;
@@ -129,22 +114,10 @@ export default function AdvancePartnerDashboard({
 
   const filtersTop = 76 + tabSwitcherHeight;
 
-  const partners = [
-    { name: "Engelmig", logo: "/engelmig-logo.png" },
-    { name: "LIG", logo: "/lig-logo.png" },
-    { name: "Start", logo: "/start-logo.png" },
-    { name: "Manserv", logo: "/manserv-logo.png" },
-    { name: "OCA", logo: "/oca-logo.png" },
-    { name: "Cosampa", logo: "/cosampa-logo.png" },
-    { name: "Baramaia", logo: "/baramaia-logo.png" },
-  ];
-
   const allTabs: { key: Tab; label: string }[] = [
     { key: "aderencia-programacao", label: "Aderência à Programação" },
     { key: "reclamacoes-ouvidoria", label: "Reclamações e Ouvidorias" },
-    // { key: "acompanhamento-execucao", label: "Acompanhamento da Execução" },
   ];
-
   if (!isLoaded) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -172,7 +145,8 @@ export default function AdvancePartnerDashboard({
           {allTabs.map(({ key, label }) => (
             <button
               key={key}
-              onClick={() => setActiveTab(key)}
+              role="tab"
+              onClick={() => selectTab(key)}
               className={`px-3 py-2.5 text-base font-semibold tracking-wide rounded-t-xl transition-all duration-200 ${
                 activeTab === key
                   ? "bg-gradient-to-br from-[#1e2f42] to-[#192535] text-white border border-b-0 border-white/10 shadow-lg"
@@ -185,7 +159,7 @@ export default function AdvancePartnerDashboard({
         </div>
 
         <div className="flex items-center gap-4 pb-2">
-          {partners.map((item, index) => (
+          {PARTNERS.map((item, index) => (
             <div
               key={index}
               className="relative h-12 w-20 opacity-80 transition hover:opacity-100"
@@ -203,13 +177,7 @@ export default function AdvancePartnerDashboard({
       </div>
 
       {/* ── Tab Content ──────────────────────────────────────── */}
-      {activeTab === "reclamacoes-ouvidoria" ? (
-        <MainReclamacoes
-          filtersData={filtersData}
-          complaintsPromise={complaintsPromise}
-          token={token}
-        />
-      ) : (
+      <div hidden={activeTab !== "aderencia-programacao"}>
         <AdherenceToScheduleDashboard
           initialEliminacao={initialEliminacao}
           initialAderencia={initialAderencia}
@@ -222,6 +190,16 @@ export default function AdvancePartnerDashboard({
           filtersTop={filtersTop}
           token={token}
         />
+      </div>
+
+      {/* Só faz o pedido na primeira visita; depois fica montado e escondido */}
+      {complaintsVisited && (
+        <div hidden={activeTab !== "reclamacoes-ouvidoria"}>
+          <MainComplaintsAndOmbudsmansOffice
+            filtersData={filtersData}
+            token={token}
+          />
+        </div>
       )}
     </>
   );

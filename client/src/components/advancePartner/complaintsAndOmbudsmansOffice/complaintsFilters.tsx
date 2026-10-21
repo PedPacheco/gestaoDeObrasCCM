@@ -3,9 +3,9 @@
 import { Dispatch, SetStateAction } from "react";
 
 import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
-import { LoadMode } from "./mainComplaintsAndOmbudsmansOffice";
 import { VirtualizedMultiSelect } from "@/components/common/filter/virtualizedMultiSelect";
 import { FilterOption } from "@/types/genericFilterSchema";
+import { LoadMode } from "./mainComplaintsAndOmbudsmansOffice";
 
 export type QuickFilter = "todos" | "foraPrazo" | "procedentes" | "pendentes";
 
@@ -79,7 +79,6 @@ export function ComplaintsFilterBar({
       className="
         sticky z-30
         flex flex-col gap-3
-        border border-white/5
         bg-gradient-to-br from-[#1e2f42] to-[#192535]
         p-3 sm:p-4
         shadow-xl backdrop-blur-sm
@@ -96,8 +95,8 @@ export function ComplaintsFilterBar({
               setSelectedItem={setSelectedOvnota}
               valueKey="id"
               displayKey="ovnota"
-              // backgroundColor="#0f1e2e"
-              // textColor="#a1a1aa"
+              backgroundColor="#0f1e2e"
+              textColor="#a1a1aa"
             />
           </div>
 

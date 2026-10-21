@@ -4,10 +4,10 @@ import {
   FilterMode,
   MotivoTab,
 } from "@/hooks/advancePartner/useAdvancePartnerFilters";
+import { EXCLUDE_PARCEIRAS } from "@/lib/dashboard/constants";
 import { WEEKS } from "@/utils/weeks";
 import { Dayjs } from "dayjs";
 import { useEffect, useRef, useState } from "react";
-import { EXCLUDE_PARCEIRAS } from "../../dashboard/DashboardClient";
 
 interface FiltersData {
   regional?: Array<Record<string, any>>;

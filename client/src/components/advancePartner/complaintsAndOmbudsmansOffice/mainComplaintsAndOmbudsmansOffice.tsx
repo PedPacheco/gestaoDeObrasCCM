@@ -1,20 +1,24 @@
 "use client";
 
-import {
-  use,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  useTransition,
-} from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 
 import { KpiCard } from "@/components/dashboard/common/KpiCard";
 import { RingCard } from "@/components/dashboard/common/RingCard";
 import { FiltersInterface } from "@/types/genericFilterSchema";
 import { NUM } from "@/utils/formatValue";
 
-import { EXCLUDE_PARCEIRAS } from "../advancePartnerDashboard";
+import { fetchData } from "@/actions/fetchData.action";
+import { useSaveFilters } from "@/hooks/filters/useSaveFilters";
+import { useFeedback } from "@/hooks/useFeedback";
+import {
+  ComplaintsMetrics,
+  ComplaintsResult,
+  EMPTY_METRICS,
+  ResultadoBucket,
+} from "@/types/reclamacoesOuvidoria";
+
+import { TabLoading } from "@/components/common/tabStatus";
+import { EXCLUDE_PARCEIRAS } from "@/lib/dashboard/constants";
 import {
   ComplaintResults,
   ReclamacoesResultadoCard,
@@ -28,22 +32,12 @@ import {
   ReclamacoesCenarioAtualChart,
   ReclamacoesMotivosTable,
 } from "./ReclamacoesCenarioAtual";
-import {
-  ComplaintsMetrics,
-  ComplaintsResult,
-  EMPTY_METRICS,
-  ResultadoBucket,
-} from "@/types/reclamacoesOuvidoria";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
-import { fetchData } from "@/actions/fetchData.action";
-import { useFeedback } from "@/hooks/useFeedback";
 
 type QuickFilter = "todos" | "foraPrazo" | "procedentes" | "pendentes";
 export type LoadMode = "filter" | "clear";
 
 interface ComplaintsAndOmbudsmansOfficeProps {
   filtersData: FiltersInterface;
-  complaintsPromise: Promise<ComplaintsResult>;
   token: string;
 }
 
@@ -52,6 +46,12 @@ export const GREEN = "#53FF75";
 export const AMBER = "#f59e0b";
 export const RED = "#ef4444";
 const VIOLET = "#a78bfa";
+
+const API = process.env.NEXT_PUBLIC_API_URL!;
+const requestOptions = () => ({
+  cache: "no-store" as const,
+  signal: AbortSignal.timeout(15_000),
+});
 
 function ratioColor(value: number) {
   if (value >= 90) return GREEN;
@@ -65,13 +65,34 @@ function inverseRatioColor(value: number) {
   return RED;
 }
 
+export async function loadComplaintsMetrics(
+  token: string,
+  params?: Record<string, string[]>,
+  signal?: AbortSignal,
+): Promise<ComplaintsResult> {
+  try {
+    const res = await fetchData<ComplaintsMetrics>(
+      `${API}/reclamacoes-ouvidoria`,
+      params,
+      token,
+      { cache: "no-store" },
+    );
+    if (!res.success) {
+      console.error("[reclamacoes] erro ao carregar métricas:", res.message);
+      return { ok: false, error: res.message ?? "Erro ao buscar dados" };
+    }
+    return { ok: true, data: res.data };
+  } catch (error) {
+    if (!signal?.aborted)
+      console.error("[reclamacoes] falha no pedido:", error);
+    return { ok: false, error: "Erro ao buscar dados" };
+  }
+}
+
 export default function MainComplaintsAndOmbudsmansOffice({
   filtersData,
-  complaintsPromise,
   token,
 }: ComplaintsAndOmbudsmansOfficeProps) {
-  const initial = use(complaintsPromise);
-
   const { showError } = useFeedback();
 
   const [isPending, startTransition] = useTransition();
@@ -81,9 +102,8 @@ export default function MainComplaintsAndOmbudsmansOffice({
     data: filtersData,
   });
 
-  const [metrics, setMetrics] = useState<ComplaintsMetrics>(
-    initial.ok ? initial.data : EMPTY_METRICS,
-  );
+  const [metrics, setMetrics] = useState<ComplaintsMetrics>(EMPTY_METRICS);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const [selectedOvnota, setSelectedOvnota] = useState<string[]>(
     () => filters?.ovnota ?? [],
@@ -103,8 +123,20 @@ export default function MainComplaintsAndOmbudsmansOffice({
   );
 
   useEffect(() => {
-    if (!initial.ok) showError(initial.error);
-  }, [initial, showError]);
+    const controller = new AbortController();
+
+    loadComplaintsMetrics(token, buildParams(), controller.signal).then(
+      (result) => {
+        if (controller.signal.aborted) return; // desmontado ou Strict Mode
+        if (result.ok) setMetrics(result.data);
+        else showError(result.error);
+        setInitialLoading(false);
+      },
+    );
+
+    return () => controller.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   useEffect(() => {
     if (!filters) return;
@@ -158,30 +190,18 @@ export default function MainComplaintsAndOmbudsmansOffice({
     const params = isClear ? undefined : buildParams();
 
     startTransition(async () => {
-      try {
-        const response = await fetchData(
-          `${process.env.NEXT_PUBLIC_API_URL}/reclamacoes-ouvidoria`,
-          params,
-          token,
-          { cache: "no-store" },
-        );
-
-        if (!response.success) {
-          showError(response.message ?? "Erro ao buscar dados do servidor");
-          return;
-        }
-
-        const data = response.data;
-        startTransition(() => setMetrics(data));
-      } catch (error) {
-        showError(
-          error instanceof Error
-            ? error.message
-            : "Erro ao buscar dados do servidor",
-        );
+      const result = await loadComplaintsMetrics(token, params);
+      if (!result.ok) {
+        showError(result.error);
+        return;
       }
+      startTransition(() => setMetrics(result.data));
     });
   };
+
+  if (initialLoading) {
+    return <TabLoading message="Carregando dados" />;
+  }
 
   return (
     <div className="min-h-full text-slate-200 font-sans flex flex-col">

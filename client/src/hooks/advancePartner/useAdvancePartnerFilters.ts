@@ -5,17 +5,17 @@
 import { useCallback, useMemo, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
-import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
-import { Transform } from "@/utils/transform";
-import { findCurrentWeek, WEEKS } from "@/utils/weeks";
 import {
   AderenciaRow,
   EliminacaoRow,
   MotivoRow,
   pctExact,
 } from "@/components/advancePartner/adherenceToSchedule/adherenceToSchedule";
-import dayjs, { Dayjs } from "dayjs";
 import { SparklineRow } from "@/components/advancePartner/adherenceToSchedule/sparklinesSection";
+import { useOldSaveFilters } from "@/hooks/filters/useOldSaveFilters";
+import { Transform } from "@/utils/transform";
+import { findCurrentWeek, WEEKS } from "@/utils/weeks";
+import dayjs, { Dayjs } from "dayjs";
 
 interface UseAdherenceToScheduleFiltersProps {
   token: string;
