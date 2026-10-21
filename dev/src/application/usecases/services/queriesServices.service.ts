@@ -67,7 +67,7 @@ export class QueriesServicesService {
     const services =
       await this.workServicesQueryRepository.getNotScheduledServices(id);
 
-    if (!services || services.length === 0) {
+    if (!services) {
       throw new NotFoundException('Obra não encontrada');
     }
 
