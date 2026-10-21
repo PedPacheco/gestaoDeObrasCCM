@@ -3,13 +3,13 @@ import {
   IWorkServicesQueryRepository,
   WORK_SERVICES_QUERY_REPOSITORY,
 } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
-import { ExportServicesPdfOutput } from '../export/services/exportPdfServices.service';
+import { ExportFileType } from 'src/interface/dtos/workServicesDTO';
 import {
   ExportServicesExcelOutput,
   WorkToExportResponse,
 } from 'src/interface/types/servicesInterface';
-import { ExportFileType } from 'src/interface/dtos/workServicesDTO';
 import { serviceTypeLabel } from 'src/utils/pointByPoint/serviceType.utils';
+import { ExportServicesPdfOutput } from '../export/services/exportPdfServices.service';
 
 @Injectable()
 export class ExportServicesService {
@@ -168,10 +168,9 @@ export class ExportServicesService {
             servico.servicos_contratos?.preco ?? servico.materiais?.preco ?? 0,
           );
 
-          const total =
-            (servico.qtde_adicional ?? 0) + (servico.viabilizado ?? 0);
+          const valorTotal = preco * ps.prog;
 
-          const valorTotal = preco * total;
+          const valorTotalExecutado = preco * ps.real;
 
           const tipo = serviceTypeLabel(servico);
 
@@ -194,6 +193,8 @@ export class ExportServicesService {
             executado: obra.executado,
             parceira: obra.turmas?.turma,
             empreendimento: obra.empreendimento?.empreendimento,
+            statusProgramacao:
+              programacao?.status_programacao.status_programacao ?? null,
             dataProg: programacao?.data_prog ?? null,
             prog: programacao?.prog ?? null,
             observacaoProgramacao: programacao?.observacao_programacao ?? null,
@@ -213,7 +214,9 @@ export class ExportServicesService {
             codigo,
             descricao,
             valorTotal,
+            valorTotalExecutado,
             quantidadeProgramada: ps.prog ?? 0,
+            quantidadeExecutada: ps.real,
           });
         }
       }

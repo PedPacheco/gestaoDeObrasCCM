@@ -92,7 +92,7 @@ export class FindD5SchedulesService {
       and.push(
         { exec: null },
         { data_prog: { gte: hoje } },
-        { OR: [{ reprovada: false }, { reprovada: null }] },
+        { reprovada: false },
       );
     } else {
       if (filters.reprovada) {

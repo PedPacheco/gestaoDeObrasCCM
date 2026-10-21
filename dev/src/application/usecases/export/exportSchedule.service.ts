@@ -96,7 +96,6 @@ export class ExportScheduleService {
         width: 20,
         style: { numFmt: '0.00"%"' },
       },
-      { header: 'Observação programação', key: 'equip_desligado', width: 50 },
       { header: 'Número DP', key: 'num_dp', width: 15 },
       {
         header: 'Horário início',

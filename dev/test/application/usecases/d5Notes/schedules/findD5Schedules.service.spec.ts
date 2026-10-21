@@ -10,7 +10,7 @@ const TODAY = new Date('2026-10-16T00:00:00.000Z');
 const DEFAULT_STATE_CONDITIONS = [
   { exec: null },
   { data_prog: { gte: TODAY } },
-  { OR: [{ reprovada: false }, { reprovada: null }] },
+  { reprovada: false },
 ];
 const DEFAULT_WHERE = { AND: DEFAULT_STATE_CONDITIONS };
 

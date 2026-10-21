@@ -27,6 +27,7 @@ export const exportServicesExcelMock: ExportServicesExcelOutput[] = [
     codigo: 'COD001',
     descricao: 'Instalação de equipamento',
     quantidadeProgramada: 15,
+    quantidadeExecutada: 15,
     preco: 120.5,
     executado: 0,
     observacaoProgramacao: '',
@@ -38,8 +39,10 @@ export const exportServicesExcelMock: ExportServicesExcelOutput[] = [
     equipeRegul: 0,
     tecnicoResponsavel: '',
     valorTotal: 0,
+    valorTotalExecutado: 0,
     tipo: 'M',
     unidade: '',
+    statusProgramacao: 'Reprovado',
   },
   {
     ovnota: 'OV654321',
@@ -59,6 +62,7 @@ export const exportServicesExcelMock: ExportServicesExcelOutput[] = [
     codigo: 'COD002',
     descricao: 'Troca de material',
     quantidadeProgramada: 30,
+    quantidadeExecutada: null,
     preco: 89.99,
     executado: 0,
     observacaoProgramacao: '',
@@ -70,8 +74,10 @@ export const exportServicesExcelMock: ExportServicesExcelOutput[] = [
     equipeRegul: 0,
     tecnicoResponsavel: '',
     valorTotal: 0,
+    valorTotalExecutado: 0,
     tipo: 'S',
     unidade: '',
+    statusProgramacao: 'Programado',
   },
 ];
 

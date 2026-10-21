@@ -263,7 +263,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
           some: {
             OR: [
               { viabilizado: { not: null, gt: 0 } },
-              { qtde_adicional: { not: null, gt: 0 } },
+              // { qtde_adicional: { not: null, gt: 0 } },
             ],
             programacoes_servicos: {
               some: programacoesServicosFilter,
@@ -317,13 +317,14 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
             equipe_linha_viva: true,
             equipe_regularizacao: true,
             tecnicos: { select: { tecnico: true } },
+            status_programacao: { select: { status_programacao: true } },
           },
         },
         servicos: {
           where: {
             OR: [
               { viabilizado: { not: null, gt: 0 } },
-              { qtde_adicional: { not: null, gt: 0 } },
+              // { qtde_adicional: { not: null, gt: 0 } },
             ],
             programacoes_servicos: {
               some: programacoesServicosFilter,
