@@ -4,8 +4,8 @@ import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 
 import { GenericFilterBar } from "@/components/common/filter/genericFilterBar";
-import { STATUS_NOT_AVAILABLE } from "@/constants/statusNotAvaliable";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { useSaveFilters } from "@/hooks/filters/useSaveFilters";
+import { STATUS_NOT_AVAILABLE } from "@/lib/statusNotAvaliable";
 import {
   ExtraFilterValue,
   FilterFieldConfig,

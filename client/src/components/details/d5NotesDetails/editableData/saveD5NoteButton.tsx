@@ -1,7 +1,7 @@
 "use client";
 
 import { ButtonComponent } from "@/components/common/Button";
-import { useD5NoteEdit } from "@/hooks/useD5Edit";
+import { useD5NoteEdit } from "@/hooks/d5Notes/useD5Edit";
 
 export function SaveD5NoteButton() {
   const { save, dirty, isSaving, readOnly } = useD5NoteEdit();

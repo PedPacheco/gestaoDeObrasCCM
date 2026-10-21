@@ -1,6 +1,6 @@
 "use client";
 
-import { useD5NoteEdit } from "@/hooks/useD5Edit";
+import { useD5NoteEdit } from "@/hooks/d5Notes/useD5Edit";
 
 export function D5NoteObservation() {
   const { form, setField, readOnly } = useD5NoteEdit();

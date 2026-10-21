@@ -1,7 +1,7 @@
 "use client";
 
-import { STATUS_NOT_AVAILABLE } from "@/constants/statusNotAvaliable";
-import { useD5NoteEdit } from "@/hooks/useD5Edit";
+import { useD5NoteEdit } from "@/hooks/d5Notes/useD5Edit";
+import { STATUS_NOT_AVAILABLE } from "@/lib/statusNotAvaliable";
 import { FormControl, MenuItem, Select, Tooltip } from "@mui/material";
 import { ReactNode, useEffect, useId, useState } from "react";
 import D5DataItem, { FieldShell } from "../dataItemD5";
