@@ -5,7 +5,7 @@ import {
   IUpdateWorkRepository,
   UPDATE_WORK_REPOSITORY,
 } from 'src/domain/repositories/works/IUpdateWorkRepository';
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 @Injectable()
 export class UpdateWorkService {

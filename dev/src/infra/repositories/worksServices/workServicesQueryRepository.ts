@@ -3,7 +3,7 @@ import {
   IWorkServicesQueryRepository,
   ServiceForScheduling,
 } from 'src/domain/repositories/worksService/IWorkServicesQueryRepository';
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 

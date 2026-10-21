@@ -12,7 +12,7 @@ import {
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/repositories/IStatusFlowRepository';
 import { FIND_SCHEDULE_BY_ID_REPOSITORY } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { FindScheduleByIdRepository } from 'src/infra/repositories/schedule/findScheduleByIdRepository';
 import { ScheduleExecutionValidatorService } from './scheduleExecutionValidator.service';
 

@@ -4,7 +4,7 @@ import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { InsertBaseAuxiliaryMarketDTO } from 'src/interface/dtos/auxiliaryBaseDTO';
 
 import { Injectable, Logger } from '@nestjs/common';
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { InsertNotesInterface } from 'src/interface/types/baseAuxiliaryInterface';
 import { GetAuxiliaryBaseMaterialsInterface } from 'src/interface/types/works/capexInterface';
 

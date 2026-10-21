@@ -6,7 +6,7 @@ import {
   ADD_SCHEDULES_REPOSITORY,
   IAddSchedulesRepository,
 } from 'src/domain/repositories/schedule/IAddSchedulesRepository';
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { SchedulesDataDTO } from 'src/interface/dtos/scheduleDTO';
 
 @Injectable()

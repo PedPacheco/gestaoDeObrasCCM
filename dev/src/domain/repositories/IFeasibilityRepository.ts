@@ -1,5 +1,5 @@
-import { Prisma } from 'src/generated/prisma/client';
 import { StatusFeasibility } from 'src/application/usecases/feasibility.service';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
 import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
 

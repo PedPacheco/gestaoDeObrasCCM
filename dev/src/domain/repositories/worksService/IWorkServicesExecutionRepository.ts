@@ -1,5 +1,5 @@
 import { ScheduleExecutionRow } from 'src/domain/services/pointByPointRules.service';
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 export interface FinalizationData {
   id: number;

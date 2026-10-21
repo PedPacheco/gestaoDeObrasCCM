@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { IStatusFlowRepository } from 'src/domain/repositories/IStatusFlowRepository';
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 @Injectable()
 export class StatusFlowRepository implements IStatusFlowRepository {

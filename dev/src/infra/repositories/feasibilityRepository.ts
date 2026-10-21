@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import moment from 'moment';
 import { StatusFeasibility } from 'src/application/usecases/feasibility.service';
 import { IFeasibilityRepository } from 'src/domain/repositories/IFeasibilityRepository';
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { RejectFeasibilityDTO } from 'src/interface/dtos/feasibilityDTO';
 import { ServiceMaterialItemDto } from 'src/interface/dtos/workServicesDTO';
 import { PrismaService } from '../prisma/prisma.service';

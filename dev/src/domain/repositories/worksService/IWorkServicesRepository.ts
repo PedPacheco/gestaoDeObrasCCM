@@ -3,7 +3,7 @@ import {
   ServiceTotals,
   WorkItem,
 } from 'src/domain/services/pointByPointRules.service';
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 import {
   AddServicesDTO,

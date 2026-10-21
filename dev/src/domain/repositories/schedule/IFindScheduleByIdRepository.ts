@@ -1,4 +1,4 @@
-import { Prisma, programacoes } from 'src/generated/prisma/client';
+import { Prisma, programacoes } from 'src/infra/generated/prisma/client';
 
 export interface IFindScheduleByIdRepository {
   findById(id: number, tx?: Prisma.TransactionClient): Promise<programacoes>;

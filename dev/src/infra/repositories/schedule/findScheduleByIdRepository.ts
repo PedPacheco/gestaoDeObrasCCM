@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { IFindScheduleByIdRepository } from 'src/domain/repositories/schedule/IFindScheduleByIdRepository';
-import { Prisma, programacoes } from 'src/generated/prisma/client';
+import { Prisma, programacoes } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 
 @Injectable()

@@ -22,7 +22,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { FileService } from './file.service';
 import { ProgressRecalculationService } from './services/progressRecalculation.service';
 

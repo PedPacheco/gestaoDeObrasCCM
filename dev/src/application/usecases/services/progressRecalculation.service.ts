@@ -7,7 +7,7 @@ import {
   calculateWorkProgress,
   WorkProgress,
 } from 'src/domain/services/pointByPointRules.service';
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 import { Inject, Injectable } from '@nestjs/common';
 

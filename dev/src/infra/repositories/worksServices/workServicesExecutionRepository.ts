@@ -4,7 +4,7 @@ import {
   IWorkServicesExecutionRepository,
 } from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
 import { ScheduleExecutionRow } from 'src/domain/services/pointByPointRules.service';
-import { Prisma } from '../../../generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 @Injectable()
 export class WorkServicesExeutionRepository implements IWorkServicesExecutionRepository {

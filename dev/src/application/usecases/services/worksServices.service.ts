@@ -15,7 +15,7 @@ import {
   WORK_SERVICES_REPOSITORY,
 } from 'src/domain/repositories/worksService/IWorkServicesRepository';
 import { hasLockedExecution } from 'src/domain/services/pointByPointRules.service';
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import {
   AddServicesDTO,

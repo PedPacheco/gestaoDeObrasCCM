@@ -10,12 +10,12 @@ import {
   ServiceTotals,
   WorkItem,
 } from 'src/domain/services/pointByPointRules.service';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import {
   AddServicesDTO,
   ApplyAdditonalDTO,
   ScheduleServicesDTO,
 } from 'src/interface/dtos/workServicesDTO';
-import { Prisma } from '../../../generated/prisma/client';
 
 const SCHEDULE_ITEM_SELECT = {
   id_programacao: true,

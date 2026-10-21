@@ -1,6 +1,6 @@
 import moment from 'moment';
 
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { DashboardFiltersDTO } from 'src/interface/dtos/dashboardDTO';
 
 export class DashboardFiltersBuilder {

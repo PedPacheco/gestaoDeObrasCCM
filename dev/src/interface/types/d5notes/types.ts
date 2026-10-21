@@ -1,4 +1,4 @@
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 
 export type FindD5NotesQueryResult = {
   id: number;

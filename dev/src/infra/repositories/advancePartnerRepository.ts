@@ -3,7 +3,7 @@ import {
   IAdvancePartnerRepository,
   ProcessedEliminacaoFilters,
 } from 'src/domain/repositories/IAdvancePartnerRepository';
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()

@@ -3,7 +3,7 @@ import {
   ExecMonitoringRow,
   IExecMonitoringRepository,
 } from 'src/domain/repositories/schedule/IExecMonitoringRepository';
-import { Prisma } from 'src/generated/prisma/client';
+import { Prisma } from 'src/infra/generated/prisma/client';
 import { PrismaService } from 'src/infra/prisma/prisma.service';
 import { GetExecMonitoringDTO } from 'src/interface/dtos/scheduleDTO';
 
