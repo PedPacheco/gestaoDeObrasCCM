@@ -3,90 +3,28 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
-import LaborDashboard from "./laborDashboard/laborDashboard";
-import MonitoringExecutionDashboard from "./monitoringExecutionDashboard/monitoringExecutionDashboard";
-import RecompositionGoalsDashboard from "./recompositionGoalsDashboard/RecompositionGoalsDashboard";
 import { useUser } from "@/contexts/userContext";
-import { LoadingComponent } from "../common/Loading";
+import {
+  InitialDashboardData,
+  PARTNERS,
+  RESTRICTED_AREA,
+  Tab,
+} from "@/lib/dashboard/constants";
 
-// ... (manter todas as interfaces existentes: Kpis, ByStatus, ByRegional, etc.)
-
-export interface Kpis {
-  total: number;
-  concludedThisMonth: number;
-  portfoliototal: number;
-  valueExecutedTotal: number;
-  totalConcluded: number;
-  withoutSchedule: number;
-  executionRate: number;
-}
-
-interface ByStatus {
-  status: string;
-  count: number;
-}
-interface ByRegional {
-  regional: string;
-  total: number;
-  concluded: number;
-}
-interface Trend {
-  month: string;
-  entered: number;
-  concluded: number;
-}
-interface TopPartner {
-  partner: string;
-  total: number;
-}
-interface RecentWork {
-  ovnota: string;
-  status: string;
-  partner: string;
-  municipio: string;
-  executado: number | null;
-  entrada: string;
-}
-
-export interface DataDashboardInterface {
-  kpis: Kpis;
-  byStatus: ByStatus[];
-  byRegional: ByRegional[];
-  trend: Trend[];
-  topPartners: TopPartner[];
-  partnerDetails: Record<string, { status: string; count: number }[]>;
-  recentWorks: RecentWork[];
-}
+import { TabLoading } from "../common/tabStatus";
+import { LaborTab, MonitoringTab, RecompositionTab } from "./DashboardTabs";
 
 interface Props {
   token: string;
-  initialMaodeObra: any;
-  initialMaodeObra2: any;
-  initialMetaDiaria: number;
-  initialForecastFirst: any;
-  initialForecastSecond: any;
-  initialMetasRecomposicao: any[];
-  goalsFilters: any;
-  initialExecMonitoring: any[];
-  filtersData: any;
+  initialTab: Tab;
+  initialData: InitialDashboardData;
 }
 
-export const EXCLUDE_PARCEIRAS = new Set([
-  "EDP",
-  "ELETROREDE",
-  "MONTELBRAS",
-  "COMPEL",
-  "ROTARY",
-  "NÃO DEFINIDO",
-  "NAO DEFINIDO",
-]);
-
-type Tab =
-  | "geral"
-  | "mao-de-obra"
-  | "forecast"
-  | "metas-recomposicao"
-  | "acompanhamento-execucao";
+const ALL_TABS: { key: Tab; label: string }[] = [
+  { key: "mao-de-obra", label: "Resumo — Mão de Obra Parceira" },
+  { key: "metas-recomposicao", label: "Metas Recomposição" },
+  { key: "acompanhamento-execucao", label: "Acompanhamento da Execução" },
+];
 
 export function pctColor(pct: number) {
   if (pct >= 100) {
@@ -100,79 +38,38 @@ export function pctColor(pct: number) {
 
 export default function DashboardClient({
   token,
-  initialMaodeObra,
-  initialMaodeObra2,
-  initialMetaDiaria,
-  initialMetasRecomposicao,
-  goalsFilters,
-  initialExecMonitoring,
-  filtersData,
+  initialTab,
+  initialData,
 }: Props) {
   const { permissions } = useUser();
-
-  const isRestricted = permissions?.id_area === 9;
   const isLoaded = permissions !== null && permissions !== undefined;
+  const isRestricted = permissions?.id_area === RESTRICTED_AREA;
+
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab);
 
   const tabSwitcherRef = useRef<HTMLDivElement>(null);
   const [tabSwitcherHeight, setTabSwitcherHeight] = useState(0);
-  const [activeTab, setActiveTab] = useState<Tab>("mao-de-obra");
 
-  useEffect(() => {
-    if (isRestricted) {
-      setActiveTab("metas-recomposicao");
-    }
-  }, [isRestricted]);
+  // Derivado diretamente, sem useEffect: evita um render intermédio
+  // com o tab errado (que dispararia o fetch de Mão de Obra sem necessidade)
+  const safeTab: Tab = isRestricted ? "metas-recomposicao" : activeTab;
+  const visibleTabs = isRestricted
+    ? ALL_TABS.filter((t) => t.key === "metas-recomposicao")
+    : ALL_TABS;
 
   useEffect(() => {
     if (!tabSwitcherRef.current) return;
-
-    const observer = new ResizeObserver(([entry]) => {
-      setTabSwitcherHeight(entry.contentRect.height);
-    });
-
+    const observer = new ResizeObserver(([entry]) =>
+      setTabSwitcherHeight(entry.contentRect.height),
+    );
     observer.observe(tabSwitcherRef.current);
-
     return () => observer.disconnect();
-  }, []);
+  }, [isLoaded]); // o ref só existe depois de isLoaded
 
   const filtersTop = 76 + tabSwitcherHeight;
 
-  const partners = [
-    { name: "Engelmig", logo: "/engelmig-logo.png" },
-    { name: "LIG", logo: "/lig-logo.png" },
-    { name: "Start", logo: "/start-logo.png" },
-    { name: "Manserv", logo: "/manserv-logo.png" },
-    { name: "OCA", logo: "/oca-logo.png" },
-    { name: "Cosampa", logo: "/cosampa-logo.png" },
-    { name: "Baramaia", logo: "/baramaia-logo.png" },
-  ];
-
-  const allTabs: { key: Tab; label: string }[] = [
-    { key: "mao-de-obra", label: "Resumo — Mão de Obra Parceira" },
-    { key: "metas-recomposicao", label: "Metas Recomposição" },
-    { key: "acompanhamento-execucao", label: "Acompanhamento da Execução" },
-  ];
-
-  const visibleTabs = isRestricted
-    ? allTabs.filter((tab) => tab.key === "metas-recomposicao")
-    : allTabs;
-
-  const safeTab = isRestricted ? "metas-recomposicao" : activeTab;
-
   if (!isLoaded) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center justify-center gap-2">
-          <div className="h-5 overflow-hidden flex items-center justify-center">
-            <LoadingComponent color="text-black" />
-          </div>
-
-          <span className="text-sm text-zinc-500">
-            Carregando dados do Dashboard
-          </span>
-        </div>
-      </div>
-    );
+    return <TabLoading message="A carregar dados do Dashboard" />;
   }
 
   return (
@@ -182,13 +79,15 @@ export default function DashboardClient({
         ref={tabSwitcherRef}
         className="sticky top-16 z-30 bg-white flex justify-between items-center gap-1 px-3 pt-3 pb-0 border-b border-white/5"
       >
-        <div className="flex gap-1">
+        <div className="flex gap-1" role="tablist">
           {visibleTabs.map(({ key, label }) => (
             <button
               key={key}
+              role="tab"
+              aria-selected={safeTab === key}
               onClick={() => setActiveTab(key)}
               className={`px-3 py-2.5 text-base font-semibold tracking-wide rounded-t-xl transition-all duration-200 ${
-                activeTab === key
+                safeTab === key
                   ? "bg-gradient-to-br from-[#1e2f42] to-[#192535] text-white border border-b-0 border-white/10 shadow-lg"
                   : "text-zinc-500 hover:text-zinc-300"
               }`}
@@ -199,16 +98,17 @@ export default function DashboardClient({
         </div>
 
         <div className="flex items-center gap-4 pb-2">
-          {partners.map((item, index) => (
+          {PARTNERS.map((item) => (
             <div
-              key={index}
+              key={item.name}
               className="relative h-12 w-20 opacity-80 transition hover:opacity-100"
             >
               <Image
                 title={item.name}
                 src={item.logo}
-                alt={`Parceira ${index + 1}`}
+                alt={`Parceira ${item.name}`}
                 fill
+                sizes="80px"
                 className="object-contain"
               />
             </div>
@@ -216,29 +116,22 @@ export default function DashboardClient({
         </div>
       </div>
 
-      {/* ── Tab Content ──────────────────────────────────────── */}
-      {safeTab === "metas-recomposicao" ? (
-        <RecompositionGoalsDashboard
-          initialGoals={initialMetasRecomposicao}
-          filtersData={goalsFilters}
+      {/* ── Tab Content: só o tab ativo é montado e faz fetch ── */}
+      {safeTab === "metas-recomposicao" && (
+        <RecompositionTab
           token={token}
           filtersTop={filtersTop}
+          initialData={initialData}
         />
-      ) : safeTab === "acompanhamento-execucao" ? (
-        <MonitoringExecutionDashboard
-          initialData={initialExecMonitoring}
-          filtersData={goalsFilters}
+      )}
+      {safeTab === "acompanhamento-execucao" && (
+        <MonitoringTab token={token} filtersTop={filtersTop} />
+      )}
+      {safeTab === "mao-de-obra" && (
+        <LaborTab
           token={token}
           filtersTop={filtersTop}
-        />
-      ) : (
-        <LaborDashboard
-          initialData={initialMaodeObra}
-          initialData2={initialMaodeObra2}
-          token={token}
-          initialMetaDiaria={initialMetaDiaria}
-          filtersData={filtersData}
-          filtersTop={filtersTop}
+          initialData={initialData}
         />
       )}
     </div>

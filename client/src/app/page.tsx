@@ -1,11 +1,15 @@
 import { cookies } from "next/headers";
 import Image from "next/image";
 
-import { fetchData } from "@/actions/fetchData.action";
-import { fetchFilters } from "@/actions/fetchFilters.action";
 import DashboardClient from "@/components/dashboard/DashboardClient";
 import { Header } from "@/components/layout/Header";
-import { getCurrentMonthRange } from "@/utils/weeks";
+import { getInitialTab, InitialDashboardData } from "@/lib/dashboard/constants";
+import {
+  loadGoalsFilters,
+  loadLaborFilters,
+  loadMaodeObra,
+  loadMetasRecomposicao,
+} from "@/lib/dashboard/loaders";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -58,83 +62,33 @@ function checkDashboardAccess(user: UserInfo | null): boolean {
   return ALLOWED_AREAS.includes(user.id_area ?? -1);
 }
 
-// ── Todos os fetches (mantidos como estão) ──────────────────
-
-async function fetchMetasRecomposicao(token: string) {
-  const year = new Date().getFullYear();
-  const res = await fetchData(
-    `${API}/metas`,
-    { btzero: false, rda: false, ano: year, anoPlan: year },
-    token,
-    NO_CACHE,
-  );
-  return res.success ? (res.data ?? []) : [];
+/** Uma falha não derruba a página: devolve undefined e o cliente tenta de novo. */
+async function settle<T>(promise: Promise<T>): Promise<T | undefined> {
+  try {
+    return await promise;
+  } catch (error) {
+    console.error("[Dashboard] Falha no carregamento inicial:", error);
+    return undefined;
+  }
 }
 
-async function fetchGoalsFilters(token: string) {
-  const empty = { regional: [], parceira: [], tipo: [], tecnico: [] };
-  const res = await fetchData(
-    `${API}/filters`,
-    { regional: true, parceira: true, tipo: true, tecnico: true },
-    token,
-    NO_CACHE,
-  );
-  return res.success ? (res.data ?? empty) : empty;
-}
+async function loadInitialData(
+  tab: ReturnType<typeof getInitialTab>,
+  token: string,
+): Promise<InitialDashboardData> {
+  if (tab === "metas-recomposicao") {
+    const [metas, goalsFilters] = await Promise.all([
+      settle(loadMetasRecomposicao(token)),
+      settle(loadGoalsFilters(token)),
+    ]);
+    return { metas, goalsFilters };
+  }
 
-async function fetchExecMonitoring(token: string) {
-  const year = new Date().getFullYear();
-  const res = await fetchData(
-    `${API}/programacao/acompanhamento-mensal`,
-    { dataInicial: `01/01/${year}`, dataFinal: `31/12/${year}` },
-    token,
-    NO_CACHE,
-  );
-  return res.success ? (res.data ?? []) : [];
-}
-
-async function fetchForecast(token: string) {
-  const { dataInicial, dataFinal } = getCurrentMonthRange();
-  const empty = { summary: [], totals: {} };
-  const res = await fetchData(
-    `${API}/programacao/resumo-mensal-forecast`,
-    { dataInicial, dataFinal },
-    token,
-    NO_CACHE,
-  );
-  if (!res.success) return { first: empty, second: empty };
-  return {
-    first: res.data?.firstSummary ?? empty,
-    second: res.data?.secondSummary ?? empty,
-  };
-}
-
-async function fetchMaodeObra(token: string) {
-  const { dataInicial, dataFinal } = getCurrentMonthRange();
-
-  const params = { dataInicial, dataFinal };
-
-  const fallback = {
-    data: { summary: [], totals: {} },
-    data2: [],
-    metaDiaria: 0,
-  };
-
-  const res = await fetchData(
-    `${API}/programacao/resumo-mensal`,
-    params,
-    token,
-    NO_CACHE,
-  );
-
-  if (!res.success) return fallback;
-
-  const firstSummary = res.data?.firstSummary ?? {};
-  const secondSummary = res.data?.secondSummary ?? [];
-
-  const metaDiaria: number = firstSummary?.summary[0]?.financialGoal ?? 0;
-
-  return { data: firstSummary, data2: secondSummary, metaDiaria };
+  const [labor, laborFilters] = await Promise.all([
+    settle(loadMaodeObra(token)),
+    settle(loadLaborFilters()),
+  ]);
+  return { labor, laborFilters };
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -174,27 +128,8 @@ export default async function Home() {
   }
 
   // ✅ Se TEM permissão → buscar dados normalmente
-  const [
-    maodeObra,
-    forecast,
-    metasRecomposicao,
-    goalsFilters,
-    execMonitoring,
-    filtersData,
-  ] = await Promise.all([
-    fetchMaodeObra(token),
-    fetchForecast(token),
-    fetchMetasRecomposicao(token),
-    fetchGoalsFilters(token),
-    fetchExecMonitoring(token),
-    fetchFilters({
-      regional: true,
-      parceira: true,
-      tipo: true,
-      municipio: true,
-      grupo: true,
-    }),
-  ]);
+  const initialTab = getInitialTab(user?.id_area);
+  const initialData = await loadInitialData(initialTab, token);
 
   return (
     <div className="relative z-0 flex min-h-screen">
@@ -204,15 +139,8 @@ export default async function Home() {
         <main className="flex-1">
           <DashboardClient
             token={token}
-            initialMaodeObra={maodeObra.data}
-            initialMaodeObra2={maodeObra.data2}
-            initialMetaDiaria={maodeObra.metaDiaria}
-            initialForecastFirst={forecast.first}
-            initialForecastSecond={forecast.second}
-            initialMetasRecomposicao={metasRecomposicao}
-            goalsFilters={goalsFilters}
-            initialExecMonitoring={execMonitoring}
-            filtersData={filtersData}
+            initialTab={initialTab}
+            initialData={initialData}
           />
         </main>
       </div>

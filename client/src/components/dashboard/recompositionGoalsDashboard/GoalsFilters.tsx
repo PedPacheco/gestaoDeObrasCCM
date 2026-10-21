@@ -2,9 +2,9 @@
 
 "use client";
 
-import { type Dayjs } from "dayjs";
-import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { type Dayjs } from "dayjs";
 
 import {
   FormControl,
@@ -14,9 +14,9 @@ import {
 } from "@mui/material";
 
 import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
-import { FilterTag } from "../common/FilterTag";
-import { EXCLUDE_PARCEIRAS } from "../DashboardClient";
+import { EXCLUDE_PARCEIRAS } from "@/lib/dashboard/constants";
 import { FiltersInterface } from "@/types/genericFilterSchema";
+import { FilterTag } from "../common/FilterTag";
 
 // ── Estilos reutilizáveis ─────────────────────────────────────────────────────
 

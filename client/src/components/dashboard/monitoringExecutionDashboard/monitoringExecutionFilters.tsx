@@ -2,8 +2,8 @@ import { Dayjs } from "dayjs";
 
 import { DateFilter } from "@/components/common/filter/DateFilter";
 import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
+import { EXCLUDE_PARCEIRAS } from "@/lib/dashboard/constants";
 import { FilterTag } from "../common/FilterTag";
-import { EXCLUDE_PARCEIRAS } from "../DashboardClient";
 
 interface FiltersData {
   regional?: Array<Record<string, any>>;

@@ -24,15 +24,15 @@ import { useCallback, useMemo, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { useDashboardMetrics } from "@/hooks/dashboard/recompositionGoalsDashboard/useRecompositionGoalsMetrics";
-import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
+import { useOldSaveFilters } from "@/hooks/filters/useOldSaveFilters";
 import { Goal, MonthKey } from "@/types/dashboard/recompositionGoals/goals";
 import { Transform } from "@/utils/transform";
 
+import { FiltersInterface } from "@/types/genericFilterSchema";
+import { ChartsSection } from "./ChartSection";
 import { GoalsFilters } from "./GoalsFilters";
 import { GoalsTable } from "./GoalsTable";
 import { KpiSection } from "./KpiSection";
-import { ChartsSection } from "./ChartSection";
-import { FiltersInterface } from "@/types/genericFilterSchema";
 
 interface Props {
   initialGoals: Goal[];

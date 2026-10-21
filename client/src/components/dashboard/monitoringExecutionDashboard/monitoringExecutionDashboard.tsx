@@ -4,15 +4,15 @@ import dayjs, { Dayjs } from "dayjs";
 import { useCallback, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
-import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
+import { useOldSaveFilters } from "@/hooks/filters/useOldSaveFilters";
 import { Transform } from "@/utils/transform";
 
+import { FiltersInterface } from "@/types/genericFilterSchema";
 import { KpiSectionMonitoringExecution } from "./KpiSection";
+import { MonitoredByPartner } from "./monitoredByPartner";
+import { MonitoredByRegional } from "./monitoredByRegional";
 import { MonitoredMonthlyTable } from "./monitoredMonthlyTable";
 import { MonitoringExecutionFilters } from "./monitoringExecutionFilters";
-import { MonitoredByRegional } from "./monitoredByRegional";
-import { MonitoredByPartner } from "./monitoredByPartner";
-import { FiltersInterface } from "@/types/genericFilterSchema";
 
 // Percentual mínimo de obras acompanhadas exigido por mês/regional
 export const META_PCT = 30;
