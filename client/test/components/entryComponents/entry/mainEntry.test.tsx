@@ -1,13 +1,13 @@
-import { describe, expect, it, vi, beforeEach, Mock } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fetchData } from "@/actions/fetchData.action";
 import MainEntry, {
   EntryFiltersType,
 } from "@/components/entryComponents/entry/MainEntry";
-import userEvent from "@testing-library/user-event";
-import { fetchData } from "@/actions/fetchData.action";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { useSaveFilters } from "@/hooks/filters/useSaveFilters";
 import { Transform } from "@/utils/transform";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import dayjs from "dayjs";
+import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 
 // Mock das dependências
 vi.mock("@/actions/fetchData.action", () => ({

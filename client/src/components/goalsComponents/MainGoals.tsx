@@ -5,19 +5,18 @@ import { useCallback, useMemo, useState, useTransition } from "react";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { exportExcel } from "@/actions/generateExcel.action";
-import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
+import { useOldSaveFilters } from "@/hooks/filters/useOldSaveFilters";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { mountUrl } from "@/utils/mountUrl";
 import { Transform } from "@/utils/transform";
-import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 
+import { useFeedback } from "@/hooks/useFeedback";
+import { FiltersInterface } from "@/types/genericFilterSchema";
 import { ButtonComponent } from "../common/Button";
 import { MultipleSelectComponent } from "../common/filter/MultipleSelect";
 import GoalsTable from "./GoalsTable";
 import ModalTotalGoalValues from "./ModalTotalGoalValues";
-import { useFeedback } from "@/hooks/useFeedback";
-import { FiltersInterface } from "@/types/genericFilterSchema";
 
 export type TypeGoals = "rda" | "recomposicao" | "bt0";
 

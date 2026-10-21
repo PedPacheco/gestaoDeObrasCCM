@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
 import { GenericFilterBar } from "@/components/common/filter/genericFilterBar";
-import { useSaveFilters } from "@/hooks/useSaveFilters";
+import { useSaveFilters } from "@/hooks/filters/useSaveFilters";
 import {
   ExtraFilterValue,
   FilterFieldConfig,

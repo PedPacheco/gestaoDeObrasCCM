@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { useCallback, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
+import { SERVICE_OPERATIONS } from "@/lib/services/constants";
 import { FormatCurrency } from "@/utils/formatValue";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import {
@@ -19,7 +20,6 @@ import {
   AddMaterialOrServiceFormState,
   MaterialData,
 } from "./addServiceAccordion";
-import { SERVICE_OPERATIONS } from "@/constants/services/services";
 import { ServicesContractSelect } from "./servicesContractSelect";
 
 interface Props {

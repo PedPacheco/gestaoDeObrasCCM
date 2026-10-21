@@ -8,7 +8,7 @@ import { useEffect, useState, useTransition } from "react";
 import { fetchData } from "@/actions/fetchData.action";
 import { ButtonComponent } from "@/components/common/Button";
 import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
-import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
+import { useOldSaveFilters } from "@/hooks/filters/useOldSaveFilters";
 import { MainInterface } from "@/types/mainInterface";
 import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
@@ -16,9 +16,9 @@ import { Transform } from "@/utils/transform";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
-import EntryByDateTable from "./entryByDateTable";
 import { useFeedback } from "@/hooks/useFeedback";
 import { FiltersInterface } from "@/types/genericFilterSchema";
+import EntryByDateTable from "./entryByDateTable";
 
 export default function MainEntryByDate({
   data,

@@ -15,7 +15,6 @@ import { FormatCurrency } from "@/utils/formatValue";
 import { PlusIcon, TrashIcon } from "@heroicons/react/20/solid";
 import {
   Box,
-  Button,
   Checkbox,
   FormControl,
   IconButton,
@@ -32,12 +31,12 @@ import {
   Typography,
 } from "@mui/material";
 
+import ConfirmationScheduleModalComponent from "@/components/common/confirmationScheduleModal";
+import { useServicesFilters } from "@/hooks/services/useServicesFilters";
+import { MATERIAL_OR_SERVICE_OPTIONS } from "@/lib/services/constants";
+import { ServiceQuantityToBt0Modal } from "./serviceQuantityToBt0Modal";
 import { TableFilter } from "./servicesFilters";
 import { TeamModal } from "./teamsModal";
-import { useServicesFilters } from "@/hooks/services/useServicesFilters";
-import { MATERIAL_OR_SERVICE_OPTIONS } from "@/constants/services/services";
-import ConfirmationScheduleModalComponent from "@/components/common/confirmationScheduleModal";
-import { ServiceQuantityToBt0Modal } from "./serviceQuantityToBt0Modal";
 
 interface ServicesAvaliableProps {
   servicesData: any[];

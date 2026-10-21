@@ -2,30 +2,30 @@
 
 import "dayjs/locale/pt-br";
 
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
 import { useEffect, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
-import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
-import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
-import { Transform } from "@/utils/transform";
-import {
-  Checkbox,
-  Divider,
-  InputAdornment,
-  FormControl,
-  MenuItem,
-  Select,
-  TextField,
-} from "@mui/material";
-import { getButtonContent } from "@/utils/getButtonContent";
-import { capitalize } from "@/utils/formatValue";
 import { DateFilter } from "@/components/common/filter/DateFilter";
+import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
+import { useOldSaveFilters } from "@/hooks/filters/useOldSaveFilters";
+import { capitalize } from "@/utils/formatValue";
+import { getButtonContent } from "@/utils/getButtonContent";
+import { Transform } from "@/utils/transform";
 import {
   DocumentArrowDownIcon,
   MagnifyingGlassCircleIcon,
 } from "@heroicons/react/20/solid";
+import {
+  Checkbox,
+  Divider,
+  FormControl,
+  InputAdornment,
+  MenuItem,
+  Select,
+  TextField,
+} from "@mui/material";
 
 dayjs.extend(isoWeek);
 

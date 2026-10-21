@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import {
   Checkbox,
@@ -16,14 +16,14 @@ import {
   TableRow,
 } from "@mui/material";
 
-import { ScheduledServiceState } from "./scheduledServices";
-import { TableFilter } from "../servicesFilters";
-import { FormatCurrency } from "@/utils/formatValue";
+import { useServicesFilters } from "@/hooks/services/useServicesFilters";
 import {
   MATERIAL_OR_SERVICE_OPTIONS,
   SERVICE_OPERATIONS,
-} from "@/constants/services/services";
-import { useServicesFilters } from "@/hooks/services/useServicesFilters";
+} from "@/lib/services/constants";
+import { FormatCurrency } from "@/utils/formatValue";
+import { TableFilter } from "../servicesFilters";
+import { ScheduledServiceState } from "./scheduledServices";
 
 const SERVICE_COLUMNS = [
   { key: "material", label: "CÓDIGO" },

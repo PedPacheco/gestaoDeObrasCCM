@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from "react";
 
 import { ButtonComponent } from "@/components/common/Button";
+import { SERVICE_OPERATIONS } from "@/lib/services/constants";
 import { FormatCurrency } from "@/utils/formatValue";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import {
@@ -14,7 +15,6 @@ import {
   Select,
   TextField,
 } from "@mui/material";
-import { SERVICE_OPERATIONS } from "@/constants/services/services";
 import { MaterialData, ServiceContract } from "./addServiceAccordion";
 
 type SelectOption = {

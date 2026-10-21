@@ -5,15 +5,15 @@ import { useEffect, useState, useTransition } from "react";
 import { fetchData } from "@/actions/fetchData.action";
 import { ButtonComponent } from "@/components/common/Button";
 import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
-import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
+import { useOldSaveFilters } from "@/hooks/filters/useOldSaveFilters";
 import { MainInterface } from "@/types/mainInterface";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
 
-import MainAllWorksTable from "./allWorksTable";
-import { capitalize } from "@/utils/formatValue";
 import { useFeedback } from "@/hooks/useFeedback";
 import { FilterOption, FiltersInterface } from "@/types/genericFilterSchema";
+import { capitalize } from "@/utils/formatValue";
+import MainAllWorksTable from "./allWorksTable";
 
 export default function MainAllWorks({
   data,

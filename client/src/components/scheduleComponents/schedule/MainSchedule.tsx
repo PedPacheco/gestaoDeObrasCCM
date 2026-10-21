@@ -6,17 +6,17 @@ import { useEffect, useState, useTransition } from "react";
 import { fetchData } from "@/actions/fetchData.action";
 import { ButtonComponent } from "@/components/common/Button";
 import { MultipleSelectComponent } from "@/components/common/filter/MultipleSelect";
+import { useOldSaveFilters } from "@/hooks/filters/useOldSaveFilters";
 import { useFeedback } from "@/hooks/useFeedback";
-import { useOldSaveFilters } from "@/hooks/useOldSaveFilters";
 import { capitalize } from "@/utils/formatValue";
 import { getButtonContent } from "@/utils/getButtonContent";
 import { Transform } from "@/utils/transform";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
-import ScheduleTable from "./ScheduleTable";
-import { MainInterface } from "@/types/mainInterface";
 import { FiltersInterface } from "@/types/genericFilterSchema";
+import { MainInterface } from "@/types/mainInterface";
+import ScheduleTable from "./ScheduleTable";
 
 export default function MainSchedule({
   columns,
