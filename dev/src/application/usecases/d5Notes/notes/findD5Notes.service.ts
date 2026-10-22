@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import moment, { Moment } from 'moment';
+import moment, { MomentInput } from 'moment';
 import {
   D5_NOTES_REPOSITORY,
   D5NotePagination,
@@ -53,6 +53,7 @@ export class FindD5NotesService {
         tipoObra: tipos.tipo_obra,
         status: status.status,
         usuarioModificador: novo_tabela_usuarios?.nome ?? null,
+        ...this.calculateTM(rest.criado_em, rest.conclusao_nota),
       }),
     );
 
@@ -135,7 +136,10 @@ export class FindD5NotesService {
     );
   }
 
-  private calculateTM(initialDate: Moment, executionDate: Moment | null) {
+  private calculateTM(
+    initialDate: MomentInput | null,
+    executionDate: MomentInput | null,
+  ) {
     const start = moment.utc(initialDate).startOf('day');
 
     if (executionDate) {

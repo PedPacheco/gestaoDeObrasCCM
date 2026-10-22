@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from '@prisma/client';
 import { ScheduleExecutionValidatorService } from 'src/application/usecases/works/schedule/scheduleExecutionValidator.service';
 import { STATUS_FLOW_REPOSITORY } from 'src/domain/repositories/IStatusFlowRepository';
+import { WorkExecutionTotals } from 'src/domain/services/pointByPointRules.service';
 import { PROGRESS_EPSILON } from 'src/utils/pointByPoint/progress.utils';
 import {
   ScheduleStatus,
@@ -12,8 +13,8 @@ import {
 type ValidatorData = Parameters<
   ScheduleExecutionValidatorService['validatePointByPointExecution']
 >[0];
-type ValidatorTotals = Parameters<
-  ScheduleExecutionValidatorService['validatePointByPointExecution']
+type LegacyTotals = Parameters<
+  ScheduleExecutionValidatorService['validateExecutionAndUpdateStatus']
 >[1];
 
 // ─── Constantes ──────────────────────────────────────────────────────
@@ -48,8 +49,18 @@ describe('ScheduleExecutionValidatorService', () => {
     ...overrides,
   });
 
-  const totals = (prog: number, exec?: number) =>
-    ({ prog, exec }) as ValidatorTotals;
+  /** Totais do fluxo tradicional (prog/exec já acumulados das outras programações). */
+  const legacyTotals = (prog: number, exec?: number) =>
+    ({ prog, exec }) as LegacyTotals;
+
+  /** Totais da obra no ponto a ponto (calculados pelo domínio). */
+  const work = (
+    executed: number,
+    coverage = executed,
+  ): WorkExecutionTotals => ({
+    executed,
+    coverage,
+  });
 
   const scheduleCall = (status: number) => [status, SCHEDULE_ID, mockTx];
 
@@ -86,15 +97,15 @@ describe('ScheduleExecutionValidatorService', () => {
   });
 
   // ════════════════════════════════════════════════════════════════════
-  // Fluxo tradicional
+  // Fluxo tradicional (sem alterações)
   // ════════════════════════════════════════════════════════════════════
   describe('validateExecutionAndUpdateStatus', () => {
-    const run = (data: Partial<ValidatorData>, t: ValidatorTotals) =>
+    const run = (data: Partial<ValidatorData>, t: LegacyTotals) =>
       service.validateExecutionAndUpdateStatus(buildData(data), t, mockTx);
 
     describe('when exec >= prog (executed)', () => {
       it('should set work 35 when programmed + executed is exactly 100', async () => {
-        await run({ prog: 20, exec: 20 }, totals(50, 30)); // new = 50; 50 + 50 = 100
+        await run({ prog: 20, exec: 20 }, legacyTotals(50, 30)); // new = 50; 50 + 50 = 100
 
         expectCalls(
           [scheduleCall(LEGACY_SCHEDULE.EXECUTED)],
@@ -103,7 +114,7 @@ describe('ScheduleExecutionValidatorService', () => {
       });
 
       it('should also treat exec > prog as executed', async () => {
-        await run({ prog: 20, exec: 25 }, totals(45, 30)); // new = 55; 45 + 55 = 100
+        await run({ prog: 20, exec: 25 }, legacyTotals(45, 30)); // new = 55; 45 + 55 = 100
 
         expectCalls(
           [scheduleCall(LEGACY_SCHEDULE.EXECUTED)],
@@ -112,7 +123,7 @@ describe('ScheduleExecutionValidatorService', () => {
       });
 
       it('should set work 36 when programmed + executed is not 100', async () => {
-        await run({ prog: 20, exec: 20 }, totals(10, 30)); // new = 50; 10 + 50 = 60
+        await run({ prog: 20, exec: 20 }, legacyTotals(10, 30)); // new = 50; 10 + 50 = 60
 
         expectCalls(
           [scheduleCall(LEGACY_SCHEDULE.EXECUTED)],
@@ -121,7 +132,7 @@ describe('ScheduleExecutionValidatorService', () => {
       });
 
       it('should conclude the work when executed exceeds 100, capping at 100', async () => {
-        await run({ prog: 20, exec: 20 }, totals(0, 90)); // 110 → 100
+        await run({ prog: 20, exec: 20 }, legacyTotals(0, 90)); // 110 → 100
 
         expectCalls(
           [scheduleCall(LEGACY_SCHEDULE.EXECUTED)],
@@ -135,7 +146,7 @@ describe('ScheduleExecutionValidatorService', () => {
       });
 
       it('should conclude the work when executed is exactly 100', async () => {
-        await run({ prog: 20, exec: 20 }, totals(0, 80));
+        await run({ prog: 20, exec: 20 }, legacyTotals(0, 80));
 
         expectCalls(
           [scheduleCall(LEGACY_SCHEDULE.EXECUTED)],
@@ -149,7 +160,7 @@ describe('ScheduleExecutionValidatorService', () => {
       });
 
       it('should treat totals.exec undefined as 0', async () => {
-        await run({ prog: 20, exec: 20 }, totals(80)); // new = 20; 80 + 20 = 100
+        await run({ prog: 20, exec: 20 }, legacyTotals(80)); // new = 20; 80 + 20 = 100
 
         expectCalls(
           [scheduleCall(LEGACY_SCHEDULE.EXECUTED)],
@@ -160,7 +171,7 @@ describe('ScheduleExecutionValidatorService', () => {
 
     describe('when exec = 0 and prog > 0 (not executed)', () => {
       it('should set schedule 5 and work 36 without options', async () => {
-        await run({ prog: 20, exec: 0 }, totals(50, 30));
+        await run({ prog: 20, exec: 0 }, legacyTotals(50, 30));
 
         expectCalls(
           [scheduleCall(LEGACY_SCHEDULE.NOT_EXECUTED)],
@@ -175,7 +186,7 @@ describe('ScheduleExecutionValidatorService', () => {
 
     describe('when 0 < exec < prog (partial)', () => {
       it('should set schedule 6 and work 36 with the executed total', async () => {
-        await run({ prog: 20, exec: 10 }, totals(0, 30)); // new = 40
+        await run({ prog: 20, exec: 10 }, legacyTotals(0, 30)); // new = 40
 
         expectCalls(
           [scheduleCall(LEGACY_SCHEDULE.PARTIAL)],
@@ -184,7 +195,7 @@ describe('ScheduleExecutionValidatorService', () => {
       });
 
       it('should cap at 100 and NOT conclude the work (current behaviour)', async () => {
-        await run({ prog: 20, exec: 10 }, totals(0, 95)); // 105 → 100
+        await run({ prog: 20, exec: 10 }, legacyTotals(0, 95)); // 105 → 100
 
         expectCalls(
           [scheduleCall(LEGACY_SCHEDULE.PARTIAL)],
@@ -195,7 +206,7 @@ describe('ScheduleExecutionValidatorService', () => {
 
     describe('edge cases (current behaviour)', () => {
       it('should treat prog = exec = 0 as executed when total < 100', async () => {
-        await run({ prog: 0, exec: 0 }, totals(50, 30)); // new = 30; 50 + 30 = 80
+        await run({ prog: 0, exec: 0 }, legacyTotals(50, 30)); // new = 30; 50 + 30 = 80
 
         expectCalls(
           [scheduleCall(LEGACY_SCHEDULE.EXECUTED)],
@@ -204,7 +215,7 @@ describe('ScheduleExecutionValidatorService', () => {
       });
 
       it('should fall through and overwrite the conclusion when prog = exec = 0 and total = 100', async () => {
-        await run({ prog: 0, exec: 0 }, totals(0, 100));
+        await run({ prog: 0, exec: 0 }, legacyTotals(0, 100));
 
         expectCalls(
           [
@@ -222,20 +233,20 @@ describe('ScheduleExecutionValidatorService', () => {
       });
 
       it('should not update any status when exec is negative', async () => {
-        await run({ prog: 10, exec: -5 }, totals(0, 30));
+        await run({ prog: 10, exec: -5 }, legacyTotals(0, 30));
 
         expectCalls([], []);
       });
 
       it('should not update any status when exec is undefined', async () => {
-        await run({ prog: 10, exec: undefined }, totals(0, 30));
+        await run({ prog: 10, exec: undefined }, legacyTotals(0, 30));
 
         expectCalls([], []);
       });
     });
 
     it('should update the schedule before the work', async () => {
-      await run({ prog: 20, exec: 10 }, totals(0, 30));
+      await run({ prog: 20, exec: 10 }, legacyTotals(0, 30));
 
       expect(
         mockStatusFlowRepository.updateScheduleStatus.mock
@@ -250,9 +261,9 @@ describe('ScheduleExecutionValidatorService', () => {
         new Error('db down'),
       );
 
-      await expect(run({ prog: 20, exec: 20 }, totals(50, 30))).rejects.toThrow(
-        'db down',
-      );
+      await expect(
+        run({ prog: 20, exec: 20 }, legacyTotals(50, 30)),
+      ).rejects.toThrow('db down');
       expect(mockStatusFlowRepository.updateStatusWorks).not.toHaveBeenCalled();
     });
   });
@@ -261,132 +272,95 @@ describe('ScheduleExecutionValidatorService', () => {
   // Ponto a ponto
   // ════════════════════════════════════════════════════════════════════
   describe('validatePointByPointExecution', () => {
-    const run = (data: Partial<ValidatorData>, t: ValidatorTotals) =>
-      service.validatePointByPointExecution(buildData(data), t, mockTx);
+    const run = (
+      outcome: number,
+      w: WorkExecutionTotals,
+      data: Partial<ValidatorData> = {},
+    ) =>
+      service.validatePointByPointExecution(
+        buildData(data),
+        outcome,
+        w,
+        mockTx,
+      );
 
     it('sanity: PROGRESS_EPSILON is positive and small', () => {
       expect(EPS).toBeGreaterThan(0);
       expect(EPS).toBeLessThan(0.01);
     });
 
-    // ─── REAGENDADA ──────────────────────────────────────────────────
-    describe('when exec = 0', () => {
-      it('should set REAGENDADA and SERVICOS_REAGENDADOS with the executed total', async () => {
-        await run({ prog: 20, exec: 0 }, totals(50, 30));
+    // ─── Estado da programação vem do outcome ────────────────────────
+    describe('schedule status', () => {
+      it.each([
+        ['REAGENDADA', ScheduleStatus.REAGENDADA],
+        ['PARCIAL', ScheduleStatus.PARCIAL],
+        ['EXECUTADA', ScheduleStatus.EXECUTADA],
+      ])(
+        'should write the given outcome (%s) to the schedule',
+        async (_, outcome) => {
+          await run(outcome, work(50, 50));
+
+          expect(
+            mockStatusFlowRepository.updateScheduleStatus,
+          ).toHaveBeenCalledTimes(1);
+          expect(
+            mockStatusFlowRepository.updateScheduleStatus,
+          ).toHaveBeenCalledWith(outcome, SCHEDULE_ID, mockTx);
+        },
+      );
+
+      it('should ignore data.prog/data.exec when deciding (the outcome comes from the rows)', async () => {
+        // data diria "sem execução", mas as linhas dizem EXECUTADA
+        await run(ScheduleStatus.EXECUTADA, work(50, 50), {
+          prog: 20,
+          exec: 0,
+        });
 
         expectCalls(
-          [scheduleCall(ScheduleStatus.REAGENDADA)],
-          [workCall(WorkStatus.SERVICOS_REAGENDADOS, { totalExecuted: 30 })],
-        );
-      });
-
-      it('should treat exec undefined as 0', async () => {
-        await run({ prog: 20, exec: undefined }, totals(50, 30));
-
-        expectCalls(
-          [scheduleCall(ScheduleStatus.REAGENDADA)],
-          [workCall(WorkStatus.SERVICOS_REAGENDADOS, { totalExecuted: 30 })],
-        );
-      });
-
-      it('should treat prog = exec = 0 only as REAGENDADA (exclusive paths)', async () => {
-        await run({ prog: 0, exec: 0 }, totals(50, 30));
-
-        expectCalls(
-          [scheduleCall(ScheduleStatus.REAGENDADA)],
-          [workCall(WorkStatus.SERVICOS_REAGENDADOS, { totalExecuted: 30 })],
-        );
-      });
-
-      it('should not conclude the work even if it is already at 100% (current behaviour)', async () => {
-        await run({ prog: 20, exec: 0 }, totals(0, 100));
-
-        expectCalls(
-          [scheduleCall(ScheduleStatus.REAGENDADA)],
-          [workCall(WorkStatus.SERVICOS_REAGENDADOS, { totalExecuted: 100 })],
+          [scheduleCall(ScheduleStatus.EXECUTADA)],
+          [workCall(WorkStatus.SERVICOS_REAGENDADOS, { totalExecuted: 50 })],
         );
       });
     });
 
-    // ─── PARCIAL ─────────────────────────────────────────────────────
-    describe('when 0 < exec < prog', () => {
-      it('should set PARCIAL and SERVICOS_REAGENDADOS with the executed total', async () => {
-        await run({ prog: 20, exec: 10 }, totals(0, 30));
+    // ─── REAGENDADA / PARCIAL ────────────────────────────────────────
+    describe.each([
+      ['REAGENDADA', ScheduleStatus.REAGENDADA],
+      ['PARCIAL', ScheduleStatus.PARCIAL],
+    ])('when the outcome is %s', (_, outcome) => {
+      it('should set the work to SERVICOS_REAGENDADOS with the executed total', async () => {
+        await run(outcome, work(40, 70));
 
         expectCalls(
-          [scheduleCall(ScheduleStatus.PARCIAL)],
+          [scheduleCall(outcome)],
           [workCall(WorkStatus.SERVICOS_REAGENDADOS, { totalExecuted: 40 })],
         );
       });
 
-      it('should be PARCIAL when exec is below prog beyond the tolerance', async () => {
-        const exec = 20 - EPS * 2;
-
-        await run({ prog: 20, exec }, totals(0, 30));
+      it('should NOT conclude the work even if executed is 100 (there are items to reschedule)', async () => {
+        await run(outcome, work(100, 100));
 
         expectCalls(
-          [scheduleCall(ScheduleStatus.PARCIAL)],
-          [
-            workCall(WorkStatus.SERVICOS_REAGENDADOS, {
-              totalExecuted: Math.min(30 + exec, 100),
-            }),
-          ],
+          [scheduleCall(outcome)],
+          [workCall(WorkStatus.SERVICOS_REAGENDADOS, { totalExecuted: 100 })],
         );
       });
 
-      it('should treat a negative exec as PARCIAL and reduce the total (current behaviour)', async () => {
-        await run({ prog: 10, exec: -5 }, totals(0, 30));
+      it('should NOT confirm the work even if coverage is 100', async () => {
+        await run(outcome, work(60, 100));
 
         expectCalls(
-          [scheduleCall(ScheduleStatus.PARCIAL)],
-          [workCall(WorkStatus.SERVICOS_REAGENDADOS, { totalExecuted: 25 })],
+          [scheduleCall(outcome)],
+          [workCall(WorkStatus.SERVICOS_REAGENDADOS, { totalExecuted: 60 })],
         );
       });
     });
 
     // ─── EXECUTADA ───────────────────────────────────────────────────
-    describe('when exec >= prog', () => {
-      it('should be EXECUTADA when exec is below prog within the tolerance', async () => {
-        const exec = 20 - EPS / 2;
-
-        await run({ prog: 20, exec }, totals(50, 30)); // 50 + ~50 ≈ 100 → CONFIRMADA
-
-        expectCalls(
-          [scheduleCall(ScheduleStatus.EXECUTADA)],
-          [
-            workCall(WorkStatus.CONFIRMADA, {
-              totalExecuted: Math.min(30 + exec, 100),
-            }),
-          ],
-        );
-      });
-
-      it('should be EXECUTADA when exec > prog', async () => {
-        await run({ prog: 20, exec: 25 }, totals(10, 30)); // new = 55; 10 + 55 = 65
-
-        expectCalls(
-          [scheduleCall(ScheduleStatus.EXECUTADA)],
-          [workCall(WorkStatus.SERVICOS_REAGENDADOS, { totalExecuted: 55 })],
-        );
-      });
-
+    describe('when the outcome is EXECUTADA', () => {
       describe('work CONCLUIDA', () => {
-        it('should conclude when executed exceeds 100, capping at 100', async () => {
-          await run({ prog: 20, exec: 20 }, totals(0, 90));
-
-          expectCalls(
-            [scheduleCall(ScheduleStatus.EXECUTADA)],
-            [
-              workCall(WorkStatus.CONCLUIDA, {
-                data_conclusao: DATA_PROG,
-                totalExecuted: 100,
-              }),
-            ],
-          );
-        });
-
         it('should conclude when executed is exactly 100', async () => {
-          await run({ prog: 20, exec: 20 }, totals(0, 80));
+          await run(ScheduleStatus.EXECUTADA, work(100));
 
           expectCalls(
             [scheduleCall(ScheduleStatus.EXECUTADA)],
@@ -400,98 +374,144 @@ describe('ScheduleExecutionValidatorService', () => {
         });
 
         it('should conclude when executed is below 100 within the tolerance', async () => {
-          const exec = 20 - EPS / 2;
+          const executed = 100 - EPS / 2;
 
-          await run({ prog: exec, exec }, totals(0, 80));
+          await run(ScheduleStatus.EXECUTADA, work(executed));
 
           expectCalls(
             [scheduleCall(ScheduleStatus.EXECUTADA)],
             [
               workCall(WorkStatus.CONCLUIDA, {
                 data_conclusao: DATA_PROG,
-                totalExecuted: Math.min(80 + exec, 100),
+                totalExecuted: executed,
               }),
             ],
           );
         });
 
         it('should NOT conclude when executed is below 100 beyond the tolerance', async () => {
-          const exec = 20 - EPS * 2;
+          const executed = 100 - EPS * 2;
 
-          await run({ prog: exec, exec }, totals(0, 80));
+          await run(ScheduleStatus.EXECUTADA, work(executed, executed));
 
           expectCalls(
             [scheduleCall(ScheduleStatus.EXECUTADA)],
             [
               workCall(WorkStatus.SERVICOS_REAGENDADOS, {
-                totalExecuted: Math.min(80 + exec, 100),
+                totalExecuted: executed,
+              }),
+            ],
+          );
+        });
+
+        it('should use dataProg as the conclusion date', async () => {
+          const otherDate = new Date('2026-12-31T00:00:00.000Z');
+
+          await run(ScheduleStatus.EXECUTADA, work(100), {
+            dataProg: otherDate,
+          });
+
+          expect(
+            mockStatusFlowRepository.updateStatusWorks,
+          ).toHaveBeenCalledWith(WorkStatus.CONCLUIDA, WORK_ID, mockTx, {
+            data_conclusao: otherDate,
+            totalExecuted: 100,
+          });
+        });
+      });
+
+      describe('work CONFIRMADA vs SERVICOS_REAGENDADOS (by coverage)', () => {
+        it('should set CONFIRMADA when coverage is 100 (rest is already scheduled)', async () => {
+          await run(ScheduleStatus.EXECUTADA, work(50, 100));
+
+          expectCalls(
+            [scheduleCall(ScheduleStatus.EXECUTADA)],
+            [workCall(WorkStatus.CONFIRMADA, { totalExecuted: 50 })],
+          );
+        });
+
+        it('should set CONFIRMADA when coverage is 100 within the tolerance', async () => {
+          await run(ScheduleStatus.EXECUTADA, work(50, 100 - EPS / 2));
+
+          expectCalls(
+            [scheduleCall(ScheduleStatus.EXECUTADA)],
+            [workCall(WorkStatus.CONFIRMADA, { totalExecuted: 50 })],
+          );
+        });
+
+        it('should set SERVICOS_REAGENDADOS when coverage is below 100 beyond the tolerance', async () => {
+          await run(ScheduleStatus.EXECUTADA, work(50, 100 - EPS * 2));
+
+          expectCalls(
+            [scheduleCall(ScheduleStatus.EXECUTADA)],
+            [workCall(WorkStatus.SERVICOS_REAGENDADOS, { totalExecuted: 50 })],
+          );
+        });
+
+        it('should set SERVICOS_REAGENDADOS when coverage is well below 100', async () => {
+          await run(ScheduleStatus.EXECUTADA, work(50, 60));
+
+          expectCalls(
+            [scheduleCall(ScheduleStatus.EXECUTADA)],
+            [workCall(WorkStatus.SERVICOS_REAGENDADOS, { totalExecuted: 50 })],
+          );
+        });
+
+        it('should prefer CONCLUIDA over CONFIRMADA when both apply', async () => {
+          await run(ScheduleStatus.EXECUTADA, work(100, 100));
+
+          expectCalls(
+            [scheduleCall(ScheduleStatus.EXECUTADA)],
+            [
+              workCall(WorkStatus.CONCLUIDA, {
+                data_conclusao: DATA_PROG,
+                totalExecuted: 100,
               }),
             ],
           );
         });
       });
 
-      describe('work CONFIRMADA vs SERVICOS_REAGENDADOS', () => {
-        it('should set CONFIRMADA when programmed + executed is exactly 100', async () => {
-          await run({ prog: 20, exec: 20 }, totals(50, 30)); // new = 50
+      it('should pass work.executed through unchanged (capping is done in the domain)', async () => {
+        await run(ScheduleStatus.EXECUTADA, work(37.1234, 80));
 
-          expectCalls(
-            [scheduleCall(ScheduleStatus.EXECUTADA)],
-            [workCall(WorkStatus.CONFIRMADA, { totalExecuted: 50 })],
-          );
-        });
-
-        it('should set CONFIRMADA when the sum is 100 within the tolerance', async () => {
-          await run({ prog: 20, exec: 20 }, totals(50 + EPS / 2, 30));
-
-          expectCalls(
-            [scheduleCall(ScheduleStatus.EXECUTADA)],
-            [workCall(WorkStatus.CONFIRMADA, { totalExecuted: 50 })],
-          );
-        });
-
-        it('should set SERVICOS_REAGENDADOS when the sum is below 100', async () => {
-          await run({ prog: 20, exec: 20 }, totals(10, 30)); // 10 + 50 = 60
-
-          expectCalls(
-            [scheduleCall(ScheduleStatus.EXECUTADA)],
-            [workCall(WorkStatus.SERVICOS_REAGENDADOS, { totalExecuted: 50 })],
-          );
-        });
-
-        it('should set SERVICOS_REAGENDADOS when the sum exceeds 100 (current behaviour, see NOTA)', async () => {
-          await run({ prog: 20, exec: 20 }, totals(60, 30)); // 60 + 50 = 110
-
-          expectCalls(
-            [scheduleCall(ScheduleStatus.EXECUTADA)],
-            [workCall(WorkStatus.SERVICOS_REAGENDADOS, { totalExecuted: 50 })],
-          );
-        });
-
-        it('should treat totals.exec undefined as 0', async () => {
-          await run({ prog: 20, exec: 20 }, totals(80)); // new = 20; 80 + 20 = 100
-
-          expectCalls(
-            [scheduleCall(ScheduleStatus.EXECUTADA)],
-            [workCall(WorkStatus.CONFIRMADA, { totalExecuted: 20 })],
-          );
-        });
+        expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledWith(
+          WorkStatus.SERVICOS_REAGENDADOS,
+          WORK_ID,
+          mockTx,
+          { totalExecuted: 37.1234 },
+        );
       });
     });
 
     // ─── Ordem e erros ───────────────────────────────────────────────
     it.each([
-      ['REAGENDADA', { prog: 20, exec: 0 }],
-      ['PARCIAL', { prog: 20, exec: 10 }],
-      ['EXECUTADA', { prog: 20, exec: 20 }],
-    ])('should update the schedule before the work (%s)', async (_, data) => {
-      await run(data, totals(50, 30));
+      ['REAGENDADA', ScheduleStatus.REAGENDADA],
+      ['PARCIAL', ScheduleStatus.PARCIAL],
+      ['EXECUTADA', ScheduleStatus.EXECUTADA],
+    ])(
+      'should update the schedule before the work (%s)',
+      async (_, outcome) => {
+        await run(outcome, work(50, 100));
+
+        expect(
+          mockStatusFlowRepository.updateScheduleStatus.mock
+            .invocationCallOrder[0],
+        ).toBeLessThan(
+          mockStatusFlowRepository.updateStatusWorks.mock
+            .invocationCallOrder[0],
+        );
+      },
+    );
+
+    it('should update the work exactly once per call', async () => {
+      await run(ScheduleStatus.EXECUTADA, work(100));
 
       expect(
-        mockStatusFlowRepository.updateScheduleStatus.mock
-          .invocationCallOrder[0],
-      ).toBeLessThan(
-        mockStatusFlowRepository.updateStatusWorks.mock.invocationCallOrder[0],
+        mockStatusFlowRepository.updateScheduleStatus,
+      ).toHaveBeenCalledTimes(1);
+      expect(mockStatusFlowRepository.updateStatusWorks).toHaveBeenCalledTimes(
+        1,
       );
     });
 
@@ -500,7 +520,7 @@ describe('ScheduleExecutionValidatorService', () => {
         new Error('db down'),
       );
 
-      await expect(run({ prog: 20, exec: 20 }, totals(0, 90))).rejects.toThrow(
+      await expect(run(ScheduleStatus.EXECUTADA, work(100))).rejects.toThrow(
         'db down',
       );
       expect(mockStatusFlowRepository.updateStatusWorks).not.toHaveBeenCalled();
@@ -511,7 +531,7 @@ describe('ScheduleExecutionValidatorService', () => {
         new Error('status failed'),
       );
 
-      await expect(run({ prog: 20, exec: 20 }, totals(0, 90))).rejects.toThrow(
+      await expect(run(ScheduleStatus.EXECUTADA, work(100))).rejects.toThrow(
         'status failed',
       );
     });

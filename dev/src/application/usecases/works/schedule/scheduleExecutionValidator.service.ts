@@ -5,10 +5,8 @@ import {
   STATUS_FLOW_REPOSITORY,
 } from 'src/domain/repositories/IStatusFlowRepository';
 import { returnExecution } from 'src/domain/repositories/schedule/IUpdateSchedulesRepository';
-import {
-  isApproximately,
-  isAtLeast,
-} from 'src/utils/pointByPoint/progress.utils';
+import { WorkExecutionTotals } from 'src/domain/services/pointByPointRules.service';
+import { isAtLeast } from 'src/utils/pointByPoint/progress.utils';
 import {
   ScheduleStatus,
   WorkStatus,
@@ -29,6 +27,7 @@ export class ScheduleExecutionValidatorService {
     private readonly statusFlowRepository: IStatusFlowRepository,
   ) {}
 
+  /** Fluxo TRADICIONAL (sem alterações). */
   async validateExecutionAndUpdateStatus(
     data: ScheduleExecutionValidatorInterface,
     totals: returnExecution,
@@ -45,9 +44,7 @@ export class ScheduleExecutionValidatorService {
             35,
             data.idWork,
             tx,
-            {
-              totalExecuted: newExecuted,
-            },
+            { totalExecuted: newExecuted },
           );
           return;
         }
@@ -55,7 +52,6 @@ export class ScheduleExecutionValidatorService {
         await this.statusFlowRepository.updateStatusWorks(36, data.idWork, tx, {
           totalExecuted: newExecuted,
         });
-
         return;
       }
 
@@ -67,13 +63,11 @@ export class ScheduleExecutionValidatorService {
 
     if (data.exec === 0) {
       await this.statusFlowRepository.updateScheduleStatus(5, data.id, tx);
-
       await this.statusFlowRepository.updateStatusWorks(36, data.idWork, tx);
     }
 
     if (data.exec > 0 && data.prog > data.exec) {
       await this.statusFlowRepository.updateScheduleStatus(6, data.id, tx);
-
       await this.statusFlowRepository.updateStatusWorks(36, data.idWork, tx, {
         totalExecuted: newExecuted,
       });
@@ -81,93 +75,54 @@ export class ScheduleExecutionValidatorService {
   }
 
   /**
-   * Finalização do PONTO A PONTO: define o status da programação e da obra.
-   * (O fluxo tradicional continua em `validateExecutionAndUpdateStatus`.)
+   * Finalização do PONTO A PONTO.
    *
-   * Programação (cada caso é exclusivo — antes, prog = exec = 0 passava por
-   * "executada" e "reagendada" na mesma chamada):
-   *  - exec = 0                  -> REAGENDADA
-   *  - exec >= prog              -> EXECUTADA
-   *  - 0 < exec < prog           -> PARCIAL
+   * Programação: o estado vem das linhas (resolveScheduleOutcome):
+   * - sem execução                       -> REAGENDADA
+   * - com execução e itens a reprogramar -> PARCIAL
+   * - tudo executado                     -> EXECUTADA
    *
-   * Obra (regra 3: só conclui com execução >= total dos itens):
-   *  - executado total >= 100%   -> CONCLUÍDA (com data de conclusão)
-   *  - tudo programado ou feito  -> CONFIRMADA
-   *  - demais casos              -> SERVIÇOS REAGENDADOS/PENDENTES
-   *
-   * Todas as comparações usam tolerância (PROGRESS_EPSILON): os percentuais
-   * têm 4 casas e comparar com `===`/`<` contra 100 falha por arredondamento.
+   * Obra (regra 3):
+   * - executado >= 100%                  -> CONCLUÍDA (com data de conclusão)
+   * - executado + reservado >= 100%      -> CONFIRMADA
+   * - restantes casos                    -> SERVIÇOS REAGENDADOS
    */
   async validatePointByPointExecution(
     data: ScheduleExecutionValidatorInterface,
-    totals: returnExecution,
+    outcome: number,
+    work: WorkExecutionTotals,
     tx: Prisma.TransactionClient,
   ) {
-    const exec = data.exec ?? 0;
-    const newExecuted = Math.min((totals.exec ?? 0) + exec, 100);
+    await this.statusFlowRepository.updateScheduleStatus(outcome, data.id, tx);
 
-    if (exec === 0) {
-      await this.statusFlowRepository.updateScheduleStatus(
-        ScheduleStatus.REAGENDADA,
-        data.id,
-        tx,
-      );
-
+    // REAGENDADA ou PARCIAL: há itens a reprogramar.
+    if (outcome !== ScheduleStatus.EXECUTADA) {
       await this.statusFlowRepository.updateStatusWorks(
         WorkStatus.SERVICOS_REAGENDADOS,
         data.idWork,
         tx,
-        { totalExecuted: newExecuted },
+        { totalExecuted: work.executed },
       );
-
       return;
     }
 
-    if (!isAtLeast(exec, data.prog)) {
-      await this.statusFlowRepository.updateScheduleStatus(
-        ScheduleStatus.PARCIAL,
-        data.id,
-        tx,
-      );
-
-      await this.statusFlowRepository.updateStatusWorks(
-        WorkStatus.SERVICOS_REAGENDADOS,
-        data.idWork,
-        tx,
-        { totalExecuted: newExecuted },
-      );
-
-      return;
-    }
-
-    await this.statusFlowRepository.updateScheduleStatus(
-      ScheduleStatus.EXECUTADA,
-      data.id,
-      tx,
-    );
-
-    if (isAtLeast(newExecuted, 100)) {
+    if (isAtLeast(work.executed, 100)) {
       await this.statusFlowRepository.updateStatusWorks(
         WorkStatus.CONCLUIDA,
         data.idWork,
         tx,
-        { data_conclusao: data.dataProg, totalExecuted: newExecuted },
+        { data_conclusao: data.dataProg, totalExecuted: work.executed },
       );
-
       return;
     }
 
-    // NOTA: regra herdada (`totals.prog + newExecuted === 100`), agora com
-    // tolerância. `totals.prog` já inclui o programado das demais programações
-    // que também foi/será executado, então a soma pode contar o executado em
-    // dobro — confirmar com o negócio o significado exato de "tudo programado".
-    const allScheduled = isApproximately(totals.prog + newExecuted, 100);
-
     await this.statusFlowRepository.updateStatusWorks(
-      allScheduled ? WorkStatus.CONFIRMADA : WorkStatus.SERVICOS_REAGENDADOS,
+      isAtLeast(work.coverage, 100)
+        ? WorkStatus.CONFIRMADA
+        : WorkStatus.SERVICOS_REAGENDADOS,
       data.idWork,
       tx,
-      { totalExecuted: newExecuted },
+      { totalExecuted: work.executed },
     );
   }
 }

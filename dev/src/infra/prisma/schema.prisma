@@ -585,6 +585,7 @@ model programacoes_servicos {
   real           Float?
   id_equipe      Int
   adicional      Float?
+  status         String?      @db.VarChar(20)
   equipes        equipes      @relation(fields: [id_equipe], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_equipes")
   programacoes   programacoes @relation(fields: [id_programacao], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_programacoes")
   servicos       servicos     @relation(fields: [id_servico], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_servicos")
