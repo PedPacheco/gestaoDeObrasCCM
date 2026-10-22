@@ -197,6 +197,7 @@ export class WorkServicesQueryRepository implements IWorkServicesQueryRepository
         prog: true,
         real: true,
         adicional: true,
+        status: true,
       },
       where: { programacoes: { id_obra: id } },
     });

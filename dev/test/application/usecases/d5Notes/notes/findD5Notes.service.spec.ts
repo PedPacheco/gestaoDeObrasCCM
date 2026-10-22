@@ -417,9 +417,14 @@ describe('FindD5NotesService', () => {
       });
     });
 
+    it('deve aninhar idGrupo sob tipos', () => {
+      expect(buildWhere(makeFilters({ idGrupo: [7] } as any))).toEqual({
+        tipos: { id_grupo: { in: [7] } },
+      });
+    });
+
     it.each([
       ['idMunicipio', 'id_municipio'],
-      ['idGrupo', 'id_turma'],
       ['idStatus', 'id_status'],
       ['idTipo', 'id_tipo'],
       ['idParceira', 'id_parceira'],
@@ -521,8 +526,8 @@ describe('FindD5NotesService', () => {
         ),
       ).toEqual({
         municipios: { id_regional: { in: [1] } },
+        tipos: { id_grupo: { in: [3] } },
         id_municipio: { in: [2] },
-        id_turma: { in: [3] },
         id_tipo: { in: [4] },
         id_parceira: { in: [5] },
         id_status: { in: [4] },

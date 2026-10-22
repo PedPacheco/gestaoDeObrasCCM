@@ -4,10 +4,12 @@ import { ProgressRecalculationService } from 'src/application/usecases/services/
 import { WORK_SERVICES_REPOSITORY } from 'src/domain/repositories/worksService/IWorkServicesRepository';
 import {
   ScheduleItem,
+  ServiceExecutionStatus,
   WorkItem,
   calculateServiceTotals,
   calculateWorkProgress,
 } from 'src/domain/services/pointByPointRules.service';
+
 import { WorkStatus } from 'src/utils/pointByPoint/serviceType.utils';
 
 // ─── Constantes e fixtures ───────────────────────────────────────────
@@ -21,10 +23,12 @@ const sItem = (o: Partial<ScheduleItem> = {}): ScheduleItem => ({
   prog: 10,
   real: null,
   isMaterial: false,
+  status: 'EXECUTADO' as ServiceExecutionStatus,
   ...o,
 });
 
 const wItem = (o: Partial<WorkItem> = {}): WorkItem => ({
+  serviceId: 100,
   isMaterial: false,
   enabledQuantity: 100,
   additionalQuantity: 0,
@@ -124,7 +128,7 @@ describe('ProgressRecalculationService', () => {
       expect(mockRepository.updateServiceTotals).toHaveBeenCalledWith(
         [
           { serviceId: 100, plannedQuantity: 40, realQuantity: 40 },
-          { serviceId: 101, plannedQuantity: 30, realQuantity: null },
+          { serviceId: 101, plannedQuantity: 0, realQuantity: null },
         ],
         mockTx,
       );
