@@ -1,17 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from '@prisma/client';
 import { FinalizationData } from 'src/domain/repositories/worksService/IWorkServicesExecutionRepository';
+import { ServiceExecutionStatus } from 'src/domain/services/pointByPointRules.service';
 import { WorkServicesExeutionRepository } from 'src/infra/repositories/worksServices/workServicesExecutionRepository';
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 const buildTx = () => ({
   programacoes: {
     update: jest.fn(),
-    findUnique: jest.fn(),
   },
   programacoes_servicos: {
     findMany: jest.fn(),
-    deleteMany: jest.fn(),
+    updateMany: jest.fn(),
     update: jest.fn(),
   },
 });
@@ -40,6 +40,16 @@ describe('WorkServicesExeutionRepository', () => {
 
   it('should be defined', () => {
     expect(repository).toBeDefined();
+  });
+
+  it('should no longer expose removed methods', () => {
+    const repo = repository as unknown as Record<string, unknown>;
+
+    expect(repo.findScheduleWork).toBeUndefined();
+    expect(repo.deleteScheduleItemsByIds).toBeUndefined();
+    expect(repo.zeroScheduleProgress).toBeUndefined();
+    expect(repo.resetScheduleExecution).toBeUndefined();
+    expect(repo.updateItemsReal).toBeUndefined();
   });
 
   // ─── Finalização ───────────────────────────────────────────────────
@@ -135,34 +145,14 @@ describe('WorkServicesExeutionRepository', () => {
     });
   });
 
-  // ─── Reagendamento ─────────────────────────────────────────────────
-  describe('findScheduleWork', () => {
-    it('should return the work id of the schedule', async () => {
-      tx.programacoes.findUnique.mockResolvedValueOnce({ id_obra: 10 });
-
-      const result = await repository.findScheduleWork(3, asTx(tx));
-
-      expect(tx.programacoes.findUnique).toHaveBeenCalledWith({
-        where: { id: 3 },
-        select: { id_obra: true },
-      });
-      expect(result).toEqual({ id_obra: 10 });
-    });
-
-    it('should return null when the schedule does not exist', async () => {
-      tx.programacoes.findUnique.mockResolvedValueOnce(null);
-
-      const result = await repository.findScheduleWork(999, asTx(tx));
-
-      expect(result).toBeNull();
-    });
-  });
-
+  // ─── Reagendamento / finalização ───────────────────────────────────
   describe('findScheduleItems', () => {
-    it('should return the schedule items with prog and real', async () => {
+    it('should return the schedule items with prog, real and status', async () => {
       const rows = [
-        { id: 1, id_servico: 2, prog: 10, real: 5 },
-        { id: 2, id_servico: 4, prog: 20, real: null },
+        { id: 1, id_servico: 2, prog: 10, real: 5, status: 'EXECUTADO' },
+        { id: 2, id_servico: 4, prog: 20, real: null, status: null },
+        { id: 3, id_servico: 5, prog: 8, real: null, status: 'REPROGRAMADO' },
+        { id: 4, id_servico: 6, prog: 4, real: 0, status: 'NAO_EXECUTADO' },
       ];
       tx.programacoes_servicos.findMany.mockResolvedValueOnce(rows);
 
@@ -170,9 +160,24 @@ describe('WorkServicesExeutionRepository', () => {
 
       expect(tx.programacoes_servicos.findMany).toHaveBeenCalledWith({
         where: { id_programacao: 3 },
-        select: { id: true, id_servico: true, prog: true, real: true },
+        select: {
+          id: true,
+          id_servico: true,
+          prog: true,
+          real: true,
+          status: true,
+        },
       });
       expect(result).toEqual(rows);
+    });
+
+    it('should not filter rows by status (the domain decides)', async () => {
+      tx.programacoes_servicos.findMany.mockResolvedValueOnce([]);
+
+      await repository.findScheduleItems(3, asTx(tx));
+
+      const { where } = tx.programacoes_servicos.findMany.mock.calls[0][0];
+      expect(where).toEqual({ id_programacao: 3 });
     });
 
     it('should return an empty array when the schedule has no items', async () => {
@@ -184,69 +189,93 @@ describe('WorkServicesExeutionRepository', () => {
     });
   });
 
-  describe('deleteScheduleItemsByIds', () => {
-    it('should delete the items with the given ids', async () => {
-      tx.programacoes_servicos.deleteMany.mockResolvedValueOnce({ count: 3 });
+  describe('markScheduleItemsAsRescheduled', () => {
+    it('should mark rows without report and partial EXECUTADO rows as REPROGRAMADO', async () => {
+      tx.programacoes_servicos.updateMany.mockResolvedValueOnce({ count: 3 });
 
-      const result = await repository.deleteScheduleItemsByIds(
+      const result = await repository.markScheduleItemsAsRescheduled(
         [1, 2, 3],
         asTx(tx),
       );
 
-      expect(tx.programacoes_servicos.deleteMany).toHaveBeenCalledWith({
-        where: { id: { in: [1, 2, 3] } },
+      expect(tx.programacoes_servicos.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: { in: [1, 2, 3] },
+          OR: [
+            { status: null, real: null }, // sem apontamento
+            { status: ServiceExecutionStatus.EXECUTADO }, // parcial
+          ],
+        },
+        data: { status: ServiceExecutionStatus.REPROGRAMADO },
       });
-      expect(result).toBeUndefined(); // não expõe o { count }
+      expect(result).toBe(3);
     });
 
-    it('should call deleteMany with an empty list when no ids are given', async () => {
-      tx.programacoes_servicos.deleteMany.mockResolvedValueOnce({ count: 0 });
+    it('should never target discarded (NAO_EXECUTADO) or already REPROGRAMADO rows', async () => {
+      tx.programacoes_servicos.updateMany.mockResolvedValueOnce({ count: 0 });
 
-      await repository.deleteScheduleItemsByIds([], asTx(tx));
+      await repository.markScheduleItemsAsRescheduled([1], asTx(tx));
 
-      expect(tx.programacoes_servicos.deleteMany).toHaveBeenCalledWith({
-        where: { id: { in: [] } },
-      });
+      const { where } = tx.programacoes_servicos.updateMany.mock.calls[0][0];
+      const targetedStatuses = where.OR.map(
+        (condition: { status: unknown }) => condition.status,
+      );
+
+      expect(targetedStatuses).not.toContain(
+        ServiceExecutionStatus.NAO_EXECUTADO,
+      );
+      expect(targetedStatuses).not.toContain(
+        ServiceExecutionStatus.REPROGRAMADO,
+      );
+    });
+
+    it('should return the real number of updated rows (may be lower than ids)', async () => {
+      tx.programacoes_servicos.updateMany.mockResolvedValueOnce({ count: 1 });
+
+      const result = await repository.markScheduleItemsAsRescheduled(
+        [1, 2],
+        asTx(tx),
+      );
+
+      expect(result).toBe(1);
+    });
+
+    it('should return 0 without calling prisma when no ids are given', async () => {
+      const result = await repository.markScheduleItemsAsRescheduled(
+        [],
+        asTx(tx),
+      );
+
+      expect(result).toBe(0);
+      expect(tx.programacoes_servicos.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('should never delete rows nor change prog/real', async () => {
+      tx.programacoes_servicos.updateMany.mockResolvedValueOnce({ count: 1 });
+
+      await repository.markScheduleItemsAsRescheduled([1], asTx(tx));
+
+      const { data } = tx.programacoes_servicos.updateMany.mock.calls[0][0];
+      expect(Object.keys(data)).toEqual(['status']);
     });
 
     it('should propagate prisma errors', async () => {
-      tx.programacoes_servicos.deleteMany.mockRejectedValueOnce(
-        new Error('FK violation'),
+      tx.programacoes_servicos.updateMany.mockRejectedValueOnce(
+        new Error('db down'),
       );
 
       await expect(
-        repository.deleteScheduleItemsByIds([1], asTx(tx)),
-      ).rejects.toThrow('FK violation');
-    });
-  });
-
-  describe('zeroScheduleProgress', () => {
-    it('should set prog and exec to zero', async () => {
-      tx.programacoes.update.mockResolvedValueOnce({ id: 3 });
-
-      const result = await repository.zeroScheduleProgress(3, asTx(tx));
-
-      expect(tx.programacoes.update).toHaveBeenCalledWith({
-        where: { id: 3 },
-        data: { prog: 0, exec: 0 },
-      });
-      expect(result).toBeUndefined();
-    });
-
-    it('should propagate errors (including P2025, not handled here)', async () => {
-      const error = prismaError('P2025');
-      tx.programacoes.update.mockRejectedValueOnce(error);
-
-      await expect(repository.zeroScheduleProgress(3, asTx(tx))).rejects.toBe(
-        error,
-      );
+        repository.markScheduleItemsAsRescheduled([1], asTx(tx)),
+      ).rejects.toThrow('db down');
     });
   });
 
   // ─── Execução ──────────────────────────────────────────────────────
   describe('findExecutionTargets', () => {
     it('should find rows by service and schedule including schedule status', async () => {
-      const rows = [{ id: 11, programacoes: { id_status_programacao: 3 } }];
+      const rows = [
+        { id: 11, status: null, programacoes: { id_status_programacao: 3 } },
+      ];
       tx.programacoes_servicos.findMany.mockResolvedValueOnce(rows);
 
       const result = await repository.findExecutionTargets(2, 3, asTx(tx));
@@ -255,9 +284,28 @@ describe('WorkServicesExeutionRepository', () => {
         where: { id_servico: 2, id_programacao: 3 },
         select: {
           id: true,
+          status: true,
           programacoes: { select: { id_status_programacao: true } },
         },
       });
+      expect(result).toEqual(rows);
+    });
+
+    it('should not filter by status, so REPROGRAMADO rows can still be corrected', async () => {
+      const rows = [
+        {
+          id: 12,
+          status: ServiceExecutionStatus.REPROGRAMADO,
+          programacoes: { id_status_programacao: 3 },
+        },
+      ];
+      tx.programacoes_servicos.findMany.mockResolvedValueOnce(rows);
+
+      const result = await repository.findExecutionTargets(2, 3, asTx(tx));
+
+      const { where } = tx.programacoes_servicos.findMany.mock.calls[0][0];
+      expect(where).not.toHaveProperty('status');
+      expect(where).not.toHaveProperty('OR');
       expect(result).toEqual(rows);
     });
 
@@ -279,35 +327,62 @@ describe('WorkServicesExeutionRepository', () => {
     });
   });
 
-  describe('updateItemsReal', () => {
-    it('should update real for each item', async () => {
+  describe('updateItemsExecution', () => {
+    it('should write real and the derived status for each item', async () => {
       tx.programacoes_servicos.update.mockResolvedValue({});
       const items = [
         { rowId: 1, real: 10 },
         { rowId: 2, real: 0 },
         { rowId: 3, real: 7.5 },
+        { rowId: 4, real: null },
       ];
 
-      const result = await repository.updateItemsReal(items, asTx(tx));
+      const result = await repository.updateItemsExecution(items, asTx(tx));
 
-      expect(tx.programacoes_servicos.update).toHaveBeenCalledTimes(3);
+      expect(tx.programacoes_servicos.update).toHaveBeenCalledTimes(4);
       expect(tx.programacoes_servicos.update).toHaveBeenNthCalledWith(1, {
         where: { id: 1 },
-        data: { real: 10 },
+        data: { real: 10, status: ServiceExecutionStatus.EXECUTADO },
       });
       expect(tx.programacoes_servicos.update).toHaveBeenNthCalledWith(2, {
         where: { id: 2 },
-        data: { real: 0 },
+        data: { real: 0, status: ServiceExecutionStatus.NAO_EXECUTADO },
       });
       expect(tx.programacoes_servicos.update).toHaveBeenNthCalledWith(3, {
         where: { id: 3 },
-        data: { real: 7.5 },
+        data: { real: 7.5, status: ServiceExecutionStatus.EXECUTADO },
+      });
+      expect(tx.programacoes_servicos.update).toHaveBeenNthCalledWith(4, {
+        where: { id: 4 },
+        data: { real: null, status: ServiceExecutionStatus.REPROGRAMADO },
       });
       expect(result).toBeUndefined();
     });
 
+    it('should mark real = null as REPROGRAMADO, never as NAO_EXECUTADO', async () => {
+      tx.programacoes_servicos.update.mockResolvedValue({});
+
+      await repository.updateItemsExecution(
+        [{ rowId: 1, real: null }],
+        asTx(tx),
+      );
+
+      const { data } = tx.programacoes_servicos.update.mock.calls[0][0];
+      expect(data.status).toBe(ServiceExecutionStatus.REPROGRAMADO);
+      expect(data.status).not.toBe(ServiceExecutionStatus.NAO_EXECUTADO);
+    });
+
+    it('should only write real and status (never prog)', async () => {
+      tx.programacoes_servicos.update.mockResolvedValue({});
+
+      await repository.updateItemsExecution([{ rowId: 1, real: 5 }], asTx(tx));
+
+      const { data } = tx.programacoes_servicos.update.mock.calls[0][0];
+      expect(Object.keys(data).sort()).toEqual(['real', 'status']);
+    });
+
     it('should not call prisma when items list is empty', async () => {
-      await repository.updateItemsReal([], asTx(tx));
+      await repository.updateItemsExecution([], asTx(tx));
 
       expect(tx.programacoes_servicos.update).not.toHaveBeenCalled();
     });
@@ -319,7 +394,7 @@ describe('WorkServicesExeutionRepository', () => {
         .mockResolvedValueOnce({});
 
       await expect(
-        repository.updateItemsReal(
+        repository.updateItemsExecution(
           [
             { rowId: 1, real: 1 },
             { rowId: 2, real: 2 },
