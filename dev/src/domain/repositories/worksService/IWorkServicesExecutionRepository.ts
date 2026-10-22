@@ -13,44 +13,39 @@ export interface FinalizationData {
   userId: number;
 }
 
+export interface ExecutionTarget {
+  id: number;
+  status: string | null;
+  programacoes: { id_status_programacao: number | null };
+}
+
 export interface IWorkServicesExecutionRepository {
-  // ─── Finalização ────────────────────────────────────────────────────
-  /** Grava prog/exec e os dados da execução. Devolve false se a programação não existir. */
+  // Finalização
   finalizeServices(
     data: FinalizationData,
     tx: Prisma.TransactionClient,
   ): Promise<boolean>;
 
-  // ─── Reagendamento ──────────────────────────────────────────────────
-  findScheduleWork(
-    scheduleId: number,
-    tx: Prisma.TransactionClient,
-  ): Promise<{ id_obra: number } | null>;
+  // Reagendamento / finalização
   findScheduleItems(
     scheduleId: number,
     tx: Prisma.TransactionClient,
   ): Promise<ScheduleExecutionRow[]>;
-  deleteScheduleItemsByIds(
+
+  markScheduleItemsAsRescheduled(
     ids: number[],
     tx: Prisma.TransactionClient,
-  ): Promise<void>;
-  /** Grava prog = 0 e exec = 0 (programação sem linhas). */
-  zeroScheduleProgress(
-    scheduleId: number,
-    tx: Prisma.TransactionClient,
-  ): Promise<void>;
+  ): Promise<number>;
 
-  // ─── Execução ───────────────────────────────────────────────────────
-  /** Linhas de programacoes_servicos para o par serviço + programação, com o estado da programação. */
+  // Execução
   findExecutionTargets(
     serviceId: number,
     scheduleId: number,
     tx: Prisma.TransactionClient,
-  ): Promise<
-    { id: number; programacoes: { id_status_programacao: number | null } }[]
-  >;
-  updateItemsReal(
-    items: { rowId: number; real: number }[],
+  ): Promise<ExecutionTarget[]>;
+
+  updateItemsExecution(
+    items: { rowId: number; real: number | null }[],
     tx: Prisma.TransactionClient,
   ): Promise<void>;
 }
