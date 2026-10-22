@@ -33,6 +33,11 @@ import {
   UpdateScheduleD5Dto,
 } from '../dtos/d5NotesDTO';
 
+interface CustomRequest extends Request {
+  idParceira?: number;
+  user: any;
+}
+
 @Controller('notas-d5')
 export class D5NotesController {
   constructor(
@@ -42,9 +47,24 @@ export class D5NotesController {
     private manageD5NoteService: ManageD5NoteService,
   ) {}
 
+  private applyFilters<T extends { idParceira?: number | number[] }>(
+    filters: T,
+    req: CustomRequest,
+  ): T {
+    if (req.user.tipo_usuario === 'PARCEIRA') {
+      return { ...filters, idParceira: [req.idParceira] };
+    }
+
+    return filters;
+  }
+
   @Get()
   @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
-  async getAll(@Query() filters: D5NotesFiltersDTO) {
+  async getAll(
+    @Query() d5NoteFilters: D5NotesFiltersDTO,
+    @Req() req: CustomRequest,
+  ) {
+    const filters = this.applyFilters(d5NoteFilters, req);
     const response = await this.findD5NotesService.get(filters);
 
     return {
@@ -56,7 +76,12 @@ export class D5NotesController {
 
   @Get('/programacoes')
   @UseGuards(AreaViewGuard({ allowedAreas: [8, 1] }))
-  async getSchedules(@Query() filters: D5NotesSchedulesFiltersDTO) {
+  async getSchedules(
+    @Query() d5NoteFilters: D5NotesSchedulesFiltersDTO,
+    @Req() req: CustomRequest,
+  ) {
+    const filters = this.applyFilters(d5NoteFilters, req);
+
     const response =
       await this.findD5NotesSchedules.findD5NotesSchedules(filters);
 
