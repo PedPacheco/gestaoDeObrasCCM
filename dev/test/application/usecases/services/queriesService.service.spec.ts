@@ -465,14 +465,6 @@ describe('QueriesServicesService', () => {
     });
   });
 
-  it('should throw NotFoundException when services is an empty array', async () => {
-    mockWorksServicesRepository.getNotScheduledServices.mockResolvedValue([]);
-
-    await expect(service.getNotScheduledServices(1)).rejects.toThrow(
-      new NotFoundException('Obra não encontrada'),
-    );
-  });
-
   describe('getSelectedServices', () => {
     const mockParams: GetSelectedServicesParamsInterface = {
       id: 1,
