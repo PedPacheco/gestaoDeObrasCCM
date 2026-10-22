@@ -30,6 +30,7 @@ const mockHistory: GetServiceScheduleHistoryResponse[] = [
     equipes: { equipe: 'LM01', perfil: 'B1' },
     prog: 1,
     real: 1,
+    status: 'EXECUTADO',
     servicos: {
       operacao: 'INSTALAÇÃO',
       descricao_operacao: 'POSTE',
@@ -51,6 +52,7 @@ const mockHistory: GetServiceScheduleHistoryResponse[] = [
     equipes: { equipe: 'LM01', perfil: 'B4' },
     prog: 1,
     real: 1,
+    status: 'EXECUTADO',
     servicos: {
       operacao: 'INSTALAÇÃO',
       ponto: 'P1',
