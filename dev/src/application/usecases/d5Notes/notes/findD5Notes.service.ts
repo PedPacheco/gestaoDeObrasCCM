@@ -175,7 +175,7 @@ export class FindD5NotesService {
     }
 
     if (filters.idGrupo?.length) {
-      where.id_turma = { in: filters.idGrupo };
+      where.tipos = { id_grupo: { in: filters.idGrupo } };
     }
 
     if (filters.idTipo?.length) {
