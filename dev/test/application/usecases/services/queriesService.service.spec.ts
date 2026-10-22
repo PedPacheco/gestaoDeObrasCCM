@@ -65,7 +65,7 @@ const mockHistory: GetServiceScheduleHistoryResponse[] = [
   },
 ];
 
-describe('WorksServicesService', () => {
+describe('QueriesServicesService', () => {
   let service: QueriesServicesService;
   let repository: IWorkServicesQueryRepository;
   let getWorkDetailsService: IGetWorksDetailsRepository;
