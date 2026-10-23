@@ -52,7 +52,7 @@ export class D5NotesController {
     req: CustomRequest,
   ): T {
     if (req.user.tipo_usuario === 'PARCEIRA') {
-      return { ...filters, idParceira: [req.idParceira] };
+      return { ...filters, idParceira: req.idParceira };
     }
 
     return filters;

@@ -88,6 +88,14 @@ const D5_FILTER_SCHEMA: FilterFieldConfig[] = [
     // GenericFilterBar limpa o valor automaticamente quando isto é true.
     disabledWhen: (extraValues) => extraValues.statusD5Sap === "Pendente",
   },
+  {
+    type: "select",
+    dataKey: "ovnotaExec",
+    filterKey: "idOvnota",
+    valueKey: "id",
+    displayKey: "ovnota",
+    virtualized: true,
+  },
 ];
 
 function deriveD5Options(
@@ -230,13 +238,26 @@ export default function D5NotesFilters({
     return params;
   }
 
+  function serializeExtraValues() {
+    const toDate = (v: ExtraFilterValue) =>
+      dayjs.isDayjs(v) && v.isValid() ? v.format("YYYY-MM-DD") : "";
+
+    return {
+      dataCriacaoInicial: toDate(extraValues.dataCriacaoInicial),
+      dataCriacaoFinal: toDate(extraValues.dataCriacaoFinal),
+      dataConclusaoInicial: toDate(extraValues.dataConclusaoInicial),
+      dataConclusaoFinal: toDate(extraValues.dataConclusaoFinal),
+      statusD5Sap: (extraValues.statusD5Sap as string) ?? "",
+      notaD5: ((extraValues.notaD5 as string) ?? "").trim(),
+    };
+  }
+
   function handleApplyFilters() {
-    const extraParams = buildExtraParams();
-    saveFilters(selectedItems, extraParams);
+    saveFilters(selectedItems, serializeExtraValues());
 
     searchFilteredData({
       ...Transform(selectedItems),
-      ...extraParams,
+      ...buildExtraParams(),
       // Sempre volta para a primeira página ao aplicar um novo filtro —
       // evita cair numa página que não existe mais no resultado filtrado.
       page: "0",

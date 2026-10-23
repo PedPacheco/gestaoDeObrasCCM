@@ -1,13 +1,11 @@
-import dayjs from "dayjs";
 import { cookies } from "next/headers";
 
 import { fetchData } from "@/actions/fetchData.action";
 import { fetchFilters } from "@/actions/fetchFilters.action";
-import MainSchduleForDay from "@/components/scheduleComponents/scheduleForDay/MainScheduleForDay";
-import { EmotionCacheProvider } from "@/theme/emotionCache";
-import { Transform } from "@/utils/transform";
 import { ErrorThrower } from "@/components/common/ErrorThrower";
 import D5NotesSchedulesMain from "@/components/scheduleComponents/d5NotesSchedules/d5NotesSchedules";
+import { EmotionCacheProvider } from "@/theme/emotionCache";
+import { Transform } from "@/utils/transform";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -31,6 +29,8 @@ export default async function ScheduleForDay() {
       municipio: true,
       grupo: true,
       status: true,
+      notaD5: true,
+      ovnotaExec: true,
     }),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/notas-d5/programacoes`,
@@ -62,9 +62,10 @@ export default async function ScheduleForDay() {
     conclusao_nota: "Data de conclusão",
     status: "Status D5 (SIGO)",
     status_sap: "Status D5 (SAP)",
-    responsavel: "Responsável",
+    statusPrazo: "Status Prazo",
     tmAberto: "TM - Aberto",
     tmExecucao: "TM - Execução",
+    responsavel: "Responsável",
     moRetida: "MO Retida",
 
     // Programação

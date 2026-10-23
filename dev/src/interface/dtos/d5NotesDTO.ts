@@ -63,6 +63,11 @@ export class D5NotesFiltersDTO {
   @Transform(({ value }) => convertParameterValue(value))
   idNotaD5?: number[];
 
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idOvnota?: number[];
+
   @IsDateString()
   @IsOptional()
   dataCriacaoInicial?: string;
@@ -124,6 +129,16 @@ export class D5NotesSchedulesFiltersDTO {
   @IsArray()
   @Transform(({ value }) => convertParameterValue(value))
   idParceira?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idOvnota?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @Transform(({ value }) => convertParameterValue(value))
+  idNotaD5?: number[];
 
   @IsOptional()
   @IsBoolean()
