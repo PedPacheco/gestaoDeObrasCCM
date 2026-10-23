@@ -7,13 +7,8 @@ import {
   SelectFilterConfig,
   TextFilterConfig,
 } from "@/types/genericFilterSchema";
-import { FilterOptionsData } from "./genericFilterBar";
-import { MultipleSelectComponent } from "./MultipleSelect";
-import { VirtualizedMultiSelect } from "./virtualizedMultiSelect";
 import { capitalize } from "@/utils/formatValue";
-import { Dayjs } from "dayjs";
-import { useEffect } from "react";
-import { DateFilter } from "./DateFilter";
+import { MagnifyingGlassCircleIcon } from "@heroicons/react/20/solid";
 import {
   Checkbox,
   FormControlLabel,
@@ -21,7 +16,12 @@ import {
   MenuItem,
   TextField,
 } from "@mui/material";
-import { MagnifyingGlassCircleIcon } from "@heroicons/react/20/solid";
+import { Dayjs } from "dayjs";
+import { useEffect } from "react";
+import { DateFilter } from "./DateFilter";
+import { FilterOptionsData } from "./genericFilterBar";
+import { MultipleSelectComponent } from "./MultipleSelect";
+import { VirtualizedMultiSelect } from "./virtualizedMultiSelect";
 
 interface FieldRendererProps {
   field: FilterFieldConfig;
@@ -186,6 +186,8 @@ function OptionsFilterField({
         label={field.label}
         value={value}
         onChange={(e) => onExtraValueChange(field.key, e.target.value)}
+        SelectProps={{ displayEmpty: true }}
+        InputLabelProps={{ shrink: true }}
       >
         <MenuItem value="">{field.allLabel ?? "Todos"}</MenuItem>
         {field.options.map((opt) => (
