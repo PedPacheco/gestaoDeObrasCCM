@@ -98,18 +98,7 @@ describe('FiltersService', () => {
       cacheKey: 'equipes',
       data: [{ id: 1, equipe: 'LM01', id_turma: 2 }],
     },
-    {
-      name: 'ovnota',
-      dto: { ovnota: true },
-      cacheKey: 'ovnota',
-      data: [{ id: 1, ovnota: 'Ovnota 1' }],
-    },
-    {
-      name: 'ovnotaExec',
-      dto: { ovnotaExec: true },
-      cacheKey: 'ovnotaExec',
-      data: [{ id: 1, ovnota: 'Ovnota 2' }],
-    },
+
     {
       name: 'notaD5',
       dto: { notaD5: true },
@@ -165,6 +154,125 @@ describe('FiltersService', () => {
         expect(result[name]).toEqual(data);
         expect(cacheManager.set).toHaveBeenCalledWith(cacheKey, data, 120);
       });
+    });
+  });
+
+  describe('getFilters - ovnota', () => {
+    const dto = { ovnota: true };
+    const cacheKey = 'ovnota';
+
+    const repositoryRows = [
+      {
+        id: 1,
+        ovnota: 'OV-1',
+        data_conclusao: new Date('2026-10-31T00:00:00Z'),
+        diagrama: 'DIAG-1',
+        ordem_dci: 'DCI-1',
+        ordem_dca: null,
+        ordem_dcd: null,
+        ordem_dcim: null,
+      },
+      {
+        id: 2,
+        ovnota: 'OV-2',
+        data_conclusao: null,
+        diagrama: null,
+        ordem_dci: null,
+        ordem_dca: 'DCA-2',
+        ordem_dcd: null,
+        ordem_dcim: null,
+      },
+      {
+        id: 3,
+        ovnota: 'OV-3',
+        data_conclusao: null,
+        diagrama: null,
+        ordem_dci: null,
+        ordem_dca: null,
+        ordem_dcd: null,
+        ordem_dcim: null,
+      },
+    ];
+
+    const expected = [
+      { id: 1, ovnota: 'OV-1', concluida: true, ordemDiagrama: 'DIAG-1' },
+      { id: 2, ovnota: 'OV-2', concluida: false, ordemDiagrama: 'DCA-2' },
+      { id: 3, ovnota: 'OV-3', concluida: false, ordemDiagrama: null },
+    ];
+
+    it('should return cached ovnota data without querying the database', async () => {
+      mockCacheManager.get.mockResolvedValue(expected);
+
+      const result = await filtersService.getFilters(dto);
+
+      expect(mockCacheManager.get).toHaveBeenCalledWith(cacheKey);
+      expect(mockRepository.getData).not.toHaveBeenCalled();
+      expect(result.ovnota).toEqual(expected);
+    });
+
+    it('should fetch all works (finished and in progress) with order columns', async () => {
+      mockCacheManager.get.mockResolvedValue(null);
+      mockRepository.getData.mockResolvedValue(repositoryRows);
+
+      await filtersService.getFilters(dto);
+
+      expect(mockRepository.getData).toHaveBeenCalledTimes(1);
+
+      const [table, columns, where] = mockRepository.getData.mock.calls[0];
+
+      expect(table).toBe('obras');
+      expect(columns).toEqual(
+        expect.arrayContaining([
+          'id',
+          'ovnota',
+          'data_conclusao',
+          'diagrama',
+          'ordem_dci',
+          'ordem_dca',
+          'ordem_dcd',
+          'ordem_dcim',
+        ]),
+      );
+      expect(where).toHaveProperty('municipios');
+      expect(where).not.toHaveProperty('data_conclusao');
+    });
+
+    it('should map works to id, ovnota, concluida and ordemDiagrama', async () => {
+      mockCacheManager.get.mockResolvedValue(null);
+      mockRepository.getData.mockResolvedValue(repositoryRows);
+
+      const result = await filtersService.getFilters(dto);
+
+      expect(result.ovnota).toEqual(expected);
+    });
+
+    it('should not expose raw date and order columns', async () => {
+      mockCacheManager.get.mockResolvedValue(null);
+      mockRepository.getData.mockResolvedValue(repositoryRows);
+
+      const result = await filtersService.getFilters(dto);
+
+      result.ovnota.forEach((work: Record<string, unknown>) => {
+        expect(work).not.toHaveProperty('data_conclusao');
+        expect(work).not.toHaveProperty('diagrama');
+        expect(work).not.toHaveProperty('ordem_dci');
+        expect(work).not.toHaveProperty('ordem_dca');
+        expect(work).not.toHaveProperty('ordem_dcd');
+        expect(work).not.toHaveProperty('ordem_dcim');
+      });
+    });
+
+    it('should cache the mapped data, not the raw rows', async () => {
+      mockCacheManager.get.mockResolvedValue(null);
+      mockRepository.getData.mockResolvedValue(repositoryRows);
+
+      await filtersService.getFilters(dto);
+
+      expect(mockCacheManager.set).toHaveBeenCalledWith(
+        cacheKey,
+        expected,
+        120,
+      );
     });
   });
 });
