@@ -102,7 +102,7 @@ describe('D5NotesController', () => {
   // GET /notas-d5
   // -------------------------------------------------------------------------
   describe('getAll', () => {
-    const filters = { page: 1, limit: 10 } as unknown as D5NotesFiltersDTO;
+    const filters = { page: 1 } as unknown as D5NotesFiltersDTO;
 
     it('deve retornar as notas D5 com o envelope de resposta correto', async () => {
       const data = [{ id: 1 }, { id: 2 }];
@@ -147,7 +147,7 @@ describe('D5NotesController', () => {
       await controller.getAll(maliciousFilters, req);
 
       const [calledFilters] = findD5NotesService.get.mock.calls[0];
-      expect(calledFilters.idParceira).toEqual([10]);
+      expect(calledFilters.idParceira).toEqual(10);
       expect(calledFilters.idParceira).not.toEqual([99]);
     });
 
@@ -162,7 +162,7 @@ describe('D5NotesController', () => {
 
       expect(findD5NotesService.get).toHaveBeenCalledWith({
         ...filters,
-        idParceira: [10],
+        idParceira: 10,
       });
     });
 

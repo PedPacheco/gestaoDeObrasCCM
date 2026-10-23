@@ -1,6 +1,8 @@
 import { D5NoteScheduleMapper } from 'src/application/mappers/d5NotesScheduleMapper';
 import { FindD5SchedulesService } from 'src/application/usecases/d5Notes/schedules/findD5Schedules.service';
 import { ID5NotesSchedulesRepository } from 'src/domain/repositories/d5Notes/ID5NotesSchedulesRepository';
+import { TimeMetricsService } from 'src/domain/services/d5Notes/timeMetrics.service';
+import { DeadlineStatus } from 'src/domain/services/deadlineStatus.service';
 import { D5NotesSchedulesFiltersDTO } from 'src/interface/dtos/d5NotesDTO';
 
 // Noon UTC: yields the same calendar day in virtually any timezone
@@ -33,6 +35,7 @@ describe('FindD5SchedulesService', () => {
   let toListItems: jest.SpyInstance;
   let toResponseList: jest.SpyInstance;
   let toRejectionsResponseList: jest.SpyInstance;
+  let timeMetrics: jest.Mocked<TimeMetricsService>;
 
   const whereFromGet = () => repository.get.mock.calls[0][0];
 
@@ -41,6 +44,12 @@ describe('FindD5SchedulesService', () => {
       now: FIXED_NOW,
       doNotFake: ['nextTick', 'setImmediate', 'queueMicrotask'],
     });
+
+    timeMetrics = {
+      calculateTM: jest.fn(),
+      calculateStatus: jest.fn(),
+      getDeadlineInfo: jest.fn(),
+    } as unknown as jest.Mocked<TimeMetricsService>;
 
     repository = makeRepository();
     repository.get.mockResolvedValue([]);
@@ -58,7 +67,7 @@ describe('FindD5SchedulesService', () => {
       .spyOn(D5NoteScheduleMapper, 'toRejectionsResponseList')
       .mockReturnValue([] as any);
 
-    service = new FindD5SchedulesService(repository);
+    service = new FindD5SchedulesService(repository, timeMetrics);
   });
 
   afterEach(() => {
@@ -81,7 +90,7 @@ describe('FindD5SchedulesService', () => {
 
       expect(repository.get).toHaveBeenCalledWith(DEFAULT_WHERE, undefined);
       expect(repository.getTotals).toHaveBeenCalledWith(DEFAULT_WHERE);
-      expect(toListItems).toHaveBeenCalledWith(rows);
+      expect(toListItems).toHaveBeenCalledWith(rows, expect.any(Function));
       expect(result).toEqual({
         d5Notes: mapped,
         totals: { total: 2, totalMoRetida: 5245, totalMoProgramada: 5245 },
@@ -137,6 +146,135 @@ describe('FindD5SchedulesService', () => {
       await expect(service.findD5NotesSchedules(makeFilters())).rejects.toThrow(
         'totals failed',
       );
+    });
+
+    describe('deadline metrics', () => {
+      const makeScheduleRow = (
+        id: number,
+        notas: Record<string, any> = {},
+      ) => ({
+        id,
+        notas_d5: {
+          criado_em: new Date('2026-10-16T00:00:00Z'),
+          conclusao_nota: null,
+          ...notas,
+        },
+      });
+
+      // Faz o mock do mapper executar o callback em cada linha
+      const passThroughMapper = () =>
+        toListItems.mockImplementation((rows: any[], getTimeMetrics: any) =>
+          rows.map((row) => ({ id: row.id, ...getTimeMetrics(row) })),
+        );
+
+      it('should calculate TM from the D5 note dates of the row', async () => {
+        const row = makeScheduleRow(1);
+        repository.get.mockResolvedValue([row] as any);
+        timeMetrics.calculateTM.mockReturnValue({
+          tmAberto: 6,
+          tmExecucao: null,
+        });
+        timeMetrics.calculateStatus.mockReturnValue(DeadlineStatus.CRITICAL);
+
+        await service.findD5NotesSchedules(makeFilters());
+
+        const [, getTimeMetrics] = toListItems.mock.calls[0];
+        const metrics = getTimeMetrics(row);
+
+        expect(timeMetrics.calculateTM).toHaveBeenCalledTimes(1);
+        expect(timeMetrics.calculateTM).toHaveBeenCalledWith(
+          row.notas_d5.criado_em,
+          row.notas_d5.conclusao_nota,
+        );
+        expect(timeMetrics.calculateStatus).toHaveBeenCalledWith(6);
+        expect(metrics).toEqual({
+          tmAberto: 6,
+          tmExecucao: null,
+          statusPrazo: DeadlineStatus.CRITICAL,
+        });
+      });
+
+      it('should pass the conclusion date and return tmExecucao for concluded notes', async () => {
+        const conclusao = new Date('2026-10-20T00:00:00Z');
+        const row = makeScheduleRow(1, { conclusao_nota: conclusao });
+        repository.get.mockResolvedValue([row] as any);
+        timeMetrics.calculateTM.mockReturnValue({
+          tmAberto: null,
+          tmExecucao: 4,
+        });
+        timeMetrics.calculateStatus.mockReturnValue(null);
+
+        await service.findD5NotesSchedules(makeFilters());
+
+        const [, getTimeMetrics] = toListItems.mock.calls[0];
+
+        expect(getTimeMetrics(row)).toEqual({
+          tmAberto: null,
+          tmExecucao: 4,
+          statusPrazo: null,
+        });
+        expect(timeMetrics.calculateTM).toHaveBeenCalledWith(
+          row.notas_d5.criado_em,
+          conclusao,
+        );
+        expect(timeMetrics.calculateStatus).toHaveBeenCalledWith(null);
+      });
+
+      it('should return the metrics of each row in the payload', async () => {
+        const rows = [makeScheduleRow(1), makeScheduleRow(2)];
+        repository.get.mockResolvedValue(rows as any);
+        repository.getTotals.mockResolvedValue([] as any);
+        passThroughMapper();
+
+        timeMetrics.calculateTM
+          .mockReturnValueOnce({ tmAberto: 2, tmExecucao: null })
+          .mockReturnValueOnce({ tmAberto: 8, tmExecucao: null });
+        timeMetrics.calculateStatus
+          .mockReturnValueOnce(DeadlineStatus.ON_TIME)
+          .mockReturnValueOnce(DeadlineStatus.OVERDUE);
+
+        const result = await service.findD5NotesSchedules(makeFilters());
+
+        expect(timeMetrics.calculateTM).toHaveBeenCalledTimes(2);
+        expect(timeMetrics.calculateTM).toHaveBeenNthCalledWith(
+          1,
+          rows[0].notas_d5.criado_em,
+          rows[0].notas_d5.conclusao_nota,
+        );
+        expect(timeMetrics.calculateTM).toHaveBeenNthCalledWith(
+          2,
+          rows[1].notas_d5.criado_em,
+          rows[1].notas_d5.conclusao_nota,
+        );
+        expect(timeMetrics.calculateStatus).toHaveBeenNthCalledWith(1, 2);
+        expect(timeMetrics.calculateStatus).toHaveBeenNthCalledWith(2, 8);
+
+        expect(result.d5Notes).toEqual([
+          {
+            id: 1,
+            tmAberto: 2,
+            tmExecucao: null,
+            statusPrazo: DeadlineStatus.ON_TIME,
+          },
+          {
+            id: 2,
+            tmAberto: 8,
+            tmExecucao: null,
+            statusPrazo: DeadlineStatus.OVERDUE,
+          },
+        ]);
+      });
+
+      it('should not calculate metrics when there are no rows', async () => {
+        repository.get.mockResolvedValue([]);
+        passThroughMapper();
+
+        const result = await service.findD5NotesSchedules(makeFilters());
+
+        expect(result.d5Notes).toEqual([]);
+        expect(timeMetrics.calculateTM).not.toHaveBeenCalled();
+        expect(timeMetrics.calculateStatus).not.toHaveBeenCalled();
+      });
     });
   });
 
@@ -235,6 +373,8 @@ describe('FindD5SchedulesService', () => {
       ['idGrupo', { id_turma: { in: [1, 2] } }],
       ['idTipo', { id_tipo: { in: [1, 2] } }],
       ['idParceira', { id_parceira: { in: [1, 2] } }],
+      ['idOvnota', { id_obra: { in: [1, 2] } }],
+      ['idNotaD5', { id: { in: [1, 2] } }],
     ])('should apply the %s filter', async (filter, condition) => {
       await service.findD5NotesSchedules(makeFilters({ [filter]: [1, 2] }));
 
@@ -243,14 +383,19 @@ describe('FindD5SchedulesService', () => {
       });
     });
 
-    it.each(['idRegional', 'idMunicipio', 'idGrupo', 'idTipo', 'idParceira'])(
-      'should ignore the %s filter when the list is empty',
-      async (filter) => {
-        await service.findD5NotesSchedules(makeFilters({ [filter]: [] }));
+    it.each([
+      'idRegional',
+      'idMunicipio',
+      'idGrupo',
+      'idTipo',
+      'idParceira',
+      'idOvnota',
+      'idNotaD5',
+    ])('should ignore the %s filter when the list is empty', async (filter) => {
+      await service.findD5NotesSchedules(makeFilters({ [filter]: [] }));
 
-        expect(whereFromGet()).toEqual(DEFAULT_WHERE);
-      },
-    );
+      expect(whereFromGet()).toEqual(DEFAULT_WHERE);
+    });
 
     it('should combine all filters in the expected order', async () => {
       await service.findD5NotesSchedules(
@@ -262,6 +407,8 @@ describe('FindD5SchedulesService', () => {
           idGrupo: [3],
           idTipo: [4],
           idParceira: [5],
+          idOvnota: [3],
+          idNotaD5: [3],
           reprovada: true,
         } as any),
       );
@@ -279,6 +426,8 @@ describe('FindD5SchedulesService', () => {
           { id_turma: { in: [3] } },
           { id_tipo: { in: [4] } },
           { id_parceira: { in: [5] } },
+          { id_obra: { in: [3] } },
+          { id: { in: [3] } },
           { reprovada: true },
         ],
       });
