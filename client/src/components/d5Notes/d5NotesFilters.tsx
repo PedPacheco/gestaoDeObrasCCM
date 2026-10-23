@@ -90,11 +90,14 @@ const D5_FILTER_SCHEMA: FilterFieldConfig[] = [
   },
   {
     type: "select",
-    dataKey: "ovnotaExec",
+    dataKey: "ovnota",
     filterKey: "idOvnota",
     valueKey: "id",
     displayKey: "ovnota",
+    label: "Ov/Nota - Ordem/Diagrama",
     virtualized: true,
+    secondaryDisplayKey: "ordemDiagrama",
+    searchKeys: ["ovnota", "ordemDiagrama"],
   },
 ];
 

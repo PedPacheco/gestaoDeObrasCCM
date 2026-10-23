@@ -30,7 +30,7 @@ export default async function D5NotesPage() {
       grupo: true,
       status: true,
       notaD5: true,
-      ovnotaExec: true,
+      ovnota: true,
     }),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/notas-d5`,
