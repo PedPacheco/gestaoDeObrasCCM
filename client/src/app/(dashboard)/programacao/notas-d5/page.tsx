@@ -10,7 +10,7 @@ import { Transform } from "@/utils/transform";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default async function ScheduleForDay() {
+export default async function D5NotesSchedules() {
   const cookieStore = await cookies();
   const cookieParams = cookieStore.get("schedulesD5NotesFilters")?.value;
 
@@ -30,7 +30,7 @@ export default async function ScheduleForDay() {
       grupo: true,
       status: true,
       notaD5: true,
-      ovnotaExec: true,
+      ovnota: true,
     }),
     fetchData(
       `${process.env.NEXT_PUBLIC_API_URL}/notas-d5/programacoes`,

@@ -3,6 +3,7 @@ import {
   alpha,
   Autocomplete,
   Checkbox,
+  createFilterOptions,
   styled,
   TextField,
 } from "@mui/material";
@@ -100,6 +101,8 @@ interface VirtualizedMultiSelectProps {
   setSelectedItem: (value: string[]) => void;
   valueKey: string;
   displayKey: string;
+  secondaryDisplayKey?: string;
+  searchKeys?: string[];
   backgroundColor?: string;
   textColor?: string;
 }
@@ -111,9 +114,20 @@ export function VirtualizedMultiSelect({
   setSelectedItem,
   valueKey,
   displayKey,
+  searchKeys,
+  secondaryDisplayKey,
   backgroundColor,
   textColor,
 }: VirtualizedMultiSelectProps) {
+  const filterOptions = React.useMemo(
+    () =>
+      createFilterOptions<FilterOption>({
+        stringify: (opt) =>
+          (searchKeys ?? [displayKey]).map((k) => opt[k] ?? "").join(" "),
+      }),
+    [searchKeys, displayKey],
+  );
+
   const selectedOptions = React.useMemo(
     () =>
       menuItems.filter((item) => selectedItem.includes(String(item[valueKey]))),
@@ -167,6 +181,7 @@ export function VirtualizedMultiSelect({
       limitTags={2}
       size="small"
       options={menuItems}
+      filterOptions={filterOptions}
       value={selectedOptions}
       isOptionEqualToValue={(opt, val) => opt[valueKey] === val[valueKey]}
       getOptionLabel={(opt) => String(opt[displayKey] ?? "")}
@@ -180,10 +195,22 @@ export function VirtualizedMultiSelect({
       )}
       renderOption={(props, option, { selected }) => {
         const { key, ...optionProps } = props as any;
+        const secondary = secondaryDisplayKey
+          ? option[secondaryDisplayKey]
+          : null;
+
         return (
           <li key={option[valueKey]} {...optionProps}>
             <Checkbox size="small" checked={selected} sx={{ mr: 1 }} />
-            {option[displayKey]}
+            <span className="truncate">{option[displayKey]}</span>
+            {secondary && (
+              <span
+                className="ml-2 truncate text-sm"
+                style={{ color: subtleColor, opacity: subtleColor ? 1 : 0.6 }}
+              >
+                · {secondary}
+              </span>
+            )}
           </li>
         );
       }}

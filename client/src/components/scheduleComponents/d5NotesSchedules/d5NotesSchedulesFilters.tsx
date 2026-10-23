@@ -69,7 +69,7 @@ const SCHEDULE_FILTER_SCHEMA: FilterFieldConfig[] = [
   },
   {
     type: "select",
-    dataKey: "ovnotaExec",
+    dataKey: "ovnota",
     filterKey: "idOvnota",
     valueKey: "id",
     displayKey: "ovnota",

@@ -12,6 +12,7 @@ import {
 } from 'src/domain/repositories/d5Notes/ID5notesRepository';
 import { TimeMetricsService } from 'src/domain/services/d5Notes/timeMetrics.service';
 import { D5NotesFiltersDTO } from 'src/interface/dtos/d5NotesDTO';
+import { resolveOrdemDiagrama } from 'src/utils/resolveOrdemDiagrama';
 
 @Injectable()
 export class FindD5NotesService {
@@ -48,13 +49,7 @@ export class FindD5NotesService {
         return {
           ...rest,
           moRetida: Number(rest.mo_planejada ?? 0),
-          ordemDiagrama:
-            obras?.diagrama ??
-            obras?.ordem_dci ??
-            obras?.ordem_dca ??
-            obras?.ordem_dcd ??
-            obras?.ordem_dcim ??
-            null,
+          ordemDiagrama: resolveOrdemDiagrama(obras),
           obra: obras?.ovnota ?? null,
           municipio: municipios?.mun_minusculo ?? null,
           regional: municipios?.regionais?.regional ?? null,
@@ -100,12 +95,7 @@ export class FindD5NotesService {
     return {
       ...rest,
       obra: obras?.ovnota ?? null,
-      ordemDiagrama:
-        obras?.diagrama ??
-        obras?.ordem_dci ??
-        obras?.ordem_dca ??
-        obras?.ordem_dcd ??
-        obras?.ordem_dcim,
+      ordemDiagrama: resolveOrdemDiagrama(obras),
       municipio: municipios.mun_minusculo,
       regional: municipios.regionais.regional,
       parceira: turmas.turma,
