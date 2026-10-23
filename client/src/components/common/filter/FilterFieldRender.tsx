@@ -102,22 +102,27 @@ function SelectField({
   const items = data[field.dataKey] || [];
   const label = field.label ?? capitalize(field.dataKey);
 
-  const Component = field.virtualized
-    ? VirtualizedMultiSelect
-    : MultipleSelectComponent;
+  const commonProps = {
+    label,
+    menuItems: items,
+    selectedItem: selectedItems[field.filterKey],
+    setSelectedItem: (value: string[]) =>
+      onSelectedItemChange(field.filterKey, value),
+    valueKey: field.valueKey,
+    displayKey: field.displayKey,
+  };
 
   return (
     <div className="w-full mx-auto">
-      <Component
-        label={label}
-        menuItems={items}
-        selectedItem={selectedItems[field.filterKey]}
-        setSelectedItem={(value) =>
-          onSelectedItemChange(field.filterKey, value)
-        }
-        valueKey={field.valueKey}
-        displayKey={field.displayKey}
-      />
+      {field.virtualized ? (
+        <VirtualizedMultiSelect
+          {...commonProps}
+          secondaryDisplayKey={field.secondaryDisplayKey}
+          searchKeys={field.searchKeys}
+        />
+      ) : (
+        <MultipleSelectComponent {...commonProps} />
+      )}
     </div>
   );
 }
