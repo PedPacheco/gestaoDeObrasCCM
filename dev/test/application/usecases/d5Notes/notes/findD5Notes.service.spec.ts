@@ -388,7 +388,7 @@ describe('FindD5NotesService', () => {
       const result = await service.getById(1);
 
       expect(result.obra).toBeNull();
-      expect(result.ordemDiagrama).toBeUndefined();
+      expect(result.ordemDiagrama).toBeNull();
       expect(result.usuarioModificador).toBeNull();
     });
 

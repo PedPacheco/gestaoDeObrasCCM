@@ -74,6 +74,7 @@ describe('EquipmentService', () => {
       {
         id: 1,
         ovnota: '123',
+        ordem_dci: '212412',
         referencia: 'EQ1',
         tipos: { tipo_obra: 'POSTE' },
         status: { status: 'Pendente' },
@@ -103,6 +104,7 @@ describe('EquipmentService', () => {
         {
           id: 1,
           ovnota: '123',
+          ordemDiagrama: '212412',
           referencia: 'EQ1',
           tipo_obra: 'POSTE',
           status: 'Pendente',

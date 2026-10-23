@@ -23,6 +23,7 @@ import {
   SchedulesD5NotesQueryResult,
 } from 'src/interface/types/d5notes/types';
 import { parseTimeToDate } from 'src/utils/parseTimeToDate';
+import { resolveOrdemDiagrama } from 'src/utils/resolveOrdemDiagrama';
 
 export interface D5ScheduleUpdateContext {
   id: number;
@@ -240,13 +241,7 @@ export class D5NoteScheduleMapper {
       status: notas_d5.status.status,
       responsavel: notas_d5.novo_tabela_usuarios?.nome ?? null,
       ovnota: obras?.ovnota ?? null,
-      ordemDiagrama:
-        obras?.diagrama ??
-        obras?.ordem_dci ??
-        obras?.ordem_dca ??
-        obras?.ordem_dcd ??
-        obras?.ordem_dcim ??
-        null,
+      ordemDiagrama: resolveOrdemDiagrama(obras),
     };
   }
 
