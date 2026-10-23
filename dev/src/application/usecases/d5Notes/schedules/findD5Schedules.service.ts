@@ -6,6 +6,7 @@ import {
   D5_NOTES_SCHEDULES_REPOSITORY,
   ID5NotesSchedulesRepository,
 } from 'src/domain/repositories/d5Notes/ID5NotesSchedulesRepository';
+import { TimeMetricsService } from 'src/domain/services/d5Notes/timeMetrics.service';
 import { D5NotesSchedulesFiltersDTO } from 'src/interface/dtos/d5NotesDTO';
 import { NoteScheduledWork } from 'src/interface/types/d5notes/types';
 
@@ -14,6 +15,7 @@ export class FindD5SchedulesService {
   constructor(
     @Inject(D5_NOTES_SCHEDULES_REPOSITORY)
     private d5SchedulesRepository: ID5NotesSchedulesRepository,
+    private readonly timeMetrics: TimeMetricsService,
   ) {}
 
   async findD5NotesSchedules(filters: D5NotesSchedulesFiltersDTO) {
@@ -26,7 +28,16 @@ export class FindD5SchedulesService {
     ]);
 
     return {
-      d5Notes: D5NoteScheduleMapper.toListItems(rows),
+      d5Notes: D5NoteScheduleMapper.toListItems(rows, (row) => {
+        const tm = this.timeMetrics.calculateTM(
+          row.notas_d5.criado_em,
+          row.notas_d5.conclusao_nota,
+        );
+        return {
+          ...tm,
+          statusPrazo: this.timeMetrics.calculateStatus(tm.tmAberto),
+        };
+      }),
       totals: this.buildTotals(notes),
     };
   }
@@ -81,6 +92,12 @@ export class FindD5SchedulesService {
     }
     if (filters.idParceira?.length) {
       and.push({ id_parceira: { in: filters.idParceira } });
+    }
+    if (filters.idOvnota?.length) {
+      and.push({ id_obra: { in: filters.idOvnota } });
+    }
+    if (filters.idNotaD5?.length) {
+      and.push({ id: { in: filters.idNotaD5 } });
     }
 
     // --- Filtros de estado ---

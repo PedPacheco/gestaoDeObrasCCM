@@ -10,11 +10,6 @@ export function isAtLeast(a: number, b: number): boolean {
   return a >= b - PROGRESS_EPSILON;
 }
 
-/** a ≈ b, tolerando erro de ponto flutuante. */
-export function isApproximately(a: number, b: number): boolean {
-  return Math.abs(a - b) < PROGRESS_EPSILON;
-}
-
 /** Percentual (value/total*100) com 4 casas; 0 quando total <= 0. */
 export function toPercentage(value: number, total: number): number {
   if (total <= 0) return 0;
