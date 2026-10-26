@@ -368,13 +368,20 @@ describe('FindD5SchedulesService', () => {
   // ---------------------------------------------------------------------------
   describe('where clause - list filters', () => {
     it.each([
-      ['idRegional', { municipios: { id_regional: { in: [1, 2] } } }],
-      ['idMunicipio', { id_municipio: { in: [1, 2] } }],
-      ['idGrupo', { id_turma: { in: [1, 2] } }],
-      ['idTipo', { id_tipo: { in: [1, 2] } }],
-      ['idParceira', { id_parceira: { in: [1, 2] } }],
-      ['idOvnota', { id_obra: { in: [1, 2] } }],
-      ['idNotaD5', { id: { in: [1, 2] } }],
+      [
+        'idRegional',
+        { notas_d5: { is: { municipios: { id_regional: { in: [1, 2] } } } } },
+      ],
+      ['idMunicipio', { notas_d5: { is: { id_municipio: { in: [1, 2] } } } }],
+      [
+        'idGrupo',
+        { notas_d5: { is: { tipos: { id_grupo: { in: [1, 2] } } } } },
+      ],
+      ['idTipo', { notas_d5: { is: { id_tipo: { in: [1, 2] } } } }],
+      ['idParceira', { notas_d5: { is: { id_parceira: { in: [1, 2] } } } }],
+      ['idOvnota', { notas_d5: { is: { id_obra: { in: [1, 2] } } } }],
+      ['idNotaD5', { id_nota_d5: { in: [1, 2] } }],
+      ['id', { id: { in: [1, 2] } }],
     ])('should apply the %s filter', async (filter, condition) => {
       await service.findD5NotesSchedules(makeFilters({ [filter]: [1, 2] }));
 
@@ -407,8 +414,9 @@ describe('FindD5SchedulesService', () => {
           idGrupo: [3],
           idTipo: [4],
           idParceira: [5],
-          idOvnota: [3],
-          idNotaD5: [3],
+          idOvnota: [6],
+          idNotaD5: [7],
+          id: [8],
           reprovada: true,
         } as any),
       );
@@ -421,13 +429,20 @@ describe('FindD5SchedulesService', () => {
               lte: new Date('2026-10-31T23:59:59.999Z'),
             },
           },
-          { municipios: { id_regional: { in: [1] } } },
-          { id_municipio: { in: [2] } },
-          { id_turma: { in: [3] } },
-          { id_tipo: { in: [4] } },
-          { id_parceira: { in: [5] } },
-          { id_obra: { in: [3] } },
-          { id: { in: [3] } },
+          {
+            notas_d5: {
+              is: {
+                municipios: { id_regional: { in: [1] } },
+                id_municipio: { in: [2] },
+                tipos: { id_grupo: { in: [3] } },
+                id_tipo: { in: [4] },
+                id_parceira: { in: [5] },
+                id_obra: { in: [6] },
+              },
+            },
+          },
+          { id_nota_d5: { in: [7] } },
+          { id: { in: [8] } },
           { reprovada: true },
         ],
       });

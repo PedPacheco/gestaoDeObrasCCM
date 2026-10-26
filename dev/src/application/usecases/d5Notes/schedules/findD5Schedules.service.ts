@@ -58,6 +58,9 @@ export class FindD5SchedulesService {
     // Junta as condições em AND para que nenhum filtro substitua outro
     const and: any[] = [];
 
+    // --- Filtros de lista (aplicados à tabela notas_d5) ---
+    const notaD5: any = {};
+
     // Início do dia de hoje, na data local, guardado como meia-noite UTC
     const hoje = moment.utc(moment().format('YYYY-MM-DD')).toDate();
 
@@ -77,27 +80,35 @@ export class FindD5SchedulesService {
       });
     }
 
-    // --- Filtros de lista ---
     if (filters.idRegional?.length) {
-      and.push({ municipios: { id_regional: { in: filters.idRegional } } });
+      notaD5.municipios = { id_regional: { in: filters.idRegional } };
     }
     if (filters.idMunicipio?.length) {
-      and.push({ id_municipio: { in: filters.idMunicipio } });
+      notaD5.id_municipio = { in: filters.idMunicipio };
     }
     if (filters.idGrupo?.length) {
-      and.push({ id_turma: { in: filters.idGrupo } });
+      notaD5.tipos = { id_grupo: { in: filters.idGrupo } };
     }
     if (filters.idTipo?.length) {
-      and.push({ id_tipo: { in: filters.idTipo } });
+      notaD5.id_tipo = { in: filters.idTipo };
     }
     if (filters.idParceira?.length) {
-      and.push({ id_parceira: { in: filters.idParceira } });
+      notaD5.id_parceira = { in: filters.idParceira };
     }
     if (filters.idOvnota?.length) {
-      and.push({ id_obra: { in: filters.idOvnota } });
+      notaD5.id_obra = { in: filters.idOvnota };
     }
+    // Só acrescenta o filtro de relação se houver pelo menos um critério
+    if (Object.keys(notaD5).length) {
+      and.push({ notas_d5: { is: notaD5 } });
+    }
+
     if (filters.idNotaD5?.length) {
-      and.push({ id: { in: filters.idNotaD5 } });
+      and.push({ id_nota_d5: { in: filters.idNotaD5 } });
+    }
+
+    if (filters.id?.length) {
+      and.push({ id: { in: filters.id } });
     }
 
     // --- Filtros de estado ---
